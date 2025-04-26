@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51FF6297A49
-	for <mm-commits@vger.kernel.org>; Fri, 25 Apr 2025 23:38:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85720195FE8
+	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2025 00:27:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745624296; cv=none; b=Dlikp/TiyNCD7wcHRj2lpCVwMbmIPNGd9UcpOlDxdxXHPr2pxUFojzQlvhAtIu0IFE8QzbPRNcSeG/M2t7eHw+izzhtk2AQOOAI4U670OhGFO4TVe5IJyvdn+6XP0EWfRykeMzzeE6bIJUAQigtWYTr4ZDMPEQJ421zoYN5o8+M=
+	t=1745627247; cv=none; b=Vxd4B8vJfLGyHz0V80uOfpsBVe72VKjpAW2yqCM0pA/W6AHDuP1oTX601PIUMbOGtskdLALfZizuL39gjQjxX8KatlLr6h049KKrSWJm1D6WJh+pbVlppB4vgq6hQx4q1vZV6zyDs3fxxbgSJh6t9YY/EVMl4L+WLjVZxSoQP7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745624296; c=relaxed/simple;
-	bh=Lag8B1w5kFN2SinSknEl4UtjescDux2PuJ+x9kvCLnU=;
-	h=Date:To:From:Subject:Message-Id; b=U6wCFsODtwNOeo2g2EIAub3J+PkG49PYIpnBL+nznEQaRihKkRGbAC45s6a39/G0U1/nzL2TmuyvZbGt3O471tnTpTyyPEA4NEk13Pwo4NcgdtJzGUf6a7FCoVtn25fXHzmgjeIKiSiI+bPRrZPXSFV0/Xp+HTA0osCvmHfhW5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FmGvAWd4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745627247; c=relaxed/simple;
+	bh=Wz4GHeov24ggMwnOAzeYzY/jzkkbsB4SftSaxFSoATg=;
+	h=Date:To:From:Subject:Message-Id; b=KKThF8i2WtCJjEgGM81bKy2RXGs/3XqwwZ49VRPAjjHfZvCvdqUvQQ5Mp6FsK2/TYTsvFbCZwECiXMht4q3i5R1UeQzUmfhbrkzmtgfDXbAJIbEfBniuiupDMzbtjIr8WsX3V+Hcn/zEIBN6J1b8rfcHLM5re1dCuhVSWbI9qDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x1agf2K8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FmGvAWd4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 143A1C4CEEB;
-	Fri, 25 Apr 2025 23:38:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x1agf2K8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C12B5C4CEE4;
+	Sat, 26 Apr 2025 00:27:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745624296;
-	bh=Lag8B1w5kFN2SinSknEl4UtjescDux2PuJ+x9kvCLnU=;
+	s=korg; t=1745627246;
+	bh=Wz4GHeov24ggMwnOAzeYzY/jzkkbsB4SftSaxFSoATg=;
 	h=Date:To:From:Subject:From;
-	b=FmGvAWd4iKpBy1CgviKPaFXqnBxFjnCUn1W+/36+wLWBrhYbVnru09rSblJmKXLAK
-	 nzqJW3JDMnW8IXxxCLvbK8ZxCBnEoCztp52LQQNWOVD0lVosPJlN+K5LgI1Rpjj9b7
-	 h/mKps9Hb62imQpLXJWr4fIVFOJ0EOeAVZmsfPfY=
-Date: Fri, 25 Apr 2025 16:38:15 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,dwmw@amazon.co.uk,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw2@infradead.org,akpm@linux-foundation.org
+	b=x1agf2K8a74msndLuSbNCtreA1KLkZlmAkMpIPR4/JR20KuxO/nLLyIbanfG3/R7v
+	 PPzu3C7K5ZzOHqIFvrt6xMpEXX2h3zBRKOmPsurwjw+q7TzcI+9GOpg1/OvuCm5FUB
+	 nUidiRX/rPOnGdknw01Rt4gC2qecMq8dnfgRkGwI=
+Date: Fri, 25 Apr 2025 17:27:26 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,revest@google.com,linmiaohe@huawei.com,hughd@google.com,gshan@redhat.com,david@redhat.com,gavinguo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range-fix.patch added to mm-new branch
-Message-Id: <20250425233816.143A1C4CEEB@smtp.kernel.org>
+Subject: + mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch added to mm-unstable branch
+Message-Id: <20250426002726.C12B5C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range-fix.patch
+     Subject: mm/huge_memory: adjust try_to_migrate_one() and split_huge_pmd_locked()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,50 +58,134 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Woodhouse <dwmw2@infradead.org>
-Subject: mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range-fix
-Date: Sat, 26 Apr 2025 00:04:46 +0100
+From: Gavin Guo <gavinguo@igalia.com>
+Subject: mm/huge_memory: adjust try_to_migrate_one() and split_huge_pmd_locked()
+Date: Fri, 25 Apr 2025 18:38:58 +0800
 
-fix next_valid_pfn() for sparsemem
+Patch series "Clean up split_huge_pmd_locked() and remove unnecessary
+folio pointers", v2.
 
-Link: https://lkml.kernel.org/r/c15100fcf6781a60b852c4dbb43bdc98a678fcf0.camel@infradead.org
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Woodhouse <dwmw@amazon.co.uk>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Ruihan Li <lrh2000@pku.edu.cn>
-Cc: Will Deacon <will@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+The patch series enhances the folio verification by leveraging the
+existing page_vma_mapped_walk() mechanism and removing redundant folio
+pointer passing.
+
+
+This patch (of 2):
+
+split_huge_pmd_locked() currently performs redundant checks for migration
+entries and folio validation that are already handled by the
+page_vma_mapped_walk mechanism in try_to_migrate_one.
+
+Specifically, page_vma_mapped_walk already ensures that:
+- The folio is properly mapped in the given VMA area
+- pmd_trans_huge, pmd_devmap, and migration entry validation are
+  performed
+
+To leverage page_vma_mapped_walk's work, moving TTU_SPLIT_HUGE_PMD
+handling to the while loop checking and removing these duplicate checks
+from split_huge_pmd_locked.
+
+Link: https://lkml.kernel.org/r/20250425103859.825879-1-gavinguo@igalia.com
+Link: https://lkml.kernel.org/r/20250425103859.825879-2-gavinguo@igalia.com
+Link: https://lore.kernel.org/all/98d1d195-7821-4627-b518-83103ade56c0@redhat.com/
+Link: https://lore.kernel.org/all/91599a3c-e69e-4d79-bac5-5013c96203d7@redhat.com/
+Signed-off-by: Gavin Guo <gavinguo@igalia.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Florent Revest <revest@google.com>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   21 ++-------------------
+ mm/rmap.c        |   18 +++++++++---------
+ 2 files changed, 11 insertions(+), 28 deletions(-)
 
---- a/include/linux/mmzone.h~mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range-fix
-+++ a/include/linux/mmzone.h
-@@ -2190,10 +2190,10 @@ static inline unsigned long next_valid_p
- 	/*
- 	 * Either every PFN within the section (or subsection for VMEMMAP) is
- 	 * valid, or none of them are. So there's no point repeating the check
--	 * for every PFN; only call first_valid_pfn() the first time, and when
--	 * crossing a (sub)section boundary (i.e. !(pfn & ~PFN_VALID_MASK)).
-+	 * for every PFN; only call first_valid_pfn() again when crossing a
-+	 * (sub)section boundary (i.e. !(pfn & ~PAGE_{SUB,}SECTION_MASK)).
- 	 */
--	if (pfn & (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
-+	if (pfn & ~(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
- 		   PAGE_SUBSECTION_MASK : PAGE_SECTION_MASK))
- 		return pfn;
+--- a/mm/huge_memory.c~mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked
++++ a/mm/huge_memory.c
+@@ -3082,27 +3082,10 @@ static void __split_huge_pmd_locked(stru
+ void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
+ 			   pmd_t *pmd, bool freeze, struct folio *folio)
+ {
+-	bool pmd_migration = is_pmd_migration_entry(*pmd);
+-
+-	VM_WARN_ON_ONCE(folio && !folio_test_pmd_mappable(folio));
+ 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
+-	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
+-	VM_BUG_ON(freeze && !folio);
+-
+-	/*
+-	 * When the caller requests to set up a migration entry, we
+-	 * require a folio to check the PMD against. Otherwise, there
+-	 * is a risk of replacing the wrong folio.
+-	 */
+-	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) || pmd_migration) {
+-		/*
+-		 * Do not apply pmd_folio() to a migration entry; and folio lock
+-		 * guarantees that it must be of the wrong folio anyway.
+-		 */
+-		if (folio && (pmd_migration || folio != pmd_folio(*pmd)))
+-			return;
++	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
++	    is_pmd_migration_entry(*pmd))
+ 		__split_huge_pmd_locked(vma, pmd, address, freeze);
+-	}
+ }
  
+ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+--- a/mm/rmap.c~mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked
++++ a/mm/rmap.c
+@@ -2292,13 +2292,6 @@ static bool try_to_migrate_one(struct fo
+ 		pvmw.flags = PVMW_SYNC;
+ 
+ 	/*
+-	 * unmap_page() in mm/huge_memory.c is the only user of migration with
+-	 * TTU_SPLIT_HUGE_PMD and it wants to freeze.
+-	 */
+-	if (flags & TTU_SPLIT_HUGE_PMD)
+-		split_huge_pmd_address(vma, address, true, folio);
+-
+-	/*
+ 	 * For THP, we have to assume the worse case ie pmd for invalidation.
+ 	 * For hugetlb, it could be much worse if we need to do pud
+ 	 * invalidation in the case of pmd sharing.
+@@ -2323,9 +2316,16 @@ static bool try_to_migrate_one(struct fo
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+ 	while (page_vma_mapped_walk(&pvmw)) {
+-#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+ 		/* PMD-mapped THP migration entry */
+ 		if (!pvmw.pte) {
++			if (flags & TTU_SPLIT_HUGE_PMD) {
++				split_huge_pmd_locked(vma, pvmw.address,
++						      pvmw.pmd, true, NULL);
++				ret = false;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+ 			subpage = folio_page(folio,
+ 				pmd_pfn(*pvmw.pmd) - folio_pfn(folio));
+ 			VM_BUG_ON_FOLIO(folio_test_hugetlb(folio) ||
+@@ -2337,8 +2337,8 @@ static bool try_to_migrate_one(struct fo
+ 				break;
+ 			}
+ 			continue;
+-		}
+ #endif
++		}
+ 
+ 		/* Unexpected PMD-mapped THP? */
+ 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from gavinguo@igalia.com are
 
-mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range-fix.patch
+mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
+mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch
+mm-huge_memory-remove-useless-folio-pointers-passing.patch
 
