@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BC4F1957FC
-	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2025 01:56:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55B7213B284;
+	Sat, 26 Apr 2025 01:59:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745632580; cv=none; b=jhPPt1BsF6/w6QVpiu6DsooCklRfzCSdSMfk8Q8EGFH30CjIWvYpbJ9Npoq0jyjlRw80kamBY3HT8a1P34X7Dbdfl4Cw3QAgkoTba2ciJEiaiyFJsEMnxnVBfD71FtTLCix1HDP06pNm6O+thfN7gkca5H13DckcPdGIbLitass=
+	t=1745632785; cv=none; b=kC1D96fZeaCNCtayhlDPFuHkYa/gnjw977o8MO0pvO0qwQsvcXf+hRbI3wVyDwJWW37LhVQenivkkllriHrSdWcPI5/Y9d16xv7RS4CUBV8QWVolygVk/4ILHeyVF4WVi20vwcEiuHUO4MZfMRYpZIo5HD28GySNclJmWFxEkxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745632580; c=relaxed/simple;
-	bh=PJCIIsAyzWBpCdGgyknivkkWkiR3cCqBcTlFsX1iWno=;
-	h=Date:To:From:Subject:Message-Id; b=t8pEVF5Wf76MpITr48Li/Wxp9LJytMU71nTlSlWw9R7kCI2FG+A0THacnhY7iLOnHJHJy3KOzuWcWaPfKlg6l3NEehQj8fnY9RssTG1LxCfAss58GpTeebh03GFHFYU8t2yHEIgkiSJq5vNMa+DeIdLRHk4n4xoLK3dgi/1AVPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p7QdRSXm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745632785; c=relaxed/simple;
+	bh=8Or1dD90mFtgUKp0lVsuOKbDOlgiixo5kCZ7CLMijnA=;
+	h=Date:To:From:Subject:Message-Id; b=WnNwruq/uiCBaQp3p0DYcMzqdJT/UIDeULtMPejuRCVBXWPsnyv5w5D1R4rEmetCWA7KWoZPEl/JdglB2/J3LixLI6vlPrF2AaJv//UJKsSBWg3NsQA3YiDVnI3/K86ems7iaHkncaGzLFg5ROsCDa0JTb9NNCTPPhpMYH1qjSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qmTJiR3H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p7QdRSXm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD152C4CEE4;
-	Sat, 26 Apr 2025 01:56:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qmTJiR3H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8415C4CEE4;
+	Sat, 26 Apr 2025 01:59:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745632580;
-	bh=PJCIIsAyzWBpCdGgyknivkkWkiR3cCqBcTlFsX1iWno=;
+	s=korg; t=1745632784;
+	bh=8Or1dD90mFtgUKp0lVsuOKbDOlgiixo5kCZ7CLMijnA=;
 	h=Date:To:From:Subject:From;
-	b=p7QdRSXmS1bWZohr4qRvxoSABFww3tGNyWca0y10mwVI3gwYXrOMox4Ly78TgIbuu
-	 T60IRvJ4HMJQK7CTcOUTdW6wsfW6ql77JjGjQIGdcIidP9BBau5xc0g7vm10Rsd6OW
-	 HF49IMtyTq8vc8RhDwVeDXwAK3xr1/S6i+fcTQyw=
-Date: Fri, 25 Apr 2025 18:56:19 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,willy@infradead.org,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,david@redhat.com,dave@stgolabs.net,baolin.wang@linux.alibaba.com,a.manzanares@samsung.com,fan.ni@samsung.com,akpm@linux-foundation.org
+	b=qmTJiR3HRpa21WGwDchuxe2tfnMtDQz4ShSTSVQf6DANN+hP1qeqqfv4P3OF2nqZQ
+	 fTR8qyAEyqkx+GColr9uiDnaiYRoFy/9ZUYXI4iLXDp68B3BPAUUuFkh+yu9b6TeeK
+	 r4czI2wcnRtzXaNqfwzeB6wnOdMpqIRWYApQExoY=
+Date: Fri, 25 Apr 2025 18:59:44 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,stable@vger.kernel.org,mhocko@suse.com,erhard_f@mailbox.org,dakr@kernel.org,kees@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-pass-folio-instead-of-head-page-to-trace-events.patch added to mm-new branch
-Message-Id: <20250426015619.DD152C4CEE4@smtp.kernel.org>
+Subject: + mm-vmalloc-support-more-granular-vrealloc-sizing.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250426015944.B8415C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: pass folio instead of head page to trace events
-has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-pass-folio-instead-of-head-page-to-trace-events.patch
+     Subject: mm: vmalloc: support more granular vrealloc() sizing
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-support-more-granular-vrealloc-sizing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-pass-folio-instead-of-head-page-to-trace-events.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-support-more-granular-vrealloc-sizing.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,112 +58,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Fan Ni <fan.ni@samsung.com>
-Subject: khugepaged: pass folio instead of head page to trace events
-Date: Thu, 24 Apr 2025 17:16:51 -0700
+From: Kees Cook <kees@kernel.org>
+Subject: mm: vmalloc: support more granular vrealloc() sizing
+Date: Fri, 25 Apr 2025 17:11:07 -0700
 
-The trace functions trace_mm_collapse_huge_page_isolate() and
-trace_mm_khugepaged_scan_pmd() each have a single user, which always
-passes in the head page of a folio.  Refactor both functions to take a
-folio directly.
+Introduce struct vm_struct::requested_size so that the requested
+(re)allocation size is retained separately from the allocated area size. 
+This means that KASAN will correctly poison the correct spans of requested
+bytes.  This also means we can support growing the usable portion of an
+allocation that can already be supported by the existing area's existing
+allocation.
 
-Link: https://lkml.kernel.org/r/20250425002425.533698-1-nifan.cxl@gmail.com
-Signed-off-by: Fan Ni <fan.ni@samsung.com>
-Reviewed-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Yang Shi <yang@os.amperecomputing.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Adam Manzanares <a.manzanares@samsung.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20250426001105.it.679-kees@kernel.org
+Fixes: 3ddc2fefe6f3 ("mm: vmalloc: implement vrealloc()")
+Signed-off-by: Kees Cook <kees@kernel.org>
+Reported-by: Erhard Furtner <erhard_f@mailbox.org>
+Closes: https://lore.kernel.org/all/20250408192503.6149a816@outsider.home/
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   12 ++++++------
- mm/khugepaged.c                    |    6 +++---
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/vmalloc.h |    1 +
+ mm/vmalloc.c            |   31 ++++++++++++++++++++++++-------
+ 2 files changed, 25 insertions(+), 7 deletions(-)
 
---- a/include/trace/events/huge_memory.h~khugepaged-pass-folio-instead-of-head-page-to-trace-events
-+++ a/include/trace/events/huge_memory.h
-@@ -55,10 +55,10 @@ SCAN_STATUS
+--- a/include/linux/vmalloc.h~mm-vmalloc-support-more-granular-vrealloc-sizing
++++ a/include/linux/vmalloc.h
+@@ -61,6 +61,7 @@ struct vm_struct {
+ 	unsigned int		nr_pages;
+ 	phys_addr_t		phys_addr;
+ 	const void		*caller;
++	unsigned long		requested_size;
+ };
  
- TRACE_EVENT(mm_khugepaged_scan_pmd,
- 
--	TP_PROTO(struct mm_struct *mm, struct page *page, bool writable,
-+	TP_PROTO(struct mm_struct *mm, struct folio *folio, bool writable,
- 		 int referenced, int none_or_zero, int status, int unmapped),
- 
--	TP_ARGS(mm, page, writable, referenced, none_or_zero, status, unmapped),
-+	TP_ARGS(mm, folio, writable, referenced, none_or_zero, status, unmapped),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
-@@ -72,7 +72,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
- 
- 	TP_fast_assign(
- 		__entry->mm = mm;
--		__entry->pfn = page ? page_to_pfn(page) : -1;
-+		__entry->pfn = folio ? folio_pfn(folio) : -1;
- 		__entry->writable = writable;
- 		__entry->referenced = referenced;
- 		__entry->none_or_zero = none_or_zero;
-@@ -116,10 +116,10 @@ TRACE_EVENT(mm_collapse_huge_page,
- 
- TRACE_EVENT(mm_collapse_huge_page_isolate,
- 
--	TP_PROTO(struct page *page, int none_or_zero,
-+	TP_PROTO(struct folio *folio, int none_or_zero,
- 		 int referenced, bool  writable, int status),
- 
--	TP_ARGS(page, none_or_zero, referenced, writable, status),
-+	TP_ARGS(folio, none_or_zero, referenced, writable, status),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
-@@ -130,7 +130,7 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
- 	),
- 
- 	TP_fast_assign(
--		__entry->pfn = page ? page_to_pfn(page) : -1;
-+		__entry->pfn = folio ? folio_pfn(folio) : -1;
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->referenced = referenced;
- 		__entry->writable = writable;
---- a/mm/khugepaged.c~khugepaged-pass-folio-instead-of-head-page-to-trace-events
-+++ a/mm/khugepaged.c
-@@ -696,13 +696,13 @@ next:
- 		result = SCAN_LACK_REFERENCED_PAGE;
- 	} else {
- 		result = SCAN_SUCCEED;
--		trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
-+		trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
- 						    referenced, writable, result);
- 		return result;
- 	}
- out:
- 	release_pte_pages(pte, _pte, compound_pagelist);
--	trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
-+	trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
- 					    referenced, writable, result);
- 	return result;
+ struct vmap_area {
+--- a/mm/vmalloc.c~mm-vmalloc-support-more-granular-vrealloc-sizing
++++ a/mm/vmalloc.c
+@@ -1940,7 +1940,7 @@ static inline void setup_vmalloc_vm(stru
+ {
+ 	vm->flags = flags;
+ 	vm->addr = (void *)va->va_start;
+-	vm->size = va_size(va);
++	vm->size = vm->requested_size = va_size(va);
+ 	vm->caller = caller;
+ 	va->vm = vm;
  }
-@@ -1435,7 +1435,7 @@ out_unmap:
- 		*mmap_locked = false;
+@@ -3133,6 +3133,7 @@ struct vm_struct *__get_vm_area_node(uns
+ 
+ 	area->flags = flags;
+ 	area->caller = caller;
++	area->requested_size = requested_size;
+ 
+ 	va = alloc_vmap_area(size, align, start, end, node, gfp_mask, 0, area);
+ 	if (IS_ERR(va)) {
+@@ -4063,6 +4064,8 @@ EXPORT_SYMBOL(vzalloc_node_noprof);
+  */
+ void *vrealloc_noprof(const void *p, size_t size, gfp_t flags)
+ {
++	struct vm_struct *vm = NULL;
++	size_t alloced_size = 0;
+ 	size_t old_size = 0;
+ 	void *n;
+ 
+@@ -4072,15 +4075,17 @@ void *vrealloc_noprof(const void *p, siz
  	}
- out:
--	trace_mm_khugepaged_scan_pmd(mm, &folio->page, writable, referenced,
-+	trace_mm_khugepaged_scan_pmd(mm, folio, writable, referenced,
- 				     none_or_zero, result, unmapped);
- 	return result;
- }
+ 
+ 	if (p) {
+-		struct vm_struct *vm;
+-
+ 		vm = find_vm_area(p);
+ 		if (unlikely(!vm)) {
+ 			WARN(1, "Trying to vrealloc() nonexistent vm area (%p)\n", p);
+ 			return NULL;
+ 		}
+ 
+-		old_size = get_vm_area_size(vm);
++		alloced_size = get_vm_area_size(vm);
++		old_size = vm->requested_size;
++		if (WARN(alloced_size < old_size,
++			 "vrealloc() has mismatched area vs requested sizes (%p)\n", p))
++			return NULL;
+ 	}
+ 
+ 	/*
+@@ -4088,14 +4093,26 @@ void *vrealloc_noprof(const void *p, siz
+ 	 * would be a good heuristic for when to shrink the vm_area?
+ 	 */
+ 	if (size <= old_size) {
+-		/* Zero out spare memory. */
+-		if (want_init_on_alloc(flags))
++		/* Zero out "freed" memory. */
++		if (want_init_on_free())
+ 			memset((void *)p + size, 0, old_size - size);
++		vm->requested_size = size;
+ 		kasan_poison_vmalloc(p + size, old_size - size);
+-		kasan_unpoison_vmalloc(p, size, KASAN_VMALLOC_PROT_NORMAL);
+ 		return (void *)p;
+ 	}
+ 
++	/*
++	 * We already have the bytes available in the allocation; use them.
++	 */
++	if (size <= alloced_size) {
++		kasan_unpoison_vmalloc(p + old_size, size - old_size,
++				       KASAN_VMALLOC_PROT_NORMAL);
++		/* Zero out "alloced" memory. */
++		if (want_init_on_alloc(flags))
++			memset((void *)p + old_size, 0, size - old_size);
++		vm->requested_size = size;
++	}
++
+ 	/* TODO: Grow the vm_area, i.e. allocate and map additional pages. */
+ 	n = __vmalloc_noprof(size, flags);
+ 	if (!n)
 _
 
-Patches currently in -mm which might be from fan.ni@samsung.com are
+Patches currently in -mm which might be from kees@kernel.org are
 
-mm-convert-free_page_and_swap_cache-to-free_folio_and_swap_cache.patch
-khugepaged-pass-folio-instead-of-head-page-to-trace-events.patch
+mm-vmalloc-support-more-granular-vrealloc-sizing.patch
 
