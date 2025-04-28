@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07CD18DF62;
-	Mon, 28 Apr 2025 19:58:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF5F435973
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 21:48:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745870292; cv=none; b=SNu18l8vC6AyhScdyqkf9+wDFpFDrzyjCjgcKa6cQGDA6Or/k9enbot/uc0vs5Rk9MgBb33saDey6+UQ0TL90URjM1aeQsdyR8x/ojloOeaSSX3RnABGWZIob3wGzU1XHVQpNkUWGqGJevvKM21tkqw4+Px9Hcp48OudFBcDedY=
+	t=1745876894; cv=none; b=g9koq3nX8a6WWAl0tSz6eL3h6gfJVUrppGHnUCWDw2c03kSxO5v4dFASCtxVpMy/kkUzoovfybGNiWGmralc8CBKLImGoOyDZp+YdsBGJCNnKJMzLpC/Yd+uMN1JWlM/SAnpF3SXtCtSQGRws9aDQZ0nlhnJ6lBEYUX8yWPKhuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745870292; c=relaxed/simple;
-	bh=ED4AGlOpY2ePHZB75cwYnuInlVQaXvlnovM9B6UgUT4=;
-	h=Date:To:From:Subject:Message-Id; b=LsAOYYRBBKXo+TPz4tjKlgpGDuZ5jTtChjotLhhPXy4tCMDByXbOFJHC9N5uVscBcQlwbh5MChr0nCrNtODSY6QzT+xhA3Oo8WO4/fUv+6m/DQWciF9JawDI3hgKNWvcyQWn5FoSZMox7NqmaW/PeDPvwF+gmzhlZ2B5HpD4+Fw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lmMFOekF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745876894; c=relaxed/simple;
+	bh=F6cl0P4PpwamMzgK6vCxmac+70QL0u0GBaEc+cMKiI8=;
+	h=Date:To:From:Subject:Message-Id; b=TtwmH0GSXNEx7ywsNGYW8xYuLuzNIvrdVedUew3OSX9dW48bLibcENWqlc9++4s3yaDA0+Rp7O+7e+DFgmDNM8mf1LNB9eh576fa6UnwRHuOMSizpux/t7ummxIxpnAC3CSS3rQDHvRKF+hbQpZ9Sfrc6x8LLO00FaJKnC6p5tA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2RuTMsiM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lmMFOekF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75D26C4CEE4;
-	Mon, 28 Apr 2025 19:58:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2RuTMsiM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D078C4CEE4;
+	Mon, 28 Apr 2025 21:48:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745870292;
-	bh=ED4AGlOpY2ePHZB75cwYnuInlVQaXvlnovM9B6UgUT4=;
+	s=korg; t=1745876894;
+	bh=F6cl0P4PpwamMzgK6vCxmac+70QL0u0GBaEc+cMKiI8=;
 	h=Date:To:From:Subject:From;
-	b=lmMFOekFHq3nxXiKy43o4TSG9AhtXy4LZq1NZIAL9X6D/UN6K1oG4+lbHsx0h/zyW
-	 ymy7xL0KyiQi7DDih+PjvS5wVsRE6D2JN2pV09vk+iyInXFgoZJyaVhOysU1dw2FbR
-	 iSVmDhDSmYPsj4uekYqZbUl445yfNmUWm/f23Nsg=
-Date: Mon, 28 Apr 2025 12:58:11 -0700
-To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,stable@vger.kernel.org,maddy@linux.ibm.com,donettom@linux.ibm.com,nysal@linux.ibm.com,akpm@linux-foundation.org
+	b=2RuTMsiMDcrMJp3qHLSze27pnDzgEd0K2yI5ieUPevABt3SiKnnPTJNyNPaJ5bK9s
+	 0lI/tIg0YMMmXdn05qYsdLTZ7/3eHzNfShotZDXgeUWlMSjeM33MFVHrX/s3uQk14x
+	 EBeki1Em5mF4waSCzxcx39MrcpPQsKWnsTthmzE0=
+Date: Mon, 28 Apr 2025 14:48:13 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,dwmw@amazon.co.uk,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw2@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-a-build-failure-on-powerpc.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250428195812.75D26C4CEE4@smtp.kernel.org>
+Subject: + mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch added to mm-new branch
+Message-Id: <20250428214814.2D078C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix a build failure on powerpc
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-fix-a-build-failure-on-powerpc.patch
+     Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
+has been added to the -mm mm-new branch.  Its filename is
+     mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-a-build-failure-on-powerpc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,63 +64,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Nysal Jan K.A." <nysal@linux.ibm.com>
-Subject: selftests/mm: fix a build failure on powerpc
-Date: Mon, 28 Apr 2025 18:49:35 +0530
+From: David Woodhouse <dwmw2@infradead.org>
+Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
+Date: Sat, 26 Apr 2025 00:04:46 +0100
 
-The compiler is unaware of the size of code generated by the ".rept"
-assembler directive.  This results in the compiler emitting branch
-instructions where the offset to branch to exceeds the maximum allowed
-value, resulting in build failures like the following:
+fix next_valid_pfn() for sparsemem
 
-  CC       protection_keys
-  /tmp/ccypKWAE.s: Assembler messages:
-  /tmp/ccypKWAE.s:2073: Error: operand out of range (0x0000000000020158
-  is not between 0xffffffffffff8000 and 0x0000000000007ffc)
-  /tmp/ccypKWAE.s:2509: Error: operand out of range (0x0000000000020130
-  is not between 0xffffffffffff8000 and 0x0000000000007ffc)
-
-Fix the issue by manually adding nop instructions using the preprocessor.
-
-Link: https://lkml.kernel.org/r/20250428131937.641989-2-nysal@linux.ibm.com
-Fixes: 46036188ea1f5 ("selftests/mm: build with -O2")
-Reported-by: Madhavan Srinivasan <maddy@linux.ibm.com>
-Signed-off-by: Nysal Jan K.A. <nysal@linux.ibm.com>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Reviewed-by:Donet Tom <donettom@linux.ibm.com>
-Tested-by: Donet Tom <donettom@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/c15100fcf6781a60b852c4dbb43bdc98a678fcf0.camel@infradead.org
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Woodhouse <dwmw@amazon.co.uk>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Ruihan Li <lrh2000@pku.edu.cn>
+Cc: Will Deacon <will@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-powerpc.h |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey-powerpc.h~selftests-mm-fix-a-build-failure-on-powerpc
-+++ a/tools/testing/selftests/mm/pkey-powerpc.h
-@@ -104,8 +104,18 @@ static inline void expect_fault_on_read_
- 	return;
- }
+--- a/include/linux/mmzone.h~mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
++++ a/include/linux/mmzone.h
+@@ -2190,10 +2190,10 @@ static inline unsigned long next_valid_p
+ 	/*
+ 	 * Either every PFN within the section (or subsection for VMEMMAP) is
+ 	 * valid, or none of them are. So there's no point repeating the check
+-	 * for every PFN; only call first_valid_pfn() the first time, and when
+-	 * crossing a (sub)section boundary (i.e. !(pfn & ~PFN_VALID_MASK)).
++	 * for every PFN; only call first_valid_pfn() again when crossing a
++	 * (sub)section boundary (i.e. !(pfn & ~PAGE_{SUB,}SECTION_MASK)).
+ 	 */
+-	if (pfn & (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
++	if (pfn & ~(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
+ 		   PAGE_SUBSECTION_MASK : PAGE_SECTION_MASK))
+ 		return pfn;
  
-+#define REPEAT_8(s) s s s s s s s s
-+#define REPEAT_64(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) \
-+		     REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s)
-+#define REPEAT_512(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) \
-+		      REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s)
-+#define REPEAT_4096(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) \
-+		       REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s)
-+#define REPEAT_16384(s) REPEAT_4096(s) REPEAT_4096(s) \
-+			REPEAT_4096(s) REPEAT_4096(s)
-+
- /* 4-byte instructions * 16384 = 64K page */
--#define __page_o_noops() asm(".rept 16384 ; nop; .endr")
-+#define __page_o_noops() asm(REPEAT_16384("nop\n"))
- 
- static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
- {
 _
 
-Patches currently in -mm which might be from nysal@linux.ibm.com are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
-selftests-mm-fix-a-build-failure-on-powerpc.patch
+mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
 
