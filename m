@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C605F27CB21
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B2C8269D09
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745866881; cv=none; b=VVWwrJbeH0bF+cwebRSlfyKnmjs/FQvc4l48uikCTroY/EKRKgCixdp6On2HACK7nTB1BuinRipY/UiGd1ElqLkWGM72B17PUjqe5VoegTp2wIso78CQrh/0C0LLfQaVoSUOlhTqtbSBxIqpgNAzeIDHuCgUUvk5xuH6v3qeWj4=
+	t=1745866884; cv=none; b=Md/tFymkLcCX77ifPwLiHEf9a1ypMELayeTfXH6r0r7d5iKAZadL1SrokAF9jRGn3xXaDHkvvg+FZVGJIALGiZZwB+k5Nawa5hC7tpWy+2wj29lNeiY+wynQLI5OjeYXa2PsvQW5AqkvyIGcL7CWajV6App5hNAjq749hPt+23M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745866881; c=relaxed/simple;
-	bh=ooodhDmbeMlpXJ8gxZ91Nm/mG/W7iIqbvwVI45HkggQ=;
-	h=Date:To:From:Subject:Message-Id; b=d25LOjQz3D9w6vuJ/c3KraG8fqy7pD+2jQGXXb0EZu3OdvS9qQUb1bbCUScHVuAeRO2UUde6yBqJvonLcQ/l7HZqbW5QXmbed0ETYvjXbyGSazdUAm1tw8Ex/xCay2dUglbJp1bCXCgRQnEcPt4k0J2JhNRaBGjjQ8zJ+1J9iDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oir43wP7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745866884; c=relaxed/simple;
+	bh=prA8LPZ3nGuwVhJqDI4sW3LGrlkAl1KJYlT3gbgqixo=;
+	h=Date:To:From:Subject:Message-Id; b=RFZ8xMiM1CfZOQiEHRpy4FXK/czVHO/reR01XC0Fy1XKS4JzSgfQNqYUMrUZXCDo5GZEW/zTkA8ZM32SOHCS/a1aQHINvSZNv/VAGBw9pwTo8nNAAbxskwusrjuk+Vx19a7PFQ80F1fC8IhVlVOnW+IC0p0XyIC6F+9QAjmgZVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O0HKpghM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oir43wP7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C9B7C4CEE4;
-	Mon, 28 Apr 2025 19:01:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O0HKpghM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3CBFC4CEE4;
+	Mon, 28 Apr 2025 19:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745866881;
-	bh=ooodhDmbeMlpXJ8gxZ91Nm/mG/W7iIqbvwVI45HkggQ=;
+	s=korg; t=1745866883;
+	bh=prA8LPZ3nGuwVhJqDI4sW3LGrlkAl1KJYlT3gbgqixo=;
 	h=Date:To:From:Subject:From;
-	b=oir43wP7WF5F168CyRv3uirAf64Lahn7+wnXvnT6QDivQzjjK8wv9Kms7q1JUYurs
-	 A5T7WtMNpGQCkDknnIhk7uNOBNnV6YrYBDbjwKDwpRWkZA/59Klrr2/eLLVFe7VTjL
-	 GVPcTpfpYQpXh0jHE4Pv8Q7xhxbgkg7m3A+RhQpI=
-Date: Mon, 28 Apr 2025 12:01:20 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shuah@kernel.org,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
+	b=O0HKpghM3mSBaaYP+vxIJLEKQZRHkT7jmDmoHzSn4g7udoOzE7QBk41nHRweqT/21
+	 O5cgk2b/hb/1qBP+M4OZT2IFuNDIXk48WoaJHwaq/pRivweYrAFQ+ZQKnUNnI81a3f
+	 11XzZJWEFfJgJxuegH6p/wwLH1dOWPGm0ljKrsiU=
+Date: Mon, 28 Apr 2025 12:01:23 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shuah@kernel.org,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch added to mm-new branch
-Message-Id: <20250428190121.2C9B7C4CEE4@smtp.kernel.org>
+Subject: + khugepaged-generalize-alloc_charge_folio.patch added to mm-new branch
+Message-Id: <20250428190123.A3CBFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: generalize hugepage_vma_revalidate for mTHP support
+     Subject: khugepaged: generalize alloc_charge_folio()
 has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+     khugepaged-generalize-alloc_charge_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-generalize-alloc_charge_folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,19 +64,16 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: khugepaged: generalize hugepage_vma_revalidate for mTHP support
-Date: Mon, 28 Apr 2025 12:12:09 -0600
+From: Dev Jain <dev.jain@arm.com>
+Subject: khugepaged: generalize alloc_charge_folio()
+Date: Mon, 28 Apr 2025 12:12:10 -0600
 
-For khugepaged to support different mTHP orders, we must generalize this
-function for arbitrary orders.
+Pass order to alloc_charge_folio() and update mTHP statistics.
 
-No functional change in this patch.
-
-Link: https://lkml.kernel.org/r/20250428181218.85925-4-npache@redhat.com
-Co-developed-by: Dev Jain <dev.jain@arm.com>
-Signed-off-by: Dev Jain <dev.jain@arm.com>
+Link: https://lkml.kernel.org/r/20250428181218.85925-5-npache@redhat.com
+Co-developed-by: Nico Pache <npache@redhat.com>
 Signed-off-by: Nico Pache <npache@redhat.com>
+Signed-off-by: Dev Jain <dev.jain@arm.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -116,76 +113,97 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/huge_mm.h |    2 ++
+ mm/huge_memory.c        |    4 ++++
+ mm/khugepaged.c         |   17 +++++++++++------
+ 3 files changed, 17 insertions(+), 6 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support
+--- a/include/linux/huge_mm.h~khugepaged-generalize-alloc_charge_folio
++++ a/include/linux/huge_mm.h
+@@ -123,6 +123,8 @@ enum mthp_stat_item {
+ 	MTHP_STAT_ANON_FAULT_ALLOC,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
++	MTHP_STAT_COLLAPSE_ALLOC,
++	MTHP_STAT_COLLAPSE_ALLOC_FAILED,
+ 	MTHP_STAT_ZSWPOUT,
+ 	MTHP_STAT_SWPIN,
+ 	MTHP_STAT_SWPIN_FALLBACK,
+--- a/mm/huge_memory.c~khugepaged-generalize-alloc_charge_folio
++++ a/mm/huge_memory.c
+@@ -615,6 +615,8 @@ static struct kobj_attribute _name##_att
+ DEFINE_MTHP_STAT_ATTR(anon_fault_alloc, MTHP_STAT_ANON_FAULT_ALLOC);
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
++DEFINE_MTHP_STAT_ATTR(collapse_alloc, MTHP_STAT_COLLAPSE_ALLOC);
++DEFINE_MTHP_STAT_ATTR(collapse_alloc_failed, MTHP_STAT_COLLAPSE_ALLOC_FAILED);
+ DEFINE_MTHP_STAT_ATTR(zswpout, MTHP_STAT_ZSWPOUT);
+ DEFINE_MTHP_STAT_ATTR(swpin, MTHP_STAT_SWPIN);
+ DEFINE_MTHP_STAT_ATTR(swpin_fallback, MTHP_STAT_SWPIN_FALLBACK);
+@@ -680,6 +682,8 @@ static struct attribute *any_stats_attrs
+ #endif
+ 	&split_attr.attr,
+ 	&split_failed_attr.attr,
++	&collapse_alloc_attr.attr,
++	&collapse_alloc_failed_attr.attr,
+ 	NULL,
+ };
+ 
+--- a/mm/khugepaged.c~khugepaged-generalize-alloc_charge_folio
 +++ a/mm/khugepaged.c
-@@ -920,7 +920,7 @@ static int khugepaged_find_target_node(s
- static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
- 				   bool expect_anon,
- 				   struct vm_area_struct **vmap,
--				   struct collapse_control *cc)
-+				   struct collapse_control *cc, int order)
+@@ -1074,21 +1074,26 @@ out:
+ }
+ 
+ static int alloc_charge_folio(struct folio **foliop, struct mm_struct *mm,
+-			      struct collapse_control *cc)
++			      struct collapse_control *cc, u8 order)
  {
- 	struct vm_area_struct *vma;
- 	unsigned long tva_flags = cc->is_khugepaged ? TVA_ENFORCE_SYSFS : 0;
-@@ -932,9 +932,9 @@ static int hugepage_vma_revalidate(struc
- 	if (!vma)
- 		return SCAN_VMA_NULL;
+ 	gfp_t gfp = (cc->is_khugepaged ? alloc_hugepage_khugepaged_gfpmask() :
+ 		     GFP_TRANSHUGE);
+ 	int node = khugepaged_find_target_node(cc);
+ 	struct folio *folio;
  
--	if (!thp_vma_suitable_order(vma, address, PMD_ORDER))
-+	if (!thp_vma_suitable_order(vma, address, order))
- 		return SCAN_ADDRESS_RANGE;
--	if (!thp_vma_allowable_order(vma, vma->vm_flags, tva_flags, PMD_ORDER))
-+	if (!thp_vma_allowable_order(vma, vma->vm_flags, tva_flags, order))
- 		return SCAN_VMA_CHECK;
- 	/*
- 	 * Anon VMA expected, the address may be unmapped then
-@@ -1130,7 +1130,7 @@ static int collapse_huge_page(struct mm_
- 		goto out_nolock;
+-	folio = __folio_alloc(gfp, HPAGE_PMD_ORDER, node, &cc->alloc_nmask);
++	folio = __folio_alloc(gfp, order, node, &cc->alloc_nmask);
+ 	if (!folio) {
+ 		*foliop = NULL;
+-		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
++		if (order == HPAGE_PMD_ORDER)
++			count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
++		count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC_FAILED);
+ 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
+ 	}
  
- 	mmap_read_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
-+	result = hugepage_vma_revalidate(mm, address, true, &vma, cc, HPAGE_PMD_ORDER);
- 	if (result != SCAN_SUCCEED) {
- 		mmap_read_unlock(mm);
- 		goto out_nolock;
-@@ -1164,7 +1164,7 @@ static int collapse_huge_page(struct mm_
- 	 * mmap_lock.
+-	count_vm_event(THP_COLLAPSE_ALLOC);
++	if (order == HPAGE_PMD_ORDER)
++		count_vm_event(THP_COLLAPSE_ALLOC);
++	count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC);
++
+ 	if (unlikely(mem_cgroup_charge(folio, mm, gfp))) {
+ 		folio_put(folio);
+ 		*foliop = NULL;
+@@ -1125,7 +1130,7 @@ static int collapse_huge_page(struct mm_
  	 */
- 	mmap_write_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
-+	result = hugepage_vma_revalidate(mm, address, true, &vma, cc, HPAGE_PMD_ORDER);
+ 	mmap_read_unlock(mm);
+ 
+-	result = alloc_charge_folio(&folio, mm, cc);
++	result = alloc_charge_folio(&folio, mm, cc, HPAGE_PMD_ORDER);
  	if (result != SCAN_SUCCEED)
- 		goto out_up_write;
- 	/* check if the pmd is still valid */
-@@ -2792,7 +2792,7 @@ int madvise_collapse(struct vm_area_stru
- 			mmap_read_lock(mm);
- 			mmap_locked = true;
- 			result = hugepage_vma_revalidate(mm, addr, false, &vma,
--							 cc);
-+							 cc, HPAGE_PMD_ORDER);
- 			if (result  != SCAN_SUCCEED) {
- 				last_fail = result;
- 				goto out_nolock;
+ 		goto out_nolock;
+ 
+@@ -1849,7 +1854,7 @@ static int collapse_file(struct mm_struc
+ 	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
+ 	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
+ 
+-	result = alloc_charge_folio(&new_folio, mm, cc);
++	result = alloc_charge_folio(&new_folio, mm, cc, HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED)
+ 		goto out;
+ 
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-khugepaged-rename-hpage_collapse_-to-khugepaged_.patch
-introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch
-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
-khugepaged-introduce-khugepaged_scan_bitmap-for-mthp-support.patch
-khugepaged-add-mthp-support.patch
-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
-khugepaged-improve-tracepoints-for-mthp-orders.patch
-khugepaged-add-per-order-mthp-khugepaged-stats.patch
-documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
-mm-defer-thp-insertion-to-khugepaged.patch
-mm-document-mthp-defer-usage.patch
-khugepaged-add-defer-option-to-mthp-options.patch
-selftests-mm-add-defer-to-thp-setting-parser.patch
+mempolicy-optimize-queue_folios_pte_range-by-pte-batching.patch
+khugepaged-generalize-alloc_charge_folio.patch
 
