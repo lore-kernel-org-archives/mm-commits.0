@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 358B31FC8
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 00:09:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 910D710E0
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 00:10:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745798965; cv=none; b=nJWcx7HqbHLfI97fuxB7NWd6qInTrtx06jw4XdtRlgOtMtUjOLD93yPEsWEQIls8EUVjlsvSV8HcrLxTyvetoK29WVfVoAcchyPvEJ3fTEIWu65an4XDkIZDxpRiHjDFLShP1LRCUPxIe5/06GnnnsrfHS2gK1X/jJuAgo8ulEw=
+	t=1745799021; cv=none; b=hkYNPuWajlW9RGEDK2cN4I+cZwQhmDqoMhC8tWjpkl6XiGHJlSdnXR9jg518V3yZJCtotIMf2FQzI2lqyHsp9CnrbSW+b9oVAxGGwPNqTs5xLrz1PpawXA1umLptzgiMZQZ1rznaX+z4RMPFBxrIQePLs+jPC3ThqWeXZ3e8Og8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745798965; c=relaxed/simple;
-	bh=ASCXsg76+lDdxp41WvqDTb9OLvpokNt/fA1ooQLHxCE=;
-	h=Date:To:From:Subject:Message-Id; b=gDetBePo3Pl9TSBK8ZNG+1ZLlHP8XHFvkQ6hz1ref4YQ/grZluhYRLKlX4AtaudM/8w4q+0lhEwPAGrfFBKGCYJKzV6XMkYF1BEC+zORYIqHXL14Ke5+iVzJ/EC6ZSSdhnvMwJAuuZN9A+RPcxGsIPIQZldjPeiFiRKBSv2OJiI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RcsCAQa2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745799021; c=relaxed/simple;
+	bh=H0GbtI6mHdDa3BPC6J207JW2XopHLyuFMO9hBFIIHIA=;
+	h=Date:To:From:Subject:Message-Id; b=Lfve/uC9nDQXLj5aXBbpSkoRaGnagNyjSv2ZAht9nLGlYHtP67Eik/RgIieYLlH4e3BT5kWgsmhlA9i7WkWZJYPwOu3Jl8vOpdUQKiigqmo5gKGcOCjmKm+hLfybA/sghcG4VJmayThAQR3Tw4F8ObMJvznPyFYDsGgNLx66OF8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aFbbzwcU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RcsCAQa2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80E30C4CEE3;
-	Mon, 28 Apr 2025 00:09:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aFbbzwcU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3519AC4CEE3;
+	Mon, 28 Apr 2025 00:10:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745798964;
-	bh=ASCXsg76+lDdxp41WvqDTb9OLvpokNt/fA1ooQLHxCE=;
+	s=korg; t=1745799021;
+	bh=H0GbtI6mHdDa3BPC6J207JW2XopHLyuFMO9hBFIIHIA=;
 	h=Date:To:From:Subject:From;
-	b=RcsCAQa26uPp8+R4fQv/Jm/upuzrWd9Re29HET5gyTu2nQJDIQBftSls6RlbZyXGF
-	 SeuQQVz+krkMrZrR9GgCC7EfuCROV+xRRf21Vji7pMLl60DALz7eUfYxalUBGrPeyH
-	 UmzcUBuYaxmahDfM/OrEjx2POOV15sBq4v0qs3Kg=
-Date: Sun, 27 Apr 2025 17:09:23 -0700
-To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.se,shakeel.butt@linux.dev,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,igor.b@beldev.am,akpm@linux-foundation.org
+	b=aFbbzwcU9vkaeb9iGRGzJp3L95ZM8NR7K485yjGBr0CI+S0tU/OUomnduq7lPkg0p
+	 ADZFwktfI4c2LeqhNrBEf+BU19Nnzwb9R3g3mJ5ySYAgJv4nBcHlG0P/awHUd1SPKb
+	 Ukjhwwi0oynDK+2hF2mf4bGyiQyFZvDPVzdjmyUc=
+Date: Sun, 27 Apr 2025 17:10:20 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,kent.overstreet@linux.dev,jack@suse.cz,djwong@kernel.org,colyli@kernel.org,cem@kernel.org,brauner@kernel.org,pchelkin@ispras.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zblock-add-debugfs.patch added to mm-new branch
-Message-Id: <20250428000924.80E30C4CEE3@smtp.kernel.org>
+Subject: + sorth-hoist-cmp_int-into-generic-header-file.patch added to mm-nonmm-unstable branch
+Message-Id: <20250428001021.3519AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zblock: add debugfs
-has been added to the -mm mm-new branch.  Its filename is
-     mm-zblock-add-debugfs.patch
+     Subject: sort.h: hoist cmp_int() into generic header file
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     sorth-hoist-cmp_int-into-generic-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zblock-add-debugfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sorth-hoist-cmp_int-into-generic-header-file.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,97 +58,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Igor Belousov <igor.b@beldev.am>
-Subject: mm/zblock: add debugfs
-Date: Sun, 27 Apr 2025 22:19:58 +0200
+From: Fedor Pchelkin <pchelkin@ispras.ru>
+Subject: sort.h: hoist cmp_int() into generic header file
+Date: Sun, 27 Apr 2025 23:14:49 +0300
 
-Add debugfs entry to monitor number of blocks allocated for different
-block sizes.
+Deduplicate the same functionality implemented in several places by
+moving the cmp_int() helper macro into linux/sort.h.
 
-Link: https://lkml.kernel.org/r/20250427201958.491806-1-vitaly.wool@konsulko.se
-Signed-off-by: Igor Belousov <igor.b@beldev.am>
-Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.se>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+The macro performs a three-way comparison of the arguments mostly useful
+in different sorting strategies and algorithms.
+
+Link: https://lkml.kernel.org/r/20250427201451.900730-1-pchelkin@ispras.ru
+Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
+Suggested-by: Darrick J. Wong <djwong@kernel.org>
+Acked-by: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Carlos Maiolino <cem@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Coly Li <colyli@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zblock.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/md/bcache/btree.c |    3 +--
+ fs/bcachefs/util.h        |    3 +--
+ fs/pipe.c                 |    3 +--
+ fs/xfs/xfs_zone_gc.c      |    2 --
+ include/linux/sort.h      |   10 ++++++++++
+ 5 files changed, 13 insertions(+), 8 deletions(-)
 
---- a/mm/zblock.c~mm-zblock-add-debugfs
-+++ a/mm/zblock.c
-@@ -17,6 +17,7 @@
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+--- a/drivers/md/bcache/btree.c~sorth-hoist-cmp_int-into-generic-header-file
++++ a/drivers/md/bcache/btree.c
+@@ -36,6 +36,7 @@
+ #include <linux/sched/clock.h>
+ #include <linux/rculist.h>
+ #include <linux/delay.h>
++#include <linux/sort.h>
+ #include <trace/events/bcache.h>
  
- #include <linux/atomic.h>
-+#include <linux/debugfs.h>
- #include <linux/list.h>
- #include <linux/mm.h>
- #include <linux/module.h>
-@@ -27,6 +28,7 @@
- #include "zblock.h"
- 
- static struct rb_root block_desc_tree = RB_ROOT;
-+static struct dentry *zblock_debugfs_root;
- 
- /* Encode handle of a particular slot in the pool using metadata */
- static inline unsigned long metadata_to_handle(struct zblock_block *block,
-@@ -111,6 +113,22 @@ static struct zblock_block *alloc_block(
- 	return block;
- }
- 
-+static int zblock_blocks_show(struct seq_file *s, void *v)
-+{
-+	struct zblock_pool *pool = s->private;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(block_desc); i++) {
-+		struct block_list *block_list = &pool->block_lists[i];
-+
-+		seq_printf(s, "%d: %ld blocks of %d pages (total %ld pages)\n",
-+			i, block_list->block_count, block_desc[i].num_pages,
-+			block_list->block_count * block_desc[i].num_pages);
-+	}
-+	return 0;
-+}
-+DEFINE_SHOW_ATTRIBUTE(zblock_blocks);
-+
- /*****************
-  * API Functions
-  *****************/
-@@ -140,6 +158,9 @@ static struct zblock_pool *zblock_create
- 		INIT_LIST_HEAD(&block_list->active_list);
- 		block_list->block_count = 0;
+ /*
+@@ -559,8 +560,6 @@ static void mca_data_alloc(struct btree
  	}
-+
-+	debugfs_create_file("blocks", S_IFREG | 0444, zblock_debugfs_root,
-+			    pool, &zblock_blocks_fops);
- 	return pool;
  }
  
-@@ -426,12 +447,15 @@ static int __init init_zblock(void)
- 		return ret;
+-#define cmp_int(l, r)		((l > r) - (l < r))
+-
+ #ifdef CONFIG_PROVE_LOCKING
+ static int btree_lock_cmp_fn(const struct lockdep_map *_a,
+ 			     const struct lockdep_map *_b)
+--- a/fs/bcachefs/util.h~sorth-hoist-cmp_int-into-generic-header-file
++++ a/fs/bcachefs/util.h
+@@ -16,6 +16,7 @@
+ #include <linux/preempt.h>
+ #include <linux/ratelimit.h>
+ #include <linux/slab.h>
++#include <linux/sort.h>
+ #include <linux/vmalloc.h>
+ #include <linux/workqueue.h>
  
- 	zpool_register_driver(&zblock_zpool_driver);
-+
-+	zblock_debugfs_root = debugfs_create_dir("zblock", NULL);
+@@ -669,8 +670,6 @@ static inline void percpu_memset(void __
+ 
+ u64 *bch2_acc_percpu_u64s(u64 __percpu *, unsigned);
+ 
+-#define cmp_int(l, r)		((l > r) - (l < r))
+-
+ static inline int u8_cmp(u8 l, u8 r)
+ {
+ 	return cmp_int(l, r);
+--- a/fs/pipe.c~sorth-hoist-cmp_int-into-generic-header-file
++++ a/fs/pipe.c
+@@ -26,6 +26,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/watch_queue.h>
+ #include <linux/sysctl.h>
++#include <linux/sort.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/ioctls.h>
+@@ -76,8 +77,6 @@ static unsigned long pipe_user_pages_sof
+  * -- Manfred Spraul <manfred@colorfullife.com> 2002-05-09
+  */
+ 
+-#define cmp_int(l, r)		((l > r) - (l < r))
+-
+ #ifdef CONFIG_PROVE_LOCKING
+ static int pipe_lock_cmp_fn(const struct lockdep_map *a,
+ 			    const struct lockdep_map *b)
+--- a/fs/xfs/xfs_zone_gc.c~sorth-hoist-cmp_int-into-generic-header-file
++++ a/fs/xfs/xfs_zone_gc.c
+@@ -284,8 +284,6 @@ xfs_zone_gc_query_cb(
  	return 0;
  }
  
- static void __exit exit_zblock(void)
- {
- 	zpool_unregister_driver(&zblock_zpool_driver);
-+	debugfs_remove_recursive(zblock_debugfs_root);
- 	delete_rbtree();
- }
+-#define cmp_int(l, r)		((l > r) - (l < r))
+-
+ static int
+ xfs_zone_gc_rmap_rec_cmp(
+ 	const void			*a,
+--- a/include/linux/sort.h~sorth-hoist-cmp_int-into-generic-header-file
++++ a/include/linux/sort.h
+@@ -4,6 +4,16 @@
  
+ #include <linux/types.h>
+ 
++/**
++ * cmp_int - perform a three-way comparison of the arguments
++ * @l: the left argument
++ * @r: the right argument
++ *
++ * Return: 1 if the left argument is greater than the right one; 0 if the
++ * arguments are equal; -1 if the left argument is less than the right one.
++ */
++#define cmp_int(l, r) (((l) > (r)) - ((l) < (r)))
++
+ void sort_r(void *base, size_t num, size_t size,
+ 	    cmp_r_func_t cmp_func,
+ 	    swap_r_func_t swap_func,
 _
 
-Patches currently in -mm which might be from igor.b@beldev.am are
+Patches currently in -mm which might be from pchelkin@ispras.ru are
 
-mm-zblock-add-debugfs.patch
+sorth-hoist-cmp_int-into-generic-header-file.patch
 
