@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF5F435973
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 21:48:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C82BD15748F
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 23:07:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745876894; cv=none; b=g9koq3nX8a6WWAl0tSz6eL3h6gfJVUrppGHnUCWDw2c03kSxO5v4dFASCtxVpMy/kkUzoovfybGNiWGmralc8CBKLImGoOyDZp+YdsBGJCNnKJMzLpC/Yd+uMN1JWlM/SAnpF3SXtCtSQGRws9aDQZ0nlhnJ6lBEYUX8yWPKhuM=
+	t=1745881667; cv=none; b=JGuproT48b25Nnb7U2xchto/DUNJ3v4SJAsai4HasEgplpWbusZ43Lakvo3DOS3qkIXSlaS8bmOmayMQ3PMj14XXLBTiVTA2aR35DfG7rQ3O6hC2ZXwnk3dkSWKVSIttKaWZ6qUScD+NHfY01KXnvGPu1emrBO9wfhYTcezDwYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745876894; c=relaxed/simple;
-	bh=F6cl0P4PpwamMzgK6vCxmac+70QL0u0GBaEc+cMKiI8=;
-	h=Date:To:From:Subject:Message-Id; b=TtwmH0GSXNEx7ywsNGYW8xYuLuzNIvrdVedUew3OSX9dW48bLibcENWqlc9++4s3yaDA0+Rp7O+7e+DFgmDNM8mf1LNB9eh576fa6UnwRHuOMSizpux/t7ummxIxpnAC3CSS3rQDHvRKF+hbQpZ9Sfrc6x8LLO00FaJKnC6p5tA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2RuTMsiM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745881667; c=relaxed/simple;
+	bh=5KVI9nZUuWcbYDFfN1yyPD+dIXQqsVlpGCa9XHTpiyw=;
+	h=Date:To:From:Subject:Message-Id; b=kvl5Tjt3ebN2xj6da0QrLGfKSfU8fchjlZZ1iUoBC0L42+gwb+aipsQhfLsMxsfNqRXlWSHMEzOCQtLRjzfLEUduZI/we3ecL+TR0pWahMekJ/81NXW/MKD30YhQ2/GToR/8jYPRgr/wmcwlEV7QhLaIsFbvFsWDDCMYgOfw49g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BQ0Jtca1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2RuTMsiM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D078C4CEE4;
-	Mon, 28 Apr 2025 21:48:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BQ0Jtca1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C2DDC4CEE4;
+	Mon, 28 Apr 2025 23:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745876894;
-	bh=F6cl0P4PpwamMzgK6vCxmac+70QL0u0GBaEc+cMKiI8=;
+	s=korg; t=1745881667;
+	bh=5KVI9nZUuWcbYDFfN1yyPD+dIXQqsVlpGCa9XHTpiyw=;
 	h=Date:To:From:Subject:From;
-	b=2RuTMsiMDcrMJp3qHLSze27pnDzgEd0K2yI5ieUPevABt3SiKnnPTJNyNPaJ5bK9s
-	 0lI/tIg0YMMmXdn05qYsdLTZ7/3eHzNfShotZDXgeUWlMSjeM33MFVHrX/s3uQk14x
-	 EBeki1Em5mF4waSCzxcx39MrcpPQsKWnsTthmzE0=
-Date: Mon, 28 Apr 2025 14:48:13 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,dwmw@amazon.co.uk,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw2@infradead.org,akpm@linux-foundation.org
+	b=BQ0Jtca191c6zhDS0U/LEWdWkL3YkA/fCet9hrcqZmIWFM2zslx9OwqyRPorm//49
+	 1oQqdtXYcey+jyQANWKYIb/rkeneNDOH8Xf1zAbHpD/TcEVjpkpaUOVZ0rl6nlzA6b
+	 /g4HDEiSs5rxxw58VvAdq6zVAY+N+X6dO4rflUn0=
+Date: Mon, 28 Apr 2025 16:07:46 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,pfalcato@suse.de,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch added to mm-new branch
-Message-Id: <20250428214814.2D078C4CEE4@smtp.kernel.org>
+Subject: + mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch added to mm-new branch
+Message-Id: <20250428230747.7C2DDC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
+     Subject: mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
+     mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,50 +64,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Woodhouse <dwmw2@infradead.org>
-Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
-Date: Sat, 26 Apr 2025 00:04:46 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix
+Date: Mon Apr 28 04:06:02 PM PDT 2025
 
-fix next_valid_pfn() for sparsemem
+fix comment typo
 
-Link: https://lkml.kernel.org/r/c15100fcf6781a60b852c4dbb43bdc98a678fcf0.camel@infradead.org
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/80f0d0c6-0b68-47f9-ab78-0ab7f74677fc@lucifer.local
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Woodhouse <dwmw@amazon.co.uk>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Ruihan Li <lrh2000@pku.edu.cn>
-Cc: Will Deacon <will@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vma.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
-+++ a/include/linux/mmzone.h
-@@ -2190,10 +2190,10 @@ static inline unsigned long next_valid_p
- 	/*
- 	 * Either every PFN within the section (or subsection for VMEMMAP) is
- 	 * valid, or none of them are. So there's no point repeating the check
--	 * for every PFN; only call first_valid_pfn() the first time, and when
--	 * crossing a (sub)section boundary (i.e. !(pfn & ~PFN_VALID_MASK)).
-+	 * for every PFN; only call first_valid_pfn() again when crossing a
-+	 * (sub)section boundary (i.e. !(pfn & ~PAGE_{SUB,}SECTION_MASK)).
- 	 */
--	if (pfn & (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
-+	if (pfn & ~(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
- 		   PAGE_SUBSECTION_MASK : PAGE_SECTION_MASK))
- 		return pfn;
+--- a/mm/vma.h~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix
++++ a/mm/vma.h
+@@ -548,7 +548,7 @@ int expand_downwards(struct vm_area_stru
  
+ int __vm_munmap(unsigned long start, size_t len, bool unlock);
+ 
+-/* vma_exec.h */
++/* vma_exec.c */
+ #ifdef CONFIG_MMU
+ int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
+ #endif
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
+x86-disable-image-size-check-for-test-builds-fix.patch
+x86-disable-image-size-check-for-test-builds-fix-fix.patch
+mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
+vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
+mm-add-zblock-allocator-fix.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
+compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
 
