@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FE84269D09
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ECE6269D09
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745866904; cv=none; b=uDLJBCmjK9bobBSiJaTx1mxTM0m88Ba1RpPPs+XszUd8HDjRRlpYiLcFhRtk0zskGg4E4JZ6KzND+vg45yHGlN7WU6sVzbqdpZlH/n+l3ZmUjBZMlQZHpIx8C7K4kclzRsoyRH9uCTwPV+WwX+d6DqjX1mBuOZRlmhyG/OYWiJY=
+	t=1745866907; cv=none; b=Msr0723T8BXESAbdU8MPPLvBGwi8ZQ+Wb4K8cK1dJsXr/sHq818VNmkOa5fZ6EL7/E2kRF10/dlTL2uVnC8INMhgwVHrdXmGivIBXKRjXBCAkOl+lQ3F1KArkoFaKFrPQdUByuxpu+A/REGkTq25/D7eOoIi+U7z+hDG+xLO8rQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745866904; c=relaxed/simple;
-	bh=k7pFwDWWgTQ7jsjbQLm6KXQ6OvyGj7loNLrrLo94Rog=;
-	h=Date:To:From:Subject:Message-Id; b=aZmLYj3F2XaM3uHf4IHIhxTOT2kyxA1Pa5TnCMQX05lN6cYwNWdK13CC4OqM6nvf6O61OtolGnCMPDN4/QdpTQWllPkLWMbx4TmaL2zKdrs+IR4bXUgGY8svMPgQdivV4X98uTeceKlri0B4EbQ33KiIN7nYWUqdybgPrAvfbx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uVInoHJe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745866907; c=relaxed/simple;
+	bh=x5pZYW2D31gL4pAQeM+FRUjlwRyrhX+PKf9SYrjBmSI=;
+	h=Date:To:From:Subject:Message-Id; b=rXR7/N7y/60QhbilsQbLpq7r2HS4uNlJ4m2Z0oAJuTAF6LYOhSgJkSdCxfc+G4oksYKDGr7cYvs0b9wWZqF3SDlxn9OpQ5kLooVqIk0O664vGwXh9oBP0AqA+dfI2vBJ8LiUGNKaFT7Z2SQjTusfOwhuUq7giUSan5mi/S34Abg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YfKLn9c9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uVInoHJe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E38CC4CEE4;
-	Mon, 28 Apr 2025 19:01:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YfKLn9c9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3768C4CEE4;
+	Mon, 28 Apr 2025 19:01:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745866902;
-	bh=k7pFwDWWgTQ7jsjbQLm6KXQ6OvyGj7loNLrrLo94Rog=;
+	s=korg; t=1745866905;
+	bh=x5pZYW2D31gL4pAQeM+FRUjlwRyrhX+PKf9SYrjBmSI=;
 	h=Date:To:From:Subject:From;
-	b=uVInoHJekqgXGx61O65k6LbKGAwKKZVuONLX9j5EBGRFYCatDCFOKE1YGfIgxsX12
-	 oE0RL9MDdvg1IffxaAGuMVLFVPr1ItjId8R3BduphRODJO8QvCgnPxlpPY/pI9+Noi
-	 9Ypln9jQrVpVqIpyxg/KvzAMWcNucvgLCXi5+Q7o=
-Date: Mon, 28 Apr 2025 12:01:42 -0700
+	b=YfKLn9c9blejXmxdgn7cK3EZZubuW6k+Lq2GwIzrRMdIG+Zj2hbyUR9Usp+jJ59Xc
+	 EvFAhIH8rQhfHu91Vl44NuEuR6Ek2PTspKweSH2EX5EtoZ2QolsIqnBHNMRLpe7nic
+	 5PHem/YuQwBX1io6yHqNV3wsvIPfJNkeCNStniAk=
+Date: Mon, 28 Apr 2025 12:01:45 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shuah@kernel.org,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-add-per-order-mthp-khugepaged-stats.patch added to mm-new branch
-Message-Id: <20250428190142.8E38CC4CEE4@smtp.kernel.org>
+Subject: + documentation-mm-update-the-admin-guide-for-mthp-collapse.patch added to mm-new branch
+Message-Id: <20250428190145.D3768C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: add per-order mTHP khugepaged stats
+     Subject: Documentation: mm: update the admin guide for mTHP collapse
 has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-add-per-order-mthp-khugepaged-stats.patch
+     documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-add-per-order-mthp-khugepaged-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: khugepaged: add per-order mTHP khugepaged stats
-Date: Mon, 28 Apr 2025 12:12:17 -0600
+Subject: Documentation: mm: update the admin guide for mTHP collapse
+Date: Mon, 28 Apr 2025 12:12:18 -0600
 
-With mTHP support inplace, let add the per-order mTHP stats for exceeding
-NONE, SWAP, and SHARED.
+Now that we can collapse to mTHPs lets update the admin guide to reflect
+these changes and provide proper guidence on how to utilize it.
 
-Link: https://lkml.kernel.org/r/20250428181218.85925-12-npache@redhat.com
+Link: https://lkml.kernel.org/r/20250428181218.85925-13-npache@redhat.com
 Signed-off-by: Nico Pache <npache@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -113,85 +113,39 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    3 +++
- mm/huge_memory.c        |    7 +++++++
- mm/khugepaged.c         |   16 +++++++++++++---
- 3 files changed, 23 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/include/linux/huge_mm.h~khugepaged-add-per-order-mthp-khugepaged-stats
-+++ a/include/linux/huge_mm.h
-@@ -139,6 +139,9 @@ enum mthp_stat_item {
- 	MTHP_STAT_SPLIT_DEFERRED,
- 	MTHP_STAT_NR_ANON,
- 	MTHP_STAT_NR_ANON_PARTIALLY_MAPPED,
-+	MTHP_STAT_COLLAPSE_EXCEED_SWAP,
-+	MTHP_STAT_COLLAPSE_EXCEED_NONE,
-+	MTHP_STAT_COLLAPSE_EXCEED_SHARED,
- 	__MTHP_STAT_COUNT
- };
+--- a/Documentation/admin-guide/mm/transhuge.rst~documentation-mm-update-the-admin-guide-for-mthp-collapse
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -63,7 +63,7 @@ often.
+ THP can be enabled system wide or restricted to certain tasks or even
+ memory ranges inside task's address space. Unless THP is completely
+ disabled, there is ``khugepaged`` daemon that scans memory and
+-collapses sequences of basic pages into PMD-sized huge pages.
++collapses sequences of basic pages into huge pages.
  
---- a/mm/huge_memory.c~khugepaged-add-per-order-mthp-khugepaged-stats
-+++ a/mm/huge_memory.c
-@@ -633,6 +633,10 @@ DEFINE_MTHP_STAT_ATTR(split_failed, MTHP
- DEFINE_MTHP_STAT_ATTR(split_deferred, MTHP_STAT_SPLIT_DEFERRED);
- DEFINE_MTHP_STAT_ATTR(nr_anon, MTHP_STAT_NR_ANON);
- DEFINE_MTHP_STAT_ATTR(nr_anon_partially_mapped, MTHP_STAT_NR_ANON_PARTIALLY_MAPPED);
-+DEFINE_MTHP_STAT_ATTR(collapse_exceed_swap_pte, MTHP_STAT_COLLAPSE_EXCEED_SWAP);
-+DEFINE_MTHP_STAT_ATTR(collapse_exceed_none_pte, MTHP_STAT_COLLAPSE_EXCEED_NONE);
-+DEFINE_MTHP_STAT_ATTR(collapse_exceed_shared_pte, MTHP_STAT_COLLAPSE_EXCEED_SHARED);
+ The THP behaviour is controlled via :ref:`sysfs <thp_sysfs>`
+ interface and using madvise(2) and prctl(2) system calls.
+@@ -144,6 +144,18 @@ hugepage sizes have enabled="never". If
+ sizes, the kernel will select the most appropriate enabled size for a
+ given allocation.
+ 
++khugepaged uses max_ptes_none scaled to the order of the enabled mTHP size
++to determine collapses. When using mTHPs it's recommended to set
++max_ptes_none low-- ideally less than HPAGE_PMD_NR / 2 (255 on 4k page
++size). This will prevent undesired "creep" behavior that leads to
++continuously collapsing to a larger mTHP size; When we collapse, we are
++bringing in new non-zero pages that will, on a subsequent scan, cause the
++max_ptes_none check of the +1 order to always be satisfied. By limiting
++this to less than half the current order, we make sure we don't cause this
++feedback loop. max_ptes_shared and max_ptes_swap have no effect when
++collapsing to a mTHP, and mTHP collapse will fail on shared or swapped out
++pages.
 +
- 
- static struct attribute *anon_stats_attrs[] = {
- 	&anon_fault_alloc_attr.attr,
-@@ -649,6 +653,9 @@ static struct attribute *anon_stats_attr
- 	&split_deferred_attr.attr,
- 	&nr_anon_attr.attr,
- 	&nr_anon_partially_mapped_attr.attr,
-+	&collapse_exceed_swap_pte_attr.attr,
-+	&collapse_exceed_none_pte_attr.attr,
-+	&collapse_exceed_shared_pte_attr.attr,
- 	NULL,
- };
- 
---- a/mm/khugepaged.c~khugepaged-add-per-order-mthp-khugepaged-stats
-+++ a/mm/khugepaged.c
-@@ -604,7 +604,10 @@ static int __collapse_huge_page_isolate(
- 				continue;
- 			} else {
- 				result = SCAN_EXCEED_NONE_PTE;
--				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
-+				if (order == HPAGE_PMD_ORDER)
-+					count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
-+				else
-+					count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_NONE);
- 				goto out;
- 			}
- 		}
-@@ -633,8 +636,14 @@ static int __collapse_huge_page_isolate(
- 		/* See khugepaged_scan_pmd(). */
- 		if (folio_maybe_mapped_shared(folio)) {
- 			++shared;
--			if (order != HPAGE_PMD_ORDER || (cc->is_khugepaged &&
--			    shared > khugepaged_max_ptes_shared)) {
-+			if (order != HPAGE_PMD_ORDER) {
-+				result = SCAN_EXCEED_SHARED_PTE;
-+				count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_SHARED);
-+				goto out;
-+			}
-+
-+			if (cc->is_khugepaged &&
-+				shared > khugepaged_max_ptes_shared) {
- 				result = SCAN_EXCEED_SHARED_PTE;
- 				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
- 				goto out;
-@@ -1059,6 +1068,7 @@ static int __collapse_huge_page_swapin(s
- 
- 		/* Dont swapin for mTHP collapse */
- 		if (order != HPAGE_PMD_ORDER) {
-+			count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_SWAP);
- 			result = SCAN_EXCEED_SWAP_PTE;
- 			goto out;
- 		}
+ It's also possible to limit defrag efforts in the VM to generate
+ anonymous hugepages in case they're not immediately free to madvise
+ regions or to never try to defrag memory and simply fallback to regular
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
