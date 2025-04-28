@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F193342AA6
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:30:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE2B642AA6
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:30:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745868639; cv=none; b=A+7bCiS5dL4ysTsJ2wHvL+tvvsZqgtF8dnuiC/NL9Aha8U1RpiBzGW9QpVUf9N3O3qXZK4VJTs7OGH0Ln9rnOjBjXTy72bzX8ZKe/WxJX4aX5FV0PmXypp/WD/Q1Bjah0wq47IKM52JMZhNhZ9RsjWkn0pbPPPXtWNZWzFCJuD4=
+	t=1745868641; cv=none; b=t9g0X4kJYWuIKoJEEgglVCvEILp2qOPCMesiegQNdVD1S33K4ldlWgF/cou7A7R23wsOtOcshzExR+br/VKXa+VEph47C8d3f9r9WjVc9urQaLTcmBDAxtOuBCpi1Ru97EhBsfSCOXisUcPiBILPbCeXb3u/w0xs376aKB+jzpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745868639; c=relaxed/simple;
-	bh=/F7y8RmArJDmUg0TQvm5XKkOtUB5FzO/nYGyrNWhJy0=;
-	h=Date:To:From:Subject:Message-Id; b=aqxKH214OhvyCRAMXFVAglGlo4vsc5W04vo8tA/Xcr4l+GBRJ5+OZwnZK9lB60rGE2bZWj016uIxW0Dd78+/DKbR32lEjS72Mw/CG1V0VZDDZ0s6afXuE3X8/7J9WFoRgbWvoqzZJUE1FaaO1puAo3DGYzhWTM+KYletEUloeuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RRrCBCDY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745868641; c=relaxed/simple;
+	bh=RG2KVMIMKCWHoipyMonYKDNuOmdoslhM4r14kR2lGZA=;
+	h=Date:To:From:Subject:Message-Id; b=bwMsgJxsuzhq1OwgQPYOSmHj0tJeeRck2vRfLj0ieVmVBySpE0fpx2vYhWxRaEOewoLlfIVlvSKB27oPo+S0h9XlrCpefMdPO4AkGngL35G18ORFxYw4ulTRND7oCniqGHnuV/idDvNlqSSPg9iIUoPxDfCChCCuX2oqqHoXxK0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uktmxiRo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RRrCBCDY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BDA7C4CEE4;
-	Mon, 28 Apr 2025 19:30:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uktmxiRo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43967C4CEE4;
+	Mon, 28 Apr 2025 19:30:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745868638;
-	bh=/F7y8RmArJDmUg0TQvm5XKkOtUB5FzO/nYGyrNWhJy0=;
+	s=korg; t=1745868640;
+	bh=RG2KVMIMKCWHoipyMonYKDNuOmdoslhM4r14kR2lGZA=;
 	h=Date:To:From:Subject:From;
-	b=RRrCBCDYvny3h6OvsXEiu9LsZeki8AV3cEASjmKus+oJ5aEsFG0OEtfNdBwGWxkI1
-	 l1Hlofu6KUftr78pjBzCZoJFoxDFinRz82i9IGovHRwNZgX4SfcWtU1+wO2gt4icFz
-	 lIqg0bViV4X+tBXhnwrCkWH1tNJDjxbUK7MdbtPY=
-Date: Mon, 28 Apr 2025 12:30:37 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,vulab@iscas.ac.cn,akpm@linux-foundation.org
+	b=uktmxiRoXr86GDZUy5w7S5a6lReC5ajFQ64tCZgKws7LIEZpjzUmNg7F4afGMSFqy
+	 zggx9Pgna48rpgL0rkshSaZy57uHlwngy0vch4DvVEiuiDSBbJ7kEv/c42zxn5YMhJ
+	 AEswgN+hkyfVfmp7GOJek58jSw5WFY1MP2Ik37Y8=
+Date: Mon, 28 Apr 2025 12:30:39 -0700
+To: mm-commits@vger.kernel.org,vulab@iscas.ac.cn,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-add-pointer-check-for-nilfs_direct_propagate.patch added to mm-nonmm-unstable branch
-Message-Id: <20250428193038.5BDA7C4CEE4@smtp.kernel.org>
+Subject: + nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch added to mm-nonmm-unstable branch
+Message-Id: <20250428193040.43967C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: add pointer check for nilfs_direct_propagate()
+     Subject: nilfs2: do not propagate ENOENT error from nilfs_btree_propagate()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-add-pointer-check-for-nilfs_direct_propagate.patch
+     nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-add-pointer-check-for-nilfs_direct_propagate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,56 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wentao Liang <vulab@iscas.ac.cn>
-Subject: nilfs2: add pointer check for nilfs_direct_propagate()
-Date: Tue, 29 Apr 2025 02:37:07 +0900
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: do not propagate ENOENT error from nilfs_btree_propagate()
+Date: Tue, 29 Apr 2025 02:37:08 +0900
 
-Patch series "nilfs2: improve sanity checks in dirty state propagation".
+In preparation for writing logs, in nilfs_btree_propagate(), which makes
+parent and ancestor node blocks dirty starting from a modified data block
+or b-tree node block, if the starting block does not belong to the b-tree,
+i.e.  is isolated, nilfs_btree_do_lookup() called within the function
+fails with -ENOENT.
 
-This fixes one missed check for block mapping anomalies and one improper
-return of an error code during a preparation step for log writing, thereby
-improving checking for filesystem corruption on writeback.
+In this case, even though -ENOENT is an internal code, it is propagated to
+the log writer via nilfs_bmap_propagate() and may be erroneously returned
+to system calls such as fsync().
 
+Fix this issue by changing the error code to -EINVAL in this case, and
+having the bmap layer detect metadata corruption and convert the error
+code appropriately.
 
-This patch (of 2):
-
-In nilfs_direct_propagate(), the printer get from nilfs_direct_get_ptr()
-need to be checked to ensure it is not an invalid pointer.
-
-If the pointer value obtained by nilfs_direct_get_ptr() is
-NILFS_BMAP_INVALID_PTR, means that the metadata (in this case, i_bmap in
-the nilfs_inode_info struct) that should point to the data block at the
-buffer head of the argument is corrupted and the data block is orphaned,
-meaning that the file system has lost consistency.
-
-Add a value check and return -EINVAL when it is an invalid pointer.
-
-Link: https://lkml.kernel.org/r/20250428173808.6452-1-konishi.ryusuke@gmail.com
-Link: https://lkml.kernel.org/r/20250428173808.6452-2-konishi.ryusuke@gmail.com
-Fixes: 36a580eb489f ("nilfs2: direct block mapping")
-Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+Link: https://lkml.kernel.org/r/20250428173808.6452-3-konishi.ryusuke@gmail.com
+Fixes: 1f5abe7e7dbc ("nilfs2: replace BUG_ON and BUG calls triggerable from ioctl")
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Wentao Liang <vulab@iscas.ac.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/direct.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/nilfs2/btree.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/direct.c~nilfs2-add-pointer-check-for-nilfs_direct_propagate
-+++ a/fs/nilfs2/direct.c
-@@ -273,6 +273,9 @@ static int nilfs_direct_propagate(struct
- 	dat = nilfs_bmap_get_dat(bmap);
- 	key = nilfs_bmap_data_get_key(bmap, bh);
- 	ptr = nilfs_direct_get_ptr(bmap, key);
-+	if (ptr == NILFS_BMAP_INVALID_PTR)
-+		return -EINVAL;
-+
- 	if (!buffer_nilfs_volatile(bh)) {
- 		oldreq.pr_entry_nr = ptr;
- 		newreq.pr_entry_nr = ptr;
+--- a/fs/nilfs2/btree.c~nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate
++++ a/fs/nilfs2/btree.c
+@@ -2102,11 +2102,13 @@ static int nilfs_btree_propagate(struct
+ 
+ 	ret = nilfs_btree_do_lookup(btree, path, key, NULL, level + 1, 0);
+ 	if (ret < 0) {
+-		if (unlikely(ret == -ENOENT))
++		if (unlikely(ret == -ENOENT)) {
+ 			nilfs_crit(btree->b_inode->i_sb,
+ 				   "writing node/leaf block does not appear in b-tree (ino=%lu) at key=%llu, level=%d",
+ 				   btree->b_inode->i_ino,
+ 				   (unsigned long long)key, level);
++			ret = -EINVAL;
++		}
+ 		goto out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from vulab@iscas.ac.cn are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-nilfs2-add-pointer-check-for-nilfs_direct_propagate.patch
+nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch
 
