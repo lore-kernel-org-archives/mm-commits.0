@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE2B642AA6
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ADBD8C1E
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:34:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745868641; cv=none; b=t9g0X4kJYWuIKoJEEgglVCvEILp2qOPCMesiegQNdVD1S33K4ldlWgF/cou7A7R23wsOtOcshzExR+br/VKXa+VEph47C8d3f9r9WjVc9urQaLTcmBDAxtOuBCpi1Ru97EhBsfSCOXisUcPiBILPbCeXb3u/w0xs376aKB+jzpo=
+	t=1745868843; cv=none; b=ugSDua5xLwbpZdwrzyKKPGbSeAc44hcb5oNdlcMT1p3zHn6QJXDKEtymBht3EEGH89iwC7UBkbgC4oEG3K47Wcui+72NN0eRPtJTrLoLCu75GqIg6uGtnoW7Mi5jNYinhyvK8ePGc5UrVbUZT75U7jmU9wCwt/s3SZ1D3JLBp8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745868641; c=relaxed/simple;
-	bh=RG2KVMIMKCWHoipyMonYKDNuOmdoslhM4r14kR2lGZA=;
-	h=Date:To:From:Subject:Message-Id; b=bwMsgJxsuzhq1OwgQPYOSmHj0tJeeRck2vRfLj0ieVmVBySpE0fpx2vYhWxRaEOewoLlfIVlvSKB27oPo+S0h9XlrCpefMdPO4AkGngL35G18ORFxYw4ulTRND7oCniqGHnuV/idDvNlqSSPg9iIUoPxDfCChCCuX2oqqHoXxK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uktmxiRo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745868843; c=relaxed/simple;
+	bh=w01mTythctKa6vcizIu4HmUvwJypTxYHr0q/6nqreV4=;
+	h=Date:To:From:Subject:Message-Id; b=IHQ0XE4iqlCq/B+7TjPby5nuH24nxCDWiEeSF3UwlcYNzUfEar/qloQ5Bmj+eJVVIHVZaGaW7lXyniN53RJoQ8Dj3uONg8ajd6XgIr9YrdgnE5Bnh6HccUO49WIEo1Nv4H63JvPF2ZbEX15/f1jfoFTJb/9ZSvX1bEElJ32eWfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZrLn9Zf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uktmxiRo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43967C4CEE4;
-	Mon, 28 Apr 2025 19:30:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZrLn9Zf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3630C4CEE9;
+	Mon, 28 Apr 2025 19:34:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745868640;
-	bh=RG2KVMIMKCWHoipyMonYKDNuOmdoslhM4r14kR2lGZA=;
+	s=korg; t=1745868843;
+	bh=w01mTythctKa6vcizIu4HmUvwJypTxYHr0q/6nqreV4=;
 	h=Date:To:From:Subject:From;
-	b=uktmxiRoXr86GDZUy5w7S5a6lReC5ajFQ64tCZgKws7LIEZpjzUmNg7F4afGMSFqy
-	 zggx9Pgna48rpgL0rkshSaZy57uHlwngy0vch4DvVEiuiDSBbJ7kEv/c42zxn5YMhJ
-	 AEswgN+hkyfVfmp7GOJek58jSw5WFY1MP2Ik37Y8=
-Date: Mon, 28 Apr 2025 12:30:39 -0700
-To: mm-commits@vger.kernel.org,vulab@iscas.ac.cn,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=jZrLn9Zfp1F7MF5Vej0NGYl35P0VI7aajp7gW0on3GxnqSCF1nI8ARS00eg1IZQFH
+	 ymVNVWdbRDZraMrdR3x2KCSRsZu3wmfv6ZypvVI+KLMaOEikJIqJiC4hO9ZS2URSaj
+	 Q5/4iMy6qnUDZvf3U/gN5MO9A47B+LxSXuvYsrZg=
+Date: Mon, 28 Apr 2025 12:34:02 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,muchun.song@linux.dev,mcgrof@kernel.org,david@redhat.com,dave@stgolabs.net,a.manzanares@samsung.com,fan.ni@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch added to mm-nonmm-unstable branch
-Message-Id: <20250428193040.43967C4CEE4@smtp.kernel.org>
+Subject: + mm-hugetlb-pass-folio-instead-of-page-to-unmap_ref_private.patch added to mm-new branch
+Message-Id: <20250428193402.E3630C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: do not propagate ENOENT error from nilfs_btree_propagate()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch
+     Subject: mm/hugetlb: pass folio instead of page to unmap_ref_private()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-hugetlb-pass-folio-instead-of-page-to-unmap_ref_private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-pass-folio-instead-of-page-to-unmap_ref_private.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,54 +64,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: do not propagate ENOENT error from nilfs_btree_propagate()
-Date: Tue, 29 Apr 2025 02:37:08 +0900
+From: Fan Ni <fan.ni@samsung.com>
+Subject: mm/hugetlb: pass folio instead of page to unmap_ref_private()
+Date: Mon, 28 Apr 2025 10:11:44 -0700
 
-In preparation for writing logs, in nilfs_btree_propagate(), which makes
-parent and ancestor node blocks dirty starting from a modified data block
-or b-tree node block, if the starting block does not belong to the b-tree,
-i.e.  is isolated, nilfs_btree_do_lookup() called within the function
-fails with -ENOENT.
+Patch series "mm/hugetlb: Let unmap_hugepage_range() and", v3.
 
-In this case, even though -ENOENT is an internal code, it is propagated to
-the log writer via nilfs_bmap_propagate() and may be erroneously returned
-to system calls such as fsync().
 
-Fix this issue by changing the error code to -EINVAL in this case, and
-having the bmap layer detect metadata corruption and convert the error
-code appropriately.
+This patch (of 4):
 
-Link: https://lkml.kernel.org/r/20250428173808.6452-3-konishi.ryusuke@gmail.com
-Fixes: 1f5abe7e7dbc ("nilfs2: replace BUG_ON and BUG calls triggerable from ioctl")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: Wentao Liang <vulab@iscas.ac.cn>
+unmap_ref_private() has only user, which passes in &folio->page.  Let it
+take folio directly.
+
+Link: https://lkml.kernel.org/r/20250428171608.21111-4-nifan.cxl@gmail.com
+Signed-off-by: Fan Ni <fan.ni@samsung.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Adam Manzanares <a.manzanares@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/nilfs2/btree.c~nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate
-+++ a/fs/nilfs2/btree.c
-@@ -2102,11 +2102,13 @@ static int nilfs_btree_propagate(struct
- 
- 	ret = nilfs_btree_do_lookup(btree, path, key, NULL, level + 1, 0);
- 	if (ret < 0) {
--		if (unlikely(ret == -ENOENT))
-+		if (unlikely(ret == -ENOENT)) {
- 			nilfs_crit(btree->b_inode->i_sb,
- 				   "writing node/leaf block does not appear in b-tree (ino=%lu) at key=%llu, level=%d",
- 				   btree->b_inode->i_ino,
- 				   (unsigned long long)key, level);
-+			ret = -EINVAL;
-+		}
- 		goto out;
+--- a/mm/hugetlb.c~mm-hugetlb-pass-folio-instead-of-page-to-unmap_ref_private
++++ a/mm/hugetlb.c
+@@ -6065,7 +6065,7 @@ void unmap_hugepage_range(struct vm_area
+  * same region.
+  */
+ static void unmap_ref_private(struct mm_struct *mm, struct vm_area_struct *vma,
+-			      struct page *page, unsigned long address)
++			      struct folio *folio, unsigned long address)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct vm_area_struct *iter_vma;
+@@ -6109,7 +6109,8 @@ static void unmap_ref_private(struct mm_
+ 		 */
+ 		if (!is_vma_resv_set(iter_vma, HPAGE_RESV_OWNER))
+ 			unmap_hugepage_range(iter_vma, address,
+-					     address + huge_page_size(h), page, 0);
++					     address + huge_page_size(h),
++					     &folio->page, 0);
  	}
+ 	i_mmap_unlock_write(mapping);
+ }
+@@ -6232,8 +6233,7 @@ retry_avoidcopy:
+ 			hugetlb_vma_unlock_read(vma);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
  
+-			unmap_ref_private(mm, vma, &old_folio->page,
+-					vmf->address);
++			unmap_ref_private(mm, vma, old_folio, vmf->address);
+ 
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 			hugetlb_vma_lock_read(vma);
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from fan.ni@samsung.com are
 
-nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch
+mm-convert-free_page_and_swap_cache-to-free_folio_and_swap_cache.patch
+khugepaged-pass-folio-instead-of-head-page-to-trace-events.patch
+mm-hugetlb-pass-folio-instead-of-page-to-unmap_ref_private.patch
+mm-hugetlb-refactor-unmap_hugepage_range-to-take-folio-instead-of-page.patch
+mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page.patch
+mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch
 
