@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83DD269D09
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C439269D09
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745866911; cv=none; b=HwQActepI+o7QFSaSgjNxtdLPu6Lzp4W339Rck0XQLhT26/dPCUZQgNsU//AZodaKC4Yttwnf49w08+xIFSzs+CrTYeRDfWFrt1p+W5daYnYNqbs1+SzuD/WdvoQH9BKUPq+aw00ZDb+sFItZ4HniXeU3ZTSYJUIyf3qx2XaYkc=
+	t=1745866914; cv=none; b=fI8OGQsUCPN9gBfXvk1wwyQ9w1/8MrFj0F8R1gl3J73QU+SVl9Q7Y5GgvW8Mcf25RqM4NNYFDg7VCCkBf70f4al52hxF4cfnFNjG9VyDaNk4un2G6F5wA+MTPbMHgRzmbCb16gx2gYw7O/qdmG35BYphYQdS2JSvCiUN0w1qGdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745866911; c=relaxed/simple;
-	bh=DjWG8+GWFhtZItgxPlxYXu3DVhR8KylbleH+HQ/z73I=;
-	h=Date:To:From:Subject:Message-Id; b=rba35Xe8bsrQqn5JwxhwCV9hWRyPhv0ElhDhr5mW00Jb37m9RSer6Q9HpG8fvzxX5mBVVuWLRrWOcEvFbJMmCkXqkLW6TyjA9KxoC65D6tC8M9Hhhsn5L9yRuigRf0EP949JrrnJUTdkYmaEx/uUCpRblpfxx5c+012u+vpWhzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a1cG8vD0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745866914; c=relaxed/simple;
+	bh=74qAYVvuhV9B5A1M9N5mAFsDqJapeXO9JeImlAvThhk=;
+	h=Date:To:From:Subject:Message-Id; b=GdLqOTdEc0B0U9k/ZdrCgf3u/AM2UW4j3QEAkylgNibeB1LSj3Zjwwx2wzg00vvR6SqF+b7QEGbrmDKAD/7x+OUAiTaY/mzieddgcyZi+XyCL/MVbbH8OAKuoKv10sxjQ45JjOZ7WsMWnKhQz7Nv+if5SGYWE82NS4QY2JCgh3w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UmeNE2uC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a1cG8vD0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36467C4CEE4;
-	Mon, 28 Apr 2025 19:01:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UmeNE2uC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D67EC4CEE4;
+	Mon, 28 Apr 2025 19:01:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745866911;
-	bh=DjWG8+GWFhtZItgxPlxYXu3DVhR8KylbleH+HQ/z73I=;
+	s=korg; t=1745866913;
+	bh=74qAYVvuhV9B5A1M9N5mAFsDqJapeXO9JeImlAvThhk=;
 	h=Date:To:From:Subject:From;
-	b=a1cG8vD0UxC9OW9QwUW/cVCDO0nP1+0fDggYQ56hSGTgyPdNly4L9qcaMIzyPIqXp
-	 BC2CrfrdYKLHLfoWg+SFLRJ+XMy9A9b24aLn+kIbPagU9UCwqLohtmIj7W15b6RtRG
-	 EtwjwL5x35qtiHCuf/pl0J0cMeCINo4LUdqQLaVk=
-Date: Mon, 28 Apr 2025 12:01:50 -0700
+	b=UmeNE2uCocm03cvSW4Rf9gEFIRwW+51oVvhklkCjKy1NbvZK+ZiRLcmu2ZoIrThFO
+	 BnFjstboY29OpnuVhSHFevRVDnbk8Yd9McoR7gr1QoHILtz4m+bSSyOMPfNeGQpDOf
+	 QT0Q39J7ORPZ35irzE+OZPJf8nMHHc9RRJPAHqLY=
+Date: Mon, 28 Apr 2025 12:01:53 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shuah@kernel.org,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-document-mthp-defer-usage.patch added to mm-new branch
-Message-Id: <20250428190151.36467C4CEE4@smtp.kernel.org>
+Subject: + khugepaged-add-defer-option-to-mthp-options.patch added to mm-new branch
+Message-Id: <20250428190153.8D67EC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: document (m)THP defer usage
+     Subject: khugepaged: add defer option to mTHP options
 has been added to the -mm mm-new branch.  Its filename is
-     mm-document-mthp-defer-usage.patch
+     khugepaged-add-defer-option-to-mthp-options.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-mthp-defer-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-add-defer-option-to-mthp-options.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,17 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: mm: document (m)THP defer usage
-Date: Mon, 28 Apr 2025 12:29:02 -0600
+Subject: khugepaged: add defer option to mTHP options
+Date: Mon, 28 Apr 2025 12:29:03 -0600
 
-The new defer option for (m)THPs allows for a more conservative approach
-to (m)THPs.  Document its usage in the transhuge admin-guide.
+Now that we have defer to globally disable THPs at fault time, lets add a
+defer setting to the mTHP options.  This will allow khugepaged to operate
+at that order, while avoiding it at PF time.
 
-Link: https://lkml.kernel.org/r/20250428182904.93989-3-npache@redhat.com
+Link: https://lkml.kernel.org/r/20250428182904.93989-4-npache@redhat.com
 Signed-off-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -113,92 +114,200 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   31 ++++++++++++++-----
- 1 file changed, 23 insertions(+), 8 deletions(-)
+ include/linux/huge_mm.h |    5 +++++
+ mm/huge_memory.c        |   38 +++++++++++++++++++++++++++++++++-----
+ mm/khugepaged.c         |    8 ++++----
+ 3 files changed, 42 insertions(+), 9 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-document-mthp-defer-usage
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -88,8 +88,9 @@ In certain cases when hugepages are enab
- may end up allocating more memory resources. An application may mmap a
- large region but only touch 1 byte of it, in that case a 2M page might
- be allocated instead of a 4k page for no good. This is why it's
--possible to disable hugepages system-wide and to only have them inside
--MADV_HUGEPAGE madvise regions.
-+possible to disable hugepages system-wide, only have them inside
-+MADV_HUGEPAGE madvise regions, or defer them away from the page fault
-+handler to khugepaged.
+--- a/include/linux/huge_mm.h~khugepaged-add-defer-option-to-mthp-options
++++ a/include/linux/huge_mm.h
+@@ -96,6 +96,7 @@ extern struct kobj_attribute thpsize_shm
+ #define TVA_SMAPS		(1 << 0)	/* Will be used for procfs */
+ #define TVA_IN_PF		(1 << 1)	/* Page fault handler */
+ #define TVA_ENFORCE_SYSFS	(1 << 2)	/* Obey sysfs configuration */
++#define TVA_IN_KHUGEPAGE	((1 << 2) | (1 << 3)) /* Khugepaged defer support */
  
- Embedded systems should enable hugepages only inside madvise regions
- to eliminate any risk of wasting any precious byte of memory and to
-@@ -99,6 +100,15 @@ Applications that gets a lot of benefit
- risk to lose memory by using hugepages, should use
- madvise(MADV_HUGEPAGE) on their critical mmapped regions.
+ #define thp_vma_allowable_order(vma, vm_flags, tva_flags, order) \
+ 	(!!thp_vma_allowable_orders(vma, vm_flags, tva_flags, BIT(order)))
+@@ -182,6 +183,7 @@ extern unsigned long transparent_hugepag
+ extern unsigned long huge_anon_orders_always;
+ extern unsigned long huge_anon_orders_madvise;
+ extern unsigned long huge_anon_orders_inherit;
++extern unsigned long huge_anon_orders_defer;
  
-+Applications that would like to benefit from THPs but would still like a
-+more memory conservative approach can choose 'defer'. This avoids
-+inserting THPs at the page fault handler unless they are MADV_HUGEPAGE.
-+Khugepaged will then scan the mappings for potential collapses into (m)THP
-+pages. Admins using this the 'defer' setting should consider
-+tweaking khugepaged/max_ptes_none. The current default of 511 may
-+aggressively collapse your PTEs into PMDs. Lower this value to conserve
-+more memory (i.e., max_ptes_none=64).
+ static inline bool hugepage_global_enabled(void)
+ {
+@@ -306,6 +308,9 @@ unsigned long thp_vma_allowable_orders(s
+ 	/* Optimization to check if required orders are enabled early. */
+ 	if ((tva_flags & TVA_ENFORCE_SYSFS) && vma_is_anonymous(vma)) {
+ 		unsigned long mask = READ_ONCE(huge_anon_orders_always);
 +
- .. _thp_sysfs:
++		if ((tva_flags & TVA_IN_KHUGEPAGE) == TVA_IN_KHUGEPAGE)
++			mask |= READ_ONCE(huge_anon_orders_defer);
+ 		if (vm_flags & VM_HUGEPAGE)
+ 			mask |= READ_ONCE(huge_anon_orders_madvise);
+ 		if (hugepage_global_always() || hugepage_global_defer() ||
+--- a/mm/huge_memory.c~khugepaged-add-defer-option-to-mthp-options
++++ a/mm/huge_memory.c
+@@ -81,6 +81,7 @@ unsigned long huge_zero_pfn __read_mostl
+ unsigned long huge_anon_orders_always __read_mostly;
+ unsigned long huge_anon_orders_madvise __read_mostly;
+ unsigned long huge_anon_orders_inherit __read_mostly;
++unsigned long huge_anon_orders_defer __read_mostly;
+ static bool anon_orders_configured __initdata;
  
- sysfs
-@@ -109,11 +119,14 @@ Global THP controls
+ static inline bool file_thp_enabled(struct vm_area_struct *vma)
+@@ -505,13 +506,15 @@ static ssize_t anon_enabled_show(struct
+ 	const char *output;
  
- Transparent Hugepage Support for anonymous memory can be entirely disabled
- (mostly for debugging purposes) or only enabled inside MADV_HUGEPAGE
--regions (to avoid the risk of consuming more memory resources) or enabled
--system wide. This can be achieved per-supported-THP-size with one of::
-+regions (to avoid the risk of consuming more memory resources), deferred to
-+khugepaged, or enabled system wide.
+ 	if (test_bit(order, &huge_anon_orders_always))
+-		output = "[always] inherit madvise never";
++		output = "[always] inherit madvise defer never";
+ 	else if (test_bit(order, &huge_anon_orders_inherit))
+-		output = "always [inherit] madvise never";
++		output = "always [inherit] madvise defer never";
+ 	else if (test_bit(order, &huge_anon_orders_madvise))
+-		output = "always inherit [madvise] never";
++		output = "always inherit [madvise] defer never";
++	else if (test_bit(order, &huge_anon_orders_defer))
++		output = "always inherit madvise [defer] never";
+ 	else
+-		output = "always inherit madvise [never]";
++		output = "always inherit madvise defer [never]";
+ 
+ 	return sysfs_emit(buf, "%s\n", output);
+ }
+@@ -527,25 +530,36 @@ static ssize_t anon_enabled_store(struct
+ 		spin_lock(&huge_anon_orders_lock);
+ 		clear_bit(order, &huge_anon_orders_inherit);
+ 		clear_bit(order, &huge_anon_orders_madvise);
++		clear_bit(order, &huge_anon_orders_defer);
+ 		set_bit(order, &huge_anon_orders_always);
+ 		spin_unlock(&huge_anon_orders_lock);
+ 	} else if (sysfs_streq(buf, "inherit")) {
+ 		spin_lock(&huge_anon_orders_lock);
+ 		clear_bit(order, &huge_anon_orders_always);
+ 		clear_bit(order, &huge_anon_orders_madvise);
++		clear_bit(order, &huge_anon_orders_defer);
+ 		set_bit(order, &huge_anon_orders_inherit);
+ 		spin_unlock(&huge_anon_orders_lock);
+ 	} else if (sysfs_streq(buf, "madvise")) {
+ 		spin_lock(&huge_anon_orders_lock);
+ 		clear_bit(order, &huge_anon_orders_always);
+ 		clear_bit(order, &huge_anon_orders_inherit);
++		clear_bit(order, &huge_anon_orders_defer);
+ 		set_bit(order, &huge_anon_orders_madvise);
+ 		spin_unlock(&huge_anon_orders_lock);
++	} else if (sysfs_streq(buf, "defer")) {
++		spin_lock(&huge_anon_orders_lock);
++		clear_bit(order, &huge_anon_orders_always);
++		clear_bit(order, &huge_anon_orders_inherit);
++		clear_bit(order, &huge_anon_orders_madvise);
++		set_bit(order, &huge_anon_orders_defer);
++		spin_unlock(&huge_anon_orders_lock);
+ 	} else if (sysfs_streq(buf, "never")) {
+ 		spin_lock(&huge_anon_orders_lock);
+ 		clear_bit(order, &huge_anon_orders_always);
+ 		clear_bit(order, &huge_anon_orders_inherit);
+ 		clear_bit(order, &huge_anon_orders_madvise);
++		clear_bit(order, &huge_anon_orders_defer);
+ 		spin_unlock(&huge_anon_orders_lock);
+ 	} else
+ 		ret = -EINVAL;
+@@ -1002,7 +1016,7 @@ static char str_dup[PAGE_SIZE] __initdat
+ static int __init setup_thp_anon(char *str)
+ {
+ 	char *token, *range, *policy, *subtoken;
+-	unsigned long always, inherit, madvise;
++	unsigned long always, inherit, madvise, defer;
+ 	char *start_size, *end_size;
+ 	int start, end, nr;
+ 	char *p;
+@@ -1014,6 +1028,8 @@ static int __init setup_thp_anon(char *s
+ 	always = huge_anon_orders_always;
+ 	madvise = huge_anon_orders_madvise;
+ 	inherit = huge_anon_orders_inherit;
++	defer = huge_anon_orders_defer;
 +
-+This can be achieved per-supported-THP-size with one of::
+ 	p = str_dup;
+ 	while ((token = strsep(&p, ";")) != NULL) {
+ 		range = strsep(&token, ":");
+@@ -1053,18 +1069,28 @@ static int __init setup_thp_anon(char *s
+ 				bitmap_set(&always, start, nr);
+ 				bitmap_clear(&inherit, start, nr);
+ 				bitmap_clear(&madvise, start, nr);
++				bitmap_clear(&defer, start, nr);
+ 			} else if (!strcmp(policy, "madvise")) {
+ 				bitmap_set(&madvise, start, nr);
+ 				bitmap_clear(&inherit, start, nr);
+ 				bitmap_clear(&always, start, nr);
++				bitmap_clear(&defer, start, nr);
+ 			} else if (!strcmp(policy, "inherit")) {
+ 				bitmap_set(&inherit, start, nr);
+ 				bitmap_clear(&madvise, start, nr);
+ 				bitmap_clear(&always, start, nr);
++				bitmap_clear(&defer, start, nr);
++			} else if (!strcmp(policy, "defer")) {
++				bitmap_set(&defer, start, nr);
++				bitmap_clear(&madvise, start, nr);
++				bitmap_clear(&always, start, nr);
++				bitmap_clear(&inherit, start, nr);
+ 			} else if (!strcmp(policy, "never")) {
+ 				bitmap_clear(&inherit, start, nr);
+ 				bitmap_clear(&madvise, start, nr);
+ 				bitmap_clear(&always, start, nr);
++				bitmap_clear(&defer, start, nr);
++
+ 			} else {
+ 				pr_err("invalid policy %s in thp_anon boot parameter\n", policy);
+ 				goto err;
+@@ -1075,6 +1101,8 @@ static int __init setup_thp_anon(char *s
+ 	huge_anon_orders_always = always;
+ 	huge_anon_orders_madvise = madvise;
+ 	huge_anon_orders_inherit = inherit;
++	huge_anon_orders_defer = defer;
++
+ 	anon_orders_configured = true;
+ 	return 1;
  
- 	echo always >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
- 	echo madvise >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
-+	echo defer >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
- 	echo never >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
+--- a/mm/khugepaged.c~khugepaged-add-defer-option-to-mthp-options
++++ a/mm/khugepaged.c
+@@ -491,7 +491,7 @@ void khugepaged_enter_vma(struct vm_area
+ {
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
+ 	    hugepage_pmd_enabled()) {
+-		if (thp_vma_allowable_order(vma, vm_flags, TVA_ENFORCE_SYSFS,
++		if (thp_vma_allowable_order(vma, vm_flags, TVA_IN_KHUGEPAGE,
+ 					    PMD_ORDER))
+ 			__khugepaged_enter(vma->vm_mm);
+ 	}
+@@ -954,7 +954,7 @@ static int hugepage_vma_revalidate(struc
+ 				   struct collapse_control *cc, int order)
+ {
+ 	struct vm_area_struct *vma;
+-	unsigned long tva_flags = cc->is_khugepaged ? TVA_ENFORCE_SYSFS : 0;
++	unsigned long tva_flags = cc->is_khugepaged ? TVA_IN_KHUGEPAGE  : 0;
  
- where <size> is the hugepage size being addressed, the available sizes
-@@ -136,6 +149,7 @@ The top-level setting (for use with "inh
- one of the following commands::
+ 	if (unlikely(khugepaged_test_exit_or_disable(mm)))
+ 		return SCAN_ANY_PROCESS;
+@@ -1428,7 +1428,7 @@ static int khugepaged_scan_pmd(struct mm
+ 	bool writable = false;
+ 	int chunk_none_count = 0;
+ 	int scaled_none = khugepaged_max_ptes_none >> (HPAGE_PMD_ORDER - KHUGEPAGED_MIN_MTHP_ORDER);
+-	unsigned long tva_flags = cc->is_khugepaged ? TVA_ENFORCE_SYSFS : 0;
++	unsigned long tva_flags = cc->is_khugepaged ? TVA_IN_KHUGEPAGE : 0;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
  
- 	echo always >/sys/kernel/mm/transparent_hugepage/enabled
-+	echo defer >/sys/kernel/mm/transparent_hugepage/enabled
- 	echo madvise >/sys/kernel/mm/transparent_hugepage/enabled
- 	echo never >/sys/kernel/mm/transparent_hugepage/enabled
- 
-@@ -286,7 +300,8 @@ of small pages into one large page::
- A higher value leads to use additional memory for programs.
- A lower value leads to gain less thp performance. Value of
- max_ptes_none can waste cpu time very little, you can
--ignore it.
-+ignore it. Consider lowering this value when using
-+``transparent_hugepage=defer``
- 
- ``max_ptes_swap`` specifies how many pages can be brought in from
- swap when collapsing a group of pages into a transparent huge page::
-@@ -311,14 +326,14 @@ Boot parameters
- 
- You can change the sysfs boot time default for the top-level "enabled"
- control by passing the parameter ``transparent_hugepage=always`` or
--``transparent_hugepage=madvise`` or ``transparent_hugepage=never`` to the
--kernel command line.
-+``transparent_hugepage=madvise`` or ``transparent_hugepage=defer`` or
-+``transparent_hugepage=never`` to the kernel command line.
- 
- Alternatively, each supported anonymous THP size can be controlled by
- passing ``thp_anon=<size>[KMG],<size>[KMG]:<state>;<size>[KMG]-<size>[KMG]:<state>``,
- where ``<size>`` is the THP size (must be a power of 2 of PAGE_SIZE and
- supported anonymous THP)  and ``<state>`` is one of ``always``, ``madvise``,
--``never`` or ``inherit``.
-+``defer``, ``never`` or ``inherit``.
- 
- For example, the following will set 16K, 32K, 64K THP to ``always``,
- set 128K, 512K to ``inherit``, set 256K to ``madvise`` and 1M, 2M
+ 	result = find_pmd_or_thp_or_none(mm, address, &pmd);
+@@ -2631,7 +2631,7 @@ static unsigned int khugepaged_scan_mm_s
+ 			break;
+ 		}
+ 		if (!thp_vma_allowable_order(vma, vma->vm_flags,
+-					TVA_ENFORCE_SYSFS, PMD_ORDER)) {
++					TVA_IN_KHUGEPAGE, PMD_ORDER)) {
+ skip:
+ 			progress++;
+ 			continue;
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
