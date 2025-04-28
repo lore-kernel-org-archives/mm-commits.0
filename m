@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0137314012
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 00:18:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F054D599
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 00:23:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745799500; cv=none; b=Nake3zwyQmHnuv8WEu08GKM0y/ZYFMI9jFPv2SRiVRJJZ2ThJd5ybuDivzhhBykKkLRNHuvcr6mPUpbE+YRTXpEn9PfO/BOwMPkE+cjCKie5m6nZA3cEeQu5OOSzDsaAbJF1LZm602J8aINaZa4uwF7i7HIKTegA9+WuMyFRf/8=
+	t=1745799784; cv=none; b=J/m5zNVgEfLi9vahXWdVjvUSzb+TmlyEQD50TAnjrYzDzLJCght5g8Ua7vxKMS0/bj83aYdo5bFW6mq+baf+Zm+33l9sHTSQwKEBui+T6umu6iCNhANfZoo8UKK1QejcaNSk5zRK7ALSVZNYR8qqdzyS2OQ8uJ0z/4RhDPlg6iI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745799500; c=relaxed/simple;
-	bh=mIlUzDmlh8dr/SJBULNv6gWN/I1vQWNZTIJNuorJgQk=;
-	h=Date:To:From:Subject:Message-Id; b=t+P8iGcJrAlVINLEEDysC1QO0pq7TiyDp2IOwI/enIa91NODxe7ozVJKZzHk1nLCJvX0VBB7wAQVO5osYmVRgxXsqCiuaxw7wWrCrS12lETLPW6vTG05eTIWqvrCb4hplm5KV0uSxWEwhmH+MRQHqa5cSVZOXdrmdJ3sZd+u7us=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gndwVY5R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745799784; c=relaxed/simple;
+	bh=lCtlmZUtScywuNdfcObr+CwEj7VHvRMsHfP1lR4pH+0=;
+	h=Date:To:From:Subject:Message-Id; b=aXiAQ5Ky2dN+6t8ahT99n7hol357LxstTukyPjXKj8XD08PbK+tb2VSCA+xr71cUpY4C0siQS9X4mzdbiKDN0CjQIJQ4/XY8g4Q6W0T4efWZSjyXSGBuVDQgdnZQkOR/6HZIQ68TBPNDf0kG39zvT0FOMwhhvMxgEfqPmIffsEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KnthChCE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gndwVY5R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62D17C4CEEC;
-	Mon, 28 Apr 2025 00:18:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KnthChCE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F7DAC4CEE3;
+	Mon, 28 Apr 2025 00:23:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745799499;
-	bh=mIlUzDmlh8dr/SJBULNv6gWN/I1vQWNZTIJNuorJgQk=;
+	s=korg; t=1745799784;
+	bh=lCtlmZUtScywuNdfcObr+CwEj7VHvRMsHfP1lR4pH+0=;
 	h=Date:To:From:Subject:From;
-	b=gndwVY5R1lg7jnxU2licjRiXDxKkeMBawAdCFQJgvU+4dajYheKZhpPLwadm1PvE7
-	 WzmYHgds4cWIkVCnKrHgXGEgF/t58W8EQfvP1K2HogcvqdxLx0+aVZhhbvll9ZhsH5
-	 tSk264LW5Io4vmcty1uCZPPFe6KC+2o0Nlvxu284=
-Date: Sun, 27 Apr 2025 17:18:18 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rppt@kernel.org,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=KnthChCEyDTMc4CDM0ZBO6NCGnSWMIzG1q4FUx4SF1FWmoceM9wIA9ihCiVfh3mEl
+	 js7FOHm/bHnm3cej7O6QDn9aOFpSil1PKmW+LKYit0vXHiiW4h3HL/PKPJhuYMtgq5
+	 FAPgHTrdIPmldESONGAtUWNa7LlOqtb8kvJoH/nk=
+Date: Sun, 27 Apr 2025 17:23:03 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch added to mm-unstable branch
-Message-Id: <20250428001819.62D17C4CEEC@smtp.kernel.org>
+Subject: + samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch added to mm-unstable branch
+Message-Id: <20250428002304.2F7DAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/numa: remove unnecessary local variable in alloc_node_data()
+     Subject: samples/damon: trigger build even if only mtier is enabled
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch
+     samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/numa: remove unnecessary local variable in alloc_node_data()
-Date: Sun, 27 Apr 2025 18:04:42 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: samples/damon: trigger build even if only mtier is enabled
+Date: Sat, 26 Apr 2025 11:40:54 -0700
 
-The temporary local variable 'nd' is redundant.  Directly assign the
-virtual address to node_data[nid] to simplify the code.
+mtier can be built only if one or more of other DAMON sample modules are
+build-enabled.  This is because commit 66001f0476f4 ("samples/damon:
+implement a DAMON module for memory tiering") on mm-unstable tree is not
+connecting it on samples/Makefile.  Fix it by adding the connection on
+samples/Makefile.
 
-No functional change.
-
-Link: https://lkml.kernel.org/r/20250427100442.958352-4-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250426184054.11437-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/numa.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ samples/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/numa.c~mm-numa-remove-unnecessary-local-variable-in-alloc_node_data
-+++ a/mm/numa.c
-@@ -13,7 +13,6 @@ void __init alloc_node_data(int nid)
- {
- 	const size_t nd_size = roundup(sizeof(pg_data_t), SMP_CACHE_BYTES);
- 	u64 nd_pa;
--	void *nd;
- 	int tnid;
- 
- 	/* Allocate node data.  Try node-local memory and then any node. */
-@@ -21,7 +20,6 @@ void __init alloc_node_data(int nid)
- 	if (!nd_pa)
- 		panic("Cannot allocate %zu bytes for node %d data\n",
- 		      nd_size, nid);
--	nd = __va(nd_pa);
- 
- 	/* report and initialize */
- 	pr_info("NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
-@@ -30,7 +28,7 @@ void __init alloc_node_data(int nid)
- 	if (tnid != nid)
- 		pr_info("    NODE_DATA(%d) on node %d\n", nid, tnid);
- 
--	node_data[nid] = nd;
-+	node_data[nid] = __va(nd_pa);
- 	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
- }
- 
+--- a/samples/Makefile~samples-damon-implement-a-damon-module-for-memory-tiering-fix
++++ a/samples/Makefile
+@@ -42,4 +42,5 @@ obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
+ obj-$(CONFIG_SAMPLES_RUST)		+= rust/
+ obj-$(CONFIG_SAMPLE_DAMON_WSSE)		+= damon/
+ obj-$(CONFIG_SAMPLE_DAMON_PRCL)		+= damon/
++obj-$(CONFIG_SAMPLE_DAMON_MTIER)	+= damon/
+ obj-$(CONFIG_SAMPLE_HUNG_TASK)		+= hung_task/
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
-mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report.patch
-fs-proc-page-refactoring-to-reduce-code-duplication.patch
-mm-rmap-rename-page__anon_vma-to-anon_vma-for-consistency.patch
-mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
-mm-io-mapping-precompute-remap-protection-flags-for-clarity.patch
-mm-debug_page_alloc-improve-error-message-for-invalid-guardpage-minorder.patch
-mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch
+mm-madvise-define-and-use-madvise_behavior-struct-for-madvise_do_behavior.patch
+mm-madvise-batch-tlb-flushes-for-madv_free.patch
+mm-memory-split-non-tlb-flushing-part-from-zap_page_range_single.patch
+mm-madvise-batch-tlb-flushes-for-madv_dontneed.patch
+mm-damon-core-introduce-damos-quota-goal-metrics-for-memory-node-utilization.patch
+mm-damon-sysfs-schemes-implement-file-for-quota-goal-nid-parameter.patch
+mm-damon-sysfs-schemes-connect-damos_quota_goal-nid-with-core-layer.patch
+docs-mm-damon-design-document-node_mem_usedfree_bp.patch
+docs-admin-guide-mm-damon-usage-document-nid-file.patch
+docs-abi-damon-document-nid-file.patch
+samples-damon-implement-a-damon-module-for-memory-tiering.patch
+samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch
 
