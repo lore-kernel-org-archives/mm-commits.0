@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0111B13AC1
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 00:18:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0137314012
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 00:18:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745799500; cv=none; b=DHvjo4z2mkRLDVeA6SGdKBTmtmyEpuveH6hP660q0N2SMrYELI6e77erzpeH3kIBSI7jbMdA6aMGA9cjwJEIO8spnSewLEUUlJEePsZ4RCwCGR9BlBokIvT33McRG6tL0TUj58f+HHHN+IoYv9fKYKICdA6jfwedK7s0c/wZeTA=
+	t=1745799500; cv=none; b=Nake3zwyQmHnuv8WEu08GKM0y/ZYFMI9jFPv2SRiVRJJZ2ThJd5ybuDivzhhBykKkLRNHuvcr6mPUpbE+YRTXpEn9PfO/BOwMPkE+cjCKie5m6nZA3cEeQu5OOSzDsaAbJF1LZm602J8aINaZa4uwF7i7HIKTegA9+WuMyFRf/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1745799500; c=relaxed/simple;
-	bh=RZfOf8zt3LOKazAnZiamTllZ0OLlM9rejk3+7PquHt8=;
-	h=Date:To:From:Subject:Message-Id; b=WD4RUtYkQX35KlOzbn4Jrj5RDdpEwRyORiwnJ/m+Z/2d7TyHDBwlweWdSAB7h4hkh2XO41f+lVJl0X2fmk3C1olgaod9H+qXXB0w3ODsKRwPMKvqWc5oiMdDwUxPJHgEsjoU0Cu7bh0CI/S+YtdCnCpl9JSNZhiEQy/WyCo9L8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0pV1k+kE; arc=none smtp.client-ip=10.30.226.201
+	bh=mIlUzDmlh8dr/SJBULNv6gWN/I1vQWNZTIJNuorJgQk=;
+	h=Date:To:From:Subject:Message-Id; b=t+P8iGcJrAlVINLEEDysC1QO0pq7TiyDp2IOwI/enIa91NODxe7ozVJKZzHk1nLCJvX0VBB7wAQVO5osYmVRgxXsqCiuaxw7wWrCrS12lETLPW6vTG05eTIWqvrCb4hplm5KV0uSxWEwhmH+MRQHqa5cSVZOXdrmdJ3sZd+u7us=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gndwVY5R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0pV1k+kE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 626D4C4CEE3;
-	Mon, 28 Apr 2025 00:18:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gndwVY5R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62D17C4CEEC;
+	Mon, 28 Apr 2025 00:18:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745799497;
-	bh=RZfOf8zt3LOKazAnZiamTllZ0OLlM9rejk3+7PquHt8=;
+	s=korg; t=1745799499;
+	bh=mIlUzDmlh8dr/SJBULNv6gWN/I1vQWNZTIJNuorJgQk=;
 	h=Date:To:From:Subject:From;
-	b=0pV1k+kEPcr0XBiDMSpk9Dh+jnenVzQavriOsPwbvTTYBDJwlTsqkWJLM6YIi3W3V
-	 qKtfGvNk47v/XAtSVEuNuAPMyHYK0870ujSOaTCVXTIHyP2fXC4q3s8e7k4AZPta3Z
-	 ywx2mHsRg0vP1k5mmnJOPLg8LA8m9Q8EbRV04nII=
-Date: Sun, 27 Apr 2025 17:18:16 -0700
+	b=gndwVY5R1lg7jnxU2licjRiXDxKkeMBawAdCFQJgvU+4dajYheKZhpPLwadm1PvE7
+	 WzmYHgds4cWIkVCnKrHgXGEgF/t58W8EQfvP1K2HogcvqdxLx0+aVZhhbvll9ZhsH5
+	 tSk264LW5Io4vmcty1uCZPPFe6KC+2o0Nlvxu284=
+Date: Sun, 27 Apr 2025 17:18:18 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,rppt@kernel.org,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug_page_alloc-improve-error-message-for-invalid-guardpage-minorder.patch added to mm-unstable branch
-Message-Id: <20250428001817.626D4C4CEE3@smtp.kernel.org>
+Subject: + mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch added to mm-unstable branch
+Message-Id: <20250428001819.62D17C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/debug_page_alloc: improve error message for invalid guardpage minorder
+     Subject: mm/numa: remove unnecessary local variable in alloc_node_data()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-debug_page_alloc-improve-error-message-for-invalid-guardpage-minorder.patch
+     mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_page_alloc-improve-error-message-for-invalid-guardpage-minorder.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/debug_page_alloc: improve error message for invalid guardpage minorder
-Date: Sun, 27 Apr 2025 18:04:41 +0800
+Subject: mm/numa: remove unnecessary local variable in alloc_node_data()
+Date: Sun, 27 Apr 2025 18:04:42 +0800
 
-When an invalid debug_guardpage_minorder value is provided, include the
-user input in the error message.  This helps users and developers diagnose
-configuration issues more easily.
+The temporary local variable 'nd' is redundant.  Directly assign the
+virtual address to node_data[nid] to simplify the code.
 
 No functional change.
 
-Link: https://lkml.kernel.org/r/20250427100442.958352-3-ye.liu@linux.dev
+Link: https://lkml.kernel.org/r/20250427100442.958352-4-ye.liu@linux.dev
 Signed-off-by: Ye Liu <liuye@kylinos.cn>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -79,20 +78,36 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/numa.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/debug_page_alloc.c~mm-debug_page_alloc-improve-error-message-for-invalid-guardpage-minorder
-+++ a/mm/debug_page_alloc.c
-@@ -23,7 +23,7 @@ static int __init debug_guardpage_minord
- 	unsigned long res;
+--- a/mm/numa.c~mm-numa-remove-unnecessary-local-variable-in-alloc_node_data
++++ a/mm/numa.c
+@@ -13,7 +13,6 @@ void __init alloc_node_data(int nid)
+ {
+ 	const size_t nd_size = roundup(sizeof(pg_data_t), SMP_CACHE_BYTES);
+ 	u64 nd_pa;
+-	void *nd;
+ 	int tnid;
  
- 	if (kstrtoul(buf, 10, &res) < 0 ||  res > MAX_PAGE_ORDER / 2) {
--		pr_err("Bad debug_guardpage_minorder value\n");
-+		pr_err("Bad debug_guardpage_minorder value: %s\n", buf);
- 		return 0;
- 	}
- 	_debug_guardpage_minorder = res;
+ 	/* Allocate node data.  Try node-local memory and then any node. */
+@@ -21,7 +20,6 @@ void __init alloc_node_data(int nid)
+ 	if (!nd_pa)
+ 		panic("Cannot allocate %zu bytes for node %d data\n",
+ 		      nd_size, nid);
+-	nd = __va(nd_pa);
+ 
+ 	/* report and initialize */
+ 	pr_info("NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
+@@ -30,7 +28,7 @@ void __init alloc_node_data(int nid)
+ 	if (tnid != nid)
+ 		pr_info("    NODE_DATA(%d) on node %d\n", nid, tnid);
+ 
+-	node_data[nid] = nd;
++	node_data[nid] = __va(nd_pa);
+ 	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
+ }
+ 
 _
 
 Patches currently in -mm which might be from liuye@kylinos.cn are
