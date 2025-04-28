@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6A602C187
-	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2025 02:16:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 358B31FC8
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 00:09:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745633796; cv=none; b=WC0FkNPVM5VAnigbgbtA/g7okNHimBYwbYVwrEKeHMykMJge6wCVAnvesxTBYlMBzj0HBdnq7AzxWB85DQspgMrdbDmMwHobjk/E9qBQzfTqMi9++QaSr7iJO8dOcsjjHDf+4VG/WtiLNR9JkH4QAmHjGaIz/fLRpBy3mfJJxu8=
+	t=1745798965; cv=none; b=nJWcx7HqbHLfI97fuxB7NWd6qInTrtx06jw4XdtRlgOtMtUjOLD93yPEsWEQIls8EUVjlsvSV8HcrLxTyvetoK29WVfVoAcchyPvEJ3fTEIWu65an4XDkIZDxpRiHjDFLShP1LRCUPxIe5/06GnnnsrfHS2gK1X/jJuAgo8ulEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745633796; c=relaxed/simple;
-	bh=YCGB0FnVgNIB0nW1J5A21/Sd40Zpq6wBJqfkwc4S27M=;
-	h=Date:To:From:Subject:Message-Id; b=Eu5gcFytB+UVVghcJw+gN7wnBfkqhNczrIRhf8D0XROHNJ1FpiwTlfkzoVa3GmfCEFr18giK1r0T6awdiz9J+Ik4MQcd5pCqEsWwMg4cLRhQlyrB4xH0pq4lq8HuoNXDePdUybPDS5f1JBnYn/wRTA9rhD74ZX+nsN5JYQBCjII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oHLGcfzF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745798965; c=relaxed/simple;
+	bh=ASCXsg76+lDdxp41WvqDTb9OLvpokNt/fA1ooQLHxCE=;
+	h=Date:To:From:Subject:Message-Id; b=gDetBePo3Pl9TSBK8ZNG+1ZLlHP8XHFvkQ6hz1ref4YQ/grZluhYRLKlX4AtaudM/8w4q+0lhEwPAGrfFBKGCYJKzV6XMkYF1BEC+zORYIqHXL14Ke5+iVzJ/EC6ZSSdhnvMwJAuuZN9A+RPcxGsIPIQZldjPeiFiRKBSv2OJiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RcsCAQa2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oHLGcfzF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 288F7C4CEE4;
-	Sat, 26 Apr 2025 02:16:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RcsCAQa2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80E30C4CEE3;
+	Mon, 28 Apr 2025 00:09:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745633796;
-	bh=YCGB0FnVgNIB0nW1J5A21/Sd40Zpq6wBJqfkwc4S27M=;
+	s=korg; t=1745798964;
+	bh=ASCXsg76+lDdxp41WvqDTb9OLvpokNt/fA1ooQLHxCE=;
 	h=Date:To:From:Subject:From;
-	b=oHLGcfzF3ILMHfUCdCV6Y9yQ4M6nehTch+EJ9J7up6kBtUs5/iVOTG0g/jPyZvyip
-	 RoLgIN868SedkAw2YyvfmlWhJMQ81C/JA70MOpcVt3Ql0MX0j8JM6rRvl7mmw8Y0HD
-	 78qKBPSCqPOJXPTVJTYWWNkX/52ihe5l5Ze7Aa1Q=
-Date: Fri, 25 Apr 2025 19:16:35 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=RcsCAQa26uPp8+R4fQv/Jm/upuzrWd9Re29HET5gyTu2nQJDIQBftSls6RlbZyXGF
+	 SeuQQVz+krkMrZrR9GgCC7EfuCROV+xRRf21Vji7pMLl60DALz7eUfYxalUBGrPeyH
+	 UmzcUBuYaxmahDfM/OrEjx2POOV15sBq4v0qs3Kg=
+Date: Sun, 27 Apr 2025 17:09:23 -0700
+To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.se,shakeel.butt@linux.dev,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,igor.b@beldev.am,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch removed from -mm tree
-Message-Id: <20250426021636.288F7C4CEE4@smtp.kernel.org>
+Subject: + mm-zblock-add-debugfs.patch added to mm-new branch
+Message-Id: <20250428000924.80E30C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,101 +34,127 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
-has been removed from the -mm tree.  Its filename was
-     selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
+The patch titled
+     Subject: mm/zblock: add debugfs
+has been added to the -mm mm-new branch.  Its filename is
+     mm-zblock-add-debugfs.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zblock-add-debugfs.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
-Date: Tue, 15 Apr 2025 17:04:14 -0400
+From: Igor Belousov <igor.b@beldev.am>
+Subject: mm/zblock: add debugfs
+Date: Sun, 27 Apr 2025 22:19:58 +0200
 
-Patch series "memcg: Fix test_memcg_min/low test failures", v7.
+Add debugfs entry to monitor number of blocks allocated for different
+block sizes.
 
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test (with memory_recursiveprot enabled) and sporadically fails its
-test_memcg_min sub-test.  This patchset fixes the test_memcg_min and
-test_memcg_low failures by adjusting the test_memcontrol selftest to fix
-these test failures.
-
-
-This patch (of 2):
-
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test due to the fact that its 3rd test child cgroup which have a
-memmory.low of 0 have low event count.  This happens when
-memory_recursiveprot mount option is enabled which is the default setting
-used by systemd to mount cgroup2 filesystem.
-
-Modify the test_memcontrol.c to allow non-zero low event count in this
-particular case with memory_recursiveprot on.
-
-With this patch applied, the test_memcg_low sub-test finishes successfully
-without failure in most cases.  Though both test_memcg_low and
-test_memcg_min sub-tests may still fail occasionally if the memory.current
-values fall outside of the expected ranges.
-
-The 4th test child cgroup has no memory usage and so has an effective low
-of 0.  It has no low event count because the mem_cgroup_below_low() check
-in shrink_node_memcgs() is skipped as mem_cgroup_below_min() returns true.
-If we ever change mem_cgroup_below_min() in such a way that it no longer
-skips the no usage case, we will have to add code to explicitly skip it.
-
-Link: https://lkml.kernel.org/r/20250415210415.13414-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20250415210415.13414-2-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Michal Koutný <mkoutny@suse.com>
+Link: https://lkml.kernel.org/r/20250427201958.491806-1-vitaly.wool@konsulko.se
+Signed-off-by: Igor Belousov <igor.b@beldev.am>
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.se>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |   16 ++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/zblock.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -380,10 +380,10 @@ static bool reclaim_until(const char *me
-  *
-  * Then it checks actual memory usages and expects that:
-  * A/B    memory.current ~= 50M
-- * A/B/C  memory.current ~= 29M
-- * A/B/D  memory.current ~= 21M
-- * A/B/E  memory.current ~= 0
-- * A/B/F  memory.current  = 0
-+ * A/B/C  memory.current ~= 29M [memory.events:low > 0]
-+ * A/B/D  memory.current ~= 21M [memory.events:low > 0]
-+ * A/B/E  memory.current ~= 0   [memory.events:low == 0 if !memory_recursiveprot, > 0 otherwise]
-+ * A/B/F  memory.current  = 0   [memory.events:low == 0]
-  * (for origin of the numbers, see model in memcg_protection.m.)
-  *
-  * After that it tries to allocate more than there is
-@@ -525,8 +525,14 @@ static int test_memcg_protection(const c
- 		goto cleanup;
+--- a/mm/zblock.c~mm-zblock-add-debugfs
++++ a/mm/zblock.c
+@@ -17,6 +17,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/atomic.h>
++#include <linux/debugfs.h>
+ #include <linux/list.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+@@ -27,6 +28,7 @@
+ #include "zblock.h"
+ 
+ static struct rb_root block_desc_tree = RB_ROOT;
++static struct dentry *zblock_debugfs_root;
+ 
+ /* Encode handle of a particular slot in the pool using metadata */
+ static inline unsigned long metadata_to_handle(struct zblock_block *block,
+@@ -111,6 +113,22 @@ static struct zblock_block *alloc_block(
+ 	return block;
+ }
+ 
++static int zblock_blocks_show(struct seq_file *s, void *v)
++{
++	struct zblock_pool *pool = s->private;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(block_desc); i++) {
++		struct block_list *block_list = &pool->block_lists[i];
++
++		seq_printf(s, "%d: %ld blocks of %d pages (total %ld pages)\n",
++			i, block_list->block_count, block_desc[i].num_pages,
++			block_list->block_count * block_desc[i].num_pages);
++	}
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(zblock_blocks);
++
+ /*****************
+  * API Functions
+  *****************/
+@@ -140,6 +158,9 @@ static struct zblock_pool *zblock_create
+ 		INIT_LIST_HEAD(&block_list->active_list);
+ 		block_list->block_count = 0;
  	}
++
++	debugfs_create_file("blocks", S_IFREG | 0444, zblock_debugfs_root,
++			    pool, &zblock_blocks_fops);
+ 	return pool;
+ }
  
-+	/*
-+	 * Child 2 has memory.low=0, but some low protection is still being
-+	 * distributed down from its parent with memory.low=50M if cgroup2
-+	 * memory_recursiveprot mount option is enabled. So the low event
-+	 * count will be non-zero in this case.
-+	 */
- 	for (i = 0; i < ARRAY_SIZE(children); i++) {
--		int no_low_events_index = 1;
-+		int no_low_events_index = has_recursiveprot ? 2 : 1;
- 		long low, oom;
+@@ -426,12 +447,15 @@ static int __init init_zblock(void)
+ 		return ret;
  
- 		oom = cg_read_key_long(children[i], "memory.events", "oom ");
+ 	zpool_register_driver(&zblock_zpool_driver);
++
++	zblock_debugfs_root = debugfs_create_dir("zblock", NULL);
+ 	return 0;
+ }
+ 
+ static void __exit exit_zblock(void)
+ {
+ 	zpool_unregister_driver(&zblock_zpool_driver);
++	debugfs_remove_recursive(zblock_debugfs_root);
+ 	delete_rbtree();
+ }
+ 
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from igor.b@beldev.am are
 
+mm-zblock-add-debugfs.patch
 
