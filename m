@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE4A6155725
-	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F978155725
+	for <mm-commits@vger.kernel.org>; Mon, 28 Apr 2025 19:01:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745866892; cv=none; b=PKGDHXN8kli4ZoyrgSF8jxXVM0CaJgCd6vGcyqZnKCwWKvnOKR5RHHDmDIURMmaTclN85lyiyq07PgZLtfP7D7DYrV8GaUlFPwXhefz3yv0IwXE/RRlP9k+1omytG3ZZS+WJ4Z4K54ULFPlwgeEQzcb2Iw+rXKI4O93M66kmXHo=
+	t=1745866895; cv=none; b=CMIufm7cZe9gsbcOfFNV62tVVO+3DqO9KEC6YCU7vIgCkxKDfUedFtAflkxkRyuE3WJmqxsvWPVt+idItaU0OoApt/TUAWiakRg3BcafX3vwsTrWmtmHSNridQP2X8u0ekJZBwMCL8+otaR+yTypFrxIxkizfvbzIJLpCALDR10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745866892; c=relaxed/simple;
-	bh=+HUYYO5Row7GQcFBqkVZN7tpgkMit1zOAUTRHXkaDJA=;
-	h=Date:To:From:Subject:Message-Id; b=YewokEJSCbUIPKtHYnUqI8n3ehSWWAl6m7ziosyL2Ws/tOQTYTh6I2na9ENOsnnKl3FIFWt1spPvyf3YNxa8+qY4Daz8f11dW/7ze73g5PhTO5N4jG2PedBjL1eUGeqkgLvOvx77hs/4/81f6R90brQJDP/eBJKdoyIVGjW7JOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KJdsZdyi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745866895; c=relaxed/simple;
+	bh=3czsNLGgpGZRNTT0BsAY7WraIk6J51HCi0/Ec0EptM8=;
+	h=Date:To:From:Subject:Message-Id; b=d9XNlMh5YfvkQ6bchpNGVOEc8Z775eG/1gCz3LDdPxsg5eAZT7vRylXvwt5TnOU5lMCQMaXx5QUap8U47uZ+EwFUgOWdVgLHAJKRovAbm4oBt5LBGSxs/P5FrxV2YgoGUjMVkyHULDXHOhX41y2qCjSgDdqFiFB8gJgcOBsxT+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SJMFPTbt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KJdsZdyi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FED7C4CEE4;
-	Mon, 28 Apr 2025 19:01:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SJMFPTbt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA928C4CEE4;
+	Mon, 28 Apr 2025 19:01:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745866892;
-	bh=+HUYYO5Row7GQcFBqkVZN7tpgkMit1zOAUTRHXkaDJA=;
+	s=korg; t=1745866895;
+	bh=3czsNLGgpGZRNTT0BsAY7WraIk6J51HCi0/Ec0EptM8=;
 	h=Date:To:From:Subject:From;
-	b=KJdsZdyi/NqWXsobsz/03/OC4/8lY/01fuwJt6UxLalkb/dv8ZQMmmLfbQSkGCAbT
-	 vX1ntbZe//2q+xgVrr0Y7pDGZyrt1UtsC40+bHhorpEZj0zcDOGepGO9hRUrk92ZV3
-	 NpwF/WOAEfWNFelzjqLsM5UWOc/NEKa9JXY3WMQU=
-Date: Mon, 28 Apr 2025 12:01:31 -0700
+	b=SJMFPTbtriV5RjLr5Lr2FSPZpes/+yRri7t+SlWM4uMhdU/eH1Xo4u3jdXpfGfipR
+	 NvMsLnMDWJonWDx9AJOdLc6OL97VTSqO52sxS/teAsIi2qkYQ9vJWRkbhk++xroRYG
+	 yHYT66hLr8Ia/w5i+dbSoH5ddwL0PCt0frvyxGjE=
+Date: Mon, 28 Apr 2025 12:01:34 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shuah@kernel.org,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-add-mthp-support.patch added to mm-new branch
-Message-Id: <20250428190132.5FED7C4CEE4@smtp.kernel.org>
+Subject: + khugepaged-skip-collapsing-mthp-to-smaller-orders.patch added to mm-new branch
+Message-Id: <20250428190134.EA928C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: add mTHP support
+     Subject: khugepaged: skip collapsing mTHP to smaller orders
 has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-add-mthp-support.patch
+     khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-add-mthp-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,25 +65,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: khugepaged: add mTHP support
-Date: Mon, 28 Apr 2025 12:12:13 -0600
+Subject: khugepaged: skip collapsing mTHP to smaller orders
+Date: Mon, 28 Apr 2025 12:12:14 -0600
 
-Introduce the ability for khugepaged to collapse to different mTHP sizes. 
-While scanning PMD ranges for potential collapse candidates, keep track of
-pages in KHUGEPAGED_MIN_MTHP_ORDER chunks via a bitmap.  Each bit
-represents a utilized region of order KHUGEPAGED_MIN_MTHP_ORDER ptes.  If
-mTHPs are enabled we remove the restriction of max_ptes_none during the
-scan phase so we dont bailout early and miss potential mTHP candidates.
+khugepaged may try to collapse a mTHP to a smaller mTHP, resulting in some
+pages being unmapped.  Skip these cases until we have a way to check if
+its ok to collapse to a smaller mTHP size (like in the case of a partially
+mapped folio).
 
-After the scan is complete we will perform binary recursion on the bitmap
-to determine which mTHP size would be most efficient to collapse to. 
-max_ptes_none will be scaled by the attempted collapse order to determine
-how full a THP must be to be eligible.
+This patch is inspired by Dev Jain's work on khugepaged mTHP support [1].
 
-If a mTHP collapse is attempted, but contains swapped out, or shared
-pages, we dont perform the collapse.
-
-Link: https://lkml.kernel.org/r/20250428181218.85925-8-npache@redhat.com
+Link: https://lore.kernel.org/lkml/20241216165105.56185-11-dev.jain@arm.com/ [1]
+Link: https://lkml.kernel.org/r/20250428181218.85925-9-npache@redhat.com
+Co-developed-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Dev Jain <dev.jain@arm.com>
 Signed-off-by: Nico Pache <npache@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -94,7 +89,6 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -125,272 +119,25 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |  121 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 86 insertions(+), 35 deletions(-)
+ mm/khugepaged.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~khugepaged-add-mthp-support
+--- a/mm/khugepaged.c~khugepaged-skip-collapsing-mthp-to-smaller-orders
 +++ a/mm/khugepaged.c
-@@ -1136,13 +1136,14 @@ static int collapse_huge_page(struct mm_
- {
- 	LIST_HEAD(compound_pagelist);
- 	pmd_t *pmd, _pmd;
--	pte_t *pte;
-+	pte_t *pte, mthp_pte;
- 	pgtable_t pgtable;
- 	struct folio *folio;
- 	spinlock_t *pmd_ptl, *pte_ptl;
- 	int result = SCAN_FAIL;
- 	struct vm_area_struct *vma;
- 	struct mmu_notifier_range range;
-+	unsigned long _address = address + offset * PAGE_SIZE;
+@@ -625,7 +625,12 @@ static int __collapse_huge_page_isolate(
+ 		folio = page_folio(page);
+ 		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
  
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 
-@@ -1158,12 +1159,13 @@ static int collapse_huge_page(struct mm_
- 		*mmap_locked = false;
- 	}
- 
--	result = alloc_charge_folio(&folio, mm, cc, HPAGE_PMD_ORDER);
-+	result = alloc_charge_folio(&folio, mm, cc, order);
- 	if (result != SCAN_SUCCEED)
- 		goto out_nolock;
- 
- 	mmap_read_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, true, &vma, cc, HPAGE_PMD_ORDER);
-+	*mmap_locked = true;
-+	result = hugepage_vma_revalidate(mm, address, true, &vma, cc, order);
- 	if (result != SCAN_SUCCEED) {
- 		mmap_read_unlock(mm);
- 		goto out_nolock;
-@@ -1181,13 +1183,14 @@ static int collapse_huge_page(struct mm_
- 		 * released when it fails. So we jump out_nolock directly in
- 		 * that case.  Continuing to collapse causes inconsistency.
- 		 */
--		result = __collapse_huge_page_swapin(mm, vma, address, pmd,
--				referenced, HPAGE_PMD_ORDER);
-+		result = __collapse_huge_page_swapin(mm, vma, _address, pmd,
-+				referenced, order);
- 		if (result != SCAN_SUCCEED)
- 			goto out_nolock;
- 	}
- 
- 	mmap_read_unlock(mm);
-+	*mmap_locked = false;
- 	/*
- 	 * Prevent all access to pagetables with the exception of
- 	 * gup_fast later handled by the ptep_clear_flush and the VM
-@@ -1197,7 +1200,7 @@ static int collapse_huge_page(struct mm_
- 	 * mmap_lock.
- 	 */
- 	mmap_write_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, true, &vma, cc, HPAGE_PMD_ORDER);
-+	result = hugepage_vma_revalidate(mm, address, true, &vma, cc, order);
- 	if (result != SCAN_SUCCEED)
- 		goto out_up_write;
- 	/* check if the pmd is still valid */
-@@ -1208,11 +1211,12 @@ static int collapse_huge_page(struct mm_
- 	vma_start_write(vma);
- 	anon_vma_lock_write(vma->anon_vma);
- 
--	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, address,
--				address + HPAGE_PMD_SIZE);
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, _address,
-+				_address + (PAGE_SIZE << order));
- 	mmu_notifier_invalidate_range_start(&range);
- 
- 	pmd_ptl = pmd_lock(mm, pmd); /* probably unnecessary */
-+
- 	/*
- 	 * This removes any huge TLB entry from the CPU so we won't allow
- 	 * huge and small TLB entries for the same virtual address to
-@@ -1226,18 +1230,16 @@ static int collapse_huge_page(struct mm_
- 	mmu_notifier_invalidate_range_end(&range);
- 	tlb_remove_table_sync_one();
- 
--	pte = pte_offset_map_lock(mm, &_pmd, address, &pte_ptl);
-+	pte = pte_offset_map_lock(mm, &_pmd, _address, &pte_ptl);
- 	if (pte) {
--		result = __collapse_huge_page_isolate(vma, address, pte, cc,
--					&compound_pagelist, HPAGE_PMD_ORDER);
-+		result = __collapse_huge_page_isolate(vma, _address, pte, cc,
-+					&compound_pagelist, order);
- 		spin_unlock(pte_ptl);
- 	} else {
- 		result = SCAN_PMD_NULL;
- 	}
- 
- 	if (unlikely(result != SCAN_SUCCEED)) {
--		if (pte)
--			pte_unmap(pte);
- 		spin_lock(pmd_ptl);
- 		BUG_ON(!pmd_none(*pmd));
- 		/*
-@@ -1258,9 +1260,8 @@ static int collapse_huge_page(struct mm_
- 	anon_vma_unlock_write(vma->anon_vma);
- 
- 	result = __collapse_huge_page_copy(pte, folio, pmd, _pmd,
--					   vma, address, pte_ptl,
--					   &compound_pagelist, HPAGE_PMD_ORDER);
--	pte_unmap(pte);
-+					   vma, _address, pte_ptl,
-+					   &compound_pagelist, order);
- 	if (unlikely(result != SCAN_SUCCEED))
- 		goto out_up_write;
- 
-@@ -1270,25 +1271,42 @@ static int collapse_huge_page(struct mm_
- 	 * write.
- 	 */
- 	__folio_mark_uptodate(folio);
--	pgtable = pmd_pgtable(_pmd);
-+	if (order == HPAGE_PMD_ORDER) {
-+		pgtable = pmd_pgtable(_pmd);
-+		_pmd = folio_mk_pmd(folio, vma->vm_page_prot);
-+		_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
- 
--	_pmd = folio_mk_pmd(folio, vma->vm_page_prot);
--	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
-+		spin_lock(pmd_ptl);
-+		BUG_ON(!pmd_none(*pmd));
-+		folio_add_new_anon_rmap(folio, vma, _address, RMAP_EXCLUSIVE);
-+		folio_add_lru_vma(folio, vma);
-+		pgtable_trans_huge_deposit(mm, pmd, pgtable);
-+		set_pmd_at(mm, address, pmd, _pmd);
-+		update_mmu_cache_pmd(vma, address, pmd);
-+		deferred_split_folio(folio, false);
-+		spin_unlock(pmd_ptl);
-+	} else { /* mTHP collapse */
-+		mthp_pte = mk_pte(&folio->page, vma->vm_page_prot);
-+		mthp_pte = maybe_mkwrite(pte_mkdirty(mthp_pte), vma);
- 
--	spin_lock(pmd_ptl);
--	BUG_ON(!pmd_none(*pmd));
--	folio_add_new_anon_rmap(folio, vma, address, RMAP_EXCLUSIVE);
--	folio_add_lru_vma(folio, vma);
--	pgtable_trans_huge_deposit(mm, pmd, pgtable);
--	set_pmd_at(mm, address, pmd, _pmd);
--	update_mmu_cache_pmd(vma, address, pmd);
--	deferred_split_folio(folio, false);
--	spin_unlock(pmd_ptl);
-+		spin_lock(pmd_ptl);
-+		folio_ref_add(folio, (1 << order) - 1);
-+		folio_add_new_anon_rmap(folio, vma, _address, RMAP_EXCLUSIVE);
-+		folio_add_lru_vma(folio, vma);
-+		set_ptes(vma->vm_mm, _address, pte, mthp_pte, (1 << order));
-+		update_mmu_cache_range(NULL, vma, _address, pte, (1 << order));
-+
-+		smp_wmb(); /* make pte visible before pmd */
-+		pmd_populate(mm, pmd, pmd_pgtable(_pmd));
-+		spin_unlock(pmd_ptl);
-+	}
- 
- 	folio = NULL;
- 
- 	result = SCAN_SUCCEED;
- out_up_write:
-+	if (pte)
-+		pte_unmap(pte);
- 	mmap_write_unlock(mm);
- out_nolock:
- 	*mmap_locked = false;
-@@ -1364,31 +1382,58 @@ static int khugepaged_scan_pmd(struct mm
- {
- 	pmd_t *pmd;
- 	pte_t *pte, *_pte;
-+	int i;
- 	int result = SCAN_FAIL, referenced = 0;
- 	int none_or_zero = 0, shared = 0;
- 	struct page *page = NULL;
- 	struct folio *folio = NULL;
- 	unsigned long _address;
-+	unsigned long enabled_orders;
- 	spinlock_t *ptl;
- 	int node = NUMA_NO_NODE, unmapped = 0;
-+	bool is_pmd_only;
- 	bool writable = false;
--
-+	int chunk_none_count = 0;
-+	int scaled_none = khugepaged_max_ptes_none >> (HPAGE_PMD_ORDER - KHUGEPAGED_MIN_MTHP_ORDER);
-+	unsigned long tva_flags = cc->is_khugepaged ? TVA_ENFORCE_SYSFS : 0;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 
- 	result = find_pmd_or_thp_or_none(mm, address, &pmd);
- 	if (result != SCAN_SUCCEED)
- 		goto out;
- 
-+	bitmap_zero(cc->mthp_bitmap, MAX_MTHP_BITMAP_SIZE);
-+	bitmap_zero(cc->mthp_bitmap_temp, MAX_MTHP_BITMAP_SIZE);
- 	memset(cc->node_load, 0, sizeof(cc->node_load));
- 	nodes_clear(cc->alloc_nmask);
-+
-+	enabled_orders = thp_vma_allowable_orders(vma, vma->vm_flags,
-+		tva_flags, THP_ORDERS_ALL_ANON);
-+
-+	is_pmd_only = (enabled_orders == (1 << HPAGE_PMD_ORDER));
-+
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 	if (!pte) {
- 		result = SCAN_PMD_NULL;
- 		goto out;
- 	}
- 
--	for (_address = address, _pte = pte; _pte < pte + HPAGE_PMD_NR;
--	     _pte++, _address += PAGE_SIZE) {
-+	for (i = 0; i < HPAGE_PMD_NR; i++) {
-+		/*
-+		 * we are reading in KHUGEPAGED_MIN_MTHP_NR page chunks. if
-+		 * there are pages in this chunk keep track of it in the bitmap
-+		 * for mTHP collapsing.
-+		 */
-+		if (i % KHUGEPAGED_MIN_MTHP_NR == 0) {
-+			if (chunk_none_count <= scaled_none)
-+				bitmap_set(cc->mthp_bitmap,
-+					   i / KHUGEPAGED_MIN_MTHP_NR, 1);
-+
-+			chunk_none_count = 0;
+-		/* See hpage_collapse_scan_pmd(). */
++		if (order != HPAGE_PMD_ORDER && folio_order(folio) >= order) {
++			result = SCAN_PTE_MAPPED_HUGEPAGE;
++			goto out;
 +		}
 +
-+		_pte = pte + i;
-+		_address = address + i * PAGE_SIZE;
- 		pte_t pteval = ptep_get(_pte);
- 		if (is_swap_pte(pteval)) {
- 			++unmapped;
-@@ -1411,10 +1456,11 @@ static int khugepaged_scan_pmd(struct mm
- 			}
- 		}
- 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+			++chunk_none_count;
- 			++none_or_zero;
- 			if (!userfaultfd_armed(vma) &&
--			    (!cc->is_khugepaged ||
--			     none_or_zero <= khugepaged_max_ptes_none)) {
-+			    (!cc->is_khugepaged || !is_pmd_only ||
-+				none_or_zero <= khugepaged_max_ptes_none)) {
- 				continue;
- 			} else {
- 				result = SCAN_EXCEED_NONE_PTE;
-@@ -1510,6 +1556,7 @@ static int khugepaged_scan_pmd(struct mm
- 								     address)))
- 			referenced++;
- 	}
-+
- 	if (!writable) {
- 		result = SCAN_PAGE_RO;
- 	} else if (cc->is_khugepaged &&
-@@ -1522,8 +1569,12 @@ static int khugepaged_scan_pmd(struct mm
- out_unmap:
- 	pte_unmap_unlock(pte, ptl);
- 	if (result == SCAN_SUCCEED) {
--		result = collapse_huge_page(mm, address, referenced,
--					    unmapped, cc, mmap_locked, HPAGE_PMD_ORDER, 0);
-+		result = khugepaged_scan_bitmap(mm, address, referenced, unmapped, cc,
-+			       mmap_locked, enabled_orders);
-+		if (result > 0)
-+			result = SCAN_SUCCEED;
-+		else
-+			result = SCAN_FAIL;
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, folio, writable, referenced,
++		/* See khugepaged_scan_pmd(). */
+ 		if (folio_maybe_mapped_shared(folio)) {
+ 			++shared;
+ 			if (order != HPAGE_PMD_ORDER || (cc->is_khugepaged &&
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
