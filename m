@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F2FA2C2AD0
-	for <mm-commits@vger.kernel.org>; Wed, 30 Apr 2025 21:04:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519732C2ACE
+	for <mm-commits@vger.kernel.org>; Wed, 30 Apr 2025 21:04:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746047094; cv=none; b=FhO1JZnJj5nEJxHwi1Ar2imwuQhxpffb5AVYY7vf5K17wrf1UdrDHlq6CfAHZk4v17/eAt0VH9RyIcN40WwUquvtkbgtJxJa33QJgBYrvStnZQy3m4Kbl2AJ3cVuaEo6rL7gDc3Pje7fOWdi/JUf2NxLzHc1RYODTV9pvGFJh/I=
+	t=1746047094; cv=none; b=E3D5zGopZv1gVNW2y64i014ihGvN78ufOkxBGNDZLuC6AXC75v8JTW5OYhhXpeYC/inMYEGoXYtFsDc9xyV4eBr7olM/fjH+ye1Q8ibb3KA+8MeE6rNZcThLBfv7SPTZSQBoz1cGXdcgwCbX216W82cUeXZU8qDgAg+XCBVqm4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1746047094; c=relaxed/simple;
-	bh=LZnVnSho8mJ1/LPRSCatiKirJp9H68k3ea0FkHyG+Y0=;
-	h=Date:To:From:Subject:Message-Id; b=KD6Iv8AhjO0Kxze5lH5ZueVvtON8ZX7bUeGOjl4PyywTqnAWqzYZ8LN2aUHeDQ1E+LwnVtWeHkf1M9djdybjgBNvapvOmmoM0V9voGkA0CtN8z1yxaS+UM/AB/QCramQpoX2nvKIFI2VaaCoFvg91ahAP3MHS0xofxCN2TnmNFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CLyfiMWV; arc=none smtp.client-ip=10.30.226.201
+	bh=c4lqqXt6Yj8GVuCCh0UHd5m+k3265Ha0PsrrNMTvh+M=;
+	h=Date:To:From:Subject:Message-Id; b=quuX6KVD8C5m1Y2CbogU+FTH57aOHg0bF8YrNZz/oJd9NKsBsvyW1NGA99nsbJs60QV1zhGzn2/45YIghQKVV4Q6b9RDYsW2WJHwfiT04OojgrU6I87InuMnZVujShlBv7usxTtbaLEENOmDGcaPBh+r8HCjp/bSECubQ0TN5nM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z2TWZNPE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CLyfiMWV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E159C4CEE7;
-	Wed, 30 Apr 2025 21:04:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z2TWZNPE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3D75C4CEEA;
+	Wed, 30 Apr 2025 21:04:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746047092;
-	bh=LZnVnSho8mJ1/LPRSCatiKirJp9H68k3ea0FkHyG+Y0=;
+	s=korg; t=1746047094;
+	bh=c4lqqXt6Yj8GVuCCh0UHd5m+k3265Ha0PsrrNMTvh+M=;
 	h=Date:To:From:Subject:From;
-	b=CLyfiMWV6fbEt04VDzk47JhKTM3X/QjZrpJ3lBs3t+lMVRHRzMQZuJt6/pFQejrnF
-	 tI61ncfu/MTZV+JrpOihZhiIG/FVbo9WB22o/iuOJjMY0/O2ejwS4cvUAac/k33rAh
-	 v2HHPJBuqTHN1sOwoj7bC7MlKQaWAYsaVzNniGSQ=
-Date: Wed, 30 Apr 2025 14:04:51 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,kasong@tencent.com,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Z2TWZNPEhz6xyS9goR/LGQE8sR6UzbCCEE5PnjTxYsf0oD+g59dNCxlZtLyCQAL2b
+	 vky9UGW9CN+bW35uA2VynDDfg7Xbu3GVi8/0n46CuubLUH7BiPNCN9+CWrXpOq3qHB
+	 QM2ilIbv0s+LaiWphjhjprQx96tpdqHmJQdZNWEk=
+Date: Wed, 30 Apr 2025 14:04:53 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch added to mm-new branch
-Message-Id: <20250430210452.5E159C4CEE7@smtp.kernel.org>
+Subject: + mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch added to mm-new branch
+Message-Id: <20250430210453.F3D75C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: filemap-do-not-use-folio_contains-for-swap-cache-folios-fix
+     Subject: mm: move folio_index to mm/swap.h and remove no longer needed helper
 has been added to the -mm mm-new branch.  Its filename is
-     filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+     mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,18 +64,24 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: filemap-do-not-use-folio_contains-for-swap-cache-folios-fix
-Date: Wed Apr 30 02:03:35 PM PDT 2025
+From: Kairui Song <kasong@tencent.com>
+Subject: mm: move folio_index to mm/swap.h and remove no longer needed helper
+Date: Thu, 1 May 2025 02:10:51 +0800
 
-s/VM_WARN_ON_FOLIO/VM_WARN_ON_ONCE_FOLIO/, per Kairui
+There are no remaining users of folio_index() outside the mm subsystem. 
+Move it to mm/swap.h to co-locate it with swap_cache_index(), eliminating
+a forward declaration, and a function call overhead.
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
+Also remove the helper that was used to fix circular header dependency
+issue.
+
+Link: https://lkml.kernel.org/r/20250430181052.55698-6-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -91,33 +97,134 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pagemap.h |   20 --------------------
+ mm/gup.c                |    1 +
+ mm/memfd.c              |    1 +
+ mm/migrate.c            |    1 +
+ mm/page-writeback.c     |    1 +
+ mm/swap.h               |   18 ++++++++++++++++++
+ mm/swapfile.c           |    6 ------
+ 7 files changed, 22 insertions(+), 26 deletions(-)
 
---- a/include/linux/pagemap.h~filemap-do-not-use-folio_contains-for-swap-cache-folios-fix
+--- a/include/linux/pagemap.h~mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper
 +++ a/include/linux/pagemap.h
-@@ -941,7 +941,7 @@ static inline struct page *folio_file_pa
-  */
- static inline bool folio_contains(struct folio *folio, pgoff_t index)
- {
--	VM_WARN_ON_FOLIO(folio_test_swapcache(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(folio_test_swapcache(folio), folio);
- 	return index - folio->index < folio_nr_pages(folio);
+@@ -884,26 +884,6 @@ static inline struct page *grab_cache_pa
+ 			mapping_gfp_mask(mapping));
  }
  
+-extern pgoff_t __folio_swap_cache_index(struct folio *folio);
+-
+-/**
+- * folio_index - File index of a folio.
+- * @folio: The folio.
+- *
+- * For a folio which is either in the page cache or the swap cache,
+- * return its index within the address_space it belongs to.  If you know
+- * the page is definitely in the page cache, you can look at the folio's
+- * index directly.
+- *
+- * Return: The index (offset in units of pages) of a folio in its file.
+- */
+-static inline pgoff_t folio_index(struct folio *folio)
+-{
+-	if (unlikely(folio_test_swapcache(folio)))
+-		return __folio_swap_cache_index(folio);
+-	return folio->index;
+-}
+-
+ /**
+  * folio_next_index - Get the index of the next folio.
+  * @folio: The current folio.
+--- a/mm/gup.c~mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper
++++ a/mm/gup.c
+@@ -26,6 +26,7 @@
+ #include <asm/tlbflush.h>
+ 
+ #include "internal.h"
++#include "swap.h"
+ 
+ struct follow_page_context {
+ 	struct dev_pagemap *pgmap;
+--- a/mm/memfd.c~mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper
++++ a/mm/memfd.c
+@@ -20,6 +20,7 @@
+ #include <linux/memfd.h>
+ #include <linux/pid_namespace.h>
+ #include <uapi/linux/memfd.h>
++#include "swap.h"
+ 
+ /*
+  * We need a tag: a new tag would expand every xa_node by 8 bytes,
+--- a/mm/migrate.c~mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper
++++ a/mm/migrate.c
+@@ -50,6 +50,7 @@
+ #include <trace/events/migrate.h>
+ 
+ #include "internal.h"
++#include "swap.h"
+ 
+ bool isolate_movable_page(struct page *page, isolate_mode_t mode)
+ {
+--- a/mm/page-writeback.c~mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper
++++ a/mm/page-writeback.c
+@@ -41,6 +41,7 @@
+ #include <trace/events/writeback.h>
+ 
+ #include "internal.h"
++#include "swap.h"
+ 
+ /*
+  * Sleep at most 200ms at a time in balance_dirty_pages().
+--- a/mm/swapfile.c~mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper
++++ a/mm/swapfile.c
+@@ -3671,12 +3671,6 @@ struct address_space *swapcache_mapping(
+ }
+ EXPORT_SYMBOL_GPL(swapcache_mapping);
+ 
+-pgoff_t __folio_swap_cache_index(struct folio *folio)
+-{
+-	return swap_cache_index(folio->swap);
+-}
+-EXPORT_SYMBOL_GPL(__folio_swap_cache_index);
+-
+ /*
+  * add_swap_count_continuation - called when a swap count is duplicated
+  * beyond SWAP_MAP_MAX, it allocates a new page and links that to the entry's
+--- a/mm/swap.h~mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper
++++ a/mm/swap.h
+@@ -201,4 +201,22 @@ static inline int swap_zeromap_batch(swp
+ 
+ #endif /* CONFIG_SWAP */
+ 
++/**
++ * folio_index - File index of a folio.
++ * @folio: The folio.
++ *
++ * For a folio which is either in the page cache or the swap cache,
++ * return its index within the address_space it belongs to.  If you know
++ * the folio is definitely in the page cache, you can look at the folio's
++ * index directly.
++ *
++ * Return: The index (offset in units of pages) of a folio in its file.
++ */
++static inline pgoff_t folio_index(struct folio *folio)
++{
++	if (unlikely(folio_test_swapcache(folio)))
++		return swap_cache_index(folio->swap);
++	return folio->index;
++}
++
+ #endif /* _MM_SWAP_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-x86-disable-image-size-check-for-test-builds-fix.patch
-x86-disable-image-size-check-for-test-builds-fix-fix.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
-mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
-mm-add-zblock-allocator-fix.patch
-mm-zblock-avoid-failing-the-build-fix.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
-filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
-compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+mm-memory-fix-mapcount-refcount-sanity-check-for-mthp-reuse.patch
+mm-swap-fix-false-warning-for-large-allocation-with-thp_swap.patch
+fuse-drop-usage-of-folio_index.patch
+btrfs-drop-usage-of-folio_index.patch
+f2fs-drop-usage-of-folio_index.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
+mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch
+mm-swap-remove-no-longer-used-swap-mapping-helper.patch
 
