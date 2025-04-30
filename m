@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8563A44C7C;
-	Wed, 30 Apr 2025 00:10:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7330F21129C
+	for <mm-commits@vger.kernel.org>; Wed, 30 Apr 2025 21:04:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745971859; cv=none; b=U+9pwWM3hRnPj/NUXjl77RFmIQk69Iw2/haPr4WcZGGFak5AWZibez3NNpTzMFzkV2pqvGWaJKVIO8UohdWjWa9J83u0AVB5XcS9CVYwlVRihcoHK23IAT9s7Uo0KWDtjfm4feL8sqXReG76PIGndh3YqMhiyuK/AD1XImWCs9k=
+	t=1746047086; cv=none; b=cc29Zwup/My/bGgd4JrT0wqfP6fb+sGWJR0gWus0FntHrscHCh59hHntsIGOVZKiSJTwrGhtmQynrDj2DFMBAasIbjvD3jungBs7Y35jc1YF0kXEEmcUArYNLC44Gk2QDhH8gf8PgJb0doiE/0rmh+j3iXMzmn3rs26m+Uno6yA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745971859; c=relaxed/simple;
-	bh=SeJCZ6aK8g29Fd+kCBX8IqwOZZoFfQyvaRaTLO1yaDs=;
-	h=Date:To:From:Subject:Message-Id; b=L4jxLjhDTvRk6wpqTjLBZTwif7GeDEDUr9XXsy2enh9F93ZRE0b7/Dfb+uVmUB14W82jduIPpaXq1WFuoJwDuE0jOd3Hs+1dyrc9+hCzI0/GITx1tViclgRjebKOcSwfYZnUQbsZXBo+hEeIwhAe+LsG3Es9gA3kOtB4YYAS3/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=niLBealC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746047086; c=relaxed/simple;
+	bh=pbjIZD6HlT6wItjj+JuA51s4w/yLFjZg7PJW+Dz10Xo=;
+	h=Date:To:From:Subject:Message-Id; b=teUYCx5cPIscpTMw8poQrcy10uwLVV3qbZxYW8yDjyoVnq/H7n/VBUUGLS0KXCGSnIwbWaBvFTtDWz1ylv2K5tP0h6KPPBeW0jgn9hxyg8qvp4cTR5Zg9258k0a0P9jb0y71ZsFSTq7Ho53MpYM6ZI/watkNZcmYFjm6HkHq2a4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y4xXPYTw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="niLBealC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC042C4CEED;
-	Wed, 30 Apr 2025 00:10:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y4xXPYTw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE0EFC4CEE7;
+	Wed, 30 Apr 2025 21:04:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745971859;
-	bh=SeJCZ6aK8g29Fd+kCBX8IqwOZZoFfQyvaRaTLO1yaDs=;
+	s=korg; t=1746047085;
+	bh=pbjIZD6HlT6wItjj+JuA51s4w/yLFjZg7PJW+Dz10Xo=;
 	h=Date:To:From:Subject:From;
-	b=niLBealC7Zp3pl2CXUqSCIbrVHfx9UJHFWClMR0x16lgZKM0YvTGO/sHo6kSlNUKQ
-	 9vkSa1iNkUyBsZON5UhtugToUSEEtR4a7wK2oqiefPjRt7DbwI/8heJdZ0zY1lvQd/
-	 x0srTlrG8dycEnc+pz4PMdmu+MnX7mo1kThWYpL4=
-Date: Tue, 29 Apr 2025 17:10:58 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,dja@axtens.net,andreyknvl@gmail.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=Y4xXPYTw27sFkiXuDyp0Z3bng+OdOxtIfr9+d/vC9P0M25+m2hw6wXeTKsnxliXrC
+	 i9P/4rPO7YfKKgOJ8Q2cOMYqbHmO21l+IchXlikfdbn55SKIlieHQADfWv/jM2BxO2
+	 4w6RtxCRd+UBfJYdpvGBaK7mU3QzG3UA+XyEpvZw=
+Date: Wed, 30 Apr 2025 14:04:44 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kasan-avoid-sleepable-page-allocation-from-atomic-context.patch removed from -mm tree
-Message-Id: <20250430001058.DC042C4CEED@smtp.kernel.org>
+Subject: + fuse-drop-usage-of-folio_index.patch added to mm-new branch
+Message-Id: <20250430210445.CE0EFC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,170 +34,116 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: kasan: avoid sleepable page allocation from atomic context
-has been removed from the -mm tree.  Its filename was
-     kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
+The patch titled
+     Subject: fuse: drop usage of folio_index
+has been added to the -mm mm-new branch.  Its filename is
+     fuse-drop-usage-of-folio_index.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-drop-usage-of-folio_index.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: kasan: avoid sleepable page allocation from atomic context
-Date: Tue, 29 Apr 2025 18:08:41 +0200
+From: Kairui Song <kasong@tencent.com>
+Subject: fuse: drop usage of folio_index
+Date: Thu, 1 May 2025 02:10:47 +0800
 
-apply_to_pte_range() enters the lazy MMU mode and then invokes
-kasan_populate_vmalloc_pte() callback on each page table walk iteration. 
-However, the callback can go into sleep when trying to allocate a single
-page, e.g.  if an architecutre disables preemption on lazy MMU mode enter.
+Patch series "mm, swap: clean up swap cache mapping helper", v3.
 
-On s390 with the call sequences arch_enter_lazy_mmu_mode() ->
-preempt_enable() and arch_leave_lazy_mmu_mode() -> preempt_disable(), such
-a crash occurs:
+This series removes usage of folio_index usage in fs/, and remove swap
+cache checking in folio_contains.
 
-    [  553.332108] preempt_count: 1, expected: 0
-    [  553.332117] no locks held by multipathd/2116.
-    [  553.332128] CPU: 24 PID: 2116 Comm: multipathd Kdump: loaded Tainted:
-    [  553.332139] Hardware name: IBM 3931 A01 701 (LPAR)
-    [  553.332146] Call Trace:
-    [  553.332152]  [<00000000158de23a>] dump_stack_lvl+0xfa/0x150
-    [  553.332167]  [<0000000013e10d12>] __might_resched+0x57a/0x5e8
-    [  553.332178]  [<00000000144eb6c2>] __alloc_pages+0x2ba/0x7c0
-    [  553.332189]  [<00000000144d5cdc>] __get_free_pages+0x2c/0x88
-    [  553.332198]  [<00000000145663f6>] kasan_populate_vmalloc_pte+0x4e/0x110
-    [  553.332207]  [<000000001447625c>] apply_to_pte_range+0x164/0x3c8
-    [  553.332218]  [<000000001448125a>] apply_to_pmd_range+0xda/0x318
-    [  553.332226]  [<000000001448181c>] __apply_to_page_range+0x384/0x768
-    [  553.332233]  [<0000000014481c28>] apply_to_page_range+0x28/0x38
-    [  553.332241]  [<00000000145665da>] kasan_populate_vmalloc+0x82/0x98
-    [  553.332249]  [<00000000144c88d0>] alloc_vmap_area+0x590/0x1c90
-    [  553.332257]  [<00000000144ca108>] __get_vm_area_node.constprop.0+0x138/0x260
-    [  553.332265]  [<00000000144d17fc>] __vmalloc_node_range+0x134/0x360
-    [  553.332274]  [<0000000013d5dbf2>] alloc_thread_stack_node+0x112/0x378
-    [  553.332284]  [<0000000013d62726>] dup_task_struct+0x66/0x430
-    [  553.332293]  [<0000000013d63962>] copy_process+0x432/0x4b80
-    [  553.332302]  [<0000000013d68300>] kernel_clone+0xf0/0x7d0
-    [  553.332311]  [<0000000013d68bd6>] __do_sys_clone+0xae/0xc8
-    [  553.332400]  [<0000000013d68dee>] __s390x_sys_clone+0xd6/0x118
-    [  553.332410]  [<0000000013c9d34c>] do_syscall+0x22c/0x328
-    [  553.332419]  [<00000000158e7366>] __do_syscall+0xce/0xf0
-    [  553.332428]  [<0000000015913260>] system_call+0x70/0x98
+Currently, the swap cache is already no longer directly exposed to fs, and
+swap cache will be more different from page cache.  Clean up the helpers
+first to simplify the code and eliminate the helpers used for resolving
+circular header dependency issue between filemap and swap headers, and
+prepare for further changes.
 
-Instead of allocating single pages per-PTE, bulk-allocate the shadow
-memory prior to applying kasan_populate_vmalloc_pte() callback on a page
-range.
 
-Link: https://lkml.kernel.org/r/573a823565734e1eac3aa128fb9d3506ec918a72.1745940843.git.agordeev@linux.ibm.com
-Fixes: 3c5c3cfb9ef4 ("kasan: support backing vmalloc space with real shadow memory")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Suggested-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <stable@vger.kernel.org>
+This patch (of 6):
+
+folio_index is only needed for mixed usage of page cache and swap cache,
+for pure page cache usage, the caller can just use folio->index instead.
+
+It can't be a swap cache folio here.  Swap mapping may only call into fs
+through `swap_rw` but fuse does not use that method for SWAP.
+
+Link: https://lkml.kernel.org/r/20250430181052.55698-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250430181052.55698-2-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Joanne Koong <joannelkoong@gmail.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Qu Wenruo <wqu@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |   65 +++++++++++++++++++++++++++++++++-----------
- 1 file changed, 49 insertions(+), 16 deletions(-)
+ fs/fuse/file.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/shadow.c~kasan-avoid-sleepable-page-allocation-from-atomic-context
-+++ a/mm/kasan/shadow.c
-@@ -292,30 +292,65 @@ void __init __weak kasan_populate_early_
+--- a/fs/fuse/file.c~fuse-drop-usage-of-folio_index
++++ a/fs/fuse/file.c
+@@ -487,7 +487,7 @@ static inline bool fuse_folio_is_writeba
+ 					   struct folio *folio)
  {
+ 	pgoff_t last = folio_next_index(folio) - 1;
+-	return fuse_range_is_writeback(inode, folio_index(folio), last);
++	return fuse_range_is_writeback(inode, folio->index, last);
  }
  
-+struct vmalloc_populate_data {
-+	unsigned long start;
-+	struct page **pages;
-+};
-+
- static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
--				      void *unused)
-+				      void *_data)
- {
--	unsigned long page;
-+	struct vmalloc_populate_data *data = _data;
-+	struct page *page;
-+	unsigned long pfn;
- 	pte_t pte;
+ static void fuse_wait_on_folio_writeback(struct inode *inode,
+@@ -2349,7 +2349,7 @@ static bool fuse_writepage_need_send(str
+ 		return true;
  
- 	if (likely(!pte_none(ptep_get(ptep))))
- 		return 0;
+ 	/* Discontinuity */
+-	if (data->orig_folios[ap->num_folios - 1]->index + 1 != folio_index(folio))
++	if (data->orig_folios[ap->num_folios - 1]->index + 1 != folio->index)
+ 		return true;
  
--	page = __get_free_page(GFP_KERNEL);
--	if (!page)
--		return -ENOMEM;
--
--	__memset((void *)page, KASAN_VMALLOC_INVALID, PAGE_SIZE);
--	pte = pfn_pte(PFN_DOWN(__pa(page)), PAGE_KERNEL);
-+	page = data->pages[PFN_DOWN(addr - data->start)];
-+	pfn = page_to_pfn(page);
-+	__memset(pfn_to_virt(pfn), KASAN_VMALLOC_INVALID, PAGE_SIZE);
-+	pte = pfn_pte(pfn, PAGE_KERNEL);
- 
- 	spin_lock(&init_mm.page_table_lock);
--	if (likely(pte_none(ptep_get(ptep)))) {
-+	if (likely(pte_none(ptep_get(ptep))))
- 		set_pte_at(&init_mm, addr, ptep, pte);
--		page = 0;
--	}
- 	spin_unlock(&init_mm.page_table_lock);
--	if (page)
--		free_page(page);
-+
-+	return 0;
-+}
-+
-+static int __kasan_populate_vmalloc(unsigned long start, unsigned long end)
-+{
-+	unsigned long nr_pages, nr_total = PFN_UP(end - start);
-+	struct vmalloc_populate_data data;
-+	int ret;
-+
-+	data.pages = (struct page **)__get_free_page(GFP_KERNEL);
-+	if (!data.pages)
-+		return -ENOMEM;
-+
-+	while (nr_total) {
-+		nr_pages = min(nr_total, PAGE_SIZE / sizeof(data.pages[0]));
-+		__memset(data.pages, 0, nr_pages * sizeof(data.pages[0]));
-+		if (nr_pages != alloc_pages_bulk(GFP_KERNEL, nr_pages, data.pages)) {
-+			free_page((unsigned long)data.pages);
-+			return -ENOMEM;
-+		}
-+
-+		data.start = start;
-+		ret = apply_to_page_range(&init_mm, start, nr_pages * PAGE_SIZE,
-+					  kasan_populate_vmalloc_pte, &data);
-+		if (ret)
-+			return ret;
-+
-+		start += nr_pages * PAGE_SIZE;
-+		nr_total -= nr_pages;
-+	}
-+
-+	free_page((unsigned long)data.pages);
-+
- 	return 0;
- }
- 
-@@ -348,9 +383,7 @@ int kasan_populate_vmalloc(unsigned long
- 	shadow_start = PAGE_ALIGN_DOWN(shadow_start);
- 	shadow_end = PAGE_ALIGN(shadow_end);
- 
--	ret = apply_to_page_range(&init_mm, shadow_start,
--				  shadow_end - shadow_start,
--				  kasan_populate_vmalloc_pte, NULL);
-+	ret = __kasan_populate_vmalloc(shadow_start, shadow_end);
- 	if (ret)
- 		return ret;
- 
+ 	/* Need to grow the pages array?  If so, did the expansion fail? */
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
+mm-memory-fix-mapcount-refcount-sanity-check-for-mthp-reuse.patch
+mm-swap-fix-false-warning-for-large-allocation-with-thp_swap.patch
+fuse-drop-usage-of-folio_index.patch
+btrfs-drop-usage-of-folio_index.patch
+f2fs-drop-usage-of-folio_index.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
+mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch
+mm-swap-remove-no-longer-used-swap-mapping-helper.patch
 
