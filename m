@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 734F1216392
-	for <mm-commits@vger.kernel.org>; Thu,  1 May 2025 20:27:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6FCF254848
+	for <mm-commits@vger.kernel.org>; Thu,  1 May 2025 20:27:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746131265; cv=none; b=fxjmGwFsaZ+LM0IDeJCxJuzXqoxUSoiPlNAEzH1/rt/dBOdWf7KiQpBzLjyRN15c8v+LfkF8J0HkguPwgboyNkeU49mnftKF8KkkduqM0SwakgeELg3HbFKnRe97sv9RyZfh97FeGVVKboPMW+sruMLH2IN3xevpHb9XgwvoWhc=
+	t=1746131265; cv=none; b=pgE9TNjfXjvdZ22gZgmkRKkR6d/IGhogGfL9iKqMu51Nn3yKCv901q0SmLUOBYvKSwV+xqa67Ng62mxIbQt8qnT8oMBwzgrbbuEC+/DPp29+gklwgdGDe2wS1cYo0eosugAAzFbzs/sSfP3hftN9/sieN44wiW5P/TDIzGEw1Zw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1746131265; c=relaxed/simple;
-	bh=sfB9b7mpETNqtYAXcUC7FVIIMPtJlxIO9jNoWJtOGdw=;
-	h=Date:To:From:Subject:Message-Id; b=L1jKPsMetTB9hck4N2SDlHkIfxtWF3If2vFfMl+pdRONQ8j2ta4qWzhWrLqMePCyrUVu5VlZfPTAX6hT1+X+wTo6iB1GOCEAEsNCKrxjagZxJ5NSa5g/npBldjzdoBhu3eBevX7wT9pvl0mnZZoxTKawr2kri128CcWlOs6oXsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sqlCWcd9; arc=none smtp.client-ip=10.30.226.201
+	bh=brr6yCXxb5NRDD6ZHbxoLEVz5zROK2fg5tHukUAtGUQ=;
+	h=Date:To:From:Subject:Message-Id; b=occyMIpID5T1RICIh/dd2V7fEd/y7/4Mcnzpo5TCUWhypLvG5LNDzoQ531UL0v+lME9G3H5G89VDfHhwKIYckKD8ArYCLOuudXFE2v66PNRCY/bpqqKq45EA87Sn4MxxSAxWIVqoZFaiI+42irmRpXO085yH1ddS/OVN30azv9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ijUnTz0e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sqlCWcd9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43CE7C4CEE4;
-	Thu,  1 May 2025 20:27:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ijUnTz0e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15D35C4CEE3;
+	Thu,  1 May 2025 20:27:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746131265;
-	bh=sfB9b7mpETNqtYAXcUC7FVIIMPtJlxIO9jNoWJtOGdw=;
+	s=korg; t=1746131264;
+	bh=brr6yCXxb5NRDD6ZHbxoLEVz5zROK2fg5tHukUAtGUQ=;
 	h=Date:To:From:Subject:From;
-	b=sqlCWcd9ncleHOl6ajH4HYu1TbWGYdGAWpOjawYMMXCNT5oWBq7MeqwB55nDIWRTk
-	 Q75fJQw0ZfzvEqS4Y/EnTHgdGK330b4J757jJLvmuae0bP1X6O4m0LtPOT5sPzD88s
-	 9jko0Jk6/FnIZRZm4rcjc1Nxl80OQslJNqPbYywI=
-Date: Thu, 01 May 2025 13:27:44 -0700
+	b=ijUnTz0ekBZSPANwbzJpcRnJRwAWHsmlU98Rp8Kk3Z4G0jvXQsFx3bQeGUUpl0hgp
+	 NZAMe4pyEbIFnu7CqiYtGteXztamW4UIP4LlIwM8kDPuSo/af6fgKsPjW1xfyPoLnq
+	 RRi3UUKg5eKIWe2tWXsNSmCj/9AHFpUhMPXSkGUs=
+Date: Thu, 01 May 2025 13:27:43 -0700
 To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,chen.haonan2@zte.com.cn,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-add-ksm_stat-description-in-cgroup-v2rst.patch added to mm-new branch
-Message-Id: <20250501202745.43CE7C4CEE4@smtp.kernel.org>
+Subject: + documentation-add-ksm_stat-description-in-cgroup-v1-memoryrst.patch added to mm-new branch
+Message-Id: <20250501202744.15D35C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: add ksm_stat description in cgroup-v2.rst
+     Subject: Documentation: add ksm_stat description in cgroup-v1/memory.rst
 has been added to the -mm mm-new branch.  Its filename is
-     documentation-add-ksm_stat-description-in-cgroup-v2rst.patch
+     documentation-add-ksm_stat-description-in-cgroup-v1-memoryrst.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-add-ksm_stat-description-in-cgroup-v2rst.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-add-ksm_stat-description-in-cgroup-v1-memoryrst.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,12 +65,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: Documentation: add ksm_stat description in cgroup-v2.rst
-Date: Thu, 1 May 2025 04:17:39 +0000
+Subject: Documentation: add ksm_stat description in cgroup-v1/memory.rst
+Date: Thu, 1 May 2025 04:17:13 +0000
 
-This updates ksm_stat description in cgroup-v2.rst.
+This updates ksm_stat description in cgroup-v1/memory.rst.
 
-Link: https://lkml.kernel.org/r/20250501041739.3324672-1-xu.xin16@zte.com.cn
+Link: https://lkml.kernel.org/r/20250501041713.3324621-1-xu.xin16@zte.com.cn
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Haonan Chen <chen.haonan2@zte.com.cn>
@@ -78,38 +78,69 @@ Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
 Cc: Yang Yang <yang.yang29@zte.com.cn>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/admin-guide/cgroup-v1/memory.rst |   36 +++++++++++++++
+ 1 file changed, 36 insertions(+)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~documentation-add-ksm_stat-description-in-cgroup-v2rst
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1735,6 +1735,18 @@ The following nested keys are defined.
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~documentation-add-ksm_stat-description-in-cgroup-v1-memoryrst
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -97,6 +97,8 @@ Brief summary of control files.
+                                      used.
+  memory.numa_stat		     show the number of memory usage per numa
+ 				     node
++ memory.ksm_stat                     show the statistic information about various ksm
++                                     counters
+  memory.kmem.limit_in_bytes          Deprecated knob to set and read the kernel
+                                      memory hard limit. Kernel hard limit is not
+                                      supported since 5.16. Writing any value to
+@@ -674,6 +676,40 @@ The output format of memory.numa_stat is
  
- 	The entries can refer to the memory.stat.
+ The "total" count is sum of file + anon + unevictable.
  
-+  memory.ksm_stat
-+        A read-only nested-keyed file.
++.. _memcg_ksm_stat:
 +
-+        The file can be used to observe the ksm merging status of the
-+        processes within an memory cgroup. There are four items
-+        including "ksm_rmap_items", "ksm_zero_pages", "ksm_merging_pages"
-+        and "ksm_profit".
++5.7 ksm_stat
++------------
 +
-+        See
-+        :ref:`Documentation/admin-guide/cgroup-v1/memory.rst ksm_stat <memcg_ksm_stat>`
-+        for details.
++When CONFIG_KSM is enabled, the ksm_stat file can be used to observe the ksm
++merging status of the processes within an memory cgroup.
 +
-   memory.swap.current
- 	A read-only single value file which exists on non-root
- 	cgroups.
++The output format of memory.ksm_stat is::
++
++  ksm_rmap_items <number>
++  ksm_zero_pages <number>
++  ksm_merging_pages <number>
++  ksm_profit <number>
++
++The "ksm_rmap_items" count specifies the number of ksm_rmap_item structures in
++use. The structureksm_rmap_item stores the reverse mapping information for
++virtual addresses.  KSM will generate a ksm_rmap_item for each ksm-scanned page
++of the process.
++
++The "ksm_zero_pages" count specifies represent how many empty pages are merged
++with kernel zero pages by KSM, which is useful when /sys/kernel/mm/ksm/use_zero_pages
++is enabled.
++
++The "ksm_merging_pages" count specifies how many pages of this process are involved
++in KSM merging (not including ksm_zero_pages).
++
++The "ksm_process_profit" count specifies the profit that KSM brings (Saved bytes).
++KSM can save memory by merging identical pages, but also can consume additional
++memory, because it needs to generate a number of rmap_items to save each scanned
++page's brief rmap information. Some of these pages may be merged, but some may not
++be abled to be merged after being checked several times, which are unprofitable
++memory consumed.
++
+ 6. Hierarchy support
+ ====================
+ 
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
