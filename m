@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A0E8B674
-	for <mm-commits@vger.kernel.org>; Thu,  1 May 2025 20:36:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B32D92222C3
+	for <mm-commits@vger.kernel.org>; Thu,  1 May 2025 23:00:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746131808; cv=none; b=YEDkhFLkFmyUlQrpN06A6EVwz3odOvqXg8IMs2RZQCdeIvRPVIO9Vm0KaakNUX2yaYK0AirAh5k4n5RTyM674phymwNAhVj4F5p00gUISTFTOVWi7x6cdmd7Oiyad+4d/pgw1bsS5BrIDzn8dzYnK4SlUHtLuU4El3WUEBw0myI=
+	t=1746140407; cv=none; b=DUcQGbUOMn8O0SWSypPiy6O9XvA4QEEcTldsfWjqvgyoZvA9cer5TNK+TQQvOhXaAKrggwx4FgtGhYYRQ/nsGYppT6DbdvTyHSb8md0B8F1gSMJGhMCbCrJxqtz9mnZEPrYnb46nsK98PMuS398lZZuExNrACIrwlzi2j+GqMxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746131808; c=relaxed/simple;
-	bh=Jbn1EOcf5tRvzUnC+P2G1CxrE2dR8gzNJ0GgONTQaSc=;
-	h=Date:To:From:Subject:Message-Id; b=F+gShu3n/zV9Xz7W/m0L0UNrfO+aAN6Q17hvt4u+Zb8dF3mav0Mam9zJlEo7eOU7jLkP7bKZ/VM+V7QDnK4ZPzipzHpALQeR2srsdwKcxQEEIw7wksUTZxg/Fadyycrf9OWlQJijdhsCxnGZvFL9G4QMfnRWxedIUG14iqajyK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fYNXg8bN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746140407; c=relaxed/simple;
+	bh=QexlS79SwZ3hW+bzTZspr+IxmMxUO62wp4ye2IjnWcE=;
+	h=Date:To:From:Subject:Message-Id; b=RqOKZ1gRvf/BGJP9D+w9F4nQh/qM+Rh94cG7t4FXMN3oispz2/iJCNxuhpqxkM2QeyM+5isgj3uKabCKrse1wc8DIYYl+PsMiI0QYSzSXZqI4cX2EZ8z3Bk02CJLvhaPFoTNa/pWJIPPNIzgl89dzmO7k2pf95tKZhIsoR3PbzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Um3xh1hi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fYNXg8bN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A93A2C4CEE3;
-	Thu,  1 May 2025 20:36:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Um3xh1hi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AF0FC4CEED;
+	Thu,  1 May 2025 23:00:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746131807;
-	bh=Jbn1EOcf5tRvzUnC+P2G1CxrE2dR8gzNJ0GgONTQaSc=;
+	s=korg; t=1746140407;
+	bh=QexlS79SwZ3hW+bzTZspr+IxmMxUO62wp4ye2IjnWcE=;
 	h=Date:To:From:Subject:From;
-	b=fYNXg8bNIwtYum2VUONmFm78zY1KSphtT6RtsQzgkqi1qxJ0cM7rYD1ovufZOQTMb
-	 UEwgvls53G3FdDNSzyIyz3TjijFG21YkEQ2Hcjut8aismjc0cBITjVfOWdLbwWfDud
-	 I+XXdmkZIPItw9Wl429MJVvLO7bQ3JBR957XJYbk=
-Date: Thu, 01 May 2025 13:36:47 -0700
-To: mm-commits@vger.kernel.org,linux@treblig.org,akpm@linux-foundation.org
+	b=Um3xh1hibBCpUQut8ztmgo695iORihRU0g4uj87xixTrRtqpi4Pt0djW3ZTgud9fS
+	 K0Q56Lqj999Qr8CfzZ+ECBzc9vKdbRY7Q7pbW1Zx2DoVzAJEUMzJmLhmpjSbllnHvb
+	 Nao52PPDCSc0iUuzEYFijLftCuUQWAvwGjT3MaBE=
+Date: Thu, 01 May 2025 16:00:06 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,shivankg@amd.com,shaggy@kernel.org,jane.chu@oracle.com,donettom@linux.ibm.com,david@redhat.com,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-oid_registryc-remove-unused-sprint_oid.patch added to mm-nonmm-unstable branch
-Message-Id: <20250501203647.A93A2C4CEE3@smtp.kernel.org>
+Subject: + jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch added to mm-unstable branch
+Message-Id: <20250501230007.2AF0FC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/oid_registry.c: remove unused sprint_OID
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-oid_registryc-remove-unused-sprint_oid.patch
+     Subject: jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-oid_registryc-remove-unused-sprint_oid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,79 +58,115 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: lib/oid_registry.c: remove unused sprint_OID
-Date: Thu, 1 May 2025 02:05:02 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2
+Date: Thu May  1 03:52:07 PM PDT 2025
 
-sprint_OID() was added as part of 2012's commit 4f73175d0375 ("X.509: Add
-utility functions to render OIDs as strings") but it hasn't been used. 
-Remove it.
+fix build by making fs/jfs/jfs_metapage.c change dependent upon
+CONFIG_MIGRATION
 
-Note that there's also 'sprint_oid' (lower case) which is used in a lot of
-places; that's left as is except for fixing its case in a comment.
-
-Link: https://lkml.kernel.org/r/20250501010502.326472-1-linux@treblig.org
-Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Dave Kleikamp <shaggy@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oid_registry.h |    1 -
- lib/oid_registry.c           |   25 +------------------------
- 2 files changed, 1 insertion(+), 25 deletions(-)
+ fs/jfs/jfs_metapage.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
---- a/include/linux/oid_registry.h~lib-oid_registryc-remove-unused-sprint_oid
-+++ a/include/linux/oid_registry.h
-@@ -151,6 +151,5 @@ enum OID {
- extern enum OID look_up_OID(const void *data, size_t datasize);
- extern int parse_OID(const void *data, size_t datasize, enum OID *oid);
- extern int sprint_oid(const void *, size_t, char *, size_t);
--extern int sprint_OID(enum OID, char *, size_t);
- 
- #endif /* _LINUX_OID_REGISTRY_H */
---- a/lib/oid_registry.c~lib-oid_registryc-remove-unused-sprint_oid
-+++ a/lib/oid_registry.c
-@@ -117,7 +117,7 @@ int parse_OID(const void *data, size_t d
- EXPORT_SYMBOL_GPL(parse_OID);
- 
- /*
-- * sprint_OID - Print an Object Identifier into a buffer
-+ * sprint_oid - Print an Object Identifier into a buffer
-  * @data: The encoded OID to print
-  * @datasize: The size of the encoded OID
-  * @buffer: The buffer to render into
-@@ -173,26 +173,3 @@ bad:
- 	return -EBADMSG;
+--- a/fs/jfs/jfs_metapage.c~jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2
++++ a/fs/jfs/jfs_metapage.c
+@@ -152,8 +152,10 @@ static inline void dec_io(struct folio *
+ 		handler(folio, anchor->status);
  }
- EXPORT_SYMBOL_GPL(sprint_oid);
--
--/**
-- * sprint_OID - Print an Object Identifier into a buffer
-- * @oid: The OID to print
-- * @buffer: The buffer to render into
-- * @bufsize: The size of the buffer
-- *
-- * The OID is rendered into the buffer in "a.b.c.d" format and the number of
-- * bytes is returned.
-- */
--int sprint_OID(enum OID oid, char *buffer, size_t bufsize)
--{
--	int ret;
--
--	BUG_ON(oid >= OID__NR);
--
--	ret = sprint_oid(oid_data + oid_index[oid],
--			 oid_index[oid + 1] - oid_index[oid],
--			 buffer, bufsize);
--	BUG_ON(ret == -EBADMSG);
--	return ret;
--}
--EXPORT_SYMBOL_GPL(sprint_OID);
+ 
+-static int __metapage_migrate_folio(struct address_space *mapping, struct folio *dst,
+-				    struct folio *src, enum migrate_mode mode)
++#ifdef CONFIG_MIGRATION
++static int __metapage_migrate_folio(struct address_space *mapping,
++				    struct folio *dst, struct folio *src,
++				    enum migrate_mode mode)
+ {
+ 	struct meta_anchor *src_anchor = src->private;
+ 	struct metapage *mps[MPS_PER_PAGE] = {0};
+@@ -199,8 +201,10 @@ static int __metapage_migrate_folio(stru
+ 
+ 	return MIGRATEPAGE_SUCCESS;
+ }
++#endif	/* CONFIG_MIGRATION */
+ 
+ #else
++
+ static inline struct metapage *folio_to_mp(struct folio *folio, int offset)
+ {
+ 	return folio->private;
+@@ -224,8 +228,10 @@ static inline void remove_metapage(struc
+ #define inc_io(folio) do {} while(0)
+ #define dec_io(folio, status, handler) handler(folio, status)
+ 
+-static int __metapage_migrate_folio(struct address_space *mapping, struct folio *dst,
+-				    struct folio *src, enum migrate_mode mode)
++#ifdef CONFIG_MIGRATION
++static int __metapage_migrate_folio(struct address_space *mapping,
++				    struct folio *dst, struct folio *src,
++				    enum migrate_mode mode)
+ {
+ 	struct metapage *mp;
+ 	int page_offset;
+@@ -249,6 +255,7 @@ static int __metapage_migrate_folio(stru
+ 
+ 	return MIGRATEPAGE_SUCCESS;
+ }
++#endif	/* CONFIG_MIGRATION */
+ 
+ #endif
+ 
+@@ -629,11 +636,13 @@ static bool metapage_release_folio(struc
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_MIGRATION
+ /*
+  * metapage_migrate_folio - Migration function for JFS metapages
+  */
+-static int metapage_migrate_folio(struct address_space *mapping, struct folio *dst,
+-				  struct folio *src, enum migrate_mode mode)
++static int metapage_migrate_folio(struct address_space *mapping,
++				  struct folio *dst, struct folio *src,
++				  enum migrate_mode mode)
+ {
+ 	int expected_count;
+ 
+@@ -646,6 +655,9 @@ static int metapage_migrate_folio(struct
+ 		return -EAGAIN;
+ 	return __metapage_migrate_folio(mapping, dst, src, mode);
+ }
++#else
++#define metapage_migrate_folio NULL
++#endif	/* CONFIG_MIGRATION */
+ 
+ static void metapage_invalidate_folio(struct folio *folio, size_t offset,
+ 				    size_t length)
 _
 
-Patches currently in -mm which might be from linux@treblig.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rapidio-remove-some-dead-defines.patch
-rapidio-remove-unused-functions.patch
-relay-remove-unused-relay_late_setup_files.patch
-lib-oid_registryc-remove-unused-sprint_oid.patch
+x86-disable-image-size-check-for-test-builds-fix.patch
+x86-disable-image-size-check-for-test-builds-fix-fix.patch
+mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
+vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
+mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
+jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+mm-add-zblock-allocator-fix.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
 
