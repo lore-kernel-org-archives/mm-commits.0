@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6CAB286A1
-	for <mm-commits@vger.kernel.org>; Fri,  2 May 2025 00:43:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9062A33993
+	for <mm-commits@vger.kernel.org>; Fri,  2 May 2025 00:43:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746146627; cv=none; b=kuhpTewSYMGucq+6PkOUnMWgSnC8L4EwobQm9GhG2kkSfLuIiWQWt5L+EreoeWadsoclzJt0aU8GBNGuc+1rB2Q5/ZL7PX+tLTV8kocrc8mEtpkUGbHbTiZ/h0P9UpKJuBtnY5tW02WlQNQUiRmE8GpkLojUHnInrLm2/+Nn35M=
+	t=1746146630; cv=none; b=SEtfJJOlB5HHhtpM3XHo9Vf4kZryV28H+/mhNd7EDlDrJSAV03jLYYDEq8X7KmHJmicgxXmJWmx7ZmNENWEVGzAcWckPjki4LSC9lhjEDV40etzgSkTv06W5PBRYHPwZWt5vMqyW0oEYb3fN9XsvHwO6q4y1RTUpBNXNtMes68I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746146627; c=relaxed/simple;
-	bh=WYFE4L3yycrYv1J+5xqIQjzcQOWHUBTjIqwjONyEi6E=;
-	h=Date:To:From:Subject:Message-Id; b=JD+SIklM18eUoWTkZpz8d71j1Reelsw/PEOCAABB8YOZXLSSspGEM3hjduULvcEGeTX7hGOTCh5vEF6etrba0wpgix0fgU9aeY4175fcg/q93m9utINTFkqYk2yerhrvEuhIHMzgV/FK486/481kQlqHmTpeO9XazoVFYohg26o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IWqcm66C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746146630; c=relaxed/simple;
+	bh=YR0ni2egxOnjHOEVLfsR1Lxritq6uQE/VNmDkn9X6CU=;
+	h=Date:To:From:Subject:Message-Id; b=O4ukMcGo5rMHIrATi+jcO8yUIMuxpQo0qcsMSP/PxPncMGQIigY4UIL6AG9uPbbnSu36dCPWb9a54kvbeWlcmNEHk0XCa4rVOcm1KLZEjFlgSE95slx4Ql7Ll56PIu1MREYtSRpDMhwy4iW8f5uBFQ7GELwGstDMoNSZHwPNnyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eqgc30jm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IWqcm66C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C046C4CEE3;
-	Fri,  2 May 2025 00:43:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eqgc30jm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F11C4CEE3;
+	Fri,  2 May 2025 00:43:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746146627;
-	bh=WYFE4L3yycrYv1J+5xqIQjzcQOWHUBTjIqwjONyEi6E=;
+	s=korg; t=1746146630;
+	bh=YR0ni2egxOnjHOEVLfsR1Lxritq6uQE/VNmDkn9X6CU=;
 	h=Date:To:From:Subject:From;
-	b=IWqcm66CuLlkpsy3m6UZNR6I1pTgujg1/lAa4bNeDmSIPzwBkHl10rBDMlMWltKcU
-	 ntixrJuYPb39+CgxkPNgQW2LLH12nADRtIG+WqGJDUCWideHUkxTiOOdDwUMRcULDq
-	 ytMY+1Ay9CI4cEXj3bJuhb6n/GliXq6KyIFv+vt4=
-Date: Thu, 01 May 2025 17:43:47 -0700
+	b=eqgc30jmXV59/vDBsqp5XRIfan0WMvjqIgYFdtyx92Jv1mTaxVJfuW3jOT7BrhgdX
+	 1w7iwMedCQXqy8ax1znrBKCP2K9ERh/iNfTUT5gL+PDH+s7j9FZfuK51bZJQQ0o4y+
+	 tQ4zFDLcy8nImVCHKMdpVu/FE4Ra67hzQCvDMicQ=
+Date: Thu, 01 May 2025 17:43:49 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,changyuanl@google.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m.patch added to mm-unstable branch
-Message-Id: <20250502004347.9C046C4CEE3@smtp.kernel.org>
+Subject: + x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory.patch added to mm-unstable branch
+Message-Id: <20250502004350.00F11C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/e820: temporarily enable KHO scratch for memory below 1M
+     Subject: x86/boot: make sure KASLR does not step over KHO preserved memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m.patch
+     x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Graf <graf@amazon.com>
-Subject: x86/e820: temporarily enable KHO scratch for memory below 1M
-Date: Thu, 1 May 2025 15:54:20 -0700
+Subject: x86/boot: make sure KASLR does not step over KHO preserved memory
+Date: Thu, 1 May 2025 15:54:21 -0700
 
-KHO kernels are special and use only scratch memory for memblock
-allocations, but memory below 1M is ignored by kernel after early boot and
-cannot be naturally marked as scratch.
+KHO uses "scratch regions" to bootstrap a kexec'ed kernel.  These regions
+are guaranteed to not have any memory that KHO would preserve.
 
-To allow allocation of the real-mode trampoline and a few (if any) other
-very early allocations from below 1M forcibly mark the memory below 1M as
-scratch.
+Teach KASLR in decompression code to only consider these scratch regions
+when KHO is enabled to make sure preserved memory won't get overwritten.
 
-After real mode trampoline is allocated, clear that scratch marking.
-
-Link: https://lkml.kernel.org/r/20250501225425.635167-14-changyuanl@google.com
+Link: https://lkml.kernel.org/r/20250501225425.635167-15-changyuanl@google.com
 Signed-off-by: Alexander Graf <graf@amazon.com>
 Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -81,48 +77,77 @@ Signed-off-by: Changyuan Lyu <changyuanl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c   |   18 ++++++++++++++++++
- arch/x86/realmode/init.c |    2 ++
- 2 files changed, 20 insertions(+)
+ arch/x86/boot/compressed/kaslr.c |   52 ++++++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/e820.c~x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m
-+++ a/arch/x86/kernel/e820.c
-@@ -1273,6 +1273,24 @@ void __init e820__memblock_setup(void)
- 	memblock_set_current_limit(ISA_END_ADDRESS);
- 
- 	/*
-+	 * At this point memblock is only allowed to allocate from memory
-+	 * below 1M (aka ISA_END_ADDRESS) up until direct map is completely set
-+	 * up in init_mem_mapping().
-+	 *
-+	 * KHO kernels are special and use only scratch memory for memblock
-+	 * allocations, but memory below 1M is ignored by kernel after early
-+	 * boot and cannot be naturally marked as scratch.
-+	 *
-+	 * To allow allocation of the real-mode trampoline and a few (if any)
-+	 * other very early allocations from below 1M forcibly mark the memory
-+	 * below 1M as scratch.
-+	 *
-+	 * After real mode trampoline is allocated, we clear that scratch
-+	 * marking.
-+	 */
-+	memblock_mark_kho_scratch(0, SZ_1M);
-+
-+	/*
- 	 * The bootstrap memblock region count maximum is 128 entries
- 	 * (INIT_MEMBLOCK_REGIONS), but EFI might pass us more E820 entries
- 	 * than that - so allow memblock resizing.
---- a/arch/x86/realmode/init.c~x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m
-+++ a/arch/x86/realmode/init.c
-@@ -65,6 +65,8 @@ void __init reserve_real_mode(void)
- 	 * setup_arch().
- 	 */
- 	memblock_reserve(0, SZ_1M);
-+
-+	memblock_clear_kho_scratch(0, SZ_1M);
+--- a/arch/x86/boot/compressed/kaslr.c~x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory
++++ a/arch/x86/boot/compressed/kaslr.c
+@@ -760,6 +760,55 @@ static void process_e820_entries(unsigne
+ 	}
  }
  
- static void __init sme_sev_setup_real_mode(struct trampoline_header *th)
++/*
++ * If KHO is active, only process its scratch areas to ensure we are not
++ * stepping onto preserved memory.
++ */
++#ifdef CONFIG_KEXEC_HANDOVER
++static bool process_kho_entries(unsigned long minimum, unsigned long image_size)
++{
++	struct kho_scratch *kho_scratch;
++	struct setup_data *ptr;
++	int i, nr_areas = 0;
++
++	ptr = (struct setup_data *)boot_params_ptr->hdr.setup_data;
++	while (ptr) {
++		if (ptr->type == SETUP_KEXEC_KHO) {
++			struct kho_data *kho = (struct kho_data *)ptr->data;
++
++			kho_scratch = (void *)kho->scratch_addr;
++			nr_areas = kho->scratch_size / sizeof(*kho_scratch);
++
++			break;
++		}
++
++		ptr = (struct setup_data *)ptr->next;
++	}
++
++	if (!nr_areas)
++		return false;
++
++	for (i = 0; i < nr_areas; i++) {
++		struct kho_scratch *area = &kho_scratch[i];
++		struct mem_vector region = {
++			.start = area->addr,
++			.size = area->size,
++		};
++
++		if (process_mem_region(&region, minimum, image_size))
++			break;
++	}
++
++	return true;
++}
++#else
++static inline bool process_kho_entries(unsigned long minimum,
++				       unsigned long image_size)
++{
++	return false;
++}
++#endif
++
+ static unsigned long find_random_phys_addr(unsigned long minimum,
+ 					   unsigned long image_size)
+ {
+@@ -775,7 +824,8 @@ static unsigned long find_random_phys_ad
+ 		return 0;
+ 	}
+ 
+-	if (!process_efi_entries(minimum, image_size))
++	if (!process_kho_entries(minimum, image_size) &&
++	    !process_efi_entries(minimum, image_size))
+ 		process_e820_entries(minimum, image_size);
+ 
+ 	phys_addr = slots_fetch_random();
 _
 
 Patches currently in -mm which might be from graf@amazon.com are
