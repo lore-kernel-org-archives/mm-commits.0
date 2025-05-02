@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B32D92222C3
-	for <mm-commits@vger.kernel.org>; Thu,  1 May 2025 23:00:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAF693234
+	for <mm-commits@vger.kernel.org>; Fri,  2 May 2025 00:43:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746140407; cv=none; b=DUcQGbUOMn8O0SWSypPiy6O9XvA4QEEcTldsfWjqvgyoZvA9cer5TNK+TQQvOhXaAKrggwx4FgtGhYYRQ/nsGYppT6DbdvTyHSb8md0B8F1gSMJGhMCbCrJxqtz9mnZEPrYnb46nsK98PMuS398lZZuExNrACIrwlzi2j+GqMxI=
+	t=1746146591; cv=none; b=OIUjEa8R4i9F3lyq95yGSGrU4C7J7UfeUMHWy5fW4KtBvRY4Bwnf5+AWD9CYMa0b9vSknkUXaL57IpLbNsyprV3JG0hH3pXK2twTGoEh+fJ6y5cvlYhUupoGBnQ/O4ExIM9tbaVrYzTr+ytMftDyikCcr/Tl2JQuGTni78VnMAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746140407; c=relaxed/simple;
-	bh=QexlS79SwZ3hW+bzTZspr+IxmMxUO62wp4ye2IjnWcE=;
-	h=Date:To:From:Subject:Message-Id; b=RqOKZ1gRvf/BGJP9D+w9F4nQh/qM+Rh94cG7t4FXMN3oispz2/iJCNxuhpqxkM2QeyM+5isgj3uKabCKrse1wc8DIYYl+PsMiI0QYSzSXZqI4cX2EZ8z3Bk02CJLvhaPFoTNa/pWJIPPNIzgl89dzmO7k2pf95tKZhIsoR3PbzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Um3xh1hi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746146591; c=relaxed/simple;
+	bh=N/IKlgcH/53ekFkp11146OzS1pCDieBZKgyZIMpnYTg=;
+	h=Date:To:From:Subject:Message-Id; b=px0MXmKfdHuOAh932pSoISr8543hyKIjkVTHCRYIvsK4hlXObp5s/72ZgElDMjM2XOy1jzYa7ZykZDYXSdhaaSpmu36HpGGz7v/WWFutm4iwoyRkg1RmBkXw8M9MqocuQ+26yKkybqjlXgEiSWmMoFVX8h0O2TCdv16XtzuLNAg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sYNg3Esj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Um3xh1hi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AF0FC4CEED;
-	Thu,  1 May 2025 23:00:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sYNg3Esj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AE1DC4CEE3;
+	Fri,  2 May 2025 00:43:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746140407;
-	bh=QexlS79SwZ3hW+bzTZspr+IxmMxUO62wp4ye2IjnWcE=;
+	s=korg; t=1746146590;
+	bh=N/IKlgcH/53ekFkp11146OzS1pCDieBZKgyZIMpnYTg=;
 	h=Date:To:From:Subject:From;
-	b=Um3xh1hibBCpUQut8ztmgo695iORihRU0g4uj87xixTrRtqpi4Pt0djW3ZTgud9fS
-	 K0Q56Lqj999Qr8CfzZ+ECBzc9vKdbRY7Q7pbW1Zx2DoVzAJEUMzJmLhmpjSbllnHvb
-	 Nao52PPDCSc0iUuzEYFijLftCuUQWAvwGjT3MaBE=
-Date: Thu, 01 May 2025 16:00:06 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,shivankg@amd.com,shaggy@kernel.org,jane.chu@oracle.com,donettom@linux.ibm.com,david@redhat.com,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=sYNg3EsjSJlJiog96PmTa5D+wwYwRr5DgNEFrrbI7cbQM180319mKYPmm9MszUhrX
+	 FBRuy/P+UED7u+i335EzK9aaaLj6R00VYB4tdetStTpNLnUpdVsxS6qgbcIUBaOqWO
+	 TdgKB6DwCbo/XeZe/mL6y8joSIL7FpCqzv7R20Js=
+Date: Thu, 01 May 2025 17:43:09 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,hpa@zytor.com,graf@amazon.com,ebiederm@xmission.com,dwmw2@infradead.org,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch added to mm-unstable branch
-Message-Id: <20250501230007.2AF0FC4CEED@smtp.kernel.org>
+Subject: + memblock-add-memblock_rsrv_kern-flag.patch added to mm-unstable branch
+Message-Id: <20250502004310.0AE1DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2
+     Subject: memblock: add MEMBLOCK_RSRV_KERN flag
 has been added to the -mm mm-unstable branch.  Its filename is
-     jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+     memblock-add-memblock_rsrv_kern-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblock-add-memblock_rsrv_kern-flag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,115 +58,492 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2
-Date: Thu May  1 03:52:07 PM PDT 2025
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: memblock: add MEMBLOCK_RSRV_KERN flag
+Date: Thu, 1 May 2025 15:54:08 -0700
 
-fix build by making fs/jfs/jfs_metapage.c change dependent upon
-CONFIG_MIGRATION
+Patch series "kexec: introduce Kexec HandOver (KHO)", v7.
 
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Dave Kleikamp <shaggy@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Kexec today considers itself purely a boot loader: When we enter the new
+kernel, any state the previous kernel left behind is irrelevant and the
+new kernel reinitializes the system.
+
+However, there are use cases where this mode of operation is not what we
+actually want.  In virtualization hosts for example, we want to use kexec
+to update the host kernel while virtual machine memory stays untouched. 
+When we add device assignment to the mix, we also need to ensure that
+IOMMU and VFIO states are untouched.  If we add PCIe peer to peer DMA, we
+need to do the same for the PCI subsystem.  If we want to kexec while an
+SEV-SNP enabled virtual machine is running, we need to preserve the VM
+context pages and physical memory.  See "pkernfs: Persisting guest memory
+and kernel/device state safely across kexec" Linux Plumbers Conference
+2023 presentation for details:
+
+  https://lpc.events/event/17/contributions/1485/
+
+To start us on the journey to support all the use cases above, this patch
+implements basic infrastructure to allow hand over of kernel state across
+kexec (Kexec HandOver, aka KHO).  As a really simple example target, we
+use memblock's reserve_mem.
+
+With this patch set applied, memory that was reserved using "reserve_mem"
+command line options remains intact after kexec and it is guaranteed to
+reside at the same physical address.
+
+== Alternatives ==
+
+There are alternative approaches to (parts of) the problems above:
+
+  * Memory Pools [1] - preallocated persistent memory region + allocator
+  * PRMEM [2] - resizable persistent memory regions with fixed metadata
+                pointer on the kernel command line + allocator
+  * Pkernfs [3] - preallocated file system for in-kernel data with fixed
+                  address location on the kernel command line
+  * PKRAM [4] - handover of user space pages using a fixed metadata page
+                specified via command line
+
+All of the approaches above fundamentally have the same problem: They
+require the administrator to explicitly carve out a physical memory
+location because they have no mechanism outside of the kernel command line
+to pass data (including memory reservations) between kexec'ing kernels.
+
+KHO provides that base foundation.  We will determine later whether we
+still need any of the approaches above for fast bulk memory handover of
+for example IOMMU page tables.  But IMHO they would all be users of KHO,
+with KHO providing the foundational primitive to pass metadata and bulk
+memory reservations as well as provide easy versioning for data.
+
+== Overview ==
+
+We introduce a metadata file that the kernels pass between each other. 
+How they pass it is architecture specific.  The file's format is a
+Flattened Device Tree (fdt) which has a generator and parser already
+included in Linux.  KHO is enabled in the kernel command line by `kho=on`.
+When the root user enables KHO through
+/sys/kernel/debug/kho/out/finalize, the kernel invokes callbacks to every
+KHO users to register preserved memory regions, which contain drivers'
+states.
+
+When the actual kexec happens, the fdt is part of the image set that we
+boot into.  In addition, we keep "scratch regions" available for kexec:
+physically contiguous memory regions that are guaranteed to not have any
+memory that KHO would preserve.  The new kernel bootstraps itself using
+the scratch regions and sets all handed over memory as in use.  When
+drivers initialize that support KHO, they introspect the fdt, restore
+preserved memory regions, and retrieve their states stored in the
+preserved memory.
+
+== Limitations ==
+
+Currently KHO is only implemented for file based kexec.  The kernel
+interfaces in the patch set are already in place to support user space
+kexec as well, but it is still not implemented it yet inside kexec tools.
+
+== How to Use ==
+
+To use the code, please boot the kernel with the "kho=on" command line
+parameter.  KHO will automatically create scratch regions.  If you want to
+set the scratch size explicitly you can use "kho_scratch=" command line
+parameter.  For instance, "kho_scratch=16M,512M,256M" will reserve a 16
+MiB low memory scratch area, a 512 MiB global scratch region, and 256 MiB
+per NUMA node scratch regions on boot.
+
+Make sure to have a reserved memory range requested with reserv_mem
+command line option, for example, "reserve_mem=64m:4k:n1".
+
+Then before you invoke file based "kexec -l", finalize KHO FDT:
+
+  # echo 1 > /sys/kernel/debug/kho/out/finalize
+
+You can preview the generated FDT using `dtc`,
+
+  # dtc /sys/kernel/debug/kho/out/fdt
+  # dtc /sys/kernel/debug/kho/out/sub_fdts/memblock
+
+`dtc` is available on ubuntu by `sudo apt-get install device-tree-compiler`.
+
+Now kexec into the new kernel,
+
+  # kexec -l Image --initrd=initrd -s
+  # kexec -e
+
+(The order of KHO finalization and "kexec -l" does not matter.)
+
+The new kernel will boot up and contain the previous kernel's reserve_mem
+contents at the same physical address as the first kernel.
+
+You can also review the FDT passed from the old kernel,
+
+  # dtc /sys/kernel/debug/kho/in/fdt
+  # dtc /sys/kernel/debug/kho/in/sub_fdts/memblock
+
+
+This patch (of 17):
+
+To denote areas that were reserved for kernel use either directly with
+memblock_reserve_kern() or via memblock allocations.
+
+Link: https://lore.kernel.org/all/20250212152336.GA3848889@nvidia.com/	[1]
+Link: https://lore.kernel.org/all/20250321134629.GA252045@nvidia.com/`	[2]
+Link: https://github.com/devicetree-org/dt-schema/pull/158		[3]
+Link: https://lore.kernel.org/all/55a5e3f3-1b3f-469b-bde0-69abfff826e4@kernel.org/ [4]
+Link: https://lkml.kernel.org/r/20250501225425.635167-1-changyuanl@google.com
+Link: https://lkml.kernel.org/r/20250501225425.635167-2-changyuanl@google.com
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Co-developed-by: Changyuan Lyu <changyuanl@google.com>
+Signed-off-by: Changyuan Lyu <changyuanl@google.com>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Ashish Kalra <ashish.kalra@amd.com>
+Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Gowans <jgowans@amazon.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Pratyush Yadav <ptyadav@amazon.de>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Saravana Kannan <saravanak@google.com>
+Cc: Stanislav Kinsburskii <skinsburskii@linux.microsoft.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Thomas Lendacky <thomas.lendacky@amd.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_metapage.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ include/linux/memblock.h                         |   19 +++++-
+ mm/memblock.c                                    |   40 ++++++++++---
+ tools/testing/memblock/tests/alloc_api.c         |   22 +++----
+ tools/testing/memblock/tests/alloc_helpers_api.c |    4 -
+ tools/testing/memblock/tests/alloc_nid_api.c     |   20 +++---
+ 5 files changed, 73 insertions(+), 32 deletions(-)
 
---- a/fs/jfs/jfs_metapage.c~jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2
-+++ a/fs/jfs/jfs_metapage.c
-@@ -152,8 +152,10 @@ static inline void dec_io(struct folio *
- 		handler(folio, anchor->status);
- }
- 
--static int __metapage_migrate_folio(struct address_space *mapping, struct folio *dst,
--				    struct folio *src, enum migrate_mode mode)
-+#ifdef CONFIG_MIGRATION
-+static int __metapage_migrate_folio(struct address_space *mapping,
-+				    struct folio *dst, struct folio *src,
-+				    enum migrate_mode mode)
- {
- 	struct meta_anchor *src_anchor = src->private;
- 	struct metapage *mps[MPS_PER_PAGE] = {0};
-@@ -199,8 +201,10 @@ static int __metapage_migrate_folio(stru
- 
- 	return MIGRATEPAGE_SUCCESS;
- }
-+#endif	/* CONFIG_MIGRATION */
- 
- #else
-+
- static inline struct metapage *folio_to_mp(struct folio *folio, int offset)
- {
- 	return folio->private;
-@@ -224,8 +228,10 @@ static inline void remove_metapage(struc
- #define inc_io(folio) do {} while(0)
- #define dec_io(folio, status, handler) handler(folio, status)
- 
--static int __metapage_migrate_folio(struct address_space *mapping, struct folio *dst,
--				    struct folio *src, enum migrate_mode mode)
-+#ifdef CONFIG_MIGRATION
-+static int __metapage_migrate_folio(struct address_space *mapping,
-+				    struct folio *dst, struct folio *src,
-+				    enum migrate_mode mode)
- {
- 	struct metapage *mp;
- 	int page_offset;
-@@ -249,6 +255,7 @@ static int __metapage_migrate_folio(stru
- 
- 	return MIGRATEPAGE_SUCCESS;
- }
-+#endif	/* CONFIG_MIGRATION */
- 
- #endif
- 
-@@ -629,11 +636,13 @@ static bool metapage_release_folio(struc
- 	return ret;
- }
- 
-+#ifdef CONFIG_MIGRATION
- /*
-  * metapage_migrate_folio - Migration function for JFS metapages
+--- a/include/linux/memblock.h~memblock-add-memblock_rsrv_kern-flag
++++ a/include/linux/memblock.h
+@@ -42,6 +42,9 @@ extern unsigned long long max_possible_p
+  * kernel resource tree.
+  * @MEMBLOCK_RSRV_NOINIT: memory region for which struct pages are
+  * not initialized (only for reserved regions).
++ * @MEMBLOCK_RSRV_KERN: memory region that is reserved for kernel use,
++ * either explictitly with memblock_reserve_kern() or via memblock
++ * allocation APIs. All memblock allocations set this flag.
   */
--static int metapage_migrate_folio(struct address_space *mapping, struct folio *dst,
--				  struct folio *src, enum migrate_mode mode)
-+static int metapage_migrate_folio(struct address_space *mapping,
-+				  struct folio *dst, struct folio *src,
-+				  enum migrate_mode mode)
- {
- 	int expected_count;
+ enum memblock_flags {
+ 	MEMBLOCK_NONE		= 0x0,	/* No special request */
+@@ -50,6 +53,7 @@ enum memblock_flags {
+ 	MEMBLOCK_NOMAP		= 0x4,	/* don't add to kernel direct mapping */
+ 	MEMBLOCK_DRIVER_MANAGED = 0x8,	/* always detected via a driver */
+ 	MEMBLOCK_RSRV_NOINIT	= 0x10,	/* don't initialize struct pages */
++	MEMBLOCK_RSRV_KERN	= 0x20,	/* memory reserved for kernel use */
+ };
  
-@@ -646,6 +655,9 @@ static int metapage_migrate_folio(struct
- 		return -EAGAIN;
- 	return __metapage_migrate_folio(mapping, dst, src, mode);
+ /**
+@@ -116,7 +120,19 @@ int memblock_add_node(phys_addr_t base,
+ int memblock_add(phys_addr_t base, phys_addr_t size);
+ int memblock_remove(phys_addr_t base, phys_addr_t size);
+ int memblock_phys_free(phys_addr_t base, phys_addr_t size);
+-int memblock_reserve(phys_addr_t base, phys_addr_t size);
++int __memblock_reserve(phys_addr_t base, phys_addr_t size, int nid,
++		       enum memblock_flags flags);
++
++static __always_inline int memblock_reserve(phys_addr_t base, phys_addr_t size)
++{
++	return __memblock_reserve(base, size, NUMA_NO_NODE, 0);
++}
++
++static __always_inline int memblock_reserve_kern(phys_addr_t base, phys_addr_t size)
++{
++	return __memblock_reserve(base, size, NUMA_NO_NODE, MEMBLOCK_RSRV_KERN);
++}
++
+ #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
+ int memblock_physmem_add(phys_addr_t base, phys_addr_t size);
+ #endif
+@@ -476,6 +492,7 @@ static inline __init_memblock bool membl
+ 
+ phys_addr_t memblock_phys_mem_size(void);
+ phys_addr_t memblock_reserved_size(void);
++phys_addr_t memblock_reserved_kern_size(phys_addr_t limit, int nid);
+ unsigned long memblock_estimated_nr_free_pages(void);
+ phys_addr_t memblock_start_of_DRAM(void);
+ phys_addr_t memblock_end_of_DRAM(void);
+--- a/mm/memblock.c~memblock-add-memblock_rsrv_kern-flag
++++ a/mm/memblock.c
+@@ -492,7 +492,7 @@ static int __init_memblock memblock_doub
+ 	 * needn't do it
+ 	 */
+ 	if (!use_slab)
+-		BUG_ON(memblock_reserve(addr, new_alloc_size));
++		BUG_ON(memblock_reserve_kern(addr, new_alloc_size));
+ 
+ 	/* Update slab flag */
+ 	*in_slab = use_slab;
+@@ -642,7 +642,7 @@ repeat:
+ #ifdef CONFIG_NUMA
+ 			WARN_ON(nid != memblock_get_region_node(rgn));
+ #endif
+-			WARN_ON(flags != rgn->flags);
++			WARN_ON(flags != MEMBLOCK_NONE && flags != rgn->flags);
+ 			nr_new++;
+ 			if (insert) {
+ 				if (start_rgn == -1)
+@@ -902,14 +902,15 @@ int __init_memblock memblock_phys_free(p
+ 	return memblock_remove_range(&memblock.reserved, base, size);
  }
-+#else
-+#define metapage_migrate_folio NULL
-+#endif	/* CONFIG_MIGRATION */
  
- static void metapage_invalidate_folio(struct folio *folio, size_t offset,
- 				    size_t length)
+-int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
++int __init_memblock __memblock_reserve(phys_addr_t base, phys_addr_t size,
++				       int nid, enum memblock_flags flags)
+ {
+ 	phys_addr_t end = base + size - 1;
+ 
+-	memblock_dbg("%s: [%pa-%pa] %pS\n", __func__,
+-		     &base, &end, (void *)_RET_IP_);
++	memblock_dbg("%s: [%pa-%pa] nid=%d flags=%x %pS\n", __func__,
++		     &base, &end, nid, flags, (void *)_RET_IP_);
+ 
+-	return memblock_add_range(&memblock.reserved, base, size, MAX_NUMNODES, 0);
++	return memblock_add_range(&memblock.reserved, base, size, nid, flags);
+ }
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
+@@ -1460,14 +1461,14 @@ phys_addr_t __init memblock_alloc_range_
+ again:
+ 	found = memblock_find_in_range_node(size, align, start, end, nid,
+ 					    flags);
+-	if (found && !memblock_reserve(found, size))
++	if (found && !__memblock_reserve(found, size, nid, MEMBLOCK_RSRV_KERN))
+ 		goto done;
+ 
+ 	if (numa_valid_node(nid) && !exact_nid) {
+ 		found = memblock_find_in_range_node(size, align, start,
+ 						    end, NUMA_NO_NODE,
+ 						    flags);
+-		if (found && !memblock_reserve(found, size))
++		if (found && !memblock_reserve_kern(found, size))
+ 			goto done;
+ 	}
+ 
+@@ -1752,6 +1753,28 @@ phys_addr_t __init_memblock memblock_res
+ 	return memblock.reserved.total_size;
+ }
+ 
++phys_addr_t __init_memblock memblock_reserved_kern_size(phys_addr_t limit, int nid)
++{
++	struct memblock_region *r;
++	phys_addr_t total = 0;
++
++	for_each_reserved_mem_region(r) {
++		phys_addr_t size = r->size;
++
++		if (r->base > limit)
++			break;
++
++		if (r->base + r->size > limit)
++			size = limit - r->base;
++
++		if (nid == memblock_get_region_node(r) || !numa_valid_node(nid))
++			if (r->flags & MEMBLOCK_RSRV_KERN)
++				total += size;
++	}
++
++	return total;
++}
++
+ /**
+  * memblock_estimated_nr_free_pages - return estimated number of free pages
+  * from memblock point of view
+@@ -2441,6 +2464,7 @@ static const char * const flagname[] = {
+ 	[ilog2(MEMBLOCK_NOMAP)] = "NOMAP",
+ 	[ilog2(MEMBLOCK_DRIVER_MANAGED)] = "DRV_MNG",
+ 	[ilog2(MEMBLOCK_RSRV_NOINIT)] = "RSV_NIT",
++	[ilog2(MEMBLOCK_RSRV_KERN)] = "RSV_KERN",
+ };
+ 
+ static int memblock_debug_show(struct seq_file *m, void *private)
+--- a/tools/testing/memblock/tests/alloc_api.c~memblock-add-memblock_rsrv_kern-flag
++++ a/tools/testing/memblock/tests/alloc_api.c
+@@ -134,7 +134,7 @@ static int alloc_top_down_before_check(v
+ 	PREFIX_PUSH();
+ 	setup_memblock();
+ 
+-	memblock_reserve(memblock_end_of_DRAM() - total_size, r1_size);
++	memblock_reserve_kern(memblock_end_of_DRAM() - total_size, r1_size);
+ 
+ 	allocated_ptr = run_memblock_alloc(r2_size, SMP_CACHE_BYTES);
+ 
+@@ -182,7 +182,7 @@ static int alloc_top_down_after_check(vo
+ 
+ 	total_size = r1.size + r2_size;
+ 
+-	memblock_reserve(r1.base, r1.size);
++	memblock_reserve_kern(r1.base, r1.size);
+ 
+ 	allocated_ptr = run_memblock_alloc(r2_size, SMP_CACHE_BYTES);
+ 
+@@ -231,8 +231,8 @@ static int alloc_top_down_second_fit_che
+ 
+ 	total_size = r1.size + r2.size + r3_size;
+ 
+-	memblock_reserve(r1.base, r1.size);
+-	memblock_reserve(r2.base, r2.size);
++	memblock_reserve_kern(r1.base, r1.size);
++	memblock_reserve_kern(r2.base, r2.size);
+ 
+ 	allocated_ptr = run_memblock_alloc(r3_size, SMP_CACHE_BYTES);
+ 
+@@ -285,8 +285,8 @@ static int alloc_in_between_generic_chec
+ 
+ 	total_size = r1.size + r2.size + r3_size;
+ 
+-	memblock_reserve(r1.base, r1.size);
+-	memblock_reserve(r2.base, r2.size);
++	memblock_reserve_kern(r1.base, r1.size);
++	memblock_reserve_kern(r2.base, r2.size);
+ 
+ 	allocated_ptr = run_memblock_alloc(r3_size, SMP_CACHE_BYTES);
+ 
+@@ -422,7 +422,7 @@ static int alloc_limited_space_generic_c
+ 	setup_memblock();
+ 
+ 	/* Simulate almost-full memory */
+-	memblock_reserve(memblock_start_of_DRAM(), reserved_size);
++	memblock_reserve_kern(memblock_start_of_DRAM(), reserved_size);
+ 
+ 	allocated_ptr = run_memblock_alloc(available_size, SMP_CACHE_BYTES);
+ 
+@@ -608,7 +608,7 @@ static int alloc_bottom_up_before_check(
+ 	PREFIX_PUSH();
+ 	setup_memblock();
+ 
+-	memblock_reserve(memblock_start_of_DRAM() + r1_size, r2_size);
++	memblock_reserve_kern(memblock_start_of_DRAM() + r1_size, r2_size);
+ 
+ 	allocated_ptr = run_memblock_alloc(r1_size, SMP_CACHE_BYTES);
+ 
+@@ -655,7 +655,7 @@ static int alloc_bottom_up_after_check(v
+ 
+ 	total_size = r1.size + r2_size;
+ 
+-	memblock_reserve(r1.base, r1.size);
++	memblock_reserve_kern(r1.base, r1.size);
+ 
+ 	allocated_ptr = run_memblock_alloc(r2_size, SMP_CACHE_BYTES);
+ 
+@@ -705,8 +705,8 @@ static int alloc_bottom_up_second_fit_ch
+ 
+ 	total_size = r1.size + r2.size + r3_size;
+ 
+-	memblock_reserve(r1.base, r1.size);
+-	memblock_reserve(r2.base, r2.size);
++	memblock_reserve_kern(r1.base, r1.size);
++	memblock_reserve_kern(r2.base, r2.size);
+ 
+ 	allocated_ptr = run_memblock_alloc(r3_size, SMP_CACHE_BYTES);
+ 
+--- a/tools/testing/memblock/tests/alloc_helpers_api.c~memblock-add-memblock_rsrv_kern-flag
++++ a/tools/testing/memblock/tests/alloc_helpers_api.c
+@@ -163,7 +163,7 @@ static int alloc_from_top_down_no_space_
+ 	min_addr = memblock_end_of_DRAM() - SMP_CACHE_BYTES * 2;
+ 
+ 	/* No space above this address */
+-	memblock_reserve(min_addr, r2_size);
++	memblock_reserve_kern(min_addr, r2_size);
+ 
+ 	allocated_ptr = memblock_alloc_from(r1_size, SMP_CACHE_BYTES, min_addr);
+ 
+@@ -199,7 +199,7 @@ static int alloc_from_top_down_min_addr_
+ 	start_addr = (phys_addr_t)memblock_start_of_DRAM();
+ 	min_addr = start_addr - SMP_CACHE_BYTES * 3;
+ 
+-	memblock_reserve(start_addr + r1_size, MEM_SIZE - r1_size);
++	memblock_reserve_kern(start_addr + r1_size, MEM_SIZE - r1_size);
+ 
+ 	allocated_ptr = memblock_alloc_from(r1_size, SMP_CACHE_BYTES, min_addr);
+ 
+--- a/tools/testing/memblock/tests/alloc_nid_api.c~memblock-add-memblock_rsrv_kern-flag
++++ a/tools/testing/memblock/tests/alloc_nid_api.c
+@@ -324,7 +324,7 @@ static int alloc_nid_min_reserved_generi
+ 	min_addr = max_addr - r2_size;
+ 	reserved_base = min_addr - r1_size;
+ 
+-	memblock_reserve(reserved_base, r1_size);
++	memblock_reserve_kern(reserved_base, r1_size);
+ 
+ 	allocated_ptr = run_memblock_alloc_nid(r2_size, SMP_CACHE_BYTES,
+ 					       min_addr, max_addr,
+@@ -374,7 +374,7 @@ static int alloc_nid_max_reserved_generi
+ 	max_addr = memblock_end_of_DRAM() - r1_size;
+ 	min_addr = max_addr - r2_size;
+ 
+-	memblock_reserve(max_addr, r1_size);
++	memblock_reserve_kern(max_addr, r1_size);
+ 
+ 	allocated_ptr = run_memblock_alloc_nid(r2_size, SMP_CACHE_BYTES,
+ 					       min_addr, max_addr,
+@@ -436,8 +436,8 @@ static int alloc_nid_top_down_reserved_w
+ 	min_addr = r2.base + r2.size;
+ 	max_addr = r1.base;
+ 
+-	memblock_reserve(r1.base, r1.size);
+-	memblock_reserve(r2.base, r2.size);
++	memblock_reserve_kern(r1.base, r1.size);
++	memblock_reserve_kern(r2.base, r2.size);
+ 
+ 	allocated_ptr = run_memblock_alloc_nid(r3_size, SMP_CACHE_BYTES,
+ 					       min_addr, max_addr,
+@@ -499,8 +499,8 @@ static int alloc_nid_reserved_full_merge
+ 	min_addr = r2.base + r2.size;
+ 	max_addr = r1.base;
+ 
+-	memblock_reserve(r1.base, r1.size);
+-	memblock_reserve(r2.base, r2.size);
++	memblock_reserve_kern(r1.base, r1.size);
++	memblock_reserve_kern(r2.base, r2.size);
+ 
+ 	allocated_ptr = run_memblock_alloc_nid(r3_size, SMP_CACHE_BYTES,
+ 					       min_addr, max_addr,
+@@ -563,8 +563,8 @@ static int alloc_nid_top_down_reserved_n
+ 	min_addr = r2.base + r2.size;
+ 	max_addr = r1.base;
+ 
+-	memblock_reserve(r1.base, r1.size);
+-	memblock_reserve(r2.base, r2.size);
++	memblock_reserve_kern(r1.base, r1.size);
++	memblock_reserve_kern(r2.base, r2.size);
+ 
+ 	allocated_ptr = run_memblock_alloc_nid(r3_size, SMP_CACHE_BYTES,
+ 					       min_addr, max_addr,
+@@ -909,8 +909,8 @@ static int alloc_nid_bottom_up_reserved_
+ 	min_addr = r2.base + r2.size;
+ 	max_addr = r1.base;
+ 
+-	memblock_reserve(r1.base, r1.size);
+-	memblock_reserve(r2.base, r2.size);
++	memblock_reserve_kern(r1.base, r1.size);
++	memblock_reserve_kern(r2.base, r2.size);
+ 
+ 	allocated_ptr = run_memblock_alloc_nid(r3_size, SMP_CACHE_BYTES,
+ 					       min_addr, max_addr,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-x86-disable-image-size-check-for-test-builds-fix.patch
-x86-disable-image-size-check-for-test-builds-fix-fix.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
-mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
-jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
-mm-add-zblock-allocator-fix.patch
-mm-zblock-avoid-failing-the-build-fix.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
-filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
-compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+memblock-add-memblock_rsrv_kern-flag.patch
+memblock-introduce-memmap_init_kho_scratch.patch
+kexec-enable-kho-support-for-memory-preservation.patch
+x86-setup-use-memblock_reserve_kern-for-memory-used-by-kernel.patch
+documentation-kho-add-memblock-bindings.patch
+execmem-enforce-allocation-size-aligment-to-page_size.patch
 
