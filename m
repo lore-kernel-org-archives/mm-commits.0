@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D9112F22
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 01:39:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22C0B2FB6
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 02:36:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746322774; cv=none; b=JNQSThI/z1WDy7FsBzDq3Bg9A3c7iu7iKdeKyw/YCtEPL+YRvQ26OKQWogI6mlGpvwYywORJUXyhtDAJwcsmxfvgfgoZXFlhPf+phj4fMNKiVEC8d6e5ZTatwdRpq5CJTDh1k0Cz+SqsVJc0pI4k1kWHB0VP4etME0644Eo3VuQ=
+	t=1746326173; cv=none; b=JmA1XG2nvVxE6dLsoJgq+VWH1Wg6B8mWTWXU5v84u79VNYRj5dY8JW9it6sxmKvOqxCTjxJ8dx6Zt3tmxRfaaqu2LtCBW9IYZEp4uhlWvHfVKqkMbZiquzAy2gCCATk1+vHT16pq8umAkhzeX6SlrTHBLzS21UopdX0B+sENIm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746322774; c=relaxed/simple;
-	bh=t4NOisBy+iGARSAyJfqqYMj95oodg6nj/Ca7Qr43L08=;
-	h=Date:To:From:Subject:Message-Id; b=SFILCJhGDmrUXc+JVWMYnK1KQRccOKBQkvKYJbawV1p57agkmvQXkoD+YkLbd166sduq61XqbttpMWI3qsaYZ+D+07RhzIHpt0CZhRCdrJLVk/Y4TxZsFxVuBFreVOm4NvXlondFfQbkNyXzprrLFnhc28HOzGRTqamXW14a5qM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fCO/c3tV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746326173; c=relaxed/simple;
+	bh=v/Mi+XytCWoqoNisvwPN3oNtgMYQs1GUwWNKDppixso=;
+	h=Date:To:From:Subject:Message-Id; b=ItmRY736aIecWn03rMVnNS/CGTj18KJN9V7Vq7FAauSHW/2LTxnxWWeFj8VeByfezNRjp83v/WPkuQkHDyiTCOJtr1+l9jrVVda7eAVhKZumjMxS0r9QaxUCEdVQ5TPuiMrESkO094QSIBmfrx/PWTuGCxzk7HukrZuVfPjpZ5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BXKk7yaM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fCO/c3tV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5328C4CEE3;
-	Sun,  4 May 2025 01:39:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BXKk7yaM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62331C4CEE3;
+	Sun,  4 May 2025 02:36:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746322773;
-	bh=t4NOisBy+iGARSAyJfqqYMj95oodg6nj/Ca7Qr43L08=;
+	s=korg; t=1746326172;
+	bh=v/Mi+XytCWoqoNisvwPN3oNtgMYQs1GUwWNKDppixso=;
 	h=Date:To:From:Subject:From;
-	b=fCO/c3tVOnSkK9pNrUYAzjbmidOSzk6TEynemoILR++SGrQW+eVtwzEqMRN7XjRnF
-	 3YhwS2v2X2mqeA5NeKKQr0U7I7z/6R+o/G2xJPtiZwu80d99A/1k0KULQBnuCXv9WV
-	 HYCk5g89ESrJU7PmqFiz1MHIGH3xYb2IH58iY034=
-Date: Sat, 03 May 2025 18:39:33 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,lkp@intel.com,hannes@cmpxchg.org,david@redhat.com,chen.haonan2@zte.com.cn,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=BXKk7yaMF8QAZuqcR0DYNEqwsEnTkkwbHZxxnnkdGfJTOQIKzF9uQyF6Il2WMDYW6
+	 tUfHR63tysiTfzrHqHYnJsnQqpX9MmeBtk/WgjlAkNqR3E42trQ137k/9A4gXofp//
+	 W5IfyEGziyMUF+GMX0Nc9ZPAuN0hSglRcnX3Lawk=
+Date: Sat, 03 May 2025 19:36:11 -0700
+To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch added to mm-new branch
-Message-Id: <20250504013933.C5328C4CEE3@smtp.kernel.org>
+Subject: + list-remove-redundant-extern-for-function-prototypes.patch added to mm-nonmm-unstable branch
+Message-Id: <20250504023612.62331C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix
-has been added to the -mm mm-new branch.  Its filename is
-     memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+     Subject: list: remove redundant 'extern' for function prototypes
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     list-remove-redundant-extern-for-function-prototypes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list-remove-redundant-extern-for-function-prototypes.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,65 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix
-Date: Sat May  3 06:37:28 PM PDT 2025
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: list: remove redundant 'extern' for function prototypes
+Date: Fri, 2 May 2025 15:17:42 +0300
 
-make ksm_process_profit() available on CONFIG_PROCFS=n
+The 'extern' keyword is redundant for function prototypes.  list.h never
+used them and new code in general is better without them.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202505030429.a2GUiRAz-lkp@intel.com/
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Haonan Chen <chen.haonan2@zte.com.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/20250502121742.3997529-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/list.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/ksm.c~memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix
-+++ a/mm/ksm.c
-@@ -3268,7 +3268,6 @@ static void wait_while_offlining(void)
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+--- a/include/linux/list.h~list-remove-redundant-extern-for-function-prototypes
++++ a/include/linux/list.h
+@@ -50,9 +50,9 @@ static inline void INIT_LIST_HEAD(struct
+  * Performs the full set of list corruption checks before __list_add().
+  * On list corruption reports a warning, and returns false.
+  */
+-extern bool __list_valid_slowpath __list_add_valid_or_report(struct list_head *new,
+-							     struct list_head *prev,
+-							     struct list_head *next);
++bool __list_valid_slowpath __list_add_valid_or_report(struct list_head *new,
++						      struct list_head *prev,
++						      struct list_head *next);
  
--#ifdef CONFIG_PROC_FS
  /*
-  * The process is mergeable only if any VMA is currently
-  * applicable to KSM.
-@@ -3293,7 +3292,6 @@ long ksm_process_profit(struct mm_struct
- 	return (long)(mm->ksm_merging_pages + mm_ksm_zero_pages(mm)) * PAGE_SIZE -
- 		mm->ksm_rmap_items * sizeof(struct ksm_rmap_item);
- }
--#endif /* CONFIG_PROC_FS */
+  * Performs list corruption checks before __list_add(). Returns false if a
+@@ -93,7 +93,7 @@ static __always_inline bool __list_add_v
+  * Performs the full set of list corruption checks before __list_del_entry().
+  * On list corruption reports a warning, and returns false.
+  */
+-extern bool __list_valid_slowpath __list_del_entry_valid_or_report(struct list_head *entry);
++bool __list_valid_slowpath __list_del_entry_valid_or_report(struct list_head *entry);
  
- #ifdef CONFIG_SYSFS
  /*
+  * Performs list corruption checks before __list_del_entry(). Returns false if a
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-x86-disable-image-size-check-for-test-builds-fix.patch
-x86-disable-image-size-check-for-test-builds-fix-fix.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
-mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
-jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
-mm-add-zblock-allocator-fix.patch
-mm-zblock-avoid-failing-the-build-fix.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
-filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
-memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
-compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+util_macrosh-make-the-header-more-resilient.patch
+kernelh-move-ptr_if-and-u64_to_user_ptr-to-util_macrosh.patch
+util_macrosh-fix-the-reference-in-kernel-doc.patch
+list-remove-redundant-extern-for-function-prototypes.patch
 
