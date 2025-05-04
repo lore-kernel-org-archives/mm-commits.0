@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAFB7320F
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 05:36:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FE1817A2F8
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 06:46:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746336996; cv=none; b=u0j4aui3WVBeR1f4MGYXsXHXhBl3MYGJstDQkraLEnJAVgJQRDsuKXpLj7sIXl+rHH8velIQRDYawnUYsejAoQZIwx0wqsQtyjViNcihYrxz1VztTiYNKfLxQTOsGZ05MbjCsdkSKvTui6R1J7vrEDgH0Hy0XvvATSJ/NBk3daM=
+	t=1746341170; cv=none; b=tBliHukSz4Y5jRLuid9p03eKrHscS8+TYsBf7GVSkUHvhEyTgrkvoO7kl4SLpjBkxKo2mZ3rahFtw7oW2BRgHRJ+ifKhA/8xtfU7n7XUuOJLqxUMmeYQYdLwvpaxGJR8eZaI+u+8yL1KchX/yqnFQL8qaBNg7gOgAUkixoVL8Dw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746336996; c=relaxed/simple;
-	bh=UEUh1CjV2A6yD7t7mtxTJAeGe0IGGS+YkxInLEpSDV4=;
-	h=Date:To:From:Subject:Message-Id; b=KlWPncN6k+QBqs26CJrAhTOBU39db6peQQk/pvva0hIanReas0MNF6WSGthrrauUCDZoiCfL36SNtIH9y7Ubm05V+Bwd7fr40Dq3bXQ9lPdqIztzzxCSScttWtGVAjHvTmaZ9PnKrrAUoJbCQBRj6duL2VmkTAfGkwjnVygGIsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pi5gIbrx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746341170; c=relaxed/simple;
+	bh=qM3cg0CFaVy1CTNvbu/r2w4qmVJLdLgAkEkKr3Xspdk=;
+	h=Date:To:From:Subject:Message-Id; b=CLwbS3BSPuVAkuhZYLEaYBZlJ/hFegpO39yNXkg9czkc+T20MrmxfA3Xg/leL7T2nQPfN7HcEcRzhpk7Iiq6X1yL0ZJhPnz7oKCJYfUrXurbTUtAgvJU001+D+Kg+3jbzzWqLcB2wioU4wOf8RyyIQx9iR0nGD0DAfiau2xGfPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZHmDEPuo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pi5gIbrx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61DCBC4CEE9;
-	Sun,  4 May 2025 05:36:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZHmDEPuo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 945FCC4CEE7;
+	Sun,  4 May 2025 06:46:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746336994;
-	bh=UEUh1CjV2A6yD7t7mtxTJAeGe0IGGS+YkxInLEpSDV4=;
+	s=korg; t=1746341169;
+	bh=qM3cg0CFaVy1CTNvbu/r2w4qmVJLdLgAkEkKr3Xspdk=;
 	h=Date:To:From:Subject:From;
-	b=pi5gIbrxdfwtMEJ09UUJoV124RP9G17K2t67ygJDOwyUuicoNFl8m6OLB9n+y6poE
-	 e4yI3bJPgurIwAvi2iJQxgBr4uY0BKoy+5G5+HONodu9kxQ9ivjAfuclGYa86VvDH4
-	 wdFujITbHT+Ls4a44bpaoNsU6EMGj6YSzYDm+H3s=
-Date: Sat, 03 May 2025 22:36:33 -0700
-To: mm-commits@vger.kernel.org,si.yanteng@linux.dev,mail@florommel.de,kbingham@kernel.org,jan.kiszka@siemens.com,jackmanb@google.com,dzm91@hust.edu.cn,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,illia@yshyn.com,akpm@linux-foundation.org
+	b=ZHmDEPuo0Geu2mRlmG8B0Pt9j7slD78cRy7ZEhMpxbSIIqjutpy120qR9GbMYCV8p
+	 542DkbSb9yzEVaaJdXvpK9eaHPPHcH36dVjmK3U1ppAQB1Q1Is7eUnW5m1RLKusokF
+	 S9B4sfHbSHlbjEY5kvHYORpP4usrGlUuEp1nbPPg=
+Date: Sat, 03 May 2025 23:46:09 -0700
+To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,coxu@redhat.com,bhe@redhat.com,berrange@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-update-documentation-for-lx_per_cpu.patch added to mm-nonmm-unstable branch
-Message-Id: <20250504053634.61DCBC4CEE9@smtp.kernel.org>
+Subject: + revert-x86-mm-remove-unused-__set_memory_prot-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250504064609.945FCC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb: update documentation for lx_per_cpu
+     Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-update-documentation-for-lx_per_cpu.patch
+     revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-update-documentation-for-lx_per_cpu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,221 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Illia Ostapyshyn <illia@yshyn.com>
-Subject: scripts/gdb: update documentation for lx_per_cpu
-Date: Sat, 3 May 2025 14:32:32 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
+Date: Sat May  3 11:38:32 PM PDT 2025
 
-Commit db08c53fdd542bb7f83b ("scripts/gdb: fix parameter handling in
-$lx_per_cpu") changed the parameter handling of lx_per_cpu to use GdbValue
-instead of parsing the variable name.  Update the documentation to reflect
-the new lx_per_cpu usage.  Update the hrtimer_bases example to use rb_tree
-instead of the timerqueue_head.next pointer removed in commit
-511885d7061eda3eb1fa ("lib/timerqueue: Rely on rbtree semantics for next
-timer").
+x86 set_memory.h needs pgtable_types.h for pgprot_t.  Obtain it via the
+higher-level pgtable.h.
 
-Link: https://lkml.kernel.org/r/20250503123234.2407184-3-illia@yshyn.com
-Signed-off-by: Illia Ostapyshyn <illia@yshyn.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Dongliang Mu <dzm91@hust.edu.cn>
-Cc: Florian Rommel <mail@florommel.de>
-Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Yanteng Si <si.yanteng@linux.dev>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: "Daniel P. Berrange" <berrange@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Jan Pazdziora <jpazdziora@redhat.com>
+Cc: Liu Pingfan <kernelfans@gmail.com>
+Cc: Milan Broz <gmazyland@gmail.com>
+Cc: Ondrej Kozina <okozina@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/process/debugging/gdb-kernel-debugging.rst            |   34 ++++------
- Documentation/translations/zh_CN/dev-tools/gdb-kernel-debugging.rst |   34 ++++------
- Documentation/translations/zh_TW/dev-tools/gdb-kernel-debugging.rst |   34 ++++------
- scripts/gdb/linux/cpus.py                                           |    4 -
- 4 files changed, 47 insertions(+), 59 deletions(-)
+ arch/x86/include/asm/set_memory.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/process/debugging/gdb-kernel-debugging.rst~scripts-gdb-update-documentation-for-lx_per_cpu
-+++ a/Documentation/process/debugging/gdb-kernel-debugging.rst
-@@ -127,35 +127,31 @@ Examples of using the Linux-provided gdb
+--- a/arch/x86/include/asm/set_memory.h~revert-x86-mm-remove-unused-__set_memory_prot-fix
++++ a/arch/x86/include/asm/set_memory.h
+@@ -4,6 +4,7 @@
  
- - Make use of the per-cpu function for the current or a specified CPU::
+ #include <asm/page.h>
+ #include <asm-generic/set_memory.h>
++#include <asm/pgtable.h>
  
--    (gdb) p $lx_per_cpu("runqueues").nr_running
-+    (gdb) p $lx_per_cpu(runqueues).nr_running
-     $3 = 1
--    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
-+    (gdb) p $lx_per_cpu(runqueues, 2).nr_running
-     $4 = 0
- 
- - Dig into hrtimers using the container_of helper::
- 
--    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
--    (gdb) p *$container_of($next, "struct hrtimer", "node")
-+    (gdb) set $leftmost = $lx_per_cpu(hrtimer_bases).clock_base[0].active.rb_root.rb_leftmost
-+    (gdb) p *$container_of($leftmost, "struct hrtimer", "node")
-     $5 = {
-       node = {
-         node = {
--          __rb_parent_color = 18446612133355256072,
--          rb_right = 0x0 <irq_stack_union>,
--          rb_left = 0x0 <irq_stack_union>
-+          __rb_parent_color = 18446612686384860673,
-+          rb_right = 0xffff888231da8b00,
-+          rb_left = 0x0
-         },
--        expires = {
--          tv64 = 1835268000000
--        }
-+        expires = 1228461000000
-       },
--      _softexpires = {
--        tv64 = 1835268000000
--      },
--      function = 0xffffffff81078232 <tick_sched_timer>,
--      base = 0xffff88003fd0d6f0,
--      state = 1,
--      start_pid = 0,
--      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
--      start_comm = "swapper/2\000\000\000\000\000\000"
-+      _softexpires = 1228461000000,
-+      function = 0xffffffff8137ab20 <tick_nohz_handler>,
-+      base = 0xffff888231d9b4c0,
-+      state = 1 '\001',
-+      is_rel = 0 '\000',
-+      is_soft = 0 '\000',
-+      is_hard = 1 '\001'
-     }
- 
- 
---- a/Documentation/translations/zh_CN/dev-tools/gdb-kernel-debugging.rst~scripts-gdb-update-documentation-for-lx_per_cpu
-+++ a/Documentation/translations/zh_CN/dev-tools/gdb-kernel-debugging.rst
-@@ -120,35 +120,31 @@ 使用Linux提供的gdb脚本的示例
- 
- - 对当前或指定的CPU使用per-cpu函数::
- 
--    (gdb) p $lx_per_cpu("runqueues").nr_running
-+    (gdb) p $lx_per_cpu(runqueues).nr_running
-     $3 = 1
--    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
-+    (gdb) p $lx_per_cpu(runqueues, 2).nr_running
-     $4 = 0
- 
- - 使用container_of查看更多hrtimers信息::
- 
--    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
--    (gdb) p *$container_of($next, "struct hrtimer", "node")
-+    (gdb) set $leftmost = $lx_per_cpu(hrtimer_bases).clock_base[0].active.rb_root.rb_leftmost
-+    (gdb) p *$container_of($leftmost, "struct hrtimer", "node")
-     $5 = {
-       node = {
-         node = {
--          __rb_parent_color = 18446612133355256072,
--          rb_right = 0x0 <irq_stack_union>,
--          rb_left = 0x0 <irq_stack_union>
-+          __rb_parent_color = 18446612686384860673,
-+          rb_right = 0xffff888231da8b00,
-+          rb_left = 0x0
-         },
--        expires = {
--          tv64 = 1835268000000
--        }
-+        expires = 1228461000000
-       },
--      _softexpires = {
--        tv64 = 1835268000000
--      },
--      function = 0xffffffff81078232 <tick_sched_timer>,
--      base = 0xffff88003fd0d6f0,
--      state = 1,
--      start_pid = 0,
--      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
--      start_comm = "swapper/2\000\000\000\000\000\000"
-+      _softexpires = 1228461000000,
-+      function = 0xffffffff8137ab20 <tick_nohz_handler>,
-+      base = 0xffff888231d9b4c0,
-+      state = 1 '\001',
-+      is_rel = 0 '\000',
-+      is_soft = 0 '\000',
-+      is_hard = 1 '\001'
-     }
- 
- 
---- a/Documentation/translations/zh_TW/dev-tools/gdb-kernel-debugging.rst~scripts-gdb-update-documentation-for-lx_per_cpu
-+++ a/Documentation/translations/zh_TW/dev-tools/gdb-kernel-debugging.rst
-@@ -116,35 +116,31 @@ 使用Linux提供的gdb腳本的示例
- 
- - 對當前或指定的CPU使用per-cpu函數::
- 
--    (gdb) p $lx_per_cpu("runqueues").nr_running
-+    (gdb) p $lx_per_cpu(runqueues).nr_running
-     $3 = 1
--    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
-+    (gdb) p $lx_per_cpu(runqueues, 2).nr_running
-     $4 = 0
- 
- - 使用container_of查看更多hrtimers信息::
- 
--    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
--    (gdb) p *$container_of($next, "struct hrtimer", "node")
-+    (gdb) set $leftmost = $lx_per_cpu(hrtimer_bases).clock_base[0].active.rb_root.rb_leftmost
-+    (gdb) p *$container_of($leftmost, "struct hrtimer", "node")
-     $5 = {
-       node = {
-         node = {
--          __rb_parent_color = 18446612133355256072,
--          rb_right = 0x0 <irq_stack_union>,
--          rb_left = 0x0 <irq_stack_union>
-+          __rb_parent_color = 18446612686384860673,
-+          rb_right = 0xffff888231da8b00,
-+          rb_left = 0x0
-         },
--        expires = {
--          tv64 = 1835268000000
--        }
-+        expires = 1228461000000
-       },
--      _softexpires = {
--        tv64 = 1835268000000
--      },
--      function = 0xffffffff81078232 <tick_sched_timer>,
--      base = 0xffff88003fd0d6f0,
--      state = 1,
--      start_pid = 0,
--      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
--      start_comm = "swapper/2\000\000\000\000\000\000"
-+      _softexpires = 1228461000000,
-+      function = 0xffffffff8137ab20 <tick_nohz_handler>,
-+      base = 0xffff888231d9b4c0,
-+      state = 1 '\001',
-+      is_rel = 0 '\000',
-+      is_soft = 0 '\000',
-+      is_hard = 1 '\001'
-     }
- 
- 
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-update-documentation-for-lx_per_cpu
-+++ a/scripts/gdb/linux/cpus.py
-@@ -141,7 +141,7 @@ LxCpus()
- class PerCpu(gdb.Function):
-     """Return per-cpu variable.
- 
--$lx_per_cpu("VAR"[, CPU]): Return the per-cpu variable called VAR for the
-+$lx_per_cpu(VAR[, CPU]): Return the per-cpu variable called VAR for the
- given CPU number. If CPU is omitted, the CPU of the current context is used.
- Note that VAR has to be quoted as string."""
- 
-@@ -158,7 +158,7 @@ PerCpu()
- class PerCpuPtr(gdb.Function):
-     """Return per-cpu pointer.
- 
--$lx_per_cpu_ptr("VAR"[, CPU]): Return the per-cpu pointer called VAR for the
-+$lx_per_cpu_ptr(VAR[, CPU]): Return the per-cpu pointer called VAR for the
- given CPU number. If CPU is omitted, the CPU of the current context is used.
- Note that VAR has to be quoted as string."""
- 
+ #define set_memory_rox set_memory_rox
+ int set_memory_rox(unsigned long addr, int numpages);
 _
 
-Patches currently in -mm which might be from illia@yshyn.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-gdb-fix-kgdb-probing-on-single-core-systems.patch
-scripts-gdb-update-documentation-for-lx_per_cpu.patch
+x86-disable-image-size-check-for-test-builds-fix.patch
+x86-disable-image-size-check-for-test-builds-fix-fix.patch
+mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
+vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
+mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
+jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
+mm-add-zblock-allocator-fix.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
