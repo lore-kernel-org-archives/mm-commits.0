@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEEE233E7
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 00:50:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7DD8C8FE
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 00:52:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746319858; cv=none; b=ZCsjZe7nF3sx70nqHWfl/xAiJLwlx3s4bPOtckmtImhTT4Wq/TDb//fA0twf7auACqDT0g2UmpthuGNcY0DIHql9eegQXpzb+JxBm2wDYEhKQ4Hqx3uHSarKe/7+hncRJp4n6oQhft2pLQ6nFqaY9D5tyIUOn4RWvKJseRFWBQI=
+	t=1746319923; cv=none; b=Y7ORaDHPTP/+gdDNa3Jgo0WIBGewopc18Pj4hqbLzfbaMIlnLX7IFGBni7u0plRrGA37fawk5TVXW1zEQ9qYf0XXffUdKNk90jSWwALYCoF/rGHEPTyBnK4zoTmLOQBuhfQWlHxqz4wmXKAWlnlCSEo1YUuz30d5ZGb5QkLdUPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746319858; c=relaxed/simple;
-	bh=P2rAafNFit/PaIXLBcy5Uv2iNn/tQSMxNmi78WLwnQc=;
-	h=Date:To:From:Subject:Message-Id; b=iXbQoRWicl8d9OzkxS4Z6+aEGGcjvkmt1nXAgHEnB/L2Azha02jcV51V89MHO4/cNlmVx1/ouSLrQ1+eKzlqPUQDt9YHkiQ3dqVoIlld2U2AMfDuxbxw1a0Fbx6i7bKSP6WM9KnPp9SfYWWS2/3uS3lHZ13p/tTmx+k18f0tDDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sRZ8KzNT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746319923; c=relaxed/simple;
+	bh=nxEP2bxfjUGeamjGz+jbzLVTGhJLv2poAO0sAHITJtY=;
+	h=Date:To:From:Subject:Message-Id; b=Vzb8qmOHQn65OnCnihdEObBTMgU6mSiSSzTCoqA/r0He5F1BmJU3KXYySh9SaUgIQxY7GQHRadSLfq0N04uocDfcPhZnBydgNnN4Q+kU2t2oezoMbONlT8UVNkjfEQW0qaviAj1yWIBf9QsYkLNSJvXsDkGYh7Eo7c1DB/agodc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0yjC6Dot; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sRZ8KzNT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA656C4CEE3;
-	Sun,  4 May 2025 00:50:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0yjC6Dot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14445C4CEE3;
+	Sun,  4 May 2025 00:52:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746319857;
-	bh=P2rAafNFit/PaIXLBcy5Uv2iNn/tQSMxNmi78WLwnQc=;
+	s=korg; t=1746319923;
+	bh=nxEP2bxfjUGeamjGz+jbzLVTGhJLv2poAO0sAHITJtY=;
 	h=Date:To:From:Subject:From;
-	b=sRZ8KzNTuBAy5UtUY2niatm8q+bbOt5/KYF+oojyE5GPtCpNLIrBkgKKp7H54Kvd3
-	 CTSzAVou6tbPLztei9GwIQJMSnTXwZjuwHSFEEtRIjoIi9HP2EP92sVJS24Z66cqMh
-	 ngpirYM1VyRXjn+3OyMDe7t9Wu039GknndbO/F14=
-Date: Sat, 03 May 2025 17:50:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,Jonathan.Cameron@huawei.com,gregkh@linuxfoundation.org,david@redhat.com,dave.jiang@intel.com,dakr@kernel.org,alison.schofield@intel.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=0yjC6DotrJSi1rccgdpgcJxUjH4S/2a0RnJ69UyzM38q8zcD8vqMVemHH0GxJk1y/
+	 CVyFz4N643ZI1vcfIYzfs4PK0wTu5023416PFvEo5aCvi2etRMVTzSLLz0CTahPNOX
+	 x1OcyNaGx0t6N99znWCXDLsEfWedQONam4SR9/x0=
+Date: Sat, 03 May 2025 17:52:02 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument.patch added to mm-new branch
-Message-Id: <20250504005057.AA656C4CEE3@smtp.kernel.org>
+Subject: + nilfs2-fix-deadlock-warnings-caused-by-lock-dependency-in-init_nilfs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250504005203.14445C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base : rename register_memory_blocks_under_node() and remove context argument
-has been added to the -mm mm-new branch.  Its filename is
-     drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument.patch
+     Subject: nilfs2: fix deadlock warnings caused by lock dependency in init_nilfs()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-fix-deadlock-warnings-caused-by-lock-dependency-in-init_nilfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-deadlock-warnings-caused-by-lock-dependency-in-init_nilfs.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,97 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: drivers/base : rename register_memory_blocks_under_node() and remove context argument
-Date: Sat, 3 May 2025 11:10:14 +0530
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix deadlock warnings caused by lock dependency in init_nilfs()
+Date: Sat, 3 May 2025 14:33:14 +0900
 
-The function register_memory_blocks_under_node() is now only called from
-the memory hotplug path, as register_memory_blocks_under_node_early()
-handles registration during early boot.  Therefore, the context argument
-used to differentiate between early boot and hotplug is no longer needed
-and was removed.
+After commit c0e473a0d226 ("block: fix race between set_blocksize and read
+paths") was merged, set_blocksize() called by sb_set_blocksize() now locks
+the inode of the backing device file.  As a result of this change, syzbot
+started reporting deadlock warnings due to a circular dependency involving
+the semaphore "ns_sem" of the nilfs object, the inode lock of the backing
+device file, and the locks that this inode lock is transitively dependent
+on.
 
-Since the function is only called from the hotplug path, we renamed
-register_memory_blocks_under_node() to
-register_memory_blocks_under_node_hotplug()
+This is caused by a new lock dependency added by the above change, since
+init_nilfs() calls sb_set_blocksize() in the lock section of "ns_sem". 
+However, these warnings are false positives because init_nilfs() is called
+in the early stage of the mount operation and the filesystem has not yet
+started.
 
-Link: https://lkml.kernel.org/r/9e9fe4715c729e54e3820de0f24c185a26679e72.1746250339.git.donettom@linux.ibm.com
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
+The reason why "ns_sem" is locked in init_nilfs() was to avoid a race
+condition in nilfs_fill_super() caused by sharing a nilfs object among
+multiple filesystem instances (super block structures) in the early
+implementation.  However, nilfs objects and super block structures have
+long ago become one-to-one, and there is no longer any need to use the
+semaphore there.
+
+So, fix this issue by removing the use of the semaphore "ns_sem" in
+init_nilfs().
+
+Link: https://lkml.kernel.org/r/20250503053327.12294-1-konishi.ryusuke@gmail.com
+Fixes: c0e473a0d226 ("block: fix race between set_blocksize and read paths")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+00f7f5b884b117ee6773@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=00f7f5b884b117ee6773
+Tested-by: syzbot+00f7f5b884b117ee6773@syzkaller.appspotmail.com
+Reported-by: syzbot+f30591e72bfc24d4715b@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=f30591e72bfc24d4715b
+Tested-by: syzbot+f30591e72bfc24d4715b@syzkaller.appspotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c  |    5 ++---
- include/linux/node.h |   11 +++++------
- mm/memory_hotplug.c  |    5 ++---
- 3 files changed, 9 insertions(+), 12 deletions(-)
+ fs/nilfs2/the_nilfs.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/drivers/base/node.c~drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument
-+++ a/drivers/base/node.c
-@@ -839,9 +839,8 @@ void register_memory_blocks_under_node_e
- 	}
- }
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-deadlock-warnings-caused-by-lock-dependency-in-init_nilfs
++++ a/fs/nilfs2/the_nilfs.c
+@@ -705,8 +705,6 @@ int init_nilfs(struct the_nilfs *nilfs,
+ 	int blocksize;
+ 	int err;
  
--void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
--				       unsigned long end_pfn,
--				       enum meminit_context context)
-+void register_memory_blocks_under_node_hotplug(int nid, unsigned long start_pfn,
-+					       unsigned long end_pfn)
- {
- 	walk_memory_blocks(PFN_PHYS(start_pfn), PFN_PHYS(end_pfn - start_pfn),
- 			   (void *)&nid, register_mem_block_under_node_hotplug);
---- a/include/linux/node.h~drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument
-+++ a/include/linux/node.h
-@@ -111,14 +111,13 @@ struct memory_block;
- extern struct node *node_devices[];
+-	down_write(&nilfs->ns_sem);
+-
+ 	blocksize = sb_min_blocksize(sb, NILFS_MIN_BLOCK_SIZE);
+ 	if (!blocksize) {
+ 		nilfs_err(sb, "unable to set blocksize");
+@@ -779,7 +777,6 @@ int init_nilfs(struct the_nilfs *nilfs,
+ 	set_nilfs_init(nilfs);
+ 	err = 0;
+  out:
+-	up_write(&nilfs->ns_sem);
+ 	return err;
  
- #if defined(CONFIG_MEMORY_HOTPLUG) && defined(CONFIG_NUMA)
--void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
--				       unsigned long end_pfn,
--				       enum meminit_context context);
-+void register_memory_blocks_under_node_hotplug(int nid, unsigned long start_pfn,
-+					       unsigned long end_pfn);
- void register_memory_blocks_under_node_early(int nid);
- #else
--static inline void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
--						     unsigned long end_pfn,
--						     enum meminit_context context)
-+static inline void register_memory_blocks_under_node_hotplug(int nid,
-+							     unsigned long start_pfn,
-+							     unsigned long end_pfn)
- {
- }
- static inline void register_memory_blocks_under_node_early(int nid)
---- a/mm/memory_hotplug.c~drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument
-+++ a/mm/memory_hotplug.c
-@@ -1575,9 +1575,8 @@ int add_memory_resource(int nid, struct
- 		BUG_ON(ret);
- 	}
- 
--	register_memory_blocks_under_node(nid, PFN_DOWN(start),
--					  PFN_UP(start + size - 1),
--					  MEMINIT_HOTPLUG);
-+	register_memory_blocks_under_node_hotplug(nid, PFN_DOWN(start),
-+						  PFN_UP(start + size - 1));
- 
- 	/* create new memmap entry */
- 	if (!strcmp(res->name, "System RAM"))
+  failed_sbh:
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-selftests-mm-restore-default-nr_hugepages-value-during-cleanup-in-hugetlb_reparenting_testsh.patch
-driver-base-optimize-memory-block-registration-to-reduce-boot-time.patch
-driver-base-remove-register_mem_block_under_node_early.patch
-drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument.patch
+nilfs2-fix-deadlock-warnings-caused-by-lock-dependency-in-init_nilfs.patch
+nilfs2-do-not-propagate-enoent-error-from-nilfs_btree_propagate.patch
 
