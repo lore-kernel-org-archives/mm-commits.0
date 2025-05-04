@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2455633E1
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 05:15:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0143433E1
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 05:15:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746335733; cv=none; b=LgIuYZffaKkO05KPp3Mzx5sVuNTkKiXTjJ/bp7RdBuR4LoVgaEtMGCmlyMeWut3vC7+h5DcjQ6famO0bxcVhtP4tLNp876NSt+IFHzQPdb4eEhvERQeaXH+T+tO1U14kk6gjPwQpPUKAxlGZG6eQ+ziwD6MauZxho6s+w4O1L0M=
+	t=1746335736; cv=none; b=pCOAkMwMgmFzbgB2T6NG0LvHi8GLPy5MxwQc7JVjSu0SyCRQ6vrn1tlJcA7u0CnKxitQHXJtSVGmDgsHtwN8bh9H31Gd9wRnU926LGllrAAILS102Mi1A/wDeMjKdbSjcngooTfTTrBO8MCQNiF2v0+kxSR9OVueKoYt4onj0n8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746335733; c=relaxed/simple;
-	bh=xz2MKF9TPFIA9y2eWbHb7Jl4xaDPECWUQF8YwV4mGpA=;
-	h=Date:To:From:Subject:Message-Id; b=GZ7oryhFAAwA5iq2Go0k/KAuFN+havYj9wTPD+lv2gQTYI7M146Uw7UFST30ODM3eEubgqSMlFseRHOmFpzoysSGFu0J60Ty4Euc6K1A8LRtMPep+FY8scI8N2X0YdcXLjyhmI8UaKWaoesai1n9TpnpNvrwTgdJRAjxZTg4NsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zMdsJsT9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746335736; c=relaxed/simple;
+	bh=KrLsJBsBVQjztrO/hUfxO/jsqJluqZ7SjH5bm8wskRk=;
+	h=Date:To:From:Subject:Message-Id; b=nhYsoEli/rL+fycTI5eC3V5tugm0fvg42F5XL1xkNpfN/gbBq03s5A0TgVX64p7igramiCRqi9MgBDqWdIKGqgDDPGDo7DpLibuVZAV9lAQs0YjsrDhmSAVFUnEq/nlyHpva/lgv34KMvUsqB8f9x305bhMfnTyLBiUDg4YG8C8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=py9+Fwdp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zMdsJsT9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE9DC4CEED;
-	Sun,  4 May 2025 05:15:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="py9+Fwdp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3B4FC4CEED;
+	Sun,  4 May 2025 05:15:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746335733;
-	bh=xz2MKF9TPFIA9y2eWbHb7Jl4xaDPECWUQF8YwV4mGpA=;
+	s=korg; t=1746335735;
+	bh=KrLsJBsBVQjztrO/hUfxO/jsqJluqZ7SjH5bm8wskRk=;
 	h=Date:To:From:Subject:From;
-	b=zMdsJsT9erfgmWLjMVC3aj1SF/TvaWLS9hNQMZQYEK+u9gfSFg4A9mudT22T6GPnk
-	 kTozrre3U7p9HRERCJXwLMyq+L7kugfdx38VR+p2ppJ76YJsMBOBtrj1baI1xhHmDF
-	 eyH9jCEIcgrBU7grE4nkQ83KPQl1lcoFSyx9HRKk=
-Date: Sat, 03 May 2025 22:15:32 -0700
+	b=py9+FwdpplxIU4f1EzdOEgJZuwKC7BESChDL/J/EZp+3fd/SI5eEi2H+nUPCFXHt4
+	 mRSNeiY/heY7IszJLrMhC32I67++JmM8HuGMm/AU+rOrN/uqPY/7Pj07+GB2v4O8cn
+	 QG/TQx7Aj4EY4rraRoR+Bk1lMUaBq5+Tlt1wEQew=
+Date: Sat, 03 May 2025 22:15:35 -0700
 To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,bhe@redhat.com,berrange@redhat.com,coxu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-crash-pass-dm-crypt-keys-to-kdump-kernel.patch added to mm-nonmm-unstable branch
-Message-Id: <20250504051532.EBE9DC4CEED@smtp.kernel.org>
+Subject: + x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch added to mm-nonmm-unstable branch
+Message-Id: <20250504051535.C3B4FC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/crash: pass dm crypt keys to kdump kernel
+     Subject: x86/crash: make the page that stores the dm crypt keys inaccessible
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-crash-pass-dm-crypt-keys-to-kdump-kernel.patch
+     x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-pass-dm-crypt-keys-to-kdump-kernel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,152 +59,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Coiby Xu <coxu@redhat.com>
-Subject: x86/crash: pass dm crypt keys to kdump kernel
-Date: Fri, 2 May 2025 09:12:41 +0800
+Subject: x86/crash: make the page that stores the dm crypt keys inaccessible
+Date: Fri, 2 May 2025 09:12:42 +0800
 
-1st kernel will build up the kernel command parameter dmcryptkeys as
-similar to elfcorehdr to pass the memory address of the stored info of dm
-crypt key to kdump kernel.
+This adds an addition layer of protection for the saved copy of dm crypt
+key.  Trying to access the saved copy will cause page fault.
 
-Link: https://lkml.kernel.org/r/20250502011246.99238-8-coxu@redhat.com
+Link: https://lkml.kernel.org/r/20250502011246.99238-9-coxu@redhat.com
 Signed-off-by: Coiby Xu <coxu@redhat.com>
+Suggested-by: Pingfan Liu <kernelfans@gmail.com>
 Acked-by: Baoquan He <bhe@redhat.com>
 Cc: "Daniel P. Berrange" <berrange@redhat.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Jan Pazdziora <jpazdziora@redhat.com>
-Cc: Liu Pingfan <kernelfans@gmail.com>
 Cc: Milan Broz <gmazyland@gmail.com>
 Cc: Ondrej Kozina <okozina@redhat.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/kdump.rst |    4 +--
- arch/x86/kernel/crash.c                   |   26 ++++++++++++++++++--
- arch/x86/kernel/kexec-bzimage64.c         |   21 ++++++++++++++++
- 3 files changed, 47 insertions(+), 4 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/arch/x86/kernel/crash.c~x86-crash-pass-dm-crypt-keys-to-kdump-kernel
-+++ a/arch/x86/kernel/crash.c
-@@ -278,6 +278,7 @@ static int memmap_exclude_ranges(struct
- 				 unsigned long long mend)
- {
- 	unsigned long start, end;
-+	int ret;
- 
- 	cmem->ranges[0].start = mstart;
- 	cmem->ranges[0].end = mend;
-@@ -286,22 +287,43 @@ static int memmap_exclude_ranges(struct
- 	/* Exclude elf header region */
- 	start = image->elf_load_addr;
- 	end = start + image->elf_headers_sz - 1;
--	return crash_exclude_mem_range(cmem, start, end);
-+	ret = crash_exclude_mem_range(cmem, start, end);
-+
-+	if (ret)
-+		return ret;
-+
-+	/* Exclude dm crypt keys region */
-+	if (image->dm_crypt_keys_addr) {
-+		start = image->dm_crypt_keys_addr;
-+		end = start + image->dm_crypt_keys_sz - 1;
-+		return crash_exclude_mem_range(cmem, start, end);
-+	}
-+
-+	return ret;
+--- a/arch/x86/kernel/machine_kexec_64.c~x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -598,13 +598,35 @@ static void kexec_mark_crashkres(bool pr
+ 	kexec_mark_range(control, crashk_res.end, protect);
  }
  
- /* Prepare memory map for crash dump kernel */
- int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
++/* make the memory storing dm crypt keys in/accessible */
++static void kexec_mark_dm_crypt_keys(bool protect)
++{
++	unsigned long start_paddr, end_paddr;
++	unsigned int nr_pages;
++
++	if (kexec_crash_image->dm_crypt_keys_addr) {
++		start_paddr = kexec_crash_image->dm_crypt_keys_addr;
++		end_paddr = start_paddr + kexec_crash_image->dm_crypt_keys_sz - 1;
++		nr_pages = (PAGE_ALIGN(end_paddr) - PAGE_ALIGN_DOWN(start_paddr))/PAGE_SIZE;
++		if (protect)
++			set_memory_np((unsigned long)phys_to_virt(start_paddr), nr_pages);
++		else
++			__set_memory_prot(
++				(unsigned long)phys_to_virt(start_paddr),
++				nr_pages,
++				__pgprot(_PAGE_PRESENT | _PAGE_NX | _PAGE_RW));
++	}
++}
++
+ void arch_kexec_protect_crashkres(void)
  {
-+	unsigned int nr_ranges = 0;
- 	int i, ret = 0;
- 	unsigned long flags;
- 	struct e820_entry ei;
- 	struct crash_memmap_data cmd;
- 	struct crash_mem *cmem;
+ 	kexec_mark_crashkres(true);
++	kexec_mark_dm_crypt_keys(true);
+ }
  
--	cmem = vzalloc(struct_size(cmem, ranges, 1));
-+	/*
-+	 * Using random kexec_buf for passing dm crypt keys may cause a range
-+	 * split. So use two slots here.
-+	 */
-+	nr_ranges = 2;
-+	cmem = vzalloc(struct_size(cmem, ranges, nr_ranges));
- 	if (!cmem)
- 		return -ENOMEM;
- 
-+	cmem->max_nr_ranges = nr_ranges;
-+	cmem->nr_ranges = 0;
-+
- 	memset(&cmd, 0, sizeof(struct crash_memmap_data));
- 	cmd.params = params;
- 
---- a/arch/x86/kernel/kexec-bzimage64.c~x86-crash-pass-dm-crypt-keys-to-kdump-kernel
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -27,6 +27,8 @@
- #include <asm/kexec-bzimage64.h>
- 
- #define MAX_ELFCOREHDR_STR_LEN	30	/* elfcorehdr=0x<64bit-value> */
-+#define MAX_DMCRYPTKEYS_STR_LEN	31	/* dmcryptkeys=0x<64bit-value> */
-+
- 
- /*
-  * Defines lowest physical address for various segments. Not sure where
-@@ -76,6 +78,10 @@ static int setup_cmdline(struct kimage *
- 	if (image->type == KEXEC_TYPE_CRASH) {
- 		len = sprintf(cmdline_ptr,
- 			"elfcorehdr=0x%lx ", image->elf_load_addr);
-+
-+		if (image->dm_crypt_keys_addr != 0)
-+			len += sprintf(cmdline_ptr + len,
-+					"dmcryptkeys=0x%lx ", image->dm_crypt_keys_addr);
- 	}
- 	memcpy(cmdline_ptr + len, cmdline, cmdline_len);
- 	cmdline_len += len;
-@@ -474,6 +480,19 @@ static void *bzImage64_load(struct kimag
- 		ret = crash_load_segments(image);
- 		if (ret)
- 			return ERR_PTR(ret);
-+		ret = crash_load_dm_crypt_keys(image);
-+		if (ret == -ENOENT) {
-+			kexec_dprintk("No dm crypt key to load\n");
-+		} else if (ret) {
-+			pr_err("Failed to load dm crypt keys\n");
-+			return ERR_PTR(ret);
-+		}
-+		if (image->dm_crypt_keys_addr &&
-+		    cmdline_len + MAX_ELFCOREHDR_STR_LEN + MAX_DMCRYPTKEYS_STR_LEN >
-+			    header->cmdline_size) {
-+			pr_err("Appending dmcryptkeys=<addr> to command line exceeds maximum allowed length\n");
-+			return ERR_PTR(-EINVAL);
-+		}
- 	}
+ void arch_kexec_unprotect_crashkres(void)
+ {
++	kexec_mark_dm_crypt_keys(false);
+ 	kexec_mark_crashkres(false);
+ }
  #endif
- 
-@@ -501,6 +520,8 @@ static void *bzImage64_load(struct kimag
- 	efi_map_sz = efi_get_runtime_map_size();
- 	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len +
- 				MAX_ELFCOREHDR_STR_LEN;
-+	if (image->dm_crypt_keys_addr)
-+		params_cmdline_sz += MAX_DMCRYPTKEYS_STR_LEN;
- 	params_cmdline_sz = ALIGN(params_cmdline_sz, 16);
- 	kbuf.bufsz = params_cmdline_sz + ALIGN(efi_map_sz, 16) +
- 				sizeof(struct setup_data) +
---- a/Documentation/admin-guide/kdump/kdump.rst~x86-crash-pass-dm-crypt-keys-to-kdump-kernel
-+++ a/Documentation/admin-guide/kdump/kdump.rst
-@@ -551,8 +551,8 @@ Write the dump file to encrypted disk vo
- ============================================
- 
- CONFIG_CRASH_DM_CRYPT can be enabled to support saving the dump file to an
--encrypted disk volume. User space can interact with
--/sys/kernel/config/crash_dm_crypt_keys for setup,
-+encrypted disk volume (only x86_64 supported for now). User space can interact
-+with /sys/kernel/config/crash_dm_crypt_keys for setup,
- 
- 1. Tell the first kernel what logon keys are needed to unlock the disk volumes,
-     # Add key #1
 _
 
 Patches currently in -mm which might be from coxu@redhat.com are
