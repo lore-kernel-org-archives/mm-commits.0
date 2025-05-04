@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0143433E1
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 05:15:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7468A320F
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 05:19:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746335736; cv=none; b=pCOAkMwMgmFzbgB2T6NG0LvHi8GLPy5MxwQc7JVjSu0SyCRQ6vrn1tlJcA7u0CnKxitQHXJtSVGmDgsHtwN8bh9H31Gd9wRnU926LGllrAAILS102Mi1A/wDeMjKdbSjcngooTfTTrBO8MCQNiF2v0+kxSR9OVueKoYt4onj0n8=
+	t=1746335991; cv=none; b=EU48ALXTRgHW7dfQC5Bsli9bga9WOiPPQyKPQGVDwBcqQ2J+orGVuXc/8CiQB3Pb4DAPnRhrmYMoQhgdbw5AZiboEyFpvyTJtFjyeD/TvZSrCEsak0zSJIjKjrYIsrht68PcFVVFX5bt09uoQDcPNKpOGSqOY0QkEQusjkE2Krk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746335736; c=relaxed/simple;
-	bh=KrLsJBsBVQjztrO/hUfxO/jsqJluqZ7SjH5bm8wskRk=;
-	h=Date:To:From:Subject:Message-Id; b=nhYsoEli/rL+fycTI5eC3V5tugm0fvg42F5XL1xkNpfN/gbBq03s5A0TgVX64p7igramiCRqi9MgBDqWdIKGqgDDPGDo7DpLibuVZAV9lAQs0YjsrDhmSAVFUnEq/nlyHpva/lgv34KMvUsqB8f9x305bhMfnTyLBiUDg4YG8C8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=py9+Fwdp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746335991; c=relaxed/simple;
+	bh=cEL5oQKOIIqnYU1pcxBR4EQ4mZqlv/o1DDdI557bUSQ=;
+	h=Date:To:From:Subject:Message-Id; b=je91k2ql+TzZRywNZKRLL0MLdzscBCphtj2BLDzbG5KwCLXGd3yWL8CzZNUpjCoLyEps7qzFyn+mLOSojdnRwgWT90HAILDc45vA0C646XqHAagOyu27xbfeJ0p813+qp/bhYdowCKdCO1hipZaBfw4q9ji2P588d6I9mxtlxQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yb72a8wQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="py9+Fwdp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3B4FC4CEED;
-	Sun,  4 May 2025 05:15:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yb72a8wQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7B47C4CEE9;
+	Sun,  4 May 2025 05:19:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746335735;
-	bh=KrLsJBsBVQjztrO/hUfxO/jsqJluqZ7SjH5bm8wskRk=;
+	s=korg; t=1746335991;
+	bh=cEL5oQKOIIqnYU1pcxBR4EQ4mZqlv/o1DDdI557bUSQ=;
 	h=Date:To:From:Subject:From;
-	b=py9+FwdpplxIU4f1EzdOEgJZuwKC7BESChDL/J/EZp+3fd/SI5eEi2H+nUPCFXHt4
-	 mRSNeiY/heY7IszJLrMhC32I67++JmM8HuGMm/AU+rOrN/uqPY/7Pj07+GB2v4O8cn
-	 QG/TQx7Aj4EY4rraRoR+Bk1lMUaBq5+Tlt1wEQew=
-Date: Sat, 03 May 2025 22:15:35 -0700
-To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,bhe@redhat.com,berrange@redhat.com,coxu@redhat.com,akpm@linux-foundation.org
+	b=yb72a8wQwB95mP59tqI06ckCLbrXxd/EgAGijMJK8S/lyjxQix5izXWt3Mg2ykC2m
+	 vKhyNC8JYRCmpFdYYXZbpZZ8Xk2OU/vPJAUwVOSJt25FN3PTAvqvqrOtUbbgiz/P74
+	 stXbnOJHfpPWaJ1ebsEyhMZdUPaosvaMSEo4ODB4=
+Date: Sat, 03 May 2025 22:19:50 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch added to mm-nonmm-unstable branch
-Message-Id: <20250504051535.C3B4FC4CEED@smtp.kernel.org>
+Subject: + selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch added to mm-new branch
+Message-Id: <20250504051950.E7B47C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/crash: make the page that stores the dm crypt keys inaccessible
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch
+     Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,78 +64,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Coiby Xu <coxu@redhat.com>
-Subject: x86/crash: make the page that stores the dm crypt keys inaccessible
-Date: Fri, 2 May 2025 09:12:42 +0800
+From: Waiman Long <longman@redhat.com>
+Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
+Date: Thu, 1 May 2025 21:04:42 -0400
 
-This adds an addition layer of protection for the saved copy of dm crypt
-key.  Trying to access the saved copy will cause page fault.
+Patch series "memcg: Fix test_memcg_min/low test failures", v8.
 
-Link: https://lkml.kernel.org/r/20250502011246.99238-9-coxu@redhat.com
-Signed-off-by: Coiby Xu <coxu@redhat.com>
-Suggested-by: Pingfan Liu <kernelfans@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: "Daniel P. Berrange" <berrange@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Jan Pazdziora <jpazdziora@redhat.com>
-Cc: Milan Broz <gmazyland@gmail.com>
-Cc: Ondrej Kozina <okozina@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+The test_memcontrol selftest consistently fails its test_memcg_low
+sub-test (with memory_recursiveprot enabled) and sporadically fails its
+test_memcg_min sub-test.  This patchset fixes the test_memcg_min and
+test_memcg_low failures by adjusting the test_memcontrol selftest to fix
+these test failures.
+
+
+This patch (of 8):
+
+The test_memcontrol selftest consistently fails its test_memcg_low
+sub-test due to the fact that its 3rd test child cgroup which have a
+memmory.low of 0 have low event count.  This happens when
+memory_recursiveprot mount option is enabled which is the default setting
+used by systemd to mount cgroup2 filesystem.
+
+This issue was originally fixed by commit cdc69458a5f3 ("cgroup: account
+for memory_recursiveprot in test_memcg_low()").  It was later reverted by
+commit 1d09069f5313 ("selftests: memcg: expect no low events in
+unprotected sibling") expecting the memory reclaim code would be fixed. 
+However, it turns out the unprotected cgroup may still have some residual
+effective memory.low protection depending on the memory.low settings in
+its parent and its siblings.  As a result, low events may still be
+triggered.
+
+One way to fix the test failure is to revert the revert commit.  However,
+Michal suggested that it might be better to ignore the low event count
+with memory_recursiveprot enabled as low event may or may not happen
+depending on the actual test configuration.
+
+Modify the test_memcontrol.c to ignore low event in the 3rd child cgroup
+with memory_recursiveprot on.
+
+The 4th child cgroup has no memory usage and so has an effective low of 0.
+It has no low event count because the mem_cgroup_below_low() check in
+shrink_node_memcgs() is skipped as mem_cgroup_below_min() returns true. 
+If we ever change mem_cgroup_below_min() in such a way that it no longer
+skips the no usage case, we will have to add code to explicitly skip it.
+
+With this patch applied, the test_memcg_low sub-test finishes successfully
+without failure in most cases.  Though both test_memcg_low and
+test_memcg_min sub-tests may still fail occasionally if the memory.current
+values fall outside of the expected ranges.
+
+Link: https://lkml.kernel.org/r/20250502010443.106022-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20250502010443.106022-2-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Suggested-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: Michal Koutný <mkoutny@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ tools/testing/selftests/cgroup/test_memcontrol.c |   18 ++++++++++---
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
---- a/arch/x86/kernel/machine_kexec_64.c~x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -598,13 +598,35 @@ static void kexec_mark_crashkres(bool pr
- 	kexec_mark_range(control, crashk_res.end, protect);
- }
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -380,10 +380,11 @@ static bool reclaim_until(const char *me
+  *
+  * Then it checks actual memory usages and expects that:
+  * A/B    memory.current ~= 50M
+- * A/B/C  memory.current ~= 29M
+- * A/B/D  memory.current ~= 21M
+- * A/B/E  memory.current ~= 0
+- * A/B/F  memory.current  = 0
++ * A/B/C  memory.current ~= 29M [memory.events:low > 0]
++ * A/B/D  memory.current ~= 21M [memory.events:low > 0]
++ * A/B/E  memory.current ~= 0   [memory.events:low == 0 if !memory_recursiveprot,
++ *				 undefined otherwise]
++ * A/B/F  memory.current  = 0   [memory.events:low == 0]
+  * (for origin of the numbers, see model in memcg_protection.m.)
+  *
+  * After that it tries to allocate more than there is
+@@ -525,7 +526,14 @@ static int test_memcg_protection(const c
+ 		goto cleanup;
+ 	}
  
-+/* make the memory storing dm crypt keys in/accessible */
-+static void kexec_mark_dm_crypt_keys(bool protect)
-+{
-+	unsigned long start_paddr, end_paddr;
-+	unsigned int nr_pages;
-+
-+	if (kexec_crash_image->dm_crypt_keys_addr) {
-+		start_paddr = kexec_crash_image->dm_crypt_keys_addr;
-+		end_paddr = start_paddr + kexec_crash_image->dm_crypt_keys_sz - 1;
-+		nr_pages = (PAGE_ALIGN(end_paddr) - PAGE_ALIGN_DOWN(start_paddr))/PAGE_SIZE;
-+		if (protect)
-+			set_memory_np((unsigned long)phys_to_virt(start_paddr), nr_pages);
-+		else
-+			__set_memory_prot(
-+				(unsigned long)phys_to_virt(start_paddr),
-+				nr_pages,
-+				__pgprot(_PAGE_PRESENT | _PAGE_NX | _PAGE_RW));
-+	}
-+}
-+
- void arch_kexec_protect_crashkres(void)
- {
- 	kexec_mark_crashkres(true);
-+	kexec_mark_dm_crypt_keys(true);
- }
++	/*
++	 * Child 2 has memory.low=0, but some low protection may still be
++	 * distributed down from its parent with memory.low=50M if cgroup2
++	 * memory_recursiveprot mount option is enabled. Ignore the low
++	 * event count in this case.
++	 */
+ 	for (i = 0; i < ARRAY_SIZE(children); i++) {
++		int ignore_low_events_index = has_recursiveprot ? 2 : -1;
+ 		int no_low_events_index = 1;
+ 		long low, oom;
  
- void arch_kexec_unprotect_crashkres(void)
- {
-+	kexec_mark_dm_crypt_keys(false);
- 	kexec_mark_crashkres(false);
- }
- #endif
+@@ -534,6 +542,8 @@ static int test_memcg_protection(const c
+ 
+ 		if (oom)
+ 			goto cleanup;
++		if (i == ignore_low_events_index)
++			continue;
+ 		if (i <= no_low_events_index && low <= 0)
+ 			goto cleanup;
+ 		if (i > no_low_events_index && low)
 _
 
-Patches currently in -mm which might be from coxu@redhat.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-kexec_file-allow-to-place-kexec_buf-randomly.patch
-crash_dump-make-dm-crypt-keys-persist-for-the-kdump-kernel.patch
-crash_dump-store-dm-crypt-keys-in-kdump-reserved-memory.patch
-crash_dump-reuse-saved-dm-crypt-keys-for-cpu-memory-hot-plugging.patch
-crash_dump-retrieve-dm-crypt-keys-in-kdump-kernel.patch
-revert-x86-mm-remove-unused-__set_memory_prot.patch
-x86-crash-pass-dm-crypt-keys-to-kdump-kernel.patch
-x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch
+selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
+selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
 
