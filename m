@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22C0B2FB6
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 02:36:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA647A93D
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 02:38:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746326173; cv=none; b=JmA1XG2nvVxE6dLsoJgq+VWH1Wg6B8mWTWXU5v84u79VNYRj5dY8JW9it6sxmKvOqxCTjxJ8dx6Zt3tmxRfaaqu2LtCBW9IYZEp4uhlWvHfVKqkMbZiquzAy2gCCATk1+vHT16pq8umAkhzeX6SlrTHBLzS21UopdX0B+sENIm8=
+	t=1746326309; cv=none; b=IFnfWZfn5mQK5397pK27S3/+IeLk5Bhb3y0jPGZt3W4Ccv7pApwQDlE8cDBZhMy+QvNS/NHPT6rIgjweuOWQQ8obeBVDE/bE0jcJskvrVfEw1M9wE/jXPNoHL2JVe4wDKiJWAKeU65AKao0J+oPttmb7e8iNx54GbmAPhGFvHjQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746326173; c=relaxed/simple;
-	bh=v/Mi+XytCWoqoNisvwPN3oNtgMYQs1GUwWNKDppixso=;
-	h=Date:To:From:Subject:Message-Id; b=ItmRY736aIecWn03rMVnNS/CGTj18KJN9V7Vq7FAauSHW/2LTxnxWWeFj8VeByfezNRjp83v/WPkuQkHDyiTCOJtr1+l9jrVVda7eAVhKZumjMxS0r9QaxUCEdVQ5TPuiMrESkO094QSIBmfrx/PWTuGCxzk7HukrZuVfPjpZ5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BXKk7yaM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746326309; c=relaxed/simple;
+	bh=oANQ3JMab7qW7sp/0PsTbrszoJBYlvh2rnIG3ps4xFc=;
+	h=Date:To:From:Subject:Message-Id; b=jUE8BnPorxy/bxy228laNeabsDc1HOq3XLOUuJFbcq9lfBZFdvmel+/Ki9ClhzavaFoRFcD5jRreysvOIGhTAJcBp+jSxCSuLZiYc2tlq+F4EukhIWF5MY0+m5X4RMQy3FrUksUhmwlw74vqe3cNuQ4B1UwRhHcQUBdK2AkK+ew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vbs8a2Ta; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BXKk7yaM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62331C4CEE3;
-	Sun,  4 May 2025 02:36:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vbs8a2Ta"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A48ECC4CEEB;
+	Sun,  4 May 2025 02:38:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746326172;
-	bh=v/Mi+XytCWoqoNisvwPN3oNtgMYQs1GUwWNKDppixso=;
+	s=korg; t=1746326308;
+	bh=oANQ3JMab7qW7sp/0PsTbrszoJBYlvh2rnIG3ps4xFc=;
 	h=Date:To:From:Subject:From;
-	b=BXKk7yaMF8QAZuqcR0DYNEqwsEnTkkwbHZxxnnkdGfJTOQIKzF9uQyF6Il2WMDYW6
-	 tUfHR63tysiTfzrHqHYnJsnQqpX9MmeBtk/WgjlAkNqR3E42trQ137k/9A4gXofp//
-	 W5IfyEGziyMUF+GMX0Nc9ZPAuN0hSglRcnX3Lawk=
-Date: Sat, 03 May 2025 19:36:11 -0700
-To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=vbs8a2Ta7TJev92NcACcugf0tFK/qRlyDCpqPbt/Fwtv6F86BLMFZKJNrhFHUAjAy
+	 Xk49mZTeAJPgKD/50OF79IFuOxsgPvyt31CGvfE7tY8vJi+3pLbJsUrRAGhvbUfFK1
+	 JWJuIJcR0c9WcTml7FGL16SDPWXgaxkksdXllAt4=
+Date: Sat, 03 May 2025 19:38:28 -0700
+To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,tglx@linutronix.de,song@kernel.org,luogengkun@huaweicloud.com,joel.granados@kernel.org,dianders@chromium.org,nysal@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + list-remove-redundant-extern-for-function-prototypes.patch added to mm-nonmm-unstable branch
-Message-Id: <20250504023612.62331C4CEE3@smtp.kernel.org>
+Subject: + watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250504023828.A48ECC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: list: remove redundant 'extern' for function prototypes
+     Subject: watchdog: fix the SOFTLOCKUP_DETECTOR=n case
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     list-remove-redundant-extern-for-function-prototypes.patch
+     watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list-remove-redundant-extern-for-function-prototypes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: list: remove redundant 'extern' for function prototypes
-Date: Fri, 2 May 2025 15:17:42 +0300
+From: "Nysal Jan K.A." <nysal@linux.ibm.com>
+Subject: watchdog: fix the SOFTLOCKUP_DETECTOR=n case
+Date: Fri, 2 May 2025 16:41:20 +0530
 
-The 'extern' keyword is redundant for function prototypes.  list.h never
-used them and new code in general is better without them.
+Update watchdog_thresh when SOFTLOCKUP_DETECTOR=n.  Additionally fix a
+build failure in this case as well.
 
-Link: https://lkml.kernel.org/r/20250502121742.3997529-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Link: https://lkml.kernel.org/r/20250502111120.282690-1-nysal@linux.ibm.com
+Reported-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Closes: https://lore.kernel.org/all/339e2b3e-c7ee-418f-a84c-9c6360dc570b@linux.ibm.com
+Signed-off-by: Nysal Jan K.A. <nysal@linux.ibm.com>
+Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Luo Gengkun <luogengkun@huaweicloud.com>
+Cc: Song Liu <song@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/watchdog.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/list.h~list-remove-redundant-extern-for-function-prototypes
-+++ a/include/linux/list.h
-@@ -50,9 +50,9 @@ static inline void INIT_LIST_HEAD(struct
-  * Performs the full set of list corruption checks before __list_add().
-  * On list corruption reports a warning, and returns false.
-  */
--extern bool __list_valid_slowpath __list_add_valid_or_report(struct list_head *new,
--							     struct list_head *prev,
--							     struct list_head *next);
-+bool __list_valid_slowpath __list_add_valid_or_report(struct list_head *new,
-+						      struct list_head *prev,
-+						      struct list_head *next);
+--- a/kernel/watchdog.c~watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix
++++ a/kernel/watchdog.c
+@@ -923,10 +923,12 @@ static __init void lockup_detector_setup
+ }
  
- /*
-  * Performs list corruption checks before __list_add(). Returns false if a
-@@ -93,7 +93,7 @@ static __always_inline bool __list_add_v
-  * Performs the full set of list corruption checks before __list_del_entry().
-  * On list corruption reports a warning, and returns false.
-  */
--extern bool __list_valid_slowpath __list_del_entry_valid_or_report(struct list_head *entry);
-+bool __list_valid_slowpath __list_del_entry_valid_or_report(struct list_head *entry);
- 
- /*
-  * Performs list corruption checks before __list_del_entry(). Returns false if a
+ #else /* CONFIG_SOFTLOCKUP_DETECTOR */
+-static void __lockup_detector_reconfigure(void)
++static void __lockup_detector_reconfigure(bool thresh_changed)
+ {
+ 	cpus_read_lock();
+ 	watchdog_hardlockup_stop();
++	if (thresh_changed)
++		watchdog_thresh = READ_ONCE(watchdog_thresh_next);
+ 	lockup_detector_update_enable();
+ 	watchdog_hardlockup_start();
+ 	cpus_read_unlock();
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from nysal@linux.ibm.com are
 
-util_macrosh-make-the-header-more-resilient.patch
-kernelh-move-ptr_if-and-u64_to_user_ptr-to-util_macrosh.patch
-util_macrosh-fix-the-reference-in-kernel-doc.patch
-list-remove-redundant-extern-for-function-prototypes.patch
+selftests-mm-fix-a-build-failure-on-powerpc.patch
+watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch
 
