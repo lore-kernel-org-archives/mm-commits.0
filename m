@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 329FE33E7
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 00:50:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEEE233E7
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 00:50:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746319857; cv=none; b=sSibJfAMYz2X9C9K+Zuf2cAOASpYeX5PIcncz8KbObRW95iCmr+/RF3MzYRfUgL0ULvPbzSvpDe1b9tLB4GNBq+qXzFedllEmSM2siQ4oaPTF264v8Ed4T1vDCXteZM0BSxTR8U3NYShzCVqIzNfZwXSBNiMUXYm2cfjChCPfzc=
+	t=1746319858; cv=none; b=ZCsjZe7nF3sx70nqHWfl/xAiJLwlx3s4bPOtckmtImhTT4Wq/TDb//fA0twf7auACqDT0g2UmpthuGNcY0DIHql9eegQXpzb+JxBm2wDYEhKQ4Hqx3uHSarKe/7+hncRJp4n6oQhft2pLQ6nFqaY9D5tyIUOn4RWvKJseRFWBQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746319857; c=relaxed/simple;
-	bh=/VyyYt9ODhNKhlwDO6I6wqMQmgupESqzD3NL8xrzFxw=;
-	h=Date:To:From:Subject:Message-Id; b=n8pkVu0d49c1QHdL1sdNELyvDy45zAtqUDjQTQ9gYlhEvp5Xilg9lD53wi5j0ih7PsL9Q386g67QpIkPQIiwbDhSX0/s3n+1IFbSoVLqbvI1l0NmKcSyoereL16rG3GF92YUxFae3NgP3L85AEiN3aKYZLbFiEkYnSHKJFzawig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oTTqLojv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746319858; c=relaxed/simple;
+	bh=P2rAafNFit/PaIXLBcy5Uv2iNn/tQSMxNmi78WLwnQc=;
+	h=Date:To:From:Subject:Message-Id; b=iXbQoRWicl8d9OzkxS4Z6+aEGGcjvkmt1nXAgHEnB/L2Azha02jcV51V89MHO4/cNlmVx1/ouSLrQ1+eKzlqPUQDt9YHkiQ3dqVoIlld2U2AMfDuxbxw1a0Fbx6i7bKSP6WM9KnPp9SfYWWS2/3uS3lHZ13p/tTmx+k18f0tDDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sRZ8KzNT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oTTqLojv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82BF8C4CEE3;
-	Sun,  4 May 2025 00:50:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sRZ8KzNT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA656C4CEE3;
+	Sun,  4 May 2025 00:50:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746319855;
-	bh=/VyyYt9ODhNKhlwDO6I6wqMQmgupESqzD3NL8xrzFxw=;
+	s=korg; t=1746319857;
+	bh=P2rAafNFit/PaIXLBcy5Uv2iNn/tQSMxNmi78WLwnQc=;
 	h=Date:To:From:Subject:From;
-	b=oTTqLojvIfYnz+ssaozjappuX0KZXycrjO9f9S13LCfRsEJopd5TMrc1Z30PWczPB
-	 vkuxehFQ3GX65FzstV4Y/OUMxULQffHafi/oUwUcOi0kAs7KGVeK5GwnWgPdEse5RF
-	 4j08FmuwgqCrETGJW6cTpQiQu4sO4u2guYI/NiLc=
-Date: Sat, 03 May 2025 17:50:54 -0700
+	b=sRZ8KzNTuBAy5UtUY2niatm8q+bbOt5/KYF+oojyE5GPtCpNLIrBkgKKp7H54Kvd3
+	 CTSzAVou6tbPLztei9GwIQJMSnTXwZjuwHSFEEtRIjoIi9HP2EP92sVJS24Z66cqMh
+	 ngpirYM1VyRXjn+3OyMDe7t9Wu039GknndbO/F14=
+Date: Sat, 03 May 2025 17:50:57 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,Jonathan.Cameron@huawei.com,gregkh@linuxfoundation.org,david@redhat.com,dave.jiang@intel.com,dakr@kernel.org,alison.schofield@intel.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + driver-base-remove-register_mem_block_under_node_early.patch added to mm-new branch
-Message-Id: <20250504005055.82BF8C4CEE3@smtp.kernel.org>
+Subject: + drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument.patch added to mm-new branch
+Message-Id: <20250504005057.AA656C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: driver/base: remove register_mem_block_under_node_early()
+     Subject: drivers/base : rename register_memory_blocks_under_node() and remove context argument
 has been added to the -mm mm-new branch.  Its filename is
-     driver-base-remove-register_mem_block_under_node_early.patch
+     drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/driver-base-remove-register_mem_block_under_node_early.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,23 +65,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Donet Tom <donettom@linux.ibm.com>
-Subject: driver/base: remove register_mem_block_under_node_early()
-Date: Sat, 3 May 2025 11:10:13 +0530
+Subject: drivers/base : rename register_memory_blocks_under_node() and remove context argument
+Date: Sat, 3 May 2025 11:10:14 +0530
 
-The function register_mem_block_under_node_early() is no longer used, as
-register_memory_blocks_under_node_early() now handles memory block
-registration during early boot.
+The function register_memory_blocks_under_node() is now only called from
+the memory hotplug path, as register_memory_blocks_under_node_early()
+handles registration during early boot.  Therefore, the context argument
+used to differentiate between early boot and hotplug is no longer needed
+and was removed.
 
-Removed register_mem_block_under_node_early() and get_nid_for_pfn(), the
-latter was only used by the former.
+Since the function is only called from the hotplug path, we renamed
+register_memory_blocks_under_node() to
+register_memory_blocks_under_node_hotplug()
 
-Link: https://lkml.kernel.org/r/871e79e4583fcf5f28ecbb37f28297098f1ac748.1746250339.git.donettom@linux.ibm.com
+Link: https://lkml.kernel.org/r/9e9fe4715c729e54e3820de0f24c185a26679e72.1746250339.git.donettom@linux.ibm.com
 Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Zi Yan <ziy@nvidia.com>
 Cc: Alison Schofield <alison.schofield@intel.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
 Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -91,91 +94,61 @@ Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   58 ------------------------------------------
- 1 file changed, 1 insertion(+), 57 deletions(-)
+ drivers/base/node.c  |    5 ++---
+ include/linux/node.h |   11 +++++------
+ mm/memory_hotplug.c  |    5 ++---
+ 3 files changed, 9 insertions(+), 12 deletions(-)
 
---- a/drivers/base/node.c~driver-base-remove-register_mem_block_under_node_early
+--- a/drivers/base/node.c~drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument
 +++ a/drivers/base/node.c
-@@ -748,15 +748,6 @@ int unregister_cpu_under_node(unsigned i
+@@ -839,9 +839,8 @@ void register_memory_blocks_under_node_e
+ 	}
  }
  
- #ifdef CONFIG_MEMORY_HOTPLUG
--static int __ref get_nid_for_pfn(unsigned long pfn)
--{
--#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
--	if (system_state < SYSTEM_RUNNING)
--		return early_pfn_to_nid(pfn);
--#endif
--	return pfn_to_nid(pfn);
--}
--
- static void do_register_memory_block_under_node(int nid,
- 						struct memory_block *mem_blk,
- 						enum meminit_context context)
-@@ -783,46 +774,6 @@ static void do_register_memory_block_und
- 				    ret);
- }
- 
--/* register memory section under specified node if it spans that node */
--static int register_mem_block_under_node_early(struct memory_block *mem_blk,
--					       void *arg)
--{
--	unsigned long memory_block_pfns = memory_block_size_bytes() / PAGE_SIZE;
--	unsigned long start_pfn = section_nr_to_pfn(mem_blk->start_section_nr);
--	unsigned long end_pfn = start_pfn + memory_block_pfns - 1;
--	int nid = *(int *)arg;
--	unsigned long pfn;
--
--	for (pfn = start_pfn; pfn <= end_pfn; pfn++) {
--		int page_nid;
--
--		/*
--		 * memory block could have several absent sections from start.
--		 * skip pfn range from absent section
--		 */
--		if (!pfn_in_present_section(pfn)) {
--			pfn = round_down(pfn + PAGES_PER_SECTION,
--					 PAGES_PER_SECTION) - 1;
--			continue;
--		}
--
--		/*
--		 * We need to check if page belongs to nid only at the boot
--		 * case because node's ranges can be interleaved.
--		 */
--		page_nid = get_nid_for_pfn(pfn);
--		if (page_nid < 0)
--			continue;
--		if (page_nid != nid)
--			continue;
--
--		do_register_memory_block_under_node(nid, mem_blk, MEMINIT_EARLY);
--		return 0;
--	}
--	/* mem section does not span the specified node */
--	return 0;
--}
--
- /*
-  * During hotplug we know that all pages in the memory block belong to the same
-  * node.
-@@ -892,15 +843,8 @@ void register_memory_blocks_under_node(i
- 				       unsigned long end_pfn,
- 				       enum meminit_context context)
+-void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
+-				       unsigned long end_pfn,
+-				       enum meminit_context context)
++void register_memory_blocks_under_node_hotplug(int nid, unsigned long start_pfn,
++					       unsigned long end_pfn)
  {
--	walk_memory_blocks_func_t func;
--
--	if (context == MEMINIT_HOTPLUG)
--		func = register_mem_block_under_node_hotplug;
--	else
--		func = register_mem_block_under_node_early;
--
  	walk_memory_blocks(PFN_PHYS(start_pfn), PFN_PHYS(end_pfn - start_pfn),
--			   (void *)&nid, func);
-+			   (void *)&nid, register_mem_block_under_node_hotplug);
- 	return;
+ 			   (void *)&nid, register_mem_block_under_node_hotplug);
+--- a/include/linux/node.h~drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument
++++ a/include/linux/node.h
+@@ -111,14 +111,13 @@ struct memory_block;
+ extern struct node *node_devices[];
+ 
+ #if defined(CONFIG_MEMORY_HOTPLUG) && defined(CONFIG_NUMA)
+-void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
+-				       unsigned long end_pfn,
+-				       enum meminit_context context);
++void register_memory_blocks_under_node_hotplug(int nid, unsigned long start_pfn,
++					       unsigned long end_pfn);
+ void register_memory_blocks_under_node_early(int nid);
+ #else
+-static inline void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
+-						     unsigned long end_pfn,
+-						     enum meminit_context context)
++static inline void register_memory_blocks_under_node_hotplug(int nid,
++							     unsigned long start_pfn,
++							     unsigned long end_pfn)
+ {
  }
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ static inline void register_memory_blocks_under_node_early(int nid)
+--- a/mm/memory_hotplug.c~drivers-base-rename-register_memory_blocks_under_node-and-remove-context-argument
++++ a/mm/memory_hotplug.c
+@@ -1575,9 +1575,8 @@ int add_memory_resource(int nid, struct
+ 		BUG_ON(ret);
+ 	}
+ 
+-	register_memory_blocks_under_node(nid, PFN_DOWN(start),
+-					  PFN_UP(start + size - 1),
+-					  MEMINIT_HOTPLUG);
++	register_memory_blocks_under_node_hotplug(nid, PFN_DOWN(start),
++						  PFN_UP(start + size - 1));
+ 
+ 	/* create new memmap entry */
+ 	if (!strcmp(res->name, "System RAM"))
 _
 
 Patches currently in -mm which might be from donettom@linux.ibm.com are
