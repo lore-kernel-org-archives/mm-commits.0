@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E22B320F
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 05:19:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 194CE320F
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 05:36:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746335993; cv=none; b=q/PYZHiICc4SUHk/KvPXOZfvfdUWaN42yyuT/mA0f8HeeTXdSMkS4nRfpeLyRhLZoZzXTC+12BiQd5sGdyyOyRFnCFLjX9QbunuCvp7ugVdNSVAqoDkRgzTC9NWUBum9Qjtflv41im2xHVYrDplw/+dAK3RtE6mj5SvxmxpxCUU=
+	t=1746336993; cv=none; b=uLdBNfcgd6HPql4zE/3AgDBSrPDSxkgIvyTVJRtleEPeWnHgR44C8XjCoxjIToPOcIHGxh7ywTVCbw+U/o8SDYul4JfXP1+twB29JnA2RJXbrCZzb4YFP6xxJIwZRnENM0BPZ8gQsSlyL9SgQ59XcWYZFzdSk0Gj6NKQp8ZE6Yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746335993; c=relaxed/simple;
-	bh=q/MhSz/0ZA8TsoU2KfkOcPE+jh27OA7zv8GWU/4o85Y=;
-	h=Date:To:From:Subject:Message-Id; b=HNhW97/s4PkHZMyME/sQ74BnCfq9evrSuwyAdSl+bYnVtry3clkXCZ+XSO4X4+vWVyjpgNHINWHI9CsW4PbAJH2RIR+4pxdNHAEK5BzPzve7RwhSjkPdq2vYcZDkEomS4tuewWq5B7JEqQ5FM4bSVuJrtLzwjtSzDZ8G9q62c3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JOimtnW+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746336993; c=relaxed/simple;
+	bh=+VhxTpMQRdMHMccPUgIEN9qsw+fTi1qXcG99lFCrrn4=;
+	h=Date:To:From:Subject:Message-Id; b=sX7LE0B62oUAcEpGFLiL71mzollLRDexSi1ASTFjN5GJP6768Yv/76E9fod6ZsNy6i1CRO9QXRsgkgRqpJcEXBzDdLyE/mc7ghOnP60EokCAMmQx366uJ6NdAwChgGYhzkb+QaMEat1tSEYusovBtF7GTvJKxNmoHqqXB0hXMRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zFg2al2H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JOimtnW+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2249EC4CEE9;
-	Sun,  4 May 2025 05:19:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zFg2al2H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7246DC4CEE9;
+	Sun,  4 May 2025 05:36:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746335993;
-	bh=q/MhSz/0ZA8TsoU2KfkOcPE+jh27OA7zv8GWU/4o85Y=;
+	s=korg; t=1746336992;
+	bh=+VhxTpMQRdMHMccPUgIEN9qsw+fTi1qXcG99lFCrrn4=;
 	h=Date:To:From:Subject:From;
-	b=JOimtnW+AhPTBgwW9fZ9dJQTAIIB4ZFUF7xucrGRWbw/9cXoM6ljFZYC1puvwM0cl
-	 Seb9WG3dEMxwdHQOT8VbBNuPSQEhuKBRZaLWHYR3ifGDiawW9A5dePjZ6guruFZ3iK
-	 VXcz+BGc7JOZaUMRmwelas0sbZ3l75+9ZrqSOWEU=
-Date: Sat, 03 May 2025 22:19:52 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=zFg2al2Ha4ZMQezDDHBmxTB+Sp1fa93vJxYhfpozya1LVlvxPxjcE2smhbiMwRnwG
+	 d9+Z6jFMfiVkFjR07URA3MhlKOkFaKEwAAjnkqzHAK6b/iqFGLfU4P8cui5unvJQnm
+	 +m8XdNJQtm2ZO4oGWa8JuiO9zGX4sTc8d7P/tY2k=
+Date: Sat, 03 May 2025 22:36:31 -0700
+To: mm-commits@vger.kernel.org,si.yanteng@linux.dev,mail@florommel.de,kbingham@kernel.org,jan.kiszka@siemens.com,jackmanb@google.com,dzm91@hust.edu.cn,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,illia@yshyn.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch added to mm-new branch
-Message-Id: <20250504051953.2249EC4CEE9@smtp.kernel.org>
+Subject: + scripts-gdb-fix-kgdb-probing-on-single-core-systems.patch added to mm-nonmm-unstable branch
+Message-Id: <20250504053632.7246DC4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
+     Subject: scripts/gdb: fix kgdb probing on single-core systems
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-fix-kgdb-probing-on-single-core-systems.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-kgdb-probing-on-single-core-systems.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,99 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
-Date: Thu, 1 May 2025 21:04:43 -0400
+From: Illia Ostapyshyn <illia@yshyn.com>
+Subject: scripts/gdb: fix kgdb probing on single-core systems
+Date: Sat, 3 May 2025 14:32:31 +0200
 
-The test_memcg_protection() function is used for the test_memcg_min and
-test_memcg_low sub-tests.  This function generates a set of parent/child
-cgroups like:
+Patch series "scripts/gdb: Fixes related to lx_per_cpu()".
 
-  parent:  memory.min/low = 50M
-  child 0: memory.min/low = 75M,  memory.current = 50M
-  child 1: memory.min/low = 25M,  memory.current = 50M
-  child 2: memory.min/low = 0,    memory.current = 50M
+These patches (1) fix kgdb detection on systems featuring a single CPU and
+(2) update the documentation to reflect the current usage of lx_per_cpu()
+and update an outdated example of its usage.
 
-After applying memory pressure, the function expects the following actual
-memory usages.
 
-  parent:  memory.current ~= 50M
-  child 0: memory.current ~= 29M
-  child 1: memory.current ~= 21M
-  child 2: memory.current ~= 0
+This patch (of 2):
 
-In reality, the actual memory usages can differ quite a bit from the
-expected values.  It uses an error tolerance of 10% with the
-values_close() helper.
+When requested the list of threads via qfThreadInfo, gdb_cmd_query in
+kernel/debug/gdbstub.c first returns "shadow" threads for CPUs followed by
+the actual tasks in the system.  Extended qThreadExtraInfo queries yield
+"shadowCPU%d" as the name for the CPU core threads.
 
-Both the test_memcg_min and test_memcg_low sub-tests can fail sporadically
-because the actual memory usage exceeds the 10% error tolerance.  Below
-are a sample of the usage data of the tests runs that fail.
+This behavior is used by get_gdbserver_type() to probe for KGDB by
+matching the name for the thread 2 against "shadowCPU".  This breaks down
+on single-core systems, where thread 2 is the first nonshadow thread. 
+Request the name for thread 1 instead.
 
-  Child   Actual usage    Expected usage    %err
-  -----   ------------    --------------    ----
-    1       16990208         22020096      -12.9%
-    1       17252352         22020096      -12.1%
-    0       37699584         30408704      +10.7%
-    1       14368768         22020096      -21.0%
-    1       16871424         22020096      -13.2%
+As GDB assigns thread IDs in the order of their appearance, it is safe to
+assume shadowCPU0 at ID 1 as long as CPU0 is not hotplugged.
 
-The current 10% error tolerenace might be right at the time
-test_memcontrol.c was first introduced in v4.18 kernel, but memory reclaim
-have certainly evolved quite a bit since then which may result in a bit
-more run-to-run variation than previously expected.
+Before:
 
-Increase the error tolerance to 15% for child 0 and 20% for child 1 to
-minimize the chance of this type of failure.  The tolerance is bigger for
-child 1 because an upswing in child 0 corresponds to a smaller %err than a
-similar downswing in child 1 due to the way %err is used in
-values_close().
+(gdb) info threads
+  Id   Target Id                      Frame
+  1    Thread 4294967294 (shadowCPU0) kgdb_breakpoint ()
+* 2    Thread 1 (swapper/0)           kgdb_breakpoint ()
+  3    Thread 2 (kthreadd)            0x0000000000000000 in ?? ()
+  ...
+(gdb) p $lx_current().comm
+Sorry, obtaining the current CPU is not yet supported with this gdb server.
 
-Before this patch, a 100 test runs of test_memcontrol produced the
-following results:
+After:
 
-     17 not ok 1 test_memcg_min
-     22 not ok 2 test_memcg_low
+(gdb) info threads
+  Id   Target Id                      Frame
+  1    Thread 4294967294 (shadowCPU0) kgdb_breakpoint ()
+* 2    Thread 1 (swapper/0)           kgdb_breakpoint ()
+  3    Thread 2 (kthreadd)            0x0000000000000000 in ?? ()
+  ...
+(gdb) p $lx_current().comm
+$1 = "swapper/0\000\000\000\000\000\000"
 
-After applying this patch, there were no test failure for test_memcg_min
-and test_memcg_low in 100 test runs.  However, these tests may still fail
-once in a while if the memory usage goes beyond the newly extended range.
-
-Link: https://lkml.kernel.org/r/20250502010443.106022-3-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20250503123234.2407184-1-illia@yshyn.com
+Link: https://lkml.kernel.org/r/20250503123234.2407184-2-illia@yshyn.com
+Signed-off-by: Illia Ostapyshyn <illia@yshyn.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Dongliang Mu <dzm91@hust.edu.cn>
+Cc: Florian Rommel <mail@florommel.de>
+Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Yanteng Si <si.yanteng@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/utils.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -496,10 +496,10 @@ static int test_memcg_protection(const c
- 	for (i = 0; i < ARRAY_SIZE(children); i++)
- 		c[i] = cg_read_long(children[i], "memory.current");
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-fix-kgdb-probing-on-single-core-systems
++++ a/scripts/gdb/linux/utils.py
+@@ -200,7 +200,7 @@ def get_gdbserver_type():
  
--	if (!values_close(c[0], MB(29), 10))
-+	if (!values_close(c[0], MB(29), 15))
- 		goto cleanup;
- 
--	if (!values_close(c[1], MB(21), 10))
-+	if (!values_close(c[1], MB(21), 20))
- 		goto cleanup;
- 
- 	if (c[3] != 0)
+     def probe_kgdb():
+         try:
+-            thread_info = gdb.execute("info thread 2", to_string=True)
++            thread_info = gdb.execute("info thread 1", to_string=True)
+             return "shadowCPU" in thread_info
+         except gdb.error:
+             return False
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from illia@yshyn.com are
 
-selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
-selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
+scripts-gdb-fix-kgdb-probing-on-single-core-systems.patch
+scripts-gdb-update-documentation-for-lx_per_cpu.patch
 
