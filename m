@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FE1817A2F8
-	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 06:46:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 977182AD2C
+	for <mm-commits@vger.kernel.org>; Sun,  4 May 2025 09:26:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746341170; cv=none; b=tBliHukSz4Y5jRLuid9p03eKrHscS8+TYsBf7GVSkUHvhEyTgrkvoO7kl4SLpjBkxKo2mZ3rahFtw7oW2BRgHRJ+ifKhA/8xtfU7n7XUuOJLqxUMmeYQYdLwvpaxGJR8eZaI+u+8yL1KchX/yqnFQL8qaBNg7gOgAUkixoVL8Dw=
+	t=1746350771; cv=none; b=uaTkcYRpYLQJ34KqvFq86eZWUosA8JyyfhJi4jzlpjNPxsyM0IA+M6QnNbajRPDRQ2Ko9jP8QJcGMT2Jub7Lz7AJMON5CTiDDK8+BaZKnu2ozrnwoLhdOqqZ6nWAco08Tw8WlJdXxI4coCz8B0LrCaZsyd7eOaWGEo5DyhgbnPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746341170; c=relaxed/simple;
-	bh=qM3cg0CFaVy1CTNvbu/r2w4qmVJLdLgAkEkKr3Xspdk=;
-	h=Date:To:From:Subject:Message-Id; b=CLwbS3BSPuVAkuhZYLEaYBZlJ/hFegpO39yNXkg9czkc+T20MrmxfA3Xg/leL7T2nQPfN7HcEcRzhpk7Iiq6X1yL0ZJhPnz7oKCJYfUrXurbTUtAgvJU001+D+Kg+3jbzzWqLcB2wioU4wOf8RyyIQx9iR0nGD0DAfiau2xGfPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZHmDEPuo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746350771; c=relaxed/simple;
+	bh=ZEqpfZqQW1dgEMkmCiriatXI9cJJTE64Cjoar6A4eQY=;
+	h=Date:To:From:Subject:Message-Id; b=lcKgiSVBJEFy4o4t7BhUHbXOR3uHky+AXoiqytL2qmVUg5J0lsm02gqzYzOyhmDUz84I0+xT7jV/rFbSOh/MQaCPj5UEqCeq3pcM0rZuHE6I9JA5KAh4vGFaoU/mbcWOgwycovWZIQeehvcaJLbDBXrOuE6nM6pvOAI+c0KbE4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sQdp1EgN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZHmDEPuo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 945FCC4CEE7;
-	Sun,  4 May 2025 06:46:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sQdp1EgN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F32C8C4CEE9;
+	Sun,  4 May 2025 09:26:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746341169;
-	bh=qM3cg0CFaVy1CTNvbu/r2w4qmVJLdLgAkEkKr3Xspdk=;
+	s=korg; t=1746350771;
+	bh=ZEqpfZqQW1dgEMkmCiriatXI9cJJTE64Cjoar6A4eQY=;
 	h=Date:To:From:Subject:From;
-	b=ZHmDEPuo0Geu2mRlmG8B0Pt9j7slD78cRy7ZEhMpxbSIIqjutpy120qR9GbMYCV8p
-	 542DkbSb9yzEVaaJdXvpK9eaHPPHcH36dVjmK3U1ppAQB1Q1Is7eUnW5m1RLKusokF
-	 S9B4sfHbSHlbjEY5kvHYORpP4usrGlUuEp1nbPPg=
-Date: Sat, 03 May 2025 23:46:09 -0700
-To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,coxu@redhat.com,bhe@redhat.com,berrange@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=sQdp1EgNNI3bUschtBEMdYA3R11qOwD9yRdB7wfkL6OU3iVBLSuIWrX7ToQM5d4jA
+	 sGiZLtWB7SdGAJs06x4/RZ5oUpIK6SU1Xhasj7YcRcRCMSYGU76cnVApacnLMl2KEy
+	 rySc09c5LNR0iPoWkgSB10pq3d3i23Kja7+Ruvp0=
+Date: Sun, 04 May 2025 02:26:10 -0700
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,vitaly.wool@konsulko.se,shakeel.butt@linux.dev,nphamcs@gmail.com,igor.b@beldev.am,hannes@cmpxchg.org,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-x86-mm-remove-unused-__set_memory_prot-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20250504064609.945FCC4CEE7@smtp.kernel.org>
+Subject: + mm-add-zblock-allocator-fix-2.patch added to mm-new branch
+Message-Id: <20250504092610.F32C8C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
+     Subject: mm-add-zblock-allocator-fix-2
+has been added to the -mm mm-new branch.  Its filename is
+     mm-add-zblock-allocator-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-zblock-allocator-fix-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,38 +65,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
-Date: Sat May  3 11:38:32 PM PDT 2025
+Subject: mm-add-zblock-allocator-fix-2
+Date: Sun May  4 02:13:54 AM PDT 2025
 
-x86 set_memory.h needs pgtable_types.h for pgprot_t.  Obtain it via the
-higher-level pgtable.h.
+export try_alloc_pages_noprof() to modules for CONFIG_ZBLOCK=m
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: "Daniel P. Berrange" <berrange@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Jan Pazdziora <jpazdziora@redhat.com>
-Cc: Liu Pingfan <kernelfans@gmail.com>
-Cc: Milan Broz <gmazyland@gmail.com>
-Cc: Ondrej Kozina <okozina@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.se>
+Cc: Igor Belousov <igor.b@beldev.am>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/set_memory.h |    1 +
+ mm/page_alloc.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/arch/x86/include/asm/set_memory.h~revert-x86-mm-remove-unused-__set_memory_prot-fix
-+++ a/arch/x86/include/asm/set_memory.h
-@@ -4,6 +4,7 @@
- 
- #include <asm/page.h>
- #include <asm-generic/set_memory.h>
-+#include <asm/pgtable.h>
- 
- #define set_memory_rox set_memory_rox
- int set_memory_rox(unsigned long addr, int numpages);
+--- a/mm/page_alloc.c~mm-add-zblock-allocator-fix-2
++++ a/mm/page_alloc.c
+@@ -7470,3 +7470,4 @@ struct page *try_alloc_pages_noprof(int
+ 	kmsan_alloc_page(page, order, alloc_gfp);
+ 	return page;
+ }
++EXPORT_SYMBOL_GPL(try_alloc_pages_noprof);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +103,7 @@ jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
 mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
 mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
 mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
 mm-zblock-avoid-failing-the-build-fix.patch
 filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
 memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
