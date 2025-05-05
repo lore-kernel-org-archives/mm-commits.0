@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EAE9274FF5
-	for <mm-commits@vger.kernel.org>; Mon,  5 May 2025 22:03:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E9221FC0FC
+	for <mm-commits@vger.kernel.org>; Mon,  5 May 2025 22:03:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746482636; cv=none; b=StG+NeNgANn8dULOM52r3/AFInFhGZmqkZCKTlcDsc8G2VlB2tBwLNo+tXfvCMKmaA7fSLzoCjFC0QsHcPDYStn+GjY1FJA6J2atiDBNuLde3bbsfB9uPAjNggRtJapYEujPY83heEx4GYxQa6cHmUmt95vgJNmFryIuBU5hkfk=
+	t=1746482638; cv=none; b=Y/RYO+Nhs9djQcFv8J9xdcIOa+GffITUgcOv2cFugGtdOZJKPYRKT+eeD0FtKCnDndimvLk5xHvQEAWoG/U0NJ1itadVod9ifLSdehLZm05UwQNADiSSmwQvKynNV13vJ86dq/n+2wwAfEC2SMq+l9z0D5mSKI8kQhMss380hZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746482636; c=relaxed/simple;
-	bh=u/S1Jm8nClXqCn+9fMoFF9loDByW5iLQGoYKR604GOQ=;
-	h=Date:To:From:Subject:Message-Id; b=vAv8laNIBZEj5GNrlXWXsNllsOI/5a55CaQWQjz6YuxHyxmFGrCMyawL6dTuJgSbLldSvkDVJF+cjumzxVS0hwY6iJvY1cRWDSaxIxvCZ5GovBEUaO2+/qIyLZ5MMKBjQYA0ax8wKe3puDTbblf+wr6QwmoXMXCAqmjESVWwhdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rNLMw+gh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746482638; c=relaxed/simple;
+	bh=rJErEEe32pYIsj7+ROhj/j0+0PBrrkLeqwdpIwJL4+A=;
+	h=Date:To:From:Subject:Message-Id; b=C/DtgNmUXWzWOcKD4Mz2Y/wXr47104uK3NXLgSEm/lACi10GhU517sVVU25YRywGMpGFntobyDpQEvPv5zRFrDs3Fma2CCqxMFzMuwQNb2F7pKEmsCL87rTiFXYis8rdJk/VzWIhHYRQ0UGGOSOMwEehNMczG522KYxkfmdAXik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KDPs4bRx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rNLMw+gh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78D12C4CEE4;
-	Mon,  5 May 2025 22:03:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KDPs4bRx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BC78C4CEE4;
+	Mon,  5 May 2025 22:03:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746482635;
-	bh=u/S1Jm8nClXqCn+9fMoFF9loDByW5iLQGoYKR604GOQ=;
+	s=korg; t=1746482637;
+	bh=rJErEEe32pYIsj7+ROhj/j0+0PBrrkLeqwdpIwJL4+A=;
 	h=Date:To:From:Subject:From;
-	b=rNLMw+gh4ls6UAMzELaNqpccTVniBWYevRgaeNXpRSQfuv02Bc0AOrs5vfQqhPoo3
-	 2gC8KcTK7Z00rYMEo0PNQyY8vWDDH+EwqfkhCC8LwPeUnd2xjlg+sIUFL7CnGoDSrM
-	 jk12nN9V1i8grwxDuL32LQyrX5VCzANU4C7V5VPY=
-Date: Mon, 05 May 2025 15:03:54 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,fan.ni@samsung.com,akpm@linux-foundation.org
+	b=KDPs4bRxGVtAvnuwCYuBqzKMOpCye7JlfXfit6MRlktj0rgJlY+YGX64sPBQrqwQp
+	 9bjSfRNFDa0Gn9fWIdqTiH34eDSwm/tlzz4/fDMHBG7Al+UALHPooX419YkLpzLr85
+	 MdCpSBQw9jW99kB7Vvkolzkf0Eu6/Q9XYKZdANpA=
+Date: Mon, 05 May 2025 15:03:56 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,fan.ni@samsung.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch added to mm-unstable branch
-Message-Id: <20250505220355.78D12C4CEE4@smtp.kernel.org>
+Subject: + mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch added to mm-unstable branch
+Message-Id: <20250505220357.8BC78C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: convert use of struct page to folio in __unmap_hugepage_range()
+     Subject: mm/hugetlb.c: __unmap_hugepage_range(): comment cleanup
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch
+     mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,125 +58,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Fan Ni <fan.ni@samsung.com>
-Subject: mm/hugetlb: convert use of struct page to folio in __unmap_hugepage_range()
-Date: Mon, 5 May 2025 11:22:44 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/hugetlb.c: __unmap_hugepage_range(): comment cleanup
+Date: Mon May  5 02:54:25 PM PDT 2025
 
-In __unmap_hugepage_range(), the "page" pointer always points to the first
-page of a huge page, which guarantees there is a folio associating with
-it.  Convert the "page" pointer to use folio.
+Wrap to 80 cols, fix a typo, use regular layout, parenthesize function
+identifiers, fix grammar and add braces.
 
-Link: https://lkml.kernel.org/r/20250505182345.506888-6-nifan.cxl@gmail.com
-Signed-off-by: Fan Ni <fan.ni@samsung.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fan Ni <fan.ni@samsung.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ mm/hugetlb.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range
+--- a/mm/hugetlb.c~mm-hugetlbc-__unmap_hugepage_range-comment-cleanup
 +++ a/mm/hugetlb.c
-@@ -5843,11 +5843,11 @@ void __unmap_hugepage_range(struct mmu_g
- 			    struct folio *folio, zap_flags_t zap_flags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
-+	const bool folio_provided = !!folio;
- 	unsigned long address;
- 	pte_t *ptep;
- 	pte_t pte;
- 	spinlock_t *ptl;
--	struct page *page;
- 	struct hstate *h = hstate_vma(vma);
- 	unsigned long sz = huge_page_size(h);
- 	bool adjust_reservation = false;
-@@ -5911,14 +5911,13 @@ void __unmap_hugepage_range(struct mmu_g
- 			continue;
- 		}
+@@ -5969,16 +5969,19 @@ void __unmap_hugepage_range(struct mmu_g
+ 		if (adjust_reservation) {
+ 			int rc = vma_needs_reservation(h, vma, address);
  
--		page = pte_page(pte);
- 		/*
- 		 * If a folio is supplied, it is because a specific
- 		 * folio is being unmapped, not a range. Ensure the folio we
- 		 * are about to unmap is the actual folio of interest.
- 		 */
--		if (folio) {
--			if (page_folio(page) != folio) {
-+		if (folio_provided) {
-+			if (folio != page_folio(pte_page(pte))) {
- 				spin_unlock(ptl);
- 				continue;
- 			}
-@@ -5928,12 +5927,14 @@ void __unmap_hugepage_range(struct mmu_g
- 			 * looking like data was lost
- 			 */
- 			set_vma_resv_flags(vma, HPAGE_RESV_UNMAPPED);
-+		} else {
-+			folio = page_folio(pte_page(pte));
- 		}
- 
- 		pte = huge_ptep_get_and_clear(mm, address, ptep, sz);
- 		tlb_remove_huge_tlb_entry(h, tlb, ptep, address);
- 		if (huge_pte_dirty(pte))
--			set_page_dirty(page);
-+			folio_mark_dirty(folio);
- 		/* Leave a uffd-wp pte marker if needed */
- 		if (huge_pte_uffd_wp(pte) &&
- 		    !(zap_flags & ZAP_FLAG_DROP_MARKER))
-@@ -5941,7 +5942,7 @@ void __unmap_hugepage_range(struct mmu_g
- 					make_pte_marker(PTE_MARKER_UFFD_WP),
- 					sz);
- 		hugetlb_count_sub(pages_per_huge_page(h), mm);
--		hugetlb_remove_rmap(page_folio(page));
-+		hugetlb_remove_rmap(folio);
- 
- 		/*
- 		 * Restore the reservation for anonymous page, otherwise the
-@@ -5950,8 +5951,8 @@ void __unmap_hugepage_range(struct mmu_g
- 		 * reservation bit.
- 		 */
- 		if (!h->surplus_huge_pages && __vma_private_lock(vma) &&
--		    folio_test_anon(page_folio(page))) {
--			folio_set_hugetlb_restore_reserve(page_folio(page));
-+		    folio_test_anon(folio)) {
-+			folio_set_hugetlb_restore_reserve(folio);
- 			/* Reservation to be adjusted after the spin lock */
- 			adjust_reservation = true;
- 		}
-@@ -5975,16 +5976,17 @@ void __unmap_hugepage_range(struct mmu_g
- 				 * count will not be incremented by free_huge_folio.
- 				 * Act as if we consumed the reservation.
+-			if (rc < 0)
+-				/* Pressumably allocate_file_region_entries failed
+-				 * to allocate a file_region struct. Clear
+-				 * hugetlb_restore_reserve so that global reserve
+-				 * count will not be incremented by free_huge_folio.
+-				 * Act as if we consumed the reservation.
++			if (rc < 0) {
++				/*
++				 * Presumably allocate_file_region_entries()
++				 * failed to allocate a file_region struct.
++				 * Clear hugetlb_restore_reserve so that the
++				 * global reserve count will not be incremented
++				 * by free_huge_folio().  Act as if we consumed
++				 * the reservation.
  				 */
--				folio_clear_hugetlb_restore_reserve(page_folio(page));
-+				folio_clear_hugetlb_restore_reserve(folio);
- 			else if (rc)
+ 				folio_clear_hugetlb_restore_reserve(folio);
+-			else if (rc)
++			} else if (rc) {
  				vma_add_reservation(h, vma, address);
++			}
  		}
  
--		tlb_remove_page_size(tlb, page, huge_page_size(h));
-+		tlb_remove_page_size(tlb, folio_page(folio, 0),
-+				     folio_size(folio));
- 		/*
- 		 * If we were instructed to unmap a specific folio, we're done.
- 		 */
--		if (folio)
-+		if (folio_provided)
- 			break;
- 	}
- 	tlb_end_vma(tlb, vma);
+ 		tlb_remove_page_size(tlb, folio_page(folio, 0),
 _
 
-Patches currently in -mm which might be from fan.ni@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-convert-free_page_and_swap_cache-to-free_folio_and_swap_cache.patch
-khugepaged-pass-folio-instead-of-head-page-to-trace-events.patch
-mm-hugetlb-pass-folio-instead-of-page-to-unmap_ref_private.patch
-mm-hugetlb-refactor-unmap_hugepage_range-to-take-folio-instead-of-page.patch
-mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page.patch
-mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch
+x86-disable-image-size-check-for-test-builds-fix.patch
+x86-disable-image-size-check-for-test-builds-fix-fix.patch
+mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
+vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
+mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
+jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
