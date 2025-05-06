@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1068B296FA2
-	for <mm-commits@vger.kernel.org>; Tue,  6 May 2025 00:49:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 501DB34D2B3;
+	Tue,  6 May 2025 00:52:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746492581; cv=none; b=pc7JCQYVDjjp1+oPlrt1Y6mC7AtHj7ps9a3CkR6YxljiNw/CBbxD992PPB3E5/oR+vYIxQemiAeIpLCnuLUwX29dVFA8TUoXgS0Rqag/Dg2q+968e+4oEPnTG9C7WycYH/eLpqCW8kEGpuv4IKL4jjEi8hJTWRXFLLMbvKFRjsY=
+	t=1746492741; cv=none; b=bt7/yE0G8SJN28FR13y3T5cuIueTBdsk9YOTY7/BA8mW7FOu2keSkFBrLDq52PS0TKJKL5cREcQ28fKrT+68MqBnPHLo71YEXqO/UEin4ATzdYVoHDN4txMW+mjzpq8SKEWVhp3CdtpT0F+Z4HIX+mjd+bx56ATJ+Ey29nn2PPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746492581; c=relaxed/simple;
-	bh=KUiSx8XY/pz79PeS3H5apZPdZPsHFWf76BZ1Bm0D2sQ=;
-	h=Date:To:From:Subject:Message-Id; b=NCKlQxoQCgJMxO1pY0Ayg8POn/4zz87sLvapekwUKJmdsjoFDZDropLf14u0NPVdBWAGYqSxNP6OMQjoSCPGWv+B91hn6PDsZPYqHUreFKOmbzYo+sMYiDomkpV5EUoppSO7B/71PHt6aKdqkojYvUermbG/PwQxeu4ik3jC1aM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MNpiRPey; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746492741; c=relaxed/simple;
+	bh=EqFsCWOwjwAUcIHJxhy1ULIGTniQIjjShStO0nXv03U=;
+	h=Date:To:From:Subject:Message-Id; b=GFyM2qkrbB6zxHwP/SiUlergwZw6nTX+4JkCRvPXWGeRZskhXZXrVVnqfoqyBuGxc3vBkjmw3CWv//YeKw/B3pE34Agrq8KzKqcg8cyeJoc4RZ/o6sDpa+uHOA3yXGOKCJ+39bQlyYNcw5K9h3iTCOfMZviwIRb0AskeQEo7sKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N63aY4LC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MNpiRPey"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AFF4C4CEE4;
-	Tue,  6 May 2025 00:49:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N63aY4LC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD82BC4CEE4;
+	Tue,  6 May 2025 00:52:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746492579;
-	bh=KUiSx8XY/pz79PeS3H5apZPdZPsHFWf76BZ1Bm0D2sQ=;
+	s=korg; t=1746492739;
+	bh=EqFsCWOwjwAUcIHJxhy1ULIGTniQIjjShStO0nXv03U=;
 	h=Date:To:From:Subject:From;
-	b=MNpiRPeye8wVMgDQtwLccy3KNYP+6j10mO0eOiH5rjgzB67RKnnwQYPBC4i/YesMJ
-	 mC71YGMSJGW7MUapPx+kODnZwUlnM018QAEuxwP8E1VJ5n96r97Icg0w1yrZSftIJS
-	 9TUT50PbAZuOAdHPhcFNjQ4XwojLjtjCGlZ/Ls6c=
-Date: Mon, 05 May 2025 17:49:38 -0700
-To: mm-commits@vger.kernel.org,song@kernel.org,kees@kernel.org,joel.granados@kernel.org,dianders@chromium.org,cminyard@mvista.com,max.kellermann@ionos.com,akpm@linux-foundation.org
+	b=N63aY4LC6+zlKgBQEexax7m/i8bY3W8HnVCtwKR9GbDeQyOC2MR+gDW7hoLRzfG4O
+	 Yyo4a0S9xDa41d3LYlE8abTLuiKD5x0U4dP9hcA7nAXNWA7Nvra/Q+40QXcGGqERxc
+	 +u29wKPTDH0zLkSBEq9lLWU9Oa+/meDYFEx++Rtw=
+Date: Mon, 05 May 2025 17:52:19 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,minchan@kernel.org,igor.b@beldev.am,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count.patch added to mm-nonmm-unstable branch
-Message-Id: <20250506004939.6AFF4C4CEE4@smtp.kernel.org>
+Subject: + zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250506005219.AD82BC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/rcu/tree_stall: add /sys/kernel/rcu_stall_count
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count.patch
+     Subject: zsmalloc: don't underflow size calculation in zs_obj_write()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,83 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Max Kellermann <max.kellermann@ionos.com>
-Subject: kernel/rcu/tree_stall: add /sys/kernel/rcu_stall_count
-Date: Sun, 4 May 2025 20:08:31 +0200
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: don't underflow size calculation in zs_obj_write()
+Date: Sun, 4 May 2025 20:00:22 +0900
 
-Expose a simple counter to userspace for monitoring tools.
+Do not mix class->size and object size during offsets/sizes calculation in
+zs_obj_write().  Size classes can merge into clusters, based on
+objects-per-zspage and pages-per-zspage characteristics, so some size
+classes can store objects smaller than class->size.  This becomes
+problematic when object size is much smaller than class->size - we can
+determine that object spans two physical pages, because we use a larger
+class->size for this, while the actual object is much smaller and fits one
+physical page, so there is nothing to write to the second page and
+memcpy() size calculation underflows.
 
-Link: https://lkml.kernel.org/r/20250504180831.4190860-3-max.kellermann@ionos.com
-Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
-Cc: Core Minyard <cminyard@mvista.com>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Song Liu <song@kernel.org>
+We always know the exact size in bytes of the object that we are about to
+write (store), so use it instead of class->size.
+
+Link: https://lkml.kernel.org/r/20250504110650.2783619-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reported-by: Igor Belousov <igor.b@beldev.am>
+Tested-by: Igor Belousov <igor.b@beldev.am>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-rcu_stall_count |    6 ++
- kernel/rcu/tree_stall.h                                |   26 ++++++++++
- 2 files changed, 32 insertions(+)
+ mm/zsmalloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-kernel-rcu_stall_count a/Documentation/ABI/testing/sysfs-kernel-rcu_stall_count
-new file mode 100644
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-rcu_stall_count
-@@ -0,0 +1,6 @@
-+What:		/sys/kernel/rcu_stall_count
-+Date:		May 2025
-+KernelVersion:	6.16
-+Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
-+Description:
-+		Shows how many times the system has detected an RCU stall since last boot.
---- a/kernel/rcu/tree_stall.h~kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count
-+++ a/kernel/rcu/tree_stall.h
-@@ -20,6 +20,28 @@
- int sysctl_panic_on_rcu_stall __read_mostly;
- int sysctl_max_rcu_stall_to_panic __read_mostly;
+--- a/mm/zsmalloc.c~zsmalloc-dont-underflow-size-calculation-in-zs_obj_write
++++ a/mm/zsmalloc.c
+@@ -1243,19 +1243,19 @@ void zs_obj_write(struct zs_pool *pool,
+ 	class = zspage_class(pool, zspage);
+ 	off = offset_in_page(class->size * obj_idx);
  
-+#ifdef CONFIG_SYSFS
+-	if (off + class->size <= PAGE_SIZE) {
++	if (!ZsHugePage(zspage))
++		off += ZS_HANDLE_SIZE;
 +
-+static unsigned int rcu_stall_count;
-+
-+static ssize_t rcu_stall_count_show(struct kobject *kobj, struct kobj_attribute *attr,
-+				    char *page)
-+{
-+	return sysfs_emit(page, "%u\n", rcu_stall_count);
-+}
-+
-+static struct kobj_attribute rcu_stall_count_attr = __ATTR_RO(rcu_stall_count);
-+
-+static __init int kernel_rcu_stall_sysfs_init(void)
-+{
-+	sysfs_add_file_to_group(kernel_kobj, &rcu_stall_count_attr.attr, NULL);
-+	return 0;
-+}
-+
-+late_initcall(kernel_rcu_stall_sysfs_init);
-+
-+#endif // CONFIG_SYSFS
-+
- #ifdef CONFIG_PROVE_RCU
- #define RCU_STALL_DELAY_DELTA		(5 * HZ)
- #else
-@@ -784,6 +806,10 @@ static void check_cpu_stall(struct rcu_d
- 		if (kvm_check_and_clear_guest_paused())
- 			return;
++	if (off + mem_len <= PAGE_SIZE) {
+ 		/* this object is contained entirely within a page */
+ 		void *dst = kmap_local_zpdesc(zpdesc);
  
-+#ifdef CONFIG_SYSFS
-+		++rcu_stall_count;
-+#endif
-+
- 		rcu_stall_notifier_call_chain(RCU_STALL_NOTIFY_NORM, (void *)j - gps);
- 		if (READ_ONCE(csd_lock_suppress_rcu_stall) && csd_lock_is_stuck()) {
- 			pr_err("INFO: %s detected stall, but suppressed full report due to a stuck CSD-lock.\n", rcu_state.name);
+-		if (!ZsHugePage(zspage))
+-			off += ZS_HANDLE_SIZE;
+ 		memcpy(dst + off, handle_mem, mem_len);
+ 		kunmap_local(dst);
+ 	} else {
+ 		/* this object spans two pages */
+ 		size_t sizes[2];
+ 
+-		off += ZS_HANDLE_SIZE;
+ 		sizes[0] = PAGE_SIZE - off;
+ 		sizes[1] = mem_len - sizes[0];
+ 
 _
 
-Patches currently in -mm which might be from max.kellermann@ionos.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-kernel-watchdog-add-sys-kernel-hardsoftlockup_count.patch
-kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count.patch
+zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch
+zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
+zram-modernize-writeback-interface.patch
+zram-modernize-writeback-interface-v3.patch
+zram-modernize-writeback-interface-v4.patch
+zsmalloc-cleanup-headers-includes.patch
+documentation-zram-update-idle-pages-tracking-documentation.patch
 
