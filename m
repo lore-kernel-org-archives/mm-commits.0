@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67B4D1DF723
-	for <mm-commits@vger.kernel.org>; Tue,  6 May 2025 23:18:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67AEF19CC0A
+	for <mm-commits@vger.kernel.org>; Tue,  6 May 2025 23:18:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746573502; cv=none; b=N+uHrtBJh+shHxflvwQjT+P3rt/maYYXzytycxN7+6TZhkZx/ZDxB8GoQyGKWJBNffilSBeZu2aByTygzJKbfgUeoaEchyDWm3R/lMciWBG85CpEJiDEdoT1BTHCpdI5J9LYfDDCA8WnB7T/H4sYlQs84aixoAnur7cJnKTPMjY=
+	t=1746573502; cv=none; b=YVxOylCz1EtRSBjBIyiOTCD5vtgJy2XfLQ9glL7NLB4SSU1qsV8wMtFZq4Psq91SO+jwf0AVCsN9tj+w9Vfn0lqKAICLrkr8WI+MrvJuPWb3xLH6yQnzJVR8o8CNd9m/Jy5Pal69bQdHx8T8bGC32dbodiWdAa5z025mkKqEeN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1746573502; c=relaxed/simple;
-	bh=ZSomHmf/XI+RqZ3MhVbWgOnc8HjCWZ027ZMlEPhFbVU=;
-	h=Date:To:From:Subject:Message-Id; b=GdvW9UhULx3AY4XvrtPEdhxBT8nVghzATMopxdpHoo9m2i69pEnBucTtEv5n0oCS5DN4tfpNvN68KJ0oDnm3mily8yI9/LgYksP4ma+2vSm6vRCM+UeHla5bzQ60eb/HXgaw4EVKkfGAfTsd7aBGOdj30ueSsiuUWwuu8If0AE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m47JYM2V; arc=none smtp.client-ip=10.30.226.201
+	bh=GtJMnXGqQ0FFhj19wn4N/PeMMkvVP4P05AejlDvTdTQ=;
+	h=Date:To:From:Subject:Message-Id; b=i4+GAW+egMOiowWxA9G2ceACWH18vCbyDeNxcWLKvQvN04J5J0Hl4lOQs+T+T0DR/v8I0dSLqOGSTe3Fw7vegVYPjs8HvjWMUya8fxxp7C7MhpMmuhXvRYY0NGW7gWLZI5G4GIzl2Lt25YB5eQk765gFSgCtkv1oBGsEnCvJn0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EHeHbaVc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m47JYM2V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E53BC4CEE4;
-	Tue,  6 May 2025 23:18:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EHeHbaVc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD45AC4CEEE;
+	Tue,  6 May 2025 23:18:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746573499;
-	bh=ZSomHmf/XI+RqZ3MhVbWgOnc8HjCWZ027ZMlEPhFbVU=;
+	s=korg; t=1746573501;
+	bh=GtJMnXGqQ0FFhj19wn4N/PeMMkvVP4P05AejlDvTdTQ=;
 	h=Date:To:From:Subject:From;
-	b=m47JYM2VSdRDEak24xNAhiWW0tOHRLsnom6PqSa0JpLLLL/iMhjaD6c5TuoOQnFei
-	 QXJdgJw/Y28CYg3y7XQJ7+J0N/a9d41kaYk0SPvsTovgF3rV7flUJSw2YBapAaAGxs
-	 Psa6PZXWyKoNRPGj0pUMeQtGpmfCR/QbR0JEs+hs=
-Date: Tue, 06 May 2025 16:18:19 -0700
+	b=EHeHbaVcSkc6OrNSB6UIqllu8Cp4pUf5rOLIHMGa9wksT773HrdvjNPvb7we7a1CJ
+	 eq7oJckS1YiGAhezocQcQEOt/IeHhHwSPTK65wq3C2RiDnU5FBDTybhjqKSlsN9GmU
+	 +Oj9UbneDFDetVORSJ2oP18gTRGxtuzgr8heWzJQ=
+Date: Tue, 06 May 2025 16:18:21 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,kuba@kernel.org,hannes@cmpxchg.org,edumazet@google.com,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-simplify-consume_stock.patch added to mm-new branch
-Message-Id: <20250506231819.9E53BC4CEE4@smtp.kernel.org>
+Subject: + memcg-separate-local_trylock-for-memcg-and-obj.patch added to mm-new branch
+Message-Id: <20250506231821.BD45AC4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: simplify consume_stock
+     Subject: memcg: separate local_trylock for memcg and obj
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-simplify-consume_stock.patch
+     memcg-separate-local_trylock-for-memcg-and-obj.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-simplify-consume_stock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-separate-local_trylock-for-memcg-and-obj.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,83 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: simplify consume_stock
-Date: Tue, 6 May 2025 15:55:30 -0700
+Subject: memcg: separate local_trylock for memcg and obj
+Date: Tue, 6 May 2025 15:55:31 -0700
 
-Patch series "memcg: decouple memcg and objcg stocks", v3.
+The per-cpu stock_lock protects cached memcg and cached objcg and their
+respective fields.  However there is no dependency between these fields
+and it is better to have fine grained separate locks for cached memcg and
+cached objcg.  This decoupling of locks allows us to make the memcg charge
+cache and objcg charge cache to be nmi safe independently.
 
-The per-cpu memcg charge cache and objcg charge cache are coupled in a
-single struct memcg_stock_pcp and a single local lock is used to protect
-both of the caches.  This makes memcg charging and objcg charging nmi safe
-challenging.  Decoupling memcg and objcg stocks would allow us to make
-them nmi safe and even work without disabling irqs independently.  This
-series completely decouples memcg and objcg stocks.
+At the moment, memcg charge cache is already nmi safe and this decoupling
+will allow to make memcg charge cache work without disabling irqs.
 
-To evaluate the impact of this series with and without PREEMPT_RT config,
-we ran varying number of netperf clients in different cgroups on a 72 CPU
-machine.
-
- $ netserver -6
- $ netperf -6 -H ::1 -l 60 -t TCP_SENDFILE -- -m 10K
-
-PREEMPT_RT config:
-------------------
-number of clients | Without series | With series
-  6               | 38559.1 Mbps   | 38652.6 Mbps
-  12              | 37388.8 Mbps   | 37560.1 Mbps
-  18              | 30707.5 Mbps   | 31378.3 Mbps
-  24              | 25908.4 Mbps   | 26423.9 Mbps
-  30              | 22347.7 Mbps   | 22326.5 Mbps
-  36              | 20235.1 Mbps   | 20165.0 Mbps
-
-!PREEMPT_RT config:
--------------------
-number of clients | Without series | With series
-  6               | 50235.7 Mbps   | 51415.4 Mbps
-  12              | 49336.5 Mbps   | 49901.4 Mbps
-  18              | 46306.8 Mbps   | 46482.7 Mbps
-  24              | 38145.7 Mbps   | 38729.4 Mbps
-  30              | 30347.6 Mbps   | 31698.2 Mbps
-  36              | 26976.6 Mbps   | 27364.4 Mbps
-
-No performance regression was observed.
-
-
-This patch (of 4):
-
-consume_stock() does not need to check gfp_mask for spinning and can
-simply trylock the local lock to decide to proceed or fail.  No need to
-spin at all for local lock.
-
-One of the concern raised was that on PREEMPT_RT kernels, this trylock can
-fail more often due to tasks having lock_lock can be preempted.  This can
-potentially cause the task which have preempted the task having the
-local_lock to take the slow path of memcg charging.
-
-However this behavior will only impact the performance if memcg charging
-slowpath is worse than two context switches and possibly scheduling delay
-behavior of current code.  From the network intensive workload experiment
-it does not seem like the case.
-
-We ran varying number of netperf clients in different cgroups on a 72 CPU
-machine for PREEMPT_RT config.
-
- $ netserver -6
- $ netperf -6 -H ::1 -l 60 -t TCP_SENDFILE -- -m 10K
-
-number of clients | Without series | With series
-  6               | 38559.1 Mbps   | 38652.6 Mbps
-  12              | 37388.8 Mbps   | 37560.1 Mbps
-  18              | 30707.5 Mbps   | 31378.3 Mbps
-  24              | 25908.4 Mbps   | 26423.9 Mbps
-  30              | 22347.7 Mbps   | 22326.5 Mbps
-  36              | 20235.1 Mbps   | 20165.0 Mbps
-
-We don't see any significant performance difference for the network
-intensive workload with this series.
-
-Link: https://lkml.kernel.org/r/20250506225533.2580386-1-shakeel.butt@linux.dev
-Link: https://lkml.kernel.org/r/20250506225533.2580386-2-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250506225533.2580386-3-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Eric Dumaze <edumazet@google.com>
@@ -155,56 +91,158 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |   49 ++++++++++++++++++++++++----------------------
+ 1 file changed, 26 insertions(+), 23 deletions(-)
 
---- a/mm/memcontrol.c~memcg-simplify-consume_stock
+--- a/mm/memcontrol.c~memcg-separate-local_trylock-for-memcg-and-obj
 +++ a/mm/memcontrol.c
-@@ -1831,16 +1831,14 @@ static bool obj_stock_flush_required(str
-  * consume_stock: Try to consume stocked charge on this cpu.
-  * @memcg: memcg to consume from.
-  * @nr_pages: how many pages to charge.
-- * @gfp_mask: allocation mask.
-  *
-- * The charges will only happen if @memcg matches the current cpu's memcg
-- * stock, and at least @nr_pages are available in that stock.  Failure to
-- * service an allocation will refill the stock.
-+ * Consume the cached charge if enough nr_pages are present otherwise return
-+ * failure. Also return failure for charge request larger than
-+ * MEMCG_CHARGE_BATCH or if the local lock is already taken.
-  *
-  * returns true if successful, false otherwise.
+@@ -1804,13 +1804,14 @@ void mem_cgroup_print_oom_group(struct m
   */
--static bool consume_stock(struct mem_cgroup *memcg, unsigned int nr_pages,
--			  gfp_t gfp_mask)
-+static bool consume_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
- 	struct memcg_stock_pcp *stock;
- 	uint8_t stock_pages;
-@@ -1848,12 +1846,8 @@ static bool consume_stock(struct mem_cgr
- 	bool ret = false;
+ #define NR_MEMCG_STOCK 7
+ struct memcg_stock_pcp {
+-	local_trylock_t stock_lock;
++	local_trylock_t memcg_lock;
+ 	uint8_t nr_pages[NR_MEMCG_STOCK];
+ 	struct mem_cgroup *cached[NR_MEMCG_STOCK];
+ 
++	local_trylock_t obj_lock;
++	unsigned int nr_bytes;
+ 	struct obj_cgroup *cached_objcg;
+ 	struct pglist_data *cached_pgdat;
+-	unsigned int nr_bytes;
+ 	int nr_slab_reclaimable_b;
+ 	int nr_slab_unreclaimable_b;
+ 
+@@ -1819,7 +1820,8 @@ struct memcg_stock_pcp {
+ #define FLUSHING_CACHED_CHARGE	0
+ };
+ static DEFINE_PER_CPU_ALIGNED(struct memcg_stock_pcp, memcg_stock) = {
+-	.stock_lock = INIT_LOCAL_TRYLOCK(stock_lock),
++	.memcg_lock = INIT_LOCAL_TRYLOCK(memcg_lock),
++	.obj_lock = INIT_LOCAL_TRYLOCK(obj_lock),
+ };
+ static DEFINE_MUTEX(percpu_charge_mutex);
+ 
+@@ -1847,7 +1849,7 @@ static bool consume_stock(struct mem_cgr
  	int i;
  
--	if (nr_pages > MEMCG_CHARGE_BATCH)
--		return ret;
--
--	if (gfpflags_allow_spinning(gfp_mask))
--		local_lock_irqsave(&memcg_stock.stock_lock, flags);
--	else if (!local_trylock_irqsave(&memcg_stock.stock_lock, flags))
-+	if (nr_pages > MEMCG_CHARGE_BATCH ||
-+	    !local_trylock_irqsave(&memcg_stock.stock_lock, flags))
+ 	if (nr_pages > MEMCG_CHARGE_BATCH ||
+-	    !local_trylock_irqsave(&memcg_stock.stock_lock, flags))
++	    !local_trylock_irqsave(&memcg_stock.memcg_lock, flags))
  		return ret;
  
  	stock = this_cpu_ptr(&memcg_stock);
-@@ -2356,7 +2350,7 @@ static int try_charge_memcg(struct mem_c
- 	unsigned long pflags;
+@@ -1864,7 +1866,7 @@ static bool consume_stock(struct mem_cgr
+ 		break;
+ 	}
  
- retry:
--	if (consume_stock(memcg, nr_pages, gfp_mask))
-+	if (consume_stock(memcg, nr_pages))
- 		return 0;
+-	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
++	local_unlock_irqrestore(&memcg_stock.memcg_lock, flags);
  
- 	if (!gfpflags_allow_spinning(gfp_mask))
+ 	return ret;
+ }
+@@ -1910,19 +1912,19 @@ static void drain_local_stock(struct wor
+ 	struct memcg_stock_pcp *stock;
+ 	unsigned long flags;
+ 
+-	/*
+-	 * The only protection from cpu hotplug (memcg_hotplug_cpu_dead) vs.
+-	 * drain_stock races is that we always operate on local CPU stock
+-	 * here with IRQ disabled
+-	 */
+-	local_lock_irqsave(&memcg_stock.stock_lock, flags);
++	if (WARN_ONCE(!in_task(), "drain in non-task context"))
++		return;
+ 
++	local_lock_irqsave(&memcg_stock.obj_lock, flags);
+ 	stock = this_cpu_ptr(&memcg_stock);
+ 	drain_obj_stock(stock);
++	local_unlock_irqrestore(&memcg_stock.obj_lock, flags);
++
++	local_lock_irqsave(&memcg_stock.memcg_lock, flags);
++	stock = this_cpu_ptr(&memcg_stock);
+ 	drain_stock_fully(stock);
+ 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
+-
+-	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
++	local_unlock_irqrestore(&memcg_stock.memcg_lock, flags);
+ }
+ 
+ static void refill_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
+@@ -1945,10 +1947,10 @@ static void refill_stock(struct mem_cgro
+ 	VM_WARN_ON_ONCE(mem_cgroup_is_root(memcg));
+ 
+ 	if (nr_pages > MEMCG_CHARGE_BATCH ||
+-	    !local_trylock_irqsave(&memcg_stock.stock_lock, flags)) {
++	    !local_trylock_irqsave(&memcg_stock.memcg_lock, flags)) {
+ 		/*
+ 		 * In case of larger than batch refill or unlikely failure to
+-		 * lock the percpu stock_lock, uncharge memcg directly.
++		 * lock the percpu memcg_lock, uncharge memcg directly.
+ 		 */
+ 		memcg_uncharge(memcg, nr_pages);
+ 		return;
+@@ -1980,7 +1982,7 @@ static void refill_stock(struct mem_cgro
+ 		WRITE_ONCE(stock->nr_pages[i], nr_pages);
+ 	}
+ 
+-	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
++	local_unlock_irqrestore(&memcg_stock.memcg_lock, flags);
+ }
+ 
+ static bool is_drain_needed(struct memcg_stock_pcp *stock,
+@@ -2055,11 +2057,12 @@ static int memcg_hotplug_cpu_dead(unsign
+ 
+ 	stock = &per_cpu(memcg_stock, cpu);
+ 
+-	/* drain_obj_stock requires stock_lock */
+-	local_lock_irqsave(&memcg_stock.stock_lock, flags);
++	/* drain_obj_stock requires obj_lock */
++	local_lock_irqsave(&memcg_stock.obj_lock, flags);
+ 	drain_obj_stock(stock);
+-	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
++	local_unlock_irqrestore(&memcg_stock.obj_lock, flags);
+ 
++	/* no need for the local lock */
+ 	drain_stock_fully(stock);
+ 
+ 	return 0;
+@@ -2912,7 +2915,7 @@ static bool consume_obj_stock(struct obj
+ 	unsigned long flags;
+ 	bool ret = false;
+ 
+-	local_lock_irqsave(&memcg_stock.stock_lock, flags);
++	local_lock_irqsave(&memcg_stock.obj_lock, flags);
+ 
+ 	stock = this_cpu_ptr(&memcg_stock);
+ 	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
+@@ -2923,7 +2926,7 @@ static bool consume_obj_stock(struct obj
+ 			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
+ 	}
+ 
+-	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
++	local_unlock_irqrestore(&memcg_stock.obj_lock, flags);
+ 
+ 	return ret;
+ }
+@@ -3012,7 +3015,7 @@ static void refill_obj_stock(struct obj_
+ 	unsigned long flags;
+ 	unsigned int nr_pages = 0;
+ 
+-	local_lock_irqsave(&memcg_stock.stock_lock, flags);
++	local_lock_irqsave(&memcg_stock.obj_lock, flags);
+ 
+ 	stock = this_cpu_ptr(&memcg_stock);
+ 	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
+@@ -3034,7 +3037,7 @@ static void refill_obj_stock(struct obj_
+ 		stock->nr_bytes &= (PAGE_SIZE - 1);
+ 	}
+ 
+-	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
++	local_unlock_irqrestore(&memcg_stock.obj_lock, flags);
+ 
+ 	if (nr_pages)
+ 		obj_cgroup_uncharge_pages(objcg, nr_pages);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
