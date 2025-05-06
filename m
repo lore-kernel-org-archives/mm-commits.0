@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16CDC3507F0
-	for <mm-commits@vger.kernel.org>; Tue,  6 May 2025 00:59:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2714E299A94
+	for <mm-commits@vger.kernel.org>; Tue,  6 May 2025 01:07:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746493194; cv=none; b=f3wRAFuL5PHEuU09ckzHlD73yKHkJxmvMJKaFC3XpYtpP/fNSRJvaB0GNkVGGrXUMon/U/4LnELV0kw7JPw6t7ff43zQOA/m5FXgpLdrhpC8zYz2jMSfHyT+2r/XE6/oCpEJMBi3vbVljgaY1GeYtBjQ1Kqxq+h6Ommw1e2CiRA=
+	t=1746493668; cv=none; b=jnIK/xuFho7qUzmlUtVp3+z+q3KQ6V2XC5OKTlCtrOHQTzV1wAledWMiZ9IX3gNgBm4X4PDH4Sq/j8IvgAcJFcIYiYKLZMwFHIugI4MZjjv+4f42eKnEZPqF9j8vLvhE7o3wxa5dTQ98E5eqTkw3pWSGcoLo2enAoySETBNFkSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746493194; c=relaxed/simple;
-	bh=iQ5g45mcROboevTkr1f3IEgB+qUuS2dKQqHHZtWZnKo=;
-	h=Date:To:From:Subject:Message-Id; b=RGYiqslDt8lGIezwKRiZeyxBjLWb8yEVMaRwrOYjsxEL53juHN80uLL17HGBvqvmBJLANCdbydWozxTzOINfx/+zS/21OLa1PXyNM8uXooXEpL5BDVVVHkot4aPi66Dwq7MRSjUAY2mjoC1aEF13EdvPQJbBtCb+FdWJZ5RmBQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=baXZ94/N; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746493668; c=relaxed/simple;
+	bh=R+pIa85hSO4Hn4LtZehxFlxuQvGhsUBIAvNm7Hxanf8=;
+	h=Date:To:From:Subject:Message-Id; b=B86kQ669769857FcrpziKr3evq+wVSxWJp0fifvRsG/osy5l3iBoBPrTVtgDFCu2jXrdxcmCWjtDica5V/yxNA6ogrvi+1Gz2laRgNv7113V5AH3FPN34rMqdfmSwGKB0je6jpsSQhZW8MrWf4M2lLNSuXfPHJkJjrPY4SDvInI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kMFHoynC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="baXZ94/N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD64FC4CEEE;
-	Tue,  6 May 2025 00:59:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kMFHoynC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77453C4CEE4;
+	Tue,  6 May 2025 01:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746493193;
-	bh=iQ5g45mcROboevTkr1f3IEgB+qUuS2dKQqHHZtWZnKo=;
+	s=korg; t=1746493667;
+	bh=R+pIa85hSO4Hn4LtZehxFlxuQvGhsUBIAvNm7Hxanf8=;
 	h=Date:To:From:Subject:From;
-	b=baXZ94/N/3MQVt6bthg9qnVERnb8WdPtzsW0s7zx+5dFlXgneXJH/cT29jOjnwMna
-	 z3lzv3L+jGOMSd+hLbK9yos16CtZqPedl/t66bxmJKKMjMlr1o7/O1Ej0z0AyI+4IJ
-	 zj/b/3nTJCcRR5ipKOdyHK5svU3wn3E2afta3/kc=
-Date: Mon, 05 May 2025 17:59:53 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,00107082@163.com,akpm@linux-foundation.org
+	b=kMFHoynCl9nfp++J/1Tgc6+RtCxIUQuAyp+irvLJzP2ZwRP5gDUYBeeNuB19E5ZhT
+	 K/9uDSeRXSX2lNzheOCfmc/k8PXQFTAfmof1xOACWhNNXnyH8f6Gz0pskmteZggYHF
+	 V3PkTTFfmHqragG6uzz97XVhdl6QlVm9xoPXRSas=
+Date: Mon, 05 May 2025 18:07:46 -0700
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,vitaly.wool@konsulko.se,shakeel.butt@linux.dev,nphamcs@gmail.com,lkp@intel.com,igor.b@beldev.am,hannes@cmpxchg.org,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250506005953.BD64FC4CEEE@smtp.kernel.org>
+Subject: + mm-add-zblock-allocator-fix-3.patch added to mm-new branch
+Message-Id: <20250506010747.77453C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/codetag: move tag retrieval back upfront in __free_pages()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages.patch
+     Subject: mm-add-zblock-allocator-fix-3
+has been added to the -mm mm-new branch.  Its filename is
+     mm-add-zblock-allocator-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-zblock-allocator-fix-3.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,122 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Wang <00107082@163.com>
-Subject: mm/codetag: move tag retrieval back upfront in __free_pages()
-Date: Tue, 6 May 2025 03:30:34 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-zblock-allocator-fix-3
+Date: Mon May  5 06:06:27 PM PDT 2025
 
-Commit 51ff4d7486f0 ("mm: avoid extra mem_alloc_profiling_enabled()
- checks") introduces a possible use-after-free scenario, when page
-is non-compound, page[0] could be released by other thread right
-after put_page_testzero failed in current thread, pgalloc_tag_sub_pages
-afterwards would manipulate an invalid page for accounting remaining
-pages:
+fix kerneldoc for zblock_create_pool()
 
-[timeline]   [thread1]                     [thread2]
-  |          alloc_page non-compound
-  V
-  |                                        get_page, rf counter inc
-  V
-  |          in ___free_pages
-  |          put_page_testzero fails
-  V
-  |                                        put_page, page released
-  V
-  |          in ___free_pages,
-  |          pgalloc_tag_sub_pages
-  |          manipulate an invalid page
-  V
-
-Restore __free_pages() to its state before, retrieve alloc tag
-beforehand.
-
-Link: https://lkml.kernel.org/r/20250505193034.91682-1-00107082@163.com
-Fixes: 51ff4d7486f0 ("mm: avoid extra mem_alloc_profiling_enabled() checks")
-Signed-off-by: David Wang <00107082@163.com>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202505060720.ClN2d7w7-lkp@intel.com/
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Igor Belousov <igor.b@beldev.am>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.se>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgalloc_tag.h |    8 ++++++++
- mm/page_alloc.c             |   15 ++++++---------
- 2 files changed, 14 insertions(+), 9 deletions(-)
+ mm/zblock.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/pgalloc_tag.h~mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages
-+++ a/include/linux/pgalloc_tag.h
-@@ -188,6 +188,13 @@ static inline struct alloc_tag *__pgallo
- 	return tag;
- }
- 
-+static inline struct alloc_tag *pgalloc_tag_get(struct page *page)
-+{
-+	if (mem_alloc_profiling_enabled())
-+		return __pgalloc_tag_get(page);
-+	return NULL;
-+}
-+
- void pgalloc_tag_split(struct folio *folio, int old_order, int new_order);
- void pgalloc_tag_swap(struct folio *new, struct folio *old);
- 
-@@ -199,6 +206,7 @@ static inline void clear_page_tag_ref(st
- static inline void alloc_tag_sec_init(void) {}
- static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order) {}
- static inline void pgalloc_tag_swap(struct folio *new, struct folio *old) {}
-+static inline struct alloc_tag *pgalloc_tag_get(struct page *page) { return NULL; }
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
- 
---- a/mm/page_alloc.c~mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages
-+++ a/mm/page_alloc.c
-@@ -1151,14 +1151,9 @@ static inline void pgalloc_tag_sub(struc
- 		__pgalloc_tag_sub(page, nr);
- }
- 
--static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr)
-+/* When tag is not NULL, assuming mem_alloc_profiling_enabled */
-+static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr)
- {
--	struct alloc_tag *tag;
--
--	if (!mem_alloc_profiling_enabled())
--		return;
--
--	tag = __pgalloc_tag_get(page);
- 	if (tag)
- 		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
- }
-@@ -1168,7 +1163,7 @@ static inline void pgalloc_tag_sub_pages
- static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
- 				   unsigned int nr) {}
- static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
--static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr) {}
-+static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
- 
-@@ -5073,11 +5068,13 @@ static void ___free_pages(struct page *p
- {
- 	/* get PageHead before we drop reference */
- 	int head = PageHead(page);
-+	/* get alloc tag in case the page is released by others */
-+	struct alloc_tag *tag = pgalloc_tag_get(page);
- 
- 	if (put_page_testzero(page))
- 		__free_frozen_pages(page, order, fpi_flags);
- 	else if (!head) {
--		pgalloc_tag_sub_pages(page, (1 << order) - 1);
-+		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
- 		while (order-- > 0)
- 			__free_frozen_pages(page + (1 << order), order,
- 					    fpi_flags);
+--- a/mm/zblock.c~mm-add-zblock-allocator-fix-3
++++ a/mm/zblock.c
+@@ -117,7 +117,6 @@ static struct zblock_block *alloc_block(
+ /**
+  * zblock_create_pool() - create a new zblock pool
+  * @gfp:	gfp flags when allocating the zblock pool structure
+- * @ops:	user-defined operations for the zblock pool
+  *
+  * Return: pointer to the new zblock pool or NULL if the metadata allocation
+  * failed.
 _
 
-Patches currently in -mm which might be from 00107082@163.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages.patch
+x86-disable-image-size-check-for-test-builds-fix.patch
+x86-disable-image-size-check-for-test-builds-fix-fix.patch
+mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
+vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
+mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
+jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-add-zblock-allocator-fix-3.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
