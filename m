@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CC9F7263F
-	for <mm-commits@vger.kernel.org>; Tue,  6 May 2025 23:20:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A59C4501A
+	for <mm-commits@vger.kernel.org>; Wed,  7 May 2025 00:53:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746573637; cv=none; b=ttrC/Zr0RhMi8ZDrLFp+03j3EfzEqJA5fHkZA+Lmqc+zn3356Rj+pQnIQxiCzQjsAuHnd/a7f95OspwfVs4tviqTvR6ee6yaulPwgyBVUlCWzE7Z7cDXui8W9zfY6NLBpqEK6h0MrMr8c10T+gx2WtYiDGGaovbAhpIL2qZ4oHA=
+	t=1746579219; cv=none; b=D+hJ0fM0vjQ2j3WKPbIPns+uSzRRoGjrA+OqgK/n/QG+4XAbGChxFAi+/KTvpfY1gJOxvEQTj1U/ovMJDwi43uHutN3wZZ1w7eB4DWSjZ4zMZTVBLgJReJ/OxwDFcLmq+ZjFtgVOp1iVbAdWQDFL46qN0vER2uidlJoqFOmIZ7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746573637; c=relaxed/simple;
-	bh=CKrVaose7z0MABzKtpZ8AHv6IpB5cMsiO2kXcj1ckwo=;
-	h=Date:To:From:Subject:Message-Id; b=lW/YgtrVioz2+kwuAC9ofcYeRYhXbuoPu12E1f6wmbtoCFgAA4qVtXtIILtJgrdYd+bd0kYCn2POhSO5Zlbb7a9+pEXdhkl7USAe6ka2b5n4cpy/hSGm7d3Q+/wbRDQeuCmpm++k3mv9KW/ksyxkCcQITqmJzqR+4DHVdNlbGOc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fOWfYdoJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746579219; c=relaxed/simple;
+	bh=JHdJgW6q6Gd++UZqYEZT77Uk7sEFquWBur2mYMTP/t8=;
+	h=Date:To:From:Subject:Message-Id; b=rHu8mFM0WPqK/05XRWrSWmGSFF77sbEuGX4Etx/zsJZYhmw9trAg6vWnswbIGQ7vjIQFIs71oU+/yYybsTGgyAYFXPIzyZ4+N6t9gMpwJgzKaxOIwTSpXAgi9FqWpD5XIpqYfoW5z/N755waA4NvwhBGRY1sy5OuwgCR+IrWiAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fDsIoSVZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fOWfYdoJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E588AC4CEE4;
-	Tue,  6 May 2025 23:20:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fDsIoSVZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D189C4CEE4;
+	Wed,  7 May 2025 00:53:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746573637;
-	bh=CKrVaose7z0MABzKtpZ8AHv6IpB5cMsiO2kXcj1ckwo=;
+	s=korg; t=1746579218;
+	bh=JHdJgW6q6Gd++UZqYEZT77Uk7sEFquWBur2mYMTP/t8=;
 	h=Date:To:From:Subject:From;
-	b=fOWfYdoJVf6pM9p7LdnmvXl888lKCOrTzjH1GFA9SJpdO0wyS/bsORlFSiQuYz/bp
-	 NHjT8Jg8uhvHQyF5wH5UrhzNvSN04AgpPG5sesJnWqpZIlBJfP7wir/BxFjEzV0GKT
-	 kaZIVsWT6w6cV3cD3MB0gdys8aDn+a8Rl0/BdZCg=
-Date: Tue, 06 May 2025 16:20:36 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=fDsIoSVZ3N0i12Z1dWNzyYgjftBzanWyex0QwMg7URtSXXI25SN3vxsH5FJW4yc3U
+	 oWA+hyXiqzueLS2txPxM0QROLpO7W+a6OEGDo2Ku8U+zdON1lbxnjE2DMxOy9Nxe0C
+	 Gp5uKzkYSi2YnoxNp+e8xpnBvDawQ5z8tZKq4waY=
+Date: Tue, 06 May 2025 17:53:38 -0700
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,tj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,gthelen@google.com,brauner@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-mm-gup-section.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250506232036.E588AC4CEE4@smtp.kernel.org>
+Subject: + memcg-introduce-non-blocking-limit-setting-option-v3.patch added to mm-unstable branch
+Message-Id: <20250507005338.9D189C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add mm GUP section
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-mm-gup-section.patch
+     Subject: memcg-introduce-non-blocking-limit-setting-option-v3
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-introduce-non-blocking-limit-setting-option-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-mm-gup-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-introduce-non-blocking-limit-setting-option-v3.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add mm GUP section
-Date: Tue, 6 May 2025 18:36:01 +0100
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg-introduce-non-blocking-limit-setting-option-v3
+Date: Tue, 6 May 2025 16:28:33 -0700
 
-As part of the ongoing efforts to sub-divide memory management
-maintainership and reviewership, establish a section for GUP (Get User
-Pages) support and add appropriate maintainers and reviewers.
+add more explanation in doc and commit message on O_NONBLOCK side-effects
+(Johannes)
 
-Link: https://lkml.kernel.org/r/20250506173601.97562-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20250506232833.3109790-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/admin-guide/cgroup-v2.rst |   34 ++++++++++++++--------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-mm-gup-section
-+++ a/MAINTAINERS
-@@ -15527,6 +15527,18 @@ S:	Maintained
- F:	include/linux/execmem.h
- F:	mm/execmem.c
+--- a/Documentation/admin-guide/cgroup-v2.rst~memcg-introduce-non-blocking-limit-setting-option-v3
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1299,12 +1299,17 @@ PAGE_SIZE multiple when read back.
+ 	monitors the limited cgroup to alleviate heavy reclaim
+ 	pressure.
  
-+MEMORY MANAGEMENT - GUP (GET USER PAGES)
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	David Hildenbrand <david@redhat.com>
-+R:	Jason Gunthorpe <jgg@nvidia.com>
-+R:	John Hubbard <jhubbard@nvidia.com>
-+R:	Peter Xu <peterx@redhat.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+W:	http://www.linux-mm.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	mm/gup.c
+-        If memory.high is opened with O_NONBLOCK then the synchronous
+-        reclaim is bypassed. This is useful for admin processes that
+-        need to dynamically adjust the job's memory limits without
+-        expending their own CPU resources on memory reclamation. The
+-        job will trigger the reclaim and/or get throttled on its
+-        next charge request.
++	If memory.high is opened with O_NONBLOCK then the synchronous
++	reclaim is bypassed. This is useful for admin processes that
++	need to dynamically adjust the job's memory limits without
++	expending their own CPU resources on memory reclamation. The
++	job will trigger the reclaim and/or get throttled on its
++	next charge request.
 +
- MEMORY MANAGEMENT - NUMA MEMBLOCKS AND NUMA EMULATION
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Mike Rapoport <rppt@kernel.org>
++	Please note that with O_NONBLOCK, there is a chance that the
++	target memory cgroup may take indefinite amount of time to
++	reduce usage below the limit due to delayed charge request or
++	busy-hitting its memory to slow down reclaim.
+ 
+   memory.max
+ 	A read-write single value file which exists on non-root
+@@ -1323,12 +1328,17 @@ PAGE_SIZE multiple when read back.
+ 	Caller could retry them differently, return into userspace
+ 	as -ENOMEM or silently ignore in cases like disk readahead.
+ 
+-        If memory.max is opened with O_NONBLOCK, then the synchronous
+-        reclaim and oom-kill are bypassed. This is useful for admin
+-        processes that need to dynamically adjust the job's memory limits
+-        without expending their own CPU resources on memory reclamation.
+-        The job will trigger the reclaim and/or oom-kill on its next
+-        charge request.
++	If memory.max is opened with O_NONBLOCK, then the synchronous
++	reclaim and oom-kill are bypassed. This is useful for admin
++	processes that need to dynamically adjust the job's memory limits
++	without expending their own CPU resources on memory reclamation.
++	The job will trigger the reclaim and/or oom-kill on its next
++	charge request.
++
++	Please note that with O_NONBLOCK, there is a chance that the
++	target memory cgroup may take indefinite amount of time to
++	reduce usage below the limit due to delayed charge request or
++	busy-hitting its memory to slow down reclaim.
+ 
+   memory.reclaim
+ 	A write-only nested-keyed file which exists for all cgroups.
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-maintainers-add-reverse-mapping-section.patch
-maintainers-add-core-mm-section.patch
-maintainers-add-mm-thp-section.patch
-maintainers-add-mm-thp-section-fix.patch
-tools-testing-selftests-fix-guard-region-test-tmpfs-assumption.patch
-maintainers-add-mm-gup-section.patch
-mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
-tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
-tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
-mm-move-mmap-vma-locking-logic-into-specific-files.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
-mm-abstract-initial-stack-setup-to-mm-subsystem.patch
-mm-move-dup_mmap-to-mm.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm.patch
+memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
+memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch
+memcg-remove-root-memcg-check-from-refill_stock.patch
+memcg-decouple-drain_obj_stock-from-local-stock.patch
+memcg-introduce-memcg_uncharge.patch
+memcg-manually-inline-__refill_stock.patch
+memcg-no-refilling-stock-from-obj_cgroup_release.patch
+memcg-do-obj_cgroup_put-inside-drain_obj_stock.patch
+memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
+memcg-manually-inline-replace_stock_objcg.patch
+memcg-optimize-memcg_rstat_updated.patch
+memcg-multi-memcg-percpu-charge-cache.patch
+memcg-multi-memcg-percpu-charge-cache-fix.patch
+memcg-multi-memcg-percpu-charge-cache-fix-2.patch
+memcg-multi-memcg-percpu-charge-cache-fix-4.patch
+memcg-introduce-non-blocking-limit-setting-option.patch
+memcg-introduce-non-blocking-limit-setting-option-v3.patch
+memcg-simplify-consume_stock.patch
+memcg-separate-local_trylock-for-memcg-and-obj.patch
+memcg-completely-decouple-memcg-and-obj-stocks.patch
+memcg-no-irq-disable-for-memcg-stock-lock.patch
 
