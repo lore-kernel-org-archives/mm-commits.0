@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D43C4B1E74;
-	Wed,  7 May 2025 22:42:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A08E291151;
+	Wed,  7 May 2025 22:51:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746657747; cv=none; b=ggvKyZaxk9G3FjWUGEUYFpWlJ0cgJ2CBNKuJtGvSmxCJvPUbeh9uXGYGuCWOsMrg4LIH7ghTaSB5a7Z5ISTJQ7s5KITpGeNUeSlCZJ3YcF10ecp0ezAL7L6eWqTc/Fn19kFnqlFWTdEGKekkjWSEQHB5VdIiPdE5/jV6IBaSdzo=
+	t=1746658292; cv=none; b=ZH9cX9yDetxufA30bCP4sPCzq68SILSMnYDi2qUNzMepjiGFdZMqEjxLFyBnoRmMWe0MlbXjcmO87on6PUA/iMPYMMMhcwSF3KCU5oyTUpgZ2fPQoO4+4YB5Seog3BR4CQNHEdsNIVPVHilNz5uv4SbDe53Y/GaT1Sp6wI2Pnyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746657747; c=relaxed/simple;
-	bh=fg2PAE2ekeo321a9d69zV9FpPzlg99TlqM6ImeaQViw=;
-	h=Date:To:From:Subject:Message-Id; b=eQQ3HqeBSaaQqwZnGUQzHSZq8LyRn+xsvuiMBeHaZKoMqI/BmlQ7O1GWHI/HaGUlEl0bD1ip+LbtF+UpNT+Skx9ANfWDY2Zjl1HDCdk8xAhnNFSdH35FIgElw7mTgrROy4EEsOdRijyD6MJEnj2LuwkrQZDnfUUA044lcktrYR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MJZydtHa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746658292; c=relaxed/simple;
+	bh=b77iVLjFOjNJ9Sm5dXZjoLc3qo67x+SCpqORvfgYg2g=;
+	h=Date:To:From:Subject:Message-Id; b=WexsMkaf/ZsyZIsdnW8hy9OQcJ3PWJzTn2OMNGnGXyGbSZaEm9xBMIBRXD/t5ChV9/PKN4CJhF92d6LtEjIYMF2jiWcMjhupgP6uSXeflm6i5t9H4a0m4fd5ohDsE+F1VAITkfxN6oDOYQ0fRKrax1QwER9RgpuIBFjMgMamVdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=stNZ234L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MJZydtHa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8702AC4CEE2;
-	Wed,  7 May 2025 22:42:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="stNZ234L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D833CC4CEE2;
+	Wed,  7 May 2025 22:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746657746;
-	bh=fg2PAE2ekeo321a9d69zV9FpPzlg99TlqM6ImeaQViw=;
+	s=korg; t=1746658292;
+	bh=b77iVLjFOjNJ9Sm5dXZjoLc3qo67x+SCpqORvfgYg2g=;
 	h=Date:To:From:Subject:From;
-	b=MJZydtHaPHix/u+an9ROhgp87392hY3Bg0+i7/gqtC0DBtXefkWOkdGNRqpvNkPGr
-	 0c632acJZTe2y3mJe1dGpO6r0+I9JhuE0TS+3fvh17ogD8T8T3woSoQWQhSbgy101J
-	 tbE3jl699B/AcEZXu8uyIKbKdnDVkvUdudALVIFs=
-Date: Wed, 07 May 2025 15:42:25 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,stable@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,Ignacio.MorenoGonzalez@kuka.com,akpm@linux-foundation.org
+	b=stNZ234LigqJJk6S4DSxVUuIYwcUzi3UvywiNy/QFlUwRxR6O4qZr03IuAt5bWAGV
+	 cLynDsUxx4AI7C+wFyenngj72d9Ly5vMm8/aCM2uCBwEdfKxWvJpgOS3DoIueSYSiA
+	 V7Cs41oN1FJ+sozZVqwau9IG1VbxNTWQKNkG1e3c=
+Date: Wed, 07 May 2025 15:51:31 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,thiago.bauermann@linaro.org,tglx@linutronix.de,stable@vger.kernel.org,mingo@redhat.com,jackmanb@google.com,hpa@zytor.com,catalin.marinas@arm.com,broonie@kernel.org,bp@alien8.de,revest@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-map-map_stack-to-vm_nohugepage-only-if-thp-is-enabled.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250507224226.8702AC4CEE2@smtp.kernel.org>
+Subject: + mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250507225131.D833CC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mmap: map MAP_STACK to VM_NOHUGEPAGE only if THP is enabled
+     Subject: mm: fix VM_UFFD_MINOR == VM_SHADOW_STACK on USERFAULTFD=y && ARM64_GCS=y
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mmap-map-map_stack-to-vm_nohugepage-only-if-thp-is-enabled.patch
+     mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-map-map_stack-to-vm_nohugepage-only-if-thp-is-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ignacio Moreno Gonzalez <Ignacio.MorenoGonzalez@kuka.com>
-Subject: mm: mmap: map MAP_STACK to VM_NOHUGEPAGE only if THP is enabled
-Date: Wed, 07 May 2025 15:28:06 +0200
+From: Florent Revest <revest@chromium.org>
+Subject: mm: fix VM_UFFD_MINOR == VM_SHADOW_STACK on USERFAULTFD=y && ARM64_GCS=y
+Date: Wed, 7 May 2025 15:09:57 +0200
 
-commit c4608d1bf7c6 ("mm: mmap: map MAP_STACK to VM_NOHUGEPAGE") maps the
-mmap option MAP_STACK to VM_NOHUGEPAGE.  This is also done if
-CONFIG_TRANSPARENT_HUGEPAGE is not defined.  But in that case, the
-VM_NOHUGEPAGE does not make sense.
+On configs with CONFIG_ARM64_GCS=y, VM_SHADOW_STACK is bit 38.  On configs
+with CONFIG_HAVE_ARCH_USERFAULTFD_MINOR=y (selected by CONFIG_ARM64 when
+CONFIG_USERFAULTFD=y), VM_UFFD_MINOR is _also_ bit 38.
 
-I discovered this issue when trying to use the tool CRIU to checkpoint and
-restore a container.  Our running kernel is compiled without
-CONFIG_TRANSPARENT_HUGEPAGE.  CRIU parses the output of /proc/<pid>/smaps
-and saves the "nh" flag.  When trying to restore the container, CRIU fails
-to restore the "nh" mappings, since madvise() MADV_NOHUGEPAGE always
-returns an error because CONFIG_TRANSPARENT_HUGEPAGE is not defined.
+This bit being shared by two different VMA flags could lead to all sorts
+of unintended behaviors.  Presumably, a process could maybe call into
+userfaultfd in a way that disables the shadow stack vma flag.  I can't
+think of any attack where this would help (presumably, if an attacker
+tries to disable shadow stacks, they are trying to hijack control flow so
+can't arbitrarily call into userfaultfd yet anyway) but this still feels
+somewhat scary.
 
-Link: https://lkml.kernel.org/r/20250507-map-map_stack-to-vm_nohugepage-only-if-thp-is-enabled-v5-1-c6c38cfefd6e@kuka.com
-Fixes: c4608d1bf7c6 ("mm: mmap: map MAP_STACK to VM_NOHUGEPAGE")
-Signed-off-by: Ignacio Moreno Gonzalez <Ignacio.MorenoGonzalez@kuka.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Yang Shi <yang@os.amperecomputing.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20250507131000.1204175-2-revest@chromium.org
+Fixes: ae80e1629aea ("mm: Define VM_SHADOW_STACK for arm64 when we support GCS")
+Signed-off-by: Florent Revest <revest@chromium.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Florent Revest <revest@chromium.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mman.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mman.h~mm-mmap-map-map_stack-to-vm_nohugepage-only-if-thp-is-enabled
-+++ a/include/linux/mman.h
-@@ -155,7 +155,9 @@ calc_vm_flag_bits(struct file *file, uns
- 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
- 	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    ) |
- 	       _calc_vm_trans(flags, MAP_SYNC,	     VM_SYNC      ) |
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	       _calc_vm_trans(flags, MAP_STACK,	     VM_NOHUGEPAGE) |
-+#endif
- 	       arch_calc_vm_flag_bits(file, flags);
- }
+--- a/include/linux/mm.h~mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y
++++ a/include/linux/mm.h
+@@ -385,7 +385,7 @@ extern unsigned int kobjsize(const void
+ #endif
  
+ #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_MINOR
+-# define VM_UFFD_MINOR_BIT	38
++# define VM_UFFD_MINOR_BIT	41
+ # define VM_UFFD_MINOR		BIT(VM_UFFD_MINOR_BIT)	/* UFFD minor faults */
+ #else /* !CONFIG_HAVE_ARCH_USERFAULTFD_MINOR */
+ # define VM_UFFD_MINOR		VM_NONE
 _
 
-Patches currently in -mm which might be from Ignacio.MorenoGonzalez@kuka.com are
+Patches currently in -mm which might be from revest@chromium.org are
 
-mm-mmap-map-map_stack-to-vm_nohugepage-only-if-thp-is-enabled.patch
+mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch
 
