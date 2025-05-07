@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D84228C5A0;
-	Wed,  7 May 2025 18:08:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6926128C034
+	for <mm-commits@vger.kernel.org>; Wed,  7 May 2025 18:09:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746641298; cv=none; b=hHB5qjf9kkOZrdmGx09Z5Ul5kEI/mvhXrkGSn7a4QGZMs6VugXT9uMSlstimbAg2jz+fhkjIP68g1vbGmM7jF7/pHbL3UllIQykcjHy84hLdHQW0vSF/BMsERjyYo3Xz9s6XH7FTlc+Myxc9RWiMVnkfwKtbjDpLWgZ74DXXZBk=
+	t=1746641394; cv=none; b=GJfpWGPT1o4hKq0imsU9PsOQ3xDAwpkByESBOzK6HWqoOVmzCP5JKX7RaM1Iqp8VP0V4tikLRia2yFZ2vTytu7cPDzyEhOKOuP6dvGX2JuAHad7Sy7lpyGsO/mUbK5nxH61lfr4ISspCSCdXWq5Dst0ZOPO9bcbVbg7wrWFouKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746641298; c=relaxed/simple;
-	bh=AyFfV8PRMm91vUTLaV/n2eajiVTgi7IyqbfpFM3rdaI=;
-	h=Date:To:From:Subject:Message-Id; b=FXg6bQ4jjwjb7p0wLmoBqovU4pmo40CskqRsbryblwRV0cck1KIykRdXviTlY3DU0drmu8biCQY5qB1IpOCjDDgYZbgRqxFeKF+xFewjK3IQJR/ogVGuvs2lrnayFEkewKX1A6SZiSOdPy9M23Q38P+jKzM4rvKRXDgZLZEVlww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OjmiFY9S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746641394; c=relaxed/simple;
+	bh=a+TPC+ysw1n5JFiEVJHgbvZWYxvgUNq5x6SJlK3C4Tw=;
+	h=Date:To:From:Subject:Message-Id; b=MCnFQ9RyCuIb5wpDuOaixXFd5VSvbXbspISR1shmifQ6DIC9d5FTQl71xup/y0/9FsKT/heJazuWMwqXN/9n5VxnhpXPHa3An5Cyeei8epLCdhnPxZ4LGCYXm6Jeh7rVh+y182KhIQureefvIP8gCKH/2YNUJLBd09IC1CftNNs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZX2Nd8Lb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OjmiFY9S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7E7FC4CEE9;
-	Wed,  7 May 2025 18:08:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZX2Nd8Lb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE045C4CEE2;
+	Wed,  7 May 2025 18:09:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746641297;
-	bh=AyFfV8PRMm91vUTLaV/n2eajiVTgi7IyqbfpFM3rdaI=;
+	s=korg; t=1746641394;
+	bh=a+TPC+ysw1n5JFiEVJHgbvZWYxvgUNq5x6SJlK3C4Tw=;
 	h=Date:To:From:Subject:From;
-	b=OjmiFY9S/uT/hckOWTfIUh54JJDy4nZou4GMVy5/FMDpgWT9y/HQzBpbNjiotoszK
-	 9KuYZvCf9nB7kuwDs9WBdJweQWX940thbLgyi9R5ogPBCcym7dIKn6HoDxApTKB1fE
-	 JWJSrKZ4doaiSSuWqtE/bKh8nNt5MpIK/J+1MEec=
-Date: Wed, 07 May 2025 11:08:17 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=ZX2Nd8LboF9GC6By5686urFuEkvP4t3AsdqUQaAAnQEUgHYoEniXY5cgCg+nbrFV5
+	 MxHAsE70Y67O0yojpheH/EbU4OmPDt7fh7fM807nOF7F0DUobAGnqNpzEGpMdRZim7
+	 Nj2xF6nput8uD8GXYDMVNjfroE6RhZoMJiIFalSk=
+Date: Wed, 07 May 2025 11:09:53 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-avoid-signedness-error-for-gcc-54.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250507180817.C7E7FC4CEE9@smtp.kernel.org>
+Subject: + xarray-fix-kerneldoc-for-__xa_cmpxchg.patch added to mm-unstable branch
+Message-Id: <20250507180953.DE045C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: avoid signedness error for GCC 5.4
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-avoid-signedness-error-for-gcc-54.patch
+     Subject: xarray: fix kerneldoc for __xa_cmpxchg
+has been added to the -mm mm-unstable branch.  Its filename is
+     xarray-fix-kerneldoc-for-__xa_cmpxchg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-signedness-error-for-gcc-54.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-fix-kerneldoc-for-__xa_cmpxchg.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: WangYuli <wangyuli@uniontech.com>
-Subject: mm: vmscan: avoid signedness error for GCC 5.4
-Date: Wed, 7 May 2025 12:08:27 +0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: xarray: fix kerneldoc for __xa_cmpxchg
+Date: Wed, 7 May 2025 07:16:20 +0200
 
-To the GCC 5.4 compiler, (MAX_NR_TIERS - 1) (i.e., (4U - 1)) is unsigned,
-whereas tier is a signed integer.
+Fix the documentation for __xa_cmpxchg to actually describe the
+cmpxch-like semantics correctly, based on the version for xa_cmpxchg.
 
-Then, the __types_ok check within the __careful_cmp_once macro failed,
-triggered BUILD_BUG_ON.
-
-Use min_t instead of min to circumvent this compiler error.
-
-Fix follow error with gcc 5.4:
-  mm/vmscan.c: In function `read_ctrl_pos':
-  mm/vmscan.c:3166:728: error: call to `__compiletime_assert_887' declared with attribute error: min(tier, 4U - 1) signedness error
-
-Link: https://lkml.kernel.org/r/62726950F697595A+20250507040827.1147510-1-wangyuli@uniontech.com
-Fixes: 37a260870f2c ("mm/mglru: rework type selection")
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250507051656.3900864-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/xarray.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-avoid-signedness-error-for-gcc-54
-+++ a/mm/vmscan.c
-@@ -3163,7 +3163,7 @@ static void read_ctrl_pos(struct lruvec
- 	pos->gain = gain;
- 	pos->refaulted = pos->total = 0;
+--- a/lib/xarray.c~xarray-fix-kerneldoc-for-__xa_cmpxchg
++++ a/lib/xarray.c
+@@ -1742,20 +1742,23 @@ static inline void *__xa_cmpxchg_raw(str
+ 			void *old, void *entry, gfp_t gfp);
  
--	for (i = tier % MAX_NR_TIERS; i <= min(tier, MAX_NR_TIERS - 1); i++) {
-+	for (i = tier % MAX_NR_TIERS; i <= min_t(int, tier, MAX_NR_TIERS - 1); i++) {
- 		pos->refaulted += lrugen->avg_refaulted[type][i] +
- 				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
- 		pos->total += lrugen->avg_total[type][i] +
+ /**
+- * __xa_cmpxchg() - Store this entry in the XArray.
++ * __xa_cmpxchg() - Conditionally replace an entry in the XArray.
+  * @xa: XArray.
+  * @index: Index into array.
+  * @old: Old value to test against.
+- * @entry: New entry.
++ * @entry: New value to place in array.
+  * @gfp: Memory allocation flags.
+  *
+  * You must already be holding the xa_lock when calling this function.
+  * It will drop the lock if needed to allocate memory, and then reacquire
+  * it afterwards.
+  *
++ * If the entry at @index is the same as @old, replace it with @entry.
++ * If the return value is equal to @old, then the exchange was successful.
++ *
+  * Context: Any context.  Expects xa_lock to be held on entry.  May
+  * release and reacquire xa_lock if @gfp flags permit.
+- * Return: The old entry at this index or xa_err() if an error happened.
++ * Return: The old value at this index or xa_err() if an error happened.
+  */
+ void *__xa_cmpxchg(struct xarray *xa, unsigned long index,
+ 			void *old, void *entry, gfp_t gfp)
 _
 
-Patches currently in -mm which might be from wangyuli@uniontech.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-vmscan-avoid-signedness-error-for-gcc-54.patch
-ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment.patch
-treewide-fix-typo-previlege.patch
+xarray-fix-kerneldoc-for-__xa_cmpxchg.patch
 
