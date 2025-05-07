@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2351B241673
-	for <mm-commits@vger.kernel.org>; Wed,  7 May 2025 18:13:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B80BB28FAAA
+	for <mm-commits@vger.kernel.org>; Wed,  7 May 2025 20:51:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746641616; cv=none; b=JKcV2FEvaPK6dC02vFQpwhFailpmBQP82BEkx9WL+woVkeGbONQzXMyvuxmE2WE+RcjEe8VQnzYBFqiUebBI0+XxsFVmnqlOxP6eU0LFtazgNGi8U/jCZa6EVK0eI7c461cL+eWhCLDEP0GA1V8Ui+lmY/N+5/FaSMKuAAce0sc=
+	t=1746651077; cv=none; b=bgFEFORF0bCUCTn0XsXqtNakRPZnTkF76Hk/q5Gf5GNg//13XeawlnOH12vCHRJhULtyCum23GrHLaTOJ2AeMiROVU4pa4+8/YGvhPYy+Fw6V0tjqzhxtfc/eoyrBY0SwVofpVfIw/ZNGL7A6gYgevHWN6pWztcXcmUbux6yp/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746641616; c=relaxed/simple;
-	bh=Viddabnp6RWcAmFOTcx6dO1okQGs3+JsMfu2Ag07QX0=;
-	h=Date:To:From:Subject:Message-Id; b=bhtEB4IeU75HjoXkZlu1mRtRf4dhaJjPLiJSe+jxfPLt+7qiH7JPdDYoj2s1/n1zecbNZuYpWN059KiSUmXH4nDTYuTpbpUmZt0dLFNdlFG0oH5BAzDgU1KTn45M26TeilklkJQmyfK3yyLa++JsAr2kWmP+eRhNFB0ZvlAmB0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WlTMYjIn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746651077; c=relaxed/simple;
+	bh=r8S99y/UW6mS3+oH74NOqSLW6Q9zhGglo7KmTBPWpvA=;
+	h=Date:To:From:Subject:Message-Id; b=G9ub/PpBYlg3kDrq97rmYuvU+op5fCBNNNUrlhYZOcFXYx9LILVGqZZSBonj6H6V+ogyY7aLBsD6Ke6I9eQziwcEeY5fV2FTiQLowcX7QgNw4HRLCQvsXSZ5iQxeKViHdJCDTznN41la45ypYFI92BX2JLDOxS798NWaWz9MEu8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vm16y+ql; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WlTMYjIn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C849C4CEE2;
-	Wed,  7 May 2025 18:13:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vm16y+ql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DB66C4CEE2;
+	Wed,  7 May 2025 20:51:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746641615;
-	bh=Viddabnp6RWcAmFOTcx6dO1okQGs3+JsMfu2Ag07QX0=;
+	s=korg; t=1746651077;
+	bh=r8S99y/UW6mS3+oH74NOqSLW6Q9zhGglo7KmTBPWpvA=;
 	h=Date:To:From:Subject:From;
-	b=WlTMYjIn/2yKbUCvxWw9TYGRyR+AdBDBTO8WBRJGpWRAaZuzVQSni3q2JNZKFIZp7
-	 WGojJksihlNFWomgoxhOT5hZ397Vu90k5YoeMQB6ux7mjHTjDmPxclHZAuzSB9B1N2
-	 ni/una0pd1XCjnrCPsGkPzJmkEufMx5JbaWcBvhI=
-Date: Wed, 07 May 2025 11:13:34 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,igor.b@beldev.am,hannes@cmpxchg.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=vm16y+qlI1EcGNMNv15MpJ5pyNXmLUsXWOuZK66nFvyeuvZophkP8bTXId1HYUIfK
+	 pnL0tYEz7S8DMKMynaSp+lrXf4f0ZLdWS3mqOO+6LKYTvakrEl0dn8CqxwM0EubBY3
+	 wIkc9+OkgAzvD57DZsll2GWFu8IbGlYh6Ip2v9qo=
+Date: Wed, 07 May 2025 13:51:15 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,ast@kernel.org,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250507181335.8C849C4CEE2@smtp.kernel.org>
+Subject: + mm-page_alloc-ensure-try_alloc_pages-plays-well-with-unaccepted-memory.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250507205117.1DB66C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc: don't underflow size calculation in zs_obj_write()
+     Subject: mm/page_alloc: ensure try_alloc_pages() plays well with unaccepted memory
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch
+     mm-page_alloc-ensure-try_alloc_pages-plays-well-with-unaccepted-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-ensure-try_alloc_pages-plays-well-with-unaccepted-memory.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,93 +58,139 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: don't underflow size calculation in zs_obj_write()
-Date: Wed, 7 May 2025 14:42:24 +0900
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm/page_alloc: ensure try_alloc_pages() plays well with unaccepted memory
+Date: Tue, 6 May 2025 14:25:08 +0300
 
-Do not mix class->size and object size during offsets/sizes calculation in
-zs_obj_write().  Size classes can merge into clusters, based on
-objects-per-zspage and pages-per-zspage characteristics, so some size
-classes can store objects smaller than class->size.  This becomes
-problematic when object size is much smaller than class->size.  zsmalloc
-can falsely decide that object spans two physical pages, because a larger
-class->size value is used for that check, while the actual object is much
-smaller and fits the free space of the first physical page, so there is
-nothing to write to the second page and memcpy() size calculation
-underflows.
+try_alloc_pages() will not attempt to allocate memory if the system has
+*any* unaccepted memory.  Memory is accepted as needed and can remain in
+the system indefinitely, causing the interface to always fail.
 
- Unable to handle kernel paging request at virtual address ffffc00081ff4000
- pc : __memcpy+0x10/0x24
- lr : zs_obj_write+0x1b0/0x1d0 [zsmalloc]
- Call trace:
-  __memcpy+0x10/0x24 (P)
-  zram_write_page+0x150/0x4fc [zram]
-  zram_submit_bio+0x5e0/0x6a4 [zram]
-  __submit_bio+0x168/0x220
-  submit_bio_noacct_nocheck+0x128/0x2c8
-  submit_bio_noacct+0x19c/0x2f8
+Rather than immediately giving up, attempt to use already accepted memory
+on free lists.
 
-This is mostly seen on system with larger page-sizes, because size class
-cluters of such systems hold wider size ranges than on 4K PAGE_SIZE
-systems.
+Pass 'alloc_flags' to cond_accept_memory() and do not accept new memory
+for ALLOC_TRYLOCK requests.
 
-Assume a 16K PAGE_SIZE system, a write of 820 bytes object to a 864-bytes
-size class at offset 15560.  15560 + 864 is more than 16384 so zsmalloc
-attempts to memcpy() it to two physical pages.  However, 16384 - 15560 =
-824 which is more than 820, so the object in fact doesn't span two
-physical pages, and there is no data to write to the second physical page.
-
-We always know the exact size in bytes of the object that we are about to
-write (store), so use it instead of class->size.
-
-Link: https://lkml.kernel.org/r/20250507054312.4135983-1-senozhatsky@chromium.org
-Fixes: 44f76413496e ("zsmalloc: introduce new object mapping API")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Igor Belousov <igor.b@beldev.am>
-Tested-by: Igor Belousov <igor.b@beldev.am>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/20250506112509.905147-2-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: 97769a53f117 ("mm, bpf: Introduce try_alloc_pages() for opportunistic page allocation")
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-dont-underflow-size-calculation-in-zs_obj_write
-+++ a/mm/zsmalloc.c
-@@ -1243,19 +1243,19 @@ void zs_obj_write(struct zs_pool *pool,
- 	class = zspage_class(pool, zspage);
- 	off = offset_in_page(class->size * obj_idx);
+--- a/mm/page_alloc.c~mm-page_alloc-ensure-try_alloc_pages-plays-well-with-unaccepted-memory
++++ a/mm/page_alloc.c
+@@ -290,7 +290,8 @@ EXPORT_SYMBOL(nr_online_nodes);
+ #endif
  
--	if (off + class->size <= PAGE_SIZE) {
-+	if (!ZsHugePage(zspage))
-+		off += ZS_HANDLE_SIZE;
+ static bool page_contains_unaccepted(struct page *page, unsigned int order);
+-static bool cond_accept_memory(struct zone *zone, unsigned int order);
++static bool cond_accept_memory(struct zone *zone, unsigned int order,
++			       int alloc_flags);
+ static bool __free_unaccepted(struct page *page);
+ 
+ int page_group_by_mobility_disabled __read_mostly;
+@@ -3611,7 +3612,7 @@ retry:
+ 			}
+ 		}
+ 
+-		cond_accept_memory(zone, order);
++		cond_accept_memory(zone, order, alloc_flags);
+ 
+ 		/*
+ 		 * Detect whether the number of free pages is below high
+@@ -3638,7 +3639,7 @@ check_alloc_wmark:
+ 				       gfp_mask)) {
+ 			int ret;
+ 
+-			if (cond_accept_memory(zone, order))
++			if (cond_accept_memory(zone, order, alloc_flags))
+ 				goto try_this_zone;
+ 
+ 			/*
+@@ -3691,7 +3692,7 @@ try_this_zone:
+ 
+ 			return page;
+ 		} else {
+-			if (cond_accept_memory(zone, order))
++			if (cond_accept_memory(zone, order, alloc_flags))
+ 				goto try_this_zone;
+ 
+ 			/* Try again if zone has deferred pages */
+@@ -4852,7 +4853,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 			goto failed;
+ 		}
+ 
+-		cond_accept_memory(zone, 0);
++		cond_accept_memory(zone, 0, alloc_flags);
+ retry_this_zone:
+ 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages;
+ 		if (zone_watermark_fast(zone, 0,  mark,
+@@ -4861,7 +4862,7 @@ retry_this_zone:
+ 			break;
+ 		}
+ 
+-		if (cond_accept_memory(zone, 0))
++		if (cond_accept_memory(zone, 0, alloc_flags))
+ 			goto retry_this_zone;
+ 
+ 		/* Try again if zone has deferred pages */
+@@ -7289,7 +7290,8 @@ static inline bool has_unaccepted_memory
+ 	return static_branch_unlikely(&zones_with_unaccepted_pages);
+ }
+ 
+-static bool cond_accept_memory(struct zone *zone, unsigned int order)
++static bool cond_accept_memory(struct zone *zone, unsigned int order,
++			       int alloc_flags)
+ {
+ 	long to_accept, wmark;
+ 	bool ret = false;
+@@ -7300,6 +7302,10 @@ static bool cond_accept_memory(struct zo
+ 	if (list_empty(&zone->unaccepted_pages))
+ 		return false;
+ 
++	/* Bailout, since try_to_accept_memory_one() needs to take a lock */
++	if (alloc_flags & ALLOC_TRYLOCK)
++		return false;
 +
-+	if (off + mem_len <= PAGE_SIZE) {
- 		/* this object is contained entirely within a page */
- 		void *dst = kmap_local_zpdesc(zpdesc);
+ 	wmark = promo_wmark_pages(zone);
  
--		if (!ZsHugePage(zspage))
--			off += ZS_HANDLE_SIZE;
- 		memcpy(dst + off, handle_mem, mem_len);
- 		kunmap_local(dst);
- 	} else {
- 		/* this object spans two pages */
- 		size_t sizes[2];
+ 	/*
+@@ -7356,7 +7362,8 @@ static bool page_contains_unaccepted(str
+ 	return false;
+ }
  
--		off += ZS_HANDLE_SIZE;
- 		sizes[0] = PAGE_SIZE - off;
- 		sizes[1] = mem_len - sizes[0];
+-static bool cond_accept_memory(struct zone *zone, unsigned int order)
++static bool cond_accept_memory(struct zone *zone, unsigned int order,
++			       int alloc_flags)
+ {
+ 	return false;
+ }
+@@ -7427,11 +7434,6 @@ struct page *try_alloc_pages_noprof(int
+ 	if (!pcp_allowed_order(order))
+ 		return NULL;
  
+-#ifdef CONFIG_UNACCEPTED_MEMORY
+-	/* Bailout, since try_to_accept_memory_one() needs to take a lock */
+-	if (has_unaccepted_memory())
+-		return NULL;
+-#endif
+ 	/* Bailout, since _deferred_grow_zone() needs to take a lock */
+ 	if (deferred_pages_enabled())
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
-zram-modernize-writeback-interface.patch
-zram-modernize-writeback-interface-v3.patch
-zram-modernize-writeback-interface-v4.patch
-zsmalloc-cleanup-headers-includes.patch
-documentation-zram-update-idle-pages-tracking-documentation.patch
+mm-page_alloc-ensure-try_alloc_pages-plays-well-with-unaccepted-memory.patch
+mm-page_alloc-fix-race-condition-in-unaccepted-memory-handling.patch
 
