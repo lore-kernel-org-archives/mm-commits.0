@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A70A51494DB
-	for <mm-commits@vger.kernel.org>; Wed,  7 May 2025 01:39:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F59149C55
+	for <mm-commits@vger.kernel.org>; Wed,  7 May 2025 01:42:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746581970; cv=none; b=czAdlBCcTA8opZOsggDyL5bX+vApJ0NTWwGZgcTNgjpizd7tNWewn9aKLZF4/j24mBBy9CvtrWp7xfxpY6+aISox+Cp8ESZkineUkP0Jm4LhAHAi+XxWZ8v8171fRTsK4cGrUfE4gDKcvaO3x5eGN2Rs+/37xa8AFyzXhjMunC4=
+	t=1746582158; cv=none; b=FnrKloPJNsInCIup9jvAoJUWwahvIfzldqjvkV/uub989pH/PB/2CT2R5b2rZxOWqAurh2gQTYl6ddxJfayA456LtN6IBXHxNbG4+dmISpfGdGZzZt7Pi57Y6P5a2e/fwU0lzBjIOIGcOputEMY3fAdQvuQ4E0eJsH2COFZ8g2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746581970; c=relaxed/simple;
-	bh=CHozxv84qnE4prh0rEAZ/RovkHCmVdweogQu8wplBRM=;
-	h=Date:To:From:Subject:Message-Id; b=VJW8QGmGqHJzP/OHsvSCh5kwxGr0FBcd9cBTx3AtFUJuqvwO/cq5LAVhO5GMkZQcEY3/49b48zJ4oRZwgR3TL/suWCiYO1oVfE0RQVdprtBJxKrNqhfzuGSKHoxdGSW3qF4xZyOLbvpaq2JRXVbJOnEKAXM3z9/X8sBza/8i3vc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HCHm+ZqF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746582158; c=relaxed/simple;
+	bh=OkI8QFaBB8/PCJd34XZgNJOG8SExtSEGTKNwRg7ymfc=;
+	h=Date:To:From:Subject:Message-Id; b=HYIFwThHVjp+qwVcOBYp3+FQlXnvCYnDKKbdmEJta44Qh3lJr+gTKnM/X/DRxovXimvD1jZrgpYfUjCBo0NkM5CBFkXu7WRxd7M8Q6zoTEhQArECrOgKhb4/i5vHY+SohvXkRwRfpwJCX/I83pewqzbpABuVQBvMJOGpJpeYMMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uTN1iq/U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HCHm+ZqF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D4A5C4CEE4;
-	Wed,  7 May 2025 01:39:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uTN1iq/U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F98C4CEE4;
+	Wed,  7 May 2025 01:42:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746581970;
-	bh=CHozxv84qnE4prh0rEAZ/RovkHCmVdweogQu8wplBRM=;
+	s=korg; t=1746582158;
+	bh=OkI8QFaBB8/PCJd34XZgNJOG8SExtSEGTKNwRg7ymfc=;
 	h=Date:To:From:Subject:From;
-	b=HCHm+ZqF+8adaVK09IAyw4F18316Iaw1pgV7FxrT7jdWVTLPUdhOF6NTjgr8T4BEU
-	 sgWxouQT3a6s9JVRG2UL+4HVKNpAeY3f+dEkCjeAIJKdLiFvWZVqOM01ZjIs+eirO8
-	 lyr1tBw992O243W/2S79jkGm+iLsgy3U7pLjaC5I=
-Date: Tue, 06 May 2025 18:39:29 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,corbet@lwn.net,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=uTN1iq/UNuOO7L4ZYSXc6v85OVDVth89hH9Ly8UmHgij/PO7R3x395NPOqZrVmp8B
+	 466PO9nakFTrrI6bFzKdpBahPZIUMVc47mcV0q0rNMaWOZFTEq9IMhxdBjCrwO/zEd
+	 +L4KeGY7dMOfMZHJn/5Bbwh9IM037XjdbMm7RnF8=
+Date: Tue, 06 May 2025 18:42:37 -0700
+To: mm-commits@vger.kernel.org,p.raghav@samsung.com,dave@stgolabs.net,da.gomez@samsung.com,brauner@kernel.org,mcgrof@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] documentation-kernel-parameters-update-memtest-parameter.patch removed from -mm tree
-Message-Id: <20250507013930.0D4A5C4CEE4@smtp.kernel.org>
+Subject: [merged] swapfile-disable-swapon-for-bs-ps-devices.patch removed from -mm tree
+Message-Id: <20250507014238.30F98C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation/kernel-parameters: update memtest parameter
+     Subject: swapfile: disable swapon for bs > ps devices
 has been removed from the -mm tree.  Its filename was
-     documentation-kernel-parameters-update-memtest-parameter.patch
+     swapfile-disable-swapon-for-bs-ps-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: WangYuli <wangyuli@uniontech.com>
-Subject: Documentation/kernel-parameters: update memtest parameter
-Date: Mon, 28 Apr 2025 11:47:46 +0800
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: swapfile: disable swapon for bs > ps devices
+Date: Mon, 5 May 2025 12:35:19 -0700
 
-LoongArch, MIPS and XTENSA has supported memtest now.
-Update documentation for them.
+Devices which have a requirement for bs > ps cannot be supported for swap
+as swap still needs work.  Now that the block device cache sets the min
+order for block devices we need this stopgap otherwise all swap operations
+are rejected.
 
-Link: https://web.git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=dce44566192ec0b38597fdfd435013c2d54653ff
-Link: https://web.git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=fb8e9f59d6f292c3d9fea6c155c22ea5fc3053ab
-Link: https://lkml.kernel.org/r/0FC3D21CA22E8251+20250428034746.21216-1-wangyuli@uniontech.com
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Without this you'll end up with errors on these devices as the swap code
+still needs much love to support min order.
+
+With this we at least now put a stop gap of its use, until the swap
+subsystem completes its major overhaul:
+
+mkswap: /dev/nvme3n1: warning: wiping old swap signature.
+Setting up swapspace version 1, size = 100 GiB (107374178304 bytes)
+no label, UUID=6af76b5c-7e7b-4902-b7f7-4c24dde6fa36
+swapon: /dev/nvme3n1: swapon failed: Invalid argument
+
+Link: https://lkml.kernel.org/r/aBkS926thy9zvdZb@bombadil.infradead.org
+Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~documentation-kernel-parameters-update-memtest-parameter
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3620,7 +3620,7 @@
- 			Note that even when enabled, there are a few cases where
- 			the feature is not effective.
+--- a/mm/swapfile.c~swapfile-disable-swapon-for-bs-ps-devices
++++ a/mm/swapfile.c
+@@ -3335,6 +3335,15 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	}
  
--	memtest=	[KNL,X86,ARM,M68K,PPC,RISCV,EARLY] Enable memtest
-+	memtest=	[KNL,X86,ARM,LOONGARCH,MIPS,M68K,PPC,RISCV,XTENSA,EARLY] Enable memtest
- 			Format: <integer>
- 			default : 0 <disable>
- 			Specifies the number of memtest passes to be
+ 	/*
++	 * The swap subsystem needs a major overhaul to support this.
++	 * It doesn't work yet so just disable it for now.
++	 */
++	if (mapping_min_folio_order(mapping) > 0) {
++		error = -EINVAL;
++		goto bad_swap_unlock_inode;
++	}
++
++	/*
+ 	 * Read the swap header.
+ 	 */
+ 	if (!mapping->a_ops->read_folio) {
 _
 
-Patches currently in -mm which might be from wangyuli@uniontech.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment.patch
-treewide-fix-typo-previlege.patch
 
