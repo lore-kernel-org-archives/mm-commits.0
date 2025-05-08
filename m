@@ -1,193 +1,241 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D47902153CE
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 10:39:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95D1B26AA91
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 14:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746700771; cv=none; b=CX6Xd0sD8hDSHUO9vXf9S7PfRkmFnr5TRvC6s7EmqBPMYOFMcPW2a+pEQ4sDSnMO0TtvjkWUWf6JjG7py5QMTDZPUWNeOPUqTElSkE1sWxlY1Xl0Qst19V2C8thsjdCERj6fzaPZMgKPMppyhL5nts7f425FQAGTL0iiA/PvcLk=
+	t=1746713800; cv=none; b=flxO4HwVReRPMSChHHDVDTd7CU7EHcKLbUysRG26p9ORyJ4j9NSamfj27C1fQvPLE21lOT9T1p1zKhnMtDVJykd9x05HyTl/jUmduW72EYnwTySLhw7TaE3ITILskqHhZN3SAYqSUbkOSGRt3q8HSm292IVnyPyM3Hz/OnEs8PE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746700771; c=relaxed/simple;
-	bh=s0RnME7KcgCLL/k3+995bUNDXoyywiIwMC2WZiBwA2o=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mO7o6uwZJJn67WEgHPTNztkd1YuTqHMT9+Bg6D/RTKLb+uYlub3b3iqleANM+ahsVlbQQhgl9ut2ssJJUoeJa53D6KEdg6WrZhp5QurgRjecalcM29Pgzx4wst7QeEMPpr63CcmRszUIG/9PhUdYy38XnFXlTNP80tLskvEj/Ew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SBZcO90u; arc=none smtp.client-ip=170.10.133.124
+	s=arc-20240116; t=1746713800; c=relaxed/simple;
+	bh=d1+xl51O3qfwEUoz+9OMm+aOmaBTylsDC7k+AgEroXQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=A+76V2aTKv20aZEKnmVzYsfKfCncIre2OEDuUV2y7EUXovzEhqT7dM6WCLiUZUIQmgKvIcuH5KqQLFQhpjAI0Ia0YmR62VtAKQ6dKiUm8s5RVNJk7A3/Fz6/bTZWtv/fzoW4w6zjNCsbZRmfT2flNAKY1Hv4bZ4B2wSb+a3qNdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Xko/mZZw; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SBZcO90u"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Xko/mZZw"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1746700768;
+	s=mimecast20190719; t=1746713797;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=6t4cEg0LatFjlXf3QXDDfjGKg9CKcJBCQRCDHV4Ml9s=;
-	b=SBZcO90uAImOBdOdZ+658QkBrl1OIoY0OJSS5zGhRcvOYLi0sWFTu1BZmjLD4oww9QloEF
-	Vie4JFEHQakaGcX6ivLnsv+63ohZuxrs+ZIVOn2k8S2YL2IeZD6QXhqtqBEkVSYEP47Zzs
-	tRhl9sjsn5YWWr77ni0F1UzrfXaMg1k=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	 in-reply-to:in-reply-to:references:references;
+	bh=um4v5Ggv8KZt/cYvJ2mkWIvMuM3e/8BwCZI+HcsnOdY=;
+	b=Xko/mZZwikH0XCRCyBNVsOlS8DuBqoY40hi3brvZTOBGfclGVXc9Ueu9EkFc/AXiyWv18D
+	JUTH5HceCINE7jDmZ+ujQtIPAVS5eWA4AXDdfoE6VWWjEAybIHhcWPXCttVAYjuvXAlYwA
+	Nkxa8J++qqfGqsV0xaxDtgj+9EvulVQ=
+Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com
+ [209.85.222.197]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-516-i8qZii4mNESXCk-qg_WkvQ-1; Thu, 08 May 2025 06:39:27 -0400
-X-MC-Unique: i8qZii4mNESXCk-qg_WkvQ-1
-X-Mimecast-MFC-AGG-ID: i8qZii4mNESXCk-qg_WkvQ_1746700766
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3912fe32b08so449779f8f.3
-        for <mm-commits@vger.kernel.org>; Thu, 08 May 2025 03:39:27 -0700 (PDT)
+ us-mta-34-uE3o0-SYMQOvijUjhToVig-1; Thu, 08 May 2025 10:16:35 -0400
+X-MC-Unique: uE3o0-SYMQOvijUjhToVig-1
+X-Mimecast-MFC-AGG-ID: uE3o0-SYMQOvijUjhToVig_1746713795
+Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-7c95e424b62so359546985a.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 May 2025 07:16:35 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746700766; x=1747305566;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=6t4cEg0LatFjlXf3QXDDfjGKg9CKcJBCQRCDHV4Ml9s=;
-        b=AmzfaxxB5BF6lfNf4vap6H7q4ebNckTg47zyONoaxdfWxUhQrkRFVQ5U3eaOwnC6tM
-         ym/n0moe7aEy5bljZcpbkqSvFNp//zRQii9PIHpwuN8gn3YxHuksP1yFdqYU2rUX7OYe
-         EzbM2jOBhhPnddc1zxPLUiPC55g6Gxf70JT0xj0cf7CjjVJPdUih307TFl9gO3XiczM6
-         7u18BrCx+EVizY6WPLM2fUkZ9fe8aJSrdH+rY7n52mIbzJ82HMacCoMSP6AGVS2BVJX+
-         2f8SVm3LxxT+IkcUNhuE6EBDqwr1ZHGf0e2UBp6Ev/fhp1vRD2Vk5IQ+cShdKiET9ZJs
-         XTyA==
-X-Forwarded-Encrypted: i=1; AJvYcCUy5x+iyJ14rxn0ZgujG4+jhC5YTuJECphFzDKuK90F3FzGWRmr73998/oYa1+yAOYZ7p79UtQBw74v@vger.kernel.org
-X-Gm-Message-State: AOJu0YxFZP5Dhxxj7qlwgh4BW+w/IUjVQ491qVOIruvNZnMN1samoJQX
-	jk2eKYFvE9ydmg6m5L8hTEabWGwG4AyvhvxYKLwLhQTmkngk3RSPtSAYkSbw/Mwqb8iapMt4Vkt
-	bB8SM7lg7qg0MjJ1XebPl4JMb6Y4R+hSW1pCISvA77EGkdh6M6KHULRZ2vt4=
-X-Gm-Gg: ASbGncvQlb3k0m6pNOyii0YNZGGBZRFymNZdZTlDR9z8rl/AumUql6JqmpF0KzUU62s
-	JBEuyYMy8KmLX+/RL932nAvyRnbBG8I1WNldXDbTC8J7ToZPVKG0oJs4gHBHSVhqDuQJwLJ9mBX
-	G+xI4DLNudIGd76D7JxCkxMZZYNvzX1IYXEjTgB0wWR3pFDpyT72/nfdQL2nbyjr+zRAK4fVSLa
-	8UGIUVK5Aj7i9T1XvUjmuKyh/HUP4cFDAmf2SJCulCfPRAbNBmvJVTHg8Tpuk+EllO8mpkuWCLo
-	wnxvFeukCZdY4nlXSsAR7c5H+K7ZKTp6GMAl5+3mUJUeX0LymCzAOzLZZ4Qdhb9d4Xvd09IIV+o
-	2nwIEy1x5uo+KcL4CMf2jSBwYEpMBEfydKWFB9jM=
-X-Received: by 2002:a05:6000:2204:b0:3a0:8a1c:ef0 with SMTP id ffacd0b85a97d-3a0b49bbdb3mr5647134f8f.24.1746700766383;
-        Thu, 08 May 2025 03:39:26 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEdXDs/mmzgArA3it/b9dcUHvIQwRl6ZyxODI36lZy4UlDZeanVDMnOFVuRhm28CrNzwbBeew==
-X-Received: by 2002:a05:6000:2204:b0:3a0:8a1c:ef0 with SMTP id ffacd0b85a97d-3a0b49bbdb3mr5647114f8f.24.1746700766017;
-        Thu, 08 May 2025 03:39:26 -0700 (PDT)
-Received: from ?IPV6:2003:d8:2f3e:5900:27aa:5f4a:b65c:3d3c? (p200300d82f3e590027aa5f4ab65c3d3c.dip0.t-ipconnect.de. [2003:d8:2f3e:5900:27aa:5f4a:b65c:3d3c])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a0b8542d91sm3004488f8f.5.2025.05.08.03.39.24
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 08 May 2025 03:39:25 -0700 (PDT)
-Message-ID: <364f77b4-a1c5-41e1-a147-3f534e18bcf9@redhat.com>
-Date: Thu, 8 May 2025 12:39:24 +0200
+        d=1e100.net; s=20230601; t=1746713795; x=1747318595;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=um4v5Ggv8KZt/cYvJ2mkWIvMuM3e/8BwCZI+HcsnOdY=;
+        b=WH/S2/wh0H1lpmVcws6yy2Q4ig/R63BtNZljM0Ji7AU32oqiZqwHAydvxgGZnzCKpe
+         nrN6SU9/DvDZgRAputBD+hx4UoBL3mC6cmzD9K5QSHleV07h0BQsf/okP0QNygP68fLt
+         HwEStZmzfiiu/NcQdwZ79YsK8jcBwJgp3xlMIfECryRF0KHB4jYmvFOQoq+NvEvI3VE/
+         in28yqnY/d/yMfVIgYI2rtpA57RjqvN0vl7Yoj9wwzzeivkk20dfLPZcZxkxx4XQgMHN
+         Mw6cKLTs36N9qmMo5+UofXQywbNGYXmr+Agzz7Z+6DJrrEQFvLANeWBAxqgEBm0YPMmd
+         YnRA==
+X-Gm-Message-State: AOJu0YwgiEyAQznqgYoYt2RfrneWQivMsR/x1PdStyITcqYVtBzx/WkS
+	xi+FvrZWnPWoxN2moY8kreQ7VFVdFSuOTZtbzRtddBFYsBxBJ27mb50RmmR+7cC2WvRBNC4l761
+	KinfNwRPIlxo2x8h6IDinbIJogGx+CbRl5pf4jE3XPpCAbVqJ25ar7ck0te8=
+X-Gm-Gg: ASbGnctSZp6C5WJvPh+G23Qt8V4bqkBQg+IkjnWkFZwnhmnUZo9OlZ+oL+SMt0iRW7m
+	oYViT5fqEVDs1Q0g6Y9/uq/nAnWh1QWmSsdLsKbNUvwHmkcHT/TwNb1Kh90gc/IYzAd1qVKJ5Pk
+	MYQkUo5c8hDFN/xOM5UVppCFyvzm4AmnxFhP+/vn0VbkNH9BjG9G41+0aK2xkLtUT5EUeLibVzZ
+	ow2wAIZQiroBU5/pLm5EI/1HElki+ojwqwMGOhDzHnBCrE4mvkUGA+yhVs0FDUbFsm4ig+qBcgQ
+	7Zc=
+X-Received: by 2002:ad4:5aa4:0:b0:6ed:e3d:a1b1 with SMTP id 6a1803df08f44-6f54bb3db98mr51261416d6.10.1746713795171;
+        Thu, 08 May 2025 07:16:35 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFBbB6SXtIs9IGyLTDsPYPblWUpU2sTLPDg6KB7WYfALPXH0MRo3CiJP9o6t98+MdjjLLCBNQ==
+X-Received: by 2002:ad4:5aa4:0:b0:6ed:e3d:a1b1 with SMTP id 6a1803df08f44-6f54bb3db98mr51260926d6.10.1746713794677;
+        Thu, 08 May 2025 07:16:34 -0700 (PDT)
+Received: from x1.local ([85.131.185.92])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6f6e39e099dsm305326d6.22.2025.05.08.07.16.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 May 2025 07:16:34 -0700 (PDT)
+Date: Thu, 8 May 2025 10:16:31 -0400
+From: Peter Xu <peterx@redhat.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, wade.farnsworth@siemens.com,
+	jhubbard@nvidia.com, jgg@ziepe.ca, david@redhat.com,
+	c.briere@samsung.com, artem.k@samsung.com,
+	p.antoniou@partner.samsung.com, David Howells <dhowells@redhat.com>
+Subject: Re: + fix-zero-copy-i-o-on-__get_user_pages-allocated-pages.patch
+ added to mm-hotfixes-unstable branch
+Message-ID: <aBy8v7gi3tsQ5-iy@x1.local>
+References: <20250507215555.81672C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-optimize-mremap-by-pte-batching.patch added to mm-new branch
-To: Dev Jain <dev.jain@arm.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- ziy@nvidia.com, zhengqi.arch@bytedance.com, yang@os.amperecomputing.com,
- willy@infradead.org, vbabka@suse.cz, ryan.roberts@arm.com,
- peterx@redhat.com, mingo@kernel.org, maobibo@loongson.cn,
- libang.li@antgroup.com, liam.howlett@oracle.com, jannh@google.com,
- ioworker0@gmail.com, hughd@google.com, baolin.wang@linux.alibaba.com,
- baohua@kernel.org, anshuman.khandual@arm.com
-References: <20250508014113.7E78FC4CEE2@smtp.kernel.org>
- <addcfcdf-3ded-4d9d-8a96-6006d3b71a51@arm.com>
- <66fada4e-c9e2-4d67-a939-9cc1a93239d7@lucifer.local>
- <d0fd1faf-ea5a-4b99-9b48-7e3e8725865e@arm.com>
-From: David Hildenbrand <david@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <d0fd1faf-ea5a-4b99-9b48-7e3e8725865e@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250507215555.81672C4CEE2@smtp.kernel.org>
 
-On 08.05.25 12:19, Dev Jain wrote:
-> 
-> 
-> On 08/05/25 3:41 pm, Lorenzo Stoakes wrote:
->> On Thu, May 08, 2025 at 03:38:46PM +0530, Dev Jain wrote:
->>>
->>>
->>> On 08/05/25 7:11 am, Andrew Morton wrote:
->>
->> [snip]
->>
->>>>     	/*
->>>>     	 * When need_rmap_locks is true, we take the i_mmap_rwsem and anon_vma
->>>> @@ -236,12 +254,13 @@ static int move_ptes(struct pagetable_mo
->>>>     	flush_tlb_batched_pending(vma->vm_mm);
->>>>     	arch_enter_lazy_mmu_mode();
->>>> -	for (; old_addr < old_end; old_ptep++, old_addr += PAGE_SIZE,
->>>> -				   new_ptep++, new_addr += PAGE_SIZE) {
->>>> -		if (pte_none(ptep_get(old_ptep)))
->>>> +	for (int nr = 1; old_addr < old_end; old_ptep += nr, old_addr += nr * PAGE_SIZE,
->>>> +				   new_ptep += nr, new_addr += nr * PAGE_SIZE) {
->>>
->>> Apologies, this is wrong, I moved nr to the for loop thus nr will be
->>> initialized to 1 only once, what I intend to do is set this to 1 at the
->>> beginning of each iteration.
->>>
->>
->> Don't worry, Andrew will pull the series out of the mm-new tree based on review
->> push back automatically :)
->>
->> The mm-new tree is also intentionally designated as the 'anything goes' one
->> which has latest series in - easily applied, easily dropped, mm-unstable is
->> the one that goes to linux-next now and mm-stable is the final set of
->> patches that will be sent to Linus.
->>
->> So there's no need to proactively chase here unless it's heading for
->> mm-stable really!
-> 
-> Thanks for explaining what mm-new is, couldn't find anything about it on
-> lore :)
+Hi, Pantelis,
 
-You can find some more information at [1]. As the comment by Vlastimil 
-explains, the naming in the article is a bit different to what we ended 
-up with.
+[Cc David Howells]
 
-[1] https://lwn.net/Articles/1016724/
+On Wed, May 07, 2025 at 02:55:54PM -0700, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: Fix zero copy I/O on __get_user_pages allocated pages
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      fix-zero-copy-i-o-on-__get_user_pages-allocated-pages.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-zero-copy-i-o-on-__get_user_pages-allocated-pages.patch
+> 
+> This patch will later appear in the mm-hotfixes-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Pantelis Antoniou <p.antoniou@partner.samsung.com>
+> Subject: Fix zero copy I/O on __get_user_pages allocated pages
+> Date: Wed, 7 May 2025 10:41:05 -0500
+> 
+> Recent updates to net filesystems enabled zero copy operations, which
+> require getting a user space page pinned.
+> 
+> This does not work for pages that were allocated via __get_user_pages and
+> then mapped to user-space via remap_pfn_rage.
+> 
+> remap_pfn_range_internal() will turn on VM_IO | VM_PFNMAP vma bits. 
+> VM_PFNMAP in particular mark the pages as not having struct_page
+> associated with them, which is not the case for __get_user_pages()
+> 
+> This in turn makes any attempt to lock a page fail, and breaking I/O from
+> that address range.
+> 
+> This patch address it by special casing pages in those VMAs and not
+> calling vm_normal_page() for them.
+> 
+> Link: https://lkml.kernel.org/r/20250507154105.763088-2-p.antoniou@partner.samsung.com
+> Signed-off-by: Pantelis Antoniou <p.antoniou@partner.samsung.com>
+> Cc: Artem Krupotkin <artem.k@samsung.com>
+> Cc: Charles Briere <c.briere@samsung.com>
+> Cc: Wade Farnsworth <wade.farnsworth@siemens.com>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: John Hubbard <jhubbard@nvidia.com>
+> Cc: Peter Xu <peterx@redhat.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/gup.c |   22 ++++++++++++++++++----
+>  1 file changed, 18 insertions(+), 4 deletions(-)
+> 
+> --- a/mm/gup.c~fix-zero-copy-i-o-on-__get_user_pages-allocated-pages
+> +++ a/mm/gup.c
+> @@ -833,6 +833,20 @@ static inline bool can_follow_write_pte(
+>  	return !userfaultfd_pte_wp(vma, pte);
+>  }
+>  
+> +static struct page *gup_normal_page(struct vm_area_struct *vma,
+> +		unsigned long address, pte_t pte)
+> +{
+> +	unsigned long pfn;
+> +
+> +	if (vma->vm_flags & (VM_MIXEDMAP | VM_PFNMAP)) {
+> +		pfn = pte_pfn(pte);
+> +		if (!pfn_valid(pfn) || is_zero_pfn(pfn) || pfn > highest_memmap_pfn)
+> +			return NULL;
+> +		return pfn_to_page(pfn);
+> +	}
+> +	return vm_normal_page(vma, address, pte);
+> +}
+> +
+>  static struct page *follow_page_pte(struct vm_area_struct *vma,
+>  		unsigned long address, pmd_t *pmd, unsigned int flags,
+>  		struct dev_pagemap **pgmap)
+> @@ -858,7 +872,9 @@ static struct page *follow_page_pte(stru
+>  	if (pte_protnone(pte) && !gup_can_follow_protnone(vma, flags))
+>  		goto no_page;
+>  
+> -	page = vm_normal_page(vma, address, pte);
+> +	page = gup_normal_page(vma, address, pte);
+> +	if (page && (vma->vm_flags & (VM_MIXEDMAP | VM_PFNMAP)))
+> +		(void)follow_pfn_pte(vma, address, ptep, flags);
+>  
+>  	/*
+>  	 * We only care about anon pages in can_follow_write_pte() and don't
+> @@ -1130,7 +1146,7 @@ static int get_gate_page(struct mm_struc
+>  	*vma = get_gate_vma(mm);
+>  	if (!page)
+>  		goto out;
+> -	*page = vm_normal_page(*vma, address, entry);
+> +	*page = gup_normal_page(*vma, address, entry);
+
+Is this really needed?  IIUC the iter code would only use in either UBUF or
+IOVEC ones.
+
+>  	if (!*page) {
+>  		if ((gup_flags & FOLL_DUMP) || !is_zero_pfn(pte_pfn(entry)))
+>  			goto unmap;
+> @@ -1271,8 +1287,6 @@ static int check_vma_flags(struct vm_are
+>  	int foreign = (gup_flags & FOLL_REMOTE);
+>  	bool vma_anon = vma_is_anonymous(vma);
+>  
+> -	if (vm_flags & (VM_IO | VM_PFNMAP))
+> -		return -EFAULT;
+
+Is there's any justification that this won't break some existing GUP users
+that may rely on properly failing at pfnmaps?
+
+IIUC netfs isn't the first one that wants to GUP on top of pfnmaps, KVM
+does it for years and so far it was processed in a standalone path:
+
+hva_to_pfn:
+	else if (vma->vm_flags & (VM_IO | VM_PFNMAP)) {
+		r = hva_to_pfn_remapped(vma, kfp, &pfn);
+
+That started with supporting real pfnmaps (with no page struct), but pfnmap
+with page structs can also happen afaict, and kvm processes that too by
+checking page==NULL ultimately, e.g. in kvm_release_faultin_page().
+
+The other thing is above only processed pte level of pfnmap, and just to
+mention pmd/pud may need attention too because we're gradually supporting
+huge mappings even for pfns.  I didn't check whether it's possible as of
+now, though.  Maybe it's not an immediate concern.
+
+In general, I'm uncertain about whether this is the right way to go so
+far. To me it might be less intrusive if we follow what kvm does for now,
+or maybe we also at least want to enrich the justification part in the
+commit log.
+
+>  
+>  	if ((gup_flags & FOLL_ANON) && !vma_anon)
+>  		return -EFAULT;
+> _
+> 
+> Patches currently in -mm which might be from p.antoniou@partner.samsung.com are
+> 
+> fix-zero-copy-i-o-on-__get_user_pages-allocated-pages.patch
+> 
 
 -- 
-Cheers,
-
-David / dhildenb
+Peter Xu
 
