@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB6B21A931
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:40:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B47642192F1;
+	Thu,  8 May 2025 06:40:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746686444; cv=none; b=flitfYxdh6ZR+vRf8sSNXqRNBUM77L+DLjCVVhr0YtLi/s5yy6/Olb5H82K3EqKervFLHZ1fimLbETK79T/M3S9CmCXJJRosRWaUtw46WzLFW1APdPZQ/xrFdct9zkVuukRnpG/pcuuwk7CiYgO4fZpChqEbOEsM8Wv6B2P2KlQ=
+	t=1746686446; cv=none; b=syO4KUupNqQwu/61jy1c6/6AeG8cCDMhRFjRvWT5CcXuhIqjflGLVfVeQURtpd7/slRKtEzmjH61f9r1gfGZcwqkyaKUywwLchBb1AhykKQRyawgEFjMyh6HkFrTWkrUL1wu9SMc5fKb6H3XMTYFjXwmls0h6BKRFzRp26QXuXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746686444; c=relaxed/simple;
-	bh=VS/+cp643bnERPI3WxT7LaDxV56mkByh9wLfwA6qO6U=;
-	h=Date:To:From:Subject:Message-Id; b=FWgPKcGoYhT3AMa1i/lkj9ATDqhSMZe+jCKNqqXmhTjKhvVUIgMltQoyEQGnM3oO28y+rVwwUbDwJiZ0jTxW7cih2c2SCw76F9Gz+frdFx/XuCD4aIeEQ510LLalEimVAq9oaljuF7HU9GFE/+IygABZxhUN+1MMQp7QfNL+5rI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yzu2l6Qe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746686446; c=relaxed/simple;
+	bh=KaEWQ6/K29TMH3nRw9jtkg1uBOev5mGCsGHuVOknMmI=;
+	h=Date:To:From:Subject:Message-Id; b=R6/CDC2/LARV+MzMqJqzz4AZg1P6dXpza9Q+V7wC9Eqgez6iTb5K2XBX+nYi3HEFu8u61aNKWOex3j4uv/lC9I1lkp23qGDjeKUhIjsoNVIHcGCyWvrBN85TSRGoh4BtPOCfZGzVT8Z2IISYe70f3D7khyofUs2hP3uQ3Y/mcyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PiaQsvJB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yzu2l6Qe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82CBEC4CEEB;
-	Thu,  8 May 2025 06:40:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PiaQsvJB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63228C4CEEB;
+	Thu,  8 May 2025 06:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746686444;
-	bh=VS/+cp643bnERPI3WxT7LaDxV56mkByh9wLfwA6qO6U=;
+	s=korg; t=1746686446;
+	bh=KaEWQ6/K29TMH3nRw9jtkg1uBOev5mGCsGHuVOknMmI=;
 	h=Date:To:From:Subject:From;
-	b=yzu2l6Qe8Q2zHsZdJcBquDZHJNyqqoaHr7uBdgNAEXwUIgOhyK0HQyLgJ4jFv6GG8
-	 +SicO35IlADMj3kGoebcB4pq7jxOmRnp10uNhBeh71HLR8/1rR5yHD+Z9NuLGSM2F8
-	 WRT+StK+iFSBgxdiE1iOmRg5Qt1/IrpUTWhKUNFI=
-Date: Wed, 07 May 2025 23:40:44 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=PiaQsvJBXMqG4g8/cXNyx5RwXToUlrJrmD/sRdKAXqNA/qcWFHggigdot6QR6ATpC
+	 7kbMYUnsEYULpKXaaDlBR1Z23tYpTXzNISXi9FBHvCzRGZOZeb3XfHNvmTZ4INddmK
+	 NnsHEuEZF6Xn+KLxrNSxTZ6TsApl+AaXbINYKWWw=
+Date: Wed, 07 May 2025 23:40:45 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,revest@google.com,linmiaohe@huawei.com,hughd@google.com,gshan@redhat.com,david@redhat.com,gavinguo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-reverse-mapping-section.patch removed from -mm tree
-Message-Id: <20250508064044.82CBEC4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch removed from -mm tree
+Message-Id: <20250508064046.63228C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,87 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add reverse mapping section
+     Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-reverse-mapping-section.patch
+     mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add reverse mapping section
-Date: Fri, 18 Apr 2025 16:00:52 +0100
+From: Gavin Guo <gavinguo@igalia.com>
+Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
+Date: Mon, 21 Apr 2025 19:35:36 +0800
 
-Separate out the reverse mapping part of memory management and assign
-appropriate maintainers and reviewers.
+When migrating a THP, concurrent access to the PMD migration entry during
+a deferred split scan can lead to an invalid address access, as
+illustrated below.  To prevent this invalid access, it is necessary to
+check the PMD migration entry and return early.  In this context, there is
+no need to use pmd_to_swp_entry and pfn_swap_entry_to_page to verify the
+equality of the target folio.  Since the PMD migration entry is locked, it
+cannot be served as the target.
 
-David has long been invovled in work with the reverse mapping and
-continues to do so, so is well suited to maintain this area of the kernel.
+Mailing list discussion and explanation from Hugh Dickins: "An anon_vma
+lookup points to a location which may contain the folio of interest, but
+might instead contain another folio: and weeding out those other folios is
+precisely what the "folio != pmd_folio((*pmd)" check (and the "risk of
+replacing the wrong folio" comment a few lines above it) is for."
 
-I have a lot of experience working with the anonymous reverse mapping and
-continue to work in this area, and also have good knowledge of the walking
-code and code related to VMAs.
+BUG: unable to handle page fault for address: ffffea60001db008
+CPU: 0 UID: 0 PID: 2199114 Comm: tee Not tainted 6.14.0+ #4 NONE
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+RIP: 0010:split_huge_pmd_locked+0x3b5/0x2b60
+Call Trace:
+<TASK>
+try_to_migrate_one+0x28c/0x3730
+rmap_walk_anon+0x4f6/0x770
+unmap_folio+0x196/0x1f0
+split_huge_page_to_list_to_order+0x9f6/0x1560
+deferred_split_scan+0xac5/0x12a0
+shrinker_debugfs_scan_write+0x376/0x470
+full_proxy_write+0x15c/0x220
+vfs_write+0x2fc/0xcb0
+ksys_write+0x146/0x250
+do_syscall_64+0x6a/0x120
+entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-This helps people identify who to ask for help, and also additionally makes
-life easier in review.
+The bug is found by syzkaller on an internal kernel, then confirmed on
+upstream.
 
-Link: https://lkml.kernel.org/r/20250418150052.299220-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/20250421113536.3682201-1-gavinguo@igalia.com
+Link: https://lore.kernel.org/all/20250414072737.1698513-1-gavinguo@igalia.com/
+Link: https://lore.kernel.org/all/20250418085802.2973519-1-gavinguo@igalia.com/
+Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
+Signed-off-by: Gavin Guo <gavinguo@igalia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Acked-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Gavin Shan <gshan@redhat.com>
+Cc: Florent Revest <revest@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-reverse-mapping-section
-+++ a/MAINTAINERS
-@@ -15505,7 +15505,6 @@ F:	include/linux/mm_*.h
- F:	include/linux/mmzone.h
- F:	include/linux/mmu_notifier.h
- F:	include/linux/pagewalk.h
--F:	include/linux/rmap.h
- F:	include/trace/events/ksm.h
- F:	mm/
- F:	tools/mm/
-@@ -15545,6 +15544,19 @@ F:	mm/page_alloc.c
- F:	include/linux/gfp.h
- F:	include/linux/compaction.h
- 
-+MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	David Hildenbrand <david@redhat.com>
-+M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-+R:	Rik van Riel <riel@surriel.com>
-+R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Harry Yoo <harry.yoo@oracle.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+F:	include/linux/rmap.h
-+F:	mm/rmap.c
+--- a/mm/huge_memory.c~mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry
++++ a/mm/huge_memory.c
+@@ -3075,6 +3075,8 @@ static void __split_huge_pmd_locked(stru
+ void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
+ 			   pmd_t *pmd, bool freeze, struct folio *folio)
+ {
++	bool pmd_migration = is_pmd_migration_entry(*pmd);
 +
- MEMORY MANAGEMENT - SECRETMEM
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Mike Rapoport <rppt@kernel.org>
+ 	VM_WARN_ON_ONCE(folio && !folio_test_pmd_mappable(folio));
+ 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
+ 	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
+@@ -3085,9 +3087,12 @@ void split_huge_pmd_locked(struct vm_are
+ 	 * require a folio to check the PMD against. Otherwise, there
+ 	 * is a risk of replacing the wrong folio.
+ 	 */
+-	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
+-	    is_pmd_migration_entry(*pmd)) {
+-		if (folio && folio != pmd_folio(*pmd))
++	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) || pmd_migration) {
++		/*
++		 * Do not apply pmd_folio() to a migration entry; and folio lock
++		 * guarantees that it must be of the wrong folio anyway.
++		 */
++		if (folio && (pmd_migration || folio != pmd_folio(*pmd)))
+ 			return;
+ 		__split_huge_pmd_locked(vma, pmd, address, freeze);
+ 	}
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from gavinguo@igalia.com are
 
-maintainers-add-mm-gup-section.patch
-mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
-tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
-tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
-mm-move-mmap-vma-locking-logic-into-specific-files.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
-mm-abstract-initial-stack-setup-to-mm-subsystem.patch
-mm-move-dup_mmap-to-mm.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm.patch
-mm-introduce-new-mmap_prepare-file-callback.patch
-mm-secretmem-convert-to-mmap_prepare-hook.patch
-mm-vma-remove-mmap-retry-merge.patch
+mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch
+mm-huge_memory-remove-useless-folio-pointers-passing.patch
 
