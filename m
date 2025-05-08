@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFF9021A931
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:40:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB6B21A931
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:40:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746686444; cv=none; b=FoOZ3NoF9Lex/K/peET2wAzCBSXCiR9WyIsuvCu88W9fnfqlBqdBXi74LXcWUZZkRthwkMLiyQFNGb1zTuOe0kPhdNDujBf09iPiOBLd/Gaw20AZlVtP5YpQIXhkA3dozGF2t/LAULXuRfT54fQ0H/coXYWSygcjNK5QW3KWbak=
+	t=1746686444; cv=none; b=flitfYxdh6ZR+vRf8sSNXqRNBUM77L+DLjCVVhr0YtLi/s5yy6/Olb5H82K3EqKervFLHZ1fimLbETK79T/M3S9CmCXJJRosRWaUtw46WzLFW1APdPZQ/xrFdct9zkVuukRnpG/pcuuwk7CiYgO4fZpChqEbOEsM8Wv6B2P2KlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1746686444; c=relaxed/simple;
-	bh=SCmgHRCoKsavsbRiFnLqypfd8ZBx++K/ewNoF9JmBks=;
-	h=Date:To:From:Subject:Message-Id; b=a/jkUOhEF2aNcNjemKuuQJ9sSY1BpGV0FX7fFC1mqxh759KiZyZrUYaOfhDsheire1a3n3VeQ/rqPmy6Yysm+YTD+A2HGV2IZQMzj42l09ysdqdF9fqcicUnnHjjUp/gtLnS0xNqtXzAebxs3U1WdEDwJXCcc4EGHjP1GiiAlb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VSo7p7kY; arc=none smtp.client-ip=10.30.226.201
+	bh=VS/+cp643bnERPI3WxT7LaDxV56mkByh9wLfwA6qO6U=;
+	h=Date:To:From:Subject:Message-Id; b=FWgPKcGoYhT3AMa1i/lkj9ATDqhSMZe+jCKNqqXmhTjKhvVUIgMltQoyEQGnM3oO28y+rVwwUbDwJiZ0jTxW7cih2c2SCw76F9Gz+frdFx/XuCD4aIeEQ510LLalEimVAq9oaljuF7HU9GFE/+IygABZxhUN+1MMQp7QfNL+5rI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yzu2l6Qe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VSo7p7kY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB2DC4CEEF;
-	Thu,  8 May 2025 06:40:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yzu2l6Qe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82CBEC4CEEB;
+	Thu,  8 May 2025 06:40:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746686443;
-	bh=SCmgHRCoKsavsbRiFnLqypfd8ZBx++K/ewNoF9JmBks=;
+	s=korg; t=1746686444;
+	bh=VS/+cp643bnERPI3WxT7LaDxV56mkByh9wLfwA6qO6U=;
 	h=Date:To:From:Subject:From;
-	b=VSo7p7kYWzRcODenrxpzYn6nTUhYm/+5pryPGCa35EBETEUniCUtmmv4q0krm9U4a
-	 A28ucZPUcZUNFKmvetHEomNFz30yp9eZgZF3oWmtTE4cv1BLJH7Fj5/bK+Yeb1idS0
-	 vei5AsJBz3ELIwd6LWe3RGiHwLh1WkMZtg41DRrA=
-Date: Wed, 07 May 2025 23:40:42 -0700
-To: mm-commits@vger.kernel.org,x86@kernel.org,vincenzo.frascino@arm.com,torvalds@linux-foundation.org,tglx@linutronix.de,ryabinin.a.a@gmail.com,mingo@redhat.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,bp@alien8.de,andreyknvl@gmail.com,linux@roeck-us.net,akpm@linux-foundation.org
+	b=yzu2l6Qe8Q2zHsZdJcBquDZHJNyqqoaHr7uBdgNAEXwUIgOhyK0HQyLgJ4jFv6GG8
+	 +SicO35IlADMj3kGoebcB4pq7jxOmRnp10uNhBeh71HLR8/1rR5yHD+Z9NuLGSM2F8
+	 WRT+StK+iFSBgxdiE1iOmRg5Qt1/IrpUTWhKUNFI=
+Date: Wed, 07 May 2025 23:40:44 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] x86-disable-image-size-check-for-test-builds.patch removed from -mm tree
-Message-Id: <20250508064043.5AB2DC4CEEF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-reverse-mapping-section.patch removed from -mm tree
+Message-Id: <20250508064044.82CBEC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86: disable image size check for test builds
+     Subject: MAINTAINERS: add reverse mapping section
 has been removed from the -mm tree.  Its filename was
-     x86-disable-image-size-check-for-test-builds.patch
+     maintainers-add-reverse-mapping-section.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: x86: disable image size check for test builds
-Date: Wed, 16 Apr 2025 18:09:50 -0700
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add reverse mapping section
+Date: Fri, 18 Apr 2025 16:00:52 +0100
 
-64-bit allyesconfig builds fail with
+Separate out the reverse mapping part of memory management and assign
+appropriate maintainers and reviewers.
 
-x86_64-linux-ld: kernel image bigger than KERNEL_IMAGE_SIZE
+David has long been invovled in work with the reverse mapping and
+continues to do so, so is well suited to maintain this area of the kernel.
 
-Bisect points to commit 6f110a5e4f99 ("Disable SLUB_TINY for build
-testing") as the responsible commit.  Reverting that patch does indeed fix
-the problem.  Further analysis shows that disabling SLUB_TINY enables
-KASAN, and that KASAN is responsible for the image size increase.
+I have a lot of experience working with the anonymous reverse mapping and
+continue to work in this area, and also have good knowledge of the walking
+code and code related to VMAs.
 
-Solve the build problem by disabling the image size check for test
-builds.
+This helps people identify who to ask for help, and also additionally makes
+life easier in review.
 
-[akpm@linux-foundation.org: add comment, fix nearby typo (sink->sync)]
-[akpm@linux-foundation.org: fix comment snafu
-  Link: https://lore.kernel.org/oe-kbuild-all/202504191813.4r9H6Glt-lkp@intel.com/
-Link: https://lkml.kernel.org/r/20250417010950.2203847-1-linux@roeck-us.net
-Fixes: 6f110a5e4f99 ("Disable SLUB_TINY for build testing")
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <x86@kernel.org>
+Link: https://lkml.kernel.org/r/20250418150052.299220-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux.lds.S |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ MAINTAINERS |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/vmlinux.lds.S~x86-disable-image-size-check-for-test-builds
-+++ a/arch/x86/kernel/vmlinux.lds.S
-@@ -466,10 +466,18 @@ SECTIONS
- }
+--- a/MAINTAINERS~maintainers-add-reverse-mapping-section
++++ a/MAINTAINERS
+@@ -15505,7 +15505,6 @@ F:	include/linux/mm_*.h
+ F:	include/linux/mmzone.h
+ F:	include/linux/mmu_notifier.h
+ F:	include/linux/pagewalk.h
+-F:	include/linux/rmap.h
+ F:	include/trace/events/ksm.h
+ F:	mm/
+ F:	tools/mm/
+@@ -15545,6 +15544,19 @@ F:	mm/page_alloc.c
+ F:	include/linux/gfp.h
+ F:	include/linux/compaction.h
  
- /*
-- * The ASSERT() sink to . is intentional, for binutils 2.14 compatibility:
-+ * COMPILE_TEST kernels can be large - CONFIG_KASAN, for example, can cause
-+ * this.  Let's assume that nobody will be running a COMPILE_TEST kernel and
-+ * let's assert that fuller build coverage is more valuable than being able to
-+ * run a COMPILE_TEST kernel.
-+ */
-+#ifndef CONFIG_COMPILE_TEST
-+/*
-+ * The ASSERT() sync to . is intentional, for binutils 2.14 compatibility:
-  */
- . = ASSERT((_end - LOAD_OFFSET <= KERNEL_IMAGE_SIZE),
- 	   "kernel image bigger than KERNEL_IMAGE_SIZE");
-+#endif
- 
- /* needed for Clang - see arch/x86/entry/entry.S */
- PROVIDE(__ref_stack_chk_guard = __stack_chk_guard);
++MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	David Hildenbrand <david@redhat.com>
++M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
++R:	Rik van Riel <riel@surriel.com>
++R:	Liam R. Howlett <Liam.Howlett@oracle.com>
++R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Harry Yoo <harry.yoo@oracle.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	include/linux/rmap.h
++F:	mm/rmap.c
++
+ MEMORY MANAGEMENT - SECRETMEM
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Mike Rapoport <rppt@kernel.org>
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+maintainers-add-mm-gup-section.patch
+mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
+tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
+tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
+mm-move-mmap-vma-locking-logic-into-specific-files.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
+mm-abstract-initial-stack-setup-to-mm-subsystem.patch
+mm-move-dup_mmap-to-mm.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm.patch
+mm-introduce-new-mmap_prepare-file-callback.patch
+mm-secretmem-convert-to-mmap_prepare-hook.patch
+mm-vma-remove-mmap-retry-merge.patch
 
