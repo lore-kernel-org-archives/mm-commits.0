@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10D7284D02
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 00:56:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 416CF84D02
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 00:56:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746665768; cv=none; b=U8+AMOQmoR0ncoBuLDQxtHCHBY2P7jyaufkqMAMGLaNSgGkXeP2F5MbqySfLHHxxIY6hB5nLYJKJv4jGpKXdmLvNuamgvE4GJK6cKgW7JJrTkwHY8m1fMrJdWVej2HXN1xjjfLBAa79PiTpH2VCwntTT17kItoPof/yk6265mZc=
+	t=1746665772; cv=none; b=ggVgUKU6+dl3eB4TeqB3cDBBIu7TL6IjOu3zNHugHa1BuqyoKzeki0uphGTbftBa/qZ2+rFN3UPXZxmFp0U4nyhfc3S4peDw1s+DEj4llF4TYI8ImVm14Mz08/vmXAkm7NPj0KtyhN2h5CLbnpspuqRGJ2Fe30wAhkQhAsK2IM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746665768; c=relaxed/simple;
-	bh=0chKSSNdohcWdsQ3c88pOwmAOQD+VDe9flnBEN1tJ/k=;
-	h=Date:To:From:Subject:Message-Id; b=rWwD9vElhTrdKP2UgQBxEYaycEzH+TxE0XQHMjL7Nb/Njmc3ef8qd4vnB6jQx9Vjfm/wG6ZD9ZrFIUwjNg0qgDKyeBvAIDuTa7U3izNogpQqRW3Q1XdoVzL+wxtIiOmZsTCeNocL0RAeroRIFtbmlLXDG+UxOtvbmLQ//gev1v0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XfoJrBen; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746665772; c=relaxed/simple;
+	bh=Z818NFwBN2L9Bze42rZ+Xm+7nYKyw5+7R5yAbxf+a/U=;
+	h=Date:To:From:Subject:Message-Id; b=kqIr1iXw20STPrGMTg5g6ahdguOc0xkWNeJjpFcyiFNbRsu0nETFKoiNI50aD7RFQaA8dFh2z7HOJGoV0Jf3zQdfs32ayWdy3Ke9lBy/kgYmACDg2tzlH+GT33SJor9Y4ypxnqluB92oLTs8hD/bQt7sJQzG0awvjGNwqLW+g2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h5TCUGjw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XfoJrBen"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50616C4CEE2;
-	Thu,  8 May 2025 00:56:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h5TCUGjw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2B3C4CEE2;
+	Thu,  8 May 2025 00:56:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746665767;
-	bh=0chKSSNdohcWdsQ3c88pOwmAOQD+VDe9flnBEN1tJ/k=;
+	s=korg; t=1746665771;
+	bh=Z818NFwBN2L9Bze42rZ+Xm+7nYKyw5+7R5yAbxf+a/U=;
 	h=Date:To:From:Subject:From;
-	b=XfoJrBenb/r8fpMcnJ3FJIA/YrQ8ZN7W0YVk/7gW8iltPYzmhHKJO0ZrrwWrb6ogB
-	 PXIZy4snqtn1+dIUgv85zg/5I6DwsB+ndwb6voJgKWYO2iv1dZ9Ocx+I5/PemVhNmZ
-	 vwqaK4kA4oT1KXj3vHMiv+T978cZ/kfSJSQtDwPY=
-Date: Wed, 07 May 2025 17:56:06 -0700
+	b=h5TCUGjwcn9+ZvDrUU64pKoMvdebGLA79+Kxm3EkY20NNm3gQ5K5iMz7/otUHdWeX
+	 pwu2e5ZlrKGFnZ6urHitqfzQf9a+w16/Az8aXEQEeJ9CclgHW/syKPznRYnOIdhLUq
+	 CQisiQshAVlQCXQ3jQ51s4ReEEN3l7Z7xLt8qHaY=
+Date: Wed, 07 May 2025 17:56:11 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-new-mmap_prepare-file-callback.patch added to mm-unstable branch
-Message-Id: <20250508005607.50616C4CEE2@smtp.kernel.org>
+Subject: + mm-secretmem-convert-to-mmap_prepare-hook.patch added to mm-unstable branch
+Message-Id: <20250508005611.9C2B3C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce new .mmap_prepare() file callback
+     Subject: mm: secretmem: convert to .mmap_prepare() hook
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-new-mmap_prepare-file-callback.patch
+     mm-secretmem-convert-to-mmap_prepare-hook.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-new-mmap_prepare-file-callback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-secretmem-convert-to-mmap_prepare-hook.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,167 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: introduce new .mmap_prepare() file callback
-Date: Wed, 7 May 2025 12:03:34 +0100
+Subject: mm: secretmem: convert to .mmap_prepare() hook
+Date: Wed, 7 May 2025 12:03:35 +0100
 
-Patch series "eliminate mmap() retry merge, add .mmap_prepare hook".
+Secretmem has a simple .mmap() hook which is easily converted to the new
+.mmap_prepare() callback.
 
-During the mmap() of a file-backed mapping, we invoke the underlying
-driver file's mmap() callback in order to perform driver/file system
-initialisation of the underlying VMA.
+Importantly, it's a rare instance of an driver that manipulates a VMA
+which is mergeable (that is, not a VM_SPECIAL mapping) while also
+adjusting VMA flags which may adjust mergeability, meaning the retry merge
+logic might impact whether or not the VMA is merged.
 
-This has been a source of issues in the past, including a significant
-security concern relating to unwinding of error state discovered by Jann
-Horn, as fixed in commit 5de195060b2e ("mm: resolve faulty mmap_region()
-error path behaviour") which performed the recent, significant, rework of
-mmap() as a whole.
+By using .mmap_prepare() there's no longer any need to retry the merge
+later as we can simply set the correct flags from the start.
 
-However, we have had a fly in the ointment remain - drivers have a great
-deal of freedom in the .mmap() hook to manipulate VMA state (as well as
-page table state).
+This change therefore allows us to remove the retry merge logic in a
+subsequent commit.
 
-This can be problematic, as we can no longer reason sensibly about VMA
-state once the call is complete (the ability to do - anything - here does
-rather interfere with that).
-
-In addition, callers may choose to do odd or unusual things which might
-interfere with subsequent steps in the mmap() process, and it may do so
-and then raise an error, requiring very careful unwinding of state about
-which we can make no assumptions.
-
-Rather than providing such an open-ended interface, this series provides
-an alternative, far more restrictive one - we expose a whitelist of fields
-which can be adjusted by the driver, along with immutable state upon which
-the driver can make such decisions:
-
-struct vm_area_desc {
-	/* Immutable state. */
-	struct mm_struct *mm;
-	unsigned long start;
-	unsigned long end;
-
-	/* Mutable fields. Populated with initial state. */
-	pgoff_t pgoff;
-	struct file *file;
-	vm_flags_t vm_flags;
-	pgprot_t page_prot;
-
-	/* Write-only fields. */
-	const struct vm_operations_struct *vm_ops;
-	void *private_data;
-};
-
-The mmap logic then updates the state used to either merge with a VMA or
-establish a new VMA based upon this logic.
-
-This is achieved via new file hook .mmap_prepare(), which is, importantly,
-invoked very early on in the mmap() process.
-
-If an error arises, we can very simply abort the operation with very
-little unwinding of state required.
-
-The existing logic contains another, related, peccadillo - since the
-.mmap() callback might do anything, it may also cause a previously
-unmergeable VMA to become mergeable with adjacent VMAs.
-
-Right now the logic will retry a merge like this only if the driver
-changes VMA flags, and changes them in such a way that a merge might
-succeed (that is, the flags are not 'special', that is do not contain any
-of the flags specified in VM_SPECIAL).
-
-This has also been the source of a great deal of pain - it's hard to
-reason about an .mmap() callback that might do - anything - but it's also
-hard to reason about setting up a VMA and writing to the maple tree, only
-to do it again utilising a great deal of shared state.
-
-Since .mmap_prepare() sets fields before the first merge is even
-attempted, the use of this callback obviates the need for this retry merge
-logic.
-
-A driver may only specify .mmap_prepare() or the deprecated .mmap()
-callback.  In future we may add futher callbacks beyond .mmap_prepare() to
-faciliate all use cass as we convert drivers.
-
-In researching this change, I examined every .mmap() callback, and
-discovered only a very few that set VMA state in such a way that a.  the
-VMA flags changed and b.  this would be mergeable.
-
-In the majority of cases, it turns out that drivers are mapping kernel
-memory and thus ultimately set VM_PFNMAP, VM_MIXEDMAP, or other
-unmergeable VM_SPECIAL flags.
-
-Of those that remain I identified a number of cases which are only
-applicable in DAX, setting the VM_HUGEPAGE flag:
-
-* dax_mmap()
-* erofs_file_mmap()
-* ext4_file_mmap()
-* xfs_file_mmap()
-
-For this remerge to not occur and to impact users, each of these cases
-would require a user to mmap() files using DAX, in parts, immediately
-adjacent to one another.
-
-This is a very unlikely usecase and so it does not appear to be worthwhile
-to adjust this functionality accordingly.
-
-We can, however, very quickly do so if needed by simply adding an
-.mmap_prepare() callback to these as required.
-
-There are two further non-DAX cases I idenitfied:
-
-* orangefs_file_mmap() - Clears VM_RAND_READ if set, replacing with
-  VM_SEQ_READ.
-* usb_stream_hwdep_mmap() - Sets VM_DONTDUMP.
-
-Both of these cases again seem very unlikely to be mmap()'d immediately
-adjacent to one another in a fashion that would result in a merge.
-
-Finally, we are left with a viable case:
-
-* secretmem_mmap() - Set VM_LOCKED, VM_DONTDUMP.
-
-This is viable enough that the mm selftests trigger the logic as a matter
-of course.  Therefore, this series replace the .secretmem_mmap() hook with
-.secret_mmap_prepare().
-
-
-This patch (of 3):
-
-Provide a means by which drivers can specify which fields of those
-permitted to be changed should be altered to prior to mmap()'ing a range
-(which may either result from a merge or from mapping an entirely new
-VMA).
-
-Doing so is substantially safer than the existing .mmap() calback which
-provides unrestricted access to the part-constructed VMA and permits
-drivers and file systems to do 'creative' things which makes it hard to
-reason about the state of the VMA after the function returns.
-
-The existing .mmap() callback's freedom has caused a great deal of issues,
-especially in error handling, as unwinding the mmap() state has proven to
-be non-trivial and caused significant issues in the past, for instance
-those addressed in commit 5de195060b2e ("mm: resolve faulty mmap_region()
-error path behaviour").
-
-It also necessitates a second attempt at merge once the .mmap() callback
-has completed, which has caused issues in the past, is awkward, adds
-overhead and is difficult to reason about.
-
-The .mmap_prepare() callback eliminates this requirement, as we can update
-fields prior to even attempting the first merge.  It is safer, as we
-heavily restrict what can actually be modified, and being invoked very
-early in the mmap() process, error handling can be performed safely with
-very little unwinding of state required.
-
-The .mmap_prepare() and deprecated .mmap() callbacks are mutually
-exclusive, so we permit only one to be invoked at a time.
-
-Update vma userland test stubs to account for changes.
-
-Link: https://lkml.kernel.org/r/cover.1746615512.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/c958ac6932eb8dd9ddbd2363bc2d242ff244341b.1746615512.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/a196a08a52039ee159c8333d0c6547e78112acb7.1746615512.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -228,365 +87,50 @@ Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h               |   38 +++++++++++++
- include/linux/mm_types.h         |   24 ++++++++
- mm/memory.c                      |    3 -
- mm/mmap.c                        |    2 
- mm/vma.c                         |   70 +++++++++++++++++++++++++
- tools/testing/vma/vma_internal.h |   79 +++++++++++++++++++++++++++--
- 6 files changed, 208 insertions(+), 8 deletions(-)
+ mm/secretmem.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/fs.h~mm-introduce-new-mmap_prepare-file-callback
-+++ a/include/linux/fs.h
-@@ -2169,6 +2169,7 @@ struct file_operations {
- 	int (*uring_cmd)(struct io_uring_cmd *ioucmd, unsigned int issue_flags);
- 	int (*uring_cmd_iopoll)(struct io_uring_cmd *, struct io_comp_batch *,
- 				unsigned int poll_flags);
-+	int (*mmap_prepare)(struct vm_area_desc *);
- } __randomize_layout;
- 
- /* Supports async buffered reads */
-@@ -2238,11 +2239,48 @@ struct inode_operations {
- 	struct offset_ctx *(*get_offset_ctx)(struct inode *inode);
- } ____cacheline_aligned;
- 
-+static inline bool file_has_deprecated_mmap_hook(struct file *file)
-+{
-+	return file->f_op->mmap;
-+}
-+
-+static inline bool file_has_mmap_prepare_hook(struct file *file)
-+{
-+	return file->f_op->mmap_prepare;
-+}
-+
-+/* Did the driver provide valid mmap hook configuration? */
-+static inline bool file_has_valid_mmap_hooks(struct file *file)
-+{
-+	bool has_mmap = file_has_deprecated_mmap_hook(file);
-+	bool has_mmap_prepare = file_has_mmap_prepare_hook(file);
-+
-+	/* Hooks are mutually exclusive. */
-+	if (has_mmap && has_mmap_prepare)
-+		return false;
-+
-+	/* But at least one must be specified. */
-+	if (!has_mmap && !has_mmap_prepare)
-+		return false;
-+
-+	return true;
-+}
-+
- static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	/* If the driver specifies .mmap_prepare() this call is invalid. */
-+	if (file_has_mmap_prepare_hook(file))
-+		return -EINVAL;
-+
- 	return file->f_op->mmap(file, vma);
- }
- 
-+static inline int __call_mmap_prepare(struct file *file,
-+		struct vm_area_desc *desc)
-+{
-+	return file->f_op->mmap_prepare(desc);
-+}
-+
- extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
- extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
- extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
---- a/include/linux/mm_types.h~mm-introduce-new-mmap_prepare-file-callback
-+++ a/include/linux/mm_types.h
-@@ -764,6 +764,30 @@ struct vma_numab_state {
- };
- 
- /*
-+ * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
-+ * manipulate mutable fields which will cause those fields to be updated in the
-+ * resultant VMA.
-+ *
-+ * Helper functions are not required for manipulating any field.
-+ */
-+struct vm_area_desc {
-+	/* Immutable state. */
-+	struct mm_struct *mm;
-+	unsigned long start;
-+	unsigned long end;
-+
-+	/* Mutable fields. Populated with initial state. */
-+	pgoff_t pgoff;
-+	struct file *file;
-+	vm_flags_t vm_flags;
-+	pgprot_t page_prot;
-+
-+	/* Write-only fields. */
-+	const struct vm_operations_struct *vm_ops;
-+	void *private_data;
-+};
-+
-+/*
-  * This struct describes a virtual memory area. There is one of these
-  * per VM-area/task. A VM area is any part of the process virtual memory
-  * space that has a special rule for the page-fault handlers (ie a shared
---- a/mm/memory.c~mm-introduce-new-mmap_prepare-file-callback
-+++ a/mm/memory.c
-@@ -527,10 +527,11 @@ static void print_bad_pte(struct vm_area
- 		dump_page(page, "bad pte");
- 	pr_alert("addr:%px vm_flags:%08lx anon_vma:%px mapping:%px index:%lx\n",
- 		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
--	pr_alert("file:%pD fault:%ps mmap:%ps read_folio:%ps\n",
-+	pr_alert("file:%pD fault:%ps mmap:%ps mmap_prepare: %ps read_folio:%ps\n",
- 		 vma->vm_file,
- 		 vma->vm_ops ? vma->vm_ops->fault : NULL,
- 		 vma->vm_file ? vma->vm_file->f_op->mmap : NULL,
-+		 vma->vm_file ? vma->vm_file->f_op->mmap_prepare : NULL,
- 		 mapping ? mapping->a_ops->read_folio : NULL);
- 	dump_stack();
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
---- a/mm/mmap.c~mm-introduce-new-mmap_prepare-file-callback
-+++ a/mm/mmap.c
-@@ -475,7 +475,7 @@ unsigned long do_mmap(struct file *file,
- 				vm_flags &= ~VM_MAYEXEC;
- 			}
- 
--			if (!file->f_op->mmap)
-+			if (!file_has_valid_mmap_hooks(file))
- 				return -ENODEV;
- 			if (vm_flags & (VM_GROWSDOWN|VM_GROWSUP))
- 				return -EINVAL;
---- a/mm/vma.c~mm-introduce-new-mmap_prepare-file-callback
-+++ a/mm/vma.c
-@@ -17,6 +17,11 @@ struct mmap_state {
- 	unsigned long pglen;
- 	unsigned long flags;
- 	struct file *file;
-+	pgprot_t page_prot;
-+
-+	/* User-defined fields, perhaps updated by .mmap_prepare(). */
-+	const struct vm_operations_struct *vm_ops;
-+	void *vm_private_data;
- 
- 	unsigned long charged;
- 	bool retry_merge;
-@@ -40,6 +45,7 @@ struct mmap_state {
- 		.pglen = PHYS_PFN(len_),				\
- 		.flags = flags_,					\
- 		.file = file_,						\
-+		.page_prot = vm_get_page_prot(flags_),			\
- 	}
- 
- #define VMG_MMAP_STATE(name, map_, vma_)				\
-@@ -2385,6 +2391,10 @@ static int __mmap_new_file_vma(struct mm
- 	int error;
- 
- 	vma->vm_file = get_file(map->file);
-+
-+	if (!file_has_deprecated_mmap_hook(map->file))
-+		return 0;
-+
- 	error = mmap_file(vma->vm_file, vma);
- 	if (error) {
- 		fput(vma->vm_file);
-@@ -2441,7 +2451,7 @@ static int __mmap_new_vma(struct mmap_st
- 	vma_iter_config(vmi, map->addr, map->end);
- 	vma_set_range(vma, map->addr, map->end, map->pgoff);
- 	vm_flags_init(vma, map->flags);
--	vma->vm_page_prot = vm_get_page_prot(map->flags);
-+	vma->vm_page_prot = map->page_prot;
- 
- 	if (vma_iter_prealloc(vmi, vma)) {
- 		error = -ENOMEM;
-@@ -2528,6 +2538,58 @@ static void __mmap_complete(struct mmap_
- 	vma_set_page_prot(vma);
- }
- 
-+/*
-+ * Invoke the f_op->mmap_prepare() callback for a file-backed mapping that
-+ * specifies it.
-+ *
-+ * This is called prior to any merge attempt, and updates whitelisted fields
-+ * that are permitted to be updated by the caller.
-+ *
-+ * All but user-defined fields will be pre-populated with original values.
-+ *
-+ * Returns 0 on success, or an error code otherwise.
-+ */
-+static int call_mmap_prepare(struct mmap_state *map)
-+{
-+	int err;
-+	struct vm_area_desc desc = {
-+		.mm = map->mm,
-+		.start = map->addr,
-+		.end = map->end,
-+
-+		.pgoff = map->pgoff,
-+		.file = map->file,
-+		.vm_flags = map->flags,
-+		.page_prot = map->page_prot,
-+	};
-+
-+	VM_WARN_ON(!file_has_valid_mmap_hooks(map->file));
-+
-+	/* Invoke the hook. */
-+	err = __call_mmap_prepare(map->file, &desc);
-+	if (err)
-+		return err;
-+
-+	/* Update fields permitted to be changed. */
-+	map->pgoff = desc.pgoff;
-+	map->file = desc.file;
-+	map->flags = desc.vm_flags;
-+	map->page_prot = desc.page_prot;
-+	/* User-defined fields. */
-+	map->vm_ops = desc.vm_ops;
-+	map->vm_private_data = desc.private_data;
-+
-+	return 0;
-+}
-+
-+static void set_vma_user_defined_fields(struct vm_area_struct *vma,
-+		struct mmap_state *map)
-+{
-+	if (map->vm_ops)
-+		vma->vm_ops = map->vm_ops;
-+	vma->vm_private_data = map->vm_private_data;
-+}
-+
- static unsigned long __mmap_region(struct file *file, unsigned long addr,
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
- 		struct list_head *uf)
-@@ -2535,10 +2597,13 @@ static unsigned long __mmap_region(struc
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma = NULL;
- 	int error;
-+	bool have_mmap_prepare = file && file_has_mmap_prepare_hook(file);
- 	VMA_ITERATOR(vmi, mm, addr);
- 	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, vm_flags, file);
- 
- 	error = __mmap_prepare(&map, uf);
-+	if (!error && have_mmap_prepare)
-+		error = call_mmap_prepare(&map);
- 	if (error)
- 		goto abort_munmap;
- 
-@@ -2556,6 +2621,9 @@ static unsigned long __mmap_region(struc
- 			goto unacct_error;
- 	}
- 
-+	if (have_mmap_prepare)
-+		set_vma_user_defined_fields(vma, &map);
-+
- 	/* If flags changed, we might be able to merge, so try again. */
- 	if (map.retry_merge) {
- 		struct vm_area_struct *merged;
---- a/tools/testing/vma/vma_internal.h~mm-introduce-new-mmap_prepare-file-callback
-+++ a/tools/testing/vma/vma_internal.h
-@@ -253,8 +253,40 @@ struct mm_struct {
- 	unsigned long flags; /* Must use atomic bitops to access */
- };
- 
-+struct vm_area_struct;
-+
-+/*
-+ * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
-+ * manipulate mutable fields which will cause those fields to be updated in the
-+ * resultant VMA.
-+ *
-+ * Helper functions are not required for manipulating any field.
-+ */
-+struct vm_area_desc {
-+	/* Immutable state. */
-+	struct mm_struct *mm;
-+	unsigned long start;
-+	unsigned long end;
-+
-+	/* Mutable fields. Populated with initial state. */
-+	pgoff_t pgoff;
-+	struct file *file;
-+	vm_flags_t vm_flags;
-+	pgprot_t page_prot;
-+
-+	/* Write-only fields. */
-+	const struct vm_operations_struct *vm_ops;
-+	void *private_data;
-+};
-+
-+struct file_operations {
-+	int (*mmap)(struct file *, struct vm_area_struct *);
-+	int (*mmap_prepare)(struct vm_area_desc *);
-+};
-+
- struct file {
- 	struct address_space	*f_mapping;
-+	const struct file_operations	*f_op;
- };
- 
- #define VMA_LOCK_OFFSET	0x40000000
-@@ -1125,11 +1157,6 @@ static inline void vm_flags_clear(struct
- 	vma->__vm_flags &= ~flags;
- }
- 
--static inline int call_mmap(struct file *, struct vm_area_struct *)
--{
--	return 0;
--}
--
- static inline int shmem_zero_setup(struct vm_area_struct *)
- {
+--- a/mm/secretmem.c~mm-secretmem-convert-to-mmap_prepare-hook
++++ a/mm/secretmem.c
+@@ -120,18 +120,18 @@ static int secretmem_release(struct inod
  	return 0;
-@@ -1405,4 +1432,46 @@ static inline void free_anon_vma_name(st
- 	(void)vma;
  }
  
-+static inline bool file_has_deprecated_mmap_hook(struct file *file)
-+{
-+	return file->f_op->mmap;
-+}
-+
-+static inline bool file_has_mmap_prepare_hook(struct file *file)
-+{
-+	return file->f_op->mmap_prepare;
-+}
-+
-+/* Did the driver provide valid mmap hook configuration? */
-+static inline bool file_has_valid_mmap_hooks(struct file *file)
-+{
-+	bool has_mmap = file_has_deprecated_mmap_hook(file);
-+	bool has_mmap_prepare = file_has_mmap_prepare_hook(file);
-+
-+	/* Hooks are mutually exclusive. */
-+	if (has_mmap && has_mmap_prepare)
-+		return false;
-+
-+	/* But at least one must be specified. */
-+	if (!has_mmap && !has_mmap_prepare)
-+		return false;
-+
-+	return true;
-+}
-+
-+static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	/* If the driver specifies .mmap_prepare() this call is invalid. */
-+	if (file_has_mmap_prepare_hook(file))
-+		return -EINVAL;
-+
-+	return file->f_op->mmap(file, vma);
-+}
-+
-+static inline int __call_mmap_prepare(struct file *file,
-+		struct vm_area_desc *desc)
-+{
-+	return file->f_op->mmap_prepare(desc);
-+}
-+
- #endif	/* __MM_VMA_INTERNAL_H */
+-static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
++static int secretmem_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	unsigned long len = vma->vm_end - vma->vm_start;
++	unsigned long len = desc->end - desc->start;
+ 
+-	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
++	if ((desc->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
+ 		return -EINVAL;
+ 
+-	if (!mlock_future_ok(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
++	if (!mlock_future_ok(desc->mm, desc->vm_flags | VM_LOCKED, len))
+ 		return -EAGAIN;
+ 
+-	vm_flags_set(vma, VM_LOCKED | VM_DONTDUMP);
+-	vma->vm_ops = &secretmem_vm_ops;
++	desc->vm_flags |= VM_LOCKED | VM_DONTDUMP;
++	desc->vm_ops = &secretmem_vm_ops;
+ 
+ 	return 0;
+ }
+@@ -143,7 +143,7 @@ bool vma_is_secretmem(struct vm_area_str
+ 
+ static const struct file_operations secretmem_fops = {
+ 	.release	= secretmem_release,
+-	.mmap		= secretmem_mmap,
++	.mmap_prepare	= secretmem_mmap_prepare,
+ };
+ 
+ static int secretmem_migrate_folio(struct address_space *mapping,
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
