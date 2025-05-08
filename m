@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DB0E8248C
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 01:41:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CA951E1C36;
+	Thu,  8 May 2025 06:01:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746668476; cv=none; b=PB00ynY67A4qjksqFDwnpMIjGUn5vvbuJbhhMVl5BOk5dpEgJK/syy8ULBsLGWUT8YPyOcHxqzi+3OpeOGsgMAlFbwBww/6ZYgr/YCei9EUOA3I+KZjgKx12u1vKCogVDeLAIyVB4QJgK1aFAEiaMgCacHCo+E8xfVEVAgOOrNQ=
+	t=1746684092; cv=none; b=R1lAA3apfNuKjoNtGk27iQ9nOeo9zX3Fph0uIiOruDNv7j2ANrGwwSwHYCMWXq21zrPKQpSxxfBuCAv2Ujiuj7c8eyPNIvcg/Bn+TQEXSLfjx2EPVTijkZsWa3riM2zQvbYsSdr0fajiRzzHIYDsnx+1tG0G/ZRavcVT+/Dj3bA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746668476; c=relaxed/simple;
-	bh=C/gQYOlr5aM5AwPpAuZbV6PqtDlRm3sCuT5xDNlCYqY=;
-	h=Date:To:From:Subject:Message-Id; b=YMBlMvAZQJyMjdHy+QmFnwSpjnaclsNu7uqe3M9CC2BVmjizu3mlO9IlTjnJ4SJdqCdUTjiRzqjPgt6q1fRIzQgmDiWJbnK+kDD75BD/F5dgCOn+EGYu+ODtkB2TBAX6r9jCZHIpXNZ/+NQMB/P4LPvV+owkKV2iYLHHcndMpGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w0Qu5QkI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746684092; c=relaxed/simple;
+	bh=KWAetSLSEDSh0aoG4cvEJlIBqaDMkxzrcH5lNsLiKXo=;
+	h=Date:To:From:Subject:Message-Id; b=opp2eg9NK4xj/601bB55dj1VKRXfxTe/qY7LCGIXBOEs6/pw5QUxTVdGb4BzEOWb3Wox51M00NPtyL8B8TKuIhYaV6UrMdkozLPLrKFzzSwVwK0bExDsaDQWvLHBkhUIC1W/rg59X8hfQRQsH0urAiD6nMd1nRsgDZQNgL47/NA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EIz0QOVK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w0Qu5QkI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E78FC4CEE2;
-	Thu,  8 May 2025 01:41:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EIz0QOVK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9600C4CEEB;
+	Thu,  8 May 2025 06:01:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746668473;
-	bh=C/gQYOlr5aM5AwPpAuZbV6PqtDlRm3sCuT5xDNlCYqY=;
+	s=korg; t=1746684091;
+	bh=KWAetSLSEDSh0aoG4cvEJlIBqaDMkxzrcH5lNsLiKXo=;
 	h=Date:To:From:Subject:From;
-	b=w0Qu5QkI6i9eNahTbqDytConEsiFLenTZI44h/+JAL8aXYcEZdkCWSzmT2naq3eWf
-	 hTgDBsMEBz6P9eemKW81ygDXseakLlbKTLbJFHUZQ9WG4I+wPSx6VIX8uxAbGXnt9b
-	 Kpb5by2o8SifpPBAPkrtANt1CSNPpK2If4ZzwUVM=
-Date: Wed, 07 May 2025 18:41:12 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yang@os.amperecomputing.com,willy@infradead.org,vbabka@suse.cz,ryan.roberts@arm.com,peterx@redhat.com,mingo@kernel.org,maobibo@loongson.cn,lorenzo.stoakes@oracle.com,libang.li@antgroup.com,liam.howlett@oracle.com,jannh@google.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=EIz0QOVKJYJ/kfI7PMWbr1R/WpkdYEL6PA7WEf+UE0hwd7Nv2i23QSEPfnao/cM2h
+	 TDQTuxA8gEqua8uFlFIGKaWLWHwVrMY2LdCYtValKib5eQSmVVvRUFzUJJHbZgkpA/
+	 KnMal6G5uRaM5QDaIp5OFGT4BQUJp+rLrBv9ShNU=
+Date: Wed, 07 May 2025 23:01:31 -0700
+To: mm-commits@vger.kernel.org,x86@kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,dyoung@redhat.com,coxu@redhat.com,bhe@redhat.com,fuqiang.wang@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-optimize-mremap-by-pte-batching.patch added to mm-new branch
-Message-Id: <20250508014113.7E78FC4CEE2@smtp.kernel.org>
+Subject: + x86-kexec-fix-potential-cmem-ranges-out-of-bounds.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250508060131.D9600C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: optimize mremap() by PTE batching
-has been added to the -mm mm-new branch.  Its filename is
-     mm-optimize-mremap-by-pte-batching.patch
+     Subject: x86/kexec: fix potential cmem->ranges out of bounds
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     x86-kexec-fix-potential-cmem-ranges-out-of-bounds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-mremap-by-pte-batching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-fix-potential-cmem-ranges-out-of-bounds.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,182 +58,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm: optimize mremap() by PTE batching
-Date: Wed, 7 May 2025 11:32:56 +0530
+From: fuqiang wang <fuqiang.wang@easystack.cn>
+Subject: x86/kexec: fix potential cmem->ranges out of bounds
+Date: Mon, 8 Jan 2024 21:06:47 +0800
 
-To use PTE batching, we want to determine whether the folio mapped by the
-PTE is large, thus requiring the use of vm_normal_folio().  We want to
-avoid the cost of vm_normal_folio() if the code path doesn't already
-require the folio.  For arm64, pte_batch_hint() does the job.  To
-generalize this hint, add a helper which will determine whether two
-consecutive PTEs point to consecutive PFNs, in which case there is a high
-probability that the underlying folio is large.
+In memmap_exclude_ranges(), elfheader will be excluded from crashk_res.
+In the current x86 architecture code, the elfheader is always allocated
+at crashk_res.start. It seems that there won't be a new split range.
+But it depends on the allocation position of elfheader in crashk_res. To
+avoid potential out of bounds in future, add a extra slot.
 
-Next, use folio_pte_batch() to optimize move_ptes().  On arm64, if the
-ptes are painted with the contig bit, then ptep_get() will iterate through
-all 16 entries to collect a/d bits.  Hence this optimization will result
-in a 16x reduction in the number of ptep_get() calls.  Next,
-ptep_get_and_clear() will eventually call contpte_try_unfold() on every
-contig block, thus flushing the TLB for the complete large folio range. 
-Instead, use get_and_clear_full_ptes() so as to elide TLBIs on each contig
-block, and only do them on the starting and ending contig block.
+The similar issue also exists in fill_up_crash_elf_data(). The range to
+be excluded is [0, 1M], start (0) is special and will not appear in the
+middle of existing cmem->ranges[]. But in cast the low 1M could be
+changed in the future, add a extra slot too.
 
-Link: https://lkml.kernel.org/r/20250507060256.78278-3-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: bibo mao <maobibo@loongson.cn>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Without this patch, kdump kernel will fail to be loaded by
+kexec_file_load,
+
+  [  139.736948] UBSAN: array-index-out-of-bounds in arch/x86/kernel/crash.c:350:25
+  [  139.742360] index 0 is out of range for type 'range [*]'
+  [  139.745695] CPU: 0 UID: 0 PID: 5778 Comm: kexec Not tainted 6.15.0-0.rc3.20250425git02ddfb981de8.32.fc43.x86_64 #1 PREEMPT(lazy) 
+  [  139.745698] Hardware name: Amazon EC2 c5.large/, BIOS 1.0 10/16/2017
+  [  139.745699] Call Trace:
+  [  139.745700]  <TASK>
+  [  139.745701]  dump_stack_lvl+0x5d/0x80
+  [  139.745706]  ubsan_epilogue+0x5/0x2b
+  [  139.745709]  __ubsan_handle_out_of_bounds.cold+0x54/0x59
+  [  139.745711]  crash_setup_memmap_entries+0x2d9/0x330
+  [  139.745716]  setup_boot_parameters+0xf8/0x6a0
+  [  139.745720]  bzImage64_load+0x41b/0x4e0
+  [  139.745722]  ? find_next_iomem_res+0x109/0x140
+  [  139.745727]  ? locate_mem_hole_callback+0x109/0x170
+  [  139.745737]  kimage_file_alloc_init+0x1ef/0x3e0
+  [  139.745740]  __do_sys_kexec_file_load+0x180/0x2f0
+  [  139.745742]  do_syscall_64+0x7b/0x160
+  [  139.745745]  ? do_user_addr_fault+0x21a/0x690
+  [  139.745747]  ? exc_page_fault+0x7e/0x1a0
+  [  139.745749]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+  [  139.745751] RIP: 0033:0x7f7712c84e4d
+
+
+Previously discussed link:
+[1] https://lore.kernel.org/kexec/ZXk2oBf%2FT1Ul6o0c@MiWiFi-R3L-srv/
+[2] https://lore.kernel.org/kexec/273284e8-7680-4f5f-8065-c5d780987e59@easystack.cn/
+[3] https://lore.kernel.org/kexec/ZYQ6O%2F57sHAPxTHm@MiWiFi-R3L-srv/
+
+Link: https://lkml.kernel.org/r/20240108130720.228478-1-fuqiang.wang@easystack.cn
+Signed-off-by: fuqiang wang <fuqiang.wang@easystack.cn>
+Acked-by: Baoquan He <bhe@redhat.com>
+Reported-by: Coiby Xu <coxu@redhat.com>
+Closes: https://lkml.kernel.org/r/4de3c2onosr7negqnfhekm4cpbklzmsimgdfv33c52dktqpza5@z5pb34ghz4at
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: <x86@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   29 +++++++++++++++++++++++++++++
- mm/mremap.c             |   37 ++++++++++++++++++++++++++++++-------
- 2 files changed, 59 insertions(+), 7 deletions(-)
+ arch/x86/kernel/crash.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
---- a/include/linux/pgtable.h~mm-optimize-mremap-by-pte-batching
-+++ a/include/linux/pgtable.h
-@@ -369,6 +369,35 @@ static inline pgd_t pgdp_get(pgd_t *pgdp
- }
- #endif
- 
-+/**
-+ * maybe_contiguous_pte_pfns - Hint whether the page mapped by the pte belongs
-+ * to a large folio.
-+ * @ptep: Pointer to the page table entry.
-+ * @pte: The page table entry.
-+ *
-+ * This helper is invoked when the caller wants to batch over a set of ptes
-+ * mapping a large folio, but the concerned code path does not already have
-+ * the folio. We want to avoid the cost of vm_normal_folio() only to find that
-+ * the underlying folio was small; i.e keep the small folio case as fast as
-+ * possible.
-+ *
-+ * The caller must ensure that ptep + 1 exists.
-+ */
-+static inline bool maybe_contiguous_pte_pfns(pte_t *ptep, pte_t pte)
-+{
-+	pte_t *next_ptep, next_pte;
-+
-+	if (pte_batch_hint(ptep, pte) != 1)
-+		return true;
-+
-+	next_ptep = ptep + 1;
-+	next_pte = ptep_get(next_ptep);
-+	if (!pte_present(next_pte))
-+		return false;
-+
-+	return unlikely(pte_pfn(next_pte) - pte_pfn(pte) == 1);
-+}
-+
- #ifndef __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
- static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
- 					    unsigned long address,
---- a/mm/mremap.c~mm-optimize-mremap-by-pte-batching
-+++ a/mm/mremap.c
-@@ -170,6 +170,23 @@ static pte_t move_soft_dirty_pte(pte_t p
- 	return pte;
- }
- 
-+/* mremap a batch of PTEs mapping the same large folio */
-+static int mremap_folio_pte_batch(struct vm_area_struct *vma, unsigned long addr,
-+		pte_t *ptep, pte_t pte, int max_nr)
-+{
-+	const fpb_t flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
-+	struct folio *folio;
-+	int nr = 1;
-+
-+	if ((max_nr != 1) && maybe_contiguous_pte_pfns(ptep, pte)) {
-+		folio = vm_normal_folio(vma, addr, pte);
-+		if (folio && folio_test_large(folio))
-+			nr = folio_pte_batch(folio, addr, ptep, pte, max_nr,
-+					     flags, NULL, NULL, NULL);
-+	}
-+	return nr;
-+}
-+
- static int move_ptes(struct pagetable_move_control *pmc,
- 		unsigned long extent, pmd_t *old_pmd, pmd_t *new_pmd)
- {
-@@ -177,7 +194,7 @@ static int move_ptes(struct pagetable_mo
- 	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_ptep, *new_ptep;
--	pte_t pte;
-+	pte_t old_pte, pte;
- 	pmd_t dummy_pmdval;
- 	spinlock_t *old_ptl, *new_ptl;
- 	bool force_flush = false;
-@@ -186,6 +203,7 @@ static int move_ptes(struct pagetable_mo
- 	unsigned long old_end = old_addr + extent;
- 	unsigned long len = old_end - old_addr;
- 	int err = 0;
-+	int max_nr;
- 
+--- a/arch/x86/kernel/crash.c~x86-kexec-fix-potential-cmem-ranges-out-of-bounds
++++ a/arch/x86/kernel/crash.c
+@@ -165,8 +165,18 @@ static struct crash_mem *fill_up_crash_e
  	/*
- 	 * When need_rmap_locks is true, we take the i_mmap_rwsem and anon_vma
-@@ -236,12 +254,13 @@ static int move_ptes(struct pagetable_mo
- 	flush_tlb_batched_pending(vma->vm_mm);
- 	arch_enter_lazy_mmu_mode();
+ 	 * Exclusion of crash region and/or crashk_low_res may cause
+ 	 * another range split. So add extra two slots here.
++	 *
++	 * Exclusion of low 1M may not cause another range split, because the
++	 * range of exclude is [0, 1M] and the condition for splitting a new
++	 * region is that the start, end parameters are both in a certain
++	 * existing region in cmem and cannot be equal to existing region's
++	 * start or end. Obviously, the start of [0, 1M] cannot meet this
++	 * condition.
++	 *
++	 * But in order to lest the low 1M could be changed in the future,
++	 * (e.g. [stare, 1M]), add a extra slot.
+ 	 */
+-	nr_ranges += 2;
++	nr_ranges += 3;
+ 	cmem = vzalloc(struct_size(cmem, ranges, nr_ranges));
+ 	if (!cmem)
+ 		return NULL;
+@@ -298,9 +308,16 @@ int crash_setup_memmap_entries(struct ki
+ 	struct crash_memmap_data cmd;
+ 	struct crash_mem *cmem;
  
--	for (; old_addr < old_end; old_ptep++, old_addr += PAGE_SIZE,
--				   new_ptep++, new_addr += PAGE_SIZE) {
--		if (pte_none(ptep_get(old_ptep)))
-+	for (int nr = 1; old_addr < old_end; old_ptep += nr, old_addr += nr * PAGE_SIZE,
-+				   new_ptep += nr, new_addr += nr * PAGE_SIZE) {
-+		max_nr = (old_end - old_addr) >> PAGE_SHIFT;
-+		old_pte = ptep_get(old_ptep);
-+		if (pte_none(old_pte))
- 			continue;
+-	cmem = vzalloc(struct_size(cmem, ranges, 1));
++	/*
++	 * In the current x86 architecture code, the elfheader is always
++	 * allocated at crashk_res.start. But it depends on the allocation
++	 * position of elfheader in crashk_res. To avoid potential out of
++	 * bounds in future, add a extra slot.
++	 */
++	cmem = vzalloc(struct_size(cmem, ranges, 2));
+ 	if (!cmem)
+ 		return -ENOMEM;
++	cmem->max_nr_ranges = 2;
  
--		pte = ptep_get_and_clear(mm, old_addr, old_ptep);
- 		/*
- 		 * If we are remapping a valid PTE, make sure
- 		 * to flush TLB before we drop the PTL for the
-@@ -253,8 +272,12 @@ static int move_ptes(struct pagetable_mo
- 		 * the TLB entry for the old mapping has been
- 		 * flushed.
- 		 */
--		if (pte_present(pte))
-+		if (pte_present(old_pte)) {
-+			nr = mremap_folio_pte_batch(vma, old_addr, old_ptep,
-+						    old_pte, max_nr);
- 			force_flush = true;
-+		}
-+		pte = get_and_clear_full_ptes(mm, old_addr, old_ptep, nr, 0);
- 		pte = move_pte(pte, old_addr, new_addr);
- 		pte = move_soft_dirty_pte(pte);
- 
-@@ -267,7 +290,7 @@ static int move_ptes(struct pagetable_mo
- 				else if (is_swap_pte(pte))
- 					pte = pte_swp_clear_uffd_wp(pte);
- 			}
--			set_pte_at(mm, new_addr, new_ptep, pte);
-+			set_ptes(mm, new_addr, new_ptep, pte, nr);
- 		}
- 	}
- 
+ 	memset(&cmd, 0, sizeof(struct crash_memmap_data));
+ 	cmd.params = params;
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from fuqiang.wang@easystack.cn are
 
-mempolicy-optimize-queue_folios_pte_range-by-pte-batching.patch
-mm-call-pointers-to-ptes-as-ptep.patch
-mm-optimize-mremap-by-pte-batching.patch
+x86-kexec-fix-potential-cmem-ranges-out-of-bounds.patch
 
