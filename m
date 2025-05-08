@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D78A13C3F2
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 00:56:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25A291FC8
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 01:29:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746665774; cv=none; b=uC+zlwwnlrSvQDHffiMtuOnUYrNWvJbSji10nA2ybJtO/yEuTEUdv3u1C9c8CcQagNbm9rLoawEfIp8whyu+NV48K0TVfTLclcdTn4lzITiOc4uJ1WQiG9PRuMJE146N7kbrboo+cwMirF3BoYGfPbW/1WMVZhvnzB+vhM3hjz0=
+	t=1746667757; cv=none; b=tBpKnWkkdER8gzDKFgQK3zY7TFHq83TA+9yVgv4dinxZGuPnrfIEc/xwmwNqS6YHTgm7inSrn59t9ygbHzVO6ULnIqV+UKkEGrs2o+ok9/h5mQHC869zyptfwOHphRqgU2QhF9SZ0mF25dwii8imk7n1BG/s3VHhzZ7o4MsyT4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746665774; c=relaxed/simple;
-	bh=m1XLlqEUnAfHkZN9VYgNx7w9SSk+UfFUVuJBW6gJF+o=;
-	h=Date:To:From:Subject:Message-Id; b=fEO/AQaIEjVmzpcr/kpHZjE/hpFblKWZpBQ3OlE0GmmFZTywanTVOi+iA6hhgOfEgFr49Rht0LGsUrAd0bfv4SlO0aR2L+pm3fNt3/SfIALhYwLnzrrnDdt2WCG9n2ZVNKeG4vAcqIJ0h/NrIJ0bzT9xwN80i9zN/e62nbGkNTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZqhILflZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746667757; c=relaxed/simple;
+	bh=q0llc3oiif6W0JwtoyRshYRa22F7gvKPqMx97vxGGfM=;
+	h=Date:To:From:Subject:Message-Id; b=VgxNycBXeGzxjq97OIorqGwKS7z3zYOmrpF/B2xGgacmqmlB1WfKXZHO22htEjnz32lCh2PF+TITLkpZBnKu6ArxuopWpvuYLfSkM2JR+MdNsAYEGrUqX4JvgzXHI4KgsQ++2HWoe2sxw8i3ZTLdZneMTbPGNNqNLY7J77qGGdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q/LZGRax; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZqhILflZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B435FC4CEE7;
-	Thu,  8 May 2025 00:56:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q/LZGRax"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84FBBC4CEE2;
+	Thu,  8 May 2025 01:29:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746665773;
-	bh=m1XLlqEUnAfHkZN9VYgNx7w9SSk+UfFUVuJBW6gJF+o=;
+	s=korg; t=1746667756;
+	bh=q0llc3oiif6W0JwtoyRshYRa22F7gvKPqMx97vxGGfM=;
 	h=Date:To:From:Subject:From;
-	b=ZqhILflZ2YjZZo8L4gCDIyxh49s8IqfTrthtGLBYqQDJ53sDKfLtVbXXnZrfX9Rao
-	 pZU14G8gWxnHCuJO8Uczt7IZW/8GDjGsrCQCxlL9trYXBDCPzSHhkgCMAhUmN3TDlw
-	 k99S2383oRmObj4zZMWKnyvyiMhnb3K61/ytzso4=
-Date: Wed, 07 May 2025 17:56:13 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Q/LZGRax/AWL0wrlnXIIt8E/qAa4PUCsH0KtnYY+9g8akwx7sycvfZ3qGjRyLmM81
+	 FunQhlEa9Wsl/9osfhIIoZTBvGnrr1oNaV7nuNiOFkWnlqJJwh8U7Su91j9oYWR4QY
+	 6GoUx8Y4niZ5juaChmRCSXmvsAEYY0I7zfgl1A7c=
+Date: Wed, 07 May 2025 18:29:15 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosry.ahmed@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-remove-mmap-retry-merge.patch added to mm-unstable branch
-Message-Id: <20250508005613.B435FC4CEE7@smtp.kernel.org>
+Subject: + mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update.patch added to mm-unstable branch
+Message-Id: <20250508012916.84FBBC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: remove mmap() retry merge
+     Subject: mm: add max swappiness arg to lru_gen for anonymous memory only
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-remove-mmap-retry-merge.patch
+     mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-remove-mmap-retry-merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,104 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: remove mmap() retry merge
-Date: Wed, 7 May 2025 12:03:36 +0100
+From: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Subject: mm: add max swappiness arg to lru_gen for anonymous memory only
+Date: Wed, 7 May 2025 15:10:57 +0800
 
-We have now introduced a mechanism that obviates the need for a
-reattempted merge via the mmap_prepare() file hook, so eliminate this
-functionality altogether.
+ 1) use strcmp instead of strncmp from Dan Carpenter
+https://lore.kernel.org/all/aBHYT27M1tRxNLRj@stanley.mountain/
+ 2) If swappiness is not set, use the default value.
 
-The retry merge logic has been the cause of a great deal of complexity in
-the past and required a great deal of careful manoeuvring of code to
-ensure its continued and correct functionality.
-
-It has also recently been involved in an issue surrounding maple tree
-state, which again points to its problematic nature.
-
-We make it much easier to reason about mmap() logic by eliminating this
-and simply writing a VMA once.  This also opens the doors to future
-optimisation and improvement in the mmap() logic.
-
-For any device or file system which encounters unwanted VMA fragmentation
-as a result of this change (that is, having not implemented .mmap_prepare
-hooks), the issue is easily resolvable by doing so.
-
-Link: https://lkml.kernel.org/r/e18be1070e9fcd7a43cd72ac45f19cf1080e73b5.1746615512.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20250507071057.3184240-1-hezhongkun.hzk@bytedance.com
+Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ mm/vmscan.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/vma.c~mm-vma-remove-mmap-retry-merge
-+++ a/mm/vma.c
-@@ -24,7 +24,6 @@ struct mmap_state {
- 	void *vm_private_data;
+--- a/mm/vmscan.c~mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update
++++ a/mm/vmscan.c
+@@ -5592,7 +5592,7 @@ static ssize_t lru_gen_seq_write(struct
+ 		unsigned int memcg_id;
+ 		unsigned int nid;
+ 		unsigned long seq;
+-		unsigned int swappiness = -1;
++		unsigned int swappiness;
+ 		unsigned long opt = -1;
  
- 	unsigned long charged;
--	bool retry_merge;
+ 		cur = skip_spaces(cur);
+@@ -5606,8 +5606,10 @@ static ssize_t lru_gen_seq_write(struct
+ 			break;
+ 		}
  
- 	struct vm_area_struct *prev;
- 	struct vm_area_struct *next;
-@@ -2417,8 +2416,6 @@ static int __mmap_new_file_vma(struct mm
- 			!(map->flags & VM_MAYWRITE) &&
- 			(vma->vm_flags & VM_MAYWRITE));
- 
--	/* If the flags change (and are mergeable), let's retry later. */
--	map->retry_merge = vma->vm_flags != map->flags && !(vma->vm_flags & VM_SPECIAL);
- 	map->flags = vma->vm_flags;
- 
- 	return 0;
-@@ -2624,17 +2621,6 @@ static unsigned long __mmap_region(struc
- 	if (have_mmap_prepare)
- 		set_vma_user_defined_fields(vma, &map);
- 
--	/* If flags changed, we might be able to merge, so try again. */
--	if (map.retry_merge) {
--		struct vm_area_struct *merged;
--		VMG_MMAP_STATE(vmg, &map, vma);
--
--		vma_iter_config(map.vmi, map.addr, map.end);
--		merged = vma_merge_existing_range(&vmg);
--		if (merged)
--			vma = merged;
--	}
--
- 	__mmap_complete(&map, vma);
- 
- 	return addr;
+-		/* set by userspace for anonymous memory only */
+-		if (!strncmp("max", swap_string, sizeof("max"))) {
++		if (n == 4)
++			swappiness = -1;
++		else if (!strcmp("max", swap_string)) {
++			/* set by userspace for anonymous memory only */
+ 			swappiness = SWAPPINESS_ANON_ONLY;
+ 		} else {
+ 			err = kstrtouint(swap_string, 0, &swappiness);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
 
-maintainers-add-reverse-mapping-section.patch
-maintainers-add-core-mm-section.patch
-maintainers-add-mm-thp-section.patch
-maintainers-add-mm-thp-section-fix.patch
-tools-testing-selftests-fix-guard-region-test-tmpfs-assumption.patch
-maintainers-add-mm-gup-section.patch
-mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
-tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
-tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
-mm-move-mmap-vma-locking-logic-into-specific-files.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
-mm-abstract-initial-stack-setup-to-mm-subsystem.patch
-mm-move-dup_mmap-to-mm.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm.patch
-mm-introduce-new-mmap_prepare-file-callback.patch
-mm-secretmem-convert-to-mmap_prepare-hook.patch
-mm-vma-remove-mmap-retry-merge.patch
+mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim.patch
+mm-vmscan-add-more-comments-about-cache_trim_mode.patch
+mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only.patch
+mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update.patch
+mm-using-swappiness_anon_only-in-mglru.patch
 
