@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C6084B1E45
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:33:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CB172192E6
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:40:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746685982; cv=none; b=pxPxkbMB/EUiutVosmeS4dwVcAYAFDWZnYK1ojazJXJslAQqGCE6czj8U8h6s19L6E6msE5bJNlp43J7iSuOLLh4Y2iSIGX5XcHoZg6YGetf93QbLp2/4McFbAoMLceZn8sTT8naMo9qR6GWipLYkOtsYhymDyHsZxMa8nQeMH4=
+	t=1746686441; cv=none; b=VptV92EU14sDhPd6rKWXFgVLv/+Qzu5xfUs+owsfYJwfYX1klBKQA+Fxaaq2gQ7dVE92UBKvfwxyRRHqKF1ZuhBCXC1qC4NOfUCFb/3uryVDq5gSAb460C74ogE4ai0Kq0j0JIwZdPT5fkFhG08U6awLhOU+xGCZSOmtuTi+pwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746685982; c=relaxed/simple;
-	bh=bDaVsh4nVzMnnOUmGH4ycyDVJ6hJkb3vGLYcHgc0o1Y=;
-	h=Date:To:From:Subject:Message-Id; b=UYNVB9vuAQzR/tHLnrFP/Op3dzmLukiXebr6k/7P4xrv8rIJB7mZxblhzDXgfbYLDFxAw49eZqoi1NOKvuy4oNSgqL7VmZlAXmqef7jOynJDsWjqL7jdDBwHAq7MF0GtNJt6DdE2HJ64P1IsBFYVpOGxfhhznlioUZ+YdQbJ7is=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bte8p2/Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746686441; c=relaxed/simple;
+	bh=chXASm2l0fkj9N3JPKkVseHS/nhPPgBPgl8F8+vPY8Q=;
+	h=Date:To:From:Subject:Message-Id; b=D7yQH1bNlC00MqQjjKKCKK+QTMB6C5SakQjDH4H9ti3SF/9Fw8yNYsfW27kLGQjKMNFd4v31caMcryte8rmnVMkCUdpLtyrd4wy91lcp8ldF0Bx07jzz4eLm6ScjeKBnlFdyTgcn1X9pLwaCWFdw2XIKYB2mY3Xd7CJDzcqA2D0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VmM4ppRF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bte8p2/Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FBDAC4CEEB;
-	Thu,  8 May 2025 06:33:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VmM4ppRF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3D4FC4CEEB;
+	Thu,  8 May 2025 06:40:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746685981;
-	bh=bDaVsh4nVzMnnOUmGH4ycyDVJ6hJkb3vGLYcHgc0o1Y=;
+	s=korg; t=1746686440;
+	bh=chXASm2l0fkj9N3JPKkVseHS/nhPPgBPgl8F8+vPY8Q=;
 	h=Date:To:From:Subject:From;
-	b=Bte8p2/ZzROLr3ZJBk6aFNBpTkesKH8pgKidc7ilTS06itYDn/UX/zyOkTqvQpAb1
-	 1OpcLL/mY1nC1uu0/RwFX/7gc+OssJQa2CVhRJDQG1JmHiUOh6b+w81nsXWbUEsH/J
-	 EHpECE39AJjwz6yr+uzTplvfMAv0fcxblnkl2eqI=
-Date: Wed, 07 May 2025 23:33:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=VmM4ppRFBBGo1I6WdmK17pgazElGYDsPMmY0ka/7gc6c0ZCokWw2y+IMHmYZh3ZqU
+	 cTYiNBpSsLfo3Qzk78Mh/YE6KkzFoNwoqTY0sAt1CxdjyXFxCsR5aJq2Tvr+dbg1Wf
+	 WxVlxK9+rMVt1tz5tcutVsbW3aKtnqs2z0jeZj0U=
+Date: Wed, 07 May 2025 23:40:40 -0700
+To: mm-commits@vger.kernel.org,lance.yang@linux.dev,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maintainers-add-mm-thp-section-fix.patch removed from -mm tree
-Message-Id: <20250508063301.6FBDAC4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-add-entries-for-lance-yang.patch removed from -mm tree
+Message-Id: <20250508064040.C3D4FC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add Dev Jain as THP reviewer
+     Subject: mailmap: add entries for Lance Yang
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-mm-thp-section-fix.patch
+     mailmap-add-entries-for-lance-yang.patch
 
-This patch was dropped because it was folded into maintainers-add-mm-thp-section.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add Dev Jain as THP reviewer
-Date: Thu, 24 Apr 2025 12:33:35 +0100
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mailmap: add entries for Lance Yang
+Date: Thu, 17 Apr 2025 23:30:41 +0800
 
-Link: https://lkml.kernel.org/r/327e6f2f-0f0f-48af-9ca2-3f8cadf0d8bf@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+I'm moving to @linux.dev and mapping my old addresses to it.
+
+Link: https://lkml.kernel.org/r/20250417153041.38977-1-lance.yang@linux.dev
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-mm-thp-section-fix
-+++ a/MAINTAINERS
-@@ -15582,6 +15582,7 @@ R:	Lorenzo Stoakes <lorenzo.stoakes@orac
- R:	Liam R. Howlett <Liam.Howlett@oracle.com>
- R:	Nico Pache <npache@redhat.com>
- R:	Ryan Roberts <ryan.roberts@arm.com>
-+R:	Dev Jain <dev.jain@arm.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
+--- a/.mailmap~mailmap-add-entries-for-lance-yang
++++ a/.mailmap
+@@ -447,6 +447,8 @@ Luca Ceresoli <luca.ceresoli@bootlin.com
+ Luca Weiss <luca@lucaweiss.eu> <luca@z3ntu.xyz>
+ Lukasz Luba <lukasz.luba@arm.com> <l.luba@partner.samsung.com>
+ Luo Jie <quic_luoj@quicinc.com> <luoj@codeaurora.org>
++Lance Yang <lance.yang@linux.dev> <ioworker0@gmail.com>
++Lance Yang <lance.yang@linux.dev> <mingzhe.yang@ly.com>
+ Maciej W. Rozycki <macro@mips.com> <macro@imgtec.com>
+ Maciej W. Rozycki <macro@orcam.me.uk> <macro@linux-mips.org>
+ Maharaja Kennadyrajan <quic_mkenna@quicinc.com> <mkenna@codeaurora.org>
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-maintainers-add-reverse-mapping-section.patch
-maintainers-add-core-mm-section.patch
-maintainers-add-mm-thp-section.patch
-tools-testing-selftests-fix-guard-region-test-tmpfs-assumption.patch
-maintainers-add-mm-gup-section.patch
-mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
-tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
-tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
-mm-move-mmap-vma-locking-logic-into-specific-files.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
-mm-abstract-initial-stack-setup-to-mm-subsystem.patch
-mm-move-dup_mmap-to-mm.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm.patch
-mm-introduce-new-mmap_prepare-file-callback.patch
-mm-secretmem-convert-to-mmap_prepare-hook.patch
-mm-vma-remove-mmap-retry-merge.patch
+hung_task-replace-blocker_mutex-with-encoded-blocker.patch
+hung_task-show-the-blocker-task-if-the-task-is-hung-on-semaphore.patch
 
