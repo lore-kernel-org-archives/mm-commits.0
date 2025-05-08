@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7ABC21ABC8;
-	Thu,  8 May 2025 06:41:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 723CB20012B;
+	Thu,  8 May 2025 06:41:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746686462; cv=none; b=hPCh8eCwtABuNWLOEVnVtPrUIdiR4Z0Vjfh0fxzM0bGtACHxJO2/lkBf1wPEHS7a0bn9tWcJaixNgRxm5cp0qYlZD2Yfd86U2qdbOk2XSUzfcTAdElez5V+pIR1IOC1D5bL4bRbajRWjPRwgy79V/X+HqdqJOtDLwOlpmhIq9gQ=
+	t=1746686464; cv=none; b=H8I63kXiB4b+NuEUwGx/JKdXwPpxheknzR6wSU78rKem+0koRCC5gN3EP6ko80AZkhElKy0geHk+zr/TCXh4QWFSMK+xyi59NHeNIP1y/2qRrQmLLX3OUubrGlKpsq4djsom/dLsS1BvywmBjHWeQsx3rNbpk+BNtnyCt9eMk5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746686462; c=relaxed/simple;
-	bh=3AQeYuM1jU0DohFF/pGs0MKP3jDNF2Ss2swa6PwAe6I=;
-	h=Date:To:From:Subject:Message-Id; b=aWrv7nW+7FMzUv410knzomUlAieKYwB0s77ql1UAEzpGHOOG82q2Um+H8RUMbnXBVeBKJ3KJMk2HEuW8L6tZM5ia7Bd4/zc2PywcbxRpJaGfhw6pA3LlGF992q4VgR1SBDspUVa4cfvsBLy/qwxjeOjtO52cbFDch3oQhDZ7mAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fcm7kaF2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746686464; c=relaxed/simple;
+	bh=1Cwk87Gj4SG2rjSOHBpQS1LQSMxMBvkFv61YpyqHDSE=;
+	h=Date:To:From:Subject:Message-Id; b=ZBkETvCTXFIfevoiAK0duJv/5ivMpJlrxnIAT0I1eIr+DSwURQMYLY+bzOTdXiN8hw/Yon//U7pg3v1Mr5MUPyjzBG7dVjY3eH8vg3tL/WbznbJYU16ZTMysXvT3OMTUlILvi1spzQPtv6VucB1kBjBW3MrU9tNrTDaGMlQjeFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v+vs+a0s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fcm7kaF2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB138C4CEEB;
-	Thu,  8 May 2025 06:41:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v+vs+a0s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D254DC4CEEB;
+	Thu,  8 May 2025 06:41:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746686462;
-	bh=3AQeYuM1jU0DohFF/pGs0MKP3jDNF2Ss2swa6PwAe6I=;
+	s=korg; t=1746686463;
+	bh=1Cwk87Gj4SG2rjSOHBpQS1LQSMxMBvkFv61YpyqHDSE=;
 	h=Date:To:From:Subject:From;
-	b=fcm7kaF2JfeNV4kMisFdGGY25WdCVQzOZZz8g8CaSjy724Cl9dcmc9ltLvr/yYJeA
-	 FsjupjfLEnLtxSkxdvAuban0CRwbJLHKce5XvwT8kbewSRgVib/aqJ5xo18gMbgLMZ
-	 4IXGRpbLqSV1Ckk9FbKYfskt1l5EWZNGUyyVE/5I=
-Date: Wed, 07 May 2025 23:41:02 -0700
-To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,stable@vger.kernel.org,nysal@linux.ibm.com,maddy@linux.ibm.com,akpm@linux-foundation.org
+	b=v+vs+a0sCJ1xCk1umbEDcQnu8s7w67CIOle4o8p9EkZJ7+Hix1q3ZAwN3lQUkb1Kx
+	 kumLQwMt4Zq331tNj94PiMe2/Yj5z8zT5aGp94BuLmS+I/xmr0gG+oRmoVjpFunTWC
+	 6m/7iv2csRzthFGv/4cFAUkyiRSZ1XSRCLB2gBIs=
+Date: Wed, 07 May 2025 23:41:03 -0700
+To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,stable@vger.kernel.org,maddy@linux.ibm.com,donettom@linux.ibm.com,nysal@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-fix-build-break-when-compiling-pkey_utilc.patch removed from -mm tree
-Message-Id: <20250508064102.AB138C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-fix-a-build-failure-on-powerpc.patch removed from -mm tree
+Message-Id: <20250508064103.D254DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix build break when compiling pkey_util.c
+     Subject: selftests/mm: fix a build failure on powerpc
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-build-break-when-compiling-pkey_utilc.patch
+     selftests-mm-fix-a-build-failure-on-powerpc.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Madhavan Srinivasan <maddy@linux.ibm.com>
-Subject: selftests/mm: fix build break when compiling pkey_util.c
-Date: Mon, 28 Apr 2025 18:49:34 +0530
+From: "Nysal Jan K.A." <nysal@linux.ibm.com>
+Subject: selftests/mm: fix a build failure on powerpc
+Date: Mon, 28 Apr 2025 18:49:35 +0530
 
-Commit 50910acd6f615 ("selftests/mm: use sys_pkey helpers consistently")
-added a pkey_util.c to refactor some of the protection_keys functions
-accessible by other tests.  But this broken the build in powerpc in two
-ways,
+The compiler is unaware of the size of code generated by the ".rept"
+assembler directive.  This results in the compiler emitting branch
+instructions where the offset to branch to exceeds the maximum allowed
+value, resulting in build failures like the following:
 
-pkey-powerpc.h: In function `arch_is_powervm':
-pkey-powerpc.h:73:21: error: storage size of `buf' isn't known
-   73 |         struct stat buf;
-      |                     ^~~
-pkey-powerpc.h:75:14: error: implicit declaration of function `stat'; did you mean `strcat'? [-Wimplicit-function-declaration]
-   75 |         if ((stat("/sys/firmware/devicetree/base/ibm,partition-name", &buf) == 0) &&
-      |              ^~~~
-      |              strcat
+  CC       protection_keys
+  /tmp/ccypKWAE.s: Assembler messages:
+  /tmp/ccypKWAE.s:2073: Error: operand out of range (0x0000000000020158
+  is not between 0xffffffffffff8000 and 0x0000000000007ffc)
+  /tmp/ccypKWAE.s:2509: Error: operand out of range (0x0000000000020130
+  is not between 0xffffffffffff8000 and 0x0000000000007ffc)
 
-Since pkey_util.c includes pkeys-helper.h, which in turn includes pkeys-powerpc.h,
-stat.h including is missing for "struct stat". This is fixed by adding "sys/stat.h"
-in pkeys-powerpc.h
+Fix the issue by manually adding nop instructions using the preprocessor.
 
-Secondly,
-
-pkey-powerpc.h:55:18: warning: format `%llx' expects argument of type `long long unsigned int', but argument 3 has type `u64' {aka `long unsigned int'} [-Wformat=]
-   55 |         dprintf4("%s() changing %016llx to %016llx\n",
-      |                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   56 |                          __func__, __read_pkey_reg(), pkey_reg);
-      |                                    ~~~~~~~~~~~~~~~~~
-      |                                    |
-      |                                    u64 {aka long unsigned int}
-pkey-helpers.h:63:32: note: in definition of macro `dprintf_level'
-   63 |                 sigsafe_printf(args);           \
-      |                                ^~~~
-
-These format specifier related warning are removed by adding
-"__SANE_USERSPACE_TYPES__" to pkeys_utils.c.
-
-Link: https://lkml.kernel.org/r/20250428131937.641989-1-nysal@linux.ibm.com
-Fixes: 50910acd6f61 ("selftests/mm: use sys_pkey helpers consistently")
-Signed-off-by: Madhavan Srinivasan <maddy@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20250428131937.641989-2-nysal@linux.ibm.com
+Fixes: 46036188ea1f ("selftests/mm: build with -O2")
+Reported-by: Madhavan Srinivasan <maddy@linux.ibm.com>
 Signed-off-by: Nysal Jan K.A. <nysal@linux.ibm.com>
 Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Tested-by: Donet Tom <donettom@linux.ibm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-powerpc.h |    2 ++
- tools/testing/selftests/mm/pkey_util.c    |    1 +
- 2 files changed, 3 insertions(+)
+ tools/testing/selftests/mm/pkey-powerpc.h |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/pkey-powerpc.h~selftests-mm-fix-build-break-when-compiling-pkey_utilc
+--- a/tools/testing/selftests/mm/pkey-powerpc.h~selftests-mm-fix-a-build-failure-on-powerpc
 +++ a/tools/testing/selftests/mm/pkey-powerpc.h
-@@ -3,6 +3,8 @@
- #ifndef _PKEYS_POWERPC_H
- #define _PKEYS_POWERPC_H
+@@ -104,8 +104,18 @@ static inline void expect_fault_on_read_
+ 	return;
+ }
  
-+#include <sys/stat.h>
++#define REPEAT_8(s) s s s s s s s s
++#define REPEAT_64(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) \
++		     REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s)
++#define REPEAT_512(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) \
++		      REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s)
++#define REPEAT_4096(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) \
++		       REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s)
++#define REPEAT_16384(s) REPEAT_4096(s) REPEAT_4096(s) \
++			REPEAT_4096(s) REPEAT_4096(s)
 +
- #ifndef SYS_pkey_alloc
- # define SYS_pkey_alloc		384
- # define SYS_pkey_free		385
---- a/tools/testing/selftests/mm/pkey_util.c~selftests-mm-fix-build-break-when-compiling-pkey_utilc
-+++ a/tools/testing/selftests/mm/pkey_util.c
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-only
-+#define __SANE_USERSPACE_TYPES__
- #include <sys/syscall.h>
- #include <unistd.h>
+ /* 4-byte instructions * 16384 = 64K page */
+-#define __page_o_noops() asm(".rept 16384 ; nop; .endr")
++#define __page_o_noops() asm(REPEAT_16384("nop\n"))
  
+ static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
+ {
 _
 
-Patches currently in -mm which might be from maddy@linux.ibm.com are
+Patches currently in -mm which might be from nysal@linux.ibm.com are
 
+watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch
 
