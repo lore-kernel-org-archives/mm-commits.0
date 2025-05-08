@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B47642192F1;
-	Thu,  8 May 2025 06:40:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD2042192F1;
+	Thu,  8 May 2025 06:40:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746686446; cv=none; b=syO4KUupNqQwu/61jy1c6/6AeG8cCDMhRFjRvWT5CcXuhIqjflGLVfVeQURtpd7/slRKtEzmjH61f9r1gfGZcwqkyaKUywwLchBb1AhykKQRyawgEFjMyh6HkFrTWkrUL1wu9SMc5fKb6H3XMTYFjXwmls0h6BKRFzRp26QXuXE=
+	t=1746686449; cv=none; b=HvMbTy+uo9UiskXVsEqlkfCC3UpF+cyjbtVsbu3H9ufGcYCvy8By/ScK2v29cCdcETrOThAdqljFUSq+So11hleCU9nJB6NZsMecE10Kx7rvFGKNMT6rygpy/zekGe/PQhuQ4MtHvSJEX/tQhFaCxpNJed48KQnqWf/hJ6Mo+Ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746686446; c=relaxed/simple;
-	bh=KaEWQ6/K29TMH3nRw9jtkg1uBOev5mGCsGHuVOknMmI=;
-	h=Date:To:From:Subject:Message-Id; b=R6/CDC2/LARV+MzMqJqzz4AZg1P6dXpza9Q+V7wC9Eqgez6iTb5K2XBX+nYi3HEFu8u61aNKWOex3j4uv/lC9I1lkp23qGDjeKUhIjsoNVIHcGCyWvrBN85TSRGoh4BtPOCfZGzVT8Z2IISYe70f3D7khyofUs2hP3uQ3Y/mcyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PiaQsvJB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746686449; c=relaxed/simple;
+	bh=wCe6ccNBV1utS5m+mi8Pk3sGYFqdlSf4Iq2vDBDKUpQ=;
+	h=Date:To:From:Subject:Message-Id; b=UAo39ZfE+6I7g5HJ3puWqiFcH9SHQR18x8/T7tjavVXLW4P7TqJspkXXh2BSN8O9XuTEKgQoyvQzTP1cpuWm4B/haJp5/6hNn2EMU3FRMx629emYunpKJZkQlpggEXjwKXWpOfbwG28qA9F4rJzUyTvEXEmQbyhZzQYfGkqzfzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pdumCHtX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PiaQsvJB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63228C4CEEB;
-	Thu,  8 May 2025 06:40:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pdumCHtX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 495D0C4CEEB;
+	Thu,  8 May 2025 06:40:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746686446;
-	bh=KaEWQ6/K29TMH3nRw9jtkg1uBOev5mGCsGHuVOknMmI=;
+	s=korg; t=1746686448;
+	bh=wCe6ccNBV1utS5m+mi8Pk3sGYFqdlSf4Iq2vDBDKUpQ=;
 	h=Date:To:From:Subject:From;
-	b=PiaQsvJBXMqG4g8/cXNyx5RwXToUlrJrmD/sRdKAXqNA/qcWFHggigdot6QR6ATpC
-	 7kbMYUnsEYULpKXaaDlBR1Z23tYpTXzNISXi9FBHvCzRGZOZeb3XfHNvmTZ4INddmK
-	 NnsHEuEZF6Xn+KLxrNSxTZ6TsApl+AaXbINYKWWw=
-Date: Wed, 07 May 2025 23:40:45 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,revest@google.com,linmiaohe@huawei.com,hughd@google.com,gshan@redhat.com,david@redhat.com,gavinguo@igalia.com,akpm@linux-foundation.org
+	b=pdumCHtXK2NDj2ywzz3oAopTuES/q/vcySVkWyxoFchXV79qGOLPJjv2/8tr4jRTi
+	 6mglAQz9600qD8ShsMiUznAGFYNu91T6MCacSOUVWET35dBNolL4ixYPY0OTr/b3PK
+	 GuEfLQ7dBMqeXGaW4bTbjYljL1hFnb1l/rp+7e/A=
+Date: Wed, 07 May 2025 23:40:47 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,nathan@kernel.org,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,gechangwei@live.cn,mark.tinguely@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch removed from -mm tree
-Message-Id: <20250508064046.63228C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] v2-ocfs2-fix-panic-in-failed-foilio-allocation.patch removed from -mm tree
+Message-Id: <20250508064048.495D0C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
+     Subject: ocfs2: fix panic in failed foilio allocation
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
+     v2-ocfs2-fix-panic-in-failed-foilio-allocation.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gavin Guo <gavinguo@igalia.com>
-Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
-Date: Mon, 21 Apr 2025 19:35:36 +0800
+From: Mark Tinguely <mark.tinguely@oracle.com>
+Subject: ocfs2: fix panic in failed foilio allocation
+Date: Fri, 11 Apr 2025 11:31:24 -0500
 
-When migrating a THP, concurrent access to the PMD migration entry during
-a deferred split scan can lead to an invalid address access, as
-illustrated below.  To prevent this invalid access, it is necessary to
-check the PMD migration entry and return early.  In this context, there is
-no need to use pmd_to_swp_entry and pfn_swap_entry_to_page to verify the
-equality of the target folio.  Since the PMD migration entry is locked, it
-cannot be served as the target.
+commit 7e119cff9d0a ("ocfs2: convert w_pages to w_folios") and commit
+9a5e08652dc4b ("ocfs2: use an array of folios instead of an array of
+pages") save -ENOMEM in the folio array upon allocation failure and call
+the folio array free code.
 
-Mailing list discussion and explanation from Hugh Dickins: "An anon_vma
-lookup points to a location which may contain the folio of interest, but
-might instead contain another folio: and weeding out those other folios is
-precisely what the "folio != pmd_folio((*pmd)" check (and the "risk of
-replacing the wrong folio" comment a few lines above it) is for."
+The folio array free code expects either valid folio pointers or NULL. 
+Finding the -ENOMEM will result in a panic.  Fix by NULLing the error
+folio entry.
 
-BUG: unable to handle page fault for address: ffffea60001db008
-CPU: 0 UID: 0 PID: 2199114 Comm: tee Not tainted 6.14.0+ #4 NONE
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-RIP: 0010:split_huge_pmd_locked+0x3b5/0x2b60
-Call Trace:
-<TASK>
-try_to_migrate_one+0x28c/0x3730
-rmap_walk_anon+0x4f6/0x770
-unmap_folio+0x196/0x1f0
-split_huge_page_to_list_to_order+0x9f6/0x1560
-deferred_split_scan+0xac5/0x12a0
-shrinker_debugfs_scan_write+0x376/0x470
-full_proxy_write+0x15c/0x220
-vfs_write+0x2fc/0xcb0
-ksys_write+0x146/0x250
-do_syscall_64+0x6a/0x120
-entry_SYSCALL_64_after_hwframe+0x76/0x7e
-
-The bug is found by syzkaller on an internal kernel, then confirmed on
-upstream.
-
-Link: https://lkml.kernel.org/r/20250421113536.3682201-1-gavinguo@igalia.com
-Link: https://lore.kernel.org/all/20250414072737.1698513-1-gavinguo@igalia.com/
-Link: https://lore.kernel.org/all/20250418085802.2973519-1-gavinguo@igalia.com/
-Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
-Signed-off-by: Gavin Guo <gavinguo@igalia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Gavin Shan <gshan@redhat.com>
-Cc: Florent Revest <revest@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/c879a52b-835c-4fa0-902b-8b2e9196dcbd@oracle.com
+Fixes: 7e119cff9d0a ("ocfs2: convert w_pages to w_folios")
+Fixes: 9a5e08652dc4b ("ocfs2: use an array of folios instead of an array of pages")
+Signed-off-by: Mark Tinguely <mark.tinguely@oracle.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/ocfs2/alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry
-+++ a/mm/huge_memory.c
-@@ -3075,6 +3075,8 @@ static void __split_huge_pmd_locked(stru
- void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
- 			   pmd_t *pmd, bool freeze, struct folio *folio)
- {
-+	bool pmd_migration = is_pmd_migration_entry(*pmd);
-+
- 	VM_WARN_ON_ONCE(folio && !folio_test_pmd_mappable(folio));
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
- 	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
-@@ -3085,9 +3087,12 @@ void split_huge_pmd_locked(struct vm_are
- 	 * require a folio to check the PMD against. Otherwise, there
- 	 * is a risk of replacing the wrong folio.
- 	 */
--	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
--	    is_pmd_migration_entry(*pmd)) {
--		if (folio && folio != pmd_folio(*pmd))
-+	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) || pmd_migration) {
-+		/*
-+		 * Do not apply pmd_folio() to a migration entry; and folio lock
-+		 * guarantees that it must be of the wrong folio anyway.
-+		 */
-+		if (folio && (pmd_migration || folio != pmd_folio(*pmd)))
- 			return;
- 		__split_huge_pmd_locked(vma, pmd, address, freeze);
- 	}
+--- a/fs/ocfs2/alloc.c~v2-ocfs2-fix-panic-in-failed-foilio-allocation
++++ a/fs/ocfs2/alloc.c
+@@ -6918,6 +6918,7 @@ static int ocfs2_grab_folios(struct inod
+ 		if (IS_ERR(folios[numfolios])) {
+ 			ret = PTR_ERR(folios[numfolios]);
+ 			mlog_errno(ret);
++			folios[numfolios] = NULL;
+ 			goto out;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from gavinguo@igalia.com are
+Patches currently in -mm which might be from mark.tinguely@oracle.com are
 
-mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch
-mm-huge_memory-remove-useless-folio-pointers-passing.patch
 
