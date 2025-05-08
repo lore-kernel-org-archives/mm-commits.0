@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 723CB20012B;
-	Thu,  8 May 2025 06:41:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25F0E20012B
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:41:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746686464; cv=none; b=H8I63kXiB4b+NuEUwGx/JKdXwPpxheknzR6wSU78rKem+0koRCC5gN3EP6ko80AZkhElKy0geHk+zr/TCXh4QWFSMK+xyi59NHeNIP1y/2qRrQmLLX3OUubrGlKpsq4djsom/dLsS1BvywmBjHWeQsx3rNbpk+BNtnyCt9eMk5Y=
+	t=1746686465; cv=none; b=qN9yn5HnpJZ93oyQPerx3AnCNm3MbUKdckiAU7kIAw/Fq72y064EOZ0v6KCks7IFz8uY6BjCx5S+4gwQQltq+s7aPZIZIs7XrGG+M7QzqQvF19QFMFjNIaHV/DXhVdzbkuk55pQvMOmWOXSXXTQcmbqodfbA9H+OESJGrUA76Qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746686464; c=relaxed/simple;
-	bh=1Cwk87Gj4SG2rjSOHBpQS1LQSMxMBvkFv61YpyqHDSE=;
-	h=Date:To:From:Subject:Message-Id; b=ZBkETvCTXFIfevoiAK0duJv/5ivMpJlrxnIAT0I1eIr+DSwURQMYLY+bzOTdXiN8hw/Yon//U7pg3v1Mr5MUPyjzBG7dVjY3eH8vg3tL/WbznbJYU16ZTMysXvT3OMTUlILvi1spzQPtv6VucB1kBjBW3MrU9tNrTDaGMlQjeFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v+vs+a0s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746686465; c=relaxed/simple;
+	bh=A6U1UekN/RTJChVAUCoqX51KUvsTGVnJOoq1gOF4aIE=;
+	h=Date:To:From:Subject:Message-Id; b=C65eWl4KWtmRec4TsRAKRnhVHptqW5rBholMjSYm6IDksfefIyTypjmHZV4KYvF/vFPC89FAjelhBDUVyo1KfwSklD7yNho983Binwe9G7PTpqyyosIHs0MDLafSbdt9mh9qpRnCAwKv/n8AGklbS1bPN6K3QxRVGPyYtHdHqTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fX+9Qjld; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v+vs+a0s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D254DC4CEEB;
-	Thu,  8 May 2025 06:41:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fX+9Qjld"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFA91C4CEF0;
+	Thu,  8 May 2025 06:41:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746686463;
-	bh=1Cwk87Gj4SG2rjSOHBpQS1LQSMxMBvkFv61YpyqHDSE=;
+	s=korg; t=1746686465;
+	bh=A6U1UekN/RTJChVAUCoqX51KUvsTGVnJOoq1gOF4aIE=;
 	h=Date:To:From:Subject:From;
-	b=v+vs+a0sCJ1xCk1umbEDcQnu8s7w67CIOle4o8p9EkZJ7+Hix1q3ZAwN3lQUkb1Kx
-	 kumLQwMt4Zq331tNj94PiMe2/Yj5z8zT5aGp94BuLmS+I/xmr0gG+oRmoVjpFunTWC
-	 6m/7iv2csRzthFGv/4cFAUkyiRSZ1XSRCLB2gBIs=
-Date: Wed, 07 May 2025 23:41:03 -0700
-To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,stable@vger.kernel.org,maddy@linux.ibm.com,donettom@linux.ibm.com,nysal@linux.ibm.com,akpm@linux-foundation.org
+	b=fX+9QjldHeejOyKKxkT8l8hPX3pyoF5xF4iZXdN6oRJodI/24RCjlXKiP1E/CoC10
+	 JEY7Z7/0Dw7ibUlfSZzVvSMpBZzO1eOSxj8itlmuLKHe526CF50dIqt4vysPYl0g5P
+	 xTRuVi2lHlK+dpvAwGG9JjaQx/6p7+2Lv83Znr/I=
+Date: Wed, 07 May 2025 23:41:04 -0700
+To: mm-commits@vger.kernel.org,hca@linux.ibm.com,bhe@redhat.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-fix-a-build-failure-on-powerpc.patch removed from -mm tree
-Message-Id: <20250508064103.D254DC4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-swap-fix-false-warning-for-large-allocation-with-thp_swap.patch removed from -mm tree
+Message-Id: <20250508064104.EFA91C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix a build failure on powerpc
+     Subject: mm, swap: fix false warning for large allocation with !THP_SWAP
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-a-build-failure-on-powerpc.patch
+     mm-swap-fix-false-warning-for-large-allocation-with-thp_swap.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Nysal Jan K.A." <nysal@linux.ibm.com>
-Subject: selftests/mm: fix a build failure on powerpc
-Date: Mon, 28 Apr 2025 18:49:35 +0530
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: fix false warning for large allocation with !THP_SWAP
+Date: Tue, 29 Apr 2025 17:48:03 +0800
 
-The compiler is unaware of the size of code generated by the ".rept"
-assembler directive.  This results in the compiler emitting branch
-instructions where the offset to branch to exceeds the maximum allowed
-value, resulting in build failures like the following:
+The !CONFIG_THP_SWAP check existed before just fine because slot cache
+would reject high order allocation and let the caller split all folios and
+try again.
 
-  CC       protection_keys
-  /tmp/ccypKWAE.s: Assembler messages:
-  /tmp/ccypKWAE.s:2073: Error: operand out of range (0x0000000000020158
-  is not between 0xffffffffffff8000 and 0x0000000000007ffc)
-  /tmp/ccypKWAE.s:2509: Error: operand out of range (0x0000000000020130
-  is not between 0xffffffffffff8000 and 0x0000000000007ffc)
+But slot cache is gone, so large allocation will directly go to the
+allocator, and the allocator should just fail silently to inform caller to
+do the folio split, this is totally fine and expected.
 
-Fix the issue by manually adding nop instructions using the preprocessor.
+Remove this meaningless warning.
 
-Link: https://lkml.kernel.org/r/20250428131937.641989-2-nysal@linux.ibm.com
-Fixes: 46036188ea1f ("selftests/mm: build with -O2")
-Reported-by: Madhavan Srinivasan <maddy@linux.ibm.com>
-Signed-off-by: Nysal Jan K.A. <nysal@linux.ibm.com>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Reviewed-by: Donet Tom <donettom@linux.ibm.com>
-Tested-by: Donet Tom <donettom@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250429094803.85518-1-ryncsn@gmail.com
+Fixes: 0ff67f990bd4 ("mm, swap: remove swap slot cache")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reported-by: Heiko Carstens <hca@linux.ibm.com>
+Closes: https://lore.kernel.org/linux-mm/20250428135252.25453B17-hca@linux.ibm.com/
+Tested-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-powerpc.h |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/swapfile.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey-powerpc.h~selftests-mm-fix-a-build-failure-on-powerpc
-+++ a/tools/testing/selftests/mm/pkey-powerpc.h
-@@ -104,8 +104,18 @@ static inline void expect_fault_on_read_
- 	return;
- }
+--- a/mm/swapfile.c~mm-swap-fix-false-warning-for-large-allocation-with-thp_swap
++++ a/mm/swapfile.c
+@@ -1272,13 +1272,22 @@ int folio_alloc_swap(struct folio *folio
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_uptodate(folio), folio);
  
-+#define REPEAT_8(s) s s s s s s s s
-+#define REPEAT_64(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) \
-+		     REPEAT_8(s) REPEAT_8(s) REPEAT_8(s) REPEAT_8(s)
-+#define REPEAT_512(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) \
-+		      REPEAT_64(s) REPEAT_64(s) REPEAT_64(s) REPEAT_64(s)
-+#define REPEAT_4096(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) \
-+		       REPEAT_512(s) REPEAT_512(s) REPEAT_512(s) REPEAT_512(s)
-+#define REPEAT_16384(s) REPEAT_4096(s) REPEAT_4096(s) \
-+			REPEAT_4096(s) REPEAT_4096(s)
+-	/*
+-	 * Should not even be attempting large allocations when huge
+-	 * page swap is disabled. Warn and fail the allocation.
+-	 */
+-	if (order && (!IS_ENABLED(CONFIG_THP_SWAP) || size > SWAPFILE_CLUSTER)) {
+-		VM_WARN_ON_ONCE(1);
+-		return -EINVAL;
++	if (order) {
++		/*
++		 * Reject large allocation when THP_SWAP is disabled,
++		 * the caller should split the folio and try again.
++		 */
++		if (!IS_ENABLED(CONFIG_THP_SWAP))
++			return -EAGAIN;
 +
- /* 4-byte instructions * 16384 = 64K page */
--#define __page_o_noops() asm(".rept 16384 ; nop; .endr")
-+#define __page_o_noops() asm(REPEAT_16384("nop\n"))
++		/*
++		 * Allocation size should never exceed cluster size
++		 * (HPAGE_PMD_SIZE).
++		 */
++		if (size > SWAPFILE_CLUSTER) {
++			VM_WARN_ON_ONCE(1);
++			return -EINVAL;
++		}
+ 	}
  
- static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
- {
+ 	local_lock(&percpu_swap_cluster.lock);
 _
 
-Patches currently in -mm which might be from nysal@linux.ibm.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch
+mm-memory-fix-mapcount-refcount-sanity-check-for-mthp-reuse.patch
+fuse-drop-usage-of-folio_index.patch
+btrfs-drop-usage-of-folio_index.patch
+f2fs-drop-usage-of-folio_index.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
+mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch
+mm-swap-remove-no-longer-used-swap-mapping-helper.patch
 
