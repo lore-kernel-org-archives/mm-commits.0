@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 077C3747F
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:40:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFCFD219A72;
+	Thu,  8 May 2025 06:40:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746686450; cv=none; b=OPDx7JWhP/U/To8eZVGFz927mhoQtP5Lo7Xsi4fy+1DCGpcT2L2qNoBmbb4N4OOCItOi3pPMiRQCCH0fgb0ZGuHBH7iNv/qkTnolMKFUvaJ5rWJN50jDuzMxknRfUrtVdUxHDQq6jWhEangKOiQcoBPtLLcd73ZYJ9huIE0eE7Q=
+	t=1746686451; cv=none; b=eqO/8GWnC6G6R1d50BOQULFsB2xM3BV2AWk3Y2o+cbxO1c0xpxtqpjPQrIXC+O+NoQ4I64gJt2AdDPbwMXo8zRlIiUa6Hi8YakZ87XDOiNEFIekKYzOiNekDakV9SkaA1kp/m8yZfC0r/R6JJ4AlE/VToZCYwBp1jhTnt9V569Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746686450; c=relaxed/simple;
-	bh=1d+w4c3oQYmoGxc+OtKlAn8iJCuQR8bDooksPVgHd6U=;
-	h=Date:To:From:Subject:Message-Id; b=ndWi8VO4viR3XRVm64aHU5T2w9lQWfgjnH7LWUXV5EnGc3oxCF0N5N87A+e8rMf4yL0Ey8trII2nol000YTirRIp/pH00ZP9wADIHmuhQjF5OBTPBTLxg4iWxqTvQaVfpipSbDabcam0B3eef4Xe7+DriPFF9HYBv8uQ9AOQhVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JyaRmoNh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746686451; c=relaxed/simple;
+	bh=JF41+ZUWpLBZXM8P/468uhHm+jXa4jRdv+/46rLWPf0=;
+	h=Date:To:From:Subject:Message-Id; b=kvVYPRQo+QTD/aLyjJ9OXDqpZ43s8M1HqQ4CvFTwSE1g/B58VgJwEo4gwzL9KcvB4AuPwlFjT4iCDDLuT5u5sa4cmvW62kmq8yB7Eoivh0kIPg3EmCqJhgfzpp/etnOFnOaYQOq+TKAOPFBUrTnkjV2Fk1rxNx3sumuDfMWcp64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wMsHi55u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JyaRmoNh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1CD4C4CEEB;
-	Thu,  8 May 2025 06:40:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wMsHi55u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 707A4C4CEF3;
+	Thu,  8 May 2025 06:40:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746686449;
-	bh=1d+w4c3oQYmoGxc+OtKlAn8iJCuQR8bDooksPVgHd6U=;
+	s=korg; t=1746686451;
+	bh=JF41+ZUWpLBZXM8P/468uhHm+jXa4jRdv+/46rLWPf0=;
 	h=Date:To:From:Subject:From;
-	b=JyaRmoNhvjZbU+aeQCc3Z2oCKjr2REaApX0V4HnXVsBz6KKJsp4p+nUAyEA3cFlSP
-	 WxZzSuIFvS9ePAF+fy9+RKlWcGUJB50DTtNZ3GUxfNJeasGWPpRkYz4tQwn1I9LZ7A
-	 6ZwxQ9e/eEQo6uZryGpkXojq8HZ2JmH7CIvb2qUg=
-Date: Wed, 07 May 2025 23:40:49 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,Liam.Howlett@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=wMsHi55uy4KBuon3cKeYSZCsMTwucX+n6qmls7Jme8w/wf3pam2/+O8U56Ir7a7vl
+	 F+n/q8wosOvxjmSg0pDXvKZLYexCGmF+nZa0yDGk/STj/N/IZJFOjrGHLE3DmKv1gy
+	 RevI+smS3Fv71yevLY48KJ/Hk4qrSbxKIiT0Yjgo=
+Date: Wed, 07 May 2025 23:40:50 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sjayaram@akamai.com,shuah@kernel.org,dev.jain@arm.com,baolin.wang@linux.alibaba.com,baolin.wang@inux.alibaba.com,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-core-mm-section.patch removed from -mm tree
-Message-Id: <20250508064049.B1CD4C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-compaction_test-support-platform-with-huge-mount-of-memory.patch removed from -mm tree
+Message-Id: <20250508064051.707A4C4CEF3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,107 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add core mm section
+     Subject: selftests/mm: compaction_test: support platform with huge mount of memory
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-core-mm-section.patch
+     selftests-mm-compaction_test-support-platform-with-huge-mount-of-memory.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add core mm section
-Date: Wed, 23 Apr 2025 13:30:42 +0100
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: selftests/mm: compaction_test: support platform with huge mount of memory
+Date: Wed, 23 Apr 2025 18:36:45 +0800
 
-In furtherance of ongoing efforts to ensure people are aware of who
-de-facto maintains/has an interest in specific parts of mm, as well trying
-to avoid get_maintainers.pl listing only Andrew and the mailing list for
-mm files - establish a 'core' memory management section establishing David
-as co-maintainer alongside Andrew (thanks David for volunteering!) along
-with a number of relevant reviewers.
+When running mm selftest to verify mm patches, 'compaction_test' case
+failed on an x86 server with 1TB memory.  And the root cause is that it
+has too much free memory than what the test supports.
 
-We try to keep things as fine-grained as possible, so we place only
-obviously 'general' mm things here.  For files which are specific to a
-particular part of mm, we prefer new entries.
+The test case tries to allocate 100000 huge pages, which is about 200 GB
+for that x86 server, and when it succeeds, it expects it's large than 1/3
+of 80% of the free memory in system.  This logic only works for platform
+with 750 GB ( 200 / (1/3) / 80% ) or less free memory, and may raise false
+alarm for others.
 
-Link: https://lkml.kernel.org/r/20250423123042.59082-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Fix it by changing the fixed page number to self-adjustable number
+according to the real number of free memory.
+
+Link: https://lkml.kernel.org/r/20250423103645.2758-1-feng.tang@linux.alibaba.com
+Fixes: bd67d5c15cc1 ("Test compaction of mlocked memory")
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Acked-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@inux.alibaba.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sri Jayaramappa <sjayaram@akamai.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/compaction_test.c |   19 ++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-core-mm-section
-+++ a/MAINTAINERS
-@@ -15494,14 +15494,11 @@ F:	Documentation/mm/
- F:	include/linux/gfp.h
- F:	include/linux/gfp_types.h
- F:	include/linux/memfd.h
--F:	include/linux/memory.h
- F:	include/linux/memory_hotplug.h
- F:	include/linux/memory-tiers.h
- F:	include/linux/mempolicy.h
- F:	include/linux/mempool.h
- F:	include/linux/memremap.h
--F:	include/linux/mm.h
--F:	include/linux/mm_*.h
- F:	include/linux/mmzone.h
- F:	include/linux/mmu_notifier.h
- F:	include/linux/pagewalk.h
-@@ -15511,6 +15508,31 @@ F:	tools/mm/
- F:	tools/testing/selftests/mm/
- N:	include/linux/page[-_]*
+--- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-compaction_test-support-platform-with-huge-mount-of-memory
++++ a/tools/testing/selftests/mm/compaction_test.c
+@@ -90,6 +90,8 @@ int check_compaction(unsigned long mem_f
+ 	int compaction_index = 0;
+ 	char nr_hugepages[20] = {0};
+ 	char init_nr_hugepages[24] = {0};
++	char target_nr_hugepages[24] = {0};
++	int slen;
  
-+MEMORY MANAGEMENT - CORE
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	David Hildenbrand <david@redhat.com>
-+R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-+R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Mike Rapoport <rppt@kernel.org>
-+R:	Suren Baghdasaryan <surenb@google.com>
-+R:	Michal Hocko <mhocko@suse.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+W:	http://www.linux-mm.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	include/linux/memory.h
-+F:	include/linux/mm.h
-+F:	include/linux/mm_*.h
-+F:	include/linux/mmdebug.h
-+F:	include/linux/pagewalk.h
-+F:	mm/Kconfig
-+F:	mm/debug.c
-+F:	mm/init-mm.c
-+F:	mm/memory.c
-+F:	mm/pagewalk.c
-+F:	mm/util.c
+ 	snprintf(init_nr_hugepages, sizeof(init_nr_hugepages),
+ 		 "%lu", initial_nr_hugepages);
+@@ -106,11 +108,18 @@ int check_compaction(unsigned long mem_f
+ 		goto out;
+ 	}
+ 
+-	/* Request a large number of huge pages. The Kernel will allocate
+-	   as much as it can */
+-	if (write(fd, "100000", (6*sizeof(char))) != (6*sizeof(char))) {
+-		ksft_print_msg("Failed to write 100000 to /proc/sys/vm/nr_hugepages: %s\n",
+-			       strerror(errno));
++	/*
++	 * Request huge pages for about half of the free memory. The Kernel
++	 * will allocate as much as it can, and we expect it will get at least 1/3
++	 */
++	nr_hugepages_ul = mem_free / hugepage_size / 2;
++	snprintf(target_nr_hugepages, sizeof(target_nr_hugepages),
++		 "%lu", nr_hugepages_ul);
 +
- MEMORY MANAGEMENT - EXECMEM
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Mike Rapoport <rppt@kernel.org>
++	slen = strlen(target_nr_hugepages);
++	if (write(fd, target_nr_hugepages, slen) != slen) {
++		ksft_print_msg("Failed to write %lu to /proc/sys/vm/nr_hugepages: %s\n",
++			       nr_hugepages_ul, strerror(errno));
+ 		goto close_fd;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-maintainers-add-mm-gup-section.patch
-mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
-tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
-tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
-mm-move-mmap-vma-locking-logic-into-specific-files.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
-mm-abstract-initial-stack-setup-to-mm-subsystem.patch
-mm-move-dup_mmap-to-mm.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm.patch
-mm-introduce-new-mmap_prepare-file-callback.patch
-mm-secretmem-convert-to-mmap_prepare-hook.patch
-mm-vma-remove-mmap-retry-merge.patch
 
