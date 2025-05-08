@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 276B524B28
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 22:40:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73B2A218596
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 22:58:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746744030; cv=none; b=ufYq17a9+UrqWQ5tAGHK36Hyd3jhNqUHCXDcQ6L3e+1HTZe9VGzMIS6WcafU4JNxhiTdajp+dAHMlr8M9RQN6CikYWACKtaiy7sm3k33GpGQK9Cz7mJGh2KrbB62LvIk76NVSgC79fMs/GNIxmNBE7s93PgMbefNWS2TkiYgXaQ=
+	t=1746745089; cv=none; b=n0NAtbHNMEcTuUHmxVOAl5oHKHQhYLocUHn40C8pTENW7oFZ54VQN2ePBVTZrVyCeTHXRz1X843JsfSMzfF97zGzgzzAijUizHUPff94MIEFUNn7+E7ylPDegEJS8pLxq1F5SOR9VFqtwfHh1pNIc00zlAhzabdpLd2G3Mn+yB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746744030; c=relaxed/simple;
-	bh=tJ9S5HVNWRt6MivT98lJpICCcI1Tgh7PfxEzPrwBIoo=;
-	h=Date:To:From:Subject:Message-Id; b=rrZiFneNJaR8TGLzEtTf+2qnCwyO/ATinAlv6xISWH0LqoSt4d5WVwrYlytPo8xt47GHlsrMb1u63PQvaO5RzEuMeHvKZIfJSM6NNZ2qnCVOgdhHnI0la/9BHabOS3WNDofgTX4+zlfyzIhGDiEvuy9vJc/aCmkHB9ld1JSBJuA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dncJfTRr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746745089; c=relaxed/simple;
+	bh=HDJUjHVmdC6yMG6rE/FLoRJlj0AbhF1axpnbGVHbX2k=;
+	h=Date:To:From:Subject:Message-Id; b=JRH4uIJc5yolAHNsJ22plmx7vOoXs2bOoGbDWWu8qpHD/s0DuK4YvOtyLS42wTkcV3fmFzsb1jqB5NnUPbQzZ41jnyGncQhpBJHFrKJcRrie10iwSv9aN03O5hCDrZH92bMPaur9tvvttcs0BoPCJXXOARksBJe/08SBqDBJ/OM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=my8MSDqg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dncJfTRr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76DCAC4CEE7;
-	Thu,  8 May 2025 22:40:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="my8MSDqg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9F50C4CEED;
+	Thu,  8 May 2025 22:58:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746744029;
-	bh=tJ9S5HVNWRt6MivT98lJpICCcI1Tgh7PfxEzPrwBIoo=;
+	s=korg; t=1746745088;
+	bh=HDJUjHVmdC6yMG6rE/FLoRJlj0AbhF1axpnbGVHbX2k=;
 	h=Date:To:From:Subject:From;
-	b=dncJfTRr2tDXRJzmw0J3dyz+quDkgPJqIWGCIe/vQxtx8bIHycurA9YCQS/ROxRq0
-	 TzlMvlPRn3gJfvvNjjHYSKV1UNKtuSUXwNFjqOPisTG4nz4AeHw2e2eOCyQvqw+U5U
-	 XHtOpV9sl0RMBxxNsxSYOVDQYkrBbJ2ornwf5G2c=
-Date: Thu, 08 May 2025 15:40:28 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,mingo@redhat.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=my8MSDqgHF7o5sj9iEYY63KigSJPIeCzk1ExJCFSEkRN8jLVDzEtJsvR1FYh9/a4s
+	 BI6T2omnua5//cL2cMvsoGBFiP0Y6zQG7Z6B0g8qF2TpPGmNnIQ52Tvx5RYH3R1ckr
+	 we8AKuBgHLqK4QGyXF69zvSQpiUrSbtkoEubPfg8=
+Date: Thu, 08 May 2025 15:58:08 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch added to mm-unstable branch
-Message-Id: <20250508224029.76DCAC4CEE7@smtp.kernel.org>
+Subject: + mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch added to mm-new branch
+Message-Id: <20250508225808.D9F50C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add simple VM_PFNMAP tests based on mmap'ing /dev/mem
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
+     Subject: mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,363 +64,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests/mm: add simple VM_PFNMAP tests based on mmap'ing /dev/mem
-Date: Fri, 9 May 2025 00:20:41 +0200
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
+Date: Thu, 8 May 2025 15:42:18 -0400
 
-Let's test some basic functionality using /dev/mem.  These tests will
-implicitly cover some PAT (Page Attribute Handling) handling on x86.
+address the type issue reported by kernel test robot
 
-These tests will only run when /dev/mem access to the first two pages in
-physical address space is possible and allowed; otherwise, the tests are
-skipped.
+1. fixed test_pages_isolated() and __test_page_isolated_in_pageblock()
+   signature by using the new isol_flags_t type.
+2. fixed test_pages_isolated() doc: flags -> isol_flags
 
-On current x86-64 with PAT inside a VM, all tests pass:
-
-	TAP version 13
-	1..19
-	ok 1 madvise(MADV_DONTNEED) should be disallowed
-	ok 2 madvise(MADV_DONTNEED_LOCKED) should be disallowed
-	ok 3 madvise(MADV_FREE) should be disallowed
-	ok 4 madvise(MADV_WIPEONFORK) should be disallowed
-	ok 5 madvise(MADV_COLD) should be disallowed
-	ok 6 madvise(MADV_PAGEOUT) should be disallowed
-	ok 7 madvise(MADV_POPULATE_READ) should be disallowed
-	ok 8 madvise(MADV_POPULATE_WRITE) should be disallowed
-	ok 9 munmap() splitting
-	ok 10 mmap() after splitting
-	ok 11 mremap(MREMAP_FIXED)
-	ok 12 mremap() shrinking
-	ok 13 mremap() growing should be disallowed
-	ok 14 mprotect(PROT_NONE)
-	ok 15 SIGSEGV expected
-	ok 16 mprotect(PROT_READ)
-	ok 17 SIGSEGV not expected
-	ok 18 fork()
-	ok 19 SIGSEGV in child not expected
-	# Totals: pass:19 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-However, we are able to trigger:
-
-[   27.888251] x86/PAT: pfnmap:1790 freeing invalid memtype [mem 0x00000000-0x00000fff]
-
-There are probably more things worth testing in the future, such as
-MAP_PRIVATE handling.  But this set of tests is sufficient to cover most
-of the things we will rework regarding PAT handling.
-
-Link: https://lkml.kernel.org/r/20250508222041.1647645-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/C4D87FA7-4B3D-440F-9E5F-B57561AB4FE8@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    1 
- tools/testing/selftests/mm/pfnmap.c |  278 ++++++++++++++++++++++++++
- 2 files changed, 279 insertions(+)
+ include/linux/page-isolation.h |    2 +-
+ mm/page_isolation.c            |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -84,6 +84,7 @@ TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += mseal_test
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
-+TEST_GEN_FILES += pfnmap
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
-diff --git a/tools/testing/selftests/mm/pfnmap.c a/tools/testing/selftests/mm/pfnmap.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/pfnmap.c
-@@ -0,0 +1,278 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Basic VM_PFNMAP tests relying on mmap() of '/dev/mem'
-+ *
-+ * Copyright 2025, Red Hat, Inc.
-+ *
-+ * Author(s): David Hildenbrand <david@redhat.com>
-+ */
-+#define _GNU_SOURCE
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <signal.h>
-+#include <setjmp.h>
-+#include <linux/mman.h>
-+#include <sys/mman.h>
-+#include <sys/wait.h>
-+
-+#include "../kselftest.h"
-+#include "vm_util.h"
-+
-+static size_t pagesize;
-+static int pagemap_fd;
-+static int dev_mem_fd;
-+static sigjmp_buf env;
-+
-+static void signal_handler(int sig)
-+{
-+	if (sig == SIGSEGV)
-+		siglongjmp(env, 1);
-+	siglongjmp(env, 2);
-+}
-+
-+static void sense_support(void)
-+{
-+	char *addr, tmp;
-+	int ret;
-+
-+	dev_mem_fd = open("/dev/mem", O_RDONLY);
-+	if (dev_mem_fd < 0)
-+		ksft_exit_skip("Cannot open '/dev/mem': %s\n", strerror(errno));
-+
-+	/* We'll require the first two pages throughout our tests ... */
-+	addr = mmap(0, pagesize * 2, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_skip("Cannot mmap '/dev/mem'");
-+
-+	/* ... and want to be able to read from them. */
-+	ret = sigsetjmp(env, 1);
-+	if (!ret) {
-+		tmp = *addr + *(addr + pagesize);
-+		asm volatile("" : "+r" (tmp));
-+	}
-+	if (ret)
-+		ksft_exit_skip("Cannot read-access mmap'ed '/dev/mem'");
-+
-+	munmap(addr, pagesize * 2);
-+}
-+
-+static void test_madvise(void)
-+{
-+#define INIT_ADVICE(nr) { nr, #nr}
-+	const struct {
-+		int nr;
-+		const char *name;
-+	} advices[] = {
-+		INIT_ADVICE(MADV_DONTNEED),
-+		INIT_ADVICE(MADV_DONTNEED_LOCKED),
-+		INIT_ADVICE(MADV_FREE),
-+		INIT_ADVICE(MADV_WIPEONFORK),
-+		INIT_ADVICE(MADV_COLD),
-+		INIT_ADVICE(MADV_PAGEOUT),
-+		INIT_ADVICE(MADV_POPULATE_READ),
-+		INIT_ADVICE(MADV_POPULATE_WRITE),
-+	};
-+	char *addr;
-+	int ret, i;
-+
-+	addr = mmap(0, pagesize, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* All these advices must be rejected. */
-+	for (i = 0; i < ARRAY_SIZE(advices); i++) {
-+		ret = madvise(addr, pagesize, advices[i].nr);
-+		ksft_test_result(ret && errno == EINVAL,
-+				 "madvise(%s) should be disallowed\n",
-+				 advices[i].name);
-+	}
-+
-+	munmap(addr, pagesize);
-+}
-+
-+static void test_munmap_splitting(void)
-+{
-+	char *addr1, *addr2;
-+	int ret;
-+
-+	addr1 = mmap(0, pagesize * 2, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr1 == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* Unmap the first pages. */
-+	ret = munmap(addr1, pagesize);
-+	ksft_test_result(!ret, "munmap() splitting\n");
-+
-+	/* Remap the first page while the second page is still mapped. */
-+	addr2 = mmap(0, pagesize, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	ksft_test_result(addr2 != MAP_FAILED, "mmap() after splitting\n");
-+
-+	if (addr2 != MAP_FAILED)
-+		munmap(addr2, pagesize);
-+	if (!ret)
-+		munmap(addr1 + pagesize, pagesize);
-+	else
-+		munmap(addr1, pagesize * 2);
-+}
-+
-+static void test_mremap_fixed(void)
-+{
-+	char *addr, *new_addr, *ret;
-+
-+	addr = mmap(0, pagesize * 2, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* Reserve a destination area. */
-+	new_addr = mmap(0, pagesize * 2, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
-+	if (new_addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* mremap() over our destination. */
-+	ret = mremap(addr, pagesize * 2, pagesize * 2,
-+		     MREMAP_FIXED | MREMAP_MAYMOVE, new_addr);
-+	ksft_test_result(ret == new_addr, "mremap(MREMAP_FIXED)\n");
-+	if (ret != new_addr)
-+		munmap(new_addr, pagesize * 2);
-+	munmap(addr, pagesize * 2);
-+}
-+
-+static void test_mremap_shrinking(void)
-+{
-+	char *addr, *ret;
-+
-+	addr = mmap(0, pagesize * 2, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* Shrinking is expected to work. */
-+	ret = mremap(addr, pagesize * 2, pagesize, 0);
-+	ksft_test_result(ret == addr, "mremap() shrinking\n");
-+	if (ret != addr)
-+		munmap(addr, pagesize * 2);
-+	else
-+		munmap(addr, pagesize);
-+}
-+
-+static void test_mremap_growing(void)
-+{
-+	char *addr, *ret;
-+
-+	addr = mmap(0, pagesize, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* Growing is not expected to work. */
-+	ret = mremap(addr, pagesize, pagesize * 2, MREMAP_MAYMOVE);
-+	ksft_test_result(ret == MAP_FAILED,
-+			 "mremap() growing should be disallowed\n");
-+	if (ret == MAP_FAILED)
-+		munmap(addr, pagesize);
-+	else
-+		munmap(ret, pagesize * 2);
-+}
-+
-+static void test_mprotect(void)
-+{
-+	char *addr, tmp;
-+	int ret;
-+
-+	addr = mmap(0, pagesize, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* With PROT_NONE, read access must result in SIGSEGV. */
-+	ret = mprotect(addr, pagesize, PROT_NONE);
-+	ksft_test_result(!ret, "mprotect(PROT_NONE)\n");
-+
-+	ret = sigsetjmp(env, 1);
-+	if (!ret) {
-+		tmp = *addr;
-+		asm volatile("" : "+r" (tmp));
-+	}
-+	ksft_test_result(ret == 1, "SIGSEGV expected\n");
-+
-+	/* With PROT_READ, read access must again succeed. */
-+	ret = mprotect(addr, pagesize, PROT_READ);
-+	ksft_test_result(!ret, "mprotect(PROT_READ)\n");
-+
-+	ret = sigsetjmp(env, 1);
-+	if (!ret) {
-+		tmp = *addr;
-+		asm volatile("" : "+r" (tmp));
-+	}
-+	ksft_test_result(!ret, "SIGSEGV not expected\n");
-+
-+	munmap(addr, pagesize);
-+}
-+
-+static void test_fork(void)
-+{
-+	char *addr, tmp;
-+	int ret;
-+
-+	addr = mmap(0, pagesize, PROT_READ, MAP_SHARED, dev_mem_fd, 0);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap() failed: %s\n", strerror(errno));
-+
-+	/* fork() a child and test if the child can access the page. */
-+	ret = fork();
-+	if (ret < 0) {
-+		ksft_test_result_fail("fork()\n");
-+		goto out;
-+	} else if (!ret) {
-+		ret = sigsetjmp(env, 1);
-+		if (!ret) {
-+			tmp = *addr;
-+			asm volatile("" : "+r" (tmp));
-+		}
-+		/* Return the result to the parent. */
-+		exit(ret);
-+	}
-+	ksft_test_result_pass("fork()\n");
-+
-+	/* Wait for our child and obtain the result. */
-+	wait(&ret);
-+	if (WIFEXITED(ret))
-+		ret = WEXITSTATUS(ret);
-+	else
-+		ret = -EINVAL;
-+
-+	ksft_test_result(!ret, "SIGSEGV in child not expected\n");
-+out:
-+	munmap(addr, pagesize);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int err;
-+
-+	ksft_print_header();
-+	ksft_set_plan(19);
-+
-+	pagesize = getpagesize();
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd < 0)
-+		ksft_exit_fail_msg("opening pagemap failed\n");
-+	if (signal(SIGSEGV, signal_handler) == SIG_ERR)
-+		ksft_exit_fail_msg("signal() failed: %s\n", strerror(errno));
-+
-+	sense_support();
-+	test_madvise();
-+	test_munmap_splitting();
-+	test_mremap_fixed();
-+	test_mremap_shrinking();
-+	test_mremap_growing();
-+	test_mprotect();
-+	test_fork();
-+
-+	err = ksft_get_fail_cnt();
-+	if (err)
-+		ksft_exit_fail_msg("%d out of %d tests failed\n",
-+				   err, ksft_test_num());
-+	ksft_exit_pass();
-+}
+--- a/include/linux/page-isolation.h~mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
++++ a/include/linux/page-isolation.h
+@@ -45,5 +45,5 @@ int start_isolate_page_range(unsigned lo
+ void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
+-			int isol_flags);
++			isol_flags_t isol_flags);
+ #endif
+--- a/mm/page_isolation.c~mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
++++ a/mm/page_isolation.c
+@@ -546,7 +546,7 @@ void undo_isolate_page_range(unsigned lo
+  */
+ static unsigned long
+ __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
+-				  int flags)
++				  isol_flags_t flags)
+ {
+ 	struct page *page;
+ 
+@@ -585,7 +585,7 @@ __test_page_isolated_in_pageblock(unsign
+  *
+  * This tests if all in the specified range are free.
+  *
+- * If %MEMORY_OFFLINE is specified in @flags, it will consider
++ * If %MEMORY_OFFLINE is specified in @isol_flags, it will consider
+  * poisoned and offlined pages free as well.
+  *
+  * Caller must ensure the requested range doesn't span zones.
+@@ -593,7 +593,7 @@ __test_page_isolated_in_pageblock(unsign
+  * Returns 0 if true, -EBUSY if one or more pages are in use.
+  */
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
+-			int isol_flags)
++			isol_flags_t isol_flags)
+ {
+ 	unsigned long pfn, flags;
+ 	struct page *page;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-kernel-fork-only-call-untrack_pfn_clear-on-vmas-duplicated-for-fork.patch
-kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
-kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch
-kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
-selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
+mm-page_isolation-make-page-isolation-a-standalone-bit.patch
+mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate.patch
+mm-page_isolation-remove-migratetype-from-undo_isolate_page_range.patch
+mm-page_isolation-remove-migratetype-parameter-from-more-functions.patch
+mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch
 
