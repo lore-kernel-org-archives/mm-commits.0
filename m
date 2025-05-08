@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73B2A218596
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 22:58:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 218D61DD525
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 23:05:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746745089; cv=none; b=n0NAtbHNMEcTuUHmxVOAl5oHKHQhYLocUHn40C8pTENW7oFZ54VQN2ePBVTZrVyCeTHXRz1X843JsfSMzfF97zGzgzzAijUizHUPff94MIEFUNn7+E7ylPDegEJS8pLxq1F5SOR9VFqtwfHh1pNIc00zlAhzabdpLd2G3Mn+yB8=
+	t=1746745515; cv=none; b=ZsfjpdHprhSsqRI4X68w+dDE8G+/0iBqrE6qSgrmI25b6DExUzqKetanyD9PXePcENslpQPSelCljcQE7ih4pLW3fgHfjOrOv+zZUuJ65JrCyGK8RJYJYr+MROo8/5r58bV3SY88iEpxAMBtw/Ev5JVyJ0z0/qiXYUZfdb0VXN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746745089; c=relaxed/simple;
-	bh=HDJUjHVmdC6yMG6rE/FLoRJlj0AbhF1axpnbGVHbX2k=;
-	h=Date:To:From:Subject:Message-Id; b=JRH4uIJc5yolAHNsJ22plmx7vOoXs2bOoGbDWWu8qpHD/s0DuK4YvOtyLS42wTkcV3fmFzsb1jqB5NnUPbQzZ41jnyGncQhpBJHFrKJcRrie10iwSv9aN03O5hCDrZH92bMPaur9tvvttcs0BoPCJXXOARksBJe/08SBqDBJ/OM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=my8MSDqg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746745515; c=relaxed/simple;
+	bh=fChxYEb7vGiGs5Dkxk/GE2rZuQaT+Ki1i2+SmeLMj00=;
+	h=Date:To:From:Subject:Message-Id; b=BpkZ8LNwKgdvz2pr/QqgqJ+Lzum3K07A/wlUxUaD46fd8so6hFkqL/hvOSs4wOhXcNlTOnK2Wj350g7ACoCNe8orCCNvu4mJ6Cyf1L8P1dSkpNnSfySa3HlFJ1pdVrJy8JIjnaQ4liy222OtZJN+OG8lCFzT5n829IeUjcZnx3E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yzb2c4yt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="my8MSDqg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9F50C4CEED;
-	Thu,  8 May 2025 22:58:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yzb2c4yt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 772EEC4CEE7;
+	Thu,  8 May 2025 23:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746745088;
-	bh=HDJUjHVmdC6yMG6rE/FLoRJlj0AbhF1axpnbGVHbX2k=;
+	s=korg; t=1746745514;
+	bh=fChxYEb7vGiGs5Dkxk/GE2rZuQaT+Ki1i2+SmeLMj00=;
 	h=Date:To:From:Subject:From;
-	b=my8MSDqgHF7o5sj9iEYY63KigSJPIeCzk1ExJCFSEkRN8jLVDzEtJsvR1FYh9/a4s
-	 BI6T2omnua5//cL2cMvsoGBFiP0Y6zQG7Z6B0g8qF2TpPGmNnIQ52Tvx5RYH3R1ckr
-	 we8AKuBgHLqK4QGyXF69zvSQpiUrSbtkoEubPfg8=
-Date: Thu, 08 May 2025 15:58:08 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=yzb2c4ytnqEa2JupCK6cGL5CYuoG8lm9x/WhwGg8METTKCwHuPQGdtUizkXPLSxj8
+	 GIKqPH579Xp9wJX4pWIrDBUuZ6/YIb7y+jZLfrpOcEOPMEtr1WKCYYlzQqU4nsInPA
+	 D1Pz6I7N+VZPOZHDIhRcl12XrqMRygp4GnGy223Q=
+Date: Thu, 08 May 2025 16:05:13 -0700
+To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch added to mm-new branch
-Message-Id: <20250508225808.D9F50C4CEED@smtp.kernel.org>
+Subject: + mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix.patch added to mm-new branch
+Message-Id: <20250508230514.772EEC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
+     Subject: mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch
+     mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,68 +65,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
-Date: Thu, 8 May 2025 15:42:18 -0400
+Subject: mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix
+Date: Thu, 8 May 2025 15:23:42 -0400
 
-address the type issue reported by kernel test robot
+Here is the fixup 2/3 to address Johannes' comments.
 
-1. fixed test_pages_isolated() and __test_page_isolated_in_pageblock()
-   signature by using the new isol_flags_t type.
-2. fixed test_pages_isolated() doc: flags -> isol_flags
+1. replace get_pageblock_isolate() with
+   get_pageblock_migratetype() == MIGRATE_ISOLATE, a
+   get_pageblock_isolate() becomes private in mm/page_isolation.c
 
-Link: https://lkml.kernel.org/r/C4D87FA7-4B3D-440F-9E5F-B57561AB4FE8@nvidia.com
+Link: https://lkml.kernel.org/r/F05CF961-6104-4C46-94C2-8966F580D8AC@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-isolation.h |    2 +-
- mm/page_isolation.c            |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/page-isolation.h~mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
-+++ a/include/linux/page-isolation.h
-@@ -45,5 +45,5 @@ int start_isolate_page_range(unsigned lo
- void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
+--- a/mm/page_alloc.c~mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix
++++ a/mm/page_alloc.c
+@@ -1980,7 +1980,7 @@ static bool __move_freepages_block_isola
+ 	int from_mt;
+ 	int to_mt;
  
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
--			int isol_flags);
-+			isol_flags_t isol_flags);
- #endif
---- a/mm/page_isolation.c~mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix
-+++ a/mm/page_isolation.c
-@@ -546,7 +546,7 @@ void undo_isolate_page_range(unsigned lo
-  */
- static unsigned long
- __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
--				  int flags)
-+				  isol_flags_t flags)
- {
- 	struct page *page;
+-	if (isolate == get_pageblock_isolate(page))
++	if (isolate == (get_pageblock_migratetype(page) == MIGRATE_ISOLATE))
+ 		return false;
  
-@@ -585,7 +585,7 @@ __test_page_isolated_in_pageblock(unsign
-  *
-  * This tests if all in the specified range are free.
-  *
-- * If %MEMORY_OFFLINE is specified in @flags, it will consider
-+ * If %MEMORY_OFFLINE is specified in @isol_flags, it will consider
-  * poisoned and offlined pages free as well.
-  *
-  * Caller must ensure the requested range doesn't span zones.
-@@ -593,7 +593,7 @@ __test_page_isolated_in_pageblock(unsign
-  * Returns 0 if true, -EBUSY if one or more pages are in use.
-  */
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
--			int isol_flags)
-+			isol_flags_t isol_flags)
- {
- 	unsigned long pfn, flags;
- 	struct page *page;
+ 	if (!prep_move_freepages_block(zone, page, &start_pfn, NULL, NULL))
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
 
 mm-page_isolation-make-page-isolation-a-standalone-bit.patch
 mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate.patch
+mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix.patch
 mm-page_isolation-remove-migratetype-from-undo_isolate_page_range.patch
 mm-page_isolation-remove-migratetype-parameter-from-more-functions.patch
 mm-page_isolation-remove-migratetype-parameter-from-more-functions-fix.patch
