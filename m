@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7809179CF
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:31:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C6084B1E45
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 06:33:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746685914; cv=none; b=hIdqFkmZAGneta9hzI5JMmcWKxuOcDGn1Ed6Ws7toefcQow69UOYjRAq9uG3/UDO435IeZMJDfcted6iswk7LzyeO2i1+ykPRpoZJL1CTsWvp4c8p97DcKdJ1OqNdZR1gwblNLlpGA/iB4p0GiBga0sJjNKaIi3la0peyloWvz0=
+	t=1746685982; cv=none; b=pxPxkbMB/EUiutVosmeS4dwVcAYAFDWZnYK1ojazJXJslAQqGCE6czj8U8h6s19L6E6msE5bJNlp43J7iSuOLLh4Y2iSIGX5XcHoZg6YGetf93QbLp2/4McFbAoMLceZn8sTT8naMo9qR6GWipLYkOtsYhymDyHsZxMa8nQeMH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746685914; c=relaxed/simple;
-	bh=jDGeAO7CPR6pMP833xjbsAVh11f0ji8CsFN3aC+Ec4I=;
-	h=Date:To:From:Subject:Message-Id; b=uxm9zv9BTrMVTLYPwZpHAWTY/aXhmgR1Xz9tQOBBHFkyN3QX66XXo3iBXPhVgfLGe109PZ5el4tVec9t0S2ZlNZPOU/wBYOEyQrLmon7eQq8C3KA2xXqZa1sKCalVI2lbpvBnGu1bWVwKSoqVLkkfCzdm2GtnWKwHvMEMN/QnIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GGbg500W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746685982; c=relaxed/simple;
+	bh=bDaVsh4nVzMnnOUmGH4ycyDVJ6hJkb3vGLYcHgc0o1Y=;
+	h=Date:To:From:Subject:Message-Id; b=UYNVB9vuAQzR/tHLnrFP/Op3dzmLukiXebr6k/7P4xrv8rIJB7mZxblhzDXgfbYLDFxAw49eZqoi1NOKvuy4oNSgqL7VmZlAXmqef7jOynJDsWjqL7jdDBwHAq7MF0GtNJt6DdE2HJ64P1IsBFYVpOGxfhhznlioUZ+YdQbJ7is=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bte8p2/Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GGbg500W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D095CC4CEEB;
-	Thu,  8 May 2025 06:31:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bte8p2/Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FBDAC4CEEB;
+	Thu,  8 May 2025 06:33:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746685913;
-	bh=jDGeAO7CPR6pMP833xjbsAVh11f0ji8CsFN3aC+Ec4I=;
+	s=korg; t=1746685981;
+	bh=bDaVsh4nVzMnnOUmGH4ycyDVJ6hJkb3vGLYcHgc0o1Y=;
 	h=Date:To:From:Subject:From;
-	b=GGbg500WlrtmQotsuMa4ua9Te/GBkuXznDqM5ST7ZjhlRzvGXG4rH52JsmoJa4aA1
-	 SAXrJENj3/sMqRLgR2y8gKIL2TtYIffiXaVDAVFFPYmWZn1XAyx0QjkNZbC6xIZXQk
-	 IOe75nP/zmviB6xuj6Q+2T8y3khgP6Z9C2Ukgyn8=
-Date: Wed, 07 May 2025 23:31:53 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,linux@roeck-us.net,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Bte8p2/ZzROLr3ZJBk6aFNBpTkesKH8pgKidc7ilTS06itYDn/UX/zyOkTqvQpAb1
+	 1OpcLL/mY1nC1uu0/RwFX/7gc+OssJQa2CVhRJDQG1JmHiUOh6b+w81nsXWbUEsH/J
+	 EHpECE39AJjwz6yr+uzTplvfMAv0fcxblnkl2eqI=
+Date: Wed, 07 May 2025 23:33:00 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] x86-disable-image-size-check-for-test-builds-fix-fix.patch removed from -mm tree
-Message-Id: <20250508063153.D095CC4CEEB@smtp.kernel.org>
+Subject: [folded-merged] maintainers-add-mm-thp-section-fix.patch removed from -mm tree
+Message-Id: <20250508063301.6FBDAC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86-disable-image-size-check-for-test-builds-fix-fix
+     Subject: MAINTAINERS: add Dev Jain as THP reviewer
 has been removed from the -mm tree.  Its filename was
-     x86-disable-image-size-check-for-test-builds-fix-fix.patch
+     maintainers-add-mm-thp-section-fix.patch
 
-This patch was dropped because it was folded into x86-disable-image-size-check-for-test-builds.patch
+This patch was dropped because it was folded into maintainers-add-mm-thp-section.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-disable-image-size-check-for-test-builds-fix-fix
-Date: Sat Apr 19 01:54:50 PM PDT 2025
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add Dev Jain as THP reviewer
+Date: Thu, 24 Apr 2025 12:33:35 +0100
 
-fix comment snafu
-
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202504191813.4r9H6Glt-lkp@intel.com/
-Cc: Guenter Roeck <linux@roeck-us.net>
+Link: https://lkml.kernel.org/r/327e6f2f-0f0f-48af-9ca2-3f8cadf0d8bf@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux.lds.S |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/x86/kernel/vmlinux.lds.S~x86-disable-image-size-check-for-test-builds-fix-fix
-+++ a/arch/x86/kernel/vmlinux.lds.S
-@@ -473,7 +473,6 @@ SECTIONS
-  */
- #ifndef CONFIG_COMPILE_TEST
- /*
--/*
-  * The ASSERT() sync to . is intentional, for binutils 2.14 compatibility:
-  */
- . = ASSERT((_end - LOAD_OFFSET <= KERNEL_IMAGE_SIZE),
+--- a/MAINTAINERS~maintainers-add-mm-thp-section-fix
++++ a/MAINTAINERS
+@@ -15582,6 +15582,7 @@ R:	Lorenzo Stoakes <lorenzo.stoakes@orac
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ R:	Nico Pache <npache@redhat.com>
+ R:	Ryan Roberts <ryan.roberts@arm.com>
++R:	Dev Jain <dev.jain@arm.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-x86-disable-image-size-check-for-test-builds.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
-mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update-fix.patch
-mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
-jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
-mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
-filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
-memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
-mm-add-config_page_block_order-to-select-page-block-order-fix.patch
-mm-add-zblock-allocator-fix.patch
-mm-add-zblock-allocator-fix-2.patch
-mm-add-zblock-allocator-fix-3.patch
-mm-zblock-avoid-failing-the-build-fix.patch
-compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
-revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
+maintainers-add-reverse-mapping-section.patch
+maintainers-add-core-mm-section.patch
+maintainers-add-mm-thp-section.patch
+tools-testing-selftests-fix-guard-region-test-tmpfs-assumption.patch
+maintainers-add-mm-gup-section.patch
+mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
+tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
+tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
+mm-move-mmap-vma-locking-logic-into-specific-files.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
+mm-abstract-initial-stack-setup-to-mm-subsystem.patch
+mm-move-dup_mmap-to-mm.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm.patch
+mm-introduce-new-mmap_prepare-file-callback.patch
+mm-secretmem-convert-to-mmap_prepare-hook.patch
+mm-vma-remove-mmap-retry-merge.patch
 
