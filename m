@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E14B4A21
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 00:06:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2519E35972
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 00:26:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746662814; cv=none; b=V4xdaF0pW548TCIpRqC2K72gJ2Ob22QxZyYjyp2mBtUIh2sgyoWaHlgfDSM++qlLaZmYq7SW4OQspcYN0P+z6a8FpjnDyLzwvW+jmRJBa0j5eifWsL15mRAfmQER6cZW4TumBFO/AdF+nEDp2uMfxfq8Q3y2ZiZM2uj6AEnuG/0=
+	t=1746663971; cv=none; b=Lb9jJv2AOLIUDcu2+cWbO+GRNUKW4cwZ1AJsHR3GHyF7OaD3cVfkkS4ldZDQPVw5RT2XuuKICA2jlCuO+z9v/u4N6CWRbn9ZX66n/0W/0eLoogieH03uIb0yp0UGgN6O97mtA/ZjePrOUaeB0OvkS9Loum5p/AuJe4vn1tBsEXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746662814; c=relaxed/simple;
-	bh=Cq0R0tKmNa5xqzJCea2zXC7gFEFZmg3VOywdJGarpk0=;
-	h=Date:To:From:Subject:Message-Id; b=nVPRU2lu9xK3BrzGwyjnNGquxeYL4jfAYCxqESHevSKMP4JGYfBCP4Aq3wa7aqWUNcZSKNRJ50cZ8GkOV3hEumV14+VjEfhubjZj800FZs2j1qv1jD1ibDBR6YxfRzgBH71Y8LGMUPtOnMItf/m+7VI4h7a62LZFnACJkAtz9Yk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PIvzEDec; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746663971; c=relaxed/simple;
+	bh=WU37a7a3ruLaIRqZtgEZnsoG5OFrwV3DLx7VxOciFvs=;
+	h=Date:To:From:Subject:Message-Id; b=JpT/lUlvHIFLXli5FBeiC+GJUyDSS8fiQQKtBMfEiH8jELhglPL2K+X/xfGwU71vqgwYQQfmGwPwm8BDwZcBvUhgTYa4nnMaBbKuHSmXDFNr0kIUpurh2iPz7KeQNP7PAHsEwYPsTIYghQHP0V4MIcSa4QmFP/ON7aHEafdxvYs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=miMgaYYQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PIvzEDec"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EAD5C4CEE2;
-	Thu,  8 May 2025 00:06:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="miMgaYYQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52AC5C4CEE2;
+	Thu,  8 May 2025 00:26:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746662814;
-	bh=Cq0R0tKmNa5xqzJCea2zXC7gFEFZmg3VOywdJGarpk0=;
+	s=korg; t=1746663969;
+	bh=WU37a7a3ruLaIRqZtgEZnsoG5OFrwV3DLx7VxOciFvs=;
 	h=Date:To:From:Subject:From;
-	b=PIvzEDeczMr69OMehu6XoamqrFl956GZetLH39jBdFpVN8mLHqxZwzIybNhVvurAR
-	 cj4ORIsm/5HHDyzl0RKnG72mcCCUW9ahLjAP1BkXuvAUDL3JZrn6EReD85J3ZgoEq7
-	 IepZ8TrL+vGSDR1tQuw46wMSbEFVRuq1L78m9Rx4=
-Date: Wed, 07 May 2025 17:06:53 -0700
-To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,dja@axtens.net,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=miMgaYYQ4QJtys8jC51lSd2Af9CCdczdX4qlFHSOy2u11EqX6nNy6erCDGLaOr7lO
+	 M4dtcu071vPbuoQObMX7J0sNscN+nv5a6BcOHxrAzk9cQ1jilTK88RNL5aCmn0LQJA
+	 IX/oD3SY/Pgw43/MHKXldH/+fJusQHoGeMZMA18o=
+Date: Wed, 07 May 2025 17:26:08 -0700
+To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,vineethr@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,mhocko@kernel.org,mgorman@suse.de,kprateek.nayak@amd.com,hannes@cmpxchg.org,corbet@lwn.net,Ayush.jain3@amd.com,aubrey.li@intel.com,libo.chen@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-avoid-sleepable-page-allocation-from-atomic-context.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250508000654.2EAD5C4CEE2@smtp.kernel.org>
+Subject: + sched-numa-fix-task-swap-by-skipping-kernel-threads.patch added to mm-new branch
+Message-Id: <20250508002609.52AC5C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: avoid sleepable page allocation from atomic context
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
+     Subject: sched/numa: fix task swap by skipping kernel threads
+has been added to the -mm mm-new branch.  Its filename is
+     sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,171 +64,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: kasan: avoid sleepable page allocation from atomic context
-Date: Wed, 7 May 2025 14:48:03 +0200
+From: Libo Chen <libo.chen@oracle.com>
+Subject: sched/numa: fix task swap by skipping kernel threads
+Date: Wed, 7 May 2025 19:17:15 +0800
 
-apply_to_pte_range() enters the lazy MMU mode and then invokes
-kasan_populate_vmalloc_pte() callback on each page table walk iteration. 
-However, the callback can go into sleep when trying to allocate a single
-page, e.g.  if an architecutre disables preemption on lazy MMU mode enter.
+Patch series "sched/numa: add statistics of numa balance task migration",
+v4.
 
-On s390 if make arch_enter_lazy_mmu_mode() -> preempt_enable() and
-arch_leave_lazy_mmu_mode() -> preempt_disable(), such crash occurs:
+Introduce task migration and swap statistics in the following places:
 
-    [  553.332108] preempt_count: 1, expected: 0
-    [  553.332117] no locks held by multipathd/2116.
-    [  553.332128] CPU: 24 PID: 2116 Comm: multipathd Kdump: loaded Tainted:
-    [  553.332139] Hardware name: IBM 3931 A01 701 (LPAR)
-    [  553.332146] Call Trace:
-    [  553.332152]  [<00000000158de23a>] dump_stack_lvl+0xfa/0x150
-    [  553.332167]  [<0000000013e10d12>] __might_resched+0x57a/0x5e8
-    [  553.332178]  [<00000000144eb6c2>] __alloc_pages+0x2ba/0x7c0
-    [  553.332189]  [<00000000144d5cdc>] __get_free_pages+0x2c/0x88
-    [  553.332198]  [<00000000145663f6>] kasan_populate_vmalloc_pte+0x4e/0x110
-    [  553.332207]  [<000000001447625c>] apply_to_pte_range+0x164/0x3c8
-    [  553.332218]  [<000000001448125a>] apply_to_pmd_range+0xda/0x318
-    [  553.332226]  [<000000001448181c>] __apply_to_page_range+0x384/0x768
-    [  553.332233]  [<0000000014481c28>] apply_to_page_range+0x28/0x38
-    [  553.332241]  [<00000000145665da>] kasan_populate_vmalloc+0x82/0x98
-    [  553.332249]  [<00000000144c88d0>] alloc_vmap_area+0x590/0x1c90
-    [  553.332257]  [<00000000144ca108>] __get_vm_area_node.constprop.0+0x138/0x260
-    [  553.332265]  [<00000000144d17fc>] __vmalloc_node_range+0x134/0x360
-    [  553.332274]  [<0000000013d5dbf2>] alloc_thread_stack_node+0x112/0x378
-    [  553.332284]  [<0000000013d62726>] dup_task_struct+0x66/0x430
-    [  553.332293]  [<0000000013d63962>] copy_process+0x432/0x4b80
-    [  553.332302]  [<0000000013d68300>] kernel_clone+0xf0/0x7d0
-    [  553.332311]  [<0000000013d68bd6>] __do_sys_clone+0xae/0xc8
-    [  553.332400]  [<0000000013d68dee>] __s390x_sys_clone+0xd6/0x118
-    [  553.332410]  [<0000000013c9d34c>] do_syscall+0x22c/0x328
-    [  553.332419]  [<00000000158e7366>] __do_syscall+0xce/0xf0
-    [  553.332428]  [<0000000015913260>] system_call+0x70/0x98
+/sys/fs/cgroup/{GROUP}/memory.stat
+/proc/{PID}/sched
+/proc/vmstat
 
-Instead of allocating single pages per-PTE, bulk-allocate the shadow
-memory prior to applying kasan_populate_vmalloc_pte() callback on a page
-range.
+These statistics facilitate a rapid evaluation of the performance and
+resource utilization of the target workload.
 
-Link: https://lkml.kernel.org/r/0388739e3a8aacdf9b9f7b11d5522b7934aea196.1746604607.git.agordeev@linux.ibm.com
-Fixes: 3c5c3cfb9ef4 ("kasan: support backing vmalloc space with real shadow memory")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Suggested-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: stable@vger.kernel.org
+
+This patch (of 2):
+
+Task swapping is triggered when there are no idle CPUs in task A's
+preferred node.  In this case, the NUMA load balancer chooses a task B on
+A's preferred node and swaps B with A.  This helps improve NUMA locality
+without introducing load imbalance between nodes.
+
+In the current implementation, B's NUMA node preference is not mandatory,
+and it aims not to increase load imbalance.  That is to say, a kernel
+thread might be chosen as B.  However, kernel threads are not supposed to
+be covered by NUMA balancing because NUMA balancing only considers user
+pages via VMAs.
+
+Fix this by not considering kernel threads as swap targets in
+task_numa_compare().  This can be extended beyond kernel threads in the
+future by checking if a swap candidate has a valid NUMA preference through
+checking the candidate's numa_preferred_nid and numa_faults.  For now,
+keep the code simple.
+
+Link: https://lkml.kernel.org/r/cover.1746611892.git.yu.c.chen@intel.com
+Link: https://lkml.kernel.org/r/a541cdf9b97f523f6b8067271847a986db5ba768.1746611892.git.yu.c.chen@intel.com
+Signed-off-by: Libo Chen <libo.chen@oracle.com>
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+Suggested-by: Michal Koutny <mkoutny@suse.com>
+Tested-by: Ayush Jain <Ayush.jain3@amd.com>
+Cc: Aubrey Li <aubrey.li@intel.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |   77 ++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 63 insertions(+), 14 deletions(-)
+ kernel/sched/fair.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/shadow.c~kasan-avoid-sleepable-page-allocation-from-atomic-context
-+++ a/mm/kasan/shadow.c
-@@ -292,30 +292,81 @@ void __init __weak kasan_populate_early_
- {
- }
+--- a/kernel/sched/fair.c~sched-numa-fix-task-swap-by-skipping-kernel-threads
++++ a/kernel/sched/fair.c
+@@ -2273,7 +2273,8 @@ static bool task_numa_compare(struct tas
  
-+struct vmalloc_populate_data {
-+	unsigned long start;
-+	struct page **pages;
-+};
-+
- static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
--				      void *unused)
-+				      void *_data)
- {
--	unsigned long page;
-+	struct vmalloc_populate_data *data = _data;
-+	struct page *page;
- 	pte_t pte;
-+	int index;
+ 	rcu_read_lock();
+ 	cur = rcu_dereference(dst_rq->curr);
+-	if (cur && ((cur->flags & PF_EXITING) || is_idle_task(cur)))
++	if (cur && ((cur->flags & PF_EXITING) || is_idle_task(cur) ||
++		    !cur->mm))
+ 		cur = NULL;
  
- 	if (likely(!pte_none(ptep_get(ptep))))
- 		return 0;
- 
--	page = __get_free_page(GFP_KERNEL);
--	if (!page)
--		return -ENOMEM;
--
--	__memset((void *)page, KASAN_VMALLOC_INVALID, PAGE_SIZE);
--	pte = pfn_pte(PFN_DOWN(__pa(page)), PAGE_KERNEL);
-+	index = PFN_DOWN(addr - data->start);
-+	page = data->pages[index];
-+	__memset(page_to_virt(page), KASAN_VMALLOC_INVALID, PAGE_SIZE);
-+	pte = pfn_pte(page_to_pfn(page), PAGE_KERNEL);
- 
- 	spin_lock(&init_mm.page_table_lock);
- 	if (likely(pte_none(ptep_get(ptep)))) {
- 		set_pte_at(&init_mm, addr, ptep, pte);
--		page = 0;
-+		data->pages[index] = NULL;
- 	}
- 	spin_unlock(&init_mm.page_table_lock);
--	if (page)
--		free_page(page);
-+
-+	return 0;
-+}
-+
-+static inline void free_pages_bulk(struct page **pages, int nr_pages)
-+{
-+	int i;
-+
-+	for (i = 0; i < nr_pages; i++) {
-+		if (pages[i]) {
-+			__free_pages(pages[i], 0);
-+			pages[i] = NULL;
-+		}
-+	}
-+}
-+
-+static int __kasan_populate_vmalloc(unsigned long start, unsigned long end)
-+{
-+	unsigned long nr_populated, nr_pages, nr_total = PFN_UP(end - start);
-+	struct vmalloc_populate_data data;
-+	int ret;
-+
-+	data.pages = (struct page **)__get_free_page(GFP_KERNEL | __GFP_ZERO);
-+	if (!data.pages)
-+		return -ENOMEM;
-+
-+	while (nr_total) {
-+		nr_pages = min(nr_total, PAGE_SIZE / sizeof(data.pages[0]));
-+		nr_populated = alloc_pages_bulk(GFP_KERNEL, nr_pages, data.pages);
-+		if (nr_populated != nr_pages) {
-+			free_pages_bulk(data.pages, nr_populated);
-+			free_page((unsigned long)data.pages);
-+			return -ENOMEM;
-+		}
-+
-+		data.start = start;
-+		ret = apply_to_page_range(&init_mm, start, nr_pages * PAGE_SIZE,
-+					  kasan_populate_vmalloc_pte, &data);
-+		free_pages_bulk(data.pages, nr_pages);
-+		if (ret)
-+			return ret;
-+
-+		start += nr_pages * PAGE_SIZE;
-+		nr_total -= nr_pages;
-+	}
-+
-+	free_page((unsigned long)data.pages);
-+
- 	return 0;
- }
- 
-@@ -348,9 +399,7 @@ int kasan_populate_vmalloc(unsigned long
- 	shadow_start = PAGE_ALIGN_DOWN(shadow_start);
- 	shadow_end = PAGE_ALIGN(shadow_end);
- 
--	ret = apply_to_page_range(&init_mm, shadow_start,
--				  shadow_end - shadow_start,
--				  kasan_populate_vmalloc_pte, NULL);
-+	ret = __kasan_populate_vmalloc(shadow_start, shadow_end);
- 	if (ret)
- 		return ret;
- 
+ 	/*
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from libo.chen@oracle.com are
 
-kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
+sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch
+sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch
+sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
 
