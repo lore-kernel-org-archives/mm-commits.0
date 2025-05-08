@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A08E291151;
-	Wed,  7 May 2025 22:51:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E14B4A21
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 00:06:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746658292; cv=none; b=ZH9cX9yDetxufA30bCP4sPCzq68SILSMnYDi2qUNzMepjiGFdZMqEjxLFyBnoRmMWe0MlbXjcmO87on6PUA/iMPYMMMhcwSF3KCU5oyTUpgZ2fPQoO4+4YB5Seog3BR4CQNHEdsNIVPVHilNz5uv4SbDe53Y/GaT1Sp6wI2Pnyo=
+	t=1746662814; cv=none; b=V4xdaF0pW548TCIpRqC2K72gJ2Ob22QxZyYjyp2mBtUIh2sgyoWaHlgfDSM++qlLaZmYq7SW4OQspcYN0P+z6a8FpjnDyLzwvW+jmRJBa0j5eifWsL15mRAfmQER6cZW4TumBFO/AdF+nEDp2uMfxfq8Q3y2ZiZM2uj6AEnuG/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746658292; c=relaxed/simple;
-	bh=b77iVLjFOjNJ9Sm5dXZjoLc3qo67x+SCpqORvfgYg2g=;
-	h=Date:To:From:Subject:Message-Id; b=WexsMkaf/ZsyZIsdnW8hy9OQcJ3PWJzTn2OMNGnGXyGbSZaEm9xBMIBRXD/t5ChV9/PKN4CJhF92d6LtEjIYMF2jiWcMjhupgP6uSXeflm6i5t9H4a0m4fd5ohDsE+F1VAITkfxN6oDOYQ0fRKrax1QwER9RgpuIBFjMgMamVdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=stNZ234L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746662814; c=relaxed/simple;
+	bh=Cq0R0tKmNa5xqzJCea2zXC7gFEFZmg3VOywdJGarpk0=;
+	h=Date:To:From:Subject:Message-Id; b=nVPRU2lu9xK3BrzGwyjnNGquxeYL4jfAYCxqESHevSKMP4JGYfBCP4Aq3wa7aqWUNcZSKNRJ50cZ8GkOV3hEumV14+VjEfhubjZj800FZs2j1qv1jD1ibDBR6YxfRzgBH71Y8LGMUPtOnMItf/m+7VI4h7a62LZFnACJkAtz9Yk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PIvzEDec; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="stNZ234L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D833CC4CEE2;
-	Wed,  7 May 2025 22:51:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PIvzEDec"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EAD5C4CEE2;
+	Thu,  8 May 2025 00:06:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746658292;
-	bh=b77iVLjFOjNJ9Sm5dXZjoLc3qo67x+SCpqORvfgYg2g=;
+	s=korg; t=1746662814;
+	bh=Cq0R0tKmNa5xqzJCea2zXC7gFEFZmg3VOywdJGarpk0=;
 	h=Date:To:From:Subject:From;
-	b=stNZ234LigqJJk6S4DSxVUuIYwcUzi3UvywiNy/QFlUwRxR6O4qZr03IuAt5bWAGV
-	 cLynDsUxx4AI7C+wFyenngj72d9Ly5vMm8/aCM2uCBwEdfKxWvJpgOS3DoIueSYSiA
-	 V7Cs41oN1FJ+sozZVqwau9IG1VbxNTWQKNkG1e3c=
-Date: Wed, 07 May 2025 15:51:31 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,thiago.bauermann@linaro.org,tglx@linutronix.de,stable@vger.kernel.org,mingo@redhat.com,jackmanb@google.com,hpa@zytor.com,catalin.marinas@arm.com,broonie@kernel.org,bp@alien8.de,revest@chromium.org,akpm@linux-foundation.org
+	b=PIvzEDeczMr69OMehu6XoamqrFl956GZetLH39jBdFpVN8mLHqxZwzIybNhVvurAR
+	 cj4ORIsm/5HHDyzl0RKnG72mcCCUW9ahLjAP1BkXuvAUDL3JZrn6EReD85J3ZgoEq7
+	 IepZ8TrL+vGSDR1tQuw46wMSbEFVRuq1L78m9Rx4=
+Date: Wed, 07 May 2025 17:06:53 -0700
+To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,dja@axtens.net,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250507225131.D833CC4CEE2@smtp.kernel.org>
+Subject: + kasan-avoid-sleepable-page-allocation-from-atomic-context.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250508000654.2EAD5C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix VM_UFFD_MINOR == VM_SHADOW_STACK on USERFAULTFD=y && ARM64_GCS=y
+     Subject: kasan: avoid sleepable page allocation from atomic context
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch
+     kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,56 +58,171 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Florent Revest <revest@chromium.org>
-Subject: mm: fix VM_UFFD_MINOR == VM_SHADOW_STACK on USERFAULTFD=y && ARM64_GCS=y
-Date: Wed, 7 May 2025 15:09:57 +0200
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: kasan: avoid sleepable page allocation from atomic context
+Date: Wed, 7 May 2025 14:48:03 +0200
 
-On configs with CONFIG_ARM64_GCS=y, VM_SHADOW_STACK is bit 38.  On configs
-with CONFIG_HAVE_ARCH_USERFAULTFD_MINOR=y (selected by CONFIG_ARM64 when
-CONFIG_USERFAULTFD=y), VM_UFFD_MINOR is _also_ bit 38.
+apply_to_pte_range() enters the lazy MMU mode and then invokes
+kasan_populate_vmalloc_pte() callback on each page table walk iteration. 
+However, the callback can go into sleep when trying to allocate a single
+page, e.g.  if an architecutre disables preemption on lazy MMU mode enter.
 
-This bit being shared by two different VMA flags could lead to all sorts
-of unintended behaviors.  Presumably, a process could maybe call into
-userfaultfd in a way that disables the shadow stack vma flag.  I can't
-think of any attack where this would help (presumably, if an attacker
-tries to disable shadow stacks, they are trying to hijack control flow so
-can't arbitrarily call into userfaultfd yet anyway) but this still feels
-somewhat scary.
+On s390 if make arch_enter_lazy_mmu_mode() -> preempt_enable() and
+arch_leave_lazy_mmu_mode() -> preempt_disable(), such crash occurs:
 
-Link: https://lkml.kernel.org/r/20250507131000.1204175-2-revest@chromium.org
-Fixes: ae80e1629aea ("mm: Define VM_SHADOW_STACK for arm64 when we support GCS")
-Signed-off-by: Florent Revest <revest@chromium.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Florent Revest <revest@chromium.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: <stable@vger.kernel.org>
+    [  553.332108] preempt_count: 1, expected: 0
+    [  553.332117] no locks held by multipathd/2116.
+    [  553.332128] CPU: 24 PID: 2116 Comm: multipathd Kdump: loaded Tainted:
+    [  553.332139] Hardware name: IBM 3931 A01 701 (LPAR)
+    [  553.332146] Call Trace:
+    [  553.332152]  [<00000000158de23a>] dump_stack_lvl+0xfa/0x150
+    [  553.332167]  [<0000000013e10d12>] __might_resched+0x57a/0x5e8
+    [  553.332178]  [<00000000144eb6c2>] __alloc_pages+0x2ba/0x7c0
+    [  553.332189]  [<00000000144d5cdc>] __get_free_pages+0x2c/0x88
+    [  553.332198]  [<00000000145663f6>] kasan_populate_vmalloc_pte+0x4e/0x110
+    [  553.332207]  [<000000001447625c>] apply_to_pte_range+0x164/0x3c8
+    [  553.332218]  [<000000001448125a>] apply_to_pmd_range+0xda/0x318
+    [  553.332226]  [<000000001448181c>] __apply_to_page_range+0x384/0x768
+    [  553.332233]  [<0000000014481c28>] apply_to_page_range+0x28/0x38
+    [  553.332241]  [<00000000145665da>] kasan_populate_vmalloc+0x82/0x98
+    [  553.332249]  [<00000000144c88d0>] alloc_vmap_area+0x590/0x1c90
+    [  553.332257]  [<00000000144ca108>] __get_vm_area_node.constprop.0+0x138/0x260
+    [  553.332265]  [<00000000144d17fc>] __vmalloc_node_range+0x134/0x360
+    [  553.332274]  [<0000000013d5dbf2>] alloc_thread_stack_node+0x112/0x378
+    [  553.332284]  [<0000000013d62726>] dup_task_struct+0x66/0x430
+    [  553.332293]  [<0000000013d63962>] copy_process+0x432/0x4b80
+    [  553.332302]  [<0000000013d68300>] kernel_clone+0xf0/0x7d0
+    [  553.332311]  [<0000000013d68bd6>] __do_sys_clone+0xae/0xc8
+    [  553.332400]  [<0000000013d68dee>] __s390x_sys_clone+0xd6/0x118
+    [  553.332410]  [<0000000013c9d34c>] do_syscall+0x22c/0x328
+    [  553.332419]  [<00000000158e7366>] __do_syscall+0xce/0xf0
+    [  553.332428]  [<0000000015913260>] system_call+0x70/0x98
+
+Instead of allocating single pages per-PTE, bulk-allocate the shadow
+memory prior to applying kasan_populate_vmalloc_pte() callback on a page
+range.
+
+Link: https://lkml.kernel.org/r/0388739e3a8aacdf9b9f7b11d5522b7934aea196.1746604607.git.agordeev@linux.ibm.com
+Fixes: 3c5c3cfb9ef4 ("kasan: support backing vmalloc space with real shadow memory")
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Suggested-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Daniel Axtens <dja@axtens.net>
+Cc: stable@vger.kernel.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/shadow.c |   77 ++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 63 insertions(+), 14 deletions(-)
 
---- a/include/linux/mm.h~mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y
-+++ a/include/linux/mm.h
-@@ -385,7 +385,7 @@ extern unsigned int kobjsize(const void
- #endif
+--- a/mm/kasan/shadow.c~kasan-avoid-sleepable-page-allocation-from-atomic-context
++++ a/mm/kasan/shadow.c
+@@ -292,30 +292,81 @@ void __init __weak kasan_populate_early_
+ {
+ }
  
- #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_MINOR
--# define VM_UFFD_MINOR_BIT	38
-+# define VM_UFFD_MINOR_BIT	41
- # define VM_UFFD_MINOR		BIT(VM_UFFD_MINOR_BIT)	/* UFFD minor faults */
- #else /* !CONFIG_HAVE_ARCH_USERFAULTFD_MINOR */
- # define VM_UFFD_MINOR		VM_NONE
++struct vmalloc_populate_data {
++	unsigned long start;
++	struct page **pages;
++};
++
+ static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+-				      void *unused)
++				      void *_data)
+ {
+-	unsigned long page;
++	struct vmalloc_populate_data *data = _data;
++	struct page *page;
+ 	pte_t pte;
++	int index;
+ 
+ 	if (likely(!pte_none(ptep_get(ptep))))
+ 		return 0;
+ 
+-	page = __get_free_page(GFP_KERNEL);
+-	if (!page)
+-		return -ENOMEM;
+-
+-	__memset((void *)page, KASAN_VMALLOC_INVALID, PAGE_SIZE);
+-	pte = pfn_pte(PFN_DOWN(__pa(page)), PAGE_KERNEL);
++	index = PFN_DOWN(addr - data->start);
++	page = data->pages[index];
++	__memset(page_to_virt(page), KASAN_VMALLOC_INVALID, PAGE_SIZE);
++	pte = pfn_pte(page_to_pfn(page), PAGE_KERNEL);
+ 
+ 	spin_lock(&init_mm.page_table_lock);
+ 	if (likely(pte_none(ptep_get(ptep)))) {
+ 		set_pte_at(&init_mm, addr, ptep, pte);
+-		page = 0;
++		data->pages[index] = NULL;
+ 	}
+ 	spin_unlock(&init_mm.page_table_lock);
+-	if (page)
+-		free_page(page);
++
++	return 0;
++}
++
++static inline void free_pages_bulk(struct page **pages, int nr_pages)
++{
++	int i;
++
++	for (i = 0; i < nr_pages; i++) {
++		if (pages[i]) {
++			__free_pages(pages[i], 0);
++			pages[i] = NULL;
++		}
++	}
++}
++
++static int __kasan_populate_vmalloc(unsigned long start, unsigned long end)
++{
++	unsigned long nr_populated, nr_pages, nr_total = PFN_UP(end - start);
++	struct vmalloc_populate_data data;
++	int ret;
++
++	data.pages = (struct page **)__get_free_page(GFP_KERNEL | __GFP_ZERO);
++	if (!data.pages)
++		return -ENOMEM;
++
++	while (nr_total) {
++		nr_pages = min(nr_total, PAGE_SIZE / sizeof(data.pages[0]));
++		nr_populated = alloc_pages_bulk(GFP_KERNEL, nr_pages, data.pages);
++		if (nr_populated != nr_pages) {
++			free_pages_bulk(data.pages, nr_populated);
++			free_page((unsigned long)data.pages);
++			return -ENOMEM;
++		}
++
++		data.start = start;
++		ret = apply_to_page_range(&init_mm, start, nr_pages * PAGE_SIZE,
++					  kasan_populate_vmalloc_pte, &data);
++		free_pages_bulk(data.pages, nr_pages);
++		if (ret)
++			return ret;
++
++		start += nr_pages * PAGE_SIZE;
++		nr_total -= nr_pages;
++	}
++
++	free_page((unsigned long)data.pages);
++
+ 	return 0;
+ }
+ 
+@@ -348,9 +399,7 @@ int kasan_populate_vmalloc(unsigned long
+ 	shadow_start = PAGE_ALIGN_DOWN(shadow_start);
+ 	shadow_end = PAGE_ALIGN(shadow_end);
+ 
+-	ret = apply_to_page_range(&init_mm, shadow_start,
+-				  shadow_end - shadow_start,
+-				  kasan_populate_vmalloc_pte, NULL);
++	ret = __kasan_populate_vmalloc(shadow_start, shadow_end);
+ 	if (ret)
+ 		return ret;
+ 
 _
 
-Patches currently in -mm which might be from revest@chromium.org are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-mm-fix-vm_uffd_minor-==-vm_shadow_stack-on-userfaultfd=y-arm64_gcs=y.patch
+kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
 
