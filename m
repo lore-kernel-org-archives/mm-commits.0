@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33064221731
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 19:14:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A56561DF24F
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 19:17:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746731685; cv=none; b=GSWZ/KAyA5X9O8nAJD8rMUTUVHjsOpQ1DKig97SUg0eilBUyt3ql/KWS3Yk6iVf9kXsjGJx6XcOajnYgmVgODx1v7FkD4UjcYdRlvl6rDLrRjEpPmp/zZwfUS/KsJEe6LsMd4Fi65bFTnkReyNfbcMrW42I0hPXmAK6+jfB6I0A=
+	t=1746731826; cv=none; b=Wi9lQPPTvxgQZspDovnWORW4vuao7ZUkDxfIj2GmG5NrGfOg3gbRUaYsk9h+d3YBdg3FbEVNI8vVugilVoed93HoIqQiog1WUJmAjqljRLrPjFDQkJEpmOfiESciGvjFTxxT9Oj+wjYMn1jeayg2BxWP6TNOwxBDNObNaq02muY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746731685; c=relaxed/simple;
-	bh=wLOj7qykLan5QQd5wi22BGVD+gTvaTk9uwLYP9hV1Xc=;
+	s=arc-20240116; t=1746731826; c=relaxed/simple;
+	bh=ICdkc9kwAMzM6ex0pA/2TaUH9NFURUrtqruum4RzqYI=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=owAmWRzxMJdxu6Cn3mTqd5xTm32Y4wRI4eo9grWU5rBie9r/luI1BpR3el8Lt2MWUJt5PUnG69QeoW1zUoAxihb7OaqSlZgdbK8Hc6XgXsQTI3L6Go0bKqKlX/QH9XPhiO2gxcdG1+zJ+pzEDw6iIw8AYj/VaOT5nATcBAYQCpQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=he5QOc76; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=dcB3YBAJrmg0sA1wPoHhP5xtXSU6hvo5qDInS9s1ZQynO5Y2uCfFUE7d3qgFsYP8Ewm9o0apAyr18bGvkv/VrTIC/dmNt8Xk2lzI6Thyk3afHQrjw9yQQmYDj9XI0SNIWP9F5B7kQcaLykskUhFv2bZ4d40X+rf8faoo6lpXnSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=VPMMO7CJ; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="he5QOc76"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VPMMO7CJ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1746731682;
+	s=mimecast20190719; t=1746731823;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=ygf1dNqOf6YsaMTtyjehtfzH5cV/Mo6o8ZlNGHn2ZMM=;
-	b=he5QOc76HlIsY6T917mq+auehjooIg7QAgRXnXRQjOy/4ecdOCL0fB+tvxyxSvU6Vn6VQZ
-	O8gXCsnSVWTP+CJ8VDmFixMeVubFmS5KZh5+8qpxVsmljmRm+acmJnjdmfy6g1zUDF7JEI
-	Tpt64STd8dpdEE9Rx2Ef7LFuF9jeUXg=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=1H8/BcyZPPTnguXmJX+AqfCRjWrKTzn9HxYJ5qeChxE=;
+	b=VPMMO7CJASslx6DWghCPalpw/xVTon+YLfabA7fmMOUDt2j4fzajrXW0OTdv2tWbowi7Ub
+	9obFbRumutzPXOElrs+apMTNBtmPsfV/K5wK7Tn/HophRdzUgEiTRah7VAB1RDFs6Q+uoQ
+	c6a30UHXKBhneJ6z39ZRG6Txyhq1ez4=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-196-SXmJbfqnMdmAXEGhwQBEjA-1; Thu, 08 May 2025 15:14:41 -0400
-X-MC-Unique: SXmJbfqnMdmAXEGhwQBEjA-1
-X-Mimecast-MFC-AGG-ID: SXmJbfqnMdmAXEGhwQBEjA_1746731680
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-43f405810b4so7164155e9.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 May 2025 12:14:40 -0700 (PDT)
+ us-mta-607-pQjw6FeBMXGO4KjphnClEQ-1; Thu, 08 May 2025 15:17:02 -0400
+X-MC-Unique: pQjw6FeBMXGO4KjphnClEQ-1
+X-Mimecast-MFC-AGG-ID: pQjw6FeBMXGO4KjphnClEQ_1746731821
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-39c2da64df9so617334f8f.0
+        for <mm-commits@vger.kernel.org>; Thu, 08 May 2025 12:17:01 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746731680; x=1747336480;
+        d=1e100.net; s=20230601; t=1746731821; x=1747336621;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=ygf1dNqOf6YsaMTtyjehtfzH5cV/Mo6o8ZlNGHn2ZMM=;
-        b=WD+9zLpj/fNIGsJfVIrbA2gBdG6iN6dYEWBfcFtd2AUPWk2t1B/2Egrkn9jBWtRRHu
-         2A9yNGaCDi3LSxVYkHOSw9HU3zwIg8fkTMazDhDrSzatsM8JSmo+UH4aU3kYHc2CWZ6/
-         MTFNLlW6iw/qLVVuQBA2QGAcSpC91l27+kOoJxBWIH2F5pBf987bDMK++bfx83ftnvNp
-         LvnV1Gac7wGNuaeZ67/KRLYdd/UWHzU+ahowVeWih+lOp2HoqesJiLfvmnPUfsLIiP9D
-         WMLqp0C2EuAn2/XtOmtyYUucI5N0Gv/8jdcC3gBmyoXCOLNbuxDRjsGH3ClDqQXoS9yC
-         crQg==
-X-Forwarded-Encrypted: i=1; AJvYcCXOkV5X7oClQOcoI8i3NZn1fMdb66jHsdf65Egx/k27I0APMy3kmXLGd4ZJHrTgsVF4A1bj6T++XEiQ@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy3IVKN8NMF/+dEJDu/zhTg6wv7R9QNdK8fJfKcacVUzTAg2qbR
-	byg7LVO7pxnAhgh/oScq/oVXMQz8NydwmeZz8CLT+gtaSyxiep3S7ay2NGXs6sCrZAykb9oOPgj
-	4wg/u9RsnZFMgp1EGGx2JpjnLEjR5vJgk6eRhlxYiQEqcRZ5x9wykDHLitiw=
-X-Gm-Gg: ASbGncuTePJCf2BiVdG0B/K3BPuCiGTIs4zSNlCro2OyzXMIxxOcA5+LLsmRug6bXkM
-	YKLuqlbPsiYkqAtGVm1seJPJJuy0I8C8TlVp4OzOnHkMWHMzEXyF9wtAairdovSOWXmjQPQyORr
-	IjpAj/km89brL/fixTCDdT1R1BCQ7NWtHZ7+WximtdCbJ2xRlwmy4TRj7vs8EnsI0nNtGMcwMsU
-	Qfztkp12OR5+GCY3BTx9cdn1XRYXj0iXpA8qCsQxyLaJHBhbmH16nnHhMAZFTeJWTI+ZFH9+Rim
-	MyVxHF3DK9qNWMts+Ssmydnbbav0sD92suYaYVUqm8xam7tvPMhFztNhaMEcljalJ5g45HwUnr8
-	c/Ws4mnZPZztSjV70aL47AhhxvO4EmSdoXd0KenE=
-X-Received: by 2002:a05:600c:3e08:b0:442:c993:8d9f with SMTP id 5b1f17b1804b1-442d6d1901amr4289875e9.4.1746731679715;
-        Thu, 08 May 2025 12:14:39 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEzvujBqeVYBvtBcQ2APvsfVlz1dEc3q8Q1iWn9EM8uv8IFet82mIMoE7CZQ7tRSa75f2hO7w==
-X-Received: by 2002:a05:600c:3e08:b0:442:c993:8d9f with SMTP id 5b1f17b1804b1-442d6d1901amr4289665e9.4.1746731679391;
-        Thu, 08 May 2025 12:14:39 -0700 (PDT)
+        bh=1H8/BcyZPPTnguXmJX+AqfCRjWrKTzn9HxYJ5qeChxE=;
+        b=m6V4w+kRAScwq8i4z2jXKoYEZ6XwMEWgudhvl9XM6afJVu+dsdhjYc2yVdkyAyTSFk
+         woBgoZbc6NMJsTj2ExU/ESapDk09z4ktfLCvSrQoZEvyX7cWx6CmzoxVXOdyRbuMloT4
+         gXhNIlADUvRQTwvpIZXSIzoNaKGJfseC48daB/RlRoZK79Dh+NFr2uQ39ERbHVAER2xa
+         i6vatj9MtaM8aVbrE5JL3BhmF5NJnHuO7HL2Dt/9A5MPg097zopT18ZzJxAdCcFaF67R
+         RrOCUKTTq36xWCPv/KMtNi3SJl3cIcLgHh+5/DaiOVmJdVYjjdm21q1H5zQLH6fPTP+U
+         aa2w==
+X-Forwarded-Encrypted: i=1; AJvYcCVvt5yXx3aett0DWxlQ0ZIbSDIeZWRtp4TIch8qWKJk8xy3WbVmtaFVYz4thCdj8haXz/TAc5vxzQL6@vger.kernel.org
+X-Gm-Message-State: AOJu0YwoyvuEIotnO3tyJ8Vg76gmDv7h7hzChkru8MHVZ9iAiGNKkKyA
+	smrUEtv2sx7t7VrWrqnQXQ1xWQ4x9E9Z/jMBybkw7jDMB5qfdyOfw6bV1VJbU9nKK76hKLwkqBt
+	4rOB8gFi1Ss5lOhwkKQQ6UYRlp7/0m9meE4rAhUIkc6lKPS8ureOzCgzaZG8=
+X-Gm-Gg: ASbGncuetOYxs96dK76s9npDbwxte4SQSJWGumysM/WQ9ERYe2GktssIWy0mcqodMGh
+	ZyBlVoKd8CHhDW3ObWeFzQ4HI1c8DKjCbknRwVMBbPK0EEsUzKR/a10vGrPpi+488eXNBlG11ww
+	LTvgfKiM8myewCmKoU58JpSJBNtUwyicwfUxJMHjb374Kg/ku8cyr5LSw2N9ckUgLGqn+fqCbNS
+	W0OAXUuz20UMZV/vBJdUvaBC5Vey33mCl9ViMf7EW6+82A7msRcypbplmJo34iWk0hQIMRjwc7C
+	Bw9HuCoNChEjEvpFZ4hK+UqfcnPAwxJoJ+hTqSlqULCJwVzkp/vNPSlW2KBXcCJE2u8K59U2CYT
+	4HXWyVdBE72uUur4GtpXkT95hjrzkG1BM4N9TBec=
+X-Received: by 2002:a05:6000:1846:b0:39c:30cd:352c with SMTP id ffacd0b85a97d-3a1f643ace0mr597846f8f.8.1746731820943;
+        Thu, 08 May 2025 12:17:00 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IER4N0zkYhSnFjx/AlgLmn+IXqyoloaL1hUPQ9R1utdSr0dVq6e6ZcW0IHE5Mvv5nvIULFjsQ==
+X-Received: by 2002:a05:6000:1846:b0:39c:30cd:352c with SMTP id ffacd0b85a97d-3a1f643ace0mr597828f8f.8.1746731820572;
+        Thu, 08 May 2025 12:17:00 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f3e:5900:27aa:5f4a:b65c:3d3c? (p200300d82f3e590027aa5f4ab65c3d3c.dip0.t-ipconnect.de. [2003:d8:2f3e:5900:27aa:5f4a:b65c:3d3c])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-442d67df639sm4438625e9.13.2025.05.08.12.14.38
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a1f58f396asm814341f8f.59.2025.05.08.12.16.59
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 08 May 2025 12:14:38 -0700 (PDT)
-Message-ID: <5d791609-411b-4e4b-b502-ffee80e8b46b@redhat.com>
-Date: Thu, 8 May 2025 21:14:38 +0200
+        Thu, 08 May 2025 12:17:00 -0700 (PDT)
+Message-ID: <97ac90b8-7707-4600-bbbd-e9b7d136959d@redhat.com>
+Date: Thu, 8 May 2025 21:16:59 +0200
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -77,20 +77,19 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: + fix-zero-copy-i-o-on-__get_user_pages-allocated-pages.patch
  added to mm-hotfixes-unstable branch
-To: Peter Xu <peterx@redhat.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Peter Xu <peterx@redhat.com>
 Cc: Pantelis Antoniou <p.antoniou@partner.samsung.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Andrew Morton <akpm@linux-foundation.org>,
- mm-commits@vger.kernel.org, wade.farnsworth@siemens.com,
- jhubbard@nvidia.com, c.briere@samsung.com, artem.k@samsung.com,
- David Howells <dhowells@redhat.com>
-References: <aBzI3sl6r3HtAWP4@x1.local>
- <cc6d5e06-d0e5-44d7-9a1e-151fc39c5e7c@redhat.com>
+ Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ wade.farnsworth@siemens.com, jhubbard@nvidia.com, c.briere@samsung.com,
+ artem.k@samsung.com, David Howells <dhowells@redhat.com>
+References: <cc6d5e06-d0e5-44d7-9a1e-151fc39c5e7c@redhat.com>
  <20250508182718.40f16121@sarc.samsung.com>
  <e74d39d7-c304-48b8-8199-be31be8bd4c9@redhat.com>
  <20250508173535.GA8129@ziepe.ca> <20250508204711.6cf9f6e3@sarc.samsung.com>
  <1030abf7-c8b3-49fc-8bb6-fbd021ebc60c@redhat.com>
  <20250508211136.7a0a3865@sarc.samsung.com> <aBz8QuzT7YkPqrrF@x1.local>
  <8d66d995-f69e-4ac8-b10c-13a98ec9e848@redhat.com> <aB0BI-inU839lcIq@x1.local>
+ <20250508191215.GB138689@ziepe.ca>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -138,21 +137,22 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <aB0BI-inU839lcIq@x1.local>
+In-Reply-To: <20250508191215.GB138689@ziepe.ca>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 08.05.25 21:08, Peter Xu wrote:
-> On Thu, May 08, 2025 at 09:04:11PM +0200, David Hildenbrand wrote:
->> It's doing the same wrong thing at a different place.
+On 08.05.25 21:12, Jason Gunthorpe wrote:
+> On Thu, May 08, 2025 at 03:08:19PM -0400, Peter Xu wrote:
+>> On Thu, May 08, 2025 at 09:04:11PM +0200, David Hildenbrand wrote:
+>>> It's doing the same wrong thing at a different place.
+>>
+>> As I mentioned, I believe KVM has this wrong thing working so far..  and it
+>> doesn't block us from going right ultimately.  It's a matter of time.
 > 
-> As I mentioned, I believe KVM has this wrong thing working so far..  and it
-> doesn't block us from going right ultimately.  It's a matter of time.
+> AFAIK KVM is doing this wonky thing using mmu notifiers, it doesn't
+> take page references on pte special pages..
 
-Yes, KVM has it wrong and vfio probably as well. And they are usually 
-not dealing with actual kernel allocations, but rather with MMIO ranges.
-
-Sorry, no more hacks.
+Ah, and vfio also doesn't grab a ref in that case IIUC.
 
 -- 
 Cheers,
