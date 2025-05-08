@@ -1,81 +1,81 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f175.google.com (mail-oi1-f175.google.com [209.85.167.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 569C4285418
-	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 19:08:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE32D288CA3
+	for <mm-commits@vger.kernel.org>; Thu,  8 May 2025 19:11:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746731310; cv=none; b=j0VNgSs22Azpbsvbv/inLC3v1FZa1HmWmluAmfqkR+aWeQuArfrQ1pbBPSHF1iYK0PEXJonQ0vysuZcr9YIUIsnOiUPSOxUdjNMuEfahhYFWXZ12hIyajUcrnJai8YyVnksKhQ9MKsQAJk93X90IKzrcSI1WA339TBpHYG6QmtQ=
+	t=1746731517; cv=none; b=bdQlnTP+tvwOjiBS3JEHJINQ1wKSBjmejxuvsAIKvuh754BdoWSzkfi3VDaCpjV/f6qGx6f33pqz1PjqYkG+hcOv/EJkPxMSus9oD6QumxVQwLrlETJgUHfraI55PB93grLrGs7T64i8164wDUjdTi/gP1LCchh6tv7ln6WacbA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746731310; c=relaxed/simple;
-	bh=1zQ4mIgpf5eBaahe0dwYQ4R+17L0i8aCBvvHCvEZR3k=;
+	s=arc-20240116; t=1746731517; c=relaxed/simple;
+	bh=jO2WFBHOxaUe131j3cQci/ql7TBu7zvDQUF/shqnR4I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NnrcVijMyl4kJy1XA4kl9nQNy5Mhk2yo3JGSYuRww4SB6Pg2kO+55Uh6lkevDhbxxxAJkeCcjVCtedHMqMbBSVF3iAl+hQT8EvoYuKOhgoVzX6INCIVZIjUGjEL1J3hog3/Y/WpW5Dd9PHcRTal4djR2+/WbFXQ3H7Ae2BP5G30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=QbrpAF86; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZZRArBVB1wBPiANgpAJoQCgyckA/3AA7uvWWPfeHzz0gamZPgmZvZXbqLh9byEq964dDza9dZptXghRBzjjLy7JOzuHGHPD0jUr+Fa210Zp626KbQIVOnIQIYly1oFuEMmdbYKwT1lMqd6QdeXrqec4mahgMw5Akqt/SMvNTL6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=iLHxPrLb; arc=none smtp.client-ip=209.85.167.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QbrpAF86"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1746731307;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YZUYMG4Wzxfhi3uiXClkd9ZQZ/Ayw1Mj2LX62mDYSEo=;
-	b=QbrpAF86uzugIth+18SPFOQu0urpiO4neUJ9qUngBlFa1Lmw0z4hHUdyHxK0xut3xhtgdK
-	EMwQYn/kbUQCLxkXWvdsiX7H/CyIeWMnpGJUP5j9tyWKKMfoSNTbxgyrvvtEpurIxJJQeP
-	BL51jKN+uLPqWouEcdqmS8voWtgY4m8=
-Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com
- [209.85.222.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-149-tqzTRtv1O82RNKQMcCSmjA-1; Thu, 08 May 2025 15:08:25 -0400
-X-MC-Unique: tqzTRtv1O82RNKQMcCSmjA-1
-X-Mimecast-MFC-AGG-ID: tqzTRtv1O82RNKQMcCSmjA_1746731304
-Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-7c5cd0f8961so258001685a.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 May 2025 12:08:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="iLHxPrLb"
+Received: by mail-oi1-f175.google.com with SMTP id 5614622812f47-4033c89f2aaso916579b6e.0
+        for <mm-commits@vger.kernel.org>; Thu, 08 May 2025 12:11:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1746731513; x=1747336313; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=jO2WFBHOxaUe131j3cQci/ql7TBu7zvDQUF/shqnR4I=;
+        b=iLHxPrLbTK3UQP2BAaDobHCvvizEF/ByLctNwIV+dZHJPZki52xhEFLSqG8kav9bit
+         wxJY0YGq5Dp19d2z0Q/D/HURP4b5M5Y+z4zNkOcvhD31YAFXglc19IP9xkFLaLPVoJXE
+         Shh4RNnhA4T18ASSr/tixrMKpJjw4gVbA7DZBcW+qK3H5nikMstyCrWS+kUrTh+vK/tp
+         DuHvLhSafxCdtaAdzSO1qyEJgXJHq2Vea2z8Mb4rwzgFwCQwx8gQQs0T5ayE0iIT/dEI
+         WsvUxzwy9M2CVMmIv80WxCEZtVy6J3OI5WUi5oiZbcatZWD+mGPAe/1TtVhW4cpJzT+O
+         NT6g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746731303; x=1747336103;
+        d=1e100.net; s=20230601; t=1746731513; x=1747336313;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=YZUYMG4Wzxfhi3uiXClkd9ZQZ/Ayw1Mj2LX62mDYSEo=;
-        b=nh8XIivt0+kTxtWjzHYI1T1mrd5E1bDj4/c0q0H89L96w99jAiAdHb2Li86uPdPtXd
-         W2kO7VIESyXET8KW8US5rSDB231Oq0LxvJvZAtwq5MEG2W1UNJWfmJmePBqcyXnqkPng
-         0WpvukyMq8hAh8tOkseYd+HgSQF8T4B9AMsPj1c4Gl1KzycDDZ/HMuvVVRbqkH7S5TZv
-         l/0owDD1RbSsFVTxTWP/+WCUFhYJ8hCOesTPrhQ28VbifVf28poo8g/NtJfQwnG+WpVi
-         6HZMRLSVh89gA25pTWOh025NEIpWsMGV82VDbGRJt25IqyjWjPglJMc6SpAOzHW9Qt4p
-         9v9Q==
-X-Forwarded-Encrypted: i=1; AJvYcCXj1YPvhBNK6ovUvn7OD8sZQ7mheyxSlGFR4boccR/VbuAtnmzirIk11GAwi6Qb4biAMhJbJT4/S7l1@vger.kernel.org
-X-Gm-Message-State: AOJu0YwPzH2qQwM3bRkU2Ni9FVcU8JJyaaq7HF+oRal3TJxQ4A/ZcBDv
-	s1wkuPYAvbsoRgwOgVlJb0TJ6xP0VWPiAMV3T5EqaGPVtISJ0/QSAopyy9VGnhDIelqXLqhspeX
-	AmYZydPMA102LsIYblQalcBpMPyPt4LxvtK3pGRRcMwH9Hh8jFeHHFRwAFaVK6FBDoj0=
-X-Gm-Gg: ASbGnctyp29jwQhZCXd3LJ1lkqrs7Bz5VdYTfO0BAnOo8LwrWKFfZorjOUlzywzdgCZ
-	h3LS3xo4SIyQ1c96CH9bQsvx30NlpLvYXIXVJSddbBj16jQ3kd40qYJ75dysSwAimEUcwuDx0Og
-	iFz4JUOxFZtn4ZlbHItwF1/uUm/+rpmtLszOh4/hl4J5Ia9cLCqGmiVH6Xh6UB2zp0zS6bTG8U4
-	fC4cXx6s64ANsWRQdNM7+PnwffYh3kj6u0R9fg11iXuHIqUk9S7/MksTi2rv2Klz6fZqFvN69eK
-	7rg=
-X-Received: by 2002:a05:620a:408b:b0:7c7:a614:7214 with SMTP id af79cd13be357-7cd010d5206mr145264685a.5.1746731303567;
-        Thu, 08 May 2025 12:08:23 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IG/nK4RbDX863V09uKU0dFru5NTvPqGZB7vfVd/9CMZhHT4eX3BizBDUgAwg0kZRUrVYbzTnw==
-X-Received: by 2002:a05:620a:408b:b0:7c7:a614:7214 with SMTP id af79cd13be357-7cd010d5206mr145260085a.5.1746731303155;
-        Thu, 08 May 2025 12:08:23 -0700 (PDT)
-Received: from x1.local ([85.131.185.92])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7cd00fe6dc4sm27431185a.90.2025.05.08.12.08.22
+        bh=jO2WFBHOxaUe131j3cQci/ql7TBu7zvDQUF/shqnR4I=;
+        b=rVkAY+taySsM3VNgRpEhLESCpxFpwWyIJJDKstN1URapkKV5v57hU1cZeEyqZrEQb6
+         XQyOOppULXu71sq5dQLIzmNgoF2vBZbqosU+iDIubTxzccnpxJ2NKHeyUO+bvcDUWTcU
+         8Xffxddn3Cfm7N6Xqoz+ko3CDliKznbcoM7gbnwg3SEECCckwWUnG9zJYLEfgw19lFuJ
+         jqENrhvwISuYfJ4KVETE0+O2Wv9VViIdhjrvRWfCbHgr1RtDwN5B9d9K7K383JnlkevY
+         qho2SxiIjE/qh1n0alyorEL5Easjo/d8jbWQlrgUOoreLvu7cXkyKNOVaasGoGmlrU2b
+         KnDg==
+X-Forwarded-Encrypted: i=1; AJvYcCUZW8z99IrVmSP2HVFfYc6JBjtbc0ATngiC92qq2HlchSLuTXjlPG2gUFmMHF5oGB8cLvfl4oOfzOlb@vger.kernel.org
+X-Gm-Message-State: AOJu0YwNvkdvwLv3mKjnKklzYxEYouHsSTyt7CEuL4Qvv+9hg6zgC7TX
+	AcdyYclvJDCq3FAAVkxhgjian/ATm9W2a0Mbn61yVVOaLe033LqIivM3nquPEvTJxGc1v2jPg4P
+	R
+X-Gm-Gg: ASbGncvt0CjeRpePLNDH4i4DDaGEBWoG7Hli2ScB8hO5MiQbQ5rkHF6t9sW1K9TGc8+
+	Zep1/Q5irBUVr3QSCHC+KxQxjo+wg/587kA1e0tjon0Hg8nmsXThHXF38+2MIA+IXvoU6umoFFf
+	75sWH8m+wNBLFSSmfex9PBWgXfTdCHaarMeCfwgJdZoyaRl6qsdoG7edpFIJRkMkayTvqTFzPMi
+	s2LSxiU1ZRSHiD5BvS3Ui+bPGmOoNEqwF5frFGZqV99K6uff0gmdZW1gVkiDXBz5+zM9QN20F8d
+	yQDzBW82XFR+P7KVmaUNrl2ORn3hiJBMha1Tquc9zzj+MOMB7Re4XYMTcpybnpX3032PuSEKeUb
+	mdYN1zNfw3aWISSNq
+X-Google-Smtp-Source: AGHT+IGqofNms8uRgn9Qo1rp/yBqkwRCZhH3+uNXOT0rQhKnGlxWgBEIf7y+2ElD216Rq9BsDg0iBw==
+X-Received: by 2002:a05:620a:27d6:b0:7c5:5206:5823 with SMTP id af79cd13be357-7cd01118785mr151980185a.29.1746731502865;
+        Thu, 08 May 2025 12:11:42 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-167-56-70.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.167.56.70])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7cd00f4e146sm28913685a.19.2025.05.08.12.11.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 May 2025 12:08:22 -0700 (PDT)
-Date: Thu, 8 May 2025 15:08:19 -0400
-From: Peter Xu <peterx@redhat.com>
-To: David Hildenbrand <david@redhat.com>
-Cc: Pantelis Antoniou <p.antoniou@partner.samsung.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
+        Thu, 08 May 2025 12:11:41 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1uD6ej-00000000bcy-1oJU;
+	Thu, 08 May 2025 16:11:41 -0300
+Date: Thu, 8 May 2025 16:11:41 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Pantelis Antoniou <p.antoniou@partner.samsung.com>
+Cc: David Hildenbrand <david@redhat.com>, Peter Xu <peterx@redhat.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
 	mm-commits@vger.kernel.org, wade.farnsworth@siemens.com,
 	jhubbard@nvidia.com, c.briere@samsung.com, artem.k@samsung.com,
 	David Howells <dhowells@redhat.com>
 Subject: Re: + fix-zero-copy-i-o-on-__get_user_pages-allocated-pages.patch
  added to mm-hotfixes-unstable branch
-Message-ID: <aB0BI-inU839lcIq@x1.local>
-References: <aBzI3sl6r3HtAWP4@x1.local>
+Message-ID: <20250508191141.GA138689@ziepe.ca>
+References: <aBy8v7gi3tsQ5-iy@x1.local>
+ <20250508173612.34d1bea3@sarc.samsung.com>
+ <aBzI3sl6r3HtAWP4@x1.local>
  <cc6d5e06-d0e5-44d7-9a1e-151fc39c5e7c@redhat.com>
  <20250508182718.40f16121@sarc.samsung.com>
  <e74d39d7-c304-48b8-8199-be31be8bd4c9@redhat.com>
@@ -83,24 +83,41 @@ References: <aBzI3sl6r3HtAWP4@x1.local>
  <20250508204711.6cf9f6e3@sarc.samsung.com>
  <1030abf7-c8b3-49fc-8bb6-fbd021ebc60c@redhat.com>
  <20250508211136.7a0a3865@sarc.samsung.com>
- <aBz8QuzT7YkPqrrF@x1.local>
- <8d66d995-f69e-4ac8-b10c-13a98ec9e848@redhat.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <8d66d995-f69e-4ac8-b10c-13a98ec9e848@redhat.com>
+In-Reply-To: <20250508211136.7a0a3865@sarc.samsung.com>
 
-On Thu, May 08, 2025 at 09:04:11PM +0200, David Hildenbrand wrote:
-> It's doing the same wrong thing at a different place.
+On Thu, May 08, 2025 at 09:11:36PM +0300, Pantelis Antoniou wrote:
 
-As I mentioned, I believe KVM has this wrong thing working so far..  and it
-doesn't block us from going right ultimately.  It's a matter of time.
+> 3. While we go about fixing it, this has caused a pretty significant
+> userspace regression, where the address space that those BOs reside
+> cannot be used for I/O when a network filesystem is involved. I think
+> it's a matter of time when regular filesystem start using the same
+> method of pining and doing I/O instead of using the filecache on fast
+> memory mediums.
 
--- 
-Peter Xu
+Regular file systems already uses GUP on O_DIRECT paths and already
+didn't work basically forever. It seems like a kernel bug in the net
+filesystems to have done something different in their O_DIRECT for so
+long :\
 
+Anyhow, the fixes must come from DRM using the mm properly, not by
+hacking up the mm to ignore the well defined API rules we have.
+
+I don't know enough about DRM to say exactly what that means, but that
+is where you should be focusing your attention to fix it.
+
+Somehow I suspect the number of places actually using O_DIRECT from a
+network filesystem to a DRM buffer is going to be pretty small since
+it never worked on a normal filesystem. Meaning this isn't some
+general common code that is feeding generic files into GPUs, but
+something custom built to only use a network that happened to stumble
+onto this kernel bug and abuse it. Do you know differently?
+
+Jason
