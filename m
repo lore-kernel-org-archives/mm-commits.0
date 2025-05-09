@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037E3469D
-	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 22:17:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11F07254B14
+	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 22:26:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746829069; cv=none; b=XhuveTjWscVngGdM+E5tPT31NkjtxVcQBsHEPB2e/D7gr8lKBDtlq8Wj51IJj4beY8H2tij6GqVpLgSNnoz7sRVf4+vPqRLEOj2/mk2luXBIDTuW/TZUg1XDtbklmLjzOEUAlkW223/y29Y5kZm0yYykT1aQZovZ4bkq1CBAMKs=
+	t=1746829561; cv=none; b=OVzow7eq5ri2aXOJUYHQA4xXoSLvMNA595lzg1B1aCTNOMVFNj7nbqlO5wtkBlU5pkKQyXmRftC32RWv9GKhlFJ5Mw1SR7QcswDJDAKLyeCEpgZKPY9qvMLiAv7nHd9teIZ9zmRzLrDcF2qTTu+jPes+VjBOqWqWOsbZkOpJKnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746829069; c=relaxed/simple;
-	bh=m6uaO+jdkAIr6sOSnhSZGMvonXBr4s5RBomUhBbaB28=;
-	h=Date:To:From:Subject:Message-Id; b=nKJ0JyuqnnYqbQpcxXijLN8x8WVP40QtkQiTakEnWOjEjhnhuaQVoUSp1N7tp9tm7bIkhdQCijTfjB2KBgwTP8wV2/oFvb7KuUKNuEBhD3L0Cp2FA0QPAVW5B/H7vFTtvMnCjI2dUKyQ6Am2q1jqn+pk5Dw+w64eG8ByNE3APPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ik6mdoGm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746829561; c=relaxed/simple;
+	bh=380bgSlR1nnpldBSNjteGfz/xGHpDeaSQLf/Kw823ME=;
+	h=Date:To:From:Subject:Message-Id; b=TCLPqWns1CtwA2C9hg1wRgG2y2ZjicNRRrKO87aFKqPkDiSjtTZTbe1zt41tEFQhKaYYgV25nhJQtbb6n4gQXCY094F7x8n3l7RGqQn3TJ/AXhZZBDIt3yFGaSVLC65PYcrhdgprZgD12TZliYSWzkP4I/+PeeS94v8wxNnWBHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GaSIGpiu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ik6mdoGm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5800EC4CEE4;
-	Fri,  9 May 2025 22:17:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GaSIGpiu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C31DC4CEE4;
+	Fri,  9 May 2025 22:26:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746829068;
-	bh=m6uaO+jdkAIr6sOSnhSZGMvonXBr4s5RBomUhBbaB28=;
+	s=korg; t=1746829560;
+	bh=380bgSlR1nnpldBSNjteGfz/xGHpDeaSQLf/Kw823ME=;
 	h=Date:To:From:Subject:From;
-	b=ik6mdoGmHt+pertJEHI4mLEgrdKLXz6+X+D18KWBeZxT/FQHqrx2IndGXwib5XxzI
-	 3KAAxlHm84CpIod5qMlhSzv6uZuqx/r7+5xAICWXKWTMDAOi35qpfVG5r54/Gi235p
-	 42SsUkvV0U08msQ1H5ETkrytxb7QS6Qwt6vtZ6JA=
-Date: Fri, 09 May 2025 15:17:47 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,richardycc@google.com,osalvador@suse.de,mhocko@suse.com,mgorman@techsingularity.net,kirill.shutemov@linux.intel.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=GaSIGpiu4dq6EBa8M+TXxPlRqg8Yne3oawogixNTkNdIgbcgg+/7OSIBuVkNkA2Nr
+	 wWBgRC0W7E65DAuro9EjnQge3jBLXJp+Yqt2fXXoZkbVZxB3XUg+veTuGQbc5KNovz
+	 SSX7rvyRCj1cxXtx2iKxB2av3FpBUrerfERvtt0I=
+Date: Fri, 09 May 2025 15:25:59 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_isolation-remove-migratetype-parameter-from-more-functions.patch added to mm-new branch
-Message-Id: <20250509221748.5800EC4CEE4@smtp.kernel.org>
+Subject: + mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch added to mm-new branch
+Message-Id: <20250509222600.6C31DC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_isolation: remove migratetype parameter from more functions.
+     Subject: mm: khugepaged: convert set_huge_pmd() to take a folio
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_isolation-remove-migratetype-parameter-from-more-functions.patch
+     mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-remove-migratetype-parameter-from-more-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,508 +64,113 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/page_isolation: remove migratetype parameter from more functions.
-Date: Fri, 9 May 2025 16:01:11 -0400
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: khugepaged: convert set_huge_pmd() to take a folio
+Date: Fri, 9 May 2025 21:01:03 +0800
 
-migratetype is no longer overwritten during pageblock isolation,
-start_isolate_page_range(), has_unmovable_pages(), and
-set_migratetype_isolate() no longer need which migratetype to restore
-during isolation failure.
+We've already gotten the stable locked folio in collapse_pte_mapped_thp(),
+so just use folio for set_huge_pmd() to set the PMD entry, which is more
+straightforward.
 
-For has_unmoable_pages(), it needs to know if the isolation is for CMA
-allocation, so adding CMA_ALLOCATION to isolation flags to provide the
-information.
+Moreover, we will check the folio size in do_set_pmd(), so we can remove
+the unnecessary VM_BUG_ON() in set_huge_pmd().  While we are at it, we can
+also remove the PageTransHuge(), as it currently has no callers.
 
-alloc_contig_range() no longer needs migratetype.  Replace it with a newly
-defined acr_flags_t to tell if an allocation is for CMA.  So does
-__alloc_contig_migrate_range().
-
-Link: https://lkml.kernel.org/r/20250509200111.3372279-5-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/bc3d4638747e8141133676069336d868c2b2d360.1746795452.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Richard Chang <richardycc@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_mem.c    |    3 -
- include/linux/gfp.h            |    6 ++
- include/linux/page-isolation.h |   25 +++++++++--
- include/trace/events/kmem.h    |   14 +++---
- mm/cma.c                       |    2 
- mm/memory_hotplug.c            |    3 -
- mm/page_alloc.c                |   25 +++++------
- mm/page_isolation.c            |   67 ++++++++++++++-----------------
- 8 files changed, 80 insertions(+), 65 deletions(-)
+ include/linux/page-flags.h |   15 ---------------
+ mm/khugepaged.c            |    9 ++++-----
+ 2 files changed, 4 insertions(+), 20 deletions(-)
 
---- a/drivers/virtio/virtio_mem.c~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/drivers/virtio/virtio_mem.c
-@@ -1243,8 +1243,7 @@ static int virtio_mem_fake_offline(struc
- 		if (atomic_read(&vm->config_changed))
- 			return -EAGAIN;
+--- a/include/linux/page-flags.h~mm-khugepaged-convert-set_huge_pmd-to-take-a-folio
++++ a/include/linux/page-flags.h
+@@ -908,20 +908,6 @@ FOLIO_FLAG_FALSE(partially_mapped)
  
--		rc = alloc_contig_range(pfn, pfn + nr_pages, MIGRATE_MOVABLE,
--					GFP_KERNEL);
-+		rc = alloc_contig_range(pfn, pfn + nr_pages, 0, GFP_KERNEL);
- 		if (rc == -ENOMEM)
- 			/* whoops, out of memory */
- 			return rc;
---- a/include/linux/gfp.h~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/include/linux/gfp.h
-@@ -423,9 +423,13 @@ static inline bool gfp_compaction_allowe
- extern gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma);
- 
- #ifdef CONFIG_CONTIG_ALLOC
-+
-+typedef unsigned int __bitwise acr_flags_t;
-+#define ACR_CMA		((__force acr_flags_t)BIT(0))	// allocate for CMA
-+
- /* The below functions must be run on a range from a single zone. */
- extern int alloc_contig_range_noprof(unsigned long start, unsigned long end,
--			      unsigned migratetype, gfp_t gfp_mask);
-+			      acr_flags_t alloc_flags, gfp_t gfp_mask);
- #define alloc_contig_range(...)			alloc_hooks(alloc_contig_range_noprof(__VA_ARGS__))
- 
- extern struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
---- a/include/linux/page-isolation.h~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/include/linux/page-isolation.h
-@@ -22,8 +22,25 @@ static inline bool is_migrate_isolate(in
- }
- #endif
- 
--#define MEMORY_OFFLINE	0x1
--#define REPORT_FAILURE	0x2
-+/*
-+ * Isolation modes:
-+ * ISOLATE_MODE_NONE - isolate for other purposes than those below
-+ * MEMORY_OFFLINE    - isolate to offline (!allocate) memory e.g., skip over
-+ *		       PageHWPoison() pages and PageOffline() pages.
-+ * CMA_ALLOCATION    - isolate for CMA allocations
-+ */
-+enum isolate_mode_t {
-+	ISOLATE_MODE_NONE,
-+	MEMORY_OFFLINE,
-+	CMA_ALLOCATION,
-+};
-+
-+/*
-+ * Isolation flags:
-+ * REPORT_FAILURE - report details about the failure to isolate the range
-+ */
-+typedef unsigned int __bitwise isolate_flags_t;
-+#define REPORT_FAILURE		((__force isolate_flags_t)BIT(0))
- 
- void set_pageblock_migratetype(struct page *page, int migratetype);
- void set_pageblock_isolate(struct page *page);
-@@ -32,10 +49,10 @@ bool pageblock_isolate_and_move_free_pag
- bool pageblock_unisolate_and_move_free_pages(struct zone *zone, struct page *page);
- 
- int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
--			     int migratetype, int flags);
-+			     isolate_mode_t mode, isolate_flags_t flags);
- 
- void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
- 
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
--			int isol_flags);
-+			isolate_mode_t mode);
- #endif
---- a/include/trace/events/kmem.h~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/include/trace/events/kmem.h
-@@ -304,6 +304,7 @@ TRACE_EVENT(mm_page_alloc_extfrag,
- 		__entry->change_ownership)
- );
- 
-+#ifdef CONFIG_CONTIG_ALLOC
- TRACE_EVENT(mm_alloc_contig_migrate_range_info,
- 
- 	TP_PROTO(unsigned long start,
-@@ -311,9 +312,9 @@ TRACE_EVENT(mm_alloc_contig_migrate_rang
- 		 unsigned long nr_migrated,
- 		 unsigned long nr_reclaimed,
- 		 unsigned long nr_mapped,
--		 int migratetype),
-+		 acr_flags_t alloc_flags),
- 
--	TP_ARGS(start, end, nr_migrated, nr_reclaimed, nr_mapped, migratetype),
-+	TP_ARGS(start, end, nr_migrated, nr_reclaimed, nr_mapped, alloc_flags),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, start)
-@@ -321,7 +322,7 @@ TRACE_EVENT(mm_alloc_contig_migrate_rang
- 		__field(unsigned long, nr_migrated)
- 		__field(unsigned long, nr_reclaimed)
- 		__field(unsigned long, nr_mapped)
--		__field(int, migratetype)
-+		__field(acr_flags_t, alloc_flags)
- 	),
- 
- 	TP_fast_assign(
-@@ -330,17 +331,18 @@ TRACE_EVENT(mm_alloc_contig_migrate_rang
- 		__entry->nr_migrated = nr_migrated;
- 		__entry->nr_reclaimed = nr_reclaimed;
- 		__entry->nr_mapped = nr_mapped;
--		__entry->migratetype = migratetype;
-+		__entry->alloc_flags = alloc_flags;
- 	),
- 
--	TP_printk("start=0x%lx end=0x%lx migratetype=%d nr_migrated=%lu nr_reclaimed=%lu nr_mapped=%lu",
-+	TP_printk("start=0x%lx end=0x%lx alloc_flags=%d nr_migrated=%lu nr_reclaimed=%lu nr_mapped=%lu",
- 		  __entry->start,
- 		  __entry->end,
--		  __entry->migratetype,
-+		  __entry->alloc_flags,
- 		  __entry->nr_migrated,
- 		  __entry->nr_reclaimed,
- 		  __entry->nr_mapped)
- );
-+#endif
- 
- TRACE_EVENT(mm_setup_per_zone_wmarks,
- 
---- a/mm/cma.c~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/mm/cma.c
-@@ -818,7 +818,7 @@ static int cma_range_alloc(struct cma *c
- 
- 		pfn = cmr->base_pfn + (bitmap_no << cma->order_per_bit);
- 		mutex_lock(&cma->alloc_mutex);
--		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA, gfp);
-+		ret = alloc_contig_range(pfn, pfn + count, ACR_CMA, gfp);
- 		mutex_unlock(&cma->alloc_mutex);
- 		if (ret == 0) {
- 			page = pfn_to_page(pfn);
---- a/mm/memory_hotplug.c~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/mm/memory_hotplug.c
-@@ -2010,8 +2010,7 @@ int offline_pages(unsigned long start_pf
- 
- 	/* set above range as isolated */
- 	ret = start_isolate_page_range(start_pfn, end_pfn,
--				       MIGRATE_MOVABLE,
--				       MEMORY_OFFLINE | REPORT_FAILURE);
-+				       MEMORY_OFFLINE, REPORT_FAILURE);
- 	if (ret) {
- 		reason = "failure to isolate range";
- 		goto failed_removal_pcplists_disabled;
---- a/mm/page_alloc.c~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/mm/page_alloc.c
-@@ -6580,11 +6580,12 @@ static void alloc_contig_dump_pages(stru
- 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
  /*
-  * [start, end) must belong to a single zone.
-- * @migratetype: using migratetype to filter the type of migration in
-+ * @alloc_flags: using acr_flags_t to filter the type of migration in
-  *		trace_mm_alloc_contig_migrate_range_info.
-  */
- static int __alloc_contig_migrate_range(struct compact_control *cc,
--		unsigned long start, unsigned long end, int migratetype)
-+					unsigned long start, unsigned long end,
-+					acr_flags_t alloc_flags)
- {
- 	/* This function is based on compact_zone() from compaction.c. */
- 	unsigned int nr_reclaimed;
-@@ -6656,7 +6657,7 @@ static int __alloc_contig_migrate_range(
- 		putback_movable_pages(&cc->migratepages);
- 	}
+- * PageHuge() only returns true for hugetlbfs pages, but not for
+- * normal or transparent huge pages.
+- *
+- * PageTransHuge() returns true for both transparent huge and
+- * hugetlbfs pages, but not normal pages. PageTransHuge() can only be
+- * called only in the core VM paths where hugetlbfs pages can't exist.
+- */
+-static inline int PageTransHuge(const struct page *page)
+-{
+-	VM_BUG_ON_PAGE(PageTail(page), page);
+-	return PageHead(page);
+-}
+-
+-/*
+  * PageTransCompound returns true for both transparent huge pages
+  * and hugetlbfs pages, so it should only be called when it's known
+  * that hugetlbfs pages aren't involved.
+@@ -931,7 +917,6 @@ static inline int PageTransCompound(cons
+ 	return PageCompound(page);
+ }
+ #else
+-TESTPAGEFLAG_FALSE(TransHuge, transhuge)
+ TESTPAGEFLAG_FALSE(TransCompound, transcompound)
+ #endif
  
--	trace_mm_alloc_contig_migrate_range_info(start, end, migratetype,
-+	trace_mm_alloc_contig_migrate_range_info(start, end, alloc_flags,
- 						 total_migrated,
- 						 total_reclaimed,
- 						 total_mapped);
-@@ -6727,10 +6728,7 @@ static int __alloc_contig_verify_gfp_mas
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-- * @migratetype:	migratetype of the underlying pageblocks (either
-- *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-- *			in range must have the same migratetype and it must
-- *			be either of the two.
-+ * @alloc_flags:	allocation information
-  * @gfp_mask:	GFP mask. Node/zone/placement hints are ignored; only some
-  *		action and reclaim modifiers are supported. Reclaim modifiers
-  *		control allocation behavior during compaction/migration/reclaim.
-@@ -6747,7 +6745,7 @@ static int __alloc_contig_verify_gfp_mas
-  * need to be freed with free_contig_range().
-  */
- int alloc_contig_range_noprof(unsigned long start, unsigned long end,
--		       unsigned migratetype, gfp_t gfp_mask)
-+			acr_flags_t alloc_flags, gfp_t gfp_mask)
+--- a/mm/khugepaged.c~mm-khugepaged-convert-set_huge_pmd-to-take-a-folio
++++ a/mm/khugepaged.c
+@@ -1467,7 +1467,7 @@ static void collect_mm_slot(struct khuge
+ #ifdef CONFIG_SHMEM
+ /* hpage must be locked, and mmap_lock must be held */
+ static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
+-			pmd_t *pmdp, struct page *hpage)
++			pmd_t *pmdp, struct folio *folio)
  {
- 	unsigned long outer_start, outer_end;
- 	int ret = 0;
-@@ -6763,6 +6761,8 @@ int alloc_contig_range_noprof(unsigned l
+ 	struct vm_fault vmf = {
+ 		.vma = vma,
+@@ -1476,13 +1476,12 @@ static int set_huge_pmd(struct vm_area_s
+ 		.pmd = pmdp,
  	};
- 	INIT_LIST_HEAD(&cc.migratepages);
- 	bool is_range_aligned;
-+	isolate_mode_t mode = (alloc_flags & ACR_CMA) ? CMA_ALLOCATION :
-+							ISOLATE_MODE_NONE;
  
- 	gfp_mask = current_gfp_context(gfp_mask);
- 	if (__alloc_contig_verify_gfp_mask(gfp_mask, (gfp_t *)&cc.gfp_mask))
-@@ -6789,7 +6789,7 @@ int alloc_contig_range_noprof(unsigned l
- 	 * put back to page allocator so that buddy can use them.
- 	 */
+-	VM_BUG_ON(!PageTransHuge(hpage));
+ 	mmap_assert_locked(vma->vm_mm);
  
--	ret = start_isolate_page_range(start, end, migratetype, 0);
-+	ret = start_isolate_page_range(start, end, mode, 0);
- 	if (ret)
- 		goto done;
+-	if (do_set_pmd(&vmf, hpage))
++	if (do_set_pmd(&vmf, &folio->page))
+ 		return SCAN_FAIL;
  
-@@ -6805,7 +6805,7 @@ int alloc_contig_range_noprof(unsigned l
- 	 * allocated.  So, if we fall through be sure to clear ret so that
- 	 * -EBUSY is not accidentally used or returned to caller.
- 	 */
--	ret = __alloc_contig_migrate_range(&cc, start, end, migratetype);
-+	ret = __alloc_contig_migrate_range(&cc, start, end, alloc_flags);
- 	if (ret && ret != -EBUSY)
- 		goto done;
- 
-@@ -6839,7 +6839,7 @@ int alloc_contig_range_noprof(unsigned l
- 	outer_start = find_large_buddy(start);
- 
- 	/* Make sure the range is really isolated. */
--	if (test_pages_isolated(outer_start, end, 0)) {
-+	if (test_pages_isolated(outer_start, end, mode)) {
- 		ret = -EBUSY;
- 		goto done;
- 	}
-@@ -6897,8 +6897,7 @@ static int __alloc_contig_pages(unsigned
- {
- 	unsigned long end_pfn = start_pfn + nr_pages;
- 
--	return alloc_contig_range_noprof(start_pfn, end_pfn, MIGRATE_MOVABLE,
--				   gfp_mask);
-+	return alloc_contig_range_noprof(start_pfn, end_pfn, 0, gfp_mask);
+-	get_page(hpage);
++	folio_get(folio);
+ 	return SCAN_SUCCEED;
  }
  
- static bool pfn_range_valid_contig(struct zone *z, unsigned long start_pfn,
---- a/mm/page_isolation.c~mm-page_isolation-remove-migratetype-parameter-from-more-functions
-+++ a/mm/page_isolation.c
-@@ -48,7 +48,7 @@ void set_pageblock_isolate(struct page *
-  *
-  */
- static struct page *has_unmovable_pages(unsigned long start_pfn, unsigned long end_pfn,
--				int migratetype, int flags)
-+				isolate_mode_t mode, isolate_flags_t flags)
- {
- 	struct page *page = pfn_to_page(start_pfn);
- 	struct zone *zone = page_zone(page);
-@@ -63,7 +63,7 @@ static struct page *has_unmovable_pages(
- 		 * isolate CMA pageblocks even when they are not movable in fact
- 		 * so consider them movable here.
- 		 */
--		if (is_migrate_cma(migratetype))
-+		if (mode == CMA_ALLOCATION)
- 			return NULL;
- 
- 		return page;
-@@ -134,7 +134,7 @@ static struct page *has_unmovable_pages(
- 		 * The HWPoisoned page may be not in buddy system, and
- 		 * page_count() is not 0.
- 		 */
--		if ((flags & MEMORY_OFFLINE) && PageHWPoison(page))
-+		if ((mode == MEMORY_OFFLINE) && PageHWPoison(page))
- 			continue;
- 
- 		/*
-@@ -147,7 +147,7 @@ static struct page *has_unmovable_pages(
- 		 * move these pages that still have a reference count > 0.
- 		 * (false negatives in this function only)
- 		 */
--		if ((flags & MEMORY_OFFLINE) && PageOffline(page))
-+		if ((mode == MEMORY_OFFLINE) && PageOffline(page))
- 			continue;
- 
- 		if (__PageMovable(page) || PageLRU(page))
-@@ -168,8 +168,9 @@ static struct page *has_unmovable_pages(
-  * present in [start_pfn, end_pfn). The pageblock must intersect with
-  * [start_pfn, end_pfn).
-  */
--static int set_migratetype_isolate(struct page *page, int migratetype, int isol_flags,
--			unsigned long start_pfn, unsigned long end_pfn)
-+static int set_migratetype_isolate(struct page *page, isolate_mode_t mode,
-+			isolate_flags_t isol_flags, unsigned long start_pfn,
-+			unsigned long end_pfn)
- {
- 	struct zone *zone = page_zone(page);
- 	struct page *unmovable;
-@@ -203,7 +204,7 @@ static int set_migratetype_isolate(struc
- 				  end_pfn);
- 
- 	unmovable = has_unmovable_pages(check_unmovable_start, check_unmovable_end,
--			migratetype, isol_flags);
-+			mode, isol_flags);
- 	if (!unmovable) {
- 		if (!pageblock_isolate_and_move_free_pages(zone, page)) {
- 			spin_unlock_irqrestore(&zone->lock, flags);
-@@ -309,11 +310,11 @@ __first_valid_page(unsigned long pfn, un
-  * isolate_single_pageblock() -- tries to isolate a pageblock that might be
-  * within a free or in-use page.
-  * @boundary_pfn:		pageblock-aligned pfn that a page might cross
-+ * @mode:			isolation mode
-  * @flags:			isolation flags
-  * @isolate_before:	isolate the pageblock before the boundary_pfn
-  * @skip_isolation:	the flag to skip the pageblock isolation in second
-  *			isolate_single_pageblock()
-- * @migratetype:	migrate type to set in error recovery.
-  *
-  * Free and in-use pages can be as big as MAX_PAGE_ORDER and contain more than one
-  * pageblock. When not all pageblocks within a page are isolated at the same
-@@ -328,8 +329,9 @@ __first_valid_page(unsigned long pfn, un
-  * either. The function handles this by splitting the free page or migrating
-  * the in-use page then splitting the free page.
-  */
--static int isolate_single_pageblock(unsigned long boundary_pfn, int flags,
--		bool isolate_before, bool skip_isolation, int migratetype)
-+static int isolate_single_pageblock(unsigned long boundary_pfn,
-+			isolate_mode_t mode, isolate_flags_t flags,
-+			bool isolate_before, bool skip_isolation)
- {
- 	unsigned long start_pfn;
- 	unsigned long isolate_pageblock;
-@@ -355,12 +357,11 @@ static int isolate_single_pageblock(unsi
- 				      zone->zone_start_pfn);
- 
- 	if (skip_isolation) {
--		int mt __maybe_unused = get_pageblock_migratetype(pfn_to_page(isolate_pageblock));
--
--		VM_BUG_ON(!is_migrate_isolate(mt));
-+		VM_BUG_ON(!get_pageblock_isolate(pfn_to_page(isolate_pageblock)));
- 	} else {
--		ret = set_migratetype_isolate(pfn_to_page(isolate_pageblock), migratetype,
--				flags, isolate_pageblock, isolate_pageblock + pageblock_nr_pages);
-+		ret = set_migratetype_isolate(pfn_to_page(isolate_pageblock),
-+				mode, flags, isolate_pageblock,
-+				isolate_pageblock + pageblock_nr_pages);
- 
- 		if (ret)
- 			return ret;
-@@ -458,14 +459,8 @@ failed:
-  * start_isolate_page_range() - mark page range MIGRATE_ISOLATE
-  * @start_pfn:		The first PFN of the range to be isolated.
-  * @end_pfn:		The last PFN of the range to be isolated.
-- * @migratetype:	Migrate type to set in error recovery.
-- * @flags:		The following flags are allowed (they can be combined in
-- *			a bit mask)
-- *			MEMORY_OFFLINE - isolate to offline (!allocate) memory
-- *					 e.g., skip over PageHWPoison() pages
-- *					 and PageOffline() pages.
-- *			REPORT_FAILURE - report details about the failure to
-- *			isolate the range
-+ * @mode:		isolation mode
-+ * @flags:		isolation flags
-  *
-  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
-  * the range will never be allocated. Any free pages and pages freed in the
-@@ -498,7 +493,7 @@ failed:
-  * Return: 0 on success and -EBUSY if any part of range cannot be isolated.
-  */
- int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
--			     int migratetype, int flags)
-+			     isolate_mode_t mode, isolate_flags_t flags)
- {
- 	unsigned long pfn;
- 	struct page *page;
-@@ -509,8 +504,8 @@ int start_isolate_page_range(unsigned lo
- 	bool skip_isolation = false;
- 
- 	/* isolate [isolate_start, isolate_start + pageblock_nr_pages) pageblock */
--	ret = isolate_single_pageblock(isolate_start, flags, false,
--			skip_isolation, migratetype);
-+	ret = isolate_single_pageblock(isolate_start, mode, flags, false,
-+			skip_isolation);
- 	if (ret)
- 		return ret;
- 
-@@ -518,8 +513,8 @@ int start_isolate_page_range(unsigned lo
- 		skip_isolation = true;
- 
- 	/* isolate [isolate_end - pageblock_nr_pages, isolate_end) pageblock */
--	ret = isolate_single_pageblock(isolate_end, flags, true,
--			skip_isolation, migratetype);
-+	ret = isolate_single_pageblock(isolate_end, mode, flags, true,
-+			skip_isolation);
- 	if (ret) {
- 		unset_migratetype_isolate(pfn_to_page(isolate_start));
- 		return ret;
-@@ -530,7 +525,7 @@ int start_isolate_page_range(unsigned lo
- 	     pfn < isolate_end - pageblock_nr_pages;
- 	     pfn += pageblock_nr_pages) {
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
--		if (page && set_migratetype_isolate(page, migratetype, flags,
-+		if (page && set_migratetype_isolate(page, mode, flags,
- 					start_pfn, end_pfn)) {
- 			undo_isolate_page_range(isolate_start, pfn);
- 			unset_migratetype_isolate(
-@@ -573,7 +568,7 @@ void undo_isolate_page_range(unsigned lo
-  */
- static unsigned long
- __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
--				  int flags)
-+				  isolate_mode_t mode)
- {
- 	struct page *page;
- 
-@@ -586,10 +581,10 @@ __test_page_isolated_in_pageblock(unsign
- 			 * simple way to verify that as VM_BUG_ON(), though.
- 			 */
- 			pfn += 1 << buddy_order(page);
--		else if ((flags & MEMORY_OFFLINE) && PageHWPoison(page))
-+		else if ((mode == MEMORY_OFFLINE) && PageHWPoison(page))
- 			/* A HWPoisoned page cannot be also PageBuddy */
- 			pfn++;
--		else if ((flags & MEMORY_OFFLINE) && PageOffline(page) &&
-+		else if ((mode == MEMORY_OFFLINE) && PageOffline(page) &&
- 			 !page_count(page))
- 			/*
- 			 * The responsible driver agreed to skip PageOffline()
-@@ -608,11 +603,11 @@ __test_page_isolated_in_pageblock(unsign
-  * test_pages_isolated - check if pageblocks in range are isolated
-  * @start_pfn:		The first PFN of the isolated range
-  * @end_pfn:		The first PFN *after* the isolated range
-- * @isol_flags:		Testing mode flags
-+ * @mode:		Testing mode
-  *
-  * This tests if all in the specified range are free.
-  *
-- * If %MEMORY_OFFLINE is specified in @flags, it will consider
-+ * If %MEMORY_OFFLINE is specified in @mode, it will consider
-  * poisoned and offlined pages free as well.
-  *
-  * Caller must ensure the requested range doesn't span zones.
-@@ -620,7 +615,7 @@ __test_page_isolated_in_pageblock(unsign
-  * Returns 0 if true, -EBUSY if one or more pages are in use.
-  */
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
--			int isol_flags)
-+			isolate_mode_t mode)
- {
- 	unsigned long pfn, flags;
- 	struct page *page;
-@@ -656,7 +651,7 @@ int test_pages_isolated(unsigned long st
- 	/* Check all pages are free or marked as ISOLATED */
- 	zone = page_zone(page);
- 	spin_lock_irqsave(&zone->lock, flags);
--	pfn = __test_page_isolated_in_pageblock(start_pfn, end_pfn, isol_flags);
-+	pfn = __test_page_isolated_in_pageblock(start_pfn, end_pfn, mode);
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 
- 	ret = pfn < end_pfn ? -EBUSY : 0;
+@@ -1689,7 +1688,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ maybe_install_pmd:
+ 	/* step 5: install pmd entry */
+ 	result = install_pmd
+-			? set_huge_pmd(vma, haddr, pmd, &folio->page)
++			? set_huge_pmd(vma, haddr, pmd, folio)
+ 			: SCAN_SUCCEED;
+ 	goto drop_folio;
+ abort:
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-page_isolation-make-page-isolation-a-standalone-bit.patch
-mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate.patch
-mm-page_isolation-remove-migratetype-from-undo_isolate_page_range.patch
-mm-page_isolation-remove-migratetype-parameter-from-more-functions.patch
+mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch
+mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix.patch
+mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch
+mm-convert-do_set_pmd-to-take-a-folio.patch
 
