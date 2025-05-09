@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15DF421507C
-	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 23:20:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D13F21507C
+	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 23:20:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746832844; cv=none; b=OaR9nf/XA91jQKCnK3deeeyJIUQMHu3vEodTCyMsdy1lfDxL9pI8T0sCsKnVUuhHxf539HQGLEm3FE+uPyyoO7QXrTLGLroaOd/FNtUtafA1qhnXCTc5Ul3LsvsOhgjXF86P3dTGOv7WsgX+GoJw5qhNVYU5k/tXlrVlvrsZymI=
+	t=1746832846; cv=none; b=MCE+oIA3t+p6HrFnxKWpClIdItnv8OWCRGs/cv87OpZPyQfk1U7wH+6tGn9VBrNq9CUxLyvd5nM2i/9ZsqceWYxe08mKSBGIgFfjEHVxCIgWoor9mFslhfzAA/xROGyfPe1SZ7Dn1KgE7a6vIwKGSkeYHJM4dtPzrtFf424Olzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746832844; c=relaxed/simple;
-	bh=+3zX/WLOtpMAhryBr5rAou9zkhXQ6vy80shCFvVjEC0=;
-	h=Date:To:From:Subject:Message-Id; b=qHj8Ul8Id1/A+BujBUABuASAx8M1K9eSYTxtrhKdt+9LxI+vS+d5Rw29mSRA0LTlBNRJk05jen3+yKvKtzfz+EGpByTKfrfuhEPPncm5DXuGJjRszLG05daRJQgxCm0R/43TniukdkSCl37uQ0uOcEd3cnUmUwOKAxjwqBXKheU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXJo5ZzE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746832846; c=relaxed/simple;
+	bh=QLYnYhGW1OirCPfepVLzqeUHC+R8rSeG1NwCYuTf284=;
+	h=Date:To:From:Subject:Message-Id; b=PM/hMBe9GgZPavC+IrDJABvIzx5bu6l2Dtqyn4qxPkyeXzUQ552d5VQKH1yUUtJZTFVb7pUTytRLFDG0IxENlbi+omvOG4eBInL3UmB+6FkAgf2GteWfclrDUtPAzc1C82rF8SvRuDSL4wjipKXUP4OTC/yoDw/P62tWgrvh7ZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZK5ppOaJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXJo5ZzE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C4EAC4CEE4;
-	Fri,  9 May 2025 23:20:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZK5ppOaJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87F3AC4CEE4;
+	Fri,  9 May 2025 23:20:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746832843;
-	bh=+3zX/WLOtpMAhryBr5rAou9zkhXQ6vy80shCFvVjEC0=;
+	s=korg; t=1746832845;
+	bh=QLYnYhGW1OirCPfepVLzqeUHC+R8rSeG1NwCYuTf284=;
 	h=Date:To:From:Subject:From;
-	b=wXJo5ZzEOKZMDY+VCqLKu0oSazI3Qj9vBDLFNNmYlMSVuEFy3IiyvPjzVMq/C200v
-	 3Na6Mdy/AAvUnQaakwuyrKhIeEn7k9CCU5T3JJ/TLtLtvJNjBCoYQClU8/zTUP7AOT
-	 0Vqohe8w7wVpeXEWuPDNFogkFIlSLNhz1TY6pc0Q=
-Date: Fri, 09 May 2025 16:20:42 -0700
+	b=ZK5ppOaJ62l0sf4YdY6CSzB1eDeJju44H853qRBUm9FYkMwrNyEWaaLzPidryOBDl
+	 8G6s60RL3FL/AoLy33IdpYU0SIoBlEWoF5pBNkVdMJw6Zt7rzD4saLJU8iv+WasSEi
+	 IhUJeHt/og+lnRTdvOrbQ8s9jcgpUtK5BcWoyjlo=
+Date: Fri, 09 May 2025 16:20:44 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-secretmem-convert-to-mmap_prepare-hook.patch added to mm-unstable branch
-Message-Id: <20250509232043.6C4EAC4CEE4@smtp.kernel.org>
+Subject: + mm-vma-remove-mmap-retry-merge.patch added to mm-unstable branch
+Message-Id: <20250509232045.87F3AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: secretmem: convert to .mmap_prepare() hook
+     Subject: mm/vma: remove mmap() retry merge
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-secretmem-convert-to-mmap_prepare-hook.patch
+     mm-vma-remove-mmap-retry-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-secretmem-convert-to-mmap_prepare-hook.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-remove-mmap-retry-merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: secretmem: convert to .mmap_prepare() hook
-Date: Fri, 9 May 2025 13:13:35 +0100
+Subject: mm/vma: remove mmap() retry merge
+Date: Fri, 9 May 2025 13:13:36 +0100
 
-Secretmem has a simple .mmap() hook which is easily converted to the new
-.mmap_prepare() callback.
+We have now introduced a mechanism that obviates the need for a
+reattempted merge via the mmap_prepare() file hook, so eliminate this
+functionality altogether.
 
-Importantly, it's a rare instance of an driver that manipulates a VMA
-which is mergeable (that is, not a VM_SPECIAL mapping) while also
-adjusting VMA flags which may adjust mergeability, meaning the retry merge
-logic might impact whether or not the VMA is merged.
+The retry merge logic has been the cause of a great deal of complexity in
+the past and required a great deal of careful manoeuvring of code to
+ensure its continued and correct functionality.
 
-By using .mmap_prepare() there's no longer any need to retry the merge
-later as we can simply set the correct flags from the start.
+It has also recently been involved in an issue surrounding maple tree
+state, which again points to its problematic nature.
 
-This change therefore allows us to remove the retry merge logic in a
-subsequent commit.
+We make it much easier to reason about mmap() logic by eliminating this
+and simply writing a VMA once.  This also opens the doors to future
+optimisation and improvement in the mmap() logic.
 
-Link: https://lkml.kernel.org/r/0f758474fa6a30197bdf25ba62f898a69d84eef3.1746792520.git.lorenzo.stoakes@oracle.com
+For any device or file system which encounters unwanted VMA fragmentation
+as a result of this change (that is, having not implemented .mmap_prepare
+hooks), the issue is easily resolvable by doing so.
+
+Link: https://lkml.kernel.org/r/d5d8fc74f02b89d6bec5ae8bc0e36d7853b65cda.1746792520.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -87,50 +91,52 @@ Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/vma.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
---- a/mm/secretmem.c~mm-secretmem-convert-to-mmap_prepare-hook
-+++ a/mm/secretmem.c
-@@ -120,18 +120,18 @@ static int secretmem_release(struct inod
- 	return 0;
- }
+--- a/mm/vma.c~mm-vma-remove-mmap-retry-merge
++++ a/mm/vma.c
+@@ -24,7 +24,6 @@ struct mmap_state {
+ 	void *vm_private_data;
  
--static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
-+static int secretmem_mmap_prepare(struct vm_area_desc *desc)
- {
--	unsigned long len = vma->vm_end - vma->vm_start;
-+	const unsigned long len = desc->end - desc->start;
+ 	unsigned long charged;
+-	bool retry_merge;
  
--	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
-+	if ((desc->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
- 		return -EINVAL;
+ 	struct vm_area_struct *prev;
+ 	struct vm_area_struct *next;
+@@ -2417,8 +2416,6 @@ static int __mmap_new_file_vma(struct mm
+ 			!(map->flags & VM_MAYWRITE) &&
+ 			(vma->vm_flags & VM_MAYWRITE));
  
--	if (!mlock_future_ok(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
-+	if (!mlock_future_ok(desc->mm, desc->vm_flags | VM_LOCKED, len))
- 		return -EAGAIN;
- 
--	vm_flags_set(vma, VM_LOCKED | VM_DONTDUMP);
--	vma->vm_ops = &secretmem_vm_ops;
-+	desc->vm_flags |= VM_LOCKED | VM_DONTDUMP;
-+	desc->vm_ops = &secretmem_vm_ops;
+-	/* If the flags change (and are mergeable), let's retry later. */
+-	map->retry_merge = vma->vm_flags != map->flags && !(vma->vm_flags & VM_SPECIAL);
+ 	map->flags = vma->vm_flags;
  
  	return 0;
- }
-@@ -143,7 +143,7 @@ bool vma_is_secretmem(struct vm_area_str
+@@ -2622,17 +2619,6 @@ static unsigned long __mmap_region(struc
+ 	if (have_mmap_prepare)
+ 		set_vma_user_defined_fields(vma, &map);
  
- static const struct file_operations secretmem_fops = {
- 	.release	= secretmem_release,
--	.mmap		= secretmem_mmap,
-+	.mmap_prepare	= secretmem_mmap_prepare,
- };
+-	/* If flags changed, we might be able to merge, so try again. */
+-	if (map.retry_merge) {
+-		struct vm_area_struct *merged;
+-		VMG_MMAP_STATE(vmg, &map, vma);
+-
+-		vma_iter_config(map.vmi, map.addr, map.end);
+-		merged = vma_merge_existing_range(&vmg);
+-		if (merged)
+-			vma = merged;
+-	}
+-
+ 	__mmap_complete(&map, vma);
  
- static int secretmem_migrate_folio(struct address_space *mapping,
+ 	return addr;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
