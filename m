@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB235366
-	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 00:10:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A007013AA2F
+	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 00:42:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746749420; cv=none; b=m+qd7S6yOuojN06ONAxN0+Ul2p/5qX7+MllK6rwmAxc/OmTMDC6h2mJRUr38qDbTiWjvNLqN8bB0X6shaCch1SbO/F6gntA9xtIPyRy7w2Ln2+u+hY66NjD8KYb9FO2a8Yrt1vd5bwFGTqfpVYXR0kNvJYBEjJN6Y/dTctJJK4c=
+	t=1746751362; cv=none; b=QYBQkrscsbXwGedxzg7Tf05M5dJUsOyLNk7xYESpaNU24S+2yWO8gq08DxtlvR11zx9JJv3dO8GujzRhgvRdX8yJKMxWodW6mPjajLG2aTDzfK5k1jApoyqq6xW8TQw3++dQKmK3p8Gq/MGrWBasfAP0sJQeGbrWrXDgIrLdkIA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746749420; c=relaxed/simple;
-	bh=yMEe8dGAy1AnwIWOETloAxHCvNpIFi+9LqKENWYJCKk=;
-	h=Date:To:From:Subject:Message-Id; b=Y6AjAwznuoZvWYYtIq4IL8myC6bu9Xeh3ulljDqO32M/WIkH9TUWvYOiFS7nXtRhnVyzMEBz2acHm2OBujihOlS7M6evGI+G0XVVsD37Ny0zTBRPryD9TDBAMAUsA0EdRY62b3w+I8QixO8X1wfvQBwr+YgA4oZ0tx9b9jKyL1c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z2LiT503; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746751362; c=relaxed/simple;
+	bh=DobDW7JIHEhvUoDWf0vD97tCs+ggf0PwFZq7Ma8nOXo=;
+	h=Date:To:From:Subject:Message-Id; b=M7hImFqvl6X3FgB3EPfJzqB8OwizNR6+Ple6UVEErkHiaJmwGKMYE61bpCPyZUE3Q9yPSlo9HZ3I6aLo91KiVdKy6FyGAVXK5wzPJ90Xyo4j0Qq5yyKnyHdb7PsEcgr8UGX4NRSwaUiZ1fWZbDENg6rMolX9nZ5RbRMVMY1r9jE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QJSUTlOA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z2LiT503"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45ABBC4CEE7;
-	Fri,  9 May 2025 00:10:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QJSUTlOA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E542BC4CEE7;
+	Fri,  9 May 2025 00:42:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746749419;
-	bh=yMEe8dGAy1AnwIWOETloAxHCvNpIFi+9LqKENWYJCKk=;
+	s=korg; t=1746751362;
+	bh=DobDW7JIHEhvUoDWf0vD97tCs+ggf0PwFZq7Ma8nOXo=;
 	h=Date:To:From:Subject:From;
-	b=Z2LiT503+0nYmQqv3F3eQu6hKtB8qyL1X9M3xcQQtCBfvF6ZXwozXB2byx9/Ndi7W
-	 MFdufWsBBt35OSSs8sHCxtmubcWHfu3gsFRfCsqwsJdz9VOOiqKrCmtTJcJLc+A43H
-	 7ASYMfDtjGF0gmQKEf4mWY7TjeVQYPQEg/iMQ7Gg=
-Date: Thu, 08 May 2025 17:10:18 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,shaggy@kernel.org,lkp@intel.com,jane.chu@oracle.com,donettom@linux.ibm.com,david@redhat.com,dan.carpenter@linaro.org,apopple@nvidia.com,shivankg@amd.com,akpm@linux-foundation.org
+	b=QJSUTlOAtauZyO/DWYD7WYcbJkvNVPupz3pGwkqmF1HK/stY+o/q6YIwCADL6Pl8R
+	 EqQdZYBhQNsiLpTwjR6vhUU86e3L++8jUL73mV1X83On5xGpQJTnSVtE3xjDwJmir7
+	 L3A7Vmcte+1QH2aTGsWg3AxVrNOABjrb7BgGauGw=
+Date: Thu, 08 May 2025 17:42:41 -0700
+To: mm-commits@vger.kernel.org,rrichter@amd.com,rppt@kernel.org,lenb@kernel.org,Jonathan.Cameron@huawei.com,haibo1.xu@intel.com,david@redhat.com,dan.j.williams@intel.com,chenhuacai@kernel.org,chenbaozi@phytium.com.cn,bfaccini@nvidia.com,alison.schofield@intel.com,wangyuquan1236@phytium.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-3.patch added to mm-unstable branch
-Message-Id: <20250509001019.45ABBC4CEE7@smtp.kernel.org>
+Subject: + mm-numa_memblks-introduce-numa_add_reserved_memblk.patch added to mm-new branch
+Message-Id: <20250509004241.E542BC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: jfs: remove redundant NULL check in __metapage_migrate_folio()
-has been added to the -mm mm-unstable branch.  Its filename is
-     jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-3.patch
+     Subject: mm: numa_memblks: introduce numa_add_reserved_memblk
+has been added to the -mm mm-new branch.  Its filename is
+     mm-numa_memblks-introduce-numa_add_reserved_memblk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_memblks-introduce-numa_add_reserved_memblk.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,46 +64,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shivank Garg <shivankg@amd.com>
-Subject: jfs: remove redundant NULL check in __metapage_migrate_folio()
-Date: Thu, 8 May 2025 06:00:33 +0000
+From: Yuquan Wang <wangyuquan1236@phytium.com.cn>
+Subject: mm: numa_memblks: introduce numa_add_reserved_memblk
+Date: Thu, 8 May 2025 10:27:19 +0800
 
-Link: https://lkml.kernel.org/r/a67db238-0ca6-4725-abb2-dc092de87e1b@amd.com
-Signed-off-by: Shivank Garg <shivankg@amd.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/r/202505071850.XaOkcCkX-lkp@intel.com/
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Dave Kleikamp <shaggy@kernel.org>
+acpi_parse_cfmws() currently adds empty CFMWS ranges to numa_meminfo with
+the expectation that numa_cleanup_meminfo moves them to
+numa_reserved_meminfo.  There is no need for that indirection when it is
+known in advance that these unpopulated ranges are meant for
+numa_reserved_meminfo in support of future hotplug / CXL provisioning.
+
+Introduce and use numa_add_reserved_memblk() to add the empty CFMWS ranges
+directly.
+
+Link: https://lkml.kernel.org/r/20250508022719.3941335-1-wangyuquan1236@phytium.com.cn
+Signed-off-by: Yuquan Wang <wangyuquan1236@phytium.com.cn>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Cc: Bruno Faccini <bfaccini@nvidia.com>
+Cc: Chen Baozi <chenbaozi@phytium.com.cn>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Haibo Xu <haibo1.xu@intel.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Robert Richter <rrichter@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_metapage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/numa/srat.c     |    2 +-
+ include/linux/numa_memblks.h |    1 +
+ mm/numa_memblks.c            |   22 ++++++++++++++++++++++
+ 3 files changed, 24 insertions(+), 1 deletion(-)
 
---- a/fs/jfs/jfs_metapage.c~jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-3
-+++ a/fs/jfs/jfs_metapage.c
-@@ -238,7 +238,7 @@ static int __metapage_migrate_folio(stru
- 	int rc;
+--- a/drivers/acpi/numa/srat.c~mm-numa_memblks-introduce-numa_add_reserved_memblk
++++ a/drivers/acpi/numa/srat.c
+@@ -464,7 +464,7 @@ static int __init acpi_parse_cfmws(union
+ 		return -EINVAL;
+ 	}
  
- 	mp = folio_to_mp(src, 0);
--	if (mp && metapage_locked(mp))
-+	if (metapage_locked(mp))
- 		return -EAGAIN;
+-	if (numa_add_memblk(node, start, end) < 0) {
++	if (numa_add_reserved_memblk(node, start, end) < 0) {
+ 		/* CXL driver must handle the NUMA_NO_NODE case */
+ 		pr_warn("ACPI NUMA: Failed to add memblk for CFMWS node %d [mem %#llx-%#llx]\n",
+ 			node, start, end);
+--- a/include/linux/numa_memblks.h~mm-numa_memblks-introduce-numa_add_reserved_memblk
++++ a/include/linux/numa_memblks.h
+@@ -22,6 +22,7 @@ struct numa_meminfo {
+ };
  
- 	rc = filemap_migrate_folio(mapping, dst, src, mode);
+ int __init numa_add_memblk(int nodeid, u64 start, u64 end);
++int __init numa_add_reserved_memblk(int nid, u64 start, u64 end);
+ void __init numa_remove_memblk_from(int idx, struct numa_meminfo *mi);
+ 
+ int __init numa_cleanup_meminfo(struct numa_meminfo *mi);
+--- a/mm/numa_memblks.c~mm-numa_memblks-introduce-numa_add_reserved_memblk
++++ a/mm/numa_memblks.c
+@@ -201,6 +201,28 @@ int __init numa_add_memblk(int nid, u64
+ }
+ 
+ /**
++ * numa_add_reserved_memblk - Add one numa_memblk to numa_reserved_meminfo
++ * @nid: NUMA node ID of the new memblk
++ * @start: Start address of the new memblk
++ * @end: End address of the new memblk
++ *
++ * Add a new memblk to the numa_reserved_meminfo.
++ *
++ * Usage Case: numa_cleanup_meminfo() reconciles all numa_memblk instances
++ * against memblock_type information and moves any that intersect reserved
++ * ranges to numa_reserved_meminfo. However, when that information is known
++ * ahead of time, we use numa_add_reserved_memblk() to add the numa_memblk
++ * to numa_reserved_meminfo directly.
++ *
++ * RETURNS:
++ * 0 on success, -errno on failure.
++ */
++int __init numa_add_reserved_memblk(int nid, u64 start, u64 end)
++{
++	return numa_add_memblk_to(nid, start, end, &numa_reserved_meminfo);
++}
++
++/**
+  * numa_cleanup_meminfo - Cleanup a numa_meminfo
+  * @mi: numa_meminfo to clean up
+  *
 _
 
-Patches currently in -mm which might be from shivankg@amd.com are
+Patches currently in -mm which might be from wangyuquan1236@phytium.com.cn are
 
-mm-add-folio_expected_ref_count-for-reference-count-calculation.patch
-jfs-implement-migrate_folio-for-jfs_metapage_aops.patch
-jfs-implement-migrate_folio-for-jfs_metapage_aops-fix.patch
-jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-3.patch
+mm-numa_memblks-introduce-numa_add_reserved_memblk.patch
 
