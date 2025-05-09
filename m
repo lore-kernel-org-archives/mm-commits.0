@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 096FE25394A
-	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 21:07:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41768469D
+	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 22:17:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746824861; cv=none; b=D7UNiJUPERz12bNarLluf08By+ctZrkrLmmtvJ2ZHoU41hhwI16KZxzOY/nRbE/pjG/LIw40oddHZxfAX1xOpwspA4m2HBjNhw5ltc7YlU4UmKuFOkPXYZCfM16MSW3XI2DleoKdNBt5U3u4gVkFhuDOBJLTFrpxS16g+rxUF5g=
+	t=1746829058; cv=none; b=l8TB6/Lp1881G4cjm9iGSMKakGQgC3rwiRXwTD7bKv2jci1AhsF4b4DCLme2ifExTHbdybXG2e3au5Injx1ap9kha9ol2qQP5FdBNK+MTneSbZ3C+FT0BIZ0tZgwCUKIfCFUXDJJqeBwrNoI+TLYFZaPbA4lLOKR81RvJCwzdt0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746824861; c=relaxed/simple;
-	bh=t19IE3LbUgIBVPi2+6bFcAp0f8+KWTzaTBXolxWhEpo=;
-	h=Date:To:From:Subject:Message-Id; b=TmsCqLE7j+XOj6XUS7nx+LjzywwR3GMa9sKW7+dAGgAKZXnNSfKPNxZ1rvyLEhBKtBF3qPE87/HHG4uP+jK7yMeDZax6XLw/9RTPdFxTm0hpGRqYraNE0vC2VvomTstkfWovAhmOfyaU9nHLdojQLjvwLcASH9Q+S47MhaZVfAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vwl2t4dG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746829058; c=relaxed/simple;
+	bh=OMvca+HQYW1aqQ8hGKfd6jSAx8nv6hBMGAQqddig970=;
+	h=Date:To:From:Subject:Message-Id; b=TYCHRvsytJt0f41zag3QtOo8etYC2+mWPzvBc0t5z709HCfCxe+2tkLprJRuI6940ZPNC6wLIx1P91X9QEtM8vopzcevb1cGD+OI4YuUoRr/EhTv3vr5oc226C4EQ4P5HuhOZPgMG/oAOgCyaPVaoBi/LSSQ4A8/nJB643eqw+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M+XdUh7v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vwl2t4dG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F182C4CEE4;
-	Fri,  9 May 2025 21:07:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M+XdUh7v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4B1BC4CEE4;
+	Fri,  9 May 2025 22:17:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746824860;
-	bh=t19IE3LbUgIBVPi2+6bFcAp0f8+KWTzaTBXolxWhEpo=;
+	s=korg; t=1746829058;
+	bh=OMvca+HQYW1aqQ8hGKfd6jSAx8nv6hBMGAQqddig970=;
 	h=Date:To:From:Subject:From;
-	b=vwl2t4dGrEmv302g3HFvS9GVn4c5SnZkDqNDrNV11xqMS9jolz9HMi0P2VhmHqC/9
-	 AUlT233CZg+SuAxkGmiv6J5y/wJNUKgKI9b2BAq304SGb56vU0UiHrhwVO2Z0QiRA+
-	 Av6WVEP3Nr9Hvd3mgYdZZ9LxEEeW3Vs01OFUSslY=
-Date: Fri, 09 May 2025 14:07:39 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,mingo@redhat.com,lorenzo.stoakes@oracle.com,dev.jain@arm.com,david@redhat.com,akpm@linux-foundation.org
+	b=M+XdUh7vt/4l9HScopJC5T/FZhoKjW8xtuDjEGA9Viw6f8yanauW7wA37oALX/iqi
+	 4C8h9BJ20xO+FQYne3vnzMJFhNCj/k6YtTtBBbW1HdZswWTi9Y9odmtzVngaOgmy/R
+	 fs2ERsaCu9sHNHkEz5RHytuZkb/i1josabPOJ024=
+Date: Fri, 09 May 2025 15:17:37 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,richardycc@google.com,osalvador@suse.de,mhocko@suse.com,mgorman@techsingularity.net,kirill.shutemov@linux.intel.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch added to mm-new branch
-Message-Id: <20250509210740.5F182C4CEE4@smtp.kernel.org>
+Subject: + mm-page_isolation-make-page-isolation-a-standalone-bit.patch added to mm-new branch
+Message-Id: <20250509221737.E4B1BC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add simple VM_PFNMAP tests based on mmap'ing /dev/mem
+     Subject: mm/page_isolation: make page isolation a standalone bit.
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
+     mm-page_isolation-make-page-isolation-a-standalone-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-make-page-isolation-a-standalone-bit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,315 +64,220 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests/mm: add simple VM_PFNMAP tests based on mmap'ing /dev/mem
-Date: Fri, 9 May 2025 17:30:32 +0200
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/page_isolation: make page isolation a standalone bit.
+Date: Fri, 9 May 2025 16:01:08 -0400
 
-Let's test some basic functionality using /dev/mem.  These tests will
-implicitly cover some PAT (Page Attribute Handling) handling on x86.
+Patch series "Make MIGRATE_ISOLATE a standalone bit", v4.
 
-These tests will only run when /dev/mem access to the first two pages in
-physical address space is possible and allowed; otherwise, the tests are
-skipped.
+This patchset moves MIGRATE_ISOLATE to a standalone bit to avoid being
+overwritten during pageblock isolation process.  Currently,
+MIGRATE_ISOLATE is part of enum migratetype (in include/linux/mmzone.h),
+thus, setting a pageblock to MIGRATE_ISOLATE overwrites its original
+migratetype.  This causes pageblock migratetype loss during
+alloc_contig_range() and memory offline, especially when the process fails
+due to a failed pageblock isolation and the code tries to undo the
+finished pageblock isolations.
 
-On current x86-64 with PAT inside a VM, all tests pass:
+In terms of performance for changing pageblock types, no performance
+change is observed:
 
-	TAP version 13
-	1..6
-	# Starting 6 tests from 1 test cases.
-	#  RUN           pfnmap.madvise_disallowed ...
-	#            OK  pfnmap.madvise_disallowed
-	ok 1 pfnmap.madvise_disallowed
-	#  RUN           pfnmap.munmap_split ...
-	#            OK  pfnmap.munmap_split
-	ok 2 pfnmap.munmap_split
-	#  RUN           pfnmap.mremap_fixed ...
-	#            OK  pfnmap.mremap_fixed
-	ok 3 pfnmap.mremap_fixed
-	#  RUN           pfnmap.mremap_shrink ...
-	#            OK  pfnmap.mremap_shrink
-	ok 4 pfnmap.mremap_shrink
-	#  RUN           pfnmap.mremap_expand ...
-	#            OK  pfnmap.mremap_expand
-	ok 5 pfnmap.mremap_expand
-	#  RUN           pfnmap.fork ...
-	#            OK  pfnmap.fork
-	ok 6 pfnmap.fork
-	# PASSED: 6 / 6 tests passed.
-	# Totals: pass:6 fail:0 xfail:0 xpass:0 skip:0 error:0
+1. I used perf to collect stats of offlining and onlining all memory
+   of a 40GB VM 10 times and see that get_pfnblock_flags_mask() and
+   set_pfnblock_flags_mask() take about 0.12% and 0.02% of the whole
+   process respectively with and without this patchset across 3 runs.
 
-However, we are able to trigger:
+2. I used perf to collect stats of dd from /dev/random to a 40GB tmpfs
+   file and find get_pfnblock_flags_mask() takes about 0.05% of the
+   process with and without this patchset across 3 runs.
 
-[   27.888251] x86/PAT: pfnmap:1790 freeing invalid memtype [mem 0x00000000-0x00000fff]
 
-There are probably more things worth testing in the future, such as
-MAP_PRIVATE handling.  But this set of tests is sufficient to cover most
-of the things we will rework regarding PAT handling.
+Design
+======
 
-Link: https://lkml.kernel.org/r/20250509153033.952746-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
+Pageblock flags are read in words to achieve good performance and existing
+pageblock flags take 4 bits per pageblock.  To avoid a substantial change
+to the pageblock flag code, pageblock flag bits are expanded to use 8 and
+MIGRATE_ISOLATE is moved to use the last bit (bit 7).
+
+It might look like the pageblock flags have doubled the overhead, but in
+reality, the overhead is only 1 byte per 2MB/4MB (based on pageblock
+config), or 0.0000476 %.
+
+
+This patch (of 4):
+
+During page isolation, the original migratetype is overwritten, since
+MIGRATE_* are enums and stored in pageblock bitmaps.  Change
+MIGRATE_ISOLATE to be stored a standalone bit, PB_migrate_isolate, like
+PB_migrate_skip, so that migratetype is not lost during pageblock
+isolation.  pageblock bits needs to be word aligned, so expand the number
+of pageblock bits from 4 to 8 and make PB_migrate_isolate bit 7.
+
+Link: https://lkml.kernel.org/r/20250509200111.3372279-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250509200111.3372279-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Richard Chang <richardycc@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore     |    1 
- tools/testing/selftests/mm/Makefile       |    1 
- tools/testing/selftests/mm/pfnmap.c       |  196 ++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh |    4 
- 4 files changed, 202 insertions(+)
+ include/linux/mmzone.h          |   15 +++++++-----
+ include/linux/pageblock-flags.h |    9 ++++++-
+ mm/page_alloc.c                 |   36 +++++++++++++++++++++++++++++-
+ mm/page_isolation.c             |   11 +++++++++
+ 4 files changed, 63 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -20,6 +20,7 @@ mremap_test
- on-fault-limit
- transhuge-stress
- pagemap_ioctl
-+pfnmap
- *.tmp*
- protection_keys
- protection_keys_32
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -84,6 +84,7 @@ TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += mseal_test
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
-+TEST_GEN_FILES += pfnmap
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
-diff --git a/tools/testing/selftests/mm/pfnmap.c a/tools/testing/selftests/mm/pfnmap.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/pfnmap.c
-@@ -0,0 +1,196 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Basic VM_PFNMAP tests relying on mmap() of '/dev/mem'
-+ *
-+ * Copyright 2025, Red Hat, Inc.
-+ *
-+ * Author(s): David Hildenbrand <david@redhat.com>
-+ */
-+#define _GNU_SOURCE
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <signal.h>
-+#include <setjmp.h>
-+#include <linux/mman.h>
-+#include <sys/mman.h>
-+#include <sys/wait.h>
-+
-+#include "../kselftest_harness.h"
-+#include "vm_util.h"
-+
-+static sigjmp_buf sigjmp_buf_env;
-+
-+static void signal_handler(int sig)
-+{
-+	siglongjmp(sigjmp_buf_env, -EFAULT);
-+}
-+
-+static int test_read_access(char *addr, size_t size, size_t pagesize)
-+{
-+	size_t offs;
-+	int ret;
-+
-+	if (signal(SIGSEGV, signal_handler) == SIG_ERR)
-+		return -EINVAL;
-+
-+	ret = sigsetjmp(sigjmp_buf_env, 1);
-+	if (!ret) {
-+		for (offs = 0; offs < size; offs += pagesize)
-+			/* Force a read that the compiler cannot optimize out. */
-+			*((volatile char *)(addr + offs));
-+	}
-+	if (signal(SIGSEGV, signal_handler) == SIG_ERR)
-+		return -EINVAL;
-+
-+	return ret;
-+}
-+
-+FIXTURE(pfnmap)
-+{
-+	size_t pagesize;
-+	int dev_mem_fd;
-+	char *addr1;
-+	size_t size1;
-+	char *addr2;
-+	size_t size2;
-+};
-+
-+FIXTURE_SETUP(pfnmap)
-+{
-+	self->pagesize = getpagesize();
-+
-+	self->dev_mem_fd = open("/dev/mem", O_RDONLY);
-+	if (self->dev_mem_fd < 0)
-+		SKIP(return, "Cannot open '/dev/mem'\n");
-+
-+	/* We'll require the first two pages throughout our tests ... */
-+	self->size1 = self->pagesize * 2;
-+	self->addr1 = mmap(NULL, self->size1, PROT_READ, MAP_SHARED,
-+			   self->dev_mem_fd, 0);
-+	if (self->addr1 == MAP_FAILED)
-+		SKIP(return, "Cannot mmap '/dev/mem'\n");
-+
-+	/* ... and want to be able to read from them. */
-+	if (test_read_access(self->addr1, self->size1, self->pagesize))
-+		SKIP(return, "Cannot read-access mmap'ed '/dev/mem'\n");
-+
-+	self->size2 = 0;
-+	self->addr2 = MAP_FAILED;
-+}
-+
-+FIXTURE_TEARDOWN(pfnmap)
-+{
-+	if (self->addr2 != MAP_FAILED)
-+		munmap(self->addr2, self->size2);
-+	if (self->addr1 != MAP_FAILED)
-+		munmap(self->addr1, self->size1);
-+	if (self->dev_mem_fd >= 0)
-+		close(self->dev_mem_fd);
-+}
-+
-+TEST_F(pfnmap, madvise_disallowed)
-+{
-+	int advices[] = {
-+		MADV_DONTNEED,
-+		MADV_DONTNEED_LOCKED,
-+		MADV_FREE,
-+		MADV_WIPEONFORK,
-+		MADV_COLD,
-+		MADV_PAGEOUT,
-+		MADV_POPULATE_READ,
-+		MADV_POPULATE_WRITE,
-+	};
-+	int i;
-+
-+	/* All these advices must be rejected. */
-+	for (i = 0; i < ARRAY_SIZE(advices); i++) {
-+		EXPECT_LT(madvise(self->addr1, self->pagesize, advices[i]), 0);
-+		EXPECT_EQ(errno, EINVAL);
-+	}
-+}
-+
-+TEST_F(pfnmap, munmap_split)
-+{
-+	/*
-+	 * Unmap the first page. This munmap() call is not really expected to
-+	 * fail, but we might be able to trigger other internal issues.
-+	 */
-+	ASSERT_EQ(munmap(self->addr1, self->pagesize), 0);
-+
-+	/*
-+	 * Remap the first page while the second page is still mapped. This
-+	 * makes sure that any PAT tracking on x86 will allow for mmap()'ing
-+	 * a page again while some parts of the first mmap() are still
-+	 * around.
-+	 */
-+	self->size2 = self->pagesize;
-+	self->addr2 = mmap(NULL, self->pagesize, PROT_READ, MAP_SHARED,
-+			   self->dev_mem_fd, 0);
-+	ASSERT_NE(self->addr2, MAP_FAILED);
-+}
-+
-+TEST_F(pfnmap, mremap_fixed)
-+{
-+	char *ret;
-+
-+	/* Reserve a destination area. */
-+	self->size2 = self->size1;
-+	self->addr2 = mmap(NULL, self->size2, PROT_READ, MAP_ANON | MAP_PRIVATE,
-+			   -1, 0);
-+	ASSERT_NE(self->addr2, MAP_FAILED);
-+
-+	/* mremap() over our destination. */
-+	ret = mremap(self->addr1, self->size1, self->size2,
-+		     MREMAP_FIXED | MREMAP_MAYMOVE, self->addr2);
-+	ASSERT_NE(ret, MAP_FAILED);
-+}
-+
-+TEST_F(pfnmap, mremap_shrink)
-+{
-+	char *ret;
-+
-+	/* Shrinking is expected to work. */
-+	ret = mremap(self->addr1, self->size1, self->size1 - self->pagesize, 0);
-+	ASSERT_NE(ret, MAP_FAILED);
-+}
-+
-+TEST_F(pfnmap, mremap_expand)
-+{
-+	/*
-+	 * Growing is not expected to work, and getting it right would
-+	 * be challenging. So this test primarily serves as an early warning
-+	 * that something that probably should never work suddenly works.
-+	 */
-+	self->size2 = self->size1 + self->pagesize;
-+	self->addr2 = mremap(self->addr1, self->size1, self->size2, MREMAP_MAYMOVE);
-+	ASSERT_EQ(self->addr2, MAP_FAILED);
-+}
-+
-+TEST_F(pfnmap, fork)
-+{
-+	pid_t pid;
-+	int ret;
-+
-+	/* fork() a child and test if the child can access the pages. */
-+	pid = fork();
-+	ASSERT_GE(pid, 0);
-+
-+	if (!pid) {
-+		EXPECT_EQ(test_read_access(self->addr1, self->size1,
-+					   self->pagesize), 0);
-+		exit(0);
-+	}
-+
-+	wait(&ret);
-+	if (WIFEXITED(ret))
-+		ret = WEXITSTATUS(ret);
-+	else
-+		ret = -EINVAL;
-+	ASSERT_EQ(ret, 0);
-+}
-+
-+TEST_HARNESS_MAIN
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -63,6 +63,8 @@ separated by spaces:
- 	test soft dirty page bit semantics
- - pagemap
- 	test pagemap_scan IOCTL
-+- pfnmap
-+	tests for VM_PFNMAP handling
- - cow
- 	test copy-on-write semantics
- - thp
-@@ -472,6 +474,8 @@ fi
+--- a/include/linux/mmzone.h~mm-page_isolation-make-page-isolation-a-standalone-bit
++++ a/include/linux/mmzone.h
+@@ -106,14 +106,17 @@ static inline bool migratetype_is_mergea
  
- CATEGORY="pagemap" run_test ./pagemap_ioctl
+ extern int page_group_by_mobility_disabled;
  
-+CATEGORY="pfnmap" run_test ./pfnmap
+-#define MIGRATETYPE_MASK ((1UL << PB_migratetype_bits) - 1)
++#ifdef CONFIG_MEMORY_ISOLATION
++#define MIGRATETYPE_MASK ((BIT(PB_migratetype_bits) - 1) | PB_migrate_isolate_bit)
++#else
++#define MIGRATETYPE_MASK (BIT(PB_migratetype_bits) - 1)
++#endif
+ 
+-#define get_pageblock_migratetype(page)					\
+-	get_pfnblock_flags_mask(page, page_to_pfn(page), MIGRATETYPE_MASK)
++unsigned long get_pageblock_migratetype(const struct page *page);
 +
- # COW tests
- CATEGORY="cow" run_test ./cow
++#define folio_migratetype(folio)					\
++	get_pageblock_migratetype(&folio->page)
  
+-#define folio_migratetype(folio)				\
+-	get_pfnblock_flags_mask(&folio->page, folio_pfn(folio),		\
+-			MIGRATETYPE_MASK)
+ struct free_area {
+ 	struct list_head	free_list[MIGRATE_TYPES];
+ 	unsigned long		nr_free;
+--- a/include/linux/pageblock-flags.h~mm-page_isolation-make-page-isolation-a-standalone-bit
++++ a/include/linux/pageblock-flags.h
+@@ -20,7 +20,10 @@ enum pageblock_bits {
+ 	PB_migrate_end = PB_migrate + PB_migratetype_bits - 1,
+ 			/* 3 bits required for migrate types */
+ 	PB_migrate_skip,/* If set the block is skipped by compaction */
+-
++#ifdef CONFIG_MEMORY_ISOLATION
++	PB_migrate_isolate = 7, /* If set the block is isolated */
++			/* set it to 7 to make pageblock bit word aligned */
++#endif
+ 	/*
+ 	 * Assume the bits will always align on a word. If this assumption
+ 	 * changes then get/set pageblock needs updating.
+@@ -28,6 +31,10 @@ enum pageblock_bits {
+ 	NR_PAGEBLOCK_BITS
+ };
+ 
++#ifdef CONFIG_MEMORY_ISOLATION
++#define PB_migrate_isolate_bit BIT(PB_migrate_isolate)
++#endif
++
+ #if defined(CONFIG_HUGETLB_PAGE)
+ 
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+--- a/mm/page_alloc.c~mm-page_isolation-make-page-isolation-a-standalone-bit
++++ a/mm/page_alloc.c
+@@ -381,10 +381,31 @@ unsigned long get_pfnblock_flags_mask(co
+ 	return (word >> bitidx) & mask;
+ }
+ 
++unsigned long get_pageblock_migratetype(const struct page *page)
++{
++	unsigned long flags;
++
++	flags = get_pfnblock_flags_mask(page, page_to_pfn(page),
++			MIGRATETYPE_MASK);
++#ifdef CONFIG_MEMORY_ISOLATION
++	if (flags & PB_migrate_isolate_bit)
++		return MIGRATE_ISOLATE;
++#endif
++	return flags;
++}
++
+ static __always_inline int get_pfnblock_migratetype(const struct page *page,
+ 					unsigned long pfn)
+ {
+-	return get_pfnblock_flags_mask(page, pfn, MIGRATETYPE_MASK);
++	unsigned long flags;
++
++	flags = get_pfnblock_flags_mask(page, pfn,
++			MIGRATETYPE_MASK);
++#ifdef CONFIG_MEMORY_ISOLATION
++	if (flags & PB_migrate_isolate_bit)
++		return MIGRATE_ISOLATE;
++#endif
++	return flags;
+ }
+ 
+ /**
+@@ -402,8 +423,14 @@ void set_pfnblock_flags_mask(struct page
+ 	unsigned long bitidx, word_bitidx;
+ 	unsigned long word;
+ 
++#ifdef CONFIG_MEMORY_ISOLATION
++	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 8);
++	/* extra one for MIGRATE_ISOLATE */
++	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits) + 1);
++#else
+ 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
+ 	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
++#endif
+ 
+ 	bitmap = get_pageblock_bitmap(page, pfn);
+ 	bitidx = pfn_to_bitidx(page, pfn);
+@@ -426,6 +453,13 @@ void set_pageblock_migratetype(struct pa
+ 		     migratetype < MIGRATE_PCPTYPES))
+ 		migratetype = MIGRATE_UNMOVABLE;
+ 
++#ifdef CONFIG_MEMORY_ISOLATION
++	if (migratetype == MIGRATE_ISOLATE) {
++		set_pfnblock_flags_mask(page, PB_migrate_isolate_bit,
++				page_to_pfn(page), PB_migrate_isolate_bit);
++		return;
++	}
++#endif
+ 	set_pfnblock_flags_mask(page, (unsigned long)migratetype,
+ 				page_to_pfn(page), MIGRATETYPE_MASK);
+ }
+--- a/mm/page_isolation.c~mm-page_isolation-make-page-isolation-a-standalone-bit
++++ a/mm/page_isolation.c
+@@ -15,6 +15,17 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/page_isolation.h>
+ 
++static inline bool __maybe_unused get_pageblock_isolate(struct page *page)
++{
++	return get_pfnblock_flags_mask(page, page_to_pfn(page),
++			PB_migrate_isolate_bit);
++}
++static inline void clear_pageblock_isolate(struct page *page)
++{
++	set_pfnblock_flags_mask(page, 0, page_to_pfn(page),
++			PB_migrate_isolate_bit);
++}
++
+ /*
+  * This function checks whether the range [start_pfn, end_pfn) includes
+  * unmovable pages or not. The range must fall into a single pageblock and
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-kernel-fork-only-call-untrack_pfn_clear-on-vmas-duplicated-for-fork.patch
-kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
-kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch
-kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
-selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
+mm-page_isolation-make-page-isolation-a-standalone-bit.patch
+mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate.patch
+mm-page_isolation-remove-migratetype-from-undo_isolate_page_range.patch
+mm-page_isolation-remove-migratetype-parameter-from-more-functions.patch
 
