@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41768469D
-	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 22:17:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E81BE469D
+	for <mm-commits@vger.kernel.org>; Fri,  9 May 2025 22:17:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746829058; cv=none; b=l8TB6/Lp1881G4cjm9iGSMKakGQgC3rwiRXwTD7bKv2jci1AhsF4b4DCLme2ifExTHbdybXG2e3au5Injx1ap9kha9ol2qQP5FdBNK+MTneSbZ3C+FT0BIZ0tZgwCUKIfCFUXDJJqeBwrNoI+TLYFZaPbA4lLOKR81RvJCwzdt0=
+	t=1746829063; cv=none; b=qrfcbdZIAr80ul2q07hjW9VlfIaBeINHgWWP4VqFGadgvbFcgvNTlOsXlnggSPdJBpa0+PxvZW2e5opfEsywHsPm/A2OuaYNPCAbcIQKpBfuboZRkFEG/k1zS8+/PTk/2xEQmNFglTm4Haq3eusRepAmwWgd+Yjl5WNgWy4ggHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746829058; c=relaxed/simple;
-	bh=OMvca+HQYW1aqQ8hGKfd6jSAx8nv6hBMGAQqddig970=;
-	h=Date:To:From:Subject:Message-Id; b=TYCHRvsytJt0f41zag3QtOo8etYC2+mWPzvBc0t5z709HCfCxe+2tkLprJRuI6940ZPNC6wLIx1P91X9QEtM8vopzcevb1cGD+OI4YuUoRr/EhTv3vr5oc226C4EQ4P5HuhOZPgMG/oAOgCyaPVaoBi/LSSQ4A8/nJB643eqw+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M+XdUh7v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746829063; c=relaxed/simple;
+	bh=GGq1jpbD+t11OjUQvm7p5BSEpBzhTHCPrObSkzQy2js=;
+	h=Date:To:From:Subject:Message-Id; b=QCKh9Jx1LM4TgCMl+ZxG/lDVa8nZ8sET8szL49G2khDt+WWZ4OPNi6FOGjXSEbdcpTqcBMA1gAQb6d8hH23RpQpNAA/eYssuQCgp4TamVFXvqx1mSOYpfXO+XsUhBnEASJ3rENLoylCUAvKZY7Qi/a+M++LtJxuFjX+8cCL7uH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQ8kThoT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M+XdUh7v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4B1BC4CEE4;
-	Fri,  9 May 2025 22:17:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQ8kThoT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42F89C4CEE4;
+	Fri,  9 May 2025 22:17:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746829058;
-	bh=OMvca+HQYW1aqQ8hGKfd6jSAx8nv6hBMGAQqddig970=;
+	s=korg; t=1746829061;
+	bh=GGq1jpbD+t11OjUQvm7p5BSEpBzhTHCPrObSkzQy2js=;
 	h=Date:To:From:Subject:From;
-	b=M+XdUh7vt/4l9HScopJC5T/FZhoKjW8xtuDjEGA9Viw6f8yanauW7wA37oALX/iqi
-	 4C8h9BJ20xO+FQYne3vnzMJFhNCj/k6YtTtBBbW1HdZswWTi9Y9odmtzVngaOgmy/R
-	 fs2ERsaCu9sHNHkEz5RHytuZkb/i1josabPOJ024=
-Date: Fri, 09 May 2025 15:17:37 -0700
+	b=ZQ8kThoTVOyOo7PwEYN078zrKkAgikoy6iMh+g38Pzz3Z0+bfhdB5gSgFMyVj2LW6
+	 dFUr8JjcgkBweKLZoirrfMUgeEN0XG9dgVBiUxQwgdeqOzND8KZQtBUx43pTJ7TVyJ
+	 Mi6Tg5RqOIK+d21RTMIBYlq+4ZsBJw2xQc48QxDc=
+Date: Fri, 09 May 2025 15:17:40 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,richardycc@google.com,osalvador@suse.de,mhocko@suse.com,mgorman@techsingularity.net,kirill.shutemov@linux.intel.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_isolation-make-page-isolation-a-standalone-bit.patch added to mm-new branch
-Message-Id: <20250509221737.E4B1BC4CEE4@smtp.kernel.org>
+Subject: + mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate.patch added to mm-new branch
+Message-Id: <20250509221741.42F89C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_isolation: make page isolation a standalone bit.
+     Subject: mm/page_isolation: remove migratetype from move_freepages_block_isolate()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_isolation-make-page-isolation-a-standalone-bit.patch
+     mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-make-page-isolation-a-standalone-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,57 +65,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/page_isolation: make page isolation a standalone bit.
-Date: Fri, 9 May 2025 16:01:08 -0400
+Subject: mm/page_isolation: remove migratetype from move_freepages_block_isolate()
+Date: Fri, 9 May 2025 16:01:09 -0400
 
-Patch series "Make MIGRATE_ISOLATE a standalone bit", v4.
+Since migratetype is no longer overwritten during pageblock isolation,
+moving pageblocks to and from MIGRATE_ISOLATE no longer needs migratetype.
 
-This patchset moves MIGRATE_ISOLATE to a standalone bit to avoid being
-overwritten during pageblock isolation process.  Currently,
-MIGRATE_ISOLATE is part of enum migratetype (in include/linux/mmzone.h),
-thus, setting a pageblock to MIGRATE_ISOLATE overwrites its original
-migratetype.  This causes pageblock migratetype loss during
-alloc_contig_range() and memory offline, especially when the process fails
-due to a failed pageblock isolation and the code tries to undo the
-finished pageblock isolations.
+Add MIGRATETYPE_NO_ISO_MASK to allow read before-isolation migratetype
+when a pageblock is isolated.  It is used by
+move_freepages_block_isolate().
 
-In terms of performance for changing pageblock types, no performance
-change is observed:
+Add pageblock_isolate_and_move_free_pages() and
+pageblock_unisolate_and_move_free_pages() to be explicit about the page
+isolation operations.  Both share the common code in
+__move_freepages_block_isolate(), which is renamed from
+move_freepages_block_isolate().
 
-1. I used perf to collect stats of offlining and onlining all memory
-   of a 40GB VM 10 times and see that get_pfnblock_flags_mask() and
-   set_pfnblock_flags_mask() take about 0.12% and 0.02% of the whole
-   process respectively with and without this patchset across 3 runs.
+Make set_pageblock_migratetype() only accept non MIGRATE_ISOLATE types,
+so that one should use set_pageblock_isolate() to isolate pageblocks.
 
-2. I used perf to collect stats of dd from /dev/random to a 40GB tmpfs
-   file and find get_pfnblock_flags_mask() takes about 0.05% of the
-   process with and without this patchset across 3 runs.
+Two consequential changes:
+1. move pageblock migratetype code out of __move_freepages_block().
+2. in online_pages() from mm/memory_hotplug.c, move_pfn_range_to_zone() is
+   called with MIGRATE_MOVABLE instead of MIGRATE_ISOLATE and all affected
+   pageblocks are isolated afterwards. Otherwise, all online pageblocks
+   will have non-determined migratetype.
 
-
-Design
-======
-
-Pageblock flags are read in words to achieve good performance and existing
-pageblock flags take 4 bits per pageblock.  To avoid a substantial change
-to the pageblock flag code, pageblock flag bits are expanded to use 8 and
-MIGRATE_ISOLATE is moved to use the last bit (bit 7).
-
-It might look like the pageblock flags have doubled the overhead, but in
-reality, the overhead is only 1 byte per 2MB/4MB (based on pageblock
-config), or 0.0000476 %.
-
-
-This patch (of 4):
-
-During page isolation, the original migratetype is overwritten, since
-MIGRATE_* are enums and stored in pageblock bitmaps.  Change
-MIGRATE_ISOLATE to be stored a standalone bit, PB_migrate_isolate, like
-PB_migrate_skip, so that migratetype is not lost during pageblock
-isolation.  pageblock bits needs to be word aligned, so expand the number
-of pageblock bits from 4 to 8 and make PB_migrate_isolate bit 7.
-
-Link: https://lkml.kernel.org/r/20250509200111.3372279-1-ziy@nvidia.com
-Link: https://lkml.kernel.org/r/20250509200111.3372279-2-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250509200111.3372279-3-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Brendan Jackman <jackmanb@google.com>
@@ -131,147 +107,311 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h          |   15 +++++++-----
- include/linux/pageblock-flags.h |    9 ++++++-
- mm/page_alloc.c                 |   36 +++++++++++++++++++++++++++++-
- mm/page_isolation.c             |   11 +++++++++
- 4 files changed, 63 insertions(+), 8 deletions(-)
+ include/linux/mmzone.h         |    4 +
+ include/linux/page-isolation.h |    5 +-
+ mm/memory_hotplug.c            |    7 ++
+ mm/page_alloc.c                |   73 ++++++++++++++++++++++---------
+ mm/page_isolation.c            |   27 ++++++-----
+ 5 files changed, 82 insertions(+), 34 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_isolation-make-page-isolation-a-standalone-bit
+--- a/include/linux/mmzone.h~mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate
 +++ a/include/linux/mmzone.h
-@@ -106,14 +106,17 @@ static inline bool migratetype_is_mergea
- 
+@@ -107,8 +107,10 @@ static inline bool migratetype_is_mergea
  extern int page_group_by_mobility_disabled;
  
--#define MIGRATETYPE_MASK ((1UL << PB_migratetype_bits) - 1)
-+#ifdef CONFIG_MEMORY_ISOLATION
-+#define MIGRATETYPE_MASK ((BIT(PB_migratetype_bits) - 1) | PB_migrate_isolate_bit)
-+#else
-+#define MIGRATETYPE_MASK (BIT(PB_migratetype_bits) - 1)
-+#endif
+ #ifdef CONFIG_MEMORY_ISOLATION
+-#define MIGRATETYPE_MASK ((BIT(PB_migratetype_bits) - 1) | PB_migrate_isolate_bit)
++#define MIGRATETYPE_NO_ISO_MASK (BIT(PB_migratetype_bits) - 1)
++#define MIGRATETYPE_MASK (MIGRATETYPE_NO_ISO_MASK | PB_migrate_isolate_bit)
+ #else
++#define MIGRATETYPE_NO_ISO_MASK MIGRATETYPE_MASK
+ #define MIGRATETYPE_MASK (BIT(PB_migratetype_bits) - 1)
+ #endif
  
--#define get_pageblock_migratetype(page)					\
--	get_pfnblock_flags_mask(page, page_to_pfn(page), MIGRATETYPE_MASK)
-+unsigned long get_pageblock_migratetype(const struct page *page);
-+
-+#define folio_migratetype(folio)					\
-+	get_pageblock_migratetype(&folio->page)
+--- a/include/linux/page-isolation.h~mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate
++++ a/include/linux/page-isolation.h
+@@ -26,9 +26,10 @@ static inline bool is_migrate_isolate(in
+ #define REPORT_FAILURE	0x2
  
--#define folio_migratetype(folio)				\
--	get_pfnblock_flags_mask(&folio->page, folio_pfn(folio),		\
--			MIGRATETYPE_MASK)
- struct free_area {
- 	struct list_head	free_list[MIGRATE_TYPES];
- 	unsigned long		nr_free;
---- a/include/linux/pageblock-flags.h~mm-page_isolation-make-page-isolation-a-standalone-bit
-+++ a/include/linux/pageblock-flags.h
-@@ -20,7 +20,10 @@ enum pageblock_bits {
- 	PB_migrate_end = PB_migrate + PB_migratetype_bits - 1,
- 			/* 3 bits required for migrate types */
- 	PB_migrate_skip,/* If set the block is skipped by compaction */
--
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	PB_migrate_isolate = 7, /* If set the block is isolated */
-+			/* set it to 7 to make pageblock bit word aligned */
-+#endif
+ void set_pageblock_migratetype(struct page *page, int migratetype);
++void set_pageblock_isolate(struct page *page);
+ 
+-bool move_freepages_block_isolate(struct zone *zone, struct page *page,
+-				  int migratetype);
++bool pageblock_isolate_and_move_free_pages(struct zone *zone, struct page *page);
++bool pageblock_unisolate_and_move_free_pages(struct zone *zone, struct page *page);
+ 
+ int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+ 			     int migratetype, int flags);
+--- a/mm/memory_hotplug.c~mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate
++++ a/mm/memory_hotplug.c
+@@ -1178,6 +1178,7 @@ int online_pages(unsigned long pfn, unsi
+ 	const int nid = zone_to_nid(zone);
+ 	int ret;
+ 	struct memory_notify arg;
++	unsigned long isol_pfn;
+ 
  	/*
- 	 * Assume the bits will always align on a word. If this assumption
- 	 * changes then get/set pageblock needs updating.
-@@ -28,6 +31,10 @@ enum pageblock_bits {
- 	NR_PAGEBLOCK_BITS
- };
+ 	 * {on,off}lining is constrained to full memory sections (or more
+@@ -1192,7 +1193,11 @@ int online_pages(unsigned long pfn, unsi
  
-+#ifdef CONFIG_MEMORY_ISOLATION
-+#define PB_migrate_isolate_bit BIT(PB_migrate_isolate)
-+#endif
-+
- #if defined(CONFIG_HUGETLB_PAGE)
  
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
---- a/mm/page_alloc.c~mm-page_isolation-make-page-isolation-a-standalone-bit
+ 	/* associate pfn range with the zone */
+-	move_pfn_range_to_zone(zone, pfn, nr_pages, NULL, MIGRATE_ISOLATE);
++	move_pfn_range_to_zone(zone, pfn, nr_pages, NULL, MIGRATE_MOVABLE);
++	for (isol_pfn = pfn;
++	     isol_pfn < pfn + nr_pages;
++	     isol_pfn += pageblock_nr_pages)
++		set_pageblock_isolate(pfn_to_page(isol_pfn));
+ 
+ 	arg.start_pfn = pfn;
+ 	arg.nr_pages = nr_pages;
+--- a/mm/page_alloc.c~mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate
 +++ a/mm/page_alloc.c
-@@ -381,10 +381,31 @@ unsigned long get_pfnblock_flags_mask(co
- 	return (word >> bitidx) & mask;
- }
- 
-+unsigned long get_pageblock_migratetype(const struct page *page)
-+{
-+	unsigned long flags;
-+
-+	flags = get_pfnblock_flags_mask(page, page_to_pfn(page),
-+			MIGRATETYPE_MASK);
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	if (flags & PB_migrate_isolate_bit)
-+		return MIGRATE_ISOLATE;
-+#endif
-+	return flags;
-+}
-+
- static __always_inline int get_pfnblock_migratetype(const struct page *page,
- 					unsigned long pfn)
- {
--	return get_pfnblock_flags_mask(page, pfn, MIGRATETYPE_MASK);
-+	unsigned long flags;
-+
-+	flags = get_pfnblock_flags_mask(page, pfn,
-+			MIGRATETYPE_MASK);
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	if (flags & PB_migrate_isolate_bit)
-+		return MIGRATE_ISOLATE;
-+#endif
-+	return flags;
- }
- 
- /**
-@@ -402,8 +423,14 @@ void set_pfnblock_flags_mask(struct page
- 	unsigned long bitidx, word_bitidx;
- 	unsigned long word;
- 
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 8);
-+	/* extra one for MIGRATE_ISOLATE */
-+	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits) + 1);
-+#else
- 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
- 	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
-+#endif
- 
- 	bitmap = get_pageblock_bitmap(page, pfn);
- 	bitidx = pfn_to_bitidx(page, pfn);
-@@ -426,6 +453,13 @@ void set_pageblock_migratetype(struct pa
- 		     migratetype < MIGRATE_PCPTYPES))
+@@ -454,11 +454,9 @@ void set_pageblock_migratetype(struct pa
  		migratetype = MIGRATE_UNMOVABLE;
  
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	if (migratetype == MIGRATE_ISOLATE) {
-+		set_pfnblock_flags_mask(page, PB_migrate_isolate_bit,
-+				page_to_pfn(page), PB_migrate_isolate_bit);
-+		return;
-+	}
-+#endif
+ #ifdef CONFIG_MEMORY_ISOLATION
+-	if (migratetype == MIGRATE_ISOLATE) {
+-		set_pfnblock_flags_mask(page, PB_migrate_isolate_bit,
+-				page_to_pfn(page), PB_migrate_isolate_bit);
+-		return;
+-	}
++	VM_WARN(migratetype == MIGRATE_ISOLATE,
++			"Use set_pageblock_isolate() for pageblock isolation");
++	return;
+ #endif
  	set_pfnblock_flags_mask(page, (unsigned long)migratetype,
  				page_to_pfn(page), MIGRATETYPE_MASK);
- }
---- a/mm/page_isolation.c~mm-page_isolation-make-page-isolation-a-standalone-bit
-+++ a/mm/page_isolation.c
-@@ -15,6 +15,17 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/page_isolation.h>
+@@ -1819,8 +1817,8 @@ static inline struct page *__rmqueue_cma
+ #endif
  
-+static inline bool __maybe_unused get_pageblock_isolate(struct page *page)
+ /*
+- * Change the type of a block and move all its free pages to that
+- * type's freelist.
++ * Move all free pages of a block to new type's freelist. Caller needs to
++ * change the block type.
+  */
+ static int __move_freepages_block(struct zone *zone, unsigned long start_pfn,
+ 				  int old_mt, int new_mt)
+@@ -1852,8 +1850,6 @@ static int __move_freepages_block(struct
+ 		pages_moved += 1 << order;
+ 	}
+ 
+-	set_pageblock_migratetype(pfn_to_page(start_pfn), new_mt);
+-
+ 	return pages_moved;
+ }
+ 
+@@ -1911,11 +1907,16 @@ static int move_freepages_block(struct z
+ 				int old_mt, int new_mt)
+ {
+ 	unsigned long start_pfn;
++	int res;
+ 
+ 	if (!prep_move_freepages_block(zone, page, &start_pfn, NULL, NULL))
+ 		return -1;
+ 
+-	return __move_freepages_block(zone, start_pfn, old_mt, new_mt);
++	res = __move_freepages_block(zone, start_pfn, old_mt, new_mt);
++	set_pageblock_migratetype(pfn_to_page(start_pfn), new_mt);
++
++	return res;
++
+ }
+ 
+ #ifdef CONFIG_MEMORY_ISOLATION
+@@ -1943,11 +1944,17 @@ static unsigned long find_large_buddy(un
+ 	return start_pfn;
+ }
+ 
++static inline void toggle_pageblock_isolate(struct page *page, bool isolate)
 +{
-+	return get_pfnblock_flags_mask(page, page_to_pfn(page),
-+			PB_migrate_isolate_bit);
-+}
-+static inline void clear_pageblock_isolate(struct page *page)
-+{
-+	set_pfnblock_flags_mask(page, 0, page_to_pfn(page),
-+			PB_migrate_isolate_bit);
++	set_pfnblock_flags_mask(page, (isolate << PB_migrate_isolate),
++			page_to_pfn(page), PB_migrate_isolate_bit);
 +}
 +
+ /**
+- * move_freepages_block_isolate - move free pages in block for page isolation
++ * __move_freepages_block_isolate - move free pages in block for page isolation
+  * @zone: the zone
+  * @page: the pageblock page
+- * @migratetype: migratetype to set on the pageblock
++ * @isolate: to isolate the given pageblock or unisolate it
+  *
+  * This is similar to move_freepages_block(), but handles the special
+  * case encountered in page isolation, where the block of interest
+@@ -1962,10 +1969,15 @@ static unsigned long find_large_buddy(un
+  *
+  * Returns %true if pages could be moved, %false otherwise.
+  */
+-bool move_freepages_block_isolate(struct zone *zone, struct page *page,
+-				  int migratetype)
++static bool __move_freepages_block_isolate(struct zone *zone,
++		struct page *page, bool isolate)
+ {
+ 	unsigned long start_pfn, pfn;
++	int from_mt;
++	int to_mt;
++
++	if (isolate == (get_pageblock_migratetype(page) == MIGRATE_ISOLATE))
++		return false;
+ 
+ 	if (!prep_move_freepages_block(zone, page, &start_pfn, NULL, NULL))
+ 		return false;
+@@ -1982,7 +1994,7 @@ bool move_freepages_block_isolate(struct
+ 
+ 		del_page_from_free_list(buddy, zone, order,
+ 					get_pfnblock_migratetype(buddy, pfn));
+-		set_pageblock_migratetype(page, migratetype);
++		toggle_pageblock_isolate(page, isolate);
+ 		split_large_buddy(zone, buddy, pfn, order, FPI_NONE);
+ 		return true;
+ 	}
+@@ -1993,16 +2005,38 @@ bool move_freepages_block_isolate(struct
+ 
+ 		del_page_from_free_list(page, zone, order,
+ 					get_pfnblock_migratetype(page, pfn));
+-		set_pageblock_migratetype(page, migratetype);
++		toggle_pageblock_isolate(page, isolate);
+ 		split_large_buddy(zone, page, pfn, order, FPI_NONE);
+ 		return true;
+ 	}
+ move:
+-	__move_freepages_block(zone, start_pfn,
+-			       get_pfnblock_migratetype(page, start_pfn),
+-			       migratetype);
++	/* use MIGRATETYPE_NO_ISO_MASK to get the non-isolate migratetype */
++	if (isolate) {
++		from_mt = get_pfnblock_flags_mask(page, page_to_pfn(page),
++				MIGRATETYPE_NO_ISO_MASK);
++		to_mt = MIGRATE_ISOLATE;
++	} else {
++		from_mt = MIGRATE_ISOLATE;
++		to_mt = get_pfnblock_flags_mask(page, page_to_pfn(page),
++				MIGRATETYPE_NO_ISO_MASK);
++	}
++
++	__move_freepages_block(zone, start_pfn, from_mt, to_mt);
++	toggle_pageblock_isolate(pfn_to_page(start_pfn), isolate);
++
+ 	return true;
+ }
++
++bool pageblock_isolate_and_move_free_pages(struct zone *zone, struct page *page)
++{
++	return __move_freepages_block_isolate(zone, page, true);
++}
++
++bool pageblock_unisolate_and_move_free_pages(struct zone *zone, struct page *page)
++{
++	return __move_freepages_block_isolate(zone, page, false);
++}
++
+ #endif /* CONFIG_MEMORY_ISOLATION */
+ 
+ static void change_pageblock_range(struct page *pageblock_page,
+@@ -2194,6 +2228,7 @@ try_to_claim_block(struct zone *zone, st
+ 	if (free_pages + alike_pages >= (1 << (pageblock_order-1)) ||
+ 			page_group_by_mobility_disabled) {
+ 		__move_freepages_block(zone, start_pfn, block_type, start_type);
++		set_pageblock_migratetype(pfn_to_page(start_pfn), start_type);
+ 		return __rmqueue_smallest(zone, order, start_type);
+ 	}
+ 
+--- a/mm/page_isolation.c~mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate
++++ a/mm/page_isolation.c
+@@ -25,6 +25,12 @@ static inline void clear_pageblock_isola
+ 	set_pfnblock_flags_mask(page, 0, page_to_pfn(page),
+ 			PB_migrate_isolate_bit);
+ }
++void set_pageblock_isolate(struct page *page)
++{
++	set_pfnblock_flags_mask(page, PB_migrate_isolate_bit,
++			page_to_pfn(page),
++			PB_migrate_isolate_bit);
++}
+ 
  /*
   * This function checks whether the range [start_pfn, end_pfn) includes
-  * unmovable pages or not. The range must fall into a single pageblock and
+@@ -199,7 +205,7 @@ static int set_migratetype_isolate(struc
+ 	unmovable = has_unmovable_pages(check_unmovable_start, check_unmovable_end,
+ 			migratetype, isol_flags);
+ 	if (!unmovable) {
+-		if (!move_freepages_block_isolate(zone, page, MIGRATE_ISOLATE)) {
++		if (!pageblock_isolate_and_move_free_pages(zone, page)) {
+ 			spin_unlock_irqrestore(&zone->lock, flags);
+ 			return -EBUSY;
+ 		}
+@@ -220,7 +226,7 @@ static int set_migratetype_isolate(struc
+ 	return -EBUSY;
+ }
+ 
+-static void unset_migratetype_isolate(struct page *page, int migratetype)
++static void unset_migratetype_isolate(struct page *page)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -273,10 +279,10 @@ static void unset_migratetype_isolate(st
+ 		 * Isolating this block already succeeded, so this
+ 		 * should not fail on zone boundaries.
+ 		 */
+-		WARN_ON_ONCE(!move_freepages_block_isolate(zone, page, migratetype));
++		WARN_ON_ONCE(!pageblock_unisolate_and_move_free_pages(zone, page));
+ 	} else {
+-		set_pageblock_migratetype(page, migratetype);
+-		__putback_isolated_page(page, order, migratetype);
++		clear_pageblock_isolate(page);
++		__putback_isolated_page(page, order, get_pageblock_migratetype(page));
+ 	}
+ 	zone->nr_isolate_pageblock--;
+ out:
+@@ -394,7 +400,7 @@ static int isolate_single_pageblock(unsi
+ 		if (PageBuddy(page)) {
+ 			int order = buddy_order(page);
+ 
+-			/* move_freepages_block_isolate() handled this */
++			/* pageblock_isolate_and_move_free_pages() handled this */
+ 			VM_WARN_ON_ONCE(pfn + (1 << order) > boundary_pfn);
+ 
+ 			pfn += 1UL << order;
+@@ -444,7 +450,7 @@ static int isolate_single_pageblock(unsi
+ failed:
+ 	/* restore the original migratetype */
+ 	if (!skip_isolation)
+-		unset_migratetype_isolate(pfn_to_page(isolate_pageblock), migratetype);
++		unset_migratetype_isolate(pfn_to_page(isolate_pageblock));
+ 	return -EBUSY;
+ }
+ 
+@@ -515,7 +521,7 @@ int start_isolate_page_range(unsigned lo
+ 	ret = isolate_single_pageblock(isolate_end, flags, true,
+ 			skip_isolation, migratetype);
+ 	if (ret) {
+-		unset_migratetype_isolate(pfn_to_page(isolate_start), migratetype);
++		unset_migratetype_isolate(pfn_to_page(isolate_start));
+ 		return ret;
+ 	}
+ 
+@@ -528,8 +534,7 @@ int start_isolate_page_range(unsigned lo
+ 					start_pfn, end_pfn)) {
+ 			undo_isolate_page_range(isolate_start, pfn, migratetype);
+ 			unset_migratetype_isolate(
+-				pfn_to_page(isolate_end - pageblock_nr_pages),
+-				migratetype);
++				pfn_to_page(isolate_end - pageblock_nr_pages));
+ 			return -EBUSY;
+ 		}
+ 	}
+@@ -559,7 +564,7 @@ void undo_isolate_page_range(unsigned lo
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || !is_migrate_isolate_page(page))
+ 			continue;
+-		unset_migratetype_isolate(page, migratetype);
++		unset_migratetype_isolate(page);
+ 	}
+ }
+ /*
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
