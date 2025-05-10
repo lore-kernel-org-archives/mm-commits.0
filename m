@@ -1,316 +1,177 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D03881DA53
-	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 01:40:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9CA2158DAC;
+	Sat, 10 May 2025 10:17:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746841251; cv=none; b=A3RaIbJn5Ogeryrt0NtWgI5W9gDFg4OpDtVWhQVr1gSro33vgqUCf4dWwWg2qgIyAyyrwR5fdxlFGA2p1nB+q4XWxVEdMS1JEtahJPnWNXnjWgxDFob8p4DGjhxm4fmnq1wb04NgmN9VnkZRAH7SvM91+tIAWgQt5Gr2a+br8Pg=
+	t=1746872271; cv=none; b=EaBI4XLq4EkBRNDL+zAnuALqakCRCdxkwS056oR5oIP/2oIz/5F9ISUh+4vjq00D2gEzETZWdvsY9GK5t8Vomog8V8VbBQU7FiLLSQejCfriIx9+QPmUCMv/C8KzT++bek49iyzNjBxEkaSuESUX/9xcr3nNniQpvOKCt3/Lizw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746841251; c=relaxed/simple;
-	bh=RkRUwXZ2yQnKPvkWLrpwkibQYHk6r+uUVB8MDGsbr0g=;
-	h=Date:To:From:Subject:Message-Id; b=OwTBAumwpbgxgGVRSm7RukK/mPUmr8ltioyenvMFWsY0jMdwkpCYFEN0vB7rLCA0bYAHxyhaKQM5tQuCUgWTIB3eSVXNL/0d5iImZLe7HWdqI2C8NJQgGTMzHLKgidQiciTSJD2z8lGd1N6DQr/UqsIySU48LPI8DNnA+XQ1bmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QKxUZAjY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746872271; c=relaxed/simple;
+	bh=mudcIF5oRv2KV/py0dwn2w0kQkwlJwCI4ZZ0ZTg4EFE=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=HZF53Kdk8UceXLX3W2aT5nmg02/Gvqv5/iYzPHa/IMzoy5R2cZ9+j57dfXjAbgnTxLFdKW5k6FmnddvlWYzzNjc/KEeYYeRbIJhF4Ju0pXHrmaUeZ+vSvzbs71dUJMakIzuHiV1Y4NfBRL8XuiHZECAf9rc65ZVkE0pHAkRGCIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jwkKircO; arc=none smtp.client-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QKxUZAjY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 310CAC4CEE4;
-	Sat, 10 May 2025 01:40:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746841251;
-	bh=RkRUwXZ2yQnKPvkWLrpwkibQYHk6r+uUVB8MDGsbr0g=;
-	h=Date:To:From:Subject:From;
-	b=QKxUZAjYQ4F5YPQ8UxTJclNjNGhJCf6Q0slthw36qnlwrKGlFHkfYqIgZ5vjErzha
-	 uubxCV1gDjvyHvZG9dOB2ksycKNztU5sGL/5gWelOVbiShGqN0XL4FFJgso13vMHhD
-	 U2BBEzw54JuEKcgKyY4UVqXiOXv0f7WYHe5mi9Mk=
-Date: Fri, 09 May 2025 18:40:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,minchan@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,jyescas@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-config_page_block_order-to-select-page-block-order.patch added to mm-new branch
-Message-Id: <20250510014051.310CAC4CEE4@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jwkKircO"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-43d0782d787so19110045e9.0;
+        Sat, 10 May 2025 03:17:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1746872268; x=1747477068; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5OP6oIyX3y0jnZ6iUWZ7/pJgSz9RgalovuY3vppfrvg=;
+        b=jwkKircOVgpIdNhqS85wO0N/o2JZTgTVlI4qWvyE3No6TU9maUFauthkiwierfRhiv
+         Qux6NdY71UkbkZQlFi4CFEjjHoY6+kP6ZdIapYC9mQGKhwY3EvCa4n6QWOXu60BedBuD
+         7yohTS5fLFOjpnXnGEe1UPhJ0WxcntXMW5le8dtIK6xq7OV/hJRNagXCraI8n1pwzXWg
+         o8GL3s6FKbUVt6HLXc3FumAURNjPDHo8Bf9g1hK/67jKG5JQVjqbMVSrtxFG3/4vKBKJ
+         o0yx12ou0LlHitU2DU/F/+NJsN1//5W3qS25KoTO7ea9Bi1TrRU75wk8Ip5QWfkAbJyA
+         VaDQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1746872268; x=1747477068;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=5OP6oIyX3y0jnZ6iUWZ7/pJgSz9RgalovuY3vppfrvg=;
+        b=FzXkjwUiTHFz/lCqIWSa+jb+XL7SRj+a7twyYdH5Wg3+96lOA/eYD26W3w316FvMf7
+         zvVYaFb3hq9XOdyK1ONWCadJROL3HVKIPOeBDKyWgUpSjq9wpFsM4kZTb1aEDLLNC2lj
+         2zEm6eY9ZED4AwKx7r0bZqKYLz4HUMClDxLEbQCg9xlAaQGkiTqEmx3yTN6ITQVgV92B
+         zllNVfzvgYrlW5FXvhpMj1Z1GAMhBSNyomQbpjBsCeohloxGw6oFtavqCUaVxRE24M6m
+         0ATQbsR3IeM97V+MwJqfug3ssg8H1lrWlL2CG6bPiLmuxDirYHirdOVfrWcemusQHMBM
+         BzDA==
+X-Forwarded-Encrypted: i=1; AJvYcCX3VUDUpgPuWYPbRzfO1ivY3WHuj3vdvYadNL+ZNS/8y2k+/CegsIkFaPpOpujD6enDVzsXvsA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxO6TMfgtpextIMeK9yfy24/71+b6JaPrB982u7qK+8xY8fX/bI
+	6csz8io9Y0howPytBvetqR2jjsrKfnWa6dH+JIC+4WDOuVGRsQKKUYAp/Q==
+X-Gm-Gg: ASbGncuBSKsNStkvCO/UHbnV4QfeN26D6U5klASC/7BdqmGH/4xq8Kz4mlOCS/tO583
+	+hzc5I1hxeQg4Fis4e6aTS4O6vq1swbr62WewHnHb/lUWYxZ4Ey7kEF5A36oTdSZKM2FiRGbxuI
+	VWfIZDWg89RtavWf9MK3QBm2DUQK55WI7CPvbQldnpCd2oDefWyWCRSf79bbWdkLJyTvQrZDCEV
+	4ryY3Y8dZ/maqZs9D1INA1kwC5Qnwg8p4uzkcB8D6DWtTyF2yIEdsxSpb9qsrmz9UKwHJI+7e1S
+	tbG2IFRrH9SLmPt1y7wEZbEEYjhTY2ghFMNvyTbZo8U7gTnP4oDwyx5lDjz90v9xVjZGmK2jQuR
+	T+59TF/0APNP5PA==
+X-Google-Smtp-Source: AGHT+IFaymRQcUWLsOn2NT/IjehNWYp15HaOQKtG1UQDabP0s0HS/x4hw899KHOG5Gia403qH8OEXg==
+X-Received: by 2002:a05:600c:190d:b0:441:b698:3431 with SMTP id 5b1f17b1804b1-442d6dde8e8mr43362805e9.28.1746872267772;
+        Sat, 10 May 2025 03:17:47 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-442cd3b7f18sm103722365e9.40.2025.05.10.03.17.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 10 May 2025 03:17:47 -0700 (PDT)
+Date: Sat, 10 May 2025 11:17:46 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, willy@infradead.org, stable@vger.kernel.org,
+ wangyuli@uniontech.com
+Subject: Re: + mm-vmscan-avoid-signedness-error-for-gcc-54.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <20250510111746.70313120@pumpkin>
+In-Reply-To: <20250507180817.C7E7FC4CEE9@smtp.kernel.org>
+References: <20250507180817.C7E7FC4CEE9@smtp.kernel.org>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Wed, 07 May 2025 11:08:17 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-The patch titled
-     Subject: mm: add CONFIG_PAGE_BLOCK_ORDER to select page block order
-has been added to the -mm mm-new branch.  Its filename is
-     mm-add-config_page_block_order-to-select-page-block-order.patch
+> The patch titled
+>      Subject: mm: vmscan: avoid signedness error for GCC 5.4
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      mm-vmscan-avoid-signedness-error-for-gcc-54.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-signedness-error-for-gcc-54.patch
+> 
+> This patch will later appear in the mm-hotfixes-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: WangYuli <wangyuli@uniontech.com>
+> Subject: mm: vmscan: avoid signedness error for GCC 5.4
+> Date: Wed, 7 May 2025 12:08:27 +0800
+> 
+> To the GCC 5.4 compiler, (MAX_NR_TIERS - 1) (i.e., (4U - 1)) is unsigned,
+> whereas tier is a signed integer.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-config_page_block_order-to-select-page-block-order.patch
+As I've said before this is independent of the compiler.
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> Then, the __types_ok check within the __careful_cmp_once macro failed,
+> triggered BUILD_BUG_ON.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+The test passes when the function is inlined because the compiler knows
+that 'tier' is always positive - even though it is a signed type.
+Most likely the compilation with GCC 5.4 isn't inlining the function.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+I rather hope this isn't a common code path - the generated code
+for the function will be pretty horrid even when inlined.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> Use min_t instead of min to circumvent this compiler error.
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+It is a compilation error not a compiler error.
 
-------------------------------------------------------
-From: Juan Yescas <jyescas@google.com>
-Subject: mm: add CONFIG_PAGE_BLOCK_ORDER to select page block order
-Date: Fri, 9 May 2025 18:02:26 -0700
+If every complain about min() reporting a signedness error is fixed
+by using min_t() we might as remove the check.
+The fixes should change the types of the variables so the error isn't
+reported.
 
-Problem: On large page size configurations (16KiB, 64KiB), the CMA
-alignment requirement (CMA_MIN_ALIGNMENT_BYTES) increases considerably,
-and this causes the CMA reservations to be larger than necessary.  This
-means that system will have less available MIGRATE_UNMOVABLE and
-MIGRATE_RECLAIMABLE page blocks since MIGRATE_CMA can't fallback to them.
+In this case just changing 'tier' to unsigned int is enough.
+(Although the code is still horrid.)
 
-The CMA_MIN_ALIGNMENT_BYTES increases because it depends on MAX_PAGE_ORDER
-which depends on ARCH_FORCE_MAX_ORDER.  The value of ARCH_FORCE_MAX_ORDER
-increases on 16k and 64k kernels.
+	David
 
-For example, in ARM, the CMA alignment requirement when:
-
-- CONFIG_ARCH_FORCE_MAX_ORDER default value is used
-- CONFIG_TRANSPARENT_HUGEPAGE is set:
-
-PAGE_SIZE | MAX_PAGE_ORDER | pageblock_order | CMA_MIN_ALIGNMENT_BYTES
------------------------------------------------------------------------
-   4KiB   |      10        |      10         |  4KiB * (2 ^ 10)  =  4MiB
-  16Kib   |      11        |      11         | 16KiB * (2 ^ 11) =  32MiB
-  64KiB   |      13        |      13         | 64KiB * (2 ^ 13) = 512MiB
-
-There are some extreme cases for the CMA alignment requirement when:
-
-- CONFIG_ARCH_FORCE_MAX_ORDER maximum value is set
-- CONFIG_TRANSPARENT_HUGEPAGE is NOT set:
-- CONFIG_HUGETLB_PAGE is NOT set
-
-PAGE_SIZE | MAX_PAGE_ORDER | pageblock_order |  CMA_MIN_ALIGNMENT_BYTES
-------------------------------------------------------------------------
-   4KiB   |      15        |      15         |  4KiB * (2 ^ 15) = 128MiB
-  16Kib   |      13        |      13         | 16KiB * (2 ^ 13) = 128MiB
-  64KiB   |      13        |      13         | 64KiB * (2 ^ 13) = 512MiB
-
-This affects the CMA reservations for the drivers. If a driver in a
-4KiB kernel needs 4MiB of CMA memory, in a 16KiB kernel, the minimal
-reservation has to be 32MiB due to the alignment requirements:
-
-reserved-memory {
-    ...
-    cma_test_reserve: cma_test_reserve {
-        compatible = "shared-dma-pool";
-        size = <0x0 0x400000>; /* 4 MiB */
-        ...
-    };
-};
-
-reserved-memory {
-    ...
-    cma_test_reserve: cma_test_reserve {
-        compatible = "shared-dma-pool";
-        size = <0x0 0x2000000>; /* 32 MiB */
-        ...
-    };
-};
-
-Solution: Add a new config CONFIG_PAGE_BLOCK_ORDER that allows to set the
-page block order in all the architectures.  The maximum page block order
-will be given by ARCH_FORCE_MAX_ORDER.
-
-By default, CONFIG_PAGE_BLOCK_ORDER will have the same value that
-ARCH_FORCE_MAX_ORDER.  This will make sure that current kernel
-configurations won't be affected by this change.  It is a opt-in change.
-
-This patch will allow to have the same CMA alignment requirements for
-large page sizes (16KiB, 64KiB) as that in 4kb kernels by setting a lower
-pageblock_order.
-
-Tests:
-
-- Verified that HugeTLB pages work when pageblock_order is 1, 7, 10
-on 4k and 16k kernels.
-
-- Verified that Transparent Huge Pages work when pageblock_order
-is 1, 7, 10 on 4k and 16k kernels.
-
-- Verified that dma-buf heaps allocations work when pageblock_order
-is 1, 7, 10 on 4k and 16k kernels.
-
-Benchmarks:
-
-The benchmarks compare 16kb kernels with pageblock_order 10 and 7.  The
-reason for the pageblock_order 7 is because this value makes the min CMA
-alignment requirement the same as that in 4kb kernels (2MB).
-
-- Perform 100K dma-buf heaps (/dev/dma_heap/system) allocations of
-  SZ_8M, SZ_4M, SZ_2M, SZ_1M, SZ_64, SZ_8, SZ_4.  Use simpleperf
-  (https://developer.android.com/ndk/guides/simpleperf) to measure the #
-  of instructions and page-faults on 16k kernels.  The benchmark was
-  executed 10 times.  The averages are below:
-
-             # instructions         |     #page-faults
-      order 10     |  order 7       | order 10 | order 7
-  --------------------------------------------------------
-   13,891,765,770	 | 11,425,777,314 |    220   |   217
-   14,456,293,487	 | 12,660,819,302 |    224   |   219
-   13,924,261,018	 | 13,243,970,736 |    217   |   221
-   13,910,886,504	 | 13,845,519,630 |    217   |   221
-   14,388,071,190	 | 13,498,583,098 |    223   |   224
-   13,656,442,167	 | 12,915,831,681 |    216   |   218
-   13,300,268,343	 | 12,930,484,776 |    222   |   218
-   13,625,470,223	 | 14,234,092,777 |    219   |   218
-   13,508,964,965	 | 13,432,689,094 |    225   |   219
-   13,368,950,667	 | 13,683,587,37  |    219   |   225
-  -------------------------------------------------------------------
-   13,803,137,433  | 13,131,974,268 |    220   |   220    Averages
-
-  There were 4.85% #instructions when order was 7, in comparison with
-  order 10.
-
-     13,803,137,433 - 13,131,974,268 = -671,163,166 (-4.86%)
-
-  The number of page faults in order 7 and 10 were the same.
-
-  These results didn't show any significant regression when the
-  pageblock_order is set to 7 on 16kb kernels.
-
-- Run speedometer 3.1 (https://browserbench.org/Speedometer3.1/) 5 times
-  on the 16k kernels with pageblock_order 7 and 10.
-
-  order 10 | order 7  | order 7 - order 10 | (order 7 - order 10) %
-  -------------------------------------------------------------------
-    15.8	 |  16.4    |         0.6        |     3.80%
-    16.4	 |  16.2    |        -0.2        |    -1.22%
-    16.6	 |  16.3    |        -0.3        |    -1.81%
-    16.8	 |  16.3    |        -0.5        |    -2.98%
-    16.6	 |  16.8    |         0.2        |     1.20%
-  -------------------------------------------------------------------
-    16.44     16.4            -0.04	          -0.24%   Averages
-
-  The results didn't show any significant regression when the
-  pageblock_order is set to 7 on 16kb kernels.
-
-Link: https://lkml.kernel.org/r/20250510010338.3978696-1-jyescas@google.com
-Signed-off-by: Juan Yescas <jyescas@google.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mmzone.h          |   16 +++++++++++++++
- include/linux/pageblock-flags.h |    8 +++----
- mm/Kconfig                      |   31 ++++++++++++++++++++++++++++++
- 3 files changed, 51 insertions(+), 4 deletions(-)
-
---- a/include/linux/mmzone.h~mm-add-config_page_block_order-to-select-page-block-order
-+++ a/include/linux/mmzone.h
-@@ -37,6 +37,22 @@
- 
- #define NR_PAGE_ORDERS (MAX_PAGE_ORDER + 1)
- 
-+/* Defines the order for the number of pages that have a migrate type. */
-+#ifndef CONFIG_PAGE_BLOCK_ORDER
-+#define PAGE_BLOCK_ORDER MAX_PAGE_ORDER
-+#else
-+#define PAGE_BLOCK_ORDER CONFIG_PAGE_BLOCK_ORDER
-+#endif /* CONFIG_PAGE_BLOCK_ORDER */
-+
-+/*
-+ * The MAX_PAGE_ORDER, which defines the max order of pages to be allocated
-+ * by the buddy allocator, has to be larger or equal to the PAGE_BLOCK_ORDER,
-+ * which defines the order for the number of pages that can have a migrate type
-+ */
-+#if (PAGE_BLOCK_ORDER > MAX_PAGE_ORDER)
-+#error MAX_PAGE_ORDER must be >= PAGE_BLOCK_ORDER
-+#endif
-+
- /*
-  * PAGE_ALLOC_COSTLY_ORDER is the order at which allocations are deemed
-  * costly to service.  That is between allocation orders which should
---- a/include/linux/pageblock-flags.h~mm-add-config_page_block_order-to-select-page-block-order
-+++ a/include/linux/pageblock-flags.h
-@@ -48,18 +48,18 @@ extern unsigned int pageblock_order;
-  * Huge pages are a constant size, but don't exceed the maximum allocation
-  * granularity.
-  */
--#define pageblock_order		MIN_T(unsigned int, HUGETLB_PAGE_ORDER, MAX_PAGE_ORDER)
-+#define pageblock_order		MIN_T(unsigned int, HUGETLB_PAGE_ORDER, PAGE_BLOCK_ORDER)
- 
- #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
- 
- #elif defined(CONFIG_TRANSPARENT_HUGEPAGE)
- 
--#define pageblock_order		MIN_T(unsigned int, HPAGE_PMD_ORDER, MAX_PAGE_ORDER)
-+#define pageblock_order		MIN_T(unsigned int, HPAGE_PMD_ORDER, PAGE_BLOCK_ORDER)
- 
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--/* If huge pages are not used, group by MAX_ORDER_NR_PAGES */
--#define pageblock_order		MAX_PAGE_ORDER
-+/* If huge pages are not used, group by PAGE_BLOCK_ORDER */
-+#define pageblock_order		PAGE_BLOCK_ORDER
- 
- #endif /* CONFIG_HUGETLB_PAGE */
- 
---- a/mm/Kconfig~mm-add-config_page_block_order-to-select-page-block-order
-+++ a/mm/Kconfig
-@@ -1005,6 +1005,37 @@ config CMA_AREAS
- 
- 	  If unsure, leave the default value "8" in UMA and "20" in NUMA.
- 
-+#
-+# Select this config option from the architecture Kconfig, if available, to set
-+# the max page order for physically contiguous allocations.
-+#
-+config ARCH_FORCE_MAX_ORDER
-+	int
-+
-+# When ARCH_FORCE_MAX_ORDER is not defined, the default page block order is 10,
-+# as per include/linux/mmzone.h.
-+config PAGE_BLOCK_ORDER
-+	int "Page Block Order"
-+	range 1 10 if !ARCH_FORCE_MAX_ORDER
-+	default 10 if !ARCH_FORCE_MAX_ORDER
-+	range 1 ARCH_FORCE_MAX_ORDER if ARCH_FORCE_MAX_ORDER
-+	default ARCH_FORCE_MAX_ORDER if ARCH_FORCE_MAX_ORDER
-+
-+	help
-+	  The page block order refers to the power of two number of pages that
-+	  are physically contiguous and can have a migrate type associated to
-+	  them. The maximum size of the page block order is limited by
-+	  ARCH_FORCE_MAX_ORDER.
-+
-+	  This option allows overriding the default setting when the page
-+	  block order requires to be smaller than ARCH_FORCE_MAX_ORDER.
-+
-+	  Reducing pageblock order can negatively impact THP generation
-+	  successful rate. If your workloads uses THP heavily, please use this
-+	  option with caution.
-+
-+	  Don't change if unsure.
-+
- config MEM_SOFT_DIRTY
- 	bool "Track memory changes"
- 	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
-_
-
-Patches currently in -mm which might be from jyescas@google.com are
-
-mm-add-config_page_block_order-to-select-page-block-order.patch
+> 
+> Fix follow error with gcc 5.4:
+>   mm/vmscan.c: In function `read_ctrl_pos':
+>   mm/vmscan.c:3166:728: error: call to `__compiletime_assert_887' declared with attribute error: min(tier, 4U - 1) signedness error
+> 
+> Link: https://lkml.kernel.org/r/62726950F697595A+20250507040827.1147510-1-wangyuli@uniontech.com
+> Fixes: 37a260870f2c ("mm/mglru: rework type selection")
+> Signed-off-by: WangYuli <wangyuli@uniontech.com>
+> Cc: Matthew Wilcox <willy@infradead.org>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/vmscan.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- a/mm/vmscan.c~mm-vmscan-avoid-signedness-error-for-gcc-54
+> +++ a/mm/vmscan.c
+> @@ -3163,7 +3163,7 @@ static void read_ctrl_pos(struct lruvec
+>  	pos->gain = gain;
+>  	pos->refaulted = pos->total = 0;
+>  
+> -	for (i = tier % MAX_NR_TIERS; i <= min(tier, MAX_NR_TIERS - 1); i++) {
+> +	for (i = tier % MAX_NR_TIERS; i <= min_t(int, tier, MAX_NR_TIERS - 1); i++) {
+>  		pos->refaulted += lrugen->avg_refaulted[type][i] +
+>  				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
+>  		pos->total += lrugen->avg_total[type][i] +
+> _
+> 
+> Patches currently in -mm which might be from wangyuli@uniontech.com are
+> 
+> mm-vmscan-avoid-signedness-error-for-gcc-54.patch
+> ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment.patch
+> treewide-fix-typo-previlege.patch
+> 
+> 
 
