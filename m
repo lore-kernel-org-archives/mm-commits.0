@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78FC4770FE
-	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:37:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62C7F770FE
+	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:37:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746837458; cv=none; b=oshqk+DeHkW9ZjShvp+6ES7EEBBZmlowloOGZspwa0lShF9Uf4co+Lbfti1RB+wZj9OTtV6DjwEywzUgXsIXOpBGb5Zli1KvSKK8vXD3FZSHxJ0qyr88hA9PhkTrVrOxB+iPwpas6nVVYW90CWaaTE3n6OhUVFfKjx3eMK9hEHQ=
+	t=1746837460; cv=none; b=RkFsrVZI6/EkWh9dKHHYLwTYTfzeV01WIoGKuuAOZLG6hzMEbWaClqPc5pOsalDzAEmFbufj6+ChC1QKPyF/p9KfiFvfbDGEb5vf/Md7Ste1WjrhmGFLNX667B2egD5Q77L56KYA3/c097RCfr0RMxUmFrIasx8p9LZlLo4W3Bw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746837458; c=relaxed/simple;
-	bh=emIds6Bc+3LCtWOHX8Euuk2449TIbRJzzhjZB98HZuM=;
-	h=Date:To:From:Subject:Message-Id; b=t1XPehOcjOBhwSZ5keXjdccAUN5XIlpvD2JQOqs4gj+2iHNTLdOMhllmyUFBAKQbCJK2mzZVPqOhfPAI8ccVQp7R+wblmtr2rZpUhQKcEopGiI5/E76emv0FFsb3Dm7BlOCOSP3dku3sysg3CepYvsQsy+co+8lHYJfH9GDpGQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cg7E9DZA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746837460; c=relaxed/simple;
+	bh=BL+2AsFfwn5QDCZRDUBBnaLKPw1tAY8iLaFAlzx0dfI=;
+	h=Date:To:From:Subject:Message-Id; b=pDiNPkz2YdW68TLZ2IpE2eR+7df84PT4A2QtgAsmh2KO9PzieaGWBOJREs6hck6V+XJzcW/JHLhsadVfVC28U6llR6MYieomRrORtkf9mSLCLSV/ech5xceyOeKmC5q3Ohp4YUIGmMQRq6t9MIk/7awFiGS8UWd5IlEF26hMA6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dmSRuCeP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cg7E9DZA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1630C4CEED;
-	Sat, 10 May 2025 00:37:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dmSRuCeP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F559C4CEE4;
+	Sat, 10 May 2025 00:37:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746837457;
-	bh=emIds6Bc+3LCtWOHX8Euuk2449TIbRJzzhjZB98HZuM=;
+	s=korg; t=1746837460;
+	bh=BL+2AsFfwn5QDCZRDUBBnaLKPw1tAY8iLaFAlzx0dfI=;
 	h=Date:To:From:Subject:From;
-	b=Cg7E9DZAES14gQkdN+VbRwGl6cKi1by7vSC9Xx1+GvUSGj/mLFqAmXLrwltr0wuvt
-	 guuadbpPTRwHNl8PT3ow7oQxTNFA7fxCqg4uFu5BSv10gSUF3rBax0fHyCcqxluVXr
-	 zJQiPPoQfmfcWDUob3Uq2o3MWC7F0aPlZujPxwME=
-Date: Fri, 09 May 2025 17:37:37 -0700
+	b=dmSRuCePBHZEt6sSFR4TCcrOHkZMukGHOi/6RAZj5/WEkT697i8E2/f5pWPyrbAbp
+	 LBKUprpbA5I4Y58/MpGuUGHbLYeodfC6u2JxCDoaILYWWtOI//E/6iZQVE0OgA5Ki7
+	 nw+zs7nSN2uWyKjr9jYW2wbm2iTvAUEzBJiojcMg=
+Date: Fri, 09 May 2025 17:37:39 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rppt@kernel.org,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory.patch added to mm-unstable branch
-Message-Id: <20250510003737.D1630C4CEED@smtp.kernel.org>
+Subject: + x86-kconfig-enable-kexec-handover-for-64-bits.patch added to mm-unstable branch
+Message-Id: <20250510003740.2F559C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/boot: make sure KASLR does not step over KHO preserved memory
+     Subject: x86/Kconfig: enable kexec handover for 64 bits
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory.patch
+     x86-kconfig-enable-kexec-handover-for-64-bits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kconfig-enable-kexec-handover-for-64-bits.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,29 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Graf <graf@amazon.com>
-Subject: x86/boot: make sure KASLR does not step over KHO preserved memory
-Date: Fri, 9 May 2025 00:46:31 -0700
+Subject: x86/Kconfig: enable kexec handover for 64 bits
+Date: Fri, 9 May 2025 00:46:32 -0700
 
-During kexec handover (KHO) memory contains data that should be preserved
-and this data would be consumed by kexec'ed kernel.
+Add ARCH_SUPPORTS_KEXEC_HANDOVER for 64 bits to allow enabling of
+KEXEC_HANDOVER configuration option.
 
-To make sure that the preserved memory is not overwritten, KHO uses
-"scratch regions" to bootstrap kexec'ed kernel.  These regions are
-guaranteed to not have any memory that KHO would preserve and are used as
-the only memory the kernel sees during the early boot.
-
-The scratch regions are passed in the setup_data by the first kernel with
-other KHO parameters.  If the setup_data contains the KHO parameters,
-limit randomization to scratch areas only to make sure preserved memory
-won't get overwritten.
-
-Since all the pointers in setup_data are represented by u64, they require
-double casting (first to unsigned long and then to the actual pointer
-type) to compile on 32-bits.  This looks goofy out of context, but it is
-unfortunately the way that this is handled across the tree.  There are at
-least a dozen instances of casting like this.
-
-Link: https://lkml.kernel.org/r/20250509074635.3187114-14-changyuanl@google.com
+Link: https://lkml.kernel.org/r/20250509074635.3187114-15-changyuanl@google.com
 Signed-off-by: Alexander Graf <graf@amazon.com>
 Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -118,75 +102,21 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/compressed/kaslr.c |   50 ++++++++++++++++++++++++++++-
- 1 file changed, 49 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/x86/boot/compressed/kaslr.c~x86-boot-make-sure-kaslr-does-not-step-over-kho-preserved-memory
-+++ a/arch/x86/boot/compressed/kaslr.c
-@@ -760,6 +760,49 @@ static void process_e820_entries(unsigne
- 	}
- }
+--- a/arch/x86/Kconfig~x86-kconfig-enable-kexec-handover-for-64-bits
++++ a/arch/x86/Kconfig
+@@ -2029,6 +2029,9 @@ config ARCH_SUPPORTS_KEXEC_BZIMAGE_VERIF
+ config ARCH_SUPPORTS_KEXEC_JUMP
+ 	def_bool y
  
-+/*
-+ * If KHO is active, only process its scratch areas to ensure we are not
-+ * stepping onto preserved memory.
-+ */
-+static bool process_kho_entries(unsigned long minimum, unsigned long image_size)
-+{
-+	struct kho_scratch *kho_scratch;
-+	struct setup_data *ptr;
-+	struct kho_data *kho;
-+	int i, nr_areas = 0;
++config ARCH_SUPPORTS_KEXEC_HANDOVER
++	def_bool X86_64
 +
-+	if (!IS_ENABLED(CONFIG_KEXEC_HANDOVER))
-+		return false;
-+
-+	ptr = (struct setup_data *)(unsigned long)boot_params_ptr->hdr.setup_data;
-+	while (ptr) {
-+		if (ptr->type == SETUP_KEXEC_KHO) {
-+			kho = (struct kho_data *)(unsigned long)ptr->data;
-+			kho_scratch = (void *)(unsigned long)kho->scratch_addr;
-+			nr_areas = kho->scratch_size / sizeof(*kho_scratch);
-+			break;
-+		}
-+
-+		ptr = (struct setup_data *)(unsigned long)ptr->next;
-+	}
-+
-+	if (!nr_areas)
-+		return false;
-+
-+	for (i = 0; i < nr_areas; i++) {
-+		struct kho_scratch *area = &kho_scratch[i];
-+		struct mem_vector region = {
-+			.start = area->addr,
-+			.size = area->size,
-+		};
-+
-+		if (process_mem_region(&region, minimum, image_size))
-+			break;
-+	}
-+
-+	return true;
-+}
-+
- static unsigned long find_random_phys_addr(unsigned long minimum,
- 					   unsigned long image_size)
- {
-@@ -775,7 +818,12 @@ static unsigned long find_random_phys_ad
- 		return 0;
- 	}
+ config ARCH_SUPPORTS_CRASH_DUMP
+ 	def_bool X86_64 || (X86_32 && HIGHMEM)
  
--	if (!process_efi_entries(minimum, image_size))
-+	/*
-+	 * During kexec handover only process KHO scratch areas that are known
-+	 * not to contain any data that must be preserved.
-+	 */
-+	if (!process_kho_entries(minimum, image_size) &&
-+	    !process_efi_entries(minimum, image_size))
- 		process_e820_entries(minimum, image_size);
- 
- 	phys_addr = slots_fetch_random();
 _
 
 Patches currently in -mm which might be from graf@amazon.com are
