@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBA7D770FE
-	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:37:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B75C619D071
+	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:41:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746837473; cv=none; b=ZreH1U+B0qau2P671TO88RqhoLhYp7faImSJHckXD1cQmi+VL8/O7VoX29t6IDRo/5T5PAi6R6ClBGI2wZJ5QTfPagjtSzyiP1EwZ0/m/tLNk1eGFFC/wP2WLZnhEWkk6RezMR9pETIFPCJfuebiIV4I4NYG8+8Krv+FRu8jo7A=
+	t=1746837679; cv=none; b=XD/dQ6srlHb3UJtr/7lGk/LBNJOmH84Vh0WaShO2Vs4PRgbrV6DbVUL1mIKoPlHeRXZ+MTN/NyHBBKkhCehjF+eBJjbxfZs//4vAjv1fGr5wmxyZgPCSwfYtNB+q/8vWQ5khE4OiYc2nAHeyf2lIEde+U09wSuEyZ+xEB+W8H00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746837473; c=relaxed/simple;
-	bh=nlGazOIYwnXgY2he0WO2nPTEcDhhHBOcjVydxPbKwrc=;
-	h=Date:To:From:Subject:Message-Id; b=TJfw6zBpzOU8KUJaY3zpEDxUNAmI7H7SaW4Bn6L4vh4pectnQGoZgwTYxvxrU0sEb4aj09iKge4KQHaknbi+GY8fVVFc7cGWURPjZV3tPFqAtxdXOy5SFrIixvPyAfpMTbAZ3IZBZeqFW5+muBGTen4vi7rQ5LkfGn1fD4R2X4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ia1Z5fo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746837679; c=relaxed/simple;
+	bh=i8MdopJNZM5uDc/3J2h7yjNheNCNC8qr0a8e83NwTQw=;
+	h=Date:To:From:Subject:Message-Id; b=fUdPdr5sL5tEru8svAhj+ifSm3OvU75+OTpdhAHWf9M3Qe7lNZmGOcaHfyCVmH2MijqDT82xl27tkaQmesLYh+KVjZ99+AbDlVc8t749hRpdLQdt9m4IPNcPst929nLjKZTxWW3ReYUvBX7PuJ0kVwN9+NNQvU0PrkLKgau2s/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pFuXIo0I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ia1Z5fo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85E10C4CEE4;
-	Sat, 10 May 2025 00:37:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pFuXIo0I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E819C4CEE4;
+	Sat, 10 May 2025 00:41:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746837473;
-	bh=nlGazOIYwnXgY2he0WO2nPTEcDhhHBOcjVydxPbKwrc=;
+	s=korg; t=1746837676;
+	bh=i8MdopJNZM5uDc/3J2h7yjNheNCNC8qr0a8e83NwTQw=;
 	h=Date:To:From:Subject:From;
-	b=1ia1Z5foX4Ui+Mp91D2pYrRG+3LgeXlRz8Mn3MnytTwMtOZmMk82Ytn5Im2q2jLEy
-	 WDSJ12Otp/ReOaNz9Is94DkYLpVbRQx6+f+2/RFvmmeTz/V2DklwsvCg4bfKD9khIh
-	 uTgWDcxW3ow+NfYphUTFGCesIcV1rojH5b8efKhY=
-Date: Fri, 09 May 2025 17:37:53 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,graf@amazon.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=pFuXIo0IDTyOFxT6dkYb6V1HMB68zcH7yPAMJOsr1kwvsxQByfA98UK/U3B5LUKGr
+	 Emj0tQHlvAAoHwuyLZ5Dhs1hukVjXYBMtoB4KaHXOlBR0wLZ4bHa5zE3vv5BuLFbOo
+	 JaRezgxUAG4hULPGvCU2fSoBtiE1TOboG06Z5WrA=
+Date: Fri, 09 May 2025 17:41:15 -0700
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,mjguzik@gmail.com,linus.walleij@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-kho-add-memblock-bindings.patch added to mm-unstable branch
-Message-Id: <20250510003753.85E10C4CEE4@smtp.kernel.org>
+Subject: + fork-define-a-local-gfp_vmap_stack.patch added to mm-nonmm-unstable branch
+Message-Id: <20250510004116.1E819C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: KHO: add memblock bindings
-has been added to the -mm mm-unstable branch.  Its filename is
-     documentation-kho-add-memblock-bindings.patch
+     Subject: fork: define a local GFP_VMAP_STACK
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fork-define-a-local-gfp_vmap_stack.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-kho-add-memblock-bindings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-define-a-local-gfp_vmap_stack.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,174 +58,80 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: Documentation: KHO: add memblock bindings
-Date: Fri, 9 May 2025 00:46:35 -0700
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: fork: define a local GFP_VMAP_STACK
+Date: Fri, 09 May 2025 09:25:09 +0200
 
-We introduced KHO into Linux: A framework that allows Linux to pass
-metadata and memory across kexec from Linux to Linux.  KHO reuses fdt as
-file format and shares a lot of the same properties of firmware-to- Linux
-boot formats: It needs a stable, documented ABI that allows for forward
-and backward compatibility as well as versioning.
+The current allocation of VMAP stack memory is using (THREADINFO_GFP &
+~__GFP_ACCOUNT) which is a complicated way of saying (GFP_KERNEL |
+__GFP_ZERO):
 
-As first user of KHO, we introduced memblock which can now preserve memory
-ranges reserved with reserve_mem command line options contents across
-kexec, so you can use the post-kexec kernel to read traces from the
-pre-kexec kernel.
+<linux/thread_info.h>:
+define THREADINFO_GFP (GFP_KERNEL_ACCOUNT | __GFP_ZERO)
+<linux/gfp_types.h>:
+define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
 
-This patch adds memblock schemas similar to "device" device tree ones to a
-new kho bindings directory.  This allows us to force contributors to
-document the data that moves across KHO kexecs and catch breaking change
-during review.
+This is an unfortunate side-effect of independent changes blurring the
+picture:
 
-Link: https://lkml.kernel.org/r/20250509074635.3187114-18-changyuanl@google.com
-Co-developed-by: Alexander Graf <graf@amazon.com>
-Signed-off-by: Alexander Graf <graf@amazon.com>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Signed-off-by: Changyuan Lyu <changyuanl@google.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Ashish Kalra <ashish.kalra@amd.com>
-Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Gowans <jgowans@amazon.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
+commit 19809c2da28aee5860ad9a2eff760730a0710df0 changed (THREADINFO_GFP |
+__GFP_HIGHMEM) to just THREADINFO_GFP since highmem became implicit.
+
+commit 9b6f7e163cd0f468d1b9696b785659d3c27c8667 then added stack caching
+and rewrote the allocation to (THREADINFO_GFP & ~__GFP_ACCOUNT) as cached
+stacks need to be accounted separately.  However that code, when it
+eventually accounts the memory does this:
+
+  ret = memcg_kmem_charge(vm->pages[i], GFP_KERNEL, 0)
+
+so the memory is charged as a GFP_KERNEL allocation.
+
+Define a unique GFP_VMAP_STACK to use
+GFP_KERNEL | __GFP_ZERO and move the comment there.
+
+Link: https://lkml.kernel.org/r/20250509-gfp-stack-v1-1-82f6f7efc210@linaro.org
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Reported-by: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Pratyush Yadav <ptyadav@amazon.de>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Saravana Kannan <saravanak@google.com>
-Cc: Stanislav Kinsburskii <skinsburskii@linux.microsoft.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Thomas Lendacky <thomas.lendacky@amd.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/kho/bindings/memblock/memblock.yaml    |   39 +++++++++
- Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml |   40 ++++++++++
- MAINTAINERS                                                   |    1 
- 3 files changed, 80 insertions(+)
+ kernel/fork.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/core-api/kho/bindings/memblock/memblock.yaml a/Documentation/core-api/kho/bindings/memblock/memblock.yaml
-new file mode 100644
---- /dev/null
-+++ a/Documentation/core-api/kho/bindings/memblock/memblock.yaml
-@@ -0,0 +1,39 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+title: Memblock reserved memory
-+
-+maintainers:
-+  - Mike Rapoport <rppt@kernel.org>
-+
-+description: |
-+  Memblock can serialize its current memory reservations created with
-+  reserve_mem command line option across kexec through KHO.
-+  The post-KHO kernel can then consume these reservations and they are
-+  guaranteed to have the same physical address.
-+
-+properties:
-+  compatible:
-+    enum:
-+      - reserve-mem-v1
-+
-+patternProperties:
-+  "$[0-9a-f_]+^":
-+    $ref: reserve-mem.yaml#
-+    description: reserved memory regions
-+
-+required:
-+  - compatible
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    memblock {
-+      compatible = "memblock-v1";
-+      n1 {
-+        compatible = "reserve-mem-v1";
-+        start = <0xc06b 0x4000000>;
-+        size = <0x04 0x00>;
-+      };
-+    };
-diff --git a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml
-new file mode 100644
---- /dev/null
-+++ a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml
-@@ -0,0 +1,40 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+title: Memblock reserved memory regions
-+
-+maintainers:
-+  - Mike Rapoport <rppt@kernel.org>
-+
-+description: |
-+  Memblock can serialize its current memory reservations created with
-+  reserve_mem command line option across kexec through KHO.
-+  This object describes each such region.
-+
-+properties:
-+  compatible:
-+    enum:
-+      - reserve-mem-v1
-+
-+  start:
-+    description: |
-+      physical address (u64) of the reserved memory region.
-+
-+  size:
-+    description: |
-+      size (u64) of the reserved memory region.
-+
-+required:
-+  - compatible
-+  - start
-+  - size
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    n1 {
-+      compatible = "reserve-mem-v1";
-+      start = <0xc06b 0x4000000>;
-+      size = <0x04 0x00>;
-+    };
---- a/MAINTAINERS~documentation-kho-add-memblock-bindings
-+++ a/MAINTAINERS
-@@ -15447,6 +15447,7 @@ M:	Mike Rapoport <rppt@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/core-api/boot-time-mm.rst
-+F:	Documentation/core-api/kho/bindings/memblock/*
- F:	include/linux/memblock.h
- F:	mm/memblock.c
- F:	mm/mm_init.c
+--- a/kernel/fork.c~fork-define-a-local-gfp_vmap_stack
++++ a/kernel/fork.c
+@@ -201,6 +201,12 @@ static inline void free_task_struct(stru
+  */
+ #define NR_CACHED_STACKS 2
+ static DEFINE_PER_CPU(struct vm_struct *, cached_stacks[NR_CACHED_STACKS]);
++/*
++ * Allocated stacks are cached and later reused by new threads, so memcg
++ * accounting is performed by the code assigning/releasing stacks to tasks.
++ * We need a zeroed memory without __GFP_ACCOUNT.
++ */
++#define GFP_VMAP_STACK (GFP_KERNEL | __GFP_ZERO)
+ 
+ struct vm_stack {
+ 	struct rcu_head rcu;
+@@ -309,13 +315,8 @@ static int alloc_thread_stack_node(struc
+ 		return 0;
+ 	}
+ 
+-	/*
+-	 * Allocated stacks are cached and later reused by new threads,
+-	 * so memcg accounting is performed manually on assigning/releasing
+-	 * stacks to tasks. Drop __GFP_ACCOUNT.
+-	 */
+ 	stack = __vmalloc_node(THREAD_SIZE, THREAD_ALIGN,
+-				     THREADINFO_GFP & ~__GFP_ACCOUNT,
++				     GFP_VMAP_STACK,
+ 				     node, __builtin_return_address(0));
+ 	if (!stack)
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from linus.walleij@linaro.org are
 
-execmem-enforce-allocation-size-aligment-to-page_size.patch
-memblock-add-memblock_rsrv_kern-flag.patch
-memblock-introduce-memmap_init_kho_scratch.patch
-kexec-enable-kho-support-for-memory-preservation.patch
-x86-setup-use-memblock_reserve_kern-for-memory-used-by-kernel.patch
-documentation-kho-add-memblock-bindings.patch
+fork-define-a-local-gfp_vmap_stack.patch
 
