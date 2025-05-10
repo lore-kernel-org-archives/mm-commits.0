@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C77C5770FE
-	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:37:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAF5F770FE
+	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:37:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746837451; cv=none; b=NMQ2tmhGVRVFt5yPQEcWwdv0+gG+I+wrMgLehnTIu9MoZUfZwlIT88HPX+3W+b11uAa/5C0DmVbiTbTu5eZwjfZcMwUoabPKtDjOixeza0Sa3Hp2skAe5Mq7h1ANdV0TLCKVyCLe87zK/1ZyIB0buq8LJr+hpUo1oVsq/WeGyZc=
+	t=1746837456; cv=none; b=g0WSIWV9rW3TcuBgs0cJHX1WukNYArJmwuW9JYe4ThD7SYz+4CxQUtpM64WCzzG50s6aMOyOsBYOC8mBHe0zJsDBy9833T02//kLAs8hLta0qOdQy3Lyi14fDkKK/xxaJwL3P8HDtnHZf7flPt1p4LSZl/j8LY+YfRA9FNc5sUA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746837451; c=relaxed/simple;
-	bh=BjuvkQln+EYBv+eX5rlgqiuD+bHTJ4/stSGsgtzLZ6g=;
-	h=Date:To:From:Subject:Message-Id; b=tVc0df3Jos3Akh3yz90pH/+9IyBFlx/ANA2op7uwCKaA2MTc4rOIptkZBTZPXgmaWcfriSbzIJ5nC5NrBHe8J1doxOJS2EluTi8muP3NU1yvfzqB0E/56gcw60kVXR1fXoXpIVcURD/se5RnBxxMcl2xMSEChPyQkixalnESINs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0jN3Nflf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746837456; c=relaxed/simple;
+	bh=U3KD1sgZ5P/6ZVC4ta+P1mOkPvY2ep/KGy9k9ehw1wE=;
+	h=Date:To:From:Subject:Message-Id; b=RzLwpFZo8MqsKxD0T46YrgcJfNWYZnzSu97p3H1CFRPqPR28U5K+B0o/eLQX3siERSktkd+OsgVeQtWXw6uwIM/HlIHk0GZfBriVmAI/Q8ePlQxfaOrEV+bPyFWcsKDuskadv1X36Dbr0ws4DeX9JagpKn2Ub7SGvnLxn6Hu4Uw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1/QwIhrt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0jN3Nflf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94956C4CEE4;
-	Sat, 10 May 2025 00:37:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1/QwIhrt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26EDFC4CEE4;
+	Sat, 10 May 2025 00:37:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746837451;
-	bh=BjuvkQln+EYBv+eX5rlgqiuD+bHTJ4/stSGsgtzLZ6g=;
+	s=korg; t=1746837455;
+	bh=U3KD1sgZ5P/6ZVC4ta+P1mOkPvY2ep/KGy9k9ehw1wE=;
 	h=Date:To:From:Subject:From;
-	b=0jN3Nflf8clIxTnUTQ0QOd02TEfr1IqxfAit672RzHuTOw29vllBT1WMaTrXrYWaY
-	 ovwzHDOpDnH78tSCMTmBVWbJBDotVp22wMZitVUypCVqC3+EvcOV6/liSz71lrDJnk
-	 t1TF7DO7PDefk+k5jIkgzwRgAXJ/wrQFTebLCDyg=
-Date: Fri, 09 May 2025 17:37:31 -0700
+	b=1/QwIhrt+8DyCnUoyUBuELqTPBBMFDNdt5sF7F2wD/BV89BWtB0+nfZcYiTViQjOp
+	 cOj1R8C9ndmbzdfnj98m9eMjjesdyj3jrXWEST4PfyhlcOJL9YKmLXl485iyT0PpoJ
+	 36O3Or552es4v4zYUy4tN3GdyUPB/S3eJlWCKI+I=
+Date: Fri, 09 May 2025 17:37:34 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rppt@kernel.org,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kexec-add-support-for-passing-kexec-handover-kho-data.patch added to mm-unstable branch
-Message-Id: <20250510003731.94956C4CEE4@smtp.kernel.org>
+Subject: + x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m.patch added to mm-unstable branch
+Message-Id: <20250510003735.26EDFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/kexec: add support for passing kexec handover (KHO) data
+     Subject: x86/e820: temporarily enable KHO scratch for memory below 1M
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kexec-add-support-for-passing-kexec-handover-kho-data.patch
+     x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-add-support-for-passing-kexec-handover-kho-data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Graf <graf@amazon.com>
-Subject: x86/kexec: add support for passing kexec handover (KHO) data
-Date: Fri, 9 May 2025 00:46:29 -0700
+Subject: x86/e820: temporarily enable KHO scratch for memory below 1M
+Date: Fri, 9 May 2025 00:46:30 -0700
 
-kexec handover (KHO) creates a metadata that the kernels pass between each
-other during kexec.  This metadata is stored in memory and kexec image
-contains a (physical) pointer to that memory.
+KHO kernels are special and use only scratch memory for memblock
+allocations, but memory below 1M is ignored by kernel after early boot and
+cannot be naturally marked as scratch.
 
-In addition, KHO keeps "scratch regions" available for kexec: physically
-contiguous memory regions that are guaranteed to not have any memory that
-KHO would preserve.  The new kernel bootstraps itself using the scratch
-regions and sets all handed over memory as in use.  When subsystems that
-support KHO initialize, they introspect the KHO metadata, restore
-preserved memory regions, and retrieve their state stored in the preserved
-memory.
+To allow allocation of the real-mode trampoline and a few (if any) other
+very early allocations from below 1M forcibly mark the memory below 1M as
+scratch.
 
-Enlighten x86 kexec-file and boot path about the KHO metadata and make
-sure it gets passed along to the next kernel.
+After real mode trampoline is allocated, clear that scratch marking.
 
-Link: https://lkml.kernel.org/r/20250509074635.3187114-12-changyuanl@google.com
+Link: https://lkml.kernel.org/r/20250509074635.3187114-13-changyuanl@google.com
 Signed-off-by: Alexander Graf <graf@amazon.com>
 Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -114,154 +109,48 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/setup.h           |    2 +
- arch/x86/include/uapi/asm/setup_data.h |   13 +++++++-
- arch/x86/kernel/kexec-bzimage64.c      |   37 +++++++++++++++++++++++
- arch/x86/kernel/setup.c                |   26 ++++++++++++++++
- 4 files changed, 77 insertions(+), 1 deletion(-)
+ arch/x86/kernel/e820.c   |   18 ++++++++++++++++++
+ arch/x86/realmode/init.c |    2 ++
+ 2 files changed, 20 insertions(+)
 
---- a/arch/x86/include/asm/setup.h~x86-kexec-add-support-for-passing-kexec-handover-kho-data
-+++ a/arch/x86/include/asm/setup.h
-@@ -67,6 +67,8 @@ extern void x86_ce4100_early_setup(void)
- static inline void x86_ce4100_early_setup(void) { }
- #endif
- 
-+#include <linux/kexec_handover.h>
-+
- #ifndef _SETUP
- 
- #include <asm/espfix.h>
---- a/arch/x86/include/uapi/asm/setup_data.h~x86-kexec-add-support-for-passing-kexec-handover-kho-data
-+++ a/arch/x86/include/uapi/asm/setup_data.h
-@@ -13,7 +13,8 @@
- #define SETUP_CC_BLOB			7
- #define SETUP_IMA			8
- #define SETUP_RNG_SEED			9
--#define SETUP_ENUM_MAX			SETUP_RNG_SEED
-+#define SETUP_KEXEC_KHO			10
-+#define SETUP_ENUM_MAX			SETUP_KEXEC_KHO
- 
- #define SETUP_INDIRECT			(1<<31)
- #define SETUP_TYPE_MAX			(SETUP_ENUM_MAX | SETUP_INDIRECT)
-@@ -78,6 +79,16 @@ struct ima_setup_data {
- 	__u64 size;
- } __attribute__((packed));
- 
-+/*
-+ * Locations of kexec handover metadata
-+ */
-+struct kho_data {
-+	__u64 fdt_addr;
-+	__u64 fdt_size;
-+	__u64 scratch_addr;
-+	__u64 scratch_size;
-+} __attribute__((packed));
-+
- #endif /* __ASSEMBLER__ */
- 
- #endif /* _UAPI_ASM_X86_SETUP_DATA_H */
---- a/arch/x86/kernel/kexec-bzimage64.c~x86-kexec-add-support-for-passing-kexec-handover-kho-data
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -233,6 +233,32 @@ setup_ima_state(const struct kimage *ima
- #endif /* CONFIG_IMA_KEXEC */
- }
- 
-+static void setup_kho(const struct kimage *image, struct boot_params *params,
-+		      unsigned long params_load_addr,
-+		      unsigned int setup_data_offset)
-+{
-+	struct setup_data *sd = (void *)params + setup_data_offset;
-+	struct kho_data *kho = (void *)sd + sizeof(*sd);
-+
-+	if (!IS_ENABLED(CONFIG_KEXEC_HANDOVER))
-+		return;
-+
-+	sd->type = SETUP_KEXEC_KHO;
-+	sd->len = sizeof(struct kho_data);
-+
-+	/* Only add if we have all KHO images in place */
-+	if (!image->kho.fdt || !image->kho.scratch)
-+		return;
-+
-+	/* Add setup data */
-+	kho->fdt_addr = image->kho.fdt;
-+	kho->fdt_size = PAGE_SIZE;
-+	kho->scratch_addr = image->kho.scratch->mem;
-+	kho->scratch_size = image->kho.scratch->bufsz;
-+	sd->next = params->hdr.setup_data;
-+	params->hdr.setup_data = params_load_addr + setup_data_offset;
-+}
-+
- static int
- setup_boot_parameters(struct kimage *image, struct boot_params *params,
- 		      unsigned long params_load_addr,
-@@ -312,6 +338,13 @@ setup_boot_parameters(struct kimage *ima
- 				     sizeof(struct ima_setup_data);
+--- a/arch/x86/kernel/e820.c~x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m
++++ a/arch/x86/kernel/e820.c
+@@ -1300,6 +1300,24 @@ void __init e820__memblock_setup(void)
  	}
  
-+	if (IS_ENABLED(CONFIG_KEXEC_HANDOVER)) {
-+		/* Setup space to store preservation metadata */
-+		setup_kho(image, params, params_load_addr, setup_data_offset);
-+		setup_data_offset += sizeof(struct setup_data) +
-+				     sizeof(struct kho_data);
-+	}
+ 	/*
++	 * At this point memblock is only allowed to allocate from memory
++	 * below 1M (aka ISA_END_ADDRESS) up until direct map is completely set
++	 * up in init_mem_mapping().
++	 *
++	 * KHO kernels are special and use only scratch memory for memblock
++	 * allocations, but memory below 1M is ignored by kernel after early
++	 * boot and cannot be naturally marked as scratch.
++	 *
++	 * To allow allocation of the real-mode trampoline and a few (if any)
++	 * other very early allocations from below 1M forcibly mark the memory
++	 * below 1M as scratch.
++	 *
++	 * After real mode trampoline is allocated, we clear that scratch
++	 * marking.
++	 */
++	memblock_mark_kho_scratch(0, SZ_1M);
 +
- 	/* Setup RNG seed */
- 	setup_rng_seed(params, params_load_addr, setup_data_offset);
- 
-@@ -479,6 +512,10 @@ static void *bzImage64_load(struct kimag
- 		kbuf.bufsz += sizeof(struct setup_data) +
- 			      sizeof(struct ima_setup_data);
- 
-+	if (IS_ENABLED(CONFIG_KEXEC_HANDOVER))
-+		kbuf.bufsz += sizeof(struct setup_data) +
-+			      sizeof(struct kho_data);
++	/*
+ 	 * 32-bit systems are limited to 4BG of memory even with HIGHMEM and
+ 	 * to even less without it.
+ 	 * Discard memory after max_pfn - the actual limit detected at runtime.
+--- a/arch/x86/realmode/init.c~x86-e820-temporarily-enable-kho-scratch-for-memory-below-1m
++++ a/arch/x86/realmode/init.c
+@@ -65,6 +65,8 @@ void __init reserve_real_mode(void)
+ 	 * setup_arch().
+ 	 */
+ 	memblock_reserve(0, SZ_1M);
 +
- 	params = kzalloc(kbuf.bufsz, GFP_KERNEL);
- 	if (!params)
- 		return ERR_PTR(-ENOMEM);
---- a/arch/x86/kernel/setup.c~x86-kexec-add-support-for-passing-kexec-handover-kho-data
-+++ a/arch/x86/kernel/setup.c
-@@ -451,6 +451,29 @@ int __init ima_get_kexec_buffer(void **a
++	memblock_clear_kho_scratch(0, SZ_1M);
  }
- #endif
  
-+static void __init add_kho(u64 phys_addr, u32 data_len)
-+{
-+	struct kho_data *kho;
-+	u64 addr = phys_addr + sizeof(struct setup_data);
-+	u64 size = data_len - sizeof(struct setup_data);
-+
-+	if (!IS_ENABLED(CONFIG_KEXEC_HANDOVER)) {
-+		pr_warn("Passed KHO data, but CONFIG_KEXEC_HANDOVER not set. Ignoring.\n");
-+		return;
-+	}
-+
-+	kho = early_memremap(addr, size);
-+	if (!kho) {
-+		pr_warn("setup: failed to memremap kho data (0x%llx, 0x%llx)\n",
-+			addr, size);
-+		return;
-+	}
-+
-+	kho_populate(kho->fdt_addr, kho->fdt_size, kho->scratch_addr, kho->scratch_size);
-+
-+	early_memunmap(kho, size);
-+}
-+
- static void __init parse_setup_data(void)
- {
- 	struct setup_data *data;
-@@ -479,6 +502,9 @@ static void __init parse_setup_data(void
- 		case SETUP_IMA:
- 			add_early_ima_buffer(pa_data);
- 			break;
-+		case SETUP_KEXEC_KHO:
-+			add_kho(pa_data, data_len);
-+			break;
- 		case SETUP_RNG_SEED:
- 			data = early_memremap(pa_data, data_len);
- 			add_bootloader_randomness(data->data, data->len);
+ static void __init sme_sev_setup_real_mode(struct trampoline_header *th)
 _
 
 Patches currently in -mm which might be from graf@amazon.com are
