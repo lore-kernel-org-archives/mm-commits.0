@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3233A94F
-	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:42:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 353C922D4F1
+	for <mm-commits@vger.kernel.org>; Sat, 10 May 2025 00:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746837755; cv=none; b=RdT9kUm52BMXUDr5qNP3dX+s0fWCU5+srlaBTZa0Ms0kvBFBRBtwoby7oWLiymr0NHLPXxH46VMGnBbExX6m5ffvU4wBhMcnlgYtLFCCZHqiVsRi/MK5gZ8LZOYfeAHL/fp8hJ0wbhOseo8hsnSh9Vi45Wl6qXDs0o3C+RzONPo=
+	t=1746837949; cv=none; b=rRz21guV1DGla7n9Fq6WzAxt84fhjb99b4O5wW/Fee28Wl06iuhQ6MNm4Eo3RX+6EXl3CqQgG3rH+1HR2O3luuS0m9VQm7EwbbEZz5am78/VdpGqeBxycODT1C3QMGr3L213wVBwOi5dowqLSKYjSGkA/59D2A3E/bKoPhANju4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746837755; c=relaxed/simple;
-	bh=iGN79tVQ9shJGWC9FDXN9Z72Y6TK0fWAD0zqqTALJLA=;
-	h=Date:To:From:Subject:Message-Id; b=LfUElbTm68EI8NR6hvBpaRIq/WzdrqY+qPVagcYOxj+TNKiBvJaq3ZGy+/dtmswb2J9G4D+b5AEOz13qmzzTo2hAMue+JHqCp9hFDUVUWiq+oNxPz+FnxgZ0ElzuukhxBq/auKRXsCEE2yoXCqvTUpy3jiwXUOd9qXuHARFbYU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=imaR29Go; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746837949; c=relaxed/simple;
+	bh=Po4c335hTMy+BW8lM6PSZywsQJhq76bEqK1YWsxxnXg=;
+	h=Date:To:From:Subject:Message-Id; b=XCZxcq4CE3PXIiKoXqDxDNq9OdhsGNu9xO527+bxsy5WYqTYtWnYs1wkO90GeHG20NURQLyDZVVkD+gASv3fYaKOtX9CSQL4wTtqcX++qvL93h3fYoxvwFAGQsYd+qUYzpk1AgPyRVVYulLzCUPoHWi6m6NBIVqbez4Gibc9nEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i/ZSOA9i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="imaR29Go"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A099C4CEE4;
-	Sat, 10 May 2025 00:42:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i/ZSOA9i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B4DDC4CEE4;
+	Sat, 10 May 2025 00:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746837755;
-	bh=iGN79tVQ9shJGWC9FDXN9Z72Y6TK0fWAD0zqqTALJLA=;
+	s=korg; t=1746837948;
+	bh=Po4c335hTMy+BW8lM6PSZywsQJhq76bEqK1YWsxxnXg=;
 	h=Date:To:From:Subject:From;
-	b=imaR29GoPuLKbd6oUXnIkigO3ONTObXMhHKGWlat/LDcZxUwxsThRZ1gpj4tDT2qz
-	 5rnTExC7pUneZmQyLqol7CVtc6YqPRXiE1pWJX+ilOPU117lE3aNZyCh0XHZvoP5bo
-	 bPx9+0vYjTeKWnlj23qSEb68n8eDqOl+/pn7uDIA=
-Date: Fri, 09 May 2025 17:42:33 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,mingo@kernel.org,maobibo@loongson.cn,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,david@redhat.com,baohua@kernel.org,anshuman.khandual@arm.com,379943137@qq.com,akpm@linux-foundation.org
+	b=i/ZSOA9icN5TuCRn4Z7wi4VzRI5fUmMcFRfvzMht+ROUrzn87oex1f72xK09IgePc
+	 CaoFcWLdT3wEya6bmI5ju2OeasUZPbrm4x3AwR1RD+mpE0FcBD90q/BbYxoA7hybbv
+	 a5oj3dqVlVt1zb0Z1uQ48UN9sGV1aXH/C6Wazab4=
+Date: Fri, 09 May 2025 17:45:47 -0700
+To: mm-commits@vger.kernel.org,linus.walleij@linaro.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-obsolete-pgd_offset_gate.patch added to mm-unstable branch
-Message-Id: <20250510004235.3A099C4CEE4@smtp.kernel.org>
+Subject: + fork-clean-up-ifdef-logic-around-stack-allocation.patch added to mm-nonmm-unstable branch
+Message-Id: <20250510004548.8B4DDC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove obsolete pgd_offset_gate()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-obsolete-pgd_offset_gate.patch
+     Subject: fork: clean-up ifdef logic around stack allocation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fork-clean-up-ifdef-logic-around-stack-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-obsolete-pgd_offset_gate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-clean-up-ifdef-logic-around-stack-allocation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,100 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Feng Lee <379943137@qq.com>
-Subject: mm: remove obsolete pgd_offset_gate()
-Date: Fri, 9 May 2025 14:32:30 +0800
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: fork: clean-up ifdef logic around stack allocation
+Date: Fri, 09 May 2025 08:29:26 +0200
 
-Remove pgd_offset_gate() completely and simply make the single caller use
-pgd_offset().
+Patch series "fork: Page operation cleanups in the fork code", v3.
 
-It appears that the gate area resides in the kernel-mapped segment
-exclusively on IA64.  Therefore, removing pgd_offset_k is safe since IA64
-is now obsolete.
+This patchset consists of outtakes from a 1 year+ old patchset from Pasha,
+which all stand on their own.  See:
+https://lore.kernel.org/all/20240311164638.2015063-1-pasha.tatashin@soleen.com/
 
-Link: https://lkml.kernel.org/r/tencent_503130C3CD56569191396268CF4D12F09A06@qq.com
-Signed-off-by: Feng Lee <379943137@qq.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: bibo mao <maobibo@loongson.cn>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
+These are good cleanups for readability so I split these off, rebased on
+v6.15-rc1, addressed review comments and send them separately.
+
+All mentions of dynamic stack are removed from the patchset as we have no
+idea whether that will go anywhere.
+
+
+This patch (of 3):
+
+There is unneeded OR in the ifdef functions that are used to allocate and
+free kernel stacks based on direct map or vmap.
+
+Therefore, clean up by Changing the order so OR is no longer needed.
+
+[linus.walleij@linaro.org: rebased]
+Link: https://lkml.kernel.org/r/20250509-fork-fixes-v3-1-e6c69dd356f2@linaro.org
+Link: https://lkml.kernel.org/r/20250509-fork-fixes-v3-0-e6c69dd356f2@linaro.org
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lore.kernel.org/20240311164638.2015063-3-pasha.tatashin@soleen.com
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    4 ----
- mm/gup.c                |    5 +----
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ kernel/fork.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/include/linux/pgtable.h~mm-remove-obsolete-pgd_offset_gate
-+++ a/include/linux/pgtable.h
-@@ -1164,10 +1164,6 @@ static inline void arch_swap_restore(swp
+--- a/kernel/fork.c~fork-clean-up-ifdef-logic-around-stack-allocation
++++ a/kernel/fork.c
+@@ -188,13 +188,7 @@ static inline void free_task_struct(stru
+ 	kmem_cache_free(task_struct_cachep, tsk);
  }
- #endif
  
--#ifndef __HAVE_ARCH_PGD_OFFSET_GATE
--#define pgd_offset_gate(mm, addr)	pgd_offset(mm, addr)
--#endif
+-/*
+- * Allocate pages if THREAD_SIZE is >= PAGE_SIZE, otherwise use a
+- * kmemcache based allocator.
+- */
+-# if THREAD_SIZE >= PAGE_SIZE || defined(CONFIG_VMAP_STACK)
 -
- #ifndef __HAVE_ARCH_MOVE_PTE
- #define move_pte(pte, old_addr, new_addr)	(pte)
- #endif
---- a/mm/gup.c~mm-remove-obsolete-pgd_offset_gate
-+++ a/mm/gup.c
-@@ -1102,10 +1102,7 @@ static int get_gate_page(struct mm_struc
- 	/* user gate pages are read-only */
- 	if (gup_flags & FOLL_WRITE)
- 		return -EFAULT;
--	if (address > TASK_SIZE)
--		pgd = pgd_offset_k(address);
--	else
--		pgd = pgd_offset_gate(mm, address);
-+	pgd = pgd_offset(mm, address);
- 	if (pgd_none(*pgd))
- 		return -EFAULT;
- 	p4d = p4d_offset(pgd, address);
+-#  ifdef CONFIG_VMAP_STACK
++#ifdef CONFIG_VMAP_STACK
+ /*
+  * vmalloc() is a bit slow, and calling vfree() enough times will force a TLB
+  * flush.  Try to minimize the number of calls by caching stacks.
+@@ -345,7 +339,13 @@ static void free_thread_stack(struct tas
+ 	tsk->stack_vm_area = NULL;
+ }
+ 
+-#  else /* !CONFIG_VMAP_STACK */
++#else /* !CONFIG_VMAP_STACK */
++
++/*
++ * Allocate pages if THREAD_SIZE is >= PAGE_SIZE, otherwise use a
++ * kmemcache based allocator.
++ */
++#if THREAD_SIZE >= PAGE_SIZE
+ 
+ static void thread_stack_free_rcu(struct rcu_head *rh)
+ {
+@@ -377,8 +377,7 @@ static void free_thread_stack(struct tas
+ 	tsk->stack = NULL;
+ }
+ 
+-#  endif /* CONFIG_VMAP_STACK */
+-# else /* !(THREAD_SIZE >= PAGE_SIZE || defined(CONFIG_VMAP_STACK)) */
++#else /* !(THREAD_SIZE >= PAGE_SIZE) */
+ 
+ static struct kmem_cache *thread_stack_cache;
+ 
+@@ -417,7 +416,8 @@ void thread_stack_cache_init(void)
+ 	BUG_ON(thread_stack_cache == NULL);
+ }
+ 
+-# endif /* THREAD_SIZE >= PAGE_SIZE || defined(CONFIG_VMAP_STACK) */
++#endif /* THREAD_SIZE >= PAGE_SIZE */
++#endif /* CONFIG_VMAP_STACK */
+ 
+ /* SLAB cache for signal_struct structures (tsk->signal) */
+ static struct kmem_cache *signal_cachep;
 _
 
-Patches currently in -mm which might be from 379943137@qq.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-remove-obsolete-pgd_offset_gate.patch
+task_stackh-remove-obsolete-__have_arch_kstack_end-check.patch
+fork-clean-up-ifdef-logic-around-stack-allocation.patch
+fork-clean-up-naming-of-vm_stack-vm_struct-variables-in-vmap-stacks-code.patch
+fork-check-charging-success-before-zeroing-stack.patch
 
