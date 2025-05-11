@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06FE4185955
-	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 04:43:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F67145948
+	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 04:47:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746938631; cv=none; b=S5ULL/R4h5/WCF+VydUIirH4SJ7aDLpmEL64E9MhNssIe1HhyfTpGYKrTpK6kvAVUfG7ui8000nZNes3J2qYPQ8K/b/bJcWfuXcPWRwBVdAGnBq0INMM6J4Enq0rEVN9LeXHP04CCgpm6tm2hQxuYgn0n/v9Z/9AQIhMIP6SU6Q=
+	t=1746938848; cv=none; b=nLnWYsbnlHCZUmqVbZ2Wqz7I9AS3nJF9YMOzpK1RzL86cGpw3DRF4CPil5a1L8EwsAhjSKtvodo/IvaHmkQXWX8dB7L5z1LtszQOplBMR75SpolVOteMj74FlwJwKbxzWc+MQePg4R1WDQHlTPkKkKRDUYnvLJgBs9Hp6pyTvas=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746938631; c=relaxed/simple;
-	bh=s76333OhwUjKYcUcbOAgye8ROCcWzLuZVivK5owJcbc=;
-	h=Date:To:From:Subject:Message-Id; b=GTH8ufIEk7iV1u2UuUwaT4Q4bTWLlo6jH1RmgQY5rjNKL1T7eHSPW6xZ0xqO8YaNkAPkg3nAwHeGmWunf+qOAWWbjyczCnkjX36NSrArlal4HJk9gqrjfBm4vCpL7AF+rS0QVwh0LFoMwsw3qZOrdp5BTlak8V2g0eD56rA6tg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jKyvJvV/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746938848; c=relaxed/simple;
+	bh=ExDtTiBDYfRrj3Z7d0e73838WNpWOLQnK2wRfIyXME8=;
+	h=Date:To:From:Subject:Message-Id; b=LySeIPwICcG/rNxJWdbjJBbUOvng3qfmqVC3iP96B0PSKn911XLloYY4OWENdpw5MNeJf3PO2oNglo5t0w09O8NL1Wgx6syBiiV1UwgaNEf56mX8KbCkaz2NdGKJ/CdpZptwy68WxFuFTegSKv2QRh/kBhZRcX+fJvZYjkQj2X8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CkV0mkro; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jKyvJvV/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62F56C4CEE4;
-	Sun, 11 May 2025 04:43:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CkV0mkro"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B68EC4CEE4;
+	Sun, 11 May 2025 04:47:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746938630;
-	bh=s76333OhwUjKYcUcbOAgye8ROCcWzLuZVivK5owJcbc=;
+	s=korg; t=1746938847;
+	bh=ExDtTiBDYfRrj3Z7d0e73838WNpWOLQnK2wRfIyXME8=;
 	h=Date:To:From:Subject:From;
-	b=jKyvJvV/tj6Q72yS/79WildoH28fUckFANkaOWBv/A8NbSDLc0Z3qnmnRao7D7jcK
-	 CiNpOnFbyMCp2CqT5ifImN7+k2PPODOeEuuzAsegEWgZoBJfYo2dRYq4g7u2HxPDY1
-	 Y8UUeMLR3yd189KFBwnPFSGkBOONsCEA47JUje4g=
-Date: Sat, 10 May 2025 21:43:49 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,mjguzik@gmail.com,joel.granados@kernel.org,brauner@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=CkV0mkron60k5/y9Ytk3lQAQNIM6WE4DpRyKXH6Dh/cVUq6NiwTv+4gCo8LBfjA//
+	 IUUosQD7SFGz8HSCAZDsGxS2PGfxJ7Z3zSImMlI7IPkrOXLr/2HwxWtJ4I41phnFHo
+	 /w2YRuvxbb7AcIRmcq6kHjvUi1iSDF2yo6B0Y2LI=
+Date: Sat, 10 May 2025 21:47:27 -0700
+To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,tglx@linutronix.de,song@kernel.org,luogengkun@huaweicloud.com,joel.granados@kernel.org,dianders@chromium.org,nysal@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] exit-skip-irq-disabled-warning-during-power-off.patch removed from -mm tree
-Message-Id: <20250511044350.62F56C4CEE4@smtp.kernel.org>
+Subject: [folded-merged] watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch removed from -mm tree
+Message-Id: <20250511044727.9B68EC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: exit: skip IRQ disabled warning during power off
+     Subject: watchdog: fix the SOFTLOCKUP_DETECTOR=n case
 has been removed from the -mm tree.  Its filename was
-     exit-skip-irq-disabled-warning-during-power-off.patch
+     watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was folded into watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: exit: skip IRQ disabled warning during power off
-Date: Thu, 03 Apr 2025 11:01:29 -0700
+From: "Nysal Jan K.A." <nysal@linux.ibm.com>
+Subject: watchdog: fix the SOFTLOCKUP_DETECTOR=n case
+Date: Fri, 2 May 2025 16:41:20 +0530
 
-When the system is shutting down due to pid 1 exiting, which is common on
-virtual machines, a warning message is printed.
+Update watchdog_thresh when SOFTLOCKUP_DETECTOR=n.  Additionally fix a
+build failure in this case as well.
 
-	WARNING: CPU: 0 PID: 1 at kernel/exit.c:897 do_exit+0x7e3/0xab0
-
-This occurs because do_exit() is called after kernel_power_off(), which
-disables interrupts.  native_machine_shutdown() expliclty disable
-interrupt to avoid receiving the timer interrupt, forcing scheduler load
-balance during the power off phase.
-
-This is the simplified code path:
-
-	kernel_power_off()
-	  - native_machine_shutdown()
-	  	- local_irq_disable()
-	do_exit()
-
-Modify the warning condition in do_exit() to only trigger the warning if
-the system is not powering off, since it is expected to have the irq
-disabled in that case.
-
-Link: https://lkml.kernel.org/r/20250403-exit-v1-1-8e9266bfc4b7@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lkml.kernel.org/r/20250502111120.282690-1-nysal@linux.ibm.com
+Reported-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Closes: https://lore.kernel.org/all/339e2b3e-c7ee-418f-a84c-9c6360dc570b@linux.ibm.com
+Signed-off-by: Nysal Jan K.A. <nysal@linux.ibm.com>
+Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: Doug Anderson <dianders@chromium.org>
 Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Luo Gengkun <luogengkun@huaweicloud.com>
+Cc: Song Liu <song@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/watchdog.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/exit.c~exit-skip-irq-disabled-warning-during-power-off
-+++ a/kernel/exit.c
-@@ -893,7 +893,7 @@ void __noreturn do_exit(long code)
- 	struct task_struct *tsk = current;
- 	int group_dead;
+--- a/kernel/watchdog.c~watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix
++++ a/kernel/watchdog.c
+@@ -923,10 +923,12 @@ static __init void lockup_detector_setup
+ }
  
--	WARN_ON(irqs_disabled());
-+	WARN_ON(irqs_disabled() && system_state != SYSTEM_POWER_OFF);
- 
- 	synchronize_group_exit(tsk, code);
- 
+ #else /* CONFIG_SOFTLOCKUP_DETECTOR */
+-static void __lockup_detector_reconfigure(void)
++static void __lockup_detector_reconfigure(bool thresh_changed)
+ {
+ 	cpus_read_lock();
+ 	watchdog_hardlockup_stop();
++	if (thresh_changed)
++		watchdog_thresh = READ_ONCE(watchdog_thresh_next);
+ 	lockup_detector_update_enable();
+ 	watchdog_hardlockup_start();
+ 	cpus_read_unlock();
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from nysal@linux.ibm.com are
 
+watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch
 
