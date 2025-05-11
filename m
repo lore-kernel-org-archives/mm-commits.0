@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D997F14C5B0
-	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 03:49:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECD9713BC0C
+	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 03:50:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746935365; cv=none; b=eKWEWAQQysNzE/f68qJD8FvO37rKNYehJC/vbt7/vlhZjAKtoxJ4ZiUIOE/b7wT6UOWYzr76aBSHGOD8IXDR5KLkgn/tyb2DYLgSaOOZuglbzH3lKsH03XiKb+6e0sLsMRc/POSK6UR7fRZhXhWzpcs9kdnFNPwFVvhbdgCXb/4=
+	t=1746935426; cv=none; b=EVWl9p2tEml1nxQPV0z58M2foOljzoZslRK0nkzv8dBnvWYXK1ESPE0JZ8WRum7cSv2XHIW2Kru25V1+bMC/qgzEO6pO2Lt1TMMyJXZNp+8oOXjtmx6weob9oibqwJvMz0Uv6OG2Ir72eVmzS6zI95sIm8IJ/LJFagbEfKxnds8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746935365; c=relaxed/simple;
-	bh=jwUwVM9UDZU9WXIR7DPjBuZ/FvDxuYUS7G47iUgZ+Xs=;
-	h=Date:To:From:Subject:Message-Id; b=qCwwwz8tJRKSZpdooRQeYC/sL3axHb9DRnzvzJuCkqnB1PzPXmHBhsOycUU/jWLgVFccqzblJJxa4qMtNx3B6j9DWo0G+wBWoFKnNF7yyfTYhIaP5ovM8CSaMvLXQzoZih4KF+BPpowqcRPL4LEXkNkNy92fixiQIPlN0gNk2Ws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MFCOpdRm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746935426; c=relaxed/simple;
+	bh=vlFxfV+1f7BQG3YUPIbnz3obq8L5HiXdzIVAjFEmuRk=;
+	h=Date:To:From:Subject:Message-Id; b=IuIFNKhZf4Il0GGWUX9Sdpxu/z9/iV9HZdCKsX+2a5+Z5X81k7yATDw3+5ajZHHnl2sF4EClfOt/YAaqxvBWlfwbGdpFmhys9XMF1a+dGU3P1xVZzqDyo6NmBrMKLQmWP3uJSxJAYiS02c+9MnYYmhlvgChvJ7TPIcMPP21TavY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yFjTEX1P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MFCOpdRm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDF54C4CEE4;
-	Sun, 11 May 2025 03:49:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yFjTEX1P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CE4DC4CEE4;
+	Sun, 11 May 2025 03:50:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746935365;
-	bh=jwUwVM9UDZU9WXIR7DPjBuZ/FvDxuYUS7G47iUgZ+Xs=;
+	s=korg; t=1746935425;
+	bh=vlFxfV+1f7BQG3YUPIbnz3obq8L5HiXdzIVAjFEmuRk=;
 	h=Date:To:From:Subject:From;
-	b=MFCOpdRmuidffH15vnG9kVRZYNioACMA1sZZwquVNk3CZrapeXtbVntZaBWkox8Rr
-	 rb5DBgxDE8Rwhfhr/7ZZ2de67YYB5N14remeb4oREaCuQmTejCBCKG/QBhKA0M+PQU
-	 6MGqDCHNiF3hgnL+Ba3Czk1CClRblIUEMJg4dWbI=
-Date: Sat, 10 May 2025 20:49:24 -0700
-To: mm-commits@vger.kernel.org,mjguzik@gmail.com,lkp@intel.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=yFjTEX1PfZKziPNqKVme1scvo+ie/IR/xpOuionXckwZ53bsDI9w3O5SLMAzjcDbG
+	 PxgxqOhLJhGzOvkep5FGYB/oUDxmVwoxv086v70sZD6m3qFPPOMJt9cmp2cIKjqA66
+	 Ja04arYYfXe0ACg/WYG3ft15cqsMAXwbtRunmDNg=
+Date: Sat, 10 May 2025 20:50:24 -0700
+To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,osalvador@suse.de,joshua.hahnjy@gmail.com,Jonathan.Cameron@huawei.com,honggyu.kim@sk.com,gourry@gourry.net,david@redhat.com,dan.j.williams@intel.com,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-test_vmallocc-replace-rwsem-to-srcu-for-setup-fix.patch removed from -mm tree
-Message-Id: <20250511034924.EDF54C4CEE4@smtp.kernel.org>
+Subject: [folded-merged] mm-mempolicy-support-memory-hotplug-in-weighted-interleave-fix.patch removed from -mm tree
+Message-Id: <20250511035025.5CE4DC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/test_vmalloc.c: fix compile error with CONFIG_TINY_RCU
+     Subject: mm/mempolicy: fix error code in sysfs_wi_node_add()
 has been removed from the -mm tree.  Its filename was
-     lib-test_vmallocc-replace-rwsem-to-srcu-for-setup-fix.patch
+     mm-mempolicy-support-memory-hotplug-in-weighted-interleave-fix.patch
 
-This patch was dropped because it was folded into lib-test_vmallocc-replace-rwsem-to-srcu-for-setup.patch
+This patch was dropped because it was folded into mm-mempolicy-support-memory-hotplug-in-weighted-interleave.patch
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: lib/test_vmalloc.c: fix compile error with CONFIG_TINY_RCU
-Date: Sun, 20 Apr 2025 16:20:29 +0200
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: mm/mempolicy: fix error code in sysfs_wi_node_add()
+Date: Mon, 5 May 2025 17:32:12 +0300
 
-When the kernel is built with CONFIG_TINY_RCU, compiling the
-test_vmalloc.c fails, due to conflicting definitions like "struct
-srcu_usage", etc.  between "srcutiny.h" and "srcutree.h".
+Smatch complains that there is a missing error code here.  Arguments could
+be made either way about what correct behavior should be but in the end we
+decided that returning -EINVAL probably made sense.
 
-It happens because of direct including the "srcutree.h" bypassing the
-automatic selection mechanism.  A correct approach is to include a generic
-<linux/srcu.h> which properly select SRCU implementation based on a kernel
-configuration.
+The wi_node_notifier() already prints an error so this pr_info() is
+duplicative so delete it.
 
-Fix it by replacing the "srcutree.h" include with "srcu.h".
-
-Link: https://lkml.kernel.org/r/20250420142029.103169-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202504190717.tJHs381f-lkp@intel.com/
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christop Hellwig <hch@infradead.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
+Link: https://lkml.kernel.org/r/aBjL7Bwc0QBzgajK@stanley.mountain
+Fixes: bc7527e0a127 ("mm/mempolicy: support memory hotplug in weighted interleave")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Honggyu Kim <honggyu.kim@sk.com>
+Reviewed-by: Rakie Kim <rakie.kim@sk.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Yunjeong Mun <yunjeong.mun@sk.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_vmalloc.c~lib-test_vmallocc-replace-rwsem-to-srcu-for-setup-fix
-+++ a/lib/test_vmalloc.c
-@@ -15,7 +15,7 @@
- #include <linux/delay.h>
- #include <linux/mm.h>
- #include <linux/rcupdate.h>
--#include <linux/srcutree.h>
-+#include <linux/srcu.h>
- #include <linux/slab.h>
+--- a/mm/mempolicy.c~mm-mempolicy-support-memory-hotplug-in-weighted-interleave-fix
++++ a/mm/mempolicy.c
+@@ -3539,7 +3539,7 @@ static const struct kobj_type wi_ktype =
  
- #define __param(type, name, init, msg)		\
+ static int sysfs_wi_node_add(int nid)
+ {
+-	int ret = 0;
++	int ret;
+ 	char *name;
+ 	struct iw_node_attr *new_attr;
+ 
+@@ -3568,7 +3568,7 @@ static int sysfs_wi_node_add(int nid)
+ 	mutex_lock(&wi_group->kobj_lock);
+ 	if (wi_group->nattrs[nid]) {
+ 		mutex_unlock(&wi_group->kobj_lock);
+-		pr_info("node%d already exists\n", nid);
++		ret = -EEXIST;
+ 		goto out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-maintainers-add-myself-as-vmalloc-co-maintainer.patch
-vmalloc-add-for_each_vmap_node-helper.patch
-vmalloc-switch-to-for_each_vmap_node-helper.patch
-vmalloc-use-for_each_vmap_node-in-purge-vmap-area.patch
-vmalloc-use-atomic_long_add_return_relaxed.patch
-lib-test_vmallocc-replace-rwsem-to-srcu-for-setup.patch
-lib-test_vmallocc-allow-built-in-execution.patch
-maintainers-add-test_vmallocc-to-vmalloc-section.patch
-vmalloc-align-nr_vmalloc_pages-and-vmap_lazy_nr.patch
+mm-mempolicy-support-memory-hotplug-in-weighted-interleave.patch
 
