@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF7A82F2E
-	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 03:56:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91D2B17555
+	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 04:38:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746935797; cv=none; b=AVMeupZeT7gioi33KW1IYNjU75DLuEYEovs3giMeAm+ZXAWL1bndJM+S5UlbrwmxXgHl9AgTs17UtsK3IrzN5W0RSdIDp117JaHGms/VXMl2HuTQo9pI+R4Z1ceVw/lklHdG0/iBh2sOeVI0NVYRhrO123TBuZPsYyZNtTfpe/I=
+	t=1746938315; cv=none; b=POliUz98wu7IEsV2qzWFjBsRzMTGagWkRag7l4aNZhw15XCt780xuG4AHCfTdYOPNmkN3BsPpdGPQWjBqhOyLjvGlDogaf2v5K5Wlp0tf+8omwdKJOMHCVglVoJvF0UdEDbEh/XtjUlh64EkwX5+diI6P4mGkWYv1OSYATKynjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746935797; c=relaxed/simple;
-	bh=r1KekSG98iLNjhmyKR6zmbwKg9qbY5U/qvKBGJq2924=;
-	h=Date:To:From:Subject:Message-Id; b=BZaAlHo+zquzmhsU34HLB2pgpbyqX3YBqUnDTilpN/AAfPa9CZRciF026kduJUSwq1TrUt4K/8cGQraOoWRE8eVopAWsypR874jkirocpV73RdEGOvfD3Ws/Glo8zTbPZtdE04IEs8YEFIgMbbrMzAyumDSFVShbKRUQ7bavQdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AJawg/Ha; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746938315; c=relaxed/simple;
+	bh=3dTJFiawwlFWmfu0dW3vSbdBq4Qlxhiz7OdSJVz6N1s=;
+	h=Date:To:From:Subject:Message-Id; b=RtN6ePq5lLRjLGEcMkFA5LdxApL5fSOWVJNgv1k8xadl/QYIIuryxi8sXyVHiTyFx0vQw5c0WwGn7OYAPxj6a4Snz2LNdO1SS9aCHCMvsK2HxjIIQpAnxS5Ik8YyPIwirEqLP38VkzB+MSmRsCjKHIu2eWwCSCmKyEB6Lsva//k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lo6I8C1S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AJawg/Ha"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AB25C4CEE4;
-	Sun, 11 May 2025 03:56:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lo6I8C1S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2898C4CEE4;
+	Sun, 11 May 2025 04:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746935797;
-	bh=r1KekSG98iLNjhmyKR6zmbwKg9qbY5U/qvKBGJq2924=;
+	s=korg; t=1746938314;
+	bh=3dTJFiawwlFWmfu0dW3vSbdBq4Qlxhiz7OdSJVz6N1s=;
 	h=Date:To:From:Subject:From;
-	b=AJawg/Haw8ZrwIP2xMu9PuvGOsGl/Vgx3p2XF3ZtWGWsebwQJW9984XfN6zoPo/gp
-	 DEUOpTIhD3l1iCJuY2JnQK8XEefsuOexeiNbPGLrhKdZq3kDHVF7ZYnPRlL02eRb1F
-	 NjRfyQLESgVkT5LgMI5aM1KYRzKhBeZcm1TI3m30=
-Date: Sat, 10 May 2025 20:56:36 -0700
-To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=lo6I8C1SG1enSwKHutbYtFTifdpT99j1aLLSLa36tOZatCKvJ0sQg4B4fCtS06mbm
+	 OdmnVfhsFKcHbTQp2guvj+VvFv91xOknOT0cE8ZD69iOl2QRt+w0oFiyOvVMwAnYGh
+	 WZGQQpmt5uHevsXLGcKsGMH6hYGZA8yUJzzpSavc=
+Date: Sat, 10 May 2025 21:38:34 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,oleg@redhat.com,mingo@kernel.org,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,glider@google.com,brauner@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch removed from -mm tree
-Message-Id: <20250511035637.2AB25C4CEE4@smtp.kernel.org>
+Subject: [folded-merged] exit-move-and-extend-sched_process_exit-tracepoint-fix.patch removed from -mm tree
+Message-Id: <20250511043834.D2898C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon: trigger build even if only mtier is enabled
+     Subject: exit: document sched_process_exit and sched_process_template relation
 has been removed from the -mm tree.  Its filename was
-     samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch
+     exit-move-and-extend-sched_process_exit-tracepoint-fix.patch
 
-This patch was dropped because it was folded into samples-damon-implement-a-damon-module-for-memory-tiering.patch
+This patch was dropped because it was folded into exit-move-and-extend-sched_process_exit-tracepoint.patch
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon: trigger build even if only mtier is enabled
-Date: Sat, 26 Apr 2025 11:40:54 -0700
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: exit: document sched_process_exit and sched_process_template relation
+Date: Thu, 3 Apr 2025 10:41:20 -0700
 
-mtier can be built only if one or more of other DAMON sample modules are
-build-enabled.  This is because commit 66001f0476f4 ("samples/damon:
-implement a DAMON module for memory tiering") on mm-unstable tree is not
-connecting it on samples/Makefile.  Fix it by adding the connection on
-samples/Makefile.
+Add an explicit note pointing out that sched_process_exit tracepoint is,
+conceptually, related to sched_process_template and should be kept in sync
+(though, on the best effort basis).
 
-Link: https://lkml.kernel.org/r/20250426184054.11437-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20250403174120.4087794-1-andrii@kernel.org
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Suggested-by: Ingo Molnar <mingo@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ include/trace/events/sched.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/samples/Makefile~samples-damon-implement-a-damon-module-for-memory-tiering-fix
-+++ a/samples/Makefile
-@@ -42,4 +42,5 @@ obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
- obj-$(CONFIG_SAMPLES_RUST)		+= rust/
- obj-$(CONFIG_SAMPLE_DAMON_WSSE)		+= damon/
- obj-$(CONFIG_SAMPLE_DAMON_PRCL)		+= damon/
-+obj-$(CONFIG_SAMPLE_DAMON_MTIER)	+= damon/
- obj-$(CONFIG_SAMPLE_HUNG_TASK)		+= hung_task/
+--- a/include/trace/events/sched.h~exit-move-and-extend-sched_process_exit-tracepoint-fix
++++ a/include/trace/events/sched.h
+@@ -326,7 +326,11 @@ DEFINE_EVENT(sched_process_template, sch
+ 	     TP_ARGS(p));
+ 
+ /*
+- * Tracepoint for a task exiting:
++ * Tracepoint for a task exiting.
++ * Note, it's a superset of sched_process_template and should be kept
++ * compatible as much as possible. sched_process_exits has an extra
++ * `group_dead` argument, so sched_process_template can't be used,
++ * unfortunately, just like sched_migrate_task above.
+  */
+ TRACE_EVENT(sched_process_exit,
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-mm-madvise-define-and-use-madvise_behavior-struct-for-madvise_do_behavior.patch
-mm-madvise-batch-tlb-flushes-for-madv_free.patch
-mm-memory-split-non-tlb-flushing-part-from-zap_page_range_single.patch
-mm-madvise-batch-tlb-flushes-for-madv_dontneed.patch
-mm-damon-core-introduce-damos-quota-goal-metrics-for-memory-node-utilization.patch
-mm-damon-sysfs-schemes-implement-file-for-quota-goal-nid-parameter.patch
-mm-damon-sysfs-schemes-connect-damos_quota_goal-nid-with-core-layer.patch
-docs-mm-damon-design-document-node_mem_usedfree_bp.patch
-docs-admin-guide-mm-damon-usage-document-nid-file.patch
-docs-abi-damon-document-nid-file.patch
-samples-damon-implement-a-damon-module-for-memory-tiering.patch
+exit-move-and-extend-sched_process_exit-tracepoint.patch
 
