@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F67145948
-	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 04:47:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A82AF45948
+	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 04:48:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746938848; cv=none; b=nLnWYsbnlHCZUmqVbZ2Wqz7I9AS3nJF9YMOzpK1RzL86cGpw3DRF4CPil5a1L8EwsAhjSKtvodo/IvaHmkQXWX8dB7L5z1LtszQOplBMR75SpolVOteMj74FlwJwKbxzWc+MQePg4R1WDQHlTPkKkKRDUYnvLJgBs9Hp6pyTvas=
+	t=1746938901; cv=none; b=dOEv+6QI6wEp/HtqoXAy6JeAHjpjY+sVMrIrunumQ5Q0x1BvaTJ2/0OOnAruMhlZD05A4gcAgYNzq3SqQa0IdvDwk4Fs0T5zNz76Q3zNWEdErZ4H4lnFFYFio1nDFNPzW+0B9IR3lzMdi8XYvN3+QNCorlK+PbS8P3l7iUZq/7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746938848; c=relaxed/simple;
-	bh=ExDtTiBDYfRrj3Z7d0e73838WNpWOLQnK2wRfIyXME8=;
-	h=Date:To:From:Subject:Message-Id; b=LySeIPwICcG/rNxJWdbjJBbUOvng3qfmqVC3iP96B0PSKn911XLloYY4OWENdpw5MNeJf3PO2oNglo5t0w09O8NL1Wgx6syBiiV1UwgaNEf56mX8KbCkaz2NdGKJ/CdpZptwy68WxFuFTegSKv2QRh/kBhZRcX+fJvZYjkQj2X8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CkV0mkro; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746938901; c=relaxed/simple;
+	bh=vjrfMUm8IsSoEjQiXG2gT2NboVozZdk66MBPduNnQjs=;
+	h=Date:To:From:Subject:Message-Id; b=o6Yh7goj9q85MzlGkMUIn7B27w1QNuxgKpx/vw7ja3DPPbGxE26nk1vETYTUjTi8nChTjAU9juXT5oYGfkabknoGi9vZZFiR+md3d5bkAa7m7zGq5/azRo+sWpt0HdOsD4dFyEw4m5heqcXkNE2N5431Hhi0dn2YI4zBpUxq4dw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yv/pXDsh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CkV0mkro"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B68EC4CEE4;
-	Sun, 11 May 2025 04:47:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yv/pXDsh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 142FEC4CEE4;
+	Sun, 11 May 2025 04:48:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746938847;
-	bh=ExDtTiBDYfRrj3Z7d0e73838WNpWOLQnK2wRfIyXME8=;
+	s=korg; t=1746938901;
+	bh=vjrfMUm8IsSoEjQiXG2gT2NboVozZdk66MBPduNnQjs=;
 	h=Date:To:From:Subject:From;
-	b=CkV0mkron60k5/y9Ytk3lQAQNIM6WE4DpRyKXH6Dh/cVUq6NiwTv+4gCo8LBfjA//
-	 IUUosQD7SFGz8HSCAZDsGxS2PGfxJ7Z3zSImMlI7IPkrOXLr/2HwxWtJ4I41phnFHo
-	 /w2YRuvxbb7AcIRmcq6kHjvUi1iSDF2yo6B0Y2LI=
-Date: Sat, 10 May 2025 21:47:27 -0700
-To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,tglx@linutronix.de,song@kernel.org,luogengkun@huaweicloud.com,joel.granados@kernel.org,dianders@chromium.org,nysal@linux.ibm.com,akpm@linux-foundation.org
+	b=yv/pXDshy6Tg3G6iCCkI8c58A9nksgPN5bby1W7zZiz340s7a5xgXNTgpd7qTQvFf
+	 bCe8UpEt3QFJOksuEzdi6mlb/TpLsz/L/FprZs5GqiHqmflqZBmPDVAocMF1GnwE0c
+	 jTw5RE3Vx/Q/4U1h3ITqbHJ/lapAhII6KiL1bEMU=
+Date: Sat, 10 May 2025 21:48:20 -0700
+To: mm-commits@vger.kernel.org,Marc.Herbert@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch removed from -mm tree
-Message-Id: <20250511044727.9B68EC4CEE4@smtp.kernel.org>
+Subject: [folded-merged] compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch removed from -mm tree
+Message-Id: <20250511044821.142FEC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: watchdog: fix the SOFTLOCKUP_DETECTOR=n case
+     Subject: compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix.patch
+     compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
 
-This patch was dropped because it was folded into watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch
+This patch was dropped because it was folded into compiler_typesh-fix-unused-variable-in-__compiletime_assert.patch
 
 ------------------------------------------------------
-From: "Nysal Jan K.A." <nysal@linux.ibm.com>
-Subject: watchdog: fix the SOFTLOCKUP_DETECTOR=n case
-Date: Fri, 2 May 2025 16:41:20 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix
+Date: Thu Apr 24 02:53:15 PM PDT 2025
 
-Update watchdog_thresh when SOFTLOCKUP_DETECTOR=n.  Additionally fix a
-build failure in this case as well.
+regularize comment layout, reflow comment
 
-Link: https://lkml.kernel.org/r/20250502111120.282690-1-nysal@linux.ibm.com
-Reported-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Closes: https://lore.kernel.org/all/339e2b3e-c7ee-418f-a84c-9c6360dc570b@linux.ibm.com
-Signed-off-by: Nysal Jan K.A. <nysal@linux.ibm.com>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Luo Gengkun <luogengkun@huaweicloud.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Marc Herbert <Marc.Herbert@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/compiler_types.h |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-fix-watchdog-may-detect-false-positive-of-softlockup-fix
-+++ a/kernel/watchdog.c
-@@ -923,10 +923,12 @@ static __init void lockup_detector_setup
- }
+--- a/include/linux/compiler_types.h~compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix
++++ a/include/linux/compiler_types.h
+@@ -525,10 +525,11 @@ struct ftrace_likely_data {
+ 	 sizeof(t) == sizeof(int) || sizeof(t) == sizeof(long))
  
- #else /* CONFIG_SOFTLOCKUP_DETECTOR */
--static void __lockup_detector_reconfigure(void)
-+static void __lockup_detector_reconfigure(bool thresh_changed)
- {
- 	cpus_read_lock();
- 	watchdog_hardlockup_stop();
-+	if (thresh_changed)
-+		watchdog_thresh = READ_ONCE(watchdog_thresh_next);
- 	lockup_detector_update_enable();
- 	watchdog_hardlockup_start();
- 	cpus_read_unlock();
+ #ifdef __OPTIMIZE__
+-/* #ifdef __OPTIMIZE__ is only a good approximation; for instance "make
+- * CFLAGS_foo.o=-Og" defines __OPTIMIZE__, does not elide the
+- * conditional code and can break compilation with wrong error
+- * message(s). Combine with -U__OPTIMIZE__ when needed.
++/*
++ * #ifdef __OPTIMIZE__ is only a good approximation; for instance "make
++ * CFLAGS_foo.o=-Og" defines __OPTIMIZE__, does not elide the conditional code
++ * and can break compilation with wrong error message(s). Combine with
++ * -U__OPTIMIZE__ when needed.
+  */
+ # define __compiletime_assert(condition, msg, prefix, suffix)		\
+ 	do {								\
 _
 
-Patches currently in -mm which might be from nysal@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch
+mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update-fix.patch
+mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
+jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-add-zblock-allocator-fix-3.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+compiler_typesh-fix-unused-variable-in-__compiletime_assert.patch
+revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
