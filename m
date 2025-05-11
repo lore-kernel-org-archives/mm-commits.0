@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD620143736
-	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 03:34:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC441E485
+	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 03:34:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746934441; cv=none; b=YWjtOIarkhiHVNY8vCCsKexKyBC/phnq1ISo/TKyUGd2zYjTm5ZsZl17m/KHFy+dJs6TJB8f9giQojrXCoVvPtYwgGx+PzvlUYHyTllIK89mddSmKi3s5FK1s01SMbCL9xn1Fvm29n7Ondht88tu8AXonBcnU7WSuT/QVkGLYMI=
+	t=1746934493; cv=none; b=mi6PHE35EV2m59XEulf15l1ptAwaiJhRTFkeJppjxuB0/lPBNSOp6p9wl7Z3KYSmbuzY4oRPbAN+o0dwqfCvnK7FvM6D2XnPqbzaA8mNLcpxW4NF9OO4djsH74S7VOkovgko2x7fpoMiFX8iTIXcIWPzhqQRtTQHyCeO08ic1Tw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746934441; c=relaxed/simple;
-	bh=+ujlxU9Mj0SDtiLrd0kgjJSmTQRFRG6qJj+GnpvMijs=;
-	h=Date:To:From:Subject:Message-Id; b=VKgPe9jA1nUlwrbLhUauKoFKAWoImo1cqHrYkBMYJS0ObmMo+RUI4+LcPudlAFzhGC+lrmk4PmkJ8NM/iDBykD3ymGPOPRq8m+MTWSxs8bdYRPUkg07v8easl3YPHRzdXbc6E3dMkTbKFokZCG5Wdy69YoHuWSpi1R/Q4LCAkVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=10wB7Pg1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746934493; c=relaxed/simple;
+	bh=AWeADXXTnx4ZEhZHC9sq7LQYBwmbqu6hu1G/WZm4GPQ=;
+	h=Date:To:From:Subject:Message-Id; b=ueD6tzf/CQFzYfiBbgDs1fJVB24iWXOoCGKzD1U4WH+RdVgaUppqva9Zb1VNEW8VqiUrpN/6JypkvCVjXV+qzVBF6O94q0cr9bx6moAUz3qvsMzZieIxfsJBVCJli969xRGwkObPmaxJHXELxzB90F0Gu5DnulrDnHZEER0VGrE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AG0aR00G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="10wB7Pg1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 290FEC4CEE4;
-	Sun, 11 May 2025 03:34:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AG0aR00G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFE6C4CEE4;
+	Sun, 11 May 2025 03:34:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746934441;
-	bh=+ujlxU9Mj0SDtiLrd0kgjJSmTQRFRG6qJj+GnpvMijs=;
+	s=korg; t=1746934492;
+	bh=AWeADXXTnx4ZEhZHC9sq7LQYBwmbqu6hu1G/WZm4GPQ=;
 	h=Date:To:From:Subject:From;
-	b=10wB7Pg115aCnF5OJuQY5IN3KP0riLR6sjqvDhdbTQ+Q94fEOzxYJMI6BJ62cDKWt
-	 O2pTnoRwwG7AzcZqcTAiw7VgKklJ06NUMsxI9NCb2De37djFL7+4YXaJnP+kITlo9T
-	 qwAqWVj/EaP+hI9BjPm75jXsqKu9hxhCoTr7LU14=
-Date: Sat, 10 May 2025 20:34:00 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=AG0aR00GGtVeJRwqb2hi+lqsBF8dqQtQvITspbiNc2pNkqi56xp5vODnNbJZxxBga
+	 cOKeD7v5hW8kOqQp1UWMZaobhV6ZApDRDFhR747soGbM6OYFEBLZyoIeg7UkZ7KAsu
+	 qsEb6fQSdcsXr6e40ud0qmtr/te2nJV214qUvr54=
+Date: Sat, 10 May 2025 20:34:51 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch removed from -mm tree
-Message-Id: <20250511033401.290FEC4CEE4@smtp.kernel.org>
+Subject: [folded-merged] mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix.patch removed from -mm tree
+Message-Id: <20250511033452.1FFE6C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: simplify MEMCG_VMALLOC updates - fix
+     Subject: mm: swap: add __maybe_unused attribute for swap_is_last_ref() and update it's comment
 has been removed from the -mm tree.  Its filename was
-     memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch
+     mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix.patch
 
-This patch was dropped because it was folded into memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
+This patch was dropped because it was folded into mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref.patch
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: simplify MEMCG_VMALLOC updates - fix
-Date: Fri, 4 Apr 2025 10:41:52 -0700
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm: swap: add __maybe_unused attribute for swap_is_last_ref() and update it's comment
+Date: Thu, 10 Apr 2025 23:39:08 +0800
 
-add comment
+Add __maybe_unused attribute for swap_is_last_ref ()to fix following build
+warning:
 
-Link: https://lkml.kernel.org/r/bmlkdbqgwboyqrnxyom7n52fjmo76ux77jhqw5odc6c6dfon3h@zdylwtmlywbt
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+mm/swapfile.c:1517:20: warning: function 'swap_is_last_ref' is not needed and will not be emitted [-Wunneeded-internal-declaration]
+    1517 | static inline bool swap_is_last_ref(unsigned char count)
+         |                    ^~~~~~~~~~~~~~~~
+   1 warning generated.
+
+Besides, original comment for swap_entries_free() is placed before
+swap_is_last_ref() which may introduce confusion.  Update comment to
+address this.
+
+Link: https://lkml.kernel.org/r/20250410153908.612984-1-shikemeng@huaweicloud.com
+Fixes: 6bb001b6b64e ("mm: swap: enable swap_entry_range_free() to drop any kind of last ref")
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Suggested-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Tested-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/swapfile.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~memcg-vmalloc-simplify-memcg_vmalloc-updates-fix
-+++ a/mm/vmalloc.c
-@@ -3371,6 +3371,7 @@ void vfree(const void *addr)
+--- a/mm/swapfile.c~mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix
++++ a/mm/swapfile.c
+@@ -1520,15 +1520,19 @@ fallback:
+ }
  
- 	if (unlikely(vm->flags & VM_FLUSH_RESET_PERMS))
- 		vm_reset_perms(vm);
-+	/* All pages of vm should be charged to same memcg, so use first one. */
- 	if (vm->nr_pages && !(vm->flags & VM_MAP_PUT_PAGES))
- 		mod_memcg_page_state(vm->pages[0], MEMCG_VMALLOC, -vm->nr_pages);
- 	for (i = 0; i < vm->nr_pages; i++) {
-@@ -3672,6 +3673,7 @@ static void *__vmalloc_area_node(struct
- 		node, page_order, nr_small_pages, area->pages);
+ /*
+- * Drop the last ref(1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM) of swap entries,
+- * caller have to ensure all entries belong to the same cgroup and cluster.
++ * Check if it's the last ref of swap entry in the freeing path.
++ * Qualified vlaue includes 1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM.
+  */
+-static inline bool swap_is_last_ref(unsigned char count)
++static inline bool __maybe_unused swap_is_last_ref(unsigned char count)
+ {
+ 	return (count == SWAP_HAS_CACHE) || (count == 1) ||
+ 	       (count == SWAP_MAP_SHMEM);
+ }
  
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
-+	/* All pages of vm should be charged to same memcg, so use first one. */
- 	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
- 		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
- 				     area->nr_pages);
++/*
++ * Drop the last ref of swap entries, caller have to ensure all entries
++ * belong to the same cgroup and cluster.
++ */
+ static void swap_entries_free(struct swap_info_struct *si,
+ 			      struct swap_cluster_info *ci,
+ 			      swp_entry_t entry, unsigned int nr_pages)
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
-memcg-remove-root-memcg-check-from-refill_stock.patch
-memcg-decouple-drain_obj_stock-from-local-stock.patch
-memcg-introduce-memcg_uncharge.patch
-memcg-manually-inline-__refill_stock.patch
-memcg-no-refilling-stock-from-obj_cgroup_release.patch
-memcg-do-obj_cgroup_put-inside-drain_obj_stock.patch
-memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
-memcg-manually-inline-replace_stock_objcg.patch
-memcg-optimize-memcg_rstat_updated.patch
-memcg-multi-memcg-percpu-charge-cache.patch
-memcg-multi-memcg-percpu-charge-cache-fix.patch
-memcg-multi-memcg-percpu-charge-cache-fix-2.patch
-memcg-multi-memcg-percpu-charge-cache-fix-4.patch
-memcg-introduce-non-blocking-limit-setting-option.patch
-memcg-introduce-non-blocking-limit-setting-option-v3.patch
-memcg-simplify-consume_stock.patch
-memcg-separate-local_trylock-for-memcg-and-obj.patch
-memcg-completely-decouple-memcg-and-obj-stocks.patch
-memcg-no-irq-disable-for-memcg-stock-lock.patch
+mm-swap-rename-__swap__free-to-swap__put.patch
+mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref.patch
+mm-swap-use-swap_entries_free-to-free-swap-entry-in-swap_entry_put_locked.patch
+mm-swap-use-swap_entries_free-drop-last-ref-count-in-swap_entries_put_nr.patch
+mm-swap-drop-last-swap_map_shmem-flag-in-batch-in-swap_entries_put_nr.patch
+mm-swap-free-each-cluster-individually-in-swap_entries_put_map_nr.patch
+mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch
+mm-swap-replace-cluster_swap_free_nr-with-swap_entries_put_.patch
 
