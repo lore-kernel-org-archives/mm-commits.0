@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C28817BB6
-	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 03:43:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D997F14C5B0
+	for <mm-commits@vger.kernel.org>; Sun, 11 May 2025 03:49:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746935009; cv=none; b=FxZ70d96Q5VrljRAPFaYJzdS72uyz6WUhpEiGDeP3Re92+SaZBkoLTZDtyihg9YFsvSOnIxq4RtRKbQAMzj454oTKgP5Gj87m/6LshCSgjPABf/KgeLc4yIGvaBuNmLYTduNpQxGcXkLoRoePQr5nt3cLJDHHoRfr4JcIBiC0N0=
+	t=1746935365; cv=none; b=eKWEWAQQysNzE/f68qJD8FvO37rKNYehJC/vbt7/vlhZjAKtoxJ4ZiUIOE/b7wT6UOWYzr76aBSHGOD8IXDR5KLkgn/tyb2DYLgSaOOZuglbzH3lKsH03XiKb+6e0sLsMRc/POSK6UR7fRZhXhWzpcs9kdnFNPwFVvhbdgCXb/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746935009; c=relaxed/simple;
-	bh=fkxHeMRDPIMIIzu7epL1TQ8xrU1ELLGdru03bETwilo=;
-	h=Date:To:From:Subject:Message-Id; b=Muf5tlMh+0oCecDIkCcx1vRYlwywCx1Btwf3TGYaV8GgddtiVTyIy9r5saB9Nmwsx7DdShz9Jg7SKqCXv3Um5P4bDI7xCy1kNoPKf0iPqYgwjp8pYived3e6P5PEiPuhBkR6Ad/MApqfqmwkMpU8I/1JWt3p7qX17hi1aqUDJuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vcT+DpTM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746935365; c=relaxed/simple;
+	bh=jwUwVM9UDZU9WXIR7DPjBuZ/FvDxuYUS7G47iUgZ+Xs=;
+	h=Date:To:From:Subject:Message-Id; b=qCwwwz8tJRKSZpdooRQeYC/sL3axHb9DRnzvzJuCkqnB1PzPXmHBhsOycUU/jWLgVFccqzblJJxa4qMtNx3B6j9DWo0G+wBWoFKnNF7yyfTYhIaP5ovM8CSaMvLXQzoZih4KF+BPpowqcRPL4LEXkNkNy92fixiQIPlN0gNk2Ws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MFCOpdRm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vcT+DpTM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DE3DC4CEE4;
-	Sun, 11 May 2025 03:43:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MFCOpdRm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDF54C4CEE4;
+	Sun, 11 May 2025 03:49:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1746935009;
-	bh=fkxHeMRDPIMIIzu7epL1TQ8xrU1ELLGdru03bETwilo=;
+	s=korg; t=1746935365;
+	bh=jwUwVM9UDZU9WXIR7DPjBuZ/FvDxuYUS7G47iUgZ+Xs=;
 	h=Date:To:From:Subject:From;
-	b=vcT+DpTMHRBQKSg8DjYKNR/yEQ9uXUORJIRt8AaCPMF/5mZ2F6AMKJEkhhUlwW9vn
-	 vyKECnboQQfVMQtGk4EA5NJKy9j84V2KlEA27EMMWcLpUUJ0MSXWH3ZhJ2eBD0P9ni
-	 0HgyjNhfllalHLTD2BRrWwufJOGVNj2P5x9dtbtU=
-Date: Sat, 10 May 2025 20:43:28 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,soheil@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,kuba@kernel.org,hughd@google.com,hannes@cmpxchg.org,edumazet@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=MFCOpdRmuidffH15vnG9kVRZYNioACMA1sZZwquVNk3CZrapeXtbVntZaBWkox8Rr
+	 rb5DBgxDE8Rwhfhr/7ZZ2de67YYB5N14remeb4oREaCuQmTejCBCKG/QBhKA0M+PQU
+	 6MGqDCHNiF3hgnL+Ba3Czk1CClRblIUEMJg4dWbI=
+Date: Sat, 10 May 2025 20:49:24 -0700
+To: mm-commits@vger.kernel.org,mjguzik@gmail.com,lkp@intel.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] memcg-multi-memcg-percpu-charge-cache-fix-4.patch removed from -mm tree
-Message-Id: <20250511034329.4DE3DC4CEE4@smtp.kernel.org>
+Subject: [folded-merged] lib-test_vmallocc-replace-rwsem-to-srcu-for-setup-fix.patch removed from -mm tree
+Message-Id: <20250511034924.EDF54C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: multi-memcg percpu charge cache - fix 4
+     Subject: lib/test_vmalloc.c: fix compile error with CONFIG_TINY_RCU
 has been removed from the -mm tree.  Its filename was
-     memcg-multi-memcg-percpu-charge-cache-fix-4.patch
+     lib-test_vmallocc-replace-rwsem-to-srcu-for-setup-fix.patch
 
-This patch was dropped because it was folded into memcg-multi-memcg-percpu-charge-cache.patch
+This patch was dropped because it was folded into lib-test_vmallocc-replace-rwsem-to-srcu-for-setup.patch
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: multi-memcg percpu charge cache - fix 4
-Date: Wed, 30 Apr 2025 08:28:23 -0700
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: lib/test_vmalloc.c: fix compile error with CONFIG_TINY_RCU
+Date: Sun, 20 Apr 2025 16:20:29 +0200
 
-Add comment suggested by Michal and use DEFINE_PER_CPU_ALIGNED instead of
-DEFINE_PER_CPU suggested by Vlastimil.
+When the kernel is built with CONFIG_TINY_RCU, compiling the
+test_vmalloc.c fails, due to conflicting definitions like "struct
+srcu_usage", etc.  between "srcutiny.h" and "srcutree.h".
 
-Link: https://lkml.kernel.org/r/dieeei3squ2gcnqxdjayvxbvzldr266rhnvtl3vjzsqevxkevf@ckui5vjzl2qg
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Eric Dumaze <edumazet@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Soheil Hassas Yeganeh <soheil@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+It happens because of direct including the "srcutree.h" bypassing the
+automatic selection mechanism.  A correct approach is to include a generic
+<linux/srcu.h> which properly select SRCU implementation based on a kernel
+configuration.
+
+Fix it by replacing the "srcutree.h" include with "srcu.h".
+
+Link: https://lkml.kernel.org/r/20250420142029.103169-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202504190717.tJHs381f-lkp@intel.com/
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christop Hellwig <hch@infradead.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ lib/test_vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-multi-memcg-percpu-charge-cache-fix-4
-+++ a/mm/memcontrol.c
-@@ -1769,6 +1769,10 @@ void mem_cgroup_print_oom_group(struct m
- 	pr_cont(" are going to be killed due to memory.oom.group set\n");
- }
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-replace-rwsem-to-srcu-for-setup-fix
++++ a/lib/test_vmalloc.c
+@@ -15,7 +15,7 @@
+ #include <linux/delay.h>
+ #include <linux/mm.h>
+ #include <linux/rcupdate.h>
+-#include <linux/srcutree.h>
++#include <linux/srcu.h>
+ #include <linux/slab.h>
  
-+/*
-+ * The value of NR_MEMCG_STOCK is selected to keep the cached memcgs and their
-+ * nr_pages in a single cacheline. This may change in future.
-+ */
- #define NR_MEMCG_STOCK 7
- struct memcg_stock_pcp {
- 	local_trylock_t stock_lock;
-@@ -1785,7 +1789,7 @@ struct memcg_stock_pcp {
- 	unsigned long flags;
- #define FLUSHING_CACHED_CHARGE	0
- };
--static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock) = {
-+static DEFINE_PER_CPU_ALIGNED(struct memcg_stock_pcp, memcg_stock) = {
- 	.stock_lock = INIT_LOCAL_TRYLOCK(stock_lock),
- };
- static DEFINE_MUTEX(percpu_charge_mutex);
+ #define __param(type, name, init, msg)		\
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
-memcg-remove-root-memcg-check-from-refill_stock.patch
-memcg-decouple-drain_obj_stock-from-local-stock.patch
-memcg-introduce-memcg_uncharge.patch
-memcg-manually-inline-__refill_stock.patch
-memcg-no-refilling-stock-from-obj_cgroup_release.patch
-memcg-do-obj_cgroup_put-inside-drain_obj_stock.patch
-memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
-memcg-manually-inline-replace_stock_objcg.patch
-memcg-optimize-memcg_rstat_updated.patch
-memcg-multi-memcg-percpu-charge-cache.patch
-memcg-introduce-non-blocking-limit-setting-option.patch
-memcg-introduce-non-blocking-limit-setting-option-v3.patch
-memcg-simplify-consume_stock.patch
-memcg-separate-local_trylock-for-memcg-and-obj.patch
-memcg-completely-decouple-memcg-and-obj-stocks.patch
-memcg-no-irq-disable-for-memcg-stock-lock.patch
+maintainers-add-myself-as-vmalloc-co-maintainer.patch
+vmalloc-add-for_each_vmap_node-helper.patch
+vmalloc-switch-to-for_each_vmap_node-helper.patch
+vmalloc-use-for_each_vmap_node-in-purge-vmap-area.patch
+vmalloc-use-atomic_long_add_return_relaxed.patch
+lib-test_vmallocc-replace-rwsem-to-srcu-for-setup.patch
+lib-test_vmallocc-allow-built-in-execution.patch
+maintainers-add-test_vmallocc-to-vmalloc-section.patch
+vmalloc-align-nr_vmalloc_pages-and-vmap_lazy_nr.patch
 
