@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 556B22EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AE562EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011354; cv=none; b=PuGRh3aCLHiJbKv4NZ8wSacRanjK22FPTuZdNW2wbflQ3VlPpFIx1jWI12SyrWV38cff0EqxTLx6sru4VTIWO+6Z58SaRJdg4RtAi0dEvRS2w215La8lcX2ABZbo6NwmUy8qVC75zdeCr5BRiA8EIcSUjwVBjByyFhC6E09UBQk=
+	t=1747011355; cv=none; b=plPWgLzqScrIljjHugZpn8qQzxfwIsvyZGmnmelZEZQ475hMLl/V2f4NlF+F3p+Yy4lChG9LX23laLYg28MwMrtdDTXTpf8RBLR7yCEJVno3SKmcITfhnPbhu6ud2AJwGfZh5dQSPLkXFvGFf8SEFdelAeoFSMr1Myx8y0JEye4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011354; c=relaxed/simple;
-	bh=KlWuHX6ufMLHmmyJONMKrR3Q+D4fHP5FwPYu31brFwk=;
-	h=Date:To:From:Subject:Message-Id; b=Z4lgsQn5M6Fr/n+BK2ZYUAR1C0lI2BgSG6AMYLCiCJ8CUwaiXqgsRdnPduH0+1hqgpAzTvnEQe/sgEAqhK/96C7+t/eXK8WeO+tvhjhyXNp46eEk+Mu7DGAZM9aGIoRak3vqTj4dXO1PYilBUWTZIMJhjgJuaOvBIuRypi4zLMA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PShoez+V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011355; c=relaxed/simple;
+	bh=J4Ni0Jdt/xH+ftj+o+bUxW9lrz/lSIpbEH2Hz/2xTXE=;
+	h=Date:To:From:Subject:Message-Id; b=EIcvACLZf7eDOJ9GcIbyzkDXXNna3dN44zRb7QmZvNgy4UYbUvQGFsqSbvOb3jdhWQnJoi5F0+Druwg4jAI0Id1w/2peGJdcF6zMaUXW8tw6ZMwU6gABdXRDqCIHuW8St0rDsfZ0io0CUx8xy92iyRV3bA2J2wi9DqyJnwzYhnc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SggDog84; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PShoez+V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3A45C4CEE4;
-	Mon, 12 May 2025 00:55:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SggDog84"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA820C4CEE4;
+	Mon, 12 May 2025 00:55:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011353;
-	bh=KlWuHX6ufMLHmmyJONMKrR3Q+D4fHP5FwPYu31brFwk=;
+	s=korg; t=1747011355;
+	bh=J4Ni0Jdt/xH+ftj+o+bUxW9lrz/lSIpbEH2Hz/2xTXE=;
 	h=Date:To:From:Subject:From;
-	b=PShoez+VPmlfjiFPUHoFqLejXZl5+ARF+O66GiT8qqaCOVPiqF7rVUYHW1AV/9WgO
-	 clW7uXLtBFtHEtS/nyaab2RWcnHBwUI9PLyQ2pRL4SAY/NAAaP4A6HeL8W/Pfnkyfb
-	 r6Mpg5BDkbwNeiMyB0z9wtNvyEund7ppgFb2LCvo=
-Date: Sun, 11 May 2025 17:55:53 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,mjguzik@gmail.com,akpm@linux-foundation.org
+	b=SggDog847vixSpf0MqFRUKdPFHpFTCTNWmL+YgmCMp74EdFEcALp0UwEiW4Bmb4Ce
+	 H4VrtmVsu4EfQMnT6OqvPXCvPdhC03KB0Qq/29sVUCx27YSkMqMBqfI5iSbMdKMSRq
+	 En1BYCuuZop1puGSuc4S/j5lrDhv6KZJCWqSvTk4=
+Date: Sun, 11 May 2025 17:55:54 -0700
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch removed from -mm tree
-Message-Id: <20250512005553.B3A45C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-check-return-result-of-sb_min_blocksize.patch removed from -mm tree
+Message-Id: <20250512005554.EA820C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
+     Subject: Squashfs: check return result of sb_min_blocksize
 has been removed from the -mm tree.  Its filename was
-     exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
+     squashfs-check-return-result-of-sb_min_blocksize.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mateusz Guzik <mjguzik@gmail.com>
-Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
-Date: Wed, 19 Mar 2025 20:54:36 +0100
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: check return result of sb_min_blocksize
+Date: Wed, 9 Apr 2025 03:47:47 +0100
 
-This reduces single-threaded overhead as it avoids one lock+irq trip on
-exit.
+Syzkaller reports an "UBSAN: shift-out-of-bounds in squashfs_bio_read" bug.
 
-It also improves scalability of spawning and killing threads within one
-process (just shy of 5% when doing it on 24 cores on my test jig).
+Syzkaller forks multiple processes which after mounting the Squashfs
+filesystem, issues an ioctl("/dev/loop0", LOOP_SET_BLOCK_SIZE, 0x8000). 
+Now if this ioctl occurs at the same time another process is in the
+process of mounting a Squashfs filesystem on /dev/loop0, the failure
+occurs.  When this happens the following code in squashfs_fill_super()
+fails.
 
-Both routines are moved below kcov and kmsan exit, which should be
-harmless.
+----
+msblk->devblksize = sb_min_blocksize(sb, SQUASHFS_DEVBLK_SIZE);
+msblk->devblksize_log2 = ffz(~msblk->devblksize);
+----
 
-Link: https://lkml.kernel.org/r/20250319195436.1864415-1-mjguzik@gmail.com
-Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+sb_min_blocksize() returns 0, which means msblk->devblksize is set to 0.
+
+As a result, ffz(~msblk->devblksize) returns 64, and msblk->devblksize_log2
+is set to 64.
+
+This subsequently causes the
+
+UBSAN: shift-out-of-bounds in fs/squashfs/block.c:195:36
+shift exponent 64 is too large for 64-bit type 'u64' (aka
+'unsigned long long')
+
+This commit adds a check for a 0 return by sb_min_blocksize().
+
+Link: https://lkml.kernel.org/r/20250409024747.876480-1-phillip@squashfs.org.uk
+Fixes: 0aa666190509 ("Squashfs: super block operations")
+Reported-by: syzbot+65761fc25a137b9c8c6e@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67f0dd7a.050a0220.0a13.0230.GAE@google.com/
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   68 ++++++++++++++++++++++--------------------------
- 1 file changed, 32 insertions(+), 36 deletions(-)
+ fs/squashfs/super.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/kernel/exit.c~exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit
-+++ a/kernel/exit.c
-@@ -415,44 +415,30 @@ kill_orphaned_pgrp(struct task_struct *t
- 	}
- }
+--- a/fs/squashfs/super.c~squashfs-check-return-result-of-sb_min_blocksize
++++ a/fs/squashfs/super.c
+@@ -202,6 +202,11 @@ static int squashfs_fill_super(struct su
+ 	msblk->panic_on_errors = (opts->errors == Opt_errors_panic);
  
--static void coredump_task_exit(struct task_struct *tsk)
-+static void coredump_task_exit(struct task_struct *tsk,
-+			       struct core_state *core_state)
- {
--	struct core_state *core_state;
-+	struct core_thread self;
- 
-+	self.task = tsk;
-+	if (self.task->flags & PF_SIGNALED)
-+		self.next = xchg(&core_state->dumper.next, &self);
-+	else
-+		self.task = NULL;
- 	/*
--	 * Serialize with any possible pending coredump.
--	 * We must hold siglock around checking core_state
--	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
--	 * will increment ->nr_threads for each thread in the
--	 * group without PF_POSTCOREDUMP set.
-+	 * Implies mb(), the result of xchg() must be visible
-+	 * to core_state->dumper.
- 	 */
--	spin_lock_irq(&tsk->sighand->siglock);
--	tsk->flags |= PF_POSTCOREDUMP;
--	core_state = tsk->signal->core_state;
--	spin_unlock_irq(&tsk->sighand->siglock);
--	if (core_state) {
--		struct core_thread self;
--
--		self.task = current;
--		if (self.task->flags & PF_SIGNALED)
--			self.next = xchg(&core_state->dumper.next, &self);
--		else
--			self.task = NULL;
--		/*
--		 * Implies mb(), the result of xchg() must be visible
--		 * to core_state->dumper.
--		 */
--		if (atomic_dec_and_test(&core_state->nr_threads))
--			complete(&core_state->startup);
-+	if (atomic_dec_and_test(&core_state->nr_threads))
-+		complete(&core_state->startup);
- 
--		for (;;) {
--			set_current_state(TASK_IDLE|TASK_FREEZABLE);
--			if (!self.task) /* see coredump_finish() */
--				break;
--			schedule();
--		}
--		__set_current_state(TASK_RUNNING);
-+	for (;;) {
-+		set_current_state(TASK_IDLE|TASK_FREEZABLE);
-+		if (!self.task) /* see coredump_finish() */
-+			break;
-+		schedule();
- 	}
-+	__set_current_state(TASK_RUNNING);
- }
- 
- #ifdef CONFIG_MEMCG
-@@ -876,6 +862,7 @@ static void synchronize_group_exit(struc
- {
- 	struct sighand_struct *sighand = tsk->sighand;
- 	struct signal_struct *signal = tsk->signal;
-+	struct core_state *core_state;
- 
- 	spin_lock_irq(&sighand->siglock);
- 	signal->quick_threads--;
-@@ -885,7 +872,19 @@ static void synchronize_group_exit(struc
- 		signal->group_exit_code = code;
- 		signal->group_stop_count = 0;
- 	}
-+	/*
-+	 * Serialize with any possible pending coredump.
-+	 * We must hold siglock around checking core_state
-+	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
-+	 * will increment ->nr_threads for each thread in the
-+	 * group without PF_POSTCOREDUMP set.
-+	 */
-+	tsk->flags |= PF_POSTCOREDUMP;
-+	core_state = signal->core_state;
- 	spin_unlock_irq(&sighand->siglock);
+ 	msblk->devblksize = sb_min_blocksize(sb, SQUASHFS_DEVBLK_SIZE);
++	if (!msblk->devblksize) {
++		errorf(fc, "squashfs: unable to set blocksize\n");
++		return -EINVAL;
++	}
 +
-+	if (unlikely(core_state))
-+		coredump_task_exit(tsk, core_state);
- }
+ 	msblk->devblksize_log2 = ffz(~msblk->devblksize);
  
- void __noreturn do_exit(long code)
-@@ -894,15 +893,12 @@ void __noreturn do_exit(long code)
- 	int group_dead;
- 
- 	WARN_ON(irqs_disabled());
--
--	synchronize_group_exit(tsk, code);
--
- 	WARN_ON(tsk->plug);
- 
- 	kcov_task_exit(tsk);
- 	kmsan_task_exit(tsk);
- 
--	coredump_task_exit(tsk);
-+	synchronize_group_exit(tsk, code);
- 	ptrace_event(PTRACE_EVENT_EXIT, code);
- 	user_events_exit(tsk);
- 
+ 	mutex_init(&msblk->meta_index_mutex);
 _
 
-Patches currently in -mm which might be from mjguzik@gmail.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
 
