@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42630253F2D
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 23:34:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DF7F2627E9
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 23:34:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747092878; cv=none; b=rg4JT0TeODGKLOWDaO/0rgG+Jb1QD3a/qENFP5yWPgnWEVv5KpcHb8NaVHLLmIgWSm2sYqD8ZYdIDKmoggcQjyoRnBKvHFWWEdO/XgvVGeRA2yAWp/fuiWfKWtcRery+2FL/bYddWaT1MzWuo7zkr+S8+/rNdYCSI36+HL7erww=
+	t=1747092880; cv=none; b=QfeygkKIWXTmgKWG9HnHlPPzgDVc4+rYg/NQPFIVWzcGbRqJ+XgYoDZsEhdzxrvBko2kWZNv8urisOlDeQg2njqy05jVVW4ibwdJOlQgeK9IXFBw55A/18YzFVSLAgeQzwXmKh0IKZu5Jb3j5BwYEZwlpv7WmLlxjeMVb6V1reQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747092878; c=relaxed/simple;
-	bh=21fKG6OydwtMc6tJyXwFP1rly0EAsmMwgB20nWQie8o=;
-	h=Date:To:From:Subject:Message-Id; b=dmlTv+BbSdqEyZQSjFe5nAtO4Oa3/vxi8XIV5bvHlVmkvfiCNoacSSFywWcx3RgCMkdqS802xblU3Q/A0++IIDnsv8G9l7oFGYcP0ilfrhHuDSeUdcZYl2JN9+ScpxPlOzBYfrn9PTAvQetJ3T/s2ZcHKSzq/vkNPt8xB43Iuws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NwczLEuH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747092880; c=relaxed/simple;
+	bh=db3kgX9FY7jhKp3bZ8vP3YYNoRfNFaLRa1ib748CSvg=;
+	h=Date:To:From:Subject:Message-Id; b=QT7k2G/Aat7eq7t+ut5B0qzut50EicO/WWgNbeqVlxEOBu82v5TvB6OBrBNcTqma+9N9Ta33nfGKcpn8QIeRiYseIrkoEhmmZHfZgN2EtWwa2TR4w0RVcvbcUTtOYht3XGtZERfrnNivqYFl40aKJBM49kZ9TZGcyvEfqLK4ZkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V7hbunM9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NwczLEuH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16236C4CEE7;
-	Mon, 12 May 2025 23:34:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V7hbunM9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A9DC4CEE7;
+	Mon, 12 May 2025 23:34:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747092878;
-	bh=21fKG6OydwtMc6tJyXwFP1rly0EAsmMwgB20nWQie8o=;
+	s=korg; t=1747092880;
+	bh=db3kgX9FY7jhKp3bZ8vP3YYNoRfNFaLRa1ib748CSvg=;
 	h=Date:To:From:Subject:From;
-	b=NwczLEuHctO23jNOJi0Ax8r3Nj6C3aR/xsJalDlObGXvZpu7OKjhxsSw45tQm3ElZ
-	 RHriLqxwI0eqNlvhxsbvLJ0F4sC0P1YBmldsyF1hH2jVy81kjBtOTQj8QaINQLhU7x
-	 HVMDqg/cZaPOfU7jWISMFgbwEjyJrMThL9KGg1Ac=
-Date: Mon, 12 May 2025 16:34:37 -0700
+	b=V7hbunM9xBxhK/I3yWSz0fHbxKJocfd8IL5bg+ZCyOu2sCJYud6GX7EkaBay/aZ7O
+	 9/85BmNVvFbT1CcYhnCjlN9sovN2BfTBjVKoLsV+h/VT7mF20vRH2OK1edrX8MDrEg
+	 aMc7cIB0UnClfgqBzAyKjAGDxEwb5nTUBRl3nZf8=
+Date: Mon, 12 May 2025 16:34:39 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,tursulin@ursulin.net,tglx@linutronix.de,rostedt@goodmis.org,rodrigo.vivi@intel.com,peterz@infradead.org,peterx@redhat.com,mingo@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joonas.lahtinen@linux.intel.com,jannh@google.com,jani.nikula@linux.intel.com,hpa@zytor.com,bp@alien8.de,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-inline-memtype_match-into-memtype_erase.patch added to mm-new branch
-Message-Id: <20250512233438.16236C4CEE7@smtp.kernel.org>
+Subject: + drm-i915-track_pfn-pfnmap-tracking.patch added to mm-new branch
+Message-Id: <20250512233440.40A9DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm/pat: inline memtype_match() into memtype_erase()
+     Subject: drm/i915: track_pfn() -> "pfnmap tracking"
 has been added to the -mm mm-new branch.  Its filename is
-     x86-mm-pat-inline-memtype_match-into-memtype_erase.patch
+     drm-i915-track_pfn-pfnmap-tracking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-inline-memtype_match-into-memtype_erase.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-i915-track_pfn-pfnmap-tracking.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,20 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: x86/mm/pat: inline memtype_match() into memtype_erase()
-Date: Mon, 12 May 2025 14:34:22 +0200
+Subject: drm/i915: track_pfn() -> "pfnmap tracking"
+Date: Mon, 12 May 2025 14:34:23 +0200
 
-Let's just have it in a single function.  The resulting function is
-certainly small enough and readable.
+track_pfn() does not exist, let's simply refer to it as "pfnmap tracking".
 
-Link: https://lkml.kernel.org/r/20250512123424.637989-10-david@redhat.com
+Link: https://lkml.kernel.org/r/20250512123424.637989-11-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Ingo Molnar <mingo@kernel.org> # x86 bits
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -95,57 +94,29 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/memtype_interval.c |   31 +++++++--------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ drivers/gpu/drm/i915/i915_mm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/x86/mm/pat/memtype_interval.c~x86-mm-pat-inline-memtype_match-into-memtype_erase
-+++ a/arch/x86/mm/pat/memtype_interval.c
-@@ -49,21 +49,6 @@ INTERVAL_TREE_DEFINE(struct memtype, rb,
+--- a/drivers/gpu/drm/i915/i915_mm.c~drm-i915-track_pfn-pfnmap-tracking
++++ a/drivers/gpu/drm/i915/i915_mm.c
+@@ -100,7 +100,7 @@ int remap_io_mapping(struct vm_area_stru
  
- static struct rb_root_cached memtype_rbroot = RB_ROOT_CACHED;
+ 	GEM_BUG_ON((vma->vm_flags & EXPECTED_FLAGS) != EXPECTED_FLAGS);
  
--static struct memtype *memtype_match(u64 start, u64 end)
--{
--	struct memtype *entry_match;
--
--	entry_match = interval_iter_first(&memtype_rbroot, start, end-1);
--
--	while (entry_match != NULL && entry_match->start < end) {
--		if (entry_match->start == start && entry_match->end == end)
--			return entry_match;
--		entry_match = interval_iter_next(entry_match, start, end-1);
--	}
--
--	return NULL; /* Returns NULL if there is no match */
--}
--
- static int memtype_check_conflict(u64 start, u64 end,
- 				  enum page_cache_mode reqtype,
- 				  enum page_cache_mode *newtype)
-@@ -119,14 +104,16 @@ int memtype_check_insert(struct memtype
+-	/* We rely on prevalidation of the io-mapping to skip track_pfn(). */
++	/* We rely on prevalidation of the io-mapping to skip pfnmap tracking. */
+ 	r.mm = vma->vm_mm;
+ 	r.pfn = pfn;
+ 	r.prot = __pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
+@@ -140,7 +140,7 @@ int remap_io_sg(struct vm_area_struct *v
+ 	};
+ 	int err;
  
- struct memtype *memtype_erase(u64 start, u64 end)
- {
--	struct memtype *entry_old;
--
--	entry_old = memtype_match(start, end);
--	if (!entry_old)
--		return ERR_PTR(-EINVAL);
-+	struct memtype *entry = interval_iter_first(&memtype_rbroot, start, end - 1);
+-	/* We rely on prevalidation of the io-mapping to skip track_pfn(). */
++	/* We rely on prevalidation of the io-mapping to skip pfnmap tracking. */
+ 	GEM_BUG_ON((vma->vm_flags & EXPECTED_FLAGS) != EXPECTED_FLAGS);
  
--	interval_remove(entry_old, &memtype_rbroot);
--	return entry_old;
-+	while (entry && entry->start < end) {
-+		if (entry->start == start && entry->end == end) {
-+			interval_remove(entry, &memtype_rbroot);
-+			return entry;
-+		}
-+		entry = interval_iter_next(entry, start, end - 1);
-+	}
-+	return ERR_PTR(-EINVAL);
- }
- 
- struct memtype *memtype_lookup(u64 addr)
+ 	while (offset >= r.sgt.max >> PAGE_SHIFT) {
 _
 
 Patches currently in -mm which might be from david@redhat.com are
