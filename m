@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD10481DD;
-	Mon, 12 May 2025 00:26:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E6227080C
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:26:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747009609; cv=none; b=VY7cTlkf0l4W22L98/JLEw9aTHdKlT1VOfgkS5XvAv9Th37WwBsxkIdN+5HrmNO/8X6heHXgFGEx2h1bvz7/Ccx3ZwbRS/XQigvnhXEa/GBTy8FXrVe2umBRk/AfP7KayqF1TFm72+j2d9vTt/EcjxiFd1Z1mE+mQoZkMXVSpDQ=
+	t=1747009611; cv=none; b=cR341ZjZ8P+nNRmdaRsvt94DZNC8kGARiErL+WO8bIwWE9i+QWgEZewTet3tb6a462iTm7fqGwL1ZCiPm9Ei5lLiYV7oYOIGsbkgfJVnC2jH06hWd4ROgt9nBi0LYmzfY7BO6aqgqKRFdjyOveYfePOZHX4/a81j5sKMRU1LibQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747009609; c=relaxed/simple;
-	bh=qee4Q+IA/V+ZmSHH8rwb0wGOR8tVH8MUq4NxIAGeDfY=;
-	h=Date:To:From:Subject:Message-Id; b=ZznSo13XaDUo6bhPfd5d6WF9yp9/2J2dQx9ML1cgloA0/DoZEqKg1Du0+ABcfJu1qrZ5FL69bz1om00ICOf1bhc2vKRtiEtHyEZOOTIw/gEWQN0DEyoPWR2lLhAcyxq5P5O8Z8Nj/jR0lLXVAN+waiGSnvqoysQhfmSzuD7suRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+wnj1Cd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747009611; c=relaxed/simple;
+	bh=HLnRsmugMujPhYKQUXtnn2sQ5dHgOjtGqSp/XL++89M=;
+	h=Date:To:From:Subject:Message-Id; b=snPujrAD+bmwfdvpf87KMUhJlTQxlJL2pewhUBuKmv+yIzuwVkpV975fjjTu4F81/gNdATYOsI2DGmAyk1MSnT2eY2l1DFwpLhyZYzsW84Kyf98f2CbOJxRvA3J6G3okPnrqAXfO9J/DAWkhIzc+QRa0aRJJikhxag2ydPN9wi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ezpETmNJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+wnj1Cd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F932C4CEED;
-	Mon, 12 May 2025 00:26:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ezpETmNJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95D73C4CEE4;
+	Mon, 12 May 2025 00:26:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747009608;
-	bh=qee4Q+IA/V+ZmSHH8rwb0wGOR8tVH8MUq4NxIAGeDfY=;
+	s=korg; t=1747009610;
+	bh=HLnRsmugMujPhYKQUXtnn2sQ5dHgOjtGqSp/XL++89M=;
 	h=Date:To:From:Subject:From;
-	b=h+wnj1CdAtFJ0FMPxcPA9XgAupazrvm7BPYRjaYZ/7Zu/4IDUt7HDafiGAjMaWiNU
-	 q8imSMwm7zOxd3K2SQ5wuCVPQUczkAIVFp4IWi+6cjJWkWZCFhrC3mwRF4kh4FbiaZ
-	 wpknuCRTwzut58peJbs2yD9N5OqKjMoJTmhjrhjA=
-Date: Sun, 11 May 2025 17:26:47 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,joshua.hahnjy@gmail.com,david@redhat.com,mawupeng1@huawei.com,akpm@linux-foundation.org
+	b=ezpETmNJQkaC5p69IOi/ZExxoYBUdd1dXm42MiVZW4FVCKCbovOMb4pXCheH9xOWL
+	 SVP+SVqQsNZx+bmnSxxdZ+7PPsD0lzi3W+0N+2NE6ixDUqf3EQoK4/IMg7uPsUkNJn
+	 d0sz62gUhBELk14svh9FtmBiRkf537Xocut8/2pE=
+Date: Sun, 11 May 2025 17:26:49 -0700
+To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,tglx@linutronix.de,riel@surriel.com,peterz@infradead.org,mingo@kernel.org,luto@kernel.org,lorenzo.stoakes@oracle.com,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-fix-incorrect-fallback-for-subpool.patch removed from -mm tree
-Message-Id: <20250512002648.3F932C4CEED@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kernel-fork-only-call-untrack_pfn_clear-on-vmas-duplicated-for-fork.patch removed from -mm tree
+Message-Id: <20250512002650.95D73C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,108 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: fix incorrect fallback for subpool
+     Subject: kernel/fork: only call untrack_pfn_clear() on VMAs duplicated for fork()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-incorrect-fallback-for-subpool.patch
+     kernel-fork-only-call-untrack_pfn_clear-on-vmas-duplicated-for-fork.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wupeng Ma <mawupeng1@huawei.com>
-Subject: mm: hugetlb: fix incorrect fallback for subpool
-Date: Thu, 10 Apr 2025 14:26:33 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: kernel/fork: only call untrack_pfn_clear() on VMAs duplicated for fork()
+Date: Tue, 22 Apr 2025 16:49:42 +0200
 
-During our testing with hugetlb subpool enabled, we observe that
-hstate->resv_huge_pages may underflow into negative values.  Root cause
-analysis reveals a race condition in subpool reservation fallback handling
-as follow:
+Not intuitive, but vm_area_dup() located in kernel/fork.c is not only used
+for duplicating VMAs during fork(), but also for duplicating VMAs when
+splitting VMAs or when mremap()'ing them.
 
-hugetlb_reserve_pages()
-    /* Attempt subpool reservation */
-    gbl_reserve = hugepage_subpool_get_pages(spool, chg);
+VM_PFNMAP mappings can at least get ordinarily mremap()'ed (no change in
+size) and apparently also shrunk during mremap(), which implies
+duplicating the VMA in __split_vma() first.
 
-    /* Global reservation may fail after subpool allocation */
-    if (hugetlb_acct_memory(h, gbl_reserve) < 0)
-        goto out_put_pages;
+In case of ordinary mremap() (no change in size), we first duplicate the
+VMA in copy_vma_and_data()->copy_vma() to then call untrack_pfn_clear() on
+the old VMA: we effectively move the VM_PAT reservation.  So the
+untrack_pfn_clear() call on the new VMA duplicating is wrong in that
+context.
 
-out_put_pages:
-    /* This incorrectly restores reservation to subpool */
-    hugepage_subpool_put_pages(spool, chg);
+Splitting of VMAs seems problematic, because we don't duplicate/adjust the
+reservation when splitting the VMA.  Instead, in memtype_erase() -- called
+during zapping/munmap -- we shrink a reservation in case only the end
+address matches: Assume we split a VMA into A and B, both would share a
+reservation until B is unmapped.
 
-When hugetlb_acct_memory() fails after subpool allocation, the current
-implementation over-commits subpool reservations by returning the full
-'chg' value instead of the actual allocated 'gbl_reserve' amount.  This
-discrepancy propagates to global reservations during subsequent releases,
-eventually causing resv_huge_pages underflow.
+So when unmapping B, the reservation would be updated to cover only A. 
+When unmapping A, we would properly remove the now-shrunk reservation. 
+That scenario describes the mremap() shrinking (old_size > new_size),
+where we split + unmap B, and the untrack_pfn_clear() on the new VMA when
+is wrong.
 
-This problem can be trigger easily with the following steps:
-1. reverse hugepage for hugeltb allocation
-2. mount hugetlbfs with min_size to enable hugetlb subpool
-3. alloc hugepages with two task(make sure the second will fail due to
-   insufficient amount of hugepages)
-4. with for a few seconds and repeat step 3 which will make
-   hstate->resv_huge_pages to go below zero.
+What if we manage to split a VM_PFNMAP VMA into A and B and unmap A first?
+It would be broken because we would never free the reservation.  Likely,
+there are ways to trigger such a VMA split outside of mremap().
 
-To fix this problem, return corrent amount of pages to subpool during the
-fallback after hugepage_subpool_get_pages is called.
+Affecting other VMA duplication was not intended, vm_area_dup() being used
+outside of kernel/fork.c was an oversight.  So let's fix that for; how to
+handle VMA splits better should be investigated separately.
 
-Link: https://lkml.kernel.org/r/20250410062633.3102457-1-mawupeng1@huawei.com
-Fixes: 1c5ecae3a93f ("hugetlbfs: add minimum size accounting to subpools")
-Signed-off-by: Wupeng Ma <mawupeng1@huawei.com>
-Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Ma Wupeng <mawupeng1@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+
+With a simple reproducer that uses mprotect() to split such a VMA I can
+trigger
+
+x86/PAT: pat_mremap:26448 freeing invalid memtype [mem 0x00000000-0x00000fff]
+
+Link: https://lkml.kernel.org/r/20250422144942.2871395-1-david@redhat.com
+Fixes: dc84bc2aba85 ("x86/mm/pat: Fix VM_PAT handling when fork() fails in copy_page_range()")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ kernel/fork.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-incorrect-fallback-for-subpool
-+++ a/mm/hugetlb.c
-@@ -3010,7 +3010,7 @@ struct folio *alloc_hugetlb_folio(struct
- 	struct hugepage_subpool *spool = subpool_vma(vma);
- 	struct hstate *h = hstate_vma(vma);
- 	struct folio *folio;
--	long retval, gbl_chg;
-+	long retval, gbl_chg, gbl_reserve;
- 	map_chg_state map_chg;
- 	int ret, idx;
- 	struct hugetlb_cgroup *h_cg = NULL;
-@@ -3163,8 +3163,16 @@ out_uncharge_cgroup_reservation:
- 		hugetlb_cgroup_uncharge_cgroup_rsvd(idx, pages_per_huge_page(h),
- 						    h_cg);
- out_subpool_put:
--	if (map_chg)
--		hugepage_subpool_put_pages(spool, 1);
-+	/*
-+	 * put page to subpool iff the quota of subpool's rsv_hpages is used
-+	 * during hugepage_subpool_get_pages.
-+	 */
-+	if (map_chg && !gbl_chg) {
-+		gbl_reserve = hugepage_subpool_put_pages(spool, 1);
-+		hugetlb_acct_memory(h, -gbl_reserve);
-+	}
-+
-+
- out_end_reservation:
- 	if (map_chg != MAP_CHG_ENFORCED)
- 		vma_end_reservation(h, vma, addr);
-@@ -7239,7 +7247,7 @@ bool hugetlb_reserve_pages(struct inode
- 					struct vm_area_struct *vma,
- 					vm_flags_t vm_flags)
- {
--	long chg = -1, add = -1;
-+	long chg = -1, add = -1, spool_resv, gbl_resv;
- 	struct hstate *h = hstate_inode(inode);
- 	struct hugepage_subpool *spool = subpool_inode(inode);
- 	struct resv_map *resv_map;
-@@ -7374,8 +7382,16 @@ bool hugetlb_reserve_pages(struct inode
- 	return true;
+--- a/kernel/fork.c~kernel-fork-only-call-untrack_pfn_clear-on-vmas-duplicated-for-fork
++++ a/kernel/fork.c
+@@ -498,10 +498,6 @@ struct vm_area_struct *vm_area_dup(struc
+ 	vma_numab_state_init(new);
+ 	dup_anon_vma_name(orig, new);
  
- out_put_pages:
--	/* put back original number of pages, chg */
--	(void)hugepage_subpool_put_pages(spool, chg);
-+	spool_resv = chg - gbl_reserve;
-+	if (spool_resv) {
-+		/* put sub pool's reservation back, chg - gbl_reserve */
-+		gbl_resv = hugepage_subpool_put_pages(spool, spool_resv);
-+		/*
-+		 * subpool's reserved pages can not be put back due to race,
-+		 * return to hstate.
-+		 */
-+		hugetlb_acct_memory(h, -gbl_resv);
-+	}
- out_uncharge_cgroup:
- 	hugetlb_cgroup_uncharge_cgroup_rsvd(hstate_index(h),
- 					    chg * pages_per_huge_page(h), h_cg);
+-	/* track_pfn_copy() will later take care of copying internal state. */
+-	if (unlikely(new->vm_flags & VM_PFNMAP))
+-		untrack_pfn_clear(new);
+-
+ 	return new;
+ }
+ 
+@@ -672,6 +668,11 @@ static __latent_entropy int dup_mmap(str
+ 		tmp = vm_area_dup(mpnt);
+ 		if (!tmp)
+ 			goto fail_nomem;
++
++		/* track_pfn_copy() will later take care of copying internal state. */
++		if (unlikely(tmp->vm_flags & VM_PFNMAP))
++			untrack_pfn_clear(tmp);
++
+ 		retval = vma_dup_policy(mpnt, tmp);
+ 		if (retval)
+ 			goto fail_nomem_policy;
 _
 
-Patches currently in -mm which might be from mawupeng1@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
+kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
+kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch
+kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
+selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
 
