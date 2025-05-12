@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7E6F14830F
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9414114830F
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011010; cv=none; b=DyUyEZctm0E3zINXczQg/J7k3VX+uAvExMG+WwdEuLZVc74XKor5jtku0GkihIj8hzwSLERd+TPJEZIa17OJPGCWmQ8lm1fSd7lW9/KRSOKCIWiXIJbgzeZ8OV93zZhw8hpiuiQuLqVT9DS3XA/NB8nR6OBm/V4Nu9j9+MPmcMM=
+	t=1747011011; cv=none; b=dXTFvDYGV8VoQ57UzGAz6WMfid8JqpRavypqdM6ILQH2OduqxlujJmbVcZqugP73ChzfeNfk0PFfx9S3oGWaTV0w3RDgDYuRdQXB4IGE1g772ALoijlbqV3qWWfaGS9pm1RzxeN/CKfFYi1660bR4SyPYv+329kx6IimBpJ8Rpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011010; c=relaxed/simple;
-	bh=hp10ybdrMtd65dBZz9P+gDp1KvPa5rxJbLPNrRsxPUY=;
-	h=Date:To:From:Subject:Message-Id; b=ENIqr3kHcqwhKlqxW8vLcrygtL2rSrZ168fA11Ze9T/DbwGVAf+JSpD606bNzpheVROFnDo8ZpVDjon0LWa65v13sPfm7fluZBuoaQeuN7VcIx3ch2Cn48e/grIaVGdeBc+ucPt//86ufOCB+VWorO6Cz8FjfoQkVvRnPD0WpQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H+ERDCgx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011011; c=relaxed/simple;
+	bh=SJ3c/Ox5Mr00fm17obDFnbLrlYTJsONtk9onuZEeUt4=;
+	h=Date:To:From:Subject:Message-Id; b=VFx6Hu8zsoth450Oc6+GrUOhdTFLoVkVG6CHSqj4Bu52SLNaUiWObenrnDQL5WlLSLzz1MPeWVTtbza3qvPeAFdylm/7pbeRtmBtwHLl7kW/aKvCIk5VlW8n3We1O7FX5ZYm0JeFshdcDTdP/HO9wyIqbUmP4iC8RQYtpesOErI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VexTSBVL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H+ERDCgx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C816C4CEE4;
-	Mon, 12 May 2025 00:50:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VexTSBVL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B406C4CEE4;
+	Mon, 12 May 2025 00:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011010;
-	bh=hp10ybdrMtd65dBZz9P+gDp1KvPa5rxJbLPNrRsxPUY=;
+	s=korg; t=1747011011;
+	bh=SJ3c/Ox5Mr00fm17obDFnbLrlYTJsONtk9onuZEeUt4=;
 	h=Date:To:From:Subject:From;
-	b=H+ERDCgxzAlhUiAgPA/zKqK6VZ3hfgp8hKXftjz5zbYSo4enj9+vNxiWP6yfIY4Vm
-	 RUFL/DWfDgb11qO6980AnqFliAMC88s5P4gtrKwtsdwbPx8IwTD/LRxocuen+Ukti9
-	 nijYnF/F2uQ5awAhfXgCphggCJUPkPQ4gIhX8xiQ=
-Date: Sun, 11 May 2025 17:50:09 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,harry.yoo@oracle.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=VexTSBVLgNthkQ6aiUuzp/bVtdbOKjAtyyOHLee2GDZjWNzjtqYVzAAL0t6fNpFUv
+	 7J0jsqFG0HIUk8Ubbp35rHBuwFDK6wlK3AS6jEgyeozsLEoOcdntIWVae2pm8c9Xuw
+	 IJcTqsU2Gl/E4uggQMO4strtAQL6DDt1rO5nggWA=
+Date: Sun, 11 May 2025 17:50:10 -0700
+To: mm-commits@vger.kernel.org,dcb314@hotmail.com,siddarthsgml@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch removed from -mm tree
-Message-Id: <20250512005010.4C816C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-convert-page_size-to-unsigned-long.patch removed from -mm tree
+Message-Id: <20250512005011.6B406C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/show_mem: optimize si_meminfo_node by reducing redundant code
+     Subject: selftests/mm: convert page_size to unsigned long
 has been removed from the -mm tree.  Its filename was
-     mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
+     selftests-mm-convert-page_size-to-unsigned-long.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/show_mem: optimize si_meminfo_node by reducing redundant code
-Date: Tue, 25 Mar 2025 15:38:03 +0800
+From: Siddarth G <siddarthsgml@gmail.com>
+Subject: selftests/mm: convert page_size to unsigned long
+Date: Thu, 3 Apr 2025 15:43:45 +0530
 
-Refactors the si_meminfo_node() function by reducing redundant code and
-improving readability.
+Cppcheck warning:
+int result is assigned to long long variable. If the variable is long long
+to avoid loss of information, then you have loss of information.
 
-Moved the calculation of managed_pages inside the existing loop that
-processes pgdat->node_zones, eliminating the need for a separate loop.
+This patch changes the type of page_size from 'unsigned int' to
+'unsigned long' instead of using ULL suffixes. Changing hpage_size to
+'unsigned long' was considered, but since gethugepage() expects an int,
+this change was avoided.
 
-Simplified the logic by removing unnecessary preprocessor conditionals.
-
-Ensured that both totalram, totalhigh, and other memory statistics are
-consistently set without duplication.
-
-This change results in cleaner and more efficient code without altering
-functionality.
-
-Link: https://lkml.kernel.org/r/20250325073803.852594-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Link: https://lkml.kernel.org/r/20250403101345.29226-1-siddarthsgml@gmail.com
+Signed-off-by: Siddarth G <siddarthsgml@gmail.com>
+Reported-by: David Binderman <dcb314@hotmail.com>
+Closes: https://lore.kernel.org/all/AS8PR02MB10217315060BBFDB21F19643E9CA62@AS8PR02MB10217.eurprd02.prod.outlook.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/show_mem.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/show_mem.c~mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code
-+++ a/mm/show_mem.c
-@@ -94,26 +94,20 @@ void si_meminfo_node(struct sysinfo *val
- 	unsigned long free_highpages = 0;
- 	pg_data_t *pgdat = NODE_DATA(nid);
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-convert-page_size-to-unsigned-long
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -34,7 +34,7 @@
+ #define PAGEMAP "/proc/self/pagemap"
+ int pagemap_fd;
+ int uffd;
+-unsigned int page_size;
++unsigned long page_size;
+ unsigned int hpage_size;
+ const char *progname;
  
--	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
--		managed_pages += zone_managed_pages(&pgdat->node_zones[zone_type]);
--	val->totalram = managed_pages;
--	val->sharedram = node_page_state(pgdat, NR_SHMEM);
--	val->freeram = sum_zone_node_page_state(nid, NR_FREE_PAGES);
--#ifdef CONFIG_HIGHMEM
- 	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
- 		struct zone *zone = &pgdat->node_zones[zone_type];
--
-+		managed_pages += zone_managed_pages(zone);
- 		if (is_highmem(zone)) {
- 			managed_highpages += zone_managed_pages(zone);
- 			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
- 		}
- 	}
-+
-+	val->totalram = managed_pages;
-+	val->sharedram = node_page_state(pgdat, NR_SHMEM);
-+	val->freeram = sum_zone_node_page_state(nid, NR_FREE_PAGES);
- 	val->totalhigh = managed_highpages;
- 	val->freehigh = free_highpages;
--#else
--	val->totalhigh = managed_highpages;
--	val->freehigh = free_highpages;
--#endif
- 	val->mem_unit = PAGE_SIZE;
- }
- #endif
+@@ -184,7 +184,7 @@ void *gethugetlb_mem(int size, int *shmi
+ 
+ int userfaultfd_tests(void)
+ {
+-	int mem_size, vec_size, written, num_pages = 16;
++	long mem_size, vec_size, written, num_pages = 16;
+ 	char *mem, *vec;
+ 
+ 	mem_size = num_pages * page_size;
+@@ -213,7 +213,7 @@ int userfaultfd_tests(void)
+ 	written = pagemap_ioctl(mem, mem_size, vec, 1, PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
+ 				vec_size - 2, PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
+ 	if (written < 0)
+-		ksft_exit_fail_msg("error %d %d %s\n", written, errno, strerror(errno));
++		ksft_exit_fail_msg("error %ld %d %s\n", written, errno, strerror(errno));
+ 
+ 	ksft_test_result(written == 0, "%s all new pages must not be written (dirty)\n", __func__);
+ 
+@@ -995,7 +995,7 @@ int unmapped_region_tests(void)
+ {
+ 	void *start = (void *)0x10000000;
+ 	int written, len = 0x00040000;
+-	int vec_size = len / page_size;
++	long vec_size = len / page_size;
+ 	struct page_region *vec = malloc(sizeof(struct page_region) * vec_size);
+ 
+ 	/* 1. Get written pages */
+@@ -1051,7 +1051,7 @@ static void test_simple(void)
+ int sanity_tests(void)
+ {
+ 	unsigned long long mem_size, vec_size;
+-	int ret, fd, i, buf_size;
++	long ret, fd, i, buf_size;
+ 	struct page_region *vec;
+ 	char *mem, *fmem;
+ 	struct stat sbuf;
+@@ -1160,7 +1160,7 @@ int sanity_tests(void)
+ 
+ 	ret = stat(progname, &sbuf);
+ 	if (ret < 0)
+-		ksft_exit_fail_msg("error %d %d %s\n", ret, errno, strerror(errno));
++		ksft_exit_fail_msg("error %ld %d %s\n", ret, errno, strerror(errno));
+ 
+ 	fmem = mmap(NULL, sbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+ 	if (fmem == MAP_FAILED)
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from siddarthsgml@gmail.com are
 
-mm-rmap-rename-page__anon_vma-to-anon_vma-for-consistency.patch
-mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
-mm-io-mapping-precompute-remap-protection-flags-for-clarity.patch
-mm-debug_page_alloc-improve-error-message-for-invalid-guardpage-minorder.patch
-mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch
+selftests-mm-use-long-for-dwregionsize.patch
 
