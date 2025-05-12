@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5402619ADA4
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66FF119D8AC
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011107; cv=none; b=G1pGigUeN1Xpi/HSazaJ6Rsr6H9bj23H/sPTPS8FCY1fBXSsi4ZvhgKEwvZ5S9kwSuqz4I8zQagTPlvD9xEv6Vz4RH+amIUYlLmZRHIrPZ3RwPNyl8/RoV+d/scVRDXzjst6aafa7JhuvJOnmdANh2LtGbtRo4ATnR1MGPSTJnQ=
+	t=1747011109; cv=none; b=EK+9rTBRwKXXX+ZAxQg/T5GOjzkylHjctxeAKH9ti6qaByWbjTFjpMQMReZFc3lwoQJplwpJRHbbRVM4tH5wyI2BTYt+PK3tQEsHflXs/LvQ/c/6wFGbcAj4H4h5vDIYwa/1FIy/Kb/Hcsd2ePQHe3kxflR+kt+XmzKOkmPYkVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011107; c=relaxed/simple;
-	bh=pfpN4FZB/+JQhtZmLe21KePHWM8OK50X57TBCx1ZGoc=;
-	h=Date:To:From:Subject:Message-Id; b=P6dKBTUO8PtfS9g9hkFC9U98Tk6uBMtAjuLprGD9wRyRg6WVAC1fjcKie0SNSBNRn0VKqFa0/Kblz1shmK8zdY8g6DLwrPW8qJgAkOQjilo605bu4oSr7JEd3GModcKajaLKs+K1NOsjNuklLaInLbxNVTIb2SI48aw460LmkyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dyUSNCuI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011109; c=relaxed/simple;
+	bh=JmA4DKwPsaFWt7yyLoGA8DcPKN4AecTWa9fp+YDjG/w=;
+	h=Date:To:From:Subject:Message-Id; b=SDZSwFDWo9GIVkltnEUPQGWYeRcdh5GPLNkO+peCfUu/9rc1KNvpxksbeBuRIvQ+j1IyodchfrD13cDxhghaFuzDxivUzu692FGgLW1gDJgL7KJwDa+t77cAU8dMKqOim3jgh3l009CNf9zzTtXmeSuLDM+atMAOonic5n0hYis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q029eEQT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dyUSNCuI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2003FC4CEE4;
-	Mon, 12 May 2025 00:51:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q029eEQT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E2C3C4CEE4;
+	Mon, 12 May 2025 00:51:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011107;
-	bh=pfpN4FZB/+JQhtZmLe21KePHWM8OK50X57TBCx1ZGoc=;
+	s=korg; t=1747011109;
+	bh=JmA4DKwPsaFWt7yyLoGA8DcPKN4AecTWa9fp+YDjG/w=;
 	h=Date:To:From:Subject:From;
-	b=dyUSNCuIZNn0nYQse+heB4rntgmbLqKXM+M4eURoNdTlTvsJGhD+yPUFxDr0Grk3g
-	 2+3zknapG//OEUMmhscKYDkTy8Wk73XhtA3IKeQe3nud+dtIW+MfoEfdLF3t1sQ45u
-	 5Vn4/RUzOMaY2CQ4ToeLpflX89lU7slOqM7+pvaU=
-Date: Sun, 11 May 2025 17:51:46 -0700
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,riel@surriel.com,richard.weiyang@gmail.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Q029eEQTdjJ2s0bjh+A6A+nW0QsTo1Bj0ofb9O60zRbTFUnZRgJSdjF7W0JplQR44
+	 s5sfOpHZEKHmKbGuuS4EzFyq+VuWGaSQpn3vun+v3b27Mu2Z5f7dL4Epvwy51V6K+P
+	 DITtExRcp6e6oTBw765sAueeOhyRwKgrpMTOCKGU=
+Date: Sun, 11 May 2025 17:51:48 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,osalvador@suse.de,hannes@cmpxchg.org,david@redhat.com,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch removed from -mm tree
-Message-Id: <20250512005147.2003FC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch removed from -mm tree
+Message-Id: <20250512005149.3E2C3C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,572 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests: assert that anon merge cases behave as expected
+     Subject: mm: huge_memory: add folio_mark_accessed() when zapping file THP
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
+     mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: assert that anon merge cases behave as expected
-Date: Tue, 8 Apr 2025 10:29:33 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: huge_memory: add folio_mark_accessed() when zapping file THP
+Date: Wed, 9 Apr 2025 17:38:58 +0800
 
-Prior to the recently applied commit that permits this merge,
-mprotect()'ing a faulted VMA, adjacent to an unfaulted VMA, such that the
-two share characteristics would fail to merge due to what appear to be
-unintended consequences of commit 965f55dea0e3 ("mmap: avoid merging
-cloned VMAs").
+When investigating performance issues during file folio unmap, I noticed
+some behavioral differences in handling non-PMD-sized folios and PMD-sized
+folios.  For non-PMD-sized file folios, it will call folio_mark_accessed()
+to mark the folio as having seen activity, but this is not done for
+PMD-sized folios.
 
-Now we have fixed this bug, assert that we can indeed merge anonymous VMAs
-this way.
+This might not cause obvious issues, but a potential problem could be
+that, it might lead to reclaim of hot file folios under memory pressure,
+as quoted from Johannes:
 
-Also assert that forked source/target VMAs are equally rejected. 
-Previously, all empty target anon merges with one VMA faulted and the
-other unfaulted would be rejected incorrectly, now we ensure that unforked
-merge, but forked do not.
+: Sometimes file contents are only accessed through relatively short-lived
+: mappings. But they can nevertheless be accessed a lot and be hot. It's
+: important to not lose that information on unmap, and end up kicking out a
+: frequently used cache page.
 
-Additionally, add the new test file to the MEMORY MAPPING section in
-MAINTAINERS, as these tests are explicitly memory mapping related.
+Therefore, we should also add folio_mark_accessed() for PMD-sized file
+folios when unmapping.
 
-Link: https://lkml.kernel.org/r/2b69330274a3b71721f7042c5eabe91143934415.1744104124.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+[baolin.wang@linux.alibaba.com: add comment]
+  Link: https://lkml.kernel.org/r/23fdc11d-e983-4627-89a8-79e9ecf9a45a@linux.alibaba.com
+Link: https://lkml.kernel.org/r/fc117f60d7b686f87067f36a0ef7cdbc3a78109c.1744190345.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Barry Song <21cnbao@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                               |    1 
- tools/testing/selftests/mm/.gitignore     |    1 
- tools/testing/selftests/mm/Makefile       |    1 
- tools/testing/selftests/mm/merge.c        |  455 ++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh |    4 
- 5 files changed, 462 insertions(+)
+ mm/huge_memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/MAINTAINERS~tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected
-+++ a/MAINTAINERS
-@@ -15670,6 +15670,7 @@ F:	mm/mseal.c
- F:	mm/vma.c
- F:	mm/vma.h
- F:	mm/vma_internal.h
-+F:	tools/testing/selftests/mm/merge.c
- F:	tools/testing/vma/
+--- a/mm/huge_memory.c~mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp
++++ a/mm/huge_memory.c
+@@ -2259,6 +2259,14 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 				zap_deposited_table(tlb->mm, pmd);
+ 			add_mm_counter(tlb->mm, mm_counter_file(folio),
+ 				       -HPAGE_PMD_NR);
++
++			/*
++			 * Use flush_needed to indicate whether the PMD entry
++			 * is present, instead of checking pmd_present() again.
++			 */
++			if (flush_needed && pmd_young(orig_pmd) &&
++			    likely(vma_has_recency(vma)))
++				folio_mark_accessed(folio);
+ 		}
  
- MEMORY MAPPING - LOCKING
---- a/tools/testing/selftests/mm/.gitignore~tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -58,3 +58,4 @@ hugetlb_dio
- pkey_sighandler_tests_32
- pkey_sighandler_tests_64
- guard-regions
-+merge
---- a/tools/testing/selftests/mm/Makefile~tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -98,6 +98,7 @@ TEST_GEN_FILES += hugetlb_madv_vs_map
- TEST_GEN_FILES += hugetlb_dio
- TEST_GEN_FILES += droppable
- TEST_GEN_FILES += guard-regions
-+TEST_GEN_FILES += merge
- 
- ifneq ($(ARCH),arm64)
- TEST_GEN_FILES += soft-dirty
-diff --git a/tools/testing/selftests/mm/merge.c a/tools/testing/selftests/mm/merge.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -0,0 +1,455 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#define _GNU_SOURCE
-+#include "../kselftest_harness.h"
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <sys/mman.h>
-+#include <sys/wait.h>
-+#include "vm_util.h"
-+
-+FIXTURE(merge)
-+{
-+	unsigned int page_size;
-+	char *carveout;
-+	struct procmap_fd procmap;
-+};
-+
-+FIXTURE_SETUP(merge)
-+{
-+	self->page_size = psize();
-+	/* Carve out PROT_NONE region to map over. */
-+	self->carveout = mmap(NULL, 12 * self->page_size, PROT_NONE,
-+			      MAP_ANON | MAP_PRIVATE, -1, 0);
-+	ASSERT_NE(self->carveout, MAP_FAILED);
-+	/* Setup PROCMAP_QUERY interface. */
-+	ASSERT_EQ(open_self_procmap(&self->procmap), 0);
-+}
-+
-+FIXTURE_TEARDOWN(merge)
-+{
-+	ASSERT_EQ(munmap(self->carveout, 12 * self->page_size), 0);
-+	ASSERT_EQ(close_procmap(&self->procmap), 0);
-+}
-+
-+TEST_F(merge, mprotect_unfaulted_left)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr;
-+
-+	/*
-+	 * Map 10 pages of R/W memory within. MAP_NORESERVE so we don't hit
-+	 * merge failure due to lack of VM_ACCOUNT flag by mistake.
-+	 *
-+	 * |-----------------------|
-+	 * |       unfaulted       |
-+	 * |-----------------------|
-+	 */
-+	ptr = mmap(&carveout[page_size], 10 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED | MAP_NORESERVE, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	/*
-+	 * Now make the first 5 pages read-only, splitting the VMA:
-+	 *
-+	 *      RO          RW
-+	 * |-----------|-----------|
-+	 * | unfaulted | unfaulted |
-+	 * |-----------|-----------|
-+	 */
-+	ASSERT_EQ(mprotect(ptr, 5 * page_size, PROT_READ), 0);
-+	/*
-+	 * Fault in the first of the last 5 pages so it gets an anon_vma and
-+	 * thus the whole VMA becomes 'faulted':
-+	 *
-+	 *      RO          RW
-+	 * |-----------|-----------|
-+	 * | unfaulted |  faulted  |
-+	 * |-----------|-----------|
-+	 */
-+	ptr[5 * page_size] = 'x';
-+	/*
-+	 * Now mprotect() the RW region read-only, we should merge (though for
-+	 * ~15 years we did not! :):
-+	 *
-+	 *             RO
-+	 * |-----------------------|
-+	 * |        faulted        |
-+	 * |-----------------------|
-+	 */
-+	ASSERT_EQ(mprotect(&ptr[5 * page_size], 5 * page_size, PROT_READ), 0);
-+
-+	/* Assert that the merge succeeded using PROCMAP_QUERY. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+}
-+
-+TEST_F(merge, mprotect_unfaulted_right)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr;
-+
-+	/*
-+	 * |-----------------------|
-+	 * |       unfaulted       |
-+	 * |-----------------------|
-+	 */
-+	ptr = mmap(&carveout[page_size], 10 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED | MAP_NORESERVE, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	/*
-+	 * Now make the last 5 pages read-only, splitting the VMA:
-+	 *
-+	 *      RW          RO
-+	 * |-----------|-----------|
-+	 * | unfaulted | unfaulted |
-+	 * |-----------|-----------|
-+	 */
-+	ASSERT_EQ(mprotect(&ptr[5 * page_size], 5 * page_size, PROT_READ), 0);
-+	/*
-+	 * Fault in the first of the first 5 pages so it gets an anon_vma and
-+	 * thus the whole VMA becomes 'faulted':
-+	 *
-+	 *      RW          RO
-+	 * |-----------|-----------|
-+	 * |  faulted  | unfaulted |
-+	 * |-----------|-----------|
-+	 */
-+	ptr[0] = 'x';
-+	/*
-+	 * Now mprotect() the RW region read-only, we should merge:
-+	 *
-+	 *             RO
-+	 * |-----------------------|
-+	 * |        faulted        |
-+	 * |-----------------------|
-+	 */
-+	ASSERT_EQ(mprotect(ptr, 5 * page_size, PROT_READ), 0);
-+
-+	/* Assert that the merge succeeded using PROCMAP_QUERY. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+}
-+
-+TEST_F(merge, mprotect_unfaulted_both)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr;
-+
-+	/*
-+	 * |-----------------------|
-+	 * |       unfaulted       |
-+	 * |-----------------------|
-+	 */
-+	ptr = mmap(&carveout[2 * page_size], 9 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED | MAP_NORESERVE, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	/*
-+	 * Now make the first and last 3 pages read-only, splitting the VMA:
-+	 *
-+	 *      RO          RW          RO
-+	 * |-----------|-----------|-----------|
-+	 * | unfaulted | unfaulted | unfaulted |
-+	 * |-----------|-----------|-----------|
-+	 */
-+	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ), 0);
-+	ASSERT_EQ(mprotect(&ptr[6 * page_size], 3 * page_size, PROT_READ), 0);
-+	/*
-+	 * Fault in the first of the middle 3 pages so it gets an anon_vma and
-+	 * thus the whole VMA becomes 'faulted':
-+	 *
-+	 *      RO          RW          RO
-+	 * |-----------|-----------|-----------|
-+	 * | unfaulted |  faulted  | unfaulted |
-+	 * |-----------|-----------|-----------|
-+	 */
-+	ptr[3 * page_size] = 'x';
-+	/*
-+	 * Now mprotect() the RW region read-only, we should merge:
-+	 *
-+	 *             RO
-+	 * |-----------------------|
-+	 * |        faulted        |
-+	 * |-----------------------|
-+	 */
-+	ASSERT_EQ(mprotect(&ptr[3 * page_size], 3 * page_size, PROT_READ), 0);
-+
-+	/* Assert that the merge succeeded using PROCMAP_QUERY. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 9 * page_size);
-+}
-+
-+TEST_F(merge, mprotect_faulted_left_unfaulted_right)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr;
-+
-+	/*
-+	 * |-----------------------|
-+	 * |       unfaulted       |
-+	 * |-----------------------|
-+	 */
-+	ptr = mmap(&carveout[2 * page_size], 9 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED | MAP_NORESERVE, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	/*
-+	 * Now make the last 3 pages read-only, splitting the VMA:
-+	 *
-+	 *             RW               RO
-+	 * |-----------------------|-----------|
-+	 * |       unfaulted       | unfaulted |
-+	 * |-----------------------|-----------|
-+	 */
-+	ASSERT_EQ(mprotect(&ptr[6 * page_size], 3 * page_size, PROT_READ), 0);
-+	/*
-+	 * Fault in the first of the first 6 pages so it gets an anon_vma and
-+	 * thus the whole VMA becomes 'faulted':
-+	 *
-+	 *             RW               RO
-+	 * |-----------------------|-----------|
-+	 * |       unfaulted       | unfaulted |
-+	 * |-----------------------|-----------|
-+	 */
-+	ptr[0] = 'x';
-+	/*
-+	 * Now make the first 3 pages read-only, splitting the VMA:
-+	 *
-+	 *      RO          RW          RO
-+	 * |-----------|-----------|-----------|
-+	 * |  faulted  |  faulted  | unfaulted |
-+	 * |-----------|-----------|-----------|
-+	 */
-+	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ), 0);
-+	/*
-+	 * Now mprotect() the RW region read-only, we should merge:
-+	 *
-+	 *             RO
-+	 * |-----------------------|
-+	 * |        faulted        |
-+	 * |-----------------------|
-+	 */
-+	ASSERT_EQ(mprotect(&ptr[3 * page_size], 3 * page_size, PROT_READ), 0);
-+
-+	/* Assert that the merge succeeded using PROCMAP_QUERY. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 9 * page_size);
-+}
-+
-+TEST_F(merge, mprotect_unfaulted_left_faulted_right)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr;
-+
-+	/*
-+	 * |-----------------------|
-+	 * |       unfaulted       |
-+	 * |-----------------------|
-+	 */
-+	ptr = mmap(&carveout[2 * page_size], 9 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED | MAP_NORESERVE, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	/*
-+	 * Now make the first 3 pages read-only, splitting the VMA:
-+	 *
-+	 *      RO                RW
-+	 * |-----------|-----------------------|
-+	 * | unfaulted |       unfaulted       |
-+	 * |-----------|-----------------------|
-+	 */
-+	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ), 0);
-+	/*
-+	 * Fault in the first of the last 6 pages so it gets an anon_vma and
-+	 * thus the whole VMA becomes 'faulted':
-+	 *
-+	 *      RO                RW
-+	 * |-----------|-----------------------|
-+	 * | unfaulted |        faulted        |
-+	 * |-----------|-----------------------|
-+	 */
-+	ptr[3 * page_size] = 'x';
-+	/*
-+	 * Now make the last 3 pages read-only, splitting the VMA:
-+	 *
-+	 *      RO          RW          RO
-+	 * |-----------|-----------|-----------|
-+	 * | unfaulted |  faulted  |  faulted  |
-+	 * |-----------|-----------|-----------|
-+	 */
-+	ASSERT_EQ(mprotect(&ptr[6 * page_size], 3 * page_size, PROT_READ), 0);
-+	/*
-+	 * Now mprotect() the RW region read-only, we should merge:
-+	 *
-+	 *             RO
-+	 * |-----------------------|
-+	 * |        faulted        |
-+	 * |-----------------------|
-+	 */
-+	ASSERT_EQ(mprotect(&ptr[3 * page_size], 3 * page_size, PROT_READ), 0);
-+
-+	/* Assert that the merge succeeded using PROCMAP_QUERY. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 9 * page_size);
-+}
-+
-+TEST_F(merge, forked_target_vma)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	pid_t pid;
-+	char *ptr, *ptr2;
-+	int i;
-+
-+	/*
-+	 * |-----------|
-+	 * | unfaulted |
-+	 * |-----------|
-+	 */
-+	ptr = mmap(&carveout[page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Fault in process.
-+	 *
-+	 * |-----------|
-+	 * |  faulted  |
-+	 * |-----------|
-+	 */
-+	ptr[0] = 'x';
-+
-+	pid = fork();
-+	ASSERT_NE(pid, -1);
-+
-+	if (pid != 0) {
-+		wait(NULL);
-+		return;
-+	}
-+
-+	/* Child process below: */
-+
-+	/* Reopen for child. */
-+	ASSERT_EQ(close_procmap(&self->procmap), 0);
-+	ASSERT_EQ(open_self_procmap(&self->procmap), 0);
-+
-+	/* unCOWing everything does not cause the AVC to go away. */
-+	for (i = 0; i < 5 * page_size; i += page_size)
-+		ptr[i] = 'x';
-+
-+	/*
-+	 * Map in adjacent VMA in child.
-+	 *
-+	 *     forked
-+	 * |-----------|-----------|
-+	 * |  faulted  | unfaulted |
-+	 * |-----------|-----------|
-+	 *      ptr         ptr2
-+	 */
-+	ptr2 = mmap(&ptr[5 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Make sure not merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
-+}
-+
-+TEST_F(merge, forked_source_vma)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	pid_t pid;
-+	char *ptr, *ptr2;
-+	int i;
-+
-+	/*
-+	 * |-----------|------------|
-+	 * | unfaulted | <unmapped> |
-+	 * |-----------|------------|
-+	 */
-+	ptr = mmap(&carveout[page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED | MAP_NORESERVE, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Fault in process.
-+	 *
-+	 * |-----------|------------|
-+	 * |  faulted  | <unmapped> |
-+	 * |-----------|------------|
-+	 */
-+	ptr[0] = 'x';
-+
-+	pid = fork();
-+	ASSERT_NE(pid, -1);
-+
-+	if (pid != 0) {
-+		wait(NULL);
-+		return;
-+	}
-+
-+	/* Child process below: */
-+
-+	/* Reopen for child. */
-+	ASSERT_EQ(close_procmap(&self->procmap), 0);
-+	ASSERT_EQ(open_self_procmap(&self->procmap), 0);
-+
-+	/* unCOWing everything does not cause the AVC to go away. */
-+	for (i = 0; i < 5 * page_size; i += page_size)
-+		ptr[i] = 'x';
-+
-+	/*
-+	 * Map in adjacent VMA in child, ptr2 after ptr, but incompatible.
-+	 *
-+	 *   forked RW      RWX
-+	 * |-----------|-----------|
-+	 * |  faulted  | unfaulted |
-+	 * |-----------|-----------|
-+	 *      ptr        ptr2
-+	 */
-+	ptr2 = mmap(&carveout[6 * page_size], 5 * page_size, PROT_READ | PROT_WRITE | PROT_EXEC,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED | MAP_NORESERVE, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Make sure not merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr2));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr2);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr2 + 5 * page_size);
-+
-+	/*
-+	 * Now mprotect forked region to RWX so it becomes the source for the
-+	 * merge to unfaulted region:
-+	 *
-+	 *  forked RWX      RWX
-+	 * |-----------|-----------|
-+	 * |  faulted  | unfaulted |
-+	 * |-----------|-----------|
-+	 *      ptr         ptr2
-+	 *
-+	 * This should NOT result in a merge, as ptr was forked.
-+	 */
-+	ASSERT_EQ(mprotect(ptr, 5 * page_size, PROT_READ | PROT_WRITE | PROT_EXEC), 0);
-+	/* Again, make sure not merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr2));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr2);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr2 + 5 * page_size);
-+}
-+
-+TEST_HARNESS_MAIN
---- a/tools/testing/selftests/mm/run_vmtests.sh~tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -79,6 +79,8 @@ separated by spaces:
- 	test prctl(PR_SET_MDWE, ...)
- - page_frag
- 	test handling of page fragment allocation and freeing
-+- vma_merge
-+	test VMA merge cases behave as expected
- 
- example: ./run_vmtests.sh -t "hmm mmap ksm"
- EOF
-@@ -421,6 +423,8 @@ CATEGORY="madv_guard" run_test ./guard-r
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
- 
-+CATEGORY="vma_merge" run_test ./merge
-+
- if [ -x ./memfd_secret ]
- then
- (echo 0 > /proc/sys/kernel/yama/ptrace_scope 2>&1) | tap_prefix
+ 		spin_unlock(ptl);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
-mm-abstract-initial-stack-setup-to-mm-subsystem.patch
-mm-move-dup_mmap-to-mm.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm.patch
-mm-introduce-new-mmap_prepare-file-callback.patch
-mm-secretmem-convert-to-mmap_prepare-hook.patch
-mm-vma-remove-mmap-retry-merge.patch
+mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch
+mm-convert-do_set_pmd-to-take-a-folio.patch
+mm-mincore-use-pte_batch_bint-to-batch-process-large-folios.patch
 
