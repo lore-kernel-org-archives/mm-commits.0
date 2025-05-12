@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D439C1553A3
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2269E1553A3
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011060; cv=none; b=MQb/ud2Rmh/UEmwvcOnsOJRTM5XdcPlYHw5AV6EJr8wuUrU8FL8E4RfEBzUsV7KhwQYxJgQF8RIo9NXFdNluItR+OTaPq2GXoLZjsvLc/z1PyjZ3qFCubtoKpt1Orgks860jr84o/Jm3nkgBsTCB3cpq9VveNYIb6b1BE8z2HmY=
+	t=1747011062; cv=none; b=qgF2zLUhIVTkLoFyHqZdynRo5TsUPKx6WZBuS0HqDHCV997hZT2a0817lL2/Hsphi5+Iq/+S0+QV6BGXUzR7xNDGwHiFLEcbNK2MaGs5E5BFRjm5HAIuibzbyLKTBYc+cqINeaKVk8g89qeBmJcdPqplFfTaRE20uZ9DdU+MoIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011060; c=relaxed/simple;
-	bh=OyLsS4949TzQzZHf7+Z4P4vpqCPkU/CAFhWbKPJwKjM=;
-	h=Date:To:From:Subject:Message-Id; b=eCOGeM/5bgoWz3iQP5t76OOWMIPY/NGHz+CIiOIj1UjNn81u144RApcNNjrSMjHs/jB1p4fhucqgxFhEpMtjcASQ7qqDyZ4YN+5HBpc8oq2AF/YttDsC+0dFLwqHLs6dxFbiRVdJIXkBJo6bPrEDjhQbajj3oXbNqckct2brfVI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RptuQl0+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011062; c=relaxed/simple;
+	bh=jPolK8zQt4/EEOMBgXlTnM1zwNpYEk8qKiw2Jd12HAg=;
+	h=Date:To:From:Subject:Message-Id; b=rc0eWWoWpIsxrKhv+JEayyZ063xBrVuGu47h7WTJI78XksTvQ6QIvUNyPXK91wNnUCVta/2u6aHswhzbaSE8qYS1UivSs1A98Y5EKgxPMDfrMCYvUZcGzlolCNS/yCUWLwtgQ2ICH2slGs99u/fIKYvJOh4VUqgwsWclTySy9xM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G3FqKPfE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RptuQl0+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8A7AC4CEE4;
-	Mon, 12 May 2025 00:51:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G3FqKPfE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE46C4CEE4;
+	Mon, 12 May 2025 00:51:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011060;
-	bh=OyLsS4949TzQzZHf7+Z4P4vpqCPkU/CAFhWbKPJwKjM=;
+	s=korg; t=1747011062;
+	bh=jPolK8zQt4/EEOMBgXlTnM1zwNpYEk8qKiw2Jd12HAg=;
 	h=Date:To:From:Subject:From;
-	b=RptuQl0++wonuuPhd0XSYYesiFLSdDU9YqRxwl4/fGPS2T4B7MxLOzfGP/be1/fHz
-	 X4x/fOAgG1a34Qk5VM+97d83ZGZvdhBUp1JUbiQ1FVRaboXdQkQlB3u5hFwLRzyxQ8
-	 fMnC28mbhRW0H7RpvOkbBH1b76vv/brliPl8nE/U=
-Date: Sun, 11 May 2025 17:51:00 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tongtiangen@huawei.com,peterz@infradead.org,olsajiri@gmail.com,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,kan.liang@linux.intel.com,irogers@google.com,andrii.nakryiko@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,david@redhat.com,akpm@linux-foundation.org
+	b=G3FqKPfEO+1HOHArISV9MIh+0FvyIKCvGs03uzgmyBfkTtkPY+9Fu72lCQCL7vP4t
+	 wyCLg2uBlfybWggURxT1zLYtKe/frvmjdjBVZ9iQ0BClYnrF03B+2BX3qatBmBawuZ
+	 m5DgYdb83b8F0V+0VkzhJSmj2e/oESLsk0ih59wo=
+Date: Sun, 11 May 2025 17:51:01 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shivankg@amd.com,mgorman@techsingularity.net,jackmanb@google.com,carlos.song@nxp.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kernel-events-uprobes-uprobe_write_opcode-rewrite.patch removed from -mm tree
-Message-Id: <20250512005100.A8A7AC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-tighten-up-find_suitable_fallback.patch removed from -mm tree
+Message-Id: <20250512005101.EBE46C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,458 +35,198 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/events/uprobes: uprobe_write_opcode() rewrite
+     Subject: mm: page_alloc: tighten up find_suitable_fallback()
 has been removed from the -mm tree.  Its filename was
-     kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
+     mm-page_alloc-tighten-up-find_suitable_fallback.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: kernel/events/uprobes: uprobe_write_opcode() rewrite
-Date: Fri, 21 Mar 2025 12:37:13 +0100
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: tighten up find_suitable_fallback()
+Date: Mon, 7 Apr 2025 14:01:54 -0400
 
-uprobe_write_opcode() does some pretty low-level things that really, it
-shouldn't be doing: for example, manually breaking COW by allocating
-anonymous folios and replacing mapped pages.
+find_suitable_fallback() is not as efficient as it could be, and somewhat
+difficult to follow.
 
-Further, it does seem to do some shaky things: for example, writing to
-possible COW-shared anonymous pages or zapping anonymous pages that might
-be pinned.  We're also not taking care of uffd, uffd-wp, softdirty ... 
-although rather corner cases here.  Let's just get it right like ordinary
-ptrace writes would.
+1. should_try_claim_block() is a loop invariant. There is no point in
+   checking fallback areas if the caller is interested in claimable
+   blocks but the order and the migratetype don't allow for that.
 
-Let's rewrite the code, leaving COW-breaking to core-MM, triggered by
-FOLL_FORCE|FOLL_WRITE (note that the code was already using FOLL_FORCE).
+2. __rmqueue_steal() doesn't care about claimability, so it shouldn't
+   have to run those tests.
 
-We'll use GUP to lookup/faultin the page and break COW if required.  Then,
-we'll walk the page tables using a folio_walk to perform our page
-modification atomically by temporarily unmap the PTE + flushing the TLB.
+Different callers want different things from this helper:
 
-Likely, we could avoid the temporary unmap in case we can just atomically
-write the instruction, but that will be a separate project.
+1. __compact_finished() scans orders up until it finds a claimable block
+2. __rmqueue_claim() scans orders down as long as blocks are claimable
+3. __rmqueue_steal() doesn't care about claimability at all
 
-Unfortunately, we still have to implement the zapping logic manually,
-because we only want to zap in specific circumstances (e.g., page content
-identical).
+Move should_try_claim_block() out of the loop. Only test it for the
+two callers who care in the first place. Distinguish "no blocks" from
+"order + mt are not claimable" in the return value; __rmqueue_claim()
+can stop once order becomes unclaimable, __compact_finished() can keep
+advancing until order becomes claimable.
 
-Note that we can now handle large folios (compound pages) and the shared
-zeropage just fine, so drop these checks.
+Before:
 
-Link: https://lkml.kernel.org/r/20250321113713.204682-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <olsajiri@gmail.com>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Namhyung kim <namhyung@kernel.org>
-Cc: Russel King <linux@armlinux.org.uk>
-Cc: tongtiangen <tongtiangen@huawei.com>
+ Performance counter stats for './run case-lru-file-mmap-read' (5 runs):
+
+	 85,294.85 msec task-clock                       #    5.644 CPUs utilized               ( +-  0.32% )
+	    15,968      context-switches                 #  187.209 /sec                        ( +-  3.81% )
+	       153      cpu-migrations                   #    1.794 /sec                        ( +-  3.29% )
+	   801,808      page-faults                      #    9.400 K/sec                       ( +-  0.10% )
+   733,358,331,786      instructions                     #    1.87  insn per cycle              ( +-  0.20% )  (64.94%)
+   392,622,904,199      cycles                           #    4.603 GHz                         ( +-  0.31% )  (64.84%)
+   148,563,488,531      branches                         #    1.742 G/sec                       ( +-  0.18% )  (63.86%)
+       152,143,228      branch-misses                    #    0.10% of all branches             ( +-  1.19% )  (62.82%)
+
+	   15.1128 +- 0.0637 seconds time elapsed  ( +-  0.42% )
+
+After:
+
+ Performance counter stats for './run case-lru-file-mmap-read' (5 runs):
+
+         84,380.21 msec task-clock                       #    5.664 CPUs utilized               ( +-  0.21% )
+            16,656      context-switches                 #  197.392 /sec                        ( +-  3.27% )
+               151      cpu-migrations                   #    1.790 /sec                        ( +-  3.28% )
+           801,703      page-faults                      #    9.501 K/sec                       ( +-  0.09% )
+   731,914,183,060      instructions                     #    1.88  insn per cycle              ( +-  0.38% )  (64.90%)
+   388,673,535,116      cycles                           #    4.606 GHz                         ( +-  0.24% )  (65.06%)
+   148,251,482,143      branches                         #    1.757 G/sec                       ( +-  0.37% )  (63.92%)
+       149,766,550      branch-misses                    #    0.10% of all branches             ( +-  1.22% )  (62.88%)
+
+           14.8968 +- 0.0486 seconds time elapsed  ( +-  0.33% )
+
+Link: https://lkml.kernel.org/r/20250407180154.63348-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Brendan Jackman <jackmanb@google.com>
+Tested-by: Shivank Garg <shivankg@amd.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Carlos Song <carlos.song@nxp.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |  318 +++++++++++++++++++-------------------
- 1 file changed, 161 insertions(+), 157 deletions(-)
+ mm/compaction.c |    4 +---
+ mm/internal.h   |    2 +-
+ mm/page_alloc.c |   31 +++++++++++++------------------
+ 3 files changed, 15 insertions(+), 22 deletions(-)
 
---- a/kernel/events/uprobes.c~kernel-events-uprobes-uprobe_write_opcode-rewrite
-+++ a/kernel/events/uprobes.c
-@@ -29,6 +29,7 @@
- #include <linux/workqueue.h>
- #include <linux/srcu.h>
- #include <linux/oom.h>          /* check_stable_address_space */
-+#include <linux/pagewalk.h>
+--- a/mm/compaction.c~mm-page_alloc-tighten-up-find_suitable_fallback
++++ a/mm/compaction.c
+@@ -2344,7 +2344,6 @@ static enum compact_result __compact_fin
+ 	ret = COMPACT_NO_SUITABLE_PAGE;
+ 	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
+ 		struct free_area *area = &cc->zone->free_area[order];
+-		bool claim_block;
  
- #include <linux/uprobes.h>
+ 		/* Job done if page is free of the right migratetype */
+ 		if (!free_area_empty(area, migratetype))
+@@ -2360,8 +2359,7 @@ static enum compact_result __compact_fin
+ 		 * Job done if allocation would steal freepages from
+ 		 * other migratetype buddy lists.
+ 		 */
+-		if (find_suitable_fallback(area, order, migratetype,
+-						true, &claim_block) != -1)
++		if (find_suitable_fallback(area, order, migratetype, true) >= 0)
+ 			/*
+ 			 * Movable pages are OK in any pageblock. If we are
+ 			 * stealing for a non-movable allocation, make sure
+--- a/mm/internal.h~mm-page_alloc-tighten-up-find_suitable_fallback
++++ a/mm/internal.h
+@@ -910,7 +910,7 @@ static inline void init_cma_pageblock(st
  
-@@ -152,91 +153,6 @@ static loff_t vaddr_to_offset(struct vm_
- }
  
- /**
-- * __replace_page - replace page in vma by new page.
-- * based on replace_page in mm/ksm.c
-- *
-- * @vma:      vma that holds the pte pointing to page
-- * @addr:     address the old @page is mapped at
-- * @old_page: the page we are replacing by new_page
-- * @new_page: the modified page we replace page by
-- *
-- * If @new_page is NULL, only unmap @old_page.
-- *
-- * Returns 0 on success, negative error code otherwise.
-- */
--static int __replace_page(struct vm_area_struct *vma, unsigned long addr,
--				struct page *old_page, struct page *new_page)
--{
--	struct folio *old_folio = page_folio(old_page);
--	struct folio *new_folio;
--	struct mm_struct *mm = vma->vm_mm;
--	DEFINE_FOLIO_VMA_WALK(pvmw, old_folio, vma, addr, 0);
--	int err;
--	struct mmu_notifier_range range;
--	pte_t pte;
--
--	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, addr,
--				addr + PAGE_SIZE);
--
--	if (new_page) {
--		new_folio = page_folio(new_page);
--		err = mem_cgroup_charge(new_folio, vma->vm_mm, GFP_KERNEL);
--		if (err)
--			return err;
--	}
--
--	/* For folio_free_swap() below */
--	folio_lock(old_folio);
--
--	mmu_notifier_invalidate_range_start(&range);
--	err = -EAGAIN;
--	if (!page_vma_mapped_walk(&pvmw))
--		goto unlock;
--	VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
--	pte = ptep_get(pvmw.pte);
--
--	/*
--	 * Handle PFN swap PTES, such as device-exclusive ones, that actually
--	 * map pages: simply trigger GUP again to fix it up.
--	 */
--	if (unlikely(!pte_present(pte))) {
--		page_vma_mapped_walk_done(&pvmw);
--		goto unlock;
--	}
--
--	if (new_page) {
--		folio_get(new_folio);
--		folio_add_new_anon_rmap(new_folio, vma, addr, RMAP_EXCLUSIVE);
--		folio_add_lru_vma(new_folio, vma);
--	} else
--		/* no new page, just dec_mm_counter for old_page */
--		dec_mm_counter(mm, MM_ANONPAGES);
--
--	if (!folio_test_anon(old_folio)) {
--		dec_mm_counter(mm, mm_counter_file(old_folio));
--		inc_mm_counter(mm, MM_ANONPAGES);
--	}
--
--	flush_cache_page(vma, addr, pte_pfn(pte));
--	ptep_clear_flush(vma, addr, pvmw.pte);
--	if (new_page)
--		set_pte_at(mm, addr, pvmw.pte,
--			   mk_pte(new_page, vma->vm_page_prot));
--
--	folio_remove_rmap_pte(old_folio, old_page, vma);
--	if (!folio_mapped(old_folio))
--		folio_free_swap(old_folio);
--	page_vma_mapped_walk_done(&pvmw);
--	folio_put(old_folio);
--
--	err = 0;
-- unlock:
--	mmu_notifier_invalidate_range_end(&range);
--	folio_unlock(old_folio);
--	return err;
--}
--
--/**
-  * is_swbp_insn - check if instruction is breakpoint instruction.
-  * @insn: instruction to be checked.
-  * Default implementation of is_swbp_insn
-@@ -463,6 +379,95 @@ static int update_ref_ctr(struct uprobe
- 	return ret;
- }
+ int find_suitable_fallback(struct free_area *area, unsigned int order,
+-			int migratetype, bool claim_only, bool *claim_block);
++			   int migratetype, bool claimable);
  
-+static bool orig_page_is_identical(struct vm_area_struct *vma,
-+		unsigned long vaddr, struct page *page, bool *pmd_mappable)
-+{
-+	const pgoff_t index = vaddr_to_offset(vma, vaddr) >> PAGE_SHIFT;
-+	struct folio *orig_folio = filemap_get_folio(vma->vm_file->f_mapping,
-+						    index);
-+	struct page *orig_page;
-+	bool identical;
-+
-+	if (IS_ERR(orig_folio))
-+		return false;
-+	orig_page = folio_file_page(orig_folio, index);
-+
-+	*pmd_mappable = folio_test_pmd_mappable(orig_folio);
-+	identical = folio_test_uptodate(orig_folio) &&
-+		    pages_identical(page, orig_page);
-+	folio_put(orig_folio);
-+	return identical;
-+}
-+
-+static int __uprobe_write_opcode(struct vm_area_struct *vma,
-+		struct folio_walk *fw, struct folio *folio,
-+		unsigned long opcode_vaddr, uprobe_opcode_t opcode)
-+{
-+	const unsigned long vaddr = opcode_vaddr & PAGE_MASK;
-+	const bool is_register = !!is_swbp_insn(&opcode);
-+	bool pmd_mappable;
-+
-+	/* For now, we'll only handle PTE-mapped folios. */
-+	if (fw->level != FW_LEVEL_PTE)
-+		return -EFAULT;
-+
-+	/*
-+	 * See can_follow_write_pte(): we'd actually prefer a writable PTE here,
-+	 * but the VMA might not be writable.
-+	 */
-+	if (!pte_write(fw->pte)) {
-+		if (!PageAnonExclusive(fw->page))
-+			return -EFAULT;
-+		if (unlikely(userfaultfd_pte_wp(vma, fw->pte)))
-+			return -EFAULT;
-+		/* SOFTDIRTY is handled via pte_mkdirty() below. */
-+	}
-+
-+	/*
-+	 * We'll temporarily unmap the page and flush the TLB, such that we can
-+	 * modify the page atomically.
-+	 */
-+	flush_cache_page(vma, vaddr, pte_pfn(fw->pte));
-+	fw->pte = ptep_clear_flush(vma, vaddr, fw->ptep);
-+	copy_to_page(fw->page, opcode_vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
-+
-+	/*
-+	 * When unregistering, we may only zap a PTE if uffd is disabled and
-+	 * there are no unexpected folio references ...
-+	 */
-+	if (is_register || userfaultfd_missing(vma) ||
-+	    (folio_ref_count(folio) != folio_mapcount(folio) + 1 +
-+	     folio_test_swapcache(folio) * folio_nr_pages(folio)))
-+		goto remap;
-+
-+	/*
-+	 * ... and the mapped page is identical to the original page that
-+	 * would get faulted in on next access.
-+	 */
-+	if (!orig_page_is_identical(vma, vaddr, fw->page, &pmd_mappable))
-+		goto remap;
-+
-+	dec_mm_counter(vma->vm_mm, MM_ANONPAGES);
-+	folio_remove_rmap_pte(folio, fw->page, vma);
-+	if (!folio_mapped(folio) && folio_test_swapcache(folio) &&
-+	     folio_trylock(folio)) {
-+		folio_free_swap(folio);
-+		folio_unlock(folio);
-+	}
-+	folio_put(folio);
-+
-+	return pmd_mappable;
-+remap:
-+	/*
-+	 * Make sure that our copy_to_page() changes become visible before the
-+	 * set_pte_at() write.
-+	 */
-+	smp_wmb();
-+	/* We modified the page. Make sure to mark the PTE dirty. */
-+	set_pte_at(vma->vm_mm, vaddr, fw->ptep, pte_mkdirty(fw->pte));
-+	return 0;
-+}
-+
- /*
-  * NOTE:
-  * Expect the breakpoint instruction to be the smallest size instruction for
-@@ -475,116 +480,115 @@ static int update_ref_ctr(struct uprobe
-  * uprobe_write_opcode - write the opcode at a given virtual address.
-  * @auprobe: arch specific probepoint information.
-  * @vma: the probed virtual memory area.
-- * @vaddr: the virtual address to store the opcode.
-- * @opcode: opcode to be written at @vaddr.
-+ * @opcode_vaddr: the virtual address to store the opcode.
-+ * @opcode: opcode to be written at @opcode_vaddr.
-  *
-  * Called with mm->mmap_lock held for read or write.
-  * Return 0 (success) or a negative errno.
-  */
- int uprobe_write_opcode(struct arch_uprobe *auprobe, struct vm_area_struct *vma,
--		unsigned long vaddr, uprobe_opcode_t opcode)
-+		const unsigned long opcode_vaddr, uprobe_opcode_t opcode)
+ static inline bool free_area_empty(struct free_area *area, int migratetype)
  {
-+	const unsigned long vaddr = opcode_vaddr & PAGE_MASK;
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct uprobe *uprobe;
--	struct page *old_page, *new_page;
- 	int ret, is_register, ref_ctr_updated = 0;
--	bool orig_page_huge = false;
- 	unsigned int gup_flags = FOLL_FORCE;
-+	struct mmu_notifier_range range;
-+	struct folio_walk fw;
-+	struct folio *folio;
-+	struct page *page;
+--- a/mm/page_alloc.c~mm-page_alloc-tighten-up-find_suitable_fallback
++++ a/mm/page_alloc.c
+@@ -2068,31 +2068,25 @@ static bool should_try_claim_block(unsig
  
- 	is_register = is_swbp_insn(&opcode);
- 	uprobe = container_of(auprobe, struct uprobe, arch);
- 
--retry:
-+	if (WARN_ON_ONCE(!is_cow_mapping(vma->vm_flags)))
-+		return -EINVAL;
+ /*
+  * Check whether there is a suitable fallback freepage with requested order.
+- * Sets *claim_block to instruct the caller whether it should convert a whole
+- * pageblock to the returned migratetype.
+- * If only_claim is true, this function returns fallback_mt only if
++ * If claimable is true, this function returns fallback_mt only if
+  * we would do this whole-block claiming. This would help to reduce
+  * fragmentation due to mixed migratetype pages in one pageblock.
+  */
+ int find_suitable_fallback(struct free_area *area, unsigned int order,
+-			int migratetype, bool only_claim, bool *claim_block)
++			   int migratetype, bool claimable)
+ {
+ 	int i;
+-	int fallback_mt;
 +
-+	/*
-+	 * When registering, we have to break COW to get an exclusive anonymous
-+	 * page that we can safely modify. Use FOLL_WRITE to trigger a write
-+	 * fault if required. When unregistering, we might be lucky and the
-+	 * anon page is already gone. So defer write faults until really
-+	 * required. Use FOLL_SPLIT_PMD, because __uprobe_write_opcode()
-+	 * cannot deal with PMDs yet.
-+	 */
- 	if (is_register)
--		gup_flags |= FOLL_SPLIT_PMD;
--	/* Read the page with vaddr into memory */
--	ret = get_user_pages_remote(mm, vaddr, 1, gup_flags, &old_page, NULL);
--	if (ret != 1)
--		return ret;
-+		gup_flags |= FOLL_WRITE | FOLL_SPLIT_PMD;
++	if (claimable && !should_try_claim_block(order, migratetype))
++		return -2;
  
--	ret = verify_opcode(old_page, vaddr, &opcode);
-+retry:
-+	ret = get_user_pages_remote(mm, vaddr, 1, gup_flags, &page, NULL);
- 	if (ret <= 0)
--		goto put_old;
+ 	if (area->nr_free == 0)
+ 		return -1;
+ 
+-	*claim_block = false;
+ 	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
+-		fallback_mt = fallbacks[migratetype][i];
+-		if (free_area_empty(area, fallback_mt))
+-			continue;
++		int fallback_mt = fallbacks[migratetype][i];
+ 
+-		if (should_try_claim_block(order, migratetype))
+-			*claim_block = true;
 -
--	if (is_zero_page(old_page)) {
--		ret = -EINVAL;
--		goto put_old;
--	}
-+		goto out;
-+	folio = page_folio(page);
- 
--	if (WARN(!is_register && PageCompound(old_page),
--		 "uprobe unregister should never work on compound page\n")) {
--		ret = -EINVAL;
--		goto put_old;
-+	ret = verify_opcode(page, opcode_vaddr, &opcode);
-+	if (ret <= 0) {
-+		folio_put(folio);
-+		goto out;
+-		if (*claim_block || !only_claim)
++		if (!free_area_empty(area, fallback_mt))
+ 			return fallback_mt;
  	}
  
- 	/* We are going to replace instruction, update ref_ctr. */
- 	if (!ref_ctr_updated && uprobe->ref_ctr_offset) {
- 		ret = update_ref_ctr(uprobe, mm, is_register ? 1 : -1);
--		if (ret)
--			goto put_old;
-+		if (ret) {
-+			folio_put(folio);
-+			goto out;
-+		}
+@@ -2189,7 +2183,6 @@ __rmqueue_claim(struct zone *zone, int o
+ 	int min_order = order;
+ 	struct page *page;
+ 	int fallback_mt;
+-	bool claim_block;
  
- 		ref_ctr_updated = 1;
- 	}
- 
- 	ret = 0;
--	if (!is_register && !PageAnon(old_page))
--		goto put_old;
--
--	ret = anon_vma_prepare(vma);
--	if (ret)
--		goto put_old;
--
--	ret = -ENOMEM;
--	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vaddr);
--	if (!new_page)
--		goto put_old;
--
--	__SetPageUptodate(new_page);
--	copy_highpage(new_page, old_page);
--	copy_to_page(new_page, vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
--
--	if (!is_register) {
--		struct page *orig_page;
--		pgoff_t index;
--
--		VM_BUG_ON_PAGE(!PageAnon(old_page), old_page);
--
--		index = vaddr_to_offset(vma, vaddr & PAGE_MASK) >> PAGE_SHIFT;
--		orig_page = find_get_page(vma->vm_file->f_inode->i_mapping,
--					  index);
--
--		if (orig_page) {
--			if (PageUptodate(orig_page) &&
--			    pages_identical(new_page, orig_page)) {
--				/* let go new_page */
--				put_page(new_page);
--				new_page = NULL;
--
--				if (PageCompound(orig_page))
--					orig_page_huge = true;
--			}
--			put_page(orig_page);
--		}
-+	if (unlikely(!folio_test_anon(folio))) {
-+		VM_WARN_ON_ONCE(is_register);
-+		folio_put(folio);
-+		goto out;
- 	}
- 
--	ret = __replace_page(vma, vaddr & PAGE_MASK, old_page, new_page);
--	if (new_page)
--		put_page(new_page);
--put_old:
--	put_page(old_page);
--
--	if (unlikely(ret == -EAGAIN))
-+	if (!is_register) {
-+		/*
-+		 * In the common case, we'll be able to zap the page when
-+		 * unregistering. So trigger MMU notifiers now, as we won't
-+		 * be able to do it under PTL.
-+		 */
-+		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
-+					vaddr, vaddr + PAGE_SIZE);
-+		mmu_notifier_invalidate_range_start(&range);
-+	}
+ 	/*
+ 	 * Do not steal pages from freelists belonging to other pageblocks
+@@ -2208,11 +2201,14 @@ __rmqueue_claim(struct zone *zone, int o
+ 				--current_order) {
+ 		area = &(zone->free_area[current_order]);
+ 		fallback_mt = find_suitable_fallback(area, current_order,
+-				start_migratetype, false, &claim_block);
++						     start_migratetype, true);
 +
-+	ret = -EAGAIN;
-+	/* Walk the page tables again, to perform the actual update. */
-+	if (folio_walk_start(&fw, vma, vaddr, 0)) {
-+		if (fw.page == page)
-+			ret = __uprobe_write_opcode(vma, &fw, folio, opcode_vaddr, opcode);
-+		folio_walk_end(&fw, vma);
-+	}
-+
-+	if (!is_register)
-+		mmu_notifier_invalidate_range_end(&range);
-+
-+	folio_put(folio);
-+	switch (ret) {
-+	case -EFAULT:
-+		gup_flags |= FOLL_WRITE | FOLL_SPLIT_PMD;
-+		fallthrough;
-+	case -EAGAIN:
- 		goto retry;
-+	default:
-+		break;
-+	}
++		/* No block in that order */
+ 		if (fallback_mt == -1)
+ 			continue;
  
-+out:
- 	/* Revert back reference counter if instruction update failed. */
--	if (ret && is_register && ref_ctr_updated)
-+	if (ret < 0 && is_register && ref_ctr_updated)
- 		update_ref_ctr(uprobe, mm, -1);
+-		if (!claim_block)
++		/* Advanced into orders too low to claim, abort */
++		if (fallback_mt == -2)
+ 			break;
  
- 	/* try collapse pmd for compound page */
--	if (!ret && orig_page_huge)
-+	if (ret > 0)
- 		collapse_pte_mapped_thp(mm, vaddr, false);
+ 		page = get_page_from_free_area(area, fallback_mt);
+@@ -2240,12 +2236,11 @@ __rmqueue_steal(struct zone *zone, int o
+ 	int current_order;
+ 	struct page *page;
+ 	int fallback_mt;
+-	bool claim_block;
  
--	return ret;
-+	return ret < 0 ? ret : 0;
- }
+ 	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
+ 		area = &(zone->free_area[current_order]);
+ 		fallback_mt = find_suitable_fallback(area, current_order,
+-				start_migratetype, false, &claim_block);
++						     start_migratetype, false);
+ 		if (fallback_mt == -1)
+ 			continue;
  
- /**
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-selftests-mm-add-simple-vm_pfnmap-tests-based-on-mmaping-dev-mem.patch
 
