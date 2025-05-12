@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D46E31A76D4
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F182D1A76D4
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011384; cv=none; b=iw8Zoasv/Lts4/cNBkhiGGnJH+lhGw3Ks0Gdzn7MH0afI+TWsZSMSEPVB6qdCk2OF2wdCzxVvPJTUwwBcDwfyV/yjuNccWVO1ACEuwFpGIi0DR4c8EITDrGuwHhSfVhYZZwUtXikwqb/o9sEP+aXqM8CSvR+bvoumwKQBuIQbog=
+	t=1747011386; cv=none; b=rdhnUFxx48ywAlkrvj9V+v8TwdkFTw8eTX66U6xPTFZGGT+p4/HDAjteccM4+JjQPCTS5Uvhx9RQZ65Mn7r4QcX+2o5TDbLlXEdbYdN6kl8+5MD3xYihHIsR+EmggTbFkYLRCFlroWHm/u3IwK1CMn+s5nfjOOCPai19Nk8O0VU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011384; c=relaxed/simple;
-	bh=5bHiREhqXG0fz9R/TL0ARf3Sb7G7X0CuMlofjRPbRfs=;
-	h=Date:To:From:Subject:Message-Id; b=jPJXzo0FUA0ayMhjczKBAxtNg+EJCd397wTZ+7n56kmpp8ggpvyJr0xzm3Q7OzjvbGMToqIe788MeAR10zHiHxWCe7Ep5gPMPZpInM/OpnlgJtfvmXvgJA92lTT5Hs49GBjjRskofTpniPtm7Q8IrElsfTLLuWRYSh62HjzCys8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ogthGVvV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011386; c=relaxed/simple;
+	bh=1xJ14uD58wSXsqhDOWg6sCH1iSPZwvaIGPedUeMfoSc=;
+	h=Date:To:From:Subject:Message-Id; b=sDC1nh5bira5T35OQZ0aS3HrQKdcWvoy5OCr3qzGgHgOTHBUzX8bnDt1osdPzPQgYKMJ3iOd7VJKxSvGba69Yg8UYWxuJesoUHu5VJX+hH7iXI+kTSH1gvmgV/5z3y0dFajK74U+05NdAiYfczIRnbniQnsfA20y8Ufas8zOW2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MgUdRdkE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ogthGVvV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A91ACC4CEE4;
-	Mon, 12 May 2025 00:56:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MgUdRdkE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5C6EC4CEE4;
+	Mon, 12 May 2025 00:56:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011384;
-	bh=5bHiREhqXG0fz9R/TL0ARf3Sb7G7X0CuMlofjRPbRfs=;
+	s=korg; t=1747011385;
+	bh=1xJ14uD58wSXsqhDOWg6sCH1iSPZwvaIGPedUeMfoSc=;
 	h=Date:To:From:Subject:From;
-	b=ogthGVvVGcJzG7+NzOdrvblFc1GX1jEkJAKCbG4jBKWgqJLmEIlSQSlKuOlmfgHEg
-	 lNfRdifacWVsXsJuEBNoxnfpoZ98QtCvUCj1fMoY4DGc4yI2Zqg0siJpvFIReMC8lo
-	 POxzt5NqV8O0triewxm0LCvwozu/rXWNKa9fCznA=
-Date: Sun, 11 May 2025 17:56:24 -0700
-To: mm-commits@vger.kernel.org,linux@treblig.org,akpm@linux-foundation.org
+	b=MgUdRdkE3mX/SXGe6hE1iQhaldzndGU3tzzj/eB3CeeHngkKK4Nxuxy5t3bpvZXis
+	 xhS6EnPYY2xM5ThztMhM4E/IL70lWyefGPxsphLduZQ1cIbbpZ+XAHfeyZkRJZq7kA
+	 pEMrlcRPHaziFKKzVbQ0FoOYw+Q6Geg+oQPDTty0=
+Date: Sun, 11 May 2025 17:56:25 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,brauner@kernel.org,chelsyratnawat2001@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-oid_registryc-remove-unused-sprint_oid.patch removed from -mm tree
-Message-Id: <20250512005624.A91ACC4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-fix-some-typos-in-tools-testing-selftests.patch removed from -mm tree
+Message-Id: <20250512005625.C5C6EC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/oid_registry.c: remove unused sprint_OID
+     Subject: selftests: fix some typos in tools/testing/selftests
 has been removed from the -mm tree.  Its filename was
-     lib-oid_registryc-remove-unused-sprint_oid.patch
+     selftests-fix-some-typos-in-tools-testing-selftests.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: lib/oid_registry.c: remove unused sprint_OID
-Date: Thu, 1 May 2025 02:05:02 +0100
+From: Chelsy Ratnawat <chelsyratnawat2001@gmail.com>
+Subject: selftests: fix some typos in tools/testing/selftests
+Date: Sat, 3 May 2025 14:19:59 -0700
 
-sprint_OID() was added as part of 2012's commit 4f73175d0375 ("X.509: Add
-utility functions to render OIDs as strings") but it hasn't been used. 
-Remove it.
+Fix multiple spelling errors:
 
-Note that there's also 'sprint_oid' (lower case) which is used in a lot of
-places; that's left as is except for fixing its case in a comment.
+ - "rougly" -> "roughly"
+ - "fielesystems" -> "filesystems"
+ - "Can'" -> "Can't"
 
-Link: https://lkml.kernel.org/r/20250501010502.326472-1-linux@treblig.org
-Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
+Link: https://lkml.kernel.org/r/20250503211959.507815-1-chelsyratnawat2001@gmail.com
+Signed-off-by: Chelsy Ratnawat <chelsyratnawat2001@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oid_registry.h |    1 -
- lib/oid_registry.c           |   25 +------------------------
- 2 files changed, 1 insertion(+), 25 deletions(-)
+ tools/testing/selftests/filesystems/file_stressor.c                      |    2 +-
+ tools/testing/selftests/mm/gup_longterm.c                                |    2 +-
+ tools/testing/selftests/thermal/intel/power_floor/power_floor_test.c     |    2 +-
+ tools/testing/selftests/thermal/intel/workload_hint/workload_hint_test.c |    4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/oid_registry.h~lib-oid_registryc-remove-unused-sprint_oid
-+++ a/include/linux/oid_registry.h
-@@ -151,6 +151,5 @@ enum OID {
- extern enum OID look_up_OID(const void *data, size_t datasize);
- extern int parse_OID(const void *data, size_t datasize, enum OID *oid);
- extern int sprint_oid(const void *, size_t, char *, size_t);
--extern int sprint_OID(enum OID, char *, size_t);
+--- a/tools/testing/selftests/filesystems/file_stressor.c~selftests-fix-some-typos-in-tools-testing-selftests
++++ a/tools/testing/selftests/filesystems/file_stressor.c
+@@ -156,7 +156,7 @@ TEST_F_TIMEOUT(file_stressor, slab_types
+ 			ssize_t nr_read;
  
- #endif /* _LINUX_OID_REGISTRY_H */
---- a/lib/oid_registry.c~lib-oid_registryc-remove-unused-sprint_oid
-+++ a/lib/oid_registry.c
-@@ -117,7 +117,7 @@ int parse_OID(const void *data, size_t d
- EXPORT_SYMBOL_GPL(parse_OID);
+ 			/*
+-			 * Concurrently read /proc/<pid>/fd/ which rougly does:
++			 * Concurrently read /proc/<pid>/fd/ which roughly does:
+ 			 *
+ 			 * f = fget_task_next(p, &fd);
+ 			 * if (!f)
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-fix-some-typos-in-tools-testing-selftests
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -158,7 +158,7 @@ static void do_test(int fd, size_t size,
+ 		/*
+ 		 * R/O pinning or pinning in a private mapping is always
+ 		 * expected to work. Otherwise, we expect long-term R/W pinning
+-		 * to only succeed for special fielesystems.
++		 * to only succeed for special filesystems.
+ 		 */
+ 		should_work = !shared || !rw ||
+ 			      fs_supports_writable_longterm_pinning(fs_type);
+--- a/tools/testing/selftests/thermal/intel/power_floor/power_floor_test.c~selftests-fix-some-typos-in-tools-testing-selftests
++++ a/tools/testing/selftests/thermal/intel/power_floor/power_floor_test.c
+@@ -56,7 +56,7 @@ int main(int argc, char **argv)
+ 	}
  
- /*
-- * sprint_OID - Print an Object Identifier into a buffer
-+ * sprint_oid - Print an Object Identifier into a buffer
-  * @data: The encoded OID to print
-  * @datasize: The size of the encoded OID
-  * @buffer: The buffer to render into
-@@ -173,26 +173,3 @@ bad:
- 	return -EBADMSG;
- }
- EXPORT_SYMBOL_GPL(sprint_oid);
--
--/**
-- * sprint_OID - Print an Object Identifier into a buffer
-- * @oid: The OID to print
-- * @buffer: The buffer to render into
-- * @bufsize: The size of the buffer
-- *
-- * The OID is rendered into the buffer in "a.b.c.d" format and the number of
-- * bytes is returned.
-- */
--int sprint_OID(enum OID oid, char *buffer, size_t bufsize)
--{
--	int ret;
--
--	BUG_ON(oid >= OID__NR);
--
--	ret = sprint_oid(oid_data + oid_index[oid],
--			 oid_index[oid + 1] - oid_index[oid],
--			 buffer, bufsize);
--	BUG_ON(ret == -EBADMSG);
--	return ret;
--}
--EXPORT_SYMBOL_GPL(sprint_OID);
+ 	if (write(fd, "1\n", 2) < 0) {
+-		perror("Can' enable power floor notifications\n");
++		perror("Can't enable power floor notifications\n");
+ 		exit(1);
+ 	}
+ 
+--- a/tools/testing/selftests/thermal/intel/workload_hint/workload_hint_test.c~selftests-fix-some-typos-in-tools-testing-selftests
++++ a/tools/testing/selftests/thermal/intel/workload_hint/workload_hint_test.c
+@@ -37,7 +37,7 @@ void workload_hint_exit(int signum)
+ 	}
+ 
+ 	if (write(fd, "0\n", 2) < 0) {
+-		perror("Can' disable workload hints\n");
++		perror("Can't disable workload hints\n");
+ 		exit(1);
+ 	}
+ 
+@@ -99,7 +99,7 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	if (write(fd, "1\n", 2) < 0) {
+-		perror("Can' enable workload hints\n");
++		perror("Can't enable workload hints\n");
+ 		exit(1);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from linux@treblig.org are
+Patches currently in -mm which might be from chelsyratnawat2001@gmail.com are
 
 
