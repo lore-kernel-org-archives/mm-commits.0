@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD0F62EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 556B22EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011352; cv=none; b=UwPh7ondSu0bnxLJB++HvPGSptJpodV1Pe7jY2dCQIKzci2lEadfuYgGLR5xWZqCFMkVcnPqMpI4vrKhKac31TgR8SHDD/R+0lbilvyIHD2/eOPl6L/thciky9I5j4Ovkfx1iXukc5aqaAfkqro3tSPE63KvyDmk266rivSn0yQ=
+	t=1747011354; cv=none; b=PuGRh3aCLHiJbKv4NZ8wSacRanjK22FPTuZdNW2wbflQ3VlPpFIx1jWI12SyrWV38cff0EqxTLx6sru4VTIWO+6Z58SaRJdg4RtAi0dEvRS2w215La8lcX2ABZbo6NwmUy8qVC75zdeCr5BRiA8EIcSUjwVBjByyFhC6E09UBQk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011352; c=relaxed/simple;
-	bh=5lFyoao/LEjABJhzuhy61KgXCMwoyjoLq+ZBHTtabn4=;
-	h=Date:To:From:Subject:Message-Id; b=HGUv+3bp/By2fo219gB5LX9HrdYgr4PDj+X+Hlvkoz/ocDFpzOVcZvfQCuR7rEqML7ywYv70kHrg0B7gXHxVfZHgo5NHHZvbTrwmFnoTulZQlsFQS76ZbS/dddfB3EzjASvDSjsM4Y/LdNP/nU54XND8HLyrUU4njYBt33RkXqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MzNaf4sj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011354; c=relaxed/simple;
+	bh=KlWuHX6ufMLHmmyJONMKrR3Q+D4fHP5FwPYu31brFwk=;
+	h=Date:To:From:Subject:Message-Id; b=Z4lgsQn5M6Fr/n+BK2ZYUAR1C0lI2BgSG6AMYLCiCJ8CUwaiXqgsRdnPduH0+1hqgpAzTvnEQe/sgEAqhK/96C7+t/eXK8WeO+tvhjhyXNp46eEk+Mu7DGAZM9aGIoRak3vqTj4dXO1PYilBUWTZIMJhjgJuaOvBIuRypi4zLMA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PShoez+V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MzNaf4sj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9207EC4CEE4;
-	Mon, 12 May 2025 00:55:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PShoez+V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3A45C4CEE4;
+	Mon, 12 May 2025 00:55:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011352;
-	bh=5lFyoao/LEjABJhzuhy61KgXCMwoyjoLq+ZBHTtabn4=;
+	s=korg; t=1747011353;
+	bh=KlWuHX6ufMLHmmyJONMKrR3Q+D4fHP5FwPYu31brFwk=;
 	h=Date:To:From:Subject:From;
-	b=MzNaf4sj2IWmbR42Aj3myX2S2LkSSH1uhjiE8uVnqWDj0vhoi8IoELk1q65KXJqlU
-	 jNr9cdAtudTNF2DjlRlWDK0AZzA1ZWPMRhxPcTAIgjWUK5DLJrZNcjT8VyakvAQF6o
-	 bMhS3DsQ+i3wI6Ojb2b0vFwf3QNdsBwFurzCHQUo=
-Date: Sun, 11 May 2025 17:55:52 -0700
-To: mm-commits@vger.kernel.org,jlayton@kernel.org,quic_zijuhu@quicinc.com,akpm@linux-foundation.org
+	b=PShoez+VPmlfjiFPUHoFqLejXZl5+ARF+O66GiT8qqaCOVPiqF7rVUYHW1AV/9WgO
+	 clW7uXLtBFtHEtS/nyaab2RWcnHBwUI9PLyQ2pRL4SAY/NAAaP4A6HeL8W/Pfnkyfb
+	 r6Mpg5BDkbwNeiMyB0z9wtNvyEund7ppgFb2LCvo=
+Date: Sun, 11 May 2025 17:55:53 -0700
+To: mm-commits@vger.kernel.org,oleg@redhat.com,mjguzik@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] errseq-eliminate-special-limitation-for-macro-max_errno.patch removed from -mm tree
-Message-Id: <20250512005552.9207EC4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch removed from -mm tree
+Message-Id: <20250512005553.B3A45C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,148 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: errseq: eliminate special limitation for macro MAX_ERRNO
+     Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
 has been removed from the -mm tree.  Its filename was
-     errseq-eliminate-special-limitation-for-macro-max_errno.patch
+     exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zijun Hu <quic_zijuhu@quicinc.com>
-Subject: errseq: eliminate special limitation for macro MAX_ERRNO
-Date: Mon, 07 Apr 2025 19:44:16 +0800
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
+Date: Wed, 19 Mar 2025 20:54:36 +0100
 
-Current errseq implementation depends on a very special precondition that
-macro MAX_ERRNO must be (2^n - 1).
+This reduces single-threaded overhead as it avoids one lock+irq trip on
+exit.
 
-Eliminate the limitation by
+It also improves scalability of spawning and killing threads within one
+process (just shy of 5% when doing it on 24 cores on my test jig).
 
-- redefining macro ERRSEQ_SHIFT
-- defining a new macro ERRNO_MASK instead of MAX_ERRNO for errno mask.
+Both routines are moved below kcov and kmsan exit, which should be
+harmless.
 
-There is no plan to change the value of MAX_ERRNO, but this makes the
-implementation more generic and eliminates the BUILD_BUG_ON().
-
-Link: https://lkml.kernel.org/r/20250407-improve_errseq-v1-1-7b27cbeb8298@quicinc.com
-Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
-Reviewed-by: Jeff Layton <jlayton@kernel.org>
+Link: https://lkml.kernel.org/r/20250319195436.1864415-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/errseq.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ kernel/exit.c |   68 ++++++++++++++++++++++--------------------------
+ 1 file changed, 32 insertions(+), 36 deletions(-)
 
---- a/lib/errseq.c~errseq-eliminate-special-limitation-for-macro-max_errno
-+++ a/lib/errseq.c
-@@ -34,11 +34,14 @@
-  */
- 
- /* The low bits are designated for error code (max of MAX_ERRNO) */
--#define ERRSEQ_SHIFT		ilog2(MAX_ERRNO + 1)
-+#define ERRSEQ_SHIFT		(ilog2(MAX_ERRNO) + 1)
- 
- /* This bit is used as a flag to indicate whether the value has been seen */
- #define ERRSEQ_SEEN		(1 << ERRSEQ_SHIFT)
- 
-+/* Leverage macro ERRSEQ_SEEN to define errno mask macro here */
-+#define ERRNO_MASK		(ERRSEQ_SEEN - 1)
-+
- /* The lowest bit of the counter */
- #define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 1))
- 
-@@ -60,8 +63,6 @@ errseq_t errseq_set(errseq_t *eseq, int
- {
- 	errseq_t cur, old;
- 
--	/* MAX_ERRNO must be able to serve as a mask */
--	BUILD_BUG_ON_NOT_POWER_OF_2(MAX_ERRNO + 1);
- 
- 	/*
- 	 * Ensure the error code actually fits where we want it to go. If it
-@@ -79,7 +80,7 @@ errseq_t errseq_set(errseq_t *eseq, int
- 		errseq_t new;
- 
- 		/* Clear out error bits and set new error */
--		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN)) | -err;
-+		new = (old & ~(ERRNO_MASK | ERRSEQ_SEEN)) | -err;
- 
- 		/* Only increment if someone has looked at it */
- 		if (old & ERRSEQ_SEEN)
-@@ -148,7 +149,7 @@ int errseq_check(errseq_t *eseq, errseq_
- 
- 	if (likely(cur == since))
- 		return 0;
--	return -(cur & MAX_ERRNO);
-+	return -(cur & ERRNO_MASK);
- }
- EXPORT_SYMBOL(errseq_check);
- 
-@@ -200,7 +201,7 @@ int errseq_check_and_advance(errseq_t *e
- 		if (new != old)
- 			cmpxchg(eseq, old, new);
- 		*since = new;
--		err = -(new & MAX_ERRNO);
-+		err = -(new & ERRNO_MASK);
+--- a/kernel/exit.c~exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit
++++ a/kernel/exit.c
+@@ -415,44 +415,30 @@ kill_orphaned_pgrp(struct task_struct *t
  	}
- 	return err;
  }
+ 
+-static void coredump_task_exit(struct task_struct *tsk)
++static void coredump_task_exit(struct task_struct *tsk,
++			       struct core_state *core_state)
+ {
+-	struct core_state *core_state;
++	struct core_thread self;
+ 
++	self.task = tsk;
++	if (self.task->flags & PF_SIGNALED)
++		self.next = xchg(&core_state->dumper.next, &self);
++	else
++		self.task = NULL;
+ 	/*
+-	 * Serialize with any possible pending coredump.
+-	 * We must hold siglock around checking core_state
+-	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
+-	 * will increment ->nr_threads for each thread in the
+-	 * group without PF_POSTCOREDUMP set.
++	 * Implies mb(), the result of xchg() must be visible
++	 * to core_state->dumper.
+ 	 */
+-	spin_lock_irq(&tsk->sighand->siglock);
+-	tsk->flags |= PF_POSTCOREDUMP;
+-	core_state = tsk->signal->core_state;
+-	spin_unlock_irq(&tsk->sighand->siglock);
+-	if (core_state) {
+-		struct core_thread self;
+-
+-		self.task = current;
+-		if (self.task->flags & PF_SIGNALED)
+-			self.next = xchg(&core_state->dumper.next, &self);
+-		else
+-			self.task = NULL;
+-		/*
+-		 * Implies mb(), the result of xchg() must be visible
+-		 * to core_state->dumper.
+-		 */
+-		if (atomic_dec_and_test(&core_state->nr_threads))
+-			complete(&core_state->startup);
++	if (atomic_dec_and_test(&core_state->nr_threads))
++		complete(&core_state->startup);
+ 
+-		for (;;) {
+-			set_current_state(TASK_IDLE|TASK_FREEZABLE);
+-			if (!self.task) /* see coredump_finish() */
+-				break;
+-			schedule();
+-		}
+-		__set_current_state(TASK_RUNNING);
++	for (;;) {
++		set_current_state(TASK_IDLE|TASK_FREEZABLE);
++		if (!self.task) /* see coredump_finish() */
++			break;
++		schedule();
+ 	}
++	__set_current_state(TASK_RUNNING);
+ }
+ 
+ #ifdef CONFIG_MEMCG
+@@ -876,6 +862,7 @@ static void synchronize_group_exit(struc
+ {
+ 	struct sighand_struct *sighand = tsk->sighand;
+ 	struct signal_struct *signal = tsk->signal;
++	struct core_state *core_state;
+ 
+ 	spin_lock_irq(&sighand->siglock);
+ 	signal->quick_threads--;
+@@ -885,7 +872,19 @@ static void synchronize_group_exit(struc
+ 		signal->group_exit_code = code;
+ 		signal->group_stop_count = 0;
+ 	}
++	/*
++	 * Serialize with any possible pending coredump.
++	 * We must hold siglock around checking core_state
++	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
++	 * will increment ->nr_threads for each thread in the
++	 * group without PF_POSTCOREDUMP set.
++	 */
++	tsk->flags |= PF_POSTCOREDUMP;
++	core_state = signal->core_state;
+ 	spin_unlock_irq(&sighand->siglock);
++
++	if (unlikely(core_state))
++		coredump_task_exit(tsk, core_state);
+ }
+ 
+ void __noreturn do_exit(long code)
+@@ -894,15 +893,12 @@ void __noreturn do_exit(long code)
+ 	int group_dead;
+ 
+ 	WARN_ON(irqs_disabled());
+-
+-	synchronize_group_exit(tsk, code);
+-
+ 	WARN_ON(tsk->plug);
+ 
+ 	kcov_task_exit(tsk);
+ 	kmsan_task_exit(tsk);
+ 
+-	coredump_task_exit(tsk);
++	synchronize_group_exit(tsk, code);
+ 	ptrace_event(PTRACE_EVENT_EXIT, code);
+ 	user_events_exit(tsk);
+ 
 _
 
-Patches currently in -mm which might be from quic_zijuhu@quicinc.com are
+Patches currently in -mm which might be from mjguzik@gmail.com are
 
 
