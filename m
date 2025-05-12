@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E4371A83F7
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 893061AAA1D
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011381; cv=none; b=m/UYweIb9uBQmEoA+aqXchn2FrnA0PLnwl26127aQmiJ8TbENKsqrv0DBg4T5WDAA2ld8L3NxEb1VPVjhEFPXDhhYM8ukDM0pJe/zDD7f5guG6vTnYVhon/LVgPRbSg/HqeTpsH2C7cItzWb3Qbl/ne1sf0GuE2dU64+0/9XSvo=
+	t=1747011382; cv=none; b=qTkHE1U3aKpIc1iv1xxWSbwrZjjlMhba/15mAGCw7Qg2/Qq8qgjX6opu97yqkKfZXlVVV4wV7Ah0oPm5Jo+28fn47MOkVUeeuaTtwBecfKsG+SrYzVgpQpw4PrAmMYoakoXJzIMhIcdoBMAP5KJaZUtDSE9ihGRZ1je8UBm7rjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011381; c=relaxed/simple;
-	bh=R3u9Ftp6CxH1LvZpgOtlp4MOO798blwU3txOvLhQiR0=;
-	h=Date:To:From:Subject:Message-Id; b=rB/yrCKg+EqpCkNFIbltnUWWjUvA2Vagldp0V7XgdCjkIqSkYlye5uImbpRef3Gk0FQepUGWUeS7bDYsyFyYsT3Ke6IdUR2d8WsMQTFgqUv6bRmhforTJqwHoZ6zCPTeI0lperlul/JxSX4i54XvzwW0N6Nn7AtJsPE0ynVlSkE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ke+7u7ix; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011382; c=relaxed/simple;
+	bh=UuP4i/tXTOn4ICHZxstzKKr/SgQcDwxjUVuEbOMQ6xU=;
+	h=Date:To:From:Subject:Message-Id; b=eDjxB2KOzGiNX3wnHaWpr0yzk7GtCdzt5qQ9SspQYMjvOY7oXMXwnjZ6HLt3EiH8gYWk7c6gGnn7FTWytpZ8ltKBBZnA9ZatOL2lihGoKpykVAJY8xmdygHkMeaUI85MA6Il64w7Bu2kra3BE1HXQK92B000pCfz6lU1K9HrrFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A8w/XBt1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ke+7u7ix"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33D35C4CEE4;
-	Mon, 12 May 2025 00:56:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A8w/XBt1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D87FC4CEE4;
+	Mon, 12 May 2025 00:56:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011381;
-	bh=R3u9Ftp6CxH1LvZpgOtlp4MOO798blwU3txOvLhQiR0=;
+	s=korg; t=1747011382;
+	bh=UuP4i/tXTOn4ICHZxstzKKr/SgQcDwxjUVuEbOMQ6xU=;
 	h=Date:To:From:Subject:From;
-	b=ke+7u7ixbvs1o+6Oa5qo7imeX+H9lRKwuWzXoHnKrPBCa8+Rat7RM8p757AcAiH/g
-	 zL8NMmqQBgLj4L7Z9vQUxNFpCpoAsbLuyi0P7hx5j2rSi3gObmdK3WcIhQC9pWB06e
-	 5QYg7gQWP1Y1Oo7u2+hdMM44N3fygJQ//HZVOW18=
-Date: Sun, 11 May 2025 17:56:20 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,ebiggers@google.com,akpm@linux-foundation.org
+	b=A8w/XBt1q2Ta/CLKH/D04VA3OTku2eqTN3/80rmvgXlDU2xSjgT08NrBwSyiLdYdZ
+	 CuyBc//ymqlCaXxEwpyd5GInDhwrUsgcl5Ngwn34kTGFAOZ5VWV1F97xednwTI8AVD
+	 hiKf7fdhTlLLp9O3dme9stn7SsR/VcNXVUwDAi7w=
+Date: Sun, 11 May 2025 17:56:21 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,vulab@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec_file-use-sha-256-library-api-instead-of-crypto_shash-api.patch removed from -mm tree
-Message-Id: <20250512005621.33D35C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-add-pointer-check-for-nilfs_direct_propagate.patch removed from -mm tree
+Message-Id: <20250512005622.5D87FC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,181 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec_file: use SHA-256 library API instead of crypto_shash API
+     Subject: nilfs2: add pointer check for nilfs_direct_propagate()
 has been removed from the -mm tree.  Its filename was
-     kexec_file-use-sha-256-library-api-instead-of-crypto_shash-api.patch
+     nilfs2-add-pointer-check-for-nilfs_direct_propagate.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: kexec_file: use SHA-256 library API instead of crypto_shash API
-Date: Mon, 28 Apr 2025 11:57:20 -0700
+From: Wentao Liang <vulab@iscas.ac.cn>
+Subject: nilfs2: add pointer check for nilfs_direct_propagate()
+Date: Tue, 29 Apr 2025 02:37:07 +0900
 
-This user of SHA-256 does not support any other algorithm, so the
-crypto_shash abstraction provides no value.  Just use the SHA-256 library
-API instead, which is much simpler and easier to use.
+Patch series "nilfs2: improve sanity checks in dirty state propagation".
 
-Tested with '/sbin/kexec --kexec-file-syscall'.
+This fixes one missed check for block mapping anomalies and one improper
+return of an error code during a preparation step for log writing, thereby
+improving checking for filesystem corruption on writeback.
 
-Link: https://lkml.kernel.org/r/20250428185721.844686-1-ebiggers@kernel.org
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
+
+This patch (of 2):
+
+In nilfs_direct_propagate(), the printer get from nilfs_direct_get_ptr()
+need to be checked to ensure it is not an invalid pointer.
+
+If the pointer value obtained by nilfs_direct_get_ptr() is
+NILFS_BMAP_INVALID_PTR, means that the metadata (in this case, i_bmap in
+the nilfs_inode_info struct) that should point to the data block at the
+buffer head of the argument is corrupted and the data block is orphaned,
+meaning that the file system has lost consistency.
+
+Add a value check and return -EINVAL when it is an invalid pointer.
+
+Link: https://lkml.kernel.org/r/20250428173808.6452-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20250428173808.6452-2-konishi.ryusuke@gmail.com
+Fixes: 36a580eb489f ("nilfs2: direct block mapping")
+Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Kconfig.kexec |    3 -
- kernel/kexec_file.c  |   78 +++++++----------------------------------
- 2 files changed, 16 insertions(+), 65 deletions(-)
+ fs/nilfs2/direct.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/Kconfig.kexec~kexec_file-use-sha-256-library-api-instead-of-crypto_shash-api
-+++ a/kernel/Kconfig.kexec
-@@ -38,8 +38,7 @@ config KEXEC
- config KEXEC_FILE
- 	bool "Enable kexec file based system call"
- 	depends on ARCH_SUPPORTS_KEXEC_FILE
--	select CRYPTO
--	select CRYPTO_SHA256
-+	select CRYPTO_LIB_SHA256
- 	select KEXEC_CORE
- 	help
- 	  This is new version of kexec system call. This system call is
---- a/kernel/kexec_file.c~kexec_file-use-sha-256-library-api-instead-of-crypto_shash-api
-+++ a/kernel/kexec_file.c
-@@ -19,7 +19,6 @@
- #include <linux/list.h>
- #include <linux/fs.h>
- #include <linux/ima.h>
--#include <crypto/hash.h>
- #include <crypto/sha2.h>
- #include <linux/elf.h>
- #include <linux/elfcore.h>
-@@ -712,11 +711,10 @@ int kexec_add_buffer(struct kexec_buf *k
- /* Calculate and store the digest of segments */
- static int kexec_calculate_store_digests(struct kimage *image)
- {
--	struct crypto_shash *tfm;
--	struct shash_desc *desc;
-+	struct sha256_state state;
- 	int ret = 0, i, j, zero_buf_sz, sha_region_sz;
--	size_t desc_size, nullsz;
--	char *digest;
-+	size_t nullsz;
-+	u8 digest[SHA256_DIGEST_SIZE];
- 	void *zero_buf;
- 	struct kexec_sha_region *sha_regions;
- 	struct purgatory_info *pi = &image->purgatory_info;
-@@ -727,37 +725,12 @@ static int kexec_calculate_store_digests
- 	zero_buf = __va(page_to_pfn(ZERO_PAGE(0)) << PAGE_SHIFT);
- 	zero_buf_sz = PAGE_SIZE;
- 
--	tfm = crypto_alloc_shash("sha256", 0, 0);
--	if (IS_ERR(tfm)) {
--		ret = PTR_ERR(tfm);
--		goto out;
--	}
--
--	desc_size = crypto_shash_descsize(tfm) + sizeof(*desc);
--	desc = kzalloc(desc_size, GFP_KERNEL);
--	if (!desc) {
--		ret = -ENOMEM;
--		goto out_free_tfm;
--	}
--
- 	sha_region_sz = KEXEC_SEGMENT_MAX * sizeof(struct kexec_sha_region);
- 	sha_regions = vzalloc(sha_region_sz);
--	if (!sha_regions) {
--		ret = -ENOMEM;
--		goto out_free_desc;
--	}
--
--	desc->tfm   = tfm;
--
--	ret = crypto_shash_init(desc);
--	if (ret < 0)
--		goto out_free_sha_regions;
-+	if (!sha_regions)
-+		return -ENOMEM;
- 
--	digest = kzalloc(SHA256_DIGEST_SIZE, GFP_KERNEL);
--	if (!digest) {
--		ret = -ENOMEM;
--		goto out_free_sha_regions;
--	}
-+	sha256_init(&state);
- 
- 	for (j = i = 0; i < image->nr_segments; i++) {
- 		struct kexec_segment *ksegment;
-@@ -776,10 +749,7 @@ static int kexec_calculate_store_digests
- 		if (ksegment->kbuf == pi->purgatory_buf)
- 			continue;
- 
--		ret = crypto_shash_update(desc, ksegment->kbuf,
--					  ksegment->bufsz);
--		if (ret)
--			break;
-+		sha256_update(&state, ksegment->kbuf, ksegment->bufsz);
- 
- 		/*
- 		 * Assume rest of the buffer is filled with zero and
-@@ -791,44 +761,26 @@ static int kexec_calculate_store_digests
- 
- 			if (bytes > zero_buf_sz)
- 				bytes = zero_buf_sz;
--			ret = crypto_shash_update(desc, zero_buf, bytes);
--			if (ret)
--				break;
-+			sha256_update(&state, zero_buf, bytes);
- 			nullsz -= bytes;
- 		}
- 
--		if (ret)
--			break;
--
- 		sha_regions[j].start = ksegment->mem;
- 		sha_regions[j].len = ksegment->memsz;
- 		j++;
- 	}
- 
--	if (!ret) {
--		ret = crypto_shash_final(desc, digest);
--		if (ret)
--			goto out_free_digest;
--		ret = kexec_purgatory_get_set_symbol(image, "purgatory_sha_regions",
--						     sha_regions, sha_region_sz, 0);
--		if (ret)
--			goto out_free_digest;
-+	sha256_final(&state, digest);
- 
--		ret = kexec_purgatory_get_set_symbol(image, "purgatory_sha256_digest",
--						     digest, SHA256_DIGEST_SIZE, 0);
--		if (ret)
--			goto out_free_digest;
--	}
-+	ret = kexec_purgatory_get_set_symbol(image, "purgatory_sha_regions",
-+					     sha_regions, sha_region_sz, 0);
-+	if (ret)
-+		goto out_free_sha_regions;
- 
--out_free_digest:
--	kfree(digest);
-+	ret = kexec_purgatory_get_set_symbol(image, "purgatory_sha256_digest",
-+					     digest, SHA256_DIGEST_SIZE, 0);
- out_free_sha_regions:
- 	vfree(sha_regions);
--out_free_desc:
--	kfree(desc);
--out_free_tfm:
--	kfree(tfm);
--out:
- 	return ret;
- }
- 
+--- a/fs/nilfs2/direct.c~nilfs2-add-pointer-check-for-nilfs_direct_propagate
++++ a/fs/nilfs2/direct.c
+@@ -273,6 +273,9 @@ static int nilfs_direct_propagate(struct
+ 	dat = nilfs_bmap_get_dat(bmap);
+ 	key = nilfs_bmap_data_get_key(bmap, bh);
+ 	ptr = nilfs_direct_get_ptr(bmap, key);
++	if (ptr == NILFS_BMAP_INVALID_PTR)
++		return -EINVAL;
++
+ 	if (!buffer_nilfs_volatile(bh)) {
+ 		oldreq.pr_entry_nr = ptr;
+ 		newreq.pr_entry_nr = ptr;
 _
 
-Patches currently in -mm which might be from ebiggers@google.com are
+Patches currently in -mm which might be from vulab@iscas.ac.cn are
 
 
