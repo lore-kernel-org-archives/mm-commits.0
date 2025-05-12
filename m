@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EBE62EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D0562EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011365; cv=none; b=FZB5cHRH7ugcyRcFFn99GHS/lY8ytYf4sBlZls3bbqEzp5/D0HQGbs+tnbqChB+1FhsES9pGJRb4BBnz6OJMKqL1ucErAhKenlGMr9Rk2uGtl0Z5TS7jFbmJIKl/gvbbmLUhC46FQxDr8MiTQwnVg5uzP5MHGGjUjdIFN5IH24U=
+	t=1747011366; cv=none; b=jpGakCi0Ya23mkYE7xIgkB9LUVriWi5UxeE/bMZWcggzKB988u1crKjExbOebLr8YusrpL9L6ayIsuqoJy2Efhe0rP6Kyz+W37UwXeGkf3jY7DgZN+S5cfuYSgjfrcU3p/hSJPX3f2/u6bQUXpQ+RfJRpi+qRtOG6E6OiL7suhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011365; c=relaxed/simple;
-	bh=uSDA3dXwP53SKTCoMmkUiYrH0xL5IeR0S7N2lH1p/cw=;
-	h=Date:To:From:Subject:Message-Id; b=ncpsmUZrNcyZPDpdNMXbL0vY/AVAIWHgUke3C8QnjvFWGfrZ0BgNFesUHRwZUmeTv9OU5w5nrLE5AClt0KjxPE0Peifm83QfTPvtbAkMqjtGSd3C/tsF9juQFZqM/fhyNGfVjAZOrda1kGnPuTeKNlHeBOU1w034mtDkMdZVlhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oAY8r31C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011366; c=relaxed/simple;
+	bh=VPH3qyrSvJ+QYI5JbEZ+0zBnsq7WVBStO5AJAKu7Lqk=;
+	h=Date:To:From:Subject:Message-Id; b=Wi3QrkmDcWaxZDG848EkDDz0sMKER3OT3XI6id43kjWXSEPw1PQ0t9QurOIN9OP9m4P+XCTQN+9ljuuIpyb89cX5PkTa5M+M30Fees5e1mSFCwfgXghk6W9ToX1uzpRL/WeY8uKi51g8kJrQHvSSHDPa3xyosFdGIhnL0LrPHls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SwGvNr/j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oAY8r31C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24022C4CEE4;
-	Mon, 12 May 2025 00:56:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SwGvNr/j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58822C4CEE4;
+	Mon, 12 May 2025 00:56:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011365;
-	bh=uSDA3dXwP53SKTCoMmkUiYrH0xL5IeR0S7N2lH1p/cw=;
+	s=korg; t=1747011366;
+	bh=VPH3qyrSvJ+QYI5JbEZ+0zBnsq7WVBStO5AJAKu7Lqk=;
 	h=Date:To:From:Subject:From;
-	b=oAY8r31C9RCvBx9n5iPfgXCT1R3lw3/NYtoA9KURwejHzi1OACOBz9BwGu3wuEYcf
-	 PvWiBQ1WqxV8a/21AnOcjkwlTHuOlurhTO85BSSuX5e9XZYRLQ6/aO64dUnk73iDRB
-	 CH+8cIdMREj32eUwGNMdfimMJTLchYEq9xAM92xQ=
-Date: Sun, 11 May 2025 17:56:04 -0700
-To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,alex.bou9@gmail.com,linux@treblig.org,akpm@linux-foundation.org
+	b=SwGvNr/j5bwWKtcfrOifNFUfxBggzNJcSDZTfy99rmvRFcl56afubYLvDtY+Ru5UL
+	 kYJdyQdu2kd5KxIIEArmPSaiS1C/MfIuoufEWMLwV9EboS3IVVbGzNCWzaz97fXxiy
+	 puTl5Wmc3x3HBVF9m58DwFpCpduB0eFHrcet9fJo=
+Date: Sun, 11 May 2025 17:56:05 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,corbet@lwn.net,axboe@kernel.dk,andriy.shevchenko@linux.intel.com,linux@treblig.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] rapidio-remove-unused-functions.patch removed from -mm tree
-Message-Id: <20250512005605.24022C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] relay-remove-unused-relay_late_setup_files.patch removed from -mm tree
+Message-Id: <20250512005606.58822C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,199 +35,209 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: rapidio: remove unused functions
+     Subject: relay: remove unused relay_late_setup_files
 has been removed from the -mm tree.  Its filename was
-     rapidio-remove-unused-functions.patch
+     relay-remove-unused-relay_late_setup_files.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: rapidio: remove unused functions
-Date: Sat, 19 Apr 2025 21:30:12 +0100
+Subject: relay: remove unused relay_late_setup_files
+Date: Sat, 19 Apr 2025 00:49:32 +0100
 
-rio_request_dma() and rio_dma_prep_slave_sg() were added in 2012 by commit
-e42d98ebe7d7 ("rapidio: add DMA engine support for RIO data transfers")
-but never used.
+The last use of relay_late_setup_files() was removed in 2018 by commit
+2b47733045aa ("drm/i915/guc: Merge log relay file and channel creation")
 
-rio_find_mport() last use was removed in 2013 by commit 9edbc30b434f
-("rapidio: update enumerator registration mechanism")
+Remove it and the helper it used.
 
-rio_unregister_scan() was added in 2013 by commit a11650e11093 ("rapidio:
-make enumeration/discovery configurable") but never used.
+relay_late_setup_files() was used for eventually registering 'buffer only'
+channels.  With it gone, delete the docs that explain how to do that. 
+Which suggests it should be possible to lose the 'has_base_filename'
+flags.
 
-Remove them.
+(Are there any other uses??)
 
-Link: https://lkml.kernel.org/r/20250419203012.429787-3-linux@treblig.org
+Link: https://lkml.kernel.org/r/20250418234932.490863-1-linux@treblig.org
 Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c   |  103 --------------------------------------
- drivers/rapidio/rio.h   |    2 
- include/linux/rio_drv.h |    5 -
- 3 files changed, 110 deletions(-)
+ Documentation/filesystems/relay.rst |   10 --
+ include/linux/relay.h               |    3 
+ kernel/relay.c                      |  111 --------------------------
+ 3 files changed, 1 insertion(+), 123 deletions(-)
 
---- a/drivers/rapidio/rio.c~rapidio-remove-unused-functions
-+++ a/drivers/rapidio/rio.c
-@@ -1775,19 +1775,6 @@ struct dma_chan *rio_request_mport_dma(s
- EXPORT_SYMBOL_GPL(rio_request_mport_dma);
+--- a/Documentation/filesystems/relay.rst~relay-remove-unused-relay_late_setup_files
++++ a/Documentation/filesystems/relay.rst
+@@ -301,16 +301,6 @@ user-defined data with a channel, and is
+ (including in create_buf_file()) via chan->private_data or
+ buf->chan->private_data.
+ 
+-Buffer-only channels
+---------------------
+-
+-These channels have no files associated and can be created with
+-relay_open(NULL, NULL, ...). Such channels are useful in scenarios such
+-as when doing early tracing in the kernel, before the VFS is up. In these
+-cases, one may open a buffer-only channel and then call
+-relay_late_setup_files() when the kernel is ready to handle files,
+-to expose the buffered data to the userspace.
+-
+ Channel 'modes'
+ ---------------
+ 
+--- a/include/linux/relay.h~relay-remove-unused-relay_late_setup_files
++++ a/include/linux/relay.h
+@@ -159,9 +159,6 @@ struct rchan *relay_open(const char *bas
+ 			 size_t n_subbufs,
+ 			 const struct rchan_callbacks *cb,
+ 			 void *private_data);
+-extern int relay_late_setup_files(struct rchan *chan,
+-				  const char *base_filename,
+-				  struct dentry *parent);
+ extern void relay_close(struct rchan *chan);
+ extern void relay_flush(struct rchan *chan);
+ extern void relay_subbufs_consumed(struct rchan *chan,
+--- a/kernel/relay.c~relay-remove-unused-relay_late_setup_files
++++ a/kernel/relay.c
+@@ -452,7 +452,7 @@ int relay_prepare_cpu(unsigned int cpu)
  
  /**
-- * rio_request_dma - request RapidIO capable DMA channel that supports
-- *   specified target RapidIO device.
-- * @rdev: RIO device associated with DMA transfer
+  *	relay_open - create a new relay channel
+- *	@base_filename: base name of files to create, %NULL for buffering only
++ *	@base_filename: base name of files to create
+  *	@parent: dentry of parent directory, %NULL for root directory or buffer
+  *	@subbuf_size: size of sub-buffers
+  *	@n_subbufs: number of sub-buffers
+@@ -465,10 +465,6 @@ int relay_prepare_cpu(unsigned int cpu)
+  *	attributes specified.  The created channel buffer files
+  *	will be named base_filename0...base_filenameN-1.  File
+  *	permissions will be %S_IRUSR.
 - *
-- * Returns pointer to allocated DMA channel or NULL if failed.
-- */
--struct dma_chan *rio_request_dma(struct rio_dev *rdev)
--{
--	return rio_request_mport_dma(rdev->net->hport);
--}
--EXPORT_SYMBOL_GPL(rio_request_dma);
--
--/**
-  * rio_release_dma - release specified DMA channel
-  * @dchan: DMA channel to release
+- *	If opening a buffer (@parent = NULL) that you later wish to register
+- *	in a filesystem, call relay_late_setup_files() once the @parent dentry
+- *	is available.
   */
-@@ -1834,57 +1821,9 @@ struct dma_async_tx_descriptor *rio_dma_
- }
- EXPORT_SYMBOL_GPL(rio_dma_prep_xfer);
+ struct rchan *relay_open(const char *base_filename,
+ 			 struct dentry *parent,
+@@ -540,111 +536,6 @@ struct rchan_percpu_buf_dispatcher {
+ 	struct dentry *dentry;
+ };
  
--/**
-- * rio_dma_prep_slave_sg - RapidIO specific wrapper
-- *   for device_prep_slave_sg callback defined by DMAENGINE.
-- * @rdev: RIO device control structure
-- * @dchan: DMA channel to configure
-- * @data: RIO specific data descriptor
-- * @direction: DMA data transfer direction (TO or FROM the device)
-- * @flags: dmaengine defined flags
-- *
-- * Initializes RapidIO capable DMA channel for the specified data transfer.
-- * Uses DMA channel private extension to pass information related to remote
-- * target RIO device.
-- *
-- * Returns: pointer to DMA transaction descriptor if successful,
-- *          error-valued pointer or NULL if failed.
-- */
--struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(struct rio_dev *rdev,
--	struct dma_chan *dchan, struct rio_dma_data *data,
--	enum dma_transfer_direction direction, unsigned long flags)
+-/* Called in atomic context. */
+-static void __relay_set_buf_dentry(void *info)
 -{
--	return rio_dma_prep_xfer(dchan,	rdev->destid, data, direction, flags);
--}
--EXPORT_SYMBOL_GPL(rio_dma_prep_slave_sg);
+-	struct rchan_percpu_buf_dispatcher *p = info;
 -
- #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
- 
- /**
-- * rio_find_mport - find RIO mport by its ID
-- * @mport_id: number (ID) of mport device
-- *
-- * Given a RIO mport number, the desired mport is located
-- * in the global list of mports. If the mport is found, a pointer to its
-- * data structure is returned.  If no mport is found, %NULL is returned.
-- */
--struct rio_mport *rio_find_mport(int mport_id)
--{
--	struct rio_mport *port;
--
--	mutex_lock(&rio_mport_list_lock);
--	list_for_each_entry(port, &rio_mports, node) {
--		if (port->id == mport_id)
--			goto found;
--	}
--	port = NULL;
--found:
--	mutex_unlock(&rio_mport_list_lock);
--
--	return port;
+-	relay_set_buf_dentry(p->buf, p->dentry);
 -}
 -
 -/**
-  * rio_register_scan - enumeration/discovery method registration interface
-  * @mport_id: mport device ID for which fabric scan routine has to be set
-  *            (RIO_MPORT_ANY = set for all available mports)
-@@ -1962,48 +1901,6 @@ err_out:
- EXPORT_SYMBOL_GPL(rio_register_scan);
- 
- /**
-- * rio_unregister_scan - removes enumeration/discovery method from mport
-- * @mport_id: mport device ID for which fabric scan routine has to be
-- *            unregistered (RIO_MPORT_ANY = apply to all mports that use
-- *            the specified scan_ops)
-- * @scan_ops: enumeration/discovery operations structure
+- *	relay_late_setup_files - triggers file creation
+- *	@chan: channel to operate on
+- *	@base_filename: base name of files to create
+- *	@parent: dentry of parent directory, %NULL for root directory
 - *
-- * Removes enumeration or discovery method assigned to the specified mport
-- * device. If RIO_MPORT_ANY is specified, removes the specified operations from
-- * all mports that have them attached.
+- *	Returns 0 if successful, non-zero otherwise.
+- *
+- *	Use to setup files for a previously buffer-only channel created
+- *	by relay_open() with a NULL parent dentry.
+- *
+- *	For example, this is useful for perfomring early tracing in kernel,
+- *	before VFS is up and then exposing the early results once the dentry
+- *	is available.
 - */
--int rio_unregister_scan(int mport_id, struct rio_scan *scan_ops)
+-int relay_late_setup_files(struct rchan *chan,
+-			   const char *base_filename,
+-			   struct dentry *parent)
 -{
--	struct rio_mport *port;
--	struct rio_scan_node *scan;
+-	int err = 0;
+-	unsigned int i, curr_cpu;
+-	unsigned long flags;
+-	struct dentry *dentry;
+-	struct rchan_buf *buf;
+-	struct rchan_percpu_buf_dispatcher disp;
 -
--	pr_debug("RIO: %s for mport_id=%d\n", __func__, mport_id);
--
--	if (mport_id != RIO_MPORT_ANY && mport_id >= RIO_MAX_MPORTS)
+-	if (!chan || !base_filename)
 -		return -EINVAL;
 -
--	mutex_lock(&rio_mport_list_lock);
+-	strscpy(chan->base_filename, base_filename, NAME_MAX);
 -
--	list_for_each_entry(port, &rio_mports, node)
--		if (port->id == mport_id ||
--		    (mport_id == RIO_MPORT_ANY && port->nscan == scan_ops))
--			port->nscan = NULL;
+-	mutex_lock(&relay_channels_mutex);
+-	/* Is chan already set up? */
+-	if (unlikely(chan->has_base_filename)) {
+-		mutex_unlock(&relay_channels_mutex);
+-		return -EEXIST;
+-	}
+-	chan->has_base_filename = 1;
+-	chan->parent = parent;
 -
--	list_for_each_entry(scan, &rio_scans, node) {
--		if (scan->mport_id == mport_id) {
--			list_del(&scan->node);
--			kfree(scan);
--			break;
+-	if (chan->is_global) {
+-		err = -EINVAL;
+-		buf = *per_cpu_ptr(chan->buf, 0);
+-		if (!WARN_ON_ONCE(!buf)) {
+-			dentry = relay_create_buf_file(chan, buf, 0);
+-			if (dentry && !WARN_ON_ONCE(!chan->is_global)) {
+-				relay_set_buf_dentry(buf, dentry);
+-				err = 0;
+-			}
 -		}
+-		mutex_unlock(&relay_channels_mutex);
+-		return err;
 -	}
 -
--	mutex_unlock(&rio_mport_list_lock);
+-	curr_cpu = get_cpu();
+-	/*
+-	 * The CPU hotplug notifier ran before us and created buffers with
+-	 * no files associated. So it's safe to call relay_setup_buf_file()
+-	 * on all currently online CPUs.
+-	 */
+-	for_each_online_cpu(i) {
+-		buf = *per_cpu_ptr(chan->buf, i);
+-		if (unlikely(!buf)) {
+-			WARN_ONCE(1, KERN_ERR "CPU has no buffer!\n");
+-			err = -EINVAL;
+-			break;
+-		}
 -
--	return 0;
+-		dentry = relay_create_buf_file(chan, buf, i);
+-		if (unlikely(!dentry)) {
+-			err = -EINVAL;
+-			break;
+-		}
+-
+-		if (curr_cpu == i) {
+-			local_irq_save(flags);
+-			relay_set_buf_dentry(buf, dentry);
+-			local_irq_restore(flags);
+-		} else {
+-			disp.buf = buf;
+-			disp.dentry = dentry;
+-			smp_mb();
+-			/* relay_channels_mutex must be held, so wait. */
+-			err = smp_call_function_single(i,
+-						       __relay_set_buf_dentry,
+-						       &disp, 1);
+-		}
+-		if (unlikely(err))
+-			break;
+-	}
+-	put_cpu();
+-	mutex_unlock(&relay_channels_mutex);
+-
+-	return err;
 -}
--EXPORT_SYMBOL_GPL(rio_unregister_scan);
+-EXPORT_SYMBOL_GPL(relay_late_setup_files);
 -
--/**
-  * rio_mport_scan - execute enumeration/discovery on the specified mport
-  * @mport_id: number (ID) of mport device
-  */
---- a/drivers/rapidio/rio.h~rapidio-remove-unused-functions
-+++ a/drivers/rapidio/rio.h
-@@ -41,9 +41,7 @@ extern void rio_del_device(struct rio_de
- extern int rio_enable_rx_tx_port(struct rio_mport *port, int local, u16 destid,
- 				 u8 hopcount, u8 port_num);
- extern int rio_register_scan(int mport_id, struct rio_scan *scan_ops);
--extern int rio_unregister_scan(int mport_id, struct rio_scan *scan_ops);
- extern void rio_attach_device(struct rio_dev *rdev);
--extern struct rio_mport *rio_find_mport(int mport_id);
- extern int rio_mport_scan(int mport_id);
- 
- /* Structures internal to the RIO core code */
---- a/include/linux/rio_drv.h~rapidio-remove-unused-functions
-+++ a/include/linux/rio_drv.h
-@@ -391,13 +391,8 @@ struct rio_dev *rio_dev_get(struct rio_d
- void rio_dev_put(struct rio_dev *);
- 
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
--extern struct dma_chan *rio_request_dma(struct rio_dev *rdev);
- extern struct dma_chan *rio_request_mport_dma(struct rio_mport *mport);
- extern void rio_release_dma(struct dma_chan *dchan);
--extern struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(
--		struct rio_dev *rdev, struct dma_chan *dchan,
--		struct rio_dma_data *data,
--		enum dma_transfer_direction direction, unsigned long flags);
- extern struct dma_async_tx_descriptor *rio_dma_prep_xfer(
- 		struct dma_chan *dchan,	u16 destid,
- 		struct rio_dma_data *data,
+ /**
+  *	relay_switch_subbuf - switch to a new sub-buffer
+  *	@buf: channel buffer
 _
 
 Patches currently in -mm which might be from linux@treblig.org are
