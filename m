@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EEF11553A3
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 661171553A3
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011026; cv=none; b=M+npfH4eEQ1iqrmaGywEK6i2MWo8WeEoP07gyG0Iim45ATtTrVgxv9h0djDM9ififd8Kvu9Z+cKG+gdflCmCwcmy+XkR6NK03a5koie6tnpk/0S3HZgzD0esDawnRcqCT9a+d9kvBPvr7YI7QlgFedEN8p9+TuEOltjAxQ43cSY=
+	t=1747011027; cv=none; b=KNU73r2FkubSOSQmmvgd8rUrIBncfhdsDiJpr7A7Aj+o/Otw/3VESrA3UjRdl/INWeA4gSDJcQjv0Ocdow+0LtUJOR25uwYcTyf80DTV/i7rr97hC6mh3W2t/pGCd+0qVgICBHZVcIsBO+gx8och4rEd0OOFniiKgyRFebqP4Ak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011026; c=relaxed/simple;
-	bh=di23LRBE+XNXspOw8YkvjmuDOffJtpB0auFKtIbVAV4=;
-	h=Date:To:From:Subject:Message-Id; b=i103fQxUA6Xkn0lJSgN3Z2hlcacQlom3xmcSrUj2b1K0UAGWVzJkdzDSEJQB6RVwgdp4EcJ/Ws658+ao7oK6X+LozJKlnJPvAv0GIvB+dwA3q4+iTp/0ErXZW614dGe8DmF0uoY0D5xYBSmf83jMbz776S8YovGxqj/iV5GJ2JY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HENt8LG8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011027; c=relaxed/simple;
+	bh=b4endCsCuyB1MRo4VO38F+XeG2O+gr3yPEnLP4uFdLM=;
+	h=Date:To:From:Subject:Message-Id; b=oe22LqvSWteFGH92DicWeJ4hN/zA8KnrnPtX/9u2YXB1LmKLiXgMTi54yYDGcxi2thXilAPXHZYN9dEJ27W/lCiTzGbM0DjSEHXXG5RRl1poZJNJg6XHjO8C9oDrEL4E6u6ir28rha9faovegz/ObXQMcHf7JCeKeCtxKr0LDqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BB6W7Y/n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HENt8LG8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5EB5C4CEE4;
-	Mon, 12 May 2025 00:50:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BB6W7Y/n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39434C4CEE4;
+	Mon, 12 May 2025 00:50:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011026;
-	bh=di23LRBE+XNXspOw8YkvjmuDOffJtpB0auFKtIbVAV4=;
+	s=korg; t=1747011027;
+	bh=b4endCsCuyB1MRo4VO38F+XeG2O+gr3yPEnLP4uFdLM=;
 	h=Date:To:From:Subject:From;
-	b=HENt8LG8tyAwEMQ78+DoH18WIef8GKH6RjKvpqismDs4RBrDs4IqevtyzlM+TcAx5
-	 nz98y0ov1JrU9dSL2yhzbjX2oxnTxtj56QgeRHE27zV63Z8SFPLGRIuXg/dr3fgu9V
-	 4R+AtU/5OO1/Zg8QriE+3dl9q0Cu/+xzSPO1Ik5c=
-Date: Sun, 11 May 2025 17:50:25 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=BB6W7Y/nfAmLl9Vq2G2DHObcFivffQO/YVHb0sqmYmujTF32iPvBhALL/HvNYMuHC
+	 fjysqN6A2w2NI555usEU4bsJwz5Ft3mJDxVyjFxswDRW1FJqGUrFnWTzUnATpkClYF
+	 wSm+hsjtNF9yV+zcqrtqKviZdFKaWO8iWGzUq3ek=
+Date: Sun, 11 May 2025 17:50:26 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-use-__mod_memcg_state-in-drain_obj_stock.patch removed from -mm tree
-Message-Id: <20250512005025.E5EB5C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-combine-slab-obj-stock-charging-and-accounting.patch removed from -mm tree
+Message-Id: <20250512005027.39434C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,247 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: use __mod_memcg_state in drain_obj_stock
+     Subject: memcg: combine slab obj stock charging and accounting
 has been removed from the -mm tree.  Its filename was
-     memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
+     memcg-combine-slab-obj-stock-charging-and-accounting.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: use __mod_memcg_state in drain_obj_stock
-Date: Thu, 3 Apr 2025 18:39:11 -0700
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: memcg: combine slab obj stock charging and accounting
+Date: Thu, 3 Apr 2025 18:39:12 -0700
 
-For non-PREEMPT_RT kernels, drain_obj_stock() is always called with irq
-disabled, so we can use __mod_memcg_state() instead of mod_memcg_state(). 
-For PREEMPT_RT, we need to add memcg_stats_[un]lock in
-__mod_memcg_state().
+When handing slab objects, we use obj_cgroup_[un]charge() for (un)charging
+and mod_objcg_state() to account NR_SLAB_[UN]RECLAIMABLE_B.  All these
+operations use the percpu stock for performance.  However with the calls
+being separate, the stock_lock is taken twice in each case.
 
-Link: https://lkml.kernel.org/r/20250404013913.1663035-8-shakeel.butt@linux.dev
+By refactoring the code, we can turn mod_objcg_state() into
+__account_obj_stock() which is called on a stock that's already locked and
+validated.  On the charging side we can call this function from
+consume_obj_stock() when it succeeds, and refill_obj_stock() in the
+fallback.  We just expand parameters of these functions as necessary.  The
+uncharge side from __memcg_slab_free_hook() is just the call to
+refill_obj_stock().
+
+Other callers of obj_cgroup_[un]charge() (i.e.  not slab) simply pass the
+extra parameters as NULL/zeroes to skip the __account_obj_stock()
+operation.
+
+In __memcg_slab_post_alloc_hook() we now charge each object separately,
+but that's not a problem as we did call mod_objcg_state() for each object
+separately, and most allocations are non-bulk anyway.  This could be
+improved by batching all operations until slab_pgdat(slab) changes.
+
+Some preliminary benchmarking with a kfree(kmalloc()) loop of 10M
+iterations with/without __GFP_ACCOUNT:
+
+Before the patch:
+kmalloc/kfree !memcg:    581390144 cycles
+kmalloc/kfree memcg:     783689984 cycles
+
+After the patch:
+kmalloc/kfree memcg:     658723808 cycles
+
+More than half of the overhead of __GFP_ACCOUNT relative to
+non-accounted case seems eliminated.
+
+Link: https://lkml.kernel.org/r/20250404013913.1663035-9-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   77 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 46 insertions(+), 31 deletions(-)
 
---- a/mm/memcontrol.c~memcg-use-__mod_memcg_state-in-drain_obj_stock
+--- a/mm/memcontrol.c~memcg-combine-slab-obj-stock-charging-and-accounting
 +++ a/mm/memcontrol.c
-@@ -710,10 +710,12 @@ void __mod_memcg_state(struct mem_cgroup
- 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
- 		return;
- 
-+	memcg_stats_lock();
- 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
- 	val = memcg_state_val_in_pages(idx, val);
- 	memcg_rstat_updated(memcg, val);
- 	trace_mod_memcg_state(memcg, idx, val);
-+	memcg_stats_unlock();
+@@ -2774,25 +2774,17 @@ static void replace_stock_objcg(struct m
+ 	WRITE_ONCE(stock->cached_objcg, objcg);
  }
  
- #ifdef CONFIG_MEMCG_V1
-@@ -2866,7 +2868,7 @@ static void drain_obj_stock(struct memcg
+-static void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
+-		     enum node_stat_item idx, int nr)
++static void __account_obj_stock(struct obj_cgroup *objcg,
++				struct memcg_stock_pcp *stock, int nr,
++				struct pglist_data *pgdat, enum node_stat_item idx)
+ {
+-	struct memcg_stock_pcp *stock;
+-	unsigned long flags;
+ 	int *bytes;
  
- 			memcg = get_mem_cgroup_from_objcg(old);
+-	local_lock_irqsave(&memcg_stock.stock_lock, flags);
+-	stock = this_cpu_ptr(&memcg_stock);
+-
+ 	/*
+ 	 * Save vmstat data in stock and skip vmstat array update unless
+-	 * accumulating over a page of vmstat data or when pgdat or idx
+-	 * changes.
++	 * accumulating over a page of vmstat data or when pgdat changes.
+ 	 */
+-	if (READ_ONCE(stock->cached_objcg) != objcg) {
+-		replace_stock_objcg(stock, objcg);
+-		stock->cached_pgdat = pgdat;
+-	} else if (stock->cached_pgdat != pgdat) {
++	if (stock->cached_pgdat != pgdat) {
+ 		/* Flush the existing cached vmstat data */
+ 		struct pglist_data *oldpg = stock->cached_pgdat;
  
--			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
-+			__mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
- 			memcg1_account_kmem(memcg, -nr_pages);
- 			if (!mem_cgroup_is_root(memcg))
- 				memcg_uncharge(memcg, nr_pages);
+@@ -2829,11 +2821,10 @@ static void mod_objcg_state(struct obj_c
+ 	}
+ 	if (nr)
+ 		__mod_objcg_mlstate(objcg, pgdat, idx, nr);
+-
+-	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
+ }
+ 
+-static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
++static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes,
++			      struct pglist_data *pgdat, enum node_stat_item idx)
+ {
+ 	struct memcg_stock_pcp *stock;
+ 	unsigned long flags;
+@@ -2845,6 +2836,9 @@ static bool consume_obj_stock(struct obj
+ 	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
+ 		stock->nr_bytes -= nr_bytes;
+ 		ret = true;
++
++		if (pgdat)
++			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
+ 	}
+ 
+ 	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
+@@ -2929,7 +2923,8 @@ static bool obj_stock_flush_required(str
+ }
+ 
+ static void refill_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes,
+-			     bool allow_uncharge)
++		bool allow_uncharge, int nr_acct, struct pglist_data *pgdat,
++		enum node_stat_item idx)
+ {
+ 	struct memcg_stock_pcp *stock;
+ 	unsigned long flags;
+@@ -2944,6 +2939,9 @@ static void refill_obj_stock(struct obj_
+ 	}
+ 	stock->nr_bytes += nr_bytes;
+ 
++	if (pgdat)
++		__account_obj_stock(objcg, stock, nr_acct, pgdat, idx);
++
+ 	if (allow_uncharge && (stock->nr_bytes > PAGE_SIZE)) {
+ 		nr_pages = stock->nr_bytes >> PAGE_SHIFT;
+ 		stock->nr_bytes &= (PAGE_SIZE - 1);
+@@ -2955,12 +2953,13 @@ static void refill_obj_stock(struct obj_
+ 		obj_cgroup_uncharge_pages(objcg, nr_pages);
+ }
+ 
+-int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
++static int obj_cgroup_charge_account(struct obj_cgroup *objcg, gfp_t gfp, size_t size,
++				     struct pglist_data *pgdat, enum node_stat_item idx)
+ {
+ 	unsigned int nr_pages, nr_bytes;
+ 	int ret;
+ 
+-	if (consume_obj_stock(objcg, size))
++	if (likely(consume_obj_stock(objcg, size, pgdat, idx)))
+ 		return 0;
+ 
+ 	/*
+@@ -2993,15 +2992,21 @@ int obj_cgroup_charge(struct obj_cgroup
+ 		nr_pages += 1;
+ 
+ 	ret = obj_cgroup_charge_pages(objcg, gfp, nr_pages);
+-	if (!ret && nr_bytes)
+-		refill_obj_stock(objcg, PAGE_SIZE - nr_bytes, false);
++	if (!ret && (nr_bytes || pgdat))
++		refill_obj_stock(objcg, nr_bytes ? PAGE_SIZE - nr_bytes : 0,
++					 false, size, pgdat, idx);
+ 
+ 	return ret;
+ }
+ 
++int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
++{
++	return obj_cgroup_charge_account(objcg, gfp, size, NULL, 0);
++}
++
+ void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size)
+ {
+-	refill_obj_stock(objcg, size, true);
++	refill_obj_stock(objcg, size, true, 0, NULL, 0);
+ }
+ 
+ static inline size_t obj_full_size(struct kmem_cache *s)
+@@ -3053,23 +3058,32 @@ bool __memcg_slab_post_alloc_hook(struct
+ 			return false;
+ 	}
+ 
+-	if (obj_cgroup_charge(objcg, flags, size * obj_full_size(s)))
+-		return false;
+-
+ 	for (i = 0; i < size; i++) {
+ 		slab = virt_to_slab(p[i]);
+ 
+ 		if (!slab_obj_exts(slab) &&
+ 		    alloc_slab_obj_exts(slab, s, flags, false)) {
+-			obj_cgroup_uncharge(objcg, obj_full_size(s));
+ 			continue;
+ 		}
+ 
++		/*
++		 * if we fail and size is 1, memcg_alloc_abort_single() will
++		 * just free the object, which is ok as we have not assigned
++		 * objcg to its obj_ext yet
++		 *
++		 * for larger sizes, kmem_cache_free_bulk() will uncharge
++		 * any objects that were already charged and obj_ext assigned
++		 *
++		 * TODO: we could batch this until slab_pgdat(slab) changes
++		 * between iterations, with a more complicated undo
++		 */
++		if (obj_cgroup_charge_account(objcg, flags, obj_full_size(s),
++					slab_pgdat(slab), cache_vmstat_idx(s)))
++			return false;
++
+ 		off = obj_to_index(s, slab, p[i]);
+ 		obj_cgroup_get(objcg);
+ 		slab_obj_exts(slab)[off].objcg = objcg;
+-		mod_objcg_state(objcg, slab_pgdat(slab),
+-				cache_vmstat_idx(s), obj_full_size(s));
+ 	}
+ 
+ 	return true;
+@@ -3078,6 +3092,8 @@ bool __memcg_slab_post_alloc_hook(struct
+ void __memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
+ 			    void **p, int objects, struct slabobj_ext *obj_exts)
+ {
++	size_t obj_size = obj_full_size(s);
++
+ 	for (int i = 0; i < objects; i++) {
+ 		struct obj_cgroup *objcg;
+ 		unsigned int off;
+@@ -3088,9 +3104,8 @@ void __memcg_slab_free_hook(struct kmem_
+ 			continue;
+ 
+ 		obj_exts[off].objcg = NULL;
+-		obj_cgroup_uncharge(objcg, obj_full_size(s));
+-		mod_objcg_state(objcg, slab_pgdat(slab), cache_vmstat_idx(s),
+-				-obj_full_size(s));
++		refill_obj_stock(objcg, obj_size, true, -obj_size,
++				 slab_pgdat(slab), cache_vmstat_idx(s));
+ 		obj_cgroup_put(objcg);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-memcg-introduce-non-blocking-limit-setting-option.patch
-memcg-introduce-non-blocking-limit-setting-option-v3.patch
-memcg-simplify-consume_stock.patch
-memcg-separate-local_trylock-for-memcg-and-obj.patch
-memcg-completely-decouple-memcg-and-obj-stocks.patch
-memcg-no-irq-disable-for-memcg-stock-lock.patch
 
