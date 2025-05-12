@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 486CDC2FB
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:52:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69363C2FB
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:52:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011136; cv=none; b=cXrNFCz8JcZA5I/idnEBTxgH1dMqWFAVX/PC+UntvhR0DzWH/H1p8AJK8Ac3rcCuIQqlMqHlIsZre4YtDibB3yXu3W+OrpvQ1snLf7+dKY8FIVrPu2kZwFGr2Hazp8LBpCgkmFnr8zjK/vKnHET0GfJY7YgsjhoDxsHtO/3GGws=
+	t=1747011137; cv=none; b=pcfVg0d7WpZVajSixppULyYhOKJcjYBJgyjLB0pndA2gN4a7QBAZRpcXYTWM/dhL0xPj0MuUdFLWrhfi8fwjKKjjP3n71/AkJY+khXz1o8iwSI5E9rdOg1JBgniMXCRhMQWm/omy4lu0MoRUITByukRJeeWWKbKQYcZdqb8yk6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011136; c=relaxed/simple;
-	bh=jm91iysmJGAIch3pBMWx0e3KCdMQ1DlkYVts9nY6IWU=;
-	h=Date:To:From:Subject:Message-Id; b=GGfjHwx5blR3gnkCGDV9b45lFI94SVJCJ5kEkHpTkeiP9FF9iaRJ0do3+XPCFS80zhESdLCGV8gu3C6qS6qeiMbC7m3tANt2JAhTUKIeOPz0ZVCSm6pPG0fzMO3L8mn6tEOoMblwMP1OuFGmUUhDqKoCx7AcboLRMgjH84yGyRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nt38uH3f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011137; c=relaxed/simple;
+	bh=3mv1Ro1Dx5fL2A1tOB8zkJnr0ewQualYm4IXce6+PAY=;
+	h=Date:To:From:Subject:Message-Id; b=cM4ZdhZdQcsEy/NtcT/FxCsA6wkHN1xBlNuLul/SlOihTO2eg2zSgEohiKogMtQ54JLBZHY23ilVDREUbGU6cNlEF5g/BSMX5kw04YtOHhT0YcZTPmuVUD/PevEAOWYDoaPOQ4PTbrNlULPCYMH4ZZfr4nt7Udm7Tom6/DoAsoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SdVMP9OP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nt38uH3f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FC3BC4CEE4;
-	Mon, 12 May 2025 00:52:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SdVMP9OP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A90C4CEE4;
+	Mon, 12 May 2025 00:52:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011136;
-	bh=jm91iysmJGAIch3pBMWx0e3KCdMQ1DlkYVts9nY6IWU=;
+	s=korg; t=1747011137;
+	bh=3mv1Ro1Dx5fL2A1tOB8zkJnr0ewQualYm4IXce6+PAY=;
 	h=Date:To:From:Subject:From;
-	b=nt38uH3fdk0FDtIj73+WMZhAA2Q5rrtNNxJTCvO5Um7giZmC732SNTZuVV9vus1rT
-	 IvmZ8KQ4ZR6ZuBESnbUmqhHs/kNHwdq8SXeJsJdN5B4PfG0qfVtnSTBDicbzLDMRNV
-	 sG+PcB+LoSKufVCYFwOAF2/5X19beDLnNDy/yXN0=
-Date: Sun, 11 May 2025 17:52:15 -0700
-To: mm-commits@vger.kernel.org,dev.jain@arm.com,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=SdVMP9OPI8P0IswRmFBDDdCndwQELCAS48mWAARObPv/q+fAAl1BitF+0ndU9S1sQ
+	 M7oVWrssKfxB9MWY2dOnqMWHNzcds8wkLPlKMfLqS9ll8/d5A0Jru5IQSmRISO1xa/
+	 wn7anLXtSUmYLH6opOwby7EVbUlqGbuh0W6+9Cjs=
+Date: Sun, 11 May 2025 17:52:16 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,rppt@kernel.org,rientjes@google.com,david@redhat.com,baohua@kernel.org,anshuman.khandual@arm.com,gaoxu2@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-modify-the-assignment-logic-of-the-scan-and-total_scan-variables.patch removed from -mm tree
-Message-Id: <20250512005216.1FC3BC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-nr_free_highatomic-in-show_free_areas.patch removed from -mm tree
+Message-Id: <20250512005217.40A90C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: modify the assignment logic of the scan and total_scan variables
+     Subject: mm: add nr_free_highatomic in show_free_areas
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-modify-the-assignment-logic-of-the-scan-and-total_scan-variables.patch
+     mm-add-nr_free_highatomic-in-show_free_areas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/vmscan: modify the assignment logic of the scan and total_scan variables
-Date: Thu, 17 Apr 2025 17:24:22 +0800
+From: gaoxu <gaoxu2@honor.com>
+Subject: mm: add nr_free_highatomic in show_free_areas
+Date: Sat, 12 Apr 2025 09:27:24 +0000
 
-The scan and total_scan variables can be initialized to 0 when they are
-defined, replacing the separate assignment statements.
+commit c928807f6f6b6("mm/page_alloc: keep track of free highatomic")
+adds a new variable nr_free_highatomic, which is useful for analyzing low
+mem issues. add nr_free_highatomic in show_free_areas.
 
-Link: https://lkml.kernel.org/r/20250417092422.1333620-1-hao.ge@linux.dev
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Acked-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: gao xu <gaoxu2@honor.com>
+Link: https://lkml.kernel.org/r/d92eeff74f7a4578a14ac777cfe3603a@honor.com
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/show_mem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-modify-the-assignment-logic-of-the-scan-and-total_scan-variables
-+++ a/mm/vmscan.c
-@@ -1725,13 +1725,11 @@ static unsigned long isolate_lru_folios(
- 	unsigned long nr_taken = 0;
- 	unsigned long nr_zone_taken[MAX_NR_ZONES] = { 0 };
- 	unsigned long nr_skipped[MAX_NR_ZONES] = { 0, };
--	unsigned long skipped = 0;
--	unsigned long scan, total_scan, nr_pages;
-+	unsigned long skipped = 0, total_scan = 0, scan = 0;
-+	unsigned long nr_pages;
- 	unsigned long max_nr_skipped = 0;
- 	LIST_HEAD(folios_skipped);
- 
--	total_scan = 0;
--	scan = 0;
- 	while (scan < nr_to_scan && !list_empty(src)) {
- 		struct list_head *move_to = src;
- 		struct folio *folio;
+--- a/mm/show_mem.c~mm-add-nr_free_highatomic-in-show_free_areas
++++ a/mm/show_mem.c
+@@ -305,6 +305,7 @@ static void show_free_areas(unsigned int
+ 			" low:%lukB"
+ 			" high:%lukB"
+ 			" reserved_highatomic:%luKB"
++			" free_highatomic:%luKB"
+ 			" active_anon:%lukB"
+ 			" inactive_anon:%lukB"
+ 			" active_file:%lukB"
+@@ -326,6 +327,7 @@ static void show_free_areas(unsigned int
+ 			K(low_wmark_pages(zone)),
+ 			K(high_wmark_pages(zone)),
+ 			K(zone->nr_reserved_highatomic),
++			K(zone->nr_free_highatomic),
+ 			K(zone_page_state(zone, NR_ZONE_ACTIVE_ANON)),
+ 			K(zone_page_state(zone, NR_ZONE_INACTIVE_ANON)),
+ 			K(zone_page_state(zone, NR_ZONE_ACTIVE_FILE)),
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from gaoxu2@honor.com are
 
 
