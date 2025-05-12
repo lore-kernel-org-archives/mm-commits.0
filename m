@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 013972EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D4C32EB10;
+	Mon, 12 May 2025 00:56:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011370; cv=none; b=JAAPlWDfgcBNhqQNf/nDckiv8h/ngRiT5JVZvlY37t23DtYdOzx2NUFqXjsfd2NXD6SBG1QCoQ4EmN8df7/rkt6qpYZBzDG4hUtCMRTdFN0Ewc0CiXHg+/go9N8Z26gWl36XHci/YkKczlrLt7h3SQmISbKiB2zzE2yJkpUEvKg=
+	t=1747011371; cv=none; b=tJ4/GSMFQyxFdtRIsjV09dWVV9xQOem8kINCdWpY2HKMKHtXmHU4hmQD2bq4nQj/sZmbVNB1hNN38KKbehoRh9c1Eik7i62A5P8A9wXlDSv3nuwVh0cODbJ7qDsxOxzySQAsOl4y10IQwzf+XDceLJW6BfaKt7JhnpbSx1dgufg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011370; c=relaxed/simple;
-	bh=yDhUDriiBg7yCPrev50Ya1ZFDVAUCWfS81To0WSb23I=;
-	h=Date:To:From:Subject:Message-Id; b=GDZX6O9+ecBFdEFSjq7lMdL3AUPjJTyP/zvdoWZNBb6raqIj7Ei4ZbzQ4P80wmWymUFlOlfzOg/IYWz8Fs1Z1aEOjIwe+MMJ1X5HdHbk+6YiDrLCReLlYAkgq0LGSMVmd1+eGpvjleuwidLbuRbWGX5S5qlQSErmr+4zdJC8qoU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t5bHE7Pp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011371; c=relaxed/simple;
+	bh=VyoSqGrn/4tIikcnuM1J+sqlVZSbA3GDZkWE8V5poBQ=;
+	h=Date:To:From:Subject:Message-Id; b=D7xHKsqxXILxp5NYjYj2G/N40wprytsgA8ChCV4jnQEeq1X1QTIR/h5v/zu9BCDqIA5Nj21sB+rXBMR5IGet8bI0YzTMMvKm7gEHEYdvrnoHBnfXbeg9NYZOoJFOtdR7/a3bkY7xjjOojcasyfiLwTt8az6MaAlu1DsS68j057c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xkApBvup; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t5bHE7Pp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C90D5C4CEE4;
-	Mon, 12 May 2025 00:56:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xkApBvup"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23725C4CEE4;
+	Mon, 12 May 2025 00:56:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011369;
-	bh=yDhUDriiBg7yCPrev50Ya1ZFDVAUCWfS81To0WSb23I=;
+	s=korg; t=1747011371;
+	bh=VyoSqGrn/4tIikcnuM1J+sqlVZSbA3GDZkWE8V5poBQ=;
 	h=Date:To:From:Subject:From;
-	b=t5bHE7Ppn+5notFUm7a+lBtYfUpxSVx078x+4WwlDmieJRsNJlmelyU/Yod6vmivk
-	 7z/6m+8kQCNDYa8vaOlGONhd0wGS7xOeLLtAkgh2OfS2PHfrnWo+ChiM0dNsCI3u6R
-	 IhDL4lM7MQyT3t6aTbwztL3VUrlXceokrfCKz4Q0=
-Date: Sun, 11 May 2025 17:56:09 -0700
-To: mm-commits@vger.kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=xkApBvup31kry0zxueuTRyID9x0ZG2Z/v1CpHQU0g2AdpQxxjI2GJW0eyryTU3jNf
+	 kb3voN+fwdi0eFG5toaiRSsp2/jAN9MVr+BDt6yVsXKSrgac2xtOp43z9Jv45oNGLm
+	 d7dha6/0ENhrNeSIhEh5rqF6U+bqbegob+QdeZgY=
+Date: Sun, 11 May 2025 17:56:10 -0700
+To: mm-commits@vger.kernel.org,venkat88@linux.ibm.com,tglx@linutronix.de,stable@vger.kernel.org,song@kernel.org,nysal@linux.ibm.com,joel.granados@kernel.org,dianders@chromium.org,luogengkun@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] treewide-fix-typo-previlege.patch removed from -mm tree
-Message-Id: <20250512005609.C90D5C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch removed from -mm tree
+Message-Id: <20250512005611.23725C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,216 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: treewide: fix typo "previlege"
+     Subject: watchdog: fix watchdog may detect false positive of softlockup
 has been removed from the -mm tree.  Its filename was
-     treewide-fix-typo-previlege.patch
+     watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: WangYuli <wangyuli@uniontech.com>
-Subject: treewide: fix typo "previlege"
-Date: Mon, 21 Apr 2025 15:49:10 +0800
+From: Luo Gengkun <luogengkun@huaweicloud.com>
+Subject: watchdog: fix watchdog may detect false positive of softlockup
+Date: Mon, 21 Apr 2025 03:50:21 +0000
 
-There are some spelling mistakes of 'previlege' in comments which
-should be 'privilege'.
+When updating `watchdog_thresh`, there is a race condition between writing
+the new `watchdog_thresh` value and stopping the old watchdog timer.  If
+the old timer triggers during this window, it may falsely detect a
+softlockup due to the old interval and the new `watchdog_thresh` value
+being used.  The problem can be described as follow:
 
-Fix them and add it to scripts/spelling.txt.
+ # We asuume previous watchdog_thresh is 60, so the watchdog timer is
+ # coming every 24s.
+echo 10 > /proc/sys/kernel/watchdog_thresh (User space)
+|
++------>+ update watchdog_thresh (We are in kernel now)
+	|
+	|	  # using old interval and new `watchdog_thresh`
+	+------>+ watchdog hrtimer (irq context: detect softlockup)
+		|
+		|
+	+-------+
+	|
+	|
+	+ softlockup_stop_all
 
-The typo in arch/loongarch/kvm/main.c was corrected by a different
-patch [1] and is therefore not included in this submission.
+To fix this problem, introduce a shadow variable for `watchdog_thresh`. 
+The update to the actual `watchdog_thresh` is delayed until after the old
+timer is stopped, preventing false positives.
 
-[1]. https://lore.kernel.org/all/20250420142208.2252280-1-wheatfox17@icloud.com/
+The following testcase may help to understand this problem.
 
-Link: https://lkml.kernel.org/r/46AD404E411A4BAC+20250421074910.66988-1-wangyuli@uniontech.com
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
+---------------------------------------------
+echo RT_RUNTIME_SHARE > /sys/kernel/debug/sched/features
+echo -1 > /proc/sys/kernel/sched_rt_runtime_us
+echo 0 > /sys/kernel/debug/sched/fair_server/cpu3/runtime
+echo 60 > /proc/sys/kernel/watchdog_thresh
+taskset -c 3 chrt -r 99 /bin/bash -c "while true;do true; done" &
+echo 10 > /proc/sys/kernel/watchdog_thresh &
+---------------------------------------------
+
+The test case above first removes the throttling restrictions for
+real-time tasks.  It then sets watchdog_thresh to 60 and executes a
+real-time task ,a simple while(1) loop, on cpu3.  Consequently, the final
+command gets blocked because the presence of this real-time thread
+prevents kworker:3 from being selected by the scheduler.  This eventually
+triggers a softlockup detection on cpu3 due to watchdog_timer_fn operating
+with inconsistent variable - using both the old interval and the updated
+watchdog_thresh simultaneously.
+
+[nysal@linux.ibm.com: fix the SOFTLOCKUP_DETECTOR=n case]
+  Link: https://lkml.kernel.org/r/20250502111120.282690-1-nysal@linux.ibm.com
+Link: https://lkml.kernel.org/r/20250421035021.3507649-1-luogengkun@huaweicloud.com
+Signed-off-by: Luo Gengkun <luogengkun@huaweicloud.com>
+Signed-off-by: Nysal Jan K.A. <nysal@linux.ibm.com>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: "Nysal Jan K.A." <nysal@linux.ibm.com>
+Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/char/vmlogrdr.c          |    4 ++--
- include/linux/habanalabs/hl_boot_if.h |    2 +-
- scripts/spelling.txt                  |    2 ++
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ kernel/watchdog.c |   41 +++++++++++++++++++++++++++--------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
---- a/drivers/s390/char/vmlogrdr.c~treewide-fix-typo-previlege
-+++ a/drivers/s390/char/vmlogrdr.c
-@@ -255,7 +255,7 @@ static int vmlogrdr_recording(struct vml
+--- a/kernel/watchdog.c~watchdog-fix-watchdog-may-detect-false-positive-of-softlockup
++++ a/kernel/watchdog.c
+@@ -47,6 +47,7 @@ int __read_mostly watchdog_user_enabled
+ static int __read_mostly watchdog_hardlockup_user_enabled = WATCHDOG_HARDLOCKUP_DEFAULT;
+ static int __read_mostly watchdog_softlockup_user_enabled = 1;
+ int __read_mostly watchdog_thresh = 10;
++static int __read_mostly watchdog_thresh_next;
+ static int __read_mostly watchdog_hardlockup_available;
  
- 	/*
- 	 * The recording commands needs to be called with option QID
--	 * for guests that have previlege classes A or B.
-+	 * for guests that have privilege classes A or B.
- 	 * Purging has to be done as separate step, because recording
- 	 * can't be switched on as long as records are on the queue.
- 	 * Doing both at the same time doesn't work.
-@@ -557,7 +557,7 @@ static ssize_t vmlogrdr_purge_store(stru
+ struct cpumask watchdog_cpumask __read_mostly;
+@@ -870,12 +871,20 @@ int lockup_detector_offline_cpu(unsigned
+ 	return 0;
+ }
  
-         /*
- 	 * The recording command needs to be called with option QID
--	 * for guests that have previlege classes A or B.
-+	 * for guests that have privilege classes A or B.
- 	 * Other guests will not recognize the command and we have to
- 	 * issue the same command without the QID parameter.
- 	 */
---- a/include/linux/habanalabs/hl_boot_if.h~treewide-fix-typo-previlege
-+++ a/include/linux/habanalabs/hl_boot_if.h
-@@ -295,7 +295,7 @@ enum cpu_boot_dev_sts {
-  *					Initialized in: linux
-  *
-  * CPU_BOOT_DEV_STS0_GIC_PRIVILEGED_EN	GIC access permission only from
-- *					previleged entity. FW sets this status
-+ *					privileged entity. FW sets this status
-  *					bit for host. If this bit is set then
-  *					GIC can not be accessed from host.
-  *					Initialized in: linux
---- a/scripts/spelling.txt~treewide-fix-typo-previlege
-+++ a/scripts/spelling.txt
-@@ -1240,6 +1240,8 @@ prefered||preferred
- prefferably||preferably
- prefitler||prefilter
- preform||perform
-+previleged||privileged
-+previlege||privilege
- premption||preemption
- prepaired||prepared
- prepate||prepare
+-static void __lockup_detector_reconfigure(void)
++static void __lockup_detector_reconfigure(bool thresh_changed)
+ {
+ 	cpus_read_lock();
+ 	watchdog_hardlockup_stop();
+ 
+ 	softlockup_stop_all();
++	/*
++	 * To prevent watchdog_timer_fn from using the old interval and
++	 * the new watchdog_thresh at the same time, which could lead to
++	 * false softlockup reports, it is necessary to update the
++	 * watchdog_thresh after the softlockup is completed.
++	 */
++	if (thresh_changed)
++		watchdog_thresh = READ_ONCE(watchdog_thresh_next);
+ 	set_sample_period();
+ 	lockup_detector_update_enable();
+ 	if (watchdog_enabled && watchdog_thresh)
+@@ -888,7 +897,7 @@ static void __lockup_detector_reconfigur
+ void lockup_detector_reconfigure(void)
+ {
+ 	mutex_lock(&watchdog_mutex);
+-	__lockup_detector_reconfigure();
++	__lockup_detector_reconfigure(false);
+ 	mutex_unlock(&watchdog_mutex);
+ }
+ 
+@@ -908,27 +917,29 @@ static __init void lockup_detector_setup
+ 		return;
+ 
+ 	mutex_lock(&watchdog_mutex);
+-	__lockup_detector_reconfigure();
++	__lockup_detector_reconfigure(false);
+ 	softlockup_initialized = true;
+ 	mutex_unlock(&watchdog_mutex);
+ }
+ 
+ #else /* CONFIG_SOFTLOCKUP_DETECTOR */
+-static void __lockup_detector_reconfigure(void)
++static void __lockup_detector_reconfigure(bool thresh_changed)
+ {
+ 	cpus_read_lock();
+ 	watchdog_hardlockup_stop();
++	if (thresh_changed)
++		watchdog_thresh = READ_ONCE(watchdog_thresh_next);
+ 	lockup_detector_update_enable();
+ 	watchdog_hardlockup_start();
+ 	cpus_read_unlock();
+ }
+ void lockup_detector_reconfigure(void)
+ {
+-	__lockup_detector_reconfigure();
++	__lockup_detector_reconfigure(false);
+ }
+ static inline void lockup_detector_setup(void)
+ {
+-	__lockup_detector_reconfigure();
++	__lockup_detector_reconfigure(false);
+ }
+ #endif /* !CONFIG_SOFTLOCKUP_DETECTOR */
+ 
+@@ -946,11 +957,11 @@ void lockup_detector_soft_poweroff(void)
+ #ifdef CONFIG_SYSCTL
+ 
+ /* Propagate any changes to the watchdog infrastructure */
+-static void proc_watchdog_update(void)
++static void proc_watchdog_update(bool thresh_changed)
+ {
+ 	/* Remove impossible cpus to keep sysctl output clean. */
+ 	cpumask_and(&watchdog_cpumask, &watchdog_cpumask, cpu_possible_mask);
+-	__lockup_detector_reconfigure();
++	__lockup_detector_reconfigure(thresh_changed);
+ }
+ 
+ /*
+@@ -984,7 +995,7 @@ static int proc_watchdog_common(int whic
+ 	} else {
+ 		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+ 		if (!err && old != READ_ONCE(*param))
+-			proc_watchdog_update();
++			proc_watchdog_update(false);
+ 	}
+ 	mutex_unlock(&watchdog_mutex);
+ 	return err;
+@@ -1035,11 +1046,13 @@ static int proc_watchdog_thresh(const st
+ 
+ 	mutex_lock(&watchdog_mutex);
+ 
+-	old = READ_ONCE(watchdog_thresh);
++	watchdog_thresh_next = READ_ONCE(watchdog_thresh);
++
++	old = watchdog_thresh_next;
+ 	err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+ 
+-	if (!err && write && old != READ_ONCE(watchdog_thresh))
+-		proc_watchdog_update();
++	if (!err && write && old != READ_ONCE(watchdog_thresh_next))
++		proc_watchdog_update(true);
+ 
+ 	mutex_unlock(&watchdog_mutex);
+ 	return err;
+@@ -1060,7 +1073,7 @@ static int proc_watchdog_cpumask(const s
+ 
+ 	err = proc_do_large_bitmap(table, write, buffer, lenp, ppos);
+ 	if (!err && write)
+-		proc_watchdog_update();
++		proc_watchdog_update(false);
+ 
+ 	mutex_unlock(&watchdog_mutex);
+ 	return err;
+@@ -1080,7 +1093,7 @@ static const struct ctl_table watchdog_s
+ 	},
+ 	{
+ 		.procname	= "watchdog_thresh",
+-		.data		= &watchdog_thresh,
++		.data		= &watchdog_thresh_next,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_watchdog_thresh,
 _
 
-Patches currently in -mm which might be from wangyuli@uniontech.com are
+Patches currently in -mm which might be from luogengkun@huaweicloud.com are
 
 
