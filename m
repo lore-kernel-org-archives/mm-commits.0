@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55B474040
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:26:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AB462BCF5
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:26:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747009614; cv=none; b=Kltyox1vPsk323xF/mR3PmFByIEmKsSMpYE5fGyywesEpvODMHf05MCeTHKQuIgcZAiFEzW3CMqIaEjgcdgfMwiRIESdNx8MzpcRUubuLN5W+i7nUimOsprxurhh1i7QVy/tU86AL2yIchxBpeJzwWUkkG6GLHKaxMPsWwygtT4=
+	t=1747009615; cv=none; b=H+tKDorGIOR9qdmNJtix0iwua3iUV0imNUh7dF55lAeuqMq72eTtOQle3HgRbqNw0K2voRANgHqPXJ501MXUF/YbyW+Sk3UCaEOWz0Xapi5YPYI/34rn+iqQ/uD3GfW2AdoZyTcehqTeuuNiz9NUdM7WYY5zwKuIAdR/EllvYH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747009614; c=relaxed/simple;
-	bh=vhDkEAQJznyF3tY8dq/skjt7tYN1qDhgHg33sEpumyA=;
-	h=Date:To:From:Subject:Message-Id; b=BGYVGQP5kqYxkH0doY/gL2zGHLpiZQ5CGiCPOJAXv0vPqMRFotjitxv5OrhK0/ktz2LNysyzf84s9ipSclcS3draz735FUGse6G2DuSO2Cvdcl9qnBN0pATbj6fMuqicQmslnrCFtYN77d6BojAvQb008O3WEOoOfnyKltofzH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nahaMb4F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747009615; c=relaxed/simple;
+	bh=fqHi1Az/mNynidEvMQF/6C24NrjObcM1iaam7rhiueg=;
+	h=Date:To:From:Subject:Message-Id; b=MunjNj/sSLITvegFaqim6yjoF6974/ST6OAGF+u8o22aE5qEWGcqEz99n7P5zpLB8qRduddliMujMR+9RXK/MHxnpR0g+pbnAZipgmUZwID9I2sTVxb7DNBNJNWo/nqBT36SRG8AkX4Sx9HuUrIAHliDx5dt0wIYpOcHMw5NGAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g9ZvuGFf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nahaMb4F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D156C4CEE4;
-	Mon, 12 May 2025 00:26:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g9ZvuGFf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89695C4CEE4;
+	Mon, 12 May 2025 00:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747009613;
-	bh=vhDkEAQJznyF3tY8dq/skjt7tYN1qDhgHg33sEpumyA=;
+	s=korg; t=1747009614;
+	bh=fqHi1Az/mNynidEvMQF/6C24NrjObcM1iaam7rhiueg=;
 	h=Date:To:From:Subject:From;
-	b=nahaMb4FhKo4EfowpPVsEe7Xe0s4a1ueHsQi7ysCwZsccQh2wOaoHyvSMrMV6Dfa6
-	 SaQxyv7oAcp5qBxMDdzUMHS0ja+ABvbvmUpTXhEwPDRzw6i7/uRRLB20vz42tsYdvA
-	 bcX21PeE0IgTY59INfQkcj8y7MCmhkYfPp2xLrMA=
-Date: Sun, 11 May 2025 17:26:52 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,00107082@163.com,akpm@linux-foundation.org
+	b=g9ZvuGFfrmwrlUWjoherHcYRCtqrIPWkJeoMO/qFmKvc23USgvtqIzJ9CDDH7D1pE
+	 UQMdGtrWZfXhqaqRmvH5cjtqwGiSgQXJ3PKJpevhXhYB0tp22azLvy8Dfw3ikN2yIY
+	 422cqAqSC+iNakUkg4EreEwz0x/BCjEMFDYfeBNE=
+Date: Sun, 11 May 2025 17:26:53 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages.patch removed from -mm tree
-Message-Id: <20250512002653.4D156C4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-mm-gup-section.patch removed from -mm tree
+Message-Id: <20250512002654.89695C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/codetag: move tag retrieval back upfront in __free_pages()
+     Subject: MAINTAINERS: add mm GUP section
 has been removed from the -mm tree.  Its filename was
-     mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages.patch
+     maintainers-add-mm-gup-section.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Wang <00107082@163.com>
-Subject: mm/codetag: move tag retrieval back upfront in __free_pages()
-Date: Tue, 6 May 2025 03:30:34 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add mm GUP section
+Date: Tue, 6 May 2025 18:36:01 +0100
 
-Commit 51ff4d7486f0 ("mm: avoid extra mem_alloc_profiling_enabled()
- checks") introduces a possible use-after-free scenario, when page
-is non-compound, page[0] could be released by other thread right
-after put_page_testzero failed in current thread, pgalloc_tag_sub_pages
-afterwards would manipulate an invalid page for accounting remaining
-pages:
+As part of the ongoing efforts to sub-divide memory management
+maintainership and reviewership, establish a section for GUP (Get User
+Pages) support and add appropriate maintainers and reviewers.
 
-[timeline]   [thread1]                     [thread2]
-  |          alloc_page non-compound
-  V
-  |                                        get_page, rf counter inc
-  V
-  |          in ___free_pages
-  |          put_page_testzero fails
-  V
-  |                                        put_page, page released
-  V
-  |          in ___free_pages,
-  |          pgalloc_tag_sub_pages
-  |          manipulate an invalid page
-  V
-
-Restore __free_pages() to its state before, retrieve alloc tag
-beforehand.
-
-Link: https://lkml.kernel.org/r/20250505193034.91682-1-00107082@163.com
-Fixes: 51ff4d7486f0 ("mm: avoid extra mem_alloc_profiling_enabled() checks")
-Signed-off-by: David Wang <00107082@163.com>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250506173601.97562-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgalloc_tag.h |    8 ++++++++
- mm/page_alloc.c             |   15 ++++++---------
- 2 files changed, 14 insertions(+), 9 deletions(-)
+ MAINTAINERS |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/include/linux/pgalloc_tag.h~mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages
-+++ a/include/linux/pgalloc_tag.h
-@@ -188,6 +188,13 @@ static inline struct alloc_tag *__pgallo
- 	return tag;
- }
+--- a/MAINTAINERS~maintainers-add-mm-gup-section
++++ a/MAINTAINERS
+@@ -15542,6 +15542,18 @@ S:	Maintained
+ F:	include/linux/execmem.h
+ F:	mm/execmem.c
  
-+static inline struct alloc_tag *pgalloc_tag_get(struct page *page)
-+{
-+	if (mem_alloc_profiling_enabled())
-+		return __pgalloc_tag_get(page);
-+	return NULL;
-+}
++MEMORY MANAGEMENT - GUP (GET USER PAGES)
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	David Hildenbrand <david@redhat.com>
++R:	Jason Gunthorpe <jgg@nvidia.com>
++R:	John Hubbard <jhubbard@nvidia.com>
++R:	Peter Xu <peterx@redhat.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	mm/gup.c
 +
- void pgalloc_tag_split(struct folio *folio, int old_order, int new_order);
- void pgalloc_tag_swap(struct folio *new, struct folio *old);
- 
-@@ -199,6 +206,7 @@ static inline void clear_page_tag_ref(st
- static inline void alloc_tag_sec_init(void) {}
- static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order) {}
- static inline void pgalloc_tag_swap(struct folio *new, struct folio *old) {}
-+static inline struct alloc_tag *pgalloc_tag_get(struct page *page) { return NULL; }
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
- 
---- a/mm/page_alloc.c~mm-codetag-move-tag-retrieval-back-upfront-in-__free_pages
-+++ a/mm/page_alloc.c
-@@ -1151,14 +1151,9 @@ static inline void pgalloc_tag_sub(struc
- 		__pgalloc_tag_sub(page, nr);
- }
- 
--static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr)
-+/* When tag is not NULL, assuming mem_alloc_profiling_enabled */
-+static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr)
- {
--	struct alloc_tag *tag;
--
--	if (!mem_alloc_profiling_enabled())
--		return;
--
--	tag = __pgalloc_tag_get(page);
- 	if (tag)
- 		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
- }
-@@ -1168,7 +1163,7 @@ static inline void pgalloc_tag_sub_pages
- static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
- 				   unsigned int nr) {}
- static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
--static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr) {}
-+static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
- 
-@@ -5065,11 +5060,13 @@ static void ___free_pages(struct page *p
- {
- 	/* get PageHead before we drop reference */
- 	int head = PageHead(page);
-+	/* get alloc tag in case the page is released by others */
-+	struct alloc_tag *tag = pgalloc_tag_get(page);
- 
- 	if (put_page_testzero(page))
- 		__free_frozen_pages(page, order, fpi_flags);
- 	else if (!head) {
--		pgalloc_tag_sub_pages(page, (1 << order) - 1);
-+		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
- 		while (order-- > 0)
- 			__free_frozen_pages(page + (1 << order), order,
- 					    fpi_flags);
+ MEMORY MANAGEMENT - NUMA MEMBLOCKS AND NUMA EMULATION
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Mike Rapoport <rppt@kernel.org>
 _
 
-Patches currently in -mm which might be from 00107082@163.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
+tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
+tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
+mm-move-mmap-vma-locking-logic-into-specific-files.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
+mm-abstract-initial-stack-setup-to-mm-subsystem.patch
+mm-move-dup_mmap-to-mm.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm.patch
+mm-introduce-new-mmap_prepare-file-callback.patch
+mm-secretmem-convert-to-mmap_prepare-hook.patch
+mm-vma-remove-mmap-retry-merge.patch
 
