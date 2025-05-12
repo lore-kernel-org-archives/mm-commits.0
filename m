@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CEC91E489;
-	Mon, 12 May 2025 00:49:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E6671E489
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:49:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747010975; cv=none; b=m4pk1cSHcPx47y8k2TmAkREHSVPws6hiPUHZV4o56+JJyKEIa9QG5Ha/B8/g2syevLs4zrs62fdkS7FBLveoXg+VGQ8ogr/X3L2VYpcJaa9YzQHHr283K49pj//q1UwMP7h4Ik0LZArRV6I4WJZqbDotCwqlUsnNNRTcUrSCt9Q=
+	t=1747010976; cv=none; b=G9uIc0H9QdxGiMDCCt3gErWlddu4PSvYVOQjwT2zgSB2IVHKESCx+HYucajbfBUHwUe+ZZr9TyqKTSYDsZC0h3Lt06FawjJ5U8CBRnixccDLh4DBiD+QYVyHloRqXDueQhLJmYYaqKgaVDaRx8OeSukHMtLft/lp/gNv5qrzfqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747010975; c=relaxed/simple;
-	bh=H2An/ke4PtMN9t+AA7meIsIrjMdznX7wx4ZkjJKbWSA=;
-	h=Date:To:From:Subject:Message-Id; b=Rmqzogsp2cvjFKN8ziw1GnWC2EaGxV0AHd2CPUd2fQZenpf+12WSuVGxaE/dIrBdd+41YB1SMPqX5fCbslm9hACB9e9B7VD6Es013DE7PrIJxb+eWYptmsTuUFMBsCAXilczI9i+gmHa+qS3tID7LHdALtr3Iol1i3Nn0QAUKrA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VLRfSCa2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747010976; c=relaxed/simple;
+	bh=4niqiE3oH49pDKlRDwo//iRTjrf44w+hQU2hjNveGlM=;
+	h=Date:To:From:Subject:Message-Id; b=ZhsIBp2H+3tOARAKoHr2WAT/Cy9BxfWBzrVpStkzBYU/OSSZFI1a7FedtIvL/8PnR9vxhtH8ax9Nfwqi6sxXrrn7aiktQb2Sb/97bDDO7cPESTZEXPiCE7pmnJD+w0N6y/gxvTYXXur9xmP3Fxpqm9wzIwhqI6MhddsQ6tCxyAo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MmlDUGGf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VLRfSCa2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F143C4CEE4;
-	Mon, 12 May 2025 00:49:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MmlDUGGf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8243AC4CEE4;
+	Mon, 12 May 2025 00:49:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747010974;
-	bh=H2An/ke4PtMN9t+AA7meIsIrjMdznX7wx4ZkjJKbWSA=;
+	s=korg; t=1747010975;
+	bh=4niqiE3oH49pDKlRDwo//iRTjrf44w+hQU2hjNveGlM=;
 	h=Date:To:From:Subject:From;
-	b=VLRfSCa2nUMWLkn4waBh4VA9S37Yo6t++yUISCEOZHwLP8XYZitjtTDN9ujhKx6TF
-	 aYpNZD4nyluUFv45tUxLDFCfftsT+YDiaXUR3GuvxQB226Z4VprGntd9D1s+A7bpxe
-	 LOB/jeHf83Rcsh8iBbR4LhJqocLclLfL7p1UJpcc=
-Date: Sun, 11 May 2025 17:49:33 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,mengensun@tencent.com,fengguang.wu@intel.com,andrea@betterlinux.com,alexjlzheng@tencent.com,akpm@linux-foundation.org
+	b=MmlDUGGfj+JN2fFiZuX1IWZQkSpUltdlgQ/ts4aog4TxmQOu+R4VEpycbmt1QdQXu
+	 ZyUBrmtqRC4zNLvRmgcceocnFPQhWARq03StWO6nX5AYM7L5ClKrh7k1BfWp37gVI7
+	 2RomFVC8BpmE7LUB7RqM6m8V+rQ5mQ22tpg3tsTw=
+Date: Sun, 11 May 2025 17:49:34 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,x86@kernel.org,richard@nod.at,muchun.song@linux.dev,johannes@sipsolutions.net,geert@linux-m68k.org,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,agordeev@linux.ibm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-ratelimit_pages-update-error-in-dirty_ratio_handler.patch removed from -mm tree
-Message-Id: <20250512004934.0F143C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch removed from -mm tree
+Message-Id: <20250512004935.8243AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix ratelimit_pages update error in dirty_ratio_handler()
+     Subject: mm: set the pte dirty if the folio is already dirty
 has been removed from the -mm tree.  Its filename was
-     mm-fix-ratelimit_pages-update-error-in-dirty_ratio_handler.patch
+     mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinliang Zheng <alexjlzheng@tencent.com>
-Subject: mm: fix ratelimit_pages update error in dirty_ratio_handler()
-Date: Tue, 15 Apr 2025 17:02:32 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: set the pte dirty if the folio is already dirty
+Date: Wed, 2 Apr 2025 19:16:55 +0100
 
-In dirty_ratio_handler(), vm_dirty_bytes must be set to zero before
-calling writeback_set_ratelimit(), as global_dirty_limits() always
-prioritizes the value of vm_dirty_bytes.
+Patch series "Add folio_mk_pte()", v2.
 
-It's domain_dirty_limits() that's relevant here, not node_dirty_ok:
+Today if you have a folio and want to create a PTE that points to the
+first page in it, you have to convert from a folio to a page.  That's
+zero-cost today but will be more expensive in the future.
 
-  dirty_ratio_handler
-    writeback_set_ratelimit
-      global_dirty_limits(&dirty_thresh)           <- ratelimit_pages based on dirty_thresh
-        domain_dirty_limits
-          if (bytes)                               <- bytes = vm_dirty_bytes <--------+
-            thresh = f1(bytes)                     <- prioritizes vm_dirty_bytes      |
-          else                                                                        |
-            thresh = f2(ratio)                                                        |
-      ratelimit_pages = f3(dirty_thresh)                                              |
-    vm_dirty_bytes = 0                             <- it's late! ---------------------+
+I didn't want to add folio_mk_pte() to each architecture, and I didn't
+want to lose any optimisations that architectures have from their own
+implementation of mk_pte().  Fortunately, most architectures have by now
+turned their mk_pte() into a fairly bland variant of pfn_pte(), but s390
+has a special optimisation that needs to be moved into generic code in the
+first patch.
 
-This causes ratelimit_pages to still use the value calculated based on
-vm_dirty_bytes, which is wrong now.
+At the end of this patch set, we have mk_pte() and folio_mk_pte() in mm.h
+and each architecture only has to implement pfn_pte().  We've also
+eliminated mk_huge_pte(), mk_huge_pmd() and mk_pmd().
 
 
-The impact visible to userspace is difficult to capture directly because
-there is no procfs/sysfs interface exported to user space.  However, it
-will have a real impact on the balance of dirty pages.
+This patch (of 11):
 
-For example:
+If the first access to a folio is a read that is then followed by a write,
+we can save a page fault.  s390 implemented this in their mk_pte() in
+commit abf09bed3cce ("s390/mm: implement software dirty bits"), but other
+architectures can also benefit from this.
 
-1. On default, we have vm_dirty_ratio=40, vm_dirty_bytes=0
-
-2. echo 8192 > dirty_bytes, then vm_dirty_bytes=8192,
-   vm_dirty_ratio=0, and ratelimit_pages is calculated based on
-   vm_dirty_bytes now.
-
-3. echo 20 > dirty_ratio, then since vm_dirty_bytes is not reset to
-   zero when writeback_set_ratelimit() -> global_dirty_limits() ->
-   domain_dirty_limits() is called, reallimit_pages is still calculated
-   based on vm_dirty_bytes instead of vm_dirty_ratio.  This does not
-   conform to the actual intent of the user.
-
-Link: https://lkml.kernel.org/r/20250415090232.7544-1-alexjlzheng@tencent.com
-Fixes: 9d823e8f6b1b ("writeback: per task dirty rate limit")
-Signed-off-by: Jinliang Zheng <alexjlzheng@tencent.com>
-Reviewed-by: MengEn Sun <mengensun@tencent.com>
-Cc: Andrea Righi <andrea@betterlinux.com>
-Cc: Fenggaung Wu <fengguang.wu@intel.com>
-Cc: Jinliang Zheng <alexjlzheng@tencent.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250402181709.2386022-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250402181709.2386022-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com> # for s390
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: <x86@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/s390/include/asm/pgtable.h |    7 +------
+ mm/memory.c                     |    2 ++
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
---- a/mm/page-writeback.c~mm-fix-ratelimit_pages-update-error-in-dirty_ratio_handler
-+++ a/mm/page-writeback.c
-@@ -520,8 +520,8 @@ static int dirty_ratio_handler(const str
+--- a/arch/s390/include/asm/pgtable.h~mm-set-the-pte-dirty-if-the-folio-is-already-dirty
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1450,12 +1450,7 @@ static inline pte_t mk_pte_phys(unsigned
  
- 	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
- 	if (ret == 0 && write && vm_dirty_ratio != old_ratio) {
--		writeback_set_ratelimit();
- 		vm_dirty_bytes = 0;
-+		writeback_set_ratelimit();
- 	}
- 	return ret;
+ static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
+ {
+-	unsigned long physpage = page_to_phys(page);
+-	pte_t __pte = mk_pte_phys(physpage, pgprot);
+-
+-	if (pte_write(__pte) && PageDirty(page))
+-		__pte = pte_mkdirty(__pte);
+-	return __pte;
++	return mk_pte_phys(page_to_phys(page), pgprot);
  }
+ 
+ #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+--- a/mm/memory.c~mm-set-the-pte-dirty-if-the-folio-is-already-dirty
++++ a/mm/memory.c
+@@ -5245,6 +5245,8 @@ void set_pte_range(struct vm_fault *vmf,
+ 
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++	else if (pte_write(entry) && folio_test_dirty(folio))
++		entry = pte_mkdirty(entry);
+ 	if (unlikely(vmf_orig_pte_uffd_wp(vmf)))
+ 		entry = pte_mkuffd_wp(entry);
+ 	/* copy-on-write page */
 _
 
-Patches currently in -mm which might be from alexjlzheng@tencent.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
