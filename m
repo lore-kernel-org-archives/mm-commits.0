@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAA7D2EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D40601A9B40
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011387; cv=none; b=Jr7R69CARjSrqL4qZt6by0UwddP4/Zz4uaNdAWnrZ1RBAYURB2FRPBkt4EvdqoYDmpHfPhqSdq8TXORNW/G1GhQpnv4SUTYostlnBqQAb3DkBw6iecsama/ByU0kCfoADpaMZme1PcW6FwdW1zqh6kUQDfzMzxci0mDSk3t+ufg=
+	t=1747011388; cv=none; b=dotWkRSOSIDrZRdxSsQ2N8w31d/KSZr2iix2YlDQrq3L661eF3AddlHP+aP+kbdJzZGR/WRHrJxJyJ9UX35dHEVWo0MGzItrm2qHC8clb9xmv+kaFAcEgVKVDzt+bSSJrSOegpKv1TQiMPg9b0o6DEY4gX4cK4mZ/du2MAFKa5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011387; c=relaxed/simple;
-	bh=8P+4lw/h5atamUKB12bdhdnQ75WIcTVGCswExnfCRYc=;
-	h=Date:To:From:Subject:Message-Id; b=cs9V7Yyh2FOzx/WgNjFNFf02ruODKeHsDlIrewi776q8UK6LmE8F7/njFiNEwrcS5GHC6cqJA0+jS8c0da1ZTYwPoSwKD4d0XVLTPepCwOZ1pYUR/GjfOCc8IwZEHassDlE7cAsWbhLDc3cW7/oN0Xba3A5ZqYQGa4VpPilSVFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zI3jpw+m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011388; c=relaxed/simple;
+	bh=VJHozR+Vivpnv5Q69CGlS84QpQFnjajctRI9LsUuFK8=;
+	h=Date:To:From:Subject:Message-Id; b=c9ncNbTmbsqlWdbj0t7fpnJD+I3jPuD/NUsSc91dvhzD/A4ovRgHSdz4qdC17rNQq7hIhJ94Q/9vPCKQz23XoXQrzChZzF0ywHttlXyUKKXc/o9qXXOdHPvUgvrthhMGPPgnKGqjF3SYN9xItK0HpoH7UJ0T+h7cRybHo8rrFAU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yldw22kG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zI3jpw+m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20E48C4CEE4;
-	Mon, 12 May 2025 00:56:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yldw22kG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F46AC4CEE4;
+	Mon, 12 May 2025 00:56:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011387;
-	bh=8P+4lw/h5atamUKB12bdhdnQ75WIcTVGCswExnfCRYc=;
+	s=korg; t=1747011388;
+	bh=VJHozR+Vivpnv5Q69CGlS84QpQFnjajctRI9LsUuFK8=;
 	h=Date:To:From:Subject:From;
-	b=zI3jpw+m2Je5kERuxcwCgXzjwkeYqXAXK/q90tlPJlRLY6aEp7HWdmjYVxuY/bMJd
-	 lqOy401k20IxP861QriQ9WxTUMXo3HPFkTjAHPQJltaWttoDwIcUgzdYLn+Yb4BHty
-	 IdMw1JjcGvEOb+XClVD445ZuFhLi2E/s/S88Uw5Q=
-Date: Sun, 11 May 2025 17:56:26 -0700
+	b=yldw22kGddlYnmnHqO0v48uI0d/9pnIOPkA1AJ89Y+chyh6PbhV66LmkuP0hBLLIp
+	 Nr4tB+wkrMA8PShT9h5UsEyRztSAGdLpHB279kt+3BPz56lRajv2ymKvQvmn3CEC4T
+	 IUauvL9YiYWnotgX6i3JhAqiorflh3bDo06bjx3I=
+Date: Sun, 11 May 2025 17:56:27 -0700
 To: mm-commits@vger.kernel.org,si.yanteng@linux.dev,mail@florommel.de,kbingham@kernel.org,jan.kiszka@siemens.com,jackmanb@google.com,dzm91@hust.edu.cn,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,illia@yshyn.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-fix-kgdb-probing-on-single-core-systems.patch removed from -mm tree
-Message-Id: <20250512005627.20E48C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-update-documentation-for-lx_per_cpu.patch removed from -mm tree
+Message-Id: <20250512005628.4F46AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/gdb: fix kgdb probing on single-core systems
+     Subject: scripts/gdb: update documentation for lx_per_cpu
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-fix-kgdb-probing-on-single-core-systems.patch
+     scripts-gdb-update-documentation-for-lx_per_cpu.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Illia Ostapyshyn <illia@yshyn.com>
-Subject: scripts/gdb: fix kgdb probing on single-core systems
-Date: Sat, 3 May 2025 14:32:31 +0200
+Subject: scripts/gdb: update documentation for lx_per_cpu
+Date: Sat, 3 May 2025 14:32:32 +0200
 
-Patch series "scripts/gdb: Fixes related to lx_per_cpu()".
+Commit db08c53fdd542bb7f83b ("scripts/gdb: fix parameter handling in
+$lx_per_cpu") changed the parameter handling of lx_per_cpu to use GdbValue
+instead of parsing the variable name.  Update the documentation to reflect
+the new lx_per_cpu usage.  Update the hrtimer_bases example to use rb_tree
+instead of the timerqueue_head.next pointer removed in commit
+511885d7061eda3eb1fa ("lib/timerqueue: Rely on rbtree semantics for next
+timer").
 
-These patches (1) fix kgdb detection on systems featuring a single CPU and
-(2) update the documentation to reflect the current usage of lx_per_cpu()
-and update an outdated example of its usage.
-
-
-This patch (of 2):
-
-When requested the list of threads via qfThreadInfo, gdb_cmd_query in
-kernel/debug/gdbstub.c first returns "shadow" threads for CPUs followed by
-the actual tasks in the system.  Extended qThreadExtraInfo queries yield
-"shadowCPU%d" as the name for the CPU core threads.
-
-This behavior is used by get_gdbserver_type() to probe for KGDB by
-matching the name for the thread 2 against "shadowCPU".  This breaks down
-on single-core systems, where thread 2 is the first nonshadow thread. 
-Request the name for thread 1 instead.
-
-As GDB assigns thread IDs in the order of their appearance, it is safe to
-assume shadowCPU0 at ID 1 as long as CPU0 is not hotplugged.
-
-Before:
-
-(gdb) info threads
-  Id   Target Id                      Frame
-  1    Thread 4294967294 (shadowCPU0) kgdb_breakpoint ()
-* 2    Thread 1 (swapper/0)           kgdb_breakpoint ()
-  3    Thread 2 (kthreadd)            0x0000000000000000 in ?? ()
-  ...
-(gdb) p $lx_current().comm
-Sorry, obtaining the current CPU is not yet supported with this gdb server.
-
-After:
-
-(gdb) info threads
-  Id   Target Id                      Frame
-  1    Thread 4294967294 (shadowCPU0) kgdb_breakpoint ()
-* 2    Thread 1 (swapper/0)           kgdb_breakpoint ()
-  3    Thread 2 (kthreadd)            0x0000000000000000 in ?? ()
-  ...
-(gdb) p $lx_current().comm
-$1 = "swapper/0\000\000\000\000\000\000"
-
-Link: https://lkml.kernel.org/r/20250503123234.2407184-1-illia@yshyn.com
-Link: https://lkml.kernel.org/r/20250503123234.2407184-2-illia@yshyn.com
+Link: https://lkml.kernel.org/r/20250503123234.2407184-3-illia@yshyn.com
 Signed-off-by: Illia Ostapyshyn <illia@yshyn.com>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
@@ -106,20 +69,191 @@ Cc: Yanteng Si <si.yanteng@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/process/debugging/gdb-kernel-debugging.rst            |   34 ++++------
+ Documentation/translations/zh_CN/dev-tools/gdb-kernel-debugging.rst |   34 ++++------
+ Documentation/translations/zh_TW/dev-tools/gdb-kernel-debugging.rst |   34 ++++------
+ scripts/gdb/linux/cpus.py                                           |    4 -
+ 4 files changed, 47 insertions(+), 59 deletions(-)
 
---- a/scripts/gdb/linux/utils.py~scripts-gdb-fix-kgdb-probing-on-single-core-systems
-+++ a/scripts/gdb/linux/utils.py
-@@ -200,7 +200,7 @@ def get_gdbserver_type():
+--- a/Documentation/process/debugging/gdb-kernel-debugging.rst~scripts-gdb-update-documentation-for-lx_per_cpu
++++ a/Documentation/process/debugging/gdb-kernel-debugging.rst
+@@ -127,35 +127,31 @@ Examples of using the Linux-provided gdb
  
-     def probe_kgdb():
-         try:
--            thread_info = gdb.execute("info thread 2", to_string=True)
-+            thread_info = gdb.execute("info thread 1", to_string=True)
-             return "shadowCPU" in thread_info
-         except gdb.error:
-             return False
+ - Make use of the per-cpu function for the current or a specified CPU::
+ 
+-    (gdb) p $lx_per_cpu("runqueues").nr_running
++    (gdb) p $lx_per_cpu(runqueues).nr_running
+     $3 = 1
+-    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
++    (gdb) p $lx_per_cpu(runqueues, 2).nr_running
+     $4 = 0
+ 
+ - Dig into hrtimers using the container_of helper::
+ 
+-    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
+-    (gdb) p *$container_of($next, "struct hrtimer", "node")
++    (gdb) set $leftmost = $lx_per_cpu(hrtimer_bases).clock_base[0].active.rb_root.rb_leftmost
++    (gdb) p *$container_of($leftmost, "struct hrtimer", "node")
+     $5 = {
+       node = {
+         node = {
+-          __rb_parent_color = 18446612133355256072,
+-          rb_right = 0x0 <irq_stack_union>,
+-          rb_left = 0x0 <irq_stack_union>
++          __rb_parent_color = 18446612686384860673,
++          rb_right = 0xffff888231da8b00,
++          rb_left = 0x0
+         },
+-        expires = {
+-          tv64 = 1835268000000
+-        }
++        expires = 1228461000000
+       },
+-      _softexpires = {
+-        tv64 = 1835268000000
+-      },
+-      function = 0xffffffff81078232 <tick_sched_timer>,
+-      base = 0xffff88003fd0d6f0,
+-      state = 1,
+-      start_pid = 0,
+-      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
+-      start_comm = "swapper/2\000\000\000\000\000\000"
++      _softexpires = 1228461000000,
++      function = 0xffffffff8137ab20 <tick_nohz_handler>,
++      base = 0xffff888231d9b4c0,
++      state = 1 '\001',
++      is_rel = 0 '\000',
++      is_soft = 0 '\000',
++      is_hard = 1 '\001'
+     }
+ 
+ 
+--- a/Documentation/translations/zh_CN/dev-tools/gdb-kernel-debugging.rst~scripts-gdb-update-documentation-for-lx_per_cpu
++++ a/Documentation/translations/zh_CN/dev-tools/gdb-kernel-debugging.rst
+@@ -120,35 +120,31 @@ 使用Linux提供的gdb脚本的示例
+ 
+ - 对当前或指定的CPU使用per-cpu函数::
+ 
+-    (gdb) p $lx_per_cpu("runqueues").nr_running
++    (gdb) p $lx_per_cpu(runqueues).nr_running
+     $3 = 1
+-    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
++    (gdb) p $lx_per_cpu(runqueues, 2).nr_running
+     $4 = 0
+ 
+ - 使用container_of查看更多hrtimers信息::
+ 
+-    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
+-    (gdb) p *$container_of($next, "struct hrtimer", "node")
++    (gdb) set $leftmost = $lx_per_cpu(hrtimer_bases).clock_base[0].active.rb_root.rb_leftmost
++    (gdb) p *$container_of($leftmost, "struct hrtimer", "node")
+     $5 = {
+       node = {
+         node = {
+-          __rb_parent_color = 18446612133355256072,
+-          rb_right = 0x0 <irq_stack_union>,
+-          rb_left = 0x0 <irq_stack_union>
++          __rb_parent_color = 18446612686384860673,
++          rb_right = 0xffff888231da8b00,
++          rb_left = 0x0
+         },
+-        expires = {
+-          tv64 = 1835268000000
+-        }
++        expires = 1228461000000
+       },
+-      _softexpires = {
+-        tv64 = 1835268000000
+-      },
+-      function = 0xffffffff81078232 <tick_sched_timer>,
+-      base = 0xffff88003fd0d6f0,
+-      state = 1,
+-      start_pid = 0,
+-      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
+-      start_comm = "swapper/2\000\000\000\000\000\000"
++      _softexpires = 1228461000000,
++      function = 0xffffffff8137ab20 <tick_nohz_handler>,
++      base = 0xffff888231d9b4c0,
++      state = 1 '\001',
++      is_rel = 0 '\000',
++      is_soft = 0 '\000',
++      is_hard = 1 '\001'
+     }
+ 
+ 
+--- a/Documentation/translations/zh_TW/dev-tools/gdb-kernel-debugging.rst~scripts-gdb-update-documentation-for-lx_per_cpu
++++ a/Documentation/translations/zh_TW/dev-tools/gdb-kernel-debugging.rst
+@@ -116,35 +116,31 @@ 使用Linux提供的gdb腳本的示例
+ 
+ - 對當前或指定的CPU使用per-cpu函數::
+ 
+-    (gdb) p $lx_per_cpu("runqueues").nr_running
++    (gdb) p $lx_per_cpu(runqueues).nr_running
+     $3 = 1
+-    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
++    (gdb) p $lx_per_cpu(runqueues, 2).nr_running
+     $4 = 0
+ 
+ - 使用container_of查看更多hrtimers信息::
+ 
+-    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
+-    (gdb) p *$container_of($next, "struct hrtimer", "node")
++    (gdb) set $leftmost = $lx_per_cpu(hrtimer_bases).clock_base[0].active.rb_root.rb_leftmost
++    (gdb) p *$container_of($leftmost, "struct hrtimer", "node")
+     $5 = {
+       node = {
+         node = {
+-          __rb_parent_color = 18446612133355256072,
+-          rb_right = 0x0 <irq_stack_union>,
+-          rb_left = 0x0 <irq_stack_union>
++          __rb_parent_color = 18446612686384860673,
++          rb_right = 0xffff888231da8b00,
++          rb_left = 0x0
+         },
+-        expires = {
+-          tv64 = 1835268000000
+-        }
++        expires = 1228461000000
+       },
+-      _softexpires = {
+-        tv64 = 1835268000000
+-      },
+-      function = 0xffffffff81078232 <tick_sched_timer>,
+-      base = 0xffff88003fd0d6f0,
+-      state = 1,
+-      start_pid = 0,
+-      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
+-      start_comm = "swapper/2\000\000\000\000\000\000"
++      _softexpires = 1228461000000,
++      function = 0xffffffff8137ab20 <tick_nohz_handler>,
++      base = 0xffff888231d9b4c0,
++      state = 1 '\001',
++      is_rel = 0 '\000',
++      is_soft = 0 '\000',
++      is_hard = 1 '\001'
+     }
+ 
+ 
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-update-documentation-for-lx_per_cpu
++++ a/scripts/gdb/linux/cpus.py
+@@ -141,7 +141,7 @@ LxCpus()
+ class PerCpu(gdb.Function):
+     """Return per-cpu variable.
+ 
+-$lx_per_cpu("VAR"[, CPU]): Return the per-cpu variable called VAR for the
++$lx_per_cpu(VAR[, CPU]): Return the per-cpu variable called VAR for the
+ given CPU number. If CPU is omitted, the CPU of the current context is used.
+ Note that VAR has to be quoted as string."""
+ 
+@@ -158,7 +158,7 @@ PerCpu()
+ class PerCpuPtr(gdb.Function):
+     """Return per-cpu pointer.
+ 
+-$lx_per_cpu_ptr("VAR"[, CPU]): Return the per-cpu pointer called VAR for the
++$lx_per_cpu_ptr(VAR[, CPU]): Return the per-cpu pointer called VAR for the
+ given CPU number. If CPU is omitted, the CPU of the current context is used.
+ Note that VAR has to be quoted as string."""
+ 
 _
 
 Patches currently in -mm which might be from illia@yshyn.com are
