@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBEA3C2FB
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:52:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17325C2FB
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:52:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011127; cv=none; b=c6A2VjatdBj6XNsSGwUbnTflTeSVBKNo9sl5+VmN3Wq2p7GjwL0/AKv8e01WKAATCEMm6VdTJPhBGlFJHJTCL7IrV2fzOXBvEhqHhF8v7Dz9epKv8TU0jHzOF5oMeZ6MEzAGsOpkWkS0c/ln4cA041sfA39z+XB/oTrIx0Twwe0=
+	t=1747011128; cv=none; b=jGtQx/cRfbRgylUsdXlC2P0VcMwCoVYCrPVFaYnaesXIB+8EA1pZdiw0fA/sJLg8ioM/iXo6qrGpWWp9BLPTjCrMAwppzyzYl9edLiVGxzwgTIYL1ZnsJClIsyzIGvOGMOO9LmL2NiRVGMSO4JrMBRbQO12vId6Q2v/4mZBpQ8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011127; c=relaxed/simple;
-	bh=beJO3ig6Jv5LrkKarDaL5D02YLaILcEXytAGJpJLfXc=;
-	h=Date:To:From:Subject:Message-Id; b=gLTSnm3xCystw1Kj9kI2YBQ79s5JnJiNBDQncSbPCt7/iUmCYns6Hzfb5dxSynz7oX+KFxtHnBS3+JWQeZIbJWWOlXXQhzmN+2GLKCqtIG0NCWQb771CAYggzTvS+V5DMXGMQrddeA2Mvb2DzmT3OkPnF8tPDYmNWlZpvkVvuC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E5905ycu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011128; c=relaxed/simple;
+	bh=XwGdMyBRoYPYzxsr3hI1YOiRFydwy702L/AbFdDtvZ4=;
+	h=Date:To:From:Subject:Message-Id; b=kV57hFK9M42HU9y+piTlepsL/HafNHeFxo39eHqr9uknP4B25XCaezKGGuZ1ehbNrGBKpaJE/4VWAqoDjloM/nCY4U62bAAdOxfB5WbAhnmeZdwAWQsTbpyS8EBL4KAbcC6RVc20Efh644UUHCmScUaDBtJQfc8K8+nB86QB3LM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZV5QYvnV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E5905ycu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4B95C4CEE4;
-	Mon, 12 May 2025 00:52:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZV5QYvnV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1551C4CEE4;
+	Mon, 12 May 2025 00:52:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011126;
-	bh=beJO3ig6Jv5LrkKarDaL5D02YLaILcEXytAGJpJLfXc=;
+	s=korg; t=1747011128;
+	bh=XwGdMyBRoYPYzxsr3hI1YOiRFydwy702L/AbFdDtvZ4=;
 	h=Date:To:From:Subject:From;
-	b=E5905ycu7TlcdDx3miUbMAbYppif/BPqEwEBmtR6oC5eI8GzkBWytuBpoFTVAyODA
-	 DMdiy58Agh3dFOS2VLOJHGx04giE4MXiv0+DCNgcZxI0ZHZtKnFnVNKnZIbJE1I8An
-	 zv8M76xZrKzuMcGz2rNcLtzSHfQxMlEeKQMcZrT4=
-Date: Sun, 11 May 2025 17:52:06 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=ZV5QYvnVYNtgS65uJYdtocXj1obNIGqgvdqq6K6VLWwsy8mE2Nd4W3ys2w+ezWcC0
+	 oBdsj+NzSXuF3sVeEGXx//BHv8epjPO+WXKad3clZB4EropmBSCS2yFOmD3t6eHCwI
+	 bcEL03AxBfbfoLa//Cyq4hCs8Z2W/H6VOFj0uYJk=
+Date: Sun, 11 May 2025 17:52:07 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,muchun.song@linux.dev,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch removed from -mm tree
-Message-Id: <20250512005206.C4B95C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy.patch removed from -mm tree
+Message-Id: <20250512005207.E1551C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,172 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: remove the remaining test scripts for DAMON debugfs interface
+     Subject: mm, hugetlb: avoid passing a null nodemask when there is mbind policy
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
+     mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: selftests/damon: remove the remaining test scripts for DAMON debugfs interface
-Date: Fri, 11 Apr 2025 10:43:32 +0800
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm, hugetlb: avoid passing a null nodemask when there is mbind policy
+Date: Tue, 15 Apr 2025 14:15:03 +0200
 
-DAMON has dropped debugfs support; therefore, remove these unused scripts.
+Before trying to allocate a page, gather_surplus_pages() sets up a
+nodemask for the nodes we can allocate from, but instead of passing the
+nodemask down the road to the page allocator, it iterates over the nodes
+within that nodemask right there, meaning that the page allocator will
+receive a preferred_nid and a null nodemask.
 
-Link: https://lkml.kernel.org/r/20250411024332.1373861-1-enze.li@linux.dev
-Fixes: 5ec4333b1967 ("mm/damon: remove DAMON debugfs interface")
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+This is a problem when using a memory policy, because it might be that the
+page allocator ends up using a node as a fallback which is not represented
+in the policy.
+
+Avoid that by passing the nodemask directly to the page allocator, so it
+can filter out fallback nodes that are not part of the nodemask.
+
+Link: https://lkml.kernel.org/r/20250415121503.376811-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile           |    2 
- tools/testing/selftests/damon/_chk_dependency.sh |   52 ----------
- tools/testing/selftests/damon/_debugfs_common.sh |   64 -------------
- 3 files changed, 1 insertion(+), 117 deletions(-)
+ mm/hugetlb.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff --git a/tools/testing/selftests/damon/_chk_dependency.sh a/tools/testing/selftests/damon/_chk_dependency.sh
-deleted file mode 100644
---- a/tools/testing/selftests/damon/_chk_dependency.sh
-+++ /dev/null
-@@ -1,52 +0,0 @@
--#!/bin/bash
--# SPDX-License-Identifier: GPL-2.0
--
--# Kselftest framework requirement - SKIP code is 4.
--ksft_skip=4
--
--DBGFS=$(grep debugfs /proc/mounts --max-count 1 | awk '{print $2}')
--if [ "$DBGFS" = "" ]
--then
--	echo "debugfs not mounted"
--	exit $ksft_skip
--fi
--
--DBGFS+="/damon"
--
--if [ $EUID -ne 0 ];
--then
--	echo "Run as root"
--	exit $ksft_skip
--fi
--
--if [ ! -d "$DBGFS" ]
--then
--	echo "$DBGFS not found"
--	exit $ksft_skip
--fi
--
--if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
--then
--	monitor_on_file="monitor_on_DEPRECATED"
--else
--	monitor_on_file="monitor_on"
--fi
--
--for f in attrs target_ids "$monitor_on_file"
--do
--	if [ ! -f "$DBGFS/$f" ]
--	then
--		echo "$f not found"
--		exit 1
--	fi
--done
--
--permission_error="Operation not permitted"
--for f in attrs target_ids "$monitor_on_file"
--do
--	status=$( cat "$DBGFS/$f" 2>&1 )
--	if [ "${status#*$permission_error}" != "$status" ]; then
--		echo "Permission for reading $DBGFS/$f denied; maybe secureboot enabled?"
--		exit $ksft_skip
--	fi
--done
-diff --git a/tools/testing/selftests/damon/_debugfs_common.sh a/tools/testing/selftests/damon/_debugfs_common.sh
-deleted file mode 100644
---- a/tools/testing/selftests/damon/_debugfs_common.sh
-+++ /dev/null
-@@ -1,64 +0,0 @@
--#!/bin/bash
--# SPDX-License-Identifier: GPL-2.0
--
--test_write_result() {
--	file=$1
--	content=$2
--	orig_content=$3
--	expect_reason=$4
--	expected=$5
--
--	if [ "$expected" = "0" ]
--	then
--		echo "$content" > "$file"
--	else
--		echo "$content" > "$file" 2> /dev/null
--	fi
--	if [ $? -ne "$expected" ]
--	then
--		echo "writing $content to $file doesn't return $expected"
--		echo "expected because: $expect_reason"
--		echo "$orig_content" > "$file"
--		exit 1
--	fi
--}
--
--test_write_succ() {
--	test_write_result "$1" "$2" "$3" "$4" 0
--}
--
--test_write_fail() {
--	test_write_result "$1" "$2" "$3" "$4" 1
--}
--
--test_content() {
--	file=$1
--	orig_content=$2
--	expected=$3
--	expect_reason=$4
--
--	content=$(cat "$file")
--	if [ "$content" != "$expected" ]
--	then
--		echo "reading $file expected $expected but $content"
--		echo "expected because: $expect_reason"
--		echo "$orig_content" > "$file"
--		exit 1
--	fi
--}
--
--source ./_chk_dependency.sh
--
--damon_onoff="$DBGFS/monitor_on"
--if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
--then
--	damon_onoff="$DBGFS/monitor_on_DEPRECATED"
--else
--	damon_onoff="$DBGFS/monitor_on"
--fi
--
--if [ $(cat "$damon_onoff") = "on" ]
--then
--	echo "monitoring is on"
--	exit $ksft_skip
--fi
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -3,7 +3,7 @@
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy
++++ a/mm/hugetlb.c
+@@ -2419,7 +2419,6 @@ static int gather_surplus_pages(struct h
+ 	long i;
+ 	long needed, allocated;
+ 	bool alloc_ok = true;
+-	int node;
+ 	nodemask_t *mbind_nodemask, alloc_nodemask;
  
- TEST_GEN_FILES += access_memory access_memory_even
+ 	mbind_nodemask = policy_mbind_nodemask(htlb_alloc_mask(h));
+@@ -2443,21 +2442,12 @@ retry:
+ 	for (i = 0; i < needed; i++) {
+ 		folio = NULL;
  
--TEST_FILES = _chk_dependency.sh _damon_sysfs.py
-+TEST_FILES = _damon_sysfs.py
- 
- # functionality tests
- TEST_PROGS += sysfs.sh
+-		/* Prioritize current node */
+-		if (node_isset(numa_mem_id(), alloc_nodemask))
+-			folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
+-					numa_mem_id(), NULL);
+-
+-		if (!folio) {
+-			for_each_node_mask(node, alloc_nodemask) {
+-				if (node == numa_mem_id())
+-					continue;
+-				folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
+-						node, NULL);
+-				if (folio)
+-					break;
+-			}
+-		}
++		/*
++		 * It is okay to use NUMA_NO_NODE because we use numa_mem_id()
++		 * down the road to pick the current node if that is the case.
++		 */
++		folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
++						    NUMA_NO_NODE, &alloc_nodemask);
+ 		if (!folio) {
+ 			alloc_ok = false;
+ 			break;
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from osalvador@suse.de are
 
 
