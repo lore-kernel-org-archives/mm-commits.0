@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41AAA1E489
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:49:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A6E91E489
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:49:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747010981; cv=none; b=AG8cXzuloo8N2CX8jtAL5tx4tirjO4ERz65O8fIaXX+Cyq7Fs4AANa+pvngS6/BcOZCsOS7eVzibiYnbsdvE+zwpka2sugzt8DDFNWP3ZXc5JtdRktpT3FlhQxwevCf5SGxvFz0kVqp5aE+dL8l/Q6fzIPG7QTeDnjRdmBj1mt4=
+	t=1747010983; cv=none; b=c9XD+ThkECz3XKoMdBs6KGeHToDio/FncpxKaVKNhLejyV7rPNNQu/9QWjgontcH0iYKUlLtvB4lXMMLuCp3F7+BwJ02gIpQmd8pZmjltlFwoUwzox6cnY+TBSvtmq/xdRNrpj+YsoTn0I3+htLskLI4wsjBn/U0uNfYllSa43c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747010981; c=relaxed/simple;
-	bh=8A/a/kEQLq56R9jJJJZseXJ6A8z2fkUn/Hni1tMnUuc=;
-	h=Date:To:From:Subject:Message-Id; b=Brw9xIcoVSQfQcXcOB0ISEyaPHmOFiwH/sY8OuvRhwYXU1v5TlG19ylxVqXbs7Fx8KNbMtHqgeWdUmu3spZKQXsMHdY7KpxBCiXf5KXiHTNYDra+o6svjwd4xdeaRDzP+Bxkg+ZHWMFV4iWQi9r67WEwOLOKpM4YI8u6x9gSndU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fPUeTvvd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747010983; c=relaxed/simple;
+	bh=c9Mk0Y9p7elVGH5wOIPD9fHgL/ooUP0j1y686jXl+oI=;
+	h=Date:To:From:Subject:Message-Id; b=oZiwDTtdqNTGypp2/FhF7HCkgfZbHuDGQH7iPlgZ9VJkl7bx6qv6MhXP1gcOA5VPFJN+em2kuzaeCtmkqhztfUkWZXx9B5IN0Fg6hk++lmrJ15z2D4qoXz18zMiePwfqjrlhgCdHpK6zCbCP58DHzuso2SpXnd99YBrADDbiSDI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c8gSwWm9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fPUeTvvd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F67DC4CEED;
-	Mon, 12 May 2025 00:49:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c8gSwWm9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDC51C4CEE4;
+	Mon, 12 May 2025 00:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747010980;
-	bh=8A/a/kEQLq56R9jJJJZseXJ6A8z2fkUn/Hni1tMnUuc=;
+	s=korg; t=1747010983;
+	bh=c9Mk0Y9p7elVGH5wOIPD9fHgL/ooUP0j1y686jXl+oI=;
 	h=Date:To:From:Subject:From;
-	b=fPUeTvvdUbc3LY4gvpCo4Fkw9n8Llxrlb98Zi8eHvTK9lNrrCFw/h3xFuqcQ1S1Mz
-	 F+G74xylIwIWqIXXF00HJs5F+NHYe/oKGEPNd48Q+DYMacs+nGsPLb8wRSLx2oncTi
-	 jmEY6obFq1Pnj5QXcNY+D6F0E9ZXI2cd5AZVCeEM=
-Date: Sun, 11 May 2025 17:49:40 -0700
+	b=c8gSwWm9aAuVkqGrDM/D4Yb3FC65iH7XhCG3o3/F3AEEXeNxk9Qcybi680aGAjMDd
+	 vlVLP9IR/Ega6cia16jhX7FGMsHnvCoj9RLFPgGJJzcKUAdzKmzZeStgk6uRYAVl3v
+	 3IWflDShkYX/ORzlYM0tx3MRyrxEzCnvOB6+3fCM=
+Date: Sun, 11 May 2025 17:49:41 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,x86@kernel.org,richard@nod.at,muchun.song@linux.dev,johannes@sipsolutions.net,geert@linux-m68k.org,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,agordeev@linux.ibm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] um-remove-custom-definition-of-mk_pte.patch removed from -mm tree
-Message-Id: <20250512004940.9F67DC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-mk_pte-definition-unconditional.patch removed from -mm tree
+Message-Id: <20250512004942.DDC51C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: um: remove custom definition of mk_pte()
+     Subject: mm: make mk_pte() definition unconditional
 has been removed from the -mm tree.  Its filename was
-     um-remove-custom-definition-of-mk_pte.patch
+     mm-make-mk_pte-definition-unconditional.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: um: remove custom definition of mk_pte()
-Date: Wed, 2 Apr 2025 19:16:59 +0100
+Subject: mm: make mk_pte() definition unconditional
+Date: Wed, 2 Apr 2025 19:17:00 +0100
 
-Move the pfn_pte() definitions from the 2level and 4level files to the
-generic pgtable.h and delete the custom definition of mk_pte() so that we
-use the central definition.
+All architectures now use the common mk_pte() definition, so we can remove
+the condition.
 
-Link: https://lkml.kernel.org/r/20250402181709.2386022-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250402181709.2386022-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: <x86@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/pgtable-2level.h |    1 -
- arch/um/include/asm/pgtable-4level.h |    9 ---------
- arch/um/include/asm/pgtable.h        |   18 ++++++++----------
- 3 files changed, 8 insertions(+), 20 deletions(-)
+ include/linux/mm.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/arch/um/include/asm/pgtable-2level.h~um-remove-custom-definition-of-mk_pte
-+++ a/arch/um/include/asm/pgtable-2level.h
-@@ -37,7 +37,6 @@ static inline void pgd_mkuptodate(pgd_t
- #define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
- 
- #define pte_pfn(x) phys_to_pfn(pte_val(x))
--#define pfn_pte(pfn, prot) __pte(pfn_to_phys(pfn) | pgprot_val(prot))
- #define pfn_pmd(pfn, prot) __pmd(pfn_to_phys(pfn) | pgprot_val(prot))
- 
- #endif
---- a/arch/um/include/asm/pgtable-4level.h~um-remove-custom-definition-of-mk_pte
-+++ a/arch/um/include/asm/pgtable-4level.h
-@@ -102,15 +102,6 @@ static inline unsigned long pte_pfn(pte_
- 	return phys_to_pfn(pte_val(pte));
+--- a/include/linux/mm.h~mm-make-mk_pte-definition-unconditional
++++ a/include/linux/mm.h
+@@ -2004,14 +2004,12 @@ static inline struct folio *pfn_folio(un
+ 	return page_folio(pfn_to_page(pfn));
  }
  
--static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
--{
--	pte_t pte;
--	phys_t phys = pfn_to_phys(page_nr);
--
--	pte_set_val(pte, phys, pgprot);
--	return pte;
--}
--
- static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+-#ifndef mk_pte
+ #ifdef CONFIG_MMU
+ static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
  {
- 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
---- a/arch/um/include/asm/pgtable.h~um-remove-custom-definition-of-mk_pte
-+++ a/arch/um/include/asm/pgtable.h
-@@ -260,19 +260,17 @@ static inline int pte_same(pte_t pte_a,
- 	return !((pte_val(pte_a) ^ pte_val(pte_b)) & ~_PAGE_NEEDSYNC);
+ 	return pfn_pte(page_to_pfn(page), pgprot);
  }
+ #endif
+-#endif
  
--/*
-- * Conversion functions: convert a page and protection to a page entry,
-- * and a page entry and page directory to the page they refer to.
-- */
--
- #define __virt_to_page(virt) phys_to_page(__pa(virt))
- #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
- 
--#define mk_pte(page, pgprot) \
--	({ pte_t pte;					\
--							\
--	pte_set_val(pte, page_to_phys(page), (pgprot));	\
--	pte;})
-+static inline pte_t pfn_pte(unsigned long pfn, pgprot_t pgprot)
-+{
-+	pte_t pte;
-+
-+	pte_set_val(pte, pfn_to_phys(pfn), pgprot);
-+
-+	return pte;
-+}
- 
- static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ static inline bool folio_has_pincount(const struct folio *folio)
  {
 _
 
