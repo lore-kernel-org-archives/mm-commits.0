@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D0562EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B74352EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011366; cv=none; b=jpGakCi0Ya23mkYE7xIgkB9LUVriWi5UxeE/bMZWcggzKB988u1crKjExbOebLr8YusrpL9L6ayIsuqoJy2Efhe0rP6Kyz+W37UwXeGkf3jY7DgZN+S5cfuYSgjfrcU3p/hSJPX3f2/u6bQUXpQ+RfJRpi+qRtOG6E6OiL7suhQ=
+	t=1747011367; cv=none; b=EpDpRrrseKe8x2jh5ZpvqhNE+vYHiZtBxcuVlqniuuko8pz+12caR+NJ0LPCcKeByICzv973uwbFqE+2lmexjqbFzC+2lVPnjZusXbSfKpr/Gjbqx3Ybb4rfd5PofiQvmrGROkVrTAwemGpZbpmV7nIckM6is6DkK5xCm5KvJII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011366; c=relaxed/simple;
-	bh=VPH3qyrSvJ+QYI5JbEZ+0zBnsq7WVBStO5AJAKu7Lqk=;
-	h=Date:To:From:Subject:Message-Id; b=Wi3QrkmDcWaxZDG848EkDDz0sMKER3OT3XI6id43kjWXSEPw1PQ0t9QurOIN9OP9m4P+XCTQN+9ljuuIpyb89cX5PkTa5M+M30Fees5e1mSFCwfgXghk6W9ToX1uzpRL/WeY8uKi51g8kJrQHvSSHDPa3xyosFdGIhnL0LrPHls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SwGvNr/j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011367; c=relaxed/simple;
+	bh=CAyNHUEMtTtTosijvBTQHfSMkH3b5mddCAmA4mP85EE=;
+	h=Date:To:From:Subject:Message-Id; b=q9btMiXe8bdaAVqbQv/3uUyhKjoORkZOqd+pJXyw/L6EXS1fxlM3vYRSNgNS+6Wyjg9iGR3ANFtAMZ+Lnaz2xx5+jQUeQrtT2vGeSmFqmnKeMxGG7eLOPSTyR8qp75BxhAeegh0XJHfvNgn+q836BRMryuNaMH63MKQGRgUg2ok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ODHXfXS3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SwGvNr/j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58822C4CEE4;
-	Mon, 12 May 2025 00:56:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ODHXfXS3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C60DC4CEE4;
+	Mon, 12 May 2025 00:56:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011366;
-	bh=VPH3qyrSvJ+QYI5JbEZ+0zBnsq7WVBStO5AJAKu7Lqk=;
+	s=korg; t=1747011367;
+	bh=CAyNHUEMtTtTosijvBTQHfSMkH3b5mddCAmA4mP85EE=;
 	h=Date:To:From:Subject:From;
-	b=SwGvNr/j5bwWKtcfrOifNFUfxBggzNJcSDZTfy99rmvRFcl56afubYLvDtY+Ru5UL
-	 kYJdyQdu2kd5KxIIEArmPSaiS1C/MfIuoufEWMLwV9EboS3IVVbGzNCWzaz97fXxiy
-	 puTl5Wmc3x3HBVF9m58DwFpCpduB0eFHrcet9fJo=
-Date: Sun, 11 May 2025 17:56:05 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,corbet@lwn.net,axboe@kernel.dk,andriy.shevchenko@linux.intel.com,linux@treblig.org,akpm@linux-foundation.org
+	b=ODHXfXS3j4pUOGio+8AbS6kFT6+fhRmIfYtjAkZ4f2D2RkjsnVAnB7KkY2H8DMsZ0
+	 bBqabOjucBqxZI0Lw32n0gYc3utgh3/4/N2xlJevd7a/tmQQnmVdVCe8fvU2XhSzE1
+	 diV2tBHcXuKI2/+KEzXt2jF9S9qaCdzvXwFuMoXs=
+Date: Sun, 11 May 2025 17:56:07 -0700
+To: mm-commits@vger.kernel.org,samitolvanen@google.com,petr.pavlu@suse.com,nathan@kernel.org,mcgrof@kernel.org,da.gomez@samsung.com,herton@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] relay-remove-unused-relay_late_setup_files.patch removed from -mm tree
-Message-Id: <20250512005606.58822C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-test_kmod-do-not-hardcode-depend-on-any-filesystem.patch removed from -mm tree
+Message-Id: <20250512005607.8C60DC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,211 +35,211 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: relay: remove unused relay_late_setup_files
+     Subject: lib/test_kmod: do not hardcode/depend on any filesystem
 has been removed from the -mm tree.  Its filename was
-     relay-remove-unused-relay_late_setup_files.patch
+     lib-test_kmod-do-not-hardcode-depend-on-any-filesystem.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: relay: remove unused relay_late_setup_files
-Date: Sat, 19 Apr 2025 00:49:32 +0100
+From: "Herton R. Krzesinski" <herton@redhat.com>
+Subject: lib/test_kmod: do not hardcode/depend on any filesystem
+Date: Fri, 18 Apr 2025 13:50:47 -0300
 
-The last use of relay_late_setup_files() was removed in 2018 by commit
-2b47733045aa ("drm/i915/guc: Merge log relay file and channel creation")
+Right now test_kmod has hardcoded dependencies on btrfs/xfs.  That is not
+optimal since you end up needing to select/build them, but it is not
+really required since other fs could be selected for the testing.  Also,
+we can't change the default/driver module used for testing on
+initialization.
 
-Remove it and the helper it used.
+Thus make it more generic: introduce two module parameters (start_driver
+and start_test_fs), which allow to select which modules/fs to use for the
+testing on test_kmod initialization.  Then it's up to the user to select
+which modules/fs to use for testing based on his config.  However, keep
+test_module as required default.
 
-relay_late_setup_files() was used for eventually registering 'buffer only'
-channels.  With it gone, delete the docs that explain how to do that. 
-Which suggests it should be possible to lose the 'has_base_filename'
-flags.
+This way, config/modules becomes selectable as when the testing is done
+from selftests (userspace).
 
-(Are there any other uses??)
+While at it, also change trigger_config_run_type, since at module
+initialization we already set the defaults at __kmod_config_init and
+should not need to do it again in test_kmod_init(), thus we can avoid to
+again set test_driver/test_fs.
 
-Link: https://lkml.kernel.org/r/20250418234932.490863-1-linux@treblig.org
-Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20250418165047.702487-1-herton@redhat.com
+Signed-off-by: Herton R. Krzesinski <herton@redhat.com>
+Reviewed-by: Luis Chambelrain <mcgrof@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/relay.rst |   10 --
- include/linux/relay.h               |    3 
- kernel/relay.c                      |  111 --------------------------
- 3 files changed, 1 insertion(+), 123 deletions(-)
+ lib/Kconfig.debug                   |    6 --
+ lib/test_kmod.c                     |   64 +++++++++++++-------------
+ tools/testing/selftests/kmod/config |    5 --
+ 3 files changed, 34 insertions(+), 41 deletions(-)
 
---- a/Documentation/filesystems/relay.rst~relay-remove-unused-relay_late_setup_files
-+++ a/Documentation/filesystems/relay.rst
-@@ -301,16 +301,6 @@ user-defined data with a channel, and is
- (including in create_buf_file()) via chan->private_data or
- buf->chan->private_data.
+--- a/lib/Kconfig.debug~lib-test_kmod-do-not-hardcode-depend-on-any-filesystem
++++ a/lib/Kconfig.debug
+@@ -2983,13 +2983,7 @@ config TEST_DYNAMIC_DEBUG
+ config TEST_KMOD
+ 	tristate "kmod stress tester"
+ 	depends on m
+-	depends on NETDEVICES && NET_CORE && INET # for TUN
+-	depends on BLOCK
+-	depends on PAGE_SIZE_LESS_THAN_256KB # for BTRFS
+ 	select TEST_LKM
+-	select XFS_FS
+-	select TUN
+-	select BTRFS_FS
+ 	help
+ 	  Test the kernel's module loading mechanism: kmod. kmod implements
+ 	  support to load modules using the Linux kernel's usermode helper.
+--- a/lib/test_kmod.c~lib-test_kmod-do-not-hardcode-depend-on-any-filesystem
++++ a/lib/test_kmod.c
+@@ -28,14 +28,20 @@
  
--Buffer-only channels
----------------------
--
--These channels have no files associated and can be created with
--relay_open(NULL, NULL, ...). Such channels are useful in scenarios such
--as when doing early tracing in the kernel, before the VFS is up. In these
--cases, one may open a buffer-only channel and then call
--relay_late_setup_files() when the kernel is ready to handle files,
--to expose the buffered data to the userspace.
--
- Channel 'modes'
- ---------------
+ #define TEST_START_NUM_THREADS	50
+ #define TEST_START_DRIVER	"test_module"
+-#define TEST_START_TEST_FS	"xfs"
+ #define TEST_START_TEST_CASE	TEST_KMOD_DRIVER
  
---- a/include/linux/relay.h~relay-remove-unused-relay_late_setup_files
-+++ a/include/linux/relay.h
-@@ -159,9 +159,6 @@ struct rchan *relay_open(const char *bas
- 			 size_t n_subbufs,
- 			 const struct rchan_callbacks *cb,
- 			 void *private_data);
--extern int relay_late_setup_files(struct rchan *chan,
--				  const char *base_filename,
--				  struct dentry *parent);
- extern void relay_close(struct rchan *chan);
- extern void relay_flush(struct rchan *chan);
- extern void relay_subbufs_consumed(struct rchan *chan,
---- a/kernel/relay.c~relay-remove-unused-relay_late_setup_files
-+++ a/kernel/relay.c
-@@ -452,7 +452,7 @@ int relay_prepare_cpu(unsigned int cpu)
+-
+ static bool force_init_test = false;
+-module_param(force_init_test, bool_enable_only, 0644);
++module_param(force_init_test, bool_enable_only, 0444);
+ MODULE_PARM_DESC(force_init_test,
+ 		 "Force kicking a test immediately after driver loads");
++static char *start_driver;
++module_param(start_driver, charp, 0444);
++MODULE_PARM_DESC(start_driver,
++		 "Module/driver to use for the testing after driver loads");
++static char *start_test_fs;
++module_param(start_test_fs, charp, 0444);
++MODULE_PARM_DESC(start_test_fs,
++		 "File system to use for the testing after driver loads");
  
- /**
-  *	relay_open - create a new relay channel
-- *	@base_filename: base name of files to create, %NULL for buffering only
-+ *	@base_filename: base name of files to create
-  *	@parent: dentry of parent directory, %NULL for root directory or buffer
-  *	@subbuf_size: size of sub-buffers
-  *	@n_subbufs: number of sub-buffers
-@@ -465,10 +465,6 @@ int relay_prepare_cpu(unsigned int cpu)
-  *	attributes specified.  The created channel buffer files
-  *	will be named base_filename0...base_filenameN-1.  File
-  *	permissions will be %S_IRUSR.
-- *
-- *	If opening a buffer (@parent = NULL) that you later wish to register
-- *	in a filesystem, call relay_late_setup_files() once the @parent dentry
-- *	is available.
-  */
- struct rchan *relay_open(const char *base_filename,
- 			 struct dentry *parent,
-@@ -540,111 +536,6 @@ struct rchan_percpu_buf_dispatcher {
- 	struct dentry *dentry;
- };
+ /*
+  * For device allocation / registration
+@@ -508,6 +514,11 @@ static int __trigger_config_run(struct k
+ 	case TEST_KMOD_DRIVER:
+ 		return run_test_driver(test_dev);
+ 	case TEST_KMOD_FS_TYPE:
++		if (!config->test_fs) {
++			dev_warn(test_dev->dev,
++				 "No fs type specified, can't run the test\n");
++			return -EINVAL;
++		}
+ 		return run_test_fs_type(test_dev);
+ 	default:
+ 		dev_warn(test_dev->dev,
+@@ -721,26 +732,20 @@ static ssize_t config_test_fs_show(struc
+ static DEVICE_ATTR_RW(config_test_fs);
  
--/* Called in atomic context. */
--static void __relay_set_buf_dentry(void *info)
--{
--	struct rchan_percpu_buf_dispatcher *p = info;
--
--	relay_set_buf_dentry(p->buf, p->dentry);
--}
--
--/**
-- *	relay_late_setup_files - triggers file creation
-- *	@chan: channel to operate on
-- *	@base_filename: base name of files to create
-- *	@parent: dentry of parent directory, %NULL for root directory
-- *
-- *	Returns 0 if successful, non-zero otherwise.
-- *
-- *	Use to setup files for a previously buffer-only channel created
-- *	by relay_open() with a NULL parent dentry.
-- *
-- *	For example, this is useful for perfomring early tracing in kernel,
-- *	before VFS is up and then exposing the early results once the dentry
-- *	is available.
-- */
--int relay_late_setup_files(struct rchan *chan,
--			   const char *base_filename,
--			   struct dentry *parent)
--{
--	int err = 0;
--	unsigned int i, curr_cpu;
--	unsigned long flags;
--	struct dentry *dentry;
--	struct rchan_buf *buf;
--	struct rchan_percpu_buf_dispatcher disp;
--
--	if (!chan || !base_filename)
--		return -EINVAL;
--
--	strscpy(chan->base_filename, base_filename, NAME_MAX);
--
--	mutex_lock(&relay_channels_mutex);
--	/* Is chan already set up? */
--	if (unlikely(chan->has_base_filename)) {
--		mutex_unlock(&relay_channels_mutex);
--		return -EEXIST;
--	}
--	chan->has_base_filename = 1;
--	chan->parent = parent;
--
--	if (chan->is_global) {
--		err = -EINVAL;
--		buf = *per_cpu_ptr(chan->buf, 0);
--		if (!WARN_ON_ONCE(!buf)) {
--			dentry = relay_create_buf_file(chan, buf, 0);
--			if (dentry && !WARN_ON_ONCE(!chan->is_global)) {
--				relay_set_buf_dentry(buf, dentry);
--				err = 0;
--			}
--		}
--		mutex_unlock(&relay_channels_mutex);
--		return err;
+ static int trigger_config_run_type(struct kmod_test_device *test_dev,
+-				   enum kmod_test_case test_case,
+-				   const char *test_str)
++				   enum kmod_test_case test_case)
+ {
+-	int copied = 0;
+ 	struct test_config *config = &test_dev->config;
+ 
+ 	mutex_lock(&test_dev->config_mutex);
+ 
+ 	switch (test_case) {
+ 	case TEST_KMOD_DRIVER:
+-		kfree_const(config->test_driver);
+-		config->test_driver = NULL;
+-		copied = config_copy_test_driver_name(config, test_str,
+-						      strlen(test_str));
+ 		break;
+ 	case TEST_KMOD_FS_TYPE:
+-		kfree_const(config->test_fs);
+-		config->test_fs = NULL;
+-		copied = config_copy_test_fs(config, test_str,
+-					     strlen(test_str));
++		if (!config->test_fs) {
++			mutex_unlock(&test_dev->config_mutex);
++			return 0;
++		}
+ 		break;
+ 	default:
+ 		mutex_unlock(&test_dev->config_mutex);
+@@ -751,11 +756,6 @@ static int trigger_config_run_type(struc
+ 
+ 	mutex_unlock(&test_dev->config_mutex);
+ 
+-	if (copied <= 0 || copied != strlen(test_str)) {
+-		test_dev->test_is_oom = true;
+-		return -ENOMEM;
 -	}
 -
--	curr_cpu = get_cpu();
--	/*
--	 * The CPU hotplug notifier ran before us and created buffers with
--	 * no files associated. So it's safe to call relay_setup_buf_file()
--	 * on all currently online CPUs.
--	 */
--	for_each_online_cpu(i) {
--		buf = *per_cpu_ptr(chan->buf, i);
--		if (unlikely(!buf)) {
--			WARN_ONCE(1, KERN_ERR "CPU has no buffer!\n");
--			err = -EINVAL;
--			break;
--		}
+ 	test_dev->test_is_oom = false;
+ 
+ 	return trigger_config_run(test_dev);
+@@ -800,19 +800,24 @@ static unsigned int kmod_init_test_threa
+ static int __kmod_config_init(struct kmod_test_device *test_dev)
+ {
+ 	struct test_config *config = &test_dev->config;
++	const char *test_start_driver = start_driver ? start_driver :
++						       TEST_START_DRIVER;
+ 	int ret = -ENOMEM, copied;
+ 
+ 	__kmod_config_free(config);
+ 
+-	copied = config_copy_test_driver_name(config, TEST_START_DRIVER,
+-					      strlen(TEST_START_DRIVER));
+-	if (copied != strlen(TEST_START_DRIVER))
++	copied = config_copy_test_driver_name(config, test_start_driver,
++					      strlen(test_start_driver));
++	if (copied != strlen(test_start_driver))
+ 		goto err_out;
+ 
+-	copied = config_copy_test_fs(config, TEST_START_TEST_FS,
+-				     strlen(TEST_START_TEST_FS));
+-	if (copied != strlen(TEST_START_TEST_FS))
+-		goto err_out;
++
++	if (start_test_fs) {
++		copied = config_copy_test_fs(config, start_test_fs,
++					     strlen(start_test_fs));
++		if (copied != strlen(start_test_fs))
++			goto err_out;
++	}
+ 
+ 	config->num_threads = kmod_init_test_thread_limit();
+ 	config->test_result = 0;
+@@ -1178,12 +1183,11 @@ static int __init test_kmod_init(void)
+ 	 * lowering the init level for more fun.
+ 	 */
+ 	if (force_init_test) {
+-		ret = trigger_config_run_type(test_dev,
+-					      TEST_KMOD_DRIVER, "tun");
++		ret = trigger_config_run_type(test_dev, TEST_KMOD_DRIVER);
+ 		if (WARN_ON(ret))
+ 			return ret;
+-		ret = trigger_config_run_type(test_dev,
+-					      TEST_KMOD_FS_TYPE, "btrfs");
++
++		ret = trigger_config_run_type(test_dev, TEST_KMOD_FS_TYPE);
+ 		if (WARN_ON(ret))
+ 			return ret;
+ 	}
+--- a/tools/testing/selftests/kmod/config~lib-test_kmod-do-not-hardcode-depend-on-any-filesystem
++++ a/tools/testing/selftests/kmod/config
+@@ -1,7 +1,2 @@
+ CONFIG_TEST_KMOD=m
+ CONFIG_TEST_LKM=m
+-CONFIG_XFS_FS=m
 -
--		dentry = relay_create_buf_file(chan, buf, i);
--		if (unlikely(!dentry)) {
--			err = -EINVAL;
--			break;
--		}
--
--		if (curr_cpu == i) {
--			local_irq_save(flags);
--			relay_set_buf_dentry(buf, dentry);
--			local_irq_restore(flags);
--		} else {
--			disp.buf = buf;
--			disp.dentry = dentry;
--			smp_mb();
--			/* relay_channels_mutex must be held, so wait. */
--			err = smp_call_function_single(i,
--						       __relay_set_buf_dentry,
--						       &disp, 1);
--		}
--		if (unlikely(err))
--			break;
--	}
--	put_cpu();
--	mutex_unlock(&relay_channels_mutex);
--
--	return err;
--}
--EXPORT_SYMBOL_GPL(relay_late_setup_files);
--
- /**
-  *	relay_switch_subbuf - switch to a new sub-buffer
-  *	@buf: channel buffer
+-# For the module parameter force_init_test is used
+-CONFIG_TUN=m
+-CONFIG_BTRFS_FS=m
 _
 
-Patches currently in -mm which might be from linux@treblig.org are
+Patches currently in -mm which might be from herton@redhat.com are
 
 
