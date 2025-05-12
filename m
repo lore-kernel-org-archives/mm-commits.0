@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B94C1A08CA
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:52:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 781561A08CA
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:52:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011143; cv=none; b=Tlb6IGZpSUIh0ckiv4D1Ya39A6JMqoL0iDlzoYOKxyHe8UCV/ZC3WnOlopP2i7Cmx2uBlW5UbbryUWBFGp5JAK55ya9KOlWuVVGkrrygYKOIqkgARW4koendjkOJVsNNwxgHH6Kze8830uv7FfYZKHFGRMBo6VsmplVbTnL/Ve0=
+	t=1747011144; cv=none; b=NTQnUBdj1cBhk5Cd37wu3DrHvwCiqNjC+I4KSyf1xVSGKRhbzhh6dwgftxyPwVSRWHLj8HluzqFE6E/r80xbqVTtmsGYwfIXPTsypUBeB7epfNqhVhxRg38dYSozW2gBLevZEZajhtDpMbYm637D5AS1YrJXmK9CHjNLcPxw/W8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011143; c=relaxed/simple;
-	bh=DOo7VCJBnXNecxt3jIpaiv+J/xusi/j8vGGzxGFIGek=;
-	h=Date:To:From:Subject:Message-Id; b=juJvzHYb/mHyienghGkb4SFkam5YsH+FTZ/I1A4DOVxy5qIGZfBkf+Vw/jiUietSwi7lZJ/+cYK3R3ZAsCNqdp15pmwS2/yrtedZm0Ze5Xgl0MP2r9VcsFQ0cULXCpWV1d1QKQOOl79ekkPBAYidbYf0OXUNBkYCREfZ9SoGkfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ghEYHsIS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011144; c=relaxed/simple;
+	bh=bZkl1CVmw9IGLcEIdUzBTTG1iugq6hnjBXifa9iRUtE=;
+	h=Date:To:From:Subject:Message-Id; b=tBdPJ/dfVeW1RZMzODBZHXYPZXUsiMfkTzOuZOPGtdOJaO3tLnerLrSv5WyiUXNBV4NCOqiN6c1SPZ15CMOV6fMQKmE6MievP8NlYEfllMdN3yzphLkZO1dDnvtpLFY1R6UcEFOqL4J8OYu0P/QLdQcZHeQq9UeQQ16toa1Cs6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z51RXw7G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ghEYHsIS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F2EC4CEE4;
-	Mon, 12 May 2025 00:52:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z51RXw7G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F4F9C4CEE4;
+	Mon, 12 May 2025 00:52:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011143;
-	bh=DOo7VCJBnXNecxt3jIpaiv+J/xusi/j8vGGzxGFIGek=;
+	s=korg; t=1747011144;
+	bh=bZkl1CVmw9IGLcEIdUzBTTG1iugq6hnjBXifa9iRUtE=;
 	h=Date:To:From:Subject:From;
-	b=ghEYHsISgWuamIC1EMEN4z9B58m1XXGJ15n/CKWvT6g6/i0+IJxXtRT8cSaho1MUt
-	 VQ1J/X3Q8vxNKXyL2qT5Y6zrijlhbLJWNnoRqsa6H283gtLRzz+Xf+Bmj625jRsUHb
-	 l4FVbBhPPLV9X68jthH8RsCy+i+cVW/02bQfW2YQ=
-Date: Sun, 11 May 2025 17:52:22 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,kawasin@google.com,corbet@lwn.net,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=Z51RXw7GrK1p9bM89WvGD/99qdWBHqhbSRzsOuVTgKlu7ZIshJKQXSmX9QWlb/HWz
+	 8WtZ/ZQa7Pc9yPoQCNYn32txd3mD8jukLC3Q7o8i0ZEJfr46pNoZztUZCDh1lkNf0M
+	 M1nNzfOXZvENah7ApUEMxYNRpZfybPwUN31Ihvb8=
+Date: Sun, 11 May 2025 17:52:23 -0700
+To: mm-commits@vger.kernel.org,mjguzik@gmail.com,hch@infradead.org,bhe@redhat.com,ahuang12@lenovo.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-zram-update-idle-pages-tracking-documentation.patch removed from -mm tree
-Message-Id: <20250512005223.30F2EC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] lib-test_vmallocc-replace-rwsem-to-srcu-for-setup.patch removed from -mm tree
+Message-Id: <20250512005224.4F4F9C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,124 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation: zram: update IDLE pages tracking documentation
+     Subject: lib/test_vmalloc.c: replace RWSEM to SRCU for setup
 has been removed from the -mm tree.  Its filename was
-     documentation-zram-update-idle-pages-tracking-documentation.patch
+     lib-test_vmallocc-replace-rwsem-to-srcu-for-setup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Documentation: zram: update IDLE pages tracking documentation
-Date: Wed, 16 Apr 2025 13:27:59 +0900
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: lib/test_vmalloc.c: replace RWSEM to SRCU for setup
+Date: Thu, 17 Apr 2025 18:12:13 +0200
 
-Move IDLE pages tracking into a separate chapter because there are
-multiple features that use (or depend on) it either in built-in variant
-("mark all") or in extended variant (ac-time tracking).
+The test has the initialization step during which threads are created.  To
+prevent the workers from starting prematurely a write lock was previously
+used by the main setup thread, while each worker would block on a read
+lock.
 
-In addition, recompression doesn't require memory tracking to be enabled
-in order to be able to perform idle recompression.
+Replace this RWSEM based synchronization with a simpler SRCU based
+approach.  Which does two basic steps:
 
-Link: https://lkml.kernel.org/r/20250416042833.3858827-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Shin Kawamura <kawasin@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Minchan Kim <minchan@kernel.org>
+- Main thread wraps the setup phase in an SRCU read-side critical
+  section.  Pair of srcu_read_lock()/srcu_read_unlock().
+- Each worker calls synchronize_srcu() on entry, ensuring it waits for
+  the initialization phase to be completed.
+
+This patch eliminates the need for down_read()/up_read() and
+down_write()/up_write() pairs thus simplifying the logic and improving
+clarity.
+
+[urezki@gmail.com: fix compile error with CONFIG_TINY_RCU]
+  Link: https://lkml.kernel.org/r/20250420142029.103169-1-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20250417161216.88318-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Adrian Huang <ahuang12@lenovo.com>
+Tested-by: Adrian Huang <ahuang12@lenovo.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christop Hellwig <hch@infradead.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   41 +++++++++---------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ lib/test_vmalloc.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-update-idle-pages-tracking-documentation
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -317,6 +317,26 @@ a single line of text and contains the f
- Optional Feature
- ================
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-replace-rwsem-to-srcu-for-setup
++++ a/lib/test_vmalloc.c
+@@ -13,9 +13,9 @@
+ #include <linux/moduleparam.h>
+ #include <linux/completion.h>
+ #include <linux/delay.h>
+-#include <linux/rwsem.h>
+ #include <linux/mm.h>
+ #include <linux/rcupdate.h>
++#include <linux/srcu.h>
+ #include <linux/slab.h>
  
-+IDLE pages tracking
-+-------------------
-+
-+zram has built-in support for idle pages tracking (that is, allocated but
-+not used pages). This feature is useful for e.g. zram writeback and
-+recompression. In order to mark pages as idle, execute the following command::
-+
-+	echo all > /sys/block/zramX/idle
-+
-+This will mark all allocated zram pages as idle. The idle mark will be
-+removed only when the page (block) is accessed (e.g. overwritten or freed).
-+Additionally, when CONFIG_ZRAM_TRACK_ENTRY_ACTIME is enabled, pages can be
-+marked as idle based on how many seconds have passed since the last access to
-+a particular zram page::
-+
-+	echo 86400 > /sys/block/zramX/idle
-+
-+In this example, all pages which haven't been accessed in more than 86400
-+seconds (one day) will be marked idle.
-+
- writeback
- ---------
+ #define __param(type, name, init, msg)		\
+@@ -58,10 +58,9 @@ __param(int, run_test_mask, INT_MAX,
+ );
  
-@@ -331,24 +351,7 @@ If admin wants to use incompressible pag
+ /*
+- * Read write semaphore for synchronization of setup
+- * phase that is done in main thread and workers.
++ * This is for synchronization of setup phase.
+  */
+-static DECLARE_RWSEM(prepare_for_test_rwsem);
++DEFINE_STATIC_SRCU(prepare_for_test_srcu);
  
- 	echo huge > /sys/block/zramX/writeback
+ /*
+  * Completion tracking for worker threads.
+@@ -458,7 +457,7 @@ static int test_func(void *private)
+ 	/*
+ 	 * Block until initialization is done.
+ 	 */
+-	down_read(&prepare_for_test_rwsem);
++	synchronize_srcu(&prepare_for_test_srcu);
  
--To use idle page writeback, first, user need to declare zram pages
--as idle::
+ 	t->start = get_cycles();
+ 	for (i = 0; i < ARRAY_SIZE(test_case_array); i++) {
+@@ -487,8 +486,6 @@ static int test_func(void *private)
+ 		t->data[index].time = delta;
+ 	}
+ 	t->stop = get_cycles();
 -
--	echo all > /sys/block/zramX/idle
--
--From now on, any pages on zram are idle pages. The idle mark
--will be removed until someone requests access of the block.
--IOW, unless there is access request, those pages are still idle pages.
--Additionally, when CONFIG_ZRAM_TRACK_ENTRY_ACTIME is enabled pages can be
--marked as idle based on how long (in seconds) it's been since they were
--last accessed::
--
--        echo 86400 > /sys/block/zramX/idle
--
--In this example all pages which haven't been accessed in more than 86400
--seconds (one day) will be marked idle.
--
--Admin can request writeback of those idle pages at right timing via::
-+Admin can request writeback of idle pages at right timing via::
+-	up_read(&prepare_for_test_rwsem);
+ 	test_report_one_done();
  
- 	echo idle > /sys/block/zramX/writeback
+ 	/*
+@@ -526,7 +523,7 @@ init_test_configuration(void)
  
-@@ -499,8 +502,6 @@ attempt to recompress:::
+ static void do_concurrent_test(void)
+ {
+-	int i, ret;
++	int i, ret, idx;
  
- 	echo "type=huge_idle max_pages=42" > /sys/block/zramX/recompress
+ 	/*
+ 	 * Set some basic configurations plus sanity check.
+@@ -538,7 +535,7 @@ static void do_concurrent_test(void)
+ 	/*
+ 	 * Put on hold all workers.
+ 	 */
+-	down_write(&prepare_for_test_rwsem);
++	idx = srcu_read_lock(&prepare_for_test_srcu);
  
--Recompression of idle pages requires memory tracking.
--
- During re-compression for every page, that matches re-compression criteria,
- ZRAM iterates the list of registered alternative compression algorithms in
- order of their priorities. ZRAM stops either when re-compression was
+ 	for (i = 0; i < nr_threads; i++) {
+ 		struct test_driver *t = &tdriver[i];
+@@ -555,7 +552,7 @@ static void do_concurrent_test(void)
+ 	/*
+ 	 * Now let the workers do their job.
+ 	 */
+-	up_write(&prepare_for_test_rwsem);
++	srcu_read_unlock(&prepare_for_test_srcu, idx);
+ 
+ 	/*
+ 	 * Sleep quiet until all workers are done with 1 second
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from urezki@gmail.com are
 
+maintainers-add-myself-as-vmalloc-co-maintainer.patch
 
