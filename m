@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1061614830F
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE7BC14830F
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011000; cv=none; b=m+Fqh1ARlAJ4fzKIOyt1fvPBRnpm0Uz4pcAFhjYKSKe4PGe6h55aeuqJZ/Rqs7f4T56xy5r3OHME1MO8YxwgFlCCil/zIKiHX6RHU/S5+xvR9nCCxkIQTXNmSmnwbjWX43vyhQQmBe0OPRatdL5DgMPLLTB7ZrkM+1M96tfw1Wk=
+	t=1747011001; cv=none; b=AgCMJH6lEdFyk//u87K83MtEcpTD7dt+S+gceBQM2BRV4ocfGqDnKG+iaj7jA1mEXDJpHZzBlW8jeRudZAxjKTCgxOVKPQu/IlB0F0Ze+n9GB0EKEH7le/53lM3awHgDuLa22t8cl4oOOhZw2eZB9nYiSmgmz1WHwC5cwJz+P0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011000; c=relaxed/simple;
-	bh=VFF+Pe8OB4U49pO5XgzioP7Yi3HVgu/hFX0ACo7TQ8o=;
-	h=Date:To:From:Subject:Message-Id; b=Hm979ws0zmiamCT2Od52sCSxV7a6kN+lRzdkaWgmsA977E3fQUC5aryVYFDxF1p/lvaIdxDPHvW6vuPHvtLNzwVe6FwYt2SCUGTQn2wDhAk4zyoXFezQehetuOgaVbtoYRewo4LsKGSG2arEz2bZmRm2NoRzG9DmXm39IYlm8yA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nmuQWUXy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011001; c=relaxed/simple;
+	bh=Clh91WekQCAfAoy1ij88Y9LZu5XCLK1lqOOWPxZ1BhQ=;
+	h=Date:To:From:Subject:Message-Id; b=c9lGwTn52+m858WFRqljtbGjQLEUuP8W0w/jd7AcdQARrbnRmAva08n9k7Ix4QpzXSVZh4/pDeg/yQ1XrJQjmR8RvvQ8G0dYYR34PIpS7LG+VQp6PPiZ9fnERGL4Ac9kGj5fh7FsnRE0B6OVdJ2mxlomA/ZT5N1yJGTOCVnQfH0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JltEXZU5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nmuQWUXy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4BADC4CEE4;
-	Mon, 12 May 2025 00:49:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JltEXZU5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29DAEC4CEE4;
+	Mon, 12 May 2025 00:50:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747010999;
-	bh=VFF+Pe8OB4U49pO5XgzioP7Yi3HVgu/hFX0ACo7TQ8o=;
+	s=korg; t=1747011001;
+	bh=Clh91WekQCAfAoy1ij88Y9LZu5XCLK1lqOOWPxZ1BhQ=;
 	h=Date:To:From:Subject:From;
-	b=nmuQWUXyMOPkvztNO4ajiokcMFU/kkyeKiIvjJ6UHWnQwfYamFFU+MMWY7xOYQAYk
-	 C6bpvtFly6I/1SFqHR8xpcde5xH6K8yqfMe2yZMomhTo7kHrhD01EqnQw6pcQkS8wO
-	 JdfKX9aPM3yudS8Piq35Mx8u17pb1mSjXlLy1tyY=
-Date: Sun, 11 May 2025 17:49:59 -0700
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ying.huang@linux.alibaba.com,sj@kernel.org,senozhatsky@chromium.org,minchan@kernel.org,Jonathan.Cameron@huawei.com,hannes@cmpxchg.org,gourry@gourry.net,dan.j.williams@intel.com,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=JltEXZU5UhN4SPpb29JXWmaJmaRFOJAAH96EjFakL5z+6TG/m9HY3J/oulVdfHyvr
+	 GrwjSbl7hCYNJPnOh32oVlNjGQtCTPBKDY0/wVxFtr5j4BWCZaDyqHaC/pw9f2PzgB
+	 91bXU7sgxBsaliApD1Shd7Ol0ZtOl6wfTIB7LAEs=
+Date: Sun, 11 May 2025 17:50:00 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,riel@surriel.com,muchun.song@linux.dev,hannes@cmpxchg.org,mhocko@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch removed from -mm tree
-Message-Id: <20250512004959.D4BADC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-oom-do-not-bypass-oom-killer-for-dying-tasks.patch removed from -mm tree
+Message-Id: <20250512005001.29DAEC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,289 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zsmalloc: prefer the the original page's node for compressed data
+     Subject: memcg, oom: do not bypass oom killer for dying tasks
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch
+     memcg-oom-do-not-bypass-oom-killer-for-dying-tasks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zsmalloc: prefer the the original page's node for compressed data
-Date: Wed, 2 Apr 2025 13:44:16 -0700
+From: Michal Hocko <mhocko@suse.com>
+Subject: memcg, oom: do not bypass oom killer for dying tasks
+Date: Wed, 2 Apr 2025 11:01:17 +0200
 
-Currently, zsmalloc, zswap's and zram's backend memory allocator, does not
-enforce any policy for the allocation of memory for the compressed data,
-instead just adopting the memory policy of the task entering reclaim, or
-the default policy (prefer local node) if no such policy is specified. 
-This can lead to several pathological behaviors in multi-node NUMA
-systems:
+7775face2079 ("memcg: killed threads should not invoke memcg OOM killer")
+has added a bypass of the oom killer path for dying threads because a very
+specific workload (described in the changelog) could hit "no killable
+tasks" path.  This itself is not fatal condition but it could be annoying
+if this was a common case.
 
-1. Systems with CXL-based memory tiering can encounter the following
-   inversion with zswap/zram: the coldest pages demoted to the CXL tier
-   can return to the high tier when they are reclaimed to compressed swap,
-   creating memory pressure on the high tier.
+On the other hand the bypass has some issues on its own.  Without
+triggering oom killer we won't be able to trigger async oom reclaim
+(oom_reaper) which can operate on killed tasks as well as long as they
+still have their mm available.  This could be the case during futex
+cleanup when the memory as pointed out by Johannes in [1].  The said case
+is still not fully understood but let's drop this bypass that was mostly
+driven by an artificial workload and allow dying tasks to go into oom
+path.  This will make the code easier to reason about and also help corner
+cases where oom_reaper could help to release memory.
 
-2. Consider a direct reclaimer scanning nodes in order of allocation
-   preference.  If it ventures into remote nodes, the memory it compresses
-   there should stay there.  Trying to shift those contents over to the
-   reclaiming thread's preferred node further *increases* its local
-   pressure, and provoking more spills.  The remote node is also the most
-   likely to refault this data again.  This undesirable behavior was
-   pointed out by Johannes Weiner in [1].
-
-3. For zswap writeback, the zswap entries are organized in
-   node-specific LRUs, based on the node placement of the original pages,
-   allowing for targeted zswap writeback for specific nodes.
-
-   However, the compressed data of a zswap entry can be placed on a
-   different node from the LRU it is placed on.  This means that reclaim
-   targeted at one node might not free up memory used for zswap entries in
-   that node, but instead reclaiming memory in a different node.
-
-All of these issues will be resolved if the compressed data go to the same
-node as the original page.  This patch encourages this behavior by having
-zswap and zram pass the node of the original page to zsmalloc, and have
-zsmalloc prefer the specified node if we need to allocate new (zs)pages
-for the compressed data.
-
-Note that we are not strictly binding the allocation to the preferred
-node.  We still allow the allocation to fall back to other nodes when the
-preferred node is full, or if we have zspages with slots available on a
-different node.  This is OK, and still a strict improvement over the
-status quo:
-
-1. On a system with demotion enabled, we will generally prefer
-   demotions over compressed swapping, and only swap when pages have
-   already gone to the lowest tier.  This patch should achieve the desired
-   effect for the most part.
-
-2. If the preferred node is out of memory, letting the compressed data
-   going to other nodes can be better than the alternative (OOMs, keeping
-   cold memory unreclaimed, disk swapping, etc.).
-
-3. If the allocation go to a separate node because we have a zspage
-   with slots available, at least we're not creating extra immediate
-   memory pressure (since the space is already allocated).
-
-3. While there can be mixings, we generally reclaim pages in same-node
-   batches, which encourage zspage grouping that is more likely to go to
-   the right node.
-
-4. A strict binding would require partitioning zsmalloc by node, which
-   is more complicated, and more prone to regression, since it reduces the
-   storage density of zsmalloc.  We need to evaluate the tradeoff and
-   benchmark carefully before adopting such an involved solution.
-
-[1]: https://lore.kernel.org/linux-mm/20250331165306.GC2110528@cmpxchg.org/
-
-[senozhatsky@chromium.org: coding-style fixes]
-  Link: https://lkml.kernel.org/r/mnvexa7kseswglcqbhlot4zg3b3la2ypv2rimdl5mh5glbmhvz@wi6bgqn47hge
-Link: https://lkml.kernel.org/r/20250402204416.3435994-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Gregory Price <gourry@gourry.net>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>	[zram, zsmalloc]
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>	[zswap/zsmalloc]
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
+Link: https://lore.kernel.org/all/20241212183012.GB1026@cmpxchg.org/T/#u [1]
+Link: https://lkml.kernel.org/r/20250402090117.130245-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 ++++++++---
- include/linux/zpool.h         |    4 ++--
- include/linux/zsmalloc.h      |    3 ++-
- mm/zpool.c                    |    8 +++++---
- mm/zsmalloc.c                 |   20 +++++++++++---------
- mm/zswap.c                    |    2 +-
- 6 files changed, 29 insertions(+), 19 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1694,7 +1694,7 @@ static int write_incompressible_page(str
+--- a/mm/memcontrol.c~memcg-oom-do-not-bypass-oom-killer-for-dying-tasks
++++ a/mm/memcontrol.c
+@@ -1664,7 +1664,7 @@ static bool mem_cgroup_out_of_memory(str
+ 	 * A few threads which were not waiting at mutex_lock_killable() can
+ 	 * fail to bail out. Therefore, check again after holding oom_lock.
  	 */
- 	handle = zs_malloc(zram->mem_pool, PAGE_SIZE,
- 			   GFP_NOIO | __GFP_NOWARN |
--			   __GFP_HIGHMEM | __GFP_MOVABLE);
-+			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
- 	if (IS_ERR_VALUE(handle))
- 		return PTR_ERR((void *)handle);
+-	ret = task_is_dying() || out_of_memory(&oc);
++	ret = out_of_memory(&oc);
  
-@@ -1761,7 +1761,7 @@ static int zram_write_page(struct zram *
- 
- 	handle = zs_malloc(zram->mem_pool, comp_len,
- 			   GFP_NOIO | __GFP_NOWARN |
--			   __GFP_HIGHMEM | __GFP_MOVABLE);
-+			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
- 	if (IS_ERR_VALUE(handle)) {
- 		zcomp_stream_put(zstrm);
- 		return PTR_ERR((void *)handle);
-@@ -1981,10 +1981,15 @@ static int recompress_slot(struct zram *
- 	 * We are holding per-CPU stream mutex and entry lock so better
- 	 * avoid direct reclaim.  Allocation error is not fatal since
- 	 * we still have the old object in the mem_pool.
-+	 *
-+	 * XXX: technically, the node we really want here is the node that holds
-+	 * the original compressed data. But that would require us to modify
-+	 * zsmalloc API to return this information. For now, we will make do with
-+	 * the node of the page allocated for recompression.
- 	 */
- 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
- 			       GFP_NOIO | __GFP_NOWARN |
--			       __GFP_HIGHMEM | __GFP_MOVABLE);
-+			       __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
- 	if (IS_ERR_VALUE(handle_new)) {
- 		zcomp_stream_put(zstrm);
- 		return PTR_ERR((void *)handle_new);
---- a/include/linux/zpool.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/include/linux/zpool.h
-@@ -22,7 +22,7 @@ const char *zpool_get_type(struct zpool
- void zpool_destroy_pool(struct zpool *pool);
- 
- int zpool_malloc(struct zpool *pool, size_t size, gfp_t gfp,
--			unsigned long *handle);
-+		 unsigned long *handle, const int nid);
- 
- void zpool_free(struct zpool *pool, unsigned long handle);
- 
-@@ -64,7 +64,7 @@ struct zpool_driver {
- 	void (*destroy)(void *pool);
- 
- 	int (*malloc)(void *pool, size_t size, gfp_t gfp,
--				unsigned long *handle);
-+		      unsigned long *handle, const int nid);
- 	void (*free)(void *pool, unsigned long handle);
- 
- 	void *(*obj_read_begin)(void *pool, unsigned long handle,
---- a/include/linux/zsmalloc.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/include/linux/zsmalloc.h
-@@ -26,7 +26,8 @@ struct zs_pool;
- struct zs_pool *zs_create_pool(const char *name);
- void zs_destroy_pool(struct zs_pool *pool);
- 
--unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags);
-+unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags,
-+			const int nid);
- void zs_free(struct zs_pool *pool, unsigned long obj);
- 
- size_t zs_huge_class_size(struct zs_pool *pool);
---- a/mm/zpool.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/mm/zpool.c
-@@ -226,20 +226,22 @@ const char *zpool_get_type(struct zpool
-  * @size:	The amount of memory to allocate.
-  * @gfp:	The GFP flags to use when allocating memory.
-  * @handle:	Pointer to the handle to set
-+ * @nid:	The preferred node id.
-  *
-  * This allocates the requested amount of memory from the pool.
-  * The gfp flags will be used when allocating memory, if the
-  * implementation supports it.  The provided @handle will be
-- * set to the allocated object handle.
-+ * set to the allocated object handle. The allocation will
-+ * prefer the NUMA node specified by @nid.
-  *
-  * Implementations must guarantee this to be thread-safe.
-  *
-  * Returns: 0 on success, negative value on error.
-  */
- int zpool_malloc(struct zpool *zpool, size_t size, gfp_t gfp,
--			unsigned long *handle)
-+		 unsigned long *handle, const int nid)
- {
--	return zpool->driver->malloc(zpool->pool, size, gfp, handle);
-+	return zpool->driver->malloc(zpool->pool, size, gfp, handle, nid);
- }
- 
- /**
---- a/mm/zsmalloc.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/mm/zsmalloc.c
-@@ -243,9 +243,9 @@ static inline void zpdesc_dec_zone_page_
- 	dec_zone_page_state(zpdesc_page(zpdesc), NR_ZSPAGES);
- }
- 
--static inline struct zpdesc *alloc_zpdesc(gfp_t gfp)
-+static inline struct zpdesc *alloc_zpdesc(gfp_t gfp, const int nid)
- {
--	struct page *page = alloc_page(gfp);
-+	struct page *page = alloc_pages_node(nid, gfp, 0);
- 
- 	return page_zpdesc(page);
- }
-@@ -462,9 +462,9 @@ static void zs_zpool_destroy(void *pool)
- }
- 
- static int zs_zpool_malloc(void *pool, size_t size, gfp_t gfp,
--			unsigned long *handle)
-+			   unsigned long *handle, const int nid)
- {
--	*handle = zs_malloc(pool, size, gfp);
-+	*handle = zs_malloc(pool, size, gfp, nid);
- 
- 	if (IS_ERR_VALUE(*handle))
- 		return PTR_ERR((void *)*handle);
-@@ -1043,8 +1043,8 @@ static void create_page_chain(struct siz
-  * Allocate a zspage for the given size class
-  */
- static struct zspage *alloc_zspage(struct zs_pool *pool,
--					struct size_class *class,
--					gfp_t gfp)
-+				   struct size_class *class,
-+				   gfp_t gfp, const int nid)
- {
- 	int i;
- 	struct zpdesc *zpdescs[ZS_MAX_PAGES_PER_ZSPAGE];
-@@ -1061,7 +1061,7 @@ static struct zspage *alloc_zspage(struc
- 	for (i = 0; i < class->pages_per_zspage; i++) {
- 		struct zpdesc *zpdesc;
- 
--		zpdesc = alloc_zpdesc(gfp);
-+		zpdesc = alloc_zpdesc(gfp, nid);
- 		if (!zpdesc) {
- 			while (--i >= 0) {
- 				zpdesc_dec_zone_page_state(zpdescs[i]);
-@@ -1336,12 +1336,14 @@ static unsigned long obj_malloc(struct z
-  * @pool: pool to allocate from
-  * @size: size of block to allocate
-  * @gfp: gfp flags when allocating object
-+ * @nid: The preferred node id to allocate new zspage (if needed)
-  *
-  * On success, handle to the allocated object is returned,
-  * otherwise an ERR_PTR().
-  * Allocation requests with size > ZS_MAX_ALLOC_SIZE will fail.
-  */
--unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
-+unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp,
-+			const int nid)
- {
- 	unsigned long handle;
- 	struct size_class *class;
-@@ -1376,7 +1378,7 @@ unsigned long zs_malloc(struct zs_pool *
- 
- 	spin_unlock(&class->lock);
- 
--	zspage = alloc_zspage(pool, class, gfp);
-+	zspage = alloc_zspage(pool, class, gfp, nid);
- 	if (!zspage) {
- 		cache_free_handle(pool, handle);
- 		return (unsigned long)ERR_PTR(-ENOMEM);
---- a/mm/zswap.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/mm/zswap.c
-@@ -981,7 +981,7 @@ static bool zswap_compress(struct page *
- 
- 	zpool = pool->zpool;
- 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
--	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle);
-+	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle, page_to_nid(page));
- 	if (alloc_ret)
- 		goto unlock;
- 
+ unlock:
+ 	mutex_unlock(&oom_lock);
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
 
