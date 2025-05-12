@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 350A425A351
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 23:34:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A665C253F2D
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 23:34:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747092859; cv=none; b=GX0ENui4n5vm303UKumb9UmzqF7ZvYt+u8DUFdPF8eEyNeTTls5ZpSn7guk8kyemc0uuA6nIMG+h3G6k7PiNNyhJrvXj3kJLai0RfT3lMw+oeQetAmeNvc/E/ljLoH0bzZF8A/KCeNETuoQnqGt3+ZmgFEYe8iiXw8nnYg7h/zk=
+	t=1747092861; cv=none; b=QibMhrstuxsULmZwEaGkJBQymCEFf2bpV5X8RktR5fEoo/zA592xvaeQp/NiBHhSLsKrTqRqiT0MDgVPDBzNAs53+HjxcEDejRAI0UPq5nNXqfWudLGH+h2ldVK+4268GagjsqJeqJA0shpVgPzX+9pustiEgPba9gtv/L+Zd8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747092859; c=relaxed/simple;
-	bh=tqU5+ncirE6o5jqhZ3ex0SKpHcCVcM3eDA7ZoGWq3xg=;
-	h=Date:To:From:Subject:Message-Id; b=sax8vHvnhlyoi0ZQyzm1WpsM2HaqlRp7EGNQAZxTekoRjgUHkV0Bzhrpj82rgJ2Y5q2ZZrk54u5MokFJw8N1Tn7S1SXyz7l4SaMtHx+uc5kzcGfVyv17GexDfRqaJnBDNXYF5/Oi0EqwPy/v7zNFIzcYOAkHSJOReus31Pimd9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i4apyxfS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747092861; c=relaxed/simple;
+	bh=VltN+uP319umxFwvkht1dh7dUc4P3flW3zgR+OktAII=;
+	h=Date:To:From:Subject:Message-Id; b=MzckOcW39ZOH4QqpaJM1Z9E2Ulmf9XCFabTIKSArpgMYYp0CkzQXoe9BRMvD1L7+WozSs3pyOxNO8kz25r4NhTKB1UuMwywaWpZo2hD92n8R0KsOCPLcii5a3b/Jd76K0EfcHwhXJjhi7Egh6kxpBt0af+cZsMpsXlkM0H64C88=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFHSxjmd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i4apyxfS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 974CEC4CEEF;
-	Mon, 12 May 2025 23:34:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFHSxjmd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 109B1C4CEE7;
+	Mon, 12 May 2025 23:34:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747092857;
-	bh=tqU5+ncirE6o5jqhZ3ex0SKpHcCVcM3eDA7ZoGWq3xg=;
+	s=korg; t=1747092861;
+	bh=VltN+uP319umxFwvkht1dh7dUc4P3flW3zgR+OktAII=;
 	h=Date:To:From:Subject:From;
-	b=i4apyxfSeZUNDm9Ug+Rfmab9vWNqt38IxTwWaacjjZ9Y5SsushRPZ2e3g0wRoOLLM
-	 U5itwmIDgVxmnvDB9FcuQ2nW9YArnUnPd4DVplrSPQ2EGCbIUI0rvogXLYx3LL1gfY
-	 CdGaVa3WUloE/NWI5gIyNo17RqsorY65luYqI1UI=
-Date: Mon, 12 May 2025 16:34:17 -0700
+	b=CFHSxjmdpCMwqv0+xm0S7umhdzML0cKr8O9RyeAvqjWCRZBFA3m7+3w/j2+cx5Aqw
+	 Id97HgJNIk/bDsZxoxzpcIU7AvYU+zbm/p6D6HQijCkHtyaN9MQemFJpoQrDs3odm/
+	 uSvYTbMpvwlqTbIY6/AkwUMgorEOmlo0/KIxbay8=
+Date: Mon, 12 May 2025 16:34:20 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,tursulin@ursulin.net,tglx@linutronix.de,rostedt@goodmis.org,rodrigo.vivi@intel.com,peterz@infradead.org,peterx@redhat.com,mingo@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joonas.lahtinen@linux.intel.com,jannh@google.com,jani.nikula@linux.intel.com,hpa@zytor.com,bp@alien8.de,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-track_pfn_insert-to-pfnmap_setup_cachemode.patch added to mm-new branch
-Message-Id: <20250512233417.974CEC4CEEF@smtp.kernel.org>
+Subject: + mm-introduce-pfnmap_track-and-pfnmap_untrack-and-use-them-for-memremap.patch added to mm-new branch
+Message-Id: <20250512233421.109B1C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert track_pfn_insert() to pfnmap_setup_cachemode*()
+     Subject: mm: introduce pfnmap_track() and pfnmap_untrack() and use them for memremap
 has been added to the -mm mm-new branch.  Its filename is
-     mm-convert-track_pfn_insert-to-pfnmap_setup_cachemode.patch
+     mm-introduce-pfnmap_track-and-pfnmap_untrack-and-use-them-for-memremap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-track_pfn_insert-to-pfnmap_setup_cachemode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-pfnmap_track-and-pfnmap_untrack-and-use-them-for-memremap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,23 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: convert track_pfn_insert() to pfnmap_setup_cachemode*()
-Date: Mon, 12 May 2025 14:34:15 +0200
+Subject: mm: introduce pfnmap_track() and pfnmap_untrack() and use them for memremap
+Date: Mon, 12 May 2025 14:34:16 +0200
 
-...  by factoring it out from track_pfn_remap() into
-pfnmap_setup_cachemode() and provide pfnmap_setup_cachemode_pfn() as a
-replacement for track_pfn_insert().
+Let's provide variants of track_pfn_remap() and untrack_pfn() that won't
+mess with VMAs, and replace the usage in mm/memremap.c.
 
-For PMDs/PUDs, we keep checking a single pfn only.  Add some
-documentation, and also document why it is valid to not check the whole
-pfn range.
+Add some documentation.
 
-We'll reuse pfnmap_setup_cachemode() from core MM next.
-
-Link: https://lkml.kernel.org/r/20250512123424.637989-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20250512123424.637989-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Ingo Molnar <mingo@kernel.org> # x86 bits
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Ingo Molnar <mingo@kernel.org> # x86 bits
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Dave Airlie <airlied@gmail.com>
@@ -102,179 +97,120 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/memtype.c |   24 +++++-----------
- include/linux/pgtable.h   |   52 ++++++++++++++++++++++++++++++------
- mm/huge_memory.c          |    5 ++-
- mm/memory.c               |    4 +-
- 4 files changed, 57 insertions(+), 28 deletions(-)
+ arch/x86/mm/pat/memtype.c |   14 ++++++++++++
+ include/linux/pgtable.h   |   39 ++++++++++++++++++++++++++++++++++++
+ mm/memremap.c             |    8 +++----
+ 3 files changed, 57 insertions(+), 4 deletions(-)
 
---- a/arch/x86/mm/pat/memtype.c~mm-convert-track_pfn_insert-to-pfnmap_setup_cachemode
+--- a/arch/x86/mm/pat/memtype.c~mm-introduce-pfnmap_track-and-pfnmap_untrack-and-use-them-for-memremap
 +++ a/arch/x86/mm/pat/memtype.c
-@@ -1031,7 +1031,6 @@ int track_pfn_remap(struct vm_area_struc
- 		    unsigned long pfn, unsigned long addr, unsigned long size)
- {
- 	resource_size_t paddr = (resource_size_t)pfn << PAGE_SHIFT;
--	enum page_cache_mode pcm;
- 
- 	/* reserve the whole chunk starting from paddr */
- 	if (!vma || (addr == vma->vm_start
-@@ -1044,13 +1043,17 @@ int track_pfn_remap(struct vm_area_struc
- 		return ret;
- 	}
- 
-+	return pfnmap_setup_cachemode(pfn, size, prot);
-+}
-+
-+int pfnmap_setup_cachemode(unsigned long pfn, unsigned long size, pgprot_t *prot)
-+{
-+	resource_size_t paddr = (resource_size_t)pfn << PAGE_SHIFT;
-+	enum page_cache_mode pcm;
-+
- 	if (!pat_enabled())
- 		return 0;
- 
--	/*
--	 * For anything smaller than the vma size we set prot based on the
--	 * lookup.
--	 */
- 	pcm = lookup_memtype(paddr);
- 
- 	/* Check memtype for the remaining pages */
-@@ -1065,17 +1068,6 @@ int track_pfn_remap(struct vm_area_struc
+@@ -1068,6 +1068,20 @@ int pfnmap_setup_cachemode(unsigned long
  	return 0;
  }
  
--void track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot, pfn_t pfn)
--{
--	enum page_cache_mode pcm;
--
--	if (!pat_enabled())
--		return;
--
--	pcm = lookup_memtype(pfn_t_to_phys(pfn));
--	pgprot_set_cachemode(prot, pcm);
--}
--
++int pfnmap_track(unsigned long pfn, unsigned long size, pgprot_t *prot)
++{
++	const resource_size_t paddr = (resource_size_t)pfn << PAGE_SHIFT;
++
++	return reserve_pfn_range(paddr, size, prot, 0);
++}
++
++void pfnmap_untrack(unsigned long pfn, unsigned long size)
++{
++	const resource_size_t paddr = (resource_size_t)pfn << PAGE_SHIFT;
++
++	free_pfn_range(paddr, size);
++}
++
  /*
   * untrack_pfn is called while unmapping a pfnmap for a region.
   * untrack can be called for a specific region indicated by pfn and size or
---- a/include/linux/pgtable.h~mm-convert-track_pfn_insert-to-pfnmap_setup_cachemode
+--- a/include/linux/pgtable.h~mm-introduce-pfnmap_track-and-pfnmap_untrack-and-use-them-for-memremap
 +++ a/include/linux/pgtable.h
-@@ -1496,13 +1496,10 @@ static inline int track_pfn_remap(struct
+@@ -1502,6 +1502,16 @@ static inline int pfnmap_setup_cachemode
  	return 0;
  }
  
--/*
-- * track_pfn_insert is called when a _new_ single pfn is established
-- * by vmf_insert_pfn().
-- */
--static inline void track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--				    pfn_t pfn)
-+static inline int pfnmap_setup_cachemode(unsigned long pfn, unsigned long size,
++static inline int pfnmap_track(unsigned long pfn, unsigned long size,
 +		pgprot_t *prot)
- {
++{
 +	return 0;
- }
- 
++}
++
++static inline void pfnmap_untrack(unsigned long pfn, unsigned long size)
++{
++}
++
  /*
-@@ -1552,8 +1549,32 @@ static inline void untrack_pfn_clear(str
- extern int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
- 			   unsigned long pfn, unsigned long addr,
- 			   unsigned long size);
--extern void track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--			     pfn_t pfn);
+  * track_pfn_copy is called when a VM_PFNMAP VMA is about to get the page
+  * tables copied during copy_page_range(). Will store the pfn to be
+@@ -1575,6 +1585,35 @@ extern int track_pfn_remap(struct vm_are
+  */
+ int pfnmap_setup_cachemode(unsigned long pfn, unsigned long size,
+ 		pgprot_t *prot);
 +
 +/**
-+ * pfnmap_setup_cachemode - setup the cachemode in the pgprot for a pfn range
++ * pfnmap_track - track a pfn range
 + * @pfn: the start of the pfn range
 + * @size: the size of the pfn range in bytes
-+ * @prot: the pgprot to modify
++ * @prot: the pgprot to track
 + *
-+ * Lookup the cachemode for the pfn range starting at @pfn with the size
-+ * @size and store it in @prot, leaving other data in @prot unchanged.
++ * Requested the pfn range to be 'tracked' by a hardware implementation and
++ * setup the cachemode in @prot similar to pfnmap_setup_cachemode().
 + *
-+ * This allows for a hardware implementation to have fine-grained control of
-+ * memory cache behavior at page level granularity. Without a hardware
-+ * implementation, this function does nothing.
++ * This allows for fine-grained control of memory cache behaviour at page
++ * level granularity. Tracking memory this way is persisted across VMA splits
++ * (VMA merging does not apply for VM_PFNMAP).
 + *
-+ * Currently there is only one implementation for this - x86 Page Attribute
++ * Currently, there is only one implementation for this - x86 Page Attribute
 + * Table (PAT). See Documentation/arch/x86/pat.rst for more details.
-+ *
-+ * This function can fail if the pfn range spans pfns that require differing
-+ * cachemodes. If the pfn range was previously verified to have a single
-+ * cachemode, it is sufficient to query only a single pfn. The assumption is
-+ * that this is the case for drivers using the vmf_insert_pfn*() interface.
 + *
 + * Returns 0 on success and -EINVAL on error.
 + */
-+int pfnmap_setup_cachemode(unsigned long pfn, unsigned long size,
-+		pgprot_t *prot);
++int pfnmap_track(unsigned long pfn, unsigned long size, pgprot_t *prot);
++
++/**
++ * pfnmap_untrack - untrack a pfn range
++ * @pfn: the start of the pfn range
++ * @size: the size of the pfn range in bytes
++ *
++ * Untrack a pfn range previously tracked through pfnmap_track().
++ */
++void pfnmap_untrack(unsigned long pfn, unsigned long size);
  extern int track_pfn_copy(struct vm_area_struct *dst_vma,
  		struct vm_area_struct *src_vma, unsigned long *pfn);
  extern void untrack_pfn_copy(struct vm_area_struct *dst_vma,
-@@ -1563,6 +1584,21 @@ extern void untrack_pfn(struct vm_area_s
- extern void untrack_pfn_clear(struct vm_area_struct *vma);
- #endif
- 
-+/**
-+ * pfnmap_setup_cachemode_pfn - setup the cachemode in the pgprot for a pfn
-+ * @pfn: the pfn
-+ * @prot: the pgprot to modify
-+ *
-+ * Lookup the cachemode for @pfn and store it in @prot, leaving other
-+ * data in @prot unchanged.
-+ *
-+ * See pfnmap_setup_cachemode() for details.
-+ */
-+static inline void pfnmap_setup_cachemode_pfn(unsigned long pfn, pgprot_t *prot)
-+{
-+	pfnmap_setup_cachemode(pfn, PAGE_SIZE, prot);
-+}
-+
- #ifdef CONFIG_MMU
- #ifdef __HAVE_COLOR_ZERO_PAGE
- static inline int is_zero_pfn(unsigned long pfn)
---- a/mm/huge_memory.c~mm-convert-track_pfn_insert-to-pfnmap_setup_cachemode
-+++ a/mm/huge_memory.c
-@@ -1455,7 +1455,8 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
- 			return VM_FAULT_OOM;
+--- a/mm/memremap.c~mm-introduce-pfnmap_track-and-pfnmap_untrack-and-use-them-for-memremap
++++ a/mm/memremap.c
+@@ -130,7 +130,7 @@ static void pageunmap_range(struct dev_p
  	}
+ 	mem_hotplug_done();
  
--	track_pfn_insert(vma, &pgprot, pfn);
-+	pfnmap_setup_cachemode_pfn(pfn_t_to_pfn(pfn), &pgprot);
-+
- 	ptl = pmd_lock(vma->vm_mm, vmf->pmd);
- 	error = insert_pfn_pmd(vma, addr, vmf->pmd, pfn, pgprot, write,
- 			pgtable);
-@@ -1577,7 +1578,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
+-	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range), true);
++	pfnmap_untrack(PHYS_PFN(range->start), range_len(range));
+ 	pgmap_array_delete(range);
+ }
  
--	track_pfn_insert(vma, &pgprot, pfn);
-+	pfnmap_setup_cachemode_pfn(pfn_t_to_pfn(pfn), &pgprot);
+@@ -211,8 +211,8 @@ static int pagemap_range(struct dev_page
+ 	if (nid < 0)
+ 		nid = numa_mem_id();
  
- 	ptl = pud_lock(vma->vm_mm, vmf->pud);
- 	insert_pfn_pud(vma, addr, vmf->pud, pfn, write);
---- a/mm/memory.c~mm-convert-track_pfn_insert-to-pfnmap_setup_cachemode
-+++ a/mm/memory.c
-@@ -2564,7 +2564,7 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
- 	if (!pfn_modify_allowed(pfn, pgprot))
- 		return VM_FAULT_SIGBUS;
+-	error = track_pfn_remap(NULL, &params->pgprot, PHYS_PFN(range->start), 0,
+-			range_len(range));
++	error = pfnmap_track(PHYS_PFN(range->start), range_len(range),
++			     &params->pgprot);
+ 	if (error)
+ 		goto err_pfn_remap;
  
--	track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV));
-+	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
- 
- 	return insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot,
- 			false);
-@@ -2627,7 +2627,7 @@ static vm_fault_t __vm_insert_mixed(stru
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
- 
--	track_pfn_insert(vma, &pgprot, pfn);
-+	pfnmap_setup_cachemode_pfn(pfn_t_to_pfn(pfn), &pgprot);
- 
- 	if (!pfn_modify_allowed(pfn_t_to_pfn(pfn), pgprot))
- 		return VM_FAULT_SIGBUS;
+@@ -277,7 +277,7 @@ err_add_memory:
+ 	if (!is_private)
+ 		kasan_remove_zero_shadow(__va(range->start), range_len(range));
+ err_kasan:
+-	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range), true);
++	pfnmap_untrack(PHYS_PFN(range->start), range_len(range));
+ err_pfn_remap:
+ 	pgmap_array_delete(range);
+ 	return error;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
