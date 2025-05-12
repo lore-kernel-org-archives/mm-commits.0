@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2487DC2FB
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 856E1C2FB
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011090; cv=none; b=NMinYrQBN7NOOiBp4Zb4HqYzDR4n1fpmTfcst6O+1s9l2ToJtk6kyBLVlZPAr5rQuKao8CvUALicpTqRKL6CEfucNcyLNEfoRGYC/ZzHyyWM+MnwqwWaS6Kxkr11kXyaqpMifmvoOElLuXwQrTRIbyjgtU4meH4R/1PIq3SlON0=
+	t=1747011091; cv=none; b=JJ5ZRUFU7yEX0GXrxvP7pwaf0u56gBRltqbOY/0nS0ssv8dlbJPOwQt/xF3Hb7sOw0Yea8f2kCjRKZNkUjFb1IZecmcGYo1/hAvOVDDckwJRWvautexRjjfTPCqe+ruIPcvT3KlA/6bJemRD8k0qjK3qEk80p2iX/hKyHtJLnx8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011090; c=relaxed/simple;
-	bh=1pfoMbiAlb6kLdwpzumidWSX8tv/ID0K7LWMfTylHDo=;
-	h=Date:To:From:Subject:Message-Id; b=JcX6qh13OIbzsbyacZEnxOGW/N9uUPJVfD99nFfl09PTpoxPT3i9esYPeBFu+GR9e4YiomkKknIr+0XerMa80Z3+R0r57CZfeDP67fEvkuizPRKBMRAOSlNJIvLY2lOMEy9lzMgCKIUxNo06xQdUDfyklQCr8rOwBToGiIv74Hs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p5uXnrmS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011091; c=relaxed/simple;
+	bh=mysp0GezgGxkje+p2ansMDbNrv5Xvtz/WWJjyXgmSio=;
+	h=Date:To:From:Subject:Message-Id; b=SEGVy8gH+l2m4OYimHB2dkkyX/Zhjl0GQ9PNBqj/dOVikml606RsKyywBqbmFZOczhfePeKdgdFMQPlIBOXrZlAUEBglAFim1/+EW8PlnQLkW33H11Syldf0syImnn1Xx+C82mVE9Wrt/GTo6tYiQ5bW8b79cd+F+QADtDXODUA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K8iQdRS/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p5uXnrmS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED9B8C4CEE4;
-	Mon, 12 May 2025 00:51:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K8iQdRS/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59ABDC4CEE4;
+	Mon, 12 May 2025 00:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011090;
-	bh=1pfoMbiAlb6kLdwpzumidWSX8tv/ID0K7LWMfTylHDo=;
+	s=korg; t=1747011091;
+	bh=mysp0GezgGxkje+p2ansMDbNrv5Xvtz/WWJjyXgmSio=;
 	h=Date:To:From:Subject:From;
-	b=p5uXnrmSoR/lWIpJDTuEMQgG2nRDL/AFSc8ZHLbr6Ip1ARtesR7b8W8RDOorokZzG
-	 EEdSOYKpRzspUalbOFmyodKi7elPK0w8lsTxRXbAFbd6FHZ4eiFuCDCniJK/Ylbo5d
-	 h6ph28qf3ktGr0J+KtbEQLHV1+CN0BEk+GhyvU9o=
-Date: Sun, 11 May 2025 17:51:29 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yang@os.amperecomputing.com,x86@kernel.org,willy@infradead.org,will@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,mark.rutland@arm.com,maddy@linux.ibm.com,linus.walleij@linaro.org,geert@linux-m68k.org,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aou@eecs.berkeley.edu,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=K8iQdRS/JgkVyXo7zkKWAFSkIVYUgjr5iJNSjRs52KAwE50gKgQhtj6Vec3qaS/uc
+	 9h4j5zGKOZJDgpXvAVb+UfvkJ5lEqO3sn68slID+/V9mYAXnsXu99J14UA+hheNxXT
+	 jtDMma/Z8um9s24ASvUTpdDRL8cd3iJUNgTlh7Gw=
+Date: Sun, 11 May 2025 17:51:30 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tmgross@umich.edu,surenb@google.com,ojeda@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jhubbard@nvidia.com,jannh@google.com,gregkh@linuxfoundation.org,gary@garyguo.net,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,balbirs@nvidia.com,arnd@arndb.de,alex.gaynor@gmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] riscv-mm-call-pud-p4d-ctor-in-special-kernel-pgtable-alloc.patch removed from -mm tree
-Message-Id: <20250512005129.ED9B8C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rust-add-abstraction-for-struct-mm_struct.patch removed from -mm tree
+Message-Id: <20250512005131.59ABDC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,365 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: riscv: mm: call PUD/P4D ctor in special kernel pgtable alloc
+     Subject: mm: rust: add abstraction for struct mm_struct
 has been removed from the -mm tree.  Its filename was
-     riscv-mm-call-pud-p4d-ctor-in-special-kernel-pgtable-alloc.patch
+     mm-rust-add-abstraction-for-struct-mm_struct.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: riscv: mm: call PUD/P4D ctor in special kernel pgtable alloc
-Date: Tue, 8 Apr 2025 10:52:22 +0100
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: mm: rust: add abstraction for struct mm_struct
+Date: Tue, 08 Apr 2025 09:22:38 +0000
 
-Constructors for PUD/P4D-level pgtables were recently introduced.  They
-should be called for all pgtables; make sure they are called for special
-kernel mappings created by create_pgd_mapping() too.
+Patch series "Rust support for mm_struct, vm_area_struct, and mmap", v16.
 
-While at it also switch to using pagetable_alloc() like in
-alloc_{pte,pmd}_late().
+This updates the vm_area_struct support to use the approach we discussed
+at LPC where there are several different Rust wrappers for vm_area_struct
+depending on the kind of access you have to the vma.  Each case allows a
+different set of operations on the vma.
 
-Link: https://lkml.kernel.org/r/20250408095222.860601-13-kevin.brodsky@arm.com
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linus Waleij <linus.walleij@linaro.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
+This includes an MM MAINTAINERS entry as proposed by Lorenzo:
+https://lore.kernel.org/all/33e64b12-aa07-4e78-933a-b07c37ff1d84@lucifer.local/
+
+
+This patch (of 9):
+
+These abstractions allow you to reference a `struct mm_struct` using both
+mmgrab and mmget refcounts.  This is done using two Rust types:
+
+* Mm - represents an mm_struct where you don't know anything about the
+  value of mm_users.
+* MmWithUser - represents an mm_struct where you know at compile time
+  that mm_users is non-zero.
+
+This allows us to encode in the type system whether a method requires that
+mm_users is non-zero or not.  For instance, you can always call
+`mmget_not_zero` but you can only call `mmap_read_lock` when mm_users is
+non-zero.
+
+The struct is called Mm to keep consistency with the C side.
+
+The ability to obtain `current->mm` is added later in this series.
+
+The mm module is defined to only exist when CONFIG_MMU is set.  This
+avoids various errors due to missing types and functions when CONFIG_MMU
+is disabled.  More fine-grained cfgs can be considered in the future.  See
+the thread at [1] for more info.
+
+Link: https://lkml.kernel.org/r/20250408-vma-v16-9-d8b446e885d9@google.com
+Link: https://lkml.kernel.org/r/20250408-vma-v16-1-d8b446e885d9@google.com
+Link: https://lore.kernel.org/all/202503091916.QousmtcY-lkp@intel.com/
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Reviewed-by: Andreas Hindborg <a.hindborg@kernel.org>
+Reviewed-by: Gary Guo <gary@garyguo.net>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benno Lossin <benno.lossin@proton.me>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: <x86@kernel.org>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/init.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ rust/helpers/helpers.c |    1 
+ rust/helpers/mm.c      |   39 +++++++
+ rust/kernel/lib.rs     |    1 
+ rust/kernel/mm.rs      |  210 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 251 insertions(+)
 
---- a/arch/riscv/mm/init.c~riscv-mm-call-pud-p4d-ctor-in-special-kernel-pgtable-alloc
-+++ a/arch/riscv/mm/init.c
-@@ -590,11 +590,11 @@ static phys_addr_t __init alloc_pud_fixm
- 
- static phys_addr_t __meminit alloc_pud_late(uintptr_t va)
- {
--	unsigned long vaddr;
-+	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL, 0);
- 
--	vaddr = __get_free_page(GFP_KERNEL);
--	BUG_ON(!vaddr);
--	return __pa(vaddr);
-+	BUG_ON(!ptdesc);
-+	pagetable_pud_ctor(ptdesc);
-+	return __pa((pud_t *)ptdesc_address(ptdesc));
- }
- 
- static p4d_t *__init get_p4d_virt_early(phys_addr_t pa)
-@@ -628,11 +628,11 @@ static phys_addr_t __init alloc_p4d_fixm
- 
- static phys_addr_t __meminit alloc_p4d_late(uintptr_t va)
- {
--	unsigned long vaddr;
-+	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL, 0);
- 
--	vaddr = __get_free_page(GFP_KERNEL);
--	BUG_ON(!vaddr);
--	return __pa(vaddr);
-+	BUG_ON(!ptdesc);
-+	pagetable_p4d_ctor(ptdesc);
-+	return __pa((p4d_t *)ptdesc_address(ptdesc));
- }
- 
- static void __meminit create_pud_mapping(pud_t *pudp, uintptr_t va, phys_addr_t pa, phys_addr_t sz,
+--- a/rust/helpers/helpers.c~mm-rust-add-abstraction-for-struct-mm_struct
++++ a/rust/helpers/helpers.c
+@@ -20,6 +20,7 @@
+ #include "io.c"
+ #include "jump_label.c"
+ #include "kunit.c"
++#include "mm.c"
+ #include "mutex.c"
+ #include "page.c"
+ #include "platform.c"
+diff --git a/rust/helpers/mm.c a/rust/helpers/mm.c
+new file mode 100644
+--- /dev/null
++++ a/rust/helpers/mm.c
+@@ -0,0 +1,39 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/mm.h>
++#include <linux/sched/mm.h>
++
++void rust_helper_mmgrab(struct mm_struct *mm)
++{
++	mmgrab(mm);
++}
++
++void rust_helper_mmdrop(struct mm_struct *mm)
++{
++	mmdrop(mm);
++}
++
++void rust_helper_mmget(struct mm_struct *mm)
++{
++	mmget(mm);
++}
++
++bool rust_helper_mmget_not_zero(struct mm_struct *mm)
++{
++	return mmget_not_zero(mm);
++}
++
++void rust_helper_mmap_read_lock(struct mm_struct *mm)
++{
++	mmap_read_lock(mm);
++}
++
++bool rust_helper_mmap_read_trylock(struct mm_struct *mm)
++{
++	return mmap_read_trylock(mm);
++}
++
++void rust_helper_mmap_read_unlock(struct mm_struct *mm)
++{
++	mmap_read_unlock(mm);
++}
+--- a/rust/kernel/lib.rs~mm-rust-add-abstraction-for-struct-mm_struct
++++ a/rust/kernel/lib.rs
+@@ -61,6 +61,7 @@ pub mod jump_label;
+ pub mod kunit;
+ pub mod list;
+ pub mod miscdevice;
++pub mod mm;
+ #[cfg(CONFIG_NET)]
+ pub mod net;
+ pub mod of;
+diff --git a/rust/kernel/mm.rs a/rust/kernel/mm.rs
+new file mode 100644
+--- /dev/null
++++ a/rust/kernel/mm.rs
+@@ -0,0 +1,210 @@
++// SPDX-License-Identifier: GPL-2.0
++
++// Copyright (C) 2024 Google LLC.
++
++//! Memory management.
++//!
++//! This module deals with managing the address space of userspace processes. Each process has an
++//! instance of [`Mm`], which keeps track of multiple VMAs (virtual memory areas). Each VMA
++//! corresponds to a region of memory that the userspace process can access, and the VMA lets you
++//! control what happens when userspace reads or writes to that region of memory.
++//!
++//! C header: [`include/linux/mm.h`](srctree/include/linux/mm.h)
++#![cfg(CONFIG_MMU)]
++
++use crate::{
++    bindings,
++    types::{ARef, AlwaysRefCounted, NotThreadSafe, Opaque},
++};
++use core::{ops::Deref, ptr::NonNull};
++
++/// A wrapper for the kernel's `struct mm_struct`.
++///
++/// This represents the address space of a userspace process, so each process has one `Mm`
++/// instance. It may hold many VMAs internally.
++///
++/// There is a counter called `mm_users` that counts the users of the address space; this includes
++/// the userspace process itself, but can also include kernel threads accessing the address space.
++/// Once `mm_users` reaches zero, this indicates that the address space can be destroyed. To access
++/// the address space, you must prevent `mm_users` from reaching zero while you are accessing it.
++/// The [`MmWithUser`] type represents an address space where this is guaranteed, and you can
++/// create one using [`mmget_not_zero`].
++///
++/// The `ARef<Mm>` smart pointer holds an `mmgrab` refcount. Its destructor may sleep.
++///
++/// # Invariants
++///
++/// Values of this type are always refcounted using `mmgrab`.
++///
++/// [`mmget_not_zero`]: Mm::mmget_not_zero
++#[repr(transparent)]
++pub struct Mm {
++    mm: Opaque<bindings::mm_struct>,
++}
++
++// SAFETY: It is safe to call `mmdrop` on another thread than where `mmgrab` was called.
++unsafe impl Send for Mm {}
++// SAFETY: All methods on `Mm` can be called in parallel from several threads.
++unsafe impl Sync for Mm {}
++
++// SAFETY: By the type invariants, this type is always refcounted.
++unsafe impl AlwaysRefCounted for Mm {
++    #[inline]
++    fn inc_ref(&self) {
++        // SAFETY: The pointer is valid since self is a reference.
++        unsafe { bindings::mmgrab(self.as_raw()) };
++    }
++
++    #[inline]
++    unsafe fn dec_ref(obj: NonNull<Self>) {
++        // SAFETY: The caller is giving up their refcount.
++        unsafe { bindings::mmdrop(obj.cast().as_ptr()) };
++    }
++}
++
++/// A wrapper for the kernel's `struct mm_struct`.
++///
++/// This type is like [`Mm`], but with non-zero `mm_users`. It can only be used when `mm_users` can
++/// be proven to be non-zero at compile-time, usually because the relevant code holds an `mmget`
++/// refcount. It can be used to access the associated address space.
++///
++/// The `ARef<MmWithUser>` smart pointer holds an `mmget` refcount. Its destructor may sleep.
++///
++/// # Invariants
++///
++/// Values of this type are always refcounted using `mmget`. The value of `mm_users` is non-zero.
++#[repr(transparent)]
++pub struct MmWithUser {
++    mm: Mm,
++}
++
++// SAFETY: It is safe to call `mmput` on another thread than where `mmget` was called.
++unsafe impl Send for MmWithUser {}
++// SAFETY: All methods on `MmWithUser` can be called in parallel from several threads.
++unsafe impl Sync for MmWithUser {}
++
++// SAFETY: By the type invariants, this type is always refcounted.
++unsafe impl AlwaysRefCounted for MmWithUser {
++    #[inline]
++    fn inc_ref(&self) {
++        // SAFETY: The pointer is valid since self is a reference.
++        unsafe { bindings::mmget(self.as_raw()) };
++    }
++
++    #[inline]
++    unsafe fn dec_ref(obj: NonNull<Self>) {
++        // SAFETY: The caller is giving up their refcount.
++        unsafe { bindings::mmput(obj.cast().as_ptr()) };
++    }
++}
++
++// Make all `Mm` methods available on `MmWithUser`.
++impl Deref for MmWithUser {
++    type Target = Mm;
++
++    #[inline]
++    fn deref(&self) -> &Mm {
++        &self.mm
++    }
++}
++
++// These methods are safe to call even if `mm_users` is zero.
++impl Mm {
++    /// Returns a raw pointer to the inner `mm_struct`.
++    #[inline]
++    pub fn as_raw(&self) -> *mut bindings::mm_struct {
++        self.mm.get()
++    }
++
++    /// Obtain a reference from a raw pointer.
++    ///
++    /// # Safety
++    ///
++    /// The caller must ensure that `ptr` points at an `mm_struct`, and that it is not deallocated
++    /// during the lifetime 'a.
++    #[inline]
++    pub unsafe fn from_raw<'a>(ptr: *const bindings::mm_struct) -> &'a Mm {
++        // SAFETY: Caller promises that the pointer is valid for 'a. Layouts are compatible due to
++        // repr(transparent).
++        unsafe { &*ptr.cast() }
++    }
++
++    /// Calls `mmget_not_zero` and returns a handle if it succeeds.
++    #[inline]
++    pub fn mmget_not_zero(&self) -> Option<ARef<MmWithUser>> {
++        // SAFETY: The pointer is valid since self is a reference.
++        let success = unsafe { bindings::mmget_not_zero(self.as_raw()) };
++
++        if success {
++            // SAFETY: We just created an `mmget` refcount.
++            Some(unsafe { ARef::from_raw(NonNull::new_unchecked(self.as_raw().cast())) })
++        } else {
++            None
++        }
++    }
++}
++
++// These methods require `mm_users` to be non-zero.
++impl MmWithUser {
++    /// Obtain a reference from a raw pointer.
++    ///
++    /// # Safety
++    ///
++    /// The caller must ensure that `ptr` points at an `mm_struct`, and that `mm_users` remains
++    /// non-zero for the duration of the lifetime 'a.
++    #[inline]
++    pub unsafe fn from_raw<'a>(ptr: *const bindings::mm_struct) -> &'a MmWithUser {
++        // SAFETY: Caller promises that the pointer is valid for 'a. The layout is compatible due
++        // to repr(transparent).
++        unsafe { &*ptr.cast() }
++    }
++
++    /// Lock the mmap read lock.
++    #[inline]
++    pub fn mmap_read_lock(&self) -> MmapReadGuard<'_> {
++        // SAFETY: The pointer is valid since self is a reference.
++        unsafe { bindings::mmap_read_lock(self.as_raw()) };
++
++        // INVARIANT: We just acquired the read lock.
++        MmapReadGuard {
++            mm: self,
++            _nts: NotThreadSafe,
++        }
++    }
++
++    /// Try to lock the mmap read lock.
++    #[inline]
++    pub fn mmap_read_trylock(&self) -> Option<MmapReadGuard<'_>> {
++        // SAFETY: The pointer is valid since self is a reference.
++        let success = unsafe { bindings::mmap_read_trylock(self.as_raw()) };
++
++        if success {
++            // INVARIANT: We just acquired the read lock.
++            Some(MmapReadGuard {
++                mm: self,
++                _nts: NotThreadSafe,
++            })
++        } else {
++            None
++        }
++    }
++}
++
++/// A guard for the mmap read lock.
++///
++/// # Invariants
++///
++/// This `MmapReadGuard` guard owns the mmap read lock.
++pub struct MmapReadGuard<'a> {
++    mm: &'a MmWithUser,
++    // `mmap_read_lock` and `mmap_read_unlock` must be called on the same thread
++    _nts: NotThreadSafe,
++}
++
++impl Drop for MmapReadGuard<'_> {
++    #[inline]
++    fn drop(&mut self) {
++        // SAFETY: We hold the read lock by the type invariants.
++        unsafe { bindings::mmap_read_unlock(self.mm.as_raw()) };
++    }
++}
 _
 
-Patches currently in -mm which might be from kevin.brodsky@arm.com are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
 
