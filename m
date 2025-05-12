@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF6D1166F0C
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB82166F0C
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011017; cv=none; b=lzRfu78Z6b4oyo5M27tJ+IdNcBfkayedvH4Lyrellz1FV+rf0Ee1WeM6vXKBbzbYLkw3AapjkqX+o8tILx2vXij0fYmfYBKJUUd2iEVTScrqy/BbC6JDYXZhq2JJdhE8/VaEOMgCOGp+EUJwadrGLnr6Y9FUqf0a5tKkpVltr0g=
+	t=1747011019; cv=none; b=uY9nyIe/JP8S85sA6VKK5v9JDNFRYKpoMJbiSWWUziQqUd2j6Fuwpvw/nrotK8Lk6GccbHGzF+02f6a0uiPxhEgTREqVaG1MIyh/sZAJssgj0cKKVd/1hLyXFkuZbsx7b7bzzGo8IgWYe1nETPZnAS6g9IJKj3qKKX3iuTY99R4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011017; c=relaxed/simple;
-	bh=UkRXhI4ImQur7fPDzvEzVvC8IS3aR3fH0mzjn2fIncQ=;
-	h=Date:To:From:Subject:Message-Id; b=bXf13UFGHyz5n3yRdrhvugJoyKAw/j+9ONZrfss9AzQhhxMWeR0vixP3cxeJFl6U+wGFGGCBbCoilK5bScKZCP7dYYrYAGKv7U/E37n0Asl1bmIUH/8AyH6JPyRDJcWtyQq+3QMbIYXT0LJ9QspDnkYbOd7MRnkPA27Qp+s64zg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zh1hX4PU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011019; c=relaxed/simple;
+	bh=8QyMwdR5fqrdhirwha9a/znvD3HPW0bm9P6U5qC9DfI=;
+	h=Date:To:From:Subject:Message-Id; b=DtLUpKu9jhEO/E0sQPW/I+0UlEPWtB5vTUt031ZH4O6FD+ZN33d12mo/cDbgcmrije3L64ah+HAwrW1bY7w6IpuxOQMiG0ge6jxkGRzt2u+/PP+RN0lrR2v8dE8IHCzskLiD8s+FwdqIKLQ10GMlP5friXCi3T7BIn2R/m9YwDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kfqZ6qfR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zh1hX4PU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93463C4CEE4;
-	Mon, 12 May 2025 00:50:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kfqZ6qfR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC90C4CEE4;
+	Mon, 12 May 2025 00:50:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011017;
-	bh=UkRXhI4ImQur7fPDzvEzVvC8IS3aR3fH0mzjn2fIncQ=;
+	s=korg; t=1747011018;
+	bh=8QyMwdR5fqrdhirwha9a/znvD3HPW0bm9P6U5qC9DfI=;
 	h=Date:To:From:Subject:From;
-	b=Zh1hX4PULfkiM3h+bWBglCakeVoLL9OmdjLqXZpRUIhnhBESuXDMDMr8y//zgcOIM
-	 JsrqSeJ1jX4LQMRS15Xe6iBqEbh/O+9Ft6cwQrJAQ4bVRjYenEK6YlcdWzqAyHXq0V
-	 +IQ0M3BhotNuVDV1terTnMtrt3AW1hKaePphbp+4=
-Date: Sun, 11 May 2025 17:50:17 -0700
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,urezki@gmail.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=kfqZ6qfRGRjD3TgCoUkpn2pwa0hxC6qqgth+wI4CD8Gt3XwNNeMMpjHi3qjb+oI/0
+	 dZbVJypUfRcp9435sm9g8LLuaZStyGjAx/r+upOZZc0V6RB+cOxQ83nVCAPrS8YP+y
+	 bz7x4u/6bb+1BZwANtjMgPgRbTouW1585qdOITCY=
+Date: Sun, 11 May 2025 17:50:18 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-vmalloc-simplify-memcg_vmalloc-updates.patch removed from -mm tree
-Message-Id: <20250512005017.93463C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-remove-root-memcg-check-from-refill_stock.patch removed from -mm tree
+Message-Id: <20250512005018.BFC90C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: vmalloc: simplify MEMCG_VMALLOC updates
+     Subject: memcg: remove root memcg check from refill_stock
 has been removed from the -mm tree.  Its filename was
-     memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
+     memcg-remove-root-memcg-check-from-refill_stock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: vmalloc: simplify MEMCG_VMALLOC updates
-Date: Wed, 2 Apr 2025 22:33:26 -0700
+Subject: memcg: remove root memcg check from refill_stock
+Date: Thu, 3 Apr 2025 18:39:05 -0700
 
-The vmalloc region can either be charged to a single memcg or none.  At
-the moment kernel traverses all the pages backing the vmalloc region to
-update the MEMCG_VMALLOC stat.  However there is no need to look at all
-the pages as all those pages will be charged to a single memcg or none. 
-Simplify the MEMCG_VMALLOC update by just looking at the first page of the
-vmalloc region.
+refill_stock can not be called with root memcg, so there is no need to
+check it.  Instead add a warning if root is ever passed to it.
 
-[shakeel.butt@linux.dev: add comment]
-  Link: https://lkml.kernel.org/r/bmlkdbqgwboyqrnxyom7n52fjmo76ux77jhqw5odc6c6dfon3h@zdylwtmlywbt
-Link: https://lkml.kernel.org/r/20250403053326.26860-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250404013913.1663035-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250404013913.1663035-2-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~memcg-vmalloc-simplify-memcg_vmalloc-updates
-+++ a/mm/vmalloc.c
-@@ -3371,12 +3371,13 @@ void vfree(const void *addr)
+--- a/mm/memcontrol.c~memcg-remove-root-memcg-check-from-refill_stock
++++ a/mm/memcontrol.c
+@@ -1893,13 +1893,13 @@ static void refill_stock(struct mem_cgro
+ {
+ 	unsigned long flags;
  
- 	if (unlikely(vm->flags & VM_FLUSH_RESET_PERMS))
- 		vm_reset_perms(vm);
-+	/* All pages of vm should be charged to same memcg, so use first one. */
-+	if (vm->nr_pages && !(vm->flags & VM_MAP_PUT_PAGES))
-+		mod_memcg_page_state(vm->pages[0], MEMCG_VMALLOC, -vm->nr_pages);
- 	for (i = 0; i < vm->nr_pages; i++) {
- 		struct page *page = vm->pages[i];
- 
- 		BUG_ON(!page);
--		if (!(vm->flags & VM_MAP_PUT_PAGES))
--			mod_memcg_page_state(page, MEMCG_VMALLOC, -1);
++	VM_WARN_ON_ONCE(mem_cgroup_is_root(memcg));
++
+ 	if (!local_trylock_irqsave(&memcg_stock.stock_lock, flags)) {
  		/*
- 		 * High-order allocs for huge vmallocs are split, so
- 		 * can be freed as an array of order-0 allocations
-@@ -3672,12 +3673,10 @@ static void *__vmalloc_area_node(struct
- 		node, page_order, nr_small_pages, area->pages);
- 
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
--	if (gfp_mask & __GFP_ACCOUNT) {
--		int i;
--
--		for (i = 0; i < area->nr_pages; i++)
--			mod_memcg_page_state(area->pages[i], MEMCG_VMALLOC, 1);
--	}
-+	/* All pages of vm should be charged to same memcg, so use first one. */
-+	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
-+		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
-+				     area->nr_pages);
- 
- 	/*
- 	 * If not enough pages were obtained to accomplish an
+ 		 * In case of unlikely failure to lock percpu stock_lock
+ 		 * uncharge memcg directly.
+ 		 */
+-		if (mem_cgroup_is_root(memcg))
+-			return;
+ 		page_counter_uncharge(&memcg->memory, nr_pages);
+ 		if (do_memsw_account())
+ 			page_counter_uncharge(&memcg->memsw, nr_pages);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
