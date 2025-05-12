@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 859431553A3
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCB001553A3
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011068; cv=none; b=FrAI8IlJOunwLHovUo5EwvImDG95vJck8eo0NhMPQGmr9KnMklYrcimZ74wKjlflThFR+2x3RlU6WjJNO6283AD31HBdm7xxjjurUcny4nt1JXiyNOXk6VJ8DhZuRhTrabga3XbYgMWVzDpgI9rAqiZe80mibK+QfmyEhB+b2O0=
+	t=1747011069; cv=none; b=CSznyrNrmYH1MMGH8J+jdRO+qHhhjjsMquY/ljJijqXmRH7sG44JYFFCT1upBDA/dDRdhwhU9y8RhbLl6rNwXwgKjjmUL7Ap8tMZRKCRRqYOYSpXg2kxLsUFWnmY72NcDy1SWdrVjp7QKAv8eHzBgi8ixE3Y9ffNa6rl/asp0o0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011068; c=relaxed/simple;
-	bh=LZPXgjmCIzYWYJQgs0gU3UfZm1+Nqcq4T5O9WAvPcTU=;
-	h=Date:To:From:Subject:Message-Id; b=h+SJlNN9qfLW9GcDzmQqR5GD03nlNxCzr4OFTZJqkooGXLEkXYS84hlnuhKgShHvHZB2qwsELyt0QqZ04sBatTyH4beklAIUNmtPwQcM8QhxM/qaZKJlm9QOoEOJqgmQ+Yi5Mn8noM5mKomezJ5LnTrO34FoHFYn9k1g7VdwrBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IrSMmRPG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011069; c=relaxed/simple;
+	bh=pdbHfOAixOPJ5KM7pJkwLq0jLxqcX+p8hMM6XsFNOP0=;
+	h=Date:To:From:Subject:Message-Id; b=O5cVy+VPxfTWagaNB87FQIBJkG4jxh0fQ80vQsLS25UsiTPmjrelLQ3fIJi10osRrCuMe3LP44dVRWW0klizCEXvF2jLeekuvb+vjG42J2h7eSlOFRMziLqSwvK0glPIZI2eqfv56i8Adjc5qcfIeLkFiUYeOFtC17/ecbJNnuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cr2YbKgY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IrSMmRPG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5784FC4CEE4;
-	Mon, 12 May 2025 00:51:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cr2YbKgY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91C73C4CEE4;
+	Mon, 12 May 2025 00:51:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011068;
-	bh=LZPXgjmCIzYWYJQgs0gU3UfZm1+Nqcq4T5O9WAvPcTU=;
+	s=korg; t=1747011069;
+	bh=pdbHfOAixOPJ5KM7pJkwLq0jLxqcX+p8hMM6XsFNOP0=;
 	h=Date:To:From:Subject:From;
-	b=IrSMmRPGxg3PVTdvnzuPJtOFp+0o/1EOjMd9y258fzz6wpBW0jUG0O9X+SugORLFi
-	 FzxRD9CxTsxXKHhyrlHXhtjYzkZN9AeTbnbzTW5dq5pFn5lY0C6hurIq96p8lnjsRu
-	 vDgbS8wq77VHbY4vU87OQHP7YsRdLZg1KXm1MA3E=
-Date: Sun, 11 May 2025 17:51:07 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,michal.swiatkowski@linux.intel.com,dave.hansen@intel.com,andriy.shevchenko@intel.com,przemyslaw.kitszel@intel.com,akpm@linux-foundation.org
+	b=Cr2YbKgYhVjTtvKahKrlqkunoOinmz2R2aC2uJiSxkpdroYDAisu35pDfljMUkSk7
+	 5AeI365qXYgD973/NAWFh2aGT6dEwxRupoOVF3DOxqHNX0jOpjVksTddiSJjb9kfof
+	 o3O3GfnvuCw4xn+rOqL46HLX0/Fj4dUbSUJ9vPhQ=
+Date: Sun, 11 May 2025 17:51:09 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,svetly.todorov@memverge.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ran.xiaokai@zte.com.cn,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases.patch removed from -mm tree
-Message-Id: <20250512005108.5784FC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] fs-proc-page-refactoring-to-reduce-code-duplication.patch removed from -mm tree
+Message-Id: <20250512005109.91C73C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,169 +35,288 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xarray: make xa_alloc_cyclic() return 0 on all success cases
+     Subject: fs/proc/page: refactor to reduce code duplication
 has been removed from the -mm tree.  Its filename was
-     xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases.patch
+     fs-proc-page-refactoring-to-reduce-code-duplication.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Subject: xarray: make xa_alloc_cyclic() return 0 on all success cases
-Date: Thu, 20 Mar 2025 11:22:19 +0100
+From: Liu Ye <liuye@kylinos.cn>
+Subject: fs/proc/page: refactor to reduce code duplication
+Date: Tue, 18 Mar 2025 14:32:26 +0800
 
-Change xa_alloc_cyclic() to return 0 even on wrap-around.  Do the same for
-xa_alloc_cyclic_irq() and xa_alloc_cyclic_bh().
+kpageflags_read() and kpagecgroup_read() are quite similar to
+kpagecount_read().  Refactor common code into a helper function to reduce
+code duplication.
 
-This will prevent any future bug of treating return of 1 as an error:
-	int ret = xa_alloc_cyclic(...)
-	if (ret) // currently mishandles ret==1
-		goto failure;
-
-If there will be someone interested in when wrap-around occurs, there is
-still __xa_alloc_cyclic() that behaves as before.  For now there is no
-such user.
-
-Link: https://lkml.kernel.org/r/20250320102219.8101-1-przemyslaw.kitszel@intel.com
-Signed-off-by: Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Link: https://lore.kernel.org/netdev/Z9gUd-5t8b5NX2wE@casper.infradead.org
-Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Michal Swiatkowski <michal.swiatkowski@linux.intel.com>
-Cc: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+Link: https://lkml.kernel.org/r/20250318063226.223284-1-liuyerd@163.com
+Signed-off-by: Liu Ye <liuye@kylinos.cn>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Svetly Todorov <svetly.todorov@memverge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xarray.h |   24 +++++++++++++++---------
- lib/test_xarray.c      |   17 +++++++++++++++--
- 2 files changed, 30 insertions(+), 11 deletions(-)
+ fs/proc/page.c             |  159 +++++++++++------------------------
+ include/linux/memcontrol.h |    4 
+ 2 files changed, 57 insertions(+), 106 deletions(-)
 
---- a/include/linux/xarray.h~xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases
-+++ a/include/linux/xarray.h
-@@ -965,10 +965,12 @@ static inline int __must_check xa_alloc_
-  * Must only be operated on an xarray initialized with flag XA_FLAGS_ALLOC set
-  * in xa_init_flags().
-  *
-+ * Note that callers interested in whether wrapping has occurred should
-+ * use __xa_alloc_cyclic() instead.
+--- a/fs/proc/page.c~fs-proc-page-refactoring-to-reduce-code-duplication
++++ a/fs/proc/page.c
+@@ -22,6 +22,12 @@
+ #define KPMMASK (KPMSIZE - 1)
+ #define KPMBITS (KPMSIZE * BITS_PER_BYTE)
+ 
++enum kpage_operation {
++	KPAGE_FLAGS,
++	KPAGE_COUNT,
++	KPAGE_CGROUP,
++};
++
+ static inline unsigned long get_max_dump_pfn(void)
+ {
+ #ifdef CONFIG_SPARSEMEM
+@@ -37,19 +43,17 @@ static inline unsigned long get_max_dump
+ #endif
+ }
+ 
+-/* /proc/kpagecount - an array exposing page mapcounts
+- *
+- * Each entry is a u64 representing the corresponding
+- * physical page mapcount.
+- */
+-static ssize_t kpagecount_read(struct file *file, char __user *buf,
+-			     size_t count, loff_t *ppos)
++static ssize_t kpage_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos,
++		enum kpage_operation op)
+ {
+ 	const unsigned long max_dump_pfn = get_max_dump_pfn();
+ 	u64 __user *out = (u64 __user *)buf;
++	struct page *page;
+ 	unsigned long src = *ppos;
+ 	unsigned long pfn;
+ 	ssize_t ret = 0;
++	u64 info;
+ 
+ 	pfn = src / KPMSIZE;
+ 	if (src & KPMMASK || count & KPMMASK)
+@@ -59,24 +63,34 @@ static ssize_t kpagecount_read(struct fi
+ 	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+ 
+ 	while (count > 0) {
+-		struct page *page;
+-		u64 mapcount = 0;
+-
+ 		/*
+ 		 * TODO: ZONE_DEVICE support requires to identify
+ 		 * memmaps that were actually initialized.
+ 		 */
+ 		page = pfn_to_online_page(pfn);
+-		if (page) {
+-			struct folio *folio = page_folio(page);
+ 
+-			if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
+-				mapcount = folio_precise_page_mapcount(folio, page);
+-			else
+-				mapcount = folio_average_page_mapcount(folio);
+-		}
++		if (page) {
++			switch (op) {
++			case KPAGE_FLAGS:
++				info = stable_page_flags(page);
++				break;
++			case KPAGE_COUNT:
++				if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
++					info = folio_precise_page_mapcount(page_folio(page), page);
++				else
++					info = folio_average_page_mapcount(page_folio(page));
++				break;
++			case KPAGE_CGROUP:
++				info = page_cgroup_ino(page);
++				break;
++			default:
++				info = 0;
++				break;
++			}
++		} else
++			info = 0;
+ 
+-		if (put_user(mapcount, out)) {
++		if (put_user(info, out)) {
+ 			ret = -EFAULT;
+ 			break;
+ 		}
+@@ -94,17 +108,23 @@ static ssize_t kpagecount_read(struct fi
+ 	return ret;
+ }
+ 
++/* /proc/kpagecount - an array exposing page mapcounts
 + *
-  * Context: Any context.  Takes and releases the xa_lock.  May sleep if
-  * the @gfp flags permit.
-- * Return: 0 if the allocation succeeded without wrapping.  1 if the
-- * allocation succeeded after wrapping, -ENOMEM if memory could not be
-+ * Return: 0 if the allocation succeeded, -ENOMEM if memory could not be
-  * allocated or -EBUSY if there are no free entries in @limit.
-  */
- static inline int xa_alloc_cyclic(struct xarray *xa, u32 *id, void *entry,
-@@ -981,7 +983,7 @@ static inline int xa_alloc_cyclic(struct
- 	err = __xa_alloc_cyclic(xa, id, entry, limit, next, gfp);
- 	xa_unlock(xa);
++ * Each entry is a u64 representing the corresponding
++ * physical page mapcount.
++ */
++static ssize_t kpagecount_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	return kpage_read(file, buf, count, ppos, KPAGE_COUNT);
++}
++
+ static const struct proc_ops kpagecount_proc_ops = {
+ 	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_lseek	= mem_lseek,
+ 	.proc_read	= kpagecount_read,
+ };
  
--	return err;
-+	return err < 0 ? err : 0;
- }
+-/* /proc/kpageflags - an array exposing page flags
+- *
+- * Each entry is a u64 representing the corresponding
+- * physical page flags.
+- */
  
- /**
-@@ -1002,10 +1004,12 @@ static inline int xa_alloc_cyclic(struct
-  * Must only be operated on an xarray initialized with flag XA_FLAGS_ALLOC set
-  * in xa_init_flags().
-  *
-+ * Note that callers interested in whether wrapping has occurred should
-+ * use __xa_alloc_cyclic() instead.
+ static inline u64 kpf_copy_bit(u64 kflags, int ubit, int kbit)
+ {
+@@ -225,47 +245,17 @@ u64 stable_page_flags(const struct page
+ #endif
+ 
+ 	return u;
+-};
++}
+ 
++/* /proc/kpageflags - an array exposing page flags
 + *
-  * Context: Any context.  Takes and releases the xa_lock while
-  * disabling softirqs.  May sleep if the @gfp flags permit.
-- * Return: 0 if the allocation succeeded without wrapping.  1 if the
-- * allocation succeeded after wrapping, -ENOMEM if memory could not be
-+ * Return: 0 if the allocation succeeded, -ENOMEM if memory could not be
-  * allocated or -EBUSY if there are no free entries in @limit.
-  */
- static inline int xa_alloc_cyclic_bh(struct xarray *xa, u32 *id, void *entry,
-@@ -1018,7 +1022,7 @@ static inline int xa_alloc_cyclic_bh(str
- 	err = __xa_alloc_cyclic(xa, id, entry, limit, next, gfp);
- 	xa_unlock_bh(xa);
- 
--	return err;
-+	return err < 0 ? err : 0;
++ * Each entry is a u64 representing the corresponding
++ * physical page flags.
++ */
+ static ssize_t kpageflags_read(struct file *file, char __user *buf,
+-			     size_t count, loff_t *ppos)
++		size_t count, loff_t *ppos)
+ {
+-	const unsigned long max_dump_pfn = get_max_dump_pfn();
+-	u64 __user *out = (u64 __user *)buf;
+-	unsigned long src = *ppos;
+-	unsigned long pfn;
+-	ssize_t ret = 0;
+-
+-	pfn = src / KPMSIZE;
+-	if (src & KPMMASK || count & KPMMASK)
+-		return -EINVAL;
+-	if (src >= max_dump_pfn * KPMSIZE)
+-		return 0;
+-	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+-
+-	while (count > 0) {
+-		/*
+-		 * TODO: ZONE_DEVICE support requires to identify
+-		 * memmaps that were actually initialized.
+-		 */
+-		struct page *page = pfn_to_online_page(pfn);
+-
+-		if (put_user(stable_page_flags(page), out)) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-
+-		pfn++;
+-		out++;
+-		count -= KPMSIZE;
+-
+-		cond_resched();
+-	}
+-
+-	*ppos += (char __user *)out - buf;
+-	if (!ret)
+-		ret = (char __user *)out - buf;
+-	return ret;
++	return kpage_read(file, buf, count, ppos, KPAGE_FLAGS);
  }
  
- /**
-@@ -1039,10 +1043,12 @@ static inline int xa_alloc_cyclic_bh(str
-  * Must only be operated on an xarray initialized with flag XA_FLAGS_ALLOC set
-  * in xa_init_flags().
-  *
-+ * Note that callers interested in whether wrapping has occurred should
-+ * use __xa_alloc_cyclic() instead.
-+ *
-  * Context: Process context.  Takes and releases the xa_lock while
-  * disabling interrupts.  May sleep if the @gfp flags permit.
-- * Return: 0 if the allocation succeeded without wrapping.  1 if the
-- * allocation succeeded after wrapping, -ENOMEM if memory could not be
-+ * Return: 0 if the allocation succeeded, -ENOMEM if memory could not be
-  * allocated or -EBUSY if there are no free entries in @limit.
-  */
- static inline int xa_alloc_cyclic_irq(struct xarray *xa, u32 *id, void *entry,
-@@ -1055,7 +1061,7 @@ static inline int xa_alloc_cyclic_irq(st
- 	err = __xa_alloc_cyclic(xa, id, entry, limit, next, gfp);
- 	xa_unlock_irq(xa);
+ static const struct proc_ops kpageflags_proc_ops = {
+@@ -276,53 +266,10 @@ static const struct proc_ops kpageflags_
  
--	return err;
-+	return err < 0 ? err : 0;
+ #ifdef CONFIG_MEMCG
+ static ssize_t kpagecgroup_read(struct file *file, char __user *buf,
+-				size_t count, loff_t *ppos)
++		size_t count, loff_t *ppos)
+ {
+-	const unsigned long max_dump_pfn = get_max_dump_pfn();
+-	u64 __user *out = (u64 __user *)buf;
+-	struct page *ppage;
+-	unsigned long src = *ppos;
+-	unsigned long pfn;
+-	ssize_t ret = 0;
+-	u64 ino;
+-
+-	pfn = src / KPMSIZE;
+-	if (src & KPMMASK || count & KPMMASK)
+-		return -EINVAL;
+-	if (src >= max_dump_pfn * KPMSIZE)
+-		return 0;
+-	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+-
+-	while (count > 0) {
+-		/*
+-		 * TODO: ZONE_DEVICE support requires to identify
+-		 * memmaps that were actually initialized.
+-		 */
+-		ppage = pfn_to_online_page(pfn);
+-
+-		if (ppage)
+-			ino = page_cgroup_ino(ppage);
+-		else
+-			ino = 0;
+-
+-		if (put_user(ino, out)) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-
+-		pfn++;
+-		out++;
+-		count -= KPMSIZE;
+-
+-		cond_resched();
+-	}
+-
+-	*ppos += (char __user *)out - buf;
+-	if (!ret)
+-		ret = (char __user *)out - buf;
+-	return ret;
++	return kpage_read(file, buf, count, ppos, KPAGE_CGROUP);
+ }
+-
+ static const struct proc_ops kpagecgroup_proc_ops = {
+ 	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_lseek	= mem_lseek,
+--- a/include/linux/memcontrol.h~fs-proc-page-refactoring-to-reduce-code-duplication
++++ a/include/linux/memcontrol.h
+@@ -1793,6 +1793,10 @@ static inline void count_objcg_events(st
+ {
  }
  
- /**
---- a/lib/test_xarray.c~xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases
-+++ a/lib/test_xarray.c
-@@ -1040,6 +1040,7 @@ static noinline void check_xa_alloc_3(st
- 	unsigned int i, id;
- 	unsigned long index;
- 	void *entry;
-+	int ret;
++static inline ino_t page_cgroup_ino(struct page *page)
++{
++	return 0;
++}
+ #endif /* CONFIG_MEMCG */
  
- 	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(1), limit,
- 				&next, GFP_KERNEL) != 0);
-@@ -1059,7 +1060,7 @@ static noinline void check_xa_alloc_3(st
- 		else
- 			entry = xa_mk_index(i - 0x3fff);
- 		XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, entry, limit,
--					&next, GFP_KERNEL) != (id == 1));
-+					&next, GFP_KERNEL) != 0);
- 		XA_BUG_ON(xa, xa_mk_index(id) != entry);
- 	}
- 
-@@ -1072,7 +1073,7 @@ static noinline void check_xa_alloc_3(st
- 				xa_limit_32b, &next, GFP_KERNEL) != 0);
- 	XA_BUG_ON(xa, id != UINT_MAX);
- 	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(base),
--				xa_limit_32b, &next, GFP_KERNEL) != 1);
-+				xa_limit_32b, &next, GFP_KERNEL) != 0);
- 	XA_BUG_ON(xa, id != base);
- 	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(base + 1),
- 				xa_limit_32b, &next, GFP_KERNEL) != 0);
-@@ -1080,7 +1081,19 @@ static noinline void check_xa_alloc_3(st
- 
- 	xa_for_each(xa, index, entry)
- 		xa_erase_index(xa, index);
-+	XA_BUG_ON(xa, !xa_empty(xa));
- 
-+	/* check wrap-around return of __xa_alloc_cyclic() */
-+	next = UINT_MAX;
-+	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(UINT_MAX),
-+				      xa_limit_32b, &next, GFP_KERNEL) != 0);
-+	xa_lock(xa);
-+	ret = __xa_alloc_cyclic(xa, &id, xa_mk_index(base), xa_limit_32b,
-+				&next, GFP_KERNEL);
-+	xa_unlock(xa);
-+	XA_BUG_ON(xa, ret != 1);
-+	xa_for_each(xa, index, entry)
-+		xa_erase_index(xa, index);
- 	XA_BUG_ON(xa, !xa_empty(xa));
- }
- 
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_ZSWAP)
 _
 
-Patches currently in -mm which might be from przemyslaw.kitszel@intel.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
+mm-rmap-rename-page__anon_vma-to-anon_vma-for-consistency.patch
+mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
+mm-io-mapping-precompute-remap-protection-flags-for-clarity.patch
+mm-debug_page_alloc-improve-error-message-for-invalid-guardpage-minorder.patch
+mm-numa-remove-unnecessary-local-variable-in-alloc_node_data.patch
 
