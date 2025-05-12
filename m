@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E6671E489
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:49:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 815EC1E489
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:49:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747010976; cv=none; b=G9uIc0H9QdxGiMDCCt3gErWlddu4PSvYVOQjwT2zgSB2IVHKESCx+HYucajbfBUHwUe+ZZr9TyqKTSYDsZC0h3Lt06FawjJ5U8CBRnixccDLh4DBiD+QYVyHloRqXDueQhLJmYYaqKgaVDaRx8OeSukHMtLft/lp/gNv5qrzfqc=
+	t=1747010977; cv=none; b=XAHQzI6ayQErX4bj0hrtHaJHjreNqERHiGH941lcSQc/1avApVBZICAtcA7fQdVJ3YLU4BLp9KNVeqodaOIEV4nCxMNlvZX2QudySPmh5PPRnjLCwk/Xww/Sdt8VrcVXzN1jHDpOEgLRWVLQIueGqaivdqWgSgmGt+TO08pXQBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747010976; c=relaxed/simple;
-	bh=4niqiE3oH49pDKlRDwo//iRTjrf44w+hQU2hjNveGlM=;
-	h=Date:To:From:Subject:Message-Id; b=ZhsIBp2H+3tOARAKoHr2WAT/Cy9BxfWBzrVpStkzBYU/OSSZFI1a7FedtIvL/8PnR9vxhtH8ax9Nfwqi6sxXrrn7aiktQb2Sb/97bDDO7cPESTZEXPiCE7pmnJD+w0N6y/gxvTYXXur9xmP3Fxpqm9wzIwhqI6MhddsQ6tCxyAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MmlDUGGf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747010977; c=relaxed/simple;
+	bh=Q1QTwd3LcSPrWB+9biZvni9eXUdysZVY9m2wDKjw1T0=;
+	h=Date:To:From:Subject:Message-Id; b=AV/UR6vgliwypSeGIZE8tLIK2VYWO75b7TAhMI/bkAE/+PGcNxEGRvauYrOpCaO5HUzbggl5+B9or5NzXLi0YExrvRTJiUNO1fdtvCBAX7qM7gWx/iqisFGk859PiZkfRvqBQHW4w0s+aF6IFGsdh82v8LLPYtsaJUpqt6DIuvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2c9/QiTW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MmlDUGGf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8243AC4CEE4;
-	Mon, 12 May 2025 00:49:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2c9/QiTW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAA5AC4CEE4;
+	Mon, 12 May 2025 00:49:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747010975;
-	bh=4niqiE3oH49pDKlRDwo//iRTjrf44w+hQU2hjNveGlM=;
+	s=korg; t=1747010976;
+	bh=Q1QTwd3LcSPrWB+9biZvni9eXUdysZVY9m2wDKjw1T0=;
 	h=Date:To:From:Subject:From;
-	b=MmlDUGGfj+JN2fFiZuX1IWZQkSpUltdlgQ/ts4aog4TxmQOu+R4VEpycbmt1QdQXu
-	 ZyUBrmtqRC4zNLvRmgcceocnFPQhWARq03StWO6nX5AYM7L5ClKrh7k1BfWp37gVI7
-	 2RomFVC8BpmE7LUB7RqM6m8V+rQ5mQ22tpg3tsTw=
-Date: Sun, 11 May 2025 17:49:34 -0700
+	b=2c9/QiTWfNTUUeSlXPUaKbJkjvB5ZcqhUXCi0R6WSZoF+NKNqxl6e9Rjo6XUN53y5
+	 8wzL/dHRf+ej+z+zFOq+1zhvUc/iWUmZWgewmX9iI9BjPv7B/1iTXynFsDGlfpRFTl
+	 bygFnDBB6E1NsQQawV9M2sI63jI/8AHk5wC4sPfk=
+Date: Sun, 11 May 2025 17:49:36 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,x86@kernel.org,richard@nod.at,muchun.song@linux.dev,johannes@sipsolutions.net,geert@linux-m68k.org,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,agordeev@linux.ibm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch removed from -mm tree
-Message-Id: <20250512004935.8243AC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-a-common-definition-of-mk_pte.patch removed from -mm tree
+Message-Id: <20250512004936.CAA5AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: set the pte dirty if the folio is already dirty
+     Subject: mm: introduce a common definition of mk_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch
+     mm-introduce-a-common-definition-of-mk_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: set the pte dirty if the folio is already dirty
-Date: Wed, 2 Apr 2025 19:16:55 +0100
+Subject: mm: introduce a common definition of mk_pte()
+Date: Wed, 2 Apr 2025 19:16:56 +0100
 
-Patch series "Add folio_mk_pte()", v2.
+Most architectures simply call pfn_pte().  Centralise that as the normal
+definition and remove the definition of mk_pte() from the architectures
+which have either that exact definition or something similar.
 
-Today if you have a folio and want to create a PTE that points to the
-first page in it, you have to convert from a folio to a page.  That's
-zero-cost today but will be more expensive in the future.
-
-I didn't want to add folio_mk_pte() to each architecture, and I didn't
-want to lose any optimisations that architectures have from their own
-implementation of mk_pte().  Fortunately, most architectures have by now
-turned their mk_pte() into a fairly bland variant of pfn_pte(), but s390
-has a special optimisation that needs to be moved into generic code in the
-first patch.
-
-At the end of this patch set, we have mk_pte() and folio_mk_pte() in mm.h
-and each architecture only has to implement pfn_pte().  We've also
-eliminated mk_huge_pte(), mk_huge_pmd() and mk_pmd().
-
-
-This patch (of 11):
-
-If the first access to a folio is a read that is then followed by a write,
-we can save a page fault.  s390 implemented this in their mk_pte() in
-commit abf09bed3cce ("s390/mm: implement software dirty bits"), but other
-architectures can also benefit from this.
-
-Link: https://lkml.kernel.org/r/20250402181709.2386022-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20250402181709.2386022-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250402181709.2386022-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com> # for s390
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com> # s390
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Richard Weinberger <richard@nod.at>
@@ -90,37 +68,350 @@ Cc: <x86@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    7 +------
- mm/memory.c                     |    2 ++
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ arch/alpha/include/asm/pgtable.h         |    7 -------
+ arch/arc/include/asm/pgtable-levels.h    |    1 -
+ arch/arm/include/asm/pgtable.h           |    1 -
+ arch/arm64/include/asm/pgtable.h         |    6 ------
+ arch/csky/include/asm/pgtable.h          |    5 -----
+ arch/hexagon/include/asm/pgtable.h       |    3 ---
+ arch/loongarch/include/asm/pgtable.h     |    6 ------
+ arch/m68k/include/asm/mcf_pgtable.h      |    6 ------
+ arch/m68k/include/asm/motorola_pgtable.h |    6 ------
+ arch/m68k/include/asm/sun3_pgtable.h     |    6 ------
+ arch/microblaze/include/asm/pgtable.h    |    8 --------
+ arch/mips/include/asm/pgtable.h          |    6 ------
+ arch/nios2/include/asm/pgtable.h         |    6 ------
+ arch/openrisc/include/asm/pgtable.h      |    2 --
+ arch/parisc/include/asm/pgtable.h        |    6 ------
+ arch/powerpc/include/asm/pgtable.h       |    3 +--
+ arch/riscv/include/asm/pgtable.h         |    2 --
+ arch/s390/include/asm/pgtable.h          |    5 -----
+ arch/sh/include/asm/pgtable_32.h         |    8 --------
+ arch/sparc/include/asm/pgtable_64.h      |    1 -
+ arch/xtensa/include/asm/pgtable.h        |    6 ------
+ include/linux/mm.h                       |    9 +++++++++
+ 22 files changed, 10 insertions(+), 99 deletions(-)
 
---- a/arch/s390/include/asm/pgtable.h~mm-set-the-pte-dirty-if-the-folio-is-already-dirty
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1450,12 +1450,7 @@ static inline pte_t mk_pte_phys(unsigned
+--- a/arch/alpha/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -192,13 +192,6 @@ extern unsigned long __zero_page(void);
+ #define pte_pfn(pte)		(pte_val(pte) >> PFN_PTE_SHIFT)
  
- static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
- {
--	unsigned long physpage = page_to_phys(page);
--	pte_t __pte = mk_pte_phys(physpage, pgprot);
+ #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
+-#define mk_pte(page, pgprot)						\
+-({									\
+-	pte_t pte;							\
+-									\
+-	pte_val(pte) = (page_to_pfn(page) << 32) | pgprot_val(pgprot);	\
+-	pte;								\
+-})
+ 
+ extern inline pte_t pfn_pte(unsigned long physpfn, pgprot_t pgprot)
+ { pte_t pte; pte_val(pte) = (PHYS_TWIDDLE(physpfn) << 32) | pgprot_val(pgprot); return pte; }
+--- a/arch/arc/include/asm/pgtable-levels.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/arc/include/asm/pgtable-levels.h
+@@ -177,7 +177,6 @@
+ #define set_pte(ptep, pte)	((*(ptep)) = (pte))
+ #define pte_pfn(pte)		(pte_val(pte) >> PAGE_SHIFT)
+ #define pfn_pte(pfn, prot)	__pte(__pfn_to_phys(pfn) | pgprot_val(prot))
+-#define mk_pte(page, prot)	pfn_pte(page_to_pfn(page), prot)
+ 
+ #ifdef CONFIG_ISA_ARCV2
+ #define pmd_leaf(x)		(pmd_val(x) & _PAGE_HW_SZ)
+--- a/arch/arm64/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -813,12 +813,6 @@ static inline unsigned long pmd_page_vad
+ /* use ONLY for statically allocated translation tables */
+ #define pte_offset_kimg(dir,addr)	((pte_t *)__phys_to_kimg(pte_offset_phys((dir), (addr))))
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-#define mk_pte(page,prot)	pfn_pte(page_to_pfn(page),prot)
 -
--	if (pte_write(__pte) && PageDirty(page))
--		__pte = pte_mkdirty(__pte);
--	return __pte;
-+	return mk_pte_phys(page_to_phys(page), pgprot);
+ #if CONFIG_PGTABLE_LEVELS > 2
+ 
+ #define pmd_ERROR(e)	\
+--- a/arch/arm/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/arm/include/asm/pgtable.h
+@@ -168,7 +168,6 @@ static inline pte_t *pmd_page_vaddr(pmd_
+ #define pfn_pte(pfn,prot)	__pte(__pfn_to_phys(pfn) | pgprot_val(prot))
+ 
+ #define pte_page(pte)		pfn_to_page(pte_pfn(pte))
+-#define mk_pte(page,prot)	pfn_pte(page_to_pfn(page), prot)
+ 
+ #define pte_clear(mm,addr,ptep)	set_pte_ext(ptep, __pte(0), 0)
+ 
+--- a/arch/csky/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/csky/include/asm/pgtable.h
+@@ -249,11 +249,6 @@ static inline pgprot_t pgprot_writecombi
+ 	return __pgprot(prot);
  }
  
- #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
---- a/mm/memory.c~mm-set-the-pte-dirty-if-the-folio-is-already-dirty
-+++ a/mm/memory.c
-@@ -5245,6 +5245,8 @@ void set_pte_range(struct vm_fault *vmf,
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-#define mk_pte(page, pgprot)    pfn_pte(page_to_pfn(page), (pgprot))
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	return __pte((pte_val(pte) & _PAGE_CHG_MASK) |
+--- a/arch/hexagon/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/hexagon/include/asm/pgtable.h
+@@ -238,9 +238,6 @@ static inline int pte_present(pte_t pte)
+ 	return pte_val(pte) & _PAGE_PRESENT;
+ }
  
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+	else if (pte_write(entry) && folio_test_dirty(folio))
-+		entry = pte_mkdirty(entry);
- 	if (unlikely(vmf_orig_pte_uffd_wp(vmf)))
- 		entry = pte_mkuffd_wp(entry);
- 	/* copy-on-write page */
+-/* mk_pte - make a PTE out of a page pointer and protection bits */
+-#define mk_pte(page, pgprot) pfn_pte(page_to_pfn(page), (pgprot))
+-
+ /* pte_page - returns a page (frame pointer/descriptor?) based on a PTE */
+ #define pte_page(x) pfn_to_page(pte_pfn(x))
+ 
+--- a/arch/loongarch/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -426,12 +426,6 @@ static inline unsigned long pte_accessib
+ 	return false;
+ }
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-#define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+-
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	return __pte((pte_val(pte) & _PAGE_CHG_MASK) |
+--- a/arch/m68k/include/asm/mcf_pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/m68k/include/asm/mcf_pgtable.h
+@@ -96,12 +96,6 @@
+ 
+ #define pmd_pgtable(pmd) pfn_to_virt(pmd_val(pmd) >> PAGE_SHIFT)
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-#define mk_pte(page, pgprot) pfn_pte(page_to_pfn(page), (pgprot))
+-
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	pte_val(pte) = (pte_val(pte) & CF_PAGE_CHG_MASK) | pgprot_val(newprot);
+--- a/arch/m68k/include/asm/motorola_pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/m68k/include/asm/motorola_pgtable.h
+@@ -81,12 +81,6 @@ extern unsigned long mm_cachebits;
+ 
+ #define pmd_pgtable(pmd) ((pgtable_t)pmd_page_vaddr(pmd))
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-#define mk_pte(page, pgprot) pfn_pte(page_to_pfn(page), (pgprot))
+-
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot);
+--- a/arch/m68k/include/asm/sun3_pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/m68k/include/asm/sun3_pgtable.h
+@@ -76,12 +76,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-#define mk_pte(page, pgprot) pfn_pte(page_to_pfn(page), (pgprot))
+-
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	pte_val(pte) = (pte_val(pte) & SUN3_PAGE_CHG_MASK) | pgprot_val(newprot);
+--- a/arch/microblaze/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -285,14 +285,6 @@ static inline pte_t mk_pte_phys(phys_add
+ 	return pte;
+ }
+ 
+-#define mk_pte(page, pgprot) \
+-({									   \
+-	pte_t pte;							   \
+-	pte_val(pte) = (((page - mem_map) << PAGE_SHIFT) + memory_start) |  \
+-			pgprot_val(pgprot);				   \
+-	pte;								   \
+-})
+-
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot);
+--- a/arch/mips/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/mips/include/asm/pgtable.h
+@@ -504,12 +504,6 @@ static inline int ptep_set_access_flags(
+ 	return true;
+ }
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-#define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+-
+ #if defined(CONFIG_XPA)
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+--- a/arch/nios2/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -221,12 +221,6 @@ static inline void pte_clear(struct mm_s
+  * Conversion functions: convert a page and protection to a page entry,
+  * and a page entry and page directory to the page they refer to.
+  */
+-#define mk_pte(page, prot)	(pfn_pte(page_to_pfn(page), prot))
+-
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+ #define pmd_phys(pmd)		virt_to_phys((void *)pmd_val(pmd))
+ #define pmd_pfn(pmd)		(pmd_phys(pmd) >> PAGE_SHIFT)
+ #define pmd_page(pmd)		(pfn_to_page(pmd_phys(pmd) >> PAGE_SHIFT))
+--- a/arch/openrisc/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/openrisc/include/asm/pgtable.h
+@@ -299,8 +299,6 @@ static inline pte_t __mk_pte(void *page,
+ 	return pte;
+ }
+ 
+-#define mk_pte(page, pgprot) __mk_pte(page_address(page), (pgprot))
+-
+ #define mk_pte_phys(physpage, pgprot) \
+ ({                                                                      \
+ 	pte_t __pte;                                                    \
+--- a/arch/parisc/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -338,10 +338,6 @@ static inline pte_t pte_mkspecial(pte_t
+ #endif
+ 
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+ #define __mk_pte(addr,pgprot) \
+ ({									\
+ 	pte_t __pte;							\
+@@ -351,8 +347,6 @@ static inline pte_t pte_mkspecial(pte_t
+ 	__pte;								\
+ })
+ 
+-#define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+-
+ static inline pte_t pfn_pte(unsigned long pfn, pgprot_t pgprot)
+ {
+ 	pte_t pte;
+--- a/arch/powerpc/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -53,9 +53,8 @@ void set_ptes(struct mm_struct *mm, unsi
+ #define MAX_PTRS_PER_PGD PTRS_PER_PGD
+ #endif
+ 
+-/* Keep these as a macros to avoid include dependency mess */
++/* Keep this as a macro to avoid include dependency mess */
+ #define pte_page(x)		pfn_to_page(pte_pfn(x))
+-#define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+ 
+ static inline unsigned long pte_pfn(pte_t pte)
+ {
+--- a/arch/riscv/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -343,8 +343,6 @@ static inline pte_t pfn_pte(unsigned lon
+ 	return __pte((pfn << _PAGE_PFN_SHIFT) | prot_val);
+ }
+ 
+-#define mk_pte(page, prot)       pfn_pte(page_to_pfn(page), prot)
+-
+ #define pte_pgprot pte_pgprot
+ static inline pgprot_t pte_pgprot(pte_t pte)
+ {
+--- a/arch/s390/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1448,11 +1448,6 @@ static inline pte_t mk_pte_phys(unsigned
+ 	return pte_mkyoung(__pte);
+ }
+ 
+-static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
+-{
+-	return mk_pte_phys(page_to_phys(page), pgprot);
+-}
+-
+ #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+ #define p4d_index(address) (((address) >> P4D_SHIFT) & (PTRS_PER_P4D-1))
+ #define pud_index(address) (((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
+--- a/arch/sh/include/asm/pgtable_32.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/sh/include/asm/pgtable_32.h
+@@ -380,14 +380,6 @@ PTE_BIT_FUNC(low, mkspecial, |= _PAGE_SP
+ 
+ #define pgprot_noncached	 pgprot_writecombine
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- *
+- * extern pte_t mk_pte(struct page *page, pgprot_t pgprot)
+- */
+-#define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+-
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	pte.pte_low &= _PAGE_CHG_MASK;
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -225,7 +225,6 @@ static inline pte_t pfn_pte(unsigned lon
+ 	BUILD_BUG_ON(_PAGE_SZBITS_4U != 0UL || _PAGE_SZBITS_4V != 0UL);
+ 	return __pte(paddr | pgprot_val(prot));
+ }
+-#define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+--- a/arch/xtensa/include/asm/pgtable.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -269,17 +269,11 @@ static inline pte_t pte_mkwrite_novma(pt
+ 		((__pgprot((pgprot_val(prot) & ~_PAGE_CA_MASK) | \
+ 			   _PAGE_CA_BYPASS)))
+ 
+-/*
+- * Conversion functions: convert a page and protection to a page entry,
+- * and a page entry and page directory to the page they refer to.
+- */
+-
+ #define PFN_PTE_SHIFT		PAGE_SHIFT
+ #define pte_pfn(pte)		(pte_val(pte) >> PAGE_SHIFT)
+ #define pte_same(a,b)		(pte_val(a) == pte_val(b))
+ #define pte_page(x)		pfn_to_page(pte_pfn(x))
+ #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
+-#define mk_pte(page, prot)	pfn_pte(page_to_pfn(page), prot)
+ 
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+--- a/include/linux/mm.h~mm-introduce-a-common-definition-of-mk_pte
++++ a/include/linux/mm.h
+@@ -2004,6 +2004,15 @@ static inline struct folio *pfn_folio(un
+ 	return page_folio(pfn_to_page(pfn));
+ }
+ 
++#ifndef mk_pte
++#ifdef CONFIG_MMU
++static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
++{
++	return pfn_pte(page_to_pfn(page), pgprot);
++}
++#endif
++#endif
++
+ static inline bool folio_has_pincount(const struct folio *folio)
+ {
+ 	if (IS_ENABLED(CONFIG_64BIT))
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
