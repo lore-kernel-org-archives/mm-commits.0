@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AE562EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1B642EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011355; cv=none; b=plPWgLzqScrIljjHugZpn8qQzxfwIsvyZGmnmelZEZQ475hMLl/V2f4NlF+F3p+Yy4lChG9LX23laLYg28MwMrtdDTXTpf8RBLR7yCEJVno3SKmcITfhnPbhu6ud2AJwGfZh5dQSPLkXFvGFf8SEFdelAeoFSMr1Myx8y0JEye4=
+	t=1747011356; cv=none; b=k4qtCO4RcLuoGIaxezKTtKhBkiw8xsJ6e5++4hoCNT19dU+KrUhbHc/fEAmv7aeLEdVXqVDeiuKakkNHkl/nMi6TZlnJJCoICZ+oH4THX3CHtOyyoNzpg5uOQA3gllqXF5h/rPaNmYtyTcBnkB6Vak7cdnM0Ibw2w9oIAjhWqgM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011355; c=relaxed/simple;
-	bh=J4Ni0Jdt/xH+ftj+o+bUxW9lrz/lSIpbEH2Hz/2xTXE=;
-	h=Date:To:From:Subject:Message-Id; b=EIcvACLZf7eDOJ9GcIbyzkDXXNna3dN44zRb7QmZvNgy4UYbUvQGFsqSbvOb3jdhWQnJoi5F0+Druwg4jAI0Id1w/2peGJdcF6zMaUXW8tw6ZMwU6gABdXRDqCIHuW8St0rDsfZ0io0CUx8xy92iyRV3bA2J2wi9DqyJnwzYhnc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SggDog84; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011356; c=relaxed/simple;
+	bh=18dPeogXWbC7fG9kScUfaur/JANkYstSOddjFU6ZvJA=;
+	h=Date:To:From:Subject:Message-Id; b=umZwNH/2AVo/ACOyTs/ZiCQ9ON7CDI2eR1jTzlfPTb530Gw5zVlWO6pdltEZN0tqeNdK5LguqwdROVrNrlttQ+GsGJ9TYg28D6dL/9/N7oVsVAFp7m99LEqMX6SmGfbBF8qp6Z27Q/K2uSfLzLoH41/+Mq5uj0Kup1UzLM96rSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oVLGDaWy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SggDog84"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA820C4CEE4;
-	Mon, 12 May 2025 00:55:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oVLGDaWy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 266C2C4CEE4;
+	Mon, 12 May 2025 00:55:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011355;
-	bh=J4Ni0Jdt/xH+ftj+o+bUxW9lrz/lSIpbEH2Hz/2xTXE=;
+	s=korg; t=1747011356;
+	bh=18dPeogXWbC7fG9kScUfaur/JANkYstSOddjFU6ZvJA=;
 	h=Date:To:From:Subject:From;
-	b=SggDog847vixSpf0MqFRUKdPFHpFTCTNWmL+YgmCMp74EdFEcALp0UwEiW4Bmb4Ce
-	 H4VrtmVsu4EfQMnT6OqvPXCvPdhC03KB0Qq/29sVUCx27YSkMqMBqfI5iSbMdKMSRq
-	 En1BYCuuZop1puGSuc4S/j5lrDhv6KZJCWqSvTk4=
-Date: Sun, 11 May 2025 17:55:54 -0700
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
+	b=oVLGDaWy7/AFH8/B5BJSYjbJfq+gFEsXH0LeKCJb0tJ0QroX517ndxqpv1ZfzGDF8
+	 FYAtWh3SeooZNsIoW7wjVrSLwG0o423pCJtfzxgm46n8kgCU6nyv5ZqCkVQGiJRpex
+	 zFNwtEZu0ywwyL7OGzb2q3SRcSWQnvJMB4ynM1sg=
+Date: Sun, 11 May 2025 17:55:55 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,gechangwei@live.cn,wangyuli@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] squashfs-check-return-result-of-sb_min_blocksize.patch removed from -mm tree
-Message-Id: <20250512005554.EA820C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment.patch removed from -mm tree
+Message-Id: <20250512005556.266C2C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Squashfs: check return result of sb_min_blocksize
+     Subject: ocfs2: o2net_idle_timer: Rename del_timer_sync in comment
 has been removed from the -mm tree.  Its filename was
-     squashfs-check-return-result-of-sb_min_blocksize.patch
+     ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: check return result of sb_min_blocksize
-Date: Wed, 9 Apr 2025 03:47:47 +0100
+From: WangYuli <wangyuli@uniontech.com>
+Subject: ocfs2: o2net_idle_timer: Rename del_timer_sync in comment
+Date: Fri, 11 Apr 2025 18:26:10 +0800
 
-Syzkaller reports an "UBSAN: shift-out-of-bounds in squashfs_bio_read" bug.
+Commit 8fa7292fee5c ("treewide: Switch/rename to timer_delete[_sync]()")
+switched del_timer_sync to timer_delete_sync, but did not modify the
+comment for o2net_idle_timer().  Now fix it.
 
-Syzkaller forks multiple processes which after mounting the Squashfs
-filesystem, issues an ioctl("/dev/loop0", LOOP_SET_BLOCK_SIZE, 0x8000). 
-Now if this ioctl occurs at the same time another process is in the
-process of mounting a Squashfs filesystem on /dev/loop0, the failure
-occurs.  When this happens the following code in squashfs_fill_super()
-fails.
-
-----
-msblk->devblksize = sb_min_blocksize(sb, SQUASHFS_DEVBLK_SIZE);
-msblk->devblksize_log2 = ffz(~msblk->devblksize);
-----
-
-sb_min_blocksize() returns 0, which means msblk->devblksize is set to 0.
-
-As a result, ffz(~msblk->devblksize) returns 64, and msblk->devblksize_log2
-is set to 64.
-
-This subsequently causes the
-
-UBSAN: shift-out-of-bounds in fs/squashfs/block.c:195:36
-shift exponent 64 is too large for 64-bit type 'u64' (aka
-'unsigned long long')
-
-This commit adds a check for a 0 return by sb_min_blocksize().
-
-Link: https://lkml.kernel.org/r/20250409024747.876480-1-phillip@squashfs.org.uk
-Fixes: 0aa666190509 ("Squashfs: super block operations")
-Reported-by: syzbot+65761fc25a137b9c8c6e@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67f0dd7a.050a0220.0a13.0230.GAE@google.com/
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/BDDB1E4E2876C36C+20250411102610.165946-1-wangyuli@uniontech.com
+Signed-off-by: WangYuli <wangyuli@uniontech.com>
+Acked-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/super.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ocfs2/cluster/tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/super.c~squashfs-check-return-result-of-sb_min_blocksize
-+++ a/fs/squashfs/super.c
-@@ -202,6 +202,11 @@ static int squashfs_fill_super(struct su
- 	msblk->panic_on_errors = (opts->errors == Opt_errors_panic);
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -1483,7 +1483,7 @@ static void o2net_sc_send_keep_req(struc
+ 	sc_put(sc);
+ }
  
- 	msblk->devblksize = sb_min_blocksize(sb, SQUASHFS_DEVBLK_SIZE);
-+	if (!msblk->devblksize) {
-+		errorf(fc, "squashfs: unable to set blocksize\n");
-+		return -EINVAL;
-+	}
-+
- 	msblk->devblksize_log2 = ffz(~msblk->devblksize);
- 
- 	mutex_init(&msblk->meta_index_mutex);
+-/* socket shutdown does a del_timer_sync against this as it tears down.
++/* socket shutdown does a timer_delete_sync against this as it tears down.
+  * we can't start this timer until we've got to the point in sc buildup
+  * where shutdown is going to be involved */
+ static void o2net_idle_timer(struct timer_list *t)
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from wangyuli@uniontech.com are
 
 
