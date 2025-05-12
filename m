@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50DAF14286
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 22:23:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C72829712E
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 22:29:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747088588; cv=none; b=c2Z4eTGe1XeRcwWMswMrMBM09adUeRds/C3ahE850VKvrLyr735huNlnfs/Df8YOgQ19cRhV21r54DOEYWC1qb2f+xUL6bdUyOpWtANGRrkvMWn/0rzqRLP0sqNqQjm+Vx/Tw5/XeeOtFdW+i4ho3m/t2zf77NJ5DBWX32XS8A4=
+	t=1747088998; cv=none; b=HrBBiaMtx2cvMUj16pyLQqwZ9FUwNw8PXrHK3eFWQWCwdaEL3rxPo4vl8v+Ckg+5yUhdghJGxGkqZmyQZmMZkxZycigDgte4sLZwumWDpKGoo4QEMnkC71UXAlT5GcHZRERMwfIVkdyrZ/VyuL5nfF6vcPz2W4xv/FiVAauGb1k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747088588; c=relaxed/simple;
-	bh=sVVa/vi0p8eJnsLg1lSQN3GsrAXeCdqTaUEQJvtn4ao=;
-	h=Date:To:From:Subject:Message-Id; b=q9CvjF7wGzxuUTPY9X8QBh+vgzDXMq+c2LaHV4qQT1GhG2T7Gt3Uz+2zjmhILTxavzAENo+SYGjLGt01jfAFtYOmP7Uxm2SczVOu33fNWCYA0gFHNHCOTFjOnPRUdoiR0Q58L+Sbymze0sMs9SmyZCS8SZ6t1LSHYHAIXjW+IeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BIBjVKvr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747088998; c=relaxed/simple;
+	bh=fgi1DZqDwGUgu21rqKkdjjWXremFGdikMmfuGW8A/9Y=;
+	h=Date:To:From:Subject:Message-Id; b=u2sJgCxXpPbozAqnPdbIDeIKbKkN8eifn1g8PGZda5sP5ynLnLFqhOI5QNSV/8TjA3JQ0Z8dOR9MHa0yJOOLYU9Kb2eM3WxJLkconz+owDGhvfzvQpeA4ZnM1MXTcO8K4hcwpzG+RqbzlUDUqkLgWGaG6nSCW1fw7NwLyQSbJLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GvlNxKKD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BIBjVKvr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABA4FC4CEE7;
-	Mon, 12 May 2025 22:23:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GvlNxKKD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DBDFC4CEE7;
+	Mon, 12 May 2025 22:29:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747088587;
-	bh=sVVa/vi0p8eJnsLg1lSQN3GsrAXeCdqTaUEQJvtn4ao=;
+	s=korg; t=1747088997;
+	bh=fgi1DZqDwGUgu21rqKkdjjWXremFGdikMmfuGW8A/9Y=;
 	h=Date:To:From:Subject:From;
-	b=BIBjVKvrs/s4St36bhMxNfVtWtayrdiBxmYjHm7hUktZk5VAyNv2lvkF9NVEYpaX1
-	 bAuB+lHxpVRy+FDhjNyo0w7S10IY6nwP3tbpz6+L8adS1Bjn8Il/AJ6tXUOt7MOo8h
-	 zBMLQYwOugXR8AwmA/AMJZk1T8RFAzFdSQ4X5OIk=
-Date: Mon, 12 May 2025 15:23:07 -0700
-To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,harry.yoo@oracle.com,dja@axtens.net,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=GvlNxKKDkAxyHakgzcGavnqpqiqFwHIFo6pM35P8Ix8bCKeMnuc4WuLUZAm47OVfx
+	 pYo6Hn4wki98pOAMnL537gKFnDNK3SHLjAZPdwKnPGl2YhUMa2r2dkP4pd/2205rFu
+	 PG5whNqJ0OdlWoLWUd41KsPjGdcEZL4J3XNpN8sw=
+Date: Mon, 12 May 2025 15:29:57 -0700
+To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,ying.huang@linux.alibaba.com,osalvador@suse.de,lenb@kernel.org,Jonathan.Cameron@huawei.com,honggyu.kim@sk.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,dave.jiang@intel.com,dan.j.williams@intel.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250512222307.ABA4FC4CEE7@smtp.kernel.org>
+Subject: + mm-mempolicy-weighted-interleave-auto-tuning-fix-2.patch added to mm-unstable branch
+Message-Id: <20250512222957.9DBDFC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan-avoid-sleepable-page-allocation-from-atomic-context-v7
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch
+     Subject: mm-mempolicy-weighted-interleave-auto-tuning-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mempolicy-weighted-interleave-auto-tuning-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-weighted-interleave-auto-tuning-fix-2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,72 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: kasan-avoid-sleepable-page-allocation-from-atomic-context-v7
-Date: Mon, 12 May 2025 16:27:06 +0200
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm-mempolicy-weighted-interleave-auto-tuning-fix-2
+Date: Mon, 12 May 2025 07:25:10 -0700
 
-do not unnecessary free pages across iterations
+remove auto_kobj_attr field from struct sysfs_wi_group
 
-Link: https://lkml.kernel.org/r/c8eeeb146382bcadabce5b5dcf92e6176ba4fb04.1747059374.git.agordeev@linux.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Suggested-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: Daniel Axtens <dja@axtens.net>
+Link: https://lkml.kernel.org/r/20250512142511.3959833-1-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yunjeong Mun <yunjeong.mun@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/mempolicy.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/kasan/shadow.c~kasan-avoid-sleepable-page-allocation-from-atomic-context-v7
-+++ a/mm/kasan/shadow.c
-@@ -337,9 +337,9 @@ static inline void free_pages_bulk(struc
+--- a/mm/mempolicy.c~mm-mempolicy-weighted-interleave-auto-tuning-fix-2
++++ a/mm/mempolicy.c
+@@ -3543,7 +3543,6 @@ struct iw_node_attr {
+ struct sysfs_wi_group {
+ 	struct kobject wi_kobj;
+ 	struct mutex kobj_lock;
+-	struct kobj_attribute auto_kobj_attr;
+ 	struct iw_node_attr *nattrs[];
+ };
  
- static int __kasan_populate_vmalloc(unsigned long start, unsigned long end)
- {
--	unsigned long nr_populated, nr_pages, nr_total = PFN_UP(end - start);
-+	unsigned long nr_pages, nr_populated = 0, nr_total = PFN_UP(end - start);
- 	struct vmalloc_populate_data data;
--	int ret;
-+	int ret = 0;
+@@ -3833,7 +3832,6 @@ static int __init add_weighted_interleav
+ 	err = sysfs_create_file(&wi_group->wi_kobj, &wi_auto_attr.attr);
+ 	if (err)
+ 		goto err_put_kobj;
+-	wi_group->auto_kobj_attr = wi_auto_attr;
  
- 	data.pages = (struct page **)__get_free_page(GFP_KERNEL | __GFP_ZERO);
- 	if (!data.pages)
-@@ -349,25 +349,24 @@ static int __kasan_populate_vmalloc(unsi
- 		nr_pages = min(nr_total, PAGE_SIZE / sizeof(data.pages[0]));
- 		nr_populated = alloc_pages_bulk(GFP_KERNEL, nr_pages, data.pages);
- 		if (nr_populated != nr_pages) {
--			free_pages_bulk(data.pages, nr_populated);
--			free_page((unsigned long)data.pages);
--			return -ENOMEM;
-+			ret = -ENOMEM;
-+			break;
- 		}
- 
- 		data.start = start;
- 		ret = apply_to_page_range(&init_mm, start, nr_pages * PAGE_SIZE,
- 					  kasan_populate_vmalloc_pte, &data);
--		free_pages_bulk(data.pages, nr_pages);
- 		if (ret)
--			return ret;
-+			break;
- 
- 		start += nr_pages * PAGE_SIZE;
- 		nr_total -= nr_pages;
- 	}
- 
-+	free_pages_bulk(data.pages, nr_populated);
- 	free_page((unsigned long)data.pages);
- 
--	return 0;
-+	return ret;
- }
- 
- int kasan_populate_vmalloc(unsigned long addr, unsigned long size)
+ 	for_each_online_node(nid) {
+ 		if (!node_state(nid, N_MEMORY))
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
-kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch
+mm-mempolicy-weighted-interleave-auto-tuning.patch
+mm-mempolicy-weighted-interleave-auto-tuning-fix.patch
+mm-mempolicy-weighted-interleave-auto-tuning-fix-2.patch
 
