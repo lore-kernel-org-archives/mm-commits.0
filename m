@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47C982EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 554082EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011358; cv=none; b=DYUWb7LQF311ppfGiIAYnG+kEdyaRh/F7/qv8F3vFa2zucVx/REIy+amFkQBUfetMUTb6Or1o6Tx16MjeCl5MiqKlgdKIl4zT0QVDDsRzlaMkQABL/+0aHxH1U9W1SESFohpGAdBnNbRRl8yPzhHy70OAvY5/C238IyY3VlVTSw=
+	t=1747011359; cv=none; b=Dk399BrAzPTD2flgvG35Z+u3B7sETeX5IuJvfKx6lAaPAdxAE+VOkFtf00dShUo9K43obFFdwvAo12KepGBRLBEDJEQijinPzwiBpKTfxU1oOaR7R9ktRPjt6wsa6zYCKGhyJioWK0yrENJlXnxtM0WtbQ3R/T0VyfTSQc0/s/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011358; c=relaxed/simple;
-	bh=mX9IMiHtsfCovE+Ia/NG7GVAU48QkadceAeXURmkO3w=;
-	h=Date:To:From:Subject:Message-Id; b=mSUxOHxyflsRg1vIEB7akVmYLS9CNSQHs7nBroam2+yj8B4kRY01rvam/kSdUsYO0J5bRICFe7iWYBfWsl3ua0ESJuNwnoqtP5y9xml6YSgUUuBgSe15gtK1Hzp2B90Bgw76TDzwgkAXpYfCg0CQy6qCgTHJrjPDe2Tp5rxVpE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zIWsbSas; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011359; c=relaxed/simple;
+	bh=M2cNZcM88WCi0QUGeaWHpHAk01X3rG8j4d3A8mdIq58=;
+	h=Date:To:From:Subject:Message-Id; b=YMcDl/t3BSELXl/hxjhP+J23qzRiMzTMyD75+fVbEXDPcTOTwCMsM0PY3EuIcpimdTjihXdRmC1UK8T7xYpoIxmWpdM4bpO1z0pePXRTSiNfVoP1VhCzQzDXOCqSv/Yc9PuZLHikWxNlUZAOC0MM+0VBxIyqIMn5arXwhdzEuUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f7mdINy5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIWsbSas"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5604C4CEE4;
-	Mon, 12 May 2025 00:55:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f7mdINy5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 221BEC4CEE4;
+	Mon, 12 May 2025 00:55:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011357;
-	bh=mX9IMiHtsfCovE+Ia/NG7GVAU48QkadceAeXURmkO3w=;
+	s=korg; t=1747011359;
+	bh=M2cNZcM88WCi0QUGeaWHpHAk01X3rG8j4d3A8mdIq58=;
 	h=Date:To:From:Subject:From;
-	b=zIWsbSasNUz7x5gnJdw62CITHedl2y/OByEfnLAQUJWvfZp6PSsRrUnQ1yrxr+jTV
-	 JCB0eKZh+Nn9lQR/lWnOB4cFecLw4HCcHqWQpvvGruwQKgxX3B6QGaJpQIdfnPFplC
-	 omNpuLtroy3QwZkuZp3vEiQhSMf18PgiflxFrRJk=
-Date: Sun, 11 May 2025 17:55:57 -0700
+	b=f7mdINy5v2ziRzS9Gdl0tENns73Oz7SAfS85zOXop0jHFbSmNIYF17zxk/8QOBl09
+	 x3vcv0gyB47vOYJRDcPJ4BSa7nzBbr6oRURA4KPKg42C27lGau1WKKN8zrXb/rnO4f
+	 6a5JwmIsitKpS4gEvUcmh761nuKnkyYM2bk1GfLU=
+Date: Sun, 11 May 2025 17:55:58 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,peterz@infradead.org,mingzhe.yang@ly.com,mingo@redhat.com,mhiramat@kernel.org,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,jstultz@google.com,joel.granados@kernel.org,boqun.feng@gmail.com,anna.schumaker@oracle.com,amaindex@outlook.com,akpm@linux-foundation.org,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] hung_task-replace-blocker_mutex-with-encoded-blocker.patch removed from -mm tree
-Message-Id: <20250512005557.A5604C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] hung_task-show-the-blocker-task-if-the-task-is-hung-on-semaphore.patch removed from -mm tree
+Message-Id: <20250512005559.221BEC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hung_task: replace blocker_mutex with encoded blocker
+     Subject: hung_task: show the blocker task if the task is hung on semaphore
 has been removed from the -mm tree.  Its filename was
-     hung_task-replace-blocker_mutex-with-encoded-blocker.patch
+     hung_task-show-the-blocker-task-if-the-task-is-hung-on-semaphore.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lance Yang <ioworker0@gmail.com>
-Subject: hung_task: replace blocker_mutex with encoded blocker
-Date: Mon, 14 Apr 2025 22:59:43 +0800
+Subject: hung_task: show the blocker task if the task is hung on semaphore
+Date: Mon, 14 Apr 2025 22:59:44 +0800
 
-Patch series "hung_task: extend blocking task stacktrace dump to
-semaphore", v5.
+Inspired by mutex blocker tracking[1], this patch makes a trade-off to
+balance the overhead and utility of the hung task detector.
 
-Inspired by mutex blocker tracking[1], this patch series extend the
-feature to not only dump the blocker task holding a mutex but also to
-support semaphores.  Unlike mutexes, semaphores lack explicit ownership
-tracking, making it challenging to identify the root cause of hangs.  To
-address this, we introduce a last_holder field to the semaphore structure,
-which is updated when a task successfully calls down() and cleared during
-up().
+Unlike mutexes, semaphores lack explicit ownership tracking, making it
+challenging to identify the root cause of hangs.  To address this, we
+introduce a last_holder field to the semaphore structure, which is updated
+when a task successfully calls down() and cleared during up().
 
 The assumption is that if a task is blocked on a semaphore, the holders
 must not have released it.  While this does not guarantee that the last
@@ -124,27 +121,14 @@ like below:
 [Tue Apr  8 12:19:07 2025] R13: 0000000000000003 R14: 0000000000020000 R15: 0000000000020000
 [Tue Apr  8 12:19:07 2025]  </TASK>
 
+[1] https://lore.kernel.org/all/174046694331.2194069.15472952050240807469.stgit@mhiramat.tok.corp.google.com
 
-This patch (of 3):
-
-This patch replaces 'struct mutex *blocker_mutex' with 'unsigned long
-blocker', as only one blocker is active at a time.
-
-The blocker filed can store both the lock addrees and the lock type, with
-LSB used to encode the type as Masami suggested, making it easier to
-extend the feature to cover other types of locks.
-
-Also, once the lock type is determined, we can directly extract the
-address and cast it to a lock pointer ;)
-
-Link: https://lkml.kernel.org/r/20250414145945.84916-1-ioworker0@gmail.com
-Link: https://lore.kernel.org/all/174046694331.2194069.15472952050240807469.stgit@mhiramat.tok.corp.google.com [1]
-Link: https://lkml.kernel.org/r/20250414145945.84916-2-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20250414145945.84916-3-ioworker0@gmail.com
 Signed-off-by: Mingzhe Yang <mingzhe.yang@ly.com>
 Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -162,191 +146,255 @@ Cc: Zi Li <amaindex@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hung_task.h |   99 ++++++++++++++++++++++++++++++++++++
- include/linux/sched.h     |    6 +-
- kernel/hung_task.c        |   13 ++--
- kernel/locking/mutex.c    |    5 +
- 4 files changed, 115 insertions(+), 8 deletions(-)
+ include/linux/semaphore.h  |   15 ++++++++-
+ kernel/hung_task.c         |   52 +++++++++++++++++++++++++------
+ kernel/locking/semaphore.c |   57 +++++++++++++++++++++++++++++++----
+ 3 files changed, 106 insertions(+), 18 deletions(-)
 
-diff --git a/include/linux/hung_task.h a/include/linux/hung_task.h
-new file mode 100644
---- /dev/null
-+++ a/include/linux/hung_task.h
-@@ -0,0 +1,99 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Detect Hung Task: detecting tasks stuck in D state
-+ *
-+ * Copyright (C) 2025 Tongcheng Travel (www.ly.com)
-+ * Author: Lance Yang <mingzhe.yang@ly.com>
-+ */
-+#ifndef __LINUX_HUNG_TASK_H
-+#define __LINUX_HUNG_TASK_H
-+
-+#include <linux/bug.h>
-+#include <linux/sched.h>
-+#include <linux/compiler.h>
-+
-+/*
-+ * @blocker: Combines lock address and blocking type.
-+ *
-+ * Since lock pointers are at least 4-byte aligned(32-bit) or 8-byte
-+ * aligned(64-bit). This leaves the 2 least bits (LSBs) of the pointer
-+ * always zero. So we can use these bits to encode the specific blocking
-+ * type.
-+ *
-+ * Type encoding:
-+ * 00 - Blocked on mutex        (BLOCKER_TYPE_MUTEX)
-+ * 01 - Blocked on semaphore    (BLOCKER_TYPE_SEM)
-+ * 10 - Blocked on rt-mutex     (BLOCKER_TYPE_RTMUTEX)
-+ * 11 - Blocked on rw-semaphore (BLOCKER_TYPE_RWSEM)
-+ */
-+#define BLOCKER_TYPE_MUTEX      0x00UL
-+#define BLOCKER_TYPE_SEM        0x01UL
-+#define BLOCKER_TYPE_RTMUTEX    0x02UL
-+#define BLOCKER_TYPE_RWSEM      0x03UL
-+
-+#define BLOCKER_TYPE_MASK       0x03UL
+--- a/include/linux/semaphore.h~hung_task-show-the-blocker-task-if-the-task-is-hung-on-semaphore
++++ a/include/linux/semaphore.h
+@@ -16,13 +16,25 @@ struct semaphore {
+ 	raw_spinlock_t		lock;
+ 	unsigned int		count;
+ 	struct list_head	wait_list;
 +
 +#ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
-+static inline void hung_task_set_blocker(void *lock, unsigned long type)
-+{
-+	unsigned long lock_ptr = (unsigned long)lock;
-+
-+	WARN_ON_ONCE(!lock_ptr);
-+	WARN_ON_ONCE(READ_ONCE(current->blocker));
-+
-+	/*
-+	 * If the lock pointer matches the BLOCKER_TYPE_MASK, return
-+	 * without writing anything.
-+	 */
-+	if (WARN_ON_ONCE(lock_ptr & BLOCKER_TYPE_MASK))
-+		return;
-+
-+	WRITE_ONCE(current->blocker, lock_ptr | type);
-+}
-+
-+static inline void hung_task_clear_blocker(void)
-+{
-+	WARN_ON_ONCE(!READ_ONCE(current->blocker));
-+
-+	WRITE_ONCE(current->blocker, 0UL);
-+}
-+
-+/*
-+ * hung_task_get_blocker_type - Extracts blocker type from encoded blocker
-+ * address.
-+ *
-+ * @blocker: Blocker pointer with encoded type (via LSB bits)
-+ *
-+ * Returns: BLOCKER_TYPE_MUTEX, BLOCKER_TYPE_SEM, etc.
-+ */
-+static inline unsigned long hung_task_get_blocker_type(unsigned long blocker)
-+{
-+	WARN_ON_ONCE(!blocker);
-+
-+	return blocker & BLOCKER_TYPE_MASK;
-+}
-+
-+static inline void *hung_task_blocker_to_lock(unsigned long blocker)
-+{
-+	WARN_ON_ONCE(!blocker);
-+
-+	return (void *)(blocker & ~BLOCKER_TYPE_MASK);
-+}
++	unsigned long		last_holder;
++#endif
+ };
+ 
++#ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
++#define __LAST_HOLDER_SEMAPHORE_INITIALIZER				\
++	, .last_holder = 0UL
 +#else
-+static inline void hung_task_set_blocker(void *lock, unsigned long type)
-+{
-+}
-+static inline void hung_task_clear_blocker(void)
-+{
-+}
-+static inline unsigned long hung_task_get_blocker_type(unsigned long blocker)
-+{
-+	return 0UL;
-+}
-+static inline void *hung_task_blocker_to_lock(unsigned long blocker)
-+{
-+	return NULL;
-+}
++#define __LAST_HOLDER_SEMAPHORE_INITIALIZER
 +#endif
 +
-+#endif /* __LINUX_HUNG_TASK_H */
---- a/include/linux/sched.h~hung_task-replace-blocker_mutex-with-encoded-blocker
-+++ a/include/linux/sched.h
-@@ -1240,7 +1240,11 @@ struct task_struct {
- #endif
+ #define __SEMAPHORE_INITIALIZER(name, n)				\
+ {									\
+ 	.lock		= __RAW_SPIN_LOCK_UNLOCKED((name).lock),	\
+ 	.count		= n,						\
+-	.wait_list	= LIST_HEAD_INIT((name).wait_list),		\
++	.wait_list	= LIST_HEAD_INIT((name).wait_list)		\
++	__LAST_HOLDER_SEMAPHORE_INITIALIZER				\
+ }
  
- #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
--	struct mutex			*blocker_mutex;
-+	/*
-+	 * Encoded lock address causing task block (lower 2 bits = type from
-+	 * <linux/hung_task.h>). Accessed via hung_task_*() helpers.
-+	 */
-+	unsigned long			blocker;
- #endif
+ /*
+@@ -47,5 +59,6 @@ extern int __must_check down_killable(st
+ extern int __must_check down_trylock(struct semaphore *sem);
+ extern int __must_check down_timeout(struct semaphore *sem, long jiffies);
+ extern void up(struct semaphore *sem);
++extern unsigned long sem_last_holder(struct semaphore *sem);
  
- #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
---- a/kernel/hung_task.c~hung_task-replace-blocker_mutex-with-encoded-blocker
+ #endif /* __LINUX_SEMAPHORE_H */
+--- a/kernel/hung_task.c~hung_task-show-the-blocker-task-if-the-task-is-hung-on-semaphore
 +++ a/kernel/hung_task.c
-@@ -22,6 +22,7 @@
- #include <linux/sched/signal.h>
- #include <linux/sched/debug.h>
- #include <linux/sched/sysctl.h>
-+#include <linux/hung_task.h>
- 
- #include <trace/events/sched.h>
- 
-@@ -98,16 +99,18 @@ static struct notifier_block panic_block
+@@ -99,32 +99,62 @@ static struct notifier_block panic_block
  static void debug_show_blocker(struct task_struct *task)
  {
  	struct task_struct *g, *t;
--	unsigned long owner;
--	struct mutex *lock;
-+	unsigned long owner, blocker;
+-	unsigned long owner, blocker;
++	unsigned long owner, blocker, blocker_type;
  
  	RCU_LOCKDEP_WARN(!rcu_read_lock_held(), "No rcu lock held");
  
--	lock = READ_ONCE(task->blocker_mutex);
--	if (!lock)
-+	blocker = READ_ONCE(task->blocker);
-+	if (!blocker ||
-+	    hung_task_get_blocker_type(blocker) != BLOCKER_TYPE_MUTEX)
+ 	blocker = READ_ONCE(task->blocker);
+-	if (!blocker ||
+-	    hung_task_get_blocker_type(blocker) != BLOCKER_TYPE_MUTEX)
++	if (!blocker)
  		return;
  
--	owner = mutex_get_owner(lock);
-+	owner = mutex_get_owner(
-+		(struct mutex *)hung_task_blocker_to_lock(blocker));
+-	owner = mutex_get_owner(
+-		(struct mutex *)hung_task_blocker_to_lock(blocker));
++	blocker_type = hung_task_get_blocker_type(blocker);
 +
++	switch (blocker_type) {
++	case BLOCKER_TYPE_MUTEX:
++		owner = mutex_get_owner(
++			(struct mutex *)hung_task_blocker_to_lock(blocker));
++		break;
++	case BLOCKER_TYPE_SEM:
++		owner = sem_last_holder(
++			(struct semaphore *)hung_task_blocker_to_lock(blocker));
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		return;
++	}
++
+ 
  	if (unlikely(!owner)) {
- 		pr_err("INFO: task %s:%d is blocked on a mutex, but the owner is not found.\n",
- 			task->comm, task->pid);
---- a/kernel/locking/mutex.c~hung_task-replace-blocker_mutex-with-encoded-blocker
-+++ a/kernel/locking/mutex.c
-@@ -29,6 +29,7 @@
- #include <linux/interrupt.h>
- #include <linux/debug_locks.h>
- #include <linux/osq_lock.h>
+-		pr_err("INFO: task %s:%d is blocked on a mutex, but the owner is not found.\n",
+-			task->comm, task->pid);
++		switch (blocker_type) {
++		case BLOCKER_TYPE_MUTEX:
++			pr_err("INFO: task %s:%d is blocked on a mutex, but the owner is not found.\n",
++			       task->comm, task->pid);
++			break;
++		case BLOCKER_TYPE_SEM:
++			pr_err("INFO: task %s:%d is blocked on a semaphore, but the last holder is not found.\n",
++			       task->comm, task->pid);
++			break;
++		}
+ 		return;
+ 	}
+ 
+ 	/* Ensure the owner information is correct. */
+ 	for_each_process_thread(g, t) {
+-		if ((unsigned long)t == owner) {
++		if ((unsigned long)t != owner)
++			continue;
++
++		switch (blocker_type) {
++		case BLOCKER_TYPE_MUTEX:
+ 			pr_err("INFO: task %s:%d is blocked on a mutex likely owned by task %s:%d.\n",
+-				task->comm, task->pid, t->comm, t->pid);
+-			sched_show_task(t);
+-			return;
++			       task->comm, task->pid, t->comm, t->pid);
++			break;
++		case BLOCKER_TYPE_SEM:
++			pr_err("INFO: task %s:%d blocked on a semaphore likely last held by task %s:%d\n",
++			       task->comm, task->pid, t->comm, t->pid);
++			break;
+ 		}
++		sched_show_task(t);
++		return;
+ 	}
+ }
+ #else
+--- a/kernel/locking/semaphore.c~hung_task-show-the-blocker-task-if-the-task-is-hung-on-semaphore
++++ a/kernel/locking/semaphore.c
+@@ -34,6 +34,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/ftrace.h>
+ #include <trace/events/lock.h>
 +#include <linux/hung_task.h>
  
- #define CREATE_TRACE_POINTS
- #include <trace/events/lock.h>
-@@ -191,7 +192,7 @@ __mutex_add_waiter(struct mutex *lock, s
- 		   struct list_head *list)
+ static noinline void __down(struct semaphore *sem);
+ static noinline int __down_interruptible(struct semaphore *sem);
+@@ -41,6 +42,41 @@ static noinline int __down_killable(stru
+ static noinline int __down_timeout(struct semaphore *sem, long timeout);
+ static noinline void __up(struct semaphore *sem, struct wake_q_head *wake_q);
+ 
++#ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
++static inline void hung_task_sem_set_holder(struct semaphore *sem)
++{
++	WRITE_ONCE((sem)->last_holder, (unsigned long)current);
++}
++
++static inline void hung_task_sem_clear_if_holder(struct semaphore *sem)
++{
++	if (READ_ONCE((sem)->last_holder) == (unsigned long)current)
++		WRITE_ONCE((sem)->last_holder, 0UL);
++}
++
++unsigned long sem_last_holder(struct semaphore *sem)
++{
++	return READ_ONCE(sem->last_holder);
++}
++#else
++static inline void hung_task_sem_set_holder(struct semaphore *sem)
++{
++}
++static inline void hung_task_sem_clear_if_holder(struct semaphore *sem)
++{
++}
++unsigned long sem_last_holder(struct semaphore *sem)
++{
++	return 0UL;
++}
++#endif
++
++static inline void __sem_acquire(struct semaphore *sem)
++{
++	sem->count--;
++	hung_task_sem_set_holder(sem);
++}
++
+ /**
+  * down - acquire the semaphore
+  * @sem: the semaphore to be acquired
+@@ -59,7 +95,7 @@ void __sched down(struct semaphore *sem)
+ 	might_sleep();
+ 	raw_spin_lock_irqsave(&sem->lock, flags);
+ 	if (likely(sem->count > 0))
+-		sem->count--;
++		__sem_acquire(sem);
+ 	else
+ 		__down(sem);
+ 	raw_spin_unlock_irqrestore(&sem->lock, flags);
+@@ -83,7 +119,7 @@ int __sched down_interruptible(struct se
+ 	might_sleep();
+ 	raw_spin_lock_irqsave(&sem->lock, flags);
+ 	if (likely(sem->count > 0))
+-		sem->count--;
++		__sem_acquire(sem);
+ 	else
+ 		result = __down_interruptible(sem);
+ 	raw_spin_unlock_irqrestore(&sem->lock, flags);
+@@ -110,7 +146,7 @@ int __sched down_killable(struct semapho
+ 	might_sleep();
+ 	raw_spin_lock_irqsave(&sem->lock, flags);
+ 	if (likely(sem->count > 0))
+-		sem->count--;
++		__sem_acquire(sem);
+ 	else
+ 		result = __down_killable(sem);
+ 	raw_spin_unlock_irqrestore(&sem->lock, flags);
+@@ -140,7 +176,7 @@ int __sched down_trylock(struct semaphor
+ 	raw_spin_lock_irqsave(&sem->lock, flags);
+ 	count = sem->count - 1;
+ 	if (likely(count >= 0))
+-		sem->count = count;
++		__sem_acquire(sem);
+ 	raw_spin_unlock_irqrestore(&sem->lock, flags);
+ 
+ 	return (count < 0);
+@@ -165,7 +201,7 @@ int __sched down_timeout(struct semaphor
+ 	might_sleep();
+ 	raw_spin_lock_irqsave(&sem->lock, flags);
+ 	if (likely(sem->count > 0))
+-		sem->count--;
++		__sem_acquire(sem);
+ 	else
+ 		result = __down_timeout(sem, timeout);
+ 	raw_spin_unlock_irqrestore(&sem->lock, flags);
+@@ -187,6 +223,9 @@ void __sched up(struct semaphore *sem)
+ 	DEFINE_WAKE_Q(wake_q);
+ 
+ 	raw_spin_lock_irqsave(&sem->lock, flags);
++
++	hung_task_sem_clear_if_holder(sem);
++
+ 	if (likely(list_empty(&sem->wait_list)))
+ 		sem->count++;
+ 	else
+@@ -228,8 +267,10 @@ static inline int __sched ___down_common
+ 		raw_spin_unlock_irq(&sem->lock);
+ 		timeout = schedule_timeout(timeout);
+ 		raw_spin_lock_irq(&sem->lock);
+-		if (waiter.up)
++		if (waiter.up) {
++			hung_task_sem_set_holder(sem);
+ 			return 0;
++		}
+ 	}
+ 
+  timed_out:
+@@ -246,10 +287,14 @@ static inline int __sched __down_common(
  {
- #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
--	WRITE_ONCE(current->blocker_mutex, lock);
-+	hung_task_set_blocker(lock, BLOCKER_TYPE_MUTEX);
- #endif
- 	debug_mutex_add_waiter(lock, waiter, current);
+ 	int ret;
  
-@@ -209,7 +210,7 @@ __mutex_remove_waiter(struct mutex *lock
++	hung_task_set_blocker(sem, BLOCKER_TYPE_SEM);
++
+ 	trace_contention_begin(sem, 0);
+ 	ret = ___down_common(sem, state, timeout);
+ 	trace_contention_end(sem, ret);
  
- 	debug_mutex_remove_waiter(lock, waiter, current);
- #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
--	WRITE_ONCE(current->blocker_mutex, NULL);
 +	hung_task_clear_blocker();
- #endif
++
+ 	return ret;
  }
  
 _
