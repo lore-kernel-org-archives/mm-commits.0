@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8DD188A0E
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D439C1553A3
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011059; cv=none; b=syq+d6gbAss6OSiYa53O7fZFq07uI3UiHY1P3iorNuCGLJBD6BQHYJNv+uOd0515aOUh88gXm5LRf2CatknXceKVe81aVxPUga1dyfQhSPaym+P6sLJZYxpV+jf3txfCB3MiCQfe/CTLvsDC5ji1taI8kZAqsODjz2uaQHadOKk=
+	t=1747011060; cv=none; b=MQb/ud2Rmh/UEmwvcOnsOJRTM5XdcPlYHw5AV6EJr8wuUrU8FL8E4RfEBzUsV7KhwQYxJgQF8RIo9NXFdNluItR+OTaPq2GXoLZjsvLc/z1PyjZ3qFCubtoKpt1Orgks860jr84o/Jm3nkgBsTCB3cpq9VveNYIb6b1BE8z2HmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011059; c=relaxed/simple;
-	bh=NW9lyas35WpgBrY6oRgrCYbINISVGCJY5sJPdP8kqo0=;
-	h=Date:To:From:Subject:Message-Id; b=qwtTw+RJlR2d5omeWZO76R+dMaJVWChIwu1VyuNEx3rHneTfReA3WCxC0H/c7TY5hRZ315hxTYLWZVECCF3ViV9BANLpvbZzVGs3alSGG6IwYuT67bTKPZHvgrRyZaBG3oMaYuTIck1MSVa4YMMX+L+LLp4h1Wc9wIw1QJnMjpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SykwT+VE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011060; c=relaxed/simple;
+	bh=OyLsS4949TzQzZHf7+Z4P4vpqCPkU/CAFhWbKPJwKjM=;
+	h=Date:To:From:Subject:Message-Id; b=eCOGeM/5bgoWz3iQP5t76OOWMIPY/NGHz+CIiOIj1UjNn81u144RApcNNjrSMjHs/jB1p4fhucqgxFhEpMtjcASQ7qqDyZ4YN+5HBpc8oq2AF/YttDsC+0dFLwqHLs6dxFbiRVdJIXkBJo6bPrEDjhQbajj3oXbNqckct2brfVI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RptuQl0+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SykwT+VE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5359BC4CEE4;
-	Mon, 12 May 2025 00:50:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RptuQl0+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8A7AC4CEE4;
+	Mon, 12 May 2025 00:51:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011059;
-	bh=NW9lyas35WpgBrY6oRgrCYbINISVGCJY5sJPdP8kqo0=;
+	s=korg; t=1747011060;
+	bh=OyLsS4949TzQzZHf7+Z4P4vpqCPkU/CAFhWbKPJwKjM=;
 	h=Date:To:From:Subject:From;
-	b=SykwT+VEj3Pf8YC9teMOdrKI0BmQsUeIlURA/ki1vwohE71qgnq1kxcG1yQJKysMW
-	 XH9nD/Jl4Qv4WRitaYjuZHE1Pb9EINR80yvJvW12qQLA5pQIo+vdsEM2vmQGyT1/iO
-	 tw0MshZKI/qCPlddtxHhLLe6PIVO4yZ2mDpZVz7M=
-Date: Sun, 11 May 2025 17:50:58 -0700
+	b=RptuQl0++wonuuPhd0XSYYesiFLSdDU9YqRxwl4/fGPS2T4B7MxLOzfGP/be1/fHz
+	 X4x/fOAgG1a34Qk5VM+97d83ZGZvdhBUp1JUbiQ1FVRaboXdQkQlB3u5hFwLRzyxQ8
+	 fMnC28mbhRW0H7RpvOkbBH1b76vv/brliPl8nE/U=
+Date: Sun, 11 May 2025 17:51:00 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tongtiangen@huawei.com,peterz@infradead.org,olsajiri@gmail.com,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,kan.liang@linux.intel.com,irogers@google.com,andrii.nakryiko@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch removed from -mm tree
-Message-Id: <20250512005059.5359BC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] kernel-events-uprobes-uprobe_write_opcode-rewrite.patch removed from -mm tree
+Message-Id: <20250512005100.A8A7AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/events/uprobes: pass VMA to set_swbp(), set_orig_insn() and uprobe_write_opcode()
+     Subject: kernel/events/uprobes: uprobe_write_opcode() rewrite
 has been removed from the -mm tree.  Its filename was
-     kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch
+     kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: kernel/events/uprobes: pass VMA to set_swbp(), set_orig_insn() and uprobe_write_opcode()
-Date: Fri, 21 Mar 2025 12:37:12 +0100
+Subject: kernel/events/uprobes: uprobe_write_opcode() rewrite
+Date: Fri, 21 Mar 2025 12:37:13 +0100
 
-We already have the VMA, no need to look it up using
-get_user_page_vma_remote().  We can now switch to get_user_pages_remote().
+uprobe_write_opcode() does some pretty low-level things that really, it
+shouldn't be doing: for example, manually breaking COW by allocating
+anonymous folios and replacing mapped pages.
 
-Link: https://lkml.kernel.org/r/20250321113713.204682-3-david@redhat.com
+Further, it does seem to do some shaky things: for example, writing to
+possible COW-shared anonymous pages or zapping anonymous pages that might
+be pinned.  We're also not taking care of uffd, uffd-wp, softdirty ... 
+although rather corner cases here.  Let's just get it right like ordinary
+ptrace writes would.
+
+Let's rewrite the code, leaving COW-breaking to core-MM, triggered by
+FOLL_FORCE|FOLL_WRITE (note that the code was already using FOLL_FORCE).
+
+We'll use GUP to lookup/faultin the page and break COW if required.  Then,
+we'll walk the page tables using a folio_walk to perform our page
+modification atomically by temporarily unmap the PTE + flushing the TLB.
+
+Likely, we could avoid the temporary unmap in case we can just atomically
+write the instruction, but that will be a separate project.
+
+Unfortunately, we still have to implement the zapping logic manually,
+because we only want to zap in specific circumstances (e.g., page content
+identical).
+
+Note that we can now handle large folios (compound pages) and the shared
+zeropage just fine, so drop these checks.
+
+Link: https://lkml.kernel.org/r/20250321113713.204682-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
@@ -71,141 +95,395 @@ Cc: tongtiangen <tongtiangen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/probes/uprobes/core.c |    4 +--
- include/linux/uprobes.h        |    6 ++---
- kernel/events/uprobes.c        |   33 +++++++++++++++----------------
- 3 files changed, 22 insertions(+), 21 deletions(-)
+ kernel/events/uprobes.c |  318 +++++++++++++++++++-------------------
+ 1 file changed, 161 insertions(+), 157 deletions(-)
 
---- a/arch/arm/probes/uprobes/core.c~kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode
-+++ a/arch/arm/probes/uprobes/core.c
-@@ -26,10 +26,10 @@ bool is_swbp_insn(uprobe_opcode_t *insn)
- 		(UPROBE_SWBP_ARM_INSN & 0x0fffffff);
- }
- 
--int set_swbp(struct arch_uprobe *auprobe, struct mm_struct *mm,
-+int set_swbp(struct arch_uprobe *auprobe, struct vm_area_struct *vma,
- 	     unsigned long vaddr)
- {
--	return uprobe_write_opcode(auprobe, mm, vaddr,
-+	return uprobe_write_opcode(auprobe, vma, vaddr,
- 		   __opcode_to_mem_arm(auprobe->bpinsn));
- }
- 
---- a/include/linux/uprobes.h~kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode
-+++ a/include/linux/uprobes.h
-@@ -188,13 +188,13 @@ struct uprobes_state {
- };
- 
- extern void __init uprobes_init(void);
--extern int set_swbp(struct arch_uprobe *aup, struct mm_struct *mm, unsigned long vaddr);
--extern int set_orig_insn(struct arch_uprobe *aup, struct mm_struct *mm, unsigned long vaddr);
-+extern int set_swbp(struct arch_uprobe *aup, struct vm_area_struct *vma, unsigned long vaddr);
-+extern int set_orig_insn(struct arch_uprobe *aup, struct vm_area_struct *vma, unsigned long vaddr);
- extern bool is_swbp_insn(uprobe_opcode_t *insn);
- extern bool is_trap_insn(uprobe_opcode_t *insn);
- extern unsigned long uprobe_get_swbp_addr(struct pt_regs *regs);
- extern unsigned long uprobe_get_trap_addr(struct pt_regs *regs);
--extern int uprobe_write_opcode(struct arch_uprobe *auprobe, struct mm_struct *mm, unsigned long vaddr, uprobe_opcode_t);
-+extern int uprobe_write_opcode(struct arch_uprobe *auprobe, struct vm_area_struct *vma, unsigned long vaddr, uprobe_opcode_t);
- extern struct uprobe *uprobe_register(struct inode *inode, loff_t offset, loff_t ref_ctr_offset, struct uprobe_consumer *uc);
- extern int uprobe_apply(struct uprobe *uprobe, struct uprobe_consumer *uc, bool);
- extern void uprobe_unregister_nosync(struct uprobe *uprobe, struct uprobe_consumer *uc);
---- a/kernel/events/uprobes.c~kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode
+--- a/kernel/events/uprobes.c~kernel-events-uprobes-uprobe_write_opcode-rewrite
 +++ a/kernel/events/uprobes.c
-@@ -474,19 +474,19 @@ static int update_ref_ctr(struct uprobe
-  *
+@@ -29,6 +29,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/srcu.h>
+ #include <linux/oom.h>          /* check_stable_address_space */
++#include <linux/pagewalk.h>
+ 
+ #include <linux/uprobes.h>
+ 
+@@ -152,91 +153,6 @@ static loff_t vaddr_to_offset(struct vm_
+ }
+ 
+ /**
+- * __replace_page - replace page in vma by new page.
+- * based on replace_page in mm/ksm.c
+- *
+- * @vma:      vma that holds the pte pointing to page
+- * @addr:     address the old @page is mapped at
+- * @old_page: the page we are replacing by new_page
+- * @new_page: the modified page we replace page by
+- *
+- * If @new_page is NULL, only unmap @old_page.
+- *
+- * Returns 0 on success, negative error code otherwise.
+- */
+-static int __replace_page(struct vm_area_struct *vma, unsigned long addr,
+-				struct page *old_page, struct page *new_page)
+-{
+-	struct folio *old_folio = page_folio(old_page);
+-	struct folio *new_folio;
+-	struct mm_struct *mm = vma->vm_mm;
+-	DEFINE_FOLIO_VMA_WALK(pvmw, old_folio, vma, addr, 0);
+-	int err;
+-	struct mmu_notifier_range range;
+-	pte_t pte;
+-
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, addr,
+-				addr + PAGE_SIZE);
+-
+-	if (new_page) {
+-		new_folio = page_folio(new_page);
+-		err = mem_cgroup_charge(new_folio, vma->vm_mm, GFP_KERNEL);
+-		if (err)
+-			return err;
+-	}
+-
+-	/* For folio_free_swap() below */
+-	folio_lock(old_folio);
+-
+-	mmu_notifier_invalidate_range_start(&range);
+-	err = -EAGAIN;
+-	if (!page_vma_mapped_walk(&pvmw))
+-		goto unlock;
+-	VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
+-	pte = ptep_get(pvmw.pte);
+-
+-	/*
+-	 * Handle PFN swap PTES, such as device-exclusive ones, that actually
+-	 * map pages: simply trigger GUP again to fix it up.
+-	 */
+-	if (unlikely(!pte_present(pte))) {
+-		page_vma_mapped_walk_done(&pvmw);
+-		goto unlock;
+-	}
+-
+-	if (new_page) {
+-		folio_get(new_folio);
+-		folio_add_new_anon_rmap(new_folio, vma, addr, RMAP_EXCLUSIVE);
+-		folio_add_lru_vma(new_folio, vma);
+-	} else
+-		/* no new page, just dec_mm_counter for old_page */
+-		dec_mm_counter(mm, MM_ANONPAGES);
+-
+-	if (!folio_test_anon(old_folio)) {
+-		dec_mm_counter(mm, mm_counter_file(old_folio));
+-		inc_mm_counter(mm, MM_ANONPAGES);
+-	}
+-
+-	flush_cache_page(vma, addr, pte_pfn(pte));
+-	ptep_clear_flush(vma, addr, pvmw.pte);
+-	if (new_page)
+-		set_pte_at(mm, addr, pvmw.pte,
+-			   mk_pte(new_page, vma->vm_page_prot));
+-
+-	folio_remove_rmap_pte(old_folio, old_page, vma);
+-	if (!folio_mapped(old_folio))
+-		folio_free_swap(old_folio);
+-	page_vma_mapped_walk_done(&pvmw);
+-	folio_put(old_folio);
+-
+-	err = 0;
+- unlock:
+-	mmu_notifier_invalidate_range_end(&range);
+-	folio_unlock(old_folio);
+-	return err;
+-}
+-
+-/**
+  * is_swbp_insn - check if instruction is breakpoint instruction.
+  * @insn: instruction to be checked.
+  * Default implementation of is_swbp_insn
+@@ -463,6 +379,95 @@ static int update_ref_ctr(struct uprobe
+ 	return ret;
+ }
+ 
++static bool orig_page_is_identical(struct vm_area_struct *vma,
++		unsigned long vaddr, struct page *page, bool *pmd_mappable)
++{
++	const pgoff_t index = vaddr_to_offset(vma, vaddr) >> PAGE_SHIFT;
++	struct folio *orig_folio = filemap_get_folio(vma->vm_file->f_mapping,
++						    index);
++	struct page *orig_page;
++	bool identical;
++
++	if (IS_ERR(orig_folio))
++		return false;
++	orig_page = folio_file_page(orig_folio, index);
++
++	*pmd_mappable = folio_test_pmd_mappable(orig_folio);
++	identical = folio_test_uptodate(orig_folio) &&
++		    pages_identical(page, orig_page);
++	folio_put(orig_folio);
++	return identical;
++}
++
++static int __uprobe_write_opcode(struct vm_area_struct *vma,
++		struct folio_walk *fw, struct folio *folio,
++		unsigned long opcode_vaddr, uprobe_opcode_t opcode)
++{
++	const unsigned long vaddr = opcode_vaddr & PAGE_MASK;
++	const bool is_register = !!is_swbp_insn(&opcode);
++	bool pmd_mappable;
++
++	/* For now, we'll only handle PTE-mapped folios. */
++	if (fw->level != FW_LEVEL_PTE)
++		return -EFAULT;
++
++	/*
++	 * See can_follow_write_pte(): we'd actually prefer a writable PTE here,
++	 * but the VMA might not be writable.
++	 */
++	if (!pte_write(fw->pte)) {
++		if (!PageAnonExclusive(fw->page))
++			return -EFAULT;
++		if (unlikely(userfaultfd_pte_wp(vma, fw->pte)))
++			return -EFAULT;
++		/* SOFTDIRTY is handled via pte_mkdirty() below. */
++	}
++
++	/*
++	 * We'll temporarily unmap the page and flush the TLB, such that we can
++	 * modify the page atomically.
++	 */
++	flush_cache_page(vma, vaddr, pte_pfn(fw->pte));
++	fw->pte = ptep_clear_flush(vma, vaddr, fw->ptep);
++	copy_to_page(fw->page, opcode_vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
++
++	/*
++	 * When unregistering, we may only zap a PTE if uffd is disabled and
++	 * there are no unexpected folio references ...
++	 */
++	if (is_register || userfaultfd_missing(vma) ||
++	    (folio_ref_count(folio) != folio_mapcount(folio) + 1 +
++	     folio_test_swapcache(folio) * folio_nr_pages(folio)))
++		goto remap;
++
++	/*
++	 * ... and the mapped page is identical to the original page that
++	 * would get faulted in on next access.
++	 */
++	if (!orig_page_is_identical(vma, vaddr, fw->page, &pmd_mappable))
++		goto remap;
++
++	dec_mm_counter(vma->vm_mm, MM_ANONPAGES);
++	folio_remove_rmap_pte(folio, fw->page, vma);
++	if (!folio_mapped(folio) && folio_test_swapcache(folio) &&
++	     folio_trylock(folio)) {
++		folio_free_swap(folio);
++		folio_unlock(folio);
++	}
++	folio_put(folio);
++
++	return pmd_mappable;
++remap:
++	/*
++	 * Make sure that our copy_to_page() changes become visible before the
++	 * set_pte_at() write.
++	 */
++	smp_wmb();
++	/* We modified the page. Make sure to mark the PTE dirty. */
++	set_pte_at(vma->vm_mm, vaddr, fw->ptep, pte_mkdirty(fw->pte));
++	return 0;
++}
++
+ /*
+  * NOTE:
+  * Expect the breakpoint instruction to be the smallest size instruction for
+@@ -475,116 +480,115 @@ static int update_ref_ctr(struct uprobe
   * uprobe_write_opcode - write the opcode at a given virtual address.
   * @auprobe: arch specific probepoint information.
-- * @mm: the probed process address space.
-+ * @vma: the probed virtual memory area.
-  * @vaddr: the virtual address to store the opcode.
-  * @opcode: opcode to be written at @vaddr.
+  * @vma: the probed virtual memory area.
+- * @vaddr: the virtual address to store the opcode.
+- * @opcode: opcode to be written at @vaddr.
++ * @opcode_vaddr: the virtual address to store the opcode.
++ * @opcode: opcode to be written at @opcode_vaddr.
   *
   * Called with mm->mmap_lock held for read or write.
   * Return 0 (success) or a negative errno.
   */
--int uprobe_write_opcode(struct arch_uprobe *auprobe, struct mm_struct *mm,
--			unsigned long vaddr, uprobe_opcode_t opcode)
-+int uprobe_write_opcode(struct arch_uprobe *auprobe, struct vm_area_struct *vma,
-+		unsigned long vaddr, uprobe_opcode_t opcode)
+ int uprobe_write_opcode(struct arch_uprobe *auprobe, struct vm_area_struct *vma,
+-		unsigned long vaddr, uprobe_opcode_t opcode)
++		const unsigned long opcode_vaddr, uprobe_opcode_t opcode)
  {
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct uprobe *uprobe;
- 	struct page *old_page, *new_page;
--	struct vm_area_struct *vma;
- 	int ret, is_register, ref_ctr_updated = 0;
- 	bool orig_page_huge = false;
- 	unsigned int gup_flags = FOLL_FORCE;
-@@ -498,9 +498,9 @@ retry:
- 	if (is_register)
- 		gup_flags |= FOLL_SPLIT_PMD;
- 	/* Read the page with vaddr into memory */
--	old_page = get_user_page_vma_remote(mm, vaddr, gup_flags, &vma);
--	if (IS_ERR(old_page))
--		return PTR_ERR(old_page);
-+	ret = get_user_pages_remote(mm, vaddr, 1, gup_flags, &old_page, NULL);
-+	if (ret != 1)
-+		return ret;
- 
- 	ret = verify_opcode(old_page, vaddr, &opcode);
- 	if (ret <= 0)
-@@ -590,30 +590,31 @@ put_old:
- /**
-  * set_swbp - store breakpoint at a given address.
-  * @auprobe: arch specific probepoint information.
-- * @mm: the probed process address space.
-+ * @vma: the probed virtual memory area.
-  * @vaddr: the virtual address to insert the opcode.
-  *
-  * For mm @mm, store the breakpoint instruction at @vaddr.
-  * Return 0 (success) or a negative errno.
-  */
--int __weak set_swbp(struct arch_uprobe *auprobe, struct mm_struct *mm, unsigned long vaddr)
-+int __weak set_swbp(struct arch_uprobe *auprobe, struct vm_area_struct *vma,
-+		unsigned long vaddr)
- {
--	return uprobe_write_opcode(auprobe, mm, vaddr, UPROBE_SWBP_INSN);
-+	return uprobe_write_opcode(auprobe, vma, vaddr, UPROBE_SWBP_INSN);
- }
- 
- /**
-  * set_orig_insn - Restore the original instruction.
-- * @mm: the probed process address space.
-+ * @vma: the probed virtual memory area.
-  * @auprobe: arch specific probepoint information.
-  * @vaddr: the virtual address to insert the opcode.
-  *
-  * For mm @mm, restore the original opcode (opcode) at @vaddr.
-  * Return 0 (success) or a negative errno.
-  */
--int __weak
--set_orig_insn(struct arch_uprobe *auprobe, struct mm_struct *mm, unsigned long vaddr)
-+int __weak set_orig_insn(struct arch_uprobe *auprobe,
-+		struct vm_area_struct *vma, unsigned long vaddr)
- {
--	return uprobe_write_opcode(auprobe, mm, vaddr,
-+	return uprobe_write_opcode(auprobe, vma, vaddr,
- 			*(uprobe_opcode_t *)&auprobe->insn);
- }
- 
-@@ -1153,7 +1154,7 @@ static int install_breakpoint(struct upr
- 	if (first_uprobe)
- 		set_bit(MMF_HAS_UPROBES, &mm->flags);
- 
--	ret = set_swbp(&uprobe->arch, mm, vaddr);
-+	ret = set_swbp(&uprobe->arch, vma, vaddr);
- 	if (!ret)
- 		clear_bit(MMF_RECALC_UPROBES, &mm->flags);
- 	else if (first_uprobe)
-@@ -1168,7 +1169,7 @@ static int remove_breakpoint(struct upro
++	const unsigned long vaddr = opcode_vaddr & PAGE_MASK;
  	struct mm_struct *mm = vma->vm_mm;
+ 	struct uprobe *uprobe;
+-	struct page *old_page, *new_page;
+ 	int ret, is_register, ref_ctr_updated = 0;
+-	bool orig_page_huge = false;
+ 	unsigned int gup_flags = FOLL_FORCE;
++	struct mmu_notifier_range range;
++	struct folio_walk fw;
++	struct folio *folio;
++	struct page *page;
  
- 	set_bit(MMF_RECALC_UPROBES, &mm->flags);
--	return set_orig_insn(&uprobe->arch, mm, vaddr);
-+	return set_orig_insn(&uprobe->arch, vma, vaddr);
+ 	is_register = is_swbp_insn(&opcode);
+ 	uprobe = container_of(auprobe, struct uprobe, arch);
+ 
+-retry:
++	if (WARN_ON_ONCE(!is_cow_mapping(vma->vm_flags)))
++		return -EINVAL;
++
++	/*
++	 * When registering, we have to break COW to get an exclusive anonymous
++	 * page that we can safely modify. Use FOLL_WRITE to trigger a write
++	 * fault if required. When unregistering, we might be lucky and the
++	 * anon page is already gone. So defer write faults until really
++	 * required. Use FOLL_SPLIT_PMD, because __uprobe_write_opcode()
++	 * cannot deal with PMDs yet.
++	 */
+ 	if (is_register)
+-		gup_flags |= FOLL_SPLIT_PMD;
+-	/* Read the page with vaddr into memory */
+-	ret = get_user_pages_remote(mm, vaddr, 1, gup_flags, &old_page, NULL);
+-	if (ret != 1)
+-		return ret;
++		gup_flags |= FOLL_WRITE | FOLL_SPLIT_PMD;
+ 
+-	ret = verify_opcode(old_page, vaddr, &opcode);
++retry:
++	ret = get_user_pages_remote(mm, vaddr, 1, gup_flags, &page, NULL);
+ 	if (ret <= 0)
+-		goto put_old;
+-
+-	if (is_zero_page(old_page)) {
+-		ret = -EINVAL;
+-		goto put_old;
+-	}
++		goto out;
++	folio = page_folio(page);
+ 
+-	if (WARN(!is_register && PageCompound(old_page),
+-		 "uprobe unregister should never work on compound page\n")) {
+-		ret = -EINVAL;
+-		goto put_old;
++	ret = verify_opcode(page, opcode_vaddr, &opcode);
++	if (ret <= 0) {
++		folio_put(folio);
++		goto out;
+ 	}
+ 
+ 	/* We are going to replace instruction, update ref_ctr. */
+ 	if (!ref_ctr_updated && uprobe->ref_ctr_offset) {
+ 		ret = update_ref_ctr(uprobe, mm, is_register ? 1 : -1);
+-		if (ret)
+-			goto put_old;
++		if (ret) {
++			folio_put(folio);
++			goto out;
++		}
+ 
+ 		ref_ctr_updated = 1;
+ 	}
+ 
+ 	ret = 0;
+-	if (!is_register && !PageAnon(old_page))
+-		goto put_old;
+-
+-	ret = anon_vma_prepare(vma);
+-	if (ret)
+-		goto put_old;
+-
+-	ret = -ENOMEM;
+-	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vaddr);
+-	if (!new_page)
+-		goto put_old;
+-
+-	__SetPageUptodate(new_page);
+-	copy_highpage(new_page, old_page);
+-	copy_to_page(new_page, vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
+-
+-	if (!is_register) {
+-		struct page *orig_page;
+-		pgoff_t index;
+-
+-		VM_BUG_ON_PAGE(!PageAnon(old_page), old_page);
+-
+-		index = vaddr_to_offset(vma, vaddr & PAGE_MASK) >> PAGE_SHIFT;
+-		orig_page = find_get_page(vma->vm_file->f_inode->i_mapping,
+-					  index);
+-
+-		if (orig_page) {
+-			if (PageUptodate(orig_page) &&
+-			    pages_identical(new_page, orig_page)) {
+-				/* let go new_page */
+-				put_page(new_page);
+-				new_page = NULL;
+-
+-				if (PageCompound(orig_page))
+-					orig_page_huge = true;
+-			}
+-			put_page(orig_page);
+-		}
++	if (unlikely(!folio_test_anon(folio))) {
++		VM_WARN_ON_ONCE(is_register);
++		folio_put(folio);
++		goto out;
+ 	}
+ 
+-	ret = __replace_page(vma, vaddr & PAGE_MASK, old_page, new_page);
+-	if (new_page)
+-		put_page(new_page);
+-put_old:
+-	put_page(old_page);
+-
+-	if (unlikely(ret == -EAGAIN))
++	if (!is_register) {
++		/*
++		 * In the common case, we'll be able to zap the page when
++		 * unregistering. So trigger MMU notifiers now, as we won't
++		 * be able to do it under PTL.
++		 */
++		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
++					vaddr, vaddr + PAGE_SIZE);
++		mmu_notifier_invalidate_range_start(&range);
++	}
++
++	ret = -EAGAIN;
++	/* Walk the page tables again, to perform the actual update. */
++	if (folio_walk_start(&fw, vma, vaddr, 0)) {
++		if (fw.page == page)
++			ret = __uprobe_write_opcode(vma, &fw, folio, opcode_vaddr, opcode);
++		folio_walk_end(&fw, vma);
++	}
++
++	if (!is_register)
++		mmu_notifier_invalidate_range_end(&range);
++
++	folio_put(folio);
++	switch (ret) {
++	case -EFAULT:
++		gup_flags |= FOLL_WRITE | FOLL_SPLIT_PMD;
++		fallthrough;
++	case -EAGAIN:
+ 		goto retry;
++	default:
++		break;
++	}
+ 
++out:
+ 	/* Revert back reference counter if instruction update failed. */
+-	if (ret && is_register && ref_ctr_updated)
++	if (ret < 0 && is_register && ref_ctr_updated)
+ 		update_ref_ctr(uprobe, mm, -1);
+ 
+ 	/* try collapse pmd for compound page */
+-	if (!ret && orig_page_huge)
++	if (ret > 0)
+ 		collapse_pte_mapped_thp(mm, vaddr, false);
+ 
+-	return ret;
++	return ret < 0 ? ret : 0;
  }
  
- struct map_info {
+ /**
 _
 
 Patches currently in -mm which might be from david@redhat.com are
