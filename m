@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF372C2FB
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D87B19CD1B
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011105; cv=none; b=R5C4W17rT7wrn9RgzLiq5co1Zg9h9lFVyUc8aaoLJhlu7BquU1XAcN3sGG/WcL4r7FhKA5chIvMyTq4OAuF36Um6aq+36O0ZNs7hlUHHwnd14yK9mBuw9EKjkS389YDltPnd28wcHNTZ5seFXllT2/IcI+dDPDkhyPJctpkf21k=
+	t=1747011106; cv=none; b=nA4oficpoexomCBVMfzeOg1rrnOuAx/mOommf2F3bcw2B6u/qc6hHeskvz/Ltme+We0Nuy55wRefigCi5IjC3FxkGLOwdOD776EAnG9OZ74VQLkAQ0ErV8udcOi25VvAgEs/EVNdNX9NMQawlvaA8Cdy2U6UYJ1iDGoZhVN4+GI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011105; c=relaxed/simple;
-	bh=6uMDVdlXSzsfzjfEOGN6B25UVbt77vyh4ztJKGnzGfU=;
-	h=Date:To:From:Subject:Message-Id; b=PZRiokG0KXrAWFCnkyaRaI9WTx39Ar3tFQ7xT9Z2yrtK5+wFX9oFoKARqXS0ZW8twBS3kfkOEbkqjkd++TssMfqx79okArDsGrrhVr638YQeEDfr2PaUWQtShgIcyUgjAVKoQgJOv7wHN0sDD3j3Wr4c06lDB/U+dBhqzsQ1ozg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GpOnswUj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011106; c=relaxed/simple;
+	bh=huoPtNJl3NXR7VfLtqPOvzUi+JeNwEjcKtT2zUrLU8Y=;
+	h=Date:To:From:Subject:Message-Id; b=f9wGtw15M/1ce1LLvZ+luxM61orL6dP28EWduemwgSXAESSrL2wiDnyAAumVDGezFEEcofqdvf2kVQUqeDqJvxRqfHyQEbbE1KD/F2xszaXQJS/WZzocoiaSv4YvYfg99pfhKVgblKtXZHs2Og3YZl5VDONu+cKlmrtUqRNfiwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ycRzs5q3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GpOnswUj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6F0DC4CEE4;
-	Mon, 12 May 2025 00:51:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ycRzs5q3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E61A3C4CEE4;
+	Mon, 12 May 2025 00:51:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011104;
-	bh=6uMDVdlXSzsfzjfEOGN6B25UVbt77vyh4ztJKGnzGfU=;
+	s=korg; t=1747011106;
+	bh=huoPtNJl3NXR7VfLtqPOvzUi+JeNwEjcKtT2zUrLU8Y=;
 	h=Date:To:From:Subject:From;
-	b=GpOnswUjw1gMEZakBOyCFzhPfwwPD+Jf4cdfOkTwDbA6UwlWw2CSnooorfevejmPH
-	 Fa3RtK/Xa9tBTPfGRGnvRI4+bYoZ7zOTue/nTyunVjKao3RbjXFN8QYSOziiD841VO
-	 2nWd3yL2Ff2lFVoX2aVfMSRpNAQEgNRcxd44UTT0=
-Date: Sun, 11 May 2025 17:51:44 -0700
+	b=ycRzs5q3EXBkpa7v/+JeUW6paqnvVy1iSV4/FCM59PmIwcq4St39rUaJhtuY9wjNw
+	 cwX/a+3JP/fI6BJoiMxyxK0SD+pAQH79kQSWrPeiFHW9bkb9J9E0BiInb+4KnRthFA
+	 RfWLogpVgF5JvFir87+p6q0Tn15taClzDINht7DU=
+Date: Sun, 11 May 2025 17:51:45 -0700
 To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,riel@surriel.com,richard.weiyang@gmail.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch removed from -mm tree
-Message-Id: <20250512005144.B6F0DC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch removed from -mm tree
+Message-Id: <20250512005145.E61A3C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,234 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: fix incorrectly disallowed anonymous VMA merges
+     Subject: tools/testing: add PROCMAP_QUERY helper functions in mm self tests
 has been removed from the -mm tree.  Its filename was
-     mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
+     tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: fix incorrectly disallowed anonymous VMA merges
-Date: Tue, 8 Apr 2025 10:29:31 +0100
+Subject: tools/testing: add PROCMAP_QUERY helper functions in mm self tests
+Date: Tue, 8 Apr 2025 10:29:32 +0100
 
-Patch series "fix incorrectly disallowed anonymous VMA merges", v2.
+The PROCMAP_QUERY ioctl() is very useful - it allows for binary access to
+/proc/$pid/[s]maps data and thus convenient lookup of data contained
+there.
 
-It appears that we have been incorrectly rejecting merge cases for 15
-years, apparently by mistake.
+This patch exposes this for convenient use by mm self tests so the state
+of VMAs can easily be queried.
 
-Imagine a range of anonymous mapped momemory divided into two VMAs like
-this, with incompatible protection bits:
-
-              RW         RWX
-	  unfaulted    faulted
-	|-----------|-----------|
-	|    prev   |    vma    |
-	|-----------|-----------|
-	             mprotect(RW)
-
-Now imagine mprotect()'ing vma so it is RW. This appears as if it should
-merge, it does not.
-
-Neither does this case, again mprotect()'ing vma RW:
-
-              RWX        RW
-	   faulted    unfaulted
-	|-----------|-----------|
-	|    vma    |   next    |
-	|-----------|-----------|
-	 mprotect(RW)
-
-Nor:
-
-              RW         RWX          RW
-	  unfaulted    faulted    unfaulted
-	|-----------|-----------|-----------|
-	|    prev   |    vma    |    next   |
-	|-----------|-----------|-----------|
-	             mprotect(RW)
-
-What's going on here?
-
-In commit 5beb49305251 ("mm: change anon_vma linking to fix multi-process
-server scalability issue"), from 2010, Rik von Riel took careful care to
-account for these cases - commenting that '[this is] easily overlooked:
-when mprotect shifts the boundary, make sure the expanding vma has
-anon_vma set if the shrinking vma had, to cover any anon pages imported.'
-
-However, commit 965f55dea0e3 ("mmap: avoid merging cloned VMAs")
-introduced a little over a year later, appears to have accidentally
-disallowed this.
-
-By adjusting the is_mergeable_anon_vma() function to avoid lock contention
-across large trees of forked anon_vma's, this commit wrongly assumed the
-VMA being checked (the ostensible merge 'target') should be faulted, that
-is, have an anon_vma, and thus an anon_vma_chain list established, but
-only of length 1.
-
-This appears to have been unintentional, as disallowing empty target VMAs
-like this across the board makes no sense.
-
-We already have logic that accounts for this case, the same logic Rik
-introduced in 2010, now via dup_anon_vma() (and ultimately
-anon_vma_clone()), so there is no problem permitting this.
-
-This series fixes this mistake and also ensures that scalability concerns
-remain addressed by explicitly checking that whatever VMA is being merged
-has not been forked.
-
-A full set of self tests which reproduce the issue are provided, as well
-as updating userland VMA tests to assert this behaviour.
-
-The self tests additionally assert scalability concerns are addressed.
-
-
-This patch (of 3):
-
-anon_vma_chain's were introduced by Rik von Riel in commit 5beb49305251
-("mm: change anon_vma linking to fix multi-process server scalability
-issue").
-
-This patch was introduced in March 2010.  As part of this change, careful
-attention was made to the instance of mprotect() causing a VMA merge, with
-one faulted (i.e.  having anon_vma set) and another not:
-
-		/*
-		 * Easily overlooked: when mprotect shifts the boundary,
-		 * make sure the expanding vma has anon_vma set if the
-		 * shrinking vma had, to cover any anon pages imported.
-		 */
-
-In the modern VMA code, this is handled in dup_anon_vma() (and ultimately
-anon_vma_clone()).
-
-This case is one of the three configurations of adjacent VMA anon_vma
-state that we might encounter on merge (where dst is the VMA which will be
-merged into and src the one being merged into dst):
-
-1.  dst->anon_vma,  src->anon_vma - These must be equal, no-op.
-2.  dst->anon_vma, !src->anon_vma - We simply use dst->anon_vma, no-op.
-3. !dst->anon_vma,  src->anon_vma - The case in question here.
-
-In case 3, the instance addressed here - we duplicate the AVC connections
-from src and place into dst.
-
-However, in practice, we very often do NOT do this.
-
-This appears to be due to an inadvertent consequence of the change
-introduced by commit 965f55dea0e3 ("mmap: avoid merging cloned VMAs"),
-introduced in May 2011.
-
-This implies that this merge case was functional only for a little over a
-year, and has since been broken for ~15 years.
-
-Here, lock scalability concerns lead to us restricting anonymous merges
-only to those VMAs with 1 entry in their vma->anon_vma_chain, that is, a
-VMA that is not connected to any parent process's anon_vma.
-
-The mergeability test looks like this:
-
-static inline bool is_mergeable_anon_vma(struct anon_vma *anon_vma1,
-		 struct anon_vma *anon_vma2, struct vm_area_struct *vma)
-{
-	if ((!anon_vma1 || !anon_vma2) && (!vma ||
-		!vma->anon_vma || list_is_singular(&vma->anon_vma_chain)))
-		return true;
-	return anon_vma1 == anon_vma2;
-}
-
-However, we have a problem here - typically the vma passed here is the
-destination VMA.
-
-For instance in vma_merge_existing_range() we invoke:
-
-can_vma_merge_left()
--> [ check that there is an immediately adjacent prior VMA ]
--> can_vma_merge_after()
-  -> is_mergeable_vma() for general attribute check
--> is_mergeable_anon_vma([ proposed anon_vma ], prev->anon_vma, prev)
-
-So if we were considering a target unfaulted 'prev':
-
-	  unfaulted    faulted
-	|-----------|-----------|
-	|    prev   |    vma    |
-	|-----------|-----------|
-
-This would call is_mergeable_anon_vma(NULL, vma->anon_vma, prev).
-
-The list_is_singular() check for vma->anon_vma_chain, an empty list on
-fault, would cause this merge to _fail_ even though all else indicates a
-merge.
-
-Equally a simple merge into a next VMA would hit the same problem:
-
-	   faulted    unfaulted
-	|-----------|-----------|
-	|    vma    |    next   |
-	|-----------|-----------|
-
-can_vma_merge_right()
--> [ check that there is an immediately adjacent succeeding VMA ]
--> can_vma_merge_before()
-  -> is_mergeable_vma() for general attribute check
--> is_mergeable_anon_vma([ proposed anon_vma ], next->anon_vma, next)
-
-For a 3-way merge, we'd also hit the same problem if it was configured like
-this for instance:
-
-	  unfaulted    faulted    unfaulted
-	|-----------|-----------|-----------|
-	|    prev   |    vma    |    next   |
-	|-----------|-----------|-----------|
-
-As we'd call can_vma_merge_left() for prev, and can_vma_merge_right() for
-next, both of which would fail.
-
-vma_merge_new_range() (and relatedly, vma_expand()) are not impacted, as
-the new VMA would never already be faulted (it is a proposed new range).
-
-Because we already handle each of the aforementioned merge cases, and can
-absolutely therefore deal with an existing VMA merge with !dst->anon_vma,
-src->anon_vma, there is absolutely no reason to disallow this kind of
-merge.
-
-It seems that the intention of this patch is to ensure that, in the
-instance of merging unfaulted VMAs with faulted ones, we never wish to do
-so with those with multiple AVCs due to the fact that anon_vma lock's are
-held across both parent and child anon_vma's (actually, the 'root' parent
-anon_vma's lock is used).
-
-In fact, the original commit alludes to this - "find_mergeable_anon_vma()
-already considers this case".
-
-In find_mergeable_anon_vma() however, we check the anon_vma which will be
-merged from, if it is set, then we check
-list_is_singular(vma->anon_vma_chain).
-
-So to match this logic, update is_mergeable_anon_vma() to perform this
-scalability check on the VMA whose anon_vma we ultimately merge into.
-
-This matches existing behaviour with forked VMAs, only we no longer
-wrongly disallow ALL empty target merges.
-
-So we both allow merge cases and ensure the scalability check is correctly
-applied.
-
-We may wish to revisit these lock scalability concerns at a later date and
-ensure they are still valid.
-
-Additionally, correct userland VMA tests which were mistakenly not
-asserting these cases correctly previously to now correctly assert this,
-and to ensure vmg->anon_vma state is always consistent to account for
-newly introduced asserts.
-
-Link: https://lkml.kernel.org/r/cover.1744104124.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/18c756fc9eaf7ad082a710c91133b8346f8cd9a8.1744104124.git.lorenzo.stoakes@oracle.com
-Fixes: 965f55dea0e3 ("mmap: avoid merging cloned VMAs")
+Link: https://lkml.kernel.org/r/ce83d877093d1fc594762cf4b82f0c27963030ee.1744104124.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -270,386 +65,131 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c                |   81 ++++++++++++++++++++++--------
- tools/testing/vma/vma.c |  100 ++++++++++++++++++++------------------
- 2 files changed, 111 insertions(+), 70 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |   62 +++++++++++++++++++++++++
+ tools/testing/selftests/mm/vm_util.h |   21 ++++++++
+ 2 files changed, 83 insertions(+)
 
---- a/mm/vma.c~mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges
-+++ a/mm/vma.c
-@@ -57,6 +57,22 @@ struct mmap_state {
- 		.state = VMA_MERGE_START,				\
+--- a/tools/testing/selftests/mm/vm_util.c~tools-testing-add-procmap_query-helper-functions-in-mm-self-tests
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -1,5 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <string.h>
++#include <errno.h>
+ #include <fcntl.h>
+ #include <dirent.h>
+ #include <inttypes.h>
+@@ -424,3 +425,64 @@ bool check_vmflag_io(void *addr)
+ 		flags += flaglen;
  	}
+ }
++
++/*
++ * Open an fd at /proc/$pid/maps and configure procmap_out ready for
++ * PROCMAP_QUERY query. Returns 0 on success, or an error code otherwise.
++ */
++int open_procmap(pid_t pid, struct procmap_fd *procmap_out)
++{
++	char path[256];
++	int ret = 0;
++
++	memset(procmap_out, '\0', sizeof(*procmap_out));
++	sprintf(path, "/proc/%d/maps", pid);
++	procmap_out->query.size = sizeof(procmap_out->query);
++	procmap_out->fd = open(path, O_RDONLY);
++	if (procmap_out < 0)
++		ret = -errno;
++
++	return ret;
++}
++
++/* Perform PROCMAP_QUERY. Returns 0 on success, or an error code otherwise. */
++int query_procmap(struct procmap_fd *procmap)
++{
++	int ret = 0;
++
++	if (ioctl(procmap->fd, PROCMAP_QUERY, &procmap->query) == -1)
++		ret = -errno;
++
++	return ret;
++}
++
++/*
++ * Try to find the VMA at specified address, returns true if found, false if not
++ * found, and the test is failed if any other error occurs.
++ *
++ * On success, procmap->query is populated with the results.
++ */
++bool find_vma_procmap(struct procmap_fd *procmap, void *address)
++{
++	int err;
++
++	procmap->query.query_flags = 0;
++	procmap->query.query_addr = (unsigned long)address;
++	err = query_procmap(procmap);
++	if (!err)
++		return true;
++
++	if (err != -ENOENT)
++		ksft_exit_fail_msg("%s: Error %d on ioctl(PROCMAP_QUERY)\n",
++				   __func__, err);
++	return false;
++}
++
++/*
++ * Close fd used by PROCMAP_QUERY mechanism. Returns 0 on success, or an error
++ * code otherwise.
++ */
++int close_procmap(struct procmap_fd *procmap)
++{
++	return close(procmap->fd);
++}
+--- a/tools/testing/selftests/mm/vm_util.h~tools-testing-add-procmap_query-helper-functions-in-mm-self-tests
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -6,6 +6,7 @@
+ #include <strings.h> /* ffsl() */
+ #include <unistd.h> /* _SC_PAGESIZE */
+ #include "../kselftest.h"
++#include <linux/fs.h>
+ 
+ #define BIT_ULL(nr)                   (1ULL << (nr))
+ #define PM_SOFT_DIRTY                 BIT_ULL(55)
+@@ -19,6 +20,15 @@
+ extern unsigned int __page_size;
+ extern unsigned int __page_shift;
  
 +/*
-+ * If, at any point, the VMA had unCoW'd mappings from parents, it will maintain
-+ * more than one anon_vma_chain connecting it to more than one anon_vma. A merge
-+ * would mean a wider range of folios sharing the root anon_vma lock, and thus
-+ * potential lock contention, we do not wish to encourage merging such that this
-+ * scales to a problem.
++ * Represents an open fd and PROCMAP_QUERY state for binary (via ioctl)
++ * /proc/$pid/[s]maps lookup.
 + */
-+static bool vma_had_uncowed_parents(struct vm_area_struct *vma)
++struct procmap_fd {
++	int fd;
++	struct procmap_query query;
++};
++
+ static inline unsigned int psize(void)
+ {
+ 	if (!__page_size)
+@@ -73,6 +83,17 @@ int uffd_register_with_ioctls(int uffd,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls);
+ unsigned long get_free_hugepages(void);
+ bool check_vmflag_io(void *addr);
++int open_procmap(pid_t pid, struct procmap_fd *procmap_out);
++int query_procmap(struct procmap_fd *procmap);
++bool find_vma_procmap(struct procmap_fd *procmap, void *address);
++int close_procmap(struct procmap_fd *procmap);
++
++static inline int open_self_procmap(struct procmap_fd *procmap_out)
 +{
-+	/*
-+	 * The list_is_singular() test is to avoid merging VMA cloned from
-+	 * parents. This can improve scalability caused by anon_vma lock.
-+	 */
-+	return vma && vma->anon_vma && !list_is_singular(&vma->anon_vma_chain);
++	pid_t pid = getpid();
++
++	return open_procmap(pid, procmap_out);
 +}
-+
- static inline bool is_mergeable_vma(struct vma_merge_struct *vmg, bool merge_next)
- {
- 	struct vm_area_struct *vma = merge_next ? vmg->next : vmg->prev;
-@@ -82,24 +98,28 @@ static inline bool is_mergeable_vma(stru
- 	return true;
- }
- 
--static inline bool is_mergeable_anon_vma(struct anon_vma *anon_vma1,
--		 struct anon_vma *anon_vma2, struct vm_area_struct *vma)
-+static bool is_mergeable_anon_vma(struct vma_merge_struct *vmg, bool merge_next)
- {
-+	struct vm_area_struct *tgt = merge_next ? vmg->next : vmg->prev;
-+	struct vm_area_struct *src = vmg->middle; /* exisitng merge case. */
-+	struct anon_vma *tgt_anon = tgt->anon_vma;
-+	struct anon_vma *src_anon = vmg->anon_vma;
-+
- 	/*
--	 * The list_is_singular() test is to avoid merging VMA cloned from
--	 * parents. This can improve scalability caused by anon_vma lock.
-+	 * We _can_ have !src, vmg->anon_vma via copy_vma(). In this instance we
-+	 * will remove the existing VMA's anon_vma's so there's no scalability
-+	 * concerns.
- 	 */
--	if ((!anon_vma1 || !anon_vma2) && (!vma ||
--		list_is_singular(&vma->anon_vma_chain)))
--		return true;
--	return anon_vma1 == anon_vma2;
--}
-+	VM_WARN_ON(src && src_anon != src->anon_vma);
- 
--/* Are the anon_vma's belonging to each VMA compatible with one another? */
--static inline bool are_anon_vmas_compatible(struct vm_area_struct *vma1,
--					    struct vm_area_struct *vma2)
--{
--	return is_mergeable_anon_vma(vma1->anon_vma, vma2->anon_vma, NULL);
-+	/* Case 1 - we will dup_anon_vma() from src into tgt. */
-+	if (!tgt_anon && src_anon)
-+		return !vma_had_uncowed_parents(src);
-+	/* Case 2 - we will simply use tgt's anon_vma. */
-+	if (tgt_anon && !src_anon)
-+		return !vma_had_uncowed_parents(tgt);
-+	/* Case 3 - the anon_vma's are already shared. */
-+	return src_anon == tgt_anon;
- }
  
  /*
-@@ -164,7 +184,7 @@ static bool can_vma_merge_before(struct
- 	pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
- 
- 	if (is_mergeable_vma(vmg, /* merge_next = */ true) &&
--	    is_mergeable_anon_vma(vmg->anon_vma, vmg->next->anon_vma, vmg->next)) {
-+	    is_mergeable_anon_vma(vmg, /* merge_next = */ true)) {
- 		if (vmg->next->vm_pgoff == vmg->pgoff + pglen)
- 			return true;
- 	}
-@@ -184,7 +204,7 @@ static bool can_vma_merge_before(struct
- static bool can_vma_merge_after(struct vma_merge_struct *vmg)
- {
- 	if (is_mergeable_vma(vmg, /* merge_next = */ false) &&
--	    is_mergeable_anon_vma(vmg->anon_vma, vmg->prev->anon_vma, vmg->prev)) {
-+	    is_mergeable_anon_vma(vmg, /* merge_next = */ false)) {
- 		if (vmg->prev->vm_pgoff + vma_pages(vmg->prev) == vmg->pgoff)
- 			return true;
- 	}
-@@ -400,8 +420,10 @@ static bool can_vma_merge_left(struct vm
- static bool can_vma_merge_right(struct vma_merge_struct *vmg,
- 				bool can_merge_left)
- {
--	if (!vmg->next || vmg->end != vmg->next->vm_start ||
--	    !can_vma_merge_before(vmg))
-+	struct vm_area_struct *next = vmg->next;
-+	struct vm_area_struct *prev;
-+
-+	if (!next || vmg->end != next->vm_start || !can_vma_merge_before(vmg))
- 		return false;
- 
- 	if (!can_merge_left)
-@@ -414,7 +436,9 @@ static bool can_vma_merge_right(struct v
- 	 *
- 	 * We therefore check this in addition to mergeability to either side.
- 	 */
--	return are_anon_vmas_compatible(vmg->prev, vmg->next);
-+	prev = vmg->prev;
-+	return !prev->anon_vma || !next->anon_vma ||
-+		prev->anon_vma == next->anon_vma;
- }
- 
- /*
-@@ -554,7 +578,9 @@ static int split_vma(struct vma_iterator
- }
- 
- /*
-- * dup_anon_vma() - Helper function to duplicate anon_vma
-+ * dup_anon_vma() - Helper function to duplicate anon_vma on VMA merge in the
-+ * instance that the destination VMA has no anon_vma but the source does.
-+ *
-  * @dst: The destination VMA
-  * @src: The source VMA
-  * @dup: Pointer to the destination VMA when successful.
-@@ -565,9 +591,18 @@ static int dup_anon_vma(struct vm_area_s
- 			struct vm_area_struct *src, struct vm_area_struct **dup)
- {
- 	/*
--	 * Easily overlooked: when mprotect shifts the boundary, make sure the
--	 * expanding vma has anon_vma set if the shrinking vma had, to cover any
--	 * anon pages imported.
-+	 * There are three cases to consider for correctly propagating
-+	 * anon_vma's on merge.
-+	 *
-+	 * The first is trivial - neither VMA has anon_vma, we need not do
-+	 * anything.
-+	 *
-+	 * The second where both have anon_vma is also a no-op, as they must
-+	 * then be the same, so there is simply nothing to copy.
-+	 *
-+	 * Here we cover the third - if the destination VMA has no anon_vma,
-+	 * that is it is unfaulted, we need to ensure that the newly merged
-+	 * range is referenced by the anon_vma's of the source.
- 	 */
- 	if (src->anon_vma && !dst->anon_vma) {
- 		int ret;
---- a/tools/testing/vma/vma.c~mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges
-+++ a/tools/testing/vma/vma.c
-@@ -185,6 +185,15 @@ static void vmg_set_range(struct vma_mer
- 	vmg->__adjust_next_start = false;
- }
- 
-+/* Helper function to set both the VMG range and its anon_vma. */
-+static void vmg_set_range_anon_vma(struct vma_merge_struct *vmg, unsigned long start,
-+				   unsigned long end, pgoff_t pgoff, vm_flags_t flags,
-+				   struct anon_vma *anon_vma)
-+{
-+	vmg_set_range(vmg, start, end, pgoff, flags);
-+	vmg->anon_vma = anon_vma;
-+}
-+
- /*
-  * Helper function to try to merge a new VMA.
-  *
-@@ -265,6 +274,22 @@ static void dummy_close(struct vm_area_s
- {
- }
- 
-+static void __vma_set_dummy_anon_vma(struct vm_area_struct *vma,
-+				     struct anon_vma_chain *avc,
-+				     struct anon_vma *anon_vma)
-+{
-+	vma->anon_vma = anon_vma;
-+	INIT_LIST_HEAD(&vma->anon_vma_chain);
-+	list_add(&avc->same_vma, &vma->anon_vma_chain);
-+	avc->anon_vma = vma->anon_vma;
-+}
-+
-+static void vma_set_dummy_anon_vma(struct vm_area_struct *vma,
-+				   struct anon_vma_chain *avc)
-+{
-+	__vma_set_dummy_anon_vma(vma, avc, &dummy_anon_vma);
-+}
-+
- static bool test_simple_merge(void)
- {
- 	struct vm_area_struct *vma;
-@@ -953,6 +978,7 @@ static bool test_merge_existing(void)
- 	const struct vm_operations_struct vm_ops = {
- 		.close = dummy_close,
- 	};
-+	struct anon_vma_chain avc = {};
- 
- 	/*
- 	 * Merge right case - partial span.
-@@ -968,10 +994,10 @@ static bool test_merge_existing(void)
- 	vma->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, flags);
- 	vma_next->vm_ops = &vm_ops; /* This should have no impact. */
--	vmg_set_range(&vmg, 0x3000, 0x6000, 3, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x3000, 0x6000, 3, flags, &dummy_anon_vma);
- 	vmg.middle = vma;
- 	vmg.prev = vma;
--	vma->anon_vma = &dummy_anon_vma;
-+	vma_set_dummy_anon_vma(vma, &avc);
- 	ASSERT_EQ(merge_existing(&vmg), vma_next);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
- 	ASSERT_EQ(vma_next->vm_start, 0x3000);
-@@ -1001,9 +1027,9 @@ static bool test_merge_existing(void)
- 	vma = alloc_and_link_vma(&mm, 0x2000, 0x6000, 2, flags);
- 	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, flags);
- 	vma_next->vm_ops = &vm_ops; /* This should have no impact. */
--	vmg_set_range(&vmg, 0x2000, 0x6000, 2, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x2000, 0x6000, 2, flags, &dummy_anon_vma);
- 	vmg.middle = vma;
--	vma->anon_vma = &dummy_anon_vma;
-+	vma_set_dummy_anon_vma(vma, &avc);
- 	ASSERT_EQ(merge_existing(&vmg), vma_next);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
- 	ASSERT_EQ(vma_next->vm_start, 0x2000);
-@@ -1030,11 +1056,10 @@ static bool test_merge_existing(void)
- 	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
- 	vma->vm_ops = &vm_ops; /* This should have no impact. */
--	vmg_set_range(&vmg, 0x3000, 0x6000, 3, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x3000, 0x6000, 3, flags, &dummy_anon_vma);
- 	vmg.prev = vma_prev;
- 	vmg.middle = vma;
--	vma->anon_vma = &dummy_anon_vma;
--
-+	vma_set_dummy_anon_vma(vma, &avc);
- 	ASSERT_EQ(merge_existing(&vmg), vma_prev);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
- 	ASSERT_EQ(vma_prev->vm_start, 0);
-@@ -1064,10 +1089,10 @@ static bool test_merge_existing(void)
- 	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
- 	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
--	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x3000, 0x7000, 3, flags, &dummy_anon_vma);
- 	vmg.prev = vma_prev;
- 	vmg.middle = vma;
--	vma->anon_vma = &dummy_anon_vma;
-+	vma_set_dummy_anon_vma(vma, &avc);
- 	ASSERT_EQ(merge_existing(&vmg), vma_prev);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
- 	ASSERT_EQ(vma_prev->vm_start, 0);
-@@ -1094,10 +1119,10 @@ static bool test_merge_existing(void)
- 	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
- 	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, flags);
--	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x3000, 0x7000, 3, flags, &dummy_anon_vma);
- 	vmg.prev = vma_prev;
- 	vmg.middle = vma;
--	vma->anon_vma = &dummy_anon_vma;
-+	vma_set_dummy_anon_vma(vma, &avc);
- 	ASSERT_EQ(merge_existing(&vmg), vma_prev);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
- 	ASSERT_EQ(vma_prev->vm_start, 0);
-@@ -1180,12 +1205,9 @@ static bool test_anon_vma_non_mergeable(
- 		.mm = &mm,
- 		.vmi = &vmi,
- 	};
--	struct anon_vma_chain dummy_anon_vma_chain1 = {
--		.anon_vma = &dummy_anon_vma,
--	};
--	struct anon_vma_chain dummy_anon_vma_chain2 = {
--		.anon_vma = &dummy_anon_vma,
--	};
-+	struct anon_vma_chain dummy_anon_vma_chain_1 = {};
-+	struct anon_vma_chain dummy_anon_vma_chain_2 = {};
-+	struct anon_vma dummy_anon_vma_2;
- 
- 	/*
- 	 * In the case of modified VMA merge, merging both left and right VMAs
-@@ -1209,24 +1231,11 @@ static bool test_anon_vma_non_mergeable(
- 	 *
- 	 * However, when prev is compared to next, the merge should fail.
- 	 */
--
--	INIT_LIST_HEAD(&vma_prev->anon_vma_chain);
--	list_add(&dummy_anon_vma_chain1.same_vma, &vma_prev->anon_vma_chain);
--	ASSERT_TRUE(list_is_singular(&vma_prev->anon_vma_chain));
--	vma_prev->anon_vma = &dummy_anon_vma;
--	ASSERT_TRUE(is_mergeable_anon_vma(NULL, vma_prev->anon_vma, vma_prev));
--
--	INIT_LIST_HEAD(&vma_next->anon_vma_chain);
--	list_add(&dummy_anon_vma_chain2.same_vma, &vma_next->anon_vma_chain);
--	ASSERT_TRUE(list_is_singular(&vma_next->anon_vma_chain));
--	vma_next->anon_vma = (struct anon_vma *)2;
--	ASSERT_TRUE(is_mergeable_anon_vma(NULL, vma_next->anon_vma, vma_next));
--
--	ASSERT_FALSE(is_mergeable_anon_vma(vma_prev->anon_vma, vma_next->anon_vma, NULL));
--
--	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x3000, 0x7000, 3, flags, NULL);
- 	vmg.prev = vma_prev;
- 	vmg.middle = vma;
-+	vma_set_dummy_anon_vma(vma_prev, &dummy_anon_vma_chain_1);
-+	__vma_set_dummy_anon_vma(vma_next, &dummy_anon_vma_chain_2, &dummy_anon_vma_2);
- 
- 	ASSERT_EQ(merge_existing(&vmg), vma_prev);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
-@@ -1253,17 +1262,12 @@ static bool test_anon_vma_non_mergeable(
- 	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
- 	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, flags);
- 
--	INIT_LIST_HEAD(&vma_prev->anon_vma_chain);
--	list_add(&dummy_anon_vma_chain1.same_vma, &vma_prev->anon_vma_chain);
--	vma_prev->anon_vma = (struct anon_vma *)1;
--
--	INIT_LIST_HEAD(&vma_next->anon_vma_chain);
--	list_add(&dummy_anon_vma_chain2.same_vma, &vma_next->anon_vma_chain);
--	vma_next->anon_vma = (struct anon_vma *)2;
--
--	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x3000, 0x7000, 3, flags, NULL);
- 	vmg.prev = vma_prev;
-+	vma_set_dummy_anon_vma(vma_prev, &dummy_anon_vma_chain_1);
-+	__vma_set_dummy_anon_vma(vma_next, &dummy_anon_vma_chain_2, &dummy_anon_vma_2);
- 
-+	vmg.anon_vma = NULL;
- 	ASSERT_EQ(merge_new(&vmg), vma_prev);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
- 	ASSERT_EQ(vma_prev->vm_start, 0);
-@@ -1363,8 +1367,8 @@ static bool test_dup_anon_vma(void)
- 	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
- 	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x8000, 5, flags);
--
--	vma->anon_vma = &dummy_anon_vma;
-+	vmg.anon_vma = &dummy_anon_vma;
-+	vma_set_dummy_anon_vma(vma, &dummy_anon_vma_chain);
- 	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
- 	vmg.prev = vma_prev;
- 	vmg.middle = vma;
-@@ -1392,7 +1396,7 @@ static bool test_dup_anon_vma(void)
- 	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x8000, 3, flags);
- 
--	vma->anon_vma = &dummy_anon_vma;
-+	vma_set_dummy_anon_vma(vma, &dummy_anon_vma_chain);
- 	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
- 	vmg.prev = vma_prev;
- 	vmg.middle = vma;
-@@ -1420,7 +1424,7 @@ static bool test_dup_anon_vma(void)
- 	vma = alloc_and_link_vma(&mm, 0, 0x5000, 0, flags);
- 	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x8000, 5, flags);
- 
--	vma->anon_vma = &dummy_anon_vma;
-+	vma_set_dummy_anon_vma(vma, &dummy_anon_vma_chain);
- 	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
- 	vmg.prev = vma;
- 	vmg.middle = vma;
-@@ -1447,6 +1451,7 @@ static bool test_vmi_prealloc_fail(void)
- 		.mm = &mm,
- 		.vmi = &vmi,
- 	};
-+	struct anon_vma_chain avc = {};
- 	struct vm_area_struct *vma_prev, *vma;
- 
- 	/*
-@@ -1459,9 +1464,10 @@ static bool test_vmi_prealloc_fail(void)
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
- 	vma->anon_vma = &dummy_anon_vma;
- 
--	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg_set_range_anon_vma(&vmg, 0x3000, 0x5000, 3, flags, &dummy_anon_vma);
- 	vmg.prev = vma_prev;
- 	vmg.middle = vma;
-+	vma_set_dummy_anon_vma(vma, &avc);
- 
- 	fail_prealloc = true;
- 
+  * On ppc64 this will only work with radix 2M hugepage size
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
