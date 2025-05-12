@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B95EC2FB
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87C26C2FB
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011101; cv=none; b=doiIIHQb4+wZA2jwFDyp3IPYPwPORWSiqf42swt9bE4W95F7JTdAjqXCUzPRkwyw88vjo7CbF5Hf3/LQtW0J7mt9MIZYE5Pfe+11hek8y6Jn96G82jBHg9q74N+4gftQv/ltbu9o7IOWlyPUToz75EhX2cBkgTyPXm3/RxY3LzY=
+	t=1747011102; cv=none; b=qXdIzxEOKsXUMjnidYeiaKnC/kaonlrfhLvGRq7xRH/tWdkFpj9O9XYl2GSj0DbK5FDNOncLnrI9K2sL2+D16aLpLmyjznNZA4qxpH4YMZzWoehj2PSLFUtsLPGA+XrbkJoGAPRhcGxAtzun/mFrAedykWpbvzuo7PhlIfLv0YI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011101; c=relaxed/simple;
-	bh=ssamBdAzee0mqARoxXG6nzhuBSVdmkMTJap21/OjoOE=;
-	h=Date:To:From:Subject:Message-Id; b=QLpsV5CUxBq5xPKZYd0s6QKEqwIBUcwxg5qMPgDnV134nDJV7WgSlLiw5EwIDor2p8uN0eNtpoEJXIBesR58LVHjRhgcuBsqcVVSX5pihwDSBbvPEI7xmGrzN1x8yOd5wfNBpdM7PJ8nOBzLAuwpYWW5d7SmoWrsPoXHqOGM5CU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ogk/zWUm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011102; c=relaxed/simple;
+	bh=bDXAZrjr9b/uwbxC3aGN1b0uT6096iSs0Z+hlzf1g64=;
+	h=Date:To:From:Subject:Message-Id; b=vGfIU9QmrNpHQuyxKsN3t9O9aAOvp54EAbCnEOYvtg0YGQKH3KPsslszBEvREEFBGMzR1FpA5Enw7HIe8Oi57t9d/dcvURjAZKBeYigyQ6pAJ/uIus0n05fgLaTSNXA1/6V2rLDW1mCSTQZFUidKU8Jym02sEaa6JwRer24hzFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GrmzjLE/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ogk/zWUm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3553C4CEE4;
-	Mon, 12 May 2025 00:51:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GrmzjLE/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B4ABC4CEE4;
+	Mon, 12 May 2025 00:51:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011101;
-	bh=ssamBdAzee0mqARoxXG6nzhuBSVdmkMTJap21/OjoOE=;
+	s=korg; t=1747011102;
+	bh=bDXAZrjr9b/uwbxC3aGN1b0uT6096iSs0Z+hlzf1g64=;
 	h=Date:To:From:Subject:From;
-	b=Ogk/zWUmn7Xvk3IJ6RCDUz4JhJeqNGRrJEJMPhbVzaAttp2QJ2ghsTuvd7XZcwGfQ
-	 B0NWxmN3N291JGakvXTqjjJrrmKUBKuYj7R36GwUN5ItKMGWfX/mq1bXMCphe5Uhjl
-	 3c4/Yc1DxMBQs57TROqK+6ZQklNbwR4jVTlEQbPA=
-Date: Sun, 11 May 2025 17:51:40 -0700
+	b=GrmzjLE/fMYcNf0NBPDYV5FNQG/IRCgjeON/pwPE2Hd54r0r9oKdjSg8eIw7qyWQK
+	 lGSXVe4DsE38xgEafbYPzN9L9f9qNSzrSW/Crt/3sy/z3FAstCOLWSZ8Lf7E2szhGj
+	 MmdL/VCKHgyM9BpLz2gCXcQ7oja4/8FyYlOjyxCo=
+Date: Sun, 11 May 2025 17:51:41 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tmgross@umich.edu,surenb@google.com,ojeda@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jhubbard@nvidia.com,jannh@google.com,gregkh@linuxfoundation.org,gary@garyguo.net,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,balbirs@nvidia.com,arnd@arndb.de,alex.gaynor@gmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] task-rust-rework-how-current-is-accessed.patch removed from -mm tree
-Message-Id: <20250512005140.F3553C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rust-add-memory-management.patch removed from -mm tree
+Message-Id: <20250512005142.5B4ABC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,39 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: task: rust: rework how current is accessed
+     Subject: mm: rust: add MEMORY MANAGEMENT [RUST]
 has been removed from the -mm tree.  Its filename was
-     task-rust-rework-how-current-is-accessed.patch
+     mm-rust-add-memory-management.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alice Ryhl <aliceryhl@google.com>
-Subject: task: rust: rework how current is accessed
-Date: Tue, 08 Apr 2025 09:22:45 +0000
+Subject: mm: rust: add MEMORY MANAGEMENT [RUST]
+Date: Tue, 08 Apr 2025 09:22:46 +0000
 
-Introduce a new type called `CurrentTask` that lets you perform various
-operations that are only safe on the `current` task.  Use the new type to
-provide a way to access the current mm without incrementing its refcount.
+We have introduced Rust bindings for core mm abstractions as part of this
+series, so add an entry in MAINTAINERS to be explicit about who maintains
+this.
 
-With this change, you can write stuff such as
+Patches are anticipated to be taken through the mm tree as usual with
+other mm code.
 
-	let vma = current!().mm().lock_vma_under_rcu(addr);
-
-without incrementing any refcounts.
-
-This replaces the existing abstractions for accessing the current pid
-namespace.  With the old approach, every field access to current involves
-both a macro and a unsafe helper function.  The new approach simplifies
-that to a single safe function on the `CurrentTask` type.  This makes it
-less heavy-weight to add additional current accessors in the future.
-
-That said, creating a `CurrentTask` type like the one in this patch
-requires that we are careful to ensure that it cannot escape the current
-task or otherwise access things after they are freed.  To do this, I
-declared that it cannot escape the current "task context" where I defined
-a "task context" as essentially the region in which `current` remains
-unchanged.  So e.g., release_task() or begin_new_exec() would leave the
-task context.
-
-If a userspace thread returns to userspace and later makes another
-syscall, then I consider the two syscalls to be different task contexts. 
-This allows values stored in that task to be modified between syscalls,
-even if they're guaranteed to be immutable during a syscall.
-
-Ensuring correctness of `CurrentTask` is slightly tricky if we also want
-the ability to have a safe `kthread_use_mm()` implementation in Rust.  To
-support that safely, there are two patterns we need to ensure are safe:
-
-	// Case 1: current!() called inside the scope.
-	let mm;
-	kthread_use_mm(some_mm, || {
-	    mm = current!().mm();
-	});
-	drop(some_mm);
-	mm.do_something(); // UAF
-
-and:
-
-	// Case 2: current!() called before the scope.
-	let mm;
-	let task = current!();
-	kthread_use_mm(some_mm, || {
-	    mm = task.mm();
-	});
-	drop(some_mm);
-	mm.do_something(); // UAF
-
-The existing `current!()` abstraction already natively prevents the first
-case: The `&CurrentTask` would be tied to the inner scope, so the
-borrow-checker ensures that no reference derived from it can escape the
-scope.
-
-Fixing the second case is a bit more tricky.  The solution is to
-essentially pretend that the contents of the scope execute on an different
-thread, which means that only thread-safe types can cross the boundary. 
-Since `CurrentTask` is marked `NotThreadSafe`, attempts to move it to
-another thread will fail, and this includes our fake pretend thread
-boundary.
-
-This has the disadvantage that other types that aren't thread-safe for
-reasons unrelated to `current` also cannot be moved across the
-`kthread_use_mm()` boundary.  I consider this an acceptable tradeoff.
-
-Link: https://lkml.kernel.org/r/20250408-vma-v16-8-d8b446e885d9@google.com
+Link: https://rust-for-linux.com/rust-kernel-policy#how-is-rust-introduced-in-a-subsystem
+Link: https://lore.kernel.org/all/33e64b12-aa07-4e78-933a-b07c37ff1d84@lucifer.local/
+Link: https://lkml.kernel.org/r/20250408-vma-v16-9-d8b446e885d9@google.com
 Signed-off-by: Alice Ryhl <aliceryhl@google.com>
 Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Boqun Feng <boqun.feng@gmail.com>
-Reviewed-by: Andreas Hindborg <a.hindborg@kernel.org>
-Reviewed-by: Gary Guo <gary@garyguo.net>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Benno Lossin <benno.lossin@proton.me>
 Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Gary Guo <gary@garyguo.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -138,312 +79,31 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/kernel/task.rs |  247 +++++++++++++++++++++---------------------
- 1 file changed, 129 insertions(+), 118 deletions(-)
+ MAINTAINERS |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/rust/kernel/task.rs~task-rust-rework-how-current-is-accessed
-+++ a/rust/kernel/task.rs
-@@ -7,6 +7,7 @@
- use crate::{
-     bindings,
-     ffi::{c_int, c_long, c_uint},
-+    mm::MmWithUser,
-     pid_namespace::PidNamespace,
-     types::{ARef, NotThreadSafe, Opaque},
- };
-@@ -33,22 +34,20 @@ pub const TASK_NORMAL: c_uint = bindings
- #[macro_export]
- macro_rules! current {
-     () => {
--        // SAFETY: Deref + addr-of below create a temporary `TaskRef` that cannot outlive the
--        // caller.
-+        // SAFETY: This expression creates a temporary value that is dropped at the end of the
-+        // caller's scope. The following mechanisms ensure that the resulting `&CurrentTask` cannot
-+        // leave current task context:
-+        //
-+        // * To return to userspace, the caller must leave the current scope.
-+        // * Operations such as `begin_new_exec()` are necessarily unsafe and the caller of
-+        //   `begin_new_exec()` is responsible for safety.
-+        // * Rust abstractions for things such as a `kthread_use_mm()` scope must require the
-+        //   closure to be `Send`, so the `NotThreadSafe` field of `CurrentTask` ensures that the
-+        //   `&CurrentTask` cannot cross the scope in either direction.
-         unsafe { &*$crate::task::Task::current() }
-     };
- }
+--- a/MAINTAINERS~mm-rust-add-memory-management
++++ a/MAINTAINERS
+@@ -15637,6 +15637,19 @@ F:	include/uapi/linux/userfaultfd.h
+ F:	mm/userfaultfd.c
+ F:	tools/testing/selftests/mm/uffd-*.[ch]
  
--/// Returns the currently running task's pid namespace.
--#[macro_export]
--macro_rules! current_pid_ns {
--    () => {
--        // SAFETY: Deref + addr-of below create a temporary `PidNamespaceRef` that cannot outlive
--        // the caller.
--        unsafe { &*$crate::task::Task::current_pid_ns() }
--    };
--}
--
- /// Wraps the kernel's `struct task_struct`.
- ///
- /// # Invariants
-@@ -87,7 +86,7 @@ macro_rules! current_pid_ns {
- /// impl State {
- ///     fn new() -> Self {
- ///         Self {
--///             creator: current!().into(),
-+///             creator: ARef::from(&**current!()),
- ///             index: 0,
- ///         }
- ///     }
-@@ -107,6 +106,44 @@ unsafe impl Send for Task {}
- // synchronised by C code (e.g., `signal_pending`).
- unsafe impl Sync for Task {}
- 
-+/// Represents the [`Task`] in the `current` global.
-+///
-+/// This type exists to provide more efficient operations that are only valid on the current task.
-+/// For example, to retrieve the pid-namespace of a task, you must use rcu protection unless it is
-+/// the current task.
-+///
-+/// # Invariants
-+///
-+/// Each value of this type must only be accessed from the task context it was created within.
-+///
-+/// Of course, every thread is in a different task context, but for the purposes of this invariant,
-+/// these operations also permanently leave the task context:
-+///
-+/// * Returning to userspace from system call context.
-+/// * Calling `release_task()`.
-+/// * Calling `begin_new_exec()` in a binary format loader.
-+///
-+/// Other operations temporarily create a new sub-context:
-+///
-+/// * Calling `kthread_use_mm()` creates a new context, and `kthread_unuse_mm()` returns to the
-+///   old context.
-+///
-+/// This means that a `CurrentTask` obtained before a `kthread_use_mm()` call may be used again
-+/// once `kthread_unuse_mm()` is called, but it must not be used between these two calls.
-+/// Conversely, a `CurrentTask` obtained between a `kthread_use_mm()`/`kthread_unuse_mm()` pair
-+/// must not be used after `kthread_unuse_mm()`.
-+#[repr(transparent)]
-+pub struct CurrentTask(Task, NotThreadSafe);
++MEMORY MANAGEMENT - RUST
++M:	Alice Ryhl <aliceryhl@google.com>
++R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
++R:	Liam R. Howlett <Liam.Howlett@oracle.com>
++L:	linux-mm@kvack.org
++L:	rust-for-linux@vger.kernel.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	rust/helpers/mm.c
++F:	rust/kernel/mm.rs
++F:	rust/kernel/mm/
 +
-+// Make all `Task` methods available on `CurrentTask`.
-+impl Deref for CurrentTask {
-+    type Target = Task;
-+    #[inline]
-+    fn deref(&self) -> &Task {
-+        &self.0
-+    }
-+}
-+
- /// The type of process identifiers (PIDs).
- pub type Pid = bindings::pid_t;
- 
-@@ -133,119 +170,29 @@ impl Task {
-     ///
-     /// # Safety
-     ///
--    /// Callers must ensure that the returned object doesn't outlive the current task/thread.
--    pub unsafe fn current() -> impl Deref<Target = Task> {
--        struct TaskRef<'a> {
--            task: &'a Task,
--            _not_send: NotThreadSafe,
-+    /// Callers must ensure that the returned object is only used to access a [`CurrentTask`]
-+    /// within the task context that was active when this function was called. For more details,
-+    /// see the invariants section for [`CurrentTask`].
-+    pub unsafe fn current() -> impl Deref<Target = CurrentTask> {
-+        struct TaskRef {
-+            task: *const CurrentTask,
-         }
- 
--        impl Deref for TaskRef<'_> {
--            type Target = Task;
-+        impl Deref for TaskRef {
-+            type Target = CurrentTask;
- 
-             fn deref(&self) -> &Self::Target {
--                self.task
-+                // SAFETY: The returned reference borrows from this `TaskRef`, so it cannot outlive
-+                // the `TaskRef`, which the caller of `Task::current()` has promised will not
-+                // outlive the task/thread for which `self.task` is the `current` pointer. Thus, it
-+                // is okay to return a `CurrentTask` reference here.
-+                unsafe { &*self.task }
-             }
-         }
- 
--        let current = Task::current_raw();
-         TaskRef {
--            // SAFETY: If the current thread is still running, the current task is valid. Given
--            // that `TaskRef` is not `Send`, we know it cannot be transferred to another thread
--            // (where it could potentially outlive the caller).
--            task: unsafe { &*current.cast() },
--            _not_send: NotThreadSafe,
--        }
--    }
--
--    /// Returns a PidNamespace reference for the currently executing task's/thread's pid namespace.
--    ///
--    /// This function can be used to create an unbounded lifetime by e.g., storing the returned
--    /// PidNamespace in a global variable which would be a bug. So the recommended way to get the
--    /// current task's/thread's pid namespace is to use the [`current_pid_ns`] macro because it is
--    /// safe.
--    ///
--    /// # Safety
--    ///
--    /// Callers must ensure that the returned object doesn't outlive the current task/thread.
--    pub unsafe fn current_pid_ns() -> impl Deref<Target = PidNamespace> {
--        struct PidNamespaceRef<'a> {
--            task: &'a PidNamespace,
--            _not_send: NotThreadSafe,
--        }
--
--        impl Deref for PidNamespaceRef<'_> {
--            type Target = PidNamespace;
--
--            fn deref(&self) -> &Self::Target {
--                self.task
--            }
--        }
--
--        // The lifetime of `PidNamespace` is bound to `Task` and `struct pid`.
--        //
--        // The `PidNamespace` of a `Task` doesn't ever change once the `Task` is alive. A
--        // `unshare(CLONE_NEWPID)` or `setns(fd_pidns/pidfd, CLONE_NEWPID)` will not have an effect
--        // on the calling `Task`'s pid namespace. It will only effect the pid namespace of children
--        // created by the calling `Task`. This invariant guarantees that after having acquired a
--        // reference to a `Task`'s pid namespace it will remain unchanged.
--        //
--        // When a task has exited and been reaped `release_task()` will be called. This will set
--        // the `PidNamespace` of the task to `NULL`. So retrieving the `PidNamespace` of a task
--        // that is dead will return `NULL`. Note, that neither holding the RCU lock nor holding a
--        // referencing count to
--        // the `Task` will prevent `release_task()` being called.
--        //
--        // In order to retrieve the `PidNamespace` of a `Task` the `task_active_pid_ns()` function
--        // can be used. There are two cases to consider:
--        //
--        // (1) retrieving the `PidNamespace` of the `current` task
--        // (2) retrieving the `PidNamespace` of a non-`current` task
--        //
--        // From system call context retrieving the `PidNamespace` for case (1) is always safe and
--        // requires neither RCU locking nor a reference count to be held. Retrieving the
--        // `PidNamespace` after `release_task()` for current will return `NULL` but no codepath
--        // like that is exposed to Rust.
--        //
--        // Retrieving the `PidNamespace` from system call context for (2) requires RCU protection.
--        // Accessing `PidNamespace` outside of RCU protection requires a reference count that
--        // must've been acquired while holding the RCU lock. Note that accessing a non-`current`
--        // task means `NULL` can be returned as the non-`current` task could have already passed
--        // through `release_task()`.
--        //
--        // To retrieve (1) the `current_pid_ns!()` macro should be used which ensure that the
--        // returned `PidNamespace` cannot outlive the calling scope. The associated
--        // `current_pid_ns()` function should not be called directly as it could be abused to
--        // created an unbounded lifetime for `PidNamespace`. The `current_pid_ns!()` macro allows
--        // Rust to handle the common case of accessing `current`'s `PidNamespace` without RCU
--        // protection and without having to acquire a reference count.
--        //
--        // For (2) the `task_get_pid_ns()` method must be used. This will always acquire a
--        // reference on `PidNamespace` and will return an `Option` to force the caller to
--        // explicitly handle the case where `PidNamespace` is `None`, something that tends to be
--        // forgotten when doing the equivalent operation in `C`. Missing RCU primitives make it
--        // difficult to perform operations that are otherwise safe without holding a reference
--        // count as long as RCU protection is guaranteed. But it is not important currently. But we
--        // do want it in the future.
--        //
--        // Note for (2) the required RCU protection around calling `task_active_pid_ns()`
--        // synchronizes against putting the last reference of the associated `struct pid` of
--        // `task->thread_pid`. The `struct pid` stored in that field is used to retrieve the
--        // `PidNamespace` of the caller. When `release_task()` is called `task->thread_pid` will be
--        // `NULL`ed and `put_pid()` on said `struct pid` will be delayed in `free_pid()` via
--        // `call_rcu()` allowing everyone with an RCU protected access to the `struct pid` acquired
--        // from `task->thread_pid` to finish.
--        //
--        // SAFETY: The current task's pid namespace is valid as long as the current task is running.
--        let pidns = unsafe { bindings::task_active_pid_ns(Task::current_raw()) };
--        PidNamespaceRef {
--            // SAFETY: If the current thread is still running, the current task and its associated
--            // pid namespace are valid. `PidNamespaceRef` is not `Send`, so we know it cannot be
--            // transferred to another thread (where it could potentially outlive the current
--            // `Task`). The caller needs to ensure that the PidNamespaceRef doesn't outlive the
--            // current task/thread.
--            task: unsafe { PidNamespace::from_ptr(pidns) },
--            _not_send: NotThreadSafe,
-+            // CAST: The layout of `struct task_struct` and `CurrentTask` is identical.
-+            task: Task::current_raw().cast(),
-         }
-     }
- 
-@@ -328,6 +275,70 @@ impl Task {
-     }
- }
- 
-+impl CurrentTask {
-+    /// Access the address space of the current task.
-+    ///
-+    /// This function does not touch the refcount of the mm.
-+    #[inline]
-+    pub fn mm(&self) -> Option<&MmWithUser> {
-+        // SAFETY: The `mm` field of `current` is not modified from other threads, so reading it is
-+        // not a data race.
-+        let mm = unsafe { (*self.as_ptr()).mm };
-+
-+        if mm.is_null() {
-+            return None;
-+        }
-+
-+        // SAFETY: If `current->mm` is non-null, then it references a valid mm with a non-zero
-+        // value of `mm_users`. Furthermore, the returned `&MmWithUser` borrows from this
-+        // `CurrentTask`, so it cannot escape the scope in which the current pointer was obtained.
-+        //
-+        // This is safe even if `kthread_use_mm()`/`kthread_unuse_mm()` are used. There are two
-+        // relevant cases:
-+        // * If the `&CurrentTask` was created before `kthread_use_mm()`, then it cannot be
-+        //   accessed during the `kthread_use_mm()`/`kthread_unuse_mm()` scope due to the
-+        //   `NotThreadSafe` field of `CurrentTask`.
-+        // * If the `&CurrentTask` was created within a `kthread_use_mm()`/`kthread_unuse_mm()`
-+        //   scope, then the `&CurrentTask` cannot escape that scope, so the returned `&MmWithUser`
-+        //   also cannot escape that scope.
-+        // In either case, it's not possible to read `current->mm` and keep using it after the
-+        // scope is ended with `kthread_unuse_mm()`.
-+        Some(unsafe { MmWithUser::from_raw(mm) })
-+    }
-+
-+    /// Access the pid namespace of the current task.
-+    ///
-+    /// This function does not touch the refcount of the namespace or use RCU protection.
-+    ///
-+    /// To access the pid namespace of another task, see [`Task::get_pid_ns`].
-+    #[doc(alias = "task_active_pid_ns")]
-+    #[inline]
-+    pub fn active_pid_ns(&self) -> Option<&PidNamespace> {
-+        // SAFETY: It is safe to call `task_active_pid_ns` without RCU protection when calling it
-+        // on the current task.
-+        let active_ns = unsafe { bindings::task_active_pid_ns(self.as_ptr()) };
-+
-+        if active_ns.is_null() {
-+            return None;
-+        }
-+
-+        // The lifetime of `PidNamespace` is bound to `Task` and `struct pid`.
-+        //
-+        // The `PidNamespace` of a `Task` doesn't ever change once the `Task` is alive.
-+        //
-+        // From system call context retrieving the `PidNamespace` for the current task is always
-+        // safe and requires neither RCU locking nor a reference count to be held. Retrieving the
-+        // `PidNamespace` after `release_task()` for current will return `NULL` but no codepath
-+        // like that is exposed to Rust.
-+        //
-+        // SAFETY: If `current`'s pid ns is non-null, then it references a valid pid ns.
-+        // Furthermore, the returned `&PidNamespace` borrows from this `CurrentTask`, so it cannot
-+        // escape the scope in which the current pointer was obtained, e.g. it cannot live past a
-+        // `release_task()` call.
-+        Some(unsafe { PidNamespace::from_ptr(active_ns) })
-+    }
-+}
-+
- // SAFETY: The type invariants guarantee that `Task` is always refcounted.
- unsafe impl crate::types::AlwaysRefCounted for Task {
-     fn inc_ref(&self) {
+ MEMORY MAPPING
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
 _
 
 Patches currently in -mm which might be from aliceryhl@google.com are
