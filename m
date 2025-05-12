@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F8C1CAA66
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 04:16:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4144E256C79;
+	Mon, 12 May 2025 21:46:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747023417; cv=none; b=EfBDF9uFz8m9WjcQ85ddnvRG1CTax0sQNRzj4ej/a/vfMq9eRXinRoeFtfQA9xx+6U5/m0E9XwaOdyFPFlyPTqRn6rGEcHgA5g59FcLQ9se14eH4UX41hX6VzSjpKk54doUSnoKSfXVjV1Ocd6WxIZsFwy7I34WhUxQ3NFuiKzk=
+	t=1747086362; cv=none; b=T5HJmEiGZtijYNvEc8/RqHA1S9SJvKe3tCOKefo/fqNa0iYhmFU492M/XjF//8LIMRbOoZl9Fz0kbM2ifQnOcYBX/jxob4eaplU9MO7ZR4ee9Vdi5ggv5GbF+p5QSJzZmDcd8sHkqCICHTF8v9ZQFqcmn6+141mwFIj3HkCqQZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747023417; c=relaxed/simple;
-	bh=qM4iffThBt4wlooP6oIyopi5sGhyCANukHzWgWxt8WA=;
-	h=Date:To:From:Subject:Message-Id; b=epr/712gGRahb6fvOQA1QubMTjP6ytiw4/qR72TgwjfgOmYn5vTpOwfqzwdUqptOz7GaWYgIgD4zOAECguVAuz0ZScdWOv3RMXX/3cVKWfBQTgKaAb5u1UH2LEJFlCbElXiBdN+UDKNbH96xcFax/WB1rVUOUdgJsD4K2g5Nawk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JsGtWCX6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747086362; c=relaxed/simple;
+	bh=7a3V2t6lae5BMtplt8y8PoNceu2bDnG6gOwNc16h3nk=;
+	h=Date:To:From:Subject:Message-Id; b=i/pmKM+JJM4PLwnhuZroFghBzwKyJNYiAJ4qHUEtLDxRdQYkVCB45kqv6TaVUPPs+eiLaa7CvsN6NjWrzZmoq0UM87AcRiq0suEIGpa/ZwcAABTtPG1pBBnsk1B8MtuNmJ49uzYkkveFpmxpoktJomavl0WWA2t9ua+H3M2e8Eo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLRkTuqY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JsGtWCX6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F89FC4CEE7;
-	Mon, 12 May 2025 04:16:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLRkTuqY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 914E7C4CEE7;
+	Mon, 12 May 2025 21:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747023416;
-	bh=qM4iffThBt4wlooP6oIyopi5sGhyCANukHzWgWxt8WA=;
+	s=korg; t=1747086361;
+	bh=7a3V2t6lae5BMtplt8y8PoNceu2bDnG6gOwNc16h3nk=;
 	h=Date:To:From:Subject:From;
-	b=JsGtWCX6y6NlBYHPQihrzl7JVb/0c0lNQksC+EU9ec3fHH5zU/wn7jqwP69CQg9sr
-	 a/z877SWh5orwoWdrrYyQzkH9uwcRTo/OHE/v5TYbArQWg1qccKC3LFdluZGgwRYeR
-	 sO/46fxgleexu7/HV8hGtgoRE7aKPCsVsmQK8tRg=
-Date: Sun, 11 May 2025 21:16:55 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=gLRkTuqYMpG4wEn7hnDGj3b6ko//cOyBQKs3sNimKSD9S43B6ALAg7ubvetED+8Ik
+	 UOkr5K0QBNivIGdjpVjeRb41Sak+4IAn/L9CIWnI4FzNshBdnPYWYfMU9IpEHidNQU
+	 tfrca+I0G1krDVmuVDO+nC2ZQofsB3tT7PeSL9xw=
+Date: Mon, 12 May 2025 14:46:00 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,catalin.marinas@arm.com,jkangas@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] btrfs-drop-usage-of-folio_index.patch removed from -mm tree
-Message-Id: <20250512041656.1F89FC4CEE7@smtp.kernel.org>
+Subject: + xarray-fix-kmemleak-false-positive-in-xas_shrink.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250512214601.914E7C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,67 +34,118 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: btrfs: drop usage of folio_index
-has been removed from the -mm tree.  Its filename was
-     btrfs-drop-usage-of-folio_index.patch
+The patch titled
+     Subject: XArray: fix kmemleak false positive in xas_shrink()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     xarray-fix-kmemleak-false-positive-in-xas_shrink.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-fix-kmemleak-false-positive-in-xas_shrink.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: btrfs: drop usage of folio_index
-Date: Thu, 1 May 2025 02:10:48 +0800
+From: Jared Kangas <jkangas@redhat.com>
+Subject: XArray: fix kmemleak false positive in xas_shrink()
+Date: Mon, 12 May 2025 12:17:07 -0700
 
-folio_index is only needed for mixed usage of page cache and swap cache,
-for pure page cache usage, the caller can just use folio->index instead.
+Kmemleak periodically produces a false positive report that resembles
+the following:
 
-It can't be a swap cache folio here.  Swap mapping may only call into fs
-through `swap_rw` but btrfs does not use that method for swap.
+unreferenced object 0xffff0000c105ed08 (size 576):
+  comm "swapper/0", pid 1, jiffies 4294937478
+  hex dump (first 32 bytes):
+    00 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    d8 e7 0a 8b 00 80 ff ff 20 ed 05 c1 00 00 ff ff  ........ .......
+  backtrace (crc 69e99671):
+    kmemleak_alloc+0xb4/0xc4
+    kmem_cache_alloc_lru+0x1f0/0x244
+    xas_alloc+0x2a0/0x3a0
+    xas_expand.constprop.0+0x144/0x4dc
+    xas_create+0x2b0/0x484
+    xas_store+0x60/0xa00
+    __xa_alloc+0x194/0x280
+    __xa_alloc_cyclic+0x104/0x2e0
+    dev_index_reserve+0xd8/0x18c
+    register_netdevice+0x5e8/0xf90
+    register_netdev+0x28/0x50
+    loopback_net_init+0x68/0x114
+    ops_init+0x90/0x2c0
+    register_pernet_operations+0x20c/0x554
+    register_pernet_device+0x3c/0x8c
+    net_dev_init+0x5cc/0x7d8
 
-Link: https://lkml.kernel.org/r/20250430181052.55698-3-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Qu Wenruo <wqu@suse.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Joanne Koong <joannelkoong@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+This transient leak can be traced to xas_shrink(): when the xarray's
+head is reassigned, kmemleak may have already started scanning the
+xarray. When this happens, if kmemleak fails to scan the new xa_head
+before it moves, kmemleak will see it as a leak until the xarray is
+scanned again.
+
+The report can be reproduced by running the xdp_bonding BPF selftest,
+although it doesn't appear consistently due to the bug's transience.
+In my testing, the following script has reliably triggered the report in
+under an hour on a debug kernel with kmemleak enabled, where KSELFTESTS
+is set to the install path for the kernel selftests:
+
+        #!/bin/sh
+        set -eu
+
+        echo 1 >/sys/module/kmemleak/parameters/verbose
+        echo scan=1 >/sys/kernel/debug/kmemleak
+
+        while :; do
+                $KSELFTESTS/bpf/test_progs -t xdp_bonding
+        done
+
+To prevent this false positive report, mark the new xa_head in
+xas_shrink() as a transient leak.
+
+Link: https://lkml.kernel.org/r/20250512191707.245153-1-jkangas@redhat.com
+Signed-off-by: Jared Kangas <jkangas@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Jared Kangas <jkangas@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/extent_io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/xarray.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/btrfs/extent_io.c~btrfs-drop-usage-of-folio_index
-+++ a/fs/btrfs/extent_io.c
-@@ -3508,7 +3508,7 @@ static void btree_clear_folio_dirty_tag(
- 	ASSERT(folio_test_locked(folio));
- 	xa_lock_irq(&folio->mapping->i_pages);
- 	if (!folio_test_dirty(folio))
--		__xa_clear_mark(&folio->mapping->i_pages, folio_index(folio),
-+		__xa_clear_mark(&folio->mapping->i_pages, folio->index,
- 				PAGECACHE_TAG_DIRTY);
- 	xa_unlock_irq(&folio->mapping->i_pages);
+--- a/lib/xarray.c~xarray-fix-kmemleak-false-positive-in-xas_shrink
++++ a/lib/xarray.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/bitmap.h>
+ #include <linux/export.h>
++#include <linux/kmemleak.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
+ #include <linux/xarray.h>
+@@ -476,6 +477,7 @@ static void xas_shrink(struct xa_state *
+ 			break;
+ 		node = xa_to_node(entry);
+ 		node->parent = NULL;
++		kmemleak_transient_leak(node);
+ 	}
  }
+ 
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from jkangas@redhat.com are
 
-fuse-drop-usage-of-folio_index.patch
-f2fs-drop-usage-of-folio_index.patch
-filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
-mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch
-mm-swap-remove-no-longer-used-swap-mapping-helper.patch
+xarray-fix-kmemleak-false-positive-in-xas_shrink.patch
 
