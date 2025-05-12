@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2269E1553A3
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53F351553A3
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:51:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011062; cv=none; b=qgF2zLUhIVTkLoFyHqZdynRo5TsUPKx6WZBuS0HqDHCV997hZT2a0817lL2/Hsphi5+Iq/+S0+QV6BGXUzR7xNDGwHiFLEcbNK2MaGs5E5BFRjm5HAIuibzbyLKTBYc+cqINeaKVk8g89qeBmJcdPqplFfTaRE20uZ9DdU+MoIs=
+	t=1747011063; cv=none; b=FIXFHDZEto+ePU9BRyhVn2IAzjeDeTA8k0S+frBoK2H1ebcvqmi9eRP1QqjqPr1JFV+7pt7XkbYmMEsE070t7konzgmbTKcmqm/8uAL/P1sZ9o5CEEaXKCMWHFTrEd3k/4jYhSW+ePNQFluOR2uejftJuNrZf8XEVoPh8VMPBK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011062; c=relaxed/simple;
-	bh=jPolK8zQt4/EEOMBgXlTnM1zwNpYEk8qKiw2Jd12HAg=;
-	h=Date:To:From:Subject:Message-Id; b=rc0eWWoWpIsxrKhv+JEayyZ063xBrVuGu47h7WTJI78XksTvQ6QIvUNyPXK91wNnUCVta/2u6aHswhzbaSE8qYS1UivSs1A98Y5EKgxPMDfrMCYvUZcGzlolCNS/yCUWLwtgQ2ICH2slGs99u/fIKYvJOh4VUqgwsWclTySy9xM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G3FqKPfE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011063; c=relaxed/simple;
+	bh=MmjFLDLtwnP7UUcR16I10EI+av3Uj946+wSgxvFHxcI=;
+	h=Date:To:From:Subject:Message-Id; b=aEG5rvhBIX7Y0TPclSbolQoeoLzRR/u/A3JNijT9Kc8ULdKb4xFDcPwXKa33aUZiUQAxqnr8UPCEZFjwDiVLVKH2u0TTA94tLdr0z13WnBBhibGK/FAoQLG95p6ypQOMcN2P1hD3wHsxNZcNJn5dX+8urSttxho+fvwvxwJblr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bdggW7yF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G3FqKPfE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE46C4CEE4;
-	Mon, 12 May 2025 00:51:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bdggW7yF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B6AEC4CEE4;
+	Mon, 12 May 2025 00:51:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011062;
-	bh=jPolK8zQt4/EEOMBgXlTnM1zwNpYEk8qKiw2Jd12HAg=;
+	s=korg; t=1747011063;
+	bh=MmjFLDLtwnP7UUcR16I10EI+av3Uj946+wSgxvFHxcI=;
 	h=Date:To:From:Subject:From;
-	b=G3FqKPfEO+1HOHArISV9MIh+0FvyIKCvGs03uzgmyBfkTtkPY+9Fu72lCQCL7vP4t
-	 wyCLg2uBlfybWggURxT1zLYtKe/frvmjdjBVZ9iQ0BClYnrF03B+2BX3qatBmBawuZ
-	 m5DgYdb83b8F0V+0VkzhJSmj2e/oESLsk0ih59wo=
-Date: Sun, 11 May 2025 17:51:01 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shivankg@amd.com,mgorman@techsingularity.net,jackmanb@google.com,carlos.song@nxp.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=bdggW7yFNyG8ZXRX910tAujxFpwSo61KmzbIJABe9pTUUJAsxBwkhNKQF7XKCSDTG
+	 EeW1r3SNYg/OyWvhOw4rXIxUPIbsqcaKAHfdSg3w5aDf7suen4y27RbHDK2jl9g/ty
+	 GMr/IisXk15RsjM3bBQZTB009zz3j9vOeNX8F0X4=
+Date: Sun, 11 May 2025 17:51:02 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,kirill.shutemov@linux.intel.com,donettom@linux.ibm.com,dev.jain@arm.com,anshuman.khandual@arm.com,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-tighten-up-find_suitable_fallback.patch removed from -mm tree
-Message-Id: <20250512005101.EBE46C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch removed from -mm tree
+Message-Id: <20250512005103.2B6AEC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,198 +35,203 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: tighten up find_suitable_fallback()
+     Subject: selftest/mm: make hugetlb_reparenting_test tolerant to async reparenting
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-tighten-up-find_suitable_fallback.patch
+     selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: tighten up find_suitable_fallback()
-Date: Mon, 7 Apr 2025 14:01:54 -0400
+From: Li Wang <liwang@redhat.com>
+Subject: selftest/mm: make hugetlb_reparenting_test tolerant to async reparenting
+Date: Mon, 7 Apr 2025 16:42:01 +0800
 
-find_suitable_fallback() is not as efficient as it could be, and somewhat
-difficult to follow.
+In cgroup v2, memory and hugetlb usage reparenting is asynchronous.  This
+can cause test flakiness when immediately asserting usage after deleting a
+child cgroup.  To address this, add a helper function
+`assert_with_retry()` that checks usage values with a timeout-based retry.
+This improves test stability without relying on fixed sleep delays.
 
-1. should_try_claim_block() is a loop invariant. There is no point in
-   checking fallback areas if the caller is interested in claimable
-   blocks but the order and the migratetype don't allow for that.
+Also bump up the tolerance size to 7MB.
 
-2. __rmqueue_steal() doesn't care about claimability, so it shouldn't
-   have to run those tests.
+To avoid False Positives:
+  ...
+  # Assert memory charged correctly for child only use.
+  # actual a = 11 MB
+  # expected a = 0 MB
+  # fail
+  # cleanup
+  # [FAIL]
+  not ok 11 hugetlb_reparenting_test.sh -cgroup-v2 # exit=1
+  # 0
+  # SUMMARY: PASS=10 SKIP=0 FAIL=1
 
-Different callers want different things from this helper:
-
-1. __compact_finished() scans orders up until it finds a claimable block
-2. __rmqueue_claim() scans orders down as long as blocks are claimable
-3. __rmqueue_steal() doesn't care about claimability at all
-
-Move should_try_claim_block() out of the loop. Only test it for the
-two callers who care in the first place. Distinguish "no blocks" from
-"order + mt are not claimable" in the return value; __rmqueue_claim()
-can stop once order becomes unclaimable, __compact_finished() can keep
-advancing until order becomes claimable.
-
-Before:
-
- Performance counter stats for './run case-lru-file-mmap-read' (5 runs):
-
-	 85,294.85 msec task-clock                       #    5.644 CPUs utilized               ( +-  0.32% )
-	    15,968      context-switches                 #  187.209 /sec                        ( +-  3.81% )
-	       153      cpu-migrations                   #    1.794 /sec                        ( +-  3.29% )
-	   801,808      page-faults                      #    9.400 K/sec                       ( +-  0.10% )
-   733,358,331,786      instructions                     #    1.87  insn per cycle              ( +-  0.20% )  (64.94%)
-   392,622,904,199      cycles                           #    4.603 GHz                         ( +-  0.31% )  (64.84%)
-   148,563,488,531      branches                         #    1.742 G/sec                       ( +-  0.18% )  (63.86%)
-       152,143,228      branch-misses                    #    0.10% of all branches             ( +-  1.19% )  (62.82%)
-
-	   15.1128 +- 0.0637 seconds time elapsed  ( +-  0.42% )
-
-After:
-
- Performance counter stats for './run case-lru-file-mmap-read' (5 runs):
-
-         84,380.21 msec task-clock                       #    5.664 CPUs utilized               ( +-  0.21% )
-            16,656      context-switches                 #  197.392 /sec                        ( +-  3.27% )
-               151      cpu-migrations                   #    1.790 /sec                        ( +-  3.28% )
-           801,703      page-faults                      #    9.501 K/sec                       ( +-  0.09% )
-   731,914,183,060      instructions                     #    1.88  insn per cycle              ( +-  0.38% )  (64.90%)
-   388,673,535,116      cycles                           #    4.606 GHz                         ( +-  0.24% )  (65.06%)
-   148,251,482,143      branches                         #    1.757 G/sec                       ( +-  0.37% )  (63.92%)
-       149,766,550      branch-misses                    #    0.10% of all branches             ( +-  1.22% )  (62.88%)
-
-           14.8968 +- 0.0486 seconds time elapsed  ( +-  0.33% )
-
-Link: https://lkml.kernel.org/r/20250407180154.63348-2-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Brendan Jackman <jackmanb@google.com>
-Tested-by: Shivank Garg <shivankg@amd.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Carlos Song <carlos.song@nxp.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20250407084201.74492-1-liwang@redhat.com
+Signed-off-by: Li Wang <liwang@redhat.com>
+Tested-by: Donet Tom <donettom@linux.ibm.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +---
- mm/internal.h   |    2 +-
- mm/page_alloc.c |   31 +++++++++++++------------------
- 3 files changed, 15 insertions(+), 22 deletions(-)
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |   96 ++++------
+ 1 file changed, 41 insertions(+), 55 deletions(-)
 
---- a/mm/compaction.c~mm-page_alloc-tighten-up-find_suitable_fallback
-+++ a/mm/compaction.c
-@@ -2344,7 +2344,6 @@ static enum compact_result __compact_fin
- 	ret = COMPACT_NO_SUITABLE_PAGE;
- 	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
- 		struct free_area *area = &cc->zone->free_area[order];
--		bool claim_block;
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -36,7 +36,7 @@ else
+     do_umount=1
+   fi
+ fi
+-MNT='/mnt/huge/'
++MNT='/mnt/huge'
  
- 		/* Job done if page is free of the right migratetype */
- 		if (!free_area_empty(area, migratetype))
-@@ -2360,8 +2359,7 @@ static enum compact_result __compact_fin
- 		 * Job done if allocation would steal freepages from
- 		 * other migratetype buddy lists.
- 		 */
--		if (find_suitable_fallback(area, order, migratetype,
--						true, &claim_block) != -1)
-+		if (find_suitable_fallback(area, order, migratetype, true) >= 0)
- 			/*
- 			 * Movable pages are OK in any pageblock. If we are
- 			 * stealing for a non-movable allocation, make sure
---- a/mm/internal.h~mm-page_alloc-tighten-up-find_suitable_fallback
-+++ a/mm/internal.h
-@@ -910,7 +910,7 @@ static inline void init_cma_pageblock(st
+ function get_machine_hugepage_size() {
+   hpz=$(grep -i hugepagesize /proc/meminfo)
+@@ -60,6 +60,41 @@ function cleanup() {
+   set -e
+ }
  
- 
- int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool claim_only, bool *claim_block);
-+			   int migratetype, bool claimable);
- 
- static inline bool free_area_empty(struct free_area *area, int migratetype)
- {
---- a/mm/page_alloc.c~mm-page_alloc-tighten-up-find_suitable_fallback
-+++ a/mm/page_alloc.c
-@@ -2068,31 +2068,25 @@ static bool should_try_claim_block(unsig
- 
- /*
-  * Check whether there is a suitable fallback freepage with requested order.
-- * Sets *claim_block to instruct the caller whether it should convert a whole
-- * pageblock to the returned migratetype.
-- * If only_claim is true, this function returns fallback_mt only if
-+ * If claimable is true, this function returns fallback_mt only if
-  * we would do this whole-block claiming. This would help to reduce
-  * fragmentation due to mixed migratetype pages in one pageblock.
-  */
- int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool only_claim, bool *claim_block)
-+			   int migratetype, bool claimable)
- {
- 	int i;
--	int fallback_mt;
++function assert_with_retry() {
++  local actual_path="$1"
++  local expected="$2"
++  local tolerance=$((7 * 1024 * 1024))
++  local timeout=20
++  local interval=1
++  local start_time
++  local now
++  local elapsed
++  local actual
 +
-+	if (claimable && !should_try_claim_block(order, migratetype))
-+		return -2;
++  start_time=$(date +%s)
++
++  while true; do
++    actual="$(cat "$actual_path")"
++
++    if [[ $actual -ge $(($expected - $tolerance)) ]] &&
++        [[ $actual -le $(($expected + $tolerance)) ]]; then
++      return 0
++    fi
++
++    now=$(date +%s)
++    elapsed=$((now - start_time))
++
++    if [[ $elapsed -ge $timeout ]]; then
++      echo "actual = $((${actual%% *} / 1024 / 1024)) MB"
++      echo "expected = $((${expected%% *} / 1024 / 1024)) MB"
++      cleanup
++      exit 1
++    fi
++
++    sleep $interval
++  done
++}
++
+ function assert_state() {
+   local expected_a="$1"
+   local expected_a_hugetlb="$2"
+@@ -70,58 +105,13 @@ function assert_state() {
+     expected_b="$3"
+     expected_b_hugetlb="$4"
+   fi
+-  local tolerance=$((5 * 1024 * 1024))
  
- 	if (area->nr_free == 0)
- 		return -1;
- 
--	*claim_block = false;
- 	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
--		fallback_mt = fallbacks[migratetype][i];
--		if (free_area_empty(area, fallback_mt))
--			continue;
-+		int fallback_mt = fallbacks[migratetype][i];
- 
--		if (should_try_claim_block(order, migratetype))
--			*claim_block = true;
+-  local actual_a
+-  actual_a="$(cat "$CGROUP_ROOT"/a/memory.$usage_file)"
+-  if [[ $actual_a -lt $(($expected_a - $tolerance)) ]] ||
+-    [[ $actual_a -gt $(($expected_a + $tolerance)) ]]; then
+-    echo actual a = $((${actual_a%% *} / 1024 / 1024)) MB
+-    echo expected a = $((${expected_a%% *} / 1024 / 1024)) MB
+-    echo fail
 -
--		if (*claim_block || !only_claim)
-+		if (!free_area_empty(area, fallback_mt))
- 			return fallback_mt;
- 	}
+-    cleanup
+-    exit 1
+-  fi
+-
+-  local actual_a_hugetlb
+-  actual_a_hugetlb="$(cat "$CGROUP_ROOT"/a/hugetlb.${MB}MB.$usage_file)"
+-  if [[ $actual_a_hugetlb -lt $(($expected_a_hugetlb - $tolerance)) ]] ||
+-    [[ $actual_a_hugetlb -gt $(($expected_a_hugetlb + $tolerance)) ]]; then
+-    echo actual a hugetlb = $((${actual_a_hugetlb%% *} / 1024 / 1024)) MB
+-    echo expected a hugetlb = $((${expected_a_hugetlb%% *} / 1024 / 1024)) MB
+-    echo fail
+-
+-    cleanup
+-    exit 1
+-  fi
+-
+-  if [[ -z "$expected_b" || -z "$expected_b_hugetlb" ]]; then
+-    return
+-  fi
+-
+-  local actual_b
+-  actual_b="$(cat "$CGROUP_ROOT"/a/b/memory.$usage_file)"
+-  if [[ $actual_b -lt $(($expected_b - $tolerance)) ]] ||
+-    [[ $actual_b -gt $(($expected_b + $tolerance)) ]]; then
+-    echo actual b = $((${actual_b%% *} / 1024 / 1024)) MB
+-    echo expected b = $((${expected_b%% *} / 1024 / 1024)) MB
+-    echo fail
+-
+-    cleanup
+-    exit 1
+-  fi
+-
+-  local actual_b_hugetlb
+-  actual_b_hugetlb="$(cat "$CGROUP_ROOT"/a/b/hugetlb.${MB}MB.$usage_file)"
+-  if [[ $actual_b_hugetlb -lt $(($expected_b_hugetlb - $tolerance)) ]] ||
+-    [[ $actual_b_hugetlb -gt $(($expected_b_hugetlb + $tolerance)) ]]; then
+-    echo actual b hugetlb = $((${actual_b_hugetlb%% *} / 1024 / 1024)) MB
+-    echo expected b hugetlb = $((${expected_b_hugetlb%% *} / 1024 / 1024)) MB
+-    echo fail
++  assert_with_retry "$CGROUP_ROOT/a/memory.$usage_file" "$expected_a"
++  assert_with_retry "$CGROUP_ROOT/a/hugetlb.${MB}MB.$usage_file" "$expected_a_hugetlb"
  
-@@ -2189,7 +2183,6 @@ __rmqueue_claim(struct zone *zone, int o
- 	int min_order = order;
- 	struct page *page;
- 	int fallback_mt;
--	bool claim_block;
+-    cleanup
+-    exit 1
++  if [[ -n "$expected_b" && -n "$expected_b_hugetlb" ]]; then
++    assert_with_retry "$CGROUP_ROOT/a/b/memory.$usage_file" "$expected_b"
++    assert_with_retry "$CGROUP_ROOT/a/b/hugetlb.${MB}MB.$usage_file" "$expected_b_hugetlb"
+   fi
+ }
  
- 	/*
- 	 * Do not steal pages from freelists belonging to other pageblocks
-@@ -2208,11 +2201,14 @@ __rmqueue_claim(struct zone *zone, int o
- 				--current_order) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
--				start_migratetype, false, &claim_block);
-+						     start_migratetype, true);
-+
-+		/* No block in that order */
- 		if (fallback_mt == -1)
- 			continue;
+@@ -175,7 +165,6 @@ size=$((${MB} * 1024 * 1024 * 25)) # 50M
+ cleanup
  
--		if (!claim_block)
-+		/* Advanced into orders too low to claim, abort */
-+		if (fallback_mt == -2)
- 			break;
+ echo
+-echo
+ echo Test charge, rmdir, uncharge
+ setup
+ echo mkdir
+@@ -195,7 +184,6 @@ cleanup
  
- 		page = get_page_from_free_area(area, fallback_mt);
-@@ -2240,12 +2236,11 @@ __rmqueue_steal(struct zone *zone, int o
- 	int current_order;
- 	struct page *page;
- 	int fallback_mt;
--	bool claim_block;
+ echo done
+ echo
+-echo
+ if [[ ! $cgroup2 ]]; then
+   echo "Test parent and child hugetlb usage"
+   setup
+@@ -212,7 +200,6 @@ if [[ ! $cgroup2 ]]; then
+   assert_state 0 $(($size * 2)) 0 $size
  
- 	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
--				start_migratetype, false, &claim_block);
-+						     start_migratetype, false);
- 		if (fallback_mt == -1)
- 			continue;
+   rmdir "$CGROUP_ROOT"/a/b
+-  sleep 5
+   echo Assert memory reparent correctly.
+   assert_state 0 $(($size * 2))
  
+@@ -225,7 +212,6 @@ if [[ ! $cgroup2 ]]; then
+ fi
+ 
+ echo
+-echo
+ echo "Test child only hugetlb usage"
+ echo setup
+ setup
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from liwang@redhat.com are
 
 
