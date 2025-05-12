@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D208B1E87B
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 03:28:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F8C1CAA66
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 04:16:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747020496; cv=none; b=Ul61v7U8+DJ2/tidofe5vd9mHhubMc9Gm8FhRnqnIjjCNOnb/UaiYwLYTukEYjakj9FwxIUk7/VIZjar4mCHBkMvR9fqsQZv1LA2wDWeTRvHSnYfntwFEPkad/NDYLkX6FvCTcFY9UQDCJd2f9Xx18ryLq2PtUu2FpEPPRvS510=
+	t=1747023417; cv=none; b=EfBDF9uFz8m9WjcQ85ddnvRG1CTax0sQNRzj4ej/a/vfMq9eRXinRoeFtfQA9xx+6U5/m0E9XwaOdyFPFlyPTqRn6rGEcHgA5g59FcLQ9se14eH4UX41hX6VzSjpKk54doUSnoKSfXVjV1Ocd6WxIZsFwy7I34WhUxQ3NFuiKzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747020496; c=relaxed/simple;
-	bh=gZxFNlpDLCKvyHUM01pBGiyY1DwqZY+jN1AXN9BldE4=;
-	h=Date:To:From:Subject:Message-Id; b=CnA5qlrzwkxAH82DROEiIrfwQyW2M0TmppmmoB5pvDpKbQ1fId5HgbOjeHPZj1wK2zJPZX9QYVJWU7ST1UoEoAOdLakgIfRkmwt9vQA7iGaMrlljOO//dCA959QzBfLSdWorNxpd0VHniWIfeaIjOD2mzm7VlssKYGn7mtNNNyo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NN506gtL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747023417; c=relaxed/simple;
+	bh=qM4iffThBt4wlooP6oIyopi5sGhyCANukHzWgWxt8WA=;
+	h=Date:To:From:Subject:Message-Id; b=epr/712gGRahb6fvOQA1QubMTjP6ytiw4/qR72TgwjfgOmYn5vTpOwfqzwdUqptOz7GaWYgIgD4zOAECguVAuz0ZScdWOv3RMXX/3cVKWfBQTgKaAb5u1UH2LEJFlCbElXiBdN+UDKNbH96xcFax/WB1rVUOUdgJsD4K2g5Nawk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JsGtWCX6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NN506gtL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21BE4C4CEE4;
-	Mon, 12 May 2025 03:28:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JsGtWCX6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F89FC4CEE7;
+	Mon, 12 May 2025 04:16:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747020495;
-	bh=gZxFNlpDLCKvyHUM01pBGiyY1DwqZY+jN1AXN9BldE4=;
+	s=korg; t=1747023416;
+	bh=qM4iffThBt4wlooP6oIyopi5sGhyCANukHzWgWxt8WA=;
 	h=Date:To:From:Subject:From;
-	b=NN506gtLYSFoGKa2QwdhKUEPDAuXbyayaD1gJMA2ieA/HoT6mbaQHDtdzkifdg/k6
-	 0N9lUm+q1IwZiD1/elWSlTvNUi9DWC/pY7E8UxqhNnlN+8udWiWF6eFR1R8LwMrvek
-	 idYW28deX9c+YE5TwoIKIDuIfkZ+/m2oAJbuzngw=
-Date: Sun, 11 May 2025 20:28:14 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=JsGtWCX6y6NlBYHPQihrzl7JVb/0c0lNQksC+EU9ec3fHH5zU/wn7jqwP69CQg9sr
+	 a/z877SWh5orwoWdrrYyQzkH9uwcRTo/OHE/v5TYbArQWg1qccKC3LFdluZGgwRYeR
+	 sO/46fxgleexu7/HV8hGtgoRE7aKPCsVsmQK8tRg=
+Date: Sun, 11 May 2025 21:16:55 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch added to mm-unstable branch
-Message-Id: <20250512032815.21BE4C4CEE4@smtp.kernel.org>
+Subject: [merged] btrfs-drop-usage-of-folio_index.patch removed from -mm tree
+Message-Id: <20250512041656.1F89FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,97 +34,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: samples/damon/mtier: fix wrong DAMON attrs setting
-has been added to the -mm mm-unstable branch.  Its filename is
-     samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch
+The quilt patch titled
+     Subject: btrfs: drop usage of folio_index
+has been removed from the -mm tree.  Its filename was
+     btrfs-drop-usage-of-folio_index.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/mtier: fix wrong DAMON attrs setting
-Date: Sat, 10 May 2025 15:09:32 -0700
+From: Kairui Song <kasong@tencent.com>
+Subject: btrfs: drop usage of folio_index
+Date: Thu, 1 May 2025 02:10:48 +0800
 
-When intervals auto-tuning is enabled, DAMON monitoring attributes should
-be set with damon_set_attrs().  Because damon_set_attrs() is the only
-place that sets attrs->aggr_samples, not calling damon_set_attrs() can
-result in divide-by-zero from damon_get_intervals_score().
+folio_index is only needed for mixed usage of page cache and swap cache,
+for pure page cache usage, the caller can just use folio->index instead.
 
-mtier, which is a DAMON's sample module that merged in mm-unstable as of
-this writing, is not calling the function while enabling the auto-tuning. 
-Fix the problem by properly calling damon_set_attrs().
+It can't be a swap cache folio here.  Swap mapping may only call into fs
+through `swap_rw` but btrfs does not use that method for swap.
 
-Link: https://lkml.kernel.org/r/20250510220932.47722-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20250430181052.55698-3-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Qu Wenruo <wqu@suse.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Joanne Koong <joannelkoong@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ fs/btrfs/extent_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/samples/damon/mtier.c~samples-damon-implement-a-damon-module-for-memory-tiering-fix
-+++ a/samples/damon/mtier.c
-@@ -41,6 +41,7 @@ static struct damon_ctx *ctxs[2];
- static struct damon_ctx *damon_sample_mtier_build_ctx(bool promote)
- {
- 	struct damon_ctx *ctx;
-+	struct damon_attrs attrs;
- 	struct damon_target *target;
- 	struct damon_region *region;
- 	struct damos *scheme;
-@@ -50,14 +51,24 @@ static struct damon_ctx *damon_sample_mt
- 	ctx = damon_new_ctx();
- 	if (!ctx)
- 		return NULL;
-+	attrs = (struct damon_attrs) {
-+		.sample_interval = 5 * USEC_PER_MSEC,
-+		.aggr_interval = 100 * USEC_PER_MSEC,
-+		.ops_update_interval = 60 * USEC_PER_MSEC * MSEC_PER_SEC,
-+		.min_nr_regions = 10,
-+		.max_nr_regions = 1000,
-+	};
-+
- 	/*
- 	 * auto-tune sampling and aggregation interval aiming 4% DAMON-observed
- 	 * accesses ratio, keeping sampling interval in [5ms, 10s] range.
- 	 */
--	ctx->attrs.intervals_goal = (struct damon_intervals_goal) {
-+	attrs.intervals_goal = (struct damon_intervals_goal) {
- 		.access_bp = 400, .aggrs = 3,
- 		.min_sample_us = 5000, .max_sample_us = 10000000,
- 	};
-+	if (damon_set_attrs(ctx, &attrs))
-+		goto free_out;
- 	if (damon_select_ops(ctx, DAMON_OPS_PADDR))
- 		goto free_out;
- 
+--- a/fs/btrfs/extent_io.c~btrfs-drop-usage-of-folio_index
++++ a/fs/btrfs/extent_io.c
+@@ -3508,7 +3508,7 @@ static void btree_clear_folio_dirty_tag(
+ 	ASSERT(folio_test_locked(folio));
+ 	xa_lock_irq(&folio->mapping->i_pages);
+ 	if (!folio_test_dirty(folio))
+-		__xa_clear_mark(&folio->mapping->i_pages, folio_index(folio),
++		__xa_clear_mark(&folio->mapping->i_pages, folio->index,
+ 				PAGECACHE_TAG_DIRTY);
+ 	xa_unlock_irq(&folio->mapping->i_pages);
+ }
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-damon-core-introduce-damos-quota-goal-metrics-for-memory-node-utilization.patch
-mm-damon-sysfs-schemes-implement-file-for-quota-goal-nid-parameter.patch
-mm-damon-sysfs-schemes-connect-damos_quota_goal-nid-with-core-layer.patch
-docs-mm-damon-design-document-node_mem_usedfree_bp.patch
-docs-admin-guide-mm-damon-usage-document-nid-file.patch
-docs-abi-damon-document-nid-file.patch
-samples-damon-implement-a-damon-module-for-memory-tiering.patch
-samples-damon-implement-a-damon-module-for-memory-tiering-fix.patch
+fuse-drop-usage-of-folio_index.patch
+f2fs-drop-usage-of-folio_index.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
+mm-move-folio_index-to-mm-swaph-and-remove-no-longer-needed-helper.patch
+mm-swap-remove-no-longer-used-swap-mapping-helper.patch
 
