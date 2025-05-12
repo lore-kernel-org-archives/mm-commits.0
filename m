@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1902F298CA3
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 22:17:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50DAF14286
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 22:23:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747088237; cv=none; b=D+juwjZO6oGBlmSIiztZKgTpJttmRBcRZ8glYnCRKjx5WE+hz8xPsiJWaX75pVtxcdQnQ/RRS+l0EsCZiLcvVSDau/HkTl7VXxMB7OEIzFM9m/i5Mi38qlVsE2VG1NfMwYBffex9NtvwRXWq+NXBGE486XaPhUZuOOMu0kiDwyM=
+	t=1747088588; cv=none; b=c2Z4eTGe1XeRcwWMswMrMBM09adUeRds/C3ahE850VKvrLyr735huNlnfs/Df8YOgQ19cRhV21r54DOEYWC1qb2f+xUL6bdUyOpWtANGRrkvMWn/0rzqRLP0sqNqQjm+Vx/Tw5/XeeOtFdW+i4ho3m/t2zf77NJ5DBWX32XS8A4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747088237; c=relaxed/simple;
-	bh=uPN76SPqpY/uIrKh6qk4GtxcdjZ9Gmz8cjR4UiKtjJw=;
-	h=Date:To:From:Subject:Message-Id; b=rP7SeLeavdg1E1tNZJPNlyBDV/erknhyaSffTiPl2ZWCiRmM8Qy6ZowLLtFRPdnwNepK3f2jzY0dfc4Nrdrg11J/Bkzaj8x4Yn5JUglpaJ03etZNNzqoSPogbEwwHKgDxCvxM7hopMTLUwTksBZ2OSCp9+lFINCHN7rEv0vumpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b722nz0p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747088588; c=relaxed/simple;
+	bh=sVVa/vi0p8eJnsLg1lSQN3GsrAXeCdqTaUEQJvtn4ao=;
+	h=Date:To:From:Subject:Message-Id; b=q9CvjF7wGzxuUTPY9X8QBh+vgzDXMq+c2LaHV4qQT1GhG2T7Gt3Uz+2zjmhILTxavzAENo+SYGjLGt01jfAFtYOmP7Uxm2SczVOu33fNWCYA0gFHNHCOTFjOnPRUdoiR0Q58L+Sbymze0sMs9SmyZCS8SZ6t1LSHYHAIXjW+IeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BIBjVKvr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b722nz0p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A957C4CEED;
-	Mon, 12 May 2025 22:17:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BIBjVKvr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABA4FC4CEE7;
+	Mon, 12 May 2025 22:23:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747088236;
-	bh=uPN76SPqpY/uIrKh6qk4GtxcdjZ9Gmz8cjR4UiKtjJw=;
+	s=korg; t=1747088587;
+	bh=sVVa/vi0p8eJnsLg1lSQN3GsrAXeCdqTaUEQJvtn4ao=;
 	h=Date:To:From:Subject:From;
-	b=b722nz0pVTJtGwGJ5m1LgZc7rw6K/Hkz0B2S5FJp17achkdET/xgeQqEd75ExQQP4
-	 cIXSUNKOljeEcRzfpLG2u5+85LghFOEHxRV3eErVahOwMIJDEYPlCeG5g0TujzEFDM
-	 ikvgwIDJ9d2IeR06eqi7aNWyBs+QyKMDHnkfliLY=
-Date: Mon, 12 May 2025 15:17:15 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,shakeel.butt@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=BIBjVKvrs/s4St36bhMxNfVtWtayrdiBxmYjHm7hUktZk5VAyNv2lvkF9NVEYpaX1
+	 bAuB+lHxpVRy+FDhjNyo0w7S10IY6nwP3tbpz6+L8adS1Bjn8Il/AJ6tXUOt7MOo8h
+	 zBMLQYwOugXR8AwmA/AMJZk1T8RFAzFdSQ4X5OIk=
+Date: Mon, 12 May 2025 15:23:07 -0700
+To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,harry.yoo@oracle.com,dja@axtens.net,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-mm-reclaim-section.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250512221716.7A957C4CEED@smtp.kernel.org>
+Subject: + kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250512222307.ABA4FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add mm reclaim section
+     Subject: kasan-avoid-sleepable-page-allocation-from-atomic-context-v7
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-mm-reclaim-section.patch
+     kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-mm-reclaim-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,70 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add mm reclaim section
-Date: Mon, 12 May 2025 15:31:22 +0100
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: kasan-avoid-sleepable-page-allocation-from-atomic-context-v7
+Date: Mon, 12 May 2025 16:27:06 +0200
 
-In furtherance of ongoing efforts to ensure people are aware of who
-de-facto maintains/has an interest in specific parts of mm, as well trying
-to avoid get_maintainers.pl listing only Andrew and the mailing list for
-mm files - establish a reclaim memory management section and add relevant
-maintainers/reviewers.
+do not unnecessary free pages across iterations
 
-This is a key part of memory management so sensibly deserves its own
-section.
-
-This encompasses both 'classical' reclaim and MGLRU and thus reflects this
-in the reviewers from both, as well as those who have contributed
-specifically on the memcg side of things.
-
-Link: https://lkml.kernel.org/r/20250512143122.87740-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/c8eeeb146382bcadabce5b5dcf92e6176ba4fb04.1747059374.git.agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Suggested-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: Daniel Axtens <dja@axtens.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/kasan/shadow.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-mm-reclaim-section
-+++ a/MAINTAINERS
-@@ -15581,6 +15581,19 @@ F:	mm/compaction.c
- F:	mm/page_alloc.c
- F:	mm/page_isolation.c
+--- a/mm/kasan/shadow.c~kasan-avoid-sleepable-page-allocation-from-atomic-context-v7
++++ a/mm/kasan/shadow.c
+@@ -337,9 +337,9 @@ static inline void free_pages_bulk(struc
  
-+MEMORY MANAGEMENT - RECLAIM
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	Johannes Weiner <hannes@cmpxchg.org>
-+R:	David Hildenbrand <david@redhat.com>
-+R:	Michal Hocko <mhocko@kernel.org>
-+R:	Qi Zheng <zhengqi.arch@bytedance.com>
-+R:	Shakeel Butt <shakeel.butt@linux.dev>
-+R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+F:	mm/pt_reclaim.c
-+F:	mm/vmscan.c
-+
- MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	David Hildenbrand <david@redhat.com>
+ static int __kasan_populate_vmalloc(unsigned long start, unsigned long end)
+ {
+-	unsigned long nr_populated, nr_pages, nr_total = PFN_UP(end - start);
++	unsigned long nr_pages, nr_populated = 0, nr_total = PFN_UP(end - start);
+ 	struct vmalloc_populate_data data;
+-	int ret;
++	int ret = 0;
+ 
+ 	data.pages = (struct page **)__get_free_page(GFP_KERNEL | __GFP_ZERO);
+ 	if (!data.pages)
+@@ -349,25 +349,24 @@ static int __kasan_populate_vmalloc(unsi
+ 		nr_pages = min(nr_total, PAGE_SIZE / sizeof(data.pages[0]));
+ 		nr_populated = alloc_pages_bulk(GFP_KERNEL, nr_pages, data.pages);
+ 		if (nr_populated != nr_pages) {
+-			free_pages_bulk(data.pages, nr_populated);
+-			free_page((unsigned long)data.pages);
+-			return -ENOMEM;
++			ret = -ENOMEM;
++			break;
+ 		}
+ 
+ 		data.start = start;
+ 		ret = apply_to_page_range(&init_mm, start, nr_pages * PAGE_SIZE,
+ 					  kasan_populate_vmalloc_pte, &data);
+-		free_pages_bulk(data.pages, nr_pages);
+ 		if (ret)
+-			return ret;
++			break;
+ 
+ 		start += nr_pages * PAGE_SIZE;
+ 		nr_total -= nr_pages;
+ 	}
+ 
++	free_pages_bulk(data.pages, nr_populated);
+ 	free_page((unsigned long)data.pages);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ int kasan_populate_vmalloc(unsigned long addr, unsigned long size)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-maintainers-update-page-allocator-section.patch
-maintainers-add-mm-reclaim-section.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
-mm-abstract-initial-stack-setup-to-mm-subsystem.patch
-mm-move-dup_mmap-to-mm.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm.patch
-mm-introduce-new-mmap_prepare-file-callback.patch
-mm-secretmem-convert-to-mmap_prepare-hook.patch
-mm-vma-remove-mmap-retry-merge.patch
+kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
+kasan-avoid-sleepable-page-allocation-from-atomic-context-v7.patch
 
