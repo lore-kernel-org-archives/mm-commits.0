@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13ABA2940B
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:26:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C7417741;
+	Mon, 12 May 2025 00:30:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747009619; cv=none; b=hRq5lbt47AZUshCJtFz4ch9sQGTjSfwkOTH3DBbAHcTkVMveoNvSz/MsnIbSV5GWgvKHlCXRTi4nQtv7VXo/ox+iv+ofuIYdgaEu6gfwvNrnWBnro7tiebq0obpGFd3FO7LIC3orBl1bc6X6dJGYAmhDCT+KeoZPeBbhRQlgJDE=
+	t=1747009815; cv=none; b=ZqGV5+RLBIVgnrh+KfCTax3yQhSaRNtY4sg82KrGeRwTKqW8oHtnAtLUV71cWObL9gtR7sArqTiyEmo+pUwku9IMjyk4nOq/D/3F/drkLkjFB5Y+jg85jlYKHDrej8J3FQX1egJn4dcTwZK6i5YFobdPX/eXc3K+0/ZC9i7iUpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747009619; c=relaxed/simple;
-	bh=bCFeONf0GAXgiFL4xXoQ8pjOTyl95i2H8FqSJceBISY=;
-	h=Date:To:From:Subject:Message-Id; b=hiI6yANFGtbXW0+2eyd7P9Y5KiblnGjgR+vI4jNOWgxL//D0/p/YSiPVfJHYQDUVqjQjH0arGMUuQB/zM2TvKeJOQjE3aP6atcSpTI6sP/AY7FJd+MoLQFweXCjjBzk/Oe8IHkET3VyRVsCDS21z3H5luY5xGz1ziKC5tbmQFTI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rR0HKeLa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747009815; c=relaxed/simple;
+	bh=JHjdxSqWl/qn8ijPKEzvBVBy3M+QALcVxHezti25ZoY=;
+	h=Date:To:From:Subject:Message-Id; b=dBjb428SmWuwWSmxdffzuZeG0F3rKvIRE1AH+RAMGBBnzR+iYFZ3vQZ/Qm1VtAuhz7q9ZhiQs5dHeBo6i8quSorOkWRRKNg8J31Cnhth4F3Ik7uBswr7uqjGFlyMvSxP06h5zsQsvzHKLqhvM3UtNLZhhxhRpLrXqX3sEHZhVZ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vJ4Jmc2d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rR0HKeLa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBA45C4CEED;
-	Mon, 12 May 2025 00:26:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vJ4Jmc2d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B480BC4CEE4;
+	Mon, 12 May 2025 00:30:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747009618;
-	bh=bCFeONf0GAXgiFL4xXoQ8pjOTyl95i2H8FqSJceBISY=;
+	s=korg; t=1747009813;
+	bh=JHjdxSqWl/qn8ijPKEzvBVBy3M+QALcVxHezti25ZoY=;
 	h=Date:To:From:Subject:From;
-	b=rR0HKeLaiMbVTy/RGyRwbOrcXgPazS/ORbZP5lC8JdNWcX2YCT+72C1CIAOKq1Ay0
-	 ETVdzPx0hmRdDq8S/pfrMGwbyItP7qtR5g7aqIw01OC3jIvuq2N0micYndmta7iJc9
-	 anlneKUiA4osTGDg0k70/4IgdvYgQYPXozySRsR0=
-Date: Sun, 11 May 2025 17:26:58 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,igor.b@beldev.am,hannes@cmpxchg.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=vJ4Jmc2dc11ENm6njBcSkkdYJu/qM3fBMLsT2NG5/e4mVt+6K7EgqHroYdfCNvJFs
+	 R23D6RIuGtTTJoVWGDgTql4eRaPh3K+EnW8L4NCOnsIn+c1KaUMKztiyd1009Ytv6Y
+	 kzmpw2kv/7RpAOqF2oShIF3uLtnccd/dC4L3U2Sw=
+Date: Sun, 11 May 2025 17:30:13 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,david@redhat.com,aarcange@redhat.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch removed from -mm tree
-Message-Id: <20250512002658.DBA45C4CEED@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-userfaultfd-correct-dirty-flags-set-for-both-present-and-swap-pte.patch removed from -mm tree
+Message-Id: <20250512003013.B480BC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zsmalloc: don't underflow size calculation in zs_obj_write()
+     Subject: mm: userfaultfd: correct dirty flags set for both present and swap pte
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-dont-underflow-size-calculation-in-zs_obj_write.patch
+     mm-userfaultfd-correct-dirty-flags-set-for-both-present-and-swap-pte.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: don't underflow size calculation in zs_obj_write()
-Date: Wed, 7 May 2025 14:42:24 +0900
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: userfaultfd: correct dirty flags set for both present and swap pte
+Date: Fri, 9 May 2025 10:09:12 +1200
 
-Do not mix class->size and object size during offsets/sizes calculation in
-zs_obj_write().  Size classes can merge into clusters, based on
-objects-per-zspage and pages-per-zspage characteristics, so some size
-classes can store objects smaller than class->size.  This becomes
-problematic when object size is much smaller than class->size.  zsmalloc
-can falsely decide that object spans two physical pages, because a larger
-class->size value is used for that check, while the actual object is much
-smaller and fits the free space of the first physical page, so there is
-nothing to write to the second page and memcpy() size calculation
-underflows.
+As David pointed out, what truly matters for mremap and userfaultfd move
+operations is the soft dirty bit.  The current comment and
+implementation—which always sets the dirty bit for present PTEs and
+fails to set the soft dirty bit for swap PTEs—are incorrect.  This could
+break features like Checkpoint-Restore in Userspace (CRIU).
 
- Unable to handle kernel paging request at virtual address ffffc00081ff4000
- pc : __memcpy+0x10/0x24
- lr : zs_obj_write+0x1b0/0x1d0 [zsmalloc]
- Call trace:
-  __memcpy+0x10/0x24 (P)
-  zram_write_page+0x150/0x4fc [zram]
-  zram_submit_bio+0x5e0/0x6a4 [zram]
-  __submit_bio+0x168/0x220
-  submit_bio_noacct_nocheck+0x128/0x2c8
-  submit_bio_noacct+0x19c/0x2f8
+This patch updates the behavior to correctly set the soft dirty bit for
+both present and swap PTEs in accordance with mremap.
 
-This is mostly seen on system with larger page-sizes, because size class
-cluters of such systems hold wider size ranges than on 4K PAGE_SIZE
-systems.
-
-Assume a 16K PAGE_SIZE system, a write of 820 bytes object to a 864-bytes
-size class at offset 15560.  15560 + 864 is more than 16384 so zsmalloc
-attempts to memcpy() it to two physical pages.  However, 16384 - 15560 =
-824 which is more than 820, so the object in fact doesn't span two
-physical pages, and there is no data to write to the second physical page.
-
-We always know the exact size in bytes of the object that we are about to
-write (store), so use it instead of class->size.
-
-Link: https://lkml.kernel.org/r/20250507054312.4135983-1-senozhatsky@chromium.org
-Fixes: 44f76413496e ("zsmalloc: introduce new object mapping API")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Igor Belousov <igor.b@beldev.am>
-Tested-by: Igor Belousov <igor.b@beldev.am>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/20250508220912.7275-1-21cnbao@gmail.com
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Closes: https://lore.kernel.org/linux-mm/02f14ee1-923f-47e3-a994-4950afb9afcc@redhat.com/
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/userfaultfd.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-dont-underflow-size-calculation-in-zs_obj_write
-+++ a/mm/zsmalloc.c
-@@ -1243,19 +1243,19 @@ void zs_obj_write(struct zs_pool *pool,
- 	class = zspage_class(pool, zspage);
- 	off = offset_in_page(class->size * obj_idx);
+--- a/mm/userfaultfd.c~mm-userfaultfd-correct-dirty-flags-set-for-both-present-and-swap-pte
++++ a/mm/userfaultfd.c
+@@ -1064,8 +1064,13 @@ static int move_present_pte(struct mm_st
+ 	src_folio->index = linear_page_index(dst_vma, dst_addr);
  
--	if (off + class->size <= PAGE_SIZE) {
-+	if (!ZsHugePage(zspage))
-+		off += ZS_HANDLE_SIZE;
-+
-+	if (off + mem_len <= PAGE_SIZE) {
- 		/* this object is contained entirely within a page */
- 		void *dst = kmap_local_zpdesc(zpdesc);
+ 	orig_dst_pte = mk_pte(&src_folio->page, dst_vma->vm_page_prot);
+-	/* Follow mremap() behavior and treat the entry dirty after the move */
+-	orig_dst_pte = pte_mkwrite(pte_mkdirty(orig_dst_pte), dst_vma);
++	/* Set soft dirty bit so userspace can notice the pte was moved */
++#ifdef CONFIG_MEM_SOFT_DIRTY
++	orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
++#endif
++	if (pte_dirty(orig_src_pte))
++		orig_dst_pte = pte_mkdirty(orig_dst_pte);
++	orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
  
--		if (!ZsHugePage(zspage))
--			off += ZS_HANDLE_SIZE;
- 		memcpy(dst + off, handle_mem, mem_len);
- 		kunmap_local(dst);
- 	} else {
- 		/* this object spans two pages */
- 		size_t sizes[2];
+ 	set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
+ out:
+@@ -1100,6 +1105,9 @@ static int move_swap_pte(struct mm_struc
+ 	}
  
--		off += ZS_HANDLE_SIZE;
- 		sizes[0] = PAGE_SIZE - off;
- 		sizes[1] = mem_len - sizes[0];
+ 	orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
++#ifdef CONFIG_MEM_SOFT_DIRTY
++	orig_src_pte = pte_swp_mksoft_dirty(orig_src_pte);
++#endif
+ 	set_pte_at(mm, dst_addr, dst_pte, orig_src_pte);
+ 	double_pt_unlock(dst_ptl, src_ptl);
  
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-zram-modernize-writeback-interface.patch
-zsmalloc-cleanup-headers-includes.patch
-documentation-zram-update-idle-pages-tracking-documentation.patch
 
