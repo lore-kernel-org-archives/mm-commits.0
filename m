@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 848DC14830F
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DA9114830F
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:50:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011005; cv=none; b=gQZ521F/Zo5c4iKEkrHbOBFcr9Hb/0Fq0d0xU4tpJ+biEuM9CvEU7r7Gy2U6+P+CkUNDqmy2c2VCr769qEEvZ8I8rI3r7YeK0mNyXllWTrgyZmGQ5McsZb1n9nJyk7/cjTYLErAOshHxj3I0QJrIS2tMBKr4fdsjwpmSlCdmrh0=
+	t=1747011007; cv=none; b=eGLQxY4eW4qGtvbOcC3R2xwU0zwZfAG0hoJYe005azrxorR34Qse8VRxG9xf6eVNQB4ZIcsY8Jf1AAxPWAjA+WiPjslI9SsIqT8Rtc3t6LXfpcrduwn5CshN+KNcM0P17GT8DwFdrbB04LIkxBD3gJWdXir2cLAScA3aAI681RA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011005; c=relaxed/simple;
-	bh=7iuZU+Q/YUxICLJq5vvqxdg8UEIvo13oW4mOuaT5JLY=;
-	h=Date:To:From:Subject:Message-Id; b=KJ+XnjAi+xvCF0KTOXVr53VT1y2ope9B1prgt7XXrWa93mXk6/Eus9xzmwDHTXrIa+fLL0T7zYdkZuymfpjR+MAbfbENywpNfPaNQKXozXGX7QrJX+TVDzzuEhzW653jwO6MjSyjCIk8l1ibE+yp4JrLgpOA+6LJsNShZmHWlAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iwbyN7tr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011007; c=relaxed/simple;
+	bh=dTh7niCJriLgT63dzZTqQ7Xw0+TRoUWqqYvrLtoZp5A=;
+	h=Date:To:From:Subject:Message-Id; b=iGIdYCdgwp5+qYSdYF1fB3wMfvquqPtXaMRprCDs9aCyZnvtP84Q0BZu+I526NLO4CdSfWakHvJibgAIBwouVr+VWgc8PHbghxkLR07X2wD5/ic9tvh8c5Hot4I6tjMD0SGSIU2G8Ji2dL52Glqpj/uZyDil9jSA62AgHFxhpdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lBrSbyc7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iwbyN7tr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F8BCC4CEE4;
-	Mon, 12 May 2025 00:50:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lBrSbyc7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6061C4CEE4;
+	Mon, 12 May 2025 00:50:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011005;
-	bh=7iuZU+Q/YUxICLJq5vvqxdg8UEIvo13oW4mOuaT5JLY=;
+	s=korg; t=1747011006;
+	bh=dTh7niCJriLgT63dzZTqQ7Xw0+TRoUWqqYvrLtoZp5A=;
 	h=Date:To:From:Subject:From;
-	b=iwbyN7tr5zuunC6I50H9uUYbI+OPSE3VZm9cex6ejCZhGI08OSHkXMn/sPyuOZgGk
-	 2XvTeBssoAR4Y8debFtFkyES+6OjpjQ8GL3P9tfW5aISTdypqkokTY9lBsVYrKgpgQ
-	 VgJ6a2EIv7WHO3aiSOmafS34jGSdECiv3cw0OM0Y=
-Date: Sun, 11 May 2025 17:50:04 -0700
+	b=lBrSbyc7gCPakJXJ7fLv/1NUiqfu4NJZ3mx4Czx7qBj95uB9dcAq90uBTTLeeDMXS
+	 +wobjzEPm3VD3JFgrjYcsbN0p5PO/d0FEZU3QTf6jIY6iPyM7Af3xHBvjv/8puy2cf
+	 Ha+TUflzWQNnwADk7X7KMSjj3AAj4u/B18BXxr7Y=
+Date: Sun, 11 May 2025 17:50:06 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,rrichter@amd.com,rppt@kernel.org,rafael.j.wysocki@intel.com,peterz@infradead.org,osalvador@suse.de,mingo@redhat.com,luto@kernel.org,lenb@kernel.org,Jonathan.Cameron@huawei.com,ira.weiny@intel.com,hpa@zytor.com,haibo1.xu@intel.com,gregkh@linuxfoundation.org,fan.ni@samsung.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,bp@alien8.de,bfaccini@nvidia.com,alison.schofield@intel.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-probe-memory-block-size-advisement-value-during-mm-init.patch removed from -mm tree
-Message-Id: <20250512005005.4F8BCC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] acpisrat-give-memory-block-size-advice-based-on-cfmws-alignment.patch removed from -mm tree
+Message-Id: <20250512005006.C6061C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86: probe memory block size advisement value during mm init
+     Subject: acpi,srat: give memory block size advice based on CFMWS alignment
 has been removed from the -mm tree.  Its filename was
-     x86-probe-memory-block-size-advisement-value-during-mm-init.patch
+     acpisrat-give-memory-block-size-advice-based-on-cfmws-alignment.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Gregory Price <gourry@gourry.net>
-Subject: x86: probe memory block size advisement value during mm init
-Date: Mon, 27 Jan 2025 10:34:04 -0500
+Subject: acpi,srat: give memory block size advice based on CFMWS alignment
+Date: Mon, 27 Jan 2025 10:34:05 -0500
 
-Systems with hotplug may provide an advisement value on what the memblock
-size should be.  Probe this value when the rest of the configuration
-values are considered.
+Capacity is stranded when CFMWS regions are not aligned to block size.  On
+x86, block size increases with capacity (2G blocks @ 64G capacity).
 
-The new heuristic is as follows
+Use CFMWS base/size to report memory block size alignment advice.
 
-1) set_memory_block_size_order value if already set (cmdline param)
-2) minimum block size if memory is less than large block limit
-3) if no hotplug advice: Max block size if system is bare-metal,
-   otherwise use end of memory alignment.
-4) if hotplug advice: lesser of advice and end of memory alignment.
-
-Convert to cpu_feature_enabled() while at it.[1]
-
-[1] https://lore.kernel.org/all/20241031103401.GBZyNdGQ-ZyXKyzC_z@fat_crate.local/
-
-Link: https://lkml.kernel.org/r/20250127153405.3379117-3-gourry@gourry.net
+Link: https://lkml.kernel.org/r/20250127153405.3379117-4-gourry@gourry.net
 Signed-off-by: Gregory Price <gourry@gourry.net>
-Suggested-by: Borislav Petkov <bp@alien8.de>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Dan Williams <dan.j.williams@intel.com>
 Tested-by: Fan Ni <fan.ni@samsung.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Acked-by: Oscar Salvador <osalvador@suse.de>
 Cc: Alison Schofield <alison.schofield@intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Betkov <bp@alien8.de>
 Cc: Bruno Faccini <bfaccini@nvidia.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Haibo Xu <haibo1.xu@intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: Robert Richter <rrichter@amd.com>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/acpi/numa/srat.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/arch/x86/mm/init_64.c~x86-probe-memory-block-size-advisement-value-during-mm-init
-+++ a/arch/x86/mm/init_64.c
-@@ -1464,16 +1464,21 @@ static unsigned long probe_memory_block_
- 	}
+--- a/drivers/acpi/numa/srat.c~acpisrat-give-memory-block-size-advice-based-on-cfmws-alignment
++++ a/drivers/acpi/numa/srat.c
+@@ -14,6 +14,7 @@
+ #include <linux/errno.h>
+ #include <linux/acpi.h>
+ #include <linux/memblock.h>
++#include <linux/memory.h>
+ #include <linux/numa.h>
+ #include <linux/nodemask.h>
+ #include <linux/topology.h>
+@@ -429,13 +430,23 @@ static int __init acpi_parse_cfmws(union
+ {
+ 	struct acpi_cedt_cfmws *cfmws;
+ 	int *fake_pxm = arg;
+-	u64 start, end;
++	u64 start, end, align;
+ 	int node;
++	int err;
  
+ 	cfmws = (struct acpi_cedt_cfmws *)header;
+ 	start = cfmws->base_hpa;
+ 	end = cfmws->base_hpa + cfmws->window_size;
+ 
++	/* Align memblock size to CFMW regions if possible */
++	align = 1UL << __ffs(start | end);
++	if (align >= SZ_256M) {
++		err = memory_block_advise_max_size(align);
++		if (err)
++			pr_warn("CFMWS: memblock size advise failed (%d)\n", err);
++	} else
++		pr_err("CFMWS: [BIOS BUG] base/size alignment violates spec\n");
++
  	/*
--	 * Use max block size to minimize overhead on bare metal, where
--	 * alignment for memory hotplug isn't a concern.
-+	 * When hotplug alignment is not a concern, maximize blocksize
-+	 * to minimize overhead. Otherwise, align to the lesser of advice
-+	 * alignment and end of memory alignment.
- 	 */
--	if (!boot_cpu_has(X86_FEATURE_HYPERVISOR)) {
-+	bz = memory_block_advised_max_size();
-+	if (!bz) {
- 		bz = MAX_BLOCK_SIZE;
--		goto done;
-+		if (!cpu_feature_enabled(X86_FEATURE_HYPERVISOR))
-+			goto done;
-+	} else {
-+		bz = max(min(bz, MAX_BLOCK_SIZE), MIN_MEMORY_BLOCK_SIZE);
- 	}
- 
- 	/* Find the largest allowed block size that aligns to memory end */
--	for (bz = MAX_BLOCK_SIZE; bz > MIN_MEMORY_BLOCK_SIZE; bz >>= 1) {
-+	for (; bz > MIN_MEMORY_BLOCK_SIZE; bz >>= 1) {
- 		if (IS_ALIGNED(boot_mem_end, bz))
- 			break;
- 	}
+ 	 * The SRAT may have already described NUMA details for all,
+ 	 * or a portion of, this CFMWS HPA range. Extend the memblks
 _
 
 Patches currently in -mm which might be from gourry@gourry.net are
