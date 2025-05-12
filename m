@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31D4A2EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E25E2EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:56:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011373; cv=none; b=U1IAR4T0bHaVwfMzFbpAN2AeWFa1oNMGaArCvUniZJBVmSbzTrGeIzAohZ4buq+4HwAfqZSZXPfibkwUNjBLntTBCXgCmR2i9PKC5tViSlef58z4wA+tEiUNaDaCCBbR/KIemLcPRa8wQfDoKYVVSMbrc+WLmIvr4q7355Md7Sc=
+	t=1747011374; cv=none; b=UZdYSaIgc8kRPpJkZtrxlbIPPAp8448WLrv6F3CVImDPbHGbCIZhxpqXD03aAt/Ax7gacDTdCFGSyJZwnGizMERVe5qisnM5jlZGUMDR7q9wj5Jo4fdwXHNO4Rc7TXAyQaMiW1OFK+2XjMY9xKlHhhsM4x4eqOfITouQOqa/a7E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011373; c=relaxed/simple;
-	bh=O79QE/A41dLuwTBL0v8W3FheD6m1Z5qVD43bFNle0Uk=;
-	h=Date:To:From:Subject:Message-Id; b=jnpEvAR6tyxM8vcyfVLULVB59BeEe5Ds3lQb24Hm57gNQx2O9OQaCa8b1Slrz06rPW32LQ7iRrWmLqnOFGWaTlRh5zuCPfPT5lwMPM/PvEf7dT2shg5shG67el2JNg9sI2KLfQE1rhGEaKIFft7hCOLUakUWaJ5601O7QKiXJME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I5zKqEgB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011374; c=relaxed/simple;
+	bh=8vnAUfMQmlBlI57NbD2IXjxWwxgZ98fAu78fYJ/tF8A=;
+	h=Date:To:From:Subject:Message-Id; b=M3rt3rHRDm/+wGBiIypmIyFSrL1/ZESTPEsxh1NsTa+9ALEcFXntMjtulL412k7gv0IHSQ+mRCHfFD9BIc2yqViRWN/Ah1ao9o8D31fRFLFA50xSET6v/NPDbmVPWvMELXr66if1Ws41EplhOg5Zl9hx7VYVl5jcweUDnYNlsLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b8JOaSyT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I5zKqEgB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9124EC4CEE4;
-	Mon, 12 May 2025 00:56:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b8JOaSyT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13603C4CEE4;
+	Mon, 12 May 2025 00:56:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011372;
-	bh=O79QE/A41dLuwTBL0v8W3FheD6m1Z5qVD43bFNle0Uk=;
+	s=korg; t=1747011374;
+	bh=8vnAUfMQmlBlI57NbD2IXjxWwxgZ98fAu78fYJ/tF8A=;
 	h=Date:To:From:Subject:From;
-	b=I5zKqEgBVkc2r3M4LxQlhqQiq01xDZn08V8yntiIiao4qzWOMHE7RF2Pju1/3KsxN
-	 00RxkPJCS/OXGWWgjTKWtBQsZgpIZHaV2a4ZMoty81+hhSAlc9VQcvR7KhZUGD8Vpk
-	 Rny0TIn/JsX9etk4gvZSFQNZ/r7h5+aCYE8Fuvms=
-Date: Sun, 11 May 2025 17:56:12 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,keescook@chromium.org,andrii@kernel.org,yatsenko@meta.com,akpm@linux-foundation.org
+	b=b8JOaSyT7lti1KITO6gxCvDL2A8dYYSWhc34/rYfun2IrG8wsaLTFLC7PY+eHDIqK
+	 1M83H/PK8xMHDa7vjZfxSxz4r+gG+11dKXCm54LCFx58iE2V09dOThd1/gIwfvbCMA
+	 n/6eVVDIO354+/68DnHzCbkhRqwo3at/9lup5siA=
+Date: Sun, 11 May 2025 17:56:13 -0700
+To: mm-commits@vger.kernel.org,ubizjak@gmail.com,tony.ambardar@gmail.com,ojeda@kernel.org,kernel@jfarr.cc,kees@kernel.org,glider@google.com,elver@google.com,changbin.du@intel.com,Marc.Herbert@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch removed from -mm tree
-Message-Id: <20250512005612.9124EC4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] compiler_typesh-fix-unused-variable-in-__compiletime_assert.patch removed from -mm tree
+Message-Id: <20250512005614.13603C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maccess: fix strncpy_from_user_nofault() empty string handling
+     Subject: compiler_types.h: fix "unused variable" in __compiletime_assert()
 has been removed from the -mm tree.  Its filename was
-     maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch
+     compiler_typesh-fix-unused-variable-in-__compiletime_assert.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mykyta Yatsenko <yatsenko@meta.com>
-Subject: maccess: fix strncpy_from_user_nofault() empty string handling
-Date: Tue, 22 Apr 2025 14:14:49 +0100
+From: Marc Herbert <Marc.Herbert@linux.intel.com>
+Subject: compiler_types.h: fix "unused variable" in __compiletime_assert()
+Date: Thu, 24 Apr 2025 19:40:35 +0000
 
-strncpy_from_user_nofault() should return the length of the copied string
-including the trailing NUL, but if the argument unsafe_addr points to an
-empty string ({'\0'}), the return value is 0.
+This refines commit c03567a8e8d5 ("include/linux/compiler.h: don't perform
+compiletime_assert with -O0") and restores #ifdef __OPTIMIZE__ symmetry by
+evaluating the 'condition' variable in both compile-time variants of
+__compiletimeassert().
 
-This happens as strncpy_from_user() copies terminal symbol into dst and
-returns 0 (as expected), but strncpy_from_user_nofault does not modify ret
-as it is not equal to count and not greater than 0, so 0 is returned,
-which contradicts the contract.
+As __OPTIMIZE__ is always true by default, this commit does not change
+anything by default.  But it fixes warnings with _non-default_ CFLAGS like
+for instance this:
 
-Link: https://lkml.kernel.org/r/20250422131449.57177-1-mykyta.yatsenko5@gmail.com
-Signed-off-by: Mykyta Yatsenko <yatsenko@meta.com>
-Reviewed-by: Andrii Nakryiko <andrii@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Kees Cook <keescook@chromium.org>
+ make  CFLAGS_tcp.o='-Og -U__OPTIMIZE__'
+
+                 from net/ipv4/tcp.c:273:
+
+ include/net/sch_generic.h: In function `qdisc_cb_private_validate':
+ include/net/sch_generic.h:511:30:
+            error: unused variable `qcb' [-Werror=unused-variable]
+
+  {
+     struct qdisc_skb_cb *qcb;
+
+     BUILD_BUG_ON(sizeof(skb->cb) < sizeof(*qcb));
+     ...
+  }
+
+[akpm@linux-foundation.org: regularize comment layout, reflow comment]
+Link: https://lkml.kernel.org/r/20250424194048.652571-1-marc.herbert@linux.intel.com
+Signed-off-by: Marc Herbert <Marc.Herbert@linux.intel.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Changbin Du <changbin.du@intel.com>
+Cc: Jan Hendrik Farr <kernel@jfarr.cc>
+Cc: Macro Elver <elver@google.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Tony Ambardar <tony.ambardar@gmail.com>
+Cc: Uros Bizjak <ubizjak@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/maccess.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler_types.h |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/maccess.c~maccess-fix-strncpy_from_user_nofault-empty-string-handling
-+++ a/mm/maccess.c
-@@ -196,7 +196,7 @@ long strncpy_from_user_nofault(char *dst
- 	if (ret >= count) {
- 		ret = count;
- 		dst[ret - 1] = '\0';
--	} else if (ret > 0) {
-+	} else if (ret >= 0) {
- 		ret++;
- 	}
+--- a/include/linux/compiler_types.h~compiler_typesh-fix-unused-variable-in-__compiletime_assert
++++ a/include/linux/compiler_types.h
+@@ -525,6 +525,12 @@ struct ftrace_likely_data {
+ 	 sizeof(t) == sizeof(int) || sizeof(t) == sizeof(long))
  
+ #ifdef __OPTIMIZE__
++/*
++ * #ifdef __OPTIMIZE__ is only a good approximation; for instance "make
++ * CFLAGS_foo.o=-Og" defines __OPTIMIZE__, does not elide the conditional code
++ * and can break compilation with wrong error message(s). Combine with
++ * -U__OPTIMIZE__ when needed.
++ */
+ # define __compiletime_assert(condition, msg, prefix, suffix)		\
+ 	do {								\
+ 		/*							\
+@@ -538,7 +544,7 @@ struct ftrace_likely_data {
+ 			prefix ## suffix();				\
+ 	} while (0)
+ #else
+-# define __compiletime_assert(condition, msg, prefix, suffix) do { } while (0)
++# define __compiletime_assert(condition, msg, prefix, suffix) ((void)(condition))
+ #endif
+ 
+ #define _compiletime_assert(condition, msg, prefix, suffix) \
 _
 
-Patches currently in -mm which might be from yatsenko@meta.com are
+Patches currently in -mm which might be from Marc.Herbert@linux.intel.com are
 
 
