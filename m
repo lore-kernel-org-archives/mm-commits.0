@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26C9D2EB10
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B73C2EB10
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2025 00:55:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747011339; cv=none; b=XFmF3Att+wruJSLUj2puIeZcliqPX4N7Unvc0QoQ0ClxcsWyV2G8oPwn8iCXF8ak3bENMeOB0PFULizxClaDeccQQGGr8NiuBFGlB239uL3ZcyXG06KHQBpvGZpZ8j73/U2qJl/JyKqWs4dX1wyadozG4ekFLVFt/YNUgFpBdxk=
+	t=1747011340; cv=none; b=sXbpaeqfKqcJvcO19t+DX7Um1fhS/dBdGenw/Mg4ud0Ekh86XgRBHzuD+DExnRzjTxxr+HRSTrMR5nYp/nvWLGlWWtgnUroU/qL4e6+Wp7eBzZguw8CSyMdECG3ttvKPiadVISxsnkkIJaBKZUWfrl6aNDu9/mKURMdx+BLTLJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747011339; c=relaxed/simple;
-	bh=mRy5KyM2JxPRw8PUtzBOpezz7rM4DCh8KLY+CfUKumA=;
-	h=Date:To:From:Subject:Message-Id; b=JRtxh/HCjp06X3OQLzYd288O8JAZEYH4Jjw8cb53AFuRtaGIKFJUlWZ1HVeFJ6hyqHj/la7lj7Jz7ENNMXhKLaClb/sV2WT+FdMk8FHIuGPH+3DhTy/wHjquiQ68D0v1RTTr08IN93eL8csLOVa3azYAYWxZzLpSAXQqiD02L+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gvawpXhk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747011340; c=relaxed/simple;
+	bh=hCQC3s2YyE8Y7owf4+2iHqx2hmyVPMJhcxwUnd4M4Eg=;
+	h=Date:To:From:Subject:Message-Id; b=Gam6ob6j07Y+GtkdB3vi7PqtI8hlhbqYUgJUc0XtGkLqEcEB+Gcw/BMm0Nd27dtzyEFrY5fcKL8khUvIyT1sMBXXqTzLbWqyy94djrZI4hWeWdTus37881zUoOafxGFbluOeokeRsgZJj+Ob/1/kwTNqlHEUjXFAMDGRivmey3A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SIuMnuq7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gvawpXhk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74B9EC4CEE4;
-	Mon, 12 May 2025 00:55:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SIuMnuq7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BD6FC4CEEF;
+	Mon, 12 May 2025 00:55:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747011338;
-	bh=mRy5KyM2JxPRw8PUtzBOpezz7rM4DCh8KLY+CfUKumA=;
+	s=korg; t=1747011339;
+	bh=hCQC3s2YyE8Y7owf4+2iHqx2hmyVPMJhcxwUnd4M4Eg=;
 	h=Date:To:From:Subject:From;
-	b=gvawpXhksCaHBAtF+v+pO4A4CmNaSJxXFbLuJKKfcw1nFD6YRe6w6pjfObHH269G7
-	 mLHd01CvcjUKCLIc5AweH7e1AUpWUXDE/YP7u/x/sdePJHVthUJLk7KnjOrJgdmzDs
-	 it1lTdr/qQ4YRiIvNQRd11GclVMDqJSqpTYJm0bs=
-Date: Sun, 11 May 2025 17:55:37 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,oleg@redhat.com,mingo@kernel.org,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,glider@google.com,brauner@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
+	b=SIuMnuq7g1+ZxdMS2TNe2JHjevSN+aowfeyIOtAN2e9FFlSs3v+O/+7UCoXEgUWtH
+	 iASEJms8eaCWQJggbXk88OCPSQ6cbTKLhUdiXRHdB28C2kJmHES4ugkMvYi8CTHQGO
+	 5MBfQIad1vr6+oQm5D1jPiUKMQyrEnXMwMqgi9LM=
+Date: Sun, 11 May 2025 17:55:39 -0700
+To: mm-commits@vger.kernel.org,tim.bird@sony.com,rostedt@goodmis.org,francesco@valla.it,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] exit-move-and-extend-sched_process_exit-tracepoint.patch removed from -mm tree
-Message-Id: <20250512005538.74B9EC4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] init-mainc-log-initcall-level-when-initcall_debug-is-used.patch removed from -mm tree
+Message-Id: <20250512005539.9BD6FC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,124 +35,97 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: exit: move and extend sched_process_exit() tracepoint
+     Subject: init/main.c: log initcall level when initcall_debug is used
 has been removed from the -mm tree.  Its filename was
-     exit-move-and-extend-sched_process_exit-tracepoint.patch
+     init-mainc-log-initcall-level-when-initcall_debug-is-used.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrii Nakryiko <andrii@kernel.org>
-Subject: exit: move and extend sched_process_exit() tracepoint
-Date: Wed, 2 Apr 2025 11:09:25 -0700
+From: Francesco Valla <francesco@valla.it>
+Subject: init/main.c: log initcall level when initcall_debug is used
+Date: Sun, 16 Mar 2025 21:50:15 +0100
 
-It is useful to be able to access current->mm at task exit to, say, record
-a bunch of VMA information right before the task exits (e.g., for stack
-symbolization reasons when dealing with short-lived processes that exit in
-the middle of profiling session).  Currently, trace_sched_process_exit()
-is triggered after exit_mm() which resets current->mm to NULL making this
-tracepoint unsuitable for inspecting and recording task's
-mm_struct-related data when tracing process lifetimes.
+When initcall_debug is specified on the command line, the start and return
+point for each initcall is printed.  However, no information on the
+initcall level is reported.
 
-There is a particularly suitable place, though, right after
-taskstats_exit() is called, but before we do exit_mm() and other exit_*()
-resource teardowns.  taskstats performs a similar kind of accounting that
-some applications do with BPF, and so co-locating them seems like a good
-fit.  So that's where trace_sched_process_exit() is moved with this patch.
+Add to the initcall_debug infrastructure an additional print that informs
+when a new initcall level is entered.  This is particularly useful when
+debugging dependency chains and/or working on boot time reduction.
 
-Also, existing trace_sched_process_exit() tracepoint is notoriously
-missing `group_dead` flag that is certainly useful in practice and some of
-our production applications have to work around this.  So plumb
-`group_dead` through while at it, to have a richer and more complete
-tracepoint.
-
-Note that we can't use sched_process_template anymore, and so we use
-TRACE_EVENT()-based tracepoint definition.  But all the field names and
-order, as well as assign and output logic remain intact.  We just add one
-extra field at the end in backwards-compatible way.
-
-[andrii@kernel.org: document sched_process_exit and sched_process_template relation]
-  Link: https://lkml.kernel.org/r/20250403174120.4087794-1-andrii@kernel.org
-Link: https://lkml.kernel.org/r/20250402180925.90914-1-andrii@kernel.org
-Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
-Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Suggested-by: Ingo Molnar <mingo@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/20250316205014.2830071-2-francesco@valla.it
+Signed-off-by: Francesco Valla <francesco@valla.it>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tim Bird <tim.bird@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/sched.h |   34 +++++++++++++++++++++++++++++----
- kernel/exit.c                |    2 -
- 2 files changed, 31 insertions(+), 5 deletions(-)
+ init/main.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/sched.h~exit-move-and-extend-sched_process_exit-tracepoint
-+++ a/include/trace/events/sched.h
-@@ -326,11 +326,37 @@ DEFINE_EVENT(sched_process_template, sch
- 	     TP_ARGS(p));
+--- a/init/main.c~init-mainc-log-initcall-level-when-initcall_debug-is-used
++++ a/init/main.c
+@@ -1214,6 +1214,12 @@ trace_initcall_finish_cb(void *data, ini
+ 		 fn, ret, (unsigned long long)ktime_us_delta(rettime, *calltime));
+ }
  
- /*
-- * Tracepoint for a task exiting:
-+ * Tracepoint for a task exiting.
-+ * Note, it's a superset of sched_process_template and should be kept
-+ * compatible as much as possible. sched_process_exits has an extra
-+ * `group_dead` argument, so sched_process_template can't be used,
-+ * unfortunately, just like sched_migrate_task above.
-  */
--DEFINE_EVENT(sched_process_template, sched_process_exit,
--	     TP_PROTO(struct task_struct *p),
--	     TP_ARGS(p));
-+TRACE_EVENT(sched_process_exit,
++static __init_or_module void
++trace_initcall_level_cb(void *data, const char *level)
++{
++	printk(KERN_DEBUG "entering initcall level: %s\n", level);
++}
 +
-+	TP_PROTO(struct task_struct *p, bool group_dead),
-+
-+	TP_ARGS(p, group_dead),
-+
-+	TP_STRUCT__entry(
-+		__array(	char,	comm,	TASK_COMM_LEN	)
-+		__field(	pid_t,	pid			)
-+		__field(	int,	prio			)
-+		__field(	bool,	group_dead		)
-+	),
-+
-+	TP_fast_assign(
-+		memcpy(__entry->comm, p->comm, TASK_COMM_LEN);
-+		__entry->pid		= p->pid;
-+		__entry->prio		= p->prio; /* XXX SCHED_DEADLINE */
-+		__entry->group_dead	= group_dead;
-+	),
-+
-+	TP_printk("comm=%s pid=%d prio=%d group_dead=%s",
-+		  __entry->comm, __entry->pid, __entry->prio,
-+		  __entry->group_dead ? "true" : "false"
-+	)
-+);
+ static ktime_t initcall_calltime;
  
- /*
-  * Tracepoint for waiting on task to unschedule:
---- a/kernel/exit.c~exit-move-and-extend-sched_process_exit-tracepoint
-+++ a/kernel/exit.c
-@@ -936,12 +936,12 @@ void __noreturn do_exit(long code)
+ #ifdef TRACEPOINTS_ENABLED
+@@ -1225,10 +1231,12 @@ static void __init initcall_debug_enable
+ 					    &initcall_calltime);
+ 	ret |= register_trace_initcall_finish(trace_initcall_finish_cb,
+ 					      &initcall_calltime);
++	ret |= register_trace_initcall_level(trace_initcall_level_cb, NULL);
+ 	WARN(ret, "Failed to register initcall tracepoints\n");
+ }
+ # define do_trace_initcall_start	trace_initcall_start
+ # define do_trace_initcall_finish	trace_initcall_finish
++# define do_trace_initcall_level	trace_initcall_level
+ #else
+ static inline void do_trace_initcall_start(initcall_t fn)
+ {
+@@ -1242,6 +1250,12 @@ static inline void do_trace_initcall_fin
+ 		return;
+ 	trace_initcall_finish_cb(&initcall_calltime, fn, ret);
+ }
++static inline void do_trace_initcall_level(const char *level)
++{
++	if (!initcall_debug)
++		return;
++	trace_initcall_level_cb(NULL, level);
++}
+ #endif /* !TRACEPOINTS_ENABLED */
  
- 	tsk->exit_code = code;
- 	taskstats_exit(tsk, group_dead);
-+	trace_sched_process_exit(tsk, group_dead);
+ int __init_or_module do_one_initcall(initcall_t fn)
+@@ -1314,7 +1328,7 @@ static void __init do_initcall_level(int
+ 		   level, level,
+ 		   NULL, ignore_unknown_bootoption);
  
- 	exit_mm();
+-	trace_initcall_level(initcall_level_names[level]);
++	do_trace_initcall_level(initcall_level_names[level]);
+ 	for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
+ 		do_one_initcall(initcall_from_entry(fn));
+ }
+@@ -1358,7 +1372,7 @@ static void __init do_pre_smp_initcalls(
+ {
+ 	initcall_entry_t *fn;
  
- 	if (group_dead)
- 		acct_process();
--	trace_sched_process_exit(tsk);
- 
- 	exit_sem(tsk);
- 	exit_shm(tsk);
+-	trace_initcall_level("early");
++	do_trace_initcall_level("early");
+ 	for (fn = __initcall_start; fn < __initcall0_start; fn++)
+ 		do_one_initcall(initcall_from_entry(fn));
+ }
 _
 
-Patches currently in -mm which might be from andrii@kernel.org are
+Patches currently in -mm which might be from francesco@valla.it are
 
 
