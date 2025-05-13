@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE8C71EB9FD
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E16F41EC01F
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119222; cv=none; b=idC29XNHhvnSpv/Kw7C9O+u7AevPHG+crs9ok3owccrpfjTEOTB0GzCEs/+G+hbcifAza6IB8ZGORgmIeHiw0WJnjummPG1CKHgu59CGZlG7f6AivQoF/JaIn00O86j/9puYBd92RHXSlo5MwMkzbQCOjmhqTotMK014Z6/ulWc=
+	t=1747119223; cv=none; b=AiUcFhswBzEZ7JSqHDE0l4xbSxQj8SGFRxXZrH1ldMFxGuQ+Y47j8uxMQmNJvcY5eWM0dB0BIUisT6oZsnAwCtYtmnZrgy6N2+e5PcfzEqH5MQpFGZdrY4zdpjXAIBvn7jvIDY7dfdj8U3bV0KmMLuI4+p/b9/yIWXIKw95PeBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119222; c=relaxed/simple;
-	bh=1dV3bvl9CSdqXrei8Gs7RrADNvbmn05FQDw10eAa/Fw=;
-	h=Date:To:From:Subject:Message-Id; b=NfIZd+WpYFV55iwJD0rx2+fvS+Px1ibxZMOodBxGOZnnErNyK9bDouN9NJdkgORewbQGOxbZai2ojdDvo3AI35IsAzR5mXJ58ECDgH/zPtmWgVS9F+6wUD5iUuldm1hq9hoOXMycXjwycp5+VNn+C7e1o7NFbc2TtOQtx4BlcjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=frYuBC2c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119223; c=relaxed/simple;
+	bh=3ckp8GMu4zYjFYXlrGwAvGDd9d5CPKYzz8OdyV/zJNo=;
+	h=Date:To:From:Subject:Message-Id; b=NoEFJA7jGU6Y7Dy0u8u175rI3kcehGB0m6CkN1tUMsc4ekUFU5NiPiOW+hr7bhaf4qDuVI2AMqK+u8AdcLihcdWuP6YJCmna/qiwqixZY5r80A3MCXGz8XPEWkQAV32jMsSdqfyhj0rwcGjfusjiC4OIPa2a+5HqhIhEvlICQTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lLx8qELH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="frYuBC2c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82FC9C4CEED;
-	Tue, 13 May 2025 06:53:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lLx8qELH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5041AC4CEE4;
+	Tue, 13 May 2025 06:53:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119222;
-	bh=1dV3bvl9CSdqXrei8Gs7RrADNvbmn05FQDw10eAa/Fw=;
+	s=korg; t=1747119221;
+	bh=3ckp8GMu4zYjFYXlrGwAvGDd9d5CPKYzz8OdyV/zJNo=;
 	h=Date:To:From:Subject:From;
-	b=frYuBC2chp+ktDUDAz2NeSC4FHWVdZRIWUqdkQqp5yuScLbiP312L3M5n5ww5RF8X
-	 UnxIPJ7EzXFoUXe5SOeXydrxS73ol2RAXR+5agUJWN7g0SXGhMNsDS17njTFtWZQ+n
-	 our1sU8O6d0UyREu7N4zEeRv4JU0nqE4JHVF2OJU=
-Date: Mon, 12 May 2025 23:53:42 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,revest@google.com,linmiaohe@huawei.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,gavinguo@igalia.com,akpm@linux-foundation.org
+	b=lLx8qELHi5keO2yGamj3zV1F2j5A95LMlhMVinYfFE3kn4eiowrJh1exfzJPmWi0p
+	 2ZG+emSNeGo857i+hbYcIutUeKQPc0nWWbgcvrdW+FbIw3ecjoblhZT+fXEKQv45cH
+	 8OpDWwYi5nCt+yHBT1l+KkIwMaATzSg9nIWlAC2I=
+Date: Mon, 12 May 2025 23:53:40 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,hannes@cmpxchg.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch removed from -mm tree
-Message-Id: <20250513065342.82FC9C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] vmscancgroup-apply-mems_effective-to-reclaim.patch removed from -mm tree
+Message-Id: <20250513065341.5041AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,140 +35,337 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: adjust try_to_migrate_one() and split_huge_pmd_locked()
+     Subject: vmscan,cgroup: apply mems_effective to reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked.patch
+     vmscancgroup-apply-mems_effective-to-reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gavin Guo <gavinguo@igalia.com>
-Subject: mm/huge_memory: adjust try_to_migrate_one() and split_huge_pmd_locked()
-Date: Fri, 25 Apr 2025 18:38:58 +0800
+From: Gregory Price <gourry@gourry.net>
+Subject: vmscan,cgroup: apply mems_effective to reclaim
+Date: Thu, 24 Apr 2025 16:28:06 -0400
 
-Patch series "Clean up split_huge_pmd_locked() and remove unnecessary
-folio pointers", v2.
+It is possible for a reclaimer to cause demotions of an lruvec belonging
+to a cgroup with cpuset.mems set to exclude some nodes.  Attempt to apply
+this limitation based on the lruvec's memcg and prevent demotion.
 
-The patch series enhances the folio verification by leveraging the
-existing page_vma_mapped_walk() mechanism and removing redundant folio
-pointer passing.
+Notably, this may still allow demotion of shared libraries or any memory
+first instantiated in another cgroup.  This means cpusets still cannot
+cannot guarantee complete isolation when demotion is enabled, and the docs
+have been updated to reflect this.
 
+This is useful for isolating workloads on a multi-tenant system from
+certain classes of memory more consistently - with the noted exceptions.
 
-This patch (of 2):
+Note on locking:
 
-split_huge_pmd_locked() currently performs redundant checks for migration
-entries and folio validation that are already handled by the
-page_vma_mapped_walk mechanism in try_to_migrate_one.
+The cgroup_get_e_css reference protects the css->effective_mems, and calls
+of this interface would be subject to the same race conditions associated
+with a non-atomic access to cs->effective_mems.
 
-Specifically, page_vma_mapped_walk already ensures that:
-- The folio is properly mapped in the given VMA area
-- pmd_trans_huge, pmd_devmap, and migration entry validation are
-  performed
+So while this interface cannot make strong guarantees of correctness, it
+can therefore avoid taking a global or rcu_read_lock for performance.
 
-To leverage page_vma_mapped_walk's work, moving TTU_SPLIT_HUGE_PMD
-handling to the while loop checking and removing these duplicate checks
-from split_huge_pmd_locked.
-
-Link: https://lkml.kernel.org/r/20250425103859.825879-1-gavinguo@igalia.com
-Link: https://lkml.kernel.org/r/20250425103859.825879-2-gavinguo@igalia.com
-Link: https://lore.kernel.org/all/98d1d195-7821-4627-b518-83103ade56c0@redhat.com/
-Link: https://lore.kernel.org/all/91599a3c-e69e-4d79-bac5-5013c96203d7@redhat.com/
-Signed-off-by: Gavin Guo <gavinguo@igalia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Florent Revest <revest@google.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20250424202806.52632-3-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Suggested-by: Waiman Long <longman@redhat.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Waiman Long <longman@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   21 ++-------------------
- mm/rmap.c        |   18 +++++++++---------
- 2 files changed, 11 insertions(+), 28 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-numa |   16 +++--
+ include/linux/cpuset.h                         |    5 +
+ include/linux/memcontrol.h                     |    7 ++
+ kernel/cgroup/cpuset.c                         |   36 +++++++++++++
+ mm/memcontrol.c                                |    6 ++
+ mm/vmscan.c                                    |   41 +++++++++------
+ 6 files changed, 89 insertions(+), 22 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked
-+++ a/mm/huge_memory.c
-@@ -3082,27 +3082,10 @@ static void __split_huge_pmd_locked(stru
- void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
- 			   pmd_t *pmd, bool freeze, struct folio *folio)
- {
--	bool pmd_migration = is_pmd_migration_entry(*pmd);
--
--	VM_WARN_ON_ONCE(folio && !folio_test_pmd_mappable(folio));
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
--	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
--	VM_BUG_ON(freeze && !folio);
--
--	/*
--	 * When the caller requests to set up a migration entry, we
--	 * require a folio to check the PMD against. Otherwise, there
--	 * is a risk of replacing the wrong folio.
--	 */
--	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) || pmd_migration) {
--		/*
--		 * Do not apply pmd_folio() to a migration entry; and folio lock
--		 * guarantees that it must be of the wrong folio anyway.
--		 */
--		if (folio && (pmd_migration || folio != pmd_folio(*pmd)))
--			return;
-+	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
-+	    is_pmd_migration_entry(*pmd))
- 		__split_huge_pmd_locked(vma, pmd, address, freeze);
--	}
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-numa~vmscancgroup-apply-mems_effective-to-reclaim
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-numa
+@@ -16,9 +16,13 @@ Description:	Enable/disable demoting pag
+ 		Allowing page migration during reclaim enables these
+ 		systems to migrate pages from fast tiers to slow tiers
+ 		when the fast tier is under pressure.  This migration
+-		is performed before swap.  It may move data to a NUMA
+-		node that does not fall into the cpuset of the
+-		allocating process which might be construed to violate
+-		the guarantees of cpusets.  This should not be enabled
+-		on systems which need strict cpuset location
+-		guarantees.
++		is performed before swap if an eligible numa node is
++		present in cpuset.mems for the cgroup (or if cpuset v1
++		is being used). If cpusets.mems changes at runtime, it
++		may move data to a NUMA node that does not fall into the
++		cpuset of the new cpusets.mems, which might be construed
++		to violate the guarantees of cpusets.  Shared memory,
++		such as libraries, owned by another cgroup may still be
++		demoted and result in memory use on a node not present
++		in cpusets.mem. This should not be enabled on systems
++		which need strict cpuset location guarantees.
+--- a/include/linux/cpuset.h~vmscancgroup-apply-mems_effective-to-reclaim
++++ a/include/linux/cpuset.h
+@@ -173,6 +173,7 @@ static inline void set_mems_allowed(node
+ 	task_unlock(current);
  }
  
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
---- a/mm/rmap.c~mm-huge_memory-adjust-try_to_migrate_one-and-split_huge_pmd_locked
-+++ a/mm/rmap.c
-@@ -2292,13 +2292,6 @@ static bool try_to_migrate_one(struct fo
- 		pvmw.flags = PVMW_SYNC;
++extern bool cpuset_node_allowed(struct cgroup *cgroup, int nid);
+ #else /* !CONFIG_CPUSETS */
  
- 	/*
--	 * unmap_page() in mm/huge_memory.c is the only user of migration with
--	 * TTU_SPLIT_HUGE_PMD and it wants to freeze.
--	 */
--	if (flags & TTU_SPLIT_HUGE_PMD)
--		split_huge_pmd_address(vma, address, true, folio);
--
--	/*
- 	 * For THP, we have to assume the worse case ie pmd for invalidation.
- 	 * For hugetlb, it could be much worse if we need to do pud
- 	 * invalidation in the case of pmd sharing.
-@@ -2323,9 +2316,16 @@ static bool try_to_migrate_one(struct fo
- 	mmu_notifier_invalidate_range_start(&range);
+ static inline bool cpusets_enabled(void) { return false; }
+@@ -293,6 +294,10 @@ static inline bool read_mems_allowed_ret
+ 	return false;
+ }
  
- 	while (page_vma_mapped_walk(&pvmw)) {
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
- 		/* PMD-mapped THP migration entry */
- 		if (!pvmw.pte) {
-+			if (flags & TTU_SPLIT_HUGE_PMD) {
-+				split_huge_pmd_locked(vma, pvmw.address,
-+						      pvmw.pmd, true, NULL);
-+				ret = false;
-+				page_vma_mapped_walk_done(&pvmw);
-+				break;
-+			}
-+#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
- 			subpage = folio_page(folio,
- 				pmd_pfn(*pvmw.pmd) - folio_pfn(folio));
- 			VM_BUG_ON_FOLIO(folio_test_hugetlb(folio) ||
-@@ -2337,8 +2337,8 @@ static bool try_to_migrate_one(struct fo
- 				break;
- 			}
- 			continue;
--		}
- #endif
-+		}
++static inline bool cpuset_node_allowed(struct cgroup *cgroup, int nid)
++{
++	return true;
++}
+ #endif /* !CONFIG_CPUSETS */
  
- 		/* Unexpected PMD-mapped THP? */
- 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+ #endif /* _LINUX_CPUSET_H */
+--- a/include/linux/memcontrol.h~vmscancgroup-apply-mems_effective-to-reclaim
++++ a/include/linux/memcontrol.h
+@@ -1736,6 +1736,8 @@ static inline void count_objcg_events(st
+ 	rcu_read_unlock();
+ }
+ 
++bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid);
++
+ #else
+ static inline bool mem_cgroup_kmem_disabled(void)
+ {
+@@ -1797,6 +1799,11 @@ static inline ino_t page_cgroup_ino(stru
+ {
+ 	return 0;
+ }
++
++static inline bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid)
++{
++	return true;
++}
+ #endif /* CONFIG_MEMCG */
+ 
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_ZSWAP)
+--- a/kernel/cgroup/cpuset.c~vmscancgroup-apply-mems_effective-to-reclaim
++++ a/kernel/cgroup/cpuset.c
+@@ -4237,6 +4237,42 @@ bool cpuset_current_node_allowed(int nod
+ 	return allowed;
+ }
+ 
++bool cpuset_node_allowed(struct cgroup *cgroup, int nid)
++{
++	struct cgroup_subsys_state *css;
++	struct cpuset *cs;
++	bool allowed;
++
++	/*
++	 * In v1, mem_cgroup and cpuset are unlikely in the same hierarchy
++	 * and mems_allowed is likely to be empty even if we could get to it,
++	 * so return true to avoid taking a global lock on the empty check.
++	 */
++	if (!cpuset_v2())
++		return true;
++
++	css = cgroup_get_e_css(cgroup, &cpuset_cgrp_subsys);
++	if (!css)
++		return true;
++
++	/*
++	 * Normally, accessing effective_mems would require the cpuset_mutex
++	 * or callback_lock - but node_isset is atomic and the reference
++	 * taken via cgroup_get_e_css is sufficient to protect css.
++	 *
++	 * Since this interface is intended for use by migration paths, we
++	 * relax locking here to avoid taking global locks - while accepting
++	 * there may be rare scenarios where the result may be innaccurate.
++	 *
++	 * Reclaim and migration are subject to these same race conditions, and
++	 * cannot make strong isolation guarantees, so this is acceptable.
++	 */
++	cs = container_of(css, struct cpuset, css);
++	allowed = node_isset(nid, cs->effective_mems);
++	css_put(css);
++	return allowed;
++}
++
+ /**
+  * cpuset_spread_node() - On which node to begin search for a page
+  * @rotor: round robin rotor
+--- a/mm/memcontrol.c~vmscancgroup-apply-mems_effective-to-reclaim
++++ a/mm/memcontrol.c
+@@ -29,6 +29,7 @@
+ #include <linux/page_counter.h>
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
++#include <linux/cpuset.h>
+ #include <linux/sched/mm.h>
+ #include <linux/shmem_fs.h>
+ #include <linux/hugetlb.h>
+@@ -5523,3 +5524,8 @@ static int __init mem_cgroup_swap_init(v
+ subsys_initcall(mem_cgroup_swap_init);
+ 
+ #endif /* CONFIG_SWAP */
++
++bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid)
++{
++	return memcg ? cpuset_node_allowed(memcg->css.cgroup, nid) : true;
++}
+--- a/mm/vmscan.c~vmscancgroup-apply-mems_effective-to-reclaim
++++ a/mm/vmscan.c
+@@ -342,16 +342,22 @@ static void flush_reclaim_state(struct s
+ 	}
+ }
+ 
+-static bool can_demote(int nid, struct scan_control *sc)
++static bool can_demote(int nid, struct scan_control *sc,
++		       struct mem_cgroup *memcg)
+ {
++	int demotion_nid;
++
+ 	if (!numa_demotion_enabled)
+ 		return false;
+ 	if (sc && sc->no_demotion)
+ 		return false;
+-	if (next_demotion_node(nid) == NUMA_NO_NODE)
++
++	demotion_nid = next_demotion_node(nid);
++	if (demotion_nid == NUMA_NO_NODE)
+ 		return false;
+ 
+-	return true;
++	/* If demotion node isn't in the cgroup's mems_allowed, fall back */
++	return mem_cgroup_node_allowed(memcg, demotion_nid);
+ }
+ 
+ static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
+@@ -376,7 +382,7 @@ static inline bool can_reclaim_anon_page
+ 	 *
+ 	 * Can it be reclaimed from this node via demotion?
+ 	 */
+-	return can_demote(nid, sc);
++	return can_demote(nid, sc, memcg);
+ }
+ 
+ /*
+@@ -1096,7 +1102,8 @@ static bool may_enter_fs(struct folio *f
+  */
+ static unsigned int shrink_folio_list(struct list_head *folio_list,
+ 		struct pglist_data *pgdat, struct scan_control *sc,
+-		struct reclaim_stat *stat, bool ignore_references)
++		struct reclaim_stat *stat, bool ignore_references,
++		struct mem_cgroup *memcg)
+ {
+ 	struct folio_batch free_folios;
+ 	LIST_HEAD(ret_folios);
+@@ -1109,7 +1116,7 @@ static unsigned int shrink_folio_list(st
+ 	folio_batch_init(&free_folios);
+ 	memset(stat, 0, sizeof(*stat));
+ 	cond_resched();
+-	do_demote_pass = can_demote(pgdat->node_id, sc);
++	do_demote_pass = can_demote(pgdat->node_id, sc, memcg);
+ 
+ retry:
+ 	while (!list_empty(folio_list)) {
+@@ -1658,7 +1665,7 @@ unsigned int reclaim_clean_pages_from_li
+ 	 */
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 	nr_reclaimed = shrink_folio_list(&clean_folios, zone->zone_pgdat, &sc,
+-					&stat, true);
++					&stat, true, NULL);
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 
+ 	list_splice(&clean_folios, folio_list);
+@@ -2029,7 +2036,8 @@ static unsigned long shrink_inactive_lis
+ 	if (nr_taken == 0)
+ 		return 0;
+ 
+-	nr_reclaimed = shrink_folio_list(&folio_list, pgdat, sc, &stat, false);
++	nr_reclaimed = shrink_folio_list(&folio_list, pgdat, sc, &stat, false,
++					 lruvec_memcg(lruvec));
+ 
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 	move_folios_to_lru(lruvec, &folio_list);
+@@ -2212,7 +2220,7 @@ static unsigned int reclaim_folio_list(s
+ 		.no_demotion = 1,
+ 	};
+ 
+-	nr_reclaimed = shrink_folio_list(folio_list, pgdat, &sc, &stat, true);
++	nr_reclaimed = shrink_folio_list(folio_list, pgdat, &sc, &stat, true, NULL);
+ 	while (!list_empty(folio_list)) {
+ 		folio = lru_to_folio(folio_list);
+ 		list_del(&folio->lru);
+@@ -2644,7 +2652,7 @@ out:
+  * Anonymous LRU management is a waste if there is
+  * ultimately no way to reclaim the memory.
+  */
+-static bool can_age_anon_pages(struct pglist_data *pgdat,
++static bool can_age_anon_pages(struct lruvec *lruvec,
+ 			       struct scan_control *sc)
+ {
+ 	/* Aging the anon LRU is valuable if swap is present: */
+@@ -2652,7 +2660,8 @@ static bool can_age_anon_pages(struct pg
+ 		return true;
+ 
+ 	/* Also valuable if anon pages can be demoted: */
+-	return can_demote(pgdat->node_id, sc);
++	return can_demote(lruvec_pgdat(lruvec)->node_id, sc,
++			  lruvec_memcg(lruvec));
+ }
+ 
+ #ifdef CONFIG_LRU_GEN
+@@ -2730,7 +2739,7 @@ static int get_swappiness(struct lruvec
+ 	if (!sc->may_swap)
+ 		return 0;
+ 
+-	if (!can_demote(pgdat->node_id, sc) &&
++	if (!can_demote(pgdat->node_id, sc, memcg) &&
+ 	    mem_cgroup_get_nr_swap_pages(memcg) < MIN_LRU_BATCH)
+ 		return 0;
+ 
+@@ -4693,7 +4702,7 @@ static int evict_folios(struct lruvec *l
+ 	if (list_empty(&list))
+ 		return scanned;
+ retry:
+-	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
++	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false, memcg);
+ 	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
+ 	sc->nr_reclaimed += reclaimed;
+ 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+@@ -5848,7 +5857,7 @@ static void shrink_lruvec(struct lruvec
+ 	 * Even if we did not try to evict anon pages at all, we want to
+ 	 * rebalance the anon lru active/inactive ratio.
+ 	 */
+-	if (can_age_anon_pages(lruvec_pgdat(lruvec), sc) &&
++	if (can_age_anon_pages(lruvec, sc) &&
+ 	    inactive_is_low(lruvec, LRU_INACTIVE_ANON))
+ 		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
+ 				   sc, LRU_ACTIVE_ANON);
+@@ -6679,10 +6688,10 @@ static void kswapd_age_node(struct pglis
+ 		return;
+ 	}
+ 
+-	if (!can_age_anon_pages(pgdat, sc))
++	lruvec = mem_cgroup_lruvec(NULL, pgdat);
++	if (!can_age_anon_pages(lruvec, sc))
+ 		return;
+ 
+-	lruvec = mem_cgroup_lruvec(NULL, pgdat);
+ 	if (!inactive_is_low(lruvec, LRU_INACTIVE_ANON))
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from gavinguo@igalia.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
 
