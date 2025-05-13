@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F12D11EF36C
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEAA1EEA47
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119322; cv=none; b=oYk1OJuzWljIuBxXYkzpuNN0W01VC0Q9Fjm2+5hwSHvt4QtVFl7jsuPQ8UZjrWNUYdDwO2pGt7swWnDE1P+c8/7ZRFR9irL2vxHIo7TQTzZ5FP+GN+04MHk0V/wXtKZ7c6hjhsmamtXy58s8K6IE7jeypeWoDtIhUQV0JC+qKM0=
+	t=1747119323; cv=none; b=FYjciMHl0GTBePgX+DSA9v0Ar1UYK/YXuRCMuAMMkaf0++iO84LQ3K5YDrbCQ3x95GUTUq/h6A+0C3tKtxiFyR4BJ5VSSsEG0bSQvt/hLJSRdFEFXWsbeVmp9fTwCPjo4Rnx6EYRYTESSLjLPddlNYgP6tOqmLgWAkHtg37D9+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119322; c=relaxed/simple;
-	bh=6YbJxrHHb3emGs3UTk7pQ9uNBFpO9OKb+a7l0doNpmU=;
-	h=Date:To:From:Subject:Message-Id; b=ftirYetCdtyq1G1idF2kcn8JeJxEMkQby23VTop/t7Ahqs7+MiaqJGDG4UGA5C01ixx/BGMjD4TtuPq9IUoLX4SQvYl7IAtW2wk2lM9c1nPIiJiS88VKeo7uAV3wTYPy1Y1CQ1M6N5q6l0M3NYpJb7uip7cAvznOxpXg7unV4no=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YhKemjg/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119323; c=relaxed/simple;
+	bh=2clQOj5r6nSqwuGGrq8TkNLpzWs7+Mps8TQ1V2/mKos=;
+	h=Date:To:From:Subject:Message-Id; b=R/v4dbl+Qpy8TY7epRHDdu1Hv3tEjlz2rtYuf35ZaLSxXsNgpLSyyWO/n90uhFb5oE3VsSTt+FkK1XNsUXKxLP1dBeGqt3NthoEPM56WEx1ERoNuq2oI5+M2f6L3LDupQ286p6H1LEvn8oR1+wQhboZivvFx4QZ7sO3AAGo0fck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mILAX/YK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YhKemjg/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62ABBC4CEE4;
-	Tue, 13 May 2025 06:55:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mILAX/YK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0563DC4CEE4;
+	Tue, 13 May 2025 06:55:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119319;
-	bh=6YbJxrHHb3emGs3UTk7pQ9uNBFpO9OKb+a7l0doNpmU=;
+	s=korg; t=1747119323;
+	bh=2clQOj5r6nSqwuGGrq8TkNLpzWs7+Mps8TQ1V2/mKos=;
 	h=Date:To:From:Subject:From;
-	b=YhKemjg/bR3lUEXuk8zAYuLIjMBA3LJUg16aIoG006XIe2NznkABwXrpDyR9r34GC
-	 rihUh+NevK8TrCHMF6Z2H1lo1fBSo2wI7jJ85SL7Ks6FaOyrwKcgIo8ixVvTgpKmGX
-	 m7X4blBT65QAjXvmjih/nS62/017GHwuIAq4iDHE=
-Date: Mon, 12 May 2025 23:55:18 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,hch@lst.de,akpm@linux-foundation.org
+	b=mILAX/YKo/1kgPPz8S38E42HzGWvChkTKDYknVXd+SW3CoeWXBwtPU5aN7czF22+D
+	 dNnG26lIfvvcVAfZfUsTvJYb0vJVeOmwiOxjI1QLTPjgi7qFuIErC97Cb2jUuMPSsA
+	 paKukOsMJOxCaKIBqhQIKXpozhxV4h1BTk4FHN0c=
+Date: Mon, 12 May 2025 23:55:22 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] xarray-fix-kerneldoc-for-__xa_cmpxchg.patch removed from -mm tree
-Message-Id: <20250513065519.62ABBC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] f2fs-drop-usage-of-folio_index.patch removed from -mm tree
+Message-Id: <20250513065523.0563DC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xarray: fix kerneldoc for __xa_cmpxchg
+     Subject: f2fs: drop usage of folio_index
 has been removed from the -mm tree.  Its filename was
-     xarray-fix-kerneldoc-for-__xa_cmpxchg.patch
+     f2fs-drop-usage-of-folio_index.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: xarray: fix kerneldoc for __xa_cmpxchg
-Date: Wed, 7 May 2025 07:16:20 +0200
+From: Kairui Song <kasong@tencent.com>
+Subject: f2fs: drop usage of folio_index
+Date: Thu, 1 May 2025 02:10:49 +0800
 
-Fix the documentation for __xa_cmpxchg to actually describe the
-cmpxch-like semantics correctly, based on the version for xa_cmpxchg.
+folio_index is only needed for mixed usage of page cache and swap cache,
+for pure page cache usage, the caller can just use folio->index instead.
 
-Link: https://lkml.kernel.org/r/20250507051656.3900864-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+It can't be a swap cache folio here.  Swap mapping may only call into fs
+through `swap_rw` but f2fs does not use that method for swap.
+
+Link: https://lkml.kernel.org/r/20250430181052.55698-4-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Chao Yu <chao@kernel.org>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Sterba <dsterba@suse.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joanne Koong <joannelkoong@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Qu Wenruo <wqu@suse.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/f2fs/data.c   |    4 ++--
+ fs/f2fs/inline.c |    4 ++--
+ fs/f2fs/super.c  |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/lib/xarray.c~xarray-fix-kerneldoc-for-__xa_cmpxchg
-+++ a/lib/xarray.c
-@@ -1742,20 +1742,23 @@ static inline void *__xa_cmpxchg_raw(str
- 			void *old, void *entry, gfp_t gfp);
+--- a/fs/f2fs/data.c~f2fs-drop-usage-of-folio_index
++++ a/fs/f2fs/data.c
+@@ -2077,7 +2077,7 @@ static int f2fs_read_single_page(struct
+ 	sector_t last_block;
+ 	sector_t last_block_in_file;
+ 	sector_t block_nr;
+-	pgoff_t index = folio_index(folio);
++	pgoff_t index = folio->index;
+ 	int ret = 0;
  
- /**
-- * __xa_cmpxchg() - Store this entry in the XArray.
-+ * __xa_cmpxchg() - Conditionally replace an entry in the XArray.
-  * @xa: XArray.
-  * @index: Index into array.
-  * @old: Old value to test against.
-- * @entry: New entry.
-+ * @entry: New value to place in array.
-  * @gfp: Memory allocation flags.
-  *
-  * You must already be holding the xa_lock when calling this function.
-  * It will drop the lock if needed to allocate memory, and then reacquire
-  * it afterwards.
-  *
-+ * If the entry at @index is the same as @old, replace it with @entry.
-+ * If the return value is equal to @old, then the exchange was successful.
-+ *
-  * Context: Any context.  Expects xa_lock to be held on entry.  May
-  * release and reacquire xa_lock if @gfp flags permit.
-- * Return: The old entry at this index or xa_err() if an error happened.
-+ * Return: The old value at this index or xa_err() if an error happened.
-  */
- void *__xa_cmpxchg(struct xarray *xa, unsigned long index,
- 			void *old, void *entry, gfp_t gfp)
+ 	block_in_file = (sector_t)index;
+@@ -2392,7 +2392,7 @@ static int f2fs_mpage_readpages(struct i
+ 		}
+ 
+ #ifdef CONFIG_F2FS_FS_COMPRESSION
+-		index = folio_index(folio);
++		index = folio->index;
+ 
+ 		if (!f2fs_compressed_file(inode))
+ 			goto read_single_page;
+--- a/fs/f2fs/inline.c~f2fs-drop-usage-of-folio_index
++++ a/fs/f2fs/inline.c
+@@ -86,7 +86,7 @@ void f2fs_do_read_inline_data(struct fol
+ 	if (folio_test_uptodate(folio))
+ 		return;
+ 
+-	f2fs_bug_on(F2FS_I_SB(inode), folio_index(folio));
++	f2fs_bug_on(F2FS_I_SB(inode), folio->index);
+ 
+ 	folio_zero_segment(folio, MAX_INLINE_DATA(inode), folio_size(folio));
+ 
+@@ -130,7 +130,7 @@ int f2fs_read_inline_data(struct inode *
+ 		return -EAGAIN;
+ 	}
+ 
+-	if (folio_index(folio))
++	if (folio->index)
+ 		folio_zero_segment(folio, 0, folio_size(folio));
+ 	else
+ 		f2fs_do_read_inline_data(folio, ipage);
+--- a/fs/f2fs/super.c~f2fs-drop-usage-of-folio_index
++++ a/fs/f2fs/super.c
+@@ -3432,7 +3432,7 @@ static int __f2fs_commit_super(struct f2
+ 	bio = bio_alloc(sbi->sb->s_bdev, 1, opf, GFP_NOFS);
+ 
+ 	/* it doesn't need to set crypto context for superblock update */
+-	bio->bi_iter.bi_sector = SECTOR_FROM_BLOCK(folio_index(folio));
++	bio->bi_iter.bi_sector = SECTOR_FROM_BLOCK(folio->index);
+ 
+ 	if (!bio_add_folio(bio, folio, folio_size(folio), 0))
+ 		f2fs_bug_on(sbi, 1);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from kasong@tencent.com are
 
 
