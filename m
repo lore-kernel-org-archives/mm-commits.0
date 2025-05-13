@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 723BD1EF36C
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B112F1EEA47
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119341; cv=none; b=S+zMLJuc9151GbqRfZ7FEKsaUeFAfRjxK2i6U+wxOzjJIf4xCGEpWZd3tgkT9S+aB6jxKEoOq4hqGzi+IFMkgLiPmmBusd/g9ZSicKaSJKvubXwlUBflE4RTIOlkU8VUJwFbQl0ZWUJIFl/HejHS1EzGr2A6VEZ+OaLnLhgS00Q=
+	t=1747119342; cv=none; b=NXR/26oG5iccUCXBqfEU00HBjF/fRO7yd0zZVxHLMPfDyJyz9Iw1MahrYiWDGafa/Vv8H1uiK/IKTWyGgV8meFRXadRModKWcaBuZw6dev+2z1aw40zUdk485pk7n4eTn7aMOCzY2aYtTW39iGdjw3X70cpWptjDY0DITRz5tcg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119341; c=relaxed/simple;
-	bh=tpP96ovJHUVc68YIQazSm90OA66EtaEbjOcYsphaf2g=;
-	h=Date:To:From:Subject:Message-Id; b=NWH+puUCoePd6qPeW7zviZ4JHd1UthUovqBtqzuSN/PJv58ElCKsz5+A+T3BaO0jNvAgG+TZMhkc1a8g328uqOAcOFofbbUBAkAmAWLPJx5SAUTc0NLHO34YXWmzBUNqwQNGFWfgU+IQHzlOxPpqWUz+RCEjmKtZcoPXRxgwqX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CCncCSHQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119342; c=relaxed/simple;
+	bh=c7Z7hQewZZfpVgC7A9pNGgKDgWDMpcHISgA9QJw1280=;
+	h=Date:To:From:Subject:Message-Id; b=gjWnZWNXrDKwDiX/Z77vJKjm94VltFVyl2ooaAXfiRDkLW989l/T6q0x2oc8fdPjTa8QRabRs//5YLZkCllYoRtsU7uYmceGXVb8+5LeNxWLhrJHWJq8Qyxn/UpqbNAWUiTKgc8iFA+uONkQxlJZOjVZRHhb45ADZ50SaNjye18=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fRHuN3mH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CCncCSHQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4831FC4CEE4;
-	Tue, 13 May 2025 06:55:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fRHuN3mH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DFC3C4CEE4;
+	Tue, 13 May 2025 06:55:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119341;
-	bh=tpP96ovJHUVc68YIQazSm90OA66EtaEbjOcYsphaf2g=;
+	s=korg; t=1747119342;
+	bh=c7Z7hQewZZfpVgC7A9pNGgKDgWDMpcHISgA9QJw1280=;
 	h=Date:To:From:Subject:From;
-	b=CCncCSHQSCagLeJypv5UaAX85PIv7sc0c8/tREc5xmaEROiutDhj/xzTUDS3GmkjT
-	 eTbfh5yGMVSpV112TC4gafJD4w6R99ukYWEYByyBWW9FCyvmPlf4mpBh3jVuOAymjw
-	 SLJ+g3NHUdjyHdgX3iUR6GvqsXLpp0PVXXUpKMZg=
-Date: Mon, 12 May 2025 23:55:40 -0700
+	b=fRHuN3mHY8/bak0g2WQFMjUmZnP9riipmcFXjf56BYx7uj/fmV02vNKm2cio64l96
+	 rBk4L+ZyOuZHjKQLNKk76oYgO5y7T+bQbFG9Nrg8EGRf4wjHca6T4ykMwf3Intv7d4
+	 8DmDs4maVvywvyo/ZJKvLcNCAwvaHcPexnSV0Ry0=
+Date: Mon, 12 May 2025 23:55:41 -0700
 To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,chen.haonan2@zte.com.cn,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcontrol-v1-add-ksm_stat-at-memcg-v1.patch removed from -mm tree
-Message-Id: <20250513065541.4831FC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-add-ksm_stat-description-in-cgroup-v1-memoryrst.patch removed from -mm tree
+Message-Id: <20250513065542.7DFC3C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcontrol-v1: add ksm_stat at memcg-v1
+     Subject: Documentation: add ksm_stat description in cgroup-v1/memory.rst
 has been removed from the -mm tree.  Its filename was
-     memcontrol-v1-add-ksm_stat-at-memcg-v1.patch
+     documentation-add-ksm_stat-description-in-cgroup-v1-memoryrst.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: memcontrol-v1: add ksm_stat at memcg-v1
-Date: Thu, 1 May 2025 04:16:47 +0000
+Subject: Documentation: add ksm_stat description in cgroup-v1/memory.rst
+Date: Thu, 1 May 2025 04:17:13 +0000
 
-With the enablement of container-level KSM (e.g., via prctl), there is a
-growing demand for container-level observability of KSM behavior. 
-However, current cgroup implementations lack support for exposing
-KSM-related metrics.
+This updates ksm_stat description in cgroup-v1/memory.rst.
 
-This patch introduces a new interface named ksm_stat at the cgroup
-hierarchy level, enabling users to monitor KSM merging statistics
-specifically for containers where this feature has been activated,
-eliminating the need to manually inspect KSM information for each
-individual process within the cgroup-v1.
-
-Since the implementation of ksm_stat has been added into memcg-v2, this
-just add it back to memcg-v1 with the same function of traversing the
-process of the memcg.
-
-Users can obtain the KSM information of a cgroup just by:
-
-        `cat /sys/fs/cgroup/memory.ksm_stat`
-
-Link: https://lkml.kernel.org/r/20250501041647.3324541-1-xu.xin16@zte.com.cn
+Link: https://lkml.kernel.org/r/20250501041713.3324621-1-xu.xin16@zte.com.cn
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Haonan Chen <chen.haonan2@zte.com.cn>
@@ -82,60 +65,61 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 +++++++
- mm/memcontrol-v1.c         |    6 ++++++
- mm/memcontrol.c            |    2 +-
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |   36 +++++++++++++++
+ 1 file changed, 36 insertions(+)
 
---- a/include/linux/memcontrol.h~memcontrol-v1-add-ksm_stat-at-memcg-v1
-+++ a/include/linux/memcontrol.h
-@@ -939,6 +939,8 @@ unsigned long lruvec_page_state(struct l
- unsigned long lruvec_page_state_local(struct lruvec *lruvec,
- 				      enum node_stat_item idx);
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~documentation-add-ksm_stat-description-in-cgroup-v1-memoryrst
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -97,6 +97,8 @@ Brief summary of control files.
+                                      used.
+  memory.numa_stat		     show the number of memory usage per numa
+ 				     node
++ memory.ksm_stat                     show the statistic information about various ksm
++                                     counters
+  memory.kmem.limit_in_bytes          Deprecated knob to set and read the kernel
+                                      memory hard limit. Kernel hard limit is not
+                                      supported since 5.16. Writing any value to
+@@ -674,6 +676,40 @@ The output format of memory.numa_stat is
  
-+int memcg_ksm_stat_show(struct seq_file *m, void *v);
+ The "total" count is sum of file + anon + unevictable.
+ 
++.. _memcg_ksm_stat:
 +
- void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
- void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
- 
-@@ -1416,6 +1418,11 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
- 
-+static inline int memcg_ksm_stat_show(struct seq_file *m, void *v)
-+{
-+	return 0;
-+}
++5.7 ksm_stat
++------------
 +
- static inline void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
- {
- }
---- a/mm/memcontrol.c~memcontrol-v1-add-ksm_stat-at-memcg-v1
-+++ a/mm/memcontrol.c
-@@ -4491,7 +4491,7 @@ static int evaluate_memcg_ksm_stat(struc
- 	return 0;
- }
++When CONFIG_KSM is enabled, the ksm_stat file can be used to observe the ksm
++merging status of the processes within an memory cgroup.
++
++The output format of memory.ksm_stat is::
++
++  ksm_rmap_items <number>
++  ksm_zero_pages <number>
++  ksm_merging_pages <number>
++  ksm_profit <number>
++
++The "ksm_rmap_items" count specifies the number of ksm_rmap_item structures in
++use. The structureksm_rmap_item stores the reverse mapping information for
++virtual addresses.  KSM will generate a ksm_rmap_item for each ksm-scanned page
++of the process.
++
++The "ksm_zero_pages" count specifies represent how many empty pages are merged
++with kernel zero pages by KSM, which is useful when /sys/kernel/mm/ksm/use_zero_pages
++is enabled.
++
++The "ksm_merging_pages" count specifies how many pages of this process are involved
++in KSM merging (not including ksm_zero_pages).
++
++The "ksm_process_profit" count specifies the profit that KSM brings (Saved bytes).
++KSM can save memory by merging identical pages, but also can consume additional
++memory, because it needs to generate a number of rmap_items to save each scanned
++page's brief rmap information. Some of these pages may be merged, but some may not
++be abled to be merged after being checked several times, which are unprofitable
++memory consumed.
++
+ 6. Hierarchy support
+ ====================
  
--static int memcg_ksm_stat_show(struct seq_file *m, void *v)
-+int memcg_ksm_stat_show(struct seq_file *m, void *v)
- {
- 	struct memcg_ksm_stat ksm_stat;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
---- a/mm/memcontrol-v1.c~memcontrol-v1-add-ksm_stat-at-memcg-v1
-+++ a/mm/memcontrol-v1.c
-@@ -2080,6 +2080,12 @@ struct cftype mem_cgroup_legacy_files[]
- 		.seq_show = memcg_numa_stat_show,
- 	},
- #endif
-+#ifdef CONFIG_KSM
-+	{
-+		.name = "ksm_stat",
-+		.seq_show = memcg_ksm_stat_show,
-+	},
-+#endif
- 	{
- 		.name = "kmem.limit_in_bytes",
- 		.private = MEMFILE_PRIVATE(_KMEM, RES_LIMIT),
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
