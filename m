@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B62EEEA6
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 01:18:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09F0CEEA6
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 01:18:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747099085; cv=none; b=pMXJNAa4nP6gbQXRGoDhixwgsXHQxk/0GmlhSp/VrfqkM7gsv9HsSPftuBVNXHmWqnnOdKV9cvJVoPfntfCKyvTYqTe56y+nbGdGLxpEqI5u4SxB+zFH+L9yei4lqNjJVZU2RD5Z2TrFcPecdRbSpJlb+rhAUmDhgCveBq69Sh0=
+	t=1747099087; cv=none; b=WF+tJY56UUZsZG7w1zUtZcRqsfZ1GYRSsnHPWQGPQFZvghMeuSXKPu7uKNT48aobo4uPbiHY7n+vFMiHKNdSWL0LHV5i4DMug7F2Gf3OwR49jBC78/M48IA+ogJo+jMoyBZe6xH3GUpyM/6jHD9l9DdQyC4z5fRdKm/ySKv+cH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747099085; c=relaxed/simple;
-	bh=Kf0/t3vJViQXC21xsweX07CDK3g+eLWfCEBtoQE9qFQ=;
-	h=Date:To:From:Subject:Message-Id; b=kWRa900mpN+w/dZElYYXsg6/o0nh6WmlpvpwcEI58z6N2gbRFLGEHq6vIx8ke3Jiul8w/3pFF/SfCHZLNvxUJCtYa1j1hGJk/5qO+Ct0ExZGL+AJAug5EvzDBUWweX6HHLSwgSI22dkS6PXeBIibzlPELyDosisiVvELhRvOEuw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mq1ifJb7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747099087; c=relaxed/simple;
+	bh=7m7Py/qg5inxkXXUuPQsze80AGO4G9jCkvFZQSPQJP4=;
+	h=Date:To:From:Subject:Message-Id; b=ikTeI7OhO8EH4uEGMBxD5ZAf3pg3sZzZDsfjBR9TM/vI0378vt24tpvfpflzWDzyIkH5BQEXSkMeRpwN+8Zvws6lqkKis28TqyISxrjZjDFK/A4R1QMZVHoGdb++9du/l7KX4Lg11jXULUEt3YERj5rdkkpYoHuu6ZEmRXM7yE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FXzVLL2D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mq1ifJb7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9564C4CEE7;
-	Tue, 13 May 2025 01:18:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FXzVLL2D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0AF3C4CEE7;
+	Tue, 13 May 2025 01:18:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747099084;
-	bh=Kf0/t3vJViQXC21xsweX07CDK3g+eLWfCEBtoQE9qFQ=;
+	s=korg; t=1747099086;
+	bh=7m7Py/qg5inxkXXUuPQsze80AGO4G9jCkvFZQSPQJP4=;
 	h=Date:To:From:Subject:From;
-	b=mq1ifJb70dAOHa0XpEdEXB+P2ikK/CXODY3lh1X29aO8XwufGegdQ9PP3QzjftHw8
-	 MmDlAStxCZfVYGW4cQCVYd4+Sz0yl+xEx0P//7F4IbqppMAniXg20bLCF3BKW72lCo
-	 LcLT3hiDt/Axq72mTEmZV2AxeG8Z6XmUbvEy3srY=
-Date: Mon, 12 May 2025 18:18:04 -0700
+	b=FXzVLL2DTVaJXpnuoap7EeQ30FsweQi5pq7YpfcVgwtNc4TA9cO05Wa2icn3IKQ14
+	 86hm/kawCWASgb6LYM8tpfmZ+hdxdxosQQcMtP6tNCpaRKoqFIaVMZoqCxkHk8+2Ad
+	 RHf/V+2KGufiZZRWOS25YWXIqf7u7wnT7mvffTHw=
+Date: Mon, 12 May 2025 18:18:06 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-warn-and-fix-nr_accesses-corruption.patch added to mm-new branch
-Message-Id: <20250513011804.C9564C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs.patch added to mm-new branch
+Message-Id: <20250513011806.C0AF3C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: warn and fix nr_accesses[_bp] corruption
+     Subject: mm/damon/sysfs-schemes: fix wrong comment on damons_sysfs_quota_goal_metric_strs
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-warn-and-fix-nr_accesses-corruption.patch
+     mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-warn-and-fix-nr_accesses-corruption.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,31 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: warn and fix nr_accesses[_bp] corruption
-Date: Mon, 12 May 2025 17:27:10 -0700
+Subject: mm/damon/sysfs-schemes: fix wrong comment on damons_sysfs_quota_goal_metric_strs
+Date: Mon, 12 May 2025 17:27:11 -0700
 
-Patch series "mm/damon: minor fixups and improvements for code, tests, and
-documents".
+A comment on damos_sysfs_quota_goal_metric_strs is simply wrong, due to a
+copy-and-paste error.  Fix it.
 
-Yet another batch of miscellaneous DAMON changes.  Fix and improve minor
-problems in code, tests and documents.
-
-
-This patch (of 6):
-
-For a bug such as double aggregation reset[1], ->nr_accesses and/or
-->nr_accesses_bp of damon_region could be corrupted.  Such corruption can
-make monitoring results pretty inaccurate, so the root causing bug should
-be investigated.  Meanwhile, the corruption itself can easily be fixed but
-silently fixing it will hide the bug.
-
-Fix the corruption as soon as found, but WARN_ONCE() so that we can be
-aware of the existence of the bug while keeping the system running in a
-more sane way.
-
-Link: https://lkml.kernel.org/r/20250513002715.40126-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250513002715.40126-2-sj@kernel.org
-Link: https://lore.kernel.org/20250302214145.356806-1-sj@kernel.org [1]
+Link: https://lkml.kernel.org/r/20250513002715.40126-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -98,39 +80,20 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/damon/sysfs-schemes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-warn-and-fix-nr_accesses-corruption
-+++ a/mm/damon/core.c
-@@ -1392,6 +1392,19 @@ int damos_walk(struct damon_ctx *ctx, st
- }
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs
++++ a/mm/damon/sysfs-schemes.c
+@@ -940,7 +940,7 @@ struct damos_sysfs_quota_goal {
+ 	int nid;
+ };
  
- /*
-+ * Warn and fix corrupted ->nr_accesses[_bp] for investigations and preventing
-+ * the problem being propagated.
-+ */
-+static void damon_warn_fix_nr_accesses_corruption(struct damon_region *r)
-+{
-+	if (r->nr_accesses_bp == r->nr_accesses * 10000)
-+		return;
-+	WARN_ONCE(true, "invalid nr_accesses_bp at reset: %u %u\n",
-+			r->nr_accesses_bp, r->nr_accesses);
-+	r->nr_accesses_bp = r->nr_accesses * 10000;
-+}
-+
-+/*
-  * Reset the aggregated monitoring results ('nr_accesses' of each region).
-  */
- static void kdamond_reset_aggregated(struct damon_ctx *c)
-@@ -1404,6 +1417,7 @@ static void kdamond_reset_aggregated(str
- 
- 		damon_for_each_region(r, t) {
- 			trace_damon_aggregated(ti, r, damon_nr_regions(t));
-+			damon_warn_fix_nr_accesses_corruption(r);
- 			r->last_nr_accesses = r->nr_accesses;
- 			r->nr_accesses = 0;
- 		}
+-/* This should match with enum damos_action */
++/* This should match with enum damos_quota_goal_metric */
+ static const char * const damos_sysfs_quota_goal_metric_strs[] = {
+ 	"user_input",
+ 	"some_mem_psi_us",
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
