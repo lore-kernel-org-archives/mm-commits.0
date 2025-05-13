@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAEC17578
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:40:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E99C17578
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:40:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747118427; cv=none; b=NBSqV6rop7hAvBrc3YyynBJ3bxraOIxHANyIdDk3P6VngQwrpPFhiEGqLQGO6hg0VvWxDn03+KQcXsMPWorKdbarJOg1S2ITzgJtx+c3fDBdb1mCF9qLYprDD4Qwc+xwIbD6vS/ISonwMXpF/nlHbSt+ZKx2efb/Bx/PhawJd7U=
+	t=1747118457; cv=none; b=POt3eHk90z3fkq9RFKuAKMkfIYmq1lqcjdFocBRWrewRtjbKYbEEIjHprmPj+LXA2nQ1zLLu8g6bXNe+DkRp14uS+oJr27hQN16SySEwBSnrS9dbDGosyBNjprsy23qaNt6/l8BdyOOlbvlkpzCIckHPCM9ayTCjUb13HuiB0N4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747118427; c=relaxed/simple;
-	bh=AUslF1qN8W0qIotd5I+xI1RbbQOmfS7mXyNsmU2pYqY=;
-	h=Date:To:From:Subject:Message-Id; b=m9ZbuZFHZ6jxUpe6v+WRYLEo0Fg6gd+DM9QDuqUFZEobVf355ScYD9JuN5lCGmYKZPuoCGOISxqOq4z2oLYkZdlkDasfYnbJM8hN5butP6XoR3jtWk4arRzr172NARec54LSSjO7Ns9a7ZIrUaenfnzgrDr9mH5OzjbXxKVHejM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=awo/0V6a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747118457; c=relaxed/simple;
+	bh=XmQ5HbpP+hITFpWiA/UexEGovr4cP5ItsAg5rfNKSFw=;
+	h=Date:To:From:Subject:Message-Id; b=WFCvdOnka+v2NtOqQxcggDfL5kRvzaltcBIeWe//DiT2P2LV3JpGCzQ44MhRIGi7uss3yyQjWfS4OyqyJKtamxatEZwsDyN+3bO5NaO5Fd0ydvSHXyIbCmHPjPex5PIqvpSDLroWVES59eosulkscn1ozFmWtrEjXadTPo1EFNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fep/SIMD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="awo/0V6a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A5A1C4CEED;
-	Tue, 13 May 2025 06:40:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fep/SIMD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAD3EC4CEE4;
+	Tue, 13 May 2025 06:40:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747118427;
-	bh=AUslF1qN8W0qIotd5I+xI1RbbQOmfS7mXyNsmU2pYqY=;
+	s=korg; t=1747118456;
+	bh=XmQ5HbpP+hITFpWiA/UexEGovr4cP5ItsAg5rfNKSFw=;
 	h=Date:To:From:Subject:From;
-	b=awo/0V6alEPEU0hSnTWjhd3ISMFr0m/kf0C1RyIPQLDcbCmiKha8T0lNrAkUlxPiq
-	 3jkgO45i7F2K8WtEz6kfH4oFbTzXQczzBfGjBq9Nwy67inuF1g8Vy5nUiqV8AILbWr
-	 XLCG9XBBXxoy46ocmDOecVmGd39dcXKxoc9ftang=
-Date: Mon, 12 May 2025 23:40:26 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,dwmw@amazon.co.uk,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw2@infradead.org,akpm@linux-foundation.org
+	b=Fep/SIMDqNFSXi+9f1RPx0wh6dfQsMjjClbbvy8lmCLUMxNj+C+xhqgNt4exihhiv
+	 rj3vSs6w2rp3fapkQq54X0t8r0kKgFcxSF2YHOIgFPgPEH2PL9pEkOJc836t+PumYK
+	 jBZWSNzdIrI3J5oJLnBXHiro0cn0Ze4QdE/bd7H0=
+Date: Mon, 12 May 2025 23:40:56 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch removed from -mm tree
-Message-Id: <20250513064027.1A5A1C4CEED@smtp.kernel.org>
+Subject: [folded-merged] mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20250513064056.AAD3EC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
+     Subject: mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
+     mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-implement-for_each_valid_pfn-for-config_sparsemem.patch
+This patch was dropped because it was folded into mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain.patch
 
 ------------------------------------------------------
-From: David Woodhouse <dwmw2@infradead.org>
-Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
-Date: Sat, 26 Apr 2025 00:04:46 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes
+Date: Thu Apr 24 05:15:43 PM PDT 2025
 
-fix next_valid_pfn() for sparsemem
+WARNING: do not add new typedefs
+#86: FILE: tools/testing/selftests/mm/uffd-unit-tests.c:1284:
++typedef enum {
 
-Link: https://lkml.kernel.org/r/c15100fcf6781a60b852c4dbb43bdc98a678fcf0.camel@infradead.org
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Woodhouse <dwmw@amazon.co.uk>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Ruihan Li <lrh2000@pku.edu.cn>
-Cc: Will Deacon <will@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+WARNING: braces {} are not necessary for single statement blocks
+#106: FILE: tools/testing/selftests/mm/uffd-unit-tests.c:1304:
++	if (!fp) {
++		return THR_STATE_UNKNOWN;
++	}
+
+WARNING: Use of volatile is usually wrong: see Documentation/process/volatile-considered-harmful.rst
+#135: FILE: tools/testing/selftests/mm/uffd-unit-tests.c:1333:
++	volatile pid_t *pid = opaque;
+
+ERROR: trailing statements should be on next line
+#154: FILE: tools/testing/selftests/mm/uffd-unit-tests.c:1352:
++	while (uffd_read_msg(fd, &msg));
+
+WARNING: Use of volatile is usually wrong: see Documentation/process/volatile-considered-harmful.rst
+#180: FILE: tools/testing/selftests/mm/uffd-unit-tests.c:1378:
++	while (!(volatile pid_t)pid)
+
+total: 1 errors, 4 warnings, 215 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/mmzone.h~mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
-+++ a/include/linux/mmzone.h
-@@ -2190,10 +2190,10 @@ static inline unsigned long next_valid_p
- 	/*
- 	 * Either every PFN within the section (or subsection for VMEMMAP) is
- 	 * valid, or none of them are. So there's no point repeating the check
--	 * for every PFN; only call first_valid_pfn() the first time, and when
--	 * crossing a (sub)section boundary (i.e. !(pfn & ~PFN_VALID_MASK)).
-+	 * for every PFN; only call first_valid_pfn() again when crossing a
-+	 * (sub)section boundary (i.e. !(pfn & ~PAGE_{SUB,}SECTION_MASK)).
- 	 */
--	if (pfn & (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
-+	if (pfn & ~(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
- 		   PAGE_SUBSECTION_MASK : PAGE_SECTION_MASK))
- 		return pfn;
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -1301,9 +1301,8 @@ static thread_state thread_state_get(pid
+ 	snprintf(tmp, sizeof(tmp), "/proc/%d/status", tid);
+ 	fp = fopen(tmp, "r");
  
+-	if (!fp) {
++	if (!fp)
+ 		return THR_STATE_UNKNOWN;
+-	}
+ 
+ 	while (fgets(tmp, sizeof(tmp), fp)) {
+ 		p = strstr(tmp, header);
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-implement-for_each_valid_pfn-for-config_sparsemem.patch
+mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain.patch
+jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
+mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
+filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-add-zblock-allocator-fix-3.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
