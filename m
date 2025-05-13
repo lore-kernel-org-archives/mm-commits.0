@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67DCA1EEA27
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126931EEA28
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119280; cv=none; b=EsVPat2IW0anIOD7G5ON+TnK7nXwPiz2uu9ZvoG//iScnBvvTwtKsO/04m2D2wykJ/lPk2KVRzY9eYFe5CrHUiquPimZcqYg3OUcFiXI3WHqZ4hQCx4UYn7/M8LbDdrD1iViQsADqdbVW9G3t+aicB1a3OY4Xth39HG+gGoPbCc=
+	t=1747119283; cv=none; b=YNWlLSl1J59ARIwndhKnZllCXTOB3+k1u3VjJbhWzIMIhNeUHGLfjI6kbRCd7BZVYc9BkRydxOACas2MScVbMx697IAQm7zgg2r7DU1Ad9fXsJzIRoXddrkW8wDA94u66K2vuIbQfvOFFu17/v3Fh/bBpOTte71tIYTIq75u1BY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119280; c=relaxed/simple;
-	bh=kGU/DmXD8KYfTAQDQaFe3WbeUhRMxgBvmG6N9ybq+Vk=;
-	h=Date:To:From:Subject:Message-Id; b=oQZUYudXClTX/qe5KqgL/IYL15qFLnhcnEPDu1SmbNRl7/dRWjrXjvfdUKDWXzTR1vFI2b8o900d0X6EcbCXQq6wZdYbH0DBJ7XgWEmtb4Xah5E4yFWtwduNJj5EpTmrwdBBXvUdS5jaM5m+PvHQoo0sPkn+KzPTQXtpRvUbLJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oEEc6WYc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119283; c=relaxed/simple;
+	bh=UjpanVLkNlS+CFgp+zRlnJjQ0LOnbhXwAyZ/+IKa1pk=;
+	h=Date:To:From:Subject:Message-Id; b=te0yeNYLweASVSS2+NUVH+gcieFiS/PfIDqKcowc3wH0KlcXLInxw9kcusi/5pZZt7G7kLs1srRhN0/zTnTy9bm9VJL5Ds7x95MReAG+kCrLK8xFmJ2S2P9eUbbusgyUz6pMJ28TtQvFWVyBM9XalsduykB8US4MtGZfwdJSmyQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ieoMdFhW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oEEc6WYc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E888C4CEE4;
-	Tue, 13 May 2025 06:54:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ieoMdFhW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC5DFC4CEE4;
+	Tue, 13 May 2025 06:54:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119280;
-	bh=kGU/DmXD8KYfTAQDQaFe3WbeUhRMxgBvmG6N9ybq+Vk=;
+	s=korg; t=1747119282;
+	bh=UjpanVLkNlS+CFgp+zRlnJjQ0LOnbhXwAyZ/+IKa1pk=;
 	h=Date:To:From:Subject:From;
-	b=oEEc6WYcfDH4sxUeos3QtD+8o0kD4jQnA+sS96sNXw17bD+MFr8u9nqeIdvvZktDV
-	 sDmwUV50kXQcl1Bk2ZelH7qgy7D+mETYFMd9AmtdZBIEkcK0eEQ4PTDaJm9x/Hhkm6
-	 /LyLtDe+VGLxE0Qa+mv4wxcB/BJQPhA3wVuq750g=
-Date: Mon, 12 May 2025 23:54:39 -0700
+	b=ieoMdFhW98KNC/pgW2wevdGYf56gEyWE3DhAdMXetkmjbY7PZwA6mmECVC1VR54Ek
+	 +28cFvnWRNj27BQxfOKzbV/K7tVmACCWBWRnhs72IdAj4lOEEri5sD7Htx+osF066w
+	 mobhn1RPvyqZvrZAjfyzd4hFJDPjaJHrX001CWoE=
+Date: Mon, 12 May 2025 23:54:42 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw@amazon.co.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-implement-for_each_valid_pfn-for-config_sparsemem.patch removed from -mm tree
-Message-Id: <20250513065440.3E888C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pm-use-for_each_valid_pfn-in-kernel-power-snapshotc.patch removed from -mm tree
+Message-Id: <20250513065442.DC5DFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: implement for_each_valid_pfn() for CONFIG_SPARSEMEM
+     Subject: mm, PM: use for_each_valid_pfn() in kernel/power/snapshot.c
 has been removed from the -mm tree.  Its filename was
-     mm-implement-for_each_valid_pfn-for-config_sparsemem.patch
+     mm-pm-use-for_each_valid_pfn-in-kernel-power-snapshotc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Woodhouse <dwmw@amazon.co.uk>
-Subject: mm: implement for_each_valid_pfn() for CONFIG_SPARSEMEM
-Date: Wed, 23 Apr 2025 14:33:39 +0100
+Subject: mm, PM: use for_each_valid_pfn() in kernel/power/snapshot.c
+Date: Wed, 23 Apr 2025 14:33:40 +0100
 
-Implement for_each_valid_pfn() based on two helper functions.
-
-The first_valid_pfn() function largely mirrors pfn_valid(), calling into a
-pfn_section_first_valid() helper which is trivial for the !VMEMMAP case,
-and in the VMEMMAP case will skip to the next subsection as needed.
-
-Since next_valid_pfn() knows that its argument *is* a valid PFN, it
-doesn't need to do any checking at all while iterating over the low bits
-within a (sub)section mask; the whole (sub)section is either present or
-not.
-
-Note that the VMEMMAP version of pfn_section_first_valid() may return a
-value *higher* than end_pfn when skipping to the next subsection, and
-first_valid_pfn() happily returns that higher value.  This is fine.
-
-[dwmw2@infradead.org: fix next_valid_pfn() for sparsemem]
-  Link: https://lkml.kernel.org/r/c15100fcf6781a60b852c4dbb43bdc98a678fcf0.camel@infradead.org
-Link: https://lkml.kernel.org/r/20250423133821.789413-4-dwmw2@infradead.org
+Link: https://lkml.kernel.org/r/20250423133821.789413-5-dwmw2@infradead.org
 Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -79,108 +62,72 @@ Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   78 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+ kernel/power/snapshot.c |   44 ++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 23 deletions(-)
 
---- a/include/linux/mmzone.h~mm-implement-for_each_valid_pfn-for-config_sparsemem
-+++ a/include/linux/mmzone.h
-@@ -2075,11 +2075,37 @@ static inline int pfn_section_valid(stru
+--- a/kernel/power/snapshot.c~mm-pm-use-for_each_valid_pfn-in-kernel-power-snapshotc
++++ a/kernel/power/snapshot.c
+@@ -1094,16 +1094,15 @@ static void mark_nosave_pages(struct mem
+ 			 ((unsigned long long) region->end_pfn << PAGE_SHIFT)
+ 				- 1);
  
- 	return usage ? test_bit(idx, usage->subsection_map) : 0;
- }
-+
-+static inline bool pfn_section_first_valid(struct mem_section *ms, unsigned long *pfn)
-+{
-+	struct mem_section_usage *usage = READ_ONCE(ms->usage);
-+	int idx = subsection_map_index(*pfn);
-+	unsigned long bit;
-+
-+	if (!usage)
-+		return false;
-+
-+	if (test_bit(idx, usage->subsection_map))
-+		return true;
-+
-+	/* Find the next subsection that exists */
-+	bit = find_next_bit(usage->subsection_map, SUBSECTIONS_PER_SECTION, idx);
-+	if (bit == SUBSECTIONS_PER_SECTION)
-+		return false;
-+
-+	*pfn = (*pfn & PAGE_SECTION_MASK) + (bit * PAGES_PER_SUBSECTION);
-+	return true;
-+}
- #else
- static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
- {
- 	return 1;
- }
-+
-+static inline bool pfn_section_first_valid(struct mem_section *ms, unsigned long *pfn)
-+{
-+	return true;
-+}
- #endif
- 
- void sparse_init_early_section(int nid, struct page *map, unsigned long pnum,
-@@ -2128,6 +2154,58 @@ static inline int pfn_valid(unsigned lon
- 
- 	return ret;
- }
-+
-+/* Returns end_pfn or higher if no valid PFN remaining in range */
-+static inline unsigned long first_valid_pfn(unsigned long pfn, unsigned long end_pfn)
-+{
-+	unsigned long nr = pfn_to_section_nr(pfn);
-+
-+	rcu_read_lock_sched();
-+
-+	while (nr <= __highest_present_section_nr && pfn < end_pfn) {
-+		struct mem_section *ms = __pfn_to_section(pfn);
-+
-+		if (valid_section(ms) &&
-+		    (early_section(ms) || pfn_section_first_valid(ms, &pfn))) {
-+			rcu_read_unlock_sched();
-+			return pfn;
+-		for (pfn = region->start_pfn; pfn < region->end_pfn; pfn++)
+-			if (pfn_valid(pfn)) {
+-				/*
+-				 * It is safe to ignore the result of
+-				 * mem_bm_set_bit_check() here, since we won't
+-				 * touch the PFNs for which the error is
+-				 * returned anyway.
+-				 */
+-				mem_bm_set_bit_check(bm, pfn);
+-			}
++		for_each_valid_pfn(pfn, region->start_pfn, region->end_pfn) {
++			/*
++			 * It is safe to ignore the result of
++			 * mem_bm_set_bit_check() here, since we won't
++			 * touch the PFNs for which the error is
++			 * returned anyway.
++			 */
++			mem_bm_set_bit_check(bm, pfn);
 +		}
+ 	}
+ }
+ 
+@@ -1255,22 +1254,21 @@ static void mark_free_pages(struct zone
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 
+ 	max_zone_pfn = zone_end_pfn(zone);
+-	for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
+-		if (pfn_valid(pfn)) {
+-			page = pfn_to_page(pfn);
+-
+-			if (!--page_count) {
+-				touch_nmi_watchdog();
+-				page_count = WD_PAGE_COUNT;
+-			}
+-
+-			if (page_zone(page) != zone)
+-				continue;
++	for_each_valid_pfn(pfn, zone->zone_start_pfn, max_zone_pfn) {
++		page = pfn_to_page(pfn);
+ 
+-			if (!swsusp_page_is_forbidden(page))
+-				swsusp_unset_page_free(page);
++		if (!--page_count) {
++			touch_nmi_watchdog();
++			page_count = WD_PAGE_COUNT;
+ 		}
+ 
++		if (page_zone(page) != zone)
++			continue;
 +
-+		/* Nothing left in this section? Skip to next section */
-+		nr++;
-+		pfn = section_nr_to_pfn(nr);
++		if (!swsusp_page_is_forbidden(page))
++			swsusp_unset_page_free(page);
 +	}
 +
-+	rcu_read_unlock_sched();
-+	return end_pfn;
-+}
-+
-+static inline unsigned long next_valid_pfn(unsigned long pfn, unsigned long end_pfn)
-+{
-+	pfn++;
-+
-+	if (pfn >= end_pfn)
-+		return end_pfn;
-+
-+	/*
-+	 * Either every PFN within the section (or subsection for VMEMMAP) is
-+	 * valid, or none of them are. So there's no point repeating the check
-+	 * for every PFN; only call first_valid_pfn() again when crossing a
-+	 * (sub)section boundary (i.e. !(pfn & ~PAGE_{SUB,}SECTION_MASK)).
-+	 */
-+	if (pfn & ~(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
-+		   PAGE_SUBSECTION_MASK : PAGE_SECTION_MASK))
-+		return pfn;
-+
-+	return first_valid_pfn(pfn, end_pfn);
-+}
-+
-+
-+#define for_each_valid_pfn(_pfn, _start_pfn, _end_pfn)			\
-+	for ((_pfn) = first_valid_pfn((_start_pfn), (_end_pfn));	\
-+	     (_pfn) < (_end_pfn);					\
-+	     (_pfn) = next_valid_pfn((_pfn), (_end_pfn)))
-+
- #endif
- 
- static inline int pfn_in_present_section(unsigned long pfn)
+ 	for_each_migratetype_order(order, t) {
+ 		list_for_each_entry(page,
+ 				&zone->free_area[order].free_list[t], buddy_list) {
 _
 
 Patches currently in -mm which might be from dwmw@amazon.co.uk are
