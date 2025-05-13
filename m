@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FE001EFF8B
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB3A1EFF8B
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119346; cv=none; b=MWChoA6HOJfgRYV7plW0NL+IS60JMgxugYtVY65I7t8ZHMuvgmNxao5jAY6UBbiRCgV0TueRRQjVDLK6/oxxyJalaokSIajLptO0Shh4kCvyE36UQDToLt05Iin1N0bjDA/Xd+Ox2tA9AcBGvmyfiJTZ2ElYLQ4fE8+gP56dwQU=
+	t=1747119348; cv=none; b=JNgxmzZeewMSp6f0bkjetj0hcUWGOORlks7HF8DCdbUcyF1NY4NBuTN5rCdZ5zGcHooI9ZmKb+il17na7zfh5F+DfoM29L6/HUVM7QRFU8qmOToD+V/cwW+FMxxFx7R/ZDrncTGMA+WYsAVqNQNo16WGNOSLIofHvSUYI3ybwcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119346; c=relaxed/simple;
-	bh=MTb0pjCKOP0jtLT7OPG+1beusvLDzAk0iAshpwRvpkk=;
-	h=Date:To:From:Subject:Message-Id; b=o8MbPEszpONBPY7Cu6+uA5DCCIJ8hSYwvPet3H5uJHcCAxPM8WGyXU/00PigNvskvvqHROA6hFhkGtt02ugJNCMUamfu6cbMJUyP4IMQUUH/tqCLYc4aEgxWgqXkn1+HFDY379z+0RcXdRW7VBpd4w6BGaXn6EDlVLWc2negc84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IXWQzW6n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119348; c=relaxed/simple;
+	bh=CalvvLeVIvb1/eEMLp90Dj9KI2McTD6yohxPanIN+DU=;
+	h=Date:To:From:Subject:Message-Id; b=l/Q9f8JLRqiNVzrc0kvEkw7s/efJy63oNhepyUcY+aDMnHD8p7hKRB7kyQCqp6iPilo5SYv+PC6GKeZL15e2oMih/jhknBbOBllTrlKCsE3T+WBI8N3V7bkYgTsY3Y1+or/NNbW/H/0F4TmFcMxHrKbbRx8yPkuQzf1+RtI/LZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mo103/eC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IXWQzW6n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74E93C4CEED;
-	Tue, 13 May 2025 06:55:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mo103/eC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 419FFC4CEE4;
+	Tue, 13 May 2025 06:55:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119346;
-	bh=MTb0pjCKOP0jtLT7OPG+1beusvLDzAk0iAshpwRvpkk=;
+	s=korg; t=1747119348;
+	bh=CalvvLeVIvb1/eEMLp90Dj9KI2McTD6yohxPanIN+DU=;
 	h=Date:To:From:Subject:From;
-	b=IXWQzW6nUNkzUVZsvtSkgeBIjv70Qswaz7t8zs7HIxCfMJm8M05nQH9umsE6PCbhe
-	 pDxcgwuBTJFr6pKEBlUaGzAn9aVi/E74wG6JGAYKFNKkNcUYpZ+MUTOFmwuFaMXlRa
-	 XLpFS6AAZxOHJ8TevZaOzW3VBKkqrdZeHJyKV0es=
-Date: Mon, 12 May 2025 23:55:45 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=Mo103/eCqEns29ykb1NNIaW+Y5hC0MdwZxr9CSijAoBtMiZMceWh1Q8vDen+Pv0QS
+	 gF8NcvBz7Rn52sGCUnEIONk617WdJX+k29wJOYm6RvV/6AFTiyCCrKwDodBoyrIApg
+	 wwrApQhdU1c3pP9XtNBDNvCgpamOwsztOYx7y8gU=
+Date: Mon, 12 May 2025 23:55:47 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch removed from -mm tree
-Message-Id: <20250513065546.74E93C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-new-mmap_prepare-file-callback.patch removed from -mm tree
+Message-Id: <20250513065548.419FFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,519 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
+     Subject: mm: introduce new .mmap_prepare() file callback
 has been removed from the -mm tree.  Its filename was
-     selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
+     mm-introduce-new-mmap_prepare-file-callback.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
-Date: Thu, 1 May 2025 21:04:43 -0400
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: introduce new .mmap_prepare() file callback
+Date: Fri, 9 May 2025 13:13:34 +0100
 
-The test_memcg_protection() function is used for the test_memcg_min and
-test_memcg_low sub-tests.  This function generates a set of parent/child
-cgroups like:
+Patch series "eliminate mmap() retry merge, add .mmap_prepare hook", v2.
 
-  parent:  memory.min/low = 50M
-  child 0: memory.min/low = 75M,  memory.current = 50M
-  child 1: memory.min/low = 25M,  memory.current = 50M
-  child 2: memory.min/low = 0,    memory.current = 50M
+During the mmap() of a file-backed mapping, we invoke the underlying
+driver file's mmap() callback in order to perform driver/file system
+initialisation of the underlying VMA.
 
-After applying memory pressure, the function expects the following actual
-memory usages.
+This has been a source of issues in the past, including a significant
+security concern relating to unwinding of error state discovered by Jann
+Horn, as fixed in commit 5de195060b2e ("mm: resolve faulty mmap_region()
+error path behaviour") which performed the recent, significant, rework of
+mmap() as a whole.
 
-  parent:  memory.current ~= 50M
-  child 0: memory.current ~= 29M
-  child 1: memory.current ~= 21M
-  child 2: memory.current ~= 0
+However, we have had a fly in the ointment remain - drivers have a great
+deal of freedom in the .mmap() hook to manipulate VMA state (as well as
+page table state).
 
-In reality, the actual memory usages can differ quite a bit from the
-expected values.  It uses an error tolerance of 10% with the
-values_close() helper.
+This can be problematic, as we can no longer reason sensibly about VMA
+state once the call is complete (the ability to do - anything - here does
+rather interfere with that).
 
-Both the test_memcg_min and test_memcg_low sub-tests can fail sporadically
-because the actual memory usage exceeds the 10% error tolerance.  Below
-are a sample of the usage data of the tests runs that fail.
+In addition, callers may choose to do odd or unusual things which might
+interfere with subsequent steps in the mmap() process, and it may do so
+and then raise an error, requiring very careful unwinding of state about
+which we can make no assumptions.
 
-  Child   Actual usage    Expected usage    %err
-  -----   ------------    --------------    ----
-    1       16990208         22020096      -12.9%
-    1       17252352         22020096      -12.1%
-    0       37699584         30408704      +10.7%
-    1       14368768         22020096      -21.0%
-    1       16871424         22020096      -13.2%
+Rather than providing such an open-ended interface, this series provides
+an alternative, far more restrictive one - we expose a whitelist of fields
+which can be adjusted by the driver, along with immutable state upon which
+the driver can make such decisions:
 
-The current 10% error tolerenace might be right at the time
-test_memcontrol.c was first introduced in v4.18 kernel, but memory reclaim
-have certainly evolved quite a bit since then which may result in a bit
-more run-to-run variation than previously expected.
+struct vm_area_desc {
+	/* Immutable state. */
+	struct mm_struct *mm;
+	unsigned long start;
+	unsigned long end;
 
-Increase the error tolerance to 15% for child 0 and 20% for child 1 to
-minimize the chance of this type of failure.  The tolerance is bigger for
-child 1 because an upswing in child 0 corresponds to a smaller %err than a
-similar downswing in child 1 due to the way %err is used in
-values_close().
+	/* Mutable fields. Populated with initial state. */
+	pgoff_t pgoff;
+	struct file *file;
+	vm_flags_t vm_flags;
+	pgprot_t page_prot;
 
-Before this patch, a 100 test runs of test_memcontrol produced the
-following results:
+	/* Write-only fields. */
+	const struct vm_operations_struct *vm_ops;
+	void *private_data;
+};
 
-     17 not ok 1 test_memcg_min
-     22 not ok 2 test_memcg_low
+The mmap logic then updates the state used to either merge with a VMA or
+establish a new VMA based upon this logic.
 
-After applying this patch, there were no test failure for test_memcg_min
-and test_memcg_low in 100 test runs.  However, these tests may still fail
-once in a while if the memory usage goes beyond the newly extended range.
+This is achieved via new file hook .mmap_prepare(), which is, importantly,
+invoked very early on in the mmap() process.
 
-Link: https://lkml.kernel.org/r/20250502010443.106022-3-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
+If an error arises, we can very simply abort the operation with very
+little unwinding of state required.
+
+The existing logic contains another, related, peccadillo - since the
+.mmap() callback might do anything, it may also cause a previously
+unmergeable VMA to become mergeable with adjacent VMAs.
+
+Right now the logic will retry a merge like this only if the driver
+changes VMA flags, and changes them in such a way that a merge might
+succeed (that is, the flags are not 'special', that is do not contain any
+of the flags specified in VM_SPECIAL).
+
+This has also been the source of a great deal of pain - it's hard to
+reason about an .mmap() callback that might do - anything - but it's also
+hard to reason about setting up a VMA and writing to the maple tree, only
+to do it again utilising a great deal of shared state.
+
+Since .mmap_prepare() sets fields before the first merge is even
+attempted, the use of this callback obviates the need for this retry merge
+logic.
+
+A driver may only specify .mmap_prepare() or the deprecated .mmap()
+callback.  In future we may add futher callbacks beyond .mmap_prepare() to
+faciliate all use cass as we convert drivers.
+
+In researching this change, I examined every .mmap() callback, and
+discovered only a very few that set VMA state in such a way that a.  the
+VMA flags changed and b.  this would be mergeable.
+
+In the majority of cases, it turns out that drivers are mapping kernel
+memory and thus ultimately set VM_PFNMAP, VM_MIXEDMAP, or other
+unmergeable VM_SPECIAL flags.
+
+Of those that remain I identified a number of cases which are only
+applicable in DAX, setting the VM_HUGEPAGE flag:
+
+* dax_mmap()
+* erofs_file_mmap()
+* ext4_file_mmap()
+* xfs_file_mmap()
+
+For this remerge to not occur and to impact users, each of these cases
+would require a user to mmap() files using DAX, in parts, immediately
+adjacent to one another.
+
+This is a very unlikely usecase and so it does not appear to be worthwhile
+to adjust this functionality accordingly.
+
+We can, however, very quickly do so if needed by simply adding an
+.mmap_prepare() callback to these as required.
+
+There are two further non-DAX cases I idenitfied:
+
+* orangefs_file_mmap() - Clears VM_RAND_READ if set, replacing with
+  VM_SEQ_READ.
+* usb_stream_hwdep_mmap() - Sets VM_DONTDUMP.
+
+Both of these cases again seem very unlikely to be mmap()'d immediately
+adjacent to one another in a fashion that would result in a merge.
+
+Finally, we are left with a viable case:
+
+* secretmem_mmap() - Set VM_LOCKED, VM_DONTDUMP.
+
+This is viable enough that the mm selftests trigger the logic as a matter
+of course.  Therefore, this series replace the .secretmem_mmap() hook with
+.secret_mmap_prepare().
+
+
+This patch (of 3):
+
+Provide a means by which drivers can specify which fields of those
+permitted to be changed should be altered to prior to mmap()'ing a range
+(which may either result from a merge or from mapping an entirely new
+VMA).
+
+Doing so is substantially safer than the existing .mmap() calback which
+provides unrestricted access to the part-constructed VMA and permits
+drivers and file systems to do 'creative' things which makes it hard to
+reason about the state of the VMA after the function returns.
+
+The existing .mmap() callback's freedom has caused a great deal of issues,
+especially in error handling, as unwinding the mmap() state has proven to
+be non-trivial and caused significant issues in the past, for instance
+those addressed in commit 5de195060b2e ("mm: resolve faulty mmap_region()
+error path behaviour").
+
+It also necessitates a second attempt at merge once the .mmap() callback
+has completed, which has caused issues in the past, is awkward, adds
+overhead and is difficult to reason about.
+
+The .mmap_prepare() callback eliminates this requirement, as we can update
+fields prior to even attempting the first merge.  It is safer, as we
+heavily restrict what can actually be modified, and being invoked very
+early in the mmap() process, error handling can be performed safely with
+very little unwinding of state required.
+
+The .mmap_prepare() and deprecated .mmap() callbacks are mutually
+exclusive, so we permit only one to be invoked at a time.
+
+Update vma userland test stubs to account for changes.
+
+Link: https://lkml.kernel.org/r/cover.1746792520.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/adb36a7c4affd7393b2fc4b54cc5cfe211e41f71.1746792520.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/fs.h               |   25 ++++++++++
+ include/linux/mm_types.h         |   24 ++++++++++
+ mm/memory.c                      |    3 -
+ mm/mmap.c                        |    2 
+ mm/vma.c                         |   68 ++++++++++++++++++++++++++++-
+ tools/testing/vma/vma_internal.h |   66 ++++++++++++++++++++++++++--
+ 6 files changed, 180 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -496,10 +496,10 @@ static int test_memcg_protection(const c
- 	for (i = 0; i < ARRAY_SIZE(children); i++)
- 		c[i] = cg_read_long(children[i], "memory.current");
+--- a/include/linux/fs.h~mm-introduce-new-mmap_prepare-file-callback
++++ a/include/linux/fs.h
+@@ -2169,6 +2169,7 @@ struct file_operations {
+ 	int (*uring_cmd)(struct io_uring_cmd *ioucmd, unsigned int issue_flags);
+ 	int (*uring_cmd_iopoll)(struct io_uring_cmd *, struct io_comp_batch *,
+ 				unsigned int poll_flags);
++	int (*mmap_prepare)(struct vm_area_desc *);
+ } __randomize_layout;
  
--	if (!values_close(c[0], MB(29), 10))
-+	if (!values_close(c[0], MB(29), 15))
- 		goto cleanup;
+ /* Supports async buffered reads */
+@@ -2238,11 +2239,35 @@ struct inode_operations {
+ 	struct offset_ctx *(*get_offset_ctx)(struct inode *inode);
+ } ____cacheline_aligned;
  
--	if (!values_close(c[1], MB(21), 10))
-+	if (!values_close(c[1], MB(21), 20))
- 		goto cleanup;
++/* Did the driver provide valid mmap hook configuration? */
++static inline bool file_has_valid_mmap_hooks(struct file *file)
++{
++	bool has_mmap = file->f_op->mmap;
++	bool has_mmap_prepare = file->f_op->mmap_prepare;
++
++	/* Hooks are mutually exclusive. */
++	if (WARN_ON_ONCE(has_mmap && has_mmap_prepare))
++		return false;
++	if (WARN_ON_ONCE(!has_mmap && !has_mmap_prepare))
++		return false;
++
++	return true;
++}
++
+ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
+ {
++	if (WARN_ON_ONCE(file->f_op->mmap_prepare))
++		return -EINVAL;
++
+ 	return file->f_op->mmap(file, vma);
+ }
  
- 	if (c[3] != 0)
++static inline int __call_mmap_prepare(struct file *file,
++		struct vm_area_desc *desc)
++{
++	return file->f_op->mmap_prepare(desc);
++}
++
+ extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
+ extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
+ extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
+--- a/include/linux/mm_types.h~mm-introduce-new-mmap_prepare-file-callback
++++ a/include/linux/mm_types.h
+@@ -764,6 +764,30 @@ struct vma_numab_state {
+ };
+ 
+ /*
++ * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
++ * manipulate mutable fields which will cause those fields to be updated in the
++ * resultant VMA.
++ *
++ * Helper functions are not required for manipulating any field.
++ */
++struct vm_area_desc {
++	/* Immutable state. */
++	struct mm_struct *mm;
++	unsigned long start;
++	unsigned long end;
++
++	/* Mutable fields. Populated with initial state. */
++	pgoff_t pgoff;
++	struct file *file;
++	vm_flags_t vm_flags;
++	pgprot_t page_prot;
++
++	/* Write-only fields. */
++	const struct vm_operations_struct *vm_ops;
++	void *private_data;
++};
++
++/*
+  * This struct describes a virtual memory area. There is one of these
+  * per VM-area/task. A VM area is any part of the process virtual memory
+  * space that has a special rule for the page-fault handlers (ie a shared
+--- a/mm/memory.c~mm-introduce-new-mmap_prepare-file-callback
++++ a/mm/memory.c
+@@ -527,10 +527,11 @@ static void print_bad_pte(struct vm_area
+ 		dump_page(page, "bad pte");
+ 	pr_alert("addr:%px vm_flags:%08lx anon_vma:%px mapping:%px index:%lx\n",
+ 		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
+-	pr_alert("file:%pD fault:%ps mmap:%ps read_folio:%ps\n",
++	pr_alert("file:%pD fault:%ps mmap:%ps mmap_prepare: %ps read_folio:%ps\n",
+ 		 vma->vm_file,
+ 		 vma->vm_ops ? vma->vm_ops->fault : NULL,
+ 		 vma->vm_file ? vma->vm_file->f_op->mmap : NULL,
++		 vma->vm_file ? vma->vm_file->f_op->mmap_prepare : NULL,
+ 		 mapping ? mapping->a_ops->read_folio : NULL);
+ 	dump_stack();
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+--- a/mm/mmap.c~mm-introduce-new-mmap_prepare-file-callback
++++ a/mm/mmap.c
+@@ -475,7 +475,7 @@ unsigned long do_mmap(struct file *file,
+ 				vm_flags &= ~VM_MAYEXEC;
+ 			}
+ 
+-			if (!file->f_op->mmap)
++			if (!file_has_valid_mmap_hooks(file))
+ 				return -ENODEV;
+ 			if (vm_flags & (VM_GROWSDOWN|VM_GROWSUP))
+ 				return -EINVAL;
+--- a/mm/vma.c~mm-introduce-new-mmap_prepare-file-callback
++++ a/mm/vma.c
+@@ -17,6 +17,11 @@ struct mmap_state {
+ 	unsigned long pglen;
+ 	unsigned long flags;
+ 	struct file *file;
++	pgprot_t page_prot;
++
++	/* User-defined fields, perhaps updated by .mmap_prepare(). */
++	const struct vm_operations_struct *vm_ops;
++	void *vm_private_data;
+ 
+ 	unsigned long charged;
+ 	bool retry_merge;
+@@ -40,6 +45,7 @@ struct mmap_state {
+ 		.pglen = PHYS_PFN(len_),				\
+ 		.flags = flags_,					\
+ 		.file = file_,						\
++		.page_prot = vm_get_page_prot(flags_),			\
+ 	}
+ 
+ #define VMG_MMAP_STATE(name, map_, vma_)				\
+@@ -2385,6 +2391,10 @@ static int __mmap_new_file_vma(struct mm
+ 	int error;
+ 
+ 	vma->vm_file = get_file(map->file);
++
++	if (!map->file->f_op->mmap)
++		return 0;
++
+ 	error = mmap_file(vma->vm_file, vma);
+ 	if (error) {
+ 		fput(vma->vm_file);
+@@ -2441,7 +2451,7 @@ static int __mmap_new_vma(struct mmap_st
+ 	vma_iter_config(vmi, map->addr, map->end);
+ 	vma_set_range(vma, map->addr, map->end, map->pgoff);
+ 	vm_flags_init(vma, map->flags);
+-	vma->vm_page_prot = vm_get_page_prot(map->flags);
++	vma->vm_page_prot = map->page_prot;
+ 
+ 	if (vma_iter_prealloc(vmi, vma)) {
+ 		error = -ENOMEM;
+@@ -2528,6 +2538,56 @@ static void __mmap_complete(struct mmap_
+ 	vma_set_page_prot(vma);
+ }
+ 
++/*
++ * Invoke the f_op->mmap_prepare() callback for a file-backed mapping that
++ * specifies it.
++ *
++ * This is called prior to any merge attempt, and updates whitelisted fields
++ * that are permitted to be updated by the caller.
++ *
++ * All but user-defined fields will be pre-populated with original values.
++ *
++ * Returns 0 on success, or an error code otherwise.
++ */
++static int call_mmap_prepare(struct mmap_state *map)
++{
++	int err;
++	struct vm_area_desc desc = {
++		.mm = map->mm,
++		.start = map->addr,
++		.end = map->end,
++
++		.pgoff = map->pgoff,
++		.file = map->file,
++		.vm_flags = map->flags,
++		.page_prot = map->page_prot,
++	};
++
++	/* Invoke the hook. */
++	err = __call_mmap_prepare(map->file, &desc);
++	if (err)
++		return err;
++
++	/* Update fields permitted to be changed. */
++	map->pgoff = desc.pgoff;
++	map->file = desc.file;
++	map->flags = desc.vm_flags;
++	map->page_prot = desc.page_prot;
++	/* User-defined fields. */
++	map->vm_ops = desc.vm_ops;
++	map->vm_private_data = desc.private_data;
++
++	return 0;
++}
++
++static void set_vma_user_defined_fields(struct vm_area_struct *vma,
++		struct mmap_state *map)
++{
++	if (map->vm_ops)
++		vma->vm_ops = map->vm_ops;
++	vma->vm_private_data = map->vm_private_data;
++}
++
+ static unsigned long __mmap_region(struct file *file, unsigned long addr,
+ 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+ 		struct list_head *uf)
+@@ -2535,10 +2595,13 @@ static unsigned long __mmap_region(struc
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = NULL;
+ 	int error;
++	bool have_mmap_prepare = file && file->f_op->mmap_prepare;
+ 	VMA_ITERATOR(vmi, mm, addr);
+ 	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, vm_flags, file);
+ 
+ 	error = __mmap_prepare(&map, uf);
++	if (!error && have_mmap_prepare)
++		error = call_mmap_prepare(&map);
+ 	if (error)
+ 		goto abort_munmap;
+ 
+@@ -2556,6 +2619,9 @@ static unsigned long __mmap_region(struc
+ 			goto unacct_error;
+ 	}
+ 
++	if (have_mmap_prepare)
++		set_vma_user_defined_fields(vma, &map);
++
+ 	/* If flags changed, we might be able to merge, so try again. */
+ 	if (map.retry_merge) {
+ 		struct vm_area_struct *merged;
+--- a/tools/testing/vma/vma_internal.h~mm-introduce-new-mmap_prepare-file-callback
++++ a/tools/testing/vma/vma_internal.h
+@@ -253,8 +253,40 @@ struct mm_struct {
+ 	unsigned long flags; /* Must use atomic bitops to access */
+ };
+ 
++struct vm_area_struct;
++
++/*
++ * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
++ * manipulate mutable fields which will cause those fields to be updated in the
++ * resultant VMA.
++ *
++ * Helper functions are not required for manipulating any field.
++ */
++struct vm_area_desc {
++	/* Immutable state. */
++	struct mm_struct *mm;
++	unsigned long start;
++	unsigned long end;
++
++	/* Mutable fields. Populated with initial state. */
++	pgoff_t pgoff;
++	struct file *file;
++	vm_flags_t vm_flags;
++	pgprot_t page_prot;
++
++	/* Write-only fields. */
++	const struct vm_operations_struct *vm_ops;
++	void *private_data;
++};
++
++struct file_operations {
++	int (*mmap)(struct file *, struct vm_area_struct *);
++	int (*mmap_prepare)(struct vm_area_desc *);
++};
++
+ struct file {
+ 	struct address_space	*f_mapping;
++	const struct file_operations	*f_op;
+ };
+ 
+ #define VMA_LOCK_OFFSET	0x40000000
+@@ -1125,11 +1157,6 @@ static inline void vm_flags_clear(struct
+ 	vma->__vm_flags &= ~flags;
+ }
+ 
+-static inline int call_mmap(struct file *, struct vm_area_struct *)
+-{
+-	return 0;
+-}
+-
+ static inline int shmem_zero_setup(struct vm_area_struct *)
+ {
+ 	return 0;
+@@ -1405,4 +1432,33 @@ static inline void free_anon_vma_name(st
+ 	(void)vma;
+ }
+ 
++/* Did the driver provide valid mmap hook configuration? */
++static inline bool file_has_valid_mmap_hooks(struct file *file)
++{
++	bool has_mmap = file->f_op->mmap;
++	bool has_mmap_prepare = file->f_op->mmap_prepare;
++
++	/* Hooks are mutually exclusive. */
++	if (WARN_ON_ONCE(has_mmap && has_mmap_prepare))
++		return false;
++	if (WARN_ON_ONCE(!has_mmap && !has_mmap_prepare))
++		return false;
++
++	return true;
++}
++
++static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	if (WARN_ON_ONCE(file->f_op->mmap_prepare))
++		return -EINVAL;
++
++	return file->f_op->mmap(file, vma);
++}
++
++static inline int __call_mmap_prepare(struct file *file,
++		struct vm_area_desc *desc)
++{
++	return file->f_op->mmap_prepare(desc);
++}
++
+ #endif	/* __MM_VMA_INTERNAL_H */
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+maintainers-update-page-allocator-section.patch
+maintainers-add-mm-reclaim-section.patch
 
