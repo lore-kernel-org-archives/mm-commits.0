@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B1C8183CB0
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:42:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B386183CB0
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:43:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747118564; cv=none; b=n/venRTCWlB+dEiPksika7GVm6z0DjndTqPVD/2S/h1GxGgBwu4nwAaVC68UftbyU82zXJToDhwC4XpEp3RHMffsszecsCF98taNV4ZzzSRc7bOAtplkkhALKMsJs2a29eR490VR7J0wlhZn9O3olq/eTW0ZLf041DW9Kc6fm3Q=
+	t=1747118622; cv=none; b=qRWadeu+b6HFS6dIM9Eg1xG3cTxnLWXB6iMFNAtdbAI5GJdO8v2WSFHLUgju4pVud3AbEAgPIOT1bJIa2jv1QCfZChWLTrcbqeBcExtCUzweJlrKOzCVqJRtuwiOwKfdeJYH5S/cjpO0EG6kc8sRuRLfG/JG8IIwHKvw/eM8wFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747118564; c=relaxed/simple;
-	bh=a97UBh808Kl3o7gGbtSWU67pe1vcSQimIaRICaoW0dI=;
-	h=Date:To:From:Subject:Message-Id; b=VvKU/36IE/Wl8L+30OYxVyxNVHHX6bsJ7mjgZSQPzWD6YosGICd8CYvSphyvj/7JJ8ua++T+H92x5MrL1vqc5dxkh1uwXncV+X4dn0hoLYfd6aR7u3q7GikbFz0ZjbNa5KJJoSERH+0ZEWOmShpn3255NyR/CA/G/RO67PacRjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zVQAis6D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747118622; c=relaxed/simple;
+	bh=yNYGK4QoLg7quZqx87zFxB4BpMzxQ2iqTlgU976/N2g=;
+	h=Date:To:From:Subject:Message-Id; b=cyNyR4UlDjL7RZJR4+7udDv08pyeZqcGjPUrsfNdjF8XSOSh6OdvUW38b52OzxquBqldRgHpVJnRyIXnZr2fH6sftZFHFL13j9ZJ8njixngMz8EJ6lxzmft8LZn26GYsroJxaH4CgJkRtWyY/h/S/hU9RI/pWKrW8o8OsO1tX+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UZZjNs88; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zVQAis6D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81670C4CEE4;
-	Tue, 13 May 2025 06:42:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UZZjNs88"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF5E8C4CEE4;
+	Tue, 13 May 2025 06:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747118563;
-	bh=a97UBh808Kl3o7gGbtSWU67pe1vcSQimIaRICaoW0dI=;
+	s=korg; t=1747118620;
+	bh=yNYGK4QoLg7quZqx87zFxB4BpMzxQ2iqTlgU976/N2g=;
 	h=Date:To:From:Subject:From;
-	b=zVQAis6DR9oYhUalTDfGEhZzLWuWTx+JEWiiAzwbRsi7X8r/3ma2Jim8EiRa+qvB9
-	 H2jBhu/3afQ+RD+nyjyztzyOBAM13P8coLLcTIpSJdKnTzjCNGW4asaewr50H/An+L
-	 0mJKpIfNw5Vl0zApqfhQvMPCBFEbb2Rq5UQXlpew=
-Date: Mon, 12 May 2025 23:42:43 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,fan.ni@samsung.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=UZZjNs88CwJgCgWzO4nQgyyZedRq4GxxZe+LLsxrL70rruLgaUhAwOfpiVBjORaES
+	 7fxDyosK0gmywo/qSDOeYtG2I4jU5lhYuUT8Z7bgE0ZRneZd8CdwOqXMdcSj39JRqb
+	 tjfwdQmedGVCDj1hQlHcPSYLNwiwWGAROXn1cCN0=
+Date: Mon, 12 May 2025 23:43:39 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,pfalcato@suse.de,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch removed from -mm tree
-Message-Id: <20250513064243.81670C4CEE4@smtp.kernel.org>
+Subject: [folded-merged] mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch removed from -mm tree
+Message-Id: <20250513064339.DF5E8C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb.c: __unmap_hugepage_range(): comment cleanup
+     Subject: mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
+     mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
 
-This patch was dropped because it was folded into mm-kmemleak-mark-variables-as-__read_mostly.patch
+This patch was dropped because it was folded into mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/hugetlb.c: __unmap_hugepage_range(): comment cleanup
-Date: Mon May  5 02:54:25 PM PDT 2025
+Subject: mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix
+Date: Mon Apr 28 04:06:02 PM PDT 2025
 
-Wrap to 80 cols, fix a typo, use regular layout, parenthesize function
-identifiers, fix grammar and add braces.
+fix comment typo
 
+Link: https://lkml.kernel.org/r/80f0d0c6-0b68-47f9-ab78-0ab7f74677fc@lucifer.local
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Fan Ni <fan.ni@samsung.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ mm/vma.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlbc-__unmap_hugepage_range-comment-cleanup
-+++ a/mm/hugetlb.c
-@@ -5969,16 +5969,19 @@ void __unmap_hugepage_range(struct mmu_g
- 		if (adjust_reservation) {
- 			int rc = vma_needs_reservation(h, vma, address);
+--- a/mm/vma.h~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix
++++ a/mm/vma.h
+@@ -548,7 +548,7 @@ int expand_downwards(struct vm_area_stru
  
--			if (rc < 0)
--				/* Pressumably allocate_file_region_entries failed
--				 * to allocate a file_region struct. Clear
--				 * hugetlb_restore_reserve so that global reserve
--				 * count will not be incremented by free_huge_folio.
--				 * Act as if we consumed the reservation.
-+			if (rc < 0) {
-+				/*
-+				 * Presumably allocate_file_region_entries()
-+				 * failed to allocate a file_region struct.
-+				 * Clear hugetlb_restore_reserve so that the
-+				 * global reserve count will not be incremented
-+				 * by free_huge_folio().  Act as if we consumed
-+				 * the reservation.
- 				 */
- 				folio_clear_hugetlb_restore_reserve(folio);
--			else if (rc)
-+			} else if (rc) {
- 				vma_add_reservation(h, vma, address);
-+			}
- 		}
+ int __vm_munmap(unsigned long start, size_t len, bool unlock);
  
- 		tlb_remove_page_size(tlb, folio_page(folio, 0),
+-/* vma_exec.h */
++/* vma_exec.c */
+ #ifdef CONFIG_MMU
+ int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
+mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
 mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
 filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
 memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
