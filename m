@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 081D71EF0B0
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08F371EF0AA
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119294; cv=none; b=ezETJ9erwy9JbsWb8mTy74Fg2enlRAbAQf7xH3NmB2ECl9oL3whvkCC8WBvZmzL/PL1307FLSOYLRJllD5yM3uT80j9h+N35iZ3tdsHe3AZQb0G3YpfWAn7CCm/jhdM0xNsgAJ7HdCdH5+kX9QAEw5OfXYZXs8BvG26ocPfxHtQ=
+	t=1747119296; cv=none; b=oCcDriwgnFbXT0iJ3cMspGFTp5K920A2H+/HIXwHst2kbtiUWg5k7dGB77IB5kGmeflFeLrsn5nHYKG6alxx+YK5dhiFC0epq6TAPB2W3do+wKHGt9IEPBRuWcPApCOn1obvChcesg+DuM2+7sHDUKl0OR2HapZkEYMR6PfeNzI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119294; c=relaxed/simple;
-	bh=+J0JyyPSlCQ62a16Y5Tk+9DqKd4TJmO3ZDL8z1taYLg=;
-	h=Date:To:From:Subject:Message-Id; b=qwEyzf40CyM4HRkJpkblp8ZuQ+GmNb9oY+ECJBL0G9YzcO7cYhNzYgT8TBMv01mRUxUYOksWnf4vdz05tNvTKhxwQ745taHVod1gfzVwcf4nNGoUB0mxMvsOUYcNF2qWTDp1ZXux62/tKuPFgzeqvU+3twFjkPapI3NmY2/RFFk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0i23Vx4T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119296; c=relaxed/simple;
+	bh=MwPZVzYCz/bDxcPGz67ujrE7SJn81qYAb4ZdYWrDhNg=;
+	h=Date:To:From:Subject:Message-Id; b=d18hRVZ+qKtCI45trDEQ69U1xc4dSQHUoTp6N3zgM9dkdnzeU4YEA9oTQxh/AqGz3GDAILfqBmh70J6CKPYdkAjaalbneXbfiVZ87aftAK0seDiHSj42Q7cSYH87J63HkbKyMRIXXUn8QbiyRt7TFiVbGp05hiIB6evZzabBK94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X2ZZRL2L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0i23Vx4T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1FF8C4CEE4;
-	Tue, 13 May 2025 06:54:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X2ZZRL2L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F9DFC4CEE4;
+	Tue, 13 May 2025 06:54:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119293;
-	bh=+J0JyyPSlCQ62a16Y5Tk+9DqKd4TJmO3ZDL8z1taYLg=;
+	s=korg; t=1747119295;
+	bh=MwPZVzYCz/bDxcPGz67ujrE7SJn81qYAb4ZdYWrDhNg=;
 	h=Date:To:From:Subject:From;
-	b=0i23Vx4T0VgE6FU7XiwDFaaYePDPZnlK4FbQJG18IWL6nplPCK8fTzE/CNYAm2Mxo
-	 ZjGTtWnX3enJrhauh5mqWAuFPkI8oYGmn3EUBPvCUC9C4waHmN8lLQwhT3DOqrr8m1
-	 mz3+lboKf1mWYjln7cnmugleEHNv1v30JWCvWiV0=
-Date: Mon, 12 May 2025 23:54:53 -0700
+	b=X2ZZRL2LHUU1G1SQiHITPs5zsdl+/uYP8ZxSqlvAyQ7TN0NWqLQQXv2AJhh9ueuwh
+	 XnIGwOaNq7FA/mKF9ndbY42Ji/RYK3aBWpyRFtp+8pN/1Lx8DGuL1R8OYDs7fRf4G1
+	 UzptjdRlrSlRq8xV3luxfUd1NHBiT0GbrB75bNtA=
+Date: Mon, 12 May 2025 23:54:54 -0700
 To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,vineethr@linux.ibm.com,vincent.guittot@linaro.org,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,sraithal@amd.com,rostedt@goodmis.org,raghavendra.kt@amd.com,peterz@infradead.org,mkoutny@suse.com,mingo@redhat.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,kprateek.nayak@amd.com,juri.lelli@redhat.com,daniel.m.jordan@oracle.com,chris.hyser@oracle.com,libo.chen@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch removed from -mm tree
-Message-Id: <20250513065453.D1FF8C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch removed from -mm tree
+Message-Id: <20250513065455.6F9DFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: sched/numa: skip VMA scanning on memory pinned to one NUMA node via cpuset.mems
+     Subject: sched/numa: add tracepoint that tracks the skipping of numa balancing due to cpuset memory pinning
 has been removed from the -mm tree.  Its filename was
-     sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch
+     sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Libo Chen <libo.chen@oracle.com>
-Subject: sched/numa: skip VMA scanning on memory pinned to one NUMA node via cpuset.mems
-Date: Wed, 23 Apr 2025 19:45:22 -0700
+Subject: sched/numa: add tracepoint that tracks the skipping of numa balancing due to cpuset memory pinning
+Date: Wed, 23 Apr 2025 19:45:23 -0700
 
-Patch series "sched/numa: Skip VMA scanning on memory pinned to one NUMA
-node via cpuset.mems", v5.
+Unlike sched_skip_vma_numa tracepoint which tracks skipped VMAs, this
+tracks the task subjected to cpuset.mems pinning and prints out its
+allowed memory node mask.
 
-
-This patch (of 2):
-
-When the memory of the current task is pinned to one NUMA node by cgroup,
-there is no point in continuing the rest of VMA scanning and hinting page
-faults as they will just be overhead.  With this change, there will be no
-more unnecessary PTE updates or page faults in this scenario.
-
-We have seen up to a 6x improvement on a typical java workload running on
-VMs with memory and CPU pinned to one NUMA node via cpuset in a two-socket
-AARCH64 system.  With the same pinning, on a 18-cores-per-socket Intel
-platform, we have seen 20% improvment in a microbench that creates a
-30-vCPU selftest KVM guest with 4GB memory, where each vCPU reads 4KB
-pages in a fixed number of loops.
-
-Link: https://lkml.kernel.org/r/20250424024523.2298272-1-libo.chen@oracle.com
-Link: https://lkml.kernel.org/r/20250424024523.2298272-2-libo.chen@oracle.com
+Link: https://lkml.kernel.org/r/20250424024523.2298272-3-libo.chen@oracle.com
 Signed-off-by: Libo Chen <libo.chen@oracle.com>
-Tested-by: Chen Yu <yu.c.chen@intel.com>
-Tested-by: Srikanth Aithal <sraithal@amd.com>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
 Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Chen Yu <yu.c.chen@intel.com>
 Cc: Chris Hyser <chris.hyser@oracle.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -83,31 +66,74 @@ Cc: Mel Gorman <mgorman <mgorman@suse.de>
 Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Srikanth Aithal <sraithal@amd.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
 Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/trace/events/sched.h |   33 +++++++++++++++++++++++++++++++++
+ kernel/sched/fair.c          |    4 +++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
 
---- a/kernel/sched/fair.c~sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems
-+++ a/kernel/sched/fair.c
-@@ -3329,6 +3329,13 @@ static void task_numa_work(struct callba
- 	if (p->flags & PF_EXITING)
- 		return;
- 
-+	/*
-+	 * Memory is pinned to only one NUMA node via cpuset.mems, naturally
-+	 * no page can be migrated.
-+	 */
-+	if (cpusets_enabled() && nodes_weight(cpuset_current_mems_allowed) == 1)
-+		return;
+--- a/include/trace/events/sched.h~sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning
++++ a/include/trace/events/sched.h
+@@ -745,6 +745,39 @@ TRACE_EVENT(sched_skip_vma_numa,
+ 		  __entry->vm_end,
+ 		  __print_symbolic(__entry->reason, NUMAB_SKIP_REASON))
+ );
 +
++TRACE_EVENT(sched_skip_cpuset_numa,
++
++	TP_PROTO(struct task_struct *tsk, nodemask_t *mem_allowed_ptr),
++
++	TP_ARGS(tsk, mem_allowed_ptr),
++
++	TP_STRUCT__entry(
++		__array( char,		comm,		TASK_COMM_LEN		)
++		__field( pid_t,		pid					)
++		__field( pid_t,		tgid					)
++		__field( pid_t,		ngid					)
++		__array( unsigned long, mem_allowed, BITS_TO_LONGS(MAX_NUMNODES))
++	),
++
++	TP_fast_assign(
++		memcpy(__entry->comm, tsk->comm, TASK_COMM_LEN);
++		__entry->pid		 = task_pid_nr(tsk);
++		__entry->tgid		 = task_tgid_nr(tsk);
++		__entry->ngid		 = task_numa_group_id(tsk);
++		BUILD_BUG_ON(sizeof(nodemask_t) != \
++			     BITS_TO_LONGS(MAX_NUMNODES) * sizeof(long));
++		memcpy(__entry->mem_allowed, mem_allowed_ptr->bits,
++		       sizeof(__entry->mem_allowed));
++	),
++
++	TP_printk("comm=%s pid=%d tgid=%d ngid=%d mem_nodes_allowed=%*pbl",
++		  __entry->comm,
++		  __entry->pid,
++		  __entry->tgid,
++		  __entry->ngid,
++		  MAX_NUMNODES, __entry->mem_allowed)
++);
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+ /*
+--- a/kernel/sched/fair.c~sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning
++++ a/kernel/sched/fair.c
+@@ -3333,8 +3333,10 @@ static void task_numa_work(struct callba
+ 	 * Memory is pinned to only one NUMA node via cpuset.mems, naturally
+ 	 * no page can be migrated.
+ 	 */
+-	if (cpusets_enabled() && nodes_weight(cpuset_current_mems_allowed) == 1)
++	if (cpusets_enabled() && nodes_weight(cpuset_current_mems_allowed) == 1) {
++		trace_sched_skip_cpuset_numa(current, &cpuset_current_mems_allowed);
+ 		return;
++	}
+ 
  	if (!mm->numa_next_scan) {
  		mm->numa_next_scan = now +
- 			msecs_to_jiffies(sysctl_numa_balancing_scan_delay);
 _
 
 Patches currently in -mm which might be from libo.chen@oracle.com are
