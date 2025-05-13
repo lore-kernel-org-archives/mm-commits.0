@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5F3E1EDA1E
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF11C1EDA2F
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119242; cv=none; b=IO4ZvD2kInCcz9nLTc128O29nyPpr3tGm1VkCgG6/fmZzzjSBxddfOjmsH5mlOdqZlM9ISY6hLm86WE7hdpp7dnl07Kt1vex14DAvzJR9b2Z7D7G6qW9EEi3vvs0DCZ8bpo/4zDjMO9QxpB+NJLqDaR9Csj+4NpjvBSkeFPWx/g=
+	t=1747119243; cv=none; b=dIu1m6tE2xgD41vByZIRGRrl/tq7KUoCYcbP92Ujee34gHFlhN43W425HQVYa0pJnOAY1XO40Av0AwYIkA0mBzVM0eunjGx9aVCw4KaazDsovPGQUu2vx9IvYP7DAGXSkRfP+yi50ZZqKqQPG+uG/TvmyEHQsb2H0aVLqHVz+vY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119242; c=relaxed/simple;
-	bh=g9bPUvTxWEBSOrKQHBTizrUBVpznJeOBoCopJoxxv8w=;
-	h=Date:To:From:Subject:Message-Id; b=RbwyhcomuDu4xEPQNy1kc4sQGFOo6QHv5XEQz5dT9NqGMXmsYm8GSDcDwD1hThIZvrdopNs6+B8IuYo1jocH3dR/0N9y768ZnFIaDFL+D6mLaxwzdFHva0N3dxI1HMmGt3cTokC0Lqn4pQpP5oaikbRnssukCj7Vso+3bTaYYW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZW/yQ8wn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119243; c=relaxed/simple;
+	bh=T+1YEuBA+HmrzBuzdCIjePjqjfwPKh5C7aZLed0yDMw=;
+	h=Date:To:From:Subject:Message-Id; b=cXl++Uu26SI7B0aBvpUQSfm0ABi2ybYqgxzJVM3dlxcmBBgcs3kVQiv0OEXGRNuzAYFSZqsa4R/CLxKqmB699v5pe7S8BZ87FN0VtjSvmzK8B65yc2idTiEGI6iDSnbu+v7dZGqKEj1FEaL6lfCFXKhhqB+3492qIbwdvVRN3lA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d0hE9nBk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZW/yQ8wn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79D9CC4CEED;
-	Tue, 13 May 2025 06:54:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d0hE9nBk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3CC4C4CEED;
+	Tue, 13 May 2025 06:54:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119242;
-	bh=g9bPUvTxWEBSOrKQHBTizrUBVpznJeOBoCopJoxxv8w=;
+	s=korg; t=1747119243;
+	bh=T+1YEuBA+HmrzBuzdCIjePjqjfwPKh5C7aZLed0yDMw=;
 	h=Date:To:From:Subject:From;
-	b=ZW/yQ8wn06WMQBwXzwemWvlfsyNaZdeLLvlhgt0vYySYxLNCr6W4rkhTGDxyFEhEc
-	 MH7y4m4wUHGAVViS7AO6i+o+rEY0qqoJnJlz2QrJhdelVwXPzwholw7wUxPmaluSf3
-	 6HwTAcgo3hk9jsyDkopwsOOTvODrCHaC02FY8vdc=
-Date: Mon, 12 May 2025 23:54:01 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,siddarthsgml@gmail.com,akpm@linux-foundation.org
+	b=d0hE9nBkdhRmYNqGj65FynmbPZmWA7CIF74S6W9u0GrpdUmXTKCnyJU3d6b6y2jn0
+	 7UK89dEZzWuVNDMZyHfKBlr7+wdueaWt4s85VH19OmLnZBBF3V/9Aa3yh2tjuFoLvz
+	 ipF2beKDq8QwUPYjEGCFMB3dT/uopJKEw8Arpuao=
+Date: Mon, 12 May 2025 23:54:03 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,rppt@kernel.org,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,anshuman.khandual@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-use-long-for-dwregionsize.patch removed from -mm tree
-Message-Id: <20250513065402.79D9CC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-io-mapping-precompute-remap-protection-flags-for-clarity.patch removed from -mm tree
+Message-Id: <20250513065403.A3CC4C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: use long for dwRegionSize
+     Subject: mm/io-mapping: precompute remap protection flags for clarity
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-use-long-for-dwregionsize.patch
+     mm-io-mapping-precompute-remap-protection-flags-for-clarity.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Siddarth G <siddarthsgml@gmail.com>
-Subject: selftests/mm: use long for dwRegionSize
-Date: Sun, 27 Apr 2025 15:56:39 +0530
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/io-mapping: precompute remap protection flags for clarity
+Date: Sun, 27 Apr 2025 18:04:40 +0800
 
-Change the type of 'dwRegionSize' in wp_init() and wp_free() from int to
-long to match callers that pass long or unsigned long long values.
+Patch series "mm: small cleanups for io-mapping, debug_page_alloc and
+numa".
 
-wp_addr_range function is left unchanged because it passes 'dwRegionSize'
-parameter directly to pagemap_ioctl, which expects an int.
+This series includes three small cleanups to mm/:
 
-This patch does not fix any actual known issues.  It aligns parameter
-types with their actual usage and avoids any potential future issues.
+- io-mapping: simplify remap protection flag calculation
+- debug_page_alloc: improve error message by printing invalid input
+- numa: remove unnecessary variable for clarity
 
-Link: https://lkml.kernel.org/r/20250427102639.39978-1-siddarthsgml@gmail.com
-Signed-off-by: Siddarth G <siddarthsgml@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+No functional changes.
+
+
+This patch (of 3):
+
+In io_mapping_map_user(), precompute the page protection flags in a local
+variable before calling remap_pfn_range_notrack().
+
+No functional change.
+
+Link: https://lkml.kernel.org/r/20250427100442.958352-1-ye.liu@linux.dev
+Link: https://lkml.kernel.org/r/20250427100442.958352-2-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pagemap_ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/io-mapping.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-use-long-for-dwregionsize
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -112,7 +112,7 @@ int init_uffd(void)
- 	return 0;
+--- a/mm/io-mapping.c~mm-io-mapping-precompute-remap-protection-flags-for-clarity
++++ a/mm/io-mapping.c
+@@ -21,9 +21,10 @@ int io_mapping_map_user(struct io_mappin
+ 	if (WARN_ON_ONCE((vma->vm_flags & expected_flags) != expected_flags))
+ 		return -EINVAL;
+ 
++	pgprot_t remap_prot = __pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
++				       (pgprot_val(vma->vm_page_prot) & ~_PAGE_CACHE_MASK));
++
+ 	/* We rely on prevalidation of the io-mapping to skip track_pfn(). */
+-	return remap_pfn_range_notrack(vma, addr, pfn, size,
+-		__pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
+-			 (pgprot_val(vma->vm_page_prot) & ~_PAGE_CACHE_MASK)));
++	return remap_pfn_range_notrack(vma, addr, pfn, size, remap_prot);
  }
- 
--int wp_init(void *lpBaseAddress, int dwRegionSize)
-+int wp_init(void *lpBaseAddress, long dwRegionSize)
- {
- 	struct uffdio_register uffdio_register;
- 	struct uffdio_writeprotect wp;
-@@ -136,7 +136,7 @@ int wp_init(void *lpBaseAddress, int dwR
- 	return 0;
- }
- 
--int wp_free(void *lpBaseAddress, int dwRegionSize)
-+int wp_free(void *lpBaseAddress, long dwRegionSize)
- {
- 	struct uffdio_register uffdio_register;
- 
+ EXPORT_SYMBOL_GPL(io_mapping_map_user);
 _
 
-Patches currently in -mm which might be from siddarthsgml@gmail.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
 
