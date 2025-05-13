@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A82C41EF391
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E225E1EEA27
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119286; cv=none; b=CE8yNTguFo/FYmJOiA7qO/VgF25TXKbtadG/mQEYLbHb6h9nXrYnlIwSQTpS1g4JBhISLINOxrda1viSQcjXuMXGDnOwIvqP3ICfk1o081JZYUKHDhLBZXoI1pk1ERw6KDx5ri1YjQV++nVVEHRFHxXEq939+wKqvOemUKQyWQE=
+	t=1747119288; cv=none; b=YEJFHChS3JfSy5J3fUR+z13FqFn6G9lpW3A5NCC5EwLYe0aOwh1ZKDUd7ZeSRavvoZmV89vWVWkCkQAurZQDrObmIOSzsM+7VuO2yItA1DzOAV24RNRkwwcVup5S2GDCjrJI9SMBhVsC+Lh2EgCVC4fEFSyf/hnP1QKHnnWgex4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119286; c=relaxed/simple;
-	bh=wI/2vKDbd+xyTFfjtYHLkX+5xnlXJmxkXnRFkObBAs0=;
-	h=Date:To:From:Subject:Message-Id; b=TyFt+8QT65YoCDn+acetu4ydBtCqY3t5VJnFE5V94jtY6hn5okjcp0Lj3c5IeojOrD3MG/xTxb7VOWBlUYk87hYDNKBN6bE2z+/es00MwLXewk+nNBd4w6vkEMWrwokDQZ68w7DvZ8KAra5vK2BaAENa/je0wOTm8L7Z2xTg7xg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YWisMN0v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119288; c=relaxed/simple;
+	bh=xNZZZuA+aFy9BZ3FD4tOO6kuHbB3Hga2nHrf8DtWGSM=;
+	h=Date:To:From:Subject:Message-Id; b=aF3Ov5ssI9SRh4Wdae4/AzPJG1PclxMKDTpdI59WYBeZ3EndWSmEQ+OrcXDiVYxBVL2GJ4wQPmQj8+/eOxA+wyyeo2zczlBh2ieM1xn608pDOuz4hciv2YTiTKJ8N+ra9iS0mqwHcRiyZYydlkLPmlZu6TRKVCc7XulGE14wWQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YVNlrpoU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YWisMN0v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BB18C4CEE4;
-	Tue, 13 May 2025 06:54:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YVNlrpoU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8420C4CEE4;
+	Tue, 13 May 2025 06:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119286;
-	bh=wI/2vKDbd+xyTFfjtYHLkX+5xnlXJmxkXnRFkObBAs0=;
+	s=korg; t=1747119287;
+	bh=xNZZZuA+aFy9BZ3FD4tOO6kuHbB3Hga2nHrf8DtWGSM=;
 	h=Date:To:From:Subject:From;
-	b=YWisMN0vzm4vBwnoKTRUTxp+Gl65QeeJm6MS9le0fj7MucyfV/JJ0A/SkjxuZeerm
-	 NVzWJVIAK3T7el2OBcURIGiGjxY7N+6Kg7l8cvhInpzg5JhO5D3OiSwemgcJ62AKEs
-	 tUlCqmxxg1t3SzAPBsHpPRqNPsH+Cdu/QmAHP3X4=
-Date: Mon, 12 May 2025 23:54:45 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw@amazon.co.uk,akpm@linux-foundation.org
+	b=YVNlrpoU4dAepdAr/taQ5mNw59EV1ki6anJ+5dYzOMGU/hOIhyG2rUtg7UN58Zx+2
+	 ipLK9/n88sZXZsOSS3UHGSALR5FkpRidlNuMbT7yH7o206iZi2qS8KNVPGFbWaPhiN
+	 ZIHtjCJ5Tcv6p3oHh2k9+DzzpRekSh/ngkpxlCI0=
+Date: Mon, 12 May 2025 23:54:47 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,hannes@cmpxchg.org,pfalcato@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range.patch removed from -mm tree
-Message-Id: <20250513065446.7BB18C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-workingset-simplify-lockdep-check-in-update_node.patch removed from -mm tree
+Message-Id: <20250513065447.B8420C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init: use for_each_valid_pfn() in init_unavailable_range()
+     Subject: mm: workingset: simplify lockdep check in update_node
 has been removed from the -mm tree.  Its filename was
-     mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range.patch
+     mm-workingset-simplify-lockdep-check-in-update_node.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Woodhouse <dwmw@amazon.co.uk>
-Subject: mm/mm_init: use for_each_valid_pfn() in init_unavailable_range()
-Date: Wed, 23 Apr 2025 14:33:43 +0100
+From: Pedro Falcato <pfalcato@suse.de>
+Subject: mm: workingset: simplify lockdep check in update_node
+Date: Mon, 21 Apr 2025 18:16:28 +0100
 
-Currently, memmap_init initializes pfn_hole with 0 instead of
-ARCH_PFN_OFFSET. Then init_unavailable_range will start iterating each
-page from the page at address zero to the first available page, but it
-won't do anything for pages below ARCH_PFN_OFFSET because pfn_valid
-won't pass.
+container_of(node->array, ..., i_pages) just to access i_pages again is an
+incredibly roundabout way of accessing node->array itself.  Simplify it.
 
-If ARCH_PFN_OFFSET is very large (e.g., something like 2^64-2GiB if the
-kernel is used as a library and loaded at a very high address), the
-pointless iteration for pages below ARCH_PFN_OFFSET will take a very long
-time, and the kernel will look stuck at boot time.
-
-Use for_each_valid_pfn() to skip the pointless iterations.
-
-Link: https://lkml.kernel.org/r/20250423133821.789413-8-dwmw2@infradead.org
-Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
-Reported-by: Ruihan Li <lrh2000@pku.edu.cn>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Ruihan Li <lrh2000@pku.edu.cn>
-Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20250421-workingset-simplify-v1-1-de5c40051e0e@suse.de
+Signed-off-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/workingset.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-use-for_each_valid_pfn-in-init_unavailable_range
-+++ a/mm/mm_init.c
-@@ -851,11 +851,7 @@ static void __init init_unavailable_rang
- 	unsigned long pfn;
- 	u64 pgcnt = 0;
+--- a/mm/workingset.c~mm-workingset-simplify-lockdep-check-in-update_node
++++ a/mm/workingset.c
+@@ -612,7 +612,6 @@ struct list_lru shadow_nodes;
  
--	for (pfn = spfn; pfn < epfn; pfn++) {
--		if (!pfn_valid(pageblock_start_pfn(pfn))) {
--			pfn = pageblock_end_pfn(pfn) - 1;
--			continue;
--		}
-+	for_each_valid_pfn(pfn, spfn, epfn) {
- 		__init_single_page(pfn_to_page(pfn), pfn, zone, node);
- 		__SetPageReserved(pfn_to_page(pfn));
- 		pgcnt++;
+ void workingset_update_node(struct xa_node *node)
+ {
+-	struct address_space *mapping;
+ 	struct page *page = virt_to_page(node);
+ 
+ 	/*
+@@ -623,8 +622,7 @@ void workingset_update_node(struct xa_no
+ 	 * already where they should be. The list_empty() test is safe
+ 	 * as node->private_list is protected by the i_pages lock.
+ 	 */
+-	mapping = container_of(node->array, struct address_space, i_pages);
+-	lockdep_assert_held(&mapping->i_pages.xa_lock);
++	lockdep_assert_held(&node->array->xa_lock);
+ 
+ 	if (node->count && node->count == node->nr_values) {
+ 		if (list_empty(&node->private_list)) {
 _
 
-Patches currently in -mm which might be from dwmw@amazon.co.uk are
+Patches currently in -mm which might be from pfalcato@suse.de are
 
 
