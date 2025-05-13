@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B04C1EBFF0
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 679BC1EBFF0
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119224; cv=none; b=utjRPwXRNXI3Uy/ayuivbyizbQWpcmvn1B78K/S5D44IEXeTI/Rrz28WPy3ZetVkUzjK0RZx1Wn9gjDqGzqo3EjtVVk/HFN1OXxBBVaUNRrQu1G9Fih1y2z2h0nznq1htNwY3vryEzFgHHOAKTfbWwQ3va7WdjFdxgzlz/HnT8k=
+	t=1747119225; cv=none; b=oJOg82lU4U4VfTd+BN4+oE3f/N+IO5JX1rNcW5zlrgB4K0rSGRmpl+Mey6QImM0HSlw5Nr/6PgWKN5Vr0cCQrPqzNX8m3zlUX9624TaftcebmjZmF1OsQYfLNIvbvK+W3HG4DoXk2WbXb+clDmVxJBzqEtbZKD7kZDNv5YfpIkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119224; c=relaxed/simple;
-	bh=NGJ96pNIqwCKSOz/1kT5pEpAZ06GLZMDdIN9gSzpcmw=;
-	h=Date:To:From:Subject:Message-Id; b=ACVd5XeufYNDzHQAHmbJHvkBkZrwmGtFC2RDSU5o90DYtzjNGvpyI8M9qQXLJaAAHTQZHplDR1QJ1AMunJc5GDq4oonDyrUlU5ddsTJ6PjNoG0UdpEipDbays2TSbNSG0fIH9HOwA9MsTqxpAXo/sbhExlL3pQ0OrYIPop6NSiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wlOd/aCe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119225; c=relaxed/simple;
+	bh=v4lhkM95GfCbu5SHCoRZWFhUV/vYZs9hZhZumGCBQvA=;
+	h=Date:To:From:Subject:Message-Id; b=dYnyTyeteMQqBgtQbFmu8BWxHY4MiaCFgde8UCRHQKA+Q8c3+coiClHclbUtrEUdBwVAhGawZa0SDpKk5XuY+iwvbGqto4eMThQFX89Xs9aWEq+0e0gkgOzrs+91SkLnlkIqVbTh+b9yT0xcPHG0opLV/jvAK6KzYRf3VKvEwsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fMiSywDi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wlOd/aCe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6BF5C4CEE4;
-	Tue, 13 May 2025 06:53:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fMiSywDi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C420C4CEE4;
+	Tue, 13 May 2025 06:53:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119223;
-	bh=NGJ96pNIqwCKSOz/1kT5pEpAZ06GLZMDdIN9gSzpcmw=;
+	s=korg; t=1747119225;
+	bh=v4lhkM95GfCbu5SHCoRZWFhUV/vYZs9hZhZumGCBQvA=;
 	h=Date:To:From:Subject:From;
-	b=wlOd/aCekIdzhF4G5N0uctirbFkYLHh2dZMZPN+kwntydOZ9mwdS+8bXoGmsgklhA
-	 LWgEQAHNt9of+1yPwXLsLBw7LQJQO08TqHdXDSzaL2Ny6mPE7huVo4D/HHqABJrHzD
-	 BAA2Qm+cHSp5MSBGvqCvmetLUavxD6hT7srA7aCc=
-Date: Mon, 12 May 2025 23:53:43 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,revest@google.com,linmiaohe@huawei.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,gavinguo@igalia.com,akpm@linux-foundation.org
+	b=fMiSywDinfBj8aWByjJSJLGoO9/YgEZiF8xuJUwBFz2MdpNQilaimIwl26CdmtUTl
+	 wz0OWYmkSib1AjS9Dz0TcWG0LBJRFrx8kK5uM/0LsqiCqrWjo+CKblvwQpb1VpEEyj
+	 iEpBgLTI2AXFySPsQZjLokysgonVF4C4Js0IWr4Y=
+Date: Mon, 12 May 2025 23:53:44 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,urezki@gmail.com,shijie@os.amperecomputing.com,shakeel.butt@linux.dev,rrangel@chromium.org,roman.gushchin@linux.dev,pmladek@suse.com,paulmck@kernel.org,muchun.song@linux.dev,mhocko@kernel.org,linux@rasmusvillemoes.dk,kpsingh@kernel.org,hannes@cmpxchg.org,guoweikang.kernel@gmail.com,francesco@valla.it,link@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-remove-useless-folio-pointers-passing.patch removed from -mm tree
-Message-Id: <20250513065343.B6BF5C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-move-mem_cgroup_init-ahead-of-cgroup_init.patch removed from -mm tree
+Message-Id: <20250513065345.3C420C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,221 +35,229 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: remove useless folio pointers passing
+     Subject: mm/memcg: move mem_cgroup_init() ahead of cgroup_init()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-remove-useless-folio-pointers-passing.patch
+     mm-memcg-move-mem_cgroup_init-ahead-of-cgroup_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gavin Guo <gavinguo@igalia.com>
-Subject: mm/huge_memory: remove useless folio pointers passing
-Date: Fri, 25 Apr 2025 18:38:59 +0800
+From: Huan Yang <link@vivo.com>
+Subject: mm/memcg: move mem_cgroup_init() ahead of cgroup_init()
+Date: Fri, 25 Apr 2025 11:19:23 +0800
 
-Since the previous commit "mm/huge_memory: Adjust try_to_migrate_one() and
-split_huge_pmd_locked()" has simplified the logic by leveraging the folio
-verification in page_vma_mapped_walk(), this patch removes the unnecessary
-folio pointers passing.
+Patch series "Use kmem_cache for memcg alloc", v3.
 
-Link: https://lkml.kernel.org/r/20250425103859.825879-3-gavinguo@igalia.com
-Link: https://lore.kernel.org/all/98d1d195-7821-4627-b518-83103ade56c0@redhat.com/
-Link: https://lore.kernel.org/all/91599a3c-e69e-4d79-bac5-5013c96203d7@redhat.com/
-Signed-off-by: Gavin Guo <gavinguo@igalia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Florent Revest <revest@google.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+(willy tldr: "you've gone from allocating 8 objects per 32KiB to
+allocating 13 objects per 32KiB, a 62% improvement in memory consumption"
+[1])
+
+
+The mem_cgroup_alloc function creates mem_cgroup struct and it's
+associated structures including mem_cgroup_per_node.  Through detailed
+analysis on our test machine (Arm64, 16GB RAM, 6.6 kernel, 1 NUMA node,
+memcgv2 with nokmem,nosocket,cgroup_disable=pressure), we can observe the
+memory allocation for these structures using the following shell commands:
+
+  # Enable tracing
+  echo 1 > /sys/kernel/tracing/events/kmem/kmalloc/enable
+  echo 1 > /sys/kernel/tracing/tracing_on
+  cat /sys/kernel/tracing/trace_pipe | grep kmalloc | grep mem_cgroup
+
+  # Trigger allocation if cgroup subtree do not enable memcg
+  echo +memory > /sys/fs/cgroup/cgroup.subtree_control
+
+Ftrace Output:
+
+  # mem_cgroup struct allocation
+  sh-6312    [000] ..... 58015.698365: kmalloc:
+    call_site=mem_cgroup_css_alloc+0xd8/0x5b4
+    ptr=000000003e4c3799 bytes_req=2312 bytes_alloc=4096
+    gfp_flags=GFP_KERNEL|__GFP_ZERO node=-1 accounted=false
+
+  # mem_cgroup_per_node allocation
+  sh-6312    [000] ..... 58015.698389: kmalloc:
+    call_site=mem_cgroup_css_alloc+0x1d8/0x5b4
+    ptr=00000000d798700c bytes_req=2896 bytes_alloc=4096
+    gfp_flags=GFP_KERNEL|__GFP_ZERO node=0 accounted=false
+
+Key Observations:
+
+  1. Both structures use kmalloc with requested sizes between 2KB-4KB
+  2. Allocation alignment forces 4KB slab usage due to pre-defined sizes
+     (64B, 128B,..., 2KB, 4KB, 8KB)
+  3. Memory waste per memcg instance:
+      Base struct: 4096 - 2312 = 1784 bytes
+      Per-node struct: 4096 - 2896 = 1200 bytes
+      Total waste: 2984 bytes (1-node system)
+      NUMA scaling: (1200 + 8) * nr_node_ids bytes
+
+So, it's a little waste.
+
+This patchset introduces dedicated kmem_cache:
+  Patch2 - mem_cgroup kmem_cache - memcg_cachep
+  Patch3 - mem_cgroup_per_node kmem_cache - memcg_pn_cachep
+
+The benefits of this change can be observed with the following tracing
+commands:
+
+  # Enable tracing
+  echo 1 > /sys/kernel/tracing/events/kmem/kmem_cache_alloc/enable
+  echo 1 > /sys/kernel/tracing/tracing_on
+  cat /sys/kernel/tracing/trace_pipe | grep kmem_cache_alloc | grep mem_cgroup
+  # In another terminal:
+  echo +memory > /sys/fs/cgroup/cgroup.subtree_control
+
+
+The output might now look like this:
+
+  # mem_cgroup struct allocation
+  sh-9827     [000] .....   289.513598: kmem_cache_alloc:
+    call_site=mem_cgroup_css_alloc+0xbc/0x5d4 ptr=00000000695c1806
+    bytes_req=2312 bytes_alloc=2368 gfp_flags=GFP_KERNEL|__GFP_ZERO node=-1
+    accounted=false
+  # mem_cgroup_per_node allocation
+  sh-9827     [000] .....   289.513602: kmem_cache_alloc:
+    call_site=mem_cgroup_css_alloc+0x1b8/0x5d4 ptr=000000002989e63a
+    bytes_req=2896 bytes_alloc=2944 gfp_flags=GFP_KERNEL|__GFP_ZERO node=0
+    accounted=false
+
+This indicates that the `mem_cgroup` struct now requests 2312 bytes and is
+allocated 2368 bytes, while `mem_cgroup_per_node` requests 2896 bytes and
+is allocated 2944 bytes.  The slight increase in allocated size is due to
+`SLAB_HWCACHE_ALIGN` in the `kmem_cache`.
+
+Without `SLAB_HWCACHE_ALIGN`, the allocation might appear as:
+
+  # mem_cgroup struct allocation
+  sh-9269     [003] .....    80.396366: kmem_cache_alloc:
+    call_site=mem_cgroup_css_alloc+0xbc/0x5d4 ptr=000000005b12b475
+    bytes_req=2312 bytes_alloc=2312 gfp_flags=GFP_KERNEL|__GFP_ZERO node=-1
+    accounted=false
+
+  # mem_cgroup_per_node allocation
+  sh-9269     [003] .....    80.396411: kmem_cache_alloc:
+    call_site=mem_cgroup_css_alloc+0x1b8/0x5d4 ptr=00000000f347adc6
+    bytes_req=2896 bytes_alloc=2896 gfp_flags=GFP_KERNEL|__GFP_ZERO node=0
+    accounted=false
+
+While the `bytes_alloc` now matches the `bytes_req`, this patchset
+defaults to using `SLAB_HWCACHE_ALIGN` as it is generally considered more
+beneficial for performance.  Please let me know if there are any issues or
+if I've misunderstood anything.
+
+This patchset also move mem_cgroup_init ahead of cgroup_init() due to
+cgroup_init() will allocate root_mem_cgroup, but each initcall invoke
+after cgroup_init, so if each kmem_cache do not prepare, we need testing
+NULL before use it.
+
+
+This patch (of 3):
+
+When cgroup_init() creates root_mem_cgroup through css_alloc callback,
+some critical resources might not be fully initialized, forcing later
+operations to perform conditional checks for resource availability.
+
+This patch move mem_cgroup_init() to address the init order, it invoke
+before cgroup_init, so, compare to subsys_initcall, it can use to prepare
+some key resources before root_mem_cgroup alloc.
+
+Link: https://lkml.kernel.org/r/aAsRCj-niMMTtmK8@casper.infradead.org [1]
+Link: https://lkml.kernel.org/r/20250425031935.76411-1-link@vivo.com
+Link: https://lkml.kernel.org/r/20250425031935.76411-2-link@vivo.com
+Signed-off-by: Huan Yang <link@vivo.com>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Francesco Valla <francesco@valla.it>
+Cc: guoweikang <guoweikang.kernel@gmail.com>
+Cc: Huang Shijie <shijie@os.amperecomputing.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Raul E Rangel <rrangel@chromium.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   15 +++++++--------
- mm/huge_memory.c        |   16 ++++++++--------
- mm/memory.c             |    4 ++--
- mm/mprotect.c           |    2 +-
- mm/rmap.c               |    4 ++--
- 5 files changed, 20 insertions(+), 21 deletions(-)
+ include/linux/memcontrol.h |    3 +++
+ init/main.c                |    2 ++
+ mm/memcontrol.c            |    5 ++---
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-remove-useless-folio-pointers-passing
-+++ a/include/linux/huge_mm.h
-@@ -395,7 +395,7 @@ static inline int split_huge_page(struct
- void deferred_split_folio(struct folio *folio, bool partially_mapped);
- 
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
--		unsigned long address, bool freeze, struct folio *folio);
-+		unsigned long address, bool freeze);
- 
- #define split_huge_pmd(__vma, __pmd, __address)				\
- 	do {								\
-@@ -403,12 +403,11 @@ void __split_huge_pmd(struct vm_area_str
- 		if (is_swap_pmd(*____pmd) || pmd_trans_huge(*____pmd)	\
- 					|| pmd_devmap(*____pmd))	\
- 			__split_huge_pmd(__vma, __pmd, __address,	\
--						false, NULL);		\
-+					 false);			\
- 	}  while (0)
- 
--
- void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
--		bool freeze, struct folio *folio);
-+		bool freeze);
- 
- void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
- 		unsigned long address);
-@@ -501,7 +500,7 @@ static inline bool thp_migration_support
+--- a/include/linux/memcontrol.h~mm-memcg-move-mem_cgroup_init-ahead-of-cgroup_init
++++ a/include/linux/memcontrol.h
+@@ -1057,6 +1057,7 @@ static inline u64 cgroup_id_from_mm(stru
+ 	return id;
  }
  
- void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
--			   pmd_t *pmd, bool freeze, struct folio *folio);
-+			   pmd_t *pmd, bool freeze);
- bool unmap_huge_pmd_locked(struct vm_area_struct *vma, unsigned long addr,
- 			   pmd_t *pmdp, struct folio *folio);
++extern int mem_cgroup_init(void);
+ #else /* CONFIG_MEMCG */
  
-@@ -576,12 +575,12 @@ static inline void deferred_split_folio(
- 	do { } while (0)
- 
- static inline void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
--		unsigned long address, bool freeze, struct folio *folio) {}
-+		unsigned long address, bool freeze) {}
- static inline void split_huge_pmd_address(struct vm_area_struct *vma,
--		unsigned long address, bool freeze, struct folio *folio) {}
-+		unsigned long address, bool freeze) {}
- static inline void split_huge_pmd_locked(struct vm_area_struct *vma,
- 					 unsigned long address, pmd_t *pmd,
--					 bool freeze, struct folio *folio) {}
-+					 bool freeze) {}
- 
- static inline bool unmap_huge_pmd_locked(struct vm_area_struct *vma,
- 					 unsigned long addr, pmd_t *pmdp,
---- a/mm/huge_memory.c~mm-huge_memory-remove-useless-folio-pointers-passing
-+++ a/mm/huge_memory.c
-@@ -1785,7 +1785,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		pte_free(dst_mm, pgtable);
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
--		__split_huge_pmd(src_vma, src_pmd, addr, false, NULL);
-+		__split_huge_pmd(src_vma, src_pmd, addr, false);
- 		return -EAGAIN;
- 	}
- 	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-@@ -2007,7 +2007,7 @@ unlock_fallback:
- 	folio_unlock(folio);
- 	spin_unlock(vmf->ptl);
- fallback:
--	__split_huge_pmd(vma, vmf->pmd, vmf->address, false, NULL);
-+	__split_huge_pmd(vma, vmf->pmd, vmf->address, false);
- 	return VM_FAULT_FALLBACK;
- }
- 
-@@ -3080,7 +3080,7 @@ static void __split_huge_pmd_locked(stru
- }
- 
- void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
--			   pmd_t *pmd, bool freeze, struct folio *folio)
-+			   pmd_t *pmd, bool freeze)
+ #define MEM_CGROUP_ID_SHIFT	0
+@@ -1472,6 +1473,8 @@ static inline u64 cgroup_id_from_mm(stru
  {
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
- 	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
-@@ -3089,7 +3089,7 @@ void split_huge_pmd_locked(struct vm_are
+ 	return 0;
  }
++
++static inline int mem_cgroup_init(void) { return 0; }
+ #endif /* CONFIG_MEMCG */
  
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
--		unsigned long address, bool freeze, struct folio *folio)
-+		unsigned long address, bool freeze)
+ /*
+--- a/init/main.c~mm-memcg-move-mem_cgroup_init-ahead-of-cgroup_init
++++ a/init/main.c
+@@ -50,6 +50,7 @@
+ #include <linux/writeback.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
++#include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+ #include <linux/efi.h>
+ #include <linux/tick.h>
+@@ -1087,6 +1088,7 @@ void start_kernel(void)
+ 	nsfs_init();
+ 	pidfs_init();
+ 	cpuset_init();
++	mem_cgroup_init();
+ 	cgroup_init();
+ 	taskstats_init_early();
+ 	delayacct_init();
+--- a/mm/memcontrol.c~mm-memcg-move-mem_cgroup_init-ahead-of-cgroup_init
++++ a/mm/memcontrol.c
+@@ -5042,14 +5042,14 @@ static int __init cgroup_memory(char *s)
+ __setup("cgroup.memory=", cgroup_memory);
+ 
+ /*
+- * subsys_initcall() for memory controller.
++ * Memory controller init before cgroup_init() initialize root_mem_cgroup.
+  *
+  * Some parts like memcg_hotplug_cpu_dead() have to be initialized from this
+  * context because of lock dependencies (cgroup_lock -> cpu hotplug) but
+  * basically everything that doesn't depend on a specific mem_cgroup structure
+  * should be initialized from here.
+  */
+-static int __init mem_cgroup_init(void)
++int __init mem_cgroup_init(void)
  {
- 	spinlock_t *ptl;
- 	struct mmu_notifier_range range;
-@@ -3099,20 +3099,20 @@ void __split_huge_pmd(struct vm_area_str
- 				(address & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE);
- 	mmu_notifier_invalidate_range_start(&range);
- 	ptl = pmd_lock(vma->vm_mm, pmd);
--	split_huge_pmd_locked(vma, range.start, pmd, freeze, folio);
-+	split_huge_pmd_locked(vma, range.start, pmd, freeze);
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(&range);
+ 	int cpu;
+ 
+@@ -5070,7 +5070,6 @@ static int __init mem_cgroup_init(void)
+ 
+ 	return 0;
  }
+-subsys_initcall(mem_cgroup_init);
  
- void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
--		bool freeze, struct folio *folio)
-+		bool freeze)
- {
- 	pmd_t *pmd = mm_find_pmd(vma->vm_mm, address);
- 
- 	if (!pmd)
- 		return;
- 
--	__split_huge_pmd(vma, pmd, address, freeze, folio);
-+	__split_huge_pmd(vma, pmd, address, freeze);
- }
- 
- static inline void split_huge_pmd_if_needed(struct vm_area_struct *vma, unsigned long address)
-@@ -3124,7 +3124,7 @@ static inline void split_huge_pmd_if_nee
- 	if (!IS_ALIGNED(address, HPAGE_PMD_SIZE) &&
- 	    range_in_vma(vma, ALIGN_DOWN(address, HPAGE_PMD_SIZE),
- 			 ALIGN(address, HPAGE_PMD_SIZE)))
--		split_huge_pmd_address(vma, address, false, NULL);
-+		split_huge_pmd_address(vma, address, false);
- }
- 
- void vma_adjust_trans_huge(struct vm_area_struct *vma,
---- a/mm/memory.c~mm-huge_memory-remove-useless-folio-pointers-passing
-+++ a/mm/memory.c
-@@ -1808,7 +1808,7 @@ static inline unsigned long zap_pmd_rang
- 		next = pmd_addr_end(addr, end);
- 		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
--				__split_huge_pmd(vma, pmd, addr, false, NULL);
-+				__split_huge_pmd(vma, pmd, addr, false);
- 			else if (zap_huge_pmd(tlb, vma, pmd, addr)) {
- 				addr = next;
- 				continue;
-@@ -5932,7 +5932,7 @@ static inline vm_fault_t wp_huge_pmd(str
- 
- split:
- 	/* COW or write-notify handled on pte level: split pmd. */
--	__split_huge_pmd(vma, vmf->pmd, vmf->address, false, NULL);
-+	__split_huge_pmd(vma, vmf->pmd, vmf->address, false);
- 
- 	return VM_FAULT_FALLBACK;
- }
---- a/mm/mprotect.c~mm-huge_memory-remove-useless-folio-pointers-passing
-+++ a/mm/mprotect.c
-@@ -379,7 +379,7 @@ again:
- 		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd) || pmd_devmap(_pmd)) {
- 			if ((next - addr != HPAGE_PMD_SIZE) ||
- 			    pgtable_split_needed(vma, cp_flags)) {
--				__split_huge_pmd(vma, pmd, addr, false, NULL);
-+				__split_huge_pmd(vma, pmd, addr, false);
- 				/*
- 				 * For file-backed, the pmd could have been
- 				 * cleared; make sure pmd populated if
---- a/mm/rmap.c~mm-huge_memory-remove-useless-folio-pointers-passing
-+++ a/mm/rmap.c
-@@ -1944,7 +1944,7 @@ static bool try_to_unmap_one(struct foli
- 				 * restart so we can process the PTE-mapped THP.
- 				 */
- 				split_huge_pmd_locked(vma, pvmw.address,
--						      pvmw.pmd, false, folio);
-+						      pvmw.pmd, false);
- 				flags &= ~TTU_SPLIT_HUGE_PMD;
- 				page_vma_mapped_walk_restart(&pvmw);
- 				continue;
-@@ -2320,7 +2320,7 @@ static bool try_to_migrate_one(struct fo
- 		if (!pvmw.pte) {
- 			if (flags & TTU_SPLIT_HUGE_PMD) {
- 				split_huge_pmd_locked(vma, pvmw.address,
--						      pvmw.pmd, true, NULL);
-+						      pvmw.pmd, true);
- 				ret = false;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
+ #ifdef CONFIG_SWAP
+ /**
 _
 
-Patches currently in -mm which might be from gavinguo@igalia.com are
+Patches currently in -mm which might be from link@vivo.com are
 
 
