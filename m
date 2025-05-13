@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2DBA1714C0
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 01:18:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 232AAEEA6
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 01:18:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747099092; cv=none; b=lV4+XJR0ctUQNP5o+LHW5RdrXjLpmTY7HBoUrWhKLFTfR9Xkn3NQbpdSfGcwkE7r/NPaI50qr4eTIOKTGpRYsMMe85DOPIzNXktY03Cg4CxiQHk16S0Qg9aSNxzTdxgoHH6fCucc7qY/vwKd2Os5YmKFTzEtd65dOO+GFYByHzM=
+	t=1747099096; cv=none; b=T3HAZ09coVXrDwry5cqHbXGgpWI2+fswxajt+uLY83dey0uhYEZ0JpQDM9RWgK845VbHIfAjWIEiGBteTHzGBsLdp1kIpgItnau1As6OClW5BdK+UpOxZ+j9Mb6RCGSvPNhDTUJ2awPErxJwVIwpkx4eK/q3d1KyRdVlNFgjf+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747099092; c=relaxed/simple;
-	bh=8G0rFvTvu/CJvsHvbbczDgIRz6KvqRwd1KzBWJDLJoM=;
-	h=Date:To:From:Subject:Message-Id; b=QpJrlVwSJdNKMxdzL3oNZCBKHfpQLycA/CApGmZiuw9y69oeB2GnZ3yXVC/2q6dTIcCVVXrtXs4gDt8I7UoqIlAydek9ClRotWqvWYj7/P/G7ey61X/2GmWios6jcz5H8Z3QCMqEVAc6q2ycqwh8eC8K/K07O+uC1GXccfKAW6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rlR7oHK0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747099096; c=relaxed/simple;
+	bh=WmGQvtVyKfm/Kta4CMv8zRqlFqPx8aVcllrg7ukacsE=;
+	h=Date:To:From:Subject:Message-Id; b=Ip1JMQy2YAKODKjmEpU1eFZkXFbf+BzBmAbl5b3X1fptz2F7WR2+vqWgXudo4JxDfbk0qezgqIQNuB7re/JX4YZNUUWVQitYJAdu8lXj0eMDqjsipW1IcIuyWQozyLc7vT1JNb6Au6Phg1TheAxK6xpsOuzH2a270AsJwB0iSGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nlW0fIL9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rlR7oHK0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93916C4CEE7;
-	Tue, 13 May 2025 01:18:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nlW0fIL9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EB55C4CEE7;
+	Tue, 13 May 2025 01:18:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747099092;
-	bh=8G0rFvTvu/CJvsHvbbczDgIRz6KvqRwd1KzBWJDLJoM=;
+	s=korg; t=1747099094;
+	bh=WmGQvtVyKfm/Kta4CMv8zRqlFqPx8aVcllrg7ukacsE=;
 	h=Date:To:From:Subject:From;
-	b=rlR7oHK0cgukHwC0Oi+u54kAL21WrI/VfauxPvW/IAsmoBrSf+r9E72Ga49pS6PEC
-	 QTO5qXz1JTix01L4r0I2t0/0+Egci7qthmXNnugstex9QRhe1HpMTXRNTORdteyPEF
-	 f74NyzgtebjKyZDSmGp9mAYH8RpzhZ3C5NJl5GiY=
-Date: Mon, 12 May 2025 18:18:12 -0700
+	b=nlW0fIL9gHo6dlXKkv5yIxpC53Dl++aP7EPPVjk7GAXXcRM3L8QTt7eJJ/o+S54ZP
+	 sUkuRIusljEsq/Ti1dpA+WVFIQvlIsSOIoAh4TLTw27oz/gQOgFmDPQ3/ML/WiUjwM
+	 52RhRi7iwru1KzHS8TTpR2F1QBtjBazotYEXz0bA=
+Date: Mon, 12 May 2025 18:18:13 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_damon_sysfs-read-tried-regions-directories-in-order.patch added to mm-new branch
-Message-Id: <20250513011812.93916C4CEE7@smtp.kernel.org>
+Subject: + docs-damon-update-titles-and-brief-introductions-to-explain-damos.patch added to mm-new branch
+Message-Id: <20250513011814.7EB55C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_damon_sysfs: read tried regions directories in order
+     Subject: Docs/damon: update titles and brief introductions to explain DAMOS
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-_damon_sysfs-read-tried-regions-directories-in-order.patch
+     docs-damon-update-titles-and-brief-introductions-to-explain-damos.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-read-tried-regions-directories-in-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-damon-update-titles-and-brief-introductions-to-explain-damos.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,15 +65,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: read tried regions directories in order
-Date: Mon, 12 May 2025 17:27:14 -0700
+Subject: Docs/damon: update titles and brief introductions to explain DAMOS
+Date: Mon, 12 May 2025 17:27:15 -0700
 
-Kdamond.update_schemes_tried_regions() reads and stores tried regions
-information out of address order.  It makes debugging a test failure
-difficult.  Change the behavior to do the reading and writing in the
-address order.
+DAMON was initially developed only for data access monitoring, and then
+extended for not only access monitoring but also access-aware system
+operations (DAMOS).  But the documents have old titles and brief
+introductions for only the monitoring part.  Update the titles and the
+brief introductions to explain DAMOS part together.
 
-Link: https://lkml.kernel.org/r/20250513002715.40126-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250513002715.40126-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -82,28 +83,44 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/admin-guide/mm/damon/index.rst |   11 +++++------
+ Documentation/mm/damon/index.rst             |    6 +++---
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-read-tried-regions-directories-in-order
-+++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -420,11 +420,16 @@ class Kdamond:
-                 tried_regions = []
-                 tried_regions_dir = os.path.join(
-                         scheme.sysfs_dir(), 'tried_regions')
-+                region_indices = []
-                 for filename in os.listdir(
-                         os.path.join(scheme.sysfs_dir(), 'tried_regions')):
-                     tried_region_dir = os.path.join(tried_regions_dir, filename)
-                     if not os.path.isdir(tried_region_dir):
-                         continue
-+                    region_indices.append(int(filename))
-+                for region_idx in sorted(region_indices):
-+                    tried_region_dir = os.path.join(tried_regions_dir,
-+                                                    '%d' % region_idx)
-                     region_values = []
-                     for f in ['start', 'end', 'nr_accesses', 'age']:
-                         content, err = read_file(
+--- a/Documentation/admin-guide/mm/damon/index.rst~docs-damon-update-titles-and-brief-introductions-to-explain-damos
++++ a/Documentation/admin-guide/mm/damon/index.rst
+@@ -1,12 +1,11 @@
+ .. SPDX-License-Identifier: GPL-2.0
+ 
+-==========================
+-DAMON: Data Access MONitor
+-==========================
++================================================================
++DAMON: Data Access MONitoring and Access-aware System Operations
++================================================================
+ 
+-:doc:`DAMON </mm/damon/index>` allows light-weight data access monitoring.
+-Using DAMON, users can analyze the memory access patterns of their systems and
+-optimize those.
++:doc:`DAMON </mm/damon/index>` is a Linux kernel subsystem for efficient data
++access monitoring and access-aware system operations.
+ 
+ .. toctree::
+    :maxdepth: 2
+--- a/Documentation/mm/damon/index.rst~docs-damon-update-titles-and-brief-introductions-to-explain-damos
++++ a/Documentation/mm/damon/index.rst
+@@ -1,8 +1,8 @@
+ .. SPDX-License-Identifier: GPL-2.0
+ 
+-==========================
+-DAMON: Data Access MONitor
+-==========================
++================================================================
++DAMON: Data Access MONitoring and Access-aware System Operations
++================================================================
+ 
+ DAMON is a Linux kernel subsystem that provides a framework for data access
+ monitoring and the monitoring results based system operations.  The core
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
