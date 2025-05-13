@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E37151EB5FE
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A88A1EBFF7
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119211; cv=none; b=rtqthKpffBVKdKBSXQlinW6LkIjuot6qjH/ejrlcsDbmhESoCP5X0t/dteVza5w7U58qV0g+BCrE17Vy0LR2yDAtBF8m3AAc6ixCgykN4yOMN9k0cLTVxaxFd/1trlGnsRYkYzLgUfZECHgus/cu300u8quItfSWIxKf9yXfck8=
+	t=1747119211; cv=none; b=ZZwNqAou1MXqg1xFeZSUF5rWHiQri7sTvP1TyqYnpxjVJ5nmXv0/WkRys44aof2su1jLGAyrqCWgppsb6VDgb+nxz3lodFzLQUHX+cVNdBuRH61QDhQ5ESls5VKrF2XIqTapTSrrSMxyESjboiOoOd3H/qZ61aRkUNpN+ASoReE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1747119211; c=relaxed/simple;
-	bh=dAVk96fqNm7GO89sPvaIpZ+dbLgmB+2XgLrEKSI9/lg=;
-	h=Date:To:From:Subject:Message-Id; b=LdTimB9I+b355OfO/NyosZ6HBrpvJHbOl8grXDobIG9vBmvTTYCCLT4MIRnC4+8VVQMIDx6w4qJ28L+KhO43JWJUSRFk5sJlRw48fCn9tbU+WfBuhAo8Oo4xAacpG1hv0cw+ItLZEII+jxPxHS/NdJfuBEOpYB4+BfCx64Nzi/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UxENn5z4; arc=none smtp.client-ip=10.30.226.201
+	bh=Xs6Rwx9cFaW9orVxR5M8BGClWmHWw5cPAlrLr2qPcuI=;
+	h=Date:To:From:Subject:Message-Id; b=fGe+BgkQyzzWw2i5WPSWjaCW3RvLIZ9CfzcWbXHGE/ao3yZzENi4S5Oqvx9bJ/2POrcM3arWftOOmsinuRfKDojMTHuP7vCHwSUaoEpeeMuhHM7Q/LyHO1zZwt1hMSpJ869/Q+v86P/H7o5ssRj5rQ5p3TO35RUpkbxE+CB/HgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YgJ9PQR0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UxENn5z4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E18CC4CEE4;
-	Tue, 13 May 2025 06:53:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YgJ9PQR0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B81AC4CEE4;
+	Tue, 13 May 2025 06:53:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119210;
-	bh=dAVk96fqNm7GO89sPvaIpZ+dbLgmB+2XgLrEKSI9/lg=;
+	s=korg; t=1747119211;
+	bh=Xs6Rwx9cFaW9orVxR5M8BGClWmHWw5cPAlrLr2qPcuI=;
 	h=Date:To:From:Subject:From;
-	b=UxENn5z4M/qYINfkI90o4I5WMu/H/yhw47dO1rS0GkykQnWYjCZBqyCzd6ls0I4WA
-	 5KlBcJur9Yu9pw6xAlFat9w+z4zGxn1Ayr/zLKPRdX/UAG2UHbDwNquJt2TmCajOnz
-	 78KjsGWwVsQBW374OXHdTeiMQNFgN4bWUVkTws6c=
-Date: Mon, 12 May 2025 23:53:29 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pvkumar5749404@gmail.com,akpm@linux-foundation.org
+	b=YgJ9PQR064fR206jzQtC1K/D5t+h5igUl/Ky5pTbZWyrQVLXyGtIG2Bm3btpy1xkq
+	 ZsMPt0DZQInALosR72zpfWzcuKEdBhoFIYPwb03xeLZY5fiMSonrStF1mp58oRO4bs
+	 rQLcvLmV78fFFurvbinpn/U1YD4pI6Dij8vm7Wyk=
+Date: Mon, 12 May 2025 23:53:30 -0700
+To: mm-commits@vger.kernel.org,cl@gentwo.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-typos-in-comments-in-mm_initc.patch removed from -mm tree
-Message-Id: <20250513065330.4E18CC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] update-christophs-email-address-and-make-it-consistent.patch removed from -mm tree
+Message-Id: <20250513065331.5B81AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,580 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix typos in comments in mm_init.c
+     Subject: Update Christoph's Email address and make it consistent
 has been removed from the -mm tree.  Its filename was
-     mm-fix-typos-in-comments-in-mm_initc.patch
+     update-christophs-email-address-and-make-it-consistent.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Prabhav Kumar Vaish <pvkumar5749404@gmail.com>
-Subject: mm: fix typos in comments in mm_init.c
-Date: Sun, 20 Apr 2025 19:34:40 +0530
+From: "Christoph Lameter (Ampere)" <cl@gentwo.org>
+Subject: Update Christoph's Email address and make it consistent
+Date: Mon, 21 Apr 2025 13:58:06 -0700 (PDT)
 
-Corrected minor typos in comments:
-	- 'contigious' -> 'contiguous'
-	- 'hierarcy' -> 'hierarchy'
+Use cl@gentwo.org throughout and remove the old email addresses.
 
-This is a non-functional change in comment text only.
-
-Link: https://lkml.kernel.org/r/20250420140440.18817-1-pvkumar5749404@gmail.com
-Signed-off-by: Prabhav Kumar Vaish <pvkumar5749404@gmail.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/8b962f57-4d98-cbb0-cd82-b6ba456733e8@gentwo.org
+Signed-off-by: Christoph Lameter <cl@gentwo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ CREDITS                                         |    2 
+ Documentation/ABI/testing/sysfs-kernel-slab     |   96 +++++++-------
+ Documentation/admin-guide/cgroup-v1/cgroups.rst |    2 
+ Documentation/admin-guide/cgroup-v1/cpusets.rst |    2 
+ Documentation/networking/arcnet-hardware.rst    |    2 
+ MAINTAINERS                                     |    4 
+ include/linux/percpu-defs.h                     |    2 
+ mm/mmu_notifier.c                               |    2 
+ mm/slab_common.c                                |    2 
+ mm/vmstat.c                                     |    2 
+ 10 files changed, 58 insertions(+), 58 deletions(-)
 
---- a/mm/mm_init.c~mm-fix-typos-in-comments-in-mm_initc
-+++ a/mm/mm_init.c
-@@ -828,7 +828,7 @@ overlap_memmap_init(unsigned long zone,
-  * - physical memory bank size is not necessarily the exact multiple of the
-  *   arbitrary section size
-  * - early reserved memory may not be listed in memblock.memory
-- * - non-memory regions covered by the contigious flatmem mapping
-+ * - non-memory regions covered by the contiguous flatmem mapping
-  * - memory layouts defined with memmap= kernel parameter may not align
-  *   nicely with memmap sections
-  *
-@@ -1907,7 +1907,7 @@ void __init free_area_init(unsigned long
- 		free_area_init_node(nid);
+--- a/CREDITS~update-christophs-email-address-and-make-it-consistent
++++ a/CREDITS
+@@ -2336,7 +2336,7 @@ D: Author of the dialog utility, foundat
+ D: for Menuconfig's lxdialog.
  
- 		/*
--		 * No sysfs hierarcy will be created via register_one_node()
-+		 * No sysfs hierarchy will be created via register_one_node()
- 		 *for memory-less node because here it's not marked as N_MEMORY
- 		 *and won't be set online later. The benefit is userspace
- 		 *program won't be confused by sysfs files/directories of
+ N: Christoph Lameter
+-E: christoph@lameter.com
++E: cl@gentwo.org
+ D: Digiboard PC/Xe and PC/Xi, Digiboard EPCA
+ D: NUMA support, Slab allocators, Page migration
+ D: Scalability, Time subsystem
+--- a/Documentation/ABI/testing/sysfs-kernel-slab~update-christophs-email-address-and-make-it-consistent
++++ a/Documentation/ABI/testing/sysfs-kernel-slab
+@@ -2,7 +2,7 @@ What:		/sys/kernel/slab
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The /sys/kernel/slab directory contains a snapshot of the
+ 		internal state of the SLUB allocator for each cache.  Certain
+@@ -14,7 +14,7 @@ What:		/sys/kernel/slab/<cache>/aliases
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The aliases file is read-only and specifies how many caches
+ 		have merged into this cache.
+@@ -23,7 +23,7 @@ What:		/sys/kernel/slab/<cache>/align
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The align file is read-only and specifies the cache's object
+ 		alignment in bytes.
+@@ -32,7 +32,7 @@ What:		/sys/kernel/slab/<cache>/alloc_ca
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The alloc_calls file is read-only and lists the kernel code
+ 		locations from which allocations for this cache were performed.
+@@ -43,7 +43,7 @@ What:		/sys/kernel/slab/<cache>/alloc_fa
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The alloc_fastpath file shows how many objects have been
+ 		allocated using the fast path.  It can be written to clear the
+@@ -54,7 +54,7 @@ What:		/sys/kernel/slab/<cache>/alloc_fr
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The alloc_from_partial file shows how many times a cpu slab has
+ 		been full and it has been refilled by using a slab from the list
+@@ -66,7 +66,7 @@ What:		/sys/kernel/slab/<cache>/alloc_re
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The alloc_refill file shows how many times the per-cpu freelist
+ 		was empty but there were objects available as the result of
+@@ -77,7 +77,7 @@ What:		/sys/kernel/slab/<cache>/alloc_sl
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The alloc_slab file is shows how many times a new slab had to
+ 		be allocated from the page allocator.  It can be written to
+@@ -88,7 +88,7 @@ What:		/sys/kernel/slab/<cache>/alloc_sl
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The alloc_slowpath file shows how many objects have been
+ 		allocated using the slow path because of a refill or
+@@ -100,7 +100,7 @@ What:		/sys/kernel/slab/<cache>/cache_dm
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The cache_dma file is read-only and specifies whether objects
+ 		are from ZONE_DMA.
+@@ -110,7 +110,7 @@ What:		/sys/kernel/slab/<cache>/cpu_slab
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The cpu_slabs file is read-only and displays how many cpu slabs
+ 		are active and their NUMA locality.
+@@ -119,7 +119,7 @@ What:		/sys/kernel/slab/<cache>/cpuslab_
+ Date:		April 2009
+ KernelVersion:	2.6.31
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The file cpuslab_flush shows how many times a cache's cpu slabs
+ 		have been flushed as the result of destroying or shrinking a
+@@ -132,7 +132,7 @@ What:		/sys/kernel/slab/<cache>/ctor
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The ctor file is read-only and specifies the cache's object
+ 		constructor function, which is invoked for each object when a
+@@ -142,7 +142,7 @@ What:		/sys/kernel/slab/<cache>/deactiva
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The deactivate_empty file shows how many times an empty cpu slab
+ 		was deactivated.  It can be written to clear the current count.
+@@ -152,7 +152,7 @@ What:		/sys/kernel/slab/<cache>/deactiva
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The deactivate_full file shows how many times a full cpu slab
+ 		was deactivated.  It can be written to clear the current count.
+@@ -162,7 +162,7 @@ What:		/sys/kernel/slab/<cache>/deactiva
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The deactivate_remote_frees file shows how many times a cpu slab
+ 		has been deactivated and contained free objects that were freed
+@@ -173,7 +173,7 @@ What:		/sys/kernel/slab/<cache>/deactiva
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The deactivate_to_head file shows how many times a partial cpu
+ 		slab was deactivated and added to the head of its node's partial
+@@ -184,7 +184,7 @@ What:		/sys/kernel/slab/<cache>/deactiva
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The deactivate_to_tail file shows how many times a partial cpu
+ 		slab was deactivated and added to the tail of its node's partial
+@@ -195,7 +195,7 @@ What:		/sys/kernel/slab/<cache>/destroy_
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The destroy_by_rcu file is read-only and specifies whether
+ 		slabs (not objects) are freed by rcu.
+@@ -204,7 +204,7 @@ What:		/sys/kernel/slab/<cache>/free_add
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The free_add_partial file shows how many times an object has
+ 		been freed in a full slab so that it had to added to its node's
+@@ -215,7 +215,7 @@ What:		/sys/kernel/slab/<cache>/free_cal
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The free_calls file is read-only and lists the locations of
+ 		object frees if slab debugging is enabled (see
+@@ -225,7 +225,7 @@ What:		/sys/kernel/slab/<cache>/free_fas
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The free_fastpath file shows how many objects have been freed
+ 		using the fast path because it was an object from the cpu slab.
+@@ -236,7 +236,7 @@ What:		/sys/kernel/slab/<cache>/free_fro
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The free_frozen file shows how many objects have been freed to
+ 		a frozen slab (i.e. a remote cpu slab).  It can be written to
+@@ -247,7 +247,7 @@ What:		/sys/kernel/slab/<cache>/free_rem
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The free_remove_partial file shows how many times an object has
+ 		been freed to a now-empty slab so that it had to be removed from
+@@ -259,7 +259,7 @@ What:		/sys/kernel/slab/<cache>/free_sla
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The free_slab file shows how many times an empty slab has been
+ 		freed back to the page allocator.  It can be written to clear
+@@ -270,7 +270,7 @@ What:		/sys/kernel/slab/<cache>/free_slo
+ Date:		February 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The free_slowpath file shows how many objects have been freed
+ 		using the slow path (i.e. to a full or partial slab).  It can
+@@ -281,7 +281,7 @@ What:		/sys/kernel/slab/<cache>/hwcache_
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The hwcache_align file is read-only and specifies whether
+ 		objects are aligned on cachelines.
+@@ -301,7 +301,7 @@ What:		/sys/kernel/slab/<cache>/object_s
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The object_size file is read-only and specifies the cache's
+ 		object size.
+@@ -310,7 +310,7 @@ What:		/sys/kernel/slab/<cache>/objects
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The objects file is read-only and displays how many objects are
+ 		active and from which nodes they are from.
+@@ -319,7 +319,7 @@ What:		/sys/kernel/slab/<cache>/objects_
+ Date:		April 2008
+ KernelVersion:	2.6.26
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The objects_partial file is read-only and displays how many
+ 		objects are on partial slabs and from which nodes they are
+@@ -329,7 +329,7 @@ What:		/sys/kernel/slab/<cache>/objs_per
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The file objs_per_slab is read-only and specifies how many
+ 		objects may be allocated from a single slab of the order
+@@ -339,7 +339,7 @@ What:		/sys/kernel/slab/<cache>/order
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The order file specifies the page order at which new slabs are
+ 		allocated.  It is writable and can be changed to increase the
+@@ -356,7 +356,7 @@ What:		/sys/kernel/slab/<cache>/order_fa
+ Date:		April 2008
+ KernelVersion:	2.6.26
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The order_fallback file shows how many times an allocation of a
+ 		new slab has not been possible at the cache's order and instead
+@@ -369,7 +369,7 @@ What:		/sys/kernel/slab/<cache>/partial
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The partial file is read-only and displays how long many
+ 		partial slabs there are and how long each node's list is.
+@@ -378,7 +378,7 @@ What:		/sys/kernel/slab/<cache>/poison
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The poison file specifies whether objects should be poisoned
+ 		when a new slab is allocated.
+@@ -387,7 +387,7 @@ What:		/sys/kernel/slab/<cache>/reclaim_
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The reclaim_account file specifies whether the cache's objects
+ 		are reclaimable (and grouped by their mobility).
+@@ -396,7 +396,7 @@ What:		/sys/kernel/slab/<cache>/red_zone
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The red_zone file specifies whether the cache's objects are red
+ 		zoned.
+@@ -405,7 +405,7 @@ What:		/sys/kernel/slab/<cache>/remote_n
+ Date:		January 2008
+ KernelVersion:	2.6.25
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The file remote_node_defrag_ratio specifies the percentage of
+ 		times SLUB will attempt to refill the cpu slab with a partial
+@@ -419,7 +419,7 @@ What:		/sys/kernel/slab/<cache>/sanity_c
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The sanity_checks file specifies whether expensive checks
+ 		should be performed on free and, at minimum, enables double free
+@@ -430,7 +430,7 @@ What:		/sys/kernel/slab/<cache>/shrink
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The shrink file is used to reclaim unused slab cache
+ 		memory from a cache.  Empty per-cpu or partial slabs
+@@ -446,7 +446,7 @@ What:		/sys/kernel/slab/<cache>/slab_siz
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The slab_size file is read-only and specifies the object size
+ 		with metadata (debugging information and alignment) in bytes.
+@@ -455,7 +455,7 @@ What:		/sys/kernel/slab/<cache>/slabs
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The slabs file is read-only and displays how long many slabs
+ 		there are (both cpu and partial) and from which nodes they are
+@@ -465,7 +465,7 @@ What:		/sys/kernel/slab/<cache>/store_us
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The store_user file specifies whether the location of
+ 		allocation or free should be tracked for a cache.
+@@ -474,7 +474,7 @@ What:		/sys/kernel/slab/<cache>/total_ob
+ Date:		April 2008
+ KernelVersion:	2.6.26
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The total_objects file is read-only and displays how many total
+ 		objects a cache has and from which nodes they are from.
+@@ -483,7 +483,7 @@ What:		/sys/kernel/slab/<cache>/trace
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		The trace file specifies whether object allocations and frees
+ 		should be traced.
+@@ -492,7 +492,7 @@ What:		/sys/kernel/slab/<cache>/validate
+ Date:		May 2007
+ KernelVersion:	2.6.22
+ Contact:	Pekka Enberg <penberg@cs.helsinki.fi>,
+-		Christoph Lameter <cl@linux-foundation.org>
++		Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		Writing to the validate file causes SLUB to traverse all of its
+ 		cache's objects and check the validity of metadata.
+@@ -506,14 +506,14 @@ Description:
+ 
+ What:		/sys/kernel/slab/<cache>/slabs_cpu_partial
+ Date:		Aug 2011
+-Contact:	Christoph Lameter <cl@linux.com>
++Contact:	Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		This read-only file shows the number of partialli allocated
+ 		frozen slabs.
+ 
+ What:		/sys/kernel/slab/<cache>/cpu_partial
+ Date:		Aug 2011
+-Contact:	Christoph Lameter <cl@linux.com>
++Contact:	Christoph Lameter <cl@gentwo.org>
+ Description:
+ 		This read-only file shows the number of per cpu partial
+ 		pages to keep around.
+--- a/Documentation/admin-guide/cgroup-v1/cgroups.rst~update-christophs-email-address-and-make-it-consistent
++++ a/Documentation/admin-guide/cgroup-v1/cgroups.rst
+@@ -13,7 +13,7 @@ Portions Copyright (c) 2004-2006 Silicon
+ 
+ Modified by Paul Jackson <pj@sgi.com>
+ 
+-Modified by Christoph Lameter <cl@linux.com>
++Modified by Christoph Lameter <cl@gentwo.org>
+ 
+ .. CONTENTS:
+ 
+--- a/Documentation/admin-guide/cgroup-v1/cpusets.rst~update-christophs-email-address-and-make-it-consistent
++++ a/Documentation/admin-guide/cgroup-v1/cpusets.rst
+@@ -10,7 +10,7 @@ Written by Simon.Derr@bull.net
+ 
+ - Portions Copyright (c) 2004-2006 Silicon Graphics, Inc.
+ - Modified by Paul Jackson <pj@sgi.com>
+-- Modified by Christoph Lameter <cl@linux.com>
++- Modified by Christoph Lameter <cl@gentwo.org>
+ - Modified by Paul Menage <menage@google.com>
+ - Modified by Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+ 
+--- a/Documentation/networking/arcnet-hardware.rst~update-christophs-email-address-and-make-it-consistent
++++ a/Documentation/networking/arcnet-hardware.rst
+@@ -3152,7 +3152,7 @@ Tiara
+ (model unknown)
+ ---------------
+ 
+-  - from Christoph Lameter <christoph@lameter.com>
++  - from Christoph Lameter <cl@gentwo.org>
+ 
+ 
+ Here is information about my card as far as I could figure it out::
+--- a/include/linux/percpu-defs.h~update-christophs-email-address-and-make-it-consistent
++++ a/include/linux/percpu-defs.h
+@@ -375,7 +375,7 @@ do {									\
+ } while (0)
+ 
+ /*
+- * this_cpu operations (C) 2008-2013 Christoph Lameter <cl@linux.com>
++ * this_cpu operations (C) 2008-2013 Christoph Lameter <cl@gentwo.org>
+  *
+  * Optimized manipulation for memory allocated through the per cpu
+  * allocator or for addresses of per cpu variables.
+--- a/MAINTAINERS~update-christophs-email-address-and-make-it-consistent
++++ a/MAINTAINERS
+@@ -19044,7 +19044,7 @@ F:	drivers/net/ethernet/pensando/
+ PER-CPU MEMORY ALLOCATOR
+ M:	Dennis Zhou <dennis@kernel.org>
+ M:	Tejun Heo <tj@kernel.org>
+-M:	Christoph Lameter <cl@linux.com>
++M:	Christoph Lameter <cl@gentwo.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/dennis/percpu.git
+@@ -22407,7 +22407,7 @@ F:	Documentation/devicetree/bindings/nvm
+ F:	drivers/nvmem/layouts/sl28vpd.c
+ 
+ SLAB ALLOCATOR
+-M:	Christoph Lameter <cl@linux.com>
++M:	Christoph Lameter <cl@gentwo.org>
+ M:	David Rientjes <rientjes@google.com>
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Vlastimil Babka <vbabka@suse.cz>
+--- a/mm/mmu_notifier.c~update-christophs-email-address-and-make-it-consistent
++++ a/mm/mmu_notifier.c
+@@ -4,7 +4,7 @@
+  *
+  *  Copyright (C) 2008  Qumranet, Inc.
+  *  Copyright (C) 2008  SGI
+- *             Christoph Lameter <cl@linux.com>
++ *             Christoph Lameter <cl@gentwo.org>
+  */
+ 
+ #include <linux/rculist.h>
+--- a/mm/slab_common.c~update-christophs-email-address-and-make-it-consistent
++++ a/mm/slab_common.c
+@@ -2,7 +2,7 @@
+ /*
+  * Slab allocator functions that are independent of the allocator strategy
+  *
+- * (C) 2012 Christoph Lameter <cl@linux.com>
++ * (C) 2012 Christoph Lameter <cl@gentwo.org>
+  */
+ #include <linux/slab.h>
+ 
+--- a/mm/vmstat.c~update-christophs-email-address-and-make-it-consistent
++++ a/mm/vmstat.c
+@@ -7,7 +7,7 @@
+  *
+  *  zoned VM statistics
+  *  Copyright (C) 2006 Silicon Graphics, Inc.,
+- *		Christoph Lameter <christoph@lameter.com>
++ *		Christoph Lameter <cl@gentwo.org>
+  *  Copyright (C) 2008-2014 Christoph Lameter
+  */
+ #include <linux/fs.h>
 _
 
-Patches currently in -mm which might be from pvkumar5749404@gmail.com are
+Patches currently in -mm which might be from cl@gentwo.org are
 
 
