@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 595692914
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 00:23:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAA5E1BC58
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 00:23:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747095820; cv=none; b=L3/h5M1r3tIMiclUJ2yrFhLp7XXlZMtoqVS3VLAhyNgpKo2/4pI6N/3hr9r34/QDLQG3qIBv1b5ZgvQx7cIIFdPqjjWh3IS+tVlHmcK7Fv0v+QCyFj/zp3DV+X4PoCCBk3n7mu22yZ91YUhonvJF+Up5kwcVpF+nQnFvzE+gYmI=
+	t=1747095823; cv=none; b=BLHSrZ95g1JT8CcOKH0F8zTUSjQJYCma5mo2kXeKdei7cEmm5GKib2ji2tuRki2bHheJysE3wD84jHNbmawQ7xOEfd8u2YDyq5sxchC3ht6srfif2g7V7rvS6nO3cylbqTpcUkhcaVEfVTIbRHSOq5DFYzWJbZ7Rsi3MXFLK/xc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747095820; c=relaxed/simple;
-	bh=1vMOJ57VrOn4l5ZpFlGhpIlkeU3QPm9AwnkY94p/CnU=;
-	h=Date:To:From:Subject:Message-Id; b=rPUXu8Ev9WVSHY/0QSdXViSZ9aPYHpSQljm6lQwhaDWpgaVa2uULhXHVGxQd5ixT3uYGd66m9czA6QvAo4Jj6IlVMZJ0HBtchei+8EMTnhBTfjv4nMkGEKXUd/vwC4Qn6WrYweAaBINBXn1tYRBPIwlN+IFlaScIfgWjZ02bhPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xqSl9Qkx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747095823; c=relaxed/simple;
+	bh=2iF6PrOCQEpMRMbBH/WFt+bk5HG+Jgbl0cMPThjK8FM=;
+	h=Date:To:From:Subject:Message-Id; b=F/iPk21RaP+kzr186573WTIg4+xBgKIrGEzd3DEQC7297H2rKiNs1yI0Kfx1xiTUGsWR1uUXFRC2YEsNDsDoNXFO9sPtKszZC9zirBqIgrKaye419N6zpqAm7eKPhyiMdQcUx3+b1yOCJF/Rk8VcyoBbGaIUsVq/t9OOvZAfW9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gtk2T80U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xqSl9Qkx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C12C1C4CEE7;
-	Tue, 13 May 2025 00:23:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gtk2T80U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D4CBC4CEE7;
+	Tue, 13 May 2025 00:23:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747095819;
-	bh=1vMOJ57VrOn4l5ZpFlGhpIlkeU3QPm9AwnkY94p/CnU=;
+	s=korg; t=1747095822;
+	bh=2iF6PrOCQEpMRMbBH/WFt+bk5HG+Jgbl0cMPThjK8FM=;
 	h=Date:To:From:Subject:From;
-	b=xqSl9QkxYsU+WvtG864mcfismFoSm/dvUvcT3WY9PtLmhjY/brD/fyDiD6LHruGUm
-	 Vs6OnpTufExEgMVyV8Vh44WWnVnH0UsGRpJy0dZVQxjsEbZBybxRBVVUfx8n2BtdAh
-	 n8WdHFfNzSXC4Az8E9jXoDWWB28Gar5ERagJuPuE=
-Date: Mon, 12 May 2025 17:23:39 -0700
+	b=Gtk2T80Ug4tTHajkD6xtwfTVdqpeP33jRw6bz5qO1BpoBcdPvydqsPgorDZ/9179k
+	 I3tYWZEpzFMPCr+3mb7jaiKIDmwA0Rz3YQExuZbx4jpCiXmYb6Msau7dQzDxF/TXkA
+	 NCkf52nOfIQPTTXDLPVEOyEZwEpVSUM6Xt6kOyN0=
+Date: Mon, 12 May 2025 17:23:41 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch added to mm-new branch
-Message-Id: <20250513002339.C12C1C4CEE7@smtp.kernel.org>
+Subject: + mm-convert-do_set_pmd-to-take-a-folio.patch added to mm-new branch
+Message-Id: <20250513002342.4D4CBC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: khugepaged: convert set_huge_pmd() to take a folio
+     Subject: mm: convert do_set_pmd() to take a folio
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch
+     mm-convert-do_set_pmd-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-set_huge_pmd-to-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-do_set_pmd-to-take-a-folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,19 +65,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: khugepaged: convert set_huge_pmd() to take a folio
-Date: Mon, 12 May 2025 10:57:11 +0800
+Subject: mm: convert do_set_pmd() to take a folio
+Date: Mon, 12 May 2025 10:57:12 +0800
 
-We've already gotten the stable locked folio in collapse_pte_mapped_thp(),
-so just use folio for set_huge_pmd() to set the PMD entry, which is more
+In do_set_pmd(), we always use the folio->page to build PMD mappings for
+the entire folio.  Since all callers of do_set_pmd() already hold a stable
+folio, converting do_set_pmd() to take a folio is safe and more
 straightforward.
 
-Moreover, we will check the folio size in do_set_pmd(), so we can remove
-the unnecessary VM_BUG_ON() in set_huge_pmd().  While we are at it, we can
-also remove the PageTransHuge(), as it currently has no callers.
+In addition, to ensure the extensibility of do_set_pmd() for supporting
+larger folios beyond PMD size, we keep the 'page' parameter to specify
+which page within the folio should be mapped.
 
-Link: https://lkml.kernel.org/r/110c3e1ec5fe7854a0e2c95ffcbc985817180ed7.1747017104.git.baolin.wang@linux.alibaba.com
+No functional changes expected.
+
+Link: https://lkml.kernel.org/r/9b488f4ecb4d3fd8634e3d448dd0ed6964482480.1747017104.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -90,84 +94,97 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   15 ---------------
- mm/khugepaged.c            |   11 +++++------
- 2 files changed, 5 insertions(+), 21 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/filemap.c       |    2 +-
+ mm/khugepaged.c    |    2 +-
+ mm/memory.c        |   11 +++++------
+ 4 files changed, 8 insertions(+), 9 deletions(-)
 
---- a/include/linux/page-flags.h~mm-khugepaged-convert-set_huge_pmd-to-take-a-folio
-+++ a/include/linux/page-flags.h
-@@ -908,20 +908,6 @@ FOLIO_FLAG_FALSE(partially_mapped)
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-- * PageHuge() only returns true for hugetlbfs pages, but not for
-- * normal or transparent huge pages.
-- *
-- * PageTransHuge() returns true for both transparent huge and
-- * hugetlbfs pages, but not normal pages. PageTransHuge() can only be
-- * called only in the core VM paths where hugetlbfs pages can't exist.
-- */
--static inline int PageTransHuge(const struct page *page)
--{
--	VM_BUG_ON_PAGE(PageTail(page), page);
--	return PageHead(page);
--}
--
--/*
-  * PageTransCompound returns true for both transparent huge pages
-  * and hugetlbfs pages, so it should only be called when it's known
-  * that hugetlbfs pages aren't involved.
-@@ -931,7 +917,6 @@ static inline int PageTransCompound(cons
- 	return PageCompound(page);
+--- a/include/linux/mm.h~mm-convert-do_set_pmd-to-take-a-folio
++++ a/include/linux/mm.h
+@@ -1235,7 +1235,7 @@ static inline pte_t maybe_mkwrite(pte_t
+ 	return pte;
  }
- #else
--TESTPAGEFLAG_FALSE(TransHuge, transhuge)
- TESTPAGEFLAG_FALSE(TransCompound, transcompound)
- #endif
  
---- a/mm/khugepaged.c~mm-khugepaged-convert-set_huge_pmd-to-take-a-folio
+-vm_fault_t do_set_pmd(struct vm_fault *vmf, struct page *page);
++vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page);
+ void set_pte_range(struct vm_fault *vmf, struct folio *folio,
+ 		struct page *page, unsigned int nr, unsigned long addr);
+ 
+--- a/mm/filemap.c~mm-convert-do_set_pmd-to-take-a-folio
++++ a/mm/filemap.c
+@@ -3533,7 +3533,7 @@ static bool filemap_map_pmd(struct vm_fa
+ 
+ 	if (pmd_none(*vmf->pmd) && folio_test_pmd_mappable(folio)) {
+ 		struct page *page = folio_file_page(folio, start);
+-		vm_fault_t ret = do_set_pmd(vmf, page);
++		vm_fault_t ret = do_set_pmd(vmf, folio, page);
+ 		if (!ret) {
+ 			/* The page is mapped successfully, reference consumed. */
+ 			folio_unlock(folio);
+--- a/mm/khugepaged.c~mm-convert-do_set_pmd-to-take-a-folio
 +++ a/mm/khugepaged.c
-@@ -1465,9 +1465,9 @@ static void collect_mm_slot(struct khuge
- }
+@@ -1478,7 +1478,7 @@ static int set_huge_pmd(struct vm_area_s
  
- #ifdef CONFIG_SHMEM
--/* hpage must be locked, and mmap_lock must be held */
-+/* folio must be locked, and mmap_lock must be held */
- static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
--			pmd_t *pmdp, struct page *hpage)
-+			pmd_t *pmdp, struct folio *folio, struct page *page)
- {
- 	struct vm_fault vmf = {
- 		.vma = vma,
-@@ -1476,13 +1476,12 @@ static int set_huge_pmd(struct vm_area_s
- 		.pmd = pmdp,
- 	};
- 
--	VM_BUG_ON(!PageTransHuge(hpage));
  	mmap_assert_locked(vma->vm_mm);
  
--	if (do_set_pmd(&vmf, hpage))
-+	if (do_set_pmd(&vmf, page))
+-	if (do_set_pmd(&vmf, page))
++	if (do_set_pmd(&vmf, folio, page))
  		return SCAN_FAIL;
  
--	get_page(hpage);
-+	folio_get(folio);
- 	return SCAN_SUCCEED;
+ 	folio_get(folio);
+--- a/mm/memory.c~mm-convert-do_set_pmd-to-take-a-folio
++++ a/mm/memory.c
+@@ -5227,9 +5227,8 @@ static void deposit_prealloc_pte(struct
+ 	vmf->prealloc_pte = NULL;
  }
  
-@@ -1689,7 +1688,7 @@ int collapse_pte_mapped_thp(struct mm_st
- maybe_install_pmd:
- 	/* step 5: install pmd entry */
- 	result = install_pmd
--			? set_huge_pmd(vma, haddr, pmd, &folio->page)
-+			? set_huge_pmd(vma, haddr, pmd, folio, &folio->page)
- 			: SCAN_SUCCEED;
- 	goto drop_folio;
- abort:
+-vm_fault_t do_set_pmd(struct vm_fault *vmf, struct page *page)
++vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page)
+ {
+-	struct folio *folio = page_folio(page);
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+@@ -5302,7 +5301,7 @@ out:
+ 	return ret;
+ }
+ #else
+-vm_fault_t do_set_pmd(struct vm_fault *vmf, struct page *page)
++vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -5396,6 +5395,7 @@ fallback:
+ 	else
+ 		page = vmf->page;
+ 
++	folio = page_folio(page);
+ 	/*
+ 	 * check even for read faults because we might have lost our CoWed
+ 	 * page
+@@ -5407,8 +5407,8 @@ fallback:
+ 	}
+ 
+ 	if (pmd_none(*vmf->pmd)) {
+-		if (PageTransCompound(page)) {
+-			ret = do_set_pmd(vmf, page);
++		if (folio_test_pmd_mappable(folio)) {
++			ret = do_set_pmd(vmf, folio, page);
+ 			if (ret != VM_FAULT_FALLBACK)
+ 				return ret;
+ 		}
+@@ -5419,7 +5419,6 @@ fallback:
+ 			return VM_FAULT_OOM;
+ 	}
+ 
+-	folio = page_folio(page);
+ 	nr_pages = folio_nr_pages(folio);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
