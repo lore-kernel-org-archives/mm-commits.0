@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E95541D6DB4
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A3E1D6DB4
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119256; cv=none; b=XlgugmQcDU7ztCRmTP3BN24+asQJ+iQ77qDyN9HQynWhDo96vHLA/1b+5mTE0P4VFFKeu36jJuH4HXxWdswfJ5cnZ9N8K0GVUXT7eErqAcc8StwpR/fl8Jj41l8J2BYuDMrYkl9EMY3EsZigj22tUwaEzQ+/FeRUcBHb1YQDfDA=
+	t=1747119258; cv=none; b=C3peLt+Cl+SbND2g1X0xpWB+9rfaQkkz2f6gqf91lm2fEZw+70DxDNjStkJXKTU1pIPGQh+ii37Ds7xECMQyZ7alkMKO5RIu4B6+XCc48rE88xkeUeAGjtlwBDqtrDq1hmIW8nq4F455Zfo0XDPXIeFNvZi+WcZKJYpLT0pwtTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119256; c=relaxed/simple;
-	bh=tC0E6N2q2SWZuYvSrgf01lbC+czp0ox1B4RFhGTr+qY=;
-	h=Date:To:From:Subject:Message-Id; b=UQkmiB4Gyat8RcuAa/gQw7byGx6hABleFzlyU//KPYphOcBCClOiCanNeWC/+yRCCT6pWIqu7ElgePuweA6y6vARC9epAdElubKcdtHaAWWOZpu4TxZ/vQlE1aasoDkkVCil5JwDEDFyoLorVxFmIBt5iFQZMtwPXD8EWN2YRf4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lET8xZSz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119258; c=relaxed/simple;
+	bh=wQGITinzfIx3cYgRElS9gSbkhQqcPNVeFmz766p3Wfs=;
+	h=Date:To:From:Subject:Message-Id; b=lXPzbC3AXPNznDp5JBv4oM6uhoPTjELRNGWA9SSlKwAITsK/vyGHNsA6ZJbh4m60MHatBjbUFmvdOcAZZ00m/dcwgbCmlz2msKztL7+sDbkYH5ovP7zqDDzymQcCt0KcIAjkwa6jQ1+3hnnlmKqjRZQcm/tMKcB7k5dkjDjnt5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Msuasd9E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lET8xZSz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B735CC4CEE4;
-	Tue, 13 May 2025 06:54:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Msuasd9E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 710ACC4CEE4;
+	Tue, 13 May 2025 06:54:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119255;
-	bh=tC0E6N2q2SWZuYvSrgf01lbC+czp0ox1B4RFhGTr+qY=;
+	s=korg; t=1747119257;
+	bh=wQGITinzfIx3cYgRElS9gSbkhQqcPNVeFmz766p3Wfs=;
 	h=Date:To:From:Subject:From;
-	b=lET8xZSzLMO02E0Nu/fwGG1Jlfl76wq+ikh1/CLpTkpJrG31W2oW8sWBxVA0bHKye
-	 eFciyQtcnSiSNgJIXdqkVPPlyoTXX8/frab9oLOTXUus/HN2fBG2wFjoqpvI+y6Dqn
-	 p4sIey7f4dQIB9pIr4It1LJcZtgORpmT7nKOjcEI=
-Date: Mon, 12 May 2025 23:54:15 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rppt@kernel.org,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,graf@amazon.com,akpm@linux-foundation.org
+	b=Msuasd9E7s9jIEcVBs0vFH4aqxTSmcdJUjPa/H4wJ7iD5aTPwDd7hvM2n9gddZ47w
+	 iQ1wDOrd4qbzmxoWC2lq2zj8yOpLS8USxJ78ekyddX2+ySjnUZJuAdWb46qGapgfk9
+	 4u+jkvpdHFgbAjOtjwHGt9j4tKnU5Y3/x0saY2+g=
+Date: Mon, 12 May 2025 23:54:16 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,graf@amazon.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kexec-add-kho-parsing-support.patch removed from -mm tree
-Message-Id: <20250513065415.B735CC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] kexec-enable-kho-support-for-memory-preservation.patch removed from -mm tree
+Message-Id: <20250513065417.710ACC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec: add KHO parsing support
+     Subject: kexec: enable KHO support for memory preservation
 has been removed from the -mm tree.  Its filename was
-     kexec-add-kho-parsing-support.patch
+     kexec-enable-kho-support-for-memory-preservation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Graf <graf@amazon.com>
-Subject: kexec: add KHO parsing support
-Date: Fri, 9 May 2025 00:46:23 -0700
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: kexec: enable KHO support for memory preservation
+Date: Fri, 9 May 2025 00:46:24 -0700
 
-When we have a KHO kexec, we get an FDT blob and scratch region to
-populate the state of the system.  Provide helper functions that allow
-architecture code to easily handle memory reservations based on them and
-give device drivers visibility into the KHO FDT and memory reservations so
-they can recover their own state.
+Introduce APIs allowing KHO users to preserve memory across kexec and get
+access to that memory after boot of the kexeced kernel
 
-Include a fix from Arnd Bergmann <arnd@arndb.de>
-https://lore.kernel.org/lkml/20250424093302.3894961-1-arnd@kernel.org/.
+kho_preserve_folio() - record a folio to be preserved over kexec
+kho_restore_folio() - recreates the folio from the preserved memory
+kho_preserve_phys() - record physically contiguous range to be
+preserved over kexec.
 
-Link: https://lkml.kernel.org/r/20250509074635.3187114-6-changyuanl@google.com
-Signed-off-by: Alexander Graf <graf@amazon.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+The memory preservations are tracked by two levels of xarrays to manage
+chunks of per-order 512 byte bitmaps.  For instance if PAGE_SIZE = 4096,
+the entire 1G order of a 1TB x86 system would fit inside a single 512 byte
+bitmap.  For order 0 allocations each bitmap will cover 16M of address
+space.  Thus, for 16G of memory at most 512K of bitmap memory will be
+needed for order 0.
+
+At serialization time all bitmaps are recorded in a linked list of pages
+for the next kernel to process and the physical address of the list is
+recorded in KHO FDT.
+
+The next kernel then processes that list, reserves the memory ranges and
+later, when a user requests a folio or a physical range, KHO restores
+corresponding memory map entries.
+
+Link: https://lkml.kernel.org/r/20250509074635.3187114-7-changyuanl@google.com
+Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Co-developed-by: Changyuan Lyu <changyuanl@google.com>
 Signed-off-by: Changyuan Lyu <changyuanl@google.com>
+Cc: Alexander Graf <graf@amazon.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Ashish Kalra <ashish.kalra@amd.com>
 Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -75,7 +89,6 @@ Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: James Gowans <jgowans@amazon.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>
 Cc: Marc Rutland <mark.rutland@arm.com>
@@ -93,331 +106,555 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h |   14 +
- kernel/kexec_handover.c        |  233 ++++++++++++++++++++++++++++++-
- mm/memblock.c                  |    1 
- 3 files changed, 247 insertions(+), 1 deletion(-)
+ include/linux/kexec_handover.h |   36 ++
+ kernel/kexec_handover.c        |  411 +++++++++++++++++++++++++++++++
+ 2 files changed, 447 insertions(+)
 
---- a/include/linux/kexec_handover.h~kexec-add-kho-parsing-support
+--- a/include/linux/kexec_handover.h~kexec-enable-kho-support-for-memory-preservation
 +++ a/include/linux/kexec_handover.h
-@@ -24,11 +24,15 @@ struct kho_serialization;
+@@ -16,13 +16,34 @@ enum kho_event {
+ 	KEXEC_KHO_ABORT = 1,
+ };
+ 
++struct folio;
+ struct notifier_block;
+ 
++#define DECLARE_KHOSER_PTR(name, type) \
++	union {                        \
++		phys_addr_t phys;      \
++		type ptr;              \
++	} name
++#define KHOSER_STORE_PTR(dest, val)               \
++	({                                        \
++		typeof(val) v = val;              \
++		typecheck(typeof((dest).ptr), v); \
++		(dest).phys = virt_to_phys(v);    \
++	})
++#define KHOSER_LOAD_PTR(src)                                                 \
++	({                                                                   \
++		typeof(src) s = src;                                         \
++		(typeof((s).ptr))((s).phys ? phys_to_virt((s).phys) : NULL); \
++	})
++
+ struct kho_serialization;
+ 
+ #ifdef CONFIG_KEXEC_HANDOVER
  bool kho_is_enabled(void);
  
++int kho_preserve_folio(struct folio *folio);
++int kho_preserve_phys(phys_addr_t phys, size_t size);
++struct folio *kho_restore_folio(phys_addr_t phys);
  int kho_add_subtree(struct kho_serialization *ser, const char *name, void *fdt);
-+int kho_retrieve_subtree(const char *name, phys_addr_t *phys);
+ int kho_retrieve_subtree(const char *name, phys_addr_t *phys);
  
- int register_kho_notifier(struct notifier_block *nb);
- int unregister_kho_notifier(struct notifier_block *nb);
- 
- void kho_memory_init(void);
-+
-+void kho_populate(phys_addr_t fdt_phys, u64 fdt_len, phys_addr_t scratch_phys,
-+		  u64 scratch_len);
- #else
- static inline bool kho_is_enabled(void)
- {
-@@ -41,6 +45,11 @@ static inline int kho_add_subtree(struct
- 	return -EOPNOTSUPP;
+@@ -39,6 +60,21 @@ static inline bool kho_is_enabled(void)
+ 	return false;
  }
  
-+static inline int kho_retrieve_subtree(const char *name, phys_addr_t *phys)
++static inline int kho_preserve_folio(struct folio *folio)
 +{
 +	return -EOPNOTSUPP;
 +}
 +
- static inline int register_kho_notifier(struct notifier_block *nb)
- {
- 	return -EOPNOTSUPP;
-@@ -54,6 +63,11 @@ static inline int unregister_kho_notifie
- static inline void kho_memory_init(void)
- {
- }
-+
-+static inline void kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
-+				phys_addr_t scratch_phys, u64 scratch_len)
++static inline int kho_preserve_phys(phys_addr_t phys, size_t size)
 +{
++	return -EOPNOTSUPP;
 +}
- #endif /* CONFIG_KEXEC_HANDOVER */
- 
- #endif /* LINUX_KEXEC_HANDOVER_H */
---- a/kernel/kexec_handover.c~kexec-add-kho-parsing-support
-+++ a/kernel/kexec_handover.c
-@@ -17,6 +17,9 @@
- #include <linux/memblock.h>
- #include <linux/notifier.h>
- #include <linux/page-isolation.h>
 +
-+#include <asm/early_ioremap.h>
-+
- /*
-  * KHO is tightly coupled with mm init and needs access to some of mm
-  * internal APIs.
-@@ -501,9 +504,112 @@ err_rmdir:
- 	return -ENOENT;
- }
- 
-+struct kho_in {
-+	struct dentry *dir;
-+	phys_addr_t fdt_phys;
-+	phys_addr_t scratch_phys;
-+	struct list_head fdt_list;
-+};
-+
-+static struct kho_in kho_in = {
-+	.fdt_list = LIST_HEAD_INIT(kho_in.fdt_list),
-+};
-+
-+static const void *kho_get_fdt(void)
++static inline struct folio *kho_restore_folio(phys_addr_t phys)
 +{
-+	return kho_in.fdt_phys ? phys_to_virt(kho_in.fdt_phys) : NULL;
++	return NULL;
++}
++
+ static inline int kho_add_subtree(struct kho_serialization *ser,
+ 				  const char *name, void *fdt)
+ {
+--- a/kernel/kexec_handover.c~kexec-enable-kho-support-for-memory-preservation
++++ a/kernel/kexec_handover.c
+@@ -9,6 +9,7 @@
+ #define pr_fmt(fmt) "KHO: " fmt
+ 
+ #include <linux/cma.h>
++#include <linux/count_zeros.h>
+ #include <linux/debugfs.h>
+ #include <linux/kexec.h>
+ #include <linux/kexec_handover.h>
+@@ -44,12 +45,307 @@ static int __init kho_parse_enable(char
+ }
+ early_param("kho", kho_parse_enable);
+ 
++/*
++ * Keep track of memory that is to be preserved across KHO.
++ *
++ * The serializing side uses two levels of xarrays to manage chunks of per-order
++ * 512 byte bitmaps. For instance if PAGE_SIZE = 4096, the entire 1G order of a
++ * 1TB system would fit inside a single 512 byte bitmap. For order 0 allocations
++ * each bitmap will cover 16M of address space. Thus, for 16G of memory at most
++ * 512K of bitmap memory will be needed for order 0.
++ *
++ * This approach is fully incremental, as the serialization progresses folios
++ * can continue be aggregated to the tracker. The final step, immediately prior
++ * to kexec would serialize the xarray information into a linked list for the
++ * successor kernel to parse.
++ */
++
++#define PRESERVE_BITS (512 * 8)
++
++struct kho_mem_phys_bits {
++	DECLARE_BITMAP(preserve, PRESERVE_BITS);
++};
++
++struct kho_mem_phys {
++	/*
++	 * Points to kho_mem_phys_bits, a sparse bitmap array. Each bit is sized
++	 * to order.
++	 */
++	struct xarray phys_bits;
++};
++
++struct kho_mem_track {
++	/* Points to kho_mem_phys, each order gets its own bitmap tree */
++	struct xarray orders;
++};
++
++struct khoser_mem_chunk;
++
+ struct kho_serialization {
+ 	struct page *fdt;
+ 	struct list_head fdt_list;
+ 	struct dentry *sub_fdt_dir;
++	struct kho_mem_track track;
++	/* First chunk of serialized preserved memory map */
++	struct khoser_mem_chunk *preserved_mem_map;
++};
++
++static void *xa_load_or_alloc(struct xarray *xa, unsigned long index, size_t sz)
++{
++	void *elm, *res;
++
++	elm = xa_load(xa, index);
++	if (elm)
++		return elm;
++
++	elm = kzalloc(sz, GFP_KERNEL);
++	if (!elm)
++		return ERR_PTR(-ENOMEM);
++
++	res = xa_cmpxchg(xa, index, NULL, elm, GFP_KERNEL);
++	if (xa_is_err(res))
++		res = ERR_PTR(xa_err(res));
++
++	if (res) {
++		kfree(elm);
++		return res;
++	}
++
++	return elm;
++}
++
++static void __kho_unpreserve(struct kho_mem_track *track, unsigned long pfn,
++			     unsigned long end_pfn)
++{
++	struct kho_mem_phys_bits *bits;
++	struct kho_mem_phys *physxa;
++
++	while (pfn < end_pfn) {
++		const unsigned int order =
++			min(count_trailing_zeros(pfn), ilog2(end_pfn - pfn));
++		const unsigned long pfn_high = pfn >> order;
++
++		physxa = xa_load(&track->orders, order);
++		if (!physxa)
++			continue;
++
++		bits = xa_load(&physxa->phys_bits, pfn_high / PRESERVE_BITS);
++		if (!bits)
++			continue;
++
++		clear_bit(pfn_high % PRESERVE_BITS, bits->preserve);
++
++		pfn += 1 << order;
++	}
++}
++
++static int __kho_preserve_order(struct kho_mem_track *track, unsigned long pfn,
++				unsigned int order)
++{
++	struct kho_mem_phys_bits *bits;
++	struct kho_mem_phys *physxa;
++	const unsigned long pfn_high = pfn >> order;
++
++	might_sleep();
++
++	physxa = xa_load_or_alloc(&track->orders, order, sizeof(*physxa));
++	if (IS_ERR(physxa))
++		return PTR_ERR(physxa);
++
++	bits = xa_load_or_alloc(&physxa->phys_bits, pfn_high / PRESERVE_BITS,
++				sizeof(*bits));
++	if (IS_ERR(bits))
++		return PTR_ERR(bits);
++
++	set_bit(pfn_high % PRESERVE_BITS, bits->preserve);
++
++	return 0;
++}
++
++/* almost as free_reserved_page(), just don't free the page */
++static void kho_restore_page(struct page *page)
++{
++	ClearPageReserved(page);
++	init_page_count(page);
++	adjust_managed_page_count(page, 1);
 +}
 +
 +/**
-+ * kho_retrieve_subtree - retrieve a preserved sub FDT by its name.
-+ * @name: the name of the sub FDT passed to kho_add_subtree().
-+ * @phys: if found, the physical address of the sub FDT is stored in @phys.
++ * kho_restore_folio - recreates the folio from the preserved memory.
++ * @phys: physical address of the folio.
 + *
-+ * Retrieve a preserved sub FDT named @name and store its physical
-+ * address in @phys.
++ * Return: pointer to the struct folio on success, NULL on failure.
++ */
++struct folio *kho_restore_folio(phys_addr_t phys)
++{
++	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
++	unsigned long order;
++
++	if (!page)
++		return NULL;
++
++	order = page->private;
++	if (order) {
++		if (order > MAX_PAGE_ORDER)
++			return NULL;
++
++		prep_compound_page(page, order);
++	} else {
++		kho_restore_page(page);
++	}
++
++	return page_folio(page);
++}
++EXPORT_SYMBOL_GPL(kho_restore_folio);
++
++/* Serialize and deserialize struct kho_mem_phys across kexec
++ *
++ * Record all the bitmaps in a linked list of pages for the next kernel to
++ * process. Each chunk holds bitmaps of the same order and each block of bitmaps
++ * starts at a given physical address. This allows the bitmaps to be sparse. The
++ * xarray is used to store them in a tree while building up the data structure,
++ * but the KHO successor kernel only needs to process them once in order.
++ *
++ * All of this memory is normal kmalloc() memory and is not marked for
++ * preservation. The successor kernel will remain isolated to the scratch space
++ * until it completes processing this list. Once processed all the memory
++ * storing these ranges will be marked as free.
++ */
++
++struct khoser_mem_bitmap_ptr {
++	phys_addr_t phys_start;
++	DECLARE_KHOSER_PTR(bitmap, struct kho_mem_phys_bits *);
+ };
+ 
++struct khoser_mem_chunk_hdr {
++	DECLARE_KHOSER_PTR(next, struct khoser_mem_chunk *);
++	unsigned int order;
++	unsigned int num_elms;
++};
++
++#define KHOSER_BITMAP_SIZE                                   \
++	((PAGE_SIZE - sizeof(struct khoser_mem_chunk_hdr)) / \
++	 sizeof(struct khoser_mem_bitmap_ptr))
++
++struct khoser_mem_chunk {
++	struct khoser_mem_chunk_hdr hdr;
++	struct khoser_mem_bitmap_ptr bitmaps[KHOSER_BITMAP_SIZE];
++};
++
++static_assert(sizeof(struct khoser_mem_chunk) == PAGE_SIZE);
++
++static struct khoser_mem_chunk *new_chunk(struct khoser_mem_chunk *cur_chunk,
++					  unsigned long order)
++{
++	struct khoser_mem_chunk *chunk;
++
++	chunk = kzalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!chunk)
++		return NULL;
++	chunk->hdr.order = order;
++	if (cur_chunk)
++		KHOSER_STORE_PTR(cur_chunk->hdr.next, chunk);
++	return chunk;
++}
++
++static void kho_mem_ser_free(struct khoser_mem_chunk *first_chunk)
++{
++	struct khoser_mem_chunk *chunk = first_chunk;
++
++	while (chunk) {
++		struct khoser_mem_chunk *tmp = chunk;
++
++		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
++		kfree(tmp);
++	}
++}
++
++static int kho_mem_serialize(struct kho_serialization *ser)
++{
++	struct khoser_mem_chunk *first_chunk = NULL;
++	struct khoser_mem_chunk *chunk = NULL;
++	struct kho_mem_phys *physxa;
++	unsigned long order;
++
++	xa_for_each(&ser->track.orders, order, physxa) {
++		struct kho_mem_phys_bits *bits;
++		unsigned long phys;
++
++		chunk = new_chunk(chunk, order);
++		if (!chunk)
++			goto err_free;
++
++		if (!first_chunk)
++			first_chunk = chunk;
++
++		xa_for_each(&physxa->phys_bits, phys, bits) {
++			struct khoser_mem_bitmap_ptr *elm;
++
++			if (chunk->hdr.num_elms == ARRAY_SIZE(chunk->bitmaps)) {
++				chunk = new_chunk(chunk, order);
++				if (!chunk)
++					goto err_free;
++			}
++
++			elm = &chunk->bitmaps[chunk->hdr.num_elms];
++			chunk->hdr.num_elms++;
++			elm->phys_start = (phys * PRESERVE_BITS)
++					  << (order + PAGE_SHIFT);
++			KHOSER_STORE_PTR(elm->bitmap, bits);
++		}
++	}
++
++	ser->preserved_mem_map = first_chunk;
++
++	return 0;
++
++err_free:
++	kho_mem_ser_free(first_chunk);
++	return -ENOMEM;
++}
++
++static void deserialize_bitmap(unsigned int order,
++			       struct khoser_mem_bitmap_ptr *elm)
++{
++	struct kho_mem_phys_bits *bitmap = KHOSER_LOAD_PTR(elm->bitmap);
++	unsigned long bit;
++
++	for_each_set_bit(bit, bitmap->preserve, PRESERVE_BITS) {
++		int sz = 1 << (order + PAGE_SHIFT);
++		phys_addr_t phys =
++			elm->phys_start + (bit << (order + PAGE_SHIFT));
++		struct page *page = phys_to_page(phys);
++
++		memblock_reserve(phys, sz);
++		memblock_reserved_mark_noinit(phys, sz);
++		page->private = order;
++	}
++}
++
++static void __init kho_mem_deserialize(const void *fdt)
++{
++	struct khoser_mem_chunk *chunk;
++	const phys_addr_t *mem;
++	int len;
++
++	mem = fdt_getprop(fdt, 0, PROP_PRESERVED_MEMORY_MAP, &len);
++
++	if (!mem || len != sizeof(*mem)) {
++		pr_err("failed to get preserved memory bitmaps\n");
++		return;
++	}
++
++	chunk = *mem ? phys_to_virt(*mem) : NULL;
++	while (chunk) {
++		unsigned int i;
++
++		for (i = 0; i != chunk->hdr.num_elms; i++)
++			deserialize_bitmap(chunk->hdr.order,
++					   &chunk->bitmaps[i]);
++		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
++	}
++}
++
+ /*
+  * With KHO enabled, memory can become fragmented because KHO regions may
+  * be anywhere in physical address space. The scratch regions give us a
+@@ -324,6 +620,9 @@ static struct kho_out kho_out = {
+ 	.lock = __MUTEX_INITIALIZER(kho_out.lock),
+ 	.ser = {
+ 		.fdt_list = LIST_HEAD_INIT(kho_out.ser.fdt_list),
++		.track = {
++			.orders = XARRAY_INIT(kho_out.ser.track.orders, 0),
++		},
+ 	},
+ 	.finalized = false,
+ };
+@@ -340,6 +639,73 @@ int unregister_kho_notifier(struct notif
+ }
+ EXPORT_SYMBOL_GPL(unregister_kho_notifier);
+ 
++/**
++ * kho_preserve_folio - preserve a folio across kexec.
++ * @folio: folio to preserve.
++ *
++ * Instructs KHO to preserve the whole folio across kexec. The order
++ * will be preserved as well.
 + *
 + * Return: 0 on success, error code on failure
 + */
-+int kho_retrieve_subtree(const char *name, phys_addr_t *phys)
++int kho_preserve_folio(struct folio *folio)
 +{
-+	const void *fdt = kho_get_fdt();
-+	const u64 *val;
-+	int offset, len;
++	const unsigned long pfn = folio_pfn(folio);
++	const unsigned int order = folio_order(folio);
++	struct kho_mem_track *track = &kho_out.ser.track;
 +
-+	if (!fdt)
-+		return -ENOENT;
++	if (kho_out.finalized)
++		return -EBUSY;
 +
-+	if (!phys)
-+		return -EINVAL;
-+
-+	offset = fdt_subnode_offset(fdt, 0, name);
-+	if (offset < 0)
-+		return -ENOENT;
-+
-+	val = fdt_getprop(fdt, offset, PROP_SUB_FDT, &len);
-+	if (!val || len != sizeof(*val))
-+		return -EINVAL;
-+
-+	*phys = (phys_addr_t)*val;
-+
-+	return 0;
++	return __kho_preserve_order(track, pfn, order);
 +}
-+EXPORT_SYMBOL_GPL(kho_retrieve_subtree);
++EXPORT_SYMBOL_GPL(kho_preserve_folio);
 +
-+/* Handling for debugfs/kho/in */
-+
-+static __init int kho_in_debugfs_init(const void *fdt)
++/**
++ * kho_preserve_phys - preserve a physically contiguous range across kexec.
++ * @phys: physical address of the range.
++ * @size: size of the range.
++ *
++ * Instructs KHO to preserve the memory range from @phys to @phys + @size
++ * across kexec.
++ *
++ * Return: 0 on success, error code on failure
++ */
++int kho_preserve_phys(phys_addr_t phys, size_t size)
 +{
-+	struct dentry *sub_fdt_dir;
-+	int err, child;
++	unsigned long pfn = PHYS_PFN(phys);
++	unsigned long failed_pfn = 0;
++	const unsigned long start_pfn = pfn;
++	const unsigned long end_pfn = PHYS_PFN(phys + size);
++	int err = 0;
++	struct kho_mem_track *track = &kho_out.ser.track;
 +
-+	kho_in.dir = debugfs_create_dir("in", debugfs_root);
-+	if (IS_ERR(kho_in.dir))
-+		return PTR_ERR(kho_in.dir);
++	if (kho_out.finalized)
++		return -EBUSY;
 +
-+	sub_fdt_dir = debugfs_create_dir("sub_fdts", kho_in.dir);
-+	if (IS_ERR(sub_fdt_dir)) {
-+		err = PTR_ERR(sub_fdt_dir);
-+		goto err_rmdir;
-+	}
++	if (!PAGE_ALIGNED(phys) || !PAGE_ALIGNED(size))
++		return -EINVAL;
 +
-+	err = kho_debugfs_fdt_add(&kho_in.fdt_list, kho_in.dir, "fdt", fdt);
-+	if (err)
-+		goto err_rmdir;
++	while (pfn < end_pfn) {
++		const unsigned int order =
++			min(count_trailing_zeros(pfn), ilog2(end_pfn - pfn));
 +
-+	fdt_for_each_subnode(child, fdt, 0) {
-+		int len = 0;
-+		const char *name = fdt_get_name(fdt, child, NULL);
-+		const u64 *fdt_phys;
-+
-+		fdt_phys = fdt_getprop(fdt, child, "fdt", &len);
-+		if (!fdt_phys)
-+			continue;
-+		if (len != sizeof(*fdt_phys)) {
-+			pr_warn("node `%s`'s prop `fdt` has invalid length: %d\n",
-+				name, len);
-+			continue;
-+		}
-+		err = kho_debugfs_fdt_add(&kho_in.fdt_list, sub_fdt_dir, name,
-+					  phys_to_virt(*fdt_phys));
++		err = __kho_preserve_order(track, pfn, order);
 +		if (err) {
-+			pr_warn("failed to add fdt `%s` to debugfs: %d\n", name,
-+				err);
-+			continue;
++			failed_pfn = pfn;
++			break;
 +		}
++
++		pfn += 1 << order;
 +	}
 +
-+	return 0;
++	if (err)
++		__kho_unpreserve(track, start_pfn, failed_pfn);
 +
-+err_rmdir:
-+	debugfs_remove_recursive(kho_in.dir);
 +	return err;
 +}
++EXPORT_SYMBOL_GPL(kho_preserve_phys);
 +
- static __init int kho_init(void)
+ /* Handling for debug/kho/out */
+ 
+ static struct dentry *debugfs_root;
+@@ -366,6 +732,25 @@ static int kho_out_update_debugfs_fdt(vo
+ static int kho_abort(void)
+ {
+ 	int err;
++	unsigned long order;
++	struct kho_mem_phys *physxa;
++
++	xa_for_each(&kho_out.ser.track.orders, order, physxa) {
++		struct kho_mem_phys_bits *bits;
++		unsigned long phys;
++
++		xa_for_each(&physxa->phys_bits, phys, bits)
++			kfree(bits);
++
++		xa_destroy(&physxa->phys_bits);
++		kfree(physxa);
++	}
++	xa_destroy(&kho_out.ser.track.orders);
++
++	if (kho_out.ser.preserved_mem_map) {
++		kho_mem_ser_free(kho_out.ser.preserved_mem_map);
++		kho_out.ser.preserved_mem_map = NULL;
++	}
+ 
+ 	err = blocking_notifier_call_chain(&kho_out.chain_head, KEXEC_KHO_ABORT,
+ 					   NULL);
+@@ -380,12 +765,25 @@ static int kho_abort(void)
+ static int kho_finalize(void)
  {
  	int err = 0;
-+	const void *fdt = kho_get_fdt();
++	u64 *preserved_mem_map;
+ 	void *fdt = page_to_virt(kho_out.ser.fdt);
  
- 	if (!kho_enable)
- 		return 0;
-@@ -524,6 +630,20 @@ static __init int kho_init(void)
- 	if (err)
- 		goto err_free_fdt;
- 
-+	if (fdt) {
-+		err = kho_in_debugfs_init(fdt);
-+		/*
-+		 * Failure to create /sys/kernel/debug/kho/in does not prevent
-+		 * reviving state from KHO and setting up KHO for the next
-+		 * kexec.
-+		 */
-+		if (err)
-+			pr_err("failed exposing handover FDT in debugfs: %d\n",
-+			       err);
-+
-+		return 0;
-+	}
-+
- 	for (int i = 0; i < kho_scratch_cnt; i++) {
- 		unsigned long base_pfn = PHYS_PFN(kho_scratch[i].addr);
- 		unsigned long count = kho_scratch[i].size >> PAGE_SHIFT;
-@@ -551,7 +671,118 @@ err_free_scratch:
- }
- late_initcall(kho_init);
- 
-+static void __init kho_release_scratch(void)
-+{
-+	phys_addr_t start, end;
-+	u64 i;
-+
-+	memmap_init_kho_scratch_pages();
-+
-+	/*
-+	 * Mark scratch mem as CMA before we return it. That way we
-+	 * ensure that no kernel allocations happen on it. That means
-+	 * we can reuse it as scratch memory again later.
+ 	err |= fdt_create(fdt, PAGE_SIZE);
+ 	err |= fdt_finish_reservemap(fdt);
+ 	err |= fdt_begin_node(fdt, "");
+ 	err |= fdt_property_string(fdt, "compatible", KHO_FDT_COMPATIBLE);
++	/**
++	 * Reserve the preserved-memory-map property in the root FDT, so
++	 * that all property definitions will precede subnodes created by
++	 * KHO callers.
 +	 */
-+	__for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,
-+			     MEMBLOCK_KHO_SCRATCH, &start, &end, NULL) {
-+		ulong start_pfn = pageblock_start_pfn(PFN_DOWN(start));
-+		ulong end_pfn = pageblock_align(PFN_UP(end));
-+		ulong pfn;
++	err |= fdt_property_placeholder(fdt, PROP_PRESERVED_MEMORY_MAP,
++					sizeof(*preserved_mem_map),
++					(void **)&preserved_mem_map);
++	if (err)
++		goto abort;
 +
-+		for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages)
-+			set_pageblock_migratetype(pfn_to_page(pfn),
-+						  MIGRATE_CMA);
-+	}
-+}
++	err = kho_preserve_folio(page_folio(kho_out.ser.fdt));
+ 	if (err)
+ 		goto abort;
+ 
+@@ -395,6 +793,12 @@ static int kho_finalize(void)
+ 	if (err)
+ 		goto abort;
+ 
++	err = kho_mem_serialize(&kho_out.ser);
++	if (err)
++		goto abort;
 +
++	*preserved_mem_map = (u64)virt_to_phys(kho_out.ser.preserved_mem_map);
++
+ 	err |= fdt_end_node(fdt);
+ 	err |= fdt_finish(fdt);
+ 
+@@ -697,9 +1101,16 @@ static void __init kho_release_scratch(v
+ 
  void __init kho_memory_init(void)
  {
--	kho_reserve_scratch();
-+	if (kho_in.scratch_phys) {
-+		kho_scratch = phys_to_virt(kho_in.scratch_phys);
-+		kho_release_scratch();
-+	} else {
-+		kho_reserve_scratch();
-+	}
-+}
++	struct folio *folio;
 +
-+void __init kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
-+			 phys_addr_t scratch_phys, u64 scratch_len)
-+{
-+	void *fdt = NULL;
-+	struct kho_scratch *scratch = NULL;
-+	int err = 0;
-+	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
+ 	if (kho_in.scratch_phys) {
+ 		kho_scratch = phys_to_virt(kho_in.scratch_phys);
+ 		kho_release_scratch();
 +
-+	/* Validate the input FDT */
-+	fdt = early_memremap(fdt_phys, fdt_len);
-+	if (!fdt) {
-+		pr_warn("setup: failed to memremap FDT (0x%llx)\n", fdt_phys);
-+		err = -EFAULT;
-+		goto out;
-+	}
-+	err = fdt_check_header(fdt);
-+	if (err) {
-+		pr_warn("setup: handover FDT (0x%llx) is invalid: %d\n",
-+			fdt_phys, err);
-+		err = -EINVAL;
-+		goto out;
-+	}
-+	err = fdt_node_check_compatible(fdt, 0, KHO_FDT_COMPATIBLE);
-+	if (err) {
-+		pr_warn("setup: handover FDT (0x%llx) is incompatible with '%s': %d\n",
-+			fdt_phys, KHO_FDT_COMPATIBLE, err);
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	scratch = early_memremap(scratch_phys, scratch_len);
-+	if (!scratch) {
-+		pr_warn("setup: failed to memremap scratch (phys=0x%llx, len=%lld)\n",
-+			scratch_phys, scratch_len);
-+		err = -EFAULT;
-+		goto out;
-+	}
-+
-+	/*
-+	 * We pass a safe contiguous blocks of memory to use for early boot
-+	 * purporses from the previous kernel so that we can resize the
-+	 * memblock array as needed.
-+	 */
-+	for (int i = 0; i < scratch_cnt; i++) {
-+		struct kho_scratch *area = &scratch[i];
-+		u64 size = area->size;
-+
-+		memblock_add(area->addr, size);
-+		err = memblock_mark_kho_scratch(area->addr, size);
-+		if (WARN_ON(err)) {
-+			pr_warn("failed to mark the scratch region 0x%pa+0x%pa: %d",
-+				&area->addr, &size, err);
-+			goto out;
-+		}
-+		pr_debug("Marked 0x%pa+0x%pa as scratch", &area->addr, &size);
-+	}
-+
-+	memblock_reserve(scratch_phys, scratch_len);
-+
-+	/*
-+	 * Now that we have a viable region of scratch memory, let's tell
-+	 * the memblocks allocator to only use that for any allocations.
-+	 * That way we ensure that nothing scribbles over in use data while
-+	 * we initialize the page tables which we will need to ingest all
-+	 * memory reservations from the previous kernel.
-+	 */
-+	memblock_set_kho_scratch_only();
-+
-+	kho_in.fdt_phys = fdt_phys;
-+	kho_in.scratch_phys = scratch_phys;
-+	kho_scratch_cnt = scratch_cnt;
-+	pr_info("found kexec handover data. Will skip init for some devices\n");
-+
-+out:
-+	if (fdt)
-+		early_memunmap(fdt, fdt_len);
-+	if (scratch)
-+		early_memunmap(scratch, scratch_len);
-+	if (err)
-+		pr_warn("disabling KHO revival: %d\n", err);
- }
---- a/mm/memblock.c~kexec-add-kho-parsing-support
-+++ a/mm/memblock.c
-@@ -2394,6 +2394,7 @@ void __init memblock_free_all(void)
- 	free_unused_memmap();
- 	reset_all_zones_managed_pages();
- 
-+	memblock_clear_kho_scratch_only();
- 	pages = free_low_memory_core_early();
- 	totalram_pages_add(pages);
- }
++		kho_mem_deserialize(kho_get_fdt());
++		folio = kho_restore_folio(kho_in.fdt_phys);
++		if (!folio)
++			pr_warn("failed to restore folio for KHO fdt\n");
+ 	} else {
+ 		kho_reserve_scratch();
+ 	}
 _
 
-Patches currently in -mm which might be from graf@amazon.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
 
