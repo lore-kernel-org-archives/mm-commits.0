@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92D521EEA46
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB7A51EEA3C
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119305; cv=none; b=NYMpPlwUTlPegOyZxcbdZHFXeMugohqV29/z1n1dFcPlNNew7LLDVZnSAseJya7KbyWz73g1f+3i7kU7nlqMiDgxrGQrzr9Mv4Iq3gN9C3NvPZ8TaZHGOnmnIRytzj0Fh0bcgzLaqSMD214m+YGZwvP8C0B/YQRBqAlX8GyouR8=
+	t=1747119308; cv=none; b=deZaAtiXHsBISRfmO6NwLxMWmFnHaAxKm0VoSfIWu0kvlnNEDHu9Ptg//UkYpTaMhT3jdVOPZ+3cc7HDvlCfPSAZfZEQQnhGNsVSz2I9JFDT86lpx16IOe/2GJv2aYAFsEB/KMvF5L9MhFXy2AHc/yoLglbKUBYuAhO/3TQpGq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119305; c=relaxed/simple;
-	bh=//NMblIaT6nUPzanH++KPiEOVhl1ly1BHeuZL6xFaKM=;
-	h=Date:To:From:Subject:Message-Id; b=U/briwM89SjObqsvYXjnsjb3g5J+JUjkoEDDakJp9OCQAf0KAgvH0U4tv0Ki9pNQge9NUf7UpPh/OsmTZInwjLYS+pE8bHc8dUv8CLTr+/pijnVpSDUAH7B2YyZCUvd0OFePYmuYD/UyWelIJJIv5WngBaLMXZku8ixwlMhDWaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C24smKme; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119308; c=relaxed/simple;
+	bh=wydPqJab/da/TmddqduRBPqUjERNww4xp32dzsqFR1s=;
+	h=Date:To:From:Subject:Message-Id; b=VnOtB/12A4eY8+zxeDzkRvDTf87+EUfrCP20kV1vkq8FlofyP2xBVRRC2smOf0rVqhTCK658VXzpoDtvOj33o3YUJLQIKgEZvsspwS42xrptX2OlOWJbUp09JlCEophfGXe64ISznRgG6S5r9h+QRJbdHxMT+qq2wgOFrOcURHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ubywMKRH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C24smKme"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67CE4C4CEE4;
-	Tue, 13 May 2025 06:55:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ubywMKRH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25F21C4CEE4;
+	Tue, 13 May 2025 06:55:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119305;
-	bh=//NMblIaT6nUPzanH++KPiEOVhl1ly1BHeuZL6xFaKM=;
+	s=korg; t=1747119308;
+	bh=wydPqJab/da/TmddqduRBPqUjERNww4xp32dzsqFR1s=;
 	h=Date:To:From:Subject:From;
-	b=C24smKmewNUZzvPng2mgkbenSAyLrR8oQas8mE9pq9ZKXiQAJmtVC1fnnmem16fE0
-	 NfvgVqX6trznn3oemfiGofhzLKunA0WTC++Q7gn0iIj7mJk3L70cUkM+/Az22IV95c
-	 cQ9jC4FEuRxE1WjhDJEYU/yBqfceaWhjuCAQrqGc=
-Date: Mon, 12 May 2025 23:55:04 -0700
+	b=ubywMKRHYJKypvZzgvQBxRn87PsACfSWwW+1+eS2vW43SGxLFtMCqJziRH6Y25pcy
+	 Ng1p6l6dGEHkaIhedAuPaTOd42Yv10lCm+WkCLkYhzdQE8edFNTdFja8DBPhbYf4Il
+	 9mBPtiaJBF1DVBMDFiD6XwJGU8toOMlm8wSD5FcI=
+Date: Mon, 12 May 2025 23:55:07 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,pfalcato@suse.de,Liam.Howlett@oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch removed from -mm tree
-Message-Id: <20250513065505.67CE4C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-abstract-initial-stack-setup-to-mm-subsystem.patch removed from -mm tree
+Message-Id: <20250513065508.25F21C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: establish mm/vma_exec.c for shared exec/mm VMA functionality
+     Subject: mm: abstract initial stack setup to mm subsystem
 has been removed from the -mm tree.  Its filename was
-     mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality.patch
+     mm-abstract-initial-stack-setup-to-mm-subsystem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: establish mm/vma_exec.c for shared exec/mm VMA functionality
-Date: Mon, 28 Apr 2025 16:28:14 +0100
+Subject: mm: abstract initial stack setup to mm subsystem
+Date: Mon, 28 Apr 2025 16:28:15 +0100
 
-Patch series "move all VMA allocation, freeing and duplication logic to
-mm", v3.
+There are peculiarities within the kernel where what is very clearly mm
+code is performed elsewhere arbitrarily.
 
-Currently VMA allocation, freeing and duplication exist in kernel/fork.c,
-which is a violation of separation of concerns, and leaves these functions
-exposed to the rest of the kernel when they are in fact internal
-implementation details.
+This violates separation of concerns and makes it harder to refactor code
+to make changes to how fundamental initialisation and operation of mm
+logic is performed.
 
-Resolve this by moving this logic to mm, and making it internal to vma.c,
-vma.h.
+One such case is the creation of the VMA containing the initial stack upon
+execve()'ing a new process.  This is currently performed in
+__bprm_mm_init() in fs/exec.c.
 
-This also allows us, in future, to provide userland testing around this
-functionality.
+Abstract this operation to create_init_stack_vma().  This allows us to
+limit use of vma allocation and free code to fork and mm only.
 
-We additionally abstract dup_mmap() to mm, being careful to ensure
-kernel/fork.c acceses this via the mm internal header so it is not exposed
-elsewhere in the kernel.
+We previously did the same for the step at which we relocate the initial
+stack VMA downwards via relocate_vma_down(), now we move the initial VMA
+establishment too.
 
-As part of this change, also abstract initial stack allocation performed
-in __bprm_mm_init() out of fs code into mm via the
-create_init_stack_vma(), as this code uses vm_area_alloc() and
-vm_area_free().
+Take the opportunity to also move insert_vm_struct() to mm/vma.c as it's
+no longer needed anywhere outside of mm.
 
-In order to do so sensibly, we introduce a new mm/vma_exec.c file, which
-contains the code that is shared by mm and exec.  This file is added to
-both memory mapping and exec sections in MAINTAINERS so both sets of
-maintainers can maintain oversight.
-
-As part of this change, we also move relocate_vma_down() to mm/vma_exec.c
-so all shared mm/exec functionality is kept in one place.
-
-We add code shared between nommu and mmu-enabled configurations in order
-to share VMA allocation, freeing and duplication code correctly while also
-keeping these functions available in userland VMA testing.
-
-This is achieved by adding a mm/vma_init.c file which is also compiled by
-the userland tests.
-
-
-This patch (of 4):
-
-There is functionality that overlaps the exec and memory mapping
-subsystems.  While it properly belongs in mm, it is important that exec
-maintainers maintain oversight of this functionality correctly.
-
-We can establish both goals by adding a new mm/vma_exec.c file which
-contains these 'glue' functions, and have fs/exec.c import them.
-
-As a part of this change, to ensure that proper oversight is achieved, add
-the file to both the MEMORY MAPPING and EXEC & BINFMT API, ELF sections.
-
-scripts/get_maintainer.pl can correctly handle files in multiple entries
-and this neatly handles the cross-over.
-
-[akpm@linux-foundation.org: fix comment typo]
-  Link: https://lkml.kernel.org/r/80f0d0c6-0b68-47f9-ab78-0ab7f74677fc@lucifer.local
-Link: https://lkml.kernel.org/r/cover.1745853549.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/91f2cee8f17d65214a9d83abb7011aa15f1ea690.1745853549.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/118c950ef7a8dd19ab20a23a68c3603751acd30e.1745853549.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Kees Cook <kees@kernel.org>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -119,342 +83,352 @@ Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                      |    2 
- fs/exec.c                        |    3 
- include/linux/mm.h               |    1 
- mm/Makefile                      |    2 
- mm/mmap.c                        |   83 --------------------------
- mm/vma.h                         |    5 +
- mm/vma_exec.c                    |   92 +++++++++++++++++++++++++++++
- tools/testing/vma/Makefile       |    2 
- tools/testing/vma/vma.c          |    1 
- tools/testing/vma/vma_internal.h |   40 ++++++++++++
- 10 files changed, 145 insertions(+), 86 deletions(-)
+ fs/exec.c                        |   66 ++-------------------------
+ mm/mmap.c                        |   42 -----------------
+ mm/vma.c                         |   43 ++++++++++++++++++
+ mm/vma.h                         |    4 +
+ mm/vma_exec.c                    |   69 +++++++++++++++++++++++++++++
+ tools/testing/vma/vma_internal.h |   32 +++++++++++++
+ 6 files changed, 153 insertions(+), 103 deletions(-)
 
---- a/fs/exec.c~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
+--- a/fs/exec.c~mm-abstract-initial-stack-setup-to-mm-subsystem
 +++ a/fs/exec.c
-@@ -78,6 +78,9 @@
- 
- #include <trace/events/sched.h>
- 
-+/* For vma exec functions. */
-+#include "../mm/internal.h"
-+
- static int bprm_creds_from_file(struct linux_binprm *bprm);
- 
- int suid_dumpable = 0;
---- a/include/linux/mm.h~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
-+++ a/include/linux/mm.h
-@@ -3278,7 +3278,6 @@ void anon_vma_interval_tree_verify(struc
- extern int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin);
- extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void exit_mmap(struct mm_struct *);
--int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
- bool mmap_read_lock_maybe_expand(struct mm_struct *mm, struct vm_area_struct *vma,
- 				 unsigned long addr, bool write);
- 
---- a/MAINTAINERS~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
-+++ a/MAINTAINERS
-@@ -8840,6 +8840,7 @@ F:	include/linux/elf.h
- F:	include/uapi/linux/auxvec.h
- F:	include/uapi/linux/binfmts.h
- F:	include/uapi/linux/elf.h
-+F:	mm/vma_exec.c
- F:	tools/testing/selftests/exec/
- N:	asm/elf.h
- N:	binfmt
-@@ -15681,6 +15682,7 @@ F:	mm/mremap.c
- F:	mm/mseal.c
- F:	mm/vma.c
- F:	mm/vma.h
-+F:	mm/vma_exec.c
- F:	mm/vma_internal.h
- F:	tools/testing/selftests/mm/merge.c
- F:	tools/testing/vma/
---- a/mm/Makefile~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
-+++ a/mm/Makefile
-@@ -37,7 +37,7 @@ mmu-y			:= nommu.o
- mmu-$(CONFIG_MMU)	:= highmem.o memory.o mincore.o \
- 			   mlock.o mmap.o mmu_gather.o mprotect.o mremap.o \
- 			   msync.o page_vma_mapped.o pagewalk.o \
--			   pgtable-generic.o rmap.o vmalloc.o vma.o
-+			   pgtable-generic.o rmap.o vmalloc.o vma.o vma_exec.o
- 
- 
- ifdef CONFIG_CROSS_MEMORY_ATTACH
---- a/mm/mmap.c~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
-+++ a/mm/mmap.c
-@@ -1717,89 +1717,6 @@ static int __meminit init_reserve_notifi
+@@ -245,60 +245,6 @@ static void flush_arg_page(struct linux_
+ 	flush_cache_page(bprm->vma, pos, page_to_pfn(page));
  }
- subsys_initcall(init_reserve_notifier);
  
--/*
-- * Relocate a VMA downwards by shift bytes. There cannot be any VMAs between
-- * this VMA and its relocated range, which will now reside at [vma->vm_start -
-- * shift, vma->vm_end - shift).
-- *
-- * This function is almost certainly NOT what you want for anything other than
-- * early executable temporary stack relocation.
-- */
--int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift)
+-static int __bprm_mm_init(struct linux_binprm *bprm)
 -{
--	/*
--	 * The process proceeds as follows:
--	 *
--	 * 1) Use shift to calculate the new vma endpoints.
--	 * 2) Extend vma to cover both the old and new ranges.  This ensures the
--	 *    arguments passed to subsequent functions are consistent.
--	 * 3) Move vma's page tables to the new range.
--	 * 4) Free up any cleared pgd range.
--	 * 5) Shrink the vma to cover only the new range.
--	 */
+-	int err;
+-	struct vm_area_struct *vma = NULL;
+-	struct mm_struct *mm = bprm->mm;
 -
--	struct mm_struct *mm = vma->vm_mm;
--	unsigned long old_start = vma->vm_start;
--	unsigned long old_end = vma->vm_end;
--	unsigned long length = old_end - old_start;
--	unsigned long new_start = old_start - shift;
--	unsigned long new_end = old_end - shift;
--	VMA_ITERATOR(vmi, mm, new_start);
--	VMG_STATE(vmg, mm, &vmi, new_start, old_end, 0, vma->vm_pgoff);
--	struct vm_area_struct *next;
--	struct mmu_gather tlb;
--	PAGETABLE_MOVE(pmc, vma, vma, old_start, new_start, length);
--
--	BUG_ON(new_start > new_end);
--
--	/*
--	 * ensure there are no vmas between where we want to go
--	 * and where we are
--	 */
--	if (vma != vma_next(&vmi))
--		return -EFAULT;
--
--	vma_iter_prev_range(&vmi);
--	/*
--	 * cover the whole range: [new_start, old_end)
--	 */
--	vmg.middle = vma;
--	if (vma_expand(&vmg))
+-	bprm->vma = vma = vm_area_alloc(mm);
+-	if (!vma)
 -		return -ENOMEM;
+-	vma_set_anonymous(vma);
 -
--	/*
--	 * move the page tables downwards, on failure we rely on
--	 * process cleanup to remove whatever mess we made.
--	 */
--	pmc.for_stack = true;
--	if (length != move_page_tables(&pmc))
--		return -ENOMEM;
--
--	tlb_gather_mmu(&tlb, mm);
--	next = vma_next(&vmi);
--	if (new_end > old_start) {
--		/*
--		 * when the old and new regions overlap clear from new_end.
--		 */
--		free_pgd_range(&tlb, new_end, old_end, new_end,
--			next ? next->vm_start : USER_PGTABLES_CEILING);
--	} else {
--		/*
--		 * otherwise, clean from old_start; this is done to not touch
--		 * the address space in [new_end, old_start) some architectures
--		 * have constraints on va-space that make this illegal (IA64) -
--		 * for the others its just a little faster.
--		 */
--		free_pgd_range(&tlb, old_start, old_end, new_end,
--			next ? next->vm_start : USER_PGTABLES_CEILING);
+-	if (mmap_write_lock_killable(mm)) {
+-		err = -EINTR;
+-		goto err_free;
 -	}
--	tlb_finish_mmu(&tlb);
 -
--	vma_prev(&vmi);
--	/* Shrink the vma to just the new range */
--	return vma_shrink(&vmi, vma, new_start, new_end, vma->vm_pgoff);
+-	/*
+-	 * Need to be called with mmap write lock
+-	 * held, to avoid race with ksmd.
+-	 */
+-	err = ksm_execve(mm);
+-	if (err)
+-		goto err_ksm;
+-
+-	/*
+-	 * Place the stack at the largest stack address the architecture
+-	 * supports. Later, we'll move this to an appropriate place. We don't
+-	 * use STACK_TOP because that can depend on attributes which aren't
+-	 * configured yet.
+-	 */
+-	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
+-	vma->vm_end = STACK_TOP_MAX;
+-	vma->vm_start = vma->vm_end - PAGE_SIZE;
+-	vm_flags_init(vma, VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP);
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+-
+-	err = insert_vm_struct(mm, vma);
+-	if (err)
+-		goto err;
+-
+-	mm->stack_vm = mm->total_vm = 1;
+-	mmap_write_unlock(mm);
+-	bprm->p = vma->vm_end - sizeof(void *);
+-	return 0;
+-err:
+-	ksm_exit(mm);
+-err_ksm:
+-	mmap_write_unlock(mm);
+-err_free:
+-	bprm->vma = NULL;
+-	vm_area_free(vma);
+-	return err;
 -}
 -
- #ifdef CONFIG_MMU
+ static bool valid_arg_len(struct linux_binprm *bprm, long len)
+ {
+ 	return len <= MAX_ARG_STRLEN;
+@@ -351,12 +297,6 @@ static void flush_arg_page(struct linux_
+ {
+ }
+ 
+-static int __bprm_mm_init(struct linux_binprm *bprm)
+-{
+-	bprm->p = PAGE_SIZE * MAX_ARG_PAGES - sizeof(void *);
+-	return 0;
+-}
+-
+ static bool valid_arg_len(struct linux_binprm *bprm, long len)
+ {
+ 	return len <= bprm->p;
+@@ -385,9 +325,13 @@ static int bprm_mm_init(struct linux_bin
+ 	bprm->rlim_stack = current->signal->rlim[RLIMIT_STACK];
+ 	task_unlock(current->group_leader);
+ 
+-	err = __bprm_mm_init(bprm);
++#ifndef CONFIG_MMU
++	bprm->p = PAGE_SIZE * MAX_ARG_PAGES - sizeof(void *);
++#else
++	err = create_init_stack_vma(bprm->mm, &bprm->vma, &bprm->p);
+ 	if (err)
+ 		goto err;
++#endif
+ 
+ 	return 0;
+ 
+--- a/mm/mmap.c~mm-abstract-initial-stack-setup-to-mm-subsystem
++++ a/mm/mmap.c
+@@ -1321,48 +1321,6 @@ destroy:
+ 	vm_unacct_memory(nr_accounted);
+ }
+ 
+-/* Insert vm structure into process list sorted by address
+- * and into the inode's i_mmap tree.  If vm_file is non-NULL
+- * then i_mmap_rwsem is taken here.
+- */
+-int insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
+-{
+-	unsigned long charged = vma_pages(vma);
+-
+-
+-	if (find_vma_intersection(mm, vma->vm_start, vma->vm_end))
+-		return -ENOMEM;
+-
+-	if ((vma->vm_flags & VM_ACCOUNT) &&
+-	     security_vm_enough_memory_mm(mm, charged))
+-		return -ENOMEM;
+-
+-	/*
+-	 * The vm_pgoff of a purely anonymous vma should be irrelevant
+-	 * until its first write fault, when page's anon_vma and index
+-	 * are set.  But now set the vm_pgoff it will almost certainly
+-	 * end up with (unless mremap moves it elsewhere before that
+-	 * first wfault), so /proc/pid/maps tells a consistent story.
+-	 *
+-	 * By setting it to reflect the virtual start address of the
+-	 * vma, merges and splits can happen in a seamless way, just
+-	 * using the existing file pgoff checks and manipulations.
+-	 * Similarly in do_mmap and in do_brk_flags.
+-	 */
+-	if (vma_is_anonymous(vma)) {
+-		BUG_ON(vma->anon_vma);
+-		vma->vm_pgoff = vma->vm_start >> PAGE_SHIFT;
+-	}
+-
+-	if (vma_link(mm, vma)) {
+-		if (vma->vm_flags & VM_ACCOUNT)
+-			vm_unacct_memory(charged);
+-		return -ENOMEM;
+-	}
+-
+-	return 0;
+-}
+-
  /*
-  * Obtain a read lock on mm->mmap_lock, if the specified address is below the
-diff --git a/mm/vma_exec.c a/mm/vma_exec.c
-new file mode 100644
---- /dev/null
-+++ a/mm/vma_exec.c
-@@ -0,0 +1,92 @@
-+// SPDX-License-Identifier: GPL-2.0-only
+  * Return true if the calling process may expand its vm space by the passed
+  * number of pages
+--- a/mm/vma.c~mm-abstract-initial-stack-setup-to-mm-subsystem
++++ a/mm/vma.c
+@@ -3052,3 +3052,46 @@ int __vm_munmap(unsigned long start, siz
+ 	userfaultfd_unmap_complete(mm, &uf);
+ 	return ret;
+ }
 +
-+/*
-+ * Functions explicitly implemented for exec functionality which however are
-+ * explicitly VMA-only logic.
++
++/* Insert vm structure into process list sorted by address
++ * and into the inode's i_mmap tree.  If vm_file is non-NULL
++ * then i_mmap_rwsem is taken here.
 + */
++int insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
++{
++	unsigned long charged = vma_pages(vma);
 +
-+#include "vma_internal.h"
-+#include "vma.h"
++
++	if (find_vma_intersection(mm, vma->vm_start, vma->vm_end))
++		return -ENOMEM;
++
++	if ((vma->vm_flags & VM_ACCOUNT) &&
++	     security_vm_enough_memory_mm(mm, charged))
++		return -ENOMEM;
++
++	/*
++	 * The vm_pgoff of a purely anonymous vma should be irrelevant
++	 * until its first write fault, when page's anon_vma and index
++	 * are set.  But now set the vm_pgoff it will almost certainly
++	 * end up with (unless mremap moves it elsewhere before that
++	 * first wfault), so /proc/pid/maps tells a consistent story.
++	 *
++	 * By setting it to reflect the virtual start address of the
++	 * vma, merges and splits can happen in a seamless way, just
++	 * using the existing file pgoff checks and manipulations.
++	 * Similarly in do_mmap and in do_brk_flags.
++	 */
++	if (vma_is_anonymous(vma)) {
++		BUG_ON(vma->anon_vma);
++		vma->vm_pgoff = vma->vm_start >> PAGE_SHIFT;
++	}
++
++	if (vma_link(mm, vma)) {
++		if (vma->vm_flags & VM_ACCOUNT)
++			vm_unacct_memory(charged);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
+--- a/mm/vma_exec.c~mm-abstract-initial-stack-setup-to-mm-subsystem
++++ a/mm/vma_exec.c
+@@ -90,3 +90,72 @@ int relocate_vma_down(struct vm_area_str
+ 	/* Shrink the vma to just the new range */
+ 	return vma_shrink(&vmi, vma, new_start, new_end, vma->vm_pgoff);
+ }
 +
 +/*
-+ * Relocate a VMA downwards by shift bytes. There cannot be any VMAs between
-+ * this VMA and its relocated range, which will now reside at [vma->vm_start -
-+ * shift, vma->vm_end - shift).
++ * Establish the stack VMA in an execve'd process, located temporarily at the
++ * maximum stack address provided by the architecture.
++ *
++ * We later relocate this downwards in relocate_vma_down().
 + *
 + * This function is almost certainly NOT what you want for anything other than
-+ * early executable temporary stack relocation.
++ * early executable initialisation.
++ *
++ * On success, returns 0 and sets *vmap to the stack VMA and *top_mem_p to the
++ * maximum addressable location in the stack (that is capable of storing a
++ * system word of data).
 + */
-+int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift)
++int create_init_stack_vma(struct mm_struct *mm, struct vm_area_struct **vmap,
++			  unsigned long *top_mem_p)
 +{
-+	/*
-+	 * The process proceeds as follows:
-+	 *
-+	 * 1) Use shift to calculate the new vma endpoints.
-+	 * 2) Extend vma to cover both the old and new ranges.  This ensures the
-+	 *    arguments passed to subsequent functions are consistent.
-+	 * 3) Move vma's page tables to the new range.
-+	 * 4) Free up any cleared pgd range.
-+	 * 5) Shrink the vma to cover only the new range.
-+	 */
++	int err;
++	struct vm_area_struct *vma = vm_area_alloc(mm);
 +
-+	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long old_start = vma->vm_start;
-+	unsigned long old_end = vma->vm_end;
-+	unsigned long length = old_end - old_start;
-+	unsigned long new_start = old_start - shift;
-+	unsigned long new_end = old_end - shift;
-+	VMA_ITERATOR(vmi, mm, new_start);
-+	VMG_STATE(vmg, mm, &vmi, new_start, old_end, 0, vma->vm_pgoff);
-+	struct vm_area_struct *next;
-+	struct mmu_gather tlb;
-+	PAGETABLE_MOVE(pmc, vma, vma, old_start, new_start, length);
-+
-+	BUG_ON(new_start > new_end);
-+
-+	/*
-+	 * ensure there are no vmas between where we want to go
-+	 * and where we are
-+	 */
-+	if (vma != vma_next(&vmi))
-+		return -EFAULT;
-+
-+	vma_iter_prev_range(&vmi);
-+	/*
-+	 * cover the whole range: [new_start, old_end)
-+	 */
-+	vmg.middle = vma;
-+	if (vma_expand(&vmg))
++	if (!vma)
 +		return -ENOMEM;
 +
-+	/*
-+	 * move the page tables downwards, on failure we rely on
-+	 * process cleanup to remove whatever mess we made.
-+	 */
-+	pmc.for_stack = true;
-+	if (length != move_page_tables(&pmc))
-+		return -ENOMEM;
++	vma_set_anonymous(vma);
 +
-+	tlb_gather_mmu(&tlb, mm);
-+	next = vma_next(&vmi);
-+	if (new_end > old_start) {
-+		/*
-+		 * when the old and new regions overlap clear from new_end.
-+		 */
-+		free_pgd_range(&tlb, new_end, old_end, new_end,
-+			next ? next->vm_start : USER_PGTABLES_CEILING);
-+	} else {
-+		/*
-+		 * otherwise, clean from old_start; this is done to not touch
-+		 * the address space in [new_end, old_start) some architectures
-+		 * have constraints on va-space that make this illegal (IA64) -
-+		 * for the others its just a little faster.
-+		 */
-+		free_pgd_range(&tlb, old_start, old_end, new_end,
-+			next ? next->vm_start : USER_PGTABLES_CEILING);
++	if (mmap_write_lock_killable(mm)) {
++		err = -EINTR;
++		goto err_free;
 +	}
-+	tlb_finish_mmu(&tlb);
 +
-+	vma_prev(&vmi);
-+	/* Shrink the vma to just the new range */
-+	return vma_shrink(&vmi, vma, new_start, new_end, vma->vm_pgoff);
++	/*
++	 * Need to be called with mmap write lock
++	 * held, to avoid race with ksmd.
++	 */
++	err = ksm_execve(mm);
++	if (err)
++		goto err_ksm;
++
++	/*
++	 * Place the stack at the largest stack address the architecture
++	 * supports. Later, we'll move this to an appropriate place. We don't
++	 * use STACK_TOP because that can depend on attributes which aren't
++	 * configured yet.
++	 */
++	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
++	vma->vm_end = STACK_TOP_MAX;
++	vma->vm_start = vma->vm_end - PAGE_SIZE;
++	vm_flags_init(vma, VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP);
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++
++	err = insert_vm_struct(mm, vma);
++	if (err)
++		goto err;
++
++	mm->stack_vm = mm->total_vm = 1;
++	mmap_write_unlock(mm);
++	*vmap = vma;
++	*top_mem_p = vma->vm_end - sizeof(void *);
++	return 0;
++
++err:
++	ksm_exit(mm);
++err_ksm:
++	mmap_write_unlock(mm);
++err_free:
++	*vmap = NULL;
++	vm_area_free(vma);
++	return err;
 +}
---- a/mm/vma.h~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
+--- a/mm/vma.h~mm-abstract-initial-stack-setup-to-mm-subsystem
 +++ a/mm/vma.h
-@@ -548,4 +548,9 @@ int expand_downwards(struct vm_area_stru
+@@ -548,8 +548,12 @@ int expand_downwards(struct vm_area_stru
  
  int __vm_munmap(unsigned long start, size_t len, bool unlock);
  
-+/* vma_exec.c */
-+#ifdef CONFIG_MMU
-+int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
++int insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma);
++
+ /* vma_exec.c */
+ #ifdef CONFIG_MMU
++int create_init_stack_vma(struct mm_struct *mm, struct vm_area_struct **vmap,
++			  unsigned long *top_mem_p);
+ int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
+ #endif
+ 
+--- a/tools/testing/vma/vma_internal.h~mm-abstract-initial-stack-setup-to-mm-subsystem
++++ a/tools/testing/vma/vma_internal.h
+@@ -56,6 +56,8 @@ extern unsigned long dac_mmap_min_addr;
+ #define VM_PFNMAP	0x00000400
+ #define VM_LOCKED	0x00002000
+ #define VM_IO           0x00004000
++#define VM_SEQ_READ	0x00008000	/* App will access data sequentially */
++#define VM_RAND_READ	0x00010000	/* App will not benefit from clustered reads */
+ #define VM_DONTEXPAND	0x00040000
+ #define VM_LOCKONFAULT	0x00080000
+ #define VM_ACCOUNT	0x00100000
+@@ -70,6 +72,20 @@ extern unsigned long dac_mmap_min_addr;
+ #define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
+ #define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
+ 
++#ifdef CONFIG_STACK_GROWSUP
++#define VM_STACK	VM_GROWSUP
++#define VM_STACK_EARLY	VM_GROWSDOWN
++#else
++#define VM_STACK	VM_GROWSDOWN
++#define VM_STACK_EARLY	0
 +#endif
 +
- #endif	/* __MM_VMA_H */
---- a/tools/testing/vma/Makefile~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
-+++ a/tools/testing/vma/Makefile
-@@ -9,7 +9,7 @@ include ../shared/shared.mk
- OFILES = $(SHARED_OFILES) vma.o maple-shim.o
- TARGETS = vma
- 
--vma.o: vma.c vma_internal.h ../../../mm/vma.c ../../../mm/vma.h
-+vma.o: vma.c vma_internal.h ../../../mm/vma.c ../../../mm/vma_exec.c ../../../mm/vma.h
- 
- vma:	$(OFILES)
- 	$(CC) $(CFLAGS) -o $@ $(OFILES) $(LDLIBS)
---- a/tools/testing/vma/vma.c~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
-+++ a/tools/testing/vma/vma.c
-@@ -28,6 +28,7 @@ unsigned long stack_guard_gap = 256UL<<P
-  * Directly import the VMA implementation here. Our vma_internal.h wrapper
-  * provides userland-equivalent functionality for everything vma.c uses.
-  */
-+#include "../../../mm/vma_exec.c"
- #include "../../../mm/vma.c"
- 
- const struct vm_operations_struct vma_dummy_vm_ops;
---- a/tools/testing/vma/vma_internal.h~mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality
-+++ a/tools/testing/vma/vma_internal.h
-@@ -421,6 +421,28 @@ struct vm_unmapped_area_info {
- 	unsigned long start_gap;
- };
- 
-+struct pagetable_move_control {
-+	struct vm_area_struct *old; /* Source VMA. */
-+	struct vm_area_struct *new; /* Destination VMA. */
-+	unsigned long old_addr; /* Address from which the move begins. */
-+	unsigned long old_end; /* Exclusive address at which old range ends. */
-+	unsigned long new_addr; /* Address to move page tables to. */
-+	unsigned long len_in; /* Bytes to remap specified by user. */
++#define DEFAULT_MAP_WINDOW	((1UL << 47) - PAGE_SIZE)
++#define TASK_SIZE_LOW		DEFAULT_MAP_WINDOW
++#define TASK_SIZE_MAX		DEFAULT_MAP_WINDOW
++#define STACK_TOP		TASK_SIZE_LOW
++#define STACK_TOP_MAX		TASK_SIZE_MAX
 +
-+	bool need_rmap_locks; /* Do rmap locks need to be taken? */
-+	bool for_stack; /* Is this an early temp stack being moved? */
-+};
+ /* This mask represents all the VMA flag bits used by mlock */
+ #define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
+ 
+@@ -82,6 +98,10 @@ extern unsigned long dac_mmap_min_addr;
+ 
+ #define VM_STARTGAP_FLAGS (VM_GROWSDOWN | VM_SHADOW_STACK)
+ 
++#define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
++#define VM_STACK_FLAGS	(VM_STACK | VM_STACK_DEFAULT_FLAGS | VM_ACCOUNT)
++#define VM_STACK_INCOMPLETE_SETUP (VM_RAND_READ | VM_SEQ_READ | VM_STACK_EARLY)
 +
-+#define PAGETABLE_MOVE(name, old_, new_, old_addr_, new_addr_, len_)	\
-+	struct pagetable_move_control name = {				\
-+		.old = old_,						\
-+		.new = new_,						\
-+		.old_addr = old_addr_,					\
-+		.old_end = (old_addr_) + (len_),			\
-+		.new_addr = new_addr_,					\
-+		.len_in = len_,						\
-+	}
-+
- static inline void vma_iter_invalidate(struct vma_iterator *vmi)
- {
- 	mas_pause(&vmi->mas);
-@@ -1240,4 +1262,22 @@ static inline int mapping_map_writable(s
- 	return 0;
+ #define RLIMIT_STACK		3	/* max stack size */
+ #define RLIMIT_MEMLOCK		8	/* max locked-in-memory address space */
+ 
+@@ -1280,4 +1300,16 @@ static inline void free_pgd_range(struct
+ 	(void)ceiling;
  }
  
-+static inline unsigned long move_page_tables(struct pagetable_move_control *pmc)
++static inline int ksm_execve(struct mm_struct *mm)
 +{
-+	(void)pmc;
++	(void)mm;
 +
 +	return 0;
 +}
 +
-+static inline void free_pgd_range(struct mmu_gather *tlb,
-+			unsigned long addr, unsigned long end,
-+			unsigned long floor, unsigned long ceiling)
++static inline void ksm_exit(struct mm_struct *mm)
 +{
-+	(void)tlb;
-+	(void)addr;
-+	(void)end;
-+	(void)floor;
-+	(void)ceiling;
++	(void)mm;
 +}
 +
  #endif	/* __MM_VMA_INTERNAL_H */
