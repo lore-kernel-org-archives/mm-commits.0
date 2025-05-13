@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 205DA1EEA47
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FE001EFF8B
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119345; cv=none; b=NkU+RJ8/MhIDbAlholuvWuTLOzuxY9ZK8YJL6u/kEZbYtXpJmD3Qo1WuYt0vczyTogi5NDBgRuJIz66bBaYiz9TpNPG/SrQCGCcwk5Kyw+Wi4requ1jVt9fNxPW/QCEgS6Kp6phCAdpWDXi1/myRk15/I4+h9cEzGerQ/IwNL1M=
+	t=1747119346; cv=none; b=MWChoA6HOJfgRYV7plW0NL+IS60JMgxugYtVY65I7t8ZHMuvgmNxao5jAY6UBbiRCgV0TueRRQjVDLK6/oxxyJalaokSIajLptO0Shh4kCvyE36UQDToLt05Iin1N0bjDA/Xd+Ox2tA9AcBGvmyfiJTZ2ElYLQ4fE8+gP56dwQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119345; c=relaxed/simple;
-	bh=dFIpC2K6Y/MQk88YooNhnTgflWVSaoigtfOiyiPSdek=;
-	h=Date:To:From:Subject:Message-Id; b=f0m4OWEB/71woH5a+7OlVDhUoLrn8YbgIIfiJYhTMRadrqHfB1yPjMopY93P4S7t6qVzziRmI1mpyNdgLnDjI+AwlzizJK5dO07yjniloABmF2xdDI18H1W1YteBM/MHmRZMWFiajOpiO9f9shVRDLIj3Lr1uN/AaiFuYVdYksI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IuceEd6r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119346; c=relaxed/simple;
+	bh=MTb0pjCKOP0jtLT7OPG+1beusvLDzAk0iAshpwRvpkk=;
+	h=Date:To:From:Subject:Message-Id; b=o8MbPEszpONBPY7Cu6+uA5DCCIJ8hSYwvPet3H5uJHcCAxPM8WGyXU/00PigNvskvvqHROA6hFhkGtt02ugJNCMUamfu6cbMJUyP4IMQUUH/tqCLYc4aEgxWgqXkn1+HFDY379z+0RcXdRW7VBpd4w6BGaXn6EDlVLWc2negc84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IXWQzW6n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IuceEd6r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9E58C4CEE4;
-	Tue, 13 May 2025 06:55:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IXWQzW6n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74E93C4CEED;
+	Tue, 13 May 2025 06:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119345;
-	bh=dFIpC2K6Y/MQk88YooNhnTgflWVSaoigtfOiyiPSdek=;
+	s=korg; t=1747119346;
+	bh=MTb0pjCKOP0jtLT7OPG+1beusvLDzAk0iAshpwRvpkk=;
 	h=Date:To:From:Subject:From;
-	b=IuceEd6r2PVv2Nsbsn7Niz1/Q4P1X7IX9l1lli5dNbUxJwQQGIfX3eLKoDBH+1fLG
-	 5v+ECMLeEPrI/2QCjjuXBkxXsRna6Ocgr//j+6TfDKhj+aAsz3ogJC6nBalcoAEulH
-	 9dyMC5AZ75xbvEVeLFPDRyGtjgIhnj4LKeLrjk+0=
-Date: Mon, 12 May 2025 23:55:44 -0700
+	b=IXWQzW6nUNkzUVZsvtSkgeBIjv70Qswaz7t8zs7HIxCfMJm8M05nQH9umsE6PCbhe
+	 pDxcgwuBTJFr6pKEBlUaGzAn9aVi/E74wG6JGAYKFNKkNcUYpZ+MUTOFmwuFaMXlRa
+	 XLpFS6AAZxOHJ8TevZaOzW3VBKkqrdZeHJyKV0es=
+Date: Mon, 12 May 2025 23:55:45 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch removed from -mm tree
-Message-Id: <20250513065544.E9E58C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch removed from -mm tree
+Message-Id: <20250513065546.74E93C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,124 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
+     Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
 has been removed from the -mm tree.  Its filename was
-     selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
+     selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
-Date: Thu, 1 May 2025 21:04:42 -0400
+Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
+Date: Thu, 1 May 2025 21:04:43 -0400
 
-Patch series "memcg: Fix test_memcg_min/low test failures", v8.
+The test_memcg_protection() function is used for the test_memcg_min and
+test_memcg_low sub-tests.  This function generates a set of parent/child
+cgroups like:
 
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test (with memory_recursiveprot enabled) and sporadically fails its
-test_memcg_min sub-test.  This patchset fixes the test_memcg_min and
-test_memcg_low failures by adjusting the test_memcontrol selftest to fix
-these test failures.
+  parent:  memory.min/low = 50M
+  child 0: memory.min/low = 75M,  memory.current = 50M
+  child 1: memory.min/low = 25M,  memory.current = 50M
+  child 2: memory.min/low = 0,    memory.current = 50M
 
+After applying memory pressure, the function expects the following actual
+memory usages.
 
-This patch (of 8):
+  parent:  memory.current ~= 50M
+  child 0: memory.current ~= 29M
+  child 1: memory.current ~= 21M
+  child 2: memory.current ~= 0
 
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test due to the fact that its 3rd test child cgroup which have a
-memmory.low of 0 have low event count.  This happens when
-memory_recursiveprot mount option is enabled which is the default setting
-used by systemd to mount cgroup2 filesystem.
+In reality, the actual memory usages can differ quite a bit from the
+expected values.  It uses an error tolerance of 10% with the
+values_close() helper.
 
-This issue was originally fixed by commit cdc69458a5f3 ("cgroup: account
-for memory_recursiveprot in test_memcg_low()").  It was later reverted by
-commit 1d09069f5313 ("selftests: memcg: expect no low events in
-unprotected sibling") expecting the memory reclaim code would be fixed. 
-However, it turns out the unprotected cgroup may still have some residual
-effective memory.low protection depending on the memory.low settings in
-its parent and its siblings.  As a result, low events may still be
-triggered.
+Both the test_memcg_min and test_memcg_low sub-tests can fail sporadically
+because the actual memory usage exceeds the 10% error tolerance.  Below
+are a sample of the usage data of the tests runs that fail.
 
-One way to fix the test failure is to revert the revert commit.  However,
-Michal suggested that it might be better to ignore the low event count
-with memory_recursiveprot enabled as low event may or may not happen
-depending on the actual test configuration.
+  Child   Actual usage    Expected usage    %err
+  -----   ------------    --------------    ----
+    1       16990208         22020096      -12.9%
+    1       17252352         22020096      -12.1%
+    0       37699584         30408704      +10.7%
+    1       14368768         22020096      -21.0%
+    1       16871424         22020096      -13.2%
 
-Modify the test_memcontrol.c to ignore low event in the 3rd child cgroup
-with memory_recursiveprot on.
+The current 10% error tolerenace might be right at the time
+test_memcontrol.c was first introduced in v4.18 kernel, but memory reclaim
+have certainly evolved quite a bit since then which may result in a bit
+more run-to-run variation than previously expected.
 
-The 4th child cgroup has no memory usage and so has an effective low of 0.
-It has no low event count because the mem_cgroup_below_low() check in
-shrink_node_memcgs() is skipped as mem_cgroup_below_min() returns true. 
-If we ever change mem_cgroup_below_min() in such a way that it no longer
-skips the no usage case, we will have to add code to explicitly skip it.
+Increase the error tolerance to 15% for child 0 and 20% for child 1 to
+minimize the chance of this type of failure.  The tolerance is bigger for
+child 1 because an upswing in child 0 corresponds to a smaller %err than a
+similar downswing in child 1 due to the way %err is used in
+values_close().
 
-With this patch applied, the test_memcg_low sub-test finishes successfully
-without failure in most cases.  Though both test_memcg_low and
-test_memcg_min sub-tests may still fail occasionally if the memory.current
-values fall outside of the expected ranges.
+Before this patch, a 100 test runs of test_memcontrol produced the
+following results:
 
-Link: https://lkml.kernel.org/r/20250502010443.106022-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20250502010443.106022-2-longman@redhat.com
+     17 not ok 1 test_memcg_min
+     22 not ok 2 test_memcg_low
+
+After applying this patch, there were no test failure for test_memcg_min
+and test_memcg_low in 100 test runs.  However, these tests may still fail
+once in a while if the memory usage goes beyond the newly extended range.
+
+Link: https://lkml.kernel.org/r/20250502010443.106022-3-longman@redhat.com
 Signed-off-by: Waiman Long <longman@redhat.com>
-Suggested-by: Michal Koutný <mkoutny@suse.com>
-Acked-by: Michal Koutný <mkoutny@suse.com>
 Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |   18 ++++++++++---
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection
 +++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -380,10 +380,11 @@ static bool reclaim_until(const char *me
-  *
-  * Then it checks actual memory usages and expects that:
-  * A/B    memory.current ~= 50M
-- * A/B/C  memory.current ~= 29M
-- * A/B/D  memory.current ~= 21M
-- * A/B/E  memory.current ~= 0
-- * A/B/F  memory.current  = 0
-+ * A/B/C  memory.current ~= 29M [memory.events:low > 0]
-+ * A/B/D  memory.current ~= 21M [memory.events:low > 0]
-+ * A/B/E  memory.current ~= 0   [memory.events:low == 0 if !memory_recursiveprot,
-+ *				 undefined otherwise]
-+ * A/B/F  memory.current  = 0   [memory.events:low == 0]
-  * (for origin of the numbers, see model in memcg_protection.m.)
-  *
-  * After that it tries to allocate more than there is
-@@ -525,7 +526,14 @@ static int test_memcg_protection(const c
+@@ -496,10 +496,10 @@ static int test_memcg_protection(const c
+ 	for (i = 0; i < ARRAY_SIZE(children); i++)
+ 		c[i] = cg_read_long(children[i], "memory.current");
+ 
+-	if (!values_close(c[0], MB(29), 10))
++	if (!values_close(c[0], MB(29), 15))
  		goto cleanup;
- 	}
  
-+	/*
-+	 * Child 2 has memory.low=0, but some low protection may still be
-+	 * distributed down from its parent with memory.low=50M if cgroup2
-+	 * memory_recursiveprot mount option is enabled. Ignore the low
-+	 * event count in this case.
-+	 */
- 	for (i = 0; i < ARRAY_SIZE(children); i++) {
-+		int ignore_low_events_index = has_recursiveprot ? 2 : -1;
- 		int no_low_events_index = 1;
- 		long low, oom;
+-	if (!values_close(c[1], MB(21), 10))
++	if (!values_close(c[1], MB(21), 20))
+ 		goto cleanup;
  
-@@ -534,6 +542,8 @@ static int test_memcg_protection(const c
- 
- 		if (oom)
- 			goto cleanup;
-+		if (i == ignore_low_events_index)
-+			continue;
- 		if (i <= no_low_events_index && low <= 0)
- 			goto cleanup;
- 		if (i > no_low_events_index && low)
+ 	if (c[3] != 0)
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
