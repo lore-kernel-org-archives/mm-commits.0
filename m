@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEAA1EEA47
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 814C41EEA47
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119323; cv=none; b=FYjciMHl0GTBePgX+DSA9v0Ar1UYK/YXuRCMuAMMkaf0++iO84LQ3K5YDrbCQ3x95GUTUq/h6A+0C3tKtxiFyR4BJ5VSSsEG0bSQvt/hLJSRdFEFXWsbeVmp9fTwCPjo4Rnx6EYRYTESSLjLPddlNYgP6tOqmLgWAkHtg37D9+o=
+	t=1747119324; cv=none; b=BhcOhsQuy7XoX/077MncUspLG1QCiJlTJfCJuXgqQoARmy2coWj97V9u70R1U1pMhJUqw4ivF8zVMegzXSfMDoEipAb7tZR5tGjzdrL89cPGKYLrl8U1Q9A1l1FMF8e9MKV90lX1bducZg4RWa8mBjGQ+fghft5ozm2iszk4QvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119323; c=relaxed/simple;
-	bh=2clQOj5r6nSqwuGGrq8TkNLpzWs7+Mps8TQ1V2/mKos=;
-	h=Date:To:From:Subject:Message-Id; b=R/v4dbl+Qpy8TY7epRHDdu1Hv3tEjlz2rtYuf35ZaLSxXsNgpLSyyWO/n90uhFb5oE3VsSTt+FkK1XNsUXKxLP1dBeGqt3NthoEPM56WEx1ERoNuq2oI5+M2f6L3LDupQ286p6H1LEvn8oR1+wQhboZivvFx4QZ7sO3AAGo0fck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mILAX/YK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119324; c=relaxed/simple;
+	bh=8Rs+XiMTH4VZ26uToqVB35BhLGNjjoJ4ex3FWaejuA8=;
+	h=Date:To:From:Subject:Message-Id; b=sB9ldlwP638nEHOc6Pk/X5Vj2OYEOG4ljFLkg0ef4ny7Uzb2+IkeWCNxB+7F6aSK/qjRk3no0G3LHGHl7sEiiDN28pzBsEEpSlaW84kGcZB4mBoS1FE0aBDadz4QMjIGkLuSKzVdpbruvjcqYecjzUL38ZGL8aOUCksm5grkwTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vxqf7ZuR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mILAX/YK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0563DC4CEE4;
-	Tue, 13 May 2025 06:55:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vxqf7ZuR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5867FC4CEE4;
+	Tue, 13 May 2025 06:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119323;
-	bh=2clQOj5r6nSqwuGGrq8TkNLpzWs7+Mps8TQ1V2/mKos=;
+	s=korg; t=1747119324;
+	bh=8Rs+XiMTH4VZ26uToqVB35BhLGNjjoJ4ex3FWaejuA8=;
 	h=Date:To:From:Subject:From;
-	b=mILAX/YKo/1kgPPz8S38E42HzGWvChkTKDYknVXd+SW3CoeWXBwtPU5aN7czF22+D
-	 dNnG26lIfvvcVAfZfUsTvJYb0vJVeOmwiOxjI1QLTPjgi7qFuIErC97Cb2jUuMPSsA
-	 paKukOsMJOxCaKIBqhQIKXpozhxV4h1BTk4FHN0c=
-Date: Mon, 12 May 2025 23:55:22 -0700
+	b=Vxqf7ZuRuw/gtlCvuyWFrdM8tSC8GXuiXQ73ECB2J3A5muYPZomTBjgJIDgsUtnmM
+	 eiRb5Bx5j7Z5fkbkAsPZi6mUmg71kF/s3LWnSTr3wsRRuVN6kqG1MxdzJ1hXO/VzXw
+	 AND2TjJ6GmlQpsAH0QtvnXokhh5hMAuqz5NJl46Q=
+Date: Mon, 12 May 2025 23:55:23 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] f2fs-drop-usage-of-folio_index.patch removed from -mm tree
-Message-Id: <20250513065523.0563DC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-do-not-use-folio_contains-for-swap-cache-folios.patch removed from -mm tree
+Message-Id: <20250513065524.5867FC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: f2fs: drop usage of folio_index
+     Subject: filemap: do not use folio_contains for swap cache folios
 has been removed from the -mm tree.  Its filename was
-     f2fs-drop-usage-of-folio_index.patch
+     filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: f2fs: drop usage of folio_index
-Date: Thu, 1 May 2025 02:10:49 +0800
+Subject: filemap: do not use folio_contains for swap cache folios
+Date: Thu, 1 May 2025 02:10:50 +0800
 
-folio_index is only needed for mixed usage of page cache and swap cache,
-for pure page cache usage, the caller can just use folio->index instead.
+Currently, none of the folio_contains callers should encounter swap cache
+folios.
 
-It can't be a swap cache folio here.  Swap mapping may only call into fs
-through `swap_rw` but f2fs does not use that method for swap.
+For fs/ callers, swap cache folios are never part of their workflow.
 
-Link: https://lkml.kernel.org/r/20250430181052.55698-4-ryncsn@gmail.com
+For filemap and truncate, folio_contains is only used for sanity checks to
+verify the folio index matches the expected lookup / invalidation target.
+
+The swap cache does not utilize filemap or truncate helpers in ways that
+would trigger these checks, as it mostly implements its own cache
+management.
+
+Shmem won't trigger these sanity checks either unless thing went wrong, as
+it would directly trigger a BUG because swap cache index are unrelated and
+almost never matches shmem index.  Shmem have to handle mixed values of
+folios, shadows, and swap entries, so it has its own way of handling the
+mapping.
+
+While some filemap helpers works for swap cache space, the swap cache is
+different from the page cache in many ways.  So this particular helper
+will unlikely to work in a helpful way for swap cache folios.
+
+So make it explicit here that folio_contains should not be used for swap
+cache folios.  This helps to avoid misuse, make swap cache less exposed
+and remove the folio_index usage here.
+
+[akpm@linux-foundation.org: s/VM_WARN_ON_FOLIO/VM_WARN_ON_ONCE_FOLIO/, per Kairui]
+Link: https://lkml.kernel.org/r/20250430181052.55698-5-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Chao Yu <chao@kernel.org>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Sterba <dsterba@suse.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Joanne Koong <joannelkoong@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Qu Wenruo <wqu@suse.com>
@@ -75,62 +96,30 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c   |    4 ++--
- fs/f2fs/inline.c |    4 ++--
- fs/f2fs/super.c  |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/pagemap.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/f2fs/data.c~f2fs-drop-usage-of-folio_index
-+++ a/fs/f2fs/data.c
-@@ -2077,7 +2077,7 @@ static int f2fs_read_single_page(struct
- 	sector_t last_block;
- 	sector_t last_block_in_file;
- 	sector_t block_nr;
--	pgoff_t index = folio_index(folio);
-+	pgoff_t index = folio->index;
- 	int ret = 0;
+--- a/include/linux/pagemap.h~filemap-do-not-use-folio_contains-for-swap-cache-folios
++++ a/include/linux/pagemap.h
+@@ -935,14 +935,14 @@ static inline struct page *folio_file_pa
+  * @folio: The folio.
+  * @index: The page index within the file.
+  *
+- * Context: The caller should have the page locked in order to prevent
+- * (eg) shmem from moving the page between the page cache and swap cache
+- * and changing its index in the middle of the operation.
++ * Context: The caller should have the folio locked and ensure
++ * e.g., shmem did not move this folio to the swap cache.
+  * Return: true or false.
+  */
+ static inline bool folio_contains(struct folio *folio, pgoff_t index)
+ {
+-	return index - folio_index(folio) < folio_nr_pages(folio);
++	VM_WARN_ON_ONCE_FOLIO(folio_test_swapcache(folio), folio);
++	return index - folio->index < folio_nr_pages(folio);
+ }
  
- 	block_in_file = (sector_t)index;
-@@ -2392,7 +2392,7 @@ static int f2fs_mpage_readpages(struct i
- 		}
- 
- #ifdef CONFIG_F2FS_FS_COMPRESSION
--		index = folio_index(folio);
-+		index = folio->index;
- 
- 		if (!f2fs_compressed_file(inode))
- 			goto read_single_page;
---- a/fs/f2fs/inline.c~f2fs-drop-usage-of-folio_index
-+++ a/fs/f2fs/inline.c
-@@ -86,7 +86,7 @@ void f2fs_do_read_inline_data(struct fol
- 	if (folio_test_uptodate(folio))
- 		return;
- 
--	f2fs_bug_on(F2FS_I_SB(inode), folio_index(folio));
-+	f2fs_bug_on(F2FS_I_SB(inode), folio->index);
- 
- 	folio_zero_segment(folio, MAX_INLINE_DATA(inode), folio_size(folio));
- 
-@@ -130,7 +130,7 @@ int f2fs_read_inline_data(struct inode *
- 		return -EAGAIN;
- 	}
- 
--	if (folio_index(folio))
-+	if (folio->index)
- 		folio_zero_segment(folio, 0, folio_size(folio));
- 	else
- 		f2fs_do_read_inline_data(folio, ipage);
---- a/fs/f2fs/super.c~f2fs-drop-usage-of-folio_index
-+++ a/fs/f2fs/super.c
-@@ -3432,7 +3432,7 @@ static int __f2fs_commit_super(struct f2
- 	bio = bio_alloc(sbi->sb->s_bdev, 1, opf, GFP_NOFS);
- 
- 	/* it doesn't need to set crypto context for superblock update */
--	bio->bi_iter.bi_sector = SECTOR_FROM_BLOCK(folio_index(folio));
-+	bio->bi_iter.bi_sector = SECTOR_FROM_BLOCK(folio->index);
- 
- 	if (!bio_add_folio(bio, folio, folio_size(folio), 0))
- 		f2fs_bug_on(sbi, 1);
+ unsigned filemap_get_folios(struct address_space *mapping, pgoff_t *start,
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
