@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 546DF1EF375
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F3D1EF38E
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119297; cv=none; b=GPWK3r/CZ8Rwzj9iRh4quwn8ulrW84c5DObQikJXMgnoakfwPpLd5ihefqUkdbccFKtDyFMdc1GIMFG6k+mlqSrczRXdXJ/P4s23Xx69/3wnivMS5qEnQRP1HKgf5z2z32S2YdjGULIeV/0RXjdLQu1CMw2gakQvQbDto2A9kxA=
+	t=1747119298; cv=none; b=WSwkD0sbeg0LcXX7OPk3R3H/j3NWQT6HSOzV0EKU88gSApziAU85oWJt4wHfiI20jGXYDAGsbqUWtNGf9Hgp7XS8JsRwv6k4lAMLC978ROGzdPRUk2zeruphglfw6xeA7L0TCFQW7l+lkZtrO4R+b+pMmJmHw6Hex2aJAyNvmyw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119297; c=relaxed/simple;
-	bh=OIUNgVLdGs5dY2qBU7GHb/gc/KhMiA0bLN6Cy/Nens4=;
-	h=Date:To:From:Subject:Message-Id; b=ug+Wj5wzNhqgaT6dkmgLwMhzKmOs5ZzxCs2VTUSoM9hmQSZavHcx1drtogPp+AJaW7KnzDJlUgT8bMoSWu2i8nZA3c80vrh7GdJYls5dIutszG6DLK66wuVy9/DX/MwcwncyDJhiIkJC+4f0RphSib2cxU3JWJpiu5ucCjUN9dM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iax1vJkp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119298; c=relaxed/simple;
+	bh=sgO/gNViBmNnSbvA5gralcxYNnX64bdriEwXfu6zrKU=;
+	h=Date:To:From:Subject:Message-Id; b=Y+M17v1xE0HkIJlLSUT0Iz7jfDSUPVEHYyZ+CDQzeDnyBKvjZh+lIWVScIRYmACX6w8k5RcUQ6jtWuCvF7um4/pTOaFqgNPAWFLZoUFBSWE39bj5Wwh+jSiBLlDOmZDyySu9wK1tOMR6rYNzll5mVmDckFtMBC//OiZGQfJRK/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F78P4eGv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iax1vJkp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB781C4CEE4;
-	Tue, 13 May 2025 06:54:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F78P4eGv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17919C4CEE4;
+	Tue, 13 May 2025 06:54:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119296;
-	bh=OIUNgVLdGs5dY2qBU7GHb/gc/KhMiA0bLN6Cy/Nens4=;
+	s=korg; t=1747119298;
+	bh=sgO/gNViBmNnSbvA5gralcxYNnX64bdriEwXfu6zrKU=;
 	h=Date:To:From:Subject:From;
-	b=iax1vJkp35E1kiDmVLGEIYgkNvEiRV+iQYlq8N1/7cUb5dLtfFr0/7QUz7XKjrmrL
-	 LQIewrQbWwUhscMh4CQsusT4ezETg8lLsbjxdJmwSV7hb6yhXfyBekgAMFymuMsQdJ
-	 mIXbTcWoBM/5NeYlyJUko2n5PU2BAIQIAJdOQfNU=
-Date: Mon, 12 May 2025 23:54:56 -0700
-To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=F78P4eGvUPLoNOl2WXreXSTmeUCldHGcCsUK7QcySveClzYXypBLJa4kL1GDvo0h8
+	 fI6sUIebKkWhv2S4ABlTFMfVZ85qSEj6vG+hd/3Cvl10BM6FTZSLRoUIy8pWL2yOFp
+	 4pYIzG1acvh738gUph6uEK1bgNwSYKNUVx6d3caM=
+Date: Mon, 12 May 2025 23:54:57 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,shaggy@kernel.org,jane.chu@oracle.com,donettom@linux.ibm.com,david@redhat.com,apopple@nvidia.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] util_macrosh-make-the-header-more-resilient.patch removed from -mm tree
-Message-Id: <20250513065456.BB781C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-folio_expected_ref_count-for-reference-count-calculation.patch removed from -mm tree
+Message-Id: <20250513065458.17919C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,214 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: util_macros.h: make the header more resilient
+     Subject: mm: add folio_expected_ref_count() for reference count calculation
 has been removed from the -mm tree.  Its filename was
-     util_macrosh-make-the-header-more-resilient.patch
+     mm-add-folio_expected_ref_count-for-reference-count-calculation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: util_macros.h: make the header more resilient
-Date: Mon, 28 Apr 2025 10:27:54 +0300
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm: add folio_expected_ref_count() for reference count calculation
+Date: Wed, 30 Apr 2025 10:01:51 +0000
 
-Add missing header inclusions.
+Patch series " JFS: Implement migrate_folio for jfs_metapage_aops" v5.
 
-Link: https://lkml.kernel.org/r/20250428072754.3265274-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+This patchset addresses a warning that occurs during memory compaction due
+to JFS's missing migrate_folio operation.  The warning was introduced by
+commit 7ee3647243e5 ("migrate: Remove call to ->writepage") which added
+explicit warnings when filesystem don't implement migrate_folio.
+
+The syzbot reported following [1]:
+  jfs_metapage_aops does not implement migrate_folio
+  WARNING: CPU: 1 PID: 5861 at mm/migrate.c:955 fallback_migrate_folio mm/migrate.c:953 [inline]
+  WARNING: CPU: 1 PID: 5861 at mm/migrate.c:955 move_to_new_folio+0x70e/0x840 mm/migrate.c:1007
+  Modules linked in:
+  CPU: 1 UID: 0 PID: 5861 Comm: syz-executor280 Not tainted 6.15.0-rc1-next-20250411-syzkaller #0 PREEMPT(full) 
+  Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2025
+  RIP: 0010:fallback_migrate_folio mm/migrate.c:953 [inline]
+  RIP: 0010:move_to_new_folio+0x70e/0x840 mm/migrate.c:1007
+
+To fix this issue, this series implement metapage_migrate_folio() for JFS
+which handles both single and multiple metapages per page configurations.
+
+While most filesystems leverage existing migration implementations like
+filemap_migrate_folio(), buffer_migrate_folio_norefs() or
+buffer_migrate_folio() (which internally used folio_expected_refs()),
+JFS's metapage architecture requires special handling of its private data
+during migration.  To support this, this series introduce the
+folio_expected_ref_count(), which calculates external references to a
+folio from page/swap cache, private data, and page table mappings.
+
+This standardized implementation replaces the previous ad-hoc
+folio_expected_refs() function and enables JFS to accurately determine
+whether a folio has unexpected references before attempting migration.
+
+
+
+
+Implement folio_expected_ref_count() to calculate expected folio reference
+counts from:
+- Page/swap cache (1 per page)
+- Private data (1)
+- Page table mappings (1 per map)
+
+While originally needed for page migration operations, this improved
+implementation standardizes reference counting by consolidating all
+refcount contributors into a single, reusable function that can benefit
+any subsystem needing to detect unexpected references to folios.
+
+The folio_expected_ref_count() returns the sum of these external
+references without including any reference the caller itself might hold. 
+Callers comparing against the actual folio_ref_count() must account for
+their own references separately.
+
+Link: https://syzkaller.appspot.com/bug?extid=8bb6fd945af4e0ad9299 [1]
+Link: https://lkml.kernel.org/r/20250430100150.279751-1-shivankg@amd.com
+Link: https://lkml.kernel.org/r/20250430100150.279751-2-shivankg@amd.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Co-developed-by: David Hildenbrand <david@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Dave Kleikamp <shaggy@kernel.org>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/util_macros.h |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/mm.h |   55 +++++++++++++++++++++++++++++++++++++++++++
+ mm/migrate.c       |   22 +++--------------
+ 2 files changed, 59 insertions(+), 18 deletions(-)
 
---- a/include/linux/util_macros.h~util_macrosh-make-the-header-more-resilient
-+++ a/include/linux/util_macros.h
-@@ -2,7 +2,10 @@
- #ifndef _LINUX_HELPER_MACROS_H_
- #define _LINUX_HELPER_MACROS_H_
+--- a/include/linux/mm.h~mm-add-folio_expected_ref_count-for-reference-count-calculation
++++ a/include/linux/mm.h
+@@ -2114,6 +2114,61 @@ static inline bool folio_maybe_mapped_sh
+ 	return test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids);
+ }
  
-+#include <linux/compiler_attributes.h>
- #include <linux/math.h>
-+#include <linux/typecheck.h>
-+#include <linux/stddef.h>
++/**
++ * folio_expected_ref_count - calculate the expected folio refcount
++ * @folio: the folio
++ *
++ * Calculate the expected folio refcount, taking references from the pagecache,
++ * swapcache, PG_private and page table mappings into account. Useful in
++ * combination with folio_ref_count() to detect unexpected references (e.g.,
++ * GUP or other temporary references).
++ *
++ * Does currently not consider references from the LRU cache. If the folio
++ * was isolated from the LRU (which is the case during migration or split),
++ * the LRU cache does not apply.
++ *
++ * Calling this function on an unmapped folio -- !folio_mapped() -- that is
++ * locked will return a stable result.
++ *
++ * Calling this function on a mapped folio will not result in a stable result,
++ * because nothing stops additional page table mappings from coming (e.g.,
++ * fork()) or going (e.g., munmap()).
++ *
++ * Calling this function without the folio lock will also not result in a
++ * stable result: for example, the folio might get dropped from the swapcache
++ * concurrently.
++ *
++ * However, even when called without the folio lock or on a mapped folio,
++ * this function can be used to detect unexpected references early (for example,
++ * if it makes sense to even lock the folio and unmap it).
++ *
++ * The caller must add any reference (e.g., from folio_try_get()) it might be
++ * holding itself to the result.
++ *
++ * Returns the expected folio refcount.
++ */
++static inline int folio_expected_ref_count(const struct folio *folio)
++{
++	const int order = folio_order(folio);
++	int ref_count = 0;
++
++	if (WARN_ON_ONCE(folio_test_slab(folio)))
++		return 0;
++
++	if (folio_test_anon(folio)) {
++		/* One reference per page from the swapcache. */
++		ref_count += folio_test_swapcache(folio) << order;
++	} else if (!((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS)) {
++		/* One reference per page from the pagecache. */
++		ref_count += !!folio->mapping << order;
++		/* One reference from PG_private. */
++		ref_count += folio_test_private(folio);
++	}
++
++	/* One reference per page table mapping. */
++	return ref_count + folio_mapcount(folio);
++}
++
+ #ifndef HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
+ static inline int arch_make_folio_accessible(struct folio *folio)
+ {
+--- a/mm/migrate.c~mm-add-folio_expected_ref_count-for-reference-count-calculation
++++ a/mm/migrate.c
+@@ -445,20 +445,6 @@ unlock:
+ }
+ #endif
  
- /**
-  * for_each_if - helper for handling conditionals in various for_each macros
+-static int folio_expected_refs(struct address_space *mapping,
+-		struct folio *folio)
+-{
+-	int refs = 1;
+-	if (!mapping)
+-		return refs;
+-
+-	refs += folio_nr_pages(folio);
+-	if (folio_test_private(folio))
+-		refs++;
+-
+-	return refs;
+-}
+-
+ /*
+  * Replace the folio in the mapping.
+  *
+@@ -601,7 +587,7 @@ static int __folio_migrate_mapping(struc
+ int folio_migrate_mapping(struct address_space *mapping,
+ 		struct folio *newfolio, struct folio *folio, int extra_count)
+ {
+-	int expected_count = folio_expected_refs(mapping, folio) + extra_count;
++	int expected_count = folio_expected_ref_count(folio) + extra_count + 1;
+ 
+ 	if (folio_ref_count(folio) != expected_count)
+ 		return -EAGAIN;
+@@ -618,7 +604,7 @@ int migrate_huge_page_move_mapping(struc
+ 				   struct folio *dst, struct folio *src)
+ {
+ 	XA_STATE(xas, &mapping->i_pages, folio_index(src));
+-	int rc, expected_count = folio_expected_refs(mapping, src);
++	int rc, expected_count = folio_expected_ref_count(src) + 1;
+ 
+ 	if (folio_ref_count(src) != expected_count)
+ 		return -EAGAIN;
+@@ -749,7 +735,7 @@ static int __migrate_folio(struct addres
+ 			   struct folio *src, void *src_private,
+ 			   enum migrate_mode mode)
+ {
+-	int rc, expected_count = folio_expected_refs(mapping, src);
++	int rc, expected_count = folio_expected_ref_count(src) + 1;
+ 
+ 	/* Check whether src does not have extra refs before we do more work */
+ 	if (folio_ref_count(src) != expected_count)
+@@ -837,7 +823,7 @@ static int __buffer_migrate_folio(struct
+ 		return migrate_folio(mapping, dst, src, mode);
+ 
+ 	/* Check whether page does not have extra refs before we do more work */
+-	expected_count = folio_expected_refs(mapping, src);
++	expected_count = folio_expected_ref_count(src) + 1;
+ 	if (folio_ref_count(src) != expected_count)
+ 		return -EAGAIN;
+ 
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from shivankg@amd.com are
 
 
