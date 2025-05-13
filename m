@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 923AC1917C2
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:39:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAEC17578
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:40:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747118343; cv=none; b=NiCgMyWq5fA31GzQVBLXjkEMupnRmCdgjcv0PO40dTeX0DgdLyLLFVO6lC4YE6VR34xeQg8m0ORi8p18TX34LGgwihBSq9PLawYN/pGOaAy33DPzBRdaP/TqxcLcvjRHvdwvUZna8WDk4z9sZZ9kunj4oYNAKr+MgKgd5Z34y0U=
+	t=1747118427; cv=none; b=NBSqV6rop7hAvBrc3YyynBJ3bxraOIxHANyIdDk3P6VngQwrpPFhiEGqLQGO6hg0VvWxDn03+KQcXsMPWorKdbarJOg1S2ITzgJtx+c3fDBdb1mCF9qLYprDD4Qwc+xwIbD6vS/ISonwMXpF/nlHbSt+ZKx2efb/Bx/PhawJd7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747118343; c=relaxed/simple;
-	bh=ZvDmvrh/GJO1Ty9Kn/Wh80yzz/+QtfkRzPkt5shOIFg=;
-	h=Date:To:From:Subject:Message-Id; b=rwuglPjJGfwIBl+r9GZfn5YF0zHtGiTAOixz3Q8ViFhkYDND5NYGJ44pR92HHzEh05VGADWbkP8ucO9VqzUBKpnnWvi2fUSLgnvfMB09gDRsrkyU7O7WQpyURbRKJ+t24pWdpkB3rbuvz7LFNNPGt2v2aoFd5acTFhr9LI1YmFo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NMnSVm+B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747118427; c=relaxed/simple;
+	bh=AUslF1qN8W0qIotd5I+xI1RbbQOmfS7mXyNsmU2pYqY=;
+	h=Date:To:From:Subject:Message-Id; b=m9ZbuZFHZ6jxUpe6v+WRYLEo0Fg6gd+DM9QDuqUFZEobVf355ScYD9JuN5lCGmYKZPuoCGOISxqOq4z2oLYkZdlkDasfYnbJM8hN5butP6XoR3jtWk4arRzr172NARec54LSSjO7Ns9a7ZIrUaenfnzgrDr9mH5OzjbXxKVHejM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=awo/0V6a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NMnSVm+B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01A8CC4CEE4;
-	Tue, 13 May 2025 06:39:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="awo/0V6a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A5A1C4CEED;
+	Tue, 13 May 2025 06:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747118343;
-	bh=ZvDmvrh/GJO1Ty9Kn/Wh80yzz/+QtfkRzPkt5shOIFg=;
+	s=korg; t=1747118427;
+	bh=AUslF1qN8W0qIotd5I+xI1RbbQOmfS7mXyNsmU2pYqY=;
 	h=Date:To:From:Subject:From;
-	b=NMnSVm+BuaZlgS817Nuw0bR/QlsSKtc0XSNlfBJupQc4VuO7jDiR5G660BF8c2qDP
-	 XQWkqrAVdgKVzGFSxEBsPgUF5OTXRDocUXq7vVkjwipaGA7klTr8XxMH9skSAu4bHb
-	 Ldf82+Ils2Sl3tZ5TIXsPdexawqhvx/CzYaAR/ps=
-Date: Mon, 12 May 2025 23:39:02 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yosry.ahmed@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hezhongkun.hzk@bytedance.com,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=awo/0V6alEPEU0hSnTWjhd3ISMFr0m/kf0C1RyIPQLDcbCmiKha8T0lNrAkUlxPiq
+	 3jkgO45i7F2K8WtEz6kfH4oFbTzXQczzBfGjBq9Nwy67inuF1g8Vy5nUiqV8AILbWr
+	 XLCG9XBBXxoy46ocmDOecVmGd39dcXKxoc9ftang=
+Date: Mon, 12 May 2025 23:40:26 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,dwmw@amazon.co.uk,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw2@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update-fix.patch removed from -mm tree
-Message-Id: <20250513063903.01A8CC4CEE4@smtp.kernel.org>
+Subject: [folded-merged] mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch removed from -mm tree
+Message-Id: <20250513064027.1A5A1C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update-fix
+     Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update-fix.patch
+     mm-implement-for_each_valid_pfn-for-config_sparsemem-fix.patch
 
-This patch was dropped because it was folded into mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only.patch
+This patch was dropped because it was folded into mm-implement-for_each_valid_pfn-for-config_sparsemem.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update-fix
-Date: Wed May  7 06:27:25 PM PDT 2025
+From: David Woodhouse <dwmw2@infradead.org>
+Subject: mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
+Date: Sat, 26 Apr 2025 00:04:46 +0100
 
-tweak coding style
+fix next_valid_pfn() for sparsemem
 
-Cc: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/c15100fcf6781a60b852c4dbb43bdc98a678fcf0.camel@infradead.org
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Woodhouse <dwmw@amazon.co.uk>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Ruihan Li <lrh2000@pku.edu.cn>
+Cc: Will Deacon <will@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only-update-fix
-+++ a/mm/vmscan.c
-@@ -5606,9 +5606,9 @@ static ssize_t lru_gen_seq_write(struct
- 			break;
- 		}
+--- a/include/linux/mmzone.h~mm-implement-for_each_valid_pfn-for-config_sparsemem-fix
++++ a/include/linux/mmzone.h
+@@ -2190,10 +2190,10 @@ static inline unsigned long next_valid_p
+ 	/*
+ 	 * Either every PFN within the section (or subsection for VMEMMAP) is
+ 	 * valid, or none of them are. So there's no point repeating the check
+-	 * for every PFN; only call first_valid_pfn() the first time, and when
+-	 * crossing a (sub)section boundary (i.e. !(pfn & ~PFN_VALID_MASK)).
++	 * for every PFN; only call first_valid_pfn() again when crossing a
++	 * (sub)section boundary (i.e. !(pfn & ~PAGE_{SUB,}SECTION_MASK)).
+ 	 */
+-	if (pfn & (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
++	if (pfn & ~(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
+ 		   PAGE_SUBSECTION_MASK : PAGE_SECTION_MASK))
+ 		return pfn;
  
--		if (n == 4)
-+		if (n == 4) {
- 			swappiness = -1;
--		else if (!strcmp("max", swap_string)) {
-+		} else if (!strcmp("max", swap_string)) {
- 			/* set by userspace for anonymous memory only */
- 			swappiness = SWAPPINESS_ANON_ONLY;
- 		} else {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
-mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only.patch
-mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain-checkpatch-fixes.patch
-jfs-implement-migrate_folio-for-jfs_metapage_aops-fix-2.patch
-mm-hugetlbc-__unmap_hugepage_range-comment-cleanup.patch
-mm-establish-mm-vma_execc-for-shared-exec-mm-vma-functionality-fix.patch
-mm-perform-vma-allocation-freeing-duplication-in-mm-fix.patch
-filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
-memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
-mm-add-zblock-allocator-fix.patch
-mm-add-zblock-allocator-fix-2.patch
-mm-add-zblock-allocator-fix-3.patch
-mm-zblock-avoid-failing-the-build-fix.patch
-revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
+mm-implement-for_each_valid_pfn-for-config_sparsemem.patch
 
