@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154B21EEA27
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37C671EEA27
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119290; cv=none; b=ssGPNZ4e6a5iOOlR0ZXMUFaF5VraB+v/QruGNuQgo6pzpAhwyEHcrPhIdN+GlX5jUgH45+hGVeeR3dyXID8NW6am8AH/0GIJ+/WxdKITycqf8sjFIQTBd+/F1lBsBv9V+YJTliIz458b6nUlea9O+zsMJF3ynsaNlY9kp/pSEdE=
+	t=1747119291; cv=none; b=RX6fm9CXAxh7yxWXPTUFYAV3DpE82acjWv2bOTPH+TRBs64u7EUUd18V9UMiVBxfdD9+l2xj3oTZVeRbZYP2inGs0aGWc1HFxkYChtuFQgpBoy9K36uzXON0yb/Ey2wG5/Xvcfoy2kYvExEtUkbCMKbRrKCPUTbc0lHVaiHL9o4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119290; c=relaxed/simple;
-	bh=k0mDSchXUlylJC9rGBoYCrNZptPSweAdQMfnfKEzGsg=;
-	h=Date:To:From:Subject:Message-Id; b=hjQIIgv25SYbh4/YxOdguxry29gcwC7hWiulJnnsTcLPffEnMTjZpSMQTJ9fToMKbp4C3n+ycTHjWnBUJnSky3mTLuQjdojuZakhoHv31ue6l82BiJArAnzno4herCoWxLYd4IBqQ8MVeo1a7z45bavb9c42SqCD8heS1g453cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qMXjOjeu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119291; c=relaxed/simple;
+	bh=asR1sO6Zxhx93Y2sY+scQ1RREvYr29AIiqAJYnmssfo=;
+	h=Date:To:From:Subject:Message-Id; b=Vmyr9UytjM7Q24NNGLTstjJfgDT6HNmPHoeZhVbyJP9iQ80f4ICtSp/ypGu9zhlYimy05OS13lj7fUhWeHMWovEo7R/Zu6KTHsSw0pZp1lheXrCvpvYWZeUjj/3hQy5cSj8vzTIethwjPfHPySZDMFaJT3sebagmi1MvpnUPAHw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=av2QDVDJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qMXjOjeu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D994FC4CEE4;
-	Tue, 13 May 2025 06:54:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="av2QDVDJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0514DC4CEE4;
+	Tue, 13 May 2025 06:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119289;
-	bh=k0mDSchXUlylJC9rGBoYCrNZptPSweAdQMfnfKEzGsg=;
+	s=korg; t=1747119291;
+	bh=asR1sO6Zxhx93Y2sY+scQ1RREvYr29AIiqAJYnmssfo=;
 	h=Date:To:From:Subject:From;
-	b=qMXjOjeuGqo8L6ydumbLZcOgE86bjCk6cZM0YphmM7TjLUbOMDTckw8RJerXMQSro
-	 jDYybhsE1EVRpcIEM+ef0IK7AdQF77GVHCzn6FGxXdAdqs0edN79VL9f8wf62/c1pr
-	 d68A/hY6J69K5uw+577shS1GHUFsZ/zUr902T/VI=
-Date: Mon, 12 May 2025 23:54:49 -0700
-To: mm-commits@vger.kernel.org,mingzhe.yang@ly.com,david@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=av2QDVDJzvFVq5wdR2qv84khl9r7ExFauvNGUFtZcngVzV72RoJ0vC1iht0Lcbo3s
+	 l1JcF4gJwrBCIktKfuWJq+l0oOwtcwKHk7se2q4rXUh4+NnZ32Dl3G5P08EFHiA01i
+	 thxsDKdSHL7O8Aps2opvICgc64YU6iuKUi0FaagU=
+Date: Mon, 12 May 2025 23:54:50 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,axelrasmussen@google.com,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch removed from -mm tree
-Message-Id: <20250513065449.D994FC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain.patch removed from -mm tree
+Message-Id: <20250513065451.0514DC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,264 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: inline folio_test_large_maybe_mapped_shared() into callers
+     Subject: mm/selftests: add a test to verify mmap_changing race with -EAGAIN
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch
+     mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/rmap: inline folio_test_large_maybe_mapped_shared() into callers
-Date: Thu, 24 Apr 2025 23:56:06 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/selftests: add a test to verify mmap_changing race with -EAGAIN
+Date: Thu, 24 Apr 2025 17:57:29 -0400
 
-To prevent the function from being used when CONFIG_MM_ID is disabled, we
-intend to inline it into its few callers, which also would help maintain
-the expected code placement.
+Add an unit test to verify the recent mmap_changing ABI breakage.
 
-Link: https://lkml.kernel.org/r/20250424155606.57488-1-lance.yang@linux.dev
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Mingzhe Yang <mingzhe.yang@ly.com>
+Note that I used some tricks here and there to make the test simple, e.g. 
+I abused UFFDIO_MOVE on top of shmem with the fact that I know what I want
+to test will be even earlier than the vma type check.  Rich comments were
+added to explain trivial details.
+
+Before that fix, -EAGAIN would have been written to the copy field most of
+the time but not always; the test should be able to reliably trigger the
+outlier case.  After the fix, it's written always, the test verifies that
+making sure corresponding field (e.g.  copy.copy for UFFDIO_COPY) is
+updated.
+
+[akpm@linux-foundation.org: coding-style cleanups]
+Link: https://lkml.kernel.org/r/20250424215729.194656-3-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |    2 +-
- include/linux/page-flags.h |    4 ----
- include/linux/rmap.h       |    2 +-
- mm/memory.c                |    4 ++--
- 4 files changed, 4 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |  202 +++++++++++++++++
+ 1 file changed, 202 insertions(+)
 
---- a/include/linux/mm.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/include/linux/mm.h
-@@ -2111,7 +2111,7 @@ static inline bool folio_maybe_mapped_sh
- 	 */
- 	if (mapcount <= 1)
- 		return false;
--	return folio_test_large_maybe_mapped_shared(folio);
-+	return test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids);
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -1231,6 +1231,182 @@ static void uffd_move_pmd_split_test(uff
+ 			      uffd_move_pmd_handle_fault);
  }
  
- #ifndef HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
---- a/include/linux/page-flags.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/include/linux/page-flags.h
-@@ -1230,10 +1230,6 @@ static inline int folio_has_private(cons
- 	return !!(folio->flags & PAGE_FLAGS_PRIVATE);
- }
++static bool
++uffdio_verify_results(const char *name, int ret, int error, long result)
++{
++	/*
++	 * Should always return -1 with errno=EAGAIN, with corresponding
++	 * result field updated in ioctl() args to be -EAGAIN too
++	 * (e.g. copy.copy field for UFFDIO_COPY).
++	 */
++	if (ret != -1) {
++		uffd_test_fail("%s should have returned -1", name);
++		return false;
++	}
++
++	if (error != EAGAIN) {
++		uffd_test_fail("%s should have errno==EAGAIN", name);
++		return false;
++	}
++
++	if (result != -EAGAIN) {
++		uffd_test_fail("%s should have been updated for -EAGAIN",
++			       name);
++		return false;
++	}
++
++	return true;
++}
++
++/*
++ * This defines a function to test one ioctl.  Note that here "field" can
++ * be 1 or anything not -EAGAIN.  With that initial value set, we can
++ * verify later that it should be updated by kernel (when -EAGAIN
++ * returned), by checking whether it is also updated to -EAGAIN.
++ */
++#define DEFINE_MMAP_CHANGING_TEST(name, ioctl_name, field)		\
++	static bool uffdio_mmap_changing_test_##name(int fd)		\
++	{								\
++		int ret;						\
++		struct uffdio_##name args = {				\
++			.field = 1,					\
++		};							\
++		ret = ioctl(fd, ioctl_name, &args);			\
++		return uffdio_verify_results(#ioctl_name, ret, errno, args.field); \
++	}
++
++DEFINE_MMAP_CHANGING_TEST(zeropage, UFFDIO_ZEROPAGE, zeropage)
++DEFINE_MMAP_CHANGING_TEST(copy, UFFDIO_COPY, copy)
++DEFINE_MMAP_CHANGING_TEST(move, UFFDIO_MOVE, move)
++DEFINE_MMAP_CHANGING_TEST(poison, UFFDIO_POISON, updated)
++DEFINE_MMAP_CHANGING_TEST(continue, UFFDIO_CONTINUE, mapped)
++
++typedef enum {
++	/* We actually do not care about any state except UNINTERRUPTIBLE.. */
++	THR_STATE_UNKNOWN = 0,
++	THR_STATE_UNINTERRUPTIBLE,
++} thread_state;
++
++static void sleep_short(void)
++{
++	usleep(1000);
++}
++
++static thread_state thread_state_get(pid_t tid)
++{
++	const char *header = "State:\t";
++	char tmp[256], *p, c;
++	FILE *fp;
++
++	snprintf(tmp, sizeof(tmp), "/proc/%d/status", tid);
++	fp = fopen(tmp, "r");
++
++	if (!fp)
++		return THR_STATE_UNKNOWN;
++
++	while (fgets(tmp, sizeof(tmp), fp)) {
++		p = strstr(tmp, header);
++		if (p) {
++			/* For example, "State:\tD (disk sleep)" */
++			c = *(p + sizeof(header) - 1);
++			return c == 'D' ?
++			    THR_STATE_UNINTERRUPTIBLE : THR_STATE_UNKNOWN;
++		}
++	}
++
++	return THR_STATE_UNKNOWN;
++}
++
++static void thread_state_until(pid_t tid, thread_state state)
++{
++	thread_state s;
++
++	do {
++		s = thread_state_get(tid);
++		sleep_short();
++	} while (s != state);
++}
++
++static void *uffd_mmap_changing_thread(void *opaque)
++{
++	volatile pid_t *pid = opaque;
++	int ret;
++
++	/* Unfortunately, it's only fetch-able from the thread itself.. */
++	assert(*pid == 0);
++	*pid = syscall(SYS_gettid);
++
++	/* Inject an event, this will hang solid until the event read */
++	ret = madvise(area_dst, page_size, MADV_REMOVE);
++	if (ret)
++		err("madvise(MADV_REMOVE) failed");
++
++	return NULL;
++}
++
++static void uffd_consume_message(int fd)
++{
++	struct uffd_msg msg = { 0 };
++
++	while (uffd_read_msg(fd, &msg));
++}
++
++static void uffd_mmap_changing_test(uffd_test_args_t *targs)
++{
++	/*
++	 * This stores the real PID (which can be different from how tid is
++	 * defined..) for the child thread, 0 means not initialized.
++	 */
++	pid_t pid = 0;
++	pthread_t tid;
++	int ret;
++
++	if (uffd_register(uffd, area_dst, nr_pages * page_size,
++			  true, false, false))
++		err("uffd_register() failed");
++
++	/* Create a thread to generate the racy event */
++	ret = pthread_create(&tid, NULL, uffd_mmap_changing_thread, &pid);
++	if (ret)
++		err("pthread_create() failed");
++
++	/*
++	 * Wait until the thread setup the pid.  Use volatile to make sure
++	 * it reads from RAM not regs.
++	 */
++	while (!(volatile pid_t)pid)
++		sleep_short();
++
++	/* Wait until the thread hangs at REMOVE event */
++	thread_state_until(pid, THR_STATE_UNINTERRUPTIBLE);
++
++	if (!uffdio_mmap_changing_test_copy(uffd))
++		return;
++
++	if (!uffdio_mmap_changing_test_zeropage(uffd))
++		return;
++
++	if (!uffdio_mmap_changing_test_move(uffd))
++		return;
++
++	if (!uffdio_mmap_changing_test_poison(uffd))
++		return;
++
++	if (!uffdio_mmap_changing_test_continue(uffd))
++		return;
++
++	/*
++	 * All succeeded above!  Recycle everything.  Start by reading the
++	 * event so as to kick the thread roll again..
++	 */
++	uffd_consume_message(uffd);
++
++	ret = pthread_join(tid, NULL);
++	assert(ret == 0);
++
++	uffd_test_pass();
++}
++
+ static int prevent_hugepages(const char **errmsg)
+ {
+ 	/* This should be done before source area is populated */
+@@ -1470,6 +1646,32 @@ uffd_test_case_t uffd_tests[] = {
+ 		.mem_targets = MEM_ALL,
+ 		.uffd_feature_required = UFFD_FEATURE_POISON,
+ 	},
++	{
++		.name = "mmap-changing",
++		.uffd_fn = uffd_mmap_changing_test,
++		/*
++		 * There's no point running this test over all mem types as
++		 * they share the same code paths.
++		 *
++		 * Choose shmem for simplicity, because (1) shmem supports
++		 * MINOR mode to cover UFFDIO_CONTINUE, and (2) shmem is
++		 * almost always available (unlike hugetlb).  Here we
++		 * abused SHMEM for UFFDIO_MOVE, but the test we want to
++		 * cover doesn't yet need the correct memory type..
++		 */
++		.mem_targets = MEM_SHMEM,
++		/*
++		 * Any UFFD_FEATURE_EVENT_* should work to trigger the
++		 * race logically, but choose the simplest (REMOVE).
++		 *
++		 * Meanwhile, since we'll cover quite a few new ioctl()s
++		 * (CONTINUE, POISON, MOVE), skip this test for old kernels
++		 * by choosing all of them.
++		 */
++		.uffd_feature_required = UFFD_FEATURE_EVENT_REMOVE |
++		UFFD_FEATURE_MOVE | UFFD_FEATURE_POISON |
++		UFFD_FEATURE_MINOR_SHMEM,
++	},
+ };
  
--static inline bool folio_test_large_maybe_mapped_shared(const struct folio *folio)
--{
--	return test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids);
--}
- #undef PF_ANY
- #undef PF_HEAD
- #undef PF_NO_TAIL
---- a/include/linux/rmap.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/include/linux/rmap.h
-@@ -223,7 +223,7 @@ static inline void __folio_large_mapcoun
- 	VM_WARN_ON_ONCE(folio_mm_id(folio, 1) != MM_ID_DUMMY &&
- 			folio->_mm_id_mapcount[1] < 0);
- 	VM_WARN_ON_ONCE(!folio_mapped(folio) &&
--			folio_test_large_maybe_mapped_shared(folio));
-+			test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids));
- }
- 
- static __always_inline void folio_set_large_mapcount(struct folio *folio,
---- a/mm/memory.c~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/mm/memory.c
-@@ -3768,7 +3768,7 @@ static bool __wp_can_reuse_large_anon_fo
- 	 * If all folio references are from mappings, and all mappings are in
- 	 * the page tables of this MM, then this folio is exclusive to this MM.
- 	 */
--	if (folio_test_large_maybe_mapped_shared(folio))
-+	if (test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids))
- 		return false;
- 
- 	VM_WARN_ON_ONCE(folio_test_ksm(folio));
-@@ -3791,7 +3791,7 @@ static bool __wp_can_reuse_large_anon_fo
- 	folio_lock_large_mapcount(folio);
- 	VM_WARN_ON_ONCE_FOLIO(folio_large_mapcount(folio) > folio_ref_count(folio), folio);
- 
--	if (folio_test_large_maybe_mapped_shared(folio))
-+	if (test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids))
- 		goto unlock;
- 	if (folio_large_mapcount(folio) != folio_ref_count(folio))
- 		goto unlock;
+ static void usage(const char *prog)
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
