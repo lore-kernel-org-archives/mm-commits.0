@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 534BF12EBE7
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:44:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB55B1EB1BB
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:45:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747118676; cv=none; b=ICgh0fvLmsHlVoBn5m+w3IcVXciqn9h+La5Mgde26SXQcOc8R84TlZDVTECMB0bZUplooGSdTgi+TAjrPqxNkWbl1l9CaqTONFWhANbADANcqHmCj1SjqQ15kMkWZdY3y7OLXgf7Qyv/xPaCBpkN4u6IS7LHToyfQX67JQKzcN8=
+	t=1747118703; cv=none; b=rEYaHiGNs557hpEiifa1odx8/v7eNDdZtSUWyoTOcqb0I0fefxnIIrvbE1Z4iGAyrgc0ZXF43D03Ua0qfGjWICFnWnfOid6waN2Bnm4lawsOVO01biAl7nwst7IJhElgJdum0wzci7czGDUMdSoU5HvenBE7fyal+R3axtiFLIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747118676; c=relaxed/simple;
-	bh=Pad6w4GVYN92dLR9ZVmc73oNgAeHlKSanNdtzRDs36M=;
-	h=Date:To:From:Subject:Message-Id; b=h5znJhBqRs6xpjsNMtMPzdpCq4RmWAyEtKvqG5FXwWVoZj/Kt0oJTcig9ieCgk5GqEiTfv1BB1nhDhvTndfX9C7/tmDkoddklcLWp4V7upD95f8Tr2DHCuLgddltYEq1GTY6ZL8Yr4ZppJZ7wmrE7GrQsSUFkTdI8TKx68TVnl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Is2mqNTm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747118703; c=relaxed/simple;
+	bh=vq3vO4+UvP/qOVLnFC1pVmsU+Qn69pKAGg1JPgXukqU=;
+	h=Date:To:From:Subject:Message-Id; b=Tphih2jGgA4OmXK2YhTOkBjZ4er7A7uwMYcmTaWH9J7HWVbrceRYIJl0lItcW2ljqiql3SuhnjeQnPQly/ieotW7zm5Y54OUvf5ATC3O5dj1DhKKuvzrIMsD/NA/2MljChbZinahtD5Vu9SQdHaFmeH3VujwZMKWGJ55FrB0/B4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yd6up0FG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Is2mqNTm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B12C7C4CEED;
-	Tue, 13 May 2025 06:44:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yd6up0FG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98075C4CEE4;
+	Tue, 13 May 2025 06:45:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747118674;
-	bh=Pad6w4GVYN92dLR9ZVmc73oNgAeHlKSanNdtzRDs36M=;
+	s=korg; t=1747118703;
+	bh=vq3vO4+UvP/qOVLnFC1pVmsU+Qn69pKAGg1JPgXukqU=;
 	h=Date:To:From:Subject:From;
-	b=Is2mqNTmvSqhedL7TOm5juV2PUkEgwH445OJzlonArM8A2qBFwf6B9qbXAX/5NV+J
-	 MCAqBc+OZSnq9SUqW2Aaq4jlcHXqp8nY1a6PWZ5VC+wHQzWhbhBgZYSEshhgPUUTol
-	 uXKJpZtOLkpcZouWMC8B/ZYuBgMsWNkhQmiK7KvU=
-Date: Mon, 12 May 2025 23:44:34 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,kasong@tencent.com,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=yd6up0FGCYmsErXKiiTF/IP2Ewmndkrns3Zcb46pljeiLeMGGuH+4mGqoVIO62rGZ
+	 LCHYKSPMmfd+HcMyOJvFIpmxiWQtUuL1D9Su7c5g6reh/LWjGfrW5SzVoMwPE16cZC
+	 e+DTPE/CePpcS4jbVqwR/7D7L+bCo3Skwf7xcrzU=
+Date: Mon, 12 May 2025 23:45:03 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,lkp@intel.com,hannes@cmpxchg.org,david@redhat.com,chen.haonan2@zte.com.cn,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch removed from -mm tree
-Message-Id: <20250513064434.B12C7C4CEED@smtp.kernel.org>
+Subject: [folded-merged] memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch removed from -mm tree
+Message-Id: <20250513064503.98075C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: filemap-do-not-use-folio_contains-for-swap-cache-folios-fix
+     Subject: memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix
 has been removed from the -mm tree.  Its filename was
-     filemap-do-not-use-folio_contains-for-swap-cache-folios-fix.patch
+     memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
 
-This patch was dropped because it was folded into filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
+This patch was dropped because it was folded into memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: filemap-do-not-use-folio_contains-for-swap-cache-folios-fix
-Date: Wed Apr 30 02:03:35 PM PDT 2025
+Subject: memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix
+Date: Sat May  3 06:37:28 PM PDT 2025
 
-s/VM_WARN_ON_FOLIO/VM_WARN_ON_ONCE_FOLIO/, per Kairui
+make ksm_process_profit() available on CONFIG_PROCFS=n
 
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202505030429.a2GUiRAz-lkp@intel.com/
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Sterba <dsterba@suse.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Joanne Koong <joannelkoong@gmail.com>
+Cc: Haonan Chen <chen.haonan2@zte.com.cn>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Qu Wenruo <wqu@suse.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/ksm.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/pagemap.h~filemap-do-not-use-folio_contains-for-swap-cache-folios-fix
-+++ a/include/linux/pagemap.h
-@@ -941,7 +941,7 @@ static inline struct page *folio_file_pa
-  */
- static inline bool folio_contains(struct folio *folio, pgoff_t index)
- {
--	VM_WARN_ON_FOLIO(folio_test_swapcache(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(folio_test_swapcache(folio), folio);
- 	return index - folio->index < folio_nr_pages(folio);
+--- a/mm/ksm.c~memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix
++++ a/mm/ksm.c
+@@ -3268,7 +3268,6 @@ static void wait_while_offlining(void)
  }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
  
+-#ifdef CONFIG_PROC_FS
+ /*
+  * The process is mergeable only if any VMA is currently
+  * applicable to KSM.
+@@ -3293,7 +3292,6 @@ long ksm_process_profit(struct mm_struct
+ 	return (long)(mm->ksm_merging_pages + mm_ksm_zero_pages(mm)) * PAGE_SIZE -
+ 		mm->ksm_rmap_items * sizeof(struct ksm_rmap_item);
+ }
+-#endif /* CONFIG_PROC_FS */
+ 
+ #ifdef CONFIG_SYSFS
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-filemap-do-not-use-folio_contains-for-swap-cache-folios.patch
-memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat-fix.patch
+memcontrol-add-ksm_profit-in-cgroup-memoryksm_stat.patch
 mm-add-zblock-allocator-fix.patch
 mm-add-zblock-allocator-fix-2.patch
 mm-add-zblock-allocator-fix-3.patch
