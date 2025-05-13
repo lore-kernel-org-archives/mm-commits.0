@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E741D6DB4
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67DCA1EEA27
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119279; cv=none; b=EbHzjm/AAqFMKGEjr658uycSK8OcaDPUCax9MEJur6DhF7e6LNGLzOPnUe+iBcjnltROgif1+upGvhReBTMDLacQYBiFH3UlZCuwpHEnOIh7pZyg6yMDNxE+UbHS6uA3ffLJc1x/LOEWAUwGImdae6XPetYxaVCRW8Q7flJ8/Bo=
+	t=1747119280; cv=none; b=EsVPat2IW0anIOD7G5ON+TnK7nXwPiz2uu9ZvoG//iScnBvvTwtKsO/04m2D2wykJ/lPk2KVRzY9eYFe5CrHUiquPimZcqYg3OUcFiXI3WHqZ4hQCx4UYn7/M8LbDdrD1iViQsADqdbVW9G3t+aicB1a3OY4Xth39HG+gGoPbCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119279; c=relaxed/simple;
-	bh=AvP++gXNBMADhQkGv8q3AGUEsy0f/OrerdAM8fZAPCs=;
-	h=Date:To:From:Subject:Message-Id; b=uFni/6O99JFBm0wR2Y9VS5erscwqunBFVr8Xg0hKJ3UObjd5mmTachwnMrs0Eqlvx7R8gn6+/yPETLsxd5yDoI+Cj0EqQnl41w9pGpf7eWtGL9KntBQ11okMTMSCbf1D2V4atMqT5hdeuqfQHGWp+EjehZhYGxDnX22d4WnZXhw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uDl8mfkj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119280; c=relaxed/simple;
+	bh=kGU/DmXD8KYfTAQDQaFe3WbeUhRMxgBvmG6N9ybq+Vk=;
+	h=Date:To:From:Subject:Message-Id; b=oQZUYudXClTX/qe5KqgL/IYL15qFLnhcnEPDu1SmbNRl7/dRWjrXjvfdUKDWXzTR1vFI2b8o900d0X6EcbCXQq6wZdYbH0DBJ7XgWEmtb4Xah5E4yFWtwduNJj5EpTmrwdBBXvUdS5jaM5m+PvHQoo0sPkn+KzPTQXtpRvUbLJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oEEc6WYc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uDl8mfkj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13182C4CEE4;
-	Tue, 13 May 2025 06:54:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oEEc6WYc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E888C4CEE4;
+	Tue, 13 May 2025 06:54:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119279;
-	bh=AvP++gXNBMADhQkGv8q3AGUEsy0f/OrerdAM8fZAPCs=;
+	s=korg; t=1747119280;
+	bh=kGU/DmXD8KYfTAQDQaFe3WbeUhRMxgBvmG6N9ybq+Vk=;
 	h=Date:To:From:Subject:From;
-	b=uDl8mfkjIgAf1yV0KEKDYALRLCD71KBb9RfveGaVcs3yniUj6JHs5sJFHUYaUSq1d
-	 PeLkuFx1F0ZghaNm2tZQ4IY4JEeFwy0U1NDcMAuQy9hlz1xbQ5ZFMEpQ5ZtQRUI/Ce
-	 3SoBXAdz8LjfWO0opnUmH4c/nbsP+kaQOohlBkHQ=
-Date: Mon, 12 May 2025 23:54:38 -0700
+	b=oEEc6WYcfDH4sxUeos3QtD+8o0kD4jQnA+sS96sNXw17bD+MFr8u9nqeIdvvZktDV
+	 sDmwUV50kXQcl1Bk2ZelH7qgy7D+mETYFMd9AmtdZBIEkcK0eEQ4PTDaJm9x/Hhkm6
+	 /LyLtDe+VGLxE0Qa+mv4wxcB/BJQPhA3wVuq750g=
+Date: Mon, 12 May 2025 23:54:39 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,lorenzo.stoakes@oracle.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw@amazon.co.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-implement-for_each_valid_pfn-for-config_flatmem.patch removed from -mm tree
-Message-Id: <20250513065439.13182C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-implement-for_each_valid_pfn-for-config_sparsemem.patch removed from -mm tree
+Message-Id: <20250513065440.3E888C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: implement for_each_valid_pfn() for CONFIG_FLATMEM
+     Subject: mm: implement for_each_valid_pfn() for CONFIG_SPARSEMEM
 has been removed from the -mm tree.  Its filename was
-     mm-implement-for_each_valid_pfn-for-config_flatmem.patch
+     mm-implement-for_each_valid_pfn-for-config_sparsemem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Woodhouse <dwmw@amazon.co.uk>
-Subject: mm: implement for_each_valid_pfn() for CONFIG_FLATMEM
-Date: Wed, 23 Apr 2025 14:33:38 +0100
+Subject: mm: implement for_each_valid_pfn() for CONFIG_SPARSEMEM
+Date: Wed, 23 Apr 2025 14:33:39 +0100
 
-In the FLATMEM case, the default pfn_valid() just checks that the PFN is
-within the range [ ARCH_PFN_OFFSET ..  ARCH_PFN_OFFSET + max_mapnr ).
+Implement for_each_valid_pfn() based on two helper functions.
 
-The for_each_valid_pfn() function can therefore be a simple for() loop
-using those as min/max respectively.
+The first_valid_pfn() function largely mirrors pfn_valid(), calling into a
+pfn_section_first_valid() helper which is trivial for the !VMEMMAP case,
+and in the VMEMMAP case will skip to the next subsection as needed.
 
-Link: https://lkml.kernel.org/r/20250423133821.789413-3-dwmw2@infradead.org
+Since next_valid_pfn() knows that its argument *is* a valid PFN, it
+doesn't need to do any checking at all while iterating over the low bits
+within a (sub)section mask; the whole (sub)section is either present or
+not.
+
+Note that the VMEMMAP version of pfn_section_first_valid() may return a
+value *higher* than end_pfn when skipping to the next subsection, and
+first_valid_pfn() happily returns that higher value.  This is fine.
+
+[dwmw2@infradead.org: fix next_valid_pfn() for sparsemem]
+  Link: https://lkml.kernel.org/r/c15100fcf6781a60b852c4dbb43bdc98a678fcf0.camel@infradead.org
+Link: https://lkml.kernel.org/r/20250423133821.789413-4-dwmw2@infradead.org
 Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Marc Rutland <mark.rutland@arm.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Ruihan Li <lrh2000@pku.edu.cn>
@@ -68,28 +79,108 @@ Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/memory_model.h |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |   78 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 78 insertions(+)
 
---- a/include/asm-generic/memory_model.h~mm-implement-for_each_valid_pfn-for-config_flatmem
-+++ a/include/asm-generic/memory_model.h
-@@ -30,7 +30,15 @@ static inline int pfn_valid(unsigned lon
- 	return pfn >= pfn_offset && (pfn - pfn_offset) < max_mapnr;
+--- a/include/linux/mmzone.h~mm-implement-for_each_valid_pfn-for-config_sparsemem
++++ a/include/linux/mmzone.h
+@@ -2075,11 +2075,37 @@ static inline int pfn_section_valid(stru
+ 
+ 	return usage ? test_bit(idx, usage->subsection_map) : 0;
  }
- #define pfn_valid pfn_valid
--#endif
 +
-+#ifndef for_each_valid_pfn
-+#define for_each_valid_pfn(pfn, start_pfn, end_pfn)			 \
-+	for ((pfn) = max_t(unsigned long, (start_pfn), ARCH_PFN_OFFSET); \
-+	     (pfn) < min_t(unsigned long, (end_pfn),			 \
-+			   ARCH_PFN_OFFSET + max_mapnr);		 \
-+	     (pfn)++)
-+#endif /* for_each_valid_pfn */
-+#endif /* valid_pfn */
++static inline bool pfn_section_first_valid(struct mem_section *ms, unsigned long *pfn)
++{
++	struct mem_section_usage *usage = READ_ONCE(ms->usage);
++	int idx = subsection_map_index(*pfn);
++	unsigned long bit;
++
++	if (!usage)
++		return false;
++
++	if (test_bit(idx, usage->subsection_map))
++		return true;
++
++	/* Find the next subsection that exists */
++	bit = find_next_bit(usage->subsection_map, SUBSECTIONS_PER_SECTION, idx);
++	if (bit == SUBSECTIONS_PER_SECTION)
++		return false;
++
++	*pfn = (*pfn & PAGE_SECTION_MASK) + (bit * PAGES_PER_SUBSECTION);
++	return true;
++}
+ #else
+ static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+ {
+ 	return 1;
+ }
++
++static inline bool pfn_section_first_valid(struct mem_section *ms, unsigned long *pfn)
++{
++	return true;
++}
+ #endif
  
- #elif defined(CONFIG_SPARSEMEM_VMEMMAP)
+ void sparse_init_early_section(int nid, struct page *map, unsigned long pnum,
+@@ -2128,6 +2154,58 @@ static inline int pfn_valid(unsigned lon
  
+ 	return ret;
+ }
++
++/* Returns end_pfn or higher if no valid PFN remaining in range */
++static inline unsigned long first_valid_pfn(unsigned long pfn, unsigned long end_pfn)
++{
++	unsigned long nr = pfn_to_section_nr(pfn);
++
++	rcu_read_lock_sched();
++
++	while (nr <= __highest_present_section_nr && pfn < end_pfn) {
++		struct mem_section *ms = __pfn_to_section(pfn);
++
++		if (valid_section(ms) &&
++		    (early_section(ms) || pfn_section_first_valid(ms, &pfn))) {
++			rcu_read_unlock_sched();
++			return pfn;
++		}
++
++		/* Nothing left in this section? Skip to next section */
++		nr++;
++		pfn = section_nr_to_pfn(nr);
++	}
++
++	rcu_read_unlock_sched();
++	return end_pfn;
++}
++
++static inline unsigned long next_valid_pfn(unsigned long pfn, unsigned long end_pfn)
++{
++	pfn++;
++
++	if (pfn >= end_pfn)
++		return end_pfn;
++
++	/*
++	 * Either every PFN within the section (or subsection for VMEMMAP) is
++	 * valid, or none of them are. So there's no point repeating the check
++	 * for every PFN; only call first_valid_pfn() again when crossing a
++	 * (sub)section boundary (i.e. !(pfn & ~PAGE_{SUB,}SECTION_MASK)).
++	 */
++	if (pfn & ~(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) ?
++		   PAGE_SUBSECTION_MASK : PAGE_SECTION_MASK))
++		return pfn;
++
++	return first_valid_pfn(pfn, end_pfn);
++}
++
++
++#define for_each_valid_pfn(_pfn, _start_pfn, _end_pfn)			\
++	for ((_pfn) = first_valid_pfn((_start_pfn), (_end_pfn));	\
++	     (_pfn) < (_end_pfn);					\
++	     (_pfn) = next_valid_pfn((_pfn), (_end_pfn)))
++
+ #endif
+ 
+ static inline int pfn_in_present_section(unsigned long pfn)
 _
 
 Patches currently in -mm which might be from dwmw@amazon.co.uk are
