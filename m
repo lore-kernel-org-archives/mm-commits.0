@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37C671EEA27
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 081D71EF0B0
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119291; cv=none; b=RX6fm9CXAxh7yxWXPTUFYAV3DpE82acjWv2bOTPH+TRBs64u7EUUd18V9UMiVBxfdD9+l2xj3oTZVeRbZYP2inGs0aGWc1HFxkYChtuFQgpBoy9K36uzXON0yb/Ey2wG5/Xvcfoy2kYvExEtUkbCMKbRrKCPUTbc0lHVaiHL9o4=
+	t=1747119294; cv=none; b=ezETJ9erwy9JbsWb8mTy74Fg2enlRAbAQf7xH3NmB2ECl9oL3whvkCC8WBvZmzL/PL1307FLSOYLRJllD5yM3uT80j9h+N35iZ3tdsHe3AZQb0G3YpfWAn7CCm/jhdM0xNsgAJ7HdCdH5+kX9QAEw5OfXYZXs8BvG26ocPfxHtQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119291; c=relaxed/simple;
-	bh=asR1sO6Zxhx93Y2sY+scQ1RREvYr29AIiqAJYnmssfo=;
-	h=Date:To:From:Subject:Message-Id; b=Vmyr9UytjM7Q24NNGLTstjJfgDT6HNmPHoeZhVbyJP9iQ80f4ICtSp/ypGu9zhlYimy05OS13lj7fUhWeHMWovEo7R/Zu6KTHsSw0pZp1lheXrCvpvYWZeUjj/3hQy5cSj8vzTIethwjPfHPySZDMFaJT3sebagmi1MvpnUPAHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=av2QDVDJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119294; c=relaxed/simple;
+	bh=+J0JyyPSlCQ62a16Y5Tk+9DqKd4TJmO3ZDL8z1taYLg=;
+	h=Date:To:From:Subject:Message-Id; b=qwEyzf40CyM4HRkJpkblp8ZuQ+GmNb9oY+ECJBL0G9YzcO7cYhNzYgT8TBMv01mRUxUYOksWnf4vdz05tNvTKhxwQ745taHVod1gfzVwcf4nNGoUB0mxMvsOUYcNF2qWTDp1ZXux62/tKuPFgzeqvU+3twFjkPapI3NmY2/RFFk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0i23Vx4T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="av2QDVDJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0514DC4CEE4;
-	Tue, 13 May 2025 06:54:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0i23Vx4T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1FF8C4CEE4;
+	Tue, 13 May 2025 06:54:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119291;
-	bh=asR1sO6Zxhx93Y2sY+scQ1RREvYr29AIiqAJYnmssfo=;
+	s=korg; t=1747119293;
+	bh=+J0JyyPSlCQ62a16Y5Tk+9DqKd4TJmO3ZDL8z1taYLg=;
 	h=Date:To:From:Subject:From;
-	b=av2QDVDJzvFVq5wdR2qv84khl9r7ExFauvNGUFtZcngVzV72RoJ0vC1iht0Lcbo3s
-	 l1JcF4gJwrBCIktKfuWJq+l0oOwtcwKHk7se2q4rXUh4+NnZ32Dl3G5P08EFHiA01i
-	 thxsDKdSHL7O8Aps2opvICgc64YU6iuKUi0FaagU=
-Date: Mon, 12 May 2025 23:54:50 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,axelrasmussen@google.com,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=0i23Vx4T0VgE6FU7XiwDFaaYePDPZnlK4FbQJG18IWL6nplPCK8fTzE/CNYAm2Mxo
+	 ZjGTtWnX3enJrhauh5mqWAuFPkI8oYGmn3EUBPvCUC9C4waHmN8lLQwhT3DOqrr8m1
+	 mz3+lboKf1mWYjln7cnmugleEHNv1v30JWCvWiV0=
+Date: Mon, 12 May 2025 23:54:53 -0700
+To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,vineethr@linux.ibm.com,vincent.guittot@linaro.org,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,sraithal@amd.com,rostedt@goodmis.org,raghavendra.kt@amd.com,peterz@infradead.org,mkoutny@suse.com,mingo@redhat.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,kprateek.nayak@amd.com,juri.lelli@redhat.com,daniel.m.jordan@oracle.com,chris.hyser@oracle.com,libo.chen@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain.patch removed from -mm tree
-Message-Id: <20250513065451.0514DC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch removed from -mm tree
+Message-Id: <20250513065453.D1FF8C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,264 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/selftests: add a test to verify mmap_changing race with -EAGAIN
+     Subject: sched/numa: skip VMA scanning on memory pinned to one NUMA node via cpuset.mems
 has been removed from the -mm tree.  Its filename was
-     mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain.patch
+     sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/selftests: add a test to verify mmap_changing race with -EAGAIN
-Date: Thu, 24 Apr 2025 17:57:29 -0400
+From: Libo Chen <libo.chen@oracle.com>
+Subject: sched/numa: skip VMA scanning on memory pinned to one NUMA node via cpuset.mems
+Date: Wed, 23 Apr 2025 19:45:22 -0700
 
-Add an unit test to verify the recent mmap_changing ABI breakage.
+Patch series "sched/numa: Skip VMA scanning on memory pinned to one NUMA
+node via cpuset.mems", v5.
 
-Note that I used some tricks here and there to make the test simple, e.g. 
-I abused UFFDIO_MOVE on top of shmem with the fact that I know what I want
-to test will be even earlier than the vma type check.  Rich comments were
-added to explain trivial details.
 
-Before that fix, -EAGAIN would have been written to the copy field most of
-the time but not always; the test should be able to reliably trigger the
-outlier case.  After the fix, it's written always, the test verifies that
-making sure corresponding field (e.g.  copy.copy for UFFDIO_COPY) is
-updated.
+This patch (of 2):
 
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/20250424215729.194656-3-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+When the memory of the current task is pinned to one NUMA node by cgroup,
+there is no point in continuing the rest of VMA scanning and hinting page
+faults as they will just be overhead.  With this change, there will be no
+more unnecessary PTE updates or page faults in this scenario.
+
+We have seen up to a 6x improvement on a typical java workload running on
+VMs with memory and CPU pinned to one NUMA node via cpuset in a two-socket
+AARCH64 system.  With the same pinning, on a 18-cores-per-socket Intel
+platform, we have seen 20% improvment in a microbench that creates a
+30-vCPU selftest KVM guest with 4GB memory, where each vCPU reads 4KB
+pages in a fixed number of loops.
+
+Link: https://lkml.kernel.org/r/20250424024523.2298272-1-libo.chen@oracle.com
+Link: https://lkml.kernel.org/r/20250424024523.2298272-2-libo.chen@oracle.com
+Signed-off-by: Libo Chen <libo.chen@oracle.com>
+Tested-by: Chen Yu <yu.c.chen@intel.com>
+Tested-by: Srikanth Aithal <sraithal@amd.com>
+Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Chris Hyser <chris.hyser@oracle.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |  202 +++++++++++++++++
- 1 file changed, 202 insertions(+)
+ kernel/sched/fair.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~mm-selftests-add-a-test-to-verify-mmap_changing-race-with-eagain
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1231,6 +1231,182 @@ static void uffd_move_pmd_split_test(uff
- 			      uffd_move_pmd_handle_fault);
- }
+--- a/kernel/sched/fair.c~sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems
++++ a/kernel/sched/fair.c
+@@ -3329,6 +3329,13 @@ static void task_numa_work(struct callba
+ 	if (p->flags & PF_EXITING)
+ 		return;
  
-+static bool
-+uffdio_verify_results(const char *name, int ret, int error, long result)
-+{
 +	/*
-+	 * Should always return -1 with errno=EAGAIN, with corresponding
-+	 * result field updated in ioctl() args to be -EAGAIN too
-+	 * (e.g. copy.copy field for UFFDIO_COPY).
++	 * Memory is pinned to only one NUMA node via cpuset.mems, naturally
++	 * no page can be migrated.
 +	 */
-+	if (ret != -1) {
-+		uffd_test_fail("%s should have returned -1", name);
-+		return false;
-+	}
-+
-+	if (error != EAGAIN) {
-+		uffd_test_fail("%s should have errno==EAGAIN", name);
-+		return false;
-+	}
-+
-+	if (result != -EAGAIN) {
-+		uffd_test_fail("%s should have been updated for -EAGAIN",
-+			       name);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+/*
-+ * This defines a function to test one ioctl.  Note that here "field" can
-+ * be 1 or anything not -EAGAIN.  With that initial value set, we can
-+ * verify later that it should be updated by kernel (when -EAGAIN
-+ * returned), by checking whether it is also updated to -EAGAIN.
-+ */
-+#define DEFINE_MMAP_CHANGING_TEST(name, ioctl_name, field)		\
-+	static bool uffdio_mmap_changing_test_##name(int fd)		\
-+	{								\
-+		int ret;						\
-+		struct uffdio_##name args = {				\
-+			.field = 1,					\
-+		};							\
-+		ret = ioctl(fd, ioctl_name, &args);			\
-+		return uffdio_verify_results(#ioctl_name, ret, errno, args.field); \
-+	}
-+
-+DEFINE_MMAP_CHANGING_TEST(zeropage, UFFDIO_ZEROPAGE, zeropage)
-+DEFINE_MMAP_CHANGING_TEST(copy, UFFDIO_COPY, copy)
-+DEFINE_MMAP_CHANGING_TEST(move, UFFDIO_MOVE, move)
-+DEFINE_MMAP_CHANGING_TEST(poison, UFFDIO_POISON, updated)
-+DEFINE_MMAP_CHANGING_TEST(continue, UFFDIO_CONTINUE, mapped)
-+
-+typedef enum {
-+	/* We actually do not care about any state except UNINTERRUPTIBLE.. */
-+	THR_STATE_UNKNOWN = 0,
-+	THR_STATE_UNINTERRUPTIBLE,
-+} thread_state;
-+
-+static void sleep_short(void)
-+{
-+	usleep(1000);
-+}
-+
-+static thread_state thread_state_get(pid_t tid)
-+{
-+	const char *header = "State:\t";
-+	char tmp[256], *p, c;
-+	FILE *fp;
-+
-+	snprintf(tmp, sizeof(tmp), "/proc/%d/status", tid);
-+	fp = fopen(tmp, "r");
-+
-+	if (!fp)
-+		return THR_STATE_UNKNOWN;
-+
-+	while (fgets(tmp, sizeof(tmp), fp)) {
-+		p = strstr(tmp, header);
-+		if (p) {
-+			/* For example, "State:\tD (disk sleep)" */
-+			c = *(p + sizeof(header) - 1);
-+			return c == 'D' ?
-+			    THR_STATE_UNINTERRUPTIBLE : THR_STATE_UNKNOWN;
-+		}
-+	}
-+
-+	return THR_STATE_UNKNOWN;
-+}
-+
-+static void thread_state_until(pid_t tid, thread_state state)
-+{
-+	thread_state s;
-+
-+	do {
-+		s = thread_state_get(tid);
-+		sleep_short();
-+	} while (s != state);
-+}
-+
-+static void *uffd_mmap_changing_thread(void *opaque)
-+{
-+	volatile pid_t *pid = opaque;
-+	int ret;
-+
-+	/* Unfortunately, it's only fetch-able from the thread itself.. */
-+	assert(*pid == 0);
-+	*pid = syscall(SYS_gettid);
-+
-+	/* Inject an event, this will hang solid until the event read */
-+	ret = madvise(area_dst, page_size, MADV_REMOVE);
-+	if (ret)
-+		err("madvise(MADV_REMOVE) failed");
-+
-+	return NULL;
-+}
-+
-+static void uffd_consume_message(int fd)
-+{
-+	struct uffd_msg msg = { 0 };
-+
-+	while (uffd_read_msg(fd, &msg));
-+}
-+
-+static void uffd_mmap_changing_test(uffd_test_args_t *targs)
-+{
-+	/*
-+	 * This stores the real PID (which can be different from how tid is
-+	 * defined..) for the child thread, 0 means not initialized.
-+	 */
-+	pid_t pid = 0;
-+	pthread_t tid;
-+	int ret;
-+
-+	if (uffd_register(uffd, area_dst, nr_pages * page_size,
-+			  true, false, false))
-+		err("uffd_register() failed");
-+
-+	/* Create a thread to generate the racy event */
-+	ret = pthread_create(&tid, NULL, uffd_mmap_changing_thread, &pid);
-+	if (ret)
-+		err("pthread_create() failed");
-+
-+	/*
-+	 * Wait until the thread setup the pid.  Use volatile to make sure
-+	 * it reads from RAM not regs.
-+	 */
-+	while (!(volatile pid_t)pid)
-+		sleep_short();
-+
-+	/* Wait until the thread hangs at REMOVE event */
-+	thread_state_until(pid, THR_STATE_UNINTERRUPTIBLE);
-+
-+	if (!uffdio_mmap_changing_test_copy(uffd))
++	if (cpusets_enabled() && nodes_weight(cpuset_current_mems_allowed) == 1)
 +		return;
 +
-+	if (!uffdio_mmap_changing_test_zeropage(uffd))
-+		return;
-+
-+	if (!uffdio_mmap_changing_test_move(uffd))
-+		return;
-+
-+	if (!uffdio_mmap_changing_test_poison(uffd))
-+		return;
-+
-+	if (!uffdio_mmap_changing_test_continue(uffd))
-+		return;
-+
-+	/*
-+	 * All succeeded above!  Recycle everything.  Start by reading the
-+	 * event so as to kick the thread roll again..
-+	 */
-+	uffd_consume_message(uffd);
-+
-+	ret = pthread_join(tid, NULL);
-+	assert(ret == 0);
-+
-+	uffd_test_pass();
-+}
-+
- static int prevent_hugepages(const char **errmsg)
- {
- 	/* This should be done before source area is populated */
-@@ -1470,6 +1646,32 @@ uffd_test_case_t uffd_tests[] = {
- 		.mem_targets = MEM_ALL,
- 		.uffd_feature_required = UFFD_FEATURE_POISON,
- 	},
-+	{
-+		.name = "mmap-changing",
-+		.uffd_fn = uffd_mmap_changing_test,
-+		/*
-+		 * There's no point running this test over all mem types as
-+		 * they share the same code paths.
-+		 *
-+		 * Choose shmem for simplicity, because (1) shmem supports
-+		 * MINOR mode to cover UFFDIO_CONTINUE, and (2) shmem is
-+		 * almost always available (unlike hugetlb).  Here we
-+		 * abused SHMEM for UFFDIO_MOVE, but the test we want to
-+		 * cover doesn't yet need the correct memory type..
-+		 */
-+		.mem_targets = MEM_SHMEM,
-+		/*
-+		 * Any UFFD_FEATURE_EVENT_* should work to trigger the
-+		 * race logically, but choose the simplest (REMOVE).
-+		 *
-+		 * Meanwhile, since we'll cover quite a few new ioctl()s
-+		 * (CONTINUE, POISON, MOVE), skip this test for old kernels
-+		 * by choosing all of them.
-+		 */
-+		.uffd_feature_required = UFFD_FEATURE_EVENT_REMOVE |
-+		UFFD_FEATURE_MOVE | UFFD_FEATURE_POISON |
-+		UFFD_FEATURE_MINOR_SHMEM,
-+	},
- };
- 
- static void usage(const char *prog)
+ 	if (!mm->numa_next_scan) {
+ 		mm->numa_next_scan = now +
+ 			msecs_to_jiffies(sysctl_numa_balancing_scan_delay);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from libo.chen@oracle.com are
 
+sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
 
