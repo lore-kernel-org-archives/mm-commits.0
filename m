@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89ED91D6DB4
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45CB41D6DB4
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119264; cv=none; b=jm43XUOayJYadRpuG/bkF4XaXqAP9Q/ZVgSVLQ+AptJVBpfVyLruaGMVHqqi3BkGRho9oX9EKU8AFIROcUdn5gyaQZT/Zb8BfdnQU4Io8GaiVFzNNclix6XAC52fRxUmfWwuKUhJSZfjZCjLCqCeX94UaMD4I8Z2GSLAjUaet8g=
+	t=1747119266; cv=none; b=FPMz83ctX4nYLcyMuAg13WwU720PKPfurblaIyk7SmUKc8tIkfSovu57Wd4pcwbmCgS+STyDVPLDRdiAkq5Q9a02mYbefa3ikCA9oNwd4SB515iFdu0+3n3d8oIkPp6rueeMoXKF52JAZ/BMhMPLrjLYpLH+9fu0qNXOfQov+ts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119264; c=relaxed/simple;
-	bh=4XOh0+IQDwZ2aAo9rBWad12VFVZTIB6UDVKscOUcq1k=;
-	h=Date:To:From:Subject:Message-Id; b=KwhDjKCv9MyalkXRW7V0a7qAcg1LBQthxLvz7k+53UVFhf5/qA5piK9RRNxMXOL7D8iHDxJiWw7L6jcdvVtc1sOMptVYWQ0WY6XMBwJeO8C065IMIOB9QcHE42wAwVV09AznzHHwx1T6yIV/fJ4amNuYM/zcS0yYwFUxNVVfcIQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2REgICxa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119266; c=relaxed/simple;
+	bh=ew2hhlBeerpPKVg9wq33+IGDmB6+UcAvwTiW4h1EDdg=;
+	h=Date:To:From:Subject:Message-Id; b=upSrBKF2ajLdgl7+FLoWlXVMVXEdpBHIXO4ScGhFButVN6W0nCDbpQv8LknierIrKnX7UR9HGV/49sh/Ty2GAtfYNQdss1cmsGfgU4NPKrn/BoNgLNk6QfoC99H4Ux4CzXA9of5ykygsIQN4UZJnY0B90tF+7XTIHA8JoOk6/S0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HmST88Qt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2REgICxa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58313C4CEE4;
-	Tue, 13 May 2025 06:54:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HmST88Qt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13783C4CEE4;
+	Tue, 13 May 2025 06:54:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119264;
-	bh=4XOh0+IQDwZ2aAo9rBWad12VFVZTIB6UDVKscOUcq1k=;
+	s=korg; t=1747119266;
+	bh=ew2hhlBeerpPKVg9wq33+IGDmB6+UcAvwTiW4h1EDdg=;
 	h=Date:To:From:Subject:From;
-	b=2REgICxaRoHVS7LnXW9PaZcsxKFYCmPxUHiEqqIfnNIEabxFC4rpCZRryQz9hi0au
-	 rcvGb5FaBe6LBru1NDBg6v84aB7ZagEAEAsA7OH/8nJU1zF0kZuaxslgCcH2ZeGeA7
-	 LVa86FEkcDLJbmT5lSefnC7LsfTQ3HIeafZBPl+M=
-Date: Mon, 12 May 2025 23:54:23 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,graf@amazon.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=HmST88Qt+ZDNU36R5RdxvebFYB/N+7FNr/XFMVwHnbu2WGTgJXf2926OIfAgQqI2G
+	 rVw6QmBaApJuz0xsABarWnjIUwDCz4dbi9gHP4m6o3n+phblkp6bJQ6JzTKhbbsQPZ
+	 hT5isG5gHip1rxB7DZZERu6S8hqAa0tzpkVA8k8g=
+Date: Mon, 12 May 2025 23:54:25 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rppt@kernel.org,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-setup-use-memblock_reserve_kern-for-memory-used-by-kernel.patch removed from -mm tree
-Message-Id: <20250513065424.58313C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] x86-kexec-add-support-for-passing-kexec-handover-kho-data.patch removed from -mm tree
+Message-Id: <20250513065426.13783C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/setup: use memblock_reserve_kern for memory used by kernel
+     Subject: x86/kexec: add support for passing kexec handover (KHO) data
 has been removed from the -mm tree.  Its filename was
-     x86-setup-use-memblock_reserve_kern-for-memory-used-by-kernel.patch
+     x86-kexec-add-support-for-passing-kexec-handover-kho-data.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: x86/setup: use memblock_reserve_kern for memory used by kernel
-Date: Fri, 9 May 2025 00:46:28 -0700
+From: Alexander Graf <graf@amazon.com>
+Subject: x86/kexec: add support for passing kexec handover (KHO) data
+Date: Fri, 9 May 2025 00:46:29 -0700
 
-memblock_reserve() does not distinguish memory used by firmware from
-memory used by kernel.
+kexec handover (KHO) creates a metadata that the kernels pass between each
+other during kexec.  This metadata is stored in memory and kexec image
+contains a (physical) pointer to that memory.
 
-The distinction is nice to have for accounting of early memory allocations
-and reservations, but it is essential for kexec handover (kho) to know how
-much memory kernel consumes during boot.
+In addition, KHO keeps "scratch regions" available for kexec: physically
+contiguous memory regions that are guaranteed to not have any memory that
+KHO would preserve.  The new kernel bootstraps itself using the scratch
+regions and sets all handed over memory as in use.  When subsystems that
+support KHO initialize, they introspect the KHO metadata, restore
+preserved memory regions, and retrieve their state stored in the preserved
+memory.
 
-Use memblock_reserve_kern() to reserve kernel memory, such as kernel
-image, initrd and setup data.
+Enlighten x86 kexec-file and boot path about the KHO metadata and make
+sure it gets passed along to the next kernel.
 
-Link: https://lkml.kernel.org/r/20250509074635.3187114-11-changyuanl@google.com
+Link: https://lkml.kernel.org/r/20250509074635.3187114-12-changyuanl@google.com
+Signed-off-by: Alexander Graf <graf@amazon.com>
+Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Co-developed-by: Changyuan Lyu <changyuanl@google.com>
 Signed-off-by: Changyuan Lyu <changyuanl@google.com>
 Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Alexander Graf <graf@amazon.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -92,71 +99,156 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/x86/include/asm/setup.h           |    2 +
+ arch/x86/include/uapi/asm/setup_data.h |   13 +++++++-
+ arch/x86/kernel/kexec-bzimage64.c      |   37 +++++++++++++++++++++++
+ arch/x86/kernel/setup.c                |   26 ++++++++++++++++
+ 4 files changed, 77 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/setup.c~x86-setup-use-memblock_reserve_kern-for-memory-used-by-kernel
-+++ a/arch/x86/kernel/setup.c
-@@ -286,8 +286,8 @@ static void __init cleanup_highmap(void)
- static void __init reserve_brk(void)
- {
- 	if (_brk_end > _brk_start)
--		memblock_reserve(__pa_symbol(_brk_start),
--				 _brk_end - _brk_start);
-+		memblock_reserve_kern(__pa_symbol(_brk_start),
-+				      _brk_end - _brk_start);
+--- a/arch/x86/include/asm/setup.h~x86-kexec-add-support-for-passing-kexec-handover-kho-data
++++ a/arch/x86/include/asm/setup.h
+@@ -67,6 +67,8 @@ extern void x86_ce4100_early_setup(void)
+ static inline void x86_ce4100_early_setup(void) { }
+ #endif
  
- 	/* Mark brk area as locked down and no longer taking any
- 	   new allocations */
-@@ -360,7 +360,7 @@ static void __init early_reserve_initrd(
- 	    !ramdisk_image || !ramdisk_size)
- 		return;		/* No initrd provided by bootloader */
++#include <linux/kexec_handover.h>
++
+ #ifndef _SETUP
  
--	memblock_reserve(ramdisk_image, ramdisk_end - ramdisk_image);
-+	memblock_reserve_kern(ramdisk_image, ramdisk_end - ramdisk_image);
+ #include <asm/espfix.h>
+--- a/arch/x86/include/uapi/asm/setup_data.h~x86-kexec-add-support-for-passing-kexec-handover-kho-data
++++ a/arch/x86/include/uapi/asm/setup_data.h
+@@ -13,7 +13,8 @@
+ #define SETUP_CC_BLOB			7
+ #define SETUP_IMA			8
+ #define SETUP_RNG_SEED			9
+-#define SETUP_ENUM_MAX			SETUP_RNG_SEED
++#define SETUP_KEXEC_KHO			10
++#define SETUP_ENUM_MAX			SETUP_KEXEC_KHO
+ 
+ #define SETUP_INDIRECT			(1<<31)
+ #define SETUP_TYPE_MAX			(SETUP_ENUM_MAX | SETUP_INDIRECT)
+@@ -78,6 +79,16 @@ struct ima_setup_data {
+ 	__u64 size;
+ } __attribute__((packed));
+ 
++/*
++ * Locations of kexec handover metadata
++ */
++struct kho_data {
++	__u64 fdt_addr;
++	__u64 fdt_size;
++	__u64 scratch_addr;
++	__u64 scratch_size;
++} __attribute__((packed));
++
+ #endif /* __ASSEMBLER__ */
+ 
+ #endif /* _UAPI_ASM_X86_SETUP_DATA_H */
+--- a/arch/x86/kernel/kexec-bzimage64.c~x86-kexec-add-support-for-passing-kexec-handover-kho-data
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -233,6 +233,32 @@ setup_ima_state(const struct kimage *ima
+ #endif /* CONFIG_IMA_KEXEC */
  }
  
- static void __init reserve_initrd(void)
-@@ -413,7 +413,7 @@ static void __init add_early_ima_buffer(
++static void setup_kho(const struct kimage *image, struct boot_params *params,
++		      unsigned long params_load_addr,
++		      unsigned int setup_data_offset)
++{
++	struct setup_data *sd = (void *)params + setup_data_offset;
++	struct kho_data *kho = (void *)sd + sizeof(*sd);
++
++	if (!IS_ENABLED(CONFIG_KEXEC_HANDOVER))
++		return;
++
++	sd->type = SETUP_KEXEC_KHO;
++	sd->len = sizeof(struct kho_data);
++
++	/* Only add if we have all KHO images in place */
++	if (!image->kho.fdt || !image->kho.scratch)
++		return;
++
++	/* Add setup data */
++	kho->fdt_addr = image->kho.fdt;
++	kho->fdt_size = PAGE_SIZE;
++	kho->scratch_addr = image->kho.scratch->mem;
++	kho->scratch_size = image->kho.scratch->bufsz;
++	sd->next = params->hdr.setup_data;
++	params->hdr.setup_data = params_load_addr + setup_data_offset;
++}
++
+ static int
+ setup_boot_parameters(struct kimage *image, struct boot_params *params,
+ 		      unsigned long params_load_addr,
+@@ -312,6 +338,13 @@ setup_boot_parameters(struct kimage *ima
+ 				     sizeof(struct ima_setup_data);
  	}
  
- 	if (data->size) {
--		memblock_reserve(data->addr, data->size);
-+		memblock_reserve_kern(data->addr, data->size);
- 		ima_kexec_buffer_phys = data->addr;
- 		ima_kexec_buffer_size = data->size;
- 	}
-@@ -553,7 +553,7 @@ static void __init memblock_x86_reserve_
- 		len = sizeof(*data);
- 		pa_next = data->next;
++	if (IS_ENABLED(CONFIG_KEXEC_HANDOVER)) {
++		/* Setup space to store preservation metadata */
++		setup_kho(image, params, params_load_addr, setup_data_offset);
++		setup_data_offset += sizeof(struct setup_data) +
++				     sizeof(struct kho_data);
++	}
++
+ 	/* Setup RNG seed */
+ 	setup_rng_seed(params, params_load_addr, setup_data_offset);
  
--		memblock_reserve(pa_data, sizeof(*data) + data->len);
-+		memblock_reserve_kern(pa_data, sizeof(*data) + data->len);
+@@ -479,6 +512,10 @@ static void *bzImage64_load(struct kimag
+ 		kbuf.bufsz += sizeof(struct setup_data) +
+ 			      sizeof(struct ima_setup_data);
  
- 		if (data->type == SETUP_INDIRECT) {
- 			len += data->len;
-@@ -567,7 +567,7 @@ static void __init memblock_x86_reserve_
- 			indirect = (struct setup_indirect *)data->data;
++	if (IS_ENABLED(CONFIG_KEXEC_HANDOVER))
++		kbuf.bufsz += sizeof(struct setup_data) +
++			      sizeof(struct kho_data);
++
+ 	params = kzalloc(kbuf.bufsz, GFP_KERNEL);
+ 	if (!params)
+ 		return ERR_PTR(-ENOMEM);
+--- a/arch/x86/kernel/setup.c~x86-kexec-add-support-for-passing-kexec-handover-kho-data
++++ a/arch/x86/kernel/setup.c
+@@ -451,6 +451,29 @@ int __init ima_get_kexec_buffer(void **a
+ }
+ #endif
  
- 			if (indirect->type != SETUP_INDIRECT)
--				memblock_reserve(indirect->addr, indirect->len);
-+				memblock_reserve_kern(indirect->addr, indirect->len);
- 		}
- 
- 		pa_data = pa_next;
-@@ -770,8 +770,8 @@ static void __init early_reserve_memory(
- 	 * __end_of_kernel_reserve symbol must be explicitly reserved with a
- 	 * separate memblock_reserve() or they will be discarded.
- 	 */
--	memblock_reserve(__pa_symbol(_text),
--			 (unsigned long)__end_of_kernel_reserve - (unsigned long)_text);
-+	memblock_reserve_kern(__pa_symbol(_text),
-+			      (unsigned long)__end_of_kernel_reserve - (unsigned long)_text);
- 
- 	/*
- 	 * The first 4Kb of memory is a BIOS owned area, but generally it is
++static void __init add_kho(u64 phys_addr, u32 data_len)
++{
++	struct kho_data *kho;
++	u64 addr = phys_addr + sizeof(struct setup_data);
++	u64 size = data_len - sizeof(struct setup_data);
++
++	if (!IS_ENABLED(CONFIG_KEXEC_HANDOVER)) {
++		pr_warn("Passed KHO data, but CONFIG_KEXEC_HANDOVER not set. Ignoring.\n");
++		return;
++	}
++
++	kho = early_memremap(addr, size);
++	if (!kho) {
++		pr_warn("setup: failed to memremap kho data (0x%llx, 0x%llx)\n",
++			addr, size);
++		return;
++	}
++
++	kho_populate(kho->fdt_addr, kho->fdt_size, kho->scratch_addr, kho->scratch_size);
++
++	early_memunmap(kho, size);
++}
++
+ static void __init parse_setup_data(void)
+ {
+ 	struct setup_data *data;
+@@ -479,6 +502,9 @@ static void __init parse_setup_data(void
+ 		case SETUP_IMA:
+ 			add_early_ima_buffer(pa_data);
+ 			break;
++		case SETUP_KEXEC_KHO:
++			add_kho(pa_data, data_len);
++			break;
+ 		case SETUP_RNG_SEED:
+ 			data = early_memremap(pa_data, data_len);
+ 			add_bootloader_randomness(data->data, data->len);
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from graf@amazon.com are
 
 
