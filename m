@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09F0CEEA6
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 01:18:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EB0EEEA6
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 01:18:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747099087; cv=none; b=WF+tJY56UUZsZG7w1zUtZcRqsfZ1GYRSsnHPWQGPQFZvghMeuSXKPu7uKNT48aobo4uPbiHY7n+vFMiHKNdSWL0LHV5i4DMug7F2Gf3OwR49jBC78/M48IA+ogJo+jMoyBZe6xH3GUpyM/6jHD9l9DdQyC4z5fRdKm/ySKv+cH4=
+	t=1747099089; cv=none; b=mp93AsCEn/6xFXhA3qNPTTfkToJFTXOleuratLW3vCJXy7a7aYvV3fzbiGCzRoCJ/mrzcFSHmSpEeKV31pezVrgvXfVbukuMB+5B0acBbfWYD/8n5kNs+LlDQlmdPaTWjeD27hSlBImTTzxXf6va3WAlkb8B0ZI3GX67Y1oLj5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747099087; c=relaxed/simple;
-	bh=7m7Py/qg5inxkXXUuPQsze80AGO4G9jCkvFZQSPQJP4=;
-	h=Date:To:From:Subject:Message-Id; b=ikTeI7OhO8EH4uEGMBxD5ZAf3pg3sZzZDsfjBR9TM/vI0378vt24tpvfpflzWDzyIkH5BQEXSkMeRpwN+8Zvws6lqkKis28TqyISxrjZjDFK/A4R1QMZVHoGdb++9du/l7KX4Lg11jXULUEt3YERj5rdkkpYoHuu6ZEmRXM7yE0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FXzVLL2D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747099089; c=relaxed/simple;
+	bh=ecg7Iv5Vl6H9zfp5cfif77SbTHcK2HRkma9oAwsNIfY=;
+	h=Date:To:From:Subject:Message-Id; b=jBbBLfkHPt7gxE+3gRjRP3Eup1hh15oxW1TjMW2Wu1pPDdAOgvRvFKUWmuUXGhmle8ECLtrJgHHlBE/UAxGciomjWbfUV9CUZezxs5KNcT3ET2nkCc985KoF6qBdUvU4qZBzhhISFdS3aYvU+ktfpFtJR2RJ7Tejd5g8XItggMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n0If+dn1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FXzVLL2D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0AF3C4CEE7;
-	Tue, 13 May 2025 01:18:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n0If+dn1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A55FCC4CEE7;
+	Tue, 13 May 2025 01:18:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747099086;
-	bh=7m7Py/qg5inxkXXUuPQsze80AGO4G9jCkvFZQSPQJP4=;
+	s=korg; t=1747099088;
+	bh=ecg7Iv5Vl6H9zfp5cfif77SbTHcK2HRkma9oAwsNIfY=;
 	h=Date:To:From:Subject:From;
-	b=FXzVLL2DTVaJXpnuoap7EeQ30FsweQi5pq7YpfcVgwtNc4TA9cO05Wa2icn3IKQ14
-	 86hm/kawCWASgb6LYM8tpfmZ+hdxdxosQQcMtP6tNCpaRKoqFIaVMZoqCxkHk8+2Ad
-	 RHf/V+2KGufiZZRWOS25YWXIqf7u7wnT7mvffTHw=
-Date: Mon, 12 May 2025 18:18:06 -0700
+	b=n0If+dn13dO2gUsRyvNJNLUBMVDcabJQMUBEy37k24uKflHvaYABdiWmkQxvctoMf
+	 5/bo5WBkSn2lUwt1evRLngNuN+V1JmWIwUcrqnXhXEnwnmOaCp5lMLnhY/yjQ/d9Fq
+	 KcMv7y23OwzuC8ZcNa/Ddp/dXIFfkdY3n6jZxDMI=
+Date: Mon, 12 May 2025 18:18:08 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs.patch added to mm-new branch
-Message-Id: <20250513011806.C0AF3C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-paddr-remove-unused-variable-folio_list-in-damon_pa_stat.patch added to mm-new branch
+Message-Id: <20250513011808.A55FCC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: fix wrong comment on damons_sysfs_quota_goal_metric_strs
+     Subject: mm/damon/paddr: remove unused variable, folio_list, in damon_pa_stat()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs.patch
+     mm-damon-paddr-remove-unused-variable-folio_list-in-damon_pa_stat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-remove-unused-variable-folio_list-in-damon_pa_stat.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: fix wrong comment on damons_sysfs_quota_goal_metric_strs
-Date: Mon, 12 May 2025 17:27:11 -0700
+Subject: mm/damon/paddr: remove unused variable, folio_list, in damon_pa_stat()
+Date: Mon, 12 May 2025 17:27:12 -0700
 
-A comment on damos_sysfs_quota_goal_metric_strs is simply wrong, due to a
-copy-and-paste error.  Fix it.
+Commit c0cb9d91bf297 ("mm/damon/paddr: report filter-passed bytes back for
+DAMOS_STAT action") added unused variable in damon_pa_stat(), due to a
+copy-and-paste error.  Remove it.
 
-Link: https://lkml.kernel.org/r/20250513002715.40126-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250513002715.40126-4-sj@kernel.org
+Fixes: c0cb9d91bf297 ("mm/damon/paddr: report filter-passed bytes back for DAMOS_STAT action")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -80,20 +82,19 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/paddr.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-fix-wrong-comment-on-damons_sysfs_quota_goal_metric_strs
-+++ a/mm/damon/sysfs-schemes.c
-@@ -940,7 +940,7 @@ struct damos_sysfs_quota_goal {
- 	int nid;
- };
+--- a/mm/damon/paddr.c~mm-damon-paddr-remove-unused-variable-folio_list-in-damon_pa_stat
++++ a/mm/damon/paddr.c
+@@ -548,7 +548,6 @@ static unsigned long damon_pa_stat(struc
+ 		unsigned long *sz_filter_passed)
+ {
+ 	unsigned long addr;
+-	LIST_HEAD(folio_list);
+ 	struct folio *folio;
  
--/* This should match with enum damos_action */
-+/* This should match with enum damos_quota_goal_metric */
- static const char * const damos_sysfs_quota_goal_metric_strs[] = {
- 	"user_input",
- 	"some_mem_psi_us",
+ 	if (!damon_pa_scheme_has_filter(s))
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
