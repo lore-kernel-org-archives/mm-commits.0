@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E225E1EEA27
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099F21EEA27
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:54:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119288; cv=none; b=YEJFHChS3JfSy5J3fUR+z13FqFn6G9lpW3A5NCC5EwLYe0aOwh1ZKDUd7ZeSRavvoZmV89vWVWkCkQAurZQDrObmIOSzsM+7VuO2yItA1DzOAV24RNRkwwcVup5S2GDCjrJI9SMBhVsC+Lh2EgCVC4fEFSyf/hnP1QKHnnWgex4=
+	t=1747119289; cv=none; b=ptvpGr0ILcAJz7Ry8m+ifV0kdvqKQfsoYbGLHO3vb6ZXCOcZZrclNu73ZoIaRUy07w4a1dzTGcg4MYZJnyviLuKJyOIAWyfakWHYQ72qTYCdUNC0DLsAb2DRIIf0y+WzKR7IAqxHt6kmhSJP5GHPJMck+a8Pkz5mW4b68rFAI68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119288; c=relaxed/simple;
-	bh=xNZZZuA+aFy9BZ3FD4tOO6kuHbB3Hga2nHrf8DtWGSM=;
-	h=Date:To:From:Subject:Message-Id; b=aF3Ov5ssI9SRh4Wdae4/AzPJG1PclxMKDTpdI59WYBeZ3EndWSmEQ+OrcXDiVYxBVL2GJ4wQPmQj8+/eOxA+wyyeo2zczlBh2ieM1xn608pDOuz4hciv2YTiTKJ8N+ra9iS0mqwHcRiyZYydlkLPmlZu6TRKVCc7XulGE14wWQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YVNlrpoU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119289; c=relaxed/simple;
+	bh=mlIlhDeMc7Y2GDzkthe3x4e5zAaFgFb9yb6fX6gJrs4=;
+	h=Date:To:From:Subject:Message-Id; b=XjZrfICiwS/StZEOUb57Eh8HcQw+1Hdp9DlNdeYw3ugrxxKR6zO5rYUDe7OiEh44h+ZuLilyG52FidXiFxSZ+QXXDsTjBgpVrYsIJFp5SEaDhATpYCcJDAM8WNci7eKiFhUxSn7wXP4iIj0BXir/sU3+55k5/Za7I4qXyjEgJ9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qlD/Vcap; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YVNlrpoU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8420C4CEE4;
-	Tue, 13 May 2025 06:54:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qlD/Vcap"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAA38C4CEE4;
+	Tue, 13 May 2025 06:54:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119287;
-	bh=xNZZZuA+aFy9BZ3FD4tOO6kuHbB3Hga2nHrf8DtWGSM=;
+	s=korg; t=1747119288;
+	bh=mlIlhDeMc7Y2GDzkthe3x4e5zAaFgFb9yb6fX6gJrs4=;
 	h=Date:To:From:Subject:From;
-	b=YVNlrpoU4dAepdAr/taQ5mNw59EV1ki6anJ+5dYzOMGU/hOIhyG2rUtg7UN58Zx+2
-	 ipLK9/n88sZXZsOSS3UHGSALR5FkpRidlNuMbT7yH7o206iZi2qS8KNVPGFbWaPhiN
-	 ZIHtjCJ5Tcv6p3oHh2k9+DzzpRekSh/ngkpxlCI0=
-Date: Mon, 12 May 2025 23:54:47 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,hannes@cmpxchg.org,pfalcato@suse.de,akpm@linux-foundation.org
+	b=qlD/VcaptzbHb/30ICGLw3ixUpCIHx6yBstiUAnjEYxKL9yQxltu5sBZfJjWaOjRb
+	 R9Bhws2+mBnpyxHbP8iKzpPyB6XVbFQRuC/jVzkYPx2ljzauA7gN1j+6omYeIw0dSv
+	 HIPofDJBYb+2QeKJ/0MD97T/uITJNzLZp2rSeJjE=
+Date: Mon, 12 May 2025 23:54:48 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,suhui@nfschina.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-workingset-simplify-lockdep-check-in-update_node.patch removed from -mm tree
-Message-Id: <20250513065447.B8420C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add.patch removed from -mm tree
+Message-Id: <20250513065448.CAA38C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: workingset: simplify lockdep check in update_node
+     Subject: mm/damon/sysfs-schemes: use kmalloc_array() and size_add()
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-simplify-lockdep-check-in-update_node.patch
+     mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pedro Falcato <pfalcato@suse.de>
-Subject: mm: workingset: simplify lockdep check in update_node
-Date: Mon, 21 Apr 2025 18:16:28 +0100
+From: Su Hui <suhui@nfschina.com>
+Subject: mm/damon/sysfs-schemes: use kmalloc_array() and size_add()
+Date: Mon, 21 Apr 2025 14:24:24 +0800
 
-container_of(node->array, ..., i_pages) just to access i_pages again is an
-incredibly roundabout way of accessing node->array itself.  Simplify it.
+It's safer to use kmalloc_array() and size_add() because it can prevent
+possible overflow problem.
 
-Link: https://lkml.kernel.org/r/20250421-workingset-simplify-v1-1-de5c40051e0e@suse.de
-Signed-off-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20250421062423.740605-1-suhui@nfschina.com
+Signed-off-by: Su Hui <suhui@nfschina.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/damon/sysfs-schemes.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-simplify-lockdep-check-in-update_node
-+++ a/mm/workingset.c
-@@ -612,7 +612,6 @@ struct list_lru shadow_nodes;
- 
- void workingset_update_node(struct xa_node *node)
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add
++++ a/mm/damon/sysfs-schemes.c
+@@ -465,7 +465,8 @@ static ssize_t memcg_path_store(struct k
  {
--	struct address_space *mapping;
- 	struct page *page = virt_to_page(node);
+ 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
+ 			struct damon_sysfs_scheme_filter, kobj);
+-	char *path = kmalloc(sizeof(*path) * (count + 1), GFP_KERNEL);
++	char *path = kmalloc_array(size_add(count, 1), sizeof(*path),
++				   GFP_KERNEL);
  
- 	/*
-@@ -623,8 +622,7 @@ void workingset_update_node(struct xa_no
- 	 * already where they should be. The list_empty() test is safe
- 	 * as node->private_list is protected by the i_pages lock.
- 	 */
--	mapping = container_of(node->array, struct address_space, i_pages);
--	lockdep_assert_held(&mapping->i_pages.xa_lock);
-+	lockdep_assert_held(&node->array->xa_lock);
+ 	if (!path)
+ 		return -ENOMEM;
+@@ -2064,7 +2065,7 @@ static int damon_sysfs_memcg_path_to_id(
+ 	if (!memcg_path)
+ 		return -EINVAL;
  
- 	if (node->count && node->count == node->nr_values) {
- 		if (list_empty(&node->private_list)) {
+-	path = kmalloc(sizeof(*path) * PATH_MAX, GFP_KERNEL);
++	path = kmalloc_array(PATH_MAX, sizeof(*path), GFP_KERNEL);
+ 	if (!path)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from pfalcato@suse.de are
+Patches currently in -mm which might be from suhui@nfschina.com are
 
 
