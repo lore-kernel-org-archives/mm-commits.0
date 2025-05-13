@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88F5B1EEA47
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A95D31EFF92
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:55:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119328; cv=none; b=X26GDND+zN7y7jO2vfKEX5wSCW73LFTImpz6ANcQCfN3ADe4BTAZQgdZrXKA9L8o4Eb+Ufi5Amxx/2CiFK7dUkoHH1/SC+OJMeiMhxtHsJT13AJVWj7Ro4+jXV3vLOcBKNGykBNDnPJ1huvXRVmqkLBdVuP2d4vMmpGhDBE3n7k=
+	t=1747119329; cv=none; b=uljxcq1Zi+mvLUMug+VTBqLjkoJbgdbPhwcx9YciOvptR2l1GscsXy8Wz21iesrx/XEdHXYIrQDnqjxLV+n1BuWx5HDmmqzOaALmL1t2UFfJ7FO4XQejw29UJuqn2uhsbWjJB714qockVN0eoHNaw7bfzzlpqHwp/9vrLWFZz74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119328; c=relaxed/simple;
-	bh=6c3MNRXa7wuAReFG7XCPFvzBMvy0bZJYGBjMvNsn+8g=;
-	h=Date:To:From:Subject:Message-Id; b=mVycdMnoUY5hSPp6TObv6ItXCQodaNeH1Ei1GObh2E52xtXNXmqFeo8tSuHOgXNRfHHScAokDP5J2XUGs6a4y43mgvNFhCFzQqFXQQRPhEQNzQgZxV5iXJcMswgNKYsbrYvNH786Hz92z8L3oj1T+dwwNep7N+gjB/kG7RGcL5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KLIS+jCl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119329; c=relaxed/simple;
+	bh=aBwMplMhjQLvTtlV3kI2NoHqm/5lvCD5cvZvS4Riu+0=;
+	h=Date:To:From:Subject:Message-Id; b=m3cR+uVrn9QSPEAjNVrgSGzW1Q+YEfA6mVCIWRrdEcIBFQRmC5NHfjSevld0RihiandyQgMao3Lzq2jjIWJ7HBkAll/eILESfZAHVB88LCIvEZgvWayXBsVkmlKhuMzsgjuukE7QncJ8+MPSmnfhbxmuephiNoC/Xr39wdWOkWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lcZwOoJC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KLIS+jCl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ECBDC4CEE4;
-	Tue, 13 May 2025 06:55:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lcZwOoJC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80277C4CEE4;
+	Tue, 13 May 2025 06:55:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119328;
-	bh=6c3MNRXa7wuAReFG7XCPFvzBMvy0bZJYGBjMvNsn+8g=;
+	s=korg; t=1747119329;
+	bh=aBwMplMhjQLvTtlV3kI2NoHqm/5lvCD5cvZvS4Riu+0=;
 	h=Date:To:From:Subject:From;
-	b=KLIS+jClvxHnvDNLvp03xzQTOJiwySYS30zifNcGgGToD4oIPQ5t0po5DQZ6TKz+G
-	 CK8n8L2oGaOwI63JYT17lf/21jMbryFlCJg1GwLngv2zLlqUQi+DAAXUTMaFlbw/Le
-	 phqgQjJxwTu40QtzeoWSSgvxr6OydYyp3syk2fg8=
-Date: Mon, 12 May 2025 23:55:27 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,wqu@suse.com,willy@infradead.org,nphamcs@gmail.com,miklos@szeredi.hu,josef@toxicpanda.com,joannelkoong@gmail.com,jaegeuk@kernel.org,hughd@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@redhat.com,clm@fb.com,chrisl@kernel.org,chao@kernel.org,brauner@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=lcZwOoJChABGtCgDKkAPXtl+lscAdYH87NTWD/B/2ybN+D7rJwQklg6gQJP65zUEk
+	 cGQvykUVemltV1tJSi9vQd4W/HTviRNc5nSghrtn8M7Ma3U0ZQqu/0EFU0qqkM/Qdc
+	 ICyqoHKC+6Rh+tCe2ajqkRufF45uZDRolWjC5Q20=
+Date: Mon, 12 May 2025 23:55:28 -0700
+To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,david@redhat.com,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-remove-no-longer-used-swap-mapping-helper.patch removed from -mm tree
-Message-Id: <20250513065528.5ECBDC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-remove-unnecessary-check-in-memfd_pin_folios.patch removed from -mm tree
+Message-Id: <20250513065529.80277C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: remove no longer used swap mapping helper
+     Subject: mm/gup: remove unnecessary check in memfd_pin_folios()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-no-longer-used-swap-mapping-helper.patch
+     mm-gup-remove-unnecessary-check-in-memfd_pin_folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: remove no longer used swap mapping helper
-Date: Thu, 1 May 2025 02:10:52 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/gup: remove unnecessary check in memfd_pin_folios()
+Date: Tue, 29 Apr 2025 18:00:58 -0700
 
-This helper existed to fix the circular header dependency issue but it is
-no longer used since commit 0d40cfe63a2f ("fs: remove
-folio_file_mapping()"), remove it.
+Patch series "mm/gup: Cleanup memfd_pin_folios()".
 
-Link: https://lkml.kernel.org/r/20250430181052.55698-7-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+A couple straightforward cleanups to memfd_pin_folios() found through code
+inspection.  Saves 124 bytes of kernel text overall and makes the code
+more readable.
+
+
+This patch (of 2):
+
+Commit 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning
+memfd folios") checks if filemap_get_folios_contig() returned duplicate
+folios to prevent multiple attempts at pinning the same folio.
+
+Commit 8ab1b1602396 ("mm: fix filemap_get_folios_contig returning batches
+of identical folios") ensures that filemap_get_folios_contig() returns a
+batch of distinct folios.
+
+We can remove the duplicate folio check to simplify the code and save 58
+bytes of text.
+
+Link: https://lkml.kernel.org/r/20250430010059.892632-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20250430010059.892632-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Sterba <dsterba@suse.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Joanne Koong <joannelkoong@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Qu Wenruo <wqu@suse.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    1 -
- mm/swapfile.c           |    9 ---------
- 2 files changed, 10 deletions(-)
+ mm/gup.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
---- a/include/linux/pagemap.h~mm-swap-remove-no-longer-used-swap-mapping-helper
-+++ a/include/linux/pagemap.h
-@@ -533,7 +533,6 @@ static inline void filemap_nr_thps_dec(s
- }
+--- a/mm/gup.c~mm-gup-remove-unnecessary-check-in-memfd_pin_folios
++++ a/mm/gup.c
+@@ -3590,7 +3590,7 @@ long memfd_pin_folios(struct file *memfd
+ {
+ 	unsigned int flags, nr_folios, nr_found;
+ 	unsigned int i, pgshift = PAGE_SHIFT;
+-	pgoff_t start_idx, end_idx, next_idx;
++	pgoff_t start_idx, end_idx;
+ 	struct folio *folio = NULL;
+ 	struct folio_batch fbatch;
+ 	struct hstate *h;
+@@ -3640,19 +3640,7 @@ long memfd_pin_folios(struct file *memfd
+ 				folio = NULL;
+ 			}
  
- struct address_space *folio_mapping(struct folio *);
--struct address_space *swapcache_mapping(struct folio *);
- 
- /**
-  * folio_flush_mapping - Find the file mapping this folio belongs to.
---- a/mm/swapfile.c~mm-swap-remove-no-longer-used-swap-mapping-helper
-+++ a/mm/swapfile.c
-@@ -3663,15 +3663,6 @@ struct swap_info_struct *swp_swap_info(s
- }
- 
- /*
-- * out-of-line methods to avoid include hell.
-- */
--struct address_space *swapcache_mapping(struct folio *folio)
--{
--	return swp_swap_info(folio->swap)->swap_file->f_mapping;
--}
--EXPORT_SYMBOL_GPL(swapcache_mapping);
+-			next_idx = 0;
+ 			for (i = 0; i < nr_found; i++) {
+-				/*
+-				 * As there can be multiple entries for a
+-				 * given folio in the batch returned by
+-				 * filemap_get_folios_contig(), the below
+-				 * check is to ensure that we pin and return a
+-				 * unique set of folios between start and end.
+-				 */
+-				if (next_idx &&
+-				    next_idx != folio_index(fbatch.folios[i]))
+-					continue;
 -
--/*
-  * add_swap_count_continuation - called when a swap count is duplicated
-  * beyond SWAP_MAP_MAX, it allocates a new page and links that to the entry's
-  * page of the original vmalloc'ed swap_map, to hold the continuation count
+ 				folio = page_folio(&fbatch.folios[i]->page);
+ 
+ 				if (try_grab_folio(folio, 1, FOLL_PIN)) {
+@@ -3665,7 +3653,6 @@ long memfd_pin_folios(struct file *memfd
+ 					*offset = offset_in_folio(folio, start);
+ 
+ 				folios[nr_folios] = folio;
+-				next_idx = folio_next_index(folio);
+ 				if (++nr_folios == max_folios)
+ 					break;
+ 			}
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 
