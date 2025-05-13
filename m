@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 914F61EB9E3
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 290DF1EB5E6
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2025 06:53:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747119205; cv=none; b=BeGI9zezSfVhtQU9ieLJ82wJVi8OOmXYIKPPTbr9UCS6M2CMt4vPKohfKxXJYDmKQC14wGdG6G6B7zcYre8XKJ8y+BIgRG+qCbDSl5lCslrBgh+xfNmR4F6S6IjG/K7D/VyaH99xgjrH+53AbNGL2104MfVjugaq7ptbibT5XLQ=
+	t=1747119207; cv=none; b=gbIHu2Y+fn+CHX0c6cYwbgKScmpS+ZI9ZWew9DWJaBZYqcoX/BSjyW5m0dUBk7QSGMu+/tWyGDff8mu8ztQ7GmCbUdN0Y4Un4MxfOn5bW0DnTJbF36oBYObHDNcfhTw+rdEMnXbxqbEXheknU5znG/2DJeFArfxaRUyE04cBXLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747119205; c=relaxed/simple;
-	bh=IVjL1A53vHIRyjs1JWS0Xqa112lUSw0cE2WFFO3XsCU=;
-	h=Date:To:From:Subject:Message-Id; b=OZeXDYypKia6zQgQOY/NC9v3vsjLTy/ygP0NKupWCC7myRATAfsK+1Xt4MqZznaZBQ0dOj0V1ejphGYqUWSIHEy2WAT/VSri515ljJGx9drR/B+7I+7T3F9RGw3sLhRb+LRaO+6BZB+OcE7NZjkrcBdYTq+u0aYghZ7qwZ4yA+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w/hXVktG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747119207; c=relaxed/simple;
+	bh=XGvngc7RrjbTkYPwCcS7MSKKwtEI3XFj1H3Bs18HL6k=;
+	h=Date:To:From:Subject:Message-Id; b=RsYHoSRe+4ODScyYvEL0iphGyJuOtg6K1+pdSASeg6kZCpIJxlh31xMwrfNgIx8vcF69Z8PI9QjNkl0CCwhzX0H2+aL87BQ43aw56GA10y3HbNt8p7JKVkRXdY8z4k8RY+t34b/kEmvGd0CNk5pXRFg9pNaeDCRYjwxMxCbSoik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qA0gYtVd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w/hXVktG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D7ECC4CEED;
-	Tue, 13 May 2025 06:53:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qA0gYtVd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82778C4CEE4;
+	Tue, 13 May 2025 06:53:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747119205;
-	bh=IVjL1A53vHIRyjs1JWS0Xqa112lUSw0cE2WFFO3XsCU=;
+	s=korg; t=1747119206;
+	bh=XGvngc7RrjbTkYPwCcS7MSKKwtEI3XFj1H3Bs18HL6k=;
 	h=Date:To:From:Subject:From;
-	b=w/hXVktG1rzVLMvmrT4KGoGpPWeqto8Z1PYSxDXXHhfjoOfYFfnu4MwLVl+wQzjjh
-	 nKyIR4Fpyixqk4f/txLkdXdXp7Y7lJ8ZQCTvzDQ3Igb0rNUDY0rze+dibALe1OwSdS
-	 tK3kNlQHvf+TDX7qj7O5yV6e1oE96chikTd2df6E=
-Date: Mon, 12 May 2025 23:53:24 -0700
+	b=qA0gYtVdiu0q36RPpxySR3hOZ3tnSp4U/6P+XB4/kAMjUy6Jp34oZoT1+yDiVkVIZ
+	 k3n84pkEbZk+ONpguMEAaiwjNOilK7s2yAjkdYa0dltcKCDkx2b67RQiQvMNuBl0ab
+	 UajaZwyWiW90UL7T4X8F6z2MiZDOWlbC8dFk3N9A=
+Date: Mon, 12 May 2025 23:53:26 -0700
 To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-nid-file.patch removed from -mm tree
-Message-Id: <20250513065325.5D7ECC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] docs-abi-damon-document-nid-file.patch removed from -mm tree
+Message-Id: <20250513065326.82778C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document 'nid' file
+     Subject: Docs/ABI/damon: document nid file
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-document-nid-file.patch
+     docs-abi-damon-document-nid-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document 'nid' file
-Date: Sun, 20 Apr 2025 12:40:28 -0700
+Subject: Docs/ABI/damon: document nid file
+Date: Sun, 20 Apr 2025 12:40:29 -0700
 
-Add description of 'nid' file, which is optionally used for specific DAMOS
-quota goal metrics such as node_mem_{used,free}_bp on DAMON usage
-document.
+Add a description of 'nid' file, which is optionally used for specific
+DAMOS quota goal metrics such as node_mem_{used,free}_bp on the DAMON
+sysfs ABI document.
 
-Link: https://lkml.kernel.org/r/20250420194030.75838-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250420194030.75838-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Yunjeong Mun <yunjeong.mun@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-nid-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -81,7 +81,7 @@ comma (",").
-     │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,effective_bytes
-     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
-     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
--    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value
-+    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value,nid
-     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
-     │ │ │ │ │ │ │ :ref:`{core_,ops_,}filters <sysfs_filters>`/nr_filters
-     │ │ │ │ │ │ │ │ 0/type,matching,allow,memcg_path,addr_start,addr_end,target_idx,min,max
-@@ -390,11 +390,11 @@ number (``N``) to the file creates the n
- to ``N-1``.  Each directory represents each goal and current achievement.
- Among the multiple feedback, the best one is used.
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-nid-file
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -283,6 +283,12 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Writing to and reading from this file sets and gets the current
+ 		value of the goal metric.
  
--Each goal directory contains three files, namely ``target_metric``,
--``target_value`` and ``current_value``.  Users can set and get the three
--parameters for the quota auto-tuning goals that specified on the :ref:`design
--doc <damon_design_damos_quotas_auto_tuning>` by writing to and reading from each
--of the files.  Note that users should further write
-+Each goal directory contains four files, namely ``target_metric``,
-+``target_value``, ``current_value`` and ``nid``.  Users can set and get the
-+four parameters for the quota auto-tuning goals that specified on the
-+:ref:`design doc <damon_design_damos_quotas_auto_tuning>` by writing to and
-+reading from each of the files.  Note that users should further write
- ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
- directory <sysfs_kdamond>` to pass the feedback to DAMON.
- 
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/nid
++Date:		Apr 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the nid
++		parameter of the goal.
++
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
