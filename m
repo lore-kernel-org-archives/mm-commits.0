@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A291EA7D6
-	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:27:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B1251EA7D6
+	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:27:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747261664; cv=none; b=PiuHszdk/Oy4KqCmc6LexvraHiOzTkqBcurEbYhtdVjSfxZwy1X37UXh+L+56Fu2ScB3nXNI8br18fUHc58IMIDfFW6gOLBJb+0t25M4QiVeTiRkqpg1fVALV13k4hD+eppsh4QEwmKt6DIdzg0lrmsnDOCPq4I/Z1gV5ABLl3o=
+	t=1747261665; cv=none; b=aKyQ/d7Gs+GZJ31o6faNHlPdGEiHJ61yxVYHXSQLiVuV4pTM510VqKchV4xYmQH3mmz9SqxcboIuY8501ml7iAQSSF3eNdEOlnYyxPE6bvSgcc8jy6nSEi2n7s2On3f6FusQvIxzPtcn2xSupFb07YBp8wf55J8Z4Qpikklszm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747261664; c=relaxed/simple;
-	bh=XndIoRWn0k5H2UxJxYe/6Vz2RKBArs0GGsHcIp37e04=;
-	h=Date:To:From:Subject:Message-Id; b=a+nOsSGstrz8TPbfn26dOYrpYEFm1tm05xdNYoINwX8F65g1att5UbbPemJ0X95+A62nTMifFyExh8MHoWhJJodLzlMqxeI03vsMDVNB165/xMgf32oiTa9cda+bAh2Bwd8C20GogKRxzhG2lecX2jZaQgNWfU2RO64awD4Ne+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ozaeVF3J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747261665; c=relaxed/simple;
+	bh=F44ySwwjbT+WcqSV+Uu7VU0fcxBQTpfC/YLktbdXuoE=;
+	h=Date:To:From:Subject:Message-Id; b=i6klBtKl+NO5yzDQQtEDywCijbEcw9PBC1iC5UCSAUfErbegoDRo28izSZkKfRdRkBwvL3BcWb4nItqo4fnJHPsuzcav/HY/26EMTyR4sBXEX+jpSp6l3Bxl1+SBLi97yeqsiQcY3LbIBVbqakW4+UCh+h6sw+NG951Iw9p7m4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ehx+VWyA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ozaeVF3J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC40C4CEE3;
-	Wed, 14 May 2025 22:27:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ehx+VWyA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 925B0C4CEE3;
+	Wed, 14 May 2025 22:27:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747261663;
-	bh=XndIoRWn0k5H2UxJxYe/6Vz2RKBArs0GGsHcIp37e04=;
+	s=korg; t=1747261664;
+	bh=F44ySwwjbT+WcqSV+Uu7VU0fcxBQTpfC/YLktbdXuoE=;
 	h=Date:To:From:Subject:From;
-	b=ozaeVF3JsiswXWGK2u/PCemomHyVffkMcKGyY4h/rqSqEwzYFcDsQZk/DM/liASa3
-	 jt6/9kbErtlfACjN+p7B7TFotjBQi8PYnHeezuWP6c751FnH1a1p5LHCBG+gFPhdZu
-	 uEHRCH+vPZ/5cGkdrIKy8GlzHJu8rbK0mSQ0/4h0=
-Date: Wed, 14 May 2025 15:27:42 -0700
+	b=Ehx+VWyAs0VrKWV6SR7TZ1EVeny87G45E/nYV4HwvS3JytSS5fKiQ45dTeuNVfUzu
+	 EVHKzwMchdRH/wAthBb3GCwpBfmbOJeswbm2HhLtYusN9lyTQBfakWqTZLOvzlglLd
+	 V8HEJyRq7cesKnSJob9eE/R5QP6q08OihXF6dp2c=
+Date: Wed, 14 May 2025 15:27:44 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,hughd@google.com,almaz.alexandrovich@paragon-software.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs3-use-folios-more-in-ntfs_compress_write.patch added to mm-new branch
-Message-Id: <20250514222743.5CC40C4CEE3@smtp.kernel.org>
+Subject: + iov-remove-copy_page_from_iter_atomic.patch added to mm-new branch
+Message-Id: <20250514222744.925B0C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ntfs3: use folios more in ntfs_compress_write()
+     Subject: iov: remove copy_page_from_iter_atomic()
 has been added to the -mm mm-new branch.  Its filename is
-     ntfs3-use-folios-more-in-ntfs_compress_write.patch
+     iov-remove-copy_page_from_iter_atomic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs3-use-folios-more-in-ntfs_compress_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iov-remove-copy_page_from_iter_atomic.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,114 +65,114 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ntfs3: use folios more in ntfs_compress_write()
-Date: Wed, 14 May 2025 18:06:03 +0100
+Subject: iov: remove copy_page_from_iter_atomic()
+Date: Wed, 14 May 2025 18:06:04 +0100
 
-Remove the local 'page' variable and do everything in terms of folios. 
-Removes the last user of copy_page_from_iter_atomic() and a hidden call to
-compound_head() in ClearPageDirty().
+All callers now use copy_folio_from_iter_atomic(), so convert
+copy_page_from_iter_atomic().  While I'm in there, use kmap_local_folio()
+and pagefault_disable() instead of kmap_atomic().  That allows preemption
+and/or task migration to happen during the copy_from_user().  Also use the
+new folio_test_partial_kmap() predicate instead of open-coding it.
 
-Link: https://lkml.kernel.org/r/20250514170607.3000994-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250514170607.3000994-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs3/file.c |   31 +++++++++++++------------------
- 1 file changed, 13 insertions(+), 18 deletions(-)
+ include/linux/uio.h |   10 ++--------
+ lib/iov_iter.c      |   29 +++++++++++++----------------
+ 2 files changed, 15 insertions(+), 24 deletions(-)
 
---- a/fs/ntfs3/file.c~ntfs3-use-folios-more-in-ntfs_compress_write
-+++ a/fs/ntfs3/file.c
-@@ -998,7 +998,8 @@ static ssize_t ntfs_compress_write(struc
- 	struct ntfs_inode *ni = ntfs_i(inode);
- 	u64 valid = ni->i_valid;
- 	struct ntfs_sb_info *sbi = ni->mi.sbi;
--	struct page *page, **pages = NULL;
-+	struct page **pages = NULL;
-+	struct folio *folio;
- 	size_t written = 0;
- 	u8 frame_bits = NTFS_LZNT_CUNIT + sbi->cluster_bits;
- 	u32 frame_size = 1u << frame_bits;
-@@ -1008,7 +1009,6 @@ static ssize_t ntfs_compress_write(struc
- 	u64 frame_vbo;
- 	pgoff_t index;
- 	bool frame_uptodate;
--	struct folio *folio;
+--- a/include/linux/uio.h~iov-remove-copy_page_from_iter_atomic
++++ a/include/linux/uio.h
+@@ -176,8 +176,6 @@ static inline size_t iov_length(const st
+ 	return ret;
+ }
  
- 	if (frame_size < PAGE_SIZE) {
- 		/*
-@@ -1062,8 +1062,7 @@ static ssize_t ntfs_compress_write(struc
- 					    pages_per_frame);
- 			if (err) {
- 				for (ip = 0; ip < pages_per_frame; ip++) {
--					page = pages[ip];
--					folio = page_folio(page);
-+					folio = page_folio(pages[ip]);
- 					folio_unlock(folio);
- 					folio_put(folio);
- 				}
-@@ -1074,10 +1073,9 @@ static ssize_t ntfs_compress_write(struc
- 		ip = off >> PAGE_SHIFT;
- 		off = offset_in_page(valid);
- 		for (; ip < pages_per_frame; ip++, off = 0) {
--			page = pages[ip];
--			folio = page_folio(page);
--			zero_user_segment(page, off, PAGE_SIZE);
--			flush_dcache_page(page);
-+			folio = page_folio(pages[ip]);
-+			folio_zero_segment(folio, off, PAGE_SIZE);
-+			flush_dcache_folio(folio);
- 			folio_mark_uptodate(folio);
- 		}
+-size_t copy_page_from_iter_atomic(struct page *page, size_t offset,
+-				  size_t bytes, struct iov_iter *i);
+ void iov_iter_advance(struct iov_iter *i, size_t bytes);
+ void iov_iter_revert(struct iov_iter *i, size_t bytes);
+ size_t fault_in_iov_iter_readable(const struct iov_iter *i, size_t bytes);
+@@ -187,6 +185,8 @@ size_t copy_page_to_iter(struct page *pa
+ 			 struct iov_iter *i);
+ size_t copy_page_from_iter(struct page *page, size_t offset, size_t bytes,
+ 			 struct iov_iter *i);
++size_t copy_folio_from_iter_atomic(struct folio *folio, size_t offset,
++		size_t bytes, struct iov_iter *i);
  
-@@ -1086,8 +1084,7 @@ static ssize_t ntfs_compress_write(struc
- 		ni_unlock(ni);
+ size_t _copy_to_iter(const void *addr, size_t bytes, struct iov_iter *i);
+ size_t _copy_from_iter(void *addr, size_t bytes, struct iov_iter *i);
+@@ -204,12 +204,6 @@ static inline size_t copy_folio_from_ite
+ 	return copy_page_from_iter(&folio->page, offset, bytes, i);
+ }
  
- 		for (ip = 0; ip < pages_per_frame; ip++) {
--			page = pages[ip];
--			folio = page_folio(page);
-+			folio = page_folio(pages[ip]);
- 			folio_mark_uptodate(folio);
- 			folio_unlock(folio);
- 			folio_put(folio);
-@@ -1131,8 +1128,7 @@ static ssize_t ntfs_compress_write(struc
- 				if (err) {
- 					for (ip = 0; ip < pages_per_frame;
- 					     ip++) {
--						page = pages[ip];
--						folio = page_folio(page);
-+						folio = page_folio(pages[ip]);
- 						folio_unlock(folio);
- 						folio_put(folio);
- 					}
-@@ -1150,10 +1146,10 @@ static ssize_t ntfs_compress_write(struc
- 		for (;;) {
- 			size_t cp, tail = PAGE_SIZE - off;
+-static inline size_t copy_folio_from_iter_atomic(struct folio *folio,
+-		size_t offset, size_t bytes, struct iov_iter *i)
+-{
+-	return copy_page_from_iter_atomic(&folio->page, offset, bytes, i);
+-}
+-
+ size_t copy_page_to_iter_nofault(struct page *page, unsigned offset,
+ 				 size_t bytes, struct iov_iter *i);
  
--			page = pages[ip];
--			cp = copy_page_from_iter_atomic(page, off,
-+			folio = page_folio(pages[ip]);
-+			cp = copy_folio_from_iter_atomic(folio, off,
- 							min(tail, bytes), from);
--			flush_dcache_page(page);
-+			flush_dcache_folio(folio);
+--- a/lib/iov_iter.c~iov-remove-copy_page_from_iter_atomic
++++ a/lib/iov_iter.c
+@@ -457,38 +457,35 @@ size_t iov_iter_zero(size_t bytes, struc
+ }
+ EXPORT_SYMBOL(iov_iter_zero);
  
- 			copied += cp;
- 			bytes -= cp;
-@@ -1173,9 +1169,8 @@ static ssize_t ntfs_compress_write(struc
- 		ni_unlock(ni);
+-size_t copy_page_from_iter_atomic(struct page *page, size_t offset,
++size_t copy_folio_from_iter_atomic(struct folio *folio, size_t offset,
+ 		size_t bytes, struct iov_iter *i)
+ {
+ 	size_t n, copied = 0;
+-	bool uses_kmap = IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP) ||
+-			 PageHighMem(page);
  
- 		for (ip = 0; ip < pages_per_frame; ip++) {
--			page = pages[ip];
--			ClearPageDirty(page);
--			folio = page_folio(page);
-+			folio = page_folio(pages[ip]);
-+			folio_clear_dirty(folio);
- 			folio_mark_uptodate(folio);
- 			folio_unlock(folio);
- 			folio_put(folio);
+-	if (!page_copy_sane(page, offset, bytes))
++	if (!page_copy_sane(&folio->page, offset, bytes))
+ 		return 0;
+ 	if (WARN_ON_ONCE(!i->data_source))
+ 		return 0;
+ 
+ 	do {
+-		char *p;
++		char *to = kmap_local_folio(folio, offset);
+ 
+ 		n = bytes - copied;
+-		if (uses_kmap) {
+-			page += offset / PAGE_SIZE;
+-			offset %= PAGE_SIZE;
+-			n = min_t(size_t, n, PAGE_SIZE - offset);
+-		}
+-
+-		p = kmap_atomic(page) + offset;
+-		n = __copy_from_iter(p, n, i);
+-		kunmap_atomic(p);
++		if (folio_test_partial_kmap(folio) &&
++		    n > PAGE_SIZE - offset_in_page(offset))
++			n = PAGE_SIZE - offset_in_page(offset);
++
++		pagefault_disable();
++		n = __copy_from_iter(to, n, i);
++		pagefault_enable();
++		kunmap_local(to);
+ 		copied += n;
+ 		offset += n;
+-	} while (uses_kmap && copied != bytes && n > 0);
++	} while (copied != bytes && n > 0);
+ 
+ 	return copied;
+ }
+-EXPORT_SYMBOL(copy_page_from_iter_atomic);
++EXPORT_SYMBOL(copy_folio_from_iter_atomic);
+ 
+ static void iov_iter_bvec_advance(struct iov_iter *i, size_t size)
+ {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
