@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0662722171B
-	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:16:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658D426AC3;
+	Wed, 14 May 2025 22:25:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747261004; cv=none; b=t2E+0W+rbYJxIM/zkcROftPIrj2/o5u+JHVLTSkqlVnKevJ8CtgGhX2k8hdZNni8XDBbpy7QU8F8r7mv+HHveFdPadCXTqKvfe3OHqyeAg6m6QLTvQZqXZHyttYFnKXCgdfpWMtypaaU66r9rcvAYObs0xsdj/c+O2eXWoTTZTY=
+	t=1747261522; cv=none; b=ELTow9c05E/si4Y11JjFvW/S/CjMWAcqOi86ujjPozu/E/kmhD1MS0JPIfSBWV1gk36OpQGPBOtdjBlfJ6Cq8ck6zORIyU9PcSDZjwL4hVzwZXpaUPjG6Mq3Pg/jZPu93fFDwhAzoaSNwV0UhP59nZ5C5dwjX+oIsSx0dpqMUdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747261004; c=relaxed/simple;
-	bh=oTPEkeURxsSTHfd7pl0v+kVFtyEUg/FlcnhyaIk4IYM=;
-	h=Date:To:From:Subject:Message-Id; b=octUL9PtnJAhf/ZwuA6pbe1uR4P7PUl/IyEf+C11SF8fx3rPUh/fbNjOGEwjzyyhwbEj64iG7/nDikjkqpLJQAlzj/GuLvGfM9oK4Aqjo87KfA6VndGSIajuQX2VKM0jYdFOciFsTpYwkupPbmyE5VhKFxKit1vn3C+jjzCb0fU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NqDQM/l6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747261522; c=relaxed/simple;
+	bh=NEZMPbz2xJDcLS27vdI+X0/N8pwHgaM5WvrJfTNNnYY=;
+	h=Date:To:From:Subject:Message-Id; b=DJGXE9q8xUowNyAvHMQ3imxgaVhHY+8kp8tq06nEWSPIkYDOyn5piZYiNrazy2BaxbUM2+rxlRcjFxMGNiZvWcthf1/hOcXiSbNr0F24OuYtT9M94O1S54zPZPogtNvAByu1LdwSVTXMwptNOZjDM5w7bL23qRnnbwumaKiy1q4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cRj7f9Fl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NqDQM/l6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C676C4CEED;
-	Wed, 14 May 2025 22:16:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cRj7f9Fl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8355C4CEED;
+	Wed, 14 May 2025 22:25:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747261003;
-	bh=oTPEkeURxsSTHfd7pl0v+kVFtyEUg/FlcnhyaIk4IYM=;
+	s=korg; t=1747261521;
+	bh=NEZMPbz2xJDcLS27vdI+X0/N8pwHgaM5WvrJfTNNnYY=;
 	h=Date:To:From:Subject:From;
-	b=NqDQM/l6XB6StdI/OL6eM47Nllkx56P88hu5GrL29mNYhFJOUVgWszsGJ9jzpKd61
-	 +NKinNCt0/VxWMpyxU78EVfmXDNs2A8ynPAHOvxMMuAIbnJ7ZTdgLB9JVah3QEL5z3
-	 9K35Y9TE5EzQ+Wp8754PyfgJ9CG5eFpH8GJD5/4c=
-Date: Wed, 14 May 2025 15:16:42 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jkangas@redhat.com,akpm@linux-foundation.org
+	b=cRj7f9FlNqieJmfGUgdNPaBZqoDAg6crmSxkwULd8EBhMXy6lsTqyMTjosVz0BnO6
+	 WOM4bcl/+82/RcxQn6WSzwtmNf6VreX7WvWFWsiyrYTVyUwmd3gMrQWkxu+jCePmgf
+	 Zy/5JrRyGod+7oosV3YRu5AVZpnQBkQw8xFIP6AM=
+Date: Wed, 14 May 2025 15:25:21 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,hughd@google.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink.patch added to mm-nonmm-unstable branch
-Message-Id: <20250514221643.4C676C4CEED@smtp.kernel.org>
+Subject: + highmem-add-folio_test_partial_kmap.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250514222521.B8355C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: radix tree: fix kmemleak false positive in radix_tree_shrink()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink.patch
+     Subject: highmem: add folio_test_partial_kmap()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     highmem-add-folio_test_partial_kmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/highmem-add-folio_test_partial_kmap.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,75 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jared Kangas <jkangas@redhat.com>
-Subject: radix tree: fix kmemleak false positive in radix_tree_shrink()
-Date: Wed, 14 May 2025 11:01:37 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: highmem: add folio_test_partial_kmap()
+Date: Wed, 14 May 2025 18:06:02 +0100
 
-Kmemleak periodically produces a false positive report that resembles the
-following:
+In commit c749d9b7ebbc (iov_iter: fix copy_page_from_iter_atomic() if
+KMAP_LOCAL_FORCE_MAP), Hugh correctly noted that if KMAP_LOCAL_FORCE_MAP
+is enabled, we must limit ourselves to PAGE_SIZE bytes per call to
+kmap_local().  The same problem exists in memcpy_from_folio(),
+memcpy_to_folio(), folio_zero_tail(), folio_fill_tail() and
+memcpy_from_file_folio(), so add folio_test_partial_kmap() to do this more
+succinctly.
 
-unreferenced object 0xffff00000db613b8 (size 576):
-  comm "systemd", pid 1, jiffies 4294987015
-  hex dump (first 32 bytes):
-    00 22 01 00 00 00 00 00 28 1c d5 c5 00 00 ff ff  ."......(.......
-    10 e4 6c c0 00 00 ff ff d0 13 b6 0d 00 00 ff ff  ..l.............
-  backtrace (crc 520d6e1c):
-    kmemleak_alloc+0xb4/0xc4
-    kmem_cache_alloc+0x288/0x2b0
-    radix_tree_node_alloc.constprop.0+0x214/0x364
-    idr_get_free+0x3d0/0x690
-    idr_alloc_u32+0x120/0x280
-    idr_alloc_cyclic+0xe8/0x1b4
-    __kernfs_new_node+0x118/0x5a0
-    kernfs_create_dir_ns+0x8c/0x1fc
-    cgroup_create+0x1cc/0x8a0
-    cgroup_mkdir+0x13c/0x90c
-    kernfs_iop_mkdir+0x108/0x184
-    vfs_mkdir+0x3c8/0x5f0
-    do_mkdirat+0x218/0x290
-    __arm64_sys_mkdirat+0xe0/0x140
-    invoke_syscall.constprop.0+0x74/0x1e4
-    do_el0_svc+0xd0/0x1dc
-
-This is a transient leak that can be traced to radix_tree_shrink(): when
-root->xa_head is set, kmemleak may have already started traversing the
-radix tree.  If this has happened, but kmemleak fails to scan the new
-xa_head before it moves, kmemleak will see it as a leak until the radix
-tree is scanned again.
-
-Mark the new xa_head as a transient leak to prevent this false positive
-report.
-
-Link: https://lkml.kernel.org/r/20250514180137.363929-1-jkangas@redhat.com
-Signed-off-by: Jared Kangas <jkangas@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20250514170607.3000994-2-willy@infradead.org
+Fixes: 00cdf76012ab ("mm: add memcpy_from_file_folio()")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/highmem.h    |   10 +++++-----
+ include/linux/page-flags.h |    7 +++++++
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
---- a/lib/radix-tree.c~radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink
-+++ a/lib/radix-tree.c
-@@ -510,6 +510,14 @@ static inline bool radix_tree_shrink(str
- 			root_tag_clear(root, IDR_FREE);
+--- a/include/linux/highmem.h~highmem-add-folio_test_partial_kmap
++++ a/include/linux/highmem.h
+@@ -461,7 +461,7 @@ static inline void memcpy_from_folio(cha
+ 		const char *from = kmap_local_folio(folio, offset);
+ 		size_t chunk = len;
  
- 		/*
-+		 * Kmemleak might report a false positive if it traverses the
-+		 * tree while we're shrinking it, since the reference moves
-+		 * from node->slots[0] to root->xa_head.
-+		 */
-+		if (radix_tree_is_internal_node(child))
-+			kmemleak_transient_leak(entry_to_node(child));
+-		if (folio_test_highmem(folio) &&
++		if (folio_test_partial_kmap(folio) &&
+ 		    chunk > PAGE_SIZE - offset_in_page(offset))
+ 			chunk = PAGE_SIZE - offset_in_page(offset);
+ 		memcpy(to, from, chunk);
+@@ -489,7 +489,7 @@ static inline void memcpy_to_folio(struc
+ 		char *to = kmap_local_folio(folio, offset);
+ 		size_t chunk = len;
+ 
+-		if (folio_test_highmem(folio) &&
++		if (folio_test_partial_kmap(folio) &&
+ 		    chunk > PAGE_SIZE - offset_in_page(offset))
+ 			chunk = PAGE_SIZE - offset_in_page(offset);
+ 		memcpy(to, from, chunk);
+@@ -522,7 +522,7 @@ static inline __must_check void *folio_z
+ {
+ 	size_t len = folio_size(folio) - offset;
+ 
+-	if (folio_test_highmem(folio)) {
++	if (folio_test_partial_kmap(folio)) {
+ 		size_t max = PAGE_SIZE - offset_in_page(offset);
+ 
+ 		while (len > max) {
+@@ -560,7 +560,7 @@ static inline void folio_fill_tail(struc
+ 
+ 	VM_BUG_ON(offset + len > folio_size(folio));
+ 
+-	if (folio_test_highmem(folio)) {
++	if (folio_test_partial_kmap(folio)) {
+ 		size_t max = PAGE_SIZE - offset_in_page(offset);
+ 
+ 		while (len > max) {
+@@ -597,7 +597,7 @@ static inline size_t memcpy_from_file_fo
+ 	size_t offset = offset_in_folio(folio, pos);
+ 	char *from = kmap_local_folio(folio, offset);
+ 
+-	if (folio_test_highmem(folio)) {
++	if (folio_test_partial_kmap(folio)) {
+ 		offset = offset_in_page(offset);
+ 		len = min_t(size_t, len, PAGE_SIZE - offset);
+ 	} else
+--- a/include/linux/page-flags.h~highmem-add-folio_test_partial_kmap
++++ a/include/linux/page-flags.h
+@@ -615,6 +615,13 @@ FOLIO_FLAG(dropbehind, FOLIO_HEAD_PAGE)
+ PAGEFLAG_FALSE(HighMem, highmem)
+ #endif
+ 
++/* Does kmap_local_folio() only allow access to one page of the folio? */
++#ifdef CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
++#define folio_test_partial_kmap(f)	true
++#else
++#define folio_test_partial_kmap(f)	folio_test_highmem(f)
++#endif
 +
-+		/*
- 		 * We have a dilemma here. The node's slot[0] must not be
- 		 * NULLed in case there are concurrent lookups expecting to
- 		 * find the item. However if this was a bottom-level node,
+ #ifdef CONFIG_SWAP
+ static __always_inline bool folio_test_swapcache(const struct folio *folio)
+ {
 _
 
-Patches currently in -mm which might be from jkangas@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-xarray-fix-kmemleak-false-positive-in-xas_shrink.patch
-radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink.patch
+highmem-add-folio_test_partial_kmap.patch
+mm-rename-page-index-to-page-__folio_index.patch
 
