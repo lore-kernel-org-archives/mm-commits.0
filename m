@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D7C17FAC2
-	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:03:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3586B224223
+	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:10:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747260193; cv=none; b=ESJZtKT8gvlPMSZFec53V9UcRmo3lCAb0m3Lbqw5aotKM5KLrSee+Zny26toOpQZ6CzXNdKXE3UE0eQ6pslWkvKgBy3F6vxWyGtDt2zyDNJwPwE8F8Xq+Az5ygmQ2gdXo0pRdN+E2YJZaGqQejCCdrmqkr9csK4FA7x6tzy12Ok=
+	t=1747260653; cv=none; b=iBNMhCBGm+O0Is7QAoE9w1AWCTASmk/kVWKfmXq3ldpMfDF473sg4zTSyKBWQCEnNHi1PcLmu9HoGI6IPVP8I/jvLx/amBhpJpWaCZ2CWSznqCHJvArZacnMI1zMv5zN5DJyNBGIEPogR556kX3dLPekr+B3YtniGz8R0Z4nDww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747260193; c=relaxed/simple;
-	bh=UKcyHMWGkMFUNoNWFDnZBD9Ugd2ipYFyevZVAff8hto=;
-	h=Date:To:From:Subject:Message-Id; b=M6WUE/3wIihkQajYogJDlRpk5uTqyeQH0DmNIEKNTLQwoid9aS0YujGqTbO79Ir3NAFA6TeWP8ivPp8ZFanBlzZ4dxSlRYyliJh9sCbp4nZNIpMfORs+2cETueo0qVoN3JILPc/OK70ruW6SWvhpj+BZD3cXQ/ZFHP3H3H/ODJM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rO6oOEfl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747260653; c=relaxed/simple;
+	bh=nCC6UvBP9Y4Z0euGpuRG+99G7uoZAnLeiNEDBLPXkyQ=;
+	h=Date:To:From:Subject:Message-Id; b=ZpFeYiGN5gOXWDj8Grjx3TIIoWS5Uco+tGE12H6kGDT5s9RGH0XRTrCrGClHFnty7+EvYubGhDpr+VnWP2p7ZhWKR1PAASaRviLOA4oDuSE+vVUzfgYghGx/sMtxtuR6ICP1aDk5W4/ian8oM8JBxyCiOjJWuPp//Kjg4I8R4T8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qLkZNJTB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rO6oOEfl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F37FC4CEEF;
-	Wed, 14 May 2025 22:03:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qLkZNJTB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89838C4CEE3;
+	Wed, 14 May 2025 22:10:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747260193;
-	bh=UKcyHMWGkMFUNoNWFDnZBD9Ugd2ipYFyevZVAff8hto=;
+	s=korg; t=1747260652;
+	bh=nCC6UvBP9Y4Z0euGpuRG+99G7uoZAnLeiNEDBLPXkyQ=;
 	h=Date:To:From:Subject:From;
-	b=rO6oOEflrKlKENvFq2R2/C3R0Bj4jkdF5O7FxAaUwglYsSVayxNfRUxp+Hy6LRuqk
-	 0u0NSLTh7Ojcoi4O0rYVhPd9LNo6iLh5UEMEZmYW+Z6kYMiGqF/EboK8Sw2h8sxVgo
-	 6E4V+Hf69toPFS1UOqpL1ifjm/WagZiS6m+gatJU=
-Date: Wed, 14 May 2025 15:03:12 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=qLkZNJTBYTHq33pz7Fsomg9mC/1LWd0693rv5M7mRR03TdvSnyLcGt5eZlU8uuYbf
+	 0GCNJKQtvR5cMZ25fNLq6MnbteHgb0k2D6Mgx7rZFKMT1x83d6LUv0FNz+STV3dvoy
+	 4RDpihPU0CB8tOLatjI4D9w7P1IaoYfrizhQ4WYc=
+Date: Wed, 14 May 2025 15:10:51 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-objcg-stock-trylock-without-irq-disabling.patch added to mm-new branch
-Message-Id: <20250514220313.3F37FC4CEEF@smtp.kernel.org>
+Subject: + mm-rename-page-index-to-page-__folio_index.patch added to mm-new branch
+Message-Id: <20250514221052.89838C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: objcg stock trylock without irq disabling
+     Subject: mm: rename page->index to page->__folio_index
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-objcg-stock-trylock-without-irq-disabling.patch
+     mm-rename-page-index-to-page-__folio_index.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-objcg-stock-trylock-without-irq-disabling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-page-index-to-page-__folio_index.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,115 +64,176 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: objcg stock trylock without irq disabling
-Date: Wed, 14 May 2025 11:41:58 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: rename page->index to page->__folio_index
+Date: Wed, 14 May 2025 19:15:07 +0100
 
-There is no need to disable irqs to use objcg per-cpu stock, so let's just
-not do that but consume_obj_stock() and refill_obj_stock() will need to
-use trylock instead to avoid deadlock against irq.  One consequence of
-this change is that the charge request from irq context may take slowpath
-more often but it should be rare.
+All users of page->index have been converted to not refer to it any more. 
+Update a few pieces of documentation that were missed and prevent new
+users from appearing (or at least make them easy to grep for).
 
-Link: https://lkml.kernel.org/r/20250514184158.3471331-8-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Link: https://lkml.kernel.org/r/20250514181508.3019795-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ arch/arm/mm/flush.c      |    4 ++--
+ include/linux/mm.h       |    6 +++---
+ include/linux/mm_types.h |    6 +++---
+ kernel/futex/core.c      |    2 +-
+ mm/filemap.c             |    4 ++--
+ mm/memory.c              |    4 ++--
+ mm/page-writeback.c      |    6 +++---
+ mm/truncate.c            |    2 +-
+ mm/zpdesc.h              |    4 ++--
+ 9 files changed, 19 insertions(+), 19 deletions(-)
 
---- a/mm/memcontrol.c~memcg-objcg-stock-trylock-without-irq-disabling
-+++ a/mm/memcontrol.c
-@@ -1882,18 +1882,17 @@ static void drain_local_memcg_stock(stru
- static void drain_local_obj_stock(struct work_struct *dummy)
- {
- 	struct obj_stock_pcp *stock;
--	unsigned long flags;
- 
- 	if (WARN_ONCE(!in_task(), "drain in non-task context"))
- 		return;
- 
--	local_lock_irqsave(&obj_stock.lock, flags);
-+	local_lock(&obj_stock.lock);
- 
- 	stock = this_cpu_ptr(&obj_stock);
- 	drain_obj_stock(stock);
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
- 
--	local_unlock_irqrestore(&obj_stock.lock, flags);
-+	local_unlock(&obj_stock.lock);
- }
- 
- static void refill_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
-@@ -2876,10 +2875,10 @@ static bool consume_obj_stock(struct obj
- 			      struct pglist_data *pgdat, enum node_stat_item idx)
- {
- 	struct obj_stock_pcp *stock;
--	unsigned long flags;
- 	bool ret = false;
- 
--	local_lock_irqsave(&obj_stock.lock, flags);
-+	if (!local_trylock(&obj_stock.lock))
-+		return ret;
- 
- 	stock = this_cpu_ptr(&obj_stock);
- 	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
-@@ -2890,7 +2889,7 @@ static bool consume_obj_stock(struct obj
- 			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
+--- a/arch/arm/mm/flush.c~mm-rename-page-index-to-page-__folio_index
++++ a/arch/arm/mm/flush.c
+@@ -227,9 +227,9 @@ void __flush_dcache_folio(struct address
  	}
  
--	local_unlock_irqrestore(&obj_stock.lock, flags);
-+	local_unlock(&obj_stock.lock);
+ 	/*
+-	 * If this is a page cache page, and we have an aliasing VIPT cache,
++	 * If this is a page cache folio, and we have an aliasing VIPT cache,
+ 	 * we only need to do one flush - which would be at the relevant
+-	 * userspace colour, which is congruent with page->index.
++	 * userspace colour, which is congruent with folio->index.
+ 	 */
+ 	if (mapping && cache_is_vipt_aliasing())
+ 		flush_pfn_alias(folio_pfn(folio), folio_pos(folio));
+--- a/include/linux/mm.h~mm-rename-page-index-to-page-__folio_index
++++ a/include/linux/mm.h
+@@ -1276,9 +1276,9 @@ vm_fault_t finish_fault(struct vm_fault
+  * the page's disk buffers. PG_private must be set to tell the VM to call
+  * into the filesystem to release these pages.
+  *
+- * A page may belong to an inode's memory mapping. In this case, page->mapping
+- * is the pointer to the inode, and page->index is the file offset of the page,
+- * in units of PAGE_SIZE.
++ * A folio may belong to an inode's memory mapping. In this case,
++ * folio->mapping points to the inode, and folio->index is the file
++ * offset of the folio, in units of PAGE_SIZE.
+  *
+  * If pagecache pages are not associated with an inode, they are said to be
+  * anonymous pages. These may become associated with the swapcache, and in that
+--- a/include/linux/mm_types.h~mm-rename-page-index-to-page-__folio_index
++++ a/include/linux/mm_types.h
+@@ -107,7 +107,7 @@ struct page {
+ 			/* See page-flags.h for PAGE_MAPPING_FLAGS */
+ 			struct address_space *mapping;
+ 			union {
+-				pgoff_t index;		/* Our offset within mapping. */
++				pgoff_t __folio_index;		/* Our offset within mapping. */
+ 				unsigned long share;	/* share count for fsdax */
+ 			};
+ 			/**
+@@ -488,7 +488,7 @@ FOLIO_MATCH(flags, flags);
+ FOLIO_MATCH(lru, lru);
+ FOLIO_MATCH(mapping, mapping);
+ FOLIO_MATCH(compound_head, lru);
+-FOLIO_MATCH(index, index);
++FOLIO_MATCH(__folio_index, index);
+ FOLIO_MATCH(private, private);
+ FOLIO_MATCH(_mapcount, _mapcount);
+ FOLIO_MATCH(_refcount, _refcount);
+@@ -589,7 +589,7 @@ TABLE_MATCH(flags, __page_flags);
+ TABLE_MATCH(compound_head, pt_list);
+ TABLE_MATCH(compound_head, _pt_pad_1);
+ TABLE_MATCH(mapping, __page_mapping);
+-TABLE_MATCH(index, pt_index);
++TABLE_MATCH(__folio_index, pt_index);
+ TABLE_MATCH(rcu_head, pt_rcu_head);
+ TABLE_MATCH(page_type, __page_type);
+ TABLE_MATCH(_refcount, __page_refcount);
+--- a/kernel/futex/core.c~mm-rename-page-index-to-page-__folio_index
++++ a/kernel/futex/core.c
+@@ -206,7 +206,7 @@ static u64 get_inode_sequence_number(str
+  *
+  * For shared mappings (when @fshared), the key is:
+  *
+- *   ( inode->i_sequence, page->index, offset_within_page )
++ *   ( inode->i_sequence, page offset within mapping, offset_within_page )
+  *
+  * [ also see get_inode_sequence_number() ]
+  *
+--- a/mm/filemap.c~mm-rename-page-index-to-page-__folio_index
++++ a/mm/filemap.c
+@@ -142,7 +142,7 @@ static void page_cache_delete(struct add
+ 	xas_init_marks(&xas);
  
- 	return ret;
+ 	folio->mapping = NULL;
+-	/* Leave page->index set: truncation lookup relies upon it */
++	/* Leave folio->index set: truncation lookup relies upon it */
+ 	mapping->nrpages -= nr;
  }
-@@ -2979,10 +2978,16 @@ static void refill_obj_stock(struct obj_
- 		enum node_stat_item idx)
- {
- 	struct obj_stock_pcp *stock;
--	unsigned long flags;
- 	unsigned int nr_pages = 0;
  
--	local_lock_irqsave(&obj_stock.lock, flags);
-+	if (!local_trylock(&obj_stock.lock)) {
-+		if (pgdat)
-+			mod_objcg_mlstate(objcg, pgdat, idx, nr_bytes);
-+		nr_pages = nr_bytes >> PAGE_SHIFT;
-+		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
-+		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
-+		goto out;
-+	}
- 
- 	stock = this_cpu_ptr(&obj_stock);
- 	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
-@@ -3004,8 +3009,8 @@ static void refill_obj_stock(struct obj_
- 		stock->nr_bytes &= (PAGE_SIZE - 1);
- 	}
- 
--	local_unlock_irqrestore(&obj_stock.lock, flags);
--
-+	local_unlock(&obj_stock.lock);
-+out:
- 	if (nr_pages)
- 		obj_cgroup_uncharge_pages(objcg, nr_pages);
+@@ -949,7 +949,7 @@ unlock:
+ 	return 0;
+ error:
+ 	folio->mapping = NULL;
+-	/* Leave page->index set: truncation relies upon it */
++	/* Leave folio->index set: truncation relies upon it */
+ 	folio_put_refs(folio, nr);
+ 	return xas_error(&xas);
  }
+--- a/mm/memory.c~mm-rename-page-index-to-page-__folio_index
++++ a/mm/memory.c
+@@ -4668,8 +4668,8 @@ vm_fault_t do_swap_page(struct vm_fault
+ 
+ 		/*
+ 		 * KSM sometimes has to copy on read faults, for example, if
+-		 * page->index of !PageKSM() pages would be nonlinear inside the
+-		 * anon VMA -- PageKSM() is lost on actual swapout.
++		 * folio->index of non-ksm folios would be nonlinear inside the
++		 * anon VMA -- the ksm flag is lost on actual swapout.
+ 		 */
+ 		folio = ksm_might_need_to_copy(folio, vma, vmf->address);
+ 		if (unlikely(!folio)) {
+--- a/mm/page-writeback.c~mm-rename-page-index-to-page-__folio_index
++++ a/mm/page-writeback.c
+@@ -2565,11 +2565,11 @@ struct folio *writeback_iter(struct addr
+ 	if (!folio) {
+ 		/*
+ 		 * To avoid deadlocks between range_cyclic writeback and callers
+-		 * that hold pages in PageWriteback to aggregate I/O until
++		 * that hold folios in writeback to aggregate I/O until
+ 		 * the writeback iteration finishes, we do not loop back to the
+-		 * start of the file.  Doing so causes a page lock/page
++		 * start of the file.  Doing so causes a folio lock/folio
+ 		 * writeback access order inversion - we should only ever lock
+-		 * multiple pages in ascending page->index order, and looping
++		 * multiple folios in ascending folio->index order, and looping
+ 		 * back to the start of the file violates that rule and causes
+ 		 * deadlocks.
+ 		 */
+--- a/mm/truncate.c~mm-rename-page-index-to-page-__folio_index
++++ a/mm/truncate.c
+@@ -425,7 +425,7 @@ void truncate_inode_pages_range(struct a
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
+ 			struct folio *folio = fbatch.folios[i];
+ 
+-			/* We rely upon deletion not changing page->index */
++			/* We rely upon deletion not changing folio->index */
+ 
+ 			if (xa_is_value(folio))
+ 				continue;
+--- a/mm/zpdesc.h~mm-rename-page-index-to-page-__folio_index
++++ a/mm/zpdesc.h
+@@ -54,8 +54,8 @@ struct zpdesc {
+ ZPDESC_MATCH(flags, flags);
+ ZPDESC_MATCH(lru, lru);
+ ZPDESC_MATCH(mapping, movable_ops);
+-ZPDESC_MATCH(index, next);
+-ZPDESC_MATCH(index, handle);
++ZPDESC_MATCH(__folio_index, next);
++ZPDESC_MATCH(__folio_index, handle);
+ ZPDESC_MATCH(private, zspage);
+ ZPDESC_MATCH(page_type, first_obj_offset);
+ ZPDESC_MATCH(_refcount, _refcount);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from willy@infradead.org are
 
-memcg-memcg_rstat_updated-re-entrant-safe-against-irqs.patch
-memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated.patch
-memcg-make-mod_memcg_state-re-entrant-safe-against-irqs.patch
-memcg-make-count_memcg_events-re-entrant-safe-against-irqs.patch
-memcg-make-__mod_memcg_lruvec_state-re-entrant-safe-against-irqs.patch
-memcg-no-stock-lock-for-cpu-hot-unplug.patch
-memcg-objcg-stock-trylock-without-irq-disabling.patch
+mm-rename-page-index-to-page-__folio_index.patch
 
