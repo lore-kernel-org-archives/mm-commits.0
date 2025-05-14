@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658D426AC3;
-	Wed, 14 May 2025 22:25:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A291EA7D6
+	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:27:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747261522; cv=none; b=ELTow9c05E/si4Y11JjFvW/S/CjMWAcqOi86ujjPozu/E/kmhD1MS0JPIfSBWV1gk36OpQGPBOtdjBlfJ6Cq8ck6zORIyU9PcSDZjwL4hVzwZXpaUPjG6Mq3Pg/jZPu93fFDwhAzoaSNwV0UhP59nZ5C5dwjX+oIsSx0dpqMUdY=
+	t=1747261664; cv=none; b=PiuHszdk/Oy4KqCmc6LexvraHiOzTkqBcurEbYhtdVjSfxZwy1X37UXh+L+56Fu2ScB3nXNI8br18fUHc58IMIDfFW6gOLBJb+0t25M4QiVeTiRkqpg1fVALV13k4hD+eppsh4QEwmKt6DIdzg0lrmsnDOCPq4I/Z1gV5ABLl3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747261522; c=relaxed/simple;
-	bh=NEZMPbz2xJDcLS27vdI+X0/N8pwHgaM5WvrJfTNNnYY=;
-	h=Date:To:From:Subject:Message-Id; b=DJGXE9q8xUowNyAvHMQ3imxgaVhHY+8kp8tq06nEWSPIkYDOyn5piZYiNrazy2BaxbUM2+rxlRcjFxMGNiZvWcthf1/hOcXiSbNr0F24OuYtT9M94O1S54zPZPogtNvAByu1LdwSVTXMwptNOZjDM5w7bL23qRnnbwumaKiy1q4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cRj7f9Fl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747261664; c=relaxed/simple;
+	bh=XndIoRWn0k5H2UxJxYe/6Vz2RKBArs0GGsHcIp37e04=;
+	h=Date:To:From:Subject:Message-Id; b=a+nOsSGstrz8TPbfn26dOYrpYEFm1tm05xdNYoINwX8F65g1att5UbbPemJ0X95+A62nTMifFyExh8MHoWhJJodLzlMqxeI03vsMDVNB165/xMgf32oiTa9cda+bAh2Bwd8C20GogKRxzhG2lecX2jZaQgNWfU2RO64awD4Ne+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ozaeVF3J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cRj7f9Fl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8355C4CEED;
-	Wed, 14 May 2025 22:25:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ozaeVF3J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC40C4CEE3;
+	Wed, 14 May 2025 22:27:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747261521;
-	bh=NEZMPbz2xJDcLS27vdI+X0/N8pwHgaM5WvrJfTNNnYY=;
+	s=korg; t=1747261663;
+	bh=XndIoRWn0k5H2UxJxYe/6Vz2RKBArs0GGsHcIp37e04=;
 	h=Date:To:From:Subject:From;
-	b=cRj7f9FlNqieJmfGUgdNPaBZqoDAg6crmSxkwULd8EBhMXy6lsTqyMTjosVz0BnO6
-	 WOM4bcl/+82/RcxQn6WSzwtmNf6VreX7WvWFWsiyrYTVyUwmd3gMrQWkxu+jCePmgf
-	 Zy/5JrRyGod+7oosV3YRu5AVZpnQBkQw8xFIP6AM=
-Date: Wed, 14 May 2025 15:25:21 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,hughd@google.com,willy@infradead.org,akpm@linux-foundation.org
+	b=ozaeVF3JsiswXWGK2u/PCemomHyVffkMcKGyY4h/rqSqEwzYFcDsQZk/DM/liASa3
+	 jt6/9kbErtlfACjN+p7B7TFotjBQi8PYnHeezuWP6c751FnH1a1p5LHCBG+gFPhdZu
+	 uEHRCH+vPZ/5cGkdrIKy8GlzHJu8rbK0mSQ0/4h0=
+Date: Wed, 14 May 2025 15:27:42 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,hughd@google.com,almaz.alexandrovich@paragon-software.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + highmem-add-folio_test_partial_kmap.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250514222521.B8355C4CEED@smtp.kernel.org>
+Subject: + ntfs3-use-folios-more-in-ntfs_compress_write.patch added to mm-new branch
+Message-Id: <20250514222743.5CC40C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: highmem: add folio_test_partial_kmap()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     highmem-add-folio_test_partial_kmap.patch
+     Subject: ntfs3: use folios more in ntfs_compress_write()
+has been added to the -mm mm-new branch.  Its filename is
+     ntfs3-use-folios-more-in-ntfs_compress_write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/highmem-add-folio_test_partial_kmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs3-use-folios-more-in-ntfs_compress_write.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,97 +65,120 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: highmem: add folio_test_partial_kmap()
-Date: Wed, 14 May 2025 18:06:02 +0100
+Subject: ntfs3: use folios more in ntfs_compress_write()
+Date: Wed, 14 May 2025 18:06:03 +0100
 
-In commit c749d9b7ebbc (iov_iter: fix copy_page_from_iter_atomic() if
-KMAP_LOCAL_FORCE_MAP), Hugh correctly noted that if KMAP_LOCAL_FORCE_MAP
-is enabled, we must limit ourselves to PAGE_SIZE bytes per call to
-kmap_local().  The same problem exists in memcpy_from_folio(),
-memcpy_to_folio(), folio_zero_tail(), folio_fill_tail() and
-memcpy_from_file_folio(), so add folio_test_partial_kmap() to do this more
-succinctly.
+Remove the local 'page' variable and do everything in terms of folios. 
+Removes the last user of copy_page_from_iter_atomic() and a hidden call to
+compound_head() in ClearPageDirty().
 
-Link: https://lkml.kernel.org/r/20250514170607.3000994-2-willy@infradead.org
-Fixes: 00cdf76012ab ("mm: add memcpy_from_file_folio()")
+Link: https://lkml.kernel.org/r/20250514170607.3000994-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h    |   10 +++++-----
- include/linux/page-flags.h |    7 +++++++
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ fs/ntfs3/file.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
---- a/include/linux/highmem.h~highmem-add-folio_test_partial_kmap
-+++ a/include/linux/highmem.h
-@@ -461,7 +461,7 @@ static inline void memcpy_from_folio(cha
- 		const char *from = kmap_local_folio(folio, offset);
- 		size_t chunk = len;
+--- a/fs/ntfs3/file.c~ntfs3-use-folios-more-in-ntfs_compress_write
++++ a/fs/ntfs3/file.c
+@@ -998,7 +998,8 @@ static ssize_t ntfs_compress_write(struc
+ 	struct ntfs_inode *ni = ntfs_i(inode);
+ 	u64 valid = ni->i_valid;
+ 	struct ntfs_sb_info *sbi = ni->mi.sbi;
+-	struct page *page, **pages = NULL;
++	struct page **pages = NULL;
++	struct folio *folio;
+ 	size_t written = 0;
+ 	u8 frame_bits = NTFS_LZNT_CUNIT + sbi->cluster_bits;
+ 	u32 frame_size = 1u << frame_bits;
+@@ -1008,7 +1009,6 @@ static ssize_t ntfs_compress_write(struc
+ 	u64 frame_vbo;
+ 	pgoff_t index;
+ 	bool frame_uptodate;
+-	struct folio *folio;
  
--		if (folio_test_highmem(folio) &&
-+		if (folio_test_partial_kmap(folio) &&
- 		    chunk > PAGE_SIZE - offset_in_page(offset))
- 			chunk = PAGE_SIZE - offset_in_page(offset);
- 		memcpy(to, from, chunk);
-@@ -489,7 +489,7 @@ static inline void memcpy_to_folio(struc
- 		char *to = kmap_local_folio(folio, offset);
- 		size_t chunk = len;
+ 	if (frame_size < PAGE_SIZE) {
+ 		/*
+@@ -1062,8 +1062,7 @@ static ssize_t ntfs_compress_write(struc
+ 					    pages_per_frame);
+ 			if (err) {
+ 				for (ip = 0; ip < pages_per_frame; ip++) {
+-					page = pages[ip];
+-					folio = page_folio(page);
++					folio = page_folio(pages[ip]);
+ 					folio_unlock(folio);
+ 					folio_put(folio);
+ 				}
+@@ -1074,10 +1073,9 @@ static ssize_t ntfs_compress_write(struc
+ 		ip = off >> PAGE_SHIFT;
+ 		off = offset_in_page(valid);
+ 		for (; ip < pages_per_frame; ip++, off = 0) {
+-			page = pages[ip];
+-			folio = page_folio(page);
+-			zero_user_segment(page, off, PAGE_SIZE);
+-			flush_dcache_page(page);
++			folio = page_folio(pages[ip]);
++			folio_zero_segment(folio, off, PAGE_SIZE);
++			flush_dcache_folio(folio);
+ 			folio_mark_uptodate(folio);
+ 		}
  
--		if (folio_test_highmem(folio) &&
-+		if (folio_test_partial_kmap(folio) &&
- 		    chunk > PAGE_SIZE - offset_in_page(offset))
- 			chunk = PAGE_SIZE - offset_in_page(offset);
- 		memcpy(to, from, chunk);
-@@ -522,7 +522,7 @@ static inline __must_check void *folio_z
- {
- 	size_t len = folio_size(folio) - offset;
+@@ -1086,8 +1084,7 @@ static ssize_t ntfs_compress_write(struc
+ 		ni_unlock(ni);
  
--	if (folio_test_highmem(folio)) {
-+	if (folio_test_partial_kmap(folio)) {
- 		size_t max = PAGE_SIZE - offset_in_page(offset);
+ 		for (ip = 0; ip < pages_per_frame; ip++) {
+-			page = pages[ip];
+-			folio = page_folio(page);
++			folio = page_folio(pages[ip]);
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+@@ -1131,8 +1128,7 @@ static ssize_t ntfs_compress_write(struc
+ 				if (err) {
+ 					for (ip = 0; ip < pages_per_frame;
+ 					     ip++) {
+-						page = pages[ip];
+-						folio = page_folio(page);
++						folio = page_folio(pages[ip]);
+ 						folio_unlock(folio);
+ 						folio_put(folio);
+ 					}
+@@ -1150,10 +1146,10 @@ static ssize_t ntfs_compress_write(struc
+ 		for (;;) {
+ 			size_t cp, tail = PAGE_SIZE - off;
  
- 		while (len > max) {
-@@ -560,7 +560,7 @@ static inline void folio_fill_tail(struc
+-			page = pages[ip];
+-			cp = copy_page_from_iter_atomic(page, off,
++			folio = page_folio(pages[ip]);
++			cp = copy_folio_from_iter_atomic(folio, off,
+ 							min(tail, bytes), from);
+-			flush_dcache_page(page);
++			flush_dcache_folio(folio);
  
- 	VM_BUG_ON(offset + len > folio_size(folio));
+ 			copied += cp;
+ 			bytes -= cp;
+@@ -1173,9 +1169,8 @@ static ssize_t ntfs_compress_write(struc
+ 		ni_unlock(ni);
  
--	if (folio_test_highmem(folio)) {
-+	if (folio_test_partial_kmap(folio)) {
- 		size_t max = PAGE_SIZE - offset_in_page(offset);
- 
- 		while (len > max) {
-@@ -597,7 +597,7 @@ static inline size_t memcpy_from_file_fo
- 	size_t offset = offset_in_folio(folio, pos);
- 	char *from = kmap_local_folio(folio, offset);
- 
--	if (folio_test_highmem(folio)) {
-+	if (folio_test_partial_kmap(folio)) {
- 		offset = offset_in_page(offset);
- 		len = min_t(size_t, len, PAGE_SIZE - offset);
- 	} else
---- a/include/linux/page-flags.h~highmem-add-folio_test_partial_kmap
-+++ a/include/linux/page-flags.h
-@@ -615,6 +615,13 @@ FOLIO_FLAG(dropbehind, FOLIO_HEAD_PAGE)
- PAGEFLAG_FALSE(HighMem, highmem)
- #endif
- 
-+/* Does kmap_local_folio() only allow access to one page of the folio? */
-+#ifdef CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
-+#define folio_test_partial_kmap(f)	true
-+#else
-+#define folio_test_partial_kmap(f)	folio_test_highmem(f)
-+#endif
-+
- #ifdef CONFIG_SWAP
- static __always_inline bool folio_test_swapcache(const struct folio *folio)
- {
+ 		for (ip = 0; ip < pages_per_frame; ip++) {
+-			page = pages[ip];
+-			ClearPageDirty(page);
+-			folio = page_folio(page);
++			folio = page_folio(pages[ip]);
++			folio_clear_dirty(folio);
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
 
 highmem-add-folio_test_partial_kmap.patch
 mm-rename-page-index-to-page-__folio_index.patch
+ntfs3-use-folios-more-in-ntfs_compress_write.patch
+iov-remove-copy_page_from_iter_atomic.patch
 
