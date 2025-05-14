@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF1EA21C16D
-	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:03:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28B34223327
+	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 22:03:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747260186; cv=none; b=WqGy2HFDiuWFDtyeiBUp1SprsmYNNzFOvqg9tsLbhRQ2mqk8oJWq+0BXVa9cWil4BGjl7n+CsWroMBgWy1UMQik5sP3Xmdl90ArpVGIkMJ5atqaBSdZRflRw6/vV0qVcvQsIuDcJCHTdsnh6x5+71gMUy8a7Yz7KoXbZrPPzrvU=
+	t=1747260188; cv=none; b=Tff+KHg1fLv4LRdBPdIxWCdxRBFw0x6JlhZssLulbBSfwYkA46RDAhSHT8bFfEKE7hjLR8B4DgSYwUuQit8hAnaKE+eUzXwY7cjj3w40Vu6949P24xSt6AGD0iQahXl0fKGfD9XCRD2PrjG9HO5z2ErubYuqcETRzO3Vqv2lOuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747260186; c=relaxed/simple;
-	bh=iju6OhhXcXraDhUFj2MHB6OY0uTlkLEPwcqguCgn2Lw=;
-	h=Date:To:From:Subject:Message-Id; b=MCSFqbi1iC/2q/kWuRgobn7/L3fwnPjLukyXaVI8lSVNF90Es+640iBhI8WwJeUjULSF8PhKvQJ6NCJvdZIY2lu5Avl0eNpjCe2ReuLfPr7/pYt/1TCrhbs4IibXyVAfuno0QDN6Az/VbfGmelLbbAt9qmKgiDupRA4+gkyAmQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fDvga+Bq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747260188; c=relaxed/simple;
+	bh=8I1Xj4Xqqn1ez2tzqMgvt0F0gsVGDbrcV+S8J1G69NU=;
+	h=Date:To:From:Subject:Message-Id; b=ISl/8bOUpG5RrCAQ97Ad97aMhrdnEIEX+q7xJKX4bTKBSqWgqCsix7bBO2v/JzQu/yFQmAMU1VtR2j1fTx2ZMVX8O+cxXuxgltGqFedvXnK2VyqOT/p34pkvW2rieKWWbHkKT71Y3fjYt9X6ZW8L+7494RlzfcFXXmEMEojUdE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0J32bkql; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fDvga+Bq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 478F8C4CEE3;
-	Wed, 14 May 2025 22:03:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0J32bkql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8958DC4CEED;
+	Wed, 14 May 2025 22:03:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747260186;
-	bh=iju6OhhXcXraDhUFj2MHB6OY0uTlkLEPwcqguCgn2Lw=;
+	s=korg; t=1747260187;
+	bh=8I1Xj4Xqqn1ez2tzqMgvt0F0gsVGDbrcV+S8J1G69NU=;
 	h=Date:To:From:Subject:From;
-	b=fDvga+BqQpwpqbwbfy0ssERhZ2M0q3sAnif7XHfYMPFhsMmu0yF4S0OMWJCH5G6lx
-	 XMwd+QiH0yHiV8hQPQ7MAiW3qlyXyOUgfgr5C8zq+ICvFviIoAeZG+Sb9tnH7sWDAQ
-	 GbjXls3J71Vh3m2N8HaQIySJHR44k9EGJbp3/QQg=
-Date: Wed, 14 May 2025 15:03:05 -0700
+	b=0J32bkqlHPF5sY8Yyi2hwT57bHIavINPZecD7dm3X0JLSISOMXBP1E6q7gw/y8Xdn
+	 a5yoNFnBIaNubuIYg1ULgjusaKqn9iSR0ydPAfMRCbkLiWz2Av+/VKureuVKCW8+c9
+	 Qa2WEC+7eMDZ7/dcsHL4ZxZ1XmW2MUllhG20muuw=
+Date: Wed, 14 May 2025 15:03:07 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated.patch added to mm-new branch
-Message-Id: <20250514220306.478F8C4CEE3@smtp.kernel.org>
+Subject: + memcg-make-mod_memcg_state-re-entrant-safe-against-irqs.patch added to mm-new branch
+Message-Id: <20250514220307.8958DC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: move preempt disable to callers of memcg_rstat_updated
+     Subject: memcg: make mod_memcg_state re-entrant safe against irqs
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated.patch
+     memcg-make-mod_memcg_state-re-entrant-safe-against-irqs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-make-mod_memcg_state-re-entrant-safe-against-irqs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,16 +65,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: move preempt disable to callers of memcg_rstat_updated
-Date: Wed, 14 May 2025 11:41:53 -0700
+Subject: memcg: make mod_memcg_state re-entrant safe against irqs
+Date: Wed, 14 May 2025 11:41:54 -0700
 
-Let's move the explicit preempt disable code to the callers of
-memcg_rstat_updated and also remove the memcg_stats_lock and related
-functions which ensures the callers of stats update functions have
-disabled preemption because now the stats update functions are explicitly
-disabling preemption.
+Let's make mod_memcg_state re-entrant safe against irqs.  The only thing
+needed is to convert the usage of __this_cpu_add() to this_cpu_add().  In
+addition, with re-entrant safety, there is no need to disable irqs.
 
-Link: https://lkml.kernel.org/r/20250514184158.3471331-3-shakeel.butt@linux.dev
+mod_memcg_state() is not safe against nmi, so let's add warning if someone
+tries to call it in nmi context.
+
+Link: https://lkml.kernel.org/r/20250514184158.3471331-4-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -86,168 +87,82 @@ Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   74 +++++++++++-----------------------------------
- 1 file changed, 19 insertions(+), 55 deletions(-)
+ include/linux/memcontrol.h |   20 ++------------------
+ mm/memcontrol.c            |    8 ++++----
+ 2 files changed, 6 insertions(+), 22 deletions(-)
 
---- a/mm/memcontrol.c~memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated
+--- a/include/linux/memcontrol.h~memcg-make-mod_memcg_state-re-entrant-safe-against-irqs
++++ a/include/linux/memcontrol.h
+@@ -903,19 +903,9 @@ struct mem_cgroup *mem_cgroup_get_oom_gr
+ 					    struct mem_cgroup *oom_domain);
+ void mem_cgroup_print_oom_group(struct mem_cgroup *memcg);
+ 
+-void __mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
+-		       int val);
+-
+ /* idx can be of type enum memcg_stat_item or node_stat_item */
+-static inline void mod_memcg_state(struct mem_cgroup *memcg,
+-				   enum memcg_stat_item idx, int val)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__mod_memcg_state(memcg, idx, val);
+-	local_irq_restore(flags);
+-}
++void mod_memcg_state(struct mem_cgroup *memcg,
++		     enum memcg_stat_item idx, int val);
+ 
+ static inline void mod_memcg_page_state(struct page *page,
+ 					enum memcg_stat_item idx, int val)
+@@ -1375,12 +1365,6 @@ static inline void mem_cgroup_print_oom_
+ {
+ }
+ 
+-static inline void __mod_memcg_state(struct mem_cgroup *memcg,
+-				     enum memcg_stat_item idx,
+-				     int nr)
+-{
+-}
+-
+ static inline void mod_memcg_state(struct mem_cgroup *memcg,
+ 				   enum memcg_stat_item idx,
+ 				   int nr)
+--- a/mm/memcontrol.c~memcg-make-mod_memcg_state-re-entrant-safe-against-irqs
 +++ a/mm/memcontrol.c
-@@ -557,48 +557,22 @@ static u64 flush_last_time;
- 
- #define FLUSH_TIME (2UL*HZ)
- 
--/*
-- * Accessors to ensure that preemption is disabled on PREEMPT_RT because it can
-- * not rely on this as part of an acquired spinlock_t lock. These functions are
-- * never used in hardirq context on PREEMPT_RT and therefore disabling preemtion
-- * is sufficient.
-- */
--static void memcg_stats_lock(void)
--{
--	preempt_disable_nested();
--	VM_WARN_ON_IRQS_ENABLED();
--}
--
--static void __memcg_stats_lock(void)
--{
--	preempt_disable_nested();
--}
--
--static void memcg_stats_unlock(void)
--{
--	preempt_enable_nested();
--}
--
--
- static bool memcg_vmstats_needs_flush(struct memcg_vmstats *vmstats)
- {
- 	return atomic64_read(&vmstats->stats_updates) >
- 		MEMCG_CHARGE_BATCH * num_online_cpus();
- }
- 
--static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
-+static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val,
-+				       int cpu)
- {
- 	struct memcg_vmstats_percpu __percpu *statc_pcpu;
- 	struct memcg_vmstats_percpu *statc;
--	int cpu;
- 	unsigned int stats_updates;
- 
- 	if (!val)
- 		return;
- 
--	/* Don't assume callers have preemption disabled. */
--	cpu = get_cpu();
--
- 	cgroup_rstat_updated(memcg->css.cgroup, cpu);
- 	statc_pcpu = memcg->vmstats_percpu;
- 	for (; statc_pcpu; statc_pcpu = statc->parent_pcpu) {
-@@ -619,7 +593,6 @@ static inline void memcg_rstat_updated(s
- 		stats_updates = this_cpu_xchg(statc_pcpu->stats_updates, 0);
- 		atomic64_add(stats_updates, &statc->vmstats->stats_updates);
- 	}
--	put_cpu();
- }
- 
- static void __mem_cgroup_flush_stats(struct mem_cgroup *memcg, bool force)
-@@ -717,6 +690,7 @@ void __mod_memcg_state(struct mem_cgroup
- 		       int val)
- {
- 	int i = memcg_stats_index(idx);
-+	int cpu;
- 
- 	if (mem_cgroup_disabled())
- 		return;
-@@ -724,12 +698,14 @@ void __mod_memcg_state(struct mem_cgroup
- 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
- 		return;
- 
--	memcg_stats_lock();
-+	cpu = get_cpu();
-+
- 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
- 	val = memcg_state_val_in_pages(idx, val);
--	memcg_rstat_updated(memcg, val);
-+	memcg_rstat_updated(memcg, val, cpu);
- 	trace_mod_memcg_state(memcg, idx, val);
--	memcg_stats_unlock();
-+
-+	put_cpu();
- }
- 
- #ifdef CONFIG_MEMCG_V1
-@@ -758,6 +734,7 @@ static void __mod_memcg_lruvec_state(str
- 	struct mem_cgroup_per_node *pn;
- 	struct mem_cgroup *memcg;
- 	int i = memcg_stats_index(idx);
-+	int cpu;
- 
- 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
- 		return;
-@@ -765,24 +742,7 @@ static void __mod_memcg_lruvec_state(str
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
- 	memcg = pn->memcg;
- 
--	/*
--	 * The caller from rmap relies on disabled preemption because they never
--	 * update their counter from in-interrupt context. For these two
--	 * counters we check that the update is never performed from an
--	 * interrupt context while other caller need to have disabled interrupt.
--	 */
--	__memcg_stats_lock();
--	if (IS_ENABLED(CONFIG_DEBUG_VM)) {
--		switch (idx) {
--		case NR_ANON_MAPPED:
--		case NR_FILE_MAPPED:
--		case NR_ANON_THPS:
--			WARN_ON_ONCE(!in_task());
--			break;
--		default:
--			VM_WARN_ON_IRQS_ENABLED();
--		}
--	}
-+	cpu = get_cpu();
- 
- 	/* Update memcg */
- 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
-@@ -791,9 +751,10 @@ static void __mod_memcg_lruvec_state(str
- 	__this_cpu_add(pn->lruvec_stats_percpu->state[i], val);
- 
- 	val = memcg_state_val_in_pages(idx, val);
--	memcg_rstat_updated(memcg, val);
-+	memcg_rstat_updated(memcg, val, cpu);
- 	trace_mod_memcg_lruvec_state(memcg, idx, val);
--	memcg_stats_unlock();
-+
-+	put_cpu();
+@@ -681,12 +681,12 @@ static int memcg_state_val_in_pages(int
  }
  
  /**
-@@ -873,6 +834,7 @@ void __count_memcg_events(struct mem_cgr
- 			  unsigned long count)
+- * __mod_memcg_state - update cgroup memory statistics
++ * mod_memcg_state - update cgroup memory statistics
+  * @memcg: the memory cgroup
+  * @idx: the stat item - can be enum memcg_stat_item or enum node_stat_item
+  * @val: delta to add to the counter, can be negative
+  */
+-void __mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
++void mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
+ 		       int val)
  {
- 	int i = memcg_events_index(idx);
-+	int cpu;
+ 	int i = memcg_stats_index(idx);
+@@ -700,7 +700,7 @@ void __mod_memcg_state(struct mem_cgroup
  
- 	if (mem_cgroup_disabled())
- 		return;
-@@ -880,11 +842,13 @@ void __count_memcg_events(struct mem_cgr
- 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
- 		return;
+ 	cpu = get_cpu();
  
--	memcg_stats_lock();
-+	cpu = get_cpu();
-+
- 	__this_cpu_add(memcg->vmstats_percpu->events[i], count);
--	memcg_rstat_updated(memcg, count);
-+	memcg_rstat_updated(memcg, count, cpu);
- 	trace_count_memcg_events(memcg, idx, count);
--	memcg_stats_unlock();
-+
-+	put_cpu();
- }
+-	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
++	this_cpu_add(memcg->vmstats_percpu->state[i], val);
+ 	val = memcg_state_val_in_pages(idx, val);
+ 	memcg_rstat_updated(memcg, val, cpu);
+ 	trace_mod_memcg_state(memcg, idx, val);
+@@ -2920,7 +2920,7 @@ static void drain_obj_stock(struct obj_s
  
- unsigned long memcg_events(struct mem_cgroup *memcg, int event)
+ 			memcg = get_mem_cgroup_from_objcg(old);
+ 
+-			__mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
++			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
+ 			memcg1_account_kmem(memcg, -nr_pages);
+ 			if (!mem_cgroup_is_root(memcg))
+ 				memcg_uncharge(memcg, nr_pages);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
