@@ -1,65 +1,124 @@
-Received: from out-187.mta1.migadu.com (out-187.mta1.migadu.com [95.215.58.187])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A5F3C00
-	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 01:25:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A8428EC
+	for <mm-commits@vger.kernel.org>; Wed, 14 May 2025 02:22:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747185959; cv=none; b=kEWXH3ZsHZ7FN/KNPMw7s4QX8w7U7Rv/aEns0jxj7CvohgYr2rj9rngrhekSFG0GFvRslQf5Bp+86peJLwWtigr4u/XQjgXaEzf3aKvddECsIuyuLA01z9DTJrfdSUMWJfRjJQ6K0etTuUNSJ8Ynw2OHpyEz55q1IXTlXM5P22E=
+	t=1747189323; cv=none; b=OsFEOg2FZasKnlgFT9gKfZvrieDxlNDEfeFplBOFLq//FaZW8yhI102EZp7AgqQUm4ktMKbUtnYDmflIDsZsI3RDYSlQ7tLx0cuiF5J2Qjv0WYwJsc1kf+CWd7eQkEtp3eTJFiQM6onXdQKxnymFGwUJTl2uD4V43Sh0gyORxJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747185959; c=relaxed/simple;
-	bh=+uGN9smP4q9oIU6cK/td1UytYGydqjEsXUmoEth/tzc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=a8W5oGwkMqZXo6dCiR34Mt5I9FZyAoNSZd3GaDMhrczVkggr7XfqhTwwhzjZ0P6nTDgVH6S/fPma5soIJui0LCqrssIx78r+Ckc8nQHA9YH0dzZnUr6jhYJdiVbeT96XmJUByoTd6Dy/vWeSatUU4Xi8MHlCbcAV1YrC5iqxM/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=q5ae92Qp; arc=none smtp.client-ip=95.215.58.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1747189323; c=relaxed/simple;
+	bh=LjFnDYarrNhurWaqLuZdwjm7UKNMe5GYIorZGvP4XOI=;
+	h=Date:To:From:Subject:Message-Id; b=pbyIOKHmBUYecMkA+EgJ/Cll+/pwfGFtEG2/QnYCEVZZhJq6EItiEqqSX3f48UchVCzIZFIDoGJ6Mk1BPPsHIA8G1sfnuATpfSgX3eNzqu1bmKmNM/Wt1VWUX9qya6R0R3ATlNNweeTL2SAuntniFQVOa7LRVQZgAmHCF9RJgOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HQ4ukVny; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="q5ae92Qp"
-Date: Tue, 13 May 2025 18:25:48 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1747185954;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=HHGhI8qxnuYyTlMiGyBRLko8LXSLVjjUh32kHmMPRMk=;
-	b=q5ae92QpXhjuF9ab6eykm63GS1/3jwG+tGH8jQXUauFOMCbPShNQeclOdyf42kLgfuscvq
-	BluPV6EcVaN3cst7Gn5rlNERzS28tTuKCuTl3U2KPaPBFKHAVIsSjyEEZwh3UsBgEg4zkZ
-	iOGITSFlDrx3z6biJUAzymkUHhH6+qw=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Shakeel Butt <shakeel.butt@linux.dev>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, yang.yang29@zte.com.cn, 
-	wang.yaxin@zte.com.cn, songmuchun@bytedance.com, roman.gushchin@linux.dev, 
-	muchun.song@linux.dev, mhocko@suse.com, mhocko@kernel.org, hannes@cmpxchg.org, 
-	david@redhat.com, chen.haonan2@zte.com.cn, xu.xin16@zte.com.cn
-Subject: Re: [merged mm-stable] memcontrol-rename-mem_cgroup_scan_tasks.patch
- removed from -mm tree
-Message-ID: <n4khqkpiq7q5u6n3o5zw6h55nb46cpcmh4epvwto65wt5xjqm5@ed4eirfexrz6>
-References: <20250513065531.D8D79C4CEE4@smtp.kernel.org>
- <36ptbmurx4fwsb5hpbnilojogsdx3fj4f7soywzw6ea4ve4cld@52yyggqaisot>
- <20250513162906.051a2430ccaa121cb840732e@linux-foundation.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HQ4ukVny"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF982C4CEE4;
+	Wed, 14 May 2025 02:22:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1747189322;
+	bh=LjFnDYarrNhurWaqLuZdwjm7UKNMe5GYIorZGvP4XOI=;
+	h=Date:To:From:Subject:From;
+	b=HQ4ukVnyvlK4iM+EEerm29wVwfrnRsUjmcWKvCF6sI1/4g+rYm9rS8kiCax2dEFCB
+	 I58oWhmDgiE6ZCDTMcz+bMsPQGY317q0OC5UBfO+z9TCsggs3a328zJlCSd35O5N1C
+	 +uVOR0fczPWnQItovo5RA75ayY7YZhNsWHqkcSp0=
+Date: Tue, 13 May 2025 19:22:02 -0700
+To: mm-commits@vger.kernel.org,wen.yang@linux.dev,seokwoo.chung130@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + selftests-eventfd-correct-test-name-and-improve-messages.patch added to mm-new branch
+Message-Id: <20250514022202.BF982C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250513162906.051a2430ccaa121cb840732e@linux-foundation.org>
-X-Migadu-Flow: FLOW_OUT
 
-On Tue, May 13, 2025 at 04:29:06PM -0700, Andrew Morton wrote:
-> On Tue, 13 May 2025 08:58:21 -0700 Shakeel Butt <shakeel.butt@linux.dev> wrote:
-> 
-> > Hi Andrew, can you please keep this series on hold for now? The
-> > discussion has not concluded yet. Mainly I want to see system level
-> > metrics which can get included in memcg and exposed through memory.stat
-> > interface instead of a new one.
-> 
-> OK, I dropped these from mm-stable so they aren't in mm.git at all. 
-> Should I re-add these patches to mm-unstable?
 
-I don't have a strong opinion on that but I don't see any benefit of
-bots testing this series which mm-unstable gets.
+The patch titled
+     Subject: selftests/eventfd: correct test name and improve messages
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-eventfd-correct-test-name-and-improve-messages.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-eventfd-correct-test-name-and-improve-messages.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Ryan Chung <seokwoo.chung130@gmail.com>
+Subject: selftests/eventfd: correct test name and improve messages
+Date: Tue, 13 May 2025 16:44:11 +0900
+
+- Rename test from eventfd_chek_flag_cloexec_and_nonblock to
+eventfd_check_flag_cloexec_and_nonblock.
+
+- Make the RDWR‐flag comment declarative:
+  “The kernel automatically adds the O_RDWR flag.”
+- Update semaphore‐flag failure message to:
+  “eventfd semaphore flag check failed: …”
+
+Link: https://lkml.kernel.org/r/20250513074411.6965-1-seokwoo.chung130@gmail.com
+Signed-off-by: Ryan Chung <seokwoo.chung130@gmail.com>
+Reviewed-by: Wen Yang <wen.yang@linux.dev>
+Cc: Wen Yang <wen.yang@linux.dev>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/filesystems/eventfd/eventfd_test.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+--- a/tools/testing/selftests/filesystems/eventfd/eventfd_test.c~selftests-eventfd-correct-test-name-and-improve-messages
++++ a/tools/testing/selftests/filesystems/eventfd/eventfd_test.c
+@@ -50,7 +50,7 @@ TEST(eventfd_check_flag_rdwr)
+ 	ASSERT_GE(fd, 0);
+ 
+ 	flags = fcntl(fd, F_GETFL);
+-	// since the kernel automatically added O_RDWR.
++	// The kernel automatically adds the O_RDWR flag.
+ 	EXPECT_EQ(flags, O_RDWR);
+ 
+ 	close(fd);
+@@ -85,7 +85,7 @@ TEST(eventfd_check_flag_nonblock)
+ 	close(fd);
+ }
+ 
+-TEST(eventfd_chek_flag_cloexec_and_nonblock)
++TEST(eventfd_check_flag_cloexec_and_nonblock)
+ {
+ 	int fd, flags;
+ 
+@@ -178,8 +178,7 @@ TEST(eventfd_check_flag_semaphore)
+ 	// The semaphore could only be obtained from fdinfo.
+ 	ret = verify_fdinfo(fd, &err, "eventfd-semaphore: ", 19, "1\n");
+ 	if (ret != 0)
+-		ksft_print_msg("eventfd-semaphore check failed, msg: %s\n",
+-				err.msg);
++		ksft_print_msg("eventfd semaphore flag check failed: %s\n", err.msg);
+ 	EXPECT_EQ(ret, 0);
+ 
+ 	close(fd);
+_
+
+Patches currently in -mm which might be from seokwoo.chung130@gmail.com are
+
+selftests-eventfd-correct-test-name-and-improve-messages.patch
+
