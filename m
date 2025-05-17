@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 180C18F5B
-	for <mm-commits@vger.kernel.org>; Sat, 17 May 2025 15:07:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F55A8F5B
+	for <mm-commits@vger.kernel.org>; Sat, 17 May 2025 15:08:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747494421; cv=none; b=Bag9zpi4Bf2R22LHknhssa7bf9PADPJ41GBpwgZkK7/wcTvW6nw72azoJnsn6AbMG8Kb6PCkfaikCqylqiLWWCH0d/X479kjee8C/FqGrPHanTW7ndbYvCMuyf9jWMrUbtjkPWZhvFcppyzHO0bTYUgdqq8z8TZxHVEUuYfhMKI=
+	t=1747494484; cv=none; b=rotVOgzcyLGR7b2Px0GQYSmfiMlzhgwrAtdSNDZHHK2qanRp8FtlwObaFhE2WbNNK3GupQZlBzLfMNFdw/HhfBHRcHnWixnzG+HWI75ymWax/mkdkJSMTpvphnWI7vdWtmdMptypJTs/VEZyed4bSWkBtFRK09QDeDr+9sC7c3Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747494421; c=relaxed/simple;
-	bh=LEM8iFANKlJ41vIOb6ejwKzaRC5jvG3WensAk1Wo63Q=;
-	h=Date:To:From:Subject:Message-Id; b=foiPbb7E2ReVWOBZ5fxP64RafcrndyPnpqh72d8TBh2Kga+X3Q7ln09/fRNokeg25zjUOWcTj6m7Iz9We5XcxQcHAQECnDWgIVfF+OyGEhx9O0myaQIotFCGrNJXA+5FTV7ydT3LgOZF+6qUo+v3VZdJO4HP13noPEZJP9elVvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HMB3vFUY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747494484; c=relaxed/simple;
+	bh=R/9i7qZuc+OllyzSOn7mKlarT59a13eseGJuvyQWgGQ=;
+	h=Date:To:From:Subject:Message-Id; b=p0o1eUK42GFRj4nZsqDvrgh2Y93doaoOPSeNTKyR66q4hoenZp1xwVh3Woxg8ivpzn+cElQ6q1m1tVn98QUzEEVWti6b8rT0Kv83fZyFiQ8SoZYTaYw8bmcL6Zn6gzeBT3RJgx1ikoKlV0yc7Vkmq29pJkpq0p4aJYD+80Hh7/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nqs9L50m; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HMB3vFUY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62173C4CEE3;
-	Sat, 17 May 2025 15:07:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nqs9L50m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2680C4CEE3;
+	Sat, 17 May 2025 15:08:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747494420;
-	bh=LEM8iFANKlJ41vIOb6ejwKzaRC5jvG3WensAk1Wo63Q=;
+	s=korg; t=1747494484;
+	bh=R/9i7qZuc+OllyzSOn7mKlarT59a13eseGJuvyQWgGQ=;
 	h=Date:To:From:Subject:From;
-	b=HMB3vFUYzPfUjYaiAaPgpeltDpM8Ue2Ku8bOZAl7e1yeJm2ULc9NGI9hw6NCxP9c6
-	 XMCE9rty2X4+yt/GFIJ6ywTS2ikhsJP1qoiUnt5tJa+QT3QBi5deOZq7NWXayQzyNC
-	 yj+JRtR+y6AxKvvqqLNXZAzcofBWuk0NSEbP8XPM=
-Date: Sat, 17 May 2025 08:06:59 -0700
+	b=nqs9L50mPDTbSkQohkOLd2YMF7O7iUsST/0Tu9Gh1Av63ocyd8VV8hICT3v7d76UZ
+	 CGlM07hUKShgGCcL3mMiT409upXIvV4qbRJHqxCRmOOUrW7HH3HuNS0tJQYZZmZEGu
+	 r2X+43F+eooj21L+yfKZwv9A2dNJuarJoaiYLm80=
+Date: Sat, 17 May 2025 08:08:03 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,dev.jain@arm.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-deduplicate-test-logging-in-test_mlock_lock.patch added to mm-new branch
-Message-Id: <20250517150700.62173C4CEE3@smtp.kernel.org>
+Subject: + selftests-mm-deduplicate-default-page-size-test-results-in-thuge-gen.patch added to mm-new branch
+Message-Id: <20250517150803.D2680C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: deduplicate test logging in test_mlock_lock()
+     Subject: selftests/mm: deduplicate default page size test results in thuge-gen
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-deduplicate-test-logging-in-test_mlock_lock.patch
+     selftests-mm-deduplicate-default-page-size-test-results-in-thuge-gen.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-deduplicate-test-logging-in-test_mlock_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-deduplicate-default-page-size-test-results-in-thuge-gen.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,41 +65,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: deduplicate test logging in test_mlock_lock()
-Date: Thu, 15 May 2025 11:27:14 +0200
+Subject: selftests/mm: deduplicate default page size test results in thuge-gen
+Date: Thu, 15 May 2025 11:36:14 +0200
 
-The mlock2-tests test_mlock_lock() test reports two test results with an
-identical string, one reporitng if it successfully locked a block of
-memory and another reporting if the lock is still present after doing an
-unlock (following a similar pattern to other tests in the same program). 
-This confuses test automation since the test string is used to deduplicate
-tests, change the post unlock test to report "Unlocked" instead like the
-other tests to fix this.
+The thuge-gen test program runs mmap() and shmget() tests for both every
+available page size and the default page size, resulting in two tests for
+the default size.  These tests are distinct since the flags in the default
+case do not specify an explicit size, add the flags to the test name that
+is logged to deduplicate.
 
-Link: https://lkml.kernel.org/r/20250515-selftest-mm-mlock2-dup-v1-1-963d5d7d243a@kernel.org
+Link: https://lkml.kernel.org/r/20250515-selfests-mm-thuge-gen-dup-v1-1-057d2836553f@kernel.org
 Signed-off-by: Mark Brown <broonie@kernel.org>
 Acked-by: Dev Jain <dev.jain@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mlock2-tests.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/thuge-gen.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-deduplicate-test-logging-in-test_mlock_lock
-+++ a/tools/testing/selftests/mm/mlock2-tests.c
-@@ -196,7 +196,7 @@ static void test_mlock_lock(void)
- 		ksft_exit_fail_msg("munlock(): %s\n", strerror(errno));
- 	}
+--- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-deduplicate-default-page-size-test-results-in-thuge-gen
++++ a/tools/testing/selftests/mm/thuge-gen.c
+@@ -127,7 +127,7 @@ void test_mmap(unsigned long size, unsig
  
--	ksft_test_result(!unlock_lock_check(map), "%s: Locked\n", __func__);
-+	ksft_test_result(!unlock_lock_check(map), "%s: Unlocked\n", __func__);
- 	munmap(map, 2 * page_size);
+ 	show(size);
+ 	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
+-			 "%s mmap %lu\n", __func__, size);
++			 "%s mmap %lu %x\n", __func__, size, flags);
+ 
+ 	if (munmap(map, size * NUM_PAGES))
+ 		ksft_exit_fail_msg("%s: unmap %s\n", __func__, strerror(errno));
+@@ -165,7 +165,7 @@ void test_shmget(unsigned long size, uns
+ 
+ 	show(size);
+ 	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
+-			 "%s: mmap %lu\n", __func__, size);
++			 "%s: mmap %lu %x\n", __func__, size, flags);
+ 	if (shmdt(map))
+ 		ksft_exit_fail_msg("%s: shmdt: %s\n", __func__, strerror(errno));
  }
- 
 _
 
 Patches currently in -mm which might be from broonie@kernel.org are
 
 selftests-mm-deduplicate-test-logging-in-test_mlock_lock.patch
+selftests-mm-deduplicate-default-page-size-test-results-in-thuge-gen.patch
 
