@@ -1,98 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AA6A20102B;
-	Sat, 17 May 2025 16:44:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22A854B1E77;
+	Sat, 17 May 2025 19:57:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747500264; cv=none; b=ADFEJRvX7rFpceU4XsKbCVByLzfXvY69J4fse2JtAYpmcoOL8aWvjPe3EwrAhXT6ng9NkNEp3uQbpQYPOT0bFKwqNaDj9EevLaHX6MzZnJGktRa/cW7DHMAcvV3HbL6t+xcckEtPkibWT3glG7ELtu8bfwd9+6iAboBGMDpzoxQ=
+	t=1747511868; cv=none; b=NN61O09KAKap3ONuGEo9Ma8v6OW4z0nFtWbsngXXKHhVNG+3eq1YcYpHvF9Y9qh1lso/I3fpk/LMUPgqL/4RIvcywkPtSb2vbz+/nQqLoM/inblCNeyWajFnEKw7cOFwbk+UtezKGYh8wFZkHBCZPqFu57qB+LSXFAsq4rYCK7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747500264; c=relaxed/simple;
-	bh=7EF4jHC6B1kxgvo7M67HdzGn2r4DzAv/dsR5x3sRPoQ=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=DkrEsw26iv59dm53GdDvsE5L6pGRvcv0oZ/Y6NBSUWEb+VP2fsy44jD54HI+JWzVQq1xB/8JvGKP8w67Z5ifdhrwMWR8t7r9+3ejk2qJDmBH4jcyoSGg1mlQLX1gzpDzs9+SayjCFY077uk3o3B5ZAuDyJbwMwncAlToWhMU9l4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=07sIRf7I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747511868; c=relaxed/simple;
+	bh=8kHp1IxjHnxfcP7lo8NRmiJ+XZmlgO88ZF7J/C9aYro=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=jSPwDjde0SNFZ9TzpSZb39ZrFPJr3x0S0lmKlNkiB5hQW37ASdNYqNC3YX3PmSTK9lAXsUoX7oLPN35LUYPFIXa/MSgZU4DIV4ue2gDTcCdVZgPqTx/ZtvqlxzfHSQMKrC8DkXxUdt3sKGK1yPPDPgiv2eBNInbSSm2mcqWntMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YcikOcWA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="07sIRf7I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33A36C4CEE3;
-	Sat, 17 May 2025 16:44:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747500263;
-	bh=7EF4jHC6B1kxgvo7M67HdzGn2r4DzAv/dsR5x3sRPoQ=;
-	h=Date:From:To:Cc:Subject:From;
-	b=07sIRf7I4eFCuFXVMpTukvfQ3ohH/5BUC8GDTg/3sbjLhHnbcL6B0wm1pX+SLmTa8
-	 QLI9QzfQYMC0+mN6thEuHi4dxnQ6ULjq/otI2j6PrPjRNKgDvKOoeTBvHvY08Gcia2
-	 DWdU5024uCYlEovNC/FUN89GS1R4DwbAAAjDQLnI=
-Date: Sat, 17 May 2025 09:44:22 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.15-rc7
-Message-Id: <20250517094422.f299a4e333261dfea7beb43c@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YcikOcWA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A09ABC4CEE3;
+	Sat, 17 May 2025 19:57:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1747511867;
+	bh=8kHp1IxjHnxfcP7lo8NRmiJ+XZmlgO88ZF7J/C9aYro=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=YcikOcWA5lvElbphhw6jUowlPZrVKYTM9wnHlZEhZJpBq++/duBoMnfamsq4B2pet
+	 Sxg+knaw81gsOWDrCY/tQ17mTZFXVzAs0snUg6PaQQGEGCq4umi6juU7UWSZc/gEp+
+	 38IL28ovl91iAFOB0atvcuXETc9ptschqMSHyJZyhQKPsZc18yKMpai8sQaP5e8k7u
+	 b1VUQVDJD4U26Xd2XsWnFE5DW1nX548QgjR4Q1PoeTPluF4YQPh6ix+Q4FJ/VpXFym
+	 91BN80JHHW9NkzFO+o5r2siYEGcbRgt0U5PFA4HjEJD8QNR9TuwpyEpWgmvxNPjdoP
+	 L/F5t69wwSnGg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 71194380DBE1;
+	Sat, 17 May 2025 19:58:25 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.15-rc7
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20250517094422.f299a4e333261dfea7beb43c@linux-foundation.org>
+References: <20250517094422.f299a4e333261dfea7beb43c@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20250517094422.f299a4e333261dfea7beb43c@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-05-17-09-41
+X-PR-Tracked-Commit-Id: 75cb1cca2c880179a11c7dd9380b6f14e41a06a4
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: e72e784fb1138ad313e004ef598ff98b364c7329
+Message-Id: <174751190406.138654.431314098615139104.pr-tracker-bot@kernel.org>
+Date: Sat, 17 May 2025 19:58:24 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+The pull request you sent on Sat, 17 May 2025 09:44:22 -0700:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-05-17-09-41
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/e72e784fb1138ad313e004ef598ff98b364c7329
 
-The following changes since commit 82f2b0b97b36ee3fcddf0f0780a9a0825d52fec3:
+Thank you!
 
-  Linux 6.15-rc6 (2025-05-11 14:54:11 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-05-17-09-41
-
-for you to fetch changes up to 75cb1cca2c880179a11c7dd9380b6f14e41a06a4:
-
-  mm: userfaultfd: correct dirty flags set for both present and swap pte (2025-05-11 17:29:55 -0700)
-
-----------------------------------------------------------------
-Nine singleton hotfixes, all MM.  Four are cc:stable.
-
-----------------------------------------------------------------
-Barry Song (1):
-      mm: userfaultfd: correct dirty flags set for both present and swap pte
-
-David Hildenbrand (1):
-      kernel/fork: only call untrack_pfn_clear() on VMAs duplicated for fork()
-
-David Wang (1):
-      mm/codetag: move tag retrieval back upfront in __free_pages()
-
-Kairui Song (1):
-      mm/memory: fix mapcount / refcount sanity check for mTHP reuse
-
-Kirill A. Shutemov (2):
-      mm/page_alloc: ensure try_alloc_pages() plays well with unaccepted memory
-      mm/page_alloc: fix race condition in unaccepted memory handling
-
-Lorenzo Stoakes (1):
-      MAINTAINERS: add mm GUP section
-
-Sergey Senozhatsky (1):
-      zsmalloc: don't underflow size calculation in zs_obj_write()
-
-Wupeng Ma (1):
-      mm: hugetlb: fix incorrect fallback for subpool
-
- MAINTAINERS                 | 12 +++++++
- include/linux/pgalloc_tag.h |  8 +++++
- kernel/fork.c               |  9 ++---
- mm/hugetlb.c                | 28 +++++++++++----
- mm/internal.h               |  1 -
- mm/memory.c                 |  2 +-
- mm/mm_init.c                |  1 -
- mm/page_alloc.c             | 88 +++++++++++----------------------------------
- mm/userfaultfd.c            | 12 +++++--
- mm/zsmalloc.c               |  8 ++---
- 10 files changed, 82 insertions(+), 87 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
