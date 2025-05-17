@@ -1,134 +1,98 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1536202960
-	for <mm-commits@vger.kernel.org>; Sat, 17 May 2025 15:39:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AA6A20102B;
+	Sat, 17 May 2025 16:44:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747496366; cv=none; b=elph4e2iceJ5Io5HlrghuT5553ZIDKXw9aHwGhFq6by1bKxLFtuG6gaXuZ36vtDIP19v5Q2Pj1l47dGX/n1TEjHxtuRa7wu0n94KdVCo3NzYnsvh+mh4GCrn+BsCVqwMXjMOlCuQIqi4BFczAYvs23EnRyWI91ktzhcicZSuXRE=
+	t=1747500264; cv=none; b=ADFEJRvX7rFpceU4XsKbCVByLzfXvY69J4fse2JtAYpmcoOL8aWvjPe3EwrAhXT6ng9NkNEp3uQbpQYPOT0bFKwqNaDj9EevLaHX6MzZnJGktRa/cW7DHMAcvV3HbL6t+xcckEtPkibWT3glG7ELtu8bfwd9+6iAboBGMDpzoxQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747496366; c=relaxed/simple;
-	bh=YmHXLxAmP+PX3pCFpjt7MiRq87WiiS3n+kdrr2SYtKw=;
-	h=Date:To:From:Subject:Message-Id; b=ECp9Ktj0vOJTfXm+gFogK5evLEVahCK5o9UPD48rWotuXuTSPipY1CNRFhc/ncd9XiJgDRlFPz0eDUhewxstoUF5tYeJwH2GZYr2QP9qLS01TfRiWQHmQsIEQhD5MtDwXFxI6JC/LiIRbRDMrUh+Mz2rvhQMif4Rw9r5QdmLC7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mDfD0ouC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747500264; c=relaxed/simple;
+	bh=7EF4jHC6B1kxgvo7M67HdzGn2r4DzAv/dsR5x3sRPoQ=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=DkrEsw26iv59dm53GdDvsE5L6pGRvcv0oZ/Y6NBSUWEb+VP2fsy44jD54HI+JWzVQq1xB/8JvGKP8w67Z5ifdhrwMWR8t7r9+3ejk2qJDmBH4jcyoSGg1mlQLX1gzpDzs9+SayjCFY077uk3o3B5ZAuDyJbwMwncAlToWhMU9l4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=07sIRf7I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mDfD0ouC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A89FC4CEE3;
-	Sat, 17 May 2025 15:39:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="07sIRf7I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33A36C4CEE3;
+	Sat, 17 May 2025 16:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747496366;
-	bh=YmHXLxAmP+PX3pCFpjt7MiRq87WiiS3n+kdrr2SYtKw=;
-	h=Date:To:From:Subject:From;
-	b=mDfD0ouCU8uiVArG05+/QqC1YNW/AqOrDDVPECjjjxs4MSdH20DJdHOs6s0HQ/dRs
-	 3flwTQS7JIkqgh1MF4c8U+nqxpHah3z2W8nEtMkDoN/93axdkDjvXUjE84DTIXU/C5
-	 K+a5Ahgs6kSMc2Ftp/v0HW+NPgkPXuwchyeHq7uc=
-Date: Sat, 17 May 2025 08:39:25 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,hch@lst.de,akpm@linux-foundation.org
+	s=korg; t=1747500263;
+	bh=7EF4jHC6B1kxgvo7M67HdzGn2r4DzAv/dsR5x3sRPoQ=;
+	h=Date:From:To:Cc:Subject:From;
+	b=07sIRf7I4eFCuFXVMpTukvfQ3ohH/5BUC8GDTg/3sbjLhHnbcL6B0wm1pX+SLmTa8
+	 QLI9QzfQYMC0+mN6thEuHi4dxnQ6ULjq/otI2j6PrPjRNKgDvKOoeTBvHvY08Gcia2
+	 DWdU5024uCYlEovNC/FUN89GS1R4DwbAAAjDQLnI=
+Date: Sat, 17 May 2025 09:44:22 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-remove-wbc-for_reclaim-handling.patch added to mm-nonmm-unstable branch
-Message-Id: <20250517153926.0A89FC4CEE3@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.15-rc7
+Message-Id: <20250517094422.f299a4e333261dfea7beb43c@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: nilfs2: remove wbc->for_reclaim handling
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-remove-wbc-for_reclaim-handling.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-remove-wbc-for_reclaim-handling.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 82f2b0b97b36ee3fcddf0f0780a9a0825d52fec3:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.15-rc6 (2025-05-11 14:54:11 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-05-17-09-41
 
-------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: nilfs2: remove wbc->for_reclaim handling
-Date: Fri, 16 May 2025 21:31:13 +0900
+for you to fetch changes up to 75cb1cca2c880179a11c7dd9380b6f14e41a06a4:
 
-Since commit 013a07052a1a ("nilfs2: convert metadata aops from writepage
-to writepages"), nilfs_mdt_write_folio can't be called from reclaim
-context any more.  Remove the code keyed of the wbc->for_reclaim flag,
-which is now only set for writing out swap or shmem pages inside the swap
-code, but never passed to file systems.
+  mm: userfaultfd: correct dirty flags set for both present and swap pte (2025-05-11 17:29:55 -0700)
 
-Link: https://lkml.kernel.org/r/20250508054938.15894-7-hch@lst.de
-Link: https://lkml.kernel.org/r/20250516123417.6779-1-konishi.ryusuke@gmail.com
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+Nine singleton hotfixes, all MM.  Four are cc:stable.
 
- fs/nilfs2/mdt.c     |    2 --
- fs/nilfs2/segment.c |   16 ----------------
- fs/nilfs2/segment.h |    1 -
- 3 files changed, 19 deletions(-)
+----------------------------------------------------------------
+Barry Song (1):
+      mm: userfaultfd: correct dirty flags set for both present and swap pte
 
---- a/fs/nilfs2/mdt.c~nilfs2-remove-wbc-for_reclaim-handling
-+++ a/fs/nilfs2/mdt.c
-@@ -422,8 +422,6 @@ static int nilfs_mdt_write_folio(struct
- 
- 	if (wbc->sync_mode == WB_SYNC_ALL)
- 		err = nilfs_construct_segment(sb);
--	else if (wbc->for_reclaim)
--		nilfs_flush_segment(sb, inode->i_ino);
- 
- 	return err;
- }
---- a/fs/nilfs2/segment.c~nilfs2-remove-wbc-for_reclaim-handling
-+++ a/fs/nilfs2/segment.c
-@@ -2221,22 +2221,6 @@ static void nilfs_segctor_do_flush(struc
- 	spin_unlock(&sci->sc_state_lock);
- }
- 
--/**
-- * nilfs_flush_segment - trigger a segment construction for resource control
-- * @sb: super block
-- * @ino: inode number of the file to be flushed out.
-- */
--void nilfs_flush_segment(struct super_block *sb, ino_t ino)
--{
--	struct the_nilfs *nilfs = sb->s_fs_info;
--	struct nilfs_sc_info *sci = nilfs->ns_writer;
--
--	if (!sci || nilfs_doing_construction())
--		return;
--	nilfs_segctor_do_flush(sci, NILFS_MDT_INODE(sb, ino) ? ino : 0);
--					/* assign bit 0 to data files */
--}
--
- struct nilfs_segctor_wait_request {
- 	wait_queue_entry_t	wq;
- 	__u32		seq;
---- a/fs/nilfs2/segment.h~nilfs2-remove-wbc-for_reclaim-handling
-+++ a/fs/nilfs2/segment.h
-@@ -226,7 +226,6 @@ extern void nilfs_relax_pressure_in_lock
- extern int nilfs_construct_segment(struct super_block *);
- extern int nilfs_construct_dsync_segment(struct super_block *, struct inode *,
- 					 loff_t, loff_t);
--extern void nilfs_flush_segment(struct super_block *, ino_t);
- extern int nilfs_clean_segments(struct super_block *, struct nilfs_argv *,
- 				void **);
- 
-_
+David Hildenbrand (1):
+      kernel/fork: only call untrack_pfn_clear() on VMAs duplicated for fork()
 
-Patches currently in -mm which might be from hch@lst.de are
+David Wang (1):
+      mm/codetag: move tag retrieval back upfront in __free_pages()
 
-nilfs2-remove-wbc-for_reclaim-handling.patch
+Kairui Song (1):
+      mm/memory: fix mapcount / refcount sanity check for mTHP reuse
+
+Kirill A. Shutemov (2):
+      mm/page_alloc: ensure try_alloc_pages() plays well with unaccepted memory
+      mm/page_alloc: fix race condition in unaccepted memory handling
+
+Lorenzo Stoakes (1):
+      MAINTAINERS: add mm GUP section
+
+Sergey Senozhatsky (1):
+      zsmalloc: don't underflow size calculation in zs_obj_write()
+
+Wupeng Ma (1):
+      mm: hugetlb: fix incorrect fallback for subpool
+
+ MAINTAINERS                 | 12 +++++++
+ include/linux/pgalloc_tag.h |  8 +++++
+ kernel/fork.c               |  9 ++---
+ mm/hugetlb.c                | 28 +++++++++++----
+ mm/internal.h               |  1 -
+ mm/memory.c                 |  2 +-
+ mm/mm_init.c                |  1 -
+ mm/page_alloc.c             | 88 +++++++++++----------------------------------
+ mm/userfaultfd.c            | 12 +++++--
+ mm/zsmalloc.c               |  8 ++---
+ 10 files changed, 82 insertions(+), 87 deletions(-)
 
