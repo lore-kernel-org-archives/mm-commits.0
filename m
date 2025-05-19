@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 165AD4431
-	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 22:46:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA971E51EE;
+	Mon, 19 May 2025 22:51:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747694798; cv=none; b=uW0b/+Kzk8n9NWnobkJMmZku1VSjI15Sjld8RCe5P7MWwlgHecT3+85IIbRE95c1ibq0fagOhVdyy2wVDfWcg1yUV1KuqNIB0apcy6930s7EJBNPcd4aq2HQrO5xiEl4UnY/lK2A05lmVii+LWwzftetQduRKp5O8mmkEea47VA=
+	t=1747695110; cv=none; b=im38H89kUQCunIl5hLggZHYSN3HzCaFPWNLKppYum9PzFLOHp53G9r+osjcIVa1OPNkkzmaevbysof88TDoDCXaLdbnuTH0jlTiu3eDPb8S0xD09S38a2LIldFbmasTujoua7EB7tm36j6IP2zt/MNPCqezf78lpEL8oI5Xy5bk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747694798; c=relaxed/simple;
-	bh=KseFPdcViaCQDs+RH8Ms9wxIbmuRMCu+koPiWtW2K2g=;
-	h=Date:To:From:Subject:Message-Id; b=oIfGYUzTkmGZ07OtDHip7rBYEvnHVEauyk4zMCXSn/EuVqBFL736+Ev3CC6yAickuaoylk02EykaHgwSHscAakLGJwk/Soj5+CX/6jX2kbqUgxUDGTclmhzfiqYr4PLE1U8aPzzMFtJDxbFPRQdjICqZx37IW0SsLYGLpw8rerg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HFOnWMtQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747695110; c=relaxed/simple;
+	bh=WukVvV++Vv1iqxqB/0NuaNOUic3dkytmDNLvuse41i0=;
+	h=Date:To:From:Subject:Message-Id; b=aQBC131ccF9xo2kHOwPWCHHUWQSWOnkiR6ZGBfo5svpnG7vWZ6xDEBfM2R2Qj9VGaD3JZlvNZyZ6YMRTyMBjrkpZExomcPwtZTXlj0V9COFBAsByo2u7nZFq62/QfRf6tvkB7Jy4755rS51KRa80tUd1P3nx7MJ0hXBKmA9kbzQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yccyMw/x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HFOnWMtQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6683AC4CEE4;
-	Mon, 19 May 2025 22:46:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yccyMw/x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C43E5C4CEEB;
+	Mon, 19 May 2025 22:51:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747694797;
-	bh=KseFPdcViaCQDs+RH8Ms9wxIbmuRMCu+koPiWtW2K2g=;
+	s=korg; t=1747695109;
+	bh=WukVvV++Vv1iqxqB/0NuaNOUic3dkytmDNLvuse41i0=;
 	h=Date:To:From:Subject:From;
-	b=HFOnWMtQBqpXIhSRXPXNSWY4O9BcVFg2/d5eC5bVzzU3SSU2OQUtU7enNDOPU7UKa
-	 uvfvAL7T34uVSAxxUTHhzWWWfvkPCzYyJWzGnUwJLRcqSEAFo2WS34Vki6LuQCO5Au
-	 Qp7rOydVxOC0BHt3p2DEaBRgF095uQn4Bnlr/Oq0=
-Date: Mon, 19 May 2025 15:46:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,rostedt@goodmis.org,peterz@infradead.org,mhocko@suse.com,memxor@gmail.com,harry.yoo@oracle.com,hannes@cmpxchg.org,bigeasy@linutronix.de,andrii@kernel.org,ast@kernel.org,akpm@linux-foundation.org
+	b=yccyMw/xqz93TDrlIH3FJb2CgeyZuFZlysW60X2H5KW49YHLPWouhVzPav7RHNtbq
+	 CjoH9bpeJnF4JJNawxmFc9KJyl7K8I3M0j0R74jWPA9KQdSnlo5mUPuHfrKI/Ifhcz
+	 RalaAaXOdRe5xSIlUsQoEuZxBgKC7wa3CK6cgDNg=
+Date: Mon, 19 May 2025 15:51:49 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,stable@vger.kernel.org,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,dennis@kernel.org,cl@gentwo.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-try_alloc_pages-to-alloc_pages_nolock.patch added to mm-unstable branch
-Message-Id: <20250519224637.6683AC4CEE4@smtp.kernel.org>
+Subject: + alloc_tag-allocate-percpu-counters-for-module-tags-dynamically.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250519225149.C43E5C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rename try_alloc_pages() to alloc_pages_nolock()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rename-try_alloc_pages-to-alloc_pages_nolock.patch
+     Subject: alloc_tag: allocate percpu counters for module tags dynamically
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     alloc_tag-allocate-percpu-counters-for-module-tags-dynamically.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-try_alloc_pages-to-alloc_pages_nolock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-allocate-percpu-counters-for-module-tags-dynamically.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,147 +58,269 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexei Starovoitov <ast@kernel.org>
-Subject: mm: rename try_alloc_pages() to alloc_pages_nolock()
-Date: Fri, 16 May 2025 17:34:46 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: alloc_tag: allocate percpu counters for module tags dynamically
+Date: Fri, 16 May 2025 17:07:39 -0700
 
-The "try_" prefix is confusing, since it made people believe that
-try_alloc_pages() is analogous to spin_trylock() and NULL return means
-EAGAIN.  This is not the case.  If it returns NULL there is no reason to
-call it again.  It will most likely return NULL again.  Hence rename it to
-alloc_pages_nolock() to make it symmetrical to free_pages_nolock() and
-document that NULL means ENOMEM.
+When a module gets unloaded it checks whether any of its tags are still in
+use and if so, we keep the memory containing module's allocation tags
+alive until all tags are unused.  However percpu counters referenced by
+the tags are freed by free_module().  This will lead to UAF if the memory
+allocated by a module is accessed after module was unloaded.
 
-Link: https://lkml.kernel.org/r/20250517003446.60260-1-alexei.starovoitov@gmail.com
-Signed-off-by: Alexei Starovoitov <ast@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+To fix this we allocate percpu counters for module allocation tags
+dynamically and we keep it alive for tags which are still in use after
+module unloading.  This also removes the requirement of a larger
+PERCPU_MODULE_RESERVE when memory allocation profiling is enabled because
+percpu memory for counters does not need to be reserved anymore.
+
+Link: https://lkml.kernel.org/r/20250517000739.5930-1-surenb@google.com
+Fixes: 0db6f8d7820a ("alloc_tag: load module tags into separate contiguous memory")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: David Wang <00107082@163.com>
+Closes: https://lore.kernel.org/all/20250516131246.6244-1-00107082@163.com/
+Tested-by: David Wang <00107082@163.com>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h  |    8 ++++----
- kernel/bpf/syscall.c |    2 +-
- mm/page_alloc.c      |   15 ++++++++-------
- mm/page_owner.c      |    2 +-
- 4 files changed, 14 insertions(+), 13 deletions(-)
+ include/linux/alloc_tag.h |   12 ++++
+ include/linux/codetag.h   |    8 +--
+ include/linux/percpu.h    |    4 -
+ lib/alloc_tag.c           |   89 ++++++++++++++++++++++++++++--------
+ lib/codetag.c             |    5 +-
+ 5 files changed, 89 insertions(+), 29 deletions(-)
 
---- a/include/linux/gfp.h~mm-rename-try_alloc_pages-to-alloc_pages_nolock
-+++ a/include/linux/gfp.h
-@@ -45,13 +45,13 @@ static inline bool gfpflags_allow_spinni
- 	 * !__GFP_DIRECT_RECLAIM -> direct claim is not allowed.
- 	 * !__GFP_KSWAPD_RECLAIM -> it's not safe to wake up kswapd.
- 	 * All GFP_* flags including GFP_NOWAIT use one or both flags.
--	 * try_alloc_pages() is the only API that doesn't specify either flag.
-+	 * alloc_pages_nolock() is the only API that doesn't specify either flag.
- 	 *
- 	 * This is stronger than GFP_NOWAIT or GFP_ATOMIC because
- 	 * those are guaranteed to never block on a sleeping lock.
- 	 * Here we are enforcing that the allocation doesn't ever spin
- 	 * on any locks (i.e. only trylocks). There is no high level
--	 * GFP_$FOO flag for this use in try_alloc_pages() as the
-+	 * GFP_$FOO flag for this use in alloc_pages_nolock() as the
- 	 * regular page allocator doesn't fully support this
- 	 * allocation mode.
- 	 */
-@@ -354,8 +354,8 @@ static inline struct page *alloc_page_vm
+--- a/include/linux/alloc_tag.h~alloc_tag-allocate-percpu-counters-for-module-tags-dynamically
++++ a/include/linux/alloc_tag.h
+@@ -104,6 +104,16 @@ DECLARE_PER_CPU(struct alloc_tag_counter
+ 
+ #else /* ARCH_NEEDS_WEAK_PER_CPU */
+ 
++#ifdef MODULE
++
++#define DEFINE_ALLOC_TAG(_alloc_tag)						\
++	static struct alloc_tag _alloc_tag __used __aligned(8)			\
++	__section(ALLOC_TAG_SECTION_NAME) = {					\
++		.ct = CODE_TAG_INIT,						\
++		.counters = NULL };
++
++#else  /* MODULE */
++
+ #define DEFINE_ALLOC_TAG(_alloc_tag)						\
+ 	static DEFINE_PER_CPU(struct alloc_tag_counters, _alloc_tag_cntr);	\
+ 	static struct alloc_tag _alloc_tag __used __aligned(8)			\
+@@ -111,6 +121,8 @@ DECLARE_PER_CPU(struct alloc_tag_counter
+ 		.ct = CODE_TAG_INIT,						\
+ 		.counters = &_alloc_tag_cntr };
+ 
++#endif /* MODULE */
++
+ #endif /* ARCH_NEEDS_WEAK_PER_CPU */
+ 
+ DECLARE_STATIC_KEY_MAYBE(CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT,
+--- a/include/linux/codetag.h~alloc_tag-allocate-percpu-counters-for-module-tags-dynamically
++++ a/include/linux/codetag.h
+@@ -36,10 +36,10 @@ union codetag_ref {
+ struct codetag_type_desc {
+ 	const char *section;
+ 	size_t tag_size;
+-	void (*module_load)(struct codetag_type *cttype,
+-			    struct codetag_module *cmod);
+-	void (*module_unload)(struct codetag_type *cttype,
+-			      struct codetag_module *cmod);
++	void (*module_load)(struct module *mod,
++			    struct codetag *start, struct codetag *end);
++	void (*module_unload)(struct module *mod,
++			      struct codetag *start, struct codetag *end);
+ #ifdef CONFIG_MODULES
+ 	void (*module_replaced)(struct module *mod, struct module *new_mod);
+ 	bool (*needs_section_mem)(struct module *mod, unsigned long size);
+--- a/include/linux/percpu.h~alloc_tag-allocate-percpu-counters-for-module-tags-dynamically
++++ a/include/linux/percpu.h
+@@ -15,11 +15,7 @@
+ 
+ /* enough to cover all DEFINE_PER_CPUs in modules */
+ #ifdef CONFIG_MODULES
+-#ifdef CONFIG_MEM_ALLOC_PROFILING
+-#define PERCPU_MODULE_RESERVE		(8 << 13)
+-#else
+ #define PERCPU_MODULE_RESERVE		(8 << 10)
+-#endif
+ #else
+ #define PERCPU_MODULE_RESERVE		0
+ #endif
+--- a/lib/alloc_tag.c~alloc_tag-allocate-percpu-counters-for-module-tags-dynamically
++++ a/lib/alloc_tag.c
+@@ -350,18 +350,28 @@ static bool needs_section_mem(struct mod
+ 	return size >= sizeof(struct alloc_tag);
  }
- #define alloc_page_vma(...)			alloc_hooks(alloc_page_vma_noprof(__VA_ARGS__))
  
--struct page *try_alloc_pages_noprof(int nid, unsigned int order);
--#define try_alloc_pages(...)			alloc_hooks(try_alloc_pages_noprof(__VA_ARGS__))
-+struct page *alloc_pages_nolock_noprof(int nid, unsigned int order);
-+#define alloc_pages_nolock(...)			alloc_hooks(alloc_pages_nolock_noprof(__VA_ARGS__))
- 
- extern unsigned long get_free_pages_noprof(gfp_t gfp_mask, unsigned int order);
- #define __get_free_pages(...)			alloc_hooks(get_free_pages_noprof(__VA_ARGS__))
---- a/kernel/bpf/syscall.c~mm-rename-try_alloc_pages-to-alloc_pages_nolock
-+++ a/kernel/bpf/syscall.c
-@@ -578,7 +578,7 @@ static bool can_alloc_pages(void)
- static struct page *__bpf_alloc_page(int nid)
+-static struct alloc_tag *find_used_tag(struct alloc_tag *from, struct alloc_tag *to)
++static bool clean_unused_counters(struct alloc_tag *start_tag,
++				  struct alloc_tag *end_tag)
  {
- 	if (!can_alloc_pages())
--		return try_alloc_pages(nid, 0);
-+		return alloc_pages_nolock(nid, 0);
+-	while (from <= to) {
++	struct alloc_tag *tag;
++	bool ret = true;
++
++	for (tag = start_tag; tag <= end_tag; tag++) {
+ 		struct alloc_tag_counters counter;
  
- 	return alloc_pages_node(nid,
- 				GFP_KERNEL | __GFP_ZERO | __GFP_ACCOUNT
---- a/mm/page_alloc.c~mm-rename-try_alloc_pages-to-alloc_pages_nolock
-+++ a/mm/page_alloc.c
-@@ -5078,7 +5078,7 @@ EXPORT_SYMBOL(__free_pages);
+-		counter = alloc_tag_read(from);
+-		if (counter.bytes)
+-			return from;
+-		from++;
++		if (!tag->counters)
++			continue;
++
++		counter = alloc_tag_read(tag);
++		if (!counter.bytes) {
++			free_percpu(tag->counters);
++			tag->counters = NULL;
++		} else {
++			ret = false;
++		}
+ 	}
  
- /*
-  * Can be called while holding raw_spin_lock or from IRQ and NMI for any
-- * page type (not only those that came from try_alloc_pages)
-+ * page type (not only those that came from alloc_pages_nolock)
-  */
- void free_pages_nolock(struct page *page, unsigned int order)
+-	return NULL;
++	return ret;
+ }
+ 
+ /* Called with mod_area_mt locked */
+@@ -371,12 +381,16 @@ static void clean_unused_module_areas_lo
+ 	struct module *val;
+ 
+ 	mas_for_each(&mas, val, module_tags.size) {
++		struct alloc_tag *start_tag;
++		struct alloc_tag *end_tag;
++
+ 		if (val != &unloaded_mod)
+ 			continue;
+ 
+ 		/* Release area if all tags are unused */
+-		if (!find_used_tag((struct alloc_tag *)(module_tags.start_addr + mas.index),
+-				   (struct alloc_tag *)(module_tags.start_addr + mas.last)))
++		start_tag = (struct alloc_tag *)(module_tags.start_addr + mas.index);
++		end_tag = (struct alloc_tag *)(module_tags.start_addr + mas.last);
++		if (clean_unused_counters(start_tag, end_tag))
+ 			mas_erase(&mas);
+ 	}
+ }
+@@ -561,7 +575,8 @@ unlock:
+ static void release_module_tags(struct module *mod, bool used)
  {
-@@ -7335,20 +7335,21 @@ static bool __free_unaccepted(struct pag
- #endif /* CONFIG_UNACCEPTED_MEMORY */
+ 	MA_STATE(mas, &mod_area_mt, module_tags.size, module_tags.size);
+-	struct alloc_tag *tag;
++	struct alloc_tag *start_tag;
++	struct alloc_tag *end_tag;
+ 	struct module *val;
  
- /**
-- * try_alloc_pages - opportunistic reentrant allocation from any context
-+ * alloc_pages_nolock - opportunistic reentrant allocation from any context
-  * @nid: node to allocate from
-  * @order: allocation order size
-  *
-  * Allocates pages of a given order from the given node. This is safe to
-  * call from any context (from atomic, NMI, and also reentrant
-- * allocator -> tracepoint -> try_alloc_pages_noprof).
-+ * allocator -> tracepoint -> alloc_pages_nolock_noprof).
-  * Allocation is best effort and to be expected to fail easily so nobody should
-  * rely on the success. Failures are not reported via warn_alloc().
-  * See always fail conditions below.
-  *
-- * Return: allocated page or NULL on failure.
-+ * Return: allocated page or NULL on failure. NULL does not mean EBUSY or EAGAIN.
-+ * It means ENOMEM. There is no reason to call it again and expect !NULL.
-  */
--struct page *try_alloc_pages_noprof(int nid, unsigned int order)
-+struct page *alloc_pages_nolock_noprof(int nid, unsigned int order)
+ 	mas_lock(&mas);
+@@ -575,15 +590,22 @@ static void release_module_tags(struct m
+ 	if (!used)
+ 		goto release_area;
+ 
+-	/* Find out if the area is used */
+-	tag = find_used_tag((struct alloc_tag *)(module_tags.start_addr + mas.index),
+-			    (struct alloc_tag *)(module_tags.start_addr + mas.last));
+-	if (tag) {
+-		struct alloc_tag_counters counter = alloc_tag_read(tag);
+-
+-		pr_info("%s:%u module %s func:%s has %llu allocated at module unload\n",
+-			tag->ct.filename, tag->ct.lineno, tag->ct.modname,
+-			tag->ct.function, counter.bytes);
++	start_tag = (struct alloc_tag *)(module_tags.start_addr + mas.index);
++	end_tag = (struct alloc_tag *)(module_tags.start_addr + mas.last);
++	if (!clean_unused_counters(start_tag, end_tag)) {
++		struct alloc_tag *tag;
++
++		for (tag = start_tag; tag <= end_tag; tag++) {
++			struct alloc_tag_counters counter;
++
++			if (!tag->counters)
++				continue;
++
++			counter = alloc_tag_read(tag);
++			pr_info("%s:%u module %s func:%s has %llu allocated at module unload\n",
++				tag->ct.filename, tag->ct.lineno, tag->ct.modname,
++				tag->ct.function, counter.bytes);
++		}
+ 	} else {
+ 		used = false;
+ 	}
+@@ -596,6 +618,34 @@ out:
+ 	mas_unlock(&mas);
+ }
+ 
++static void load_module(struct module *mod, struct codetag *start, struct codetag *stop)
++{
++	/* Allocate module alloc_tag percpu counters */
++	struct alloc_tag *start_tag;
++	struct alloc_tag *stop_tag;
++	struct alloc_tag *tag;
++
++	if (!mod)
++		return;
++
++	start_tag = ct_to_alloc_tag(start);
++	stop_tag = ct_to_alloc_tag(stop);
++	for (tag = start_tag; tag < stop_tag; tag++) {
++		WARN_ON(tag->counters);
++		tag->counters = alloc_percpu(struct alloc_tag_counters);
++		if (!tag->counters) {
++			while (--tag >= start_tag) {
++				free_percpu(tag->counters);
++				tag->counters = NULL;
++			}
++			shutdown_mem_profiling(true);
++			pr_err("Failed to allocate memory for allocation tag percpu counters in the module %s. Memory allocation profiling is disabled!\n",
++			       mod->name);
++			break;
++		}
++	}
++}
++
+ static void replace_module(struct module *mod, struct module *new_mod)
  {
- 	/*
- 	 * Do not specify __GFP_DIRECT_RECLAIM, since direct claim is not allowed.
-@@ -7357,7 +7358,7 @@ struct page *try_alloc_pages_noprof(int
- 	 *
- 	 * These two are the conditions for gfpflags_allow_spinning() being true.
- 	 *
--	 * Specify __GFP_NOWARN since failing try_alloc_pages() is not a reason
-+	 * Specify __GFP_NOWARN since failing alloc_pages_nolock() is not a reason
- 	 * to warn. Also warn would trigger printk() which is unsafe from
- 	 * various contexts. We cannot use printk_deferred_enter() to mitigate,
- 	 * since the running context is unknown.
-@@ -7367,7 +7368,7 @@ struct page *try_alloc_pages_noprof(int
- 	 * BPF use cases.
- 	 *
- 	 * Though __GFP_NOMEMALLOC is not checked in the code path below,
--	 * specify it here to highlight that try_alloc_pages()
-+	 * specify it here to highlight that alloc_pages_nolock()
- 	 * doesn't want to deplete reserves.
- 	 */
- 	gfp_t alloc_gfp = __GFP_NOWARN | __GFP_ZERO | __GFP_NOMEMALLOC
---- a/mm/page_owner.c~mm-rename-try_alloc_pages-to-alloc_pages_nolock
-+++ a/mm/page_owner.c
-@@ -302,7 +302,7 @@ void __reset_page_owner(struct page *pag
- 	/*
- 	 * Do not specify GFP_NOWAIT to make gfpflags_allow_spinning() == false
- 	 * to prevent issues in stack_depot_save().
--	 * This is similar to try_alloc_pages() gfp flags, but only used
-+	 * This is similar to alloc_pages_nolock() gfp flags, but only used
- 	 * to signal stack_depot to avoid spin_locks.
- 	 */
- 	handle = save_stack(__GFP_NOWARN);
+ 	MA_STATE(mas, &mod_area_mt, 0, module_tags.size);
+@@ -757,6 +807,7 @@ static int __init alloc_tag_init(void)
+ 		.needs_section_mem	= needs_section_mem,
+ 		.alloc_section_mem	= reserve_module_tags,
+ 		.free_section_mem	= release_module_tags,
++		.module_load		= load_module,
+ 		.module_replaced	= replace_module,
+ #endif
+ 	};
+--- a/lib/codetag.c~alloc_tag-allocate-percpu-counters-for-module-tags-dynamically
++++ a/lib/codetag.c
+@@ -194,7 +194,7 @@ static int codetag_module_init(struct co
+ 	if (err >= 0) {
+ 		cttype->count += range_size(cttype, &range);
+ 		if (cttype->desc.module_load)
+-			cttype->desc.module_load(cttype, cmod);
++			cttype->desc.module_load(mod, range.start, range.stop);
+ 	}
+ 	up_write(&cttype->mod_lock);
+ 
+@@ -333,7 +333,8 @@ void codetag_unload_module(struct module
+ 		}
+ 		if (found) {
+ 			if (cttype->desc.module_unload)
+-				cttype->desc.module_unload(cttype, cmod);
++				cttype->desc.module_unload(cmod->mod,
++					cmod->range.start, cmod->range.stop);
+ 
+ 			cttype->count -= range_size(cttype, &cmod->range);
+ 			idr_remove(&cttype->mod_idr, mod_id);
 _
 
-Patches currently in -mm which might be from ast@kernel.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-rename-try_alloc_pages-to-alloc_pages_nolock.patch
+alloc_tag-allocate-percpu-counters-for-module-tags-dynamically.patch
 
