@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F49321CC49
-	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 22:29:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60F9A21CC48
+	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 22:29:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747693770; cv=none; b=K0bN0bG0g9fY3uEnTrR5Vdlq19DGgDGLYuujhaOGbq9NcO8Z5JoWEO4pQS4hj1nSehcSVw76Z9CUuzKaE8vASWBpBSoy8K8yiOh6C2EZzUz5QSR7OkAwZ5ZOpGj8Ei28W1pIr9KP/zyqNnQ6Dy57V+dE1dJnomteAMBXvs07q6k=
+	t=1747693772; cv=none; b=tREAclMtn5jYdu0JOuczo6QPllfP7xYXED2q4xquPbgO6kyuhif9eAdV0W18+rotAbgAE34gOerzFMZQQJfJ6GxRJ8sru7gnb4veCfwYS5D77OOHMLQcwpWOkeggTWl4pr4cZT5pjOryvllSI+AaBDVU29tJKJtPdW9Cj7Oh52k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747693770; c=relaxed/simple;
-	bh=W25mUHwAUtlV33itnzsDasL7F1ZmxDajUumDqlzsxuQ=;
-	h=Date:To:From:Subject:Message-Id; b=i1siQMVLiIupq+ktWAXj5lWxEYcfQVtQ/qVvdNZjXTb13UAsD6WFUYbTyoRxs48mbLU4pxi5zn4SHCWrx5krQtVT998zD9TkhaVImQ9rXzKwciXYH/u+nLO2Ba7eZYxlwMDpTXNJ1Lu1AlMcVpBu842Oo1rty7/B7uwuBiobxus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1jN9q79h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747693772; c=relaxed/simple;
+	bh=Lk/7OabTcRtb7OPg2z7J3z9oTCnP29EUnY6R/3tEDYI=;
+	h=Date:To:From:Subject:Message-Id; b=cCWJU8s/91aMVckpkoJ4HZuIoeHrslTehjRvrZlpWKTcAi+cxoSh/4ySP8kVq86FKSDW0MvSM+I6wirjS+EPV898c50FNxUtXwLISM8uKb0O3fQuuEtAtOqKqtlU15fpUtnYqRdMNMrsDUqG9+iq9HRaXIASG9tWhTN+KHgteO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JAmjPRAH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1jN9q79h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B382CC4CEE4;
-	Mon, 19 May 2025 22:29:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JAmjPRAH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD39AC4CEE4;
+	Mon, 19 May 2025 22:29:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747693769;
-	bh=W25mUHwAUtlV33itnzsDasL7F1ZmxDajUumDqlzsxuQ=;
+	s=korg; t=1747693771;
+	bh=Lk/7OabTcRtb7OPg2z7J3z9oTCnP29EUnY6R/3tEDYI=;
 	h=Date:To:From:Subject:From;
-	b=1jN9q79h6S1ZBLNZejKgRBdg1zOqmKRiigoS04xpxWoJmEq6nnKB0RHdhaTKFl8Vh
-	 RX7FQWqo3Zcr083pZ806aZ8xROc0geGkhDG8ttutqNX9+LuPjXjLXoAV9Kkgq4nqVQ
-	 Rnombf3QRKOlDcx2C7HtbDCQEzsBinR7PPhVVb+4=
-Date: Mon, 19 May 2025 15:29:29 -0700
+	b=JAmjPRAHXg9gPG85yIBOuIqD9ATtLZDyzVCGaXOKgObBYrZsnaxmQyn0js0ME2AX4
+	 us5JHnJ8BcHh5hMWgPTDud8HbQ3ypycr+04CbsZxqvI/jeO0OL/HbhO0elzWVBMbBX
+	 nNPnsbzklJEPvo7RH5hqzbM1+EDy4Np+I/Lymceo=
+Date: Mon, 19 May 2025 15:29:31 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,mathieu.desnoyers@efficios.com,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-nmi-safe-slab-stats-updates.patch added to mm-new branch
-Message-Id: <20250519222929.B382CC4CEE4@smtp.kernel.org>
+Subject: + memcg-make-memcg_rstat_updated-nmi-safe.patch added to mm-new branch
+Message-Id: <20250519222931.CD39AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: nmi-safe slab stats updates
+     Subject: memcg: make memcg_rstat_updated nmi safe
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-nmi-safe-slab-stats-updates.patch
+     memcg-make-memcg_rstat_updated-nmi-safe.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-nmi-safe-slab-stats-updates.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-make-memcg_rstat_updated-nmi-safe.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: nmi-safe slab stats updates
-Date: Sun, 18 May 2025 23:31:41 -0700
+Subject: memcg: make memcg_rstat_updated nmi safe
+Date: Sun, 18 May 2025 23:31:42 -0700
 
-The objcg based kmem [un]charging can be called in nmi context and it may
-need to update NR_SLAB_[UN]RECLAIMABLE_B stats.  So, let's correctly
-handle the updates of these stats in the nmi context.
+Currently kernel maintains memory related stats updates per-cgroup to
+optimize stats flushing.  The stats_updates is defined as atomic64_t which
+is not nmi-safe on some archs.  Actually we don't really need 64bit atomic
+as the max value stats_updates can get should be less than nr_cpus *
+MEMCG_CHARGE_BATCH.  A normal atomic_t should suffice.
 
-Link: https://lkml.kernel.org/r/20250519063142.111219-5-shakeel.butt@linux.dev
+Also the function cgroup_rstat_updated() is still not nmi-safe but there
+is parallel effort to make it nmi-safe, so until then let's ignore it in
+the nmi context.
+
+Link: https://lkml.kernel.org/r/20250519063142.111219-6-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -87,62 +93,69 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   36 +++++++++++++++++++++++++++++++++---
- 1 file changed, 33 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/mm/memcontrol.c~memcg-nmi-safe-slab-stats-updates
+--- a/mm/memcontrol.c~memcg-make-memcg_rstat_updated-nmi-safe
 +++ a/mm/memcontrol.c
-@@ -2517,17 +2517,47 @@ static void commit_charge(struct folio *
- 	folio->memcg_data = (unsigned long)memcg;
- }
+@@ -533,7 +533,7 @@ struct memcg_vmstats {
+ 	unsigned long		events_pending[NR_MEMCG_EVENTS];
  
-+#ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
-+static inline void account_slab_nmi_safe(struct mem_cgroup *memcg,
-+					 struct pglist_data *pgdat,
-+					 enum node_stat_item idx, int nr)
-+{
-+	struct lruvec *lruvec;
-+
-+	if (likely(!in_nmi())) {
-+		lruvec = mem_cgroup_lruvec(memcg, pgdat);
-+		mod_memcg_lruvec_state(lruvec, idx, nr);
-+	} else {
-+		struct mem_cgroup_per_node *pn = memcg->nodeinfo[pgdat->node_id];
-+
-+		/* TODO: add to cgroup update tree once it is nmi-safe. */
-+		if (idx == NR_SLAB_RECLAIMABLE_B)
-+			atomic_add(nr, &pn->slab_reclaimable);
-+		else
-+			atomic_add(nr, &pn->slab_unreclaimable);
-+	}
-+}
-+#else
-+static inline void account_slab_nmi_safe(struct mem_cgroup *memcg,
-+					 struct pglist_data *pgdat,
-+					 enum node_stat_item idx, int nr)
-+{
-+	struct lruvec *lruvec;
-+
-+	lruvec = mem_cgroup_lruvec(memcg, pgdat);
-+	mod_memcg_lruvec_state(lruvec, idx, nr);
-+}
-+#endif
-+
- static inline void mod_objcg_mlstate(struct obj_cgroup *objcg,
- 				       struct pglist_data *pgdat,
- 				       enum node_stat_item idx, int nr)
+ 	/* Stats updates since the last flush */
+-	atomic64_t		stats_updates;
++	atomic_t		stats_updates;
+ };
+ 
+ /*
+@@ -559,7 +559,7 @@ static u64 flush_last_time;
+ 
+ static bool memcg_vmstats_needs_flush(struct memcg_vmstats *vmstats)
  {
- 	struct mem_cgroup *memcg;
--	struct lruvec *lruvec;
- 
- 	rcu_read_lock();
- 	memcg = obj_cgroup_memcg(objcg);
--	lruvec = mem_cgroup_lruvec(memcg, pgdat);
--	mod_memcg_lruvec_state(lruvec, idx, nr);
-+	account_slab_nmi_safe(memcg, pgdat, idx, nr);
- 	rcu_read_unlock();
+-	return atomic64_read(&vmstats->stats_updates) >
++	return atomic_read(&vmstats->stats_updates) >
+ 		MEMCG_CHARGE_BATCH * num_online_cpus();
  }
  
+@@ -573,7 +573,9 @@ static inline void memcg_rstat_updated(s
+ 	if (!val)
+ 		return;
+ 
+-	cgroup_rstat_updated(memcg->css.cgroup, cpu);
++	/* TODO: add to cgroup update tree once it is nmi-safe. */
++	if (!in_nmi())
++		cgroup_rstat_updated(memcg->css.cgroup, cpu);
+ 	statc_pcpu = memcg->vmstats_percpu;
+ 	for (; statc_pcpu; statc_pcpu = statc->parent_pcpu) {
+ 		statc = this_cpu_ptr(statc_pcpu);
+@@ -591,7 +593,7 @@ static inline void memcg_rstat_updated(s
+ 			continue;
+ 
+ 		stats_updates = this_cpu_xchg(statc_pcpu->stats_updates, 0);
+-		atomic64_add(stats_updates, &statc->vmstats->stats_updates);
++		atomic_add(stats_updates, &statc->vmstats->stats_updates);
+ 	}
+ }
+ 
+@@ -599,7 +601,7 @@ static void __mem_cgroup_flush_stats(str
+ {
+ 	bool needs_flush = memcg_vmstats_needs_flush(memcg->vmstats);
+ 
+-	trace_memcg_flush_stats(memcg, atomic64_read(&memcg->vmstats->stats_updates),
++	trace_memcg_flush_stats(memcg, atomic_read(&memcg->vmstats->stats_updates),
+ 		force, needs_flush);
+ 
+ 	if (!force && !needs_flush)
+@@ -4121,8 +4123,8 @@ static void mem_cgroup_css_rstat_flush(s
+ 	}
+ 	WRITE_ONCE(statc->stats_updates, 0);
+ 	/* We are in a per-cpu loop here, only do the atomic write once */
+-	if (atomic64_read(&memcg->vmstats->stats_updates))
+-		atomic64_set(&memcg->vmstats->stats_updates, 0);
++	if (atomic_read(&memcg->vmstats->stats_updates))
++		atomic_set(&memcg->vmstats->stats_updates, 0);
+ }
+ 
+ static void mem_cgroup_fork(struct task_struct *task)
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
