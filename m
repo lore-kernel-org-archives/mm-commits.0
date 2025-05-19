@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60F9A21CC48
-	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 22:29:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36B701FDE22
+	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 22:33:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747693772; cv=none; b=tREAclMtn5jYdu0JOuczo6QPllfP7xYXED2q4xquPbgO6kyuhif9eAdV0W18+rotAbgAE34gOerzFMZQQJfJ6GxRJ8sru7gnb4veCfwYS5D77OOHMLQcwpWOkeggTWl4pr4cZT5pjOryvllSI+AaBDVU29tJKJtPdW9Cj7Oh52k=
+	t=1747694015; cv=none; b=s3e7hZhyC5tWeCgALXmb4Bxzf88Ro9HxkqSZ5ZlsNkftsTaBvKST7MCVumWBu2vuObO4ZyN5U2aDopv83Tgq0GENVYma9aAup6yJlGoxwAUGRI8eWYzEVL62aDkXDhWD1tvkln2GK4NB17pw0WF4Eppa4F/3HON2h1ubn5a6BOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747693772; c=relaxed/simple;
-	bh=Lk/7OabTcRtb7OPg2z7J3z9oTCnP29EUnY6R/3tEDYI=;
-	h=Date:To:From:Subject:Message-Id; b=cCWJU8s/91aMVckpkoJ4HZuIoeHrslTehjRvrZlpWKTcAi+cxoSh/4ySP8kVq86FKSDW0MvSM+I6wirjS+EPV898c50FNxUtXwLISM8uKb0O3fQuuEtAtOqKqtlU15fpUtnYqRdMNMrsDUqG9+iq9HRaXIASG9tWhTN+KHgteO4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JAmjPRAH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747694015; c=relaxed/simple;
+	bh=NDS41H7wVz4NaWeX2JVa+flUOv4zTj+h/P1ZW8MTrrQ=;
+	h=Date:To:From:Subject:Message-Id; b=BrZgiLUfs+ZpXlDpMpzdq673jr0XrRiRVFNAUE/bgEcjJhVXVqIW2KkaAVDvBghV62UXhpRii6Y0/MMa9KN4j65fm0kjtfi05AdPo023iPqg2lXoIUo8GR+zwyAXE2NDQwIq+LQdvBepeyTgvXiSlU/LGh2t1W6Y9V0M37rsOSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E2+gTNGn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JAmjPRAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD39AC4CEE4;
-	Mon, 19 May 2025 22:29:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E2+gTNGn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0BEFC4CEE4;
+	Mon, 19 May 2025 22:33:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747693771;
-	bh=Lk/7OabTcRtb7OPg2z7J3z9oTCnP29EUnY6R/3tEDYI=;
+	s=korg; t=1747694014;
+	bh=NDS41H7wVz4NaWeX2JVa+flUOv4zTj+h/P1ZW8MTrrQ=;
 	h=Date:To:From:Subject:From;
-	b=JAmjPRAHXg9gPG85yIBOuIqD9ATtLZDyzVCGaXOKgObBYrZsnaxmQyn0js0ME2AX4
-	 us5JHnJ8BcHh5hMWgPTDud8HbQ3ypycr+04CbsZxqvI/jeO0OL/HbhO0elzWVBMbBX
-	 nNPnsbzklJEPvo7RH5hqzbM1+EDy4Np+I/Lymceo=
-Date: Mon, 19 May 2025 15:29:31 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,mathieu.desnoyers@efficios.com,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=E2+gTNGnOidG223A6MRq0/a+TBIz9cJzN+1eBFA6lkMZsCxHS3ij581U6VnPPhbXq
+	 TVN11ffxHNL2jYT68rQgya4jbU4Oje18JSyoiJXLz2lKq8+DpQcr7bO5quy2Yyc3WW
+	 aChXMfB5KscwwNX/pbnSZKyrqxT0XaFC3IIf4Zv0=
+Date: Mon, 19 May 2025 15:33:34 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-make-memcg_rstat_updated-nmi-safe.patch added to mm-new branch
-Message-Id: <20250519222931.CD39AC4CEE4@smtp.kernel.org>
+Subject: + selftests-mm-deduplicate-second-mmap-of-5page_size-at-base.patch added to mm-unstable branch
+Message-Id: <20250519223334.A0BEFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: make memcg_rstat_updated nmi safe
-has been added to the -mm mm-new branch.  Its filename is
-     memcg-make-memcg_rstat_updated-nmi-safe.patch
+     Subject: selftests/mm: deduplicate second mmap() of 5*PAGE_SIZE at base
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-deduplicate-second-mmap-of-5page_size-at-base.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-make-memcg_rstat_updated-nmi-safe.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-deduplicate-second-mmap-of-5page_size-at-base.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,112 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: make memcg_rstat_updated nmi safe
-Date: Sun, 18 May 2025 23:31:42 -0700
+From: Mark Brown <broonie@kernel.org>
+Subject: selftests/mm: deduplicate second mmap() of 5*PAGE_SIZE at base
+Date: Sun, 18 May 2025 15:04:42 +0100
 
-Currently kernel maintains memory related stats updates per-cgroup to
-optimize stats flushing.  The stats_updates is defined as atomic64_t which
-is not nmi-safe on some archs.  Actually we don't really need 64bit atomic
-as the max value stats_updates can get should be less than nr_cpus *
-MEMCG_CHARGE_BATCH.  A normal atomic_t should suffice.
+The map_fixed_noreplace test does two blocks of test starting from a
+mapping of 5 pages at the base address, logging a test result for each
+initial mapping.  These are logged with the same test name, causing test
+automation software to see two reports for the same test in a single run. 
+Tweak the log message for the second one to deduplicate.
 
-Also the function cgroup_rstat_updated() is still not nmi-safe but there
-is parallel effort to make it nmi-safe, so until then let's ignore it in
-the nmi context.
-
-Link: https://lkml.kernel.org/r/20250519063142.111219-6-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20250518-selftests-mm-map-fixed-noreplace-dup-v1-1-1a11a62c5e9f@kernel.org
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/map_fixed_noreplace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-make-memcg_rstat_updated-nmi-safe
-+++ a/mm/memcontrol.c
-@@ -533,7 +533,7 @@ struct memcg_vmstats {
- 	unsigned long		events_pending[NR_MEMCG_EVENTS];
- 
- 	/* Stats updates since the last flush */
--	atomic64_t		stats_updates;
-+	atomic_t		stats_updates;
- };
- 
- /*
-@@ -559,7 +559,7 @@ static u64 flush_last_time;
- 
- static bool memcg_vmstats_needs_flush(struct memcg_vmstats *vmstats)
- {
--	return atomic64_read(&vmstats->stats_updates) >
-+	return atomic_read(&vmstats->stats_updates) >
- 		MEMCG_CHARGE_BATCH * num_online_cpus();
- }
- 
-@@ -573,7 +573,9 @@ static inline void memcg_rstat_updated(s
- 	if (!val)
- 		return;
- 
--	cgroup_rstat_updated(memcg->css.cgroup, cpu);
-+	/* TODO: add to cgroup update tree once it is nmi-safe. */
-+	if (!in_nmi())
-+		cgroup_rstat_updated(memcg->css.cgroup, cpu);
- 	statc_pcpu = memcg->vmstats_percpu;
- 	for (; statc_pcpu; statc_pcpu = statc->parent_pcpu) {
- 		statc = this_cpu_ptr(statc_pcpu);
-@@ -591,7 +593,7 @@ static inline void memcg_rstat_updated(s
- 			continue;
- 
- 		stats_updates = this_cpu_xchg(statc_pcpu->stats_updates, 0);
--		atomic64_add(stats_updates, &statc->vmstats->stats_updates);
-+		atomic_add(stats_updates, &statc->vmstats->stats_updates);
+--- a/tools/testing/selftests/mm/map_fixed_noreplace.c~selftests-mm-deduplicate-second-mmap-of-5page_size-at-base
++++ a/tools/testing/selftests/mm/map_fixed_noreplace.c
+@@ -96,7 +96,7 @@ int main(void)
+ 		ksft_exit_fail_msg("Error:1: mmap() succeeded when it shouldn't have\n");
  	}
- }
+ 	ksft_print_msg("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-	ksft_test_result_pass("mmap() 5*PAGE_SIZE at base\n");
++	ksft_test_result_pass("Second mmap() 5*PAGE_SIZE at base\n");
  
-@@ -599,7 +601,7 @@ static void __mem_cgroup_flush_stats(str
- {
- 	bool needs_flush = memcg_vmstats_needs_flush(memcg->vmstats);
- 
--	trace_memcg_flush_stats(memcg, atomic64_read(&memcg->vmstats->stats_updates),
-+	trace_memcg_flush_stats(memcg, atomic_read(&memcg->vmstats->stats_updates),
- 		force, needs_flush);
- 
- 	if (!force && !needs_flush)
-@@ -4121,8 +4123,8 @@ static void mem_cgroup_css_rstat_flush(s
- 	}
- 	WRITE_ONCE(statc->stats_updates, 0);
- 	/* We are in a per-cpu loop here, only do the atomic write once */
--	if (atomic64_read(&memcg->vmstats->stats_updates))
--		atomic64_set(&memcg->vmstats->stats_updates, 0);
-+	if (atomic_read(&memcg->vmstats->stats_updates))
-+		atomic_set(&memcg->vmstats->stats_updates, 0);
- }
- 
- static void mem_cgroup_fork(struct task_struct *task)
+ 	/*
+ 	 * Second mapping contained within first:
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from broonie@kernel.org are
 
-memcg-memcg_rstat_updated-re-entrant-safe-against-irqs.patch
-memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated.patch
-memcg-make-mod_memcg_state-re-entrant-safe-against-irqs.patch
-memcg-make-count_memcg_events-re-entrant-safe-against-irqs.patch
-memcg-make-__mod_memcg_lruvec_state-re-entrant-safe-against-irqs.patch
-memcg-no-stock-lock-for-cpu-hot-unplug.patch
-memcg-objcg-stock-trylock-without-irq-disabling.patch
-memcg-disable-kmem-charging-in-nmi-for-unsupported-arch.patch
-memcg-nmi-safe-memcg-stats-for-specific-archs.patch
-memcg-add-nmi-safe-update-for-memcg_kmem.patch
-memcg-nmi-safe-slab-stats-updates.patch
-memcg-make-memcg_rstat_updated-nmi-safe.patch
+selftests-mm-deduplicate-second-mmap-of-5page_size-at-base.patch
+selftests-mm-deduplicate-test-logging-in-test_mlock_lock.patch
+selftests-mm-deduplicate-default-page-size-test-results-in-thuge-gen.patch
 
