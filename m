@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E2115746F
-	for <mm-commits@vger.kernel.org>; Sat, 17 May 2025 23:39:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1776215766
+	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 19:53:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747525165; cv=none; b=d31Re8RskkKGPYKqD1iYfjrsNNoS1jkNj93jwmecZD/ScvhCf09YFFjvS9Wvc9VlnDJlGpHdXcDYRglRi4FSTGejF5suYCmu1cc+SQmwltzIEZBniClJruLPwc+JMb1kIAFP/8o4uQzCYklWATVrdLcoAO7ycAKrHxS+X4jtvUY=
+	t=1747684410; cv=none; b=N21wmgiYj2Po7y90qKFzZn707yCQhNuwX7wX9PgRJkFlHih43bKA60FTGHd52RzshjG0wEr36PzjTdH5Zsu1fpCYYF7t4KIsmyJi7WOqLdO7G5VDi/u8xLlzpS00OK/2+dc7vEWPRdgldKVtkbU7jihIQI/gLe1JnONJk7J0Kzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747525165; c=relaxed/simple;
-	bh=JvzXLBItYmAmpBRlnMrtXMnj1J0/+hYL80g0WT7V2mc=;
-	h=Date:To:From:Subject:Message-Id; b=JdmZqNfUsRoC8OMNd364qtQAvtZC4N9qkhWkjMxhWvQnBYTNYKPRvtA2nIgpQsG1G9ohoQC0ll8JpVX+UU6E7UnKo0I8BgUCZQ5Zb4ATiMlaV+GXDvFAr/413fw3LJRm8vVt4Ztvbt/nxXKYVeKiZx1j+IoMSO+7mUh1bD7eUxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vpnO1Tr5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747684410; c=relaxed/simple;
+	bh=wV2eFoZdW6QrYK+qz47Oo+KwakJQNaXY550S3fgJ76Q=;
+	h=Date:To:From:Subject:Message-Id; b=ZiWYMIDJR2Why0UqVySUgU1l603hnqRsXubqT09pXmTIX2SRIogrzfjlWu+UFQiBvnV8w5przM6+d7CgmRx0F2JllmQMqZ9SITDzHS00MiLYPnWhhrecX3IaoWTyM5rsQ2YV4aV/MURIbFRPoqqE4yZFaYIOYwA8yJ+GX4z/8tM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lGpdVcKv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vpnO1Tr5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967F0C4CEE3;
-	Sat, 17 May 2025 23:39:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lGpdVcKv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34494C4CEE4;
+	Mon, 19 May 2025 19:53:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747525164;
-	bh=JvzXLBItYmAmpBRlnMrtXMnj1J0/+hYL80g0WT7V2mc=;
+	s=korg; t=1747684409;
+	bh=wV2eFoZdW6QrYK+qz47Oo+KwakJQNaXY550S3fgJ76Q=;
 	h=Date:To:From:Subject:From;
-	b=vpnO1Tr5NlJg3fIrG/dy2I9Bsn86Ed/QQV+3gqHwI1l54YX21woNnR6czRvbLG9jG
-	 MoUN3j6Nv33VFBzgj5NXb6ePEVNtFvBouC/jL4SslZwLSq1sbLqE6r049JytcFRuOQ
-	 rFfsLSAol0Dpd1/rOMIO1OerQLfxSgO5hTWgzk0U=
-Date: Sat, 17 May 2025 16:39:23 -0700
-To: mm-commits@vger.kernel.org,krzk@kernel.org,casey.connolly@linaro.org,akpm@linux-foundation.org
+	b=lGpdVcKvlvCNLpfI22DkIH9AA3Q7T1ZRICVnTHJH07TnTX8mbvQUBzDj5TL3qAtt2
+	 qcUAS8Vv0amUAfRhMSWfLwEplbai7cWNzxHCFF50z9T+UIQs7J/PUzkW4p9yFd40co
+	 Uz1SjGNeB/9Wt247/lMuslfacgpIvzPtFsD/QLXA=
+Date: Mon, 19 May 2025 12:53:28 -0700
+To: mm-commits@vger.kernel.org,ptyadav@amazon.de,alexghiti@rivosinc.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-and-consolidate-casey-connollys-name-and-email.patch added to mm-nonmm-unstable branch
-Message-Id: <20250517233924.967F0C4CEE3@smtp.kernel.org>
+Subject: + mm-cma-make-detection-of-highmem_start-more-robust.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250519195329.34494C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: update and consolidate Casey Connolly's name and email
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-update-and-consolidate-casey-connollys-name-and-email.patch
+     Subject: mm/cma: make detection of highmem_start more robust
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-cma-make-detection-of-highmem_start-more-robust.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-and-consolidate-casey-connollys-name-and-email.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-make-detection-of-highmem_start-more-robust.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,177 +58,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Casey Connolly <casey.connolly@linaro.org>
-Subject: mailmap: update and consolidate Casey Connolly's name and email
-Date: Sat, 17 May 2025 23:32:38 +0100
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: mm/cma: make detection of highmem_start more robust
+Date: Mon, 19 May 2025 20:18:05 +0300
 
-I've used several email addresses and a previous name to contribute. 
-Consolidate all of these to my primary email and update my name.
+Pratyush Yadav reports the following crash:
 
-Link: https://lkml.kernel.org/r/20250517223237.15647-2-casey.connolly@linaro.org
-Signed-off-by: Casey Connolly <casey.connolly@linaro.org>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
+    ------------[ cut here ]------------
+    kernel BUG at arch/x86/mm/physaddr.c:23!
+    ception 0x06 IP 10:ffffffff812ebbf8 error 0 cr2 0xffff88903ffff000
+    CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 6.15.0-rc6+ #231 PREEMPT(undef)
+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Arch Linux 1.16.3-1-1 04/01/2014
+    RIP: 0010:__phys_addr+0x58/0x60
+    Code: 01 48 89 c2 48 d3 ea 48 85 d2 75 05 e9 91 52 cf 00 0f 0b 48 3d ff ff ff 1f 77 0f 48 8b 05 20 54 55 01 48 01 d0 e9 78 52 cf 00 <0f> 0b 90 0f 1f 44 00 00 90 90 90 90 90 90 90 90 90 90 90 90 90 90
+    RSP: 0000:ffffffff82803dd8 EFLAGS: 00010006 ORIG_RAX: 0000000000000000
+    RAX: 000000007fffffff RBX: 00000000ffffffff RCX: 0000000000000000
+    RDX: 000000007fffffff RSI: 0000000280000000 RDI: ffffffffffffffff
+    RBP: ffffffff82803e68 R08: 0000000000000000 R09: 0000000000000000
+    R10: ffffffff83153180 R11: ffffffff82803e48 R12: ffffffff83c9aed0
+    R13: 0000000000000000 R14: 0000001040000000 R15: 0000000000000000
+    FS:  0000000000000000(0000) GS:0000000000000000(0000) knlGS:0000000000000000
+    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+    CR2: ffff88903ffff000 CR3: 0000000002838000 CR4: 00000000000000b0
+    Call Trace:
+     <TASK>
+     ? __cma_declare_contiguous_nid+0x6e/0x340
+     ? cma_declare_contiguous_nid+0x33/0x70
+     ? dma_contiguous_reserve_area+0x2f/0x70
+     ? setup_arch+0x6f1/0x870
+     ? start_kernel+0x52/0x4b0
+     ? x86_64_start_reservations+0x29/0x30
+     ? x86_64_start_kernel+0x7c/0x80
+     ? common_startup_64+0x13e/0x141
+
+  The reason is that __cma_declare_contiguous_nid() does:
+
+          highmem_start = __pa(high_memory - 1) + 1;
+
+  If dma_contiguous_reserve_area() (or any other CMA declaration) is
+  called before free_area_init(), high_memory is uninitialized. Without
+  CONFIG_DEBUG_VIRTUAL, it will likely work but use the wrong value for
+  highmem_start.
+
+The issue occurs because commit e120d1bc12da ("arch, mm: set high_memory
+in free_area_init()") moved initialization of high_memory after the call
+to dma_contiguous_reserve() -> __cma_declare_contiguous_nid() on several
+architectures.
+
+In the case CONFIG_HIGHMEM is enabled, some architectures that actually
+support HIGHMEM (arm, powerpc and x86) have initialization of high_memory
+before a possible call to __cma_declare_contiguous_nid() and some
+initialized high_memory late anyway (arc, csky, microblase, mips, sparc,
+xtensa) even before the commit e120d1bc12da so they are fine with using
+uninitialized value of high_memory.
+
+And in the case CONFIG_HIGHMEM is disabled high_memory essentially becomes
+the first address after memory end, so instead of relying on high_memory
+to calculate highmem_start use memblock_end_of_DRAM() and eliminate the
+dependency of CMA area creation on high_memory in majority of
+configurations.
+
+Link: https://lkml.kernel.org/r/20250519171805.1288393-1-rppt@kernel.org
+Fixes: e120d1bc12da ("arch, mm: set high_memory in free_area_init()")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reported-by: Pratyush Yadav <ptyadav@amazon.de>
+Tested-by: Alexandre Ghiti <alexghiti@rivosinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap                                                                 |    3 +++
- Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml          |    2 +-
- Documentation/devicetree/bindings/iio/adc/qcom,spmi-rradc.yaml           |    2 +-
- Documentation/devicetree/bindings/power/supply/qcom,pmi8998-charger.yaml |    2 +-
- MAINTAINERS                                                              |    2 +-
- arch/arm64/boot/dts/qcom/qcm6490-shift-otter.dts                         |    2 +-
- arch/arm64/boot/dts/qcom/sdm845-shift-axolotl.dts                        |    2 +-
- drivers/gpu/drm/panel/panel-samsung-sofef00.c                            |    4 ++--
- drivers/iio/adc/qcom-spmi-rradc.c                                        |    4 ++--
- drivers/power/supply/qcom_pmi8998_charger.c                              |    4 ++--
- include/soc/qcom/qcom-spmi-pmic.h                                        |    2 +-
- 11 files changed, 16 insertions(+), 13 deletions(-)
+ mm/cma.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/boot/dts/qcom/qcm6490-shift-otter.dts~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/arch/arm64/boot/dts/qcom/qcm6490-shift-otter.dts
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: BSD-3-Clause
- /*
-  * Copyright (c) 2023, Luca Weiss <luca.weiss@fairphone.com>
-- * Copyright (c) 2024, Caleb Connolly <caleb@postmarketos.org>
-+ * Copyright (c) 2024, Casey Connolly <casey.connolly@linaro.org>
-  */
+--- a/mm/cma.c~mm-cma-make-detection-of-highmem_start-more-robust
++++ a/mm/cma.c
+@@ -608,7 +608,10 @@ static int __init __cma_declare_contiguo
+ 	 * complain. Find the boundary by adding one to the last valid
+ 	 * address.
+ 	 */
+-	highmem_start = __pa(high_memory - 1) + 1;
++	if (IS_ENABLED(CONFIG_HIGHMEM))
++		highmem_start = __pa(high_memory - 1) + 1;
++	else
++		highmem_start = memblock_end_of_DRAM();
+ 	pr_debug("%s(size %pa, base %pa, limit %pa alignment %pa)\n",
+ 		__func__, &size, &base, &limit, &alignment);
  
- /dts-v1/;
---- a/arch/arm64/boot/dts/qcom/sdm845-shift-axolotl.dts~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/arch/arm64/boot/dts/qcom/sdm845-shift-axolotl.dts
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- /*
-  * Copyright (c) 2022, Alexander Martinz <amartinz@shiftphones.com>
-- * Copyright (c) 2022, Caleb Connolly <caleb@connolly.tech>
-+ * Copyright (c) 2022, Casey Connolly <casey.connolly@linaro.org>
-  * Copyright (c) 2022, Dylan Van Assche <me@dylanvanassche.be>
-  */
- 
---- a/Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml
-@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
- title: LG SW43408 1080x2160 DSI panel
- 
- maintainers:
--  - Caleb Connolly <caleb.connolly@linaro.org>
-+  - Casey Connolly <casey.connolly@linaro.org>
- 
- description:
-   This panel is used on the Pixel 3, it is a 60hz OLED panel which
---- a/Documentation/devicetree/bindings/iio/adc/qcom,spmi-rradc.yaml~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/Documentation/devicetree/bindings/iio/adc/qcom,spmi-rradc.yaml
-@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
- title: Qualcomm's SPMI PMIC Round Robin ADC
- 
- maintainers:
--  - Caleb Connolly <caleb.connolly@linaro.org>
-+  - Casey Connolly <casey.connolly@linaro.org>
- 
- description: |
-   The Qualcomm SPMI Round Robin ADC (RRADC) provides interface to clients to
---- a/Documentation/devicetree/bindings/power/supply/qcom,pmi8998-charger.yaml~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/Documentation/devicetree/bindings/power/supply/qcom,pmi8998-charger.yaml
-@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
- title: Qualcomm PMI8998/PM660 Switch-Mode Battery Charger "2"
- 
- maintainers:
--  - Caleb Connolly <caleb.connolly@linaro.org>
-+  - Casey Connolly <casey.connolly@linaro.org>
- 
- properties:
-   compatible:
---- a/drivers/gpu/drm/panel/panel-samsung-sofef00.c~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/drivers/gpu/drm/panel/panel-samsung-sofef00.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-only
--/* Copyright (c) 2020 Caleb Connolly <caleb@connolly.tech>
-+/* Copyright (c) 2020 Casey Connolly <casey.connolly@linaro.org>
-  * Generated with linux-mdss-dsi-panel-driver-generator from vendor device tree:
-  * Copyright (c) 2020, The Linux Foundation. All rights reserved.
-  */
-@@ -318,6 +318,6 @@ static struct mipi_dsi_driver sofef00_pa
- 
- module_mipi_dsi_driver(sofef00_panel_driver);
- 
--MODULE_AUTHOR("Caleb Connolly <caleb@connolly.tech>");
-+MODULE_AUTHOR("Casey Connolly <casey.connolly@linaro.org>");
- MODULE_DESCRIPTION("DRM driver for Samsung AMOLED DSI panels found in OnePlus 6/6T phones");
- MODULE_LICENSE("GPL v2");
---- a/drivers/iio/adc/qcom-spmi-rradc.c~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/drivers/iio/adc/qcom-spmi-rradc.c
-@@ -2,7 +2,7 @@
- /*
-  * Copyright (c) 2016-2017, 2019, The Linux Foundation. All rights reserved.
-  * Copyright (c) 2022 Linaro Limited.
-- *  Author: Caleb Connolly <caleb.connolly@linaro.org>
-+ *  Author: Casey Connolly <casey.connolly@linaro.org>
-  *
-  * This driver is for the Round Robin ADC found in the pmi8998 and pm660 PMICs.
-  */
-@@ -1016,5 +1016,5 @@ static struct platform_driver rradc_driv
- module_platform_driver(rradc_driver);
- 
- MODULE_DESCRIPTION("QCOM SPMI PMIC RR ADC driver");
--MODULE_AUTHOR("Caleb Connolly <caleb.connolly@linaro.org>");
-+MODULE_AUTHOR("Casey Connolly <casey.connolly@linaro.org>");
- MODULE_LICENSE("GPL");
---- a/drivers/power/supply/qcom_pmi8998_charger.c~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/drivers/power/supply/qcom_pmi8998_charger.c
-@@ -2,7 +2,7 @@
- /*
-  * Copyright (c) 2016-2019 The Linux Foundation. All rights reserved.
-  * Copyright (c) 2023, Linaro Ltd.
-- * Author: Caleb Connolly <caleb.connolly@linaro.org>
-+ * Author: Casey Connolly <casey.connolly@linaro.org>
-  *
-  * This driver is for the switch-mode battery charger and boost
-  * hardware found in pmi8998 and related PMICs.
-@@ -1045,6 +1045,6 @@ static struct platform_driver qcom_spmi_
- 
- module_platform_driver(qcom_spmi_smb2);
- 
--MODULE_AUTHOR("Caleb Connolly <caleb.connolly@linaro.org>");
-+MODULE_AUTHOR("Casey Connolly <casey.connolly@linaro.org>");
- MODULE_DESCRIPTION("Qualcomm SMB2 Charger Driver");
- MODULE_LICENSE("GPL");
---- a/include/soc/qcom/qcom-spmi-pmic.h~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/include/soc/qcom/qcom-spmi-pmic.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0-only */
- /* Copyright (c) 2022 Linaro. All rights reserved.
-- * Author: Caleb Connolly <caleb.connolly@linaro.org>
-+ * Author: Casey Connolly <casey.connolly@linaro.org>
-  */
- 
- #ifndef __QCOM_SPMI_PMIC_H__
---- a/.mailmap~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/.mailmap
-@@ -154,6 +154,9 @@ Brian King <brking@us.ibm.com>
- Brian Silverman <bsilver16384@gmail.com> <brian.silverman@bluerivertech.com>
- Bryan Tan <bryan-bt.tan@broadcom.com> <bryantan@vmware.com>
- Cai Huoqing <cai.huoqing@linux.dev> <caihuoqing@baidu.com>
-+Casey Connolly <casey.connolly@linaro.org> <caleb.connolly@linaro.org>
-+Casey Connolly <casey.connolly@linaro.org> <caleb@connolly.tech>
-+Casey Connolly <casey.connolly@linaro.org> <caleb@postmarketos.org>
- Can Guo <quic_cang@quicinc.com> <cang@codeaurora.org>
- Carl Huang <quic_cjhuang@quicinc.com> <cjhuang@codeaurora.org>
- Carlos Bilbao <carlos.bilbao@kernel.org> <carlos.bilbao@amd.com>
---- a/MAINTAINERS~mailmap-update-and-consolidate-casey-connollys-name-and-email
-+++ a/MAINTAINERS
-@@ -7460,7 +7460,7 @@ F:	drivers/gpu/drm/panel/panel-jadard-jd
- 
- DRM DRIVER FOR LG SW43408 PANELS
- M:	Sumit Semwal <sumit.semwal@linaro.org>
--M:	Caleb Connolly <caleb.connolly@linaro.org>
-+M:	Casey Connolly <casey.connolly@linaro.org>
- S:	Maintained
- T:	git https://gitlab.freedesktop.org/drm/misc/kernel.git
- F:	Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml
 _
 
-Patches currently in -mm which might be from casey.connolly@linaro.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mailmap-update-and-consolidate-casey-connollys-name-and-email.patch
+mm-cma-make-detection-of-highmem_start-more-robust.patch
 
