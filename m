@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2291991CD
-	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 22:29:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F49321CC49
+	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 22:29:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747693768; cv=none; b=UPYqu+RXybEv0++f8buk9SmQFOiISOusHsEeHOKdLIxY0gzbTbLlMdciPWgEGj6JFHclS1wzlnnQtvMcoaFeezKsKnZxRZ2qkEaEbC+bIl+40Aa6bbZ9eL+j5wN6UwyT4bhbFMnW1crKUvar9PLU2n/+D5W1qb7lb4UFYMcb/lU=
+	t=1747693770; cv=none; b=K0bN0bG0g9fY3uEnTrR5Vdlq19DGgDGLYuujhaOGbq9NcO8Z5JoWEO4pQS4hj1nSehcSVw76Z9CUuzKaE8vASWBpBSoy8K8yiOh6C2EZzUz5QSR7OkAwZ5ZOpGj8Ei28W1pIr9KP/zyqNnQ6Dy57V+dE1dJnomteAMBXvs07q6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747693768; c=relaxed/simple;
-	bh=K/ZbEXhXOi85gCqzNoDvT3haLYr0udDOkLU7hfCN2Hw=;
-	h=Date:To:From:Subject:Message-Id; b=T68ie40OKkd32rZK/8+1vwkNu20f9LzNOiamrEgE6J9R+9ETy89pY1mPN2/zv/mSgSqWg0/+g5l0QF0EFVbTghCfS//x0fuU/SpwVzqq9vJsdGInUQCcn+m3qfrWIpKLkbP9V4nMTuT4g6C+TJAz5u7kgrxTd8OPUI22hrEKKBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QvS/iYlo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747693770; c=relaxed/simple;
+	bh=W25mUHwAUtlV33itnzsDasL7F1ZmxDajUumDqlzsxuQ=;
+	h=Date:To:From:Subject:Message-Id; b=i1siQMVLiIupq+ktWAXj5lWxEYcfQVtQ/qVvdNZjXTb13UAsD6WFUYbTyoRxs48mbLU4pxi5zn4SHCWrx5krQtVT998zD9TkhaVImQ9rXzKwciXYH/u+nLO2Ba7eZYxlwMDpTXNJ1Lu1AlMcVpBu842Oo1rty7/B7uwuBiobxus=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1jN9q79h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QvS/iYlo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A944FC4CEE4;
-	Mon, 19 May 2025 22:29:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1jN9q79h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B382CC4CEE4;
+	Mon, 19 May 2025 22:29:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747693767;
-	bh=K/ZbEXhXOi85gCqzNoDvT3haLYr0udDOkLU7hfCN2Hw=;
+	s=korg; t=1747693769;
+	bh=W25mUHwAUtlV33itnzsDasL7F1ZmxDajUumDqlzsxuQ=;
 	h=Date:To:From:Subject:From;
-	b=QvS/iYloemU/MKQFnZSFt0y+zhsJuI58Qar7efS4X9k+yeiCoSA/6nNoJTbD9V+Dp
-	 W+nf4up2N4DzFoFpkD6PiTnGE0D0hCuC/N8Vu5Rv4QIpEb/77coMmW5ioUNDrcExbX
-	 hxktRaKN9Xbnnzn9hu7R3NYZbauzhjY1w4N9ylM0=
-Date: Mon, 19 May 2025 15:29:27 -0700
+	b=1jN9q79h6S1ZBLNZejKgRBdg1zOqmKRiigoS04xpxWoJmEq6nnKB0RHdhaTKFl8Vh
+	 RX7FQWqo3Zcr083pZ806aZ8xROc0geGkhDG8ttutqNX9+LuPjXjLXoAV9Kkgq4nqVQ
+	 Rnombf3QRKOlDcx2C7HtbDCQEzsBinR7PPhVVb+4=
+Date: Mon, 19 May 2025 15:29:29 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,mathieu.desnoyers@efficios.com,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-add-nmi-safe-update-for-memcg_kmem.patch added to mm-new branch
-Message-Id: <20250519222927.A944FC4CEE4@smtp.kernel.org>
+Subject: + memcg-nmi-safe-slab-stats-updates.patch added to mm-new branch
+Message-Id: <20250519222929.B382CC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: add nmi-safe update for MEMCG_KMEM
+     Subject: memcg: nmi-safe slab stats updates
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-add-nmi-safe-update-for-memcg_kmem.patch
+     memcg-nmi-safe-slab-stats-updates.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-add-nmi-safe-update-for-memcg_kmem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-nmi-safe-slab-stats-updates.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: add nmi-safe update for MEMCG_KMEM
-Date: Sun, 18 May 2025 23:31:40 -0700
+Subject: memcg: nmi-safe slab stats updates
+Date: Sun, 18 May 2025 23:31:41 -0700
 
-The objcg based kmem charging and uncharging code path needs to update
-MEMCG_KMEM appropriately.  Let's add support to update MEMCG_KMEM in
-nmi-safe way for those code paths.
+The objcg based kmem [un]charging can be called in nmi context and it may
+need to update NR_SLAB_[UN]RECLAIMABLE_B stats.  So, let's correctly
+handle the updates of these stats in the nmi context.
 
-Link: https://lkml.kernel.org/r/20250519063142.111219-4-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250519063142.111219-5-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -87,53 +87,62 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   36 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 33 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~memcg-add-nmi-safe-update-for-memcg_kmem
+--- a/mm/memcontrol.c~memcg-nmi-safe-slab-stats-updates
 +++ a/mm/memcontrol.c
-@@ -2717,6 +2717,23 @@ struct obj_cgroup *get_obj_cgroup_from_f
- 	return objcg;
+@@ -2517,17 +2517,47 @@ static void commit_charge(struct folio *
+ 	folio->memcg_data = (unsigned long)memcg;
  }
  
 +#ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
-+static inline void account_kmem_nmi_safe(struct mem_cgroup *memcg, int val)
++static inline void account_slab_nmi_safe(struct mem_cgroup *memcg,
++					 struct pglist_data *pgdat,
++					 enum node_stat_item idx, int nr)
 +{
++	struct lruvec *lruvec;
++
 +	if (likely(!in_nmi())) {
-+		mod_memcg_state(memcg, MEMCG_KMEM, val);
++		lruvec = mem_cgroup_lruvec(memcg, pgdat);
++		mod_memcg_lruvec_state(lruvec, idx, nr);
 +	} else {
++		struct mem_cgroup_per_node *pn = memcg->nodeinfo[pgdat->node_id];
++
 +		/* TODO: add to cgroup update tree once it is nmi-safe. */
-+		atomic_add(val, &memcg->kmem_stat);
++		if (idx == NR_SLAB_RECLAIMABLE_B)
++			atomic_add(nr, &pn->slab_reclaimable);
++		else
++			atomic_add(nr, &pn->slab_unreclaimable);
 +	}
 +}
 +#else
-+static inline void account_kmem_nmi_safe(struct mem_cgroup *memcg, int val)
++static inline void account_slab_nmi_safe(struct mem_cgroup *memcg,
++					 struct pglist_data *pgdat,
++					 enum node_stat_item idx, int nr)
 +{
-+	mod_memcg_state(memcg, MEMCG_KMEM, val);
++	struct lruvec *lruvec;
++
++	lruvec = mem_cgroup_lruvec(memcg, pgdat);
++	mod_memcg_lruvec_state(lruvec, idx, nr);
 +}
 +#endif
 +
- /*
-  * obj_cgroup_uncharge_pages: uncharge a number of kernel pages from a objcg
-  * @objcg: object cgroup to uncharge
-@@ -2729,7 +2746,7 @@ static void obj_cgroup_uncharge_pages(st
+ static inline void mod_objcg_mlstate(struct obj_cgroup *objcg,
+ 				       struct pglist_data *pgdat,
+ 				       enum node_stat_item idx, int nr)
+ {
+ 	struct mem_cgroup *memcg;
+-	struct lruvec *lruvec;
  
- 	memcg = get_mem_cgroup_from_objcg(objcg);
+ 	rcu_read_lock();
+ 	memcg = obj_cgroup_memcg(objcg);
+-	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-	mod_memcg_lruvec_state(lruvec, idx, nr);
++	account_slab_nmi_safe(memcg, pgdat, idx, nr);
+ 	rcu_read_unlock();
+ }
  
--	mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
-+	account_kmem_nmi_safe(memcg, -nr_pages);
- 	memcg1_account_kmem(memcg, -nr_pages);
- 	if (!mem_cgroup_is_root(memcg))
- 		refill_stock(memcg, nr_pages);
-@@ -2757,7 +2774,7 @@ static int obj_cgroup_charge_pages(struc
- 	if (ret)
- 		goto out;
- 
--	mod_memcg_state(memcg, MEMCG_KMEM, nr_pages);
-+	account_kmem_nmi_safe(memcg, nr_pages);
- 	memcg1_account_kmem(memcg, nr_pages);
- out:
- 	css_put(&memcg->css);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
