@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC7FBEAD0
-	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 23:34:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94662EAD0
+	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 23:34:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747697664; cv=none; b=DqiKyP5Hpxamu7SXGFeMVE5dYYSqvT66sBf9Nc/nsHkScVlpIMw/RY4SPAkwGyFgDpd0gOGX5jWFps25LY1MqSZZi5tikCX5FQm/hhqpvBUbcGlrmNtqFfyCptJ0E+O5gijRJ7RxicMRnVlsOPsCEsadaSnvAyLkt/8EywEnCU0=
+	t=1747697666; cv=none; b=SxZbV5oNWlgWhetkQGVCxCqKQGH4ISNLYKOpfCnMbJWgBRrkoDNPrK0ZxekBP4qt5Ep1o/LL1zL8EYoTC3+J4soT6ZRlpu098124jnmuG0skDP+svXSg+bHXlcc2JLeOlOpbnGxbu7AiF1kc+IkAtdZWP66C025VKDSmnosMLU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747697664; c=relaxed/simple;
-	bh=5wkrqMv/YiFlbvzKUWN7HiEcf/Ub0dPqh8dCJVI5/cU=;
-	h=Date:To:From:Subject:Message-Id; b=GinIb4dyIvAAddMAcKoYIC3fWlg2j1B90+UKJ4QiBm6sN8Wr0D5+MupbQ9s7e/PofYbG37+7/0+LOzYxdjdks/OISIqdoNYHwU7AZNJbdeIyAKdJXweWLPA0c5rTwQ3TH3BfzMgtpyy/t/YeZSGoltF/mk/SK12pGDvsSV+m42A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wra0sWh1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747697666; c=relaxed/simple;
+	bh=v5ARBpBdsH28DQfmB0qhhiKopIzXW/4TXUSSQr1JNrk=;
+	h=Date:To:From:Subject:Message-Id; b=tD0gUJA75v2Z81mL5IxXrJ3FyuF4arLfgXIQ243X6wabkF/UMs7+zudRGikzZTkhJlwzSuFhwR4mJuNfsaxQouz0bWHrwO2wqAslgWlK6Shcl6qQHCXV115Pe31eoSluD/D4PrWIjm/eTSITAzbYU2mleFxOSAvCUt2kl1dzx/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QPHyXV1P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wra0sWh1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15272C4CEE4;
-	Mon, 19 May 2025 23:34:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QPHyXV1P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 046BFC4CEE4;
+	Mon, 19 May 2025 23:34:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747697664;
-	bh=5wkrqMv/YiFlbvzKUWN7HiEcf/Ub0dPqh8dCJVI5/cU=;
+	s=korg; t=1747697666;
+	bh=v5ARBpBdsH28DQfmB0qhhiKopIzXW/4TXUSSQr1JNrk=;
 	h=Date:To:From:Subject:From;
-	b=Wra0sWh1SUankM4zqrNbk2082zJWeVucuKJD/vxVIZb7VktPCL1H7QtRH6OvskbR1
-	 TspToAkHQN6kosGfPHwvfLkF6qpPHCIC4a08xfwSbArL6obO2f/doFlRMJZhor+/qs
-	 KS50accOXJKgvbvYx2HuTvlCQuJP5iOtYrTMVpck=
-Date: Mon, 19 May 2025 16:34:23 -0700
+	b=QPHyXV1P6YGscEoS2vPM35pdw2VsHBxgsWAHehKgvqZECVumRLpnbe0tYxmcCCMUt
+	 jXW+NNG+cURT3RQWVtaOw82oQb2Br0RFngQn2zNo9b5zCjLyn+V/SxArqbN6ltPRth
+	 5l5pI3/KnRRBw0JVJI6picZwdfaqYsYYGU0Y6IC4=
+Date: Mon, 19 May 2025 16:34:25 -0700
 To: mm-commits@vger.kernel.org,pfalcato@suse.de,lorenzo.stoakes@oracle.com,adam@wowsignal.io,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-guard_regionsuffd-tests-when-uffd-is-not-present.patch added to mm-new branch
-Message-Id: <20250519233424.15272C4CEE4@smtp.kernel.org>
+Subject: + selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present.patch added to mm-new branch
+Message-Id: <20250519233426.046BFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip guard_regions.uffd tests when uffd is not present.
+     Subject: selftests/mm: skip hugevm test if kernel config file is not present.
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-guard_regionsuffd-tests-when-uffd-is-not-present.patch
+     selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-guard_regionsuffd-tests-when-uffd-is-not-present.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,63 +65,98 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: skip guard_regions.uffd tests when uffd is not present.
-Date: Fri, 16 May 2025 09:29:37 -0400
+Subject: selftests/mm: skip hugevm test if kernel config file is not present.
+Date: Fri, 16 May 2025 09:29:38 -0400
 
-Patch series "Skip mm selftests instead when kernel features are not
-present", v2.
+When running hugevm tests in a machine without kernel config present,
+e.g., a VM running a kernel without CONFIG_IKCONFIG_PROC nor
+/boot/config-*, skip hugevm tests, which reads kernel config to get page
+table level information.
 
-Two guard_regions tests on userfaultfd fail when userfaultfd is not
-present.  Skip them instead.
-
-hugevm test reads kernel config to get page table level information and
-fails when neither /proc/config.gz nor /boot/config-* is present.  Skip it
-instead.
-
-
-This patch (of 2):
-
-When userfaultfd is not compiled into kernel, userfaultfd() returns -1,
-causing guard_regions.uffd tests to fail.  Skip the tests instead.
-
-Link: https://lkml.kernel.org/r/20250516132938.356627-1-ziy@nvidia.com
-Link: https://lkml.kernel.org/r/20250516132938.356627-2-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250516132938.356627-3-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Adam Sindelar <adam@wowsignal.io>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/guard-regions.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |   26 ++++--------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-skip-guard_regionsuffd-tests-when-uffd-is-not-present
-+++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -1453,8 +1453,21 @@ TEST_F(guard_regions, uffd)
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -7,23 +7,20 @@
+ # real test to check that the kernel is configured to support at least 5
+ # pagetable levels.
  
- 	/* Set up uffd. */
- 	uffd = userfaultfd(0);
--	if (uffd == -1 && errno == EPERM)
--		ksft_exit_skip("No userfaultfd permissions, try running as root.\n");
-+	if (uffd == -1) {
-+		switch (errno) {
-+		case EPERM:
-+			SKIP(return, "No userfaultfd permissions, try running as root.");
-+			break;
-+		case ENOSYS:
-+			SKIP(return, "userfaultfd is not supported/not enabled.");
-+			break;
-+		default:
-+			ksft_exit_fail_msg("userfaultfd failed with %s\n",
-+					   strerror(errno));
-+			break;
-+		}
-+	}
-+
- 	ASSERT_NE(uffd, -1);
+-# 1 means the test failed
+-exitcode=1
+-
+ # Kselftest framework requirement - SKIP code is 4.
+ ksft_skip=4
  
- 	ASSERT_EQ(ioctl(uffd, UFFDIO_API, &api), 0);
+-fail()
++skip()
+ {
+ 	echo "$1"
+-	exit $exitcode
++	exit $ksft_skip
+ }
+ 
+ check_supported_x86_64()
+ {
+ 	local config="/proc/config.gz"
+ 	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
+-	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
++	[[ -f "${config}" ]] || skip "Cannot find kernel config in /proc or /boot"
+ 
+ 	# gzip -dcfq automatically handles both compressed and plaintext input.
+ 	# See man 1 gzip under '-f'.
+@@ -33,11 +30,9 @@ check_supported_x86_64()
+ 		else {print 1}; exit}' /proc/cpuinfo 2>/dev/null)
+ 
+ 	if [[ "${pg_table_levels}" -lt 5 ]]; then
+-		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
+-		exit $ksft_skip
++		skip "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
+ 	elif [[ "${cpu_supports_pl5}" -ne 0 ]]; then
+-		echo "$0: CPU does not have the necessary la57 flag to support page table level 5"
+-		exit $ksft_skip
++		skip "$0: CPU does not have the necessary la57 flag to support page table level 5"
+ 	fi
+ }
+ 
+@@ -45,24 +40,21 @@ check_supported_ppc64()
+ {
+ 	local config="/proc/config.gz"
+ 	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
+-	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
++	[[ -f "${config}" ]] || skip "Cannot find kernel config in /proc or /boot"
+ 
+ 	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
+ 	if [[ "${pg_table_levels}" -lt 5 ]]; then
+-		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
+-		exit $ksft_skip
++		skip "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
+ 	fi
+ 
+ 	local mmu_support=$(grep -m1 "mmu" /proc/cpuinfo | awk '{print $3}')
+ 	if [[ "$mmu_support" != "radix" ]]; then
+-		echo "$0: System does not use Radix MMU, required for 5-level paging"
+-		exit $ksft_skip
++		skip "$0: System does not use Radix MMU, required for 5-level paging"
+ 	fi
+ 
+ 	local hugepages_total=$(awk '/HugePages_Total/ {print $2}' /proc/meminfo)
+ 	if [[ "${hugepages_total}" -eq 0 ]]; then
+-		echo "$0: HugePages are not enabled, required for some tests"
+-		exit $ksft_skip
++		skip "$0: HugePages are not enabled, required for some tests"
+ 	fi
+ }
+ 
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
