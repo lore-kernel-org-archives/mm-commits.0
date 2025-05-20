@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94662EAD0
-	for <mm-commits@vger.kernel.org>; Mon, 19 May 2025 23:34:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ACBF182BC
+	for <mm-commits@vger.kernel.org>; Tue, 20 May 2025 00:04:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747697666; cv=none; b=SxZbV5oNWlgWhetkQGVCxCqKQGH4ISNLYKOpfCnMbJWgBRrkoDNPrK0ZxekBP4qt5Ep1o/LL1zL8EYoTC3+J4soT6ZRlpu098124jnmuG0skDP+svXSg+bHXlcc2JLeOlOpbnGxbu7AiF1kc+IkAtdZWP66C025VKDSmnosMLU4=
+	t=1747699477; cv=none; b=RlYEsyvg1YBxF4nKlJimS/BWcnNFwECSwTc+u4bnU/XdS7eCTi1B2riBSBJNd0MuymjH9DPYIqEBxc+5+BWDlEUNq12VFgmnM3al3VwxeIOn9LinWVxrQcWzFTfUH4U9pZptYrFXF4jE7VfBf9sQeKnRTAyFmmPF7AGPZNoOBfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747697666; c=relaxed/simple;
-	bh=v5ARBpBdsH28DQfmB0qhhiKopIzXW/4TXUSSQr1JNrk=;
-	h=Date:To:From:Subject:Message-Id; b=tD0gUJA75v2Z81mL5IxXrJ3FyuF4arLfgXIQ243X6wabkF/UMs7+zudRGikzZTkhJlwzSuFhwR4mJuNfsaxQouz0bWHrwO2wqAslgWlK6Shcl6qQHCXV115Pe31eoSluD/D4PrWIjm/eTSITAzbYU2mleFxOSAvCUt2kl1dzx/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QPHyXV1P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747699477; c=relaxed/simple;
+	bh=pVmnVGkKBA3WDrAOCutTDN8dEwxFlU5/VsgHXFaAz2I=;
+	h=Date:To:From:Subject:Message-Id; b=P2RPtVrTvFni5bYytIntMuH2tWd2aAVSONM1KyPoCK8paV64jed2IqqFozBp5F5OhwTZLh4qmZDccuVYSzHzlOI6yk53mCSK/W+TyMs5HePv98ASPI3CD0bnitQi6TdJwga/8/n8wj1qwPqfcC2t8u/zFURrEAssVHsZV/dy9a4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dFpHLV9q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QPHyXV1P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 046BFC4CEE4;
-	Mon, 19 May 2025 23:34:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dFpHLV9q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D0C4C4CEE4;
+	Tue, 20 May 2025 00:04:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747697666;
-	bh=v5ARBpBdsH28DQfmB0qhhiKopIzXW/4TXUSSQr1JNrk=;
+	s=korg; t=1747699476;
+	bh=pVmnVGkKBA3WDrAOCutTDN8dEwxFlU5/VsgHXFaAz2I=;
 	h=Date:To:From:Subject:From;
-	b=QPHyXV1P6YGscEoS2vPM35pdw2VsHBxgsWAHehKgvqZECVumRLpnbe0tYxmcCCMUt
-	 jXW+NNG+cURT3RQWVtaOw82oQb2Br0RFngQn2zNo9b5zCjLyn+V/SxArqbN6ltPRth
-	 5l5pI3/KnRRBw0JVJI6picZwdfaqYsYYGU0Y6IC4=
-Date: Mon, 19 May 2025 16:34:25 -0700
-To: mm-commits@vger.kernel.org,pfalcato@suse.de,lorenzo.stoakes@oracle.com,adam@wowsignal.io,ziy@nvidia.com,akpm@linux-foundation.org
+	b=dFpHLV9qbSZrw/mAN2OyUOTP8hupOB9xLEaZgOH/7/+4JO4IxNldDWP5hwKMaXid/
+	 8g7hDGvI+Ud3H68q02pBIJeoxv4px9bKQxncQsf1fxMaYGUFBgiZkJTfum3BiWrqFw
+	 OLoyu8t0/aXbCpUyI0vo2lj/3zQ3SQGmNG7eS/h4=
+Date: Mon, 19 May 2025 17:04:35 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,shung-hsi.yu@suse.com,pawan.kumar.gupta@linux.intel.com,erhard_f@mailbox.org,eddyz87@gmail.com,dakr@kernel.org,kees@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present.patch added to mm-new branch
-Message-Id: <20250519233426.046BFC4CEE4@smtp.kernel.org>
+Subject: + mm-vmalloc-actually-use-the-in-place-vrealloc-region.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250520000436.7D0C4C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip hugevm test if kernel config file is not present.
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present.patch
+     Subject: mm: vmalloc: actually use the in-place vrealloc region
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-actually-use-the-in-place-vrealloc-region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-actually-use-the-in-place-vrealloc-region.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,103 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: skip hugevm test if kernel config file is not present.
-Date: Fri, 16 May 2025 09:29:38 -0400
+From: Kees Cook <kees@kernel.org>
+Subject: mm: vmalloc: actually use the in-place vrealloc region
+Date: Thu, 15 May 2025 14:42:15 -0700
 
-When running hugevm tests in a machine without kernel config present,
-e.g., a VM running a kernel without CONFIG_IKCONFIG_PROC nor
-/boot/config-*, skip hugevm tests, which reads kernel config to get page
-table level information.
+Patch series "mm: vmalloc: Actually use the in-place vrealloc region".
 
-Link: https://lkml.kernel.org/r/20250516132938.356627-3-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Adam Sindelar <adam@wowsignal.io>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
+This fixes a performance regression[1] with vrealloc()[1].
+
+
+The refactoring to not build a new vmalloc region only actually worked
+when shrinking.  Actually return the resized area when it grows.  Ugh.
+
+Link: https://lkml.kernel.org/r/20250515214217.619685-1-kees@kernel.org
+Fixes: a0309faf1cb0 ("mm: vmalloc: support more granular vrealloc() sizing")
+Signed-off-by: Kees Cook <kees@kernel.org>
+Reported-by: Shung-Hsi Yu <shung-hsi.yu@suse.com>
+Closes: https://lore.kernel.org/all/20250515-bpf-verifier-slowdown-vwo2meju4cgp2su5ckj@6gi6ssxbnfqg [1]
+Tested-by: Eduard Zingerman <eddyz87@gmail.com>
+Tested-by: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
+Tested-by: Shung-Hsi Yu <shung-hsi.yu@suse.com>
+Reviewed-by: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Reviewed-by: Danilo Krummrich <dakr@kernel.org>
+Cc: "Erhard F." <erhard_f@mailbox.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.sh |   26 ++++--------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ mm/vmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
-@@ -7,23 +7,20 @@
- # real test to check that the kernel is configured to support at least 5
- # pagetable levels.
+--- a/mm/vmalloc.c~mm-vmalloc-actually-use-the-in-place-vrealloc-region
++++ a/mm/vmalloc.c
+@@ -4111,6 +4111,7 @@ void *vrealloc_noprof(const void *p, siz
+ 		if (want_init_on_alloc(flags))
+ 			memset((void *)p + old_size, 0, size - old_size);
+ 		vm->requested_size = size;
++		return (void *)p;
+ 	}
  
--# 1 means the test failed
--exitcode=1
--
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
- 
--fail()
-+skip()
- {
- 	echo "$1"
--	exit $exitcode
-+	exit $ksft_skip
- }
- 
- check_supported_x86_64()
- {
- 	local config="/proc/config.gz"
- 	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
--	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
-+	[[ -f "${config}" ]] || skip "Cannot find kernel config in /proc or /boot"
- 
- 	# gzip -dcfq automatically handles both compressed and plaintext input.
- 	# See man 1 gzip under '-f'.
-@@ -33,11 +30,9 @@ check_supported_x86_64()
- 		else {print 1}; exit}' /proc/cpuinfo 2>/dev/null)
- 
- 	if [[ "${pg_table_levels}" -lt 5 ]]; then
--		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
--		exit $ksft_skip
-+		skip "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
- 	elif [[ "${cpu_supports_pl5}" -ne 0 ]]; then
--		echo "$0: CPU does not have the necessary la57 flag to support page table level 5"
--		exit $ksft_skip
-+		skip "$0: CPU does not have the necessary la57 flag to support page table level 5"
- 	fi
- }
- 
-@@ -45,24 +40,21 @@ check_supported_ppc64()
- {
- 	local config="/proc/config.gz"
- 	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
--	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
-+	[[ -f "${config}" ]] || skip "Cannot find kernel config in /proc or /boot"
- 
- 	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
- 	if [[ "${pg_table_levels}" -lt 5 ]]; then
--		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
--		exit $ksft_skip
-+		skip "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
- 	fi
- 
- 	local mmu_support=$(grep -m1 "mmu" /proc/cpuinfo | awk '{print $3}')
- 	if [[ "$mmu_support" != "radix" ]]; then
--		echo "$0: System does not use Radix MMU, required for 5-level paging"
--		exit $ksft_skip
-+		skip "$0: System does not use Radix MMU, required for 5-level paging"
- 	fi
- 
- 	local hugepages_total=$(awk '/HugePages_Total/ {print $2}' /proc/meminfo)
- 	if [[ "${hugepages_total}" -eq 0 ]]; then
--		echo "$0: HugePages are not enabled, required for some tests"
--		exit $ksft_skip
-+		skip "$0: HugePages are not enabled, required for some tests"
- 	fi
- }
- 
+ 	/* TODO: Grow the vm_area, i.e. allocate and map additional pages. */
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from kees@kernel.org are
 
-selftests-mm-skip-guard_regionsuffd-tests-when-uffd-is-not-present.patch
-selftests-mm-skip-hugevm-test-if-kernel-config-file-is-not-present.patch
+mm-vmalloc-actually-use-the-in-place-vrealloc-region.patch
+mm-vmalloc-only-zero-init-on-vrealloc-shrink.patch
 
