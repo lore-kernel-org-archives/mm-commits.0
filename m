@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 981EC33F9
-	for <mm-commits@vger.kernel.org>; Tue, 20 May 2025 01:09:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17DDC1482E8
+	for <mm-commits@vger.kernel.org>; Tue, 20 May 2025 02:50:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747703384; cv=none; b=bbfjtZoThFFvd9+L4Xm09UFUnnoP6sgot2f+tE6ezE8voIrSitsi0h+lHN+U9i/BSpqT6GXThVX8w0FCYvX8Wju93U/nogQW8td8dk6PJzT3w0IKLP5UT+ZTc8pGuGlbEBrQ0VnkQSYS0ZpvT4Cdite2mKuDmgH7dJWBD8ftH4w=
+	t=1747709438; cv=none; b=WrdEYn5owUvelkayljP1NNf4hgdQCIr8S5rDPwDrdwzdmqw9HHp64aHMb+0ljQTMR8RiwAr3WIkpcM00T7m32EPd7fw1hH6PpAxuXeb7UE27DP+YBznPPNDUlonSrDTXTTIVb1m9e9BR2WX5Ejy+a34Ha1duxK5Ey3fBV1lKno8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747703384; c=relaxed/simple;
-	bh=NdMI0R8liytIUX5B0+gog+h2Mk6FEKcE4XWjlL5gw10=;
-	h=Date:To:From:Subject:Message-Id; b=NONUAweSay6dS4+/q+AI+Wf1WtkXe/0rdWWrj7/mk/RcrJbLCJ8aQJihmrJS73KZ6Xgi6vuZNPApKoPa36uEZiDf0dFLP7sy/1oJpFDuIKfCh7aaL7UG4PobecpTxDDGGpOzNFC1UGs3hRIBn4yZGBfUUL0otZrJm2IDdXv6KjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OdwuZ6h/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747709438; c=relaxed/simple;
+	bh=psFJsXYuf68MGHHecah94ZEkwIeGqOdJAeSpVycMLT4=;
+	h=Date:To:From:Subject:Message-Id; b=bG1O0tPRcMDepdGWw533P5HgFJ6z6VN38Fk3Itp3zRsFpggynpMYjwXpP0ZoBt+6ViBAUQaXp0aTV+k3DAmYYbBuht5GmZot8wNypmBD3z8OCHevh1tbXxl3fySy3IV/+h6oQoHHXY09ShQXoAGxoc08lVBVDlP+q2kEpRxX+8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e/Z3Cvm7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OdwuZ6h/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10FEFC4CEE4;
-	Tue, 20 May 2025 01:09:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e/Z3Cvm7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E6ADC4CEED;
+	Tue, 20 May 2025 02:50:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747703384;
-	bh=NdMI0R8liytIUX5B0+gog+h2Mk6FEKcE4XWjlL5gw10=;
+	s=korg; t=1747709437;
+	bh=psFJsXYuf68MGHHecah94ZEkwIeGqOdJAeSpVycMLT4=;
 	h=Date:To:From:Subject:From;
-	b=OdwuZ6h/yb1jqvDgjW0hGPjFitBpx3SlG5DznIUzZsaatlUgxtcPCvmXNRswGSRK2
-	 nyEIMGmmb5CqwtG1+7wbGV7xCIQlGb86exSSXrYpCYKBiDBsFzJpN8Fkw0jkUDbcNS
-	 BtWAz5AoSfMedrlUylPhVQ0jmYt4VhfIyYrn7peE=
-Date: Mon, 19 May 2025 18:09:43 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,lirongqing@baidu.com,xuwenjie04@baidu.com,akpm@linux-foundation.org
+	b=e/Z3Cvm7icxjoUepFEEiTnOEP8/ZBkxqTeauXQwFmRHwm/CmMXWAV/Twtv2hvrXtD
+	 PqbDUm29alLVYwXDjvFDCokmXKcr699kJZvTU4PopSEH4VzqQSwhkGD8JE+pPqj70v
+	 6xdu7pXqbqKYWq19kwSvHTDZhd7XYLlJZd+UYgdM=
+Date: Mon, 19 May 2025 19:50:35 -0700
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,vitaly.wool@konsulko.se,shakeel.butt@linux.dev,nphamcs@gmail.com,igor.b@beldev.am,hannes@cmpxchg.org,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-show-nr_huge_pages-in-report_hugepages.patch added to mm-new branch
-Message-Id: <20250520010944.10FEFC4CEE4@smtp.kernel.org>
+Subject: + mm-add-zblock-allocator-fix-2-fix.patch added to mm-new branch
+Message-Id: <20250520025037.7E6ADC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: show nr_huge_pages in report_hugepages()
+     Subject: mm-add-zblock-allocator-fix-2-fix
 has been added to the -mm mm-new branch.  Its filename is
-     hugetlb-show-nr_huge_pages-in-report_hugepages.patch
+     mm-add-zblock-allocator-fix-2-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-show-nr_huge_pages-in-report_hugepages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-zblock-allocator-fix-2-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,38 +64,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wenjie Xu <xuwenjie04@baidu.com>
-Subject: hugetlb: show nr_huge_pages in report_hugepages()
-Date: Thu, 15 May 2025 19:42:31 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-zblock-allocator-fix-2-fix
+Date: Mon May 19 07:37:22 PM PDT 2025
 
-The number of pre-allocated huge pages should be nr_huge_pages, not
-free_huge_pages, although they are same during booting stage
+try_alloc_pages() was renamed
 
-Link: https://lkml.kernel.org/r/20250515114231.65824-1-xuwenjie04@baidu.com
-Signed-off-by: Wenjie Xu <xuwenjie04@baidu.com>
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Igor Belousov <igor.b@beldev.am>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vitaly Wool <vitaly.wool@konsulko.se>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-show-nr_huge_pages-in-report_hugepages
-+++ a/mm/hugetlb.c
-@@ -3733,7 +3733,7 @@ static void __init report_hugepages(void
- 
- 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
- 		pr_info("HugeTLB: registered %s page size, pre-allocated %ld pages\n",
--			buf, h->free_huge_pages);
-+			buf, h->nr_huge_pages);
- 		if (nrinvalid)
- 			pr_info("HugeTLB: %s page size: %lu invalid page%s discarded\n",
- 					buf, nrinvalid, nrinvalid > 1 ? "s" : "");
+--- a/mm/page_alloc.c~mm-add-zblock-allocator-fix-2-fix
++++ a/mm/page_alloc.c
+@@ -7423,4 +7423,4 @@ struct page *alloc_pages_nolock_noprof(i
+ 	kmsan_alloc_page(page, order, alloc_gfp);
+ 	return page;
+ }
+-EXPORT_SYMBOL_GPL(try_alloc_pages_noprof);
++EXPORT_SYMBOL_GPL(alloc_pages_nolock_noprof);
 _
 
-Patches currently in -mm which might be from xuwenjie04@baidu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-show-nr_huge_pages-in-report_hugepages.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-add-zblock-allocator-fix-2-fix.patch
+mm-add-zblock-allocator-fix-3.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
