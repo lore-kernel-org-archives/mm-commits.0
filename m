@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3106CEEA8
-	for <mm-commits@vger.kernel.org>; Tue, 20 May 2025 00:04:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A5271C5489
+	for <mm-commits@vger.kernel.org>; Tue, 20 May 2025 00:12:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747699479; cv=none; b=CfX+UzNe2oAHSZ3Tmca9OVLZIEsxoSLZmUyvJazVeVRUqA3pgY8wNwIpTaR8a/D5LUBmBIoPXXvHELbSEt1itpZatCAXK8eyUn7Z8DJen/Lb2izL7WQb5hL8H9cxqyzF2ETd0zDz070GwF7OUaYMLuFq5lzNbpuVgb0+ZAu4mUo=
+	t=1747699978; cv=none; b=roHnL3wWNzGl6Hiv6/j1J7ig0HvFYWh3lVKQumPE7OoDzjJCFncP+la8ukpTq8UlhelRyTg4PvcRpydtzgdzstRZPwyShtqgZXwo6zgkQbwQEfpPhRAGb3bozJSNXOSbSGneqQok0PIaUBSEN54TrSx0wC7RWGoS3C0C75k9ois=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747699479; c=relaxed/simple;
-	bh=eh7s5oAvqdPyFH4jnSBv+v30Z3IS2CQ5q6dacX36Wak=;
-	h=Date:To:From:Subject:Message-Id; b=fGpQDld7hPMd9J+CdiUzN8mrUp94FUDL5P6s33YE328LY6ksC/XP9EaZSDghqr78iMA3fcSutL3INPxVcXcQoakvGPtayCB+mRezrVAYG3Av45u2ElZ7XHSjIj0cAxgm1yZfej49+vCo4UOacAWwQ4lPS8hlC5V4XU+1YpL+rEM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pxCyeRI4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747699978; c=relaxed/simple;
+	bh=7GHZYW15syusJsUcJB4YmKNaJczU0pf+YVg4I9PjSQ8=;
+	h=Date:To:From:Subject:Message-Id; b=TRCJLDmGA3+d/DEKQXyD/CESXj8coXu1DoUIh21hdcAKPz0LYbypmHswnlwGF+fKZyyq19LMoWe8pIAkToRJALw7hmROoHxhlDrd0B0O6zne1KOTqnx3Vj6jWv+dpPrrSCsSmnRDk7knpJxLtvfbruhUyMQjPT06wCKFiMTZHro=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GXSGGEgG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pxCyeRI4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7594AC4CEE4;
-	Tue, 20 May 2025 00:04:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GXSGGEgG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FA48C4CEE4;
+	Tue, 20 May 2025 00:12:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747699478;
-	bh=eh7s5oAvqdPyFH4jnSBv+v30Z3IS2CQ5q6dacX36Wak=;
+	s=korg; t=1747699976;
+	bh=7GHZYW15syusJsUcJB4YmKNaJczU0pf+YVg4I9PjSQ8=;
 	h=Date:To:From:Subject:From;
-	b=pxCyeRI4pA9su5YX0GixD40wZD8iuT0H9ToC1DlEyxsdIBcmTDjMN2MlewTmH0YIt
-	 WJmoxYKueG9Osk46kf6ke33YQzH2RPM5K1Iv5nJk8iAuRROl56TZ49Goxu04qHzg/s
-	 358ks8zbsn65/9QV7b6PIEGsHJ/4A6HHcVxSNvPY=
-Date: Mon, 19 May 2025 17:04:37 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,shung-hsi.yu@suse.com,pawan.kumar.gupta@linux.intel.com,erhard_f@mailbox.org,eddyz87@gmail.com,dakr@kernel.org,kees@kernel.org,akpm@linux-foundation.org
+	b=GXSGGEgGwUrlDINZF4BB6PCv/ua+Nck4R8xWOK7K1TfaDnUKAnRe/gG/bWkTB0Usi
+	 d5QFU2D7F1U8r/pei9AhVnRKrPOExz2bxB6w12DpKsPgssdzunJHp1/EHgNWA0ywh2
+	 FAly1+J9MykQMjPJrB5sWi1qGKccr4QYxrAalXsg=
+Date: Mon, 19 May 2025 17:12:55 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,jkangas@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-only-zero-init-on-vrealloc-shrink.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250520000438.7594AC4CEE4@smtp.kernel.org>
+Subject: [withdrawn] radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink.patch removed from -mm tree
+Message-Id: <20250520001256.8FA48C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,85 +34,81 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: vmalloc: only zero-init on vrealloc shrink
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmalloc-only-zero-init-on-vrealloc-shrink.patch
+The quilt patch titled
+     Subject: radix tree: fix kmemleak false positive in radix_tree_shrink()
+has been removed from the -mm tree.  Its filename was
+     radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-only-zero-init-on-vrealloc-shrink.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Kees Cook <kees@kernel.org>
-Subject: mm: vmalloc: only zero-init on vrealloc shrink
-Date: Thu, 15 May 2025 14:42:16 -0700
+From: Jared Kangas <jkangas@redhat.com>
+Subject: radix tree: fix kmemleak false positive in radix_tree_shrink()
+Date: Wed, 14 May 2025 11:01:37 -0700
 
-The common case is to grow reallocations, and since init_on_alloc will
-have already zeroed the whole allocation, we only need to zero when
-shrinking the allocation.
+Kmemleak periodically produces a false positive report that resembles the
+following:
 
-Link: https://lkml.kernel.org/r/20250515214217.619685-2-kees@kernel.org
-Fixes: a0309faf1cb0 ("mm: vmalloc: support more granular vrealloc() sizing")
-Signed-off-by: Kees Cook <kees@kernel.org>
-Tested-by: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: "Erhard F." <erhard_f@mailbox.org>
-Cc: Shung-Hsi Yu <shung-hsi.yu@suse.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+unreferenced object 0xffff00000db613b8 (size 576):
+  comm "systemd", pid 1, jiffies 4294987015
+  hex dump (first 32 bytes):
+    00 22 01 00 00 00 00 00 28 1c d5 c5 00 00 ff ff  ."......(.......
+    10 e4 6c c0 00 00 ff ff d0 13 b6 0d 00 00 ff ff  ..l.............
+  backtrace (crc 520d6e1c):
+    kmemleak_alloc+0xb4/0xc4
+    kmem_cache_alloc+0x288/0x2b0
+    radix_tree_node_alloc.constprop.0+0x214/0x364
+    idr_get_free+0x3d0/0x690
+    idr_alloc_u32+0x120/0x280
+    idr_alloc_cyclic+0xe8/0x1b4
+    __kernfs_new_node+0x118/0x5a0
+    kernfs_create_dir_ns+0x8c/0x1fc
+    cgroup_create+0x1cc/0x8a0
+    cgroup_mkdir+0x13c/0x90c
+    kernfs_iop_mkdir+0x108/0x184
+    vfs_mkdir+0x3c8/0x5f0
+    do_mkdirat+0x218/0x290
+    __arm64_sys_mkdirat+0xe0/0x140
+    invoke_syscall.constprop.0+0x74/0x1e4
+    do_el0_svc+0xd0/0x1dc
+
+This is a transient leak that can be traced to radix_tree_shrink(): when
+root->xa_head is set, kmemleak may have already started traversing the
+radix tree.  If this has happened, but kmemleak fails to scan the new
+xa_head before it moves, kmemleak will see it as a leak until the radix
+tree is scanned again.
+
+Mark the new xa_head as a transient leak to prevent this false positive
+report.
+
+Link: https://lkml.kernel.org/r/20250514180137.363929-1-jkangas@redhat.com
+Signed-off-by: Jared Kangas <jkangas@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ lib/radix-tree.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-only-zero-init-on-vrealloc-shrink
-+++ a/mm/vmalloc.c
-@@ -4093,8 +4093,8 @@ void *vrealloc_noprof(const void *p, siz
- 	 * would be a good heuristic for when to shrink the vm_area?
- 	 */
- 	if (size <= old_size) {
--		/* Zero out "freed" memory. */
--		if (want_init_on_free())
-+		/* Zero out "freed" memory, potentially for future realloc. */
-+		if (want_init_on_free() || want_init_on_alloc(flags))
- 			memset((void *)p + size, 0, old_size - size);
- 		vm->requested_size = size;
- 		kasan_poison_vmalloc(p + size, old_size - size);
-@@ -4107,9 +4107,11 @@ void *vrealloc_noprof(const void *p, siz
- 	if (size <= alloced_size) {
- 		kasan_unpoison_vmalloc(p + old_size, size - old_size,
- 				       KASAN_VMALLOC_PROT_NORMAL);
--		/* Zero out "alloced" memory. */
--		if (want_init_on_alloc(flags))
--			memset((void *)p + old_size, 0, size - old_size);
-+		/*
-+		 * No need to zero memory here, as unused memory will have
-+		 * already been zeroed at initial allocation time or during
-+		 * realloc shrink time.
+--- a/lib/radix-tree.c~radix-tree-fix-kmemleak-false-positive-in-radix_tree_shrink
++++ a/lib/radix-tree.c
+@@ -510,6 +510,14 @@ static inline bool radix_tree_shrink(str
+ 			root_tag_clear(root, IDR_FREE);
+ 
+ 		/*
++		 * Kmemleak might report a false positive if it traverses the
++		 * tree while we're shrinking it, since the reference moves
++		 * from node->slots[0] to root->xa_head.
 +		 */
- 		vm->requested_size = size;
- 		return (void *)p;
- 	}
++		if (radix_tree_is_internal_node(child))
++			kmemleak_transient_leak(entry_to_node(child));
++
++		/*
+ 		 * We have a dilemma here. The node's slot[0] must not be
+ 		 * NULLed in case there are concurrent lookups expecting to
+ 		 * find the item. However if this was a bottom-level node,
 _
 
-Patches currently in -mm which might be from kees@kernel.org are
+Patches currently in -mm which might be from jkangas@redhat.com are
 
-mm-vmalloc-actually-use-the-in-place-vrealloc-region.patch
-mm-vmalloc-only-zero-init-on-vrealloc-shrink.patch
 
