@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50CE2289E0B
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:49:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D31B27C14E
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:49:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747849740; cv=none; b=nSArcd9JzegfKStCDJYT8eq6rwnTs6uHpu6MKoqy/f/0uit7TM9h18M8Ts9KrsMehO/oUUDyzIGfJlvOBWaMnePXEtTFnJIpPSlUgRfVeT2WkL5/zU3GkO9bdMCn1Y/8hl61Xdc98mG5nPp+C461YtfbgD8oign7R7Ua4zhsNGY=
+	t=1747849741; cv=none; b=SqhfPVYcnWjmlbdxPl26n3LFCnHO6oNCYRvcKHUK/9/UFAEu0/zKW2rE/8u8CRyMVGN6XoXC53uD5unIJqitZPyTI4RXySDtzRhN2x3l4Vt/0NuuUXDGjDQahmNlSVk+NjcSEpC9bRMN52ViS0S/e5gs+Q4qQ+NN4Ud3qk4WYJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747849740; c=relaxed/simple;
-	bh=r27IpGmYCOFQp8U8HF/LKfnrCHv3v0x0IOIlVX5oirs=;
-	h=Date:To:From:Subject:Message-Id; b=QGbnqkaltVuC5oHfNUUnGatu4j7t3NXcW77lkBsP1IB71cfzOzMIMMbKitj0D1O8OMFkv0Wu1f/avkZFNTAaNwQtMogcuj+oGBv44AdqkZn6tioPywepEQkL7ha62QK0vVpCxlvMT+GXTSYg7JQBb7nOfY0EM7UFU9yIprh6I2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBZuNXdd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747849741; c=relaxed/simple;
+	bh=yZd3dTpBh0d9ak9QOX8QFMvdGOdIFIXhNGN3NK4A1VM=;
+	h=Date:To:From:Subject:Message-Id; b=h5P05WA+lT1CgVDec0CSDvW7W/bTyuGtPG9yWAb1TEUKf1+B+wOyMR+vVlFLNrIbOWcLhxMZiPgi/sg1a+B0fL4Nk4rOVhVKIeNNo5RF7Gl0wq+uhc/smKUXBlIdHXtimfLnPGK1I/pToUiAGsDBwyFPta826WJeP8E7Ywm4oC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qsL0mEMI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBZuNXdd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BD5CC4CEE4;
-	Wed, 21 May 2025 17:49:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qsL0mEMI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36860C4CEE4;
+	Wed, 21 May 2025 17:49:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747849740;
-	bh=r27IpGmYCOFQp8U8HF/LKfnrCHv3v0x0IOIlVX5oirs=;
+	s=korg; t=1747849741;
+	bh=yZd3dTpBh0d9ak9QOX8QFMvdGOdIFIXhNGN3NK4A1VM=;
 	h=Date:To:From:Subject:From;
-	b=SBZuNXdd2nzKPWpJg3a2YjgX0iVF756phrPBcWjHYq5MTzRB3MK59a8AVe+XE/FDP
-	 X0i/TGYSPmcATXCh7tGvSXwgUhBG1arTYdDd9qAA0CRjeYtTICA2onqEf9Bx8hoQwK
-	 Z01R5d31Dji+EizkjMZ77xhjt+gIp9w+1pvpwbkY=
-Date: Wed, 21 May 2025 10:48:59 -0700
-To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,bhe@redhat.com,berrange@redhat.com,coxu@redhat.com,akpm@linux-foundation.org
+	b=qsL0mEMIWoG5Jjh7eWgfWRBC7fdDh2jIl29L2SFfr47cUG8asanFFmu1Aa0EXcNQ8
+	 Q6XolwUf20+h8ByG6bzpqeWWdwnZinwQ46ZTpa0cQg4d4ZVrgvH+OoWpjKPud858tI
+	 uw4bO47PnIrhz41GaxudBKe8R1Or9mJ5hXOFKhks=
+Date: Wed, 21 May 2025 10:49:00 -0700
+To: mm-commits@vger.kernel.org,song@kernel.org,kees@kernel.org,joel.granados@kernel.org,dianders@chromium.org,cminyard@mvista.com,max.kellermann@ionos.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch removed from -mm tree
-Message-Id: <20250521174900.0BD5CC4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-watchdog-add-sys-kernel-hardsoftlockup_count.patch removed from -mm tree
+Message-Id: <20250521174901.36860C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,168 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/crash: make the page that stores the dm crypt keys inaccessible
+     Subject: kernel/watchdog: add /sys/kernel/{hard,soft}lockup_count
 has been removed from the -mm tree.  Its filename was
-     x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible.patch
+     kernel-watchdog-add-sys-kernel-hardsoftlockup_count.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Coiby Xu <coxu@redhat.com>
-Subject: x86/crash: make the page that stores the dm crypt keys inaccessible
-Date: Fri, 2 May 2025 09:12:42 +0800
+From: Max Kellermann <max.kellermann@ionos.com>
+Subject: kernel/watchdog: add /sys/kernel/{hard,soft}lockup_count
+Date: Sun, 4 May 2025 20:08:30 +0200
 
-This adds an addition layer of protection for the saved copy of dm crypt
-key.  Trying to access the saved copy will cause page fault.
+Patch series "sysfs: add counters for lockups and stalls", v2.
 
-Link: https://lkml.kernel.org/r/20250502011246.99238-9-coxu@redhat.com
-Signed-off-by: Coiby Xu <coxu@redhat.com>
-Suggested-by: Pingfan Liu <kernelfans@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: "Daniel P. Berrange" <berrange@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Jan Pazdziora <jpazdziora@redhat.com>
-Cc: Milan Broz <gmazyland@gmail.com>
-Cc: Ondrej Kozina <okozina@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Commits 9db89b411170 ("exit: Expose "oops_count" to sysfs") and
+8b05aa263361 ("panic: Expose "warn_count" to sysfs") added counters for
+oopses and warnings to sysfs, and these two patches do the same for
+hard/soft lockups and RCU stalls.
+
+All of these counters are useful for monitoring tools to detect whether
+the machine is healthy.  If the kernel has experienced a lockup or a
+stall, it's probably due to a kernel bug, and I'd like to detect that
+quickly and easily.  There is currently no way to detect that, other than
+parsing dmesg.  Or observing indirect effects: such as certain tasks not
+responding, but then I need to observe all tasks, and it may take a while
+until these effects become visible/measurable.  I'd rather be able to
+detect the primary cause more quickly, possibly before everything falls
+apart.
+
+
+This patch (of 2):
+
+There is /proc/sys/kernel/hung_task_detect_count, /sys/kernel/warn_count
+and /sys/kernel/oops_count but there is no userspace-accessible counter
+for hard/soft lockups.  Having this is useful for monitoring tools.
+
+Link: https://lkml.kernel.org/r/20250504180831.4190860-1-max.kellermann@ionos.com
+Link: https://lkml.kernel.org/r/20250504180831.4190860-2-max.kellermann@ionos.com
+Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+Cc:
+Cc: Core Minyard <cminyard@mvista.com>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-hardlockup_count |    7 +
+ Documentation/ABI/testing/sysfs-kernel-softlockup_count |    7 +
+ kernel/watchdog.c                                       |   53 ++++++++++
+ 3 files changed, 67 insertions(+)
 
---- a/arch/x86/kernel/machine_kexec_64.c~x86-crash-make-the-page-that-stores-the-dm-crypt-keys-inaccessible
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -598,13 +598,35 @@ static void kexec_mark_crashkres(bool pr
- 	kexec_mark_range(control, crashk_res.end, protect);
- }
- 
-+/* make the memory storing dm crypt keys in/accessible */
-+static void kexec_mark_dm_crypt_keys(bool protect)
-+{
-+	unsigned long start_paddr, end_paddr;
-+	unsigned int nr_pages;
+diff --git a/Documentation/ABI/testing/sysfs-kernel-hardlockup_count a/Documentation/ABI/testing/sysfs-kernel-hardlockup_count
+new file mode 100644
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-hardlockup_count
+@@ -0,0 +1,7 @@
++What:		/sys/kernel/hardlockup_count
++Date:		May 2025
++KernelVersion:	6.16
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:
++		Shows how many times the system has detected a hard lockup since last boot.
++		Available only if CONFIG_HARDLOCKUP_DETECTOR is enabled.
+diff --git a/Documentation/ABI/testing/sysfs-kernel-softlockup_count a/Documentation/ABI/testing/sysfs-kernel-softlockup_count
+new file mode 100644
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-softlockup_count
+@@ -0,0 +1,7 @@
++What:		/sys/kernel/softlockup_count
++Date:		May 2025
++KernelVersion:	6.16
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:
++		Shows how many times the system has detected a soft lockup since last boot.
++		Available only if CONFIG_SOFTLOCKUP_DETECTOR is enabled.
+--- a/kernel/watchdog.c~kernel-watchdog-add-sys-kernel-hardsoftlockup_count
++++ a/kernel/watchdog.c
+@@ -64,6 +64,29 @@ int __read_mostly sysctl_hardlockup_all_
+  */
+ unsigned int __read_mostly hardlockup_panic =
+ 			IS_ENABLED(CONFIG_BOOTPARAM_HARDLOCKUP_PANIC);
 +
-+	if (kexec_crash_image->dm_crypt_keys_addr) {
-+		start_paddr = kexec_crash_image->dm_crypt_keys_addr;
-+		end_paddr = start_paddr + kexec_crash_image->dm_crypt_keys_sz - 1;
-+		nr_pages = (PAGE_ALIGN(end_paddr) - PAGE_ALIGN_DOWN(start_paddr))/PAGE_SIZE;
-+		if (protect)
-+			set_memory_np((unsigned long)phys_to_virt(start_paddr), nr_pages);
-+		else
-+			__set_memory_prot(
-+				(unsigned long)phys_to_virt(start_paddr),
-+				nr_pages,
-+				__pgprot(_PAGE_PRESENT | _PAGE_NX | _PAGE_RW));
-+	}
++#ifdef CONFIG_SYSFS
++
++static unsigned int hardlockup_count;
++
++static ssize_t hardlockup_count_show(struct kobject *kobj, struct kobj_attribute *attr,
++				     char *page)
++{
++	return sysfs_emit(page, "%u\n", hardlockup_count);
 +}
 +
- void arch_kexec_protect_crashkres(void)
- {
- 	kexec_mark_crashkres(true);
-+	kexec_mark_dm_crypt_keys(true);
- }
++static struct kobj_attribute hardlockup_count_attr = __ATTR_RO(hardlockup_count);
++
++static __init int kernel_hardlockup_sysfs_init(void)
++{
++	sysfs_add_file_to_group(kernel_kobj, &hardlockup_count_attr.attr, NULL);
++	return 0;
++}
++
++late_initcall(kernel_hardlockup_sysfs_init);
++
++#endif // CONFIG_SYSFS
++
+ /*
+  * We may not want to enable hard lockup detection by default in all cases,
+  * for example when running the kernel as a guest on a hypervisor. In these
+@@ -170,6 +193,10 @@ void watchdog_hardlockup_check(unsigned
+ 		unsigned int this_cpu = smp_processor_id();
+ 		unsigned long flags;
  
- void arch_kexec_unprotect_crashkres(void)
- {
-+	kexec_mark_dm_crypt_keys(false);
- 	kexec_mark_crashkres(false);
- }
- #endif
++#ifdef CONFIG_SYSFS
++		++hardlockup_count;
++#endif
++
+ 		/* Only print hardlockups once. */
+ 		if (per_cpu(watchdog_hardlockup_warned, cpu))
+ 			return;
+@@ -312,6 +339,28 @@ unsigned int __read_mostly softlockup_pa
+ static bool softlockup_initialized __read_mostly;
+ static u64 __read_mostly sample_period;
+ 
++#ifdef CONFIG_SYSFS
++
++static unsigned int softlockup_count;
++
++static ssize_t softlockup_count_show(struct kobject *kobj, struct kobj_attribute *attr,
++				     char *page)
++{
++	return sysfs_emit(page, "%u\n", softlockup_count);
++}
++
++static struct kobj_attribute softlockup_count_attr = __ATTR_RO(softlockup_count);
++
++static __init int kernel_softlockup_sysfs_init(void)
++{
++	sysfs_add_file_to_group(kernel_kobj, &softlockup_count_attr.attr, NULL);
++	return 0;
++}
++
++late_initcall(kernel_softlockup_sysfs_init);
++
++#endif // CONFIG_SYSFS
++
+ /* Timestamp taken after the last successful reschedule. */
+ static DEFINE_PER_CPU(unsigned long, watchdog_touch_ts);
+ /* Timestamp of the last softlockup report. */
+@@ -743,6 +792,10 @@ static enum hrtimer_restart watchdog_tim
+ 	touch_ts = __this_cpu_read(watchdog_touch_ts);
+ 	duration = is_softlockup(touch_ts, period_ts, now);
+ 	if (unlikely(duration)) {
++#ifdef CONFIG_SYSFS
++		++softlockup_count;
++#endif
++
+ 		/*
+ 		 * Prevent multiple soft-lockup reports if one cpu is already
+ 		 * engaged in dumping all cpu back traces.
 _
 
-Patches currently in -mm which might be from coxu@redhat.com are
+Patches currently in -mm which might be from max.kellermann@ionos.com are
 
 
