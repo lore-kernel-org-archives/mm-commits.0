@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90BEE32C85
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 05:47:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C60E32C85
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 05:48:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747806466; cv=none; b=Z5I+kfe8B4HlDDZ80B/W00EERZJL+pp1B3Pu73gF75gJ2rQYQVqiQ9y2e84ZfB0HltzQkdtmsbK4gzBggynlcdc9Syk9hT+NPQnDvDUuoRDlJQV/LEpARASwxYAS26LTREhqyrnM/FjYHu6+tfKlNOQmV3nlW5JTMZ9dpiETqsU=
+	t=1747806500; cv=none; b=DjYataIdYLs/Ya/PUYl8VplTtRu10dxb8U2eUsd5p8nErjCbOIV9tp+EZeE07/23BRJ35jhYB9ptrhld0orJCtLg6+ioCM48bAzPmd8LL9cZv4P9JqoTqu6Zg2PIcLQZYuUqvITuQ7Xli4sp/dS+WeEVbjgvdGU7aH8eHDFXJSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747806466; c=relaxed/simple;
-	bh=cFSfMErSyvvmSn1Jd0epovbgD1F7boXds7mLaqiGTeU=;
-	h=Date:To:From:Subject:Message-Id; b=MuG/46o9Nja25lvq65YfN7ZcDKx9ZSePn51sQ7X9WpZ1c5pr1mwXyYrm638MessUfM5DbHWpUeRjUduAk/q+BBIsiUMALGk0wCcDB2FlOfxHAWNn4L/AR6bRwa7h0blevWKvbNQkwXFhfbLF9rBmng03WhDVKcLA0aLU5Lg/f4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2jnLEiOD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747806500; c=relaxed/simple;
+	bh=AuP0K6aGKjxIcGWea9Ziwmea4vAElgAey/c2uHwO05Q=;
+	h=Date:To:From:Subject:Message-Id; b=drT2J4F4Vi/XRYCcyRInv1HOShP+djoSD6RhrQJIS/NAgxRFXZlIraz7ypRJYIRaq3HuT0bHdj0BsjEb+x8/gpjqCQr2AES+HfnKFm051pnu4qAikrVFkRycyxKNII4BCTGWM9pg28XNXqop7SSm3q18TOrmT3RZzMnICyas/wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RNoqPuGJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2jnLEiOD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD7BBC4CEE4;
-	Wed, 21 May 2025 05:47:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RNoqPuGJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2BC7C4CEED;
+	Wed, 21 May 2025 05:48:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747806465;
-	bh=cFSfMErSyvvmSn1Jd0epovbgD1F7boXds7mLaqiGTeU=;
+	s=korg; t=1747806499;
+	bh=AuP0K6aGKjxIcGWea9Ziwmea4vAElgAey/c2uHwO05Q=;
 	h=Date:To:From:Subject:From;
-	b=2jnLEiODwC2sDVkaERwgPUZ79nvyGkqCehtFA4JfkhIR2RQMntDiDv3yFvvPG8zxe
-	 bMRPh2mvXw3/2pe4EsgeYTVd2ORevrV0KT3T4kjcblkgRu+1t5s1oANW2YMvEeNCnm
-	 WFvv/LOQExc06f6QdyarSoHtrOBlFOI5mJ65debc=
-Date: Tue, 20 May 2025 22:47:45 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,jiang.kun2@zte.com.cn,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=RNoqPuGJBByHX0YQNADjsSiLGI5tEMSeUcJsA2NG0FeXHAMCAg37PxQGIw0hvIg17
+	 NrXRMjY6vlytKHyN2Ho/U7rU8fiNfbaM9VnB/BvM+e89yulxK24jiYTNhF0os9Zv1E
+	 nFe+U/8BefO0AKfi7JjziEKlYVGHbpkdt4HGsjn0=
+Date: Tue, 20 May 2025 22:48:19 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15-fix.patch removed from -mm tree
-Message-Id: <20250521054745.BD7BBC4CEE4@smtp.kernel.org>
+Subject: [folded-merged] maintainers-add-mm-memory-policy-section-fix.patch removed from -mm tree
+Message-Id: <20250521054819.A2BC7C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15-fix
+     Subject: add Ying as reviewer
 has been removed from the -mm tree.  Its filename was
-     taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15-fix.patch
+     maintainers-add-mm-memory-policy-section-fix.patch
 
-This patch was dropped because it was folded into taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15.patch
+This patch was dropped because it was folded into maintainers-add-mm-memory-policy-section.patch
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15-fix
-Date: Mon, 19 May 2025 21:31:48 +0800 (CST)
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: add Ying as reviewer
+Date: Thu, 15 May 2025 20:23:27 +0100
 
-adjust indentation of xxx_delay_max/min in struct taskstats.
-
-Link: https://lkml.kernel.org/r/202505192131489882NSciXV4EGd8zzjLuwoOK@zte.com.cn
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/ed6f0fc2-5608-4eea-b1be-07e3e19be263@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Huang Ying <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/taskstats.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/uapi/linux/taskstats.h~taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15-fix
-+++ a/include/uapi/linux/taskstats.h
-@@ -225,11 +225,11 @@ struct taskstats {
- 	__u64	compact_delay_max;
- 	__u64	compact_delay_min;
- 
--	__u64    wpcopy_delay_max;
--	__u64    wpcopy_delay_min;
-+	__u64	wpcopy_delay_max;
-+	__u64	wpcopy_delay_min;
- 
--	__u64    irq_delay_max;
--	__u64    irq_delay_min;
-+	__u64	irq_delay_max;
-+	__u64	irq_delay_min;
- };
- 
- 
+--- a/MAINTAINERS~maintainers-add-mm-memory-policy-section-fix
++++ a/MAINTAINERS
+@@ -15586,6 +15586,7 @@ R:	Joshua Hahn <joshua.hahnjy@gmail.com>
+ R:	Rakie Kim <rakie.kim@sk.com>
+ R:	Byungchul Park <byungchul@sk.com>
+ R:	Gregory Price <gourry@gourry.net>
++R:	Ying Huang <ying.huang@linux.alibaba.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15.patch
+maintainers-update-page-allocator-section.patch
+maintainers-add-mm-reclaim-section.patch
+maintainers-add-mm-ksm-section.patch
+maintainers-add-mm-memory-policy-section.patch
+maintainers-add-kernel-forkc-to-relevant-sections.patch
+mm-remove-warn_on_once-in-file_has_valid_mmap_hooks.patch
+memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix.patch
 
