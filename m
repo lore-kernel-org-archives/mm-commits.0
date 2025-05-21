@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9742A22DF9E
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C6DF1CEEB2
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846621; cv=none; b=ZeOmx3xd4EovUVtJDSRa7od01+XAyIpbX4cGU4zviJ2r91W7UxIG/k9DQP72BW6LuPpuGDyPdz8m5oJD4OI2OMcWiWzmYIs9tmD9boCY+2uSO8Z4i0cWXAoh4FNp5MPuQAtuJtrj9d/NW0t9y+3c7s7fjBdzE7TF0bHiB1v+3Bs=
+	t=1747846623; cv=none; b=KPIjDjiaQq0mbcMuZjiF6RdbOdiMpy6uB+FIJ/S+3UWDGIk2XIfsjAQxdCdkp2I8XTRKPVNVkxVD77FnBdZkeI6bpumAZN0bI+0Dp501Ey9w1BqKdv+W9UTg0Vi0GjwslWH3x/8RqUE97GjbKWoIKt2DwA5A5vfdc+jNdbIrDno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846621; c=relaxed/simple;
-	bh=MLden/K6wV5qS6ZT6bnkjfynNjSJzUK4zFM2Ld+7E70=;
-	h=Date:To:From:Subject:Message-Id; b=gipGmjCcqCsd5HPk/CjsUX0K9PMfQwkhK02YvMHOc5uLbDGL8cHBM+3ui9DKss6vHZrJBYqlzJp6vpZ6IvoKEajdGi9is/5yHaKlizzEUZk0iwV2mswvgmDqXKi7tPEVWUGvwW73qPyVUfefAakaM6WOknJJXAOp1Dtf4hHPZ2I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nqB6xUhG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846623; c=relaxed/simple;
+	bh=0dkJlI7j/EzWOd4UCPb3iMCPjbFCUdL/yilAVehun+c=;
+	h=Date:To:From:Subject:Message-Id; b=Sy8g/n38oDv9TMwzXxejYET83Dv6hELp5k7lG2poYXW4PUfFK6z6/Wd94yL4HCjY8BzLbe0jgnJ88yfoSLAzWYIAFei3lQeuBh/8or+Dg6kSnTPAvFiLmh05R9izXYwGEOXFxwAjS0mTj281i3d8UUCEAeRO+el7WnSv4IcFmmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gTrId4lR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nqB6xUhG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69001C4CEE4;
-	Wed, 21 May 2025 16:57:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gTrId4lR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D3ECC4CEE4;
+	Wed, 21 May 2025 16:57:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846621;
-	bh=MLden/K6wV5qS6ZT6bnkjfynNjSJzUK4zFM2Ld+7E70=;
+	s=korg; t=1747846622;
+	bh=0dkJlI7j/EzWOd4UCPb3iMCPjbFCUdL/yilAVehun+c=;
 	h=Date:To:From:Subject:From;
-	b=nqB6xUhG38WtzP+j19VULjE7zPWo7wy2RRa2R9oJWzrj+V8eEnWs41oF+mxCBuai5
-	 q6UtA9v1woFX1fDObXp68HlKQTD3UKZ66mYf+38u/1MGYHuPv00qfU/NcO036p2Bmg
-	 OHHZp9gvpg6OnEr/WgJ1N5+36czSbRmMJujytWq8=
-Date: Wed, 21 May 2025 09:57:00 -0700
-To: mm-commits@vger.kernel.org,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
+	b=gTrId4lR9ADNi3e+cp28j1SrRP2g0U9tVqB+kwfnlHAOROT9pks1KYf6k2N9B7IhT
+	 Fw3TTH0S/NRHoUOmgfHtl9VofINSZy/JJjfDIr5tqDnzGuleJHiJqf8ooUFLU6g6Xi
+	 Itff3NvWlN7bDzku7Gk5YFJkGr1jPXiPSelWzwk8=
+Date: Wed, 21 May 2025 09:57:02 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-cma-set-early_pfn-and-bitmap-as-a-union-in-cma_memrange.patch removed from -mm tree
-Message-Id: <20250521165701.69001C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mincore-use-pte_batch_bint-to-batch-process-large-folios.patch removed from -mm tree
+Message-Id: <20250521165702.9D3ECC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,108 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: cma: set early_pfn and bitmap as a union in cma_memrange
+     Subject: mm: mincore: use pte_batch_hint() to batch process large folios
 has been removed from the -mm tree.  Its filename was
-     mm-cma-set-early_pfn-and-bitmap-as-a-union-in-cma_memrange.patch
+     mm-mincore-use-pte_batch_bint-to-batch-process-large-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Subject: mm: cma: set early_pfn and bitmap as a union in cma_memrange
-Date: Fri, 9 May 2025 16:35:28 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: mincore: use pte_batch_hint() to batch process large folios
+Date: Fri, 9 May 2025 08:45:21 +0800
 
-Since early_pfn and bitmap are never used at the same time, they can be
-defined as a union to reduce the size of the data structure.  This change
-can save 8 * u64 entries per CMA.
+When I tested the mincore() syscall, I observed that it takes longer with
+64K mTHP enabled on my Arm64 server.  The reason is the
+mincore_pte_range() still checks each PTE individually, even when the PTEs
+are contiguous, which is not efficient.
 
-Link: https://lkml.kernel.org/r/20250509083528.1360952-1-hezhongkun.hzk@bytedance.com
-Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Thus we can use pte_batch_hint() to get the batch number of the present
+contiguous PTEs, which can improve the performance.  I tested the
+mincore() syscall with 1G anonymous memory populated with 64K mTHP, and
+observed an obvious performance improvement:
+
+w/o patch		w/ patch		changes
+6022us			549us			+91%
+
+Moreover, I also tested mincore() with disabling mTHP/THP, and did not see
+any obvious regression for base pages.
+
+Link: https://lkml.kernel.org/r/99cb00ee626ceb6e788102ca36821815cd832237.1746697240.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   11 ++++++-----
- mm/cma.h |    6 ++++--
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ mm/mincore.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
---- a/mm/cma.c~mm-cma-set-early_pfn-and-bitmap-as-a-union-in-cma_memrange
-+++ a/mm/cma.c
-@@ -143,13 +143,14 @@ bool cma_validate_zones(struct cma *cma)
+--- a/mm/mincore.c~mm-mincore-use-pte_batch_bint-to-batch-process-large-folios
++++ a/mm/mincore.c
+@@ -21,6 +21,7 @@
  
- static void __init cma_activate_area(struct cma *cma)
- {
--	unsigned long pfn, end_pfn;
-+	unsigned long pfn, end_pfn, early_pfn[CMA_MAX_RANGES];
- 	int allocrange, r;
- 	struct cma_memrange *cmr;
- 	unsigned long bitmap_count, count;
+ #include <linux/uaccess.h>
+ #include "swap.h"
++#include "internal.h"
  
- 	for (allocrange = 0; allocrange < cma->nranges; allocrange++) {
- 		cmr = &cma->ranges[allocrange];
-+		early_pfn[allocrange] = cmr->early_pfn;
- 		cmr->bitmap = bitmap_zalloc(cma_bitmap_maxno(cma, cmr),
- 					    GFP_KERNEL);
- 		if (!cmr->bitmap)
-@@ -161,13 +162,13 @@ static void __init cma_activate_area(str
+ static int mincore_hugetlb(pte_t *pte, unsigned long hmask, unsigned long addr,
+ 			unsigned long end, struct mm_walk *walk)
+@@ -105,6 +106,7 @@ static int mincore_pte_range(pmd_t *pmd,
+ 	pte_t *ptep;
+ 	unsigned char *vec = walk->private;
+ 	int nr = (end - addr) >> PAGE_SHIFT;
++	int step, i;
  
- 	for (r = 0; r < cma->nranges; r++) {
- 		cmr = &cma->ranges[r];
--		if (cmr->early_pfn != cmr->base_pfn) {
--			count = cmr->early_pfn - cmr->base_pfn;
-+		if (early_pfn[r] != cmr->base_pfn) {
-+			count = early_pfn[r] - cmr->base_pfn;
- 			bitmap_count = cma_bitmap_pages_to_bits(cma, count);
- 			bitmap_set(cmr->bitmap, 0, bitmap_count);
- 		}
- 
--		for (pfn = cmr->early_pfn; pfn < cmr->base_pfn + cmr->count;
-+		for (pfn = early_pfn[r]; pfn < cmr->base_pfn + cmr->count;
- 		     pfn += pageblock_nr_pages)
- 			init_cma_reserved_pageblock(pfn_to_page(pfn));
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+@@ -118,16 +120,26 @@ static int mincore_pte_range(pmd_t *pmd,
+ 		walk->action = ACTION_AGAIN;
+ 		return 0;
  	}
-@@ -193,7 +194,7 @@ cleanup:
- 		for (r = 0; r < allocrange; r++) {
- 			cmr = &cma->ranges[r];
- 			end_pfn = cmr->base_pfn + cmr->count;
--			for (pfn = cmr->early_pfn; pfn < end_pfn; pfn++)
-+			for (pfn = early_pfn[r]; pfn < end_pfn; pfn++)
- 				free_reserved_page(pfn_to_page(pfn));
- 		}
- 	}
---- a/mm/cma.h~mm-cma-set-early_pfn-and-bitmap-as-a-union-in-cma_memrange
-+++ a/mm/cma.h
-@@ -25,9 +25,11 @@ struct cma_kobject {
-  */
- struct cma_memrange {
- 	unsigned long base_pfn;
--	unsigned long early_pfn;
- 	unsigned long count;
--	unsigned long *bitmap;
-+	union {
-+		unsigned long early_pfn;
-+		unsigned long *bitmap;
-+	};
- #ifdef CONFIG_CMA_DEBUGFS
- 	struct debugfs_u32_array dfs_bitmap;
+-	for (; addr != end; ptep++, addr += PAGE_SIZE) {
++	for (; addr != end; ptep += step, addr += step * PAGE_SIZE) {
+ 		pte_t pte = ptep_get(ptep);
+ 
++		step = 1;
+ 		/* We need to do cache lookup too for pte markers */
+ 		if (pte_none_mostly(pte))
+ 			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
+ 						 vma, vec);
+-		else if (pte_present(pte))
+-			*vec = 1;
+-		else { /* pte is a swap entry */
++		else if (pte_present(pte)) {
++			unsigned int batch = pte_batch_hint(ptep, pte);
++
++			if (batch > 1) {
++				unsigned int max_nr = (end - addr) >> PAGE_SHIFT;
++
++				step = min_t(unsigned int, batch, max_nr);
++			}
++
++			for (i = 0; i < step; i++)
++				vec[i] = 1;
++		} else { /* pte is a swap entry */
+ 			swp_entry_t entry = pte_to_swp_entry(pte);
+ 
+ 			if (non_swap_entry(entry)) {
+@@ -146,7 +158,7 @@ static int mincore_pte_range(pmd_t *pmd,
  #endif
+ 			}
+ 		}
+-		vec++;
++		vec += step;
+ 	}
+ 	pte_unmap_unlock(ptep - 1, ptl);
+ out:
 _
 
-Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
