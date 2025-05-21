@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 156CC22E415
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BEFA2222C8
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846666; cv=none; b=NzljJxF7xQILwWHbrCvJBftXG50VxNrolI4Aryr5HZnZGLFFidbTNYK8AYtRBQ/mig3r9C98a/OhJOSEKFuzDOOYawcabhJhq3/bk0KGqt0FPaFDat+RtrV7VA58fKQcKE2Gr5JuqPiebIko23iO7nurqPupUDEgkAYZXWB/iCM=
+	t=1747846667; cv=none; b=l8IdGNpRzhW36oBamCT/jBj1a9bOpfmK8teqMD+0Fh4yxCcbbd28tT3ejAFM82aXBNB2FgSHGl+bo3BrKv0FudqZQmPKqbjIQVZ0zs69Rs/xpxr11v64ZLmndLbJgMu6wXXg34wBJHWJNq9Umn3RDlUuhE3eIE1q00v2hlsi22c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846666; c=relaxed/simple;
-	bh=hoMEw378IbljZqn6te2pV2/GuNy7K+dq/v3FYSV1YFc=;
-	h=Date:To:From:Subject:Message-Id; b=IN6CVa2H7krtpkgw6vHUBHYgNYyi/XOYUlK/9pwipU/NEEXhT73tkLzW6NiX3Nwq+PDM3PcqV/zDoUyNrX05VyuXYYtQiDgCTIuuFnzej6GehigIH8bLzCjyb26aBeGKAU1EWmpsd1i2ixf343jmEs6iPWM7cHnCAdB7F6bqBxY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K8A4v33m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846667; c=relaxed/simple;
+	bh=trXKDvBjG/3YXxPbtLdjXuNKE9HOwd3BhjrnXh5oG3c=;
+	h=Date:To:From:Subject:Message-Id; b=sK9R84joq6Li4hwicZ1IN4qF4AD1UGkGU72LRJGHc3fYHigz0XYhmPYWtIusatEvbE9A2QmCIl8a7g6Af8ExU9thY16lZrCYRiIItF4klNM8ElZkK0rB4k7vvKIgL3lrHiDCemBXaXrpKS5F0Ehuv37obZNQPyVyWhvEcmWA0Jg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NSO+lX0U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K8A4v33m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB84DC4CEE4;
-	Wed, 21 May 2025 16:57:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NSO+lX0U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62675C4CEE4;
+	Wed, 21 May 2025 16:57:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846665;
-	bh=hoMEw378IbljZqn6te2pV2/GuNy7K+dq/v3FYSV1YFc=;
+	s=korg; t=1747846667;
+	bh=trXKDvBjG/3YXxPbtLdjXuNKE9HOwd3BhjrnXh5oG3c=;
 	h=Date:To:From:Subject:From;
-	b=K8A4v33mVVpFakTMSPMIdsys+8K1cC7JY+J7gNRpr8rdqMjDkqU7l/CqT43IjnG6s
-	 QxEY5pX/P0GLqOStEuFx/lgazhfAnoV0+mKQRtheANnn5kQkm8slvJnsTwfzGd4EvP
-	 xExO214HHhki24mQUhLFZRnIME7shnkWjdW+Et50=
-Date: Wed, 21 May 2025 09:57:45 -0700
+	b=NSO+lX0UHgXSpu23WWnV5RVIFTh3VVM3FeKEZSN68pRE39dHRW7m9cp3+ZDcsW3BQ
+	 H0b9VZM1yMrTWbxYYF3gzukelcHECINomXrTNlMvjgtM/VoyDdhHU8Kd50sEEm2WPa
+	 gp3VBNmlP2I4iBxGMEznHCtUDQ1lfxkcRxwNRihk=
+Date: Wed, 21 May 2025 09:57:46 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-make-mod_memcg_state-re-entrant-safe-against-irqs.patch removed from -mm tree
-Message-Id: <20250521165745.DB84DC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-make-count_memcg_events-re-entrant-safe-against-irqs.patch removed from -mm tree
+Message-Id: <20250521165747.62675C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: make mod_memcg_state re-entrant safe against irqs
+     Subject: memcg: make count_memcg_events re-entrant safe against irqs
 has been removed from the -mm tree.  Its filename was
-     memcg-make-mod_memcg_state-re-entrant-safe-against-irqs.patch
+     memcg-make-count_memcg_events-re-entrant-safe-against-irqs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: make mod_memcg_state re-entrant safe against irqs
-Date: Wed, 14 May 2025 11:41:54 -0700
+Subject: memcg: make count_memcg_events re-entrant safe against irqs
+Date: Wed, 14 May 2025 11:41:55 -0700
 
-Let's make mod_memcg_state re-entrant safe against irqs.  The only thing
-needed is to convert the usage of __this_cpu_add() to this_cpu_add().  In
-addition, with re-entrant safety, there is no need to disable irqs.
+Let's make count_memcg_events re-entrant safe against irqs.  The only
+thing needed is to convert the usage of __this_cpu_add() to
+this_cpu_add().  In addition, with re-entrant safety, there is no need to
+disable irqs.  Also add warnings for in_nmi() as it is not safe against
+nmi context.
 
-mod_memcg_state() is not safe against nmi, so let's add warning if someone
-tries to call it in nmi context.
-
-Link: https://lkml.kernel.org/r/20250514184158.3471331-4-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250514184158.3471331-5-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -66,82 +65,195 @@ Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   20 ++------------------
- mm/memcontrol.c            |    8 ++++----
- 2 files changed, 6 insertions(+), 22 deletions(-)
+ include/linux/memcontrol.h |   21 ++-------------------
+ mm/memcontrol-v1.c         |    6 +++---
+ mm/memcontrol.c            |    6 +++---
+ mm/swap.c                  |    8 ++++----
+ mm/vmscan.c                |   14 +++++++-------
+ 5 files changed, 19 insertions(+), 36 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-make-mod_memcg_state-re-entrant-safe-against-irqs
+--- a/include/linux/memcontrol.h~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
 +++ a/include/linux/memcontrol.h
-@@ -903,19 +903,9 @@ struct mem_cgroup *mem_cgroup_get_oom_gr
- 					    struct mem_cgroup *oom_domain);
- void mem_cgroup_print_oom_group(struct mem_cgroup *memcg);
+@@ -942,19 +942,8 @@ static inline void mod_lruvec_kmem_state
+ 	local_irq_restore(flags);
+ }
  
--void __mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
--		       int val);
+-void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
+-			  unsigned long count);
 -
- /* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void mod_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx, int val)
+-static inline void count_memcg_events(struct mem_cgroup *memcg,
+-				      enum vm_event_item idx,
+-				      unsigned long count)
 -{
 -	unsigned long flags;
 -
 -	local_irq_save(flags);
--	__mod_memcg_state(memcg, idx, val);
+-	__count_memcg_events(memcg, idx, count);
 -	local_irq_restore(flags);
 -}
-+void mod_memcg_state(struct mem_cgroup *memcg,
-+		     enum memcg_stat_item idx, int val);
++void count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
++			unsigned long count);
  
- static inline void mod_memcg_page_state(struct page *page,
- 					enum memcg_stat_item idx, int val)
-@@ -1375,12 +1365,6 @@ static inline void mem_cgroup_print_oom_
- {
+ static inline void count_memcg_folio_events(struct folio *folio,
+ 		enum vm_event_item idx, unsigned long nr)
+@@ -1418,12 +1407,6 @@ static inline void mod_lruvec_kmem_state
  }
  
--static inline void __mod_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx,
--				     int nr)
+ static inline void count_memcg_events(struct mem_cgroup *memcg,
+-				      enum vm_event_item idx,
+-				      unsigned long count)
 -{
 -}
 -
- static inline void mod_memcg_state(struct mem_cgroup *memcg,
- 				   enum memcg_stat_item idx,
- 				   int nr)
---- a/mm/memcontrol.c~memcg-make-mod_memcg_state-re-entrant-safe-against-irqs
+-static inline void __count_memcg_events(struct mem_cgroup *memcg,
+ 					enum vm_event_item idx,
+ 					unsigned long count)
+ {
+--- a/mm/memcontrol.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
 +++ a/mm/memcontrol.c
-@@ -681,12 +681,12 @@ static int memcg_state_val_in_pages(int
+@@ -825,12 +825,12 @@ void __mod_lruvec_kmem_state(void *p, en
  }
  
  /**
-- * __mod_memcg_state - update cgroup memory statistics
-+ * mod_memcg_state - update cgroup memory statistics
+- * __count_memcg_events - account VM events in a cgroup
++ * count_memcg_events - account VM events in a cgroup
   * @memcg: the memory cgroup
-  * @idx: the stat item - can be enum memcg_stat_item or enum node_stat_item
-  * @val: delta to add to the counter, can be negative
+  * @idx: the event item
+  * @count: the number of events that occurred
   */
--void __mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
-+void mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
- 		       int val)
+-void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
++void count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
+ 			  unsigned long count)
  {
- 	int i = memcg_stats_index(idx);
-@@ -700,7 +700,7 @@ void __mod_memcg_state(struct mem_cgroup
+ 	int i = memcg_events_index(idx);
+@@ -844,7 +844,7 @@ void __count_memcg_events(struct mem_cgr
  
  	cpu = get_cpu();
  
--	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
-+	this_cpu_add(memcg->vmstats_percpu->state[i], val);
- 	val = memcg_state_val_in_pages(idx, val);
- 	memcg_rstat_updated(memcg, val, cpu);
- 	trace_mod_memcg_state(memcg, idx, val);
-@@ -2920,7 +2920,7 @@ static void drain_obj_stock(struct obj_s
+-	__this_cpu_add(memcg->vmstats_percpu->events[i], count);
++	this_cpu_add(memcg->vmstats_percpu->events[i], count);
+ 	memcg_rstat_updated(memcg, count, cpu);
+ 	trace_count_memcg_events(memcg, idx, count);
  
- 			memcg = get_mem_cgroup_from_objcg(old);
+--- a/mm/memcontrol-v1.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
++++ a/mm/memcontrol-v1.c
+@@ -512,9 +512,9 @@ static void memcg1_charge_statistics(str
+ {
+ 	/* pagein of a big page is an event. So, ignore page size */
+ 	if (nr_pages > 0)
+-		__count_memcg_events(memcg, PGPGIN, 1);
++		count_memcg_events(memcg, PGPGIN, 1);
+ 	else {
+-		__count_memcg_events(memcg, PGPGOUT, 1);
++		count_memcg_events(memcg, PGPGOUT, 1);
+ 		nr_pages = -nr_pages; /* for event */
+ 	}
  
--			__mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
-+			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
- 			memcg1_account_kmem(memcg, -nr_pages);
- 			if (!mem_cgroup_is_root(memcg))
- 				memcg_uncharge(memcg, nr_pages);
+@@ -689,7 +689,7 @@ void memcg1_uncharge_batch(struct mem_cg
+ 	unsigned long flags;
+ 
+ 	local_irq_save(flags);
+-	__count_memcg_events(memcg, PGPGOUT, pgpgout);
++	count_memcg_events(memcg, PGPGOUT, pgpgout);
+ 	__this_cpu_add(memcg->events_percpu->nr_page_events, nr_memory);
+ 	memcg1_check_events(memcg, nid);
+ 	local_irq_restore(flags);
+--- a/mm/swap.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
++++ a/mm/swap.c
+@@ -309,7 +309,7 @@ static void lru_activate(struct lruvec *
+ 	trace_mm_lru_activate(folio);
+ 
+ 	__count_vm_events(PGACTIVATE, nr_pages);
+-	__count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE, nr_pages);
++	count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE, nr_pages);
+ }
+ 
+ #ifdef CONFIG_SMP
+@@ -581,7 +581,7 @@ static void lru_deactivate_file(struct l
+ 
+ 	if (active) {
+ 		__count_vm_events(PGDEACTIVATE, nr_pages);
+-		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
++		count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
+ 				     nr_pages);
+ 	}
+ }
+@@ -599,7 +599,7 @@ static void lru_deactivate(struct lruvec
+ 	lruvec_add_folio(lruvec, folio);
+ 
+ 	__count_vm_events(PGDEACTIVATE, nr_pages);
+-	__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_pages);
++	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_pages);
+ }
+ 
+ static void lru_lazyfree(struct lruvec *lruvec, struct folio *folio)
+@@ -625,7 +625,7 @@ static void lru_lazyfree(struct lruvec *
+ 	lruvec_add_folio(lruvec, folio);
+ 
+ 	__count_vm_events(PGLAZYFREE, nr_pages);
+-	__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
++	count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
+ }
+ 
+ /*
+--- a/mm/vmscan.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
++++ a/mm/vmscan.c
+@@ -2028,7 +2028,7 @@ static unsigned long shrink_inactive_lis
+ 	item = PGSCAN_KSWAPD + reclaimer_offset(sc);
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_scanned);
+-	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
++	count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
+ 	__count_vm_events(PGSCAN_ANON + file, nr_scanned);
+ 
+ 	spin_unlock_irq(&lruvec->lru_lock);
+@@ -2048,7 +2048,7 @@ static unsigned long shrink_inactive_lis
+ 	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+-	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
++	count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
+ 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
+ 	spin_unlock_irq(&lruvec->lru_lock);
+ 
+@@ -2138,7 +2138,7 @@ static void shrink_active_list(unsigned
+ 
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(PGREFILL, nr_scanned);
+-	__count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
++	count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
+ 
+ 	spin_unlock_irq(&lruvec->lru_lock);
+ 
+@@ -2195,7 +2195,7 @@ static void shrink_active_list(unsigned
+ 	nr_deactivate = move_folios_to_lru(lruvec, &l_inactive);
+ 
+ 	__count_vm_events(PGDEACTIVATE, nr_deactivate);
+-	__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
++	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
+ 
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	spin_unlock_irq(&lruvec->lru_lock);
+@@ -4612,8 +4612,8 @@ static int scan_folios(struct lruvec *lr
+ 		__count_vm_events(item, isolated);
+ 		__count_vm_events(PGREFILL, sorted);
+ 	}
+-	__count_memcg_events(memcg, item, isolated);
+-	__count_memcg_events(memcg, PGREFILL, sorted);
++	count_memcg_events(memcg, item, isolated);
++	count_memcg_events(memcg, PGREFILL, sorted);
+ 	__count_vm_events(PGSCAN_ANON + type, isolated);
+ 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, MAX_LRU_BATCH,
+ 				scanned, skipped, isolated,
+@@ -4763,7 +4763,7 @@ retry:
+ 	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, reclaimed);
+-	__count_memcg_events(memcg, item, reclaimed);
++	count_memcg_events(memcg, item, reclaimed);
+ 	__count_vm_events(PGSTEAL_ANON + type, reclaimed);
+ 
+ 	spin_unlock_irq(&lruvec->lru_lock);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
