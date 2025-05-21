@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0CEE22B5B6
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF71722D4C8
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846643; cv=none; b=Lkn3muF38vYhGReHplwrzWlxgXRIbq6kbloFuLqp9vQEUNt3Jn5C40Jfak4Tmwz160+y8k7NQrxdpVxMVhS1syCFb6YIQDYdhs2fzvQMk2s+pjoj6iwQuw4yF3Tdp9ZLiiVuMhoZW1M7WDwwJKQ9ZhsPf7mL2y+2rpMBzR4D42Q=
+	t=1747846645; cv=none; b=ZthEgN3XrAZnUD9sRgGWfKLcvky9gI3R0l/YydFilL872iFwNgqKiqonfqfXOhJnmSCD7oGR9WYJx4tVNpqsddUyRQ4JJa5kR/UQMa1T8b/Aj/X6E9k3awM/jy54AXTtp6V8cSPtTKakIIaAlpFipc/l4zcL6ZKw9yW8RU4pQSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846643; c=relaxed/simple;
-	bh=mw2BhbdmbCer4zUT5QruybE1kcP6ceCCC+mBauBNfq8=;
-	h=Date:To:From:Subject:Message-Id; b=d6YTr5Rk2a0KERQk2BLdnRQlRPOu7qKmdv8vQ8cNwQCa3GKkOimaBpSd/lm0eTGxHT9DE/OXdJBIS/sHyt8Vxe6DAzG5tna4uB7+yUBg67p6X9N8afu951FWCQR/nh1gNNx6gPQMRp/MO/Vx70qankjSLvPoccCacvfvF2VaFQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fItQLKrZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846645; c=relaxed/simple;
+	bh=QndCW3lWOCWh/6bqGx+wr65HEHdrmybbmH+5DsxppnM=;
+	h=Date:To:From:Subject:Message-Id; b=OD6e3vSI9qSREe6NVuZjk8BPkwyGLYBqBz9fbpkGKCxaANBB+Cp1BUftwfb/f21zSPZsGfQse+1Zc/Eb2zmpnOiTY5zckA75KSAH/5A3AeFZXlWN6cJSGyoOhEMDtN7GaYmSvZgnalLTlmnZkd9oInd+RMNVXJlCUCCyvpOZiU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IYLctJcN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fItQLKrZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730B1C4CEE4;
-	Wed, 21 May 2025 16:57:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IYLctJcN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97A10C4CEE4;
+	Wed, 21 May 2025 16:57:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846643;
-	bh=mw2BhbdmbCer4zUT5QruybE1kcP6ceCCC+mBauBNfq8=;
+	s=korg; t=1747846645;
+	bh=QndCW3lWOCWh/6bqGx+wr65HEHdrmybbmH+5DsxppnM=;
 	h=Date:To:From:Subject:From;
-	b=fItQLKrZCMTMsM2FKfLEneFZ7rrpTFhOiZZuPAG64qKIuqkKJ0YE0XAsQMYwilKwe
-	 2QbJnLvrTCNSen6SWJvZcJxae0AqpLFLVgowLxSdApfrXnn2qQla95knZwc7/w3WT8
-	 O1ReCrQ6GmLoNbm/TrTRYPTbIrTWe2mveeICMMM0=
-Date: Wed, 21 May 2025 09:57:22 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,Liam.Howlett@oracle.com,kees@kernel.org,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@redhat.com,bsegall@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=IYLctJcNj0MRRahOjdC9skg0h7lHG6hcoIu+rwosK/L6DAKk+0mLqR7SZHR5PZw+3
+	 HWYuo0LAbYlA7yQ+Mmy44iWtN8qsvKHbNKUwnwT6w5ZvSWNEF5tBMMMJQVdj33F/Qp
+	 Avi8vr69b14W/1CV26AwWQPjmcNkTr5S8JqbvfcI=
+Date: Wed, 21 May 2025 09:57:24 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,oliver.sang@intel.com,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-add-kernel-forkc-to-relevant-sections.patch removed from -mm tree
-Message-Id: <20250521165723.730B1C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-warn_on_once-in-file_has_valid_mmap_hooks.patch removed from -mm tree
+Message-Id: <20250521165725.97A10C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add kernel/fork.c to relevant sections
+     Subject: mm: remove WARN_ON_ONCE() in file_has_valid_mmap_hooks()
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-kernel-forkc-to-relevant-sections.patch
+     mm-remove-warn_on_once-in-file_has_valid_mmap_hooks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add kernel/fork.c to relevant sections
-Date: Tue, 13 May 2025 15:57:06 +0100
+Subject: mm: remove WARN_ON_ONCE() in file_has_valid_mmap_hooks()
+Date: Wed, 14 May 2025 09:40:24 +0100
 
-Currently kernel/fork.c both contains absolutely key logic relating to a
-number of kernel subsystems and also has absolutely no assignment in
-MAINTAINERS.
+Having encountered a trinity report in linux-next (Linked in the 'Closes'
+tag) it appears that there are legitimate situations where a file-backed
+mapping can be acquired but no file->f_op->mmap or
+file->f_op->mmap_prepare is set, at which point do_mmap() should simply
+error out with -ENODEV.
 
-Correct this by placing this file in relevant sections - mm core, exec and
-the scheduler so people know who to contact when making changes here.
+Since previously we did not warn in this scenario and it appears we rely
+upon this, restore this situation, while retaining a WARN_ON_ONCE() for
+the case where both are set, which is absolutely incorrect and must be
+addressed and thus always requires a warning.
 
-scripts/get_maintainers.pl can perfectly well handle a file being in
-multiple sections, so this functions correctly.
+If further work is required to chase down precisely what is causing this,
+then we can later restore this, but it makes no sense to hold up this
+series to do so, as this is existing and apparently expected behaviour.
 
-Intent is that we keep putting changes to kernel/fork.c through Andrew's
-tree.
-
-Link: https://lkml.kernel.org/r/20250513145706.122101-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250514084024.29148-1-lorenzo.stoakes@oracle.com
+Fixes: c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file callback")
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Kees Cook <kees@kernel.org>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202505141434.96ce5e5d-lkp@intel.com
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-kernel-forkc-to-relevant-sections
-+++ a/MAINTAINERS
-@@ -8840,6 +8840,7 @@ F:	include/linux/elf.h
- F:	include/uapi/linux/auxvec.h
- F:	include/uapi/linux/binfmts.h
- F:	include/uapi/linux/elf.h
-+F:	kernel/fork.c
- F:	mm/vma_exec.c
- F:	tools/testing/selftests/exec/
- N:	asm/elf.h
-@@ -15540,6 +15541,7 @@ F:	include/linux/mm.h
- F:	include/linux/mm_*.h
- F:	include/linux/mmdebug.h
- F:	include/linux/pagewalk.h
-+F:	kernel/fork.c
- F:	mm/Kconfig
- F:	mm/debug.c
- F:	mm/init-mm.c
-@@ -21770,6 +21772,7 @@ F:	include/linux/preempt.h
- F:	include/linux/sched.h
- F:	include/linux/wait.h
- F:	include/uapi/linux/sched.h
-+F:	kernel/fork.c
- F:	kernel/sched/
+--- a/include/linux/fs.h~mm-remove-warn_on_once-in-file_has_valid_mmap_hooks
++++ a/include/linux/fs.h
+@@ -2248,7 +2248,7 @@ static inline bool file_has_valid_mmap_h
+ 	/* Hooks are mutually exclusive. */
+ 	if (WARN_ON_ONCE(has_mmap && has_mmap_prepare))
+ 		return false;
+-	if (WARN_ON_ONCE(!has_mmap && !has_mmap_prepare))
++	if (!has_mmap && !has_mmap_prepare)
+ 		return false;
  
- SCHEDULER - SCHED_EXT
+ 	return true;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
