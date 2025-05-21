@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8816A22D4D8
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:56:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1FCF22D4E9
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:56:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846616; cv=none; b=SFS6rlAM4DxD8/93VA+yZmnWwsMUJotEudgMyEM3kVzLYrIA4Wg/unisBMrm+10x8+Wz2QHt8JF5vJLx7LnwnrvB83mzMvyyVr0rWUq5gljBzQGW4yT6xNSMaG+gV03MfXFwjhitp/NxBCxLn4TLMDv9jJ17H5+Ko6fa06CrO7Q=
+	t=1747846616; cv=none; b=rKa+xMDxvr9nx0hpOEw1kTwQs3gIGFtliN3MYGrmLapsVTgrHGI/Wzk9Cnq7XTUbmCinzO6tl9qOUwuCboQiGVPTu8AqQkk25q7zeQvOf8ZPIRAuXuLrVoiYB89ZgOMY0I5qQN9MK8fwb2QUzpdOuetNhaMw5Zs/XTFhrV1Oqh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1747846616; c=relaxed/simple;
-	bh=6roux1ADPDb3p4+nYVb2/2G/R9ZBjfDdqLD959yWZqc=;
-	h=Date:To:From:Subject:Message-Id; b=ND8CwyNoLHDjn3KPGfxAUvLMxXmP5YmGX/sBf2En/U5vHthAq8FqbrI11QnPJxyx27yIU3bGXmwJbY2C3rIEddTJg1umaE3YUHlJrvIJ4eKDxpKavRW38C//1VYSCq6usWjKDoY11perl33qsCDWxIQ31+Te8bX1lFQ0j9qhy0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zuFqGRPs; arc=none smtp.client-ip=10.30.226.201
+	bh=0E4RrJt1A8CAI7oCKfI0LL3TcSyuS7nAUdCsXUeD/FU=;
+	h=Date:To:From:Subject:Message-Id; b=sY+6qjeE3Um2JG2NxjBHo7Z+kHSx+yN7K66W38/BYlTmpZmX8t/OrI+djmtUz5tZYHtHjMNNAHagxC6ZsL6+2BAGVihKxlcFZyoPSV/zQtO21xSmj8yb2X8dJX9Sa/h2wi7lBWZddlm80bGqvkAkz809vvOrAThrs1R5T/tCDoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2AOrUw5z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zuFqGRPs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41EF9C4CEE4;
-	Wed, 21 May 2025 16:56:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2AOrUw5z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2A43C4CEE7;
+	Wed, 21 May 2025 16:56:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846616;
-	bh=6roux1ADPDb3p4+nYVb2/2G/R9ZBjfDdqLD959yWZqc=;
+	s=korg; t=1747846614;
+	bh=0E4RrJt1A8CAI7oCKfI0LL3TcSyuS7nAUdCsXUeD/FU=;
 	h=Date:To:From:Subject:From;
-	b=zuFqGRPs9W9LIKn+YsiZkkuYT75kL8Ue/EN9WKpjDPeSBk/tfXsDwyznK8wvfcHpY
-	 4oyClX0QSWA8nsxkMinQlKmroVR89G0lhQZIhO6iTNBFi5j53r6/lNxExzvVRwDjut
-	 5Jh6WtF9vCVWOGOc3BWUz0j+ZDjaoLY/FP9AWSrw=
-Date: Wed, 21 May 2025 09:56:55 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,edumazet@google.com,akpm@linux-foundation.org,aha310510@gmail.com,akpm@linux-foundation.org
+	b=2AOrUw5zvLqXL2Ns5DqjMY0Vf7fYZttIgM9mc/qO/Y86mSEET0/Ll8z3h7thsfZg7
+	 tIznOrc1z+KEd42cBxLkKYwwtpeezsiFfIA+Xu5SeuhSK9UaxkEBNBT/vH7tTzkOSs
+	 MJQflNabAe6gTeNzkvOpZpnqBJuUiHgVyKpasZhQ=
+Date: Wed, 21 May 2025 09:56:54 -0700
+To: mm-commits@vger.kernel.org,vineethr@linux.ibm.com,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,mhocko@kernel.org,mgorman@suse.de,libo.chen@oracle.com,kprateek.nayak@amd.com,hannes@cmpxchg.org,corbet@lwn.net,Ayush.jain3@amd.com,aubrey.li@intel.com,yu.c.chen@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-fix-data-race-in-show_numa_info.patch removed from -mm tree
-Message-Id: <20250521165656.41EF9C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] sched-numa-add-statistics-of-numa-balance-task-migration.patch removed from -mm tree
+Message-Id: <20250521165654.C2A43C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,175 +35,188 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: fix data race in show_numa_info()
+     Subject: sched/numa: add statistics of numa balance task migration
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-fix-data-race-in-show_numa_info.patch
+     sched-numa-add-statistics-of-numa-balance-task-migration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jeongjun Park <aha310510@gmail.com>
-Subject: mm/vmalloc: fix data race in show_numa_info()
-Date: Fri, 9 May 2025 01:56:20 +0900
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: sched/numa: add statistics of numa balance task migration
+Date: Wed, 7 May 2025 19:17:53 +0800
 
-The following data-race was found in show_numa_info():
+On systems with NUMA balancing enabled, it has been found that tracking
+task activities resulting from NUMA balancing is beneficial.  NUMA
+balancing employs two mechanisms for task migration: one is to migrate a
+task to an idle CPU within its preferred node, and the other is to swap
+tasks located on different nodes when they are on each other's preferred
+nodes.
 
-==================================================================
-BUG: KCSAN: data-race in vmalloc_info_show / vmalloc_info_show
+The kernel already provides NUMA page migration statistics in
+/sys/fs/cgroup/mytest/memory.stat and /proc/{PID}/sched.  However, it
+lacks statistics regarding task migration and swapping.  Therefore,
+relevant counts for task migration and swapping should be added.
 
-read to 0xffff88800971fe30 of 4 bytes by task 8289 on cpu 0:
- show_numa_info mm/vmalloc.c:4936 [inline]
- vmalloc_info_show+0x5a8/0x7e0 mm/vmalloc.c:5016
- seq_read_iter+0x373/0xb40 fs/seq_file.c:230
- proc_reg_read_iter+0x11e/0x170 fs/proc/inode.c:299
-....
+The following two new fields:
 
-write to 0xffff88800971fe30 of 4 bytes by task 8287 on cpu 1:
- show_numa_info mm/vmalloc.c:4934 [inline]
- vmalloc_info_show+0x38f/0x7e0 mm/vmalloc.c:5016
- seq_read_iter+0x373/0xb40 fs/seq_file.c:230
- proc_reg_read_iter+0x11e/0x170 fs/proc/inode.c:299
-....
+numa_task_migrated
+numa_task_swapped
 
-value changed: 0x0000008f -> 0x00000000
-==================================================================
+will be shown in /sys/fs/cgroup/{GROUP}/memory.stat, /proc/{PID}/sched
+and /proc/vmstat
 
-According to this report,there is a read/write data-race because
-m->private is accessible to multiple CPUs.  To fix this, instead of
-allocating the heap in proc_vmalloc_init() and passing the heap address to
-m->private, vmalloc_info_show() should allocate the heap.
+Introducing both per-task and per-memory cgroup (memcg) NUMA balancing
+statistics facilitates a rapid evaluation of the performance and resource
+utilization of the target workload.  For instance, users can first
+identify the container with high NUMA balancing activity and then further
+pinpoint a specific task within that group, and subsequently adjust the
+memory policy for that task.  In short, although it is possible to iterate
+through /proc/$pid/sched to locate the problematic task, the introduction
+of aggregated NUMA balancing activity for tasks within each memcg can
+assist users in identifying the task more efficiently through a
+divide-and-conquer approach.
 
-Link: https://lkml.kernel.org/r/20250508165620.15321-1-aha310510@gmail.com
-Fixes: 8e1d743f2c26 ("mm: vmalloc: support multiple nodes in vmallocinfo")
-Signed-off-by: Jeongjun Park <aha310510@gmail.com>
-Suggested-by: Eric Dumazet <edumazet@google.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+As Libo Chen pointed out, the memcg event relies on the text names in
+vmstat_text, and /proc/vmstat generates corresponding items based on
+vmstat_text.  Thus, the relevant task migration and swapping events
+introduced in vmstat_text also need to be populated by
+count_vm_numa_event(), otherwise these values are zero in /proc/vmstat.
+
+Link: https://lkml.kernel.org/r/b285978a61e9796b503fd2f0a785306d59f01a43.1746611892.git.yu.c.chen@intel.com
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+Tested-by: K Prateek Nayak <kprateek.nayak@amd.com>
+Tested-by: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: Aubrey Li <aubrey.li@intel.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Libo Chen <libo.chen@oracle.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ayush Jain <Ayush.jain3@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   63 +++++++++++++++++++++++++++----------------------
- 1 file changed, 35 insertions(+), 28 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |    6 ++++++
+ include/linux/sched.h                   |    4 ++++
+ include/linux/vm_event_item.h           |    2 ++
+ kernel/sched/core.c                     |    9 +++++++--
+ kernel/sched/debug.c                    |    4 ++++
+ mm/memcontrol.c                         |    2 ++
+ mm/vmstat.c                             |    2 ++
+ 7 files changed, 27 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-data-race-in-show_numa_info
-+++ a/mm/vmalloc.c
-@@ -3109,7 +3109,7 @@ static void clear_vm_uninitialized_flag(
- 	/*
- 	 * Before removing VM_UNINITIALIZED,
- 	 * we should make sure that vm has proper values.
--	 * Pair with smp_rmb() in show_numa_info().
-+	 * Pair with smp_rmb() in vread_iter() and vmalloc_info_show().
- 	 */
- 	smp_wmb();
- 	vm->flags &= ~VM_UNINITIALIZED;
-@@ -4939,28 +4939,29 @@ bool vmalloc_dump_obj(void *object)
+--- a/Documentation/admin-guide/cgroup-v2.rst~sched-numa-add-statistics-of-numa-balance-task-migration
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1697,6 +1697,12 @@ The following nested keys are defined.
+ 	  numa_hint_faults (npn)
+ 		Number of NUMA hinting faults.
+ 
++	  numa_task_migrated (npn)
++		Number of task migration by NUMA balancing.
++
++	  numa_task_swapped (npn)
++		Number of task swap by NUMA balancing.
++
+ 	  pgdemote_kswapd
+ 		Number of pages demoted by kswapd.
+ 
+--- a/include/linux/sched.h~sched-numa-add-statistics-of-numa-balance-task-migration
++++ a/include/linux/sched.h
+@@ -549,6 +549,10 @@ struct sched_statistics {
+ 	u64				nr_failed_migrations_running;
+ 	u64				nr_failed_migrations_hot;
+ 	u64				nr_forced_migrations;
++#ifdef CONFIG_NUMA_BALANCING
++	u64				numa_task_migrated;
++	u64				numa_task_swapped;
++#endif
+ 
+ 	u64				nr_wakeups;
+ 	u64				nr_wakeups_sync;
+--- a/include/linux/vm_event_item.h~sched-numa-add-statistics-of-numa-balance-task-migration
++++ a/include/linux/vm_event_item.h
+@@ -66,6 +66,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		NUMA_HINT_FAULTS,
+ 		NUMA_HINT_FAULTS_LOCAL,
+ 		NUMA_PAGE_MIGRATE,
++		NUMA_TASK_MIGRATE,
++		NUMA_TASK_SWAP,
  #endif
- 
- #ifdef CONFIG_PROC_FS
--static void show_numa_info(struct seq_file *m, struct vm_struct *v)
--{
--	if (IS_ENABLED(CONFIG_NUMA)) {
--		unsigned int nr, *counters = m->private;
--		unsigned int step = 1U << vm_area_page_order(v);
- 
--		if (!counters)
--			return;
-+/*
-+ * Print number of pages allocated on each memory node.
-+ *
-+ * This function can only be called if CONFIG_NUMA is enabled
-+ * and VM_UNINITIALIZED bit in v->flags is disabled.
-+ */
-+static void show_numa_info(struct seq_file *m, struct vm_struct *v,
-+				 unsigned int *counters)
-+{
-+	unsigned int nr;
-+	unsigned int step = 1U << vm_area_page_order(v);
- 
--		if (v->flags & VM_UNINITIALIZED)
--			return;
--		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
--		smp_rmb();
-+	if (!counters)
-+		return;
- 
--		memset(counters, 0, nr_node_ids * sizeof(unsigned int));
-+	memset(counters, 0, nr_node_ids * sizeof(unsigned int));
- 
--		for (nr = 0; nr < v->nr_pages; nr += step)
--			counters[page_to_nid(v->pages[nr])] += step;
--		for_each_node_state(nr, N_HIGH_MEMORY)
--			if (counters[nr])
--				seq_printf(m, " N%u=%u", nr, counters[nr]);
--	}
-+	for (nr = 0; nr < v->nr_pages; nr += step)
-+		counters[page_to_nid(v->pages[nr])] += step;
-+	for_each_node_state(nr, N_HIGH_MEMORY)
-+		if (counters[nr])
-+			seq_printf(m, " N%u=%u", nr, counters[nr]);
- }
- 
- static void show_purge_info(struct seq_file *m)
-@@ -4984,6 +4985,10 @@ static int vmalloc_info_show(struct seq_
- 	struct vmap_node *vn;
- 	struct vmap_area *va;
- 	struct vm_struct *v;
-+	unsigned int *counters;
-+
-+	if (IS_ENABLED(CONFIG_NUMA))
-+		counters = kmalloc(nr_node_ids * sizeof(unsigned int), GFP_KERNEL);
- 
- 	for_each_vmap_node(vn) {
- 		spin_lock(&vn->busy.lock);
-@@ -4998,6 +5003,11 @@ static int vmalloc_info_show(struct seq_
- 			}
- 
- 			v = va->vm;
-+			if (v->flags & VM_UNINITIALIZED)
-+				continue;
-+
-+			/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
-+			smp_rmb();
- 
- 			seq_printf(m, "0x%pK-0x%pK %7ld",
- 				v->addr, v->addr + v->size, v->size);
-@@ -5032,7 +5042,9 @@ static int vmalloc_info_show(struct seq_
- 			if (is_vmalloc_addr(v->pages))
- 				seq_puts(m, " vpages");
- 
--			show_numa_info(m, v);
-+			if (IS_ENABLED(CONFIG_NUMA))
-+				show_numa_info(m, v, counters);
-+
- 			seq_putc(m, '\n');
- 		}
- 		spin_unlock(&vn->busy.lock);
-@@ -5042,19 +5054,14 @@ static int vmalloc_info_show(struct seq_
- 	 * As a final step, dump "unpurged" areas.
- 	 */
- 	show_purge_info(m);
-+	if (IS_ENABLED(CONFIG_NUMA))
-+		kfree(counters);
- 	return 0;
- }
- 
- static int __init proc_vmalloc_init(void)
+ #ifdef CONFIG_MIGRATION
+ 		PGMIGRATE_SUCCESS, PGMIGRATE_FAIL,
+--- a/kernel/sched/core.c~sched-numa-add-statistics-of-numa-balance-task-migration
++++ a/kernel/sched/core.c
+@@ -3352,6 +3352,10 @@ void set_task_cpu(struct task_struct *p,
+ #ifdef CONFIG_NUMA_BALANCING
+ static void __migrate_swap_task(struct task_struct *p, int cpu)
  {
--	void *priv_data = NULL;
++	__schedstat_inc(p->stats.numa_task_swapped);
++	count_vm_numa_event(NUMA_TASK_SWAP);
++	count_memcg_event_mm(p->mm, NUMA_TASK_SWAP);
++
+ 	if (task_on_rq_queued(p)) {
+ 		struct rq *src_rq, *dst_rq;
+ 		struct rq_flags srf, drf;
+@@ -7953,8 +7957,9 @@ int migrate_task_to(struct task_struct *
+ 	if (!cpumask_test_cpu(target_cpu, p->cpus_ptr))
+ 		return -EINVAL;
+ 
+-	/* TODO: This is not properly updating schedstats */
 -
--	if (IS_ENABLED(CONFIG_NUMA))
--		priv_data = kmalloc(nr_node_ids * sizeof(unsigned int), GFP_KERNEL);
--
--	proc_create_single_data("vmallocinfo",
--		0400, NULL, vmalloc_info_show, priv_data);
--
-+	proc_create_single("vmallocinfo", 0400, NULL, vmalloc_info_show);
- 	return 0;
++	__schedstat_inc(p->stats.numa_task_migrated);
++	count_vm_numa_event(NUMA_TASK_MIGRATE);
++	count_memcg_event_mm(p->mm, NUMA_TASK_MIGRATE);
+ 	trace_sched_move_numa(p, curr_cpu, target_cpu);
+ 	return stop_one_cpu(curr_cpu, migration_cpu_stop, &arg);
  }
- module_init(proc_vmalloc_init);
+--- a/kernel/sched/debug.c~sched-numa-add-statistics-of-numa-balance-task-migration
++++ a/kernel/sched/debug.c
+@@ -1206,6 +1206,10 @@ void proc_sched_show_task(struct task_st
+ 		P_SCHEDSTAT(nr_failed_migrations_running);
+ 		P_SCHEDSTAT(nr_failed_migrations_hot);
+ 		P_SCHEDSTAT(nr_forced_migrations);
++#ifdef CONFIG_NUMA_BALANCING
++		P_SCHEDSTAT(numa_task_migrated);
++		P_SCHEDSTAT(numa_task_swapped);
++#endif
+ 		P_SCHEDSTAT(nr_wakeups);
+ 		P_SCHEDSTAT(nr_wakeups_sync);
+ 		P_SCHEDSTAT(nr_wakeups_migrate);
+--- a/mm/memcontrol.c~sched-numa-add-statistics-of-numa-balance-task-migration
++++ a/mm/memcontrol.c
+@@ -474,6 +474,8 @@ static const unsigned int memcg_vm_event
+ 	NUMA_PAGE_MIGRATE,
+ 	NUMA_PTE_UPDATES,
+ 	NUMA_HINT_FAULTS,
++	NUMA_TASK_MIGRATE,
++	NUMA_TASK_SWAP,
+ #endif
+ };
+ 
+--- a/mm/vmstat.c~sched-numa-add-statistics-of-numa-balance-task-migration
++++ a/mm/vmstat.c
+@@ -1347,6 +1347,8 @@ const char * const vmstat_text[] = {
+ 	"numa_hint_faults",
+ 	"numa_hint_faults_local",
+ 	"numa_pages_migrated",
++	"numa_task_migrated",
++	"numa_task_swapped",
+ #endif
+ #ifdef CONFIG_MIGRATION
+ 	"pgmigrate_success",
 _
 
-Patches currently in -mm which might be from aha310510@gmail.com are
+Patches currently in -mm which might be from yu.c.chen@intel.com are
 
 
