@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13AEF235C01;
-	Wed, 21 May 2025 20:28:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 777842673BA
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 20:43:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747859329; cv=none; b=aB2xyzH8ez7EgN5GcngESkKyqs2Hfg/JTa+C0KrkvpvwPfncAztjszxw1RrlroKl99VhjrF7gyqqL0sL5fVyvY+58tJG08HPjXLus8DcCXda3icVEzy7r+4PU54qr6cW9O6SSUW5EsBp027dUX+k+wxhj6TQ+E+9YOyDWRREZkc=
+	t=1747860239; cv=none; b=bzI2X4J6DDxt247Jpal3VxBBHx50rGdbrUURb8aJzw8jz4HEH54GLwdZEWNBcpcKUo/phrccA4s/yTKud36nxy+ExscaO9egp1BqY+zRjlrQp77AHyjdX9spWi7OtUYKP1tyYLw3KSfusm4mOpQrIqYJV/Dyb3yHpEK32+dCgzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747859329; c=relaxed/simple;
-	bh=Kq7BvnyEGNvIh+rwZWopLz5QVtC0Qw0b4Eq8gRjtJE4=;
-	h=Date:To:From:Subject:Message-Id; b=F0cag/t0wB7eCLisa/8GSAKtm2Umr9sg87hfmhrANOti6CbfsiQFFd/E5KHuv4pFPxfzGb2JjT/CR+tblmYcddSMN1nQZ6h+2MeHLSuc/hA37o4DLN9VXIxzBGN0HlaOgJ2DE5Cs3EAyQHG23ieMd+FaRlDSlXrEvHvvZd4+G5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gGjNp7E/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747860239; c=relaxed/simple;
+	bh=lAla/9QyeVnXQNPU8cD8fkdvfjkDhne+/ZNfnPhCLLQ=;
+	h=Date:To:From:Subject:Message-Id; b=peKX6TlbRDOkA49vkdDAUbLLBR2jiyzN6GDnhsOZoIk8oRnKSNn71hhRPkfadiJ051gvn9PQMneREV7MIPWgmmaWxM7jSzGbcEbFIHUcsLWB1rQLZUL/APa1O5Ld4oowo767oYBokHJT2WUr9KNdsi+spQCpZXGvPrDKJDrc2MA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i36GcuoC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gGjNp7E/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FE1AC4CEE4;
-	Wed, 21 May 2025 20:28:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i36GcuoC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 148DCC4CEE4;
+	Wed, 21 May 2025 20:43:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747859328;
-	bh=Kq7BvnyEGNvIh+rwZWopLz5QVtC0Qw0b4Eq8gRjtJE4=;
+	s=korg; t=1747860239;
+	bh=lAla/9QyeVnXQNPU8cD8fkdvfjkDhne+/ZNfnPhCLLQ=;
 	h=Date:To:From:Subject:From;
-	b=gGjNp7E/pZ9sFf6fcgYzRwXIM8GuSIOTdCFbpe5IBkhV5vvl7K0HXOef/5N/zKuIj
-	 qtFBWbvis5giMP8wXNCgmj07NOiT8jfWLaLDyG9k1t/ZHn6ZJQx8+EEJJQkE5+ZLv5
-	 oOs+oyUTQJOOm1yM8n1NgpbSeNmiVmyKKRWdhUw4=
-Date: Wed, 21 May 2025 13:28:47 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,samitolvanen@google.com,petr.pavlu@suse.com,mcgrof@kernel.org,kent.overstreet@linux.dev,da.gomez@samsung.com,cachen@purestorage.com,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=i36GcuoCF2XA4nSrngL+AJTBjsmyNNlo18ab/ZxpMS8IzMlFCI3hNv6LuFA/WISku
+	 TU/GfeEL7ib1B7W9IKFx5f+A2WJnUYkjGcZKDMeqiv902TmgcIL+qWGZdVxR3SkyX+
+	 454z/8ybSB32Q16x6VDUQ7G3TlBCWt/JbhuTeedk=
+Date: Wed, 21 May 2025 13:43:58 -0700
+To: mm-commits@vger.kernel.org,sagi@grimberg.me,leitao@debian.org,kch@nvidia.com,hch@lst.de,coxu@redhat.com,axboe@kernel.dk,a.hindborg@kernel.org,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-handle-module-codetag-load-errors-as-module-load-failures.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250521202848.5FE1AC4CEE4@smtp.kernel.org>
+Subject: + crash_dump-nvme-select-configfs_fs-as-built-in.patch added to mm-nonmm-unstable branch
+Message-Id: <20250521204359.148DCC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: handle module codetag load errors as module load failures
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     alloc_tag-handle-module-codetag-load-errors-as-module-load-failures.patch
+     Subject: crash_dump, nvme: select CONFIGFS_FS as built-in
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash_dump-nvme-select-configfs_fs-as-built-in.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-handle-module-codetag-load-errors-as-module-load-failures.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_dump-nvme-select-configfs_fs-as-built-in.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,194 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: handle module codetag load errors as module load failures
-Date: Wed, 21 May 2025 09:06:02 -0700
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: crash_dump, nvme: select CONFIGFS_FS as built-in
+Date: Wed, 21 May 2025 18:03:19 +0200
 
-Failures inside codetag_load_module() are currently ignored.  As a result
-an error there would not cause a module load failure and freeing of the
-associated resources.  Correct this behavior by propagating the error code
-to the caller and handling possible errors.  With this change, error to
-allocate percpu counters, which happens at this stage, will not be ignored
-and will cause a module load failure and freeing of resources.  With this
-change we also do not need to disable memory allocation profiling when
-this error happens, instead we fail to load the module.
+Configfs can be configured as a loadable module, which causes a link-time
+failure for dm-crypt crash dump support:
 
-Link: https://lkml.kernel.org/r/20250521160602.1940771-1-surenb@google.com
-Fixes: 10075262888b ("alloc_tag: allocate percpu counters for module tags dynamically")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Casey Chen <cachen@purestorage.com>
-Closes: https://lore.kernel.org/all/20250520231620.15259-1-cachen@purestorage.com/
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: <stable@vger.kernel.org>
+crash_dump_dm_crypt.c:(.text+0x3a4): undefined reference to `config_item_init_type_name'
+aarch64-linux-ld: kernel/crash_dump_dm_crypt.o: in function `configfs_dmcrypt_keys_init':
+crash_dump_dm_crypt.c:(.init.text+0x90): undefined reference to `config_group_init'
+aarch64-linux-ld: crash_dump_dm_crypt.c:(.init.text+0xb4): undefined reference to `configfs_register_subsystem'
+aarch64-linux-ld: crash_dump_dm_crypt.c:(.init.text+0xd8): undefined reference to `configfs_unregister_subsystem'
+
+This could be avoided with a dependency on CONFIGFS_FS=y, but the
+dependency has an additional problem of causing Kconfig dependency loops
+since most other uses select the symbol.
+
+Using a simple 'select CONFIGFS_FS' here in turn fails with
+CONFIG_DM_CRYPT=m, because that still only causes configfs to be a
+loadable module.
+
+The only version I found that fixes this reliably uses an additional
+Kconfig symbol to ensure the 'select' actually turns on configfs as
+builtin, with two additional changes to avoid dependency loops with nvme
+and sysfs.
+
+There is no compile-time dependency between configfs and sysfs, so
+selecting configfs from a driver with sysfs disabled does not cause link
+failures, only the default /sys/kernel/config mount point will not be
+created.
+
+Link: https://lkml.kernel.org/r/20250521160359.2132363-1-arnd@kernel.org
+Fixes: 6b23858fd63b ("crash_dump: make dm crypt keys persist for the kdump kernel")
+Fixes: 1fb470408497 ("nvme-loop: add configfs dependency")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Chaitanya Kulkarni <kch@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Sagi Grimberg <sagi@grimberg.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/codetag.h |    8 ++++----
- kernel/module/main.c    |    5 +++--
- lib/alloc_tag.c         |   12 +++++++-----
- lib/codetag.c           |   34 +++++++++++++++++++++++++---------
- 4 files changed, 39 insertions(+), 20 deletions(-)
+ drivers/nvme/target/Kconfig |    2 +-
+ fs/configfs/Kconfig         |    1 -
+ kernel/Kconfig.kexec        |    8 +++++++-
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
---- a/include/linux/codetag.h~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/include/linux/codetag.h
-@@ -36,8 +36,8 @@ union codetag_ref {
- struct codetag_type_desc {
- 	const char *section;
- 	size_t tag_size;
--	void (*module_load)(struct module *mod,
--			    struct codetag *start, struct codetag *end);
-+	int (*module_load)(struct module *mod,
-+			   struct codetag *start, struct codetag *end);
- 	void (*module_unload)(struct module *mod,
- 			      struct codetag *start, struct codetag *end);
- #ifdef CONFIG_MODULES
-@@ -89,7 +89,7 @@ void *codetag_alloc_module_section(struc
- 				   unsigned long align);
- void codetag_free_module_sections(struct module *mod);
- void codetag_module_replaced(struct module *mod, struct module *new_mod);
--void codetag_load_module(struct module *mod);
-+int codetag_load_module(struct module *mod);
- void codetag_unload_module(struct module *mod);
+--- a/drivers/nvme/target/Kconfig~crash_dump-nvme-select-configfs_fs-as-built-in
++++ a/drivers/nvme/target/Kconfig
+@@ -3,7 +3,7 @@
+ config NVME_TARGET
+ 	tristate "NVMe Target support"
+ 	depends on BLOCK
+-	depends on CONFIGFS_FS
++	select CONFIGFS_FS
+ 	select NVME_KEYRING if NVME_TARGET_TCP_TLS
+ 	select KEYS if NVME_TARGET_TCP_TLS
+ 	select SGL_ALLOC
+--- a/fs/configfs/Kconfig~crash_dump-nvme-select-configfs_fs-as-built-in
++++ a/fs/configfs/Kconfig
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ config CONFIGFS_FS
+ 	tristate "Userspace-driven configuration filesystem"
+-	select SYSFS
+ 	help
+ 	  configfs is a RAM-based filesystem that provides the converse
+ 	  of sysfs's functionality. Where sysfs is a filesystem-based
+--- a/kernel/Kconfig.kexec~crash_dump-nvme-select-configfs_fs-as-built-in
++++ a/kernel/Kconfig.kexec
+@@ -134,12 +134,18 @@ config CRASH_DM_CRYPT
+ 	depends on KEXEC_FILE
+ 	depends on CRASH_DUMP
+ 	depends on DM_CRYPT
+-	depends on CONFIGFS_FS
+ 	help
+ 	  With this option enabled, user space can intereact with
+ 	  /sys/kernel/config/crash_dm_crypt_keys to make the dm crypt keys
+ 	  persistent for the dump-capture kernel.
  
- #else /* defined(CONFIG_CODE_TAGGING) && defined(CONFIG_MODULES) */
-@@ -103,7 +103,7 @@ codetag_alloc_module_section(struct modu
- 			     unsigned long align) { return NULL; }
- static inline void codetag_free_module_sections(struct module *mod) {}
- static inline void codetag_module_replaced(struct module *mod, struct module *new_mod) {}
--static inline void codetag_load_module(struct module *mod) {}
-+static inline int codetag_load_module(struct module *mod) { return 0; }
- static inline void codetag_unload_module(struct module *mod) {}
- 
- #endif /* defined(CONFIG_CODE_TAGGING) && defined(CONFIG_MODULES) */
---- a/kernel/module/main.c~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/kernel/module/main.c
-@@ -3399,11 +3399,12 @@ static int load_module(struct load_info
- 			goto sysfs_cleanup;
- 	}
- 
-+	if (codetag_load_module(mod))
-+		goto sysfs_cleanup;
++config CRASH_DM_CRYPT_CONFIGS
++	def_tristate CRASH_DM_CRYPT
++	select CONFIGFS_FS
++	help
++	  CRASH_DM_CRYPT cannot directly select CONFIGFS_FS, because that
++	  is required to be built-in.
 +
- 	/* Get rid of temporary copy. */
- 	free_copy(info, flags);
- 
--	codetag_load_module(mod);
--
- 	/* Done! */
- 	trace_module_load(mod);
- 
---- a/lib/alloc_tag.c~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/lib/alloc_tag.c
-@@ -618,15 +618,16 @@ out:
- 	mas_unlock(&mas);
- }
- 
--static void load_module(struct module *mod, struct codetag *start, struct codetag *stop)
-+static int load_module(struct module *mod, struct codetag *start, struct codetag *stop)
- {
- 	/* Allocate module alloc_tag percpu counters */
- 	struct alloc_tag *start_tag;
- 	struct alloc_tag *stop_tag;
- 	struct alloc_tag *tag;
- 
-+	/* percpu counters for core allocations are already statically allocated */
- 	if (!mod)
--		return;
-+		return 0;
- 
- 	start_tag = ct_to_alloc_tag(start);
- 	stop_tag = ct_to_alloc_tag(stop);
-@@ -638,12 +639,13 @@ static void load_module(struct module *m
- 				free_percpu(tag->counters);
- 				tag->counters = NULL;
- 			}
--			shutdown_mem_profiling(true);
--			pr_err("Failed to allocate memory for allocation tag percpu counters in the module %s. Memory allocation profiling is disabled!\n",
-+			pr_err("Failed to allocate memory for allocation tag percpu counters in the module %s\n",
- 			       mod->name);
--			break;
-+			return -ENOMEM;
- 		}
- 	}
-+
-+	return 0;
- }
- 
- static void replace_module(struct module *mod, struct module *new_mod)
---- a/lib/codetag.c~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/lib/codetag.c
-@@ -167,6 +167,7 @@ static int codetag_module_init(struct co
- {
- 	struct codetag_range range;
- 	struct codetag_module *cmod;
-+	int mod_id;
- 	int err;
- 
- 	range = get_section_range(mod, cttype->desc.section);
-@@ -190,11 +191,20 @@ static int codetag_module_init(struct co
- 	cmod->range = range;
- 
- 	down_write(&cttype->mod_lock);
--	err = idr_alloc(&cttype->mod_idr, cmod, 0, 0, GFP_KERNEL);
--	if (err >= 0) {
--		cttype->count += range_size(cttype, &range);
--		if (cttype->desc.module_load)
--			cttype->desc.module_load(mod, range.start, range.stop);
-+	mod_id = idr_alloc(&cttype->mod_idr, cmod, 0, 0, GFP_KERNEL);
-+	if (mod_id >= 0) {
-+		if (cttype->desc.module_load) {
-+			err = cttype->desc.module_load(mod, range.start, range.stop);
-+			if (!err)
-+				cttype->count += range_size(cttype, &range);
-+			else
-+				idr_remove(&cttype->mod_idr, mod_id);
-+		} else {
-+			cttype->count += range_size(cttype, &range);
-+			err = 0;
-+		}
-+	} else {
-+		err = mod_id;
- 	}
- 	up_write(&cttype->mod_lock);
- 
-@@ -295,17 +305,23 @@ void codetag_module_replaced(struct modu
- 	mutex_unlock(&codetag_lock);
- }
- 
--void codetag_load_module(struct module *mod)
-+int codetag_load_module(struct module *mod)
- {
- 	struct codetag_type *cttype;
-+	int ret = 0;
- 
- 	if (!mod)
--		return;
-+		return 0;
- 
- 	mutex_lock(&codetag_lock);
--	list_for_each_entry(cttype, &codetag_types, link)
--		codetag_module_init(cttype, mod);
-+	list_for_each_entry(cttype, &codetag_types, link) {
-+		ret = codetag_module_init(cttype, mod);
-+		if (ret)
-+			break;
-+	}
- 	mutex_unlock(&codetag_lock);
-+
-+	return ret;
- }
- 
- void codetag_unload_module(struct module *mod)
+ config CRASH_HOTPLUG
+ 	bool "Update the crash elfcorehdr on system configuration changes"
+ 	default y
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-alloc_tag-allocate-percpu-counters-for-module-tags-dynamically.patch
-alloc_tag-handle-module-codetag-load-errors-as-module-load-failures.patch
+crash_dump-nvme-select-configfs_fs-as-built-in.patch
 
