@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C6DF1CEEB2
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED91D1CEEB2
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846623; cv=none; b=KPIjDjiaQq0mbcMuZjiF6RdbOdiMpy6uB+FIJ/S+3UWDGIk2XIfsjAQxdCdkp2I8XTRKPVNVkxVD77FnBdZkeI6bpumAZN0bI+0Dp501Ey9w1BqKdv+W9UTg0Vi0GjwslWH3x/8RqUE97GjbKWoIKt2DwA5A5vfdc+jNdbIrDno=
+	t=1747846625; cv=none; b=Jtmyf3ikMxEtnAHcBBpwhrDrI5+xzrm5mgms4M/q52jOfcLAAUCKgqdnu+p7OQz+8q8Rif5mYLlL3169PkGrA/cONuBxa7J5xyPXz33/dKI6VLjgYX/gkafR/AZ54nQAHFCdv24ioo+/etf/vgq+wxFhKQmmFhMtZ27A1j17NQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846623; c=relaxed/simple;
-	bh=0dkJlI7j/EzWOd4UCPb3iMCPjbFCUdL/yilAVehun+c=;
-	h=Date:To:From:Subject:Message-Id; b=Sy8g/n38oDv9TMwzXxejYET83Dv6hELp5k7lG2poYXW4PUfFK6z6/Wd94yL4HCjY8BzLbe0jgnJ88yfoSLAzWYIAFei3lQeuBh/8or+Dg6kSnTPAvFiLmh05R9izXYwGEOXFxwAjS0mTj281i3d8UUCEAeRO+el7WnSv4IcFmmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gTrId4lR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846625; c=relaxed/simple;
+	bh=gqe3JAK1bBhFfoDw06i/+nOFdyytCLmyLPPQyc0pNiI=;
+	h=Date:To:From:Subject:Message-Id; b=K8xmqT44AYcVV1CgahlJNMw6T8xajLhBvElGC0QBIL6Wy/J07+XKR6rOuiNOgGmrAbdElw6TMruGHsYWKZKrjSuS90zg2grm9dZRIuciMrITcLAFIO0YaFhzhqPYgU2CB89+nCq9/ACQwJ3QU3c4I8fFbjGIFBRrVfdy7hwrNrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0BY6TZf9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gTrId4lR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D3ECC4CEE4;
-	Wed, 21 May 2025 16:57:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0BY6TZf9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40B05C4CEE4;
+	Wed, 21 May 2025 16:57:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846622;
-	bh=0dkJlI7j/EzWOd4UCPb3iMCPjbFCUdL/yilAVehun+c=;
+	s=korg; t=1747846624;
+	bh=gqe3JAK1bBhFfoDw06i/+nOFdyytCLmyLPPQyc0pNiI=;
 	h=Date:To:From:Subject:From;
-	b=gTrId4lR9ADNi3e+cp28j1SrRP2g0U9tVqB+kwfnlHAOROT9pks1KYf6k2N9B7IhT
-	 Fw3TTH0S/NRHoUOmgfHtl9VofINSZy/JJjfDIr5tqDnzGuleJHiJqf8ooUFLU6g6Xi
-	 Itff3NvWlN7bDzku7Gk5YFJkGr1jPXiPSelWzwk8=
-Date: Wed, 21 May 2025 09:57:02 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=0BY6TZf97oWzbzDhNbqoMSv7V0P7zBx1Eby0BuGrNSjTjvNJD8mZ6UOPj9DTK1Eae
+	 c8PuXK7kHnXHmiudwsAvwOsJ+J2lT2ndRLFWsN6CULCpHJOeapPgU7UBZVqmfK6oii
+	 noK3Zx/G8PLr3szDGRuMRIh0hF6WPs7258qeUwOU=
+Date: Wed, 21 May 2025 09:57:03 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tursulin@ursulin.net,tglx@linutronix.de,rostedt@goodmis.org,rodrigo.vivi@intel.com,peterz@infradead.org,peterx@redhat.com,mingo@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,luto@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joonas.lahtinen@linux.intel.com,jannh@google.com,jani.nikula@linux.intel.com,hpa@zytor.com,bp@alien8.de,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mincore-use-pte_batch_bint-to-batch-process-large-folios.patch removed from -mm tree
-Message-Id: <20250521165702.9D3ECC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] x86-mm-pat-factor-out-setting-cachemode-into-pgprot_set_cachemode.patch removed from -mm tree
+Message-Id: <20250521165704.40B05C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,175 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: mincore: use pte_batch_hint() to batch process large folios
+     Subject: x86/mm/pat: factor out setting cachemode into pgprot_set_cachemode()
 has been removed from the -mm tree.  Its filename was
-     mm-mincore-use-pte_batch_bint-to-batch-process-large-folios.patch
+     x86-mm-pat-factor-out-setting-cachemode-into-pgprot_set_cachemode.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: mincore: use pte_batch_hint() to batch process large folios
-Date: Fri, 9 May 2025 08:45:21 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: x86/mm/pat: factor out setting cachemode into pgprot_set_cachemode()
+Date: Mon, 12 May 2025 14:34:14 +0200
 
-When I tested the mincore() syscall, I observed that it takes longer with
-64K mTHP enabled on my Arm64 server.  The reason is the
-mincore_pte_range() still checks each PTE individually, even when the PTEs
-are contiguous, which is not efficient.
+VM_PAT annoyed me too much and wasted too much of my time, let's clean PAT
+handling up and remove VM_PAT.
 
-Thus we can use pte_batch_hint() to get the batch number of the present
-contiguous PTEs, which can improve the performance.  I tested the
-mincore() syscall with 1G anonymous memory populated with 64K mTHP, and
-observed an obvious performance improvement:
+This should sort out various issues with VM_PAT we discovered recently,
+and will hopefully make the whole code more stable and easier to maintain.
 
-w/o patch		w/ patch		changes
-6022us			549us			+91%
+In essence: we stop letting PAT mode mess with VMAs and instead lift what
+to track/untrack to the MM core.  We remember per VMA which pfn range we
+tracked in a new struct we attach to a VMA (we have space without
+exceeding 192 bytes), use a kref to share it among VMAs during
+split/mremap/fork, and automatically untrack once the kref drops to 0.
 
-Moreover, I also tested mincore() with disabling mTHP/THP, and did not see
-any obvious regression for base pages.
+This implies that we'll keep tracking a full pfn range even after
+partially unmapping it, until fully unmapping it; but as that case was
+mostly broken before, this at least makes it work in a way that is least
+intrusive to VMA handling.
 
-Link: https://lkml.kernel.org/r/99cb00ee626ceb6e788102ca36821815cd832237.1746697240.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Shrinking with mremap() used to work in a hacky way, now we'll similarly
+keep the original pfn range tacked even after this form of partial unmap. 
+Does anybody care about that?  Unlikely.  If we run into issues, we could
+likely handled that (adjust the tracking) when our kref drops to 1 while
+freeing a VMA.  But it adds more complexity, so avoid that for now.
+
+Briefly tested with the new pfnmap selftests [1].
+
+
+This patch (of 11):
+
+Let's factor it out to make the code easier to grasp.  Drop one comment
+where it is now rather obvious what is happening.
+
+Use it also in pgprot_writecombine()/pgprot_writethrough() where clearing
+the old cachemode might not be required, but given that we are already
+doing a function call, no need to care about this micro-optimization.
+
+Link: https://lkml.kernel.org/r/20250512123424.637989-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20250512123424.637989-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20250509153033.952746-1-david@redhat.com [1]
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>	[x86 bits]
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Tvrtko Ursulin <tursulin@ursulin.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ arch/x86/mm/pat/memtype.c |   33 +++++++++++++++------------------
+ 1 file changed, 15 insertions(+), 18 deletions(-)
 
---- a/mm/mincore.c~mm-mincore-use-pte_batch_bint-to-batch-process-large-folios
-+++ a/mm/mincore.c
-@@ -21,6 +21,7 @@
+--- a/arch/x86/mm/pat/memtype.c~x86-mm-pat-factor-out-setting-cachemode-into-pgprot_set_cachemode
++++ a/arch/x86/mm/pat/memtype.c
+@@ -800,6 +800,12 @@ static inline int range_is_allowed(unsig
+ }
+ #endif /* CONFIG_STRICT_DEVMEM */
  
- #include <linux/uaccess.h>
- #include "swap.h"
-+#include "internal.h"
++static inline void pgprot_set_cachemode(pgprot_t *prot, enum page_cache_mode pcm)
++{
++	*prot = __pgprot((pgprot_val(*prot) & ~_PAGE_CACHE_MASK) |
++			 cachemode2protval(pcm));
++}
++
+ int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
+ 				unsigned long size, pgprot_t *vma_prot)
+ {
+@@ -811,8 +817,7 @@ int phys_mem_access_prot_allowed(struct
+ 	if (file->f_flags & O_DSYNC)
+ 		pcm = _PAGE_CACHE_MODE_UC_MINUS;
  
- static int mincore_hugetlb(pte_t *pte, unsigned long hmask, unsigned long addr,
- 			unsigned long end, struct mm_walk *walk)
-@@ -105,6 +106,7 @@ static int mincore_pte_range(pmd_t *pmd,
- 	pte_t *ptep;
- 	unsigned char *vec = walk->private;
- 	int nr = (end - addr) >> PAGE_SHIFT;
-+	int step, i;
+-	*vma_prot = __pgprot((pgprot_val(*vma_prot) & ~_PAGE_CACHE_MASK) |
+-			     cachemode2protval(pcm));
++	pgprot_set_cachemode(vma_prot, pcm);
+ 	return 1;
+ }
  
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
-@@ -118,16 +120,26 @@ static int mincore_pte_range(pmd_t *pmd,
- 		walk->action = ACTION_AGAIN;
+@@ -880,9 +885,7 @@ static int reserve_pfn_range(u64 paddr,
+ 				(unsigned long long)paddr,
+ 				(unsigned long long)(paddr + size - 1),
+ 				cattr_name(pcm));
+-			*vma_prot = __pgprot((pgprot_val(*vma_prot) &
+-					     (~_PAGE_CACHE_MASK)) |
+-					     cachemode2protval(pcm));
++			pgprot_set_cachemode(vma_prot, pcm);
+ 		}
  		return 0;
  	}
--	for (; addr != end; ptep++, addr += PAGE_SIZE) {
-+	for (; addr != end; ptep += step, addr += step * PAGE_SIZE) {
- 		pte_t pte = ptep_get(ptep);
- 
-+		step = 1;
- 		/* We need to do cache lookup too for pte markers */
- 		if (pte_none_mostly(pte))
- 			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
- 						 vma, vec);
--		else if (pte_present(pte))
--			*vec = 1;
--		else { /* pte is a swap entry */
-+		else if (pte_present(pte)) {
-+			unsigned int batch = pte_batch_hint(ptep, pte);
-+
-+			if (batch > 1) {
-+				unsigned int max_nr = (end - addr) >> PAGE_SHIFT;
-+
-+				step = min_t(unsigned int, batch, max_nr);
-+			}
-+
-+			for (i = 0; i < step; i++)
-+				vec[i] = 1;
-+		} else { /* pte is a swap entry */
- 			swp_entry_t entry = pte_to_swp_entry(pte);
- 
- 			if (non_swap_entry(entry)) {
-@@ -146,7 +158,7 @@ static int mincore_pte_range(pmd_t *pmd,
- #endif
- 			}
- 		}
--		vec++;
-+		vec += step;
+@@ -907,9 +910,7 @@ static int reserve_pfn_range(u64 paddr,
+ 		 * We allow returning different type than the one requested in
+ 		 * non strict case.
+ 		 */
+-		*vma_prot = __pgprot((pgprot_val(*vma_prot) &
+-				      (~_PAGE_CACHE_MASK)) |
+-				     cachemode2protval(pcm));
++		pgprot_set_cachemode(vma_prot, pcm);
  	}
- 	pte_unmap_unlock(ptep - 1, ptl);
- out:
+ 
+ 	if (memtype_kernel_map_sync(paddr, size, pcm) < 0) {
+@@ -1060,9 +1061,7 @@ int track_pfn_remap(struct vm_area_struc
+ 			return -EINVAL;
+ 	}
+ 
+-	*prot = __pgprot((pgprot_val(*prot) & (~_PAGE_CACHE_MASK)) |
+-			 cachemode2protval(pcm));
+-
++	pgprot_set_cachemode(prot, pcm);
+ 	return 0;
+ }
+ 
+@@ -1073,10 +1072,8 @@ void track_pfn_insert(struct vm_area_str
+ 	if (!pat_enabled())
+ 		return;
+ 
+-	/* Set prot based on lookup */
+ 	pcm = lookup_memtype(pfn_t_to_phys(pfn));
+-	*prot = __pgprot((pgprot_val(*prot) & (~_PAGE_CACHE_MASK)) |
+-			 cachemode2protval(pcm));
++	pgprot_set_cachemode(prot, pcm);
+ }
+ 
+ /*
+@@ -1115,15 +1112,15 @@ void untrack_pfn_clear(struct vm_area_st
+ 
+ pgprot_t pgprot_writecombine(pgprot_t prot)
+ {
+-	return __pgprot(pgprot_val(prot) |
+-				cachemode2protval(_PAGE_CACHE_MODE_WC));
++	pgprot_set_cachemode(&prot, _PAGE_CACHE_MODE_WC);
++	return prot;
+ }
+ EXPORT_SYMBOL_GPL(pgprot_writecombine);
+ 
+ pgprot_t pgprot_writethrough(pgprot_t prot)
+ {
+-	return __pgprot(pgprot_val(prot) |
+-				cachemode2protval(_PAGE_CACHE_MODE_WT));
++	pgprot_set_cachemode(&prot, _PAGE_CACHE_MODE_WT);
++	return prot;
+ }
+ EXPORT_SYMBOL_GPL(pgprot_writethrough);
+ 
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
