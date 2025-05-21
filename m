@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 777842673BA
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 20:43:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DAA81BCA0E
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 20:46:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747860239; cv=none; b=bzI2X4J6DDxt247Jpal3VxBBHx50rGdbrUURb8aJzw8jz4HEH54GLwdZEWNBcpcKUo/phrccA4s/yTKud36nxy+ExscaO9egp1BqY+zRjlrQp77AHyjdX9spWi7OtUYKP1tyYLw3KSfusm4mOpQrIqYJV/Dyb3yHpEK32+dCgzk=
+	t=1747860362; cv=none; b=pSLn8lzgzOjWDFt42aYzYOlIdrZsk7WSnxca9ei4K83Qb4KS2oWcZMBTm3oFKaXyoHRaBMPuRCckmf4PYLX5UgVs3xPR+fse2Kd0mpRazcd3iCMjqmPTgKFpPx4xRK2yZPKcvq1TZb4jP9VlcG2gTxkJ+KQthsAVe75T7YAhxgY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747860239; c=relaxed/simple;
-	bh=lAla/9QyeVnXQNPU8cD8fkdvfjkDhne+/ZNfnPhCLLQ=;
-	h=Date:To:From:Subject:Message-Id; b=peKX6TlbRDOkA49vkdDAUbLLBR2jiyzN6GDnhsOZoIk8oRnKSNn71hhRPkfadiJ051gvn9PQMneREV7MIPWgmmaWxM7jSzGbcEbFIHUcsLWB1rQLZUL/APa1O5Ld4oowo767oYBokHJT2WUr9KNdsi+spQCpZXGvPrDKJDrc2MA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i36GcuoC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747860362; c=relaxed/simple;
+	bh=/tsiL7ZvsNA6cLB0s6+0veEP+1Ghma4vbogsN2lKO+0=;
+	h=Date:To:From:Subject:Message-Id; b=lfjHpVZZIDwTJqROoKTefy/sV2T9DT98tOYX66X8GREpFyPhsqsvsfOeu8pSXEXbfey46o2Xqtp6R4OL40j7p1QOHiUz5qAJGG1QFE7x+7a1R2DlHAAK/3fQhQ6pdVW4Q0cgfs3cSnfkFi0TX6mBGFObj2pSfPneKThyu+ntY/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZtHkr+Ta; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i36GcuoC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 148DCC4CEE4;
-	Wed, 21 May 2025 20:43:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZtHkr+Ta"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7DB9C4CEE4;
+	Wed, 21 May 2025 20:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747860239;
-	bh=lAla/9QyeVnXQNPU8cD8fkdvfjkDhne+/ZNfnPhCLLQ=;
+	s=korg; t=1747860361;
+	bh=/tsiL7ZvsNA6cLB0s6+0veEP+1Ghma4vbogsN2lKO+0=;
 	h=Date:To:From:Subject:From;
-	b=i36GcuoCF2XA4nSrngL+AJTBjsmyNNlo18ab/ZxpMS8IzMlFCI3hNv6LuFA/WISku
-	 TU/GfeEL7ib1B7W9IKFx5f+A2WJnUYkjGcZKDMeqiv902TmgcIL+qWGZdVxR3SkyX+
-	 454z/8ybSB32Q16x6VDUQ7G3TlBCWt/JbhuTeedk=
-Date: Wed, 21 May 2025 13:43:58 -0700
-To: mm-commits@vger.kernel.org,sagi@grimberg.me,leitao@debian.org,kch@nvidia.com,hch@lst.de,coxu@redhat.com,axboe@kernel.dk,a.hindborg@kernel.org,arnd@arndb.de,akpm@linux-foundation.org
+	b=ZtHkr+TaJW8Ltg8KGTe3xpW2/k2CDSe9lonxJX/GBe6Yo3e45DLA42BSthMi0broO
+	 kzIec5y2hY0j9V6XVlf4XU02JR+3La0YSMNm4eq9RrrZ3dPpW0wkXG/QyH3mVpPdo8
+	 3h4Hv7WkuX7t1OjHC3NZMbggvKARLtKmq43Jv1Jc=
+Date: Wed, 21 May 2025 13:46:01 -0700
+To: mm-commits@vger.kernel.org,chanho.min@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash_dump-nvme-select-configfs_fs-as-built-in.patch added to mm-nonmm-unstable branch
-Message-Id: <20250521204359.148DCC4CEE4@smtp.kernel.org>
+Subject: + squashfs-add-optional-full-compressed-block-caching.patch added to mm-nonmm-unstable branch
+Message-Id: <20250521204601.C7DB9C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash_dump, nvme: select CONFIGFS_FS as built-in
+     Subject: squashfs: add optional full compressed block caching
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash_dump-nvme-select-configfs_fs-as-built-in.patch
+     squashfs-add-optional-full-compressed-block-caching.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_dump-nvme-select-configfs_fs-as-built-in.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-add-optional-full-compressed-block-caching.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,129 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: crash_dump, nvme: select CONFIGFS_FS as built-in
-Date: Wed, 21 May 2025 18:03:19 +0200
+From: Chanho Min <chanho.min@lge.com>
+Subject: squashfs: add optional full compressed block caching
+Date: Wed, 21 May 2025 16:25:59 +0900
 
-Configfs can be configured as a loadable module, which causes a link-time
-failure for dm-crypt crash dump support:
+The commit 93e72b3c612adcaca1 ("squashfs: migrate from ll_rw_block usage
+to BIO") removed caching of compressed blocks in SquashFS, causing fio
+performance regression in workloads with repeated file reads.  Without
+caching, every read triggers disk I/O, severely impacting performance in
+tools like fio.
 
-crash_dump_dm_crypt.c:(.text+0x3a4): undefined reference to `config_item_init_type_name'
-aarch64-linux-ld: kernel/crash_dump_dm_crypt.o: in function `configfs_dmcrypt_keys_init':
-crash_dump_dm_crypt.c:(.init.text+0x90): undefined reference to `config_group_init'
-aarch64-linux-ld: crash_dump_dm_crypt.c:(.init.text+0xb4): undefined reference to `configfs_register_subsystem'
-aarch64-linux-ld: crash_dump_dm_crypt.c:(.init.text+0xd8): undefined reference to `configfs_unregister_subsystem'
+This patch introduces a new CONFIG_SQUASHFS_COMP_CACHE_FULL Kconfig option
+to enable caching of all compressed blocks, restoring performance to
+pre-BIO migration levels.  When enabled, all pages in a BIO are cached in
+the page cache, reducing disk I/O for repeated reads.  The fio test
+results with this patch confirm the performance restoration:
 
-This could be avoided with a dependency on CONFIGFS_FS=y, but the
-dependency has an additional problem of causing Kconfig dependency loops
-since most other uses select the symbol.
+For example, fio tests (iodepth=1, numjobs=1,
+ioengine=psync) show a notable performance restoration:
 
-Using a simple 'select CONFIGFS_FS' here in turn fails with
-CONFIG_DM_CRYPT=m, because that still only causes configfs to be a
-loadable module.
+Disable CONFIG_SQUASHFS_COMP_CACHE_FULL:
+  IOPS=815, BW=102MiB/s (107MB/s)(6113MiB/60001msec)
+Enable CONFIG_SQUASHFS_COMP_CACHE_FULL:
+  IOPS=2223, BW=278MiB/s (291MB/s)(16.3GiB/59999msec)
 
-The only version I found that fixes this reliably uses an additional
-Kconfig symbol to ensure the 'select' actually turns on configfs as
-builtin, with two additional changes to avoid dependency loops with nvme
-and sysfs.
+The tradeoff is increased memory usage due to caching all compressed
+blocks.  The CONFIG_SQUASHFS_COMP_CACHE_FULL option allows users to enable
+this feature selectively, balancing performance and memory usage for
+workloads with frequent repeated reads.
 
-There is no compile-time dependency between configfs and sysfs, so
-selecting configfs from a driver with sysfs disabled does not cause link
-failures, only the default /sys/kernel/config mount point will not be
-created.
-
-Link: https://lkml.kernel.org/r/20250521160359.2132363-1-arnd@kernel.org
-Fixes: 6b23858fd63b ("crash_dump: make dm crypt keys persist for the kdump kernel")
-Fixes: 1fb470408497 ("nvme-loop: add configfs dependency")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Chaitanya Kulkarni <kch@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Sagi Grimberg <sagi@grimberg.me>
+Link: https://lkml.kernel.org/r/20250521072559.2389-1-chanho.min@lge.com
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+Reviewed-by Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvme/target/Kconfig |    2 +-
- fs/configfs/Kconfig         |    1 -
- kernel/Kconfig.kexec        |    8 +++++++-
- 3 files changed, 8 insertions(+), 3 deletions(-)
+ fs/squashfs/Kconfig |   21 +++++++++++++++++++++
+ fs/squashfs/block.c |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
---- a/drivers/nvme/target/Kconfig~crash_dump-nvme-select-configfs_fs-as-built-in
-+++ a/drivers/nvme/target/Kconfig
-@@ -3,7 +3,7 @@
- config NVME_TARGET
- 	tristate "NVMe Target support"
- 	depends on BLOCK
--	depends on CONFIGFS_FS
-+	select CONFIGFS_FS
- 	select NVME_KEYRING if NVME_TARGET_TCP_TLS
- 	select KEYS if NVME_TARGET_TCP_TLS
- 	select SGL_ALLOC
---- a/fs/configfs/Kconfig~crash_dump-nvme-select-configfs_fs-as-built-in
-+++ a/fs/configfs/Kconfig
-@@ -1,7 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
- config CONFIGFS_FS
- 	tristate "Userspace-driven configuration filesystem"
--	select SYSFS
- 	help
- 	  configfs is a RAM-based filesystem that provides the converse
- 	  of sysfs's functionality. Where sysfs is a filesystem-based
---- a/kernel/Kconfig.kexec~crash_dump-nvme-select-configfs_fs-as-built-in
-+++ a/kernel/Kconfig.kexec
-@@ -134,12 +134,18 @@ config CRASH_DM_CRYPT
- 	depends on KEXEC_FILE
- 	depends on CRASH_DUMP
- 	depends on DM_CRYPT
--	depends on CONFIGFS_FS
- 	help
- 	  With this option enabled, user space can intereact with
- 	  /sys/kernel/config/crash_dm_crypt_keys to make the dm crypt keys
- 	  persistent for the dump-capture kernel.
+--- a/fs/squashfs/block.c~squashfs-add-optional-full-compressed-block-caching
++++ a/fs/squashfs/block.c
+@@ -88,6 +88,10 @@ static int squashfs_bio_read_cached(stru
+ 	struct bio_vec *bv;
+ 	int idx = 0;
+ 	int err = 0;
++#ifdef CONFIG_SQUASHFS_COMP_CACHE_FULL
++	struct page **cache_pages = kmalloc_array(page_count,
++			sizeof(void *), GFP_KERNEL | __GFP_ZERO);
++#endif
  
-+config CRASH_DM_CRYPT_CONFIGS
-+	def_tristate CRASH_DM_CRYPT
-+	select CONFIGFS_FS
-+	help
-+	  CRASH_DM_CRYPT cannot directly select CONFIGFS_FS, because that
-+	  is required to be built-in.
+ 	bio_for_each_segment_all(bv, fullbio, iter_all) {
+ 		struct page *page = bv->bv_page;
+@@ -110,6 +114,11 @@ static int squashfs_bio_read_cached(stru
+ 			head_to_cache = page;
+ 		else if (idx == page_count - 1 && index + length != read_end)
+ 			tail_to_cache = page;
++#ifdef CONFIG_SQUASHFS_COMP_CACHE_FULL
++		/* Cache all pages in the BIO for repeated reads */
++		else if (cache_pages)
++			cache_pages[idx] = page;
++#endif
+ 
+ 		if (!bio || idx != end_idx) {
+ 			struct bio *new = bio_alloc_clone(bdev, fullbio,
+@@ -163,6 +172,25 @@ static int squashfs_bio_read_cached(stru
+ 		}
+ 	}
+ 
++#ifdef CONFIG_SQUASHFS_COMP_CACHE_FULL
++	if (!cache_pages)
++		goto out;
 +
- config CRASH_HOTPLUG
- 	bool "Update the crash elfcorehdr on system configuration changes"
- 	default y
++	for (idx = 0; idx < page_count; idx++) {
++		if (!cache_pages[idx])
++			continue;
++		int ret = add_to_page_cache_lru(cache_pages[idx], cache_mapping,
++						(read_start >> PAGE_SHIFT) + idx,
++						GFP_NOIO);
++
++		if (!ret) {
++			SetPageUptodate(cache_pages[idx]);
++			unlock_page(cache_pages[idx]);
++		}
++	}
++	kfree(cache_pages);
++out:
++#endif
+ 	return 0;
+ }
+ 
+--- a/fs/squashfs/Kconfig~squashfs-add-optional-full-compressed-block-caching
++++ a/fs/squashfs/Kconfig
+@@ -149,6 +149,27 @@ config SQUASHFS_XATTR
+ 
+ 	  If unsure, say N.
+ 
++config SQUASHFS_COMP_CACHE_FULL
++	bool "Enable full caching of compressed blocks"
++	depends on SQUASHFS
++	default n
++	help
++	  This option enables caching of all compressed blocks, Without caching,
++	  repeated reads of the same files trigger excessive disk I/O, significantly
++	  reducinng performance in workloads like fio-based benchmarks.
++
++	  For example, fio tests (iodepth=1, numjobs=1, ioengine=psync) show:
++	   With caching: IOPS=2223, BW=278MiB/s (291MB/s)
++	   Without caching: IOPS=815, BW=102MiB/s (107MB/s)
++
++	  Enabling this option restores performance to pre-regression levels by
++	  caching all compressed blocks in the page cache, reducing disk I/O for
++	  repeated reads. However, this increases memory usage, which may be a
++	  concern in memory-constrained environments.
++
++	  Enable this option if your workload involves frequent repeated reads and
++	  memory usage is not a limiting factor. If unsure, say N.
++
+ config SQUASHFS_ZLIB
+ 	bool "Include support for ZLIB compressed file systems"
+ 	depends on SQUASHFS
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from chanho.min@lge.com are
 
-crash_dump-nvme-select-configfs_fs-as-built-in.patch
+squashfs-add-optional-full-compressed-block-caching.patch
 
