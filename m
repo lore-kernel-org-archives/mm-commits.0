@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E0B32C85
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 05:50:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 224A832C85;
+	Wed, 21 May 2025 05:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747806610; cv=none; b=WKJM0DQPm7GpKRGD/pE0Sq2J2bGJPIDUttx4lCzGQ9Kej7jIBHVjbVTyfj0vH51QBOrdBk6OpAyYZN4Cx1nHm8b7rsii0wM4z2bZPcS+mw0w4tAWdxUGAH9Nx0iCpvOMV9NvEF1h5FYKcKmFs37uCmvOCPNlJXuRVaqXzEvKhJg=
+	t=1747806612; cv=none; b=n7joiCOYYPmTJEBzqT7Cp8RsotN8lyf6bXu4CsPQQW4WAO8wmML35QZgbn6tLQAX1raPsdw7S1RnHgKRjZcfdV01nMHW/teezVcklso7Kb4tYdZtcpLlYUpQZleO7XB4Nw3zSdruKePV+yMb/1lio+Pj78+btpF+wzevMfzudgQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747806610; c=relaxed/simple;
-	bh=Gd5LslFNnLLEfwnngYCNJX2D/XXtA7JeKVtVX05835o=;
-	h=Date:To:From:Subject:Message-Id; b=W8CqYqvoE3NtVTkLuRkWiz4kzdhlW2j6YxGGx/6z857ylBnELMV1uRjcbVL31s1P12z/1hf10UxLj5mGMgcCjvsHSWsQuw4/10IMUqGHYiyC0Q/yj9wuVENVb803kDzkRTbaoeaXOGkrIVs1JJ8Rj67NuCfFHom6KZc3YjDjiPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rD9xkY8P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747806612; c=relaxed/simple;
+	bh=WW/z5TbNGcaFzUpyWxz8Y7GXNBSfkJ3Ta8Nv81RYUWc=;
+	h=Date:To:From:Subject:Message-Id; b=uxlhTRndfHcPErDnFk2BuNR8ueQhtY/39pCsBx8CyUyHzUbkmFp9OkVs7+HSi+H22URat8npTj/Tyz7+I/ZkINW52KrDBz6ORe5sM9y1oxqzOenRQxk+AwBAa5h4AQLB1KXSF5nGOMzIss7KxZOBOpGAsoZ2ox/LJi5yyE+65tQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kCtrr3YO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rD9xkY8P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39888C4CEE4;
-	Wed, 21 May 2025 05:50:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kCtrr3YO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FA74C4CEE4;
+	Wed, 21 May 2025 05:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747806610;
-	bh=Gd5LslFNnLLEfwnngYCNJX2D/XXtA7JeKVtVX05835o=;
+	s=korg; t=1747806611;
+	bh=WW/z5TbNGcaFzUpyWxz8Y7GXNBSfkJ3Ta8Nv81RYUWc=;
 	h=Date:To:From:Subject:From;
-	b=rD9xkY8POERPzdWE4q/7Z80J3y/vUJYvYkHEWvply8KWBccOdh9DnK8Z8iYJf1QO+
-	 7ivanjbJkFwFY3dvGTgTO4WcRxwNAzjOyOKCsjSdH1o+Sz3saAqblX2mnfvcJFLEYK
-	 dDyVpAv2m7NSfHmSVTOw1Fv9+C7KjqcL5JmOexdM=
-Date: Tue, 20 May 2025 22:50:09 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangerkun@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,yi.zhang@huawei.com,akpm@linux-foundation.org
+	b=kCtrr3YOGwFBP4Vy0Qrs8R2oO0irad+Ra13OstNecet6xyb9vlkks+ARc3SxCwPNQ
+	 Mytw7kH5+Lw9Q+QHhVPC56OZ8spzo+3le78ulThCAZC4mNwlptOZM/ZLQrFM/2Rp3D
+	 8UdkCn9EmQkNGcCCg1cl7aiG3q6a7GGmmmUOO3PI=
+Date: Tue, 20 May 2025 22:50:10 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,stable@vger.kernel.org,jiang.kun2@zte.com.cn,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-truncate-fix-out-of-bounds-when-doing-a-right-aligned-split.patch removed from -mm tree
-Message-Id: <20250521055010.39888C4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15.patch removed from -mm tree
+Message-Id: <20250521055011.7FA74C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,158 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/truncate: fix out-of-bounds when doing a right-aligned split
+     Subject: taskstats: fix struct taskstats breaks backward compatibility since version 15
 has been removed from the -mm tree.  Its filename was
-     mm-truncate-fix-out-of-bounds-when-doing-a-right-aligned-split.patch
+     taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhang Yi <yi.zhang@huawei.com>
-Subject: mm/truncate: fix out-of-bounds when doing a right-aligned split
-Date: Mon, 12 May 2025 14:28:25 +0800
+From: Wang Yaxin <wang.yaxin@zte.com.cn>
+Subject: taskstats: fix struct taskstats breaks backward compatibility since version 15
+Date: Sat, 10 May 2025 15:54:13 +0800 (CST)
 
-When performing a right split on a folio, the split_at2 may point to a
-not-present page if the offset + length equals the original folio size,
-which will trigger the following error:
+Problem
+========
+commit 658eb5ab916d ("delayacct: add delay max to record delay peak")
+  - adding more fields
+commit f65c64f311ee ("delayacct: add delay min to record delay peak")
+  - adding more fields
+commit b016d0873777 ("taskstats: modify taskstats version")
+ - version bump to 15
 
- BUG: unable to handle page fault for address: ffffea0006000008
- #PF: supervisor read access in kernel mode
- #PF: error_code(0x0000) - not-present page
- PGD 143ffb9067 P4D 143ffb9067 PUD 143ffb8067 PMD 0
- Oops: Oops: 0000 [#1] SMP PTI
- CPU: 0 UID: 0 PID: 502640 Comm: fsx Not tainted 6.15.0-rc3-gc6156189fc6b #889 PR
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-2.fc40 04/01/4
- RIP: 0010:truncate_inode_partial_folio+0x208/0x620
- Code: ff 03 48 01 da e8 78 7e 13 00 48 83 05 10 b5 5a 0c 01 85 c0 0f 85 1c 02 001
- RSP: 0018:ffffc90005bafab0 EFLAGS: 00010286
- RAX: 0000000000000000 RBX: ffffea0005ffff00 RCX: 0000000000000002
- RDX: 000000000000000c RSI: 0000000000013975 RDI: ffffc90005bafa30
- RBP: ffffea0006000000 R08: 0000000000000000 R09: 00000000000009bf
- R10: 00000000000007e0 R11: 0000000000000000 R12: 0000000000001633
- R13: 0000000000000000 R14: ffffea0005ffff00 R15: fffffffffffffffe
- FS:  00007f9f9a161740(0000) GS:ffff8894971fd000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: ffffea0006000008 CR3: 000000017c2ae000 CR4: 00000000000006f0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- Call Trace:
-  <TASK>
-  truncate_inode_pages_range+0x226/0x720
-  truncate_pagecache+0x57/0x90
-  ...
+Since version 15 (TASKSTATS_VERSION=15) the new layout of the structure
+adds fields in the middle of the structure, rendering all old software
+incompatible with newer kernels and software compiled against the new
+kernel headers incompatible with older kernels.
 
-Fix this issue by skipping the split if truncation aligns with the folio
-size, make sure the split page number lies within the folio.
+Solution
+=========
+move delay max and delay min to the end of taskstat, and bump
+the version to 16 after the change
 
-Link: https://lkml.kernel.org/r/20250512062825.3533342-1-yi.zhang@huaweicloud.com
-Fixes: 7460b470a131 ("mm/truncate: use folio_split() in truncate operation")
-Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: ErKun Yang <yangerkun@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+[wang.yaxin@zte.com.cn: adjust indentation]
+  Link: https://lkml.kernel.org/r/202505192131489882NSciXV4EGd8zzjLuwoOK@zte.com.cn
+Link: https://lkml.kernel.org/r/20250510155413259V4JNRXxukdDgzsaL0Fo6a@zte.com.cn
+Fixes: f65c64f311ee ("delayacct: add delay min to record delay peak")
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Signed-off-by: Kun Jiang <jiang.kun2@zte.com.cn>
+Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ include/uapi/linux/taskstats.h |   47 +++++++++++++++++++------------
+ 1 file changed, 29 insertions(+), 18 deletions(-)
 
---- a/mm/truncate.c~mm-truncate-fix-out-of-bounds-when-doing-a-right-aligned-split
-+++ a/mm/truncate.c
-@@ -191,6 +191,7 @@ int truncate_inode_folio(struct address_
- bool truncate_inode_partial_folio(struct folio *folio, loff_t start, loff_t end)
- {
- 	loff_t pos = folio_pos(folio);
-+	size_t size = folio_size(folio);
- 	unsigned int offset, length;
- 	struct page *split_at, *split_at2;
+--- a/include/uapi/linux/taskstats.h~taskstats-fix-struct-taskstats-breaks-backward-compatibility-since-version-15
++++ a/include/uapi/linux/taskstats.h
+@@ -34,7 +34,7 @@
+  */
  
-@@ -198,14 +199,13 @@ bool truncate_inode_partial_folio(struct
- 		offset = start - pos;
- 	else
- 		offset = 0;
--	length = folio_size(folio);
--	if (pos + length <= (u64)end)
--		length = length - offset;
-+	if (pos + size <= (u64)end)
-+		length = size - offset;
- 	else
- 		length = end + 1 - pos - offset;
  
- 	folio_wait_writeback(folio);
--	if (length == folio_size(folio)) {
-+	if (length == size) {
- 		truncate_inode_folio(folio->mapping, folio);
- 		return true;
- 	}
-@@ -224,16 +224,20 @@ bool truncate_inode_partial_folio(struct
- 		return true;
+-#define TASKSTATS_VERSION	15
++#define TASKSTATS_VERSION	16
+ #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
+ 					 * in linux/sched.h */
  
- 	split_at = folio_page(folio, PAGE_ALIGN_DOWN(offset) / PAGE_SIZE);
--	split_at2 = folio_page(folio,
--			PAGE_ALIGN_DOWN(offset + length) / PAGE_SIZE);
--
- 	if (!try_folio_split(folio, split_at, NULL)) {
- 		/*
- 		 * try to split at offset + length to make sure folios within
- 		 * the range can be dropped, especially to avoid memory waste
- 		 * for shmem truncate
- 		 */
--		struct folio *folio2 = page_folio(split_at2);
-+		struct folio *folio2;
+@@ -72,8 +72,6 @@ struct taskstats {
+ 	 */
+ 	__u64	cpu_count __attribute__((aligned(8)));
+ 	__u64	cpu_delay_total;
+-	__u64	cpu_delay_max;
+-	__u64	cpu_delay_min;
+ 
+ 	/* Following four fields atomically updated using task->delays->lock */
+ 
+@@ -82,14 +80,10 @@ struct taskstats {
+ 	 */
+ 	__u64	blkio_count;
+ 	__u64	blkio_delay_total;
+-	__u64	blkio_delay_max;
+-	__u64	blkio_delay_min;
+ 
+ 	/* Delay waiting for page fault I/O (swap in only) */
+ 	__u64	swapin_count;
+ 	__u64	swapin_delay_total;
+-	__u64	swapin_delay_max;
+-	__u64	swapin_delay_min;
+ 
+ 	/* cpu "wall-clock" running time
+ 	 * On some architectures, value will adjust for cpu time stolen
+@@ -172,14 +166,11 @@ struct taskstats {
+ 	/* Delay waiting for memory reclaim */
+ 	__u64	freepages_count;
+ 	__u64	freepages_delay_total;
+-	__u64	freepages_delay_max;
+-	__u64	freepages_delay_min;
 +
-+		if (offset + length == size)
-+			goto no_split;
-+
-+		split_at2 = folio_page(folio,
-+				PAGE_ALIGN_DOWN(offset + length) / PAGE_SIZE);
-+		folio2 = page_folio(split_at2);
  
- 		if (!folio_try_get(folio2))
- 			goto no_split;
+ 	/* Delay waiting for thrashing page */
+ 	__u64	thrashing_count;
+ 	__u64	thrashing_delay_total;
+-	__u64	thrashing_delay_max;
+-	__u64	thrashing_delay_min;
+ 
+ 	/* v10: 64-bit btime to avoid overflow */
+ 	__u64	ac_btime64;		/* 64-bit begin time */
+@@ -187,8 +178,6 @@ struct taskstats {
+ 	/* v11: Delay waiting for memory compact */
+ 	__u64	compact_count;
+ 	__u64	compact_delay_total;
+-	__u64	compact_delay_max;
+-	__u64	compact_delay_min;
+ 
+ 	/* v12 begin */
+ 	__u32   ac_tgid;	/* thread group ID */
+@@ -210,15 +199,37 @@ struct taskstats {
+ 	/* v13: Delay waiting for write-protect copy */
+ 	__u64    wpcopy_count;
+ 	__u64    wpcopy_delay_total;
+-	__u64    wpcopy_delay_max;
+-	__u64    wpcopy_delay_min;
+ 
+ 	/* v14: Delay waiting for IRQ/SOFTIRQ */
+ 	__u64    irq_count;
+ 	__u64    irq_delay_total;
+-	__u64    irq_delay_max;
+-	__u64    irq_delay_min;
+-	/* v15: add Delay max */
++
++	/* v15: add Delay max and Delay min */
++
++	/* v16: move Delay max and Delay min to the end of taskstat */
++	__u64	cpu_delay_max;
++	__u64	cpu_delay_min;
++
++	__u64	blkio_delay_max;
++	__u64	blkio_delay_min;
++
++	__u64	swapin_delay_max;
++	__u64	swapin_delay_min;
++
++	__u64	freepages_delay_max;
++	__u64	freepages_delay_min;
++
++	__u64	thrashing_delay_max;
++	__u64	thrashing_delay_min;
++
++	__u64	compact_delay_max;
++	__u64	compact_delay_min;
++
++	__u64	wpcopy_delay_max;
++	__u64	wpcopy_delay_min;
++
++	__u64	irq_delay_max;
++	__u64	irq_delay_min;
+ };
+ 
+ 
 _
 
-Patches currently in -mm which might be from yi.zhang@huawei.com are
+Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
 
