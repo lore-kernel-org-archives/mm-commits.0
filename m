@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 764B31CEEB2
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:56:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD2122D4E9
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:56:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846612; cv=none; b=C7E0TCHfqDzkADB4XzQk9Ha2mhbg7bRoMXnowyxUY9I9/r/Vgsi8yxPWgt6WlTdF8wJljKxkQZgJqSLvZUh3zfWlXf03u+PBZkaBiT976dDB8uskcGz21KBiz0vmpTTLI5CueI+uYuoFfLriWvufmeH055VTz7zVzIgfooP0Kno=
+	t=1747846615; cv=none; b=EDWXwtVabAJ6XAXYeMiVVk0fdARGqAQOAtThMkwAazf5Wi+JjlinY09wfBodldbbD9sZaXejDFeMal1QbTSEmUMmr4050aavJoG7DZtJaQhVW8pUcqcdWj8P5LkL9fFgSplJEiHyR3/BTsC0JaYmsEHFPADkSq1O3dFQUcrSH4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846612; c=relaxed/simple;
-	bh=oDaloNm3QL/TWV1eKcCn8lyPnUhgsjBlKf0cnHn/dQ4=;
-	h=Date:To:From:Subject:Message-Id; b=kh9EPJYYwcwD8u0wb+OplbsannVaNV0kBiQoShqvqyl5+9YggTBoR+FEVgXgfSER0SUr6ZyY9nf5dsIDn5FebcZMBbTPa0N6XgwPGEVrZjkFtmMQIUU00iT5SQnxj38spIv6wsmlz8busWxzmAEWSiMoNdc87pRegy3r1iTDSes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SZBi6VJA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846615; c=relaxed/simple;
+	bh=ql1VJ+v7KdtJYxLzBmBcM0nwjjcrCLYUtLWJqcYTQ94=;
+	h=Date:To:From:Subject:Message-Id; b=cumrUSsAj0sYOx/gVu8SoG6XPyK9Cwjb1IqB/4le93GkFqEmYaKtKf5guquZCVQruOhxABbbizcg6C/Kdj6ID6nRlCWk4xGzxlEOgkhrMSdFxnMZajtkYYbdAZ02K+TnZl3kVuPSUI6sH5eqzGIuABmWMX2ZZ5vHXxb946skSwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AzbFCM2q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SZBi6VJA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D078EC4CEE4;
-	Wed, 21 May 2025 16:56:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AzbFCM2q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CFACC4CEE4;
+	Wed, 21 May 2025 16:56:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846611;
-	bh=oDaloNm3QL/TWV1eKcCn8lyPnUhgsjBlKf0cnHn/dQ4=;
+	s=korg; t=1747846613;
+	bh=ql1VJ+v7KdtJYxLzBmBcM0nwjjcrCLYUtLWJqcYTQ94=;
 	h=Date:To:From:Subject:From;
-	b=SZBi6VJAGCEPceFmh8Ir+i9oH1S+Tato94vRPn00wWqXvdChzEYjBKla88mbJLRmc
-	 rcCqhKzaM2CApzxgdzg8NY/ZXWRk60EypOXqgsi41YdDNGha07X59Yd/2LJ74rO+rO
-	 mkIvyGr/IvO9wUDhzAwyydaYABydEudbjBEmIa7k=
-Date: Wed, 21 May 2025 09:56:51 -0700
-To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,iii@linux.ibm.com,elver@google.com,dvyukov@google.com,bvanassche@acm.org,glider@google.com,akpm@linux-foundation.org
+	b=AzbFCM2qjoDsWWnfGWEGuY+2K30D7y4itmUgK9lrE+SpET4ZIj17F+efpKp4cmWQn
+	 7py8/BpG12iQUpWUWacMk4jkTR/eOGB4POFGK7FZQuw8fVj2dO2chr/ZkfR7aFT+ES
+	 SNzUMU6DcFiTS5cgkTGJufjCI8PBKZuFaSFzDljk=
+Date: Wed, 21 May 2025 09:56:52 -0700
+To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,vineethr@linux.ibm.com,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,mhocko@kernel.org,mgorman@suse.de,kprateek.nayak@amd.com,hannes@cmpxchg.org,corbet@lwn.net,Ayush.jain3@amd.com,aubrey.li@intel.com,libo.chen@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kmsan-rework-kmsan_in_runtime-handling-in-kmsan_report.patch removed from -mm tree
-Message-Id: <20250521165651.D078EC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] sched-numa-fix-task-swap-by-skipping-kernel-threads.patch removed from -mm tree
+Message-Id: <20250521165653.4CFACC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kmsan: rework kmsan_in_runtime() handling in kmsan_report()
+     Subject: sched/numa: fix task swap by skipping kernel threads
 has been removed from the -mm tree.  Its filename was
-     kmsan-rework-kmsan_in_runtime-handling-in-kmsan_report.patch
+     sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: rework kmsan_in_runtime() handling in kmsan_report()
-Date: Wed, 7 May 2025 18:00:12 +0200
+From: Libo Chen <libo.chen@oracle.com>
+Subject: sched/numa: fix task swap by skipping kernel threads
+Date: Wed, 7 May 2025 19:17:15 +0800
 
-kmsan_report() calls used to require entering/leaving the runtime around
-them.  To simplify the things, drop this requirement and move calls to
-kmsan_enter_runtime()/kmsan_leave_runtime() into kmsan_report().
+Patch series "sched/numa: add statistics of numa balance task migration",
+v4.
 
-Link: https://lkml.kernel.org/r/20250507160012.3311104-5-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
+Introduce task migration and swap statistics in the following places:
+
+/sys/fs/cgroup/{GROUP}/memory.stat
+/proc/{PID}/sched
+/proc/vmstat
+
+These statistics facilitate a rapid evaluation of the performance and
+resource utilization of the target workload.
+
+
+This patch (of 2):
+
+Task swapping is triggered when there are no idle CPUs in task A's
+preferred node.  In this case, the NUMA load balancer chooses a task B on
+A's preferred node and swaps B with A.  This helps improve NUMA locality
+without introducing load imbalance between nodes.
+
+In the current implementation, B's NUMA node preference is not mandatory,
+and it aims not to increase load imbalance.  That is to say, a kernel
+thread might be chosen as B.  However, kernel threads are not supposed to
+be covered by NUMA balancing because NUMA balancing only considers user
+pages via VMAs.
+
+Fix this by not considering kernel threads as swap targets in
+task_numa_compare().  This can be extended beyond kernel threads in the
+future by checking if a swap candidate has a valid NUMA preference through
+checking the candidate's numa_preferred_nid and numa_faults.  For now,
+keep the code simple.
+
+Link: https://lkml.kernel.org/r/cover.1746611892.git.yu.c.chen@intel.com
+Link: https://lkml.kernel.org/r/a541cdf9b97f523f6b8067271847a986db5ba768.1746611892.git.yu.c.chen@intel.com
+Signed-off-by: Libo Chen <libo.chen@oracle.com>
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+Suggested-by: Michal Koutny <mkoutny@suse.com>
+Tested-by: Ayush Jain <Ayush.jain3@amd.com>
+Cc: Aubrey Li <aubrey.li@intel.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c            |    8 --------
- mm/kmsan/instrumentation.c |    4 ----
- mm/kmsan/report.c          |    6 +++---
- 3 files changed, 3 insertions(+), 15 deletions(-)
+ kernel/sched/fair.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kmsan/core.c~kmsan-rework-kmsan_in_runtime-handling-in-kmsan_report
-+++ a/mm/kmsan/core.c
-@@ -274,11 +274,9 @@ void kmsan_internal_check_memory(void *a
- 			 * bytes before, report them.
- 			 */
- 			if (cur_origin) {
--				kmsan_enter_runtime();
- 				kmsan_report(cur_origin, addr, size,
- 					     cur_off_start, pos - 1, user_addr,
- 					     reason);
--				kmsan_leave_runtime();
- 			}
- 			cur_origin = 0;
- 			cur_off_start = -1;
-@@ -292,11 +290,9 @@ void kmsan_internal_check_memory(void *a
- 				 * poisoned bytes before, report them.
- 				 */
- 				if (cur_origin) {
--					kmsan_enter_runtime();
- 					kmsan_report(cur_origin, addr, size,
- 						     cur_off_start, pos + i - 1,
- 						     user_addr, reason);
--					kmsan_leave_runtime();
- 				}
- 				cur_origin = 0;
- 				cur_off_start = -1;
-@@ -312,11 +308,9 @@ void kmsan_internal_check_memory(void *a
- 			 */
- 			if (cur_origin != new_origin) {
- 				if (cur_origin) {
--					kmsan_enter_runtime();
- 					kmsan_report(cur_origin, addr, size,
- 						     cur_off_start, pos + i - 1,
- 						     user_addr, reason);
--					kmsan_leave_runtime();
- 				}
- 				cur_origin = new_origin;
- 				cur_off_start = pos + i;
-@@ -326,10 +320,8 @@ void kmsan_internal_check_memory(void *a
- 	}
- 	KMSAN_WARN_ON(pos != size);
- 	if (cur_origin) {
--		kmsan_enter_runtime();
- 		kmsan_report(cur_origin, addr, size, cur_off_start, pos - 1,
- 			     user_addr, reason);
--		kmsan_leave_runtime();
- 	}
- }
+--- a/kernel/sched/fair.c~sched-numa-fix-task-swap-by-skipping-kernel-threads
++++ a/kernel/sched/fair.c
+@@ -2273,7 +2273,8 @@ static bool task_numa_compare(struct tas
  
---- a/mm/kmsan/instrumentation.c~kmsan-rework-kmsan_in_runtime-handling-in-kmsan_report
-+++ a/mm/kmsan/instrumentation.c
-@@ -312,13 +312,9 @@ EXPORT_SYMBOL(__msan_unpoison_alloca);
- void __msan_warning(u32 origin);
- void __msan_warning(u32 origin)
- {
--	if (!kmsan_enabled || kmsan_in_runtime())
--		return;
--	kmsan_enter_runtime();
- 	kmsan_report(origin, /*address*/ NULL, /*size*/ 0,
- 		     /*off_first*/ 0, /*off_last*/ 0, /*user_addr*/ NULL,
- 		     REASON_ANY);
--	kmsan_leave_runtime();
- }
- EXPORT_SYMBOL(__msan_warning);
+ 	rcu_read_lock();
+ 	cur = rcu_dereference(dst_rq->curr);
+-	if (cur && ((cur->flags & PF_EXITING) || is_idle_task(cur)))
++	if (cur && ((cur->flags & PF_EXITING) || is_idle_task(cur) ||
++		    !cur->mm))
+ 		cur = NULL;
  
---- a/mm/kmsan/report.c~kmsan-rework-kmsan_in_runtime-handling-in-kmsan_report
-+++ a/mm/kmsan/report.c
-@@ -157,14 +157,14 @@ void kmsan_report(depot_stack_handle_t o
- 	unsigned long ua_flags;
- 	bool is_uaf;
- 
--	if (!kmsan_enabled)
-+	if (!kmsan_enabled || kmsan_in_runtime())
- 		return;
- 	if (current->kmsan_ctx.depth)
- 		return;
- 	if (!origin)
- 		return;
- 
--	kmsan_disable_current();
-+	kmsan_enter_runtime();
- 	ua_flags = user_access_save();
- 	raw_spin_lock(&kmsan_report_lock);
- 	pr_err("=====================================================\n");
-@@ -217,5 +217,5 @@ void kmsan_report(depot_stack_handle_t o
- 	if (panic_on_kmsan)
- 		panic("kmsan.panic set ...\n");
- 	user_access_restore(ua_flags);
--	kmsan_enable_current();
-+	kmsan_leave_runtime();
- }
+ 	/*
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from libo.chen@oracle.com are
 
 
