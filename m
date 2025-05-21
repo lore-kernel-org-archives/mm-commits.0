@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEEC122F15E
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2353C22F15E
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846656; cv=none; b=FLrhmt/AW7Lgqic53oVUre/VUI0511euFgbK9f3pOt/Z8NHRGNu+TGTSxvwDqKCvZ6jES/S8omI+WVWCuXisI96p6Rz+Cl+K9gjCnb/NB7q97vqPDRjnwYnMIsgqMa2DFYRbuvwa7+/27c7726IpiOzdOYOannpsG14rOXg4hwk=
+	t=1747846657; cv=none; b=N4vWTYlQsoWdxOxBW3YuFmhCtdoTFWTxyBaUE6o0Z9J2x0kxDwVwYItnfc/ECJ/E1lnMz94+nxS+2vkrQa2la/sxZv/krEAAo/SMNQQBm1avXRWA8uhLt2buffY10hNbRHDLnaWx6rw8D5M82rjk+9jHSdx6tkvtqry81KRNIwo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846656; c=relaxed/simple;
-	bh=z7VodOrGqxb9ZrgtvzfO1AZgNgV+jUAHctuSVpNWtcc=;
-	h=Date:To:From:Subject:Message-Id; b=YgLgeM3trxLDTJLiUb47l6SruAVFB5OV440QFN6nYrgjvYkIq/lOCQvdG9h+leHqoWwx9Sh4rMknefiY9P1/mYtMvvgf+SjzUYU10gf8Z1gTzC9P4okgcfTBGix6q9UPb11ZGdzOa/T9fDWBi1EiRnm48EKpNKs/rwV7H8j8604=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x3iIGuXi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846657; c=relaxed/simple;
+	bh=yEAwdlicClcsRKRhxble1EJ8qlocyYY+FkMpV0EholE=;
+	h=Date:To:From:Subject:Message-Id; b=PE/scdkNk0+hZvrEc/6AyWDC103896X/f0DvT8k5rRRcKixInly17aNlldLxDy/TdmwjWMEv/LYJVrikUJPCHUGQntwaz0SVQh5v/7rK+59zaeS6OQW9QUELLcXlKem1zl/KsJT0aZ+IjuFT9IqEYf31X/hJkwkQnrxEl4IqPxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J3IQnjQn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x3iIGuXi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C23C3C4CEE4;
-	Wed, 21 May 2025 16:57:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J3IQnjQn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6071C4CEE4;
+	Wed, 21 May 2025 16:57:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846655;
-	bh=z7VodOrGqxb9ZrgtvzfO1AZgNgV+jUAHctuSVpNWtcc=;
+	s=korg; t=1747846657;
+	bh=yEAwdlicClcsRKRhxble1EJ8qlocyYY+FkMpV0EholE=;
 	h=Date:To:From:Subject:From;
-	b=x3iIGuXi2ZmgfvPZiP3DEmVuIjsQ4myiOJ1pTXQ9rSZLwFXX5tPK3xLe139f54vf0
-	 +fg66RiHUInllSSfXCUJlL35q+2AFF7+2X0bjDRz9Ga9HIqHf0aJ7IAjVeA0JTTO30
-	 ttNYDc5l80wi/yfs70xq4wBMznaNkNTZeRgUISZM=
-Date: Wed, 21 May 2025 09:57:35 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=J3IQnjQnzhYmilN2cFjRVmpWiFC6ZJzChiCGJHse0QTTKbwLlTL1Gt8ITz0FJV75p
+	 If/e0HdsvSmQJxq94Gl2OGxiqmIupgA2mn1NRFPU/5KRrShEf38//DdM/xuTPqXRGv
+	 DQD3ujYHODgRIglUfaHSieD3cM2EGDvF+k1k8SjE=
+Date: Wed, 21 May 2025 09:57:36 -0700
+To: mm-commits@vger.kernel.org,yzhong@purestorage.com,surenb@google.com,cachen@purestorage.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-damon-update-titles-and-brief-introductions-to-explain-damos.patch removed from -mm tree
-Message-Id: <20250521165735.C23C3C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] alloc_tag-check-mem_profiling_support-in-alloc_tag_init.patch removed from -mm tree
+Message-Id: <20250521165736.E6071C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/damon: update titles and brief introductions to explain DAMOS
+     Subject: alloc_tag: check mem_profiling_support in alloc_tag_init
 has been removed from the -mm tree.  Its filename was
-     docs-damon-update-titles-and-brief-introductions-to-explain-damos.patch
+     alloc_tag-check-mem_profiling_support-in-alloc_tag_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/damon: update titles and brief introductions to explain DAMOS
-Date: Mon, 12 May 2025 17:27:15 -0700
+From: Casey Chen <cachen@purestorage.com>
+Subject: alloc_tag: check mem_profiling_support in alloc_tag_init
+Date: Tue, 13 May 2025 12:26:02 -0600
 
-DAMON was initially developed only for data access monitoring, and then
-extended for not only access monitoring but also access-aware system
-operations (DAMOS).  But the documents have old titles and brief
-introductions for only the monitoring part.  Update the titles and the
-brief introductions to explain DAMOS part together.
+If mem_profiling_support is false, for example by
+sysctl.vm.mem_profiling=never, alloc_tag_init should skip module tags
+allocation, codetag type registration and procfs init.
 
-Link: https://lkml.kernel.org/r/20250513002715.40126-7-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250513182602.121843-1-cachen@purestorage.com
+Signed-off-by: Casey Chen <cachen@purestorage.com>
+Reviewed-by: Yuanyuan Zhong <yzhong@purestorage.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/index.rst |   11 +++++------
- Documentation/mm/damon/index.rst             |    6 +++---
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ lib/alloc_tag.c |   34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/index.rst~docs-damon-update-titles-and-brief-introductions-to-explain-damos
-+++ a/Documentation/admin-guide/mm/damon/index.rst
-@@ -1,12 +1,11 @@
- .. SPDX-License-Identifier: GPL-2.0
+--- a/lib/alloc_tag.c~alloc_tag-check-mem_profiling_support-in-alloc_tag_init
++++ a/lib/alloc_tag.c
+@@ -244,17 +244,6 @@ static void shutdown_mem_profiling(bool
+ 	mem_profiling_support = false;
+ }
  
--==========================
--DAMON: Data Access MONitor
--==========================
-+================================================================
-+DAMON: Data Access MONitoring and Access-aware System Operations
-+================================================================
+-static void __init procfs_init(void)
+-{
+-	if (!mem_profiling_support)
+-		return;
+-
+-	if (!proc_create_seq(ALLOCINFO_FILE_NAME, 0400, NULL, &allocinfo_seq_op)) {
+-		pr_err("Failed to create %s file\n", ALLOCINFO_FILE_NAME);
+-		shutdown_mem_profiling(false);
+-	}
+-}
+-
+ void __init alloc_tag_sec_init(void)
+ {
+ 	struct alloc_tag *last_codetag;
+@@ -762,19 +751,34 @@ static int __init alloc_tag_init(void)
+ 	};
+ 	int res;
  
--:doc:`DAMON </mm/damon/index>` allows light-weight data access monitoring.
--Using DAMON, users can analyze the memory access patterns of their systems and
--optimize those.
-+:doc:`DAMON </mm/damon/index>` is a Linux kernel subsystem for efficient data
-+access monitoring and access-aware system operations.
++	sysctl_init();
++
++	if (!mem_profiling_support) {
++		pr_info("Memory allocation profiling is not supported!\n");
++		return 0;
++	}
++
++	if (!proc_create_seq(ALLOCINFO_FILE_NAME, 0400, NULL, &allocinfo_seq_op)) {
++		pr_err("Failed to create %s file\n", ALLOCINFO_FILE_NAME);
++		shutdown_mem_profiling(false);
++		return -ENOMEM;
++	}
++
+ 	res = alloc_mod_tags_mem();
+-	if (res)
++	if (res) {
++		pr_err("Failed to reserve address space for module tags, errno = %d\n", res);
++		shutdown_mem_profiling(true);
+ 		return res;
++	}
  
- .. toctree::
-    :maxdepth: 2
---- a/Documentation/mm/damon/index.rst~docs-damon-update-titles-and-brief-introductions-to-explain-damos
-+++ a/Documentation/mm/damon/index.rst
-@@ -1,8 +1,8 @@
- .. SPDX-License-Identifier: GPL-2.0
+ 	alloc_tag_cttype = codetag_register_type(&desc);
+ 	if (IS_ERR(alloc_tag_cttype)) {
++		pr_err("Allocation tags registration failed, errno = %ld\n", PTR_ERR(alloc_tag_cttype));
+ 		free_mod_tags_mem();
++		shutdown_mem_profiling(true);
+ 		return PTR_ERR(alloc_tag_cttype);
+ 	}
  
--==========================
--DAMON: Data Access MONitor
--==========================
-+================================================================
-+DAMON: Data Access MONitoring and Access-aware System Operations
-+================================================================
- 
- DAMON is a Linux kernel subsystem that provides a framework for data access
- monitoring and the monitoring results based system operations.  The core
+-	sysctl_init();
+-	procfs_init();
+-
+ 	return 0;
+ }
+ module_init(alloc_tag_init);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from cachen@purestorage.com are
 
 
