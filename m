@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4BF227C14E
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:49:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B95C27C14E
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:49:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747849752; cv=none; b=Jj6eyedwSW1tJCHYrGl217LnoXXANAOnLKJwlZ234xkX/aj7VJn8+SqhQqkBiCuKSFJAzdcDatfkmAti5fAe11W2iJN3cw9VX5+Rx+Q4rRijam1YoIzowpoVXS3+n5Pql1FCLtPrmd7WD4wkDP9vfDd+BI+nVc2wOdH1EtYvwsI=
+	t=1747849753; cv=none; b=tXlHeTevoc1m8HDdA2whMD5b3d8B5NpNdYJqOjV3a3zSlHQJhoihwnj03GiUVmHvGLDXIAkJg3QO7du7AQOLqJ9SzuApnPpRVxiLBtiqSwwV98ONFm8D3CWYrLwyBwZZcN0Q0o6BfHsUbFNi8z1rpXo2+7E5sW9Gn6UrGQds/CI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747849752; c=relaxed/simple;
-	bh=qKKRdLSA0RfUESzcPAPR5jT63q5ytvv9EdNVbwnrno8=;
-	h=Date:To:From:Subject:Message-Id; b=EJv2dvw+sHT92CW0Hih3kD7IpOxsyTCh+YPltDMnDAZTJo28joKfFAPu9tjCdl4SNVLNCaHYvf8VJB+VLyZvKmq1BkJNVrtwDJolqzVuHVozVtWl0kewCJotH+/O4umYl7sbwQ/2sSWEx4hMru9cEyllLA0egmbU9NmbUEZ6zN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JJQsWgm/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747849753; c=relaxed/simple;
+	bh=KGEqqW5Fe1HN7j/q/IaMkmZCw70dxVvcAvWFWxPglU0=;
+	h=Date:To:From:Subject:Message-Id; b=SJT/iaTzNzh1g7O+AHWJ1VeEHMO9G5zx+CHBH09qGN+Urn1GzTZPHFY2f88JSqlFwtehKJQJPU83pafCh7KsXMNbejOgbWjNNBkRjnMwyQ/26gmPju1M3+/32VCQ4yGaWMJBrft7wlXU99QkrqlX2aPKrry+4V8fsW5eotLOuWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LNRoffZE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JJQsWgm/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1BB5C4CEE4;
-	Wed, 21 May 2025 17:49:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LNRoffZE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 275F1C4CEEB;
+	Wed, 21 May 2025 17:49:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747849752;
-	bh=qKKRdLSA0RfUESzcPAPR5jT63q5ytvv9EdNVbwnrno8=;
+	s=korg; t=1747849753;
+	bh=KGEqqW5Fe1HN7j/q/IaMkmZCw70dxVvcAvWFWxPglU0=;
 	h=Date:To:From:Subject:From;
-	b=JJQsWgm/T2HIkxIeve1m+xcaYxw7lmHB7CRwryeOV7tYJ4MrNcAbAUM9JQV3U/7YT
-	 LE46A1bGxIzKezNE5K8slWXmlQKKe7uHzi7OZaU+X3G7HEaGIndQxG8qlwCWy5e12w
-	 qjzMuO0BcSUDGxLQe1sbWnOrxuGvpCssQY3yuJiM=
-Date: Wed, 21 May 2025 10:49:11 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,pmladek@suse.com,john.ogness@linutronix.de,jani.nikula@intel.com,gregkh@linuxfoundation.org,sravankumarlpu@gmail.com,akpm@linux-foundation.org
+	b=LNRoffZEdOTo5mDIMTq6ijpzJdhTuK7gvHjAUT7S08WxxUvpIj9wDRRbjqAbYXHsA
+	 ToJN5HBH+Iglg2zmwD7cEIXCGp8Ea+/S26K4nThZGIlhuCx2hIRXZ8jhuBEEyZvApG
+	 VXgE85ltkDWFLS6QRtc7CPIIReLVFQZOmTHJsCXY=
+Date: Wed, 21 May 2025 10:49:12 -0700
+To: mm-commits@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,hca@linux.ibm.com,gor@linux.ibm.com,agordeev@linux.ibm.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-format-kernel-doc-comments.patch removed from -mm tree
-Message-Id: <20250521174911.F1BB5C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-symbols-factor-out-get_vmlinux.patch removed from -mm tree
+Message-Id: <20250521174913.275F1C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/panic.c: format kernel-doc comments
+     Subject: scripts/gdb/symbols: factor out get_vmlinux()
 has been removed from the -mm tree.  Its filename was
-     kernel-format-kernel-doc-comments.patch
+     scripts-gdb-symbols-factor-out-get_vmlinux.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sravan Kumar Gundu <sravankumarlpu@gmail.com>
-Subject: kernel/panic.c: format kernel-doc comments
-Date: Fri, 16 May 2025 17:40:31 +0000
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: scripts/gdb/symbols: factor out get_vmlinux()
+Date: Thu, 15 May 2025 17:52:11 +0200
 
-kernel-doc function comment don't follows documentation commenting style
-misinterpreting arguments description with function description.
+Patch series "scripts/gdb/symbols: determine KASLR offset on s390 during
+early boot".
 
-Please see latest docs generated before applying this patch
-https://docs.kernel.org/driver-api/basics.html#c.panic
+I noticed that debugging s390 early boot using the support I introduced in
+commit 28939c3e9925 ("scripts/gdb/symbols: determine KASLR offset on
+s390") does not work.
 
-Link: https://lkml.kernel.org/r/20250516174031.2937-1-sravankumarlpu@gmail.com
-Signed-off-by: Sravan Kumar Gundu <sravankumarlpu@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jani Nikula <jani.nikula@intel.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
+The reason is that decompressor does not provide the vmcoreinfo note, so
+KASLR offset needs to be extracted in a different way, which this series
+implements.  Patches 1-2 are trivial refactorings, and patch 3 is the
+implementation.
+
+
+This patch (of 3):
+
+Move the code that determines the current vmlinux file into a separate
+function.  It will be useful later in order to analyze the kernel image in
+physical memory during s390 early boot.
+
+Link: https://lkml.kernel.org/r/20250515155811.114392-1-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20250515155811.114392-2-iii@linux.ibm.com
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ scripts/gdb/linux/symbols.py |    6 +-----
+ scripts/gdb/linux/utils.py   |    9 +++++++++
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
---- a/kernel/panic.c~kernel-format-kernel-doc-comments
-+++ a/kernel/panic.c
-@@ -277,12 +277,10 @@ static void panic_other_cpus_shutdown(bo
- }
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-symbols-factor-out-get_vmlinux
++++ a/scripts/gdb/linux/symbols.py
+@@ -178,11 +178,7 @@ lx-symbols command."""
+                 saved_states.append({'breakpoint': bp, 'enabled': bp.enabled})
  
- /**
-- *	panic - halt the system
-- *	@fmt: The text string to print
-+ * panic - halt the system
-+ * @fmt: The text string to print
-  *
-- *	Display a message, then perform cleanups.
-- *
-- *	This function never returns.
-+ * Display a message, then perform cleanups. This function never returns.
-  */
- void panic(const char *fmt, ...)
- {
+         # drop all current symbols and reload vmlinux
+-        orig_vmlinux = 'vmlinux'
+-        for obj in gdb.objfiles():
+-            if (obj.filename.endswith('vmlinux') or
+-                obj.filename.endswith('vmlinux.debug')):
+-                orig_vmlinux = obj.filename
++        orig_vmlinux = utils.get_vmlinux()
+         gdb.execute("symbol-file", to_string=True)
+         kerneloffset = get_kerneloffset()
+         if kerneloffset is None:
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-symbols-factor-out-get_vmlinux
++++ a/scripts/gdb/linux/utils.py
+@@ -251,3 +251,12 @@ def parse_vmcore(s):
+     else:
+         kerneloffset = int(match.group(1), 16)
+     return VmCore(kerneloffset=kerneloffset)
++
++
++def get_vmlinux():
++    vmlinux = 'vmlinux'
++    for obj in gdb.objfiles():
++        if (obj.filename.endswith('vmlinux') or
++            obj.filename.endswith('vmlinux.debug')):
++            vmlinux = obj.filename
++    return vmlinux
 _
 
-Patches currently in -mm which might be from sravankumarlpu@gmail.com are
+Patches currently in -mm which might be from iii@linux.ibm.com are
 
 
