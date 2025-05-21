@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02EEF28A1CA
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:48:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D220022F15E
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:48:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747849734; cv=none; b=BjV5f13WaL09ej48LrhGZlsa2b4FqKskm1a4dHlG1IN2ogofpdDuGkBiw6HGy3fSXZTFLHFiKldSHyfWNd43YCHc29ICLDQz7kzYWXaNbRnzQeRikp31WHQj/cEcRX37smhnl++TZ0OVQ0veAqDWBC6hVAz+3RI4O+mJw693neA=
+	t=1747849734; cv=none; b=aOP/rnZ//frsogGU5+Lz4S1uL3wkalxwD0gGdvjwpNcOg1F4VZlZ9idqHd8v/NzINaPogZTWALIpgahLDlitOv927N5uOF0nCUuls92WjEZjCMo8uTyPjYe35Ok2OYqTu/cuH1xGccC49BDee8K6z1U25Y6QMClh/yGZeDw3/dI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1747849734; c=relaxed/simple;
-	bh=ZBaNymscrfa3S8+NCCKGm02n9P4UF5U9d7AsLk7lBhY=;
-	h=Date:To:From:Subject:Message-Id; b=ZYAEHGP4wFZmxrBV3fT3Pqt0wbHMGHLXDIuajsG4qElyDNa7Qc4HE+90KF4cDlgeqfytcblu93u0fUzrkHukmy16yM2QuX6AWkqZVlZPWJkRYA7g1aFJ7nOfr7cXmpUS/Kar0pO58q8IY6FqS1kuoQeRNrm3yW/0H/M8a7e61OE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JqzdxVmS; arc=none smtp.client-ip=10.30.226.201
+	bh=E3iDepsoQnfP6bAcH+NqYcE1fWRI6HTmkT6dt8N5j5g=;
+	h=Date:To:From:Subject:Message-Id; b=MuZ4E8KuwNlQa+wWcWppfVky9ObPMwVSCMNLRl6UCJod78IphcgoiVHucb14L+2dVN+tksvdIb4SO6aYp8m0I0GJGnvDcJ+WBxBuRGo+hd4/7Km8S/HwO/L25i5ckWoOraBRz4MsT8hLCR9O6C6b8lSJstPS1TTcS4reHeZISYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z7tIYmTE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JqzdxVmS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61E70C4CEE4;
-	Wed, 21 May 2025 17:48:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z7tIYmTE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A200CC4CEED;
+	Wed, 21 May 2025 17:48:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747849733;
-	bh=ZBaNymscrfa3S8+NCCKGm02n9P4UF5U9d7AsLk7lBhY=;
+	s=korg; t=1747849734;
+	bh=E3iDepsoQnfP6bAcH+NqYcE1fWRI6HTmkT6dt8N5j5g=;
 	h=Date:To:From:Subject:From;
-	b=JqzdxVmSQeyf/tnObdnwKhqyWoLueAr5XLDSPTgx0gkTInNlISVbkkGvyPkd950mD
-	 gNxugTNW8HrNrMHoaIZKYkWkvvbtw1iOIkbkUXJFhcrRJPZvd+AsEl4pYmvPHQ76g1
-	 gKJzRSZ29K0c81eQA6tHleYO5wydJtJzgMFN/Fo4=
-Date: Wed, 21 May 2025 10:48:52 -0700
+	b=Z7tIYmTEWPmrzLtE4gF/a4hgEhw/yHqz/i8c6qpvpAMofcZTmzy2hEYwbpF60oOKu
+	 8N5cQZam7qBUpBZfgjk78ZhwDe62rL5xIhqChaWXNIUSsqL53VTHq1RGzNejUiKI3u
+	 8ZjrLKpjDltQ9GoAOdmRZ1fJi8hCIAVRElW1MeRE=
+Date: Wed, 21 May 2025 10:48:54 -0700
 To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,bhe@redhat.com,berrange@redhat.com,coxu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] crash_dump-reuse-saved-dm-crypt-keys-for-cpu-memory-hot-plugging.patch removed from -mm tree
-Message-Id: <20250521174853.61E70C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash_dump-retrieve-dm-crypt-keys-in-kdump-kernel.patch removed from -mm tree
+Message-Id: <20250521174854.A200CC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: crash_dump: reuse saved dm crypt keys for CPU/memory hot-plugging
+     Subject: crash_dump: retrieve dm crypt keys in kdump kernel
 has been removed from the -mm tree.  Its filename was
-     crash_dump-reuse-saved-dm-crypt-keys-for-cpu-memory-hot-plugging.patch
+     crash_dump-retrieve-dm-crypt-keys-in-kdump-kernel.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Coiby Xu <coxu@redhat.com>
-Subject: crash_dump: reuse saved dm crypt keys for CPU/memory hot-plugging
-Date: Fri, 2 May 2025 09:12:38 +0800
+Subject: crash_dump: retrieve dm crypt keys in kdump kernel
+Date: Fri, 2 May 2025 09:12:39 +0800
 
-When there are CPU and memory hot un/plugs, the dm crypt keys may need to
-be reloaded again depending on the solution for crash hotplug support. 
-Currently, there are two solutions.  One is to utilizes udev to instruct
-user space to reload the kdump kernel image and initrd, elfcorehdr and etc
-again.  The other is to only update the elfcorehdr segment introduced in
-commit 247262756121 ("crash: add generic infrastructure for crash hotplug
-support").
+Crash kernel will retrieve the dm crypt keys based on the dmcryptkeys
+command line parameter.  When user space writes the key description to
+/sys/kernel/config/crash_dm_crypt_key/restore, the crash kernel will save
+the encryption keys to the user keyring.  Then user space e.g. 
+cryptsetup's --volume-key-keyring API can use it to unlock the encrypted
+device.
 
-For the 1st solution, the dm crypt keys need to be reloaded again.  The
-user space can write true to /sys/kernel/config/crash_dm_crypt_key/reuse
-so the stored keys can be re-used.
-
-For the 2nd solution, the dm crypt keys don't need to be reloaded. 
-Currently, only x86 supports the 2nd solution.  If the 2nd solution gets
-extended to all arches, this patch can be dropped.
-
-Link: https://lkml.kernel.org/r/20250502011246.99238-5-coxu@redhat.com
+Link: https://lkml.kernel.org/r/20250502011246.99238-6-coxu@redhat.com
 Signed-off-by: Coiby Xu <coxu@redhat.com>
 Acked-by: Baoquan He <bhe@redhat.com>
 Cc: "Daniel P. Berrange" <berrange@redhat.com>
@@ -77,100 +68,202 @@ Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/kdump.rst |    4 +
- kernel/crash_dump_dm_crypt.c              |   52 ++++++++++++++++++--
- 2 files changed, 52 insertions(+), 4 deletions(-)
+ include/linux/crash_core.h   |    1 
+ include/linux/crash_dump.h   |    2 
+ kernel/crash_dump_dm_crypt.c |  133 +++++++++++++++++++++++++++++++++
+ 3 files changed, 136 insertions(+)
 
---- a/Documentation/admin-guide/kdump/kdump.rst~crash_dump-reuse-saved-dm-crypt-keys-for-cpu-memory-hot-plugging
-+++ a/Documentation/admin-guide/kdump/kdump.rst
-@@ -570,6 +570,10 @@ encrypted disk volume. User space can in
-     cat /sys/kernel/config/crash_dm_crypt_keys/count
-     2
+--- a/include/linux/crash_core.h~crash_dump-retrieve-dm-crypt-keys-in-kdump-kernel
++++ a/include/linux/crash_core.h
+@@ -36,6 +36,7 @@ static inline void arch_kexec_unprotect_
  
-+    # To support CPU/memory hot-plugging, re-use keys already saved to reserved
-+    # memory
-+    echo true > /sys/kernel/config/crash_dm_crypt_key/reuse
+ #ifdef CONFIG_CRASH_DM_CRYPT
+ int crash_load_dm_crypt_keys(struct kimage *image);
++ssize_t dm_crypt_keys_read(char *buf, size_t count, u64 *ppos);
+ #else
+ static inline int crash_load_dm_crypt_keys(struct kimage *image) {return 0; }
+ #endif
+--- a/include/linux/crash_dump.h~crash_dump-retrieve-dm-crypt-keys-in-kdump-kernel
++++ a/include/linux/crash_dump.h
+@@ -15,6 +15,8 @@
+ extern unsigned long long elfcorehdr_addr;
+ extern unsigned long long elfcorehdr_size;
+ 
++extern unsigned long long dm_crypt_keys_addr;
 +
- 2. Load the dump-capture kernel
- 
- 3. After the dump-capture kerne get booted, restore the keys to user keyring
---- a/kernel/crash_dump_dm_crypt.c~crash_dump-reuse-saved-dm-crypt-keys-for-cpu-memory-hot-plugging
+ #ifdef CONFIG_CRASH_DUMP
+ extern int elfcorehdr_alloc(unsigned long long *addr, unsigned long long *size);
+ extern void elfcorehdr_free(unsigned long long addr);
+--- a/kernel/crash_dump_dm_crypt.c~crash_dump-retrieve-dm-crypt-keys-in-kdump-kernel
 +++ a/kernel/crash_dump_dm_crypt.c
-@@ -28,6 +28,20 @@ static size_t get_keys_header_size(size_
+@@ -3,6 +3,7 @@
+ #include <linux/keyctl.h>
+ #include <keys/user-type.h>
+ #include <linux/crash_dump.h>
++#include <linux/cc_platform.h>
+ #include <linux/configfs.h>
+ #include <linux/module.h>
+ 
+@@ -28,6 +29,61 @@ static size_t get_keys_header_size(size_
  	return struct_size(keys_header, keys, total_keys);
  }
  
-+static void get_keys_from_kdump_reserved_memory(void)
++unsigned long long dm_crypt_keys_addr;
++EXPORT_SYMBOL_GPL(dm_crypt_keys_addr);
++
++static int __init setup_dmcryptkeys(char *arg)
 +{
-+	struct keys_header *keys_header_loaded;
++	char *end;
 +
-+	arch_kexec_unprotect_crashkres();
++	if (!arg)
++		return -EINVAL;
++	dm_crypt_keys_addr = memparse(arg, &end);
++	if (end > arg)
++		return 0;
 +
-+	keys_header_loaded = kmap_local_page(pfn_to_page(
-+		kexec_crash_image->dm_crypt_keys_addr >> PAGE_SHIFT));
++	dm_crypt_keys_addr = 0;
++	return -EINVAL;
++}
 +
-+	memcpy(keys_header, keys_header_loaded, get_keys_header_size(key_count));
-+	kunmap_local(keys_header_loaded);
-+	arch_kexec_protect_crashkres();
++early_param("dmcryptkeys", setup_dmcryptkeys);
++
++/*
++ * Architectures may override this function to read dm crypt keys
++ */
++ssize_t __weak dm_crypt_keys_read(char *buf, size_t count, u64 *ppos)
++{
++	struct kvec kvec = { .iov_base = buf, .iov_len = count };
++	struct iov_iter iter;
++
++	iov_iter_kvec(&iter, READ, &kvec, 1, count);
++	return read_from_oldmem(&iter, count, ppos, cc_platform_has(CC_ATTR_MEM_ENCRYPT));
++}
++
++static int add_key_to_keyring(struct dm_crypt_key *dm_key,
++			      key_ref_t keyring_ref)
++{
++	key_ref_t key_ref;
++	int r;
++
++	/* create or update the requested key and add it to the target keyring */
++	key_ref = key_create_or_update(keyring_ref, "user", dm_key->key_desc,
++				       dm_key->data, dm_key->key_size,
++				       KEY_USR_ALL, KEY_ALLOC_IN_QUOTA);
++
++	if (!IS_ERR(key_ref)) {
++		r = key_ref_to_ptr(key_ref)->serial;
++		key_ref_put(key_ref);
++		kexec_dprintk("Success adding key %s", dm_key->key_desc);
++	} else {
++		r = PTR_ERR(key_ref);
++		kexec_dprintk("Error when adding key");
++	}
++
++	key_ref_put(keyring_ref);
++	return r;
++}
++
+ static void get_keys_from_kdump_reserved_memory(void)
+ {
+ 	struct keys_header *keys_header_loaded;
+@@ -42,6 +98,47 @@ static void get_keys_from_kdump_reserved
+ 	arch_kexec_protect_crashkres();
+ }
+ 
++static int restore_dm_crypt_keys_to_thread_keyring(void)
++{
++	struct dm_crypt_key *key;
++	size_t keys_header_size;
++	key_ref_t keyring_ref;
++	u64 addr;
++
++	/* find the target keyring (which must be writable) */
++	keyring_ref =
++		lookup_user_key(KEY_SPEC_USER_KEYRING, 0x01, KEY_NEED_WRITE);
++	if (IS_ERR(keyring_ref)) {
++		kexec_dprintk("Failed to get the user keyring\n");
++		return PTR_ERR(keyring_ref);
++	}
++
++	addr = dm_crypt_keys_addr;
++	dm_crypt_keys_read((char *)&key_count, sizeof(key_count), &addr);
++	if (key_count < 0 || key_count > KEY_NUM_MAX) {
++		kexec_dprintk("Failed to read the number of dm-crypt keys\n");
++		return -1;
++	}
++
++	kexec_dprintk("There are %u keys\n", key_count);
++	addr = dm_crypt_keys_addr;
++
++	keys_header_size = get_keys_header_size(key_count);
++	keys_header = kzalloc(keys_header_size, GFP_KERNEL);
++	if (!keys_header)
++		return -ENOMEM;
++
++	dm_crypt_keys_read((char *)keys_header, keys_header_size, &addr);
++
++	for (int i = 0; i < keys_header->total_keys; i++) {
++		key = &keys_header->keys[i];
++		kexec_dprintk("Get key (size=%u)\n", key->key_size);
++		add_key_to_keyring(key, keyring_ref);
++	}
++
++	return 0;
 +}
 +
  static int read_key_from_user_keying(struct dm_crypt_key *dm_key)
  {
  	const struct user_key_payload *ukp;
-@@ -150,8 +164,36 @@ static ssize_t config_keys_count_show(st
+@@ -211,6 +308,37 @@ static const struct config_item_type con
+ 	.ct_owner = THIS_MODULE,
+ };
  
- CONFIGFS_ATTR_RO(config_keys_, count);
- 
-+static bool is_dm_key_reused;
++static bool restore;
 +
-+static ssize_t config_keys_reuse_show(struct config_item *item, char *page)
++static ssize_t config_keys_restore_show(struct config_item *item, char *page)
 +{
-+	return sprintf(page, "%d\n", is_dm_key_reused);
++	return sprintf(page, "%d\n", restore);
 +}
 +
-+static ssize_t config_keys_reuse_store(struct config_item *item,
-+					   const char *page, size_t count)
++static ssize_t config_keys_restore_store(struct config_item *item,
++					  const char *page, size_t count)
 +{
-+	if (!kexec_crash_image || !kexec_crash_image->dm_crypt_keys_addr) {
-+		kexec_dprintk(
-+			"dm-crypt keys haven't be saved to crash-reserved memory\n");
-+		return -EINVAL;
-+	}
++	if (!restore)
++		restore_dm_crypt_keys_to_thread_keyring();
 +
-+	if (kstrtobool(page, &is_dm_key_reused))
++	if (kstrtobool(page, &restore))
 +		return -EINVAL;
-+
-+	if (is_dm_key_reused)
-+		get_keys_from_kdump_reserved_memory();
 +
 +	return count;
 +}
 +
-+CONFIGFS_ATTR(config_keys_, reuse);
++CONFIGFS_ATTR(config_keys_, restore);
 +
- static struct configfs_attribute *config_keys_attrs[] = {
- 	&config_keys_attr_count,
-+	&config_keys_attr_reuse,
- 	NULL,
- };
++static struct configfs_attribute *kdump_config_keys_attrs[] = {
++	&config_keys_attr_restore,
++	NULL,
++};
++
++static const struct config_item_type kdump_config_keys_type = {
++	.ct_attrs = kdump_config_keys_attrs,
++	.ct_owner = THIS_MODULE,
++};
++
+ static struct configfs_subsystem config_keys_subsys = {
+ 	.su_group = {
+ 		.cg_item = {
+@@ -311,6 +439,11 @@ static int __init configfs_dmcrypt_keys_
+ {
+ 	int ret;
  
-@@ -238,10 +280,12 @@ int crash_load_dm_crypt_keys(struct kima
- 		return -ENOENT;
- 	}
- 
--	image->dm_crypt_keys_addr = 0;
--	r = build_keys_header();
--	if (r)
--		return r;
-+	if (!is_dm_key_reused) {
-+		image->dm_crypt_keys_addr = 0;
-+		r = build_keys_header();
-+		if (r)
-+			return r;
++	if (is_kdump_kernel()) {
++		config_keys_subsys.su_group.cg_item.ci_type =
++			&kdump_config_keys_type;
 +	}
- 
- 	kbuf.buffer = keys_header;
- 	kbuf.bufsz = get_keys_header_size(key_count);
++
+ 	config_group_init(&config_keys_subsys.su_group);
+ 	mutex_init(&config_keys_subsys.su_mutex);
+ 	ret = configfs_register_subsystem(&config_keys_subsys);
 _
 
 Patches currently in -mm which might be from coxu@redhat.com are
