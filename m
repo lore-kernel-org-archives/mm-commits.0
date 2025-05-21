@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D476832C85
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 05:50:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A809C1D7E31
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:53:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747806618; cv=none; b=Le1nBv3A0OYNSVEPU4bIjdHpWf5vEdIJQes50tk+m9OU127udL96EhoUjjLr6qKyAOoKsmIHIpil/avVe6fYi1J6471pS8y7Ge1Zc5dLywQ1fHtDmRUwcuWwUXxqzyyKJioJMBdu7rvO0ti+mx4TYdvWVpbf0W4usl1NEam0eWs=
+	t=1747846403; cv=none; b=GCoruaUt9M5pB4Uot1jnfhoDcenneKyHBzMFleZEmGKZR9cnc42QZZUzhx72w32bkIKaccfVvvNZFMDRaPvNvozMul5d82zLk6vUH+T0hqaJGaoN8z9Xw9V51DNs+d80zI1R1Qk7GbComyZLIZO12zJeVs7azU1nQBV8PlHv8PU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747806618; c=relaxed/simple;
-	bh=HBPUhNu9HvS7hfqUeasayja/4kKA5w76pvc4EICSA/g=;
-	h=Date:To:From:Subject:Message-Id; b=He5YbHXulu1YCxhUk+5LgzZ8tRmjlKeki+6aFUVFNneIW+F01MCxOis9VxZyVU6qTplXulSD3A3ILLCUDdusiVzkZEHUSHa28YaNRTp0BoTKeuseC12pVD10s6i78mu0hNx/taMhV2CZhCKAlxmJrx7QLy+zVFExli7VvZxiu8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Duf99Q5h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846403; c=relaxed/simple;
+	bh=uw91moKxsuykNqwT8dIwSUEqekFGiXOaQPv04avcc2Q=;
+	h=Date:To:From:Subject:Message-Id; b=MEbyuRMoN5j78zKDl1qyILuuoYm3dUFU/QAlKaDHAtpU1XUUOJX30DQbk/Qik8MQ/biHZb+ajSWPrpFmUZd93F/GIBnvACQlAdxok2152pfBhpxBiSXoMwrpbqu5rAnwac/MA6hwNsUN6APCpVI5ALO/FnI2m9V5Fkx++9AaGEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YYLZEF4I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Duf99Q5h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F068C4CEE4;
-	Wed, 21 May 2025 05:50:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YYLZEF4I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3EBAC4CEE4;
+	Wed, 21 May 2025 16:53:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747806618;
-	bh=HBPUhNu9HvS7hfqUeasayja/4kKA5w76pvc4EICSA/g=;
+	s=korg; t=1747846402;
+	bh=uw91moKxsuykNqwT8dIwSUEqekFGiXOaQPv04avcc2Q=;
 	h=Date:To:From:Subject:From;
-	b=Duf99Q5h53USE9XSR9RJJbV/+wAXD5KvaLP8Fb6N3sfPHoYc8gJM7mcaQ0fSy3Kxr
-	 mk9ZXON2xXlHvQKvbvv6jrzZLG6/k2BXDCW6WYfjGa+PDVz+y39y4FIn50TWJTrHIA
-	 B34UzNJOR/zU0pugkdzcnBiEsPu7i3OiTgjQC9JE=
-Date: Tue, 20 May 2025 22:50:17 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=YYLZEF4IHLDvHbcTQLJGQ0j7gKI2iStbd4heiSrvnmhxqWGD5RAgaplV2i8/11PjK
+	 r6pzWYKI31ztudlJpuH+SAPhiDClHM3Pd44DDdfJiOTuucxTfyosE9zEapytkyNnYY
+	 eTT7/X2Og9dTd9Ga6CdQ0oW3xNgDgVp2ehtk5FiY=
+Date: Wed, 21 May 2025 09:53:18 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-mm-memory-policy-section.patch removed from -mm tree
-Message-Id: <20250521055018.3F068C4CEE4@smtp.kernel.org>
+Subject: [folded-merged] memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix.patch removed from -mm tree
+Message-Id: <20250521165322.C3EBAC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add mm memory policy section
+     Subject: memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-mm-memory-policy-section.patch
+     memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into memcg-memcg_rstat_updated-re-entrant-safe-against-irqs.patch
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add mm memory policy section
-Date: Thu, 15 May 2025 20:13:58 +0100
+Subject: memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix
+Date: Thu, 15 May 2025 13:43:46 +0100
 
-As part of the ongoing efforts to sub-divide memory management
-maintainership and reviewership, establish a section for memory policy and
-migration and add appropriate maintainers and reviewers.
+fix build
 
-[lorenzo.stoakes@oracle.com: add Ying as reviewer]
-  Link: https://lkml.kernel.org/r/ed6f0fc2-5608-4eea-b1be-07e3e19be263@lucifer.local
-Link: https://lkml.kernel.org/r/20250515191358.205684-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/22f69e6e-7908-4e92-96ca-5c70d535c439@lucifer.local
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Rakie Kim <rakie.kim@sk.com>
-Acked-by: Matthew Brost <matthew.brost@intel.com>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Huang Ying <ying.huang@linux.alibaba.com>
-Acked-by: Byungchul Park <byungchul@sk.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gregory Price <gourry@gourry.net>
+Tested-by: Alexei Starovoitov <ast@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-mm-memory-policy-section
-+++ a/MAINTAINERS
-@@ -15577,6 +15577,26 @@ F:	include/linux/ksm.h
- F:	include/trace/events/ksm.h
- F:	mm/ksm.c
+--- a/mm/memcontrol.c~memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix
++++ a/mm/memcontrol.c
+@@ -3697,7 +3697,8 @@ static void mem_cgroup_free(struct mem_c
  
-+MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	David Hildenbrand <david@redhat.com>
-+R:	Zi Yan <ziy@nvidia.com>
-+R:	Matthew Brost <matthew.brost@intel.com>
-+R:	Joshua Hahn <joshua.hahnjy@gmail.com>
-+R:	Rakie Kim <rakie.kim@sk.com>
-+R:	Byungchul Park <byungchul@sk.com>
-+R:	Gregory Price <gourry@gourry.net>
-+R:	Ying Huang <ying.huang@linux.alibaba.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+W:	http://www.linux-mm.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	include/linux/mempolicy.h
-+F:	include/linux/migrate.h
-+F:	mm/mempolicy.c
-+F:	mm/migrate.c
-+F:	mm/migrate_device.c
-+
- MEMORY MANAGEMENT - NUMA MEMBLOCKS AND NUMA EMULATION
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Mike Rapoport <rppt@kernel.org>
+ static struct mem_cgroup *mem_cgroup_alloc(struct mem_cgroup *parent)
+ {
+-	struct memcg_vmstats_percpu *statc, __percpu *pstatc_pcpu;
++	struct memcg_vmstats_percpu *statc;
++	struct memcg_vmstats_percpu __percpu *pstatc_pcpu;
+ 	struct mem_cgroup *memcg;
+ 	int node, cpu;
+ 	int __maybe_unused i;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
 maintainers-add-kernel-forkc-to-relevant-sections.patch
 mm-remove-warn_on_once-in-file_has_valid_mmap_hooks.patch
-memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix.patch
+memcg-memcg_rstat_updated-re-entrant-safe-against-irqs.patch
 
