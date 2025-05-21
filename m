@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9604422F15E
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 908DB235046
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846661; cv=none; b=YRxC7Hdu7vgRNSQY02TK3okRh+BrrliaoDX2OQAJIRwRMMAhwwTG4EsbG+5M94jb1xsWWANCiNnLYEiRd+yCwNpmdNKTIla6V25J+LC20B64Ukc9bFUjOpid+A3L1DcC8d3CWfg/6XJt/t5rf32t3lBwAej0zUtXtL1KvUmjxSU=
+	t=1747846664; cv=none; b=jD0FPaEGkcphVJoF3jgtP2RyLbIH233sNlDGlCQt9X23XcBLad0hd0lk95xC8+JgyhT2rE2hgfOX62UcBo/C36CqihrPWIbskV6PJTXDTaoHl6eVSkzYkY8DWI51z8c14mvxGXmJkLibBd30yqjXFXXCDWRk9yJV8RVu80PeBZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846661; c=relaxed/simple;
-	bh=tZt7gytAeEPiS93Wr0qTYnpO3KBM/vTATEbGVq4Texg=;
-	h=Date:To:From:Subject:Message-Id; b=FdUFqv0PAz/RwpBeGdLIyAKl0f56MOkrfAJAiqG7AXi/w0BzpWduQmMZA0PJYZg8hs3ap3B1s2lclskB/Zh4frt/BYxKJhmEH/IOMdfmhICx2fHyQlqAXmuZ9G/nxtNqK+AhLtl0jjg8PcLzw0Xvdaf8XJtHOfsU5am0W0jStxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QvuOEUn/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846664; c=relaxed/simple;
+	bh=hvsfVgMnebxuPsbazutH0ORFlLHwM10Id72gWkR3O/s=;
+	h=Date:To:From:Subject:Message-Id; b=sGEY/l9uKGZC8+KkmVt4mlBJW4ujtzxGwP+filFwfqTTdUSTiCWohuR7J7wSxnCBIBSy/gNC28uwGLfAso7OC0zrK8nSOptwiw0nl2M5ivbQ/yeGbZuSFn2L+/eMEcrWg1IGMQTRzOxPswWsOx/LlR/AEWPTBEe8dfL49ufPxsA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lz8az8Xr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QvuOEUn/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ABD7C4CEE4;
-	Wed, 21 May 2025 16:57:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lz8az8Xr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64888C4CEE4;
+	Wed, 21 May 2025 16:57:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846661;
-	bh=tZt7gytAeEPiS93Wr0qTYnpO3KBM/vTATEbGVq4Texg=;
+	s=korg; t=1747846664;
+	bh=hvsfVgMnebxuPsbazutH0ORFlLHwM10Id72gWkR3O/s=;
 	h=Date:To:From:Subject:From;
-	b=QvuOEUn/cNZTiZFuwdOFt3ICzdVrv7pQnylcn0Dd5N81z17JZ3xBvVIHu9ZEcdsmg
-	 1OJbbFJJ63Ui5beuMKCikBLcnq+aHI9fL1RIkIwyieGjlT4X2Wez7ElEpBgRNCH6nR
-	 fBDF91k1U57RjJfRhhXGVvymF/oTvDssd+A5UmbU=
-Date: Wed, 21 May 2025 09:57:40 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=lz8az8XrZE19qeIAMlOKJjQqqODyYIrqL5I1hs2Lxx1HbHUe9H6PXjBRTVOT6H6cH
+	 1z80YuTpCxYjS611y7WHmSEjgMjAwb9v/JQ/mGoaed5w4kF93Xy7tIh815vojvE+gh
+	 sVYpUTrVzm6nIzVOVTCPOOcZpotYSEHJixX7GR9U=
+Date: Wed, 21 May 2025 09:57:43 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-memcg_rstat_updated-re-entrant-safe-against-irqs.patch removed from -mm tree
-Message-Id: <20250521165741.5ABD7C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated.patch removed from -mm tree
+Message-Id: <20250521165744.64888C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: memcg_rstat_updated re-entrant safe against irqs
+     Subject: memcg: move preempt disable to callers of memcg_rstat_updated
 has been removed from the -mm tree.  Its filename was
-     memcg-memcg_rstat_updated-re-entrant-safe-against-irqs.patch
+     memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: memcg_rstat_updated re-entrant safe against irqs
-Date: Wed, 14 May 2025 11:41:52 -0700
+Subject: memcg: move preempt disable to callers of memcg_rstat_updated
+Date: Wed, 14 May 2025 11:41:53 -0700
 
-Patch series "memcg: make memcg stats irq safe", v2.
+Let's move the explicit preempt disable code to the callers of
+memcg_rstat_updated and also remove the memcg_stats_lock and related
+functions which ensures the callers of stats update functions have
+disabled preemption because now the stats update functions are explicitly
+disabling preemption.
 
-This series converts memcg stats to be irq safe i.e.  memcg stats can be
-updated in any context (task, softirq or hardirq) without disabling the
-irqs.  This is still not nmi-safe on all architectures but after this
-series converting memcg charging and stats nmi-safe will be easier.
-
-
-This patch (of 7):
-
-memcg_rstat_updated() is used to track the memcg stats updates for
-optimizing the flushes.  At the moment, it is not re-entrant safe and the
-callers disabled irqs before calling.  However to achieve the goal of
-updating memcg stats without irqs, memcg_rstat_updated() needs to be
-re-entrant safe against irqs.
-
-This patch makes memcg_rstat_updated() re-entrant safe using this_cpu_*
-ops.  On archs with CONFIG_ARCH_HAS_NMI_SAFE_THIS_CPU_OPS, this patch is
-also making memcg_rstat_updated() nmi safe.
-
-[lorenzo.stoakes@oracle.com: fix build]
-  Link: https://lkml.kernel.org/r/22f69e6e-7908-4e92-96ca-5c70d535c439@lucifer.local
-Link: https://lkml.kernel.org/r/20250514184158.3471331-1-shakeel.butt@linux.dev
-Link: https://lkml.kernel.org/r/20250514184158.3471331-2-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250514184158.3471331-3-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Alexei Starovoitov <ast@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -83,88 +65,168 @@ Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |   74 +++++++++++-----------------------------------
+ 1 file changed, 19 insertions(+), 55 deletions(-)
 
---- a/mm/memcontrol.c~memcg-memcg_rstat_updated-re-entrant-safe-against-irqs
+--- a/mm/memcontrol.c~memcg-move-preempt-disable-to-callers-of-memcg_rstat_updated
 +++ a/mm/memcontrol.c
-@@ -505,8 +505,8 @@ struct memcg_vmstats_percpu {
- 	unsigned int			stats_updates;
+@@ -557,48 +557,22 @@ static u64 flush_last_time;
  
- 	/* Cached pointers for fast iteration in memcg_rstat_updated() */
--	struct memcg_vmstats_percpu	*parent;
--	struct memcg_vmstats		*vmstats;
-+	struct memcg_vmstats_percpu __percpu	*parent_pcpu;
-+	struct memcg_vmstats			*vmstats;
+ #define FLUSH_TIME (2UL*HZ)
  
- 	/* The above should fit a single cacheline for memcg_rstat_updated() */
- 
-@@ -588,16 +588,21 @@ static bool memcg_vmstats_needs_flush(st
- 
- static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
+-/*
+- * Accessors to ensure that preemption is disabled on PREEMPT_RT because it can
+- * not rely on this as part of an acquired spinlock_t lock. These functions are
+- * never used in hardirq context on PREEMPT_RT and therefore disabling preemtion
+- * is sufficient.
+- */
+-static void memcg_stats_lock(void)
+-{
+-	preempt_disable_nested();
+-	VM_WARN_ON_IRQS_ENABLED();
+-}
+-
+-static void __memcg_stats_lock(void)
+-{
+-	preempt_disable_nested();
+-}
+-
+-static void memcg_stats_unlock(void)
+-{
+-	preempt_enable_nested();
+-}
+-
+-
+ static bool memcg_vmstats_needs_flush(struct memcg_vmstats *vmstats)
  {
-+	struct memcg_vmstats_percpu __percpu *statc_pcpu;
+ 	return atomic64_read(&vmstats->stats_updates) >
+ 		MEMCG_CHARGE_BATCH * num_online_cpus();
+ }
+ 
+-static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
++static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val,
++				       int cpu)
+ {
+ 	struct memcg_vmstats_percpu __percpu *statc_pcpu;
  	struct memcg_vmstats_percpu *statc;
--	int cpu = smp_processor_id();
-+	int cpu;
+-	int cpu;
  	unsigned int stats_updates;
  
  	if (!val)
  		return;
  
-+	/* Don't assume callers have preemption disabled. */
-+	cpu = get_cpu();
-+
+-	/* Don't assume callers have preemption disabled. */
+-	cpu = get_cpu();
+-
  	cgroup_rstat_updated(memcg->css.cgroup, cpu);
--	statc = this_cpu_ptr(memcg->vmstats_percpu);
--	for (; statc; statc = statc->parent) {
-+	statc_pcpu = memcg->vmstats_percpu;
-+	for (; statc_pcpu; statc_pcpu = statc->parent_pcpu) {
-+		statc = this_cpu_ptr(statc_pcpu);
- 		/*
- 		 * If @memcg is already flushable then all its ancestors are
- 		 * flushable as well and also there is no need to increase
-@@ -606,14 +611,15 @@ static inline void memcg_rstat_updated(s
- 		if (memcg_vmstats_needs_flush(statc->vmstats))
- 			break;
- 
--		stats_updates = READ_ONCE(statc->stats_updates) + abs(val);
--		WRITE_ONCE(statc->stats_updates, stats_updates);
-+		stats_updates = this_cpu_add_return(statc_pcpu->stats_updates,
-+						    abs(val));
- 		if (stats_updates < MEMCG_CHARGE_BATCH)
- 			continue;
- 
-+		stats_updates = this_cpu_xchg(statc_pcpu->stats_updates, 0);
+ 	statc_pcpu = memcg->vmstats_percpu;
+ 	for (; statc_pcpu; statc_pcpu = statc->parent_pcpu) {
+@@ -619,7 +593,6 @@ static inline void memcg_rstat_updated(s
+ 		stats_updates = this_cpu_xchg(statc_pcpu->stats_updates, 0);
  		atomic64_add(stats_updates, &statc->vmstats->stats_updates);
--		WRITE_ONCE(statc->stats_updates, 0);
  	}
-+	put_cpu();
+-	put_cpu();
  }
  
  static void __mem_cgroup_flush_stats(struct mem_cgroup *memcg, bool force)
-@@ -3691,7 +3697,8 @@ static void mem_cgroup_free(struct mem_c
- 
- static struct mem_cgroup *mem_cgroup_alloc(struct mem_cgroup *parent)
+@@ -717,6 +690,7 @@ void __mod_memcg_state(struct mem_cgroup
+ 		       int val)
  {
--	struct memcg_vmstats_percpu *statc, *pstatc;
-+	struct memcg_vmstats_percpu *statc;
-+	struct memcg_vmstats_percpu __percpu *pstatc_pcpu;
+ 	int i = memcg_stats_index(idx);
++	int cpu;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+@@ -724,12 +698,14 @@ void __mod_memcg_state(struct mem_cgroup
+ 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
+ 		return;
+ 
+-	memcg_stats_lock();
++	cpu = get_cpu();
++
+ 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
+ 	val = memcg_state_val_in_pages(idx, val);
+-	memcg_rstat_updated(memcg, val);
++	memcg_rstat_updated(memcg, val, cpu);
+ 	trace_mod_memcg_state(memcg, idx, val);
+-	memcg_stats_unlock();
++
++	put_cpu();
+ }
+ 
+ #ifdef CONFIG_MEMCG_V1
+@@ -758,6 +734,7 @@ static void __mod_memcg_lruvec_state(str
+ 	struct mem_cgroup_per_node *pn;
  	struct mem_cgroup *memcg;
- 	int node, cpu;
- 	int __maybe_unused i;
-@@ -3722,9 +3729,9 @@ static struct mem_cgroup *mem_cgroup_all
+ 	int i = memcg_stats_index(idx);
++	int cpu;
  
- 	for_each_possible_cpu(cpu) {
- 		if (parent)
--			pstatc = per_cpu_ptr(parent->vmstats_percpu, cpu);
-+			pstatc_pcpu = parent->vmstats_percpu;
- 		statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
--		statc->parent = parent ? pstatc : NULL;
-+		statc->parent_pcpu = parent ? pstatc_pcpu : NULL;
- 		statc->vmstats = memcg->vmstats;
- 	}
+ 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
+ 		return;
+@@ -765,24 +742,7 @@ static void __mod_memcg_lruvec_state(str
+ 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	memcg = pn->memcg;
  
+-	/*
+-	 * The caller from rmap relies on disabled preemption because they never
+-	 * update their counter from in-interrupt context. For these two
+-	 * counters we check that the update is never performed from an
+-	 * interrupt context while other caller need to have disabled interrupt.
+-	 */
+-	__memcg_stats_lock();
+-	if (IS_ENABLED(CONFIG_DEBUG_VM)) {
+-		switch (idx) {
+-		case NR_ANON_MAPPED:
+-		case NR_FILE_MAPPED:
+-		case NR_ANON_THPS:
+-			WARN_ON_ONCE(!in_task());
+-			break;
+-		default:
+-			VM_WARN_ON_IRQS_ENABLED();
+-		}
+-	}
++	cpu = get_cpu();
+ 
+ 	/* Update memcg */
+ 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
+@@ -791,9 +751,10 @@ static void __mod_memcg_lruvec_state(str
+ 	__this_cpu_add(pn->lruvec_stats_percpu->state[i], val);
+ 
+ 	val = memcg_state_val_in_pages(idx, val);
+-	memcg_rstat_updated(memcg, val);
++	memcg_rstat_updated(memcg, val, cpu);
+ 	trace_mod_memcg_lruvec_state(memcg, idx, val);
+-	memcg_stats_unlock();
++
++	put_cpu();
+ }
+ 
+ /**
+@@ -873,6 +834,7 @@ void __count_memcg_events(struct mem_cgr
+ 			  unsigned long count)
+ {
+ 	int i = memcg_events_index(idx);
++	int cpu;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+@@ -880,11 +842,13 @@ void __count_memcg_events(struct mem_cgr
+ 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
+ 		return;
+ 
+-	memcg_stats_lock();
++	cpu = get_cpu();
++
+ 	__this_cpu_add(memcg->vmstats_percpu->events[i], count);
+-	memcg_rstat_updated(memcg, count);
++	memcg_rstat_updated(memcg, count, cpu);
+ 	trace_count_memcg_events(memcg, idx, count);
+-	memcg_stats_unlock();
++
++	put_cpu();
+ }
+ 
+ unsigned long memcg_events(struct mem_cgroup *memcg, int event)
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
