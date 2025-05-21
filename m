@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FADA2222C8
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1D8E22C331
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:45:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846672; cv=none; b=Fd+euYydd3694M+yD550RMHbVW/uYXlsFY9trgaYpUyL5ufDzTOTnyGSOEdCr6vGd98DziJwDY0SObfGt7jmqQmcdyQQcrmQ/1hKVlMgQAGFIxCzkW1ONxzKC/HOwK3jyUxqC4Na8jDRpOjFaHOqEO8ZILA7mgYyD6OZR5eEqeI=
+	t=1747849541; cv=none; b=g4pfyDNkQEk5pbEyan2AW7GsGPwS/2wl41jER1+zTpz+jXqZoX2/0u/rUCOC5GUEl4mW/2TYhqLJ3d0ZGVQfqyozgHYDiKoWWy2eDbnjB9kCGqYlmXYdoLryHrM+zdJO9+YUbTeUAmB7vTlkX4t32qxew4HXe4OK/pLakRa5iX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846672; c=relaxed/simple;
-	bh=Q7uaMjNO/OnzFjanMJiBsHjyfAK6kMzUg2Pm6t20Ozk=;
-	h=Date:To:From:Subject:Message-Id; b=JE3+QQAmJ5zJ2Q2JmFsqsy/HovWuKuSz2DpF/8XNIrTCxfMirPo+VSd97X0JOCn2YnxIUkplRW8JpuawttTJxJaTn5FXQs2fSftNO/gIyqDM6jH61i9HQ7mZTKWUwKhChY6YsFRNn13d6OsxW2lZ+3lqqlR8Dn7cCFJTEtMZ7HI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jkthCH2X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747849541; c=relaxed/simple;
+	bh=F8w8HCfBGdPkwz3amD+BrNVecWk3cXHJQT7pKgHWyow=;
+	h=Date:To:From:Subject:Message-Id; b=ghT8CRQokx0UMHvs0P5fesN9MLj5jbqQbZ+RDzT3VziO8rlIzQReYHGjWeJO4pA0ZmDEhv4bqljh/9ktOV4oK0t/+8TzuWPs2B/CtpogfF01doKwg49Aw/qX3/NtQy9GR+V4uIAAelKrzD2HZe9QR5a4cILebD48pccLgSJydfA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m9FWeDtH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jkthCH2X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD201C4CEE7;
-	Wed, 21 May 2025 16:57:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m9FWeDtH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4219CC4CEE4;
+	Wed, 21 May 2025 17:45:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846672;
-	bh=Q7uaMjNO/OnzFjanMJiBsHjyfAK6kMzUg2Pm6t20Ozk=;
+	s=korg; t=1747849539;
+	bh=F8w8HCfBGdPkwz3amD+BrNVecWk3cXHJQT7pKgHWyow=;
 	h=Date:To:From:Subject:From;
-	b=jkthCH2Xgk/5Abuf/ua3Tq6G/ye9Nz3SvHeEhE+fE9yRgEbYdaA9d8Ltvw00mTFq7
-	 dKM/Uhn1QqWbR4lCPTSh+S1YZOOsVQ9oP8pVpXkJJOMIGpDkwa3PMJFi2y/YvlhwYa
-	 pXa1kPx/6QA1gYSKPBBMZSR62oZ5hhnzeHciJj2g=
-Date: Wed, 21 May 2025 09:57:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=m9FWeDtH0NscvDYI9wpm6XqP+YVQF33lsIeaGzyCj3a/u1cHysiw/J/4fzRflxXAa
+	 SeiOPaTHJiyKk1l3W2FQb4r7/46yqMucMJm2DWBpbhXttkcEc2RHJT9yExpoSg8XcP
+	 /aB1W2if++yIpBekTE8bqOD3fMlWO3IDMCFyEg1k=
+Date: Wed, 21 May 2025 10:45:38 -0700
+To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,coxu@redhat.com,bhe@redhat.com,berrange@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-objcg-stock-trylock-without-irq-disabling.patch removed from -mm tree
-Message-Id: <20250521165751.DD201C4CEE7@smtp.kernel.org>
+Subject: [folded-merged] revert-x86-mm-remove-unused-__set_memory_prot-fix.patch removed from -mm tree
+Message-Id: <20250521174539.4219CC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: objcg stock trylock without irq disabling
+     Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-objcg-stock-trylock-without-irq-disabling.patch
+     revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into revert-x86-mm-remove-unused-__set_memory_prot.patch
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: objcg stock trylock without irq disabling
-Date: Wed, 14 May 2025 11:41:58 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
+Date: Sat May  3 11:38:32 PM PDT 2025
 
-There is no need to disable irqs to use objcg per-cpu stock, so let's just
-not do that but consume_obj_stock() and refill_obj_stock() will need to
-use trylock instead to avoid deadlock against irq.  One consequence of
-this change is that the charge request from irq context may take slowpath
-more often but it should be rare.
+x86 set_memory.h needs pgtable_types.h for pgprot_t.  Obtain it via the
+higher-level pgtable.h.
 
-Link: https://lkml.kernel.org/r/20250514184158.3471331-8-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: "Daniel P. Berrange" <berrange@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Jan Pazdziora <jpazdziora@redhat.com>
+Cc: Liu Pingfan <kernelfans@gmail.com>
+Cc: Milan Broz <gmazyland@gmail.com>
+Cc: Ondrej Kozina <okozina@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/set_memory.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memcontrol.c~memcg-objcg-stock-trylock-without-irq-disabling
-+++ a/mm/memcontrol.c
-@@ -1882,18 +1882,17 @@ static void drain_local_memcg_stock(stru
- static void drain_local_obj_stock(struct work_struct *dummy)
- {
- 	struct obj_stock_pcp *stock;
--	unsigned long flags;
+--- a/arch/x86/include/asm/set_memory.h~revert-x86-mm-remove-unused-__set_memory_prot-fix
++++ a/arch/x86/include/asm/set_memory.h
+@@ -4,6 +4,7 @@
  
- 	if (WARN_ONCE(!in_task(), "drain in non-task context"))
- 		return;
+ #include <asm/page.h>
+ #include <asm-generic/set_memory.h>
++#include <asm/pgtable.h>
  
--	local_lock_irqsave(&obj_stock.lock, flags);
-+	local_lock(&obj_stock.lock);
- 
- 	stock = this_cpu_ptr(&obj_stock);
- 	drain_obj_stock(stock);
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
- 
--	local_unlock_irqrestore(&obj_stock.lock, flags);
-+	local_unlock(&obj_stock.lock);
- }
- 
- static void refill_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
-@@ -2876,10 +2875,10 @@ static bool consume_obj_stock(struct obj
- 			      struct pglist_data *pgdat, enum node_stat_item idx)
- {
- 	struct obj_stock_pcp *stock;
--	unsigned long flags;
- 	bool ret = false;
- 
--	local_lock_irqsave(&obj_stock.lock, flags);
-+	if (!local_trylock(&obj_stock.lock))
-+		return ret;
- 
- 	stock = this_cpu_ptr(&obj_stock);
- 	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
-@@ -2890,7 +2889,7 @@ static bool consume_obj_stock(struct obj
- 			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
- 	}
- 
--	local_unlock_irqrestore(&obj_stock.lock, flags);
-+	local_unlock(&obj_stock.lock);
- 
- 	return ret;
- }
-@@ -2979,10 +2978,16 @@ static void refill_obj_stock(struct obj_
- 		enum node_stat_item idx)
- {
- 	struct obj_stock_pcp *stock;
--	unsigned long flags;
- 	unsigned int nr_pages = 0;
- 
--	local_lock_irqsave(&obj_stock.lock, flags);
-+	if (!local_trylock(&obj_stock.lock)) {
-+		if (pgdat)
-+			mod_objcg_mlstate(objcg, pgdat, idx, nr_bytes);
-+		nr_pages = nr_bytes >> PAGE_SHIFT;
-+		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
-+		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
-+		goto out;
-+	}
- 
- 	stock = this_cpu_ptr(&obj_stock);
- 	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
-@@ -3004,8 +3009,8 @@ static void refill_obj_stock(struct obj_
- 		stock->nr_bytes &= (PAGE_SIZE - 1);
- 	}
- 
--	local_unlock_irqrestore(&obj_stock.lock, flags);
--
-+	local_unlock(&obj_stock.lock);
-+out:
- 	if (nr_pages)
- 		obj_cgroup_uncharge_pages(objcg, nr_pages);
- }
+ #define set_memory_rox set_memory_rox
+ int set_memory_rox(unsigned long addr, int numpages);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-disable-kmem-charging-in-nmi-for-unsupported-arch.patch
-memcg-nmi-safe-memcg-stats-for-specific-archs.patch
-memcg-add-nmi-safe-update-for-memcg_kmem.patch
-memcg-nmi-safe-slab-stats-updates.patch
-memcg-make-memcg_rstat_updated-nmi-safe.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-add-zblock-allocator-fix-2-fix.patch
+mm-add-zblock-allocator-fix-3.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+revert-x86-mm-remove-unused-__set_memory_prot.patch
 
