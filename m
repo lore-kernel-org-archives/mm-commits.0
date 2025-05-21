@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1D8E22C331
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:45:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCF0F19F42F
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:48:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747849541; cv=none; b=g4pfyDNkQEk5pbEyan2AW7GsGPwS/2wl41jER1+zTpz+jXqZoX2/0u/rUCOC5GUEl4mW/2TYhqLJ3d0ZGVQfqyozgHYDiKoWWy2eDbnjB9kCGqYlmXYdoLryHrM+zdJO9+YUbTeUAmB7vTlkX4t32qxew4HXe4OK/pLakRa5iX8=
+	t=1747849729; cv=none; b=YC/Jf+CS7i7OKyCKriL17ZhPQR/Vrwg8GRyXq6RcnBycLPZamQ/exuXCI8xedin+gXBwx8owX+yxDpELl6RRsSJVrQnR2DC+G8tvkbkViutsU44l8wEUM7GbRtqMGcIHzz8RTRf+Jr75nStBUuwUBzAteMHKlkxqFAn9Fg7hOz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747849541; c=relaxed/simple;
-	bh=F8w8HCfBGdPkwz3amD+BrNVecWk3cXHJQT7pKgHWyow=;
-	h=Date:To:From:Subject:Message-Id; b=ghT8CRQokx0UMHvs0P5fesN9MLj5jbqQbZ+RDzT3VziO8rlIzQReYHGjWeJO4pA0ZmDEhv4bqljh/9ktOV4oK0t/+8TzuWPs2B/CtpogfF01doKwg49Aw/qX3/NtQy9GR+V4uIAAelKrzD2HZe9QR5a4cILebD48pccLgSJydfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m9FWeDtH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747849729; c=relaxed/simple;
+	bh=BYfgzd866O8vV1LsebQyd9IqRx85xVBk54Q6En5dLng=;
+	h=Date:To:From:Subject:Message-Id; b=SQ/6gqTeno3iholDJUz3sWOAn5Be3NYF8SSz+4Kl0t7Owyr9bpRarZkfg9oPKpGW7A8MtZYGnHrqFYgCF3LVjywN5sBjUvuZl0BFGWmE4KUzG/QYRXqO+mNojmqStsG60zkJsYzlESCVEkIjymxP0knLCvRKsQuZmuPn4v+tAwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WeotHiXq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m9FWeDtH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4219CC4CEE4;
-	Wed, 21 May 2025 17:45:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WeotHiXq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78BD0C4CEE4;
+	Wed, 21 May 2025 17:48:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747849539;
-	bh=F8w8HCfBGdPkwz3amD+BrNVecWk3cXHJQT7pKgHWyow=;
+	s=korg; t=1747849729;
+	bh=BYfgzd866O8vV1LsebQyd9IqRx85xVBk54Q6En5dLng=;
 	h=Date:To:From:Subject:From;
-	b=m9FWeDtH0NscvDYI9wpm6XqP+YVQF33lsIeaGzyCj3a/u1cHysiw/J/4fzRflxXAa
-	 SeiOPaTHJiyKk1l3W2FQb4r7/46yqMucMJm2DWBpbhXttkcEc2RHJT9yExpoSg8XcP
-	 /aB1W2if++yIpBekTE8bqOD3fMlWO3IDMCFyEg1k=
-Date: Wed, 21 May 2025 10:45:38 -0700
-To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,coxu@redhat.com,bhe@redhat.com,berrange@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=WeotHiXquv8z7kpxLxPwp6IWGZAKzXgzjZ7VcGyCkKa3UDMJPBPwsQE7Dlp1I5yQD
+	 Yu96G4pdXO+DFpR8NKZtHJZiyGHYBBETsqufH2L98cBP6+jPvVipOjKJGuj1HtJUfl
+	 JbRDktN4ObAgjJxysxth7Pf8owRd1G6iWCVJqe6A=
+Date: Wed, 21 May 2025 10:48:48 -0700
+To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,bhe@redhat.com,berrange@redhat.com,coxu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] revert-x86-mm-remove-unused-__set_memory_prot-fix.patch removed from -mm tree
-Message-Id: <20250521174539.4219CC4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec_file-allow-to-place-kexec_buf-randomly.patch removed from -mm tree
+Message-Id: <20250521174849.78BD0C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,108 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
+     Subject: kexec_file: allow to place kexec_buf randomly
 has been removed from the -mm tree.  Its filename was
-     revert-x86-mm-remove-unused-__set_memory_prot-fix.patch
+     kexec_file-allow-to-place-kexec_buf-randomly.patch
 
-This patch was dropped because it was folded into revert-x86-mm-remove-unused-__set_memory_prot.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert-x86-mm-remove-unused-__set_memory_prot-fix
-Date: Sat May  3 11:38:32 PM PDT 2025
+From: Coiby Xu <coxu@redhat.com>
+Subject: kexec_file: allow to place kexec_buf randomly
+Date: Fri, 2 May 2025 09:12:35 +0800
 
-x86 set_memory.h needs pgtable_types.h for pgprot_t.  Obtain it via the
-higher-level pgtable.h.
+Patch series "Support kdump with LUKS encryption by reusing LUKS volume
+keys", v9.
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Coiby Xu <coxu@redhat.com>
+LUKS is the standard for Linux disk encryption, widely adopted by users,
+and in some cases, such as Confidential VMs, it is a requirement.  With
+kdump enabled, when the first kernel crashes, the system can boot into the
+kdump/crash kernel to dump the memory image (i.e., /proc/vmcore) to a
+specified target.  However, there are two challenges when dumping vmcore
+to a LUKS-encrypted device:
+
+ - Kdump kernel may not be able to decrypt the LUKS partition. For some
+   machines, a system administrator may not have a chance to enter the
+   password to decrypt the device in kdump initramfs after the 1st kernel
+   crashes; For cloud confidential VMs, depending on the policy the
+   kdump kernel may not be able to unseal the keys with TPM and the
+   console virtual keyboard is untrusted.
+
+ - LUKS2 by default use the memory-hard Argon2 key derivation function
+   which is quite memory-consuming compared to the limited memory reserved
+   for kdump. Take Fedora example, by default, only 256M is reserved for
+   systems having memory between 4G-64G. With LUKS enabled, ~1300M needs
+   to be reserved for kdump. Note if the memory reserved for kdump can't
+   be used by 1st kernel i.e. an user sees ~1300M memory missing in the
+   1st kernel.
+
+Besides users (at least for Fedora) usually expect kdump to work out of
+the box i.e.  no manual password input or custom crashkernel value is
+needed.  And it doesn't make sense to derivate the keys again in kdump
+kernel which seems to be redundant work.
+
+This patchset addresses the above issues by making the LUKS volume keys
+persistent for kdump kernel with the help of cryptsetup's new APIs
+(--link-vk-to-keyring/--volume-key-keyring).  Here is the life cycle of
+the kdump copies of LUKS volume keys,
+
+ 1. After the 1st kernel loads the initramfs during boot, systemd
+    use an user-input passphrase to de-crypt the LUKS volume keys
+    or TPM-sealed key and then save the volume keys to specified keyring
+    (using the --link-vk-to-keyring API) and the key will expire within
+    specified time.
+
+ 2. A user space tool (kdump initramfs loader like kdump-utils) create
+    key items inside /sys/kernel/config/crash_dm_crypt_keys to inform
+    the 1st kernel which keys are needed.
+
+ 3. When the kdump initramfs is loaded by the kexec_file_load
+    syscall, the 1st kernel will iterate created key items, save the
+    keys to kdump reserved memory.
+
+ 4. When the 1st kernel crashes and the kdump initramfs is booted, the
+    kdump initramfs asks the kdump kernel to create a user key using the
+    key stored in kdump reserved memory by writing yes to
+    /sys/kernel/crash_dm_crypt_keys/restore. Then the LUKS encrypted
+    device is unlocked with libcryptsetup's --volume-key-keyring API.
+
+ 5. The system gets rebooted to the 1st kernel after dumping vmcore to
+    the LUKS encrypted device is finished
+
+After libcryptsetup saving the LUKS volume keys to specified keyring,
+whoever takes this should be responsible for the safety of these copies of
+keys.  The keys will be saved in the memory area exclusively reserved for
+kdump where even the 1st kernel has no direct access.  And further more,
+two additional protections are added,
+ - save the copy randomly in kdump reserved memory as suggested by Jan
+ - clear the _PAGE_PRESENT flag of the page that stores the copy as
+   suggested by Pingfan
+
+This patchset only supports x86.  There will be patches to support other
+architectures once this patch set gets merged.
+
+
+This patch (of 9):
+
+Currently, kexec_buf is placed in order which means for the same machine,
+the info in the kexec_buf is always located at the same position each time
+the machine is booted.  This may cause a risk for sensitive information
+like LUKS volume key.  Now struct kexec_buf has a new field random which
+indicates it's supposed to be placed in a random position.
+
+Note this feature is enabled only when CONFIG_CRASH_DUMP is enabled.  So
+it only takes effect for kdump and won't impact kexec reboot.
+
+Link: https://lkml.kernel.org/r/20250502011246.99238-1-coxu@redhat.com
+Link: https://lkml.kernel.org/r/20250502011246.99238-2-coxu@redhat.com
+Signed-off-by: Coiby Xu <coxu@redhat.com>
+Suggested-by: Jan Pazdziora <jpazdziora@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Cc: "Daniel P. Berrange" <berrange@redhat.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Jan Pazdziora <jpazdziora@redhat.com>
 Cc: Liu Pingfan <kernelfans@gmail.com>
 Cc: Milan Broz <gmazyland@gmail.com>
 Cc: Ondrej Kozina <okozina@redhat.com>
@@ -62,27 +144,86 @@ Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/set_memory.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/kexec.h |   30 ++++++++++++++++++++++++++++++
+ kernel/kexec_file.c   |    3 +++
+ 2 files changed, 33 insertions(+)
 
---- a/arch/x86/include/asm/set_memory.h~revert-x86-mm-remove-unused-__set_memory_prot-fix
-+++ a/arch/x86/include/asm/set_memory.h
-@@ -4,6 +4,7 @@
+--- a/include/linux/kexec.h~kexec_file-allow-to-place-kexec_buf-randomly
++++ a/include/linux/kexec.h
+@@ -25,6 +25,10 @@
  
- #include <asm/page.h>
- #include <asm-generic/set_memory.h>
-+#include <asm/pgtable.h>
+ extern note_buf_t __percpu *crash_notes;
  
- #define set_memory_rox set_memory_rox
- int set_memory_rox(unsigned long addr, int numpages);
++#ifdef CONFIG_CRASH_DUMP
++#include <linux/prandom.h>
++#endif
++
+ #ifdef CONFIG_KEXEC_CORE
+ #include <linux/list.h>
+ #include <linux/compat.h>
+@@ -169,6 +173,7 @@ int kexec_image_post_load_cleanup_defaul
+  * @buf_min:	The buffer can't be placed below this address.
+  * @buf_max:	The buffer can't be placed above this address.
+  * @top_down:	Allocate from top of memory.
++ * @random:	Place the buffer at a random position.
+  */
+ struct kexec_buf {
+ 	struct kimage *image;
+@@ -180,8 +185,33 @@ struct kexec_buf {
+ 	unsigned long buf_min;
+ 	unsigned long buf_max;
+ 	bool top_down;
++#ifdef CONFIG_CRASH_DUMP
++	bool random;
++#endif
+ };
+ 
++
++#ifdef CONFIG_CRASH_DUMP
++static inline void kexec_random_range_start(unsigned long start,
++					    unsigned long end,
++					    struct kexec_buf *kbuf,
++					    unsigned long *temp_start)
++{
++	unsigned short i;
++
++	if (kbuf->random) {
++		get_random_bytes(&i, sizeof(unsigned short));
++		*temp_start = start + (end - start) / USHRT_MAX * i;
++	}
++}
++#else
++static inline void kexec_random_range_start(unsigned long start,
++					    unsigned long end,
++					    struct kexec_buf *kbuf,
++					    unsigned long *temp_start)
++{}
++#endif
++
+ int kexec_load_purgatory(struct kimage *image, struct kexec_buf *kbuf);
+ int kexec_purgatory_get_set_symbol(struct kimage *image, const char *name,
+ 				   void *buf, unsigned int size,
+--- a/kernel/kexec_file.c~kexec_file-allow-to-place-kexec_buf-randomly
++++ a/kernel/kexec_file.c
+@@ -444,6 +444,7 @@ static int locate_mem_hole_top_down(unsi
+ 
+ 	temp_end = min(end, kbuf->buf_max);
+ 	temp_start = temp_end - kbuf->memsz + 1;
++	kexec_random_range_start(temp_start, temp_end, kbuf, &temp_start);
+ 
+ 	do {
+ 		/* align down start */
+@@ -488,6 +489,8 @@ static int locate_mem_hole_bottom_up(uns
+ 
+ 	temp_start = max(start, kbuf->buf_min);
+ 
++	kexec_random_range_start(temp_start, end, kbuf, &temp_start);
++
+ 	do {
+ 		temp_start = ALIGN(temp_start, kbuf->buf_align);
+ 		temp_end = temp_start + kbuf->memsz - 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from coxu@redhat.com are
 
-mm-add-zblock-allocator-fix.patch
-mm-add-zblock-allocator-fix-2.patch
-mm-add-zblock-allocator-fix-2-fix.patch
-mm-add-zblock-allocator-fix-3.patch
-mm-zblock-avoid-failing-the-build-fix.patch
-revert-x86-mm-remove-unused-__set_memory_prot.patch
 
