@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C60E32C85
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 05:48:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24E1832C85;
+	Wed, 21 May 2025 05:50:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747806500; cv=none; b=DjYataIdYLs/Ya/PUYl8VplTtRu10dxb8U2eUsd5p8nErjCbOIV9tp+EZeE07/23BRJ35jhYB9ptrhld0orJCtLg6+ioCM48bAzPmd8LL9cZv4P9JqoTqu6Zg2PIcLQZYuUqvITuQ7Xli4sp/dS+WeEVbjgvdGU7aH8eHDFXJSM=
+	t=1747806603; cv=none; b=Rvh95PR44cnhxU1pfJ8ZE3EOywt0nIJeJsBkEZ8FnFfc9CPBJw3h3r91DdOxXtbhCofXAMNcXJtmEVMTqoLesoeX3Vy4cszmaaQ0w35BVgtYhNJ+Zsj7OkBpQTYOV1sKmqTemoITwTKuebNkETiavtFYwQqeFljJ7NQISuvLQKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747806500; c=relaxed/simple;
-	bh=AuP0K6aGKjxIcGWea9Ziwmea4vAElgAey/c2uHwO05Q=;
-	h=Date:To:From:Subject:Message-Id; b=drT2J4F4Vi/XRYCcyRInv1HOShP+djoSD6RhrQJIS/NAgxRFXZlIraz7ypRJYIRaq3HuT0bHdj0BsjEb+x8/gpjqCQr2AES+HfnKFm051pnu4qAikrVFkRycyxKNII4BCTGWM9pg28XNXqop7SSm3q18TOrmT3RZzMnICyas/wc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RNoqPuGJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747806603; c=relaxed/simple;
+	bh=jBiZ01pex1Im3tkQ9vn6tyF27fv4w7THik48ltgXgoQ=;
+	h=Date:To:From:Subject:Message-Id; b=Wk4MyVNlH++rApRyeUaPCh0hIJZwbr5uqu5Z2xj7oow/SKBgw5DY5LSbWx0mbZkEL+N7N1BhVt7EhZv5fhuNw9w9NQoOjx0a//SfkNBe4AExxKzTVYrrOMuf/W7pSNqan3mCsx9S6/22i/xjESqzXi9WANQopN3dV0Ik7Xoo/wE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WCMsXdri; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RNoqPuGJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2BC7C4CEED;
-	Wed, 21 May 2025 05:48:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WCMsXdri"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D1D3C4CEE4;
+	Wed, 21 May 2025 05:50:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747806499;
-	bh=AuP0K6aGKjxIcGWea9Ziwmea4vAElgAey/c2uHwO05Q=;
+	s=korg; t=1747806602;
+	bh=jBiZ01pex1Im3tkQ9vn6tyF27fv4w7THik48ltgXgoQ=;
 	h=Date:To:From:Subject:From;
-	b=RNoqPuGJBByHX0YQNADjsSiLGI5tEMSeUcJsA2NG0FeXHAMCAg37PxQGIw0hvIg17
-	 NrXRMjY6vlytKHyN2Ho/U7rU8fiNfbaM9VnB/BvM+e89yulxK24jiYTNhF0os9Zv1E
-	 nFe+U/8BefO0AKfi7JjziEKlYVGHbpkdt4HGsjn0=
-Date: Tue, 20 May 2025 22:48:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=WCMsXdrinNF/B+rgEgFHUqBErC5JuJz0BXR0oLLqvblSMja9UvQglL2MiVjsOjSV2
+	 1lOWSlt8z+jhwHhvv+dd4jvc3uLJhFUJo5zdomcn3bZUaZDrCNNxMLdkiLajluCsw1
+	 WKZhmXG/UfrNoG2l/D523Ay6FTIJvMShYNKZ1y+Q=
+Date: Tue, 20 May 2025 22:50:01 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhangtianyang@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maintainers-add-mm-memory-policy-section-fix.patch removed from -mm tree
-Message-Id: <20250521054819.A2BC7C4CEED@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race.patch removed from -mm tree
+Message-Id: <20250521055002.7D1D3C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: add Ying as reviewer
+     Subject: mm/page_alloc.c: avoid infinite retries caused by cpuset race
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-mm-memory-policy-section-fix.patch
+     mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race.patch
 
-This patch was dropped because it was folded into maintainers-add-mm-memory-policy-section.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: add Ying as reviewer
-Date: Thu, 15 May 2025 20:23:27 +0100
+From: Tianyang Zhang <zhangtianyang@loongson.cn>
+Subject: mm/page_alloc.c: avoid infinite retries caused by cpuset race
+Date: Wed, 16 Apr 2025 16:24:05 +0800
 
-Link: https://lkml.kernel.org/r/ed6f0fc2-5608-4eea-b1be-07e3e19be263@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Huang Ying <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
+__alloc_pages_slowpath has no change detection for ac->nodemask in the
+part of retry path, while cpuset can modify it in parallel.  For some
+processes that set mempolicy as MPOL_BIND, this results ac->nodemask
+changes, and then the should_reclaim_retry will judge based on the latest
+nodemask and jump to retry, while the get_page_from_freelist only
+traverses the zonelist from ac->preferred_zoneref, which selected by a
+expired nodemask and may cause infinite retries in some cases
+
+cpu 64:
+__alloc_pages_slowpath {
+        /* ..... */
+retry:
+        /* ac->nodemask = 0x1, ac->preferred->zone->nid = 1 */
+        if (alloc_flags & ALLOC_KSWAPD)
+                wake_all_kswapds(order, gfp_mask, ac);
+        /* cpu 1:
+        cpuset_write_resmask
+            update_nodemask
+                update_nodemasks_hier
+                    update_tasks_nodemask
+                        mpol_rebind_task
+                         mpol_rebind_policy
+                          mpol_rebind_nodemask
+		// mempolicy->nodes has been modified,
+		// which ac->nodemask point to
+
+        */
+        /* ac->nodemask = 0x3, ac->preferred->zone->nid = 1 */
+        if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
+                                 did_some_progress > 0, &no_progress_loops))
+                goto retry;
+}
+
+Simultaneously starting multiple cpuset01 from LTP can quickly reproduce
+this issue on a multi node server when the maximum memory pressure is
+reached and the swap is enabled
+
+Link: https://lkml.kernel.org/r/20250416082405.20988-1-zhangtianyang@loongson.cn
+Fixes: c33d6c06f60f ("mm, page_alloc: avoid looking up the first zone in a zonelist twice")
+Signed-off-by: Tianyang Zhang <zhangtianyang@loongson.cn>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-mm-memory-policy-section-fix
-+++ a/MAINTAINERS
-@@ -15586,6 +15586,7 @@ R:	Joshua Hahn <joshua.hahnjy@gmail.com>
- R:	Rakie Kim <rakie.kim@sk.com>
- R:	Byungchul Park <byungchul@sk.com>
- R:	Gregory Price <gourry@gourry.net>
-+R:	Ying Huang <ying.huang@linux.alibaba.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
+--- a/mm/page_alloc.c~mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race
++++ a/mm/page_alloc.c
+@@ -4562,6 +4562,14 @@ restart:
+ 	}
+ 
+ retry:
++	/*
++	 * Deal with possible cpuset update races or zonelist updates to avoid
++	 * infinite retries.
++	 */
++	if (check_retry_cpuset(cpuset_mems_cookie, ac) ||
++	    check_retry_zonelist(zonelist_iter_cookie))
++		goto restart;
++
+ 	/* Ensure kswapd doesn't accidentally go to sleep as long as we loop */
+ 	if (alloc_flags & ALLOC_KSWAPD)
+ 		wake_all_kswapds(order, gfp_mask, ac);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from zhangtianyang@loongson.cn are
 
-maintainers-update-page-allocator-section.patch
-maintainers-add-mm-reclaim-section.patch
-maintainers-add-mm-ksm-section.patch
-maintainers-add-mm-memory-policy-section.patch
-maintainers-add-kernel-forkc-to-relevant-sections.patch
-mm-remove-warn_on_once-in-file_has_valid_mmap_hooks.patch
-memcg-memcg_rstat_updated-re-entrant-safe-against-irqs-fix.patch
 
