@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BEFA2222C8
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 068AB2222C8
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 16:57:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747846667; cv=none; b=l8IdGNpRzhW36oBamCT/jBj1a9bOpfmK8teqMD+0Fh4yxCcbbd28tT3ejAFM82aXBNB2FgSHGl+bo3BrKv0FudqZQmPKqbjIQVZ0zs69Rs/xpxr11v64ZLmndLbJgMu6wXXg34wBJHWJNq9Umn3RDlUuhE3eIE1q00v2hlsi22c=
+	t=1747846669; cv=none; b=EzTyId3UP3GhIcUW83BErCBQ/+J9eOuUQncJXG/nBLmnLPE+bC9Bx+21WlUOyucgQ3RSIKyoufpU5q8uh4+rdGp4zrfBa8BznbXyh5HKMd+AY+Yg1OCWK6EXqmXUHPsTexlatlfPzlKxJ/N2C4xu9MNC5he78k44BHmgGSuqNKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747846667; c=relaxed/simple;
-	bh=trXKDvBjG/3YXxPbtLdjXuNKE9HOwd3BhjrnXh5oG3c=;
-	h=Date:To:From:Subject:Message-Id; b=sK9R84joq6Li4hwicZ1IN4qF4AD1UGkGU72LRJGHc3fYHigz0XYhmPYWtIusatEvbE9A2QmCIl8a7g6Af8ExU9thY16lZrCYRiIItF4klNM8ElZkK0rB4k7vvKIgL3lrHiDCemBXaXrpKS5F0Ehuv37obZNQPyVyWhvEcmWA0Jg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NSO+lX0U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747846669; c=relaxed/simple;
+	bh=oLIChyfARWNb05a+eQb3ClqfCnsDncl5nu5QbZ4wm4A=;
+	h=Date:To:From:Subject:Message-Id; b=BbqaAumW/SbXMZGSE1N+WRdcI7HiyHqmh/YKrxvoTj+ifTcK8XIyCYIfJpOpawCc7du885TuhV79A4U6gSrfV1RSnDLLermddCOXDMtoKGREVYdEsbFZxN3Ji2gD4Azc4D9ntgPdex9dvtNy4IVFugSCA+cWjfOCxRU+2Ix1uXI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2gC6If9d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NSO+lX0U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62675C4CEE4;
-	Wed, 21 May 2025 16:57:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2gC6If9d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFA2DC4CEE4;
+	Wed, 21 May 2025 16:57:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747846667;
-	bh=trXKDvBjG/3YXxPbtLdjXuNKE9HOwd3BhjrnXh5oG3c=;
+	s=korg; t=1747846668;
+	bh=oLIChyfARWNb05a+eQb3ClqfCnsDncl5nu5QbZ4wm4A=;
 	h=Date:To:From:Subject:From;
-	b=NSO+lX0UHgXSpu23WWnV5RVIFTh3VVM3FeKEZSN68pRE39dHRW7m9cp3+ZDcsW3BQ
-	 H0b9VZM1yMrTWbxYYF3gzukelcHECINomXrTNlMvjgtM/VoyDdhHU8Kd50sEEm2WPa
-	 gp3VBNmlP2I4iBxGMEznHCtUDQ1lfxkcRxwNRihk=
-Date: Wed, 21 May 2025 09:57:46 -0700
+	b=2gC6If9dhSxuJR9td4Iw1zdUQmIqqmY55pDSzHezXgePss+7GlHcAowptcS0PESFm
+	 gGjqh/3HFBEIdwvrjQjhNDND2JQloMsfyC8aOczf+cSrnW3hxR5400PQgIA2wTlmgM
+	 h2RfVc/Okvb6r1ZQsb3dJ4s+wPo2/KjRB36c9vRw=
+Date: Wed, 21 May 2025 09:57:48 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-make-count_memcg_events-re-entrant-safe-against-irqs.patch removed from -mm tree
-Message-Id: <20250521165747.62675C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-make-__mod_memcg_lruvec_state-re-entrant-safe-against-irqs.patch removed from -mm tree
+Message-Id: <20250521165748.CFA2DC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: make count_memcg_events re-entrant safe against irqs
+     Subject: memcg: make __mod_memcg_lruvec_state re-entrant safe against irqs
 has been removed from the -mm tree.  Its filename was
-     memcg-make-count_memcg_events-re-entrant-safe-against-irqs.patch
+     memcg-make-__mod_memcg_lruvec_state-re-entrant-safe-against-irqs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: make count_memcg_events re-entrant safe against irqs
-Date: Wed, 14 May 2025 11:41:55 -0700
+Subject: memcg: make __mod_memcg_lruvec_state re-entrant safe against irqs
+Date: Wed, 14 May 2025 11:41:56 -0700
 
-Let's make count_memcg_events re-entrant safe against irqs.  The only
-thing needed is to convert the usage of __this_cpu_add() to
-this_cpu_add().  In addition, with re-entrant safety, there is no need to
-disable irqs.  Also add warnings for in_nmi() as it is not safe against
-nmi context.
+Let's make __mod_memcg_lruvec_state re-entrant safe and name it
+mod_memcg_lruvec_state().  The only thing needed is to convert the usage
+of __this_cpu_add() to this_cpu_add().  There are two callers of
+mod_memcg_lruvec_state() and one of them i.e.  __mod_objcg_mlstate() will
+be re-entrant safe as well, so, rename it mod_objcg_mlstate().  The last
+caller __mod_lruvec_state() still calls __mod_node_page_state() which is
+not re-entrant safe yet, so keep it as is.
 
-Link: https://lkml.kernel.org/r/20250514184158.3471331-5-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250514184158.3471331-6-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -65,195 +67,100 @@ Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   21 ++-------------------
- mm/memcontrol-v1.c         |    6 +++---
- mm/memcontrol.c            |    6 +++---
- mm/swap.c                  |    8 ++++----
- mm/vmscan.c                |   14 +++++++-------
- 5 files changed, 19 insertions(+), 36 deletions(-)
+ mm/memcontrol.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
-+++ a/include/linux/memcontrol.h
-@@ -942,19 +942,8 @@ static inline void mod_lruvec_kmem_state
- 	local_irq_restore(flags);
- }
- 
--void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
--			  unsigned long count);
--
--static inline void count_memcg_events(struct mem_cgroup *memcg,
--				      enum vm_event_item idx,
--				      unsigned long count)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__count_memcg_events(memcg, idx, count);
--	local_irq_restore(flags);
--}
-+void count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
-+			unsigned long count);
- 
- static inline void count_memcg_folio_events(struct folio *folio,
- 		enum vm_event_item idx, unsigned long nr)
-@@ -1418,12 +1407,6 @@ static inline void mod_lruvec_kmem_state
- }
- 
- static inline void count_memcg_events(struct mem_cgroup *memcg,
--				      enum vm_event_item idx,
--				      unsigned long count)
--{
--}
--
--static inline void __count_memcg_events(struct mem_cgroup *memcg,
- 					enum vm_event_item idx,
- 					unsigned long count)
- {
---- a/mm/memcontrol.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
+--- a/mm/memcontrol.c~memcg-make-__mod_memcg_lruvec_state-re-entrant-safe-against-irqs
 +++ a/mm/memcontrol.c
-@@ -825,12 +825,12 @@ void __mod_lruvec_kmem_state(void *p, en
+@@ -727,7 +727,7 @@ unsigned long memcg_page_state_local(str
  }
+ #endif
  
- /**
-- * __count_memcg_events - account VM events in a cgroup
-+ * count_memcg_events - account VM events in a cgroup
-  * @memcg: the memory cgroup
-  * @idx: the event item
-  * @count: the number of events that occurred
-  */
--void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
-+void count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
- 			  unsigned long count)
+-static void __mod_memcg_lruvec_state(struct lruvec *lruvec,
++static void mod_memcg_lruvec_state(struct lruvec *lruvec,
+ 				     enum node_stat_item idx,
+ 				     int val)
  {
- 	int i = memcg_events_index(idx);
-@@ -844,7 +844,7 @@ void __count_memcg_events(struct mem_cgr
- 
+@@ -745,10 +745,10 @@ static void __mod_memcg_lruvec_state(str
  	cpu = get_cpu();
  
--	__this_cpu_add(memcg->vmstats_percpu->events[i], count);
-+	this_cpu_add(memcg->vmstats_percpu->events[i], count);
- 	memcg_rstat_updated(memcg, count, cpu);
- 	trace_count_memcg_events(memcg, idx, count);
+ 	/* Update memcg */
+-	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
++	this_cpu_add(memcg->vmstats_percpu->state[i], val);
  
---- a/mm/memcontrol-v1.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
-+++ a/mm/memcontrol-v1.c
-@@ -512,9 +512,9 @@ static void memcg1_charge_statistics(str
+ 	/* Update lruvec */
+-	__this_cpu_add(pn->lruvec_stats_percpu->state[i], val);
++	this_cpu_add(pn->lruvec_stats_percpu->state[i], val);
+ 
+ 	val = memcg_state_val_in_pages(idx, val);
+ 	memcg_rstat_updated(memcg, val, cpu);
+@@ -775,7 +775,7 @@ void __mod_lruvec_state(struct lruvec *l
+ 
+ 	/* Update memcg and lruvec */
+ 	if (!mem_cgroup_disabled())
+-		__mod_memcg_lruvec_state(lruvec, idx, val);
++		mod_memcg_lruvec_state(lruvec, idx, val);
+ }
+ 
+ void __lruvec_stat_mod_folio(struct folio *folio, enum node_stat_item idx,
+@@ -2527,7 +2527,7 @@ static void commit_charge(struct folio *
+ 	folio->memcg_data = (unsigned long)memcg;
+ }
+ 
+-static inline void __mod_objcg_mlstate(struct obj_cgroup *objcg,
++static inline void mod_objcg_mlstate(struct obj_cgroup *objcg,
+ 				       struct pglist_data *pgdat,
+ 				       enum node_stat_item idx, int nr)
  {
- 	/* pagein of a big page is an event. So, ignore page size */
- 	if (nr_pages > 0)
--		__count_memcg_events(memcg, PGPGIN, 1);
-+		count_memcg_events(memcg, PGPGIN, 1);
- 	else {
--		__count_memcg_events(memcg, PGPGOUT, 1);
-+		count_memcg_events(memcg, PGPGOUT, 1);
- 		nr_pages = -nr_pages; /* for event */
+@@ -2537,7 +2537,7 @@ static inline void __mod_objcg_mlstate(s
+ 	rcu_read_lock();
+ 	memcg = obj_cgroup_memcg(objcg);
+ 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-	__mod_memcg_lruvec_state(lruvec, idx, nr);
++	mod_memcg_lruvec_state(lruvec, idx, nr);
+ 	rcu_read_unlock();
+ }
+ 
+@@ -2847,12 +2847,12 @@ static void __account_obj_stock(struct o
+ 		struct pglist_data *oldpg = stock->cached_pgdat;
+ 
+ 		if (stock->nr_slab_reclaimable_b) {
+-			__mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
++			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
+ 					  stock->nr_slab_reclaimable_b);
+ 			stock->nr_slab_reclaimable_b = 0;
+ 		}
+ 		if (stock->nr_slab_unreclaimable_b) {
+-			__mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
++			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
+ 					  stock->nr_slab_unreclaimable_b);
+ 			stock->nr_slab_unreclaimable_b = 0;
+ 		}
+@@ -2878,7 +2878,7 @@ static void __account_obj_stock(struct o
+ 		}
  	}
- 
-@@ -689,7 +689,7 @@ void memcg1_uncharge_batch(struct mem_cg
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
--	__count_memcg_events(memcg, PGPGOUT, pgpgout);
-+	count_memcg_events(memcg, PGPGOUT, pgpgout);
- 	__this_cpu_add(memcg->events_percpu->nr_page_events, nr_memory);
- 	memcg1_check_events(memcg, nid);
- 	local_irq_restore(flags);
---- a/mm/swap.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
-+++ a/mm/swap.c
-@@ -309,7 +309,7 @@ static void lru_activate(struct lruvec *
- 	trace_mm_lru_activate(folio);
- 
- 	__count_vm_events(PGACTIVATE, nr_pages);
--	__count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE, nr_pages);
-+	count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE, nr_pages);
+ 	if (nr)
+-		__mod_objcg_mlstate(objcg, pgdat, idx, nr);
++		mod_objcg_mlstate(objcg, pgdat, idx, nr);
  }
  
- #ifdef CONFIG_SMP
-@@ -581,7 +581,7 @@ static void lru_deactivate_file(struct l
- 
- 	if (active) {
- 		__count_vm_events(PGDEACTIVATE, nr_pages);
--		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
-+		count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
- 				     nr_pages);
- 	}
- }
-@@ -599,7 +599,7 @@ static void lru_deactivate(struct lruvec
- 	lruvec_add_folio(lruvec, folio);
- 
- 	__count_vm_events(PGDEACTIVATE, nr_pages);
--	__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_pages);
-+	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_pages);
- }
- 
- static void lru_lazyfree(struct lruvec *lruvec, struct folio *folio)
-@@ -625,7 +625,7 @@ static void lru_lazyfree(struct lruvec *
- 	lruvec_add_folio(lruvec, folio);
- 
- 	__count_vm_events(PGLAZYFREE, nr_pages);
--	__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
-+	count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
- }
- 
- /*
---- a/mm/vmscan.c~memcg-make-count_memcg_events-re-entrant-safe-against-irqs
-+++ a/mm/vmscan.c
-@@ -2028,7 +2028,7 @@ static unsigned long shrink_inactive_lis
- 	item = PGSCAN_KSWAPD + reclaimer_offset(sc);
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_scanned);
--	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
-+	count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
- 	__count_vm_events(PGSCAN_ANON + file, nr_scanned);
- 
- 	spin_unlock_irq(&lruvec->lru_lock);
-@@ -2048,7 +2048,7 @@ static unsigned long shrink_inactive_lis
- 	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_reclaimed);
--	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
-+	count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
- 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
- 	spin_unlock_irq(&lruvec->lru_lock);
- 
-@@ -2138,7 +2138,7 @@ static void shrink_active_list(unsigned
- 
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(PGREFILL, nr_scanned);
--	__count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
-+	count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
- 
- 	spin_unlock_irq(&lruvec->lru_lock);
- 
-@@ -2195,7 +2195,7 @@ static void shrink_active_list(unsigned
- 	nr_deactivate = move_folios_to_lru(lruvec, &l_inactive);
- 
- 	__count_vm_events(PGDEACTIVATE, nr_deactivate);
--	__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
-+	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
- 	spin_unlock_irq(&lruvec->lru_lock);
-@@ -4612,8 +4612,8 @@ static int scan_folios(struct lruvec *lr
- 		__count_vm_events(item, isolated);
- 		__count_vm_events(PGREFILL, sorted);
- 	}
--	__count_memcg_events(memcg, item, isolated);
--	__count_memcg_events(memcg, PGREFILL, sorted);
-+	count_memcg_events(memcg, item, isolated);
-+	count_memcg_events(memcg, PGREFILL, sorted);
- 	__count_vm_events(PGSCAN_ANON + type, isolated);
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, MAX_LRU_BATCH,
- 				scanned, skipped, isolated,
-@@ -4763,7 +4763,7 @@ retry:
- 	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, reclaimed);
--	__count_memcg_events(memcg, item, reclaimed);
-+	count_memcg_events(memcg, item, reclaimed);
- 	__count_vm_events(PGSTEAL_ANON + type, reclaimed);
- 
- 	spin_unlock_irq(&lruvec->lru_lock);
+ static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes,
+@@ -2947,13 +2947,13 @@ static void drain_obj_stock(struct obj_s
+ 	 */
+ 	if (stock->nr_slab_reclaimable_b || stock->nr_slab_unreclaimable_b) {
+ 		if (stock->nr_slab_reclaimable_b) {
+-			__mod_objcg_mlstate(old, stock->cached_pgdat,
++			mod_objcg_mlstate(old, stock->cached_pgdat,
+ 					  NR_SLAB_RECLAIMABLE_B,
+ 					  stock->nr_slab_reclaimable_b);
+ 			stock->nr_slab_reclaimable_b = 0;
+ 		}
+ 		if (stock->nr_slab_unreclaimable_b) {
+-			__mod_objcg_mlstate(old, stock->cached_pgdat,
++			mod_objcg_mlstate(old, stock->cached_pgdat,
+ 					  NR_SLAB_UNRECLAIMABLE_B,
+ 					  stock->nr_slab_unreclaimable_b);
+ 			stock->nr_slab_unreclaimable_b = 0;
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
