@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA58F22F15E
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:49:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0818C28A1E7
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:49:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747849749; cv=none; b=bsQyrTfIey7oY6+Sw7QECvaiAmO29vDeOolzWtjgPtLqSTllydYCBGFsjEe+zzGBQFUCgz0E1KHpwBKygC9mP2O1vuEn0sbG4ht4Nk7EUX+sNHiC5g/REnXXPk5zx1UQUsocYhQ5wnCzrUgrrZ/HnZSUdV1HWZDGDWZmp4BQYBk=
+	t=1747849751; cv=none; b=BSyqFVfSvPZ0UYg9SyAtctjjwSWO3M0ripHUj1KrgEqFqkYejQ8xWmMBYdS3kE44kQ+ck0N1yyQ57IEYa+yIn1AFR2tkNDQGQ6HdpPnOOO1ZmBZ+XasnCMb8Ue4iPFp/QcOlhoptDhsL8cUks0FYdW+KxXeJx3QWI3Vy9kPUz1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747849749; c=relaxed/simple;
-	bh=VuxEbDt8XHzB5wbofbT9uLes700BiTncNezoR4pmb+0=;
-	h=Date:To:From:Subject:Message-Id; b=QpcIDPaMtzvUoHyOqbHu32MJqJgyeAQRisGd7tbTz6Geg5JtXL2CDt7TZPErjtxPnQbw57QLseF+24Y5Cr18mmoZkb4u9iUzvOcHcujOsXkljCm6+H4Sul+j8gQ9HrHE3FeRkPONCVqLLsDPs07rVyccaE2bU9YDSvAP6+e1SCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CrRMEdOq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747849751; c=relaxed/simple;
+	bh=BruuSd8U0ZwA4xGNmCW7HRqs9Uzr7LpuJPSPJ6gMSjs=;
+	h=Date:To:From:Subject:Message-Id; b=OrEb2UUadYNk1X3JviSh6/6UAm0h0Mz+jYPwIWEtHCWCfTR1QYgKdEnOUtv8r2Vx5Tif8w3pbCNtYYS9vS7JVdi9pByHWpXIqqsYiAK3u9J8YMkbY8bLjH3Aico7qR/4KwOdIf/jdh8mX4EK8hU46WfBUXn0bSFxNP79IHlXIAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pkxjmWWt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CrRMEdOq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABF0BC4CEE4;
-	Wed, 21 May 2025 17:49:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pkxjmWWt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C698AC4CEE4;
+	Wed, 21 May 2025 17:49:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747849749;
-	bh=VuxEbDt8XHzB5wbofbT9uLes700BiTncNezoR4pmb+0=;
+	s=korg; t=1747849750;
+	bh=BruuSd8U0ZwA4xGNmCW7HRqs9Uzr7LpuJPSPJ6gMSjs=;
 	h=Date:To:From:Subject:From;
-	b=CrRMEdOqvv6PtSEmb0RM1fi//DqLDq2qeGudMdR2f3Tv3GoTqyGMMGgfrAYUwRi/H
-	 QuFW6hokq4oNyp1wsydY53IIqHCoE7f9wDBawpGn2+XSPSubZOnE6EHlHir/5KNvjP
-	 y/dOdXST5TzGafoHHZtFVxHsEhAMGURXxvdrLRT0=
-Date: Wed, 21 May 2025 10:49:09 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,hch@lst.de,akpm@linux-foundation.org
+	b=pkxjmWWtlVQ/YJlDpuY9VR9OuleinsLajRP+OS89Lg4d2Cauw6DitMVKdwxF/nrYZ
+	 iRKA7iquVjsRD9IMDtJnekLBuSz4px67iKYy74FwPCQeGZaj3zEy8BKQEz0sM8O93x
+	 Lswv8l1/Yah35JmJ2QUsXtaiB6I2O2jn9ojZH+S4=
+Date: Wed, 21 May 2025 10:49:10 -0700
+To: mm-commits@vger.kernel.org,krzk@kernel.org,casey.connolly@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-remove-wbc-for_reclaim-handling.patch removed from -mm tree
-Message-Id: <20250521174909.ABF0BC4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mailmap-update-and-consolidate-casey-connollys-name-and-email.patch removed from -mm tree
+Message-Id: <20250521174910.C698AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,184 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: remove wbc->for_reclaim handling
+     Subject: mailmap: update and consolidate Casey Connolly's name and email
 has been removed from the -mm tree.  Its filename was
-     nilfs2-remove-wbc-for_reclaim-handling.patch
+     mailmap-update-and-consolidate-casey-connollys-name-and-email.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: nilfs2: remove wbc->for_reclaim handling
-Date: Fri, 16 May 2025 21:31:13 +0900
+From: Casey Connolly <casey.connolly@linaro.org>
+Subject: mailmap: update and consolidate Casey Connolly's name and email
+Date: Sat, 17 May 2025 23:32:38 +0100
 
-Since commit 013a07052a1a ("nilfs2: convert metadata aops from writepage
-to writepages"), nilfs_mdt_write_folio can't be called from reclaim
-context any more.  Remove the code keyed of the wbc->for_reclaim flag,
-which is now only set for writing out swap or shmem pages inside the swap
-code, but never passed to file systems.
+I've used several email addresses and a previous name to contribute. 
+Consolidate all of these to my primary email and update my name.
 
-Link: https://lkml.kernel.org/r/20250508054938.15894-7-hch@lst.de
-Link: https://lkml.kernel.org/r/20250516123417.6779-1-konishi.ryusuke@gmail.com
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20250517223237.15647-2-casey.connolly@linaro.org
+Signed-off-by: Casey Connolly <casey.connolly@linaro.org>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/mdt.c     |    2 --
- fs/nilfs2/segment.c |   16 ----------------
- fs/nilfs2/segment.h |    1 -
- 3 files changed, 19 deletions(-)
+ .mailmap                                                                 |    3 +++
+ Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml          |    2 +-
+ Documentation/devicetree/bindings/iio/adc/qcom,spmi-rradc.yaml           |    2 +-
+ Documentation/devicetree/bindings/power/supply/qcom,pmi8998-charger.yaml |    2 +-
+ MAINTAINERS                                                              |    2 +-
+ arch/arm64/boot/dts/qcom/qcm6490-shift-otter.dts                         |    2 +-
+ arch/arm64/boot/dts/qcom/sdm845-shift-axolotl.dts                        |    2 +-
+ drivers/gpu/drm/panel/panel-samsung-sofef00.c                            |    4 ++--
+ drivers/iio/adc/qcom-spmi-rradc.c                                        |    4 ++--
+ drivers/power/supply/qcom_pmi8998_charger.c                              |    4 ++--
+ include/soc/qcom/qcom-spmi-pmic.h                                        |    2 +-
+ 11 files changed, 16 insertions(+), 13 deletions(-)
 
---- a/fs/nilfs2/mdt.c~nilfs2-remove-wbc-for_reclaim-handling
-+++ a/fs/nilfs2/mdt.c
-@@ -422,8 +422,6 @@ static int nilfs_mdt_write_folio(struct
+--- a/arch/arm64/boot/dts/qcom/qcm6490-shift-otter.dts~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/arch/arm64/boot/dts/qcom/qcm6490-shift-otter.dts
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: BSD-3-Clause
+ /*
+  * Copyright (c) 2023, Luca Weiss <luca.weiss@fairphone.com>
+- * Copyright (c) 2024, Caleb Connolly <caleb@postmarketos.org>
++ * Copyright (c) 2024, Casey Connolly <casey.connolly@linaro.org>
+  */
  
- 	if (wbc->sync_mode == WB_SYNC_ALL)
- 		err = nilfs_construct_segment(sb);
--	else if (wbc->for_reclaim)
--		nilfs_flush_segment(sb, inode->i_ino);
+ /dts-v1/;
+--- a/arch/arm64/boot/dts/qcom/sdm845-shift-axolotl.dts~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/arch/arm64/boot/dts/qcom/sdm845-shift-axolotl.dts
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+  * Copyright (c) 2022, Alexander Martinz <amartinz@shiftphones.com>
+- * Copyright (c) 2022, Caleb Connolly <caleb@connolly.tech>
++ * Copyright (c) 2022, Casey Connolly <casey.connolly@linaro.org>
+  * Copyright (c) 2022, Dylan Van Assche <me@dylanvanassche.be>
+  */
  
- 	return err;
- }
---- a/fs/nilfs2/segment.c~nilfs2-remove-wbc-for_reclaim-handling
-+++ a/fs/nilfs2/segment.c
-@@ -2221,22 +2221,6 @@ static void nilfs_segctor_do_flush(struc
- 	spin_unlock(&sci->sc_state_lock);
- }
+--- a/Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml
+@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
+ title: LG SW43408 1080x2160 DSI panel
  
--/**
-- * nilfs_flush_segment - trigger a segment construction for resource control
-- * @sb: super block
-- * @ino: inode number of the file to be flushed out.
-- */
--void nilfs_flush_segment(struct super_block *sb, ino_t ino)
--{
--	struct the_nilfs *nilfs = sb->s_fs_info;
--	struct nilfs_sc_info *sci = nilfs->ns_writer;
--
--	if (!sci || nilfs_doing_construction())
--		return;
--	nilfs_segctor_do_flush(sci, NILFS_MDT_INODE(sb, ino) ? ino : 0);
--					/* assign bit 0 to data files */
--}
--
- struct nilfs_segctor_wait_request {
- 	wait_queue_entry_t	wq;
- 	__u32		seq;
---- a/fs/nilfs2/segment.h~nilfs2-remove-wbc-for_reclaim-handling
-+++ a/fs/nilfs2/segment.h
-@@ -226,7 +226,6 @@ extern void nilfs_relax_pressure_in_lock
- extern int nilfs_construct_segment(struct super_block *);
- extern int nilfs_construct_dsync_segment(struct super_block *, struct inode *,
- 					 loff_t, loff_t);
--extern void nilfs_flush_segment(struct super_block *, ino_t);
- extern int nilfs_clean_segments(struct super_block *, struct nilfs_argv *,
- 				void **);
+ maintainers:
+-  - Caleb Connolly <caleb.connolly@linaro.org>
++  - Casey Connolly <casey.connolly@linaro.org>
  
+ description:
+   This panel is used on the Pixel 3, it is a 60hz OLED panel which
+--- a/Documentation/devicetree/bindings/iio/adc/qcom,spmi-rradc.yaml~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/Documentation/devicetree/bindings/iio/adc/qcom,spmi-rradc.yaml
+@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
+ title: Qualcomm's SPMI PMIC Round Robin ADC
+ 
+ maintainers:
+-  - Caleb Connolly <caleb.connolly@linaro.org>
++  - Casey Connolly <casey.connolly@linaro.org>
+ 
+ description: |
+   The Qualcomm SPMI Round Robin ADC (RRADC) provides interface to clients to
+--- a/Documentation/devicetree/bindings/power/supply/qcom,pmi8998-charger.yaml~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/Documentation/devicetree/bindings/power/supply/qcom,pmi8998-charger.yaml
+@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
+ title: Qualcomm PMI8998/PM660 Switch-Mode Battery Charger "2"
+ 
+ maintainers:
+-  - Caleb Connolly <caleb.connolly@linaro.org>
++  - Casey Connolly <casey.connolly@linaro.org>
+ 
+ properties:
+   compatible:
+--- a/drivers/gpu/drm/panel/panel-samsung-sofef00.c~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/drivers/gpu/drm/panel/panel-samsung-sofef00.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/* Copyright (c) 2020 Caleb Connolly <caleb@connolly.tech>
++/* Copyright (c) 2020 Casey Connolly <casey.connolly@linaro.org>
+  * Generated with linux-mdss-dsi-panel-driver-generator from vendor device tree:
+  * Copyright (c) 2020, The Linux Foundation. All rights reserved.
+  */
+@@ -318,6 +318,6 @@ static struct mipi_dsi_driver sofef00_pa
+ 
+ module_mipi_dsi_driver(sofef00_panel_driver);
+ 
+-MODULE_AUTHOR("Caleb Connolly <caleb@connolly.tech>");
++MODULE_AUTHOR("Casey Connolly <casey.connolly@linaro.org>");
+ MODULE_DESCRIPTION("DRM driver for Samsung AMOLED DSI panels found in OnePlus 6/6T phones");
+ MODULE_LICENSE("GPL v2");
+--- a/drivers/iio/adc/qcom-spmi-rradc.c~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/drivers/iio/adc/qcom-spmi-rradc.c
+@@ -2,7 +2,7 @@
+ /*
+  * Copyright (c) 2016-2017, 2019, The Linux Foundation. All rights reserved.
+  * Copyright (c) 2022 Linaro Limited.
+- *  Author: Caleb Connolly <caleb.connolly@linaro.org>
++ *  Author: Casey Connolly <casey.connolly@linaro.org>
+  *
+  * This driver is for the Round Robin ADC found in the pmi8998 and pm660 PMICs.
+  */
+@@ -1016,5 +1016,5 @@ static struct platform_driver rradc_driv
+ module_platform_driver(rradc_driver);
+ 
+ MODULE_DESCRIPTION("QCOM SPMI PMIC RR ADC driver");
+-MODULE_AUTHOR("Caleb Connolly <caleb.connolly@linaro.org>");
++MODULE_AUTHOR("Casey Connolly <casey.connolly@linaro.org>");
+ MODULE_LICENSE("GPL");
+--- a/drivers/power/supply/qcom_pmi8998_charger.c~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/drivers/power/supply/qcom_pmi8998_charger.c
+@@ -2,7 +2,7 @@
+ /*
+  * Copyright (c) 2016-2019 The Linux Foundation. All rights reserved.
+  * Copyright (c) 2023, Linaro Ltd.
+- * Author: Caleb Connolly <caleb.connolly@linaro.org>
++ * Author: Casey Connolly <casey.connolly@linaro.org>
+  *
+  * This driver is for the switch-mode battery charger and boost
+  * hardware found in pmi8998 and related PMICs.
+@@ -1045,6 +1045,6 @@ static struct platform_driver qcom_spmi_
+ 
+ module_platform_driver(qcom_spmi_smb2);
+ 
+-MODULE_AUTHOR("Caleb Connolly <caleb.connolly@linaro.org>");
++MODULE_AUTHOR("Casey Connolly <casey.connolly@linaro.org>");
+ MODULE_DESCRIPTION("Qualcomm SMB2 Charger Driver");
+ MODULE_LICENSE("GPL");
+--- a/include/soc/qcom/qcom-spmi-pmic.h~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/include/soc/qcom/qcom-spmi-pmic.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+ /* Copyright (c) 2022 Linaro. All rights reserved.
+- * Author: Caleb Connolly <caleb.connolly@linaro.org>
++ * Author: Casey Connolly <casey.connolly@linaro.org>
+  */
+ 
+ #ifndef __QCOM_SPMI_PMIC_H__
+--- a/.mailmap~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/.mailmap
+@@ -154,6 +154,9 @@ Brian King <brking@us.ibm.com>
+ Brian Silverman <bsilver16384@gmail.com> <brian.silverman@bluerivertech.com>
+ Bryan Tan <bryan-bt.tan@broadcom.com> <bryantan@vmware.com>
+ Cai Huoqing <cai.huoqing@linux.dev> <caihuoqing@baidu.com>
++Casey Connolly <casey.connolly@linaro.org> <caleb.connolly@linaro.org>
++Casey Connolly <casey.connolly@linaro.org> <caleb@connolly.tech>
++Casey Connolly <casey.connolly@linaro.org> <caleb@postmarketos.org>
+ Can Guo <quic_cang@quicinc.com> <cang@codeaurora.org>
+ Carl Huang <quic_cjhuang@quicinc.com> <cjhuang@codeaurora.org>
+ Carlos Bilbao <carlos.bilbao@kernel.org> <carlos.bilbao@amd.com>
+--- a/MAINTAINERS~mailmap-update-and-consolidate-casey-connollys-name-and-email
++++ a/MAINTAINERS
+@@ -7460,7 +7460,7 @@ F:	drivers/gpu/drm/panel/panel-jadard-jd
+ 
+ DRM DRIVER FOR LG SW43408 PANELS
+ M:	Sumit Semwal <sumit.semwal@linaro.org>
+-M:	Caleb Connolly <caleb.connolly@linaro.org>
++M:	Casey Connolly <casey.connolly@linaro.org>
+ S:	Maintained
+ T:	git https://gitlab.freedesktop.org/drm/misc/kernel.git
+ F:	Documentation/devicetree/bindings/display/panel/lg,sw43408.yaml
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from casey.connolly@linaro.org are
 
 
