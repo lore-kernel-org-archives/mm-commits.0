@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38529154C17;
-	Wed, 21 May 2025 22:09:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 609522B9A9
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 22:33:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747865392; cv=none; b=h0YhcB2UE0bWRA7UoKivsRviJc2im6Ika/90+hMTKCcg1iXYiO+7UvfmQ9Njdpaodpfhwrgul/+BJZJWPbVoC7rEVE8oKrkkbxkI6LABAP5j43MPc90+ywAkM9dnGmC/3nP6zBrAiLqfwyzS6dxy0S4fMydDfCr1BmUYtN0BoV4=
+	t=1747866803; cv=none; b=ihDMGODZscSZyKzhcULv4F0fM5dNMNI2YO2s21RJu7dbKtvN1F3bX22MzvjWg3r+pFe17cBrrH80n2zzc+Kj77ENBv4xBGLtcbhpMhOikUDakB8qoiQRZU7FVTnh4FpvVOclQH/TCkVdY7IgM+QPTHLiyDJF9b8oeJdzyKmRYOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747865392; c=relaxed/simple;
-	bh=gyJtVqSWzcUESI8kIeu1YEyvysWQrxilFbUyVe6f1RI=;
-	h=Date:To:From:Subject:Message-Id; b=RALo9Z4Y+heghF2VIehag9cfNu7uRKdVOB1+pS0KrJGZV7dWfGTly829F7PRwvFbGA3WOK7bLOUG0vRMnWuBRc8PY5ap8uvZlWhVN2Xt85XKp7OrjUqSjIGFJag0MxlNNV1Mu+GLIZPhKxIzM1r/E+Fhn/h4OFyqvu8/nwfoZpU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tvst8qxL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747866803; c=relaxed/simple;
+	bh=tlF9NjF0IZALu1nZnzo4YHM9LnIo7tOgdoq6m4nhKFo=;
+	h=Date:To:From:Subject:Message-Id; b=IYcNGYGYbdcSx/hVgOLDyzS6vhRZgSif+U8vYOU9OlPPTrXbCyRziCaer/F5QtMqVWc9kxpea/xXXo1gGWUIvM8mWx83+EisV1dR58uh5QcXywPLwmsoFoB2yaIjkY6uQfObX0XT9lcj3G0fcSSP30nH/mHGxrJB4rRt5baAGwA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DE5QiNdL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tvst8qxL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 979ACC4CEE4;
-	Wed, 21 May 2025 22:09:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DE5QiNdL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B64F2C4CEE4;
+	Wed, 21 May 2025 22:33:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747865391;
-	bh=gyJtVqSWzcUESI8kIeu1YEyvysWQrxilFbUyVe6f1RI=;
+	s=korg; t=1747866802;
+	bh=tlF9NjF0IZALu1nZnzo4YHM9LnIo7tOgdoq6m4nhKFo=;
 	h=Date:To:From:Subject:From;
-	b=Tvst8qxLaMjPjppgecmhWk/RLmoFHs3dF/7Y2Pi11BYm3WHb3Z3eEgF8DYLpiLIZu
-	 llB8q7AfQJj3B+7uFYg0VYf3SmK1KoAJMVa//Z146+hh/ouZuVdSS52sf+tDiuwlbS
-	 CJAi2zaVPZdr2j5PjMiAFw/EY4P/AgGILccAOGv8=
-Date: Wed, 21 May 2025 15:09:50 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,revest@google.com,osalvador@suse.de,muchun.song@linux.dev,hughd@google.com,gshan@redhat.com,byungchul@sk.com,gavinguo@igalia.com,akpm@linux-foundation.org
+	b=DE5QiNdLzyvG4RMFoSUv+qrdsPslLlTNkZexWo4SdfmCFReX6yilVWkpenhrETh4y
+	 nk2O8aN9ptwxWYIfSbvnGfVcj5m5GBTbQ1NrOMfjvBPzkFTVJRIAMOCSxVnqK47cJr
+	 l75Ou0t0Inv+3wNaHQIDNHDAL9R6gcmCfZbgN6kw=
+Date: Wed, 21 May 2025 15:33:22 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb-fix-a-deadlock-with-pagecache_folio-and-hugetlb_fault_mutex_table.patch removed from -mm tree
-Message-Id: <20250521220951.979ACC4CEE4@smtp.kernel.org>
+Subject: + mm-damon-kconfig-set-damon_vaddrpaddrsysfs-default-to-damon.patch added to mm-unstable branch
+Message-Id: <20250521223322.B64F2C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,244 +34,100 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/hugetlb: fix a deadlock with pagecache_folio and hugetlb_fault_mutex_table
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-a-deadlock-with-pagecache_folio-and-hugetlb_fault_mutex_table.patch
+The patch titled
+     Subject: mm/damon/Kconfig: set DAMON_{VADDR,PADDR,SYSFS} default to DAMON
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-kconfig-set-damon_vaddrpaddrsysfs-default-to-damon.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-kconfig-set-damon_vaddrpaddrsysfs-default-to-damon.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gavin Guo <gavinguo@igalia.com>
-Subject: mm/hugetlb: fix a deadlock with pagecache_folio and hugetlb_fault_mutex_table
-Date: Tue, 13 May 2025 17:34:48 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/Kconfig: set DAMON_{VADDR,PADDR,SYSFS} default to DAMON
+Date: Tue, 20 May 2025 21:27:54 -0700
 
-Fix a deadlock which can be triggered by an internal syzkaller [1]
-reproducer and captured by bpftrace script [2] and its log [3] in this
-scenario:
+Patch series "mm/damon: build-enable essential DAMON components by
+default".
 
-Process 1                              Process 2
----				       ---
-hugetlb_fault
-  mutex_lock(B) // take B
-  filemap_lock_hugetlb_folio
-    filemap_lock_folio
-      __filemap_get_folio
-        folio_lock(A) // take A
-  hugetlb_wp
-    mutex_unlock(B) // release B
-    ...                                hugetlb_fault
-    ...                                  mutex_lock(B) // take B
-                                         filemap_lock_hugetlb_folio
-                                           filemap_lock_folio
-                                             __filemap_get_folio
-                                               folio_lock(A) // blocked
-    unmap_ref_private
-    ...
-    mutex_lock(B) // retake and blocked
+As of this writing, multiple major distros including Alma, Amazon,
+Android, CentOS, Debian, Fedora, and Oracle are build-enabling DAMON (set
+CONFIG_DAMON[1]).  Configuring DAMON is not very easy, since it is
+disabled by default, and there are multiple essential options that need to
+be manually turned on, one by one.  Make it easier, by grouping essential
+configurations to be enabled with one selection, and enabling build of the
+essential parts of DAMON by default.
 
-This is a ABBA deadlock involving two locks:
-- Lock A: pagecache_folio lock
-- Lock B: hugetlb_fault_mutex_table lock
+Note that build-enabling DAMON does not introduce any real risk, since it
+makes no behavioral change by default.  It requires explicit user requests
+to do anything.  Only one potential risk is making the size of the kernel
+a little bit larger.  On a production-purpose configuration, it increases
+the resulting kernel package binary size by about 0.1 % of the final
+package file.  I believe that's too small to be a real problem in common
+setups.
 
-The deadlock occurs between two processes as follows:
+DAMON_{VADDR,PADDR,SYSFS} are de-facto essential parts of DAMON for normal
+usages.  Because those need to be enabled one by one, however, and there
+are other test-purpose or non-essential configurations, it is easy to be
+confused and make mistakes at setup.  Make the essential configurations
+default to CONFIG_DAMON, so that those can be enabled by default with a
+single change.
 
-1. The first process (let's call it Process 1) is handling a
-   copy-on-write (COW) operation on a hugepage via hugetlb_wp.  Due to
-   insufficient reserved hugetlb pages, Process 1, owner of the reserved
-   hugetlb page, attempts to unmap a hugepage owned by another process
-   (non-owner) to satisfy the reservation.  Before unmapping, Process 1
-   acquires lock B (hugetlb_fault_mutex_table lock) and then lock A
-   (pagecache_folio lock).  To proceed with the unmap, it releases Lock B
-   but retains Lock A.  After the unmap, Process 1 tries to reacquire Lock
-   B.  However, at this point, Lock B has already been acquired by another
-   process.
-
-2. The second process (Process 2) enters the hugetlb_fault handler
-   during the unmap operation.  It successfully acquires Lock B
-   (hugetlb_fault_mutex_table lock) that was just released by Process 1,
-   but then attempts to acquire Lock A (pagecache_folio lock), which is
-   still held by Process 1.
-
-As a result, Process 1 (holding Lock A) is blocked waiting for Lock B
-(held by Process 2), while Process 2 (holding Lock B) is blocked waiting
-for Lock A (held by Process 1), constructing a ABBA deadlock scenario.
-
-The solution here is to unlock the pagecache_folio and provide the
-pagecache_folio_unlocked variable to the caller to have the visibility
-over the pagecache_folio status for subsequent handling.
-
-The error message:
-INFO: task repro_20250402_:13229 blocked for more than 64 seconds.
-      Not tainted 6.15.0-rc3+ #24
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-task:repro_20250402_ state:D stack:25856 pid:13229 tgid:13228 ppid:3513   task_flags:0x400040 flags:0x00004006
-Call Trace:
- <TASK>
- __schedule+0x1755/0x4f50
- schedule+0x158/0x330
- schedule_preempt_disabled+0x15/0x30
- __mutex_lock+0x75f/0xeb0
- hugetlb_wp+0xf88/0x3440
- hugetlb_fault+0x14c8/0x2c30
- trace_clock_x86_tsc+0x20/0x20
- do_user_addr_fault+0x61d/0x1490
- exc_page_fault+0x64/0x100
- asm_exc_page_fault+0x26/0x30
-RIP: 0010:__put_user_4+0xd/0x20
- copy_process+0x1f4a/0x3d60
- kernel_clone+0x210/0x8f0
- __x64_sys_clone+0x18d/0x1f0
- do_syscall_64+0x6a/0x120
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
-RIP: 0033:0x41b26d
- </TASK>
-INFO: task repro_20250402_:13229 is blocked on a mutex likely owned by task repro_20250402_:13250.
-task:repro_20250402_ state:D stack:28288 pid:13250 tgid:13228 ppid:3513   task_flags:0x400040 flags:0x00000006
-Call Trace:
- <TASK>
- __schedule+0x1755/0x4f50
- schedule+0x158/0x330
- io_schedule+0x92/0x110
- folio_wait_bit_common+0x69a/0xba0
- __filemap_get_folio+0x154/0xb70
- hugetlb_fault+0xa50/0x2c30
- trace_clock_x86_tsc+0x20/0x20
- do_user_addr_fault+0xace/0x1490
- exc_page_fault+0x64/0x100
- asm_exc_page_fault+0x26/0x30
-RIP: 0033:0x402619
- </TASK>
-INFO: task repro_20250402_:13250 blocked for more than 65 seconds.
-      Not tainted 6.15.0-rc3+ #24
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-task:repro_20250402_ state:D stack:28288 pid:13250 tgid:13228 ppid:3513   task_flags:0x400040 flags:0x00000006
-Call Trace:
- <TASK>
- __schedule+0x1755/0x4f50
- schedule+0x158/0x330
- io_schedule+0x92/0x110
- folio_wait_bit_common+0x69a/0xba0
- __filemap_get_folio+0x154/0xb70
- hugetlb_fault+0xa50/0x2c30
- trace_clock_x86_tsc+0x20/0x20
- do_user_addr_fault+0xace/0x1490
- exc_page_fault+0x64/0x100
- asm_exc_page_fault+0x26/0x30
-RIP: 0033:0x402619
- </TASK>
-
-Showing all locks held in the system:
-1 lock held by khungtaskd/35:
- #0: ffffffff879a7440 (rcu_read_lock){....}-{1:3}, at: debug_show_all_locks+0x30/0x180
-2 locks held by repro_20250402_/13229:
- #0: ffff888017d801e0 (&mm->mmap_lock){++++}-{4:4}, at: lock_mm_and_find_vma+0x37/0x300
- #1: ffff888000fec848 (&hugetlb_fault_mutex_table[i]){+.+.}-{4:4}, at: hugetlb_wp+0xf88/0x3440
-3 locks held by repro_20250402_/13250:
- #0: ffff8880177f3d08 (vm_lock){++++}-{0:0}, at: do_user_addr_fault+0x41b/0x1490
- #1: ffff888000fec848 (&hugetlb_fault_mutex_table[i]){+.+.}-{4:4}, at: hugetlb_fault+0x3b8/0x2c30
- #2: ffff8880129500e8 (&resv_map->rw_sema){++++}-{4:4}, at: hugetlb_fault+0x494/0x2c30
-
-Link: https://drive.google.com/file/d/1DVRnIW-vSayU5J1re9Ct_br3jJQU6Vpb/view?usp=drive_link [1]
-Link: https://github.com/bboymimi/bpftracer/blob/master/scripts/hugetlb_lock_debug.bt [2]
-Link: https://drive.google.com/file/d/1bWq2-8o-BJAuhoHWX7zAhI6ggfhVzQUI/view?usp=sharing [3]
-Link: https://lkml.kernel.org/r/20250513093448.592150-1-gavinguo@igalia.com
-Fixes: 40549ba8f8e0 ("hugetlb: use new vma_lock for pmd sharing synchronization")
-Signed-off-by: Gavin Guo <gavinguo@igalia.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Florent Revest <revest@google.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: <stable@vger.kernel.org>
+Link: https://oracle.github.io/kconfigs/?config=UTS_RELEASE&config=DAMON [1]
+Link: https://lkml.kernel.org/r/20250521042755.39653-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250521042755.39653-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   33 ++++++++++++++++++++++++++++-----
- 1 file changed, 28 insertions(+), 5 deletions(-)
+ mm/damon/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-a-deadlock-with-pagecache_folio-and-hugetlb_fault_mutex_table
-+++ a/mm/hugetlb.c
-@@ -6131,7 +6131,8 @@ static void unmap_ref_private(struct mm_
-  * Keep the pte_same checks anyway to make transition from the mutex easier.
-  */
- static vm_fault_t hugetlb_wp(struct folio *pagecache_folio,
--		       struct vm_fault *vmf)
-+		       struct vm_fault *vmf,
-+		       bool *pagecache_folio_unlocked)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
-@@ -6229,6 +6230,22 @@ retry_avoidcopy:
- 
- 			folio_put(old_folio);
- 			/*
-+			 * The pagecache_folio needs to be unlocked to avoid
-+			 * deadlock and we won't re-lock it in hugetlb_wp(). The
-+			 * pagecache_folio could be truncated after being
-+			 * unlocked. So its state should not be relied
-+			 * subsequently.
-+			 *
-+			 * Setting *pagecache_folio_unlocked to true allows the
-+			 * caller to handle any necessary logic related to the
-+			 * folio's unlocked state.
-+			 */
-+			if (pagecache_folio) {
-+				folio_unlock(pagecache_folio);
-+				if (pagecache_folio_unlocked)
-+					*pagecache_folio_unlocked = true;
-+			}
-+			/*
- 			 * Drop hugetlb_fault_mutex and vma_lock before
- 			 * unmapping.  unmapping needs to hold vma_lock
- 			 * in write mode.  Dropping vma_lock in read mode
-@@ -6581,7 +6598,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
- 	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		/* Optimization, do the COW without a second fault */
--		ret = hugetlb_wp(folio, vmf);
-+		ret = hugetlb_wp(folio, vmf, NULL);
- 	}
- 
- 	spin_unlock(vmf->ptl);
-@@ -6653,6 +6670,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	struct hstate *h = hstate_vma(vma);
- 	struct address_space *mapping;
- 	int need_wait_lock = 0;
-+	bool pagecache_folio_unlocked = false;
- 	struct vm_fault vmf = {
- 		.vma = vma,
- 		.address = address & huge_page_mask(h),
-@@ -6807,7 +6825,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 
- 	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
- 		if (!huge_pte_write(vmf.orig_pte)) {
--			ret = hugetlb_wp(pagecache_folio, &vmf);
-+			ret = hugetlb_wp(pagecache_folio, &vmf,
-+					&pagecache_folio_unlocked);
- 			goto out_put_page;
- 		} else if (likely(flags & FAULT_FLAG_WRITE)) {
- 			vmf.orig_pte = huge_pte_mkdirty(vmf.orig_pte);
-@@ -6824,10 +6843,14 @@ out_put_page:
- out_ptl:
- 	spin_unlock(vmf.ptl);
- 
--	if (pagecache_folio) {
-+	/*
-+	 * If the pagecache_folio is unlocked in hugetlb_wp(), we skip
-+	 * folio_unlock() here.
-+	 */
-+	if (pagecache_folio && !pagecache_folio_unlocked)
- 		folio_unlock(pagecache_folio);
-+	if (pagecache_folio)
- 		folio_put(pagecache_folio);
--	}
- out_mutex:
- 	hugetlb_vma_unlock_read(vma);
- 
+--- a/mm/damon/Kconfig~mm-damon-kconfig-set-damon_vaddrpaddrsysfs-default-to-damon
++++ a/mm/damon/Kconfig
+@@ -28,6 +28,7 @@ config DAMON_VADDR
+ 	bool "Data access monitoring operations for virtual address spaces"
+ 	depends on DAMON && MMU
+ 	select PAGE_IDLE_FLAG
++	default DAMON
+ 	help
+ 	  This builds the default data access monitoring operations for DAMON
+ 	  that work for virtual address spaces.
+@@ -36,6 +37,7 @@ config DAMON_PADDR
+ 	bool "Data access monitoring operations for the physical address space"
+ 	depends on DAMON && MMU
+ 	select PAGE_IDLE_FLAG
++	default DAMON
+ 	help
+ 	  This builds the default data access monitoring operations for DAMON
+ 	  that works for the physical address space.
+@@ -55,6 +57,7 @@ config DAMON_VADDR_KUNIT_TEST
+ config DAMON_SYSFS
+ 	bool "DAMON sysfs interface"
+ 	depends on DAMON && SYSFS
++	default DAMON
+ 	help
+ 	  This builds the sysfs interface for DAMON.  The user space can use
+ 	  the interface for arbitrary data access monitoring.
 _
 
-Patches currently in -mm which might be from gavinguo@igalia.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-kconfig-set-damon_vaddrpaddrsysfs-default-to-damon.patch
+mm-damon-kconfig-enable-config_damon-by-default.patch
 
