@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCF0F19F42F
-	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:48:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EEAA19F42F
+	for <mm-commits@vger.kernel.org>; Wed, 21 May 2025 17:48:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747849729; cv=none; b=YC/Jf+CS7i7OKyCKriL17ZhPQR/Vrwg8GRyXq6RcnBycLPZamQ/exuXCI8xedin+gXBwx8owX+yxDpELl6RRsSJVrQnR2DC+G8tvkbkViutsU44l8wEUM7GbRtqMGcIHzz8RTRf+Jr75nStBUuwUBzAteMHKlkxqFAn9Fg7hOz4=
+	t=1747849731; cv=none; b=UTnGEMxOWq7V32saAafFIZx/hRJ25tvTWhXkSBLKg2D6+0btRxeOkBwlGb56NP45mFgXH3JZqFUiqkS8PcyRyErpQyxXV2troEEO50ZMLkf3kOs1IfO8rC/usyh+4FYFbTV9Z9vGy1558ml+RYc9nUu1crB17tz6buekmmswGLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747849729; c=relaxed/simple;
-	bh=BYfgzd866O8vV1LsebQyd9IqRx85xVBk54Q6En5dLng=;
-	h=Date:To:From:Subject:Message-Id; b=SQ/6gqTeno3iholDJUz3sWOAn5Be3NYF8SSz+4Kl0t7Owyr9bpRarZkfg9oPKpGW7A8MtZYGnHrqFYgCF3LVjywN5sBjUvuZl0BFGWmE4KUzG/QYRXqO+mNojmqStsG60zkJsYzlESCVEkIjymxP0knLCvRKsQuZmuPn4v+tAwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WeotHiXq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747849731; c=relaxed/simple;
+	bh=22tL1uwCmkglWmpIid/5Rlz9wrSZsKa5vdYWf+CDoQA=;
+	h=Date:To:From:Subject:Message-Id; b=BujNUvRAC4OQvaqs963onvKmKm/MlhHJaE51YYPT/m36/hW3cC5GAmrQ4BkFWML/MLCA3j806xqFpMg9/+JicDwJkpvY4OZSr3FJH0QV94WXUvfgrG0coT9JbD0SDaa54Sg1ImRaCYJIQ6yVq6hPugbreIAntEXmVCfhH0Gr7+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mANp6hgI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WeotHiXq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78BD0C4CEE4;
-	Wed, 21 May 2025 17:48:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mANp6hgI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6401C4CEE4;
+	Wed, 21 May 2025 17:48:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747849729;
-	bh=BYfgzd866O8vV1LsebQyd9IqRx85xVBk54Q6En5dLng=;
+	s=korg; t=1747849730;
+	bh=22tL1uwCmkglWmpIid/5Rlz9wrSZsKa5vdYWf+CDoQA=;
 	h=Date:To:From:Subject:From;
-	b=WeotHiXquv8z7kpxLxPwp6IWGZAKzXgzjZ7VcGyCkKa3UDMJPBPwsQE7Dlp1I5yQD
-	 Yu96G4pdXO+DFpR8NKZtHJZiyGHYBBETsqufH2L98cBP6+jPvVipOjKJGuj1HtJUfl
-	 JbRDktN4ObAgjJxysxth7Pf8owRd1G6iWCVJqe6A=
-Date: Wed, 21 May 2025 10:48:48 -0700
+	b=mANp6hgIdGcerQAAtcZK2rFaIGSCiHmsMGJZLMO9RSgC0skTs891HHoUThuYdhp8g
+	 zfqKNVqIgzSl5LelDHg2wBHVlK9ZcjTQbqyxoEv0Ub1rXf+9NLTjKQ7+/i12S0d4/O
+	 dsFU2KRck/05oQIjWLToR5kHNFIQFRjpU/uiEnBg=
+Date: Wed, 21 May 2025 10:48:50 -0700
 To: mm-commits@vger.kernel.org,vkuznets@redhat.com,okozina@redhat.com,kernelfans@gmail.com,jpazdziora@redhat.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,bhe@redhat.com,berrange@redhat.com,coxu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec_file-allow-to-place-kexec_buf-randomly.patch removed from -mm tree
-Message-Id: <20250521174849.78BD0C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash_dump-make-dm-crypt-keys-persist-for-the-kdump-kernel.patch removed from -mm tree
+Message-Id: <20250521174850.D6401C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec_file: allow to place kexec_buf randomly
+     Subject: crash_dump: make dm crypt keys persist for the kdump kernel
 has been removed from the -mm tree.  Its filename was
-     kexec_file-allow-to-place-kexec_buf-randomly.patch
+     crash_dump-make-dm-crypt-keys-persist-for-the-kdump-kernel.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Coiby Xu <coxu@redhat.com>
-Subject: kexec_file: allow to place kexec_buf randomly
-Date: Fri, 2 May 2025 09:12:35 +0800
+Subject: crash_dump: make dm crypt keys persist for the kdump kernel
+Date: Fri, 2 May 2025 09:12:36 +0800
 
-Patch series "Support kdump with LUKS encryption by reusing LUKS volume
-keys", v9.
+A configfs /sys/kernel/config/crash_dm_crypt_keys is provided for user
+space to make the dm crypt keys persist for the kdump kernel.  Take the
+case of dumping to a LUKS-encrypted target as an example, here is the life
+cycle of the kdump copies of LUKS volume keys,
 
-LUKS is the standard for Linux disk encryption, widely adopted by users,
-and in some cases, such as Confidential VMs, it is a requirement.  With
-kdump enabled, when the first kernel crashes, the system can boot into the
-kdump/crash kernel to dump the memory image (i.e., /proc/vmcore) to a
-specified target.  However, there are two challenges when dumping vmcore
-to a LUKS-encrypted device:
-
- - Kdump kernel may not be able to decrypt the LUKS partition. For some
-   machines, a system administrator may not have a chance to enter the
-   password to decrypt the device in kdump initramfs after the 1st kernel
-   crashes; For cloud confidential VMs, depending on the policy the
-   kdump kernel may not be able to unseal the keys with TPM and the
-   console virtual keyboard is untrusted.
-
- - LUKS2 by default use the memory-hard Argon2 key derivation function
-   which is quite memory-consuming compared to the limited memory reserved
-   for kdump. Take Fedora example, by default, only 256M is reserved for
-   systems having memory between 4G-64G. With LUKS enabled, ~1300M needs
-   to be reserved for kdump. Note if the memory reserved for kdump can't
-   be used by 1st kernel i.e. an user sees ~1300M memory missing in the
-   1st kernel.
-
-Besides users (at least for Fedora) usually expect kdump to work out of
-the box i.e.  no manual password input or custom crashkernel value is
-needed.  And it doesn't make sense to derivate the keys again in kdump
-kernel which seems to be redundant work.
-
-This patchset addresses the above issues by making the LUKS volume keys
-persistent for kdump kernel with the help of cryptsetup's new APIs
-(--link-vk-to-keyring/--volume-key-keyring).  Here is the life cycle of
-the kdump copies of LUKS volume keys,
-
- 1. After the 1st kernel loads the initramfs during boot, systemd
-    use an user-input passphrase to de-crypt the LUKS volume keys
-    or TPM-sealed key and then save the volume keys to specified keyring
-    (using the --link-vk-to-keyring API) and the key will expire within
-    specified time.
+ 1. After the 1st kernel loads the initramfs during boot, systemd uses
+    an user-input passphrase to de-crypt the LUKS volume keys or simply
+    TPM-sealed volume keys and then save the volume keys to specified
+    keyring (using the --link-vk-to-keyring API) and the keys will expire
+    within specified time.
 
  2. A user space tool (kdump initramfs loader like kdump-utils) create
     key items inside /sys/kernel/config/crash_dm_crypt_keys to inform
@@ -105,38 +75,51 @@ the kdump copies of LUKS volume keys,
  5. The system gets rebooted to the 1st kernel after dumping vmcore to
     the LUKS encrypted device is finished
 
-After libcryptsetup saving the LUKS volume keys to specified keyring,
-whoever takes this should be responsible for the safety of these copies of
-keys.  The keys will be saved in the memory area exclusively reserved for
-kdump where even the 1st kernel has no direct access.  And further more,
-two additional protections are added,
- - save the copy randomly in kdump reserved memory as suggested by Jan
- - clear the _PAGE_PRESENT flag of the page that stores the copy as
-   suggested by Pingfan
+Eventually the keys have to stay in the kdump reserved memory for the
+kdump kernel to unlock encrypted volumes.  During this process, some
+measures like letting the keys expire within specified time are desirable
+to reduce security risk.
 
-This patchset only supports x86.  There will be patches to support other
-architectures once this patch set gets merged.
+This patch assumes,
+1) there are 128 LUKS devices at maximum to be unlocked thus
+   MAX_KEY_NUM=128.
 
+2) a key description won't exceed 128 bytes thus KEY_DESC_MAX_LEN=128.
 
-This patch (of 9):
+And here is a demo on how to interact with
+/sys/kernel/config/crash_dm_crypt_keys,
 
-Currently, kexec_buf is placed in order which means for the same machine,
-the info in the kexec_buf is always located at the same position each time
-the machine is booted.  This may cause a risk for sensitive information
-like LUKS volume key.  Now struct kexec_buf has a new field random which
-indicates it's supposed to be placed in a random position.
+    # Add key #1
+    mkdir /sys/kernel/config/crash_dm_crypt_keys/7d26b7b4-e342-4d2d-b660-7426b0996720
+    # Add key #1's description
+    echo cryptsetup:7d26b7b4-e342-4d2d-b660-7426b0996720 > /sys/kernel/config/crash_dm_crypt_keys/description
 
-Note this feature is enabled only when CONFIG_CRASH_DUMP is enabled.  So
-it only takes effect for kdump and won't impact kexec reboot.
+    # how many keys do we have now?
+    cat /sys/kernel/config/crash_dm_crypt_keys/count
+    1
 
-Link: https://lkml.kernel.org/r/20250502011246.99238-1-coxu@redhat.com
-Link: https://lkml.kernel.org/r/20250502011246.99238-2-coxu@redhat.com
+    # Add key# 2 in the same way
+
+    # how many keys do we have now?
+    cat /sys/kernel/config/crash_dm_crypt_keys/count
+    2
+
+    # the tree structure of /crash_dm_crypt_keys configfs
+    tree /sys/kernel/config/crash_dm_crypt_keys/
+    /sys/kernel/config/crash_dm_crypt_keys/
+    ├── 7d26b7b4-e342-4d2d-b660-7426b0996720
+    │   └── description
+    ├── count
+    ├── fce2cd38-4d59-4317-8ce2-1fd24d52c46a
+    │   └── description
+
+Link: https://lkml.kernel.org/r/20250502011246.99238-3-coxu@redhat.com
 Signed-off-by: Coiby Xu <coxu@redhat.com>
-Suggested-by: Jan Pazdziora <jpazdziora@redhat.com>
 Acked-by: Baoquan He <bhe@redhat.com>
 Cc: "Daniel P. Berrange" <berrange@redhat.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Dave Young <dyoung@redhat.com>
+Cc: Jan Pazdziora <jpazdziora@redhat.com>
 Cc: Liu Pingfan <kernelfans@gmail.com>
 Cc: Milan Broz <gmazyland@gmail.com>
 Cc: Ondrej Kozina <okozina@redhat.com>
@@ -144,84 +127,238 @@ Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   30 ++++++++++++++++++++++++++++++
- kernel/kexec_file.c   |    3 +++
- 2 files changed, 33 insertions(+)
+ Documentation/admin-guide/kdump/kdump.rst |   28 +++
+ kernel/Kconfig.kexec                      |   11 +
+ kernel/Makefile                           |    1 
+ kernel/crash_dump_dm_crypt.c              |  154 ++++++++++++++++++++
+ 4 files changed, 194 insertions(+)
 
---- a/include/linux/kexec.h~kexec_file-allow-to-place-kexec_buf-randomly
-+++ a/include/linux/kexec.h
-@@ -25,6 +25,10 @@
+--- a/Documentation/admin-guide/kdump/kdump.rst~crash_dump-make-dm-crypt-keys-persist-for-the-kdump-kernel
++++ a/Documentation/admin-guide/kdump/kdump.rst
+@@ -547,6 +547,34 @@ from within add_taint() whenever the val
+ bit flag being set by add_taint().
+ This will cause a kdump to occur at the add_taint()->panic() call.
  
- extern note_buf_t __percpu *crash_notes;
- 
-+#ifdef CONFIG_CRASH_DUMP
-+#include <linux/prandom.h>
-+#endif
++Write the dump file to encrypted disk volume
++============================================
 +
- #ifdef CONFIG_KEXEC_CORE
- #include <linux/list.h>
- #include <linux/compat.h>
-@@ -169,6 +173,7 @@ int kexec_image_post_load_cleanup_defaul
-  * @buf_min:	The buffer can't be placed below this address.
-  * @buf_max:	The buffer can't be placed above this address.
-  * @top_down:	Allocate from top of memory.
-+ * @random:	Place the buffer at a random position.
-  */
- struct kexec_buf {
- 	struct kimage *image;
-@@ -180,8 +185,33 @@ struct kexec_buf {
- 	unsigned long buf_min;
- 	unsigned long buf_max;
- 	bool top_down;
-+#ifdef CONFIG_CRASH_DUMP
-+	bool random;
-+#endif
- };
- 
++CONFIG_CRASH_DM_CRYPT can be enabled to support saving the dump file to an
++encrypted disk volume. User space can interact with
++/sys/kernel/config/crash_dm_crypt_keys for setup,
 +
-+#ifdef CONFIG_CRASH_DUMP
-+static inline void kexec_random_range_start(unsigned long start,
-+					    unsigned long end,
-+					    struct kexec_buf *kbuf,
-+					    unsigned long *temp_start)
++1. Tell the first kernel what logon keys are needed to unlock the disk volumes,
++    # Add key #1
++    mkdir /sys/kernel/config/crash_dm_crypt_keys/7d26b7b4-e342-4d2d-b660-7426b0996720
++    # Add key #1's description
++    echo cryptsetup:7d26b7b4-e342-4d2d-b660-7426b0996720 > /sys/kernel/config/crash_dm_crypt_keys/description
++
++    # how many keys do we have now?
++    cat /sys/kernel/config/crash_dm_crypt_keys/count
++    1
++
++    # Add key #2 in the same way
++
++    # how many keys do we have now?
++    cat /sys/kernel/config/crash_dm_crypt_keys/count
++    2
++
++2. Load the dump-capture kernel
++
++3. After the dump-capture kerne get booted, restore the keys to user keyring
++   echo yes > /sys/kernel/crash_dm_crypt_keys/restore
++
+ Contact
+ =======
+ 
+diff --git a/kernel/crash_dump_dm_crypt.c a/kernel/crash_dump_dm_crypt.c
+new file mode 100644
+--- /dev/null
++++ a/kernel/crash_dump_dm_crypt.c
+@@ -0,0 +1,154 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <keys/user-type.h>
++#include <linux/crash_dump.h>
++#include <linux/configfs.h>
++#include <linux/module.h>
++
++#define KEY_NUM_MAX 128	/* maximum dm crypt keys */
++#define KEY_DESC_MAX_LEN 128	/* maximum dm crypt key description size */
++
++static unsigned int key_count;
++
++struct config_key {
++	struct config_item item;
++	const char *description;
++};
++
++static inline struct config_key *to_config_key(struct config_item *item)
 +{
-+	unsigned short i;
-+
-+	if (kbuf->random) {
-+		get_random_bytes(&i, sizeof(unsigned short));
-+		*temp_start = start + (end - start) / USHRT_MAX * i;
-+	}
++	return container_of(item, struct config_key, item);
 +}
-+#else
-+static inline void kexec_random_range_start(unsigned long start,
-+					    unsigned long end,
-+					    struct kexec_buf *kbuf,
-+					    unsigned long *temp_start)
-+{}
-+#endif
 +
- int kexec_load_purgatory(struct kimage *image, struct kexec_buf *kbuf);
- int kexec_purgatory_get_set_symbol(struct kimage *image, const char *name,
- 				   void *buf, unsigned int size,
---- a/kernel/kexec_file.c~kexec_file-allow-to-place-kexec_buf-randomly
-+++ a/kernel/kexec_file.c
-@@ -444,6 +444,7 @@ static int locate_mem_hole_top_down(unsi
- 
- 	temp_end = min(end, kbuf->buf_max);
- 	temp_start = temp_end - kbuf->memsz + 1;
-+	kexec_random_range_start(temp_start, temp_end, kbuf, &temp_start);
- 
- 	do {
- 		/* align down start */
-@@ -488,6 +489,8 @@ static int locate_mem_hole_bottom_up(uns
- 
- 	temp_start = max(start, kbuf->buf_min);
- 
-+	kexec_random_range_start(temp_start, end, kbuf, &temp_start);
++static ssize_t config_key_description_show(struct config_item *item, char *page)
++{
++	return sprintf(page, "%s\n", to_config_key(item)->description);
++}
 +
- 	do {
- 		temp_start = ALIGN(temp_start, kbuf->buf_align);
- 		temp_end = temp_start + kbuf->memsz - 1;
++static ssize_t config_key_description_store(struct config_item *item,
++					    const char *page, size_t count)
++{
++	struct config_key *config_key = to_config_key(item);
++	size_t len;
++	int ret;
++
++	ret = -EINVAL;
++	len = strcspn(page, "\n");
++
++	if (len > KEY_DESC_MAX_LEN) {
++		pr_err("The key description shouldn't exceed %u characters", KEY_DESC_MAX_LEN);
++		return ret;
++	}
++
++	if (!len)
++		return ret;
++
++	kfree(config_key->description);
++	ret = -ENOMEM;
++	config_key->description = kmemdup_nul(page, len, GFP_KERNEL);
++	if (!config_key->description)
++		return ret;
++
++	return count;
++}
++
++CONFIGFS_ATTR(config_key_, description);
++
++static struct configfs_attribute *config_key_attrs[] = {
++	&config_key_attr_description,
++	NULL,
++};
++
++static void config_key_release(struct config_item *item)
++{
++	kfree(to_config_key(item));
++	key_count--;
++}
++
++static struct configfs_item_operations config_key_item_ops = {
++	.release = config_key_release,
++};
++
++static const struct config_item_type config_key_type = {
++	.ct_item_ops = &config_key_item_ops,
++	.ct_attrs = config_key_attrs,
++	.ct_owner = THIS_MODULE,
++};
++
++static struct config_item *config_keys_make_item(struct config_group *group,
++						 const char *name)
++{
++	struct config_key *config_key;
++
++	if (key_count > KEY_NUM_MAX) {
++		pr_err("Only %u keys at maximum to be created\n", KEY_NUM_MAX);
++		return ERR_PTR(-EINVAL);
++	}
++
++	config_key = kzalloc(sizeof(struct config_key), GFP_KERNEL);
++	if (!config_key)
++		return ERR_PTR(-ENOMEM);
++
++	config_item_init_type_name(&config_key->item, name, &config_key_type);
++
++	key_count++;
++
++	return &config_key->item;
++}
++
++static ssize_t config_keys_count_show(struct config_item *item, char *page)
++{
++	return sprintf(page, "%d\n", key_count);
++}
++
++CONFIGFS_ATTR_RO(config_keys_, count);
++
++static struct configfs_attribute *config_keys_attrs[] = {
++	&config_keys_attr_count,
++	NULL,
++};
++
++/*
++ * Note that, since no extra work is required on ->drop_item(),
++ * no ->drop_item() is provided.
++ */
++static struct configfs_group_operations config_keys_group_ops = {
++	.make_item = config_keys_make_item,
++};
++
++static const struct config_item_type config_keys_type = {
++	.ct_group_ops = &config_keys_group_ops,
++	.ct_attrs = config_keys_attrs,
++	.ct_owner = THIS_MODULE,
++};
++
++static struct configfs_subsystem config_keys_subsys = {
++	.su_group = {
++		.cg_item = {
++			.ci_namebuf = "crash_dm_crypt_keys",
++			.ci_type = &config_keys_type,
++		},
++	},
++};
++
++static int __init configfs_dmcrypt_keys_init(void)
++{
++	int ret;
++
++	config_group_init(&config_keys_subsys.su_group);
++	mutex_init(&config_keys_subsys.su_mutex);
++	ret = configfs_register_subsystem(&config_keys_subsys);
++	if (ret) {
++		pr_err("Error %d while registering subsystem %s\n", ret,
++		       config_keys_subsys.su_group.cg_item.ci_namebuf);
++		goto out_unregister;
++	}
++
++	return 0;
++
++out_unregister:
++	configfs_unregister_subsystem(&config_keys_subsys);
++
++	return ret;
++}
++
++module_init(configfs_dmcrypt_keys_init);
+--- a/kernel/Kconfig.kexec~crash_dump-make-dm-crypt-keys-persist-for-the-kdump-kernel
++++ a/kernel/Kconfig.kexec
+@@ -115,6 +115,17 @@ config CRASH_DUMP
+ 	  For s390, this option also enables zfcpdump.
+ 	  See also <file:Documentation/arch/s390/zfcpdump.rst>
+ 
++config CRASH_DM_CRYPT
++	bool "Support saving crash dump to dm-crypt encrypted volume"
++	depends on KEXEC_FILE
++	depends on CRASH_DUMP
++	depends on DM_CRYPT
++	depends on CONFIGFS_FS
++	help
++	  With this option enabled, user space can intereact with
++	  /sys/kernel/config/crash_dm_crypt_keys to make the dm crypt keys
++	  persistent for the dump-capture kernel.
++
+ config CRASH_HOTPLUG
+ 	bool "Update the crash elfcorehdr on system configuration changes"
+ 	default y
+--- a/kernel/Makefile~crash_dump-make-dm-crypt-keys-persist-for-the-kdump-kernel
++++ a/kernel/Makefile
+@@ -77,6 +77,7 @@ obj-$(CONFIG_VMCORE_INFO) += vmcore_info
+ obj-$(CONFIG_CRASH_RESERVE) += crash_reserve.o
+ obj-$(CONFIG_KEXEC_CORE) += kexec_core.o
+ obj-$(CONFIG_CRASH_DUMP) += crash_core.o
++obj-$(CONFIG_CRASH_DM_CRYPT) += crash_dump_dm_crypt.o
+ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_KEXEC_FILE) += kexec_file.o
+ obj-$(CONFIG_KEXEC_ELF) += kexec_elf.o
 _
 
 Patches currently in -mm which might be from coxu@redhat.com are
