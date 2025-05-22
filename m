@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E69614658D
-	for <mm-commits@vger.kernel.org>; Thu, 22 May 2025 20:30:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDEA922836C
+	for <mm-commits@vger.kernel.org>; Thu, 22 May 2025 20:30:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747945853; cv=none; b=ROc7ZhOZ2bcokN3ejH7XgXMgeqX+gn6dAesCZVj3woNYQjLKzMWj/Kevxc/suyLNrIANmOryGWvcviSrxedXp3fiHk33TDoyj1l+mCitgZj7X/u9XalcE0bHFTehsULXpyUh8YJbHv/mkT173wjauASNywNrd3km1obDju2kfuQ=
+	t=1747945854; cv=none; b=uJM5zvHAeZKFcxe3C72W7vDD+l/cW5t7TqPkL/ry+O4KoWzzZ/uVzJH0VmFozSNt1stUd2CFq8TMikYvabdaANRcn2OKzERHwStz+BrvcpI+LIq1IXYNRzGXIULA9mOhjj/tacB9erhl/BClBAgYEjN8B9CTqbYsqWRk4xmPces=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747945853; c=relaxed/simple;
-	bh=FddraD3AJIMA2HF8xiPkuryzjvGBP+NYo4sQF/rRb5s=;
-	h=Date:To:From:Subject:Message-Id; b=nNtzrMWu4JL18aBKnLi6ohQ+iM0rOK1LJRGdu81HFGp9usVH3LkwopG2HYJ0Wib/hJPsTkZjYqxWgp1Vkcuu1C23CzXfmGAt3WEW4+3RzjFxWJDG3arwWULfnVl4xj9vT7nOZY/bawxD9wM5LiWXT82zGRxo0mTDIOBxKrGFuZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PcIrZ8PK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747945854; c=relaxed/simple;
+	bh=D3XCZh73qB+PqeNKyrea7BmQ8Myb9qREFf0jr/lyodE=;
+	h=Date:To:From:Subject:Message-Id; b=NuV4KdFxMiNNXlg8iYak6kxOEYQLkkiOcyBpwde+RHYy1P+zvzydBBfX/wxRbt8Xc/w4AFbxpnSeeoEcOy14H8PKmLvF0TwWHC60NGEsIQ2jyYELAhAOPSqM/PmWHXaOQAeZUjKU8O5i/oMufIAE29kI51xeimTm+2VbvUmqbjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wgZbaJE2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PcIrZ8PK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA455C4CEE4;
-	Thu, 22 May 2025 20:30:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wgZbaJE2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D94FC4CEE4;
+	Thu, 22 May 2025 20:30:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747945852;
-	bh=FddraD3AJIMA2HF8xiPkuryzjvGBP+NYo4sQF/rRb5s=;
+	s=korg; t=1747945854;
+	bh=D3XCZh73qB+PqeNKyrea7BmQ8Myb9qREFf0jr/lyodE=;
 	h=Date:To:From:Subject:From;
-	b=PcIrZ8PK52F4F4fOBDoUNGLtGFarpQyNIXmOwCpojveiuq4xRhKztnb0u9prysnZZ
-	 9ZUuEetQ6bVgmc2f/HGESTxURC8LD+PdiouKRlrlUVAuH8hGpEz4CEDtMlIZNCokWW
-	 X77SNWMVRNwKTJQcXe4nKLK3tlVklcPaFQCGTubs=
-Date: Thu, 22 May 2025 13:30:52 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,lkp@intel.com,liam.howlett@oracle.com,boqun.feng@gmail.com,aliceryhl@google.com,akpm@linux-foundation.org
+	b=wgZbaJE23AG53lbvRaFhISXbimOfcswkeyzgP45CSULTqxaI+4tMnLpZfyoG2rfRJ
+	 T1kaapr1lO4qMqV2i4n61/HQG0N62yMrL4My4MREPBqH4m+IiKkWee50ef4tP+Ni/b
+	 pehHemIfARxhVWpNo3AmA0VzdKRzDUWKUgcGW7AE=
+Date: Thu, 22 May 2025 13:30:53 -0700
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,nogikh@google.com,nathan@kernel.org,morbo@google.com,mmaurer@google.com,masahiroy@kernel.org,justinstitt@google.com,glider@google.com,gary@garyguo.net,dvyukov@google.com,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,andreyknvl@gmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rust-make-config_mmu-ifdefs-more-narrow.patch added to mm-new branch
-Message-Id: <20250522203052.AA455C4CEE4@smtp.kernel.org>
+Subject: + kcov-rust-add-flags-for-kcov-with-rust.patch added to mm-new branch
+Message-Id: <20250522203054.2D94FC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rust: make CONFIG_MMU ifdefs more narrow
+     Subject: kcov: rust: add flags for KCOV with Rust
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rust-make-config_mmu-ifdefs-more-narrow.patch
+     kcov-rust-add-flags-for-kcov-with-rust.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rust-make-config_mmu-ifdefs-more-narrow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-rust-add-flags-for-kcov-with-rust.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,193 +65,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alice Ryhl <aliceryhl@google.com>
-Subject: mm: rust: make CONFIG_MMU ifdefs more narrow
-Date: Fri, 16 May 2025 19:32:19 +0000
+Subject: kcov: rust: add flags for KCOV with Rust
+Date: Thu, 01 May 2025 12:16:16 +0000
 
-Currently the entire kernel::mm module is ifdef'd out when CONFIG_MMU=n.
-However, there are some downstream users of the module in
-rust/kernel/task.rs and rust/kernel/miscdevice.rs. Thus, update the cfgs
-so that only MmWithUserAsync is removed with CONFIG_MMU=n.
+Rust code is currently not instrumented properly when KCOV is enabled.
+Thus, add the relevant flags to perform instrumentation correctly. This
+is necessary for efficient fuzzing of Rust code.
 
-The code is moved into a new file, since the #[cfg()] annotation
-otherwise has to be duplicated several times.
+The sanitizer-coverage features of LLVM have existed for long enough
+that they are available on any LLVM version supported by rustc, so we do
+not need any Kconfig feature detection. The coverage level is set to 3,
+as that is the level needed by trace-pc.
 
-Link: https://lkml.kernel.org/r/20250516193219.2987032-1-aliceryhl@google.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202505071753.kldNHYVQ-lkp@intel.com/
-Closes: https://lore.kernel.org/oe-kbuild-all/202505072116.eSYC8igT-lkp@intel.com/
-Fixes: 5bb9ed6cdfeb ("mm: rust: add abstraction for struct mm_struct")
-Reviewed-by: Boqun Feng <boqun.feng@gmail.com>
+We do not instrument `core` since when we fuzz the kernel, we are
+looking for bugs in the kernel, not the Rust stdlib.
+
+Link: https://lkml.kernel.org/r/20250501-rust-kcov-v2-1-b71e83e9779f@google.com
 Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Co-developed-by: Matthew Maurer <mmaurer@google.com>
+Signed-off-by: Matthew Maurer <mmaurer@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Tested-by: Aleksandr Nogikh <nogikh@google.com>
+Acked-by: Miguel Ojeda <ojeda@kernel.org>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Benno Lossin <benno.lossin@proton.me>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
 Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/kernel/mm.rs             |   56 +-------------------------
- rust/kernel/mm/mmput_async.rs |   68 ++++++++++++++++++++++++++++++++
- 2 files changed, 72 insertions(+), 52 deletions(-)
+ rust/Makefile         |    1 +
+ scripts/Makefile.kcov |    6 ++++++
+ scripts/Makefile.lib  |    3 +++
+ 3 files changed, 10 insertions(+)
 
-diff --git a/rust/kernel/mm/mmput_async.rs a/rust/kernel/mm/mmput_async.rs
-new file mode 100644
---- /dev/null
-+++ a/rust/kernel/mm/mmput_async.rs
-@@ -0,0 +1,68 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+// Copyright (C) 2024 Google LLC.
-+
-+//! Version of `MmWithUser` using `mmput_async`.
-+//!
-+//! This is a separate file from `mm.rs` due to the dependency on `CONFIG_MMU=y`.
-+#![cfg(CONFIG_MMU)]
-+
-+use crate::{
-+    bindings,
-+    mm::MmWithUser,
-+    types::{ARef, AlwaysRefCounted},
-+};
-+use core::{ops::Deref, ptr::NonNull};
-+
-+/// A wrapper for the kernel's `struct mm_struct`.
-+///
-+/// This type is identical to `MmWithUser` except that it uses `mmput_async` when dropping a
-+/// refcount. This means that the destructor of `ARef<MmWithUserAsync>` is safe to call in atomic
-+/// context.
-+///
-+/// # Invariants
-+///
-+/// Values of this type are always refcounted using `mmget`. The value of `mm_users` is non-zero.
-+#[repr(transparent)]
-+pub struct MmWithUserAsync {
-+    mm: MmWithUser,
-+}
-+
-+// SAFETY: It is safe to call `mmput_async` on another thread than where `mmget` was called.
-+unsafe impl Send for MmWithUserAsync {}
-+// SAFETY: All methods on `MmWithUserAsync` can be called in parallel from several threads.
-+unsafe impl Sync for MmWithUserAsync {}
-+
-+// SAFETY: By the type invariants, this type is always refcounted.
-+unsafe impl AlwaysRefCounted for MmWithUserAsync {
-+    #[inline]
-+    fn inc_ref(&self) {
-+        // SAFETY: The pointer is valid since self is a reference.
-+        unsafe { bindings::mmget(self.as_raw()) };
-+    }
-+
-+    #[inline]
-+    unsafe fn dec_ref(obj: NonNull<Self>) {
-+        // SAFETY: The caller is giving up their refcount.
-+        unsafe { bindings::mmput_async(obj.cast().as_ptr()) };
-+    }
-+}
-+
-+// Make all `MmWithUser` methods available on `MmWithUserAsync`.
-+impl Deref for MmWithUserAsync {
-+    type Target = MmWithUser;
-+
-+    #[inline]
-+    fn deref(&self) -> &MmWithUser {
-+        &self.mm
-+    }
-+}
-+
-+impl MmWithUser {
-+    /// Use `mmput_async` when dropping this refcount.
-+    #[inline]
-+    pub fn into_mmput_async(me: ARef<MmWithUser>) -> ARef<MmWithUserAsync> {
-+        // SAFETY: The layouts and invariants are compatible.
-+        unsafe { ARef::from_raw(ARef::into_raw(me).cast()) }
-+    }
-+}
---- a/rust/kernel/mm.rs~mm-rust-make-config_mmu-ifdefs-more-narrow
-+++ a/rust/kernel/mm.rs
-@@ -10,7 +10,6 @@
- //! control what happens when userspace reads or writes to that region of memory.
- //!
- //! C header: [`include/linux/mm.h`](srctree/include/linux/mm.h)
--#![cfg(CONFIG_MMU)]
+--- a/rust/Makefile~kcov-rust-add-flags-for-kcov-with-rust
++++ a/rust/Makefile
+@@ -492,6 +492,7 @@ $(obj)/core.o: $(RUST_LIB_SRC)/core/src/
+ ifneq ($(or $(CONFIG_X86_64),$(CONFIG_X86_32)),)
+ $(obj)/core.o: scripts/target.json
+ endif
++KCOV_INSTRUMENT_core.o := n
  
- use crate::{
-     bindings,
-@@ -21,6 +20,10 @@ use core::{ops::Deref, ptr::NonNull};
- pub mod virt;
- use virt::VmaRef;
+ $(obj)/compiler_builtins.o: private skip_gendwarfksyms = 1
+ $(obj)/compiler_builtins.o: private rustc_objcopy = -w -W '__*'
+--- a/scripts/Makefile.kcov~kcov-rust-add-flags-for-kcov-with-rust
++++ a/scripts/Makefile.kcov
+@@ -3,4 +3,10 @@ kcov-flags-$(CONFIG_CC_HAS_SANCOV_TRACE_
+ kcov-flags-$(CONFIG_KCOV_ENABLE_COMPARISONS)	+= -fsanitize-coverage=trace-cmp
+ kcov-flags-$(CONFIG_GCC_PLUGIN_SANCOV)		+= -fplugin=$(objtree)/scripts/gcc-plugins/sancov_plugin.so
  
-+#[cfg(CONFIG_MMU)]
-+pub use mmput_async::MmWithUserAsync;
-+mod mmput_async;
++kcov-rflags-y					+= -Cpasses=sancov-module
++kcov-rflags-y					+= -Cllvm-args=-sanitizer-coverage-level=3
++kcov-rflags-y					+= -Cllvm-args=-sanitizer-coverage-trace-pc
++kcov-rflags-$(CONFIG_KCOV_ENABLE_COMPARISONS)	+= -Cllvm-args=-sanitizer-coverage-trace-compares
 +
- /// A wrapper for the kernel's `struct mm_struct`.
- ///
- /// This represents the address space of a userspace process, so each process has one `Mm`
-@@ -111,50 +114,6 @@ impl Deref for MmWithUser {
-     }
- }
+ export CFLAGS_KCOV := $(kcov-flags-y)
++export RUSTFLAGS_KCOV := $(kcov-rflags-y)
+--- a/scripts/Makefile.lib~kcov-rust-add-flags-for-kcov-with-rust
++++ a/scripts/Makefile.lib
+@@ -169,6 +169,9 @@ ifeq ($(CONFIG_KCOV),y)
+ _c_flags += $(if $(patsubst n%,, \
+ 	$(KCOV_INSTRUMENT_$(target-stem).o)$(KCOV_INSTRUMENT)$(if $(is-kernel-object),$(CONFIG_KCOV_INSTRUMENT_ALL))), \
+ 	$(CFLAGS_KCOV))
++_rust_flags += $(if $(patsubst n%,, \
++	$(KCOV_INSTRUMENT_$(target-stem).o)$(KCOV_INSTRUMENT)$(if $(is-kernel-object),$(CONFIG_KCOV_INSTRUMENT_ALL))), \
++	$(RUSTFLAGS_KCOV))
+ endif
  
--/// A wrapper for the kernel's `struct mm_struct`.
--///
--/// This type is identical to `MmWithUser` except that it uses `mmput_async` when dropping a
--/// refcount. This means that the destructor of `ARef<MmWithUserAsync>` is safe to call in atomic
--/// context.
--///
--/// # Invariants
--///
--/// Values of this type are always refcounted using `mmget`. The value of `mm_users` is non-zero.
--#[repr(transparent)]
--pub struct MmWithUserAsync {
--    mm: MmWithUser,
--}
--
--// SAFETY: It is safe to call `mmput_async` on another thread than where `mmget` was called.
--unsafe impl Send for MmWithUserAsync {}
--// SAFETY: All methods on `MmWithUserAsync` can be called in parallel from several threads.
--unsafe impl Sync for MmWithUserAsync {}
--
--// SAFETY: By the type invariants, this type is always refcounted.
--unsafe impl AlwaysRefCounted for MmWithUserAsync {
--    #[inline]
--    fn inc_ref(&self) {
--        // SAFETY: The pointer is valid since self is a reference.
--        unsafe { bindings::mmget(self.as_raw()) };
--    }
--
--    #[inline]
--    unsafe fn dec_ref(obj: NonNull<Self>) {
--        // SAFETY: The caller is giving up their refcount.
--        unsafe { bindings::mmput_async(obj.cast().as_ptr()) };
--    }
--}
--
--// Make all `MmWithUser` methods available on `MmWithUserAsync`.
--impl Deref for MmWithUserAsync {
--    type Target = MmWithUser;
--
--    #[inline]
--    fn deref(&self) -> &MmWithUser {
--        &self.mm
--    }
--}
--
- // These methods are safe to call even if `mm_users` is zero.
- impl Mm {
-     /// Returns a raw pointer to the inner `mm_struct`.
-@@ -206,13 +165,6 @@ impl MmWithUser {
-         unsafe { &*ptr.cast() }
-     }
- 
--    /// Use `mmput_async` when dropping this refcount.
--    #[inline]
--    pub fn into_mmput_async(me: ARef<MmWithUser>) -> ARef<MmWithUserAsync> {
--        // SAFETY: The layouts and invariants are compatible.
--        unsafe { ARef::from_raw(ARef::into_raw(me).cast()) }
--    }
--
-     /// Attempt to access a vma using the vma read lock.
-     ///
-     /// This is an optimistic trylock operation, so it may fail if there is contention. In that
+ #
 _
 
 Patches currently in -mm which might be from aliceryhl@google.com are
