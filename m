@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1187A26A0F6;
-	Thu, 22 May 2025 22:10:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDA0726FA6B
+	for <mm-commits@vger.kernel.org>; Thu, 22 May 2025 22:21:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747951810; cv=none; b=P8J/RkndN1E3tAYqpRLEKU3nBTr7rd5AIQqNWQMaU7/WOyjba68hZE1uTvNpxnwqhMGVwB9VGgJfrw0e082vYlICae8lYpl1NUMQhzwZTAXqLSq9Q6qAdALdzyT+a5JylqIDIJ6I6gyJApezj5DeR9d6vkFR6UJSyzks5pjWorU=
+	t=1747952482; cv=none; b=VzaFvQ7w/hhNhjLuB27+XLJzeEOzxsohGabZrYS4EEydYzNMRroRmf1K6v8F1GPBJulqnmAFR2oRO4emSvVzGDftqCPbb2SpzjTonsGVhnVV8mZR1VLQuC5hRQlo3f4DpspSkDjVtL0C60cpVcqL8156Saq3NwpuMnASydUJreE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747951810; c=relaxed/simple;
-	bh=dXTYcC4RYMGN2fdM3NbtSp+tXzTSTWld932ILimsJS4=;
-	h=Date:To:From:Subject:Message-Id; b=umCck701sj428C8SQV8aRS7eN6jkhY1TkvsYBMzf+E84l7tt8rFWE/Ag0SeF4mq8y8PI+jz7DD/ZCYgcJ+oPhuVksz2tNPu1vrJwMj2tW72ORy4hS2JrCTnEHbTWy8bul14eWvNsJPCwqxtBd1j5F9S5wsUd6d7oLk8crzBxZAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ofiNd/dk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747952482; c=relaxed/simple;
+	bh=VBbgxcvSBvWcSib/E6ekDPI8xCTshaO3ih6128qeb+4=;
+	h=Date:To:From:Subject:Message-Id; b=jGSq49foT2qOnfbmi/yre9Htct8tq6iVaoKCpaOr/QfTpA+uSyHRGL39NrfyHGeALrDIkbcFPyGDdnNoE32CNG9bG44bGozdR3y/LFKXItTCsVtp+mKKnY3ytNPobC43bji9lEz21GaSf6fUM5hgtrcfLLtUBr4TfxI9qq/q23o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2ing7flu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ofiNd/dk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CB46C4CEEB;
-	Thu, 22 May 2025 22:10:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2ing7flu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D561C4CEEB;
+	Thu, 22 May 2025 22:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747951809;
-	bh=dXTYcC4RYMGN2fdM3NbtSp+tXzTSTWld932ILimsJS4=;
+	s=korg; t=1747952481;
+	bh=VBbgxcvSBvWcSib/E6ekDPI8xCTshaO3ih6128qeb+4=;
 	h=Date:To:From:Subject:From;
-	b=ofiNd/dk4myOvW2F/3yFBls88VOh95Ih6SkGatXFM9XI3/mDF+cuJF55wTXwX6uOH
-	 LAEkquMr2YY07tkdoTIZNdowA2VxeV3g8a62grpcYCBRIxXllolDAuPiiV/sTwgmOU
-	 LJohsreeijkmlBRPwOcHUH/H+uNUDI+v3ZrWRcAQ=
-Date: Thu, 22 May 2025 15:10:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=2ing7fluajgtwowM7bYDwGq5Uu64tQIGu0I6GdKn02U+b8L8okBYLdCa/oFUtgneE
+	 3v9ppd4w8SO5wpWBXuLdaFVM+QxMM+MQjTlT3BFwYMYWamP/lqiMo0W8DjUMaJNHf4
+	 QwT/CRx1MQdTG2zvd/JhYKeTgzu6eDoXw9q/g1Tk=
+Date: Thu, 22 May 2025 15:21:21 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,minchan@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,jyescas@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-kernel-null-pointer-dereference-when-replacing-free-hugetlb-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250522221009.6CB46C4CEEB@smtp.kernel.org>
+Subject: + mm-add-config_page_block_order-to-select-page-block-order.patch added to mm-new branch
+Message-Id: <20250522222121.8D561C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix kernel NULL pointer dereference when replacing free hugetlb folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-kernel-null-pointer-dereference-when-replacing-free-hugetlb-folios.patch
+     Subject: mm: add CONFIG_PAGE_BLOCK_ORDER to select page block order
+has been added to the -mm mm-new branch.  Its filename is
+     mm-add-config_page_block_order-to-select-page-block-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-kernel-null-pointer-dereference-when-replacing-free-hugetlb-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-config_page_block_order-to-select-page-block-order.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,111 +64,268 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ge Yang <yangge1116@126.com>
-Subject: mm/hugetlb: fix kernel NULL pointer dereference when replacing free hugetlb folios
-Date: Thu, 22 May 2025 11:22:17 +0800
+From: Juan Yescas <jyescas@google.com>
+Subject: mm: add CONFIG_PAGE_BLOCK_ORDER to select page block order
+Date: Wed, 21 May 2025 14:57:45 -0700
 
-A kernel crash was observed when replacing free hugetlb folios:
+Problem: On large page size configurations (16KiB, 64KiB), the CMA
+alignment requirement (CMA_MIN_ALIGNMENT_BYTES) increases considerably,
+and this causes the CMA reservations to be larger than necessary.  This
+means that system will have less available MIGRATE_UNMOVABLE and
+MIGRATE_RECLAIMABLE page blocks since MIGRATE_CMA can't fallback to them.
 
-BUG: kernel NULL pointer dereference, address: 0000000000000028
-PGD 0 P4D 0
-Oops: Oops: 0000 [#1] SMP NOPTI
-CPU: 28 UID: 0 PID: 29639 Comm: test_cma.sh Tainted 6.15.0-rc6-zp #41 PREEMPT(voluntary)
-RIP: 0010:alloc_and_dissolve_hugetlb_folio+0x1d/0x1f0
-RSP: 0018:ffffc9000b30fa90 EFLAGS: 00010286
-RAX: 0000000000000000 RBX: 0000000000342cca RCX: ffffea0043000000
-RDX: ffffc9000b30fb08 RSI: ffffea0043000000 RDI: 0000000000000000
-RBP: ffffc9000b30fb20 R08: 0000000000001000 R09: 0000000000000000
-R10: ffff88886f92eb00 R11: 0000000000000000 R12: ffffea0043000000
-R13: 0000000000000000 R14: 00000000010c0200 R15: 0000000000000004
-FS:  00007fcda5f14740(0000) GS:ffff8888ec1d8000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000028 CR3: 0000000391402000 CR4: 0000000000350ef0
-Call Trace:
-<TASK>
- replace_free_hugepage_folios+0xb6/0x100
- alloc_contig_range_noprof+0x18a/0x590
- ? srso_return_thunk+0x5/0x5f
- ? down_read+0x12/0xa0
- ? srso_return_thunk+0x5/0x5f
- cma_range_alloc.constprop.0+0x131/0x290
- __cma_alloc+0xcf/0x2c0
- cma_alloc_write+0x43/0xb0
- simple_attr_write_xsigned.constprop.0.isra.0+0xb2/0x110
- debugfs_attr_write+0x46/0x70
- full_proxy_write+0x62/0xa0
- vfs_write+0xf8/0x420
- ? srso_return_thunk+0x5/0x5f
- ? filp_flush+0x86/0xa0
- ? srso_return_thunk+0x5/0x5f
- ? filp_close+0x1f/0x30
- ? srso_return_thunk+0x5/0x5f
- ? do_dup2+0xaf/0x160
- ? srso_return_thunk+0x5/0x5f
- ksys_write+0x65/0xe0
- do_syscall_64+0x64/0x170
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
+The CMA_MIN_ALIGNMENT_BYTES increases because it depends on MAX_PAGE_ORDER
+which depends on ARCH_FORCE_MAX_ORDER.  The value of ARCH_FORCE_MAX_ORDER
+increases on 16k and 64k kernels.
 
-There is a potential race between __update_and_free_hugetlb_folio() and
-replace_free_hugepage_folios():
+For example, in ARM, the CMA alignment requirement when:
 
-CPU1                              CPU2
-__update_and_free_hugetlb_folio   replace_free_hugepage_folios
-                                    folio_test_hugetlb(folio)
-                                    -- It's still hugetlb folio.
+- CONFIG_ARCH_FORCE_MAX_ORDER default value is used
+- CONFIG_TRANSPARENT_HUGEPAGE is set:
 
-  __folio_clear_hugetlb(folio)
-  hugetlb_free_folio(folio)
-                                    h = folio_hstate(folio)
-                                    -- Here, h is NULL pointer
+PAGE_SIZE | MAX_PAGE_ORDER | pageblock_order | CMA_MIN_ALIGNMENT_BYTES
+-----------------------------------------------------------------------
+   4KiB   |      10        |       9         |  4KiB * (2 ^  9) =   2MiB
+  16Kib   |      11        |      11         | 16KiB * (2 ^ 11) =  32MiB
+  64KiB   |      13        |      13         | 64KiB * (2 ^ 13) = 512MiB
 
-When the above race condition occurs, folio_hstate(folio) returns NULL,
-and subsequent access to this NULL pointer will cause the system to crash.
-To resolve this issue, execute folio_hstate(folio) under the protection
-of the hugetlb_lock lock, ensuring that folio_hstate(folio) does not
-return NULL.
+There are some extreme cases for the CMA alignment requirement when:
 
-Link: https://lkml.kernel.org/r/1747884137-26685-1-git-send-email-yangge1116@126.com
-Fixes: 04f13d241b8b ("mm: replace free hugepage folios after migration")
-Signed-off-by: Ge Yang <yangge1116@126.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
+- CONFIG_ARCH_FORCE_MAX_ORDER maximum value is set
+- CONFIG_TRANSPARENT_HUGEPAGE is NOT set:
+- CONFIG_HUGETLB_PAGE is NOT set
+
+PAGE_SIZE | MAX_PAGE_ORDER | pageblock_order |  CMA_MIN_ALIGNMENT_BYTES
+------------------------------------------------------------------------
+   4KiB   |      15        |      15         |  4KiB * (2 ^ 15) = 128MiB
+  16Kib   |      13        |      13         | 16KiB * (2 ^ 13) = 128MiB
+  64KiB   |      13        |      13         | 64KiB * (2 ^ 13) = 512MiB
+
+This affects the CMA reservations for the drivers. If a driver in a
+4KiB kernel needs 4MiB of CMA memory, in a 16KiB kernel, the minimal
+reservation has to be 32MiB due to the alignment requirements:
+
+reserved-memory {
+    ...
+    cma_test_reserve: cma_test_reserve {
+        compatible = "shared-dma-pool";
+        size = <0x0 0x400000>; /* 4 MiB */
+        ...
+    };
+};
+
+reserved-memory {
+    ...
+    cma_test_reserve: cma_test_reserve {
+        compatible = "shared-dma-pool";
+        size = <0x0 0x2000000>; /* 32 MiB */
+        ...
+    };
+};
+
+Solution: Add a new config CONFIG_PAGE_BLOCK_ORDER that allows to set the
+page block order in all the architectures.  The maximum page block order
+will be given by ARCH_FORCE_MAX_ORDER.
+
+By default, CONFIG_PAGE_BLOCK_ORDER will have the same value that
+ARCH_FORCE_MAX_ORDER.  This will make sure that current kernel
+configurations won't be affected by this change.  It is a opt-in change.
+
+This patch will allow to have the same CMA alignment requirements for
+large page sizes (16KiB, 64KiB) as that in 4kb kernels by setting a lower
+pageblock_order.
+
+Tests:
+
+- Verified that HugeTLB pages work when pageblock_order is 1, 7, 10 on
+  4k and 16k kernels.
+
+- Verified that Transparent Huge Pages work when pageblock_order is 1,
+  7, 10 on 4k and 16k kernels.
+
+- Verified that dma-buf heaps allocations work when pageblock_order is
+  1, 7, 10 on 4k and 16k kernels.
+
+Benchmarks:
+
+The benchmarks compare 16kb kernels with pageblock_order 10 and 7.  The
+reason for the pageblock_order 7 is because this value makes the min CMA
+alignment requirement the same as that in 4kb kernels (2MB).
+
+- Perform 100K dma-buf heaps (/dev/dma_heap/system) allocations of
+  SZ_8M, SZ_4M, SZ_2M, SZ_1M, SZ_64, SZ_8, SZ_4.  Use simpleperf
+  (https://developer.android.com/ndk/guides/simpleperf) to measure the #
+  of instructions and page-faults on 16k kernels.  The benchmark was
+  executed 10 times.  The averages are below:
+
+           # instructions         |     #page-faults
+    order 10     |  order 7       | order 10 | order 7
+--------------------------------------------------------
+ 13,891,765,770	 | 11,425,777,314 |    220   |   217
+ 14,456,293,487	 | 12,660,819,302 |    224   |   219
+ 13,924,261,018	 | 13,243,970,736 |    217   |   221
+ 13,910,886,504	 | 13,845,519,630 |    217   |   221
+ 14,388,071,190	 | 13,498,583,098 |    223   |   224
+ 13,656,442,167	 | 12,915,831,681 |    216   |   218
+ 13,300,268,343	 | 12,930,484,776 |    222   |   218
+ 13,625,470,223	 | 14,234,092,777 |    219   |   218
+ 13,508,964,965	 | 13,432,689,094 |    225   |   219
+ 13,368,950,667	 | 13,683,587,37  |    219   |   225
+-------------------------------------------------------------------
+ 13,803,137,433  | 13,131,974,268 |    220   |   220    Averages
+
+There were 4.85% #instructions when order was 7, in comparison with order
+10.
+
+     13,803,137,433 - 13,131,974,268 = -671,163,166 (-4.86%)
+
+The number of page faults in order 7 and 10 were the same.
+
+These results didn't show any significant regression when the
+pageblock_order is set to 7 on 16kb kernels.
+
+- Run speedometer 3.1 (https://browserbench.org/Speedometer3.1/) 5 times
+  on the 16k kernels with pageblock_order 7 and 10.
+
+order 10 | order 7  | order 7 - order 10 | (order 7 - order 10) %
+-------------------------------------------------------------------
+  15.8	 |  16.4    |         0.6        |     3.80%
+  16.4	 |  16.2    |        -0.2        |    -1.22%
+  16.6	 |  16.3    |        -0.3        |    -1.81%
+  16.8	 |  16.3    |        -0.5        |    -2.98%
+  16.6	 |  16.8    |         0.2        |     1.20%
+-------------------------------------------------------------------
+  16.44     16.4            -0.04	          -0.24%   Averages
+
+The results didn't show any significant regression when the
+pageblock_order is set to 7 on 16kb kernels.
+
+Link: https://lkml.kernel.org/r/20250521215807.1860663-1-jyescas@google.com
+Signed-off-by: Juan Yescas <jyescas@google.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/mmzone.h          |   16 ++++++++++++++
+ include/linux/pageblock-flags.h |    8 +++----
+ mm/Kconfig                      |   34 ++++++++++++++++++++++++++++++
+ mm/mm_init.c                    |    2 -
+ 4 files changed, 55 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-kernel-null-pointer-dereference-when-replacing-free-hugetlb-folios
-+++ a/mm/hugetlb.c
-@@ -2949,12 +2949,20 @@ int replace_free_hugepage_folios(unsigne
+--- a/include/linux/mmzone.h~mm-add-config_page_block_order-to-select-page-block-order
++++ a/include/linux/mmzone.h
+@@ -37,6 +37,22 @@
  
- 	while (start_pfn < end_pfn) {
- 		folio = pfn_folio(start_pfn);
+ #define NR_PAGE_ORDERS (MAX_PAGE_ORDER + 1)
+ 
++/* Defines the order for the number of pages that have a migrate type. */
++#ifndef CONFIG_PAGE_BLOCK_ORDER
++#define PAGE_BLOCK_ORDER MAX_PAGE_ORDER
++#else
++#define PAGE_BLOCK_ORDER CONFIG_PAGE_BLOCK_ORDER
++#endif /* CONFIG_PAGE_BLOCK_ORDER */
 +
-+		/*
-+		 * The folio might have been dissolved from under our feet, so make sure
-+		 * to carefully check the state under the lock.
-+		 */
-+		spin_lock_irq(&hugetlb_lock);
- 		if (folio_test_hugetlb(folio)) {
- 			h = folio_hstate(folio);
- 		} else {
-+			spin_unlock_irq(&hugetlb_lock);
- 			start_pfn++;
- 			continue;
- 		}
-+		spin_unlock_irq(&hugetlb_lock);
++/*
++ * The MAX_PAGE_ORDER, which defines the max order of pages to be allocated
++ * by the buddy allocator, has to be larger or equal to the PAGE_BLOCK_ORDER,
++ * which defines the order for the number of pages that can have a migrate type
++ */
++#if (PAGE_BLOCK_ORDER > MAX_PAGE_ORDER)
++#error MAX_PAGE_ORDER must be >= PAGE_BLOCK_ORDER
++#endif
++
+ /*
+  * PAGE_ALLOC_COSTLY_ORDER is the order at which allocations are deemed
+  * costly to service.  That is between allocation orders which should
+--- a/include/linux/pageblock-flags.h~mm-add-config_page_block_order-to-select-page-block-order
++++ a/include/linux/pageblock-flags.h
+@@ -41,18 +41,18 @@ extern unsigned int pageblock_order;
+  * Huge pages are a constant size, but don't exceed the maximum allocation
+  * granularity.
+  */
+-#define pageblock_order		MIN_T(unsigned int, HUGETLB_PAGE_ORDER, MAX_PAGE_ORDER)
++#define pageblock_order		MIN_T(unsigned int, HUGETLB_PAGE_ORDER, PAGE_BLOCK_ORDER)
  
- 		if (!folio_ref_count(folio)) {
- 			ret = alloc_and_dissolve_hugetlb_folio(h, folio,
+ #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
+ 
+ #elif defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 
+-#define pageblock_order		MIN_T(unsigned int, HPAGE_PMD_ORDER, MAX_PAGE_ORDER)
++#define pageblock_order		MIN_T(unsigned int, HPAGE_PMD_ORDER, PAGE_BLOCK_ORDER)
+ 
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+-/* If huge pages are not used, group by MAX_ORDER_NR_PAGES */
+-#define pageblock_order		MAX_PAGE_ORDER
++/* If huge pages are not used, group by PAGE_BLOCK_ORDER */
++#define pageblock_order		PAGE_BLOCK_ORDER
+ 
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+--- a/mm/Kconfig~mm-add-config_page_block_order-to-select-page-block-order
++++ a/mm/Kconfig
+@@ -993,6 +993,40 @@ config CMA_AREAS
+ 
+ 	  If unsure, leave the default value "8" in UMA and "20" in NUMA.
+ 
++#
++# Select this config option from the architecture Kconfig, if available, to set
++# the max page order for physically contiguous allocations.
++#
++config ARCH_FORCE_MAX_ORDER
++	int
++
++#
++# When ARCH_FORCE_MAX_ORDER is not defined,
++# the default page block order is MAX_PAGE_ORDER (10) as per
++# include/linux/mmzone.h.
++#
++config PAGE_BLOCK_ORDER
++	int "Page Block Order"
++	range 1 10 if ARCH_FORCE_MAX_ORDER = 0
++	default 10 if ARCH_FORCE_MAX_ORDER = 0
++	range 1 ARCH_FORCE_MAX_ORDER if ARCH_FORCE_MAX_ORDER != 0
++	default ARCH_FORCE_MAX_ORDER if ARCH_FORCE_MAX_ORDER != 0
++	help
++	  The page block order refers to the power of two number of pages that
++	  are physically contiguous and can have a migrate type associated to
++	  them. The maximum size of the page block order is limited by
++	  ARCH_FORCE_MAX_ORDER.
++
++	  This config allows overriding the default page block order when the
++	  page block order is required to be smaller than ARCH_FORCE_MAX_ORDER
++	  or MAX_PAGE_ORDER.
++
++	  Reducing pageblock order can negatively impact THP generation
++	  success rate. If your workloads uses THP heavily, please use this
++	  option with caution.
++
++	  Don't change if unsure.
++
+ config MEM_SOFT_DIRTY
+ 	bool "Track memory changes"
+ 	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
+--- a/mm/mm_init.c~mm-add-config_page_block_order-to-select-page-block-order
++++ a/mm/mm_init.c
+@@ -1509,7 +1509,7 @@ static inline void setup_usemap(struct z
+ /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
+ void __init set_pageblock_order(void)
+ {
+-	unsigned int order = MAX_PAGE_ORDER;
++	unsigned int order = PAGE_BLOCK_ORDER;
+ 
+ 	/* Check that pageblock_nr_pages has not already been setup */
+ 	if (pageblock_order)
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from jyescas@google.com are
 
-mm-hugetlb-fix-kernel-null-pointer-dereference-when-replacing-free-hugetlb-folios.patch
+mm-add-config_page_block_order-to-select-page-block-order.patch
 
