@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DD151E411C
-	for <mm-commits@vger.kernel.org>; Thu, 22 May 2025 20:22:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E69614658D
+	for <mm-commits@vger.kernel.org>; Thu, 22 May 2025 20:30:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747945374; cv=none; b=XX5l/UhLPB46zNQ2DyI0B4EBL80Of3/Td8TJ1fLYEReojrx4fXY9WADPjKq3PF6ZTb/JsbTvncZoTH3rM3hu46WuAhleRjCsTuzOxOkX+V7I6LxAzULtMLRgTDxYyWm0pSewM2dM+PcJ/cdmRFGkxBOAzEZkA1SwxPNBruofZVc=
+	t=1747945853; cv=none; b=ROc7ZhOZ2bcokN3ejH7XgXMgeqX+gn6dAesCZVj3woNYQjLKzMWj/Kevxc/suyLNrIANmOryGWvcviSrxedXp3fiHk33TDoyj1l+mCitgZj7X/u9XalcE0bHFTehsULXpyUh8YJbHv/mkT173wjauASNywNrd3km1obDju2kfuQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747945374; c=relaxed/simple;
-	bh=g4Z9MBWgSW4dhf/j7npfh4qTpyb3KRDCJ6Ipiu8YXGg=;
-	h=Date:To:From:Subject:Message-Id; b=ENjpd4FSUU/63RG/L41470XPEoBggbBD/AxTIJg6+ho/fVVTzhCTeLOBDSgYsNEsYh4K/k3tK2t8LVz1/ILWY2y4JSpZiFZBpfCMVXv/cS/tihHn1w3vbhDDpDlN8qDneb1WDxhFIA8f/9cM+Vi1w69sER+UP/Q0OroB50/AwrY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oIgBa0wL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747945853; c=relaxed/simple;
+	bh=FddraD3AJIMA2HF8xiPkuryzjvGBP+NYo4sQF/rRb5s=;
+	h=Date:To:From:Subject:Message-Id; b=nNtzrMWu4JL18aBKnLi6ohQ+iM0rOK1LJRGdu81HFGp9usVH3LkwopG2HYJ0Wib/hJPsTkZjYqxWgp1Vkcuu1C23CzXfmGAt3WEW4+3RzjFxWJDG3arwWULfnVl4xj9vT7nOZY/bawxD9wM5LiWXT82zGRxo0mTDIOBxKrGFuZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PcIrZ8PK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oIgBa0wL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B406C4CEED;
-	Thu, 22 May 2025 20:22:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PcIrZ8PK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA455C4CEE4;
+	Thu, 22 May 2025 20:30:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747945373;
-	bh=g4Z9MBWgSW4dhf/j7npfh4qTpyb3KRDCJ6Ipiu8YXGg=;
+	s=korg; t=1747945852;
+	bh=FddraD3AJIMA2HF8xiPkuryzjvGBP+NYo4sQF/rRb5s=;
 	h=Date:To:From:Subject:From;
-	b=oIgBa0wLmwSv9hCGBbYrhdfYYh3EqJbriiFpbRX64gTtMA9u+yfp1R68NGnoiJLLm
-	 jVxF0OvZ4uNFndQ2wvQEek/ny12fEMVVuKrPJC8cwhY2cAtsHienhf+JfsWDF/R3EO
-	 i/eORh9+ZG95b8s2niW/y1JzTytkXS0KxZD3qEK8=
-Date: Thu, 22 May 2025 13:22:52 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,peterz@infradead.org,npiggin@gmail.com,jannh@google.com,hughd@google.com,aneesh.kumar@kernel.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=PcIrZ8PK52F4F4fOBDoUNGLtGFarpQyNIXmOwCpojveiuq4xRhKztnb0u9prysnZZ
+	 9ZUuEetQ6bVgmc2f/HGESTxURC8LD+PdiouKRlrlUVAuH8hGpEz4CEDtMlIZNCokWW
+	 X77SNWMVRNwKTJQcXe4nKLK3tlVklcPaFQCGTubs=
+Date: Thu, 22 May 2025 13:30:52 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,lkp@intel.com,liam.howlett@oracle.com,boqun.feng@gmail.com,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmu_gather-move-tlb-flush-for-vm_pfnmap-vm_mixedmap-vmas-into-free_pgtables.patch added to mm-new branch
-Message-Id: <20250522202253.7B406C4CEED@smtp.kernel.org>
+Subject: + mm-rust-make-config_mmu-ifdefs-more-narrow.patch added to mm-new branch
+Message-Id: <20250522203052.AA455C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mmu_gather: move tlb flush for VM_PFNMAP/VM_MIXEDMAP vmas into free_pgtables()
+     Subject: mm: rust: make CONFIG_MMU ifdefs more narrow
 has been added to the -mm mm-new branch.  Its filename is
-     mmu_gather-move-tlb-flush-for-vm_pfnmap-vm_mixedmap-vmas-into-free_pgtables.patch
+     mm-rust-make-config_mmu-ifdefs-more-narrow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmu_gather-move-tlb-flush-for-vm_pfnmap-vm_mixedmap-vmas-into-free_pgtables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rust-make-config_mmu-ifdefs-more-narrow.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,141 +64,198 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mmu_gather: move tlb flush for VM_PFNMAP/VM_MIXEDMAP vmas into free_pgtables()
-Date: Thu, 22 May 2025 01:28:38 +0000
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: mm: rust: make CONFIG_MMU ifdefs more narrow
+Date: Fri, 16 May 2025 19:32:19 +0000
 
-Commit b67fbebd4cf9 ("mmu_gather: Force tlb-flush VM_PFNMAP vmas") added a
-forced tlbflush to tlb_vma_end(), which is required to avoid a race
-between munmap() and unmap_mapping_range().  However it added some
-overhead to other paths where tlb_vma_end() is used, but vmas are not
-removed, e.g.  madvise(MADV_DONTNEED).
+Currently the entire kernel::mm module is ifdef'd out when CONFIG_MMU=n.
+However, there are some downstream users of the module in
+rust/kernel/task.rs and rust/kernel/miscdevice.rs. Thus, update the cfgs
+so that only MmWithUserAsync is removed with CONFIG_MMU=n.
 
-Fix this by moving the tlb flush out of tlb_end_vma() into new
-tlb_flush_vmas() called from free_pgtables(), somewhat similar to the
-stable version of the original commit: commit 895428ee124a ("mm: Force TLB
-flush for PFNMAP mappings before unlink_file_vma()").
+The code is moved into a new file, since the #[cfg()] annotation
+otherwise has to be duplicated several times.
 
-Note, that if tlb->fullmm is set, no flush is required, as the whole mm is
-about to be destroyed.
-
-Link: https://lkml.kernel.org/r/20250522012838.163876-1-roman.gushchin@linux.dev
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Jann Horn <jannh@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20250516193219.2987032-1-aliceryhl@google.com
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202505071753.kldNHYVQ-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202505072116.eSYC8igT-lkp@intel.com/
+Fixes: 5bb9ed6cdfeb ("mm: rust: add abstraction for struct mm_struct")
+Reviewed-by: Boqun Feng <boqun.feng@gmail.com>
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |   48 +++++++++++++++++++++++++++---------
- mm/memory.c               |    2 +
- mm/mmu_gather.c           |    1 
- 3 files changed, 40 insertions(+), 11 deletions(-)
+ rust/kernel/mm.rs             |   56 +-------------------------
+ rust/kernel/mm/mmput_async.rs |   68 ++++++++++++++++++++++++++++++++
+ 2 files changed, 72 insertions(+), 52 deletions(-)
 
---- a/include/asm-generic/tlb.h~mmu_gather-move-tlb-flush-for-vm_pfnmap-vm_mixedmap-vmas-into-free_pgtables
-+++ a/include/asm-generic/tlb.h
-@@ -58,6 +58,11 @@
-  *    Defaults to flushing at tlb_end_vma() to reset the range; helps when
-  *    there's large holes between the VMAs.
-  *
-+ *  - tlb_free_vmas()
-+ *
-+ *    tlb_free_vmas() marks the start of unlinking of one or more vmas
-+ *    and freeing page-tables.
-+ *
-  *  - tlb_remove_table()
-  *
-  *    tlb_remove_table() is the basic primitive to free page-table directories
-@@ -464,7 +469,12 @@ tlb_update_vma_flags(struct mmu_gather *
- 	 */
- 	tlb->vma_huge = is_vm_hugetlb_page(vma);
- 	tlb->vma_exec = !!(vma->vm_flags & VM_EXEC);
--	tlb->vma_pfn  = !!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP));
+diff --git a/rust/kernel/mm/mmput_async.rs a/rust/kernel/mm/mmput_async.rs
+new file mode 100644
+--- /dev/null
++++ a/rust/kernel/mm/mmput_async.rs
+@@ -0,0 +1,68 @@
++// SPDX-License-Identifier: GPL-2.0
 +
-+	/*
-+	 * Track if there's at least one VM_PFNMAP/VM_MIXEDMAP vma
-+	 * in the tracked range, see tlb_free_vmas().
-+	 */
-+	tlb->vma_pfn |= !!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP));
- }
- 
- static inline void tlb_flush_mmu_tlbonly(struct mmu_gather *tlb)
-@@ -548,22 +558,38 @@ static inline void tlb_start_vma(struct
- 
- static inline void tlb_end_vma(struct mmu_gather *tlb, struct vm_area_struct *vma)
- {
-+	if (tlb->fullmm || IS_ENABLED(CONFIG_MMU_GATHER_MERGE_VMAS))
-+		return;
++// Copyright (C) 2024 Google LLC.
 +
-+	/*
-+	 * Do a TLB flush and reset the range at VMA boundaries; this avoids
-+	 * the ranges growing with the unused space between consecutive VMAs,
-+	 * but also the mmu_gather::vma_* flags from tlb_start_vma() rely on
-+	 * this.
-+	 */
-+	tlb_flush_mmu_tlbonly(tlb);
++//! Version of `MmWithUser` using `mmput_async`.
++//!
++//! This is a separate file from `mm.rs` due to the dependency on `CONFIG_MMU=y`.
++#![cfg(CONFIG_MMU)]
++
++use crate::{
++    bindings,
++    mm::MmWithUser,
++    types::{ARef, AlwaysRefCounted},
++};
++use core::{ops::Deref, ptr::NonNull};
++
++/// A wrapper for the kernel's `struct mm_struct`.
++///
++/// This type is identical to `MmWithUser` except that it uses `mmput_async` when dropping a
++/// refcount. This means that the destructor of `ARef<MmWithUserAsync>` is safe to call in atomic
++/// context.
++///
++/// # Invariants
++///
++/// Values of this type are always refcounted using `mmget`. The value of `mm_users` is non-zero.
++#[repr(transparent)]
++pub struct MmWithUserAsync {
++    mm: MmWithUser,
 +}
 +
-+static inline void tlb_free_vmas(struct mmu_gather *tlb)
-+{
- 	if (tlb->fullmm)
- 		return;
++// SAFETY: It is safe to call `mmput_async` on another thread than where `mmget` was called.
++unsafe impl Send for MmWithUserAsync {}
++// SAFETY: All methods on `MmWithUserAsync` can be called in parallel from several threads.
++unsafe impl Sync for MmWithUserAsync {}
++
++// SAFETY: By the type invariants, this type is always refcounted.
++unsafe impl AlwaysRefCounted for MmWithUserAsync {
++    #[inline]
++    fn inc_ref(&self) {
++        // SAFETY: The pointer is valid since self is a reference.
++        unsafe { bindings::mmget(self.as_raw()) };
++    }
++
++    #[inline]
++    unsafe fn dec_ref(obj: NonNull<Self>) {
++        // SAFETY: The caller is giving up their refcount.
++        unsafe { bindings::mmput_async(obj.cast().as_ptr()) };
++    }
++}
++
++// Make all `MmWithUser` methods available on `MmWithUserAsync`.
++impl Deref for MmWithUserAsync {
++    type Target = MmWithUser;
++
++    #[inline]
++    fn deref(&self) -> &MmWithUser {
++        &self.mm
++    }
++}
++
++impl MmWithUser {
++    /// Use `mmput_async` when dropping this refcount.
++    #[inline]
++    pub fn into_mmput_async(me: ARef<MmWithUser>) -> ARef<MmWithUserAsync> {
++        // SAFETY: The layouts and invariants are compatible.
++        unsafe { ARef::from_raw(ARef::into_raw(me).cast()) }
++    }
++}
+--- a/rust/kernel/mm.rs~mm-rust-make-config_mmu-ifdefs-more-narrow
++++ a/rust/kernel/mm.rs
+@@ -10,7 +10,6 @@
+ //! control what happens when userspace reads or writes to that region of memory.
+ //!
+ //! C header: [`include/linux/mm.h`](srctree/include/linux/mm.h)
+-#![cfg(CONFIG_MMU)]
  
- 	/*
- 	 * VM_PFNMAP is more fragile because the core mm will not track the
--	 * page mapcount -- there might not be page-frames for these PFNs after
--	 * all. Force flush TLBs for such ranges to avoid munmap() vs
--	 * unmap_mapping_range() races.
--	 */
--	if (tlb->vma_pfn || !IS_ENABLED(CONFIG_MMU_GATHER_MERGE_VMAS)) {
--		/*
--		 * Do a TLB flush and reset the range at VMA boundaries; this avoids
--		 * the ranges growing with the unused space between consecutive VMAs.
--		 */
-+	 * page mapcount -- there might not be page-frames for these PFNs
-+	 * after all.
-+	 *
-+	 * Specifically() there is a race between munmap() and
-+	 * unmap_mapping_range(), where munmap() will unlink the VMA, such
-+	 * that unmap_mapping_range() will no longer observe the VMA and
-+	 * no-op, without observing the TLBI, returning prematurely.
-+	 *
-+	 * So if we're about to unlink such a VMA, and we have pending
-+	 * TLBI for such a vma, flush things now.
-+	 */
-+	if (tlb->vma_pfn)
- 		tlb_flush_mmu_tlbonly(tlb);
--	}
+ use crate::{
+     bindings,
+@@ -21,6 +20,10 @@ use core::{ops::Deref, ptr::NonNull};
+ pub mod virt;
+ use virt::VmaRef;
+ 
++#[cfg(CONFIG_MMU)]
++pub use mmput_async::MmWithUserAsync;
++mod mmput_async;
++
+ /// A wrapper for the kernel's `struct mm_struct`.
+ ///
+ /// This represents the address space of a userspace process, so each process has one `Mm`
+@@ -111,50 +114,6 @@ impl Deref for MmWithUser {
+     }
  }
  
- /*
---- a/mm/memory.c~mmu_gather-move-tlb-flush-for-vm_pfnmap-vm_mixedmap-vmas-into-free_pgtables
-+++ a/mm/memory.c
-@@ -358,6 +358,8 @@ void free_pgtables(struct mmu_gather *tl
- {
- 	struct unlink_vma_file_batch vb;
+-/// A wrapper for the kernel's `struct mm_struct`.
+-///
+-/// This type is identical to `MmWithUser` except that it uses `mmput_async` when dropping a
+-/// refcount. This means that the destructor of `ARef<MmWithUserAsync>` is safe to call in atomic
+-/// context.
+-///
+-/// # Invariants
+-///
+-/// Values of this type are always refcounted using `mmget`. The value of `mm_users` is non-zero.
+-#[repr(transparent)]
+-pub struct MmWithUserAsync {
+-    mm: MmWithUser,
+-}
+-
+-// SAFETY: It is safe to call `mmput_async` on another thread than where `mmget` was called.
+-unsafe impl Send for MmWithUserAsync {}
+-// SAFETY: All methods on `MmWithUserAsync` can be called in parallel from several threads.
+-unsafe impl Sync for MmWithUserAsync {}
+-
+-// SAFETY: By the type invariants, this type is always refcounted.
+-unsafe impl AlwaysRefCounted for MmWithUserAsync {
+-    #[inline]
+-    fn inc_ref(&self) {
+-        // SAFETY: The pointer is valid since self is a reference.
+-        unsafe { bindings::mmget(self.as_raw()) };
+-    }
+-
+-    #[inline]
+-    unsafe fn dec_ref(obj: NonNull<Self>) {
+-        // SAFETY: The caller is giving up their refcount.
+-        unsafe { bindings::mmput_async(obj.cast().as_ptr()) };
+-    }
+-}
+-
+-// Make all `MmWithUser` methods available on `MmWithUserAsync`.
+-impl Deref for MmWithUserAsync {
+-    type Target = MmWithUser;
+-
+-    #[inline]
+-    fn deref(&self) -> &MmWithUser {
+-        &self.mm
+-    }
+-}
+-
+ // These methods are safe to call even if `mm_users` is zero.
+ impl Mm {
+     /// Returns a raw pointer to the inner `mm_struct`.
+@@ -206,13 +165,6 @@ impl MmWithUser {
+         unsafe { &*ptr.cast() }
+     }
  
-+	tlb_free_vmas(tlb);
-+
- 	do {
- 		unsigned long addr = vma->vm_start;
- 		struct vm_area_struct *next;
---- a/mm/mmu_gather.c~mmu_gather-move-tlb-flush-for-vm_pfnmap-vm_mixedmap-vmas-into-free_pgtables
-+++ a/mm/mmu_gather.c
-@@ -424,6 +424,7 @@ static void __tlb_gather_mmu(struct mmu_
- #ifdef CONFIG_MMU_GATHER_PAGE_SIZE
- 	tlb->page_size = 0;
- #endif
-+	tlb->vma_pfn = 0;
- 
- 	__tlb_reset_range(tlb);
- 	inc_tlb_flush_pending(tlb->mm);
+-    /// Use `mmput_async` when dropping this refcount.
+-    #[inline]
+-    pub fn into_mmput_async(me: ARef<MmWithUser>) -> ARef<MmWithUserAsync> {
+-        // SAFETY: The layouts and invariants are compatible.
+-        unsafe { ARef::from_raw(ARef::into_raw(me).cast()) }
+-    }
+-
+     /// Attempt to access a vma using the vma read lock.
+     ///
+     /// This is an optimistic trylock operation, so it may fail if there is contention. In that
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
-mmu_gather-move-tlb-flush-for-vm_pfnmap-vm_mixedmap-vmas-into-free_pgtables.patch
+mm-rust-make-config_mmu-ifdefs-more-narrow.patch
+kcov-rust-add-flags-for-kcov-with-rust.patch
 
