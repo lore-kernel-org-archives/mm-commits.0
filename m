@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 716C7188713
-	for <mm-commits@vger.kernel.org>; Thu, 22 May 2025 20:43:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01353188713
+	for <mm-commits@vger.kernel.org>; Thu, 22 May 2025 20:43:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747946607; cv=none; b=d4xf+K5uf/DrOEqGwcsCkLZH3/Fln1KniSvrZiWI4GviPKSiHyNQ1chQyOybPNPP5pFCY7+goukxGA7pOhuGjsX+/jHQHvktbqAsTCShTJS+RXqKbvyClDFYYiZXy4lpijVtK/K2SH0FQAgFdv7dkqXhZQtcZz0icH67RmAiTtI=
+	t=1747946609; cv=none; b=dh5RJnpCn6JdX/tsaZBLGCknbozv1YfwWzlnNYVtvS2dafRdtUPgzF8Y3iprti91eqXwVmyRxOj3eJIotnl37v/Xp+XR7znBJjzDuMgjAtQfy63Y/CtLX7A6/CDnhnm7NK/PdFZUqJpJIfHh6I4ZmTIU6KZMLCgj4yyGQZowfz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747946607; c=relaxed/simple;
-	bh=U5Mvm6wS/o05EbjRtiuyhVC8+gG1KE625HtA508s2lo=;
-	h=Date:To:From:Subject:Message-Id; b=SWp+rLPD5gGzE8rFBlV72j49Iq0CXWRQR+iaUkQGD0zNy7csrrhqGqtLIy5wZowl8sGFrV6p63VyCRatnOWq/+q0MLvkB0EbCtfvoiIqPDd8RjusAqL3Tu82I/JUcVUCOzadyXYaIuqb8o9HzcBO4CMZlTXG5HpxEBjZDzCN5ik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bQgudubH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747946609; c=relaxed/simple;
+	bh=3xjvJk28uQO2o56DkvYtMfYONnkmRy8j+goeAFLuhA4=;
+	h=Date:To:From:Subject:Message-Id; b=Six8g7/3mc4WSIg1zpsoz6HWyWjOS1xydTIKE+NvvBtEJMWGt3SDzU78bvQXoPTZSU9Mou8A7huGG8lnsrPuCMFUbDMMHoA4F0v0x8am6x9D7EXLSt2vXPfHnAbxfxXCveFygdee2JqK++8TUJYdRgy1pTS1GjShgf1JmZnjiK0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HoV1P4hD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bQgudubH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD6B8C4CEE4;
-	Thu, 22 May 2025 20:43:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HoV1P4hD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25E42C4CEE4;
+	Thu, 22 May 2025 20:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1747946606;
-	bh=U5Mvm6wS/o05EbjRtiuyhVC8+gG1KE625HtA508s2lo=;
+	s=korg; t=1747946608;
+	bh=3xjvJk28uQO2o56DkvYtMfYONnkmRy8j+goeAFLuhA4=;
 	h=Date:To:From:Subject:From;
-	b=bQgudubHxF08fuNmfDabLawSSK38lo6iGvmm7guV1mUo8QAAAYX6hxBZ4m9MIC7ko
-	 lAO76kJgIluqJmweWeFyLbzGJFvJFSovFNYA7+weTTI1Yu5QpGGZ0HBwCgQ82loUvO
-	 ECCGjVcs9Aoe9lk2fCFMxIQsDFnjQhgUD9VUWsC4=
-Date: Thu, 22 May 2025 13:43:26 -0700
+	b=HoV1P4hDKDvgSckfts85KYcrAlTRTQ59Rv09gacYUooaFt6C5r3zv8AzsMb0CIGyv
+	 i6FdIEnmeBN5Gifz813hcH9eBdnwUNZwdjZBXCg3Ll56WsdIwiv3b9ZAwWvws2XupN
+	 +33lbi1VFmK3al7lQyQn7wGdGtLr8s/mcCCZkDS8=
+Date: Thu, 22 May 2025 13:43:27 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm.patch added to mm-new branch
-Message-Id: <20250522204326.BD6B8C4CEE4@smtp.kernel.org>
+Subject: + selftest-mm-add-helper-for-logging-test-start-and-results.patch added to mm-new branch
+Message-Id: <20250522204328.25E42C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: use standard ksft_finished() in cow and gup_longterm
+     Subject: selftest/mm: add helper for logging test start and results
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm.patch
+     selftest-mm-add-helper-for-logging-test-start-and-results.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-add-helper-for-logging-test-start-and-results.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,92 +65,74 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: use standard ksft_finished() in cow and gup_longterm
-Date: Thu, 22 May 2025 18:38:50 +0100
+Subject: selftest/mm: add helper for logging test start and results
+Date: Thu, 22 May 2025 18:38:51 +0100
 
-Patch series "selftests/mm: cow and gup_longterm cleanups".
+Several of the MM tests have a pattern of printing a description of the
+test to be run then reporting the actual TAP result using a generic string
+not connected to the specific test, often in a shared function used by
+many tests.  The name reported typically varies depending on the specific
+result rather than the test too.  This causes problems for tooling that
+works with test results, the names reported with the results are used to
+deduplicate tests and track them between runs so both duplicated names and
+changing names cause trouble for things like UIs and automated bisection.
 
-The bulk of these changes modify the cow and gup_longterm tests to report
-unique and stable names for each test, bringing them into line with the
-expectations of tooling that works with kselftest.  The string reported as
-a test result is used by tooling to both deduplicate tests and track tests
-between test runs, using the same string for multiple tests or changing
-the string depending on test result causes problems for user interfaces
-and automation such as bisection.
+As a first step towards matching these tests better with the expectations
+of kselftest provide helpers which record the test name as part of the
+initial print and then use that as part of reporting a result.
 
-It was suggested that converting to use kselftest_harness.h would be a
-good way of addressing this, however that really wants the set of tests to
-run to be known at compile time but both test programs dynamically
-enumarate the set of huge page sizes the system supports and test each. 
-Refactoring to handle this would be even more invasive than these changes
-which are large but straightforward and repetitive.
+This is not added as a generic kselftest helper partly because the use of
+a variable to store the test name doesn't fit well with the header only
+implementation of kselftest.h and partly because it's not really an
+intended pattern.  Ideally at some point the mm tests that use it will be
+updated to not need it.
 
-A version of the main gup_longterm cleanup was previously sent separately,
-this version factors out the helpers for logging the start of the test
-since the cow test looks very similar.
-
-
-This patch (of 4):
-
-The cow and gup_longterm test programs open code something that looks a
-lot like the standard ksft_finished() helper to summarise the test results
-and provide an exit code, convert to use ksft_finished().
-
-Link: https://lkml.kernel.org/r/20250522-selftests-mm-cow-dedupe-v1-0-713cee2fdd6d@kernel.org
-Link: https://lkml.kernel.org/r/20250522-selftests-mm-cow-dedupe-v1-1-713cee2fdd6d@kernel.org
+Link: https://lkml.kernel.org/r/20250522-selftests-mm-cow-dedupe-v1-2-713cee2fdd6d@kernel.org
 Signed-off-by: Mark Brown <broonie@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c          |    7 +------
- tools/testing/selftests/mm/gup_longterm.c |    8 ++------
- 2 files changed, 3 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/vm_util.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -1771,7 +1771,6 @@ static int tests_per_non_anon_test_case(
- 
- int main(int argc, char **argv)
- {
--	int err;
- 	struct thp_settings default_settings;
- 
- 	ksft_print_header();
-@@ -1811,9 +1810,5 @@ int main(int argc, char **argv)
- 		thp_restore_settings();
- 	}
- 
--	err = ksft_get_fail_cnt();
--	if (err)
--		ksft_exit_fail_msg("%d out of %d tests failed\n",
--				   err, ksft_test_num());
--	ksft_exit_pass();
-+	ksft_finished();
+--- a/tools/testing/selftests/mm/vm_util.h~selftest-mm-add-helper-for-logging-test-start-and-results
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -3,6 +3,7 @@
+ #include <stdbool.h>
+ #include <sys/mman.h>
+ #include <err.h>
++#include <stdarg.h>
+ #include <strings.h> /* ffsl() */
+ #include <unistd.h> /* _SC_PAGESIZE */
+ #include "../kselftest.h"
+@@ -95,6 +96,25 @@ static inline int open_self_procmap(stru
+ 	return open_procmap(pid, procmap_out);
  }
---- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -455,7 +455,7 @@ static int tests_per_test_case(void)
  
- int main(int argc, char **argv)
- {
--	int i, err;
-+	int i;
- 
- 	pagesize = getpagesize();
- 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
-@@ -469,9 +469,5 @@ int main(int argc, char **argv)
- 	for (i = 0; i < ARRAY_SIZE(test_cases); i++)
- 		run_test_case(&test_cases[i]);
- 
--	err = ksft_get_fail_cnt();
--	if (err)
--		ksft_exit_fail_msg("%d out of %d tests failed\n",
--				   err, ksft_test_num());
--	ksft_exit_pass();
-+	ksft_finished();
- }
++/* These helpers need to be inline to match the kselftest.h idiom. */
++static char test_name[1024];
++
++static inline void log_test_start(const char *name, ...)
++{
++	va_list args;
++	va_start(args, name);
++
++	vsnprintf(test_name, sizeof(test_name), name, args);
++	ksft_print_msg("[RUN] %s\n", test_name);
++
++	va_end(args);
++}
++
++static inline void log_test_result(int result)
++{
++	ksft_test_result_report(result, "%s\n", test_name);
++}
++
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
+  */
 _
 
 Patches currently in -mm which might be from broonie@kernel.org are
