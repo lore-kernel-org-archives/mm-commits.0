@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D638620C038
-	for <mm-commits@vger.kernel.org>; Fri, 23 May 2025 22:04:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30C4E20C038
+	for <mm-commits@vger.kernel.org>; Fri, 23 May 2025 22:04:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748037877; cv=none; b=rIT++3Q+CvHYSOMrTCpbNW+U89NXj29DKR4g3BPrvdmkXZBupeJOLpTZB8GX3I0ZUXieab7hlWaFJYKwjH+w6D0F7OJzuJeBoKJXSqzir+sB81MDR4kAuTvZ96JqG/PVcVYtCrkUoadJaXAfE+pP6TpZXp3e25ZHe9VlRprzUrU=
+	t=1748037883; cv=none; b=SNHP6KcsZxfyC/+dgFdgtNqCGoEn6VHDYMQSVokuHF1DMKuTqDS+jcgDddkZRcLUpfS1p9kiV5oMhj69d3kByjGt8lrtyx9tlYC3rDTxw8MhZwGVz2Co6m3XVdUV9aO/omHiRaFgTyLMX9IkjtcVdrqXBLh+WFC7HB6ZTimsk8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748037877; c=relaxed/simple;
-	bh=nOy0VMB0NwF3zdK+WyipgBOnRIwx8TqQU3a3vl+9gCg=;
-	h=Date:To:From:Subject:Message-Id; b=futNH8gN11jquz/m81VuwN3zux7G3EtqAiKhl5hE9gjaYODq/m7Ira1YcndU+TzRx1thY4sY8dhKocV+3Viosl0umbxfQ06C0G2iwD0rTpLcf1a8ydVfPtq+7gsTAbq+7ZUfwMgde4qTI1qBMdu89/MQWVBR3m22JvvP6SaVm+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SK6o5GQC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748037883; c=relaxed/simple;
+	bh=Z3l7SuNrB6zh67yRyJkZPbmXVUnv5UayETKL6GnZ428=;
+	h=Date:To:From:Subject:Message-Id; b=GYWRqTRyQrZsBaFvQ9tWSCXa/stAPoi4jAkWgTkRNRVP+Kz0f35N6RtOHBNqqMAdWj9lKu4MfaXpBTH+Bbun5jJ6/0wbMBoj+pEmEDoQeRZuywtYYJNm7CMYI465wBVMxN49g0K2sskqsgqFmvdevvmFucrHxUfSmng1CeDJ7Ho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bcZDby7+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SK6o5GQC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CC71C4CEE9;
-	Fri, 23 May 2025 22:04:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bcZDby7+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B5A4C4CEE9;
+	Fri, 23 May 2025 22:04:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748037877;
-	bh=nOy0VMB0NwF3zdK+WyipgBOnRIwx8TqQU3a3vl+9gCg=;
+	s=korg; t=1748037879;
+	bh=Z3l7SuNrB6zh67yRyJkZPbmXVUnv5UayETKL6GnZ428=;
 	h=Date:To:From:Subject:From;
-	b=SK6o5GQCnH0ZyCjVlDw/n3zqapU5p8kPLTJvGlFsuZjxzcz9R4E83k2bBKhOiJRAX
-	 Lx+J+RS2qU95//qXTdFdWhHr/0RSP9BXBNWDFbZ50Hd0aBNH2Np7vWdf4WxLTlfSt+
-	 YpYGh+xDINF2t9++wMj+hHIFiAa5VRS0vr3q1WNg=
-Date: Fri, 23 May 2025 15:04:36 -0700
-To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,vineethr@linux.ibm.com,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,mhocko@kernel.org,mgorman@suse.de,kprateek.nayak@amd.com,hannes@cmpxchg.org,corbet@lwn.net,Ayush.jain3@amd.com,aubrey.li@intel.com,libo.chen@oracle.com,akpm@linux-foundation.org
+	b=bcZDby7+UWHBQ6sQHURaFoC+RtwFvALPlHxDpLUWHSyhVovILsTRzgJK3IDxoViPk
+	 ZnSy9wxhfUjcKePyBdtWPu1AELJrh1PE3k5Hmn5u4qSTkNRC3+l4y3rb7+4jOxvDzA
+	 4xlrfV7wVRltiq+w0lHdfqbk2r8lttaJuqdet+A4=
+Date: Fri, 23 May 2025 15:04:38 -0700
+To: mm-commits@vger.kernel.org,vineethr@linux.ibm.com,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,mhocko@kernel.org,mgorman@suse.de,libo.chen@oracle.com,kprateek.nayak@amd.com,hannes@cmpxchg.org,corbet@lwn.net,Ayush.jain3@amd.com,aubrey.li@intel.com,yu.c.chen@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sched-numa-fix-task-swap-by-skipping-kernel-threads.patch added to mm-new branch
-Message-Id: <20250523220437.3CC71C4CEE9@smtp.kernel.org>
+Subject: + sched-numa-add-statistics-of-numa-balance-task.patch added to mm-new branch
+Message-Id: <20250523220439.7B5A4C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sched/numa: fix task swap by skipping kernel threads
+     Subject: sched/numa: add statistics of numa balance task
 has been added to the -mm mm-new branch.  Its filename is
-     sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
+     sched-numa-add-statistics-of-numa-balance-task.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-add-statistics-of-numa-balance-task.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,93 +64,181 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Libo Chen <libo.chen@oracle.com>
-Subject: sched/numa: fix task swap by skipping kernel threads
-Date: Fri, 23 May 2025 20:51:01 +0800
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: sched/numa: add statistics of numa balance task
+Date: Fri, 23 May 2025 20:51:15 +0800
 
-Patch series "sched/numa: add statistics of numa balance task migration",
-v5.
+On systems with NUMA balancing enabled, it has been found that tracking
+task activities resulting from NUMA balancing is beneficial.  NUMA
+balancing employs two mechanisms for task migration: one is to migrate a
+task to an idle CPU within its preferred node, and the other is to swap
+tasks located on different nodes when they are on each other's preferred
+nodes.
 
-Introduce task migration and swap statistics in the following places:
-/sys/fs/cgroup/{GROUP}/memory.stat
-/proc/{PID}/sched
-/proc/vmstat
+The kernel already provides NUMA page migration statistics in
+/sys/fs/cgroup/mytest/memory.stat and /proc/{PID}/sched.  However, it
+lacks statistics regarding task migration and swapping.  Therefore,
+relevant counts for task migration and swapping should be added.
 
-These statistics facilitate a rapid evaluation of the performance and
-resource utilization of the target workload.
+The following two new fields:
 
+numa_task_migrated
+numa_task_swapped
 
-This patch (of 2):
+will be shown in /sys/fs/cgroup/{GROUP}/memory.stat, /proc/{PID}/sched
+and /proc/vmstat
 
-Task swapping is triggered when there are no idle CPUs in task A's
-preferred node.  In this case, the NUMA load balancer chooses a task B on
-A's preferred node and swaps B with A.  This helps improve NUMA locality
-without introducing load imbalance between nodes.  In the current
-implementation, B's NUMA node preference is not mandatory.  That is to
-say, a kernel thread might be incorrectly chosen as B.  However, kernel
-thread and user space thread that does not have mm are not supposed to be
-covered by NUMA balancing because NUMA balancing only considers user pages
-via VMAs.
+Introducing both per-task and per-memory cgroup (memcg) NUMA balancing
+statistics facilitates a rapid evaluation of the performance and resource
+utilization of the target workload.  For instance, users can first
+identify the container with high NUMA balancing activity and then further
+pinpoint a specific task within that group, and subsequently adjust the
+memory policy for that task.  In short, although it is possible to iterate
+through /proc/$pid/sched to locate the problematic task, the introduction
+of aggregated NUMA balancing activity for tasks within each memcg can
+assist users in identifying the task more efficiently through a
+divide-and-conquer approach.
 
-According to Peter's suggestion for fixing this issue, we use PF_KTHREAD
-to skip the kernel thread.  curr->mm is also checked because it is
-possible that user_mode_thread() might create a user thread without an mm.
-As per Prateek's analysis, after adding the PF_KTHREAD check, there is no
-need to further check the PF_IDLE flag:
+As Libo Chen pointed out, the memcg event relies on the text names in
+vmstat_text, and /proc/vmstat generates corresponding items based on
+vmstat_text.  Thus, the relevant task migration and swapping events
+introduced in vmstat_text also need to be populated by
+count_vm_numa_event(), otherwise these values are zero in /proc/vmstat.
 
-: - play_idle_precise() already ensures PF_KTHREAD is set before adding
-:   PF_IDLE
-: 
-: - cpu_startup_entry() is only called from the startup thread which
-:   should be marked with PF_KTHREAD (based on my understanding looking at
-:   commit cff9b2332ab7 ("kernel/sched: Modify initial boot task idle
-:   setup"))
-
-In summary, the check in task_numa_compare() now aligns with
-task_tick_numa().
-
-Link: https://lkml.kernel.org/r/cover.1748002400.git.yu.c.chen@intel.com
-Link: https://lkml.kernel.org/r/eaacc9c9bd37bac92d43a671867d85b2fdad3b06.1748002400.git.yu.c.chen@intel.com
+Link: https://lkml.kernel.org/r/7ef90a88602ed536be46eba7152ed0d33bad5790.1748002400.git.yu.c.chen@intel.com
 Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-Signed-off-by: Libo Chen <libo.chen@oracle.com>
-Suggested-by: Michal Koutný <mkoutny@suse.com>
-Tested-by: Ayush Jain <Ayush.jain3@amd.com>
+Tested-by: K Prateek Nayak <kprateek.nayak@amd.com>
+Tested-by: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
 Cc: Aubrey Li <aubrey.li@intel.com>
+Cc: Ayush Jain <Ayush.jain3@amd.com>
 Cc: "Chen, Tim C" <tim.c.chen@intel.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: K Prateek Nayak <kprateek.nayak@amd.com>
-Cc: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
+Cc: Libo Chen <libo.chen@oracle.com>
 Cc: Mel Gorman <mgorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/cgroup-v2.rst |    6 ++++++
+ include/linux/sched.h                   |    4 ++++
+ include/linux/vm_event_item.h           |    2 ++
+ kernel/sched/core.c                     |    9 +++++++--
+ kernel/sched/debug.c                    |    4 ++++
+ mm/memcontrol.c                         |    2 ++
+ mm/vmstat.c                             |    2 ++
+ 7 files changed, 27 insertions(+), 2 deletions(-)
 
---- a/kernel/sched/fair.c~sched-numa-fix-task-swap-by-skipping-kernel-threads
-+++ a/kernel/sched/fair.c
-@@ -2273,7 +2273,8 @@ static bool task_numa_compare(struct tas
+--- a/Documentation/admin-guide/cgroup-v2.rst~sched-numa-add-statistics-of-numa-balance-task
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1697,6 +1697,12 @@ The following nested keys are defined.
+ 	  numa_hint_faults (npn)
+ 		Number of NUMA hinting faults.
  
- 	rcu_read_lock();
- 	cur = rcu_dereference(dst_rq->curr);
--	if (cur && ((cur->flags & PF_EXITING) || is_idle_task(cur)))
-+	if (cur && ((cur->flags & (PF_EXITING | PF_KTHREAD)) ||
-+		    !cur->mm))
- 		cur = NULL;
++	  numa_task_migrated (npn)
++		Number of task migration by NUMA balancing.
++
++	  numa_task_swapped (npn)
++		Number of task swap by NUMA balancing.
++
+ 	  pgdemote_kswapd
+ 		Number of pages demoted by kswapd.
  
- 	/*
+--- a/include/linux/sched.h~sched-numa-add-statistics-of-numa-balance-task
++++ a/include/linux/sched.h
+@@ -549,6 +549,10 @@ struct sched_statistics {
+ 	u64				nr_failed_migrations_running;
+ 	u64				nr_failed_migrations_hot;
+ 	u64				nr_forced_migrations;
++#ifdef CONFIG_NUMA_BALANCING
++	u64				numa_task_migrated;
++	u64				numa_task_swapped;
++#endif
+ 
+ 	u64				nr_wakeups;
+ 	u64				nr_wakeups_sync;
+--- a/include/linux/vm_event_item.h~sched-numa-add-statistics-of-numa-balance-task
++++ a/include/linux/vm_event_item.h
+@@ -66,6 +66,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		NUMA_HINT_FAULTS,
+ 		NUMA_HINT_FAULTS_LOCAL,
+ 		NUMA_PAGE_MIGRATE,
++		NUMA_TASK_MIGRATE,
++		NUMA_TASK_SWAP,
+ #endif
+ #ifdef CONFIG_MIGRATION
+ 		PGMIGRATE_SUCCESS, PGMIGRATE_FAIL,
+--- a/kernel/sched/core.c~sched-numa-add-statistics-of-numa-balance-task
++++ a/kernel/sched/core.c
+@@ -3352,6 +3352,10 @@ void set_task_cpu(struct task_struct *p,
+ #ifdef CONFIG_NUMA_BALANCING
+ static void __migrate_swap_task(struct task_struct *p, int cpu)
+ {
++	__schedstat_inc(p->stats.numa_task_swapped);
++	count_vm_numa_event(NUMA_TASK_SWAP);
++	count_memcg_event_mm(p->mm, NUMA_TASK_SWAP);
++
+ 	if (task_on_rq_queued(p)) {
+ 		struct rq *src_rq, *dst_rq;
+ 		struct rq_flags srf, drf;
+@@ -7953,8 +7957,9 @@ int migrate_task_to(struct task_struct *
+ 	if (!cpumask_test_cpu(target_cpu, p->cpus_ptr))
+ 		return -EINVAL;
+ 
+-	/* TODO: This is not properly updating schedstats */
+-
++	__schedstat_inc(p->stats.numa_task_migrated);
++	count_vm_numa_event(NUMA_TASK_MIGRATE);
++	count_memcg_event_mm(p->mm, NUMA_TASK_MIGRATE);
+ 	trace_sched_move_numa(p, curr_cpu, target_cpu);
+ 	return stop_one_cpu(curr_cpu, migration_cpu_stop, &arg);
+ }
+--- a/kernel/sched/debug.c~sched-numa-add-statistics-of-numa-balance-task
++++ a/kernel/sched/debug.c
+@@ -1206,6 +1206,10 @@ void proc_sched_show_task(struct task_st
+ 		P_SCHEDSTAT(nr_failed_migrations_running);
+ 		P_SCHEDSTAT(nr_failed_migrations_hot);
+ 		P_SCHEDSTAT(nr_forced_migrations);
++#ifdef CONFIG_NUMA_BALANCING
++		P_SCHEDSTAT(numa_task_migrated);
++		P_SCHEDSTAT(numa_task_swapped);
++#endif
+ 		P_SCHEDSTAT(nr_wakeups);
+ 		P_SCHEDSTAT(nr_wakeups_sync);
+ 		P_SCHEDSTAT(nr_wakeups_migrate);
+--- a/mm/memcontrol.c~sched-numa-add-statistics-of-numa-balance-task
++++ a/mm/memcontrol.c
+@@ -474,6 +474,8 @@ static const unsigned int memcg_vm_event
+ 	NUMA_PAGE_MIGRATE,
+ 	NUMA_PTE_UPDATES,
+ 	NUMA_HINT_FAULTS,
++	NUMA_TASK_MIGRATE,
++	NUMA_TASK_SWAP,
+ #endif
+ };
+ 
+--- a/mm/vmstat.c~sched-numa-add-statistics-of-numa-balance-task
++++ a/mm/vmstat.c
+@@ -1347,6 +1347,8 @@ const char * const vmstat_text[] = {
+ 	"numa_hint_faults",
+ 	"numa_hint_faults_local",
+ 	"numa_pages_migrated",
++	"numa_task_migrated",
++	"numa_task_swapped",
+ #endif
+ #ifdef CONFIG_MIGRATION
+ 	"pgmigrate_success",
 _
 
-Patches currently in -mm which might be from libo.chen@oracle.com are
+Patches currently in -mm which might be from yu.c.chen@intel.com are
 
-sched-numa-fix-task-swap-by-skipping-kernel-threads.patch
+sched-numa-add-statistics-of-numa-balance-task.patch
 
