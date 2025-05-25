@@ -1,79 +1,151 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3811FC1D
-	for <mm-commits@vger.kernel.org>; Sun, 25 May 2025 07:54:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1E2817A2F2;
+	Sun, 25 May 2025 08:01:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748159674; cv=none; b=HaPWtv41jwgkuMy209IsWaVxxphhwQJrnBBVBefRkroRh2F8yM1otYy+LZ7lg22M3LjL20gmv0MwwAlW1Me18L6h6AhXhYIK094Ur4PIplrvqNTWvmHuxNTWdQ++AqxRnshy9KiUo5fcRWhfU8Zjm8Zrs6KPtp9xcqjqANmnc9A=
+	t=1748160116; cv=none; b=LnDeOeY2TR82VOzi62DBskWMpGrzIkPLtfXCxE53FBy58WMLG1yKl7XF4slbKXOnYw3YhhXfqmxEVZTT+sF7hEGVFav7ICjWDKMzD4WOt5rU3xvf+Oo3bi6jko7QDkjIfEd/oPIZXRo/eG/Is0mxV9yWyXJvsVRhC4yBmZQ5c6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748159674; c=relaxed/simple;
-	bh=hlCHP2qCKM5iLjBmoOLSnzu1AL9HJodfk+saEy/C3hk=;
-	h=Date:To:From:Subject:Message-Id; b=rqd49zl/yyV2opxr0NE1N0y0TRoHOalK5jVGCO1g12cW2NO9S4q7bRBgHNR4nUgzwDKHwTCm7UiqETjhWA/y9/KA7VTUsVxftTon2jf0XX+TSILp3BsUA800N53l7Epax65vYhlNLOsnXjCmb4hPhBYS8FrnrYJrrOP+v5ibYsk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KD9A++5h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748160116; c=relaxed/simple;
+	bh=7don5i3o/5ywXieOjdAns73N9SpJ9k4pSyznIwC6V94=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=KOOsTt5Wt84ALh4wTAjxd1+WiiYL9Wyk1CeO4ixe4l73LhdgrseoSYXqxYblrCqT0Q84P7edokNUJmmBbcgdvKyHmA9A2+hEm9d9AM2uWwMX3WgarVrm/CJJSJpwpmhNb5/soIX24zIOrMVrqtcxQxJxWrRqkDoFvZXC24n6OnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pf/Vbt5H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KD9A++5h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E53FC4CEEA;
-	Sun, 25 May 2025 07:54:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pf/Vbt5H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA720C4CEEA;
+	Sun, 25 May 2025 08:01:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748159673;
-	bh=hlCHP2qCKM5iLjBmoOLSnzu1AL9HJodfk+saEy/C3hk=;
-	h=Date:To:From:Subject:From;
-	b=KD9A++5hsYJVkdLrgvIzhvkiAacfBaVBcW1K+Lfhx79iujo7RpJ8aVJToAKQMQxbk
-	 SR+x3fmHtyjOb+Vrwm2kpwN2q/MWKwzgdVst1UBGECo24HEAMwW0VZq2qRiL9baUaX
-	 LSVQuf1B5xjoC8LqFKv2GhwnQ4vlS0rdgQQdEkmY=
-Date: Sun, 25 May 2025 00:54:32 -0700
-To: mm-commits@vger.kernel.org,sw@simonwunderlich.de,kees@kernel.org,carlos.bilbao@kernel.org,antonio@openvpn.net,alexander.sverdlin@gmail.com,jarkko@kernel.org,akpm@linux-foundation.org
+	s=korg; t=1748160114;
+	bh=7don5i3o/5ywXieOjdAns73N9SpJ9k4pSyznIwC6V94=;
+	h=Date:From:To:Cc:Subject:From;
+	b=pf/Vbt5HY/o7ob0uEI8kjf3nl2RPluPaE3vU3nGOILuPMcaPfkPVxuI1Lpmgnfs2j
+	 JsWb6EU+ZOClEOu5Glzo/qtfc7f8gDOnNH6ZpNEi1Q+glX0swpF+B+mo6OEp+lWWBo
+	 Nr/llrzUTctNDXzlZlWb0oTvarjhg6fAZ2EJ3Mc0=
+Date: Sun, 25 May 2025 01:01:53 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-add-employer-email-address.patch removed from -mm tree
-Message-Id: <20250525075433.6E53FC4CEEA@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes against 6.15-rc7
+Message-Id: <20250525010153.4e008d81730ac2137a80fb77@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
 
-The quilt patch titled
-     Subject: mailmap: add Jarkko's employer email address
-has been removed from the -mm tree.  Its filename was
-     mailmap-add-employer-email-address.patch
+Linus, please pull this batch of hotfixes, thanks.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-------------------------------------------------------
-From: Jarkko Sakkinen <jarkko@kernel.org>
-Subject: mailmap: add Jarkko's employer email address
-Date: Fri, 23 May 2025 15:11:04 +0300
+The following changes since commit 75cb1cca2c880179a11c7dd9380b6f14e41a06a4:
 
-Add the current employer email address to mailmap.
+  mm: userfaultfd: correct dirty flags set for both present and swap pte (2=
+025-05-11 17:29:55 -0700)
 
-Link: https://lkml.kernel.org/r/20250523121105.15850-1-jarkko@kernel.org
-Signed-off-by: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Cc: Antonio Quartulli <antonio@openvpn.net>
-Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Simon Wunderlich <sw@simonwunderlich.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+are available in the Git repository at:
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-st=
+able-2025-05-25-00-58
 
---- a/.mailmap~mailmap-add-employer-email-address
-+++ a/.mailmap
-@@ -312,6 +312,7 @@ Jan Glauber <jan.glauber@gmail.com> <jgl
- Jan Kuliga <jtkuliga.kdev@gmail.com> <jankul@alatek.krakow.pl>
- Jarkko Sakkinen <jarkko@kernel.org> <jarkko.sakkinen@linux.intel.com>
- Jarkko Sakkinen <jarkko@kernel.org> <jarkko@profian.com>
-+Jarkko Sakkinen <jarkko@kernel.org> <jarkko.sakkinen@opinsys.com>
- Jason Gunthorpe <jgg@ziepe.ca> <jgg@mellanox.com>
- Jason Gunthorpe <jgg@ziepe.ca> <jgg@nvidia.com>
- Jason Gunthorpe <jgg@ziepe.ca> <jgunthorpe@obsidianresearch.com>
-_
+for you to fetch changes up to 1ec971da1c10e6376411e6d4a3f3b2351217d94f:
 
-Patches currently in -mm which might be from jarkko@kernel.org are
+  mailmap: add Jarkko's employer email address (2025-05-25 00:53:49 -0700)
 
+----------------------------------------------------------------
+22 hotfixes.  13 are cc:stable and the remainder address post-6.14 issues
+or aren't considered necessary for -stable kernels.  19 are for MM.
+
+----------------------------------------------------------------
+Alexander Gordeev (1):
+      kasan: avoid sleepable page allocation from atomic context
+
+Breno Leitao (1):
+      memcg: always call cond_resched() after fn()
+
+David Wang (1):
+      module: release codetag section when module load fails
+
+Florent Revest (1):
+      mm: fix VM_UFFD_MINOR =3D=3D VM_SHADOW_STACK on USERFAULTFD=3Dy && AR=
+M64_GCS=3Dy
+
+Ge Yang (1):
+      mm/hugetlb: fix kernel NULL pointer dereference when replacing free h=
+ugetlb folios
+
+Ignacio Moreno Gonzalez (1):
+      mm: mmap: map MAP_STACK to VM_NOHUGEPAGE only if THP is enabled
+
+Jarkko Sakkinen (1):
+      mailmap: add Jarkko's employer email address
+
+Kees Cook (2):
+      mm: vmalloc: actually use the in-place vrealloc region
+      mm: vmalloc: only zero-init on vrealloc shrink
+
+Lance Yang (1):
+      MAINTAINERS: add hung-task detector section
+
+Lorenzo Stoakes (4):
+      MAINTAINERS: update page allocator section
+      MAINTAINERS: add mm reclaim section
+      MAINTAINERS: add mm ksm section
+      MAINTAINERS: add mm memory policy section
+
+Matthew Wilcox (Oracle) (1):
+      highmem: add folio_test_partial_kmap()
+
+Mike Rapoport (Microsoft) (1):
+      mm/cma: make detection of highmem_start more robust
+
+Ricardo Ca=F1uelo Navarro (1):
+      mm: fix copy_vma() error handling for hugetlb mappings
+
+Suren Baghdasaryan (1):
+      alloc_tag: allocate percpu counters for module tags dynamically
+
+Tianyang Zhang (1):
+      mm/page_alloc.c: avoid infinite retries caused by cpuset race
+
+Uladzislau Rezki (Sony) (1):
+      MAINTAINERS: add myself as vmalloc co-maintainer
+
+Wang Yaxin (1):
+      taskstats: fix struct taskstats breaks backward compatibility since v=
+ersion 15
+
+Zhang Yi (1):
+      mm/truncate: fix out-of-bounds when doing a right-aligned split
+
+ .mailmap                       |  1 +
+ MAINTAINERS                    | 66 ++++++++++++++++++++++++++++--
+ include/linux/alloc_tag.h      | 12 ++++++
+ include/linux/codetag.h        |  8 ++--
+ include/linux/highmem.h        | 10 ++---
+ include/linux/hugetlb.h        |  5 +++
+ include/linux/mm.h             |  2 +-
+ include/linux/mman.h           |  2 +
+ include/linux/page-flags.h     |  7 ++++
+ include/linux/percpu.h         |  4 --
+ include/uapi/linux/taskstats.h | 47 ++++++++++++---------
+ kernel/module/main.c           |  1 +
+ lib/alloc_tag.c                | 87 ++++++++++++++++++++++++++++++---------
+ lib/codetag.c                  |  5 ++-
+ mm/cma.c                       |  5 ++-
+ mm/hugetlb.c                   | 24 ++++++++++-
+ mm/kasan/shadow.c              | 92 +++++++++++++++++++++++++++++++++++---=
+----
+ mm/memcontrol.c                |  6 +--
+ mm/mremap.c                    |  3 +-
+ mm/page_alloc.c                |  8 ++++
+ mm/truncate.c                  | 20 +++++----
+ mm/vma.c                       |  1 +
+ mm/vmalloc.c                   | 13 +++---
+ 23 files changed, 338 insertions(+), 91 deletions(-)
 
