@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35C351F9A8B
-	for <mm-commits@vger.kernel.org>; Tue, 27 May 2025 22:11:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 655E3B667;
+	Tue, 27 May 2025 23:30:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748383883; cv=none; b=bGdYfJDcV8h0GTGYA+ehVz5naDuHdCUoEdlBRdoAPCCUuypUUWfTN6HxY1xgDsK2p0FMLHOixRCXsk+2V1j3N1iIsTWOXebZYxvOv5D1tWeTUV+LRf4hpo+hFJ3lYdSLzetlyZVSLznihNLoEGM9uquJU3FRdOL4gHDKRgDTahY=
+	t=1748388637; cv=none; b=eM30Tn5EkRf8AvUT8x8C9rgX4ZyBkw7d2/AVbmbGszMA3lx+iRoanwmfbHRXD9kY1Rh9DorOHvnvL1ehOvtvTLp+H5BcUlLJROHVm0rMxheiBJmkUq2JqjKORF31Tb7duJ9RKlSGgh1l+Riz0RTP05KzMeZjcC8nsxeADLJASXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748383883; c=relaxed/simple;
-	bh=iu3yeKHLavvT8U7+h/lL9VVCo187ncW/m9r5+RmOZZA=;
-	h=Date:To:From:Subject:Message-Id; b=YVgY8jb7JT75F0O2QSFw6iT46sLut7+Xtf6+7GZoqlHVySbxwKcJHiBEu+SZHr6YLDywgTsmnTotCAGA1n4I+TJuaddbyBiqmsRlms0Wdh8xHNCoBuGYsbPEa2GtRE/bktA6eLQGANRg1ZQZ5+V3emaIjRh+3oqvQWzALJfUJt8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y3iY66Rh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748388637; c=relaxed/simple;
+	bh=Xshyk68K4HFk9unHjGw2wUHwY+IrVKbGgX+b/HmNfGU=;
+	h=Date:To:From:Subject:Message-Id; b=ApNGFVfh2Oosw4DBwjsFNZWTO0Bnjr+41rqbR02eYLGHtdbRtdv9Pk6eoZ5mVEhZXZzC7IiXlGYZaCtq0XB6yvxRcyX2I1a9K4OxoEblz+AfuHx4XQ9OeML6IB1ysEi8ouA28BAqgatw4iPCg8/eg51Y3h2AOzECg0oyJGPOVeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1WhISlxp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y3iY66Rh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CB6AC4CEE9;
-	Tue, 27 May 2025 22:11:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1WhISlxp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5954C4CEE9;
+	Tue, 27 May 2025 23:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748383882;
-	bh=iu3yeKHLavvT8U7+h/lL9VVCo187ncW/m9r5+RmOZZA=;
+	s=korg; t=1748388636;
+	bh=Xshyk68K4HFk9unHjGw2wUHwY+IrVKbGgX+b/HmNfGU=;
 	h=Date:To:From:Subject:From;
-	b=Y3iY66Rh3xEY9u03tVWFLOZy7T1bVjI0dWgylY1CVjfBZvxsR+6vigsbu6bBOClFe
-	 hO/RaMkc67oZaP2ho5UfHJ3F4QTz/yf5Z7nBRTChjLYXpU7mOy3FKN3eCC1yJe0wNP
-	 tgR0HqX9WIp7KzODPy3NWU638zLMx0SpH9LBw4EA=
-Date: Tue, 27 May 2025 15:11:22 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@kernel.org,osalvador@suse.de,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,akpm@linux-foundation.org
+	b=1WhISlxpkIo4kNgNuwt3sRbHlXOk0GnnTeYqeAZ8nrTxZ+A/cv8/DeA9SUoFPWKJ0
+	 9uocWjTCTyfmycibrTRySr5SAgPOn50D9DOemtPupDmvJVO4lUK2oVVuY9a0RpBo+O
+	 OX4vkArToJ5VxWgzz9E94AzjTN5JZq4kxoTn7hM0=
+Date: Tue, 27 May 2025 16:30:35 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,fengwei.yin@intel.com,dev.jain@arm.com,david@redhat.com,bharata@amd.com,baolin.wang@linux.alibaba.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-huge_pmd_unshare-vs-gup-fast-race.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250527221122.9CB6AC4CEE9@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-race-with-folio-split-free-using-temporary-reference.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250527233036.B5954C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix huge_pmd_unshare() vs GUP-fast race
+     Subject: mm/khugepaged: fix race with folio split/free using temporary reference
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-huge_pmd_unshare-vs-gup-fast-race.patch
+     mm-khugepaged-fix-race-with-folio-split-free-using-temporary-reference.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-huge_pmd_unshare-vs-gup-fast-race.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-race-with-folio-split-free-using-temporary-reference.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,59 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm/hugetlb: fix huge_pmd_unshare() vs GUP-fast race
-Date: Tue, 27 May 2025 23:23:54 +0200
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm/khugepaged: fix race with folio split/free using temporary reference
+Date: Mon, 26 May 2025 18:28:18 +0000
 
-huge_pmd_unshare() drops a reference on a page table that may have
-previously been shared across processes, potentially turning it into a
-normal page table used in another process in which unrelated VMAs can
-afterwards be installed.
+hpage_collapse_scan_file() calls is_refcount_suitable(), which in turn
+calls folio_mapcount().  folio_mapcount() checks folio_test_large() before
+proceeding to folio_large_mapcount(), but there is a race window where the
+folio may get split/freed between these checks, triggering:
 
-If this happens in the middle of a concurrent gup_fast(), gup_fast() could
-end up walking the page tables of another process.  While I don't see any
-way in which that immediately leads to kernel memory corruption, it is
-really weird and unexpected.
+  VM_WARN_ON_FOLIO(!folio_test_large(folio), folio)
 
-Fix it with an explicit broadcast IPI through tlb_remove_table_sync_one(),
-just like we do in khugepaged when removing page tables for a THP
-collapse.
+Take a temporary reference to the folio in hpage_collapse_scan_file(). 
+This stabilizes the folio during refcount check and prevents incorrect
+large folio detection due to concurrent split/free.  Use helper
+folio_expected_ref_count() + 1 to compare with folio_ref_count() instead
+of using is_refcount_suitable().
 
-Link: https://lkml.kernel.org/r/20250527-hugetlb-fixes-splitrace-v1-2-f4136f5ec58a@google.com
-Fixes: 39dde65c9940 ("[PATCH] shared page table for hugetlb page")
-Signed-off-by: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20250526182818.37978-1-shivankg@amd.com
+Fixes: 05c5323b2a34 ("mm: track mapcount of large folios in single value")
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Reported-by: syzbot+2b99589e33edbe9475ca@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6828470d.a70a0220.38f255.000c.GAE@google.com
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Fengwei Yin <fengwei.yin@intel.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@kernel.org>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/khugepaged.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-huge_pmd_unshare-vs-gup-fast-race
-+++ a/mm/hugetlb.c
-@@ -7627,6 +7627,13 @@ int huge_pmd_unshare(struct mm_struct *m
- 		return 0;
+--- a/mm/khugepaged.c~mm-khugepaged-fix-race-with-folio-split-free-using-temporary-reference
++++ a/mm/khugepaged.c
+@@ -2295,6 +2295,17 @@ static int hpage_collapse_scan_file(stru
+ 			continue;
+ 		}
  
- 	pud_clear(pud);
-+	/*
-+	 * Once our caller drops the rmap lock, some other process might be
-+	 * using this page table as a normal, non-hugetlb page table.
-+	 * Wait for pending gup_fast() in other threads to finish before letting
-+	 * that happen.
-+	 */
-+	tlb_remove_table_sync_one();
- 	ptdesc_pmd_pts_dec(virt_to_ptdesc(ptep));
- 	mm_dec_nr_pmds(mm);
- 	return 1;
++		if (!folio_try_get(folio)) {
++			xas_reset(&xas);
++			continue;
++		}
++
++		if (unlikely(folio != xas_reload(&xas))) {
++			folio_put(folio);
++			xas_reset(&xas);
++			continue;
++		}
++
+ 		if (folio_order(folio) == HPAGE_PMD_ORDER &&
+ 		    folio->index == start) {
+ 			/* Maybe PMD-mapped */
+@@ -2305,23 +2316,27 @@ static int hpage_collapse_scan_file(stru
+ 			 * it's safe to skip LRU and refcount checks before
+ 			 * returning.
+ 			 */
++			folio_put(folio);
+ 			break;
+ 		}
+ 
+ 		node = folio_nid(folio);
+ 		if (hpage_collapse_scan_abort(node, cc)) {
+ 			result = SCAN_SCAN_ABORT;
++			folio_put(folio);
+ 			break;
+ 		}
+ 		cc->node_load[node]++;
+ 
+ 		if (!folio_test_lru(folio)) {
+ 			result = SCAN_PAGE_LRU;
++			folio_put(folio);
+ 			break;
+ 		}
+ 
+-		if (!is_refcount_suitable(folio)) {
++		if (folio_expected_ref_count(folio) + 1 != folio_ref_count(folio)) {
+ 			result = SCAN_PAGE_COUNT;
++			folio_put(folio);
+ 			break;
+ 		}
+ 
+@@ -2333,6 +2348,7 @@ static int hpage_collapse_scan_file(stru
+ 		 */
+ 
+ 		present += folio_nr_pages(folio);
++		folio_put(folio);
+ 
+ 		if (need_resched()) {
+ 			xas_pause(&xas);
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-mm-hugetlb-unshare-page-tables-during-vma-split-not-before.patch
-mm-hugetlb-fix-huge_pmd_unshare-vs-gup-fast-race.patch
+mm-khugepaged-fix-race-with-folio-split-free-using-temporary-reference.patch
+mm-khugepaged-clean-up-refcount-check-using-folio_expected_ref_count.patch
 
