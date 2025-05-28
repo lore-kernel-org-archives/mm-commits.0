@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CAAD1CEAD6
-	for <mm-commits@vger.kernel.org>; Wed, 28 May 2025 02:40:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1971A199931
+	for <mm-commits@vger.kernel.org>; Wed, 28 May 2025 02:40:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748400056; cv=none; b=KUSRfU1nX6ylKjdmq6ub9S0pvANz4lP8OEB9WA5M0V1+zZN9AMJ2K3u+1FxT7CPfxe0aaZtf4DYdEcxEMz96BkKzcJIyyka4Bj4L/LjnrpXMqdt+njbPN1gsUF0xUonswkNOkqbJZBq3rjU8JLaQCMCrwNzfEDIe5kwOKY7y6kM=
+	t=1748400057; cv=none; b=q7ZM/qvyDx7mbfbFkWV6N2ITDxSu4E9WKGlvSTCkYEcl3JxUSdqF9o5wtZN8YGzWCtvLSVVaRVAlpq23H+PgABell+tjcWLhnIk+Q7HvO2/4lLIDo2hhE83BeCCOi7dQ5C7ogEHt0fEaTmKg+0agA/9wLcTn71/6bj92aTv9Fig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748400056; c=relaxed/simple;
-	bh=WergUAJILz18nx5f0EXUOCSvAOEf90i46KcRsoO/VKs=;
-	h=Date:To:From:Subject:Message-Id; b=BZOEaKjHIbMBGl1YdAfBQHKa44bY/I9vOHxgsDtF1+W4z/8Jg2YYIMKpwLBXTzWex9a/ho4bsBnSXOjI4o90nNGkPQqDX4AM1JTHFaC5kZsnpRO9wQum6Ij0uaYf44bCc51k9zHZ5DffnMbfdzFR41vhBS8UQiuzDGHV5GboEyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l+CSxg6m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748400057; c=relaxed/simple;
+	bh=9rx1m8Otpol3uQuMqdSk1Kpy+hVeRXZLLDCr59gx0gQ=;
+	h=Date:To:From:Subject:Message-Id; b=b0P/FPa0UVWG1coKuZHNC+rVdd0j2YZXi8Ae70g1GJFExZmuPQHliuUTmoS2DCf0DXJGf2bCCbAVOiy1yLAoRJfjk1X0o9X287IGIUj4NnQjsuW1U1kHGEVKVt3oRVROG9xa9NfwII3gNSObvlNbujCBybI/qbpB8SjKZp0soPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m7cwQ6cD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l+CSxg6m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B66C5C4CEE9;
-	Wed, 28 May 2025 02:40:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m7cwQ6cD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB876C4CEE9;
+	Wed, 28 May 2025 02:40:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748400055;
-	bh=WergUAJILz18nx5f0EXUOCSvAOEf90i46KcRsoO/VKs=;
+	s=korg; t=1748400056;
+	bh=9rx1m8Otpol3uQuMqdSk1Kpy+hVeRXZLLDCr59gx0gQ=;
 	h=Date:To:From:Subject:From;
-	b=l+CSxg6mTNIrBSn3SKHUUt48JfVXzKfofDD80zOr7ojyffM5k8KKwr0+/9cLnPaLd
-	 32ix0wymxhnm48W/TBqH2ZUM+x3XbI9uNuES7jih1Xf8RRlNjmaJYpQFTbmy78uNMt
-	 Y2wdGB9dQdeRjMRxWgolICvudv3T1lt9p6TRAbAk=
-Date: Tue, 27 May 2025 19:40:55 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,jiang.kun2@zte.com.cn,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=m7cwQ6cDcrzJxxxRMnIEBhcjvNObdWyRdRfOsnxPLEaco/OdnCFWW4udM6ZNPynEV
+	 9s/6ecRZrzyLfSI0HUWNlu2GzJ8RHNynb2cjMPOfQgG7EGP5BTVOiVy/dvkxdBv+KT
+	 s8ZbjZrS8pCXy1Hv/ZiB7FhY5g+MuOQbQydn1Dl4=
+Date: Tue, 27 May 2025 19:40:56 -0700
+To: mm-commits@vger.kernel.org,axboe@kernel.dk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] delayacct-remove-redundant-code-and-adjust-indentation.patch removed from -mm tree
-Message-Id: <20250528024055.B66C5C4CEE9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] llist-make-llist_add_batch-a-static-inline.patch removed from -mm tree
+Message-Id: <20250528024056.DB876C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: delayacct: remove redundant code and adjust indentation
+     Subject: llist: make llist_add_batch() a static inline
 has been removed from the -mm tree.  Its filename was
-     delayacct-remove-redundant-code-and-adjust-indentation.patch
+     llist-make-llist_add_batch-a-static-inline.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: delayacct: remove redundant code and adjust indentation
-Date: Wed, 21 May 2025 09:31:57 +0800 (CST)
+From: Jens Axboe <axboe@kernel.dk>
+Subject: llist: make llist_add_batch() a static inline
+Date: Fri, 23 May 2025 13:13:11 -0600
 
-Remove redundant code and adjust indentation of xxx_delay_max/min.
+The function is small enough that it should be, and it's a (very) hot path
+for io_uring.  Doing this actually reduces my vmlinux text size for my
+standard build/test box.
 
-Link: https://lkml.kernel.org/r/20250521093157668iQrhhcMjA-th5LQf4-A3c@zte.com.cn
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Before:
+axboe@r7625 ~/g/linux (test)> size vmlinux
+   text	   data	    bss	    dec	    hex		filename
+19892174 5938310 2470432 28300916 1afd674	vmlinux
+
+After:
+axboe@r7625 ~/g/linux (test)> size vmlinux
+   text	   data	    bss	    dec	    hex		filename
+19891878 5938310 2470436 28300624 1afd550	vmlinux
+
+Link: https://lkml.kernel.org/r/f1d104c6-7ac8-457a-a53d-6bb741421b2f@kernel.dk
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/delayacct.c |   51 +++++++++++++------------------------------
- 1 file changed, 16 insertions(+), 35 deletions(-)
+ include/linux/llist.h |   23 ++++++++++++++++++++---
+ lib/llist.c           |   22 ----------------------
+ 2 files changed, 20 insertions(+), 25 deletions(-)
 
---- a/kernel/delayacct.c~delayacct-remove-redundant-code-and-adjust-indentation
-+++ a/kernel/delayacct.c
-@@ -14,6 +14,15 @@
- #include <linux/delayacct.h>
- #include <linux/module.h>
+--- a/include/linux/llist.h~llist-make-llist_add_batch-a-static-inline
++++ a/include/linux/llist.h
+@@ -223,9 +223,26 @@ static inline struct llist_node *llist_n
+ 	return node->next;
+ }
  
-+#define UPDATE_DELAY(type) \
-+do { \
-+	d->type##_delay_max = tsk->delays->type##_delay_max; \
-+	d->type##_delay_min = tsk->delays->type##_delay_min; \
-+	tmp = d->type##_delay_total + tsk->delays->type##_delay; \
-+	d->type##_delay_total = (tmp < d->type##_delay_total) ? 0 : tmp; \
-+	d->type##_count += tsk->delays->type##_count; \
-+} while (0)
+-extern bool llist_add_batch(struct llist_node *new_first,
+-			    struct llist_node *new_last,
+-			    struct llist_head *head);
++/**
++ * llist_add_batch - add several linked entries in batch
++ * @new_first:	first entry in batch to be added
++ * @new_last:	last entry in batch to be added
++ * @head:	the head for your lock-less list
++ *
++ * Return whether list is empty before adding.
++ */
++static inline bool llist_add_batch(struct llist_node *new_first,
++				   struct llist_node *new_last,
++				   struct llist_head *head)
++{
++	struct llist_node *first = READ_ONCE(head->first);
 +
- DEFINE_STATIC_KEY_FALSE(delayacct_key);
- int delayacct_on __read_mostly;	/* Delay accounting turned on/off */
- struct kmem_cache *delayacct_cache;
-@@ -173,41 +182,13 @@ int delayacct_add_tsk(struct taskstats *
++	do {
++		new_last->next = first;
++	} while (!try_cmpxchg(&head->first, &first, new_first));
++
++	return !first;
++}
  
- 	/* zero XXX_total, non-zero XXX_count implies XXX stat overflowed */
- 	raw_spin_lock_irqsave(&tsk->delays->lock, flags);
--	d->blkio_delay_max = tsk->delays->blkio_delay_max;
--	d->blkio_delay_min = tsk->delays->blkio_delay_min;
--	tmp = d->blkio_delay_total + tsk->delays->blkio_delay;
--	d->blkio_delay_total = (tmp < d->blkio_delay_total) ? 0 : tmp;
--	d->swapin_delay_max = tsk->delays->swapin_delay_max;
--	d->swapin_delay_min = tsk->delays->swapin_delay_min;
--	tmp = d->swapin_delay_total + tsk->delays->swapin_delay;
--	d->swapin_delay_total = (tmp < d->swapin_delay_total) ? 0 : tmp;
--	d->freepages_delay_max = tsk->delays->freepages_delay_max;
--	d->freepages_delay_min = tsk->delays->freepages_delay_min;
--	tmp = d->freepages_delay_total + tsk->delays->freepages_delay;
--	d->freepages_delay_total = (tmp < d->freepages_delay_total) ? 0 : tmp;
--	d->thrashing_delay_max = tsk->delays->thrashing_delay_max;
--	d->thrashing_delay_min = tsk->delays->thrashing_delay_min;
--	tmp = d->thrashing_delay_total + tsk->delays->thrashing_delay;
--	d->thrashing_delay_total = (tmp < d->thrashing_delay_total) ? 0 : tmp;
--	d->compact_delay_max = tsk->delays->compact_delay_max;
--	d->compact_delay_min = tsk->delays->compact_delay_min;
--	tmp = d->compact_delay_total + tsk->delays->compact_delay;
--	d->compact_delay_total = (tmp < d->compact_delay_total) ? 0 : tmp;
--	d->wpcopy_delay_max = tsk->delays->wpcopy_delay_max;
--	d->wpcopy_delay_min = tsk->delays->wpcopy_delay_min;
--	tmp = d->wpcopy_delay_total + tsk->delays->wpcopy_delay;
--	d->wpcopy_delay_total = (tmp < d->wpcopy_delay_total) ? 0 : tmp;
--	d->irq_delay_max = tsk->delays->irq_delay_max;
--	d->irq_delay_min = tsk->delays->irq_delay_min;
--	tmp = d->irq_delay_total + tsk->delays->irq_delay;
--	d->irq_delay_total = (tmp < d->irq_delay_total) ? 0 : tmp;
--	d->blkio_count += tsk->delays->blkio_count;
--	d->swapin_count += tsk->delays->swapin_count;
--	d->freepages_count += tsk->delays->freepages_count;
--	d->thrashing_count += tsk->delays->thrashing_count;
--	d->compact_count += tsk->delays->compact_count;
--	d->wpcopy_count += tsk->delays->wpcopy_count;
--	d->irq_count += tsk->delays->irq_count;
-+	UPDATE_DELAY(blkio);
-+	UPDATE_DELAY(swapin);
-+	UPDATE_DELAY(freepages);
-+	UPDATE_DELAY(thrashing);
-+	UPDATE_DELAY(compact);
-+	UPDATE_DELAY(wpcopy);
-+	UPDATE_DELAY(irq);
- 	raw_spin_unlock_irqrestore(&tsk->delays->lock, flags);
+ static inline bool __llist_add_batch(struct llist_node *new_first,
+ 				     struct llist_node *new_last,
+--- a/lib/llist.c~llist-make-llist_add_batch-a-static-inline
++++ a/lib/llist.c
+@@ -14,28 +14,6 @@
+ #include <linux/export.h>
+ #include <linux/llist.h>
  
- 	return 0;
+-
+-/**
+- * llist_add_batch - add several linked entries in batch
+- * @new_first:	first entry in batch to be added
+- * @new_last:	last entry in batch to be added
+- * @head:	the head for your lock-less list
+- *
+- * Return whether list is empty before adding.
+- */
+-bool llist_add_batch(struct llist_node *new_first, struct llist_node *new_last,
+-		     struct llist_head *head)
+-{
+-	struct llist_node *first = READ_ONCE(head->first);
+-
+-	do {
+-		new_last->next = first;
+-	} while (!try_cmpxchg(&head->first, &first, new_first));
+-
+-	return !first;
+-}
+-EXPORT_SYMBOL_GPL(llist_add_batch);
+-
+ /**
+  * llist_del_first - delete the first entry of lock-less list
+  * @head:	the head for your lock-less list
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from axboe@kernel.dk are
 
 
