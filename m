@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C918A221F30;
-	Wed, 28 May 2025 23:07:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35A73221F2D
+	for <mm-commits@vger.kernel.org>; Wed, 28 May 2025 23:09:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748473654; cv=none; b=gbPRC31Wr96tGmg3VuVe3n0XWBJACtBkznm5VNJ1LHGzNsNf1kCh847XOAsrK+Vw7beEUX99S85iVqAumMzJ0kwDFjbjHVXMGOvuVTc6kVfdwaK6XqRcfkr4kfAjPdKubF/AHwQsM1A/XXEzSfJ7IgWJhsIofTPMxTvpRRcYXKE=
+	t=1748473797; cv=none; b=bbptLgmm+WoxzDp6iiIpOiW02YpoBVkmNFl2fK9Zjg5QbyjhaZaO5/CyqPhi84+QRzX0M1EFvYMQzospyDNJPPOhXg5sNlrVViwJzT/Z1RmFQpXHpUxQJOLU54Z1WTXQJad8DXCJFj1IWefo2pcnMmNYfmXmb6pKezyMRJOMeAE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748473654; c=relaxed/simple;
-	bh=ODONM4PY+4c5Dzs3yI8XdPUV3QwSyopJVRyDaSeokg8=;
-	h=Date:To:From:Subject:Message-Id; b=D3+57yIBpc5C5iv2pTEOZT22K4wIK1A4ql+T+5p+KcjkBY4F3JwZKYj61ELOKhawz7Zo85lS78VgTz7g2dYiMPpm46hbet8beyFuZ+VmVmJsMRcUUnnhr510C1IAtcsBc42e9sqPqLO6I9jzJOhAhjkqcJf+SEr7GiF3+lf3yJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gZB1u7Fj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748473797; c=relaxed/simple;
+	bh=2LN26dZK3+5DU7BYLu6uLhiyQ9U9ftczpnLnD1AOIGU=;
+	h=Date:To:From:Subject:Message-Id; b=C6Aibeg2ZwlSjiwePon70PDdMKWtKlPZWs0DjkrRJQSDknyyXptWviLSADQDNmTIloPSox16G4C6OB4VFE8KXG9VEGoKySl05Yd4EkhsW4QZSKJw1nQdMR6SFxUIgBVLycpaRI3/2w/Qj2Wczo8mftQjKhngXp1flaxbndtxHyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QpVMF3Ea; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gZB1u7Fj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75F56C4CEE3;
-	Wed, 28 May 2025 23:07:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QpVMF3Ea"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC887C4CEE3;
+	Wed, 28 May 2025 23:09:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748473654;
-	bh=ODONM4PY+4c5Dzs3yI8XdPUV3QwSyopJVRyDaSeokg8=;
+	s=korg; t=1748473796;
+	bh=2LN26dZK3+5DU7BYLu6uLhiyQ9U9ftczpnLnD1AOIGU=;
 	h=Date:To:From:Subject:From;
-	b=gZB1u7Fjosh7TJIKR4YG/8CPDx+iexIPVDfa+qEemV4yQdgIEDMZuPfFeT14dGQvw
-	 WJWRGhl17VzGY1zGInBVCA63QamaYUNBqsSdB1l24okMuK0S0ycZT+vntdgOAsDt4x
-	 CHTacW6VdTw4kS6F2e++HV71lMf/pUi+nhL1O5QU=
-Date: Wed, 28 May 2025 16:07:33 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=QpVMF3Ea1MKx/c4ycdu6umhVwV9w87oEbanBVmlKBb9lR5hF+2LAzAYccsxSNChS5
+	 nHy/X2TtNOEL504vMx+HTwobojzEWsPMCGKc2EM4x+qpLf/XOxQZfOv0AYMKkmb7E0
+	 qknGY4JiAcjqPCWBSRBvnj7AD1pI5aB1abia4LR8=
+Date: Wed, 28 May 2025 16:09:56 -0700
+To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,shuah@kernel.org,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch removed from -mm tree
-Message-Id: <20250528230734.75F56C4CEE3@smtp.kernel.org>
+Subject: + tools-testing-check-correct-variable-in-open_procmap.patch added to mm-unstable branch
+Message-Id: <20250528230956.CC887C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,98 +34,64 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/contig_alloc: fix alloc_contig_range when __GFP_COMP and order < MAX_ORDER
-has been removed from the -mm tree.  Its filename was
-     mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
+The patch titled
+     Subject: tools/testing: check correct variable in open_procmap()
+has been added to the -mm mm-unstable branch.  Its filename is
+     tools-testing-check-correct-variable-in-open_procmap.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-check-correct-variable-in-open_procmap.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/contig_alloc: fix alloc_contig_range when __GFP_COMP and order < MAX_ORDER
-Date: Mon, 21 Apr 2025 09:36:20 +0800
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: tools/testing: check correct variable in open_procmap()
+Date: Wed, 28 May 2025 11:13:45 +0300
 
-When calling alloc_contig_range() with __GFP_COMP and the order of
-requested pfn range is pageblock_order, less than MAX_ORDER, I triggered
-WARNING as follows:
+Check if "procmap_out->fd" is negative instead of "procmap_out" (which is
+a pointer).
 
- PFN range: requested [2150105088, 2150105600), allocated [2150105088, 2150106112)
- WARNING: CPU: 3 PID: 580 at mm/page_alloc.c:6877 alloc_contig_range+0x280/0x340
-
-alloc_contig_range() marks pageblocks of the requested pfn range to be
-isolated, migrate these pages if they are in use and will be freed to
-MIGRATE_ISOLATED freelist.
-
-Suppose two alloc_contig_range() calls at the same time and the requested
-pfn range are [0x80280000, 0x80280200) and [0x80280200, 0x80280400)
-respectively.  Suppose the two memory range are in use, then
-alloc_contig_range() will migrate and free these pages to MIGRATE_ISOLATED
-freelist.  __free_one_page() will merge MIGRATE_ISOLATE buddy to larger
-buddy, resulting in a MAX_ORDER buddy.  Finally, find_large_buddy() in
-alloc_contig_range() returns a MAX_ORDER buddy and results in WARNING.
-
-To fix it, call free_contig_range() to free the excess pfn range.
-
-Link: https://lkml.kernel.org/r/20250421013620.459740-1-tujinjiang@huawei.com
-Fixes: e98337d11bbd ("mm/contig_alloc: support __GFP_COMP")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/aDbFuUTlJTBqziVd@stanley.mountain
+Fixes: bd23f293a0d5 ("tools/testing: add PROCMAP_QUERY helper functions in mm self tests")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: levi.yun <yeoreum.yun@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order
-+++ a/mm/page_alloc.c
-@@ -6693,6 +6693,7 @@ int alloc_contig_range_noprof(unsigned l
- 		.alloc_contig = true,
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
-+	bool is_range_aligned;
+--- a/tools/testing/selftests/mm/vm_util.c~tools-testing-check-correct-variable-in-open_procmap
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -439,7 +439,7 @@ int open_procmap(pid_t pid, struct procm
+ 	sprintf(path, "/proc/%d/maps", pid);
+ 	procmap_out->query.size = sizeof(procmap_out->query);
+ 	procmap_out->fd = open(path, O_RDONLY);
+-	if (procmap_out < 0)
++	if (procmap_out->fd < 0)
+ 		ret = -errno;
  
- 	gfp_mask = current_gfp_context(gfp_mask);
- 	if (__alloc_contig_verify_gfp_mask(gfp_mask, (gfp_t *)&cc.gfp_mask))
-@@ -6781,7 +6782,14 @@ int alloc_contig_range_noprof(unsigned l
- 		goto done;
- 	}
- 
--	if (!(gfp_mask & __GFP_COMP)) {
-+	/*
-+	 * With __GFP_COMP and the requested order < MAX_PAGE_ORDER,
-+	 * isolated free pages can have higher order than the requested
-+	 * one. Use split_free_pages() to free out of range pages.
-+	 */
-+	is_range_aligned = is_power_of_2(end - start);
-+	if (!(gfp_mask & __GFP_COMP) ||
-+		(is_range_aligned && ilog2(end - start) < MAX_PAGE_ORDER)) {
- 		split_free_pages(cc.freepages, gfp_mask);
- 
- 		/* Free head and tail (if any) */
-@@ -6789,7 +6797,15 @@ int alloc_contig_range_noprof(unsigned l
- 			free_contig_range(outer_start, start - outer_start);
- 		if (end != outer_end)
- 			free_contig_range(end, outer_end - end);
--	} else if (start == outer_start && end == outer_end && is_power_of_2(end - start)) {
-+
-+		outer_start = start;
-+		outer_end = end;
-+
-+		if (!(gfp_mask & __GFP_COMP))
-+			goto done;
-+	}
-+
-+	if (start == outer_start && end == outer_end && is_range_aligned) {
- 		struct page *head = pfn_to_page(start);
- 		int order = ilog2(end - start);
- 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
+tools-testing-check-correct-variable-in-open_procmap.patch
 
