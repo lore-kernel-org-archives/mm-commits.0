@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E59A4685
-	for <mm-commits@vger.kernel.org>; Thu, 29 May 2025 19:26:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D8BB4685
+	for <mm-commits@vger.kernel.org>; Thu, 29 May 2025 19:26:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748546811; cv=none; b=DO5Wi8CplPu0mBQKEb3tjFSd7BPZWl+LH3xTOU3nJmTBnKXCq/wHkU+L4K+qcmaeVGSNuvpy2cnWiCCGjsWLXjlzcSV+ITHIdyrgcEEAYbYlzJilpmaRiQZy2xBrWbC9YHoVPT+bU9XXJcPpe6MaZGWtlE/8WjOqWkY1Xl9uKWw=
+	t=1748546814; cv=none; b=onsRBT0Hj6w/QpCbc4UXSwkKYPwqCy1V9e9FkZRw2WNyNd5KGxunpj1whp+9zHff7BTREByBtNq17nT8tcH0AvLGAPgyGgkpW/NDOQGrGfP9iAPG1N3T+eDTgjrGJ7fQ429FjqNFelDp/KXy1LElNiVz48MyVMLkL9HWoPTDLIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748546811; c=relaxed/simple;
-	bh=+IARCaVqV8Yq9p3f1LpkoBMr8PEQft113HCfWDjJh2E=;
-	h=Date:To:From:Subject:Message-Id; b=tFfsNNgvSduumISLUAVE/eKUn32rUxMDkj65wNw+ZynBgQp3R4KkOVCfspWbLgVud8y/RnkON9//KntUlEdiSWRFElSLs9S7KJINl5+7nbq26mUcDWIp5vpW1cJvI9E4zQKuSDNFxZp0PoK+uQST9TnrQrs5/OJ7v8wGjMp09oo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g0D+rmNO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748546814; c=relaxed/simple;
+	bh=3Jhqo/mzi+YQ1Y2MnKtdckvoCki4Ui5JRshCkeBLI7Y=;
+	h=Date:To:From:Subject:Message-Id; b=dAS2dQF7nIvr2TZCnmlxh2A/GjBW8L6P4wil6tciTXFlmvPidunFQyxxwwO3EP8RpWxv2bpQYVIbgXgiurEgwoUE9Vtsa7J3jDTmyVNnI0R/TiWfG3B3Eq6tlnOPaLzrAnAcW0meygcgXXNqQOptA8CLwK4ASVAsmcYMFEVr0ao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=taLVL5Yw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g0D+rmNO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD5E4C4CEE7;
-	Thu, 29 May 2025 19:26:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="taLVL5Yw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 200E2C4CEF1;
+	Thu, 29 May 2025 19:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748546811;
-	bh=+IARCaVqV8Yq9p3f1LpkoBMr8PEQft113HCfWDjJh2E=;
+	s=korg; t=1748546814;
+	bh=3Jhqo/mzi+YQ1Y2MnKtdckvoCki4Ui5JRshCkeBLI7Y=;
 	h=Date:To:From:Subject:From;
-	b=g0D+rmNOEvewqSBn+GBiNM25qeHl+29Zt9BPBujf7FtJeoZFfaA27KZJl3bwi8mJd
-	 t6B5NsxBGVwWnMeCJhxOUKj9QYbIRGAklaxvFp/m3uJtd7VYxP+QTzmPp7Zdi2Z/7P
-	 KJzU0bZlAN/cc9JeW+KQEXvMrJVBvuGTorMfCVpY=
-Date: Thu, 29 May 2025 12:26:50 -0700
+	b=taLVL5YwiuiLvckSg29m199qtwAmXgWOXf4+ASSYz+nvEv1QS+G9A5bokmbvgwg8B
+	 yPosSPgKrdfs+W+IK53v90Uvt0XgOEWcz3tnDzRL1si6EeUx8o8/GLQ4J1eZDGreEN
+	 HIfuD2u8aXZ+JpcvWnKQEElce6i6ZvZy4inHUrTo=
+Date: Thu, 29 May 2025 12:26:53 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterz@infradead.org,oleg@redhat.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,pulehui@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util.patch added to mm-unstable branch
-Message-Id: <20250529192650.DD5E4C4CEE7@smtp.kernel.org>
+Subject: + selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge.patch added to mm-unstable branch
+Message-Id: <20250529192654.200E2C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: extract read_sysfs and write_sysfs into vm_util
+     Subject: selftests/mm: Add test about uprobe pte be orphan during vma merge
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util.patch
+     selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pu Lehui <pulehui@huawei.com>
-Subject: selftests/mm: extract read_sysfs and write_sysfs into vm_util
-Date: Thu, 29 May 2025 15:56:49 +0000
+Subject: selftests/mm: Add test about uprobe pte be orphan during vma merge
+Date: Thu, 29 May 2025 15:56:50 +0000
 
-Extract read_sysfs and write_sysfs into vm_util.  Meanwhile, rename the
-function in thuge-gen that has the same name as read_sysfs.
+Add test about uprobe pte be orphan during vma merge.
 
-Link: https://lkml.kernel.org/r/20250529155650.4017699-4-pulehui@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250529155650.4017699-5-pulehui@huaweicloud.com
 Signed-off-by: Pu Lehui <pulehui@huawei.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -77,141 +76,70 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_tests.c |   32 +------------------
- tools/testing/selftests/mm/thuge-gen.c |    6 +--
- tools/testing/selftests/mm/vm_util.c   |   38 +++++++++++++++++++++++
- tools/testing/selftests/mm/vm_util.h   |    2 +
- 4 files changed, 45 insertions(+), 33 deletions(-)
+ tools/testing/selftests/mm/merge.c |   42 +++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
---- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util
-+++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -58,40 +58,12 @@ int debug;
+--- a/tools/testing/selftests/mm/merge.c~selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge
++++ a/tools/testing/selftests/mm/merge.c
+@@ -2,11 +2,13 @@
  
- static int ksm_write_sysfs(const char *file_path, unsigned long val)
- {
--	FILE *f = fopen(file_path, "w");
--
--	if (!f) {
--		fprintf(stderr, "f %s\n", file_path);
--		perror("fopen");
--		return 1;
--	}
--	if (fprintf(f, "%lu", val) < 0) {
--		perror("fprintf");
--		fclose(f);
--		return 1;
--	}
--	fclose(f);
--
--	return 0;
-+	return write_sysfs(file_path, val);
+ #define _GNU_SOURCE
+ #include "../kselftest_harness.h"
++#include <fcntl.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <sys/mman.h>
+ #include <sys/wait.h>
++#include <linux/perf_event.h>
+ #include "vm_util.h"
+ 
+ FIXTURE(merge)
+@@ -452,4 +454,44 @@ TEST_F(merge, forked_source_vma)
+ 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr2 + 5 * page_size);
  }
  
- static int ksm_read_sysfs(const char *file_path, unsigned long *val)
- {
--	FILE *f = fopen(file_path, "r");
--
--	if (!f) {
--		fprintf(stderr, "f %s\n", file_path);
--		perror("fopen");
--		return 1;
--	}
--	if (fscanf(f, "%lu", val) != 1) {
--		perror("fscanf");
--		fclose(f);
--		return 1;
--	}
--	fclose(f);
--
--	return 0;
-+	return read_sysfs(file_path, val);
- }
- 
- static void ksm_print_sysfs(void)
---- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -77,7 +77,7 @@ void show(unsigned long ps)
- 	system(buf);
- }
- 
--unsigned long read_sysfs(int warn, char *fmt, ...)
-+unsigned long thuge_read_sysfs(int warn, char *fmt, ...)
- {
- 	char *line = NULL;
- 	size_t linelen = 0;
-@@ -106,7 +106,7 @@ unsigned long read_sysfs(int warn, char
- 
- unsigned long read_free(unsigned long ps)
- {
--	return read_sysfs(ps != getpagesize(),
-+	return thuge_read_sysfs(ps != getpagesize(),
- 			  "/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
- 			  ps >> 10);
- }
-@@ -195,7 +195,7 @@ void find_pagesizes(void)
- 	}
- 	globfree(&g);
- 
--	if (read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest)
-+	if (thuge_read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest)
- 		ksft_exit_fail_msg("Please do echo %lu > /proc/sys/kernel/shmmax",
- 				   largest * NUM_PAGES);
- 
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -486,3 +486,41 @@ int close_procmap(struct procmap_fd *pro
- {
- 	return close(procmap->fd);
- }
-+
-+int write_sysfs(const char *file_path, unsigned long val)
++TEST_F(merge, handle_uprobe_upon_merged_vma)
 +{
-+	FILE *f = fopen(file_path, "w");
++	const size_t attr_sz = sizeof(struct perf_event_attr);
++	unsigned int page_size = self->page_size;
++	const char *probe_file = "./foo";
++	char *carveout = self->carveout;
++	struct perf_event_attr attr;
++	unsigned long type;
++	void *ptr1, *ptr2;
++	int fd;
 +
-+	if (!f) {
-+		fprintf(stderr, "f %s\n", file_path);
-+		perror("fopen");
-+		return 1;
-+	}
-+	if (fprintf(f, "%lu", val) < 0) {
-+		perror("fprintf");
-+		fclose(f);
-+		return 1;
-+	}
-+	fclose(f);
++	fd = open(probe_file, O_RDWR|O_CREAT, 0600);
++	ASSERT_GE(fd, 0);
 +
-+	return 0;
++	ASSERT_EQ(ftruncate(fd, page_size), 0);
++	ASSERT_EQ(read_sysfs("/sys/bus/event_source/devices/uprobe/type", &type), 0);
++
++	memset(&attr, 0, attr_sz);
++	attr.size = attr_sz;
++	attr.type = type;
++	attr.config1 = (__u64)(long)probe_file;
++	attr.config2 = 0x0;
++
++	ASSERT_GE(syscall(__NR_perf_event_open, &attr, 0, -1, -1, 0), 0);
++
++	ptr1 = mmap(&carveout[page_size], 10 * page_size, PROT_EXEC,
++		    MAP_PRIVATE | MAP_FIXED, fd, 0);
++	ASSERT_NE(ptr1, MAP_FAILED);
++
++	ptr2 = mremap(ptr1, page_size, 2 * page_size,
++		      MREMAP_MAYMOVE | MREMAP_FIXED, ptr1 + 5 * page_size);
++	ASSERT_NE(ptr2, MAP_FAILED);
++
++	ASSERT_NE(mremap(ptr2, page_size, page_size,
++			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr1), MAP_FAILED);
++
++	close(fd);
++	remove(probe_file);
 +}
 +
-+int read_sysfs(const char *file_path, unsigned long *val)
-+{
-+	FILE *f = fopen(file_path, "r");
-+
-+	if (!f) {
-+		fprintf(stderr, "f %s\n", file_path);
-+		perror("fopen");
-+		return 1;
-+	}
-+	if (fscanf(f, "%lu", val) != 1) {
-+		perror("fscanf");
-+		fclose(f);
-+		return 1;
-+	}
-+	fclose(f);
-+
-+	return 0;
-+}
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -87,6 +87,8 @@ int open_procmap(pid_t pid, struct procm
- int query_procmap(struct procmap_fd *procmap);
- bool find_vma_procmap(struct procmap_fd *procmap, void *address);
- int close_procmap(struct procmap_fd *procmap);
-+int write_sysfs(const char *file_path, unsigned long val);
-+int read_sysfs(const char *file_path, unsigned long *val);
- 
- static inline int open_self_procmap(struct procmap_fd *procmap_out)
- {
+ TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from pulehui@huawei.com are
