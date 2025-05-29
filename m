@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52BE21B90B
-	for <mm-commits@vger.kernel.org>; Thu, 29 May 2025 05:24:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A1B4685;
+	Thu, 29 May 2025 19:26:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748496282; cv=none; b=BgjA9iYSnFJZ8TZbT1sfHWY5jWDepYa1Vdj3rIUDdzvwSx1oItoY4Q9qSzfz0VnhxQqHWleNOZ2+N65N3GpV2Yno7kdql3WCGK/TKKeGpf+gDYUmm9lHB0VEW0It3mQ/EDCxpFlC2bY+1aS55gkb4c+rGTPF9Z1eapqhLup8QB4=
+	t=1748546807; cv=none; b=nvYK7oiUEZLng0hAYvWOFnNCUMI9Sicic+RqTUi+QBv5UXwEfEsQe3r8flNjGPo74a/o0zsyWrVfk4Rpjq5fayWULIuhE6HS1JqVvllBzx8KYjxFG6rH7fg4NKAvSCgsppfiXWc6H4bxqYbgHNA838uHvWnO9eprhKTmO34UN8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748496282; c=relaxed/simple;
-	bh=6lnUKryDPTLYlm422QT7KCcc5KEf9AVixASWTbTBoIc=;
-	h=Date:To:From:Subject:Message-Id; b=YwHPyleIrzGB8VX6u65O39yWLdvVo1i1OOBR0Niq+09udwMWJsLdNX8okY3trDh1ENvEiKMm6WcowzT1OnIXK2MYnx8APF5TKbjJ9wK3xkgPZDLVripFhAvEwXxgFQTy9iBmPo7pDXbOqLGuKVOodo0hC0LEvhNidETJ4eXkXEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t6FsfRc/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748546807; c=relaxed/simple;
+	bh=YQpvX8b8VhdjOJaZkqSsskEzuhLf8gH+THmFjuwjHsw=;
+	h=Date:To:From:Subject:Message-Id; b=FlI6bFFSYMBZMyepDvWhQE0afmhmc0kyNrpci3hWo9papo6MXvsTBLz/zI0P1j0UpZtwFWYknxpF/9huZLtMbgsjnkRpDrwj386eEFxSycLZBrrn1wXA1Hr4LK3rGugSy9Uw6jUY0lK0NNvRhhZAEzaJbYpxGKJv3z1UxZgDZcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cua9L4ts; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t6FsfRc/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BD85C4CEEA;
-	Thu, 29 May 2025 05:24:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cua9L4ts"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49340C4CEE7;
+	Thu, 29 May 2025 19:26:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748496281;
-	bh=6lnUKryDPTLYlm422QT7KCcc5KEf9AVixASWTbTBoIc=;
+	s=korg; t=1748546806;
+	bh=YQpvX8b8VhdjOJaZkqSsskEzuhLf8gH+THmFjuwjHsw=;
 	h=Date:To:From:Subject:From;
-	b=t6FsfRc/VLSSppuvmeqb8/gNMSWYImuAvBCVIpEtN5TUjsoLfxxN3F6h0z6BPgqq/
-	 jgi1N6BmfSnxstHSpz2De7J/t/Ux78o80j8kEhyHyH0OnTUuf6SwR3klwBw6FI78nF
-	 EU9ObstNIlfBItOdXv07hwlQ42cbHYNQkjoxRPrk=
-Date: Wed, 28 May 2025 22:24:40 -0700
-To: mm-commits@vger.kernel.org,vineethr@linux.ibm.com,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,mhocko@kernel.org,mgorman@suse.de,libo.chen@oracle.com,kprateek.nayak@amd.com,hannes@cmpxchg.org,corbet@lwn.net,Ayush.jain3@amd.com,aubrey.li@intel.com,yu.c.chen@intel.com,akpm@linux-foundation.org
+	b=Cua9L4tsfRyditBOasakusUxx5CGgCYK+0D5YSFD2oWYhujZM3EWA+p9xnF/SXSE0
+	 oQ8cOAiIvdk0PkB4vYzSdV/2z0Tx3naTc850UsDIbPvII7PUwsGk0G3RZ2FjSxv/D3
+	 3mJeTWf+pSAXlMLQO+4dOTAqb/MnIQfi3ACjPKcg=
+Date: Thu, 29 May 2025 12:26:45 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,peterz@infradead.org,oleg@redhat.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,pulehui@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sched-numa-add-statistics-of-numa-balance-task.patch added to mm-new branch
-Message-Id: <20250529052441.4BD85C4CEEA@smtp.kernel.org>
+Subject: + mm-fix-uprobe-pte-be-overwritten-when-expanding-vma.patch added to mm-unstable branch
+Message-Id: <20250529192646.49340C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sched/numa: add statistics of numa balance task
-has been added to the -mm mm-new branch.  Its filename is
-     sched-numa-add-statistics-of-numa-balance-task.patch
+     Subject: mm: fix uprobe pte be overwritten when expanding vma
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-uprobe-pte-be-overwritten-when-expanding-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-add-statistics-of-numa-balance-task.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-uprobe-pte-be-overwritten-when-expanding-vma.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,221 +58,139 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: sched/numa: add statistics of numa balance task
-Date: Fri, 23 May 2025 20:51:15 +0800
+From: Pu Lehui <pulehui@huawei.com>
+Subject: mm: fix uprobe pte be overwritten when expanding vma
+Date: Thu, 29 May 2025 15:56:47 +0000
 
-On systems with NUMA balancing enabled, it has been found that tracking
-task activities resulting from NUMA balancing is beneficial.  NUMA
-balancing employs two mechanisms for task migration: one is to migrate
-a task to an idle CPU within its preferred node, and the other is to
-swap tasks located on different nodes when they are on each other's
-preferred nodes.
+Patch series "Fix uprobe pte be overwritten when expanding vma".
 
-The kernel already provides NUMA page migration statistics in
-/sys/fs/cgroup/mytest/memory.stat and /proc/{PID}/sched.  However, it
-lacks statistics regarding task migration and swapping.  Therefore,
-relevant counts for task migration and swapping should be added.
 
-The following two new fields:
+This patch (of 4):
 
-numa_task_migrated
-numa_task_swapped
+We encountered a BUG alert triggered by Syzkaller as follows:
+   BUG: Bad rss-counter state mm:00000000b4a60fca type:MM_ANONPAGES val:1
 
-will be shown in /sys/fs/cgroup/{GROUP}/memory.stat, /proc/{PID}/sched
-and /proc/vmstat.
+And we can reproduce it with the following steps:
+1. register uprobe on file at zero offset
+2. mmap the file at zero offset:
+   addr1 = mmap(NULL, 2 * 4096, PROT_NONE, MAP_PRIVATE, fd, 0);
+3. mremap part of vma1 to new vma2:
+   addr2 = mremap(addr1, 4096, 2 * 4096, MREMAP_MAYMOVE);
+4. mremap back to orig addr1:
+   mremap(addr2, 4096, 4096, MREMAP_MAYMOVE | MREMAP_FIXED, addr1);
 
-Introducing both per-task and per-memory cgroup (memcg) NUMA balancing
-statistics facilitates a rapid evaluation of the performance and
-resource utilization of the target workload.  For instance, users can
-first identify the container with high NUMA balancing activity and then
-further pinpoint a specific task within that group, and subsequently
-adjust the memory policy for that task.  In short, although it is
-possible to iterate through /proc/$pid/sched to locate the problematic
-task, the introduction of aggregated NUMA balancing activity for tasks
-within each memcg can assist users in identifying the task more
-efficiently through a divide-and-conquer approach.
+In step 3, the vma1 range [addr1, addr1 + 4096] will be remap to new vma2
+with range [addr2, addr2 + 8192], and remap uprobe anon page from the vma1
+to vma2, then unmap the vma1 range [addr1, addr1 + 4096].
 
-As Libo Chen pointed out, the memcg event relies on the text names in
-vmstat_text, and /proc/vmstat generates corresponding items based on
-vmstat_text.  Thus, the relevant task migration and swapping events
-introduced in vmstat_text also need to be populated by
-count_vm_numa_event(), otherwise these values are zero in /proc/vmstat.
+In step 4, the vma2 range [addr2, addr2 + 4096] will be remap back to the
+addr range [addr1, addr1 + 4096].  Since the addr range [addr1 + 4096,
+addr1 + 8192] still maps the file, it will take vma_merge_new_range to
+expand the range, and then do uprobe_mmap in vma_complete.  Since the
+merged vma pgoff is also zero offset, it will install uprobe anon page to
+the merged vma.  However, the upcomming move_page_tables step, which use
+set_pte_at to remap the vma2 uprobe pte to the merged vma, will overwrite
+the newly uprobe pte in the merged vma, and lead that pte to be orphan.
 
-In theory, task migration and swap events are part of the scheduler's
-activities.  The reason for exposing them through the
-memory.stat/vmstat interface is that we already have NUMA balancing
-statistics in memory.stat/vmstat, and these events are closely related
-to each other.  Following Shakeel's suggestion, we describe the
-end-to-end flow/story of all these events occurring on a timeline for
-future reference:
+Since the uprobe pte will be remapped to the merged vma, we can remove the
+unnecessary uprobe_mmap upon merged vma.
 
-The goal of NUMA balancing is to co-locate a task and its memory pages
-on the same NUMA node.  There are two strategies: migrate the pages to
-the task's node, or migrate the task to the node where its pages
-reside.
+This problem was first found in linux-6.6.y and also exists in the
+community syzkaller:
+https://lore.kernel.org/all/000000000000ada39605a5e71711@google.com/T/
 
-Suppose a task p1 is running on Node 0, but its pages are located on
-Node 1.  NUMA page fault statistics for p1 reveal its "page footprint"
-across nodes.  If NUMA balancing detects that most of p1's pages are on
-Node 1:
-
-1.Page Migration Attempt:
-The Numa balance first tries to migrate p1's pages to Node 0.
-The numa_page_migrate counter increments.
-
-2.Task Migration Strategies:
-After the page migration finishes, Numa balance checks every
-1 second to see if p1 can be migrated to Node 1.
-
-Case 2.1: Idle CPU Available
-
-  If Node 1 has an idle CPU, p1 is directly scheduled there.  This
-  event is logged as numa_task_migrated.
-
-Case 2.2: No Idle CPU (Task Swap)
-
-  If all CPUs on Node1 are busy, direct migration could cause CPU
-  contention or load imbalance.  Instead: The Numa balance selects a
-  candidate task p2 on Node 1 that prefers Node 0 (e.g., due to its own
-  page footprint).  p1 and p2 are swapped.  This cross-node swap is
-  recorded as numa_task_swapped.
-
-Link: https://lkml.kernel.org/r/d00edb12ba0f0de3c5222f61487e65f2ac58f5b1.1748493462.git.yu.c.chen@intel.com
-Link: https://lkml.kernel.org/r/7ef90a88602ed536be46eba7152ed0d33bad5790.1748002400.git.yu.c.chen@intel.com
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-Tested-by: K Prateek Nayak <kprateek.nayak@amd.com>
-Tested-by: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Cc: Aubrey Li <aubrey.li@intel.com>
-Cc: Ayush Jain <Ayush.jain3@amd.com>
-Cc: "Chen, Tim C" <tim.c.chen@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Libo Chen <libo.chen@oracle.com>
-Cc: Mel Gorman <mgorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20250529155650.4017699-1-pulehui@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250529155650.4017699-2-pulehui@huaweicloud.com
+Fixes: 2b1444983508 ("uprobes, mm, x86: Add the ability to install and remove uprobes breakpoints")
+Signed-off-by: Pu Lehui <pulehui@huawei.com>
+Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    6 ++++++
- include/linux/sched.h                   |    4 ++++
- include/linux/vm_event_item.h           |    2 ++
- kernel/sched/core.c                     |    9 +++++++--
- kernel/sched/debug.c                    |    4 ++++
- mm/memcontrol.c                         |    2 ++
- mm/vmstat.c                             |    2 ++
- 7 files changed, 27 insertions(+), 2 deletions(-)
+ mm/vma.c |   20 +++++++++++++++++---
+ mm/vma.h |    7 +++++++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~sched-numa-add-statistics-of-numa-balance-task
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1697,6 +1697,12 @@ The following nested keys are defined.
- 	  numa_hint_faults (npn)
- 		Number of NUMA hinting faults.
- 
-+	  numa_task_migrated (npn)
-+		Number of task migration by NUMA balancing.
+--- a/mm/vma.c~mm-fix-uprobe-pte-be-overwritten-when-expanding-vma
++++ a/mm/vma.c
+@@ -169,6 +169,9 @@ static void init_multi_vma_prep(struct v
+ 	vp->file = vma->vm_file;
+ 	if (vp->file)
+ 		vp->mapping = vma->vm_file->f_mapping;
 +
-+	  numa_task_swapped (npn)
-+		Number of task swap by NUMA balancing.
-+
- 	  pgdemote_kswapd
- 		Number of pages demoted by kswapd.
- 
---- a/include/linux/sched.h~sched-numa-add-statistics-of-numa-balance-task
-+++ a/include/linux/sched.h
-@@ -549,6 +549,10 @@ struct sched_statistics {
- 	u64				nr_failed_migrations_running;
- 	u64				nr_failed_migrations_hot;
- 	u64				nr_forced_migrations;
-+#ifdef CONFIG_NUMA_BALANCING
-+	u64				numa_task_migrated;
-+	u64				numa_task_swapped;
-+#endif
- 
- 	u64				nr_wakeups;
- 	u64				nr_wakeups_sync;
---- a/include/linux/vm_event_item.h~sched-numa-add-statistics-of-numa-balance-task
-+++ a/include/linux/vm_event_item.h
-@@ -66,6 +66,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		NUMA_HINT_FAULTS,
- 		NUMA_HINT_FAULTS_LOCAL,
- 		NUMA_PAGE_MIGRATE,
-+		NUMA_TASK_MIGRATE,
-+		NUMA_TASK_SWAP,
- #endif
- #ifdef CONFIG_MIGRATION
- 		PGMIGRATE_SUCCESS, PGMIGRATE_FAIL,
---- a/kernel/sched/core.c~sched-numa-add-statistics-of-numa-balance-task
-+++ a/kernel/sched/core.c
-@@ -3352,6 +3352,10 @@ void set_task_cpu(struct task_struct *p,
- #ifdef CONFIG_NUMA_BALANCING
- static void __migrate_swap_task(struct task_struct *p, int cpu)
- {
-+	__schedstat_inc(p->stats.numa_task_swapped);
-+	count_vm_numa_event(NUMA_TASK_SWAP);
-+	count_memcg_event_mm(p->mm, NUMA_TASK_SWAP);
-+
- 	if (task_on_rq_queued(p)) {
- 		struct rq *src_rq, *dst_rq;
- 		struct rq_flags srf, drf;
-@@ -7953,8 +7957,9 @@ int migrate_task_to(struct task_struct *
- 	if (!cpumask_test_cpu(target_cpu, p->cpus_ptr))
- 		return -EINVAL;
- 
--	/* TODO: This is not properly updating schedstats */
--
-+	__schedstat_inc(p->stats.numa_task_migrated);
-+	count_vm_numa_event(NUMA_TASK_MIGRATE);
-+	count_memcg_event_mm(p->mm, NUMA_TASK_MIGRATE);
- 	trace_sched_move_numa(p, curr_cpu, target_cpu);
- 	return stop_one_cpu(curr_cpu, migration_cpu_stop, &arg);
++	if (vmg && vmg->skip_vma_uprobe)
++		vp->skip_vma_uprobe = true;
  }
---- a/kernel/sched/debug.c~sched-numa-add-statistics-of-numa-balance-task
-+++ a/kernel/sched/debug.c
-@@ -1206,6 +1206,10 @@ void proc_sched_show_task(struct task_st
- 		P_SCHEDSTAT(nr_failed_migrations_running);
- 		P_SCHEDSTAT(nr_failed_migrations_hot);
- 		P_SCHEDSTAT(nr_forced_migrations);
-+#ifdef CONFIG_NUMA_BALANCING
-+		P_SCHEDSTAT(numa_task_migrated);
-+		P_SCHEDSTAT(numa_task_swapped);
-+#endif
- 		P_SCHEDSTAT(nr_wakeups);
- 		P_SCHEDSTAT(nr_wakeups_sync);
- 		P_SCHEDSTAT(nr_wakeups_migrate);
---- a/mm/memcontrol.c~sched-numa-add-statistics-of-numa-balance-task
-+++ a/mm/memcontrol.c
-@@ -474,6 +474,8 @@ static const unsigned int memcg_vm_event
- 	NUMA_PAGE_MIGRATE,
- 	NUMA_PTE_UPDATES,
- 	NUMA_HINT_FAULTS,
-+	NUMA_TASK_MIGRATE,
-+	NUMA_TASK_SWAP,
- #endif
+ 
+ /*
+@@ -358,10 +361,13 @@ static void vma_complete(struct vma_prep
+ 
+ 	if (vp->file) {
+ 		i_mmap_unlock_write(vp->mapping);
+-		uprobe_mmap(vp->vma);
+ 
+-		if (vp->adj_next)
+-			uprobe_mmap(vp->adj_next);
++		if (!vp->skip_vma_uprobe) {
++			uprobe_mmap(vp->vma);
++
++			if (vp->adj_next)
++				uprobe_mmap(vp->adj_next);
++		}
+ 	}
+ 
+ 	if (vp->remove) {
+@@ -1830,6 +1836,14 @@ struct vm_area_struct *copy_vma(struct v
+ 		faulted_in_anon_vma = false;
+ 	}
+ 
++	/*
++	 * If the VMA we are copying might contain a uprobe PTE, ensure
++	 * that we do not establish one upon merge. Otherwise, when mremap()
++	 * moves page tables, it will orphan the newly created PTE.
++	 */
++	if (vma->vm_file)
++		vmg.skip_vma_uprobe = true;
++
+ 	new_vma = find_vma_prev(mm, addr, &vmg.prev);
+ 	if (new_vma && new_vma->vm_start < addr + len)
+ 		return NULL;	/* should never get here */
+--- a/mm/vma.h~mm-fix-uprobe-pte-be-overwritten-when-expanding-vma
++++ a/mm/vma.h
+@@ -19,6 +19,8 @@ struct vma_prepare {
+ 	struct vm_area_struct *insert;
+ 	struct vm_area_struct *remove;
+ 	struct vm_area_struct *remove2;
++
++	bool skip_vma_uprobe :1;
  };
  
---- a/mm/vmstat.c~sched-numa-add-statistics-of-numa-balance-task
-+++ a/mm/vmstat.c
-@@ -1347,6 +1347,8 @@ const char * const vmstat_text[] = {
- 	"numa_hint_faults",
- 	"numa_hint_faults_local",
- 	"numa_pages_migrated",
-+	"numa_task_migrated",
-+	"numa_task_swapped",
- #endif
- #ifdef CONFIG_MIGRATION
- 	"pgmigrate_success",
+ struct unlink_vma_file_batch {
+@@ -120,6 +122,11 @@ struct vma_merge_struct {
+ 	 */
+ 	bool give_up_on_oom :1;
+ 
++	/*
++	 * If set, skip uprobe_mmap upon merged vma.
++	 */
++	bool skip_vma_uprobe :1;
++
+ 	/* Internal flags set during merge process: */
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from yu.c.chen@intel.com are
+Patches currently in -mm which might be from pulehui@huawei.com are
 
-sched-numa-add-statistics-of-numa-balance-task.patch
+mm-fix-uprobe-pte-be-overwritten-when-expanding-vma.patch
+mm-expose-abnormal-new_pte-during-move_ptes.patch
+selftests-mm-extract-read_sysfs-and-write_sysfs-into-vm_util.patch
+selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge.patch
 
