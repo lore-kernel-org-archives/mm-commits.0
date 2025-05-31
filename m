@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DD792AD11
-	for <mm-commits@vger.kernel.org>; Fri, 30 May 2025 04:12:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51C48182B7
+	for <mm-commits@vger.kernel.org>; Sat, 31 May 2025 00:51:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748578376; cv=none; b=mWqeNtr2d0dalpgeCXQQ+TSqJIBGEYyZhTg0lzN2WH4vUBSXZ+T8z/KkMUceLVEMyY96zR6Wxp10kieQ5jPBAKkb8BxkqoalVfqbMyBlJtrOstgx/XyEO47/fh/mzkDpsgY8xFsLDtAzsG4j2un7aN17YUdABNDOp0yMcYFSXQQ=
+	t=1748652683; cv=none; b=XVbTOPD6To2v9oNowk2CAy1VhZEC+mUm/RvvIoCaoSay3Q/pW5+9umpWPVdEUvPu70fYRElQwk9M0MioQzBTa9jkNEwtGqGy6TXTPrCPX3B6DFyWHr9+LPVYk8Efhb0bqUflAM70HDiIC2HuL9o+C+tpByr6TKVWQE6BIIJMnag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748578376; c=relaxed/simple;
-	bh=2ze4QLqAXk637M0AYoHxYEReOZOwRKDkrVJ5li95DJc=;
-	h=Date:To:From:Subject:Message-Id; b=R4eaUhgoPVH8/Fo+MYQ/CWl/YajjR+ngJnCsXiQJQGp+UTe5g/WISJkLYMRY0ekVgmGjbkdhQICagSVeZREld5I2+dgc71h0haKfhSkbIselEn1iY2d4s+R6vIeJLcxnbir6MPo24c1Q0OwJCiHSdmizn/7Vr/TnI3QnSdSu1Nw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UIcAN0ZT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748652683; c=relaxed/simple;
+	bh=kFWylVHZFNcQjhmOMot2yeI+2a1I2enheoQuCCz9YIs=;
+	h=Date:To:From:Subject:Message-Id; b=qZKbNsUeYENaXhH0/wmHtYF/mCkAevIrcMxdRuAaBioGNrHueGs49VtaK10sfuQCLmZz639hEOoB4EhGNGHgIJhxn++yujKA3lu7LYUj+CTLzulkqNCQVIGHiIVF31TscaOh5AzwEQITHmb9qNz8QKFM/W3yFbgUygxuKBzsqtE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cjytgHpD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UIcAN0ZT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2D2BC4CEE9;
-	Fri, 30 May 2025 04:12:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cjytgHpD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E84EC4CEEB;
+	Sat, 31 May 2025 00:51:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748578375;
-	bh=2ze4QLqAXk637M0AYoHxYEReOZOwRKDkrVJ5li95DJc=;
+	s=korg; t=1748652681;
+	bh=kFWylVHZFNcQjhmOMot2yeI+2a1I2enheoQuCCz9YIs=;
 	h=Date:To:From:Subject:From;
-	b=UIcAN0ZT06xymyleO1ILbhnNf3WwGx/cbH6RXByPWSAKCbcvuDQsqCyqlZ2Fbz9EI
-	 hUDx5EU3vS/3pKWmWqBkLUJY6eZak8XanjblWUSnqNgeKc6ebcscA634KN0okKwIob
-	 qnRQswrW7biWAtYEb8+1axNHsTRYpPry66iZmtbg=
-Date: Thu, 29 May 2025 21:12:55 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,mhocko@suse.com,johannes.thumshirn@wdc.com,hongyu.ning@linux.intel.com,hch@lst.de,hare@suse.de,axboe@kernel.dk,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=cjytgHpDvOmtejdJx7yY561TT0wdWjSPDNsTFgzfn4S3wnSSnaC10gm80CaaQuGsF
+	 4wV6mDMFHZHa1CxwEVk22iA4ipa6/f46L1pFgQVAd5XHsMcM6GC4zNI7hfUZyo0KYL
+	 uv9YswL8XD3O47Uyl71mUcYnfMOX1ElXtXT/2GSg=
+Date: Fri, 30 May 2025 17:51:20 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pulehui@huawei.com,peterz@infradead.org,oleg@redhat.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-vmstat-after-removing-nr_bounce.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250530041255.B2D2BC4CEE9@smtp.kernel.org>
+Subject: + selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge-fix.patch added to mm-unstable branch
+Message-Id: <20250531005121.9E84EC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix vmstat after removing NR_BOUNCE
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-vmstat-after-removing-nr_bounce.patch
+     Subject: selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-vmstat-after-removing-nr_bounce.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix vmstat after removing NR_BOUNCE
-Date: Thu, 29 May 2025 13:38:32 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge-fix
+Date: Fri May 30 05:50:22 PM PDT 2025
 
-Hongyu noticed that the nr_unaccepted counter kept growing even in the
-absence of unaccepted memory on the machine.
+include sys/syscall.h, per Lorenzo
 
-This happens due to a commit that removed NR_BOUNCE: it removed the
-counter from the enum zone_stat_item, but left it in the vmstat_text
-array.
-
-As a result, all counters below nr_bounce in /proc/vmstat are shifted by
-one line, causing the numa_hit counter to be labeled as nr_unaccepted.
-
-To fix this issue, remove nr_bounce from the vmstat_text array.
-
-Link: https://lkml.kernel.org/r/20250529103832.2937460-1-kirill.shutemov@linux.intel.com
-Fixes: 194df9f66db8 ("mm: remove NR_BOUNCE zone stat")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Hongyu Ning <hongyu.ning@linux.intel.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Pu Lehui <pulehui@huawei.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/testing/selftests/mm/merge.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmstat.c~mm-fix-vmstat-after-removing-nr_bounce
-+++ a/mm/vmstat.c
-@@ -1201,7 +1201,6 @@ const char * const vmstat_text[] = {
- 	"nr_zone_unevictable",
- 	"nr_zone_write_pending",
- 	"nr_mlock",
--	"nr_bounce",
- #if IS_ENABLED(CONFIG_ZSMALLOC)
- 	"nr_zspages",
- #endif
+--- a/tools/testing/selftests/mm/merge.c~selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge-fix
++++ a/tools/testing/selftests/mm/merge.c
+@@ -7,6 +7,7 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <sys/mman.h>
++#include <sys/syscall.h>
+ #include <sys/wait.h>
+ #include <linux/perf_event.h>
+ #include "vm_util.h"
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-vmstat-after-removing-nr_bounce.patch
-mm-strictly-check-vmstat_text-array-size.patch
+mm-expose-abnormal-new_pte-during-move_ptes-fix.patch
+selftests-mm-add-test-about-uprobe-pte-be-orphan-during-vma-merge-fix.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-add-zblock-allocator-fix-2-fix.patch
+mm-add-zblock-allocator-fix-3.patch
+mm-zblock-avoid-failing-the-build-fix.patch
 
