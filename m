@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B28D156F28
-	for <mm-commits@vger.kernel.org>; Sun,  1 Jun 2025 05:47:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCA0F156F28
+	for <mm-commits@vger.kernel.org>; Sun,  1 Jun 2025 05:47:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748756862; cv=none; b=epJqQW6ImmG+XUBk30cDf4j29qhwlfJnwCgfC+f2Fo4agwuash20h6RVNtf993fBQ08gmNFPkx1xx0S0JfkAdAMW67VtVhPeFUUSPWEwvs+EnNaizurjCCdfmu10m9pGMT3EJBd/zHK7efkeCPwKZZR+pTNRqndm8Jm+iq8ewCA=
+	t=1748756866; cv=none; b=Sr9kjfe9fwyNMZB7w5QMiP0gXo01wH7I4Mp0xPz0cCW6qMlf3XwZRVg2jaM/my8luAKvtAAjRfgU205ZXYpWFqRFJj4iG2TBnUa+/NrCO9u/bNHsb2Ty7/1P0lXFfRWetT+Nw7IZK6a6WXgBKNAUVydpejYrm5/wZbYWooFUlR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748756862; c=relaxed/simple;
-	bh=rYajGG5YmLnFNUUGG5REwa4I0OwpDv0gjCDH24aqi9k=;
-	h=Date:To:From:Subject:Message-Id; b=oYsSK2QabXNWQUIWp0ijobx+aphDMorZSyuwwQ9Npt4CXm5hDSyYtHGaLct6YuHXlIUbR49yN8pibgSXsSGJwnUtneZ7Kxg5JjnbNQ8mOvK33fnP2akPKFRwAXPcpS+wLU79hGTjiMhsjPZhbkq5UUADH3KjR2yHBaj9YC1UYJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rq3XME2Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748756866; c=relaxed/simple;
+	bh=jlEep32OcD2dDlIXqRTFE0JTHt01Rzq1JPKEgk5zsww=;
+	h=Date:To:From:Subject:Message-Id; b=nHIi7VGT/XZ7uP9kZAJENTEgeuQeqw7sujZ6cdMPjdiZZVWN34KPfE1hF8PX8nBInuzmJ0GfZ9CTi9VmUAhngQdwPnfKsCvQC5sHhsUhh0majhQ1eN/er6N/IV4+c1CNB4cVdAwSQ1VL6F4CKFUS3cHq+mbeED19h6Btjgvo1/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=psCEtXOH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rq3XME2Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EE4FC4CEED;
-	Sun,  1 Jun 2025 05:47:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="psCEtXOH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39BBAC4CEED;
+	Sun,  1 Jun 2025 05:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748756862;
-	bh=rYajGG5YmLnFNUUGG5REwa4I0OwpDv0gjCDH24aqi9k=;
+	s=korg; t=1748756865;
+	bh=jlEep32OcD2dDlIXqRTFE0JTHt01Rzq1JPKEgk5zsww=;
 	h=Date:To:From:Subject:From;
-	b=rq3XME2Qnl7VbWztAHbKTuQcZrDB8tfWRFBv4nmwLAa73G+ztLVRNT27xcewJoxD3
-	 b+QUCzDxnLdRjgzqgBFave7bbkBSwEnU9p56yWNxVuNFl19ktG0h0K7zSIsp2b0XIO
-	 JS8qbPw16ATi3+hzlapSnXA/TUcVGGscZE/EMWKQ=
-Date: Sat, 31 May 2025 22:47:41 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=psCEtXOHWT/9FyxcNfbmEu3i1+ON3nzCnilWphz1/kRTU9n9O4TZeV5a0NmU0YiSs
+	 rnWShBgEqN4AyTdx3VPUfT9Lm/CxkYCxvvMGmXmY9T4RyHrtCo8o4t+l+wNxLxRX+m
+	 RyZEwxSN+hapR8wVEMyNczpa497x01eizLidmVqU=
+Date: Sat, 31 May 2025 22:47:44 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-_damon_sysfs-skip-testcases-if-config_damon_sysfs-is-disabled.patch removed from -mm tree
-Message-Id: <20250601054742.3EE4FC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm.patch removed from -mm tree
+Message-Id: <20250601054745.39BBAC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/_damon_sysfs: skip testcases if CONFIG_DAMON_SYSFS is disabled
+     Subject: selftests/mm: use standard ksft_finished() in cow and gup_longterm
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-_damon_sysfs-skip-testcases-if-config_damon_sysfs-is-disabled.patch
+     selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: selftests/damon/_damon_sysfs: skip testcases if CONFIG_DAMON_SYSFS is disabled
-Date: Sat, 31 May 2025 17:39:37 +0800
+From: Mark Brown <broonie@kernel.org>
+Subject: selftests/mm: use standard ksft_finished() in cow and gup_longterm
+Date: Tue, 27 May 2025 17:04:45 +0100
 
-When CONFIG_DAMON_SYSFS is disabled, the selftests fail with the following
-outputs,
+Patch series "selftests/mm: cow and gup_longterm cleanups", v2.
 
-not ok 2 selftests: damon: sysfs_update_schemes_tried_regions_wss_estimation.py # exit=1
-not ok 3 selftests: damon: damos_quota.py # exit=1
-not ok 4 selftests: damon: damos_quota_goal.py # exit=1
-not ok 5 selftests: damon: damos_apply_interval.py # exit=1
-not ok 6 selftests: damon: damos_tried_regions.py # exit=1
-not ok 7 selftests: damon: damon_nr_regions.py # exit=1
-not ok 11 selftests: damon: sysfs_update_schemes_tried_regions_hang.py # exit=1
+The bulk of these changes modify the cow and gup_longterm tests to report
+unique and stable names for each test, bringing them into line with the
+expectations of tooling that works with kselftest.  The string reported as
+a test result is used by tooling to both deduplicate tests and track tests
+between test runs, using the same string for multiple tests or changing
+the string depending on test result causes problems for user interfaces
+and automation such as bisection.
 
-The root cause of this issue is that all the testcases above do not check
-the sysfs interface of DAMON whether it exists or not.  With this patch
-applied, all the testcases above now pass successfully.
+It was suggested that converting to use kselftest_harness.h would be a
+good way of addressing this, however that really wants the set of tests to
+run to be known at compile time but both test programs dynamically
+enumarate the set of huge page sizes the system supports and test each. 
+Refactoring to handle this would be even more invasive than these changes
+which are large but straightforward and repetitive.
 
-Link: https://lkml.kernel.org/r/20250531093937.1555159-1-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+A version of the main gup_longterm cleanup was previously sent separately,
+this version factors out the helpers for logging the start of the test
+since the cow test looks very similar.
+
+
+This patch (of 4):
+
+The cow and gup_longterm test programs open code something that looks a
+lot like the standard ksft_finished() helper to summarise the test results
+and provide an exit code, convert to use ksft_finished().
+
+Link: https://lkml.kernel.org/r/20250527-selftests-mm-cow-dedupe-v2-0-ff198df8e38e@kernel.org
+Link: https://lkml.kernel.org/r/20250527-selftests-mm-cow-dedupe-v2-1-ff198df8e38e@kernel.org
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/mm/cow.c          |    7 +------
+ tools/testing/selftests/mm/gup_longterm.c |    8 ++------
+ 2 files changed, 3 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-skip-testcases-if-config_damon_sysfs-is-disabled
-+++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -15,6 +15,10 @@ if sysfs_root is None:
-     print('Seems sysfs not mounted?')
-     exit(ksft_skip)
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1771,7 +1771,6 @@ static int tests_per_non_anon_test_case(
  
-+if not os.path.exists(sysfs_root):
-+    print('Seems DAMON disabled?')
-+    exit(ksft_skip)
-+
- def write_file(path, string):
-     "Returns error string if failed, or None otherwise"
-     string = '%s' % string
+ int main(int argc, char **argv)
+ {
+-	int err;
+ 	struct thp_settings default_settings;
+ 
+ 	ksft_print_header();
+@@ -1811,9 +1810,5 @@ int main(int argc, char **argv)
+ 		thp_restore_settings();
+ 	}
+ 
+-	err = ksft_get_fail_cnt();
+-	if (err)
+-		ksft_exit_fail_msg("%d out of %d tests failed\n",
+-				   err, ksft_test_num());
+-	ksft_exit_pass();
++	ksft_finished();
+ }
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-use-standard-ksft_finished-in-cow-and-gup_longterm
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -455,7 +455,7 @@ static int tests_per_test_case(void)
+ 
+ int main(int argc, char **argv)
+ {
+-	int i, err;
++	int i;
+ 
+ 	pagesize = getpagesize();
+ 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
+@@ -469,9 +469,5 @@ int main(int argc, char **argv)
+ 	for (i = 0; i < ARRAY_SIZE(test_cases); i++)
+ 		run_test_case(&test_cases[i]);
+ 
+-	err = ksft_get_fail_cnt();
+-	if (err)
+-		ksft_exit_fail_msg("%d out of %d tests failed\n",
+-				   err, ksft_test_num());
+-	ksft_exit_pass();
++	ksft_finished();
+ }
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from broonie@kernel.org are
 
 
