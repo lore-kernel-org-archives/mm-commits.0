@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10F5E1411DE
-	for <mm-commits@vger.kernel.org>; Sun,  1 Jun 2025 05:47:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4D9F1411DE
+	for <mm-commits@vger.kernel.org>; Sun,  1 Jun 2025 05:47:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748756830; cv=none; b=Tl3J7qdKbhYy4suW7ucY7UI+XZW/rhAM6a/RMM/pkdaoykT+1vPFNbhpx8xI6ybia61EspUCg6MWJflnAkHIV7Zq89/nu3NrPUqu1CfW7xDEaqeZARBPK2DEOjJrWib1GuHSGf5115/oCt02JYB8UGMiIxMS6j0kkIpQxiu+8iI=
+	t=1748756832; cv=none; b=ic3xLLKGGH40ds8B9okObMHMINcv9RlNNe1alWOwkXtosxqtKOFhfWGMLKR1bHBBlO9CwW6Pu8PEvXMSeLZet1Xy5arTTkCXJ0m4jLp1jQDA+VuyCjoUUgyz5XBSGS07HsYo2R08FOCREpTkZkkmAyHNYKk7mhUyRcTKNxzsFSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748756830; c=relaxed/simple;
-	bh=LFb4z++wg6kkVvuv5jwv/JuM28BWyeE213hxQpX8JgI=;
-	h=Date:To:From:Subject:Message-Id; b=NlbkEOMM1IUgKnEMiuBvNwmgFaJEAjhoyV7YjnLDr2/8cmkQRW88V4xw8NlWNu8cExr9I1BOBXCJSz/wzZ8cm9ru8ORpOuK6NQ86hKtwW5XKQ+hwv7jtaX/8rOFKR74Y5/K2EVhsUFioHWjKsKe0U2n9DzjjrgbnDc1XGEVTJAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1D+efPJA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748756832; c=relaxed/simple;
+	bh=DIJCMwz0/RkdZf8gP3TfCZ8vK/10RDfnUozHJGzDi6A=;
+	h=Date:To:From:Subject:Message-Id; b=sqc/SFY7wYn0Imqvx74xDy8nGb6990jhnsKxnvisa8N3nyqrRXf43UtLU4sr9Sn5eo7NVm8rVZpvX4Q25toUrU0LXcVxf5CktDmxzWdDCMGFf8BYeWoNRhZfzH1XPp4gNEInbmNYrmK0TM9NcfMYX/N6FF1s2BGHq+6xDiUtABw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VHXY3wfH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1D+efPJA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAA06C4CEED;
-	Sun,  1 Jun 2025 05:47:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VHXY3wfH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DC3DC4CEED;
+	Sun,  1 Jun 2025 05:47:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748756829;
-	bh=LFb4z++wg6kkVvuv5jwv/JuM28BWyeE213hxQpX8JgI=;
+	s=korg; t=1748756831;
+	bh=DIJCMwz0/RkdZf8gP3TfCZ8vK/10RDfnUozHJGzDi6A=;
 	h=Date:To:From:Subject:From;
-	b=1D+efPJA6jWbbdbVAnh5/iRHPKI4mfPTFeI/tAoCifc8LhBgYWKFy1YzhRkQxSMlW
-	 hNp5jp3e4yfYwyD1Nr3ke4hJXK/dbge8pL6yP7mJvjos+tFddu1yCQJej+msD+IJ+k
-	 qHnOUNjbXIUSky9aHnWEJ+EQV5C5n6Gn88glWs4U=
-Date: Sat, 31 May 2025 22:47:09 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,mathieu.desnoyers@efficios.com,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=VHXY3wfHVYwJl6U7kVCWBzgmH1xyqvO8hIxWi7wwp7u+vmWzn0dG5EOi/1vq3haT7
+	 R8wxzTQAiIOpd0VaIz3t9hwSXgMZFFbDBT8DZUvVdjc7nBcFcbtrm7b4prmJULVgeU
+	 HESyTiCiN8huyYzrLSwrvsVfNy1q/DX6OFyaURIU=
+Date: Sat, 31 May 2025 22:47:11 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-make-memcg_rstat_updated-nmi-safe.patch removed from -mm tree
-Message-Id: <20250601054709.DAA06C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-avoid-destroyed-target-reference-from-damos-quota.patch removed from -mm tree
+Message-Id: <20250601054711.9DC3DC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: make memcg_rstat_updated nmi safe
+     Subject: mm/damon/core: avoid destroyed target reference from DAMOS quota
 has been removed from the -mm tree.  Its filename was
-     memcg-make-memcg_rstat_updated-nmi-safe.patch
+     mm-damon-core-avoid-destroyed-target-reference-from-damos-quota.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: make memcg_rstat_updated nmi safe
-Date: Sun, 18 May 2025 23:31:42 -0700
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm/damon/core: avoid destroyed target reference from DAMOS quota
+Date: Sat, 17 May 2025 23:18:52 +0900
 
-Currently kernel maintains memory related stats updates per-cgroup to
-optimize stats flushing.  The stats_updates is defined as atomic64_t which
-is not nmi-safe on some archs.  Actually we don't really need 64bit atomic
-as the max value stats_updates can get should be less than nr_cpus *
-MEMCG_CHARGE_BATCH.  A normal atomic_t should suffice.
+When the number of the monitoring targets in running contexts is reduced,
+there may be DAMOS quotas referencing the targets that will be destroyed.
 
-Also the function cgroup_rstat_updated() is still not nmi-safe but there
-is parallel effort to make it nmi-safe, so until then let's ignore it in
-the nmi context.
+Applying the scheme action for such DAMOS scheme will be skipped forever
+looking for the starting part of the region for the destroyed monitoring
+target.
 
-Link: https://lkml.kernel.org/r/20250519063142.111219-6-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Tejun Heo <tj@kernel.org>
+To fix this issue, when the monitoring target is destroyed, reset the
+starting part for all DAMOS quotas that reference the target.
+
+Link: https://lkml.kernel.org/r/20250517141852.142802-1-akinobu.mita@gmail.com
+Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/damon/core.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/memcontrol.c~memcg-make-memcg_rstat_updated-nmi-safe
-+++ a/mm/memcontrol.c
-@@ -531,7 +531,7 @@ struct memcg_vmstats {
- 	unsigned long		events_pending[NR_MEMCG_EVENTS];
- 
- 	/* Stats updates since the last flush */
--	atomic64_t		stats_updates;
-+	atomic_t		stats_updates;
- };
- 
- /*
-@@ -557,7 +557,7 @@ static u64 flush_last_time;
- 
- static bool memcg_vmstats_needs_flush(struct memcg_vmstats *vmstats)
- {
--	return atomic64_read(&vmstats->stats_updates) >
-+	return atomic_read(&vmstats->stats_updates) >
- 		MEMCG_CHARGE_BATCH * num_online_cpus();
- }
- 
-@@ -571,7 +571,9 @@ static inline void memcg_rstat_updated(s
- 	if (!val)
- 		return;
- 
--	cgroup_rstat_updated(memcg->css.cgroup, cpu);
-+	/* TODO: add to cgroup update tree once it is nmi-safe. */
-+	if (!in_nmi())
-+		cgroup_rstat_updated(memcg->css.cgroup, cpu);
- 	statc_pcpu = memcg->vmstats_percpu;
- 	for (; statc_pcpu; statc_pcpu = statc->parent_pcpu) {
- 		statc = this_cpu_ptr(statc_pcpu);
-@@ -589,7 +591,7 @@ static inline void memcg_rstat_updated(s
- 			continue;
- 
- 		stats_updates = this_cpu_xchg(statc_pcpu->stats_updates, 0);
--		atomic64_add(stats_updates, &statc->vmstats->stats_updates);
-+		atomic_add(stats_updates, &statc->vmstats->stats_updates);
+--- a/mm/damon/core.c~mm-damon-core-avoid-destroyed-target-reference-from-damos-quota
++++ a/mm/damon/core.c
+@@ -1093,9 +1093,17 @@ static int damon_commit_targets(
+ 			if (err)
+ 				return err;
+ 		} else {
++			struct damos *s;
++
+ 			if (damon_target_has_pid(dst))
+ 				put_pid(dst_target->pid);
+ 			damon_destroy_target(dst_target);
++			damon_for_each_scheme(s, dst) {
++				if (s->quota.charge_target_from == dst_target) {
++					s->quota.charge_target_from = NULL;
++					s->quota.charge_addr_from = 0;
++				}
++			}
+ 		}
  	}
- }
  
-@@ -597,7 +599,7 @@ static void __mem_cgroup_flush_stats(str
- {
- 	bool needs_flush = memcg_vmstats_needs_flush(memcg->vmstats);
- 
--	trace_memcg_flush_stats(memcg, atomic64_read(&memcg->vmstats->stats_updates),
-+	trace_memcg_flush_stats(memcg, atomic_read(&memcg->vmstats->stats_updates),
- 		force, needs_flush);
- 
- 	if (!force && !needs_flush)
-@@ -4119,8 +4121,8 @@ static void mem_cgroup_css_rstat_flush(s
- 	}
- 	WRITE_ONCE(statc->stats_updates, 0);
- 	/* We are in a per-cpu loop here, only do the atomic write once */
--	if (atomic64_read(&memcg->vmstats->stats_updates))
--		atomic64_set(&memcg->vmstats->stats_updates, 0);
-+	if (atomic_read(&memcg->vmstats->stats_updates))
-+		atomic_set(&memcg->vmstats->stats_updates, 0);
- }
- 
- static void mem_cgroup_fork(struct task_struct *task)
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 
