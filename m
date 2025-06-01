@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1451212D758
-	for <mm-commits@vger.kernel.org>; Sun,  1 Jun 2025 05:46:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A51C2146A68
+	for <mm-commits@vger.kernel.org>; Sun,  1 Jun 2025 05:46:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748756814; cv=none; b=IAKnEGiQ4v3cUhXaN1ftrp6yNQsjM9rg6t2UxDpRPCbYKZo6WGUCHK+QzNKtCOROraXU0Aho1j5SAp4AA83lG22But/pfzykRPbS/Nifvcjl4RStRRos/G4goa+xT/44qWVl+QrIjHYG/qWCBuQVhUM1HqfIK6m05lgA7Sofh0I=
+	t=1748756815; cv=none; b=Yr4luXH3fc3YTr6sD8YkBBOg749ox4jBSaGvGW3RviMG7psIqkAtizsWoJ0hpL6jNbR+Ub65TTCF7dE5ePX40IpPWOM5xlftCRHemANuWBoI3Sje3zn7WYLGKUjvk5UtqK0A4eeCzha3c7Lc00h3cE2LLapHiOtL17/iJIoWv4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748756814; c=relaxed/simple;
-	bh=hoS4gRZ/tEDAa9xLt5+ouDdsYajS9deUTasGTLHSSV4=;
-	h=Date:To:From:Subject:Message-Id; b=lxNuU1caxamkj4u0YWapjjDK9Yw+GVw+sA0LuoVBi2hPdRjSETCkj4H/Bi9OB7GPVAvGjw3EG1cZa3AeBkeFDin6NEoVUc/Oexog2kA7Rn7BgRCDFjgzcpfMLvmdSSmu3oobrrQzyd8rVN4EMGb+QbxLgGgaupR4IkpYVGn1Kh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJkWZlKG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748756815; c=relaxed/simple;
+	bh=bEh8gml4bLq5XyaK7WgMqhlRyM3e9Tk5rbxx32G3MwQ=;
+	h=Date:To:From:Subject:Message-Id; b=oKtMUydktCy2BV6/PhRCMvLin2OuoYAKKpmWExKz+qPLqw0DKPP+Jxy2Eod80AHv4XOLNpx1NH2Fp82hRVtNWwLf2mKGpL9Lgzqm4ZfOQH9xuUKSFDlWcSwRrg2szmPciDXH0p3ExaiOVimJ79MGR9dxMlTdqVt8NIdoN2JOyAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Q0kg6ya; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJkWZlKG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AE9AC4CEF0;
-	Sun,  1 Jun 2025 05:46:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Q0kg6ya"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06BE2C4CEED;
+	Sun,  1 Jun 2025 05:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748756813;
-	bh=hoS4gRZ/tEDAa9xLt5+ouDdsYajS9deUTasGTLHSSV4=;
+	s=korg; t=1748756815;
+	bh=bEh8gml4bLq5XyaK7WgMqhlRyM3e9Tk5rbxx32G3MwQ=;
 	h=Date:To:From:Subject:From;
-	b=VJkWZlKG1nXzZRqf8QxVPan4NLIID22knuoQS9aQXoUMu/NxsRhyperUxVyi21KRH
-	 JFmLLDTBOJeVBB/syEO+5ikmVRa4Q8hwz04fpzfK5rizvZryfR/BeCBz7CtzfnbFxo
-	 NosPUoxo1vavilPfWNTzz0IMcHHTCBefSOpSyxP4=
-Date: Sat, 31 May 2025 22:46:52 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=2Q0kg6yapz8FGVAM/YaEH5LF+iKcit2EYPpR1Nt+er4HTLJEh6ZEHZ5afE2RXlMrf
+	 tViG3lMbscX1pyiUVucmvfU63S3U6cM3YzWjO1l3HZtLoMuzEA+XxIhc9/EJDbrF1u
+	 /FOQ86U02P2nt6bwDrDRVbdPvMc0QONIvxRgfx7Q=
+Date: Sat, 31 May 2025 22:46:54 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,hughd@google.com,almaz.alexandrovich@paragon-software.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rename-page-index-to-page-__folio_index.patch removed from -mm tree
-Message-Id: <20250601054653.3AE9AC4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] ntfs3-use-folios-more-in-ntfs_compress_write.patch removed from -mm tree
+Message-Id: <20250601054655.06BE2C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,182 +35,123 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: rename page->index to page->__folio_index
+     Subject: ntfs3: use folios more in ntfs_compress_write()
 has been removed from the -mm tree.  Its filename was
-     mm-rename-page-index-to-page-__folio_index.patch
+     ntfs3-use-folios-more-in-ntfs_compress_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: rename page->index to page->__folio_index
-Date: Wed, 14 May 2025 19:15:07 +0100
+Subject: ntfs3: use folios more in ntfs_compress_write()
+Date: Wed, 14 May 2025 18:06:03 +0100
 
-All users of page->index have been converted to not refer to it any more. 
-Update a few pieces of documentation that were missed and prevent new
-users from appearing (or at least make them easy to grep for).
+Remove the local 'page' variable and do everything in terms of folios. 
+Removes the last user of copy_page_from_iter_atomic() and a hidden call to
+compound_head() in ClearPageDirty().
 
-Link: https://lkml.kernel.org/r/20250514181508.3019795-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250514170607.3000994-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/flush.c      |    4 ++--
- include/linux/mm.h       |    6 +++---
- include/linux/mm_types.h |    6 +++---
- kernel/futex/core.c      |    2 +-
- mm/filemap.c             |    4 ++--
- mm/memory.c              |    4 ++--
- mm/page-writeback.c      |    6 +++---
- mm/truncate.c            |    2 +-
- mm/zpdesc.h              |    4 ++--
- 9 files changed, 19 insertions(+), 19 deletions(-)
+ fs/ntfs3/file.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
---- a/arch/arm/mm/flush.c~mm-rename-page-index-to-page-__folio_index
-+++ a/arch/arm/mm/flush.c
-@@ -227,9 +227,9 @@ void __flush_dcache_folio(struct address
- 	}
+--- a/fs/ntfs3/file.c~ntfs3-use-folios-more-in-ntfs_compress_write
++++ a/fs/ntfs3/file.c
+@@ -998,7 +998,8 @@ static ssize_t ntfs_compress_write(struc
+ 	struct ntfs_inode *ni = ntfs_i(inode);
+ 	u64 valid = ni->i_valid;
+ 	struct ntfs_sb_info *sbi = ni->mi.sbi;
+-	struct page *page, **pages = NULL;
++	struct page **pages = NULL;
++	struct folio *folio;
+ 	size_t written = 0;
+ 	u8 frame_bits = NTFS_LZNT_CUNIT + sbi->cluster_bits;
+ 	u32 frame_size = 1u << frame_bits;
+@@ -1008,7 +1009,6 @@ static ssize_t ntfs_compress_write(struc
+ 	u64 frame_vbo;
+ 	pgoff_t index;
+ 	bool frame_uptodate;
+-	struct folio *folio;
  
- 	/*
--	 * If this is a page cache page, and we have an aliasing VIPT cache,
-+	 * If this is a page cache folio, and we have an aliasing VIPT cache,
- 	 * we only need to do one flush - which would be at the relevant
--	 * userspace colour, which is congruent with page->index.
-+	 * userspace colour, which is congruent with folio->index.
- 	 */
- 	if (mapping && cache_is_vipt_aliasing())
- 		flush_pfn_alias(folio_pfn(folio), folio_pos(folio));
---- a/include/linux/mm.h~mm-rename-page-index-to-page-__folio_index
-+++ a/include/linux/mm.h
-@@ -1276,9 +1276,9 @@ vm_fault_t finish_fault(struct vm_fault
-  * the page's disk buffers. PG_private must be set to tell the VM to call
-  * into the filesystem to release these pages.
-  *
-- * A page may belong to an inode's memory mapping. In this case, page->mapping
-- * is the pointer to the inode, and page->index is the file offset of the page,
-- * in units of PAGE_SIZE.
-+ * A folio may belong to an inode's memory mapping. In this case,
-+ * folio->mapping points to the inode, and folio->index is the file
-+ * offset of the folio, in units of PAGE_SIZE.
-  *
-  * If pagecache pages are not associated with an inode, they are said to be
-  * anonymous pages. These may become associated with the swapcache, and in that
---- a/include/linux/mm_types.h~mm-rename-page-index-to-page-__folio_index
-+++ a/include/linux/mm_types.h
-@@ -107,7 +107,7 @@ struct page {
- 			/* See page-flags.h for PAGE_MAPPING_FLAGS */
- 			struct address_space *mapping;
- 			union {
--				pgoff_t index;		/* Our offset within mapping. */
-+				pgoff_t __folio_index;		/* Our offset within mapping. */
- 				unsigned long share;	/* share count for fsdax */
- 			};
- 			/**
-@@ -488,7 +488,7 @@ FOLIO_MATCH(flags, flags);
- FOLIO_MATCH(lru, lru);
- FOLIO_MATCH(mapping, mapping);
- FOLIO_MATCH(compound_head, lru);
--FOLIO_MATCH(index, index);
-+FOLIO_MATCH(__folio_index, index);
- FOLIO_MATCH(private, private);
- FOLIO_MATCH(_mapcount, _mapcount);
- FOLIO_MATCH(_refcount, _refcount);
-@@ -589,7 +589,7 @@ TABLE_MATCH(flags, __page_flags);
- TABLE_MATCH(compound_head, pt_list);
- TABLE_MATCH(compound_head, _pt_pad_1);
- TABLE_MATCH(mapping, __page_mapping);
--TABLE_MATCH(index, pt_index);
-+TABLE_MATCH(__folio_index, pt_index);
- TABLE_MATCH(rcu_head, pt_rcu_head);
- TABLE_MATCH(page_type, __page_type);
- TABLE_MATCH(_refcount, __page_refcount);
---- a/kernel/futex/core.c~mm-rename-page-index-to-page-__folio_index
-+++ a/kernel/futex/core.c
-@@ -206,7 +206,7 @@ static u64 get_inode_sequence_number(str
-  *
-  * For shared mappings (when @fshared), the key is:
-  *
-- *   ( inode->i_sequence, page->index, offset_within_page )
-+ *   ( inode->i_sequence, page offset within mapping, offset_within_page )
-  *
-  * [ also see get_inode_sequence_number() ]
-  *
---- a/mm/filemap.c~mm-rename-page-index-to-page-__folio_index
-+++ a/mm/filemap.c
-@@ -142,7 +142,7 @@ static void page_cache_delete(struct add
- 	xas_init_marks(&xas);
- 
- 	folio->mapping = NULL;
--	/* Leave page->index set: truncation lookup relies upon it */
-+	/* Leave folio->index set: truncation lookup relies upon it */
- 	mapping->nrpages -= nr;
- }
- 
-@@ -949,7 +949,7 @@ unlock:
- 	return 0;
- error:
- 	folio->mapping = NULL;
--	/* Leave page->index set: truncation relies upon it */
-+	/* Leave folio->index set: truncation relies upon it */
- 	folio_put_refs(folio, nr);
- 	return xas_error(&xas);
- }
---- a/mm/memory.c~mm-rename-page-index-to-page-__folio_index
-+++ a/mm/memory.c
-@@ -4668,8 +4668,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 
+ 	if (frame_size < PAGE_SIZE) {
  		/*
- 		 * KSM sometimes has to copy on read faults, for example, if
--		 * page->index of !PageKSM() pages would be nonlinear inside the
--		 * anon VMA -- PageKSM() is lost on actual swapout.
-+		 * folio->index of non-ksm folios would be nonlinear inside the
-+		 * anon VMA -- the ksm flag is lost on actual swapout.
- 		 */
- 		folio = ksm_might_need_to_copy(folio, vma, vmf->address);
- 		if (unlikely(!folio)) {
---- a/mm/page-writeback.c~mm-rename-page-index-to-page-__folio_index
-+++ a/mm/page-writeback.c
-@@ -2565,11 +2565,11 @@ struct folio *writeback_iter(struct addr
- 	if (!folio) {
- 		/*
- 		 * To avoid deadlocks between range_cyclic writeback and callers
--		 * that hold pages in PageWriteback to aggregate I/O until
-+		 * that hold folios in writeback to aggregate I/O until
- 		 * the writeback iteration finishes, we do not loop back to the
--		 * start of the file.  Doing so causes a page lock/page
-+		 * start of the file.  Doing so causes a folio lock/folio
- 		 * writeback access order inversion - we should only ever lock
--		 * multiple pages in ascending page->index order, and looping
-+		 * multiple folios in ascending folio->index order, and looping
- 		 * back to the start of the file violates that rule and causes
- 		 * deadlocks.
- 		 */
---- a/mm/truncate.c~mm-rename-page-index-to-page-__folio_index
-+++ a/mm/truncate.c
-@@ -421,7 +421,7 @@ void truncate_inode_pages_range(struct a
- 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
- 			struct folio *folio = fbatch.folios[i];
+@@ -1062,8 +1062,7 @@ static ssize_t ntfs_compress_write(struc
+ 					    pages_per_frame);
+ 			if (err) {
+ 				for (ip = 0; ip < pages_per_frame; ip++) {
+-					page = pages[ip];
+-					folio = page_folio(page);
++					folio = page_folio(pages[ip]);
+ 					folio_unlock(folio);
+ 					folio_put(folio);
+ 				}
+@@ -1074,10 +1073,9 @@ static ssize_t ntfs_compress_write(struc
+ 		ip = off >> PAGE_SHIFT;
+ 		off = offset_in_page(valid);
+ 		for (; ip < pages_per_frame; ip++, off = 0) {
+-			page = pages[ip];
+-			folio = page_folio(page);
+-			zero_user_segment(page, off, PAGE_SIZE);
+-			flush_dcache_page(page);
++			folio = page_folio(pages[ip]);
++			folio_zero_segment(folio, off, PAGE_SIZE);
++			flush_dcache_folio(folio);
+ 			folio_mark_uptodate(folio);
+ 		}
  
--			/* We rely upon deletion not changing page->index */
-+			/* We rely upon deletion not changing folio->index */
+@@ -1086,8 +1084,7 @@ static ssize_t ntfs_compress_write(struc
+ 		ni_unlock(ni);
  
- 			if (xa_is_value(folio))
- 				continue;
---- a/mm/zpdesc.h~mm-rename-page-index-to-page-__folio_index
-+++ a/mm/zpdesc.h
-@@ -54,8 +54,8 @@ struct zpdesc {
- ZPDESC_MATCH(flags, flags);
- ZPDESC_MATCH(lru, lru);
- ZPDESC_MATCH(mapping, movable_ops);
--ZPDESC_MATCH(index, next);
--ZPDESC_MATCH(index, handle);
-+ZPDESC_MATCH(__folio_index, next);
-+ZPDESC_MATCH(__folio_index, handle);
- ZPDESC_MATCH(private, zspage);
- ZPDESC_MATCH(page_type, first_obj_offset);
- ZPDESC_MATCH(_refcount, _refcount);
+ 		for (ip = 0; ip < pages_per_frame; ip++) {
+-			page = pages[ip];
+-			folio = page_folio(page);
++			folio = page_folio(pages[ip]);
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+@@ -1131,8 +1128,7 @@ static ssize_t ntfs_compress_write(struc
+ 				if (err) {
+ 					for (ip = 0; ip < pages_per_frame;
+ 					     ip++) {
+-						page = pages[ip];
+-						folio = page_folio(page);
++						folio = page_folio(pages[ip]);
+ 						folio_unlock(folio);
+ 						folio_put(folio);
+ 					}
+@@ -1150,10 +1146,10 @@ static ssize_t ntfs_compress_write(struc
+ 		for (;;) {
+ 			size_t cp, tail = PAGE_SIZE - off;
+ 
+-			page = pages[ip];
+-			cp = copy_page_from_iter_atomic(page, off,
++			folio = page_folio(pages[ip]);
++			cp = copy_folio_from_iter_atomic(folio, off,
+ 							min(tail, bytes), from);
+-			flush_dcache_page(page);
++			flush_dcache_folio(folio);
+ 
+ 			copied += cp;
+ 			bytes -= cp;
+@@ -1173,9 +1169,8 @@ static ssize_t ntfs_compress_write(struc
+ 		ni_unlock(ni);
+ 
+ 		for (ip = 0; ip < pages_per_frame; ip++) {
+-			page = pages[ip];
+-			ClearPageDirty(page);
+-			folio = page_folio(page);
++			folio = page_folio(pages[ip]);
++			folio_clear_dirty(folio);
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
