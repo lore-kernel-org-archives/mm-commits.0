@@ -1,98 +1,116 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BAD746B8
-	for <mm-commits@vger.kernel.org>; Mon,  2 Jun 2025 23:03:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CB962C324C;
+	Mon,  2 Jun 2025 23:03:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748905404; cv=none; b=nLyFNJ0XCG7/YUIwtnzf8Di+m1UvGySYpL4xh+fUqa/YEHn0YXwB8tQo8fYKUNoPliL2wsrWDygZHbm5EMPJQpQRD+EBZIVtLsWIaE0lre/njig47lIxPLQ78iL3RLcXD5KnhoDSPmjxzukdgx+DoKBHRqs6+xYfq3/XJ6T6wCA=
+	t=1748905436; cv=none; b=Bf23uMHtgNUdgjnfyyd4unQcZGVw1LXjz4Bm44NuHNP6JIeRGMEdn2LEk1Cm4EGMkZigyWD+Y8GzWe4jHeFeKNUXg08P8y4JvET3YSY4uwRaYGRarYB+02ggVMYYSBVfQ+Sxtvux99v2tVm5aKWM4ruZgiqz2eDSDGYdwwRg9Hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748905404; c=relaxed/simple;
-	bh=++szFMEtgyqwwYz0D+PwSonYFKpvE5qF2EiDkDJfZzU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=npC/HxNMlQv8tymtvj7ivqxc1YoyVrk+2SIWUGRLS7cWmagN/3LkRNQMZ8+1iVJQikHlWfsxGWg+H1M4ImT42tNQkah7AAwslIirdAnue0w1wwlpQxeYYfkvkscRVpIinqjpFVQjLJ0AOGL6E4fKsKmOdrHv5w2pjmpJEkzDeDM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yej4+GtC; arc=none smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1748905436; c=relaxed/simple;
+	bh=enesM/kbKXtB2Fn8FJwXky/zWaZKJtb8khx/YedFwto=;
+	h=Date:To:From:Subject:Message-Id; b=WoC/GRZ4V4rg9JZDe21vgbL2WfNs96ePMXLRCdC+q26C0CPIALFvPBfJsOhPHL1oPQ9li8ptaNDmygdt/U96RMXdC5BJ5qSEm69Du1wgC6BNAEAXAfhXQL6RkYcYbtuUTgUFsyj/tSD9z7y4tTTmRrWmq2VUeD1hm4vxy0OX4uI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lhZtiN85; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yej4+GtC"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-ad8a6c202ffso966586166b.3
-        for <mm-commits@vger.kernel.org>; Mon, 02 Jun 2025 16:03:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1748905400; x=1749510200; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=7f60M5hYbeRCzldPkBmcnfnzcWSP10+sVHiJXwkVxp4=;
-        b=Yej4+GtCaj1tptR6eUrQRbrXZXFuW+kLFjBoaoifpFgjHs5ebsQ0PosoP5FrUbvpYZ
-         QLp+8eB6qE3v6X3lqAZ21ucbYJINmiP2oFP1paJQrQ3T8CXmnzbKm1UNoDa4FM0xi+oy
-         6pcGrNc2fN8XKunAS7CthVF/UYtnu+RlgKnXs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748905400; x=1749510200;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=7f60M5hYbeRCzldPkBmcnfnzcWSP10+sVHiJXwkVxp4=;
-        b=pn2i78tNyTFBxmcrFARckeji5bAOyQf1rEnibcu6GaiByyLGSZtW8ubvQ4fi7eUEgZ
-         zscYxNGxprXV8YB1T6CEDnLMi1rFGSy1Hm5qM9VMCb1cjAxyM3N88y0xx5vcdcKo/ZYf
-         C+8nxex25Ar5bbJ05HFsu1DpKwfeATnF1JBcR3jRcODofP/D8ia4SDUSdC5GhIUR+rbz
-         FqcdlmfYauUTZ6JGTPVjaX4xIm24UCuJ62QEEIhkBxOWN+QxZIqY8zvbh6U9T45vAFrq
-         UOnYvLbRS6y4Lbf4CDI7wV/5jqg4MJx+OasMLu2YYOyur14YLnQd/DpYV49QNgwXHIRP
-         N6xA==
-X-Forwarded-Encrypted: i=1; AJvYcCUYWobDWbSBKwi5YlDYorsILLigLYAef+crjIP3duZKZZEL9I8S3u6mRF0QnrqoTvnGgG4bYEEV4phk@vger.kernel.org
-X-Gm-Message-State: AOJu0YxEIgm+pbsB8Bap3AS1VcVkXBpTl58/FVeeC6jFslAvgvmhMU4D
-	zLG1FOQz1C+PJC70U+4GdxG5qHShmpGs38mortmAU+YAFRt1enu+PBxGHfSNb623/ATjNbzDmSL
-	/MxzbXIIUig==
-X-Gm-Gg: ASbGnctx8tYZ8VrjpROhacJ9CdLnnfY+e2IvbxmBUuT3F1SVaZmtzgMX8671x/V+iio
-	Yr/vonmeqwp4xAvF5EWm8OwxYMl+gxGiYxsv4lVsq1UriqKS2PuZCaSAcVDF4TWUB+0160HTsBb
-	7W4BGTcpoWSjpZUyuU+WhWe2glpGITsjKU+7giwRRvEhjuDRe+rsY/rMl7IKVhTYsD6DqW2XZ7s
-	dB+zxWbsbf3aepeGoFIB+s6707Pd8a7kCnz0RrnquPsJRWinBCaCEqcR6lThcdWo+vhde6JF/Db
-	gIC46XiWs00WNQopbQnNDvGJRI3Fji8D14xYwam501ndlvOb6AsVZjX/EHSlMNJWyjzbHa+hClk
-	o2Dx1cbsB4u0MmsItaAPSvhACZA==
-X-Google-Smtp-Source: AGHT+IF4ZcBCLGm0H7f1mfA8pBWTriSdSA7GAwh/VN23tM6OTJjFMHjWVDl4sdFVN4S774GfNqS5qQ==
-X-Received: by 2002:a17:907:9815:b0:ad8:8529:4f9b with SMTP id a640c23a62f3a-adb494e5fe3mr1033669666b.38.1748905400527;
-        Mon, 02 Jun 2025 16:03:20 -0700 (PDT)
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com. [209.85.208.53])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ada5e2befaesm876331466b.104.2025.06.02.16.03.19
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 02 Jun 2025 16:03:20 -0700 (PDT)
-Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-6021b8b2c5fso9544502a12.2
-        for <mm-commits@vger.kernel.org>; Mon, 02 Jun 2025 16:03:19 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXrmMYzDfWMqX/gKffxYd6q5K4q5SIHpqinE5d3o035l01jVsSVKkAehmr1nneL65eRW17nXRP65ouH@vger.kernel.org
-X-Received: by 2002:a05:6402:518a:b0:5ff:f524:90e0 with SMTP id
- 4fb4d7f45d1cf-605b751baf6mr9475234a12.11.1748905399615; Mon, 02 Jun 2025
- 16:03:19 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lhZtiN85"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBC2CC4CEEB;
+	Mon,  2 Jun 2025 23:03:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1748905435;
+	bh=enesM/kbKXtB2Fn8FJwXky/zWaZKJtb8khx/YedFwto=;
+	h=Date:To:From:Subject:From;
+	b=lhZtiN856tX5Bt9CWoPyr4Hbv8VososHEElS4rcfrlwSsZBl0/p875HV7Jx6XZVnH
+	 PI2i1rXomTvb9746dx69bXWk95tuVGb4bIOlPR+VgTzc4b0u8qm8avfdDEQYSeSRP7
+	 lP8J4/1fVWUfpaoNNTlSBMxFauhiL8SAN2M2uqrU=
+Date: Mon, 02 Jun 2025 16:03:55 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,baohua@kernel.org,21cnbao@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-madvise-handle-madvise_lock-failure-during-race-unwinding.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250602230355.CBC2CC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20250601151222.60ead71e7d8492a18c711a05@linux-foundation.org> <aD29wnb5zR-afWpM@casper.infradead.org>
-In-Reply-To: <aD29wnb5zR-afWpM@casper.infradead.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 2 Jun 2025 16:03:03 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjtk+LLCWt9JLGip+qb2Vksq727V6anKg2gN2Z1npO+GA@mail.gmail.com>
-X-Gm-Features: AX0GCFuFKxyTIMjLhDG9GgQUaYyPLSKJxQy9zCek0XFUSfqYyE2N5joutpwyQnw
-Message-ID: <CAHk-=wjtk+LLCWt9JLGip+qb2Vksq727V6anKg2gN2Z1npO+GA@mail.gmail.com>
-Subject: Re: [GIT PULL] Additional MM updates for 6.16-rc1
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
-	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 2 Jun 2025 at 08:05, Matthew Wilcox <willy@infradead.org> wrote:
->
-> A word of warning for Linus since he wouldn't've been cc'd on the
-> earlier email.  This branch is based on v6.15-rc6 but contains a
-> commit which depends on 97dfbbd135cb which was merged during the
-> current merge window.  You might want to do a rebase or ask Andrew to
-> do it in order to prevent a bisection hazard.
 
-Gah.
+The patch titled
+     Subject: mm/madvise: handle madvise_lock() failure during race unwinding
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-madvise-handle-madvise_lock-failure-during-race-unwinding.patch
 
-If I rebase the thing, I lose the pgp signature.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-handle-madvise_lock-failure-during-race-unwinding.patch
 
-This is not optimal, but let's hope nobody hits the bisect issue.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-            Linus
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/madvise: handle madvise_lock() failure during race unwinding
+Date: Mon, 2 Jun 2025 10:49:26 -0700
+
+When unwinding race on -ERESTARTNOINTR handling of process_madvise(),
+madvise_lock() failure is ignored.  Check the failure and abort remaining
+works in the case.
+
+Link: https://lkml.kernel.org/r/20250602174926.1074-1-sj@kernel.org
+Fixes: 4000e3d0a367 ("mm/madvise: remove redundant mmap_lock operations from process_madvise()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Barry Song <21cnbao@gmail.com>
+Closes: https://lore.kernel.org/CAGsJ_4xJXXO0G+4BizhohSZ4yDteziPw43_uF8nPXPWxUVChzw@mail.gmail.com
+Reviewed-by: Jann Horn <jannh@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/madvise.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/mm/madvise.c~mm-madvise-handle-madvise_lock-failure-during-race-unwinding
++++ a/mm/madvise.c
+@@ -1881,7 +1881,9 @@ static ssize_t vector_madvise(struct mm_
+ 			/* Drop and reacquire lock to unwind race. */
+ 			madvise_finish_tlb(&madv_behavior);
+ 			madvise_unlock(mm, behavior);
+-			madvise_lock(mm, behavior);
++			ret = madvise_lock(mm, behavior);
++			if (ret)
++				goto out;
+ 			madvise_init_tlb(&madv_behavior, mm);
+ 			continue;
+ 		}
+@@ -1892,6 +1894,7 @@ static ssize_t vector_madvise(struct mm_
+ 	madvise_finish_tlb(&madv_behavior);
+ 	madvise_unlock(mm, behavior);
+ 
++out:
+ 	ret = (total_len - iov_iter_count(iter)) ? : ret;
+ 
+ 	return ret;
+_
+
+Patches currently in -mm which might be from sj@kernel.org are
+
+mm-madvise-handle-madvise_lock-failure-during-race-unwinding.patch
+mm-damon-kconfig-set-damon_vaddrpaddrsysfs-default-to-damon.patch
+mm-damon-kconfig-enable-config_damon-by-default.patch
+
