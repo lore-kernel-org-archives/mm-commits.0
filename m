@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5030C253F11
-	for <mm-commits@vger.kernel.org>; Mon,  2 Jun 2025 23:10:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 666E8189BB5
+	for <mm-commits@vger.kernel.org>; Mon,  2 Jun 2025 23:10:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748905841; cv=none; b=s5PpGemrFfUMxx4hnb9+OT0BBJIbMnuv1sexChmolXd8WoSmN5xxWpBFKMtG6oAWdeuZoyKlP9rXyVCfFfdPKdJ6TouSzsmPCtOt4d2R/DHuIFgJ0gF9P3gvhQP1wPTRR+dDYcuYKaSUpQkXpr1uB3muw8Brt98+zwR4vKNh330=
+	t=1748905844; cv=none; b=XE7Gf4sucJreQ3kxh+dYE9AY6xDgRtJw9U3OZ7/a5jVJ4DwNRRzp0r+S5frnKaG+m5sh8oMncI8aI9KhrA21fiepo9MUV5n34KzqXOEiS10/JnnfPfCZ4TTTZBz3+VSHYHIyD1+Nek8xRXX8dzrArmk7JI+OS9ZhGOz4bebkMnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748905841; c=relaxed/simple;
-	bh=QAZEfTD9/rSR+ioHimhkM8i1kI+lPNkQQ7d0JatK0zM=;
-	h=Date:To:From:Subject:Message-Id; b=RdEjn8B3zNUqQA1MNyELBXDC/UkZki+omNvJHRqGCDUoPdHvXUrOSshs2NVYiKTAkC/7K61HnhDy38ltqb21ufMxnlnMnQEVDrYJOCjJTLgJcl97eO1EV7xzJKgfyf7pzFUZmaW/LIhnyE2OWdlNFecG310IP93d8ei6MaYCq+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H/z6C1Nm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748905844; c=relaxed/simple;
+	bh=ke5PWxvXzwyLpXe10LSsXu0O1xvOeQFPtmGr81kk0hQ=;
+	h=Date:To:From:Subject:Message-Id; b=oIsjLPiH83tk82X38vKyOFyi6Hn9saPFN9Pv9mVAGaM8geClS54GfxKAPB18twyNpu6Am+wSFhfVMIKpelzlsI1yLkdvvK4EOzsG6xz51H7aMlzkXbZ09JODAXn/LSueQgdM3PuyfKUp8a3xc6JJb5rVdChVKz4KkRPyK36kCeI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yJs0qLkz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H/z6C1Nm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA38EC4CEEB;
-	Mon,  2 Jun 2025 23:10:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yJs0qLkz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4C84C4CEEB;
+	Mon,  2 Jun 2025 23:10:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748905840;
-	bh=QAZEfTD9/rSR+ioHimhkM8i1kI+lPNkQQ7d0JatK0zM=;
+	s=korg; t=1748905842;
+	bh=ke5PWxvXzwyLpXe10LSsXu0O1xvOeQFPtmGr81kk0hQ=;
 	h=Date:To:From:Subject:From;
-	b=H/z6C1NmLKkf6/DS2/5QlER+j39sG2Zfz2Q/cbwi/VBhQDJQqJ02HJF56/UFykz/G
-	 PQbckdPN7B0mo1QwiGVJURXxIXZnpkuVu6aQUNQr3vpkPGShNHsiD3PD04T1uiT1dB
-	 YYjlzlX+NiXfODdTclFvSNvjxw+Cg8jsSh+NofMU=
-Date: Mon, 02 Jun 2025 16:10:40 -0700
+	b=yJs0qLkz37iKAFLlskQFh6JXbgg9dW8t/Mo4rZhXxB7mZpJYiXef8TATQj+p7dF+M
+	 YGiPcNMrSjgrHfENPuqBPsLaOUf4uIYdIRZ98nq02ylGJhqO4FGTHNUC8ctffiyxNr
+	 WEU1JW+U1FywrbNb/lYmbK7hd8bJvaQu9z4zHebQ=
+Date: Mon, 02 Jun 2025 16:10:42 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,lkp@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-incorrect-freeing-of-wi_kobj.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250602231040.AA38EC4CEEB@smtp.kernel.org>
+Subject: + mm-mempolicy-skip-unnecessary-synchronize_rcu.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250602231042.B4C84C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: fix incorrect freeing of wi_kobj
+     Subject: mm/mempolicy: Skip unnecessary synchronize_rcu()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mempolicy-fix-incorrect-freeing-of-wi_kobj.patch
+     mm-mempolicy-skip-unnecessary-synchronize_rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-incorrect-freeing-of-wi_kobj.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-skip-unnecessary-synchronize_rcu.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,49 +59,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/mempolicy: fix incorrect freeing of wi_kobj
-Date: Mon, 2 Jun 2025 09:23:39 -0700
+Subject: mm/mempolicy: Skip unnecessary synchronize_rcu()
+Date: Mon, 2 Jun 2025 09:23:40 -0700
 
-We should not free wi_group->wi_kobj here.  In the error path of
-add_weighted_interleave_group() where this snippet is called from,
-kobj_{del, put} is immediately called right after this section.  Thus, it
-is not only unnecessary but also incorrect to free it here.
+By unconditionally setting wi_state to NULL and conditionally calling
+synchronize_rcu(), we can save an unncessary call when there is no
+old_wi_state.
 
-Link: https://lkml.kernel.org/r/20250602162345.2595696-1-joshua.hahnjy@gmail.com
-Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
+Link: https://lkml.kernel.org/r/20250602162345.2595696-2-joshua.hahnjy@gmail.com
 Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202506011545.Fduxqxqj-lkp@intel.com/
+Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Mathew Brost <matthew.brost@intel.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/mempolicy.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-incorrect-freeing-of-wi_kobj
+--- a/mm/mempolicy.c~mm-mempolicy-skip-unnecessary-synchronize_rcu
 +++ a/mm/mempolicy.c
-@@ -3708,15 +3708,13 @@ static void wi_state_free(void)
- 			lockdep_is_held(&wi_state_lock));
- 	if (!old_wi_state) {
- 		mutex_unlock(&wi_state_lock);
--		goto out;
-+		return;
- 	}
+@@ -3703,18 +3703,15 @@ static void wi_state_free(void)
+ 	struct weighted_interleave_state *old_wi_state;
  
+ 	mutex_lock(&wi_state_lock);
+-
+ 	old_wi_state = rcu_dereference_protected(wi_state,
+ 			lockdep_is_held(&wi_state_lock));
+-	if (!old_wi_state) {
+-		mutex_unlock(&wi_state_lock);
+-		return;
+-	}
+-
  	rcu_assign_pointer(wi_state, NULL);
  	mutex_unlock(&wi_state_lock);
- 	synchronize_rcu();
- 	kfree(old_wi_state);
--out:
--	kfree(&wi_group->wi_kobj);
+-	synchronize_rcu();
+-	kfree(old_wi_state);
++
++	if (old_wi_state) {
++		synchronize_rcu();
++		kfree(old_wi_state);
++	}
  }
  
  static struct kobj_attribute wi_auto_attr =
