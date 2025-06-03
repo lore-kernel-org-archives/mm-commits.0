@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABDD7AD23
-	for <mm-commits@vger.kernel.org>; Tue,  3 Jun 2025 02:14:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE6641FDD;
+	Tue,  3 Jun 2025 02:19:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748916889; cv=none; b=FFnS/df861yPgBbLP6+NvcWVbLFUvqxxICYjMyykuu6IOPLGIyXPwCiNld8h6+DdD8tpQ83ND5rz5L3ZibwOxjLSXfWOmy5hZ+5gMciLdpKlkaPBPZ1KYsK9oGm3nsfoLJZv9OTXCq4AbVzYlahvFq8NIhCfPOAnAUTg7VVcYoM=
+	t=1748917178; cv=none; b=aoowbdQyFI6gbHJeyejg8xbKjmS3PlhQPXp4gzIZEqh+26gsp30P7C0KNJVWf8bcp48qoi42Sx4mifyEuV1uvRzYPCaLjdfoQQ0tYKtEfmeRPVXfYc71gBPixobSoD56HN6B7r+6F/ZY6wsCbO3P4L5BfqOTtRJajXzOLjR3tBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748916889; c=relaxed/simple;
-	bh=JqUjAK8kb2/arZDULqAhrR5f/jSpf+sIqez87juTj74=;
-	h=Date:To:From:Subject:Message-Id; b=nC5EnF/9OrEi2kRmEWD5akGePc85ux6NLiBTwoYyMheTJpU0zkInCwzjaacPMyjU995S9WXxInenWviTXck49xgnP3+N4mnr2vevcNlq2eItalKvtUYTlvFsRCSbAnVlaXXLfpTSZIEnFncCc6ggX0nOHSIw0jzd4jbMkqLYDTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZzG1XegL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748917178; c=relaxed/simple;
+	bh=ktuKedGNJWCXD6IDuyaWLzeLTHihNWiDvOKQdGvVXnw=;
+	h=Date:To:From:Subject:Message-Id; b=WO3PQI0PqWa1SdlgHa3c0jhds/bOyHGrBJexLv/dCyJuSCmLZcSrSbBBsjmmkdjSw+sK8rRpMiFtGPiCkTp7m2suUIsKQxXRxPSljHM65+Mgwipm/ox5h2MB90/yfRKqZaLQtwpKYLnR0/1D3m3tvfsqCM7Bw0ivK2VKW1djfpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zIJ3Cihh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZzG1XegL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1891DC4CEEB;
-	Tue,  3 Jun 2025 02:14:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIJ3Cihh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C220C4CEEB;
+	Tue,  3 Jun 2025 02:19:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748916889;
-	bh=JqUjAK8kb2/arZDULqAhrR5f/jSpf+sIqez87juTj74=;
+	s=korg; t=1748917178;
+	bh=ktuKedGNJWCXD6IDuyaWLzeLTHihNWiDvOKQdGvVXnw=;
 	h=Date:To:From:Subject:From;
-	b=ZzG1XegLDWDE4KlvTArfnHMb9A5b4cNCF5VNhaAzklyFkAn86W+YK3oIYiMKPfwvD
-	 QN3dnnMxJOp0kpvl1iHfBwNMI8T2qBhuNXFC0sc4iBuShAFYX6MB3ES7NhD32gQTsG
-	 +11IERMRJvktaqsPzSRigfx15bEIRYM5JN8bJ+Eo=
-Date: Mon, 02 Jun 2025 19:14:48 -0700
-To: mm-commits@vger.kernel.org,sweettea-kernel@dorminy.me,stephen.s.brennan@oracle.com,sj@kernel.org,paulmck@kernel.org,osandov@osandov.com,fweimer@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=zIJ3Cihh5W9RUkWXO2fu6NQXOOAUQyMxKn+BMYry8Z0y36ZCmPW9/DSQrhKJYnyya
+	 15JoP0ArLv25U9qoF3hkBTSzUnOOtIIpys8Vzf0ACIfVIDEnvRgGtrPP1JyIZID436
+	 scaRAT5FpkoxSWQT6x1+APQeL0zn0f0SwrpM5SKo=
+Date: Mon, 02 Jun 2025 19:19:37 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,tytso@mit.edu,stable@vger.kernel.org,jhubbard@nvidia.com,jack@suse.cz,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dan.j.williams@intel.com,brauner@kernel.org,balbirs@nvidia.com,alison.schofield@intel.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch added to mm-new branch
-Message-Id: <20250603021449.1891DC4CEEB@smtp.kernel.org>
+Subject: [merged] fs-dax-fix-dont-skip-locked-entries-when-scanning-entries.patch removed from -mm tree
+Message-Id: <20250603021938.1C220C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,283 +34,124 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: tools/mm: add script to display page state for a given PID and VADDR
-has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch
+The quilt patch titled
+     Subject: fs/dax: fix "don't skip locked entries when scanning entries"
+has been removed from the -mm tree.  Its filename was
+     fs-dax-fix-dont-skip-locked-entries-when-scanning-entries.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: tools/mm: add script to display page state for a given PID and VADDR
-Date: Fri, 30 May 2025 13:58:55 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: fs/dax: fix "don't skip locked entries when scanning entries"
+Date: Fri, 23 May 2025 14:37:49 +1000
 
-Introduces a new drgn script, `show_page_info.py`, which allows users
-to analyze the state of a page given a process ID (PID) and a virtual
-address (VADDR).  This can help kernel developers or debuggers easily
-inspect page-related information in a live kernel or vmcore.
+Commit 6be3e21d25ca ("fs/dax: don't skip locked entries when scanning
+entries") introduced a new function, wait_entry_unlocked_exclusive(),
+which waits for the current entry to become unlocked without advancing the
+XArray iterator state.
 
-The script extracts information such as the page flags, mapping, and
-other metadata relevant to diagnosing memory issues.
+Waiting for the entry to become unlocked requires dropping the XArray
+lock.  This requires calling xas_pause() prior to dropping the lock which
+leaves the xas in a suitable state for the next iteration.  However this
+has the side-effect of advancing the xas state to the next index. 
+Normally this isn't an issue because xas_for_each() contains code to
+detect this state and thus avoid advancing the index a second time on the
+next loop iteration.
 
-Output example:
-sudo ./show_page_info.py 1 0x7fc988181000
-PID: 1 Comm: systemd mm: 0xffff8d22c4089700
-RAW: 0017ffffc000416c fffff939062ff708 fffff939062ffe08 ffff8d23062a12a8
-RAW: 0000000000000000 ffff8d2323438f60 0000002500000007 ffff8d23203ff500
-Page Address:    0xfffff93905664e00
-Page Flags:      PG_referenced|PG_uptodate|PG_lru|PG_head|PG_active|
-                 PG_private|PG_reported|PG_has_hwpoisoned
-Page Size:       4096
-Page PFN:        0x159938
-Page Physical:   0x159938000
-Page Virtual:    0xffff8d2319938000
-Page Refcount:   37
-Page Mapcount:   7
-Page Index:      0x0
-Page Memcg Data: 0xffff8d23203ff500
-Memcg Name:      init.scope
-Memcg Path:      /sys/fs/cgroup/memory/init.scope
-Page Mapping:    0xffff8d23062a12a8
-Page Anon/File:  File
-Page VMA:        0xffff8d22e06e0e40
-VMA Start:       0x7fc988181000
-VMA End:         0x7fc988185000
-This page is part of a compound page.
-This page is the head page of a compound page.
-Head Page:       0xfffff93905664e00
-Compound Order:  2
-Number of Pages: 4
+However both callers of and wait_entry_unlocked_exclusive() itself
+subsequently use the xas state to reload the entry.  As xas_pause()
+updated the state to the next index this will cause the current entry
+which is being waited on to be skipped.  This caused the following warning
+to fire intermittently when running xftest generic/068 on an XFS
+filesystem with FS DAX enabled:
 
-Link: https://lkml.kernel.org/r/20250530055855.687067-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Tested-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Stephen Brennan <stephen.s.brennan@oracle.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Omar Sandoval <osandov@osandov.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+[   35.067397] ------------[ cut here ]------------
+[   35.068229] WARNING: CPU: 21 PID: 1640 at mm/truncate.c:89 truncate_folio_batch_exceptionals+0xd8/0x1e0
+[   35.069717] Modules linked in: nd_pmem dax_pmem nd_btt nd_e820 libnvdimm
+[   35.071006] CPU: 21 UID: 0 PID: 1640 Comm: fstest Not tainted 6.15.0-rc7+ #77 PREEMPT(voluntary)
+[   35.072613] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/204
+[   35.074845] RIP: 0010:truncate_folio_batch_exceptionals+0xd8/0x1e0
+[   35.075962] Code: a1 00 00 00 f6 47 0d 20 0f 84 97 00 00 00 4c 63 e8 41 39 c4 7f 0b eb 61 49 83 c5 01 45 39 ec 7e 58 42 f68
+[   35.079522] RSP: 0018:ffffb04e426c7850 EFLAGS: 00010202
+[   35.080359] RAX: 0000000000000000 RBX: ffff9d21e3481908 RCX: ffffb04e426c77f4
+[   35.081477] RDX: ffffb04e426c79e8 RSI: ffffb04e426c79e0 RDI: ffff9d21e34816e8
+[   35.082590] RBP: ffffb04e426c79e0 R08: 0000000000000001 R09: 0000000000000003
+[   35.083733] R10: 0000000000000000 R11: 822b53c0f7a49868 R12: 000000000000001f
+[   35.084850] R13: 0000000000000000 R14: ffffb04e426c78e8 R15: fffffffffffffffe
+[   35.085953] FS:  00007f9134c87740(0000) GS:ffff9d22abba0000(0000) knlGS:0000000000000000
+[   35.087346] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   35.088244] CR2: 00007f9134c86000 CR3: 000000040afff000 CR4: 00000000000006f0
+[   35.089354] Call Trace:
+[   35.089749]  <TASK>
+[   35.090168]  truncate_inode_pages_range+0xfc/0x4d0
+[   35.091078]  truncate_pagecache+0x47/0x60
+[   35.091735]  xfs_setattr_size+0xc7/0x3e0
+[   35.092648]  xfs_vn_setattr+0x1ea/0x270
+[   35.093437]  notify_change+0x1f4/0x510
+[   35.094219]  ? do_truncate+0x97/0xe0
+[   35.094879]  do_truncate+0x97/0xe0
+[   35.095640]  path_openat+0xabd/0xca0
+[   35.096278]  do_filp_open+0xd7/0x190
+[   35.096860]  do_sys_openat2+0x8a/0xe0
+[   35.097459]  __x64_sys_openat+0x6d/0xa0
+[   35.098076]  do_syscall_64+0xbb/0x1d0
+[   35.098647]  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+[   35.099444] RIP: 0033:0x7f9134d81fc1
+[   35.100033] Code: 75 57 89 f0 25 00 00 41 00 3d 00 00 41 00 74 49 80 3d 2a 26 0e 00 00 74 6d 89 da 48 89 ee bf 9c ff ff ff5
+[   35.102993] RSP: 002b:00007ffcd41e0d10 EFLAGS: 00000202 ORIG_RAX: 0000000000000101
+[   35.104263] RAX: ffffffffffffffda RBX: 0000000000000242 RCX: 00007f9134d81fc1
+[   35.105452] RDX: 0000000000000242 RSI: 00007ffcd41e1200 RDI: 00000000ffffff9c
+[   35.106663] RBP: 00007ffcd41e1200 R08: 0000000000000000 R09: 0000000000000064
+[   35.107923] R10: 00000000000001a4 R11: 0000000000000202 R12: 0000000000000066
+[   35.109112] R13: 0000000000100000 R14: 0000000000100000 R15: 0000000000000400
+[   35.110357]  </TASK>
+[   35.110769] irq event stamp: 8415587
+[   35.111486] hardirqs last  enabled at (8415599): [<ffffffff8d74b562>] __up_console_sem+0x52/0x60
+[   35.113067] hardirqs last disabled at (8415610): [<ffffffff8d74b547>] __up_console_sem+0x37/0x60
+[   35.114575] softirqs last  enabled at (8415300): [<ffffffff8d6ac625>] handle_softirqs+0x315/0x3f0
+[   35.115933] softirqs last disabled at (8415291): [<ffffffff8d6ac811>] __irq_exit_rcu+0xa1/0xc0
+[   35.117316] ---[ end trace 0000000000000000 ]---
+
+Fix this by using xas_reset() instead, which is equivalent in
+implementation to xas_pause() but does not advance the XArray state.
+
+Link: https://lkml.kernel.org/r/20250523043749.1460780-1-apopple@nvidia.com
+Fixes: 6be3e21d25ca ("fs/dax: don't skip locked entries when scanning entries")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Ted Ts'o <tytso@mit.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                |    5 +
- tools/mm/show_page_info.py |  169 +++++++++++++++++++++++++++++++++++
- 2 files changed, 174 insertions(+)
+ fs/dax.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr
-+++ a/MAINTAINERS
-@@ -18678,6 +18678,11 @@ F:	Documentation/mm/page_table_check.rst
- F:	include/linux/page_table_check.h
- F:	mm/page_table_check.c
- 
-+PAGE STATE DEBUG SCRIPT
-+M:	Ye Liu <liuye@kylinos.cn>
-+S:	Maintained
-+F:	tools/mm/show_page_info.py
-+
- PANASONIC LAPTOP ACPI EXTRAS DRIVER
- M:	Kenneth Chan <kenneth.t.chan@gmail.com>
- L:	platform-driver-x86@vger.kernel.org
-diff --git a/tools/mm/show_page_info.py a/tools/mm/show_page_info.py
-new file mode 100644
---- /dev/null
-+++ a/tools/mm/show_page_info.py
-@@ -0,0 +1,169 @@
-+#!/usr/bin/env drgn
-+# SPDX-License-Identifier: GPL-2.0-only
-+# Copyright (C) 2025 Ye Liu <liuye@kylinos.cn>
-+
-+import argparse
-+import sys
-+from drgn import Object, FaultError, PlatformFlags, cast
-+from drgn.helpers.linux import find_task, follow_page, page_size
-+from drgn.helpers.linux.mm import (
-+    decode_page_flags, page_to_pfn, page_to_phys, page_to_virt, vma_find,
-+    PageSlab, PageCompound, PageHead, PageTail, compound_head, compound_order, compound_nr
-+)
-+from drgn.helpers.linux.cgroup import cgroup_name, cgroup_path
-+
-+DESC = """
-+This is a drgn script to show the page state.
-+For more info on drgn, visit https://github.com/osandov/drgn.
-+"""
-+
-+def format_page_data(page):
-+    """
-+    Format raw page data into a readable hex dump with "RAW:" prefix.
-+
-+    :param page: drgn.Object instance representing the page.
-+    :return: Formatted string of memory contents.
-+    """
-+    try:
-+        address = page.value_()
-+        size = prog.type("struct page").size
-+
-+        if prog.platform.flags & PlatformFlags.IS_64_BIT:
-+            word_size = 8
-+        else:
-+            word_size = 4
-+        num_words = size // word_size
-+
-+        values = []
-+        for i in range(num_words):
-+            word_address = address + i * word_size
-+            word = prog.read_word(word_address)
-+            values.append(f"{word:0{word_size * 2}x}")
-+
-+        lines = [f"RAW: {' '.join(values[i:i + 4])}" for i in range(0, len(values), 4)]
-+
-+        return "\n".join(lines)
-+
-+    except FaultError as e:
-+        return f"Error reading memory: {e}"
-+    except Exception as e:
-+        return f"Unexpected error: {e}"
-+
-+def get_memcg_info(page):
-+    """Retrieve memory cgroup information for a page."""
-+    try:
-+        MEMCG_DATA_OBJEXTS = prog.constant("MEMCG_DATA_OBJEXTS").value_()
-+        MEMCG_DATA_KMEM = prog.constant("MEMCG_DATA_KMEM").value_()
-+        mask = prog.constant('__NR_MEMCG_DATA_FLAGS').value_() - 1
-+        memcg_data = page.memcg_data.read_()
-+        if memcg_data & MEMCG_DATA_OBJEXTS:
-+            slabobj_ext = cast("struct slabobj_ext *", memcg_data & ~mask)
-+            memcg = slabobj_ext.objcg.memcg.value_()
-+        elif memcg_data & MEMCG_DATA_KMEM:
-+            objcg = cast("struct obj_cgroup *", memcg_data & ~mask)
-+            memcg = objcg.memcg.value_()
-+        else:
-+            memcg = cast("struct mem_cgroup *", memcg_data & ~mask)
-+
-+        if memcg.value_() == 0:
-+            return "none", "/sys/fs/cgroup/memory/"
-+        cgrp = memcg.css.cgroup
-+        return cgroup_name(cgrp).decode(), f"/sys/fs/cgroup/memory{cgroup_path(cgrp).decode()}"
-+    except FaultError as e:
-+        return "unknown", f"Error retrieving memcg info: {e}"
-+    except Exception as e:
-+        return "unknown", f"Unexpected error: {e}"
-+
-+def show_page_state(page, addr, mm, pid, task):
-+    """Display detailed information about a page."""
-+    try:
-+        print(f'PID: {pid} Comm: {task.comm.string_().decode()} mm: {hex(mm)}')
-+        try:
-+            print(format_page_data(page))
-+        except FaultError as e:
-+            print(f"Error reading page data: {e}")
-+        fields = {
-+            "Page Address": hex(page.value_()),
-+            "Page Flags": decode_page_flags(page),
-+            "Page Size": prog["PAGE_SIZE"].value_(),
-+            "Page PFN": hex(page_to_pfn(page).value_()),
-+            "Page Physical": hex(page_to_phys(page).value_()),
-+            "Page Virtual": hex(page_to_virt(page).value_()),
-+            "Page Refcount": page._refcount.counter.value_(),
-+            "Page Mapcount": page._mapcount.counter.value_(),
-+            "Page Index": hex(page.__folio_index.value_()),
-+            "Page Memcg Data": hex(page.memcg_data.value_()),
-+        }
-+
-+        memcg_name, memcg_path = get_memcg_info(page)
-+        fields["Memcg Name"] = memcg_name
-+        fields["Memcg Path"] = memcg_path
-+        fields["Page Mapping"] = hex(page.mapping.value_())
-+        fields["Page Anon/File"] = "Anon" if page.mapping.value_() & 0x1 else "File"
-+
-+        try:
-+            vma = vma_find(mm, addr)
-+            fields["Page VMA"] = hex(vma.value_())
-+            fields["VMA Start"] = hex(vma.vm_start.value_())
-+            fields["VMA End"] = hex(vma.vm_end.value_())
-+        except FaultError as e:
-+            fields["Page VMA"] = "Unavailable"
-+            fields["VMA Start"] = "Unavailable"
-+            fields["VMA End"] = "Unavailable"
-+            print(f"Error retrieving VMA information: {e}")
-+
-+        # Calculate the maximum field name length for alignment
-+        max_field_len = max(len(field) for field in fields)
-+
-+        # Print aligned fields
-+        for field, value in fields.items():
-+            print(f"{field}:".ljust(max_field_len + 2) + f"{value}")
-+
-+        # Additional information about the page
-+        if PageSlab(page):
-+            print("This page belongs to the slab allocator.")
-+
-+        if PageCompound(page):
-+            print("This page is part of a compound page.")
-+            if PageHead(page):
-+                print("This page is the head page of a compound page.")
-+            if PageTail(page):
-+                print("This page is the tail page of a compound page.")
-+            print(f"{'Head Page:'.ljust(max_field_len + 2)}{hex(compound_head(page).value_())}")
-+            print(f"{'Compound Order:'.ljust(max_field_len + 2)}{compound_order(page).value_()}")
-+            print(f"{'Number of Pages:'.ljust(max_field_len + 2)}{compound_nr(page).value_()}")
-+        else:
-+            print("This page is not part of a compound page.")
-+    except FaultError as e:
-+        print(f"Error accessing page state: {e}")
-+    except Exception as e:
-+        print(f"Unexpected error: {e}")
-+
-+def main():
-+    """Main function to parse arguments and display page state."""
-+    parser = argparse.ArgumentParser(description=DESC, formatter_class=argparse.RawTextHelpFormatter)
-+    parser.add_argument('pid', metavar='PID', type=int, help='Target process ID (PID)')
-+    parser.add_argument('vaddr', metavar='VADDR', type=str, help='Target virtual address in hexadecimal format (e.g., 0x7fff1234abcd)')
-+    args = parser.parse_args()
-+
-+    try:
-+        vaddr = int(args.vaddr, 16)
-+    except ValueError:
-+        sys.exit(f"Error: Invalid virtual address format: {args.vaddr}")
-+
-+    try:
-+        task = find_task(args.pid)
-+        mm = task.mm
-+        page = follow_page(mm, vaddr)
-+
-+        if page:
-+            show_page_state(page, vaddr, mm, args.pid, task)
-+        else:
-+            sys.exit(f"Address {hex(vaddr)} is not mapped.")
-+    except FaultError as e:
-+        sys.exit(f"Error accessing task or memory: {e}")
-+    except Exception as e:
-+        sys.exit(f"Unexpected error: {e}")
-+
-+if __name__ == "__main__":
-+    main()
+--- a/fs/dax.c~fs-dax-fix-dont-skip-locked-entries-when-scanning-entries
++++ a/fs/dax.c
+@@ -257,7 +257,7 @@ static void *wait_entry_unlocked_exclusi
+ 		wq = dax_entry_waitqueue(xas, entry, &ewait.key);
+ 		prepare_to_wait_exclusive(wq, &ewait.wait,
+ 					TASK_UNINTERRUPTIBLE);
+-		xas_pause(xas);
++		xas_reset(xas);
+ 		xas_unlock_irq(xas);
+ 		schedule();
+ 		finish_wait(wq, &ewait.wait);
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch
+maintainers-add-myself-as-reviewer-of-mm-memory-policy.patch
 
