@@ -1,349 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E073173
-	for <mm-commits@vger.kernel.org>; Tue,  3 Jun 2025 00:04:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C28078F5C;
+	Tue,  3 Jun 2025 00:32:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748909071; cv=none; b=fRUwfSvQKxjlvCJA5VcSzfzSd7KGLGLjidW+XY2yABEZWzomacvu2xrf3awSOp1A722BDI8pDgd19/V/Us2gUxuKtNynjOyDzC/WcPFk7brOTgo/sDz/pB4hjNLq5Eyr//PltDxtDeFHjAlA5yOurw9svwivnyhBQfxHjQHGLIo=
+	t=1748910777; cv=none; b=I7OBWwq5ZHEQPklOICp+qYJ5h8xgO43XE+ERChI/a6zPpbfVAHRUG1Bm4jBfjoes2gdhyX1W5+J5zEgHZ2bEtIVu+77gesRPHAKAp6UwieroV+1UGvjVHMX2QO+ddykWVbgRySntzmzrf0ucOppq4yRci7Dp7wef8ep7/b9wCfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748909071; c=relaxed/simple;
-	bh=5FRr6breHaVTqWMQYpuN4BGasulQy9ZvqSmhS/iDvOU=;
-	h=Date:To:From:Subject:Message-Id; b=BwDBCVg3ZM9olQrkw3WNhVzfAbDQ1WVOUpy07yvmtRBjD3WGEig5+MdwnLfx0dWyZ6yuhIrcDDChMCN6Xy//UQysJIPLCtz0CfPFIGLk+F1VuXyjfETU8oOmPz2T6Za03gyO5srAjLVgLzv+eW4braSZi8yqQkbMh9RV1l+lV6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kosC1Lof; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748910777; c=relaxed/simple;
+	bh=OK6puR/1kBvEZfXb7xdHMQRBi2BdkFaTaM2S34g/oYA=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=i0hbIR+ifIDeTcq6Ss9YVM/7a+I6LQnVgxlMI7oy1CXsxpqLh4kRpPNNzKaX6FGPMRpOaXMVTVKu+VfswRaekQW/uyV756jwPVIFKVVFk6zBXeGVKTjJ+hAmePAu5OwM2HoPEs3g5REOib+Nqi0tzpWkgLKCnUa/FQqvjfywkI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sYxPG2HS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kosC1Lof"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C338C4CEEB;
-	Tue,  3 Jun 2025 00:04:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1748909071;
-	bh=5FRr6breHaVTqWMQYpuN4BGasulQy9ZvqSmhS/iDvOU=;
-	h=Date:To:From:Subject:From;
-	b=kosC1LofcjQzdsvzbBjRIL1mWnXzEabLaGIhpobptsznY9pKf4LqMToTtC932ZFIc
-	 JeexqmRSnnmbtsuJA4ijggEnQBpY0B7t52al3dlwq7vvts+4rlwUbdR8/oivEsHoEO
-	 2xLuYaNp/mDbBnn3PczGRhSKWDXKbwiFkJuZSxqU=
-Date: Mon, 02 Jun 2025 17:04:30 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,axelrasmussen@google.com,koichiro.den@canonical.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled.patch added to mm-new branch
-Message-Id: <20250603000431.0C338C4CEEB@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sYxPG2HS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ECA6C4CEEB;
+	Tue,  3 Jun 2025 00:32:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1748910777;
+	bh=OK6puR/1kBvEZfXb7xdHMQRBi2BdkFaTaM2S34g/oYA=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=sYxPG2HS4rTMK+CQlU9l1sRjvVYVpzLuMpB07KUK71v3BJdsQHMBhrCG6vGQ+6Bo6
+	 daEYakp5aEutfiM0uwxcCKdV9Y9Pc8rOtx7z4yyaw2E0syob69hkc83hgVkAhw0res
+	 Md5AgWOyve6RbIlxhX2K/sIXY9DehKqsCjO/ol/qvEO2ECdNOSF+CNEkRrcwnOW2oI
+	 JxLdRhA2oPsnAbDIvQ7TGoevTSkKKylGj5oiCCvHX9+8gRBy7HxyL3SDZuzKzCRp/q
+	 I40OuTdwdciEdY3lZy9rhAYnZfJTkh1RWwx/i2xepeA1tVXghAxl606kUWLwXn3hdn
+	 mz6R12n1hDTfw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70F62380AAD0;
+	Tue,  3 Jun 2025 00:33:31 +0000 (UTC)
+Subject: Re: [GIT PULL] Additional MM updates for 6.16-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20250601151222.60ead71e7d8492a18c711a05@linux-foundation.org>
+References: <20250601151222.60ead71e7d8492a18c711a05@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20250601151222.60ead71e7d8492a18c711a05@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2025-06-01-14-06
+X-PR-Tracked-Commit-Id: 0b43b8bc8ef88bb45b018b2d4853d38bfc5ce2a7
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: fd1f8473503e5bf897bd3e8efe3545c0352954e6
+Message-Id: <174891081008.961800.5493448222601669134.pr-tracker-bot@kernel.org>
+Date: Tue, 03 Jun 2025 00:33:30 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Sun, 1 Jun 2025 15:12:22 -0700:
 
-The patch titled
-     Subject: mm: vmscan: apply proportional reclaim pressure for memcg when MGLRU is enabled
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2025-06-01-14-06
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled.patch
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/fd1f8473503e5bf897bd3e8efe3545c0352954e6
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thank you!
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Koichiro Den <koichiro.den@canonical.com>
-Subject: mm: vmscan: apply proportional reclaim pressure for memcg when MGLRU is enabled
-Date: Sat, 31 May 2025 01:23:53 +0900
-
-The scan implementation for MGLRU was missing proportional reclaim
-pressure for memcg, which contradicts the description in
-Documentation/admin-guide/cgroup-v2.rst (memory.{low,min} section).
-
-This issue can be observed in kselftest cgroup:test_memcontrol
-(specifically test_memcg_min and test_memcg_low).  The following table
-shows the actual values observed in my local test env (on xfs) and the
-error "e", which is the symmetric absolute percentage error from the ideal
-values of 29M for c[0] and 21M for c[1].
-
-  test_memcg_min
-
-         | MGLRU enabled   | MGLRU enabled   | MGLRU disabled
-         | Without patch   | With patch      |
-    -----|-----------------|-----------------|---------------
-    c[0] | 25964544 (e=8%) | 28770304 (e=3%) | 27820032 (e=4%)
-    c[1] | 26214400 (e=9%) | 23998464 (e=4%) | 24776704 (e=6%)
-
-  test_memcg_low
-
-         | MGLRU enabled   | MGLRU enabled   | MGLRU disabled
-         | Without patch   | With patch      |
-    -----|-----------------|-----------------|---------------
-    c[0] | 26214400 (e=7%) | 27930624 (e=4%) | 27688960 (e=5%)
-    c[1] | 26214400 (e=9%) | 24764416 (e=6%) | 24920064 (e=6%)
-
-Factor out the proportioning logic to a new function and have MGLRU reuse
-it.  While at it, update the eviction behavior via debugfs 'lru_gen'
-interface ('-' command with an explicit 'nr_to_reclaim' parameter) to
-ensure eviction is limited to the specified number.
-
-Link: https://lkml.kernel.org/r/20250530162353.541882-1-den@valinux.co.jp
-Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/vmscan.c |  149 ++++++++++++++++++++++++++------------------------
- 1 file changed, 79 insertions(+), 70 deletions(-)
-
---- a/mm/vmscan.c~mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled
-+++ a/mm/vmscan.c
-@@ -2476,6 +2476,69 @@ static inline void calculate_pressure_ba
- 	*denominator = ap + fp;
- }
- 
-+static unsigned long apply_proportional_protection(struct mem_cgroup *memcg,
-+		struct scan_control *sc, unsigned long scan)
-+{
-+	unsigned long min, low;
-+
-+	mem_cgroup_protection(sc->target_mem_cgroup, memcg, &min, &low);
-+
-+	if (min || low) {
-+		/*
-+		 * Scale a cgroup's reclaim pressure by proportioning
-+		 * its current usage to its memory.low or memory.min
-+		 * setting.
-+		 *
-+		 * This is important, as otherwise scanning aggression
-+		 * becomes extremely binary -- from nothing as we
-+		 * approach the memory protection threshold, to totally
-+		 * nominal as we exceed it.  This results in requiring
-+		 * setting extremely liberal protection thresholds. It
-+		 * also means we simply get no protection at all if we
-+		 * set it too low, which is not ideal.
-+		 *
-+		 * If there is any protection in place, we reduce scan
-+		 * pressure by how much of the total memory used is
-+		 * within protection thresholds.
-+		 *
-+		 * There is one special case: in the first reclaim pass,
-+		 * we skip over all groups that are within their low
-+		 * protection. If that fails to reclaim enough pages to
-+		 * satisfy the reclaim goal, we come back and override
-+		 * the best-effort low protection. However, we still
-+		 * ideally want to honor how well-behaved groups are in
-+		 * that case instead of simply punishing them all
-+		 * equally. As such, we reclaim them based on how much
-+		 * memory they are using, reducing the scan pressure
-+		 * again by how much of the total memory used is under
-+		 * hard protection.
-+		 */
-+		unsigned long cgroup_size = mem_cgroup_size(memcg);
-+		unsigned long protection;
-+
-+		/* memory.low scaling, make sure we retry before OOM */
-+		if (!sc->memcg_low_reclaim && low > min) {
-+			protection = low;
-+			sc->memcg_low_skipped = 1;
-+		} else {
-+			protection = min;
-+		}
-+
-+		/* Avoid TOCTOU with earlier protection check */
-+		cgroup_size = max(cgroup_size, protection);
-+
-+		scan -= scan * protection / (cgroup_size + 1);
-+
-+		/*
-+		 * Minimally target SWAP_CLUSTER_MAX pages to keep
-+		 * reclaim moving forwards, avoiding decrementing
-+		 * sc->priority further than desirable.
-+		 */
-+		scan = max(scan, SWAP_CLUSTER_MAX);
-+	}
-+	return scan;
-+}
-+
- /*
-  * Determine how aggressively the anon and file LRU lists should be
-  * scanned.
-@@ -2554,70 +2617,10 @@ out:
- 	for_each_evictable_lru(lru) {
- 		bool file = is_file_lru(lru);
- 		unsigned long lruvec_size;
--		unsigned long low, min;
- 		unsigned long scan;
- 
- 		lruvec_size = lruvec_lru_size(lruvec, lru, sc->reclaim_idx);
--		mem_cgroup_protection(sc->target_mem_cgroup, memcg,
--				      &min, &low);
--
--		if (min || low) {
--			/*
--			 * Scale a cgroup's reclaim pressure by proportioning
--			 * its current usage to its memory.low or memory.min
--			 * setting.
--			 *
--			 * This is important, as otherwise scanning aggression
--			 * becomes extremely binary -- from nothing as we
--			 * approach the memory protection threshold, to totally
--			 * nominal as we exceed it.  This results in requiring
--			 * setting extremely liberal protection thresholds. It
--			 * also means we simply get no protection at all if we
--			 * set it too low, which is not ideal.
--			 *
--			 * If there is any protection in place, we reduce scan
--			 * pressure by how much of the total memory used is
--			 * within protection thresholds.
--			 *
--			 * There is one special case: in the first reclaim pass,
--			 * we skip over all groups that are within their low
--			 * protection. If that fails to reclaim enough pages to
--			 * satisfy the reclaim goal, we come back and override
--			 * the best-effort low protection. However, we still
--			 * ideally want to honor how well-behaved groups are in
--			 * that case instead of simply punishing them all
--			 * equally. As such, we reclaim them based on how much
--			 * memory they are using, reducing the scan pressure
--			 * again by how much of the total memory used is under
--			 * hard protection.
--			 */
--			unsigned long cgroup_size = mem_cgroup_size(memcg);
--			unsigned long protection;
--
--			/* memory.low scaling, make sure we retry before OOM */
--			if (!sc->memcg_low_reclaim && low > min) {
--				protection = low;
--				sc->memcg_low_skipped = 1;
--			} else {
--				protection = min;
--			}
--
--			/* Avoid TOCTOU with earlier protection check */
--			cgroup_size = max(cgroup_size, protection);
--
--			scan = lruvec_size - lruvec_size * protection /
--				(cgroup_size + 1);
--
--			/*
--			 * Minimally target SWAP_CLUSTER_MAX pages to keep
--			 * reclaim moving forwards, avoiding decrementing
--			 * sc->priority further than desirable.
--			 */
--			scan = max(scan, SWAP_CLUSTER_MAX);
--		} else {
--			scan = lruvec_size;
--		}
--
-+		scan = apply_proportional_protection(memcg, sc, lruvec_size);
- 		scan >>= sc->priority;
- 
- 		/*
-@@ -4548,8 +4551,9 @@ static bool isolate_folio(struct lruvec
- 	return true;
- }
- 
--static int scan_folios(struct lruvec *lruvec, struct scan_control *sc,
--		       int type, int tier, struct list_head *list)
-+static int scan_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
-+		       struct scan_control *sc, int type, int tier,
-+		       struct list_head *list)
- {
- 	int i;
- 	int gen;
-@@ -4558,7 +4562,7 @@ static int scan_folios(struct lruvec *lr
- 	int scanned = 0;
- 	int isolated = 0;
- 	int skipped = 0;
--	int remaining = MAX_LRU_BATCH;
-+	int remaining = min(nr_to_scan, MAX_LRU_BATCH);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 
-@@ -4669,7 +4673,8 @@ static int get_type_to_scan(struct lruve
- 	return positive_ctrl_err(&sp, &pv);
- }
- 
--static int isolate_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness,
-+static int isolate_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
-+			  struct scan_control *sc, int swappiness,
- 			  int *type_scanned, struct list_head *list)
- {
- 	int i;
-@@ -4681,7 +4686,7 @@ static int isolate_folios(struct lruvec
- 
- 		*type_scanned = type;
- 
--		scanned = scan_folios(lruvec, sc, type, tier, list);
-+		scanned = scan_folios(nr_to_scan, lruvec, sc, type, tier, list);
- 		if (scanned)
- 			return scanned;
- 
-@@ -4691,7 +4696,8 @@ static int isolate_folios(struct lruvec
- 	return 0;
- }
- 
--static int evict_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness)
-+static int evict_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
-+			struct scan_control *sc, int swappiness)
- {
- 	int type;
- 	int scanned;
-@@ -4710,7 +4716,7 @@ static int evict_folios(struct lruvec *l
- 
- 	spin_lock_irq(&lruvec->lru_lock);
- 
--	scanned = isolate_folios(lruvec, sc, swappiness, &type, &list);
-+	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness, &type, &list);
- 
- 	scanned += try_to_inc_min_seq(lruvec, swappiness);
- 
-@@ -4831,6 +4837,8 @@ static long get_nr_to_scan(struct lruvec
- 	if (nr_to_scan && !mem_cgroup_online(memcg))
- 		return nr_to_scan;
- 
-+	nr_to_scan = apply_proportional_protection(memcg, sc, nr_to_scan);
-+
- 	/* try to get away with not aging at the default priority */
- 	if (!success || sc->priority == DEF_PRIORITY)
- 		return nr_to_scan >> sc->priority;
-@@ -4883,7 +4891,7 @@ static bool try_to_shrink_lruvec(struct
- 		if (nr_to_scan <= 0)
- 			break;
- 
--		delta = evict_folios(lruvec, sc, swappiness);
-+		delta = evict_folios(nr_to_scan, lruvec, sc, swappiness);
- 		if (!delta)
- 			break;
- 
-@@ -5504,7 +5512,8 @@ static int run_eviction(struct lruvec *l
- 		if (sc->nr_reclaimed >= nr_to_reclaim)
- 			return 0;
- 
--		if (!evict_folios(lruvec, sc, swappiness))
-+		if (!evict_folios(nr_to_reclaim - sc->nr_reclaimed, lruvec, sc,
-+				  swappiness))
- 			return 0;
- 
- 		cond_resched();
-_
-
-Patches currently in -mm which might be from koichiro.den@canonical.com are
-
-mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
