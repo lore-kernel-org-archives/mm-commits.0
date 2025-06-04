@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47D5D3FE5
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 02:09:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5913D347D5
+	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 02:09:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749002955; cv=none; b=EAmdr1Dc7CbL/cvagYv0BiH0rEmMvGsz4es8WYVVBKuFIlYqpz1X7LRusWdlL0Wwl62k4sY7iwS0xI4JzBW4zH18y9C7Q57kEctyKpMXlCQjlQbeCZAkjADh4H10vxBHjlIitTzkFnZTd12/wgntE5wbWCoj37QhRYzH/otShQg=
+	t=1749002959; cv=none; b=S/ux2i9knUoIXbZxyqmd7tlG6NGqT82Xx2JAdykgv6YMSJyz5X+CfjBLTVlvxYq75SBH7Sj2XRzQ/ejB8rDZ6WvCxlOHlQL7oi4W6bCgOcC17do/Zu0OvFk0Zlfud94KxYy5IO8WTkfc5w50VzKG0pY4XzSCcNfUT54J25/iILg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749002955; c=relaxed/simple;
-	bh=XoWo2jDY1BYq33qO+fsb5OMl23zxVcNcl0Zz0lQnXdU=;
-	h=Date:To:From:Subject:Message-Id; b=ZNcT6mMXb7II8gKKr6osDKYZYOaQFL51bUarsyK+9jF/eEErM8MMG2vIyf6sTHbQ4F8baNT7B/LJVKGeAbiBmHslNYzGSHkeK+JCbekChMuUVGwakPGES5ud1B5EbSPkN3/2XW2LolX7Udm9nce1HniXs9ltYeUF6VDkBhJp1nc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vR9/iLgl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749002959; c=relaxed/simple;
+	bh=sQ2bgj/vmpmMKMBUMQUWK8QniRh621AeNc1mAKJ0r+E=;
+	h=Date:To:From:Subject:Message-Id; b=iCVq3kWv8bqHUXnIX5oN0Kaa5J2NwXfGCJHyJrfgd7/XAV9e3Da6vPw07ak/hIzodz73UU+wp9ZuPSq0jYDEWFRVf2a7ejSkKaWmsjjHepcANOVDNhEZbeKS7jpfU/qwgb27lRFHW5nAGvTjFUADua1VLH1Y83S6t2qI9uFhBZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m1pp2tt4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vR9/iLgl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A30D3C4CEEF;
-	Wed,  4 Jun 2025 02:09:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m1pp2tt4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C08DC4CEED;
+	Wed,  4 Jun 2025 02:09:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749002954;
-	bh=XoWo2jDY1BYq33qO+fsb5OMl23zxVcNcl0Zz0lQnXdU=;
+	s=korg; t=1749002959;
+	bh=sQ2bgj/vmpmMKMBUMQUWK8QniRh621AeNc1mAKJ0r+E=;
 	h=Date:To:From:Subject:From;
-	b=vR9/iLglgbzmPsW06Bo1WakwY3JLIXaHIr4ww00odauX4x/FqRpIf4cSVlvOHwzDc
-	 SE9tltXITl1Q1QHYaWk/X6PNMlut9PFCwGobH4sX7err0UAv0lq4ZGqeFic5Mu5/ak
-	 E7cQoPjRPeeFUf8uY+tcIShCoO+qWzDSX7ewIDCE=
-Date: Tue, 03 Jun 2025 19:09:14 -0700
+	b=m1pp2tt4bpb2mu2EjZ3eI/+KFg/3SfDvGxL946U90ra4yqh2D2nA11fgXGIGI7fDB
+	 8xW9yDCGTZ4bQt0QpI8Es7lvhDTh2F9bdBSffjVMH/cuQGxBcjS2djTBmCv5dM+bmE
+	 g5BjeFl/j48C3eOxDvSLb8IPdrNg4cbqEy+g9jhw=
+Date: Tue, 03 Jun 2025 19:09:18 -0700
 To: mm-commits@vger.kernel.org,tzimmermann@suse.de,tursulin@ursulin.net,thomas.weissschuh@linutronix.de,rodrigo.vivi@intel.com,qasdev00@gmail.com,pabeni@redhat.com,nathan@kernel.org,mripard@kernel.org,maarten.lankhorst@linux.intel.com,kuniyu@amazon.com,kuba@kernel.org,krzysztof.karas@intel.com,joonas.lahtinen@linux.intel.com,jani.nikula@linux.intel.com,horms@kernel.org,edumazet@google.com,davem@davemloft.net,andrew@lunn.ch,airlied@gmail.com,jlayton@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir.patch added to mm-nonmm-unstable branch
-Message-Id: <20250604020914.A30D3C4CEEF@smtp.kernel.org>
+Subject: + ref_tracker-allow-pr_ostream-to-print-directly-to-a-seq_file.patch added to mm-nonmm-unstable branch
+Message-Id: <20250604020919.1C08DC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ref_tracker: add a static classname string to each ref_tracker_dir
+     Subject: ref_tracker: allow pr_ostream() to print directly to a seq_file
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir.patch
+     ref_tracker-allow-pr_ostream-to-print-directly-to-a-seq_file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ref_tracker-allow-pr_ostream-to-print-directly-to-a-seq_file.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jeff Layton <jlayton@kernel.org>
-Subject: ref_tracker: add a static classname string to each ref_tracker_dir
-Date: Tue, 03 Jun 2025 07:27:15 -0400
+Subject: ref_tracker: allow pr_ostream() to print directly to a seq_file
+Date: Tue, 03 Jun 2025 07:27:16 -0400
 
-A later patch in the series will be adding debugfs files for each
-ref_tracker that get created in ref_tracker_dir_init().  The format will
-be "class@%px".  The current "name" string can vary between
-ref_tracker_dir objects of the same type, so it's not suitable for this
-purpose.
+Allow pr_ostream to also output directly to a seq_file without an
+intermediate buffer.  The first caller of +ref_tracker_dir_seq_print()
+will come in a later patch, so mark that __maybe_unused for now.  That
+designation will be removed once it is used.
 
-Add a new "class" string to the ref_tracker dir that describes the the
-type of object (sans any individual info for that object).
-
-Also, in the i915 driver, gate the creation of debugfs files on whether
-the dentry pointer is still set to NULL.  CI has shown that the
-ref_tracker_dir can be initialized more than once.
-
-Link: https://lkml.kernel.org/r/20250603-reftrack-dbgfs-v13-4-7b2a425019d8@kernel.org
+Link: https://lkml.kernel.org/r/20250603-reftrack-dbgfs-v13-5-7b2a425019d8@kernel.org
 Signed-off-by: Jeff Layton <jlayton@kernel.org>
-Cc: Andrew Lunn <andrew@lunn.ch>
+Reviewed-by: Andrew Lunn <andrew@lunn.ch>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Eric Dumaze <edumazet@google.com>
@@ -99,120 +91,58 @@ Cc: Tvrtko Ursulin <tursulin@ursulin.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/display/drm_dp_tunnel.c |    2 +-
- drivers/gpu/drm/i915/intel_runtime_pm.c |    4 +++-
- drivers/gpu/drm/i915/intel_wakeref.c    |    3 ++-
- include/linux/ref_tracker.h             |    4 ++++
- lib/test_ref_tracker.c                  |    2 +-
- net/core/dev.c                          |    2 +-
- net/core/net_namespace.c                |    4 ++--
- 7 files changed, 14 insertions(+), 7 deletions(-)
+ lib/ref_tracker.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
---- a/drivers/gpu/drm/display/drm_dp_tunnel.c~ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir
-+++ a/drivers/gpu/drm/display/drm_dp_tunnel.c
-@@ -1920,7 +1920,7 @@ drm_dp_tunnel_mgr_create(struct drm_devi
- 	}
+--- a/lib/ref_tracker.c~ref_tracker-allow-pr_ostream-to-print-directly-to-a-seq_file
++++ a/lib/ref_tracker.c
+@@ -8,6 +8,7 @@
+ #include <linux/slab.h>
+ #include <linux/stacktrace.h>
+ #include <linux/stackdepot.h>
++#include <linux/seq_file.h>
  
- #ifdef CONFIG_DRM_DISPLAY_DP_TUNNEL_STATE_DEBUG
--	ref_tracker_dir_init(&mgr->ref_tracker, 16, "dptun");
-+	ref_tracker_dir_init(&mgr->ref_tracker, 16, "drm_dptun", "dptun");
- #endif
- 
- 	for (i = 0; i < max_group_count; i++) {
---- a/drivers/gpu/drm/i915/intel_runtime_pm.c~ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir
-+++ a/drivers/gpu/drm/i915/intel_runtime_pm.c
-@@ -59,7 +59,9 @@ static struct drm_i915_private *rpm_to_i
- 
- static void init_intel_runtime_pm_wakeref(struct intel_runtime_pm *rpm)
- {
--	ref_tracker_dir_init(&rpm->debug, INTEL_REFTRACK_DEAD_COUNT, dev_name(rpm->kdev));
-+	if (!rpm->debug.class)
-+		ref_tracker_dir_init(&rpm->debug, INTEL_REFTRACK_DEAD_COUNT,
-+				     "intel_runtime_pm", dev_name(rpm->kdev));
- }
- 
- static intel_wakeref_t
---- a/drivers/gpu/drm/i915/intel_wakeref.c~ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir
-+++ a/drivers/gpu/drm/i915/intel_wakeref.c
-@@ -114,7 +114,8 @@ void __intel_wakeref_init(struct intel_w
- 			 "wakeref.work", &key->work, 0);
- 
- #if IS_ENABLED(CONFIG_DRM_I915_DEBUG_WAKEREF)
--	ref_tracker_dir_init(&wf->debug, INTEL_REFTRACK_DEAD_COUNT, name);
-+	if (!wf->debug.class)
-+		ref_tracker_dir_init(&wf->debug, INTEL_REFTRACK_DEAD_COUNT, "intel_wakeref", name);
- #endif
- }
- 
---- a/include/linux/ref_tracker.h~ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir
-+++ a/include/linux/ref_tracker.h
-@@ -19,6 +19,7 @@ struct ref_tracker_dir {
- 	bool			dead;
- 	struct list_head	list; /* List of active trackers */
- 	struct list_head	quarantine; /* List of dead trackers */
-+	const char		*class; /* object classname */
- 	char			name[32];
- #endif
+ #define REF_TRACKER_STACK_ENTRIES 16
+ #define STACK_BUF_SIZE 1024
+@@ -66,6 +67,7 @@ struct ostream {
+ 	void __ostream_printf (*func)(struct ostream *stream, char *fmt, ...);
+ 	char *prefix;
+ 	char *buf;
++	struct seq_file *seq;
+ 	int size, used;
  };
-@@ -27,6 +28,7 @@ struct ref_tracker_dir {
  
- static inline void ref_tracker_dir_init(struct ref_tracker_dir *dir,
- 					unsigned int quarantine_count,
-+					const char *class,
- 					const char *name)
+@@ -301,6 +303,30 @@ EXPORT_SYMBOL_GPL(ref_tracker_free);
+ 
+ static struct dentry *ref_tracker_debug_dir = (struct dentry *)-ENOENT;
+ 
++static void __ostream_printf pr_ostream_seq(struct ostream *stream, char *fmt, ...)
++{
++	va_list args;
++
++	va_start(args, fmt);
++	seq_vprintf(stream->seq, fmt, args);
++	va_end(args);
++}
++
++static __maybe_unused int
++ref_tracker_dir_seq_print(struct ref_tracker_dir *dir, struct seq_file *seq)
++{
++	struct ostream os = { .func = pr_ostream_seq,
++			      .prefix = "",
++			      .seq = seq };
++	unsigned long flags;
++
++	spin_lock_irqsave(&dir->lock, flags);
++	__ref_tracker_dir_pr_ostream(dir, 16, &os);
++	spin_unlock_irqrestore(&dir->lock, flags);
++
++	return os.used;
++}
++
+ static int __init ref_tracker_debugfs_init(void)
  {
- 	INIT_LIST_HEAD(&dir->list);
-@@ -36,6 +38,7 @@ static inline void ref_tracker_dir_init(
- 	dir->dead = false;
- 	refcount_set(&dir->untracked, 1);
- 	refcount_set(&dir->no_tracker, 1);
-+	dir->class = class;
- 	strscpy(dir->name, name, sizeof(dir->name));
- 	stack_depot_init();
- }
-@@ -60,6 +63,7 @@ int ref_tracker_free(struct ref_tracker_
- 
- static inline void ref_tracker_dir_init(struct ref_tracker_dir *dir,
- 					unsigned int quarantine_count,
-+					const char *class,
- 					const char *name)
- {
- }
---- a/lib/test_ref_tracker.c~ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir
-+++ a/lib/test_ref_tracker.c
-@@ -64,7 +64,7 @@ static int __init test_ref_tracker_init(
- {
- 	int i;
- 
--	ref_tracker_dir_init(&ref_dir, 100, "selftest");
-+	ref_tracker_dir_init(&ref_dir, 100, "selftest", "selftest");
- 
- 	timer_setup(&test_ref_tracker_timer, test_ref_tracker_timer_func, 0);
- 	mod_timer(&test_ref_tracker_timer, jiffies + 1);
---- a/net/core/dev.c~ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir
-+++ a/net/core/dev.c
-@@ -11714,7 +11714,7 @@ struct net_device *alloc_netdev_mqs(int
- 
- 	dev->priv_len = sizeof_priv;
- 
--	ref_tracker_dir_init(&dev->refcnt_tracker, 128, name);
-+	ref_tracker_dir_init(&dev->refcnt_tracker, 128, "netdev", name);
- #ifdef CONFIG_PCPU_DEV_REFCNT
- 	dev->pcpu_refcnt = alloc_percpu(int);
- 	if (!dev->pcpu_refcnt)
---- a/net/core/net_namespace.c~ref_tracker-add-a-static-classname-string-to-each-ref_tracker_dir
-+++ a/net/core/net_namespace.c
-@@ -403,8 +403,8 @@ static __net_init void preinit_net(struc
- {
- 	refcount_set(&net->passive, 1);
- 	refcount_set(&net->ns.count, 1);
--	ref_tracker_dir_init(&net->refcnt_tracker, 128, "net refcnt");
--	ref_tracker_dir_init(&net->notrefcnt_tracker, 128, "net notrefcnt");
-+	ref_tracker_dir_init(&net->refcnt_tracker, 128, "net_refcnt", "net_refcnt");
-+	ref_tracker_dir_init(&net->notrefcnt_tracker, 128, "net_notrefcnt", "net_notrefcnt");
- 
- 	get_random_bytes(&net->hash_mix, sizeof(u32));
- 	net->dev_base_seq = 1;
+ 	ref_tracker_debug_dir = debugfs_create_dir("ref_tracker", NULL);
 _
 
 Patches currently in -mm which might be from jlayton@kernel.org are
