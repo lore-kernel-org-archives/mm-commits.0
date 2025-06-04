@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E8A1111BF
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 01:33:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E33B1EEE6
+	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 01:34:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749000840; cv=none; b=ntIh/4TLc/WusFJSZXKupFEWKycm6njxFg0ZKqWvo4ijvKTSgfmsgtPH9WJVTv00WCu9vD3IFMbYyA6idl+WSdKsDMh2UsLoWYEQ+LBNC3MlBD1WTpU04OYVcJqAhroV96+1N+pRHE0JaTx3tyv8lwBNT2KiY1o9u8xzwlTZxy8=
+	t=1749000891; cv=none; b=fPySjdBHygqcK/cE+WAMehJmCNZSTsEuOkq0Jft+YF5R7m5s4x9jl8SgHqMx/A226H3j9XmJ1J580/TRqBPM+mO+Xz8vd32eKh5JqivVDnecfDKPJ4etAOaLk1wrNBVzdwoD3l/PUlVy7dJTMWunu7R5C9bjoAXT+iX8cmrzpiU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749000840; c=relaxed/simple;
-	bh=z6b9Ldrmx904bhr7+sKjOHKyiBCRVwFEBzIJRT2ewr0=;
-	h=Date:To:From:Subject:Message-Id; b=UqxYa1WQjT0KOE3QZRC7Cn4VqQsCZlzO5pRpkyywsV0kc3AOUhlXq88XaeRu8tCO59IdSsbrs6cNgapBQAMTsCANzqvRg8A9DbAjapIpNigmhQX2oIj/AaFy7Jhtw7JhjpGHFFymoE9uiHvQwxwHNrKwlCKzASzGPOQLuxcabiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i4JrAYVW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749000891; c=relaxed/simple;
+	bh=SU48g0huoEBrb2LwzTQqpEG3DA/BcfiEiF0arzO7SJA=;
+	h=Date:To:From:Subject:Message-Id; b=uj/3py6ZFZ20cZzIRIe1IRzyXWAtQthnTf9eXJXr5VHvqcFaxqBrEgTOkQqnQgccFHlsYQ3k8BOv47F2D6U+xp02lMrkuRHpqLu+glnQRDxYZ02bEzfMVvIrD7Cp0LiSsr455+s1WRQJS/fxIRdTM0iRyQZ7PxMZipez1rxS7Zo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y2tS0DuI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i4JrAYVW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F635C4CEED;
-	Wed,  4 Jun 2025 01:33:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y2tS0DuI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B1E9C4CEED;
+	Wed,  4 Jun 2025 01:34:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749000839;
-	bh=z6b9Ldrmx904bhr7+sKjOHKyiBCRVwFEBzIJRT2ewr0=;
+	s=korg; t=1749000890;
+	bh=SU48g0huoEBrb2LwzTQqpEG3DA/BcfiEiF0arzO7SJA=;
 	h=Date:To:From:Subject:From;
-	b=i4JrAYVWc9Udxjv5gvspji6rkm5E8/kX8n3ZMFe72y3Ig5ArPtk3soe0tPFu8/+nm
-	 qU37Z0B1FKqzZgu0K/lCkHrtBKdEnjtIHpesqGBJGaFR4IL7rGtUdZJTyYiZ84VdWg
-	 /xcO79XnWH286M4bPDGJq8lTE7G3sbuXcnVGG2ZY=
-Date: Tue, 03 Jun 2025 18:33:59 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stefan.kristiansson@saunalahti.fi,shorne@gmail.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kernel@xen0n.name,jonas@southpole.se,jannh@google.com,david@redhat.com,chenhuacai@kernel.org,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Y2tS0DuIBcYLgr3bDU9IeXTRa6SqQB1+58fB+qiGVHaRt+1lwrWyCcqBULZ3goyka
+	 /BVyre+3EpUnfp//A5taCsosUHI9HCbai315gT84RA4wmveBb9gsYQam1I5aftIKWz
+	 2gMvpBSzVsWfjdxE+JFCPLR+Wf4BjC6aTPIx3xks=
+Date: Tue, 03 Jun 2025 18:34:49 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tjmercier@google.com,surenb@google.com,rppt@kernel.org,minchan@kernel.org,mhocko@suse.com,masahiroy@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kaleshsingh@google.com,isaacmanjarres@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch added to mm-new branch
-Message-Id: <20250604013359.9F635C4CEED@smtp.kernel.org>
+Subject: + mm-rename-config_page_block_order-to-config_page_block_order_ceil.patch added to mm-new branch
+Message-Id: <20250604013450.6B1E9C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
+     Subject: mm: rename CONFIG_PAGE_BLOCK_ORDER to CONFIG_PAGE_BLOCK_ORDER_CEIL.
 has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+     mm-rename-config_page_block_order-to-config_page_block_order_ceil.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-config_page_block_order-to-config_page_block_order_ceil.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,313 +64,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
-Date: Tue, 3 Jun 2025 20:22:13 +0100
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: rename CONFIG_PAGE_BLOCK_ORDER to CONFIG_PAGE_BLOCK_ORDER_CEIL.
+Date: Tue, 3 Jun 2025 11:48:43 -0400
 
-walk_page_range_novma() is rather confusing - it supports two modes, one
-used often, the other used only for debugging.
+The config is in fact an additional upper limit of pageblock_order, so
+rename it to avoid confusion.
 
-The first mode is the common case of traversal of kernel page tables,
-which is what nearly all callers use this for.
-
-Secondly it provides an unusual debugging interface that allows for the
-traversal of page tables in a userland range of memory even for that
-memory which is not described by a VMA.
-
-This is highly unusual and it is far from certain that such page tables
-should even exist, but perhaps this is precisely why it is useful as a
-debugging mechanism.
-
-As a result, this is utilised by ptdump only.  Historically, things were
-reversed - ptdump was the only user, and other parts of the kernel evolved
-to use the kernel page table walking here.
-
-Since we have some complicated and confusing locking rules for the novma
-case, it makes sense to separate the two usages into their own functions.
-
-Doing this also provide self-documentation as to the intent of the caller
-- are they doing something rather unusual or are they simply doing a
-standard kernel page table walk?
-
-We therefore maintain walk_page_range_novma() for this single usage, and
-document the function as such.
-
-Note that ptdump uses the precise same function for kernel walking as a
-convenience, so we permit this but make it very explicit by having
-walk_page_range_novma() invoke walk_page_range_kernel() in this case.
-
-We introduce walk_page_range_kernel() for the far more common case of
-kernel page table traversal.
-
-While it would result in less churn to keep the function signature the
-same for the kernel version, it doesn't make sense to pass an mm_struct in
-the kernel case (it's always &init_mm), so we must modify the signature
-accordingly.
-
-Link: https://lkml.kernel.org/r/20250603192213.182931-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jonas Bonn <jonas@southpole.se>
+Link: https://lkml.kernel.org/r/20250603154843.1565239-1-ziy@nvidia.com
+Fixes: e13e7922d034 ("mm: add CONFIG_PAGE_BLOCK_ORDER to select page block order")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: "Isaac J. Manjarres" <isaacmanjarres@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: T.J. Mercier <tjmercier@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/mm/pageattr.c |    2 
- arch/openrisc/kernel/dma.c   |    4 -
- arch/riscv/mm/pageattr.c     |    8 +-
- include/linux/pagewalk.h     |    3 +
- mm/hugetlb_vmemmap.c         |    2 
- mm/pagewalk.c                |   96 ++++++++++++++++++++++-----------
- 6 files changed, 75 insertions(+), 40 deletions(-)
+ include/linux/mmzone.h          |   14 +++++++-------
+ include/linux/pageblock-flags.h |    8 ++++----
+ mm/Kconfig                      |   15 ++++++++-------
+ 3 files changed, 19 insertions(+), 18 deletions(-)
 
---- a/arch/loongarch/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/loongarch/mm/pageattr.c
-@@ -118,7 +118,7 @@ static int __set_memory(unsigned long ad
- 		return 0;
+--- a/include/linux/mmzone.h~mm-rename-config_page_block_order-to-config_page_block_order_ceil
++++ a/include/linux/mmzone.h
+@@ -38,19 +38,19 @@
+ #define NR_PAGE_ORDERS (MAX_PAGE_ORDER + 1)
  
- 	mmap_write_lock(&init_mm);
--	ret = walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL, &masks);
-+	ret = walk_page_range_kernel(start, end, &pageattr_ops, NULL, &masks);
- 	mmap_write_unlock(&init_mm);
- 
- 	flush_tlb_kernel_range(start, end);
---- a/arch/openrisc/kernel/dma.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/openrisc/kernel/dma.c
-@@ -72,7 +72,7 @@ void *arch_dma_set_uncached(void *cpu_ad
- 	 * them and setting the cache-inhibit bit.
- 	 */
- 	mmap_write_lock(&init_mm);
--	error = walk_page_range_novma(&init_mm, va, va + size,
-+	error = walk_page_range_kernel(va, va + size,
- 			&set_nocache_walk_ops, NULL, NULL);
- 	mmap_write_unlock(&init_mm);
- 
-@@ -87,7 +87,7 @@ void arch_dma_clear_uncached(void *cpu_a
- 
- 	mmap_write_lock(&init_mm);
- 	/* walk_page_range shouldn't be able to fail here */
--	WARN_ON(walk_page_range_novma(&init_mm, va, va + size,
-+	WARN_ON(walk_page_range_kernel(va, va + size,
- 			&clear_nocache_walk_ops, NULL, NULL));
- 	mmap_write_unlock(&init_mm);
- }
---- a/arch/riscv/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/riscv/mm/pageattr.c
-@@ -299,7 +299,7 @@ static int __set_memory(unsigned long ad
- 			if (ret)
- 				goto unlock;
- 
--			ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
-+			ret = walk_page_range_kernel(lm_start, lm_end,
- 						    &pageattr_ops, NULL, &masks);
- 			if (ret)
- 				goto unlock;
-@@ -317,13 +317,13 @@ static int __set_memory(unsigned long ad
- 		if (ret)
- 			goto unlock;
- 
--		ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
-+		ret = walk_page_range_kernel(lm_start, lm_end,
- 					    &pageattr_ops, NULL, &masks);
- 		if (ret)
- 			goto unlock;
- 	}
- 
--	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
-+	ret =  walk_page_range_kernel(start, end, &pageattr_ops, NULL,
- 				     &masks);
- 
- unlock:
-@@ -335,7 +335,7 @@ unlock:
- 	 */
- 	flush_tlb_all();
+ /* Defines the order for the number of pages that have a migrate type. */
+-#ifndef CONFIG_PAGE_BLOCK_ORDER
+-#define PAGE_BLOCK_ORDER MAX_PAGE_ORDER
++#ifndef CONFIG_PAGE_BLOCK_ORDER_CEIL
++#define PAGE_BLOCK_ORDER_CEIL MAX_PAGE_ORDER
  #else
--	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
-+	ret =  walk_page_range_kernel(start, end, &pageattr_ops, NULL,
- 				     &masks);
+-#define PAGE_BLOCK_ORDER CONFIG_PAGE_BLOCK_ORDER
+-#endif /* CONFIG_PAGE_BLOCK_ORDER */
++#define PAGE_BLOCK_ORDER_CEIL CONFIG_PAGE_BLOCK_ORDER_CEIL
++#endif /* CONFIG_PAGE_BLOCK_ORDER_CEIL */
  
- 	mmap_write_unlock(&init_mm);
---- a/include/linux/pagewalk.h~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/include/linux/pagewalk.h
-@@ -129,6 +129,9 @@ struct mm_walk {
- int walk_page_range(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private);
-+int walk_page_range_kernel(unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		pgd_t *pgd, void *private);
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
- 			  pgd_t *pgd,
---- a/mm/hugetlb_vmemmap.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/hugetlb_vmemmap.c
-@@ -166,7 +166,7 @@ static int vmemmap_remap_range(unsigned
- 	VM_BUG_ON(!PAGE_ALIGNED(start | end));
- 
- 	mmap_read_lock(&init_mm);
--	ret = walk_page_range_novma(&init_mm, start, end, &vmemmap_remap_ops,
-+	ret = walk_page_range_kernel(start, end, &vmemmap_remap_ops,
- 				    NULL, walk);
- 	mmap_read_unlock(&init_mm);
- 	if (ret)
---- a/mm/pagewalk.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/pagewalk.c
-@@ -584,9 +584,28 @@ int walk_page_range(struct mm_struct *mm
- 	return walk_page_range_mm(mm, start, end, ops, private);
- }
- 
-+static int __walk_page_range_novma(struct mm_struct *mm, unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		pgd_t *pgd, void *private)
-+{
-+	struct mm_walk walk = {
-+		.ops		= ops,
-+		.mm		= mm,
-+		.pgd		= pgd,
-+		.private	= private,
-+		.no_vma		= true
-+	};
-+
-+	if (start >= end || !walk.mm)
-+		return -EINVAL;
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
-+
-+	return walk_pgd_range(start, end, &walk);
-+}
-+
- /**
-- * walk_page_range_novma - walk a range of pagetables not backed by a vma
-- * @mm:		mm_struct representing the target process of page table walk
-+ * walk_page_range_kernel - walk a range of kernel pagetables.
-  * @start:	start address of the virtual address range
-  * @end:	end address of the virtual address range
-  * @ops:	operation to call during the walk
-@@ -596,56 +615,69 @@ int walk_page_range(struct mm_struct *mm
-  * Similar to walk_page_range() but can walk any page tables even if they are
-  * not backed by VMAs. Because 'unusual' entries may be walked this function
-  * will also not lock the PTEs for the pte_entry() callback. This is useful for
-- * walking the kernel pages tables or page tables for firmware.
-+ * walking kernel pages tables or page tables for firmware.
-  *
-  * Note: Be careful to walk the kernel pages tables, the caller may be need to
-  * take other effective approaches (mmap lock may be insufficient) to prevent
-  * the intermediate kernel page tables belonging to the specified address range
-  * from being freed (e.g. memory hot-remove).
+ /*
+  * The MAX_PAGE_ORDER, which defines the max order of pages to be allocated
+- * by the buddy allocator, has to be larger or equal to the PAGE_BLOCK_ORDER,
++ * by the buddy allocator, has to be larger or equal to the PAGE_BLOCK_ORDER_CEIL,
+  * which defines the order for the number of pages that can have a migrate type
   */
-+int walk_page_range_kernel(unsigned long start, unsigned long end,
-+		const struct mm_walk_ops *ops, pgd_t *pgd, void *private)
-+{
-+	struct mm_struct *mm = &init_mm;
-+
-+	/*
-+	 * Kernel intermediate page tables are usually not freed, so the mmap
-+	 * read lock is sufficient. But there are some exceptions.
-+	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
-+	 * to prevent the intermediate kernel pages tables belonging to the
-+	 * specified address range from being freed. The caller should take
-+	 * other actions to prevent this race.
-+	 */
-+	mmap_assert_locked(mm);
-+
-+	return __walk_page_range_novma(mm, start, end, ops, pgd, private);
-+}
-+
-+/**
-+ * walk_page_range_novma - walk a range of pagetables not backed by a vma
-+ * @mm:		mm_struct representing the target process of page table walk
-+ * @start:	start address of the virtual address range
-+ * @end:	end address of the virtual address range
-+ * @ops:	operation to call during the walk
-+ * @pgd:	pgd to walk if different from mm->pgd
-+ * @private:	private data for callbacks' usage
-+ *
-+ * Similar to walk_page_range() but can walk any page tables even if they are
-+ * not backed by VMAs. Because 'unusual' entries may be walked this function
-+ * will also not lock the PTEs for the pte_entry() callback.
-+ *
-+ * This is for debugging purposes ONLY.
-+ */
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
- 			  pgd_t *pgd,
- 			  void *private)
- {
--	struct mm_walk walk = {
--		.ops		= ops,
--		.mm		= mm,
--		.pgd		= pgd,
--		.private	= private,
--		.no_vma		= true
--	};
--
--	if (start >= end || !walk.mm)
--		return -EINVAL;
--	if (!check_ops_valid(ops))
--		return -EINVAL;
-+	/*
-+	 * For convenience, we allow this function to also traverse kernel
-+	 * mappings.
-+	 */
-+	if (mm == &init_mm)
-+		return walk_page_range_kernel(start, end, ops, pgd, private);
+-#if (PAGE_BLOCK_ORDER > MAX_PAGE_ORDER)
+-#error MAX_PAGE_ORDER must be >= PAGE_BLOCK_ORDER
++#if (PAGE_BLOCK_ORDER_CEIL > MAX_PAGE_ORDER)
++#error MAX_PAGE_ORDER must be >= PAGE_BLOCK_ORDER_CEIL
+ #endif
  
- 	/*
--	 * 1) For walking the user virtual address space:
--	 *
- 	 * The mmap lock protects the page walker from changes to the page
- 	 * tables during the walk.  However a read lock is insufficient to
- 	 * protect those areas which don't have a VMA as munmap() detaches
- 	 * the VMAs before downgrading to a read lock and actually tearing
- 	 * down PTEs/page tables. In which case, the mmap write lock should
--	 * be hold.
--	 *
--	 * 2) For walking the kernel virtual address space:
--	 *
--	 * The kernel intermediate page tables usually do not be freed, so
--	 * the mmap map read lock is sufficient. But there are some exceptions.
--	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
--	 * to prevent the intermediate kernel pages tables belonging to the
--	 * specified address range from being freed. The caller should take
--	 * other actions to prevent this race.
-+	 * be held.
- 	 */
--	if (mm == &init_mm)
--		mmap_assert_locked(walk.mm);
--	else
--		mmap_assert_write_locked(walk.mm);
-+	mmap_assert_write_locked(mm);
+ /*
+--- a/include/linux/pageblock-flags.h~mm-rename-config_page_block_order-to-config_page_block_order_ceil
++++ a/include/linux/pageblock-flags.h
+@@ -41,18 +41,18 @@ extern unsigned int pageblock_order;
+  * Huge pages are a constant size, but don't exceed the maximum allocation
+  * granularity.
+  */
+-#define pageblock_order		MIN_T(unsigned int, HUGETLB_PAGE_ORDER, PAGE_BLOCK_ORDER)
++#define pageblock_order		MIN_T(unsigned int, HUGETLB_PAGE_ORDER, PAGE_BLOCK_ORDER_CEIL)
  
--	return walk_pgd_range(start, end, &walk);
-+	return __walk_page_range_novma(mm, start, end, ops, pgd, private);
- }
+ #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
  
- int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
+ #elif defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 
+-#define pageblock_order		MIN_T(unsigned int, HPAGE_PMD_ORDER, PAGE_BLOCK_ORDER)
++#define pageblock_order		MIN_T(unsigned int, HPAGE_PMD_ORDER, PAGE_BLOCK_ORDER_CEIL)
+ 
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+-/* If huge pages are not used, group by PAGE_BLOCK_ORDER */
+-#define pageblock_order		PAGE_BLOCK_ORDER
++/* If huge pages are not used, group by PAGE_BLOCK_ORDER_CEIL */
++#define pageblock_order		PAGE_BLOCK_ORDER_CEIL
+ 
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+--- a/mm/Kconfig~mm-rename-config_page_block_order-to-config_page_block_order_ceil
++++ a/mm/Kconfig
+@@ -1005,8 +1005,8 @@ config ARCH_FORCE_MAX_ORDER
+ # the default page block order is MAX_PAGE_ORDER (10) as per
+ # include/linux/mmzone.h.
+ #
+-config PAGE_BLOCK_ORDER
+-	int "Page Block Order"
++config PAGE_BLOCK_ORDER_CEIL
++	int "Page Block Order Upper Limit"
+ 	range 1 10 if ARCH_FORCE_MAX_ORDER = 0
+ 	default 10 if ARCH_FORCE_MAX_ORDER = 0
+ 	range 1 ARCH_FORCE_MAX_ORDER if ARCH_FORCE_MAX_ORDER != 0
+@@ -1014,12 +1014,13 @@ config PAGE_BLOCK_ORDER
+ 	help
+ 	  The page block order refers to the power of two number of pages that
+ 	  are physically contiguous and can have a migrate type associated to
+-	  them. The maximum size of the page block order is limited by
+-	  ARCH_FORCE_MAX_ORDER.
++	  them. The maximum size of the page block order is at least limited by
++	  ARCH_FORCE_MAX_ORDER/MAX_PAGE_ORDER.
+ 
+-	  This config allows overriding the default page block order when the
+-	  page block order is required to be smaller than ARCH_FORCE_MAX_ORDER
+-	  or MAX_PAGE_ORDER.
++	  This config adds a new upper limit of default page block
++	  order when the page block order is required to be smaller than
++	  ARCH_FORCE_MAX_ORDER/MAX_PAGE_ORDER or other limits
++	  (see include/linux/pageblock-flags.h for details).
+ 
+ 	  Reducing pageblock order can negatively impact THP generation
+ 	  success rate. If your workloads uses THP heavily, please use this
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-kvm-s390-rename-prot_none-to-prot_type_dummy.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+mm-rename-config_page_block_order-to-config_page_block_order_ceil.patch
 
