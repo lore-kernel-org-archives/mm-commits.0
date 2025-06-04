@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD6481DC07D
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 19:24:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AD0A86337;
+	Wed,  4 Jun 2025 19:27:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749065097; cv=none; b=RnZoSGlOhLU3cpQgltO2j1XkhatxQ882ULVoQsfkxCj+mI6QTaTGyLvJ78e2hp0q7ObCBfelXzrhaJh1VIg8T9gybcAzGQFUdvK5n3chkcDhdWDlKOdvdyYMTmiakIi4HFCH2TFxfk1nI9xBykRwFSWT6fV3akilICT5kCspVLg=
+	t=1749065257; cv=none; b=PNenTRQoK9eZWZsTvAkVbblarLD/muIlSmhEdqS5fOMlLoX7tSGWWfEZ4lG4spRvdiGTggBAbZaFLBA+oqfuWUo6QMTd8vW7bR147rS+ZAe/j6rRew0BbNxsxlCzTlW026Uf4DLvLm0Mg/CI/Ez/m1+oHcUHDFpVhAawn5Wp2jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749065097; c=relaxed/simple;
-	bh=G9Jxu/p++u+IX+arDRe9/7fuY080GCd8eFDNFb8CYYE=;
-	h=Date:To:From:Subject:Message-Id; b=rVJFVRCm5ptBMcixR85SDWs5QUS+6PAIjwrAVwxxKBFpOia2QD3DxpUordoyFLdbRcbWLwPKGeGTpLnAP4ZnzZoS22ziqtRVPNjbfzM0zGPDyX9vj7zpy5Me2LZKyfKiN+kkToCdZbFfRVhkQgoiC8CNUdOpvrEuZsEBGdzGbwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TTt+CL+G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749065257; c=relaxed/simple;
+	bh=nMgqY2jkFUb9NnbRKeB474icfBmRN1AyIJSk4BLPkJ0=;
+	h=Date:To:From:Subject:Message-Id; b=bW0Cr37Ik3DIMUlzOSXF0MGpyKNYh9vgpi/ULY8ub7yYKlobCx1RZW4vDtoN2WVU4n0SoHGrLV2Zg2vDPPgzvuezT/WjUxPVeV7ic1jsG3F1tCgTSiM/K2gMpRukMshLIWHQZ8hVc2vdoS9IJQOkgKowwToJVTSLN1xNCjUVuYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oFqqzIS+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TTt+CL+G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CC7EC4CEE4;
-	Wed,  4 Jun 2025 19:24:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oFqqzIS+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58647C4CEE4;
+	Wed,  4 Jun 2025 19:27:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749065097;
-	bh=G9Jxu/p++u+IX+arDRe9/7fuY080GCd8eFDNFb8CYYE=;
+	s=korg; t=1749065255;
+	bh=nMgqY2jkFUb9NnbRKeB474icfBmRN1AyIJSk4BLPkJ0=;
 	h=Date:To:From:Subject:From;
-	b=TTt+CL+GO2w2YMrI8MyPhfnhqUvkp9LQfkp9orA7SKrI3BMAnbiIsZMFHoJtcbBRw
-	 NtUDCJHih8gcpco1KXQoInEqwI/UtlkBP2KeIlL7ccO5tWL1m6H10lHyeGL6kRVFpp
-	 ed67gc+VY0PJgU5xTI/RfdbiZ0Nr9KX7WZB7k7KA=
-Date: Wed, 04 Jun 2025 12:24:56 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stefan.kristiansson@saunalahti.fi,shorne@gmail.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kernel@xen0n.name,jonas@southpole.se,jannh@google.com,david@redhat.com,chenhuacai@kernel.org,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=oFqqzIS+NYZNjXBRqhgg9cZRxJ1BimblPXwzXNQgySTpFXyQA047f2WLsp5LGTX5k
+	 0leNGjh5vu6Wjrxif7QGQKeoQtLpsoKcPxITsU8t18cSkiNARE3ICuZ6+i6KpbbutR
+	 OZ2zUceXM3OVZ+4HX4s/dIkOsY4VpapqJUJKwc8g=
+Date: Wed, 04 Jun 2025 12:27:34 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,david@redhat.com,aarcange@redhat.com,21cnbao@gmail.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch added to mm-new branch
-Message-Id: <20250604192457.1CC7EC4CEE4@smtp.kernel.org>
+Subject: + mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250604192735.58647C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
-has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+     Subject: mm: userfaultfd: fix race of userfaultfd_move and swap cache
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,347 +58,179 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
-Date: Wed, 4 Jun 2025 15:19:58 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: mm: userfaultfd: fix race of userfaultfd_move and swap cache
+Date: Wed, 4 Jun 2025 23:10:38 +0800
 
-The walk_page_range_novma() function is rather confusing - it supports two
-modes, one used often, the other used only for debugging.
+On seeing a swap entry PTE, userfaultfd_move does a lockless swap cache
+lookup, and tries to move the found folio to the faulting vma.  Currently,
+it relies on checking the PTE value to ensure that the moved folio still
+belongs to the src swap entry and that no new folio has been added to the
+swap cache, which turns out to be unreliable.
 
-The first mode is the common case of traversal of kernel page tables,
-which is what nearly all callers use this for.
+While working and reviewing the swap table series with Barry, following
+existing races are observed and reproduced [1]:
 
-Secondly it provides an unusual debugging interface that allows for the
-traversal of page tables in a userland range of memory even for that
-memory which is not described by a VMA.
+In the example below, move_pages_pte is moving src_pte to dst_pte, where
+src_pte is a swap entry PTE holding swap entry S1, and S1 is not in the
+swap cache:
 
-It is far from certain that such page tables should even exist, but
-perhaps this is precisely why it is useful as a debugging mechanism.
+CPU1                               CPU2
+userfaultfd_move
+  move_pages_pte()
+    entry = pte_to_swp_entry(orig_src_pte);
+    // Here it got entry = S1
+    ... < interrupted> ...
+                                   <swapin src_pte, alloc and use folio A>
+                                   // folio A is a new allocated folio
+                                   // and get installed into src_pte
+                                   <frees swap entry S1>
+                                   // src_pte now points to folio A, S1
+                                   // has swap count == 0, it can be freed
+                                   // by folio_swap_swap or swap
+                                   // allocator's reclaim.
+                                   <try to swap out another folio B>
+                                   // folio B is a folio in another VMA.
+                                   <put folio B to swap cache using S1 >
+                                   // S1 is freed, folio B can use it
+                                   // for swap out with no problem.
+                                   ...
+    folio = filemap_get_folio(S1)
+    // Got folio B here !!!
+    ... < interrupted again> ...
+                                   <swapin folio B and free S1>
+                                   // Now S1 is free to be used again.
+                                   <swapout src_pte & folio A using S1>
+                                   // Now src_pte is a swap entry PTE
+                                   // holding S1 again.
+    folio_trylock(folio)
+    move_swap_pte
+      double_pt_lock
+      is_pte_pages_stable
+      // Check passed because src_pte == S1
+      folio_move_anon_rmap(...)
+      // Moved invalid folio B here !!!
 
-As a result, this is utilised by ptdump only.  Historically, things were
-reversed - ptdump was the only user, and other parts of the kernel evolved
-to use the kernel page table walking here.
+The race window is very short and requires multiple collisions of multiple
+rare events, so it's very unlikely to happen, but with a deliberately
+constructed reproducer and increased time window, it can be reproduced
+easily.
 
-Since we have some complicated and confusing locking rules for the novma
-case, it makes sense to separate the two usages into their own functions.
+This can be fixed by checking if the folio returned by filemap is the
+valid swap cache folio after acquiring the folio lock.
 
-Doing this also provide self-documentation as to the intent of the caller
-- are they doing something rather unusual or are they simply doing a
-standard kernel page table walk?
+Another similar race is possible: filemap_get_folio may return NULL, but
+folio (A) could be swapped in and then swapped out again using the same
+swap entry after the lookup.  In such a case, folio (A) may remain in the
+swap cache, so it must be moved too:
 
-We therefore establish two separate functions - walk_page_range_debug()
-for this single usage, and walk_kernel_page_table_range() for general
-kernel page table walking.
+CPU1                               CPU2
+userfaultfd_move
+  move_pages_pte()
+    entry = pte_to_swp_entry(orig_src_pte);
+    // Here it got entry = S1, and S1 is not in swap cache
+    folio = filemap_get_folio(S1)
+    // Got NULL
+    ... < interrupted again> ...
+                                   <swapin folio A and free S1>
+                                   <swapout folio A re-using S1>
+    move_swap_pte
+      double_pt_lock
+      is_pte_pages_stable
+      // Check passed because src_pte == S1
+      folio_move_anon_rmap(...)
+      // folio A is ignored !!!
 
-We additionally make walk_page_range_debug() internal to mm.
+Fix this by checking the swap cache again after acquiring the src_pte
+lock.  And to avoid the filemap overhead, we check swap_map directly [2].
 
-Note that ptdump uses the precise same function for kernel walking as a
-convenience, so we permit this but make it very explicit by having
-walk_page_range_novma() invoke walk_kernel_page_table_range() in this
-case.
+The SWP_SYNCHRONOUS_IO path does make the problem more complex, but so far
+we don't need to worry about that, since folios can only be exposed to the
+swap cache in the swap out path, and this is covered in this patch by
+checking the swap cache again after acquiring the src_pte lock.
 
-Link: https://lkml.kernel.org/r/20250604141958.111300-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Testing with a simple C program that allocates and moves several GB of
+memory did not show any observable performance change.
+
+Link: https://lkml.kernel.org/r/20250604151038.21968-1-ryncsn@gmail.com
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Closes: https://lore.kernel.org/linux-mm/CAMgjq7B1K=6OOrK2OUZ0-tqCzi+EJt+2_K97TPGoSt=9+JwP7Q@mail.gmail.com/ [1]
+Link: https://lore.kernel.org/all/CAGsJ_4yJhJBo16XhiC-nUzSheyX-V3-nFE+tAi=8Y560K8eT=A@mail.gmail.com/ [2]
+Reviewed-by: Lokesh Gidra <lokeshgidra@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Barry Song <baohua@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/mm/pageattr.c |    2 
- arch/openrisc/kernel/dma.c   |    4 -
- arch/riscv/mm/pageattr.c     |    8 +-
- include/linux/pagewalk.h     |    7 +-
- mm/hugetlb_vmemmap.c         |    2 
- mm/internal.h                |    4 +
- mm/pagewalk.c                |   98 +++++++++++++++++++++------------
- mm/ptdump.c                  |    3 -
- 8 files changed, 82 insertions(+), 46 deletions(-)
+ mm/userfaultfd.c |   33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
---- a/arch/loongarch/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/loongarch/mm/pageattr.c
-@@ -118,7 +118,7 @@ static int __set_memory(unsigned long ad
- 		return 0;
- 
- 	mmap_write_lock(&init_mm);
--	ret = walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL, &masks);
-+	ret = walk_kernel_page_table_range(start, end, &pageattr_ops, NULL, &masks);
- 	mmap_write_unlock(&init_mm);
- 
- 	flush_tlb_kernel_range(start, end);
---- a/arch/openrisc/kernel/dma.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/openrisc/kernel/dma.c
-@@ -72,7 +72,7 @@ void *arch_dma_set_uncached(void *cpu_ad
- 	 * them and setting the cache-inhibit bit.
- 	 */
- 	mmap_write_lock(&init_mm);
--	error = walk_page_range_novma(&init_mm, va, va + size,
-+	error = walk_kernel_page_table_range(va, va + size,
- 			&set_nocache_walk_ops, NULL, NULL);
- 	mmap_write_unlock(&init_mm);
- 
-@@ -87,7 +87,7 @@ void arch_dma_clear_uncached(void *cpu_a
- 
- 	mmap_write_lock(&init_mm);
- 	/* walk_page_range shouldn't be able to fail here */
--	WARN_ON(walk_page_range_novma(&init_mm, va, va + size,
-+	WARN_ON(walk_kernel_page_table_range(va, va + size,
- 			&clear_nocache_walk_ops, NULL, NULL));
- 	mmap_write_unlock(&init_mm);
- }
---- a/arch/riscv/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/riscv/mm/pageattr.c
-@@ -299,7 +299,7 @@ static int __set_memory(unsigned long ad
- 			if (ret)
- 				goto unlock;
- 
--			ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
-+			ret = walk_kernel_page_table_range(lm_start, lm_end,
- 						    &pageattr_ops, NULL, &masks);
- 			if (ret)
- 				goto unlock;
-@@ -317,13 +317,13 @@ static int __set_memory(unsigned long ad
- 		if (ret)
- 			goto unlock;
- 
--		ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
-+		ret = walk_kernel_page_table_range(lm_start, lm_end,
- 					    &pageattr_ops, NULL, &masks);
- 		if (ret)
- 			goto unlock;
- 	}
- 
--	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
-+	ret =  walk_kernel_page_table_range(start, end, &pageattr_ops, NULL,
- 				     &masks);
- 
- unlock:
-@@ -335,7 +335,7 @@ unlock:
- 	 */
- 	flush_tlb_all();
- #else
--	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
-+	ret =  walk_kernel_page_table_range(start, end, &pageattr_ops, NULL,
- 				     &masks);
- 
- 	mmap_write_unlock(&init_mm);
---- a/include/linux/pagewalk.h~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/include/linux/pagewalk.h
-@@ -129,10 +129,9 @@ struct mm_walk {
- int walk_page_range(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private);
--int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
--			  unsigned long end, const struct mm_walk_ops *ops,
--			  pgd_t *pgd,
--			  void *private);
-+int walk_kernel_page_table_range(unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		pgd_t *pgd, void *private);
- int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
- 			unsigned long end, const struct mm_walk_ops *ops,
- 			void *private);
---- a/mm/hugetlb_vmemmap.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/hugetlb_vmemmap.c
-@@ -166,7 +166,7 @@ static int vmemmap_remap_range(unsigned
- 	VM_BUG_ON(!PAGE_ALIGNED(start | end));
- 
- 	mmap_read_lock(&init_mm);
--	ret = walk_page_range_novma(&init_mm, start, end, &vmemmap_remap_ops,
-+	ret = walk_kernel_page_table_range(start, end, &vmemmap_remap_ops,
- 				    NULL, walk);
- 	mmap_read_unlock(&init_mm);
- 	if (ret)
---- a/mm/internal.h~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/internal.h
-@@ -1605,6 +1605,10 @@ static inline void accept_page(struct pa
- int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private);
-+int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
-+			  unsigned long end, const struct mm_walk_ops *ops,
-+			  pgd_t *pgd,
-+			  void *private);
- 
- /* pt_reclaim.c */
- bool try_get_and_clear_pmd(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval);
---- a/mm/pagewalk.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/pagewalk.c
-@@ -584,9 +584,28 @@ int walk_page_range(struct mm_struct *mm
- 	return walk_page_range_mm(mm, start, end, ops, private);
- }
- 
-+static int __walk_page_range_novma(struct mm_struct *mm, unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		pgd_t *pgd, void *private)
-+{
-+	struct mm_walk walk = {
-+		.ops		= ops,
-+		.mm		= mm,
-+		.pgd		= pgd,
-+		.private	= private,
-+		.no_vma		= true
-+	};
-+
-+	if (start >= end || !walk.mm)
-+		return -EINVAL;
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
-+
-+	return walk_pgd_range(start, end, &walk);
-+}
-+
- /**
-- * walk_page_range_novma - walk a range of pagetables not backed by a vma
-- * @mm:		mm_struct representing the target process of page table walk
-+ * walk_kernel_page_table_range - walk a range of kernel pagetables.
-  * @start:	start address of the virtual address range
-  * @end:	end address of the virtual address range
-  * @ops:	operation to call during the walk
-@@ -596,56 +615,69 @@ int walk_page_range(struct mm_struct *mm
-  * Similar to walk_page_range() but can walk any page tables even if they are
-  * not backed by VMAs. Because 'unusual' entries may be walked this function
-  * will also not lock the PTEs for the pte_entry() callback. This is useful for
-- * walking the kernel pages tables or page tables for firmware.
-+ * walking kernel pages tables or page tables for firmware.
-  *
-  * Note: Be careful to walk the kernel pages tables, the caller may be need to
-  * take other effective approaches (mmap lock may be insufficient) to prevent
-  * the intermediate kernel page tables belonging to the specified address range
-  * from being freed (e.g. memory hot-remove).
-  */
--int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
-+int walk_kernel_page_table_range(unsigned long start, unsigned long end,
-+		const struct mm_walk_ops *ops, pgd_t *pgd, void *private)
-+{
-+	struct mm_struct *mm = &init_mm;
-+
-+	/*
-+	 * Kernel intermediate page tables are usually not freed, so the mmap
-+	 * read lock is sufficient. But there are some exceptions.
-+	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
-+	 * to prevent the intermediate kernel pages tables belonging to the
-+	 * specified address range from being freed. The caller should take
-+	 * other actions to prevent this race.
-+	 */
-+	mmap_assert_locked(mm);
-+
-+	return __walk_page_range_novma(mm, start, end, ops, pgd, private);
-+}
-+
-+/**
-+ * walk_page_range_debug - walk a range of pagetables not backed by a vma
-+ * @mm:		mm_struct representing the target process of page table walk
-+ * @start:	start address of the virtual address range
-+ * @end:	end address of the virtual address range
-+ * @ops:	operation to call during the walk
-+ * @pgd:	pgd to walk if different from mm->pgd
-+ * @private:	private data for callbacks' usage
-+ *
-+ * Similar to walk_page_range() but can walk any page tables even if they are
-+ * not backed by VMAs. Because 'unusual' entries may be walked this function
-+ * will also not lock the PTEs for the pte_entry() callback.
-+ *
-+ * This is for debugging purposes ONLY.
-+ */
-+int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
- 			  pgd_t *pgd,
- 			  void *private)
+--- a/mm/userfaultfd.c~mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache
++++ a/mm/userfaultfd.c
+@@ -1084,8 +1084,18 @@ static int move_swap_pte(struct mm_struc
+ 			 pte_t orig_dst_pte, pte_t orig_src_pte,
+ 			 pmd_t *dst_pmd, pmd_t dst_pmdval,
+ 			 spinlock_t *dst_ptl, spinlock_t *src_ptl,
+-			 struct folio *src_folio)
++			 struct folio *src_folio,
++			 struct swap_info_struct *si, swp_entry_t entry)
  {
--	struct mm_walk walk = {
--		.ops		= ops,
--		.mm		= mm,
--		.pgd		= pgd,
--		.private	= private,
--		.no_vma		= true
--	};
--
--	if (start >= end || !walk.mm)
--		return -EINVAL;
--	if (!check_ops_valid(ops))
--		return -EINVAL;
 +	/*
-+	 * For convenience, we allow this function to also traverse kernel
-+	 * mappings.
++	 * Check if the folio still belongs to the target swap entry after
++	 * acquiring the lock. Folio can be freed in the swap cache while
++	 * not locked.
 +	 */
-+	if (mm == &init_mm)
-+		return walk_kernel_page_table_range(start, end, ops, pgd, private);
++	if (src_folio && unlikely(!folio_test_swapcache(src_folio) ||
++				  entry.val != src_folio->swap.val))
++		return -EAGAIN;
++
+ 	double_pt_lock(dst_ptl, src_ptl);
  
- 	/*
--	 * 1) For walking the user virtual address space:
--	 *
- 	 * The mmap lock protects the page walker from changes to the page
- 	 * tables during the walk.  However a read lock is insufficient to
- 	 * protect those areas which don't have a VMA as munmap() detaches
- 	 * the VMAs before downgrading to a read lock and actually tearing
- 	 * down PTEs/page tables. In which case, the mmap write lock should
--	 * be hold.
--	 *
--	 * 2) For walking the kernel virtual address space:
--	 *
--	 * The kernel intermediate page tables usually do not be freed, so
--	 * the mmap map read lock is sufficient. But there are some exceptions.
--	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
--	 * to prevent the intermediate kernel pages tables belonging to the
--	 * specified address range from being freed. The caller should take
--	 * other actions to prevent this race.
-+	 * be held.
- 	 */
--	if (mm == &init_mm)
--		mmap_assert_locked(walk.mm);
--	else
--		mmap_assert_write_locked(walk.mm);
-+	mmap_assert_write_locked(mm);
- 
--	return walk_pgd_range(start, end, &walk);
-+	return __walk_page_range_novma(mm, start, end, ops, pgd, private);
- }
- 
- int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
---- a/mm/ptdump.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/ptdump.c
-@@ -4,6 +4,7 @@
- #include <linux/debugfs.h>
- #include <linux/ptdump.h>
- #include <linux/kasan.h>
-+#include "internal.h"
- 
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- /*
-@@ -177,7 +178,7 @@ void ptdump_walk_pgd(struct ptdump_state
- 
- 	mmap_write_lock(mm);
- 	while (range->start != range->end) {
--		walk_page_range_novma(mm, range->start, range->end,
-+		walk_page_range_debug(mm, range->start, range->end,
- 				      &ptdump_ops, pgd, st);
- 		range++;
+ 	if (!is_pte_pages_stable(dst_pte, src_pte, orig_dst_pte, orig_src_pte,
+@@ -1102,6 +1112,25 @@ static int move_swap_pte(struct mm_struc
+ 	if (src_folio) {
+ 		folio_move_anon_rmap(src_folio, dst_vma);
+ 		src_folio->index = linear_page_index(dst_vma, dst_addr);
++	} else {
++		/*
++		 * Check if the swap entry is cached after acquiring the src_pte
++		 * lock. Otherwise, we might miss a newly loaded swap cache folio.
++		 *
++		 * Check swap_map directly to minimize overhead, READ_ONCE is sufficient.
++		 * We are trying to catch newly added swap cache, the only possible case is
++		 * when a folio is swapped in and out again staying in swap cache, using the
++		 * same entry before the PTE check above. The PTL is acquired and released
++		 * twice, each time after updating the swap_map's flag. So holding
++		 * the PTL here ensures we see the updated value. False positive is possible,
++		 * e.g. SWP_SYNCHRONOUS_IO swapin may set the flag without touching the
++		 * cache, or during the tiny synchronization window between swap cache and
++		 * swap_map, but it will be gone very quickly, worst result is retry jitters.
++		 */
++		if (READ_ONCE(si->swap_map[swp_offset(entry)]) & SWAP_HAS_CACHE) {
++			double_pt_unlock(dst_ptl, src_ptl);
++			return -EAGAIN;
++		}
  	}
+ 
+ 	orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
+@@ -1412,7 +1441,7 @@ retry:
+ 		}
+ 		err = move_swap_pte(mm, dst_vma, dst_addr, src_addr, dst_pte, src_pte,
+ 				orig_dst_pte, orig_src_pte, dst_pmd, dst_pmdval,
+-				dst_ptl, src_ptl, src_folio);
++				dst_ptl, src_ptl, src_folio, si, entry);
+ 	}
+ 
+ out:
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-kvm-s390-rename-prot_none-to-prot_type_dummy.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
 
