@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 737AA17C224
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 22:29:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8155210E9
+	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 22:32:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749076156; cv=none; b=X3l/jb4PKId9opcA+7m2SSYMJytkDS2EN32cPiyNIQz43t4QvrmwQUHe86M5oCHRHjq7VT9Bh2Ot/9kvG4UZ9O3ENpljCLbCGJy2W6vaCbgls/YG63TEXtVepaHhAkM2I7g+2P08S7EsXpnGW2PPTrlPnQ4SX3vuRyUllrg/Y/I=
+	t=1749076340; cv=none; b=d5PzWLwPGgsSRO4HR3PYMIkH/JfFBLDBeWya/mnnXv+egdIWYRq4HGuNEcqmIdS/LNEMwPSiZTzxN95ShDSYj+61//Gis+B6eb5pKHxTIvc27DNXuM2zUNnzBNbG/ePkzIva3dbbYroQx/NJqd9zE4JZwuiwYogpfd6Hs3USLgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749076156; c=relaxed/simple;
-	bh=uc/z5jV3rZqnBfCsbLZA3La3jyTmHUzT5jDjf5SjkgM=;
-	h=Date:To:From:Subject:Message-Id; b=nUtL8t17wVC2kJ7PGAEGGayk4Nht3IQ4WkKmfHXd91nG/yXY7KyprEnwk4mVGp1Q+3kjYGkHEouwrlIwVwc8e8FGs3Hl8phW2ory0WipOPvjBn9OJ8fiFbQF1m+wfbGQWr69SVzFd5FhgiGWeZU9wrGkDWc0o3H/+FqM9ECHDDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xeQTZUhS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749076340; c=relaxed/simple;
+	bh=+6hPLWneHbM9YQ0gJE9+ME2E83EqR2q2niSQBH7Zv6Y=;
+	h=Date:To:From:Subject:Message-Id; b=hpc/O261tk9st0c6GYx+r4fWqYYtfG/2wk6XSm8X6n7ENW/SwBvrSStggmEgM3LPQllsxgMvZUSecaM0H5V08yYL/+HelB9gqc3JqRdEgAZcm8P3xUmLg5+PgdXLHs7svxOiA3c4o4xlqX7dBM7PWFLxj/wNkJyyG+aIa0qX2b8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XfHACi0R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xeQTZUhS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEB78C4CEE4;
-	Wed,  4 Jun 2025 22:29:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XfHACi0R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAD40C4CEE4;
+	Wed,  4 Jun 2025 22:32:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749076155;
-	bh=uc/z5jV3rZqnBfCsbLZA3La3jyTmHUzT5jDjf5SjkgM=;
+	s=korg; t=1749076339;
+	bh=+6hPLWneHbM9YQ0gJE9+ME2E83EqR2q2niSQBH7Zv6Y=;
 	h=Date:To:From:Subject:From;
-	b=xeQTZUhS8sS8r/ZtJvTNcdKr59B4cF0Gyfvp/ioU6iR2yMAYoR+58QgJiHkc+ZAuy
-	 B4RCXsNd1PpKukIydfJbXRovuxCyuLZ7nWBJnwtaE880vouksaWoKfjXAbAJe1v3fS
-	 Wd/ZQE4KBU0rQ3M+JJtoPirJkB5kNv7TYXQEJ19A=
-Date: Wed, 04 Jun 2025 15:29:15 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=XfHACi0R1TyU4NhmY9UokK7ilH8DCDXpDbtLovz88cG9ABtLfl19YVKlQIcc9h/1C
+	 D56B6sqyaQFbOSPtyxMABCZrcKzPzFqaXc61IB1dLWvVBsdRW5bFQ0rPW7JOMIar0K
+	 AlO3TGIm22ZmcuqkZsM8YaSSO2gi4jRXsbvQQPs4=
+Date: Wed, 04 Jun 2025 15:32:19 -0700
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,zhengqi.arch@bytedance.com,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,lkp@intel.com,julia.lawall@inria.fr,hannes@cmpxchg.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch added to mm-new branch
-Message-Id: <20250604222915.CEB78C4CEE4@smtp.kernel.org>
+Subject: + mm-list_lru-refactor-the-locking-code.patch added to mm-new branch
+Message-Id: <20250604223219.BAD40C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: remove unnecessary holding of hugetlb_lock
+     Subject: mm, list_lru: refactor the locking code
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch
+     mm-list_lru-refactor-the-locking-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-refactor-the-locking-code.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,157 +64,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ge Yang <yangge1116@126.com>
-Subject: mm/hugetlb: remove unnecessary holding of hugetlb_lock
-Date: Tue, 27 May 2025 11:36:50 +0800
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, list_lru: refactor the locking code
+Date: Tue, 27 May 2025 02:06:38 +0800
 
-In isolate_or_dissolve_huge_folio(), after acquiring the hugetlb_lock, it
-is only for the purpose of obtaining the correct hstate, which is then
-passed to alloc_and_dissolve_hugetlb_folio().
+Cocci is confused by the try lock then release RCU and return logic here. 
+So separate the try lock part out into a standalone helper.  The code is
+easier to follow too.
 
-alloc_and_dissolve_hugetlb_folio() itself also acquires the hugetlb_lock. 
-We can have alloc_and_dissolve_hugetlb_folio() obtain the hstate by
-itself, so that isolate_or_dissolve_huge_folio() no longer needs to
-acquire the hugetlb_lock.  In addition, we keep the folio_test_hugetlb()
-check within isolate_or_dissolve_huge_folio().  By doing so, we can avoid
-disrupting the normal path by vainly holding the hugetlb_lock.
+No feature change, fixes:
 
-replace_free_hugepage_folios() has the same issue, and we should address
-it as well.
+cocci warnings: (new ones prefixed by >>)
+>> mm/list_lru.c:82:3-9: preceding lock on line 77
+>> mm/list_lru.c:82:3-9: preceding lock on line 77
+   mm/list_lru.c:82:3-9: preceding lock on line 75
+   mm/list_lru.c:82:3-9: preceding lock on line 75
 
-Link: https://lkml.kernel.org/r/1748317010-16272-1-git-send-email-yangge1116@126.com
-Signed-off-by: Ge Yang <yangge1116@126.com>
-Suggested-by: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20250526180638.14609-1-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Julia Lawall <julia.lawall@inria.fr>
+Closes: https://lore.kernel.org/r/202505252043.pbT1tBHJ-lkp@intel.com/
+Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   54 +++++++++++++++----------------------------------
- 1 file changed, 17 insertions(+), 37 deletions(-)
+ mm/list_lru.c |   34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock
-+++ a/mm/hugetlb.c
-@@ -2787,20 +2787,24 @@ void restore_reserve_on_error(struct hst
- /*
-  * alloc_and_dissolve_hugetlb_folio - Allocate a new folio and dissolve
-  * the old one
-- * @h: struct hstate old page belongs to
-  * @old_folio: Old folio to dissolve
-  * @list: List to isolate the page in case we need to
-  * Returns 0 on success, otherwise negated error.
-  */
--static int alloc_and_dissolve_hugetlb_folio(struct hstate *h,
--			struct folio *old_folio, struct list_head *list)
-+static int alloc_and_dissolve_hugetlb_folio(struct folio *old_folio,
-+			struct list_head *list)
- {
--	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
-+	gfp_t gfp_mask;
-+	struct hstate *h;
- 	int nid = folio_nid(old_folio);
- 	struct folio *new_folio = NULL;
- 	int ret = 0;
- 
- retry:
-+	/*
-+	 * The old_folio might have been dissolved from under our feet, so make sure
-+	 * to carefully check the state under the lock.
-+	 */
- 	spin_lock_irq(&hugetlb_lock);
- 	if (!folio_test_hugetlb(old_folio)) {
- 		/*
-@@ -2829,8 +2833,10 @@ retry:
- 		cond_resched();
- 		goto retry;
- 	} else {
-+		h = folio_hstate(old_folio);
- 		if (!new_folio) {
- 			spin_unlock_irq(&hugetlb_lock);
-+			gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 			new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid,
- 							      NULL, NULL);
- 			if (!new_folio)
-@@ -2874,35 +2880,24 @@ free_new:
- 
- int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list)
- {
--	struct hstate *h;
- 	int ret = -EBUSY;
- 
--	/*
--	 * The page might have been dissolved from under our feet, so make sure
--	 * to carefully check the state under the lock.
--	 * Return success when racing as if we dissolved the page ourselves.
--	 */
--	spin_lock_irq(&hugetlb_lock);
--	if (folio_test_hugetlb(folio)) {
--		h = folio_hstate(folio);
--	} else {
--		spin_unlock_irq(&hugetlb_lock);
-+	/* Not to disrupt normal path by vainly holding hugetlb_lock */
-+	if (!folio_test_hugetlb(folio))
- 		return 0;
--	}
--	spin_unlock_irq(&hugetlb_lock);
- 
- 	/*
- 	 * Fence off gigantic pages as there is a cyclic dependency between
- 	 * alloc_contig_range and them. Return -ENOMEM as this has the effect
- 	 * of bailing out right away without further retrying.
- 	 */
--	if (hstate_is_gigantic(h))
-+	if (folio_order(folio) > MAX_PAGE_ORDER)
- 		return -ENOMEM;
- 
- 	if (folio_ref_count(folio) && folio_isolate_hugetlb(folio, list))
- 		ret = 0;
- 	else if (!folio_ref_count(folio))
--		ret = alloc_and_dissolve_hugetlb_folio(h, folio, list);
-+		ret = alloc_and_dissolve_hugetlb_folio(folio, list);
- 
- 	return ret;
+--- a/mm/list_lru.c~mm-list_lru-refactor-the-locking-code
++++ a/mm/list_lru.c
+@@ -60,30 +60,34 @@ list_lru_from_memcg_idx(struct list_lru
+ 	return &lru->node[nid].lru;
  }
-@@ -2916,7 +2911,6 @@ int isolate_or_dissolve_huge_folio(struc
-  */
- int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn)
+ 
++static inline bool lock_list_lru(struct list_lru_one *l, bool irq)
++{
++	if (irq)
++		spin_lock_irq(&l->lock);
++	else
++		spin_lock(&l->lock);
++	if (unlikely(READ_ONCE(l->nr_items) == LONG_MIN)) {
++		if (irq)
++			spin_unlock_irq(&l->lock);
++		else
++			spin_unlock(&l->lock);
++		return false;
++	}
++	return true;
++}
++
+ static inline struct list_lru_one *
+ lock_list_lru_of_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
+ 		       bool irq, bool skip_empty)
  {
--	struct hstate *h;
- 	struct folio *folio;
- 	int ret = 0;
+ 	struct list_lru_one *l;
+-	long nr_items;
  
-@@ -2925,23 +2919,9 @@ int replace_free_hugepage_folios(unsigne
- 	while (start_pfn < end_pfn) {
- 		folio = pfn_folio(start_pfn);
- 
--		/*
--		 * The folio might have been dissolved from under our feet, so make sure
--		 * to carefully check the state under the lock.
--		 */
--		spin_lock_irq(&hugetlb_lock);
--		if (folio_test_hugetlb(folio)) {
--			h = folio_hstate(folio);
--		} else {
--			spin_unlock_irq(&hugetlb_lock);
--			start_pfn++;
--			continue;
+ 	rcu_read_lock();
+ again:
+ 	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
+-	if (likely(l)) {
+-		if (irq)
+-			spin_lock_irq(&l->lock);
+-		else
+-			spin_lock(&l->lock);
+-		nr_items = READ_ONCE(l->nr_items);
+-		if (likely(nr_items != LONG_MIN)) {
+-			rcu_read_unlock();
+-			return l;
 -		}
--		spin_unlock_irq(&hugetlb_lock);
--
--		if (!folio_ref_count(folio)) {
--			ret = alloc_and_dissolve_hugetlb_folio(h, folio,
--							       &isolate_list);
-+		/* Not to disrupt normal path by vainly holding hugetlb_lock */
-+		if (folio_test_hugetlb(folio) && !folio_ref_count(folio)) {
-+			ret = alloc_and_dissolve_hugetlb_folio(folio, &isolate_list);
- 			if (ret)
- 				break;
- 
+-		if (irq)
+-			spin_unlock_irq(&l->lock);
+-		else
+-			spin_unlock(&l->lock);
++	if (likely(l) && lock_list_lru(l, irq)) {
++		rcu_read_unlock();
++		return l;
+ 	}
+ 	/*
+ 	 * Caller may simply bail out if raced with reparenting or
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch
+mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
+mm-list_lru-refactor-the-locking-code.patch
 
