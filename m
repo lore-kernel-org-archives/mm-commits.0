@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8155210E9
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 22:32:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1880D2701CC
+	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 23:22:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749076340; cv=none; b=d5PzWLwPGgsSRO4HR3PYMIkH/JfFBLDBeWya/mnnXv+egdIWYRq4HGuNEcqmIdS/LNEMwPSiZTzxN95ShDSYj+61//Gis+B6eb5pKHxTIvc27DNXuM2zUNnzBNbG/ePkzIva3dbbYroQx/NJqd9zE4JZwuiwYogpfd6Hs3USLgA=
+	t=1749079326; cv=none; b=YUjPK8tFJUHuCSiLK6ALyFCzIcuBxHA57EVoWxYfAUKWMwVcqQzMcXvtQuGvpJ0RPGBq8cwf6OKWldOOv4EqcS0Cbp8cfZC+L8KM8akbIjckEHl1mL5PcH88YazE5SnhmzmNq1VES8CeF3wyHpIVc/Ehaf33k3lCj9USCQZBRNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749076340; c=relaxed/simple;
-	bh=+6hPLWneHbM9YQ0gJE9+ME2E83EqR2q2niSQBH7Zv6Y=;
-	h=Date:To:From:Subject:Message-Id; b=hpc/O261tk9st0c6GYx+r4fWqYYtfG/2wk6XSm8X6n7ENW/SwBvrSStggmEgM3LPQllsxgMvZUSecaM0H5V08yYL/+HelB9gqc3JqRdEgAZcm8P3xUmLg5+PgdXLHs7svxOiA3c4o4xlqX7dBM7PWFLxj/wNkJyyG+aIa0qX2b8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XfHACi0R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749079326; c=relaxed/simple;
+	bh=LNTyMgjulqD0IghLVN3eIyue4IdjtY0HFG/Th2FH/+A=;
+	h=Date:To:From:Subject:Message-Id; b=YIAOYXBek6fO/RLpcAB5BUlc681KbEbYoOR7/VhyYHeWJ/ZonGinHhqoBpJmwOfDdHckwWaLGaUar0OaQS5tWcWYauXASd8E2lzE2IffTgnuhZpJSQZzcDqjEYdC6DYPX9rp5Nhm3/Tscb7eA01e9EVmXsH56OMRcbXvu2iSvlc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JlfaLQWU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XfHACi0R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAD40C4CEE4;
-	Wed,  4 Jun 2025 22:32:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JlfaLQWU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D504C4CEEF;
+	Wed,  4 Jun 2025 23:22:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749076339;
-	bh=+6hPLWneHbM9YQ0gJE9+ME2E83EqR2q2niSQBH7Zv6Y=;
+	s=korg; t=1749079325;
+	bh=LNTyMgjulqD0IghLVN3eIyue4IdjtY0HFG/Th2FH/+A=;
 	h=Date:To:From:Subject:From;
-	b=XfHACi0R1TyU4NhmY9UokK7ilH8DCDXpDbtLovz88cG9ABtLfl19YVKlQIcc9h/1C
-	 D56B6sqyaQFbOSPtyxMABCZrcKzPzFqaXc61IB1dLWvVBsdRW5bFQ0rPW7JOMIar0K
-	 AlO3TGIm22ZmcuqkZsM8YaSSO2gi4jRXsbvQQPs4=
-Date: Wed, 04 Jun 2025 15:32:19 -0700
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,zhengqi.arch@bytedance.com,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,lkp@intel.com,julia.lawall@inria.fr,hannes@cmpxchg.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=JlfaLQWUL8+Df1VXcYZAtZUhS40PS+VEzrc6JTJhnjaGrZFPCu6kN81BsaqIfoA3k
+	 vqeAy0ANWnnQubBNcQcWO/r2rM+IisNfnKN2b2vBPYv2YIN109xZq28XPCb44qjo+q
+	 P98oLQDAsmJjUQJYKvJDh86UG5C/IfYUHHWbApiE=
+Date: Wed, 04 Jun 2025 16:22:04 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,richard.henderson@linaro.org,mattst88@gmail.com,guoweikang.kernel@gmail.com,geert@linux-m68k.org,agordeev@linux.ibm.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-refactor-the-locking-code.patch added to mm-new branch
-Message-Id: <20250604223219.BAD40C4CEE4@smtp.kernel.org>
+Subject: + alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch added to mm-nonmm-unstable branch
+Message-Id: <20250604232205.6D504C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, list_lru: refactor the locking code
-has been added to the -mm mm-new branch.  Its filename is
-     mm-list_lru-refactor-the-locking-code.patch
+     Subject: alpha: replace sprintf()/strcpy() with scnprintf()/strscpy()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-refactor-the-locking-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,96 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, list_lru: refactor the locking code
-Date: Tue, 27 May 2025 02:06:38 +0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: alpha: replace sprintf()/strcpy() with scnprintf()/strscpy()
+Date: Wed, 21 May 2025 14:18:38 +0200
 
-Cocci is confused by the try lock then release RCU and return logic here. 
-So separate the try lock part out into a standalone helper.  The code is
-easier to follow too.
+Replace sprintf() with the safer variant scnprintf() and use its return
+value instead of calculating the string length again using strlen().
 
-No feature change, fixes:
+Use strscpy() instead of the deprecated strcpy().
 
-cocci warnings: (new ones prefixed by >>)
->> mm/list_lru.c:82:3-9: preceding lock on line 77
->> mm/list_lru.c:82:3-9: preceding lock on line 77
-   mm/list_lru.c:82:3-9: preceding lock on line 75
-   mm/list_lru.c:82:3-9: preceding lock on line 75
+No functional changes intended.
 
-Link: https://lkml.kernel.org/r/20250526180638.14609-1-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Julia Lawall <julia.lawall@inria.fr>
-Closes: https://lore.kernel.org/r/202505252043.pbT1tBHJ-lkp@intel.com/
-Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://github.com/KSPP/linux/issues/88
+Link: https://lkml.kernel.org/r/20250521121840.5653-1-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: guoweikang <guoweikang.kernel@gmail.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Richard Henderson <richard.henderson@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ arch/alpha/kernel/core_marvel.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-refactor-the-locking-code
-+++ a/mm/list_lru.c
-@@ -60,30 +60,34 @@ list_lru_from_memcg_idx(struct list_lru
- 	return &lru->node[nid].lru;
- }
+--- a/arch/alpha/kernel/core_marvel.c~alpha-replace-sprintf-strcpy-with-scnprintf-strscpy
++++ a/arch/alpha/kernel/core_marvel.c
+@@ -17,6 +17,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/mc146818rtc.h>
+ #include <linux/rtc.h>
++#include <linux/string.h>
+ #include <linux/module.h>
+ #include <linux/memblock.h>
  
-+static inline bool lock_list_lru(struct list_lru_one *l, bool irq)
-+{
-+	if (irq)
-+		spin_lock_irq(&l->lock);
-+	else
-+		spin_lock(&l->lock);
-+	if (unlikely(READ_ONCE(l->nr_items) == LONG_MIN)) {
-+		if (irq)
-+			spin_unlock_irq(&l->lock);
-+		else
-+			spin_unlock(&l->lock);
-+		return false;
-+	}
-+	return true;
-+}
-+
- static inline struct list_lru_one *
- lock_list_lru_of_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
- 		       bool irq, bool skip_empty)
+@@ -79,10 +80,12 @@ mk_resource_name(int pe, int port, char
  {
- 	struct list_lru_one *l;
--	long nr_items;
+ 	char tmp[80];
+ 	char *name;
+-	
+-	sprintf(tmp, "PCI %s PE %d PORT %d", str, pe, port);
+-	name = memblock_alloc_or_panic(strlen(tmp) + 1, SMP_CACHE_BYTES);
+-	strcpy(name, tmp);
++	size_t sz;
++
++	sz = scnprintf(tmp, sizeof(tmp), "PCI %s PE %d PORT %d", str, pe, port);
++	sz += 1; /* NUL terminator */
++	name = memblock_alloc_or_panic(sz, SMP_CACHE_BYTES);
++	strscpy(name, tmp, sz);
  
- 	rcu_read_lock();
- again:
- 	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
--	if (likely(l)) {
--		if (irq)
--			spin_lock_irq(&l->lock);
--		else
--			spin_lock(&l->lock);
--		nr_items = READ_ONCE(l->nr_items);
--		if (likely(nr_items != LONG_MIN)) {
--			rcu_read_unlock();
--			return l;
--		}
--		if (irq)
--			spin_unlock_irq(&l->lock);
--		else
--			spin_unlock(&l->lock);
-+	if (likely(l) && lock_list_lru(l, irq)) {
-+		rcu_read_unlock();
-+		return l;
- 	}
- 	/*
- 	 * Caller may simply bail out if raced with reparenting or
+ 	return name;
+ }
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
-mm-list_lru-refactor-the-locking-code.patch
+alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch
 
