@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B966D3D6D
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 02:20:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 095B81482F2
+	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 02:22:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749003631; cv=none; b=Z/dysLqjW0cIndhOHWdRMiGDd5pklZl6JsZdFBm1HdUQZNhG2OpZGcNCkwsZzk4oYWmRuej+wr+j3jxkVY7yWOAxU/XWDH/KgOEE0u2wDQgHwA2p5AH3dFAA4SAhNpxa2bFEiczgj0dN7tsEtJpbvhwVhMU6MfWAGXG5kAs6ZAU=
+	t=1749003775; cv=none; b=PMSdGbZUJbJNBDlpsbcdfVaQvBs2xeGF3uTSC8jMimndyX430dsUdeC+3v111HmXdggwuFCyYqnuMaRf7PszEQOcnbPmeuhauF2fd8DsvRImoHfsm6Yphq1BILTtqEb3xKd+KRlqX6c3Mdo73EUtVx/sXR7vbEjjCwQ+8hBAbT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749003631; c=relaxed/simple;
-	bh=5fbjZbqO8eAzvAqdNFsjbFwwe3za0XlmkbPN4uLdhCQ=;
-	h=Date:To:From:Subject:Message-Id; b=OtG4GE3vT00LxLYAcHM+kO2AhlrtPfuD6O1RbS58ou4mofaO7GGz0+XknJ5C6SnJt/hF/ngrToZ5kK4TVTKbpyDonTkPbs5XQqIUdBwl3sLPPwKRb02HycrmAWyHTDgdbK6R3vkEb5+N6smg9+Ejx3sEcNLyUV4nEjpGPQqvBfw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m1q9wegC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749003775; c=relaxed/simple;
+	bh=T7JLCyOS5aQ2e/J4Mm+ecp1AddHkqItIosJbE10QvMw=;
+	h=Date:To:From:Subject:Message-Id; b=JhVyJFGKsazhOiKFIoulGjZMxTaaab+MKoRcXi8HyBEb3bnBor/Im+GzlHaEhH2wyv+hN6yy/uaCrhQJh72Pp75UeLmo/wUDXRkNv3t+lUoYT7OoNKOU0QlwgY26O09QX58Z/niDUacBswTeUb4bXVOCUthZVGnGgzmNju1uNbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0cpLHFD8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m1q9wegC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A84EC4CEED;
-	Wed,  4 Jun 2025 02:20:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0cpLHFD8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A582C4CEED;
+	Wed,  4 Jun 2025 02:22:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749003631;
-	bh=5fbjZbqO8eAzvAqdNFsjbFwwe3za0XlmkbPN4uLdhCQ=;
+	s=korg; t=1749003774;
+	bh=T7JLCyOS5aQ2e/J4Mm+ecp1AddHkqItIosJbE10QvMw=;
 	h=Date:To:From:Subject:From;
-	b=m1q9wegCnZUX8ob7QPWEhjBKmAnKkqoKadzEfjUBukFXMGYYB0k3J3HkXpr9p023a
-	 taSxxwxBdPahVOY2iIt69T6fEIFEmldWdMlaa0aabGnuKVHv/Z6UuEtm5ovJfN2CzD
-	 P6vW5dj22m8kL7AQ/0vbg1eTX1D5NbpzslvaD328=
-Date: Tue, 03 Jun 2025 19:20:30 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=0cpLHFD8LnG0jd4810jb4eyE0+cUhUVYDs1ldgiGKngGikJxLerIBqYOzgl2rQc6o
+	 KgxKu95qOVM7hkihXZjU69SkzINe6fhCo0NY2tMy8aZ5cpWhrUWZvPaV2+jRcBeVDl
+	 +kcZmaTn3vzSwk4Q9j/Y/C459DrwQX4P94OpWzJk=
+Date: Tue, 03 Jun 2025 19:22:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hch@lst.de,david@redhat.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch added to mm-new branch
-Message-Id: <20250604022031.7A84EC4CEED@smtp.kernel.org>
+Subject: + mm-vmstat-utilize-designated-initializers-for-the-vmstat_text-array.patch added to mm-new branch
+Message-Id: <20250604022254.3A582C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,memory_hotplug: rename status_change_nid parameter in memory_notify
+     Subject: mm/vmstat: utilize designated initializers for the vmstat_text array
 has been added to the -mm mm-new branch.  Its filename is
-     mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch
+     mm-vmstat-utilize-designated-initializers-for-the-vmstat_text-array.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-utilize-designated-initializers-for-the-vmstat_text-array.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,98 +64,599 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_hotplug: rename status_change_nid parameter in memory_notify
-Date: Tue, 3 Jun 2025 13:08:50 +0200
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm/vmstat: utilize designated initializers for the vmstat_text array
+Date: Tue, 3 Jun 2025 11:45:56 +0300
 
-The 'status_change_nid' field was used to track changes in the memory
-state of a numa node, but that funcionality has been decoupled from
-memory_notify and moved to node_notify.
+The vmstat_text array defines labels for counters displayed in
+/proc/vmstat.  The current definition of the array implies a specific
+order of the counters in their enums, making it fragile.
 
-Current consumers of memory_notify are only interested in which node the
-memory we are adding belongs to, so rename current 'status_change_nid' to
-'nid'.
+To make it clear which counter the label is for, use designated
+initializers.
 
-Link: https://lkml.kernel.org/r/20250603110850.192912-4-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250603084556.113975-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    2 +-
- mm/memory_hotplug.c    |    4 ++--
- mm/page_ext.c          |   12 +-----------
- 3 files changed, 4 insertions(+), 14 deletions(-)
+ mm/vmstat.c |  455 ++++++++++++++++++++++++++------------------------
+ 1 file changed, 238 insertions(+), 217 deletions(-)
 
---- a/include/linux/memory.h~mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify
-+++ a/include/linux/memory.h
-@@ -117,7 +117,7 @@ struct memory_notify {
- 	unsigned long altmap_nr_pages;
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
--	int status_change_nid;
-+	int nid;
- };
+--- a/mm/vmstat.c~mm-vmstat-utilize-designated-initializers-for-the-vmstat_text-array
++++ a/mm/vmstat.c
+@@ -1163,320 +1163,341 @@ int fragmentation_index(struct zone *zon
+ #if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS) || \
+     defined(CONFIG_NUMA) || defined(CONFIG_MEMCG)
+ #ifdef CONFIG_ZONE_DMA
+-#define TEXT_FOR_DMA(xx) xx "_dma",
++#define TEXT_FOR_DMA(xx, yy) [xx##_DMA] = yy "_dma",
+ #else
+-#define TEXT_FOR_DMA(xx)
++#define TEXT_FOR_DMA(xx, yy)
+ #endif
  
- struct node_notify {
---- a/mm/memory_hotplug.c~mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify
-+++ a/mm/memory_hotplug.c
-@@ -1186,7 +1186,7 @@ int online_pages(unsigned long pfn, unsi
- 	cancel_mem_notifier_on_err = true;
- 	mem_arg.start_pfn = pfn;
- 	mem_arg.nr_pages = nr_pages;
--	mem_arg.status_change_nid = node_arg.status_change_nid;
-+	mem_arg.nid = nid;
- 	ret = memory_notify(MEM_GOING_ONLINE, &mem_arg);
- 	ret = notifier_to_errno(ret);
- 	if (ret)
-@@ -1990,7 +1990,7 @@ int offline_pages(unsigned long start_pf
- 	cancel_mem_notifier_on_err = true;
- 	mem_arg.start_pfn = start_pfn;
- 	mem_arg.nr_pages = nr_pages;
--	mem_arg.status_change_nid = node_arg.status_change_nid;
-+	mem_arg.nid = node;
- 	ret = memory_notify(MEM_GOING_OFFLINE, &mem_arg);
- 	ret = notifier_to_errno(ret);
- 	if (ret) {
---- a/mm/page_ext.c~mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify
-+++ a/mm/page_ext.c
-@@ -378,16 +378,6 @@ static int __meminit online_page_ext(uns
- 	start = SECTION_ALIGN_DOWN(start_pfn);
- 	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
+ #ifdef CONFIG_ZONE_DMA32
+-#define TEXT_FOR_DMA32(xx) xx "_dma32",
++#define TEXT_FOR_DMA32(xx, yy) [xx##_DMA32] = yy "_dma32",
+ #else
+-#define TEXT_FOR_DMA32(xx)
++#define TEXT_FOR_DMA32(xx, yy)
+ #endif
  
--	if (nid == NUMA_NO_NODE) {
--		/*
--		 * In this case, "nid" already exists and contains valid memory.
--		 * "start_pfn" passed to us is a pfn which is an arg for
--		 * online__pages(), and start_pfn should exist.
--		 */
--		nid = pfn_to_nid(start_pfn);
--		VM_BUG_ON(!node_online(nid));
--	}
+ #ifdef CONFIG_HIGHMEM
+-#define TEXT_FOR_HIGHMEM(xx) xx "_high",
++#define TEXT_FOR_HIGHMEM(xx, yy) [xx##_HIGH] = yy "_high",
+ #else
+-#define TEXT_FOR_HIGHMEM(xx)
++#define TEXT_FOR_HIGHMEM(xx, yy)
+ #endif
+ 
+ #ifdef CONFIG_ZONE_DEVICE
+-#define TEXT_FOR_DEVICE(xx) xx "_device",
++#define TEXT_FOR_DEVICE(xx, yy) [xx##_DEVICE] = yy "_device",
+ #else
+-#define TEXT_FOR_DEVICE(xx)
++#define TEXT_FOR_DEVICE(xx, yy)
+ #endif
+ 
+-#define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
+-					TEXT_FOR_HIGHMEM(xx) xx "_movable", \
+-					TEXT_FOR_DEVICE(xx)
++#define TEXTS_FOR_ZONES(xx, yy)			\
++	TEXT_FOR_DMA(xx, yy)			\
++	TEXT_FOR_DMA32(xx, yy)			\
++	[xx##_NORMAL] = yy "_normal",		\
++	TEXT_FOR_HIGHMEM(xx, yy)		\
++	[xx##_MOVABLE] = yy "_movable",		\
++	TEXT_FOR_DEVICE(xx, yy)
+ 
+ const char * const vmstat_text[] = {
+ 	/* enum zone_stat_item counters */
+-	"nr_free_pages",
+-	"nr_free_pages_blocks",
+-	"nr_zone_inactive_anon",
+-	"nr_zone_active_anon",
+-	"nr_zone_inactive_file",
+-	"nr_zone_active_file",
+-	"nr_zone_unevictable",
+-	"nr_zone_write_pending",
+-	"nr_mlock",
++#define I(x) (x)
++	[I(NR_FREE_PAGES)]			= "nr_free_pages",
++	[I(NR_FREE_PAGES_BLOCKS)]		= "nr_free_pages_blocks",
++	[I(NR_ZONE_INACTIVE_ANON)]		= "nr_zone_inactive_anon",
++	[I(NR_ZONE_ACTIVE_ANON)]		= "nr_zone_active_anon",
++	[I(NR_ZONE_INACTIVE_FILE)]		= "nr_zone_inactive_file",
++	[I(NR_ZONE_ACTIVE_FILE)]		= "nr_zone_active_file",
++	[I(NR_ZONE_UNEVICTABLE)]		= "nr_zone_unevictable",
++	[I(NR_ZONE_WRITE_PENDING)]		= "nr_zone_write_pending",
++	[I(NR_MLOCK)]				= "nr_mlock",
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+-	"nr_zspages",
++	[I(NR_ZSPAGES)]				= "nr_zspages",
+ #endif
+-	"nr_free_cma",
++	[I(NR_FREE_CMA_PAGES)]			= "nr_free_cma",
+ #ifdef CONFIG_UNACCEPTED_MEMORY
+-	"nr_unaccepted",
++	[I(NR_UNACCEPTED)]			= "nr_unaccepted",
+ #endif
++#undef I
+ 
+ 	/* enum numa_stat_item counters */
++#define I(x) (NR_VM_ZONE_STAT_ITEMS + x)
+ #ifdef CONFIG_NUMA
+-	"numa_hit",
+-	"numa_miss",
+-	"numa_foreign",
+-	"numa_interleave",
+-	"numa_local",
+-	"numa_other",
++	[I(NUMA_HIT)]				= "numa_hit",
++	[I(NUMA_MISS)]				= "numa_miss",
++	[I(NUMA_FOREIGN)]			= "numa_foreign",
++	[I(NUMA_INTERLEAVE_HIT)]		= "numa_interleave",
++	[I(NUMA_LOCAL)]				= "numa_local",
++	[I(NUMA_OTHER)]				= "numa_other",
+ #endif
++#undef I
+ 
+ 	/* enum node_stat_item counters */
+-	"nr_inactive_anon",
+-	"nr_active_anon",
+-	"nr_inactive_file",
+-	"nr_active_file",
+-	"nr_unevictable",
+-	"nr_slab_reclaimable",
+-	"nr_slab_unreclaimable",
+-	"nr_isolated_anon",
+-	"nr_isolated_file",
+-	"workingset_nodes",
+-	"workingset_refault_anon",
+-	"workingset_refault_file",
+-	"workingset_activate_anon",
+-	"workingset_activate_file",
+-	"workingset_restore_anon",
+-	"workingset_restore_file",
+-	"workingset_nodereclaim",
+-	"nr_anon_pages",
+-	"nr_mapped",
+-	"nr_file_pages",
+-	"nr_dirty",
+-	"nr_writeback",
+-	"nr_writeback_temp",
+-	"nr_shmem",
+-	"nr_shmem_hugepages",
+-	"nr_shmem_pmdmapped",
+-	"nr_file_hugepages",
+-	"nr_file_pmdmapped",
+-	"nr_anon_transparent_hugepages",
+-	"nr_vmscan_write",
+-	"nr_vmscan_immediate_reclaim",
+-	"nr_dirtied",
+-	"nr_written",
+-	"nr_throttled_written",
+-	"nr_kernel_misc_reclaimable",
+-	"nr_foll_pin_acquired",
+-	"nr_foll_pin_released",
+-	"nr_kernel_stack",
++#define I(x) (NR_VM_ZONE_STAT_ITEMS + NR_VM_NUMA_EVENT_ITEMS + x)
++	[I(NR_INACTIVE_ANON)]			= "nr_inactive_anon",
++	[I(NR_ACTIVE_ANON)]			= "nr_active_anon",
++	[I(NR_INACTIVE_FILE)]			= "nr_inactive_file",
++	[I(NR_ACTIVE_FILE)]			= "nr_active_file",
++	[I(NR_UNEVICTABLE)]			= "nr_unevictable",
++	[I(NR_SLAB_RECLAIMABLE_B)]		= "nr_slab_reclaimable",
++	[I(NR_SLAB_UNRECLAIMABLE_B)]		= "nr_slab_unreclaimable",
++	[I(NR_ISOLATED_ANON)]			= "nr_isolated_anon",
++	[I(NR_ISOLATED_FILE)]			= "nr_isolated_file",
++	[I(WORKINGSET_NODES)]			= "workingset_nodes",
++	[I(WORKINGSET_REFAULT_ANON)]		= "workingset_refault_anon",
++	[I(WORKINGSET_REFAULT_FILE)]		= "workingset_refault_file",
++	[I(WORKINGSET_ACTIVATE_ANON)]		= "workingset_activate_anon",
++	[I(WORKINGSET_ACTIVATE_FILE)]		= "workingset_activate_file",
++	[I(WORKINGSET_RESTORE_ANON)]		= "workingset_restore_anon",
++	[I(WORKINGSET_RESTORE_FILE)]		= "workingset_restore_file",
++	[I(WORKINGSET_NODERECLAIM)]		= "workingset_nodereclaim",
++	[I(NR_ANON_MAPPED)]			= "nr_anon_pages",
++	[I(NR_FILE_MAPPED)]			= "nr_mapped",
++	[I(NR_FILE_PAGES)]			= "nr_file_pages",
++	[I(NR_FILE_DIRTY)]			= "nr_dirty",
++	[I(NR_WRITEBACK)]			= "nr_writeback",
++	[I(NR_WRITEBACK_TEMP)]			= "nr_writeback_temp",
++	[I(NR_SHMEM)]				= "nr_shmem",
++	[I(NR_SHMEM_THPS)]			= "nr_shmem_hugepages",
++	[I(NR_SHMEM_PMDMAPPED)]			= "nr_shmem_pmdmapped",
++	[I(NR_FILE_THPS)]			= "nr_file_hugepages",
++	[I(NR_FILE_PMDMAPPED)]			= "nr_file_pmdmapped",
++	[I(NR_ANON_THPS)]			= "nr_anon_transparent_hugepages",
++	[I(NR_VMSCAN_WRITE)]			= "nr_vmscan_write",
++	[I(NR_VMSCAN_IMMEDIATE)]		= "nr_vmscan_immediate_reclaim",
++	[I(NR_DIRTIED)]				= "nr_dirtied",
++	[I(NR_WRITTEN)]				= "nr_written",
++	[I(NR_THROTTLED_WRITTEN)]		= "nr_throttled_written",
++	[I(NR_KERNEL_MISC_RECLAIMABLE)]		= "nr_kernel_misc_reclaimable",
++	[I(NR_FOLL_PIN_ACQUIRED)]		= "nr_foll_pin_acquired",
++	[I(NR_FOLL_PIN_RELEASED)]		= "nr_foll_pin_released",
++	[I(NR_KERNEL_STACK_KB)]			= "nr_kernel_stack",
+ #if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
+-	"nr_shadow_call_stack",
++	[I(NR_KERNEL_SCS_KB)]			= "nr_shadow_call_stack",
+ #endif
+-	"nr_page_table_pages",
+-	"nr_sec_page_table_pages",
++	[I(NR_PAGETABLE)]			= "nr_page_table_pages",
++	[I(NR_SECONDARY_PAGETABLE)]		= "nr_sec_page_table_pages",
+ #ifdef CONFIG_IOMMU_SUPPORT
+-	"nr_iommu_pages",
++	[I(NR_IOMMU_PAGES)]			= "nr_iommu_pages",
+ #endif
+ #ifdef CONFIG_SWAP
+-	"nr_swapcached",
++	[I(NR_SWAPCACHE)]			= "nr_swapcached",
+ #endif
+ #ifdef CONFIG_NUMA_BALANCING
+-	"pgpromote_success",
+-	"pgpromote_candidate",
++	[I(PGPROMOTE_SUCCESS)]			= "pgpromote_success",
++	[I(PGPROMOTE_CANDIDATE)]		= "pgpromote_candidate",
+ #endif
+-	"pgdemote_kswapd",
+-	"pgdemote_direct",
+-	"pgdemote_khugepaged",
+-	"pgdemote_proactive",
++	[I(PGDEMOTE_KSWAPD)]			= "pgdemote_kswapd",
++	[I(PGDEMOTE_DIRECT)]			= "pgdemote_direct",
++	[I(PGDEMOTE_KHUGEPAGED)]		= "pgdemote_khugepaged",
++	[I(PGDEMOTE_PROACTIVE)]			= "pgdemote_proactive",
+ #ifdef CONFIG_HUGETLB_PAGE
+-	"nr_hugetlb",
++	[I(NR_HUGETLB)]				= "nr_hugetlb",
+ #endif
+-	"nr_balloon_pages",
++	[I(NR_BALLOON_PAGES)]			= "nr_balloon_pages",
++#undef I
++
+ 	/* system-wide enum vm_stat_item counters */
+-	"nr_dirty_threshold",
+-	"nr_dirty_background_threshold",
+-	"nr_memmap_pages",
+-	"nr_memmap_boot_pages",
++#define I(x) (NR_VM_ZONE_STAT_ITEMS + NR_VM_NUMA_EVENT_ITEMS + \
++	     NR_VM_NODE_STAT_ITEMS + x)
++	[I(NR_DIRTY_THRESHOLD)]			= "nr_dirty_threshold",
++	[I(NR_DIRTY_BG_THRESHOLD)]		= "nr_dirty_background_threshold",
++	[I(NR_MEMMAP_PAGES)]			= "nr_memmap_pages",
++	[I(NR_MEMMAP_BOOT_PAGES)]		= "nr_memmap_boot_pages",
++#undef I
+ 
+ #if defined(CONFIG_VM_EVENT_COUNTERS) || defined(CONFIG_MEMCG)
+ 	/* enum vm_event_item counters */
+-	"pgpgin",
+-	"pgpgout",
+-	"pswpin",
+-	"pswpout",
 -
- 	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION)
- 		fail = init_section_page_ext(pfn, nid);
- 	if (!fail)
-@@ -436,7 +426,7 @@ static int __meminit page_ext_callback(s
- 	switch (action) {
- 	case MEM_GOING_ONLINE:
- 		ret = online_page_ext(mn->start_pfn,
--				   mn->nr_pages, mn->status_change_nid);
-+				   mn->nr_pages, mn->nid);
- 		break;
- 	case MEM_OFFLINE:
- 		offline_page_ext(mn->start_pfn,
+-	TEXTS_FOR_ZONES("pgalloc")
+-	TEXTS_FOR_ZONES("allocstall")
+-	TEXTS_FOR_ZONES("pgskip")
+-
+-	"pgfree",
+-	"pgactivate",
+-	"pgdeactivate",
+-	"pglazyfree",
+-
+-	"pgfault",
+-	"pgmajfault",
+-	"pglazyfreed",
+-
+-	"pgrefill",
+-	"pgreuse",
+-	"pgsteal_kswapd",
+-	"pgsteal_direct",
+-	"pgsteal_khugepaged",
+-	"pgsteal_proactive",
+-	"pgscan_kswapd",
+-	"pgscan_direct",
+-	"pgscan_khugepaged",
+-	"pgscan_proactive",
+-	"pgscan_direct_throttle",
+-	"pgscan_anon",
+-	"pgscan_file",
+-	"pgsteal_anon",
+-	"pgsteal_file",
++#define I(x) (NR_VM_ZONE_STAT_ITEMS + NR_VM_NUMA_EVENT_ITEMS + \
++	     NR_VM_NODE_STAT_ITEMS + NR_VM_STAT_ITEMS + x)
++
++	[I(PGPGIN)]				= "pgpgin",
++	[I(PGPGOUT)]				= "pgpgout",
++	[I(PSWPIN)]				= "pswpin",
++	[I(PSWPOUT)]				= "pswpout",
++
++#define OFF (NR_VM_ZONE_STAT_ITEMS + NR_VM_NUMA_EVENT_ITEMS + \
++	     NR_VM_NODE_STAT_ITEMS + NR_VM_STAT_ITEMS)
++	TEXTS_FOR_ZONES(OFF+PGALLOC, "pgalloc")
++	TEXTS_FOR_ZONES(OFF+ALLOCSTALL, "allocstall")
++	TEXTS_FOR_ZONES(OFF+PGSCAN_SKIP, "pgskip")
++#undef OFF
++
++	[I(PGFREE)]				= "pgfree",
++	[I(PGACTIVATE)]				= "pgactivate",
++	[I(PGDEACTIVATE)]			= "pgdeactivate",
++	[I(PGLAZYFREE)]				= "pglazyfree",
++
++	[I(PGFAULT)]				= "pgfault",
++	[I(PGMAJFAULT)]				= "pgmajfault",
++	[I(PGLAZYFREED)]			= "pglazyfreed",
++
++	[I(PGREFILL)]				= "pgrefill",
++	[I(PGREUSE)]				= "pgreuse",
++	[I(PGSTEAL_KSWAPD)]			= "pgsteal_kswapd",
++	[I(PGSTEAL_DIRECT)]			= "pgsteal_direct",
++	[I(PGSTEAL_KHUGEPAGED)]			= "pgsteal_khugepaged",
++	[I(PGSTEAL_PROACTIVE)]			= "pgsteal_proactive",
++	[I(PGSCAN_KSWAPD)]			= "pgscan_kswapd",
++	[I(PGSCAN_DIRECT)]			= "pgscan_direct",
++	[I(PGSCAN_KHUGEPAGED)]			= "pgscan_khugepaged",
++	[I(PGSCAN_PROACTIVE)]			= "pgscan_proactive",
++	[I(PGSCAN_DIRECT_THROTTLE)]		= "pgscan_direct_throttle",
++	[I(PGSCAN_ANON)]			= "pgscan_anon",
++	[I(PGSCAN_FILE)]			= "pgscan_file",
++	[I(PGSTEAL_ANON)]			= "pgsteal_anon",
++	[I(PGSTEAL_FILE)]			= "pgsteal_file",
+ 
+ #ifdef CONFIG_NUMA
+-	"zone_reclaim_success",
+-	"zone_reclaim_failed",
++	[I(PGSCAN_ZONE_RECLAIM_SUCCESS)]	= "zone_reclaim_success",
++	[I(PGSCAN_ZONE_RECLAIM_FAILED)]		= "zone_reclaim_failed",
+ #endif
+-	"pginodesteal",
+-	"slabs_scanned",
+-	"kswapd_inodesteal",
+-	"kswapd_low_wmark_hit_quickly",
+-	"kswapd_high_wmark_hit_quickly",
+-	"pageoutrun",
+-
+-	"pgrotated",
+-
+-	"drop_pagecache",
+-	"drop_slab",
+-	"oom_kill",
++	[I(PGINODESTEAL)]			= "pginodesteal",
++	[I(SLABS_SCANNED)]			= "slabs_scanned",
++	[I(KSWAPD_INODESTEAL)]			= "kswapd_inodesteal",
++	[I(KSWAPD_LOW_WMARK_HIT_QUICKLY)]	= "kswapd_low_wmark_hit_quickly",
++	[I(KSWAPD_HIGH_WMARK_HIT_QUICKLY)]	= "kswapd_high_wmark_hit_quickly",
++	[I(PAGEOUTRUN)]				= "pageoutrun",
++
++	[I(PGROTATED)]				= "pgrotated",
++
++	[I(DROP_PAGECACHE)]			= "drop_pagecache",
++	[I(DROP_SLAB)]				= "drop_slab",
++	[I(OOM_KILL)]				= "oom_kill",
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+-	"numa_pte_updates",
+-	"numa_huge_pte_updates",
+-	"numa_hint_faults",
+-	"numa_hint_faults_local",
+-	"numa_pages_migrated",
+-	"numa_task_migrated",
+-	"numa_task_swapped",
++	[I(NUMA_PTE_UPDATES)]			= "numa_pte_updates",
++	[I(NUMA_HUGE_PTE_UPDATES)]		= "numa_huge_pte_updates",
++	[I(NUMA_HINT_FAULTS)]			= "numa_hint_faults",
++	[I(NUMA_HINT_FAULTS_LOCAL)]		= "numa_hint_faults_local",
++	[I(NUMA_PAGE_MIGRATE)]			= "numa_pages_migrated",
++	[I(NUMA_TASK_MIGRATE)]			= "numa_task_migrated",
++	[I(NUMA_TASK_SWAP)]			= "numa_task_swapped",
+ #endif
+ #ifdef CONFIG_MIGRATION
+-	"pgmigrate_success",
+-	"pgmigrate_fail",
+-	"thp_migration_success",
+-	"thp_migration_fail",
+-	"thp_migration_split",
++	[I(PGMIGRATE_SUCCESS)]			= "pgmigrate_success",
++	[I(PGMIGRATE_FAIL)]			= "pgmigrate_fail",
++	[I(THP_MIGRATION_SUCCESS)]		= "thp_migration_success",
++	[I(THP_MIGRATION_FAIL)]			= "thp_migration_fail",
++	[I(THP_MIGRATION_SPLIT)]		= "thp_migration_split",
+ #endif
+ #ifdef CONFIG_COMPACTION
+-	"compact_migrate_scanned",
+-	"compact_free_scanned",
+-	"compact_isolated",
+-	"compact_stall",
+-	"compact_fail",
+-	"compact_success",
+-	"compact_daemon_wake",
+-	"compact_daemon_migrate_scanned",
+-	"compact_daemon_free_scanned",
++	[I(COMPACTMIGRATE_SCANNED)]		= "compact_migrate_scanned",
++	[I(COMPACTFREE_SCANNED)]		= "compact_free_scanned",
++	[I(COMPACTISOLATED)]			= "compact_isolated",
++	[I(COMPACTSTALL)]			= "compact_stall",
++	[I(COMPACTFAIL)]			= "compact_fail",
++	[I(COMPACTSUCCESS)]			= "compact_success",
++	[I(KCOMPACTD_WAKE)]			= "compact_daemon_wake",
++	[I(KCOMPACTD_MIGRATE_SCANNED)]		= "compact_daemon_migrate_scanned",
++	[I(KCOMPACTD_FREE_SCANNED)]		= "compact_daemon_free_scanned",
+ #endif
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+-	"htlb_buddy_alloc_success",
+-	"htlb_buddy_alloc_fail",
++	[I(HTLB_BUDDY_PGALLOC)]			= "htlb_buddy_alloc_success",
++	[I(HTLB_BUDDY_PGALLOC_FAIL)]		= "htlb_buddy_alloc_fail",
+ #endif
+ #ifdef CONFIG_CMA
+-	"cma_alloc_success",
+-	"cma_alloc_fail",
++	[I(CMA_ALLOC_SUCCESS)]			= "cma_alloc_success",
++	[I(CMA_ALLOC_FAIL)]			= "cma_alloc_fail",
+ #endif
+-	"unevictable_pgs_culled",
+-	"unevictable_pgs_scanned",
+-	"unevictable_pgs_rescued",
+-	"unevictable_pgs_mlocked",
+-	"unevictable_pgs_munlocked",
+-	"unevictable_pgs_cleared",
+-	"unevictable_pgs_stranded",
++	[I(UNEVICTABLE_PGCULLED)]		= "unevictable_pgs_culled",
++	[I(UNEVICTABLE_PGSCANNED)]		= "unevictable_pgs_scanned",
++	[I(UNEVICTABLE_PGRESCUED)]		= "unevictable_pgs_rescued",
++	[I(UNEVICTABLE_PGMLOCKED)]		= "unevictable_pgs_mlocked",
++	[I(UNEVICTABLE_PGMUNLOCKED)]		= "unevictable_pgs_munlocked",
++	[I(UNEVICTABLE_PGCLEARED)]		= "unevictable_pgs_cleared",
++	[I(UNEVICTABLE_PGSTRANDED)]		= "unevictable_pgs_stranded",
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	"thp_fault_alloc",
+-	"thp_fault_fallback",
+-	"thp_fault_fallback_charge",
+-	"thp_collapse_alloc",
+-	"thp_collapse_alloc_failed",
+-	"thp_file_alloc",
+-	"thp_file_fallback",
+-	"thp_file_fallback_charge",
+-	"thp_file_mapped",
+-	"thp_split_page",
+-	"thp_split_page_failed",
+-	"thp_deferred_split_page",
+-	"thp_underused_split_page",
+-	"thp_split_pmd",
+-	"thp_scan_exceed_none_pte",
+-	"thp_scan_exceed_swap_pte",
+-	"thp_scan_exceed_share_pte",
++	[I(THP_FAULT_ALLOC)]			= "thp_fault_alloc",
++	[I(THP_FAULT_FALLBACK)]			= "thp_fault_fallback",
++	[I(THP_FAULT_FALLBACK_CHARGE)]		= "thp_fault_fallback_charge",
++	[I(THP_COLLAPSE_ALLOC)]			= "thp_collapse_alloc",
++	[I(THP_COLLAPSE_ALLOC_FAILED)]		= "thp_collapse_alloc_failed",
++	[I(THP_FILE_ALLOC)]			= "thp_file_alloc",
++	[I(THP_FILE_FALLBACK)]			= "thp_file_fallback",
++	[I(THP_FILE_FALLBACK_CHARGE)]		= "thp_file_fallback_charge",
++	[I(THP_FILE_MAPPED)]			= "thp_file_mapped",
++	[I(THP_SPLIT_PAGE)]			= "thp_split_page",
++	[I(THP_SPLIT_PAGE_FAILED)]		= "thp_split_page_failed",
++	[I(THP_DEFERRED_SPLIT_PAGE)]		= "thp_deferred_split_page",
++	[I(THP_UNDERUSED_SPLIT_PAGE)]		= "thp_underused_split_page",
++	[I(THP_SPLIT_PMD)]			= "thp_split_pmd",
++	[I(THP_SCAN_EXCEED_NONE_PTE)]		= "thp_scan_exceed_none_pte",
++	[I(THP_SCAN_EXCEED_SWAP_PTE)]		= "thp_scan_exceed_swap_pte",
++	[I(THP_SCAN_EXCEED_SHARED_PTE)]		= "thp_scan_exceed_share_pte",
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-	"thp_split_pud",
++	[I(THP_SPLIT_PUD)]			= "thp_split_pud",
+ #endif
+-	"thp_zero_page_alloc",
+-	"thp_zero_page_alloc_failed",
+-	"thp_swpout",
+-	"thp_swpout_fallback",
++	[I(THP_ZERO_PAGE_ALLOC)]		= "thp_zero_page_alloc",
++	[I(THP_ZERO_PAGE_ALLOC_FAILED)]		= "thp_zero_page_alloc_failed",
++	[I(THP_SWPOUT)]				= "thp_swpout",
++	[I(THP_SWPOUT_FALLBACK)]		= "thp_swpout_fallback",
+ #endif
+ #ifdef CONFIG_MEMORY_BALLOON
+-	"balloon_inflate",
+-	"balloon_deflate",
++	[I(BALLOON_INFLATE)]			= "balloon_inflate",
++	[I(BALLOON_DEFLATE)]			= "balloon_deflate",
+ #ifdef CONFIG_BALLOON_COMPACTION
+-	"balloon_migrate",
++	[I(BALLOON_MIGRATE)]			= "balloon_migrate",
+ #endif
+ #endif /* CONFIG_MEMORY_BALLOON */
+ #ifdef CONFIG_DEBUG_TLBFLUSH
+-	"nr_tlb_remote_flush",
+-	"nr_tlb_remote_flush_received",
+-	"nr_tlb_local_flush_all",
+-	"nr_tlb_local_flush_one",
++	[I(NR_TLB_REMOTE_FLUSH)]		= "nr_tlb_remote_flush",
++	[I(NR_TLB_REMOTE_FLUSH_RECEIVED)]	= "nr_tlb_remote_flush_received",
++	[I(NR_TLB_LOCAL_FLUSH_ALL)]		= "nr_tlb_local_flush_all",
++	[I(NR_TLB_LOCAL_FLUSH_ONE)]		= "nr_tlb_local_flush_one",
+ #endif /* CONFIG_DEBUG_TLBFLUSH */
+ 
+ #ifdef CONFIG_SWAP
+-	"swap_ra",
+-	"swap_ra_hit",
+-	"swpin_zero",
+-	"swpout_zero",
++	[I(SWAP_RA)]				= "swap_ra",
++	[I(SWAP_RA_HIT)]			= "swap_ra_hit",
++	[I(SWPIN_ZERO)]				= "swpin_zero",
++	[I(SWPOUT_ZERO)]			= "swpout_zero",
+ #ifdef CONFIG_KSM
+-	"ksm_swpin_copy",
++	[I(KSM_SWPIN_COPY)]			= "ksm_swpin_copy",
+ #endif
+ #endif
+ #ifdef CONFIG_KSM
+-	"cow_ksm",
++	[I(COW_KSM)]				= "cow_ksm",
+ #endif
+ #ifdef CONFIG_ZSWAP
+-	"zswpin",
+-	"zswpout",
+-	"zswpwb",
++	[I(ZSWPIN)]				= "zswpin",
++	[I(ZSWPOUT)]				= "zswpout",
++	[I(ZSWPWB)]				= "zswpwb",
+ #endif
+ #ifdef CONFIG_X86
+-	"direct_map_level2_splits",
+-	"direct_map_level3_splits",
+-	"direct_map_level2_collapses",
+-	"direct_map_level3_collapses",
++	[I(DIRECT_MAP_LEVEL2_SPLIT)]		= "direct_map_level2_splits",
++	[I(DIRECT_MAP_LEVEL3_SPLIT)]		= "direct_map_level3_splits",
++	[I(DIRECT_MAP_LEVEL2_COLLAPSE)]		= "direct_map_level2_collapses",
++	[I(DIRECT_MAP_LEVEL3_COLLAPSE)]		= "direct_map_level3_collapses",
+ #endif
+ #ifdef CONFIG_PER_VMA_LOCK_STATS
+-	"vma_lock_success",
+-	"vma_lock_abort",
+-	"vma_lock_retry",
+-	"vma_lock_miss",
++	[I(VMA_LOCK_SUCCESS)]			= "vma_lock_success",
++	[I(VMA_LOCK_ABORT)]			= "vma_lock_abort",
++	[I(VMA_LOCK_RETRY)]			= "vma_lock_retry",
++	[I(VMA_LOCK_MISS)]			= "vma_lock_miss",
+ #endif
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+-	"kstack_1k",
++	[I(KSTACK_1K)]				= "kstack_1k",
+ #if THREAD_SIZE > 1024
+-	"kstack_2k",
++	[I(KSTACK_2K)]				= "kstack_2k",
+ #endif
+ #if THREAD_SIZE > 2048
+-	"kstack_4k",
++	[I(KSTACK_4K)]				= "kstack_4k",
+ #endif
+ #if THREAD_SIZE > 4096
+-	"kstack_8k",
++	[I(KSTACK_8K)]				= "kstack_8k",
+ #endif
+ #if THREAD_SIZE > 8192
+-	"kstack_16k",
++	[I(KSTACK_16K)]				= "kstack_16k",
+ #endif
+ #if THREAD_SIZE > 16384
+-	"kstack_32k",
++	[I(KSTACK_32K)]				= "kstack_32k",
+ #endif
+ #if THREAD_SIZE > 32768
+-	"kstack_64k",
++	[I(KSTACK_64K)]				= "kstack_64k",
+ #endif
+ #if THREAD_SIZE > 65536
+-	"kstack_rest",
++	[I(KSTACK_REST)]			= "kstack_rest",
+ #endif
+ #endif
++#undef I
+ #endif /* CONFIG_VM_EVENT_COUNTERS || CONFIG_MEMCG */
+ };
+ #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA || CONFIG_MEMCG */
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
-mmmemory_hotplug-implement-numa-node-notifier.patch
-mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch
+mm-fix-vmstat-after-removing-nr_bounce.patch
+mm-strictly-check-vmstat_text-array-size.patch
+mm-vmstat-utilize-designated-initializers-for-the-vmstat_text-array.patch
 
