@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F11F21A2393
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 19:39:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F26E111BF
+	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 19:59:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749065988; cv=none; b=eBYokxKMDZVeMiRpx0tlGQkGG5DJ7DknLJbeqaP4lyvNf57cne52v12A6kNeqK0p24y9HqGevDnT0Z4zTQ6qHSBq+eGC9pYUoVI0WrdM4KJ1OqCeehpQyZg4TRR4Lp7KyZlNb5kSDt5Pwo1PFUJQbmsParTe+wNo1FlaK0rT4Ok=
+	t=1749067143; cv=none; b=hasGyZl92+GieduU0NQVs5LM25APMN5i6DetcmhsoRRSYT3ef5qnZGaAf9BmHTp/I+llQpXI2Tr7/7CBqk2lxyC3haD5Tu+xweo0FLCdAdbqJBJIVedPfo40sM66cd5zq2IIcc+1r4ZMY5ia1V+fWL/xO01MvjOkAbjWCYULag8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749065988; c=relaxed/simple;
-	bh=UxTWa8ScBh4pcrJU50c/eZB9J4reLQ/2u6RilOUQDsQ=;
-	h=Date:To:From:Subject:Message-Id; b=e3uf6vkzllI/XOg8bL27d18kuYpge2JNvOqt3fAk38hWvStNvAGVX+8Sqsu5YqJHO2V/wkBTiHZsBmMgO9dHRJfEWjZT59dxLjbbUbejAdKW1RUk2PqB2wWn91iIzAt/3XOrBxTbeqinmoa19MpOsL2eyRwbzm76/KvIjQ0K9Vc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T48pExQV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749067143; c=relaxed/simple;
+	bh=2fjcvIOnsVUvnedtq8gK2Aj0LurGkhDpyBDEvOup7Mc=;
+	h=Date:To:From:Subject:Message-Id; b=eugCuhFxsHrAgHO2oausY04EactAUz2LxtEepsZNwv+kNtiUX5IWEYfmTewCcGPWORaMWkMV1gCXSDu4o05hQU3DTLpXjZYeY0TpgGD/R6eMT84p+Pw9kkXgxH0BPNE9SREGs2atjOzc1/vs55x1/4/qsha0JZcU/3U0QcdEpKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VNCPd5kJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T48pExQV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6053CC4CEE4;
-	Wed,  4 Jun 2025 19:39:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VNCPd5kJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61969C4CEE4;
+	Wed,  4 Jun 2025 19:59:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749065987;
-	bh=UxTWa8ScBh4pcrJU50c/eZB9J4reLQ/2u6RilOUQDsQ=;
+	s=korg; t=1749067142;
+	bh=2fjcvIOnsVUvnedtq8gK2Aj0LurGkhDpyBDEvOup7Mc=;
 	h=Date:To:From:Subject:From;
-	b=T48pExQVGO3MUtnlbAqxS7mtMs/378hgW3Zo4ngyKr87rLA1Y0QVIM+ea2zlOx9FD
-	 3epdYK6puHc+HKnAL/Er0CcHU79ShU0CYF4pmtWDlLKKrrJKpsWus3DdBuzu2fs2TW
-	 RuuLJ1FOCFMfzF6KkCJyJOgdj+sb8R0Etx/KPYoU=
-Date: Wed, 04 Jun 2025 12:39:46 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,ast@kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=VNCPd5kJniTUnBH80Bb40n5Puhrq3U8Cx5h/zkdiMmC4YDoXY1scNSc/FO9VsgoN0
+	 VCVWFxTrrTMN8ld7RzoD3+jeXm5zMcmmtM6pAPUSBYhK1WJsqab7kEMFYBzUisjVLl
+	 Ea8gkYHXo6X2IUJAwtRHiBaYn9echsF8We5noOkY=
+Date: Wed, 04 Jun 2025 12:59:01 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-restore-documentation-for-__free_pages.patch added to mm-unstable branch
-Message-Id: <20250604193947.6053CC4CEE4@smtp.kernel.org>
+Subject: + mm-damon-introduce-damon_stat-module.patch added to mm-new branch
+Message-Id: <20250604195902.61969C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: restore documentation for __free_pages()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-restore-documentation-for-__free_pages.patch
+     Subject: mm/damon: introduce DAMON_STAT module
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-introduce-damon_stat-module.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-restore-documentation-for-__free_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-introduce-damon_stat-module.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,84 +64,306 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: restore documentation for __free_pages()
-Date: Wed, 4 Jun 2025 20:03:26 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: introduce DAMON_STAT module
+Date: Wed, 4 Jun 2025 11:31:24 -0700
 
-The documentation was converted to be for ___free_pages(), which doesn't
-need documentation as it's static.
+Patch series "mm/damon: introduce DAMON_STAT for simple and practical
+access monitoring", v2.
 
-Link: https://lkml.kernel.org/r/20250604190327.814086-1-willy@infradead.org
-Fixes: 8c57b687e833 (mm, bpf: Introduce free_pages_nolock())
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+DAMON-based access monitoring is not simple due to required DAMON control
+and results visualizations.  Introduce a static kernel module for making
+it simple.  The module can be enabled without manual setup and provides
+access pattern metrics that easy to fetch and understand the practical
+access pattern information, namely estimated memory bandwidth and memory
+idle time percentiles.
+
+Background and Problems
+=======================
+
+DAMON can be used for monitoring data access patterns of the system and
+workloads.  Specifically, users can start DAMON to monitor access events
+on specific address space with fine controls including address ranges to
+monitor and time intervals between samplings and aggregations.  The
+resulting access information snapshot contains access frequency
+(nr_accesses) and how long the frequency was kept (age) for each byte.
+
+The monitoring usage is not simple and practical enough for production
+usage.  Users should first start DAMON with a number of parameters, and
+wait until DAMON's monitoring results capture a reasonable amount of the
+time data (age).  In production, such manual start and wait is impractical
+to capture useful information from a high number of machines in a timely
+manner.
+
+The monitoring result is also too detailed to be used on production
+environments.  The raw results are hard to be aggregated and/or compared
+for production environments having a large scale of time, space and
+machines fleet.
+
+Users have to implement and use their own automation of DAMON control and
+results processing.  It is repetitive and challenging since there is no
+good reference or guideline for such automation.
+
+Solution: DAMON_STAT
+====================
+
+Implement such automation in kernel space as a static kernel module,
+namely DAMON_STAT.  It can be enabled at build, boot, or run time via its
+build configuration or module parameter.  It monitors the entire physical
+address space with monitoring intervals that auto-tuned for a reasonable
+amount of access observations and minimum overhead.  It converts the raw
+monitoring results into simpler metrics that can easily be aggregated and
+compared, namely estimated memory bandwidth and idle time percentiles.
+
+Understanding of the metrics and the user interface of DAMON_STAT is
+essential.  Refer to the commit messages of the second and the third
+patches of this patch series for more details about the metrics.  For the
+user interface, the standard module parameters system is used.  Refer to
+the fourth patch of this patch series for details of the user interface.
+
+Discussions
+===========
+
+The module aims to be useful on production environments constructed with a
+large number of machines that run a long time.  The auto-tuned monitoring
+intervals ensure a reasonable quality of the outputs.  The auto-tuning
+also ensures its overhead be reasonable and low enough to be enabled
+always on the production.  The simplified monitoring results metrics can
+be useful for showing both coldness (idle time percentiles) and hotness
+(memory bandwidth) of the system's access pattern.  We expect the
+information can be useful for assessing system memory utilization and
+inspiring optimizations or investigations on both kernel and user space
+memory management logics for large scale fleets.
+
+We hence expect the module is good enough to be just used in most
+environments.  For special cases that require a custom access monitoring
+automation, users will still benefit by using DAMON_STAT as a reference or
+a guideline for their specialized automation.
+
+
+This patch (of 4):
+
+To use DAMON for monitoring access patterns of the system, users should
+manually start DAMON via DAMON sysfs ABI with a number of parameters for
+specifying the monitoring target address space, address ranges, and
+monitoring intervals.  After that, users should also wait until desired
+amount of time data is captured into DAMON's monitoring results.  It is
+bothersome and take a long time to be practical for access monitoring on
+large fleet level production environments.
+
+For access-aware system operations use cases like proactive cold memory
+reclamation, similar problems existed.  We we solved those by introducing
+dedicated static kernel modules such as DAMON_RECLAIM.
+
+Implement such static kernel module for access monitoring, namely
+DAMON_STAT.  It monitors the entire physical address space with auto-tuned
+monitoring intervals.  The auto-tuning is set to capture 4 % of observable
+access events in each snapshot while keeping the sampling intervals 5
+milliseconds in minimum and 10 seconds in maximum.  From a few production
+environments, we confirmed this setup provides high quality monitoring
+results with minimum overheads.  The module therefore receives only one
+user input, whether to enable or disable it.  It can be set on build or
+boot time via build configuration or kernel boot command line.  It can
+also be overridden at runtime.
+
+Note that this commit only implements the DAMON control part of the
+module.  Users could get the monitoring results via damon:damon_aggregated
+tracepoint, but that's of course not the recommended way.  Following
+commits will implement convenient and optimized ways for serving the
+monitoring results to users.
+
+Link: https://lkml.kernel.org/r/20250604183127.13968-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250604183127.13968-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ mm/damon/Kconfig  |   16 +++++
+ mm/damon/Makefile |    1 
+ mm/damon/stat.c   |  138 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 155 insertions(+)
 
---- a/mm/page_alloc.c~mm-restore-documentation-for-__free_pages
-+++ a/mm/page_alloc.c
-@@ -5028,11 +5028,28 @@ unsigned long get_zeroed_page_noprof(gfp
- }
- EXPORT_SYMBOL(get_zeroed_page_noprof);
+--- a/mm/damon/Kconfig~mm-damon-introduce-damon_stat-module
++++ a/mm/damon/Kconfig
+@@ -95,4 +95,20 @@ config DAMON_LRU_SORT
+ 	  protect frequently accessed (hot) pages while rarely accessed (cold)
+ 	  pages reclaimed first under memory pressure.
  
-+static void ___free_pages(struct page *page, unsigned int order,
-+			  fpi_t fpi_flags)
-+{
-+	/* get PageHead before we drop reference */
-+	int head = PageHead(page);
-+	/* get alloc tag in case the page is released by others */
-+	struct alloc_tag *tag = pgalloc_tag_get(page);
++config DAMON_STAT
++	bool "Build data access monitoring stat (DAMON_STAT)"
++	depends on DAMON_PADDR
++	help
++	  This builds the DAMON-based access monitoring statistics subsystem.
++	  It runs DAMON and expose access monitoring results in simple stat
++	  metrics.
 +
-+	if (put_page_testzero(page))
-+		__free_frozen_pages(page, order, fpi_flags);
-+	else if (!head) {
-+		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
-+		while (order-- > 0)
-+			__free_frozen_pages(page + (1 << order), order,
-+					    fpi_flags);
-+	}
++config DAMON_STAT_ENABLED_DEFAULT
++	bool "Enable DAMON_STAT by default"
++	depends on DAMON_PADDR
++	default DAMON_STAT
++	help
++	  Whether to enable DAMON_STAT by default.  Users can disable it in
++	  boot or runtime using its 'enabled' parameter.
++
+ endmenu
+--- a/mm/damon/Makefile~mm-damon-introduce-damon_stat-module
++++ a/mm/damon/Makefile
+@@ -6,3 +6,4 @@ obj-$(CONFIG_DAMON_PADDR)	+= ops-common.
+ obj-$(CONFIG_DAMON_SYSFS)	+= sysfs-common.o sysfs-schemes.o sysfs.o
+ obj-$(CONFIG_DAMON_RECLAIM)	+= modules-common.o reclaim.o
+ obj-$(CONFIG_DAMON_LRU_SORT)	+= modules-common.o lru_sort.o
++obj-$(CONFIG_DAMON_STAT)	+= modules-common.o stat.o
+diff --git a/mm/damon/stat.c a/mm/damon/stat.c
+new file mode 100644
+--- /dev/null
++++ a/mm/damon/stat.c
+@@ -0,0 +1,138 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Shows data access monitoring resutls in simple metrics.
++ */
++
++#define pr_fmt(fmt) "damon-stat: " fmt
++
++#include <linux/damon.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/sort.h>
++
++#ifdef MODULE_PARAM_PREFIX
++#undef MODULE_PARAM_PREFIX
++#endif
++#define MODULE_PARAM_PREFIX "damon_stat."
++
++static int damon_stat_enabled_store(
++		const char *val, const struct kernel_param *kp);
++
++static const struct kernel_param_ops enabled_param_ops = {
++	.set = damon_stat_enabled_store,
++	.get = param_get_bool,
++};
++
++static bool enabled __read_mostly = CONFIG_DAMON_STAT_ENABLED_DEFAULT;
++module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
++MODULE_PARM_DESC(enabled, "Enable of disable DAMON_STAT");
++
++static struct damon_ctx *damon_stat_context;
++
++static struct damon_ctx *damon_stat_build_ctx(void)
++{
++	struct damon_ctx *ctx;
++	struct damon_attrs attrs;
++	struct damon_target *target;
++	unsigned long start = 0, end = 0;
++
++	ctx = damon_new_ctx();
++	if (!ctx)
++		return NULL;
++	attrs = (struct damon_attrs) {
++		.sample_interval = 5 * USEC_PER_MSEC,
++		.aggr_interval = 100 * USEC_PER_MSEC,
++		.ops_update_interval = 60 * USEC_PER_MSEC * MSEC_PER_SEC,
++		.min_nr_regions = 10,
++		.max_nr_regions = 1000,
++	};
++	/*
++	 * auto-tune sampling and aggregation interval aiming 4% DAMON-observed
++	 * accesses ratio, keeping sampling interval in [5ms, 10s] range.
++	 */
++	attrs.intervals_goal = (struct damon_intervals_goal) {
++		.access_bp = 400, .aggrs = 3,
++		.min_sample_us = 5000, .max_sample_us = 10000000,
++	};
++	if (damon_set_attrs(ctx, &attrs))
++		goto free_out;
++
++	/*
++	 * auto-tune sampling and aggregation interval aiming 4% DAMON-observed
++	 * accesses ratio, keeping sampling interval in [5ms, 10s] range.
++	 */
++	ctx->attrs.intervals_goal = (struct damon_intervals_goal) {
++		.access_bp = 400, .aggrs = 3,
++		.min_sample_us = 5000, .max_sample_us = 10000000,
++	};
++	if (damon_select_ops(ctx, DAMON_OPS_PADDR))
++		goto free_out;
++
++	target = damon_new_target();
++	if (!target)
++		goto free_out;
++	damon_add_target(ctx, target);
++	if (damon_set_region_biggest_system_ram_default(target, &start, &end))
++		goto free_out;
++	return ctx;
++free_out:
++	damon_destroy_ctx(ctx);
++	return NULL;
 +}
 +
- /**
-- * ___free_pages - Free pages allocated with alloc_pages().
-+ * __free_pages - Free pages allocated with alloc_pages().
-  * @page: The page pointer returned from alloc_pages().
-  * @order: The order of the allocation.
-- * @fpi_flags: Free Page Internal flags.
-  *
-  * This function can free multi-page allocations that are not compound
-  * pages.  It does not check that the @order passed in matches that of
-@@ -5049,23 +5066,6 @@ EXPORT_SYMBOL(get_zeroed_page_noprof);
-  * Context: May be called in interrupt context or while holding a normal
-  * spinlock, but not in NMI context or while holding a raw spinlock.
-  */
--static void ___free_pages(struct page *page, unsigned int order,
--			  fpi_t fpi_flags)
--{
--	/* get PageHead before we drop reference */
--	int head = PageHead(page);
--	/* get alloc tag in case the page is released by others */
--	struct alloc_tag *tag = pgalloc_tag_get(page);
--
--	if (put_page_testzero(page))
--		__free_frozen_pages(page, order, fpi_flags);
--	else if (!head) {
--		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
--		while (order-- > 0)
--			__free_frozen_pages(page + (1 << order), order,
--					    fpi_flags);
--	}
--}
- void __free_pages(struct page *page, unsigned int order)
- {
- 	___free_pages(page, order, FPI_NONE);
++static int damon_stat_start(void)
++{
++	damon_stat_context = damon_stat_build_ctx();
++	if (!damon_stat_context)
++		return -ENOMEM;
++	return damon_start(&damon_stat_context, 1, true);
++}
++
++static void damon_stat_stop(void)
++{
++	damon_stop(&damon_stat_context, 1);
++	damon_destroy_ctx(damon_stat_context);
++}
++
++static bool damon_stat_init_called;
++
++static int damon_stat_enabled_store(
++		const char *val, const struct kernel_param *kp)
++{
++	bool is_enabled = enabled;
++	int err;
++
++	err = kstrtobool(val, &enabled);
++	if (err)
++		return err;
++
++	if (is_enabled == enabled)
++		return 0;
++
++	if (!damon_stat_init_called)
++		/*
++		 * probably called from command line parsing (parse_args()).
++		 * Cannot call damon_new_ctx().  Let damon_stat_init() handle.
++		 */
++		return 0;
++
++	if (enabled)
++		return damon_stat_start();
++	damon_stat_stop();
++	return 0;
++}
++
++static int __init damon_stat_init(void)
++{
++	int err = 0;
++
++	damon_stat_init_called = true;
++
++	/* probably set via command line */
++	if (enabled)
++		err = damon_stat_start();
++	return err;
++}
++
++module_init(damon_stat_init);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-restore-documentation-for-__free_pages.patch
+mm-madvise-handle-madvise_lock-failure-during-race-unwinding.patch
+mm-damon-introduce-damon_stat-module.patch
+mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
+mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
+docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
 
