@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29EB2215078
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 22:27:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 737AA17C224
+	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 22:29:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749076029; cv=none; b=uBqodT25lJUr/bEkUySHOc3YfSyYydlxUagPcXU+RMJPW0DdvOR65KbLcjOiaWhid+lqQX/yT4paY74OtwUzVdhv+GGMVCUWqaVasIai2cosuj0b76DS+/LLweVkuEdwK6p5mbt1YVNTpd640vN321FWzmBeSv3HTaoxngGs9nw=
+	t=1749076156; cv=none; b=X3l/jb4PKId9opcA+7m2SSYMJytkDS2EN32cPiyNIQz43t4QvrmwQUHe86M5oCHRHjq7VT9Bh2Ot/9kvG4UZ9O3ENpljCLbCGJy2W6vaCbgls/YG63TEXtVepaHhAkM2I7g+2P08S7EsXpnGW2PPTrlPnQ4SX3vuRyUllrg/Y/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749076029; c=relaxed/simple;
-	bh=9MOFWMsVD59Vq9ECSm4rHoMx2LxGFiUjfk/13GpcQ3M=;
-	h=Date:To:From:Subject:Message-Id; b=GRMoverz0OPAYo3MA2ttmi1Gj5Uy6cP3eTCpyVQsJwQy2Yuhz+nVTnrzlJB3VLaAqPEN5TK73zGq9+r1cD2utf8VADl1lTqBNLl1Cn0adf9C81cotj5Ttt9HdV+BmaAqn3kN680w+XjVfaw2Gfhr4jGwrmUNB3m2Sm5byINCqAU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZyCk/4mx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749076156; c=relaxed/simple;
+	bh=uc/z5jV3rZqnBfCsbLZA3La3jyTmHUzT5jDjf5SjkgM=;
+	h=Date:To:From:Subject:Message-Id; b=nUtL8t17wVC2kJ7PGAEGGayk4Nht3IQ4WkKmfHXd91nG/yXY7KyprEnwk4mVGp1Q+3kjYGkHEouwrlIwVwc8e8FGs3Hl8phW2ory0WipOPvjBn9OJ8fiFbQF1m+wfbGQWr69SVzFd5FhgiGWeZU9wrGkDWc0o3H/+FqM9ECHDDY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xeQTZUhS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZyCk/4mx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FEF7C4CEE4;
-	Wed,  4 Jun 2025 22:27:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xeQTZUhS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEB78C4CEE4;
+	Wed,  4 Jun 2025 22:29:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749076028;
-	bh=9MOFWMsVD59Vq9ECSm4rHoMx2LxGFiUjfk/13GpcQ3M=;
+	s=korg; t=1749076155;
+	bh=uc/z5jV3rZqnBfCsbLZA3La3jyTmHUzT5jDjf5SjkgM=;
 	h=Date:To:From:Subject:From;
-	b=ZyCk/4mxE3/n9mDsGL9dX5m1xOPoshQ8ttP+1Rgg6lCQcnYJQ/iup3yXu7z/R4SQR
-	 7vRQmYnnUGdmQQOTxiiVzLjqiDlvNFM+uPtdDY8GIViow0Q8NGj9r1YyyhEhh6lLi2
-	 oYA1A5friHplaH9cLuGmanaE6rxOWPgYGTo8G1JU=
-Date: Wed, 04 Jun 2025 15:27:07 -0700
-To: mm-commits@vger.kernel.org,yebin10@huawei.com,rick.p.edgecombe@intel.com,kirill.shutemov@linux.intel.com,ast@kernel.org,adobriyan@gmail.com,wangzijie1@honor.com,akpm@linux-foundation.org
+	b=xeQTZUhS8sS8r/ZtJvTNcdKr59B4cF0Gyfvp/ioU6iR2yMAYoR+58QgJiHkc+ZAuy
+	 B4RCXsNd1PpKukIydfJbXRovuxCyuLZ7nWBJnwtaE880vouksaWoKfjXAbAJe1v3fS
+	 Wd/ZQE4KBU0rQ3M+JJtoPirJkB5kNv7TYXQEJ19A=
+Date: Wed, 04 Jun 2025 15:29:15 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-avoid-use-after-free-in-proc_reg_open.patch added to mm-nonmm-unstable branch
-Message-Id: <20250604222708.7FEF7C4CEE4@smtp.kernel.org>
+Subject: + mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch added to mm-new branch
+Message-Id: <20250604222915.CEB78C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: avoid use-after-free in proc_reg_open()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-avoid-use-after-free-in-proc_reg_open.patch
+     Subject: mm/hugetlb: remove unnecessary holding of hugetlb_lock
+has been added to the -mm mm-new branch.  Its filename is
+     mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-avoid-use-after-free-in-proc_reg_open.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,62 +64,157 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wangzijie <wangzijie1@honor.com>
-Subject: proc: avoid use-after-free in proc_reg_open()
-Date: Wed, 28 May 2025 11:47:56 +0800
+From: Ge Yang <yangge1116@126.com>
+Subject: mm/hugetlb: remove unnecessary holding of hugetlb_lock
+Date: Tue, 27 May 2025 11:36:50 +0800
 
-Like the rmmod scenario mentioned by Ye Bin in proc: fix use-after-free in
-proc_get_inode()[1], we should get pde->proc_ops after use_pde for
-non-permanent pde to avoid UAF in proc_reg_open().
+In isolate_or_dissolve_huge_folio(), after acquiring the hugetlb_lock, it
+is only for the purpose of obtaining the correct hstate, which is then
+passed to alloc_and_dissolve_hugetlb_folio().
 
-[1] https://lore.kernel.org/all/20250301034024.277290-1-yebin@huaweicloud.com/
+alloc_and_dissolve_hugetlb_folio() itself also acquires the hugetlb_lock. 
+We can have alloc_and_dissolve_hugetlb_folio() obtain the hstate by
+itself, so that isolate_or_dissolve_huge_folio() no longer needs to
+acquire the hugetlb_lock.  In addition, we keep the folio_test_hugetlb()
+check within isolate_or_dissolve_huge_folio().  By doing so, we can avoid
+disrupting the normal path by vainly holding the hugetlb_lock.
 
-Link: https://lkml.kernel.org/r/20250528034756.4069180-1-wangzijie1@honor.com
-Signed-off-by: wangzijie <wangzijie1@honor.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Ye Bin <yebin10@huawei.com>
+replace_free_hugepage_folios() has the same issue, and we should address
+it as well.
+
+Link: https://lkml.kernel.org/r/1748317010-16272-1-git-send-email-yangge1116@126.com
+Signed-off-by: Ge Yang <yangge1116@126.com>
+Suggested-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   54 +++++++++++++++----------------------------------
+ 1 file changed, 17 insertions(+), 37 deletions(-)
 
---- a/fs/proc/inode.c~proc-avoid-use-after-free-in-proc_reg_open
-+++ a/fs/proc/inode.c
-@@ -473,13 +473,13 @@ static int proc_reg_open(struct inode *i
- 	typeof_member(struct proc_ops, proc_open) open;
- 	struct pde_opener *pdeo;
+--- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock
++++ a/mm/hugetlb.c
+@@ -2787,20 +2787,24 @@ void restore_reserve_on_error(struct hst
+ /*
+  * alloc_and_dissolve_hugetlb_folio - Allocate a new folio and dissolve
+  * the old one
+- * @h: struct hstate old page belongs to
+  * @old_folio: Old folio to dissolve
+  * @list: List to isolate the page in case we need to
+  * Returns 0 on success, otherwise negated error.
+  */
+-static int alloc_and_dissolve_hugetlb_folio(struct hstate *h,
+-			struct folio *old_folio, struct list_head *list)
++static int alloc_and_dissolve_hugetlb_folio(struct folio *old_folio,
++			struct list_head *list)
+ {
+-	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
++	gfp_t gfp_mask;
++	struct hstate *h;
+ 	int nid = folio_nid(old_folio);
+ 	struct folio *new_folio = NULL;
+ 	int ret = 0;
  
--	if (!pde->proc_ops->proc_lseek)
--		file->f_mode &= ~FMODE_LSEEK;
+ retry:
++	/*
++	 * The old_folio might have been dissolved from under our feet, so make sure
++	 * to carefully check the state under the lock.
++	 */
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (!folio_test_hugetlb(old_folio)) {
+ 		/*
+@@ -2829,8 +2833,10 @@ retry:
+ 		cond_resched();
+ 		goto retry;
+ 	} else {
++		h = folio_hstate(old_folio);
+ 		if (!new_folio) {
+ 			spin_unlock_irq(&hugetlb_lock);
++			gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 			new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid,
+ 							      NULL, NULL);
+ 			if (!new_folio)
+@@ -2874,35 +2880,24 @@ free_new:
+ 
+ int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list)
+ {
+-	struct hstate *h;
+ 	int ret = -EBUSY;
+ 
+-	/*
+-	 * The page might have been dissolved from under our feet, so make sure
+-	 * to carefully check the state under the lock.
+-	 * Return success when racing as if we dissolved the page ourselves.
+-	 */
+-	spin_lock_irq(&hugetlb_lock);
+-	if (folio_test_hugetlb(folio)) {
+-		h = folio_hstate(folio);
+-	} else {
+-		spin_unlock_irq(&hugetlb_lock);
++	/* Not to disrupt normal path by vainly holding hugetlb_lock */
++	if (!folio_test_hugetlb(folio))
+ 		return 0;
+-	}
+-	spin_unlock_irq(&hugetlb_lock);
+ 
+ 	/*
+ 	 * Fence off gigantic pages as there is a cyclic dependency between
+ 	 * alloc_contig_range and them. Return -ENOMEM as this has the effect
+ 	 * of bailing out right away without further retrying.
+ 	 */
+-	if (hstate_is_gigantic(h))
++	if (folio_order(folio) > MAX_PAGE_ORDER)
+ 		return -ENOMEM;
+ 
+ 	if (folio_ref_count(folio) && folio_isolate_hugetlb(folio, list))
+ 		ret = 0;
+ 	else if (!folio_ref_count(folio))
+-		ret = alloc_and_dissolve_hugetlb_folio(h, folio, list);
++		ret = alloc_and_dissolve_hugetlb_folio(folio, list);
+ 
+ 	return ret;
+ }
+@@ -2916,7 +2911,6 @@ int isolate_or_dissolve_huge_folio(struc
+  */
+ int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	struct hstate *h;
+ 	struct folio *folio;
+ 	int ret = 0;
+ 
+@@ -2925,23 +2919,9 @@ int replace_free_hugepage_folios(unsigne
+ 	while (start_pfn < end_pfn) {
+ 		folio = pfn_folio(start_pfn);
+ 
+-		/*
+-		 * The folio might have been dissolved from under our feet, so make sure
+-		 * to carefully check the state under the lock.
+-		 */
+-		spin_lock_irq(&hugetlb_lock);
+-		if (folio_test_hugetlb(folio)) {
+-			h = folio_hstate(folio);
+-		} else {
+-			spin_unlock_irq(&hugetlb_lock);
+-			start_pfn++;
+-			continue;
+-		}
+-		spin_unlock_irq(&hugetlb_lock);
 -
- 	if (pde_is_permanent(pde)) {
- 		open = pde->proc_ops->proc_open;
--		if (open)
-+		if (open) {
-+			if (!pde->proc_ops->proc_lseek)
-+				file->f_mode &= ~FMODE_LSEEK;
- 			rv = open(inode, file);
-+		}
- 		return rv;
- 	}
+-		if (!folio_ref_count(folio)) {
+-			ret = alloc_and_dissolve_hugetlb_folio(h, folio,
+-							       &isolate_list);
++		/* Not to disrupt normal path by vainly holding hugetlb_lock */
++		if (folio_test_hugetlb(folio) && !folio_ref_count(folio)) {
++			ret = alloc_and_dissolve_hugetlb_folio(folio, &isolate_list);
+ 			if (ret)
+ 				break;
  
-@@ -506,6 +506,9 @@ static int proc_reg_open(struct inode *i
- 		}
- 	}
- 
-+	if (!pde->proc_ops->proc_lseek)
-+		file->f_mode &= ~FMODE_LSEEK;
-+
- 	open = pde->proc_ops->proc_open;
- 	if (open)
- 		rv = open(inode, file);
 _
 
-Patches currently in -mm which might be from wangzijie1@honor.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
-proc-avoid-use-after-free-in-proc_reg_open.patch
+mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch
 
