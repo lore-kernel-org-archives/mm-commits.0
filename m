@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ABCA204F93
-	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 20:39:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2733D1E7C03
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 21:27:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749155991; cv=none; b=d28DwmN6elOKwCHKVV9PP9XERfjmz9N+XXoerTN8qz6WubfMa848JFaAJs+qEHwdQJY2VDrAszorxd8Sf1s7HRoruj9nFUoQkfmQfeVROIFKCO/Ojnoh6xtUiIFW09xPROSeGSJ/xq63e42ZpuqAfBqm+UVGd7mxRLR/wxXjlqw=
+	t=1749158829; cv=none; b=WqPPqamo0WyzVV54YgfaCnsDO3DuzKu45iIA8wQ9rPlXpIyJ0xurEcsmHV+F+uex18RoseaI1bnN0IkxAJio8XmU6akvg1uQcIuaY3fefbbJZEb8eWGRaqQ4NPgBxxMw2x0mYGqwB0ZU6jRH4DU+4Qmd9o35VutkwIioGovNxho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749155991; c=relaxed/simple;
-	bh=5zwoeND4eajOJouLIEvkJCTaqVbJUUm5MJjRj7CK/2U=;
-	h=Date:To:From:Subject:Message-Id; b=J7ap43W3zmYv+ivoepv/+9Qvfkl60AibFnWIkBAAgCx2IgI3j0gZAuu/UdVH1sOAtfipFqu9ZC8HrkwICwziYwuEyYDWk7WXCfFLlyTCvDiSF8oONInJUL6fQknL8FlQSon/0UMQMX//uv56v0ZNuOsfbRuxf7DczFUM/VQBjiE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MzEjxb0A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749158829; c=relaxed/simple;
+	bh=TA4cBocZIZpvObe2wNXZW+taYPa/LyxenEDsB3Cjfc8=;
+	h=Date:To:From:Subject:Message-Id; b=PQQEzR04n4FL45VOitVOZfONqBXNQgVz0La4sibYicN1b8qNnKTC4FuyNBa3iFJZnN/QaI95YWsFeowGdwETkwG/iDmGzB6zMNDvrRY5Jzy8BGDTK/kbh8jWNZnjpzXy6FhIdka6S0IPCR5mvOSx5PstnMpUfhVzT5YHk9Lazc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yRxHPqYx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MzEjxb0A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D65C4CEE7;
-	Thu,  5 Jun 2025 20:39:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yRxHPqYx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75303C4CEE7;
+	Thu,  5 Jun 2025 21:27:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749155991;
-	bh=5zwoeND4eajOJouLIEvkJCTaqVbJUUm5MJjRj7CK/2U=;
+	s=korg; t=1749158828;
+	bh=TA4cBocZIZpvObe2wNXZW+taYPa/LyxenEDsB3Cjfc8=;
 	h=Date:To:From:Subject:From;
-	b=MzEjxb0ABBCTywzEOh+zTTWSN1f5ntII3GBtK63huC+h14AZEiQESAVjz2n4aOK+2
-	 Xs/wL5lAb4ejXxSWAajELw8J0tH/uCHlma41L/jB402aMZHS3E+Hg96bx/I6qNxY//
-	 QO1NhxLU5Sz7NukwVi4Q67+DjHz8IeTRHEJvgnVY=
-Date: Thu, 05 Jun 2025 13:39:50 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=yRxHPqYxQlunCovahJ/zzRlSB+pu7BwCMjCwAJCE0Tws6UPiehZfM4SXsI1kXFcak
+	 8vLDAz7BJDEBMY9Q5Lc5TEbh4tBOdvLTUxoNwkI0DMOytVDRCAH5lLz7bCz1XYLP+q
+	 OiIhXkVG6dvg2rfsAqYh4i9pdQYebA+wWLhAgDSo=
+Date: Thu, 05 Jun 2025 14:27:07 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,vbabka@suse.cz,surenb@google.com,stefan.kristiansson@saunalahti.fi,shorne@gmail.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kernel@xen0n.name,jonas@southpole.se,jannh@google.com,david@redhat.com,chenhuacai@kernel.org,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch added to mm-new branch
-Message-Id: <20250605203950.F1D65C4CEE7@smtp.kernel.org>
+Subject: + mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch added to mm-new branch
+Message-Id: <20250605212708.75303C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,memory_hotplug: rename status_change_nid parameter in memory_notify
+     Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
 has been added to the -mm mm-new branch.  Its filename is
-     mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch
+     mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,126 +64,334 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_hotplug: rename status_change_nid parameter in memory_notify
-Date: Thu, 5 Jun 2025 16:23:01 +0200
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
+Date: Thu, 5 Jun 2025 14:51:04 +0100
 
-The 'status_change_nid' field was used to track changes in the memory
-state of a numa node, but that funcionality has been decoupled from
-memory_notify and moved to node_notify.  Current consumers of
-memory_notify are only interested in which node the memory we are adding
-belongs to, so rename current 'status_change_nid' to 'nid'.
+walk_page_range_novma() is rather confusing - it supports two modes, one
+used often, the other used only for debugging.
 
-Link: https://lkml.kernel.org/r/20250605142305.244465-11-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+The first mode is the common case of traversal of kernel page tables,
+which is what nearly all callers use this for.
+
+Secondly it provides an unusual debugging interface that allows for the
+traversal of page tables in a userland range of memory even for that
+memory which is not described by a VMA.
+
+It is far from certain that such page tables should even exist, but
+perhaps this is precisely why it is useful as a debugging mechanism.
+
+As a result, this is utilised by ptdump only.  Historically, things were
+reversed - ptdump was the only user, and other parts of the kernel evolved
+to use the kernel page table walking here.
+
+Since we have some complicated and confusing locking rules for the novma
+case, it makes sense to separate the two usages into their own functions.
+
+Doing this also provide self-documentation as to the intent of the caller
+- are they doing something rather unusual or are they simply doing a
+standard kernel page table walk?
+
+We therefore establish two separate functions - walk_page_range_debug()
+for this single usage, and walk_kernel_page_table_range() for general
+kernel page table walking.
+
+The walk_page_range_debug() function is currently used to traverse both
+userland and kernel mappings, so we maintain this and in the case of
+kernel mappings being traversed, we have walk_page_range_debug() invoke
+walk_kernel_page_table_range() internally.
+
+We additionally make walk_page_range_debug() internal to mm.
+
+Link: https://lkml.kernel.org/r/20250605135104.90720-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/memory-hotplug.rst |    9 ++-------
- include/linux/memory.h                    |    2 +-
- mm/memory_hotplug.c                       |    4 ++--
- mm/page_ext.c                             |   12 +-----------
- 4 files changed, 6 insertions(+), 21 deletions(-)
+ arch/loongarch/mm/pageattr.c |    2 
+ arch/openrisc/kernel/dma.c   |    4 -
+ arch/riscv/mm/pageattr.c     |    8 +--
+ include/linux/pagewalk.h     |    7 +--
+ mm/hugetlb_vmemmap.c         |    2 
+ mm/internal.h                |    3 +
+ mm/pagewalk.c                |   77 +++++++++++++++++++++++----------
+ mm/ptdump.c                  |    3 -
+ 8 files changed, 71 insertions(+), 35 deletions(-)
 
---- a/Documentation/core-api/memory-hotplug.rst~mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify
-+++ a/Documentation/core-api/memory-hotplug.rst
-@@ -59,17 +59,12 @@ The third argument (arg) passes a pointe
- 	struct memory_notify {
- 		unsigned long start_pfn;
- 		unsigned long nr_pages;
--		int status_change_nid;
-+		int nid;
+--- a/arch/loongarch/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/arch/loongarch/mm/pageattr.c
+@@ -118,7 +118,7 @@ static int __set_memory(unsigned long ad
+ 		return 0;
+ 
+ 	mmap_write_lock(&init_mm);
+-	ret = walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL, &masks);
++	ret = walk_kernel_page_table_range(start, end, &pageattr_ops, NULL, &masks);
+ 	mmap_write_unlock(&init_mm);
+ 
+ 	flush_tlb_kernel_range(start, end);
+--- a/arch/openrisc/kernel/dma.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/arch/openrisc/kernel/dma.c
+@@ -72,7 +72,7 @@ void *arch_dma_set_uncached(void *cpu_ad
+ 	 * them and setting the cache-inhibit bit.
+ 	 */
+ 	mmap_write_lock(&init_mm);
+-	error = walk_page_range_novma(&init_mm, va, va + size,
++	error = walk_kernel_page_table_range(va, va + size,
+ 			&set_nocache_walk_ops, NULL, NULL);
+ 	mmap_write_unlock(&init_mm);
+ 
+@@ -87,7 +87,7 @@ void arch_dma_clear_uncached(void *cpu_a
+ 
+ 	mmap_write_lock(&init_mm);
+ 	/* walk_page_range shouldn't be able to fail here */
+-	WARN_ON(walk_page_range_novma(&init_mm, va, va + size,
++	WARN_ON(walk_kernel_page_table_range(va, va + size,
+ 			&clear_nocache_walk_ops, NULL, NULL));
+ 	mmap_write_unlock(&init_mm);
+ }
+--- a/arch/riscv/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/arch/riscv/mm/pageattr.c
+@@ -299,7 +299,7 @@ static int __set_memory(unsigned long ad
+ 			if (ret)
+ 				goto unlock;
+ 
+-			ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
++			ret = walk_kernel_page_table_range(lm_start, lm_end,
+ 						    &pageattr_ops, NULL, &masks);
+ 			if (ret)
+ 				goto unlock;
+@@ -317,13 +317,13 @@ static int __set_memory(unsigned long ad
+ 		if (ret)
+ 			goto unlock;
+ 
+-		ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
++		ret = walk_kernel_page_table_range(lm_start, lm_end,
+ 					    &pageattr_ops, NULL, &masks);
+ 		if (ret)
+ 			goto unlock;
  	}
  
- - start_pfn is start_pfn of online/offline memory.
- - nr_pages is # of pages of online/offline memory.
--- status_change_nid is set node id when N_MEMORY of nodemask is (will be)
--  set/clear. It means a new(memoryless) node gets new memory by online and a
--  node loses all memory. If this is -1, then nodemask status is not changed.
--
--  If status_changed_nid* >= 0, callback should create/discard structures for the
--  node if necessary.
-+- nid is set to the node id, where the memory we are adding or removing belongs to.
+-	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
++	ret =  walk_kernel_page_table_range(start, end, &pageattr_ops, NULL,
+ 				     &masks);
  
- The callback routine shall return one of the values
- NOTIFY_DONE, NOTIFY_OK, NOTIFY_BAD, NOTIFY_STOP
---- a/include/linux/memory.h~mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify
-+++ a/include/linux/memory.h
-@@ -109,7 +109,7 @@ struct memory_notify {
- 	unsigned long altmap_nr_pages;
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
--	int status_change_nid;
-+	int nid;
- };
+ unlock:
+@@ -335,7 +335,7 @@ unlock:
+ 	 */
+ 	flush_tlb_all();
+ #else
+-	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
++	ret =  walk_kernel_page_table_range(start, end, &pageattr_ops, NULL,
+ 				     &masks);
  
- struct notifier_block;
---- a/mm/memory_hotplug.c~mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify
-+++ a/mm/memory_hotplug.c
-@@ -1186,7 +1186,7 @@ int online_pages(unsigned long pfn, unsi
+ 	mmap_write_unlock(&init_mm);
+--- a/include/linux/pagewalk.h~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/include/linux/pagewalk.h
+@@ -129,10 +129,9 @@ struct mm_walk {
+ int walk_page_range(struct mm_struct *mm, unsigned long start,
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private);
+-int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
+-			  unsigned long end, const struct mm_walk_ops *ops,
+-			  pgd_t *pgd,
+-			  void *private);
++int walk_kernel_page_table_range(unsigned long start,
++		unsigned long end, const struct mm_walk_ops *ops,
++		pgd_t *pgd, void *private);
+ int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
+ 			unsigned long end, const struct mm_walk_ops *ops,
+ 			void *private);
+--- a/mm/hugetlb_vmemmap.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/mm/hugetlb_vmemmap.c
+@@ -166,7 +166,7 @@ static int vmemmap_remap_range(unsigned
+ 	VM_BUG_ON(!PAGE_ALIGNED(start | end));
  
- 	mem_arg.start_pfn = pfn;
- 	mem_arg.nr_pages = nr_pages;
--	mem_arg.status_change_nid = node_arg.nid;
-+	mem_arg.nid = node_arg.nid;
- 	cancel_mem_notifier_on_err = true;
- 	ret = memory_notify(MEM_GOING_ONLINE, &mem_arg);
- 	ret = notifier_to_errno(ret);
-@@ -1986,7 +1986,7 @@ int offline_pages(unsigned long start_pf
+ 	mmap_read_lock(&init_mm);
+-	ret = walk_page_range_novma(&init_mm, start, end, &vmemmap_remap_ops,
++	ret = walk_kernel_page_table_range(start, end, &vmemmap_remap_ops,
+ 				    NULL, walk);
+ 	mmap_read_unlock(&init_mm);
+ 	if (ret)
+--- a/mm/internal.h~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/mm/internal.h
+@@ -1605,6 +1605,9 @@ static inline void accept_page(struct pa
+ int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private);
++int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
++			  unsigned long end, const struct mm_walk_ops *ops,
++			  pgd_t *pgd, void *private);
  
- 	mem_arg.start_pfn = start_pfn;
- 	mem_arg.nr_pages = nr_pages;
--	mem_arg.status_change_nid = node_arg.nid;
-+	mem_arg.nid = node_arg.nid;
- 	cancel_mem_notifier_on_err = true;
- 	ret = memory_notify(MEM_GOING_OFFLINE, &mem_arg);
- 	ret = notifier_to_errno(ret);
---- a/mm/page_ext.c~mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify
-+++ a/mm/page_ext.c
-@@ -378,16 +378,6 @@ static int __meminit online_page_ext(uns
- 	start = SECTION_ALIGN_DOWN(start_pfn);
- 	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
+ /* pt_reclaim.c */
+ bool try_get_and_clear_pmd(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval);
+--- a/mm/pagewalk.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/mm/pagewalk.c
+@@ -585,8 +585,7 @@ int walk_page_range(struct mm_struct *mm
+ }
  
--	if (nid == NUMA_NO_NODE) {
--		/*
--		 * In this case, "nid" already exists and contains valid memory.
--		 * "start_pfn" passed to us is a pfn which is an arg for
--		 * online__pages(), and start_pfn should exist.
--		 */
--		nid = pfn_to_nid(start_pfn);
--		VM_BUG_ON(!node_online(nid));
--	}
--
- 	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION)
- 		fail = init_section_page_ext(pfn, nid);
- 	if (!fail)
-@@ -436,7 +426,7 @@ static int __meminit page_ext_callback(s
- 	switch (action) {
- 	case MEM_GOING_ONLINE:
- 		ret = online_page_ext(mn->start_pfn,
--				   mn->nr_pages, mn->status_change_nid);
-+				   mn->nr_pages, mn->nid);
- 		break;
- 	case MEM_OFFLINE:
- 		offline_page_ext(mn->start_pfn,
+ /**
+- * walk_page_range_novma - walk a range of pagetables not backed by a vma
+- * @mm:		mm_struct representing the target process of page table walk
++ * walk_kernel_page_table_range - walk a range of kernel pagetables.
+  * @start:	start address of the virtual address range
+  * @end:	end address of the virtual address range
+  * @ops:	operation to call during the walk
+@@ -596,17 +595,61 @@ int walk_page_range(struct mm_struct *mm
+  * Similar to walk_page_range() but can walk any page tables even if they are
+  * not backed by VMAs. Because 'unusual' entries may be walked this function
+  * will also not lock the PTEs for the pte_entry() callback. This is useful for
+- * walking the kernel pages tables or page tables for firmware.
++ * walking kernel pages tables or page tables for firmware.
+  *
+  * Note: Be careful to walk the kernel pages tables, the caller may be need to
+  * take other effective approaches (mmap lock may be insufficient) to prevent
+  * the intermediate kernel page tables belonging to the specified address range
+  * from being freed (e.g. memory hot-remove).
+  */
+-int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
++int walk_kernel_page_table_range(unsigned long start, unsigned long end,
++		const struct mm_walk_ops *ops, pgd_t *pgd, void *private)
++{
++	struct mm_struct *mm = &init_mm;
++	struct mm_walk walk = {
++		.ops		= ops,
++		.mm		= mm,
++		.pgd		= pgd,
++		.private	= private,
++		.no_vma		= true
++	};
++
++	if (start >= end)
++		return -EINVAL;
++	if (!check_ops_valid(ops))
++		return -EINVAL;
++
++	/*
++	 * Kernel intermediate page tables are usually not freed, so the mmap
++	 * read lock is sufficient. But there are some exceptions.
++	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
++	 * to prevent the intermediate kernel pages tables belonging to the
++	 * specified address range from being freed. The caller should take
++	 * other actions to prevent this race.
++	 */
++	mmap_assert_locked(mm);
++
++	return walk_pgd_range(start, end, &walk);
++}
++
++/**
++ * walk_page_range_debug - walk a range of pagetables not backed by a vma
++ * @mm:		mm_struct representing the target process of page table walk
++ * @start:	start address of the virtual address range
++ * @end:	end address of the virtual address range
++ * @ops:	operation to call during the walk
++ * @pgd:	pgd to walk if different from mm->pgd
++ * @private:	private data for callbacks' usage
++ *
++ * Similar to walk_page_range() but can walk any page tables even if they are
++ * not backed by VMAs. Because 'unusual' entries may be walked this function
++ * will also not lock the PTEs for the pte_entry() callback.
++ *
++ * This is for debugging purposes ONLY.
++ */
++int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
+-			  pgd_t *pgd,
+-			  void *private)
++			  pgd_t *pgd, void *private)
+ {
+ 	struct mm_walk walk = {
+ 		.ops		= ops,
+@@ -616,34 +659,24 @@ int walk_page_range_novma(struct mm_stru
+ 		.no_vma		= true
+ 	};
+ 
++	/* For convenience, we allow traversal of kernel mappings. */
++	if (mm == &init_mm)
++		return walk_kernel_page_table_range(start, end, ops,
++						    pgd, private);
+ 	if (start >= end || !walk.mm)
+ 		return -EINVAL;
+ 	if (!check_ops_valid(ops))
+ 		return -EINVAL;
+ 
+ 	/*
+-	 * 1) For walking the user virtual address space:
+-	 *
+ 	 * The mmap lock protects the page walker from changes to the page
+ 	 * tables during the walk.  However a read lock is insufficient to
+ 	 * protect those areas which don't have a VMA as munmap() detaches
+ 	 * the VMAs before downgrading to a read lock and actually tearing
+ 	 * down PTEs/page tables. In which case, the mmap write lock should
+-	 * be hold.
+-	 *
+-	 * 2) For walking the kernel virtual address space:
+-	 *
+-	 * The kernel intermediate page tables usually do not be freed, so
+-	 * the mmap map read lock is sufficient. But there are some exceptions.
+-	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
+-	 * to prevent the intermediate kernel pages tables belonging to the
+-	 * specified address range from being freed. The caller should take
+-	 * other actions to prevent this race.
++	 * be held.
+ 	 */
+-	if (mm == &init_mm)
+-		mmap_assert_locked(walk.mm);
+-	else
+-		mmap_assert_write_locked(walk.mm);
++	mmap_assert_write_locked(mm);
+ 
+ 	return walk_pgd_range(start, end, &walk);
+ }
+--- a/mm/ptdump.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
++++ a/mm/ptdump.c
+@@ -4,6 +4,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/ptdump.h>
+ #include <linux/kasan.h>
++#include "internal.h"
+ 
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ /*
+@@ -177,7 +178,7 @@ void ptdump_walk_pgd(struct ptdump_state
+ 
+ 	mmap_write_lock(mm);
+ 	while (range->start != range->end) {
+-		walk_page_range_novma(mm, range->start, range->end,
++		walk_page_range_debug(mm, range->start, range->end,
+ 				      &ptdump_ops, pgd, st);
+ 		range++;
+ 	}
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
-mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
-mmmemory_hotplug-implement-numa-node-notifier.patch
-mmslub-use-node-notifier-instead-of-memory-notifier.patch
-mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
-driverscxl-use-node-notifier-instead-of-memory-notifier.patch
-drivershmat-use-node-notifier-instead-of-memory-notifier.patch
-kernelcpuset-use-node-notifier-instead-of-memory-notifier.patch
-mmmempolicy-use-node-notifier-instead-of-memory-notifier.patch
-mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch
+kvm-s390-rename-prot_none-to-prot_type_dummy.patch
+maintainers-add-mm-swap-section.patch
+docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
+mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
+mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
+mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
 
