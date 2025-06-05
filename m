@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2733D1E7C03
-	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 21:27:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58B2720330
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 21:30:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749158829; cv=none; b=WqPPqamo0WyzVV54YgfaCnsDO3DuzKu45iIA8wQ9rPlXpIyJ0xurEcsmHV+F+uex18RoseaI1bnN0IkxAJio8XmU6akvg1uQcIuaY3fefbbJZEb8eWGRaqQ4NPgBxxMw2x0mYGqwB0ZU6jRH4DU+4Qmd9o35VutkwIioGovNxho=
+	t=1749159042; cv=none; b=AmdWrRqYC9xhX+55OOgP9mFzO/Dg2qzuFq0XOgv4X+TT+Z84vrSy9yT63hdsMhrMwQKMYE8qyg2d9Ow99FetHyl9OzMzOR7HsiYmHLG/N0zkDKK1eyPEXRoWESrfQK6buYsYzczr34kE4jcAM0t9x2gIdSaEHSu3ovZuGUL6vb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749158829; c=relaxed/simple;
-	bh=TA4cBocZIZpvObe2wNXZW+taYPa/LyxenEDsB3Cjfc8=;
-	h=Date:To:From:Subject:Message-Id; b=PQQEzR04n4FL45VOitVOZfONqBXNQgVz0La4sibYicN1b8qNnKTC4FuyNBa3iFJZnN/QaI95YWsFeowGdwETkwG/iDmGzB6zMNDvrRY5Jzy8BGDTK/kbh8jWNZnjpzXy6FhIdka6S0IPCR5mvOSx5PstnMpUfhVzT5YHk9Lazc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yRxHPqYx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749159042; c=relaxed/simple;
+	bh=H0a/giiGUxlw6MN+caRZWEVeLfojrJo6N4xtGghzhGY=;
+	h=Date:To:From:Subject:Message-Id; b=rjfBsLjF2JSQh7R5M9i8eH/HAisOP0EQPyW++UMh7l2nb/JxHvhd9Z52rQ2iV9EslaBUoErxid7l/aJutMUJ/Ac5m1dZfOS6HUk5keuhkH0bs05Sf5ACrTCKZUejP9IUgA+EUAw31HhhUd1XSD67uU0stGj3EwDrA7UX9PVLW2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gYJ6UsOX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yRxHPqYx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75303C4CEE7;
-	Thu,  5 Jun 2025 21:27:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gYJ6UsOX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB66FC4CEE7;
+	Thu,  5 Jun 2025 21:30:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749158828;
-	bh=TA4cBocZIZpvObe2wNXZW+taYPa/LyxenEDsB3Cjfc8=;
+	s=korg; t=1749159041;
+	bh=H0a/giiGUxlw6MN+caRZWEVeLfojrJo6N4xtGghzhGY=;
 	h=Date:To:From:Subject:From;
-	b=yRxHPqYxQlunCovahJ/zzRlSB+pu7BwCMjCwAJCE0Tws6UPiehZfM4SXsI1kXFcak
-	 8vLDAz7BJDEBMY9Q5Lc5TEbh4tBOdvLTUxoNwkI0DMOytVDRCAH5lLz7bCz1XYLP+q
-	 OiIhXkVG6dvg2rfsAqYh4i9pdQYebA+wWLhAgDSo=
-Date: Thu, 05 Jun 2025 14:27:07 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,vbabka@suse.cz,surenb@google.com,stefan.kristiansson@saunalahti.fi,shorne@gmail.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kernel@xen0n.name,jonas@southpole.se,jannh@google.com,david@redhat.com,chenhuacai@kernel.org,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=gYJ6UsOXikNOWwYyePBDBIjkasCYuHOlqX8NfGwphmEPSwT1a67emx4Wi60m5XdL+
+	 0DohBIGJATLcsTT4ELAT1o1TnQ0PmVMVkKLIDH3F2P0FyPiH0tsKaRZBYwZlyH/qIC
+	 gIYLh4a1gBKGEHXrShyTFQgY3XI6fvQfhrk+T2PU=
+Date: Thu, 05 Jun 2025 14:30:40 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,aboorvad@linux.ibm.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch added to mm-new branch
-Message-Id: <20250605212708.75303C4CEE7@smtp.kernel.org>
+Subject: + mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch added to mm-new branch
+Message-Id: <20250605213041.AB66FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
+     Subject: mm: fix the inaccurate memory statistics issue for users
 has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+     mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,334 +64,134 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/pagewalk: split walk_page_range_novma() into kernel/user parts
-Date: Thu, 5 Jun 2025 14:51:04 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: fix the inaccurate memory statistics issue for users
+Date: Thu, 5 Jun 2025 20:58:29 +0800
 
-walk_page_range_novma() is rather confusing - it supports two modes, one
-used often, the other used only for debugging.
+On some large machines with a high number of CPUs running a 64K pagesize
+kernel, we found that the 'RES' field is always 0 displayed by the top
+command for some processes, which will cause a lot of confusion for users.
 
-The first mode is the common case of traversal of kernel page tables,
-which is what nearly all callers use this for.
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 875525 root      20   0   12480      0      0 R   0.3   0.0   0:00.08 top
+      1 root      20   0  172800      0      0 S   0.0   0.0   0:04.52 systemd
 
-Secondly it provides an unusual debugging interface that allows for the
-traversal of page tables in a userland range of memory even for that
-memory which is not described by a VMA.
+The main reason is that the batch size of the percpu counter is quite
+large on these machines, caching a significant percpu value, since
+converting mm's rss stats into percpu_counter by commit f1a7941243c1 ("mm:
+convert mm's rss stats into percpu_counter").  Intuitively, the batch
+number should be optimized, but on some paths, performance may take
+precedence over statistical accuracy.  Therefore, introducing a new
+interface to add the percpu statistical count and display it to users,
+which can remove the confusion.  In addition, this change is not expected
+to be on a performance-critical path, so the modification should be
+acceptable.
 
-It is far from certain that such page tables should even exist, but
-perhaps this is precisely why it is useful as a debugging mechanism.
+In addition, the 'mm->rss_stat' is updated by using add_mm_counter() and
+dec/inc_mm_counter(), which are all wrappers around
+percpu_counter_add_batch().  In percpu_counter_add_batch(), there is
+percpu batch caching to avoid 'fbc->lock' contention.  This patch changes
+task_mem() and task_statm() to get the accurate mm counters under the
+'fbc->lock', but this should not exacerbate kernel 'mm->rss_stat' lock
+contention due to the percpu batch caching of the mm counters.  The
+following test also confirm the theoretical analysis.
 
-As a result, this is utilised by ptdump only.  Historically, things were
-reversed - ptdump was the only user, and other parts of the kernel evolved
-to use the kernel page table walking here.
+I run the stress-ng that stresses anon page faults in 32 threads on my 32
+cores machine, while simultaneously running a script that starts 32
+threads to busy-loop pread each stress-ng thread's /proc/pid/status
+interface.  From the following data, I did not observe any obvious impact
+of this patch on the stress-ng tests.
 
-Since we have some complicated and confusing locking rules for the novma
-case, it makes sense to separate the two usages into their own functions.
+w/o patch:
+stress-ng: info:  [6848]          4,399,219,085,152 CPU Cycles          67.327 B/sec
+stress-ng: info:  [6848]          1,616,524,844,832 Instructions          24.740 B/sec (0.367 instr. per cycle)
+stress-ng: info:  [6848]          39,529,792 Page Faults Total           0.605 M/sec
+stress-ng: info:  [6848]          39,529,792 Page Faults Minor           0.605 M/sec
 
-Doing this also provide self-documentation as to the intent of the caller
-- are they doing something rather unusual or are they simply doing a
-standard kernel page table walk?
+w/patch:
+stress-ng: info:  [2485]          4,462,440,381,856 CPU Cycles          68.382 B/sec
+stress-ng: info:  [2485]          1,615,101,503,296 Instructions          24.750 B/sec (0.362 instr. per cycle)
+stress-ng: info:  [2485]          39,439,232 Page Faults Total           0.604 M/sec
+stress-ng: info:  [2485]          39,439,232 Page Faults Minor           0.604 M/sec
 
-We therefore establish two separate functions - walk_page_range_debug()
-for this single usage, and walk_kernel_page_table_range() for general
-kernel page table walking.
-
-The walk_page_range_debug() function is currently used to traverse both
-userland and kernel mappings, so we maintain this and in the case of
-kernel mappings being traversed, we have walk_page_range_debug() invoke
-walk_kernel_page_table_range() internally.
-
-We additionally make walk_page_range_debug() internal to mm.
-
-Link: https://lkml.kernel.org/r/20250605135104.90720-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/f4586b17f66f97c174f7fd1f8647374fdb53de1c.1749119050.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Tested-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Tested-by Donet Tom <donettom@linux.ibm.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/mm/pageattr.c |    2 
- arch/openrisc/kernel/dma.c   |    4 -
- arch/riscv/mm/pageattr.c     |    8 +--
- include/linux/pagewalk.h     |    7 +--
- mm/hugetlb_vmemmap.c         |    2 
- mm/internal.h                |    3 +
- mm/pagewalk.c                |   77 +++++++++++++++++++++++----------
- mm/ptdump.c                  |    3 -
- 8 files changed, 71 insertions(+), 35 deletions(-)
+ fs/proc/task_mmu.c |   14 +++++++-------
+ include/linux/mm.h |    5 +++++
+ 2 files changed, 12 insertions(+), 7 deletions(-)
 
---- a/arch/loongarch/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/loongarch/mm/pageattr.c
-@@ -118,7 +118,7 @@ static int __set_memory(unsigned long ad
- 		return 0;
+--- a/fs/proc/task_mmu.c~mm-fix-the-inaccurate-memory-statistics-issue-for-users
++++ a/fs/proc/task_mmu.c
+@@ -36,9 +36,9 @@ void task_mem(struct seq_file *m, struct
+ 	unsigned long text, lib, swap, anon, file, shmem;
+ 	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss;
  
- 	mmap_write_lock(&init_mm);
--	ret = walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL, &masks);
-+	ret = walk_kernel_page_table_range(start, end, &pageattr_ops, NULL, &masks);
- 	mmap_write_unlock(&init_mm);
- 
- 	flush_tlb_kernel_range(start, end);
---- a/arch/openrisc/kernel/dma.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/openrisc/kernel/dma.c
-@@ -72,7 +72,7 @@ void *arch_dma_set_uncached(void *cpu_ad
- 	 * them and setting the cache-inhibit bit.
- 	 */
- 	mmap_write_lock(&init_mm);
--	error = walk_page_range_novma(&init_mm, va, va + size,
-+	error = walk_kernel_page_table_range(va, va + size,
- 			&set_nocache_walk_ops, NULL, NULL);
- 	mmap_write_unlock(&init_mm);
- 
-@@ -87,7 +87,7 @@ void arch_dma_clear_uncached(void *cpu_a
- 
- 	mmap_write_lock(&init_mm);
- 	/* walk_page_range shouldn't be able to fail here */
--	WARN_ON(walk_page_range_novma(&init_mm, va, va + size,
-+	WARN_ON(walk_kernel_page_table_range(va, va + size,
- 			&clear_nocache_walk_ops, NULL, NULL));
- 	mmap_write_unlock(&init_mm);
- }
---- a/arch/riscv/mm/pageattr.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/arch/riscv/mm/pageattr.c
-@@ -299,7 +299,7 @@ static int __set_memory(unsigned long ad
- 			if (ret)
- 				goto unlock;
- 
--			ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
-+			ret = walk_kernel_page_table_range(lm_start, lm_end,
- 						    &pageattr_ops, NULL, &masks);
- 			if (ret)
- 				goto unlock;
-@@ -317,13 +317,13 @@ static int __set_memory(unsigned long ad
- 		if (ret)
- 			goto unlock;
- 
--		ret = walk_page_range_novma(&init_mm, lm_start, lm_end,
-+		ret = walk_kernel_page_table_range(lm_start, lm_end,
- 					    &pageattr_ops, NULL, &masks);
- 		if (ret)
- 			goto unlock;
- 	}
- 
--	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
-+	ret =  walk_kernel_page_table_range(start, end, &pageattr_ops, NULL,
- 				     &masks);
- 
- unlock:
-@@ -335,7 +335,7 @@ unlock:
- 	 */
- 	flush_tlb_all();
- #else
--	ret =  walk_page_range_novma(&init_mm, start, end, &pageattr_ops, NULL,
-+	ret =  walk_kernel_page_table_range(start, end, &pageattr_ops, NULL,
- 				     &masks);
- 
- 	mmap_write_unlock(&init_mm);
---- a/include/linux/pagewalk.h~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/include/linux/pagewalk.h
-@@ -129,10 +129,9 @@ struct mm_walk {
- int walk_page_range(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private);
--int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
--			  unsigned long end, const struct mm_walk_ops *ops,
--			  pgd_t *pgd,
--			  void *private);
-+int walk_kernel_page_table_range(unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		pgd_t *pgd, void *private);
- int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
- 			unsigned long end, const struct mm_walk_ops *ops,
- 			void *private);
---- a/mm/hugetlb_vmemmap.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/hugetlb_vmemmap.c
-@@ -166,7 +166,7 @@ static int vmemmap_remap_range(unsigned
- 	VM_BUG_ON(!PAGE_ALIGNED(start | end));
- 
- 	mmap_read_lock(&init_mm);
--	ret = walk_page_range_novma(&init_mm, start, end, &vmemmap_remap_ops,
-+	ret = walk_kernel_page_table_range(start, end, &vmemmap_remap_ops,
- 				    NULL, walk);
- 	mmap_read_unlock(&init_mm);
- 	if (ret)
---- a/mm/internal.h~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/internal.h
-@@ -1605,6 +1605,9 @@ static inline void accept_page(struct pa
- int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private);
-+int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
-+			  unsigned long end, const struct mm_walk_ops *ops,
-+			  pgd_t *pgd, void *private);
- 
- /* pt_reclaim.c */
- bool try_get_and_clear_pmd(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval);
---- a/mm/pagewalk.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/pagewalk.c
-@@ -585,8 +585,7 @@ int walk_page_range(struct mm_struct *mm
- }
- 
- /**
-- * walk_page_range_novma - walk a range of pagetables not backed by a vma
-- * @mm:		mm_struct representing the target process of page table walk
-+ * walk_kernel_page_table_range - walk a range of kernel pagetables.
-  * @start:	start address of the virtual address range
-  * @end:	end address of the virtual address range
-  * @ops:	operation to call during the walk
-@@ -596,17 +595,61 @@ int walk_page_range(struct mm_struct *mm
-  * Similar to walk_page_range() but can walk any page tables even if they are
-  * not backed by VMAs. Because 'unusual' entries may be walked this function
-  * will also not lock the PTEs for the pte_entry() callback. This is useful for
-- * walking the kernel pages tables or page tables for firmware.
-+ * walking kernel pages tables or page tables for firmware.
-  *
-  * Note: Be careful to walk the kernel pages tables, the caller may be need to
-  * take other effective approaches (mmap lock may be insufficient) to prevent
-  * the intermediate kernel page tables belonging to the specified address range
-  * from being freed (e.g. memory hot-remove).
-  */
--int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
-+int walk_kernel_page_table_range(unsigned long start, unsigned long end,
-+		const struct mm_walk_ops *ops, pgd_t *pgd, void *private)
-+{
-+	struct mm_struct *mm = &init_mm;
-+	struct mm_walk walk = {
-+		.ops		= ops,
-+		.mm		= mm,
-+		.pgd		= pgd,
-+		.private	= private,
-+		.no_vma		= true
-+	};
-+
-+	if (start >= end)
-+		return -EINVAL;
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
-+
-+	/*
-+	 * Kernel intermediate page tables are usually not freed, so the mmap
-+	 * read lock is sufficient. But there are some exceptions.
-+	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
-+	 * to prevent the intermediate kernel pages tables belonging to the
-+	 * specified address range from being freed. The caller should take
-+	 * other actions to prevent this race.
-+	 */
-+	mmap_assert_locked(mm);
-+
-+	return walk_pgd_range(start, end, &walk);
-+}
-+
-+/**
-+ * walk_page_range_debug - walk a range of pagetables not backed by a vma
-+ * @mm:		mm_struct representing the target process of page table walk
-+ * @start:	start address of the virtual address range
-+ * @end:	end address of the virtual address range
-+ * @ops:	operation to call during the walk
-+ * @pgd:	pgd to walk if different from mm->pgd
-+ * @private:	private data for callbacks' usage
-+ *
-+ * Similar to walk_page_range() but can walk any page tables even if they are
-+ * not backed by VMAs. Because 'unusual' entries may be walked this function
-+ * will also not lock the PTEs for the pte_entry() callback.
-+ *
-+ * This is for debugging purposes ONLY.
-+ */
-+int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
--			  pgd_t *pgd,
--			  void *private)
-+			  pgd_t *pgd, void *private)
- {
- 	struct mm_walk walk = {
- 		.ops		= ops,
-@@ -616,34 +659,24 @@ int walk_page_range_novma(struct mm_stru
- 		.no_vma		= true
- 	};
- 
-+	/* For convenience, we allow traversal of kernel mappings. */
-+	if (mm == &init_mm)
-+		return walk_kernel_page_table_range(start, end, ops,
-+						    pgd, private);
- 	if (start >= end || !walk.mm)
- 		return -EINVAL;
- 	if (!check_ops_valid(ops))
- 		return -EINVAL;
+-	anon = get_mm_counter(mm, MM_ANONPAGES);
+-	file = get_mm_counter(mm, MM_FILEPAGES);
+-	shmem = get_mm_counter(mm, MM_SHMEMPAGES);
++	anon = get_mm_counter_sum(mm, MM_ANONPAGES);
++	file = get_mm_counter_sum(mm, MM_FILEPAGES);
++	shmem = get_mm_counter_sum(mm, MM_SHMEMPAGES);
  
  	/*
--	 * 1) For walking the user virtual address space:
--	 *
- 	 * The mmap lock protects the page walker from changes to the page
- 	 * tables during the walk.  However a read lock is insufficient to
- 	 * protect those areas which don't have a VMA as munmap() detaches
- 	 * the VMAs before downgrading to a read lock and actually tearing
- 	 * down PTEs/page tables. In which case, the mmap write lock should
--	 * be hold.
--	 *
--	 * 2) For walking the kernel virtual address space:
--	 *
--	 * The kernel intermediate page tables usually do not be freed, so
--	 * the mmap map read lock is sufficient. But there are some exceptions.
--	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
--	 * to prevent the intermediate kernel pages tables belonging to the
--	 * specified address range from being freed. The caller should take
--	 * other actions to prevent this race.
-+	 * be held.
- 	 */
--	if (mm == &init_mm)
--		mmap_assert_locked(walk.mm);
--	else
--		mmap_assert_write_locked(walk.mm);
-+	mmap_assert_write_locked(mm);
+ 	 * Note: to minimize their overhead, mm maintains hiwater_vm and
+@@ -59,7 +59,7 @@ void task_mem(struct seq_file *m, struct
+ 	text = min(text, mm->exec_vm << PAGE_SHIFT);
+ 	lib = (mm->exec_vm << PAGE_SHIFT) - text;
  
- 	return walk_pgd_range(start, end, &walk);
+-	swap = get_mm_counter(mm, MM_SWAPENTS);
++	swap = get_mm_counter_sum(mm, MM_SWAPENTS);
+ 	SEQ_PUT_DEC("VmPeak:\t", hiwater_vm);
+ 	SEQ_PUT_DEC(" kB\nVmSize:\t", total_vm);
+ 	SEQ_PUT_DEC(" kB\nVmLck:\t", mm->locked_vm);
+@@ -92,12 +92,12 @@ unsigned long task_statm(struct mm_struc
+ 			 unsigned long *shared, unsigned long *text,
+ 			 unsigned long *data, unsigned long *resident)
+ {
+-	*shared = get_mm_counter(mm, MM_FILEPAGES) +
+-			get_mm_counter(mm, MM_SHMEMPAGES);
++	*shared = get_mm_counter_sum(mm, MM_FILEPAGES) +
++			get_mm_counter_sum(mm, MM_SHMEMPAGES);
+ 	*text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK))
+ 								>> PAGE_SHIFT;
+ 	*data = mm->data_vm + mm->stack_vm;
+-	*resident = *shared + get_mm_counter(mm, MM_ANONPAGES);
++	*resident = *shared + get_mm_counter_sum(mm, MM_ANONPAGES);
+ 	return mm->total_vm;
  }
---- a/mm/ptdump.c~mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts
-+++ a/mm/ptdump.c
-@@ -4,6 +4,7 @@
- #include <linux/debugfs.h>
- #include <linux/ptdump.h>
- #include <linux/kasan.h>
-+#include "internal.h"
  
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- /*
-@@ -177,7 +178,7 @@ void ptdump_walk_pgd(struct ptdump_state
+--- a/include/linux/mm.h~mm-fix-the-inaccurate-memory-statistics-issue-for-users
++++ a/include/linux/mm.h
+@@ -2568,6 +2568,11 @@ static inline unsigned long get_mm_count
+ 	return percpu_counter_read_positive(&mm->rss_stat[member]);
+ }
  
- 	mmap_write_lock(mm);
- 	while (range->start != range->end) {
--		walk_page_range_novma(mm, range->start, range->end,
-+		walk_page_range_debug(mm, range->start, range->end,
- 				      &ptdump_ops, pgd, st);
- 		range++;
- 	}
++static inline unsigned long get_mm_counter_sum(struct mm_struct *mm, int member)
++{
++	return percpu_counter_sum_positive(&mm->rss_stat[member]);
++}
++
+ void mm_trace_rss_stat(struct mm_struct *mm, int member);
+ 
+ static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-kvm-s390-rename-prot_none-to-prot_type_dummy.patch
-maintainers-add-mm-swap-section.patch
-docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch
 
