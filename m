@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC7886337
-	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 06:05:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2786817548
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 20:13:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749103537; cv=none; b=Nf4FbRxb5Gjs3H5LGSzMn4Ks4fKJg/F1B0JgZ/M7oQmNVcYPKreE5cxrFT/FEysDaaTrsoaVo5LISbPeSygQVImIK1HsZEBLKEfHHZs3JAWhRGY/++0GwSXC50sMjIIKGMB6ZQNC3i7z6DxNHyRmc03X1dRWc3iiFD8BNJfMxLw=
+	t=1749154402; cv=none; b=TPtDO5HdrInHxbtaF76rwdrh/8Y1XTyBZ2KFCkqXsE68z34g6FIZa869KgooxvUCcfdSkXzSAVXHdVUBmUZp9A034cAxTkcbDmInFhfTAgIDjzld6+0JPLQK8EbkXRQsLSzxaGmg6D89CvXPit4Ro2mS+YvJqeLJLgHk8SCE3tA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749103537; c=relaxed/simple;
-	bh=kD0no51nrSAx8/k+VMf7eW5yFeYeCP/sVu4EFEn+sBA=;
-	h=Date:To:From:Subject:Message-Id; b=Uf8RvtyJcxYNTNvQaT/wI/abT57/zZEE6KOsYKvKGPxQzXt57dUVA/DiU2A+e0jryZD0fWivk4VlfVuKnGhKxA3ZekT0RhufcU+7lXBxCAV1zzNSU2mtKviDTrKnCAz3GNY88pm+Z8UF5+SaubGd4U8oL8/p3sSFTa0qc6Yd9Ws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o6wzhUbi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749154402; c=relaxed/simple;
+	bh=OB3n8UD+qyPRR7qudRb1f1MJ1MnQzhlAi+BOdWgrl5s=;
+	h=Date:To:From:Subject:Message-Id; b=F4JhA5XxnxIHYLA1wK/nrJ9e54uyXjCfj4zhXEXNaWnYHD8/sI0BbMCjMNX2J3axtspFTK61e0MI8PafJoHMFvjS/aILFvZ+EniPaxn3ggB39H9mZ9CvNLjVR6d52+VcwYStoUw4F9w9HnfDPqi5Jgf7HN1QrFa5xsMIi/aPP7c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hLlOQ9sL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o6wzhUbi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6629C4CEEB;
-	Thu,  5 Jun 2025 06:05:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hLlOQ9sL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85C27C4CEE7;
+	Thu,  5 Jun 2025 20:13:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749103536;
-	bh=kD0no51nrSAx8/k+VMf7eW5yFeYeCP/sVu4EFEn+sBA=;
+	s=korg; t=1749154401;
+	bh=OB3n8UD+qyPRR7qudRb1f1MJ1MnQzhlAi+BOdWgrl5s=;
 	h=Date:To:From:Subject:From;
-	b=o6wzhUbiPBUKgyZiI9IXNI6wfr76T1GNx8p9nGchfHw6x1BIuwv5KYH8OrJAuDiar
-	 qHcXeMA+sPNauiN3k+CQA+igUAQC1V9E24XqW2400iZPpds3C7qQ4xehb/RmBVd3bq
-	 Zy6t5AGVMicqFGugQt3HEpxjZBbUR7Tm15EFFHEc=
-Date: Wed, 04 Jun 2025 23:05:36 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,aarcange@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=hLlOQ9sL0t+xpooLd1OfEnDdNX4HrsMoUKRAlmMsh+7DAs/bpHzefH+O3zdeF4gNx
+	 kBLdGAS3ROutfnctNwkr9LrH88UozB89OtzFuyseWq1+UnVtwVBs9/JIzDrQwBMv+3
+	 T1Hs9UFVGtVBjZa/PJw0eYvVTgQyva4L6xsUEGFs=
+Date: Thu, 05 Jun 2025 13:13:20 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,ptyadav@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] mm-khugepaged-kick-khugepaged-for-enabling-none-pmd-sized-mthps.patch removed from -mm tree
-Message-Id: <20250605060536.B6629C4CEEB@smtp.kernel.org>
+Subject: + kho-initialize-tail-pages-for-higher-order-folios-properly.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250605201321.85C27C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,149 +34,130 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: khugepaged: kick khugepaged for enabling none-PMD-sized mTHPs
-has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-kick-khugepaged-for-enabling-none-pmd-sized-mthps.patch
+The patch titled
+     Subject: kho: initialize tail pages for higher order folios properly
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kho-initialize-tail-pages-for-higher-order-folios-properly.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-initialize-tail-pages-for-higher-order-folios-properly.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: khugepaged: kick khugepaged for enabling none-PMD-sized mTHPs
-Date: Wed, 28 May 2025 20:31:47 +0800
+From: Pratyush Yadav <ptyadav@amazon.de>
+Subject: kho: initialize tail pages for higher order folios properly
+Date: Thu, 5 Jun 2025 19:11:41 +0200
 
-When only non-PMD-sized mTHP is enabled (such as only 64K mTHP enabled),
-we should also allow kicking khugepaged to attempt scanning and collapsing
-64K mTHP.  Modify hugepage_pmd_enabled() to support mTHP collapse, and
-while we are at it, rename it to make the function name more clear.
+Currently, when restoring higher order folios, kho_restore_folio() only
+calls prep_compound_page() on all the pages.  That is not enough to
+properly initialize the folios.  The managed page count does not get
+updated, the reserved flag does not get dropped, and page count does not
+get initialized properly.
 
-Link: https://lkml.kernel.org/r/5ced00b4f9e53138fac98125655a533730857e7b.1748435162.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rafael Aquini <raquini@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Reported-by:Takashi Iwai <tiwai@suse.de>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Hellstrom <thomas.hellstrom@linux.intel.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Restoring a higher order folio with it results in the following BUG with
+CONFIG_DEBUG_VM when attempting to free the folio:
+
+    BUG: Bad page state in process test  pfn:104e2b
+    page: refcount:1 mapcount:0 mapping:0000000000000000 index:0xffffffffffffffff pfn:0x104e2b
+    flags: 0x2fffff80000000(node=0|zone=2|lastcpupid=0x1fffff)
+    raw: 002fffff80000000 0000000000000000 00000000ffffffff 0000000000000000
+    raw: ffffffffffffffff 0000000000000000 00000001ffffffff 0000000000000000
+    page dumped because: nonzero _refcount
+    [...]
+    Call Trace:
+    <TASK>
+    dump_stack_lvl+0x4b/0x70
+    bad_page.cold+0x97/0xb2
+    __free_frozen_pages+0x616/0x850
+    [...]
+
+Combine the path for 0-order and higher order folios, initialize the tail
+pages with a count of zero, and call adjust_managed_page_count() to
+account for all the pages instead of just missing them.
+
+In addition, since all the KHO-preserved pages get marked with
+MEMBLOCK_RSRV_NOINIT by deserialize_bitmap(), the reserved flag is not
+actually set (as can also be seen from the flags of the dumped page in the
+logs above).  So drop the ClearPageReserved() calls.
+
+Link: https://lkml.kernel.org/r/20250605171143.76963-1-pratyush@kernel.org
+Fixes: fc33e4b44b271 ("kexec: enable KHO support for memory preservation")
+Signed-off-by: Pratyush Yadav <ptyadav@amazon.de>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ kernel/kexec_handover.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-kick-khugepaged-for-enabling-none-pmd-sized-mthps
-+++ a/mm/khugepaged.c
-@@ -413,7 +413,7 @@ static inline int hpage_collapse_test_ex
- 	       test_bit(MMF_DISABLE_THP, &mm->flags);
+--- a/kernel/kexec_handover.c~kho-initialize-tail-pages-for-higher-order-folios-properly
++++ a/kernel/kexec_handover.c
+@@ -164,11 +164,21 @@ static int __kho_preserve_order(struct k
  }
  
--static bool hugepage_pmd_enabled(void)
-+static bool hugepage_enabled(void)
+ /* almost as free_reserved_page(), just don't free the page */
+-static void kho_restore_page(struct page *page)
++static void kho_restore_page(struct page *page, unsigned int order)
  {
- 	/*
- 	 * We cover the anon, shmem and the file-backed case here; file-backed
-@@ -425,11 +425,11 @@ static bool hugepage_pmd_enabled(void)
- 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
- 	    hugepage_global_enabled())
- 		return true;
--	if (test_bit(PMD_ORDER, &huge_anon_orders_always))
-+	if (READ_ONCE(huge_anon_orders_always))
- 		return true;
--	if (test_bit(PMD_ORDER, &huge_anon_orders_madvise))
-+	if (READ_ONCE(huge_anon_orders_madvise))
- 		return true;
--	if (test_bit(PMD_ORDER, &huge_anon_orders_inherit) &&
-+	if (READ_ONCE(huge_anon_orders_inherit) &&
- 	    hugepage_global_enabled())
- 		return true;
- 	if (IS_ENABLED(CONFIG_SHMEM) && shmem_hpage_pmd_enabled())
-@@ -473,7 +473,7 @@ void khugepaged_enter_vma(struct vm_area
- 			  unsigned long vm_flags)
- {
- 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
--	    hugepage_pmd_enabled()) {
-+	    hugepage_enabled()) {
- 		unsigned long orders = vma_is_anonymous(vma) ?
- 					THP_ORDERS_ALL_ANON : BIT(PMD_ORDER);
- 
-@@ -2514,7 +2514,7 @@ breakouterloop_mmap_lock:
- 
- static int khugepaged_has_work(void)
- {
--	return !list_empty(&khugepaged_scan.mm_head) && hugepage_pmd_enabled();
-+	return !list_empty(&khugepaged_scan.mm_head) && hugepage_enabled();
+-	ClearPageReserved(page);
+-	init_page_count(page);
+-	adjust_managed_page_count(page, 1);
++	unsigned int i, nr_pages = (1 << order);
++
++	/* Head page gets refcount of 1. */
++	set_page_count(page, 1);
++
++	/* For higher order folios, tail pages get a page count of zero. */
++	for (i = 1; i < nr_pages; i++)
++		set_page_count(page + i, 0);
++
++	if (order > 0)
++		prep_compound_page(page, order);
++
++	adjust_managed_page_count(page, nr_pages);
  }
  
- static int khugepaged_wait_event(void)
-@@ -2587,7 +2587,7 @@ static void khugepaged_wait_work(void)
- 		return;
- 	}
+ /**
+@@ -186,15 +196,10 @@ struct folio *kho_restore_folio(phys_add
+ 		return NULL;
  
--	if (hugepage_pmd_enabled())
-+	if (hugepage_enabled())
- 		wait_event_freezable(khugepaged_wait, khugepaged_wait_event());
+ 	order = page->private;
+-	if (order) {
+-		if (order > MAX_PAGE_ORDER)
+-			return NULL;
+-
+-		prep_compound_page(page, order);
+-	} else {
+-		kho_restore_page(page);
+-	}
++	if (order > MAX_PAGE_ORDER)
++		return NULL;
+ 
++	kho_restore_page(page, order);
+ 	return page_folio(page);
  }
- 
-@@ -2618,7 +2618,7 @@ static void set_recommended_min_free_kby
- 	int nr_zones = 0;
- 	unsigned long recommended_min;
- 
--	if (!hugepage_pmd_enabled()) {
-+	if (!hugepage_enabled()) {
- 		calculate_min_free_kbytes();
- 		goto update_wmarks;
- 	}
-@@ -2668,7 +2668,7 @@ int start_stop_khugepaged(void)
- 	int err = 0;
- 
- 	mutex_lock(&khugepaged_mutex);
--	if (hugepage_pmd_enabled()) {
-+	if (hugepage_enabled()) {
- 		if (!khugepaged_thread)
- 			khugepaged_thread = kthread_run(khugepaged, NULL,
- 							"khugepaged");
-@@ -2694,7 +2694,7 @@ fail:
- void khugepaged_min_free_kbytes_update(void)
- {
- 	mutex_lock(&khugepaged_mutex);
--	if (hugepage_pmd_enabled() && khugepaged_thread)
-+	if (hugepage_enabled() && khugepaged_thread)
- 		set_recommended_min_free_kbytes();
- 	mutex_unlock(&khugepaged_mutex);
- }
+ EXPORT_SYMBOL_GPL(kho_restore_folio);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from ptyadav@amazon.de are
 
-mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch
+kho-initialize-tail-pages-for-higher-order-folios-properly.patch
 
