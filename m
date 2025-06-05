@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2786817548
-	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 20:13:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A8B5204F93
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 20:39:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749154402; cv=none; b=TPtDO5HdrInHxbtaF76rwdrh/8Y1XTyBZ2KFCkqXsE68z34g6FIZa869KgooxvUCcfdSkXzSAVXHdVUBmUZp9A034cAxTkcbDmInFhfTAgIDjzld6+0JPLQK8EbkXRQsLSzxaGmg6D89CvXPit4Ro2mS+YvJqeLJLgHk8SCE3tA=
+	t=1749155979; cv=none; b=s1C/xN062q1/XJhRW5KoZcKdF/Z8Klq6rIaPBfRMYDHwf8nxnIAxAbe49iJotVwEFrH5d5fmCQbsEtkUiHoTY5/P3FBxPCOxx4OQm78pzk6+48DvJy07Ou/1nln3K/XjuXxSYrje/AdW7svldvksfwUhx5uTQld7t+Wy1/za1Cc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749154402; c=relaxed/simple;
-	bh=OB3n8UD+qyPRR7qudRb1f1MJ1MnQzhlAi+BOdWgrl5s=;
-	h=Date:To:From:Subject:Message-Id; b=F4JhA5XxnxIHYLA1wK/nrJ9e54uyXjCfj4zhXEXNaWnYHD8/sI0BbMCjMNX2J3axtspFTK61e0MI8PafJoHMFvjS/aILFvZ+EniPaxn3ggB39H9mZ9CvNLjVR6d52+VcwYStoUw4F9w9HnfDPqi5Jgf7HN1QrFa5xsMIi/aPP7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hLlOQ9sL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749155979; c=relaxed/simple;
+	bh=PKPLc7IwSdOP9zAKdFnEhcSls3X/89EY0JN062mS0Mg=;
+	h=Date:To:From:Subject:Message-Id; b=c302IpEnBifplWxANsYniw3D53alM+QlaL4m5mtRRaKp1tmdbeK9ZZCDG0l1GeEkDo+mgZ87b/ptqMCFWK5k4y0SL9LnRkelN7rKdSnflkLI4XU+6zsRj/xq47QK8dN/koGGBX8V9Dh67RmpYwZrFUaH7wmncPyE+4lfn8Zo6LY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EtVtrje+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hLlOQ9sL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85C27C4CEE7;
-	Thu,  5 Jun 2025 20:13:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EtVtrje+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FC28C4CEE7;
+	Thu,  5 Jun 2025 20:39:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749154401;
-	bh=OB3n8UD+qyPRR7qudRb1f1MJ1MnQzhlAi+BOdWgrl5s=;
+	s=korg; t=1749155978;
+	bh=PKPLc7IwSdOP9zAKdFnEhcSls3X/89EY0JN062mS0Mg=;
 	h=Date:To:From:Subject:From;
-	b=hLlOQ9sL0t+xpooLd1OfEnDdNX4HrsMoUKRAlmMsh+7DAs/bpHzefH+O3zdeF4gNx
-	 kBLdGAS3ROutfnctNwkr9LrH88UozB89OtzFuyseWq1+UnVtwVBs9/JIzDrQwBMv+3
-	 T1Hs9UFVGtVBjZa/PJw0eYvVTgQyva4L6xsUEGFs=
-Date: Thu, 05 Jun 2025 13:13:20 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,ptyadav@amazon.de,akpm@linux-foundation.org
+	b=EtVtrje+pFh0tn39vzV6X4YrjdXUICDATfI0FLDgKZCs05oaM6yRXzBIuvHsIYn/n
+	 biSvN9Jh9uPMPU6SV94BXhTsZ4OLdd41yz1BrGodoaCF+Cl1w7lSqlMpyR+4zu3Bjp
+	 6hCAaZsJM/yIWZB6YHoVFcXDSpAnrAMzXWq8c84s=
+Date: Thu, 05 Jun 2025 13:39:37 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-initialize-tail-pages-for-higher-order-folios-properly.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250605201321.85C27C4CEE7@smtp.kernel.org>
+Subject: + mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch added to mm-new branch
+Message-Id: <20250605203938.7FC28C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: initialize tail pages for higher order folios properly
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kho-initialize-tail-pages-for-higher-order-folios-properly.patch
+     Subject: mm,slub: do not special case N_NORMAL nodes for slab_nodes
+has been added to the -mm mm-new branch.  Its filename is
+     mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-initialize-tail-pages-for-higher-order-folios-properly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,106 +64,163 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pratyush Yadav <ptyadav@amazon.de>
-Subject: kho: initialize tail pages for higher order folios properly
-Date: Thu, 5 Jun 2025 19:11:41 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,slub: do not special case N_NORMAL nodes for slab_nodes
+Date: Thu, 5 Jun 2025 16:22:52 +0200
 
-Currently, when restoring higher order folios, kho_restore_folio() only
-calls prep_compound_page() on all the pages.  That is not enough to
-properly initialize the folios.  The managed page count does not get
-updated, the reserved flag does not get dropped, and page count does not
-get initialized properly.
+Patch series "Implement numa node notifier", v5.
 
-Restoring a higher order folio with it results in the following BUG with
-CONFIG_DEBUG_VM when attempting to free the folio:
+Memory notifier is a tool that allow consumers to get notified whenever
+memory gets onlined or offlined in the system.  Currently, there are 10
+consumers of that, but 5 out of those 10 consumers are only interested in
+getting notifications when a numa node changes its memory state.  That
+means going from memoryless to memory-aware of vice versa.
 
-    BUG: Bad page state in process test  pfn:104e2b
-    page: refcount:1 mapcount:0 mapping:0000000000000000 index:0xffffffffffffffff pfn:0x104e2b
-    flags: 0x2fffff80000000(node=0|zone=2|lastcpupid=0x1fffff)
-    raw: 002fffff80000000 0000000000000000 00000000ffffffff 0000000000000000
-    raw: ffffffffffffffff 0000000000000000 00000001ffffffff 0000000000000000
-    page dumped because: nonzero _refcount
-    [...]
-    Call Trace:
-    <TASK>
-    dump_stack_lvl+0x4b/0x70
-    bad_page.cold+0x97/0xb2
-    __free_frozen_pages+0x616/0x850
-    [...]
+Which means that for every {online,offline}_pages operation they get
+notified even though the numa node might not have changed its state.  This
+is suboptimal, and we want to decouple numa node state changes from memory
+state changes.
 
-Combine the path for 0-order and higher order folios, initialize the tail
-pages with a count of zero, and call adjust_managed_page_count() to
-account for all the pages instead of just missing them.
+While we are doing this, remove status_change_nid_normal, as the only
+current user (slub) does not really need it.  This allows us to further
+simplify and clean up the code.
 
-In addition, since all the KHO-preserved pages get marked with
-MEMBLOCK_RSRV_NOINIT by deserialize_bitmap(), the reserved flag is not
-actually set (as can also be seen from the flags of the dumped page in the
-logs above).  So drop the ClearPageReserved() calls.
+The first patch gets rid of status_change_nid_normal in slub.  The second
+patch implements a numa node notifier that does just that, and have those
+consumers register in there, so they get notified only when they are
+interested.
 
-Link: https://lkml.kernel.org/r/20250605171143.76963-1-pratyush@kernel.org
-Fixes: fc33e4b44b271 ("kexec: enable KHO support for memory preservation")
-Signed-off-by: Pratyush Yadav <ptyadav@amazon.de>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+The third patch replaces 'status_change_nid{_normal}' fields within
+memory_notify with a 'nid', as that is only what we need for memory
+notifer and update the only user of it (page_ext).
+
+Consumers that are only interested in numa node states change are:
+
+ - memory-tier
+ - slub
+ - cpuset
+ - hmat
+ - cxl
+ - autoweight-mempolicy
+
+
+This patch (of 10):
+
+Currently, slab_mem_going_online_callback() checks whether the node has
+N_NORMAL memory in order to be set in slab_nodes.  While it is true that
+getting rid of that enforcing would mean ending up with movables nodes in
+slab_nodes, the memory waste that comes with that is negligible.
+
+So stop checking for status_change_nid_normal and just use
+status_change_nid instead which works for both types of memory.
+
+Also, once we allocate the kmem_cache_node cache for the node in
+slab_mem_online_callback(), we never deallocate it in
+slab_mem_offline_callback() when the node goes memoryless, so we can just
+get rid of it.
+
+The side effects are that we will stop clearing the node from slab_nodes,
+and also that newly created kmem caches after node hotremove will now
+allocate their kmem_cache_node for the node(s) that was hotremoved, but
+these should be negligible.
+
+Link: https://lkml.kernel.org/r/20250605142305.244465-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250605142305.244465-2-osalvador@suse.de
+Suggested-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_handover.c |   29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ mm/slub.c |   34 +++-------------------------------
+ 1 file changed, 3 insertions(+), 31 deletions(-)
 
---- a/kernel/kexec_handover.c~kho-initialize-tail-pages-for-higher-order-folios-properly
-+++ a/kernel/kexec_handover.c
-@@ -164,11 +164,21 @@ static int __kho_preserve_order(struct k
+--- a/mm/slub.c~mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes
++++ a/mm/slub.c
+@@ -447,7 +447,7 @@ static inline struct kmem_cache_node *ge
+ 
+ /*
+  * Tracks for which NUMA nodes we have kmem_cache_nodes allocated.
+- * Corresponds to node_state[N_NORMAL_MEMORY], but can temporarily
++ * Corresponds to node_state[N_MEMORY], but can temporarily
+  * differ during memory hotplug/hotremove operations.
+  * Protected by slab_mutex.
+  */
+@@ -6160,36 +6160,12 @@ static int slab_mem_going_offline_callba
+ 	return 0;
  }
  
- /* almost as free_reserved_page(), just don't free the page */
--static void kho_restore_page(struct page *page)
-+static void kho_restore_page(struct page *page, unsigned int order)
- {
--	ClearPageReserved(page);
--	init_page_count(page);
--	adjust_managed_page_count(page, 1);
-+	unsigned int i, nr_pages = (1 << order);
-+
-+	/* Head page gets refcount of 1. */
-+	set_page_count(page, 1);
-+
-+	/* For higher order folios, tail pages get a page count of zero. */
-+	for (i = 1; i < nr_pages; i++)
-+		set_page_count(page + i, 0);
-+
-+	if (order > 0)
-+		prep_compound_page(page, order);
-+
-+	adjust_managed_page_count(page, nr_pages);
- }
- 
- /**
-@@ -186,15 +196,10 @@ struct folio *kho_restore_folio(phys_add
- 		return NULL;
- 
- 	order = page->private;
--	if (order) {
--		if (order > MAX_PAGE_ORDER)
--			return NULL;
+-static void slab_mem_offline_callback(void *arg)
+-{
+-	struct memory_notify *marg = arg;
+-	int offline_node;
 -
--		prep_compound_page(page, order);
--	} else {
--		kho_restore_page(page);
--	}
-+	if (order > MAX_PAGE_ORDER)
-+		return NULL;
+-	offline_node = marg->status_change_nid_normal;
+-
+-	/*
+-	 * If the node still has available memory. we need kmem_cache_node
+-	 * for it yet.
+-	 */
+-	if (offline_node < 0)
+-		return;
+-
+-	mutex_lock(&slab_mutex);
+-	node_clear(offline_node, slab_nodes);
+-	/*
+-	 * We no longer free kmem_cache_node structures here, as it would be
+-	 * racy with all get_node() users, and infeasible to protect them with
+-	 * slab_mutex.
+-	 */
+-	mutex_unlock(&slab_mutex);
+-}
+-
+ static int slab_mem_going_online_callback(void *arg)
+ {
+ 	struct kmem_cache_node *n;
+ 	struct kmem_cache *s;
+ 	struct memory_notify *marg = arg;
+-	int nid = marg->status_change_nid_normal;
++	int nid = marg->status_change_nid;
+ 	int ret = 0;
  
-+	kho_restore_page(page, order);
- 	return page_folio(page);
- }
- EXPORT_SYMBOL_GPL(kho_restore_folio);
+ 	/*
+@@ -6247,10 +6223,6 @@ static int slab_memory_callback(struct n
+ 	case MEM_GOING_OFFLINE:
+ 		ret = slab_mem_going_offline_callback(arg);
+ 		break;
+-	case MEM_OFFLINE:
+-	case MEM_CANCEL_ONLINE:
+-		slab_mem_offline_callback(arg);
+-		break;
+ 	case MEM_ONLINE:
+ 	case MEM_CANCEL_OFFLINE:
+ 		break;
+@@ -6321,7 +6293,7 @@ void __init kmem_cache_init(void)
+ 	 * Initialize the nodemask for which we will allocate per node
+ 	 * structures. Here we don't need taking slab_mutex yet.
+ 	 */
+-	for_each_node_state(node, N_NORMAL_MEMORY)
++	for_each_node_state(node, N_MEMORY)
+ 		node_set(node, slab_nodes);
+ 
+ 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
 _
 
-Patches currently in -mm which might be from ptyadav@amazon.de are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-kho-initialize-tail-pages-for-higher-order-folios-properly.patch
+mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
+mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
+mmmemory_hotplug-implement-numa-node-notifier.patch
+mmslub-use-node-notifier-instead-of-memory-notifier.patch
+mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
+driverscxl-use-node-notifier-instead-of-memory-notifier.patch
+drivershmat-use-node-notifier-instead-of-memory-notifier.patch
+kernelcpuset-use-node-notifier-instead-of-memory-notifier.patch
+mmmempolicy-use-node-notifier-instead-of-memory-notifier.patch
+mmmemory_hotplug-rename-status_change_nid-parameter-in-memory_notify.patch
 
