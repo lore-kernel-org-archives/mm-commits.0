@@ -1,95 +1,139 @@
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8791817548
-	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 05:53:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3686B86337
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 06:05:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749102801; cv=none; b=NPNQeaTWAGp5HZhA9kWDCOJC4SQ/xk1lKz4sU72RFY/AyFO57OXWN4hvrlkKNelT9n9N1UkoEU3eWQQcsyxh8sDgJ8qqw0Cn5bLoSGrR22HKGbzVlUl5YVpuWjbNWVv5cTOWnClzorBn5Yd0hnq6iY264csUJ4+ou4/O9ykA++U=
+	t=1749103536; cv=none; b=kNclSJlKKhgypM5jhKZ6tDnGLWNEuf5NL8Nt9QFBrH2zRqymaKaSm//IUL2X6wC7JvdgWtqrT5P29ktfY9h8PlQV+lndUbboXy6P+ZUl11LjULdfz4odpkWTL8dxBa9wixRU/9ckuHzFH1zUIpkIF/LtNCMWgLKDWoWMWa5qmXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749102801; c=relaxed/simple;
-	bh=hQh5XMzft1dx2UZFC/71I/Er+LMjDduX/8TebfXxyQY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=l/zXG8kEG3b+f9Zr7QrNO2OnLBQhAFQtf0lCR01X7SIQvacAfnBjGejESZOBbXxkYnRIpCqiatsou4zYuJHrtlzSjHy6BQsq6ilWLwNaDUwdoU1euPMqaZG5SwxNdTMsyZW+1IU1x1VN+9xSPi2GDG5IROlg7DKoX6TuaQ1bqBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=CgTpi8U3; arc=none smtp.client-ip=115.124.30.99
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1749103536; c=relaxed/simple;
+	bh=iqOZwUe75K/fo0Ralz52fACSYkJI3UkeGHz+lqNeLjo=;
+	h=Date:To:From:Subject:Message-Id; b=cIjLHyA3SHzfoqkDbMMQWB3yM9ng3Yw3zZ5vNLfV/+hrfkbDFgCeh1+fzyqYMEbqSbskAl5JHd0UuzsxXuwBsajk2Ni1ruWr5H40RsiLYbVOiEAPHttbnu9s2IFt5Yq6n63RAX33lhUPWBs4y1v8URbaqqz9uIjnASsFl/FyNU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hSBdGROX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="CgTpi8U3"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1749102788; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=k0b3fdop58DOXW0poL+eB5SrG70cx3/HLRUL9gmYwo0=;
-	b=CgTpi8U3zpwJdlXqA/fnRRVtJ5cb8EyU+O4Jc3PKRzmCVvhgkV7MOR3puKQvSr3GDMiNAeoLmfBmbxJHRmNsaarI3MAlAv048Islxzi353skj8m6LmEhdC6fIhd46uA3GEyxU+e30Kq2rWiMIU0XSi1Z3l8saPjXPkjmkIgqolo=
-Received: from 30.32.86.63(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0Wd6tE5v_1749102787 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 05 Jun 2025 13:53:08 +0800
-Message-ID: <3915755a-e686-4a11-a03e-f62170301179@linux.alibaba.com>
-Date: Thu, 5 Jun 2025 13:53:06 +0800
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hSBdGROX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B686C4CEE7;
+	Thu,  5 Jun 2025 06:05:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1749103535;
+	bh=iqOZwUe75K/fo0Ralz52fACSYkJI3UkeGHz+lqNeLjo=;
+	h=Date:To:From:Subject:From;
+	b=hSBdGROX3dSNC2Ylu4qBjvFASp5fUtxORT1SOBqK45N3QGGYfaqlTGAT1su155z4B
+	 06tRJDLyalGVrQyEOV4BkDSEKVYYv871zCRSuLV12+TrjtPWz/ixTulstGDCWUG7rY
+	 2tbDi1M+OoQNazkKChu5VFHcBbdPJLEkS5MUiiDs=
+Date: Wed, 04 Jun 2025 23:05:34 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,aarcange@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [withdrawn] mm-khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders.patch removed from -mm tree
+Message-Id: <20250605060535.3B686C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: +
- mm-khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders.patch added
- to mm-new branch
-To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- Nico Pache <npache@redhat.com>
-References: <20250604222256.CB0B4C4CEE4@smtp.kernel.org>
+
+
+The quilt patch titled
+     Subject: mm: khugepaged: allow khugepaged to check all anonymous mTHP orders
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders.patch
+
+This patch was dropped because it was withdrawn
+
+------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <20250604222256.CB0B4C4CEE4@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: mm: khugepaged: allow khugepaged to check all anonymous mTHP orders
+Date: Wed, 28 May 2025 20:31:46 +0800
 
-Hi Andrew,
+We have now allowed mTHP collapse, but thp_vma_allowable_order() still
+only checks if the PMD-sized mTHP is allowed to collapse.  This prevents
+scanning and collapsing of 64K mTHP when only 64K mTHP is enabled.  Thus,
+we should modify the checks to allow all large orders of anonymous mTHP.
 
-On 2025/6/5 06:22, Andrew Morton wrote:
-> The patch titled
->       Subject: mm: khugepaged: allow khugepaged to check all anonymous mTHP orders
-> has been added to the -mm mm-new branch.  Its filename is
->       mm-khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders.patch
-> 
-> This patch will shortly appear at
->       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders.patch
-> 
-> This patch will later appear in the mm-new branch at
->      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Note, mm-new is a provisional staging ground for work-in-progress
-> patches, and acceptance into mm-new is a notification for others take
-> notice and to finish up reviews.  Please do not hesitate to respond to
-> review feedback and post updated versions to replace or incrementally
-> fixup patches in mm-new.
-> 
-> Before you just go and hit "reply", please:
->     a) Consider who else should be cc'ed
->     b) Prefer to cc a suitable mailing list as well
->     c) Ideally: find the original patch on the mailing list and do a
->        reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Baolin Wang <baolin.wang@linux.alibaba.com>
-> Subject: mm: khugepaged: allow khugepaged to check all anonymous mTHP orders
-> Date: Wed, 28 May 2025 20:31:46 +0800
-> 
-> We have now allowed mTHP collapse, but thp_vma_allowable_order() still
-> only checks if the PMD-sized mTHP is allowed to collapse.  This prevents
-> scanning and collapsing of 64K mTHP when only 64K mTHP is enabled.  Thus,
-> we should modify the checks to allow all large orders of anonymous mTHP.
+Link: https://lkml.kernel.org/r/ac9ed6d71b439611f9c94b3506a8ce975d4636e9.1748435162.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Reported-by:Takashi Iwai <tiwai@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Hellstrom <thomas.hellstrom@linux.intel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Sorry for troubles. Please drop these 2 patches (which are used to fix 
-the mTHP collapse issues based on Nico's series[1]) from the mm-new 
-branch. As I talked with Nico, he will rebase his seires and take these 
-2 patches into his new version. Thanks.
+ mm/khugepaged.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-[1] 
-https://lore.kernel.org/all/ac9ed6d71b439611f9c94b3506a8ce975d4636e9.1748435162.git.baolin.wang@linux.alibaba.com/T/#m9d169daf172d32f94ee5d10e1458868975d7afec
+--- a/mm/khugepaged.c~mm-khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders
++++ a/mm/khugepaged.c
+@@ -474,8 +474,11 @@ void khugepaged_enter_vma(struct vm_area
+ {
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
+ 	    hugepage_pmd_enabled()) {
+-		if (thp_vma_allowable_order(vma, vm_flags, TVA_ENFORCE_SYSFS,
+-					    PMD_ORDER))
++		unsigned long orders = vma_is_anonymous(vma) ?
++					THP_ORDERS_ALL_ANON : BIT(PMD_ORDER);
++
++		if (thp_vma_allowable_orders(vma, vm_flags, TVA_ENFORCE_SYSFS,
++					    orders))
+ 			__khugepaged_enter(vma->vm_mm);
+ 	}
+ }
+@@ -2399,6 +2402,8 @@ static unsigned int khugepaged_scan_mm_s
+ 
+ 	vma_iter_init(&vmi, mm, khugepaged_scan.address);
+ 	for_each_vma(vmi, vma) {
++		unsigned long orders = vma_is_anonymous(vma) ?
++					THP_ORDERS_ALL_ANON : BIT(PMD_ORDER);
+ 		unsigned long hstart, hend;
+ 
+ 		cond_resched();
+@@ -2406,8 +2411,8 @@ static unsigned int khugepaged_scan_mm_s
+ 			progress++;
+ 			break;
+ 		}
+-		if (!thp_vma_allowable_order(vma, vma->vm_flags,
+-					TVA_ENFORCE_SYSFS, PMD_ORDER)) {
++		if (!thp_vma_allowable_orders(vma, vma->vm_flags,
++					TVA_ENFORCE_SYSFS, orders)) {
+ skip:
+ 			progress++;
+ 			continue;
+_
+
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+
+mm-khugepaged-kick-khugepaged-for-enabling-none-pmd-sized-mthps.patch
+mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch
+
