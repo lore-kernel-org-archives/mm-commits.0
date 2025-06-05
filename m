@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8EAC27CB1B
-	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 20:39:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B8F27CB1B
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 20:39:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749155984; cv=none; b=Tkcdk4e8O0Mn3VJEb9rX06fcfFtkz9kpEqlkh7pTs0z+EQzZjosEmEy6BdO+8NgzYGNgmW/PQlZLP/R6apRl1J8vBNkRPui3nmI31PulF0fAdIwAxqGDNdNDS2a4d43xruE2XuYt26Gc0SvpWIBPgDcixvhYAe7fidIIaKFgCJ8=
+	t=1749155987; cv=none; b=NJwZhhLiw3ERFamUYhCINF3WaTTaWeGqLQ21muTlzAYcJ8LkwowKii8KJUmFOVJ2RUd+tDaoEDE6q0231zJ+XcQsQXqDLufV3987BkB7hgcZ2amODEa7DemDNVGroE0czwoFhhtYNiN4FCbRkRkTg8HbLzBcDR8g0NZn/Rf6hvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749155984; c=relaxed/simple;
-	bh=kb0UXLtK+e0MwAZpR69L7P2j7jRlA90Xb4iGGN0/wik=;
-	h=Date:To:From:Subject:Message-Id; b=S9Qq/1lcyQ8HaGdrv6856rBIrVRwFjnwoTVyyNxNKKrZPsT0GbsYMxIqgD2LFKy8lVpXDoAD932jwlIHb07GPtJ6iQsjWa7DW3Q17DBIAQLlIVjHHjR42pvz/Ix27/of8stxEtkxk3EKf1QCxV58Nru1B9B+BB19v0ujDvo3Iu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M+qWYPjP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749155987; c=relaxed/simple;
+	bh=CmXOhLIDsT2H4gpHULs1D5GAQs5+IXBGFnXm1YY4gZ8=;
+	h=Date:To:From:Subject:Message-Id; b=XQ0bYlXot8MONIjDrW/6wgt8GdlMR238Dhx0JWipkCa5RP/TyF1wNoxiGhWiApciEjEAAkBNwslqZp9BPQ8NW0+r7D3JaHfWoRzfhnCHGJgr89Z6Mwp3+II7bXyNyBR+Fy5ZWvSKXouqjPo3V6df1/LZWjOwvNejLxIfrhhzXA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kn0Rri7m; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M+qWYPjP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30611C4CEE7;
-	Thu,  5 Jun 2025 20:39:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kn0Rri7m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7795C4CEE7;
+	Thu,  5 Jun 2025 20:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749155983;
-	bh=kb0UXLtK+e0MwAZpR69L7P2j7jRlA90Xb4iGGN0/wik=;
+	s=korg; t=1749155985;
+	bh=CmXOhLIDsT2H4gpHULs1D5GAQs5+IXBGFnXm1YY4gZ8=;
 	h=Date:To:From:Subject:From;
-	b=M+qWYPjPFPaDeKIAESWdp3Cn1d0DAfdXLlybMgOOCGOCGqoIor5ztui7d/2ybhwxQ
-	 Z/7pgDbwxKrBgzQpUw6ThO9CdpOuBJXE7h+8l1uANvKFAKLDzop+rDJMrVxBmKjwar
-	 qPEr0KdT7QfjiAiCByqERmQOBhYeZJYgaxhllbyg=
-Date: Thu, 05 Jun 2025 13:39:42 -0700
+	b=Kn0Rri7m6C4WhCW1969SKqngU7rVG4vb5lmc8qdsJ/L3hdGFcJX7EtKyokJpKucLJ
+	 M5Jd9CR8hZgvqQRAWAy6+RIMN0OEuwaR2go3kttocD9g8PaSogJEOvFDdtljWfF2sl
+	 +X3jeH57x6iVNGSTmxXG5UHAjazVuMvTlAO2alrc=
+Date: Thu, 05 Jun 2025 13:39:45 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmslub-use-node-notifier-instead-of-memory-notifier.patch added to mm-new branch
-Message-Id: <20250605203943.30611C4CEE7@smtp.kernel.org>
+Subject: + driverscxl-use-node-notifier-instead-of-memory-notifier.patch added to mm-new branch
+Message-Id: <20250605203945.B7795C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,slub: use node-notifier instead of memory-notifier
+     Subject: drivers,cxl: use node-notifier instead of memory-notifier
 has been added to the -mm mm-new branch.  Its filename is
-     mmslub-use-node-notifier-instead-of-memory-notifier.patch
+     driverscxl-use-node-notifier-instead-of-memory-notifier.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmslub-use-node-notifier-instead-of-memory-notifier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/driverscxl-use-node-notifier-instead-of-memory-notifier.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,slub: use node-notifier instead of memory-notifier
-Date: Thu, 5 Jun 2025 16:22:55 +0200
+Subject: drivers,cxl: use node-notifier instead of memory-notifier
+Date: Thu, 5 Jun 2025 16:22:57 +0200
 
-slub is only concerned when a numa node changes its memory state, so stop
-using the memory notifier and use the new numa node notifer instead.
+memory-tier is only concerned when a numa node changes its memory state,
+specifically when a numa node with memory comes into play for the first
+time, because it needs to get its performance attributes to build a proper
+demotion chain.  So stop using the memory notifier and use the new numa
+node notifer instead.
 
-Link: https://lkml.kernel.org/r/20250605142305.244465-5-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250605142305.244465-7-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
@@ -82,49 +85,71 @@ Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ drivers/cxl/core/region.c |   16 ++++++++--------
+ drivers/cxl/cxl.h         |    4 ++--
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/slub.c~mmslub-use-node-notifier-instead-of-memory-notifier
-+++ a/mm/slub.c
-@@ -6164,8 +6164,8 @@ static int slab_mem_going_online_callbac
+--- a/drivers/cxl/core/region.c~driverscxl-use-node-notifier-instead-of-memory-notifier
++++ a/drivers/cxl/core/region.c
+@@ -2432,12 +2432,12 @@ static int cxl_region_perf_attrs_callbac
+ 					  unsigned long action, void *arg)
  {
- 	struct kmem_cache_node *n;
- 	struct kmem_cache *s;
--	struct memory_notify *marg = arg;
--	int nid = marg->status_change_nid;
-+	struct node_notify *narg = arg;
-+	int nid = narg->nid;
- 	int ret = 0;
+ 	struct cxl_region *cxlr = container_of(nb, struct cxl_region,
+-					       memory_notifier);
+-	struct memory_notify *mnb = arg;
+-	int nid = mnb->status_change_nid;
++					       node_notifier);
++	struct node_notify *mnb = arg;
++	int nid = mnb->nid;
+ 	int region_nid;
+ 
+-	if (nid == NUMA_NO_NODE || action != MEM_ONLINE)
++	if (nid == NUMA_NO_NODE || action != NODE_ADDED_FIRST_MEMORY)
+ 		return NOTIFY_DONE;
  
  	/*
-@@ -6217,15 +6217,12 @@ static int slab_memory_callback(struct n
- 	int ret = 0;
+@@ -3484,7 +3484,7 @@ static void shutdown_notifiers(void *_cx
+ {
+ 	struct cxl_region *cxlr = _cxlr;
  
- 	switch (action) {
--	case MEM_GOING_ONLINE:
-+	case NODE_ADDING_FIRST_MEMORY:
- 		ret = slab_mem_going_online_callback(arg);
- 		break;
--	case MEM_GOING_OFFLINE:
-+	case NODE_REMOVING_LAST_MEMORY:
- 		ret = slab_mem_going_offline_callback(arg);
- 		break;
--	case MEM_ONLINE:
--	case MEM_CANCEL_OFFLINE:
--		break;
- 	}
- 	if (ret)
- 		ret = notifier_from_errno(ret);
-@@ -6300,7 +6297,7 @@ void __init kmem_cache_init(void)
- 			sizeof(struct kmem_cache_node),
- 			SLAB_HWCACHE_ALIGN | SLAB_NO_OBJ_EXT, 0, 0);
+-	unregister_memory_notifier(&cxlr->memory_notifier);
++	unregister_node_notifier(&cxlr->node_notifier);
+ 	unregister_mt_adistance_algorithm(&cxlr->adist_notifier);
+ }
  
--	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
-+	hotplug_node_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
+@@ -3523,9 +3523,9 @@ out:
+ 	if (rc)
+ 		return rc;
  
- 	/* Able to allocate the per node structures */
- 	slab_state = PARTIAL;
+-	cxlr->memory_notifier.notifier_call = cxl_region_perf_attrs_callback;
+-	cxlr->memory_notifier.priority = CXL_CALLBACK_PRI;
+-	register_memory_notifier(&cxlr->memory_notifier);
++	cxlr->node_notifier.notifier_call = cxl_region_perf_attrs_callback;
++	cxlr->node_notifier.priority = CXL_CALLBACK_PRI;
++	register_node_notifier(&cxlr->node_notifier);
+ 
+ 	cxlr->adist_notifier.notifier_call = cxl_region_calculate_adistance;
+ 	cxlr->adist_notifier.priority = 100;
+--- a/drivers/cxl/cxl.h~driverscxl-use-node-notifier-instead-of-memory-notifier
++++ a/drivers/cxl/cxl.h
+@@ -513,7 +513,7 @@ enum cxl_partition_mode {
+  * @flags: Region state flags
+  * @params: active + config params for the region
+  * @coord: QoS access coordinates for the region
+- * @memory_notifier: notifier for setting the access coordinates to node
++ * @node_notifier: notifier for setting the access coordinates to node
+  * @adist_notifier: notifier for calculating the abstract distance of node
+  */
+ struct cxl_region {
+@@ -526,7 +526,7 @@ struct cxl_region {
+ 	unsigned long flags;
+ 	struct cxl_region_params params;
+ 	struct access_coordinate coord[ACCESS_COORDINATE_MAX];
+-	struct notifier_block memory_notifier;
++	struct notifier_block node_notifier;
+ 	struct notifier_block adist_notifier;
+ };
+ 
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
