@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1880D2701CC
-	for <mm-commits@vger.kernel.org>; Wed,  4 Jun 2025 23:22:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E4248F64
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 00:20:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749079326; cv=none; b=YUjPK8tFJUHuCSiLK6ALyFCzIcuBxHA57EVoWxYfAUKWMwVcqQzMcXvtQuGvpJ0RPGBq8cwf6OKWldOOv4EqcS0Cbp8cfZC+L8KM8akbIjckEHl1mL5PcH88YazE5SnhmzmNq1VES8CeF3wyHpIVc/Ehaf33k3lCj9USCQZBRNY=
+	t=1749082830; cv=none; b=X1Np7Z6j0hzASYUC1DsfYC8hIKwP6Kp/PM3muEJfCkvFPjtHbPODMbSmeJYYijJYyRwYe/Vv1Cs/oHYKHYmb4o2kSGvmLrKhYHxpeZpDHaN6MPY8X2bj1H3zSSx4H8VhbIFlZZHP/3ERNJT20fRVTXozRifwa47fzZdec3lVOPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749079326; c=relaxed/simple;
-	bh=LNTyMgjulqD0IghLVN3eIyue4IdjtY0HFG/Th2FH/+A=;
-	h=Date:To:From:Subject:Message-Id; b=YIAOYXBek6fO/RLpcAB5BUlc681KbEbYoOR7/VhyYHeWJ/ZonGinHhqoBpJmwOfDdHckwWaLGaUar0OaQS5tWcWYauXASd8E2lzE2IffTgnuhZpJSQZzcDqjEYdC6DYPX9rp5Nhm3/Tscb7eA01e9EVmXsH56OMRcbXvu2iSvlc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JlfaLQWU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749082830; c=relaxed/simple;
+	bh=j8KPhOL5lwGlEn/RkP3XkcPUhuK/5GIE+IbvVeyYLCk=;
+	h=Date:To:From:Subject:Message-Id; b=bubYAXioYZA7NmtNXTxD0WtHgGPRgputktm74pOdNu47WO5UIeP1p8K0/4lVobBJ3fimFTB/PYfv04q7ePtqIIWKdXXmjTSOMecIYQ8ahRqt6m3mcFGTIcrekUTHpvk0ydP5fpP6HUr49tL7V/+UltKhL8vrDGaQMl/089kkd64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EkHCr0hu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JlfaLQWU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D504C4CEEF;
-	Wed,  4 Jun 2025 23:22:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EkHCr0hu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC630C4CEE4;
+	Thu,  5 Jun 2025 00:20:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749079325;
-	bh=LNTyMgjulqD0IghLVN3eIyue4IdjtY0HFG/Th2FH/+A=;
+	s=korg; t=1749082830;
+	bh=j8KPhOL5lwGlEn/RkP3XkcPUhuK/5GIE+IbvVeyYLCk=;
 	h=Date:To:From:Subject:From;
-	b=JlfaLQWUL8+Df1VXcYZAtZUhS40PS+VEzrc6JTJhnjaGrZFPCu6kN81BsaqIfoA3k
-	 vqeAy0ANWnnQubBNcQcWO/r2rM+IisNfnKN2b2vBPYv2YIN109xZq28XPCb44qjo+q
-	 P98oLQDAsmJjUQJYKvJDh86UG5C/IfYUHHWbApiE=
-Date: Wed, 04 Jun 2025 16:22:04 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,richard.henderson@linaro.org,mattst88@gmail.com,guoweikang.kernel@gmail.com,geert@linux-m68k.org,agordeev@linux.ibm.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=EkHCr0huIBV0ya49u2HBbRPw/64ly4ii+HBfCtDGOD9y8Rr6FRGaEVHQ6lWsFH0f0
+	 dYb7TCyrHkWIXN7QqDjkhsbYKZ1JBIuvexEd2LQJVGm6WPWxWrHpLOk66SRRjtPi7X
+	 5P+TUKKR3P37Uzps6K4jWdg9sIGLmMauStZF3KGo=
+Date: Wed, 04 Jun 2025 17:20:29 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hughd@google.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch added to mm-nonmm-unstable branch
-Message-Id: <20250604232205.6D504C4CEEF@smtp.kernel.org>
+Subject: + mm-split-out-a-writeout-helper-from-pageout.patch added to mm-new branch
+Message-Id: <20250605002029.DC630C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alpha: replace sprintf()/strcpy() with scnprintf()/strscpy()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch
+     Subject: mm: split out a writeout helper from pageout
+has been added to the -mm mm-new branch.  Its filename is
+     mm-split-out-a-writeout-helper-from-pageout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-out-a-writeout-helper-from-pageout.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,62 +64,165 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: alpha: replace sprintf()/strcpy() with scnprintf()/strscpy()
-Date: Wed, 21 May 2025 14:18:38 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: split out a writeout helper from pageout
+Date: Fri, 16 May 2025 09:40:35 +0200
 
-Replace sprintf() with the safer variant scnprintf() and use its return
-value instead of calculating the string length again using strlen().
+Patch series "stop passing a writeback_control to swap/shmem writeout",
+v2.
 
-Use strscpy() instead of the deprecated strcpy().
+This series was intended to remove the last remaining users of
+AOP_WRITEPAGE_ACTIVATE after my other pending patches removed the rest,
+but spectacularly failed at that.
 
-No functional changes intended.
+But instead it nicely improves the code, and removes two pointers from
+struct writeback_control.
 
-Link: https://github.com/KSPP/linux/issues/88
-Link: https://lkml.kernel.org/r/20250521121840.5653-1-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: guoweikang <guoweikang.kernel@gmail.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Richard Henderson <richard.henderson@linaro.org>
+
+This patch (of 5):
+
+Move the code to write back swap / shmem folios into a self-contained
+helper to keep prepare for refactoring it.
+
+Link: https://lkml.kernel.org/r/20250516074146.178314-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20250516074146.178314-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/core_marvel.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   94 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 48 insertions(+), 46 deletions(-)
 
---- a/arch/alpha/kernel/core_marvel.c~alpha-replace-sprintf-strcpy-with-scnprintf-strscpy
-+++ a/arch/alpha/kernel/core_marvel.c
-@@ -17,6 +17,7 @@
- #include <linux/vmalloc.h>
- #include <linux/mc146818rtc.h>
- #include <linux/rtc.h>
-+#include <linux/string.h>
- #include <linux/module.h>
- #include <linux/memblock.h>
+--- a/mm/vmscan.c~mm-split-out-a-writeout-helper-from-pageout
++++ a/mm/vmscan.c
+@@ -652,14 +652,55 @@ typedef enum {
+ 	PAGE_CLEAN,
+ } pageout_t;
  
-@@ -79,10 +80,12 @@ mk_resource_name(int pe, int port, char
- {
- 	char tmp[80];
- 	char *name;
--	
--	sprintf(tmp, "PCI %s PE %d PORT %d", str, pe, port);
--	name = memblock_alloc_or_panic(strlen(tmp) + 1, SMP_CACHE_BYTES);
--	strcpy(name, tmp);
-+	size_t sz;
++static pageout_t writeout(struct folio *folio, struct address_space *mapping,
++		struct swap_iocb **plug, struct list_head *folio_list)
++{
++	struct writeback_control wbc = {
++		.sync_mode = WB_SYNC_NONE,
++		.nr_to_write = SWAP_CLUSTER_MAX,
++		.range_start = 0,
++		.range_end = LLONG_MAX,
++		.for_reclaim = 1,
++		.swap_plug = plug,
++	};
++	int res;
 +
-+	sz = scnprintf(tmp, sizeof(tmp), "PCI %s PE %d PORT %d", str, pe, port);
-+	sz += 1; /* NUL terminator */
-+	name = memblock_alloc_or_panic(sz, SMP_CACHE_BYTES);
-+	strscpy(name, tmp, sz);
++	folio_set_reclaim(folio);
++
++	/*
++	 * The large shmem folio can be split if CONFIG_THP_SWAP is not enabled
++	 * or we failed to allocate contiguous swap entries.
++	 */
++	if (shmem_mapping(mapping)) {
++		if (folio_test_large(folio))
++			wbc.list = folio_list;
++		res = shmem_writeout(folio, &wbc);
++	} else {
++		res = swap_writeout(folio, &wbc);
++	}
++
++	if (res < 0)
++		handle_write_error(mapping, folio, res);
++	if (res == AOP_WRITEPAGE_ACTIVATE) {
++		folio_clear_reclaim(folio);
++		return PAGE_ACTIVATE;
++	}
++
++	/* synchronous write? */
++	if (!folio_test_writeback(folio))
++		folio_clear_reclaim(folio);
++
++	trace_mm_vmscan_write_folio(folio);
++	node_stat_add_folio(folio, NR_VMSCAN_WRITE);
++	return PAGE_SUCCESS;
++}
++
+ /*
+  * pageout is called by shrink_folio_list() for each dirty folio.
+  */
+ static pageout_t pageout(struct folio *folio, struct address_space *mapping,
+ 			 struct swap_iocb **plug, struct list_head *folio_list)
+ {
+-	int (*writeout)(struct folio *, struct writeback_control *);
+-
+ 	/*
+ 	 * We no longer attempt to writeback filesystem folios here, other
+ 	 * than tmpfs/shmem.  That's taken care of in page-writeback.
+@@ -690,51 +731,12 @@ static pageout_t pageout(struct folio *f
+ 		}
+ 		return PAGE_KEEP;
+ 	}
+-	if (shmem_mapping(mapping))
+-		writeout = shmem_writeout;
+-	else if (folio_test_anon(folio))
+-		writeout = swap_writeout;
+-	else
+-		return PAGE_ACTIVATE;
+-
+-	if (folio_clear_dirty_for_io(folio)) {
+-		int res;
+-		struct writeback_control wbc = {
+-			.sync_mode = WB_SYNC_NONE,
+-			.nr_to_write = SWAP_CLUSTER_MAX,
+-			.range_start = 0,
+-			.range_end = LLONG_MAX,
+-			.for_reclaim = 1,
+-			.swap_plug = plug,
+-		};
+-
+-		/*
+-		 * The large shmem folio can be split if CONFIG_THP_SWAP is
+-		 * not enabled or contiguous swap entries are failed to
+-		 * allocate.
+-		 */
+-		if (shmem_mapping(mapping) && folio_test_large(folio))
+-			wbc.list = folio_list;
  
- 	return name;
+-		folio_set_reclaim(folio);
+-		res = writeout(folio, &wbc);
+-		if (res < 0)
+-			handle_write_error(mapping, folio, res);
+-		if (res == AOP_WRITEPAGE_ACTIVATE) {
+-			folio_clear_reclaim(folio);
+-			return PAGE_ACTIVATE;
+-		}
+-
+-		if (!folio_test_writeback(folio)) {
+-			/* synchronous write? */
+-			folio_clear_reclaim(folio);
+-		}
+-		trace_mm_vmscan_write_folio(folio);
+-		node_stat_add_folio(folio, NR_VMSCAN_WRITE);
+-		return PAGE_SUCCESS;
+-	}
+-
+-	return PAGE_CLEAN;
++	if (!shmem_mapping(mapping) && !folio_test_anon(folio))
++		return PAGE_ACTIVATE;
++	if (!folio_clear_dirty_for_io(folio))
++		return PAGE_CLEAN;
++	return writeout(folio, mapping, plug, folio_list);
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from hch@lst.de are
 
-alpha-replace-sprintf-strcpy-with-scnprintf-strscpy.patch
+mm-split-out-a-writeout-helper-from-pageout.patch
+mm-stop-passing-a-writeback_control-structure-to-shmem_writeout.patch
+mm-tidy-up-swap_writeout.patch
+mm-stop-passing-a-writeback_control-structure-to-__swap_writepage.patch
+mm-stop-passing-a-writeback_control-structure-to-swap_writeout.patch
 
