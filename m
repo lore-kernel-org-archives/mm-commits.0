@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDAA91F956
-	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 00:20:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEE652AE99
+	for <mm-commits@vger.kernel.org>; Thu,  5 Jun 2025 00:20:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749082833; cv=none; b=cITeeeB/UmBlLn0pzNe+ZCgxppo9IPRHcteGwYjLcJ3Py4LnTqiTbR8oYxed59Hb+665/9j5UnZWI2vRqjVZKa/s0RqUMr1yDIRj6KjAZ3+IGZCzTfWlcjz37I7x1/cySRmA6p2zKje4WAXn4nr3QkTOnG44UujD3UBSzDgI9XU=
+	t=1749082833; cv=none; b=Y6K7qaNxmx0GLTuyQ3aoLXYMtaDz3f5DVnarRwhpjdP6b99JoiKSiTFSoBdLj3DLbG6xtcmLHt+J7OCq+m98AL2+bBey08UhiThU+c2RnUipzyMIPq/c3Zyq4YIjTV2BDrt+SH/i76H9KDo0b7teH88dMXS6kHgX5vgCuZX+vYs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1749082833; c=relaxed/simple;
-	bh=YYcjZA604TL5lmNxubRkY2hIN3LrJAeb1sAaTt92MOA=;
-	h=Date:To:From:Subject:Message-Id; b=ZT9gc8RKTfNi4flFZe57SbVjK9KlJycQ+hmENuKPEOIb6hDMUCLH6y9AFeBcKwO1xUjbeBWSmNxd1A3pkCBC8L5OmEz3YXsKI6/BoyL2bUs3dfYAMaR2Vc1VA8mXrlu/l/a2ajc2zsBoVFoFzf7Kqwl0287bFwuBoubmbn99rFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lsueb86M; arc=none smtp.client-ip=10.30.226.201
+	bh=OjKTPfOnheqqcegzCfpVBGcAIYDg8/phr+wdxGnwN/w=;
+	h=Date:To:From:Subject:Message-Id; b=U/s6P9EiErphLi4iciK8KpQOEixoRWJbVAl9VukcvJbFisuVRmuBoUCsmFNnxMDtVErKXSS6YhXUikwIKx8IdOhIf36yQzkIqxnsIp82nMe1Rr9gZr2Z4H/saIXoeMqVT24+BzTWm6ndRbDYV0lwDefOt0SkUxh7KtXf0Of1CUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TkErsr52; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lsueb86M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 483F5C4CEEF;
-	Thu,  5 Jun 2025 00:20:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TkErsr52"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CF09C4CEE4;
+	Thu,  5 Jun 2025 00:20:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749082831;
-	bh=YYcjZA604TL5lmNxubRkY2hIN3LrJAeb1sAaTt92MOA=;
+	s=korg; t=1749082833;
+	bh=OjKTPfOnheqqcegzCfpVBGcAIYDg8/phr+wdxGnwN/w=;
 	h=Date:To:From:Subject:From;
-	b=lsueb86MgVe6WqAzSB7fXzWl3YvM8d/nPw4tEoWq1scL09JF2ssf2PWk94ay/lGyK
-	 /XMw3JQpZU16Uh/LmePXmE92PjmJJjlWZaNLtvLBoztC8bADyLNMEiq7gMe3R92/+T
-	 N7UalJ9LdflJbryAmJzfNK/oJ2BZYZAhevw7av8A=
-Date: Wed, 04 Jun 2025 17:20:30 -0700
+	b=TkErsr52g+iOvWOj37+JAeWabsP6BDCRoTjMieUagUtqrjn1QgDwWzmYPh9LXvxi2
+	 +N36l7xn4OsDz3UxozEONw1fegPWA3YjbblguGttBRWFLsxfYaeeY2/p4ZfoinoSYp
+	 +MzeDN5pfcEm7QNAzA8b1mlAOIhRGEvJHwZ2VZl0=
+Date: Wed, 04 Jun 2025 17:20:32 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hughd@google.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-stop-passing-a-writeback_control-structure-to-shmem_writeout.patch added to mm-new branch
-Message-Id: <20250605002031.483F5C4CEEF@smtp.kernel.org>
+Subject: + mm-tidy-up-swap_writeout.patch added to mm-new branch
+Message-Id: <20250605002033.2CF09C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: stop passing a writeback_control structure to shmem_writeout
+     Subject: mm: tidy up swap_writeout
 has been added to the -mm mm-new branch.  Its filename is
-     mm-stop-passing-a-writeback_control-structure-to-shmem_writeout.patch
+     mm-tidy-up-swap_writeout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-stop-passing-a-writeback_control-structure-to-shmem_writeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tidy-up-swap_writeout.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: stop passing a writeback_control structure to shmem_writeout
-Date: Fri, 16 May 2025 09:40:36 +0200
+Subject: mm: tidy up swap_writeout
+Date: Fri, 16 May 2025 09:40:37 +0200
 
-shmem_writeout only needs the swap_iocb cookie and the split folio list. 
-Pass those explicitly and remove the now unused list member from struct
-writeback_control.
+Use a goto label to consolidate the unlock folio and return pattern and
+don't bother with an else after a return / goto.
 
-Link: https://lkml.kernel.org/r/20250516074146.178314-3-hch@lst.de
+Link: https://lkml.kernel.org/r/20250516074146.178314-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
@@ -83,171 +82,79 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    2 -
- drivers/gpu/drm/ttm/ttm_backup.c          |    9 -------
- include/linux/shmem_fs.h                  |    5 +++-
- include/linux/writeback.h                 |    3 --
- mm/shmem.c                                |   25 ++++++++++++--------
- mm/vmscan.c                               |   12 ++++-----
- 6 files changed, 26 insertions(+), 30 deletions(-)
+ mm/page_io.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-stop-passing-a-writeback_control-structure-to-shmem_writeout
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -317,7 +317,7 @@ void __shmem_writeback(size_t size, stru
- 		if (folio_mapped(folio))
- 			folio_redirty_for_writepage(&wbc, folio);
- 		else
--			error = shmem_writeout(folio, &wbc);
-+			error = shmem_writeout(folio, NULL, NULL);
- 	}
- }
- 
---- a/drivers/gpu/drm/ttm/ttm_backup.c~mm-stop-passing-a-writeback_control-structure-to-shmem_writeout
-+++ a/drivers/gpu/drm/ttm/ttm_backup.c
-@@ -112,15 +112,8 @@ ttm_backup_backup_page(struct file *back
- 
- 	if (writeback && !folio_mapped(to_folio) &&
- 	    folio_clear_dirty_for_io(to_folio)) {
--		struct writeback_control wbc = {
--			.sync_mode = WB_SYNC_NONE,
--			.nr_to_write = SWAP_CLUSTER_MAX,
--			.range_start = 0,
--			.range_end = LLONG_MAX,
--			.for_reclaim = 1,
--		};
- 		folio_set_reclaim(to_folio);
--		ret = shmem_writeout(to_folio, &wbc);
-+		ret = shmem_writeout(to_folio, NULL, NULL);
- 		if (!folio_test_writeback(to_folio))
- 			folio_clear_reclaim(to_folio);
- 		/*
---- a/include/linux/shmem_fs.h~mm-stop-passing-a-writeback_control-structure-to-shmem_writeout
-+++ a/include/linux/shmem_fs.h
-@@ -11,6 +11,8 @@
- #include <linux/fs_parser.h>
- #include <linux/userfaultfd_k.h>
- 
-+struct swap_iocb;
-+
- /* inode in-kernel data */
- 
- #ifdef CONFIG_TMPFS_QUOTA
-@@ -107,7 +109,8 @@ static inline bool shmem_mapping(struct
- void shmem_unlock_mapping(struct address_space *mapping);
- struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
- 					pgoff_t index, gfp_t gfp_mask);
--int shmem_writeout(struct folio *folio, struct writeback_control *wbc);
-+int shmem_writeout(struct folio *folio, struct swap_iocb **plug,
-+		struct list_head *folio_list);
- void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
- int shmem_unuse(unsigned int type);
- 
---- a/include/linux/writeback.h~mm-stop-passing-a-writeback_control-structure-to-shmem_writeout
-+++ a/include/linux/writeback.h
-@@ -79,9 +79,6 @@ struct writeback_control {
- 	 */
- 	struct swap_iocb **swap_plug;
- 
--	/* Target list for splitting a large folio */
--	struct list_head *list;
--
- 	/* internal fields used by the ->writepages implementation: */
- 	struct folio_batch fbatch;
- 	pgoff_t index;
---- a/mm/shmem.c~mm-stop-passing-a-writeback_control-structure-to-shmem_writeout
-+++ a/mm/shmem.c
-@@ -1541,10 +1541,13 @@ start_over:
-  * shmem_writeout - Write the folio to swap
-  * @folio: The folio to write
-  * @wbc: How writeback is to be done
-+ * @plug: swap plug
-+ * @folio_list: list to put back folios on split
-  *
-  * Move the folio from the page cache to the swap cache.
+--- a/mm/page_io.c~mm-tidy-up-swap_writeout
++++ a/mm/page_io.c
+@@ -239,12 +239,11 @@ static void swap_zeromap_folio_clear(str
   */
--int shmem_writeout(struct folio *folio, struct writeback_control *wbc)
-+int shmem_writeout(struct folio *folio, struct swap_iocb **plug,
-+		struct list_head *folio_list)
+ int swap_writeout(struct folio *folio, struct writeback_control *wbc)
  {
- 	struct address_space *mapping = folio->mapping;
- 	struct inode *inode = mapping->host;
-@@ -1554,9 +1557,6 @@ int shmem_writeout(struct folio *folio,
- 	int nr_pages;
- 	bool split = false;
+-	int ret;
++	int ret = 0;
++
++	if (folio_free_swap(folio))
++		goto out_unlock;
  
--	if (WARN_ON_ONCE(!wbc->for_reclaim))
--		goto redirty;
--
- 	if ((info->flags & VM_LOCKED) || sbinfo->noswap)
- 		goto redirty;
- 
-@@ -1583,7 +1583,7 @@ int shmem_writeout(struct folio *folio,
- try_split:
- 		/* Ensure the subpages are still dirty */
- 		folio_test_set_dirty(folio);
--		if (split_folio_to_list(folio, wbc->list))
-+		if (split_folio_to_list(folio, folio_list))
- 			goto redirty;
- 		folio_clear_dirty(folio);
+-	if (folio_free_swap(folio)) {
+-		folio_unlock(folio);
+-		return 0;
+-	}
+ 	/*
+ 	 * Arch code may have to preserve more data than just the page
+ 	 * contents, e.g. memory tags.
+@@ -252,8 +251,7 @@ int swap_writeout(struct folio *folio, s
+ 	ret = arch_prepare_to_swap(folio);
+ 	if (ret) {
+ 		folio_mark_dirty(folio);
+-		folio_unlock(folio);
+-		return ret;
++		goto out_unlock;
  	}
-@@ -1636,13 +1636,21 @@ try_split:
- 		list_add(&info->swaplist, &shmem_swaplist);
- 
- 	if (!folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN)) {
-+		struct writeback_control wbc = {
-+			.sync_mode	= WB_SYNC_NONE,
-+			.nr_to_write	= SWAP_CLUSTER_MAX,
-+			.range_start	= 0,
-+			.range_end	= LLONG_MAX,
-+			.for_reclaim	= 1,
-+			.swap_plug	= plug,
-+		};
- 		shmem_recalc_inode(inode, 0, nr_pages);
- 		swap_shmem_alloc(folio->swap, nr_pages);
- 		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
- 
- 		mutex_unlock(&shmem_swaplist_mutex);
- 		BUG_ON(folio_mapped(folio));
--		return swap_writeout(folio, wbc);
-+		return swap_writeout(folio, &wbc);
- 	}
- 	if (!info->swapped)
- 		list_del_init(&info->swaplist);
-@@ -1651,10 +1659,7 @@ try_split:
- 		goto try_split;
- redirty:
- 	folio_mark_dirty(folio);
--	if (wbc->for_reclaim)
--		return AOP_WRITEPAGE_ACTIVATE;	/* Return with folio locked */
--	folio_unlock(folio);
--	return 0;
-+	return AOP_WRITEPAGE_ACTIVATE;	/* Return with folio locked */
- }
- EXPORT_SYMBOL_GPL(shmem_writeout);
- 
---- a/mm/vmscan.c~mm-stop-passing-a-writeback_control-structure-to-shmem_writeout
-+++ a/mm/vmscan.c
-@@ -669,15 +669,13 @@ static pageout_t writeout(struct folio *
  
  	/*
- 	 * The large shmem folio can be split if CONFIG_THP_SWAP is not enabled
--	 * or we failed to allocate contiguous swap entries.
-+	 * or we failed to allocate contiguous swap entries, in which case
-+	 * the split out folios get added back to folio_list.
+@@ -264,20 +262,19 @@ int swap_writeout(struct folio *folio, s
  	 */
--	if (shmem_mapping(mapping)) {
--		if (folio_test_large(folio))
--			wbc.list = folio_list;
--		res = shmem_writeout(folio, &wbc);
+ 	if (is_folio_zero_filled(folio)) {
+ 		swap_zeromap_folio_set(folio);
+-		folio_unlock(folio);
+-		return 0;
 -	} else {
-+	if (shmem_mapping(mapping))
-+		res = shmem_writeout(folio, plug, folio_list);
-+	else
- 		res = swap_writeout(folio, &wbc);
--	}
+-		/*
+-		 * Clear bits this folio occupies in the zeromap to prevent
+-		 * zero data being read in from any previous zero writes that
+-		 * occupied the same swap entries.
+-		 */
+-		swap_zeromap_folio_clear(folio);
++		goto out_unlock;
+ 	}
++
++	/*
++	 * Clear bits this folio occupies in the zeromap to prevent zero data
++	 * being read in from any previous zero writes that occupied the same
++	 * swap entries.
++	 */
++	swap_zeromap_folio_clear(folio);
++
+ 	if (zswap_store(folio)) {
+ 		count_mthp_stat(folio_order(folio), MTHP_STAT_ZSWPOUT);
+-		folio_unlock(folio);
+-		return 0;
++		goto out_unlock;
+ 	}
+ 	if (!mem_cgroup_zswap_writeback_enabled(folio_memcg(folio))) {
+ 		folio_mark_dirty(folio);
+@@ -286,6 +283,9 @@ int swap_writeout(struct folio *folio, s
  
- 	if (res < 0)
- 		handle_write_error(mapping, folio, res);
+ 	__swap_writepage(folio, wbc);
+ 	return 0;
++out_unlock:
++	folio_unlock(folio);
++	return ret;
+ }
+ 
+ static inline void count_swpout_vm_event(struct folio *folio)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
