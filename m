@@ -1,115 +1,115 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2439F1FAA
-	for <mm-commits@vger.kernel.org>; Fri,  6 Jun 2025 05:03:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5A41204F93;
+	Fri,  6 Jun 2025 23:12:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749186186; cv=none; b=QoJVEKPwcPmbcmz6FTlYFdPGK/e73JsgpQh3r5JgNuEEs8d10XQkaK26APQEJqbsGf/18vxILr238GHQzS4MLl6VA2Xi3X9I8VUEIFspgWSBZcqACtuGZipNeiEwRLrEPiySzM0HmY53BRUHl/jpteE/Ch1aWzVikYDsLBrUTRs=
+	t=1749251529; cv=none; b=QJCn7l+CY1U36ruRLLsmaFKafd1uhYgerQdz0ltY7voO/mWPA9/WeGgljE3LCRnOCBFOiVogttiGI3q+/7QirNJApVexypo8SAOlpyDV+E/2zCPKO8gks+YHk2S21Jncbre2lePe1vFHojU+JMeN0EQguvGSUPnue25hbbIEFkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749186186; c=relaxed/simple;
-	bh=cbaOKpsKowhZ83IZp5ffF9ZuIoSsXCBhuXW/tQrAAj8=;
-	h=Date:To:From:Subject:Message-Id; b=HkamAxZm6mcjwG+KWTQscd/tL6pG6LXZUKmVbVkh4ddyElUzr55KHtNnrqFFbeWM3RvsvzlNqeHA/ugqOWMe9kq9d3XpxDJ/4FB9HuT4BK+38MW6FtwkCii3QXMhMt6jgwXgpgtbz0l6xucWK/6BXYfTfRbwmxCtW3hfHHm0C1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZEsQLtZc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749251529; c=relaxed/simple;
+	bh=SIQBpzgDhCq3i24zk4KvGnlpxag/7lRvBGruUPdocL0=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=I4fekBD1E6qY2b6gizlKnttH1gdVIJOQJFk60YmKkhBL75m43w3DX5Bhhl2qrz1Gjt/ykybDiz0AcvYDWB1+gfwMD1m0qXX0FLiEUJL3Nk6PoCddx925d9bLnxYgAl02t0hNzG4yUEpLZXnT7PHcD0D5z1PsAucQSbwKm8UcSM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XrnmW6Fk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZEsQLtZc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91D8DC4CEEB;
-	Fri,  6 Jun 2025 05:03:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XrnmW6Fk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC28EC4CEEB;
+	Fri,  6 Jun 2025 23:12:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749186185;
-	bh=cbaOKpsKowhZ83IZp5ffF9ZuIoSsXCBhuXW/tQrAAj8=;
-	h=Date:To:From:Subject:From;
-	b=ZEsQLtZc0ytvqDJ+4JaaOzYvT1nTbgjkDTEjS2hl313wMf4xbdPjboPjNAjrnRzx+
-	 P9oSkjtqUQQrKm2KMc+krsaFgnEaUBYJeZpYOIse1dHW4zb7MLLseb33frORMHR+ek
-	 nc0H7Q8P/dBtgaM/vQQ0MMiCSwVSlcSbmGqqEaU4=
-Date: Thu, 05 Jun 2025 22:03:05 -0700
-To: mm-commits@vger.kernel.org,sourabhjain@linux.ibm.com,song@kernel.org,joel.granados@kernel.org,dianders@chromium.org,cminyard@mvista.com,max.kellermann@ionos.com,akpm@linux-foundation.org
+	s=korg; t=1749251529;
+	bh=SIQBpzgDhCq3i24zk4KvGnlpxag/7lRvBGruUPdocL0=;
+	h=Date:From:To:Cc:Subject:From;
+	b=XrnmW6FkWxwo8Sxbuzq5PmOjTjhQGaxnP89uuDcfKb280YAcLM7/ieLalI5RTfHNM
+	 orHDP3hLBj5N+OB1v6EYh+kjElucHjtBcvEcuAVpK0BOkV1wEkUkPohp5ubclGNnYN
+	 pyINPHvi8EO9X+tsnD5gEguat8Im0RNoAElUFBas=
+Date: Fri, 6 Jun 2025 16:12:08 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count.patch removed from -mm tree
-Message-Id: <20250606050305.91D8DC4CEEB@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.16-rc1
+Message-Id: <20250606161208.2d18790220a7c75ec18b361b@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The quilt patch titled
-     Subject: kernel/rcu/tree_stall: add /sys/kernel/rcu_stall_count
-has been removed from the -mm tree.  Its filename was
-     kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-------------------------------------------------------
-From: Max Kellermann <max.kellermann@ionos.com>
-Subject: kernel/rcu/tree_stall: add /sys/kernel/rcu_stall_count
-Date: Sun, 4 May 2025 20:08:31 +0200
+The following changes since commit 546b1c9e93c2bb8cf5ed24e0be1c86bb089b3253:
 
-Expose a simple counter to userspace for monitoring tools.
+  Merge tag 'bootconfig-v6.16' of git://git.kernel.org/pub/scm/linux/kernel/git/trace/linux-trace (2025-06-02 17:39:24 -0700)
 
-(akpm: 2536c5c7d6ae added the documentation but the code changes were lost)
+are available in the Git repository at:
 
-Link: https://lkml.kernel.org/r/20250504180831.4190860-3-max.kellermann@ionos.com
-Fixes: 2536c5c7d6ae ("kernel/rcu/tree_stall: add /sys/kernel/rcu_stall_count")
-Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
-Cc: Core Minyard <cminyard@mvista.com>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Max Kellermann <max.kellermann@ionos.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-06-06-16-02
 
- kernel/rcu/tree_stall.h |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+for you to fetch changes up to 2da20fd904f87f7bb31b79719bc3dda4093f8cdb:
 
---- a/kernel/rcu/tree_stall.h~kernel-rcu-tree_stall-add-sys-kernel-rcu_stall_count
-+++ a/kernel/rcu/tree_stall.h
-@@ -20,6 +20,28 @@
- int sysctl_panic_on_rcu_stall __read_mostly;
- int sysctl_max_rcu_stall_to_panic __read_mostly;
- 
-+#ifdef CONFIG_SYSFS
-+
-+static unsigned int rcu_stall_count;
-+
-+static ssize_t rcu_stall_count_show(struct kobject *kobj, struct kobj_attribute *attr,
-+				    char *page)
-+{
-+	return sysfs_emit(page, "%u\n", rcu_stall_count);
-+}
-+
-+static struct kobj_attribute rcu_stall_count_attr = __ATTR_RO(rcu_stall_count);
-+
-+static __init int kernel_rcu_stall_sysfs_init(void)
-+{
-+	sysfs_add_file_to_group(kernel_kobj, &rcu_stall_count_attr.attr, NULL);
-+	return 0;
-+}
-+
-+late_initcall(kernel_rcu_stall_sysfs_init);
-+
-+#endif // CONFIG_SYSFS
-+
- #ifdef CONFIG_PROVE_RCU
- #define RCU_STALL_DELAY_DELTA		(5 * HZ)
- #else
-@@ -784,6 +806,10 @@ static void check_cpu_stall(struct rcu_d
- 		if (kvm_check_and_clear_guest_paused())
- 			return;
- 
-+#ifdef CONFIG_SYSFS
-+		++rcu_stall_count;
-+#endif
-+
- 		rcu_stall_notifier_call_chain(RCU_STALL_NOTIFY_NORM, (void *)j - gps);
- 		if (READ_ONCE(csd_lock_suppress_rcu_stall) && csd_lock_is_stuck()) {
- 			pr_err("INFO: %s detected stall, but suppressed full report due to a stuck CSD-lock.\n", rcu_state.name);
-_
+  kernel/rcu/tree_stall: add /sys/kernel/rcu_stall_count (2025-06-05 22:02:25 -0700)
 
-Patches currently in -mm which might be from max.kellermann@ionos.com are
+----------------------------------------------------------------
+13 hotfixes.  6 are cc:stable and the remainder address post-6.15 issues
+or aren't considered necessary for -stable kernels.  11 are for MM.
 
+----------------------------------------------------------------
+Alistair Popple (1):
+      MAINTAINERS: add Alistair as reviewer of mm memory policy
+
+Arnd Bergmann (1):
+      kmsan: test: add module description
+
+Jann Horn (2):
+      mm/hugetlb: unshare page tables during VMA split, not before
+      mm/hugetlb: fix huge_pmd_unshare() vs GUP-fast race
+
+Joshua Hahn (1):
+      mm/mempolicy: fix incorrect freeing of wi_kobj
+
+Kirill A. Shutemov (1):
+      mm: fix vmstat after removing NR_BOUNCE
+
+Lorenzo Stoakes (2):
+      KVM: s390: rename PROT_NONE to PROT_TYPE_DUMMY
+      MAINTAINERS: add mm swap section
+
+Max Kellermann (1):
+      kernel/rcu/tree_stall: add /sys/kernel/rcu_stall_count
+
+Nitesh Shetty (1):
+      iov_iter: use iov_offset for length calculation in iov_iter_aligned_bvec
+
+SeongJae Park (1):
+      mm/madvise: handle madvise_lock() failure during race unwinding
+
+Suren Baghdasaryan (1):
+      alloc_tag: handle module codetag load errors as module load failures
+
+Tal Zussman (1):
+      MAINTAINERS: add tlb trace events to MMU GATHER AND TLB INVALIDATION
+
+ MAINTAINERS                      | 21 +++++++++++++
+ arch/s390/kvm/gaccess.c          |  8 ++---
+ include/linux/codetag.h          |  8 ++---
+ include/linux/hugetlb.h          |  3 ++
+ kernel/module/main.c             |  5 +--
+ kernel/rcu/tree_stall.h          | 26 ++++++++++++++++
+ lib/alloc_tag.c                  | 12 ++++---
+ lib/codetag.c                    | 34 ++++++++++++++------
+ lib/iov_iter.c                   |  2 +-
+ mm/hugetlb.c                     | 67 ++++++++++++++++++++++++++++++----------
+ mm/kmsan/kmsan_test.c            |  1 +
+ mm/madvise.c                     |  5 ++-
+ mm/mempolicy.c                   |  4 +--
+ mm/vma.c                         |  7 +++++
+ mm/vmstat.c                      |  1 -
+ tools/testing/vma/vma_internal.h |  2 ++
+ 16 files changed, 160 insertions(+), 46 deletions(-)
 
