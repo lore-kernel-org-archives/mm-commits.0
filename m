@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0A971FAA
-	for <mm-commits@vger.kernel.org>; Fri,  6 Jun 2025 05:02:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A7EA1FAA
+	for <mm-commits@vger.kernel.org>; Fri,  6 Jun 2025 05:02:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749186176; cv=none; b=eH1x8VnlEq6Lq+86m7pjdrgEVPW91haSs2xSdcAmeDN1bXnU7MVFa6WSwwOpduLO9y0aEgKyz89cO4qVusN3Rfxh5aLzkoRHW0D0RUY77qphwh8Rm5uEjImPch451/HmHZ6DaplYud5d7BddS1kcffQu0P5p+nkvWTgeQhAcK+U=
+	t=1749186177; cv=none; b=pX0QdT3zsKWvk/NgPhMagu0QGOU7T2aWVHQXTup9AuF7OD4GRXMQso1xTZ4AYuU2ImGfUqi7BJfBKI59O0/dTP2NnLgXaO/4bbJFiQwcvJ+GNonrFl8ROaaUp/7pN0YOn0NooGiDLpzpyi5XNrqF7UcmevUqr25kgl+KGS3T19Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749186176; c=relaxed/simple;
-	bh=VIOd7V8USImMWM3cX7qpkt0b1/QKczDfwfnMuLCTc2s=;
-	h=Date:To:From:Subject:Message-Id; b=tmVudFO4pvxhhN2hldaiKIYT6pcUNxbv+j8oAHYqNaf6zg+LRuccyj/DHXLvztJ4Y6/7mjahAWYLEMDm8YoCbOmSPavOxQRTKegyERHXLwRYeMX3SdA0Kv7OjgQ2rXW/RAiL8V+R9L1+uYgDfkAB9XELq/DZPZG62af4HPP0zLw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2mk4IX1D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749186177; c=relaxed/simple;
+	bh=hL3/j4nuOrTFk99LEpvqY7rB9Gs38iAfsdCxRyOEJF0=;
+	h=Date:To:From:Subject:Message-Id; b=ebsI8J4mrrQoynUhxc0H0Lr9LH/T9ffxG7IxsdNN42rhevS8dCZV1OY4K1X0GIUE+/9B0+BrBypJMEveObWfpb4jvNxMIHcWGyaK5buuHYEXKxefyzC9KJGELXjYucDVVTLnSAJA7hxOswP0K2V7MwdCTb0S3Pa+M2qWJLpIbCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NEv+du+h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2mk4IX1D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BBB5C4CEEB;
-	Fri,  6 Jun 2025 05:02:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NEv+du+h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9FEDC4CEEB;
+	Fri,  6 Jun 2025 05:02:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749186175;
-	bh=VIOd7V8USImMWM3cX7qpkt0b1/QKczDfwfnMuLCTc2s=;
+	s=korg; t=1749186176;
+	bh=hL3/j4nuOrTFk99LEpvqY7rB9Gs38iAfsdCxRyOEJF0=;
 	h=Date:To:From:Subject:From;
-	b=2mk4IX1D7jLELwWtWKIwjGSuiWs5wUxskf1gyflIx2vDWP5IylVKZ4ra9uWr26JfK
-	 4U1fcpbQAbdaJoNQMPksFFHU8KkBcvNCF36cvhm1bD0OGB5MsZUFMOnrl4rBnbaUgL
-	 l1dGS+WOxj568RtUxteGAAEW4/684hWQQ3oFSuKs=
-Date: Thu, 05 Jun 2025 22:02:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,lkp@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=NEv+du+h6qRV8jg+BACc+akMzDNIrJqOrevmcBQWCoC2ErSrg+QdvfE765LF7ndVy
+	 h/TGknrmGjXBEDE8tPn06FCsmqntnQcn09YV3Mr6xr9LwXzMz4hqtdz8S6NGadkeb6
+	 8Wt3aGeLSVjUYcBbYGlCQUQCi54dGgPlqIDQEDjw=
+Date: Thu, 05 Jun 2025 22:02:56 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,kbusch@kernel.org,brauner@kernel.org,axboe@kernel.dk,anuj20.g@samsung.com,nj.shetty@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mempolicy-fix-incorrect-freeing-of-wi_kobj.patch removed from -mm tree
-Message-Id: <20250606050255.6BBB5C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] iov_iter-use-iov_offset-for-length-calculation-in-iov_iter_aligned_bvec.patch removed from -mm tree
+Message-Id: <20250606050256.D9FEDC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,95 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: fix incorrect freeing of wi_kobj
+     Subject: iov_iter: use iov_offset for length calculation in iov_iter_aligned_bvec
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-fix-incorrect-freeing-of-wi_kobj.patch
+     iov_iter-use-iov_offset-for-length-calculation-in-iov_iter_aligned_bvec.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/mempolicy: fix incorrect freeing of wi_kobj
-Date: Mon, 2 Jun 2025 09:23:39 -0700
+From: Nitesh Shetty <nj.shetty@samsung.com>
+Subject: iov_iter: use iov_offset for length calculation in iov_iter_aligned_bvec
+Date: Mon, 28 Apr 2025 15:28:48 +0530
 
-We should not free wi_group->wi_kobj here.  In the error path of
-add_weighted_interleave_group() where this snippet is called from,
-kobj_{del, put} is immediately called right after this section.  Thus, it
-is not only unnecessary but also incorrect to free it here.
+If iov_offset is non-zero, then we need to consider iov_offset in length
+calculation, otherwise we might pass smaller IOs such as 512 bytes, in
+below scenario [1].
 
-Link: https://lkml.kernel.org/r/20250602162345.2595696-1-joshua.hahnjy@gmail.com
-Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202506011545.Fduxqxqj-lkp@intel.com/
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
+This issue is reproducible using lib-uring test/fixed-seg.c application
+with fixed buffer on a 512 LBA formatted device.
+
+[1]
+
+At present we pass the alignment check, for 512 LBA formatted devices,
+len_mask = 511 when IO is smaller, i->count = 512 has an offset,
+i->io_offset = 3584 with bvec values, bvec->bv_offset = 256,
+bvec->bv_len = 3840.  In short, the first 256 bytes are in the current
+page, next 256 bytes are in the another page.  Ideally we expect to
+fail the IO.
+
+
+I can think of 2 userspace scenarios where we experience this.
+
+a: From userspace, we observe a different behaviour when device LBA
+   size is 512 vs 4096 bytes.  For 4096 LBA formatted device, I see the
+   same liburing test [2] failing, whereas 512 the test passes without
+   this.  This is reproducible everytime.
+
+   [2] https://github.com/axboe/liburing/
+
+b: Although I was not able to reproduce the below condition, but I
+   suspect below case should be possible from user space for devices
+   with 512 LBA formatted device.  Lets say from userspace while
+   allocating a virtually single chunk of memory, if we get 2 physical
+   chunk of memory, and IO happens to be at the boundary of first
+   physical chunk with length crossing first chunk, then we allow IOs
+   to proceed and hence we might map wrong physical address length and
+   proceed with IO rather than failing.
+
+: --- a/test/fixed-seg.c
+: +++ b/test/fixed-seg.c
+: @@ -64,7 +64,7 @@ static int test(struct io_uring *ring, int fd, int
+: vec_off)
+: 		return T_EXIT_FAIL;
+: 	}
+: 
+: -       ret = read_it(ring, fd, 4096, vec_off);
+: +       ret = read_it(ring, fd, 4096, 7*512 + 256);
+: 	if (ret) {
+: 		fprintf(stderr, "4096 0 failed\n");
+: 		return T_EXIT_FAIL;
+
+Effectively this is a write crossing the page boundary.
+
+Link: https://lkml.kernel.org/r/20250428095849.11709-1-nj.shetty@samsung.com
+Fixes: 2263639f96f2 ("iov_iter: streamline iovec/bvec alignment iteration")
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Anuj Gupta <anuj20.g@samsung.com>
+Signed-off-by: Nitesh Shetty <nj.shetty@samsung.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/iov_iter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-incorrect-freeing-of-wi_kobj
-+++ a/mm/mempolicy.c
-@@ -3708,15 +3708,13 @@ static void wi_state_free(void)
- 			lockdep_is_held(&wi_state_lock));
- 	if (!old_wi_state) {
- 		mutex_unlock(&wi_state_lock);
--		goto out;
-+		return;
- 	}
+--- a/lib/iov_iter.c~iov_iter-use-iov_offset-for-length-calculation-in-iov_iter_aligned_bvec
++++ a/lib/iov_iter.c
+@@ -817,7 +817,7 @@ static bool iov_iter_aligned_bvec(const
+ 	size_t size = i->count;
  
- 	rcu_assign_pointer(wi_state, NULL);
- 	mutex_unlock(&wi_state_lock);
- 	synchronize_rcu();
- 	kfree(old_wi_state);
--out:
--	kfree(&wi_group->wi_kobj);
- }
+ 	do {
+-		size_t len = bvec->bv_len;
++		size_t len = bvec->bv_len - skip;
  
- static struct kobj_attribute wi_auto_attr =
+ 		if (len > size)
+ 			len = size;
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from nj.shetty@samsung.com are
 
-mm-mempolicy-skip-unnecessary-synchronize_rcu.patch
 
