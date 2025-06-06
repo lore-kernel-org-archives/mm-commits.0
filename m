@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF161FAA;
-	Fri,  6 Jun 2025 05:02:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0A971FAA
+	for <mm-commits@vger.kernel.org>; Fri,  6 Jun 2025 05:02:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749186174; cv=none; b=bjOHxoDoOaMRKWeT9dmbLfTs69uoxM7GyyRt7/6Jt952Mmkwo6hdwKP8WLtCU/fK8kuHTPEbrEm0Q9Qp4q+F66pm5PAoJLwxTQQmna8mN2uHXQ0r3I76tEEpj1W258bnb6fOfQy4CI7yvDPg9tePI84l7Hzg9QhNzqMAV8nzNMw=
+	t=1749186176; cv=none; b=eH1x8VnlEq6Lq+86m7pjdrgEVPW91haSs2xSdcAmeDN1bXnU7MVFa6WSwwOpduLO9y0aEgKyz89cO4qVusN3Rfxh5aLzkoRHW0D0RUY77qphwh8Rm5uEjImPch451/HmHZ6DaplYud5d7BddS1kcffQu0P5p+nkvWTgeQhAcK+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749186174; c=relaxed/simple;
-	bh=qLqpc0E0mGEQD/bIE6VQMI+jWwgMoiVuU77hQKqpZc4=;
-	h=Date:To:From:Subject:Message-Id; b=EqXDvknApWbyBCjNZG5kvfbLZfJJKmRjjxnZIl5yuqbq1tDMPGoHyC5yWGbS5Hr4DAF5HUu0s7rR7WRZ9T1bp8nJ/M1MOx3CwOjfyyIxCeDSLGxlK5lD4n5MYXo9RdV00JXFNx2NEuwnC2BTo8IVveOhyAekv8PpTWZ4n7vztWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mKYXKO8O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749186176; c=relaxed/simple;
+	bh=VIOd7V8USImMWM3cX7qpkt0b1/QKczDfwfnMuLCTc2s=;
+	h=Date:To:From:Subject:Message-Id; b=tmVudFO4pvxhhN2hldaiKIYT6pcUNxbv+j8oAHYqNaf6zg+LRuccyj/DHXLvztJ4Y6/7mjahAWYLEMDm8YoCbOmSPavOxQRTKegyERHXLwRYeMX3SdA0Kv7OjgQ2rXW/RAiL8V+R9L1+uYgDfkAB9XELq/DZPZG62af4HPP0zLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2mk4IX1D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mKYXKO8O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26395C4CEEB;
-	Fri,  6 Jun 2025 05:02:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2mk4IX1D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BBB5C4CEEB;
+	Fri,  6 Jun 2025 05:02:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749186174;
-	bh=qLqpc0E0mGEQD/bIE6VQMI+jWwgMoiVuU77hQKqpZc4=;
+	s=korg; t=1749186175;
+	bh=VIOd7V8USImMWM3cX7qpkt0b1/QKczDfwfnMuLCTc2s=;
 	h=Date:To:From:Subject:From;
-	b=mKYXKO8Oeow9IFywSu7vXR0C48vLvo5MsdD7oreaxSiDWHDPihBhAExgku3ZLCup+
-	 3tzgUZh1yxdL/i/UyPWMF6di3eaXCJb73KHbZJB/oZM8pOlgRg2YJTZqr4vsJtkcIQ
-	 EHB05n5EJz26DL6wo+6I4kMJulNy0JrqaCPgWrmY=
-Date: Thu, 05 Jun 2025 22:02:53 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,samitolvanen@google.com,petr.pavlu@suse.com,mcgrof@kernel.org,kent.overstreet@linux.dev,da.gomez@samsung.com,cachen@purestorage.com,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=2mk4IX1D7jLELwWtWKIwjGSuiWs5wUxskf1gyflIx2vDWP5IylVKZ4ra9uWr26JfK
+	 4U1fcpbQAbdaJoNQMPksFFHU8KkBcvNCF36cvhm1bD0OGB5MsZUFMOnrl4rBnbaUgL
+	 l1dGS+WOxj568RtUxteGAAEW4/684hWQQ3oFSuKs=
+Date: Thu, 05 Jun 2025 22:02:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,lkp@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] alloc_tag-handle-module-codetag-load-errors-as-module-load-failures.patch removed from -mm tree
-Message-Id: <20250606050254.26395C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mempolicy-fix-incorrect-freeing-of-wi_kobj.patch removed from -mm tree
+Message-Id: <20250606050255.6BBB5C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,200 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: alloc_tag: handle module codetag load errors as module load failures
+     Subject: mm/mempolicy: fix incorrect freeing of wi_kobj
 has been removed from the -mm tree.  Its filename was
-     alloc_tag-handle-module-codetag-load-errors-as-module-load-failures.patch
+     mm-mempolicy-fix-incorrect-freeing-of-wi_kobj.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: handle module codetag load errors as module load failures
-Date: Wed, 21 May 2025 09:06:02 -0700
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/mempolicy: fix incorrect freeing of wi_kobj
+Date: Mon, 2 Jun 2025 09:23:39 -0700
 
-Failures inside codetag_load_module() are currently ignored.  As a result
-an error there would not cause a module load failure and freeing of the
-associated resources.  Correct this behavior by propagating the error code
-to the caller and handling possible errors.  With this change, error to
-allocate percpu counters, which happens at this stage, will not be ignored
-and will cause a module load failure and freeing of resources.  With this
-change we also do not need to disable memory allocation profiling when
-this error happens, instead we fail to load the module.
+We should not free wi_group->wi_kobj here.  In the error path of
+add_weighted_interleave_group() where this snippet is called from,
+kobj_{del, put} is immediately called right after this section.  Thus, it
+is not only unnecessary but also incorrect to free it here.
 
-Link: https://lkml.kernel.org/r/20250521160602.1940771-1-surenb@google.com
-Fixes: 10075262888b ("alloc_tag: allocate percpu counters for module tags dynamically")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Casey Chen <cachen@purestorage.com>
-Closes: https://lore.kernel.org/all/20250520231620.15259-1-cachen@purestorage.com/
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250602162345.2595696-1-joshua.hahnjy@gmail.com
+Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202506011545.Fduxqxqj-lkp@intel.com/
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/codetag.h |    8 ++++----
- kernel/module/main.c    |    5 +++--
- lib/alloc_tag.c         |   12 +++++++-----
- lib/codetag.c           |   34 +++++++++++++++++++++++++---------
- 4 files changed, 39 insertions(+), 20 deletions(-)
+ mm/mempolicy.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/include/linux/codetag.h~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/include/linux/codetag.h
-@@ -36,8 +36,8 @@ union codetag_ref {
- struct codetag_type_desc {
- 	const char *section;
- 	size_t tag_size;
--	void (*module_load)(struct module *mod,
--			    struct codetag *start, struct codetag *end);
-+	int (*module_load)(struct module *mod,
-+			   struct codetag *start, struct codetag *end);
- 	void (*module_unload)(struct module *mod,
- 			      struct codetag *start, struct codetag *end);
- #ifdef CONFIG_MODULES
-@@ -89,7 +89,7 @@ void *codetag_alloc_module_section(struc
- 				   unsigned long align);
- void codetag_free_module_sections(struct module *mod);
- void codetag_module_replaced(struct module *mod, struct module *new_mod);
--void codetag_load_module(struct module *mod);
-+int codetag_load_module(struct module *mod);
- void codetag_unload_module(struct module *mod);
- 
- #else /* defined(CONFIG_CODE_TAGGING) && defined(CONFIG_MODULES) */
-@@ -103,7 +103,7 @@ codetag_alloc_module_section(struct modu
- 			     unsigned long align) { return NULL; }
- static inline void codetag_free_module_sections(struct module *mod) {}
- static inline void codetag_module_replaced(struct module *mod, struct module *new_mod) {}
--static inline void codetag_load_module(struct module *mod) {}
-+static inline int codetag_load_module(struct module *mod) { return 0; }
- static inline void codetag_unload_module(struct module *mod) {}
- 
- #endif /* defined(CONFIG_CODE_TAGGING) && defined(CONFIG_MODULES) */
---- a/kernel/module/main.c~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/kernel/module/main.c
-@@ -3386,11 +3386,12 @@ static int load_module(struct load_info
- 			goto sysfs_cleanup;
+--- a/mm/mempolicy.c~mm-mempolicy-fix-incorrect-freeing-of-wi_kobj
++++ a/mm/mempolicy.c
+@@ -3708,15 +3708,13 @@ static void wi_state_free(void)
+ 			lockdep_is_held(&wi_state_lock));
+ 	if (!old_wi_state) {
+ 		mutex_unlock(&wi_state_lock);
+-		goto out;
++		return;
  	}
  
-+	if (codetag_load_module(mod))
-+		goto sysfs_cleanup;
-+
- 	/* Get rid of temporary copy. */
- 	free_copy(info, flags);
- 
--	codetag_load_module(mod);
--
- 	/* Done! */
- 	trace_module_load(mod);
- 
---- a/lib/alloc_tag.c~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/lib/alloc_tag.c
-@@ -607,15 +607,16 @@ out:
- 	mas_unlock(&mas);
+ 	rcu_assign_pointer(wi_state, NULL);
+ 	mutex_unlock(&wi_state_lock);
+ 	synchronize_rcu();
+ 	kfree(old_wi_state);
+-out:
+-	kfree(&wi_group->wi_kobj);
  }
  
--static void load_module(struct module *mod, struct codetag *start, struct codetag *stop)
-+static int load_module(struct module *mod, struct codetag *start, struct codetag *stop)
- {
- 	/* Allocate module alloc_tag percpu counters */
- 	struct alloc_tag *start_tag;
- 	struct alloc_tag *stop_tag;
- 	struct alloc_tag *tag;
- 
-+	/* percpu counters for core allocations are already statically allocated */
- 	if (!mod)
--		return;
-+		return 0;
- 
- 	start_tag = ct_to_alloc_tag(start);
- 	stop_tag = ct_to_alloc_tag(stop);
-@@ -627,12 +628,13 @@ static void load_module(struct module *m
- 				free_percpu(tag->counters);
- 				tag->counters = NULL;
- 			}
--			shutdown_mem_profiling(true);
--			pr_err("Failed to allocate memory for allocation tag percpu counters in the module %s. Memory allocation profiling is disabled!\n",
-+			pr_err("Failed to allocate memory for allocation tag percpu counters in the module %s\n",
- 			       mod->name);
--			break;
-+			return -ENOMEM;
- 		}
- 	}
-+
-+	return 0;
- }
- 
- static void replace_module(struct module *mod, struct module *new_mod)
---- a/lib/codetag.c~alloc_tag-handle-module-codetag-load-errors-as-module-load-failures
-+++ a/lib/codetag.c
-@@ -167,6 +167,7 @@ static int codetag_module_init(struct co
- {
- 	struct codetag_range range;
- 	struct codetag_module *cmod;
-+	int mod_id;
- 	int err;
- 
- 	range = get_section_range(mod, cttype->desc.section);
-@@ -190,11 +191,20 @@ static int codetag_module_init(struct co
- 	cmod->range = range;
- 
- 	down_write(&cttype->mod_lock);
--	err = idr_alloc(&cttype->mod_idr, cmod, 0, 0, GFP_KERNEL);
--	if (err >= 0) {
--		cttype->count += range_size(cttype, &range);
--		if (cttype->desc.module_load)
--			cttype->desc.module_load(mod, range.start, range.stop);
-+	mod_id = idr_alloc(&cttype->mod_idr, cmod, 0, 0, GFP_KERNEL);
-+	if (mod_id >= 0) {
-+		if (cttype->desc.module_load) {
-+			err = cttype->desc.module_load(mod, range.start, range.stop);
-+			if (!err)
-+				cttype->count += range_size(cttype, &range);
-+			else
-+				idr_remove(&cttype->mod_idr, mod_id);
-+		} else {
-+			cttype->count += range_size(cttype, &range);
-+			err = 0;
-+		}
-+	} else {
-+		err = mod_id;
- 	}
- 	up_write(&cttype->mod_lock);
- 
-@@ -295,17 +305,23 @@ void codetag_module_replaced(struct modu
- 	mutex_unlock(&codetag_lock);
- }
- 
--void codetag_load_module(struct module *mod)
-+int codetag_load_module(struct module *mod)
- {
- 	struct codetag_type *cttype;
-+	int ret = 0;
- 
- 	if (!mod)
--		return;
-+		return 0;
- 
- 	mutex_lock(&codetag_lock);
--	list_for_each_entry(cttype, &codetag_types, link)
--		codetag_module_init(cttype, mod);
-+	list_for_each_entry(cttype, &codetag_types, link) {
-+		ret = codetag_module_init(cttype, mod);
-+		if (ret)
-+			break;
-+	}
- 	mutex_unlock(&codetag_lock);
-+
-+	return ret;
- }
- 
- void codetag_unload_module(struct module *mod)
+ static struct kobj_attribute wi_auto_attr =
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
+mm-mempolicy-skip-unnecessary-synchronize_rcu.patch
 
