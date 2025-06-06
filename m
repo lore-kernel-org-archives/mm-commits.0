@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40CE61FAA
-	for <mm-commits@vger.kernel.org>; Fri,  6 Jun 2025 05:02:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65B471FAA;
+	Fri,  6 Jun 2025 05:02:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749186172; cv=none; b=pbBqS+Hfsvo+YqDhjnkoIBA8T0rAY7X1eniAec05rVDh+7fXBx3Bi9XBLtnaC/+KabKHK8DnnGTcWqp+cnQUj0hR+1yc7MOSnlNk8GVxFhPv/1kTLml3AxeYnI8npmt7Hdw55MpgOC2YVKlRxVeW92ouwKSeDMbzQcf5pKYrj7U=
+	t=1749186173; cv=none; b=n8mFnuVlEjX/FMrXJeZTeK6/JS6w88MGd22/NSBXiL89CcFO73CTOUW5/kQc4uw0DAUL5MRJuh2uvBXwh1rpTdomuoFiKlhD7QZXYEu/1GQEzCKwsLi1uQCX6eYAnX/EJdK2XSrXg5KJCtM5nei7lHSKyNL/Z9mw+RgJ4KnrQyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749186172; c=relaxed/simple;
-	bh=a2EGzmgysdspM1fvObdsFGvVKkagHjKENASBtqSNcDk=;
-	h=Date:To:From:Subject:Message-Id; b=CwLj9rSCe26ZEII+Y2EyYucqTbyzlmObxm4e5AWu8XLssZWOGqGCCeADfb91KUzmq8OxccPigz74I6G4VTuwL9aERIC3BNxwOsYbVyr7a0XfaSZGa7Yx+hW2hq9xIZps9ArwGEOBlgG4ZF3cqgCTPbHoPugU+IdLNEOuSCGBCII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gVLPG9kt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749186173; c=relaxed/simple;
+	bh=HgIQP+HgxwnYkrdf5pC+p9+9EWxGRHSb3vGaqT1ToAw=;
+	h=Date:To:From:Subject:Message-Id; b=lOXg7Z/gAiWs5TStDO1CtmuAI3vJ8YY6bBvW2BWeklBCX37fh2+xIryGObLMKkct2ORsc+jgiqO8ty6gBhlp6YjBAHNZ6+PC8EdktbfNhjAlXrPqfbdqs0EF2KtSZrRRxMFCI8XGPz3rCl/VL1v7fEPk3U0ES0An2+dN2QBUr7Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NDAi55eq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gVLPG9kt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EB4CC4CEED;
-	Fri,  6 Jun 2025 05:02:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NDAi55eq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4440C4CEEB;
+	Fri,  6 Jun 2025 05:02:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749186171;
-	bh=a2EGzmgysdspM1fvObdsFGvVKkagHjKENASBtqSNcDk=;
+	s=korg; t=1749186172;
+	bh=HgIQP+HgxwnYkrdf5pC+p9+9EWxGRHSb3vGaqT1ToAw=;
 	h=Date:To:From:Subject:From;
-	b=gVLPG9ktDs5P5uBQeZ6efHT/VlQiDFnKrb+06y1E81vDfV7w7nFl6WxA0ICjEoTph
-	 AJzZ9fw7rYQkSWKYa8zx4O0qPDKcikhU1KYniWwk+IDE668/YmZN/b6bp9anz0aeUf
-	 +g3rSrVY1CWOEYIKJ/IMDdjxtLAB5uDWMlfCSMVY=
-Date: Thu, 05 Jun 2025 22:02:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,mhocko@suse.com,johannes.thumshirn@wdc.com,hongyu.ning@linux.intel.com,hch@lst.de,hare@suse.de,axboe@kernel.dk,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=NDAi55eqH9TfotA0ngF22pA5P/YlTFb0Hd+E0L2a452GrTRzMWSm1Zbn1NzEc3oRa
+	 TlfGX9IVAIBN+XbiZMD0sSEEF8gNYqGeaIO+D65t23VeTsgBX2oXQznasW25qVlAET
+	 /cjJMWyB6LEDZJMs+Z0chvZWk0mzn+CvfhWfDy8M=
+Date: Thu, 05 Jun 2025 22:02:52 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,baohua@kernel.org,21cnbao@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-vmstat-after-removing-nr_bounce.patch removed from -mm tree
-Message-Id: <20250606050251.8EB4CC4CEED@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-madvise-handle-madvise_lock-failure-during-race-unwinding.patch removed from -mm tree
+Message-Id: <20250606050252.D4440C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix vmstat after removing NR_BOUNCE
+     Subject: mm/madvise: handle madvise_lock() failure during race unwinding
 has been removed from the -mm tree.  Its filename was
-     mm-fix-vmstat-after-removing-nr_bounce.patch
+     mm-madvise-handle-madvise_lock-failure-during-race-unwinding.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix vmstat after removing NR_BOUNCE
-Date: Thu, 29 May 2025 13:38:32 +0300
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/madvise: handle madvise_lock() failure during race unwinding
+Date: Mon, 2 Jun 2025 10:49:26 -0700
 
-Hongyu noticed that the nr_unaccepted counter kept growing even in the
-absence of unaccepted memory on the machine.
+When unwinding race on -ERESTARTNOINTR handling of process_madvise(),
+madvise_lock() failure is ignored.  Check the failure and abort remaining
+works in the case.
 
-This happens due to a commit that removed NR_BOUNCE: it removed the
-counter from the enum zone_stat_item, but left it in the vmstat_text
-array.
-
-As a result, all counters below nr_bounce in /proc/vmstat are shifted by
-one line, causing the numa_hit counter to be labeled as nr_unaccepted.
-
-To fix this issue, remove nr_bounce from the vmstat_text array.
-
-Link: https://lkml.kernel.org/r/20250529103832.2937460-1-kirill.shutemov@linux.intel.com
-Fixes: 194df9f66db8 ("mm: remove NR_BOUNCE zone stat")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Hongyu Ning <hongyu.ning@linux.intel.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20250602174926.1074-1-sj@kernel.org
+Fixes: 4000e3d0a367 ("mm/madvise: remove redundant mmap_lock operations from process_madvise()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Barry Song <21cnbao@gmail.com>
+Closes: https://lore.kernel.org/CAGsJ_4xJXXO0G+4BizhohSZ4yDteziPw43_uF8nPXPWxUVChzw@mail.gmail.com
+Reviewed-by: Jann Horn <jannh@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/madvise.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/vmstat.c~mm-fix-vmstat-after-removing-nr_bounce
-+++ a/mm/vmstat.c
-@@ -1201,7 +1201,6 @@ const char * const vmstat_text[] = {
- 	"nr_zone_unevictable",
- 	"nr_zone_write_pending",
- 	"nr_mlock",
--	"nr_bounce",
- #if IS_ENABLED(CONFIG_ZSMALLOC)
- 	"nr_zspages",
- #endif
+--- a/mm/madvise.c~mm-madvise-handle-madvise_lock-failure-during-race-unwinding
++++ a/mm/madvise.c
+@@ -1881,7 +1881,9 @@ static ssize_t vector_madvise(struct mm_
+ 			/* Drop and reacquire lock to unwind race. */
+ 			madvise_finish_tlb(&madv_behavior);
+ 			madvise_unlock(mm, behavior);
+-			madvise_lock(mm, behavior);
++			ret = madvise_lock(mm, behavior);
++			if (ret)
++				goto out;
+ 			madvise_init_tlb(&madv_behavior, mm);
+ 			continue;
+ 		}
+@@ -1892,6 +1894,7 @@ static ssize_t vector_madvise(struct mm_
+ 	madvise_finish_tlb(&madv_behavior);
+ 	madvise_unlock(mm, behavior);
+ 
++out:
+ 	ret = (total_len - iov_iter_count(iter)) ? : ret;
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-vmstat-fix-build-with-memcg=y-and-vm_event_counters=n.patch
-mm-strictly-check-vmstat_text-array-size.patch
-mm-vmstat-utilize-designated-initializers-for-the-vmstat_text-array.patch
+mm-damon-introduce-damon_stat-module.patch
+mm-damon-introduce-damon_stat-module-fix.patch
+mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
+mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
+docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
 
