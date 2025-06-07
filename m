@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 775974C81
-	for <mm-commits@vger.kernel.org>; Sat,  7 Jun 2025 21:50:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC4C4C81
+	for <mm-commits@vger.kernel.org>; Sat,  7 Jun 2025 21:50:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749333054; cv=none; b=YiDOkN9AXOi0Wg0T08UBPpwJolyLGLlWEzEsnv8ZUfk92+zW4tmA0t3LmqwXNhEjsWspeyU2uoH0H03PxdqQv7HV4c+iIhpiT5nJCKJPRwI40ja6g3E6ji4s4t1z8gs6co+mR1RmjW+zFh+ebuXFFqxlQKedPsmyj7jWJU3+gb0=
+	t=1749333055; cv=none; b=o6FVHpBlNknV3BTbNbNVMdRr4OFVInD0yJ5Qvi/cC9CwAK9yVuvTjrq3d4s8LykQHdNNMliJFZa34B1b8cAQfYPlqAkVi+0pbQLR+iu7oKBCnPUTUp70+wCOfoPz7OYUDxdpLQBFwW6LlsB8P3aRdAGAOK5/Hc3h21D/sI5RBqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749333054; c=relaxed/simple;
-	bh=x5w67siUVBylYOIkXlORex1CAldpj2uBG9TuoR+Ep38=;
-	h=Date:To:From:Subject:Message-Id; b=DGNuBx4kmSgOxHYyQeTThuqB2ZoyaKlgDCiALUrtl8n4cZEWzzMZd1/Im/6MthhA7BhTFbZl6o8+Etg78CJNgzWvAN4Ki0vDPbgDRiIdXm6OdgA3fXgEwUxfmBgNAVqC1IuM7o7VW8GFUl9y0OyzXnLiLoUdHj4y3RbD/AiF0hU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JL7604Vt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749333055; c=relaxed/simple;
+	bh=FMucfan2n+Kmz8sNrRfMlRwHKDJatXUSuDdNJnCwj7k=;
+	h=Date:To:From:Subject:Message-Id; b=eFZvYUXfKjD7ycH9lwp2KvEaWSzW/pg3MuI1ULnxAwCNFCd7hhLq2gCdD/yUnlgVTGg/R6Wq5ggZUb6zCc3Ru8BH8Ui1AWfmPghVC+TAMhUe9L3h8T2NPZlndBfC/0o1HvCirFAPJQnFdAYUDZuVNDoOjBzL/hp4I+ATXtMV0bk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gG2VPkSC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JL7604Vt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5CF5C4CEE4;
-	Sat,  7 Jun 2025 21:50:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gG2VPkSC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09C90C4CEF0;
+	Sat,  7 Jun 2025 21:50:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749333054;
-	bh=x5w67siUVBylYOIkXlORex1CAldpj2uBG9TuoR+Ep38=;
+	s=korg; t=1749333055;
+	bh=FMucfan2n+Kmz8sNrRfMlRwHKDJatXUSuDdNJnCwj7k=;
 	h=Date:To:From:Subject:From;
-	b=JL7604VtWIBLttGn/I7uvaIc4TymTkJ9RY5oA+v/VF0g/KsQ8NfLYR516MDM5N4nH
-	 F9u7u0n/620nhVhECM6yksOYn4r4aEWf2GDcpE1uMxThb885r/7mvkaOVUjgkoVv+s
-	 +o4EvPqKUaRl0xVLSfxkNP9gcSEGLDlT9zvBrKDs=
-Date: Sat, 07 Jun 2025 14:50:53 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=gG2VPkSC5On7Yxz0leF/FTRcxQQCDzJzDHj7SrrRN/JkYlFkjA5SXJYQwGKaVd/FU
+	 sFMwE3ioQpP7pDMjUkBNtf0C+YaXI0dPOmWgoK4VqaZkD87y2kNp6OsktLQk54IqFb
+	 pJLH7j7CUmpecfCUDO5D3cyowsVuPkTAcCDM8Ayg=
+Date: Sat, 07 Jun 2025 14:50:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-huge_memory-disallow-hugepages-if-the-system-wide-thp-sysfs-settings-are-disabled.patch removed from -mm tree
-Message-Id: <20250607215053.E5CF5C4CEE4@smtp.kernel.org>
+Subject: [to-be-updated] mm-shmem-disallow-hugepages-if-the-system-wide-shmem-thp-sysfs-settings-are-disabled.patch removed from -mm tree
+Message-Id: <20250607215055.09C90C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,118 +35,88 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: huge_memory: disallow hugepages if the system-wide THP sysfs settings are disabled
+     Subject: mm: shmem: disallow hugepages if the system-wide shmem THP sysfs settings are disabled
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-disallow-hugepages-if-the-system-wide-thp-sysfs-settings-are-disabled.patch
+     mm-shmem-disallow-hugepages-if-the-system-wide-shmem-thp-sysfs-settings-are-disabled.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: huge_memory: disallow hugepages if the system-wide THP sysfs settings are disabled
-Date: Thu, 5 Jun 2025 16:00:58 +0800
+Subject: mm: shmem: disallow hugepages if the system-wide shmem THP sysfs settings are disabled
+Date: Thu, 5 Jun 2025 16:00:59 +0800
 
-Patch series "fix MADV_COLLAPSE issue if THP settings are disabled", v2.
-
-As we discussed in the previous thread [1], the MADV_COLLAPSE will ignore
-the system-wide anon/shmem THP sysfs settings, which means that even
-though we have disabled the anon/shmem THP configuration, MADV_COLLAPSE
-will still attempt to collapse into a anon/shmem THP.  This violates the
-rule we have agreed upon: never means never.  This patch set will address
-this issue.
-
-
-This patch (of 2):
-
-MADV_COLLAPSE will ignore the system-wide Anon THP sysfs settings, which
-means that even though we have disabled the Anon THP configuration,
-MADV_COLLAPSE will still attempt to collapse into a Anon THP.  This
+MADV_COLLAPSE will ignore the system-wide shmem THP sysfs settings, which
+means that even though we have disabled the shmem THP configuration,
+MADV_COLLAPSE will still attempt to collapse into a shmem THP.  This
 violates the rule we have agreed upon: never means never.
 
 Another rule for madvise, referring to David's suggestion: “allowing for
 collapsing in a VM without VM_HUGEPAGE in the "madvise" mode would be
 fine".
 
-To address this issue, should check whether the Anon THP configuration is
-disabled in thp_vma_allowable_orders(), even when the TVA_ENFORCE_SYSFS
-flag is set.
+Then the current strategy is:
 
-In summary, the current strategy is:
+For shmem, if none of always, madvise, within_size, and inherit have
+enabled PMD-sized THP, then MADV_COLLAPSE will be prohibited from
+collapsing PMD-sized THP.
 
-1. If always & orders == 0, and madvise & orders == 0, and
-   hugepage_global_enabled() == false (global THP settings are not
-   enabled), it means mTHP of that orders are prohibited from being used,
-   then madvise_collapse() is forbidden for that orders.
+For tmpfs, if the mount option is set with the 'huge=never' parameter,
+then MADV_COLLAPSE will be prohibited from collapsing PMD-sized THP.
 
-2. If always & orders == 0, and madvise & orders == 0, and
-   hugepage_global_enabled() == true (global THP settings are enabled),
-   and inherit & orders == 0, it means mTHP of that orders are still
-   prohibited from being used, thus madvise_collapse() is not allowed for
-   that orders.
-
-Link: https://lkml.kernel.org/r/8eefb0809c598fadaa4a022634fba5689a4f3257.1749109709.git.baolin.wang@linux.alibaba.com
-Link: https://lore.kernel.org/all/1f00fdc3-a3a3-464b-8565-4c1b23d34f8d@linux.alibaba.com/ [1]
+Link: https://lkml.kernel.org/r/39d7617a6142c6091f233357171c5793e0992d36.1749109709.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    2 +-
+ mm/shmem.c       |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-disallow-hugepages-if-the-system-wide-thp-sysfs-settings-are-disabled
-+++ a/include/linux/huge_mm.h
-@@ -287,20 +287,35 @@ unsigned long thp_vma_allowable_orders(s
- 				       unsigned long orders)
- {
- 	/* Optimization to check if required orders are enabled early. */
--	if ((tva_flags & TVA_ENFORCE_SYSFS) && vma_is_anonymous(vma)) {
--		unsigned long mask = READ_ONCE(huge_anon_orders_always);
-+	if (vma_is_anonymous(vma)) {
-+		unsigned long always = READ_ONCE(huge_anon_orders_always);
-+		unsigned long madvise = READ_ONCE(huge_anon_orders_madvise);
-+		unsigned long inherit = READ_ONCE(huge_anon_orders_inherit);
-+		unsigned long mask = always | madvise;
+--- a/mm/huge_memory.c~mm-shmem-disallow-hugepages-if-the-system-wide-shmem-thp-sysfs-settings-are-disabled
++++ a/mm/huge_memory.c
+@@ -166,7 +166,7 @@ unsigned long __thp_vma_allowable_orders
+ 	 * own flags.
+ 	 */
+ 	if (!in_pf && shmem_file(vma->vm_file))
+-		return shmem_allowable_huge_orders(file_inode(vma->vm_file),
++		return orders & shmem_allowable_huge_orders(file_inode(vma->vm_file),
+ 						   vma, vma->vm_pgoff, 0,
+ 						   !enforce_sysfs);
  
-+		/*
-+		 * If the system-wide THP/mTHP sysfs settings are disabled,
-+		 * then we should never allow hugepages.
-+		 */
-+		if (!(mask & orders) && !(hugepage_global_enabled() && (inherit & orders)))
-+			return 0;
-+
-+		if (!(tva_flags & TVA_ENFORCE_SYSFS))
-+			goto skip;
-+
-+		mask = always;
- 		if (vm_flags & VM_HUGEPAGE)
--			mask |= READ_ONCE(huge_anon_orders_madvise);
-+			mask |= madvise;
- 		if (hugepage_global_always() ||
- 		    ((vm_flags & VM_HUGEPAGE) && hugepage_global_enabled()))
--			mask |= READ_ONCE(huge_anon_orders_inherit);
-+			mask |= inherit;
+--- a/mm/shmem.c~mm-shmem-disallow-hugepages-if-the-system-wide-shmem-thp-sysfs-settings-are-disabled
++++ a/mm/shmem.c
+@@ -625,7 +625,7 @@ static unsigned int shmem_huge_global_en
+ 		return 0;
+ 	if (shmem_huge == SHMEM_HUGE_DENY)
+ 		return 0;
+-	if (shmem_huge_force || shmem_huge == SHMEM_HUGE_FORCE)
++	if (shmem_huge == SHMEM_HUGE_FORCE)
+ 		return maybe_pmd_order;
  
- 		orders &= mask;
- 		if (!orders)
- 			return 0;
- 	}
+ 	/*
+@@ -660,7 +660,7 @@ static unsigned int shmem_huge_global_en
  
-+skip:
- 	return __thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
- }
+ 		fallthrough;
+ 	case SHMEM_HUGE_ADVISE:
+-		if (vm_flags & VM_HUGEPAGE)
++		if (shmem_huge_force || (vm_flags & VM_HUGEPAGE))
+ 			return maybe_pmd_order;
+ 		fallthrough;
+ 	default:
+@@ -1783,7 +1783,7 @@ unsigned long shmem_allowable_huge_order
+ 	/* Allow mTHP that will be fully within i_size. */
+ 	mask |= shmem_get_orders_within_size(inode, within_size_orders, index, 0);
  
+-	if (vm_flags & VM_HUGEPAGE)
++	if (shmem_huge_force || (vm_flags & VM_HUGEPAGE))
+ 		mask |= READ_ONCE(huge_shmem_orders_madvise);
+ 
+ 	if (global_orders > 0)
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch
-mm-shmem-disallow-hugepages-if-the-system-wide-shmem-thp-sysfs-settings-are-disabled.patch
 
