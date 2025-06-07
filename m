@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1E782F3E
-	for <mm-commits@vger.kernel.org>; Sat,  7 Jun 2025 21:24:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71B4B35957
+	for <mm-commits@vger.kernel.org>; Sat,  7 Jun 2025 21:32:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749331454; cv=none; b=Z/yjtCYpC41nUQzF3qc+Wk1hb/ZcSrZbDFe5QO5mxnz7sqMgiPZvtEgObK4i3/zyPwkJjHGaEDa+NuuhsGrdIDsQsf55PUDiT/GX/sR5AaRG8f+S9XrL7SvPHxCtU7whIjVHF5VCIqbTz0Bou/B8WiI0CFwgRKgt8bc9oE4n7DU=
+	t=1749331941; cv=none; b=bnITowVWDJcbv8d2+JN4DDPO8tPG+7qg9runB/2O/FLfGQuRazPw66+NMaEGNrRnXBFlKbCjYaW7uxNEKAD1WMzHmLk2h1egQ/Bp5PGnHGpb4VrUuRcPLz3XB/hBZDgNNc1N7+PXlVPoxz3s8a5elv6T+0905hsJ14DoH1TKOOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749331454; c=relaxed/simple;
-	bh=UIqbq7bYlnwDe/fbt37q2JMCcejCDjdEEwmW4s33LFs=;
-	h=Date:To:From:Subject:Message-Id; b=UpsNo9vORMJXA9UukFSmZuyOIHxoj+gHbfJIO+9QzOwJicqefLXTxZubX2hkLCvGjSE8rGIt3z0dGpKoABsp8+kikqQ+fpxrk3Jo6iLDjie+okU7WJypC7hdMSSgvux7fXWW5h3X46vXAFxgbSYvB2rUQ3JXKiLzJ2mmTHLQ148=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H3e10aEx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749331941; c=relaxed/simple;
+	bh=5kXNS2WITsyqXte7B242TTU80hsHGj3hITWb9iAEKKE=;
+	h=Date:To:From:Subject:Message-Id; b=BqxvF/9DgXXl0K0i1IuxyZLC04m7NcorUwDQPALQ51zlr8Kmg50BnyBuhr5X92CCebo1fW9klgY4noSeFeO8bXHbvhgxcl/a63D29ltRJThsDFPQYyu3dlTbIUh6mbHJ35NUm/xUhMiO/+ydmto3p4WRJMdcQUGCC7ih2BIO7P0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U5OM+Wzr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H3e10aEx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13874C4CEE4;
-	Sat,  7 Jun 2025 21:24:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U5OM+Wzr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E77A1C4CEE4;
+	Sat,  7 Jun 2025 21:32:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749331454;
-	bh=UIqbq7bYlnwDe/fbt37q2JMCcejCDjdEEwmW4s33LFs=;
+	s=korg; t=1749331941;
+	bh=5kXNS2WITsyqXte7B242TTU80hsHGj3hITWb9iAEKKE=;
 	h=Date:To:From:Subject:From;
-	b=H3e10aExx5wm0LBYNsnwaSUNUAXJYZk/rKx8AXWg+KS1EM/sSPqCs408Ywhd6Sm2l
-	 AnO9SAkXoHayUgoCxEinCb9bicaG7ha9YYUdL4tyyk49Ypqf2sPL79y/zPDr4nJfQg
-	 T0gbNnGO71x8rmJgiFtTviJ6jusr99OYwm10anFE=
-Date: Sat, 07 Jun 2025 14:24:13 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,wangfushuai@baidu.com,tz2294@columbia.edu,npache@redhat.com,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,andrii@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=U5OM+WzrsWjXHdVUwraFtI9UXEym92OsVii1yJBpa/9BKXSphY1RMGlEHm1SbBQJq
+	 ySXGFHTeqXAxjxJU/izaYpkMvcbblXsqr7ehZ9YY+TS5jRTXQE2KyQAq514J3RZS8W
+	 N8K8z3eBdCQpay4RBQchXT8n7//Ub67Z+PettxD0=
+Date: Sat, 07 Jun 2025 14:32:20 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,liam.howlett@oracle.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,broonie@kernel.org,andrii@kernel.org,wangfushuai@baidu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-proc-update-vmflags-documentation-in-smaps-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250607212414.13874C4CEE4@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250607213220.E77A1C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs-proc-update-vmflags-documentation-in-smaps-fix
+     Subject: fs/proc/task_mmu: add VM_SHADOW_STACK for arm64 when support GCS
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     docs-proc-update-vmflags-documentation-in-smaps-fix.patch
+     fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-proc-update-vmflags-documentation-in-smaps-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,44 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-proc-update-vmflags-documentation-in-smaps-fix
-Date: Sat Jun  7 02:20:52 PM PDT 2025
+From: wangfushuai <wangfushuai@baidu.com>
+Subject: fs/proc/task_mmu: add VM_SHADOW_STACK for arm64 when support GCS
+Date: Sat, 7 Jun 2025 21:15:25 +0800
 
-add "dp" (VM_DROPPABLE), per Tal
+The recent commit adding VM_SHADOW_STACK for arm64 GCS did not update
+the /proc/[pid]/smaps display logic to show the "ss" flag for GCS pages.
+This patch adds the necessary condition to display "ss" flag.
 
-Cc: Tal Zussman <tz2294@columbia.edu>
+Link: https://lkml.kernel.org/r/20250607131525.76746-1-wangfushuai@baidu.com
+Fixes: ae80e1629aea ("mm: Define VM_SHADOW_STACK for arm64 when we support GCS")
+Signed-off-by: wangfushuai <wangfushuai@baidu.com>
 Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: wangfushuai <wangfushuai@baidu.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/task_mmu.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/filesystems/proc.rst~docs-proc-update-vmflags-documentation-in-smaps-fix
-+++ a/Documentation/filesystems/proc.rst
-@@ -610,6 +610,7 @@ encoded manner. The codes are the follow
-     ss    shadow/guarded control stack page
-     sl    sealed
-     lf    lock on fault pages
-+    dp    always lazily freeable mapping
-     ==    =======================================
- 
- Note that there is no guarantee that every flag and associated mnemonic will
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs
++++ a/fs/proc/task_mmu.c
+@@ -994,6 +994,9 @@ static void show_smap_vma_flags(struct s
+ #ifdef CONFIG_ARCH_HAS_USER_SHADOW_STACK
+ 		[ilog2(VM_SHADOW_STACK)] = "ss",
+ #endif
++#if defined(CONFIG_ARM64_GCS)
++		[ilog2(VM_SHADOW_STACK)] = "ss",
++#endif
+ #if defined(CONFIG_64BIT) || defined(CONFIG_PPC32)
+ 		[ilog2(VM_DROPPABLE)] = "dp",
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangfushuai@baidu.com are
 
-docs-proc-update-vmflags-documentation-in-smaps-fix.patch
-mm-add-zblock-allocator-fix.patch
-mm-add-zblock-allocator-fix-2.patch
-mm-add-zblock-allocator-fix-2-fix.patch
-mm-add-zblock-allocator-fix-3.patch
-mm-zblock-avoid-failing-the-build-fix.patch
+docs-proc-update-vmflags-documentation-in-smaps.patch
+fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs.patch
 
