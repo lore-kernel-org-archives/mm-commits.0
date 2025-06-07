@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED0636D
-	for <mm-commits@vger.kernel.org>; Sat,  7 Jun 2025 22:50:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64CD136D
+	for <mm-commits@vger.kernel.org>; Sat,  7 Jun 2025 22:50:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749336650; cv=none; b=Q3nh5DIB+6R1kBBxW8r6A1xNqDnFSF8KvO7FIA1ui6XJP7yB04IH5WLvVRrvFPdgd3Glf91Oge1ybwiaU1EAit3u3QAURsnB47XbojkDaukRbPfqMBlHErmaI0dHD9+mEPr502jE808CkiHVDo8cbAa+HBTBQAdNMzd180VnRX8=
+	t=1749336652; cv=none; b=CCVsIT8/cN3ms544R63wzmUzcQZp+IhUvTz8wEsURPIplMg6n1miQgxuhNs56SpsPjp1IZwuJRnq5M4u5PM8LfSTrjY++PBoaizRIjiu3A+gQj2ZRe/obDLHnVA1XRRo3hyJ+j6Aq5MlOGBqMdDLoXUUPioDTzSa18K0L5nLxbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749336650; c=relaxed/simple;
-	bh=Dcf1PBXKowhQwwJoT97v668zVqXBewkqdGwbL9gSxO8=;
-	h=Date:To:From:Subject:Message-Id; b=BKkWWxM7BgJn5Szm7zuGN5TvyWxWeqWqZqf8injiWaVnjHnVJoYKOXRnC5R404Mo8MRY8O73lbOsYdZeZFtRhlf55iRbji3Xz/ipsnIejgAn3qDGQlWPz+TARlvmj680YC+RjX9g4+GeXcpSi1f76Rf0SgWO3A0fiVcUU2j+rcA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EDqHpNoG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749336652; c=relaxed/simple;
+	bh=dLCQF5bqwVcc7mXLqAFmysafMt3Sp3KX8HLVYmqVcT4=;
+	h=Date:To:From:Subject:Message-Id; b=u9JZJCaaK6Y2qWoKEdxnuSsj/fqWERic3LcPHBm36lTxcrdHdk3m8Yw+KKAMG8iIeBGehr96jotAPv8u7JlQkRNRwQtLyMGfHQ7ak0/yy+huweUXFG7ftUEfrkBZYsD6IbR3r/7/AzyFzOCBFVQPZFIaHE6xZEh3VI2i78yS3rc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cH06LWFr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EDqHpNoG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C14FC4CEE4;
-	Sat,  7 Jun 2025 22:50:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cH06LWFr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C82E0C4CEE4;
+	Sat,  7 Jun 2025 22:50:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749336649;
-	bh=Dcf1PBXKowhQwwJoT97v668zVqXBewkqdGwbL9gSxO8=;
+	s=korg; t=1749336651;
+	bh=dLCQF5bqwVcc7mXLqAFmysafMt3Sp3KX8HLVYmqVcT4=;
 	h=Date:To:From:Subject:From;
-	b=EDqHpNoGXSpTdbhmpKnjKcM8UZryRAkXxUOMFng3Zwly2yAMY4cCDAtwZqVSZKWkj
-	 JSBG7LZ21qRkjEuGBNACnmuQynKqyTTDByjJCLsKyysmmGdaJWJZastkDkTuKgW6/m
-	 2fejflA/wftmT1WDl3nx2v82X440cgZuvHwGBbdc=
-Date: Sat, 07 Jun 2025 15:50:48 -0700
+	b=cH06LWFrkc7f92B75FgWzynfjVj/4O+2eHLErH7XRfZKsfEcUKPbpYiKTiKHrrex/
+	 HcORsXucC3+N+h9YvhtqLfhDys0Si4sXB8P+tjGIJwhoY+v6dyGfr4sIs/3nSSFHFl
+	 g/NHiOBWnlpBORSkLmCDESjgj65TpFwGt/pdvyX0=
+Date: Sat, 07 Jun 2025 15:50:51 -0700
 To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,jserv@ccns.ncku.edu.tw,eleanor15x@gmail.com,aou@eecs.berkeley.edu,alex@ghiti.fr,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-gcd-use-static-key-to-select-implementation-at-runtime.patch added to mm-nonmm-unstable branch
-Message-Id: <20250607225049.6C14FC4CEE4@smtp.kernel.org>
+Subject: + riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch added to mm-nonmm-unstable branch
+Message-Id: <20250607225051.C82E0C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/math/gcd: use static key to select implementation at runtime
+     Subject: riscv: optimize gcd() code size when CONFIG_RISCV_ISA_ZBB is disabled
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-math-gcd-use-static-key-to-select-implementation-at-runtime.patch
+     riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-gcd-use-static-key-to-select-implementation-at-runtime.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/math/gcd: use static key to select implementation at runtime
-Date: Fri, 6 Jun 2025 21:47:56 +0800
+Subject: riscv: optimize gcd() code size when CONFIG_RISCV_ISA_ZBB is disabled
+Date: Fri, 6 Jun 2025 21:47:57 +0800
 
-Patch series "Optimize GCD performance on RISC-V by selecting
-implementation at runtime", v3.
+The binary GCD implementation depends on efficient ffs(), which on RISC-V
+requires hardware support for the Zbb extension.  When
+CONFIG_RISCV_ISA_ZBB is not enabled, the kernel will never use binary GCD,
+as runtime logic will always fall back to the odd-even implementation.
 
-On platforms like RISC-V, the compiler may generate hardware FFS
-instructions even if the underlying CPU does not actually support them. 
-Currently, the GCD implementation is chosen at compile time based on
-CONFIG_CPU_NO_EFFICIENT_FFS, which can result in suboptimal behavior on
-such systems.
+To avoid compiling unused code and reduce code size, select
+CONFIG_CPU_NO_EFFICIENT_FFS when CONFIG_RISCV_ISA_ZBB is not set.
 
-Introduce a static key, efficient_ffs_key, to enable runtime selection
-between the binary GCD (using ffs) and the odd-even GCD implementation. 
-This allows the kernel to default to the faster binary GCD when FFS is
-efficient, while retaining the ability to fall back when needed.
+$ ./scripts/bloat-o-meter ./lib/math/gcd.o.old ./lib/math/gcd.o.new
+add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-274 (-274)
+Function                                     old     new   delta
+gcd                                          360      86    -274
+Total: Before=384, After=110, chg -71.35%
 
-Link: https://lkml.kernel.org/r/20250606134758.1308400-1-visitorckw@gmail.com
-Link: https://lkml.kernel.org/r/20250606134758.1308400-2-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20250606134758.1308400-3-visitorckw@gmail.com
 Co-developed-by: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
@@ -86,90 +85,22 @@ Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gcd.h |    3 +++
- lib/math/gcd.c      |   27 +++++++++++++++------------
- 2 files changed, 18 insertions(+), 12 deletions(-)
+ arch/riscv/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/gcd.h~lib-math-gcd-use-static-key-to-select-implementation-at-runtime
-+++ a/include/linux/gcd.h
-@@ -3,6 +3,9 @@
- #define _GCD_H
- 
- #include <linux/compiler.h>
-+#include <linux/jump_label.h>
-+
-+DECLARE_STATIC_KEY_TRUE(efficient_ffs_key);
- 
- unsigned long gcd(unsigned long a, unsigned long b) __attribute_const__;
- 
---- a/lib/math/gcd.c~lib-math-gcd-use-static-key-to-select-implementation-at-runtime
-+++ a/lib/math/gcd.c
-@@ -11,22 +11,16 @@
-  * has decent hardware division.
-  */
- 
-+DEFINE_STATIC_KEY_TRUE(efficient_ffs_key);
-+
- #if !defined(CONFIG_CPU_NO_EFFICIENT_FFS)
- 
- /* If __ffs is available, the even/odd algorithm benchmarks slower. */
- 
--/**
-- * gcd - calculate and return the greatest common divisor of 2 unsigned longs
-- * @a: first value
-- * @b: second value
-- */
--unsigned long gcd(unsigned long a, unsigned long b)
-+static unsigned long binary_gcd(unsigned long a, unsigned long b)
- {
- 	unsigned long r = a | b;
- 
--	if (!a || !b)
--		return r;
--
- 	b >>= __ffs(b);
- 	if (b == 1)
- 		return r & -r;
-@@ -44,9 +38,15 @@ unsigned long gcd(unsigned long a, unsig
- 	}
- }
- 
--#else
-+#endif
- 
- /* If normalization is done by loops, the even/odd algorithm is a win. */
-+
-+/**
-+ * gcd - calculate and return the greatest common divisor of 2 unsigned longs
-+ * @a: first value
-+ * @b: second value
-+ */
- unsigned long gcd(unsigned long a, unsigned long b)
- {
- 	unsigned long r = a | b;
-@@ -54,6 +54,11 @@ unsigned long gcd(unsigned long a, unsig
- 	if (!a || !b)
- 		return r;
- 
-+#if !defined(CONFIG_CPU_NO_EFFICIENT_FFS)
-+	if (static_branch_likely(&efficient_ffs_key))
-+		return binary_gcd(a, b);
-+#endif
-+
- 	/* Isolate lsbit of r */
- 	r &= -r;
- 
-@@ -80,6 +85,4 @@ unsigned long gcd(unsigned long a, unsig
- 	}
- }
- 
--#endif
--
- EXPORT_SYMBOL_GPL(gcd);
+--- a/arch/riscv/Kconfig~riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled
++++ a/arch/riscv/Kconfig
+@@ -95,6 +95,7 @@ config RISCV
+ 	select CLINT_TIMER if RISCV_M_MODE
+ 	select CLONE_BACKWARDS
+ 	select COMMON_CLK
++	select CPU_NO_EFFICIENT_FFS if !RISCV_ISA_ZBB
+ 	select CPU_PM if CPU_IDLE || HIBERNATION || SUSPEND
+ 	select EDAC_SUPPORT
+ 	select FRAME_POINTER if PERF_EVENTS || (FUNCTION_TRACER && !DYNAMIC_FTRACE)
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
