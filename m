@@ -1,73 +1,91 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EB1113E02D
-	for <mm-commits@vger.kernel.org>; Sun,  8 Jun 2025 22:31:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB2D13C8FF
+	for <mm-commits@vger.kernel.org>; Sun,  8 Jun 2025 22:31:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749421896; cv=none; b=JAuoccR5rlk1eMo6KBiG6NHHM1EZf91XgxX4AHYm/ku8/UB4oMN70zTRwXjTmjmMRaICGStqxOjc3uTflbF1hDHY5lysWVCWib7Ip/Wpa2El7kZNj05Nvbi/MZG4JXVflu6090muNbSDQlrfBzNorw9F47PQGxCNotE+1upv0Qg=
+	t=1749421906; cv=none; b=YtZJNvsmrTVDO4sVd2fxowT158juH3jU0mWhpZoHqe4Zg25k//q9cF7qyW6k90zphADbSsrcelIe8RNM71N8kwzvTShdO7Da+o2IYrirtqFjD/TkILi3PSt19k06H5WOnkNmfw8etTTM2b/SioXgHHct1o4rXJmRgA85xSZbsHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749421896; c=relaxed/simple;
-	bh=jL7i1DnkbJqpXbu/Qz6ST8q8bjNHImsDdaqBbfcJSYQ=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=PUaRC+hDQnKJddGqIETCpMzDraavZqfFdiLsYujc9+7SXHSF0Au59matD/y25FOYvf0afppfYZ9fgQ1fmgAZSUTIUk/CrinjERnVw42qWVpiH9X2g7cUhYDT9aMyugIKsO0f6houowluvUH/9soXZtuo4eIx6m66sDFfOKHutoc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aJ8/iqlh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749421906; c=relaxed/simple;
+	bh=piyXXw85EWwUJSvdpweu8/KxEeNR1UNJ7rq6x2nDAmo=;
+	h=Date:To:From:Subject:Message-Id; b=a8MHnnYtKNg4LhiUsQbv74aqlEKPfHrZHCIYe/SBXBIslGN4vHdNcaRKgyIWA1EvBncW3yjpn9gJ6may+SYHxS5WdSL0K+vGzkSJBC9kjYsyTBmPYp/0yRjse5/lhJYBKLuwktPxlJcoh08ad7MiOn7Pnab7xvKTijGK+uVx9is=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wILmiLSR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aJ8/iqlh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D51C4CEEE;
-	Sun,  8 Jun 2025 22:31:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wILmiLSR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 336ABC4CEEE;
+	Sun,  8 Jun 2025 22:31:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749421895;
-	bh=jL7i1DnkbJqpXbu/Qz6ST8q8bjNHImsDdaqBbfcJSYQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=aJ8/iqlhrVwG8s4bYkyuc45P7CDX0s9ceK14cXE2Laf0WHVYNwNAai5+6BIKaV0vB
-	 V69L8KNPys0jLnSO9HlyrAstz2fYViuk9v/g6vJCs2Hh0XEmGfeMI0bqwVfVE/4kpn
-	 WsQ38A4hSx2ATq7jsYPmsvm6LyyfldKyupSfzaj8=
-Date: Sun, 8 Jun 2025 15:31:33 -0700
+	s=korg; t=1749421906;
+	bh=piyXXw85EWwUJSvdpweu8/KxEeNR1UNJ7rq6x2nDAmo=;
+	h=Date:To:From:Subject:From;
+	b=wILmiLSRe0pKBex+rUo8z+pE9iQOnhzSboUC6IhV7V2zsyqqH4ZgcDlEzZ/2yYt6l
+	 9BS6N36gginhxuI9NmaFaLivmXq7RzGBjKWLiQLgkLkHExbPeUwDscIilCjVMmpeMK
+	 QjY4xJ13uVaV+zBtJScYD+F1Zh5WVA2O20gZ8cig=
+Date: Sun, 08 Jun 2025 15:31:45 -0700
+To: mm-commits@vger.kernel.org,wangfushuai@baidu.com,osalvador@suse.de,liam.howlett@oracle.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,broonie@kernel.org,andrii@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Mark Brown <broonie@kernel.org>
-Cc: mm-commits@vger.kernel.org, osalvador@suse.de, liam.howlett@oracle.com,
- david@redhat.com, christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
- andrii@kernel.org, wangfushuai@baidu.com
-Subject: Re: +
- fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs.patch added
- to mm-hotfixes-unstable branch
-Message-Id: <20250608153133.c34d47605c3a2e29e5115f48@linux-foundation.org>
-In-Reply-To: <1ea4c4aa-d69a-42cd-a946-6f56d3b27f24@sirena.org.uk>
-References: <20250607213220.E77A1C4CEE4@smtp.kernel.org>
-	<1ea4c4aa-d69a-42cd-a946-6f56d3b27f24@sirena.org.uk>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs-fix.patch removed from -mm tree
+Message-Id: <20250608223146.336ABC4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Sun, 8 Jun 2025 23:21:19 +0100 Mark Brown <broonie@kernel.org> wrote:
 
-> On Sat, Jun 07, 2025 at 02:32:20PM -0700, Andrew Morton wrote:
-> 
-> > @@ -994,6 +994,9 @@ static void show_smap_vma_flags(struct s
-> >  #ifdef CONFIG_ARCH_HAS_USER_SHADOW_STACK
-> >  		[ilog2(VM_SHADOW_STACK)] = "ss",
-> >  #endif
-> > +#if defined(CONFIG_ARM64_GCS)
-> > +		[ilog2(VM_SHADOW_STACK)] = "ss",
-> > +#endif
-> 
-> This is redundant and will lead to duplicate entries, ARM64_GCS selects
-> ARCH_HAS_USER_SHADOW_STACK.
+The quilt patch titled
+     Subject: fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs-fix
+has been removed from the -mm tree.  Its filename was
+     fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs-fix.patch
 
-Thanks.  Thought so, was too lazy to check the Kconfig.
+This patch was dropped because it was folded into fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs.patch
 
-My modified version:
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs-fix
+Date: Sat Jun  7 02:32:35 PM PDT 2025
 
-#if defined(CONFIG_ARCH_HAS_USER_SHADOW_STACK) || defined (CONFIG_ARM64_GCS)
-		[ilog2(VM_SHADOW_STACK)] = "ss",
-#endif
+simplify ifdeffery
 
-fixes this but is only useful if the Kconfig later gets screwed up.  I
-guess I'll drop it all.
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: wangfushuai <wangfushuai@baidu.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/proc/task_mmu.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs-fix
++++ a/fs/proc/task_mmu.c
+@@ -991,10 +991,7 @@ static void show_smap_vma_flags(struct s
+ #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_MINOR
+ 		[ilog2(VM_UFFD_MINOR)]	= "ui",
+ #endif /* CONFIG_HAVE_ARCH_USERFAULTFD_MINOR */
+-#ifdef CONFIG_ARCH_HAS_USER_SHADOW_STACK
+-		[ilog2(VM_SHADOW_STACK)] = "ss",
+-#endif
+-#if defined(CONFIG_ARM64_GCS)
++#if defined(CONFIG_ARCH_HAS_USER_SHADOW_STACK) || defined (CONFIG_ARM64_GCS)
+ 		[ilog2(VM_SHADOW_STACK)] = "ss",
+ #endif
+ #if defined(CONFIG_64BIT) || defined(CONFIG_PPC32)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+docs-proc-update-vmflags-documentation-in-smaps-fix.patch
+fs-proc-task_mmu-add-vm_shadow_stack-for-arm64-when-support-gcs.patch
+drivers-rapidio-rio_cmc-prevent-possible-used-uninitialized.patch
+mm-add-zblock-allocator-fix.patch
+mm-add-zblock-allocator-fix-2.patch
+mm-add-zblock-allocator-fix-2-fix.patch
+mm-add-zblock-allocator-fix-3.patch
+mm-zblock-avoid-failing-the-build-fix.patch
+
