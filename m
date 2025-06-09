@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE11117C21C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 02:27:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB6B123C4EB
+	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 02:31:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749436031; cv=none; b=Y4al00ffCzBZARCqI4J4XG1zcuSxt5Q7+fKh3/oOPcGyhRL68ZRP6IPSbkiY049ep8ANSv+2sRtJHfH5sWgw+Utj8EM9QxmPedzMoDBkKDe7wUDvrz0ZYbnZHSqBjD2KMKT/ZBWAoWtGhKYDomw+j95TLIgTvTY+MP8I6nFf3YI=
+	t=1749436282; cv=none; b=XwCbZ/GtPtionmTWc5bzvoACqCkVAEMpgv3TcLZ+Du1Gb/fCf4ZYy4BriFikqXqL6QNmU9/mD6RW5H2ILqHq53YDV5DBXWev7pmKWvgKjyjV7DWo6S46ZiqPEjwigYeuJGWvQETO6XDFRLuI2PppWqKBp9My3h0O4PSlvgmzSdA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749436031; c=relaxed/simple;
-	bh=y9zMG7JnGSlmqgLXGf+NnQgybc+H2x+pskZcZRISGQ8=;
-	h=Date:To:From:Subject:Message-Id; b=EhgZlDg1lQ2jfNYX6HfPctShjQLoBTRAEpaLeaSPBvP0xOVgTDXu+gupoYpvWBniR2BJUVIcfYyi4yEi709iTnPtobr8Kv3O0/+HJjB8LywUYz0qNf8s0/Nhvynqj8iw9HGiyicrhA/m57mhO9wYiyV6qes2AnWsAidMZFPVMoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YF61Ytqj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749436282; c=relaxed/simple;
+	bh=6Tpy3qNH5/thRXRj0UDhIw2kJKys1dVOB+0BK/eBnII=;
+	h=Date:To:From:Subject:Message-Id; b=J0l9wB1BmBZm6Y2Q6wweUllhruGK36J1G9BnW7EK3vDOGaV9XDP5tHXVMsUqymi1hR2xK9rvqPk/bVhfTwCcUduc6gkKoBQotvzRupQ0oGuvFeudIT9wUnT/4W3HlsPh0WtCq49Y7ZyAL+hsyj/QaFj5Sjz9b36JWTWmw2HMfRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k/FfVFab; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YF61Ytqj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FE08C4CEEE;
-	Mon,  9 Jun 2025 02:27:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k/FfVFab"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DEC3C4CEEE;
+	Mon,  9 Jun 2025 02:31:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749436030;
-	bh=y9zMG7JnGSlmqgLXGf+NnQgybc+H2x+pskZcZRISGQ8=;
+	s=korg; t=1749436282;
+	bh=6Tpy3qNH5/thRXRj0UDhIw2kJKys1dVOB+0BK/eBnII=;
 	h=Date:To:From:Subject:From;
-	b=YF61YtqjWilbrhrl4haJuZNOQg70GfJ73kN/4dNiK89AKuugUr1t/wYyZI7wAEke4
-	 u6mzPDU9FUzfVm5NxJx/m3KyTO4WJyt/TSrQ730c6Omen4wQ7rF+jX4gausQp1+kym
-	 h3TYR8wBPnfI8GQZEctoQUlnKifbJJuv9a2BoBYQ=
-Date: Sun, 08 Jun 2025 19:27:09 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=k/FfVFabA3bhfyGgoScz0UZU+nve0k2oeao5xTgsrMlf6OJKkUyKI9qeWApXk2otp
+	 XhkQ0UUqaCtJHHl5e63ROkn8coDOwk4PJCwVO+3VTWgHqYIBlgccBoFOWvhPMwKlF5
+	 cBTWj0kYCffjLv0KSfxpvDkKZ4dmhbCqCHioG/yo=
+Date: Sun, 08 Jun 2025 19:31:21 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,masahiroy@kernel.org,jack@suse.cz,brauner@kernel.org,chenhuacai@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-myself-as-a-thp-reviewer.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250609022710.5FE08C4CEEE@smtp.kernel.org>
+Subject: + init-fix-build-warnings-about-exporth.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250609023122.3DEC3C4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: Barry myself as a THP reviewer
+     Subject: init: fix build warnings about export.h
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-myself-as-a-thp-reviewer.patch
+     init-fix-build-warnings-about-exporth.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-myself-as-a-thp-reviewer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-fix-build-warnings-about-exporth.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <baohua@kernel.org>
-Subject: MAINTAINERS: Barry myself as a THP reviewer
-Date: Mon, 9 Jun 2025 12:24:42 +1200
+From: Huacai Chen <chenhuacai@loongson.cn>
+Subject: init: fix build warnings about export.h
+Date: Sun, 8 Jun 2025 22:12:35 +0800
 
-I have been actively contributing to mTHP and reviewing related patches
-for an extended period, and I would like to continue supporting patch
-reviews.
+After commit a934a57a42f64a4 ("scripts/misc-check: check missing #include
+<linux/export.h> when W=1") and 7d95680d64ac8e836c ("scripts/misc-check:
+check unnecessary #include <linux/export.h> when W=1"), we get some build
+warnings with W=1:
 
-Link: https://lkml.kernel.org/r/20250609002442.1856-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <baohua@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
+init/main.c: warning: EXPORT_SYMBOL() is used, but #include <linux/export.h> is missing
+init/initramfs.c: warning: EXPORT_SYMBOL() is used, but #include <linux/export.h> is missing
+
+So fix these build warnings for the init code.
+
+Link: https://lkml.kernel.org/r/20250608141235.155206-1-chenhuacai@loongson.cn
+Fixes: a934a57a42f64a4 ("scripts/misc-check: check missing #include <linux/export.h> when W=1")
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Reviewed-by: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ init/initramfs.c |    1 +
+ init/main.c      |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-myself-as-a-thp-reviewer
-+++ a/MAINTAINERS
-@@ -15919,6 +15919,7 @@ R:	Liam R. Howlett <Liam.Howlett@oracle.
- R:	Nico Pache <npache@redhat.com>
- R:	Ryan Roberts <ryan.roberts@arm.com>
- R:	Dev Jain <dev.jain@arm.com>
-+R:	Barry Song <baohua@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
+--- a/init/initramfs.c~init-fix-build-warnings-about-exporth
++++ a/init/initramfs.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <linux/init.h>
+ #include <linux/async.h>
++#include <linux/export.h>
+ #include <linux/fs.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+--- a/init/main.c~init-fix-build-warnings-about-exporth
++++ a/init/main.c
+@@ -13,6 +13,7 @@
+ #define DEBUG		/* Enable initcall_debug */
+ 
+ #include <linux/types.h>
++#include <linux/export.h>
+ #include <linux/extable.h>
+ #include <linux/module.h>
+ #include <linux/proc_fs.h>
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from chenhuacai@loongson.cn are
 
-maintainers-add-myself-as-a-thp-reviewer.patch
+init-fix-build-warnings-about-exporth.patch
 
