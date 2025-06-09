@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4597512B94
-	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 01:24:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE11117C21C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 02:27:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749432277; cv=none; b=sj1PXEmXBfSzTPfFRQ4sALkGDM3pgp59FxU0LFbrbjVm1TPmM/+NQQM/itNUpx5vIPRqqUCNLQiF4E7KUYSKmqOKudV81G1KFv0XHKbmqEEYU4GO5UrtRTbo4I+Ls3DdLyAckzmXANFivRabkVR6XxqYVMdnECWLKq6xAR27N4o=
+	t=1749436031; cv=none; b=Y4al00ffCzBZARCqI4J4XG1zcuSxt5Q7+fKh3/oOPcGyhRL68ZRP6IPSbkiY049ep8ANSv+2sRtJHfH5sWgw+Utj8EM9QxmPedzMoDBkKDe7wUDvrz0ZYbnZHSqBjD2KMKT/ZBWAoWtGhKYDomw+j95TLIgTvTY+MP8I6nFf3YI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749432277; c=relaxed/simple;
-	bh=F6/3pNZgJmTrSXR8HGDc5U9TfJypSnfWjJz6EyERsaE=;
-	h=Date:To:From:Subject:Message-Id; b=qIUNdj6jlCVfLBOmax/ks0LTfcrUEemwVcs3nopvDNVqQYxBkIAMAH+RajxzxxW9J54s6OCOEF1/7+hvnIUZO+JoBB54fum+R3g127jdmnBGAWtpm8SgOxvLOCgyR5AH+cqCIybY0LItu/Ocwhg0nQs6lvYFT5JKmzeWefi4Sis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K7z38Erp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749436031; c=relaxed/simple;
+	bh=y9zMG7JnGSlmqgLXGf+NnQgybc+H2x+pskZcZRISGQ8=;
+	h=Date:To:From:Subject:Message-Id; b=EhgZlDg1lQ2jfNYX6HfPctShjQLoBTRAEpaLeaSPBvP0xOVgTDXu+gupoYpvWBniR2BJUVIcfYyi4yEi709iTnPtobr8Kv3O0/+HJjB8LywUYz0qNf8s0/Nhvynqj8iw9HGiyicrhA/m57mhO9wYiyV6qes2AnWsAidMZFPVMoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YF61Ytqj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K7z38Erp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5732C4CEEE;
-	Mon,  9 Jun 2025 01:24:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YF61Ytqj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FE08C4CEEE;
+	Mon,  9 Jun 2025 02:27:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749432276;
-	bh=F6/3pNZgJmTrSXR8HGDc5U9TfJypSnfWjJz6EyERsaE=;
+	s=korg; t=1749436030;
+	bh=y9zMG7JnGSlmqgLXGf+NnQgybc+H2x+pskZcZRISGQ8=;
 	h=Date:To:From:Subject:From;
-	b=K7z38ErpolGkfqBa/W+EdEAwiiY0tXJZqaIGCSUyR2O2cWfxhNH0Ny9ErTSBd4Wz3
-	 oSy2Xz//hwYQZ8Mj0hT9t91M82szQrOAIGFhQU1mywv/MC9VpR+Uwtb+jE/Kq2m3NW
-	 NG4w+fj2NmlSVXqA0ZCAThcWjlQCfwLC3/pl+WqE=
-Date: Sun, 08 Jun 2025 18:24:36 -0700
-To: mm-commits@vger.kernel.org,ojeda@kernel.org,kees@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=YF61YtqjWilbrhrl4haJuZNOQg70GfJ73kN/4dNiK89AKuugUr1t/wYyZI7wAEke4
+	 u6mzPDU9FUzfVm5NxJx/m3KyTO4WJyt/TSrQ730c6Omen4wQ7rF+jX4gausQp1+kym
+	 h3TYR8wBPnfI8GQZEctoQUlnKifbJJuv9a2BoBYQ=
+Date: Sun, 08 Jun 2025 19:27:09 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] compiler_types-remove-unnecessary-indirection-in-compiletime_assert.patch removed from -mm tree
-Message-Id: <20250609012436.B5732C4CEEE@smtp.kernel.org>
+Subject: + maintainers-add-myself-as-a-thp-reviewer.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250609022710.5FE08C4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,59 +34,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: compiler_types: remove unnecessary indirection in compiletime_assert()
-has been removed from the -mm tree.  Its filename was
-     compiler_types-remove-unnecessary-indirection-in-compiletime_assert.patch
+The patch titled
+     Subject: MAINTAINERS: Barry myself as a THP reviewer
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-myself-as-a-thp-reviewer.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-myself-as-a-thp-reviewer.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: compiler_types: remove unnecessary indirection in compiletime_assert()
-Date: Sat, 07 Jun 2025 03:23:55 -0400
+From: Barry Song <baohua@kernel.org>
+Subject: MAINTAINERS: Barry myself as a THP reviewer
+Date: Mon, 9 Jun 2025 12:24:42 +1200
 
-compiletime_assert() is the only user of _compiletime_assert(), which uses
-__compiletime_assert() directly with no modification to arguments.  Remove
-_compiletime_assert() and use __compiletime_assert() directly.
+I have been actively contributing to mTHP and reviewing related patches
+for an extended period, and I would like to continue supporting patch
+reviews.
 
-Link: https://lkml.kernel.org/r/20250607-compiletime_assert-v1-1-a8991a9be729@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
+Link: https://lkml.kernel.org/r/20250609002442.1856-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <baohua@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler_types.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/compiler_types.h~compiler_types-remove-unnecessary-indirection-in-compiletime_assert
-+++ a/include/linux/compiler_types.h
-@@ -552,9 +552,6 @@ struct ftrace_likely_data {
- # define __compiletime_assert(condition, msg, prefix, suffix) ((void)(condition))
- #endif
- 
--#define _compiletime_assert(condition, msg, prefix, suffix) \
--	__compiletime_assert(condition, msg, prefix, suffix)
--
- /**
-  * compiletime_assert - break build and emit msg if condition is false
-  * @condition: a compile-time constant condition to check
-@@ -565,7 +562,7 @@ struct ftrace_likely_data {
-  * compiler has support to do so.
-  */
- #define compiletime_assert(condition, msg) \
--	_compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
-+	__compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
- 
- #define compiletime_assert_atomic_type(t)				\
- 	compiletime_assert(__native_word(t),				\
+--- a/MAINTAINERS~maintainers-add-myself-as-a-thp-reviewer
++++ a/MAINTAINERS
+@@ -15919,6 +15919,7 @@ R:	Liam R. Howlett <Liam.Howlett@oracle.
+ R:	Nico Pache <npache@redhat.com>
+ R:	Ryan Roberts <ryan.roberts@arm.com>
+ R:	Dev Jain <dev.jain@arm.com>
++R:	Barry Song <baohua@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-userfaultfd-correctly-prevent-registering-vm_droppable-regions.patch
-userfaultfd-remove-vm_bug_ons.patch
-userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd.patch
-userfaultfd-remove-uffd_cloexec-uffd_nonblock-and-uffd_flags_set.patch
+maintainers-add-myself-as-a-thp-reviewer.patch
 
