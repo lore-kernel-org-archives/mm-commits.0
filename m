@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF59E8F40;
-	Mon,  9 Jun 2025 22:42:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5280C3597B
+	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 22:47:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749508967; cv=none; b=GYrcPfriX9LaCba+s9dhMJlOjGKAA3QSO9udU2FPAR9qylClovsthhKOQi8d0qbR23DBtOQJSVPLjYujVVNYvH+aJRtjJd11wZy13oe0FbV4Dv3F0SdPAMv/aGbJ/X75Jzu74by1u51U9LXgQbJ3d6LaJ8GZHDGQDPfRep/rVsE=
+	t=1749509276; cv=none; b=UVPApOld0vakcH4US0Gaw6p3o/AmztN6Ur+QOhq7mYlX8xc5r/NpiwWBaP3FIunqYA0NgfqRVzVNEtSAk6rCEvVOyrzz+n8YmoNPxSXj8EKp71FR0cjGCYORh40+RIuhkzwpfrY1lhgi9wRMnSv8Mlox9xwvcGve6w8KwdDmtn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749508967; c=relaxed/simple;
-	bh=tG8S79O/d0MRs2wfzT76tAbN7FcvA409ZGFr3n7HuKU=;
-	h=Date:To:From:Subject:Message-Id; b=SG1Nkm5iaSt8q6TXjk4XkRNu/r/cUy7bNkbEUWXMttu2xtm5KNbuQQHphXfr8fj/fUDZ+XyH1AfMCgmOU4RE1V14WR4Sfqecpyh5fz8tuol51uuenyjgnrNw9A5r3GYJoDOV9zXvWdIZoCsNifoYCxuWRr55Ejlb+K5uVo/PPds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RAVZpj7Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749509276; c=relaxed/simple;
+	bh=DagJTGMCc0HfGr0g9phivZrY850IL1RXA/cL7PXvZLg=;
+	h=Date:To:From:Subject:Message-Id; b=mGj4MIqKJSerXkUM33u1WSMcvoICMgDtnfQrzYkTHUsqb/ZlZUTNUmNOYdPn0Rmaf+6L9O2CbNgNlKmGla7dnc5xKbyraTeBxbkQLel42aZfmI0Z4ER1dITXVYjA7qvh2OB2t4naspLbphVG23Qyiexl17wmsrmCZqyJBLjoAFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=14018Vyq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RAVZpj7Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3889CC4CEEB;
-	Mon,  9 Jun 2025 22:42:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="14018Vyq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD88C4CEEB;
+	Mon,  9 Jun 2025 22:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749508966;
-	bh=tG8S79O/d0MRs2wfzT76tAbN7FcvA409ZGFr3n7HuKU=;
+	s=korg; t=1749509275;
+	bh=DagJTGMCc0HfGr0g9phivZrY850IL1RXA/cL7PXvZLg=;
 	h=Date:To:From:Subject:From;
-	b=RAVZpj7ZNfEp2Vl0BcZxCm9JafKoUa5+qvbi3e838xuzpOYqCGbQYM/G6yJTxC11a
-	 BxTbKHDSjUg7fPoUCM/zpvkKpAWnvKmihpErG3fD8clYMzG5Y/t83O+KThi/XH3oaq
-	 xieMbKMY0LS1qow6qoiTyxKbFf4xswl/rdx8AZGY=
-Date: Mon, 09 Jun 2025 15:42:45 -0700
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=14018VyqpNQaHGkCpkR1dvKwRP/yCEviWNTIuscNwWvvM41L4+iTuvz/0BvxFy6f+
+	 Uukw1dD8oFF+xt2V+/ChfQFu4Mkb5zeZUsZ+UgXeKpyfJNCZ6np7/DhyWbjD7DIXvN
+	 F0oCBImYo0xw38UtRBhVyN9rEjVLQY9hjtb/I29Q=
+Date: Mon, 09 Jun 2025 15:47:55 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,pfalcato@suse.de,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250609224246.3889CC4CEEB@smtp.kernel.org>
+Subject: + mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250609224755.BDD88C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem, swap: fix softlockup with mTHP swapin
+     Subject: mm: add mmap_prepare() compatibility layer for nested file systems
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
+     mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,191 +58,241 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem, swap: fix softlockup with mTHP swapin
-Date: Tue, 10 Jun 2025 01:17:51 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: add mmap_prepare() compatibility layer for nested file systems
+Date: Mon, 9 Jun 2025 17:57:49 +0100
 
-Following softlockup can be easily reproduced on my test machine with:
+Nested file systems, that is those which invoke call_mmap() within their
+own f_op->mmap() handlers, may encounter underlying file systems which
+provide the f_op->mmap_prepare() hook introduced by commit c84bf6dd2b83
+("mm: introduce new .mmap_prepare() file callback").
 
-echo always > /sys/kernel/mm/transparent_hugepage/hugepages-64kB/enabled
-swapon /dev/zram0 # zram0 is a 48G swap device
-mkdir -p /sys/fs/cgroup/memory/test
-echo 1G > /sys/fs/cgroup/test/memory.max
-echo $BASHPID > /sys/fs/cgroup/test/cgroup.procs
-while true; do
-    dd if=/dev/zero of=/tmp/test.img bs=1M count=5120
-    cat /tmp/test.img > /dev/null
-    rm /tmp/test.img
-done
+We have a chicken-and-egg scenario here - until all file systems are
+converted to using .mmap_prepare(), we cannot convert these nested
+handlers, as we can't call f_op->mmap from an .mmap_prepare() hook.
 
-Then after a while:
-watchdog: BUG: soft lockup - CPU#0 stuck for 763s! [cat:5787]
-Modules linked in: zram virtiofs
-CPU: 0 UID: 0 PID: 5787 Comm: cat Kdump: loaded Tainted: G             L      6.15.0.orig-gf3021d9246bc-dirty #118 PREEMPT(voluntary)·
-Tainted: [L]=SOFTLOCKUP
-Hardware name: Red Hat KVM/RHEL-AV, BIOS 0.0.0 02/06/2015
-RIP: 0010:mpol_shared_policy_lookup+0xd/0x70
-Code: e9 b8 b4 ff ff 31 c0 c3 cc cc cc cc 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 66 0f 1f 00 0f 1f 44 00 00 41 54 55 53 <48> 8b 1f 48 85 db 74 41 4c 8d 67 08 48 89 fb 48 89 f5 4c 89 e7 e8
-RSP: 0018:ffffc90002b1fc28 EFLAGS: 00000202
-RAX: 00000000001c20ca RBX: 0000000000724e1e RCX: 0000000000000001
-RDX: ffff888118e214c8 RSI: 0000000000057d42 RDI: ffff888118e21518
-RBP: 000000000002bec8 R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000bf4 R11: 0000000000000000 R12: 0000000000000001
-R13: 00000000001c20ca R14: 00000000001c20ca R15: 0000000000000000
-FS:  00007f03f995c740(0000) GS:ffff88a07ad9a000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f03f98f1000 CR3: 0000000144626004 CR4: 0000000000770eb0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-PKRU: 55555554
-Call Trace:
- <TASK>
- shmem_alloc_folio+0x31/0xc0
- shmem_swapin_folio+0x309/0xcf0
- ? filemap_get_entry+0x117/0x1e0
- ? xas_load+0xd/0xb0
- ? filemap_get_entry+0x101/0x1e0
- shmem_get_folio_gfp+0x2ed/0x5b0
- shmem_file_read_iter+0x7f/0x2e0
- vfs_read+0x252/0x330
- ksys_read+0x68/0xf0
- do_syscall_64+0x4c/0x1c0
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
-RIP: 0033:0x7f03f9a46991
-Code: 00 48 8b 15 81 14 10 00 f7 d8 64 89 02 b8 ff ff ff ff eb bd e8 20 ad 01 00 f3 0f 1e fa 80 3d 35 97 10 00 00 74 13 31 c0 0f 05 <48> 3d 00 f0 ff ff 77 4f c3 66 0f 1f 44 00 00 55 48 89 e5 48 83 ec
-RSP: 002b:00007fff3c52bd28 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
-RAX: ffffffffffffffda RBX: 0000000000040000 RCX: 00007f03f9a46991
-RDX: 0000000000040000 RSI: 00007f03f98ba000 RDI: 0000000000000003
-RBP: 00007fff3c52bd50 R08: 0000000000000000 R09: 00007f03f9b9a380
-R10: 0000000000000022 R11: 0000000000000246 R12: 0000000000040000
-R13: 00007f03f98ba000 R14: 0000000000000003 R15: 0000000000000000
- </TASK>
+So we have to do it the other way round - invoke the .mmap_prepare() hook
+from an .mmap() one.
 
-The reason is simple, readahead brought some order 0 folio in swap cache,
-and the swapin mTHP folio being allocated is in confict with it, so
-swapcache_prepare fails and causes shmem_swap_alloc_folio to return
--EEXIST, and shmem simply retries again and again causing this loop.
+in order to do so, we need to convert VMA state into a struct vm_area_desc
+descriptor, invoking the underlying file system's f_op->mmap_prepare()
+callback passing a pointer to this, and then setting VMA state accordingly
+and safely.
 
-Fix it by applying a similar fix for anon mTHP swapin.
+This patch achieves this via the compat_vma_mmap_prepare() function, which
+we invoke from call_mmap() if f_op->mmap_prepare() is specified in the
+passed in file pointer.
 
-The performance change is very slight, time of swapin 10g zero folios
-with shmem (test for 12 times):
-Before:  2.47s
-After:   2.48s
+We place the fundamental logic into mm/vma.h where VMA manipulation
+belongs.  We also update the VMA userland tests to accommodate the
+changes.
 
-Link: https://lkml.kernel.org/r/20250609171751.36305-1-ryncsn@gmail.com
-Fixes: 1dd44c0af4fa1 ("mm: shmem: skip swapcache for swapin of synchronous swap device")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: <stable@vger.kernel.org>
+The compat_vma_mmap_prepare() function and its associated machinery is
+temporary, and will be removed once the conversion of file systems is
+complete.
+
+We carefully place this code so it can be used with CONFIG_MMU and also
+with cutting edge nommu silicon.
+
+Link: https://lkml.kernel.org/r/20250609165749.344976-1-lorenzo.stoakes@oracle.com
+Fixes: c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file callback").
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: Jann Horn <jannh@google.com>
+Closes: https://lore.kernel.org/linux-mm/CAG48ez04yOEVx1ekzOChARDDBZzAKwet8PEoPM4Ln3_rk91AzQ@mail.gmail.com/
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   20 --------------------
- mm/shmem.c  |    4 +++-
- mm/swap.h   |   23 +++++++++++++++++++++++
- 3 files changed, 26 insertions(+), 21 deletions(-)
+ include/linux/fs.h               |    6 ++-
+ mm/util.c                        |   39 ++++++++++++++++++++++
+ mm/vma.c                         |    1 
+ mm/vma.h                         |   51 +++++++++++++++++++++++++++++
+ tools/testing/vma/vma_internal.h |   16 +++++++++
+ 5 files changed, 110 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-shmem-swap-fix-softlockup-with-mthp-swapin
-+++ a/mm/memory.c
-@@ -4315,26 +4315,6 @@ static struct folio *__alloc_swap_folio(
+--- a/include/linux/fs.h~mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems
++++ a/include/linux/fs.h
+@@ -2274,10 +2274,12 @@ static inline bool file_has_valid_mmap_h
+ 	return true;
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static inline int non_swapcache_batch(swp_entry_t entry, int max_nr)
--{
--	struct swap_info_struct *si = swp_swap_info(entry);
--	pgoff_t offset = swp_offset(entry);
--	int i;
--
--	/*
--	 * While allocating a large folio and doing swap_read_folio, which is
--	 * the case the being faulted pte doesn't have swapcache. We need to
--	 * ensure all PTEs have no cache as well, otherwise, we might go to
--	 * swap devices while the content is in swapcache.
--	 */
--	for (i = 0; i < max_nr; i++) {
--		if ((si->swap_map[offset + i] & SWAP_HAS_CACHE))
--			return i;
--	}
--
--	return i;
--}
--
- /*
-  * Check if the PTEs within a range are contiguous swap entries
-  * and have consistent swapcache, zeromap.
---- a/mm/shmem.c~mm-shmem-swap-fix-softlockup-with-mthp-swapin
-+++ a/mm/shmem.c
-@@ -2259,6 +2259,7 @@ static int shmem_swapin_folio(struct ino
- 	folio = swap_cache_get_folio(swap, NULL, 0);
- 	order = xa_get_order(&mapping->i_pages, index);
- 	if (!folio) {
-+		int nr_pages = 1 << order;
- 		bool fallback_order0 = false;
++int compat_vma_mmap_prepare(struct file *file, struct vm_area_struct *vma);
++
+ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	if (WARN_ON_ONCE(file->f_op->mmap_prepare))
+-		return -EINVAL;
++	if (file->f_op->mmap_prepare)
++		return compat_vma_mmap_prepare(file, vma);
  
- 		/* Or update major stats only when swapin succeeds?? */
-@@ -2274,7 +2275,8 @@ static int shmem_swapin_folio(struct ino
- 		 * to swapin order-0 folio, as well as for zswap case.
- 		 */
- 		if (order > 0 && ((vma && unlikely(userfaultfd_armed(vma))) ||
--				  !zswap_never_enabled()))
-+				  !zswap_never_enabled() ||
-+				  non_swapcache_batch(swap, nr_pages) != nr_pages))
- 			fallback_order0 = true;
- 
- 		/* Skip swapcache for synchronous device. */
---- a/mm/swap.h~mm-shmem-swap-fix-softlockup-with-mthp-swapin
-+++ a/mm/swap.h
-@@ -106,6 +106,25 @@ static inline int swap_zeromap_batch(swp
- 		return find_next_bit(sis->zeromap, end, start) - start;
+ 	return file->f_op->mmap(file, vma);
  }
- 
-+static inline int non_swapcache_batch(swp_entry_t entry, int max_nr)
+--- a/mm/util.c~mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems
++++ a/mm/util.c
+@@ -1131,3 +1131,42 @@ void flush_dcache_folio(struct folio *fo
+ }
+ EXPORT_SYMBOL(flush_dcache_folio);
+ #endif
++
++/**
++ * compat_vma_mmap_prepare() - Apply the file's .mmap_prepare() hook to an
++ * existing VMA
++ * @file: The file which possesss an f_op->mmap_prepare() hook
++ * @vma: The VMA to apply the .mmap_prepare() hook to.
++ *
++ * Ordinarily, .mmap_prepare() is invoked directly upon mmap(). However, certain
++ * 'wrapper' file systems invoke a nested mmap hook of an underlying file.
++ *
++ * Until all filesystems are converted to use .mmap_prepare(), we must be
++ * conservative and continue to invoke these 'wrapper' filesystems using the
++ * deprecated .mmap() hook.
++ *
++ * However we have a problem if the underlying file system possesses an
++ * .mmap_prepare() hook, as we are in a different context when we invoke the
++ * .mmap() hook, already having a VMA to deal with.
++ *
++ * compat_vma_mmap_prepare() is a compatibility function that takes VMA state,
++ * establishes a struct vm_area_desc descriptor, passes to the underlying
++ * .mmap_prepare() hook and applies any changes performed by it.
++ *
++ * Once the conversion of filesystems is complete this function will no longer
++ * be required and will be removed.
++ *
++ * Returns: 0 on success or error.
++ */
++int compat_vma_mmap_prepare(struct file *file, struct vm_area_struct *vma)
 +{
-+	struct swap_info_struct *si = swp_swap_info(entry);
-+	pgoff_t offset = swp_offset(entry);
-+	int i;
++	struct vm_area_desc desc;
++	int err;
 +
-+	/*
-+	 * While allocating a large folio and doing mTHP swapin, we need to
-+	 * ensure all entries are not cached, otherwise, the mTHP folio will
-+	 * be in conflict with the folio in swap cache.
-+	 */
-+	for (i = 0; i < max_nr; i++) {
-+		if ((si->swap_map[offset + i] & SWAP_HAS_CACHE))
-+			return i;
-+	}
++	err = file->f_op->mmap_prepare(vma_to_desc(vma, &desc));
++	if (err)
++		return err;
++	set_vma_from_desc(vma, &desc);
 +
-+	return i;
++	return 0;
 +}
-+
- #else /* CONFIG_SWAP */
- struct swap_iocb;
- static inline void swap_read_folio(struct folio *folio, struct swap_iocb **plug)
-@@ -199,6 +218,10 @@ static inline int swap_zeromap_batch(swp
+--- a/mm/vma.c~mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems
++++ a/mm/vma.c
+@@ -3113,7 +3113,6 @@ int __vm_munmap(unsigned long start, siz
+ 	return ret;
+ }
+ 
+-
+ /* Insert vm structure into process list sorted by address
+  * and into the inode's i_mmap tree.  If vm_file is non-NULL
+  * then i_mmap_rwsem is taken here.
+--- a/mm/vma.h~mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems
++++ a/mm/vma.h
+@@ -222,6 +222,53 @@ static inline int vma_iter_store_gfp(str
  	return 0;
  }
  
-+static inline int non_swapcache_batch(swp_entry_t entry, int max_nr)
++
++/*
++ * Temporary helper functions for file systems which wrap an invocation of
++ * f_op->mmap() but which might have an underlying file system which implements
++ * f_op->mmap_prepare().
++ */
++
++static inline struct vm_area_desc *vma_to_desc(struct vm_area_struct *vma,
++		struct vm_area_desc *desc)
 +{
-+	return 0;
++	desc->mm = vma->vm_mm;
++	desc->start = vma->vm_start;
++	desc->end = vma->vm_end;
++
++	desc->pgoff = vma->vm_pgoff;
++	desc->file = vma->vm_file;
++	desc->vm_flags = vma->vm_flags;
++	desc->page_prot = vma->vm_page_prot;
++
++	desc->vm_ops = NULL;
++	desc->private_data = NULL;
++
++	return desc;
 +}
- #endif /* CONFIG_SWAP */
++
++static inline void set_vma_from_desc(struct vm_area_struct *vma,
++		struct vm_area_desc *desc)
++{
++	/*
++	 * Since we're invoking .mmap_prepare() despite having a partially
++	 * established VMA, we must take care to handle setting fields
++	 * correctly.
++	 */
++
++	/* Mutable fields. Populated with initial state. */
++	vma->vm_pgoff = desc->pgoff;
++	if (vma->vm_file != desc->file)
++		vma_set_file(vma, desc->file);
++	if (vma->vm_flags != desc->vm_flags)
++		vm_flags_set(vma, desc->vm_flags);
++	vma->vm_page_prot = desc->page_prot;
++
++	/* User-defined fields. */
++	vma->vm_ops = desc->vm_ops;
++	vma->vm_private_data = desc->private_data;
++}
++
+ int
+ do_vmi_align_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		    struct mm_struct *mm, unsigned long start,
+@@ -570,4 +617,8 @@ int create_init_stack_vma(struct mm_stru
+ int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
+ #endif
  
- /**
++struct vm_area_desc *vma_to_desc(struct vm_area_struct *vma,
++		struct vm_area_desc *desc);
++void set_vma_from_desc(struct vm_area_struct *vma, struct vm_area_desc *desc);
++
+ #endif	/* __MM_VMA_H */
+--- a/tools/testing/vma/vma_internal.h~mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems
++++ a/tools/testing/vma/vma_internal.h
+@@ -159,6 +159,14 @@ typedef __bitwise unsigned int vm_fault_
+ 
+ #define ASSERT_EXCLUSIVE_WRITER(x)
+ 
++/**
++ * swap - swap values of @a and @b
++ * @a: first value
++ * @b: second value
++ */
++#define swap(a, b) \
++	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
++
+ struct kref {
+ 	refcount_t refcount;
+ };
+@@ -1468,4 +1476,12 @@ static inline void fixup_hugetlb_reserva
+ 	(void)vma;
+ }
+ 
++static inline void vma_set_file(struct vm_area_struct *vma, struct file *file)
++{
++	/* Changing an anonymous vma with this is illegal */
++	get_file(file);
++	swap(vma->vm_file, file);
++	fput(file);
++}
++
+ #endif	/* __MM_VMA_INTERNAL_H */
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
-mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
-mm-list_lru-refactor-the-locking-code.patch
+mm-vma-reset-vma-iterator-on-commit_merge-oom-failure.patch
+mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems.patch
+docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
+mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
+mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
+mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
 
