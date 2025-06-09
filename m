@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB6B123C4EB
-	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 02:31:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74651218593
+	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 19:35:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749436282; cv=none; b=XwCbZ/GtPtionmTWc5bzvoACqCkVAEMpgv3TcLZ+Du1Gb/fCf4ZYy4BriFikqXqL6QNmU9/mD6RW5H2ILqHq53YDV5DBXWev7pmKWvgKjyjV7DWo6S46ZiqPEjwigYeuJGWvQETO6XDFRLuI2PppWqKBp9My3h0O4PSlvgmzSdA=
+	t=1749497733; cv=none; b=oLWA+OXenbG4MS1hZ4SyIYjXpG8ebfIRbVmfK3Ndx9AGmNurW2nmojTA6nEQdn61AelaJugIxrJq4ciH/FcdAmtGSIPlD2BJEm4phzwgNceTvrgmF6J9NKcKzLJmxdWAhuFMc+M81i575OMNP27YXUPzxavPT5tVP+pWbFofJMw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749436282; c=relaxed/simple;
-	bh=6Tpy3qNH5/thRXRj0UDhIw2kJKys1dVOB+0BK/eBnII=;
-	h=Date:To:From:Subject:Message-Id; b=J0l9wB1BmBZm6Y2Q6wweUllhruGK36J1G9BnW7EK3vDOGaV9XDP5tHXVMsUqymi1hR2xK9rvqPk/bVhfTwCcUduc6gkKoBQotvzRupQ0oGuvFeudIT9wUnT/4W3HlsPh0WtCq49Y7ZyAL+hsyj/QaFj5Sjz9b36JWTWmw2HMfRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k/FfVFab; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749497733; c=relaxed/simple;
+	bh=R3gU90omsftkVdeSkjUJZA4IL0k+9038HjR1FpKShN8=;
+	h=Date:To:From:Subject:Message-Id; b=AUhhioHNjGXEcGddALJc+ybDSIV+iCstA42KS89lDAOPHkXe/+5d85/z9thjgOoEec17tTNblvrvBx0BL3LxqjB88ASRRmK3Ord+ofWCoGu0NXwm47UgBIcYxea8fa9GA6MN6J4Kj7Rud9ik04oY3HSBzrvwFbd9DSbFpSgNYP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LeHPBNbR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k/FfVFab"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DEC3C4CEEE;
-	Mon,  9 Jun 2025 02:31:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LeHPBNbR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B653BC4CEEB;
+	Mon,  9 Jun 2025 19:35:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749436282;
-	bh=6Tpy3qNH5/thRXRj0UDhIw2kJKys1dVOB+0BK/eBnII=;
+	s=korg; t=1749497732;
+	bh=R3gU90omsftkVdeSkjUJZA4IL0k+9038HjR1FpKShN8=;
 	h=Date:To:From:Subject:From;
-	b=k/FfVFabA3bhfyGgoScz0UZU+nve0k2oeao5xTgsrMlf6OJKkUyKI9qeWApXk2otp
-	 XhkQ0UUqaCtJHHl5e63ROkn8coDOwk4PJCwVO+3VTWgHqYIBlgccBoFOWvhPMwKlF5
-	 cBTWj0kYCffjLv0KSfxpvDkKZ4dmhbCqCHioG/yo=
-Date: Sun, 08 Jun 2025 19:31:21 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,masahiroy@kernel.org,jack@suse.cz,brauner@kernel.org,chenhuacai@loongson.cn,akpm@linux-foundation.org
+	b=LeHPBNbRH2jimkjqkwF64w3uha0dturcG6WR9+XBYLGdpwmPUOKHQmfc3m/6OsjsF
+	 mmEAEIBqEsXngbiUUzcSltPfQ0AdU6vHeak0SYxeSzW1z5ePwIBEZvdYGbNYejpGi2
+	 nWdMCToKLQrlXU8u3QRUOC9LEz2p32G6TG2krbUo=
+Date: Mon, 09 Jun 2025 12:35:32 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,mjguzik@gmail.com,linus.walleij@linaro.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-fix-build-warnings-about-exporth.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250609023122.3DEC3C4CEEE@smtp.kernel.org>
+Subject: + fork-clean-up-naming-of-vm_stack-vm_struct-variables-in-vmap-stacks-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20250609193532.B653BC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: init: fix build warnings about export.h
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     init-fix-build-warnings-about-exporth.patch
+     Subject: fork: clean-up naming of vm_stack/vm_struct variables in vmap stacks code
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fork-clean-up-naming-of-vm_stack-vm_struct-variables-in-vmap-stacks-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-fix-build-warnings-about-exporth.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-clean-up-naming-of-vm_stack-vm_struct-variables-in-vmap-stacks-code.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,211 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huacai Chen <chenhuacai@loongson.cn>
-Subject: init: fix build warnings about export.h
-Date: Sun, 8 Jun 2025 22:12:35 +0800
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: fork: clean-up naming of vm_stack/vm_struct variables in vmap stacks code
+Date: Fri, 09 May 2025 08:29:27 +0200
 
-After commit a934a57a42f64a4 ("scripts/misc-check: check missing #include
-<linux/export.h> when W=1") and 7d95680d64ac8e836c ("scripts/misc-check:
-check unnecessary #include <linux/export.h> when W=1"), we get some build
-warnings with W=1:
+There are two data types: "struct vm_struct" and "struct vm_stack" that
+have the same local variable names: vm_stack, or vm, or s, which makes the
+code confusing to read.
 
-init/main.c: warning: EXPORT_SYMBOL() is used, but #include <linux/export.h> is missing
-init/initramfs.c: warning: EXPORT_SYMBOL() is used, but #include <linux/export.h> is missing
+Change the code so the naming is consistent:
 
-So fix these build warnings for the init code.
+struct vm_struct is always called vm_area
+struct vm_stack is always called vm_stack
 
-Link: https://lkml.kernel.org/r/20250608141235.155206-1-chenhuacai@loongson.cn
-Fixes: a934a57a42f64a4 ("scripts/misc-check: check missing #include <linux/export.h> when W=1")
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
-Reviewed-by: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+One change altering vfree(vm_stack) to vfree(vm_area->addr) may look like
+a semantic change but it is not: vm_area->addr points to the vm_stack. 
+This was done to improve readability.
+
+[linus.walleij@linaro.org: rebased and added new users of the variable names, address review comments]
+Link: https://lore.kernel.org/20240311164638.2015063-4-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20250509-fork-fixes-v3-2-e6c69dd356f2@linaro.org
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |    1 +
- init/main.c      |    1 +
- 2 files changed, 2 insertions(+)
+ kernel/fork.c |   60 +++++++++++++++++++++++-------------------------
+ 1 file changed, 29 insertions(+), 31 deletions(-)
 
---- a/init/initramfs.c~init-fix-build-warnings-about-exporth
-+++ a/init/initramfs.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/init.h>
- #include <linux/async.h>
-+#include <linux/export.h>
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/types.h>
---- a/init/main.c~init-fix-build-warnings-about-exporth
-+++ a/init/main.c
-@@ -13,6 +13,7 @@
- #define DEBUG		/* Enable initcall_debug */
+--- a/kernel/fork.c~fork-clean-up-naming-of-vm_stack-vm_struct-variables-in-vmap-stacks-code
++++ a/kernel/fork.c
+@@ -207,14 +207,14 @@ struct vm_stack {
+ 	struct vm_struct *stack_vm_area;
+ };
  
- #include <linux/types.h>
-+#include <linux/export.h>
- #include <linux/extable.h>
- #include <linux/module.h>
- #include <linux/proc_fs.h>
+-static bool try_release_thread_stack_to_cache(struct vm_struct *vm)
++static bool try_release_thread_stack_to_cache(struct vm_struct *vm_area)
+ {
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < NR_CACHED_STACKS; i++) {
+ 		struct vm_struct *tmp = NULL;
+ 
+-		if (this_cpu_try_cmpxchg(cached_stacks[i], &tmp, vm))
++		if (this_cpu_try_cmpxchg(cached_stacks[i], &tmp, vm_area))
+ 			return true;
+ 	}
+ 	return false;
+@@ -223,11 +223,12 @@ static bool try_release_thread_stack_to_
+ static void thread_stack_free_rcu(struct rcu_head *rh)
+ {
+ 	struct vm_stack *vm_stack = container_of(rh, struct vm_stack, rcu);
++	struct vm_struct *vm_area = vm_stack->stack_vm_area;
+ 
+ 	if (try_release_thread_stack_to_cache(vm_stack->stack_vm_area))
+ 		return;
+ 
+-	vfree(vm_stack);
++	vfree(vm_area->addr);
+ }
+ 
+ static void thread_stack_delayed_free(struct task_struct *tsk)
+@@ -240,32 +241,32 @@ static void thread_stack_delayed_free(st
+ 
+ static int free_vm_stack_cache(unsigned int cpu)
+ {
+-	struct vm_struct **cached_vm_stacks = per_cpu_ptr(cached_stacks, cpu);
++	struct vm_struct **cached_vm_stack_areas = per_cpu_ptr(cached_stacks, cpu);
+ 	int i;
+ 
+ 	for (i = 0; i < NR_CACHED_STACKS; i++) {
+-		struct vm_struct *vm_stack = cached_vm_stacks[i];
++		struct vm_struct *vm_area = cached_vm_stack_areas[i];
+ 
+-		if (!vm_stack)
++		if (!vm_area)
+ 			continue;
+ 
+-		vfree(vm_stack->addr);
+-		cached_vm_stacks[i] = NULL;
++		vfree(vm_area->addr);
++		cached_vm_stack_areas[i] = NULL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int memcg_charge_kernel_stack(struct vm_struct *vm)
++static int memcg_charge_kernel_stack(struct vm_struct *vm_area)
+ {
+ 	int i;
+ 	int ret;
+ 	int nr_charged = 0;
+ 
+-	BUG_ON(vm->nr_pages != THREAD_SIZE / PAGE_SIZE);
++	BUG_ON(vm_area->nr_pages != THREAD_SIZE / PAGE_SIZE);
+ 
+ 	for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
+-		ret = memcg_kmem_charge_page(vm->pages[i], GFP_KERNEL, 0);
++		ret = memcg_kmem_charge_page(vm_area->pages[i], GFP_KERNEL, 0);
+ 		if (ret)
+ 			goto err;
+ 		nr_charged++;
+@@ -273,38 +274,35 @@ static int memcg_charge_kernel_stack(str
+ 	return 0;
+ err:
+ 	for (i = 0; i < nr_charged; i++)
+-		memcg_kmem_uncharge_page(vm->pages[i], 0);
++		memcg_kmem_uncharge_page(vm_area->pages[i], 0);
+ 	return ret;
+ }
+ 
+ static int alloc_thread_stack_node(struct task_struct *tsk, int node)
+ {
+-	struct vm_struct *vm;
++	struct vm_struct *vm_area;
+ 	void *stack;
+ 	int i;
+ 
+ 	for (i = 0; i < NR_CACHED_STACKS; i++) {
+-		struct vm_struct *s;
+-
+-		s = this_cpu_xchg(cached_stacks[i], NULL);
+-
+-		if (!s)
++		vm_area = this_cpu_xchg(cached_stacks[i], NULL);
++		if (!vm_area)
+ 			continue;
+ 
+ 		/* Reset stack metadata. */
+-		kasan_unpoison_range(s->addr, THREAD_SIZE);
++		kasan_unpoison_range(vm_area->addr, THREAD_SIZE);
+ 
+-		stack = kasan_reset_tag(s->addr);
++		stack = kasan_reset_tag(vm_area->addr);
+ 
+ 		/* Clear stale pointers from reused stack. */
+ 		memset(stack, 0, THREAD_SIZE);
+ 
+-		if (memcg_charge_kernel_stack(s)) {
+-			vfree(s->addr);
++		if (memcg_charge_kernel_stack(vm_area)) {
++			vfree(vm_area->addr);
+ 			return -ENOMEM;
+ 		}
+ 
+-		tsk->stack_vm_area = s;
++		tsk->stack_vm_area = vm_area;
+ 		tsk->stack = stack;
+ 		return 0;
+ 	}
+@@ -320,8 +318,8 @@ static int alloc_thread_stack_node(struc
+ 	if (!stack)
+ 		return -ENOMEM;
+ 
+-	vm = find_vm_area(stack);
+-	if (memcg_charge_kernel_stack(vm)) {
++	vm_area = find_vm_area(stack);
++	if (memcg_charge_kernel_stack(vm_area)) {
+ 		vfree(stack);
+ 		return -ENOMEM;
+ 	}
+@@ -330,7 +328,7 @@ static int alloc_thread_stack_node(struc
+ 	 * free_thread_stack() can be called in interrupt context,
+ 	 * so cache the vm_struct.
+ 	 */
+-	tsk->stack_vm_area = vm;
++	tsk->stack_vm_area = vm_area;
+ 	stack = kasan_reset_tag(stack);
+ 	tsk->stack = stack;
+ 	return 0;
+@@ -437,11 +435,11 @@ static struct kmem_cache *mm_cachep;
+ static void account_kernel_stack(struct task_struct *tsk, int account)
+ {
+ 	if (IS_ENABLED(CONFIG_VMAP_STACK)) {
+-		struct vm_struct *vm = task_stack_vm_area(tsk);
++		struct vm_struct *vm_area = task_stack_vm_area(tsk);
+ 		int i;
+ 
+ 		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
+-			mod_lruvec_page_state(vm->pages[i], NR_KERNEL_STACK_KB,
++			mod_lruvec_page_state(vm_area->pages[i], NR_KERNEL_STACK_KB,
+ 					      account * (PAGE_SIZE / 1024));
+ 	} else {
+ 		void *stack = task_stack_page(tsk);
+@@ -457,12 +455,12 @@ void exit_task_stack_account(struct task
+ 	account_kernel_stack(tsk, -1);
+ 
+ 	if (IS_ENABLED(CONFIG_VMAP_STACK)) {
+-		struct vm_struct *vm;
++		struct vm_struct *vm_area;
+ 		int i;
+ 
+-		vm = task_stack_vm_area(tsk);
++		vm_area = task_stack_vm_area(tsk);
+ 		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
+-			memcg_kmem_uncharge_page(vm->pages[i], 0);
++			memcg_kmem_uncharge_page(vm_area->pages[i], 0);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from chenhuacai@loongson.cn are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-init-fix-build-warnings-about-exporth.patch
+fork-clean-up-naming-of-vm_stack-vm_struct-variables-in-vmap-stacks-code.patch
 
