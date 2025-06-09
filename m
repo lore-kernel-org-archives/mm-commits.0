@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07B9922DF99
-	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 23:38:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68CD91DF25A
+	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 23:54:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749512295; cv=none; b=KOP5wUoHDmlad54oryrWVJi3Npuh0Xv1Bs28UKgmCuHPR9W51rJsNaEDyGYBghmfPXvBOtcM+smc0m5SpYMy7wJwOWcmBjtDADcSkupa5Eobyi5TDt1YnujdJOMv3z9CKkFTXXe+c+U+suEMsa7lGJu6SfHCc51fQEpA1ysI7SU=
+	t=1749513288; cv=none; b=KxOBm4n6JyiUCcaXmBLXKT6zfDH7qvH7Ei9O+eRInjyjTmM7EdQHIqSBvvT6QeVM+nBjHr7JkeYpS0HWkKs4le2Z/xfXw0Nh6k4BiG4zxMkIfEf4yLA5rlRNi0KUD7M8MuJkDP2befv4OGDNG0XWftUSEFizA1CTDxDxVGnL5xg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749512295; c=relaxed/simple;
-	bh=ylvga9tIzEtC4dobiFfd8F+8I275md5d6333Bgu4oEs=;
-	h=Date:To:From:Subject:Message-Id; b=UIo+VdxZqRP+szGlenM1lAmL+lxvcJVlC/sJqXTxfk5eTpAJMayL7fefXnOf0rlzAFU8/+QL9UsGI0fSrUTsrdlKwYJu88KAmDVehAZPPIUB6vbWGFYeVOrLcrTxrHl76UUG3YKUTL0R0wgalQ0LOhsSpcigQVgvROYi3mx6+jI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fTLM2ZcB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749513288; c=relaxed/simple;
+	bh=qKU0Kbdctd41mkExmpA+gufaCX+/EI8dv3zniy+q/7M=;
+	h=Date:To:From:Subject:Message-Id; b=F2ovmx4QlHg08bC/gTzq6NNMEDDU9GN3HwUN7Rn7eRkKmWCBRMO7N6Xq3KRsCTeIh1kJcK6z7H2BOpQPiBh6ypFQLSgZwjN/ak79nm0xcRPBKvLdQ/Ch3tMHS6sYOaEphSTZYLzs8tbs4V4EoF9VVIk86ZLdSppcJ/VrO5RyteA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qJ8ipEjI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fTLM2ZcB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 844A9C4CEEB;
-	Mon,  9 Jun 2025 23:38:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qJ8ipEjI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95FA3C4CEEB;
+	Mon,  9 Jun 2025 23:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749512294;
-	bh=ylvga9tIzEtC4dobiFfd8F+8I275md5d6333Bgu4oEs=;
+	s=korg; t=1749513287;
+	bh=qKU0Kbdctd41mkExmpA+gufaCX+/EI8dv3zniy+q/7M=;
 	h=Date:To:From:Subject:From;
-	b=fTLM2ZcBeNQeWI3fM7OcSZEZxpqadRYYyFeyOZhD6Mb4oCEJ04tXrMb3r+HNjSQ5O
-	 hTgxqEOGGn9fdyksHBQOD5HazkcMN45nbM4/NpsppwTQRUgjBbdPkWYfT5vJHf85++
-	 P5TyUaAC2HrNF7eiF0I+khQMek63GxZIEh68kE+U=
-Date: Mon, 09 Jun 2025 16:38:13 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,joshua.hahnjy@gmail.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=qJ8ipEjIEUyJ0qSGznqGGCte4SUTDiIe6vxtQKFanVuJ2waGS2/D4Xnl06mZHAY41
+	 J/2EQ/s81hRv2XwRgoezQq2i1Sp9H7zFbON/HhEujsl/euhZpCPsa+VUwzXxPi6NWT
+	 LCiVFm/riijWBl8Qdr5e3IsPF50p3twlJDU2gW4U=
+Date: Mon, 09 Jun 2025 16:54:47 -0700
+To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,surenb@google.com,kent.overstreet@linux.dev,00107082@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch added to mm-new branch
-Message-Id: <20250609233814.844A9C4CEEB@smtp.kernel.org>
+Subject: + alloc_tag-add-sequence-number-for-module-and-iterator.patch added to mm-new branch
+Message-Id: <20250609235447.95FA3C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,memory_hotplug: drop status_change_nid parameter from memory_notify
+     Subject: alloc_tag: add sequence number for module and iterator
 has been added to the -mm mm-new branch.  Its filename is
-     mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
+     alloc_tag-add-sequence-number-for-module-and-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-add-sequence-number-for-module-and-iterator.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,138 +64,104 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_hotplug: drop status_change_nid parameter from memory_notify
-Date: Mon, 9 Jun 2025 11:21:47 +0200
+From: David Wang <00107082@163.com>
+Subject: alloc_tag: add sequence number for module and iterator
+Date: Mon, 9 Jun 2025 14:42:00 +0800
 
-The 'status_change_nid' field was used to track changes in the memory
-state of a numa node, but that funcionality has been decoupled from
-memory_notify and moved to node_notify.  Current consumers of
-memory_notify are only interested in which node the memory we are adding
-belongs to, but we can derive the nid from the pfn because we call
-move_pfn_range_to_zone(), which sets the node in the page via
-__init_single_page(), before calling in any memory notifier.
+Codetag iterator use <id,address> pair to guarantee the validness.  But
+both id and address can be reused, there is theoretical possibility when
+module inserted right after another module removed, kmalloc returns an
+address same as the address kfree by previous module and IDR key reuses
+the key recently removed.
 
-Drop the 'status_change_nid' parameter from 'memory_notify' struct and
-update documentation accordingly.
+Add a sequence number to codetag_module and code_iterator, the sequence
+number is strickly incremented whenever a module is loaded.  An iterator
+is valid if and only if its sequence number match codetag_module's.
 
-Link: https://lkml.kernel.org/r/20250609092149.312114-11-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Link: https://lkml.kernel.org/r/20250609064200.112639-1-00107082@163.com
+Signed-off-by: David Wang <00107082@163.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/memory-hotplug.rst |    7 -------
- include/linux/memory.h                    |    1 -
- mm/memory_hotplug.c                       |    2 --
- mm/page_ext.c                             |   16 +++-------------
- 4 files changed, 3 insertions(+), 23 deletions(-)
+ include/linux/codetag.h |    1 +
+ lib/codetag.c           |   17 ++++++++++++++---
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
---- a/Documentation/core-api/memory-hotplug.rst~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
-+++ a/Documentation/core-api/memory-hotplug.rst
-@@ -59,17 +59,10 @@ The third argument (arg) passes a pointe
- 	struct memory_notify {
- 		unsigned long start_pfn;
- 		unsigned long nr_pages;
--		int status_change_nid;
- 	}
- 
- - start_pfn is start_pfn of online/offline memory.
- - nr_pages is # of pages of online/offline memory.
--- status_change_nid is set node id when N_MEMORY of nodemask is (will be)
--  set/clear. It means a new(memoryless) node gets new memory by online and a
--  node loses all memory. If this is -1, then nodemask status is not changed.
--
--  If status_changed_nid* >= 0, callback should create/discard structures for the
--  node if necessary.
- 
- The callback routine shall return one of the values
- NOTIFY_DONE, NOTIFY_OK, NOTIFY_BAD, NOTIFY_STOP
---- a/include/linux/memory.h~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
-+++ a/include/linux/memory.h
-@@ -109,7 +109,6 @@ struct memory_notify {
- 	unsigned long altmap_nr_pages;
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
--	int status_change_nid;
+--- a/include/linux/codetag.h~alloc_tag-add-sequence-number-for-module-and-iterator
++++ a/include/linux/codetag.h
+@@ -54,6 +54,7 @@ struct codetag_iterator {
+ 	struct codetag_module *cmod;
+ 	unsigned long mod_id;
+ 	struct codetag *ct;
++	unsigned long mod_seq;
  };
  
- struct notifier_block;
---- a/mm/memory_hotplug.c~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
-+++ a/mm/memory_hotplug.c
-@@ -1186,7 +1186,6 @@ int online_pages(unsigned long pfn, unsi
+ #ifdef MODULE
+--- a/lib/codetag.c~alloc_tag-add-sequence-number-for-module-and-iterator
++++ a/lib/codetag.c
+@@ -11,8 +11,14 @@ struct codetag_type {
+ 	struct list_head link;
+ 	unsigned int count;
+ 	struct idr mod_idr;
+-	struct rw_semaphore mod_lock; /* protects mod_idr */
++	/*
++	 * protects mod_idr, next_mod_seq,
++	 * iter->mod_seq and cmod->mod_seq
++	 */
++	struct rw_semaphore mod_lock;
+ 	struct codetag_type_desc desc;
++	/* generates unique sequence number for module load */
++	unsigned long next_mod_seq;
+ };
  
- 	mem_arg.start_pfn = pfn;
- 	mem_arg.nr_pages = nr_pages;
--	mem_arg.status_change_nid = node_arg.nid;
- 	cancel_mem_notifier_on_err = true;
- 	ret = memory_notify(MEM_GOING_ONLINE, &mem_arg);
- 	ret = notifier_to_errno(ret);
-@@ -1986,7 +1985,6 @@ int offline_pages(unsigned long start_pf
+ struct codetag_range {
+@@ -23,6 +29,7 @@ struct codetag_range {
+ struct codetag_module {
+ 	struct module *mod;
+ 	struct codetag_range range;
++	unsigned long mod_seq;
+ };
  
- 	mem_arg.start_pfn = start_pfn;
- 	mem_arg.nr_pages = nr_pages;
--	mem_arg.status_change_nid = node_arg.nid;
- 	cancel_mem_notifier_on_err = true;
- 	ret = memory_notify(MEM_GOING_OFFLINE, &mem_arg);
- 	ret = notifier_to_errno(ret);
---- a/mm/page_ext.c~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
-+++ a/mm/page_ext.c
-@@ -369,25 +369,15 @@ static void __invalidate_page_ext(unsign
- }
+ static DEFINE_MUTEX(codetag_lock);
+@@ -48,6 +55,7 @@ struct codetag_iterator codetag_get_ct_i
+ 		.cmod = NULL,
+ 		.mod_id = 0,
+ 		.ct = NULL,
++		.mod_seq = 0,
+ 	};
  
- static int __meminit online_page_ext(unsigned long start_pfn,
--				unsigned long nr_pages,
--				int nid)
-+				unsigned long nr_pages)
- {
- 	unsigned long start, end, pfn;
- 	int fail = 0;
-+	int nid = pfn_to_nid(start_pfn);
+ 	return iter;
+@@ -91,11 +99,13 @@ struct codetag *codetag_next_ct(struct c
+ 		if (!cmod)
+ 			break;
  
- 	start = SECTION_ALIGN_DOWN(start_pfn);
- 	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
+-		if (cmod != iter->cmod) {
++		if (!iter->cmod || iter->mod_seq != cmod->mod_seq) {
+ 			iter->cmod = cmod;
++			iter->mod_seq = cmod->mod_seq;
+ 			ct = get_first_module_ct(cmod);
+-		} else
++		} else {
+ 			ct = get_next_module_ct(iter);
++		}
  
--	if (nid == NUMA_NO_NODE) {
--		/*
--		 * In this case, "nid" already exists and contains valid memory.
--		 * "start_pfn" passed to us is a pfn which is an arg for
--		 * online__pages(), and start_pfn should exist.
--		 */
--		nid = pfn_to_nid(start_pfn);
--		VM_BUG_ON(!node_online(nid));
--	}
--
- 	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION)
- 		fail = init_section_page_ext(pfn, nid);
- 	if (!fail)
-@@ -436,7 +426,7 @@ static int __meminit page_ext_callback(s
- 	switch (action) {
- 	case MEM_GOING_ONLINE:
- 		ret = online_page_ext(mn->start_pfn,
--				   mn->nr_pages, mn->status_change_nid);
-+				   mn->nr_pages);
- 		break;
- 	case MEM_OFFLINE:
- 		offline_page_ext(mn->start_pfn,
+ 		if (ct)
+ 			break;
+@@ -191,6 +201,7 @@ static int codetag_module_init(struct co
+ 	cmod->range = range;
+ 
+ 	down_write(&cttype->mod_lock);
++	cmod->mod_seq = ++cttype->next_mod_seq;
+ 	mod_id = idr_alloc(&cttype->mod_idr, cmod, 0, 0, GFP_KERNEL);
+ 	if (mod_id >= 0) {
+ 		if (cttype->desc.module_load) {
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from 00107082@163.com are
 
-mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
-mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
-mmmemory_hotplug-implement-numa-node-notifier.patch
-mmslub-use-node-notifier-instead-of-memory-notifier.patch
-mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
-driverscxl-use-node-notifier-instead-of-memory-notifier.patch
-drivershmat-use-node-notifier-instead-of-memory-notifier.patch
-kernelcpuset-use-node-notifier-instead-of-memory-notifier.patch
-mmmempolicy-use-node-notifier-instead-of-memory-notifier.patch
-mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
+alloc_tag-add-sequence-number-for-module-and-iterator.patch
+alloc_tag-keep-codetag-iterator-active-between-read.patch
 
