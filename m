@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60EA2868B
-	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 22:50:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80D2319E992
+	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 23:07:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749509425; cv=none; b=Xh3+wJZesOjKWh4lAoIYAs2MbKpR/8JyeQQPd1uA9CFxGv69TZMLQ2HCxrdPmBIni3pBSWB34S4eQirrPN2fpeMN/PG9nSkJNjV5OY0FYXHI6CBf6ULAqaeKk3+wMKL3mmG1u4r6u/ZMa+ELFvJ3XjQUa5BwKIS+cYuxRW/3Hzw=
+	t=1749510471; cv=none; b=KR61vDlE1Q5edek7NXItcJD/cgh8dDs06dwx/PlrDFou0rpJ4GSikrPbNL9jftrBpktSPY89A7uIHI7iemXtBJKoqNNumWzMibuR/rFPTFcjuhVf79Skyz503KcPm3bhfllYohQODziC+1i00eqV6Z2cdfpnSRo1jOJ7S0bp5LM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749509425; c=relaxed/simple;
-	bh=Hezl/IMvu6wh701fucg1ortQVYKbmWKev9tJDV14jNQ=;
-	h=Date:To:From:Subject:Message-Id; b=MjN1XgtLqtUs6Qs6WqEQaQyzbtj5sp7auueXOlQtbl7VeyuOnI+ZghEUSJZsODedwLaDZ3h4RGWv/tYHwmP5Y9EZaxKC91gnTqkA60QVeSWTjQANUD4oOVqZr1GaiAXSt7FtXrDhBiKkoN/h2hSEPX6Z/pGeny+dM1tcUitgRLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v5iwVx1W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749510471; c=relaxed/simple;
+	bh=QdqiqSJ/jJH8FvBHQNthi9JH8C0Rx8XRyh2cbYTjQc4=;
+	h=Date:To:From:Subject:Message-Id; b=qVUu0MCuLxWbCHezTpI0BYP76Cy340dHOMqwOxHZLL+rKTInpiRCm2uH3WOiMziJXLngidus+RV5x7gLjImq4dPUR9yYq4xmj1MEzlIC2CvJ/BdiWdh3G8wnsXc3Y+CYvp/jhkh1StYZAzHIbH9ACztHR5fUkv5Kf6suPxpvt4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AL8MVNaH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v5iwVx1W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C880C4CEEB;
-	Mon,  9 Jun 2025 22:50:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AL8MVNaH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9144C4CEEB;
+	Mon,  9 Jun 2025 23:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749509424;
-	bh=Hezl/IMvu6wh701fucg1ortQVYKbmWKev9tJDV14jNQ=;
+	s=korg; t=1749510471;
+	bh=QdqiqSJ/jJH8FvBHQNthi9JH8C0Rx8XRyh2cbYTjQc4=;
 	h=Date:To:From:Subject:From;
-	b=v5iwVx1WCbYVRUtFbDL/oyLDhezUJvy9HXMti2JfblDdGTg8K4KcQhB3baCuFpuwF
-	 CLLwAQsK40/VI+jm5B6LYTaWk7VCKqzaeDYA6Vl3idXNvSO1KfubZIS4OhBaNgERVb
-	 ryaJ5hBlVeGJR0g2M8MBAaULfuxWs8GQMukSoGnk=
-Date: Mon, 09 Jun 2025 15:50:23 -0700
-To: mm-commits@vger.kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=AL8MVNaH0cSTZUwSUKPnD+LkqnvQGgKER8e45+MHVVwPDrPWfVq32BNLQ1FmFVqnP
+	 T4UpzGZ09WrmeJYr7dUY57l3MZXhPdE35eZ6+V5Wpqfi9w9baQozb7e6WqWh4alQMc
+	 2x7JyMtpdHKfRwdLTqXPsGWIewqWfSbwluQgdxbI=
+Date: Mon, 09 Jun 2025 16:07:50 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix.patch added to mm-new branch
-Message-Id: <20250609225024.3C880C4CEEB@smtp.kernel.org>
+Subject: + selftests-mm-increase-timeout-from-180-to-900-seconds.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250609230750.E9144C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base/node: restore removed extra line
-has been added to the -mm mm-new branch.  Its filename is
-     drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix.patch
+     Subject: selftests/mm: increase timeout from 180 to 900 seconds
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-increase-timeout-from-180-to-900-seconds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-increase-timeout-from-180-to-900-seconds.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,38 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: drivers/base/node: restore removed extra line
-Date: Mon, 9 Jun 2025 09:03:54 -0500
+From: Shivank Garg <shivankg@amd.com>
+Subject: selftests/mm: increase timeout from 180 to 900 seconds
+Date: Mon, 9 Jun 2025 12:06:07 +0000
 
-Re-added the extra blank line at the end of the memory.h that was removed
-by the commit 'commit d61861e3bb35 ("drivers/base/node: optimize memory
-block registration to reduce boot time")'
+The mm selftests are timing out with the current 180-second limit.
+Testing shows that run_vmtests.sh takes approximately 11 minutes
+(664 seconds) to complete.
 
-Link: https://lkml.kernel.org/r/20250609140354.467908-1-donettom@linux.ibm.com
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Increase the timeout to 900 seconds (15 minutes) to provide sufficient
+buffer for the tests to complete successfully.
+
+Link: https://lkml.kernel.org/r/20250609120606.73145-2-shivankg@amd.com
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/mm/settings |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memory.h~drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix
-+++ a/include/linux/memory.h
-@@ -216,4 +216,5 @@ unsigned long memory_block_advised_max_s
-  * can sleep.
-  */
- extern struct mutex text_mutex;
-+
- #endif /* _LINUX_MEMORY_H_ */
+--- a/tools/testing/selftests/mm/settings~selftests-mm-increase-timeout-from-180-to-900-seconds
++++ a/tools/testing/selftests/mm/settings
+@@ -1 +1 @@
+-timeout=180
++timeout=900
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time.patch
-drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix.patch
-drivers-base-node-remove-register_mem_block_under_node_early.patch
-drivers-base-node-remove-register_memory_blocks_under_node-function-call-from-register_one_node.patch
-drivers-base-node-rename-register_memory_blocks_under_node-and-remove-context-argument.patch
-drivers-base-node-rename-__register_one_node-to-register_one_node.patch
+selftests-mm-increase-timeout-from-180-to-900-seconds.patch
 
