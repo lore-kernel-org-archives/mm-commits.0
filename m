@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1494B21D3DF
-	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 23:32:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D09F522DFA7
+	for <mm-commits@vger.kernel.org>; Mon,  9 Jun 2025 23:37:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749511963; cv=none; b=DtKDJ1y83gVpku+AnUjPjM9xl9tP8arA0Bp5nsYdyutjlFSjY63Ao9C/L4ShbUqXn3RiBDGjPuiaFabeo3ERJjAFkzDRGqeShT471/FkX8NGZ1i5pPCwesYHiIcie59RpNpx1hwR0J9CkNdJaIwoAq/5ygGKGOxpmy7jIT/aSak=
+	t=1749512273; cv=none; b=qcoNBvXOSyomMDUhA2tUwooUxmMUbogJSGFDSV/Y7fRnV3vUpqaUrDbpgNxBaZKg2S42nsyoJMAbX1iYpRWXkT91uSfhkTdaTeteImyJmUygWtVLZf37gJDgfjh6PdiIbvvO2zVGW8gvIcWVKg969r78Jd+v7U41/LNvfooveLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749511963; c=relaxed/simple;
-	bh=VsOSlzYYHWgLSxu58OMKZ4fZ4mcPOXoRHUJwTpfueVM=;
-	h=Date:To:From:Subject:Message-Id; b=JDWGgnBKENq+JPFdsfkhbirAmDBQdPX/Lhbe/K68LBB24j8Zy8KKpq8KmlFPF1S1RuguHS6+RtpREZ9Y/h4wErmRYcRyDEMyhiJf/Sgb5Z0p64hDAfsCYkipcJMv4yDaPPIim9l6TwDgavDocWNDc3lvsbEU+M8P9DhcKnVPqKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Js+9669B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749512273; c=relaxed/simple;
+	bh=fWPDv6eYU3AudbtA3s3CqJbz7shwgTcw3yNFK3g3FQE=;
+	h=Date:To:From:Subject:Message-Id; b=hVLIrpRwaWcNLxqvR49Td5kb4ewsRE1jRhgAnAffkyNLOReo1cE1Wtp+RlR7Yr8nggMuW3qp8WV1le/sKHTEqdeqW7f6kA6dYtvSrRDwAQ2/RFRHi8G4l5XKmZTe2tMD5StHNSrqLRi25FHiHD7LMdfQVg6W3rXVrhBSqt6dcHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D78ipHIN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Js+9669B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92B39C4CEEB;
-	Mon,  9 Jun 2025 23:32:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D78ipHIN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 611A3C4CEEB;
+	Mon,  9 Jun 2025 23:37:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749511962;
-	bh=VsOSlzYYHWgLSxu58OMKZ4fZ4mcPOXoRHUJwTpfueVM=;
+	s=korg; t=1749512273;
+	bh=fWPDv6eYU3AudbtA3s3CqJbz7shwgTcw3yNFK3g3FQE=;
 	h=Date:To:From:Subject:From;
-	b=Js+9669BDDbUwe6vXu/D4ZSBj0fOCYI7m6k3P66YtAJ0HJG4ICtjY5Av9suLNVikr
-	 FtI8kbT7bmOGqNZKURw6covbAyZHXg5ymxdADtJSKHl52hOAy7ikBzfhSVk6uiuppR
-	 hC11ZmIEau7+njm5RFqm4JkJhIZJAup4N335ojis=
-Date: Mon, 09 Jun 2025 16:32:42 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,jack@suse.cz,david@redhat.com,chaitanyas.prakash@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=D78ipHINrCABgpqJziTTJ8Fp/KTpPrIICInXqF4jZkw5hNGaqd/lSbKuB6pUWf+yn
+	 LUQBPuTjmzS9mL6yJ3t2WHh7jbcayhlb2DeplTviomsXvL+T3KknxgGanDdNLONtaY
+	 6Vq53fvWMUpuBcqHTVXkGW+bElMPipWzX+Mp/Jks=
+Date: Mon, 09 Jun 2025 16:37:52 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,joshua.hahnjy@gmail.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-allow-arch-to-request-folio-size-for-exec-memory.patch added to mm-new branch
-Message-Id: <20250609233242.92B39C4CEEB@smtp.kernel.org>
+Subject: + mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch added to mm-new branch
+Message-Id: <20250609233753.611A3C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: allow arch to request folio size for exec memory
+     Subject: mm,slub: do not special case N_NORMAL nodes for slab_nodes
 has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-allow-arch-to-request-folio-size-for-exec-memory.patch
+     mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-allow-arch-to-request-folio-size-for-exec-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,246 +64,164 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm/filemap: allow arch to request folio size for exec memory
-Date: Mon, 9 Jun 2025 10:27:27 +0100
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,slub: do not special case N_NORMAL nodes for slab_nodes
+Date: Mon, 9 Jun 2025 11:21:38 +0200
 
-Change the readahead config so that if it is being requested for an
-executable mapping, do a synchronous read into a set of folios with an
-arch-specified order and in a naturally aligned manner.  We no longer
-center the read on the faulting page but simply align it down to the
-previous natural boundary.  Additionally, we don't bother with an
-asynchronous part.
+Patch series "Implement numa node notifier", v6.
 
-On arm64 if memory is physically contiguous and naturally aligned to the
-"contpte" size, we can use contpte mappings, which improves utilization of
-the TLB.  When paired with the "multi-size THP" feature, this works well
-to reduce dTLB pressure.  However iTLB pressure is still high due to
-executable mappings having a low likelihood of being in the required folio
-size and mapping alignment, even when the filesystem supports readahead
-into large folios (e.g.  XFS).
+Memory notifier is a tool that allow consumers to get notified whenever
+memory gets onlined or offlined in the system.  Currently, there are 10
+consumers of that, but 5 out of those 10 consumers are only interested in
+getting notifications when a numa node changes its memory state.  That
+means going from memoryless to memory-aware of vice versa.
 
-The reason for the low likelihood is that the current readahead algorithm
-starts with an order-0 folio and increases the folio order by 2 every time
-the readahead mark is hit.  But most executable memory tends to be
-accessed randomly and so the readahead mark is rarely hit and most
-executable folios remain order-0.
+Which means that for every {online,offline}_pages operation they get
+notified even though the numa node might not have changed its state.  This
+is suboptimal, and we want to decouple numa node state changes from memory
+state changes.
 
-So let's special-case the read(ahead) logic for executable mappings.  The
-trade-off is performance improvement (due to more efficient storage of the
-translations in iTLB) vs potential for making reclaim more difficult (due
-to the folios being larger so if a part of the folio is hot the whole
-thing is considered hot).  But executable memory is a small portion of the
-overall system memory so I doubt this will even register from a reclaim
-perspective.
+While we are doing this, remove status_change_nid_normal, as the only
+current user (slub) does not really need it.  This allows us to further
+simplify and clean up the code.
 
-I've chosen 64K folio size for arm64 which benefits both the 4K and 16K
-base page size configs.  Crucially the same amount of data is still read
-(usually 128K) so I'm not expecting any read amplification issues.  I
-don't anticipate any write amplification because text is always RO.
+The first patch gets rid of status_change_nid_normal in slub.  The second
+patch implements a numa node notifier that does just that, and have those
+consumers register in there, so they get notified only when they are
+interested.
 
-Note that the text region of an ELF file could be populated into the page
-cache for other reasons than taking a fault in a mmapped area.  The most
-common case is due to the loader read()ing the header which can be shared
-with the beginning of text.  So some text will still remain in small
-folios, but this simple, best effort change provides good performance
-improvements as is.
+The third patch replaces 'status_change_nid{_normal}' fields within
+memory_notify with a 'nid', as that is only what we need for memory
+notifer and update the only user of it (page_ext).
 
-Confine this special-case approach to the bounds of the VMA.  This
-prevents wasting memory for any padding that might exist in the file
-between sections.  Previously the padding would have been contained in
-order-0 folios and would be easy to reclaim.  But now it would be part of
-a larger folio so more difficult to reclaim.  Solve this by simply not
-reading it into memory in the first place.
+Consumers that are only interested in numa node states change are:
 
-Benchmarking
-============
+ - memory-tier
+ - slub
+ - cpuset
+ - hmat
+ - cxl
+ - autoweight-mempolicy
 
-The below shows pgbench and redis benchmarks on Graviton3 arm64 system.
 
-First, confirmation that this patch causes more text to be contained in
-64K folios:
+This patch (of 6):
 
-+----------------------+---------------+---------------+---------------+
-| File-backed folios by|  system boot  |    pgbench    |     redis     |
-| size as percentage of+-------+-------+-------+-------+-------+-------+
-| all mapped text mem  |before | after |before | after |before | after |
-+======================+=======+=======+=======+=======+=======+=======+
-| base-page-4kB        |   78% |   30% |   78% |   11% |   73% |   14% |
-| thp-aligned-8kB      |    1% |    0% |    0% |    0% |    1% |    0% |
-| thp-aligned-16kB     |   17% |    4% |   17% |    3% |   20% |    4% |
-| thp-aligned-32kB     |    1% |    1% |    1% |    2% |    1% |    1% |
-| thp-aligned-64kB     |    3% |   63% |    3% |   81% |    4% |   77% |
-| thp-aligned-128kB    |    0% |    1% |    1% |    1% |    1% |    2% |
-| thp-unaligned-64kB   |    0% |    0% |    0% |    1% |    0% |    1% |
-| thp-unaligned-128kB  |    0% |    1% |    0% |    0% |    0% |    0% |
-| thp-partial          |    0% |    0% |    0% |    1% |    0% |    1% |
-+----------------------+-------+-------+-------+-------+-------+-------+
-| cont-aligned-64kB    |    4% |   65% |    4% |   83% |    6% |   79% |
-+----------------------+-------+-------+-------+-------+-------+-------+
+Currently, slab_mem_going_online_callback() checks whether the node has
+N_NORMAL memory in order to be set in slab_nodes.  While it is true that
+getting rid of that enforcing would mean ending up with movables nodes in
+slab_nodes, the memory waste that comes with that is negligible.
 
-The above shows that for both workloads (each isolated with cgroups) as
-well as the general system state after boot, the amount of text backed by
-4K and 16K folios reduces and the amount backed by 64K folios increases
-significantly.  And the amount of text that is contpte-mapped
-significantly increases (see last row).
+So stop checking for status_change_nid_normal and just use
+status_change_nid instead which works for both types of memory.
 
-And this is reflected in performance improvement.  "(I)" indicates a
-statistically significant improvement.  Note TPS and Reqs/sec are rates so
-bigger is better, ms is time so smaller is better:
+Also, once we allocate the kmem_cache_node cache for the node in
+slab_mem_online_callback(), we never deallocate it in
+slab_mem_offline_callback() when the node goes memoryless, so we can just
+get rid of it.
 
-+-------------+-------------------------------------------+------------+
-| Benchmark   | Result Class                              | Improvemnt |
-+=============+===========================================+============+
-| pts/pgbench | Scale: 1 Clients: 1 RO (TPS)              |  (I) 3.47% |
-|             | Scale: 1 Clients: 1 RO - Latency (ms)     |     -2.88% |
-|             | Scale: 1 Clients: 250 RO (TPS)            |  (I) 5.02% |
-|             | Scale: 1 Clients: 250 RO - Latency (ms)   | (I) -4.79% |
-|             | Scale: 1 Clients: 1000 RO (TPS)           |  (I) 6.16% |
-|             | Scale: 1 Clients: 1000 RO - Latency (ms)  | (I) -5.82% |
-|             | Scale: 100 Clients: 1 RO (TPS)            |      2.51% |
-|             | Scale: 100 Clients: 1 RO - Latency (ms)   |     -3.51% |
-|             | Scale: 100 Clients: 250 RO (TPS)          |  (I) 4.75% |
-|             | Scale: 100 Clients: 250 RO - Latency (ms) | (I) -4.44% |
-|             | Scale: 100 Clients: 1000 RO (TPS)         |  (I) 6.34% |
-|             | Scale: 100 Clients: 1000 RO - Latency (ms)| (I) -5.95% |
-+-------------+-------------------------------------------+------------+
-| pts/redis   | Test: GET Connections: 50 (Reqs/sec)      |  (I) 3.20% |
-|             | Test: GET Connections: 1000 (Reqs/sec)    |  (I) 2.55% |
-|             | Test: LPOP Connections: 50 (Reqs/sec)     |  (I) 4.59% |
-|             | Test: LPOP Connections: 1000 (Reqs/sec)   |  (I) 4.81% |
-|             | Test: LPUSH Connections: 50 (Reqs/sec)    |  (I) 5.31% |
-|             | Test: LPUSH Connections: 1000 (Reqs/sec)  |  (I) 4.36% |
-|             | Test: SADD Connections: 50 (Reqs/sec)     |  (I) 2.64% |
-|             | Test: SADD Connections: 1000 (Reqs/sec)   |  (I) 4.15% |
-|             | Test: SET Connections: 50 (Reqs/sec)      |  (I) 3.11% |
-|             | Test: SET Connections: 1000 (Reqs/sec)    |  (I) 3.36% |
-+-------------+-------------------------------------------+------------+
+The side effects are that we will stop clearing the node from slab_nodes,
+and also that newly created kmem caches after node hotremove will now
+allocate their kmem_cache_node for the node(s) that was hotremoved, but
+these should be negligible.
 
-Link: https://lkml.kernel.org/r/20250609092729.274960-6-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20250609092149.312114-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250609092149.312114-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    8 ++++
- include/linux/pgtable.h          |   11 ++++++
- mm/filemap.c                     |   47 +++++++++++++++++++++++------
- 3 files changed, 57 insertions(+), 9 deletions(-)
+ mm/slub.c |   34 +++-------------------------------
+ 1 file changed, 3 insertions(+), 31 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-filemap-allow-arch-to-request-folio-size-for-exec-memory
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1643,6 +1643,14 @@ static inline void update_mmu_cache_rang
+--- a/mm/slub.c~mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes
++++ a/mm/slub.c
+@@ -447,7 +447,7 @@ static inline struct kmem_cache_node *ge
+ 
+ /*
+  * Tracks for which NUMA nodes we have kmem_cache_nodes allocated.
+- * Corresponds to node_state[N_NORMAL_MEMORY], but can temporarily
++ * Corresponds to node_state[N_MEMORY], but can temporarily
+  * differ during memory hotplug/hotremove operations.
+  * Protected by slab_mutex.
   */
- #define arch_wants_old_prefaulted_pte	cpu_has_hw_af
- 
-+/*
-+ * Request exec memory is read into pagecache in at least 64K folios. This size
-+ * can be contpte-mapped when 4K base pages are in use (16 pages into 1 iTLB
-+ * entry), and HPA can coalesce it (4 pages into 1 TLB entry) when 16K base
-+ * pages are in use.
-+ */
-+#define exec_folio_order() ilog2(SZ_64K >> PAGE_SHIFT)
-+
- static inline bool pud_sect_supported(void)
- {
- 	return PAGE_SIZE == SZ_4K;
---- a/include/linux/pgtable.h~mm-filemap-allow-arch-to-request-folio-size-for-exec-memory
-+++ a/include/linux/pgtable.h
-@@ -456,6 +456,17 @@ static inline bool arch_has_hw_pte_young
+@@ -6163,36 +6163,12 @@ static int slab_mem_going_offline_callba
+ 	return 0;
  }
- #endif
  
-+#ifndef exec_folio_order
-+/*
-+ * Returns preferred minimum folio order for executable file-backed memory. Must
-+ * be in range [0, PMD_ORDER). Default to order-0.
-+ */
-+static inline unsigned int exec_folio_order(void)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifndef arch_check_zapped_pte
- static inline void arch_check_zapped_pte(struct vm_area_struct *vma,
- 					 pte_t pte)
---- a/mm/filemap.c~mm-filemap-allow-arch-to-request-folio-size-for-exec-memory
-+++ a/mm/filemap.c
-@@ -3238,8 +3238,11 @@ static struct file *do_sync_mmap_readahe
- 	}
- #endif
- 
--	/* If we don't want any read-ahead, don't bother */
--	if (vm_flags & VM_RAND_READ)
-+	/*
-+	 * If we don't want any read-ahead, don't bother. VM_EXEC case below is
-+	 * already intended for random access.
-+	 */
-+	if ((vm_flags & (VM_RAND_READ | VM_EXEC)) == VM_RAND_READ)
- 		return fpin;
- 	if (!ra->ra_pages)
- 		return fpin;
-@@ -3262,14 +3265,40 @@ static struct file *do_sync_mmap_readahe
- 	if (mmap_miss > MMAP_LOTSAMISS)
- 		return fpin;
- 
+-static void slab_mem_offline_callback(void *arg)
+-{
+-	struct memory_notify *marg = arg;
+-	int offline_node;
+-
+-	offline_node = marg->status_change_nid_normal;
+-
 -	/*
--	 * mmap read-around
+-	 * If the node still has available memory. we need kmem_cache_node
+-	 * for it yet.
 -	 */
- 	fpin = maybe_unlock_mmap_for_io(vmf, fpin);
--	ra->start = max_t(long, 0, vmf->pgoff - ra->ra_pages / 2);
--	ra->size = ra->ra_pages;
--	ra->async_size = ra->ra_pages / 4;
--	ra->order = 0;
-+	if (vm_flags & VM_EXEC) {
-+		/*
-+		 * Allow arch to request a preferred minimum folio order for
-+		 * executable memory. This can often be beneficial to
-+		 * performance if (e.g.) arm64 can contpte-map the folio.
-+		 * Executable memory rarely benefits from readahead, due to its
-+		 * random access nature, so set async_size to 0.
-+		 *
-+		 * Limit to the boundaries of the VMA to avoid reading in any
-+		 * pad that might exist between sections, which would be a waste
-+		 * of memory.
-+		 */
-+		struct vm_area_struct *vma = vmf->vma;
-+		unsigned long start = vma->vm_pgoff;
-+		unsigned long end = start + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT);
-+		unsigned long ra_end;
-+
-+		ra->order = exec_folio_order();
-+		ra->start = round_down(vmf->pgoff, 1UL << ra->order);
-+		ra->start = max(ra->start, start);
-+		ra_end = round_up(ra->start + ra->ra_pages, 1UL << ra->order);
-+		ra_end = min(ra_end, end);
-+		ra->size = ra_end - ra->start;
-+		ra->async_size = 0;
-+	} else {
-+		/*
-+		 * mmap read-around
-+		 */
-+		ra->start = max_t(long, 0, vmf->pgoff - ra->ra_pages / 2);
-+		ra->size = ra->ra_pages;
-+		ra->async_size = ra->ra_pages / 4;
-+		ra->order = 0;
-+	}
- 	ractl._index = ra->start;
- 	page_cache_ra_order(&ractl, ra);
- 	return fpin;
+-	if (offline_node < 0)
+-		return;
+-
+-	mutex_lock(&slab_mutex);
+-	node_clear(offline_node, slab_nodes);
+-	/*
+-	 * We no longer free kmem_cache_node structures here, as it would be
+-	 * racy with all get_node() users, and infeasible to protect them with
+-	 * slab_mutex.
+-	 */
+-	mutex_unlock(&slab_mutex);
+-}
+-
+ static int slab_mem_going_online_callback(void *arg)
+ {
+ 	struct kmem_cache_node *n;
+ 	struct kmem_cache *s;
+ 	struct memory_notify *marg = arg;
+-	int nid = marg->status_change_nid_normal;
++	int nid = marg->status_change_nid;
+ 	int ret = 0;
+ 
+ 	/*
+@@ -6250,10 +6226,6 @@ static int slab_memory_callback(struct n
+ 	case MEM_GOING_OFFLINE:
+ 		ret = slab_mem_going_offline_callback(arg);
+ 		break;
+-	case MEM_OFFLINE:
+-	case MEM_CANCEL_ONLINE:
+-		slab_mem_offline_callback(arg);
+-		break;
+ 	case MEM_ONLINE:
+ 	case MEM_CANCEL_OFFLINE:
+ 		break;
+@@ -6324,7 +6296,7 @@ void __init kmem_cache_init(void)
+ 	 * Initialize the nodemask for which we will allocate per node
+ 	 * structures. Here we don't need taking slab_mutex yet.
+ 	 */
+-	for_each_node_state(node, N_NORMAL_MEMORY)
++	for_each_node_state(node, N_MEMORY)
+ 		node_set(node, slab_nodes);
+ 
+ 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-close-theoretical-race-where-stale-tlb-entries-could-linger.patch
-mm-readahead-honour-new_order-in-page_cache_ra_order.patch
-mm-readahead-terminate-async-readahead-on-natural-boundary.patch
-mm-readahead-make-space-in-struct-file_ra_state.patch
-mm-readahead-store-folio-order-in-struct-file_ra_state.patch
-mm-filemap-allow-arch-to-request-folio-size-for-exec-memory.patch
-mm-remove-arch_flush_tlb_batched_pending-arch-helper.patch
+mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
+mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
+mmmemory_hotplug-implement-numa-node-notifier.patch
+mmslub-use-node-notifier-instead-of-memory-notifier.patch
+mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
+driverscxl-use-node-notifier-instead-of-memory-notifier.patch
+drivershmat-use-node-notifier-instead-of-memory-notifier.patch
+kernelcpuset-use-node-notifier-instead-of-memory-notifier.patch
+mmmempolicy-use-node-notifier-instead-of-memory-notifier.patch
+mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
 
