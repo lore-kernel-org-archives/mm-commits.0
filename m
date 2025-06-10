@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39982266EFE
-	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 21:08:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE53266EFE
+	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 21:08:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749589735; cv=none; b=mgDWJXY29KNlr+lximjRv8tGQus5uhdUJ3vWU4PKAlN3h4sFn07ggtLpZvzwphRNuQaUSEHkL28UYAM7mGQP9EnGmvpOh0frnviRC6GSyQqTzDwrPrwe60xu/g2IdPAcmw0fHqKHhsl08uxY4ph9qVIoxhbB6CWHQIa50mplvXg=
+	t=1749589739; cv=none; b=OP/JK1GmtHRTw/HNlXI2awHj3qrQkH3HT3DrZ7dpAWECk/ZUvzF1bTLuINXC8TDqQd8RtXTdGHJvzxfxLbZ43lMuAjjIzKRbAsyKSIZJ6zQd+Yxt0/gGhIpALLIz1aAW55umTcWYoJs2DWbLy3iZK7jdvSxUo66enhzCrZ8Irf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749589735; c=relaxed/simple;
-	bh=0CKM9UVIrsZJqGcLz0sQyLDd0sXksCqW+WVmMPjVbi4=;
-	h=Date:To:From:Subject:Message-Id; b=Ehd5N+8gfbVBF6vCtYwRY0o6SnEEwHIxdzJ6skIATFaAThX64mTHT87OJ42S4q7od3J6pKkBuEriH6ftVRx3b3iY+pEsufT6pRQX9LJ5k173TQ8AvPLFHe2tdAW1gPUI0xEO1rsDNnTo/1o3PhGDnbgwKsHLb0Dct91CXCW9S7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ypcoqx/C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749589739; c=relaxed/simple;
+	bh=yuthWF47h53f/ldDB6VDroRFEj59fL75v1DGCFbQULk=;
+	h=Date:To:From:Subject:Message-Id; b=I3QNZTwkGPc8hWEKq57gdCDoyHAXlLu0Ld513UJOWQaN2HI4HoQsPGuc7/vXNsNfBPieRkH1DZBB1ZOXfcNXQBxrwT1Zjr8Nbi9fN//SJsHBXpqOJBjhJnU11YqHi/kJfXJRTXT6prSUq+zbl32GJ5ArG9UjxVRCHA6ZJxBY/C4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WLi/B0av; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ypcoqx/C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F252EC4CEED;
-	Tue, 10 Jun 2025 21:08:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WLi/B0av"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2F9C4CEED;
+	Tue, 10 Jun 2025 21:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749589735;
-	bh=0CKM9UVIrsZJqGcLz0sQyLDd0sXksCqW+WVmMPjVbi4=;
+	s=korg; t=1749589738;
+	bh=yuthWF47h53f/ldDB6VDroRFEj59fL75v1DGCFbQULk=;
 	h=Date:To:From:Subject:From;
-	b=Ypcoqx/ChTcGcByibBLGmBmxA4RuFsgZqsk7EOnxm5IpVOMlZh53ka1TsGCatu7Bl
-	 joRyc/izFHJbUO1SyWRQ1wdFVh84Z1TsUfopAV2k8SbEWAy6fElZpAbNBI8c5ruyZP
-	 fKZ9KZpMfcvdgo5ScYvODm6AK3Fj3lCki4iIExKg=
-Date: Tue, 10 Jun 2025 14:08:54 -0700
+	b=WLi/B0avULitO2wmxiabKlEbdztkVi1d4XfGmlwpB8ydPEBoG0SOMtFM4CU82yKc5
+	 aL4KNiqn4HMA+F5FkRtBgtbEPI2HR1Fbq7SOlg+rebKq7J0LjfRLUkyqCAy+XUIuc4
+	 wXcR/bwsVmR6I+pDoUAuyG/P5beVubEXyxmQoBRI=
+Date: Tue, 10 Jun 2025 14:08:58 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hughd@google.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-stop-passing-a-writeback_control-structure-to-swap_writeout.patch added to mm-unstable branch
-Message-Id: <20250610210854.F252EC4CEED@smtp.kernel.org>
+Subject: + mm-remove-the-for_reclaim-field-from-struct-writeback_control.patch added to mm-unstable branch
+Message-Id: <20250610210858.9C2F9C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: stop passing a writeback_control structure to swap_writeout
+     Subject: mm: remove the for_reclaim field from struct writeback_control
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-stop-passing-a-writeback_control-structure-to-swap_writeout.patch
+     mm-remove-the-for_reclaim-field-from-struct-writeback_control.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-stop-passing-a-writeback_control-structure-to-swap_writeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-the-for_reclaim-field-from-struct-writeback_control.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: stop passing a writeback_control structure to swap_writeout
-Date: Tue, 10 Jun 2025 07:49:41 +0200
+Subject: mm: remove the for_reclaim field from struct writeback_control
+Date: Tue, 10 Jun 2025 07:49:42 +0200
 
-swap_writeout only needs the swap_iocb cookie from the writeback_control
-structure, so pass it explicitly.
+This field is now only set to one in the i915 gem code that only calls
+writeback_iter on it, which ignores the flag.  All other checks are thuse
+dead code and the field can be removed.
 
-Link: https://lkml.kernel.org/r/20250610054959.2057526-6-hch@lst.de
+Link: https://lkml.kernel.org/r/20250610054959.2057526-7-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
@@ -76,130 +77,135 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h |    7 -------
- mm/page_io.c              |    4 ++--
- mm/shmem.c                |   10 +---------
- mm/swap.h                 |    7 +++++--
- mm/vmscan.c               |   10 +---------
- 5 files changed, 9 insertions(+), 29 deletions(-)
+ drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    1 -
+ fs/fuse/file.c                            |   11 -----------
+ fs/nfs/write.c                            |    2 +-
+ include/linux/writeback.h                 |    1 -
+ include/trace/events/btrfs.h              |    7 ++-----
+ include/trace/events/writeback.h          |    8 ++------
+ 6 files changed, 5 insertions(+), 25 deletions(-)
 
---- a/include/linux/writeback.h~mm-stop-passing-a-writeback_control-structure-to-swap_writeout
-+++ a/include/linux/writeback.h
-@@ -72,13 +72,6 @@ struct writeback_control {
- 	 */
- 	unsigned no_cgroup_owner:1;
- 
--	/* To enable batching of swap writes to non-block-device backends,
--	 * "plug" can be set point to a 'struct swap_iocb *'.  When all swap
--	 * writes have been submitted, if with swap_iocb is not NULL,
--	 * swap_write_unplug() should be called.
--	 */
--	struct swap_iocb **swap_plug;
--
- 	/* internal fields used by the ->writepages implementation: */
- 	struct folio_batch fbatch;
- 	pgoff_t index;
---- a/mm/page_io.c~mm-stop-passing-a-writeback_control-structure-to-swap_writeout
-+++ a/mm/page_io.c
-@@ -237,7 +237,7 @@ static void swap_zeromap_folio_clear(str
-  * We may have stale swap cache pages in memory: notice
-  * them here and get rid of the unnecessary final write.
-  */
--int swap_writeout(struct folio *folio, struct writeback_control *wbc)
-+int swap_writeout(struct folio *folio, struct swap_iocb **swap_plug)
- {
- 	int ret = 0;
- 
-@@ -281,7 +281,7 @@ int swap_writeout(struct folio *folio, s
- 		return AOP_WRITEPAGE_ACTIVATE;
- 	}
- 
--	__swap_writepage(folio, wbc->swap_plug);
-+	__swap_writepage(folio, swap_plug);
- 	return 0;
- out_unlock:
- 	folio_unlock(folio);
---- a/mm/shmem.c~mm-stop-passing-a-writeback_control-structure-to-swap_writeout
-+++ a/mm/shmem.c
-@@ -1635,21 +1635,13 @@ try_split:
- 		list_add(&info->swaplist, &shmem_swaplist);
- 
- 	if (!folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN)) {
--		struct writeback_control wbc = {
--			.sync_mode	= WB_SYNC_NONE,
--			.nr_to_write	= SWAP_CLUSTER_MAX,
--			.range_start	= 0,
--			.range_end	= LLONG_MAX,
--			.for_reclaim	= 1,
--			.swap_plug	= plug,
--		};
- 		shmem_recalc_inode(inode, 0, nr_pages);
- 		swap_shmem_alloc(folio->swap, nr_pages);
- 		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
- 
- 		mutex_unlock(&shmem_swaplist_mutex);
- 		BUG_ON(folio_mapped(folio));
--		return swap_writeout(folio, &wbc);
-+		return swap_writeout(folio, plug);
- 	}
- 	if (!info->swapped)
- 		list_del_init(&info->swaplist);
---- a/mm/swap.h~mm-stop-passing-a-writeback_control-structure-to-swap_writeout
-+++ a/mm/swap.h
-@@ -3,6 +3,8 @@
- #define _MM_SWAP_H
- 
- struct mempolicy;
-+struct swap_iocb;
-+
- extern int page_cluster;
- 
- #ifdef CONFIG_SWAP
-@@ -20,7 +22,7 @@ static inline void swap_read_unplug(stru
- 		__swap_read_unplug(plug);
- }
- void swap_write_unplug(struct swap_iocb *sio);
--int swap_writeout(struct folio *folio, struct writeback_control *wbc);
-+int swap_writeout(struct folio *folio, struct swap_iocb **swap_plug);
- void __swap_writepage(struct folio *folio, struct swap_iocb **swap_plug);
- 
- /* linux/mm/swap_state.c */
-@@ -160,7 +162,8 @@ static inline struct folio *swapin_reada
- 	return NULL;
- }
- 
--static inline int swap_writeout(struct folio *f, struct writeback_control *wbc)
-+static inline int swap_writeout(struct folio *folio,
-+		struct swap_iocb **swap_plug)
- {
- 	return 0;
- }
---- a/mm/vmscan.c~mm-stop-passing-a-writeback_control-structure-to-swap_writeout
-+++ a/mm/vmscan.c
-@@ -655,14 +655,6 @@ typedef enum {
- static pageout_t writeout(struct folio *folio, struct address_space *mapping,
- 		struct swap_iocb **plug, struct list_head *folio_list)
- {
--	struct writeback_control wbc = {
--		.sync_mode = WB_SYNC_NONE,
--		.nr_to_write = SWAP_CLUSTER_MAX,
--		.range_start = 0,
--		.range_end = LLONG_MAX,
+--- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-remove-the-for_reclaim-field-from-struct-writeback_control
++++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+@@ -302,7 +302,6 @@ void __shmem_writeback(size_t size, stru
+ 		.nr_to_write = SWAP_CLUSTER_MAX,
+ 		.range_start = 0,
+ 		.range_end = LLONG_MAX,
 -		.for_reclaim = 1,
--		.swap_plug = plug,
--	};
- 	int res;
+ 	};
+ 	struct folio *folio = NULL;
+ 	int error = 0;
+--- a/fs/fuse/file.c~mm-remove-the-for_reclaim-field-from-struct-writeback_control
++++ a/fs/fuse/file.c
+@@ -1928,17 +1928,6 @@ int fuse_write_inode(struct inode *inode
+ 	struct fuse_file *ff;
+ 	int err;
  
- 	folio_set_reclaim(folio);
-@@ -675,7 +667,7 @@ static pageout_t writeout(struct folio *
- 	if (shmem_mapping(mapping))
- 		res = shmem_writeout(folio, plug, folio_list);
- 	else
--		res = swap_writeout(folio, &wbc);
-+		res = swap_writeout(folio, plug);
+-	/*
+-	 * Inode is always written before the last reference is dropped and
+-	 * hence this should not be reached from reclaim.
+-	 *
+-	 * Writing back the inode from reclaim can deadlock if the request
+-	 * processing itself needs an allocation.  Allocations triggering
+-	 * reclaim while serving a request can't be prevented, because it can
+-	 * involve any number of unrelated userspace processes.
+-	 */
+-	WARN_ON(wbc->for_reclaim);
+-
+ 	ff = __fuse_write_file_get(fi);
+ 	err = fuse_flush_times(inode, ff);
+ 	if (ff)
+--- a/fs/nfs/write.c~mm-remove-the-for_reclaim-field-from-struct-writeback_control
++++ a/fs/nfs/write.c
+@@ -720,7 +720,7 @@ int nfs_writepages(struct address_space
+ 	nfs_inc_stats(inode, NFSIOS_VFSWRITEPAGES);
  
- 	if (res < 0)
- 		handle_write_error(mapping, folio, res);
+ 	if (!(mntflags & NFS_MOUNT_WRITE_EAGER) || wbc->for_kupdate ||
+-	    wbc->for_background || wbc->for_sync || wbc->for_reclaim) {
++	    wbc->for_background || wbc->for_sync) {
+ 		ioc = nfs_io_completion_alloc(GFP_KERNEL);
+ 		if (ioc)
+ 			nfs_io_completion_init(ioc, nfs_io_completion_commit,
+--- a/include/linux/writeback.h~mm-remove-the-for_reclaim-field-from-struct-writeback_control
++++ a/include/linux/writeback.h
+@@ -59,7 +59,6 @@ struct writeback_control {
+ 	unsigned for_kupdate:1;		/* A kupdate writeback */
+ 	unsigned for_background:1;	/* A background writeback */
+ 	unsigned tagged_writepages:1;	/* tag-and-write to avoid livelock */
+-	unsigned for_reclaim:1;		/* Invoked from the page allocator */
+ 	unsigned range_cyclic:1;	/* range_start is cyclic */
+ 	unsigned for_sync:1;		/* sync(2) WB_SYNC_ALL writeback */
+ 	unsigned unpinned_netfs_wb:1;	/* Cleared I_PINNING_NETFS_WB */
+--- a/include/trace/events/btrfs.h~mm-remove-the-for_reclaim-field-from-struct-writeback_control
++++ a/include/trace/events/btrfs.h
+@@ -686,7 +686,6 @@ DECLARE_EVENT_CLASS(btrfs__writepage,
+ 		__field(	loff_t, range_start		)
+ 		__field(	loff_t, range_end		)
+ 		__field(	char,   for_kupdate		)
+-		__field(	char,   for_reclaim		)
+ 		__field(	char,   range_cyclic		)
+ 		__field(	unsigned long,  writeback_index	)
+ 		__field(	u64,    root_objectid		)
+@@ -700,7 +699,6 @@ DECLARE_EVENT_CLASS(btrfs__writepage,
+ 		__entry->range_start	= wbc->range_start;
+ 		__entry->range_end	= wbc->range_end;
+ 		__entry->for_kupdate	= wbc->for_kupdate;
+-		__entry->for_reclaim	= wbc->for_reclaim;
+ 		__entry->range_cyclic	= wbc->range_cyclic;
+ 		__entry->writeback_index = inode->i_mapping->writeback_index;
+ 		__entry->root_objectid	= btrfs_root_id(BTRFS_I(inode)->root);
+@@ -709,13 +707,12 @@ DECLARE_EVENT_CLASS(btrfs__writepage,
+ 	TP_printk_btrfs("root=%llu(%s) ino=%llu page_index=%lu "
+ 		  "nr_to_write=%ld pages_skipped=%ld range_start=%llu "
+ 		  "range_end=%llu for_kupdate=%d "
+-		  "for_reclaim=%d range_cyclic=%d writeback_index=%lu",
++		  "range_cyclic=%d writeback_index=%lu",
+ 		  show_root_type(__entry->root_objectid),
+ 		  __entry->ino, __entry->index,
+ 		  __entry->nr_to_write, __entry->pages_skipped,
+ 		  __entry->range_start, __entry->range_end,
+-		  __entry->for_kupdate,
+-		  __entry->for_reclaim, __entry->range_cyclic,
++		  __entry->for_kupdate, __entry->range_cyclic,
+ 		  __entry->writeback_index)
+ );
+ 
+--- a/include/trace/events/writeback.h~mm-remove-the-for_reclaim-field-from-struct-writeback_control
++++ a/include/trace/events/writeback.h
+@@ -459,7 +459,6 @@ DECLARE_EVENT_CLASS(wbc_class,
+ 		__field(int, sync_mode)
+ 		__field(int, for_kupdate)
+ 		__field(int, for_background)
+-		__field(int, for_reclaim)
+ 		__field(int, range_cyclic)
+ 		__field(long, range_start)
+ 		__field(long, range_end)
+@@ -473,23 +472,20 @@ DECLARE_EVENT_CLASS(wbc_class,
+ 		__entry->sync_mode	= wbc->sync_mode;
+ 		__entry->for_kupdate	= wbc->for_kupdate;
+ 		__entry->for_background	= wbc->for_background;
+-		__entry->for_reclaim	= wbc->for_reclaim;
+ 		__entry->range_cyclic	= wbc->range_cyclic;
+ 		__entry->range_start	= (long)wbc->range_start;
+ 		__entry->range_end	= (long)wbc->range_end;
+ 		__entry->cgroup_ino	= __trace_wbc_assign_cgroup(wbc);
+ 	),
+ 
+-	TP_printk("bdi %s: towrt=%ld skip=%ld mode=%d kupd=%d "
+-		"bgrd=%d reclm=%d cyclic=%d "
+-		"start=0x%lx end=0x%lx cgroup_ino=%lu",
++	TP_printk("bdi %s: towrt=%ld skip=%ld mode=%d kupd=%d bgrd=%d "
++		"cyclic=%d start=0x%lx end=0x%lx cgroup_ino=%lu",
+ 		__entry->name,
+ 		__entry->nr_to_write,
+ 		__entry->pages_skipped,
+ 		__entry->sync_mode,
+ 		__entry->for_kupdate,
+ 		__entry->for_background,
+-		__entry->for_reclaim,
+ 		__entry->range_cyclic,
+ 		__entry->range_start,
+ 		__entry->range_end,
 _
 
 Patches currently in -mm which might be from hch@lst.de are
