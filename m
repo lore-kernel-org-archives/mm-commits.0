@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B239238D56
-	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:52:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26F12676D3
+	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:53:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749588779; cv=none; b=At5p5vhvdOzXS/XLIUFMFkduaODKcp4M2m1KBXES/F+yTTk5ezb2Kl3L9+1c+HMkJ078cVHKgXvOL6sL4mW+u4RvvdLVU/CprLOHfxcdt+73kgLeQwOIuW1poa9/WG7kl4NLZZXPo8M6EU8ELxeFM+Aa+AocNgYAslApawYdS8w=
+	t=1749588781; cv=none; b=tblge1AJp2sQuvFOrZodTFBce8orzb4IiDWA5i0N+Q/6Z6VkkA6+e3A5DpgkzeR+FF9NCbsRksOunK5F6lbfhK0Y2nQIzM43yWRJRuRSZxKx4jrsDemURo36dzD4IsW/TI4hC04BzdCEXr5grAZKj73nXccmzWR1s44VwWfkdB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749588779; c=relaxed/simple;
-	bh=6Blg5ooR+cInwE3cYTpKNr5LTPKuyCXTZfIB+eTQj5Q=;
-	h=Date:To:From:Subject:Message-Id; b=MCf/Oq3w6Jsn51gH/LOBSwibGbxhwuzGQfmpYguPzeglLVgF2M44ORUlwsYR+VhDVUwdVdvmtA97Os0NsL4pDhqq6Hen/bU+kCLbsn9oDpWyXgyXn3XDcnnpdKm8xhTLW+SgRso0e+CQLmmOMHtdGQv8ve2S2vOjXHpmoGL2+mY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vQPBorLd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749588781; c=relaxed/simple;
+	bh=uXRaAcbafFrFmaHPNpHp71G98gxMoGacC3ewhZXowSI=;
+	h=Date:To:From:Subject:Message-Id; b=dFBchmVzr2ommyLV7woHlH7FBp5wg03mS8N2T3AkZfOWhE1d1RqkI7dTdCTCxnWjTBWyfCdiNOXHH37uVBWgJZ+RCZyUVqA6gzQ0OHuhCNkFkQrm/wGNyCEqNPH270tRcUFhqUPDRBkZAIturqmTtEzdvTQ3QqQfnxgyd3w6aDg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cCFNc5Y7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vQPBorLd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D55C0C4CEED;
-	Tue, 10 Jun 2025 20:52:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cCFNc5Y7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CBDFC4CEED;
+	Tue, 10 Jun 2025 20:53:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749588778;
-	bh=6Blg5ooR+cInwE3cYTpKNr5LTPKuyCXTZfIB+eTQj5Q=;
+	s=korg; t=1749588781;
+	bh=uXRaAcbafFrFmaHPNpHp71G98gxMoGacC3ewhZXowSI=;
 	h=Date:To:From:Subject:From;
-	b=vQPBorLd+D07naXQrOl9JAnEJQflvNdSpAlh7BfCvi5yieOa++2uNHaOlIx85Jf6o
-	 rGL3xuwXCUuom57UxAfwY8De5WJofy4AlYl6iukpExh45nbDUHJK5I6sgL07x8pS2b
-	 66hCNp7HRuq0kZAc2ig5dDICzSLnchePpW+2ybQ0=
-Date: Tue, 10 Jun 2025 13:52:58 -0700
+	b=cCFNc5Y7HOn8BowhLNIjUv68GXwyrOc2SAtoTkwsVT1hzrWn0JM4DNIrWboaoxZNs
+	 BMgUHb7G0HzSEDvcirlErwaYVhzME3YuEH35jPKNNSaDMdXQ0ZVTqK0NlZ6C8Ja36w
+	 NpJt28KK/x1D8vtpi/3Qj4nru8zVypfNKVKvIl40=
+Date: Tue, 10 Jun 2025 13:53:01 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,riel@surriel.com,richard.weiyang@gmail.com,npache@redhat.com,matenajakub@gmail.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch added to mm-new branch
-Message-Id: <20250610205258.D55C0C4CEED@smtp.kernel.org>
+Subject: + tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch added to mm-new branch
+Message-Id: <20250610205301.8CBDFC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/testing/selftests: test relocate anon in split huge page test
+     Subject: tools/testing/selftests: add MREMAP_RELOCATE_ANON fork tests
 has been added to the -mm mm-new branch.  Its filename is
-     tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
+     tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,18 +65,409 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: test relocate anon in split huge page test
-Date: Mon, 9 Jun 2025 14:26:44 +0100
+Subject: tools/testing/selftests: add MREMAP_RELOCATE_ANON fork tests
+Date: Mon, 9 Jun 2025 14:26:45 +0100
 
-It's useful to explicitly test splitting of huge pages with
-MREMAP_RELOCATE_ANON set, as this exercises the undo logic and ensures
-that it functions correctly.
+Add tests explicitly asserting that mremap() fails on forked VMAs whether
+they have parent anon_vma's or whether they have child ones, as these are
+cases where the folio might be mapped by multiple processes - in this case
+we don't even try to relocate folio metadata, but rather simply disallow
+the operation.
 
-Expand the tests to do so in the instance where anon mremap() occurs, and
-utilise the shared sys_mremap() function to allow for specification of the
-new mremap flag (which would otherwise be filtered by glibc).
+The tests use MREMAP_MUST_RELOCATE_ANON so we can detect the failure
+correctly.
 
-Link: https://lkml.kernel.org/r/064971308aacfbdaaf404ebe5736666744dbd005.1749473726.git.lorenzo.stoakes@oracle.com
+Were the mremap()'s to succeed, a merge would occur, so it remains
+appropriate to keep these in the merge test suite.
+
+We also explicitly test the anon_vma reuse case.  This is one where a
+munmap() occurs on a parent anon_vma which still has children.  We keep
+the empty anon_vma around, and then attempt to reuse it on the next fork
+of a VMA whose anon_vma references this empty anon_vma.
+
+Consider the first case over 3 forks:
+
+FORK 3 TIMES ONE AFTER ANOTHER
+==============================
+
+Process 1
+
+     |-------------|
+     | avc*        v
+  |-----|   vma |-----|
+  |  A  |<------| avc |
+  |-----|       |-----|
+     | anon_vma    ^
+     |             |
+     v     rb_root |
+  |---------------------|
+  | refcount = 1        |<--|
+  | num_children = 1    |   |
+  | num_active_vmas = 1 |---| parent
+  |---------------------|
+
+FORK
+
+Process 1
+
+     |-------------|
+     | avc         v
+  |-----|   vma |-----|
+  |  A  |<------| avc |
+  |-----|       |-----|
+     | anon_vma    ^
+     |             |--------------------|
+     v     rb_root |                    |
+  |---------------------|               |
+  | refcount = 2        | (self-parent) |
+  | num_children = 2    |<--------------x----|
+  | num_active_vmas = 1 |               |    |
+  |---------------------|               |    |
+                           |------------|    |
+Process 2                  |                 |
+                           |                 |
+     |-------------|       |                 |
+     | avc         v       v                 |
+  |-----|   vma |-----| |-----|              |
+  |  B  |<------| avc |.| avc |              |
+  |-----|       |-----| |-----|              |
+     | anon_vma    ^                         |
+     |             |                         |
+     v     rb_root |                         |
+  |---------------------|                    |
+  | refcount = 1        |                    |
+  | num_children = 0    |--------------------|
+  | num_active_vmas = 1 | parent
+  |---------------------|
+
+FORK
+
+Process 1
+
+     |-------------|
+     | avc         v
+  |-----|   vma |-----|
+  |  A  |<------| avc |
+  |-----|       |-----|        |--------------------------|
+     | anon_vma    ^           |                          |
+     |             |--------------------|                 |
+     v     rb_root |                    |                 |
+  |---------------------|               |                 |
+  | refcount = 3        | (self-parent) |                 |
+  | num_children = 2    |<--------------x----|            |
+  | num_active_vmas = 1 |               |    |            |
+  |---------------------|               |    |            |
+                           |------------|    |            |
+Process 2                  |                 |            |
+                           |                 |            |
+     |-------------|       |                 |            |
+     | avc         v       v                 |            |
+  |-----|   vma |-----| |-----|              |            |
+  |  B  |<------| avc |.| avc |              |            |
+  |-----|       |-----| |-----|              |            |
+     | anon_vma    ^                         |            |
+     |             |-------------------------x--------|   |
+     v     rb_root |                         |        |   |
+  |---------------------|                    |        |   |
+  | refcount = 1        |<-------------------x----|   |   |
+  | num_children = 1    |--------------------|    |   |   |
+  | num_active_vmas = 1 | parent                  |   |   |
+  |---------------------|                         |   |   |
+                                                  |   |   |
+Process 3                                         |   |   |
+                           |----------------------x---|   |
+     |-------------|       |       |--------------x-------|
+     | avc         v       v       v              |
+  |-----|   vma |-----| |-----| |-----|           |
+  |  C  |<------| avc |.| avc |.| avc |           |
+  |-----|       |-----| |-----| |-----|           |
+     | anon_vma    ^                              |
+     |             |                              |
+     v     rb_root |                              |
+  |---------------------|                         |
+  | refcount = 1        |                         |
+  | num_children = 0    |-------------------------|
+  | num_active_vmas = 1 | parent
+  |---------------------|
+
+FORK
+
+Process 1
+
+     |-------------|
+     | avc         v
+  |-----|   vma |-----|             |---------------------------------|
+  |  A  |<------| avc |             |                                 |
+  |-----|       |-----|        |--------------------------|           |
+     | anon_vma    ^           |                          |           |
+     |             |--------------------|                 |           |
+     v     rb_root |                    |                 |           |
+  |---------------------|               |                 |           |
+  | refcount = 4        | (self-parent) |                 |           |
+  | num_children = 2    |<--------------x----|            |           |
+  | num_active_vmas = 1 |               |    |            |           |
+  |---------------------|               |    |            |           |
+                           |------------|    |            |           |
+Process 2                  |                 |            |           |
+                           |                 |            |           |
+     |-------------|       |                 |            |           |
+     | avc         v       v                 |            |           |
+  |-----|   vma |-----| |-----|              |            |           |
+  |  B  |<------| avc |.| avc |              |            |           |
+  |-----|       |-----| |-----|     |--------x------------x-------|   |
+     | anon_vma    ^                |        |            |       |   |
+     |             |-------------------------x--------|   |       |   |
+     v     rb_root |                         |        |   |       |   |
+  |---------------------|                    |        |   |       |   |
+  | refcount = 1        |<-------------------x----|   |   |       |   |
+  | num_children = 1    |--------------------|    |   |   |       |   |
+  | num_active_vmas = 1 | parent                  |   |   |       |   |
+  |---------------------|                         |   |   |       |   |
+                                                  |   |   |       |   |
+Process 3                                         |   |   |       |   |
+                           |----------------------x---|   |       |   |
+     |-------------|       |       |--------------x-------|       |   |
+     | avc         v       v       v              |               |   |
+  |-----|   vma |-----| |-----| |-----|           |               |   |
+  |  C  |<------| avc |.| avc |.| avc |           |               |   |
+  |-----|       |-----| |-----| |-----|           |               |   |
+     | anon_vma    ^                              |               |   |
+     |             |------------------------------x-----------|   |   |
+     v     rb_root |                              |           |   |   |
+  |---------------------|                         |           |   |   |
+  | refcount = 1        |<------------------------x---|       |   |   |
+  | num_children = 1    |-------------------------|   |       |   |   |
+  | num_active_vmas = 1 | parent                      |       |   |   |
+  |---------------------|                             |       |   |   |
+                                                      |       |   |   |
+Process 4                                             |       |   |   |
+                           |--------------------------x-------|   |   |
+     |-------------|       |       |------------------x-----------|   |
+     | avc         v       v       v       v----------x---------------|
+  |-----|   vma |-----| |-----| |-----| |-----|       |
+  |  D  |<------| avc |.| avc |.| avc |.| avc |       |
+  |-----|       |-----| |-----| |-----| |-----|       |
+     | anon_vma    ^                                  |
+     |             |                                  |
+     v     rb_root |                                  |
+  |---------------------|                             |
+  | refcount = 1        |                             |
+  | num_children = 0    |-----------------------------|
+  | num_active_vmas = 1 | parent
+  |---------------------|
+
+We can see that at no point do we lack either a raised num_children count
+or anon_vma_chain list count.
+
+Equally with anon_vma reuse:
+
+FORK 3 TIMES ONE AFTER ANOTHER, UNMAPPING AFTER FORK FOR ANON_VMA REUSE
+=======================================================================
+
+Process 1
+
+     |-------------|
+     | avc*        v
+  |-----|   vma |-----|
+  |  A  |<------| avc |
+  |-----|       |-----|
+     | anon_vma    ^
+     |             |
+     v     rb_root |
+  |---------------------|
+  | refcount = 1        |<--|
+  | num_children = 1    |   |
+  | num_active_vmas = 1 |---| parent
+  |---------------------|
+
+FORK
+
+Process 1
+
+     |-------------|
+     | avc         v
+  |-----|   vma |-----|
+  |  A  |<------| avc |
+  |-----|       |-----|
+     | anon_vma    ^
+     |             |--------------------|
+     v     rb_root |                    |
+  |---------------------|               |
+  | refcount = 2        | (self-parent) |
+  | num_children = 2    |<--------------x----|
+  | num_active_vmas = 1 |               |    |
+  |---------------------|               |    |
+                           |------------|    |
+Process 2                  |                 |
+                           |                 |
+     |-------------|       |                 |
+     | avc         v       v                 |
+  |-----|   vma |-----| |-----|              |
+  |  B  |<------| avc |.| avc |              |
+  |-----|       |-----| |-----|              |
+     | anon_vma    ^                         |
+     |             |                         |
+     v     rb_root |                         |
+  |---------------------|                    |
+  | refcount = 1        |                    |
+  | num_children = 0    |--------------------|
+  | num_active_vmas = 1 | parent
+  |---------------------|
+
+FORK
+
+Process 1
+
+     |-------------|
+     | avc         v
+  |-----|   vma |-----|
+  |  A  |<------| avc |
+  |-----|       |-----|        |--------------------------|
+     | anon_vma    ^           |                          |
+     |             |--------------------|                 |
+     v     rb_root |                    |                 |
+  |---------------------|               |                 |
+  | refcount = 3        | (self-parent) |                 |
+  | num_children = 2    |<--------------x----|            |
+  | num_active_vmas = 1 |               |    |            |
+  |---------------------|               |    |            |
+                           |------------|    |            |
+Process 2                  |                 |            |
+                           |                 |            |
+     |-------------|       |                 |            |
+     | avc         v       v                 |            |
+  |-----|   vma |-----| |-----|              |            |
+  |  B  |<------| avc |.| avc |              |            |
+  |-----|       |-----| |-----|              |            |
+     | anon_vma    ^                         |            |
+     |             |-------------------------x--------|   |
+     v     rb_root |                         |        |   |
+  |---------------------|                    |        |   |
+  | refcount = 1        |<-------------------x----|   |   |
+  | num_children = 1    |--------------------|    |   |   |
+  | num_active_vmas = 1 | parent                  |   |   |
+  |---------------------|                         |   |   |
+                                                  |   |   |
+Process 3                                         |   |   |
+                           |----------------------x---|   |
+     |-------------|       |       |--------------x-------|
+     | avc         v       v       v              |
+  |-----|   vma |-----| |-----| |-----|           |
+  |  C  |<------| avc |.| avc |.| avc |           |
+  |-----|       |-----| |-----| |-----|           |
+     | anon_vma    ^                              |
+     |             |                              |
+     v     rb_root |                              |
+  |---------------------|                         |
+  | refcount = 1        |                         |
+  | num_children = 0    |-------------------------|
+  | num_active_vmas = 1 | parent
+  |---------------------|
+
+UNMAP B
+
+Process 1
+
+     |-------------|
+     | avc         v
+  |-----|   vma |-----|
+  |  A  |<------| avc |
+  |-----|       |-----|        |--------------------------|
+     | anon_vma    ^           |                          |
+     |             |------------                          |
+     v     rb_root |                                      |
+  |---------------------|                                 |
+  | refcount = 3        | (self-parent)                   |
+  | num_children = 2    |<-------------------|            |
+  | num_active_vmas = 1 |                    |            |
+  |---------------------|                    |            |
+                                             |            |
+Process 2                                    |            |
+                                             |            |
+                   |-------------------------x--------|   |
+           rb_root |                         |        |   |
+  |---------------------|                    |        |   |
+  | refcount = 1        |<-------------------x----|   |   | We keep empty
+  | num_children = 1    |--------------------|    |   |   | anon_vma round.
+  | num_active_vmas = 0 | parent                  |   |   |
+  |---------------------|                         |   |   |
+                                                  |   |   |
+Process 3                                         |   |   |
+                           |----------------------x---|   |
+     |-------------|       |       |--------------x-------|
+     | avc         v       v       v              |
+  |-----|   vma |-----| |-----| |-----|           |
+  |  C  |<------| avc |.| avc |.| avc |           |
+  |-----|       |-----| |-----| |-----|           |
+     | anon_vma    ^                              |
+     |             |                              |
+     v     rb_root |                              |
+  |---------------------|                         |
+  | refcount = 1        |                         |
+  | num_children = 0    |-------------------------|
+  | num_active_vmas = 1 | parent
+  |---------------------|
+
+FORK
+
+Process 1
+
+     |-------------|
+     | avc         v
+  |-----|   vma |-----|             |-----------------------------|
+  |  A  |<------| avc |             |                             |
+  |-----|       |-----|        |--------------------------|       |
+     | anon_vma    ^           |                          |       |
+     |             |-----------|                          |       |
+     v     rb_root |                                      |       |
+  |---------------------|                                 |       |
+  | refcount = 3        | (self-parent)                   |       |
+  | num_children = 2    |<-------------------|            |       |
+  | num_active_vmas = 1 |                    |            |       |
+  |---------------------|                    |            |       |
+                                             |            |       |
+Process 2               |--------------------x------------x-------x-------|
+                        |                    |            |       |       |
+                   |-------------------------x--------|   |       |       |
+           rb_root |                         |        |   |       |       |
+  |---------------------|<-------------------x--------x---x-------x---|   |
+  | refcount = 1        |<-------------------x----|   |   |       |   |   |
+  | num_children = 1    |--------------------|    |   |   |       |   |   |
+  | num_active_vmas = 1 | parent                  |   |   |       |   |   |
+  |---------------------|                         |   |   |       |   |   |
+                                                  |   |   |       |   |   |
+Process 3                                         |   |   |       |   |   |
+                           |----------------------x---|   |       |   |   |
+     |-------------|       |       |--------------x-------|       |   |   |
+     | avc         v       v       v              |               |   |   |
+  |-----|   vma |-----| |-----| |-----|           |               |   |   |
+  |  C  |<------| avc |.| avc |.| avc |           |               |   |   |
+  |-----|       |-----| |-----| |-----|           |               |   |   |
+     | anon_vma    ^                              |               |   |   |
+     |             |------------------------------x-----------|   |   |   |
+     v     rb_root |                              |           |   |   |   |
+  |---------------------|                         |           |   |   |   |
+  | refcount = 1        |                         |           |   |   |   |
+  | num_children = 0    |-------------------------|           |   |   |   |
+  | num_active_vmas = 1 | parent                              |   |   |   |
+  |---------------------|                                     |   |   |   |
+                                                              |   |   |   |
+Process 4                                                     |   |   |   |
+                           |----------------------------------|   |   |   |
+     |-------------|       |       |------------------------------|   |   |
+     | avc         v       v       v                                  |   |
+  |-----|   vma |-----| |-----| |-----|                               |   |
+  |  D  |<------| avc |.| avc |.| avc |                               |   |
+  |-----|       |-----| |-----| |-----|                               |   |
+     | anon_vma    ^                                                  |   |
+     |             |--------------------------------------------------x---|
+     |                                                                |
+     |----------------------------------------------------------------|
+
+We reuse the empty anon_vma from VMA B.  Note that process 3 is now
+parented to process 4's (and 2's) anon_vma.
+
+Link: https://lkml.kernel.org/r/d52a781999622ed2f1de073d72ea4d9debbfe198.1749473726.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -96,78 +487,410 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   25 ++++++++----
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/merge.c |  361 +++++++++++++++++++++++++++
+ 1 file changed, 361 insertions(+)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~tools-testing-selftests-test-relocate-anon-in-split-huge-page-test
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -19,6 +19,7 @@
- #include <malloc.h>
- #include <stdbool.h>
- #include <time.h>
-+#include <linux/mman.h>
+--- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-mremap_relocate_anon-fork-tests
++++ a/tools/testing/selftests/mm/merge.c
+@@ -4,6 +4,7 @@
+ #include "../kselftest_harness.h"
+ #include <linux/prctl.h>
+ #include <fcntl.h>
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+@@ -15,11 +16,18 @@
  #include "vm_util.h"
- #include "../kselftest.h"
+ #include <linux/mman.h>
  
-@@ -180,7 +181,7 @@ void split_pmd_thp_to_order(int order)
- 	free(one_page);
++enum poll_action {
++	POLL_TASK_RUN,
++	POLL_TASK_WAIT,
++	POLL_TASK_EXIT,
++};
++
+ FIXTURE(merge)
+ {
+ 	unsigned int page_size;
+ 	char *carveout;
+ 	struct procmap_fd procmap;
++	volatile enum poll_action *ipc;
+ };
+ 
+ FIXTURE_SETUP(merge)
+@@ -31,6 +39,11 @@ FIXTURE_SETUP(merge)
+ 	ASSERT_NE(self->carveout, MAP_FAILED);
+ 	/* Setup PROCMAP_QUERY interface. */
+ 	ASSERT_EQ(open_self_procmap(&self->procmap), 0);
++
++	/* Quick and dirty IPC. */
++	self->ipc = (volatile enum poll_action *)mmap(NULL, self->page_size,
++			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
++	ASSERT_NE(self->ipc, MAP_FAILED);
  }
  
--void split_pte_mapped_thp(void)
-+void split_pte_mapped_thp(bool relocate_anon)
- {
- 	char *one_page, *pte_mapped, *pte_mapped2;
- 	size_t len = 4 * pmd_pagesize;
-@@ -221,10 +222,14 @@ void split_pte_mapped_thp(void)
+ FIXTURE_TEARDOWN(merge)
+@@ -42,6 +55,7 @@ FIXTURE_TEARDOWN(merge)
+ 	 * fails (KSM may be disabled for instance).
+ 	 */
+ 	prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
++	ASSERT_EQ(munmap((void *)self->ipc, self->page_size), 0);
+ }
  
- 	/* remap the Nth pagesize of Nth THP */
- 	for (i = 1; i < 4; i++) {
--		pte_mapped2 = mremap(one_page + pmd_pagesize * i + pagesize * i,
--				     pagesize, pagesize,
--				     MREMAP_MAYMOVE|MREMAP_FIXED,
--				     pte_mapped + pagesize * i);
-+		int mremap_flags = MREMAP_MAYMOVE|MREMAP_FIXED;
+ TEST_F(merge, mprotect_unfaulted_left)
+@@ -1901,4 +1915,351 @@ TEST_F(merge, mremap_relocate_anon_mprot
+ 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
+ }
+ 
++TEST_F(merge, mremap_relocate_anon_single_fork)
++{
++	unsigned int page_size = self->page_size;
++	char *carveout = self->carveout;
++	volatile enum poll_action *poll = self->ipc;
++	char *ptr, *ptr2;
++	pid_t pid2;
++	int err;
 +
-+		if (relocate_anon)
-+			mremap_flags |= MREMAP_RELOCATE_ANON;
++	/*
++	 * .           .           .
++	 * . |-------| .           .  Map A, fault in and
++	 * . |   A   |-.-----|     .  fork process 1 to
++	 * . |-------| .     |     .  process 2.
++	 * .           .     v     .
++	 * .           . |-------| .
++	 * .           . |   B   | .
++	 * .           . |-------| .
++	 * .           .           .
++	 * . Process 1 . Process 2 .
++	 */
++	ptr = mmap(carveout, 3 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	/* Fault it in. */
++	ptr[0] = 'x';
 +
-+		pte_mapped2 = sys_mremap(one_page + pmd_pagesize * i + pagesize * i,
-+					 pagesize, pagesize, mremap_flags,
-+					 pte_mapped + pagesize * i);
- 		if (pte_mapped2 == MAP_FAILED)
- 			ksft_exit_fail_msg("mremap failed: %s\n", strerror(errno));
- 	}
-@@ -257,7 +262,10 @@ void split_pte_mapped_thp(void)
- 	if (thp_size)
- 		ksft_exit_fail_msg("Still %ld THPs not split\n", thp_size);
- 
--	ksft_test_result_pass("Split PTE-mapped huge pages successful\n");
-+	if (relocate_anon)
-+		ksft_test_result_pass("Split PTE-mapped huge pages w/MREMAP_RELOCATE_ANON successful\n");
-+	else
-+		ksft_test_result_pass("Split PTE-mapped huge pages successful\n");
- 	munmap(one_page, len);
- 	close(pagemap_fd);
- 	close(kpageflags_fd);
-@@ -534,7 +542,7 @@ int main(int argc, char **argv)
- 	if (argc > 1)
- 		optional_xfs_path = argv[1];
- 
--	ksft_set_plan(1+8+1+9+9+8*4+2);
-+	ksft_set_plan(1+8+1+1+9+9+8*4+2);
- 
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
-@@ -550,7 +558,8 @@ int main(int argc, char **argv)
- 		if (i != 1)
- 			split_pmd_thp_to_order(i);
- 
--	split_pte_mapped_thp();
-+	split_pte_mapped_thp(/* relocate_anon= */false);
-+	split_pte_mapped_thp(/* relocate_anon= */true);
- 	for (i = 0; i < 9; i++)
- 		split_file_backed_thp(i);
- 
++	pid2 = fork();
++	ASSERT_NE(pid2, -1);
++	/* Parent process. */
++	if (pid2 != 0) {
++		/* mremap() fails due to forked children. */
++		ptr2 = sys_mremap(ptr, page_size, page_size,
++				  MREMAP_MAYMOVE | MREMAP_FIXED | MREMAP_MUST_RELOCATE_ANON,
++				  &carveout[3 * page_size]);
++		err = errno;
++		ASSERT_EQ(ptr2, MAP_FAILED);
++		ASSERT_EQ(err, EFAULT);
++
++		poll[0] = POLL_TASK_EXIT;
++
++		wait(NULL);
++		return;
++	}
++
++	/* This is process 2. */
++
++	/* mremap() fails due to forked parents. */
++	ptr2 = sys_mremap(ptr, page_size, page_size,
++		MREMAP_MAYMOVE | MREMAP_FIXED | MREMAP_MUST_RELOCATE_ANON,
++		&carveout[3 * page_size]);
++	err = errno;
++	ASSERT_EQ(ptr2, MAP_FAILED);
++	ASSERT_EQ(err, EFAULT);
++
++	/* Wait for parent to finish. */
++	while (poll[0] == POLL_TASK_RUN)
++		;
++}
++
++TEST_F(merge, mremap_relocate_anon_fork_twice)
++{
++	unsigned int page_size = self->page_size;
++	char *carveout = self->carveout;
++	volatile enum poll_action *poll = self->ipc;
++	char *ptr, *ptr2;
++	pid_t pid2, pid3;
++	int err;
++
++	/*
++	 * .           .           .
++	 * . |-------| .           .  Map A, fault in and
++	 * . |   A   |-.-----|     .  fork process 1 to
++	 * . |-------| .     |     .  process 2.
++	 * .           .     v     .
++	 * .           . |-------| .
++	 * .           . |   B   | .
++	 * .           . |-------| .
++	 * .           .           .
++	 * . Process 1 . Process 2 .
++	 */
++	ptr = mmap(carveout, 3 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	/* Fault it in. */
++	ptr[0] = 'x';
++	pid2 = fork();
++	ASSERT_NE(pid2, -1);
++	/* If parent process, simply wait. */
++	if (pid2 != 0) {
++		while (true) {
++			if (poll[0] == POLL_TASK_EXIT)
++				break;
++			if (poll[0] == POLL_TASK_WAIT)
++				continue;
++
++			/* mremap() fails due to forked children. */
++			ptr2 = sys_mremap(ptr, page_size, page_size,
++					  MREMAP_MAYMOVE | MREMAP_FIXED |
++					  MREMAP_MUST_RELOCATE_ANON,
++					  &carveout[3 * page_size]);
++			err = errno;
++			ASSERT_EQ(ptr2, MAP_FAILED);
++			ASSERT_EQ(err, EFAULT);
++
++			/* Strictly, should be atomic. */
++			if (poll[0] == POLL_TASK_RUN)
++				poll[0] = POLL_TASK_WAIT;
++		}
++
++		wait(NULL);
++		return;
++	}
++
++	/* This is process 2. */
++
++	/* Wait for parent to finish. */
++	while (poll[0] == POLL_TASK_RUN)
++		;
++
++	/*
++	 * .           .           .           .
++	 * . |-------| .           .           .
++	 * . |   A   | .           .           .
++	 * . |-------| .           .           .
++	 * .           .           .           .
++	 * .           . |-------| .           . Fork process 2 to
++	 * .           . |   B   |-.-----|     . process 3.
++	 * .           . |-------| .     |     .
++	 * .           .           .     v     .
++	 * .           .           . |-------| .
++	 * .           .           . |   C   | .
++	 * .           .           . |-------| .
++	 * .           .           .           .
++	 * . Process 1 . Process 2 . Process 3 .
++	 */
++	pid3 = fork();
++	ASSERT_NE(pid3, -1);
++	/* If parent process, simply wait. */
++	if (pid3 != 0) {
++		/* mremap() fails due to forked children. */
++		ptr2 = sys_mremap(ptr, page_size, page_size,
++				  MREMAP_MAYMOVE | MREMAP_FIXED |
++				  MREMAP_MUST_RELOCATE_ANON,
++				  &carveout[3 * page_size]);
++		err = errno;
++		ASSERT_EQ(ptr2, MAP_FAILED);
++		ASSERT_EQ(err, EFAULT);
++
++		/* We don't retrigger, so just indicate we're done. */
++		poll[1] = POLL_TASK_EXIT;
++
++		wait(NULL);
++		return;
++	}
++
++	/* This is process 3. */
++
++	/* Trigger root mremap(). */
++	poll[0] = POLL_TASK_RUN;
++	/* Wait for parents to finish. */
++
++	while (poll[0] == POLL_TASK_RUN)
++		;
++	while (poll[1] == POLL_TASK_RUN)
++		;
++
++	/* mremap() fails due to forked parents. */
++	ptr2 = sys_mremap(ptr, page_size, page_size,
++		MREMAP_MAYMOVE | MREMAP_FIXED | MREMAP_MUST_RELOCATE_ANON,
++		&carveout[3 * page_size]);
++	err = errno;
++	ASSERT_EQ(ptr2, MAP_FAILED);
++	ASSERT_EQ(err, EFAULT);
++	/* Kill waiting parent. */
++	poll[0] = POLL_TASK_EXIT;
++}
++
++TEST_F(merge, mremap_relocate_anon_3_times_reuse_anon_vma)
++{
++	unsigned int page_size = self->page_size;
++	char *carveout = self->carveout;
++	volatile enum poll_action *poll = self->ipc;
++	char *ptr, *ptr2;
++	pid_t pid2, pid3, pid4;
++	int err;
++
++	/*
++	 * .           .           .
++	 * . |-------| .           .  Map A, fault in and
++	 * . |   A   |-.-----|     .  fork process 1 to
++	 * . |-------| .     |     .  process 2.
++	 * .           .     v     .
++	 * .           . |-------| .
++	 * .           . |   B   | .
++	 * .           . |-------| .
++	 * .           .           .
++	 * . Process 1 . Process 2 .
++	 */
++	ptr = mmap(carveout, 3 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	/* Fault it in. */
++	ptr[0] = 'x';
++	pid2 = fork();
++	ASSERT_NE(pid2, -1);
++	/* If parent process, simply wait. */
++	if (pid2 != 0) {
++		while (true) {
++			if (poll[0] == POLL_TASK_EXIT)
++				break;
++			if (poll[0] == POLL_TASK_WAIT)
++				continue;
++
++			/* mremap() fails due to forked children. */
++			ptr2 = sys_mremap(ptr, page_size, page_size,
++					  MREMAP_MAYMOVE | MREMAP_FIXED |
++					  MREMAP_MUST_RELOCATE_ANON,
++					  &carveout[3 * page_size]);
++			err = errno;
++			ASSERT_EQ(ptr2, MAP_FAILED);
++			ASSERT_EQ(err, EFAULT);
++
++			if (poll[0] == POLL_TASK_RUN)
++				poll[0] = POLL_TASK_WAIT;
++		}
++
++		wait(NULL);
++		return;
++	}
++
++	/* This is process 2. */
++
++	/* Wait for parent to finish. */
++	while (poll[0] == POLL_TASK_RUN)
++		;
++
++	/*
++	 * .           .           .           .
++	 * . |-------| .           .           .
++	 * . |   A   | .           .           .
++	 * . |-------| .           .           .
++	 * .           .           .           .
++	 * .           . |-------| .           . Fork process 2 to
++	 * .           . |   B   |-.-----|     . process 3.
++	 * .           . |-------| .     |     .
++	 * .           .           .     v     .
++	 * .           .           . |-------| .
++	 * .           .           . |   C   | .
++	 * .           .           . |-------| .
++	 * .           .           .           .
++	 * . Process 1 . Process 2 . Process 3 .
++	 */
++	pid3 = fork();
++	ASSERT_NE(pid3, -1);
++	/* If parent process, simply wait. */
++	if (pid3 != 0) {
++		/*
++		 * We only try to mremap once, before unmapping so we can
++		 * trigger reuse of B's anon_vma.
++		 */
++		/* mremap() fails due to forked children. */
++		ptr2 = sys_mremap(ptr, page_size, page_size,
++				  MREMAP_MAYMOVE | MREMAP_FIXED |
++				  MREMAP_MUST_RELOCATE_ANON,
++				  &carveout[3 * page_size]);
++		err = errno;
++		ASSERT_EQ(ptr2, MAP_FAILED);
++		ASSERT_EQ(err, EFAULT);
++
++		/*
++		 * .           .           .           .
++		 * . |-------| .           .           .
++		 * . |   A   | .           .           .
++		 * . |-------| .           .           .
++		 * .           .           .           .
++		 * .           .           .           . Unmap VMA B, but
++		 * .           .           .           . anon_vma is left
++		 * .           .           .           . around.
++		 * .           .           .           .
++		 * .           .           . |-------| .
++		 * .           .           . |   C   | .
++		 * .           .           . |-------| .
++		 * .           .           .           .
++		 * . Process 1 . Process 2 . Process 3 .
++		 */
++		munmap(ptr, 3 * page_size);
++
++		/* We indicate we're done so child waits for */
++		poll[1] = POLL_TASK_EXIT;
++
++		wait(NULL);
++		return;
++	}
++
++	/* This is process 3. */
++
++	/* Trigger root mremap(). */
++	poll[0] = POLL_TASK_RUN;
++	/* Wait for parents to finish. */
++	while (poll[0] == POLL_TASK_RUN)
++		;
++	while (poll[1] == POLL_TASK_RUN)
++		;
++
++	pid4 = fork();
++	ASSERT_NE(pid4, -1);
++
++	if (pid4 != 0) {
++		/* mremap() fails due to forked children. */
++		ptr2 = sys_mremap(ptr, page_size, page_size,
++				  MREMAP_MAYMOVE | MREMAP_FIXED |
++				  MREMAP_MUST_RELOCATE_ANON,
++				  &carveout[3 * page_size]);
++		err = errno;
++		ASSERT_EQ(ptr2, MAP_FAILED);
++		ASSERT_EQ(err, EFAULT);
++
++		/* We don't retrigger, so just indicate we're done. */
++		poll[2] = POLL_TASK_EXIT;
++
++		wait(NULL);
++		return;
++	}
++
++	/* This is process 4. */
++
++	/* Trigger root mremap(). */
++	poll[0] = POLL_TASK_RUN;
++	/* We unmapped VMA B, so nothing to trigger there. */
++	/* Wait for parents to finish. */
++	while (poll[0] == POLL_TASK_RUN)
++		;
++	while (poll[2] == POLL_TASK_RUN)
++		;
++
++	/* mremap() fails due to forked parents. */
++	ptr2 = sys_mremap(ptr, page_size, page_size,
++		MREMAP_MAYMOVE | MREMAP_FIXED | MREMAP_MUST_RELOCATE_ANON,
++		&carveout[3 * page_size]);
++	err = errno;
++	ASSERT_EQ(ptr2, MAP_FAILED);
++	ASSERT_EQ(err, EFAULT);
++	/* Kill waiting parent. */
++	poll[0] = POLL_TASK_EXIT;
++}
++
+ TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
