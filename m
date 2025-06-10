@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE53266EFE
-	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 21:08:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED122690D1
+	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 21:11:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749589739; cv=none; b=OP/JK1GmtHRTw/HNlXI2awHj3qrQkH3HT3DrZ7dpAWECk/ZUvzF1bTLuINXC8TDqQd8RtXTdGHJvzxfxLbZ43lMuAjjIzKRbAsyKSIZJ6zQd+Yxt0/gGhIpALLIz1aAW55umTcWYoJs2DWbLy3iZK7jdvSxUo66enhzCrZ8Irf0=
+	t=1749589911; cv=none; b=JEpq36yiFgth3Z3e+1OCXp7OuYrBbDze6yhCKw7dt54gBcVua40Qmoe+tD6qdqwk+hurc4geb31e/eWKFX5XoAu9qR2DsINiq5p1PxxhXMc9Y9hXevvag1ltn5uNqgqpUiwynk+A+vH/9LzXajx/ZTKSOUo4VxW6KroON3v/ogY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749589739; c=relaxed/simple;
-	bh=yuthWF47h53f/ldDB6VDroRFEj59fL75v1DGCFbQULk=;
-	h=Date:To:From:Subject:Message-Id; b=I3QNZTwkGPc8hWEKq57gdCDoyHAXlLu0Ld513UJOWQaN2HI4HoQsPGuc7/vXNsNfBPieRkH1DZBB1ZOXfcNXQBxrwT1Zjr8Nbi9fN//SJsHBXpqOJBjhJnU11YqHi/kJfXJRTXT6prSUq+zbl32GJ5ArG9UjxVRCHA6ZJxBY/C4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WLi/B0av; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749589911; c=relaxed/simple;
+	bh=Kn3jg+nlzams5YX7qDVcL8kiZicyd3cBN5V8jgy3bW8=;
+	h=Date:To:From:Subject:Message-Id; b=N7aArgkCi/BuhKaiYDhOWuHYqB+W/YRehQlZm3shpuTqNJCMa3kQ3BYuQm8ys4Bozv+e+3d4i0H9GHCcRkJK4vxEkvwnHm/sx3S5roK14+meCCnUWKTrP4QM7bU2BL5SeWxAj9Ei08FeyoRaJEI26wCafsFxU203gT2oncaAy8Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SI+2Dh1Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WLi/B0av"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2F9C4CEED;
-	Tue, 10 Jun 2025 21:08:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SI+2Dh1Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE65CC4CEED;
+	Tue, 10 Jun 2025 21:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749589738;
-	bh=yuthWF47h53f/ldDB6VDroRFEj59fL75v1DGCFbQULk=;
+	s=korg; t=1749589910;
+	bh=Kn3jg+nlzams5YX7qDVcL8kiZicyd3cBN5V8jgy3bW8=;
 	h=Date:To:From:Subject:From;
-	b=WLi/B0avULitO2wmxiabKlEbdztkVi1d4XfGmlwpB8ydPEBoG0SOMtFM4CU82yKc5
-	 aL4KNiqn4HMA+F5FkRtBgtbEPI2HR1Fbq7SOlg+rebKq7J0LjfRLUkyqCAy+XUIuc4
-	 wXcR/bwsVmR6I+pDoUAuyG/P5beVubEXyxmQoBRI=
-Date: Tue, 10 Jun 2025 14:08:58 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,hughd@google.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,hch@lst.de,akpm@linux-foundation.org
+	b=SI+2Dh1QyUMF6WkzsEpyAawcA9KTRQMcnHWJxoik6QJD/nU26zEhexRmJcfb5AEiJ
+	 nwyH1PNAiUvKRMnupswg7h9tDTUZl8zyNMPivNgUo/jrKPWJeuhdm9YkhvXkEQExo2
+	 FcfHhw1R10hO2gWCaQnic9uzv1pzCYsrTYSvVtqI=
+Date: Tue, 10 Jun 2025 14:11:50 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,david@redhat.com,anshuman.khandual@arm.com,aneesh.kumar@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-the-for_reclaim-field-from-struct-writeback_control.patch added to mm-unstable branch
-Message-Id: <20250610210858.9C2F9C4CEED@smtp.kernel.org>
+Subject: + xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch added to mm-unstable branch
+Message-Id: <20250610211150.CE65CC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove the for_reclaim field from struct writeback_control
+     Subject: xarray: add a BUG_ON() to ensure caller is not sibling
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-the-for_reclaim-field-from-struct-writeback_control.patch
+     xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-the-for_reclaim-field-from-struct-writeback_control.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,162 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove the for_reclaim field from struct writeback_control
-Date: Tue, 10 Jun 2025 07:49:42 +0200
+From: Dev Jain <dev.jain@arm.com>
+Subject: xarray: add a BUG_ON() to ensure caller is not sibling
+Date: Wed, 4 Jun 2025 09:45:33 +0530
 
-This field is now only set to one in the i915 gem code that only calls
-writeback_iter on it, which ignores the flag.  All other checks are thuse
-dead code and the field can be removed.
+Suppose xas is pointing somewhere near the end of the multi-entry batch. 
+Then it may happen that the computed slot already falls beyond the batch,
+thus breaking the loop due to !xa_is_sibling(), and computing the wrong
+order.
 
-Link: https://lkml.kernel.org/r/20250610054959.2057526-7-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+For example, suppose we have a shift-6 node having an order-9 entry => 8 -
+1 = 7 siblings, so assume the slots are at offset 0 till 7 in this node. 
+If xas->xa_offset is 6, then the code will compute order as 1 +
+xas->xa_node->shift = 7.  Therefore, the order computation must start from
+the beginning of the multi-slot entries, that is, the non-sibling entry.
+
+Thus ensure that the caller is aware of this by triggering a BUG when the
+entry is a sibling entry.  Note that this BUG_ON() is only active while
+running selftests, so there is no overhead in a running kernel.
+
+Link: https://lkml.kernel.org/r/20250604041533.91198-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    1 -
- fs/fuse/file.c                            |   11 -----------
- fs/nfs/write.c                            |    2 +-
- include/linux/writeback.h                 |    1 -
- include/trace/events/btrfs.h              |    7 ++-----
- include/trace/events/writeback.h          |    8 ++------
- 6 files changed, 5 insertions(+), 25 deletions(-)
+ lib/xarray.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-remove-the-for_reclaim-field-from-struct-writeback_control
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -302,7 +302,6 @@ void __shmem_writeback(size_t size, stru
- 		.nr_to_write = SWAP_CLUSTER_MAX,
- 		.range_start = 0,
- 		.range_end = LLONG_MAX,
--		.for_reclaim = 1,
- 	};
- 	struct folio *folio = NULL;
- 	int error = 0;
---- a/fs/fuse/file.c~mm-remove-the-for_reclaim-field-from-struct-writeback_control
-+++ a/fs/fuse/file.c
-@@ -1928,17 +1928,6 @@ int fuse_write_inode(struct inode *inode
- 	struct fuse_file *ff;
- 	int err;
+--- a/lib/xarray.c~xarray-add-a-bug_on-to-ensure-caller-is-not-sibling
++++ a/lib/xarray.c
+@@ -1910,6 +1910,7 @@ EXPORT_SYMBOL(xa_store_range);
+  * @xas: XArray operation state.
+  *
+  * Called after xas_load, the xas should not be in an error state.
++ * The xas should not be pointing to a sibling entry.
+  *
+  * Return: A number between 0 and 63 indicating the order of the entry.
+  */
+@@ -1920,6 +1921,8 @@ int xas_get_order(struct xa_state *xas)
+ 	if (!xas->xa_node)
+ 		return 0;
  
--	/*
--	 * Inode is always written before the last reference is dropped and
--	 * hence this should not be reached from reclaim.
--	 *
--	 * Writing back the inode from reclaim can deadlock if the request
--	 * processing itself needs an allocation.  Allocations triggering
--	 * reclaim while serving a request can't be prevented, because it can
--	 * involve any number of unrelated userspace processes.
--	 */
--	WARN_ON(wbc->for_reclaim);
--
- 	ff = __fuse_write_file_get(fi);
- 	err = fuse_flush_times(inode, ff);
- 	if (ff)
---- a/fs/nfs/write.c~mm-remove-the-for_reclaim-field-from-struct-writeback_control
-+++ a/fs/nfs/write.c
-@@ -720,7 +720,7 @@ int nfs_writepages(struct address_space
- 	nfs_inc_stats(inode, NFSIOS_VFSWRITEPAGES);
++	XA_NODE_BUG_ON(xas->xa_node, xa_is_sibling(xa_entry(xas->xa,
++		       xas->xa_node, xas->xa_offset)));
+ 	for (;;) {
+ 		unsigned int slot = xas->xa_offset + (1 << order);
  
- 	if (!(mntflags & NFS_MOUNT_WRITE_EAGER) || wbc->for_kupdate ||
--	    wbc->for_background || wbc->for_sync || wbc->for_reclaim) {
-+	    wbc->for_background || wbc->for_sync) {
- 		ioc = nfs_io_completion_alloc(GFP_KERNEL);
- 		if (ioc)
- 			nfs_io_completion_init(ioc, nfs_io_completion_commit,
---- a/include/linux/writeback.h~mm-remove-the-for_reclaim-field-from-struct-writeback_control
-+++ a/include/linux/writeback.h
-@@ -59,7 +59,6 @@ struct writeback_control {
- 	unsigned for_kupdate:1;		/* A kupdate writeback */
- 	unsigned for_background:1;	/* A background writeback */
- 	unsigned tagged_writepages:1;	/* tag-and-write to avoid livelock */
--	unsigned for_reclaim:1;		/* Invoked from the page allocator */
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
- 	unsigned for_sync:1;		/* sync(2) WB_SYNC_ALL writeback */
- 	unsigned unpinned_netfs_wb:1;	/* Cleared I_PINNING_NETFS_WB */
---- a/include/trace/events/btrfs.h~mm-remove-the-for_reclaim-field-from-struct-writeback_control
-+++ a/include/trace/events/btrfs.h
-@@ -686,7 +686,6 @@ DECLARE_EVENT_CLASS(btrfs__writepage,
- 		__field(	loff_t, range_start		)
- 		__field(	loff_t, range_end		)
- 		__field(	char,   for_kupdate		)
--		__field(	char,   for_reclaim		)
- 		__field(	char,   range_cyclic		)
- 		__field(	unsigned long,  writeback_index	)
- 		__field(	u64,    root_objectid		)
-@@ -700,7 +699,6 @@ DECLARE_EVENT_CLASS(btrfs__writepage,
- 		__entry->range_start	= wbc->range_start;
- 		__entry->range_end	= wbc->range_end;
- 		__entry->for_kupdate	= wbc->for_kupdate;
--		__entry->for_reclaim	= wbc->for_reclaim;
- 		__entry->range_cyclic	= wbc->range_cyclic;
- 		__entry->writeback_index = inode->i_mapping->writeback_index;
- 		__entry->root_objectid	= btrfs_root_id(BTRFS_I(inode)->root);
-@@ -709,13 +707,12 @@ DECLARE_EVENT_CLASS(btrfs__writepage,
- 	TP_printk_btrfs("root=%llu(%s) ino=%llu page_index=%lu "
- 		  "nr_to_write=%ld pages_skipped=%ld range_start=%llu "
- 		  "range_end=%llu for_kupdate=%d "
--		  "for_reclaim=%d range_cyclic=%d writeback_index=%lu",
-+		  "range_cyclic=%d writeback_index=%lu",
- 		  show_root_type(__entry->root_objectid),
- 		  __entry->ino, __entry->index,
- 		  __entry->nr_to_write, __entry->pages_skipped,
- 		  __entry->range_start, __entry->range_end,
--		  __entry->for_kupdate,
--		  __entry->for_reclaim, __entry->range_cyclic,
-+		  __entry->for_kupdate, __entry->range_cyclic,
- 		  __entry->writeback_index)
- );
- 
---- a/include/trace/events/writeback.h~mm-remove-the-for_reclaim-field-from-struct-writeback_control
-+++ a/include/trace/events/writeback.h
-@@ -459,7 +459,6 @@ DECLARE_EVENT_CLASS(wbc_class,
- 		__field(int, sync_mode)
- 		__field(int, for_kupdate)
- 		__field(int, for_background)
--		__field(int, for_reclaim)
- 		__field(int, range_cyclic)
- 		__field(long, range_start)
- 		__field(long, range_end)
-@@ -473,23 +472,20 @@ DECLARE_EVENT_CLASS(wbc_class,
- 		__entry->sync_mode	= wbc->sync_mode;
- 		__entry->for_kupdate	= wbc->for_kupdate;
- 		__entry->for_background	= wbc->for_background;
--		__entry->for_reclaim	= wbc->for_reclaim;
- 		__entry->range_cyclic	= wbc->range_cyclic;
- 		__entry->range_start	= (long)wbc->range_start;
- 		__entry->range_end	= (long)wbc->range_end;
- 		__entry->cgroup_ino	= __trace_wbc_assign_cgroup(wbc);
- 	),
- 
--	TP_printk("bdi %s: towrt=%ld skip=%ld mode=%d kupd=%d "
--		"bgrd=%d reclm=%d cyclic=%d "
--		"start=0x%lx end=0x%lx cgroup_ino=%lu",
-+	TP_printk("bdi %s: towrt=%ld skip=%ld mode=%d kupd=%d bgrd=%d "
-+		"cyclic=%d start=0x%lx end=0x%lx cgroup_ino=%lu",
- 		__entry->name,
- 		__entry->nr_to_write,
- 		__entry->pages_skipped,
- 		__entry->sync_mode,
- 		__entry->for_kupdate,
- 		__entry->for_background,
--		__entry->for_reclaim,
- 		__entry->range_cyclic,
- 		__entry->range_start,
- 		__entry->range_end,
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-split-out-a-writeout-helper-from-pageout.patch
-mm-stop-passing-a-writeback_control-structure-to-shmem_writeout.patch
-mm-tidy-up-swap_writeout.patch
-mm-stop-passing-a-writeback_control-structure-to-__swap_writepage.patch
-mm-stop-passing-a-writeback_control-structure-to-swap_writeout.patch
-mm-remove-the-for_reclaim-field-from-struct-writeback_control.patch
+xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
 
