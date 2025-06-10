@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 354D5265CAF
-	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:52:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52851267387
+	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:52:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749588764; cv=none; b=BENtsx9AV7zSjZCRjiVSFDtADnNUMYz/xxiYWKkAtTqPKFu2XE30qu4HO69ylP0LL0ECmMmRF0ANlTV92EuDnDwvNKdCXpLHQ25PJaIaAqmqyKsVmXSfQ5e8IzVSLvNBw7f6gfLhdT16b8HBPbLtZ0oP84h86RNpWS0TZwwz4GY=
+	t=1749588766; cv=none; b=uEDx891C9EF9xdMlZcUQZvgoG+cje2G/1GJNqDEqoV35vhCPhevsTLcJk1lRpomK0OueqFC8ZMPSrjtEI531ZenxBQdqhymh7w176j7d6NJ6IGvfeREvGnFTKmlJfdbWR3G5CuTG0Cp+FBR+1ps3obLV4h6Sn4v2JsJCaBZCx1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749588764; c=relaxed/simple;
-	bh=i/2rNfRb7AoOuxsBKg73ZzlpQDgeZUkwqrzfZ/pApdQ=;
-	h=Date:To:From:Subject:Message-Id; b=li+KIZzhl2bwGTVwREq5K5B5KF9wqXAKvEPkUSPDNhvW3Vxm+JxhsixFpnE4Rdje69UT4k8JjTB58tzqULfTCTk7iVsC67Nz1rbN1Lxzvq8aJxNrutw45+C+UvCkdqf3AYORaGm+6w6FBHVAl+G7J/SwM3im1dBVlgfbLG/gMMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gYBikhmB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749588766; c=relaxed/simple;
+	bh=yCYowuncMfrE0I6CToIiOvI3GoCK1TFwiWjEy4VMJmk=;
+	h=Date:To:From:Subject:Message-Id; b=GGkl8On986aJuHjP1txUdbWFVtDFPj//DXQJuvwD1DDR8k20IKXqMWdIohPQGwunQ8aawsRTODA54bpyE5wESq/ZWHb6/4h7iBXtMf+fpnPY561SX+D1+bfV8NR5t4OxiGzq6Bayw+Mlu5jQoA1kyXdk2tF5x+YjNgtzb/DGlr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RZDnrCAD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gYBikhmB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1722C4CEED;
-	Tue, 10 Jun 2025 20:52:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RZDnrCAD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA2BDC4CEED;
+	Tue, 10 Jun 2025 20:52:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749588763;
-	bh=i/2rNfRb7AoOuxsBKg73ZzlpQDgeZUkwqrzfZ/pApdQ=;
+	s=korg; t=1749588765;
+	bh=yCYowuncMfrE0I6CToIiOvI3GoCK1TFwiWjEy4VMJmk=;
 	h=Date:To:From:Subject:From;
-	b=gYBikhmBGc72xOvxxECn6lQ2wmIw5p05on2ZfKuZFpYBrDwN9Ks0LmabT/g4zNIVL
-	 R5n9XRZW7bm+wcgGd5qgeKXoRS23dfh2EktM6DOknL0omDIqQNRb7dhn9YciOrkM7R
-	 kDm8aFuStO0q8WULQqvMRJPiJELUBMm60LVtktFo=
-Date: Tue, 10 Jun 2025 13:52:43 -0700
+	b=RZDnrCAD20GXAtQAoMFr64/Bsc3jPZxV00FOuZu3fAcT7GZYJhio4SyfFs58Il0HX
+	 mXF+UCdyE2WrotqDeKnw8KxON4P77lrmqviJYg2q+wUFiB/keza99zFhrImo9upCfh
+	 ibHVESbeCjYISZrzoa4jx1cThuy0pmNTHJh1I2lI=
+Date: Tue, 10 Jun 2025 13:52:45 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,riel@surriel.com,richard.weiyang@gmail.com,npache@redhat.com,matenajakub@gmail.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch added to mm-new branch
-Message-Id: <20250610205243.A1722C4CEED@smtp.kernel.org>
+Subject: + tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch added to mm-new branch
+Message-Id: <20250610205245.CA2BDC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools UAPI: Update copy of linux/mman.h from the kernel sources
+     Subject: tools/testing/selftests: add sys_mremap() helper to vm_util.h
 has been added to the -mm mm-new branch.  Its filename is
-     tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
+     tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,12 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools UAPI: Update copy of linux/mman.h from the kernel sources
-Date: Mon, 9 Jun 2025 14:26:38 +0100
+Subject: tools/testing/selftests: add sys_mremap() helper to vm_util.h
+Date: Mon, 9 Jun 2025 14:26:39 +0100
 
-Import newly introduced MREMAP_RELOCATE_ANON_* defines.
+Add a helper to invoke the mremap() system call directly using syscall(). 
+This is useful as otherwise glibc and friends will filter out newer flags
+like MREMAP_RELOCATE_ANON and MREMAP_MUST_RELOCATE_ANON thus making it
+impossible to test this functionality.
 
-Link: https://lkml.kernel.org/r/ad488a05068ece234efca1ef025208b2aaa127cb.1749473726.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/c181dd5186dc0c13f2c78e4b859faa97a259a279.1749473726.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -90,26 +93,36 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/uapi/linux/mman.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |    8 ++++++++
+ tools/testing/selftests/mm/vm_util.h |    3 +++
+ 2 files changed, 11 insertions(+)
 
---- a/tools/include/uapi/linux/mman.h~tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources
-+++ a/tools/include/uapi/linux/mman.h
-@@ -6,9 +6,11 @@
- #include <asm-generic/hugetlb_encode.h>
- #include <linux/types.h>
+--- a/tools/testing/selftests/mm/vm_util.c~tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -524,3 +524,11 @@ int read_sysfs(const char *file_path, un
  
--#define MREMAP_MAYMOVE		1
--#define MREMAP_FIXED		2
--#define MREMAP_DONTUNMAP	4
-+#define MREMAP_MAYMOVE			1
-+#define MREMAP_FIXED			2
-+#define MREMAP_DONTUNMAP		4
-+#define MREMAP_RELOCATE_ANON		8
-+#define MREMAP_MUST_RELOCATE_ANON	16
+ 	return 0;
+ }
++
++void *sys_mremap(void *old_address, unsigned long old_size,
++		 unsigned long new_size, int flags, void *new_address)
++{
++	return (void *)syscall(__NR_mremap, (unsigned long)old_address,
++			       old_size, new_size, flags,
++			       (unsigned long)new_address);
++}
+--- a/tools/testing/selftests/mm/vm_util.h~tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -117,6 +117,9 @@ static inline void log_test_result(int r
+ 	ksft_test_result_report(result, "%s\n", test_name);
+ }
  
- #define OVERCOMMIT_GUESS		0
- #define OVERCOMMIT_ALWAYS		1
++void *sys_mremap(void *old_address, unsigned long old_size,
++		 unsigned long new_size, int flags, void *new_address);
++
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
+  */
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
