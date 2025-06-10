@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73D2623BF96
-	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 19:33:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33BB72135D1
+	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 19:37:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749584017; cv=none; b=FiYKzMLyEJnOw3M16nq0gxE9typnUn8T40dU7DBPx2vk/mJ/Fr5GjVatiIY0KT6oP+dRcG1Xq7ASJVzdSJfXoKlPwRXEZStrh/B+9qDnAxa4dmNda41RHfdjU3fy4Ccmwa2w6QaNZMB5KlLBioDw9wLjgD8zdLnarwY3KNC13Vc=
+	t=1749584233; cv=none; b=Hhfp46g0He645PTzwMufS1+q4O9yVXibXYnWW5clB6psZmlsPcRHKNlMMcQvGy9ExrEZyUuzscTEdaRegTYOnvmoRKkaoaeHNPa7zCdyfqqpX3shyi+D9PyjaAH3I1NQII5SQ92/95OifDKVKeXMc6fraqK00ZuVhowEWBAa5xA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749584017; c=relaxed/simple;
-	bh=i5Y3ceImNUFyFCSTB4QrUs/TQYpd/RtKKby23gZ8Oro=;
-	h=Date:To:From:Subject:Message-Id; b=K+sky52FP/wTabUleLQEIuWEVrzt0RTnkMu2SUc2KP/KqPe0rjRm4B+EJJLbwTwsvO6KRmKxHF6yrJbE1a7xqpH1fZ2noXQxCekRoCPcLpFINP1E3cbk1jxXcdGpceRz3YxRIiC2cl65C1u9mhPjnHLALbfFrw271s8hPITs9oQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tNP04cZQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749584233; c=relaxed/simple;
+	bh=IbIXLCzHk7BH9RW15qp3ecWhZabphlKq52nnCtxlzQo=;
+	h=Date:To:From:Subject:Message-Id; b=SWxdOKW5JCv/1KOzU3CkpPzww01szMuYtMgW6kn6GURlAEQg6Oj4bVBOchz4IAr6pUo/t88PFRFu5C2aZXBePAMQZkgVqMgDsQW7t0Cxc4yU1UAaYWi9xQcGfzLivza9nYKZZ0ebPw36UfqCQ46l2OgR/DnLnYbyxCzM8TmAaxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E7bq2M6C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tNP04cZQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D31EDC4CEED;
-	Tue, 10 Jun 2025 19:33:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E7bq2M6C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B81CC4CEED;
+	Tue, 10 Jun 2025 19:37:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749584016;
-	bh=i5Y3ceImNUFyFCSTB4QrUs/TQYpd/RtKKby23gZ8Oro=;
+	s=korg; t=1749584232;
+	bh=IbIXLCzHk7BH9RW15qp3ecWhZabphlKq52nnCtxlzQo=;
 	h=Date:To:From:Subject:From;
-	b=tNP04cZQe6iMRfW7S7i3O6WstkQ0TpbJTsqktuq7lYLYlTeNPREFzu47P/W88GbOR
-	 tGd6/QHku3e9FP7j98yinFBxohaKu+2V9/4DxV825cCYKNB837xthx5LPHZMY/SCLz
-	 8grLNoRxuxKumh8ifc8w8vylRyr9qoIJwOTK2WZs=
-Date: Tue, 10 Jun 2025 12:33:36 -0700
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=E7bq2M6C7qXdrAAQIXpvgfyZnKqW7z6pYEPbk2TEpBFNZHPIAXmHtjX+ImEG7YA8s
+	 bYwgJlDluAp8WElrq+eo3mJhFNg9dvHS64i6ouAFwBocr+dB6U93NvvkPqHUl0xUJE
+	 hifVfZ/PE5gYbDNVREDIjwzt1X9Cl6R2j4PyAE8Q=
+Date: Tue, 10 Jun 2025 12:37:11 -0700
+To: mm-commits@vger.kernel.org,yzhong@purestorage.com,surenb@google.com,pasha.tatashin@soleen.com,mcgrof@kernel.org,kent.overstreet@linux.dev,arnd@arndb.de,cachen@purestorage.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250610193336.D31EDC4CEED@smtp.kernel.org>
+Subject: + alloc_tag-remove-empty-module-tag-section.patch added to mm-new branch
+Message-Id: <20250610193712.9B81CC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch
+     Subject: alloc_tag: remove empty module tag section
+has been added to the -mm mm-new branch.  Its filename is
+     alloc_tag-remove-empty-module-tag-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-remove-empty-module-tag-section.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,46 +64,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3
-Date: Wed, 11 Jun 2025 02:16:45 +0800
+From: Casey Chen <cachen@purestorage.com>
+Subject: alloc_tag: remove empty module tag section
+Date: Tue, 10 Jun 2025 10:22:58 -0600
 
-add comment
+The empty MOD_CODETAG_SECTIONS() macro added an incomplete .data section
+in module linker script, which caused symbol lookup tools like gdb to
+misinterpret symbol addresses e.g., __ib_process_cq incorrectly mapping to
+unrelated functions like below.
 
-Link: https://lkml.kernel.org/r/20250610181645.45922-1-ryncsn@gmail.com
-Fixes: 1dd44c0af4fa1 ("mm: shmem: skip swapcache for swapin of synchronous swap device")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
+  (gdb) disas __ib_process_cq
+  Dump of assembler code for function trace_event_fields_cq_schedule:
+
+Removing the empty section restores proper symbol resolution and layout,
+ensuring .data placement behaves as expected.
+
+Link: https://lkml.kernel.org/r/20250610162258.324645-1-cachen@purestorage.com
+Fixes: 0db6f8d7820a ("alloc_tag: load module tags into separate contiguous memory")
+       22d407b164ff ("lib: add allocation tagging support for memory allocation profiling")
+Signed-off-by: Casey Chen <cachen@purestorage.com>
+Reviewed-by: Yuanyuan Zhong <yzhong@purestorage.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-generic/codetag.lds.h |    6 ------
+ scripts/module.lds.S              |    5 -----
+ 2 files changed, 11 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3
-+++ a/mm/shmem.c
-@@ -2273,6 +2273,8 @@ static int shmem_swapin_folio(struct ino
- 		 * If uffd is active for the vma, we need per-page fault
- 		 * fidelity to maintain the uffd semantics, then fallback
- 		 * to swapin order-0 folio, as well as for zswap case.
-+		 * Any existing sub folio in the swap cache also blocks
-+		 * mTHP swapin.
- 		 */
- 		if (order > 0 && ((vma && unlikely(userfaultfd_armed(vma))) ||
- 				  !zswap_never_enabled() ||
+--- a/include/asm-generic/codetag.lds.h~alloc_tag-remove-empty-module-tag-section
++++ a/include/asm-generic/codetag.lds.h
+@@ -11,12 +11,6 @@
+ #define CODETAG_SECTIONS()		\
+ 	SECTION_WITH_BOUNDARIES(alloc_tags)
+ 
+-/*
+- * Module codetags which aren't used after module unload, therefore have the
+- * same lifespan as the module and can be safely unloaded with the module.
+- */
+-#define MOD_CODETAG_SECTIONS()
+-
+ #define MOD_SEPARATE_CODETAG_SECTION(_name)	\
+ 	.codetag.##_name : {			\
+ 		SECTION_WITH_BOUNDARIES(_name)	\
+--- a/scripts/module.lds.S~alloc_tag-remove-empty-module-tag-section
++++ a/scripts/module.lds.S
+@@ -52,17 +52,12 @@ SECTIONS {
+ 	.data : {
+ 		*(.data .data.[0-9a-zA-Z_]*)
+ 		*(.data..L*)
+-		MOD_CODETAG_SECTIONS()
+ 	}
+ 
+ 	.rodata : {
+ 		*(.rodata .rodata.[0-9a-zA-Z_]*)
+ 		*(.rodata..L*)
+ 	}
+-#else
+-	.data : {
+-		MOD_CODETAG_SECTIONS()
+-	}
+ #endif
+ 	MOD_SEPARATE_CODETAG_SECTIONS()
+ }
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from cachen@purestorage.com are
 
-mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
-mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
-mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch
-mm-list_lru-refactor-the-locking-code.patch
+alloc_tag-remove-empty-module-tag-section.patch
 
