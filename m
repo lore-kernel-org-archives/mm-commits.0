@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 095EB265CAF
-	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:52:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96941265CAF
+	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:52:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749588760; cv=none; b=pnf/ElAVHn38rn80eUCyNgLAMPi434ngUFH6LWx8zDw/+xAQ8bDuMts4gXecFOCVrKiPOpIJTi20B2UmFRJbctktG/OmlRjmzrS7OwrtS2mOmFCtzHOwWD7I+0ITIA3v/hZ5mApim+rggSX+vLY6yLos1YXMRNGiSGIVFi9H5ts=
+	t=1749588761; cv=none; b=eCVeqyHka67Yyaxp+l/vdy7UVKIRKZbpfAAhmvGtgDANYGOi3GKe7kZxyKu/qiPrE/6efWWWpYPbJa915wEfaXTJOVokXb6fdic4jcJRZvdu8NYnOYhkD8QQGkh7oOjfiY4bhNt0E1GaOaQx37oWREH9sa3nmzdqjvKZDjkPHBo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749588760; c=relaxed/simple;
-	bh=dZNQZKsIKfdmfYv25x4t662q0MjFtjYQZwU2PY3zrqQ=;
-	h=Date:To:From:Subject:Message-Id; b=MbbYP1+X6stG+O3FZptZI2Rlk/vb9JkpfZLhevH9+osfmPYZRVmlAxIGwfRFfEABN1QjjughTCR5yjYYe2QLTu1Ta7YGidlg058rZEL+8A13w5e/xWGhkaUvAe9vbAYmtlxvZmAnlZ+ugwQDF0OjM1GcWkvtUljy9Ri6nln73FE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nwHotKj7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749588761; c=relaxed/simple;
+	bh=lg2nL9dcrNzBkagWiDLydKhPuZGhWkqgTdHW5PKUntE=;
+	h=Date:To:From:Subject:Message-Id; b=QFHCDH/dg7f4vEiraRMbNMZLy2E5tnLoRpr0qgLRCwdFXF0grC81hB2Wb2nY2xKkhqapKGNWPkGEA9Jh6azLbUHFiTiWFKd/76VChwDwQHPS2OBikridiVgzI5vC+uXfEqp6WgzzDavhxEEJOt4V3Kvz32xD1o7G2cgGFcdfSqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eE0BO63w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nwHotKj7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CBFC4CEF3;
-	Tue, 10 Jun 2025 20:52:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eE0BO63w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E98C4CEED;
+	Tue, 10 Jun 2025 20:52:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749588758;
-	bh=dZNQZKsIKfdmfYv25x4t662q0MjFtjYQZwU2PY3zrqQ=;
+	s=korg; t=1749588761;
+	bh=lg2nL9dcrNzBkagWiDLydKhPuZGhWkqgTdHW5PKUntE=;
 	h=Date:To:From:Subject:From;
-	b=nwHotKj7Yk5G3avVDRj/Kjhk4p0/uvGSxsQGgIgbtBUzqpEiuv9EAw0njtAzjdkj/
-	 WII5RZeXjcmzESNz44clo5ao1gKgg6f0WZpUHzGgMvom4fdIemclAhmD37q1fE1PWi
-	 DpZrI4vbsA2s9haNW3C9z3AlVLvDaSBB3AfVGLwc=
-Date: Tue, 10 Jun 2025 13:52:37 -0700
+	b=eE0BO63wJtSLDQ8RTfLWUD27Dltbu29nF2UueipAx4dK2MVqnQmokgyyV3wd0xcMi
+	 XWd4ZMQk5e21HwfsTC8wahEukY2huskbOoneCWyECcFQrXwV/9EgdGgbyNsDZ3SIek
+	 25aPkw/16JItLfIAabGFoW04xoDPKM9A6boMwXPU=
+Date: Tue, 10 Jun 2025 13:52:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,riel@surriel.com,richard.weiyang@gmail.com,npache@redhat.com,matenajakub@gmail.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-add-mremap_must_relocate_anon.patch added to mm-new branch
-Message-Id: <20250610205238.81CBFC4CEF3@smtp.kernel.org>
+Subject: + mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch added to mm-new branch
+Message-Id: <20250610205241.11E98C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: add MREMAP_MUST_RELOCATE_ANON
+     Subject: mm/mremap: add MREMAP[_MUST]_RELOCATE_ANON support for large folios
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-add-mremap_must_relocate_anon.patch
+     mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-add-mremap_must_relocate_anon.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,27 +65,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: add MREMAP_MUST_RELOCATE_ANON
-Date: Mon, 9 Jun 2025 14:26:36 +0100
+Subject: mm/mremap: add MREMAP[_MUST]_RELOCATE_ANON support for large folios
+Date: Mon, 9 Jun 2025 14:26:37 +0100
 
-This flag is the same as MREMAP_RELOCATE_ANON, however it returns an
--EFAULT error should folios not be able to be relocated.
+Larger folios are a challenge, as they might be mapped across multiple
+VMAs, and can be mapped at a higher page table level (PUD, PMD) or also at
+PTE level.
 
-The operation is undone when this occurs so the user can choose to proceed
-without setting this flag at this stage.
+Handle them correctly by checking whether they are fully spanned by the
+VMA we are examining.  If so, then we can simply relocate the folio as we
+would any other.
 
-This is useful for cases where a use case absolutely requires
-mergeability, or moreover a user needs to know whether it succeeded or not
-for internal bookkeeping purposes.
+If not, then we must split the folio.  If there is a higher level page
+table level mapping the large folio directly then we must also split this.
 
-If the move would be a no-op (could be merged, or folios in range are
-unmapped), then the operation proceeds normally.
+This will be the minority of cases, and if the operation is performed on a
+large, mapping will only be those folios at the start and end of the
+mapping which the mapping is not aligned to.
 
-It is only in instances where we would have fallen back to the usual
-mremap() logic if we were using MREMAP_RELOCATE_ANON that we return
--EFAULT for MREMAP_MUST_RELOCATE_ANON.
+The net result is that we are able to handle large folios mapped in any
+form which might be encountered correctly.
 
-Link: https://lkml.kernel.org/r/d770c484f643c77ca11191eec63073457ce03d63.1749473726.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/43175a21c9e93bc4eb51d73190226411e6b9a7b8.1749473726.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -105,117 +106,425 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/mman.h |    9 +++++----
- mm/mremap.c               |   35 ++++++++++++++++++++++++++---------
- 2 files changed, 31 insertions(+), 13 deletions(-)
+ mm/mremap.c |  327 +++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 297 insertions(+), 30 deletions(-)
 
---- a/include/uapi/linux/mman.h~mm-mremap-add-mremap_must_relocate_anon
-+++ a/include/uapi/linux/mman.h
-@@ -6,10 +6,11 @@
- #include <asm-generic/hugetlb_encode.h>
- #include <linux/types.h>
- 
--#define MREMAP_MAYMOVE		1
--#define MREMAP_FIXED		2
--#define MREMAP_DONTUNMAP	4
--#define MREMAP_RELOCATE_ANON	8
-+#define MREMAP_MAYMOVE			1
-+#define MREMAP_FIXED			2
-+#define MREMAP_DONTUNMAP		4
-+#define MREMAP_RELOCATE_ANON		8
-+#define MREMAP_MUST_RELOCATE_ANON	16
- 
- #define OVERCOMMIT_GUESS		0
- #define OVERCOMMIT_ALWAYS		1
---- a/mm/mremap.c~mm-mremap-add-mremap_must_relocate_anon
+--- a/mm/mremap.c~mm-mremap-add-mremap_relocate_anon-support-for-large-folios
 +++ a/mm/mremap.c
-@@ -1385,14 +1385,18 @@ static void unmap_source_vma(struct vma_
-  * is being moved to by updating index and mapping fields accordingly?
-  */
- static bool should_relocate_anon(struct vma_remap_struct *vrm,
--	struct pagetable_move_control *pmc)
-+	struct pagetable_move_control *pmc, int *errp)
+@@ -77,6 +77,7 @@ struct pte_state {
+ 	unsigned long new_addr;
+ 	unsigned long old_end;
+ 	pte_t *ptep;
++	pmd_t *pmdp;
+ 	spinlock_t *ptl;
+ };
+ 
+@@ -534,40 +535,67 @@ enum pgt_entry {
+ 	HPAGE_PUD,
+ };
+ 
+-/*
+- * Returns an extent of the corresponding size for the pgt_entry specified if
+- * valid. Else returns a smaller extent bounded by the end of the source and
+- * destination pgt_entry.
+- */
+-static __always_inline unsigned long get_extent(enum pgt_entry entry,
+-						struct pagetable_move_control *pmc)
++static void __get_mask_size(enum pgt_entry entry,
++		unsigned long *mask, unsigned long *size)
  {
- 	struct vm_area_struct *old = vrm->vma;
- 
- 	/* Currently we only do this if requested. */
--	if (!(vrm->flags & MREMAP_RELOCATE_ANON))
-+	if (!(vrm->flags & (MREMAP_RELOCATE_ANON | MREMAP_MUST_RELOCATE_ANON)))
- 		return false;
- 
-+	/* Failures are fatal in the 'must' case. */
-+	if (vrm->flags & MREMAP_MUST_RELOCATE_ANON)
-+		*errp = -EFAULT;
-+
- 	/* We can't deal with special or hugetlb mappings. */
- 	if (old->vm_flags & (VM_SPECIAL | VM_HUGETLB))
- 		return false;
-@@ -1401,14 +1405,17 @@ static bool should_relocate_anon(struct
- 	if (!vma_is_anonymous(old))
- 		return false;
- 
--	/* If no folios are mapped, then no need to attempt this. */
--	if (!old->anon_vma)
--		return false;
+-	unsigned long next, extent, mask, size;
+-	unsigned long old_addr = pmc->old_addr;
+-	unsigned long old_end = pmc->old_end;
+-	unsigned long new_addr = pmc->new_addr;
 -
- 	/* We don't allow relocation of non-exclusive folios. */
- 	if (vma_maybe_has_shared_anon_folios(old))
- 		return false;
- 
-+	/* Below issues are non-fatal in 'must' case. */
-+	*errp = 0;
+ 	switch (entry) {
+ 	case HPAGE_PMD:
+ 	case NORMAL_PMD:
+-		mask = PMD_MASK;
+-		size = PMD_SIZE;
++		*mask = PMD_MASK;
++		*size = PMD_SIZE;
+ 		break;
+ 	case HPAGE_PUD:
+ 	case NORMAL_PUD:
+-		mask = PUD_MASK;
+-		size = PUD_SIZE;
++		*mask = PUD_MASK;
++		*size = PUD_SIZE;
+ 		break;
+ 	default:
+ 		BUILD_BUG();
+ 		break;
+ 	}
++}
 +
-+	/* If no folios are mapped, then no need to attempt this. */
-+	if (!old->anon_vma)
++/* Same as get extent, only ignores new address.  */
++static unsigned long __get_old_extent(struct pagetable_move_control *pmc,
++		unsigned long mask, unsigned long size)
++{
++	unsigned long next, extent;
++	unsigned long old_addr = pmc->old_addr;
++	unsigned long old_end = pmc->old_end;
+ 
+ 	next = (old_addr + size) & mask;
+ 	/* even if next overflowed, extent below will be ok */
+ 	extent = next - old_addr;
+ 	if (extent > old_end - old_addr)
+ 		extent = old_end - old_addr;
++
++	return extent;
++}
++
++static unsigned long get_old_extent(enum pgt_entry entry,
++		struct pagetable_move_control *pmc)
++{
++	unsigned long mask, size;
++
++	__get_mask_size(entry, &mask, &size);
++	return __get_old_extent(pmc, mask, size);
++}
++
++/*
++ * Returns an extent of the corresponding size for the pgt_entry specified if
++ * valid. Else returns a smaller extent bounded by the end of the source and
++ * destination pgt_entry.
++ */
++static __always_inline unsigned long get_extent(enum pgt_entry entry,
++						struct pagetable_move_control *pmc)
++{
++	unsigned long next, extent, mask, size;
++	unsigned long new_addr = pmc->new_addr;
++
++	__get_mask_size(entry, &mask, &size);
++
++	extent = __get_old_extent(pmc, mask, size);
++
+ 	next = (new_addr + size) & mask;
+ 	if (extent > next - new_addr)
+ 		extent = next - new_addr;
+@@ -797,6 +825,165 @@ static unsigned long pmc_progress(struct
+ 	return old_addr < orig_old_addr ? 0 : old_addr - orig_old_addr;
+ }
+ 
++/* Assumes folio lock is held. */
++static bool __relocate_large_folio(struct pagetable_move_control *pmc,
++		unsigned long old_addr, unsigned long new_addr,
++		struct folio *folio, bool undo)
++{
++	pgoff_t new_index;
++	struct vm_area_struct *old = pmc->old;
++	struct vm_area_struct *new = pmc->new;
++
++	VM_WARN_ON_ONCE(!folio_test_locked(folio));
++
++	/* no-op. */
++	if (!folio_test_anon(folio))
++		return true;
++
++	if (!undo)
++		new_index = linear_page_index(new, new_addr);
++	else
++		new_index = linear_page_index(old, old_addr);
++
++	/* See comment in relocate_anon_pte(). */
++	folio_move_anon_rmap(folio, undo ? old : new);
++	WRITE_ONCE(folio->index, new_index);
++	return true;
++}
++
++static bool relocate_large_folio(struct pagetable_move_control *pmc,
++		unsigned long old_addr, unsigned long new_addr,
++		struct folio *folio, bool undo)
++{
++	bool ret;
++
++	folio_lock(folio);
++
++	if (!folio_test_large(folio) || folio_test_ksm(folio)) {
++		ret = false;
++		goto out;
++	}
++
++	/* See relocate_anon_pte() for description. */
++	if (WARN_ON_ONCE(folio_maybe_mapped_shared(folio))) {
++		ret = false;
++		goto out;
++	}
++	if (folio_maybe_dma_pinned(folio)) {
++		ret = false;
++		goto out;
++	}
++
++	ret = __relocate_large_folio(pmc, old_addr, new_addr, folio, undo);
++
++out:
++	folio_unlock(folio);
++	return ret;
++}
++
++static bool relocate_anon_pud(struct pagetable_move_control *pmc,
++		pud_t *pudp, bool undo)
++{
++	spinlock_t *ptl;
++	pud_t pud;
++	struct folio *folio;
++	struct page *page;
++	bool ret;
++	unsigned long old_addr = pmc->old_addr;
++	unsigned long new_addr = pmc->new_addr;
++
++	VM_WARN_ON(old_addr & ~HPAGE_PUD_MASK);
++	VM_WARN_ON(new_addr & ~HPAGE_PUD_MASK);
++
++	ptl = pud_trans_huge_lock(pudp, pmc->old);
++	if (!ptl)
 +		return false;
 +
- 	/* Otherwise, we're good to go! */
- 	return true;
- }
-@@ -1460,7 +1467,10 @@ static int copy_vma_and_data(struct vma_
- 	struct vm_area_struct *new_vma;
- 	int err = 0;
- 	PAGETABLE_MOVE(pmc, NULL, NULL, vrm->addr, vrm->new_addr, vrm->old_len);
--	bool relocate_anon = should_relocate_anon(vrm, &pmc);
-+	bool relocate_anon = should_relocate_anon(vrm, &pmc, &err);
++	pud = pudp_get(pudp);
++	if (!pud_present(pud)) {
++		ret = true;
++		goto out;
++	}
++	if (!pud_leaf(pud)) {
++		ret = false;
++		goto out;
++	}
 +
-+	if (err)
-+		return err;
++	page = pud_page(pud);
++	if (!page) {
++		ret = true;
++		goto out;
++	}
++
++	folio = page_folio(page);
++	ret = relocate_large_folio(pmc, old_addr, new_addr, folio, undo);
++
++out:
++	spin_unlock(ptl);
++	return ret;
++}
++
++static bool relocate_anon_pmd(struct pagetable_move_control *pmc,
++		pmd_t *pmdp, bool undo)
++{
++	spinlock_t *ptl;
++	pmd_t pmd;
++	struct folio *folio;
++	bool ret;
++	unsigned long old_addr = pmc->old_addr;
++	unsigned long new_addr = pmc->new_addr;
++
++	VM_WARN_ON(old_addr & ~HPAGE_PMD_MASK);
++	VM_WARN_ON(new_addr & ~HPAGE_PMD_MASK);
++
++	ptl = pmd_trans_huge_lock(pmdp, pmc->old);
++	if (!ptl)
++		return false;
++
++	pmd = pmdp_get(pmdp);
++	if (!pmd_present(pmd)) {
++		ret = true;
++		goto out;
++	}
++	if (is_huge_zero_pmd(pmd)) {
++		ret = true;
++		goto out;
++	}
++	if (!pmd_leaf(pmd)) {
++		ret = false;
++		goto out;
++	}
++
++	folio = pmd_folio(pmd);
++	if (!folio) {
++		ret = true;
++		goto out;
++	}
++
++	ret = relocate_large_folio(pmc, old_addr, new_addr, folio, undo);
++out:
++	spin_unlock(ptl);
++	return ret;
++}
++
++/*
++ * Is the THP discovered at old_addr fully spanned at both the old and new VMAs?
++ */
++static bool is_thp_fully_spanned(struct pagetable_move_control *pmc,
++				 unsigned long old_addr,
++				 size_t thp_size)
++{
++	unsigned long old_end = pmc->old_end;
++	unsigned long orig_old_addr = old_end - pmc->len_in;
++	unsigned long aligned_start = old_addr & ~(thp_size - 1);
++	unsigned long aligned_end = aligned_start + thp_size;
++
++	if (aligned_start < orig_old_addr || aligned_end > old_end)
++		return false;
++
++	return true;
++}
++
+ /*
+  * If the folio mapped at the specified pte entry can have its index and mapping
+  * relocated, then do so.
+@@ -813,10 +1000,12 @@ static unsigned long relocate_anon_pte(s
+ 	unsigned long ret = 1;
+ 	unsigned long old_addr = state->old_addr;
+ 	unsigned long new_addr = state->new_addr;
++	struct mm_struct *mm = current->mm;
  
- again:
- 	new_vma = copy_vma(&vma, vrm->new_addr, vrm->new_len, new_pgoff,
-@@ -1491,6 +1501,12 @@ again:
+ 	old = pmc->old;
+ 	new = pmc->new;
  
- 			do_munmap(current->mm, start, size, NULL);
- 			relocate_anon = false;
-+			if (vrm->flags & MREMAP_MUST_RELOCATE_ANON) {
-+				vrm_uncharge(vrm);
-+				*new_vma_ptr = NULL;
-+				return -EFAULT;
++retry:
+ 	pte = ptep_get(state->ptep);
+ 
+ 	/* Ensure we have truly got an anon folio. */
+@@ -853,13 +1042,55 @@ static unsigned long relocate_anon_pte(s
+ 	if (folio_maybe_dma_pinned(folio))
+ 		goto out;
+ 
+-	/*
+-	 * This should not happen as we explicitly disallow this, but check
+-	 * anyway.
+-	 */
++	/* If a split huge PMD, try to relocate all at once. */
+ 	if (folio_test_large(folio)) {
+-		ret = 0;
+-		goto out;
++		size_t size = folio_size(folio);
++
++		if (is_thp_fully_spanned(pmc, old_addr, size) &&
++		    __relocate_large_folio(pmc, old_addr, new_addr, folio, undo)) {
++			VM_WARN_ON_ONCE(old_addr & (size - 1));
++			ret = folio_nr_pages(folio);
++			goto out;
++		} else {
++			int err;
++			struct anon_vma *anon_vma = folio_anon_vma(folio);
++
++			/*
++			 * If the folio has the anon_vma whose lock we hold, we
++			 * have a problem, as split_folio() will attempt to lock
++			 * the already-locked anon_vma causing a deadlock. In
++			 * this case, bail out.
++			 */
++			if (anon_vma->root == pmc->relocate_locked->anon_vma->root) {
++				ret = 0;
++				goto out;
 +			}
 +
- 			goto again;
- 		}
++			/* split_folio() expects elevated refcount. */
++			folio_get(folio);
++
++			/*
++			 * We must relinquish/reacquire the PTE lock over this
++			 * operation. We hold the folio lock and an increased
++			 * reference count, so there's no danger of the folio
++			 * disappearing beneath us.
++			 */
++			pte_unmap_unlock(state->ptep, state->ptl);
++			err = split_folio(folio);
++			state->ptep = pte_offset_map_lock(mm, state->pmdp,
++							  old_addr, &state->ptl);
++			folio_unlock(folio);
++			folio_put(folio);
++
++			if (err || !state->ptep)
++				return 0;
++
++			/*
++			 * If we split, we need to look up the folio again, so
++			 * simply retry the operation.
++			 */
++			goto retry;
++		}
  	}
-@@ -1840,7 +1856,7 @@ static unsigned long check_mremap_params
  
- 	/* Ensure no unexpected flag values. */
- 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP |
--		      MREMAP_RELOCATE_ANON))
-+		      MREMAP_RELOCATE_ANON | MREMAP_MUST_RELOCATE_ANON))
- 		return -EINVAL;
+ 	if (!undo)
+@@ -906,6 +1137,7 @@ static bool relocate_anon_ptes(struct pa
+ 		.old_addr = pmc->old_addr,
+ 		.new_addr = pmc->new_addr,
+ 		.old_end = pmc->old_addr + extent,
++		.pmdp = pmdp,
+ 	};
+ 	pte_t *ptep_start;
+ 	bool ret;
+@@ -955,29 +1187,64 @@ static bool __relocate_anon_folios(struc
+ 		pmd_t pmd;
+ 		pud_t pud;
  
- 	/* Start address must be page-aligned. */
-@@ -1856,7 +1872,8 @@ static unsigned long check_mremap_params
- 		return -EINVAL;
+-		extent = get_extent(NORMAL_PUD, pmc);
++		extent = get_old_extent(NORMAL_PUD, pmc);
  
- 	/* We can't relocate without allowing a move. */
--	if ((flags & MREMAP_RELOCATE_ANON) && !(flags & MREMAP_MAYMOVE))
-+	if ((flags & (MREMAP_RELOCATE_ANON | MREMAP_MUST_RELOCATE_ANON)) &&
-+	     !(flags & MREMAP_MAYMOVE))
- 		return -EINVAL;
+ 		pudp = get_old_pud(mm, pmc->old_addr);
+ 		if (!pudp)
+ 			continue;
+ 		pud = pudp_get(pudp);
++		if (pud_trans_huge(pud)) {
++			unsigned long old_addr = pmc->old_addr;
++
++			if (extent != HPAGE_PUD_SIZE)
++				return false;
++
++			VM_WARN_ON_ONCE(old_addr & ~HPAGE_PUD_MASK);
  
- 	/* Remainder of checks are for cases with specific new_addr. */
+-		if (pud_trans_huge(pud) || pud_devmap(pud))
++			/* We may relocate iff the new address is aligned. */
++			if (!(pmc->new_addr & ~HPAGE_PUD_MASK) &&
++			    is_thp_fully_spanned(pmc, old_addr, HPAGE_PUD_SIZE)) {
++				if (!relocate_anon_pud(pmc, pudp, undo))
++					return false;
++				continue;
++			}
++
++			/* Otherwise, we split so we can do this with PMDs/PTEs. */
++			split_huge_pud(pmc->old, pudp, old_addr);
++		} else if (pud_devmap(pud)) {
+ 			return false;
++		}
+ 
+-		extent = get_extent(NORMAL_PMD, pmc);
++		extent = get_old_extent(NORMAL_PMD, pmc);
+ 		pmdp = get_old_pmd(mm, pmc->old_addr);
+ 		if (!pmdp)
+ 			continue;
+ 		pmd = pmdp_get(pmdp);
+-
+-		if (is_swap_pmd(pmd) || pmd_trans_huge(pmd) ||
+-		    pmd_devmap(pmd))
+-			return false;
+-
+ 		if (pmd_none(pmd))
+ 			continue;
+ 
++		if (pmd_trans_huge(pmd)) {
++			unsigned long old_addr = pmc->old_addr;
++
++			if (extent != HPAGE_PMD_SIZE)
++				return false;
++
++			VM_WARN_ON_ONCE(old_addr & ~HPAGE_PMD_MASK);
++
++			/* We may relocate iff the new address is aligned. */
++			if (!(pmc->new_addr & ~HPAGE_PMD_MASK) &&
++			    is_thp_fully_spanned(pmc, old_addr, HPAGE_PMD_SIZE)) {
++				if (!relocate_anon_pmd(pmc, pmdp, undo))
++					return false;
++				continue;
++			}
++
++			/* Otherwise, we split so we can do this with PTEs. */
++			split_huge_pmd(pmc->old, pmdp, old_addr);
++		} else if (is_swap_pmd(pmd) || pmd_devmap(pmd)) {
++			return false;
++		}
++
+ 		if (!relocate_anon_ptes(pmc, extent, pmdp, undo))
+ 			return false;
+ 	}
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
