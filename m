@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC96A17BD3
-	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:31:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A187A4685
+	for <mm-commits@vger.kernel.org>; Tue, 10 Jun 2025 20:36:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749587497; cv=none; b=m5EIpZiCkPCI9pqCBgr7iq/8kLdYnneMujsE5HnfCyn8k0q6RGunK/zlRZd+rqTDtVFm6LNYXieAYc7s1Xu+zcNXSTFmN2HqWhPqXTK6GC8HgZ6Eg5oUWcUzpWIqBWqGvAQqUyzTCeYWWP/1bIODJu1Wl7Bu2hTC8D20wQpXUwo=
+	t=1749587764; cv=none; b=GI2JefP8ojxDNUmrge1ato88ArEKgZWpyaVm/DhjdZ6LUyH/r1jLJsmNTlUubiKp+H96bii8MpuFtTBzJ31tod5IwdRrBJwxheWHRCCLGu1+EQbGfB8oX5A3TgVklvMMv0L/TpXOKoXFkzFHfGEpD+fAPJNV5ctkHClJYe/PGuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749587497; c=relaxed/simple;
-	bh=KU7GM0bGv4QO9Llhjzom5ItfugcbNCR3sJjCZemCguQ=;
-	h=Date:To:From:Subject:Message-Id; b=iWrjtjKtGEgoWsXYiD1JZVy0//wtr4VWS32KTxGMq6aXpa6lEWz1ZjYs6FoyxnzUCw908/VgnsuESbwhFFkBQp7SjCPjP5Loe5HboywLvjLYNN1fFu+HR9YVLFnwk5/hjHTZE/zmbNqDrrb9Idig7EdXF9ST/z6Pmycbc8PXLUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CiM/OT8/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749587764; c=relaxed/simple;
+	bh=27wQ/UdBVUG/1ltbBsRsBUXTjZyiw4WsyRJ9scBskTg=;
+	h=Date:To:From:Subject:Message-Id; b=Ow7CbnYNhzWTeeHvn5g1r+xcw91zU2OYbWAzuSSDstpGCYfPIrebhISKsgWdOHyue2tOBYC0D7ZiwXiAUpRaEAPL6EGQQpE7+ty5vQUgQ5ggkhYB7JC3MXIu2n96dPQxT/o/CuJD+FHbFPrifAb/4OQQDigX7kSPB/16Q1wMyeM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EL7wYBR6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CiM/OT8/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A995C4CEED;
-	Tue, 10 Jun 2025 20:31:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EL7wYBR6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 324D5C4CEED;
+	Tue, 10 Jun 2025 20:36:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749587497;
-	bh=KU7GM0bGv4QO9Llhjzom5ItfugcbNCR3sJjCZemCguQ=;
+	s=korg; t=1749587764;
+	bh=27wQ/UdBVUG/1ltbBsRsBUXTjZyiw4WsyRJ9scBskTg=;
 	h=Date:To:From:Subject:From;
-	b=CiM/OT8/hh/H+4IsoY5v0tBqSNa0Wtr59Tf7OK1+aUlkmS/pCRwQtU5+YSOjc6AlC
-	 nHD0hd5Hn42iubvDjUoCh1FV+fehahTU9mpnFI94mQR1YYWzVqXbI6P7TOodoANv/B
-	 pCFfX+NyfFNkRNZRNFRWOejBqcdRS2Xlfwl8HQX4=
-Date: Tue, 10 Jun 2025 13:31:36 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=EL7wYBR6AMhMgpgtWET7TYXzpoLC5e+0v9cynesexzpf+LdtZgHwxHhJVrAoZVbqr
+	 uC1pPfhUMiKmTsDDla+yA2w6zq+/n2KOrRopohgYZe9E6ll8OYs4Y5CEv+zxmBow76
+	 C+tfOC7SWBzorfOX5TEW+XCXTv8KOEgHYB/QDm9g=
+Date: Tue, 10 Jun 2025 13:36:03 -0700
+To: mm-commits@vger.kernel.org,thorsten.blum@linux.dev,jglisse@redhat.com,jgg@ziepe.ca,jeff.johnson@oss.qualcomm.com,david@redhat.com,apopple@nvidia.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250610203137.5A995C4CEED@smtp.kernel.org>
+Subject: + lib-test_hmm-reduce-stack-usage.patch added to mm-new branch
+Message-Id: <20250610203604.324D5C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2.patch
+     Subject: lib/test_hmm: reduce stack usage
+has been added to the -mm mm-new branch.  Its filename is
+     lib-test_hmm-reduce-stack-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-reduce-stack-usage.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,42 +64,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2
-Date: Tue, 10 Jun 2025 11:03:11 +0100
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: lib/test_hmm: reduce stack usage
+Date: Tue, 10 Jun 2025 11:21:50 +0200
 
-remove unused declarations
+The various test ioctl handlers use arrays of 64 integers that add up to
+1KiB of stack data, which in turn leads to exceeding the warning limit in
+some configurations:
 
-Link: https://lkml.kernel.org/r/ac3ae324-4c65-432a-8c6d-2af988b18ac8@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+lib/test_hmm.c:935:12: error: stack frame size (1408) exceeds limit (1280)
+in 'dmirror_migrate_to_device' [-Werror,-Wframe-larger-than]
+
+Use half the size for these arrays, in order to stay under the warning
+limits.  The code can already deal with arbitrary lengths, but this may be
+a little less efficient.
+
+Link: https://lkml.kernel.org/r/20250610092159.2639515-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.h |    4 ----
- 1 file changed, 4 deletions(-)
+ lib/test_hmm.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/vma.h~mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2
-+++ a/mm/vma.h
-@@ -617,8 +617,4 @@ int create_init_stack_vma(struct mm_stru
- int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
- #endif
- 
--struct vm_area_desc *vma_to_desc(struct vm_area_struct *vma,
--		struct vm_area_desc *desc);
--void set_vma_from_desc(struct vm_area_struct *vma, struct vm_area_desc *desc);
--
- #endif	/* __MM_VMA_H */
+--- a/lib/test_hmm.c~lib-test_hmm-reduce-stack-usage
++++ a/lib/test_hmm.c
+@@ -330,7 +330,7 @@ static int dmirror_fault(struct dmirror
+ {
+ 	struct mm_struct *mm = dmirror->notifier.mm;
+ 	unsigned long addr;
+-	unsigned long pfns[64];
++	unsigned long pfns[32];
+ 	struct hmm_range range = {
+ 		.notifier = &dmirror->notifier,
+ 		.hmm_pfns = pfns,
+@@ -879,8 +879,8 @@ static int dmirror_migrate_to_system(str
+ 	unsigned long size = cmd->npages << PAGE_SHIFT;
+ 	struct mm_struct *mm = dmirror->notifier.mm;
+ 	struct vm_area_struct *vma;
+-	unsigned long src_pfns[64] = { 0 };
+-	unsigned long dst_pfns[64] = { 0 };
++	unsigned long src_pfns[32] = { 0 };
++	unsigned long dst_pfns[32] = { 0 };
+ 	struct migrate_vma args = { 0 };
+ 	unsigned long next;
+ 	int ret;
+@@ -939,8 +939,8 @@ static int dmirror_migrate_to_device(str
+ 	unsigned long size = cmd->npages << PAGE_SHIFT;
+ 	struct mm_struct *mm = dmirror->notifier.mm;
+ 	struct vm_area_struct *vma;
+-	unsigned long src_pfns[64] = { 0 };
+-	unsigned long dst_pfns[64] = { 0 };
++	unsigned long src_pfns[32] = { 0 };
++	unsigned long dst_pfns[32] = { 0 };
+ 	struct dmirror_bounce bounce;
+ 	struct migrate_vma args = { 0 };
+ 	unsigned long next;
+@@ -1144,8 +1144,8 @@ static int dmirror_snapshot(struct dmirr
+ 	unsigned long size = cmd->npages << PAGE_SHIFT;
+ 	unsigned long addr;
+ 	unsigned long next;
+-	unsigned long pfns[64];
+-	unsigned char perm[64];
++	unsigned long pfns[32];
++	unsigned char perm[32];
+ 	char __user *uptr;
+ 	struct hmm_range range = {
+ 		.hmm_pfns = pfns,
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-vma-reset-vma-iterator-on-commit_merge-oom-failure.patch
-mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems.patch
-mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2.patch
-docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+lib-test_hmm-reduce-stack-usage.patch
 
