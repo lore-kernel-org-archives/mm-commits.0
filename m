@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CFEB24678F;
-	Wed, 11 Jun 2025 22:45:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73139282FA;
+	Wed, 11 Jun 2025 23:04:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749681927; cv=none; b=JknzC82NxvLGwLZpYku9kJMqlLD+Ui9CAOPMdSAI7nFrcBBmuzWTqn6sHSdOKmHZj/XGwnx3W2fNMSpAzxeYpYRMQiM3wCBkz54+i5EcGiUJKBsKyn6UlxwpyBekrtHnWZGDm3nVrp9o01Fm5+C6iWKqPXRd0wvFGlqtRKX59DU=
+	t=1749683057; cv=none; b=iykcZyugbO3x/y8iwTPqYYV2LABbKGyXMFELhgvqeyl6y49V9WPlfq5/thgAc/E57bxoSBY/CLAQj/GYG2RXM9FrLX4em37rBsS5Nq3x2hru+EHlMcTEm/zTIZqCIWrmXwXZr+uIaWPXj7K5qnDYXzhqtWUL2ZAXeEHEPH9TOBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749681927; c=relaxed/simple;
-	bh=ktZrnTsAuW9WoplxS7wayrdM09UkkuWLA6kxAXEW1dk=;
-	h=Date:To:From:Subject:Message-Id; b=kk1QAmNQJgqjiCfmaf8KEsbBwjw18Id7gWTkDyxFy0bqdmu+yBc92nWDYCALqXRftFeHXOaiZyTdqkmOt70urBQhCGlfOtnxsRt7RF3qv4FJWNHRhD0Z8egcSBNxIhMYP8hXf3O1F9kc8izhNnImzVtFYGcvkzCXUB7YTFWIELk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rQG5Y8IW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749683057; c=relaxed/simple;
+	bh=TBnYkL1UXs3zv9Kgn3wZaaxz541Ume5n/ShzvRcO7/s=;
+	h=Date:To:From:Subject:Message-Id; b=ZE9ZQCUQ3SEFnrC+LLNDKpMSL5KCYjTYNin2khF+CAFHHJDcjJqnOS7S2Z1z04GvwmeCAc7rwdliP29NDIwzKLbgyOFsxD2bsJHDb6YD5nYg1uLwIXvHKx0Dl8pgt/Kjk833DyEPtN8rR+ubci+ajG+4yujtLBsXKmwo0mM+ff0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oNV6ma48; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rQG5Y8IW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B927FC4CEE3;
-	Wed, 11 Jun 2025 22:45:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oNV6ma48"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2423C4CEE3;
+	Wed, 11 Jun 2025 23:04:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749681926;
-	bh=ktZrnTsAuW9WoplxS7wayrdM09UkkuWLA6kxAXEW1dk=;
+	s=korg; t=1749683054;
+	bh=TBnYkL1UXs3zv9Kgn3wZaaxz541Ume5n/ShzvRcO7/s=;
 	h=Date:To:From:Subject:From;
-	b=rQG5Y8IWlPgtPtH/rJRIGqLuE9Uo7OWbIznr3/xDbzmJrcFbEDpSjp+me8AOrbHQi
-	 zjvxTc2x3xOWyBTtroca+sGRzuaSUwLDde1KrPLKmQpB2hhtg2FB60ohzvYhf+vlEw
-	 CnK3TTBSMFCYn5wv60OAv+jaR1qwSQ8duoqavAn8=
-Date: Wed, 11 Jun 2025 15:45:26 -0700
-To: mm-commits@vger.kernel.org,zhaoyang.huang@unisoc.com,stable@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,hyesoo.yu@samsung.com,apopple@nvidia.com,akpm@linux-foundation.org,aijun.sun@unisoc.com,david@redhat.com,akpm@linux-foundation.org
+	b=oNV6ma48aS6FgEJBXlhNNiRJ/gAIkbV3GMXu1sw8MiP1bb+szOzE0QyxIwXQiWs7M
+	 RMRxvC//e2tqhvHOmjpnrqsnG+bSWub7eJ/g/YnY5fRYqyN1TKpbx8PVGKoA7e02HL
+	 +ACL0BhTV3csi/HFBrtYI9trSHjG8ld61DDl3qOg=
+Date: Wed, 11 Jun 2025 16:04:14 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,osalvador@suse.de,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,dan.j.williams@intel.com,baolin.wang@linux.alibaba.com,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250611224526.B927FC4CEE3@smtp.kernel.org>
+Subject: + mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch added to mm-new branch
+Message-Id: <20250611230414.D2423C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: revert "mm: gup: fix infinite loop within __get_longterm_locked"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
+     Subject: mm/huge_memory: don't ignore queried cachemode in vmf_insert_pfn_pud()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,105 +65,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: revert "mm: gup: fix infinite loop within __get_longterm_locked"
-Date: Wed, 11 Jun 2025 15:13:14 +0200
+Subject: mm/huge_memory: don't ignore queried cachemode in vmf_insert_pfn_pud()
+Date: Wed, 11 Jun 2025 14:06:52 +0200
 
-After commit 1aaf8c122918 ("mm: gup: fix infinite loop within
-__get_longterm_locked") we are able to longterm pin folios that are not
-supposed to get longterm pinned, simply because they temporarily have the
-LRU flag cleared (esp.  temporarily isolated).
+Patch series "mm/huge_memory: vmf_insert_folio_*() and
+vmf_insert_pfn_pud() fixes", v2.
 
-For example, two __get_longterm_locked() callers can race, or
-__get_longterm_locked() can race with anything else that temporarily
-isolates folios.
+While working on improving vm_normal_page() and friends, I stumbled over
+this issues: refcounted "normal" pages must not be marked using
+pmd_special() / pud_special().
 
-The introducing commit mentions the use case of a driver that uses
-vm_ops->fault to insert pages allocated through cma_alloc() into the page
-tables, assuming they can later get longterm pinned.  These pages/ folios
-would never have the LRU flag set and consequently cannot get isolated. 
-There is no known in-tree user making use of that so far, fortunately.
+Fortunately, so far there doesn't seem to be serious damage.
 
-To handle that in the future -- and avoid retrying forever to
-isolate/migrate them -- we will need a different mechanism for the CMA
-area *owner* to indicate that it actually already allocated the page and
-is fine with longterm pinning it.  The LRU flag is not suitable for that.
 
-Probably we can lookup the relevant CMA area and query the bitmap; we only
-have have to care about some races, probably.  If already allocated, we
-could just allow longterm pinning)
+This patch (of 3):
 
-Anyhow, let's fix the "must not be longterm pinned" problem first by
-reverting the original commit.
+We setup the cache mode but ...  don't forward the updated pgprot to
+insert_pfn_pud().
 
-Link: https://lkml.kernel.org/r/20250611131314.594529-1-david@redhat.com
-Fixes: 1aaf8c122918 ("mm: gup: fix infinite loop within __get_longterm_locked")
+Only a problem on x86-64 PAT when mapping PFNs using PUDs that require a
+special cachemode.
+
+Fix it by using the proper pgprot where the cachemode was setup.
+
+Identified by code inspection.
+
+Link: https://lkml.kernel.org/r/20250611120654.545963-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20250611120654.545963-2-david@redhat.com
+Fixes: 7b806d229ef1 ("mm: remove vmf_insert_pfn_xxx_prot() for huge page-table entries")
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Closes: https://lore.kernel.org/all/20250522092755.GA3277597@tiffany/
-Reported-by: Hyesoo Yu <hyesoo.yu@samsung.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Cc: Aijun Sun <aijun.sun@unisoc.com>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked
-+++ a/mm/gup.c
-@@ -2303,13 +2303,13 @@ static void pofs_unpin(struct pages_or_f
- /*
-  * Returns the number of collected folios. Return value is always >= 0.
-  */
--static void collect_longterm_unpinnable_folios(
-+static unsigned long collect_longterm_unpinnable_folios(
- 		struct list_head *movable_folio_list,
- 		struct pages_or_folios *pofs)
- {
-+	unsigned long i, collected = 0;
- 	struct folio *prev_folio = NULL;
- 	bool drain_allow = true;
--	unsigned long i;
- 
- 	for (i = 0; i < pofs->nr_entries; i++) {
- 		struct folio *folio = pofs_get_folio(pofs, i);
-@@ -2321,6 +2321,8 @@ static void collect_longterm_unpinnable_
- 		if (folio_is_longterm_pinnable(folio))
- 			continue;
- 
-+		collected++;
-+
- 		if (folio_is_device_coherent(folio))
- 			continue;
- 
-@@ -2342,6 +2344,8 @@ static void collect_longterm_unpinnable_
- 				    NR_ISOLATED_ANON + folio_is_file_lru(folio),
- 				    folio_nr_pages(folio));
- 	}
-+
-+	return collected;
+--- a/mm/huge_memory.c~mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud
++++ a/mm/huge_memory.c
+@@ -1516,10 +1516,9 @@ static pud_t maybe_pud_mkwrite(pud_t pud
  }
  
- /*
-@@ -2418,9 +2422,11 @@ static long
- check_and_migrate_movable_pages_or_folios(struct pages_or_folios *pofs)
+ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+-		pud_t *pud, pfn_t pfn, bool write)
++		pud_t *pud, pfn_t pfn, pgprot_t prot, bool write)
  {
- 	LIST_HEAD(movable_folio_list);
-+	unsigned long collected;
+ 	struct mm_struct *mm = vma->vm_mm;
+-	pgprot_t prot = vma->vm_page_prot;
+ 	pud_t entry;
  
--	collect_longterm_unpinnable_folios(&movable_folio_list, pofs);
--	if (list_empty(&movable_folio_list))
-+	collected = collect_longterm_unpinnable_folios(&movable_folio_list,
-+						       pofs);
-+	if (!collected)
- 		return 0;
+ 	if (!pud_none(*pud)) {
+@@ -1581,7 +1580,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
+ 	pfnmap_setup_cachemode_pfn(pfn_t_to_pfn(pfn), &pgprot);
  
- 	return migrate_longterm_unpinnable_folios(&movable_folio_list, pofs);
+ 	ptl = pud_lock(vma->vm_mm, vmf->pud);
+-	insert_pfn_pud(vma, addr, vmf->pud, pfn, write);
++	insert_pfn_pud(vma, addr, vmf->pud, pfn, pgprot, write);
+ 	spin_unlock(ptl);
+ 
+ 	return VM_FAULT_NOPAGE;
+@@ -1625,7 +1624,7 @@ vm_fault_t vmf_insert_folio_pud(struct v
+ 		add_mm_counter(mm, mm_counter_file(folio), HPAGE_PUD_NR);
+ 	}
+ 	insert_pfn_pud(vma, addr, vmf->pud, pfn_to_pfn_t(folio_pfn(folio)),
+-		write);
++		       vma->vm_page_prot, write);
+ 	spin_unlock(ptl);
+ 
+ 	return VM_FAULT_NOPAGE;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
@@ -165,4 +154,7 @@ Patches currently in -mm which might be from david@redhat.com are
 mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
 mm-gup-remove-vm_bug_ons.patch
 mm-gup-remove-vm_bug_ons-fix.patch
+mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
+mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pmd.patch
+mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pud.patch
 
