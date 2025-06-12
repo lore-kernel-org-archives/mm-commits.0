@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A92D770FE
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 01:57:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFD2D770FE
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 01:57:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749693451; cv=none; b=oxN6nXly6SEFcbuQbS49IlOekb9unA62lg03LB4IhwawJRjqPU5ZzzlqTH0gdk59p6s3Yicfg2d5kv/v5SZ43mxEsaR5Jzb1rMlZ7+PCHducs+py+7yYF9pmZikbiUHuFt23aKHPUWlaZlW7vWQcpP1tNblixtf2YFEjOIq0I+Y=
+	t=1749693453; cv=none; b=JXtIkUuP5w0qNyZRnphsYZVOsEuoWnsRtkes4UNnDwQNgYhs2/v9aboiIiT+QCMxHhSPuPZTAk2umV9SDvX5lNt/b3ByZt8WOgSR9GPqH00DYGrxe0/696kx59Xg4VeHKLJZalXUn8+WRfBjznNAAMESpbXMDIK4Wv4map2ef2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749693451; c=relaxed/simple;
-	bh=qNwCkBH3vpio5Je41I1Bsqs06jzybby5KVcIHF4gIcQ=;
-	h=Date:To:From:Subject:Message-Id; b=EQ0uTjw8E7YD0wxHnqyhWjbzP09ZkjUKgSZQxz4/5lM8njM7jfVBgAdPfBU/Tihk8OcuV1cCz7rmCTuCrxdudqwt8oVQh1QuZcZHOHoYqCQsLmLAxfZW7dOb7aohfH3viPoJQhtrC/EKbr58z07rXoFHthfklkiQpjDlF3HG6uQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oap7oisK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749693453; c=relaxed/simple;
+	bh=aN8I4bzOAuy+Wgwe75HqwmHMCY0AjYUDiOpbt6rUL5k=;
+	h=Date:To:From:Subject:Message-Id; b=VZk09aRxa7GhbwUQe5k0UWJbOZpeyaHAOIwdYaxyjJfHrNbrFDXn+YWyyzpO0GbHQ2mY0oyTz6t26DZerwD+02Em4UP2+ijdAQJ4sktFpE4AoOkHW5QCzA91HZx5DCEQnv/NxVSSNxNhZNWKOwzN1uVr7PHJOEckr3JECroWzK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHEiYZo1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oap7oisK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B569C4CEE3;
-	Thu, 12 Jun 2025 01:57:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHEiYZo1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAD85C4CEE3;
+	Thu, 12 Jun 2025 01:57:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749693451;
-	bh=qNwCkBH3vpio5Je41I1Bsqs06jzybby5KVcIHF4gIcQ=;
+	s=korg; t=1749693452;
+	bh=aN8I4bzOAuy+Wgwe75HqwmHMCY0AjYUDiOpbt6rUL5k=;
 	h=Date:To:From:Subject:From;
-	b=oap7oisKah8bSUFCf5FtfUlIfywtpdtYFyhABgigvDQc+InHMcpRPyk6QOGoYglMb
-	 /97he7CfMbgUHkPgoOa+VfteRKs8djo9btYJr5EIshirIrRZZdvRFETuzKIDSF/X6F
-	 z6w32zZheadFgdEvboSZP3N2k7L+N3ddH57dG6jI=
-Date: Wed, 11 Jun 2025 18:57:30 -0700
+	b=jHEiYZo1bJnQgSKVIjGuyT+2u1GnKVMxjXY70AtBrsktRVsYgfkwVTHpa6DjZszwg
+	 Aa2eDRLpuK05Gz1gbOhba4zpQmW343tecsbmZ/8YOQe8uirQm2r97TWjQ8TSwiIqiz
+	 6jv29L9jdXcd3H0r+slEnL5fJl/9oFp6pBRzBdxs=
+Date: Wed, 11 Jun 2025 18:57:32 -0700
 To: mm-commits@vger.kernel.org,robertpang@google.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,corbet@lwn.net,colyli@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-min_heap-add-eqaware-variant-of-min_heap_del.patch added to mm-nonmm-unstable branch
-Message-Id: <20250612015731.5B569C4CEE3@smtp.kernel.org>
+Subject: + documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis.patch added to mm-nonmm-unstable branch
+Message-Id: <20250612015732.BAD85C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib min_heap: add eqaware variant of min_heap_del()
+     Subject: Documentation/core-api: min_heap: document _eqaware variants of min-heap APIs
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-min_heap-add-eqaware-variant-of-min_heap_del.patch
+     documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-min_heap-add-eqaware-variant-of-min_heap_del.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib min_heap: add eqaware variant of min_heap_del()
-Date: Wed, 11 Jun 2025 05:55:14 +0800
+Subject: Documentation/core-api: min_heap: document _eqaware variants of min-heap APIs
+Date: Wed, 11 Jun 2025 05:55:15 +0800
 
-Introduce min_heap_del_eqaware() as a variant of min_heap_del() that uses
-the equality-aware version of sift_down, which is implemented in a
-top-down manner.
+Add documentation for equality-aware variants of min-heap maintenance
+functions, which use a top-down sift_down strategy.  These variants,
+suffixed with _eqaware, reduce the number of comparisons to O(1) in
+workloads with many elements of equal priority and can be used as drop-in
+replacements for their standard counterparts.
 
-This top-down sift_down reduces the number of comparisons from O(log2(n))
-to O(1) in cases where many elements have equal priority.  It enables more
-efficient heap construction when the heap contains a large number of equal
-elements.
-
-Link: https://lkml.kernel.org/r/20250610215516.1513296-7-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20250610215516.1513296-8-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
 Cc: Coly Li <colyli@kernel.org>
@@ -81,80 +78,38 @@ Cc: Robert Pang <robertpang@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/min_heap.h |   19 ++++++++++++++-----
- lib/min_heap.c           |    4 ++--
- 2 files changed, 16 insertions(+), 7 deletions(-)
+ Documentation/core-api/min_heap.rst |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/include/linux/min_heap.h~lib-min_heap-add-eqaware-variant-of-min_heap_del
-+++ a/include/linux/min_heap.h
-@@ -470,10 +470,12 @@ bool __min_heap_push_inline(min_heap_cha
- /* Remove ith element from the heap, O(log2(nr)). */
- static __always_inline
- bool __min_heap_del_inline(min_heap_char *heap, size_t elem_size, size_t idx,
--			   const struct min_heap_callbacks *func, void *args)
-+			   const struct min_heap_callbacks *func, void *args, bool eqaware)
- {
- 	void *data = heap->data;
- 	void (*swp)(void *lhs, void *rhs, void *args) = func->swp;
-+	siftdown_fn_t sift_down = eqaware ? __min_heap_sift_down_eqaware_inline :
-+					    __min_heap_sift_down_inline;
+--- a/Documentation/core-api/min_heap.rst~documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis
++++ a/Documentation/core-api/min_heap.rst
+@@ -30,6 +30,26 @@ more expensive. As with the non-inline v
+ macro wrappers for inline functions instead of directly calling the functions
+ themselves.
  
- 	if (WARN_ONCE(heap->nr <= 0, "Popping an empty heap"))
- 		return false;
-@@ -487,14 +489,18 @@ bool __min_heap_del_inline(min_heap_char
- 		return true;
- 	do_swap(data + (idx * elem_size), data + (heap->nr * elem_size), elem_size, swp, args);
- 	__min_heap_sift_up_inline(heap, elem_size, idx, func, args);
--	__min_heap_sift_down_inline(heap, idx, elem_size, func, args);
-+	sift_down(heap, idx, elem_size, func, args);
- 
- 	return true;
- }
- 
- #define min_heap_del_inline(_heap, _idx, _func, _args)	\
- 	__min_heap_del_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
--			      __minheap_obj_size(_heap), _idx, _func, _args)
-+			      __minheap_obj_size(_heap), _idx, _func, _args, false)
++Equality-Aware Heap Maintenance
++-------------------------------
 +
-+#define min_heap_del_eqaware_inline(_heap, _idx, _func, _args)	\
-+	__min_heap_del_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
-+			      __minheap_obj_size(_heap), _idx, _func, _args, true)
++In some workloads, a large number of elements in the heap may be equal under
++the user-defined comparison function. For such cases, the standard
++``min_heap_sift_down()`` implementation, which uses the bottom-up heapify
++strategy, can be inefficient. While bottom-up heapify reduces the number of
++comparisons by approximately 50% for randomly ordered data, it may perform up
++to :math:`2 \times \log_2(n)` comparisons in the presence of many equal
++elements.
++
++To address this, equality-aware versions of heap maintenance APIs are provided.
++These versions use the traditional top-down heapify strategy, which performs
++better - sometimes requiring only :math:`\mathcal{O}(1)` comparisons - when
++many elements are equal.
++
++The equality-aware APIs are suffixed with ``_eqaware``, and serve as drop-in
++replacements for their standard counterparts when equal elements are expected.
++
++
+ Data Structures
+ ===============
  
- void __min_heap_init(min_heap_char *heap, void *data, size_t size);
- void *__min_heap_peek(struct min_heap_char *heap);
-@@ -514,7 +520,7 @@ void __min_heap_pop_push(min_heap_char *
- bool __min_heap_push(min_heap_char *heap, const void *element, size_t elem_size,
- 		     const struct min_heap_callbacks *func, void *args);
- bool __min_heap_del(min_heap_char *heap, size_t elem_size, size_t idx,
--		    const struct min_heap_callbacks *func, void *args);
-+		    const struct min_heap_callbacks *func, void *args, bool eqaware);
- 
- #define min_heap_init(_heap, _data, _size)	\
- 	__min_heap_init(container_of(&(_heap)->nr, min_heap_char, nr), _data, _size)
-@@ -554,6 +560,9 @@ bool __min_heap_del(min_heap_char *heap,
- 			__minheap_obj_size(_heap), _func, _args)
- #define min_heap_del(_heap, _idx, _func, _args)	\
- 	__min_heap_del(container_of(&(_heap)->nr, min_heap_char, nr),	\
--		       __minheap_obj_size(_heap), _idx, _func, _args)
-+		       __minheap_obj_size(_heap), _idx, _func, _args, false)
-+#define min_heap_del_eqaware(_heap, _idx, _func, _args)	\
-+	__min_heap_del(container_of(&(_heap)->nr, min_heap_char, nr),	\
-+		       __minheap_obj_size(_heap), _idx, _func, _args, true)
- 
- #endif /* _LINUX_MIN_HEAP_H */
---- a/lib/min_heap.c~lib-min_heap-add-eqaware-variant-of-min_heap_del
-+++ a/lib/min_heap.c
-@@ -70,8 +70,8 @@ bool __min_heap_push(min_heap_char *heap
- EXPORT_SYMBOL(__min_heap_push);
- 
- bool __min_heap_del(min_heap_char *heap, size_t elem_size, size_t idx,
--		    const struct min_heap_callbacks *func, void *args)
-+		    const struct min_heap_callbacks *func, void *args, bool eqaware)
- {
--	return __min_heap_del_inline(heap, elem_size, idx, func, args);
-+	return __min_heap_del_inline(heap, elem_size, idx, func, args, eqaware);
- }
- EXPORT_SYMBOL(__min_heap_del);
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
