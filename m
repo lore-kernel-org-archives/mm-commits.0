@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E39AA5258
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 00:48:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A13EE847B
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 01:35:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749689332; cv=none; b=hW7Pz+ommoDyptBl19larzbs4SeFptNQuuOx07tECkj2kJfnXK1wJ/Yq6bkbmZPl8m4u1dWm0bxhITcFdNPdW6/gL7Y5LXZluXCi2lrONLUBMN5fPcGQnFkOSFhXtGYLYxGrWA/NdyhAl2laWMa52j9GFSfsgasQypMOKqfWBVo=
+	t=1749692100; cv=none; b=bSRxKBZm7qFSGpGxIw+zrROJKsd5gSUs9JoDR3lQKkkByh20C+kPtAwulC1v28EVFLi+HgxGveCkQD2d5GAjLUJIUfjHduDVRZ+Zzbqd8t8PX0pq83Nzu0Ylgq7n35LYiipnbFoMhKN4vNp6MEemBSRimj1FmDP80GDGzV5LSQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749689332; c=relaxed/simple;
-	bh=RQcpzmPkeFaEqDc1CM/drqIi4rJz3nZFMFjAk8N0MXc=;
-	h=Date:To:From:Subject:Message-Id; b=P7iJ0+sey0NikdwA6F51EHGED/3ojM5xFG+lOBAi0oeyVlpdTNh37G1bXMp0Caz+eqcoZ+CmDjGYHdgyzoBP+kWqu35OLi+I0QWr9LdwAgQdUB0QYqjDAakK6GKKnr3fmwbNfJG6XZ9EoQaS1Vg6EGWrgKUJBeARP70zSAYZnUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R0DhU3Xj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749692100; c=relaxed/simple;
+	bh=Rl7SlkNo6qkD271iwp7IE+C8+GQwo8rQygN29860ogw=;
+	h=Date:To:From:Subject:Message-Id; b=kmMk/2r7Kq0P/fNBOxHCsyD0kyqNFVSLzQl0UrDE+xc5x9AmkTAZB6AioPWNnXoM2xBtgUgl+dEK+32IslZbByG+pkbSJdyfAeb3zXwrU10fXVgG9dvccby0uxZUBtXvbbh18YdcDPbL18PVW794NTl81BP8LsLzTWWYKrd2Q5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DzjvtEay; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R0DhU3Xj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41753C4CEEF;
-	Thu, 12 Jun 2025 00:48:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DzjvtEay"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07057C4CEE3;
+	Thu, 12 Jun 2025 01:34:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749689331;
-	bh=RQcpzmPkeFaEqDc1CM/drqIi4rJz3nZFMFjAk8N0MXc=;
+	s=korg; t=1749692100;
+	bh=Rl7SlkNo6qkD271iwp7IE+C8+GQwo8rQygN29860ogw=;
 	h=Date:To:From:Subject:From;
-	b=R0DhU3Xj7MK0PYcDpUqwcNMuzabiS78U+oHjRCZhrKzPz86Ora3q+MHp+sn0+7ive
-	 Kgi4G3ctorHbBlksPP2FGtSnhsq4pMZg698plK7OMR/4Pvz5SnplYTFr3udEJT0sHL
-	 ss80B+/SRdA6DiNTowpp5/gZdKrNuFqH0xOPTtZc=
-Date: Wed, 11 Jun 2025 17:48:50 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,rostedt@goodmis.org,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,david@redhat.com,apopple@nvidia.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
+	b=DzjvtEaynC9vTZ08+HIqohsYRW4dymGt/cfFsDldULSUMvKWp9Cyy59W6whDKgD2g
+	 jtZeXk2gxB/V03F7blITOp9iXp2Y0uw+RfGLw2gAhc7+6pD2MHb+9+j3C/Qrj0Fhi6
+	 bhZb9lXR0w4d3jH75+sICCy1T8BD4+OfPJyj5dJE=
+Date: Wed, 11 Jun 2025 18:34:59 -0700
+To: mm-commits@vger.kernel.org,git@elijahs.space,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-folio_expected_ref_count-helper-for-reference-counting.patch added to mm-new branch
-Message-Id: <20250612004851.41753C4CEEF@smtp.kernel.org>
+Subject: + kernel-relay-use-__gfp_zero-in-relay_alloc_buf.patch added to mm-nonmm-unstable branch
+Message-Id: <20250612013500.07057C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use folio_expected_ref_count() helper for reference counting
-has been added to the -mm mm-new branch.  Its filename is
-     mm-use-folio_expected_ref_count-helper-for-reference-counting.patch
+     Subject: kernel: relay: use __GFP_ZERO in relay_alloc_buf
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-relay-use-__gfp_zero-in-relay_alloc_buf.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-folio_expected_ref_count-helper-for-reference-counting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-relay-use-__gfp_zero-in-relay_alloc_buf.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,68 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shivank Garg <shivankg@amd.com>
-Subject: mm: use folio_expected_ref_count() helper for reference counting
-Date: Wed, 11 Jun 2025 05:27:07 +0000
+From: Elijah Wright <git@elijahs.space>
+Subject: kernel: relay: use __GFP_ZERO in relay_alloc_buf
+Date: Tue, 10 Jun 2025 15:56:28 -0700
 
-Replace open-coded folio reference count calculations with the
-folio_expected_ref_count().
+Passing the __GFP_ZERO flag to alloc_page should result in less overhead
+th= an using memset()
 
-No functional changes intended.
-
-Link: https://lkml.kernel.org/r/20250611052706.515408-2-shivankg@amd.com
-Signed-off-by: Shivank Garg <shivankg@amd.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Namhyung kim <namhyung@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20250610225639.314970-3-git@elijahs.space
+Signed-off-by: Elijah Wright <git@elijahs.space>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    3 +--
- mm/memfd.c              |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ kernel/relay.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/kernel/events/uprobes.c~mm-use-folio_expected_ref_count-helper-for-reference-counting
-+++ a/kernel/events/uprobes.c
-@@ -436,8 +436,7 @@ static int __uprobe_write_opcode(struct
- 	 * there are no unexpected folio references ...
- 	 */
- 	if (is_register || userfaultfd_missing(vma) ||
--	    (folio_ref_count(folio) != folio_mapcount(folio) + 1 +
--	     folio_test_swapcache(folio) * folio_nr_pages(folio)))
-+	    (folio_ref_count(folio) != folio_expected_ref_count(folio) + 1))
- 		goto remap;
+--- a/kernel/relay.c~kernel-relay-use-__gfp_zero-in-relay_alloc_buf
++++ a/kernel/relay.c
+@@ -118,7 +118,7 @@ static void *relay_alloc_buf(struct rcha
+ 		return NULL;
  
- 	/*
---- a/mm/memfd.c~mm-use-folio_expected_ref_count-helper-for-reference-counting
-+++ a/mm/memfd.c
-@@ -32,8 +32,7 @@
+ 	for (i = 0; i < n_pages; i++) {
+-		buf->page_array[i] = alloc_page(GFP_KERNEL);
++		buf->page_array[i] = alloc_page(GFP_KERNEL | __GFP_ZERO);
+ 		if (unlikely(!buf->page_array[i]))
+ 			goto depopulate;
+ 		set_page_private(buf->page_array[i], (unsigned long)buf);
+@@ -127,7 +127,6 @@ static void *relay_alloc_buf(struct rcha
+ 	if (!mem)
+ 		goto depopulate;
  
- static bool memfd_folio_has_extra_refs(struct folio *folio)
- {
--	return folio_ref_count(folio) - folio_mapcount(folio) !=
--	       folio_nr_pages(folio);
-+	return folio_ref_count(folio) != folio_expected_ref_count(folio);
- }
+-	memset(mem, 0, *size);
+ 	buf->page_count = n_pages;
+ 	return mem;
  
- static void memfd_tag_pins(struct xa_state *xas)
 _
 
-Patches currently in -mm which might be from shivankg@amd.com are
+Patches currently in -mm which might be from git@elijahs.space are
 
-selftests-mm-increase-timeout-from-180-to-900-seconds.patch
-mm-use-folio_expected_ref_count-helper-for-reference-counting.patch
+kernel-relay-use-__gfp_zero-in-relay_alloc_buf.patch
 
