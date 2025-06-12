@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D1AF153BD9
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 22:59:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED352192584
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:02:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749769146; cv=none; b=saDJhvYLHCjBCBPy40SPAcfdGKleJc02U95+c4jO5LJq6QJnzTAChHRDMtG3/XH17sWtTYeIs29rLI35MZ36DUJhnXdBJC/NVeBdrdcL1ZPZ7pqBsbCnPT5kgTQwCsZvSH4Z075kh6DcmdLUumELa9cMoXiYWbHkgkSQ9e3GUsU=
+	t=1749769334; cv=none; b=WE4vi/KvELKajOTIUWenteio9ZwF1od+GOyDzGiUnEO+DSVHVmz+ziv/1IsRjPHUVY8skMSJirtizxLHz7+tQRKBbm7QLqVXwEdTBvdxJeGC/SZ+L6XhfmmHrnqFBD1ocOE9MuVGjWO/W/9zYYDhw6TUeF7Dsvh+2457SojHO54=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749769146; c=relaxed/simple;
-	bh=6orp7OJHcCDce+IDeAgwe9cHuHzVWfvsvZmrmdoIpoQ=;
-	h=Date:To:From:Subject:Message-Id; b=D/ufDltyW2otE/wSE9ENT/wGyE/WChTLHOhw53O9LSKCSTJ15WfLP9Gu3vne3HhJZILSAP3PvSAmZqkgr/kzAoyoinvn0MjgkBDgVUb6r5zeekzQFmjWYyKHJuYK3qHdJytbre5+umip5EgMCZEESH7eKzIGjMwieDC8akYHnoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kd6wl46z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749769334; c=relaxed/simple;
+	bh=ATFNF9Kx5Irx4zBccFBljyoI2faUPlM2DHtlCcWezKs=;
+	h=Date:To:From:Subject:Message-Id; b=jSmU6wygQcTpzvzJVud8LqtuTc3gKaoPE2S7NoqSdSBNvAdAYhhlWsq05grz0BFLxsd93R9LIpkOmMTlEQ7tV+n8kMLfyPFDMsY5Iduo1X1NuVN8qfMg3JKLkm4MoQfWgm60NK3kgwa/qg0EKg18kDUz1B4S7YWohSTepkhnntQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s684TA1B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kd6wl46z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C83BFC4CEEB;
-	Thu, 12 Jun 2025 22:59:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s684TA1B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F724C4CEEA;
+	Thu, 12 Jun 2025 23:02:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749769145;
-	bh=6orp7OJHcCDce+IDeAgwe9cHuHzVWfvsvZmrmdoIpoQ=;
+	s=korg; t=1749769333;
+	bh=ATFNF9Kx5Irx4zBccFBljyoI2faUPlM2DHtlCcWezKs=;
 	h=Date:To:From:Subject:From;
-	b=Kd6wl46zd810j/W2vkHCYMXzLymtTBH/CaWU6/8S+ktGCaf9DkJoFXWSVYO7KPbv5
-	 JCy8etfWIRGgSmaLdcsaQ4kNH4f1eZ5CI79BcTVKQKBYKpO3D7AorEAd7dyoLTOXwI
-	 +HXw2rgYoEPNhlihaMqDqYVoUTsxg13DCRC8lnPc=
-Date: Thu, 12 Jun 2025 15:59:05 -0700
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
+	b=s684TA1BPqLfhf/vOq088ToW9u59zwFvZhSa/N261LsVE7Uc9I0+zY5GMhQMyDHdB
+	 bGnI/9LnJftdB8hyf9OJ2xdZKh6pBTlWLV9ZZ+njxEuCUTVCdhWp9nQLsl4cYPFCX9
+	 2XFwCboo924qW4K2ocmyFLpAhYwc2jN0rkXuSaZ4=
+Date: Thu, 12 Jun 2025 16:02:12 -0700
+To: mm-commits@vger.kernel.org,xiubli@redhat.com,ira.weiny@intel.com,idryomov@gmail.com,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-use-folios-in-squashfs_bio_read_cached.patch added to mm-nonmm-unstable branch
-Message-Id: <20250612225905.C83BFC4CEEB@smtp.kernel.org>
+Subject: + bio-use-memzero_page-in-bio_truncate.patch added to mm-new branch
+Message-Id: <20250612230213.6F724C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: squashfs: use folios in squashfs_bio_read_cached()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-use-folios-in-squashfs_bio_read_cached.patch
+     Subject: bio: use memzero_page() in bio_truncate()
+has been added to the -mm mm-new branch.  Its filename is
+     bio-use-memzero_page-in-bio_truncate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-use-folios-in-squashfs_bio_read_cached.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bio-use-memzero_page-in-bio_truncate.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,135 +65,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: squashfs: use folios in squashfs_bio_read_cached()
-Date: Thu, 12 Jun 2025 15:39:01 +0100
+Subject: bio: use memzero_page() in bio_truncate()
+Date: Thu, 12 Jun 2025 15:34:37 +0100
 
-Remove an access to page->mapping and a few calls to the old page-based
-APIs.  This doesn't support large folios, but it's still a nice
-improvement.
+Patch series "Remove zero_user()".
 
-Link: https://lkml.kernel.org/r/20250612143903.2849289-3-willy@infradead.org
+The zero_user() API is almost unused these days.  Finish the job of
+removing it.
+
+
+This patch (of 5):
+
+memzero_page() is the new name for zero_user().
+
+Link: https://lkml.kernel.org/r/20250612143443.2848197-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250612143443.2848197-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c |   45 ++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 23 deletions(-)
+ block/bio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-use-folios-in-squashfs_bio_read_cached
-+++ a/fs/squashfs/block.c
-@@ -80,23 +80,22 @@ static int squashfs_bio_read_cached(stru
- 		struct address_space *cache_mapping, u64 index, int length,
- 		u64 read_start, u64 read_end, int page_count)
- {
--	struct page *head_to_cache = NULL, *tail_to_cache = NULL;
-+	struct folio *head_to_cache = NULL, *tail_to_cache = NULL;
- 	struct block_device *bdev = fullbio->bi_bdev;
- 	int start_idx = 0, end_idx = 0;
--	struct bvec_iter_all iter_all;
-+	struct folio_iter fi;;
- 	struct bio *bio = NULL;
--	struct bio_vec *bv;
- 	int idx = 0;
- 	int err = 0;
- #ifdef CONFIG_SQUASHFS_COMP_CACHE_FULL
--	struct page **cache_pages = kmalloc_array(page_count,
-+	struct folio **cache_folios = kmalloc_array(page_count,
- 			sizeof(void *), GFP_KERNEL | __GFP_ZERO);
- #endif
+--- a/block/bio.c~bio-use-memzero_page-in-bio_truncate
++++ a/block/bio.c
+@@ -653,13 +653,13 @@ static void bio_truncate(struct bio *bio
  
--	bio_for_each_segment_all(bv, fullbio, iter_all) {
--		struct page *page = bv->bv_page;
-+	bio_for_each_folio_all(fi, fullbio) {
-+		struct folio *folio = fi.folio;
+ 	bio_for_each_segment(bv, bio, iter) {
+ 		if (done + bv.bv_len > new_size) {
+-			unsigned offset;
++			size_t offset;
  
--		if (page->mapping == cache_mapping) {
-+		if (folio->mapping == cache_mapping) {
- 			idx++;
- 			continue;
+ 			if (!truncated)
+ 				offset = new_size - done;
+ 			else
+ 				offset = 0;
+-			zero_user(bv.bv_page, bv.bv_offset + offset,
++			memzero_page(bv.bv_page, bv.bv_offset + offset,
+ 				  bv.bv_len - offset);
+ 			truncated = true;
  		}
-@@ -111,13 +110,13 @@ static int squashfs_bio_read_cached(stru
- 		 * adjacent blocks.
- 		 */
- 		if (idx == 0 && index != read_start)
--			head_to_cache = page;
-+			head_to_cache = folio;
- 		else if (idx == page_count - 1 && index + length != read_end)
--			tail_to_cache = page;
-+			tail_to_cache = folio;
- #ifdef CONFIG_SQUASHFS_COMP_CACHE_FULL
- 		/* Cache all pages in the BIO for repeated reads */
--		else if (cache_pages)
--			cache_pages[idx] = page;
-+		else if (cache_folios)
-+			cache_folios[idx] = folio;
- #endif
- 
- 		if (!bio || idx != end_idx) {
-@@ -150,45 +149,45 @@ static int squashfs_bio_read_cached(stru
- 		return err;
- 
- 	if (head_to_cache) {
--		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
-+		int ret = filemap_add_folio(cache_mapping, head_to_cache,
- 						read_start >> PAGE_SHIFT,
- 						GFP_NOIO);
- 
- 		if (!ret) {
--			SetPageUptodate(head_to_cache);
--			unlock_page(head_to_cache);
-+			folio_mark_uptodate(head_to_cache);
-+			folio_unlock(head_to_cache);
- 		}
- 
- 	}
- 
- 	if (tail_to_cache) {
--		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
-+		int ret = filemap_add_folio(cache_mapping, tail_to_cache,
- 						(read_end >> PAGE_SHIFT) - 1,
- 						GFP_NOIO);
- 
- 		if (!ret) {
--			SetPageUptodate(tail_to_cache);
--			unlock_page(tail_to_cache);
-+			folio_mark_uptodate(tail_to_cache);
-+			folio_unlock(tail_to_cache);
- 		}
- 	}
- 
- #ifdef CONFIG_SQUASHFS_COMP_CACHE_FULL
--	if (!cache_pages)
-+	if (!cache_folios)
- 		goto out;
- 
- 	for (idx = 0; idx < page_count; idx++) {
--		if (!cache_pages[idx])
-+		if (!cache_folios[idx])
- 			continue;
--		int ret = add_to_page_cache_lru(cache_pages[idx], cache_mapping,
-+		int ret = filemap_add_folio(cache_mapping, cache_folios[idx],
- 						(read_start >> PAGE_SHIFT) + idx,
- 						GFP_NOIO);
- 
- 		if (!ret) {
--			SetPageUptodate(cache_pages[idx]);
--			unlock_page(cache_pages[idx]);
-+			folio_mark_uptodate(cache_folios[idx]);
-+			folio_unlock(cache_folios[idx]);
- 		}
- 	}
--	kfree(cache_pages);
-+	kfree(cache_folios);
- out:
- #endif
- 	return 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
 
 mm-restore-documentation-for-__free_pages.patch
+bio-use-memzero_page-in-bio_truncate.patch
+null_blk-use-memzero_page.patch
+direct-io-use-memzero_page.patch
+ceph-convert-ceph_zero_partial_page-to-use-a-folio.patch
+mm-remove-zero_user.patch
 squashfs-pass-the-inode-to-squashfs_readahead_fragment.patch
 squashfs-use-folios-in-squashfs_bio_read_cached.patch
 
