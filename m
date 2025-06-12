@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D262DECCC
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:44:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5846E2DECCC
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:44:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749771842; cv=none; b=effrmf+r9ceC4ifK4yGgKpLmGPc+Q4vvqWFRjSxOWi/Q9ceGSpIp4QO5Vo6bbLogYQe8oMUNNbfkgqA5DRgXM3XHXdnGu+MMxqXcPNn8vh5r8bd2oZU7sUeTeaju/rKWGj7PaG/5AMLfNrcGV+ZVHK2OiW5PPfvGfCl9l5TkhNI=
+	t=1749771844; cv=none; b=RloGFlhzE/rPl5fjjZAvU9AHEJeyw19vZbhIcBA8Y4o/vVFn/9aTOqNUtm1BI/tdtPkBZBPoL4fKQ5sjBAuFu8XO8RWvEaFMU6hgnTEyXn1XUMFRma68Y+RNQwhkFim3svH/KEwqXDkDi91BnfGccXQF9pckTvt6ZBHp7VyGrXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749771842; c=relaxed/simple;
-	bh=y3bqAsQcKFz6YkZUH43hWjsymPqHlfto4cL90yTs97M=;
-	h=Date:To:From:Subject:Message-Id; b=JCgIaUbnCOx4i76BRi3xF9UHS/ou3YRY70iMWQGV3EoH9phS1Q/1MmRWEMBWMi3tGi2588ISvptGI9MFJcp+Q/kpYEH2qRoT7mUmfvy2by0lB1UBmmbOrlNPaAU4SE0mNmJARbO1rOuCLvstPzopfPXUPY8ioiVYPMnlu0tQk30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bs9aSWuz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749771844; c=relaxed/simple;
+	bh=ilaRNrx5rXG2ItL81jI0abKlZomMUX3Rdt6eHvie7xE=;
+	h=Date:To:From:Subject:Message-Id; b=ss17DAUOMVhevfuYDjj7cX040GrZSVfNwoMT7X+zTZw7x+VsIOj66Ke03deU/zitET+C6jf8P06aWabK5a3/IDowAI2gx0vtp5vL6GHLQKPW4S9pCEwmVqFVjEitYGKfQ7kWQ3qlKftiJHoj/RP2MCFHMfFD7Hr19146SywhLGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tVi5Wu+W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bs9aSWuz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6003FC4CEEA;
-	Thu, 12 Jun 2025 23:44:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tVi5Wu+W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3199C4CEEA;
+	Thu, 12 Jun 2025 23:44:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749771842;
-	bh=y3bqAsQcKFz6YkZUH43hWjsymPqHlfto4cL90yTs97M=;
+	s=korg; t=1749771843;
+	bh=ilaRNrx5rXG2ItL81jI0abKlZomMUX3Rdt6eHvie7xE=;
 	h=Date:To:From:Subject:From;
-	b=Bs9aSWuzarSbpZBeDUhpBY4ycPhBvgdx3pl5iEIqE/wkDWl1ijtO1BHAqEenxONam
-	 OpENWbvDiIwKNX5uzOHdS8U6BFSWWVDcsIG9EX2FqfyD3P46Y7e3GJssK5T2+aDqjn
-	 pOJ3wOY57cMauo5CWneB1nIMyV3lxw4c1qBlES3c=
-Date: Thu, 12 Jun 2025 16:44:01 -0700
+	b=tVi5Wu+WVbeFPnNN+YnVOndCkGZOkxBLvKF83Q6WTzHuxHQfDBdUrOo+KRCft4ILI
+	 7yn2gGbDT6KBL1fVp0J0L+SLxEri+ItcqJwrBwQ6LQHLxxxba4jgVu1cXK93j78lpw
+	 TP0YLNn/+xrAQTcRpjiOZ1Yznxqck/aZ9ALN+PMQ=
+Date: Thu, 12 Jun 2025 16:44:03 -0700
 To: mm-commits@vger.kernel.org,vgoyal@redhat.com,prudo@redhat.com,piliu@redhat.com,mhocko@suse.cz,ltao@redhat.com,dyoung@redhat.com,ddutile@redhat.com,david@redhat.com,bhe@redhat.com,jbohac@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kdump-implement-reserve_crashkernel_cma.patch added to mm-nonmm-unstable branch
-Message-Id: <20250612234402.6003FC4CEEA@smtp.kernel.org>
+Subject: + kdump-documentation-describe-craskernel-cma-reservation.patch added to mm-nonmm-unstable branch
+Message-Id: <20250612234403.C3199C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kdump: implement reserve_crashkernel_cma
+     Subject: kdump, documentation: describe craskernel CMA reservation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kdump-implement-reserve_crashkernel_cma.patch
+     kdump-documentation-describe-craskernel-cma-reservation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdump-implement-reserve_crashkernel_cma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdump-documentation-describe-craskernel-cma-reservation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jiri Bohac <jbohac@suse.cz>
-Subject: kdump: implement reserve_crashkernel_cma
-Date: Thu, 12 Jun 2025 12:16:39 +0200
+Subject: kdump, documentation: describe craskernel CMA reservation
+Date: Thu, 12 Jun 2025 12:17:39 +0200
 
-reserve_crashkernel_cma() reserves CMA ranges for the crash kernel.  If
-allocating the requested size fails, try to reserve in smaller blocks.
+Describe the new crashkernel ",cma" suffix in Documentation/
 
-Store the reserved ranges in the crashk_cma_ranges array and the number of
-ranges in crashk_cma_cnt.
-
-Link: https://lkml.kernel.org/r/aEqpBwOy_ekm0gw9@dwarf.suse.cz
+Link: https://lkml.kernel.org/r/aEqpQwUy6gqSiUkV@dwarf.suse.cz
 Signed-off-by: Jiri Bohac <jbohac@suse.cz>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -82,105 +78,71 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_reserve.h |   12 +++++++
- kernel/crash_reserve.c        |   52 ++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ Documentation/admin-guide/kdump/kdump.rst       |   21 +++++++++++++
+ Documentation/admin-guide/kernel-parameters.txt |   22 ++++++++++++++
+ 2 files changed, 43 insertions(+)
 
---- a/include/linux/crash_reserve.h~kdump-implement-reserve_crashkernel_cma
-+++ a/include/linux/crash_reserve.h
-@@ -13,12 +13,24 @@
-  */
- extern struct resource crashk_res;
- extern struct resource crashk_low_res;
-+extern struct range crashk_cma_ranges[];
-+#if defined(CONFIG_CMA) && defined(CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION)
-+#define CRASHKERNEL_CMA
-+#define CRASHKERNEL_CMA_RANGES_MAX 4
-+extern int crashk_cma_cnt;
-+#else
-+#define crashk_cma_cnt 0
-+#define CRASHKERNEL_CMA_RANGES_MAX 0
-+#endif
-+
+--- a/Documentation/admin-guide/kdump/kdump.rst~kdump-documentation-describe-craskernel-cma-reservation
++++ a/Documentation/admin-guide/kdump/kdump.rst
+@@ -311,6 +311,27 @@ crashkernel syntax
  
- int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
- 		unsigned long long *crash_size, unsigned long long *crash_base,
- 		unsigned long long *low_size, unsigned long long *cma_size,
- 		bool *high);
+             crashkernel=0,low
  
-+void __init reserve_crashkernel_cma(unsigned long long cma_size);
++4) crashkernel=size,cma
 +
- #ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
- #ifndef DEFAULT_CRASH_KERNEL_LOW_SIZE
- #define DEFAULT_CRASH_KERNEL_LOW_SIZE	(128UL << 20)
---- a/kernel/crash_reserve.c~kdump-implement-reserve_crashkernel_cma
-+++ a/kernel/crash_reserve.c
-@@ -14,6 +14,8 @@
- #include <linux/cpuhotplug.h>
- #include <linux/memblock.h>
- #include <linux/kmemleak.h>
-+#include <linux/cma.h>
-+#include <linux/crash_reserve.h>
++	Reserve additional crash kernel memory from CMA. This reservation is
++	usable by the first system's userspace memory and kernel movable
++	allocations (memory balloon, zswap). Pages allocated from this memory
++	range will not be included in the vmcore so this should not be used if
++	dumping of userspace memory is intended and it has to be expected that
++	some movable kernel pages may be missing from the dump.
++
++	A standard crashkernel reservation, as described above, is still needed
++	to hold the crash kernel and initrd.
++
++	This option increases the risk of a kdump failure: DMA transfers
++	configured by the first kernel may end up corrupting the second
++	kernel's memory.
++
++	This reservation method is intended for systems that can't afford to
++	sacrifice enough memory for standard crashkernel reservation and where
++	less reliable and possibly incomplete kdump is preferable to no kdump at
++	all.
++
+ Boot into System Kernel
+ -----------------------
+ 1) Update the boot loader (such as grub, yaboot, or lilo) configuration
+--- a/Documentation/admin-guide/kernel-parameters.txt~kdump-documentation-describe-craskernel-cma-reservation
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -986,6 +986,28 @@
+ 			0: to disable low allocation.
+ 			It will be ignored when crashkernel=X,high is not used
+ 			or memory reserved is below 4G.
++	crashkernel=size[KMG],cma
++			[KNL, X86] Reserve additional crash kernel memory from
++			CMA. This reservation is usable by the first system's
++			userspace memory and kernel movable allocations (memory
++			balloon, zswap). Pages allocated from this memory range
++			will not be included in the vmcore so this should not
++			be used if dumping of userspace memory is intended and
++			it has to be expected that some movable kernel pages
++			may be missing from the dump.
++
++			A standard crashkernel reservation, as described above,
++			is still needed to hold the crash kernel and initrd.
++
++			This option increases the risk of a kdump failure: DMA
++			transfers configured by the first kernel may end up
++			corrupting the second kernel's memory.
++
++			This reservation method is intended for systems that
++			can't afford to sacrifice enough memory for standard
++			crashkernel reservation and where less reliable and
++			possibly incomplete kdump is preferable to no kdump at
++			all.
  
- #include <asm/page.h>
- #include <asm/sections.h>
-@@ -469,6 +471,56 @@ retry:
- #endif
- }
- 
-+struct range crashk_cma_ranges[CRASHKERNEL_CMA_RANGES_MAX];
-+#ifdef CRASHKERNEL_CMA
-+int crashk_cma_cnt;
-+void __init reserve_crashkernel_cma(unsigned long long cma_size)
-+{
-+	unsigned long long request_size = roundup(cma_size, PAGE_SIZE);
-+	unsigned long long reserved_size = 0;
-+
-+	if (!cma_size)
-+		return;
-+
-+	while (cma_size > reserved_size &&
-+	       crashk_cma_cnt < CRASHKERNEL_CMA_RANGES_MAX) {
-+
-+		struct cma *res;
-+
-+		if (cma_declare_contiguous(0, request_size, 0, 0, 0, false,
-+				       "crashkernel", &res)) {
-+			/* reservation failed, try half-sized blocks */
-+			if (request_size <= PAGE_SIZE)
-+				break;
-+
-+			request_size = roundup(request_size / 2, PAGE_SIZE);
-+			continue;
-+		}
-+
-+		crashk_cma_ranges[crashk_cma_cnt].start = cma_get_base(res);
-+		crashk_cma_ranges[crashk_cma_cnt].end =
-+			crashk_cma_ranges[crashk_cma_cnt].start +
-+			cma_get_size(res) - 1;
-+		++crashk_cma_cnt;
-+		reserved_size += request_size;
-+	}
-+
-+	if (cma_size > reserved_size)
-+		pr_warn("crashkernel CMA reservation failed: %lld MB requested, %lld MB reserved in %d ranges\n",
-+			cma_size >> 20, reserved_size >> 20, crashk_cma_cnt);
-+	else
-+		pr_info("crashkernel CMA reserved: %lld MB in %d ranges\n",
-+			reserved_size >> 20, crashk_cma_cnt);
-+}
-+
-+#else /* CRASHKERNEL_CMA */
-+void __init reserve_crashkernel_cma(unsigned long long cma_size)
-+{
-+	if (cma_size)
-+		pr_warn("crashkernel CMA reservation not supported\n");
-+}
-+#endif
-+
- #ifndef HAVE_ARCH_ADD_CRASH_RES_TO_IOMEM_EARLY
- static __init int insert_crashkernel_resources(void)
- {
+ 	cryptomgr.notests
+ 			[KNL] Disable crypto self-tests
 _
 
 Patches currently in -mm which might be from jbohac@suse.cz are
