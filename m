@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2473D15C158
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 05:43:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0E9515C158
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 05:43:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749706981; cv=none; b=HRQtdXehFebAWJ0ok8jzxCe+CzsHqRFVCedvDGGP4pAXjcyX52QGlsDtO5YYziONLMfmjuftlVohcz2yEyknQRkGDPYDf6DdifaTTOFlty3nDoaFlImPjn7g2OpsLlNQ1N6Fp7iInlGYPsPguOI2z1i07xN2WGUfB3VAqCyg0hk=
+	t=1749706982; cv=none; b=otqb+VJSBHSpnTaD1WPIk/Qap+O9IO53xZb2oMeoQwg4yBt3uTAyZu60rrHZv4XryS3jUrw0trszYaBs/jnaLTp32csBESbZ8OeNAVIr11a3NtoaEC5fhIE018G6FDRURoVyedJBKbGYUuwI0DZYoIv+GezZfLQpIpWrhjqCHvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749706981; c=relaxed/simple;
-	bh=iNDlnBNExVOmwjsGn10wU+IxyGATO258ndr1wovQnfA=;
-	h=Date:To:From:Subject:Message-Id; b=E5pbP+1Ou86Xkdu0WjlqV4hKGor6cb7snbsFhFXr5rc/LTvsZiflI6FgiUHaWAU4sDuKSQ1JftYIKAS238pAUD/juiIJ3F+XjssMzKUIXhGDzKt1pBPVIxgs4lsmJ/OS2fMpNn0ZHi/nhcwbDMTaUg4IaNBnRy6qkWR58FhSdIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OQ7dKwTF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749706982; c=relaxed/simple;
+	bh=LkvUyMMLMXNXWrb7tzfPrsXRzV6HinpcNds2vov1Nw4=;
+	h=Date:To:From:Subject:Message-Id; b=EH/y69E+J0JIgEhQeo7Wc6KmL811DNYlkYmfL5G7NWJYhFCUO4gDhO9JQ0ft5CAeJCj2BJ+CIwFxEJLpp0JPh0y4E4WHnFQUREa2lLvZs1s12dw+WJFb4G7K6jthX2AcAh0DbIiPxu9fEIgA4/++J4rO+q4BKhBogZ4WfyJ955E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=142xDEn8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OQ7dKwTF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A233DC4CEEA;
-	Thu, 12 Jun 2025 05:43:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="142xDEn8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F529C4CEEA;
+	Thu, 12 Jun 2025 05:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749706980;
-	bh=iNDlnBNExVOmwjsGn10wU+IxyGATO258ndr1wovQnfA=;
+	s=korg; t=1749706982;
+	bh=LkvUyMMLMXNXWrb7tzfPrsXRzV6HinpcNds2vov1Nw4=;
 	h=Date:To:From:Subject:From;
-	b=OQ7dKwTFwTady7nVVi0TktavBwL7CngmthoqNQjlZwMvzUKcoS30HB7ZFvOCSZvDX
-	 6YQ6KMZNTdYH9yw3+eaiApQoORgaBkgfUn18XzYMdoAnr123bWb29Uje5TqbUqd2D/
-	 rqq8eXr3xeJodKBP+YZpGNYLK+ph7j75PS2FXTxI=
-Date: Wed, 11 Jun 2025 22:42:59 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=142xDEn8uAFEcNRdiU2XH2iySBrigOyMfz3JV1c3QugfHx09TTpJl59JpEqy6hXrE
+	 o7soe4H7CGm/TrJ8Qjr2dspApqNkxl/NJtJYBsvcRkxibxBkrlqZMRA8U6hs91FlS6
+	 zilQkAEXbssAxUpyg9N99aJgyxxCEXRoak72/25k=
+Date: Wed, 11 Jun 2025 22:43:01 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,tz2294@columbia.edu,npache@redhat.com,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,andrii@kernel.org,wangfushuai@baidu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] scatterlist-fix-extraneous-sign-kernel-doc-notation.patch removed from -mm tree
-Message-Id: <20250612054300.A233DC4CEEA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] docs-proc-update-vmflags-documentation-in-smaps.patch removed from -mm tree
+Message-Id: <20250612054302.1F529C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scatterlist: fix extraneous '@'-sign kernel-doc notation
+     Subject: docs: proc: update VmFlags documentation in smaps
 has been removed from the -mm tree.  Its filename was
-     scatterlist-fix-extraneous-sign-kernel-doc-notation.patch
+     docs-proc-update-vmflags-documentation-in-smaps.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: scatterlist: fix extraneous '@'-sign kernel-doc notation
-Date: Wed, 4 Jun 2025 17:23:37 -0700
+From: wangfushuai <wangfushuai@baidu.com>
+Subject: docs: proc: update VmFlags documentation in smaps
+Date: Sat, 7 Jun 2025 23:36:14 +0800
 
-Using "@argname@" in kernel-doc produces "argname****" (with "argname" in
-bold) in the generated html output, so use the expected kernel-doc
-notation of just "@argname" instead.
+Remove outdated VM_DENYWRITE("dw") reference and add missing
+VM_LOCKONFAULT("lf") and VM_UFFD_MINOR("ui") flags.
 
-"Fixes:" lines are added in case Matthew's patch [1] is backported.
-
-Link: https://lkml.kernel.org/r/20250605002337.2842659-1-rdunlap@infradead.org
-Link: https://lore.kernel.org/linux-doc/3bc4e779-7a79-42c1-8867-024f643a22fc@infradead.org/T/#m5d2bd9d21fb34f297aa4e7db069f09bc27b89007 [1]
-Fixes: 0db9299f48eb ("SG: Move functions to lib/scatterlist.c and add sg chaining allocator helpers")
-Fixes: 8d1d4b538bb1 ("scatterlist: inline sg_next()")
-Fixes: 18dabf473e15 ("Change table chaining layout")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+[akpm@linux-foundation.org: add "dp" (VM_DROPPABLE), per Tal]
+Link: https://lkml.kernel.org/r/20250607153614.81914-1-wangfushuai@baidu.com
+Signed-off-by: wangfushuai <wangfushuai@baidu.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/scatterlist.h |    4 ++--
- lib/scatterlist.c           |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/filesystems/proc.rst |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/scatterlist.h~scatterlist-fix-extraneous-sign-kernel-doc-notation
-+++ a/include/linux/scatterlist.h
-@@ -99,7 +99,7 @@ static inline bool sg_is_last(struct sca
-  * @sg:		The current sg entry
-  *
-  * Description:
-- *   Usually the next entry will be @sg@ + 1, but if this sg element is part
-+ *   Usually the next entry will be @sg + 1, but if this sg element is part
-  *   of a chained scatterlist, it could jump to the start of a new
-  *   scatterlist array.
-  *
-@@ -254,7 +254,7 @@ static inline void __sg_chain(struct sca
-  * @sgl:	Second scatterlist
-  *
-  * Description:
-- *   Links @prv@ and @sgl@ together, to form a longer scatterlist.
-+ *   Links @prv and @sgl together, to form a longer scatterlist.
-  *
-  **/
- static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
---- a/lib/scatterlist.c~scatterlist-fix-extraneous-sign-kernel-doc-notation
-+++ a/lib/scatterlist.c
-@@ -73,9 +73,9 @@ EXPORT_SYMBOL(sg_nents_for_len);
-  *   Should only be used casually, it (currently) scans the entire list
-  *   to get the last entry.
-  *
-- *   Note that the @sgl@ pointer passed in need not be the first one,
-- *   the important bit is that @nents@ denotes the number of entries that
-- *   exist from @sgl@.
-+ *   Note that the @sgl pointer passed in need not be the first one,
-+ *   the important bit is that @nents denotes the number of entries that
-+ *   exist from @sgl.
-  *
-  **/
- struct scatterlist *sg_last(struct scatterlist *sgl, unsigned int nents)
-@@ -345,7 +345,7 @@ EXPORT_SYMBOL(__sg_alloc_table);
-  * @gfp_mask:	GFP allocation mask
-  *
-  *  Description:
-- *    Allocate and initialize an sg table. If @nents@ is larger than
-+ *    Allocate and initialize an sg table. If @nents is larger than
-  *    SG_MAX_SINGLE_ALLOC a chained sg table will be setup.
-  *
-  **/
+--- a/Documentation/filesystems/proc.rst~docs-proc-update-vmflags-documentation-in-smaps
++++ a/Documentation/filesystems/proc.rst
+@@ -584,7 +584,6 @@ encoded manner. The codes are the follow
+     ms    may share
+     gd    stack segment growns down
+     pf    pure PFN range
+-    dw    disabled write to the mapped file
+     lo    pages are locked in memory
+     io    memory mapped I/O area
+     sr    sequential read advise provided
+@@ -607,8 +606,11 @@ encoded manner. The codes are the follow
+     mt    arm64 MTE allocation tags are enabled
+     um    userfaultfd missing tracking
+     uw    userfaultfd wr-protect tracking
++    ui    userfaultfd minor fault
+     ss    shadow/guarded control stack page
+     sl    sealed
++    lf    lock on fault pages
++    dp    always lazily freeable mapping
+     ==    =======================================
+ 
+ Note that there is no guarantee that every flag and associated mnemonic will
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from wangfushuai@baidu.com are
 
 
