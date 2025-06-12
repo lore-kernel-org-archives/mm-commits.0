@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C24115C158;
-	Thu, 12 Jun 2025 05:43:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB4A15C158;
+	Thu, 12 Jun 2025 05:43:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749706985; cv=none; b=Qv2bCxUhlMXOi/Ll7ajNMi5/StqsXZTycqT2urbwOcd6c2o97CG90v67kTA71WMhKk9PfhS7Ay+zYglfbM8gl6zqnJwCAbgRmo2uh6ALTrvd3cPSl1VajpmZVoFLDHtc6MJDwcqPLO8zKGBywqvnGvxHbfr/jB3Ex2v0Lk901Dg=
+	t=1749706986; cv=none; b=mJBrBOnueGxdgZZFoX8NJPRiN5IeQ591/nYWTxiNHHQQ+jqIapl92fXSm5qMcRfdrZ1UEGpakCGdB/5KfwPg78I1pxKP7U58m/DyJ5zlevNVWgwuHjIe/gVBZPMrqVNCiLDT1g9gGRW0SbXdsX/QwmDmVHR//g+YCMvGVITBZHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749706985; c=relaxed/simple;
-	bh=0vNftP0sOASz65g+dOts/fE0CC9DdEXWm0pE0/OYyUo=;
-	h=Date:To:From:Subject:Message-Id; b=GbHFOAzOit6FGuTuxT4YSdR1Wi3EuXMWOqRmfeESK5hWBBgMlUsqBoc4AhkYWrHLVaXi3TB/6k1EetI3wvz2T4RmbBGWQhQVcU25ediWv3qZGB4gJBpAn9DRux+MPNBElZDNV3rqOyMHH6ovk2d0bhuCVb/ETHTUJZr8ZSo4n88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X8CTcbb8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749706986; c=relaxed/simple;
+	bh=5o4A/U+LGdiXkh5Q+B0sPQnfiEs00mFUje+7+RL6obw=;
+	h=Date:To:From:Subject:Message-Id; b=IZ2ViBfIo1eLP25PNslE517RyZngGaCEQki7dXnd73ggSn+EAhAK4NmFrIJLMxgRoZpdy+MlShfry59LrWYS+F5EXNsFXzTqo/khviLNpWHAk0YgSGP3J++we0JF+Fng91IJOcHRG1qCehCQxyXOlFE7XlOUktnMTtL/Psm0s8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cdRK7zCE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X8CTcbb8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B056DC4CEEA;
-	Thu, 12 Jun 2025 05:43:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cdRK7zCE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00C4BC4CEF0;
+	Thu, 12 Jun 2025 05:43:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749706984;
-	bh=0vNftP0sOASz65g+dOts/fE0CC9DdEXWm0pE0/OYyUo=;
+	s=korg; t=1749706986;
+	bh=5o4A/U+LGdiXkh5Q+B0sPQnfiEs00mFUje+7+RL6obw=;
 	h=Date:To:From:Subject:From;
-	b=X8CTcbb8CHcVXQT+waUZJHM26udDnubNMt2M9+21u7dm4ppUsIFmarvpmQmIMqJjR
-	 oTcuj0waDdJZlx7S2m/zQaOvUgqM/opPLwblye2vdCIiyMpdosgv4H3R4XlPW6Ulxk
-	 jSDfqTu70iCU1zfCZX+ZQYqNsRsrhH99Mvx/GayQ=
-Date: Wed, 11 Jun 2025 22:43:04 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,pfalcato@suse.de,Liam.Howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=cdRK7zCEHNNvkfsHEvdD2UaIebYomTlYM0eEr5kF3JxduOM5X7k+odkvJ8ULLRyJM
+	 qT6orfmno/0Pn7y1ka7RfS10xBIOfZd6xPlz7xu24rDdmpTbJcY5quAoOqgw2RQPDO
+	 Kvh1XrYdkqR+zB1VBWNRPdWWB2f1hSX2NcjC2uzI=
+Date: Wed, 11 Jun 2025 22:43:05 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,mgorman@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vma-reset-vma-iterator-on-commit_merge-oom-failure.patch removed from -mm tree
-Message-Id: <20250612054304.B056DC4CEEA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-close-theoretical-race-where-stale-tlb-entries-could-linger.patch removed from -mm tree
+Message-Id: <20250612054306.00C4BC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: reset VMA iterator on commit_merge() OOM failure
+     Subject: mm: close theoretical race where stale TLB entries could linger
 has been removed from the -mm tree.  Its filename was
-     mm-vma-reset-vma-iterator-on-commit_merge-oom-failure.patch
+     mm-close-theoretical-race-where-stale-tlb-entries-could-linger.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: reset VMA iterator on commit_merge() OOM failure
-Date: Fri, 6 Jun 2025 13:50:32 +0100
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: close theoretical race where stale TLB entries could linger
+Date: Fri, 6 Jun 2025 10:28:07 +0100
 
-While an OOM failure in commit_merge() isn't really feasible due to the
-allocation which might fail (a maple tree pre-allocation) being 'too small
-to fail', we do need to handle this case correctly regardless.
+Commit 3ea277194daa ("mm, mprotect: flush TLB if potentially racing with a
+parallel reclaim leaving stale TLB entries") described a theoretical race
+as such:
 
-In vma_merge_existing_range(), we can theoretically encounter failures
-which result in an OOM error in two ways - firstly dup_anon_vma() might
-fail with an OOM error, and secondly commit_merge() failing, ultimately,
-to pre-allocate a maple tree node.
 
-The abort logic for dup_anon_vma() resets the VMA iterator to the initial
-range, ensuring that any logic looping on this iterator will correctly
-proceed to the next VMA.
+"""
+Nadav Amit identified a theoretical race between page reclaim and mprotect
+due to TLB flushes being batched outside of the PTL being held.
 
-However the commit_merge() abort logic does not do the same thing.  This
-resulted in a syzbot report occurring because mlockall() iterates through
-VMAs, is tolerant of errors, but ended up with an incorrect previous VMA
-being specified due to incorrect iterator state.
+He described the race as follows:
 
-While making this change, it became apparent we are duplicating logic -
-the logic introduced in commit 41e6ddcaa0f1 ("mm/vma: add give_up_on_oom
-option on modify/merge, use in uffd release") duplicates the
-vmg->give_up_on_oom check in both abort branches.
+	CPU0                            CPU1
+	----                            ----
+					user accesses memory using RW PTE
+					[PTE now cached in TLB]
+	try_to_unmap_one()
+	==> ptep_get_and_clear()
+	==> set_tlb_ubc_flush_pending()
+					mprotect(addr, PROT_READ)
+					==> change_pte_range()
+					==> [ PTE non-present - no flush ]
 
-Additionally, we observe that we can perform the anon_dup check safely on
-dup_anon_vma() failure, as this will not be modified should this call
-fail.
+					user writes using cached RW PTE
+	...
 
-Finally, we need to reset the iterator in both cases, so now we can simply
-use the exact same code to abort for both.
+	try_to_unmap_flush()
 
-We remove the VM_WARN_ON(err != -ENOMEM) as it would be silly for this to
-be otherwise and it allows us to implement the abort check more neatly.
+The same type of race exists for reads when protecting for PROT_NONE and
+also exists for operations that can leave an old TLB entry behind such as
+munmap, mremap and madvise.
+"""
 
-Link: https://lkml.kernel.org/r/20250606125032.164249-1-lorenzo.stoakes@oracle.com
-Fixes: 47b16d0462a4 ("mm: abort vma_modify() on merge out of memory failure")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: syzbot+d16409ea9ecc16ed261a@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/6842cc67.a00a0220.29ac89.003b.GAE@google.com/
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Jann Horn <jannh@google.com>
+The solution was to introduce flush_tlb_batched_pending() and call it
+under the PTL from mprotect/madvise/munmap/mremap to complete any pending
+tlb flushes.
+
+However, while madvise_free_pte_range() and
+madvise_cold_or_pageout_pte_range() were both retro-fitted to call
+flush_tlb_batched_pending() immediately after initially acquiring the PTL,
+they both temporarily release the PTL to split a large folio if they
+stumble upon one.  In this case, where re-acquiring the PTL
+flush_tlb_batched_pending() must be called again, but it previously was
+not.  Let's fix that.
+
+There are 2 Fixes: tags here: the first is the commit that fixed
+madvise_free_pte_range().  The second is the commit that added
+madvise_cold_or_pageout_pte_range(), which looks like it copy/pasted the
+faulty pattern from madvise_free_pte_range().
+
+This is a theoretical bug discovered during code review.
+
+Link: https://lkml.kernel.org/r/20250606092809.4194056-1-ryan.roberts@arm.com
+Fixes: 3ea277194daa ("mm, mprotect: flush TLB if potentially racing with a parallel reclaim leaving stale TLB entries")
+Fixes: 9c276cc65a58 ("mm: introduce MADV_COLD")
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Jann Horn <jannh@google.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ mm/madvise.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vma.c~mm-vma-reset-vma-iterator-on-commit_merge-oom-failure
-+++ a/mm/vma.c
-@@ -967,26 +967,9 @@ static __must_check struct vm_area_struc
- 		err = dup_anon_vma(next, middle, &anon_dup);
- 	}
- 
--	if (err)
-+	if (err || commit_merge(vmg))
- 		goto abort;
- 
--	err = commit_merge(vmg);
--	if (err) {
--		VM_WARN_ON(err != -ENOMEM);
--
--		if (anon_dup)
--			unlink_anon_vmas(anon_dup);
--
--		/*
--		 * We've cleaned up any cloned anon_vma's, no VMAs have been
--		 * modified, no harm no foul if the user requests that we not
--		 * report this and just give up, leaving the VMAs unmerged.
--		 */
--		if (!vmg->give_up_on_oom)
--			vmg->state = VMA_MERGE_ERROR_NOMEM;
--		return NULL;
--	}
--
- 	khugepaged_enter_vma(vmg->target, vmg->flags);
- 	vmg->state = VMA_MERGE_SUCCESS;
- 	return vmg->target;
-@@ -995,6 +978,9 @@ abort:
- 	vma_iter_set(vmg->vmi, start);
- 	vma_iter_load(vmg->vmi);
- 
-+	if (anon_dup)
-+		unlink_anon_vmas(anon_dup);
-+
- 	/*
- 	 * This means we have failed to clone anon_vma's correctly, but no
- 	 * actual changes to VMAs have occurred, so no harm no foul - if the
+--- a/mm/madvise.c~mm-close-theoretical-race-where-stale-tlb-entries-could-linger
++++ a/mm/madvise.c
+@@ -508,6 +508,7 @@ restart:
+ 					pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 				if (!start_pte)
+ 					break;
++				flush_tlb_batched_pending(mm);
+ 				arch_enter_lazy_mmu_mode();
+ 				if (!err)
+ 					nr = 0;
+@@ -741,6 +742,7 @@ static int madvise_free_pte_range(pmd_t
+ 				start_pte = pte;
+ 				if (!start_pte)
+ 					break;
++				flush_tlb_batched_pending(mm);
+ 				arch_enter_lazy_mmu_mode();
+ 				if (!err)
+ 					nr = 0;
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems.patch
-mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix-2.patch
-docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
-mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon.patch
-mm-mremap-add-mremap_must_relocate_anon.patch
-mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
-tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
-tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
-tools-testing-selftests-add-mremap-cases-that-merge-normally.patch
-tools-testing-selftests-add-mremap_relocate_anon-merge-test-cases.patch
-tools-testing-selftests-expand-mremap-tests-for-mremap_relocate_anon.patch
-tools-testing-selftests-have-cow-self-test-use-mremap_relocate_anon.patch
-tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
-tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
+mm-readahead-honour-new_order-in-page_cache_ra_order.patch
+mm-readahead-terminate-async-readahead-on-natural-boundary.patch
+mm-readahead-make-space-in-struct-file_ra_state.patch
+mm-readahead-store-folio-order-in-struct-file_ra_state.patch
+mm-filemap-allow-arch-to-request-folio-size-for-exec-memory.patch
+mm-remove-arch_flush_tlb_batched_pending-arch-helper.patch
 
