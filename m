@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFD2D770FE
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 01:57:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75894770FE
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 01:57:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749693453; cv=none; b=JXtIkUuP5w0qNyZRnphsYZVOsEuoWnsRtkes4UNnDwQNgYhs2/v9aboiIiT+QCMxHhSPuPZTAk2umV9SDvX5lNt/b3ByZt8WOgSR9GPqH00DYGrxe0/696kx59Xg4VeHKLJZalXUn8+WRfBjznNAAMESpbXMDIK4Wv4map2ef2s=
+	t=1749693454; cv=none; b=fbTOpoSG6A+jxbb0TmX9A7FeD5SWg4VC3v7fsShEu2dCVX3OiRcxhFQeaY4L7rO2CDLmlSHtttgKoxWeMLRgiK3VGK39lZs/e3NqYa/3papuB/NzrjNc6EOMXjeKY9jFI+41bhAML3IVXi825uySwvfcI7WvwdUrKaU6t8xNWow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749693453; c=relaxed/simple;
-	bh=aN8I4bzOAuy+Wgwe75HqwmHMCY0AjYUDiOpbt6rUL5k=;
-	h=Date:To:From:Subject:Message-Id; b=VZk09aRxa7GhbwUQe5k0UWJbOZpeyaHAOIwdYaxyjJfHrNbrFDXn+YWyyzpO0GbHQ2mY0oyTz6t26DZerwD+02Em4UP2+ijdAQJ4sktFpE4AoOkHW5QCzA91HZx5DCEQnv/NxVSSNxNhZNWKOwzN1uVr7PHJOEckr3JECroWzK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHEiYZo1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749693454; c=relaxed/simple;
+	bh=k160iAwjE3cEo6r1IFwlUDOUQpMWCn8oOJRNUFUziYc=;
+	h=Date:To:From:Subject:Message-Id; b=tsIOxVoH7kzy8B5GyFt4MMVMAjFwE4DlmryHQnDjp3PFX61u5nEYzPSn/MFTOFB2f3+phzURt7/XQuCnKWGV5p6hUJy7/+NhUFN1OfOHiqWl4PKKrOU6kle9MwO6pPTkLckOco22IXAh7OEAAnOgicGMTki1wRzu8bTYZEtX6iU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TC8JTzak; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHEiYZo1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAD85C4CEE3;
-	Thu, 12 Jun 2025 01:57:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TC8JTzak"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0622C4CEE3;
+	Thu, 12 Jun 2025 01:57:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749693452;
-	bh=aN8I4bzOAuy+Wgwe75HqwmHMCY0AjYUDiOpbt6rUL5k=;
+	s=korg; t=1749693454;
+	bh=k160iAwjE3cEo6r1IFwlUDOUQpMWCn8oOJRNUFUziYc=;
 	h=Date:To:From:Subject:From;
-	b=jHEiYZo1bJnQgSKVIjGuyT+2u1GnKVMxjXY70AtBrsktRVsYgfkwVTHpa6DjZszwg
-	 Aa2eDRLpuK05Gz1gbOhba4zpQmW343tecsbmZ/8YOQe8uirQm2r97TWjQ8TSwiIqiz
-	 6jv29L9jdXcd3H0r+slEnL5fJl/9oFp6pBRzBdxs=
-Date: Wed, 11 Jun 2025 18:57:32 -0700
+	b=TC8JTzakQYIvs2VKL+w5zR5IgSxIYHW3X5VTP3vY8jOApi6FR9XMATD0Ldw1PlORE
+	 DkhTdnNl054VgZzX0Jn3L7mUA2IHzrYymh4lWCTANyDrrsjRnot58WZpuj5MW++5YV
+	 j0onIErivy7GILQIapY6mbNf534Ggvqnw7gdB8MA=
+Date: Wed, 11 Jun 2025 18:57:33 -0700
 To: mm-commits@vger.kernel.org,robertpang@google.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,corbet@lwn.net,colyli@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis.patch added to mm-nonmm-unstable branch
-Message-Id: <20250612015732.BAD85C4CEE3@smtp.kernel.org>
+Subject: + bcache-fix-the-tail-io-latency-regression-by-using-equality-aware-min-heap-api.patch added to mm-nonmm-unstable branch
+Message-Id: <20250612015733.F0622C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/core-api: min_heap: document _eqaware variants of min-heap APIs
+     Subject: bcache: fix the tail IO latency regression by using equality-aware min heap API
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis.patch
+     bcache-fix-the-tail-io-latency-regression-by-using-equality-aware-min-heap-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcache-fix-the-tail-io-latency-regression-by-using-equality-aware-min-heap-api.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,80 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: Documentation/core-api: min_heap: document _eqaware variants of min-heap APIs
-Date: Wed, 11 Jun 2025 05:55:15 +0800
+Subject: bcache: fix the tail IO latency regression by using equality-aware min heap API
+Date: Wed, 11 Jun 2025 05:55:16 +0800
 
-Add documentation for equality-aware variants of min-heap maintenance
-functions, which use a top-down sift_down strategy.  These variants,
-suffixed with _eqaware, reduce the number of comparisons to O(1) in
-workloads with many elements of equal priority and can be used as drop-in
-replacements for their standard counterparts.
+Commit 866898efbb25 ("bcache: remove heap-related macros and switch to
+generic min_heap") replaced the original top-down heap macros in bcache
+with the generic min heap library, which uses a bottom-up heapify
+strategy.  However, in scenarios like invalidate_buckets_lru() -
+especially before the cache is fully populated - many buckets remain
+unfilled.  This causes new_bucket_prio() to frequently return zero,
+leading to a high rate of equal comparisons.
 
-Link: https://lkml.kernel.org/r/20250610215516.1513296-8-visitorckw@gmail.com
+Bottom-up sift_down performs up to 2 * log2(n) comparisons in such cases,
+resulting in a performance regression.
+
+Switch to the _eqaware variants of the min heap API to restore the
+original top-down sift_down behavior, which requires only O(1) comparisons
+when many elements are equal.
+
+Also use the inline versions of the heap functions to avoid performance
+degradation introduced by commit 92a8b224b833 ("lib/min_heap: introduce
+non-inline versions of min heap API functions"), as
+invalidate_buckets_lru() is on a performance-critical hot path.
+
+Link: https://lkml.kernel.org/r/20250610215516.1513296-9-visitorckw@gmail.com
+Fixes: 866898efbb25 ("bcache: remove heap-related macros and switch to generic min_heap")
+Fixes: 92a8b224b833 ("lib/min_heap: introduce non-inline versions of min heap API functions")
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Reported-by: Robert Pang <robertpang@google.com>
+Closes: https://lore.kernel.org/linux-bcache/CAJhEC06F_AtrPgw2-7CvCqZgeStgCtitbD-ryuPpXQA-JG5XXw@mail.gmail.com
 Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
 Cc: Coly Li <colyli@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Robert Pang <robertpang@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/min_heap.rst |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/md/bcache/alloc.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/Documentation/core-api/min_heap.rst~documentation-core-api-min_heap-document-_eqaware-variants-of-min-heap-apis
-+++ a/Documentation/core-api/min_heap.rst
-@@ -30,6 +30,26 @@ more expensive. As with the non-inline v
- macro wrappers for inline functions instead of directly calling the functions
- themselves.
+--- a/drivers/md/bcache/alloc.c~bcache-fix-the-tail-io-latency-regression-by-using-equality-aware-min-heap-api
++++ a/drivers/md/bcache/alloc.c
+@@ -207,15 +207,16 @@ static void invalidate_buckets_lru(struc
+ 		if (!bch_can_invalidate_bucket(ca, b))
+ 			continue;
  
-+Equality-Aware Heap Maintenance
-+-------------------------------
-+
-+In some workloads, a large number of elements in the heap may be equal under
-+the user-defined comparison function. For such cases, the standard
-+``min_heap_sift_down()`` implementation, which uses the bottom-up heapify
-+strategy, can be inefficient. While bottom-up heapify reduces the number of
-+comparisons by approximately 50% for randomly ordered data, it may perform up
-+to :math:`2 \times \log_2(n)` comparisons in the presence of many equal
-+elements.
-+
-+To address this, equality-aware versions of heap maintenance APIs are provided.
-+These versions use the traditional top-down heapify strategy, which performs
-+better - sometimes requiring only :math:`\mathcal{O}(1)` comparisons - when
-+many elements are equal.
-+
-+The equality-aware APIs are suffixed with ``_eqaware``, and serve as drop-in
-+replacements for their standard counterparts when equal elements are expected.
-+
-+
- Data Structures
- ===============
+-		if (!min_heap_full(&ca->heap))
+-			min_heap_push(&ca->heap, &b, &bucket_max_cmp_callback, ca);
+-		else if (!new_bucket_max_cmp(&b, min_heap_peek(&ca->heap), ca)) {
++		if (!min_heap_full_inline(&ca->heap))
++			min_heap_push_inline(&ca->heap, &b, &bucket_max_cmp_callback, ca);
++		else if (!new_bucket_max_cmp(&b, min_heap_peek_inline(&ca->heap), ca)) {
+ 			ca->heap.data[0] = b;
+-			min_heap_sift_down(&ca->heap, 0, &bucket_max_cmp_callback, ca);
++			min_heap_sift_down_eqaware_inline(&ca->heap, 0, &bucket_max_cmp_callback,
++							  ca);
+ 		}
+ 	}
  
+-	min_heapify_all(&ca->heap, &bucket_min_cmp_callback, ca);
++	min_heapify_all_eqaware_inline(&ca->heap, &bucket_min_cmp_callback, ca);
+ 
+ 	while (!fifo_full(&ca->free_inc)) {
+ 		if (!ca->heap.nr) {
+@@ -227,8 +228,8 @@ static void invalidate_buckets_lru(struc
+ 			wake_up_gc(ca->set);
+ 			return;
+ 		}
+-		b = min_heap_peek(&ca->heap)[0];
+-		min_heap_pop(&ca->heap, &bucket_min_cmp_callback, ca);
++		b = min_heap_peek_inline(&ca->heap)[0];
++		min_heap_pop_eqaware_inline(&ca->heap, &bucket_min_cmp_callback, ca);
+ 
+ 		bch_invalidate_one_bucket(ca, b);
+ 	}
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
