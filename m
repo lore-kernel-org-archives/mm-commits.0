@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED352192584
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:02:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A032225771
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:02:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749769334; cv=none; b=WE4vi/KvELKajOTIUWenteio9ZwF1od+GOyDzGiUnEO+DSVHVmz+ziv/1IsRjPHUVY8skMSJirtizxLHz7+tQRKBbm7QLqVXwEdTBvdxJeGC/SZ+L6XhfmmHrnqFBD1ocOE9MuVGjWO/W/9zYYDhw6TUeF7Dsvh+2457SojHO54=
+	t=1749769335; cv=none; b=f7qE7JhCxtbdGpkUB/+nZ5m7devTdbUOgY1u+IHT4+gGK2WggfEXUWn4XeZQ6MQYSUN4S6nQvyrQuOic6lkEmsMfLFUX2jWBWAup1C49V0GyLPmSX+cNAMVrCw5MCpgFbQhW0MXdVJJQQ1CjMIVIT1HGBd1oaZiHwTzeg+kYrPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749769334; c=relaxed/simple;
-	bh=ATFNF9Kx5Irx4zBccFBljyoI2faUPlM2DHtlCcWezKs=;
-	h=Date:To:From:Subject:Message-Id; b=jSmU6wygQcTpzvzJVud8LqtuTc3gKaoPE2S7NoqSdSBNvAdAYhhlWsq05grz0BFLxsd93R9LIpkOmMTlEQ7tV+n8kMLfyPFDMsY5Iduo1X1NuVN8qfMg3JKLkm4MoQfWgm60NK3kgwa/qg0EKg18kDUz1B4S7YWohSTepkhnntQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s684TA1B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749769335; c=relaxed/simple;
+	bh=Pr/tGyH2GbdYJdxJTiBiouJ0BhvkLbH/rj2EfhEjrX4=;
+	h=Date:To:From:Subject:Message-Id; b=b2cpBhsYOADbe3Lh6s8Uj7+hYEArqdujHuG8o2ODr5IMftHkRaUZYjLPtBuEU688pGQhMPtCAdv+K1vkHMHAdadmp2r7jIS7iDg/WSyW8o6PIN9h96q0ugDTaT1grPrgE6VX3nd1EMELbOgfjg60A1uTC2bvofVT4RaFH9lukuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CPl3Rq7Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s684TA1B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F724C4CEEA;
-	Thu, 12 Jun 2025 23:02:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CPl3Rq7Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFA9EC4CEEA;
+	Thu, 12 Jun 2025 23:02:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749769333;
-	bh=ATFNF9Kx5Irx4zBccFBljyoI2faUPlM2DHtlCcWezKs=;
+	s=korg; t=1749769334;
+	bh=Pr/tGyH2GbdYJdxJTiBiouJ0BhvkLbH/rj2EfhEjrX4=;
 	h=Date:To:From:Subject:From;
-	b=s684TA1BPqLfhf/vOq088ToW9u59zwFvZhSa/N261LsVE7Uc9I0+zY5GMhQMyDHdB
-	 bGnI/9LnJftdB8hyf9OJ2xdZKh6pBTlWLV9ZZ+njxEuCUTVCdhWp9nQLsl4cYPFCX9
-	 2XFwCboo924qW4K2ocmyFLpAhYwc2jN0rkXuSaZ4=
-Date: Thu, 12 Jun 2025 16:02:12 -0700
+	b=CPl3Rq7Yy0Lm9Syk716Il2ZXMTT6ENj/Oz6qmlX8mLIhkTtv8hXvqsmH0w7mARPmP
+	 Rjq8DukCyjvUPiTNbmsFcQljS13gqwMW5h7Cq6vDO5rteEhzS3/mH5zgbDMv5j+ND5
+	 Vs/wH++Q62SRuzZb0b8kjOGhuWwKYK4qRMDjk0bQ=
+Date: Thu, 12 Jun 2025 16:02:14 -0700
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,ira.weiny@intel.com,idryomov@gmail.com,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bio-use-memzero_page-in-bio_truncate.patch added to mm-new branch
-Message-Id: <20250612230213.6F724C4CEEA@smtp.kernel.org>
+Subject: + null_blk-use-memzero_page.patch added to mm-new branch
+Message-Id: <20250612230214.AFA9EC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bio: use memzero_page() in bio_truncate()
+     Subject: null_blk: use memzero_page()
 has been added to the -mm mm-new branch.  Its filename is
-     bio-use-memzero_page-in-bio_truncate.patch
+     null_blk-use-memzero_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bio-use-memzero_page-in-bio_truncate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/null_blk-use-memzero_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +65,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: bio: use memzero_page() in bio_truncate()
-Date: Thu, 12 Jun 2025 15:34:37 +0100
-
-Patch series "Remove zero_user()".
-
-The zero_user() API is almost unused these days.  Finish the job of
-removing it.
-
-
-This patch (of 5):
+Subject: null_blk: use memzero_page()
+Date: Thu, 12 Jun 2025 15:34:38 +0100
 
 memzero_page() is the new name for zero_user().
 
-Link: https://lkml.kernel.org/r/20250612143443.2848197-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20250612143443.2848197-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250612143443.2848197-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/null_blk/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/block/bio.c~bio-use-memzero_page-in-bio_truncate
-+++ a/block/bio.c
-@@ -653,13 +653,13 @@ static void bio_truncate(struct bio *bio
+--- a/drivers/block/null_blk/main.c~null_blk-use-memzero_page
++++ a/drivers/block/null_blk/main.c
+@@ -1179,7 +1179,7 @@ static int copy_from_nullb(struct nullb
+ 			memcpy_page(dest, off + count, t_page->page, offset,
+ 				    temp);
+ 		else
+-			zero_user(dest, off + count, temp);
++			memzero_page(dest, off + count, temp);
  
- 	bio_for_each_segment(bv, bio, iter) {
- 		if (done + bv.bv_len > new_size) {
--			unsigned offset;
-+			size_t offset;
- 
- 			if (!truncated)
- 				offset = new_size - done;
- 			else
- 				offset = 0;
--			zero_user(bv.bv_page, bv.bv_offset + offset,
-+			memzero_page(bv.bv_page, bv.bv_offset + offset,
- 				  bv.bv_len - offset);
- 			truncated = true;
- 		}
+ 		count += temp;
+ 		sector += temp >> SECTOR_SHIFT;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
