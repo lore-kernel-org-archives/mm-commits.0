@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F2331798F
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 05:40:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9044C15C158
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 05:42:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749706857; cv=none; b=bOPxpavMdxy7WjL6A4/XQehxK/+wZAUVpbfZQGXQCWMjSvMmBz1u9w3w7RMT/c/csglddb5H+TBKfcEYu3ZREM8O/AvQuywG4E+DIgzJhZ3jX+t6UrnK0uBk7Eq9bD2ivg+HeuDuHRb+Z4gcP5JQopXZAxEBArYfN24kNGZBU/M=
+	t=1749706979; cv=none; b=sBNVFkYw/CWjzz4XHXKLjTuVjnN/ZO7WcASt7YyrwKTQgAmeOMLu3K0qApye+k8Ieyz7DvB8S9PIWCp4Jy5ziiNEaCVZoAUGZXdMNiZYz1XSRMaD7os9iPFiHQeQA7jb1UVJsy6ej3ZdcikTNIYxHIHxaudOFFBNfNZqafo7NGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749706857; c=relaxed/simple;
-	bh=lpamnmj5OTRtpFNGxCMZkQth+PWkDnwaaFNUH3JvOp8=;
-	h=Date:To:From:Subject:Message-Id; b=BPz0rDHk8PXjm11qLrR514ooq/AV3mCaNSPWi56tyV1ODi4KZUFH67d7oFyxHECD5AtUgYlPBHa+cYMq4++Vy8Pe60BFCiYO6+NHzmoc6hwGoNhUvO0DLrRSK43Y+inr1FDXdOXATUFbfOtJ6ghoUmrx6ANzD/q1vc5QyL01y8g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mBi4buyy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749706979; c=relaxed/simple;
+	bh=JBhrXMdhc7va3Hv5yHKvzh9kLQlglLF42qcxLrM689M=;
+	h=Date:To:From:Subject:Message-Id; b=fEwytFhT25Vf7J1VD0+gOqO3CiLF0PN5HL1+XlPAWgM6WMsTzOyiuUK88e8RZS60gX14IedzjNonPM3VjKG/r8yDqQyvUuRpf0PQJLrMtp6siMw34+bDH8Vi6x/CDsoP9mPtnMxbPOJBid4F9zSTbEqA8H6uOq3U8gYXd9qNBmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1IY798rt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mBi4buyy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71FEBC4CEEB;
-	Thu, 12 Jun 2025 05:40:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1IY798rt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4870CC4CEEA;
+	Thu, 12 Jun 2025 05:42:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749706856;
-	bh=lpamnmj5OTRtpFNGxCMZkQth+PWkDnwaaFNUH3JvOp8=;
+	s=korg; t=1749706979;
+	bh=JBhrXMdhc7va3Hv5yHKvzh9kLQlglLF42qcxLrM689M=;
 	h=Date:To:From:Subject:From;
-	b=mBi4buyyyX7q5EzdgAAhXh759LLgMpHTL6APdPS+cQMrA0XF7Za+lXQtme5pK7cEu
-	 dSuKJbC3ADgyly6Tb41oAQN4Td29H8vK+Y9acu+puY9LlxGYjJ5qQoYrjseDQm58VC
-	 yJgRxtwQut3rbCIM03L8nYNSJ45HolQGoO3wuNJw=
-Date: Wed, 11 Jun 2025 22:40:55 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,wangfushuai@baidu.com,tz2294@columbia.edu,npache@redhat.com,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,andrii@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=1IY798rtlyEC+UYYVYhHeH5XURoms72THvGUwo89+e4ayAPSdUmmVIYgQBGGLC18e
+	 J8FwqkVf1Njn+6XOrsNKyHSn39aErjbt/4oDtw+dh5bcYE5w+Krnd69NO7WmGXumz4
+	 OaVL7245YlrK7lDeA+KSxwTd1u6YpcxJlke4s5xc=
+Date: Wed, 11 Jun 2025 22:42:58 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] docs-proc-update-vmflags-documentation-in-smaps-fix.patch removed from -mm tree
-Message-Id: <20250612054056.71FEBC4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-skip-failed-memfd-setups-in-gup_longterm.patch removed from -mm tree
+Message-Id: <20250612054259.4870CC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs-proc-update-vmflags-documentation-in-smaps-fix
+     Subject: selftests/mm: skip failed memfd setups in gup_longterm
 has been removed from the -mm tree.  Its filename was
-     docs-proc-update-vmflags-documentation-in-smaps-fix.patch
+     selftests-mm-skip-failed-memfd-setups-in-gup_longterm.patch
 
-This patch was dropped because it was folded into docs-proc-update-vmflags-documentation-in-smaps.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-proc-update-vmflags-documentation-in-smaps-fix
-Date: Sat Jun  7 02:20:52 PM PDT 2025
+From: Mark Brown <broonie@kernel.org>
+Subject: selftests/mm: skip failed memfd setups in gup_longterm
+Date: Thu, 05 Jun 2025 22:34:31 +0100
 
-add "dp" (VM_DROPPABLE), per Tal
+Unlike the other cases gup_longterm's memfd tests previously skipped the
+test when failing to set up the file descriptor to test.  Restore this
+behavior to avoid hitting failures when hugetlb isn't configured.
 
-Cc: Tal Zussman <tz2294@columbia.edu>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: wangfushuai <wangfushuai@baidu.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Link: https://lkml.kernel.org/r/20250605-selftest-mm-gup-longterm-tweaks-v1-1-2fae34b05958@kernel.org
+Fixes: 66bce7afbaca ("selftests/mm: fix test result reporting in gup_longterm")
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Reported-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Closes: https://lkml.kernel.org/r/a76fc252-0fe3-4d4b-a9a1-4a2895c2680d@lucifer.local
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/mm/gup_longterm.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/Documentation/filesystems/proc.rst~docs-proc-update-vmflags-documentation-in-smaps-fix
-+++ a/Documentation/filesystems/proc.rst
-@@ -610,6 +610,7 @@ encoded manner. The codes are the follow
-     ss    shadow/guarded control stack page
-     sl    sealed
-     lf    lock on fault pages
-+    dp    always lazily freeable mapping
-     ==    =======================================
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-skip-failed-memfd-setups-in-gup_longterm
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -298,8 +298,11 @@ static void run_with_memfd(test_fn fn, c
+ 	log_test_start("%s ... with memfd", desc);
  
- Note that there is no guarantee that every flag and associated mnemonic will
+ 	fd = memfd_create("test", 0);
+-	if (fd < 0)
++	if (fd < 0) {
+ 		ksft_print_msg("memfd_create() failed (%s)\n", strerror(errno));
++		log_test_result(KSFT_SKIP);
++		return;
++	}
+ 
+ 	fn(fd, pagesize);
+ 	close(fd);
+@@ -366,6 +369,8 @@ static void run_with_memfd_hugetlb(test_
+ 	fd = memfd_create("test", flags);
+ 	if (fd < 0) {
+ 		ksft_print_msg("memfd_create() failed (%s)\n", strerror(errno));
++		log_test_result(KSFT_SKIP);
++		return;
+ 	}
+ 
+ 	fn(fd, hugetlbsize);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from broonie@kernel.org are
 
-docs-proc-update-vmflags-documentation-in-smaps.patch
-drivers-rapidio-rio_cmc-prevent-possible-used-uninitialized.patch
-mm-add-mmap_prepare-compatibility-layer-for-nested-file-systems-fix.patch
+kselftest-mm-clarify-errors-for-pipe.patch
+selftests-mm-convert-some-cow-error-reports-to-ksft_perror.patch
+selftests-mm-dont-compare-return-values-to-in-cow.patch
+selftests-mm-add-messages-about-test-errors-to-the-cow-tests.patch
+selftests-mm-check-for-yama-ptrace_scope-configuraiton-before-modifying-it.patch
 
