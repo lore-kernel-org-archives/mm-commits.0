@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22551192584
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:02:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00B4B192584
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:02:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749769338; cv=none; b=b8Ga+EAUz4tgkAvMOtUQ2zTSabS15KZsQZP+Xa5gRqSIlI3lXKfFQql1mOgvakYu1fdIRVQBe+LCe1NOdST2dF9gUBU2atLpYaNJ7wNtmJuGem9yu+8cm8HVzy2IWztqgEXqCy5NZT6+ikXWNg+/3q/CzP2xCHwwDkAVpasjWQc=
+	t=1749769339; cv=none; b=bGxoZcd/SkbslIv4gPj+VNI9WLFmw+mhQVD8vGJ3NKjyFJtEP2Z6pEIRmHc2k7jkz7XYcmrFPNyqeDRZZN75V0RcmYRWCgxkCA3xXO6iudjPrye/doiOvcBZ766jLeJjVAjtjCAJ9cTzQ/u1MkNi1BLDWZzsGfhAtkNnj2hZOCU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749769338; c=relaxed/simple;
-	bh=yKWlS/4UpdudmZqoNBZHTy06ZHLTsdQnUmUPxqP1hd0=;
-	h=Date:To:From:Subject:Message-Id; b=PcVrLt/WS6jUo6x78ikjyQEajasYHfqsnwVpNvMyDILBnfD49WR4cxf7afRLPpSmomWAlS7KnobjKE40PbtD77C8lEruBS4/zXJ/V3x+GAqUkItiUf0r0Z6RcRTAtG4BsJZ6yd6RO+q++JlfKhdT0lQ4ngxI/sN4McaS7L2DWmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GjOthQyf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749769339; c=relaxed/simple;
+	bh=pb8JwIw0zL8F3XewIFrtWpWXyH6lfsVc53V9nr7a07c=;
+	h=Date:To:From:Subject:Message-Id; b=V1FLge/6H7BnL1vQpuQ41gPagU0cMzDYfqyPHTUk+UySSvs7E282tWwQBz+IsaW465Ho/7PpQKdhx6vjuPqHfQYD7IWxi1V0P7/ycUgWeiYdFzvI4VlkkTyZd6bWQHMGayRABEcjYCRgwOYNRHOpcfp4bwX9ZYSfSd37BS2FvlQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xaKHT+Bt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GjOthQyf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D1C1C4CEEA;
-	Thu, 12 Jun 2025 23:02:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xaKHT+Bt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6F7CC4CEEA;
+	Thu, 12 Jun 2025 23:02:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749769337;
-	bh=yKWlS/4UpdudmZqoNBZHTy06ZHLTsdQnUmUPxqP1hd0=;
+	s=korg; t=1749769338;
+	bh=pb8JwIw0zL8F3XewIFrtWpWXyH6lfsVc53V9nr7a07c=;
 	h=Date:To:From:Subject:From;
-	b=GjOthQyfuEVEF5B3EUyM8+uos+vRHFMJDYa5NsyXC3zbCTpxM3t0xP83twx3e5kpS
-	 lfiVOakjeCHreL4r57i3omWZ31iJzCnINC86B4nZsAFGILlxa4JsXDMZ9l8wJGQGsD
-	 9skdnlJ7eQiBUPLW7UheNXda+WEMTWcSWWx3VK1Y=
-Date: Thu, 12 Jun 2025 16:02:16 -0700
+	b=xaKHT+BtuyqqxFR9LFtLiKF6uwEs9lg9a7581kb5lzrAkUKw+kTzXKqvNEEesvaob
+	 T/PDKNeiECJo95vHajl+r392MAILvdMOPchJGlAJMTs/v4rhX2cuFHtQEnZ58LiI2+
+	 Sfv8Php2nQmlS1w8QxYzZOmoU6oDoeGhWhpufP7k=
+Date: Thu, 12 Jun 2025 16:02:18 -0700
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,ira.weiny@intel.com,idryomov@gmail.com,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ceph-convert-ceph_zero_partial_page-to-use-a-folio.patch added to mm-new branch
-Message-Id: <20250612230217.8D1C1C4CEEA@smtp.kernel.org>
+Subject: + mm-remove-zero_user.patch added to mm-new branch
+Message-Id: <20250612230218.C6F7CC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ceph: convert ceph_zero_partial_page() to use a folio
+     Subject: mm: remove zero_user()
 has been added to the -mm mm-new branch.  Its filename is
-     ceph-convert-ceph_zero_partial_page-to-use-a-folio.patch
+     mm-remove-zero_user.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ceph-convert-ceph_zero_partial_page-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-zero_user.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ceph: convert ceph_zero_partial_page() to use a folio
-Date: Thu, 12 Jun 2025 15:34:40 +0100
+Subject: mm: remove zero_user()
+Date: Thu, 12 Jun 2025 15:34:41 +0100
 
-Retrieve a folio from the pagecache instead of a page and operate on it. 
-Removes several hidden calls to compound_head() along with calls to
-deprecated functions like wait_on_page_writeback() and find_lock_page().
+All users have now been converted to either memzero_page() or
+folio_zero_range().
 
-Link: https://lkml.kernel.org/r/20250612143443.2848197-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250612143443.2848197-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Ilya Dryomov <idryomov@gmail.com>
@@ -82,39 +81,24 @@ Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ceph/file.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ include/linux/highmem.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/fs/ceph/file.c~ceph-convert-ceph_zero_partial_page-to-use-a-folio
-+++ a/fs/ceph/file.c
-@@ -2530,18 +2530,17 @@ static loff_t ceph_llseek(struct file *f
- 	return generic_file_llseek(file, offset, whence);
+--- a/include/linux/highmem.h~mm-remove-zero_user
++++ a/include/linux/highmem.h
+@@ -292,12 +292,6 @@ static inline void zero_user_segment(str
+ 	zero_user_segments(page, start, end, 0, 0);
  }
  
--static inline void ceph_zero_partial_page(
--	struct inode *inode, loff_t offset, unsigned size)
-+static inline void ceph_zero_partial_page(struct inode *inode,
-+		loff_t offset, size_t size)
- {
--	struct page *page;
--	pgoff_t index = offset >> PAGE_SHIFT;
-+	struct folio *folio;
+-static inline void zero_user(struct page *page,
+-	unsigned start, unsigned size)
+-{
+-	zero_user_segments(page, start, start + size, 0, 0);
+-}
+-
+ #ifndef __HAVE_ARCH_COPY_USER_HIGHPAGE
  
--	page = find_lock_page(inode->i_mapping, index);
--	if (page) {
--		wait_on_page_writeback(page);
--		zero_user(page, offset & (PAGE_SIZE - 1), size);
--		unlock_page(page);
--		put_page(page);
-+	folio = filemap_lock_folio(inode->i_mapping, offset >> PAGE_SHIFT);
-+	if (folio) {
-+		folio_wait_writeback(folio);
-+		folio_zero_range(folio, offset_in_folio(folio, offset), size);
-+		folio_unlock(folio);
-+		folio_put(folio);
- 	}
- }
- 
+ static inline void copy_user_highpage(struct page *to, struct page *from,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
