@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5846E2DECCC
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:44:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A96BD2DFA39
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 23:44:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749771844; cv=none; b=RloGFlhzE/rPl5fjjZAvU9AHEJeyw19vZbhIcBA8Y4o/vVFn/9aTOqNUtm1BI/tdtPkBZBPoL4fKQ5sjBAuFu8XO8RWvEaFMU6hgnTEyXn1XUMFRma68Y+RNQwhkFim3svH/KEwqXDkDi91BnfGccXQF9pckTvt6ZBHp7VyGrXQ=
+	t=1749771845; cv=none; b=Pid3xUPvpmJefCse2d0SVP8brkOc5x0katcMnPDGydXZXYCsc2ZLCw+LEbH28JhtbBLz6jxby9Rw3wH3hTss2GGxwT/9ztztdQmP+U+3gtNScJF5msgk3NrpHJJsTmRl1yZaXjTVni6nvS74wR+NBF1vqYwF45UOk7GnLo3zlrY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749771844; c=relaxed/simple;
-	bh=ilaRNrx5rXG2ItL81jI0abKlZomMUX3Rdt6eHvie7xE=;
-	h=Date:To:From:Subject:Message-Id; b=ss17DAUOMVhevfuYDjj7cX040GrZSVfNwoMT7X+zTZw7x+VsIOj66Ke03deU/zitET+C6jf8P06aWabK5a3/IDowAI2gx0vtp5vL6GHLQKPW4S9pCEwmVqFVjEitYGKfQ7kWQ3qlKftiJHoj/RP2MCFHMfFD7Hr19146SywhLGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tVi5Wu+W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749771845; c=relaxed/simple;
+	bh=pUSNY/7GvrhqRc0JdfXba+fIWWQ7zx0GRnllI2+2gSc=;
+	h=Date:To:From:Subject:Message-Id; b=p0aADxvVSMiYNPWnCibrgOB+dbvo73u696iQ5FGAwqBYcShkGKrfl3BdZ9+hwln1iq/qgrDf+jA70ocRWRq5eWtjdW/4azdvdPB0XQ3bC0hBhHXxI67GyTJ5YIGDOUKz1NOLEJMsBlo8cQSnWPhrgcBp0e6XqKekBATjSbGxhdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wk9wDxGO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tVi5Wu+W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3199C4CEEA;
-	Thu, 12 Jun 2025 23:44:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wk9wDxGO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DEEDC4CEEA;
+	Thu, 12 Jun 2025 23:44:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749771843;
-	bh=ilaRNrx5rXG2ItL81jI0abKlZomMUX3Rdt6eHvie7xE=;
+	s=korg; t=1749771845;
+	bh=pUSNY/7GvrhqRc0JdfXba+fIWWQ7zx0GRnllI2+2gSc=;
 	h=Date:To:From:Subject:From;
-	b=tVi5Wu+WVbeFPnNN+YnVOndCkGZOkxBLvKF83Q6WTzHuxHQfDBdUrOo+KRCft4ILI
-	 7yn2gGbDT6KBL1fVp0J0L+SLxEri+ItcqJwrBwQ6LQHLxxxba4jgVu1cXK93j78lpw
-	 TP0YLNn/+xrAQTcRpjiOZ1Yznxqck/aZ9ALN+PMQ=
-Date: Thu, 12 Jun 2025 16:44:03 -0700
+	b=wk9wDxGOjH7yr0WVrcSyueE0IwERE1R+Agx8oWUguGTBykYTbFtsVGCuQQ1lPR7ph
+	 yHQLs2vc+Urq++eYS7TmBi7G20gTL4vmDOoCE0FA/Op3bhLibHbvkONgN09fV1D+8j
+	 4xPU597Ce5x+r8SlJgBJGWZ2YqV6EAkV7CDpf6Vk=
+Date: Thu, 12 Jun 2025 16:44:04 -0700
 To: mm-commits@vger.kernel.org,vgoyal@redhat.com,prudo@redhat.com,piliu@redhat.com,mhocko@suse.cz,ltao@redhat.com,dyoung@redhat.com,ddutile@redhat.com,david@redhat.com,bhe@redhat.com,jbohac@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kdump-documentation-describe-craskernel-cma-reservation.patch added to mm-nonmm-unstable branch
-Message-Id: <20250612234403.C3199C4CEEA@smtp.kernel.org>
+Subject: + kdump-wait-for-dma-to-finish-when-using-cma.patch added to mm-nonmm-unstable branch
+Message-Id: <20250612234405.2DEEDC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kdump, documentation: describe craskernel CMA reservation
+     Subject: kdump: wait for DMA to finish when using CMA
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kdump-documentation-describe-craskernel-cma-reservation.patch
+     kdump-wait-for-dma-to-finish-when-using-cma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdump-documentation-describe-craskernel-cma-reservation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdump-wait-for-dma-to-finish-when-using-cma.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jiri Bohac <jbohac@suse.cz>
-Subject: kdump, documentation: describe craskernel CMA reservation
-Date: Thu, 12 Jun 2025 12:17:39 +0200
+Subject: kdump: wait for DMA to finish when using CMA
+Date: Thu, 12 Jun 2025 12:18:40 +0200
 
-Describe the new crashkernel ",cma" suffix in Documentation/
+When re-using the CMA area for kdump there is a risk of pending DMA into
+pinned user pages in the CMA area.
 
-Link: https://lkml.kernel.org/r/aEqpQwUy6gqSiUkV@dwarf.suse.cz
+Pages residing in CMA areas can usually not get long-term pinned and are
+instead migrated away from the CMA area, so long-term pinning is typically
+not a concern.  (BUGs in the kernel might still lead to long-term pinning
+of such pages if everything goes wrong.)
+
+Pages pinned without FOLL_LONGTERM remain in the CMA and may possibly be
+the source or destination of a pending DMA transfer.
+
+Although there is no clear specification how long a page may be pinned
+without FOLL_LONGTERM, pinning without the flag shows an intent of the
+caller to only use the memory for short-lived DMA transfers, not a
+transfer initiated by a device asynchronously at a random time in the
+future.
+
+Add a delay of CMA_DMA_TIMEOUT_SEC seconds before starting the kdump
+kernel, giving such short-lived DMA transfers time to finish before the
+CMA memory is re-used by the kdump kernel.
+
+Set CMA_DMA_TIMEOUT_SEC to 10 seconds - chosen arbitrarily as both a huge
+margin for a DMA transfer, yet not increasing the kdump time too
+significantly.
+
+Link: https://lkml.kernel.org/r/aEqpgDIBndZ5LXSo@dwarf.suse.cz
 Signed-off-by: Jiri Bohac <jbohac@suse.cz>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Donald Dutile <ddutile@redhat.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Philipp Rudo <prudo@redhat.com>
@@ -78,71 +101,54 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/kdump.rst       |   21 +++++++++++++
- Documentation/admin-guide/kernel-parameters.txt |   22 ++++++++++++++
- 2 files changed, 43 insertions(+)
+ kernel/crash_core.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/Documentation/admin-guide/kdump/kdump.rst~kdump-documentation-describe-craskernel-cma-reservation
-+++ a/Documentation/admin-guide/kdump/kdump.rst
-@@ -311,6 +311,27 @@ crashkernel syntax
+--- a/kernel/crash_core.c~kdump-wait-for-dma-to-finish-when-using-cma
++++ a/kernel/crash_core.c
+@@ -21,6 +21,7 @@
+ #include <linux/reboot.h>
+ #include <linux/btf.h>
+ #include <linux/objtool.h>
++#include <linux/delay.h>
  
-             crashkernel=0,low
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -33,6 +34,11 @@
+ /* Per cpu memory for storing cpu states in case of system crash. */
+ note_buf_t __percpu *crash_notes;
  
-+4) crashkernel=size,cma
++/* time to wait for possible DMA to finish before starting the kdump kernel
++ * when a CMA reservation is used
++ */
++#define CMA_DMA_TIMEOUT_SEC 10
 +
-+	Reserve additional crash kernel memory from CMA. This reservation is
-+	usable by the first system's userspace memory and kernel movable
-+	allocations (memory balloon, zswap). Pages allocated from this memory
-+	range will not be included in the vmcore so this should not be used if
-+	dumping of userspace memory is intended and it has to be expected that
-+	some movable kernel pages may be missing from the dump.
-+
-+	A standard crashkernel reservation, as described above, is still needed
-+	to hold the crash kernel and initrd.
-+
-+	This option increases the risk of a kdump failure: DMA transfers
-+	configured by the first kernel may end up corrupting the second
-+	kernel's memory.
-+
-+	This reservation method is intended for systems that can't afford to
-+	sacrifice enough memory for standard crashkernel reservation and where
-+	less reliable and possibly incomplete kdump is preferable to no kdump at
-+	all.
-+
- Boot into System Kernel
- -----------------------
- 1) Update the boot loader (such as grub, yaboot, or lilo) configuration
---- a/Documentation/admin-guide/kernel-parameters.txt~kdump-documentation-describe-craskernel-cma-reservation
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -986,6 +986,28 @@
- 			0: to disable low allocation.
- 			It will be ignored when crashkernel=X,high is not used
- 			or memory reserved is below 4G.
-+	crashkernel=size[KMG],cma
-+			[KNL, X86] Reserve additional crash kernel memory from
-+			CMA. This reservation is usable by the first system's
-+			userspace memory and kernel movable allocations (memory
-+			balloon, zswap). Pages allocated from this memory range
-+			will not be included in the vmcore so this should not
-+			be used if dumping of userspace memory is intended and
-+			it has to be expected that some movable kernel pages
-+			may be missing from the dump.
-+
-+			A standard crashkernel reservation, as described above,
-+			is still needed to hold the crash kernel and initrd.
-+
-+			This option increases the risk of a kdump failure: DMA
-+			transfers configured by the first kernel may end up
-+			corrupting the second kernel's memory.
-+
-+			This reservation method is intended for systems that
-+			can't afford to sacrifice enough memory for standard
-+			crashkernel reservation and where less reliable and
-+			possibly incomplete kdump is preferable to no kdump at
-+			all.
+ #ifdef CONFIG_CRASH_DUMP
  
- 	cryptomgr.notests
- 			[KNL] Disable crypto self-tests
+ int kimage_crash_copy_vmcoreinfo(struct kimage *image)
+@@ -97,6 +103,14 @@ int kexec_crash_loaded(void)
+ }
+ EXPORT_SYMBOL_GPL(kexec_crash_loaded);
+ 
++static void crash_cma_clear_pending_dma(void)
++{
++	if (!crashk_cma_cnt)
++		return;
++
++	mdelay(CMA_DMA_TIMEOUT_SEC * 1000);
++}
++
+ /*
+  * No panic_cpu check version of crash_kexec().  This function is called
+  * only when panic_cpu holds the current CPU number; this is the only CPU
+@@ -119,6 +133,7 @@ void __noclone __crash_kexec(struct pt_r
+ 			crash_setup_regs(&fixed_regs, regs);
+ 			crash_save_vmcoreinfo();
+ 			machine_crash_shutdown(&fixed_regs);
++			crash_cma_clear_pending_dma();
+ 			machine_kexec(kexec_crash_image);
+ 		}
+ 		kexec_unlock();
 _
 
 Patches currently in -mm which might be from jbohac@suse.cz are
