@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411BABA34
-	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 00:21:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E39AA5258
+	for <mm-commits@vger.kernel.org>; Thu, 12 Jun 2025 00:48:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749687708; cv=none; b=LmCuyeHdxYAnyyjoVWJ4wxMLdd907CXs4+JIl66TktOPF6VrTqK6gAFc7IPinjhQa5m0OUIL4vbBgglxu5pATuiDsei6WZRa7vPkdB3/ExQezN5+gowbGwp+aeVz2Uy0CbC0A26eE0SmKA86WLnBo7Y65p3RcHeSk7yL7nvXnQE=
+	t=1749689332; cv=none; b=hW7Pz+ommoDyptBl19larzbs4SeFptNQuuOx07tECkj2kJfnXK1wJ/Yq6bkbmZPl8m4u1dWm0bxhITcFdNPdW6/gL7Y5LXZluXCi2lrONLUBMN5fPcGQnFkOSFhXtGYLYxGrWA/NdyhAl2laWMa52j9GFSfsgasQypMOKqfWBVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749687708; c=relaxed/simple;
-	bh=q/a1j8He8pjuMz/JwqraWJu9TUdVR7FgtUYbd/6gjOY=;
-	h=Date:To:From:Subject:Message-Id; b=o5RkfTCqwGXkAr8MyIxcwu9up+QaPosIw3kjiy2rvbUJzuPgc1L0Clqls1I4mw6gneP4Zd0vCY9NGNjyiBGvqYcxi9GJzTikVPCppLlgWDWpFoa4xtzjl+aDdlGkC2HPUHEmhkoXYwDrAmZZ8q/u5mfQZvh0fYpgZpQKpmhNhAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X8MaIz+z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749689332; c=relaxed/simple;
+	bh=RQcpzmPkeFaEqDc1CM/drqIi4rJz3nZFMFjAk8N0MXc=;
+	h=Date:To:From:Subject:Message-Id; b=P7iJ0+sey0NikdwA6F51EHGED/3ojM5xFG+lOBAi0oeyVlpdTNh37G1bXMp0Caz+eqcoZ+CmDjGYHdgyzoBP+kWqu35OLi+I0QWr9LdwAgQdUB0QYqjDAakK6GKKnr3fmwbNfJG6XZ9EoQaS1Vg6EGWrgKUJBeARP70zSAYZnUY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R0DhU3Xj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X8MaIz+z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96C67C4CEE3;
-	Thu, 12 Jun 2025 00:21:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R0DhU3Xj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41753C4CEEF;
+	Thu, 12 Jun 2025 00:48:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749687707;
-	bh=q/a1j8He8pjuMz/JwqraWJu9TUdVR7FgtUYbd/6gjOY=;
+	s=korg; t=1749689331;
+	bh=RQcpzmPkeFaEqDc1CM/drqIi4rJz3nZFMFjAk8N0MXc=;
 	h=Date:To:From:Subject:From;
-	b=X8MaIz+zunz/Xd248KjzWBREpG1PAIalE6pu3HhDF0K6NgCHxhRTpmYOnX0Ijr2GR
-	 /oMLgE6P2O0iQLWh6sSS94Oc+6EowEMlLlOwVEC0VNHsXA19F8dioEsR/+K7+vZoXz
-	 cjEGs4O7B1VeU072BUEQD5rhCyIoKSWVZZ2/6SvA=
-Date: Wed, 11 Jun 2025 17:21:47 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,lorenzo.stoakes@oracle.com,pulehui@huawei.com,akpm@linux-foundation.org
+	b=R0DhU3Xj7MK0PYcDpUqwcNMuzabiS78U+oHjRCZhrKzPz86Ora3q+MHp+sn0+7ive
+	 Kgi4G3ctorHbBlksPP2FGtSnhsq4pMZg698plK7OMR/4Pvz5SnplYTFr3udEJT0sHL
+	 ss80B+/SRdA6DiNTowpp5/gZdKrNuFqH0xOPTtZc=
+Date: Wed, 11 Jun 2025 17:48:50 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,rostedt@goodmis.org,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,david@redhat.com,apopple@nvidia.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-generic-read_sysfs-in-thuge-gen-test.patch added to mm-new branch
-Message-Id: <20250612002147.96C67C4CEE3@smtp.kernel.org>
+Subject: + mm-use-folio_expected_ref_count-helper-for-reference-counting.patch added to mm-new branch
+Message-Id: <20250612004851.41753C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: use generic read_sysfs in thuge-gen test
+     Subject: mm: use folio_expected_ref_count() helper for reference counting
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-use-generic-read_sysfs-in-thuge-gen-test.patch
+     mm-use-folio_expected_ref_count-helper-for-reference-counting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-generic-read_sysfs-in-thuge-gen-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-folio_expected_ref_count-helper-for-reference-counting.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,93 +64,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pu Lehui <pulehui@huawei.com>
-Subject: selftests/mm: use generic read_sysfs in thuge-gen test
-Date: Wed, 11 Jun 2025 10:01:06 +0000
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm: use folio_expected_ref_count() helper for reference counting
+Date: Wed, 11 Jun 2025 05:27:07 +0000
 
-As generic read_sysfs is available in vm_utils, let's use is in thuge-gen
-test.
+Replace open-coded folio reference count calculations with the
+folio_expected_ref_count().
 
-Link: https://lkml.kernel.org/r/20250611100106.1331197-1-pulehui@huaweicloud.com
-Signed-off-by: Pu Lehui <pulehui@huawei.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
+No functional changes intended.
+
+Link: https://lkml.kernel.org/r/20250611052706.515408-2-shivankg@amd.com
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Namhyung kim <namhyung@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/thuge-gen.c |   40 ++++++-----------------
- 1 file changed, 11 insertions(+), 29 deletions(-)
+ kernel/events/uprobes.c |    3 +--
+ mm/memfd.c              |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-use-generic-read_sysfs-in-thuge-gen-test
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -77,38 +77,18 @@ void show(unsigned long ps)
- 	system(buf);
+--- a/kernel/events/uprobes.c~mm-use-folio_expected_ref_count-helper-for-reference-counting
++++ a/kernel/events/uprobes.c
+@@ -436,8 +436,7 @@ static int __uprobe_write_opcode(struct
+ 	 * there are no unexpected folio references ...
+ 	 */
+ 	if (is_register || userfaultfd_missing(vma) ||
+-	    (folio_ref_count(folio) != folio_mapcount(folio) + 1 +
+-	     folio_test_swapcache(folio) * folio_nr_pages(folio)))
++	    (folio_ref_count(folio) != folio_expected_ref_count(folio) + 1))
+ 		goto remap;
+ 
+ 	/*
+--- a/mm/memfd.c~mm-use-folio_expected_ref_count-helper-for-reference-counting
++++ a/mm/memfd.c
+@@ -32,8 +32,7 @@
+ 
+ static bool memfd_folio_has_extra_refs(struct folio *folio)
+ {
+-	return folio_ref_count(folio) - folio_mapcount(folio) !=
+-	       folio_nr_pages(folio);
++	return folio_ref_count(folio) != folio_expected_ref_count(folio);
  }
  
--unsigned long thuge_read_sysfs(int warn, char *fmt, ...)
-+unsigned long read_free(unsigned long ps)
- {
--	char *line = NULL;
--	size_t linelen = 0;
--	char buf[100];
--	FILE *f;
--	va_list ap;
- 	unsigned long val = 0;
-+	char buf[100];
- 
--	va_start(ap, fmt);
--	vsnprintf(buf, sizeof buf, fmt, ap);
--	va_end(ap);
--
--	f = fopen(buf, "r");
--	if (!f) {
--		if (warn)
--			ksft_print_msg("missing %s\n", buf);
--		return 0;
--	}
--	if (getline(&line, &linelen, f) > 0) {
--		sscanf(line, "%lu", &val);
--	}
--	fclose(f);
--	free(line);
--	return val;
--}
-+	snprintf(buf, sizeof(buf),
-+		 "/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
-+		 ps >> 10);
-+	if (read_sysfs(buf, &val) && ps != getpagesize())
-+		ksft_print_msg("missing %s\n", buf);
- 
--unsigned long read_free(unsigned long ps)
--{
--	return thuge_read_sysfs(ps != getpagesize(),
--			  "/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
--			  ps >> 10);
-+	return val;
- }
- 
- void test_mmap(unsigned long size, unsigned flags)
-@@ -173,6 +153,7 @@ void test_shmget(unsigned long size, uns
- void find_pagesizes(void)
- {
- 	unsigned long largest = getpagesize();
-+	unsigned long shmmax_val = 0;
- 	int i;
- 	glob_t g;
- 
-@@ -195,7 +176,8 @@ void find_pagesizes(void)
- 	}
- 	globfree(&g);
- 
--	if (thuge_read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest)
-+	read_sysfs("/proc/sys/kernel/shmmax", &shmmax_val);
-+	if (shmmax_val < NUM_PAGES * largest)
- 		ksft_exit_fail_msg("Please do echo %lu > /proc/sys/kernel/shmmax",
- 				   largest * NUM_PAGES);
- 
+ static void memfd_tag_pins(struct xa_state *xas)
 _
 
-Patches currently in -mm which might be from pulehui@huawei.com are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-selftests-mm-use-generic-read_sysfs-in-thuge-gen-test.patch
+selftests-mm-increase-timeout-from-180-to-900-seconds.patch
+mm-use-folio_expected_ref_count-helper-for-reference-counting.patch
 
