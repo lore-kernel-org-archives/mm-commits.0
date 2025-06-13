@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DF7B24DD0B
-	for <mm-commits@vger.kernel.org>; Fri, 13 Jun 2025 03:06:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B33D124886F
+	for <mm-commits@vger.kernel.org>; Fri, 13 Jun 2025 03:07:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749784018; cv=none; b=mAKwDLT5a9q8cYUBHFrMB8XVeRsRtnUfYz2jggV0Qj0ix+O8PzK9MPYL6bMauNFZknL1XpHQ93O5jnM45X3I19beTaW2T4vhaT2J6jeW96DAFrfQtF673RdXZ7HvqUztQPJoE4EsvjDHomNJyDUzpGBpZeTaNBarQVKN01+KIvA=
+	t=1749784020; cv=none; b=XfXv9J2eZ9TslPMhbACricWfLvSiClKEGtZuFeUgLo+D+l9qydbJQuFZ4P6PSobYCL4zfXnIRQfDpkavJ239qmW2tRpzgw1dGmxoboj57roBEazclEVIcw1DZO2jzimh0AmK4tdct/sOP+lQ1X/fmCqBVV2vw81fw2cPvQjbClA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749784018; c=relaxed/simple;
-	bh=nU2t9UodeR1XLmU6Hc3U/iMgqTNUkPckauLRnjoPxwQ=;
-	h=Date:To:From:Subject:Message-Id; b=JUcXWZIkhHidW57qaON1pJ29cmMw0WiwPW/adJm88ZKsvFq763ADXTeBu0KnQtY0ktW8jL/F1VaCgk1zl9phMlNKGZ2z3WN9MDJCsJljF4oYmJ2vmDwVPErgjjDZqBxtk9s28vz0nwIZ0E90M16IPPzslWuP9HFTQW3oS45G0KQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KZUee+Er; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749784020; c=relaxed/simple;
+	bh=lnmcqqD6GdWQPNirUr3qbkD7Hwfuqskl4pLOq5CxkZM=;
+	h=Date:To:From:Subject:Message-Id; b=NiFZB4xKjnidfV666gk/IyHCAwjOrPV0IPi/pmt17kLLMp4LD9yVFlu+bxRIA90pobX7/2vEfUDoBonkr42YR5AjgzcfBkNF8wr8z6sQLXhFlFKWRsbL7DACQZp4mlIrj+AZg6iUbi4uObOeMjvXOZBPgyrvsz2UNMHovqClg2c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YS9YFaGA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KZUee+Er"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B515BC4CEEA;
-	Fri, 13 Jun 2025 03:06:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YS9YFaGA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24D9BC4CEEA;
+	Fri, 13 Jun 2025 03:07:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749784017;
-	bh=nU2t9UodeR1XLmU6Hc3U/iMgqTNUkPckauLRnjoPxwQ=;
+	s=korg; t=1749784020;
+	bh=lnmcqqD6GdWQPNirUr3qbkD7Hwfuqskl4pLOq5CxkZM=;
 	h=Date:To:From:Subject:From;
-	b=KZUee+ErTvcxHHJCXyLatrHWZlm7FuK6LJ78StYTMZB2zi5szki4NNgtSxAFokQjk
-	 9blTyXuqE/lGK8vw8rkvxKg7RUXgtmCfcn9yw93RjH2FLBUh8PTKnKeKyq5fZS9nGV
-	 FIWVaCLH+J6WD9zXkNi2FsjtAjhJCDNUvUg5ggGo=
-Date: Thu, 12 Jun 2025 20:06:57 -0700
+	b=YS9YFaGAcfbRbO7Ih6HBn7kMpQ26ryXm5/E3h0hpvEc1FcZfSKqJV1TQ1FfKkA3wh
+	 Yw/QxRtlxzJpXurwxnTHCNopAMdn1ftNkuZ5uo2Ikbcp8SvNhjdYfg9tYw4aixhxtX
+	 c6ThJrdgTMUdU4UmG2f9LLqkhfJl1ZMobWkm/Cbw=
+Date: Thu, 12 Jun 2025 20:06:59 -0700
 To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,katrinzhou@tencent.com,axboe@kernel.dk,kernelxing@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + relayfs-support-a-counter-tracking-if-per-cpu-buffers-is-full.patch added to mm-nonmm-unstable branch
-Message-Id: <20250613030657.B515BC4CEEA@smtp.kernel.org>
+Subject: + relayfs-introduce-getting-relayfs-statistics-function.patch added to mm-nonmm-unstable branch
+Message-Id: <20250613030700.24D9BC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: relayfs: support a counter tracking if per-cpu buffers is full
+     Subject: relayfs: introduce getting relayfs statistics function
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     relayfs-support-a-counter-tracking-if-per-cpu-buffers-is-full.patch
+     relayfs-introduce-getting-relayfs-statistics-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relayfs-support-a-counter-tracking-if-per-cpu-buffers-is-full.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relayfs-introduce-getting-relayfs-statistics-function.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,88 +59,92 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jason Xing <kernelxing@tencent.com>
-Subject: relayfs: support a counter tracking if per-cpu buffers is full
-Date: Thu, 12 Jun 2025 14:11:58 +0800
+Subject: relayfs: introduce getting relayfs statistics function
+Date: Thu, 12 Jun 2025 14:11:59 +0800
 
-When using relay mechanism, we often encounter the case where new data are
-lost or old unconsumed data are overwritten because of slow reader.
+In this version, only support getting the counter for buffer full and
+implement the framework of how it works.
 
-Add 'full' field in per-cpu buffer structure to detect if the above case
-is happening.  Relay has two modes: 1) non-overwrite mode, 2) overwrite
-mode.  So buffer being full here respectively means: 1) relayfs doesn't
-intend to accept new data and then simply drop them, or 2) relayfs is
-going to start over again and overwrite old unread data with new data.
+Users can pass certain flag to fetch what field/statistics they expect to
+know.  Each time it only returns one result.  So do not pass multiple
+flags.
 
-Note: this counter doesn't need any explicit lock to protect from being
-modified by different threads for the better performance consideration. 
-Writers calling __relay_write/relay_write should consider how to use the
-lock and ensure it performs under the lock protection, thus it's not
-necessary to add a new small lock here.
-
-Link: https://lkml.kernel.org/r/20250612061201.34272-3-kerneljasonxing@gmail.com
+Link: https://lkml.kernel.org/r/20250612061201.34272-4-kerneljasonxing@gmail.com
 Signed-off-by: Jason Xing <kernelxing@tencent.com>
 Reviewed-by: Yushan Zhou <katrinzhou@tencent.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
 Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/relay.h |    9 +++++++++
- kernel/relay.c        |    8 +++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ include/linux/relay.h |    7 +++++++
+ kernel/relay.c        |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
 
---- a/include/linux/relay.h~relayfs-support-a-counter-tracking-if-per-cpu-buffers-is-full
+--- a/include/linux/relay.h~relayfs-introduce-getting-relayfs-statistics-function
 +++ a/include/linux/relay.h
-@@ -29,6 +29,14 @@
- #define RELAYFS_CHANNEL_VERSION		7
- 
+@@ -31,6 +31,12 @@
  /*
-+ * Relay buffer statistics
-+ */
-+struct rchan_buf_stats
-+{
-+	unsigned int full_count;	/* counter for buffer full */
+  * Relay buffer statistics
+  */
++enum {
++	RELAY_STATS_BUF_FULL = (1 << 0),
++
++	RELAY_STATS_LAST = RELAY_STATS_BUF_FULL,
 +};
 +
-+/*
-  * Per-cpu relay channel buffer
-  */
- struct rchan_buf
-@@ -43,6 +51,7 @@ struct rchan_buf
- 	struct irq_work wakeup_work;	/* reader wakeup */
- 	struct dentry *dentry;		/* channel file dentry */
- 	struct kref kref;		/* channel buffer refcount */
-+	struct rchan_buf_stats stats;	/* buffer stats */
- 	struct page **page_array;	/* array of current buffer pages */
- 	unsigned int page_count;	/* number of current buffer pages */
- 	unsigned int finalized;		/* buffer has been finalized */
---- a/kernel/relay.c~relayfs-support-a-counter-tracking-if-per-cpu-buffers-is-full
-+++ a/kernel/relay.c
-@@ -251,8 +251,13 @@ EXPORT_SYMBOL_GPL(relay_buf_full);
- static int relay_subbuf_start(struct rchan_buf *buf, void *subbuf,
- 			      void *prev_subbuf)
+ struct rchan_buf_stats
  {
-+	int full = relay_buf_full(buf);
-+
-+	if (full)
-+		buf->stats.full_count++;
-+
- 	if (!buf->chan->cb->subbuf_start)
--		return !relay_buf_full(buf);
-+		return !full;
+ 	unsigned int full_count;	/* counter for buffer full */
+@@ -167,6 +173,7 @@ struct rchan *relay_open(const char *bas
+ 			 void *private_data);
+ extern void relay_close(struct rchan *chan);
+ extern void relay_flush(struct rchan *chan);
++size_t relay_stats(struct rchan *chan, int flags);
+ extern void relay_subbufs_consumed(struct rchan *chan,
+ 				   unsigned int cpu,
+ 				   size_t consumed);
+--- a/kernel/relay.c~relayfs-introduce-getting-relayfs-statistics-function
++++ a/kernel/relay.c
+@@ -701,6 +701,36 @@ void relay_flush(struct rchan *chan)
+ EXPORT_SYMBOL_GPL(relay_flush);
  
- 	return buf->chan->cb->subbuf_start(buf, subbuf,
- 					   prev_subbuf);
-@@ -297,6 +302,7 @@ static void __relay_reset(struct rchan_b
- 	buf->finalized = 0;
- 	buf->data = buf->start;
- 	buf->offset = 0;
-+	buf->stats.full_count = 0;
- 
- 	for (i = 0; i < buf->chan->n_subbufs; i++)
- 		buf->padding[i] = 0;
+ /**
++ *	relay_stats - get channel buffer statistics
++ *	@chan: the channel
++ *	@flags: select particular information to get
++ *
++ *	Returns the count of certain field that caller specifies.
++ */
++size_t relay_stats(struct rchan *chan, int flags)
++{
++	unsigned int i, count = 0;
++	struct rchan_buf *rbuf;
++
++	if (!chan || flags > RELAY_STATS_LAST)
++		return 0;
++
++	if (chan->is_global) {
++		rbuf = *per_cpu_ptr(chan->buf, 0);
++		if (flags & RELAY_STATS_BUF_FULL)
++			count = rbuf->stats.full_count;
++	} else {
++		for_each_online_cpu(i) {
++			rbuf = *per_cpu_ptr(chan->buf, i);
++			if (rbuf && flags & RELAY_STATS_BUF_FULL)
++				count += rbuf->stats.full_count;
++		}
++	}
++
++	return count;
++}
++
++/**
+  *	relay_file_open - open file op for relay files
+  *	@inode: the inode
+  *	@filp: the file
 _
 
 Patches currently in -mm which might be from kernelxing@tencent.com are
