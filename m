@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B33D124886F
-	for <mm-commits@vger.kernel.org>; Fri, 13 Jun 2025 03:07:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26CC9253350
+	for <mm-commits@vger.kernel.org>; Fri, 13 Jun 2025 03:07:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749784020; cv=none; b=XfXv9J2eZ9TslPMhbACricWfLvSiClKEGtZuFeUgLo+D+l9qydbJQuFZ4P6PSobYCL4zfXnIRQfDpkavJ239qmW2tRpzgw1dGmxoboj57roBEazclEVIcw1DZO2jzimh0AmK4tdct/sOP+lQ1X/fmCqBVV2vw81fw2cPvQjbClA=
+	t=1749784023; cv=none; b=X3WOPf0G8xJ2D18C87apY4yUvTdUkIp9QjnXVvOSM3b3HKLAL+Fu/nVYh12tflVoe/poF8Vtll9GVdNfQ8quRy4UB57hisXUqvAC4KteVGe2na67VKftHyiJ+OBAyjYE0zsHP8cpkUZX7uTToH6fWogOwdiYWzVMaBffmT2b7IE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749784020; c=relaxed/simple;
-	bh=lnmcqqD6GdWQPNirUr3qbkD7Hwfuqskl4pLOq5CxkZM=;
-	h=Date:To:From:Subject:Message-Id; b=NiFZB4xKjnidfV666gk/IyHCAwjOrPV0IPi/pmt17kLLMp4LD9yVFlu+bxRIA90pobX7/2vEfUDoBonkr42YR5AjgzcfBkNF8wr8z6sQLXhFlFKWRsbL7DACQZp4mlIrj+AZg6iUbi4uObOeMjvXOZBPgyrvsz2UNMHovqClg2c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YS9YFaGA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749784023; c=relaxed/simple;
+	bh=wQvagOK+7A+npYQQroer5Gi8MW/hOPMx6z1kmmJGjqw=;
+	h=Date:To:From:Subject:Message-Id; b=SiO7amgew5xSLIBAwibMgcXU/fSf9f//kElfJHZ6d76eqwvhYyXI6QlaSX+VhM+uU8Ua/WuDwcW074/djT3ul6xP2pB4zb+RH/w4f08l56DpkF4Cn1ni6aceLwdHrNE6GxlUCjDLcpnuCrAV5lMTuCyDLSKxbf6KJQszArHiLJo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oz2zl/ZV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YS9YFaGA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24D9BC4CEEA;
-	Fri, 13 Jun 2025 03:07:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oz2zl/ZV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B05DC4CEEA;
+	Fri, 13 Jun 2025 03:07:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749784020;
-	bh=lnmcqqD6GdWQPNirUr3qbkD7Hwfuqskl4pLOq5CxkZM=;
+	s=korg; t=1749784022;
+	bh=wQvagOK+7A+npYQQroer5Gi8MW/hOPMx6z1kmmJGjqw=;
 	h=Date:To:From:Subject:From;
-	b=YS9YFaGAcfbRbO7Ih6HBn7kMpQ26ryXm5/E3h0hpvEc1FcZfSKqJV1TQ1FfKkA3wh
-	 Yw/QxRtlxzJpXurwxnTHCNopAMdn1ftNkuZ5uo2Ikbcp8SvNhjdYfg9tYw4aixhxtX
-	 c6ThJrdgTMUdU4UmG2f9LLqkhfJl1ZMobWkm/Cbw=
-Date: Thu, 12 Jun 2025 20:06:59 -0700
+	b=Oz2zl/ZV2Wi2793etV8dXc77k1QuDzMw79cRvp+16uZw9CQp9Trwzs2cHvqA0EMOe
+	 lZrGRtvYnoxUibsQXNWzvX1W864iipTnnLsdLInBHWjDFNETdOfboZTl5f3gnLtvaB
+	 E7UV4wUVUxo9yRaBf9WIUx6UKAAfe6fwVoqi+qwE=
+Date: Thu, 12 Jun 2025 20:07:01 -0700
 To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,katrinzhou@tencent.com,axboe@kernel.dk,kernelxing@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + relayfs-introduce-getting-relayfs-statistics-function.patch added to mm-nonmm-unstable branch
-Message-Id: <20250613030700.24D9BC4CEEA@smtp.kernel.org>
+Subject: + blktrace-use-rbuf-statsfull-as-a-drop-indicator-in-relayfs.patch added to mm-nonmm-unstable branch
+Message-Id: <20250613030702.9B05DC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: relayfs: introduce getting relayfs statistics function
+     Subject: blktrace: use rbuf->stats.full as a drop indicator in relayfs
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     relayfs-introduce-getting-relayfs-statistics-function.patch
+     blktrace-use-rbuf-statsfull-as-a-drop-indicator-in-relayfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relayfs-introduce-getting-relayfs-statistics-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/blktrace-use-rbuf-statsfull-as-a-drop-indicator-in-relayfs.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,92 +59,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jason Xing <kernelxing@tencent.com>
-Subject: relayfs: introduce getting relayfs statistics function
-Date: Thu, 12 Jun 2025 14:11:59 +0800
+Subject: blktrace: use rbuf->stats.full as a drop indicator in relayfs
+Date: Thu, 12 Jun 2025 14:12:00 +0800
 
-In this version, only support getting the counter for buffer full and
-implement the framework of how it works.
+Replace internal subbuf_start in blktrace with the default policy in
+relayfs.
 
-Users can pass certain flag to fetch what field/statistics they expect to
-know.  Each time it only returns one result.  So do not pass multiple
-flags.
+Remove dropped field from struct blktrace.  Correspondingly, call the
+common helper in relay.  By incrementing full_count to keep track of how
+many times we encountered a full buffer issue, user space will know how
+many events were lost.
 
-Link: https://lkml.kernel.org/r/20250612061201.34272-4-kerneljasonxing@gmail.com
+Link: https://lkml.kernel.org/r/20250612061201.34272-5-kerneljasonxing@gmail.com
 Signed-off-by: Jason Xing <kernelxing@tencent.com>
 Reviewed-by: Yushan Zhou <katrinzhou@tencent.com>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
 Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/relay.h |    7 +++++++
- kernel/relay.c        |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
+ kernel/trace/blktrace.c |   22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
 
---- a/include/linux/relay.h~relayfs-introduce-getting-relayfs-statistics-function
-+++ a/include/linux/relay.h
-@@ -31,6 +31,12 @@
- /*
-  * Relay buffer statistics
-  */
-+enum {
-+	RELAY_STATS_BUF_FULL = (1 << 0),
-+
-+	RELAY_STATS_LAST = RELAY_STATS_BUF_FULL,
-+};
-+
- struct rchan_buf_stats
+--- a/kernel/trace/blktrace.c~blktrace-use-rbuf-statsfull-as-a-drop-indicator-in-relayfs
++++ a/kernel/trace/blktrace.c
+@@ -415,9 +415,10 @@ static ssize_t blk_dropped_read(struct f
+ 				size_t count, loff_t *ppos)
  {
- 	unsigned int full_count;	/* counter for buffer full */
-@@ -167,6 +173,7 @@ struct rchan *relay_open(const char *bas
- 			 void *private_data);
- extern void relay_close(struct rchan *chan);
- extern void relay_flush(struct rchan *chan);
-+size_t relay_stats(struct rchan *chan, int flags);
- extern void relay_subbufs_consumed(struct rchan *chan,
- 				   unsigned int cpu,
- 				   size_t consumed);
---- a/kernel/relay.c~relayfs-introduce-getting-relayfs-statistics-function
-+++ a/kernel/relay.c
-@@ -701,6 +701,36 @@ void relay_flush(struct rchan *chan)
- EXPORT_SYMBOL_GPL(relay_flush);
+ 	struct blk_trace *bt = filp->private_data;
++	size_t dropped = relay_stats(bt->rchan, RELAY_STATS_BUF_FULL);
+ 	char buf[16];
  
- /**
-+ *	relay_stats - get channel buffer statistics
-+ *	@chan: the channel
-+ *	@flags: select particular information to get
-+ *
-+ *	Returns the count of certain field that caller specifies.
-+ */
-+size_t relay_stats(struct rchan *chan, int flags)
-+{
-+	unsigned int i, count = 0;
-+	struct rchan_buf *rbuf;
-+
-+	if (!chan || flags > RELAY_STATS_LAST)
-+		return 0;
-+
-+	if (chan->is_global) {
-+		rbuf = *per_cpu_ptr(chan->buf, 0);
-+		if (flags & RELAY_STATS_BUF_FULL)
-+			count = rbuf->stats.full_count;
-+	} else {
-+		for_each_online_cpu(i) {
-+			rbuf = *per_cpu_ptr(chan->buf, i);
-+			if (rbuf && flags & RELAY_STATS_BUF_FULL)
-+				count += rbuf->stats.full_count;
-+		}
-+	}
-+
-+	return count;
-+}
-+
-+/**
-  *	relay_file_open - open file op for relay files
-  *	@inode: the inode
-  *	@filp: the file
+-	snprintf(buf, sizeof(buf), "%u\n", atomic_read(&bt->dropped));
++	snprintf(buf, sizeof(buf), "%zu\n", dropped);
+ 
+ 	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
+ }
+@@ -456,23 +457,6 @@ static const struct file_operations blk_
+ 	.llseek =	noop_llseek,
+ };
+ 
+-/*
+- * Keep track of how many times we encountered a full subbuffer, to aid
+- * the user space app in telling how many lost events there were.
+- */
+-static int blk_subbuf_start_callback(struct rchan_buf *buf, void *subbuf,
+-				     void *prev_subbuf)
+-{
+-	struct blk_trace *bt;
+-
+-	if (!relay_buf_full(buf))
+-		return 1;
+-
+-	bt = buf->chan->private_data;
+-	atomic_inc(&bt->dropped);
+-	return 0;
+-}
+-
+ static int blk_remove_buf_file_callback(struct dentry *dentry)
+ {
+ 	debugfs_remove(dentry);
+@@ -491,7 +475,6 @@ static struct dentry *blk_create_buf_fil
+ }
+ 
+ static const struct rchan_callbacks blk_relay_callbacks = {
+-	.subbuf_start		= blk_subbuf_start_callback,
+ 	.create_buf_file	= blk_create_buf_file_callback,
+ 	.remove_buf_file	= blk_remove_buf_file_callback,
+ };
+@@ -580,7 +563,6 @@ static int do_blk_trace_setup(struct req
+ 	}
+ 
+ 	bt->dev = dev;
+-	atomic_set(&bt->dropped, 0);
+ 	INIT_LIST_HEAD(&bt->running_list);
+ 
+ 	ret = -EIO;
 _
 
 Patches currently in -mm which might be from kernelxing@tencent.com are
