@@ -1,124 +1,103 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F886566A
-	for <mm-commits@vger.kernel.org>; Sat, 14 Jun 2025 00:39:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F201CEE90;
+	Sat, 14 Jun 2025 04:59:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749861564; cv=none; b=bjAebpdHOfoRJ3YkimcBYJcYmd73uYy2kVQThxifegEwW7Wps9vilsQltwIOpI+vYabFmooFfOCzs9NTDucZFbQuHL0u7+kWOHMJ1xGHlWFmjqBgYHAqQM5atEwQnIdeA//Gzn/l+2PdPBBeBALQAqh9/BVCrrbE4nDuiqwXI+0=
+	t=1749877196; cv=none; b=LH6KrXNgslWoFvKIIMk5NqsZsBmJpKaRkKCVATt2LWwP+HDNVwltY0+Kd2XiGNK0HOSr4FBDH/I1IxRjR6nQDnb1s88iIFtClr8OQC88Fm+kp3ZiT50dZQu0wwC3646chMPLKSjBhah6jRKJYH8v0bZPqZu3KFGkL9FGPL/jMNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749861564; c=relaxed/simple;
-	bh=EBn6XYQJ36kPWp1uIvkslJ4EdwLxEvAZQzniVsYIPU4=;
-	h=Date:To:From:Subject:Message-Id; b=bpSpG5yOZLp108P7Eja8zR1SirP7Wi1quDmpNJr1nSnLtuWJn6M1fexauDnrPDTlatqBTwawSadu5pEKuFCeaxVC4E5ErEmAghA7XS7HnDfRXhmPteCIeYwLktbC65dV9EfYtnacEPTcqRfbnc5uz2jlmiT67e7XlSq43sYPdwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=of+doL3z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749877196; c=relaxed/simple;
+	bh=xS9feyckY1UNrb3X9JjrQrm/by2BHfPnl9c//XqbFiQ=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=e1cWf/1FSiKyAM9fmQbwf5lTd7E83ggxpiSlhSczJlsZKZNu0HSp5ogpoyOfp0wZuB62NZF0Vw9d0bQzJ+i7o4Eew+tmXJh4RkQmshIFN4ZMPLE2JpXnz0Ma8cMfiryJNPo7jJzRIWkbEzZ/lh0UHKg6ES/MtZlWcOxMkjlJBNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KMNRxSUk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="of+doL3z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F8AFC4CEE3;
-	Sat, 14 Jun 2025 00:39:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KMNRxSUk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BF97C4CEEB;
+	Sat, 14 Jun 2025 04:59:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749861563;
-	bh=EBn6XYQJ36kPWp1uIvkslJ4EdwLxEvAZQzniVsYIPU4=;
-	h=Date:To:From:Subject:From;
-	b=of+doL3zKCckZ5rx+92q9vgK30WX6oTf4qnem9NLSijeh5cMwSLvJiF++h2jvTe6R
-	 BZD4nvX35CxQ1mCgQK9XNaRTGP+bvQCDVSBw7RcC7m7N+bK7p0ITSKQ5VerHUEXPjq
-	 dRC2jPieqnvCO4LdSaz059fcRQjUYgc/5SMpeUpo=
-Date: Fri, 13 Jun 2025 17:39:23 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,ryan.roberts@arm.com,pulehui@huawei.com,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,donettom@linux.ibm.com,broonie@kernel.org,anshuman.khandual@arm.com,aishwarya.tcv@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	s=korg; t=1749877195;
+	bh=xS9feyckY1UNrb3X9JjrQrm/by2BHfPnl9c//XqbFiQ=;
+	h=Date:From:To:Cc:Subject:From;
+	b=KMNRxSUkBkn/XFLn6+y2lAnSiyBjqN8fRDalSK17UN2n4pGeOS+7KjNkQ1Z7EHUTK
+	 XYDNabpuwG8bFggNuf33bOR/bPwBcrVSwtqzQGvZ0qaOlPbVZYGd0mIa2o7lKuVrSF
+	 k7e2ACiRkWIfKlai1TJPaKZBzZd4NV16Wu6M7q7M=
+Date: Fri, 13 Jun 2025 21:59:55 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-configs-to-fix-testcase-failure.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250614003923.8F8AFC4CEE3@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.16-rc2
+Message-Id: <20250613215955.17731b1cd27ad5230f0962ca@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: selftests/mm: add configs to fix testcase failure
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-add-configs-to-fix-testcase-failure.patch
+Linus, please pull this small batch of hotfixes for the next -rc, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-configs-to-fix-testcase-failure.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 19272b37aa4f83ca52bdf9c16d5d81bdd1354494:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.16-rc1 (2025-06-08 13:44:43 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-06-13-21-56
 
-------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm: add configs to fix testcase failure
-Date: Fri, 13 Jun 2025 09:19:12 +0530
+for you to fetch changes up to bb666b7c27073b986b75699e51a7102910f58060:
 
-If CONFIG_UPROBES is not set, a merge subtest fails:
+  mm: add mmap_prepare() compatibility layer for nested file systems (2025-06-12 21:39:02 -0700)
 
-Failure log:
+----------------------------------------------------------------
+9 hotfixes.  3 are cc:stable and the remainder address post-6.15 issues
+or aren't considered necessary for -stable kernels.  Only 4 are for MM.
 
-  7151 12:46:54.627936  # # #  RUN           merge.handle_uprobe_upon_merged_vma ...
-  7152 12:46:54.639014  # # f /sys/bus/event_source/devices/uprobe/type
-  7153 12:46:54.639306  # # fopen: No such file or directory
-  7154 12:46:54.650451  # # # merge.c:473:handle_uprobe_upon_merged_vma:Expected read_sysfs("/sys/bus/event_source/devices/uprobe/type", &type) (1) == 0 (0)
-  7155 12:46:54.650730  # # # handle_uprobe_upon_merged_vma: Test terminated by assertion
-  7156 12:46:54.661750  # # #          FAIL  merge.handle_uprobe_upon_merged_vma
-  7157 12:46:54.662030  # # not ok 8 merge.handle_uprobe_upon_merged_vma
+----------------------------------------------------------------
+Andrew Morton (1):
+      drivers/rapidio/rio_cm.c: prevent possible heap overwrite
 
-CONFIG_UPROBES is enabled by CONFIG_UPROBE_EVENTS, which gets enabled by
-CONFIG_FTRACE. Therefore add these configs to selftests/mm/config so that
-CI systems can include this config in the kernel build. To be completely
-safe, add CONFIG_PROFILING too, to enable the dependency chain
-PROFILING -> PERF_EVENTS -> UPROBE_EVENTS -> UPROBES.
+Barry Song (1):
+      MAINTAINERS: add Barry as a THP reviewer
 
-Link: https://lkml.kernel.org/r/20250613034912.53791-1-dev.jain@arm.com
-Fixes: efe99fabeb11b ("selftests/mm: add test about uprobe pte be orphan during vma merge")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reported-by: Aishwarya <aishwarya.tcv@arm.com>
-Closes: https://lore.kernel.org/all/20250610103729.72440-1-aishwarya.tcv@arm.com/
-Tested-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Tested-by : Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Reviewed-by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Pu Lehui <pulehui@huawei.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Huacai Chen (1):
+      init: fix build warnings about export.h
 
- tools/testing/selftests/mm/config |    3 +++
- 1 file changed, 3 insertions(+)
+Lorenzo Stoakes (2):
+      mm/vma: reset VMA iterator on commit_merge() OOM failure
+      mm: add mmap_prepare() compatibility layer for nested file systems
 
---- a/tools/testing/selftests/mm/config~selftests-mm-add-configs-to-fix-testcase-failure
-+++ a/tools/testing/selftests/mm/config
-@@ -8,3 +8,6 @@ CONFIG_GUP_TEST=y
- CONFIG_TRANSPARENT_HUGEPAGE=y
- CONFIG_MEM_SOFT_DIRTY=y
- CONFIG_ANON_VMA_NAME=y
-+CONFIG_FTRACE=y
-+CONFIG_PROFILING=y
-+CONFIG_UPROBES=y
-_
+Mark Brown (1):
+      selftests/mm: skip failed memfd setups in gup_longterm
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Randy Dunlap (1):
+      scatterlist: fix extraneous '@'-sign kernel-doc notation
 
-selftests-mm-add-configs-to-fix-testcase-failure.patch
-xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
-mm-call-pointers-to-ptes-as-ptep.patch
-mm-optimize-mremap-by-pte-batching.patch
+Ryan Roberts (1):
+      mm: close theoretical race where stale TLB entries could linger
+
+wangfushuai (1):
+      docs: proc: update VmFlags documentation in smaps
+
+ Documentation/filesystems/proc.rst        |  4 ++-
+ MAINTAINERS                               |  1 +
+ drivers/rapidio/rio_cm.c                  |  3 ++
+ include/linux/fs.h                        |  6 ++--
+ include/linux/scatterlist.h               |  4 +--
+ init/initramfs.c                          |  1 +
+ init/main.c                               |  1 +
+ lib/scatterlist.c                         |  8 +++---
+ mm/madvise.c                              |  2 ++
+ mm/util.c                                 | 40 ++++++++++++++++++++++++++
+ mm/vma.c                                  | 23 +++------------
+ mm/vma.h                                  | 47 +++++++++++++++++++++++++++++++
+ tools/testing/selftests/mm/gup_longterm.c |  7 ++++-
+ tools/testing/vma/vma_internal.h          | 16 +++++++++++
+ 14 files changed, 134 insertions(+), 29 deletions(-)
 
