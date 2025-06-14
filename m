@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00CF87E1
-	for <mm-commits@vger.kernel.org>; Sat, 14 Jun 2025 00:18:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F886566A
+	for <mm-commits@vger.kernel.org>; Sat, 14 Jun 2025 00:39:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749860301; cv=none; b=eTP0+OUQFsmV/LYzh923J+9bkFp8qMaLvOncld1H1kA+oG0usmHCBXejuH0Kkql2PMfTfhbHotlNxoD7F7EVMWT0ZpIt44fBdTJYIw/9FIN51+TBaU1VIXgdy+3ERbYNMjJGWQHBynMIrWl9OL9icteB2mbbHX78NQSIhtNL3zI=
+	t=1749861564; cv=none; b=bjAebpdHOfoRJ3YkimcBYJcYmd73uYy2kVQThxifegEwW7Wps9vilsQltwIOpI+vYabFmooFfOCzs9NTDucZFbQuHL0u7+kWOHMJ1xGHlWFmjqBgYHAqQM5atEwQnIdeA//Gzn/l+2PdPBBeBALQAqh9/BVCrrbE4nDuiqwXI+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749860301; c=relaxed/simple;
-	bh=oY82Z9ZpOGy547gEb6uPpXOzyuaGq33QYFBuOnD9vRI=;
-	h=Date:To:From:Subject:Message-Id; b=WXM6ujNqYL0aRqFLXX9aYxq3PyI30STs90iBYxF6VYWu5amEf0LnxxRJZrZGVFdOmxTvPiuk6iQUJpzOdtt78OpzqrViq7D/D+IDTQlz3Va82wa1adUzRu17GjGZcPOX+R39wgUiJREk5MWfURRv5t8fMEMu5bXGECQ02b+JzUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mri/hDN5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749861564; c=relaxed/simple;
+	bh=EBn6XYQJ36kPWp1uIvkslJ4EdwLxEvAZQzniVsYIPU4=;
+	h=Date:To:From:Subject:Message-Id; b=bpSpG5yOZLp108P7Eja8zR1SirP7Wi1quDmpNJr1nSnLtuWJn6M1fexauDnrPDTlatqBTwawSadu5pEKuFCeaxVC4E5ErEmAghA7XS7HnDfRXhmPteCIeYwLktbC65dV9EfYtnacEPTcqRfbnc5uz2jlmiT67e7XlSq43sYPdwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=of+doL3z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mri/hDN5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B07CC4CEE3;
-	Sat, 14 Jun 2025 00:18:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="of+doL3z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F8AFC4CEE3;
+	Sat, 14 Jun 2025 00:39:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749860300;
-	bh=oY82Z9ZpOGy547gEb6uPpXOzyuaGq33QYFBuOnD9vRI=;
+	s=korg; t=1749861563;
+	bh=EBn6XYQJ36kPWp1uIvkslJ4EdwLxEvAZQzniVsYIPU4=;
 	h=Date:To:From:Subject:From;
-	b=mri/hDN5wRjITUxMQMKLOgRtihkm/r9Dt6RpF7K7QmKItePxXT42DSRZPHE8kCXEH
-	 oOS2VO929zrA8Xt8G6Tj2CogK2O0wgO9MgS38Yojk1DK2l8M8rFWZzDWjRhZ4gYQqd
-	 B5ugyp8YVnwtGFFjo1FgmpykG3HByH+x/35x5dhc=
-Date: Fri, 13 Jun 2025 17:18:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=of+doL3zKCckZ5rx+92q9vgK30WX6oTf4qnem9NLSijeh5cMwSLvJiF++h2jvTe6R
+	 BZD4nvX35CxQ1mCgQK9XNaRTGP+bvQCDVSBw7RcC7m7N+bK7p0ITSKQ5VerHUEXPjq
+	 dRC2jPieqnvCO4LdSaz059fcRQjUYgc/5SMpeUpo=
+Date: Fri, 13 Jun 2025 17:39:23 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,ryan.roberts@arm.com,pulehui@huawei.com,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,donettom@linux.ibm.com,broonie@kernel.org,anshuman.khandual@arm.com,aishwarya.tcv@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch added to mm-new branch
-Message-Id: <20250614001820.4B07CC4CEE3@smtp.kernel.org>
+Subject: + selftests-mm-add-configs-to-fix-testcase-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250614003923.8F8AFC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: huge_memory: fix the check for allowed huge orders in shmem
-has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch
+     Subject: selftests/mm: add configs to fix testcase failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-add-configs-to-fix-testcase-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-configs-to-fix-testcase-failure.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,63 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: huge_memory: fix the check for allowed huge orders in shmem
-Date: Fri, 13 Jun 2025 17:12:19 +0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: add configs to fix testcase failure
+Date: Fri, 13 Jun 2025 09:19:12 +0530
 
-Shmem already supports mTHP, and shmem_allowable_huge_orders() will return
-the huge orders allowed by shmem.  However, there is no check against the
-'orders' parameter passed by __thp_vma_allowable_orders(), which can lead
-to incorrect check results for __thp_vma_allowable_orders().
+If CONFIG_UPROBES is not set, a merge subtest fails:
 
-For example, when a user wants to check if shmem supports PMD-sized THP by
-thp_vma_allowable_order(), if shmem only enables 64K mTHP, the current
-logic would cause thp_vma_allowable_order() to return true, implying that
-shmem allows PMD-sized THP allocation, which it actually does not.
+Failure log:
 
-I don't think this will cause a significant impact on users, and this will
-only have some impact on the shmem THP collapse.  That is to say, even
-though the shmem sysfs setting does not enable the PMD-sized THP, the
-thp_vma_allowable_order() still indicates that shmem allows PMD-sized
-collapse, meaning it might successfully collapse into THP, or it might not
-(for example, thp_vma_suitable_order() check failed in the collapse
-process).  However, this still does not align with the shmem sysfs
-configuration, fix it.
+  7151 12:46:54.627936  # # #  RUN           merge.handle_uprobe_upon_merged_vma ...
+  7152 12:46:54.639014  # # f /sys/bus/event_source/devices/uprobe/type
+  7153 12:46:54.639306  # # fopen: No such file or directory
+  7154 12:46:54.650451  # # # merge.c:473:handle_uprobe_upon_merged_vma:Expected read_sysfs("/sys/bus/event_source/devices/uprobe/type", &type) (1) == 0 (0)
+  7155 12:46:54.650730  # # # handle_uprobe_upon_merged_vma: Test terminated by assertion
+  7156 12:46:54.661750  # # #          FAIL  merge.handle_uprobe_upon_merged_vma
+  7157 12:46:54.662030  # # not ok 8 merge.handle_uprobe_upon_merged_vma
 
-Link: https://lkml.kernel.org/r/529affb3220153d0d5a542960b535cdfc33f51d7.1749804835.git.baolin.wang@linux.alibaba.com
-Fixes: 26c7d8413aaf ("mm: thp: support "THPeligible" semantics for mTHP with anonymous shmem")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+CONFIG_UPROBES is enabled by CONFIG_UPROBE_EVENTS, which gets enabled by
+CONFIG_FTRACE. Therefore add these configs to selftests/mm/config so that
+CI systems can include this config in the kernel build. To be completely
+safe, add CONFIG_PROFILING too, to enable the dependency chain
+PROFILING -> PERF_EVENTS -> UPROBE_EVENTS -> UPROBES.
+
+Link: https://lkml.kernel.org/r/20250613034912.53791-1-dev.jain@arm.com
+Fixes: efe99fabeb11b ("selftests/mm: add test about uprobe pte be orphan during vma merge")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reported-by: Aishwarya <aishwarya.tcv@arm.com>
+Closes: https://lore.kernel.org/all/20250610103729.72440-1-aishwarya.tcv@arm.com/
+Tested-by: Aishwarya TCV <aishwarya.tcv@arm.com>
+Tested-by : Donet Tom <donettom@linux.ibm.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
+Cc: Pu Lehui <pulehui@huawei.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/config |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem
-+++ a/mm/huge_memory.c
-@@ -166,7 +166,7 @@ unsigned long __thp_vma_allowable_orders
- 	 * own flags.
- 	 */
- 	if (!in_pf && shmem_file(vma->vm_file))
--		return shmem_allowable_huge_orders(file_inode(vma->vm_file),
-+		return orders & shmem_allowable_huge_orders(file_inode(vma->vm_file),
- 						   vma, vma->vm_pgoff, 0,
- 						   !enforce_sysfs);
- 
+--- a/tools/testing/selftests/mm/config~selftests-mm-add-configs-to-fix-testcase-failure
++++ a/tools/testing/selftests/mm/config
+@@ -8,3 +8,6 @@ CONFIG_GUP_TEST=y
+ CONFIG_TRANSPARENT_HUGEPAGE=y
+ CONFIG_MEM_SOFT_DIRTY=y
+ CONFIG_ANON_VMA_NAME=y
++CONFIG_FTRACE=y
++CONFIG_PROFILING=y
++CONFIG_UPROBES=y
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-fix-the-inaccurate-memory-statistics-issue-for-users.patch
-selftests-khugepaged-fix-the-shmem-collapse-failure.patch
-selftests-mm-add-shmem-collapse-as-a-default-test-item.patch
-mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch
+selftests-mm-add-configs-to-fix-testcase-failure.patch
+xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
+mm-call-pointers-to-ptes-as-ptep.patch
+mm-optimize-mremap-by-pte-batching.patch
 
