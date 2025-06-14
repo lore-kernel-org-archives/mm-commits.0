@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E749D195
-	for <mm-commits@vger.kernel.org>; Sat, 14 Jun 2025 00:02:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8679110F2;
+	Sat, 14 Jun 2025 00:12:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749859354; cv=none; b=XRW10qHxG+aAVPtFNBgb0U8268TVJxHzAEw5khOlmUDjkIcZcrSgvxjvKNGR8HmeufQECj8dXasdZPvdEt83GW3tlgdM117xaFoNvk7ETEa7jjHQ7J04lLq3zi5/YUhDU6Cp5FkchJHkk1fmeaZ7F8PnpBz3Sn18DfLflxUZv0I=
+	t=1749859975; cv=none; b=HT5JTJAhpzoV0IKIxPsmiPP84BSUtQ8T408rSY65GlQduqdMqgw4D+K/OW7JJoQNyPwqYfNJiLbZRLGNrD1Lfz/RKxujVI5qDiDDeW50z0430/VXUyhNkUXytPHMqNM+/gBsNxlf/ZCdpcf4mf9pwgEAG5kzfF0sK9dHKeQX49c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749859354; c=relaxed/simple;
-	bh=v1oSiNLx2AlWGXrwqYzlvSwD2jW0MzLb746PtiiufeA=;
-	h=Date:To:From:Subject:Message-Id; b=sLYX3Av37xpEbPt7LrZ6aqs8FR2KLmN0bJyGtebe2YccSMYCYyRuv17mrxBX/PDYVBlqiOFMPXYbPe3bLnIerHDBeb34hAeTOBVC7XSXDxYk5Sl307HqVkXRB4Xg3PaMceLlXSJGSI8dogG4ciSr4L5jLi2RG3Y6G7qsfguj8+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ofWnvgWS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749859975; c=relaxed/simple;
+	bh=IJc5ZHfOGeimAjOuGu5s+foh+4ke5TY1mqPm/hhKO7k=;
+	h=Date:To:From:Subject:Message-Id; b=deUjtZAd6skbtNHZivEE73UPCwq9NEGOQCvju0GtuMa/k2TD+NxK3utMK2wlULXBUGzNBIzXkECXV387C/gWwU3Quz5uBLoZd56abI3l46T0wgQuaxnsOjQdBzqN/cQG485Itu/44a/Fy9wRR9BWIV6O1VyKCdBvGTp/SWoXT6A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QiQPAGtO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ofWnvgWS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 894CCC4CEE3;
-	Sat, 14 Jun 2025 00:02:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QiQPAGtO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04C31C4CEE3;
+	Sat, 14 Jun 2025 00:12:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1749859353;
-	bh=v1oSiNLx2AlWGXrwqYzlvSwD2jW0MzLb746PtiiufeA=;
+	s=korg; t=1749859975;
+	bh=IJc5ZHfOGeimAjOuGu5s+foh+4ke5TY1mqPm/hhKO7k=;
 	h=Date:To:From:Subject:From;
-	b=ofWnvgWShlCXc0E9VsTo+Toy5pspvMVJBBqh8uD6lwm2F+w+RRoWgIYQw11WGRaOc
-	 QYSmdb6GR3h+2WinIuWHGJU0skVMI0TTyROD5pHprxzL4VofZOHZpML3ZLRM11Oo2N
-	 JubaezdLywKYHS2Oodesojh3wTZ15xqgXZBLI/6w=
-Date: Fri, 13 Jun 2025 17:02:32 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=QiQPAGtO8ZdjKoGwSSsK3D6ZNBg7FCrrRHkdf24kY/2va9pgGI3OfgmImTjsjVqYK
+	 3WMHgH5AdeMEi7ULUyjRylc5gjkO+bpxFHaom3WwLZnPUQDjQZ1ynhkXvTe9pX8IEo
+	 8d3MbO08jh0Lqiao9sU9qh8Rf60MnucoAoGrq9Ug=
+Date: Fri, 13 Jun 2025 17:12:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,osalvador@suse.de,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgg@nvidia.com,dev.jain@arm.com,dan.j.williams@intel.com,baolin.wang@linux.alibaba.com,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm.patch added to mm-new branch
-Message-Id: <20250614000233.894CCC4CEE3@smtp.kernel.org>
+Subject: + mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch added to mm-unstable branch
+Message-Id: <20250614001255.04C31C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest/mm: skip if fallocate() is unsupported in gup_longterm
-has been added to the -mm mm-new branch.  Its filename is
-     selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm.patch
+     Subject: mm/huge_memory: don't ignore queried cachemode in vmf_insert_pfn_pud()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,53 +58,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftest/mm: skip if fallocate() is unsupported in gup_longterm
-Date: Fri, 13 Jun 2025 12:44:07 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/huge_memory: don't ignore queried cachemode in vmf_insert_pfn_pud()
+Date: Fri, 13 Jun 2025 11:27:00 +0200
 
-Currently gup_longterm assumes that filesystems support fallocate() and
-uses that to allocate space in files, however this is an optional feature
-and is in particular not implemented by NFSv3 which is commonly used in CI
-systems leading to spurious failures.  Check for lack of support and
-report a skip instead for that case.
+Patch series "mm/huge_memory: vmf_insert_folio_*() and
+vmf_insert_pfn_pud() fixes", v3.
 
-Link: https://lkml.kernel.org/r/20250613-selftest-mm-gup-longterm-fallocate-nfs-v1-1-758a104c175f@kernel.org
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+While working on improving vm_normal_page() and friends, I stumbled over
+this issues: refcounted "normal" folios must not be marked using
+pmd_special() / pud_special().  Otherwise, we're effectively telling the
+system that these folios are no "normal", violating the rules we
+documented for vm_normal_page().
+
+Fortunately, there are not many pmd_special()/pud_special() users yet.  So
+far there doesn't seem to be serious damage.
+
+Tested using the ndctl tests ("ndctl:dax" suite).
+
+
+This patch (of 3):
+
+We set up the cache mode but ...  don't forward the updated pgprot to
+insert_pfn_pud().
+
+Only a problem on x86-64 PAT when mapping PFNs using PUDs that require a
+special cachemode.
+
+Fix it by using the proper pgprot where the cachemode was setup.
+
+It is unclear in which configurations we would get the cachemode wrong:
+through vfio seems possible.  Getting cachemodes wrong is usually ... 
+bad.  As the fix is easy, let's backport it to stable.
+
+Identified by code inspection.
+
+Link: https://lkml.kernel.org/r/20250613092702.1943533-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20250613092702.1943533-2-david@redhat.com
+Fixes: 7b806d229ef1 ("mm: remove vmf_insert_pfn_xxx_prot() for huge page-table entries")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Tested-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/gup_longterm.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/gup_longterm.c~selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -114,7 +114,15 @@ static void do_test(int fd, size_t size,
- 	}
+--- a/mm/huge_memory.c~mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud
++++ a/mm/huge_memory.c
+@@ -1516,10 +1516,9 @@ static pud_t maybe_pud_mkwrite(pud_t pud
+ }
  
- 	if (fallocate(fd, 0, 0, size)) {
--		if (size == pagesize) {
-+		/*
-+		 * Some filesystems (eg, NFSv3) don't support
-+		 * fallocate(), report this as a skip rather than a
-+		 * test failure.
-+		 */
-+		if (errno == EOPNOTSUPP) {
-+			ksft_print_msg("fallocate() not supported by filesystem\n");
-+			result = KSFT_SKIP;
-+		} else if (size == pagesize) {
- 			ksft_print_msg("fallocate() failed (%s)\n", strerror(errno));
- 			result = KSFT_FAIL;
- 		} else {
+ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+-		pud_t *pud, pfn_t pfn, bool write)
++		pud_t *pud, pfn_t pfn, pgprot_t prot, bool write)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+-	pgprot_t prot = vma->vm_page_prot;
+ 	pud_t entry;
+ 
+ 	if (!pud_none(*pud)) {
+@@ -1581,7 +1580,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
+ 	pfnmap_setup_cachemode_pfn(pfn_t_to_pfn(pfn), &pgprot);
+ 
+ 	ptl = pud_lock(vma->vm_mm, vmf->pud);
+-	insert_pfn_pud(vma, addr, vmf->pud, pfn, write);
++	insert_pfn_pud(vma, addr, vmf->pud, pfn, pgprot, write);
+ 	spin_unlock(ptl);
+ 
+ 	return VM_FAULT_NOPAGE;
+@@ -1625,7 +1624,7 @@ vm_fault_t vmf_insert_folio_pud(struct v
+ 		add_mm_counter(mm, mm_counter_file(folio), HPAGE_PUD_NR);
+ 	}
+ 	insert_pfn_pud(vma, addr, vmf->pud, pfn_to_pfn_t(folio_pfn(folio)),
+-		write);
++		       vma->vm_page_prot, write);
+ 	spin_unlock(ptl);
+ 
+ 	return VM_FAULT_NOPAGE;
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-kselftest-mm-clarify-errors-for-pipe.patch
-selftests-mm-convert-some-cow-error-reports-to-ksft_perror.patch
-selftests-mm-dont-compare-return-values-to-in-cow.patch
-selftests-mm-add-messages-about-test-errors-to-the-cow-tests.patch
-selftests-mm-check-for-yama-ptrace_scope-configuraiton-before-modifying-it.patch
-selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm.patch
+mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
+mm-gup-remove-vm_bug_ons.patch
+mm-gup-remove-vm_bug_ons-fix.patch
+mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
+mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pmd.patch
+mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pud.patch
 
