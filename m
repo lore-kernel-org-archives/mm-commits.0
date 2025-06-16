@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBB4C223DD5
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:11:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2371B223DD5
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:11:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750115504; cv=none; b=IEs0bf1mIlRZBKXbgBDkHh8npn0R6GPMTdrb0NHaPaixoSQ3VdcJOVW/mtFFa/aSVJ4twaOPaeECG2Bam5CC+LqhxB+Sxl6TiqhIDUAbTvrfJWgUphiWClsGd30jdRXYmY+Swz5Nsg3z1rChuQTFibTFbd/hH7PbM320n8ylqlA=
+	t=1750115507; cv=none; b=O8/az46zqa3SL8g/Q6pAGd8BNrQ/6zBdkQzTfogge2qUXGR554dowX+aIFeq3PB+eHDt0EQm66Wa4S0qCjPqE1vz37RCXibg6WzAyHt0DXMPmy/o54xysChFEi6hhvs1boqpo223w/AE/8y8QjKHrgk9dEIWmE0hO9AJdvqBoDw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750115504; c=relaxed/simple;
-	bh=oD/NXSroIlZ+G+N4WJhXeZBxmIpq9BHG5J274PiZ5uI=;
-	h=Date:To:From:Subject:Message-Id; b=eu/xf5RO9AJm+kooxIsLQ1Am5j+AMVNqBXBJTrhx9U2i4Rqg2W/dTkSaEozU84ppcLQxDUYGNgJdrlJEM2A/D6L1Hj8q/c/+Kb7Mfryxni8T78XjsrlxuDiWx8JUy02eN48pB55qUdUGmG/EleBbglyCwqJrjJgMOsGMz9FVdPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AEWmia0j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750115507; c=relaxed/simple;
+	bh=S5V4BpFAygLhn7uIPOTp5DMJdd84NOcymzG6OGCnTQY=;
+	h=Date:To:From:Subject:Message-Id; b=axPros1YK6ZRYT6vXyp4ev+mjA3uHQk8Iq1F08Uq5W3Jn55SnzkzsliHR2UrNyQZ7olxOFIi1nt1jkGGGlCNqo2RtwIfZCOikY1+krR40dcZ81O3y/FCr+evMnb+LnVz54UkaHNBXBhRnuj6S6MUlXU94hSJaJ+GjP6j2ifYUto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xJy+tX8c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AEWmia0j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30044C4CEEA;
-	Mon, 16 Jun 2025 23:11:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xJy+tX8c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACF13C4CEEA;
+	Mon, 16 Jun 2025 23:11:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750115504;
-	bh=oD/NXSroIlZ+G+N4WJhXeZBxmIpq9BHG5J274PiZ5uI=;
+	s=korg; t=1750115506;
+	bh=S5V4BpFAygLhn7uIPOTp5DMJdd84NOcymzG6OGCnTQY=;
 	h=Date:To:From:Subject:From;
-	b=AEWmia0jN1QVnZEEcdHipmPXTfYT+cC2IxPls+89ejbNCsm0Te9RtcI8RKp5OnB9A
-	 R9QsaXuJ8ifk+PqI6EdvJjToRrgQ2CKaZfvMAHUtHVlsMYalew0MOxbsuWRdieJw22
-	 ZZoXMZVEwl3CZIbYRqpdTx/VmZrBlXfFnizwhqMI=
-Date: Mon, 16 Jun 2025 16:11:43 -0700
+	b=xJy+tX8c8rZykG/pkckYleS+emcbnRQyUyRgiiYKiFP93K0F73KUkl7oy3uy/k63o
+	 z8QqzqZMauWUtKRoU+jMRHaOfy7hsxD5Cq7SPF05CYqFN8M3bIKrEyZYFWxH46ViUQ
+	 6kc1U3R5X9hXUsACEyTyHLeaxQh0I2uTjk5diKlo=
+Date: Mon, 16 Jun 2025 16:11:46 -0700
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-introduce-generic_file__mmap_prepare-helpers.patch added to mm-new branch
-Message-Id: <20250616231144.30044C4CEEA@smtp.kernel.org>
+Subject: + fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20250616231146.ACF13C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: introduce generic_file_*_mmap_prepare() helpers
+     Subject: fs: convert simple use of generic_file_*_mmap() to .mmap_prepare()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-introduce-generic_file__mmap_prepare-helpers.patch
+     fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-introduce-generic_file__mmap_prepare-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,103 +65,224 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/filemap: introduce generic_file_*_mmap_prepare() helpers
-Date: Mon, 16 Jun 2025 20:33:26 +0100
+Subject: fs: convert simple use of generic_file_*_mmap() to .mmap_prepare()
+Date: Mon, 16 Jun 2025 20:33:27 +0100
 
 Since commit c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file
 callback"), the f_op->mmap() hook has been deprecated in favour of
 f_op->mmap_prepare().
 
-The generic mmap handlers are very simple, so we can very easily convert
-these in advance of converting file systems which use them.
+We have provided generic .mmap_prepare() equivalents, so update all file
+systems that specify these directly in their file_operations structures.
 
-This patch does so.
+This updates 9p, adfs, affs, bfs, fat, hfs, hfsplus, hostfs, hpfs, jffs2,
+jfs, minix, omfs, ramfs and ufs file systems directly.
 
-Link: https://lkml.kernel.org/r/30622c1f0b98c66840bc8c02668bda276a810b70.1750099179.git.lorenzo.stoakes@oracle.com
+It updates generic_ro_fops which impacts qnx4, cramfs, befs, squashfs,
+frebxfs, qnx6, efs, romfs, erofs and isofs file systems.
+
+There are remaining file systems which use generic hooks in a less direct
+way which we address in a subsequent commit.
+
+Link: https://lkml.kernel.org/r/c7dc90e44a9e75e750939ea369290d6e441a18e6.1750099179.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    6 ++++--
- mm/filemap.c       |   29 +++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+), 2 deletions(-)
+ fs/9p/vfs_file.c        |    2 +-
+ fs/adfs/file.c          |    2 +-
+ fs/affs/file.c          |    2 +-
+ fs/bfs/file.c           |    2 +-
+ fs/fat/file.c           |    2 +-
+ fs/hfs/inode.c          |    2 +-
+ fs/hfsplus/inode.c      |    2 +-
+ fs/hostfs/hostfs_kern.c |    2 +-
+ fs/hpfs/file.c          |    2 +-
+ fs/jffs2/file.c         |    2 +-
+ fs/jfs/file.c           |    2 +-
+ fs/minix/file.c         |    2 +-
+ fs/omfs/file.c          |    2 +-
+ fs/ramfs/file-mmu.c     |    2 +-
+ fs/read_write.c         |    2 +-
+ fs/ufs/file.c           |    2 +-
+ 16 files changed, 16 insertions(+), 16 deletions(-)
 
---- a/include/linux/fs.h~mm-filemap-introduce-generic_file__mmap_prepare-helpers
-+++ a/include/linux/fs.h
-@@ -3395,8 +3395,10 @@ extern void inode_add_lru(struct inode *
- extern int sb_set_blocksize(struct super_block *, int);
- extern int sb_min_blocksize(struct super_block *, int);
+--- a/fs/9p/vfs_file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/9p/vfs_file.c
+@@ -516,7 +516,7 @@ const struct file_operations v9fs_file_o
+ 	.open = v9fs_file_open,
+ 	.release = v9fs_dir_release,
+ 	.lock = v9fs_file_lock,
+-	.mmap = generic_file_readonly_mmap,
++	.mmap_prepare = generic_file_readonly_mmap_prepare,
+ 	.splice_read = v9fs_file_splice_read,
+ 	.splice_write = iter_file_splice_write,
+ 	.fsync = v9fs_file_fsync,
+--- a/fs/adfs/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/adfs/file.c
+@@ -25,7 +25,7 @@
+ const struct file_operations adfs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.fsync		= generic_file_fsync,
+ 	.write_iter	= generic_file_write_iter,
+ 	.splice_read	= filemap_splice_read,
+--- a/fs/affs/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/affs/file.c
+@@ -999,7 +999,7 @@ const struct file_operations affs_file_o
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.open		= affs_file_open,
+ 	.release	= affs_file_release,
+ 	.fsync		= affs_file_fsync,
+--- a/fs/bfs/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/bfs/file.c
+@@ -27,7 +27,7 @@ const struct file_operations bfs_file_op
+ 	.llseek 	= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.splice_read	= filemap_splice_read,
+ };
  
--extern int generic_file_mmap(struct file *, struct vm_area_struct *);
--extern int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
-+int generic_file_mmap(struct file *, struct vm_area_struct *);
-+int generic_file_mmap_prepare(struct vm_area_desc *desc);
-+int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
-+int generic_file_readonly_mmap_prepare(struct vm_area_desc *desc);
- extern ssize_t generic_write_checks(struct kiocb *, struct iov_iter *);
- int generic_write_checks_count(struct kiocb *iocb, loff_t *count);
- extern int generic_write_check_limits(struct file *file, loff_t pos,
---- a/mm/filemap.c~mm-filemap-introduce-generic_file__mmap_prepare-helpers
-+++ a/mm/filemap.c
-@@ -3847,6 +3847,18 @@ int generic_file_mmap(struct file *file,
- 	return 0;
- }
+--- a/fs/fat/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/fat/file.c
+@@ -204,7 +204,7 @@ const struct file_operations fat_file_op
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.release	= fat_file_release,
+ 	.unlocked_ioctl	= fat_generic_ioctl,
+ 	.compat_ioctl	= compat_ptr_ioctl,
+--- a/fs/hfs/inode.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/hfs/inode.c
+@@ -690,7 +690,7 @@ static const struct file_operations hfs_
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.splice_read	= filemap_splice_read,
+ 	.fsync		= hfs_file_fsync,
+ 	.open		= hfs_file_open,
+--- a/fs/hfsplus/inode.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/hfsplus/inode.c
+@@ -366,7 +366,7 @@ static const struct file_operations hfsp
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.splice_read	= filemap_splice_read,
+ 	.fsync		= hfsplus_file_fsync,
+ 	.open		= hfsplus_file_open,
+--- a/fs/hostfs/hostfs_kern.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/hostfs/hostfs_kern.c
+@@ -382,7 +382,7 @@ static const struct file_operations host
+ 	.splice_write	= iter_file_splice_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.open		= hostfs_open,
+ 	.release	= hostfs_file_release,
+ 	.fsync		= hostfs_fsync,
+--- a/fs/hpfs/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/hpfs/file.c
+@@ -255,7 +255,7 @@ const struct file_operations hpfs_file_o
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.release	= hpfs_file_release,
+ 	.fsync		= hpfs_file_fsync,
+ 	.splice_read	= filemap_splice_read,
+--- a/fs/jffs2/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/jffs2/file.c
+@@ -54,7 +54,7 @@ const struct file_operations jffs2_file_
+  	.read_iter =	generic_file_read_iter,
+  	.write_iter =	generic_file_write_iter,
+ 	.unlocked_ioctl=jffs2_ioctl,
+-	.mmap =		generic_file_readonly_mmap,
++	.mmap_prepare =	generic_file_readonly_mmap_prepare,
+ 	.fsync =	jffs2_fsync,
+ 	.splice_read =	filemap_splice_read,
+ 	.splice_write = iter_file_splice_write,
+--- a/fs/jfs/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/jfs/file.c
+@@ -143,7 +143,7 @@ const struct file_operations jfs_file_op
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.splice_read	= filemap_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ 	.fsync		= jfs_fsync,
+--- a/fs/minix/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/minix/file.c
+@@ -17,7 +17,7 @@ const struct file_operations minix_file_
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.fsync		= generic_file_fsync,
+ 	.splice_read	= filemap_splice_read,
+ };
+--- a/fs/omfs/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/omfs/file.c
+@@ -332,7 +332,7 @@ const struct file_operations omfs_file_o
+ 	.llseek = generic_file_llseek,
+ 	.read_iter = generic_file_read_iter,
+ 	.write_iter = generic_file_write_iter,
+-	.mmap = generic_file_mmap,
++	.mmap_prepare = generic_file_mmap_prepare,
+ 	.fsync = generic_file_fsync,
+ 	.splice_read = filemap_splice_read,
+ };
+--- a/fs/ramfs/file-mmu.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/ramfs/file-mmu.c
+@@ -41,7 +41,7 @@ static unsigned long ramfs_mmu_get_unmap
+ const struct file_operations ramfs_file_operations = {
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.fsync		= noop_fsync,
+ 	.splice_read	= filemap_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+--- a/fs/read_write.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/read_write.c
+@@ -28,7 +28,7 @@
+ const struct file_operations generic_ro_fops = {
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+-	.mmap		= generic_file_readonly_mmap,
++	.mmap_prepare	= generic_file_readonly_mmap_prepare,
+ 	.splice_read	= filemap_splice_read,
+ };
  
-+int generic_file_mmap_prepare(struct vm_area_desc *desc)
-+{
-+	struct file *file = desc->file;
-+	struct address_space *mapping = file->f_mapping;
-+
-+	if (!mapping->a_ops->read_folio)
-+		return -ENOEXEC;
-+	file_accessed(file);
-+	desc->vm_ops = &generic_file_vm_ops;
-+	return 0;
-+}
-+
- /*
-  * This is for filesystems which do not implement ->writepage.
-  */
-@@ -3856,6 +3868,13 @@ int generic_file_readonly_mmap(struct fi
- 		return -EINVAL;
- 	return generic_file_mmap(file, vma);
- }
-+
-+int generic_file_readonly_mmap_prepare(struct vm_area_desc *desc)
-+{
-+	if (is_shared_maywrite(desc->vm_flags))
-+		return -EINVAL;
-+	return generic_file_mmap_prepare(desc);
-+}
- #else
- vm_fault_t filemap_page_mkwrite(struct vm_fault *vmf)
- {
-@@ -3865,15 +3884,25 @@ int generic_file_mmap(struct file *file,
- {
- 	return -ENOSYS;
- }
-+int generic_file_mmap_prepare(struct vm_area_desc *desc)
-+{
-+	return -ENOSYS;
-+}
- int generic_file_readonly_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	return -ENOSYS;
- }
-+int generic_file_readonly_mmap_prepare(struct vm_area_desc *desc)
-+{
-+	return -ENOSYS;
-+}
- #endif /* CONFIG_MMU */
- 
- EXPORT_SYMBOL(filemap_page_mkwrite);
- EXPORT_SYMBOL(generic_file_mmap);
-+EXPORT_SYMBOL(generic_file_mmap_prepare);
- EXPORT_SYMBOL(generic_file_readonly_mmap);
-+EXPORT_SYMBOL(generic_file_readonly_mmap_prepare);
- 
- static struct folio *do_read_cache_folio(struct address_space *mapping,
- 		pgoff_t index, filler_t filler, struct file *file, gfp_t gfp)
+--- a/fs/ufs/file.c~fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare
++++ a/fs/ufs/file.c
+@@ -38,7 +38,7 @@ const struct file_operations ufs_file_op
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
++	.mmap_prepare	= generic_file_mmap_prepare,
+ 	.open           = generic_file_open,
+ 	.fsync		= generic_file_fsync,
+ 	.splice_read	= filemap_splice_read,
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
