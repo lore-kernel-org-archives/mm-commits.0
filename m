@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F043223DD5
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:11:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 128B92264B3
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:12:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750115515; cv=none; b=RmkFaftIC6i/LN41bONPIoOOatFzKNEVgB6TX/TNwW+0fjv//cxTXBJdAAAXLhxbZUIHUxtqc6eqYXpQ1pet6ya1GyzBSlHGrn7AgYTr4w30zECUHRLGuwuEHFPV39ZpA9MWMGpT773jTRN8k69DQEn/uuINgbp7cDNU8Lr6aeE=
+	t=1750115522; cv=none; b=ZSSR/Xjl/RDNbZqmjMtHofvhwAuF8mXjfAY6MwT23m6vlSVI3n6d/0btFo6CK0WdsKYmjm+5sKftlW2qyElBr3w1DIq5Yyxf4v6+CcnLNHEmTvmwrlVSJanHbeQQ7FW0zwKBHDAPB03LmwMvkKbTRbGX737cYbw+hF5DZ92/g24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750115515; c=relaxed/simple;
-	bh=f5mmI39uIs0e3M4f4Co1lOXWTMC/H7sw7j0CCUinMfI=;
-	h=Date:To:From:Subject:Message-Id; b=FGjrNm9kZ2lcN8fAX6c3RhDwco2QEEKZ3WIHCtxATgnx24WaNYF6894/qf2EBzddV23elJhjHS2EZEno1KmL9kAf30CsWdL+PNJcrlqV0frQBaXhVRPUiecs9Itsz+GpArKbSa7urYBREApS5kQTuoolHGI5R66lDn4EvMSqG3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g46gCg90; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750115522; c=relaxed/simple;
+	bh=54jinsUbib1USzFPudIHND2GgsnHFMGgQVo0PLoesUA=;
+	h=Date:To:From:Subject:Message-Id; b=Yp4/iESxe7il3GQBYY9Pw31bfifdJdieB6WNndts20Y7Oh49fjPX1+YOdoV45DNvIlrQ+3RXONxFK1iix1Th0S7LT1or5fh6n05Bmq6Dz5zURVukgZEc8N6aDyP+wUU54NxhnVNkRRn3VKPq1PVH8qenTqPfJ+HP/CQKSpl8Iqk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FKMnJzLw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g46gCg90"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA356C4CEEA;
-	Mon, 16 Jun 2025 23:11:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FKMnJzLw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D746AC4CEEA;
+	Mon, 16 Jun 2025 23:12:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750115514;
-	bh=f5mmI39uIs0e3M4f4Co1lOXWTMC/H7sw7j0CCUinMfI=;
+	s=korg; t=1750115521;
+	bh=54jinsUbib1USzFPudIHND2GgsnHFMGgQVo0PLoesUA=;
 	h=Date:To:From:Subject:From;
-	b=g46gCg90w/MNH09JYX0Hx5qgyKdlXTP60ZVvJDpDgw8hlNO2Gm/75PcoBCq4IoYnM
-	 tiOwOgMjaPsdJdJuYzmt1x24Q4mPh1b2nhO4mR84jWv4yqGQcc6tF7gHvwCIWy1sGA
-	 beuRShtrNaMpDiGp8ymfkvjFG/MyXKcrY+OLQwtQ=
-Date: Mon, 16 Jun 2025 16:11:53 -0700
+	b=FKMnJzLw3Gg1POzA3mjJ1P8UTMwpT5fUSVQw1AcnuquvmPCN6mz7CGxcgi7NaanUu
+	 IniI0LOFVw77gRByPdIHiklBlXpZwqcz7qVMlCc/c1ukmE7kOIUYqZ1B7Yd1PznIMd
+	 ErBg92QUsk3KW/yuUJm1fM0MxDdYM1obDoEhIHbU=
+Date: Mon, 16 Jun 2025 16:12:01 -0700
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20250616231154.AA356C4CEEA@smtp.kernel.org>
+Subject: + fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings.patch added to mm-new branch
+Message-Id: <20250616231201.D746AC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: convert most other generic_file_*mmap() users to .mmap_prepare()
+     Subject: fs: replace mmap hook with .mmap_prepare for simple mappings
 has been added to the -mm mm-new branch.  Its filename is
-     fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare.patch
+     fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,517 +65,444 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: fs: convert most other generic_file_*mmap() users to .mmap_prepare()
-Date: Mon, 16 Jun 2025 20:33:28 +0100
+Subject: fs: replace mmap hook with .mmap_prepare for simple mappings
+Date: Mon, 16 Jun 2025 20:33:29 +0100
 
-Update nearly all generic_file_mmap() and generic_file_readonly_mmap()
-callers to use generic_file_mmap_prepare() and
-generic_file_readonly_mmap_prepare() respectively.
+Since commit c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file
+callback"), the f_op->mmap() hook has been deprecated in favour of
+f_op->mmap_prepare().
 
-We update blkdev, 9p, afs, erofs, ext2, nfs, ntfs3, smb, ubifs and vboxsf
-file systems this way.
+This callback is invoked in the mmap() logic far earlier, so error
+handling can be performed more safely without complicated and bug-prone
+state unwinding required should an error arise.
 
-Remaining users we cannot yet update are ecryptfs, fuse and cramfs.  The
-former two are nested file systems that must support any underlying file
-ssytem, and cramfs inserts a mixed mapping which currently requires a VMA.
+This hook also avoids passing a pointer to a not-yet-correctly-established
+VMA avoiding any issues with referencing this data structure.
 
-Once all file systems have been converted to mmap_prepare(), we can then
-update nested file systems.
+It rather provides a pointer to the new struct vm_area_desc descriptor
+type which contains all required state and allows easy setting of required
+parameters without any consideration needing to be paid to locking or
+reference counts.
 
-Link: https://lkml.kernel.org/r/08db85970d89b17a995d2cffae96fb4cc462377f.1750099179.git.lorenzo.stoakes@oracle.com
+Note that nested filesystems like overlayfs are compatible with an
+.mmap_prepare() callback since commit bb666b7c2707 ("mm: add
+mmap_prepare() compatibility layer for nested file systems").
+
+In this patch we apply this change to file systems with relatively simple
+mmap() hook logic - exfat, ceph, f2fs, bcachefs, zonefs, btrfs, ocfs2,
+orangefs, nilfs2, romfs, ramfs and aio.
+
+Link: https://lkml.kernel.org/r/f528ac4f35b9378931bd800920fee53fc0c5c74d.1750099179.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/fops.c           |    9 +++++----
- fs/9p/vfs_file.c       |   11 ++++++-----
- fs/afs/file.c          |   11 ++++++-----
- fs/erofs/data.c        |   16 +++++++++-------
- fs/ext2/file.c         |   12 +++++++-----
- fs/nfs/file.c          |   13 +++++++------
- fs/nfs/internal.h      |    2 +-
- fs/nfs/nfs4file.c      |    2 +-
- fs/ntfs3/file.c        |   15 ++++++++-------
- fs/smb/client/cifsfs.c |   12 ++++++------
- fs/smb/client/cifsfs.h |    4 ++--
- fs/smb/client/file.c   |   14 ++++++++------
- fs/ubifs/file.c        |    8 ++++----
- fs/vboxsf/file.c       |    8 ++++----
- 14 files changed, 74 insertions(+), 63 deletions(-)
+ fs/aio.c              |    8 ++++----
+ fs/bcachefs/fs.c      |    8 ++++----
+ fs/btrfs/file.c       |    7 ++++---
+ fs/ceph/addr.c        |    5 +++--
+ fs/ceph/file.c        |    2 +-
+ fs/ceph/super.h       |    2 +-
+ fs/exfat/file.c       |    7 ++++---
+ fs/f2fs/file.c        |    7 ++++---
+ fs/nilfs2/file.c      |    8 ++++----
+ fs/ocfs2/file.c       |    4 ++--
+ fs/ocfs2/mmap.c       |    5 +++--
+ fs/ocfs2/mmap.h       |    2 +-
+ fs/orangefs/file.c    |   10 ++++++----
+ fs/ramfs/file-nommu.c |   12 ++++++------
+ fs/romfs/mmap-nommu.c |    6 +++---
+ fs/zonefs/file.c      |   10 ++++++----
+ 16 files changed, 56 insertions(+), 47 deletions(-)
 
---- a/block/fops.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/block/fops.c
-@@ -911,14 +911,15 @@ static long blkdev_fallocate(struct file
- 	return error;
- }
- 
--static int blkdev_mmap(struct file *file, struct vm_area_struct *vma)
-+static int blkdev_mmap_prepare(struct vm_area_desc *desc)
- {
-+	struct file *file = desc->file;
- 	struct inode *bd_inode = bdev_file_inode(file);
- 
- 	if (bdev_read_only(I_BDEV(bd_inode)))
--		return generic_file_readonly_mmap(file, vma);
-+		return generic_file_readonly_mmap_prepare(desc);
- 
--	return generic_file_mmap(file, vma);
-+	return generic_file_mmap_prepare(desc);
- }
- 
- const struct file_operations def_blk_fops = {
-@@ -928,7 +929,7 @@ const struct file_operations def_blk_fop
- 	.read_iter	= blkdev_read_iter,
- 	.write_iter	= blkdev_write_iter,
- 	.iopoll		= iocb_bio_iopoll,
--	.mmap		= blkdev_mmap,
-+	.mmap_prepare	= blkdev_mmap_prepare,
- 	.fsync		= blkdev_fsync,
- 	.unlocked_ioctl	= blkdev_ioctl,
- #ifdef CONFIG_COMPAT
---- a/fs/9p/vfs_file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/9p/vfs_file.c
-@@ -454,9 +454,10 @@ int v9fs_file_fsync_dotl(struct file *fi
- }
- 
- static int
--v9fs_file_mmap(struct file *filp, struct vm_area_struct *vma)
-+v9fs_file_mmap_prepare(struct vm_area_desc *desc)
- {
- 	int retval;
-+	struct file *filp = desc->file;
- 	struct inode *inode = file_inode(filp);
- 	struct v9fs_session_info *v9ses = v9fs_inode2v9ses(inode);
- 
-@@ -464,12 +465,12 @@ v9fs_file_mmap(struct file *filp, struct
- 
- 	if (!(v9ses->cache & CACHE_WRITEBACK)) {
- 		p9_debug(P9_DEBUG_CACHE, "(read-only mmap mode)");
--		return generic_file_readonly_mmap(filp, vma);
-+		return generic_file_readonly_mmap_prepare(desc);
- 	}
- 
--	retval = generic_file_mmap(filp, vma);
-+	retval = generic_file_mmap_prepare(desc);
- 	if (!retval)
--		vma->vm_ops = &v9fs_mmap_file_vm_ops;
-+		desc->vm_ops = &v9fs_mmap_file_vm_ops;
- 
- 	return retval;
- }
-@@ -531,7 +532,7 @@ const struct file_operations v9fs_file_o
- 	.release = v9fs_dir_release,
- 	.lock = v9fs_file_lock_dotl,
- 	.flock = v9fs_file_flock_dotl,
--	.mmap = v9fs_file_mmap,
-+	.mmap_prepare = v9fs_file_mmap_prepare,
- 	.splice_read = v9fs_file_splice_read,
- 	.splice_write = iter_file_splice_write,
- 	.fsync = v9fs_file_fsync_dotl,
---- a/fs/afs/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/afs/file.c
-@@ -19,7 +19,7 @@
- #include <trace/events/netfs.h>
- #include "internal.h"
- 
--static int afs_file_mmap(struct file *file, struct vm_area_struct *vma);
-+static int afs_file_mmap_prepare(struct vm_area_desc *desc);
- 
- static ssize_t afs_file_read_iter(struct kiocb *iocb, struct iov_iter *iter);
- static ssize_t afs_file_splice_read(struct file *in, loff_t *ppos,
-@@ -35,7 +35,7 @@ const struct file_operations afs_file_op
- 	.llseek		= generic_file_llseek,
- 	.read_iter	= afs_file_read_iter,
- 	.write_iter	= netfs_file_write_iter,
--	.mmap		= afs_file_mmap,
-+	.mmap_prepare	= afs_file_mmap_prepare,
- 	.splice_read	= afs_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
- 	.fsync		= afs_fsync,
-@@ -492,16 +492,17 @@ static void afs_drop_open_mmap(struct af
- /*
-  * Handle setting up a memory mapping on an AFS file.
-  */
--static int afs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+static int afs_file_mmap_prepare(struct vm_area_desc *desc)
- {
-+	struct file *file = desc->file;
- 	struct afs_vnode *vnode = AFS_FS_I(file_inode(file));
- 	int ret;
- 
- 	afs_add_open_mmap(vnode);
- 
--	ret = generic_file_mmap(file, vma);
-+	ret = generic_file_mmap_prepare(desc);
- 	if (ret == 0)
--		vma->vm_ops = &afs_vm_ops;
-+		desc->vm_ops = &afs_vm_ops;
- 	else
- 		afs_drop_open_mmap(vnode);
- 	return ret;
---- a/fs/erofs/data.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/erofs/data.c
-@@ -409,20 +409,22 @@ static const struct vm_operations_struct
- 	.huge_fault	= erofs_dax_huge_fault,
+--- a/fs/aio.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/aio.c
+@@ -392,15 +392,15 @@ static const struct vm_operations_struct
+ #endif
  };
  
--static int erofs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+static int erofs_file_mmap_prepare(struct vm_area_desc *desc)
+-static int aio_ring_mmap(struct file *file, struct vm_area_struct *vma)
++static int aio_ring_mmap_prepare(struct vm_area_desc *desc)
  {
-+	struct file *file = desc->file;
-+
- 	if (!IS_DAX(file_inode(file)))
--		return generic_file_readonly_mmap(file, vma);
-+		return generic_file_readonly_mmap_prepare(desc);
- 
--	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_MAYWRITE))
-+	if ((desc->vm_flags & VM_SHARED) && (desc->vm_flags & VM_MAYWRITE))
- 		return -EINVAL;
- 
--	vma->vm_ops = &erofs_dax_vm_ops;
--	vm_flags_set(vma, VM_HUGEPAGE);
-+	desc->vm_ops = &erofs_dax_vm_ops;
-+	desc->vm_flags |= VM_HUGEPAGE;
+-	vm_flags_set(vma, VM_DONTEXPAND);
+-	vma->vm_ops = &aio_ring_vm_ops;
++	desc->vm_flags |= VM_DONTEXPAND;
++	desc->vm_ops = &aio_ring_vm_ops;
  	return 0;
  }
- #else
--#define erofs_file_mmap	generic_file_readonly_mmap
-+#define erofs_file_mmap_prepare	generic_file_readonly_mmap_prepare
- #endif
  
- static loff_t erofs_file_llseek(struct file *file, loff_t offset, int whence)
-@@ -452,7 +454,7 @@ static loff_t erofs_file_llseek(struct f
- const struct file_operations erofs_file_fops = {
- 	.llseek		= erofs_file_llseek,
- 	.read_iter	= erofs_file_read_iter,
--	.mmap		= erofs_file_mmap,
-+	.mmap_prepare	= erofs_file_mmap_prepare,
+ static const struct file_operations aio_ring_fops = {
+-	.mmap = aio_ring_mmap,
++	.mmap_prepare = aio_ring_mmap_prepare,
+ };
+ 
+ #if IS_ENABLED(CONFIG_MIGRATION)
+--- a/fs/bcachefs/fs.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/bcachefs/fs.c
+@@ -1553,11 +1553,11 @@ static const struct vm_operations_struct
+ 	.page_mkwrite   = bch2_page_mkwrite,
+ };
+ 
+-static int bch2_mmap(struct file *file, struct vm_area_struct *vma)
++static int bch2_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	file_accessed(file);
++	file_accessed(desc->file);
+ 
+-	vma->vm_ops = &bch_vm_ops;
++	desc->vm_ops = &bch_vm_ops;
+ 	return 0;
+ }
+ 
+@@ -1740,7 +1740,7 @@ static const struct file_operations bch_
+ 	.llseek		= bch2_llseek,
+ 	.read_iter	= bch2_read_iter,
+ 	.write_iter	= bch2_write_iter,
+-	.mmap		= bch2_mmap,
++	.mmap_prepare	= bch2_mmap_prepare,
  	.get_unmapped_area = thp_get_unmapped_area,
+ 	.fsync		= bch2_fsync,
  	.splice_read	= filemap_splice_read,
- };
---- a/fs/ext2/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/ext2/file.c
-@@ -122,17 +122,19 @@ static const struct vm_operations_struct
- 	.pfn_mkwrite	= ext2_dax_fault,
+--- a/fs/btrfs/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/btrfs/file.c
+@@ -1978,15 +1978,16 @@ static const struct vm_operations_struct
+ 	.page_mkwrite	= btrfs_page_mkwrite,
  };
  
--static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
-+static int ext2_file_mmap_prepare(struct vm_area_desc *desc)
+-static int btrfs_file_mmap(struct file	*filp, struct vm_area_struct *vma)
++static int btrfs_file_mmap_prepare(struct vm_area_desc *desc)
+ {
++	struct file *filp = desc->file;
+ 	struct address_space *mapping = filp->f_mapping;
+ 
+ 	if (!mapping->a_ops->read_folio)
+ 		return -ENOEXEC;
+ 
+ 	file_accessed(filp);
+-	vma->vm_ops = &btrfs_file_vm_ops;
++	desc->vm_ops = &btrfs_file_vm_ops;
+ 
+ 	return 0;
+ }
+@@ -3765,7 +3766,7 @@ const struct file_operations btrfs_file_
+ 	.splice_read	= filemap_splice_read,
+ 	.write_iter	= btrfs_file_write_iter,
+ 	.splice_write	= iter_file_splice_write,
+-	.mmap		= btrfs_file_mmap,
++	.mmap_prepare	= btrfs_file_mmap_prepare,
+ 	.open		= btrfs_file_open,
+ 	.release	= btrfs_release_file,
+ 	.get_unmapped_area = thp_get_unmapped_area,
+--- a/fs/ceph/addr.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/ceph/addr.c
+@@ -2330,13 +2330,14 @@ static const struct vm_operations_struct
+ 	.page_mkwrite	= ceph_page_mkwrite,
+ };
+ 
+-int ceph_mmap(struct file *file, struct vm_area_struct *vma)
++int ceph_mmap_prepare(struct vm_area_desc *desc)
  {
 +	struct file *file = desc->file;
-+
- 	if (!IS_DAX(file_inode(file)))
--		return generic_file_mmap(file, vma);
-+		return generic_file_mmap_prepare(desc);
+ 	struct address_space *mapping = file->f_mapping;
+ 
+ 	if (!mapping->a_ops->read_folio)
+ 		return -ENOEXEC;
+-	vma->vm_ops = &ceph_vmops;
++	desc->vm_ops = &ceph_vmops;
+ 	return 0;
+ }
+ 
+--- a/fs/ceph/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/ceph/file.c
+@@ -3170,7 +3170,7 @@ const struct file_operations ceph_file_f
+ 	.llseek = ceph_llseek,
+ 	.read_iter = ceph_read_iter,
+ 	.write_iter = ceph_write_iter,
+-	.mmap = ceph_mmap,
++	.mmap_prepare = ceph_mmap_prepare,
+ 	.fsync = ceph_fsync,
+ 	.lock = ceph_lock,
+ 	.setlease = simple_nosetlease,
+--- a/fs/ceph/super.h~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/ceph/super.h
+@@ -1286,7 +1286,7 @@ extern void __ceph_touch_fmode(struct ce
+ /* addr.c */
+ extern const struct address_space_operations ceph_aops;
+ extern const struct netfs_request_ops ceph_netfs_ops;
+-extern int ceph_mmap(struct file *file, struct vm_area_struct *vma);
++int ceph_mmap_prepare(struct vm_area_desc *desc);
+ extern int ceph_uninline_data(struct file *file);
+ extern int ceph_pool_perm_check(struct inode *inode, int need);
+ extern void ceph_pool_perm_destroy(struct ceph_mds_client* mdsc);
+--- a/fs/exfat/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/exfat/file.c
+@@ -683,13 +683,14 @@ static const struct vm_operations_struct
+ 	.page_mkwrite	= exfat_page_mkwrite,
+ };
+ 
+-static int exfat_file_mmap(struct file *file, struct vm_area_struct *vma)
++static int exfat_file_mmap_prepare(struct vm_area_desc *desc)
+ {
++	struct file *file = desc->file;
+ 	if (unlikely(exfat_forced_shutdown(file_inode(file)->i_sb)))
+ 		return -EIO;
  
  	file_accessed(file);
--	vma->vm_ops = &ext2_dax_vm_ops;
-+	desc->vm_ops = &ext2_dax_vm_ops;
+-	vma->vm_ops = &exfat_file_vm_ops;
++	desc->vm_ops = &exfat_file_vm_ops;
  	return 0;
  }
- #else
--#define ext2_file_mmap	generic_file_mmap
-+#define ext2_file_mmap_prepare	generic_file_mmap_prepare
- #endif
  
- /*
-@@ -316,7 +318,7 @@ const struct file_operations ext2_file_o
+@@ -710,7 +711,7 @@ const struct file_operations exfat_file_
  #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext2_compat_ioctl,
+ 	.compat_ioctl = exfat_compat_ioctl,
  #endif
--	.mmap		= ext2_file_mmap,
-+	.mmap_prepare	= ext2_file_mmap_prepare,
- 	.open		= ext2_file_open,
- 	.release	= ext2_release_file,
- 	.fsync		= ext2_fsync,
---- a/fs/nfs/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/nfs/file.c
-@@ -207,24 +207,25 @@ nfs_file_splice_read(struct file *in, lo
- EXPORT_SYMBOL_GPL(nfs_file_splice_read);
+-	.mmap		= exfat_file_mmap,
++	.mmap_prepare	= exfat_file_mmap_prepare,
+ 	.fsync		= exfat_file_fsync,
+ 	.splice_read	= exfat_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+--- a/fs/f2fs/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/f2fs/file.c
+@@ -532,8 +532,9 @@ static loff_t f2fs_llseek(struct file *f
+ 	return -EINVAL;
+ }
  
- int
--nfs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+nfs_file_mmap_prepare(struct vm_area_desc *desc)
+-static int f2fs_file_mmap(struct file *file, struct vm_area_struct *vma)
++static int f2fs_file_mmap_prepare(struct vm_area_desc *desc)
  {
 +	struct file *file = desc->file;
  	struct inode *inode = file_inode(file);
- 	int	status;
  
- 	dprintk("NFS: mmap(%pD2)\n", file);
+ 	if (unlikely(f2fs_cp_error(F2FS_I_SB(inode))))
+@@ -543,7 +544,7 @@ static int f2fs_file_mmap(struct file *f
+ 		return -EOPNOTSUPP;
  
--	/* Note: generic_file_mmap() returns ENOSYS on nommu systems
-+	/* Note: generic_file_mmap_prepare() returns ENOSYS on nommu systems
- 	 *       so we call that before revalidating the mapping
- 	 */
--	status = generic_file_mmap(file, vma);
-+	status = generic_file_mmap_prepare(desc);
- 	if (!status) {
--		vma->vm_ops = &nfs_file_vm_ops;
-+		desc->vm_ops = &nfs_file_vm_ops;
- 		status = nfs_revalidate_mapping(inode, file->f_mapping);
- 	}
- 	return status;
- }
--EXPORT_SYMBOL_GPL(nfs_file_mmap);
-+EXPORT_SYMBOL_GPL(nfs_file_mmap_prepare);
+ 	file_accessed(file);
+-	vma->vm_ops = &f2fs_file_vm_ops;
++	desc->vm_ops = &f2fs_file_vm_ops;
  
- /*
-  * Flush any dirty pages for this process, and check for write errors.
-@@ -899,7 +900,7 @@ const struct file_operations nfs_file_op
- 	.llseek		= nfs_file_llseek,
- 	.read_iter	= nfs_file_read,
- 	.write_iter	= nfs_file_write,
--	.mmap		= nfs_file_mmap,
-+	.mmap_prepare	= nfs_file_mmap_prepare,
- 	.open		= nfs_file_open,
- 	.flush		= nfs_file_flush,
- 	.release	= nfs_file_release,
---- a/fs/nfs/internal.h~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/nfs/internal.h
-@@ -432,7 +432,7 @@ loff_t nfs_file_llseek(struct file *, lo
- ssize_t nfs_file_read(struct kiocb *, struct iov_iter *);
- ssize_t nfs_file_splice_read(struct file *in, loff_t *ppos, struct pipe_inode_info *pipe,
- 			     size_t len, unsigned int flags);
--int nfs_file_mmap(struct file *, struct vm_area_struct *);
-+int nfs_file_mmap_prepare(struct vm_area_desc *);
- ssize_t nfs_file_write(struct kiocb *, struct iov_iter *);
- int nfs_file_release(struct inode *, struct file *);
- int nfs_lock(struct file *, int, struct file_lock *);
---- a/fs/nfs/nfs4file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/nfs/nfs4file.c
-@@ -456,7 +456,7 @@ static int nfs4_setlease(struct file *fi
- const struct file_operations nfs4_file_operations = {
- 	.read_iter	= nfs_file_read,
- 	.write_iter	= nfs_file_write,
--	.mmap		= nfs_file_mmap,
-+	.mmap_prepare	= nfs_file_mmap_prepare,
- 	.open		= nfs4_file_open,
- 	.flush		= nfs4_file_flush,
- 	.release	= nfs_file_release,
---- a/fs/ntfs3/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/ntfs3/file.c
-@@ -261,14 +261,15 @@ out:
+ 	f2fs_down_read(&F2FS_I(inode)->i_sem);
+ 	set_inode_flag(inode, FI_MMAP_FILE);
+@@ -5376,7 +5377,7 @@ const struct file_operations f2fs_file_o
+ 	.iopoll		= iocb_bio_iopoll,
+ 	.open		= f2fs_file_open,
+ 	.release	= f2fs_release_file,
+-	.mmap		= f2fs_file_mmap,
++	.mmap_prepare	= f2fs_file_mmap_prepare,
+ 	.flush		= f2fs_file_flush,
+ 	.fsync		= f2fs_sync_file,
+ 	.fallocate	= f2fs_fallocate,
+--- a/fs/nilfs2/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/nilfs2/file.c
+@@ -125,10 +125,10 @@ static const struct vm_operations_struct
+ 	.page_mkwrite	= nilfs_page_mkwrite,
+ };
+ 
+-static int nilfs_file_mmap(struct file *file, struct vm_area_struct *vma)
++static int nilfs_file_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	file_accessed(file);
+-	vma->vm_ops = &nilfs_file_vm_ops;
++	file_accessed(desc->file);
++	desc->vm_ops = &nilfs_file_vm_ops;
+ 	return 0;
  }
  
- /*
-- * ntfs_file_mmap - file_operations::mmap
-+ * ntfs_file_mmap_prepare - file_operations::mmap_prepare
+@@ -144,7 +144,7 @@ const struct file_operations nilfs_file_
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= nilfs_compat_ioctl,
+ #endif	/* CONFIG_COMPAT */
+-	.mmap		= nilfs_file_mmap,
++	.mmap_prepare	= nilfs_file_mmap_prepare,
+ 	.open		= generic_file_open,
+ 	/* .release	= nilfs_release_file, */
+ 	.fsync		= nilfs_sync_file,
+--- a/fs/ocfs2/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/ocfs2/file.c
+@@ -2800,7 +2800,7 @@ const struct inode_operations ocfs2_spec
   */
--static int ntfs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+static int ntfs_file_mmap_prepare(struct vm_area_desc *desc)
+ const struct file_operations ocfs2_fops = {
+ 	.llseek		= ocfs2_file_llseek,
+-	.mmap		= ocfs2_mmap,
++	.mmap_prepare	= ocfs2_mmap_prepare,
+ 	.fsync		= ocfs2_sync_file,
+ 	.release	= ocfs2_file_release,
+ 	.open		= ocfs2_file_open,
+@@ -2850,7 +2850,7 @@ const struct file_operations ocfs2_dops
+  */
+ const struct file_operations ocfs2_fops_no_plocks = {
+ 	.llseek		= ocfs2_file_llseek,
+-	.mmap		= ocfs2_mmap,
++	.mmap_prepare	= ocfs2_mmap_prepare,
+ 	.fsync		= ocfs2_sync_file,
+ 	.release	= ocfs2_file_release,
+ 	.open		= ocfs2_file_open,
+--- a/fs/ocfs2/mmap.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/ocfs2/mmap.c
+@@ -159,8 +159,9 @@ static const struct vm_operations_struct
+ 	.page_mkwrite	= ocfs2_page_mkwrite,
+ };
+ 
+-int ocfs2_mmap(struct file *file, struct vm_area_struct *vma)
++int ocfs2_mmap_prepare(struct vm_area_desc *desc)
  {
 +	struct file *file = desc->file;
- 	struct inode *inode = file_inode(file);
- 	struct ntfs_inode *ni = ntfs_i(inode);
--	u64 from = ((u64)vma->vm_pgoff << PAGE_SHIFT);
--	bool rw = vma->vm_flags & VM_WRITE;
-+	u64 from = ((u64)desc->pgoff << PAGE_SHIFT);
-+	bool rw = desc->vm_flags & VM_WRITE;
- 	int err;
+ 	int ret = 0, lock_level = 0;
  
- 	if (unlikely(ntfs3_forced_shutdown(inode->i_sb)))
-@@ -291,7 +292,7 @@ static int ntfs_file_mmap(struct file *f
- 
- 	if (rw) {
- 		u64 to = min_t(loff_t, i_size_read(inode),
--			       from + vma->vm_end - vma->vm_start);
-+			       from + desc->end - desc->start);
- 
- 		if (is_sparsed(ni)) {
- 			/* Allocate clusters for rw map. */
-@@ -319,7 +320,7 @@ static int ntfs_file_mmap(struct file *f
- 		}
+ 	ret = ocfs2_inode_lock_atime(file_inode(file),
+@@ -171,7 +172,7 @@ int ocfs2_mmap(struct file *file, struct
  	}
- 
--	err = generic_file_mmap(file, vma);
-+	err = generic_file_mmap_prepare(desc);
+ 	ocfs2_inode_unlock(file_inode(file), lock_level);
  out:
- 	return err;
- }
-@@ -1331,7 +1332,7 @@ const struct file_operations ntfs_file_o
- #endif
- 	.splice_read	= ntfs_file_splice_read,
- 	.splice_write	= ntfs_file_splice_write,
--	.mmap		= ntfs_file_mmap,
-+	.mmap_prepare	= ntfs_file_mmap_prepare,
- 	.open		= ntfs_file_open,
- 	.fsync		= generic_file_fsync,
- 	.fallocate	= ntfs_fallocate,
---- a/fs/smb/client/cifsfs.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/smb/client/cifsfs.c
-@@ -1525,7 +1525,7 @@ const struct file_operations cifs_file_o
- 	.flock = cifs_flock,
- 	.fsync = cifs_fsync,
- 	.flush = cifs_flush,
--	.mmap  = cifs_file_mmap,
-+	.mmap_prepare = cifs_file_mmap_prepare,
- 	.splice_read = filemap_splice_read,
- 	.splice_write = iter_file_splice_write,
- 	.llseek = cifs_llseek,
-@@ -1545,7 +1545,7 @@ const struct file_operations cifs_file_s
- 	.flock = cifs_flock,
- 	.fsync = cifs_strict_fsync,
- 	.flush = cifs_flush,
--	.mmap = cifs_file_strict_mmap,
-+	.mmap_prepare = cifs_file_strict_mmap_prepare,
- 	.splice_read = filemap_splice_read,
- 	.splice_write = iter_file_splice_write,
- 	.llseek = cifs_llseek,
-@@ -1565,7 +1565,7 @@ const struct file_operations cifs_file_d
- 	.flock = cifs_flock,
- 	.fsync = cifs_fsync,
- 	.flush = cifs_flush,
--	.mmap = cifs_file_mmap,
-+	.mmap_prepare = cifs_file_mmap_prepare,
- 	.splice_read = copy_splice_read,
- 	.splice_write = iter_file_splice_write,
- 	.unlocked_ioctl  = cifs_ioctl,
-@@ -1583,7 +1583,7 @@ const struct file_operations cifs_file_n
- 	.release = cifs_close,
- 	.fsync = cifs_fsync,
- 	.flush = cifs_flush,
--	.mmap  = cifs_file_mmap,
-+	.mmap_prepare = cifs_file_mmap_prepare,
- 	.splice_read = filemap_splice_read,
- 	.splice_write = iter_file_splice_write,
- 	.llseek = cifs_llseek,
-@@ -1601,7 +1601,7 @@ const struct file_operations cifs_file_s
- 	.release = cifs_close,
- 	.fsync = cifs_strict_fsync,
- 	.flush = cifs_flush,
--	.mmap = cifs_file_strict_mmap,
-+	.mmap_prepare = cifs_file_strict_mmap_prepare,
- 	.splice_read = filemap_splice_read,
- 	.splice_write = iter_file_splice_write,
- 	.llseek = cifs_llseek,
-@@ -1619,7 +1619,7 @@ const struct file_operations cifs_file_d
- 	.release = cifs_close,
- 	.fsync = cifs_fsync,
- 	.flush = cifs_flush,
--	.mmap = cifs_file_mmap,
-+	.mmap_prepare = cifs_file_mmap_prepare,
- 	.splice_read = copy_splice_read,
- 	.splice_write = iter_file_splice_write,
- 	.unlocked_ioctl  = cifs_ioctl,
---- a/fs/smb/client/cifsfs.h~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/smb/client/cifsfs.h
-@@ -103,8 +103,8 @@ extern int cifs_lock(struct file *, int,
- extern int cifs_fsync(struct file *, loff_t, loff_t, int);
- extern int cifs_strict_fsync(struct file *, loff_t, loff_t, int);
- extern int cifs_flush(struct file *, fl_owner_t id);
--extern int cifs_file_mmap(struct file *file, struct vm_area_struct *vma);
--extern int cifs_file_strict_mmap(struct file *file, struct vm_area_struct *vma);
-+int cifs_file_mmap_prepare(struct vm_area_desc *desc);
-+int cifs_file_strict_mmap_prepare(struct vm_area_desc *desc);
- extern const struct file_operations cifs_dir_ops;
- extern int cifs_readdir(struct file *file, struct dir_context *ctx);
- 
---- a/fs/smb/client/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/smb/client/file.c
-@@ -2995,8 +2995,9 @@ static const struct vm_operations_struct
- 	.page_mkwrite = cifs_page_mkwrite,
- };
- 
--int cifs_file_strict_mmap(struct file *file, struct vm_area_struct *vma)
-+int cifs_file_strict_mmap_prepare(struct vm_area_desc *desc)
- {
-+	struct file *file = desc->file;
- 	int xid, rc = 0;
- 	struct inode *inode = file_inode(file);
- 
-@@ -3005,16 +3006,17 @@ int cifs_file_strict_mmap(struct file *f
- 	if (!CIFS_CACHE_READ(CIFS_I(inode)))
- 		rc = cifs_zap_mapping(inode);
- 	if (!rc)
--		rc = generic_file_mmap(file, vma);
-+		rc = generic_file_mmap_prepare(desc);
- 	if (!rc)
--		vma->vm_ops = &cifs_file_vm_ops;
-+		desc->vm_ops = &cifs_file_vm_ops;
- 
- 	free_xid(xid);
- 	return rc;
+-	vma->vm_ops = &ocfs2_file_vm_ops;
++	desc->vm_ops = &ocfs2_file_vm_ops;
+ 	return 0;
  }
  
--int cifs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+int cifs_file_mmap_prepare(struct vm_area_desc *desc)
+--- a/fs/ocfs2/mmap.h~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/ocfs2/mmap.h
+@@ -2,6 +2,6 @@
+ #ifndef OCFS2_MMAP_H
+ #define OCFS2_MMAP_H
+ 
+-int ocfs2_mmap(struct file *file, struct vm_area_struct *vma);
++int ocfs2_mmap_prepare(struct vm_area_desc *desc);
+ 
+ #endif  /* OCFS2_MMAP_H */
+--- a/fs/orangefs/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/orangefs/file.c
+@@ -398,8 +398,9 @@ static const struct vm_operations_struct
+ /*
+  * Memory map a region of a file.
+  */
+-static int orangefs_file_mmap(struct file *file, struct vm_area_struct *vma)
++static int orangefs_file_mmap_prepare(struct vm_area_desc *desc)
  {
 +	struct file *file = desc->file;
- 	int rc, xid;
+ 	int ret;
  
- 	xid = get_xid();
-@@ -3024,9 +3026,9 @@ int cifs_file_mmap(struct file *file, st
- 		cifs_dbg(FYI, "Validation prior to mmap failed, error=%d\n",
- 			 rc);
- 	if (!rc)
--		rc = generic_file_mmap(file, vma);
-+		rc = generic_file_mmap_prepare(desc);
- 	if (!rc)
--		vma->vm_ops = &cifs_file_vm_ops;
-+		desc->vm_ops = &cifs_file_vm_ops;
+ 	ret = orangefs_revalidate_mapping(file_inode(file));
+@@ -410,10 +411,11 @@ static int orangefs_file_mmap(struct fil
+ 		     "orangefs_file_mmap: called on %pD\n", file);
  
- 	free_xid(xid);
- 	return rc;
---- a/fs/ubifs/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/ubifs/file.c
-@@ -1579,17 +1579,17 @@ static const struct vm_operations_struct
- 	.page_mkwrite = ubifs_vm_page_mkwrite,
+ 	/* set the sequential readahead hint */
+-	vm_flags_mod(vma, VM_SEQ_READ, VM_RAND_READ);
++	desc->vm_flags |= VM_SEQ_READ;
++	desc->vm_flags &= ~VM_RAND_READ;
+ 
+ 	file_accessed(file);
+-	vma->vm_ops = &orangefs_file_vm_ops;
++	desc->vm_ops = &orangefs_file_vm_ops;
+ 	return 0;
+ }
+ 
+@@ -574,7 +576,7 @@ const struct file_operations orangefs_fi
+ 	.read_iter	= orangefs_file_read_iter,
+ 	.write_iter	= orangefs_file_write_iter,
+ 	.lock		= orangefs_lock,
+-	.mmap		= orangefs_file_mmap,
++	.mmap_prepare	= orangefs_file_mmap_prepare,
+ 	.open		= generic_file_open,
+ 	.splice_read    = orangefs_file_splice_read,
+ 	.splice_write   = iter_file_splice_write,
+--- a/fs/ramfs/file-nommu.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/ramfs/file-nommu.c
+@@ -28,7 +28,7 @@ static unsigned long ramfs_nommu_get_unm
+ 						   unsigned long len,
+ 						   unsigned long pgoff,
+ 						   unsigned long flags);
+-static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma);
++static int ramfs_nommu_mmap_prepare(struct vm_area_desc *desc);
+ 
+ static unsigned ramfs_mmap_capabilities(struct file *file)
+ {
+@@ -38,7 +38,7 @@ static unsigned ramfs_mmap_capabilities(
+ 
+ const struct file_operations ramfs_file_operations = {
+ 	.mmap_capabilities	= ramfs_mmap_capabilities,
+-	.mmap			= ramfs_nommu_mmap,
++	.mmap_prepare		= ramfs_nommu_mmap_prepare,
+ 	.get_unmapped_area	= ramfs_nommu_get_unmapped_area,
+ 	.read_iter		= generic_file_read_iter,
+ 	.write_iter		= generic_file_write_iter,
+@@ -262,12 +262,12 @@ out:
+ /*
+  * set up a mapping for shared memory segments
+  */
+-static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
++static int ramfs_nommu_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	if (!is_nommu_shared_mapping(vma->vm_flags))
++	if (!is_nommu_shared_mapping(desc->vm_flags))
+ 		return -ENOSYS;
+ 
+-	file_accessed(file);
+-	vma->vm_ops = &generic_file_vm_ops;
++	file_accessed(desc->file);
++	desc->vm_ops = &generic_file_vm_ops;
+ 	return 0;
+ }
+--- a/fs/romfs/mmap-nommu.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/romfs/mmap-nommu.c
+@@ -61,9 +61,9 @@ static unsigned long romfs_get_unmapped_
+  * permit a R/O mapping to be made directly through onto an MTD device if
+  * possible
+  */
+-static int romfs_mmap(struct file *file, struct vm_area_struct *vma)
++static int romfs_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	return is_nommu_shared_mapping(vma->vm_flags) ? 0 : -ENOSYS;
++	return is_nommu_shared_mapping(desc->vm_flags) ? 0 : -ENOSYS;
+ }
+ 
+ static unsigned romfs_mmap_capabilities(struct file *file)
+@@ -79,7 +79,7 @@ const struct file_operations romfs_ro_fo
+ 	.llseek			= generic_file_llseek,
+ 	.read_iter		= generic_file_read_iter,
+ 	.splice_read		= filemap_splice_read,
+-	.mmap			= romfs_mmap,
++	.mmap_prepare		= romfs_mmap_prepare,
+ 	.get_unmapped_area	= romfs_get_unmapped_area,
+ 	.mmap_capabilities	= romfs_mmap_capabilities,
+ };
+--- a/fs/zonefs/file.c~fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings
++++ a/fs/zonefs/file.c
+@@ -312,8 +312,10 @@ static const struct vm_operations_struct
+ 	.page_mkwrite	= zonefs_filemap_page_mkwrite,
  };
  
--static int ubifs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+static int ubifs_file_mmap_prepare(struct vm_area_desc *desc)
+-static int zonefs_file_mmap(struct file *file, struct vm_area_struct *vma)
++static int zonefs_file_mmap_prepare(struct vm_area_desc *desc)
  {
- 	int err;
++	struct file *file = desc->file;
++
+ 	/*
+ 	 * Conventional zones accept random writes, so their files can support
+ 	 * shared writable mappings. For sequential zone files, only read
+@@ -321,11 +323,11 @@ static int zonefs_file_mmap(struct file
+ 	 * ordering between msync() and page cache writeback.
+ 	 */
+ 	if (zonefs_inode_is_seq(file_inode(file)) &&
+-	    (vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_MAYWRITE))
++	    (desc->vm_flags & VM_SHARED) && (desc->vm_flags & VM_MAYWRITE))
+ 		return -EINVAL;
  
--	err = generic_file_mmap(file, vma);
-+	err = generic_file_mmap_prepare(desc);
- 	if (err)
- 		return err;
- 	vma->vm_ops = &ubifs_file_vm_ops;
- 
- 	if (IS_ENABLED(CONFIG_UBIFS_ATIME_SUPPORT))
--		file_accessed(file);
-+		file_accessed(desc->file);
+ 	file_accessed(file);
+-	vma->vm_ops = &zonefs_file_vm_ops;
++	desc->vm_ops = &zonefs_file_vm_ops;
  
  	return 0;
  }
-@@ -1652,7 +1652,7 @@ const struct file_operations ubifs_file_
- 	.llseek         = generic_file_llseek,
- 	.read_iter      = generic_file_read_iter,
- 	.write_iter     = ubifs_write_iter,
--	.mmap           = ubifs_file_mmap,
-+	.mmap_prepare   = ubifs_file_mmap_prepare,
- 	.fsync          = ubifs_fsync,
- 	.unlocked_ioctl = ubifs_ioctl,
- 	.splice_read	= filemap_splice_read,
---- a/fs/vboxsf/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare
-+++ a/fs/vboxsf/file.c
-@@ -165,13 +165,13 @@ static const struct vm_operations_struct
- 	.map_pages	= filemap_map_pages,
- };
- 
--static int vboxsf_file_mmap(struct file *file, struct vm_area_struct *vma)
-+static int vboxsf_file_mmap_prepare(struct vm_area_desc *desc)
- {
- 	int err;
- 
--	err = generic_file_mmap(file, vma);
-+	err = generic_file_mmap_prepare(desc);
- 	if (!err)
--		vma->vm_ops = &vboxsf_file_vm_ops;
-+		desc->vm_ops = &vboxsf_file_vm_ops;
- 
- 	return err;
- }
-@@ -213,7 +213,7 @@ const struct file_operations vboxsf_reg_
- 	.llseek = generic_file_llseek,
- 	.read_iter = generic_file_read_iter,
- 	.write_iter = generic_file_write_iter,
--	.mmap = vboxsf_file_mmap,
-+	.mmap_prepare = vboxsf_file_mmap_prepare,
- 	.open = vboxsf_file_open,
- 	.release = vboxsf_file_release,
- 	.fsync = noop_fsync,
+@@ -850,7 +852,7 @@ const struct file_operations zonefs_file
+ 	.open		= zonefs_file_open,
+ 	.release	= zonefs_file_release,
+ 	.fsync		= zonefs_file_fsync,
+-	.mmap		= zonefs_file_mmap,
++	.mmap_prepare	= zonefs_file_mmap_prepare,
+ 	.llseek		= zonefs_file_llseek,
+ 	.read_iter	= zonefs_file_read_iter,
+ 	.write_iter	= zonefs_file_write_iter,
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
