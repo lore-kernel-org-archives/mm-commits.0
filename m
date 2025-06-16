@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B0622BF01B
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DECC92BF01B
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:30:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750116640; cv=none; b=Ch+UnZtqtEaCZ1hgvqEatu4rCml9q9JrUuw7jZDrdxD6QYvAZnvAohMBIA0wiheZ5CpeHyt/E8+sSxvpHFBispEkBtJvmmG25A22Vj/39EcoQcqjNFtGh0QKI072W4++QSzrlC9Q0lgIdKnYkchuFuV2QEDSMRPHgXdvweqbe00=
+	t=1750116643; cv=none; b=fD1VF0c8vNIxGY8OOXW/awpaFf8Ns4IiYwKIwJeHHwGB2fagYdvVTQI1b3p10O/k/p3+0hCG05UOagIrTIF5C4OrRXnr8oKf2kDx+9fv6rcYu+Deg5POL8wsLP06+bAIbD6bx0wx0k5cclz8Up5FELSRtXIxMkXloqNadWScKoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750116640; c=relaxed/simple;
-	bh=MjHcsJYfkTdl9I4WM69pk9PseI9Xlzsvu59nhBuXlS4=;
-	h=Date:To:From:Subject:Message-Id; b=XqlPCDb2PWbVlLTaMdWr6qXjW4EtMIovpz+cHgiVZYC5x4CkK+g16H9QICuAVXIG9xPm97p/lXLjxTXh7l4WV2kei7OClgAw0uCyZHMk7p8/fXd6RLZ9ffJAHwnaD+L95/JDn3YrVxHixBAQb0D1GNc7mztwreku5GvebPlMf8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=glBBPp3t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750116643; c=relaxed/simple;
+	bh=eve7FrEkUwkimgU+U2zNcvYAL8hcg0MP0bYqph/QKFA=;
+	h=Date:To:From:Subject:Message-Id; b=HsFXqIKxf3P/wlOs00qn2JfKsxibHmTPrCLOAHYB2NzVc/NijPPuIPruHbKhOwEUs/lKSoPS3qUbT+Rok3h/6B6DCt3pIbYQed7TqA4+5JEYyz6XUvpy9QZHHc5R515kIBk/1I81v9oYyULBN+/Mgpk63oRTCCLYCNnqzJlcjZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T8A6kBGy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="glBBPp3t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F18B5C4CEEA;
-	Mon, 16 Jun 2025 23:30:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T8A6kBGy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 665E5C4CEEA;
+	Mon, 16 Jun 2025 23:30:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750116640;
-	bh=MjHcsJYfkTdl9I4WM69pk9PseI9Xlzsvu59nhBuXlS4=;
+	s=korg; t=1750116642;
+	bh=eve7FrEkUwkimgU+U2zNcvYAL8hcg0MP0bYqph/QKFA=;
 	h=Date:To:From:Subject:From;
-	b=glBBPp3tQpHVybA/uVTF2lLxIeZTPXNawq6rxljw0v4AmLHrDDRIK4LYILjpOF4zC
-	 sShmM9mqwDUamnJUMPO6dSl4xDhuGH3TDBJlRmmNnf6KKmScZi6N13QlF8dqcNoKMV
-	 imX2C+YLe9P1P5v36rMR8TvSWzlyour9/tu9nzCo=
-Date: Mon, 16 Jun 2025 16:30:39 -0700
+	b=T8A6kBGyvdxQQkYwRHCef75QOgA8+eXKdtsJtVPo96JF+ZBk8HoZEpPuVnpS7WMoN
+	 ZPxHh0jt8pA114mG9zKNvBeiV+sj/TKyjlD8jGkNRgY55LeQIsTN43pRWs5tCv7bLw
+	 Zx8u/MEBnTo0incis4AMX9tdAIV5Tn57Lt0pFUKQ=
+Date: Mon, 16 Jun 2025 16:30:41 -0700
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,joshua.hahnjy@gmail.com,honggyu.kim@sk.com,hannes@cmpxchg.org,david@redhat.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch added to mm-new branch
-Message-Id: <20250616233039.F18B5C4CEEA@smtp.kernel.org>
+Subject: + revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch added to mm-new branch
+Message-Id: <20250616233042.665E5C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "mm: rename alloc_demote_folio to alloc_migrate_folio"
+     Subject: Revert "mm: make alloc_demote_folio externally invokable for migration"
 has been added to the -mm mm-new branch.  Its filename is
-     revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
+     revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,20 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Revert "mm: rename alloc_demote_folio to alloc_migrate_folio"
-Date: Mon, 16 Jun 2025 10:23:45 -0700
+Subject: Revert "mm: make alloc_demote_folio externally invokable for migration"
+Date: Mon, 16 Jun 2025 10:23:46 -0700
 
-This reverts commit 8f75267d22bdf8e3baf70f2fa7092d8c2f58da71.
+This reverts commit a00ce85af2a1be494d3b0c9457e8e81cdcce2a89.
 
-Commit 8f75267d22bd ("mm: rename alloc_demote_folio to
-alloc_migrate_folio") was to reflect the fact the function is called for
-not only demotion, but also general migrations from
-DAMOS_MIGRATE_{HOT,COLD}.  The previous commit made the DAMOS actions to
-not use alloc_migrate_folio(), though.  So, demote_folio_list() is the
-only caller of alloc_migrate_folio(), and the name could now be rather
-confusing.  Revert the renaming commit.
+Commit a00ce85af2a1 ("mm: make alloc_demote_folio externally invokable for
+migration") was made to let DAMOS_MIGRATE_{HOT,COLD} call the function. 
+But a previous commit made DAMOS_MIGRATE_{HOT,COLD} call
+alloc_migration_target() instead.  Hence there are no more callers of the
+function outside of vmscan.c.  Revert the commit to make the function
+static again.
 
-Link: https://lkml.kernel.org/r/20250616172346.67659-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250616172346.67659-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -91,41 +90,32 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- mm/vmscan.c   |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/internal.h |    1 -
+ mm/vmscan.c   |    3 ++-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio
+--- a/mm/internal.h~revert-mm-make-alloc_demote_folio-externally-invokable-for-migration
 +++ a/mm/internal.h
-@@ -1227,7 +1227,7 @@ extern unsigned long  __must_check vm_mm
+@@ -1227,7 +1227,6 @@ extern unsigned long  __must_check vm_mm
          unsigned long, unsigned long);
  
  extern void set_pageblock_order(void);
--struct folio *alloc_migrate_folio(struct folio *src, unsigned long private);
-+struct folio *alloc_demote_folio(struct folio *src, unsigned long private);
+-struct folio *alloc_demote_folio(struct folio *src, unsigned long private);
  unsigned long reclaim_pages(struct list_head *folio_list);
  unsigned int reclaim_clean_pages_from_list(struct zone *zone,
  					    struct list_head *folio_list);
---- a/mm/vmscan.c~revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio
+--- a/mm/vmscan.c~revert-mm-make-alloc_demote_folio-externally-invokable-for-migration
 +++ a/mm/vmscan.c
-@@ -1006,7 +1006,7 @@ static void folio_check_dirty_writeback(
+@@ -1006,7 +1006,8 @@ static void folio_check_dirty_writeback(
  		mapping->a_ops->is_dirty_writeback(folio, dirty, writeback);
  }
  
--struct folio *alloc_migrate_folio(struct folio *src, unsigned long private)
-+struct folio *alloc_demote_folio(struct folio *src, unsigned long private)
+-struct folio *alloc_demote_folio(struct folio *src, unsigned long private)
++static struct folio *alloc_demote_folio(struct folio *src,
++		unsigned long private)
  {
  	struct folio *dst;
  	nodemask_t *allowed_mask;
-@@ -1069,7 +1069,7 @@ static unsigned int demote_folio_list(st
- 	node_get_allowed_targets(pgdat, &allowed_mask);
- 
- 	/* Demotion ignores all cpuset and mempolicy settings */
--	migrate_pages(demote_folios, alloc_migrate_folio, NULL,
-+	migrate_pages(demote_folios, alloc_demote_folio, NULL,
- 		      (unsigned long)&mtc, MIGRATE_ASYNC, MR_DEMOTION,
- 		      &nr_succeeded);
- 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
