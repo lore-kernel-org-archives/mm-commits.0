@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCDA2264A6
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 22:50:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EFEC3BB44
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:04:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750114239; cv=none; b=RWOT+DfCVfeW0yyMg4njSHSOiYA8SJa53lJVtKHE9uiL0Aj++t3WR8m8oLyKWU7DjPfUEo5816ztuDoG6xpmOpQCsxHVMP4/fk51SrGc+HUV9oqGJHwLFL8IFonZZmDUqOrVAEdOP0fA/fsPpZksNnB5A3GVxK/LimFIIrNFIqs=
+	t=1750115044; cv=none; b=nJc9nhthyGoqKAMC+bnVEGD/ZFlKU9daSYVGym6Xbt3dcpJyBqeUvNtu6K4r8H1sWyV/Rjqcq0DtYqOePeSrdUWpl6PvM9fOkNHzasprAUY4m2/FDOVghk+ZzcBD5aZ1Rkg7ldy6gc33l35x4z1uPXetKkMRdubHwHDWz/zhW+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750114239; c=relaxed/simple;
-	bh=BiNvgdGPfs619gVwMoEEK4RGH5PjrPQoMS6ekvse1iI=;
-	h=Date:To:From:Subject:Message-Id; b=WTgaz4IrOHRZ5BvniXFFgJZeKfiVUfIdjkH0X30pzChFvs+J+5Aiuq2HfIBFxuPQnpG+Lh1OovK7VZnPBr3P1i3NVeMpOXk6kdQVBWfMEh7ip1rLj+FpKCAAsMTIQAM6SuP4ZmCEoIUqAOmSziEIs2E33I+1D/Vi16cpxAdxoz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sneZ0T2r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750115044; c=relaxed/simple;
+	bh=XTtmQMkZGF5AMsYmmCl+vpC8/Z1ezv9x2ygy4kTqUkA=;
+	h=Date:To:From:Subject:Message-Id; b=RfLKtpIUImju/o4AP4DD501tFVF+mA5HBYS7VYsILR8xlVb3G6q3SMGXSDG7jzQMgs99oclZaN5QiMzn6/KXgnYxxoNF6fMDAu3+MQSFkOsT6fCTjwR6V7vrG4Tm0ib1ekDAvi0XMeKfCPd6JMfbDB8Flptr/UGOTu5ksHk4o08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oCMgaFNS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sneZ0T2r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BDA0C4CEEA;
-	Mon, 16 Jun 2025 22:50:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oCMgaFNS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5781C4CEEA;
+	Mon, 16 Jun 2025 23:04:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750114237;
-	bh=BiNvgdGPfs619gVwMoEEK4RGH5PjrPQoMS6ekvse1iI=;
+	s=korg; t=1750115044;
+	bh=XTtmQMkZGF5AMsYmmCl+vpC8/Z1ezv9x2ygy4kTqUkA=;
 	h=Date:To:From:Subject:From;
-	b=sneZ0T2r2B9GfOPupnsILSZfz+IxWXlqUBe3lFwpiv53zmMfsZUXKuXFTOiJz4tHf
-	 k7LV2i7Mg+3nIrbbj9itPH4IF5fXkh/7M8vxNbXhkQdQN4eqKo4SizaJzzVP6KScZ/
-	 rYyb6pX1EYV6GsBbgcc0B9m+peAscywz/wjO/E9A=
-Date: Mon, 16 Jun 2025 15:50:36 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=oCMgaFNSm12xC6gLE+FmXZnQWmwYLjXnY2Ak7L9wT5jI/dbUT5Y1b+MmA16zeAlak
+	 SlBtjc+SW0r7sR+eKpBh4eqTTTWHktaT5JGJkLsiUJubEKDR+U+6fGbA56+XW27pgZ
+	 gVkXXv/VcxJiRsLRXXX/pwI5hJ1nNG+YcDRV2xZw=
+Date: Mon, 16 Jun 2025 16:04:03 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + secretmem-remove-uses-of-struct-page-fix.patch added to mm-new branch
-Message-Id: <20250616225037.0BDA0C4CEEA@smtp.kernel.org>
+Subject: + maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250616230403.E5781C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fix check of filemap_lock_folio() return value
-has been added to the -mm mm-new branch.  Its filename is
-     secretmem-remove-uses-of-struct-page-fix.patch
+     Subject: MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/secretmem-remove-uses-of-struct-page-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,35 +59,41 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: fix check of filemap_lock_folio() return value
-Date: Mon, 16 Jun 2025 14:56:27 +0100
+Subject: MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
+Date: Mon, 16 Jun 2025 21:16:43 +0100
 
-Link: https://lkml.kernel.org/r/fdbca1d0-01a3-4653-85ed-cf257bb848be@lucifer.local
+The working set logic belongs very much to the reclaim section and is
+otherwise not assigned to any other MAINTAINERS section so add it here.
+
+Link: https://lkml.kernel.org/r/20250616201643.561626-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>\
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/secretmem.c~secretmem-remove-uses-of-struct-page-fix
-+++ a/mm/secretmem.c
-@@ -65,7 +65,7 @@ static vm_fault_t secretmem_fault(struct
+--- a/MAINTAINERS~maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section
++++ a/MAINTAINERS
+@@ -15871,6 +15871,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/pt_reclaim.c
+ F:	mm/vmscan.c
++F:	mm/workingset.c
  
- retry:
- 	folio = filemap_lock_folio(mapping, offset);
--	if (!folio) {
-+	if (IS_ERR(folio)) {
- 		folio = folio_alloc(gfp | __GFP_ZERO, 0);
- 		if (!folio) {
- 			ret = VM_FAULT_OOM;
+ MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
+ M:	Andrew Morton <akpm@linux-foundation.org>
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
 docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
 mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
 mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
