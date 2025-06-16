@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2234B136349
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:49:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36502136349
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:49:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750117765; cv=none; b=MAbeN4X8/D0lizxTSNLFBymHcUWsTxqv/WsG4JyWLyAigKluyZ8rGy74hjFkoLHEtgOeuCie2gKqxgUGL8qDrmMK5MEJohUBwmgzElLEkYusfXGIRk0vFUq0XbpKtlS3020F8N3AZfWZYkNnV091wpzrtT73Ck1pLjaqrOi1MNc=
+	t=1750117767; cv=none; b=nZh4g0EOOKD7G2Y/+OuHv2spaf5lai1A1lF1e1Yewr9pYPvtpYi1XneepXq0PKfpMS/Wq/woHkzBpoi9P8qXRXeNmnTmSJKKpUkrBKT3riN+XnKFq+flH4lA8wbHWyYrimpEiWp0vVD93tj+Rcit3SxMzNB3pSRtMK2XOSsiw6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750117765; c=relaxed/simple;
-	bh=PjOyht/QpvbiIHQAyXMTdBFj/NGhM6x1bF/ub1DrySk=;
-	h=Date:To:From:Subject:Message-Id; b=cam9IL3M+W5dzAL+kNyby99rk5xegvm1yvjwYRmVhMW1E032BHDEFbTtPGjN7JSoyNCkr+mZj/tqvui4j8woGbLIX/n+soYFt6E2up6b9s249tKC7ElSoHUUJ9yY1zBMf43azWTjP07sf6z5UNS3BiO0RA3QrsTefagJP4LXWJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hykIHy9F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750117767; c=relaxed/simple;
+	bh=6g+WFIgHonUqH6nyM+tMfibz5VOsogYaPXuyLkpSdDE=;
+	h=Date:To:From:Subject:Message-Id; b=stnAw3L6fgF9PSkQhI3+6YZ+/NYxxrrNtm3lYn6gg0lYrBsfxXB0fWxA0yH+XeThbi4G5ub7TW/DpBZqJbhJ9odLe5vzyR0Lc0+/B4V7XkIBPA+MIffhYz67uhgfIQdNGW1C/WX4w7zyWnkMUAq2wSbwSghCCU5TptNt6//bNzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TbcsawXY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hykIHy9F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C348C4CEEA;
-	Mon, 16 Jun 2025 23:49:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TbcsawXY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95A26C4CEEA;
+	Mon, 16 Jun 2025 23:49:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750117764;
-	bh=PjOyht/QpvbiIHQAyXMTdBFj/NGhM6x1bF/ub1DrySk=;
+	s=korg; t=1750117766;
+	bh=6g+WFIgHonUqH6nyM+tMfibz5VOsogYaPXuyLkpSdDE=;
 	h=Date:To:From:Subject:From;
-	b=hykIHy9FJw69KVC7Tqy0CMU4/kfqzQecXBXvdENT1RHUxgI7RrbHHVCdgUSmV7iOB
-	 6p5QpZ83UtLwbfDltm883QdMdf6G0Knk3ifz+hGNMYXRpE961+DCIX/5CZ2Y96kRSG
-	 lBeJnRhYDgmpH2xVqLEhV8zA8deZVv0TaytXxnK4=
-Date: Mon, 16 Jun 2025 16:49:24 -0700
+	b=TbcsawXYmzCtB3JH18uk70t4QuS2Y37m0XfCEhN6XdEWe0EMjZJKVij6pFkatPCl+
+	 IZNGV3lYsaDQ8u9DJlan4ydiUo/OizkbS1GzMfb/H0uTXNNCiI7LIFrBEv/Ko3aHMM
+	 UzdJQQieRCKsNmnSn2cBso26kRvLMFlyd837y5OE=
+Date: Mon, 16 Jun 2025 16:49:26 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch added to mm-unstable branch
-Message-Id: <20250616234924.9C348C4CEEA@smtp.kernel.org>
+Subject: + mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch added to mm-unstable branch
+Message-Id: <20250616234926.95A26C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,slub: do not special case N_NORMAL nodes for slab_nodes
+     Subject: mm,memory_hotplug: remove status_change_nid_normal and update documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
+     mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,150 +59,124 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,slub: do not special case N_NORMAL nodes for slab_nodes
-Date: Mon, 16 Jun 2025 15:51:44 +0200
+Subject: mm,memory_hotplug: remove status_change_nid_normal and update documentation
+Date: Mon, 16 Jun 2025 15:51:45 +0200
 
-Patch series "Implement numa node notifier", v7.
+Now that the last user of status_change_nid_normal is gone, we can remove
+it.  Update documentation accordingly.
 
-Memory notifier is a tool that allow consumers to get notified whenever
-memory gets onlined or offlined in the system.  Currently, there are 10
-consumers of that, but 5 out of those 10 consumers are only interested in
-getting notifications when a numa node changes its memory state.  That
-means going from memoryless to memory-aware of vice versa.
-
-Which means that for every {online,offline}_pages operation they get
-notified even though the numa node might not have changed its state.  This
-is suboptimal, and we want to decouple numa node state changes from memory
-state changes.
-
-While we are doing this, remove status_change_nid_normal, as the only
-current user (slub) does not really need it.  This allows us to further
-simplify and clean up the code.
-
-The first patch gets rid of status_change_nid_normal in slub.  The second
-patch implements a numa node notifier that does just that, and have those
-consumers register in there, so they get notified only when they are
-interested.
-
-The third patch replaces 'status_change_nid{_normal}' fields within
-memory_notify with a 'nid', as that is only what we need for memory
-notifer and update the only user of it (page_ext).
-
-Consumers that are only interested in numa node states change are:
-
- - memory-tier
- - slub
- - cpuset
- - hmat
- - cxl
- - autoweight-mempolicy
-
-
-This patch (of 11):
-
-Currently, slab_mem_going_online_callback() checks whether the node has
-N_NORMAL memory in order to be set in slab_nodes.  While it is true that
-getting rid of that enforcing would mean ending up with movables nodes in
-slab_nodes, the memory waste that comes with that is negligible.
-
-So stop checking for status_change_nid_normal and just use
-status_change_nid instead which works for both types of memory.
-
-Also, once we allocate the kmem_cache_node cache for the node in
-slab_mem_online_callback(), we never deallocate it in
-slab_mem_offline_callback() when the node goes memoryless, so we can just
-get rid of it.
-
-The side effects are that we will stop clearing the node from slab_nodes,
-and also that newly created kmem caches after node hotremove will now
-allocate their kmem_cache_node for the node(s) that was hotremoved, but
-these should be negligible.
-
-Link: https://lkml.kernel.org/r/20250616135158.450136-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20250616135158.450136-2-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250616135158.450136-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   34 +++-------------------------------
- 1 file changed, 3 insertions(+), 31 deletions(-)
+ Documentation/core-api/memory-hotplug.rst                    |    3 --
+ Documentation/translations/zh_CN/core-api/memory-hotplug.rst |    3 --
+ include/linux/memory.h                                       |    1 
+ mm/memory_hotplug.c                                          |   12 ----------
+ 4 files changed, 19 deletions(-)
 
---- a/mm/slub.c~mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes
-+++ a/mm/slub.c
-@@ -447,7 +447,7 @@ static inline struct kmem_cache_node *ge
+--- a/Documentation/core-api/memory-hotplug.rst~mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation
++++ a/Documentation/core-api/memory-hotplug.rst
+@@ -56,14 +56,11 @@ The third argument (arg) passes a pointe
+ 	struct memory_notify {
+ 		unsigned long start_pfn;
+ 		unsigned long nr_pages;
+-		int status_change_nid_normal;
+ 		int status_change_nid;
+ 	}
  
- /*
-  * Tracks for which NUMA nodes we have kmem_cache_nodes allocated.
-- * Corresponds to node_state[N_NORMAL_MEMORY], but can temporarily
-+ * Corresponds to node_state[N_MEMORY], but can temporarily
-  * differ during memory hotplug/hotremove operations.
-  * Protected by slab_mutex.
-  */
-@@ -6163,36 +6163,12 @@ static int slab_mem_going_offline_callba
- 	return 0;
+ - start_pfn is start_pfn of online/offline memory.
+ - nr_pages is # of pages of online/offline memory.
+-- status_change_nid_normal is set node id when N_NORMAL_MEMORY of nodemask
+-  is (will be) set/clear, if this is -1, then nodemask status is not changed.
+ - status_change_nid is set node id when N_MEMORY of nodemask is (will be)
+   set/clear. It means a new(memoryless) node gets new memory by online and a
+   node loses all memory. If this is -1, then nodemask status is not changed.
+--- a/Documentation/translations/zh_CN/core-api/memory-hotplug.rst~mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation
++++ a/Documentation/translations/zh_CN/core-api/memory-hotplug.rst
+@@ -62,7 +62,6 @@ memory_notify结构体的指针::
+ 	struct memory_notify {
+ 		unsigned long start_pfn;
+ 		unsigned long nr_pages;
+-		int status_change_nid_normal;
+ 		int status_change_nid;
+ 	}
+ 
+@@ -70,8 +69,6 @@ memory_notify结构体的指针::
+ 
+ - nr_pages是在线/离线内存的页数。
+ 
+-- status_change_nid_normal是当nodemask的N_NORMAL_MEMORY被设置/清除时设置节
+-  点id，如果是-1，则nodemask状态不改变。
+ 
+ - status_change_nid是当nodemask的N_MEMORY被（将）设置/清除时设置的节点id。这
+   意味着一个新的（没上线的）节点通过联机获得新的内存，而一个节点失去了所有的内
+--- a/include/linux/memory.h~mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation
++++ a/include/linux/memory.h
+@@ -109,7 +109,6 @@ struct memory_notify {
+ 	unsigned long altmap_nr_pages;
+ 	unsigned long start_pfn;
+ 	unsigned long nr_pages;
+-	int status_change_nid_normal;
+ 	int status_change_nid;
+ };
+ 
+--- a/mm/memory_hotplug.c~mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation
++++ a/mm/memory_hotplug.c
+@@ -706,19 +706,13 @@ static void node_states_check_changes_on
+ 	int nid = zone_to_nid(zone);
+ 
+ 	arg->status_change_nid = NUMA_NO_NODE;
+-	arg->status_change_nid_normal = NUMA_NO_NODE;
+ 
+ 	if (!node_state(nid, N_MEMORY))
+ 		arg->status_change_nid = nid;
+-	if (zone_idx(zone) <= ZONE_NORMAL && !node_state(nid, N_NORMAL_MEMORY))
+-		arg->status_change_nid_normal = nid;
  }
  
--static void slab_mem_offline_callback(void *arg)
--{
--	struct memory_notify *marg = arg;
--	int offline_node;
--
--	offline_node = marg->status_change_nid_normal;
--
--	/*
--	 * If the node still has available memory. we need kmem_cache_node
--	 * for it yet.
--	 */
--	if (offline_node < 0)
--		return;
--
--	mutex_lock(&slab_mutex);
--	node_clear(offline_node, slab_nodes);
--	/*
--	 * We no longer free kmem_cache_node structures here, as it would be
--	 * racy with all get_node() users, and infeasible to protect them with
--	 * slab_mutex.
--	 */
--	mutex_unlock(&slab_mutex);
--}
--
- static int slab_mem_going_online_callback(void *arg)
+ static void node_states_set_node(int node, struct memory_notify *arg)
  {
- 	struct kmem_cache_node *n;
- 	struct kmem_cache *s;
- 	struct memory_notify *marg = arg;
--	int nid = marg->status_change_nid_normal;
-+	int nid = marg->status_change_nid;
- 	int ret = 0;
+-	if (arg->status_change_nid_normal >= 0)
+-		node_set_state(node, N_NORMAL_MEMORY);
+-
+ 	if (arg->status_change_nid >= 0)
+ 		node_set_state(node, N_MEMORY);
+ }
+@@ -1894,7 +1888,6 @@ static void node_states_check_changes_of
+ 	enum zone_type zt;
+ 
+ 	arg->status_change_nid = NUMA_NO_NODE;
+-	arg->status_change_nid_normal = NUMA_NO_NODE;
  
  	/*
-@@ -6250,10 +6226,6 @@ static int slab_memory_callback(struct n
- 	case MEM_GOING_OFFLINE:
- 		ret = slab_mem_going_offline_callback(arg);
- 		break;
--	case MEM_OFFLINE:
--	case MEM_CANCEL_ONLINE:
--		slab_mem_offline_callback(arg);
--		break;
- 	case MEM_ONLINE:
- 	case MEM_CANCEL_OFFLINE:
- 		break;
-@@ -6324,7 +6296,7 @@ void __init kmem_cache_init(void)
- 	 * Initialize the nodemask for which we will allocate per node
- 	 * structures. Here we don't need taking slab_mutex yet.
+ 	 * Check whether node_states[N_NORMAL_MEMORY] will be changed.
+@@ -1906,8 +1899,6 @@ static void node_states_check_changes_of
  	 */
--	for_each_node_state(node, N_NORMAL_MEMORY)
-+	for_each_node_state(node, N_MEMORY)
- 		node_set(node, slab_nodes);
+ 	for (zt = 0; zt <= ZONE_NORMAL; zt++)
+ 		present_pages += pgdat->node_zones[zt].present_pages;
+-	if (zone_idx(zone) <= ZONE_NORMAL && nr_pages >= present_pages)
+-		arg->status_change_nid_normal = zone_to_nid(zone);
  
- 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
+ 	/*
+ 	 * We have accounted the pages from [0..ZONE_NORMAL); ZONE_HIGHMEM
+@@ -1926,9 +1917,6 @@ static void node_states_check_changes_of
+ 
+ static void node_states_clear_node(int node, struct memory_notify *arg)
+ {
+-	if (arg->status_change_nid_normal >= 0)
+-		node_clear_state(node, N_NORMAL_MEMORY);
+-
+ 	if (arg->status_change_nid >= 0)
+ 		node_clear_state(node, N_MEMORY);
+ }
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
