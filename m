@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 961612BF01B
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:30:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B0622BF01B
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:30:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750116638; cv=none; b=TRokhuoLS6D7uThtUVL4JEKXmRoDlRjeE9u6XatMRA7E150gPWxGW56H5RLlLembW6dnNKMRek42BswThZ5YjnmpueE3u6kQf6u/HbJF2u2rhXovgS+cAEmLmcFptQaU2NjKeW2J922+5QDLqpWYaR4llnEhdNggnQiNdqqHymk=
+	t=1750116640; cv=none; b=Ch+UnZtqtEaCZ1hgvqEatu4rCml9q9JrUuw7jZDrdxD6QYvAZnvAohMBIA0wiheZ5CpeHyt/E8+sSxvpHFBispEkBtJvmmG25A22Vj/39EcoQcqjNFtGh0QKI072W4++QSzrlC9Q0lgIdKnYkchuFuV2QEDSMRPHgXdvweqbe00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750116638; c=relaxed/simple;
-	bh=oWG4wta5fC7OMribGyCX1UQ1XYH8lJ8WmgPmr8l0t+E=;
-	h=Date:To:From:Subject:Message-Id; b=gEfMgn99CwT5/tCnelRTFiuBuqn5y1EoH7zFC7GgGjjWckTms7OeilX7Fyms+r6LP7WY6qECQgsrkOzJHzgJKuIDKWTxPv8JwEqoGJuNbuJGnFQ0DEzEhkG0adUpSFsXKm0pvd1hvh9KBOSYGgMsgdDZ5N5DvU6Ky7yY7+ZiVVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nW0IT8wW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750116640; c=relaxed/simple;
+	bh=MjHcsJYfkTdl9I4WM69pk9PseI9Xlzsvu59nhBuXlS4=;
+	h=Date:To:From:Subject:Message-Id; b=XqlPCDb2PWbVlLTaMdWr6qXjW4EtMIovpz+cHgiVZYC5x4CkK+g16H9QICuAVXIG9xPm97p/lXLjxTXh7l4WV2kei7OClgAw0uCyZHMk7p8/fXd6RLZ9ffJAHwnaD+L95/JDn3YrVxHixBAQb0D1GNc7mztwreku5GvebPlMf8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=glBBPp3t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nW0IT8wW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01C85C4CEEA;
-	Mon, 16 Jun 2025 23:30:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="glBBPp3t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F18B5C4CEEA;
+	Mon, 16 Jun 2025 23:30:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750116638;
-	bh=oWG4wta5fC7OMribGyCX1UQ1XYH8lJ8WmgPmr8l0t+E=;
+	s=korg; t=1750116640;
+	bh=MjHcsJYfkTdl9I4WM69pk9PseI9Xlzsvu59nhBuXlS4=;
 	h=Date:To:From:Subject:From;
-	b=nW0IT8wWl57kIgnN/Zn+hlwVGzb8xNIe66yjSjsqUEA32uBHAWo0wI/hid2sQZGZf
-	 hlHgatvKCwWEEVOl8mzJq9kQBtjxXjoRzBpL4YvbKYHT5szhoVqTPO71z3A2GsN6+z
-	 /3Dozw4ntDoNovzJzhHSV5m/3bykr8ug7rzW7+CM=
-Date: Mon, 16 Jun 2025 16:30:37 -0700
+	b=glBBPp3tQpHVybA/uVTF2lLxIeZTPXNawq6rxljw0v4AmLHrDDRIK4LYILjpOF4zC
+	 sShmM9mqwDUamnJUMPO6dSl4xDhuGH3TDBJlRmmNnf6KKmScZi6N13QlF8dqcNoKMV
+	 imX2C+YLe9P1P5v36rMR8TvSWzlyour9/tu9nzCo=
+Date: Mon, 16 Jun 2025 16:30:39 -0700
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,joshua.hahnjy@gmail.com,honggyu.kim@sk.com,hannes@cmpxchg.org,david@redhat.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch added to mm-new branch
-Message-Id: <20250616233038.01C85C4CEEA@smtp.kernel.org>
+Subject: + revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch added to mm-new branch
+Message-Id: <20250616233039.F18B5C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: use alloc_migartion_target() with no migration fallback nodemask
+     Subject: Revert "mm: rename alloc_demote_folio to alloc_migrate_folio"
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
+     revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,36 +65,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: use alloc_migartion_target() with no migration fallback nodemask
-Date: Mon, 16 Jun 2025 10:23:44 -0700
+Subject: Revert "mm: rename alloc_demote_folio to alloc_migrate_folio"
+Date: Mon, 16 Jun 2025 10:23:45 -0700
 
-Patch series "mm/damon: use alloc_migrate_target() for
-DAMOS_MIGRATE_{HOT,COLD}".
+This reverts commit 8f75267d22bdf8e3baf70f2fa7092d8c2f58da71.
 
-DAMOS_MIGRATE_{HOT,COLD} implementation resembles that for demotion, and
-hence the behavior is also similar to that.  But, since those are not only
-for demotion but general migrations, it would be better to match with that
-for move_pages() system call.  Make the implementation and the behavior
-more similar to move_pages() by not setting migration fallback nodes, and
-using alloc_migration_target() instead of alloc_migrate_folio().
+Commit 8f75267d22bd ("mm: rename alloc_demote_folio to
+alloc_migrate_folio") was to reflect the fact the function is called for
+not only demotion, but also general migrations from
+DAMOS_MIGRATE_{HOT,COLD}.  The previous commit made the DAMOS actions to
+not use alloc_migrate_folio(), though.  So, demote_folio_list() is the
+only caller of alloc_migrate_folio(), and the name could now be rather
+confusing.  Revert the renaming commit.
 
-alloc_migrate_folio() was renamed from alloc_demote_folio() and been
-non-static function, to let DAMOS_MIGRATE_{HOT,COLD} call it.  As
-alloc_migration_target() is called instead, the renaming and de-static
-changes are no more required but could only make future code readers be
-confused.  Revert the changes, too.
-
-
-This patch (of 3):
-
-DAMOS_MIGRATE_{HOT,COLD} implementation resembles that for
-demote_folio_list().  Because those are not only for demotion but general
-folio migrations, it makes more sense to behave similarly to move_pages()
-system call.  Make the behavior more similar to move_pages(), by using
-alloc_migration_target() instead of alloc_migrate_folio(), without
-fallback nodemask.
-
-Link: https://lkml.kernel.org/r/20250616172346.67659-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250616172346.67659-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -107,34 +91,39 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/internal.h |    2 +-
+ mm/vmscan.c   |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask
-+++ a/mm/damon/paddr.c
-@@ -386,7 +386,6 @@ static unsigned int __damon_pa_migrate_f
- 		int target_nid)
+--- a/mm/internal.h~revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio
++++ a/mm/internal.h
+@@ -1227,7 +1227,7 @@ extern unsigned long  __must_check vm_mm
+         unsigned long, unsigned long);
+ 
+ extern void set_pageblock_order(void);
+-struct folio *alloc_migrate_folio(struct folio *src, unsigned long private);
++struct folio *alloc_demote_folio(struct folio *src, unsigned long private);
+ unsigned long reclaim_pages(struct list_head *folio_list);
+ unsigned int reclaim_clean_pages_from_list(struct zone *zone,
+ 					    struct list_head *folio_list);
+--- a/mm/vmscan.c~revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio
++++ a/mm/vmscan.c
+@@ -1006,7 +1006,7 @@ static void folio_check_dirty_writeback(
+ 		mapping->a_ops->is_dirty_writeback(folio, dirty, writeback);
+ }
+ 
+-struct folio *alloc_migrate_folio(struct folio *src, unsigned long private)
++struct folio *alloc_demote_folio(struct folio *src, unsigned long private)
  {
- 	unsigned int nr_succeeded = 0;
--	nodemask_t allowed_mask = NODE_MASK_NONE;
- 	struct migration_target_control mtc = {
- 		/*
- 		 * Allocate from 'node', or fail quickly and quietly.
-@@ -396,7 +395,6 @@ static unsigned int __damon_pa_migrate_f
- 		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
- 			__GFP_NOWARN | __GFP_NOMEMALLOC | GFP_NOWAIT,
- 		.nid = target_nid,
--		.nmask = &allowed_mask
- 	};
+ 	struct folio *dst;
+ 	nodemask_t *allowed_mask;
+@@ -1069,7 +1069,7 @@ static unsigned int demote_folio_list(st
+ 	node_get_allowed_targets(pgdat, &allowed_mask);
  
- 	if (pgdat->node_id == target_nid || target_nid == NUMA_NO_NODE)
-@@ -406,7 +404,7 @@ static unsigned int __damon_pa_migrate_f
- 		return 0;
- 
- 	/* Migration ignores all cpuset and mempolicy settings */
--	migrate_pages(migrate_folios, alloc_migrate_folio, NULL,
-+	migrate_pages(migrate_folios, alloc_migration_target, NULL,
- 		      (unsigned long)&mtc, MIGRATE_ASYNC, MR_DAMON,
+ 	/* Demotion ignores all cpuset and mempolicy settings */
+-	migrate_pages(demote_folios, alloc_migrate_folio, NULL,
++	migrate_pages(demote_folios, alloc_demote_folio, NULL,
+ 		      (unsigned long)&mtc, MIGRATE_ASYNC, MR_DEMOTION,
  		      &nr_succeeded);
  
 _
