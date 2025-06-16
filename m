@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01A69136349
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:49:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D2AD136349
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:49:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750117786; cv=none; b=YyOhe7pO9I4g+tsSSNNZg3fMFB66+K8r0IasUfC+unhONfMK25/+N1Uo6gGDFGz5xOVogoGvnbqYq8Rkt86xgiE6NomYE29NGNDiRQwTsoTuiWNTxg3NBoTBdBLg4sLzJjBvku8D1i1DGQwcxuZQid7szQCu9yTQIFriOthVyC4=
+	t=1750117788; cv=none; b=BsLESrfZyE1nEgm/bd5Ei2mor5D/hhLUA/7jc2iXYWINGG+UMxClrci2LS8DHsNb8NQCENjREib5+sBKaglxuzdknxF4fXyMMXet4CBWozKko2Tif0o4oa7wHTmz/z7VteWYUKd/V786USCzVDfvrElLH0jSeZRL6Kc2EXYXWag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750117786; c=relaxed/simple;
-	bh=92KLT/Foa/nxXDLDerlB8jd3v+CTMB8ZK7n8mLRs+3Y=;
-	h=Date:To:From:Subject:Message-Id; b=oNKmsNg6qYGFPhG90DL/Jg4Sl3aoCDrRRfm1heSxZHnjdxRzGXAOYuXMuqNJlVRwBnZnyYLfHJZUg4Q+XtGfYK9kTVbxCPV3drtkTAP+iQb1yOy3QqPFcbgD39w7nKMLmPWB7kdIRNf/vzLZbqIJd3aMDLwYXC1jGbUCxg0EgFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L7g3Us8Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750117788; c=relaxed/simple;
+	bh=DxT+DxJ/4clJyu6lCkxh1FzhHfBfmCULj6CuRaEnAdc=;
+	h=Date:To:From:Subject:Message-Id; b=r5TQHi9Hz5ubZX3CXD4Z0yOveTwtbwQTgKPpedTDR3aTwkdzzOo/SqebGR1vxARbd2fwzNic0dNWGtdMegOalgrw95wKYtEXiNrVIGACNOFZiCq4BoMGWL8C991L0zXuJm9JHLqoZ2ozz51e42WSnqlLRuAkk09uVDCPrKblTtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RIGaDM5j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L7g3Us8Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C21FAC4CEEA;
-	Mon, 16 Jun 2025 23:49:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RIGaDM5j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8532C4CEEA;
+	Mon, 16 Jun 2025 23:49:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750117785;
-	bh=92KLT/Foa/nxXDLDerlB8jd3v+CTMB8ZK7n8mLRs+3Y=;
+	s=korg; t=1750117787;
+	bh=DxT+DxJ/4clJyu6lCkxh1FzhHfBfmCULj6CuRaEnAdc=;
 	h=Date:To:From:Subject:From;
-	b=L7g3Us8YpIQ5p3Zz64mkcK0DFTfRt/rQHDAVStuUzT86NdsN1Nj3LPAwsk3fha6Gg
-	 VGYhdzxn9UO1Q7bxVL0MPKQEBp4pp2m4Ggk2pRPFPKwNx5xye0xSQz6YtcMW0MWfQ7
-	 dG0G7y7h+98cgxxePx0oMQ3/ipUGI+dZvI3z557o=
-Date: Mon, 16 Jun 2025 16:49:45 -0700
+	b=RIGaDM5jdegRXKzter5pjkM/4F7WWFN2N7ZQ/12JjNSuS9BaFSf9vML3zUiOFsps0
+	 W9kdH+WCY+YxuwhdUIWL/3mrxJ4hZ497v7AD+C8Osq59NrlpXPApko4nK04D1JEa9T
+	 lKdoZ4Oy6l6ThAm3slBzYCQtx4cVpm4PSr+F1v8A=
+Date: Mon, 16 Jun 2025 16:49:47 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_ext-derive-the-node-from-the-pfn.patch added to mm-unstable branch
-Message-Id: <20250616234945.C21FAC4CEEA@smtp.kernel.org>
+Subject: + mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch added to mm-unstable branch
+Message-Id: <20250616234947.B8532C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_ext: derive the node from the pfn
+     Subject: mm,memory_hotplug: drop status_change_nid parameter from memory_notify
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_ext-derive-the-node-from-the-pfn.patch
+     mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_ext-derive-the-node-from-the-pfn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,74 +59,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_ext: derive the node from the pfn
-Date: Mon, 16 Jun 2025 15:51:53 +0200
+Subject: mm,memory_hotplug: drop status_change_nid parameter from memory_notify
+Date: Mon, 16 Jun 2025 15:51:54 +0200
 
-page_ext is the only user of 'status_change_nid', which is set in
-online/offline operations, to know to which node we are adding/removing
-memory.
+There no users left of status_change_nid, so drop it from memory_notify
+struct.
 
-Prior to call any notifiers, the memmap is initialized via, which among
-other things, sets the node the pages belong to, to all corresponging
-pages.  This means that there is no need to keep using 'status_change_nid'
-since we can derive the node from the pfn.  This will allow us to finally
-drop 'status_change_nid' from the memory_notify struct.
-
-Link: https://lkml.kernel.org/r/20250616135158.450136-11-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250616135158.450136-12-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_ext.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ Documentation/core-api/memory-hotplug.rst |    7 -------
+ include/linux/memory.h                    |    1 -
+ mm/memory_hotplug.c                       |    4 ----
+ 3 files changed, 12 deletions(-)
 
---- a/mm/page_ext.c~mmpage_ext-derive-the-node-from-the-pfn
-+++ a/mm/page_ext.c
-@@ -369,25 +369,15 @@ static void __invalidate_page_ext(unsign
- }
+--- a/Documentation/core-api/memory-hotplug.rst~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
++++ a/Documentation/core-api/memory-hotplug.rst
+@@ -59,17 +59,10 @@ The third argument (arg) passes a pointe
+ 	struct memory_notify {
+ 		unsigned long start_pfn;
+ 		unsigned long nr_pages;
+-		int status_change_nid;
+ 	}
  
- static int __meminit online_page_ext(unsigned long start_pfn,
--				unsigned long nr_pages,
--				int nid)
-+				unsigned long nr_pages)
- {
-+	int nid = pfn_to_nid(start_pfn);
- 	unsigned long start, end, pfn;
- 	int fail = 0;
- 
- 	start = SECTION_ALIGN_DOWN(start_pfn);
- 	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
- 
--	if (nid == NUMA_NO_NODE) {
--		/*
--		 * In this case, "nid" already exists and contains valid memory.
--		 * "start_pfn" passed to us is a pfn which is an arg for
--		 * online__pages(), and start_pfn should exist.
--		 */
--		nid = pfn_to_nid(start_pfn);
--		VM_BUG_ON(!node_online(nid));
--	}
+ - start_pfn is start_pfn of online/offline memory.
+ - nr_pages is # of pages of online/offline memory.
+-- status_change_nid is set node id when N_MEMORY of nodemask is (will be)
+-  set/clear. It means a new(memoryless) node gets new memory by online and a
+-  node loses all memory. If this is -1, then nodemask status is not changed.
 -
- 	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION)
- 		fail = init_section_page_ext(pfn, nid);
- 	if (!fail)
-@@ -435,8 +425,7 @@ static int __meminit page_ext_callback(s
+-  If status_changed_nid* >= 0, callback should create/discard structures for the
+-  node if necessary.
  
- 	switch (action) {
- 	case MEM_GOING_ONLINE:
--		ret = online_page_ext(mn->start_pfn,
--				   mn->nr_pages, mn->status_change_nid);
-+		ret = online_page_ext(mn->start_pfn, mn->nr_pages);
- 		break;
- 	case MEM_OFFLINE:
- 		offline_page_ext(mn->start_pfn,
+ It is possible to get notified for MEM_CANCEL_ONLINE without having been notified
+ for MEM_GOING_ONLINE, and the same applies to MEM_CANCEL_OFFLINE and
+--- a/include/linux/memory.h~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
++++ a/include/linux/memory.h
+@@ -109,7 +109,6 @@ struct memory_notify {
+ 	unsigned long altmap_nr_pages;
+ 	unsigned long start_pfn;
+ 	unsigned long nr_pages;
+-	int status_change_nid;
+ };
+ 
+ struct notifier_block;
+--- a/mm/memory_hotplug.c~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
++++ a/mm/memory_hotplug.c
+@@ -1153,7 +1153,6 @@ int online_pages(unsigned long pfn, unsi
+ 	struct memory_notify mem_arg = {
+ 		.start_pfn = pfn,
+ 		.nr_pages = nr_pages,
+-		.status_change_nid = NUMA_NO_NODE,
+ 	};
+ 	struct node_notify node_arg = {
+ 		.nid = NUMA_NO_NODE,
+@@ -1181,7 +1180,6 @@ int online_pages(unsigned long pfn, unsi
+ 	if (!node_state(nid, N_MEMORY)) {
+ 		/* Adding memory to the node for the first time */
+ 		node_arg.nid = nid;
+-		mem_arg.status_change_nid = nid;
+ 		ret = node_notify(NODE_ADDING_FIRST_MEMORY, &node_arg);
+ 		ret = notifier_to_errno(ret);
+ 		if (ret)
+@@ -1904,7 +1902,6 @@ int offline_pages(unsigned long start_pf
+ 	struct memory_notify mem_arg = {
+ 		.start_pfn = start_pfn,
+ 		.nr_pages = nr_pages,
+-		.status_change_nid = NUMA_NO_NODE,
+ 	};
+ 	struct node_notify node_arg = {
+ 		.nid = NUMA_NO_NODE,
+@@ -1975,7 +1972,6 @@ int offline_pages(unsigned long start_pf
+ 	 */
+ 	if (nr_pages >= pgdat->node_present_pages) {
+ 		node_arg.nid = node;
+-		mem_arg.status_change_nid = node;
+ 		ret = node_notify(NODE_REMOVING_LAST_MEMORY, &node_arg);
+ 		ret = notifier_to_errno(ret);
+ 		if (ret)
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
