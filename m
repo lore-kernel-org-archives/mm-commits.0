@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46A2834545;
-	Mon, 16 Jun 2025 23:21:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5506734545
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750116090; cv=none; b=jz/pno2zn7CbRW5nDX7dpmaPxI0wd9yMPsdXDmwlKmd0k2+3dDZ15WV/rAN9ZEFJJIocWHAnFAcJD13fz7x+/qRmNVIfN+dIpu49TKI1i79bhuVyAtqn7njmxyLzVwlj9UYiN16VRt2WD+NJ3eXPUjDWZHM0omepSZoswOCOa4Y=
+	t=1750116172; cv=none; b=Da74I1LaqDPHIEHJKAY9QMKYVrSgJ1iiuftHnBnDhokSZ0QxZ1OJkU6kuNPVe2NKibbAZonJmEgF8q164WBmZpxxW3nc8pwkyfMfOICXkumNF8kxBUr9Y2+lDrlJc4zhgJikR5fuPVapJEjkPCV7+92R40b63xaMQeIEEhSx8y8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750116090; c=relaxed/simple;
-	bh=GCiKWlw5/RrdHinuuJoSOCeLqjABp+XNFv1qKbj3wMA=;
-	h=Date:To:From:Subject:Message-Id; b=EcXNC6KoUeJzJXCz8ZNLUaPWmOi4fIKJvRs/qyk812SBr49nea4WsXZE0PxG52kbggnVZ3SuDVf8N9sBcvmP8pw+lOFJNuFGi9ZFQfO065vFabyhVvAU0qAqW4e8fGJwitI0hrOeSVHsd9RoefR5pWn1TYM6IQXtyltW9WPYdhc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sHKbxxsV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750116172; c=relaxed/simple;
+	bh=0JEjIOl1cgJPNmGsNgX/paIkqX8jwdPWAKUCTTtSP94=;
+	h=Date:To:From:Subject:Message-Id; b=lJdFrVDWWzymHAL82FNbofBXW57DvCkFMlilRZGgaq2Ejkto4XBhnWvLueu9hZelA8G4RbXES5DPOo1z8/EwB+plJYQsyU/+RcPk5uFY3kB326sFSff8/764gE9Ncf/wYNMMnKhKMP8S4CV6jAYM1ogJQGU3Ij9aBRkVQbK0U+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S4tqHSWt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sHKbxxsV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A40A7C4CEEA;
-	Mon, 16 Jun 2025 23:21:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S4tqHSWt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3653C4CEEA;
+	Mon, 16 Jun 2025 23:22:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750116089;
-	bh=GCiKWlw5/RrdHinuuJoSOCeLqjABp+XNFv1qKbj3wMA=;
+	s=korg; t=1750116171;
+	bh=0JEjIOl1cgJPNmGsNgX/paIkqX8jwdPWAKUCTTtSP94=;
 	h=Date:To:From:Subject:From;
-	b=sHKbxxsV12+MzXaC0TpRWZYuOUhdF4/hsEFrrsxlJuE6mu/f4txE8ogy4sVcyVdAi
-	 BouS/7aINLvR1QpWCpdnj5uYzj51oxyQjYDoPw77+Uxhj8AxbqCPh4YAvs52+O/IM5
-	 m0pSPUUiIi0yveSNKKYr+wznAmz/4anx2Je17o/M=
-Date: Mon, 16 Jun 2025 16:21:29 -0700
-To: mm-commits@vger.kernel.org,zhaoyang.huang@unisoc.com,zhangpeng.00@bytedance.com,willy@infradead.org,surenb@google.com,Steve.Kang@unisoc.com,stable@vger.kernel.org,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,hailong.liu@oppo.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+	b=S4tqHSWtj6bebyHqNiBD7Mhx3qo1fdalUEbsFn/bXodrhNuLQi3ubXsuk1yyVr3+n
+	 41LZqy1O0baBEFKxQovSBuiOXm/ZLJhMbPLpEUFEXKzF2YvpTr5j4ystTc/QZUWYrH
+	 fAbfiSOPvKzf7VhZXiYC0hrGCHQbz1wApDntUEOY=
+Date: Mon, 16 Jun 2025 16:22:51 -0700
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,willy@infradead.org,surenb@google.com,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,hailong.liu@oppo.com,howlett@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-ma_state_prealloc-flag-in-mas_preallocate.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250616232129.A40A7C4CEEA@smtp.kernel.org>
+Subject: + testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines.patch added to mm-new branch
+Message-Id: <20250616232251.C3653C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: fix MA_STATE_PREALLOC flag in mas_preallocate()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-fix-ma_state_prealloc-flag-in-mas_preallocate.patch
+     Subject: testing/raix-tree/maple: increase readers and reduce delay for faster machines
+has been added to the -mm mm-new branch.  Its filename is
+     testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-ma_state_prealloc-flag-in-mas_preallocate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,73 +64,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: fix MA_STATE_PREALLOC flag in mas_preallocate()
-Date: Mon, 16 Jun 2025 14:45:20 -0400
+From: "Liam R. Howlett" <howlett@gmail.com>
+Subject: testing/raix-tree/maple: increase readers and reduce delay for faster machines
+Date: Mon, 16 Jun 2025 14:45:19 -0400
 
-Temporarily clear the preallocation flag when explicitly requesting
-allocations.  Pre-existing allocations are already counted against the
-request through mas_node_count_gfp(), but the allocations will not happen
-if the MA_STATE_PREALLOC flag is set.  This flag is meant to avoid
-re-allocating in bulk allocation mode, and to detect issues with
-preallocation calculations.
+Faster machines may not see the initial or updated value in the race
+condition.  Reduce the delay so that faster machines are less likely to
+fail testing of the race conditions.
 
-The MA_STATE_PREALLOC flag should also always be set on zero allocations
-so that detection of underflow allocations will print a WARN_ON() during
-consumption.
-
-User visible effect of this flaw is a WARN_ON() followed by a null pointer
-dereference when subsequent requests for larger number of nodes is
-ignored, such as the vma merge retry in mmap_region() caused by drivers
-altering the vma flags (which happens in v6.6, at least)
-
-Link: https://lkml.kernel.org/r/20250616184521.3382795-3-Liam.Howlett@oracle.com
-Fixes: 54a611b605901 ("Maple Tree: add new data structure")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Reported-by: Hailong Liu <hailong.liu@oppo.com>
-Link: https://lore.kernel.org/all/1652f7eb-a51b-4fee-8058-c73af63bacd1@oppo.com/
-Link: https://lore.kernel.org/all/20250428184058.1416274-1-Liam.Howlett@oracle.com/
-Link: https://lore.kernel.org/all/20250429014754.1479118-1-Liam.Howlett@oracle.com/
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20250616184521.3382795-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <howlett@gmail.com>
 Cc: Hailong Liu <hailong.liu@oppo.com>
-Cc: zhangpeng.00@bytedance.com <zhangpeng.00@bytedance.com>
-Cc: Steve Kang <Steve.Kang@unisoc.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: <stable@vger.kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ tools/testing/radix-tree/maple.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-ma_state_prealloc-flag-in-mas_preallocate
-+++ a/lib/maple_tree.c
-@@ -5527,8 +5527,9 @@ int mas_preallocate(struct ma_state *mas
- 	mas->store_type = mas_wr_store_type(&wr_mas);
- 	request = mas_prealloc_calc(&wr_mas, entry);
- 	if (!request)
--		return ret;
-+		goto set_flag;
+--- a/tools/testing/radix-tree/maple.c~testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines
++++ a/tools/testing/radix-tree/maple.c
+@@ -35062,7 +35062,7 @@ void run_check_rcu_slowread(struct maple
  
-+	mas->mas_flags &= ~MA_STATE_PREALLOC;
- 	mas_node_count_gfp(mas, request, gfp);
- 	if (mas_is_err(mas)) {
- 		mas_set_alloc_req(mas, 0);
-@@ -5538,6 +5539,7 @@ int mas_preallocate(struct ma_state *mas
- 		return ret;
+ 	int i;
+ 	void *(*function)(void *);
+-	pthread_t readers[20];
++	pthread_t readers[30];
+ 	unsigned int index = vals->index;
+ 
+ 	mt_set_in_rcu(mt);
+@@ -35080,14 +35080,14 @@ void run_check_rcu_slowread(struct maple
+ 		}
  	}
  
-+set_flag:
- 	mas->mas_flags |= MA_STATE_PREALLOC;
- 	return ret;
+-	usleep(5); /* small yield to ensure all threads are at least started. */
++	usleep(3); /* small yield to ensure all threads are at least started. */
+ 
+ 	while (index <= vals->last) {
+ 		mtree_store(mt, index,
+ 			    (index % 2 ? vals->entry2 : vals->entry3),
+ 			    GFP_KERNEL);
+ 		index++;
+-		usleep(5);
++		usleep(2);
+ 	}
+ 
+ 	while (i--)
+@@ -35098,6 +35098,7 @@ void run_check_rcu_slowread(struct maple
+ 	MT_BUG_ON(mt, !vals->seen_entry3);
+ 	MT_BUG_ON(mt, !vals->seen_both);
  }
++
+ static noinline void __init check_rcu_simulated(struct maple_tree *mt)
+ {
+ 	unsigned long i, nr_entries = 1000;
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from howlett@gmail.com are
 
-maple_tree-fix-ma_state_prealloc-flag-in-mas_preallocate.patch
 testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines.patch
 
