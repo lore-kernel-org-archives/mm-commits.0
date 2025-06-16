@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F25E223DD5
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:11:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74D58223DD5
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jun 2025 23:11:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750115492; cv=none; b=qmcluIPl9RBsCFqCqrANQI8hAZmg/e2djJPxSaT+tuPrMXrQvEy44BQ59iaSk0ocou2uRjz7mL1wME9P1POG0/t9JvVYRbQc2cgOWNlJN2UQAh88Bh2qORt9t0mt1q57CZ9YnuEmUvZRGvKZVIbiHbsW+58WiEqumX8B89khkaI=
+	t=1750115494; cv=none; b=fMafMkjKSUx1kKSx43TJO6i8qgk81ND1FTaLxYuWZaKdcXtaXQcRRNLUY47CYMVdXCh9ZxOFeZJulrTZBsIsh7HOClGcb8n1rg6D+aohAB0NvwkdujzGMHBgcAJ0+zavdMBn/lKlLn6aspNx3Rz5PMHlLPnAQ/iw4j2fTOFgmO4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750115492; c=relaxed/simple;
-	bh=B80asNu1NL4RhZPqFKcc+GbWLquAhgOLlTCQzQPCpyA=;
-	h=Date:To:From:Subject:Message-Id; b=KX9tmFbrq0Ov70Y6gc1RmlMvKQDdr1d+wfCy7NJLlUkJsXXSq3Euh/pbDY0c5Ur/31V4KDZj4o7C0hGLfC7N643iu3+MyPFJr68XvX3416ckWSDVSH1lFH7kWInLbczoy9gqdPuP3igRrrGROLhJE4YBkI30ZWTEuRs7KKhxmQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I1yfDk3z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750115494; c=relaxed/simple;
+	bh=T7fTVmeok3DT3g4hZYs84NQ8JJHJyhpRDSI95YslJv0=;
+	h=Date:To:From:Subject:Message-Id; b=svVX35ZlbPS5+YUiQR2FFYlAiFU/0jxnB9J/FRxBwENFnBVgo/YBHOZE1PNbOHGe4ulPbmheDvQYsY32Ocaa7XCMLhEuK1gM28Z6CzXMKl35uYmXr2AAJsdTghVFPISmv74IU6ud2y4x5PvcsCGLS+iZeg/ESoJKHmhkyp7LW3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b9CJvVAQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I1yfDk3z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14714C4CEEA;
-	Mon, 16 Jun 2025 23:11:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b9CJvVAQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03E8BC4CEEA;
+	Mon, 16 Jun 2025 23:11:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750115492;
-	bh=B80asNu1NL4RhZPqFKcc+GbWLquAhgOLlTCQzQPCpyA=;
+	s=korg; t=1750115494;
+	bh=T7fTVmeok3DT3g4hZYs84NQ8JJHJyhpRDSI95YslJv0=;
 	h=Date:To:From:Subject:From;
-	b=I1yfDk3zq3O1FjOAaJY+nWqRKJBaVIqxjXZ3LFLafiaRweWyU7TAjCzsPiH3lvMMg
-	 mOEpA1Zgnh+BD30JDtxtY2FWRCpF8b2Mms4oqp92op4FQ+WwvM//54zzLjmDiaexFr
-	 rc26J/+GYKQPRZz4MbwoNXCI8nUtyKtR4+rCSBQw=
-Date: Mon, 16 Jun 2025 16:11:31 -0700
+	b=b9CJvVAQ4BMHfC3VrXdYeVrFv1r6osHAbnYOlh3GpPZew5T+90zkHHIHf/b6pMQWb
+	 7sj8X5Oy1gO181GEcsce/5fHO+4WSe5W/qn1tOIjV3ml4QilpsMDFfO2ZJjaYrcoD9
+	 T0yH68rvdZ1vAdvaFzIsGMfqrfYOMUkX+hiuvOuU=
+Date: Mon, 16 Jun 2025 16:11:33 -0700
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-nommu-use-file_has_valid_mmap_hooks-helper.patch added to mm-new branch
-Message-Id: <20250616231132.14714C4CEEA@smtp.kernel.org>
+Subject: + fs-consistently-use-file_has_valid_mmap_hooks-helper.patch added to mm-new branch
+Message-Id: <20250616231134.03E8BC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/nommu: use file_has_valid_mmap_hooks() helper
+     Subject: fs: consistently use file_has_valid_mmap_hooks() helper
 has been added to the -mm mm-new branch.  Its filename is
-     mm-nommu-use-file_has_valid_mmap_hooks-helper.patch
+     fs-consistently-use-file_has_valid_mmap_hooks-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-use-file_has_valid_mmap_hooks-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-consistently-use-file_has_valid_mmap_hooks-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,37 +65,101 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/nommu: use file_has_valid_mmap_hooks() helper
-Date: Mon, 16 Jun 2025 20:33:21 +0100
+Subject: fs: consistently use file_has_valid_mmap_hooks() helper
+Date: Mon, 16 Jun 2025 20:33:22 +0100
 
 Since commit c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file
 callback"), the f_op->mmap() hook has been deprecated in favour of
 f_op->mmap_prepare().
 
-Therefore, update the check for file operations supporting mmap() by using
-the file_has_valid_mmap_hooks() helper function, which checks for either
-f_op->mmap or f_op->mmap_prepare rather than checking only for f_op->mmap
-directly.
+Additionally, commit bb666b7c2707 ("mm: add mmap_prepare() compatibility
+layer for nested file systems") permits the use of the .mmap_prepare()
+hook even in nested filesystems like overlayfs.
 
-Link: https://lkml.kernel.org/r/5f120b644b5890d1b50202d0f0d4c9f0d6b62873.1750099179.git.lorenzo.stoakes@oracle.com
+There are a number of places where we check only for f_op->mmap - this is
+incorrect now mmap_prepare exists, so update all of these to use the
+general helper file_has_valid_mmap_hooks().
+
+Most notably, this updates the elf logic to allow for the ability to
+execute binaries on filesystems which have the .mmap_prepare hook, but
+additionally we update nested filesystems.
+
+Link: https://lkml.kernel.org/r/b68145b609532e62bab603dd9686faa6562046ec.1750099179.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/backing-file.c     |    2 +-
+ fs/binfmt_elf.c       |    4 ++--
+ fs/binfmt_elf_fdpic.c |    2 +-
+ fs/coda/file.c        |    2 +-
+ fs/ecryptfs/file.c    |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/nommu.c~mm-nommu-use-file_has_valid_mmap_hooks-helper
-+++ a/mm/nommu.c
-@@ -719,7 +719,7 @@ static int validate_mmap_request(struct
+--- a/fs/backing-file.c~fs-consistently-use-file_has_valid_mmap_hooks-helper
++++ a/fs/backing-file.c
+@@ -333,7 +333,7 @@ int backing_file_mmap(struct file *file,
+ 	if (WARN_ON_ONCE(!(file->f_mode & FMODE_BACKING)))
+ 		return -EIO;
  
- 	if (file) {
- 		/* files must support mmap */
--		if (!file->f_op->mmap)
-+		if (!file_has_valid_mmap_hooks(file))
- 			return -ENODEV;
+-	if (!file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(file))
+ 		return -ENODEV;
  
- 		/* work out if what we've got could possibly be shared
+ 	vma_set_file(vma, file);
+--- a/fs/binfmt_elf.c~fs-consistently-use-file_has_valid_mmap_hooks-helper
++++ a/fs/binfmt_elf.c
+@@ -646,7 +646,7 @@ static unsigned long load_elf_interp(str
+ 	if (!elf_check_arch(interp_elf_ex) ||
+ 	    elf_check_fdpic(interp_elf_ex))
+ 		goto out;
+-	if (!interpreter->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(interpreter))
+ 		goto out;
+ 
+ 	total_size = total_mapping_size(interp_elf_phdata,
+@@ -848,7 +848,7 @@ static int load_elf_binary(struct linux_
+ 		goto out;
+ 	if (elf_check_fdpic(elf_ex))
+ 		goto out;
+-	if (!bprm->file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(bprm->file))
+ 		goto out;
+ 
+ 	elf_phdata = load_elf_phdrs(elf_ex, bprm->file);
+--- a/fs/binfmt_elf_fdpic.c~fs-consistently-use-file_has_valid_mmap_hooks-helper
++++ a/fs/binfmt_elf_fdpic.c
+@@ -109,7 +109,7 @@ static int is_elf(struct elfhdr *hdr, st
+ 		return 0;
+ 	if (!elf_check_arch(hdr))
+ 		return 0;
+-	if (!file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(file))
+ 		return 0;
+ 	return 1;
+ }
+--- a/fs/coda/file.c~fs-consistently-use-file_has_valid_mmap_hooks-helper
++++ a/fs/coda/file.c
+@@ -160,7 +160,7 @@ coda_file_mmap(struct file *coda_file, s
+ 	size_t count;
+ 	int ret;
+ 
+-	if (!host_file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(host_file))
+ 		return -ENODEV;
+ 
+ 	if (WARN_ON(coda_file != vma->vm_file))
+--- a/fs/ecryptfs/file.c~fs-consistently-use-file_has_valid_mmap_hooks-helper
++++ a/fs/ecryptfs/file.c
+@@ -193,7 +193,7 @@ static int ecryptfs_mmap(struct file *fi
+ 	 * natively.  If FILESYSTEM_MAX_STACK_DEPTH > 2 or ecryptfs
+ 	 * allows recursive mounting, this will need to be extended.
+ 	 */
+-	if (!lower_file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(lower_file))
+ 		return -ENODEV;
+ 	return generic_file_mmap(file, vma);
+ }
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
