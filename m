@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E8382F5328
-	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 22:32:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 950E92957CE
+	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 22:53:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750199574; cv=none; b=SNHsRDEn6D2RJX+gEo2Q5IjrS9vbqKvfxmAwk5eJZXr9htfRj2PXsYq0XMsMX3Efj1oTirdi5BNbnT7wdat8Vhv+towkY6F6IXTju2q5Nm/cbL0K3TN64XxVN6Mxm9llQzC6ghR0cOP4Pyg25gZuFz/S/nV2n6cdvRTsc44qxlM=
+	t=1750200835; cv=none; b=WyX5rqECf1zKISmc1eZAzDQVBrCd+PGPBOAQh8prLo7PW52BIkgBHGVSxVMffbVXWrY848W/JNhyD3y0aPa4Z9B05+WbKaJlFQ0WEZMq3oBySD77CCg3QSaURbS2ZIvbvzmGJnjF2pZpFz0l3ZOC6RV9rDPVxbm4a+fNpXwqgLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750199574; c=relaxed/simple;
-	bh=IDASyVQk2oV6BDSCEiI87ZI7H7lcUS0I9T+0TG/Ekqg=;
-	h=Date:To:From:Subject:Message-Id; b=l9sZ2zSMKbqPV9BaP+W6lGgeCN+nlpRhLSk5tNQxZlnj9DPYlZB6FtS/COtA7z2o/NmaoT4lJoZ1wbpAXgZtSOaDWVClSj36Aq1oMF6hUNPcQnJOqcrLr7VAhgHP3wUtxm9obOp6rqz56iNgLXrL6+5Ooz1/aRjSVTBE4fNz6qs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VrCdiK1f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750200835; c=relaxed/simple;
+	bh=wvY/ENzW/9zyZftWHe1mqAO8XfteGwqFOXl4P1kYugk=;
+	h=Date:To:From:Subject:Message-Id; b=RoaxqCIddttoVsMM71LoBm9YaGc3Lr82aRILiNbgsd1DDvkUZzHWdAzm5IMoJ7tBW9CkPf4qy2CKhGrIy1O9e5d6ZzP0HrXwP6UJCa5q2fjAb/aBJInAENpajXxjWRIn4UbeNz6pXJLIX0T8rhp4qxwX1j9XJOcRqkMrxVpBBqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lPGFz38J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VrCdiK1f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 716D8C4CEE3;
-	Tue, 17 Jun 2025 22:32:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lPGFz38J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F6C6C4CEE3;
+	Tue, 17 Jun 2025 22:53:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750199573;
-	bh=IDASyVQk2oV6BDSCEiI87ZI7H7lcUS0I9T+0TG/Ekqg=;
+	s=korg; t=1750200835;
+	bh=wvY/ENzW/9zyZftWHe1mqAO8XfteGwqFOXl4P1kYugk=;
 	h=Date:To:From:Subject:From;
-	b=VrCdiK1fug+7G4x/VbjkV2ts7u2wthSe1/4qdmWs/EuNKZKpH3k7ljdQoUyK1M23N
-	 MQK/7JagjFj5vN3LaVbw6dGmIxGBeyDASjFIkvw/m7TZymEmaGSZsbKFWtFhGixP1i
-	 zLgkXqwfYCxGASRGJsaWT/pjowgbY/L110e19Hvw=
-Date: Tue, 17 Jun 2025 15:32:52 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,riel@surriel.com,richard.weiyang@gmail.com,npache@redhat.com,matenajakub@gmail.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=lPGFz38Jy6C4iu6Gs+YBqHgyHjh7yCetcFPTTXk9eK2EdM02W16hbp74DtlZcP4Z9
+	 2XFw2zNfcNw4wBqWtKXmBM0YeTFOtU22kAmsoNREp0MybJn2JoPDwny9qMF8W0JTkx
+	 itZhonvK/gh3wEC94JcmuC+5VeAimrx4l8Xtsu0c=
+Date: Tue, 17 Jun 2025 15:53:54 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterx@redhat.com,muchun.song@linux.dev,mhocko@suse.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch added to mm-unstable branch
-Message-Id: <20250617223253.716D8C4CEE3@smtp.kernel.org>
+Subject: + maintainers-update-maintainers-for-hugetlb.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250617225355.0F6C6C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fix syzbot reports
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
+     Subject: MAINTAINERS: update maintainers for HugeTLB
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-update-maintainers-for-hugetlb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-maintainers-for-hugetlb.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,100 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: fix syzbot reports
-Date: Tue, 17 Jun 2025 20:56:25 +0100
+From: Oscar Salvador <osalvador@suse.de>
+Subject: MAINTAINERS: update maintainers for HugeTLB
+Date: Tue, 17 Jun 2025 20:59:10 +0200
 
-Use folio_trylock() to resolve
-https://lore.kernel.org/all/aFEAPOozHsR1/PLI@ly-workstation/ and balance
-lock/unlock in move_pgt_entry() to fix
-https://lore.kernel.org/all/68512333.a70a0220.395abc.0205.GAE@google.com/
+Change my role to Maintainer as I am quite involved in HugeTLB
+development, and will be more so with the upcoming HugetLB-pagewalk
+unification, so I would like to help Munchun take care of the code. 
+Besides, having two people will help in offloading some pressure.
 
-Link: https://lkml.kernel.org/r/46f4db0a-4b84-45b9-8b23-bb81493f776d@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jakub Matěna <matenajakub@gmail.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Also add David as a Reviewer since he has quite some knowledge in the
+field and has already provided valuable feedback.
+
+Link: https://lkml.kernel.org/r/20250617185910.471406-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix
-+++ a/mm/mremap.c
-@@ -601,12 +601,12 @@ static bool move_pgt_entry(struct pageta
+--- a/MAINTAINERS~maintainers-update-maintainers-for-hugetlb
++++ a/MAINTAINERS
+@@ -11157,7 +11157,8 @@ F:	include/linux/platform_data/huawei-ga
  
- 	if (!pmc->need_rmap_locks && should_take_rmap_locks(entry)) {
- 		override_locks = true;
--
- 		pmc->need_rmap_locks = true;
--		/* See comment in move_ptes() */
--		maybe_take_rmap_locks(pmc);
- 	}
- 
-+	/* See comment in move_ptes() */
-+	maybe_take_rmap_locks(pmc);
-+
- 	switch (entry) {
- 	case NORMAL_PMD:
- 		moved = move_normal_pmd(pmc, old_entry, new_entry);
-@@ -824,7 +824,8 @@ static unsigned long relocate_anon_pte(s
- 	if (!folio)
- 		return ret;
- 
--	folio_lock(folio);
-+	if (!folio_trylock(folio))
-+		return 0;
- 
- 	/* No-op. */
- 	if (!folio_test_anon(folio) || folio_test_ksm(folio))
+ HUGETLB SUBSYSTEM
+ M:	Muchun Song <muchun.song@linux.dev>
+-R:	Oscar Salvador <osalvador@suse.de>
++M:	Oscar Salvador <osalvador@suse.de>
++R:	David Hildenbrand <david@redhat.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-hugepages
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
-maintainers-add-missing-test-files-to-mm-gup-section.patch
-docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
-mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon.patch
-mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
-mm-mremap-add-mremap_must_relocate_anon.patch
-mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
-tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
-tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
-tools-testing-selftests-add-mremap-cases-that-merge-normally.patch
-tools-testing-selftests-add-mremap_relocate_anon-merge-test-cases.patch
-tools-testing-selftests-expand-mremap-tests-for-mremap_relocate_anon.patch
-tools-testing-selftests-have-cow-self-test-use-mremap_relocate_anon.patch
-tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
-tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
-secretmem-remove-uses-of-struct-page-fix.patch
-mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
-mm-rename-call_mmap-mmap_prepare-to-vfs_mmap-mmap_prepare.patch
-mm-nommu-use-file_has_valid_mmap_hooks-helper.patch
-fs-consistently-use-file_has_valid_mmap_hooks-helper.patch
-fs-dax-make-it-possible-to-check-dev-dax-support-without-a-vma.patch
-fs-ext4-transition-from-deprecated-mmap-hook-to-mmap_prepare.patch
-fs-xfs-transition-from-deprecated-mmap-hook-to-mmap_prepare.patch
-mm-filemap-introduce-generic_file__mmap_prepare-helpers.patch
-fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare.patch
-fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare.patch
-fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings.patch
+maintainers-update-maintainers-for-hugetlb.patch
+mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
+mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
+mmmemory_hotplug-implement-numa-node-notifier.patch
+mmslub-use-node-notifier-instead-of-memory-notifier.patch
+mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
+driverscxl-use-node-notifier-instead-of-memory-notifier.patch
+drivershmat-use-node-notifier-instead-of-memory-notifier.patch
+kernelcpuset-use-node-notifier-instead-of-memory-notifier.patch
+mmmempolicy-use-node-notifier-instead-of-memory-notifier.patch
+mmpage_ext-derive-the-node-from-the-pfn.patch
+mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
 
