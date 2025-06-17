@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F9D078F52
-	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 00:30:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6494A1EB2F
+	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 01:28:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750120229; cv=none; b=Bk0s0v6Ri+CkFrmPnP6y/qEHn6h+f7glw3dJouoYv1Fwf5dtawZVaFPPmQhh5d9qWlhabRk+uBnqP/mS+XEEiYQDn9vWFPU+Yai+V/QGWsmIr8ZYC2pspq8iPz6rScghf3+EI1G+UtLdKEfGY9+fhUKuACPSXdaGdkr2+FCmQFU=
+	t=1750123725; cv=none; b=k2C2T3+dTLLIcPWL+2P4WLdxNVTmxZuXy9StWBIR5b7PCltV7mFvAVGXhRX5A5GA5dIlV/qxKQs0dzlzWOvys/5uUUv3cpYZdZlZytqwf9WXKNpiGkfnf7xThVr00ACgNqkIT1jtOSd+tUIxZJZrj8k4NuTECwNA4PyWQkCu3b4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750120229; c=relaxed/simple;
-	bh=D0qv1rOR4weIbdlic1ciYuRfeiHlajHeIVGX2ZD6B1o=;
-	h=Date:To:From:Subject:Message-Id; b=fGCdbhYLvHCfWnvp//WbQoDWLr9T9662SjRRo0PcN/cjG+8HrZy4M315+KxeW9aU79UL3tiUhN5nqUZlMuT8uj9RUnOIRS4MwTElR68zjwo9mhNi5O6mpkoymdnJ2KHEwUPFHwrikUZiEZG1r9I1Md3o1X1KMpGC4lK/8Mj3hHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eWI+GlEx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750123725; c=relaxed/simple;
+	bh=j0CRzvNILv9YAN25U5iZ+3NbDJDDfdRkR0xIErs3HL0=;
+	h=Date:To:From:Subject:Message-Id; b=jQBo4w0foiKhEuhtwPLwGqq9CRIdk+ccPNgRTJcpi2novTamVd14OvBky/VmghLdQucjYLHzQaH9pMN17UlSFVNSy6tKg3ImR/lcn6F7miDoe+N9XjUp8OfFTa7CJ1/Xk+KdHiv7T09uHS0V20gCuMoPe/GDJs5tysFOaYX1MXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jrj4eOOb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eWI+GlEx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B45DDC4CEEA;
-	Tue, 17 Jun 2025 00:30:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jrj4eOOb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7696C4CEEA;
+	Tue, 17 Jun 2025 01:28:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750120228;
-	bh=D0qv1rOR4weIbdlic1ciYuRfeiHlajHeIVGX2ZD6B1o=;
+	s=korg; t=1750123725;
+	bh=j0CRzvNILv9YAN25U5iZ+3NbDJDDfdRkR0xIErs3HL0=;
 	h=Date:To:From:Subject:From;
-	b=eWI+GlEx9DNRAMDexfclUhZEwk/3EZlIdoJiLnXieuSJXbSI/HeYVD+CCLz4HHmKL
-	 VR8OA3xfjW4A6ZQvN5Cgf/yZ2qx4ql2+ejNy/eMqe2CE99qBZ3dwvixuliY69fRDM/
-	 xn//a75FDnDcVSyRlhNIjDM5o+DBM5tE/ctiMKyM=
-Date: Mon, 16 Jun 2025 17:30:28 -0700
-To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,clement.legoffic@foss.st.com,apw@canonical.com,antonio.borneo@foss.st.com,akpm@linux-foundation.org
+	b=jrj4eOOb9fl79HKg8znVIawCpG+eq4du6xvSyFTlIsjVbA9Y1YGrQJlNgaSO4GlVY
+	 weR0yO3+1LVBoaD8o1kDrfI1Oeeipye63XYoFMbix5OqWIw2a+JtezgmXeGXcMIZ+n
+	 7hCqZTTpe91UuyvCHGLAgaPecDUXaAlG8gR56KHw=
+Date: Mon, 16 Jun 2025 18:28:44 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-use-utf-8-match-for-spell-checking.patch added to mm-nonmm-unstable branch
-Message-Id: <20250617003028.B45DDC4CEEA@smtp.kernel.org>
+Subject: + fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare-fix.patch added to mm-new branch
+Message-Id: <20250617012844.E7696C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: use utf-8 match for spell checking
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-use-utf-8-match-for-spell-checking.patch
+     Subject: fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare-fix
+has been added to the -mm mm-new branch.  Its filename is
+     fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-use-utf-8-match-for-spell-checking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,55 +64,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Antonio Borneo <antonio.borneo@foss.st.com>
-Subject: checkpatch: use utf-8 match for spell checking
-Date: Mon, 16 Jun 2025 09:59:13 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare-fix
+Date: Mon Jun 16 06:26:55 PM PDT 2025
 
-The current code that checks for misspelling verifies, in a more
-complex regex, if $rawline matches [^\w]($misspellings)[^\w]
+fix missed conversion in fs/ubifs/file.c
 
-Being $rawline a byte-string, a utf-8 character in $rawline can
-match the non-word-char [^\w].
-E.g.:
-	./scripts/checkpatch.pl --git 81c2f059ab9
-	WARNING: 'ment' may be misspelled - perhaps 'meant'?
-	#36: FILE: MAINTAINERS:14360:
-	+M:     Clément Léger <clement.leger@bootlin.com>
-	            ^^^^
-
-Use a utf-8 version of $rawline for spell checking.
-
-Link: https://lkml.kernel.org/r/20250616-b4-checkpatch-upstream-v2-1-5600ce4a3b43@foss.st.com
-Signed-off-by: Antonio Borneo <antonio.borneo@foss.st.com>
-Signed-off-by: Clément Le Goffic <clement.legoffic@foss.st.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ubifs/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-use-utf-8-match-for-spell-checking
-+++ a/scripts/checkpatch.pl
-@@ -3502,9 +3502,10 @@ sub process {
- # Check for various typo / spelling mistakes
- 		if (defined($misspellings) &&
- 		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
--			while ($rawline =~ /(?:^|[^\w\-'`])($misspellings)(?:[^\w\-'`]|$)/gi) {
-+			my $rawline_utf8 = decode("utf8", $rawline);
-+			while ($rawline_utf8 =~ /(?:^|[^\w\-'`])($misspellings)(?:[^\w\-'`]|$)/gi) {
- 				my $typo = $1;
--				my $blank = copy_spacing($rawline);
-+				my $blank = copy_spacing($rawline_utf8);
- 				my $ptr = substr($blank, 0, $-[1]) . "^" x length($typo);
- 				my $hereptr = "$hereline$ptr\n";
- 				my $typo_fix = $spelling_fix{lc($typo)};
+--- a/fs/ubifs/file.c~fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare-fix
++++ a/fs/ubifs/file.c
+@@ -1586,7 +1586,7 @@ static int ubifs_file_mmap_prepare(struc
+ 	err = generic_file_mmap_prepare(desc);
+ 	if (err)
+ 		return err;
+-	vma->vm_ops = &ubifs_file_vm_ops;
++	desc->vm_ops = &ubifs_file_vm_ops;
+ 
+ 	if (IS_ENABLED(CONFIG_UBIFS_ATIME_SUPPORT))
+ 		file_accessed(desc->file);
 _
 
-Patches currently in -mm which might be from antonio.borneo@foss.st.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-checkpatch-use-utf-8-match-for-spell-checking.patch
+fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare-fix.patch
+mm-page_isolation-remove-migratetype-from-move_freepages_block_isolate-fix.patch
 
