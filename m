@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 909082F5326;
-	Tue, 17 Jun 2025 23:35:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34A182F5326
+	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 23:40:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750203312; cv=none; b=BlcNRm5MUd0ACaEYvS9rZgffugzcdHC/yP2sbNQBi2pJKgT4SakEFfxIZotn3YW0dTGmXHkCvY3/bFPcGWe6Ku/O8zTqEHKIau2WgVu5XBUamqPajNBFRSWLe7KlBuzy7Gl9coma/BA2rTHkL5JwpLrvhCjhC3cNYKvHzX9MUFs=
+	t=1750203608; cv=none; b=Au0KjdNWMq2BXUjD+6SCQAvxaub3Vnc8Q9hNtNdx+GLsPDGm3+oVHxaAJKTF/5ePDPuYu5tmInDwulSY9KluaBeTEFuOFxS8JZje+iCpfAbeboeNI5M0utvKFWou9w9qyPCSm1QdfqlejfIs3LzWmNk39NfvKBmJpR54Z+Xv9aY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750203312; c=relaxed/simple;
-	bh=PUPjQNDrmsYKaFmvg9pcRbtb48JtmiMkyLI/rVjh8mc=;
-	h=Date:To:From:Subject:Message-Id; b=W+tlaB0d4pB4Y8zsr/gNyxJF47qHLrNhxAbiau2hrmMW0MdyHxU4t4g5ctKWAPVv6+S3sMOljY9xSlMjAMbxW+WUns9pao1QZv34bp9HmJuGyg59vrseWN1uTodAcUepAbOJBsc03gezghM+M45FAUpLdNN6819mG0bhPYnsrr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JTRiHMYY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750203608; c=relaxed/simple;
+	bh=8nFgBEAZWeLIHTxWPp+LMnIPMfYpWMwaqd0KVVUJ8NM=;
+	h=Date:To:From:Subject:Message-Id; b=kjdWgut4zJi6Zbe1ZLuwFsdfRw54CviO6pmZ+Mc7Q67XXcf8L1WBB/hGbifhvLSl3wJe9fPr6QFa69jAM7MzIjhAbZsCmi6z6zBZyfLOGDdbe8oqsbuK+AtmZ/fo41ifNaks+s3RcOVhYbJNaVwLJFqKZclPXhu4zghop1uNjmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YypQKj5+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JTRiHMYY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51BA1C4CEE3;
-	Tue, 17 Jun 2025 23:35:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YypQKj5+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B857EC4CEE3;
+	Tue, 17 Jun 2025 23:40:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750203312;
-	bh=PUPjQNDrmsYKaFmvg9pcRbtb48JtmiMkyLI/rVjh8mc=;
+	s=korg; t=1750203607;
+	bh=8nFgBEAZWeLIHTxWPp+LMnIPMfYpWMwaqd0KVVUJ8NM=;
 	h=Date:To:From:Subject:From;
-	b=JTRiHMYY0+zSpFWKD+aD70lQWUx+qCccZceZrq2iUf7+AarIHlLl70udTBWnuUAhe
-	 oG95v14a6I9Hfc6lzH6pIls+uyCw5Up/YB7mnRXmfD1HCDAjTs4pmV8umcCIR6YmKe
-	 s00GMNr/iNiPi0DUmkmD41qfWYkOZYGD+v0ikjcs=
-Date: Tue, 17 Jun 2025 16:35:11 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org
+	b=YypQKj5+aE+UxCMOoLaVYCxy620YOBbfMXh6srN9Sp5AP4433s8xz2pReyBrI5Ry+
+	 qNC4MzcWNPv4XjeqhsdBfRONrUZFCUo7fxJfp76BEIkshYRBfsZAdZZ9PnTjVnMLsf
+	 +X2WG4aPcNxJRZf1/xq/gclbYLBKGaK6d4Vj79dw=
+Date: Tue, 17 Jun 2025 16:40:07 -0700
+To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,zhengqi.arch@bytedance.com,v-songbaohua@oppo.com,vbabka@suse.cz,surenb@google.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,jannh@google.com,ioworker0@gmail.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-fix-page_is_pfnzero-detection-for-the-huge-zero-folio.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250617233512.51BA1C4CEE3@smtp.kernel.org>
+Subject: + mm-use-per_vma-lock-for-madv_dontneed-fix.patch added to mm-unstable branch
+Message-Id: <20250617234007.B857EC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: fix PAGE_IS_PFNZERO detection for the huge zero folio
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-task_mmu-fix-page_is_pfnzero-detection-for-the-huge-zero-folio.patch
+     Subject: mm/madvise: avoid any chance of uninitialised pointer deref
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-use-per_vma-lock-for-madv_dontneed-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-fix-page_is_pfnzero-detection-for-the-huge-zero-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-per_vma-lock-for-madv_dontneed-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/task_mmu: fix PAGE_IS_PFNZERO detection for the huge zero folio
-Date: Tue, 17 Jun 2025 16:35:32 +0200
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/madvise: avoid any chance of uninitialised pointer deref
+Date: Tue, 17 Jun 2025 14:35:13 +0100
 
-is_zero_pfn() does not work for the huge zero folio. Fix it by using
-is_huge_zero_pmd().
+If we were to extend madvise() to support more operations under VMA lock,
+we could potentially dereference prev to uninitialised state in
+madvise_update_vma().
 
-This can cause the PAGEMAP_SCAN ioctl against /proc/pid/pagemap to omit
-pages.
+Avoid this by explicitly setting prev to vma before invoking the visit()
+function.
 
-Found by code inspection.
+This has no impact on behaviour, as all visitors compatible with a VMA
+lock do not require prev to be set to the previous VMA and at any rate we
+only examine a single VMA in VMA lock mode.
 
-Link: https://lkml.kernel.org/r/20250617143532.2375383-1-david@redhat.com
-Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/309d22ca-6cd9-4601-8402-d441a07d9443@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: Lance Yang <ioworker0@gmail.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tangquan Zheng <zhengtangquan@oppo.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-page_is_pfnzero-detection-for-the-huge-zero-folio
-+++ a/fs/proc/task_mmu.c
-@@ -2182,7 +2182,7 @@ static unsigned long pagemap_thp_categor
- 				categories |= PAGE_IS_FILE;
- 		}
+--- a/mm/madvise.c~mm-use-per_vma-lock-for-madv_dontneed-fix
++++ a/mm/madvise.c
+@@ -1320,6 +1320,8 @@ static int madvise_vma_behavior(struct v
+ 		return madvise_guard_remove(vma, prev, start, end);
+ 	}
  
--		if (is_zero_pfn(pmd_pfn(pmd)))
-+		if (is_huge_zero_pmd(pmd))
- 			categories |= PAGE_IS_PFNZERO;
- 		if (pmd_soft_dirty(pmd))
- 			categories |= PAGE_IS_SOFT_DIRTY;
++	/* We cannot provide prev in this lock mode. */
++	VM_WARN_ON_ONCE(arg->lock_mode == MADVISE_VMA_READ_LOCK);
+ 	anon_name = anon_vma_name(vma);
+ 	anon_vma_name_get(anon_name);
+ 	error = madvise_update_vma(vma, prev, start, end, new_flags,
+@@ -1536,6 +1538,7 @@ int madvise_walk_vmas(struct mm_struct *
+ 	if (madv_behavior && madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK) {
+ 		vma = try_vma_read_lock(mm, madv_behavior, start, end);
+ 		if (vma) {
++			prev = vma;
+ 			error = visit(vma, &prev, start, end, arg);
+ 			vma_end_read(vma);
+ 			return error;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
-fs-proc-task_mmu-fix-page_is_pfnzero-detection-for-the-huge-zero-folio.patch
-mm-gup-remove-vm_bug_ons.patch
-mm-gup-remove-vm_bug_ons-fix.patch
-mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pmd.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pud.patch
+maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
+maintainers-add-missing-test-files-to-mm-gup-section.patch
+maintainers-add-further-init-files-to-mm-init-block.patch
+maintainers-add-hugetlb_cgroupc-to-hugetlb-section.patch
+maintainers-add-stray-rmap-file-to-mm-rmap-section.patch
+maintainers-add-memfd-shmem-quota-files-to-shmem-section.patch
+maintainers-add-additional-mmap-related-files-to-mmap-section.patch
+docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
+mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
+mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
+mm-use-per_vma-lock-for-madv_dontneed-fix.patch
+mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
+mm-mremap-add-mremap_must_relocate_anon.patch
+mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
+tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
+tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
+tools-testing-selftests-add-mremap-cases-that-merge-normally.patch
+tools-testing-selftests-add-mremap_relocate_anon-merge-test-cases.patch
+tools-testing-selftests-expand-mremap-tests-for-mremap_relocate_anon.patch
+tools-testing-selftests-have-cow-self-test-use-mremap_relocate_anon.patch
+tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
+tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
+secretmem-remove-uses-of-struct-page-fix.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
+mm-rename-call_mmap-mmap_prepare-to-vfs_mmap-mmap_prepare.patch
+mm-nommu-use-file_has_valid_mmap_hooks-helper.patch
+fs-consistently-use-file_has_valid_mmap_hooks-helper.patch
+fs-dax-make-it-possible-to-check-dev-dax-support-without-a-vma.patch
+fs-ext4-transition-from-deprecated-mmap-hook-to-mmap_prepare.patch
+fs-xfs-transition-from-deprecated-mmap-hook-to-mmap_prepare.patch
+mm-filemap-introduce-generic_file__mmap_prepare-helpers.patch
+fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare.patch
+fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare.patch
+fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings.patch
 
