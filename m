@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E97F92F5313
-	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 23:03:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 539D22F5332
+	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 23:18:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750201413; cv=none; b=JB0wCmcuDR0+nEnaZHUNpkv8XhUVosPnA7RfAYR3fhybTwSXOdH07VNE4icfP9Trw8IH8CmKwu2oGvpf1MLDuhSBZdIswDXAifkiX6nFbTo3y3B0p6ONpw7wWKrsZGf16cdUYxlLgLtMmvCDAABbGrkZCtA8pyHanv8C/VCRUHA=
+	t=1750202288; cv=none; b=pNtx+A+vxf9Z0HfgM/yqimV2lHhzBP/11AwS0pDH6oSHKp5v2ZEbhqoNKljADWmKkUJnpCAXlrPYZNHvIhYKildeLk3uVCGgnG2FIhn50FaiPrbK6WkVQzN+nI0pYDDpaVj5doKrJHxvevu7vefoK77jaHPjwJHOhU6mpr4SE2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750201413; c=relaxed/simple;
-	bh=KSkxIvLQ6MsdVy4D/a4BSnbPe5ts1jdaFme/eHeIIo4=;
-	h=Date:To:From:Subject:Message-Id; b=icF8SfXSTxE8yeFslOC/lIXW/F1o6XMcFyNN8PCPGd5SAzRbpitPWMEXFILSc6Bf8CXPKib2/zEdkRSXkIvY6Tyv3KJmdYFBWNWGVJqlTdfGAxK+XgLfcFnbNFdFto5u6wJKwo3ux2aqqTeXijF1gvtETQ7LBMNUREGTeVJEJks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VH0jibJF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750202288; c=relaxed/simple;
+	bh=A3HLKCjSEf7gOjzDLQKd2eBI9y9FxHSjRcHv1pGB1Fg=;
+	h=Date:To:From:Subject:Message-Id; b=mrxR5s7HnnhsXvXMch/kXH1Y3GsujDeL0uWMGNkz6wrsyHcUTQC12cPeqvntQEqfsyJtrVZnYQ3mmbbCRrTeQVT8l1L7hB0Jr4+cjSNiuBG5sv8XJXuH3FDH097Ficb4CMyYK3SfG20IWI+Aeg181jFB1y6e0M2E79fLWSbRhac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JFKFuTLz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VH0jibJF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B37D0C4CEE3;
-	Tue, 17 Jun 2025 23:03:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JFKFuTLz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5227C4CEED;
+	Tue, 17 Jun 2025 23:18:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750201412;
-	bh=KSkxIvLQ6MsdVy4D/a4BSnbPe5ts1jdaFme/eHeIIo4=;
+	s=korg; t=1750202287;
+	bh=A3HLKCjSEf7gOjzDLQKd2eBI9y9FxHSjRcHv1pGB1Fg=;
 	h=Date:To:From:Subject:From;
-	b=VH0jibJFGp9yvLhaA/9lCQHz4m0/IhiOaeo03kBIHEuD2sS47ShRnFeT6l3B8IOf4
-	 gkMiLENfEIBFZodqZtajJ/lYxdiJsKd1xl5wmnZr3DtDf70Xc2S+i/2kmAR0ZwYLPp
-	 YwdRy3mx5p1Kr3/bnDJ6VfT0kE9b4Wd+fJt9IXz0=
-Date: Tue, 17 Jun 2025 16:03:32 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=JFKFuTLzC5lqdcsVq1R/g61pMMEm39+tD2G+eQ7LF0IzYsz4mt9I97ifMiSeXTVMm
+	 K1NYAKCkkxmRG7ym/1RRwcGVAzbK6vWRIONkXcJeC6jWIv+Oro9rYAGRbrhQDKXpPb
+	 UKLDxcW/E00PQyYXSRwDhw3dNsn8J62xh1UQrDXo=
+Date: Tue, 17 Jun 2025 16:18:07 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch added to mm-new branch
-Message-Id: <20250617230332.B37D0C4CEE3@smtp.kernel.org>
+Subject: + maintainers-add-further-init-files-to-mm-init-block.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250617231807.C5227C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem, swap: avoid false positive swap cache lookup
-has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
+     Subject: MAINTAINERS: add further init files to mm init block
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-further-init-files-to-mm-init-block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-further-init-files-to-mm-init-block.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,206 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem, swap: avoid false positive swap cache lookup
-Date: Wed, 18 Jun 2025 02:35:03 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add further init files to mm init block
+Date: Tue, 17 Jun 2025 18:45:38 +0100
 
-If the shmem read request's index points to the middle of a large swap
-entry, shmem swap in does the swap cache lookup use the large swap entry's
-starting value (the first sub swap entry of this large entry).  This will
-lead to false positive lookup result if only the first few swap entries
-are cached, but the requested swap entry pointed by index is uncached.
+These files comprise the bootmem info logic which is initialised on
+startup and also memory tests that are run on startup and as such this
+seems the most appropriate section for them.
 
-Currently shmem will do a large entry split then retry the swapin from
-beginning, which is a waste of CPU and fragile.  Handle this correctly.
-
-Also add some sanity checks to help understand the code and ensure things
-won't go wrong.
-
-Link: https://lkml.kernel.org/r/20250617183503.10527-5-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20250617174538.188977-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   61 ++++++++++++++++++++++++---------------------------
- 1 file changed, 29 insertions(+), 32 deletions(-)
+ MAINTAINERS |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-swap-avoid-false-positive-swap-cache-lookup
-+++ a/mm/shmem.c
-@@ -1977,12 +1977,12 @@ unlock:
+--- a/MAINTAINERS~maintainers-add-further-init-files-to-mm-init-block
++++ a/MAINTAINERS
+@@ -15680,8 +15680,11 @@ S:	Maintained
+ F:	Documentation/core-api/boot-time-mm.rst
+ F:	Documentation/core-api/kho/bindings/memblock/*
+ F:	include/linux/memblock.h
++F:	mm/bootmem_info.c
+ F:	mm/memblock.c
++F:	mm/memtest.c
+ F:	mm/mm_init.c
++F:	mm/rodata_test.c
+ F:	tools/testing/memblock/
  
- static struct folio *shmem_swapin_direct(struct inode *inode,
- 		struct vm_area_struct *vma, pgoff_t index,
--		swp_entry_t entry, int *order, gfp_t gfp)
-+		swp_entry_t swap_entry, swp_entry_t swap,
-+		int *order, gfp_t gfp)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	int nr_pages = 1 << *order;
- 	struct folio *new;
--	pgoff_t offset;
- 	void *shadow;
- 
- 	/*
-@@ -2003,13 +2003,11 @@ static struct folio *shmem_swapin_direct
- 		 */
- 		if ((vma && userfaultfd_armed(vma)) ||
- 		    !zswap_never_enabled() ||
--		    non_swapcache_batch(entry, nr_pages) != nr_pages) {
--			offset = index - round_down(index, nr_pages);
--			entry = swp_entry(swp_type(entry),
--					  swp_offset(entry) + offset);
-+		    non_swapcache_batch(swap_entry, nr_pages) != nr_pages) {
- 			*order = 0;
- 			nr_pages = 1;
- 		} else {
-+			swap.val = swap_entry.val;
- 			gfp_t huge_gfp = vma_thp_gfp_mask(vma);
- 
- 			gfp = limit_gfp_mask(huge_gfp, gfp);
-@@ -2021,7 +2019,7 @@ static struct folio *shmem_swapin_direct
- 		return ERR_PTR(-ENOMEM);
- 
- 	if (mem_cgroup_swapin_charge_folio(new, vma ? vma->vm_mm : NULL,
--					   gfp, entry)) {
-+					   gfp, swap)) {
- 		folio_put(new);
- 		return ERR_PTR(-ENOMEM);
- 	}
-@@ -2036,17 +2034,17 @@ static struct folio *shmem_swapin_direct
- 	 * In this case, shmem_add_to_page_cache() will help identify the
- 	 * concurrent swapin and return -EEXIST.
- 	 */
--	if (swapcache_prepare(entry, nr_pages)) {
-+	if (swapcache_prepare(swap, nr_pages)) {
- 		folio_put(new);
- 		return ERR_PTR(-EEXIST);
- 	}
- 
- 	__folio_set_locked(new);
- 	__folio_set_swapbacked(new);
--	new->swap = entry;
-+	new->swap = swap;
- 
--	memcg1_swapin(entry, nr_pages);
--	shadow = get_shadow_from_swap_cache(entry);
-+	memcg1_swapin(swap, nr_pages);
-+	shadow = get_shadow_from_swap_cache(swap);
- 	if (shadow)
- 		workingset_refault(new, shadow);
- 	folio_add_lru(new);
-@@ -2278,20 +2276,21 @@ static int shmem_swapin_folio(struct ino
- 	struct mm_struct *fault_mm = vma ? vma->vm_mm : NULL;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	int error, nr_pages, order, swap_order;
-+	swp_entry_t swap, swap_entry;
- 	struct swap_info_struct *si;
- 	struct folio *folio = NULL;
- 	bool skip_swapcache = false;
--	swp_entry_t swap;
-+	pgoff_t offset;
- 
- 	VM_BUG_ON(!*foliop || !xa_is_value(*foliop));
--	swap = radix_to_swp_entry(*foliop);
-+	swap_entry = radix_to_swp_entry(*foliop);
- 	*foliop = NULL;
- 
--	if (is_poisoned_swp_entry(swap))
-+	if (is_poisoned_swp_entry(swap_entry))
- 		return -EIO;
- 
--	si = get_swap_device(swap);
--	order = shmem_swap_check_entry(mapping, index, swap);
-+	si = get_swap_device(swap_entry);
-+	order = shmem_swap_check_entry(mapping, index, swap_entry);
- 	if (unlikely(!si)) {
- 		if (order < 0)
- 			return -EEXIST;
-@@ -2303,7 +2302,9 @@ static int shmem_swapin_folio(struct ino
- 		return -EEXIST;
- 	}
- 
--	/* Look it up and read it in.. */
-+	/* @index may points to the middle of a large entry, get the real swap value first */
-+	offset = index - round_down(index, 1 << order);
-+	swap.val = swap_entry.val + offset;
- 	folio = swap_cache_get_folio(swap, NULL, 0);
- 	if (!folio) {
- 		/* Or update major stats only when swapin succeeds?? */
-@@ -2315,7 +2316,7 @@ static int shmem_swapin_folio(struct ino
- 		/* Try direct mTHP swapin bypassing swap cache and readahead */
- 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
- 			swap_order = order;
--			folio = shmem_swapin_direct(inode, vma, index,
-+			folio = shmem_swapin_direct(inode, vma, index, swap_entry,
- 						    swap, &swap_order, gfp);
- 			if (!IS_ERR(folio)) {
- 				skip_swapcache = true;
-@@ -2338,28 +2339,25 @@ static int shmem_swapin_folio(struct ino
- 		}
- 	}
- alloced:
-+	swap_order = folio_order(folio);
-+	nr_pages = folio_nr_pages(folio);
-+
-+	/* The swap-in should cover both @swap and @index */
-+	swap.val = round_down(swap.val, nr_pages);
-+	VM_WARN_ON_ONCE(swap.val > swap_entry.val + offset);
-+	VM_WARN_ON_ONCE(swap.val + nr_pages <= swap_entry.val + offset);
-+
- 	/*
- 	 * We need to split an existing large entry if swapin brought in a
- 	 * smaller folio due to various of reasons.
--	 *
--	 * And worth noting there is a special case: if there is a smaller
--	 * cached folio that covers @swap, but not @index (it only covers
--	 * first few sub entries of the large entry, but @index points to
--	 * later parts), the swap cache lookup will still see this folio,
--	 * And we need to split the large entry here. Later checks will fail,
--	 * as it can't satisfy the swap requirement, and we will retry
--	 * the swapin from beginning.
- 	 */
--	swap_order = folio_order(folio);
-+	index = round_down(index, nr_pages);
- 	if (order > swap_order) {
--		error = shmem_split_swap_entry(inode, index, swap, gfp);
-+		error = shmem_split_swap_entry(inode, index, swap_entry, gfp);
- 		if (error)
- 			goto failed_nolock;
- 	}
- 
--	index = round_down(index, 1 << swap_order);
--	swap.val = round_down(swap.val, 1 << swap_order);
--
- 	/* We have to do this with folio locked to prevent races */
- 	folio_lock(folio);
- 	if ((!skip_swapcache && !folio_test_swapcache(folio)) ||
-@@ -2372,7 +2370,6 @@ alloced:
- 		goto failed;
- 	}
- 	folio_wait_writeback(folio);
--	nr_pages = folio_nr_pages(folio);
- 
- 	/*
- 	 * Some architectures may have to restore extra metadata to the
+ MEMORY ALLOCATION PROFILING
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
-mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch
-mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
-mm-list_lru-refactor-the-locking-code.patch
-mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hung.patch
-mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
-mm-shmem-swap-improve-mthp-swapin-process.patch
-mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
+maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
+maintainers-add-missing-test-files-to-mm-gup-section.patch
+maintainers-add-further-init-files-to-mm-init-block.patch
+docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
+mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
+mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
+mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
+mm-mremap-add-mremap_must_relocate_anon.patch
+mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
+tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
+tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
+tools-testing-selftests-add-mremap-cases-that-merge-normally.patch
+tools-testing-selftests-add-mremap_relocate_anon-merge-test-cases.patch
+tools-testing-selftests-expand-mremap-tests-for-mremap_relocate_anon.patch
+tools-testing-selftests-have-cow-self-test-use-mremap_relocate_anon.patch
+tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
+tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
+secretmem-remove-uses-of-struct-page-fix.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
+mm-rename-call_mmap-mmap_prepare-to-vfs_mmap-mmap_prepare.patch
+mm-nommu-use-file_has_valid_mmap_hooks-helper.patch
+fs-consistently-use-file_has_valid_mmap_hooks-helper.patch
+fs-dax-make-it-possible-to-check-dev-dax-support-without-a-vma.patch
+fs-ext4-transition-from-deprecated-mmap-hook-to-mmap_prepare.patch
+fs-xfs-transition-from-deprecated-mmap-hook-to-mmap_prepare.patch
+mm-filemap-introduce-generic_file__mmap_prepare-helpers.patch
+fs-convert-simple-use-of-generic_file__mmap-to-mmap_prepare.patch
+fs-convert-most-other-generic_file_mmap-users-to-mmap_prepare.patch
+fs-replace-mmap-hook-with-mmap_prepare-for-simple-mappings.patch
 
