@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5103F1C2324
-	for <mm-commits@vger.kernel.org>; Wed, 18 Jun 2025 23:04:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FB831C2324
+	for <mm-commits@vger.kernel.org>; Wed, 18 Jun 2025 23:05:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750287871; cv=none; b=R2u24eJcwAhtka3rQKrUEuHl9QPPrKyoExrW+soU0Z4Y5jsuYdhnG+2jErpN19JmtHUz3kLv9Hy7TlIrcOcDiWv5X+UxwI7GVnsju0BHR5dxh80ZuomOzzkB5jbTNpAtCnQ82R/nboBbWWi8nRjgtqw5ierk6YR+ATuJQoNYbek=
+	t=1750287952; cv=none; b=s06BIUStU5q5iFFFAnt7DncJmmjT/tdzOfTMPmpV6L43pumZtyJ5x4/YIb+UgVD8UpKKGcPCmLY8pSjFcJghN/ir0HG2gX3uyJrt3KmkkIfqxm609WwPOsg1smi1Y8+vqqIAVQXqer4jV8MeLkWMa3J6Wu2au9JhB2yO6ytsjGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750287871; c=relaxed/simple;
-	bh=llJhkBzv4taltYYdacDIxzu0p3pOMwLhNGpqbEuDWMQ=;
-	h=Date:To:From:Subject:Message-Id; b=db8h+2sSEVDs5I5o3I4EJiLMGu1vUDS4rwuVZL3iqwfh5ZYyTbzLhYVjoFhO6giA5ebvh5VDUiCpDKkhUEQ1SK3txAij2H3i4jYYIqw3zeLpol6VSSR8Ct9vDTDAqD59ItpdF1ieNc+c+tFoCpEzaMl73obyFGQ2xoE0/5EBS0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tnvdWkDQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750287952; c=relaxed/simple;
+	bh=z779GLWd1PIRqbRLxumx7gS4ZgmoleyY42ZX283FoI8=;
+	h=Date:To:From:Subject:Message-Id; b=SPJbHxtF5/vweaN4ZVzHVbbrkuzPhUMIjljJuP7KZ4rdEd6tIZg7EzFoR7xT5L0AzX7hqIJP0i+iYKR+XDCY4TBDNUmoFHyu814cHEJfSkIYmGY7/OUcDDuTyr7M2LHW2G80K2OzJj2fpLYRIrnrJRpS8SN7ucqkF+TApj8aCsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tC6K0dam; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tnvdWkDQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF8FCC4CEEE;
-	Wed, 18 Jun 2025 23:04:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tC6K0dam"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19DD6C4CEE7;
+	Wed, 18 Jun 2025 23:05:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750287870;
-	bh=llJhkBzv4taltYYdacDIxzu0p3pOMwLhNGpqbEuDWMQ=;
+	s=korg; t=1750287952;
+	bh=z779GLWd1PIRqbRLxumx7gS4ZgmoleyY42ZX283FoI8=;
 	h=Date:To:From:Subject:From;
-	b=tnvdWkDQNhf33ctvJpGVUc6/XvA2TQwf6KU/bLcnZF9fFBRFpNXfaOUDSvopVNRqn
-	 4K0Dx5tj66E61PX/A4d2w53d/rTG06/Ka+leXelb/Geb72u9bgxVZGLceOSC/DEOCT
-	 nfW9c85k25hBGSFTKH6tLnXIGZZErh0VPfTStV/0=
-Date: Wed, 18 Jun 2025 16:04:30 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,zcgao@amazon.com,akpm@linux-foundation.org
+	b=tC6K0damWcoK6KPEA3EIvcZS1mohTtiJCLyMGbKYhUYFpfgAi8AQyjDyWYbCsVN+x
+	 UhdQG8fjf8KkollX7Zsdp6AdYL++wY8T/urFl3+q5SSQ7F6g6Nq2K3WQYhNpj5Pei+
+	 MzPiOZbVAQO1ztcNvKFm8UXYMo/grRwd7Gr7DROs=
+Date: Wed, 18 Jun 2025 16:05:51 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,cachen@purestorage.com,arnd@arndb.de,petr.pavlu@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-fix-minor-typos-in-damon-header.patch added to mm-new branch
-Message-Id: <20250618230430.CF8FCC4CEEE@smtp.kernel.org>
+Subject: + codetag-avoid-unused-alloc_tags-sections-symbols.patch added to mm-new branch
+Message-Id: <20250618230552.19DD6C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: fix minor typos in damon header
+     Subject: codetag: avoid unused alloc_tags sections/symbols
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-fix-minor-typos-in-damon-header.patch
+     codetag-avoid-unused-alloc_tags-sections-symbols.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-fix-minor-typos-in-damon-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/codetag-avoid-unused-alloc_tags-sections-symbols.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,44 +64,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nathan Gao <zcgao@amazon.com>
-Subject: mm/damon: fix minor typos in damon header
-Date: Wed, 18 Jun 2025 09:33:31 -0700
+From: Petr Pavlu <petr.pavlu@suse.com>
+Subject: codetag: avoid unused alloc_tags sections/symbols
+Date: Wed, 18 Jun 2025 14:50:35 +0200
 
-Fix typos in include/linux/damon.h.
+With CONFIG_MEM_ALLOC_PROFILING=n, vmlinux and all modules unnecessarily
+contain the symbols __start_alloc_tags and __stop_alloc_tags, which define
+an empty range.  In the case of modules, the presence of these symbols
+also forces the linker to create an empty .codetag.alloc_tags section.
 
-Link: https://lkml.kernel.org/r/20250618163331.54910-1-sj@kernel.org
-Signed-off-by: Nathan Gao <zcgao@amazon.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Update codetag.lds.h to make the data conditional on
+CONFIG_MEM_ALLOC_PROFILING.
+
+Link: https://lkml.kernel.org/r/20250618125037.53182-1-petr.pavlu@suse.com
+Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
+Reviewed-by: Kent Overstreet <kent.overstreet@linux.dev>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Casey Chen <cachen@purestorage.com>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-generic/codetag.lds.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-fix-minor-typos-in-damon-header
-+++ a/include/linux/damon.h
-@@ -450,7 +450,7 @@ struct damos_access_pattern {
- /**
-  * struct damos - Represents a Data Access Monitoring-based Operation Scheme.
-  * @pattern:		Access pattern of target regions.
-- * @action:		&damo_action to be applied to the target regions.
-+ * @action:		&damos_action to be applied to the target regions.
-  * @apply_interval_us:	The time between applying the @action.
-  * @quota:		Control the aggressiveness of this scheme.
-  * @wmarks:		Watermarks for automated (in)activation of this scheme.
-@@ -656,7 +656,7 @@ struct damon_call_control {
-  * struct damon_intervals_goal - Monitoring intervals auto-tuning goal.
-  *
-  * @access_bp:		Access events observation ratio to achieve in bp.
-- * @aggrs:		Number of aggregations to acheive @access_bp within.
-+ * @aggrs:		Number of aggregations to achieve @access_bp within.
-  * @min_sample_us:	Minimum resulting sampling interval in microseconds.
-  * @max_sample_us:	Maximum resulting sampling interval in microseconds.
-  *
+--- a/include/asm-generic/codetag.lds.h~codetag-avoid-unused-alloc_tags-sections-symbols
++++ a/include/asm-generic/codetag.lds.h
+@@ -2,6 +2,12 @@
+ #ifndef __ASM_GENERIC_CODETAG_LDS_H
+ #define __ASM_GENERIC_CODETAG_LDS_H
+ 
++#ifdef CONFIG_MEM_ALLOC_PROFILING
++#define IF_MEM_ALLOC_PROFILING(...) __VA_ARGS__
++#else
++#define IF_MEM_ALLOC_PROFILING(...)
++#endif
++
+ #define SECTION_WITH_BOUNDARIES(_name)	\
+ 	. = ALIGN(8);			\
+ 	__start_##_name = .;		\
+@@ -9,7 +15,7 @@
+ 	__stop_##_name = .;
+ 
+ #define CODETAG_SECTIONS()		\
+-	SECTION_WITH_BOUNDARIES(alloc_tags)
++	IF_MEM_ALLOC_PROFILING(SECTION_WITH_BOUNDARIES(alloc_tags))
+ 
+ #define MOD_SEPARATE_CODETAG_SECTION(_name)	\
+ 	.codetag.##_name : {			\
+@@ -22,6 +28,6 @@
+  * unload them individually once unused.
+  */
+ #define MOD_SEPARATE_CODETAG_SECTIONS()		\
+-	MOD_SEPARATE_CODETAG_SECTION(alloc_tags)
++	IF_MEM_ALLOC_PROFILING(MOD_SEPARATE_CODETAG_SECTION(alloc_tags))
+ 
+ #endif /* __ASM_GENERIC_CODETAG_LDS_H */
 _
 
-Patches currently in -mm which might be from zcgao@amazon.com are
+Patches currently in -mm which might be from petr.pavlu@suse.com are
 
-mm-damon-fix-minor-typos-in-damon-header.patch
+codetag-avoid-unused-alloc_tags-sections-symbols.patch
 
