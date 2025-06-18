@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 833A4284663
-	for <mm-commits@vger.kernel.org>; Wed, 18 Jun 2025 23:44:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF64D17D2
+	for <mm-commits@vger.kernel.org>; Wed, 18 Jun 2025 23:52:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750290266; cv=none; b=udw/U6ZXME6eCViEtPA0x/VUzzbwDCxtgYkCpQn1PdU4az+Sgb/sh/I5JPMoIzeVfKq5fUTDEP18Mi+pck9DfCX54cF68lwvYyX2cmx2umDSH0SuDiJphWkLjbPgnbijDvQmlpNm2d/7pD3nLm94FtzJ5kmjk/mU0OBnGWkppzI=
+	t=1750290779; cv=none; b=kMtNSPebCIGk5H0jDaSAx9CH0CH4v1b187Dm+VbaI/O+uaRB7UTXguEmXRWfB4qf9QH5xnjivwJsiLjJWWUHehmhnMSpzdl6kKB6ezOym3HT6Jr5Fg/3nJAC3H3CcESG0zamemZifIHMQXCGX67Gdw2GKf5jpVo/3l1JDIoLucE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750290266; c=relaxed/simple;
-	bh=AzwMCf0ECM1nD4cZjLHWHD1g4jLLixtgHemRF6ZegFs=;
-	h=Date:To:From:Subject:Message-Id; b=WvH36sTBOkz91KCUEpn95TzvNe2BKlXsd1k1qDIOUTq4R4fNnfrXQWVk1P1Fgi5/PVIlxKFKLRykmSMN4l/P67UOt0vOKvtuNCdLHWqiBAEqwrPj1noGbU0X2rgrkWPMO78gng3bqEucGPWo6XXJ3VvOecoQo72j9WHb2+3OLoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sNCoBv6z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750290779; c=relaxed/simple;
+	bh=FgsrDRQv9/g7AcezM3sRUn62jRr0ZK4BP9mGHVZYSoE=;
+	h=Date:To:From:Subject:Message-Id; b=E3iVwtHDOOOz4FsuvGl3QCZjiC56psUTOrOOI/vQurYptqMWKhcAfRjneVUQpSl9qLGraT5ODeYwJzxLLggsePmAqCFfcK+VynLJQCmc3kD6Czy44sAjgfTB7vrf/az9t8aTIcWfBGH5fhzBgetiNejAB9Z46uoleQuzSV9Er44=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uinjCnVC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sNCoBv6z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE748C4CEE7;
-	Wed, 18 Jun 2025 23:44:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uinjCnVC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E841C4CEE7;
+	Wed, 18 Jun 2025 23:52:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750290266;
-	bh=AzwMCf0ECM1nD4cZjLHWHD1g4jLLixtgHemRF6ZegFs=;
+	s=korg; t=1750290778;
+	bh=FgsrDRQv9/g7AcezM3sRUn62jRr0ZK4BP9mGHVZYSoE=;
 	h=Date:To:From:Subject:From;
-	b=sNCoBv6zMMuf2NQm46AIu3cD4QVXjCF50ruCgHlGSFwqZDz6nO2vZgvYAQ8vhVjlQ
-	 u01naNYZD9Nfcr4HWzJZ+NLlKg8R7uP4wHrZVbYs4R1mdk/whKHlZyZHWfe/VnZ5BH
-	 M8QiZSbYGZf0NPVYO5dk3Nh9RKSSbXMLr2piwZ1o=
-Date: Wed, 18 Jun 2025 16:44:25 -0700
-To: mm-commits@vger.kernel.org,mhocko@suse.com,kent.overstreet@linux.dev,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
+	b=uinjCnVCW7exhY/x+Z+We8X5Iz7HYt/TZX0rfOKL8vKkSBQOzqhkKyWyVwDCU+YYO
+	 /tnmw9qUEvh/dFDdCCIvt4+AXhI5552pFEVAGhCDKuvdYuW9v7AyHUa/IKJfgMg2RC
+	 TcQ0AaweeBTRXWg4MKOh5qb5rUJxioBVVL0JJIi0=
+Date: Wed, 18 Jun 2025 16:52:57 -0700
+To: mm-commits@vger.kernel.org,steven.sistare@oracle.com,osalvador@suse.de,muchun.song@linux.dev,kraxel@redhat.com,david@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-the-oldflags-and-parameter-in-memalloc_flags_.patch added to mm-new branch
-Message-Id: <20250618234425.DE748C4CEE7@smtp.kernel.org>
+Subject: + mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch added to mm-new branch
+Message-Id: <20250618235258.4E841C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rename the oldflags and parameter in memalloc_flags_*()
+     Subject: mm/hugetlb: make hugetlb_reserve_pages() return nr of entries updated
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rename-the-oldflags-and-parameter-in-memalloc_flags_.patch
+     mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-the-oldflags-and-parameter-in-memalloc_flags_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,59 +64,150 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Subject: mm: rename the oldflags and parameter in memalloc_flags_*()
-Date: Wed, 18 Jun 2025 15:03:28 +0800
+From: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Subject: mm/hugetlb: make hugetlb_reserve_pages() return nr of entries updated
+Date: Tue, 17 Jun 2025 22:30:53 -0700
 
-The variable name oldflags can indeed be misleading, because it does not
-store the complete original value of flags.  Instead, it records which
-flags from the given set are not currently set.  So rename it.
+Patch series "mm/memfd: Reserve hugetlb folios before allocation", v4.
 
-Link: https://lkml.kernel.org/r/20250618070328.2192849-1-hezhongkun.hzk@bytedance.com
-Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
+There are cases when we try to pin a folio but discover that it has not
+been faulted-in.  So, we try to allocate it in memfd_alloc_folio() but the
+allocation request may not succeed if there are no active reservations in
+the system at that instant.
+
+Therefore, making a reservation (by calling hugetlb_reserve_pages())
+associated with the allocation will ensure that our request would not fail
+due to lack of reservations.  This will also ensure that proper
+region/subpool accounting is done with our allocation.
+
+
+This patch (of 3):
+
+Currently, hugetlb_reserve_pages() returns a bool to indicate whether the
+reservation map update for the range [from, to] was successful or not. 
+This is not sufficient for the case where the caller needs to determine
+how many entries were updated for the range.
+
+Therefore, have hugetlb_reserve_pages() return the number of entries
+updated in the reservation map associated with the range [from, to]. 
+Also, update the callers of hugetlb_reserve_pages() to handle the new
+return value.
+
+Link: https://lkml.kernel.org/r/20250618053415.1036185-1-vivek.kasireddy@intel.com
+Link: https://lkml.kernel.org/r/20250618053415.1036185-2-vivek.kasireddy@intel.com
+Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: Steve Sistare <steven.sistare@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ fs/hugetlbfs/inode.c    |    8 ++++----
+ include/linux/hugetlb.h |    2 +-
+ mm/hugetlb.c            |   19 +++++++++++++------
+ 3 files changed, 18 insertions(+), 11 deletions(-)
 
---- a/include/linux/sched/mm.h~mm-rename-the-oldflags-and-parameter-in-memalloc_flags_
-+++ a/include/linux/sched/mm.h
-@@ -322,21 +322,22 @@ static inline void might_alloc(gfp_t gfp
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
++++ a/fs/hugetlbfs/inode.c
+@@ -150,10 +150,10 @@ static int hugetlbfs_file_mmap(struct fi
+ 	if (inode->i_flags & S_PRIVATE)
+ 		vm_flags |= VM_NORESERVE;
+ 
+-	if (!hugetlb_reserve_pages(inode,
++	if (hugetlb_reserve_pages(inode,
+ 				vma->vm_pgoff >> huge_page_order(h),
+ 				len >> huge_page_shift(h), vma,
+-				vm_flags))
++				vm_flags) < 0)
+ 		goto out;
+ 
+ 	ret = 0;
+@@ -1561,9 +1561,9 @@ struct file *hugetlb_file_setup(const ch
+ 	inode->i_size = size;
+ 	clear_nlink(inode);
+ 
+-	if (!hugetlb_reserve_pages(inode, 0,
++	if (hugetlb_reserve_pages(inode, 0,
+ 			size >> huge_page_shift(hstate_inode(inode)), NULL,
+-			acctflag))
++			acctflag) < 0)
+ 		file = ERR_PTR(-ENOMEM);
+ 	else
+ 		file = alloc_file_pseudo(inode, mnt, name, O_RDWR,
+--- a/include/linux/hugetlb.h~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
++++ a/include/linux/hugetlb.h
+@@ -149,7 +149,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 			     uffd_flags_t flags,
+ 			     struct folio **foliop);
+ #endif /* CONFIG_USERFAULTFD */
+-bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
++long hugetlb_reserve_pages(struct inode *inode, long from, long to,
+ 						struct vm_area_struct *vma,
+ 						vm_flags_t vm_flags);
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+--- a/mm/hugetlb.c~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
++++ a/mm/hugetlb.c
+@@ -7244,8 +7244,15 @@ long hugetlb_change_protection(struct vm
+ 	return pages > 0 ? (pages << h->order) : pages;
  }
  
- /**
-- * memalloc_flags_save - Add a PF_* flag to current->flags, save old value
-+ * memalloc_flags_save - Add a PF_* flag to current->flags, return saved flags mask
-  *
-  * This allows PF_* flags to be conveniently added, irrespective of current
-  * value, and then the old version restored with memalloc_flags_restore().
-  */
--static inline unsigned memalloc_flags_save(unsigned flags)
-+static inline unsigned int memalloc_flags_save(unsigned int flags_mask)
- {
--	unsigned oldflags = ~current->flags & flags;
--	current->flags |= flags;
--	return oldflags;
-+	unsigned int saved_flags_mask = ~current->flags & flags_mask;
+-/* Return true if reservation was successful, false otherwise.  */
+-bool hugetlb_reserve_pages(struct inode *inode,
++/*
++ * Update the reservation map for the range [from, to].
++ *
++ * Returns the number of entries that would be added to the reservation map
++ * associated with the range [from, to].  This number is greater or equal to
++ * zero. -EINVAL or -ENOMEM is returned in case of any errors.
++ */
 +
-+	current->flags |= flags_mask;
-+	return saved_flags_mask;
++long hugetlb_reserve_pages(struct inode *inode,
+ 					long from, long to,
+ 					struct vm_area_struct *vma,
+ 					vm_flags_t vm_flags)
+@@ -7260,7 +7267,7 @@ bool hugetlb_reserve_pages(struct inode
+ 	/* This should never happen */
+ 	if (from > to) {
+ 		VM_WARN(1, "%s called with a negative range\n", __func__);
+-		return false;
++		return -EINVAL;
+ 	}
+ 
+ 	/*
+@@ -7275,7 +7282,7 @@ bool hugetlb_reserve_pages(struct inode
+ 	 * without using reserves
+ 	 */
+ 	if (vm_flags & VM_NORESERVE)
+-		return true;
++		return 0;
+ 
+ 	/*
+ 	 * Shared mappings base their reservation on the number of pages that
+@@ -7382,7 +7389,7 @@ bool hugetlb_reserve_pages(struct inode
+ 			hugetlb_cgroup_put_rsvd_cgroup(h_cg);
+ 		}
+ 	}
+-	return true;
++	return chg;
+ 
+ out_put_pages:
+ 	spool_resv = chg - gbl_reserve;
+@@ -7410,7 +7417,7 @@ out_err:
+ 		kref_put(&resv_map->refs, resv_map_release);
+ 		set_vma_resv_map(vma, NULL);
+ 	}
+-	return false;
++	return chg < 0 ? chg : add < 0 ? add : -EINVAL;
  }
  
--static inline void memalloc_flags_restore(unsigned flags)
-+static inline void memalloc_flags_restore(unsigned int flags_mask)
- {
--	current->flags &= ~flags;
-+	current->flags &= ~flags_mask;
- }
- 
- /**
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
 _
 
-Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
+Patches currently in -mm which might be from vivek.kasireddy@intel.com are
 
-mm-rename-the-oldflags-and-parameter-in-memalloc_flags_.patch
+mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch
+mm-memfd-reserve-hugetlb-folios-before-allocation.patch
+selftests-udmabuf-add-a-test-to-pin-first-before-writing-to-memfd.patch
 
