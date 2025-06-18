@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D62A32F5316
-	for <mm-commits@vger.kernel.org>; Tue, 17 Jun 2025 23:47:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6621E23A9
+	for <mm-commits@vger.kernel.org>; Wed, 18 Jun 2025 00:06:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750204079; cv=none; b=cEwPCy8u085qw+mSJ2Cq1HQQc/HaWiVpaMONP6BVD+eNF6+fBLnITFgUUG5F1uwtRFnqRoVS6/CgecIBPnOMg8T585rtxTqTIpobODqiZorW+EGyy2lsj6w7ejue6lauceLFNjSWYMrMG8c92wKGfEkx6ENlPq2xE5/n9Xk5WwQ=
+	t=1750205215; cv=none; b=nRJdeMVCCp2TVhPQk1ukJ2j2iRIDQWDej4wteKbci1QL7ySE7XrUwrKGaOwvruE2NqJzXpEdhp392L7lrrj5PrI/Ual6+4d+C1w/7385oZor1TiIwVnbh2y6eseaPoeMT3DpkYzbBtgrXRvrTU2MmYeJib2Jty1wLbHynrxbYIY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750204079; c=relaxed/simple;
-	bh=ZGYQ5Hl05DDeCc5QTtnNbYFUEj7u7A6MKMlfoIEKHWg=;
-	h=Date:To:From:Subject:Message-Id; b=lX4tpimuA61NJ5G73TWcp6xRWm2RcxtfLFygncMtKEsnsiL+1No2CN185iUAXGbOdz5ikAV1tZDXCjYJM7yEY0Wbe6/grCaC1++Dvrc7FzY90VooT0pJK/59Pm39DxBvOcCk0do9CjfhhM8NOIzcxsm7SCcndaVBJ8XTs80B/RY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qwFP8Gxg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750205215; c=relaxed/simple;
+	bh=5Q/AlRDR3zAxPqVIgaIFs36QIdgvykVMmXgr+YYTnx8=;
+	h=Date:To:From:Subject:Message-Id; b=o0LWEtfisEzUqj2FNs8BvjbXJi6Bt6UO9cyy2lXniODx3aSnLkHeABZk5bpNs0mh1w83EvyN9luK+6fK/1BLO9RIoMGO3K47mvLjkqKwJASXBIX5jZb3Pxg1CgCpF2gWX8pMA154ukJ0BrSaDgcTQ2TobJqoZa9xxaPo4fPfSrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tGFnsbGI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qwFP8Gxg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52B90C4CEE3;
-	Tue, 17 Jun 2025 23:47:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tGFnsbGI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C70D8C4CEE3;
+	Wed, 18 Jun 2025 00:06:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750204079;
-	bh=ZGYQ5Hl05DDeCc5QTtnNbYFUEj7u7A6MKMlfoIEKHWg=;
+	s=korg; t=1750205214;
+	bh=5Q/AlRDR3zAxPqVIgaIFs36QIdgvykVMmXgr+YYTnx8=;
 	h=Date:To:From:Subject:From;
-	b=qwFP8Gxgsgxqja0cpIYcLl7fjw+cmIoCExPcWEXrIQHyz/VifIfPVVlaqnv4VZQW5
-	 OJLx1dCv9xDVccDFq26veNqybEJ1043nQ99NnCLj4RFNxITCP2z+ATxpPyBRXxbXlD
-	 ZukuIfnJ+jIVMoUx1IKIiUc4FSLiC+BpOTXswnzQ=
-Date: Tue, 17 Jun 2025 16:47:58 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,oleg@redhat.com,mhiramat@kernel.org,jolsa@kernel.org,david@redhat.com,andrii@kernel.org,olsajiri@gmail.com,akpm@linux-foundation.org
+	b=tGFnsbGIlC0MM0mAQSKajceCvY1bziXK6xQtj3grD+q9jCPY6iB8JUKe0maDIWhiC
+	 kigxaIJycP538Mr8pMgUuSLb1VlU8GkldckAeb7Rp6/5wzA3x4IZBPORNayGOkqIel
+	 1LURhBSs2PVqWr9caa0nc2oFpY3L8SjxXTwvQl1U=
+Date: Tue, 17 Jun 2025 17:06:54 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + uprobes-revert-ref_ctr_offset-in-uprobe_unregister-error-path.patch added to mm-nonmm-unstable branch
-Message-Id: <20250617234759.52B90C4CEE3@smtp.kernel.org>
+Subject: [withdrawn] hugetlb-block-hugetlb-file-creation-if-hugetlb-is-not-set-up.patch removed from -mm tree
+Message-Id: <20250618000654.C70D8C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,92 +34,107 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: uprobes: revert ref_ctr_offset in uprobe_unregister error path
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     uprobes-revert-ref_ctr_offset-in-uprobe_unregister-error-path.patch
+The quilt patch titled
+     Subject: hugetlb: block hugetlb file creation if hugetlb is not set up
+has been removed from the -mm tree.  Its filename was
+     hugetlb-block-hugetlb-file-creation-if-hugetlb-is-not-set-up.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-revert-ref_ctr_offset-in-uprobe_unregister-error-path.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Jiri Olsa <olsajiri@gmail.com>
-Subject: uprobes: revert ref_ctr_offset in uprobe_unregister error path
-Date: Wed, 14 May 2025 12:18:09 +0200
+From: Jann Horn <jannh@google.com>
+Subject: hugetlb: block hugetlb file creation if hugetlb is not set up
+Date: Wed, 28 May 2025 19:51:29 +0200
 
-There's error path that could lead to inactive uprobe:
+Many distro kernels enable hugetlb support, but most systems running those
+kernels never actually allocate hugepages or enable hugetlb overcommit.
 
-  1) uprobe_register succeeds - updates instruction to int3 and
-     changes ref_ctr from 0 to 1
-  2) uprobe_unregister fails  - int3 stays in place, but ref_ctr
-     is changed to 0 (it's not restored to 1 in the fail path)
-     uprobe is leaked
-  3) another uprobe_register comes and re-uses the leaked uprobe
-     and succeds - but int3 is already in place, so ref_ctr update
-     is skipped and it stays 0 - uprobe CAN NOT be triggered now
-  4) uprobe_unregister fails because ref_ctr value is unexpected
+On such systems, hugetlb is unusable for any legitimate usecase, but it is
+still possible to exercise a lot of hugetlb-specific code by creating
+MAP_HUGETLB|MAP_NORESERVE VMAs - for example, it is still possible to
+create page tables shared across processes.
 
-Fix this by reverting the updated ref_ctr value back to 1 in step 2),
-which is the case when uprobe_unregister fails (int3 stays in place), but
-we have already updated refctr.
+This is exposed through the mmap() syscall, with no privileges required,
+so from a security perspective, this is interesting attack surface.
 
-The new scenario will go as follows:
+Lock it down by completely denying creation of hugetlb files if no huge
+pages for the hstate could be allocated without administratively changing
+huge page limits.
 
-  1) uprobe_register succeeds - updates instruction to int3 and
-     changes ref_ctr from 0 to 1
-  2) uprobe_unregister fails  - int3 stays in place and ref_ctr
-     is reverted to 1..  uprobe is leaked
-  3) another uprobe_register comes and re-uses the leaked uprobe
-     and succeds - but int3 is already in place, so ref_ctr update
-     is skipped and it stays 1 - uprobe CAN be triggered now
-  4) uprobe_unregister succeeds
+hstate_is_enabled() is written based on documentation in
+Documentation/admin-guide/sysctl/vm.rst and
+Documentation/admin-guide/mm/hugetlbpage.rst , in particular this:
 
-Link: https://lkml.kernel.org/r/20250514101809.2010193-1-jolsa@kernel.org
-Fixes: 1cc33161a83d ("uprobes: Support SDT markers having reference count (semaphore)")
-Signed-off-by: Jiri Olsa <jolsa@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+> nr_overcommit_hugepages
+> =======================
+>
+> Change the maximum size of the hugepage pool. The maximum is
+> nr_hugepages + nr_overcommit_hugepages.
+
+and this:
+
+> As long as this condition holds--that is, until
+> ``nr_hugepages+nr_overcommit_hugepages`` is increased sufficiently, or
+> the surplus huge pages go out of use and are freed-- no more surplus
+> huge pages will be allowed to be allocated.
+
+Note that, in the userspace API:
+
+ - `h->nr_overcommit_huge_pages` is called "nr_overcommit_hugepages"
+ - `h->max_huge_pages` is called "nr_hugepages"
+
+I am not explicitly marking this for stable backport yet at this point,
+but I will want to backport this once it's landed in a point release and
+nobody's complained for a while.
+
+Link: https://lkml.kernel.org/r/20250528-hugetlb-nerf-v1-1-a404ca33e819@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- a/kernel/events/uprobes.c~uprobes-revert-ref_ctr_offset-in-uprobe_unregister-error-path
-+++ a/kernel/events/uprobes.c
-@@ -580,8 +580,8 @@ retry:
+--- a/fs/hugetlbfs/inode.c~hugetlb-block-hugetlb-file-creation-if-hugetlb-is-not-set-up
++++ a/fs/hugetlbfs/inode.c
+@@ -1517,6 +1517,16 @@ static int get_hstate_idx(int page_size_
+ 	return hstate_index(h);
+ }
  
- out:
- 	/* Revert back reference counter if instruction update failed. */
--	if (ret < 0 && is_register && ref_ctr_updated)
--		update_ref_ctr(uprobe, mm, -1);
-+	if (ret < 0 && ref_ctr_updated)
-+		update_ref_ctr(uprobe, mm, is_register ? -1 : 1);
++static bool hstate_is_enabled(struct hstate *h)
++{
++	bool is_enabled;
++
++	spin_lock_irq(&hugetlb_lock);
++	is_enabled = h->nr_overcommit_huge_pages || h->max_huge_pages;
++	spin_unlock_irq(&hugetlb_lock);
++	return is_enabled;
++}
++
+ /*
+  * Note that size should be aligned to proper hugepage size in caller side,
+  * otherwise hugetlb_reserve_pages reserves one less hugepages than intended.
+@@ -1549,6 +1559,15 @@ struct file *hugetlb_file_setup(const ch
+ 		return ERR_PTR(-EPERM);
+ 	}
  
- 	/* try collapse pmd for compound page */
- 	if (ret > 0)
++	/*
++	 * If no hugetlb pages of this size are supposed to exist, then don't
++	 * even allow creating a hugetlb file (even if the file has size 0 or
++	 * userspace requests MAP_NORESERVE).
++	 * This limits attack surface for systems that don't use hugetlb.
++	 */
++	if (!hstate_is_enabled(HUGETLBFS_SB(mnt->mnt_sb)->hstate))
++		return ERR_PTR(-ENOMEM);
++
+ 	file = ERR_PTR(-ENOSPC);
+ 	/* hugetlbfs_vfsmount[] mounts do not use idmapped mounts.  */
+ 	inode = hugetlbfs_get_inode(mnt->mnt_sb, &nop_mnt_idmap, NULL,
 _
 
-Patches currently in -mm which might be from olsajiri@gmail.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-uprobes-revert-ref_ctr_offset-in-uprobe_unregister-error-path.patch
 
