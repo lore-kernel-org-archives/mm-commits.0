@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E3DB1362
-	for <mm-commits@vger.kernel.org>; Wed, 18 Jun 2025 01:16:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FACF1632CA;
+	Wed, 18 Jun 2025 01:18:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750209371; cv=none; b=oRuUJnS7tEWbCPKjVFb8k0Rg1/1sMGzh1xgPgC4UMSCKkR2WY7keUJ9s8DX24QAX/Mz6Kma9Xr99oLSwWAg+D2mgnmVCHN1VXS9kUraq7xmjRV8GNCPTkay85B3HP7Qne3+DK/TtfI078saSFTqvulSKmtp6YgWUajlrcvJGZDk=
+	t=1750209482; cv=none; b=MOb0sIXBfQH1LJSGgegKQ6rRNVzo57i4b9+KpJ1udRbq7zGDQ2hXh+qFKApOiQB+czFFZ8lywxfeKZzeTAcDnuJt1PoeOyMIMHxOLBhZmW7vxDG2D5S40SdGGfMEtXfamcPKKBjbEuJHBLuDH9KeYow9/jC4rVOhY8/rWaByIV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750209371; c=relaxed/simple;
-	bh=FwDi/gWbuVkadYHdntlNG1q4HpKYwKshKujNB6kNIaI=;
-	h=Date:To:From:Subject:Message-Id; b=qIaUaWtoOiwwBvLOIE1y9+AD/d2+yRotf/szS+t8UDtHUMcBP5lpQI5hoCEhzIjF6LjLduamMy1AWHMyTXBrSx0yAD8bWOksqD3G+bUb5xr7/xG2f7Fz6xfKtIH3jbzvcLPuSUYXd3AhCLSgWthUXSOAO6vsciynD36LBxLWtdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XD7cAKOR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750209482; c=relaxed/simple;
+	bh=lerISQSspKt7OkabgJZhbLylnYyFwjhb5P69GsdDVms=;
+	h=Date:To:From:Subject:Message-Id; b=Cnpodlst7JjCd3TXpbR4SzJCASPLUT2vJGHxURI4Myce2gQ6wDTTBsqOJMGC6IJugtFbSb/BpjIMna0AsBvMnfFuvoxP7jwTUzd2Waj5vCLRtnHrVovz+2FoA3bnaXtBlrRryEaJPfzKXVAL7DBRZ8D0Ov6N3YjgT+4wduVptdw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ok7BnYXn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XD7cAKOR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 360E8C4CEE3;
-	Wed, 18 Jun 2025 01:16:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ok7BnYXn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF7A5C4CEE7;
+	Wed, 18 Jun 2025 01:18:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750209371;
-	bh=FwDi/gWbuVkadYHdntlNG1q4HpKYwKshKujNB6kNIaI=;
+	s=korg; t=1750209481;
+	bh=lerISQSspKt7OkabgJZhbLylnYyFwjhb5P69GsdDVms=;
 	h=Date:To:From:Subject:From;
-	b=XD7cAKORw/8+PpvnAV7JuYZe9AfocDC2pSOhW5uGy+S5R67e7+U/73oJd4NKIV9eu
-	 uKktAcVNSxKXTc0AD3xHa507NZm6c7spoaxcOhGkf4izsPsnlde5FlFmnICJ/X0w9J
-	 mkA2CPCN6SPOOPHr4LmpvSjtL35Vp9DNT/rVF7O4=
-Date: Tue, 17 Jun 2025 18:16:10 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,shakeel.butt@linux.dev,rientjes@google.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ok7BnYXnXY5bML31H2SAXpNTz+MT2po6/q0x2pg+Smnkcs2AO2ri+l8C8uwczdiLg
+	 VVExJBB3brKLvlnjzBHEblWh3p2LD/2YGPQw6HMW80TCfDebFEhLo6SVcvORNjp/0d
+	 j2iTAD36JIZPd2aEDMyjTM9lf7hHwhnYL25fHl5c=
+Date: Tue, 17 Jun 2025 18:18:01 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,lizhi.xu@windriver.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250618011611.360E8C4CEE3@smtp.kernel.org>
+Subject: + ocfs2-reset-folio-to-null-when-get-folio-fails.patch added to mm-nonmm-unstable branch
+Message-Id: <20250618011801.BF7A5C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes.patch
+     Subject: ocfs2: reset folio to NULL when get folio fails
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-reset-folio-to-null-when-get-folio-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reset-folio-to-null-when-get-folio-fails.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,45 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes
-Date: Tue Jun 17 06:15:31 PM PDT 2025
+From: Lizhi Xu <lizhi.xu@windriver.com>
+Subject: ocfs2: reset folio to NULL when get folio fails
+Date: Mon, 16 Jun 2025 09:31:40 +0800
 
-WARNING: Misordered MAINTAINERS entry - list file patterns in alphabetic order
-#32: FILE: MAINTAINERS:15860:
- F:	mm/oom_kill.c
-+F:	include/linux/oom.h
+The reproducer uses FAULT_INJECTION to make memory allocation fail, which
+causes __filemap_get_folio() to fail, when initializing w_folios[i] in
+ocfs2_grab_folios_for_write(), it only returns an error code and the value
+of w_folios[i] is the error code, which causes
+ocfs2_unlock_and_free_folios() to recycle the invalid w_folios[i] when
+releasing folios.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250616013140.3602219-1-lizhi.xu@windriver.com
+Reported-by: syzbot+c2ea94ae47cd7e3881ec@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=c2ea94ae47cd7e3881ec
+Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/aops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/MAINTAINERS~mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes
-+++ a/MAINTAINERS
-@@ -15856,10 +15856,10 @@ R:	David Rientjes <rientjes@google.com>
- R:	Shakeel Butt <shakeel.butt@linux.dev>
- L:	linux-mm@kvack.org
- S:	Maintained
--F:	mm/oom_kill.c
- F:	include/linux/oom.h
- F:	include/trace/events/oom.h
- F:	include/uapi/linux/oom.h
-+F:	mm/oom_kill.c
- 
- MEMORY MANAGEMENT - PAGE ALLOCATOR
- M:	Andrew Morton <akpm@linux-foundation.org>
+--- a/fs/ocfs2/aops.c~ocfs2-reset-folio-to-null-when-get-folio-fails
++++ a/fs/ocfs2/aops.c
+@@ -1071,6 +1071,7 @@ static int ocfs2_grab_folios_for_write(s
+ 			if (IS_ERR(wc->w_folios[i])) {
+ 				ret = PTR_ERR(wc->w_folios[i]);
+ 				mlog_errno(ret);
++				wc->w_folios[i] = NULL;
+ 				goto out;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizhi.xu@windriver.com are
 
-mm-add-oom-killer-maintainer-structure-fix.patch
-mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes.patch
+ocfs2-reset-folio-to-null-when-get-folio-fails.patch
 
