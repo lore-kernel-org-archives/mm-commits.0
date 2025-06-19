@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF5DC2045B1
-	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B70CE2045B1
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750374150; cv=none; b=FK2kQ8qCkBv50w4MbobQH6YgSI1I8B3ELMOVMA73K9osljxS4YIzb8uaFnJF47KKlXsWKIXQeZY0JBGV9hm/wgNQPMl3jpAi56+J36QaFgaz6nGU8k0Guudg9Jur+Ne8iF7incA0zS8HU5sbNl7No073pRX3WymM/lX2fqnYhyc=
+	t=1750374151; cv=none; b=YXUMiKQWpN0ngwSXvuNERzG3uioiizpA/ADhBqT2B/JgM2zIbzla1YodI9ME+VGmL3xz0q6l5wdR+mAeV5d15eUd7wCkJxSSt+gmo8u/HrPG3PWRjFAWxgTMEc4vk1pQ5e575Wqpl4wT6adClYneXbJ9XWvsJdSXNyRVV4DPgDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750374150; c=relaxed/simple;
-	bh=mhdeJUNziDU3FPCmTVtUUifVVpeXAPitVHdAGzSUlvk=;
-	h=Date:To:From:Subject:Message-Id; b=eU9/QFKgd1Y4AeK8MlAC8BwWgaGfGibIVi13QKH6eK2qE/HFss/4f7/Tf0m+XWs2mTsJabTK1BWbgkbM6RLlBMs/x6rG0WsiRk2zw38svdX3w0xheAJ+//YXmGtntD7/R9u+8yERneKL+P7U7+ti2ZebtDKpl6AiGAougw2BVQU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RL1Ki9ng; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750374151; c=relaxed/simple;
+	bh=7pXr9S1yezr8SEbl+O84C+uefK/68l+o+geejnk6iq0=;
+	h=Date:To:From:Subject:Message-Id; b=V/+M+JZwI593L2rO7yZer2rzX6TJcDtgmDNUbC24TVRVVr/kbs6Y2sU+NYXdL7JV+PG0W0EcCfzktMr7Fith+VDek9qQ2mi/ZoMAx0C17YXcjIyArhRYlTOAngr1A5WSuVurUBYaLwgycxFxTf4MPBcmSjUQiTB6ZdTVs1HBueE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fBpfxfQZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RL1Ki9ng"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30117C4CEEA;
-	Thu, 19 Jun 2025 23:02:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fBpfxfQZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F7CCC4CEEA;
+	Thu, 19 Jun 2025 23:02:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750374149;
-	bh=mhdeJUNziDU3FPCmTVtUUifVVpeXAPitVHdAGzSUlvk=;
+	s=korg; t=1750374151;
+	bh=7pXr9S1yezr8SEbl+O84C+uefK/68l+o+geejnk6iq0=;
 	h=Date:To:From:Subject:From;
-	b=RL1Ki9ngRIZra/yXK17He3SC3orjZ1VatgpggWwU+i9Z8dMSxdpcrPoO8leaxO/qz
-	 znZpPrC3Q/H1+dq32Y2uN/B+1CCqa4fiDkHqGoBvdnrMmyeW/Ml4p42njJq+FeSMis
-	 IXM+1BnM6p8CAMer8d+3dTrXcLmGCN3DxMzdN8Os=
-Date: Thu, 19 Jun 2025 16:02:28 -0700
+	b=fBpfxfQZJvs4sKIkPJfTe6k4cqWg4DlJgd2pXWnSpVwcwL0F/ESU0TBNFddJoLwbG
+	 VVKZFHajPXJD6d/u0FQPFd0WhnqM9IrCXe8UDfWYOjGOOH8E5WcGcLvX9tYN3oXcD/
+	 1ReTwxJu0qSYWW7SGgqHDLMBsFHgkKWkV28LrdTM=
+Date: Thu, 19 Jun 2025 16:02:30 -0700
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,john@groves.net,jhubbard@nvidia.com,jgg@nvidia.com,hch@lst.de,gerald.schaefer@linux.ibm.com,debug@rivosinc.com,david@redhat.com,dan.j.williams@intel.com,bjorn@rivosinc.com,bjorn@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-redundant-pmd_devmap-check.patch added to mm-new branch
-Message-Id: <20250619230229.30117C4CEEA@smtp.kernel.org>
+Subject: + powerpc-remove-checks-for-devmap-pages-and-pmds-puds.patch added to mm-new branch
+Message-Id: <20250619230231.3F7CCC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: remove redundant pmd_devmap() check
+     Subject: powerpc: remove checks for devmap pages and PMDs/PUDs
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-remove-redundant-pmd_devmap-check.patch
+     powerpc-remove-checks-for-devmap-pages-and-pmds-puds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-redundant-pmd_devmap-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-remove-checks-for-devmap-pages-and-pmds-puds.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,20 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/khugepaged: remove redundant pmd_devmap() check
-Date: Thu, 19 Jun 2025 18:58:00 +1000
+Subject: powerpc: remove checks for devmap pages and PMDs/PUDs
+Date: Thu, 19 Jun 2025 18:58:01 +1000
 
-The pmd_devmap() check in check_pmd_state() is redundant because the only
-user of pmd_devmap were device dax and fs dax.  However all callers of
-check_pmd_state() first call thp_vma_allowable_order() to check if the vma
-should be scanned.  Except when called from a page fault this always
-returns 0 for dax vma's, hence we would never expect to see a pmd_devmap
-entry.
+PFN_DEV no longer exists.  This means no devmap PMDs or PUDs will be
+created, so checking for them is redundant.  Instead mappings of pages
+that would have previously returned true for pXd_devmap() will return true
+for pXd_trans_huge()
 
-Link: https://lkml.kernel.org/r/a68175fd3a37e9b72cc82c1d63fd8b69691a85b5.1750323463.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/31f63cc8dd518f9e2ec300681fe302eb4adf49b4.1750323463.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Björn Töpel <bjorn@kernel.org>
 Cc: Björn Töpel <bjorn@rivosinc.com>
@@ -96,20 +94,134 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/powerpc/mm/book3s64/hash_hugepage.c |    2 +-
+ arch/powerpc/mm/book3s64/hash_pgtable.c  |    3 +--
+ arch/powerpc/mm/book3s64/hugetlbpage.c   |    2 +-
+ arch/powerpc/mm/book3s64/pgtable.c       |   10 ++++------
+ arch/powerpc/mm/book3s64/radix_pgtable.c |    5 ++---
+ arch/powerpc/mm/pgtable.c                |    2 +-
+ 6 files changed, 10 insertions(+), 14 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-pmd_devmap-check
-+++ a/mm/khugepaged.c
-@@ -945,8 +945,6 @@ static inline int check_pmd_state(pmd_t
- 		return SCAN_PMD_NULL;
- 	if (pmd_trans_huge(pmde))
- 		return SCAN_PMD_MAPPED;
--	if (pmd_devmap(pmde))
--		return SCAN_PMD_NULL;
- 	if (pmd_bad(pmde))
- 		return SCAN_PMD_NULL;
- 	return SCAN_SUCCEED;
+--- a/arch/powerpc/mm/book3s64/hash_hugepage.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
++++ a/arch/powerpc/mm/book3s64/hash_hugepage.c
+@@ -54,7 +54,7 @@ int __hash_page_thp(unsigned long ea, un
+ 	/*
+ 	 * Make sure this is thp or devmap entry
+ 	 */
+-	if (!(old_pmd & (H_PAGE_THP_HUGE | _PAGE_DEVMAP)))
++	if (!(old_pmd & H_PAGE_THP_HUGE))
+ 		return 0;
+ 
+ 	rflags = htab_convert_pte_flags(new_pmd, flags);
+--- a/arch/powerpc/mm/book3s64/hash_pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
++++ a/arch/powerpc/mm/book3s64/hash_pgtable.c
+@@ -195,7 +195,7 @@ unsigned long hash__pmd_hugepage_update(
+ 	unsigned long old;
+ 
+ #ifdef CONFIG_DEBUG_VM
+-	WARN_ON(!hash__pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
++	WARN_ON(!hash__pmd_trans_huge(*pmdp));
+ 	assert_spin_locked(pmd_lockptr(mm, pmdp));
+ #endif
+ 
+@@ -227,7 +227,6 @@ pmd_t hash__pmdp_collapse_flush(struct v
+ 
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	VM_BUG_ON(pmd_trans_huge(*pmdp));
+-	VM_BUG_ON(pmd_devmap(*pmdp));
+ 
+ 	pmd = *pmdp;
+ 	pmd_clear(pmdp);
+--- a/arch/powerpc/mm/book3s64/hugetlbpage.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
++++ a/arch/powerpc/mm/book3s64/hugetlbpage.c
+@@ -74,7 +74,7 @@ int __hash_page_huge(unsigned long ea, u
+ 	} while(!pte_xchg(ptep, __pte(old_pte), __pte(new_pte)));
+ 
+ 	/* Make sure this is a hugetlb entry */
+-	if (old_pte & (H_PAGE_THP_HUGE | _PAGE_DEVMAP))
++	if (old_pte & H_PAGE_THP_HUGE)
+ 		return 0;
+ 
+ 	rflags = htab_convert_pte_flags(new_pte, flags);
+--- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
++++ a/arch/powerpc/mm/book3s64/pgtable.c
+@@ -62,7 +62,7 @@ int pmdp_set_access_flags(struct vm_area
+ {
+ 	int changed;
+ #ifdef CONFIG_DEBUG_VM
+-	WARN_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
++	WARN_ON(!pmd_trans_huge(*pmdp));
+ 	assert_spin_locked(pmd_lockptr(vma->vm_mm, pmdp));
+ #endif
+ 	changed = !pmd_same(*(pmdp), entry);
+@@ -82,7 +82,6 @@ int pudp_set_access_flags(struct vm_area
+ {
+ 	int changed;
+ #ifdef CONFIG_DEBUG_VM
+-	WARN_ON(!pud_devmap(*pudp));
+ 	assert_spin_locked(pud_lockptr(vma->vm_mm, pudp));
+ #endif
+ 	changed = !pud_same(*(pudp), entry);
+@@ -204,8 +203,8 @@ pmd_t pmdp_huge_get_and_clear_full(struc
+ {
+ 	pmd_t pmd;
+ 	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
+-		   !pmd_devmap(*pmdp)) || !pmd_present(*pmdp));
++	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp)) ||
++		   !pmd_present(*pmdp));
+ 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, addr, pmdp);
+ 	/*
+ 	 * if it not a fullmm flush, then we can possibly end up converting
+@@ -223,8 +222,7 @@ pud_t pudp_huge_get_and_clear_full(struc
+ 	pud_t pud;
+ 
+ 	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON((pud_present(*pudp) && !pud_devmap(*pudp)) ||
+-		  !pud_present(*pudp));
++	VM_BUG_ON(!pud_present(*pudp));
+ 	pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
+ 	/*
+ 	 * if it not a fullmm flush, then we can possibly end up converting
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
++++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -1426,7 +1426,7 @@ unsigned long radix__pmd_hugepage_update
+ 	unsigned long old;
+ 
+ #ifdef CONFIG_DEBUG_VM
+-	WARN_ON(!radix__pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
++	WARN_ON(!radix__pmd_trans_huge(*pmdp));
+ 	assert_spin_locked(pmd_lockptr(mm, pmdp));
+ #endif
+ 
+@@ -1443,7 +1443,7 @@ unsigned long radix__pud_hugepage_update
+ 	unsigned long old;
+ 
+ #ifdef CONFIG_DEBUG_VM
+-	WARN_ON(!pud_devmap(*pudp));
++	WARN_ON(!pud_trans_huge(*pudp));
+ 	assert_spin_locked(pud_lockptr(mm, pudp));
+ #endif
+ 
+@@ -1461,7 +1461,6 @@ pmd_t radix__pmdp_collapse_flush(struct
+ 
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	VM_BUG_ON(radix__pmd_trans_huge(*pmdp));
+-	VM_BUG_ON(pmd_devmap(*pmdp));
+ 	/*
+ 	 * khugepaged calls this for normal pmd
+ 	 */
+--- a/arch/powerpc/mm/pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
++++ a/arch/powerpc/mm/pgtable.c
+@@ -509,7 +509,7 @@ pte_t *__find_linux_pte(pgd_t *pgdir, un
+ 		return NULL;
+ #endif
+ 
+-	if (pmd_trans_huge(pmd) || pmd_devmap(pmd)) {
++	if (pmd_trans_huge(pmd)) {
+ 		if (is_thp)
+ 			*is_thp = true;
+ 		ret_pte = (pte_t *)pmdp;
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
