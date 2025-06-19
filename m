@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 666F42045B1
-	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA3A82045B1
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750374127; cv=none; b=u2ykMFGh42icIqskyv0kDy60YBHJK+58A2G70NNY7BIhxhkdli46ZCKD0RI1d0YD163nlp0hWXaDNIBVBxd+UjrFijzZRlA0SEYOKKDQXAh1jxb4teXycoEy4mVi9+3I/ojWy2+yBRWyRLmpbSF7S9Sd6+PD/ssgMztl687Zamo=
+	t=1750374131; cv=none; b=orI8DhUadefBoVOvVYKsIs7bkuxskFtkB2PYaUt2vuyd9D8hLq2rF80n9cOrKGDxoT8WddAvx01rgDPHagufSZUNqZjNa3mbSxl+irtHr9HeTKTp51h5di4h8Rum9w3rLBkn5VzytdvFbpCQWIjyWXTIXDRBXFuIuasYXBvpmxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750374127; c=relaxed/simple;
-	bh=6cU/PUdZj5wGkwbT+xRqhuYqFIA4PI/E4mku9ILgb1o=;
-	h=Date:To:From:Subject:Message-Id; b=tYK6hgOyXkKFqKiDoLTfUN9NoFj+3xpmB5+UorbH1uvjSH0g/ALjEj/Srzf3lVAPCxjbSBQ2RLl7w1nMjphe+HjIUwVvLYJBVZtFXFcgyOZJlHnIFhmZLhHMNdVQrobJnwzK4dc8ulchaUxq0BOxqqkxRtHNoiEU+Vjg9Yg8Fus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F0fj25If; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750374131; c=relaxed/simple;
+	bh=coAJxuLjJMsjhWd/8tBD0/XE++uu+S85fnOdiIL6PAo=;
+	h=Date:To:From:Subject:Message-Id; b=WC9XYj4GWpCJesXsxe6whPDWd8Su4oMdZja6A9IM+FjzKgYSXAGszJWQPo5YiULTSjeule25q4ZQsyEm+sovN5rLv/hH0ENhB375cusPmPNq30pKRfxk5Wo77sZCE3TdjFJm4L7JT3DlHgszhNBYZvjtHq9u42SN9KqcLVzEDq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WSqlQwSZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F0fj25If"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AEC5C4CEEA;
-	Thu, 19 Jun 2025 23:02:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WSqlQwSZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56B38C4CEEA;
+	Thu, 19 Jun 2025 23:02:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750374127;
-	bh=6cU/PUdZj5wGkwbT+xRqhuYqFIA4PI/E4mku9ILgb1o=;
+	s=korg; t=1750374129;
+	bh=coAJxuLjJMsjhWd/8tBD0/XE++uu+S85fnOdiIL6PAo=;
 	h=Date:To:From:Subject:From;
-	b=F0fj25IfW38WSFkaGM+vH3Q09j7NXK69MgYt9a+gbrqodiBi/QCiFnHqArSkpyNgh
-	 HvZss2AsrBgEEMIaLy0BLtw5j9OoPAKZ4QJ/bzOLizVTDld8uWs1JmN8qSJHtBzC2b
-	 aXEbab7l2RlH0x+mHn+6qR9BJDLdJHSspHcyW4F4=
-Date: Thu, 19 Jun 2025 16:02:06 -0700
+	b=WSqlQwSZoPUTlAUfqLsSC0BXAPFR+RIZFuHIS4DO93ABndGmjeRT950e/LOcjU/VA
+	 3oRaLE9s7cNjDTXwc+p/tuWrHFPnNRZELRUwslq/t7NBVGDxfwZE7DqgLpa3Vap7pO
+	 J61JOxsT/f4sIcgba0BQko2fs73wFJDS16ZPgm+M=
+Date: Thu, 19 Jun 2025 16:02:08 -0700
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,john@groves.net,jhubbard@nvidia.com,jgg@nvidia.com,hch@lst.de,gerald.schaefer@linux.ibm.com,debug@rivosinc.com,david@redhat.com,dan.j.williams@intel.com,bjorn@rivosinc.com,bjorn@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filter-zone-device-pages-returned-from-folio_walk_start.patch added to mm-new branch
-Message-Id: <20250619230207.2AEC5C4CEEA@smtp.kernel.org>
+Subject: + mm-remove-remaining-uses-of-pfn_dev.patch added to mm-new branch
+Message-Id: <20250619230209.56B38C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: filter zone device pages returned from folio_walk_start()
+     Subject: mm: remove remaining uses of PFN_DEV
 has been added to the -mm mm-new branch.  Its filename is
-     mm-filter-zone-device-pages-returned-from-folio_walk_start.patch
+     mm-remove-remaining-uses-of-pfn_dev.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filter-zone-device-pages-returned-from-folio_walk_start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-remaining-uses-of-pfn_dev.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,30 +65,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm: filter zone device pages returned from folio_walk_start()
-Date: Thu, 19 Jun 2025 18:57:54 +1000
+Subject: mm: remove remaining uses of PFN_DEV
+Date: Thu, 19 Jun 2025 18:57:55 +1000
 
-Previously dax pages were skipped by the pagewalk code as pud_special() or
-vm_normal_page{_pmd}() would be false for DAX pages.  Now that dax pages
-are refcounted normally that is no longer the case, so the pagewalk code
-will start returning them.
+PFN_DEV was used by callers of dax_direct_access() to figure out if the
+returned PFN is associated with a page using pfn_t_has_page() or not. 
+However all DAX PFNs now require an assoicated ZONE_DEVICE page so can
+assume a page exists.
 
-Most callers already explicitly filter for DAX or zone device pages so
-don't need updating.  However some don't, so add checks to those callers.
+Other users of PFN_DEV were setting it before calling vmf_insert_mixed(). 
+This is unnecessary as it is no longer checked, instead relying on
+pfn_valid() to determine if there is an associated page or not.
 
-Link: https://lkml.kernel.org/r/4ecb7b357fc5b435588024770b88bbb695c30090.1750323463.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/74b293aebc21b941090bc3e7aeafa91b57c821a5.1750323463.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Björn Töpel <bjorn@kernel.org>
 Cc: Björn Töpel <bjorn@rivosinc.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Deepak Gupta <debug@rivosinc.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Inki Dae <m.szyprowski@samsung.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Groves <john@groves.net>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -97,20 +98,99 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/gma500/fbdev.c     |    2 +-
+ drivers/gpu/drm/omapdrm/omap_gem.c |    5 ++---
+ drivers/s390/block/dcssblk.c       |    3 +--
+ drivers/vfio/pci/vfio_pci_core.c   |    6 ++----
+ fs/cramfs/inode.c                  |    2 +-
+ mm/memory.c                        |    2 +-
+ 6 files changed, 8 insertions(+), 12 deletions(-)
 
---- a/kernel/events/uprobes.c~mm-filter-zone-device-pages-returned-from-folio_walk_start
-+++ a/kernel/events/uprobes.c
-@@ -539,7 +539,7 @@ retry:
- 	}
+--- a/drivers/gpu/drm/gma500/fbdev.c~mm-remove-remaining-uses-of-pfn_dev
++++ a/drivers/gpu/drm/gma500/fbdev.c
+@@ -33,7 +33,7 @@ static vm_fault_t psb_fbdev_vm_fault(str
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
  
- 	ret = 0;
--	if (unlikely(!folio_test_anon(folio))) {
-+	if (unlikely(!folio_test_anon(folio) || folio_is_zone_device(folio))) {
- 		VM_WARN_ON_ONCE(is_register);
- 		folio_put(folio);
- 		goto out;
+ 	for (i = 0; i < page_num; ++i) {
+-		err = vmf_insert_mixed(vma, address, __pfn_to_pfn_t(pfn, PFN_DEV));
++		err = vmf_insert_mixed(vma, address, __pfn_to_pfn_t(pfn, 0));
+ 		if (unlikely(err & VM_FAULT_ERROR))
+ 			break;
+ 		address += PAGE_SIZE;
+--- a/drivers/gpu/drm/omapdrm/omap_gem.c~mm-remove-remaining-uses-of-pfn_dev
++++ a/drivers/gpu/drm/omapdrm/omap_gem.c
+@@ -371,8 +371,7 @@ static vm_fault_t omap_gem_fault_1d(stru
+ 	VERB("Inserting %p pfn %lx, pa %lx", (void *)vmf->address,
+ 			pfn, pfn << PAGE_SHIFT);
+ 
+-	return vmf_insert_mixed(vma, vmf->address,
+-			__pfn_to_pfn_t(pfn, PFN_DEV));
++	return vmf_insert_mixed(vma, vmf->address, __pfn_to_pfn_t(pfn, 0));
+ }
+ 
+ /* Special handling for the case of faulting in 2d tiled buffers */
+@@ -468,7 +467,7 @@ static vm_fault_t omap_gem_fault_2d(stru
+ 
+ 	for (i = n; i > 0; i--) {
+ 		ret = vmf_insert_mixed(vma,
+-			vaddr, __pfn_to_pfn_t(pfn, PFN_DEV));
++			vaddr, __pfn_to_pfn_t(pfn, 0));
+ 		if (ret & VM_FAULT_ERROR)
+ 			break;
+ 		pfn += priv->usergart[fmt].stride_pfn;
+--- a/drivers/s390/block/dcssblk.c~mm-remove-remaining-uses-of-pfn_dev
++++ a/drivers/s390/block/dcssblk.c
+@@ -923,8 +923,7 @@ __dcssblk_direct_access(struct dcssblk_d
+ 	if (kaddr)
+ 		*kaddr = __va(dev_info->start + offset);
+ 	if (pfn)
+-		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
+-				      PFN_DEV);
++		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), 0);
+ 
+ 	return (dev_sz - offset) / PAGE_SIZE;
+ }
+--- a/drivers/vfio/pci/vfio_pci_core.c~mm-remove-remaining-uses-of-pfn_dev
++++ a/drivers/vfio/pci/vfio_pci_core.c
+@@ -1669,14 +1669,12 @@ static vm_fault_t vfio_pci_mmap_huge_fau
+ 		break;
+ #ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
+ 	case PMD_ORDER:
+-		ret = vmf_insert_pfn_pmd(vmf,
+-					 __pfn_to_pfn_t(pfn, PFN_DEV), false);
++		ret = vmf_insert_pfn_pmd(vmf, __pfn_to_pfn_t(pfn, 0), false);
+ 		break;
+ #endif
+ #ifdef CONFIG_ARCH_SUPPORTS_PUD_PFNMAP
+ 	case PUD_ORDER:
+-		ret = vmf_insert_pfn_pud(vmf,
+-					 __pfn_to_pfn_t(pfn, PFN_DEV), false);
++		ret = vmf_insert_pfn_pud(vmf, __pfn_to_pfn_t(pfn, 0), false);
+ 		break;
+ #endif
+ 	default:
+--- a/fs/cramfs/inode.c~mm-remove-remaining-uses-of-pfn_dev
++++ a/fs/cramfs/inode.c
+@@ -412,7 +412,7 @@ static int cramfs_physmem_mmap(struct fi
+ 		for (i = 0; i < pages && !ret; i++) {
+ 			vm_fault_t vmf;
+ 			unsigned long off = i * PAGE_SIZE;
+-			pfn_t pfn = phys_to_pfn_t(address + off, PFN_DEV);
++			pfn_t pfn = phys_to_pfn_t(address + off, 0);
+ 			vmf = vmf_insert_mixed(vma, vma->vm_start + off, pfn);
+ 			if (vmf & VM_FAULT_ERROR)
+ 				ret = vm_fault_to_errno(vmf, 0);
+--- a/mm/memory.c~mm-remove-remaining-uses-of-pfn_dev
++++ a/mm/memory.c
+@@ -2557,7 +2557,7 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
+ 
+ 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
+ 
+-	return insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot,
++	return insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, 0), pgprot,
+ 			false);
+ }
+ EXPORT_SYMBOL(vmf_insert_pfn_prot);
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
