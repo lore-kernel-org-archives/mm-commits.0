@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1A4717D2
-	for <mm-commits@vger.kernel.org>; Wed, 18 Jun 2025 23:53:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CF1D17E0
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 00:03:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750290781; cv=none; b=La8k0b7LocNFocP94mR+3P7faEmOml7mSN19gZc598qCi4EQHu6jTdMVMTOg/6jZbblEjV+7ClFmgAdPqh6zjmCqvHlIP8O5z5bIVCF5Y1bo0KGfazRPOLBh6GWhQpGLzICqfW8OgcxoBku+uVard9Jj2QUgeEh0/azwgd8/Fzc=
+	t=1750291414; cv=none; b=YO/gf1ok1jZ1aUX7NwWb63nW3l6XicKxuLB2etwaLaWcwp+jGATqsBo0wSnLUtJPLTzq9xxJBpc3cCQB3iSJEUxhXiVtYWf/QEJMeiukdqOGH27/yDtwq6hl75eYLzxYPxDkmYtk5dFQjH1pKCGW4xPn92goqc7L1E1/FUae7+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750290781; c=relaxed/simple;
-	bh=knySjgXb8hWmkAI/EWuJGyo4W/JXwegjuY3hjZTREnc=;
-	h=Date:To:From:Subject:Message-Id; b=DZJxBGt93B0VNJTO+3EEp6SwLrAdYSC2vKV/fglLMpxexUbQjW/EL0dt9x/xC6rdPSHPKCTkNJ7ZlVCfSUjaLDViSlvXu+R/X421qanSVakhhXyI86KyJAXZn7O97UWhjiH30FnuBGQBgUrS6kcQyQuSTmli6r0JoJGOyBEqtAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n4iTJ7Uc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750291414; c=relaxed/simple;
+	bh=hSXmtz0xhQQXDhsbIW5O6dgbaN6OpiyIAi34iTtdZtg=;
+	h=Date:To:From:Subject:Message-Id; b=aLGXTree2tjk4SQi1bFOOsZhjFw9xkb5IBgFomf4dFq+imj+FBOMmtaeCX4WCjff0St2W2H9SwABRx5wMKZIld55nHSrm2aB93cdLmNgNIRn9hJ6uZ8lSeqKQDjWoXkyZqaniu0eJF2qT4Nkg9ZhQdLRVo3eL+6dZxWlRcNbqMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WLCUTqoH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n4iTJ7Uc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57737C4CEE7;
-	Wed, 18 Jun 2025 23:53:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WLCUTqoH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03052C4CEEE;
+	Thu, 19 Jun 2025 00:03:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750290781;
-	bh=knySjgXb8hWmkAI/EWuJGyo4W/JXwegjuY3hjZTREnc=;
+	s=korg; t=1750291414;
+	bh=hSXmtz0xhQQXDhsbIW5O6dgbaN6OpiyIAi34iTtdZtg=;
 	h=Date:To:From:Subject:From;
-	b=n4iTJ7UcsqEhQmO6+wCayFGO4Nn+jVbBe2vEMqlllMW3aeCDrTEkA0TaLvebSztgH
-	 ar3EZF9cRvZiQGC9JnILQsrYsX4jXvOXzhN+xIPyM+JHCaFDmzGa7OAYwJ4VMeQzd+
-	 rH9XMvWB2MvMZLausdwIf0NTKgOT1GaOtMkvjNrM=
-Date: Wed, 18 Jun 2025 16:53:00 -0700
-To: mm-commits@vger.kernel.org,steven.sistare@oracle.com,osalvador@suse.de,muchun.song@linux.dev,kraxel@redhat.com,david@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
+	b=WLCUTqoHs1r/HcPW3r28SnG571QCr4/h+5PKTwGD1DS9G8u2xTAjkDSeIK1ykIWLt
+	 OC7Qi9DmOBUiaGg30tQzXbasA/k0yhtkRxSQuBQ5W8K8uGhxhMobWROQ6PXDZQ7E3R
+	 1JLFq/Cw+yPGfetx9TGz/Dj6AomU3m0cPw9TQg/c=
+Date: Wed, 18 Jun 2025 17:03:33 -0700
+To: mm-commits@vger.kernel.org,steven.sistare@oracle.com,muchun.song@linux.dev,david@redhat.com,anshuman.khandual@arm.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-udmabuf-add-a-test-to-pin-first-before-writing-to-memfd.patch added to mm-new branch
-Message-Id: <20250618235301.57737C4CEE7@smtp.kernel.org>
+Subject: + mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250619000334.03052C4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/udmabuf: add a test to pin first before writing to memfd
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-udmabuf-add-a-test-to-pin-first-before-writing-to-memfd.patch
+     Subject: mm/hugetlb: don't crash when allocating a folio if there are no resv
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-udmabuf-add-a-test-to-pin-first-before-writing-to-memfd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,68 +59,101 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Subject: selftests/udmabuf: add a test to pin first before writing to memfd
-Date: Tue, 17 Jun 2025 22:30:55 -0700
+Subject: mm/hugetlb: don't crash when allocating a folio if there are no resv
+Date: Tue, 17 Jun 2025 22:28:40 -0700
 
-Unlike the existing tests, this new test will create a memfd (backed by
-hugetlb) and pin the folios in it (a small subset) before writing/
-populating it with data.  This is a valid use-case that invokes the
-memfd_alloc_folio() kernel API and is expected to work unless there aren't
-enough hugetlb folios to satisfy the allocation needs.
+There are cases when we try to pin a folio but discover that it has not
+been faulted-in.  So, we try to allocate it in memfd_alloc_folio() but
+there is a chance that we might encounter a fatal crash/failure
+(VM_BUG_ON(!h->resv_huge_pages) in alloc_hugetlb_folio_reserve()) if there
+are no active reservations at that instant.  This issue was reported by
+syzbot:
 
-Link: https://lkml.kernel.org/r/20250618053415.1036185-4-vivek.kasireddy@intel.com
+kernel BUG at mm/hugetlb.c:2403!
+Oops: invalid opcode: 0000 [#1] PREEMPT SMP KASAN NOPTI
+CPU: 0 UID: 0 PID: 5315 Comm: syz.0.0 Not tainted
+6.13.0-rc5-syzkaller-00161-g63676eefb7a0 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS
+1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:alloc_hugetlb_folio_reserve+0xbc/0xc0 mm/hugetlb.c:2403
+Code: 1f eb 05 e8 56 18 a0 ff 48 c7 c7 40 56 61 8e e8 ba 21 cc 09 4c 89
+f0 5b 41 5c 41 5e 41 5f 5d c3 cc cc cc cc e8 35 18 a0 ff 90 <0f> 0b 66
+90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f
+RSP: 0018:ffffc9000d3d77f8 EFLAGS: 00010087
+RAX: ffffffff81ff6beb RBX: 0000000000000000 RCX: 0000000000100000
+RDX: ffffc9000e51a000 RSI: 00000000000003ec RDI: 00000000000003ed
+RBP: 1ffffffff34810d9 R08: ffffffff81ff6ba3 R09: 1ffffd4000093005
+R10: dffffc0000000000 R11: fffff94000093006 R12: dffffc0000000000
+R13: dffffc0000000000 R14: ffffea0000498000 R15: ffffffff9a4086c8
+FS:  00007f77ac12e6c0(0000) GS:ffff88801fc00000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f77ab54b170 CR3: 0000000040b70000 CR4: 0000000000352ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ memfd_alloc_folio+0x1bd/0x370 mm/memfd.c:88
+ memfd_pin_folios+0xf10/0x1570 mm/gup.c:3750
+ udmabuf_pin_folios drivers/dma-buf/udmabuf.c:346 [inline]
+ udmabuf_create+0x70e/0x10c0 drivers/dma-buf/udmabuf.c:443
+ udmabuf_ioctl_create drivers/dma-buf/udmabuf.c:495 [inline]
+ udmabuf_ioctl+0x301/0x4e0 drivers/dma-buf/udmabuf.c:526
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:906 [inline]
+ __se_sys_ioctl+0xf5/0x170 fs/ioctl.c:892
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Therefore, prevent the above crash by replacing the VM_BUG_ON() with
+WARN_ON_ONCE() as there is no need to crash the system in this situation
+and instead we could just warn and fail the allocation.
+
+akpm: converting a BUG into WARN+recover is a good thing, but we still
+have a bug.
+
+Link: https://lkml.kernel.org/r/20250618052840.1036164-1-vivek.kasireddy@intel.com
+Fixes: 26a8ea80929c ("mm/hugetlb: fix memfd_pin_folios resv_huge_pages leak")
 Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
+Reported-by: syzbot+a504cb5bae4fe117ba94@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=a504cb5bae4fe117ba94
 Cc: Steve Sistare <steven.sistare@oracle.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/drivers/dma-buf/udmabuf.c |   20 +++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/drivers/dma-buf/udmabuf.c~selftests-udmabuf-add-a-test-to-pin-first-before-writing-to-memfd
-+++ a/tools/testing/selftests/drivers/dma-buf/udmabuf.c
-@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
- 	void *addr1, *addr2;
+--- a/mm/hugetlb.c~mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv
++++ a/mm/hugetlb.c
+@@ -2340,12 +2340,15 @@ struct folio *alloc_hugetlb_folio_reserv
+ 	struct folio *folio;
  
- 	ksft_print_header();
--	ksft_set_plan(6);
-+	ksft_set_plan(7);
- 
- 	devfd = open("/dev/udmabuf", O_RDWR);
- 	if (devfd < 0) {
-@@ -250,6 +250,24 @@ int main(int argc, char *argv[])
- 
- 	close(buf);
- 	close(memfd);
+ 	spin_lock_irq(&hugetlb_lock);
++	if (WARN_ON_ONCE(!h->resv_huge_pages)) {
++		spin_unlock_irq(&hugetlb_lock);
++		return NULL;
++	}
 +
-+	/* same test as above but we pin first before writing to memfd */
-+	page_size = getpagesize() * 512; /* 2 MB */
-+	size = MEMFD_SIZE * page_size;
-+	memfd = create_memfd_with_seals(size, true);
-+	buf = create_udmabuf_list(devfd, memfd, size);
-+	addr2 = mmap_fd(buf, NUM_PAGES * NUM_ENTRIES * getpagesize());
-+	addr1 = mmap_fd(memfd, size);
-+	write_to_memfd(addr1, size, 'a');
-+	write_to_memfd(addr1, size, 'b');
-+	ret = compare_chunks(addr1, addr2, size);
-+	if (ret < 0)
-+		ksft_test_result_fail("%s: [FAIL,test-7]\n", TEST_PREFIX);
-+	else
-+		ksft_test_result_pass("%s: [PASS,test-7]\n", TEST_PREFIX);
-+
-+	close(buf);
-+	close(memfd);
- 	close(devfd);
+ 	folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask, preferred_nid,
+ 					       nmask);
+-	if (folio) {
+-		VM_BUG_ON(!h->resv_huge_pages);
++	if (folio)
+ 		h->resv_huge_pages--;
+-	}
  
- 	ksft_print_msg("%s: ok\n", TEST_PREFIX);
+ 	spin_unlock_irq(&hugetlb_lock);
+ 	return folio;
 _
 
 Patches currently in -mm which might be from vivek.kasireddy@intel.com are
 
+mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch
 mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch
 mm-memfd-reserve-hugetlb-folios-before-allocation.patch
 selftests-udmabuf-add-a-test-to-pin-first-before-writing-to-memfd.patch
