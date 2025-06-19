@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E599C2045B1
-	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 941B32045B1
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750374134; cv=none; b=mmr8nonoL4r+pKau6lRgKN/znhikZ4NbJE7k4aSKliKNFnB5dhiKTth1k7nvGKtvN4Dc6eaRqHmAVA26G1kUNWbjnfVx4O1nJ/fnAGnX7Nzwvo1e+2CkAVDy33UZ44zErBOqau5JPYc8/bn3CXl+ckl02OkxdaH0MSP14zdhCSY=
+	t=1750374136; cv=none; b=LVKgUx4LLvFVz0YFYyFmJCPZDnp2Xi5IiTv3dw36vkkuxfjROtkHA0xxWnlHMTk31YJMowdOMVs/nt+s+1lUQXE1zFeBBx1tm7KqwnJdvUpWVshAkRIDuCvBQQU0FNMFfEpmBUv/CMNALPceSpieyQc8TDgnTTTKIOYxsrxngQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750374134; c=relaxed/simple;
-	bh=dY7r+ngu5/0Y9ahcUqAbKYld3f6AmDd31K4q1G9moiU=;
-	h=Date:To:From:Subject:Message-Id; b=UmF9u7hLmYykDVpxq4BtcCzag2jKfu9wV5/egOQ2CGZ17Juv2+0y/QoiFNsw0Ft36WnblFNRGj7NRNh5PaeSftmXAwfKRj7z+sQRRRR4Di5SAK65EUz2I8YXw1id2UZyLl1flpCSVcehuuIo2jpckEEjFny6h/O7NIOr+DMAw4g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DfV9YA+G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750374136; c=relaxed/simple;
+	bh=bTDx7glTaAUJ+1SRMIYBd4+CSw5+zF2h7sjYXsj7o7U=;
+	h=Date:To:From:Subject:Message-Id; b=gWnE2v5WAxBFwzJoXOQ60rNKskLaSthZL1gUM/WPS3BL2O6Hufs+aeTQKgEWsZjLhIWCIN837BMb2anRrRiaVH5b7FOwtjV8XSFs525VNgyPV7Kc2e4u/GylGxrJzcQuxX+0lF1gqKWY6vU+qlxTGeQuEgOdNjx5GvHfLtgKWbg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uMAzGHUW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DfV9YA+G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D0B6C4CEEA;
-	Thu, 19 Jun 2025 23:02:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uMAzGHUW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 562DFC4CEEA;
+	Thu, 19 Jun 2025 23:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750374133;
-	bh=dY7r+ngu5/0Y9ahcUqAbKYld3f6AmDd31K4q1G9moiU=;
+	s=korg; t=1750374136;
+	bh=bTDx7glTaAUJ+1SRMIYBd4+CSw5+zF2h7sjYXsj7o7U=;
 	h=Date:To:From:Subject:From;
-	b=DfV9YA+GTtiFM1ibkY3moWNfq7bE5wKoPsEJOp+/Ur1csqXBheZubqTRG2rlcGHsh
-	 4C5gGeiaHOzi+E0fxeq7R121kWbKgLT/++RwG0Njkv0Mzv+KFy638namazerCbYM+u
-	 9LgFux+/BAIy8qIOuhGMhnCjWhS6diKmHkoOjVYU=
-Date: Thu, 19 Jun 2025 16:02:12 -0700
+	b=uMAzGHUWGNH/Qeq//mfm76ZIu3uilVW1JUDxbuvd01GGQDpaszQJExy5Fa7yMn+MN
+	 Ius716pH6VLIud+E4GsZHtsR9Roq2yug2pDs65csAXQJYidDS4Y9j8b59tg8hKYC2D
+	 nayLAK8CHALEw56DEzqBTaNaGZf9LuPF9axJNH+M=
+Date: Thu, 19 Jun 2025 16:02:15 -0700
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,john@groves.net,jhubbard@nvidia.com,jgg@nvidia.com,hch@lst.de,gerald.schaefer@linux.ibm.com,debug@rivosinc.com,david@redhat.com,dan.j.williams@intel.com,bjorn@rivosinc.com,bjorn@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-vmf_insert_mixed-from-using-pte_devmap-to-pte_special.patch added to mm-new branch
-Message-Id: <20250619230213.6D0B6C4CEEA@smtp.kernel.org>
+Subject: + mm-gup-remove-pxx_devmap-usage-from-get_user_pages.patch added to mm-new branch
+Message-Id: <20250619230216.562DFC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert vmf_insert_mixed() from using pte_devmap to pte_special
+     Subject: mm/gup: remove pXX_devmap usage from get_user_pages()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-convert-vmf_insert_mixed-from-using-pte_devmap-to-pte_special.patch
+     mm-gup-remove-pxx_devmap-usage-from-get_user_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-vmf_insert_mixed-from-using-pte_devmap-to-pte_special.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-pxx_devmap-usage-from-get_user_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,25 +65,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm: convert vmf_insert_mixed() from using pte_devmap to pte_special
-Date: Thu, 19 Jun 2025 18:57:56 +1000
+Subject: mm/gup: remove pXX_devmap usage from get_user_pages()
+Date: Thu, 19 Jun 2025 18:57:57 +1000
 
-DAX no longer requires device PTEs as it always has a ZONE_DEVICE page
-associated with the PTE that can be reference counted normally.  Other
-users of pte_devmap are drivers that set PFN_DEV when calling
-vmf_insert_mixed() which ensures vm_normal_page() returns NULL for these
-entries.
+GUP uses pXX_devmap() calls to see if it needs to a get a reference on the
+associated pgmap data structure to ensure the pages won't go away. 
+However it's a driver responsibility to ensure that if pages are mapped
+(ie.  discoverable by GUP) that they are not offlined or removed from the
+memmap so there is no need to hold a reference on the pgmap data structure
+to ensure this.
 
-There is no reason to distinguish these pte_devmap users so in order to
-free up a PTE bit use pte_special instead for entries created with
-vmf_insert_mixed().  This will ensure vm_normal_page() will continue to
-return NULL for these pages.
+Furthermore mappings with PFN_DEV are no longer created, hence this
+effectively dead code anyway so can be removed.
 
-Architectures that don't support pte_special also don't support pte_devmap
-so those will continue to rely on pfn_valid() to determine if the page can
-be mapped.
-
-Link: https://lkml.kernel.org/r/93086bd446e7bf8e4c85345613ac18f706b01f60.1750323463.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/708b2be76876659ec5261fe5d059b07268b98b36.1750323463.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
@@ -104,88 +99,299 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c    |    3 ---
- mm/memory.c |   20 ++------------------
- mm/vmscan.c |    2 +-
- 3 files changed, 3 insertions(+), 22 deletions(-)
+ include/linux/huge_mm.h |    3 
+ mm/gup.c                |  160 +-------------------------------------
+ mm/huge_memory.c        |   40 ---------
+ 3 files changed, 5 insertions(+), 198 deletions(-)
 
---- a/mm/hmm.c~mm-convert-vmf_insert_mixed-from-using-pte_devmap-to-pte_special
-+++ a/mm/hmm.c
-@@ -302,13 +302,10 @@ static int hmm_vma_handle_pte(struct mm_
- 		goto fault;
+--- a/include/linux/huge_mm.h~mm-gup-remove-pxx_devmap-usage-from-get_user_pages
++++ a/include/linux/huge_mm.h
+@@ -473,9 +473,6 @@ static inline bool folio_test_pmd_mappab
+ 	return folio_order(folio) >= HPAGE_PMD_ORDER;
+ }
+ 
+-struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, int flags, struct dev_pagemap **pgmap);
+-
+ vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf);
+ 
+ extern struct folio *huge_zero_folio;
+--- a/mm/gup.c~mm-gup-remove-pxx_devmap-usage-from-get_user_pages
++++ a/mm/gup.c
+@@ -679,31 +679,9 @@ static struct page *follow_huge_pud(stru
+ 		return NULL;
+ 
+ 	pfn += (addr & ~PUD_MASK) >> PAGE_SHIFT;
+-
+-	if (IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
+-	    pud_devmap(pud)) {
+-		/*
+-		 * device mapped pages can only be returned if the caller
+-		 * will manage the page reference count.
+-		 *
+-		 * At least one of FOLL_GET | FOLL_PIN must be set, so
+-		 * assert that here:
+-		 */
+-		if (!(flags & (FOLL_GET | FOLL_PIN)))
+-			return ERR_PTR(-EEXIST);
+-
+-		if (flags & FOLL_TOUCH)
+-			touch_pud(vma, addr, pudp, flags & FOLL_WRITE);
+-
+-		ctx->pgmap = get_dev_pagemap(pfn, ctx->pgmap);
+-		if (!ctx->pgmap)
+-			return ERR_PTR(-EFAULT);
+-	}
+-
+ 	page = pfn_to_page(pfn);
+ 
+-	if (!pud_devmap(pud) && !pud_write(pud) &&
+-	    gup_must_unshare(vma, flags, page))
++	if (!pud_write(pud) && gup_must_unshare(vma, flags, page))
+ 		return ERR_PTR(-EMLINK);
+ 
+ 	ret = try_grab_folio(page_folio(page), 1, flags);
+@@ -857,8 +835,7 @@ static struct page *follow_page_pte(stru
+ 	page = vm_normal_page(vma, address, pte);
  
  	/*
--	 * Bypass devmap pte such as DAX page when all pfn requested
--	 * flags(pfn_req_flags) are fulfilled.
- 	 * Since each architecture defines a struct page for the zero page, just
- 	 * fall through and treat it like a normal page.
+-	 * We only care about anon pages in can_follow_write_pte() and don't
+-	 * have to worry about pte_devmap() because they are never anon.
++	 * We only care about anon pages in can_follow_write_pte().
  	 */
- 	if (!vm_normal_page(walk->vma, addr, pte) &&
--	    !pte_devmap(pte) &&
- 	    !is_zero_pfn(pte_pfn(pte))) {
- 		if (hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0)) {
- 			pte_unmap(ptep);
---- a/mm/memory.c~mm-convert-vmf_insert_mixed-from-using-pte_devmap-to-pte_special
-+++ a/mm/memory.c
-@@ -598,16 +598,6 @@ struct page *vm_normal_page(struct vm_ar
- 			return NULL;
- 		if (is_zero_pfn(pfn))
- 			return NULL;
--		if (pte_devmap(pte))
--		/*
--		 * NOTE: New users of ZONE_DEVICE will not set pte_devmap()
--		 * and will have refcounts incremented on their struct pages
--		 * when they are inserted into PTEs, thus they are safe to
--		 * return here. Legacy ZONE_DEVICE pages that set pte_devmap()
--		 * do not have refcounts. Example of legacy ZONE_DEVICE is
--		 * MEMORY_DEVICE_FS_DAX type in pmem or virtio_fs drivers.
--		 */
--			return NULL;
- 
- 		print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
-@@ -2483,10 +2473,7 @@ static vm_fault_t insert_pfn(struct vm_a
+ 	if ((flags & FOLL_WRITE) &&
+ 	    !can_follow_write_pte(pte, page, vma, flags)) {
+@@ -866,18 +843,7 @@ static struct page *follow_page_pte(stru
+ 		goto out;
  	}
  
- 	/* Ok, finally just insert the thing.. */
--	if (pfn_t_devmap(pfn))
--		entry = pte_mkdevmap(pfn_t_pte(pfn, prot));
+-	if (!page && pte_devmap(pte) && (flags & (FOLL_GET | FOLL_PIN))) {
+-		/*
+-		 * Only return device mapping pages in the FOLL_GET or FOLL_PIN
+-		 * case since they are only valid while holding the pgmap
+-		 * reference.
+-		 */
+-		*pgmap = get_dev_pagemap(pte_pfn(pte), *pgmap);
+-		if (*pgmap)
+-			page = pte_page(pte);
+-		else
+-			goto no_page;
+-	} else if (unlikely(!page)) {
++	if (unlikely(!page)) {
+ 		if (flags & FOLL_DUMP) {
+ 			/* Avoid special (like zero) pages in core dumps */
+ 			page = ERR_PTR(-EFAULT);
+@@ -959,14 +925,6 @@ static struct page *follow_pmd_mask(stru
+ 		return no_page_table(vma, flags, address);
+ 	if (!pmd_present(pmdval))
+ 		return no_page_table(vma, flags, address);
+-	if (pmd_devmap(pmdval)) {
+-		ptl = pmd_lock(mm, pmd);
+-		page = follow_devmap_pmd(vma, address, pmd, flags, &ctx->pgmap);
+-		spin_unlock(ptl);
+-		if (page)
+-			return page;
+-		return no_page_table(vma, flags, address);
+-	}
+ 	if (likely(!pmd_leaf(pmdval)))
+ 		return follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
+ 
+@@ -2896,7 +2854,7 @@ static int gup_fast_pte_range(pmd_t pmd,
+ 		int *nr)
+ {
+ 	struct dev_pagemap *pgmap = NULL;
+-	int nr_start = *nr, ret = 0;
++	int ret = 0;
+ 	pte_t *ptep, *ptem;
+ 
+ 	ptem = ptep = pte_offset_map(&pmd, addr);
+@@ -2920,16 +2878,7 @@ static int gup_fast_pte_range(pmd_t pmd,
+ 		if (!pte_access_permitted(pte, flags & FOLL_WRITE))
+ 			goto pte_unmap;
+ 
+-		if (pte_devmap(pte)) {
+-			if (unlikely(flags & FOLL_LONGTERM))
+-				goto pte_unmap;
+-
+-			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
+-			if (unlikely(!pgmap)) {
+-				gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+-				goto pte_unmap;
+-			}
+-		} else if (pte_special(pte))
++		if (pte_special(pte))
+ 			goto pte_unmap;
+ 
+ 		/* If it's not marked as special it must have a valid memmap. */
+@@ -3001,91 +2950,6 @@ static int gup_fast_pte_range(pmd_t pmd,
+ }
+ #endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
+ 
+-#if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-static int gup_fast_devmap_leaf(unsigned long pfn, unsigned long addr,
+-	unsigned long end, unsigned int flags, struct page **pages, int *nr)
+-{
+-	int nr_start = *nr;
+-	struct dev_pagemap *pgmap = NULL;
+-
+-	do {
+-		struct folio *folio;
+-		struct page *page = pfn_to_page(pfn);
+-
+-		pgmap = get_dev_pagemap(pfn, pgmap);
+-		if (unlikely(!pgmap)) {
+-			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+-			break;
+-		}
+-
+-		folio = try_grab_folio_fast(page, 1, flags);
+-		if (!folio) {
+-			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+-			break;
+-		}
+-		folio_set_referenced(folio);
+-		pages[*nr] = page;
+-		(*nr)++;
+-		pfn++;
+-	} while (addr += PAGE_SIZE, addr != end);
+-
+-	put_dev_pagemap(pgmap);
+-	return addr == end;
+-}
+-
+-static int gup_fast_devmap_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
+-{
+-	unsigned long fault_pfn;
+-	int nr_start = *nr;
+-
+-	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	if (!gup_fast_devmap_leaf(fault_pfn, addr, end, flags, pages, nr))
+-		return 0;
+-
+-	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
+-		gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+-		return 0;
+-	}
+-	return 1;
+-}
+-
+-static int gup_fast_devmap_pud_leaf(pud_t orig, pud_t *pudp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
+-{
+-	unsigned long fault_pfn;
+-	int nr_start = *nr;
+-
+-	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	if (!gup_fast_devmap_leaf(fault_pfn, addr, end, flags, pages, nr))
+-		return 0;
+-
+-	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
+-		gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
+-		return 0;
+-	}
+-	return 1;
+-}
+-#else
+-static int gup_fast_devmap_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
+-{
+-	BUILD_BUG();
+-	return 0;
+-}
+-
+-static int gup_fast_devmap_pud_leaf(pud_t pud, pud_t *pudp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
+-{
+-	BUILD_BUG();
+-	return 0;
+-}
+-#endif
+-
+ static int gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+ 		unsigned long end, unsigned int flags, struct page **pages,
+ 		int *nr)
+@@ -3100,13 +2964,6 @@ static int gup_fast_pmd_leaf(pmd_t orig,
+ 	if (pmd_special(orig))
+ 		return 0;
+ 
+-	if (pmd_devmap(orig)) {
+-		if (unlikely(flags & FOLL_LONGTERM))
+-			return 0;
+-		return gup_fast_devmap_pmd_leaf(orig, pmdp, addr, end, flags,
+-					        pages, nr);
+-	}
+-
+ 	page = pmd_page(orig);
+ 	refs = record_subpages(page, PMD_SIZE, addr, end, pages + *nr);
+ 
+@@ -3147,13 +3004,6 @@ static int gup_fast_pud_leaf(pud_t orig,
+ 	if (pud_special(orig))
+ 		return 0;
+ 
+-	if (pud_devmap(orig)) {
+-		if (unlikely(flags & FOLL_LONGTERM))
+-			return 0;
+-		return gup_fast_devmap_pud_leaf(orig, pudp, addr, end, flags,
+-					        pages, nr);
+-	}
+-
+ 	page = pud_page(orig);
+ 	refs = record_subpages(page, PUD_SIZE, addr, end, pages + *nr);
+ 
+--- a/mm/huge_memory.c~mm-gup-remove-pxx_devmap-usage-from-get_user_pages
++++ a/mm/huge_memory.c
+@@ -1672,46 +1672,6 @@ void touch_pmd(struct vm_area_struct *vm
+ 		update_mmu_cache_pmd(vma, addr, pmd);
+ }
+ 
+-struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, int flags, struct dev_pagemap **pgmap)
+-{
+-	unsigned long pfn = pmd_pfn(*pmd);
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct page *page;
+-	int ret;
+-
+-	assert_spin_locked(pmd_lockptr(mm, pmd));
+-
+-	if (flags & FOLL_WRITE && !pmd_write(*pmd))
+-		return NULL;
+-
+-	if (pmd_present(*pmd) && pmd_devmap(*pmd))
+-		/* pass */;
 -	else
--		entry = pte_mkspecial(pfn_t_pte(pfn, prot));
-+	entry = pte_mkspecial(pfn_t_pte(pfn, prot));
- 
- 	if (mkwrite) {
- 		entry = pte_mkyoung(entry);
-@@ -2597,8 +2584,6 @@ static bool vm_mixed_ok(struct vm_area_s
- 	/* these checks mirror the abort conditions in vm_normal_page */
- 	if (vma->vm_flags & VM_MIXEDMAP)
- 		return true;
--	if (pfn_t_devmap(pfn))
--		return true;
- 	if (pfn_t_special(pfn))
- 		return true;
- 	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
-@@ -2630,8 +2615,7 @@ static vm_fault_t __vm_insert_mixed(stru
- 	 * than insert_pfn).  If a zero_pfn were inserted into a VM_MIXEDMAP
- 	 * without pte special, it would there be refcounted as a normal page.
- 	 */
--	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL) &&
--	    !pfn_t_devmap(pfn) && pfn_t_valid(pfn)) {
-+	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL) && pfn_t_valid(pfn)) {
- 		struct page *page;
- 
- 		/*
---- a/mm/vmscan.c~mm-convert-vmf_insert_mixed-from-using-pte_devmap-to-pte_special
-+++ a/mm/vmscan.c
-@@ -3425,7 +3425,7 @@ static unsigned long get_pte_pfn(pte_t p
- 	if (!pte_present(pte) || is_zero_pfn(pfn))
- 		return -1;
- 
--	if (WARN_ON_ONCE(pte_devmap(pte) || pte_special(pte)))
-+	if (WARN_ON_ONCE(pte_special(pte)))
- 		return -1;
- 
- 	if (!pte_young(pte) && !mm_has_notifiers(vma->vm_mm))
+-		return NULL;
+-
+-	if (flags & FOLL_TOUCH)
+-		touch_pmd(vma, addr, pmd, flags & FOLL_WRITE);
+-
+-	/*
+-	 * device mapped pages can only be returned if the
+-	 * caller will manage the page reference count.
+-	 */
+-	if (!(flags & (FOLL_GET | FOLL_PIN)))
+-		return ERR_PTR(-EEXIST);
+-
+-	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
+-	*pgmap = get_dev_pagemap(pfn, *pgmap);
+-	if (!*pgmap)
+-		return ERR_PTR(-EFAULT);
+-	page = pfn_to_page(pfn);
+-	ret = try_grab_folio(page_folio(page), 1, flags);
+-	if (ret)
+-		page = ERR_PTR(ret);
+-
+-	return page;
+-}
+-
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 		  pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+ 		  struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
