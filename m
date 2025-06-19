@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D846B2045B1
-	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF5DC2045B1
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jun 2025 23:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750374141; cv=none; b=hxJXn+LuNutn1VAaoO4epHVVtTHSeo4Mp5QFyURSct2GbEeW8qJj93bjy7Tkgt7iSBY1QbT6+Pe4Un056NdcfPIh4ueDc1XaUCPZ9kwS9EVZjE846xVlNRrGcgTYMxQiuIbYU73beyCkcvYKm8BGjoEzr01axudec0PaxZG6NR8=
+	t=1750374150; cv=none; b=FK2kQ8qCkBv50w4MbobQH6YgSI1I8B3ELMOVMA73K9osljxS4YIzb8uaFnJF47KKlXsWKIXQeZY0JBGV9hm/wgNQPMl3jpAi56+J36QaFgaz6nGU8k0Guudg9Jur+Ne8iF7incA0zS8HU5sbNl7No073pRX3WymM/lX2fqnYhyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750374141; c=relaxed/simple;
-	bh=hfBTDJ4puC40JWkpnpElfecV4dyfho5/KRd45MfqQIA=;
-	h=Date:To:From:Subject:Message-Id; b=dk9IJhxGdwM4bezWQmtH37uuSg2718WSjusO8uHcqWfhTFAjSUs2Cb2roCIUJ1H25APjSnvwx6LbnVNNuFKno0WXiDA3PolZDCQcGpo+pBROpFjfpSmFoIrhHZrRx6PC4QJFbpvAyv4ALUa9nN/4ZIcOcIsY75lhifaX1pRgQD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1IHwWnAI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750374150; c=relaxed/simple;
+	bh=mhdeJUNziDU3FPCmTVtUUifVVpeXAPitVHdAGzSUlvk=;
+	h=Date:To:From:Subject:Message-Id; b=eU9/QFKgd1Y4AeK8MlAC8BwWgaGfGibIVi13QKH6eK2qE/HFss/4f7/Tf0m+XWs2mTsJabTK1BWbgkbM6RLlBMs/x6rG0WsiRk2zw38svdX3w0xheAJ+//YXmGtntD7/R9u+8yERneKL+P7U7+ti2ZebtDKpl6AiGAougw2BVQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RL1Ki9ng; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1IHwWnAI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D935C4CEEA;
-	Thu, 19 Jun 2025 23:02:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RL1Ki9ng"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30117C4CEEA;
+	Thu, 19 Jun 2025 23:02:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750374141;
-	bh=hfBTDJ4puC40JWkpnpElfecV4dyfho5/KRd45MfqQIA=;
+	s=korg; t=1750374149;
+	bh=mhdeJUNziDU3FPCmTVtUUifVVpeXAPitVHdAGzSUlvk=;
 	h=Date:To:From:Subject:From;
-	b=1IHwWnAIEHClRQBvg+bI717ZN/eroxsPSYXChdiKqc35Y+QE660aSOZfDu1sSmNsl
-	 sWsJ3RsJo0+vHdwtVh0hp3cjFNIl9pvWFuuL5XPPDSLblLx5UKL/8LuQI2G+jfscVl
-	 8zE4MYoeyZE/CnIeRagP1buwj8tgHgDGjj8hF7YY=
-Date: Thu, 19 Jun 2025 16:02:20 -0700
+	b=RL1Ki9ngRIZra/yXK17He3SC3orjZ1VatgpggWwU+i9Z8dMSxdpcrPoO8leaxO/qz
+	 znZpPrC3Q/H1+dq32Y2uN/B+1CCqa4fiDkHqGoBvdnrMmyeW/Ml4p42njJq+FeSMis
+	 IXM+1BnM6p8CAMer8d+3dTrXcLmGCN3DxMzdN8Os=
+Date: Thu, 19 Jun 2025 16:02:28 -0700
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,john@groves.net,jhubbard@nvidia.com,jgg@nvidia.com,hch@lst.de,gerald.schaefer@linux.ibm.com,debug@rivosinc.com,david@redhat.com,dan.j.williams@intel.com,bjorn@rivosinc.com,bjorn@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-redundant-pxd_devmap-calls.patch added to mm-new branch
-Message-Id: <20250619230221.9D935C4CEEA@smtp.kernel.org>
+Subject: + mm-khugepaged-remove-redundant-pmd_devmap-check.patch added to mm-new branch
+Message-Id: <20250619230229.30117C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove redundant pXd_devmap calls
+     Subject: mm/khugepaged: remove redundant pmd_devmap() check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-redundant-pxd_devmap-calls.patch
+     mm-khugepaged-remove-redundant-pmd_devmap-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-redundant-pxd_devmap-calls.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-redundant-pmd_devmap-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,28 +65,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm: remove redundant pXd_devmap calls
-Date: Thu, 19 Jun 2025 18:57:59 +1000
+Subject: mm/khugepaged: remove redundant pmd_devmap() check
+Date: Thu, 19 Jun 2025 18:58:00 +1000
 
-DAX was the only thing that created pmd_devmap and pud_devmap entries
-however it no longer does as DAX pages are now refcounted normally and
-pXd_trans_huge() returns true for those.  Therefore checking both
-pXd_devmap and pXd_trans_huge() is redundant and the former can be removed
-without changing behaviour as it will always be false.
+The pmd_devmap() check in check_pmd_state() is redundant because the only
+user of pmd_devmap were device dax and fs dax.  However all callers of
+check_pmd_state() first call thp_vma_allowable_order() to check if the vma
+should be scanned.  Except when called from a page fault this always
+returns 0 for dax vma's, hence we would never expect to see a pmd_devmap
+entry.
 
-Link: https://lkml.kernel.org/r/d58f089dc16b7feb7c6728164f37dea65d64a0d3.1750323463.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/a68175fd3a37e9b72cc82c1d63fd8b69691a85b5.1750323463.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Björn Töpel <bjorn@kernel.org>
 Cc: Björn Töpel <bjorn@rivosinc.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Deepak Gupta <debug@rivosinc.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Inki Dae <m.szyprowski@samsung.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Groves <john@groves.net>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -95,457 +96,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                   |    5 ++---
- include/linux/huge_mm.h    |   10 ++++------
- include/linux/pgtable.h    |    2 +-
- mm/hmm.c                   |    4 ++--
- mm/huge_memory.c           |   23 +++++++++--------------
- mm/mapping_dirty_helpers.c |    4 ++--
- mm/memory.c                |   15 ++++++---------
- mm/migrate_device.c        |    2 +-
- mm/mprotect.c              |    2 +-
- mm/mremap.c                |    9 +++------
- mm/page_vma_mapped.c       |    5 ++---
- mm/pagewalk.c              |    8 +++-----
- mm/pgtable-generic.c       |    7 +++----
- mm/userfaultfd.c           |    4 ++--
- mm/vmscan.c                |    3 ---
- 15 files changed, 41 insertions(+), 62 deletions(-)
+ mm/khugepaged.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/dax.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/fs/dax.c
-@@ -1937,7 +1937,7 @@ static vm_fault_t dax_iomap_pte_fault(st
- 	 * the PTE we need to set up.  If so just return and the fault will be
- 	 * retried.
- 	 */
--	if (pmd_trans_huge(*vmf->pmd) || pmd_devmap(*vmf->pmd)) {
-+	if (pmd_trans_huge(*vmf->pmd)) {
- 		ret = VM_FAULT_NOPAGE;
- 		goto unlock_entry;
- 	}
-@@ -2060,8 +2060,7 @@ static vm_fault_t dax_iomap_pmd_fault(st
- 	 * the PMD we need to set up.  If so just return and the fault will be
- 	 * retried.
- 	 */
--	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd) &&
--			!pmd_devmap(*vmf->pmd)) {
-+	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd)) {
- 		ret = 0;
- 		goto unlock_entry;
- 	}
---- a/include/linux/huge_mm.h~mm-remove-redundant-pxd_devmap-calls
-+++ a/include/linux/huge_mm.h
-@@ -400,8 +400,7 @@ void __split_huge_pmd(struct vm_area_str
- #define split_huge_pmd(__vma, __pmd, __address)				\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
--		if (is_swap_pmd(*____pmd) || pmd_trans_huge(*____pmd)	\
--					|| pmd_devmap(*____pmd))	\
-+		if (is_swap_pmd(*____pmd) || pmd_trans_huge(*____pmd))	\
- 			__split_huge_pmd(__vma, __pmd, __address,	\
- 					 false);			\
- 	}  while (0)
-@@ -426,8 +425,7 @@ change_huge_pud(struct mmu_gather *tlb,
- #define split_huge_pud(__vma, __pud, __address)				\
- 	do {								\
- 		pud_t *____pud = (__pud);				\
--		if (pud_trans_huge(*____pud)				\
--					|| pud_devmap(*____pud))	\
-+		if (pud_trans_huge(*____pud))				\
- 			__split_huge_pud(__vma, __pud, __address);	\
- 	}  while (0)
- 
-@@ -450,7 +448,7 @@ static inline int is_swap_pmd(pmd_t pmd)
- static inline spinlock_t *pmd_trans_huge_lock(pmd_t *pmd,
- 		struct vm_area_struct *vma)
- {
--	if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
-+	if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma);
- 	else
- 		return NULL;
-@@ -458,7 +456,7 @@ static inline spinlock_t *pmd_trans_huge
- static inline spinlock_t *pud_trans_huge_lock(pud_t *pud,
- 		struct vm_area_struct *vma)
- {
--	if (pud_trans_huge(*pud) || pud_devmap(*pud))
-+	if (pud_trans_huge(*pud))
- 		return __pud_trans_huge_lock(pud, vma);
- 	else
- 		return NULL;
---- a/include/linux/pgtable.h~mm-remove-redundant-pxd_devmap-calls
-+++ a/include/linux/pgtable.h
-@@ -1672,7 +1672,7 @@ static inline int pud_trans_unstable(pud
- 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
- 	pud_t pudval = READ_ONCE(*pud);
- 
--	if (pud_none(pudval) || pud_trans_huge(pudval) || pud_devmap(pudval))
-+	if (pud_none(pudval) || pud_trans_huge(pudval))
- 		return 1;
- 	if (unlikely(pud_bad(pudval))) {
- 		pud_clear_bad(pud);
---- a/mm/hmm.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/hmm.c
-@@ -360,7 +360,7 @@ again:
- 		return hmm_pfns_fill(start, end, range, HMM_PFN_ERROR);
- 	}
- 
--	if (pmd_devmap(pmd) || pmd_trans_huge(pmd)) {
-+	if (pmd_trans_huge(pmd)) {
- 		/*
- 		 * No need to take pmd_lock here, even if some other thread
- 		 * is splitting the huge pmd we will get that event through
-@@ -371,7 +371,7 @@ again:
- 		 * values.
- 		 */
- 		pmd = pmdp_get_lockless(pmdp);
--		if (!pmd_devmap(pmd) && !pmd_trans_huge(pmd))
-+		if (!pmd_trans_huge(pmd))
- 			goto again;
- 
- 		return hmm_vma_handle_pmd(walk, addr, end, hmm_pfns, pmd);
---- a/mm/huge_memory.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/huge_memory.c
-@@ -1459,8 +1459,7 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
--			!pfn_t_devmap(pfn));
-+	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-@@ -1596,8 +1595,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
--			!pfn_t_devmap(pfn));
-+	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-@@ -1815,7 +1813,7 @@ int copy_huge_pud(struct mm_struct *dst_
- 
- 	ret = -EAGAIN;
- 	pud = *src_pud;
--	if (unlikely(!pud_trans_huge(pud) && !pud_devmap(pud)))
-+	if (unlikely(!pud_trans_huge(pud)))
- 		goto out_unlock;
- 
- 	/*
-@@ -2677,8 +2675,7 @@ spinlock_t *__pmd_trans_huge_lock(pmd_t
- {
- 	spinlock_t *ptl;
- 	ptl = pmd_lock(vma->vm_mm, pmd);
--	if (likely(is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) ||
--			pmd_devmap(*pmd)))
-+	if (likely(is_swap_pmd(*pmd) || pmd_trans_huge(*pmd)))
- 		return ptl;
- 	spin_unlock(ptl);
- 	return NULL;
-@@ -2695,7 +2692,7 @@ spinlock_t *__pud_trans_huge_lock(pud_t
- 	spinlock_t *ptl;
- 
- 	ptl = pud_lock(vma->vm_mm, pud);
--	if (likely(pud_trans_huge(*pud) || pud_devmap(*pud)))
-+	if (likely(pud_trans_huge(*pud)))
- 		return ptl;
- 	spin_unlock(ptl);
- 	return NULL;
-@@ -2747,7 +2744,7 @@ static void __split_huge_pud_locked(stru
- 	VM_BUG_ON(haddr & ~HPAGE_PUD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PUD_SIZE, vma);
--	VM_BUG_ON(!pud_trans_huge(*pud) && !pud_devmap(*pud));
-+	VM_BUG_ON(!pud_trans_huge(*pud));
- 
- 	count_vm_event(THP_SPLIT_PUD);
- 
-@@ -2780,7 +2777,7 @@ void __split_huge_pud(struct vm_area_str
- 				(address & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE);
- 	mmu_notifier_invalidate_range_start(&range);
- 	ptl = pud_lock(vma->vm_mm, pud);
--	if (unlikely(!pud_trans_huge(*pud) && !pud_devmap(*pud)))
-+	if (unlikely(!pud_trans_huge(*pud)))
- 		goto out;
- 	__split_huge_pud_locked(vma, pud, range.start);
- 
-@@ -2853,8 +2850,7 @@ static void __split_huge_pmd_locked(stru
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PMD_SIZE, vma);
--	VM_BUG_ON(!is_pmd_migration_entry(*pmd) && !pmd_trans_huge(*pmd)
--				&& !pmd_devmap(*pmd));
-+	VM_BUG_ON(!is_pmd_migration_entry(*pmd) && !pmd_trans_huge(*pmd));
- 
- 	count_vm_event(THP_SPLIT_PMD);
- 
-@@ -3062,8 +3058,7 @@ void split_huge_pmd_locked(struct vm_are
- 			   pmd_t *pmd, bool freeze)
- {
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
--	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
--	    is_pmd_migration_entry(*pmd))
-+	if (pmd_trans_huge(*pmd) || is_pmd_migration_entry(*pmd))
- 		__split_huge_pmd_locked(vma, pmd, address, freeze);
- }
- 
---- a/mm/mapping_dirty_helpers.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/mapping_dirty_helpers.c
-@@ -129,7 +129,7 @@ static int wp_clean_pmd_entry(pmd_t *pmd
- 	pmd_t pmdval = pmdp_get_lockless(pmd);
- 
- 	/* Do not split a huge pmd, present or migrated */
--	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval)) {
-+	if (pmd_trans_huge(pmdval)) {
- 		WARN_ON(pmd_write(pmdval) || pmd_dirty(pmdval));
- 		walk->action = ACTION_CONTINUE;
- 	}
-@@ -152,7 +152,7 @@ static int wp_clean_pud_entry(pud_t *pud
- 	pud_t pudval = READ_ONCE(*pud);
- 
- 	/* Do not split a huge pud */
--	if (pud_trans_huge(pudval) || pud_devmap(pudval)) {
-+	if (pud_trans_huge(pudval)) {
- 		WARN_ON(pud_write(pudval) || pud_dirty(pudval));
- 		walk->action = ACTION_CONTINUE;
- 	}
---- a/mm/memory.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/memory.c
-@@ -675,8 +675,6 @@ struct page *vm_normal_page_pmd(struct v
- 		}
- 	}
- 
--	if (pmd_devmap(pmd))
--		return NULL;
- 	if (is_huge_zero_pmd(pmd))
- 		return NULL;
- 	if (unlikely(pfn > highest_memmap_pfn))
-@@ -1240,8 +1238,7 @@ copy_pmd_range(struct vm_area_struct *ds
- 	src_pmd = pmd_offset(src_pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (is_swap_pmd(*src_pmd) || pmd_trans_huge(*src_pmd)
--			|| pmd_devmap(*src_pmd)) {
-+		if (is_swap_pmd(*src_pmd) || pmd_trans_huge(*src_pmd)) {
- 			int err;
- 			VM_BUG_ON_VMA(next-addr != HPAGE_PMD_SIZE, src_vma);
- 			err = copy_huge_pmd(dst_mm, src_mm, dst_pmd, src_pmd,
-@@ -1277,7 +1274,7 @@ copy_pud_range(struct vm_area_struct *ds
- 	src_pud = pud_offset(src_p4d, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
--		if (pud_trans_huge(*src_pud) || pud_devmap(*src_pud)) {
-+		if (pud_trans_huge(*src_pud)) {
- 			int err;
- 
- 			VM_BUG_ON_VMA(next-addr != HPAGE_PUD_SIZE, src_vma);
-@@ -1791,7 +1788,7 @@ static inline unsigned long zap_pmd_rang
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
-+		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				__split_huge_pmd(vma, pmd, addr, false);
- 			else if (zap_huge_pmd(tlb, vma, pmd, addr)) {
-@@ -1833,7 +1830,7 @@ static inline unsigned long zap_pud_rang
- 	pud = pud_offset(p4d, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
--		if (pud_trans_huge(*pud) || pud_devmap(*pud)) {
-+		if (pud_trans_huge(*pud)) {
- 			if (next - addr != HPAGE_PUD_SIZE) {
- 				mmap_assert_locked(tlb->mm);
- 				split_huge_pud(vma, pud, addr);
-@@ -6136,7 +6133,7 @@ retry_pud:
- 		pud_t orig_pud = *vmf.pud;
- 
- 		barrier();
--		if (pud_trans_huge(orig_pud) || pud_devmap(orig_pud)) {
-+		if (pud_trans_huge(orig_pud)) {
- 
- 			/*
- 			 * TODO once we support anonymous PUDs: NUMA case and
-@@ -6177,7 +6174,7 @@ retry_pud:
- 				pmd_migration_entry_wait(mm, vmf.pmd);
- 			return 0;
- 		}
--		if (pmd_trans_huge(vmf.orig_pmd) || pmd_devmap(vmf.orig_pmd)) {
-+		if (pmd_trans_huge(vmf.orig_pmd)) {
- 			if (pmd_protnone(vmf.orig_pmd) && vma_is_accessible(vma))
- 				return do_huge_pmd_numa_page(&vmf);
- 
---- a/mm/migrate_device.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/migrate_device.c
-@@ -615,7 +615,7 @@ static void migrate_vma_insert_page(stru
- 	pmdp = pmd_alloc(mm, pudp, addr);
- 	if (!pmdp)
- 		goto abort;
--	if (pmd_trans_huge(*pmdp) || pmd_devmap(*pmdp))
-+	if (pmd_trans_huge(*pmdp))
- 		goto abort;
- 	if (pte_alloc(mm, pmdp))
- 		goto abort;
---- a/mm/mprotect.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/mprotect.c
-@@ -376,7 +376,7 @@ again:
- 			goto next;
- 
- 		_pmd = pmdp_get_lockless(pmd);
--		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd) || pmd_devmap(_pmd)) {
-+		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd)) {
- 			if ((next - addr != HPAGE_PMD_SIZE) ||
- 			    pgtable_split_needed(vma, cp_flags)) {
- 				__split_huge_pmd(vma, pmd, addr, false);
---- a/mm/mremap.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/mremap.c
-@@ -1238,8 +1238,6 @@ static bool __relocate_anon_folios(struc
- 
- 			/* Otherwise, we split so we can do this with PMDs/PTEs. */
- 			split_huge_pud(pmc->old, pudp, old_addr);
--		} else if (pud_devmap(pud)) {
--			return false;
- 		}
- 
- 		extent = get_old_extent(NORMAL_PMD, pmc);
-@@ -1268,7 +1266,7 @@ static bool __relocate_anon_folios(struc
- 
- 			/* Otherwise, we split so we can do this with PTEs. */
- 			split_huge_pmd(pmc->old, pmdp, old_addr);
--		} else if (is_swap_pmd(pmd) || pmd_devmap(pmd)) {
-+		} else if (is_swap_pmd(pmd)) {
- 			return false;
- 		}
- 
-@@ -1334,7 +1332,7 @@ unsigned long move_page_tables(struct pa
- 		new_pud = alloc_new_pud(mm, pmc->new_addr);
- 		if (!new_pud)
- 			break;
--		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
-+		if (pud_trans_huge(*old_pud)) {
- 			if (extent == HPAGE_PUD_SIZE) {
- 				move_pgt_entry(pmc, HPAGE_PUD, old_pud, new_pud);
- 				/* We ignore and continue on error? */
-@@ -1353,8 +1351,7 @@ unsigned long move_page_tables(struct pa
- 		if (!new_pmd)
- 			break;
- again:
--		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd) ||
--		    pmd_devmap(*old_pmd)) {
-+		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd)) {
- 			if (extent == HPAGE_PMD_SIZE &&
- 			    move_pgt_entry(pmc, HPAGE_PMD, old_pmd, new_pmd))
- 				continue;
---- a/mm/page_vma_mapped.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/page_vma_mapped.c
-@@ -246,8 +246,7 @@ restart:
- 		 */
- 		pmde = pmdp_get_lockless(pvmw->pmd);
- 
--		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde) ||
--		    (pmd_present(pmde) && pmd_devmap(pmde))) {
-+		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
- 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
- 			pmde = *pvmw->pmd;
- 			if (!pmd_present(pmde)) {
-@@ -262,7 +261,7 @@ restart:
- 					return not_found(pvmw);
- 				return true;
- 			}
--			if (likely(pmd_trans_huge(pmde) || pmd_devmap(pmde))) {
-+			if (likely(pmd_trans_huge(pmde))) {
- 				if (pvmw->flags & PVMW_MIGRATION)
- 					return not_found(pvmw);
- 				if (!check_pmd(pmd_pfn(pmde), pvmw))
---- a/mm/pagewalk.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/pagewalk.c
-@@ -143,8 +143,7 @@ again:
- 			 * We are ONLY installing, so avoid unnecessarily
- 			 * splitting a present huge page.
- 			 */
--			if (pmd_present(*pmd) &&
--			    (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
-+			if (pmd_present(*pmd) && pmd_trans_huge(*pmd))
- 				continue;
- 		}
- 
-@@ -210,8 +209,7 @@ static int walk_pud_range(p4d_t *p4d, un
- 			 * We are ONLY installing, so avoid unnecessarily
- 			 * splitting a present huge page.
- 			 */
--			if (pud_present(*pud) &&
--			    (pud_trans_huge(*pud) || pud_devmap(*pud)))
-+			if (pud_present(*pud) && pud_trans_huge(*pud))
- 				continue;
- 		}
- 
-@@ -908,7 +906,7 @@ struct folio *folio_walk_start(struct fo
- 		 * TODO: FW_MIGRATION support for PUD migration entries
- 		 * once there are relevant users.
- 		 */
--		if (!pud_present(pud) || pud_devmap(pud) || pud_special(pud)) {
-+		if (!pud_present(pud) || pud_special(pud)) {
- 			spin_unlock(ptl);
- 			goto not_found;
- 		} else if (!pud_leaf(pud)) {
---- a/mm/pgtable-generic.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/pgtable-generic.c
-@@ -139,8 +139,7 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
- {
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
--	VM_BUG_ON(pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
--			   !pmd_devmap(*pmdp));
-+	VM_BUG_ON(pmd_present(*pmdp) && !pmd_trans_huge(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
-@@ -153,7 +152,7 @@ pud_t pudp_huge_clear_flush(struct vm_ar
- 	pud_t pud;
- 
- 	VM_BUG_ON(address & ~HPAGE_PUD_MASK);
--	VM_BUG_ON(!pud_trans_huge(*pudp) && !pud_devmap(*pudp));
-+	VM_BUG_ON(!pud_trans_huge(*pudp));
- 	pud = pudp_huge_get_and_clear(vma->vm_mm, address, pudp);
- 	flush_pud_tlb_range(vma, address, address + HPAGE_PUD_SIZE);
- 	return pud;
-@@ -293,7 +292,7 @@ pte_t *___pte_offset_map(pmd_t *pmd, uns
- 		*pmdvalp = pmdval;
- 	if (unlikely(pmd_none(pmdval) || is_pmd_migration_entry(pmdval)))
- 		goto nomap;
--	if (unlikely(pmd_trans_huge(pmdval) || pmd_devmap(pmdval)))
-+	if (unlikely(pmd_trans_huge(pmdval)))
- 		goto nomap;
- 	if (unlikely(pmd_bad(pmdval))) {
- 		pmd_clear_bad(pmd);
---- a/mm/userfaultfd.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/userfaultfd.c
-@@ -795,8 +795,8 @@ retry:
- 		 * (This includes the case where the PMD used to be THP and
- 		 * changed back to none after __pte_alloc().)
- 		 */
--		if (unlikely(!pmd_present(dst_pmdval) || pmd_trans_huge(dst_pmdval) ||
--			     pmd_devmap(dst_pmdval))) {
-+		if (unlikely(!pmd_present(dst_pmdval) ||
-+				pmd_trans_huge(dst_pmdval))) {
- 			err = -EEXIST;
- 			break;
- 		}
---- a/mm/vmscan.c~mm-remove-redundant-pxd_devmap-calls
-+++ a/mm/vmscan.c
-@@ -3450,9 +3450,6 @@ static unsigned long get_pmd_pfn(pmd_t p
- 	if (!pmd_present(pmd) || is_huge_zero_pmd(pmd))
- 		return -1;
- 
--	if (WARN_ON_ONCE(pmd_devmap(pmd)))
--		return -1;
--
- 	if (!pmd_young(pmd) && !mm_has_notifiers(vma->vm_mm))
- 		return -1;
- 
+--- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-pmd_devmap-check
++++ a/mm/khugepaged.c
+@@ -945,8 +945,6 @@ static inline int check_pmd_state(pmd_t
+ 		return SCAN_PMD_NULL;
+ 	if (pmd_trans_huge(pmde))
+ 		return SCAN_PMD_MAPPED;
+-	if (pmd_devmap(pmde))
+-		return SCAN_PMD_NULL;
+ 	if (pmd_bad(pmde))
+ 		return SCAN_PMD_NULL;
+ 	return SCAN_SUCCEED;
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
