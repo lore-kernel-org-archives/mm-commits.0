@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04E391C863B
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA4751C863B
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750391357; cv=none; b=LuwXeytZEpIKRI1NZQnPjwd2BXAYOtfaNUZhMBwWpSDgjpJDF0Wt476IQFn4pGvn4ecjkEUwa+xmNTPmx+/9WHVaJNfdFK15NNjVdZzudxsFHkBoDt170madBgvF9pr7FA2K85q+0oiMzGVKbRXjuBxwPcCdnDmG/kANlxqrjBY=
+	t=1750391357; cv=none; b=AEUbvUBFn+j8yrQNB9t1yjbIc13j/J5SDjQvsoiu9lRZLxgfJzgLJ0u69B6q2ny4hYAYFdPnZD/uXKtn7M/Cnpy6t7qDj7PwSKpubZBI8ddUemleChE7BaxhBsK3oxRkpEMF2VH62X4oA8cH1wS7pOTGIdQfQe6x3MJlPigZLEo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1750391357; c=relaxed/simple;
-	bh=jD0Spk8ATAiG4wxGOCdC09X1ciSqtTFZ5aoUFK9NlZE=;
-	h=Date:To:From:Subject:Message-Id; b=oCOqO/GgpWMCeQRjjPjtJpfGlWusRIExY0lgjonkROKHSfTG+N1KsFgD/bToPot/uKb2ZwpWGDdqNx+3mwc5QG/rtaKCppuId4fYZcZ6tGLrrvHqBLGa+zXi+ceE754/+F+pfnMCfhRMSWchv13GkZmMtMawSHuGNrI4Ria83yw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZKnbgB1l; arc=none smtp.client-ip=10.30.226.201
+	bh=0X6iV336+Pr1bRyE+bhmeYNDuG1yuM9mGsZtpcBOi38=;
+	h=Date:To:From:Subject:Message-Id; b=tHcxjdQRUTo3bnhoDUPB5I7+5r5oAs892ae5VuOWdwesdLNGDg1m16m9eQOJhuEPQbmobeAbzRlh7neKYjp/zhE3SDJCxZOooYvjJ6DUNNxruNHA4VGd/SSpWqlKJnag6lvxhW+Ao5xqStTuaAxY0xqbJHm0gHH9mbKL43LRP0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EL+jPNLx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZKnbgB1l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B552C4CEE3;
-	Fri, 20 Jun 2025 03:49:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EL+jPNLx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B6EAC4CEE3;
+	Fri, 20 Jun 2025 03:49:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750391356;
-	bh=jD0Spk8ATAiG4wxGOCdC09X1ciSqtTFZ5aoUFK9NlZE=;
+	s=korg; t=1750391357;
+	bh=0X6iV336+Pr1bRyE+bhmeYNDuG1yuM9mGsZtpcBOi38=;
 	h=Date:To:From:Subject:From;
-	b=ZKnbgB1lJ0yGx36qut5DbeqmGwXHEOsK77mnDPrzPTc7AMdCOnOMBt1aAL61C3VgA
-	 6tXPl8tDWir9T55HGPBwixAjTcEuRTOZODytT4KujoOUwXjbqcamrvmirYS+4W+aHj
-	 6Etp9nE3yMYnaQIRbtpg3oXATphIp7op1ARB89fk=
-Date: Thu, 19 Jun 2025 20:49:15 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,pulehui@huawei.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,broonie@kernel.org,aishwarya.tcv@arm.com,pfalcato@suse.de,akpm@linux-foundation.org
+	b=EL+jPNLx5ITg+0+TRPkvpu5nB9MPH7ZhCsZNphTALM/GQ9q6HuW65iSw8V7t4zz5J
+	 rxSoKidRRSZx2Di9cugSVgYtdVXuLxhQxAyfggHHjKb2F2Pj/fOwBReUkpL8nGIvLg
+	 kl+nVEs0N6Eh/uPXaJjWMbZadHuOqjGV/+vEP6bI=
+Date: Thu, 19 Jun 2025 20:49:17 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-skip-uprobe-vma-merge-test-if-uprobes-are-not-enabled.patch removed from -mm tree
-Message-Id: <20250620034916.7B552C4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch removed from -mm tree
+Message-Id: <20250620034917.9B6EAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: skip uprobe vma merge test if uprobes are not enabled
+     Subject: MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-uprobe-vma-merge-test-if-uprobes-are-not-enabled.patch
+     maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pedro Falcato <pfalcato@suse.de>
-Subject: selftests/mm: skip uprobe vma merge test if uprobes are not enabled
-Date: Tue, 10 Jun 2025 13:22:09 +0100
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
+Date: Mon, 16 Jun 2025 21:16:43 +0100
 
-If uprobes are not enabled, the test currently fails with:
+The working set logic belongs very much to the reclaim section and is
+otherwise not assigned to any other MAINTAINERS section so add it here.
 
-7151 12:46:54.627936  # # #  RUN           merge.handle_uprobe_upon_merged_vma ...
-7152 12:46:54.639014  # # f /sys/bus/event_source/devices/uprobe/type
-7153 12:46:54.639306  # # fopen: No such file or directory
-7154 12:46:54.650451  # # # merge.c:473:handle_uprobe_upon_merged_vma:Expected
-read_sysfs("/sys/bus/event_source/devices/uprobe/type", &type) (1) == 0 (0)
-7155 12:46:54.650730  # # # handle_uprobe_upon_merged_vma: Test terminated by assertion
-7156 12:46:54.661750  # # #          FAIL  merge.handle_uprobe_upon_merged_vma
-7157 12:46:54.662030  # # not ok 8 merge.handle_uprobe_upon_merged_vma
-
-Skipping is a more sane and friendly behavior here.
-
-Link: https://lkml.kernel.org/r/20250610122209.3177587-1-pfalcato@suse.de
-Fixes: efe99fabeb11 ("selftests/mm: add test about uprobe pte be orphan during vma merge")
-Signed-off-by: Pedro Falcato <pfalcato@suse.de>
-Reported-by: Aishwarya <aishwarya.tcv@arm.com>
-Closes: https://lore.kernel.org/linux-mm/20250610103729.72440-1-aishwarya.tcv@arm.com/
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Tested-by : Donet Tom <donettom@linux.ibm.com>
-Reviewed-by : Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Pu Lehui <pulehui@huawei.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250616201643.561626-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/merge.c~selftests-mm-skip-uprobe-vma-merge-test-if-uprobes-are-not-enabled
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -470,7 +470,9 @@ TEST_F(merge, handle_uprobe_upon_merged_
- 	ASSERT_GE(fd, 0);
+--- a/MAINTAINERS~maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section
++++ a/MAINTAINERS
+@@ -15871,6 +15871,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/pt_reclaim.c
+ F:	mm/vmscan.c
++F:	mm/workingset.c
  
- 	ASSERT_EQ(ftruncate(fd, page_size), 0);
--	ASSERT_EQ(read_sysfs("/sys/bus/event_source/devices/uprobe/type", &type), 0);
-+	if (read_sysfs("/sys/bus/event_source/devices/uprobe/type", &type) != 0) {
-+		SKIP(goto out, "Failed to read uprobe sysfs file, skipping");
-+	}
- 
- 	memset(&attr, 0, attr_sz);
- 	attr.size = attr_sz;
-@@ -491,6 +493,7 @@ TEST_F(merge, handle_uprobe_upon_merged_
- 	ASSERT_NE(mremap(ptr2, page_size, page_size,
- 			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr1), MAP_FAILED);
- 
-+out:
- 	close(fd);
- 	remove(probe_file);
- }
+ MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
+ M:	Andrew Morton <akpm@linux-foundation.org>
 _
 
-Patches currently in -mm which might be from pfalcato@suse.de are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+maintainers-add-missing-files-to-mm-page-alloc-section.patch
+docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
+mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
+mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
+mm-use-per_vma-lock-for-madv_dontneed-fix.patch
+mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
+mm-mremap-add-mremap_must_relocate_anon.patch
+mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
+tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
+tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
+tools-testing-selftests-add-mremap-cases-that-merge-normally.patch
+tools-testing-selftests-add-mremap_relocate_anon-merge-test-cases.patch
+tools-testing-selftests-expand-mremap-tests-for-mremap_relocate_anon.patch
+tools-testing-selftests-have-cow-self-test-use-mremap_relocate_anon.patch
+tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
+tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
+secretmem-remove-uses-of-struct-page-fix.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge-fix.patch
+mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument.patch
+mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch
+mm-update-core-kernel-code-to-use-vm_flags_t-consistently.patch
+mm-update-architecture-and-driver-code-to-use-vm_flags_t.patch
+mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
+mm-madvise-thread-mm_struct-through-madvise_behavior.patch
+mm-madvise-thread-vma-range-state-through-madvise_behavior.patch
+mm-madvise-thread-all-madvise-state-through-madv_behavior.patch
+mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
 
