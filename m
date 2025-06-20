@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DD7030E826
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 00:48:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46C134C79
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 00:51:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750380480; cv=none; b=b4Kw2zJsr4iTe7x2pX/0NJ3JBPz405SHESAE1T+5lhPphtCKe5PycXcr/AnIh8u7gPykf2Ahtn2jSxZNt9PEll4qUT+F7ZB29oJVAz5UNHynhOC2Oo2x9+yo9701o/9i4MME9wxTeF87FzJidrXQSVhfYR2lnQqADCGWcRg1Qkc=
+	t=1750380676; cv=none; b=CvzLW/3JSWxIiTf2Z2o69DzbmOsnjkTb6CLMpfcyF8rYIt5DJVS6lnZXXutZCQ6VSygkKar8ez3QrNYp8Z6zz/Eg4yggjYrBtQvUp6WOlE23Hv3YkdCfXUAEFBBMxNC7YcVfZqgI06OQgTngqHz64RLDWs0LHWrNXiTFuEwxS1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750380480; c=relaxed/simple;
-	bh=MV+7TnloLem9sITZ5W2r1heSm7WBS77Vp2rGeZIweYs=;
-	h=Date:To:From:Subject:Message-Id; b=CqUS2bW8OJGMIR3EBA27qPHmOop9/H8vglAUMZvtb5n4L1fhDEYpSA5GQoGawIZtUy4TtzoEX3qyqjIZqbgcIoPovXKn1eG6oU8HQZ/T87uaaTay2Q1MDBiUhLKszgv8jhr0nDSGJ6eS/sRCiJwVW1AdEGD59IBzhScnRld220s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yReNsQu9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750380676; c=relaxed/simple;
+	bh=OANEa7Ea21CEuUxIgKcBIwzqivB0gzepOCdgCSnsoWE=;
+	h=Date:To:From:Subject:Message-Id; b=Q/AY9lF59Lqt8qwluq0f7IFlNcgIB5VZBcwAILeFnJ2c3ANXYtayByPlyJcGn2ak9pz1XmtHmlaViF5D8443YaRolIyAH0YnFL/0Hx70d/qaFMPD2/w8sOYXUa5CWmw4XCYfg8UxD9vOZ6Gfunx8iTrfkKDaaO4zL0LFnfPWrI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rAJCiuyn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yReNsQu9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 439F5C4CEEA;
-	Fri, 20 Jun 2025 00:48:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rAJCiuyn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A73A6C4CEEA;
+	Fri, 20 Jun 2025 00:51:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750380480;
-	bh=MV+7TnloLem9sITZ5W2r1heSm7WBS77Vp2rGeZIweYs=;
+	s=korg; t=1750380675;
+	bh=OANEa7Ea21CEuUxIgKcBIwzqivB0gzepOCdgCSnsoWE=;
 	h=Date:To:From:Subject:From;
-	b=yReNsQu9+Fo1RHg9MQfzoQgkmVzAE5TYzVaCIbxgksDD4uZMEbxorq/Fn2AjCQtiw
-	 uB0n9sy5kaTsckvEF7E1Rtx3GlIFmNa7h4ik9aW4FQNi/yvOnLVn2RRRKIK4MKc7pK
-	 2eHNhKPCZfNUp3CYu7eIcBSuQkVtUWS8x435e1Rw=
-Date: Thu, 19 Jun 2025 17:47:59 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=rAJCiuynn5z3WOsUJzDYO9eNmHUfaGQZTrc4JiuclCOjs4Y0e067rbet/PoeYOcxa
+	 0TA9FkyBC4DA+bCc/ngX71+2zBJiDWclGYDmxj5V3X5w5/i7eqqii129Iv/bDRvrD9
+	 b4vC1RKYnsCdQDbNFFhi+Y6e357sZvmgE+/MpN2U=
+Date: Thu, 19 Jun 2025 17:51:15 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,jannh@google.com,ioworker0@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftets-damon-add-a-test-for-memcg_path-leak.patch added to mm-new branch
-Message-Id: <20250620004800.439F5C4CEEA@smtp.kernel.org>
+Subject: + mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch added to mm-new branch
+Message-Id: <20250620005115.A73A6C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftets/damon: add a test for memcg_path leak
+     Subject: mm/madvise: remove the visitor pattern and thread anon_vma state
 has been added to the -mm mm-new branch.  Its filename is
-     selftets-damon-add-a-test-for-memcg_path-leak.patch
+     mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftets-damon-add-a-test-for-memcg_path-leak.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,93 +64,399 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftets/damon: add a test for memcg_path leak
-Date: Thu, 19 Jun 2025 11:36:08 -0700
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/madvise: remove the visitor pattern and thread anon_vma state
+Date: Thu, 19 Jun 2025 21:26:26 +0100
 
-There was a memory leak bug in DAMOS sysfs memcg_path file.  Add a
-selftest to ensure the bug never comes back.
+Patch series "madvise cleanup".
 
-Link: https://lkml.kernel.org/r/20250619183608.6647-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+This is a series of patches that helps address a number of historic
+problems in the madvise() implementation:
+
+* Eliminate the visitor pattern and having the code which is implemented
+  for both the anon_vma_name implementation and ordinary madvise()
+  operations use the same madvise_vma_behavior() implementation.
+
+* Thread state through the madvise_behavior state object - this object,
+  very usefully introduced by SJ, is already used to transmit state
+  through operations.  This series extends this by having all madvise()
+  operations use this, including anon_vma_name.
+
+* Thread range, VMA state through madvise_behavior - This helps avoid a
+  lot of the confusing code around range and VMA state and again keeps
+  things consistent and with a single 'source of truth'.
+
+* Addressing the very strange behaviour around the passed around struct
+  vm_area_struct **prev pointer - all read-only users do absolutely
+  nothing with the prev pointer.  The only function that uses it is
+  madvise_update_vma(), and in all cases prev is always reset to VMA.
+
+  Fix this by no longer having aything but madvise_update_vma()
+  reference prev, and having madvise_walk_vmas() update prev in each
+  instance.  Additionally make it clear that the meaningful change in vma
+  state is when madvise_update_vma() potentially merges a VMA, so
+  explicitly retrieve the VMA in this case.
+
+* Update and clarify the madvise_walk_vmas() function - this is a source
+  of a great deal of confusion, so simplify, stop using prev = NULL to
+  signify that the mmap lock has been dropped (!) and make that explicit,
+  and add some comments to explain what's going on.
+
+
+This patch (of 5):
+
+Now we have the madvise_behavior helper struct we no longer need to mess
+around with void* pointers in order to propagate anon_vma_name, and this
+means we can get rid of the confusing and inconsistent visitor pattern
+implementation in madvise_vma_anon_name().
+
+This means we now have a single state object that threads through most of
+madvise()'s logic and a single code path which executes the majority of
+madvise() behaviour (we maintain separate logic for failure injection and
+memory population for the time being).
+
+Note that users cannot inadvertently cause this behaviour to occur, as
+madvise_behavior_valid() would reject it.
+
+Doing this results in a can_modify_vma_madv() check for anonymous VMA name
+changes, however this will cause no issues as this operation is not
+prohibited.
+
+We can also then reuse more code and drop the redundant
+madvise_vma_anon_name() function altogether.
+
+Additionally separate out behaviours that update VMAs from those that do
+not.
+
+Link: https://lkml.kernel.org/r/cover.1750363557.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/4239e727b98763856b86cbd9eeaa0ba792eb2394.1750363557.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile                 |    1 
- tools/testing/selftests/damon/sysfs_memcg_path_leak.sh |   43 ++++++++++
- 2 files changed, 44 insertions(+)
+ mm/madvise.c |  167 ++++++++++++++++++++++++++-----------------------
+ 1 file changed, 90 insertions(+), 77 deletions(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftets-damon-add-a-test-for-memcg_path-leak
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -15,6 +15,7 @@ TEST_PROGS += reclaim.sh lru_sort.sh
- # regression tests (reproducers of previously found bugs)
- TEST_PROGS += sysfs_update_removed_scheme_dir.sh
- TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
-+TEST_PROGS += sysfs_memcg_path_leak.sh
+--- a/mm/madvise.c~mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state
++++ a/mm/madvise.c
+@@ -37,6 +37,9 @@
+ #include "internal.h"
+ #include "swap.h"
  
- EXTRA_CLEAN = __pycache__
++#define __MADV_SET_ANON_VMA_NAME (-1)
++#define __MADV_CLEAR_ANON_VMA_NAME (-2)
++
+ /*
+  * Maximum number of attempts we make to install guard pages before we give up
+  * and return -ERESTARTNOINTR to have userspace try again.
+@@ -59,9 +62,13 @@ struct madvise_behavior {
+ 	int behavior;
+ 	struct mmu_gather *tlb;
+ 	enum madvise_lock_mode lock_mode;
++	struct anon_vma_name *anon_name;
+ };
  
-diff --git a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-@@ -0,0 +1,43 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
+ #ifdef CONFIG_ANON_VMA_NAME
++static int madvise_walk_vmas(struct mm_struct *mm, unsigned long start,
++		unsigned long end, struct madvise_behavior *madv_behavior);
 +
-+if [ $EUID -ne 0 ]
-+then
-+	echo "Run as root"
-+	exit $ksft_skip
-+fi
+ struct anon_vma_name *anon_vma_name_alloc(const char *name)
+ {
+ 	struct anon_vma_name *anon_name;
+@@ -112,6 +119,48 @@ static int replace_anon_vma_name(struct
+ 
+ 	return 0;
+ }
 +
-+damon_sysfs="/sys/kernel/mm/damon/admin"
-+if [ ! -d "$damon_sysfs" ]
-+then
-+	echo "damon sysfs not found"
-+	exit $ksft_skip
-+fi
++int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
++			  unsigned long len_in, struct anon_vma_name *anon_name)
++{
++	unsigned long end;
++	unsigned long len;
++	struct madvise_behavior madv_behavior = {
++		.lock_mode = MADVISE_MMAP_WRITE_LOCK,
++		.anon_name = anon_name,
++	};
 +
-+# ensure filter directory
-+echo 1 > "$damon_sysfs/kdamonds/nr_kdamonds"
-+echo 1 > "$damon_sysfs/kdamonds/0/contexts/nr_contexts"
-+echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/nr_schemes"
-+echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/0/filters/nr_filters"
++	if (start & ~PAGE_MASK)
++		return -EINVAL;
++	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
 +
-+filter_dir="$damon_sysfs/kdamonds/0/contexts/0/schemes/0/filters/0"
++	/* Check to see whether len was rounded up from small -ve to zero */
++	if (len_in && !len)
++		return -EINVAL;
 +
-+before_kb=$(grep Slab /proc/meminfo | awk '{print $2}')
++	end = start + len;
++	if (end < start)
++		return -EINVAL;
 +
-+# try to leak 3000 KiB
-+for i in {1..102400};
-+do
-+	echo "012345678901234567890123456789" > "$filter_dir/memcg_path"
-+done
++	if (end == start)
++		return 0;
 +
-+after_kb=$(grep Slab /proc/meminfo | awk '{print $2}')
-+# expect up to 1500 KiB free from other tasks memory
-+expected_after_kb_max=$((before_kb + 1500))
++	madv_behavior.behavior =
++		anon_name ? __MADV_SET_ANON_VMA_NAME : __MADV_CLEAR_ANON_VMA_NAME;
 +
-+if [ "$after_kb" -gt "$expected_after_kb_max" ]
-+then
-+	echo "maybe memcg_path are leaking: $before_kb -> $after_kb"
-+	exit 1
-+else
-+	exit 0
-+fi
++	return madvise_walk_vmas(mm, start, end, &madv_behavior);
++}
++
++static bool is_anon_vma_name(int behavior)
++{
++	switch (behavior) {
++	case __MADV_SET_ANON_VMA_NAME:
++	case __MADV_CLEAR_ANON_VMA_NAME:
++		return true;
++	default:
++		return false;
++	}
++}
+ #else /* CONFIG_ANON_VMA_NAME */
+ static int replace_anon_vma_name(struct vm_area_struct *vma,
+ 				 struct anon_vma_name *anon_name)
+@@ -121,6 +170,11 @@ static int replace_anon_vma_name(struct
+ 
+ 	return 0;
+ }
++
++static bool is_anon_vma_name(int behavior)
++{
++	return false;
++}
+ #endif /* CONFIG_ANON_VMA_NAME */
+ /*
+  * Update the vm_flags on region of a vma, splitting it or merging it as
+@@ -1252,13 +1306,12 @@ static long madvise_guard_remove(struct
+ static int madvise_vma_behavior(struct vm_area_struct *vma,
+ 				struct vm_area_struct **prev,
+ 				unsigned long start, unsigned long end,
+-				void *behavior_arg)
++				struct madvise_behavior *madv_behavior)
+ {
+-	struct madvise_behavior *arg = behavior_arg;
+-	int behavior = arg->behavior;
+-	int error;
+-	struct anon_vma_name *anon_name;
++	int behavior = madv_behavior->behavior;
++	struct anon_vma_name *anon_name = madv_behavior->anon_name;
+ 	vm_flags_t new_flags = vma->vm_flags;
++	int error;
+ 
+ 	if (unlikely(!can_modify_vma_madv(vma, behavior)))
+ 		return -EPERM;
+@@ -1275,7 +1328,17 @@ static int madvise_vma_behavior(struct v
+ 	case MADV_FREE:
+ 	case MADV_DONTNEED:
+ 	case MADV_DONTNEED_LOCKED:
+-		return madvise_dontneed_free(vma, prev, start, end, arg);
++		return madvise_dontneed_free(vma, prev, start, end,
++					     madv_behavior);
++	case MADV_COLLAPSE:
++		return madvise_collapse(vma, prev, start, end);
++	case MADV_GUARD_INSTALL:
++		return madvise_guard_install(vma, prev, start, end);
++	case MADV_GUARD_REMOVE:
++		return madvise_guard_remove(vma, prev, start, end);
++
++	/* The below behaviours update VMAs via madvise_update_vma(). */
++
+ 	case MADV_NORMAL:
+ 		new_flags = new_flags & ~VM_RAND_READ & ~VM_SEQ_READ;
+ 		break;
+@@ -1325,21 +1388,25 @@ static int madvise_vma_behavior(struct v
+ 		if (error)
+ 			goto out;
+ 		break;
+-	case MADV_COLLAPSE:
+-		return madvise_collapse(vma, prev, start, end);
+-	case MADV_GUARD_INSTALL:
+-		return madvise_guard_install(vma, prev, start, end);
+-	case MADV_GUARD_REMOVE:
+-		return madvise_guard_remove(vma, prev, start, end);
++	case __MADV_SET_ANON_VMA_NAME:
++	case __MADV_CLEAR_ANON_VMA_NAME:
++		/* Only anonymous mappings can be named */
++		if (vma->vm_file && !vma_is_anon_shmem(vma))
++			return -EBADF;
++		break;
+ 	}
+ 
+ 	/* We cannot provide prev in this lock mode. */
+-	VM_WARN_ON_ONCE(arg->lock_mode == MADVISE_VMA_READ_LOCK);
+-	anon_name = anon_vma_name(vma);
+-	anon_vma_name_get(anon_name);
++	VM_WARN_ON_ONCE(madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK);
++
++	if (!is_anon_vma_name(behavior)) {
++		anon_name = anon_vma_name(vma);
++		anon_vma_name_get(anon_name);
++	}
+ 	error = madvise_update_vma(vma, prev, start, end, new_flags,
+ 				   anon_name);
+-	anon_vma_name_put(anon_name);
++	if (!is_anon_vma_name(behavior))
++		anon_vma_name_put(anon_name);
+ 
+ out:
+ 	/*
+@@ -1532,11 +1599,7 @@ take_mmap_read_lock:
+  */
+ static
+ int madvise_walk_vmas(struct mm_struct *mm, unsigned long start,
+-		      unsigned long end, struct madvise_behavior *madv_behavior,
+-		      void *arg,
+-		      int (*visit)(struct vm_area_struct *vma,
+-				   struct vm_area_struct **prev, unsigned long start,
+-				   unsigned long end, void *arg))
++		      unsigned long end, struct madvise_behavior *madv_behavior)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct vm_area_struct *prev;
+@@ -1548,11 +1611,12 @@ int madvise_walk_vmas(struct mm_struct *
+ 	 * If VMA read lock is supported, apply madvise to a single VMA
+ 	 * tentatively, avoiding walking VMAs.
+ 	 */
+-	if (madv_behavior && madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK) {
++	if (madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK) {
+ 		vma = try_vma_read_lock(mm, madv_behavior, start, end);
+ 		if (vma) {
+ 			prev = vma;
+-			error = visit(vma, &prev, start, end, arg);
++			error = madvise_vma_behavior(vma, &prev, start, end,
++						     madv_behavior);
+ 			vma_end_read(vma);
+ 			return error;
+ 		}
+@@ -1586,7 +1650,8 @@ int madvise_walk_vmas(struct mm_struct *
+ 			tmp = end;
+ 
+ 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+-		error = visit(vma, &prev, start, tmp, arg);
++		error = madvise_vma_behavior(vma, &prev, start, tmp,
++					     madv_behavior);
+ 		if (error)
+ 			return error;
+ 		start = tmp;
+@@ -1603,57 +1668,6 @@ int madvise_walk_vmas(struct mm_struct *
+ 	return unmapped_error;
+ }
+ 
+-#ifdef CONFIG_ANON_VMA_NAME
+-static int madvise_vma_anon_name(struct vm_area_struct *vma,
+-				 struct vm_area_struct **prev,
+-				 unsigned long start, unsigned long end,
+-				 void *anon_name)
+-{
+-	int error;
+-
+-	/* Only anonymous mappings can be named */
+-	if (vma->vm_file && !vma_is_anon_shmem(vma))
+-		return -EBADF;
+-
+-	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
+-				   anon_name);
+-
+-	/*
+-	 * madvise() returns EAGAIN if kernel resources, such as
+-	 * slab, are temporarily unavailable.
+-	 */
+-	if (error == -ENOMEM)
+-		error = -EAGAIN;
+-	return error;
+-}
+-
+-int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+-			  unsigned long len_in, struct anon_vma_name *anon_name)
+-{
+-	unsigned long end;
+-	unsigned long len;
+-
+-	if (start & ~PAGE_MASK)
+-		return -EINVAL;
+-	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
+-
+-	/* Check to see whether len was rounded up from small -ve to zero */
+-	if (len_in && !len)
+-		return -EINVAL;
+-
+-	end = start + len;
+-	if (end < start)
+-		return -EINVAL;
+-
+-	if (end == start)
+-		return 0;
+-
+-	return madvise_walk_vmas(mm, start, end, NULL, anon_name,
+-				 madvise_vma_anon_name);
+-}
+-#endif /* CONFIG_ANON_VMA_NAME */
+-
+-
+ /*
+  * Any behaviour which results in changes to the vma->vm_flags needs to
+  * take mmap_lock for writing. Others, which simply traverse vmas, need
+@@ -1845,8 +1859,7 @@ static int madvise_do_behavior(struct mm
+ 	if (is_madvise_populate(behavior))
+ 		error = madvise_populate(mm, start, end, behavior);
+ 	else
+-		error = madvise_walk_vmas(mm, start, end, madv_behavior,
+-				madv_behavior, madvise_vma_behavior);
++		error = madvise_walk_vmas(mm, start, end, madv_behavior);
+ 	blk_finish_plug(&plug);
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write.patch
-mm-damon-introduce-damon_stat-module.patch
-mm-damon-introduce-damon_stat-module-fix.patch
-mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
-mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
-docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
-mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
-revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
-revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
-selftets-damon-add-a-test-for-memcg_path-leak.patch
+maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
+maintainers-add-missing-test-files-to-mm-gup-section.patch
+maintainers-add-further-init-files-to-mm-init-block.patch
+maintainers-add-hugetlb_cgroupc-to-hugetlb-section.patch
+maintainers-add-stray-rmap-file-to-mm-rmap-section.patch
+maintainers-add-memfd-shmem-quota-files-to-shmem-section.patch
+maintainers-add-additional-mmap-related-files-to-mmap-section.patch
+maintainers-add-missing-files-to-mm-page-alloc-section.patch
+docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
+mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
+mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
+mm-use-per_vma-lock-for-madv_dontneed-fix.patch
+mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon.patch
+mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
+mm-mremap-add-mremap_must_relocate_anon.patch
+mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
+tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
+tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
+tools-testing-selftests-add-mremap-cases-that-merge-normally.patch
+tools-testing-selftests-add-mremap_relocate_anon-merge-test-cases.patch
+tools-testing-selftests-expand-mremap-tests-for-mremap_relocate_anon.patch
+tools-testing-selftests-have-cow-self-test-use-mremap_relocate_anon.patch
+tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
+tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
+secretmem-remove-uses-of-struct-page-fix.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge-fix.patch
+mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument.patch
+mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch
+mm-update-core-kernel-code-to-use-vm_flags_t-consistently.patch
+mm-update-architecture-and-driver-code-to-use-vm_flags_t.patch
+mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
+mm-madvise-thread-mm_struct-through-madvise_behavior.patch
+mm-madvise-thread-vma-range-state-through-madvise_behavior.patch
+mm-madvise-thread-all-madvise-state-through-madv_behavior.patch
+mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
 
