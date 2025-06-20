@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DA6430E834
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 00:40:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F31E7485
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 00:44:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750380043; cv=none; b=Dy0tST2Yob7JAbmdQaXTv0h/EfXH2NgBV+RewnXTQ/HTdQVDwiuOxq84PVduKa1bHiB6lt1FmdarhO2+NPH3weI5Skb4JudNRIWURtSnq1zezMkz6dcnHMDG0HGA5S2OqDcr5MJNbbFLa1OEBq7o21iD+cuJO4HFdN6LzxnI7YY=
+	t=1750380274; cv=none; b=M3Fqtbon4lSvdfYIy1syQio192blvVE3kfQxhOJy3e6BEL+QHdOdK33jF5Vc0l9h8cuTAhpq+X5VYpGHzZ5ubIEbQHyhGyEY/A6WCqiPOPfpchU1UJcOlvb8XnxoAcZIAdj95bWyIQVCCy4vZljOnKeB13oenzFXMHBFptnRQEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750380043; c=relaxed/simple;
-	bh=wEIUERreK5D4zjKDNRiKGeC28FmZJ5QrYstUyUe4Ye8=;
-	h=Date:To:From:Subject:Message-Id; b=t6+C/P/lHKZT5Q5K+SKH08LTW88fGok7nOjznZil/ucvuY8xJZHgOvIPMf8S/QhcBwnYMXs/86X/Gu2tLCCZLac1liYgdx/BYiEtS34eJG7RpoPA4FJJDODbsjcQEZ5PI1BZ/YohGrdjJ/jzDXVr4WNxwMsrVlRm0hu5bFAgxhc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yWg7iHe0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750380274; c=relaxed/simple;
+	bh=XoPVsYlPjxZ89Xv2IFI29dYwdxHFn5u08VDR3BznzcI=;
+	h=Date:To:From:Subject:Message-Id; b=sCs8glDDtbj6/ta4ZgjEEgH4Boayr504zrjHlMxBCmEvyVVX9Bf3wcRCiXevWvARJWjd1TV1kKTtmYbDTOJcsXh2C3TnDXx0vX2Nay/kHF8mwE6mMpyjDLzRo0p2Rce9b7l1GwE+uaqKuqal+QiSKHofTjbAOHYDcdZAjrofDNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VuQwuDup; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yWg7iHe0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0AB3C4CEEA;
-	Fri, 20 Jun 2025 00:40:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VuQwuDup"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0438DC4CEEA;
+	Fri, 20 Jun 2025 00:44:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750380042;
-	bh=wEIUERreK5D4zjKDNRiKGeC28FmZJ5QrYstUyUe4Ye8=;
+	s=korg; t=1750380274;
+	bh=XoPVsYlPjxZ89Xv2IFI29dYwdxHFn5u08VDR3BznzcI=;
 	h=Date:To:From:Subject:From;
-	b=yWg7iHe098gIggDV3c9ZuUvMB9R45L1Wkke9OZ9U5bPf7h08VPCd+ZTtvM50USbuF
-	 HE2XLfu/hnQ85WiU8vSKvvIYWoKNFbASaM3Nyhz7KJpeGWAbgO0yqV2uAT+X577TDL
-	 EUsn/tBJoTr+do8cBsh5whiL3+CRuXZwxDSWOl6g=
-Date: Thu, 19 Jun 2025 17:40:42 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=VuQwuDupMP999GZR0qPC94BC3I8akA83Hr2PHIYkaO47PECmGh/F5FoncXwZDMmMH
+	 BDiTLC7fzE7jfN6QqoDNa3vjNCxUf1Ce0R+Uv9GtFK5FOPlNtUO13jJUD7DA2HjyX1
+	 m2NHlS593v4Vsbq6GjZNQsDnXCsjzlAHPSiXRG4s=
+Date: Thu, 19 Jun 2025 17:44:33 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,catalin.marinas@arm.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch added to mm-new branch
-Message-Id: <20250620004042.D0AB3C4CEEA@smtp.kernel.org>
+Subject: + mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250620004434.0438DC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem, swap: avoid false positive swap cache lookup
-has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
+     Subject: mm/alloc_tag: fix the kmemleak false positive issue in the allocation of the percpu variable tag->counters
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,206 +58,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem, swap: avoid false positive swap cache lookup
-Date: Fri, 20 Jun 2025 01:55:38 +0800
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/alloc_tag: fix the kmemleak false positive issue in the allocation of the percpu variable tag->counters
+Date: Fri, 20 Jun 2025 02:31:54 +0800
 
-If the shmem read request's index points to the middle of a large swap
-entry, shmem swap in does the swap cache lookup use the large swap entry's
-starting value (the first sub swap entry of this large entry).  This will
-lead to false positive lookup result if only the first few swap entries
-are cached, but the requested swap entry pointed by index is uncached.
+When loading a module, as long as the module has memory allocation
+operations, kmemleak produces a false positive report that resembles the
+following:
 
-Currently shmem will do a large entry split then retry the swapin from
-beginning, which is a waste of CPU and fragile.  Handle this correctly.
+unreferenced object (percpu) 0x7dfd232a1650 (size 16):
+  comm "modprobe", pid 1301, jiffies 4294940249
+  hex dump (first 16 bytes on cpu 2):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace (crc 0):
+    kmemleak_alloc_percpu+0xb4/0xd0
+    pcpu_alloc_noprof+0x700/0x1098
+    load_module+0xd4/0x348
+    codetag_module_init+0x20c/0x450
+    codetag_load_module+0x70/0xb8
+    load_module+0xef8/0x1608
+    init_module_from_file+0xec/0x158
+    idempotent_init_module+0x354/0x608
+    __arm64_sys_finit_module+0xbc/0x150
+    invoke_syscall+0xd4/0x258
+    el0_svc_common.constprop.0+0xb4/0x240
+    do_el0_svc+0x48/0x68
+    el0_svc+0x40/0xf8
+    el0t_64_sync_handler+0x10c/0x138
+    el0t_64_sync+0x1ac/0x1b0
 
-Also add some sanity checks to help understand the code and ensure things
-won't go wrong.
+This is because the module can only indirectly reference
+alloc_tag_counters through the alloc_tag section, which misleads kmemleak.
 
-Link: https://lkml.kernel.org/r/20250619175538.15799-5-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+However, we don't have a kmemleak ignore interface for percpu allocations
+yet.  So let's create one and invoke it for tag->counters.
+
+Link: https://lkml.kernel.org/r/20250619183154.2122608-1-hao.ge@linux.dev
+Fixes: 12ca42c23775 ("alloc_tag: allocate percpu counters for module tags dynamically")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   61 ++++++++++++++++++++++++---------------------------
- 1 file changed, 29 insertions(+), 32 deletions(-)
+ include/linux/kmemleak.h |    1 +
+ lib/alloc_tag.c          |    8 +++++++-
+ mm/kmemleak.c            |   14 ++++++++++++++
+ 3 files changed, 22 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-swap-avoid-false-positive-swap-cache-lookup
-+++ a/mm/shmem.c
-@@ -1977,12 +1977,12 @@ unlock:
+--- a/include/linux/kmemleak.h~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters
++++ a/include/linux/kmemleak.h
+@@ -28,6 +28,7 @@ extern void kmemleak_update_trace(const
+ extern void kmemleak_not_leak(const void *ptr) __ref;
+ extern void kmemleak_transient_leak(const void *ptr) __ref;
+ extern void kmemleak_ignore(const void *ptr) __ref;
++extern void kmemleak_igonore_percpu(const void __percpu *ptr) __ref;
+ extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
+ extern void kmemleak_no_scan(const void *ptr) __ref;
+ extern void kmemleak_alloc_phys(phys_addr_t phys, size_t size,
+--- a/lib/alloc_tag.c~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters
++++ a/lib/alloc_tag.c
+@@ -10,6 +10,7 @@
+ #include <linux/seq_buf.h>
+ #include <linux/seq_file.h>
+ #include <linux/vmalloc.h>
++#include <linux/kmemleak.h>
  
- static struct folio *shmem_swapin_direct(struct inode *inode,
- 		struct vm_area_struct *vma, pgoff_t index,
--		swp_entry_t entry, int *order, gfp_t gfp)
-+		swp_entry_t index_entry, swp_entry_t swap,
-+		int *order, gfp_t gfp)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	int nr_pages = 1 << *order;
- 	struct folio *new;
--	pgoff_t offset;
- 	void *shadow;
- 
- 	/*
-@@ -2003,13 +2003,11 @@ static struct folio *shmem_swapin_direct
- 		 */
- 		if ((vma && userfaultfd_armed(vma)) ||
- 		    !zswap_never_enabled() ||
--		    non_swapcache_batch(entry, nr_pages) != nr_pages) {
--			offset = index - round_down(index, nr_pages);
--			entry = swp_entry(swp_type(entry),
--					  swp_offset(entry) + offset);
-+		    non_swapcache_batch(index_entry, nr_pages) != nr_pages) {
- 			*order = 0;
- 			nr_pages = 1;
- 		} else {
-+			swap.val = index_entry.val;
- 			gfp_t huge_gfp = vma_thp_gfp_mask(vma);
- 
- 			gfp = limit_gfp_mask(huge_gfp, gfp);
-@@ -2021,7 +2019,7 @@ static struct folio *shmem_swapin_direct
- 		return ERR_PTR(-ENOMEM);
- 
- 	if (mem_cgroup_swapin_charge_folio(new, vma ? vma->vm_mm : NULL,
--					   gfp, entry)) {
-+					   gfp, swap)) {
- 		folio_put(new);
- 		return ERR_PTR(-ENOMEM);
- 	}
-@@ -2036,17 +2034,17 @@ static struct folio *shmem_swapin_direct
- 	 * In this case, shmem_add_to_page_cache() will help identify the
- 	 * concurrent swapin and return -EEXIST.
- 	 */
--	if (swapcache_prepare(entry, nr_pages)) {
-+	if (swapcache_prepare(swap, nr_pages)) {
- 		folio_put(new);
- 		return ERR_PTR(-EEXIST);
- 	}
- 
- 	__folio_set_locked(new);
- 	__folio_set_swapbacked(new);
--	new->swap = entry;
-+	new->swap = swap;
- 
--	memcg1_swapin(entry, nr_pages);
--	shadow = get_shadow_from_swap_cache(entry);
-+	memcg1_swapin(swap, nr_pages);
-+	shadow = get_shadow_from_swap_cache(swap);
- 	if (shadow)
- 		workingset_refault(new, shadow);
- 	folio_add_lru(new);
-@@ -2278,20 +2276,21 @@ static int shmem_swapin_folio(struct ino
- 	struct mm_struct *fault_mm = vma ? vma->vm_mm : NULL;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	int error, nr_pages, order, swap_order;
-+	swp_entry_t swap, index_entry;
- 	struct swap_info_struct *si;
- 	struct folio *folio = NULL;
- 	bool skip_swapcache = false;
--	swp_entry_t swap;
-+	pgoff_t offset;
- 
- 	VM_BUG_ON(!*foliop || !xa_is_value(*foliop));
--	swap = radix_to_swp_entry(*foliop);
-+	index_entry = radix_to_swp_entry(*foliop);
- 	*foliop = NULL;
- 
--	if (is_poisoned_swp_entry(swap))
-+	if (is_poisoned_swp_entry(index_entry))
- 		return -EIO;
- 
--	si = get_swap_device(swap);
--	order = shmem_confirm_swap(mapping, index, swap);
-+	si = get_swap_device(index_entry);
-+	order = shmem_confirm_swap(mapping, index, index_entry);
- 	if (unlikely(!si)) {
- 		if (order < 0)
- 			return -EEXIST;
-@@ -2303,7 +2302,9 @@ static int shmem_swapin_folio(struct ino
- 		return -EEXIST;
- 	}
- 
--	/* Look it up and read it in.. */
-+	/* @index may points to the middle of a large entry, get the real swap value first */
-+	offset = index - round_down(index, 1 << order);
-+	swap.val = index_entry.val + offset;
- 	folio = swap_cache_get_folio(swap, NULL, 0);
- 	if (!folio) {
- 		/* Or update major stats only when swapin succeeds?? */
-@@ -2315,7 +2316,7 @@ static int shmem_swapin_folio(struct ino
- 		/* Try direct mTHP swapin bypassing swap cache and readahead */
- 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
- 			swap_order = order;
--			folio = shmem_swapin_direct(inode, vma, index,
-+			folio = shmem_swapin_direct(inode, vma, index, index_entry,
- 						    swap, &swap_order, gfp);
- 			if (!IS_ERR(folio)) {
- 				skip_swapcache = true;
-@@ -2338,28 +2339,25 @@ static int shmem_swapin_folio(struct ino
+ #define ALLOCINFO_FILE_NAME		"allocinfo"
+ #define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
+@@ -632,8 +633,13 @@ static int load_module(struct module *mo
+ 			       mod->name);
+ 			return -ENOMEM;
  		}
- 	}
- alloced:
-+	swap_order = folio_order(folio);
-+	nr_pages = folio_nr_pages(folio);
-+
-+	/* The swap-in should cover both @swap and @index */
-+	swap.val = round_down(swap.val, nr_pages);
-+	VM_WARN_ON_ONCE(swap.val > index_entry.val + offset);
-+	VM_WARN_ON_ONCE(swap.val + nr_pages <= index_entry.val + offset);
-+
- 	/*
- 	 * We need to split an existing large entry if swapin brought in a
- 	 * smaller folio due to various of reasons.
--	 *
--	 * And worth noting there is a special case: if there is a smaller
--	 * cached folio that covers @swap, but not @index (it only covers
--	 * first few sub entries of the large entry, but @index points to
--	 * later parts), the swap cache lookup will still see this folio,
--	 * And we need to split the large entry here. Later checks will fail,
--	 * as it can't satisfy the swap requirement, and we will retry
--	 * the swapin from beginning.
- 	 */
--	swap_order = folio_order(folio);
-+	index = round_down(index, nr_pages);
- 	if (order > swap_order) {
--		error = shmem_split_swap_entry(inode, index, swap, gfp);
-+		error = shmem_split_swap_entry(inode, index, index_entry, gfp);
- 		if (error)
- 			goto failed_nolock;
- 	}
+-	}
  
--	index = round_down(index, 1 << swap_order);
--	swap.val = round_down(swap.val, 1 << swap_order);
--
- 	/* We have to do this with folio locked to prevent races */
- 	folio_lock(folio);
- 	if ((!skip_swapcache && !folio_test_swapcache(folio)) ||
-@@ -2372,7 +2370,6 @@ alloced:
- 		goto failed;
- 	}
- 	folio_wait_writeback(folio);
--	nr_pages = folio_nr_pages(folio);
++		/*
++		 * Avoid a kmemleak false positive. The pointer to the counters is stored
++		 * in the alloc_tag section of the module and cannot be directly accessed.
++		 */
++		kmemleak_igonore_percpu(tag->counters);
++	}
+ 	return 0;
+ }
  
- 	/*
- 	 * Some architectures may have to restore extra metadata to the
+--- a/mm/kmemleak.c~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters
++++ a/mm/kmemleak.c
+@@ -1247,6 +1247,20 @@ void __ref kmemleak_transient_leak(const
+ EXPORT_SYMBOL(kmemleak_transient_leak);
+ 
+ /**
++ * kmemleak_ignore_phys - similar to kmemleak_ignore but taking a percpu
++ *			  address argument
++ * @ptr:	percpu address of the object
++ */
++void __ref kmemleak_igonore_percpu(const void __percpu *ptr)
++{
++	pr_debug("%s(0x%px)\n", __func__, ptr);
++
++	if (kmemleak_enabled && ptr && !IS_ERR_PCPU(ptr))
++		make_black_object((unsigned long)ptr, OBJECT_PERCPU);
++}
++EXPORT_SYMBOL_GPL(kmemleak_igonore_percpu);
++
++/**
+  * kmemleak_ignore - ignore an allocated object
+  * @ptr:	pointer to beginning of the object
+  *
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
-mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch
-mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
-mm-list_lru-refactor-the-locking-code.patch
-mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hung.patch
-mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
-mm-shmem-swap-improve-mthp-swapin-process.patch
-mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
+mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch
+mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu.patch
 
