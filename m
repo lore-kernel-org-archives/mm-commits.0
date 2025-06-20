@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 972CD3597E
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 01:34:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F5A22339
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 01:34:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750383249; cv=none; b=dvMECro3A3DowbS7zoMpIl/YSU6j5Fp6lb5dtujxWNtYbW3qsgbKTGUjPTE9cw83b3+CnUG/xeWAslEAMIs9UaQc9zlFvOjqjnqULTxCWbIz5aED3yS4v6l8GZqOJ2J1rF+w7P6wSY2xwdk9ntDhAWRornLTG838pq6tS1dcBjg=
+	t=1750383251; cv=none; b=uR4zvmU9LOj5PEoH5ittbzUlh8nDQnHK6qc22sh18SUfnTmvCbFjrrCOiugHyJTbJHb28jxbN2IFjlysYXD2m6HcahZ3cT7FJUpWpbYN1LpTkfQV5bGVF+x5N2xLcq8nuTA0AQ2GnNfysPejJYX5efFs3OtIH/mg4aFHqdefyjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750383249; c=relaxed/simple;
-	bh=oCq3RPhkmokTxFv9fUY5dGlo9gJpPgU8JTGgROhHidY=;
-	h=Date:To:From:Subject:Message-Id; b=MKYq/i7wFR4wZAvFK+PmmygM9csNulgScgmDWvYFVcmeny7w/3LA/MJY6qi27bjpuIPtjUWtwTCupIP1y7ENdUT7De3tQIMfWDCl2+veYBbENcdbWsEfqUFZVOoiP0qwxil5od1AgtzZZuSRZAah6FETg7junIaRfDn2kbrW5Hg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IHhiNrIa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750383251; c=relaxed/simple;
+	bh=npW6SZUkjlAcdUea0/YsmsdbYst3WN5vX9LOlm3P+/Y=;
+	h=Date:To:From:Subject:Message-Id; b=tiom18oo8uqWSAeCTU4ePwX32sLpR9WhHtxD8HipgmsUCwP3+4siXZcfIQKSEkL7zL8tlLaDUENJVogUgoZtPcnNDueQhlzKyBWvXScbYaqtwgdf7rpol7DUOuyJhWn3AkHbsE8prQO5YC3i9qVM4PRB3oaWb9sfe5aV4IXxOnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p0zKQlhm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IHhiNrIa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 184EEC4CEEA;
-	Fri, 20 Jun 2025 01:34:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p0zKQlhm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B4FAC4CEEA;
+	Fri, 20 Jun 2025 01:34:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750383249;
-	bh=oCq3RPhkmokTxFv9fUY5dGlo9gJpPgU8JTGgROhHidY=;
+	s=korg; t=1750383251;
+	bh=npW6SZUkjlAcdUea0/YsmsdbYst3WN5vX9LOlm3P+/Y=;
 	h=Date:To:From:Subject:From;
-	b=IHhiNrIaM/blDQ2NwiRoyEyIeNl62+SnhcEHNXZqsJ1pn8TC3VRhO5sMxShL5Tc2f
-	 L2ijGjtJsJPrQvM5XJ3QjVfR4BEokUBk6YBAMzjRrULQyh5LvRcj9Q7is1foIoC3d/
-	 n+BPVFU4uBJPYAUPvA76eKAfrDSohZfFkmjlw2Sg=
-Date: Thu, 19 Jun 2025 18:34:08 -0700
+	b=p0zKQlhmpb2zwAByUubDfMC3musMhRc55R1HU7o1JBaJGMgmjYGQtDEdmfAmikI0d
+	 PHtDBO4w7y6Y7dci7EZC/NsZ8LgiL7Ie9fPHB1bzKBa5+EwaIt/B0KWGgnpGPw1Bm3
+	 04SUZ8/tOrk+ta3W+1nyVaH8D5piwNHYzx3BgYAU=
+Date: Thu, 19 Jun 2025 18:34:10 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,peterx@redhat.com,Jason@zx2c4.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,aarcange@redhat.com,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd.patch added to mm-unstable branch
-Message-Id: <20250620013409.184EEC4CEEA@smtp.kernel.org>
+Subject: + userfaultfd-remove-vm_bug_ons.patch added to mm-unstable branch
+Message-Id: <20250620013411.2B4FAC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: prevent unregistering VMAs through a different userfaultfd
+     Subject: userfaultfd: remove (VM_)BUG_ON()s
 has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd.patch
+     userfaultfd-remove-vm_bug_ons.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-remove-vm_bug_ons.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,88 +59,403 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: userfaultfd: prevent unregistering VMAs through a different userfaultfd
-Date: Thu, 19 Jun 2025 21:24:24 -0400
+Subject: userfaultfd: remove (VM_)BUG_ON()s
+Date: Thu, 19 Jun 2025 21:24:25 -0400
 
-Currently, a VMA registered with a uffd can be unregistered through a
-different uffd associated with the same mm_struct.
+BUG_ON() is deprecated [1].  Convert all the BUG_ON()s and VM_BUG_ON()s to
+use VM_WARN_ON_ONCE().
 
-The existing behavior is slightly broken and may incorrectly reject
-unregistering some VMAs due to the following check:
+There are a few additional cases that are converted or modified:
 
-	if (!vma_can_userfault(cur, cur->vm_flags, wp_async))
-		goto out_unlock;
+- Convert the printk(KERN_WARNING ...) in handle_userfault() to use
+  pr_warn().
 
-where wp_async is derived from ctx, not from cur.  For example, a
-file-backed VMA registered with wp_async enabled and UFFD_WP mode cannot
-be unregistered through a uffd that does not have wp_async enabled.
+- Convert the WARN_ON_ONCE()s in move_pages() to use VM_WARN_ON_ONCE(),
+  as the relevant conditions are already checked in validate_range() in
+  move_pages()'s caller.
 
-Rather than fix this and maintain this odd behavior, make unregistration
-stricter by requiring VMAs to be unregistered through the same uffd they
-were registered with.  Additionally, reorder the BUG() checks to avoid the
-aforementioned wp_async issue in them.  Convert the existing check to
-VM_WARN_ON_ONCE() as BUG_ON() is deprecated.
+- Convert the VM_WARN_ON()'s in move_pages() to VM_WARN_ON_ONCE(). These
+  cases should never happen and are similar to those in mfill_atomic()
+  and mfill_atomic_hugetlb(), which were previously BUG_ON()s.
+  move_pages() was added later than those functions and makes use of
+  VM_WARN_ON() as a replacement for the deprecated BUG_ON(), but.
+  VM_WARN_ON_ONCE() is likely a better direct replacement.
 
-This change slightly modifies the ABI.  It should not be backported to
--stable.  It is expected that no one depends on this behavior, and no such
-cases are known.
+- Convert the WARN_ON() for !VM_MAYWRITE in userfaultfd_unregister() and
+  userfaultfd_register_range() to VM_WARN_ON_ONCE(). This condition is
+  enforced in userfaultfd_register() so it should never happen, and can
+  be converted to a debug check.
 
-While at it, correct the comment for the no userfaultfd case.  This seems
-to be a copy-paste artifact from the analogous userfaultfd_register()
-check.
+[1] https://www.kernel.org/doc/html/v6.15/process/coding-style.html#use-warn-rather-than-bug
 
-Link: https://lkml.kernel.org/r/20250619-uffd-fixes-v3-2-a7274d3bd5e4@columbia.edu
-Fixes: 86039bd3b4e6 ("userfaultfd: add new syscall to provide memory externalization")
+Link: https://lkml.kernel.org/r/20250619-uffd-fixes-v3-3-a7274d3bd5e4@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
-Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason A. Donenfeld <Jason@zx2c4.com>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ fs/userfaultfd.c |   59 +++++++++++++++++++--------------------
+ mm/userfaultfd.c |   68 +++++++++++++++++++++------------------------
+ 2 files changed, 62 insertions(+), 65 deletions(-)
 
---- a/fs/userfaultfd.c~userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd
+--- a/fs/userfaultfd.c~userfaultfd-remove-vm_bug_ons
 +++ a/fs/userfaultfd.c
-@@ -1468,6 +1468,14 @@ static int userfaultfd_unregister(struct
- 		       !!(cur->vm_flags & __VM_UFFD_FLAGS));
+@@ -165,14 +165,14 @@ static void userfaultfd_ctx_get(struct u
+ static void userfaultfd_ctx_put(struct userfaultfd_ctx *ctx)
+ {
+ 	if (refcount_dec_and_test(&ctx->refcount)) {
+-		VM_BUG_ON(spin_is_locked(&ctx->fault_pending_wqh.lock));
+-		VM_BUG_ON(waitqueue_active(&ctx->fault_pending_wqh));
+-		VM_BUG_ON(spin_is_locked(&ctx->fault_wqh.lock));
+-		VM_BUG_ON(waitqueue_active(&ctx->fault_wqh));
+-		VM_BUG_ON(spin_is_locked(&ctx->event_wqh.lock));
+-		VM_BUG_ON(waitqueue_active(&ctx->event_wqh));
+-		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
+-		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
++		VM_WARN_ON_ONCE(spin_is_locked(&ctx->fault_pending_wqh.lock));
++		VM_WARN_ON_ONCE(waitqueue_active(&ctx->fault_pending_wqh));
++		VM_WARN_ON_ONCE(spin_is_locked(&ctx->fault_wqh.lock));
++		VM_WARN_ON_ONCE(waitqueue_active(&ctx->fault_wqh));
++		VM_WARN_ON_ONCE(spin_is_locked(&ctx->event_wqh.lock));
++		VM_WARN_ON_ONCE(waitqueue_active(&ctx->event_wqh));
++		VM_WARN_ON_ONCE(spin_is_locked(&ctx->fd_wqh.lock));
++		VM_WARN_ON_ONCE(waitqueue_active(&ctx->fd_wqh));
+ 		mmdrop(ctx->mm);
+ 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
+ 	}
+@@ -383,12 +383,12 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	if (!ctx)
+ 		goto out;
+ 
+-	BUG_ON(ctx->mm != mm);
++	VM_WARN_ON_ONCE(ctx->mm != mm);
+ 
+ 	/* Any unrecognized flag is a bug. */
+-	VM_BUG_ON(reason & ~__VM_UFFD_FLAGS);
++	VM_WARN_ON_ONCE(reason & ~__VM_UFFD_FLAGS);
+ 	/* 0 or > 1 flags set is a bug; we expect exactly 1. */
+-	VM_BUG_ON(!reason || (reason & (reason - 1)));
++	VM_WARN_ON_ONCE(!reason || (reason & (reason - 1)));
+ 
+ 	if (ctx->features & UFFD_FEATURE_SIGBUS)
+ 		goto out;
+@@ -411,12 +411,11 @@ vm_fault_t handle_userfault(struct vm_fa
+ 		 * to be sure not to return SIGBUS erroneously on
+ 		 * nowait invocations.
+ 		 */
+-		BUG_ON(vmf->flags & FAULT_FLAG_RETRY_NOWAIT);
++		VM_WARN_ON_ONCE(vmf->flags & FAULT_FLAG_RETRY_NOWAIT);
+ #ifdef CONFIG_DEBUG_VM
+ 		if (printk_ratelimit()) {
+-			printk(KERN_WARNING
+-			       "FAULT_FLAG_ALLOW_RETRY missing %x\n",
+-			       vmf->flags);
++			pr_warn("FAULT_FLAG_ALLOW_RETRY missing %x\n",
++				vmf->flags);
+ 			dump_stack();
+ 		}
+ #endif
+@@ -602,7 +601,7 @@ static void userfaultfd_event_wait_compl
+ 	 */
+ out:
+ 	atomic_dec(&ctx->mmap_changing);
+-	VM_BUG_ON(atomic_read(&ctx->mmap_changing) < 0);
++	VM_WARN_ON_ONCE(atomic_read(&ctx->mmap_changing) < 0);
+ 	userfaultfd_ctx_put(ctx);
+ }
+ 
+@@ -710,7 +709,7 @@ void dup_userfaultfd_fail(struct list_he
+ 		struct userfaultfd_ctx *ctx = fctx->new;
+ 
+ 		atomic_dec(&octx->mmap_changing);
+-		VM_BUG_ON(atomic_read(&octx->mmap_changing) < 0);
++		VM_WARN_ON_ONCE(atomic_read(&octx->mmap_changing) < 0);
+ 		userfaultfd_ctx_put(octx);
+ 		userfaultfd_ctx_put(ctx);
+ 
+@@ -1317,8 +1316,8 @@ static int userfaultfd_register(struct u
+ 	do {
+ 		cond_resched();
+ 
+-		BUG_ON(!!cur->vm_userfaultfd_ctx.ctx ^
+-		       !!(cur->vm_flags & __VM_UFFD_FLAGS));
++		VM_WARN_ON_ONCE(!!cur->vm_userfaultfd_ctx.ctx ^
++				!!(cur->vm_flags & __VM_UFFD_FLAGS));
+ 
+ 		/* check not compatible vmas */
+ 		ret = -EINVAL;
+@@ -1372,7 +1371,7 @@ static int userfaultfd_register(struct u
+ 
+ 		found = true;
+ 	} for_each_vma_range(vmi, cur, end);
+-	BUG_ON(!found);
++	VM_WARN_ON_ONCE(!found);
+ 
+ 	ret = userfaultfd_register_range(ctx, vma, vm_flags, start, end,
+ 					 wp_async);
+@@ -1464,8 +1463,8 @@ static int userfaultfd_unregister(struct
+ 	do {
+ 		cond_resched();
+ 
+-		BUG_ON(!!cur->vm_userfaultfd_ctx.ctx ^
+-		       !!(cur->vm_flags & __VM_UFFD_FLAGS));
++		VM_WARN_ON_ONCE(!!cur->vm_userfaultfd_ctx.ctx ^
++				!!(cur->vm_flags & __VM_UFFD_FLAGS));
  
  		/*
-+		 * Prevent unregistering through a different userfaultfd than
-+		 * the one used for registration.
-+		 */
-+		if (cur->vm_userfaultfd_ctx.ctx &&
-+		    cur->vm_userfaultfd_ctx.ctx != ctx)
-+			goto out_unlock;
-+
-+		/*
- 		 * Check not compatible vmas, not strictly required
- 		 * here as not compatible vmas cannot have an
- 		 * userfaultfd_ctx registered on them, but this
-@@ -1490,15 +1498,12 @@ static int userfaultfd_unregister(struct
+ 		 * Prevent unregistering through a different userfaultfd than
+@@ -1487,7 +1486,7 @@ static int userfaultfd_unregister(struct
+ 
+ 		found = true;
+ 	} for_each_vma_range(vmi, cur, end);
+-	BUG_ON(!found);
++	VM_WARN_ON_ONCE(!found);
+ 
+ 	vma_iter_set(&vmi, start);
+ 	prev = vma_prev(&vmi);
+@@ -1504,7 +1503,7 @@ static int userfaultfd_unregister(struct
+ 
+ 		VM_WARN_ON_ONCE(vma->vm_userfaultfd_ctx.ctx != ctx);
+ 		VM_WARN_ON_ONCE(!vma_can_userfault(vma, vma->vm_flags, wp_async));
+-		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
++		VM_WARN_ON_ONCE(!(vma->vm_flags & VM_MAYWRITE));
+ 
+ 		if (vma->vm_start > start)
+ 			start = vma->vm_start;
+@@ -1569,7 +1568,7 @@ static int userfaultfd_wake(struct userf
+ 	 * len == 0 means wake all and we don't want to wake all here,
+ 	 * so check it again to be sure.
+ 	 */
+-	VM_BUG_ON(!range.len);
++	VM_WARN_ON_ONCE(!range.len);
+ 
+ 	wake_userfault(ctx, &range);
+ 	ret = 0;
+@@ -1626,7 +1625,7 @@ static int userfaultfd_copy(struct userf
+ 		return -EFAULT;
+ 	if (ret < 0)
+ 		goto out;
+-	BUG_ON(!ret);
++	VM_WARN_ON_ONCE(!ret);
+ 	/* len == 0 would wake all */
+ 	range.len = ret;
+ 	if (!(uffdio_copy.mode & UFFDIO_COPY_MODE_DONTWAKE)) {
+@@ -1681,7 +1680,7 @@ static int userfaultfd_zeropage(struct u
+ 	if (ret < 0)
+ 		goto out;
+ 	/* len == 0 would wake all */
+-	BUG_ON(!ret);
++	VM_WARN_ON_ONCE(!ret);
+ 	range.len = ret;
+ 	if (!(uffdio_zeropage.mode & UFFDIO_ZEROPAGE_MODE_DONTWAKE)) {
+ 		range.start = uffdio_zeropage.range.start;
+@@ -1793,7 +1792,7 @@ static int userfaultfd_continue(struct u
+ 		goto out;
+ 
+ 	/* len == 0 would wake all */
+-	BUG_ON(!ret);
++	VM_WARN_ON_ONCE(!ret);
+ 	range.len = ret;
+ 	if (!(uffdio_continue.mode & UFFDIO_CONTINUE_MODE_DONTWAKE)) {
+ 		range.start = uffdio_continue.range.start;
+@@ -1850,7 +1849,7 @@ static inline int userfaultfd_poison(str
+ 		goto out;
+ 
+ 	/* len == 0 would wake all */
+-	BUG_ON(!ret);
++	VM_WARN_ON_ONCE(!ret);
+ 	range.len = ret;
+ 	if (!(uffdio_poison.mode & UFFDIO_POISON_MODE_DONTWAKE)) {
+ 		range.start = uffdio_poison.range.start;
+@@ -2111,7 +2110,7 @@ static int new_userfaultfd(int flags)
+ 	struct file *file;
+ 	int fd;
+ 
+-	BUG_ON(!current->mm);
++	VM_WARN_ON_ONCE(!current->mm);
+ 
+ 	/* Check the UFFD_* constants for consistency.  */
+ 	BUILD_BUG_ON(UFFD_USER_MODE_ONLY & UFFD_SHARED_FCNTL_FLAGS);
+--- a/mm/userfaultfd.c~userfaultfd-remove-vm_bug_ons
++++ a/mm/userfaultfd.c
+@@ -561,7 +561,7 @@ retry:
+ 	}
+ 
+ 	while (src_addr < src_start + len) {
+-		BUG_ON(dst_addr >= dst_start + len);
++		VM_WARN_ON_ONCE(dst_addr >= dst_start + len);
+ 
+ 		/*
+ 		 * Serialize via vma_lock and hugetlb_fault_mutex.
+@@ -602,7 +602,7 @@ retry:
+ 		if (unlikely(err == -ENOENT)) {
+ 			up_read(&ctx->map_changing_lock);
+ 			uffd_mfill_unlock(dst_vma);
+-			BUG_ON(!folio);
++			VM_WARN_ON_ONCE(!folio);
+ 
+ 			err = copy_folio_from_user(folio,
+ 						   (const void __user *)src_addr, true);
+@@ -614,7 +614,7 @@ retry:
+ 			dst_vma = NULL;
+ 			goto retry;
+ 		} else
+-			BUG_ON(folio);
++			VM_WARN_ON_ONCE(folio);
+ 
+ 		if (!err) {
+ 			dst_addr += vma_hpagesize;
+@@ -635,9 +635,9 @@ out_unlock_vma:
+ out:
+ 	if (folio)
+ 		folio_put(folio);
+-	BUG_ON(copied < 0);
+-	BUG_ON(err > 0);
+-	BUG_ON(!copied && !err);
++	VM_WARN_ON_ONCE(copied < 0);
++	VM_WARN_ON_ONCE(err > 0);
++	VM_WARN_ON_ONCE(!copied && !err);
+ 	return copied ? copied : err;
+ }
+ #else /* !CONFIG_HUGETLB_PAGE */
+@@ -711,12 +711,12 @@ static __always_inline ssize_t mfill_ato
+ 	/*
+ 	 * Sanitize the command parameters:
+ 	 */
+-	BUG_ON(dst_start & ~PAGE_MASK);
+-	BUG_ON(len & ~PAGE_MASK);
++	VM_WARN_ON_ONCE(dst_start & ~PAGE_MASK);
++	VM_WARN_ON_ONCE(len & ~PAGE_MASK);
+ 
+ 	/* Does the address range wrap, or is the span zero-sized? */
+-	BUG_ON(src_start + len <= src_start);
+-	BUG_ON(dst_start + len <= dst_start);
++	VM_WARN_ON_ONCE(src_start + len <= src_start);
++	VM_WARN_ON_ONCE(dst_start + len <= dst_start);
+ 
+ 	src_addr = src_start;
+ 	dst_addr = dst_start;
+@@ -775,7 +775,7 @@ retry:
+ 	while (src_addr < src_start + len) {
+ 		pmd_t dst_pmdval;
+ 
+-		BUG_ON(dst_addr >= dst_start + len);
++		VM_WARN_ON_ONCE(dst_addr >= dst_start + len);
+ 
+ 		dst_pmd = mm_alloc_pmd(dst_mm, dst_addr);
+ 		if (unlikely(!dst_pmd)) {
+@@ -818,7 +818,7 @@ retry:
+ 
+ 			up_read(&ctx->map_changing_lock);
+ 			uffd_mfill_unlock(dst_vma);
+-			BUG_ON(!folio);
++			VM_WARN_ON_ONCE(!folio);
+ 
+ 			kaddr = kmap_local_folio(folio, 0);
+ 			err = copy_from_user(kaddr,
+@@ -832,7 +832,7 @@ retry:
+ 			flush_dcache_folio(folio);
+ 			goto retry;
+ 		} else
+-			BUG_ON(folio);
++			VM_WARN_ON_ONCE(folio);
+ 
+ 		if (!err) {
+ 			dst_addr += PAGE_SIZE;
+@@ -852,9 +852,9 @@ out_unlock:
+ out:
+ 	if (folio)
+ 		folio_put(folio);
+-	BUG_ON(copied < 0);
+-	BUG_ON(err > 0);
+-	BUG_ON(!copied && !err);
++	VM_WARN_ON_ONCE(copied < 0);
++	VM_WARN_ON_ONCE(err > 0);
++	VM_WARN_ON_ONCE(!copied && !err);
+ 	return copied ? copied : err;
+ }
+ 
+@@ -940,11 +940,11 @@ int mwriteprotect_range(struct userfault
+ 	/*
+ 	 * Sanitize the command parameters:
+ 	 */
+-	BUG_ON(start & ~PAGE_MASK);
+-	BUG_ON(len & ~PAGE_MASK);
++	VM_WARN_ON_ONCE(start & ~PAGE_MASK);
++	VM_WARN_ON_ONCE(len & ~PAGE_MASK);
+ 
+ 	/* Does the address range wrap, or is the span zero-sized? */
+-	BUG_ON(start + len <= start);
++	VM_WARN_ON_ONCE(start + len <= start);
+ 
+ 	mmap_read_lock(dst_mm);
+ 
+@@ -1738,15 +1738,13 @@ ssize_t move_pages(struct userfaultfd_ct
+ 	ssize_t moved = 0;
+ 
+ 	/* Sanitize the command parameters. */
+-	if (WARN_ON_ONCE(src_start & ~PAGE_MASK) ||
+-	    WARN_ON_ONCE(dst_start & ~PAGE_MASK) ||
+-	    WARN_ON_ONCE(len & ~PAGE_MASK))
+-		goto out;
++	VM_WARN_ON_ONCE(src_start & ~PAGE_MASK);
++	VM_WARN_ON_ONCE(dst_start & ~PAGE_MASK);
++	VM_WARN_ON_ONCE(len & ~PAGE_MASK);
+ 
+ 	/* Does the address range wrap, or is the span zero-sized? */
+-	if (WARN_ON_ONCE(src_start + len <= src_start) ||
+-	    WARN_ON_ONCE(dst_start + len <= dst_start))
+-		goto out;
++	VM_WARN_ON_ONCE(src_start + len < src_start);
++	VM_WARN_ON_ONCE(dst_start + len < dst_start);
+ 
+ 	err = uffd_move_lock(mm, dst_start, src_start, &dst_vma, &src_vma);
+ 	if (err)
+@@ -1896,9 +1894,9 @@ out_unlock:
+ 	up_read(&ctx->map_changing_lock);
+ 	uffd_move_unlock(dst_vma, src_vma);
+ out:
+-	VM_WARN_ON(moved < 0);
+-	VM_WARN_ON(err > 0);
+-	VM_WARN_ON(!moved && !err);
++	VM_WARN_ON_ONCE(moved < 0);
++	VM_WARN_ON_ONCE(err > 0);
++	VM_WARN_ON_ONCE(!moved && !err);
+ 	return moved ? moved : err;
+ }
+ 
+@@ -1985,10 +1983,10 @@ int userfaultfd_register_range(struct us
  	for_each_vma_range(vmi, vma, end) {
  		cond_resched();
  
--		BUG_ON(!vma_can_userfault(vma, vma->vm_flags, wp_async));
--
--		/*
--		 * Nothing to do: this vma is already registered into this
--		 * userfaultfd and with the right tracking mode too.
--		 */
-+		/* VMA not registered with userfaultfd. */
- 		if (!vma->vm_userfaultfd_ctx.ctx)
- 			goto skip;
+-		BUG_ON(!vma_can_userfault(vma, vm_flags, wp_async));
+-		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
+-		       vma->vm_userfaultfd_ctx.ctx != ctx);
+-		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
++		VM_WARN_ON_ONCE(!vma_can_userfault(vma, vm_flags, wp_async));
++		VM_WARN_ON_ONCE(vma->vm_userfaultfd_ctx.ctx &&
++				vma->vm_userfaultfd_ctx.ctx != ctx);
++		VM_WARN_ON_ONCE(!(vma->vm_flags & VM_MAYWRITE));
  
-+		VM_WARN_ON_ONCE(vma->vm_userfaultfd_ctx.ctx != ctx);
-+		VM_WARN_ON_ONCE(!vma_can_userfault(vma, vma->vm_flags, wp_async));
- 		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
- 
- 		if (vma->vm_start > start)
+ 		/*
+ 		 * Nothing to do: this vma is already registered into this
+@@ -2064,8 +2062,8 @@ void userfaultfd_release_all(struct mm_s
+ 	prev = NULL;
+ 	for_each_vma(vmi, vma) {
+ 		cond_resched();
+-		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
+-		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
++		VM_WARN_ON_ONCE(!!vma->vm_userfaultfd_ctx.ctx ^
++				!!(vma->vm_flags & __VM_UFFD_FLAGS));
+ 		if (vma->vm_userfaultfd_ctx.ctx != ctx) {
+ 			prev = vma;
+ 			continue;
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
