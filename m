@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA4751C863B
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 494931C863B
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750391357; cv=none; b=AEUbvUBFn+j8yrQNB9t1yjbIc13j/J5SDjQvsoiu9lRZLxgfJzgLJ0u69B6q2ny4hYAYFdPnZD/uXKtn7M/Cnpy6t7qDj7PwSKpubZBI8ddUemleChE7BaxhBsK3oxRkpEMF2VH62X4oA8cH1wS7pOTGIdQfQe6x3MJlPigZLEo=
+	t=1750391359; cv=none; b=FLY1hcTfQRiKAf+DCJKBacIMIS/YU8Ui2CfTh/NR0MyB/eTRIEGJ8m0weZBbWctfurgQ/1x3r7WbZlOyITZne6xFVZALGqq+tPQGf2v6HfVz7C8AES2mmVN10p0j7YGc7esYIlw/sTpoCkzzB43ocgDgJUKeY/MpXqkO0mi5Jm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750391357; c=relaxed/simple;
-	bh=0X6iV336+Pr1bRyE+bhmeYNDuG1yuM9mGsZtpcBOi38=;
-	h=Date:To:From:Subject:Message-Id; b=tHcxjdQRUTo3bnhoDUPB5I7+5r5oAs892ae5VuOWdwesdLNGDg1m16m9eQOJhuEPQbmobeAbzRlh7neKYjp/zhE3SDJCxZOooYvjJ6DUNNxruNHA4VGd/SSpWqlKJnag6lvxhW+Ao5xqStTuaAxY0xqbJHm0gHH9mbKL43LRP0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EL+jPNLx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750391359; c=relaxed/simple;
+	bh=n2z6lMR8/QndcJYCSsyInyOjh3Q0ZzWa1Hr4YTgwsZ8=;
+	h=Date:To:From:Subject:Message-Id; b=kyFjheHIbgkbs3Jwx+GQFhqCZgPstb+kkxeRNtP7zM8R2p2byioQynqj/E6KTVYl4jncZzoogo5BVSV1w7949Mmwfkh9MHyJRRX38E56cH8nIPwyVlFu6HR5y0xEcxpb0RNQUyDXzV2RBbl+sxHl9Mmo40ixQCytakLFC7CojYs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MMzJ+Q81; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EL+jPNLx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B6EAC4CEE3;
-	Fri, 20 Jun 2025 03:49:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MMzJ+Q81"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D06FFC4CEE3;
+	Fri, 20 Jun 2025 03:49:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750391357;
-	bh=0X6iV336+Pr1bRyE+bhmeYNDuG1yuM9mGsZtpcBOi38=;
+	s=korg; t=1750391358;
+	bh=n2z6lMR8/QndcJYCSsyInyOjh3Q0ZzWa1Hr4YTgwsZ8=;
 	h=Date:To:From:Subject:From;
-	b=EL+jPNLx5ITg+0+TRPkvpu5nB9MPH7ZhCsZNphTALM/GQ9q6HuW65iSw8V7t4zz5J
-	 rxSoKidRRSZx2Di9cugSVgYtdVXuLxhQxAyfggHHjKb2F2Pj/fOwBReUkpL8nGIvLg
-	 kl+nVEs0N6Eh/uPXaJjWMbZadHuOqjGV/+vEP6bI=
-Date: Thu, 19 Jun 2025 20:49:17 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=MMzJ+Q81y9dPKvOxMrT8Orc2RnOqgvcY+OQa/RoA7S8Rr7cq/n+BKq1keh9e+KJ5z
+	 FMjt4chGGFfvVxSfrnsroXgZAPXUypQXlxOGj/3nKdVFG37KH3xXfcxwy9kokgZDoU
+	 Gf0yaFU057XsrudgQ+pvE5AxY1sPut9JQwsPU3Wo=
+Date: Thu, 19 Jun 2025 20:49:18 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch removed from -mm tree
-Message-Id: <20250620034917.9B6EAC4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-missing-test-files-to-mm-gup-section.patch removed from -mm tree
+Message-Id: <20250620034918.D06FFC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
+     Subject: MAINTAINERS: add missing test files to mm gup section
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
+     maintainers-add-missing-test-files-to-mm-gup-section.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
-Date: Mon, 16 Jun 2025 21:16:43 +0100
+Subject: MAINTAINERS: add missing test files to mm gup section
+Date: Mon, 16 Jun 2025 21:08:44 +0100
 
-The working set logic belongs very much to the reclaim section and is
-otherwise not assigned to any other MAINTAINERS section so add it here.
+We previously overlooked GUP test files that sensibly should belong to the
+GUP section, include them now.
 
-Link: https://lkml.kernel.org/r/20250616201643.561626-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250616200844.560225-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section
+--- a/MAINTAINERS~maintainers-add-missing-test-files-to-mm-gup-section
 +++ a/MAINTAINERS
-@@ -15871,6 +15871,7 @@ L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/pt_reclaim.c
- F:	mm/vmscan.c
-+F:	mm/workingset.c
+@@ -15795,6 +15795,10 @@ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ F:	mm/gup.c
++F:	mm/gup_test.c
++F:	mm/gup_test.h
++F:	tools/testing/selftests/mm/gup_longterm.c
++F:	tools/testing/selftests/mm/gup_test.c
  
- MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
+ MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
  M:	Andrew Morton <akpm@linux-foundation.org>
 _
 
