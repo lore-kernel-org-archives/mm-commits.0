@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DA5917E
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 00:11:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE464EC4;
+	Fri, 20 Jun 2025 00:25:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750378280; cv=none; b=J/F8ZibNgz2cknzWFsBxf6yPheRSOXt0Aos4cJKKaQ+UXWrveNdda+0daTx+uOKgq1Cz/B5BEV94i2fhXeg7lBc1ZGGmZhxi01Z99BImX7LfWXzCSn8NG8fqlSZJzu89f0nvtAB7h+VqDXNsi/zAFXuWJgD2nPcLzjPfZPZoObI=
+	t=1750379154; cv=none; b=ptxtPs7KFNJ+RIeIY2rUJEsZuRz9OqINNY/b7H9aF3D66n44XVgT1Bepyk1QQ2Pl05aGDFAhX6YHLJR2m3qFE8L1CYSVXQmcE5xXDWwN9V4W81gj/mhaXQUMla5a8bDqVh4hAR23TsgVJxd5Gn0KVdMRJqL74cUz/sg8mUbEo38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750378280; c=relaxed/simple;
-	bh=mPHQpeirVv9y5FR49D8cDju9e5H2RfknSgmQ3F+4PjY=;
-	h=Date:To:From:Subject:Message-Id; b=up7xNw9RogUziHytzCrZPdbEJ3j+t4hgZgldzj7kRYHcVt5rWRNeM/vwjnrxqLbu+lCKJNs4hcejsGAnGpWk2PNK8EMZe4R3nWkcV8JQWJynATxT0ifmAPNTk27t4I0Z8akzi68gsFKbyq2Fw9TGVSXPB4HWyEeVjtcMKY6a6TE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L5Oz6+nz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750379154; c=relaxed/simple;
+	bh=8Cbir+MG5T+MiScP4RwETCFou3JHDUzEXbBX752Hfxk=;
+	h=Date:To:From:Subject:Message-Id; b=hMcRenNL7148p/DTKdajRIgsL1gz2D7LZDohVJSVOCnWCr9rLvJ0PBOPbbldJ6+NV8I8HxTvSS2kMQJUx+5yTNK7gJxuJLCzhgjo2I7Zlz6VfkLag0A4remYyouajVnR061Dlm4PXrrEYJCGZR0IFiAlg4ogQAoDVzuSzdkWVt8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OSHd7sgC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L5Oz6+nz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB9EEC4CEEA;
-	Fri, 20 Jun 2025 00:11:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OSHd7sgC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33504C4CEEA;
+	Fri, 20 Jun 2025 00:25:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750378279;
-	bh=mPHQpeirVv9y5FR49D8cDju9e5H2RfknSgmQ3F+4PjY=;
+	s=korg; t=1750379154;
+	bh=8Cbir+MG5T+MiScP4RwETCFou3JHDUzEXbBX752Hfxk=;
 	h=Date:To:From:Subject:From;
-	b=L5Oz6+nzRq6g2tuH1f6MYqJ0OP/nyTS/8zvCEaoFoTQDl2kBprxkXN5GQyJxJa7uc
-	 5EEzjEK3gwpNg35xnckPzlm73GtEDby+58LoGK7+X+z0Hrije9nykXX5UjiI7CD13b
-	 lejTEaomv6vINMa00hp1bYjnzVIz65E9Sk+5Nyio=
-Date: Thu, 19 Jun 2025 17:11:19 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rppt@kernel.org,pfalcato@suse.de,osalvador@suse.de,Liam.Howlett@oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=OSHd7sgCJ18Tx5XmVfWIGqrWC0WPqD1EGa7icEkt5KNPgQANXEt3rc7xvpgDkh+8J
+	 wHGjzqbD84zqixxBcpRHM+3AWN2AmUOLDT2o2wV0A9l4bvGBlt8kVfgj6nEEzA3FR6
+	 u5v49O02yatSrvMX4QqWGDaUQIUTMA6Xfnmj1NwY=
+Date: Thu, 19 Jun 2025 17:25:53 -0700
+To: mm-commits@vger.kernel.org,yi.zhang@huawei.com,yangerkun@huawei.com,tglx@linutronix.de,stable@vger.kernel.org,ming.lei@redhat.com,john.g.garry@oracle.com,axboe@kernel.dk,yukuai3@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch added to mm-new branch
-Message-Id: <20250620001119.BB9EEC4CEEA@smtp.kernel.org>
+Subject: + lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250620002554.33504C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add missing vm_get_page_prot() instance, remove include
-has been added to the -mm mm-new branch.  Its filename is
-     mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch
+     Subject: lib/group_cpus: fix NULL pointer dereference from group_cpus_evenly()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,87 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: add missing vm_get_page_prot() instance, remove include
-Date: Thu, 19 Jun 2025 13:21:15 +0100
+From: Yu Kuai <yukuai3@huawei.com>
+Subject: lib/group_cpus: fix NULL pointer dereference from group_cpus_evenly()
+Date: Thu, 19 Jun 2025 21:26:55 +0800
 
-I missed a case for powerpc, also remove #include (that is not in practice
-necessary) to avoid any risk of circular dependency.
+While testing null_blk with configfs, echo 0 > poll_queues will trigger
+following panic:
 
-Link: https://lkml.kernel.org/r/552f88e1-2df8-4e95-92b8-812f7c8db829@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+BUG: kernel NULL pointer dereference, address: 0000000000000010
+Oops: Oops: 0000 [#1] SMP NOPTI
+CPU: 27 UID: 0 PID: 920 Comm: bash Not tainted 6.15.0-02023-gadbdb95c8696-dirty #1238 PREEMPT(undef)
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.1-2.fc37 04/01/2014
+RIP: 0010:__bitmap_or+0x48/0x70
+Call Trace:
+ <TASK>
+ __group_cpus_evenly+0x822/0x8c0
+ group_cpus_evenly+0x2d9/0x490
+ blk_mq_map_queues+0x1e/0x110
+ null_map_queues+0xc9/0x170 [null_blk]
+ blk_mq_update_queue_map+0xdb/0x160
+ blk_mq_update_nr_hw_queues+0x22b/0x560
+ nullb_update_nr_hw_queues+0x71/0xf0 [null_blk]
+ nullb_device_poll_queues_store+0xa4/0x130 [null_blk]
+ configfs_write_iter+0x109/0x1d0
+ vfs_write+0x26e/0x6f0
+ ksys_write+0x79/0x180
+ __x64_sys_write+0x1d/0x30
+ x64_sys_call+0x45c4/0x45f0
+ do_syscall_64+0xa5/0x240
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+Root cause is that numgrps is set to 0, and ZERO_SIZE_PTR is returned
+from kcalloc(), then __group_cpus_evenly() will deference the
+ZERO_SIZE_PTR.
+
+Fix the problem by checking numgrps first in group_cpus_evenly(), and
+return NULL directly if numgrps is zero.
+
+Link: https://lkml.kernel.org/r/20250619132655.3318883-1-yukuai1@huaweicloud.com
+Fixes: 6a6dcae8f486 ("blk-mq: Build default queue map via group_cpus_evenly()")
+Signed-off-by: Yu Kuai <yukuai3@huawei.com>
+Reviewed-by: Ming Lei <ming.lei@redhat.com>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Cc: ErKun Yang <yangerkun@huawei.com>
+Cc: John Garry <john.g.garry@oracle.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pkeys.h |    1 -
- arch/powerpc/mm/book3s64/pgtable.c         |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ lib/group_cpus.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/powerpc/include/asm/book3s/64/pkeys.h~mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix
-+++ a/arch/powerpc/include/asm/book3s/64/pkeys.h
-@@ -4,7 +4,6 @@
- #define _ASM_POWERPC_BOOK3S_64_PKEYS_H
+--- a/lib/group_cpus.c~lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly
++++ a/lib/group_cpus.c
+@@ -352,6 +352,9 @@ struct cpumask *group_cpus_evenly(unsign
+ 	int ret = -ENOMEM;
+ 	struct cpumask *masks = NULL;
  
- #include <asm/book3s/64/hash-pkey.h>
--#include <linux/mm_types.h>
- 
- static inline u64 vmflag_to_pte_pkey_bits(vm_flags_t vm_flags)
- {
---- a/arch/powerpc/mm/book3s64/pgtable.c~mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -644,7 +644,7 @@ unsigned long memremap_compat_align(void
- EXPORT_SYMBOL_GPL(memremap_compat_align);
- #endif
- 
--pgprot_t vm_get_page_prot(unsigned long vm_flags)
-+pgprot_t vm_get_page_prot(vm_flags_t vm_flags)
- {
- 	unsigned long prot;
++	if (numgrps == 0)
++		return NULL;
++
+ 	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
+ 		return NULL;
  
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from yukuai3@huawei.com are
 
-maintainers-add-missing-mm-workingsetc-file-to-mm-reclaim-section.patch
-maintainers-add-missing-test-files-to-mm-gup-section.patch
-maintainers-add-further-init-files-to-mm-init-block.patch
-maintainers-add-hugetlb_cgroupc-to-hugetlb-section.patch
-maintainers-add-stray-rmap-file-to-mm-rmap-section.patch
-maintainers-add-memfd-shmem-quota-files-to-shmem-section.patch
-maintainers-add-additional-mmap-related-files-to-mmap-section.patch
-maintainers-add-missing-files-to-mm-page-alloc-section.patch
-docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-use-per_vma-lock-for-madv_dontneed-fix.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
-mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon.patch
-mm-mremap-introduce-more-mergeable-mremap-via-mremap_relocate_anon-fix.patch
-mm-mremap-add-mremap_must_relocate_anon.patch
-mm-mremap-add-mremap_relocate_anon-support-for-large-folios.patch
-tools-uapi-update-copy-of-linux-mmanh-from-the-kernel-sources.patch
-tools-testing-selftests-add-sys_mremap-helper-to-vm_utilh.patch
-tools-testing-selftests-add-mremap-cases-that-merge-normally.patch
-tools-testing-selftests-add-mremap_relocate_anon-merge-test-cases.patch
-tools-testing-selftests-expand-mremap-tests-for-mremap_relocate_anon.patch
-tools-testing-selftests-have-cow-self-test-use-mremap_relocate_anon.patch
-tools-testing-selftests-test-relocate-anon-in-split-huge-page-test.patch
-tools-testing-selftests-add-mremap_relocate_anon-fork-tests.patch
-secretmem-remove-uses-of-struct-page-fix.patch
-mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
-mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument.patch
-mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch
-mm-update-core-kernel-code-to-use-vm_flags_t-consistently.patch
-mm-update-architecture-and-driver-code-to-use-vm_flags_t.patch
+lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch
 
