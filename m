@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E89FA322E;
-	Fri, 20 Jun 2025 03:49:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28185322E
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750391347; cv=none; b=UXJKla7AfrmvAQfZoaWkkFxcNDQ8K4Fx06hrF/5ZzpMjQsCP157Y0SP7Bfk/m1ibFTeWPfAwmDi5iddfQkZM1jIs9f44mEBStSr5oGPU1TNQeCyTfKMntMibhfaXjzn+Tez3HMlePaEi5o06Wk2M6JOOEqm3G5qQT1GctglXhmY=
+	t=1750391348; cv=none; b=a3X3Sxb5ayLAbX3I/O1iSAnDTve6e0wCzcSO3ZePsuLjzLuKoV3BjLhfTxniZslE8t2Bt8kjAKbqxlUH6s41f2HwfqrX7eWIbSSBVElmtSjoL5PHcnaI1BaeLzJCj8FObcg0S1jomCUvS5XSZGmLcQcb89e2fB2Rcd5R7pNfakU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750391347; c=relaxed/simple;
-	bh=mIc7E7RLgrrxcXXCm1mMF0F4uwx6dVm3iQ/xSIc4SeM=;
-	h=Date:To:From:Subject:Message-Id; b=c3LY+E0Uu7zK1VKIGpKYTpvqD4K4h4qRONk5h2/LQ8OnKy0sOX7m6hrdELFfQmIakjklCxb8dJ0x9emHkx6eQAwF40spT2X6yc63wsq0FVi8zv0CZs0HrMB/zMUkzk6UFaoHreH5gzGkRi3tSau+S8FIQgnr2X6pcYFs5kpuzTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QDkQ7He/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750391348; c=relaxed/simple;
+	bh=VY1HEwZHikBSIpgVfBcCXhqF6oV67FzEkhaxtqCC8hc=;
+	h=Date:To:From:Subject:Message-Id; b=WlIpMXOxLbPTeMx+qzY1LXjGopJSPdP+6XIhq8JfgwQ2sFv40/kmdFhcV84zZlUlkw2OZEmoxBnsXX0K9wA57T3x4D3+idiYvyExUOvcDXLC7ZPkLDP5CewmZMedBX+2k7BHqJNm2+F9l7UwChVN90tvzoydQSBwXf9WlUqQa/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pD9Bbspp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QDkQ7He/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61BEBC4CEE3;
-	Fri, 20 Jun 2025 03:49:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pD9Bbspp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88A5DC4CEF2;
+	Fri, 20 Jun 2025 03:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750391346;
-	bh=mIc7E7RLgrrxcXXCm1mMF0F4uwx6dVm3iQ/xSIc4SeM=;
+	s=korg; t=1750391347;
+	bh=VY1HEwZHikBSIpgVfBcCXhqF6oV67FzEkhaxtqCC8hc=;
 	h=Date:To:From:Subject:From;
-	b=QDkQ7He/mluop06m0YZg2b0EIMfobMJ6fNaGg3rbShX7JBiFWOHgdzZW33cVQj3mI
-	 X3Lilnkceu0e+fS3HLIt6UzLa9wjZUJkkdDZyhzZ24/P/zEl4cT1xuIwTM14XX7UAa
-	 QGouYQgXzHywYTaj2pTJwmmmCLHs6S8zTEJ/VK2E=
-Date: Thu, 19 Jun 2025 20:49:05 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,david@redhat.com,chrisl@kernel.org,baohua@kernel.org,aarcange@redhat.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=pD9BbsppunJMcyZq7eO01omsOh0UR+ziM2BadmzOvGvWEZI/gXBerfETumj+yLKJy
+	 pYwlQ+qL6qdpMHT5KNoq6cyknVAh8ouzj9gDB+iYQ/VhGPQfkibRPbEdEs5jWTgH53
+	 tPjUZ4i+xV3JiNZtqrTRNc0c2z/wJQQeHye6y+eQ=
+Date: Thu, 19 Jun 2025 20:49:07 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,ptyadav@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch removed from -mm tree
-Message-Id: <20250620034906.61BEBC4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-linux-mm-list-to-kexec-handover.patch removed from -mm tree
+Message-Id: <20250620034907.88A5DC4CEF2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,212 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: userfaultfd: fix race of userfaultfd_move and swap cache
+     Subject: MAINTAINERS: add linux-mm@ list to Kexec Handover
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
+     maintainers-add-linux-mm-list-to-kexec-handover.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm: userfaultfd: fix race of userfaultfd_move and swap cache
-Date: Wed, 4 Jun 2025 23:10:38 +0800
+From: Pratyush Yadav <ptyadav@amazon.de>
+Subject: MAINTAINERS: add linux-mm@ list to Kexec Handover
+Date: Fri, 13 Jun 2025 15:19:14 +0200
 
-This commit fixes two kinds of races, they may have different results:
+Along with kexec, KHO also has parts dealing with memory management, like
+page/folio initialization, memblock, and preserving/unpreserving memory
+for next kernel.  Copy linux-mm@ to KHO patches so the right set of eyes
+can look at changes to those parts.
 
-Barry reported a BUG_ON in commit c50f8e6053b0, we may see the same
-BUG_ON if the filemap lookup returned NULL and folio is added to swap
-cache after that.
-
-If another kind of race is triggered (folio changed after lookup) we
-may see RSS counter is corrupted:
-
-[  406.893936] BUG: Bad rss-counter state mm:ffff0000c5a9ddc0
-type:MM_ANONPAGES val:-1
-[  406.894071] BUG: Bad rss-counter state mm:ffff0000c5a9ddc0
-type:MM_SHMEMPAGES val:1
-
-Because the folio is being accounted to the wrong VMA.
-
-I'm not sure if there will be any data corruption though, seems no. 
-The issues above are critical already.
-
-
-On seeing a swap entry PTE, userfaultfd_move does a lockless swap cache
-lookup, and tries to move the found folio to the faulting vma.  Currently,
-it relies on checking the PTE value to ensure that the moved folio still
-belongs to the src swap entry and that no new folio has been added to the
-swap cache, which turns out to be unreliable.
-
-While working and reviewing the swap table series with Barry, following
-existing races are observed and reproduced [1]:
-
-In the example below, move_pages_pte is moving src_pte to dst_pte, where
-src_pte is a swap entry PTE holding swap entry S1, and S1 is not in the
-swap cache:
-
-CPU1                               CPU2
-userfaultfd_move
-  move_pages_pte()
-    entry = pte_to_swp_entry(orig_src_pte);
-    // Here it got entry = S1
-    ... < interrupted> ...
-                                   <swapin src_pte, alloc and use folio A>
-                                   // folio A is a new allocated folio
-                                   // and get installed into src_pte
-                                   <frees swap entry S1>
-                                   // src_pte now points to folio A, S1
-                                   // has swap count == 0, it can be freed
-                                   // by folio_swap_swap or swap
-                                   // allocator's reclaim.
-                                   <try to swap out another folio B>
-                                   // folio B is a folio in another VMA.
-                                   <put folio B to swap cache using S1 >
-                                   // S1 is freed, folio B can use it
-                                   // for swap out with no problem.
-                                   ...
-    folio = filemap_get_folio(S1)
-    // Got folio B here !!!
-    ... < interrupted again> ...
-                                   <swapin folio B and free S1>
-                                   // Now S1 is free to be used again.
-                                   <swapout src_pte & folio A using S1>
-                                   // Now src_pte is a swap entry PTE
-                                   // holding S1 again.
-    folio_trylock(folio)
-    move_swap_pte
-      double_pt_lock
-      is_pte_pages_stable
-      // Check passed because src_pte == S1
-      folio_move_anon_rmap(...)
-      // Moved invalid folio B here !!!
-
-The race window is very short and requires multiple collisions of multiple
-rare events, so it's very unlikely to happen, but with a deliberately
-constructed reproducer and increased time window, it can be reproduced
-easily.
-
-This can be fixed by checking if the folio returned by filemap is the
-valid swap cache folio after acquiring the folio lock.
-
-Another similar race is possible: filemap_get_folio may return NULL, but
-folio (A) could be swapped in and then swapped out again using the same
-swap entry after the lookup.  In such a case, folio (A) may remain in the
-swap cache, so it must be moved too:
-
-CPU1                               CPU2
-userfaultfd_move
-  move_pages_pte()
-    entry = pte_to_swp_entry(orig_src_pte);
-    // Here it got entry = S1, and S1 is not in swap cache
-    folio = filemap_get_folio(S1)
-    // Got NULL
-    ... < interrupted again> ...
-                                   <swapin folio A and free S1>
-                                   <swapout folio A re-using S1>
-    move_swap_pte
-      double_pt_lock
-      is_pte_pages_stable
-      // Check passed because src_pte == S1
-      folio_move_anon_rmap(...)
-      // folio A is ignored !!!
-
-Fix this by checking the swap cache again after acquiring the src_pte
-lock.  And to avoid the filemap overhead, we check swap_map directly [2].
-
-The SWP_SYNCHRONOUS_IO path does make the problem more complex, but so far
-we don't need to worry about that, since folios can only be exposed to the
-swap cache in the swap out path, and this is covered in this patch by
-checking the swap cache again after acquiring the src_pte lock.
-
-Testing with a simple C program that allocates and moves several GB of
-memory did not show any observable performance change.
-
-Link: https://lkml.kernel.org/r/20250604151038.21968-1-ryncsn@gmail.com
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Closes: https://lore.kernel.org/linux-mm/CAMgjq7B1K=6OOrK2OUZ0-tqCzi+EJt+2_K97TPGoSt=9+JwP7Q@mail.gmail.com/ [1]
-Link: https://lore.kernel.org/all/CAGsJ_4yJhJBo16XhiC-nUzSheyX-V3-nFE+tAi=8Y560K8eT=A@mail.gmail.com/ [2]
-Reviewed-by: Lokesh Gidra <lokeshgidra@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Chris Li <chrisl@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250613131917.4488-1-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav <ptyadav@amazon.de>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   33 +++++++++++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache
-+++ a/mm/userfaultfd.c
-@@ -1084,8 +1084,18 @@ static int move_swap_pte(struct mm_struc
- 			 pte_t orig_dst_pte, pte_t orig_src_pte,
- 			 pmd_t *dst_pmd, pmd_t dst_pmdval,
- 			 spinlock_t *dst_ptl, spinlock_t *src_ptl,
--			 struct folio *src_folio)
-+			 struct folio *src_folio,
-+			 struct swap_info_struct *si, swp_entry_t entry)
- {
-+	/*
-+	 * Check if the folio still belongs to the target swap entry after
-+	 * acquiring the lock. Folio can be freed in the swap cache while
-+	 * not locked.
-+	 */
-+	if (src_folio && unlikely(!folio_test_swapcache(src_folio) ||
-+				  entry.val != src_folio->swap.val))
-+		return -EAGAIN;
-+
- 	double_pt_lock(dst_ptl, src_ptl);
- 
- 	if (!is_pte_pages_stable(dst_pte, src_pte, orig_dst_pte, orig_src_pte,
-@@ -1102,6 +1112,25 @@ static int move_swap_pte(struct mm_struc
- 	if (src_folio) {
- 		folio_move_anon_rmap(src_folio, dst_vma);
- 		src_folio->index = linear_page_index(dst_vma, dst_addr);
-+	} else {
-+		/*
-+		 * Check if the swap entry is cached after acquiring the src_pte
-+		 * lock. Otherwise, we might miss a newly loaded swap cache folio.
-+		 *
-+		 * Check swap_map directly to minimize overhead, READ_ONCE is sufficient.
-+		 * We are trying to catch newly added swap cache, the only possible case is
-+		 * when a folio is swapped in and out again staying in swap cache, using the
-+		 * same entry before the PTE check above. The PTL is acquired and released
-+		 * twice, each time after updating the swap_map's flag. So holding
-+		 * the PTL here ensures we see the updated value. False positive is possible,
-+		 * e.g. SWP_SYNCHRONOUS_IO swapin may set the flag without touching the
-+		 * cache, or during the tiny synchronization window between swap cache and
-+		 * swap_map, but it will be gone very quickly, worst result is retry jitters.
-+		 */
-+		if (READ_ONCE(si->swap_map[swp_offset(entry)]) & SWAP_HAS_CACHE) {
-+			double_pt_unlock(dst_ptl, src_ptl);
-+			return -EAGAIN;
-+		}
- 	}
- 
- 	orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
-@@ -1412,7 +1441,7 @@ retry:
- 		}
- 		err = move_swap_pte(mm, dst_vma, dst_addr, src_addr, dst_pte, src_pte,
- 				orig_dst_pte, orig_src_pte, dst_pmd, dst_pmdval,
--				dst_ptl, src_ptl, src_folio);
-+				dst_ptl, src_ptl, src_folio, si, entry);
- 	}
- 
- out:
+--- a/MAINTAINERS~maintainers-add-linux-mm-list-to-kexec-handover
++++ a/MAINTAINERS
+@@ -13347,6 +13347,7 @@ M:	Alexander Graf <graf@amazon.com>
+ M:	Mike Rapoport <rppt@kernel.org>
+ M:	Changyuan Lyu <changyuanl@google.com>
+ L:	kexec@lists.infradead.org
++L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/admin-guide/mm/kho.rst
+ F:	Documentation/core-api/kho/*
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from ptyadav@amazon.de are
 
-mm-list_lru-refactor-the-locking-code.patch
-mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hung.patch
-mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
-mm-shmem-swap-improve-mthp-swapin-process.patch
-mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
 
