@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3098A322E;
-	Fri, 20 Jun 2025 03:49:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E89FA322E;
+	Fri, 20 Jun 2025 03:49:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750391345; cv=none; b=KGHQFzCgzeROIECPSAgZeyIrC3u7HjGpD4mliRNrsn1ytwKtw16roE4tyOD4F3cNeZMPAPr35g0O2D84uWmjl+hgwRzOMSzpqoNJmmrWzIaK4aV7+qgq2pzvB4LYUUdxOYRcDqYlgd4VYvee3ldId8z5TSfS7RvWdgXjg5LOcb8=
+	t=1750391347; cv=none; b=UXJKla7AfrmvAQfZoaWkkFxcNDQ8K4Fx06hrF/5ZzpMjQsCP157Y0SP7Bfk/m1ibFTeWPfAwmDi5iddfQkZM1jIs9f44mEBStSr5oGPU1TNQeCyTfKMntMibhfaXjzn+Tez3HMlePaEi5o06Wk2M6JOOEqm3G5qQT1GctglXhmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750391345; c=relaxed/simple;
-	bh=wtR4rQAlyMNprnuOcfytJjolCJy/SGkMihU3Qwh99F0=;
-	h=Date:To:From:Subject:Message-Id; b=j8cEdsWLoUSDMndJR4vSz4zPJq46cw0gMzu1cqLPfUwdTWxtYS8DoW6RPTWJ1Q6xKBO+b3nPYlbUva9KgHuanwV155vdoicjdUqMRiu6g+znrlThkTNA8G1A4jTN4FtypC0wU4rZiWWDqtd9Ae3rW0gkldbeDQJ7NCwOwZcZr0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zGfNcbB9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750391347; c=relaxed/simple;
+	bh=mIc7E7RLgrrxcXXCm1mMF0F4uwx6dVm3iQ/xSIc4SeM=;
+	h=Date:To:From:Subject:Message-Id; b=c3LY+E0Uu7zK1VKIGpKYTpvqD4K4h4qRONk5h2/LQ8OnKy0sOX7m6hrdELFfQmIakjklCxb8dJ0x9emHkx6eQAwF40spT2X6yc63wsq0FVi8zv0CZs0HrMB/zMUkzk6UFaoHreH5gzGkRi3tSau+S8FIQgnr2X6pcYFs5kpuzTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QDkQ7He/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zGfNcbB9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5998C4CEE3;
-	Fri, 20 Jun 2025 03:49:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QDkQ7He/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61BEBC4CEE3;
+	Fri, 20 Jun 2025 03:49:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750391345;
-	bh=wtR4rQAlyMNprnuOcfytJjolCJy/SGkMihU3Qwh99F0=;
+	s=korg; t=1750391346;
+	bh=mIc7E7RLgrrxcXXCm1mMF0F4uwx6dVm3iQ/xSIc4SeM=;
 	h=Date:To:From:Subject:From;
-	b=zGfNcbB9LOplKXLqJkQav6bE8HushOny+rnGrZLXaHlJrtyqmeGiRElaPlOrL3DMh
-	 50tAYIm5PhyxrCX8P/nwtKL8mdl4nF7J/wwx9VzKbQ915OUBvmNkkcuBIiI0q1ZhZD
-	 mwM6Bg60/eVhdWi0kiYWsoIibbNVwjn0RfmejoZY=
-Date: Thu, 19 Jun 2025 20:49:04 -0700
-To: mm-commits@vger.kernel.org,zhaoyang.huang@unisoc.com,stable@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,hyesoo.yu@samsung.com,apopple@nvidia.com,aijun.sun@unisoc.com,david@redhat.com,akpm@linux-foundation.org
+	b=QDkQ7He/mluop06m0YZg2b0EIMfobMJ6fNaGg3rbShX7JBiFWOHgdzZW33cVQj3mI
+	 X3Lilnkceu0e+fS3HLIt6UzLa9wjZUJkkdDZyhzZ24/P/zEl4cT1xuIwTM14XX7UAa
+	 QGouYQgXzHywYTaj2pTJwmmmCLHs6S8zTEJ/VK2E=
+Date: Thu, 19 Jun 2025 20:49:05 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,david@redhat.com,chrisl@kernel.org,baohua@kernel.org,aarcange@redhat.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch removed from -mm tree
-Message-Id: <20250620034904.E5998C4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch removed from -mm tree
+Message-Id: <20250620034906.61BEBC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,212 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: revert "mm: gup: fix infinite loop within __get_longterm_locked"
+     Subject: mm: userfaultfd: fix race of userfaultfd_move and swap cache
 has been removed from the -mm tree.  Its filename was
-     mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
+     mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: revert "mm: gup: fix infinite loop within __get_longterm_locked"
-Date: Wed, 11 Jun 2025 15:13:14 +0200
+From: Kairui Song <kasong@tencent.com>
+Subject: mm: userfaultfd: fix race of userfaultfd_move and swap cache
+Date: Wed, 4 Jun 2025 23:10:38 +0800
 
-After commit 1aaf8c122918 ("mm: gup: fix infinite loop within
-__get_longterm_locked") we are able to longterm pin folios that are not
-supposed to get longterm pinned, simply because they temporarily have the
-LRU flag cleared (esp.  temporarily isolated).
+This commit fixes two kinds of races, they may have different results:
 
-For example, two __get_longterm_locked() callers can race, or
-__get_longterm_locked() can race with anything else that temporarily
-isolates folios.
+Barry reported a BUG_ON in commit c50f8e6053b0, we may see the same
+BUG_ON if the filemap lookup returned NULL and folio is added to swap
+cache after that.
 
-The introducing commit mentions the use case of a driver that uses
-vm_ops->fault to insert pages allocated through cma_alloc() into the page
-tables, assuming they can later get longterm pinned.  These pages/ folios
-would never have the LRU flag set and consequently cannot get isolated. 
-There is no known in-tree user making use of that so far, fortunately.
+If another kind of race is triggered (folio changed after lookup) we
+may see RSS counter is corrupted:
 
-To handle that in the future -- and avoid retrying forever to
-isolate/migrate them -- we will need a different mechanism for the CMA
-area *owner* to indicate that it actually already allocated the page and
-is fine with longterm pinning it.  The LRU flag is not suitable for that.
+[  406.893936] BUG: Bad rss-counter state mm:ffff0000c5a9ddc0
+type:MM_ANONPAGES val:-1
+[  406.894071] BUG: Bad rss-counter state mm:ffff0000c5a9ddc0
+type:MM_SHMEMPAGES val:1
 
-Probably we can lookup the relevant CMA area and query the bitmap; we only
-have have to care about some races, probably.  If already allocated, we
-could just allow longterm pinning)
+Because the folio is being accounted to the wrong VMA.
 
-Anyhow, let's fix the "must not be longterm pinned" problem first by
-reverting the original commit.
+I'm not sure if there will be any data corruption though, seems no. 
+The issues above are critical already.
 
-Link: https://lkml.kernel.org/r/20250611131314.594529-1-david@redhat.com
-Fixes: 1aaf8c122918 ("mm: gup: fix infinite loop within __get_longterm_locked")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Closes: https://lore.kernel.org/all/20250522092755.GA3277597@tiffany/
-Reported-by: Hyesoo Yu <hyesoo.yu@samsung.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Cc: Aijun Sun <aijun.sun@unisoc.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+
+On seeing a swap entry PTE, userfaultfd_move does a lockless swap cache
+lookup, and tries to move the found folio to the faulting vma.  Currently,
+it relies on checking the PTE value to ensure that the moved folio still
+belongs to the src swap entry and that no new folio has been added to the
+swap cache, which turns out to be unreliable.
+
+While working and reviewing the swap table series with Barry, following
+existing races are observed and reproduced [1]:
+
+In the example below, move_pages_pte is moving src_pte to dst_pte, where
+src_pte is a swap entry PTE holding swap entry S1, and S1 is not in the
+swap cache:
+
+CPU1                               CPU2
+userfaultfd_move
+  move_pages_pte()
+    entry = pte_to_swp_entry(orig_src_pte);
+    // Here it got entry = S1
+    ... < interrupted> ...
+                                   <swapin src_pte, alloc and use folio A>
+                                   // folio A is a new allocated folio
+                                   // and get installed into src_pte
+                                   <frees swap entry S1>
+                                   // src_pte now points to folio A, S1
+                                   // has swap count == 0, it can be freed
+                                   // by folio_swap_swap or swap
+                                   // allocator's reclaim.
+                                   <try to swap out another folio B>
+                                   // folio B is a folio in another VMA.
+                                   <put folio B to swap cache using S1 >
+                                   // S1 is freed, folio B can use it
+                                   // for swap out with no problem.
+                                   ...
+    folio = filemap_get_folio(S1)
+    // Got folio B here !!!
+    ... < interrupted again> ...
+                                   <swapin folio B and free S1>
+                                   // Now S1 is free to be used again.
+                                   <swapout src_pte & folio A using S1>
+                                   // Now src_pte is a swap entry PTE
+                                   // holding S1 again.
+    folio_trylock(folio)
+    move_swap_pte
+      double_pt_lock
+      is_pte_pages_stable
+      // Check passed because src_pte == S1
+      folio_move_anon_rmap(...)
+      // Moved invalid folio B here !!!
+
+The race window is very short and requires multiple collisions of multiple
+rare events, so it's very unlikely to happen, but with a deliberately
+constructed reproducer and increased time window, it can be reproduced
+easily.
+
+This can be fixed by checking if the folio returned by filemap is the
+valid swap cache folio after acquiring the folio lock.
+
+Another similar race is possible: filemap_get_folio may return NULL, but
+folio (A) could be swapped in and then swapped out again using the same
+swap entry after the lookup.  In such a case, folio (A) may remain in the
+swap cache, so it must be moved too:
+
+CPU1                               CPU2
+userfaultfd_move
+  move_pages_pte()
+    entry = pte_to_swp_entry(orig_src_pte);
+    // Here it got entry = S1, and S1 is not in swap cache
+    folio = filemap_get_folio(S1)
+    // Got NULL
+    ... < interrupted again> ...
+                                   <swapin folio A and free S1>
+                                   <swapout folio A re-using S1>
+    move_swap_pte
+      double_pt_lock
+      is_pte_pages_stable
+      // Check passed because src_pte == S1
+      folio_move_anon_rmap(...)
+      // folio A is ignored !!!
+
+Fix this by checking the swap cache again after acquiring the src_pte
+lock.  And to avoid the filemap overhead, we check swap_map directly [2].
+
+The SWP_SYNCHRONOUS_IO path does make the problem more complex, but so far
+we don't need to worry about that, since folios can only be exposed to the
+swap cache in the swap out path, and this is covered in this patch by
+checking the swap cache again after acquiring the src_pte lock.
+
+Testing with a simple C program that allocates and moves several GB of
+memory did not show any observable performance change.
+
+Link: https://lkml.kernel.org/r/20250604151038.21968-1-ryncsn@gmail.com
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Closes: https://lore.kernel.org/linux-mm/CAMgjq7B1K=6OOrK2OUZ0-tqCzi+EJt+2_K97TPGoSt=9+JwP7Q@mail.gmail.com/ [1]
+Link: https://lore.kernel.org/all/CAGsJ_4yJhJBo16XhiC-nUzSheyX-V3-nFE+tAi=8Y560K8eT=A@mail.gmail.com/ [2]
+Reviewed-by: Lokesh Gidra <lokeshgidra@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Chris Li <chrisl@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/userfaultfd.c |   33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-revert-mm-gup-fix-infinite-loop-within-__get_longterm_locked
-+++ a/mm/gup.c
-@@ -2303,13 +2303,13 @@ static void pofs_unpin(struct pages_or_f
- /*
-  * Returns the number of collected folios. Return value is always >= 0.
-  */
--static void collect_longterm_unpinnable_folios(
-+static unsigned long collect_longterm_unpinnable_folios(
- 		struct list_head *movable_folio_list,
- 		struct pages_or_folios *pofs)
+--- a/mm/userfaultfd.c~mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache
++++ a/mm/userfaultfd.c
+@@ -1084,8 +1084,18 @@ static int move_swap_pte(struct mm_struc
+ 			 pte_t orig_dst_pte, pte_t orig_src_pte,
+ 			 pmd_t *dst_pmd, pmd_t dst_pmdval,
+ 			 spinlock_t *dst_ptl, spinlock_t *src_ptl,
+-			 struct folio *src_folio)
++			 struct folio *src_folio,
++			 struct swap_info_struct *si, swp_entry_t entry)
  {
-+	unsigned long i, collected = 0;
- 	struct folio *prev_folio = NULL;
- 	bool drain_allow = true;
--	unsigned long i;
- 
- 	for (i = 0; i < pofs->nr_entries; i++) {
- 		struct folio *folio = pofs_get_folio(pofs, i);
-@@ -2321,6 +2321,8 @@ static void collect_longterm_unpinnable_
- 		if (folio_is_longterm_pinnable(folio))
- 			continue;
- 
-+		collected++;
++	/*
++	 * Check if the folio still belongs to the target swap entry after
++	 * acquiring the lock. Folio can be freed in the swap cache while
++	 * not locked.
++	 */
++	if (src_folio && unlikely(!folio_test_swapcache(src_folio) ||
++				  entry.val != src_folio->swap.val))
++		return -EAGAIN;
 +
- 		if (folio_is_device_coherent(folio))
- 			continue;
+ 	double_pt_lock(dst_ptl, src_ptl);
  
-@@ -2342,6 +2344,8 @@ static void collect_longterm_unpinnable_
- 				    NR_ISOLATED_ANON + folio_is_file_lru(folio),
- 				    folio_nr_pages(folio));
+ 	if (!is_pte_pages_stable(dst_pte, src_pte, orig_dst_pte, orig_src_pte,
+@@ -1102,6 +1112,25 @@ static int move_swap_pte(struct mm_struc
+ 	if (src_folio) {
+ 		folio_move_anon_rmap(src_folio, dst_vma);
+ 		src_folio->index = linear_page_index(dst_vma, dst_addr);
++	} else {
++		/*
++		 * Check if the swap entry is cached after acquiring the src_pte
++		 * lock. Otherwise, we might miss a newly loaded swap cache folio.
++		 *
++		 * Check swap_map directly to minimize overhead, READ_ONCE is sufficient.
++		 * We are trying to catch newly added swap cache, the only possible case is
++		 * when a folio is swapped in and out again staying in swap cache, using the
++		 * same entry before the PTE check above. The PTL is acquired and released
++		 * twice, each time after updating the swap_map's flag. So holding
++		 * the PTL here ensures we see the updated value. False positive is possible,
++		 * e.g. SWP_SYNCHRONOUS_IO swapin may set the flag without touching the
++		 * cache, or during the tiny synchronization window between swap cache and
++		 * swap_map, but it will be gone very quickly, worst result is retry jitters.
++		 */
++		if (READ_ONCE(si->swap_map[swp_offset(entry)]) & SWAP_HAS_CACHE) {
++			double_pt_unlock(dst_ptl, src_ptl);
++			return -EAGAIN;
++		}
  	}
-+
-+	return collected;
- }
  
- /*
-@@ -2418,9 +2422,11 @@ static long
- check_and_migrate_movable_pages_or_folios(struct pages_or_folios *pofs)
- {
- 	LIST_HEAD(movable_folio_list);
-+	unsigned long collected;
+ 	orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
+@@ -1412,7 +1441,7 @@ retry:
+ 		}
+ 		err = move_swap_pte(mm, dst_vma, dst_addr, src_addr, dst_pte, src_pte,
+ 				orig_dst_pte, orig_src_pte, dst_pmd, dst_pmdval,
+-				dst_ptl, src_ptl, src_folio);
++				dst_ptl, src_ptl, src_folio, si, entry);
+ 	}
  
--	collect_longterm_unpinnable_folios(&movable_folio_list, pofs);
--	if (list_empty(&movable_folio_list))
-+	collected = collect_longterm_unpinnable_folios(&movable_folio_list,
-+						       pofs);
-+	if (!collected)
- 		return 0;
- 
- 	return migrate_longterm_unpinnable_folios(&movable_folio_list, pofs);
+ out:
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-fs-proc-task_mmu-fix-page_is_pfnzero-detection-for-the-huge-zero-folio.patch
-mm-gup-remove-vm_bug_ons.patch
-mm-gup-remove-vm_bug_ons-fix.patch
-mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pmd.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pud.patch
+mm-list_lru-refactor-the-locking-code.patch
+mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hung.patch
+mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
+mm-shmem-swap-improve-mthp-swapin-process.patch
+mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
 
