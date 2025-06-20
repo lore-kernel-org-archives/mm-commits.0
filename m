@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B39E322E
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7796322E
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750391349; cv=none; b=SLof1DKUzeIhca/IRnEuBivjohTv1x36SAqgNiGto5j9wDbFdfmtoxGS9cZLGrLcm9pZw13R7mQunC7Mch9Pem/Ac4Cz5ZZBgIu2r87SVqBQOwGVbnzAvJhkuTjfjmWNevKcM29kpQX5S1d5TgjPGOEaNiNnTIKsGGtBhjolopQ=
+	t=1750391351; cv=none; b=b7ovgSMhFpwvWcHW1IWDLsl6YrKDY84Pd4LsjrNUiuEcnp5zh/TAVg5QSreLCAij+MNEvGn3Quemo20dKcBZiTFO3LWq68zJcmkLKrKB6Mf0t004c+6BtDgMdQPbOxQC1FAbWNMRJmjuhrRgCQ6JP/mKTK6UPKKYqaxSeh/deNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750391349; c=relaxed/simple;
-	bh=5I5DPp6VuzKCTNOUejxli8B/gC2tZmAZojasUHbKDa0=;
-	h=Date:To:From:Subject:Message-Id; b=Rjy83M/zWfDXHHYzGMJ0CiE2jwhzgwN+KLJ6XUxZhDyiJ0ytvV3l+zIuOajLv4ZSC2iaVd8te4bLT0Z0clMyScMtwxoXV9xhdC3hhGNQOyJMbd2ZTw8E4of3BFuRguFNCe+ouBrEEbThCgGTCjfCsu1PeoYoUYTTYE19mESp5L4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wLS8GhgT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750391351; c=relaxed/simple;
+	bh=EPTKMYyPGMZcxqY7g3HnnZ3MBShKy4qEoASLGZiC0pc=;
+	h=Date:To:From:Subject:Message-Id; b=d44InLJRxvfyyf6PmGidtwT3j0JVYtqDHI0g5rDKGsmtF4HIQxqBlU3KaRyVdSOykCfNYU6qNuaNl3sok86WAQZIOs6L0YS3QGm9N0iMAwWT5mD3Tz09wy2ayb7b2QqIwfigDg2Oraq8pUHgNWt/BSAA6QRMYHTBu+OlASOC6wY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r9+0HmlZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wLS8GhgT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3EECC4CEE3;
-	Fri, 20 Jun 2025 03:49:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r9+0HmlZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 749A4C4CEED;
+	Fri, 20 Jun 2025 03:49:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750391348;
-	bh=5I5DPp6VuzKCTNOUejxli8B/gC2tZmAZojasUHbKDa0=;
+	s=korg; t=1750391351;
+	bh=EPTKMYyPGMZcxqY7g3HnnZ3MBShKy4qEoASLGZiC0pc=;
 	h=Date:To:From:Subject:From;
-	b=wLS8GhgTGxEQfRKbat5t4iNjb6tWxuSsddIf0kGpC2SMTXZVKiyvy6x9oR/l9kk64
-	 jhSSV9W8sdG9VzYgShawHbCiVijYq2FpmGveul7t0urW50ueTU2R2rsanZcz/vr/fb
-	 g1J4cP5yDlSCcPwVPdcviUxC1CAUsT/Oy0OuXbJw=
-Date: Thu, 19 Jun 2025 20:49:08 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,ptyadav@amazon.de,akpm@linux-foundation.org
+	b=r9+0HmlZB/gDKedbPjZWPxC0iJGZuHRwNXNxSwUmiNo3EDXAMQuOwP+68Zr3SsxIa
+	 u2Z2ivTAIj6udt44OC2D414k/VrSSb8b+pCjj3bRnCk5D69CAX14b8FFu5mKRTILwP
+	 /H0OqOHEMdlsFbNLcAzNOYf87iBAS+DzQqWOcKoU=
+Date: Thu, 19 Jun 2025 20:49:10 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,ryan.roberts@arm.com,pulehui@huawei.com,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,donettom@linux.ibm.com,broonie@kernel.org,anshuman.khandual@arm.com,aishwarya.tcv@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kho-initialize-tail-pages-for-higher-order-folios-properly.patch removed from -mm tree
-Message-Id: <20250620034908.D3EECC4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-add-configs-to-fix-testcase-failure.patch removed from -mm tree
+Message-Id: <20250620034911.749A4C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: initialize tail pages for higher order folios properly
+     Subject: selftests/mm: add configs to fix testcase failure
 has been removed from the -mm tree.  Its filename was
-     kho-initialize-tail-pages-for-higher-order-folios-properly.patch
+     selftests-mm-add-configs-to-fix-testcase-failure.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pratyush Yadav <ptyadav@amazon.de>
-Subject: kho: initialize tail pages for higher order folios properly
-Date: Thu, 5 Jun 2025 19:11:41 +0200
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: add configs to fix testcase failure
+Date: Fri, 13 Jun 2025 09:19:12 +0530
 
-Currently, when restoring higher order folios, kho_restore_folio() only
-calls prep_compound_page() on all the pages.  That is not enough to
-properly initialize the folios.  The managed page count does not get
-updated, the reserved flag does not get dropped, and page count does not
-get initialized properly.
+If CONFIG_UPROBES is not set, a merge subtest fails:
 
-Restoring a higher order folio with it results in the following BUG with
-CONFIG_DEBUG_VM when attempting to free the folio:
+Failure log:
 
-    BUG: Bad page state in process test  pfn:104e2b
-    page: refcount:1 mapcount:0 mapping:0000000000000000 index:0xffffffffffffffff pfn:0x104e2b
-    flags: 0x2fffff80000000(node=0|zone=2|lastcpupid=0x1fffff)
-    raw: 002fffff80000000 0000000000000000 00000000ffffffff 0000000000000000
-    raw: ffffffffffffffff 0000000000000000 00000001ffffffff 0000000000000000
-    page dumped because: nonzero _refcount
-    [...]
-    Call Trace:
-    <TASK>
-    dump_stack_lvl+0x4b/0x70
-    bad_page.cold+0x97/0xb2
-    __free_frozen_pages+0x616/0x850
-    [...]
+  7151 12:46:54.627936  # # #  RUN           merge.handle_uprobe_upon_merged_vma ...
+  7152 12:46:54.639014  # # f /sys/bus/event_source/devices/uprobe/type
+  7153 12:46:54.639306  # # fopen: No such file or directory
+  7154 12:46:54.650451  # # # merge.c:473:handle_uprobe_upon_merged_vma:Expected read_sysfs("/sys/bus/event_source/devices/uprobe/type", &type) (1) == 0 (0)
+  7155 12:46:54.650730  # # # handle_uprobe_upon_merged_vma: Test terminated by assertion
+  7156 12:46:54.661750  # # #          FAIL  merge.handle_uprobe_upon_merged_vma
+  7157 12:46:54.662030  # # not ok 8 merge.handle_uprobe_upon_merged_vma
 
-Combine the path for 0-order and higher order folios, initialize the tail
-pages with a count of zero, and call adjust_managed_page_count() to
-account for all the pages instead of just missing them.
+CONFIG_UPROBES is enabled by CONFIG_UPROBE_EVENTS, which gets enabled by
+CONFIG_FTRACE. Therefore add these configs to selftests/mm/config so that
+CI systems can include this config in the kernel build. To be completely
+safe, add CONFIG_PROFILING too, to enable the dependency chain
+PROFILING -> PERF_EVENTS -> UPROBE_EVENTS -> UPROBES.
 
-In addition, since all the KHO-preserved pages get marked with
-MEMBLOCK_RSRV_NOINIT by deserialize_bitmap(), the reserved flag is not
-actually set (as can also be seen from the flags of the dumped page in the
-logs above).  So drop the ClearPageReserved() calls.
-
-[ptyadav@amazon.de: declare i in the loop instead of at the top]
-  Link: https://lkml.kernel.org/r/20250613125916.39272-1-pratyush@kernel.org
-Link: https://lkml.kernel.org/r/20250605171143.76963-1-pratyush@kernel.org
-Fixes: fc33e4b44b27 ("kexec: enable KHO support for memory preservation")
-Signed-off-by: Pratyush Yadav <ptyadav@amazon.de>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
+Link: https://lkml.kernel.org/r/20250613034912.53791-1-dev.jain@arm.com
+Fixes: efe99fabeb11 ("selftests/mm: add test about uprobe pte be orphan during vma merge")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reported-by: Aishwarya <aishwarya.tcv@arm.com>
+Closes: https://lore.kernel.org/all/20250610103729.72440-1-aishwarya.tcv@arm.com/
+Tested-by: Aishwarya TCV <aishwarya.tcv@arm.com>
+Tested-by : Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Pu Lehui <pulehui@huawei.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_handover.c |   29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/config |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/kexec_handover.c~kho-initialize-tail-pages-for-higher-order-folios-properly
-+++ a/kernel/kexec_handover.c
-@@ -164,11 +164,21 @@ static int __kho_preserve_order(struct k
- }
- 
- /* almost as free_reserved_page(), just don't free the page */
--static void kho_restore_page(struct page *page)
-+static void kho_restore_page(struct page *page, unsigned int order)
- {
--	ClearPageReserved(page);
--	init_page_count(page);
--	adjust_managed_page_count(page, 1);
-+	unsigned int nr_pages = (1 << order);
-+
-+	/* Head page gets refcount of 1. */
-+	set_page_count(page, 1);
-+
-+	/* For higher order folios, tail pages get a page count of zero. */
-+	for (unsigned int i = 1; i < nr_pages; i++)
-+		set_page_count(page + i, 0);
-+
-+	if (order > 0)
-+		prep_compound_page(page, order);
-+
-+	adjust_managed_page_count(page, nr_pages);
- }
- 
- /**
-@@ -186,15 +196,10 @@ struct folio *kho_restore_folio(phys_add
- 		return NULL;
- 
- 	order = page->private;
--	if (order) {
--		if (order > MAX_PAGE_ORDER)
--			return NULL;
--
--		prep_compound_page(page, order);
--	} else {
--		kho_restore_page(page);
--	}
-+	if (order > MAX_PAGE_ORDER)
-+		return NULL;
- 
-+	kho_restore_page(page, order);
- 	return page_folio(page);
- }
- EXPORT_SYMBOL_GPL(kho_restore_folio);
+--- a/tools/testing/selftests/mm/config~selftests-mm-add-configs-to-fix-testcase-failure
++++ a/tools/testing/selftests/mm/config
+@@ -8,3 +8,6 @@ CONFIG_GUP_TEST=y
+ CONFIG_TRANSPARENT_HUGEPAGE=y
+ CONFIG_MEM_SOFT_DIRTY=y
+ CONFIG_ANON_VMA_NAME=y
++CONFIG_FTRACE=y
++CONFIG_PROFILING=y
++CONFIG_UPROBES=y
 _
 
-Patches currently in -mm which might be from ptyadav@amazon.de are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
+xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
+mm-call-pointers-to-ptes-as-ptep.patch
+mm-optimize-mremap-by-pte-batching.patch
 
