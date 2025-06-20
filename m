@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EBF522339
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 01:34:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 310CB1C245C
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:45:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750383254; cv=none; b=Y5wEIYXkURuDYWgEgfFdm22JBl9HOnUiBjrq7GSWbARYUP03qw2ledbg2+oZU1JsAU7+818A2YGBklmuonrH/DREpN4wT7Dw4Z0gCZeepXXRpJE6abqZB6djEvlJU6bugynSsCOlvjPgUJWNKuocKJS+9FMJ25I8kj1QCYl3554=
+	t=1750391120; cv=none; b=Ih7cwlPij0jV6ENfnhE2IKAY1FZMr80mkV3C4LskAfVnugsXKdYio0Sf7GyfNfTmh1WaeGrT1pfn+wQe1VPKwwHfZJYlChnoH0dx2ls2zEpT3l+aatsj7hD642x17Nm0gAP636ZZAVFhIGohvxGVKYH+J73ZjPNaehjSeKCNlLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750383254; c=relaxed/simple;
-	bh=ykZ8KIKR8B1+kdFq2eQ8hyhO1n9zzmB+wEAKPtVysqc=;
-	h=Date:To:From:Subject:Message-Id; b=XYS7t9FXTAlQNv5e7kaDMAdRMc1e8OOyKvoRIHFNEuQuavT8kyboiws+wSi+72rtJ480voMLs30PjCqL6FsnHiIw9OcHnLAemawh8s12RDbdufNfIq2PuqAF2BKDyygp1dOUSTH9ysCAyxE/8q64ei28VGKEKVwoOxvjhIBUshY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sm6PzV9Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750391120; c=relaxed/simple;
+	bh=rHqUywfPWKwLcczTOXtUQ+BM8an5UepxYe5gTMHzJJI=;
+	h=Date:To:From:Subject:Message-Id; b=LJX66H4WDEqiWHiO+jG9TXwPsV9Cpet/pObHndwEqMX8SLcSAj2jfU7UIHd0FW2iqN6B/zjbTi0OzxV1yzs+ojNWYhymIduVv/0dyQaKYnfqeF3aRpE8r+pzDcWEFDaUGxRujJX8g3hZgrFOeFLoZiiO31M2tUsOiXqJQXE/iKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GudYYx1v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sm6PzV9Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A655BC4CEEF;
-	Fri, 20 Jun 2025 01:34:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GudYYx1v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A337FC4CEE3;
+	Fri, 20 Jun 2025 03:45:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750383253;
-	bh=ykZ8KIKR8B1+kdFq2eQ8hyhO1n9zzmB+wEAKPtVysqc=;
+	s=korg; t=1750391118;
+	bh=rHqUywfPWKwLcczTOXtUQ+BM8an5UepxYe5gTMHzJJI=;
 	h=Date:To:From:Subject:From;
-	b=sm6PzV9YjcR3Ee6vmAFb54scjTg1zhxehomlkvrqqWYbeIQwLwGe1ZnP5f9va4ADz
-	 cC+VO/aDARMa9Lo8/JRWezGqoZ/XVvi4PO2I8oz/RYCjwxNcXLEcX7HfTqplLj9R1Y
-	 XuJtxwL26pzWCbibBrJN8xjDdXLnh1B93dYzNSHs=
-Date: Thu, 19 Jun 2025 18:34:13 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,peterx@redhat.com,Jason@zx2c4.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,aarcange@redhat.com,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=GudYYx1vbxuvLp3pRlwSOMq1X2F7rI0DKpZK97locFWvH6d+yIv7MOPfUZuG4eOkE
+	 mP84pEFWD5/hs3YhQBLYXwXUlXbFly0wl1a6FzRZ5IB1U5vVPn3TE3k2zWjnIvlRcc
+	 unQXPWHQ1OgLnQpn6mcUVHZ8/ROm83RwKuyccN1Q=
+Date: Thu, 19 Jun 2025 20:45:17 -0700
+To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-remove-uffd_cloexec-uffd_nonblock-and-uffd_flags_set.patch added to mm-unstable branch
-Message-Id: <20250620013413.A655BC4CEEF@smtp.kernel.org>
+Subject: [folded-merged] mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch removed from -mm tree
+Message-Id: <20250620034518.A337FC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,86 +34,57 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: userfaultfd: remove UFFD_CLOEXEC, UFFD_NONBLOCK, and UFFD_FLAGS_SET
-has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-remove-uffd_cloexec-uffd_nonblock-and-uffd_flags_set.patch
+The quilt patch titled
+     Subject: mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3
+has been removed from the -mm tree.  Its filename was
+     mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-remove-uffd_cloexec-uffd_nonblock-and-uffd_flags_set.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: userfaultfd: remove UFFD_CLOEXEC, UFFD_NONBLOCK, and UFFD_FLAGS_SET
-Date: Thu, 19 Jun 2025 21:24:26 -0400
+From: Kairui Song <kasong@tencent.com>
+Subject: mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3
+Date: Wed, 11 Jun 2025 02:16:45 +0800
 
-UFFD_CLOEXEC, UFFD_NONBLOCK, and UFFD_FLAGS_SET have been unused since
-they were added in commit 932b18e0aec6 ("userfaultfd:
-linux/userfaultfd_k.h").  Remove them and the associated BUILD_BUG_ON()
-checks.
+add comment
 
-Link: https://lkml.kernel.org/r/20250619-uffd-fixes-v3-4-a7274d3bd5e4@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Link: https://lkml.kernel.org/r/20250610181645.45922-1-ryncsn@gmail.com
+Fixes: 1dd44c0af4fa ("mm: shmem: skip swapcache for swapin of synchronous swap device")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c              |    2 --
- include/linux/userfaultfd_k.h |    4 ----
- 2 files changed, 6 deletions(-)
+ mm/shmem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/userfaultfd.c~userfaultfd-remove-uffd_cloexec-uffd_nonblock-and-uffd_flags_set
-+++ a/fs/userfaultfd.c
-@@ -2114,8 +2114,6 @@ static int new_userfaultfd(int flags)
- 
- 	/* Check the UFFD_* constants for consistency.  */
- 	BUILD_BUG_ON(UFFD_USER_MODE_ONLY & UFFD_SHARED_FCNTL_FLAGS);
--	BUILD_BUG_ON(UFFD_CLOEXEC != O_CLOEXEC);
--	BUILD_BUG_ON(UFFD_NONBLOCK != O_NONBLOCK);
- 
- 	if (flags & ~(UFFD_SHARED_FCNTL_FLAGS | UFFD_USER_MODE_ONLY))
- 		return -EINVAL;
---- a/include/linux/userfaultfd_k.h~userfaultfd-remove-uffd_cloexec-uffd_nonblock-and-uffd_flags_set
-+++ a/include/linux/userfaultfd_k.h
-@@ -30,11 +30,7 @@
-  * from userfaultfd, in order to leave a free define-space for
-  * shared O_* flags.
-  */
--#define UFFD_CLOEXEC O_CLOEXEC
--#define UFFD_NONBLOCK O_NONBLOCK
--
- #define UFFD_SHARED_FCNTL_FLAGS (O_CLOEXEC | O_NONBLOCK)
--#define UFFD_FLAGS_SET (EFD_SHARED_FCNTL_FLAGS)
- 
- /*
-  * Start with fault_pending_wqh and fault_wqh so they're more likely
+--- a/mm/shmem.c~mm-shmem-swap-fix-softlockup-with-mthp-swapin-v3
++++ a/mm/shmem.c
+@@ -2273,6 +2273,8 @@ static int shmem_swapin_folio(struct ino
+ 		 * If uffd is active for the vma, we need per-page fault
+ 		 * fidelity to maintain the uffd semantics, then fallback
+ 		 * to swapin order-0 folio, as well as for zswap case.
++		 * Any existing sub folio in the swap cache also blocks
++		 * mTHP swapin.
+ 		 */
+ 		if (order > 0 && ((vma && unlikely(userfaultfd_armed(vma))) ||
+ 				  !zswap_never_enabled() ||
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-userfaultfd-correctly-prevent-registering-vm_droppable-regions.patch
-userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd.patch
-userfaultfd-remove-vm_bug_ons.patch
-userfaultfd-remove-uffd_cloexec-uffd_nonblock-and-uffd_flags_set.patch
+mm-shmem-swap-fix-softlockup-with-mthp-swapin.patch
+mm-userfaultfd-fix-race-of-userfaultfd_move-and-swap-cache.patch
+mm-list_lru-refactor-the-locking-code.patch
+mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hung.patch
+mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
+mm-shmem-swap-improve-mthp-swapin-process.patch
+mm-shmem-swap-avoid-false-positive-swap-cache-lookup.patch
 
