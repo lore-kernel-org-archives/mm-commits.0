@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC509322E
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25A1E322E
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 03:49:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750391366; cv=none; b=DkGWsRBQuGCzmGDFVFTy/3ltucCL8UzTjXOGTUqbzQdd0BoxvGlzRkH2XCsXuCpVdlJGu2oMt+qYMGqIusXm4RjF4oOVyiLnOIA/ZXt2UHhTZ6GhDksnxorlyziSe5bgKdXz+662eGX4SXwv2Jhv5TIPsKu/JDhDjZ4cHQejQkg=
+	t=1750391367; cv=none; b=AWKK7cAV5tSYm2Y9AK9arehfSvqcavjmmWN18o3n5mOLARVV8YVmJVy1A9ygG0ZG2mGqr4+FSUs50Q2Q8ScMyLiOKbokkzvA6RmwWYDgm90OLgq9mg0v77r+IqXe1I2wy/kBVFoN/EYsS/ixvVtHYKC+KLzxZIbbgjzQ3pOmlyA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750391366; c=relaxed/simple;
-	bh=U87uegfZ4HzUWsg7UPtF3KKFBrL0mhUxLoHep4SsFrQ=;
-	h=Date:To:From:Subject:Message-Id; b=s3ITwVa0PfzgqKRGuaMyxjZMpv5MMkiA6ir6pR5+XO4jo7tKrzewq7wjUCDF6VIgl5ZH2jmnJ/zBITE1vLIEVMey/W8+c4KUvXpvog76VuBjbkCTABX9RhjNjTqGn6vAPtaEC7PI6HpWDNH3xDScN41SjeW6lYh8e1u4pR7U+HM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CgRvf0OC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750391367; c=relaxed/simple;
+	bh=T8L68gfa/riT9kNiPF11bdLEBUQ4r2FU+z6h5Rmexe8=;
+	h=Date:To:From:Subject:Message-Id; b=uWACieXO3nImYOroAjGr7j2H6q/Wwewko4LSdHYszfhX7X1qEfaN9RNrSenzY2rCPO++JFtraMxpaZkYbnBk+xLlLP805VikXoLjBODPX5qMzxutC6YRLilGcy7E+whm5Z1fO76HkcawitezpRwQPhchYWaMiqev3UhdrUGiKx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iliWFfQS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CgRvf0OC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C26EFC4CEE3;
-	Fri, 20 Jun 2025 03:49:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iliWFfQS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA58EC4CEE3;
+	Fri, 20 Jun 2025 03:49:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750391365;
-	bh=U87uegfZ4HzUWsg7UPtF3KKFBrL0mhUxLoHep4SsFrQ=;
+	s=korg; t=1750391367;
+	bh=T8L68gfa/riT9kNiPF11bdLEBUQ4r2FU+z6h5Rmexe8=;
 	h=Date:To:From:Subject:From;
-	b=CgRvf0OClrugxKZ/N4F+50duL1tBG8fr8LOHPEWbPdkhUWql/RvJwIpaBrZtOtpgv
-	 uW23gHrDISZmYMrZVE0lBuHnq6v8/50qOyWDmcgOjdO7KK1xToj77+iiYNQh9f1zAf
-	 c6oKqTFBPLyR4CQNfhloPHsMyEnGm0HbCuL5Espw=
-Date: Thu, 19 Jun 2025 20:49:25 -0700
-To: mm-commits@vger.kernel.org,hughd@google.com,baolin.wang@linux.alibaba.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=iliWFfQSe3qyTms/SS+PFumACujf1Pl3Mt4ELVfF1D7oV9hDN2Xul63J45uOiVfmX
+	 iIgurJ1aov8gAiNb9xNGV/RVsQwOONNu1bJ/pHvzVXDTaciosFQX5xxhRRLEwX1SRm
+	 pADfA7Pce3TwAH6AXtISbQVDiv+4L7kyk7IajqMg=
+Date: Thu, 19 Jun 2025 20:49:26 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-memfd-shmem-quota-files-to-shmem-section.patch removed from -mm tree
-Message-Id: <20250620034925.C26EFC4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-additional-mmap-related-files-to-mmap-section.patch removed from -mm tree
+Message-Id: <20250620034926.EA58EC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add memfd, shmem quota files to shmem section
+     Subject: MAINTAINERS: add additional mmap-related files to mmap section
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-memfd-shmem-quota-files-to-shmem-section.patch
+     maintainers-add-additional-mmap-related-files-to-mmap-section.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add memfd, shmem quota files to shmem section
-Date: Tue, 17 Jun 2025 17:13:59 +0100
+Subject: MAINTAINERS: add additional mmap-related files to mmap section
+Date: Tue, 17 Jun 2025 15:41:30 +0100
 
-These files seem best suited to shmem.
+msync and nommu are directly related to memory mapping, mincore is less so
+but all are roughly speaking operating on virtual memory mappings from the
+point of view of the user so this seems the most appropriate place for
+them.
 
-Link: https://lkml.kernel.org/r/20250617161359.166955-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250617144130.147847-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ MAINTAINERS |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-memfd-shmem-quota-files-to-shmem-section
+--- a/MAINTAINERS~maintainers-add-additional-mmap-related-files-to-mmap-section
 +++ a/MAINTAINERS
-@@ -15740,7 +15740,6 @@ F:	Documentation/admin-guide/mm/
- F:	Documentation/mm/
- F:	include/linux/gfp.h
- F:	include/linux/gfp_types.h
--F:	include/linux/memfd.h
- F:	include/linux/memory_hotplug.h
- F:	include/linux/memory-tiers.h
- F:	include/linux/mempolicy.h
-@@ -25042,8 +25041,11 @@ M:	Hugh Dickins <hughd@google.com>
- R:	Baolin Wang <baolin.wang@linux.alibaba.com>
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	include/linux/memfd.h
- F:	include/linux/shmem_fs.h
-+F:	mm/memfd.c
- F:	mm/shmem.c
-+F:	mm/shmem_quota.c
- 
- TOMOYO SECURITY MODULE
- M:	Kentaro Takeda <takedakn@nttdata.co.jp>
+@@ -15985,11 +15985,14 @@ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ F:	include/trace/events/mmap.h
++F:	mm/mincore.c
+ F:	mm/mlock.c
+ F:	mm/mmap.c
+ F:	mm/mprotect.c
+ F:	mm/mremap.c
+ F:	mm/mseal.c
++F:	mm/msync.c
++F:	mm/nommu.c
+ F:	mm/vma.c
+ F:	mm/vma.h
+ F:	mm/vma_exec.c
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
