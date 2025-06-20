@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77EFE4C79;
-	Fri, 20 Jun 2025 00:46:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DD7030E826
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jun 2025 00:48:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750380411; cv=none; b=XyEjn85WLgcd80x6q4nMl180RaG1EScmW4xLq2ph/rBlCw+VC0HEOsIhgRSlvUamfekvEftN1nhgi3S/KtnUwuyZoF9ox3yeEO2twV1arHgeKvRzU/OQxEwPQ6MVGxolMn99O5yu5JTVIruB4V0nQM3ef9Z4Mr9MNlGc5QPyUyU=
+	t=1750380480; cv=none; b=b4Kw2zJsr4iTe7x2pX/0NJ3JBPz405SHESAE1T+5lhPphtCKe5PycXcr/AnIh8u7gPykf2Ahtn2jSxZNt9PEll4qUT+F7ZB29oJVAz5UNHynhOC2Oo2x9+yo9701o/9i4MME9wxTeF87FzJidrXQSVhfYR2lnQqADCGWcRg1Qkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750380411; c=relaxed/simple;
-	bh=uA5jOxe0KkX6Ovyb4Dypn6lnImsadKIwpGcNNs722kQ=;
-	h=Date:To:From:Subject:Message-Id; b=YQIC8jG8XsymVjjTaUvtIBCyiQbdBTEW95WO0DrJur3N5BBUgSMhHC1vI0LJ4nJDQl9ppKCk29VJD6Ub0nNUFNlpbqrHPRhsDr07TJzHaRNuDmOSxTp6YEZTBWI/wMDCDo7sJ7SW0Q5hvsT6KHmUjGQMw+wBKVICBHI/+XLKf/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UHKNu57P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750380480; c=relaxed/simple;
+	bh=MV+7TnloLem9sITZ5W2r1heSm7WBS77Vp2rGeZIweYs=;
+	h=Date:To:From:Subject:Message-Id; b=CqUS2bW8OJGMIR3EBA27qPHmOop9/H8vglAUMZvtb5n4L1fhDEYpSA5GQoGawIZtUy4TtzoEX3qyqjIZqbgcIoPovXKn1eG6oU8HQZ/T87uaaTay2Q1MDBiUhLKszgv8jhr0nDSGJ6eS/sRCiJwVW1AdEGD59IBzhScnRld220s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yReNsQu9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UHKNu57P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9382C4CEEA;
-	Fri, 20 Jun 2025 00:46:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yReNsQu9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 439F5C4CEEA;
+	Fri, 20 Jun 2025 00:48:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750380411;
-	bh=uA5jOxe0KkX6Ovyb4Dypn6lnImsadKIwpGcNNs722kQ=;
+	s=korg; t=1750380480;
+	bh=MV+7TnloLem9sITZ5W2r1heSm7WBS77Vp2rGeZIweYs=;
 	h=Date:To:From:Subject:From;
-	b=UHKNu57P7aUUuXG3BVR0J06IwFRRcwX6h0cAa4M9uKPi84GPU6iq5DW9qnOtYIsmu
-	 BYF+oPXAuCzO7umbeyLcfYs9gJb8boCUBcyOrBMP6KdUszw2jZ4ORcmU9YuUG5yvKy
-	 ics06vHZWOQNLPvK+UIgRIwnwTS5K8AJcrLiZebc=
-Date: Thu, 19 Jun 2025 17:46:50 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=yReNsQu9+Fo1RHg9MQfzoQgkmVzAE5TYzVaCIbxgksDD4uZMEbxorq/Fn2AjCQtiw
+	 uB0n9sy5kaTsckvEF7E1Rtx3GlIFmNa7h4ik9aW4FQNi/yvOnLVn2RRRKIK4MKc7pK
+	 2eHNhKPCZfNUp3CYu7eIcBSuQkVtUWS8x435e1Rw=
+Date: Thu, 19 Jun 2025 17:47:59 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250620004650.E9382C4CEEA@smtp.kernel.org>
+Subject: + selftets-damon-add-a-test-for-memcg_path-leak.patch added to mm-new branch
+Message-Id: <20250620004800.439F5C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: free old damon_sysfs_scheme_filter->memcg_path on write
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write.patch
+     Subject: selftets/damon: add a test for memcg_path leak
+has been added to the -mm mm-new branch.  Its filename is
+     selftets-damon-add-a-test-for-memcg_path-leak.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftets-damon-add-a-test-for-memcg_path-leak.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,36 +65,80 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: free old damon_sysfs_scheme_filter->memcg_path on write
-Date: Thu, 19 Jun 2025 11:36:07 -0700
+Subject: selftets/damon: add a test for memcg_path leak
+Date: Thu, 19 Jun 2025 11:36:08 -0700
 
-memcg_path_store() assigns a newly allocated memory buffer to
-filter->memcg_path, without deallocating the previously allocated and
-assigned memory buffer.  As a result, users can leak kernel memory by
-continuously writing a data to memcg_path DAMOS sysfs file.  Fix the leak
-by deallocating the previously set memory buffer.
+There was a memory leak bug in DAMOS sysfs memcg_path file.  Add a
+selftest to ensure the bug never comes back.
 
-Link: https://lkml.kernel.org/r/20250619183608.6647-2-sj@kernel.org
-Fixes: 7ee161f18b5d ("mm/damon/sysfs-schemes: implement filter directory")
+Link: https://lkml.kernel.org/r/20250619183608.6647-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>		[6.3.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/damon/Makefile                 |    1 
+ tools/testing/selftests/damon/sysfs_memcg_path_leak.sh |   43 ++++++++++
+ 2 files changed, 44 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write
-+++ a/mm/damon/sysfs-schemes.c
-@@ -472,6 +472,7 @@ static ssize_t memcg_path_store(struct k
- 		return -ENOMEM;
+--- a/tools/testing/selftests/damon/Makefile~selftets-damon-add-a-test-for-memcg_path-leak
++++ a/tools/testing/selftests/damon/Makefile
+@@ -15,6 +15,7 @@ TEST_PROGS += reclaim.sh lru_sort.sh
+ # regression tests (reproducers of previously found bugs)
+ TEST_PROGS += sysfs_update_removed_scheme_dir.sh
+ TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
++TEST_PROGS += sysfs_memcg_path_leak.sh
  
- 	strscpy(path, buf, count + 1);
-+	kfree(filter->memcg_path);
- 	filter->memcg_path = path;
- 	return count;
- }
+ EXTRA_CLEAN = __pycache__
+ 
+diff --git a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
+new file mode 100755
+--- /dev/null
++++ a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
+@@ -0,0 +1,43 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++
++if [ $EUID -ne 0 ]
++then
++	echo "Run as root"
++	exit $ksft_skip
++fi
++
++damon_sysfs="/sys/kernel/mm/damon/admin"
++if [ ! -d "$damon_sysfs" ]
++then
++	echo "damon sysfs not found"
++	exit $ksft_skip
++fi
++
++# ensure filter directory
++echo 1 > "$damon_sysfs/kdamonds/nr_kdamonds"
++echo 1 > "$damon_sysfs/kdamonds/0/contexts/nr_contexts"
++echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/nr_schemes"
++echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/0/filters/nr_filters"
++
++filter_dir="$damon_sysfs/kdamonds/0/contexts/0/schemes/0/filters/0"
++
++before_kb=$(grep Slab /proc/meminfo | awk '{print $2}')
++
++# try to leak 3000 KiB
++for i in {1..102400};
++do
++	echo "012345678901234567890123456789" > "$filter_dir/memcg_path"
++done
++
++after_kb=$(grep Slab /proc/meminfo | awk '{print $2}')
++# expect up to 1500 KiB free from other tasks memory
++expected_after_kb_max=$((before_kb + 1500))
++
++if [ "$after_kb" -gt "$expected_after_kb_max" ]
++then
++	echo "maybe memcg_path are leaking: $before_kb -> $after_kb"
++	exit 1
++else
++	exit 0
++fi
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
