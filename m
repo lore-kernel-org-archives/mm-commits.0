@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EE1B19E98C;
-	Fri, 20 Jun 2025 22:40:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B63D2561BB;
+	Sat, 21 Jun 2025 18:47:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750459245; cv=none; b=TkhOysdMzhOslJRl/OBV6uhQoghMzIjmRwGbMEWLBnBqoEzlXY2dBoJsag1dGuTV/gdbH4TAQOgG2yah95MafMzYjBbru4/6n70ZZnqKZh70eIbAcJWWWK4NgLN3y1NHHS9iqgNmMdld1q8d0xzdQnia5mHkhF175JA2fXJed34=
+	t=1750531633; cv=none; b=SKcD9IPJco4bV+UD/dCSsQWoGye+LvZca6tIULIXroTdj7KVdIpCxkRBEZuTT4zr1g4kqJRKfAEjOMCAtNw91Q5l4YxJBXQpVRtkm2Z2Cfox2YtRgFgbhGe1xlIppdiCdksHWwIt6aG7ZZpv9uy6I6II3FwuklsIC2GJO20ACjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750459245; c=relaxed/simple;
-	bh=5yZ8b9gZBFicZWykTcDIabZwcu8qrQAjln5V3jKG+Iw=;
-	h=Date:To:From:Subject:Message-Id; b=BysGdPC1aOLYpvYlm3voof61rnt4wXvNcVEFd1TLoixDqtoEmnCemd3G2pUwjbfWK8xM9aAz0ly1BUfu3LCnTx6kPxfLFCf6HrcnBAppdwX7LWpyyd3xjUEE73rVnpQQK5ieHXdr4izJPXgpNgX6wV6IPuAuK7W6c6dtl/27ny8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KcPhrfnN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750531633; c=relaxed/simple;
+	bh=JyJYizQTl99ZpLk/kGVVWjAW/kYnGMdVBd443Liovy4=;
+	h=Date:To:From:Subject:Message-Id; b=sECXnqAZZ2VpD/l+YRwaJ3F2vgjw/SraSRgE3Gj/V2L6rLQcTyoqN2qjtW91r6LvBtii9G+gwNQuUeaUQCIXyyH9qzKflSTqdVS5UDYjxYWZlvueM73Gr6h/+QxT0sPi1maKihzCPMZYeGXjeOg3BPPVMU0TACesoWsG3pQ0lig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LPOzszFU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KcPhrfnN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 879BEC4CEE3;
-	Fri, 20 Jun 2025 22:40:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LPOzszFU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85A75C4CEE7;
+	Sat, 21 Jun 2025 18:47:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750459244;
-	bh=5yZ8b9gZBFicZWykTcDIabZwcu8qrQAjln5V3jKG+Iw=;
+	s=korg; t=1750531632;
+	bh=JyJYizQTl99ZpLk/kGVVWjAW/kYnGMdVBd443Liovy4=;
 	h=Date:To:From:Subject:From;
-	b=KcPhrfnNdZ3A9hLG3FzSCEFHhEs1UmVt7UJ8Hmi4DpSk2Is7ZU2d2P+PD3FMU9HZB
-	 0qPUBy5RgHr1BJW5/o42vOdmWQ2ZaFkCXLkpew8O84NWJ9TTTk+6wNtNRU4rRZGmBl
-	 NsTIsi20b+89m/Zv8H3b9wAfa61INBGjBep5a1z8=
-Date: Fri, 20 Jun 2025 15:40:43 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,oliver.sang@intel.com,kent.overstreet@linux.dev,cachen@purestorage.com,00107082@163.com,harry.yoo@oracle.com,akpm@linux-foundation.org
+	b=LPOzszFUhlnUEbbXT2fnO9EbDkN1nJHPRBkWGCeDcVsZpvnPQJmi2J/3QLWX2B/lZ
+	 pFBcrWxj8JNyUn3jpfDcPvdonjnnKm8OhNoMWkmSZxnXLIhsq75dG6D2ZUQAMRP59j
+	 On8XmowDpYcAM8Wms7OVfk/tnKhhU8RmAU3bxoVM=
+Date: Sat, 21 Jun 2025 11:47:11 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,miklos@szeredi.hu,dan.j.williams@intel.com,apopple@nvidia.com,haiyuewa@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250620224044.879BEC4CEE3@smtp.kernel.org>
+Subject: + fuse-fix-runtime-warning-on-truncate_folio_batch_exceptionals.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250621184712.85A75C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/alloc_tag: do not acquire non-existent lock in alloc_tag_top_users()
+     Subject: fuse: Fix runtime warning on truncate_folio_batch_exceptionals()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
+     fuse-fix-runtime-warning-on-truncate_folio_batch_exceptionals.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-fix-runtime-warning-on-truncate_folio_batch_exceptionals.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Harry Yoo <harry.yoo@oracle.com>
-Subject: lib/alloc_tag: do not acquire non-existent lock in alloc_tag_top_users()
-Date: Sat, 21 Jun 2025 04:53:05 +0900
+From: Haiyue Wang <haiyuewa@163.com>
+Subject: fuse: Fix runtime warning on truncate_folio_batch_exceptionals()
+Date: Sun, 22 Jun 2025 01:13:51 +0800
 
-alloc_tag_top_users() attempts to lock alloc_tag_cttype->mod_lock even
-when the alloc_tag_cttype is not allocated because:
+The WARN_ON_ONCE is introduced on truncate_folio_batch_exceptionals() to
+capture whether the filesystem has removed all DAX entries or not.
 
-  1) alloc tagging is disabled because mem profiling is disabled
-     (!alloc_tag_cttype)
-  2) alloc tagging is enabled, but not yet initialized (!alloc_tag_cttype)
-  3) alloc tagging is enabled, but failed initialization
-     (!alloc_tag_cttype or IS_ERR(alloc_tag_cttype))
+And the fix has been applied on the filesystem xfs and ext4 by the commit
+0e2f80afcfa6 ("fs/dax: ensure all pages are idle prior to filesystem
+unmount").
 
-In all cases, alloc_tag_cttype is not allocated, and therefore
-alloc_tag_top_users() should not attempt to acquire the semaphore.
+Apply the missed fix on filesystem fuse to fix the runtime warning:
 
-This leads to a crash on memory allocation failure by attempting to
-acquire a non-existent semaphore:
+[    2.011450] ------------[ cut here ]------------
+[    2.011873] WARNING: CPU: 0 PID: 145 at mm/truncate.c:89 truncate_folio_batch_exceptionals+0x272/0x2b0
+[    2.012468] Modules linked in:
+[    2.012718] CPU: 0 UID: 1000 PID: 145 Comm: weston Not tainted 6.16.0-rc2-WSL2-STABLE #2 PREEMPT(undef)
+[    2.013292] RIP: 0010:truncate_folio_batch_exceptionals+0x272/0x2b0
+[    2.013704] Code: 48 63 d0 41 29 c5 48 8d 1c d5 00 00 00 00 4e 8d 6c 2a 01 49 c1 e5 03 eb 09 48 83 c3 08 49 39 dd 74 83 41 f6 44 1c 08 01 74 ef <0f> 0b 49 8b 34 1e 48 89 ef e8 10 a2 17 00 eb df 48 8b 7d 00 e8 35
+[    2.014845] RSP: 0018:ffffa47ec33f3b10 EFLAGS: 00010202
+[    2.015279] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+[    2.015884] RDX: 0000000000000000 RSI: ffffa47ec33f3ca0 RDI: ffff98aa44f3fa80
+[    2.016377] RBP: ffff98aa44f3fbf0 R08: ffffa47ec33f3ba8 R09: 0000000000000000
+[    2.016942] R10: 0000000000000001 R11: 0000000000000000 R12: ffffa47ec33f3ca0
+[    2.017437] R13: 0000000000000008 R14: ffffa47ec33f3ba8 R15: 0000000000000000
+[    2.017972] FS:  000079ce006afa40(0000) GS:ffff98aade441000(0000) knlGS:0000000000000000
+[    2.018510] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    2.018987] CR2: 000079ce03e74000 CR3: 000000010784f006 CR4: 0000000000372eb0
+[    2.019518] Call Trace:
+[    2.019729]  <TASK>
+[    2.019901]  truncate_inode_pages_range+0xd8/0x400
+[    2.020280]  ? timerqueue_add+0x66/0xb0
+[    2.020574]  ? get_nohz_timer_target+0x2a/0x140
+[    2.020904]  ? timerqueue_add+0x66/0xb0
+[    2.021231]  ? timerqueue_del+0x2e/0x50
+[    2.021646]  ? __remove_hrtimer+0x39/0x90
+[    2.022017]  ? srso_alias_untrain_ret+0x1/0x10
+[    2.022497]  ? psi_group_change+0x136/0x350
+[    2.023046]  ? _raw_spin_unlock+0xe/0x30
+[    2.023514]  ? finish_task_switch.isra.0+0x8d/0x280
+[    2.024068]  ? __schedule+0x532/0xbd0
+[    2.024551]  fuse_evict_inode+0x29/0x190
+[    2.025131]  evict+0x100/0x270
+[    2.025641]  ? _atomic_dec_and_lock+0x39/0x50
+[    2.026316]  ? __pfx_generic_delete_inode+0x10/0x10
+[    2.026843]  __dentry_kill+0x71/0x180
+[    2.027335]  dput+0xeb/0x1b0
+[    2.027725]  __fput+0x136/0x2b0
+[    2.028054]  __x64_sys_close+0x3d/0x80
+[    2.028469]  do_syscall_64+0x6d/0x1b0
+[    2.028832]  ? clear_bhb_loop+0x30/0x80
+[    2.029182]  ? clear_bhb_loop+0x30/0x80
+[    2.029533]  ? clear_bhb_loop+0x30/0x80
+[    2.029902]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[    2.030423] RIP: 0033:0x79ce03d0d067
+[    2.030820] Code: b8 ff ff ff ff e9 3e ff ff ff 66 0f 1f 84 00 00 00 00 00 f3 0f 1e fa 64 8b 04 25 18 00 00 00 85 c0 75 10 b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 41 c3 48 83 ec 18 89 7c 24 0c e8 c3 a7 f8 ff
+[    2.032354] RSP: 002b:00007ffef0498948 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+[    2.032939] RAX: ffffffffffffffda RBX: 00007ffef0498960 RCX: 000079ce03d0d067
+[    2.033612] RDX: 0000000000000003 RSI: 0000000000001000 RDI: 000000000000000d
+[    2.034289] RBP: 00007ffef0498a30 R08: 000000000000000d R09: 0000000000000000
+[    2.034944] R10: 00007ffef0498978 R11: 0000000000000246 R12: 0000000000000001
+[    2.035610] R13: 00007ffef0498960 R14: 000079ce03e09ce0 R15: 0000000000000003
+[    2.036301]  </TASK>
+[    2.036532] ---[ end trace 0000000000000000 ]---
 
-  Oops: general protection fault, probably for non-canonical address 0xdffffc000000001b: 0000 [#3] SMP KASAN NOPTI
-  KASAN: null-ptr-deref in range [0x00000000000000d8-0x00000000000000df]
-  CPU: 2 UID: 0 PID: 1 Comm: systemd Tainted: G      D             6.16.0-rc2 #1 VOLUNTARY
-  Tainted: [D]=DIE
-  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
-  RIP: 0010:down_read_trylock+0xaa/0x3b0
-  Code: d0 7c 08 84 d2 0f 85 a0 02 00 00 8b 0d df 31 dd 04 85 c9 75 29 48 b8 00 00 00 00 00 fc ff df 48 8d 6b 68 48 89 ea 48 c1 ea 03 <80> 3c 02 00 0f 85 88 02 00 00 48 3b 5b 68 0f 85 53 01 00 00 65 ff
-  RSP: 0000:ffff8881002ce9b8 EFLAGS: 00010016
-  RAX: dffffc0000000000 RBX: 0000000000000070 RCX: 0000000000000000
-  RDX: 000000000000001b RSI: 000000000000000a RDI: 0000000000000070
-  RBP: 00000000000000d8 R08: 0000000000000001 R09: ffffed107dde49d1
-  R10: ffff8883eef24e8b R11: ffff8881002cec20 R12: 1ffff11020059d37
-  R13: 00000000003fff7b R14: ffff8881002cec20 R15: dffffc0000000000
-  FS:  00007f963f21d940(0000) GS:ffff888458ca6000(0000) knlGS:0000000000000000
-  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: 00007f963f5edf71 CR3: 000000010672c000 CR4: 0000000000350ef0
-  Call Trace:
-   <TASK>
-   codetag_trylock_module_list+0xd/0x20
-   alloc_tag_top_users+0x369/0x4b0
-   __show_mem+0x1cd/0x6e0
-   warn_alloc+0x2b1/0x390
-   __alloc_frozen_pages_noprof+0x12b9/0x21a0
-   alloc_pages_mpol+0x135/0x3e0
-   alloc_slab_page+0x82/0xe0
-   new_slab+0x212/0x240
-   ___slab_alloc+0x82a/0xe00
-   </TASK>
-
-As David Wang points out, this issue became easier to trigger after commit
-780138b12381 ("alloc_tag: check mem_profiling_support in alloc_tag_init").
-
-Before the commit, the issue occurred only when it failed to allocate and
-initialize alloc_tag_cttype or if a memory allocation fails before
-alloc_tag_init() is called.  After the commit, it can be easily triggered
-when memory profiling is compiled but disabled at boot.
-
-To properly determine whether alloc_tag_init() has been called and its
-data structures initialized, verify that alloc_tag_cttype is a valid
-pointer before acquiring the semaphore.  If the variable is NULL or an
-error value, it has not been properly initialized.  In such a case, just
-skip and do not attempt acquire the semaphore.
-
-Link: https://lkml.kernel.org/r/20250620195305.1115151-1-harry.yoo@oracle.com
-Fixes: 780138b12381 ("alloc_tag: check mem_profiling_support in alloc_tag_init")
-Fixes: 1438d349d16b ("lib: add memory allocations report in show_mem()")
-Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202506181351.bba867dd-lkp@intel.com
-Cc: Casey Chen <cachen@purestorage.com>
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20250621171507.3770-1-haiyuewa@163.com
+Fixes: bde708f1a65d ("fs/dax: always remove DAX page-cache entries when breaking layouts")
+Signed-off-by: Haiyue Wang <haiyuewa@163.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/fuse/inode.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/lib/alloc_tag.c~lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users
-+++ a/lib/alloc_tag.c
-@@ -135,7 +135,9 @@ size_t alloc_tag_top_users(struct codeta
- 	struct codetag_bytes n;
- 	unsigned int i, nr = 0;
+--- a/fs/fuse/inode.c~fuse-fix-runtime-warning-on-truncate_folio_batch_exceptionals
++++ a/fs/fuse/inode.c
+@@ -9,6 +9,7 @@
+ #include "fuse_i.h"
+ #include "dev_uring_i.h"
  
--	if (can_sleep)
-+	if (IS_ERR_OR_NULL(alloc_tag_cttype))
-+		return 0;
-+	else if (can_sleep)
- 		codetag_lock_module_list(alloc_tag_cttype, true);
- 	else if (!codetag_trylock_module_list(alloc_tag_cttype))
- 		return 0;
++#include <linux/dax.h>
+ #include <linux/pagemap.h>
+ #include <linux/slab.h>
+ #include <linux/file.h>
+@@ -162,6 +163,9 @@ static void fuse_evict_inode(struct inod
+ 	/* Will write inode on close/munmap and in all other dirtiers */
+ 	WARN_ON(inode->i_state & I_DIRTY_INODE);
+ 
++	if (FUSE_IS_DAX(inode))
++		dax_break_layout_final(inode);
++
+ 	truncate_inode_pages_final(&inode->i_data);
+ 	clear_inode(inode);
+ 	if (inode->i_sb->s_flags & SB_ACTIVE) {
 _
 
-Patches currently in -mm which might be from harry.yoo@oracle.com are
+Patches currently in -mm which might be from haiyuewa@163.com are
 
-lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
-lib-alloc_tag-do-not-acquire-nonexistent-lock-when-mem-profiling-is-disabled.patch
+fuse-fix-runtime-warning-on-truncate_folio_batch_exceptionals.patch
 
