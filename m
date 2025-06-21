@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1895A6136
-	for <mm-commits@vger.kernel.org>; Sat, 21 Jun 2025 18:51:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACC76221FCF
+	for <mm-commits@vger.kernel.org>; Sat, 21 Jun 2025 18:52:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750531879; cv=none; b=vGQLZQFj+3MVcWA9GUqQB8M2w/kSaiURC2ZEHRPwwK4bvCWx3sPo+1QU9VdbUsLz/2w66BxNHhy2uujkIeAFeE4JbabOfZv6eum+mD2F1plu0K5hl1OUhOVUh9rOPHlHyfJP9IM6rJRvH7B0fVya39tYETx3x1v0xX0d35w9HH0=
+	t=1750531959; cv=none; b=iOMJ6LfYWXkzj8mJXI0R5FPj9bW0bfXbtBQY8IRgdWj+Siqqk5Co8KcpolZyPDZL5KgJ1ee4cesfBmKofj13/Md3BWhP3XgmMJGbxruPpNeTdHoTks63XXQJSwJeSZSL3+X7WAcynSnqpNN4vvCsSR6x/QZkrrpqYSLX6jXqPRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750531879; c=relaxed/simple;
-	bh=71NCh0tHOcR98KEXBbTEOPT4QxPOAC41QVYnS4iA4ic=;
-	h=Date:To:From:Subject:Message-Id; b=vEElAoNTV9W0Ihylq7NviuGZ7Pqmi3T3esn9oVaZHizhN3mxHQWq+TXN8ooP4y0m5nJLeEJ66ALk/nm2ElBcTC3L+bmLXxIC47KnfQmngFnLlsMkdq106d6Pdatg5Cv39ccE4aKzjzKHb6rbrt4J9TbAjerqmfFgSgxOygp9ihU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qtwHaUFx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750531959; c=relaxed/simple;
+	bh=SC30USKSvnjNhzzhYFUHNO+2gZUW7YTbpdvOI9abk70=;
+	h=Date:To:From:Subject:Message-Id; b=H6ZeDnnzhqM6BMj7lIizkgLy3sxvbebu+ItOCwi2Lg6o1gl1Dz0Q8IPnc+Ds8r9h7wAOrOWQUWALkf845cuv150GFjHaPAnNMeHJZTAFVuSlYu2kNiUTsSOhc33dhji8l9AZhZ1ZYhtLG2dabTqy2XL9sCJntQZoOIDTqZTJyLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j718lsZU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qtwHaUFx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF045C4CEE7;
-	Sat, 21 Jun 2025 18:51:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j718lsZU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C78AC4CEE7;
+	Sat, 21 Jun 2025 18:52:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750531879;
-	bh=71NCh0tHOcR98KEXBbTEOPT4QxPOAC41QVYnS4iA4ic=;
+	s=korg; t=1750531958;
+	bh=SC30USKSvnjNhzzhYFUHNO+2gZUW7YTbpdvOI9abk70=;
 	h=Date:To:From:Subject:From;
-	b=qtwHaUFxr+PoVcZFQAXhlhgXMpEjNIZWTF9L0bi2fOGNovqjj3QIKHNaYDKhAjcr0
-	 2Z8VViGMi2HWKKKxa1/xlX+5vaiq7MnHaQ20aUnpepeEbXtvFdQSlVt0AAEUzJKHrY
-	 wPrn7JIFS9zhLJ5xy2aCPmPRtagF8Ep/rMOS6Bn8=
-Date: Sat, 21 Jun 2025 11:51:18 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
+	b=j718lsZUh8VDCIdq094WUrUTl4q5gUYTtbsBVM1jTmeUnrNgbWlsQRfbpgqnZyG+d
+	 1sZJ/Kt7jdbg9eaFihOJUnt4Mqm1F7vsfFUvIi7HYFtUK2JKbIyaxi3YQyAgCxyC9p
+	 C02n5jNBcL7r5ZyOVKSGbTR2sqHezLwmGR2FlSZk=
+Date: Sat, 21 Jun 2025 11:52:37 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,hannes@cmpxchg.org,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bagasdotme@gmail.com,aruna.ramakrishna@oracle.com,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-test-for-batch_processmadv_dontneed.patch added to mm-new branch
-Message-Id: <20250621185118.DF045C4CEE7@smtp.kernel.org>
+Subject: + ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled.patch added to mm-new branch
+Message-Id: <20250621185238.1C78AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add test for (BATCH_PROCESS)MADV_DONTNEED
+     Subject: ksm_tests: skip hugepage test when Transparent Hugepages are disabled
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-test-for-batch_processmadv_dontneed.patch
+     ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-test-for-batch_processmadv_dontneed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,300 +64,213 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lian Wang <lianux.mm@gmail.com>
-Subject: selftests/mm: add test for (BATCH_PROCESS)MADV_DONTNEED
-Date: Sat, 21 Jun 2025 21:30:03 +0800
+From: Li Wang <liwang@redhat.com>
+Subject: ksm_tests: skip hugepage test when Transparent Hugepages are disabled
+Date: Sat, 21 Jun 2025 08:48:08 +0800
 
-Let's add a simple test for MADV_DONTNEED and PROCESS_MADV_DONTNEED,
-and inspired by SeongJae Park's test at GitHub[1] add batch test
-for PROCESS_MADV_DONTNEED.  For now it is influenced by workload and
-needs add some race conditions tested. We can add this later.
+Some systems (e.g.  minimal or real-time kernels) may not enable
+Transparent Hugepages (THP), causing MADV_HUGEPAGE to return EINVAL.  This
+patch introduces a runtime check using the existing THP sysfs interface
+and skips the hugepage merging test (`-H`) when THP is not available.
 
-Link: https://lkml.kernel.org/r/20250621133003.4733-1-lianux.mm@gmail.com
-Link: https://github.com/sjp38/eval_proc_madvise	[1]
-Signed-off-by: Lian Wang <lianux.mm@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: SeongJae Park <sj@kernel.org>
+To avoid those failures:
+
+  # -----------------------------
+  # running ./ksm_tests -H -s 100
+  # -----------------------------
+  # ksm_tests: MADV_HUGEPAGE: Invalid argument
+  # [FAIL]
+  not ok 1 ksm_tests -H -s 100 # exit=2
+
+  # --------------------
+  # running ./khugepaged
+  # --------------------
+  # Reading PMD pagesize failed# [FAIL]
+  not ok 1 khugepaged # exit=1
+
+  # --------------------
+  # running ./soft-dirty
+  # --------------------
+  # TAP version 13
+  # 1..15
+  # ok 1 Test test_simple
+  # ok 2 Test test_vma_reuse dirty bit of allocated page
+  # ok 3 Test test_vma_reuse dirty bit of reused address page
+  # Bail out! Reading PMD pagesize failed# Planned tests != run tests (15 != 3)
+  # # Totals: pass:3 fail:0 xfail:0 xpass:0 skip:0 error:0
+  # [FAIL]
+  not ok 1 soft-dirty # exit=1
+  # SUMMARY: PASS=0 SKIP=0 FAIL=1
+
+  # -------------------
+  # running ./migration
+  # -------------------
+  # TAP version 13
+  # 1..3
+  # # Starting 3 tests from 1 test cases.
+  # #  RUN           migration.private_anon ...
+  # #            OK  migration.private_anon
+  # ok 1 migration.private_anon
+  # #  RUN           migration.shared_anon ...
+  # #            OK  migration.shared_anon
+  # ok 2 migration.shared_anon
+  # #  RUN           migration.private_anon_thp ...
+  # # migration.c:196:private_anon_thp:Expected madvise(ptr, TWOMEG, MADV_HUGEPAGE) (-1) == 0 (0)
+  # # private_anon_thp: Test terminated by assertion
+  # #          FAIL  migration.private_anon_thp
+  # not ok 3 migration.private_anon_thp
+  # # FAILED: 2 / 3 tests passed.
+  # # Totals: pass:2 fail:1 xfail:0 xpass:0 skip:0 error:0
+  # [FAIL]
+  not ok 1 migration # exit=1
+
+Link: https://lkml.kernel.org/r/20250621004808.368878-1-liwang@redhat.com
+Signed-off-by: Li Wang <liwang@redhat.com>
+Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Joey Gouly <joey.gouly@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Keith Lucas <keith.lucas@oracle.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore      |    1 
- tools/testing/selftests/mm/Makefile        |    1 
- tools/testing/selftests/mm/madv_dontneed.c |  220 +++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh  |    5 
- 4 files changed, 227 insertions(+)
+ tools/testing/selftests/mm/khugepaged.c   |    5 +++++
+ tools/testing/selftests/mm/ksm_tests.c    |    6 ++++++
+ tools/testing/selftests/mm/migration.c    |    8 ++++++++
+ tools/testing/selftests/mm/soft-dirty.c   |    9 ++++++++-
+ tools/testing/selftests/mm/thp_settings.c |   11 +++++++++++
+ tools/testing/selftests/mm/thp_settings.h |    2 ++
+ 6 files changed, 40 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-test-for-batch_processmadv_dontneed
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -25,6 +25,7 @@ pfnmap
- protection_keys
- protection_keys_32
- protection_keys_64
-+madv_dontneed
- madv_populate
- uffd-stress
- uffd-unit-tests
-diff --git a/tools/testing/selftests/mm/madv_dontneed.c a/tools/testing/selftests/mm/madv_dontneed.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/madv_dontneed.c
-@@ -0,0 +1,220 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * MADV_DONTNEED and PROCESS_MADV_DONTNEED tests
-+ *
-+ * Copyright (C) 2025, Linx Software Corp.
-+ *
-+ * Author(s): Lian Wang <lianux.mm@gmail.com>
-+ */
-+#define _GNU_SOURCE
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <linux/mman.h>
-+#include <sys/mman.h>
-+#include <sys/syscall.h>
-+#include "vm_util.h"
-+#include <time.h>
-+
-+#include "../kselftest.h"
-+
-+/*
-+ * For now, we're using 2 MiB of private anonymous memory for all tests.
-+ */
-+#define SIZE (256 * 1024 * 1024)
-+
-+static size_t pagesize;
-+
-+static void sense_support(void)
-+{
-+	char *addr;
-+	int ret;
-+
-+	addr = mmap(0, pagesize, PROT_READ | PROT_WRITE,
-+		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (!addr)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	ret = madvise(addr, pagesize, MADV_DONTNEED);
-+	if (ret)
-+		ksft_exit_skip("MADV_DONTNEED is not available\n");
-+
-+	munmap(addr, pagesize);
-+}
-+
-+/*
-+ * Read pagemap to check page is present in mermory
-+ */
-+static bool is_page_present(void *addr)
-+{
-+	uintptr_t vaddr = (uintptr_t)addr;
-+	uintptr_t offset = (vaddr / pagesize) * sizeof(uint64_t);
-+	ssize_t bytes_read;
-+	uint64_t entry;
-+	bool ret;
-+	int fd;
-+
-+	fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (fd < 0) {
-+		ksft_exit_fail_msg("opening pagemap failed\n");
-+		ret = false;
+--- a/tools/testing/selftests/mm/khugepaged.c~ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -1188,6 +1188,11 @@ int main(int argc, char **argv)
+ 		.read_ahead_kb = 0,
+ 	};
+ 
++	if (!thp_is_enabled()) {
++		printf("Transparent Hugepages not available\n");
++		return KSFT_SKIP;
 +	}
 +
-+	if ((lseek(fd, offset, SEEK_SET)) == -1) {
-+		close(fd);
-+		ret = false;
+ 	parse_test_type(argc, argv);
+ 
+ 	setbuf(stdout, NULL);
+--- a/tools/testing/selftests/mm/ksm_tests.c~ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled
++++ a/tools/testing/selftests/mm/ksm_tests.c
+@@ -15,6 +15,7 @@
+ #include "../kselftest.h"
+ #include <include/vdso/time64.h>
+ #include "vm_util.h"
++#include "thp_settings.h"
+ 
+ #define KSM_SYSFS_PATH "/sys/kernel/mm/ksm/"
+ #define KSM_FP(s) (KSM_SYSFS_PATH s)
+@@ -527,6 +528,11 @@ static int ksm_merge_hugepages_time(int
+ 	unsigned long scan_time_ns;
+ 	int pagemap_fd, n_normal_pages, n_huge_pages;
+ 
++	if (!thp_is_enabled()) {
++		printf("Transparent Hugepages not available\n");
++		return KSFT_SKIP;
 +	}
 +
-+	bytes_read = read(fd, &entry, sizeof(entry));
-+	close(fd);
+ 	map_size *= MB;
+ 	size_t len = map_size;
+ 
+--- a/tools/testing/selftests/mm/migration.c~ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled
++++ a/tools/testing/selftests/mm/migration.c
+@@ -5,6 +5,8 @@
+  */
+ 
+ #include "../kselftest_harness.h"
++#include "thp_settings.h"
 +
-+	if (bytes_read != sizeof(entry)) {
-+		perror("read failed");
+ #include <strings.h>
+ #include <pthread.h>
+ #include <numa.h>
+@@ -185,6 +187,9 @@ TEST_F_TIMEOUT(migration, private_anon_t
+ 	uint64_t *ptr;
+ 	int i;
+ 
++	if (!thp_is_enabled())
++		SKIP(return, "Transparent Hugepages not available");
++
+ 	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
+ 		SKIP(return, "Not enough threads or NUMA nodes available");
+ 
+@@ -214,6 +219,9 @@ TEST_F_TIMEOUT(migration, shared_anon_th
+ 	uint64_t *ptr;
+ 	int i;
+ 
++	if (!thp_is_enabled())
++		SKIP(return, "Transparent Hugepages not available");
++
+ 	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
+ 		SKIP(return, "Not enough threads or NUMA nodes available");
+ 
+--- a/tools/testing/selftests/mm/soft-dirty.c~ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -6,8 +6,10 @@
+ #include <stdint.h>
+ #include <malloc.h>
+ #include <sys/mman.h>
++
+ #include "../kselftest.h"
+ #include "vm_util.h"
++#include "thp_settings.h"
+ 
+ #define PAGEMAP_FILE_PATH "/proc/self/pagemap"
+ #define TEST_ITERATIONS 10000
+@@ -78,8 +80,13 @@ static void test_hugepage(int pagemap_fd
+ {
+ 	char *map;
+ 	int i, ret;
+-	size_t hpage_len = read_pmd_pagesize();
+ 
++	if (!thp_is_enabled()) {
++		printf("Skipping test: Transparent Hugepages not available\n");
++		return KSFT_SKIP;
++	}
++
++	size_t hpage_len = read_pmd_pagesize();
+ 	if (!hpage_len)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed");
+ 
+--- a/tools/testing/selftests/mm/thp_settings.c~ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled
++++ a/tools/testing/selftests/mm/thp_settings.c
+@@ -381,3 +381,14 @@ unsigned long thp_shmem_supported_orders
+ {
+ 	return __thp_supported_orders(true);
+ }
++
++bool thp_is_enabled(void)
++{
++	if (access(THP_SYSFS, F_OK) != 0)
 +		return false;
-+	}
 +
-+	if (entry & (1ULL << 63))
-+		ret = true;
++	int mode = thp_read_string("enabled", thp_enabled_strings);
 +
-+	return ret;
++	/* THP is considered enabled if it's either "always" or "madvise" */
++	return mode == 1 || mode == 3;
 +}
-+
-+/*
-+ * test madvsise_dontneed
-+ */
-+static void test_madv_dontneed(void)
-+{
-+	unsigned long rss_anon_before, rss_anon_after;
-+	bool present, rss;
-+	char *addr;
-+	int ret;
-+
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+
-+	addr = mmap(0, SIZE, PROT_READ | PROT_WRITE,
-+		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (!addr)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	memset(addr, 0x7A, SIZE);
-+
-+	rss_anon_before = rss_anon();
-+	if (!rss_anon_before)
-+		ksft_exit_fail_msg("No RssAnon is allocated before dontneed\n");
-+	ret = madvise(addr, SIZE, MADV_DONTNEED);
-+	ksft_test_result(!ret, "MADV_DONTNEED\n");
-+
-+	rss_anon_after = rss_anon();
-+	if (rss_anon_after < rss_anon_before)
-+		rss = true;
-+	ksft_test_result(rss, "MADV_DONTNEED rss is correct\n");
-+
-+	for (size_t i = 0; i < SIZE; i += pagesize) {
-+		present = is_page_present(addr + i);
-+		if (present) {
-+			ksft_print_msg("Page not zero at offset %zu\n",
-+				       (size_t)i);
-+		}
-+	}
-+
-+	ksft_test_result(!present, "MADV_DONTNEED page is present\n");
-+	munmap(addr, SIZE);
-+}
-+
-+/*
-+ * Measure performance of batched process_madvise vs madvise
-+ */
-+static int measure_process_madvise_batching(int hint, int total_size,
-+					    int single_unit, int batch_size)
-+{
-+	struct iovec *vec = malloc(sizeof(*vec) * batch_size);
-+	struct timespec start, end;
-+	unsigned long elapsed_ns = 0;
-+	unsigned long nr_measures = 0;
-+	pid_t pid = getpid();
-+	char *buf;
-+	int pidfd;
-+
-+	pidfd = syscall(SYS_pidfd_open, pid, 0);
-+	if (pidfd == -1) {
-+		perror("pidfd_open fail");
-+		return -1;
-+	}
-+
-+	buf = mmap(NULL, total_size, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (buf == MAP_FAILED) {
-+		perror("mmap fail");
-+		goto out;
-+	}
-+
-+	if (!vec) {
-+		perror("malloc vec failed");
-+		goto unmap_out;
-+	}
-+
-+	while (elapsed_ns < 5UL * 1000 * 1000 * 1000) {
-+		memset(buf, 0x7A, total_size);
-+
-+		clock_gettime(CLOCK_MONOTONIC, &start);
-+
-+		for (int off = 0; off < total_size;
-+		     off += single_unit * batch_size) {
-+			for (int i = 0; i < batch_size; i++) {
-+				vec[i].iov_base = buf + off + i * single_unit;
-+				vec[i].iov_len = single_unit;
-+			}
-+			syscall(SYS_process_madvise, pidfd, vec, batch_size,
-+				hint, 0);
-+		}
-+
-+		clock_gettime(CLOCK_MONOTONIC, &end);
-+		elapsed_ns += (end.tv_sec - start.tv_sec) * 1e9 +
-+			      (end.tv_nsec - start.tv_nsec);
-+		nr_measures++;
-+	}
-+
-+	ksft_print_msg("[RESULT] batch=%d time=%.3f us/op\n", batch_size,
-+		       (double)(elapsed_ns / nr_measures) /
-+			       (total_size / single_unit));
-+
-+	free(vec);
-+unmap_out:
-+	munmap(buf, total_size);
-+out:
-+	close(pidfd);
-+	return 0;
-+}
-+
-+static void test_perf_batch_process(void)
-+{
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 1);
-+	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 2);
-+	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 4);
-+	ksft_test_result(1, "All test were done\n");
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int err;
-+
-+	pagesize = getpagesize();
-+
-+	ksft_print_header();
-+	ksft_set_plan(4);
-+
-+	sense_support();
-+	test_madv_dontneed();
-+	test_perf_batch_process();
-+
-+	err = ksft_get_fail_cnt();
-+	if (err)
-+		ksft_exit_fail_msg("%d out of %d tests failed\n", err,
-+				   ksft_test_num());
-+	ksft_exit_pass();
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-test-for-batch_processmadv_dontneed
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -67,6 +67,7 @@ TEST_GEN_FILES += hugepage-mremap
- TEST_GEN_FILES += hugepage-shm
- TEST_GEN_FILES += hugepage-vmemmap
- TEST_GEN_FILES += khugepaged
-+TEST_GEN_FILES += madv_dontneed
- TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_hugetlb
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-test-for-batch_processmadv_dontneed
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -47,6 +47,8 @@ separated by spaces:
- 	hmm smoke tests
- - madv_guard
- 	test madvise(2) MADV_GUARD_INSTALL and MADV_GUARD_REMOVE options
-+- madv_dontneed
-+	test memadvise(2) MADV_DONTNEED and PROCESS_MADV_DONTNEED options
- - madv_populate
- 	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
- - memfd_secret
-@@ -422,6 +424,9 @@ CATEGORY="hmm" run_test bash ./test_hmm.
- # MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
- CATEGORY="madv_guard" run_test ./guard-regions
+--- a/tools/testing/selftests/mm/thp_settings.h~ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled
++++ a/tools/testing/selftests/mm/thp_settings.h
+@@ -84,4 +84,6 @@ void thp_set_read_ahead_path(char *path)
+ unsigned long thp_supported_orders(void);
+ unsigned long thp_shmem_supported_orders(void);
  
-+# MADV_DONTNEED and PROCESS_DONTNEED tests
-+CATEGORY="madv_dontneed" run_test ./madv_dontneed
++bool thp_is_enabled(void);
 +
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
- 
+ #endif /* __THP_SETTINGS_H__ */
 _
 
-Patches currently in -mm which might be from lianux.mm@gmail.com are
+Patches currently in -mm which might be from liwang@redhat.com are
 
-selftests-mm-add-test-for-batch_processmadv_dontneed.patch
+ksm_tests-skip-hugepage-test-when-transparent-hugepages-are-disabled.patch
 
