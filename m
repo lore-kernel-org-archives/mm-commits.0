@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07B38149C4A;
-	Sat, 21 Jun 2025 18:48:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1895A6136
+	for <mm-commits@vger.kernel.org>; Sat, 21 Jun 2025 18:51:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750531739; cv=none; b=Fh9MhE2ZughoQ+x5uFkEoIQEOwP/pR+SWuz/M1Lm423a1zthrkmCYVhv2rAFDEW4M6lPLqA8vdH9bZTfIw1lCJutlFHROVmNt/dpyG+95ersyaLhAg6KLtBsuqf1ukx5d66C1XcpxlLdqZf30pVciSQziWSlpOnDWL78AJ5zUYU=
+	t=1750531879; cv=none; b=vGQLZQFj+3MVcWA9GUqQB8M2w/kSaiURC2ZEHRPwwK4bvCWx3sPo+1QU9VdbUsLz/2w66BxNHhy2uujkIeAFeE4JbabOfZv6eum+mD2F1plu0K5hl1OUhOVUh9rOPHlHyfJP9IM6rJRvH7B0fVya39tYETx3x1v0xX0d35w9HH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750531739; c=relaxed/simple;
-	bh=pKvxx3mN11OuZ4qb6QXI0CIUfgBt6xFSKmmlZNvKa98=;
-	h=Date:To:From:Subject:Message-Id; b=W7ZPXfF0J8HXHUIAcqxbvHELZP68QjxTbqQJSUvlIo+j0LuL50lPsBZ7jvNlxjRT8iZXo0/vNdS9shk0kf3WmgK+zYqEHtXk3mzGeptw83GzFdy3oM2ZInmjKRAh/3mtsVaboowuqgoCg7tU5w/SfvdaZgSFsyyF+/ZC03KOrjM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z7rKNo3C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750531879; c=relaxed/simple;
+	bh=71NCh0tHOcR98KEXBbTEOPT4QxPOAC41QVYnS4iA4ic=;
+	h=Date:To:From:Subject:Message-Id; b=vEElAoNTV9W0Ihylq7NviuGZ7Pqmi3T3esn9oVaZHizhN3mxHQWq+TXN8ooP4y0m5nJLeEJ66ALk/nm2ElBcTC3L+bmLXxIC47KnfQmngFnLlsMkdq106d6Pdatg5Cv39ccE4aKzjzKHb6rbrt4J9TbAjerqmfFgSgxOygp9ihU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qtwHaUFx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z7rKNo3C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80DCCC4CEE7;
-	Sat, 21 Jun 2025 18:48:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qtwHaUFx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF045C4CEE7;
+	Sat, 21 Jun 2025 18:51:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750531738;
-	bh=pKvxx3mN11OuZ4qb6QXI0CIUfgBt6xFSKmmlZNvKa98=;
+	s=korg; t=1750531879;
+	bh=71NCh0tHOcR98KEXBbTEOPT4QxPOAC41QVYnS4iA4ic=;
 	h=Date:To:From:Subject:From;
-	b=z7rKNo3CRxBdT88l/X3xwVVPgnnHjVAsJi7LqsxQU69tZSAcSXacsNcM4FXd6hFgZ
-	 7Oe6e3I1iJQ+mNIGzjo8Nup6uICsQ/myQY68L1P9/eZrqUj//sqdbteJcFFrdL4K4O
-	 s4hBlA1YUO59RF4Y4GCbImxe7NAsWAi1/zas12lQ=
-Date: Sat, 21 Jun 2025 11:48:57 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mfasheh@suse.com,junxiao.bi@oracle.com,joseph.qi@huawei.com,jlbec@evilplan.org,jiangyiwen@huawei.com,gechangwei@live.cn,djahchankoike@gmail.com,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
+	b=qtwHaUFxr+PoVcZFQAXhlhgXMpEjNIZWTF9L0bi2fOGNovqjj3QIKHNaYDKhAjcr0
+	 2Z8VViGMi2HWKKKxa1/xlX+5vaiq7MnHaQ20aUnpepeEbXtvFdQSlVt0AAEUzJKHrY
+	 wPrn7JIFS9zhLJ5xy2aCPmPRtagF8Ep/rMOS6Bn8=
+Date: Sat, 21 Jun 2025 11:51:18 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-kill-osb-system_file_mutex-lock.patch added to mm-nonmm-unstable branch
-Message-Id: <20250621184858.80DCCC4CEE7@smtp.kernel.org>
+Subject: + selftests-mm-add-test-for-batch_processmadv_dontneed.patch added to mm-new branch
+Message-Id: <20250621185118.DF045C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: kill osb->system_file_mutex lock
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-kill-osb-system_file_mutex-lock.patch
+     Subject: selftests/mm: add test for (BATCH_PROCESS)MADV_DONTNEED
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-add-test-for-batch_processmadv_dontneed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-kill-osb-system_file_mutex-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-test-for-batch_processmadv_dontneed.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,94 +64,300 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: ocfs2: kill osb->system_file_mutex lock
-Date: Sun, 22 Jun 2025 00:56:46 +0900
+From: Lian Wang <lianux.mm@gmail.com>
+Subject: selftests/mm: add test for (BATCH_PROCESS)MADV_DONTNEED
+Date: Sat, 21 Jun 2025 21:30:03 +0800
 
-Since calling _ocfs2_get_system_file_inode() twice with the same arguments
-returns the same address, there is no need to serialize
-_ocfs2_get_system_file_inode() using osb->system_file_mutex lock.
+Let's add a simple test for MADV_DONTNEED and PROCESS_MADV_DONTNEED,
+and inspired by SeongJae Park's test at GitHub[1] add batch test
+for PROCESS_MADV_DONTNEED.  For now it is influenced by workload and
+needs add some race conditions tested. We can add this later.
 
-Kill osb->system_file_mutex lock in order to avoid AB-BA deadlock. 
-cmpxchg() will be sufficient for avoiding the inode refcount leak problem
-which commit 43b10a20372d ("ocfs2: avoid system inode ref confusion by
-adding mutex lock") tried to address.
-
-Link: https://lkml.kernel.org/r/934355dd-a0b1-4e53-93ac-0a7ae7458051@I-love.SAKURA.ne.jp
-Reported-by: Diogo Jahchan Koike <djahchankoike@gmail.com>
-Closes: https://lkml.kernel.org/r/000000000000ff2d7a0620381afe@google.com
-Fixes: 43b10a20372d ("ocfs2: avoid system inode ref confusion by adding mutex lock")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: jiangyiwen <jiangyiwen@huawei.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250621133003.4733-1-lianux.mm@gmail.com
+Link: https://github.com/sjp38/eval_proc_madvise	[1]
+Signed-off-by: Lian Wang <lianux.mm@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2.h   |    2 --
- fs/ocfs2/super.c   |    2 --
- fs/ocfs2/sysfile.c |    9 +++------
- 3 files changed, 3 insertions(+), 10 deletions(-)
+ tools/testing/selftests/mm/.gitignore      |    1 
+ tools/testing/selftests/mm/Makefile        |    1 
+ tools/testing/selftests/mm/madv_dontneed.c |  220 +++++++++++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh  |    5 
+ 4 files changed, 227 insertions(+)
 
---- a/fs/ocfs2/ocfs2.h~ocfs2-kill-osb-system_file_mutex-lock
-+++ a/fs/ocfs2/ocfs2.h
-@@ -494,8 +494,6 @@ struct ocfs2_super
- 	struct rb_root	osb_rf_lock_tree;
- 	struct ocfs2_refcount_tree *osb_ref_tree_lru;
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-test-for-batch_processmadv_dontneed
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -25,6 +25,7 @@ pfnmap
+ protection_keys
+ protection_keys_32
+ protection_keys_64
++madv_dontneed
+ madv_populate
+ uffd-stress
+ uffd-unit-tests
+diff --git a/tools/testing/selftests/mm/madv_dontneed.c a/tools/testing/selftests/mm/madv_dontneed.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/madv_dontneed.c
+@@ -0,0 +1,220 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * MADV_DONTNEED and PROCESS_MADV_DONTNEED tests
++ *
++ * Copyright (C) 2025, Linx Software Corp.
++ *
++ * Author(s): Lian Wang <lianux.mm@gmail.com>
++ */
++#define _GNU_SOURCE
++#include <stdlib.h>
++#include <string.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <linux/mman.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include "vm_util.h"
++#include <time.h>
++
++#include "../kselftest.h"
++
++/*
++ * For now, we're using 2 MiB of private anonymous memory for all tests.
++ */
++#define SIZE (256 * 1024 * 1024)
++
++static size_t pagesize;
++
++static void sense_support(void)
++{
++	char *addr;
++	int ret;
++
++	addr = mmap(0, pagesize, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (!addr)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	ret = madvise(addr, pagesize, MADV_DONTNEED);
++	if (ret)
++		ksft_exit_skip("MADV_DONTNEED is not available\n");
++
++	munmap(addr, pagesize);
++}
++
++/*
++ * Read pagemap to check page is present in mermory
++ */
++static bool is_page_present(void *addr)
++{
++	uintptr_t vaddr = (uintptr_t)addr;
++	uintptr_t offset = (vaddr / pagesize) * sizeof(uint64_t);
++	ssize_t bytes_read;
++	uint64_t entry;
++	bool ret;
++	int fd;
++
++	fd = open("/proc/self/pagemap", O_RDONLY);
++	if (fd < 0) {
++		ksft_exit_fail_msg("opening pagemap failed\n");
++		ret = false;
++	}
++
++	if ((lseek(fd, offset, SEEK_SET)) == -1) {
++		close(fd);
++		ret = false;
++	}
++
++	bytes_read = read(fd, &entry, sizeof(entry));
++	close(fd);
++
++	if (bytes_read != sizeof(entry)) {
++		perror("read failed");
++		return false;
++	}
++
++	if (entry & (1ULL << 63))
++		ret = true;
++
++	return ret;
++}
++
++/*
++ * test madvsise_dontneed
++ */
++static void test_madv_dontneed(void)
++{
++	unsigned long rss_anon_before, rss_anon_after;
++	bool present, rss;
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (!addr)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	memset(addr, 0x7A, SIZE);
++
++	rss_anon_before = rss_anon();
++	if (!rss_anon_before)
++		ksft_exit_fail_msg("No RssAnon is allocated before dontneed\n");
++	ret = madvise(addr, SIZE, MADV_DONTNEED);
++	ksft_test_result(!ret, "MADV_DONTNEED\n");
++
++	rss_anon_after = rss_anon();
++	if (rss_anon_after < rss_anon_before)
++		rss = true;
++	ksft_test_result(rss, "MADV_DONTNEED rss is correct\n");
++
++	for (size_t i = 0; i < SIZE; i += pagesize) {
++		present = is_page_present(addr + i);
++		if (present) {
++			ksft_print_msg("Page not zero at offset %zu\n",
++				       (size_t)i);
++		}
++	}
++
++	ksft_test_result(!present, "MADV_DONTNEED page is present\n");
++	munmap(addr, SIZE);
++}
++
++/*
++ * Measure performance of batched process_madvise vs madvise
++ */
++static int measure_process_madvise_batching(int hint, int total_size,
++					    int single_unit, int batch_size)
++{
++	struct iovec *vec = malloc(sizeof(*vec) * batch_size);
++	struct timespec start, end;
++	unsigned long elapsed_ns = 0;
++	unsigned long nr_measures = 0;
++	pid_t pid = getpid();
++	char *buf;
++	int pidfd;
++
++	pidfd = syscall(SYS_pidfd_open, pid, 0);
++	if (pidfd == -1) {
++		perror("pidfd_open fail");
++		return -1;
++	}
++
++	buf = mmap(NULL, total_size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (buf == MAP_FAILED) {
++		perror("mmap fail");
++		goto out;
++	}
++
++	if (!vec) {
++		perror("malloc vec failed");
++		goto unmap_out;
++	}
++
++	while (elapsed_ns < 5UL * 1000 * 1000 * 1000) {
++		memset(buf, 0x7A, total_size);
++
++		clock_gettime(CLOCK_MONOTONIC, &start);
++
++		for (int off = 0; off < total_size;
++		     off += single_unit * batch_size) {
++			for (int i = 0; i < batch_size; i++) {
++				vec[i].iov_base = buf + off + i * single_unit;
++				vec[i].iov_len = single_unit;
++			}
++			syscall(SYS_process_madvise, pidfd, vec, batch_size,
++				hint, 0);
++		}
++
++		clock_gettime(CLOCK_MONOTONIC, &end);
++		elapsed_ns += (end.tv_sec - start.tv_sec) * 1e9 +
++			      (end.tv_nsec - start.tv_nsec);
++		nr_measures++;
++	}
++
++	ksft_print_msg("[RESULT] batch=%d time=%.3f us/op\n", batch_size,
++		       (double)(elapsed_ns / nr_measures) /
++			       (total_size / single_unit));
++
++	free(vec);
++unmap_out:
++	munmap(buf, total_size);
++out:
++	close(pidfd);
++	return 0;
++}
++
++static void test_perf_batch_process(void)
++{
++	ksft_print_msg("[RUN] %s\n", __func__);
++	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 1);
++	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 2);
++	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 4);
++	ksft_test_result(1, "All test were done\n");
++}
++
++int main(int argc, char **argv)
++{
++	int err;
++
++	pagesize = getpagesize();
++
++	ksft_print_header();
++	ksft_set_plan(4);
++
++	sense_support();
++	test_madv_dontneed();
++	test_perf_batch_process();
++
++	err = ksft_get_fail_cnt();
++	if (err)
++		ksft_exit_fail_msg("%d out of %d tests failed\n", err,
++				   ksft_test_num());
++	ksft_exit_pass();
++}
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-test-for-batch_processmadv_dontneed
++++ a/tools/testing/selftests/mm/Makefile
+@@ -67,6 +67,7 @@ TEST_GEN_FILES += hugepage-mremap
+ TEST_GEN_FILES += hugepage-shm
+ TEST_GEN_FILES += hugepage-vmemmap
+ TEST_GEN_FILES += khugepaged
++TEST_GEN_FILES += madv_dontneed
+ TEST_GEN_FILES += madv_populate
+ TEST_GEN_FILES += map_fixed_noreplace
+ TEST_GEN_FILES += map_hugetlb
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-test-for-batch_processmadv_dontneed
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -47,6 +47,8 @@ separated by spaces:
+ 	hmm smoke tests
+ - madv_guard
+ 	test madvise(2) MADV_GUARD_INSTALL and MADV_GUARD_REMOVE options
++- madv_dontneed
++	test memadvise(2) MADV_DONTNEED and PROCESS_MADV_DONTNEED options
+ - madv_populate
+ 	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
+ - memfd_secret
+@@ -422,6 +424,9 @@ CATEGORY="hmm" run_test bash ./test_hmm.
+ # MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
+ CATEGORY="madv_guard" run_test ./guard-regions
  
--	struct mutex system_file_mutex;
--
- 	/*
- 	 * OCFS2 needs to schedule several different types of work which
- 	 * require cluster locking, disk I/O, recovery waits, etc. Since these
---- a/fs/ocfs2/super.c~ocfs2-kill-osb-system_file_mutex-lock
-+++ a/fs/ocfs2/super.c
-@@ -1997,8 +1997,6 @@ static int ocfs2_initialize_super(struct
- 	spin_lock_init(&osb->osb_xattr_lock);
- 	ocfs2_init_steal_slots(osb);
- 
--	mutex_init(&osb->system_file_mutex);
--
- 	atomic_set(&osb->alloc_stats.moves, 0);
- 	atomic_set(&osb->alloc_stats.local_data, 0);
- 	atomic_set(&osb->alloc_stats.bitmap_data, 0);
---- a/fs/ocfs2/sysfile.c~ocfs2-kill-osb-system_file_mutex-lock
-+++ a/fs/ocfs2/sysfile.c
-@@ -98,11 +98,9 @@ struct inode *ocfs2_get_system_file_inod
- 	} else
- 		arr = get_local_system_inode(osb, type, slot);
- 
--	mutex_lock(&osb->system_file_mutex);
- 	if (arr && ((inode = *arr) != NULL)) {
- 		/* get a ref in addition to the array ref */
- 		inode = igrab(inode);
--		mutex_unlock(&osb->system_file_mutex);
- 		BUG_ON(!inode);
- 
- 		return inode;
-@@ -112,11 +110,10 @@ struct inode *ocfs2_get_system_file_inod
- 	inode = _ocfs2_get_system_file_inode(osb, type, slot);
- 
- 	/* add one more if putting into array for first time */
--	if (arr && inode) {
--		*arr = igrab(inode);
--		BUG_ON(!*arr);
-+	if (inode && arr && !*arr && !cmpxchg(&(*arr), NULL, inode)) {
-+		inode = igrab(inode);
-+		BUG_ON(!inode);
- 	}
--	mutex_unlock(&osb->system_file_mutex);
- 	return inode;
- }
++# MADV_DONTNEED and PROCESS_DONTNEED tests
++CATEGORY="madv_dontneed" run_test ./madv_dontneed
++
+ # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
+ CATEGORY="madv_populate" run_test ./madv_populate
  
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from lianux.mm@gmail.com are
 
-ocfs2-kill-osb-system_file_mutex-lock.patch
+selftests-mm-add-test-for-batch_processmadv_dontneed.patch
 
