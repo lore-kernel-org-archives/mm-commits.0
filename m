@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E52542AAF;
-	Sun, 22 Jun 2025 21:48:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A5242AAF
+	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 21:48:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750628925; cv=none; b=HV5XUbPBOJ0QxxzzxuqywoPHJCHv9fT7ePpJp+FJyiZSFUOe3cFsdzzgt57RMqzuYEgbuOgvUdJLaCYEvkavAmdOZbqpIMRzW2vv3ANVrcLFddL4C3giJ7ekl699ZHNm6wO/fEKLwZNLBsx79AOoGxAlhqC4IW4yJHRhRXAFpfY=
+	t=1750628927; cv=none; b=aJ3SxdKDysAFef9D5YuPKlGiy0ZFw57kW0Pi1bw7xDNJdh/An/kyi5Z62ct3qCF47p03l0t1y8or65YvQjBO+EbW2CCTel+3cQW2dAcVsb/iWkAdAk+ui/0YEnX3dCDeyWmGrkoopm9/fSiQFy/FtpvLsrjSVcAjdxueNdK9opg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750628925; c=relaxed/simple;
-	bh=flck0XCkxNF8NjfYUwIumgJbuoWPKoCB4JIQDX8XV3I=;
-	h=Date:To:From:Subject:Message-Id; b=TfKvlM5H6hjlDijxvYlRFU1xqOaLjkSUMnowagD6d+y+lhp68FJjCSyZzMhji+y2f9pOWp4XryCbYO1HyAI5jqPn6LA7OIedVB2qKHm13XgrdFBHBIgz/EfuzUcMPz6O2Nr8weZKtjSTitxtVgLKoGzIvaBTSVDDt7tOFkbkDyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ykjnqDX/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750628927; c=relaxed/simple;
+	bh=8Rr7Y04n3YKIDSMWePOitKW7ttyS1oAps39dfM4xe/I=;
+	h=Date:To:From:Subject:Message-Id; b=lkpkui/y+j+CmSLKgmESG7T8LblS561hAn/ptBclACrFjPveV/9e5h/V/3Qy+z75f+IYHV8Ow7A5VofQvf7kWzLKfhriZ8y53S3aHNUaF6wa9/3jhreZJkkXapHFfG/2WssQCE0PAmahuuGKiA+O+w36bPxPPo3nmPSoYXUO6oQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zVAcUDFF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ykjnqDX/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CA9DC4CEEA;
-	Sun, 22 Jun 2025 21:48:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zVAcUDFF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61C00C4CEEA;
+	Sun, 22 Jun 2025 21:48:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750628924;
-	bh=flck0XCkxNF8NjfYUwIumgJbuoWPKoCB4JIQDX8XV3I=;
+	s=korg; t=1750628926;
+	bh=8Rr7Y04n3YKIDSMWePOitKW7ttyS1oAps39dfM4xe/I=;
 	h=Date:To:From:Subject:From;
-	b=ykjnqDX/H6q+dlptT8saZzE+RlvlN+71JAOcOdTYUVEns8gfSBbT9y5FGZVlMTf15
-	 gexKlN1j7310tMt7LCl7IN6rpPcpgeyz/KEWkfmexzDBsXpLek9djLZMXJp2nZ1WGC
-	 qVFfBTU2pKyJBusNTAYI7JidBYqG2jYkWuibj4bw=
-Date: Sun, 22 Jun 2025 14:48:43 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,gavinguo@igalia.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=zVAcUDFFpGThit9iERrQHk2BbS3khSNCArxwcpafSuYxstd4vUs1RtwHFVhbkmM+d
+	 9hOaij+EjeJEzX87WH0iQpciaW84lJPuhm311PSSivC4p8Sse8zVADywDxeOxcP41i
+	 CIzTTooMJ3Shpry505vQWol5WdGiaz0NzWoyxEX8=
+Date: Sun, 22 Jun 2025 14:48:45 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,gavinguo@igalia.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch added to mm-new branch
-Message-Id: <20250622214844.5CA9DC4CEEA@smtp.kernel.org>
+Subject: + mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch added to mm-new branch
+Message-Id: <20250622214846.61C00C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,hugetlb: change mechanism to detect a COW on private mapping
+     Subject: mm,hugetlb: sort out folio locking in the faulting path
 has been added to the -mm mm-new branch.  Its filename is
-     mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch
+     mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,227 +65,138 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hugetlb: change mechanism to detect a COW on private mapping
-Date: Fri, 20 Jun 2025 14:30:10 +0200
+Subject: mm,hugetlb: sort out folio locking in the faulting path
+Date: Fri, 20 Jun 2025 14:30:11 +0200
 
-Patch series "Misc rework on hugetlb faulting path", v2.
+Recent conversations showed that there was a misunderstanding about why we
+were locking the folio prior to call in hugetlb_wp().
 
-This patchset aims to give some love to the hugetlb faulting path, doing
-so by removing obsolete comments that are no longer true, sorting out the
-folio lock, and changing the mechanism we use to determine whether we are
-COWing a private mapping already.
+In fact, as soon as we have the folio mapped into the pagetables, we no
+longer need to hold it locked, because we know that no concurrent
+truncation could have happened.
 
-The most important patch of the series is #1, as it fixes a deadlock that
-was described in [1], where two processes were holding the same lock for
-the folio in the pagecache, and then deadlocked in the mutex.
+There is only one case where the folio needs to be locked, and that is
+when we are handling an anonymous folio, because hugetlb_wp() will check
+whether it can re-use it exclusively for the process that is faulting it
+in.
 
-Looking up and locking the folio in the pagecache was done to check
-whether that folio was the same folio we had mapped in our pagetables,
-meaning that if it was different we knew that we already mapped that folio
-privately, so any further CoW would be made on a private mapping, which
-lead us to the question: __Was the reservation for that address
-consumed?__ That is all we care about, because if it was indeed consumed
-and we are the owner and we cannot allocate more folios, we need to unmap
-the folio from the processes pagetables and make it exclusive for us.
+So, pass the folio locked to hugetlb_wp() when that is the case.
 
-We figured we do not need to look up the folio at all, and it is just
-enough to check whether the folio we have mapped is anonymous, which means
-we mapped it privately, so the reservation was indeed consumed.
-
-Patch #2 sorts out folio locking in the faulting path, reducing the scope
-of it ,only taking it when we are dealing with an anonymous folio and
-document it.  More details in the patch.
-
-Patches #3-5 are cleanups.
-
-
-
-hugetlb_wp() checks whether the process is trying to COW on a private
-mapping in order to know whether the reservation for that address was
-already consumed or not.  If it was consumed and we are the ownner of the
-mapping, the folio will have to be unmapped from the other processes.
-
-Currently, that check is done by looking up the folio in the pagecache and
-comparing it to the folio which is mapped in our pagetables.  If it
-differs, it means we already mapped it privately before, consuming a
-reservation on the way.  All we are interested in is whether the mapped
-folio is anonymous, so we can simplify and check for that instead.
-
-Also, we transition from a trylock to a folio_lock, since the former was
-only needed when hugetlb_fault() had to lock both folios, in order to
-avoid deadlock.
-
-Link: https://lkml.kernel.org/r/20250620123014.29748-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20250620123014.29748-2-osalvador@suse.de
-Link: https://lore.kernel.org/lkml/20250513093448.592150-1-gavinguo@igalia.com/ [1]
-Fixes: 40549ba8f8e0 ("hugetlb: use new vma_lock for pmd sharing synchronization")
-Reported-by: Gavin Guo <gavinguo@igalia.com>
-Closes: https://lore.kernel.org/lkml/20250513093448.592150-1-gavinguo@igalia.com/
+Link: https://lkml.kernel.org/r/20250620123014.29748-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Gavin Guo <gavinguo@igalia.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   70 +++++++++++--------------------------------------
- 1 file changed, 17 insertions(+), 53 deletions(-)
+ mm/hugetlb.c |   43 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 33 insertions(+), 10 deletions(-)
 
---- a/mm/hugetlb.c~mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping
+--- a/mm/hugetlb.c~mmhugetlb-sort-out-folio-locking-in-the-faulting-path
 +++ a/mm/hugetlb.c
-@@ -6130,8 +6130,7 @@ static void unmap_ref_private(struct mm_
-  * cannot race with other handlers or page migration.
-  * Keep the pte_same checks anyway to make transition from the mutex easier.
-  */
--static vm_fault_t hugetlb_wp(struct folio *pagecache_folio,
--		       struct vm_fault *vmf)
-+static vm_fault_t hugetlb_wp(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
-@@ -6193,16 +6192,17 @@ retry_avoidcopy:
- 		       PageAnonExclusive(&old_folio->page), &old_folio->page);
+@@ -6415,6 +6415,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 	pte_t new_pte;
+ 	bool new_folio, new_pagecache_folio = false;
+ 	u32 hash = hugetlb_fault_mutex_hash(mapping, vmf->pgoff);
++	bool folio_locked = true;
  
  	/*
--	 * If the process that created a MAP_PRIVATE mapping is about to
--	 * perform a COW due to a shared page count, attempt to satisfy
--	 * the allocation without using the existing reserves. The pagecache
--	 * page is used to determine if the reserve at this address was
--	 * consumed or not. If reserves were used, a partial faulted mapping
--	 * at the time of fork() could consume its reserves on COW instead
--	 * of the full address range.
-+	 * If the process that created a MAP_PRIVATE mapping is about to perform
-+	 * a COW due to a shared page count, attempt to satisfy the allocation
-+	 * without using the existing reserves.
-+	 * In order to determine where this is a COW on a MAP_PRIVATE mapping it
-+	 * is enough to check whether the old_folio is anonymous. This means that
-+	 * the reserve for this address was consumed. If reserves were used, a
-+	 * partial faulted mapping at the fime of fork() could consume its reserves
-+	 * on COW instead of the full address range.
- 	 */
- 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
--			old_folio != pagecache_folio)
-+	    folio_test_anon(old_folio))
- 		cow_from_owner = true;
+ 	 * Currently, we are forced to kill the process in the event the
+@@ -6580,6 +6581,11 @@ static vm_fault_t hugetlb_no_page(struct
  
- 	folio_get(old_folio);
-@@ -6581,7 +6581,7 @@ static vm_fault_t hugetlb_no_page(struct
  	hugetlb_count_add(pages_per_huge_page(h), mm);
  	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
++		/* No need to lock file folios. See comment in hugetlb_fault() */
++		if (!anon_rmap) {
++			folio_locked = false;
++			folio_unlock(folio);
++		}
  		/* Optimization, do the COW without a second fault */
--		ret = hugetlb_wp(folio, vmf);
-+		ret = hugetlb_wp(vmf);
+ 		ret = hugetlb_wp(vmf);
  	}
+@@ -6594,7 +6600,8 @@ static vm_fault_t hugetlb_no_page(struct
+ 	if (new_folio)
+ 		folio_set_hugetlb_migratable(folio);
  
- 	spin_unlock(vmf->ptl);
-@@ -6648,11 +6648,9 @@ vm_fault_t hugetlb_fault(struct mm_struc
+-	folio_unlock(folio);
++	if (folio_locked)
++		folio_unlock(folio);
+ out:
+ 	hugetlb_vma_unlock_read(vma);
+ 
+@@ -6614,7 +6621,8 @@ backout_unlocked:
+ 	if (new_folio && !new_pagecache_folio)
+ 		restore_reserve_on_error(h, vma, vmf->address, folio);
+ 
+-	folio_unlock(folio);
++	if (folio_locked)
++		folio_unlock(folio);
+ 	folio_put(folio);
+ 	goto out;
+ }
+@@ -6648,7 +6656,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
  {
  	vm_fault_t ret;
  	u32 hash;
--	struct folio *folio = NULL;
--	struct folio *pagecache_folio = NULL;
-+	struct folio *folio;
+-	struct folio *folio;
++	struct folio *folio = NULL;
  	struct hstate *h = hstate_vma(vma);
  	struct address_space *mapping;
--	int need_wait_lock = 0;
  	struct vm_fault vmf = {
- 		.vma = vma,
- 		.address = address & huge_page_mask(h),
-@@ -6747,8 +6745,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	 * If we are going to COW/unshare the mapping later, we examine the
- 	 * pending reservations for this page now. This will ensure that any
- 	 * allocations necessary to record that reservation occur outside the
--	 * spinlock. Also lookup the pagecache page now as it is used to
--	 * determine if a reservation has been consumed.
-+	 * spinlock.
- 	 */
- 	if ((flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) &&
- 	    !(vma->vm_flags & VM_MAYSHARE) && !huge_pte_write(vmf.orig_pte)) {
-@@ -6758,11 +6755,6 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		}
- 		/* Just decrements count, does not deallocate */
- 		vma_end_reservation(h, vma, vmf.address);
--
--		pagecache_folio = filemap_lock_hugetlb_folio(h, mapping,
--							     vmf.pgoff);
--		if (IS_ERR(pagecache_folio))
--			pagecache_folio = NULL;
- 	}
+@@ -6665,6 +6673,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		 * be hard to debug if called functions make assumptions
+ 		 */
+ 	};
++	bool folio_locked = false;
  
- 	vmf.ptl = huge_pte_lock(h, mm, vmf.pte);
-@@ -6776,10 +6768,6 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	    (flags & FAULT_FLAG_WRITE) && !huge_pte_write(vmf.orig_pte)) {
- 		if (!userfaultfd_wp_async(vma)) {
- 			spin_unlock(vmf.ptl);
--			if (pagecache_folio) {
--				folio_unlock(pagecache_folio);
--				folio_put(pagecache_folio);
--			}
- 			hugetlb_vma_unlock_read(vma);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			return handle_userfault(&vmf, VM_UFFD_WP);
-@@ -6791,23 +6779,14 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	/*
+ 	 * Serialize hugepage allocation and instantiation, so that we don't
+@@ -6779,13 +6788,24 @@ vm_fault_t hugetlb_fault(struct mm_struc
  		/* Fallthrough to CoW */
  	}
  
--	/*
--	 * hugetlb_wp() requires page locks of pte_page(vmf.orig_pte) and
--	 * pagecache_folio, so here we need take the former one
--	 * when folio != pagecache_folio or !pagecache_folio.
--	 */
-+	/* hugetlb_wp() requires page locks of pte_page(vmf.orig_pte) */
- 	folio = page_folio(pte_page(vmf.orig_pte));
--	if (folio != pagecache_folio)
--		if (!folio_trylock(folio)) {
--			need_wait_lock = 1;
--			goto out_ptl;
--		}
+-	/* hugetlb_wp() requires page locks of pte_page(vmf.orig_pte) */
+-	folio = page_folio(pte_page(vmf.orig_pte));
+-	folio_lock(folio);
+-	folio_get(folio);
 -
-+	folio_lock(folio);
- 	folio_get(folio);
- 
  	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
  		if (!huge_pte_write(vmf.orig_pte)) {
--			ret = hugetlb_wp(pagecache_folio, &vmf);
-+			ret = hugetlb_wp(&vmf);
++			/*
++			 * Anonymous folios need to be lock since hugetlb_wp()
++			 * checks whether we can re-use the folio exclusively
++			 * for us in case we are the only user of it.
++			 */
++			folio = page_folio(pte_page(vmf.orig_pte));
++			folio_get(folio);
++			if (folio_test_anon(folio)) {
++				spin_unlock(vmf.ptl);
++				folio_lock(folio);
++				folio_locked = true;
++				spin_lock(vmf.ptl);
++				if (unlikely(!pte_same(vmf.orig_pte, huge_ptep_get(mm,
++						   vmf.address, vmf.pte))))
++					goto out_put_page;
++			}
+ 			ret = hugetlb_wp(&vmf);
  			goto out_put_page;
  		} else if (likely(flags & FAULT_FLAG_WRITE)) {
- 			vmf.orig_pte = huge_pte_mkdirty(vmf.orig_pte);
-@@ -6818,16 +6797,10 @@ vm_fault_t hugetlb_fault(struct mm_struc
+@@ -6797,8 +6817,11 @@ vm_fault_t hugetlb_fault(struct mm_struc
  						flags & FAULT_FLAG_WRITE))
  		update_mmu_cache(vma, vmf.address, vmf.pte);
  out_put_page:
--	if (folio != pagecache_folio)
--		folio_unlock(folio);
-+	folio_unlock(folio);
- 	folio_put(folio);
+-	folio_unlock(folio);
+-	folio_put(folio);
++	if (folio) {
++		if (folio_locked)
++			folio_unlock(folio);
++		folio_put(folio);
++	}
  out_ptl:
  	spin_unlock(vmf.ptl);
--
--	if (pagecache_folio) {
--		folio_unlock(pagecache_folio);
--		folio_put(pagecache_folio);
--	}
  out_mutex:
- 	hugetlb_vma_unlock_read(vma);
- 
-@@ -6839,15 +6812,6 @@ out_mutex:
- 		vma_end_read(vma);
- 
- 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--	/*
--	 * Generally it's safe to hold refcount during waiting page lock. But
--	 * here we just wait to defer the next page fault to avoid busy loop and
--	 * the page is not used after unlocked before returning from the current
--	 * page fault. So we are safe from accessing freed page, even if we wait
--	 * here without taking refcount.
--	 */
--	if (need_wait_lock)
--		folio_wait_locked(folio);
- 	return ret;
- }
- 
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
