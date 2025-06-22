@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E95C13B58B
-	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:22:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F226136
+	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:24:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750630939; cv=none; b=RqiqwcNXWThhNsLXea6OmNeOPnL3P8oW4L/+MB+n8qB9YBBAtUyQOEOQgkdfElOUMdLN69fTgFagqwLq1d7RMo4Co6KODVjafSj8NiWo92VWJvullgnzgnHN6DUMY8yqrNa1Bt8tEKoNgYkT/hSrvftj20isXTSUr2jxy8Ln7HE=
+	t=1750631093; cv=none; b=kxJ2pOIZP19Fn+/PRPzz/3S+qwwsmT3EsqaVOf/CKB6i6sUzaQu42mY4x0qHAMpoLfz3y/6Yq0h37IZnoTbKP2weAP+Pmui8UpwLqIjmqG8cPlsz0C04kShBYAWpl63ov1RpOGnd5PVvDyI3WwXc1vng1HLH1gbU++y5ZAEjlGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750630939; c=relaxed/simple;
-	bh=4LcW0t1RFUy3ky/ZreYM2qAcnF9V/2hLUdahvtIPLD8=;
-	h=Date:To:From:Subject:Message-Id; b=GsDMVPjC5zBXlhw/o45aDCU0ashHi74JuvjBXIUkQvN1Gkz5nVGtr0Ce+g5tLWZfkCpuWbxRc9NU9Tqnu+2csFpipVUEajGdKfBozZUsTTkDeJsWd0+RKxOLCg65uopRZakBsV68+Wp/a3Fj458j0lkUpb7r3s6jsLenYSNPNNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1lmxgPPp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750631093; c=relaxed/simple;
+	bh=ZyAmjJ8CuV9D6CLkpiv+aA8jrP0wYPGu4Ryb67ss3DM=;
+	h=Date:To:From:Subject:Message-Id; b=enp1mo56gWj7IE8hVviaj0Alr0D+5kKAfB+AefHtk2jq0zFJ76Jp8tJ7droXjoL6E3IuK9UkNOlF4b9NdPqzr+WkA+H6ub4a3BTBlkzRvVPx7Okls3sinz9VloqzJ66MPQC3Mk3LM84zf5DtyFkC0p3ScUb7UDXmnyyHshmG24U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E/YGpuHy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1lmxgPPp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAF16C4CEE3;
-	Sun, 22 Jun 2025 22:22:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E/YGpuHy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AD14C4CEE3;
+	Sun, 22 Jun 2025 22:24:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750630938;
-	bh=4LcW0t1RFUy3ky/ZreYM2qAcnF9V/2hLUdahvtIPLD8=;
+	s=korg; t=1750631092;
+	bh=ZyAmjJ8CuV9D6CLkpiv+aA8jrP0wYPGu4Ryb67ss3DM=;
 	h=Date:To:From:Subject:From;
-	b=1lmxgPPp+Z69az81ioF4L/7qzfJiuv5L202lY/9gIEQPcEFnxMQC6Q6YvH5/0lEq5
-	 upWMJwD8tXiArL7JbCgAV2vovhzznm/boENzaNVc/nYgnaQzHPYQ915oUJNiEunHph
-	 LtOAN1yRac6XbUIEMSZbu0txWzEVMH/hBWb1XzFA=
-Date: Sun, 22 Jun 2025 15:22:18 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,lorenzo.stoakes@oracle.com,donettom@linux.ibm.com,david@redhat.com,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=E/YGpuHyBJFJdgnYroBEI7/3MPryi5WKg07cXzn+UEIOnoVmLvUxqc6yzz9i9OPYG
+	 mUPh+RC2csR6R4vIVVcHIRK7BsO+ZY5Ee/P0qhvJpHPgnbsCU67nprm6H12JueKUdJ
+	 fv58N3W+dupkijRTOveAPgGN3d9GVnz26ldl9fJ4=
+Date: Sun, 22 Jun 2025 15:24:51 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,mingzhu.wang@transsion.com,ebiederm@xmission.com,jqqlijiazi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-validate_addr-helper.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250622222218.CAF16C4CEE3@smtp.kernel.org>
+Subject: + kthread-update-comment-for-__to_kthread.patch added to mm-nonmm-unstable branch
+Message-Id: <20250622222452.5AD14C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix validate_addr() helper
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-fix-validate_addr-helper.patch
+     Subject: kthread: update comment for __to_kthread
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kthread-update-comment-for-__to_kthread.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-validate_addr-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kthread-update-comment-for-__to_kthread.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm: fix validate_addr() helper
-Date: Fri, 20 Jun 2025 16:41:50 +0530
+From: Jiazi Li <jqqlijiazi@gmail.com>
+Subject: kthread: update comment for __to_kthread
+Date: Fri, 20 Jun 2025 18:07:56 +0800
 
-validate_addr() checks whether the address returned by mmap() lies in the
-low or high VA space, according to whether a high addr hint was passed or
-not.  The fix commit mentioned below changed the code in such a way that
-this function will always return failure when passed high_addr == 1; addr
-will be >= HIGH_ADDR_MARK always, we will fall down to "if (addr >
-HIGH_ADDR_MARK)" and return failure.  Fix this.
+With commit 343f4c49f243 ("kthread: Don't allocate kthread_struct for init
+and umh") and commit 753550eb0ce1 ("fork: Explicitly set PF_KTHREAD"), umh
+task no longer have struct kthread and PF_KTHREAD flag.
 
-Link: https://lkml.kernel.org/r/20250620111150.50344-1-dev.jain@arm.com
-Fixes: d1d86ce28d0f ("selftests/mm: virtual_address_range: conform to TAP format output")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Donet Tom <donettom@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Update the comment to describe what the current rules are to detect
+is something is a kthread.
+
+Link: https://lkml.kernel.org/r/20250620100801.23185-1-jqqlijiazi@gmail.com
+Signed-off-by: Jiazi Li <jqqlijiazi@gmail.com>
+Signed-off-by: mingzhu.wang <mingzhu.wang@transsion.com>
+Suggested-by Eric W . Biederman <ebiederm@xmission.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/kthread.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-fix-validate_addr-helper
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -77,8 +77,11 @@ static void validate_addr(char *ptr, int
+--- a/kernel/kthread.c~kthread-update-comment-for-__to_kthread
++++ a/kernel/kthread.c
+@@ -88,13 +88,12 @@ static inline struct kthread *to_kthread
+ /*
+  * Variant of to_kthread() that doesn't assume @p is a kthread.
+  *
+- * Per construction; when:
++ * When "(p->flags & PF_KTHREAD)" is set the task is a kthread and will
++ * always remain a kthread.  For kthreads p->worker_private always
++ * points to a struct kthread.  For tasks that are not kthreads
++ * p->worker_private is used to point to other things.
+  *
+- *   (p->flags & PF_KTHREAD) && p->worker_private
+- *
+- * the task is both a kthread and struct kthread is persistent. However
+- * PF_KTHREAD on it's own is not, kernel_thread() can exec() (See umh.c and
+- * begin_new_exec()).
++ * Return NULL for any task that is not a kthread.
+  */
+ static inline struct kthread *__to_kthread(struct task_struct *p)
  {
- 	unsigned long addr = (unsigned long) ptr;
- 
--	if (high_addr && addr < HIGH_ADDR_MARK)
--		ksft_exit_fail_msg("Bad address %lx\n", addr);
-+	if (high_addr) {
-+		if (addr < HIGH_ADDR_MARK)
-+			ksft_exit_fail_msg("Bad address %lx\n", addr);
-+		return;
-+	}
- 
- 	if (addr > HIGH_ADDR_MARK)
- 		ksft_exit_fail_msg("Bad address %lx\n", addr);
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from jqqlijiazi@gmail.com are
 
-selftests-mm-fix-validate_addr-helper.patch
-xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
-mm-call-pointers-to-ptes-as-ptep.patch
-mm-optimize-mremap-by-pte-batching.patch
+kthread-update-comment-for-__to_kthread.patch
 
