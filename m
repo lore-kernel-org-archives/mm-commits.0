@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 945F386349
-	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:48:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEFEB86349
+	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:48:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750632508; cv=none; b=RrnZ1dH9iTkVEwJwahBgIkZq7XtPpRwfda5d1B8sRHNlmo2gjqEBiDpMcqt+2T9PsZOKYUn8ZK2K/p3rvJzPFdJ0uJi4ouCormb9bMme7hlQtBJyF8z18Fyvm3vc9/i4z+LA2Ei/pftFk5HfzSUeqICiuq0Q6dYcT8pYuRJTV8k=
+	t=1750632519; cv=none; b=Lan/lQkZzL4V70yhKzYD0L+OLmAhnM7xcIJWdPF6iDNSTOXs+lTt5yJ5VOthOmjzHiH6uCTx8vwkVP8/E9ugvhYx1BZLWglr1mTv6iNC6Ze8fFYsWI9SLln570bztC7rwI/w1Yx5LhIEQKaK6obef2OY5/cuqLBGhLrJQnW5/Bo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750632508; c=relaxed/simple;
-	bh=C2LKeRwjDUer4xPN17b8582YMTP5/HHDLqgywCqqiD8=;
-	h=Date:To:From:Subject:Message-Id; b=W7xMsMhBWLwxpLryXOGAMguBQoUqdnmYCy09Pqt51rbhQWFUeHWM6VJXxEGTusl6Oa+9pDqdT77CRJisxrY0qGLR3J3A8tgt9CS1Re2p6tBDNbwzeyji1FweLQS4uQSAE+kOpajo125Fb6FwdvjkxnHBYG+rq2Wh0b8Vg9shVI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r/AQLsNB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750632519; c=relaxed/simple;
+	bh=dMxf910jiQn4FKbm81rO8Vwhmcu5oxHgrMzWk0Q+B1Q=;
+	h=Date:To:From:Subject:Message-Id; b=U+Rp2wk8EoG1Q0bxuh2uHQe0WjQ5ckbzEv2xpfCjh+PfV8aaJg4yt4esx3Dvq1hTm3ER7FVmqDmAEjIrDS+4s2geI/SKvjntVN0CQNiB0waO6oXOm46y3zpVPgYwfkgoTfwSuVZqMACimDSESsmjxfFtkqXFFEqK3P9q4s/l2oU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ttY40do2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r/AQLsNB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F7DC4CEE3;
-	Sun, 22 Jun 2025 22:48:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ttY40do2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D42EC4CEE3;
+	Sun, 22 Jun 2025 22:48:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750632508;
-	bh=C2LKeRwjDUer4xPN17b8582YMTP5/HHDLqgywCqqiD8=;
+	s=korg; t=1750632517;
+	bh=dMxf910jiQn4FKbm81rO8Vwhmcu5oxHgrMzWk0Q+B1Q=;
 	h=Date:To:From:Subject:From;
-	b=r/AQLsNB1mU77fHyCEOgHeGXN7fqrjltAoL2gtoYBybbIlk/uyDtdN5ZWRNLU/E4z
-	 /mmRIS6xcnyZgwjg1KrwGT4YwKoPKSkxcHQOYJW8ggLmDE3D3R5wnL4BXrpCIaza7Z
-	 E6McDv/hoURLq7pA9WoLUjoXIeXfV5zwg8mWPcy0=
-Date: Sun, 22 Jun 2025 15:48:27 -0700
+	b=ttY40do2Svnbh6KThxhPBwEhpiMOyfu0yH1hRvNc0GNtbdZjYqj3sbVQR4rBke871
+	 qC6+pDg11ZBopkyFACZjypjEbSZA2uDxkIqcZLkquPhASvECxJO9H5c08UDeQiK5qE
+	 lo2oZR7x/7eqbC7YJv/cbuiQK1/6NtmrMLz9g1hU=
+Date: Sun, 22 Jun 2025 15:48:36 -0700
 To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4ig5lehrdihrvb2xzl2fjy291bnrpbmcvzgvsyxl0b3a6igfkzcbkzwxhexrvcaogdg8gcmvjb3jkihrvcc1uihrhc2sgzgvsyxk==.patch added to mm-nonmm-unstable branch
-Message-Id: <20250622224828.00F7DC4CEE3@smtp.kernel.org>
+Subject: + tools-accounting-delaytop-add-delaytop-to-record-top-n-task-delay.patch added to mm-nonmm-unstable branch
+Message-Id: <20250622224837.5D42EC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      Subject: tools/accounting/delaytop: add delaytop to record top-n task delay
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4ig5lehrdihrvb2xzl2fjy291bnrpbmcvzgvsyxl0b3a6igfkzcbkzwxhexrvcaogdg8gcmvjb3jkihrvcc1uihrhc2sgzgvsyxk==.patch
+     tools-accounting-delaytop-add-delaytop-to-record-top-n-task-delay.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4ig5lehrdihrvb2xzl2fjy291bnrpbmcvzgvsyxl0b3a6igfkzcbkzwxhexrvcaogdg8gcmvjb3jkihrvcc1uihrhc2sgzgvsyxk==.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-accounting-delaytop-add-delaytop-to-record-top-n-task-delay.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -823,7 +823,7 @@ new file mode 100644
 +
 +	return 0;
 +}
---- a/tools/accounting/Makefile~=utf-8bw1bbveniigxpbnv4ig5lehrdihrvb2xzl2fjy291bnrpbmcvzgvsyxl0b3a6igfkzcbkzwxhexrvcaogdg8gcmvjb3jkihrvcc1uihrhc2sgzgvsyxk==
+--- a/tools/accounting/Makefile~tools-accounting-delaytop-add-delaytop-to-record-top-n-task-delay
 +++ a/tools/accounting/Makefile
 @@ -2,7 +2,7 @@
  CC := $(CROSS_COMPILE)gcc
@@ -838,5 +838,5 @@ _
 
 Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-=utf-8bw1bbveniigxpbnv4ig5lehrdihrvb2xzl2fjy291bnrpbmcvzgvsyxl0b3a6igfkzcbkzwxhexrvcaogdg8gcmvjb3jkihrvcc1uihrhc2sgzgvsyxk==.patch
+tools-accounting-delaytop-add-delaytop-to-record-top-n-task-delay.patch
 
