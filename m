@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98CBA13B58B
-	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:18:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AA7F13B58B
+	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:19:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750630687; cv=none; b=Q6lFJ2zU3F3MDHuDOgP+yBal89KkKPqrj+168Or3XsLmvXeQPJBRGZy0NrB6fziL+6oTb2bsROpHezrfSxcm2SDYkrNase2APd3Sor8SvVJJd+hBPQ+R2LaNQgp2YN77xk3ZRuOGMANpgMbTyTUs1wDso3V8auwgwi2D7TNGhgw=
+	t=1750630760; cv=none; b=ByGXHdxUzr9LlTlMhvKA8ZPsG/mEXLmXI3z2akIlDhZuzL20XCo3QBIr7WujRveZ4qvptzGFEaBarQ8IlZc4+wyqfnEKGJ8EhevbUW58OBgt/4lxzOEryAU3MZREdMSKtCsjbY0G07KK/6RJInJHei0PjBs64bgghJLcJWJiaW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750630687; c=relaxed/simple;
-	bh=ukFHDL5qk3cea63tQlPu7pwf2zdJbj/1vQA/hsmcG+U=;
-	h=Date:To:From:Subject:Message-Id; b=g05FmKR3ndcLXJQ9DUwS8XKW/m0Yv+Ky8VK1vFGMxuyKorH35guGfN+WKc0eGGgUTrvtxIuziEGr6Y4BcYkbDUz7sZy1D2C9BJnm49Wn4DTo5sSB8ktY6tLzDA2C3AJ9mJxsqqAnjG+EfDB9XQN9UKvPQHT3FLpjMMoir2teiZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIMbbuuJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750630760; c=relaxed/simple;
+	bh=b49ABR9YzKEYj8cSp82Btm7Fqa7vBKgPvTHP4VffwuA=;
+	h=Date:To:From:Subject:Message-Id; b=K+mRCe9bVFlcD6Ggo+FJZNeBgD7nfX4IMqiPTGeiaBbH7fzlzydOWumKOcWvoU+KsKj4bQScpJ7Npd2/L0FFIGI/R7Js9tnWmTBItsn1IIMc7pkOpEuajVCTzZzd7Oak/7u+y0U0XC39EKzc/Z64Pc62eRjaLN1QsNsvJS1vCdk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Uxo22HK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIMbbuuJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C374C4CEE3;
-	Sun, 22 Jun 2025 22:18:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Uxo22HK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42C6AC4CEE3;
+	Sun, 22 Jun 2025 22:19:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750630687;
-	bh=ukFHDL5qk3cea63tQlPu7pwf2zdJbj/1vQA/hsmcG+U=;
+	s=korg; t=1750630760;
+	bh=b49ABR9YzKEYj8cSp82Btm7Fqa7vBKgPvTHP4VffwuA=;
 	h=Date:To:From:Subject:From;
-	b=aIMbbuuJj97rUdGUXoKPCG1aFFlAXLKDHhpNYqpcR2h3iXJgoZrwocjoC24HxwFjh
-	 E6c+z+1iOQLDosrbhf2ZhRUSrXKmaL9Aj6e1J6KAicvMBLpVYcPwzAkH0sECpW9/rR
-	 +PKW2GO7DeDXbUhIm3xEbgOD7THYxuS6Gs2iqdZY=
-Date: Sun, 22 Jun 2025 15:18:06 -0700
-To: mm-commits@vger.kernel.org,mpe@ellerman.id.au,graf@amazon.com,ebiggers@google.com,dave@vasilevsky.ca,coxu@redhat.com,bhe@redhat.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=1Uxo22HKs7IphcM1ZC6fQQ5352cVp6hYShazf9hbds3lZrIEmTVeX70hER33s3wRH
+	 nzF2Bu84Yxvf2cLshsUOWsAB3S4KVI/+M4d+hzxNpAZfqdeYE4n9jXSPAsS0ox5LQs
+	 OZSyHg8DU0ETmrHmla/dZP7tiFeAm3Hvc45ROSHw=
+Date: Sun, 22 Jun 2025 15:19:19 -0700
+To: mm-commits@vger.kernel.org,jiri@resnulli.us,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crashdump-add-config_keys-dependency.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250622221807.1C374C4CEE3@smtp.kernel.org>
+Subject: + lib-test_objagg-split-test_hints_case-into-two-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20250622221920.42C6AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crashdump: add CONFIG_KEYS dependency
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     crashdump-add-config_keys-dependency.patch
+     Subject: lib: test_objagg: split test_hints_case() into two functions
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-test_objagg-split-test_hints_case-into-two-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crashdump-add-config_keys-dependency.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_objagg-split-test_hints_case-into-two-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,47 +59,142 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: crashdump: add CONFIG_KEYS dependency
-Date: Fri, 20 Jun 2025 13:21:22 +0200
+Subject: lib: test_objagg: split test_hints_case() into two functions
+Date: Fri, 20 Jun 2025 13:19:04 +0200
 
-The dm_crypt code fails to build without CONFIG_KEYS:
+With sanitizers enabled, this function uses a lot of stack, causing a
+harmless warning:
 
-kernel/crash_dump_dm_crypt.c: In function 'restore_dm_crypt_keys_to_thread_keyring':
-kernel/crash_dump_dm_crypt.c:105:9: error: unknown type name 'key_ref_t'; did you mean 'key_ref_put'?
+lib/test_objagg.c: In function 'test_hints_case.constprop':
+lib/test_objagg.c:994:1: error: the frame size of 1440 bytes is larger than 1408 bytes [-Werror=frame-larger-than=]
 
-There is a mix of 'select KEYS' and 'depends on KEYS' in Kconfig,
-so there is no single obvious solution here, but generally using 'depends on'
-makes more sense and is less likely to cause dependency loops.
+Most of this is from the two 'struct world' structures.  Since most of the
+work in this function is duplicated for the two, split it up into separate
+functions that each use one of them.
 
-Link: https://lkml.kernel.org/r/20250620112140.3396316-1-arnd@kernel.org
-Fixes: 62f17d9df692 ("crash_dump: retrieve dm crypt keys in kdump kernel")
+The combined stack usage is still the same here, but there is no warning
+any more, and the code is still safe because of the known call chain.
+
+Link: https://lkml.kernel.org/r/20250620111907.3395296-1-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: Dave Vasilevsky <dave@vasilevsky.ca>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Jiri Pirko <jiri@resnulli.us>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Kconfig.kexec |    1 +
- 1 file changed, 1 insertion(+)
+ lib/test_objagg.c |   77 +++++++++++++++++++++++++-------------------
+ 1 file changed, 45 insertions(+), 32 deletions(-)
 
---- a/kernel/Kconfig.kexec~crashdump-add-config_keys-dependency
-+++ a/kernel/Kconfig.kexec
-@@ -134,6 +134,7 @@ config CRASH_DM_CRYPT
- 	depends on KEXEC_FILE
- 	depends on CRASH_DUMP
- 	depends on DM_CRYPT
-+	depends on KEYS
- 	help
- 	  With this option enabled, user space can intereact with
- 	  /sys/kernel/config/crash_dm_crypt_keys to make the dm crypt keys
+--- a/lib/test_objagg.c~lib-test_objagg-split-test_hints_case-into-two-functions
++++ a/lib/test_objagg.c
+@@ -906,50 +906,22 @@ static int check_expect_hints_stats(stru
+ 	return err;
+ }
+ 
+-static int test_hints_case(const struct hints_case *hints_case)
++static int test_hints_case2(const struct hints_case *hints_case,
++			    struct objagg_hints *hints, struct objagg *objagg)
+ {
+ 	struct objagg_obj *objagg_obj;
+-	struct objagg_hints *hints;
+ 	struct world world2 = {};
+-	struct world world = {};
+ 	struct objagg *objagg2;
+-	struct objagg *objagg;
+ 	const char *errmsg;
+ 	int i;
+ 	int err;
+ 
+-	objagg = objagg_create(&delta_ops, NULL, &world);
+-	if (IS_ERR(objagg))
+-		return PTR_ERR(objagg);
+-
+-	for (i = 0; i < hints_case->key_ids_count; i++) {
+-		objagg_obj = world_obj_get(&world, objagg,
+-					   hints_case->key_ids[i]);
+-		if (IS_ERR(objagg_obj)) {
+-			err = PTR_ERR(objagg_obj);
+-			goto err_world_obj_get;
+-		}
+-	}
+-
+-	pr_debug_stats(objagg);
+-	err = check_expect_stats(objagg, &hints_case->expect_stats, &errmsg);
+-	if (err) {
+-		pr_err("Stats: %s\n", errmsg);
+-		goto err_check_expect_stats;
+-	}
+-
+-	hints = objagg_hints_get(objagg, OBJAGG_OPT_ALGO_SIMPLE_GREEDY);
+-	if (IS_ERR(hints)) {
+-		err = PTR_ERR(hints);
+-		goto err_hints_get;
+-	}
+-
+ 	pr_debug_hints_stats(hints);
+ 	err = check_expect_hints_stats(hints, &hints_case->expect_stats_hints,
+ 				       &errmsg);
+ 	if (err) {
+ 		pr_err("Hints stats: %s\n", errmsg);
+-		goto err_check_expect_hints_stats;
++		return err;
+ 	}
+ 
+ 	objagg2 = objagg_create(&delta_ops, hints, &world2);
+@@ -981,7 +953,48 @@ err_world2_obj_get:
+ 		world_obj_put(&world2, objagg, hints_case->key_ids[i]);
+ 	i = hints_case->key_ids_count;
+ 	objagg_destroy(objagg2);
+-err_check_expect_hints_stats:
++
++	return err;
++}
++
++static int test_hints_case(const struct hints_case *hints_case)
++{
++	struct objagg_obj *objagg_obj;
++	struct objagg_hints *hints;
++	struct world world = {};
++	struct objagg *objagg;
++	const char *errmsg;
++	int i;
++	int err;
++
++	objagg = objagg_create(&delta_ops, NULL, &world);
++	if (IS_ERR(objagg))
++		return PTR_ERR(objagg);
++
++	for (i = 0; i < hints_case->key_ids_count; i++) {
++		objagg_obj = world_obj_get(&world, objagg,
++					   hints_case->key_ids[i]);
++		if (IS_ERR(objagg_obj)) {
++			err = PTR_ERR(objagg_obj);
++			goto err_world_obj_get;
++		}
++	}
++
++	pr_debug_stats(objagg);
++	err = check_expect_stats(objagg, &hints_case->expect_stats, &errmsg);
++	if (err) {
++		pr_err("Stats: %s\n", errmsg);
++		goto err_check_expect_stats;
++	}
++
++	hints = objagg_hints_get(objagg, OBJAGG_OPT_ALGO_SIMPLE_GREEDY);
++	if (IS_ERR(hints)) {
++		err = PTR_ERR(hints);
++		goto err_hints_get;
++	}
++
++	err = test_hints_case2(hints_case, hints, objagg);
++
+ 	objagg_hints_put(hints);
+ err_hints_get:
+ err_check_expect_stats:
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
 
 crashdump-add-config_keys-dependency.patch
 lib-test_hmm-reduce-stack-usage.patch
+lib-test_objagg-split-test_hints_case-into-two-functions.patch
 
