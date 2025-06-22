@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 870643C26
-	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:52:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBAD53C26
+	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:52:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750632775; cv=none; b=kpPpCy5kfedugb0eR4hZffBJxZi15gS477+HADAg/5ZVis2403RjPza2BdN537EXmC9Sos+CWjy6FZikL5s3Li30RrNqWv4FGWp/Xlnih/WL2YgtUTp2WW88bXBS7Lr1VSGVskFdTUae5UAPGweUo14VeRMiBmM97WBjV8yaHa0=
+	t=1750632777; cv=none; b=igpl5WeqsZ8ZmE2Rzyj9oHw/HC80imXOQJEfqz4A1QL8LmUTXglKPucZ7zRg7TbLj2NJWQclmNAef2qicF5U7Tt4bmVSx9nvYY0QJsgAepN6og7a07piwpjAjJ6xSKRsqC8HPfaNTS7J8JdkUoicJvsIfK2EiUStdZEjh3lie0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750632775; c=relaxed/simple;
-	bh=ov1k4T5zAAIp4Qp26yhT2gUNZWM2b4lWA4YwI0HB1J0=;
-	h=Date:To:From:Subject:Message-Id; b=rRR/ePnaQBmvJDuauzVC306DxzWjQM17Ge+2unH+Wgm7elcC7VdotQyRZ9kJpdLhmharZYfGafCYFamf3gVSQ4Y13RTcYbPwYVv5rsb6azy35kpsQabL5MGaJ60vzaJl56hjstHXxT1hSj+ROkNR/IdAxnP/WRF43fFCmvKF4VM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XXgsAfDO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750632777; c=relaxed/simple;
+	bh=saxmPRBF3WOXASJwLIG7eZVJx0K+qdUIqEBGYd5RiuI=;
+	h=Date:To:From:Subject:Message-Id; b=drQSvzCEMDdYPmlq/TUa5kVmWYo8QgwVeFnLlw02QPMFaAMKyIpkE7NN1RMESJstgAjxB+9Wzct2l0TtBmJj/s4ni+OWUvgEGU3ZQSg6lRyWm0yIr715kZeCFth1Ew0JCHf97eb1JTJniyLL7Up4udHnLfINw/oTSJQybYWIkn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=epvQLM0P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XXgsAfDO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51AA3C4CEE3;
-	Sun, 22 Jun 2025 22:52:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="epvQLM0P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41ADCC4CEE3;
+	Sun, 22 Jun 2025 22:52:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750632775;
-	bh=ov1k4T5zAAIp4Qp26yhT2gUNZWM2b4lWA4YwI0HB1J0=;
+	s=korg; t=1750632777;
+	bh=saxmPRBF3WOXASJwLIG7eZVJx0K+qdUIqEBGYd5RiuI=;
 	h=Date:To:From:Subject:From;
-	b=XXgsAfDOGZYTsVbzzGdqDuTo7pQ5IiPcDcc5oFbKct/MJ4iiq9i0/KzRCTW5+eU9Q
-	 broJ2VsRxeDc7Z95A0oZZIre1k/NZhsPxc+7GYK1t9WSo/nMgd0E/Emht8KRFGbsba
-	 1d79zVyJtcqGjVd8H/RH/Y7etzgjzSG1EFUHsbJc=
-Date: Sun, 22 Jun 2025 15:52:54 -0700
+	b=epvQLM0PUI2gI6GuIGclt8vRzSRyizniJ2y7DtJwVilU3HPWv/Q75oKC/h4VVM2B2
+	 gAjQJ6Jk+LRwTZ7mEuSeJS26gteepfoLLLlyZjQ1a/4KSBBKt+7Bc9uQE55bmDZPDB
+	 N45Y2tDX/UwnBiTkJ9ez4FV40DHZvmCq8edgk9M4=
+Date: Sun, 22 Jun 2025 15:52:56 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch added to mm-new branch
-Message-Id: <20250622225255.51AA3C4CEE3@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch added to mm-new branch
+Message-Id: <20250622225257.41ADCC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: decouple from damos_wmark_metric
+     Subject: mm/damon/sysfs-schemes: decouple from damos_filter_type
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
+     mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,88 +65,125 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: decouple from damos_wmark_metric
-Date: Sun, 22 Jun 2025 14:37:57 -0700
+Subject: mm/damon/sysfs-schemes: decouple from damos_filter_type
+Date: Sun, 22 Jun 2025 14:37:58 -0700
 
-Decouple DAMOS sysfs interface from damos_wmark_metric.  For this, define
+Decouple DAMOS sysfs interface from damos_filter_type.  For this, define
 and use new sysfs-schemes internal data structure that maps the user-space
-keywords and damos_wmark_metric, instead of having the implicit and
+keywords and damos_filter_type, instead of having the implicit and
 unflexible array index rule.
 
-Link: https://lkml.kernel.org/r/20250622213759.50930-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250622213759.50930-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   41 +++++++++++++++++++++++++++----------
- 1 file changed, 31 insertions(+), 10 deletions(-)
+ mm/damon/sysfs-schemes.c |   75 ++++++++++++++++++++++++++++---------
+ 1 file changed, 57 insertions(+), 18 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_filter_type
 +++ a/mm/damon/sysfs-schemes.c
-@@ -785,10 +785,21 @@ static struct damon_sysfs_watermarks *da
- 	return watermarks;
+@@ -341,16 +341,45 @@ static struct damon_sysfs_scheme_filter
+ 	return filter;
  }
  
--/* Should match with enum damos_wmark_metric */
--static const char * const damon_sysfs_wmark_metric_strs[] = {
--	"none",
--	"free_mem_rate",
-+struct damos_sysfs_wmark_metric_name {
-+	enum damos_wmark_metric metric;
+-/* Should match with enum damos_filter_type */
+-static const char * const damon_sysfs_scheme_filter_type_strs[] = {
+-	"anon",
+-	"active",
+-	"memcg",
+-	"young",
+-	"hugepage_size",
+-	"unmapped",
+-	"addr",
+-	"target",
++struct damos_sysfs_filter_type_name {
++	enum damos_filter_type type;
 +	char *name;
 +};
 +
-+static const struct damos_sysfs_wmark_metric_name
-+damos_sysfs_wmark_metric_names[] = {
++static const struct damos_sysfs_filter_type_name
++damos_sysfs_filter_type_names[] = {
 +	{
-+		.metric = DAMOS_WMARK_NONE,
-+		.name = "none",
++		.type = DAMOS_FILTER_TYPE_ANON,
++		.name = "anon",
 +	},
 +	{
-+		.metric = DAMOS_WMARK_FREE_MEM_RATE,
-+		.name = "free_mem_rate",
++		.type = DAMOS_FILTER_TYPE_ACTIVE,
++		.name = "active",
++	},
++	{
++		.type = DAMOS_FILTER_TYPE_MEMCG,
++		.name = "memcg",
++	},
++	{
++		.type = DAMOS_FILTER_TYPE_YOUNG,
++		.name = "young",
++	},
++	{
++		.type = DAMOS_FILTER_TYPE_HUGEPAGE_SIZE,
++		.name = "hugepage_size",
++	},
++	{
++		.type = DAMOS_FILTER_TYPE_UNMAPPED,
++		.name = "unmapped",
++	},
++	{
++		.type = DAMOS_FILTER_TYPE_ADDR,
++		.name = "addr",
++	},
++	{
++		.type = DAMOS_FILTER_TYPE_TARGET,
++		.name = "target",
 +	},
  };
  
- static ssize_t metric_show(struct kobject *kobj, struct kobj_attribute *attr,
-@@ -796,9 +807,16 @@ static ssize_t metric_show(struct kobjec
+ static ssize_t type_show(struct kobject *kobj,
+@@ -358,9 +387,16 @@ static ssize_t type_show(struct kobject
  {
- 	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
- 			struct damon_sysfs_watermarks, kobj);
+ 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
+ 			struct damon_sysfs_scheme_filter, kobj);
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_wmark_metric_names); i++) {
-+		const struct damos_sysfs_wmark_metric_name *metric_name;
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_filter_type_names); i++) {
++		const struct damos_sysfs_filter_type_name *type_name;
  
 -	return sysfs_emit(buf, "%s\n",
--			damon_sysfs_wmark_metric_strs[watermarks->metric]);
-+		metric_name = &damos_sysfs_wmark_metric_names[i];
-+		if (metric_name->metric == watermarks->metric)
-+			return sysfs_emit(buf, "%s\n", metric_name->name);
+-			damon_sysfs_scheme_filter_type_strs[filter->type]);
++		type_name = &damos_sysfs_filter_type_names[i];
++		if (type_name->type == filter->type)
++			return sysfs_emit(buf, "%s\n", type_name->name);
 +	}
 +	return -EINVAL;
  }
  
- static ssize_t metric_store(struct kobject *kobj, struct kobj_attribute *attr,
-@@ -806,11 +824,14 @@ static ssize_t metric_store(struct kobje
+ static bool damos_sysfs_scheme_filter_valid_type(
+@@ -385,16 +421,19 @@ static ssize_t type_store(struct kobject
  {
- 	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
- 			struct damon_sysfs_watermarks, kobj);
--	enum damos_wmark_metric metric;
+ 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
+ 			struct damon_sysfs_scheme_filter, kobj);
+-	enum damos_filter_type type;
+ 	ssize_t ret = -EINVAL;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_wmark_metric_names); i++) {
-+		const struct damos_sysfs_wmark_metric_name *metric_name;
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_filter_type_names); i++) {
++		const struct damos_sysfs_filter_type_name *type_name;
  
--	for (metric = 0; metric < NR_DAMOS_WMARK_METRICS; metric++) {
--		if (sysfs_streq(buf, damon_sysfs_wmark_metric_strs[metric])) {
--			watermarks->metric = metric;
-+		metric_name = &damos_sysfs_wmark_metric_names[i];
-+		if (sysfs_streq(buf, metric_name->name)) {
-+			watermarks->metric = metric_name->metric;
- 			return count;
+-	for (type = 0; type < NR_DAMOS_FILTER_TYPES; type++) {
+-		if (sysfs_streq(buf, damon_sysfs_scheme_filter_type_strs[
+-					type])) {
++		type_name = &damos_sysfs_filter_type_names[i];
++		if (sysfs_streq(buf, type_name->name)) {
+ 			if (!damos_sysfs_scheme_filter_valid_type(
+-						filter->handle_layer, type))
++						filter->handle_layer,
++						type_name->type))
+ 				break;
+-			filter->type = type;
++			filter->type = type_name->type;
+ 			ret = count;
+ 			break;
  		}
- 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
