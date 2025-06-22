@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8814618A6A7;
-	Sun, 22 Jun 2025 22:37:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8F51FE470
+	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:39:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750631844; cv=none; b=hBFks4+HNEM6cNJ4pu88LAJduyMKZWYkpUqtFvXHajDJLyP9NsQlPkioZPR6I5BmgwrFby/ZcLMXMIK96ivgaDQUGzX9IF7fbYf/j/yBY6Qj0kAu6pc9LM8VLdTzILjPtyHMVUO+NoMZB5Ri6x5qTiNYMOolBP25tHO9RrFW/wA=
+	t=1750631997; cv=none; b=VGfgeFj9Gq2doNYz0SNiD8oP3Cf2iFzhm74gYMbtVoMQOfQBtlaPhb51vWPCYI6yZdFTuaeiwuV8YVLqvmHUsWWqPZyRto5ZOSuEIAsY366Agq88Hfzvo/0ilDZk2WwGoISstphjF1wiUremXAxtMbtEuQvNGTR3LA3+HNcJyHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750631844; c=relaxed/simple;
-	bh=SUQWD67K+42SU8c8u3gHkfIQcQFJm+LViFJSIVNhtH8=;
-	h=Date:To:From:Subject:Message-Id; b=iSK2IdGB+ucpkL5QOw+7LaBNfrOrhRkA011Vob5hqaGqTec2kTFmaFG2kak1S4z8ObqYqNmqispk3BvyRB6VUhNRbRBex+6dW462WwoknBLc37OCLv2HfuWsLZEBQ23cIWR1wr555QZhdd3xq0twfKga/JcRqKXTgJnet0XBw8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wi349IA0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750631997; c=relaxed/simple;
+	bh=yeNJZ7lNRDuAQVjP0OeoeEDNN2cRbZp/lrvnKvzStkE=;
+	h=Date:To:From:Subject:Message-Id; b=LzVHdH3QQofexGNI+qpVlYNa/u8uoQ1+e8mnqvHQzRpClq0RuMWcB3cTuB+PbArz2AW1ZAQz3xWGZol6d0F/eadkb5NIGRUYEn8RGgoVqVd1G2LLwV5+urRgbhjupCYZMBdLHfdsFgep197JqlZk0itc+aMuia1WXSSQXcJxvs4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EWzI0XAa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wi349IA0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 034EAC4CEE3;
-	Sun, 22 Jun 2025 22:37:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EWzI0XAa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF2B4C4CEE3;
+	Sun, 22 Jun 2025 22:39:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750631844;
-	bh=SUQWD67K+42SU8c8u3gHkfIQcQFJm+LViFJSIVNhtH8=;
+	s=korg; t=1750631997;
+	bh=yeNJZ7lNRDuAQVjP0OeoeEDNN2cRbZp/lrvnKvzStkE=;
 	h=Date:To:From:Subject:From;
-	b=wi349IA0kS85+9SlxZG4STKi9N6bXAUStvJKSTrboNQ1f5c8bQqiqXKdQgjuktc1r
-	 DNaU0r8NEcjDimubWayE5EFycwgnzDZkGcbjlR3XZPQR5VnekwJs+aL0eWNjwdzHli
-	 /MeivUYZhr4y/Ygy4BsGKhXfJQbJ82OHROGcf2Us=
-Date: Sun, 22 Jun 2025 15:37:23 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,svens@linux.ibm.com,stable@vger.kernel.org,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,catalin.marinas@arm.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=EWzI0XAaBj2LAP1gEtZ3tO4ZxAMAIzaaZqw5p1mTDz3y3lHy3wOjfm2s04+OpPZhE
+	 YMb4KANdcXSNSKIDMueIuFwQSXNp3YBjxVf4h0aWkcqj5SvpYW5MnBJ3Tx0mOBBbw5
+	 lNvgWrcL2D+wDfDtpJ9X/sZ/qo7lAqDX3Sky8jbM=
+Date: Sun, 22 Jun 2025 15:39:56 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,chenl311@chinatelecom.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd.patch added to mm-new branch
-Message-Id: <20250622223724.034EAC4CEE3@smtp.kernel.org>
+Subject: + fs-fat-prevent-fsfuzzer-from-dominating-the-console.patch added to mm-nonmm-unstable branch
+Message-Id: <20250622223956.EF2B4C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ptdump: take the memory hotplug lock inside ptdump_walk_pgd()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd.patch
+     Subject: fs: fat: Prevent fsfuzzer from dominating the console
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-fat-prevent-fsfuzzer-from-dominating-the-console.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-fat-prevent-fsfuzzer-from-dominating-the-console.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,132 +58,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/ptdump: take the memory hotplug lock inside ptdump_walk_pgd()
-Date: Fri, 20 Jun 2025 10:54:27 +0530
+From: Li Chen <chenl311@chinatelecom.cn>
+Subject: fs: fat: Prevent fsfuzzer from dominating the console
+Date: Fri, 20 Jun 2025 10:02:31 +0800
 
-Memory hot remove unmaps and tears down various kernel page table regions
-as required.  The ptdump code can race with concurrent modifications of
-the kernel page tables.  When leaf entries are modified concurrently, the
-dump code may log stale or inconsistent information for a VA range, but
-this is otherwise not harmful.
+fsfuzzer may make many invalid access for FAT-fs and generate many kmsg
+like "FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)".
 
-But when intermediate levels of kernel page table are freed, the dump code
-will continue to use memory that has been freed and potentially
-reallocated for another purpose.  In such cases, the ptdump code may
-dereference bogus addresses, leading to a number of potential problems.
+For platforms & os that enables hardware serial device whose speed are
+slow, this may cause softlockup easily.
 
-To avoid the above mentioned race condition, platforms such as arm64,
-riscv and s390 take memory hotplug lock, while dumping kernel page table
-via the sysfs interface /sys/kernel/debug/kernel_page_tables.
+So let's ratelimit the error log.
 
-Similar race condition exists while checking for pages that might have
-been marked W+X via /sys/kernel/debug/kernel_page_tables/check_wx_pages
-which in turn calls ptdump_check_wx().  Instead of solving this race
-condition again, let's just move the memory hotplug lock inside generic
-ptdump_check_wx() which will benefit both the scenarios.
+The log as below:
+[11916.242560] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.254485] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.266388] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.278287] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.290180] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.302068] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.313962] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.325848] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.337732] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.349619] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.361505] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.373391] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.385272] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.397144] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.409025] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.420909] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.432791] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.444674] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.456558] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.468446] FAT-fs (loop2): error, invalid access to FAT (entry 0x00000ccb)
+[11916.480352] watchdog: BUG: soft lockup - CPU#58 stuck for 26s! [cat:2446035]
+[11916.480357] Modules linked in: ...
+[11916.480503] CPU: 58 PID: 2446035 Comm: cat Kdump: loaded Tainted: ...
+[11916.480508] Hardware name: vclusters VSFT5000 B/VSFT5000 B, BIOS ...
+[11916.480510] pstate: 60400009 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[11916.480513] pc : console_emit_next_record+0x1b4/0x288
+[11916.480524] lr : console_emit_next_record+0x1ac/0x288
+[11916.480525] sp : ffff80009bcdae90
+[11916.480527] x29: ffff80009bcdaec0 x28: ffff800082513810 x27: 0000000000000001
+[11916.480530] x26: 0000000000000001 x25: ffff800081f66000 x24: 0000000000000000
+[11916.480533] x23: 0000000000000000 x22: ffff80009bcdaf8f x21: 0000000000000001
+[11916.480535] x20: 0000000000000000 x19: ffff800082513810 x18: ffffffffffffffff
+[11916.480538] x17: 0000000000000002 x16: 0000000000000001 x15: ffff80009bcdab30
+[11916.480541] x14: 0000000000000000 x13: 205d353330363434 x12: 32545b5d36343438
+[11916.480543] x11: 652820544146206f x10: 7420737365636361 x9 : ffff800080159a6c
+[11916.480546] x8 : 69202c726f727265 x7 : 545b5d3634343836 x6 : 342e36313931315b
+[11916.480549] x5 : ffff800082513a01 x4 : ffff80009bcdad31 x3 : 0000000000000000
+[11916.480551] x2 : 00000000ffffffff x1 : 0000000001b9b000 x0 : ffff8000836cef00
+[11916.480554] Call trace:
+[11916.480557]  console_emit_next_record+0x1b4/0x288
+[11916.480560]  console_flush_all+0xcc/0x190
+[11916.480563]  console_unlock+0x78/0x138
+[11916.480565]  vprintk_emit+0x1c4/0x210
+[11916.480568]  vprintk_default+0x40/0x58
+[11916.480570]  vprintk+0x84/0xc8
+[11916.480572]  _printk+0x68/0xa0
+[11916.480578]  _fat_msg+0x6c/0xa0 [fat]
+[11916.480593]  __fat_fs_error+0xf8/0x118 [fat]
+[11916.480601]  fat_ent_read+0x164/0x238 [fat]
+[11916.480609]  fat_get_cluster+0x180/0x2c8 [fat]
+[11916.480617]  fat_get_mapped_cluster+0xb8/0x170 [fat]
 
-Drop get_online_mems() and put_online_mems() combination from all existing
-platform ptdump code paths.
-
-Link: https://lkml.kernel.org/r/20250620052427.2092093-1-anshuman.khandual@arm.com
-Fixes: bbd6ec605c0f ("arm64/mm: Enable memory hot remove")
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250620020231.9292-1-me@linux.beauty
+Signed-off-by: Li Chen <chenl311@chinatelecom.cn>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/ptdump_debugfs.c |    3 ---
- arch/riscv/mm/ptdump.c         |    3 ---
- arch/s390/mm/dump_pagetables.c |    2 --
- mm/ptdump.c                    |    2 ++
- 4 files changed, 2 insertions(+), 8 deletions(-)
+ fs/fat/fatent.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/mm/ptdump_debugfs.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/arch/arm64/mm/ptdump_debugfs.c
-@@ -1,6 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/debugfs.h>
--#include <linux/memory_hotplug.h>
- #include <linux/seq_file.h>
+--- a/fs/fat/fatent.c~fs-fat-prevent-fsfuzzer-from-dominating-the-console
++++ a/fs/fat/fatent.c
+@@ -356,7 +356,7 @@ int fat_ent_read(struct inode *inode, st
  
- #include <asm/ptdump.h>
-@@ -9,9 +8,7 @@ static int ptdump_show(struct seq_file *
- {
- 	struct ptdump_info *info = m->private;
- 
--	get_online_mems();
- 	ptdump_walk(m, info);
--	put_online_mems();
- 	return 0;
- }
- DEFINE_SHOW_ATTRIBUTE(ptdump);
---- a/arch/riscv/mm/ptdump.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/arch/riscv/mm/ptdump.c
-@@ -6,7 +6,6 @@
- #include <linux/efi.h>
- #include <linux/init.h>
- #include <linux/debugfs.h>
--#include <linux/memory_hotplug.h>
- #include <linux/seq_file.h>
- #include <linux/ptdump.h>
- 
-@@ -413,9 +412,7 @@ bool ptdump_check_wx(void)
- 
- static int ptdump_show(struct seq_file *m, void *v)
- {
--	get_online_mems();
- 	ptdump_walk(m, m->private);
--	put_online_mems();
- 
- 	return 0;
- }
---- a/arch/s390/mm/dump_pagetables.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/arch/s390/mm/dump_pagetables.c
-@@ -247,11 +247,9 @@ static int ptdump_show(struct seq_file *
- 		.marker = markers,
- 	};
- 
--	get_online_mems();
- 	mutex_lock(&cpa_mutex);
- 	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
- 	mutex_unlock(&cpa_mutex);
--	put_online_mems();
- 	return 0;
- }
- DEFINE_SHOW_ATTRIBUTE(ptdump);
---- a/mm/ptdump.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/mm/ptdump.c
-@@ -176,6 +176,7 @@ void ptdump_walk_pgd(struct ptdump_state
- {
- 	const struct ptdump_range *range = st->range;
- 
-+	get_online_mems();
- 	mmap_write_lock(mm);
- 	while (range->start != range->end) {
- 		walk_page_range_debug(mm, range->start, range->end,
-@@ -183,6 +184,7 @@ void ptdump_walk_pgd(struct ptdump_state
- 		range++;
+ 	if (!fat_valid_entry(sbi, entry)) {
+ 		fatent_brelse(fatent);
+-		fat_fs_error(sb, "invalid access to FAT (entry 0x%08x)", entry);
++		fat_fs_error_ratelimit(sb, "invalid access to FAT (entry 0x%08x)", entry);
+ 		return -EIO;
  	}
- 	mmap_write_unlock(mm);
-+	put_online_mems();
  
- 	/* Flush out the last page */
- 	st->note_page_flush(st);
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from chenl311@chinatelecom.cn are
 
-mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd.patch
+fs-fat-prevent-fsfuzzer-from-dominating-the-console.patch
 
