@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6FF4223321
-	for <mm-commits@vger.kernel.org>; Mon, 23 Jun 2025 22:44:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D0DE219301;
+	Mon, 23 Jun 2025 22:48:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750718695; cv=none; b=CJYxaz90Xc+bT4rM/D8NDABRAEyyj1Okd5kafT8jy6ufFhNgXTaK1fs/JmiK1EegJ09UdGAmbNY/z75loEYPchKQYkN77cw8/jOmWCXiBXWe5K1ypfmG9xpN1Dwxq4YUH1R09W0b1EBdbbEqgAB5Jqnjy8tv/FsUFLFkx9oisTg=
+	t=1750718899; cv=none; b=HWLblul3hzAlNT7iheg7aQTFrmm3IAti+/xOLCRUA0L4JwKXdWFBjudTVJHL6APCAXl2UJYxZKv84ufEue0fv+MYiP9rwmtKmzNvaeF7lxDFN8yYybKleFaJx5c7ApOeEZUVkgYPUM2X/cPJZ1UKCsvRGaSup6Asa6Kq2Abztuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750718695; c=relaxed/simple;
-	bh=HRKkIL6dbpEeyaWQprL4qY0mqNr50f5mEwKdcNfNLQA=;
-	h=Date:To:From:Subject:Message-Id; b=TeGeOSpgqQKj7JEWNjp6iQp8r+Wdii1qB8TH9sA0TuaMmplVTyjU+yXoa5u95iiG2eArTZF3gvw937d/E5eE38sZce47qrAcXRBdv1RRaqeikIrA7K2OY/8FVtBYP60mytxLAXPKFf+F2kJ8ifvPS/HkFYb1N5NuLefWAlHZehc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OLYOD2wp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750718899; c=relaxed/simple;
+	bh=XI2BST/F+2NR+LRpGUB+PmBuAIA+krq5mB/OjzIYOeA=;
+	h=Date:To:From:Subject:Message-Id; b=oW47jJK0oOM71YVESSSKxOXHw66nEiOBNUz8F5cQm0zVvdss+DRcUyy7Q/dqqUjUPFJXYtmyYxNlu9NmO1zJDvbUQjx7sAuM7WmVha2bdWms3ZeWptpYsd1TjJkEQxeLPqZ4KvIr54zTbn4WIx2HExIyQthB+c2RgsFEj4lzTTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TZIvIZ1P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OLYOD2wp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B2F0C4CEED;
-	Mon, 23 Jun 2025 22:44:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TZIvIZ1P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20834C4CEEA;
+	Mon, 23 Jun 2025 22:48:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750718695;
-	bh=HRKkIL6dbpEeyaWQprL4qY0mqNr50f5mEwKdcNfNLQA=;
+	s=korg; t=1750718899;
+	bh=XI2BST/F+2NR+LRpGUB+PmBuAIA+krq5mB/OjzIYOeA=;
 	h=Date:To:From:Subject:From;
-	b=OLYOD2wpDVe/0jS5V/Wojij8zXhraMmu2rqZhVM9oFjKOOz5j1FYIodHScbzAnrfO
-	 quGckQOHRTR1E2SbbyYuWsZuhHicPHQ1IED7BYUL2CvwCln0zwwKnENJ6VvGLq3xjc
-	 3oaff9dvKd2Bm/vUVUE2TgdXAuPlaNCcoDnXEgmU=
-Date: Mon, 23 Jun 2025 15:44:54 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,hch@infradead.org,glider@google.com,elver@google.com,dvyukov@google.com,david@redhat.com,arnd@arndb.de,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=TZIvIZ1PA+NHbz5303UNgBKyj0Cgv5NJcpvdSgaKEeUUo++V62pVOrTLitpMxEpU8
+	 vSB1shSk2ECoU04qT94INUmjFd8GW3tQ6xInQjXXwtp0Hk+GKnPDhhheYJNLr4/xWk
+	 qhsymbYDYZC/OmJKJpIIqeJ6jUqvd/5M8HLU/YFI=
+Date: Mon, 23 Jun 2025 15:48:18 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,lkp@intel.com,dan.carpenter@linaro.org,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-unexport-globally-copy_to_kernel_nofault-v2.patch added to mm-new branch
-Message-Id: <20250623224455.4B2F0C4CEED@smtp.kernel.org>
+Subject: + mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250623224819.20834C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-unexport-globally-copy_to_kernel_nofault-v2
-has been added to the -mm mm-new branch.  Its filename is
-     mm-unexport-globally-copy_to_kernel_nofault-v2.patch
+     Subject: mm/vmalloc: leave lazy MMU mode on PTE mapping error
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-unexport-globally-copy_to_kernel_nofault-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,47 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: mm-unexport-globally-copy_to_kernel_nofault-v2
-Date: Sun, 22 Jun 2025 19:11:42 +0500
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm/vmalloc: leave lazy MMU mode on PTE mapping error
+Date: Mon, 23 Jun 2025 09:57:21 +0200
 
-add a brief comment to `#ifndef MODULE`
+vmap_pages_pte_range() enters the lazy MMU mode, but fails to leave it in
+case an error is encountered.
 
-Link: https://lkml.kernel.org/r/20250622141142.79332-1-snovitoll@gmail.com
-Fixes: ca79a00bb9a8 ("kasan: migrate copy_user_test to kunit")
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/20250623075721.2817094-1-agordeev@linux.ibm.com
+Fixes: 2ba3e6947aed ("mm/vmalloc: track which page-table levels were modified")
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Closes: https://lore.kernel.org/r/202506132017.T1l1l6ME-lkp@intel.com/
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/vmalloc.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
---- a/mm/kasan/kasan_test_c.c~mm-unexport-globally-copy_to_kernel_nofault-v2
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1977,6 +1977,10 @@ static void rust_uaf(struct kunit *test)
- 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_test_rust_uaf());
+--- a/mm/vmalloc.c~mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error
++++ a/mm/vmalloc.c
+@@ -514,6 +514,7 @@ static int vmap_pages_pte_range(pmd_t *p
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
+ {
++	int err = 0;
+ 	pte_t *pte;
+ 
+ 	/*
+@@ -530,12 +531,18 @@ static int vmap_pages_pte_range(pmd_t *p
+ 	do {
+ 		struct page *page = pages[*nr];
+ 
+-		if (WARN_ON(!pte_none(ptep_get(pte))))
+-			return -EBUSY;
+-		if (WARN_ON(!page))
+-			return -ENOMEM;
+-		if (WARN_ON(!pfn_valid(page_to_pfn(page))))
+-			return -EINVAL;
++		if (WARN_ON(!pte_none(ptep_get(pte)))) {
++			err = -EBUSY;
++			break;
++		}
++		if (WARN_ON(!page)) {
++			err = -ENOMEM;
++			break;
++		}
++		if (WARN_ON(!pfn_valid(page_to_pfn(page)))) {
++			err = -EINVAL;
++			break;
++		}
+ 
+ 		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
+ 		(*nr)++;
+@@ -543,7 +550,8 @@ static int vmap_pages_pte_range(pmd_t *p
+ 
+ 	arch_leave_lazy_mmu_mode();
+ 	*mask |= PGTBL_PTE_MODIFIED;
+-	return 0;
++
++	return err;
  }
  
-+/*
-+ * copy_to_kernel_nofault() is an internal helper available when
-+ * kasan_test is built-in, so it must not be visible to loadable modules.
-+ */
- #ifndef MODULE
- static void copy_to_kernel_nofault_oob(struct kunit *test)
- {
+ static int vmap_pages_pmd_range(pud_t *pud, unsigned long addr,
 _
 
-Patches currently in -mm which might be from snovitoll@gmail.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-mm-unexport-globally-copy_to_kernel_nofault.patch
-mm-unexport-globally-copy_to_kernel_nofault-v2.patch
+mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch
 
