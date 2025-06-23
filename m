@@ -1,194 +1,138 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 601FF3C26
-	for <mm-commits@vger.kernel.org>; Sun, 22 Jun 2025 22:52:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDD9C120;
+	Mon, 23 Jun 2025 01:55:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750632779; cv=none; b=or3Yq6KvvU/BrdErCbuYwTZPpGzNzHeP2Eu3JnSuTuW+ufJg2ZIDetbkAeBPhQ9pDm80aUiR0GOkjzLb3HfFzUi5yBZqvHD885xNCDf/kYWQHeM2Gl+F2/gydWfogrBG64Dwb+f0f5lyQ9njEu/UoJIDV0vBA3+1P2QczNRZu/8=
+	t=1750643712; cv=none; b=VuueaN7HVJe1gj1mj7u4oyQpmGA0Y7Dy/LJ7sftElCLNBuLvqH2WhxI4B0oCB9PMb6BOkpu+T6sbakC92dbquYE857cVw6DtVyprMwbjbPQeVOhekbRdS5sx+VlCfFqIZj83QilXh3C6FlU9CusDFlLdi46E/ImFxz4t/MNdlhA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750632779; c=relaxed/simple;
-	bh=L+VVKNerFPa0hU3vvSt11tLV/qRKw6kCqITKMDf6vyI=;
-	h=Date:To:From:Subject:Message-Id; b=hKN+SIkvltCONZG2pBG/8KWpZwjRhKzcr+/7z3PSdxZE80swGD2KcXYpZaOGsF2BRILkngDAkJHEfWYq3pFipM2BQYgp0dSttn0HsO67EWd65gpeGRJDzTgVRVHNNyibf7zoWMtvWnul/77ef+fHFuoXh9vLtu1FdDldRriNZPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UKlof+3S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750643712; c=relaxed/simple;
+	bh=9cFlEUoSXzuVkaDJmNBJnormf9antQdBn1PhkiCaI7c=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=CxkMWUNix9QEIwdJ7z1kVEKw2zTNnHoRckOOCPkhED0RZkh11AjCMSTMw/qog8d41k3gdNfHDfPrgN1y8Q5NjlJo9Hom2cqNIr5eA9aI8xagHqm4pM1a/0pRasX8gesZT7FWfacazprlW7zHsvYrl6GbA/K7M+brdb0tT8zKq/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vm/KT6rl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UKlof+3S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3281AC4CEE3;
-	Sun, 22 Jun 2025 22:52:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vm/KT6rl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D0E7C4CEE3;
+	Mon, 23 Jun 2025 01:55:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750632779;
-	bh=L+VVKNerFPa0hU3vvSt11tLV/qRKw6kCqITKMDf6vyI=;
-	h=Date:To:From:Subject:From;
-	b=UKlof+3SnX00tbJDUzfzR9pQ62DGlLAIbc/zMWKtNVQpxv4liCS6K86iNvB/I8oKz
-	 w/fKKVLHjOoFyi3XgJV4E1USzj429xlxgWKk25hnuEaFwaDiTo7FzUwtAdM8fXnkwG
-	 B3Qtbn/4kC5WhZeE16Wkd1knKaeZ6AXjYh45/5Uw=
-Date: Sun, 22 Jun 2025 15:52:58 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	s=korg; t=1750643711;
+	bh=9cFlEUoSXzuVkaDJmNBJnormf9antQdBn1PhkiCaI7c=;
+	h=Date:From:To:Cc:Subject:From;
+	b=Vm/KT6rlFK73BnX66pXhE0VslsCvQhAocn7AsOWBn+t/tAekROFqsktMEQdVunfNs
+	 tYABL3tDMMoD5iBrWvjSX6AWrxWAjWptweOxaLrA8JxSoaXgWzzsddbslR2yacG3j9
+	 oDNKZnB3U2PwF0plZvP46l5Hf80HoJ7uYY9ZNnsk=
+Date: Sun, 22 Jun 2025 18:55:10 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-decouple-from-damon_ops_id.patch added to mm-new branch
-Message-Id: <20250622225259.3281AC4CEE3@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.16-rc4
+Message-Id: <20250622185510.662af99051fedc1815b9de00@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm/damon/sysfs: decouple from damon_ops_id
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-decouple-from-damon_ops_id.patch
+Linus, please pull this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-decouple-from-damon_ops_id.patch
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit e04c78d86a9699d136910cfc0bdcf01087e3267e:
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+  Linux 6.16-rc2 (2025-06-15 13:49:41 -0700)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-06-22-18-52
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to c742d127d2d831aa83ae2987a508bca2bf0c7736:
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: decouple from damon_ops_id
-Date: Sun, 22 Jun 2025 14:37:59 -0700
+  MAINTAINERS: add additional mmap-related files to mmap section (2025-06-19 20:48:05 -0700)
 
-Decouple DAMON sysfs interface from damon_ops_id.  For this, define and
-use new mm/damon/sysfs.c internal data structure that maps the user-space
-keywords and damon_ops_id, instead of having the implicit and unflexible
-array index rule.
+----------------------------------------------------------------
+20 hotfixes.  7 are cc:stable and the remainder address post-6.15 issues
+or aren't considered necessary for -stable kernels.  Only 4 are for MM.
 
-Link: https://lkml.kernel.org/r/20250622213759.50930-6-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+- The 3 patch series `Revert "bcache: update min_heap_callbacks to use
+  default builtin swap"' from Kuan-Wei Chiu backs out the author's recent
+  min_heap changes due to a performance regression.  A fix for this
+  regression has been developed but we felt it best to go back to the
+  known-good version to give the new code more bake time.
 
- mm/damon/sysfs.c |   56 ++++++++++++++++++++++++++++++++-------------
- 1 file changed, 41 insertions(+), 15 deletions(-)
+- A lot of MAINTAINERS maintenance.  I like to get these changes
+  upstreamed promptly because they can't break things and more
+  accurate/complete MAINTAINERS info hopefully improves the speed and
+  accuracy of our responses to submitters and reporters.
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-decouple-from-damon_ops_id
-+++ a/mm/damon/sysfs.c
-@@ -811,11 +811,24 @@ static const struct kobj_type damon_sysf
-  * context directory
-  */
- 
--/* This should match with enum damon_ops_id */
--static const char * const damon_sysfs_ops_strs[] = {
--	"vaddr",
--	"fvaddr",
--	"paddr",
-+struct damon_sysfs_ops_name {
-+	enum damon_ops_id ops_id;
-+	char *name;
-+};
-+
-+static const struct damon_sysfs_ops_name damon_sysfs_ops_names[] = {
-+	{
-+		.ops_id = DAMON_OPS_VADDR,
-+		.name = "vaddr",
-+	},
-+	{
-+		.ops_id = DAMON_OPS_FVADDR,
-+		.name = "fvaddr",
-+	},
-+	{
-+		.ops_id = DAMON_OPS_PADDR,
-+		.name = "paddr",
-+	},
- };
- 
- struct damon_sysfs_context {
-@@ -934,14 +947,16 @@ static void damon_sysfs_context_rm_dirs(
- static ssize_t avail_operations_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
--	enum damon_ops_id id;
- 	int len = 0;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damon_sysfs_ops_names); i++) {
-+		const struct damon_sysfs_ops_name *ops_name;
- 
--	for (id = 0; id < NR_DAMON_OPS; id++) {
--		if (!damon_is_registered_ops(id))
-+		ops_name = &damon_sysfs_ops_names[i];
-+		if (!damon_is_registered_ops(ops_name->ops_id))
- 			continue;
--		len += sysfs_emit_at(buf, len, "%s\n",
--				damon_sysfs_ops_strs[id]);
-+		len += sysfs_emit_at(buf, len, "%s\n", ops_name->name);
- 	}
- 	return len;
- }
-@@ -951,8 +966,16 @@ static ssize_t operations_show(struct ko
- {
- 	struct damon_sysfs_context *context = container_of(kobj,
- 			struct damon_sysfs_context, kobj);
-+	int i;
- 
--	return sysfs_emit(buf, "%s\n", damon_sysfs_ops_strs[context->ops_id]);
-+	for (i = 0; i < ARRAY_SIZE(damon_sysfs_ops_names); i++) {
-+		const struct damon_sysfs_ops_name *ops_name;
-+
-+		ops_name = &damon_sysfs_ops_names[i];
-+		if (ops_name->ops_id == context->ops_id)
-+			return sysfs_emit(buf, "%s\n", ops_name->name);
-+	}
-+	return -EINVAL;
- }
- 
- static ssize_t operations_store(struct kobject *kobj,
-@@ -960,11 +983,14 @@ static ssize_t operations_store(struct k
- {
- 	struct damon_sysfs_context *context = container_of(kobj,
- 			struct damon_sysfs_context, kobj);
--	enum damon_ops_id id;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damon_sysfs_ops_names); i++) {
-+		const struct damon_sysfs_ops_name *ops_name;
- 
--	for (id = 0; id < NR_DAMON_OPS; id++) {
--		if (sysfs_streq(buf, damon_sysfs_ops_strs[id])) {
--			context->ops_id = id;
-+		ops_name = &damon_sysfs_ops_names[i];
-+		if (sysfs_streq(buf, ops_name->name)) {
-+			context->ops_id = ops_name->ops_id;
- 			return count;
- 		}
- 	}
-_
+----------------------------------------------------------------
+David Hildenbrand (1):
+      mm/gup: revert "mm: gup: fix infinite loop within __get_longterm_locked"
 
-Patches currently in -mm which might be from sj@kernel.org are
+Dev Jain (1):
+      selftests/mm: add configs to fix testcase failure
 
-mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write.patch
-mm-damon-introduce-damon_stat-module.patch
-mm-damon-introduce-damon_stat-module-fix.patch
-mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
-mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
-docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
-mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
-revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
-revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
-selftets-damon-add-a-test-for-memcg_path-leak.patch
-mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch
-mm-damon-sysfs-schemes-decouple-from-damos_action.patch
-mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
-mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
-mm-damon-sysfs-decouple-from-damon_ops_id.patch
+Kairui Song (2):
+      mm/shmem, swap: fix softlockup with mTHP swapin
+      mm: userfaultfd: fix race of userfaultfd_move and swap cache
+
+Kuan-Wei Chiu (3):
+      Revert "bcache: update min_heap_callbacks to use default builtin swap"
+      Revert "bcache: remove heap-related macros and switch to generic min_heap"
+      bcache: remove unnecessary select MIN_HEAP
+
+Liam R. Howlett (1):
+      maple_tree: fix MA_STATE_PREALLOC flag in mas_preallocate()
+
+Lorenzo Stoakes (7):
+      MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
+      MAINTAINERS: add missing test files to mm gup section
+      MAINTAINERS: add further init files to mm init block
+      MAINTAINERS: add hugetlb_cgroup.c to hugetlb section
+      MAINTAINERS: add stray rmap file to mm rmap section
+      MAINTAINERS: add memfd, shmem quota files to shmem section
+      MAINTAINERS: add additional mmap-related files to mmap section
+
+Oscar Salvador (1):
+      MAINTAINERS: update maintainers for HugeTLB
+
+Pedro Falcato (1):
+      selftests/mm: skip uprobe vma merge test if uprobes are not enabled
+
+Pratyush Yadav (2):
+      MAINTAINERS: add linux-mm@ list to Kexec Handover
+      kho: initialize tail pages for higher order folios properly
+
+Shivank Garg (1):
+      selftests/mm: increase timeout from 180 to 900 seconds
+
+ MAINTAINERS                         |  21 ++++++-
+ drivers/md/bcache/Kconfig           |   1 -
+ drivers/md/bcache/alloc.c           |  57 ++++++------------
+ drivers/md/bcache/bcache.h          |   2 +-
+ drivers/md/bcache/bset.c            | 116 ++++++++++++++----------------------
+ drivers/md/bcache/bset.h            |  40 +++++++------
+ drivers/md/bcache/btree.c           |  69 +++++++++------------
+ drivers/md/bcache/extents.c         |  45 ++++++--------
+ drivers/md/bcache/movinggc.c        |  33 ++++------
+ drivers/md/bcache/super.c           |   3 +-
+ drivers/md/bcache/sysfs.c           |   4 +-
+ drivers/md/bcache/util.h            |  67 ++++++++++++++++++++-
+ drivers/md/bcache/writeback.c       |  13 ++--
+ kernel/kexec_handover.c             |  29 +++++----
+ lib/maple_tree.c                    |   4 +-
+ mm/gup.c                            |  14 +++--
+ mm/memory.c                         |  20 -------
+ mm/shmem.c                          |   6 +-
+ mm/swap.h                           |  23 +++++++
+ mm/userfaultfd.c                    |  33 +++++++++-
+ tools/testing/selftests/mm/config   |   3 +
+ tools/testing/selftests/mm/merge.c  |   5 +-
+ tools/testing/selftests/mm/settings |   2 +-
+ 23 files changed, 333 insertions(+), 277 deletions(-)
 
