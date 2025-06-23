@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 078142288E3
-	for <mm-commits@vger.kernel.org>; Mon, 23 Jun 2025 22:17:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCB5519E7F9
+	for <mm-commits@vger.kernel.org>; Mon, 23 Jun 2025 22:19:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750717046; cv=none; b=MYF9nvC7hGnc4167jRWPq/lv9NcmAJ2JkX9apSRO0890OOntKInRlWzYOW+Y/srelYVuZteBzmsVEV7N33Lt1ctQ1se+kABbVQo6uGBYRA509J2vnHgVM/HGWMu+cr5+RGeyaVCQIaBgNvn+MUvEcO7lFjzyayqZthwTJgq8m+s=
+	t=1750717185; cv=none; b=O+pzl7dLIeJcsI/2PXmbD9h2R8S3eJzyH0dB2E7v4Mxex+GHxGub/Awvg1qUy4BQhCyb7aOFOK6yP4GrsgdeLXbgZQG2u0l5SnHJCK2FO8M18gnq9J9P2N9ORI3FJGIfyTfG27atX3oi0eJEoZtqER30gxqOWcmJIkG13X8kMUc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750717046; c=relaxed/simple;
-	bh=+fzDmn1pOKycMI98zzvUru5i+B15I0ets7JW+gVTVvg=;
-	h=Date:To:From:Subject:Message-Id; b=sKp5ebg2v0Rshq4auX9vP7mNggyIDFnd6Sniu4wqWSQ/rKT8UDUaWO34tCIpI5IckMS14Kihnn3W9Rrm6fPtj1n81AKneNZ02LPIj8Im/nvuEvMxpjLOS8XzVxY10xRLMMQHnF8eKZvB/CLbStIifdt3tq+Hr1F2D1vqvNnoQuU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sAebhiyo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750717185; c=relaxed/simple;
+	bh=HW4PMDOTakgvzKjj5q1LUTzP1kiVOpcbUHMK+kP9fDE=;
+	h=Date:To:From:Subject:Message-Id; b=jsFU/4ULmwSarqDa67loEPJbH2R9LkX7E7jd92mw3ni9y0CbrrvDrFAssf7BnuyZpVJJZiElDitPYKK5lF3qgq8zL1QhorurqLgDuUibVlBbw09KAYKZyUrkDsyRrqkkQKn1QkTgq8mUPjxIa1SD0NO8Cf97SW728ONfHoff3RI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xt8G4e9T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sAebhiyo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B56D4C4CEEA;
-	Mon, 23 Jun 2025 22:17:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xt8G4e9T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84E08C4CEED;
+	Mon, 23 Jun 2025 22:19:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750717045;
-	bh=+fzDmn1pOKycMI98zzvUru5i+B15I0ets7JW+gVTVvg=;
+	s=korg; t=1750717185;
+	bh=HW4PMDOTakgvzKjj5q1LUTzP1kiVOpcbUHMK+kP9fDE=;
 	h=Date:To:From:Subject:From;
-	b=sAebhiyoDU42QesLGu5LPyUPTDqCs9NisdAbifu+oH0Zw9EQ2Xzwh5ENDkQsmw29D
-	 HSW18PreDkqwnUyrTTsJqtiCIIWSGUwX2KqChKrwi8QWYu1NS7G8jWbubzcajK2UJG
-	 13pqTKGMNtYR9sp8UCgd+fzdg08m7fScu/BlUXdQ=
-Date: Mon, 23 Jun 2025 15:17:25 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,gechangwei@live.cn,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
+	b=Xt8G4e9TsXVlzujUzV+FarH6dLX9xLY2R/EvSJUqVusGCgGLDer/pE4U2B0dNNdrD
+	 kEDZtFUsXiPcLMfs3OXsmsKIQeZK93m+OdE7dvpDIXxnD5pVbJXWc3tQefqydkdtUj
+	 iXOA8ieusUUd6bFOCQsvMKPok0/kIb7aWMaKtueY=
+Date: Mon, 23 Jun 2025 15:19:44 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,lorenzo.stoakes@oracle.com,david@redhat.com,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names.patch added to mm-nonmm-unstable branch
-Message-Id: <20250623221725.B56D4C4CEEA@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-add-test-for-batch_processmadv_dontneed.patch removed from -mm tree
+Message-Id: <20250623221945.84E08C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,190 +34,309 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2: embed actual values into ocfs2_sysfile_lock_key names
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names.patch
+The quilt patch titled
+     Subject: selftests/mm: add test for (BATCH_PROCESS)MADV_DONTNEED
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-add-test-for-batch_processmadv_dontneed.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: ocfs2: embed actual values into ocfs2_sysfile_lock_key names
-Date: Mon, 23 Jun 2025 23:54:20 +0900
+From: Lian Wang <lianux.mm@gmail.com>
+Subject: selftests/mm: add test for (BATCH_PROCESS)MADV_DONTNEED
+Date: Sat, 21 Jun 2025 21:30:03 +0800
 
-Since lockdep_set_class() uses stringified key name via macro, calling
-lockdep_set_class() with an array causes lockdep warning messages to
-report variable name than actual index number.
+Let's add a simple test for MADV_DONTNEED and PROCESS_MADV_DONTNEED,
+and inspired by SeongJae Park's test at GitHub[1] add batch test
+for PROCESS_MADV_DONTNEED.  For now it is influenced by workload and
+needs add some race conditions tested. We can add this later.
 
-Change ocfs2_init_locked_inode() to pass actual index number for better
-readability of lockdep reports.  This patch does not change behavior.
-
-Before:
-
-  Chain exists of:
-    &ocfs2_sysfile_lock_key[args->fi_sysfile_type] --> jbd2_handle --> &oi->ip_xattr_sem
-
-   Possible unsafe locking scenario:
-
-         CPU0                    CPU1
-         ----                    ----
-    lock(&oi->ip_xattr_sem);
-                                 lock(jbd2_handle);
-                                 lock(&oi->ip_xattr_sem);
-    lock(&ocfs2_sysfile_lock_key[args->fi_sysfile_type]);
-
-   *** DEADLOCK ***
-
-After:
-
-  Chain exists of:
-    &ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE] --> jbd2_handle --> &oi->ip_xattr_sem
-
-   Possible unsafe locking scenario:
-
-         CPU0                    CPU1
-         ----                    ----
-    lock(&oi->ip_xattr_sem);
-                                 lock(jbd2_handle);
-                                 lock(&oi->ip_xattr_sem);
-    lock(&ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE]);
-
-   *** DEADLOCK ***
-
-Link: https://lkml.kernel.org/r/29348724-639c-443d-bbce-65c3a0a13a38@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20250621133003.4733-1-lianux.mm@gmail.com
+Link: https://github.com/sjp38/eval_proc_madvise	[1]
+Signed-off-by: Lian Wang <lianux.mm@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   70 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 66 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/.gitignore      |    1 
+ tools/testing/selftests/mm/Makefile        |    1 
+ tools/testing/selftests/mm/madv_dontneed.c |  220 +++++++++++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh  |    5 
+ 4 files changed, 227 insertions(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names
-+++ a/fs/ocfs2/inode.c
-@@ -50,8 +50,6 @@ struct ocfs2_find_inode_args
- 	unsigned int	fi_sysfile_type;
- };
- 
--static struct lock_class_key ocfs2_sysfile_lock_key[NUM_SYSTEM_INODES];
--
- static int ocfs2_read_locked_inode(struct inode *inode,
- 				   struct ocfs2_find_inode_args *args);
- static int ocfs2_init_locked_inode(struct inode *inode, void *opaque);
-@@ -250,14 +248,77 @@ bail:
- static int ocfs2_init_locked_inode(struct inode *inode, void *opaque)
- {
- 	struct ocfs2_find_inode_args *args = opaque;
-+#ifdef CONFIG_LOCKDEP
-+	static struct lock_class_key ocfs2_sysfile_lock_key[NUM_SYSTEM_INODES];
- 	static struct lock_class_key ocfs2_quota_ip_alloc_sem_key,
- 				     ocfs2_file_ip_alloc_sem_key;
-+#endif
- 
- 	inode->i_ino = args->fi_ino;
- 	OCFS2_I(inode)->ip_blkno = args->fi_blkno;
--	if (args->fi_sysfile_type != 0)
-+#ifdef CONFIG_LOCKDEP
-+	switch (args->fi_sysfile_type) {
-+	case BAD_BLOCK_SYSTEM_INODE:
-+		break;
-+	case GLOBAL_INODE_ALLOC_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[GLOBAL_INODE_ALLOC_SYSTEM_INODE]);
-+		break;
-+	case SLOT_MAP_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[SLOT_MAP_SYSTEM_INODE]);
-+		break;
-+	case HEARTBEAT_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[HEARTBEAT_SYSTEM_INODE]);
-+		break;
-+	case GLOBAL_BITMAP_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[GLOBAL_BITMAP_SYSTEM_INODE]);
-+		break;
-+	case USER_QUOTA_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[USER_QUOTA_SYSTEM_INODE]);
-+		break;
-+	case GROUP_QUOTA_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[GROUP_QUOTA_SYSTEM_INODE]);
-+		break;
-+	case ORPHAN_DIR_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]);
-+		break;
-+	case EXTENT_ALLOC_SYSTEM_INODE:
- 		lockdep_set_class(&inode->i_rwsem,
--			&ocfs2_sysfile_lock_key[args->fi_sysfile_type]);
-+				  &ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE]);
-+		break;
-+	case INODE_ALLOC_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]);
-+		break;
-+	case JOURNAL_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[JOURNAL_SYSTEM_INODE]);
-+		break;
-+	case LOCAL_ALLOC_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[LOCAL_ALLOC_SYSTEM_INODE]);
-+		break;
-+	case TRUNCATE_LOG_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[TRUNCATE_LOG_SYSTEM_INODE]);
-+		break;
-+	case LOCAL_USER_QUOTA_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[LOCAL_USER_QUOTA_SYSTEM_INODE]);
-+		break;
-+	case LOCAL_GROUP_QUOTA_SYSTEM_INODE:
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ocfs2_sysfile_lock_key[LOCAL_GROUP_QUOTA_SYSTEM_INODE]);
-+		break;
-+	default:
-+		WARN_ONCE(1, "Unknown sysfile type %d\n", args->fi_sysfile_type);
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-test-for-batch_processmadv_dontneed
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -25,6 +25,7 @@ pfnmap
+ protection_keys
+ protection_keys_32
+ protection_keys_64
++madv_dontneed
+ madv_populate
+ uffd-stress
+ uffd-unit-tests
+diff --git a/tools/testing/selftests/mm/madv_dontneed.c a/tools/testing/selftests/mm/madv_dontneed.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/madv_dontneed.c
+@@ -0,0 +1,220 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * MADV_DONTNEED and PROCESS_MADV_DONTNEED tests
++ *
++ * Copyright (C) 2025, Linx Software Corp.
++ *
++ * Author(s): Lian Wang <lianux.mm@gmail.com>
++ */
++#define _GNU_SOURCE
++#include <stdlib.h>
++#include <string.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <linux/mman.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include "vm_util.h"
++#include <time.h>
++
++#include "../kselftest.h"
++
++/*
++ * For now, we're using 2 MiB of private anonymous memory for all tests.
++ */
++#define SIZE (256 * 1024 * 1024)
++
++static size_t pagesize;
++
++static void sense_support(void)
++{
++	char *addr;
++	int ret;
++
++	addr = mmap(0, pagesize, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (!addr)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	ret = madvise(addr, pagesize, MADV_DONTNEED);
++	if (ret)
++		ksft_exit_skip("MADV_DONTNEED is not available\n");
++
++	munmap(addr, pagesize);
++}
++
++/*
++ * Read pagemap to check page is present in mermory
++ */
++static bool is_page_present(void *addr)
++{
++	uintptr_t vaddr = (uintptr_t)addr;
++	uintptr_t offset = (vaddr / pagesize) * sizeof(uint64_t);
++	ssize_t bytes_read;
++	uint64_t entry;
++	bool ret;
++	int fd;
++
++	fd = open("/proc/self/pagemap", O_RDONLY);
++	if (fd < 0) {
++		ksft_exit_fail_msg("opening pagemap failed\n");
++		ret = false;
 +	}
- 	if (args->fi_sysfile_type == USER_QUOTA_SYSTEM_INODE ||
- 	    args->fi_sysfile_type == GROUP_QUOTA_SYSTEM_INODE ||
- 	    args->fi_sysfile_type == LOCAL_USER_QUOTA_SYSTEM_INODE ||
-@@ -267,6 +328,7 @@ static int ocfs2_init_locked_inode(struc
- 	else
- 		lockdep_set_class(&OCFS2_I(inode)->ip_alloc_sem,
- 				  &ocfs2_file_ip_alloc_sem_key);
-+#endif
++
++	if ((lseek(fd, offset, SEEK_SET)) == -1) {
++		close(fd);
++		ret = false;
++	}
++
++	bytes_read = read(fd, &entry, sizeof(entry));
++	close(fd);
++
++	if (bytes_read != sizeof(entry)) {
++		perror("read failed");
++		return false;
++	}
++
++	if (entry & (1ULL << 63))
++		ret = true;
++
++	return ret;
++}
++
++/*
++ * test madvsise_dontneed
++ */
++static void test_madv_dontneed(void)
++{
++	unsigned long rss_anon_before, rss_anon_after;
++	bool present, rss;
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (!addr)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	memset(addr, 0x7A, SIZE);
++
++	rss_anon_before = rss_anon();
++	if (!rss_anon_before)
++		ksft_exit_fail_msg("No RssAnon is allocated before dontneed\n");
++	ret = madvise(addr, SIZE, MADV_DONTNEED);
++	ksft_test_result(!ret, "MADV_DONTNEED\n");
++
++	rss_anon_after = rss_anon();
++	if (rss_anon_after < rss_anon_before)
++		rss = true;
++	ksft_test_result(rss, "MADV_DONTNEED rss is correct\n");
++
++	for (size_t i = 0; i < SIZE; i += pagesize) {
++		present = is_page_present(addr + i);
++		if (present) {
++			ksft_print_msg("Page not zero at offset %zu\n",
++				       (size_t)i);
++		}
++	}
++
++	ksft_test_result(!present, "MADV_DONTNEED page is present\n");
++	munmap(addr, SIZE);
++}
++
++/*
++ * Measure performance of batched process_madvise vs madvise
++ */
++static int measure_process_madvise_batching(int hint, int total_size,
++					    int single_unit, int batch_size)
++{
++	struct iovec *vec = malloc(sizeof(*vec) * batch_size);
++	struct timespec start, end;
++	unsigned long elapsed_ns = 0;
++	unsigned long nr_measures = 0;
++	pid_t pid = getpid();
++	char *buf;
++	int pidfd;
++
++	pidfd = syscall(SYS_pidfd_open, pid, 0);
++	if (pidfd == -1) {
++		perror("pidfd_open fail");
++		return -1;
++	}
++
++	buf = mmap(NULL, total_size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (buf == MAP_FAILED) {
++		perror("mmap fail");
++		goto out;
++	}
++
++	if (!vec) {
++		perror("malloc vec failed");
++		goto unmap_out;
++	}
++
++	while (elapsed_ns < 5UL * 1000 * 1000 * 1000) {
++		memset(buf, 0x7A, total_size);
++
++		clock_gettime(CLOCK_MONOTONIC, &start);
++
++		for (int off = 0; off < total_size;
++		     off += single_unit * batch_size) {
++			for (int i = 0; i < batch_size; i++) {
++				vec[i].iov_base = buf + off + i * single_unit;
++				vec[i].iov_len = single_unit;
++			}
++			syscall(SYS_process_madvise, pidfd, vec, batch_size,
++				hint, 0);
++		}
++
++		clock_gettime(CLOCK_MONOTONIC, &end);
++		elapsed_ns += (end.tv_sec - start.tv_sec) * 1e9 +
++			      (end.tv_nsec - start.tv_nsec);
++		nr_measures++;
++	}
++
++	ksft_print_msg("[RESULT] batch=%d time=%.3f us/op\n", batch_size,
++		       (double)(elapsed_ns / nr_measures) /
++			       (total_size / single_unit));
++
++	free(vec);
++unmap_out:
++	munmap(buf, total_size);
++out:
++	close(pidfd);
++	return 0;
++}
++
++static void test_perf_batch_process(void)
++{
++	ksft_print_msg("[RUN] %s\n", __func__);
++	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 1);
++	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 2);
++	measure_process_madvise_batching(MADV_DONTNEED, SIZE, pagesize, 4);
++	ksft_test_result(1, "All test were done\n");
++}
++
++int main(int argc, char **argv)
++{
++	int err;
++
++	pagesize = getpagesize();
++
++	ksft_print_header();
++	ksft_set_plan(4);
++
++	sense_support();
++	test_madv_dontneed();
++	test_perf_batch_process();
++
++	err = ksft_get_fail_cnt();
++	if (err)
++		ksft_exit_fail_msg("%d out of %d tests failed\n", err,
++				   ksft_test_num());
++	ksft_exit_pass();
++}
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-test-for-batch_processmadv_dontneed
++++ a/tools/testing/selftests/mm/Makefile
+@@ -67,6 +67,7 @@ TEST_GEN_FILES += hugepage-mremap
+ TEST_GEN_FILES += hugepage-shm
+ TEST_GEN_FILES += hugepage-vmemmap
+ TEST_GEN_FILES += khugepaged
++TEST_GEN_FILES += madv_dontneed
+ TEST_GEN_FILES += madv_populate
+ TEST_GEN_FILES += map_fixed_noreplace
+ TEST_GEN_FILES += map_hugetlb
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-test-for-batch_processmadv_dontneed
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -47,6 +47,8 @@ separated by spaces:
+ 	hmm smoke tests
+ - madv_guard
+ 	test madvise(2) MADV_GUARD_INSTALL and MADV_GUARD_REMOVE options
++- madv_dontneed
++	test memadvise(2) MADV_DONTNEED and PROCESS_MADV_DONTNEED options
+ - madv_populate
+ 	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
+ - memfd_secret
+@@ -422,6 +424,9 @@ CATEGORY="hmm" run_test bash ./test_hmm.
+ # MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
+ CATEGORY="madv_guard" run_test ./guard-regions
  
- 	return 0;
- }
++# MADV_DONTNEED and PROCESS_DONTNEED tests
++CATEGORY="madv_dontneed" run_test ./madv_dontneed
++
+ # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
+ CATEGORY="madv_populate" run_test ./madv_populate
+ 
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from lianux.mm@gmail.com are
 
-ocfs2-kill-osb-system_file_mutex-lock.patch
-ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names.patch
 
