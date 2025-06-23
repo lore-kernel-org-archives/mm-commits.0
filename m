@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 949E8223DD7
-	for <mm-commits@vger.kernel.org>; Mon, 23 Jun 2025 21:53:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6E7372624
+	for <mm-commits@vger.kernel.org>; Mon, 23 Jun 2025 21:53:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750715599; cv=none; b=mbtwVj8Dr6DyAsxj+5ZhpoRU4bJKr5ugzYuohUe0XehCH8DbDJkGL2XcVmftGsktveh/9z4mVIN5pHAHA/+AcN+byTPY2rzn4WWFZd5DqArGl7W4R9OrwlS+WYzyO/wwihwlW7N1ZcP+JgPcxDotgepQ1VhF/7A/gvK62ZbR9Ms=
+	t=1750715600; cv=none; b=RyinrYUBvrunij6/oxheBWqpJfovilbIFQdw8dyb8m8cNDmMM5xmLWjy4kMPpjrt1ekE7anD/tnhEIJwNgE4veGjC3100P6pffPBJg7z3TcFdzMxL2OloNVYPial04BErGXhYhNBiVLpUAPiCg+qrfNt6n+Z0yCTCKNcDj10k+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750715599; c=relaxed/simple;
-	bh=lWY5y8+ojiJocO5A9aAH/RkLmq5k7auuylJ3nm7bQxo=;
-	h=Date:To:From:Subject:Message-Id; b=dicsPm3gg9Z+8o66KbosAzU2XCpFcxYbcvfp3b+zG09WMwGQ2mQJMnUfTV1syq9f0eX3OyG7TpwwjAQvbozyEq2VlK9lDsctvfa89LAmlVhC/YI6M28Gm1jdoiFxYLUGPbQzZ0YQd3KxfAAZ2LNEsdJ7F7zC8IBGgjr/9AszBGI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DWxMf7Xn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750715600; c=relaxed/simple;
+	bh=Md65WxmIrKw6QMr0RyYLIHQFibx/ADAQ1/pj44Lv57A=;
+	h=Date:To:From:Subject:Message-Id; b=ASufOu4zKU4tpeOuZf7sO36v20HE/ywlIijAuKEECW76DfnGR5qNlk4DIQt0Lc06d1XTGBRS7BLL1d6R2QtD2KAD6qHT6uAkBWi4eDz2untYq4jHoqXEKauzpgHm9HMBECGAi5Ks6qY61pYjpwuG5fi1T6p8d3L63z1Qsw3YLZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N+13AWs/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DWxMf7Xn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EEEEC4CEED;
-	Mon, 23 Jun 2025 21:53:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N+13AWs/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83F52C4CEEA;
+	Mon, 23 Jun 2025 21:53:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750715599;
-	bh=lWY5y8+ojiJocO5A9aAH/RkLmq5k7auuylJ3nm7bQxo=;
+	s=korg; t=1750715600;
+	bh=Md65WxmIrKw6QMr0RyYLIHQFibx/ADAQ1/pj44Lv57A=;
 	h=Date:To:From:Subject:From;
-	b=DWxMf7XnKo+Nq+5bKRzUU8CLJjzrv66mTH05um39e9h1qOjo0sN/TeWvq4VsueTk4
-	 INjZm8XE5G8ViDGwDs5D+g7H07mhx1WmV60dKpzh+IyjDqiNICZL5zUKpshzbM+0Ep
-	 UwCDCNEOQJG/3mscApsnwvo0rRXVp5AgOTj2hYk8=
-Date: Mon, 23 Jun 2025 14:53:18 -0700
+	b=N+13AWs/xNlw+YAH3DXyk0x9rEDNEj5LbsUa8XjgV+mwLgQU/A2kwlhDlfg8SJ3SW
+	 4/keDrAcCAf4B4qJ9xIlbIzewRjtb8I+nkP7Uq2jjb5dYfQnrhuUE32d6HouGRMR+d
+	 BvBipyRW0Uytuuo4lVSz1EtGtXuFq1dfGdo3LX8Y=
+Date: Mon, 23 Jun 2025 14:53:19 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,harry.yoo@oracle.com,00107082@163.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_vmallocc-use-late_initcall-if-built-in-for-init-ordering.patch added to mm-new branch
-Message-Id: <20250623215319.4EEEEC4CEED@smtp.kernel.org>
+Subject: + lib-test_vmallocc-restrict-default-test-mask-to-avoid-test-warnings.patch added to mm-new branch
+Message-Id: <20250623215320.83F52C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_vmalloc.c: use late_initcall() if built-in for init ordering
+     Subject: lib/test_vmalloc.c: restrict default test mask to avoid test warnings
 has been added to the -mm mm-new branch.  Its filename is
-     lib-test_vmallocc-use-late_initcall-if-built-in-for-init-ordering.patch
+     lib-test_vmallocc-restrict-default-test-mask-to-avoid-test-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-use-late_initcall-if-built-in-for-init-ordering.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-restrict-default-test-mask-to-avoid-test-warnings.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,22 +65,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: lib/test_vmalloc.c: use late_initcall() if built-in for init ordering
-Date: Mon, 23 Jun 2025 20:40:34 +0200
+Subject: lib/test_vmalloc.c: restrict default test mask to avoid test warnings
+Date: Mon, 23 Jun 2025 20:40:35 +0200
 
-When the vmalloc test code is compiled as a built-in, use late_initcall()
-instead of module_init() to defer a vmalloc test execution until most
-subsystems are up and running.
+When the vmalloc test is built into the kernel, it runs automatically
+during the boot.  The current-default "run_test_mask" includes all test
+cases, including those which are designed to fail and which trigger kernel
+warnings.
 
-It avoids interfering with components that may not yet be initialized at
-module_init() time.  For example, there was a recent report of memory
-profiling infrastructure not being ready early enough leading to kernel
-crash.
+These kernel splats can be misinterpreted as actual kernel bugs, leading
+to false alarms and unnecessary reports.
 
-By using late_initcall() in the built-in case, we ensure the tests are run
-at a safer point during a boot sequence.
+To address this, limit the default test mask to only the first few tests
+which are expected to pass cleanly.  These tests are safe and should not
+generate any warnings unless there is a real bug.
 
-Link: https://lkml.kernel.org/r/20250623184035.581229-1-urezki@gmail.com
+Users who wish to explicitly run specific test cases have to pass the
+run_test_mask as a boot parameter or at module load time.
+
+Link: https://lkml.kernel.org/r/20250623184035.581229-2-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -88,23 +91,20 @@ Cc: David Wang <00107082@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ lib/test_vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_vmalloc.c~lib-test_vmallocc-use-late_initcall-if-built-in-for-init-ordering
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-restrict-default-test-mask-to-avoid-test-warnings
 +++ a/lib/test_vmalloc.c
-@@ -598,7 +598,11 @@ static int __init vmalloc_test_init(void
- 	return IS_BUILTIN(CONFIG_TEST_VMALLOC) ? 0:-EAGAIN;
- }
+@@ -41,7 +41,7 @@ __param(int, nr_pages, 0,
+ __param(bool, use_huge, false,
+ 	"Use vmalloc_huge in fix_size_alloc_test");
  
-+#ifdef MODULE
- module_init(vmalloc_test_init)
-+#else
-+late_initcall(vmalloc_test_init);
-+#endif
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Uladzislau Rezki");
+-__param(int, run_test_mask, INT_MAX,
++__param(int, run_test_mask, 7,
+ 	"Set tests specified in the mask.\n\n"
+ 		"\t\tid: 1,    name: fix_size_alloc_test\n"
+ 		"\t\tid: 2,    name: full_fit_alloc_test\n"
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
