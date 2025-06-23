@@ -1,138 +1,156 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDD9C120;
-	Mon, 23 Jun 2025 01:55:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4783F223714
+	for <mm-commits@vger.kernel.org>; Mon, 23 Jun 2025 21:50:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750643712; cv=none; b=VuueaN7HVJe1gj1mj7u4oyQpmGA0Y7Dy/LJ7sftElCLNBuLvqH2WhxI4B0oCB9PMb6BOkpu+T6sbakC92dbquYE857cVw6DtVyprMwbjbPQeVOhekbRdS5sx+VlCfFqIZj83QilXh3C6FlU9CusDFlLdi46E/ImFxz4t/MNdlhA=
+	t=1750715415; cv=none; b=rlLmIT5+0PDPKznr0tjxAqN2a1XI3b5GFRzXeS0+A+DlPKOsJU94x2MgIEDhOnllwQ8XP6aWHTQOR67sitiaAWS8gSMqOtmIliY/WNoJ7A1xupxCK/eZLlN+Bj+dgf0NqfY3k9Sm0SoAxDwG9RajiVz87nMG+rfnVqi+ig64j+M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750643712; c=relaxed/simple;
-	bh=9cFlEUoSXzuVkaDJmNBJnormf9antQdBn1PhkiCaI7c=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=CxkMWUNix9QEIwdJ7z1kVEKw2zTNnHoRckOOCPkhED0RZkh11AjCMSTMw/qog8d41k3gdNfHDfPrgN1y8Q5NjlJo9Hom2cqNIr5eA9aI8xagHqm4pM1a/0pRasX8gesZT7FWfacazprlW7zHsvYrl6GbA/K7M+brdb0tT8zKq/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vm/KT6rl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750715415; c=relaxed/simple;
+	bh=fep2/t4KuEWrSwquDqtoAXK3HqWFYlA0sKpMdpVJN8s=;
+	h=Date:To:From:Subject:Message-Id; b=m2XHubijRj2yDyBQBJdz2FP4m/c++J8wZS1mUQ4wGdvDqWCFOVQnkJUXobhXWotqrE8fszFjFAs3iwbQQsUY3gcD3kRmv7xUrIlUoZsT6lREPeJ34CGhmBCYPmkseilwHtXoaMsVyj62mMR+VqM5n6YibE+TpIKr6vIhwQDz4Rk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ymTZWIyw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vm/KT6rl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D0E7C4CEE3;
-	Mon, 23 Jun 2025 01:55:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ymTZWIyw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11AE7C4CEEA;
+	Mon, 23 Jun 2025 21:50:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750643711;
-	bh=9cFlEUoSXzuVkaDJmNBJnormf9antQdBn1PhkiCaI7c=;
-	h=Date:From:To:Cc:Subject:From;
-	b=Vm/KT6rlFK73BnX66pXhE0VslsCvQhAocn7AsOWBn+t/tAekROFqsktMEQdVunfNs
-	 tYABL3tDMMoD5iBrWvjSX6AWrxWAjWptweOxaLrA8JxSoaXgWzzsddbslR2yacG3j9
-	 oDNKZnB3U2PwF0plZvP46l5Hf80HoJ7uYY9ZNnsk=
-Date: Sun, 22 Jun 2025 18:55:10 -0700
+	s=korg; t=1750715415;
+	bh=fep2/t4KuEWrSwquDqtoAXK3HqWFYlA0sKpMdpVJN8s=;
+	h=Date:To:From:Subject:From;
+	b=ymTZWIywR73H65sgT8imTp3f3lXsz7evTBEb3CvJIg4do4Zxx7gQnOk0XGuk9JV7M
+	 bwQjLHiXwQXtdM2WhV0OYdXWMhDzbxfT60980EWjEOak7au5R/ov5iL3HJDdmlVyLx
+	 lOZN2vj2cqSolKHyAvgURZcVZ5XrVG2lbfuJ3nWg=
+Date: Mon, 23 Jun 2025 14:50:14 -0700
+To: mm-commits@vger.kernel.org,dave@stgolabs.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.16-rc4
-Message-Id: <20250622185510.662af99051fedc1815b9de00@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-vmscan-respect-psi_memstall-region-in-node-reclaim.patch added to mm-new branch
+Message-Id: <20250623215015.11AE7C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please pull this batch of hotfixes, thanks.
+The patch titled
+     Subject: mm/vmscan: respect psi_memstall region in node reclaim
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmscan-respect-psi_memstall-region-in-node-reclaim.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-respect-psi_memstall-region-in-node-reclaim.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm/vmscan: respect psi_memstall region in node reclaim
+Date: Mon, 23 Jun 2025 11:58:48 -0700
+
+Patch series "mm: per-node proactive reclaim", v2.
+
+This adds support for allowing proactive reclaim in general on a NUMA
+system.  A per-node interface extends support for beyond a memcg-specific
+interface, respecting the current semantics of memory.reclaim: respecting
+aging LRU and not supporting artificially triggering eviction on nodes
+belonging to non-bottom tiers.
+
+This patch allows userspace to do:
+
+     echo 512M swappiness=10 > /sys/devices/system/node/nodeX/reclaim
+
+One of the premises for this is to semantically align as best as possible
+with memory.reclaim.  During a brief time memcg did support nodemask until
+55ab834a86a9 (Revert "mm: add nodes= arg to memory.reclaim"), for which
+semantics around reclaim (eviction) vs demotion were not clear, rendering
+charging expectations to be broken.
+
+With this approach:
+
+1. Users who do not use memcg can benefit from proactive reclaim.
+
+2. Proactive reclaim on top tiers will trigger demotion, for which
+   memory is still byte-addressable.  Reclaiming on the bottom nodes will
+   trigger evicting to swap (the traditional sense of reclaim).  This
+   follows the semantics of what is today part of the aging process on
+   tiered memory, mirroring what every other form of reclaim does
+   (reactive and memcg proactive reclaim).  Furthermore per-node proactive
+   reclaim is not as susceptible to the memcg charging problem mentioned
+   above.
+
+3. Unlike memcg, there should be no surprises of callers expecting
+   reclaim but instead got a demotion.  Essentially relying on behavior of
+   shrink_folio_list() after 6b426d071419 ("mm: disable top-tier fallback
+   to reclaim on proactive reclaim"), without the expectations of
+   try_to_free_mem_cgroup_pages().
+
+4. Unlike the nodes= arg, this interface avoids confusing semantics,
+   such as what exactly the user wants when mixing top-tier and low-tier
+   nodes in the nodemask.  Further per-node interface is less exposed to
+   "free up memory in my container" usecases, where eviction is intended.
+
+5. Users that *really* want to free up memory can use proactive
+   reclaim on nodes knowingly to be on the bottom tiers to force eviction
+   in a natural way - higher access latencies are still better than swap. 
+   If compelled, while no guarantees and perhaps not worth the effort,
+   users could also also potentially follow a ladder-like approach to
+   eventually free up the memory.  Alternatively, perhaps an 'evict'
+   option could be added to the parameters for both memory.reclaim and
+   per-node interfaces to force this action unconditionally.
 
 
-The following changes since commit e04c78d86a9699d136910cfc0bdcf01087e3267e:
+This patch (of 4):
 
-  Linux 6.16-rc2 (2025-06-15 13:49:41 -0700)
+... rather benign but keep proper ending order.
 
-are available in the Git repository at:
+Link: https://lkml.kernel.org/r/20250623185851.830632-1-dave@stgolabs.net
+Link: https://lkml.kernel.org/r/20250623185851.830632-2-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-06-22-18-52
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-for you to fetch changes up to c742d127d2d831aa83ae2987a508bca2bf0c7736:
+--- a/mm/vmscan.c~mm-vmscan-respect-psi_memstall-region-in-node-reclaim
++++ a/mm/vmscan.c
+@@ -7651,8 +7651,8 @@ static int __node_reclaim(struct pglist_
+ 	set_task_reclaim_state(p, NULL);
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	fs_reclaim_release(sc.gfp_mask);
+-	psi_memstall_leave(&pflags);
+ 	delayacct_freepages_end();
++	psi_memstall_leave(&pflags);
+ 
+ 	trace_mm_vmscan_node_reclaim_end(sc.nr_reclaimed);
+ 
+_
 
-  MAINTAINERS: add additional mmap-related files to mmap section (2025-06-19 20:48:05 -0700)
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-----------------------------------------------------------------
-20 hotfixes.  7 are cc:stable and the remainder address post-6.15 issues
-or aren't considered necessary for -stable kernels.  Only 4 are for MM.
-
-- The 3 patch series `Revert "bcache: update min_heap_callbacks to use
-  default builtin swap"' from Kuan-Wei Chiu backs out the author's recent
-  min_heap changes due to a performance regression.  A fix for this
-  regression has been developed but we felt it best to go back to the
-  known-good version to give the new code more bake time.
-
-- A lot of MAINTAINERS maintenance.  I like to get these changes
-  upstreamed promptly because they can't break things and more
-  accurate/complete MAINTAINERS info hopefully improves the speed and
-  accuracy of our responses to submitters and reporters.
-
-----------------------------------------------------------------
-David Hildenbrand (1):
-      mm/gup: revert "mm: gup: fix infinite loop within __get_longterm_locked"
-
-Dev Jain (1):
-      selftests/mm: add configs to fix testcase failure
-
-Kairui Song (2):
-      mm/shmem, swap: fix softlockup with mTHP swapin
-      mm: userfaultfd: fix race of userfaultfd_move and swap cache
-
-Kuan-Wei Chiu (3):
-      Revert "bcache: update min_heap_callbacks to use default builtin swap"
-      Revert "bcache: remove heap-related macros and switch to generic min_heap"
-      bcache: remove unnecessary select MIN_HEAP
-
-Liam R. Howlett (1):
-      maple_tree: fix MA_STATE_PREALLOC flag in mas_preallocate()
-
-Lorenzo Stoakes (7):
-      MAINTAINERS: add missing mm/workingset.c file to mm reclaim section
-      MAINTAINERS: add missing test files to mm gup section
-      MAINTAINERS: add further init files to mm init block
-      MAINTAINERS: add hugetlb_cgroup.c to hugetlb section
-      MAINTAINERS: add stray rmap file to mm rmap section
-      MAINTAINERS: add memfd, shmem quota files to shmem section
-      MAINTAINERS: add additional mmap-related files to mmap section
-
-Oscar Salvador (1):
-      MAINTAINERS: update maintainers for HugeTLB
-
-Pedro Falcato (1):
-      selftests/mm: skip uprobe vma merge test if uprobes are not enabled
-
-Pratyush Yadav (2):
-      MAINTAINERS: add linux-mm@ list to Kexec Handover
-      kho: initialize tail pages for higher order folios properly
-
-Shivank Garg (1):
-      selftests/mm: increase timeout from 180 to 900 seconds
-
- MAINTAINERS                         |  21 ++++++-
- drivers/md/bcache/Kconfig           |   1 -
- drivers/md/bcache/alloc.c           |  57 ++++++------------
- drivers/md/bcache/bcache.h          |   2 +-
- drivers/md/bcache/bset.c            | 116 ++++++++++++++----------------------
- drivers/md/bcache/bset.h            |  40 +++++++------
- drivers/md/bcache/btree.c           |  69 +++++++++------------
- drivers/md/bcache/extents.c         |  45 ++++++--------
- drivers/md/bcache/movinggc.c        |  33 ++++------
- drivers/md/bcache/super.c           |   3 +-
- drivers/md/bcache/sysfs.c           |   4 +-
- drivers/md/bcache/util.h            |  67 ++++++++++++++++++++-
- drivers/md/bcache/writeback.c       |  13 ++--
- kernel/kexec_handover.c             |  29 +++++----
- lib/maple_tree.c                    |   4 +-
- mm/gup.c                            |  14 +++--
- mm/memory.c                         |  20 -------
- mm/shmem.c                          |   6 +-
- mm/swap.h                           |  23 +++++++
- mm/userfaultfd.c                    |  33 +++++++++-
- tools/testing/selftests/mm/config   |   3 +
- tools/testing/selftests/mm/merge.c  |   5 +-
- tools/testing/selftests/mm/settings |   2 +-
- 23 files changed, 333 insertions(+), 277 deletions(-)
+mm-vmscan-respect-psi_memstall-region-in-node-reclaim.patch
+mm-memcg-make-memoryreclaim-interface-generic.patch
+mm-vmscan-make-__node_reclaim-more-generic.patch
+mm-introduce-per-node-proactive-reclaim-interface.patch
 
