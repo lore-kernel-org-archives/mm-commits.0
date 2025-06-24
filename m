@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C122586FE
-	for <mm-commits@vger.kernel.org>; Tue, 24 Jun 2025 23:13:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 258CA2586FE
+	for <mm-commits@vger.kernel.org>; Tue, 24 Jun 2025 23:13:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750806829; cv=none; b=Z156gXfj0sFVlzFtOKsi4ZXfo5CREnZEhLrG65b43yKqie1nzz7uHCuA/RcOue/eQTwB68FujXPAeI3HV4+RYu/iwLN9fJi+9aKLYWs0RQb7CBaUAsSGDT3Nl+dPpviiJ2a7i/AnJEFcXSmFNZD+enhjyL3zEk6KeY3TvuaqewI=
+	t=1750806832; cv=none; b=ao00mlkvlP1wjAyhN8k1s+evU+RDGZ9mAMB3ieMOvLRDiwxy6koKO0Zo4RmydJs+gmO077jd6DXtGtg08EeoGcTpQcJqTC9trLWOVbzlpvX6h19D7LWRmdpZwM/I82cZQjbnkp2OiYsDAYq6Mp0nBlqq4WEGlE6p6BPI968u+xk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750806829; c=relaxed/simple;
-	bh=jCvRdceHaj9QBZOQLoL3/TpN14+jyJyyndbFMJDwFaM=;
-	h=Date:To:From:Subject:Message-Id; b=pLUEwbWRNIBZpWFVTRpjMHwnw9FpPDzO9frjrPwHu1gQLbH4fZt41EqI7Yxo/6MqjWDZ1Spd8+T2LA2PVMmewOwK/76pCP/m4Z0zD/xa7Ceb3dJVsvkszb44srbsTgAJeEH2J/Ahirf6GU0dUjNjFEJ3YehIyt2/9ZqPUWwpyCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sWvNwas9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750806832; c=relaxed/simple;
+	bh=6ECNG8WFWlNZ3HuCf6P7EuBGNxmyjkRzJJrxqWDmaL0=;
+	h=Date:To:From:Subject:Message-Id; b=Naga7jCTvGhyDA7HfmKXrMvpQ7IFZ6xmp0lbOuX/cARNB7zkcLOrmMQyy6Oq6LNcTPaLs48dM4oDp3k4jgVz7YtrVw5sCMbYttN1h0P9rvoqGo9eHg4XYB9c/UxGzWln5hp8/QqcG+tVz9pbwjGnjaQH5NQ/BYj5NQ2jD38Na5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u5KzIyOj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sWvNwas9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C589C4CEE3;
-	Tue, 24 Jun 2025 23:13:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u5KzIyOj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47610C4CEE3;
+	Tue, 24 Jun 2025 23:13:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750806828;
-	bh=jCvRdceHaj9QBZOQLoL3/TpN14+jyJyyndbFMJDwFaM=;
+	s=korg; t=1750806831;
+	bh=6ECNG8WFWlNZ3HuCf6P7EuBGNxmyjkRzJJrxqWDmaL0=;
 	h=Date:To:From:Subject:From;
-	b=sWvNwas9pVjcr+hxc5o1gKfFobDEDhblJVfN2p9+VSTTDOqnaDKxcsmQuWvv+mtd3
-	 AKEQOLyZklOOkcsEhxPTM4SHmXzEJmFbhW3K3uM1MJuKTBHoW72Thpj7aaVnpT7/er
-	 Tk6jqrRgJTspbYMx3qbXxn37XiHqFI4ToARuACyk=
-Date: Tue, 24 Jun 2025 16:13:47 -0700
+	b=u5KzIyOjwzYSLTYcMMNXAZsa5z4WT1Wf1G3MNTEKm9yZplnuWu/ovSzcUJYsMm8bp
+	 m4mlFHzf42xxGAqKOR3TWptVu0ZUNepgp0E9B4FaWzeOglSAetIowWEGL5NU/O8Gaq
+	 c2gPXOwD+gPSnqkES3GC5MwIXJr6urB8vw4XITeo=
+Date: Tue, 24 Jun 2025 16:13:50 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,ccross@google.com,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch added to mm-new branch
-Message-Id: <20250624231348.6C589C4CEE3@smtp.kernel.org>
+Subject: + mm-madvise-move-madvise_set_anon_name-down-the-file.patch added to mm-new branch
+Message-Id: <20250624231351.47610C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, madvise: extract mm code from prctl_set_vma() to mm/madvise.c
+     Subject: mm, madvise: move madvise_set_anon_name() down the file
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch
+     mm-madvise-move-madvise_set_anon_name-down-the-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-move-madvise_set_anon_name-down-the-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,25 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, madvise: extract mm code from prctl_set_vma() to mm/madvise.c
-Date: Tue, 24 Jun 2025 15:03:46 +0200
+Subject: mm, madvise: move madvise_set_anon_name() down the file
+Date: Tue, 24 Jun 2025 15:03:47 +0200
 
-Setting anon_name is done via madvise_set_anon_name() and behaves a lot of
-like other madvise operations.  However, apparently because madvise() has
-lacked the 4th argument and prctl() not, the userspace entry point has
-been implemented via prctl(PR_SET_VMA, ...) and handled first by
-prctl_set_vma().
+Preparatory change so that we can use madvise_lock()/unlock() in the
+function without forward declarations or more thorough shuffling.
 
-Currently prctl_set_vma() lives in kernel/sys.c but setting the
-vma->anon_name is mm-specific code so extract it to a new
-set_anon_vma_name() function under mm.  mm/madvise.c seems to be the most
-straightforward place as that's where madvise_set_anon_name() lives.  Stop
-declaring the latter in mm.h and instead declare set_anon_vma_name().
+No functional change.  Move as a separate commit helps git heuristics to
+detect it properly.
 
-Link: https://lkml.kernel.org/r/20250624-anon_name_cleanup-v2-2-600075462a11@suse.cz
+Link: https://lkml.kernel.org/r/20250624-anon_name_cleanup-v2-3-600075462a11@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Hildenbrand <david@redhat.com>
 Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Colin Cross <ccross@google.com>
@@ -95,173 +89,89 @@ Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 +++++------
- kernel/sys.c       |   50 -----------------------------------------
- mm/madvise.c       |   52 +++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 58 insertions(+), 58 deletions(-)
+ mm/madvise.c |   64 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 32 insertions(+), 32 deletions(-)
 
---- a/include/linux/mm.h~mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec
-+++ a/include/linux/mm.h
-@@ -4059,14 +4059,14 @@ unsigned long wp_shared_mapping_range(st
- #endif
- 
- #ifdef CONFIG_ANON_VMA_NAME
--int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
--			  unsigned long len_in,
--			  struct anon_vma_name *anon_name);
-+int set_anon_vma_name(unsigned long addr, unsigned long size,
-+		      const char __user *uname);
- #else
--static inline int
--madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
--		      unsigned long len_in, struct anon_vma_name *anon_name) {
--	return 0;
-+static inline
-+int set_anon_vma_name(unsigned long addr, unsigned long size,
-+		      const char __user *uname)
-+{
-+	return -EINVAL;
- }
- #endif
- 
---- a/kernel/sys.c~mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec
-+++ a/kernel/sys.c
-@@ -2343,54 +2343,14 @@ int __weak arch_lock_shadow_stack_status
- 
- #define PR_IO_FLUSHER (PF_MEMALLOC_NOIO | PF_LOCAL_THROTTLE)
- 
--#ifdef CONFIG_ANON_VMA_NAME
--
--#define ANON_VMA_NAME_MAX_LEN		80
--#define ANON_VMA_NAME_INVALID_CHARS	"\\`$[]"
--
--static inline bool is_valid_name_char(char ch)
--{
--	/* printable ascii characters, excluding ANON_VMA_NAME_INVALID_CHARS */
--	return ch > 0x1f && ch < 0x7f &&
--		!strchr(ANON_VMA_NAME_INVALID_CHARS, ch);
--}
--
- static int prctl_set_vma(unsigned long opt, unsigned long addr,
- 			 unsigned long size, unsigned long arg)
- {
--	struct mm_struct *mm = current->mm;
--	const char __user *uname;
--	struct anon_vma_name *anon_name = NULL;
- 	int error;
- 
- 	switch (opt) {
- 	case PR_SET_VMA_ANON_NAME:
--		uname = (const char __user *)arg;
--		if (uname) {
--			char *name, *pch;
--
--			name = strndup_user(uname, ANON_VMA_NAME_MAX_LEN);
--			if (IS_ERR(name))
--				return PTR_ERR(name);
--
--			for (pch = name; *pch != '\0'; pch++) {
--				if (!is_valid_name_char(*pch)) {
--					kfree(name);
--					return -EINVAL;
--				}
--			}
--			/* anon_vma has its own copy */
--			anon_name = anon_vma_name_alloc(name);
--			kfree(name);
--			if (!anon_name)
--				return -ENOMEM;
--
--		}
--
--		mmap_write_lock(mm);
--		error = madvise_set_anon_name(mm, addr, size, anon_name);
--		mmap_write_unlock(mm);
--		anon_vma_name_put(anon_name);
-+		error = set_anon_vma_name(addr, size, (const char __user *)arg);
- 		break;
- 	default:
- 		error = -EINVAL;
-@@ -2399,14 +2359,6 @@ static int prctl_set_vma(unsigned long o
- 	return error;
- }
- 
--#else /* CONFIG_ANON_VMA_NAME */
--static int prctl_set_vma(unsigned long opt, unsigned long start,
--			 unsigned long size, unsigned long arg)
--{
--	return -EINVAL;
--}
--#endif /* CONFIG_ANON_VMA_NAME */
--
- static inline unsigned long get_current_mdwe(void)
- {
- 	unsigned long ret = 0;
---- a/mm/madvise.c~mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec
+--- a/mm/madvise.c~mm-madvise-move-madvise_set_anon_name-down-the-file
 +++ a/mm/madvise.c
-@@ -134,8 +134,8 @@ static int replace_anon_vma_name(struct
+@@ -133,38 +133,6 @@ static int replace_anon_vma_name(struct
+ 
  	return 0;
  }
+-
+-static int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+-		unsigned long len_in, struct anon_vma_name *anon_name)
+-{
+-	unsigned long end;
+-	unsigned long len;
+-	struct madvise_behavior madv_behavior = {
+-		.mm = mm,
+-		.behavior = __MADV_SET_ANON_VMA_NAME,
+-		.lock_mode = MADVISE_MMAP_WRITE_LOCK,
+-		.anon_name = anon_name,
+-	};
+-
+-	if (start & ~PAGE_MASK)
+-		return -EINVAL;
+-	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
+-
+-	/* Check to see whether len was rounded up from small -ve to zero */
+-	if (len_in && !len)
+-		return -EINVAL;
+-
+-	end = start + len;
+-	if (end < start)
+-		return -EINVAL;
+-
+-	if (end == start)
+-		return 0;
+-
+-	madv_behavior.range.start = start;
+-	madv_behavior.range.end = end;
+-	return madvise_walk_vmas(&madv_behavior);
+-}
+ #else /* CONFIG_ANON_VMA_NAME */
+ static int replace_anon_vma_name(struct vm_area_struct *vma,
+ 				 struct anon_vma_name *anon_name)
+@@ -2109,6 +2077,38 @@ static inline bool is_valid_name_char(ch
+ 		!strchr(ANON_VMA_NAME_INVALID_CHARS, ch);
+ }
  
--int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
--			  unsigned long len_in, struct anon_vma_name *anon_name)
 +static int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
 +		unsigned long len_in, struct anon_vma_name *anon_name)
++{
++	unsigned long end;
++	unsigned long len;
++	struct madvise_behavior madv_behavior = {
++		.mm = mm,
++		.behavior = __MADV_SET_ANON_VMA_NAME,
++		.lock_mode = MADVISE_MMAP_WRITE_LOCK,
++		.anon_name = anon_name,
++	};
++
++	if (start & ~PAGE_MASK)
++		return -EINVAL;
++	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
++
++	/* Check to see whether len was rounded up from small -ve to zero */
++	if (len_in && !len)
++		return -EINVAL;
++
++	end = start + len;
++	if (end < start)
++		return -EINVAL;
++
++	if (end == start)
++		return 0;
++
++	madv_behavior.range.start = start;
++	madv_behavior.range.end = end;
++	return madvise_walk_vmas(&madv_behavior);
++}
++
+ int set_anon_vma_name(unsigned long addr, unsigned long size,
+ 		      const char __user *uname)
  {
- 	unsigned long end;
- 	unsigned long len;
-@@ -2096,3 +2096,51 @@ free_iov:
- out:
- 	return ret;
- }
-+
-+#ifdef CONFIG_ANON_VMA_NAME
-+
-+#define ANON_VMA_NAME_MAX_LEN		80
-+#define ANON_VMA_NAME_INVALID_CHARS	"\\`$[]"
-+
-+static inline bool is_valid_name_char(char ch)
-+{
-+	/* printable ascii characters, excluding ANON_VMA_NAME_INVALID_CHARS */
-+	return ch > 0x1f && ch < 0x7f &&
-+		!strchr(ANON_VMA_NAME_INVALID_CHARS, ch);
-+}
-+
-+int set_anon_vma_name(unsigned long addr, unsigned long size,
-+		      const char __user *uname)
-+{
-+	struct anon_vma_name *anon_name = NULL;
-+	struct mm_struct *mm = current->mm;
-+	int error;
-+
-+	if (uname) {
-+		char *name, *pch;
-+
-+		name = strndup_user(uname, ANON_VMA_NAME_MAX_LEN);
-+		if (IS_ERR(name))
-+			return PTR_ERR(name);
-+
-+		for (pch = name; *pch != '\0'; pch++) {
-+			if (!is_valid_name_char(*pch)) {
-+				kfree(name);
-+				return -EINVAL;
-+			}
-+		}
-+		/* anon_vma has its own copy */
-+		anon_name = anon_vma_name_alloc(name);
-+		kfree(name);
-+		if (!anon_name)
-+			return -ENOMEM;
-+	}
-+
-+	mmap_write_lock(mm);
-+	error = madvise_set_anon_name(mm, addr, size, anon_name);
-+	mmap_write_unlock(mm);
-+	anon_vma_name_put(anon_name);
-+
-+	return error;
-+}
-+#endif
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
