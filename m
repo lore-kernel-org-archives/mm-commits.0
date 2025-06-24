@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF1792586FE
-	for <mm-commits@vger.kernel.org>; Tue, 24 Jun 2025 23:13:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C122586FE
+	for <mm-commits@vger.kernel.org>; Tue, 24 Jun 2025 23:13:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750806827; cv=none; b=HqdQqRUkkIyDeHL448HSjQxCad8cpJIB5N4eOf6AScEpyiHWVQtkVqA83GnwL/U6u+SraElYKado2DM9IQrIz09U5IDLn27KP7YSEtynt7rLcaF2aOB5L4UU0U1Rzwxw1X3dbhZ7AckaY5ftkMiyYpdaEMxXkBIPT/p/+2r7J/Y=
+	t=1750806829; cv=none; b=Z156gXfj0sFVlzFtOKsi4ZXfo5CREnZEhLrG65b43yKqie1nzz7uHCuA/RcOue/eQTwB68FujXPAeI3HV4+RYu/iwLN9fJi+9aKLYWs0RQb7CBaUAsSGDT3Nl+dPpviiJ2a7i/AnJEFcXSmFNZD+enhjyL3zEk6KeY3TvuaqewI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750806827; c=relaxed/simple;
-	bh=qOVwfqlrt1NU30CCeK4zEXYRLKfAgOUPCUZB1mQDtPs=;
-	h=Date:To:From:Subject:Message-Id; b=ER6xxvnEDuuxsYobQOhLzeKSSGpgryB89FmX0xO20u5xXChQMF4DyVxBAVyi3gs34tz0GD6U27tqc/vcmsvY1AZt5VBXiQ//19TBqHMMJbghFC1EmoGcvv9NoA1Jpc0PVmdVt22I/g+6XA5x06Rl0BPGJOCnTSkBBYDCK3QbB84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aFQtw4U8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750806829; c=relaxed/simple;
+	bh=jCvRdceHaj9QBZOQLoL3/TpN14+jyJyyndbFMJDwFaM=;
+	h=Date:To:From:Subject:Message-Id; b=pLUEwbWRNIBZpWFVTRpjMHwnw9FpPDzO9frjrPwHu1gQLbH4fZt41EqI7Yxo/6MqjWDZ1Spd8+T2LA2PVMmewOwK/76pCP/m4Z0zD/xa7Ceb3dJVsvkszb44srbsTgAJeEH2J/Ahirf6GU0dUjNjFEJ3YehIyt2/9ZqPUWwpyCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sWvNwas9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aFQtw4U8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3976FC4CEE3;
-	Tue, 24 Jun 2025 23:13:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sWvNwas9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C589C4CEE3;
+	Tue, 24 Jun 2025 23:13:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750806826;
-	bh=qOVwfqlrt1NU30CCeK4zEXYRLKfAgOUPCUZB1mQDtPs=;
+	s=korg; t=1750806828;
+	bh=jCvRdceHaj9QBZOQLoL3/TpN14+jyJyyndbFMJDwFaM=;
 	h=Date:To:From:Subject:From;
-	b=aFQtw4U8aQxJHYH9RR/vd95eBXhe78dNbt+DQ9bPEJfF3C3lxJKZLnX32HnDloL3X
-	 5BZqLa3lw+nCk5wCloWRHxU0/wPH/v948XtamOoYgyHzXJIgl8w+CJqo4Zigl1i0HR
-	 DspayUy1KzLRGH3W7H3rG5Gpv4A+GhmOXRdvRvwY=
-Date: Tue, 24 Jun 2025 16:13:45 -0700
+	b=sWvNwas9pVjcr+hxc5o1gKfFobDEDhblJVfN2p9+VSTTDOqnaDKxcsmQuWvv+mtd3
+	 AKEQOLyZklOOkcsEhxPTM4SHmXzEJmFbhW3K3uM1MJuKTBHoW72Thpj7aaVnpT7/er
+	 Tk6jqrRgJTspbYMx3qbXxn37XiHqFI4ToARuACyk=
+Date: Tue, 24 Jun 2025 16:13:47 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,ccross@google.com,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-simplify-anon_name-handling.patch added to mm-new branch
-Message-Id: <20250624231346.3976FC4CEE3@smtp.kernel.org>
+Subject: + mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch added to mm-new branch
+Message-Id: <20250624231348.6C589C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, madvise: simplify anon_name handling
+     Subject: mm, madvise: extract mm code from prctl_set_vma() to mm/madvise.c
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-simplify-anon_name-handling.patch
+     mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-simplify-anon_name-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,67 +65,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, madvise: simplify anon_name handling
-Date: Tue, 24 Jun 2025 15:03:45 +0200
+Subject: mm, madvise: extract mm code from prctl_set_vma() to mm/madvise.c
+Date: Tue, 24 Jun 2025 15:03:46 +0200
 
-Patch series "madvise anon_name cleanups", v2.
+Setting anon_name is done via madvise_set_anon_name() and behaves a lot of
+like other madvise operations.  However, apparently because madvise() has
+lacked the 4th argument and prctl() not, the userspace entry point has
+been implemented via prctl(PR_SET_VMA, ...) and handled first by
+prctl_set_vma().
 
-While reviewing Lorenzo's madvise cleanups I've noticed that we can handle
-anon_name in madvise code much better, so sending that as patch 1. 
-Initially I wanted to do first move the existing logic from
-madvise_vma_behavior() to madvise_update_vma() as a separate patch before
-the actual simplification but that would require adding
-anon_vma_name_put() in error handling paths only to be removed again, so
-it's a single patch to avoid churn.
+Currently prctl_set_vma() lives in kernel/sys.c but setting the
+vma->anon_name is mm-specific code so extract it to a new
+set_anon_vma_name() function under mm.  mm/madvise.c seems to be the most
+straightforward place as that's where madvise_set_anon_name() lives.  Stop
+declaring the latter in mm.h and instead declare set_anon_vma_name().
 
-It's also an opportunity to move some mm code from prctl under mm, hence
-patch 2.  After code moving preparation in patch 3, also unify madvise
-lock handling for madvise_set_anon_name() in patch 4.
-
-
-This patch (of 4):
-
-Since the introduction in 9a10064f5625 ("mm: add a field to store names
-for private anonymous memory") the code to set anon_name on a vma has been
-using madvise_update_vma() to call replace_anon_vma_name().  Since the
-former is called also by a number of other madvise behaviours that do not
-set a new anon_name, they have been passing the existing anon_name of the
-vma to make replace_anon_vma_name() a no-op.
-
-This is rather wasteful as it needs anon_vma_name_eq() to determine the
-no-op situations, and checks for when replace_anon_vma_name() is allowed
-(the vma is anon/shmem) duplicate the checks already done earlier in
-madvise_vma_behavior().  It has also lead to commit 942341dcc574 ("mm: fix
-use-after-free when anon vma name is used after vma is freed") adding
-anon_name refcount get/put operations exactly to the cases that actually
-do not change anon_name - just so the replace_anon_vma_name() can keep
-safely determining it has nothing to do.
-
-The recent madvise cleanups made this suboptimal handling very obvious,
-but happily also allow for an easy fix.  madvise_update_vma() now has the
-complete information whether it's been called to set a new anon_name, so
-stop passing it the existing vma's name and doing the refcount get/put in
-its only caller madvise_vma_behavior().
-
-In madvise_update_vma() itself, limit calling of replace_anon_vma_name()
-only to cases where we are setting a new name, otherwise we know it's a
-no-op.  We can rely solely on the __MADV_SET_ANON_VMA_NAME behaviour and
-can remove the duplicate checks for vma being anon/shmem that were done
-already in madvise_vma_behavior().
-
-Additionally, by using vma_modify_flags() when not modifying the
-anon_name, avoid explicitly passing the existing vma's anon_name and
-storing a pointer to it in struct madv_behavior or a local variable.  This
-prevents the danger of accessing a freed anon_name after vma merging,
-previously fixed by commit 942341dcc574.
-
-Link: https://lkml.kernel.org/r/20250624-anon_name_cleanup-v2-0-600075462a11@suse.cz
-Link: https://lkml.kernel.org/r/20250624-anon_name_cleanup-v2-1-600075462a11@suse.cz
+Link: https://lkml.kernel.org/r/20250624-anon_name_cleanup-v2-2-600075462a11@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Colin Cross <ccross@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -135,89 +95,173 @@ Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   37 +++++++++++++------------------------
- 1 file changed, 13 insertions(+), 24 deletions(-)
+ include/linux/mm.h |   14 +++++------
+ kernel/sys.c       |   50 -----------------------------------------
+ mm/madvise.c       |   52 +++++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 58 insertions(+), 58 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-simplify-anon_name-handling
-+++ a/mm/madvise.c
-@@ -176,25 +176,29 @@ static int replace_anon_vma_name(struct
+--- a/include/linux/mm.h~mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec
++++ a/include/linux/mm.h
+@@ -4059,14 +4059,14 @@ unsigned long wp_shared_mapping_range(st
+ #endif
+ 
+ #ifdef CONFIG_ANON_VMA_NAME
+-int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+-			  unsigned long len_in,
+-			  struct anon_vma_name *anon_name);
++int set_anon_vma_name(unsigned long addr, unsigned long size,
++		      const char __user *uname);
+ #else
+-static inline int
+-madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+-		      unsigned long len_in, struct anon_vma_name *anon_name) {
+-	return 0;
++static inline
++int set_anon_vma_name(unsigned long addr, unsigned long size,
++		      const char __user *uname)
++{
++	return -EINVAL;
  }
- #endif /* CONFIG_ANON_VMA_NAME */
- /*
-- * Update the vm_flags on region of a vma, splitting it or merging it as
-- * necessary.  Must be called with mmap_lock held for writing;
-- * Caller should ensure anon_name stability by raising its refcount even when
-- * anon_name belongs to a valid vma because this function might free that vma.
-+ * Update the vm_flags and/or anon_name on region of a vma, splitting it or
-+ * merging it as necessary. Must be called with mmap_lock held for writing.
-  */
- static int madvise_update_vma(vm_flags_t new_flags,
- 		struct madvise_behavior *madv_behavior)
+ #endif
+ 
+--- a/kernel/sys.c~mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec
++++ a/kernel/sys.c
+@@ -2343,54 +2343,14 @@ int __weak arch_lock_shadow_stack_status
+ 
+ #define PR_IO_FLUSHER (PF_MEMALLOC_NOIO | PF_LOCAL_THROTTLE)
+ 
+-#ifdef CONFIG_ANON_VMA_NAME
+-
+-#define ANON_VMA_NAME_MAX_LEN		80
+-#define ANON_VMA_NAME_INVALID_CHARS	"\\`$[]"
+-
+-static inline bool is_valid_name_char(char ch)
+-{
+-	/* printable ascii characters, excluding ANON_VMA_NAME_INVALID_CHARS */
+-	return ch > 0x1f && ch < 0x7f &&
+-		!strchr(ANON_VMA_NAME_INVALID_CHARS, ch);
+-}
+-
+ static int prctl_set_vma(unsigned long opt, unsigned long addr,
+ 			 unsigned long size, unsigned long arg)
  {
--	int error;
- 	struct vm_area_struct *vma = madv_behavior->vma;
- 	struct madvise_behavior_range *range = &madv_behavior->range;
- 	struct anon_vma_name *anon_name = madv_behavior->anon_name;
-+	bool set_new_anon_name = madv_behavior->behavior == __MADV_SET_ANON_VMA_NAME;
- 	VMA_ITERATOR(vmi, madv_behavior->mm, range->start);
- 
--	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name))
-+	if (new_flags == vma->vm_flags && (!set_new_anon_name ||
-+			anon_vma_name_eq(anon_vma_name(vma), anon_name)))
- 		return 0;
- 
--	vma = vma_modify_flags_name(&vmi, madv_behavior->prev, vma,
-+	if (set_new_anon_name)
-+		vma = vma_modify_flags_name(&vmi, madv_behavior->prev, vma,
- 			range->start, range->end, new_flags, anon_name);
-+	else
-+		vma = vma_modify_flags(&vmi, madv_behavior->prev, vma,
-+			range->start, range->end, new_flags);
-+
- 	if (IS_ERR(vma))
- 		return PTR_ERR(vma);
- 
-@@ -203,11 +207,8 @@ static int madvise_update_vma(vm_flags_t
- 	/* vm_flags is protected by the mmap_lock held in write mode. */
- 	vma_start_write(vma);
- 	vm_flags_reset(vma, new_flags);
--	if (!vma->vm_file || vma_is_anon_shmem(vma)) {
--		error = replace_anon_vma_name(vma, anon_name);
--		if (error)
--			return error;
--	}
-+	if (set_new_anon_name)
-+		return replace_anon_vma_name(vma, anon_name);
- 
- 	return 0;
- }
-@@ -1313,7 +1314,6 @@ static int madvise_vma_behavior(struct m
- 	int behavior = madv_behavior->behavior;
- 	struct vm_area_struct *vma = madv_behavior->vma;
- 	vm_flags_t new_flags = vma->vm_flags;
--	bool set_new_anon_name = behavior == __MADV_SET_ANON_VMA_NAME;
- 	struct madvise_behavior_range *range = &madv_behavior->range;
+-	struct mm_struct *mm = current->mm;
+-	const char __user *uname;
+-	struct anon_vma_name *anon_name = NULL;
  	int error;
  
-@@ -1403,18 +1403,7 @@ static int madvise_vma_behavior(struct m
- 	/* This is a write operation.*/
- 	VM_WARN_ON_ONCE(madv_behavior->lock_mode != MADVISE_MMAP_WRITE_LOCK);
+ 	switch (opt) {
+ 	case PR_SET_VMA_ANON_NAME:
+-		uname = (const char __user *)arg;
+-		if (uname) {
+-			char *name, *pch;
+-
+-			name = strndup_user(uname, ANON_VMA_NAME_MAX_LEN);
+-			if (IS_ERR(name))
+-				return PTR_ERR(name);
+-
+-			for (pch = name; *pch != '\0'; pch++) {
+-				if (!is_valid_name_char(*pch)) {
+-					kfree(name);
+-					return -EINVAL;
+-				}
+-			}
+-			/* anon_vma has its own copy */
+-			anon_name = anon_vma_name_alloc(name);
+-			kfree(name);
+-			if (!anon_name)
+-				return -ENOMEM;
+-
+-		}
+-
+-		mmap_write_lock(mm);
+-		error = madvise_set_anon_name(mm, addr, size, anon_name);
+-		mmap_write_unlock(mm);
+-		anon_vma_name_put(anon_name);
++		error = set_anon_vma_name(addr, size, (const char __user *)arg);
+ 		break;
+ 	default:
+ 		error = -EINVAL;
+@@ -2399,14 +2359,6 @@ static int prctl_set_vma(unsigned long o
+ 	return error;
+ }
  
--	/*
--	 * madvise_update_vma() might cause a VMA merge which could put an
--	 * anon_vma_name, so we must hold an additional reference on the
--	 * anon_vma_name so it doesn't disappear from under us.
--	 */
--	if (!set_new_anon_name) {
--		madv_behavior->anon_name = anon_vma_name(vma);
--		anon_vma_name_get(madv_behavior->anon_name);
--	}
- 	error = madvise_update_vma(new_flags, madv_behavior);
--	if (!set_new_anon_name)
--		anon_vma_name_put(madv_behavior->anon_name);
+-#else /* CONFIG_ANON_VMA_NAME */
+-static int prctl_set_vma(unsigned long opt, unsigned long start,
+-			 unsigned long size, unsigned long arg)
+-{
+-	return -EINVAL;
+-}
+-#endif /* CONFIG_ANON_VMA_NAME */
+-
+ static inline unsigned long get_current_mdwe(void)
+ {
+ 	unsigned long ret = 0;
+--- a/mm/madvise.c~mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec
++++ a/mm/madvise.c
+@@ -134,8 +134,8 @@ static int replace_anon_vma_name(struct
+ 	return 0;
+ }
+ 
+-int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+-			  unsigned long len_in, struct anon_vma_name *anon_name)
++static int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
++		unsigned long len_in, struct anon_vma_name *anon_name)
+ {
+ 	unsigned long end;
+ 	unsigned long len;
+@@ -2096,3 +2096,51 @@ free_iov:
  out:
- 	/*
- 	 * madvise() returns EAGAIN if kernel resources, such as
+ 	return ret;
+ }
++
++#ifdef CONFIG_ANON_VMA_NAME
++
++#define ANON_VMA_NAME_MAX_LEN		80
++#define ANON_VMA_NAME_INVALID_CHARS	"\\`$[]"
++
++static inline bool is_valid_name_char(char ch)
++{
++	/* printable ascii characters, excluding ANON_VMA_NAME_INVALID_CHARS */
++	return ch > 0x1f && ch < 0x7f &&
++		!strchr(ANON_VMA_NAME_INVALID_CHARS, ch);
++}
++
++int set_anon_vma_name(unsigned long addr, unsigned long size,
++		      const char __user *uname)
++{
++	struct anon_vma_name *anon_name = NULL;
++	struct mm_struct *mm = current->mm;
++	int error;
++
++	if (uname) {
++		char *name, *pch;
++
++		name = strndup_user(uname, ANON_VMA_NAME_MAX_LEN);
++		if (IS_ERR(name))
++			return PTR_ERR(name);
++
++		for (pch = name; *pch != '\0'; pch++) {
++			if (!is_valid_name_char(*pch)) {
++				kfree(name);
++				return -EINVAL;
++			}
++		}
++		/* anon_vma has its own copy */
++		anon_name = anon_vma_name_alloc(name);
++		kfree(name);
++		if (!anon_name)
++			return -ENOMEM;
++	}
++
++	mmap_write_lock(mm);
++	error = madvise_set_anon_name(mm, addr, size, anon_name);
++	mmap_write_unlock(mm);
++	anon_vma_name_put(anon_name);
++
++	return error;
++}
++#endif
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
