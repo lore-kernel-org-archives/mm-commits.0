@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2FCC23774
-	for <mm-commits@vger.kernel.org>; Tue, 24 Jun 2025 03:08:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 506342550D3
+	for <mm-commits@vger.kernel.org>; Tue, 24 Jun 2025 20:07:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750734484; cv=none; b=Wt0xd96+3tgt1mTBiQ51hbKblFFYPdVY9NsEKc1UVqBMiviJK1MbeqMl2MExDbK5b1T8qgY1EsqiLU+uLT5BFPL9ZKBSrvIEUI8ssPqnX32LRpkNVao8YX+VIwKBpBmHQba6LvF1GQk+NWPyk5/pCNha5NgCqYde7RbcXHPdZUA=
+	t=1750795672; cv=none; b=abv71QXi7tOZl5gyKI1WV6K1O0at86mhndom85Ez+kncaXTSY734ViN7vEue2yfX+ezYPXgXFxUvRbXDwFLvHRcX3p/SNeAHtTyhM2lkU0wwrCu02WU8MvsB0D2vw4IiKiwDaNMVy2WP+aIcJFULBkvGlFtX1R16uVPiJgcNQ5I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750734484; c=relaxed/simple;
-	bh=LfmJfLjD1dpAx0KJTmJy0ZelciqE0DcFJjTy8x5sgh8=;
-	h=Date:To:From:Subject:Message-Id; b=NPhPJbnXSS/1/5AhVzGgyaojlW2/sYxpGusggO3G0XKrilAQDGT32lhIds2RM184QcgAypapGcDx6Mq2LxXerFjcbOmjrDFufvXfRVduEve843liU6OzE5GV9OhwjTTJl0anL4/jCBbgVbgA+7wnyST4/bz1AvEBA7qjH43Lpqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GJv7v4tw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750795672; c=relaxed/simple;
+	bh=seU2WEEJ/ZOci0jSZP3h39PCfP/kOvCR9pQcP7FQUQU=;
+	h=Date:To:From:Subject:Message-Id; b=Zo84Eyrvl2zy+PewE3Re99hYgbPBaeqCkjHv9rMejVQmW1ZX6XBmV/93HXrp0xkVJAwTZxCt9A2mJ3nga6WxUKe9rou4+8X5YXLX9FvYxgbeNCWP3bAmlUz5krDIz/8aQlczsDR/g8GWWGJyyvKgWZNJt+gZsqDIjhjZ6T24OWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iKj6jiHk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GJv7v4tw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FB84C4CEEA;
-	Tue, 24 Jun 2025 03:08:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iKj6jiHk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADDEAC4CEE3;
+	Tue, 24 Jun 2025 20:07:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750734483;
-	bh=LfmJfLjD1dpAx0KJTmJy0ZelciqE0DcFJjTy8x5sgh8=;
+	s=korg; t=1750795671;
+	bh=seU2WEEJ/ZOci0jSZP3h39PCfP/kOvCR9pQcP7FQUQU=;
 	h=Date:To:From:Subject:From;
-	b=GJv7v4twR/l3vVxO3isFU8TSWlTtamvm7/mwg2cIF6aEgtSIU2OlXtq/xjljXYncy
-	 uMRAhpA6Cq+YeWjDw+wZN5nKJmtuoeu+aB8qQ9tGG8Rgv/FpoXo2td40vpW7Z8q7aV
-	 YcTv2CJlSVnfisYrf34JjK8OXoGD7qwmSwmtoT28=
-Date: Mon, 23 Jun 2025 20:08:02 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,pabeni@redhat.com,kuba@kernel.org,jiri@resnulli.us,davem@davemloft.net,arnd@arndb.de,akpm@linux-foundation.org
+	b=iKj6jiHk36Qcy4SUmIh7qVW7I4b0Sd200I1X/DCxbzpJHz6mCdNc+Lm0PL173BmCu
+	 +RgYBDvj1fECXOV9bdV4dzVX8un7wVe2qSy5eexrvjFH8C6UuU9Ce+Zcg8BTTguJrg
+	 Q5E1Zw+L1BQ6xNUIri+RPS6n+RmE9l8+8k79wtzY=
+Date: Tue, 24 Jun 2025 13:07:50 -0700
+To: mm-commits@vger.kernel.org,yebin10@huawei.com,willy@infradead.org,vbabka@suse.cz,tjmercier@google.com,shuah@kernel.org,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,osalvador@suse.de,mhocko@kernel.org,lorenzo.stoakes@oracle.com,linux@weissschuh.net,liam.howlett@oracle.com,kaleshsingh@google.com,josef@toxicpanda.com,jannh@google.com,hannes@cmpxchg.org,david@redhat.com,christophe.leroy@csgroup.eu,brauner@kernel.org,andrii@kernel.org,adobriyan@gmail.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] lib-test_objagg-split-test_hints_case-into-two-functions.patch removed from -mm tree
-Message-Id: <20250624030803.5FB84C4CEEA@smtp.kernel.org>
+Subject: + selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test.patch added to mm-new branch
+Message-Id: <20250624200751.ADDEAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,154 +34,715 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: lib: test_objagg: split test_hints_case() into two functions
-has been removed from the -mm tree.  Its filename was
-     lib-test_objagg-split-test_hints_case-into-two-functions.patch
+The patch titled
+     Subject: selftests/proc: add /proc/pid/maps tearing from vma split test
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: lib: test_objagg: split test_hints_case() into two functions
-Date: Fri, 20 Jun 2025 13:19:04 +0200
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: selftests/proc: add /proc/pid/maps tearing from vma split test
+Date: Tue, 24 Jun 2025 12:33:53 -0700
 
-With sanitizers enabled, this function uses a lot of stack, causing a
-harmless warning:
+Patch series "use per-vma locks for /proc/pid/maps reads and
+PROCMAP_QUERY", v5.
 
-lib/test_objagg.c: In function 'test_hints_case.constprop':
-lib/test_objagg.c:994:1: error: the frame size of 1440 bytes is larger than 1408 bytes [-Werror=frame-larger-than=]
+Reading /proc/pid/maps requires read-locking mmap_lock which prevents any
+other task from concurrently modifying the address space.  This guarantees
+coherent reporting of virtual address ranges, however it can block
+important updates from happening.  Oftentimes /proc/pid/maps readers are
+low priority monitoring tasks and them blocking high priority tasks
+results in priority inversion.
 
-Most of this is from the two 'struct world' structures.  Since most of the
-work in this function is duplicated for the two, split it up into separate
-functions that each use one of them.
+Locking the entire address space is required to present fully coherent
+picture of the address space, however even current implementation does not
+strictly guarantee that by outputting vmas in page-size chunks and
+dropping mmap_lock in between each chunk.  Address space modifications are
+possible while mmap_lock is dropped and userspace reading the content is
+expected to deal with possible concurrent address space modifications. 
+Considering these relaxed rules, holding mmap_lock is not strictly needed
+as long as we can guarantee that a concurrently modified vma is reported
+either in its original form or after it was modified.
 
-The combined stack usage is still the same here, but there is no warning
-any more, and the code is still safe because of the known call chain.
+This patchset switches from holding mmap_lock while reading /proc/pid/maps
+to taking per-vma locks as we walk the vma tree.  This reduces the
+contention with tasks modifying the address space because they would have
+to contend for the same vma as opposed to the entire address space.  Same
+is done for PROCMAP_QUERY ioctl which locks only the vma that fell into
+the requested range instead of the entire address space.  Previous version
+of this patchset [1] tried to perform /proc/pid/maps reading under RCU,
+however its implementation is quite complex and the results are worse than
+the new version because it still relied on mmap_lock speculation which
+retries if any part of the address space gets modified.  New implementaion
+is both simpler and results in less contention.  Note that similar
+approach would not work for /proc/pid/smaps reading as it also walks the
+page table and that's not RCU-safe.
 
-Link: https://lkml.kernel.org/r/20250620111907.3395296-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jiri Pirko <jiri@resnulli.us>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Stehen Rothwell <sfr@canb.auug.org.au>
+Paul McKenney's designed a test [2] to measure mmap/munmap latencies while
+concurrently reading /proc/pid/maps.  The test has a pair of processes
+scanning /proc/PID/maps, and another process unmapping and remapping 4K
+pages from a 128MB range of anonymous memory.  At the end of each 10
+second run, the latency of each mmap() or munmap() operation is measured,
+and for each run the maximum and mean latency is printed.  The map/unmap
+process is started first, its PID is passed to the scanners, and then the
+map/unmap process waits until both scanners are running before starting
+its timed test.  The scanners keep scanning until the specified
+/proc/PID/maps file disappears.  This test registered close to 10x
+improvement in update latencies:
+
+Before the change:
+./run-proc-vs-map.sh --nsamples 100 --rawdata -- --busyduration 2
+    0.011     0.008     0.455
+    0.011     0.008     0.472
+    0.011     0.008     0.535
+    0.011     0.009     0.545
+    ...
+    0.011     0.014     2.875
+    0.011     0.014     2.913
+    0.011     0.014     3.007
+    0.011     0.015     3.018
+
+After the change:
+./run-proc-vs-map.sh --nsamples 100 --rawdata -- --busyduration 2
+    0.006     0.005     0.036
+    0.006     0.005     0.039
+    0.006     0.005     0.039
+    0.006     0.005     0.039
+    ...
+    0.006     0.006     0.403
+    0.006     0.006     0.474
+    0.006     0.006     0.479
+    0.006     0.006     0.498
+
+The patchset also adds a number of tests to check for /proc/pid/maps data
+coherency.  They are designed to detect any unexpected data tearing while
+performing some common address space modifications (vma split, resize and
+remap).  Even before these changes, reading /proc/pid/maps might have
+inconsistent data because the file is read page-by-page with mmap_lock
+being dropped between the pages.  An example of user-visible inconsistency
+can be that the same vma is printed twice: once before it was modified and
+then after the modifications.  For example if vma was extended, it might
+be found and reported twice.  What is not expected is to see a gap where
+there should have been a vma both before and after modification.  This
+patchset increases the chances of such tearing, therefore it's even more
+important now to test for unexpected inconsistencies.
+
+In [3] Lorenzo identified the following possible vma merging/splitting
+scenarios:
+
+Merges with changes to existing vmas:
+
+1. Merge both - mapping a vma over another one and between two vmas which
+  can be merged after this replacement;
+2. Merge left full - mapping a vma at the end of an existing one and
+   completely over its right neighbor;
+3. Merge left partial - mapping a vma at the end of an existing one
+   and partially over its right neighbor;
+4. Merge right full - mapping a vma before the start of an existing
+   one and completely over its left neighbor;
+5. Merge right partial - mapping a vma before the start of an existing
+   one and partially over its left neighbor;
+
+Merges without changes to existing vmas:
+
+6. Merge both - mapping a vma into a gap between two vmas which can be
+   merged after the insertion;
+7. Merge left - mapping a vma at the end of an existing one;
+8. Merge right - mapping a vma before the start end of an existing one;
+
+Splits
+9. Split with new vma at the lower address;
+10. Split with new vma at the higher address;
+
+If such merges or splits happen concurrently with the /proc/maps reading
+we might report a vma twice, once before the modification and once after
+it is modified:
+
+Case 1 might report overwritten and previous vma along with the final
+merged vma;
+Case 2 might report previous and the final merged vma;
+Case 3 might cause us to retry once we detect the temporary gap caused by
+shrinking of the right neighbor;
+Case 4 might report overritten and the final merged vma;
+Case 5 might cause us to retry once we detect the temporary gap caused by
+shrinking of the left neighbor;
+Case 6 might report previous vma and the gap along with the final marged
+vma;
+Case 7 might report previous and the final merged vma;
+Case 8 might report the original gap and the final merged vma covering the
+gap;
+Case 9 might cause us to retry once we detect the temporary gap caused by
+shrinking of the original vma at the vma start;
+Case 10 might cause us to retry once we detect the temporary gap caused by
+shrinking of the original vma at the vma end;
+
+In all these cases the retry mechanism prevents us from reporting possible
+temporary gaps.
+
+
+This patch (of 7):
+
+The /proc/pid/maps file is generated page by page, with the mmap_lock
+released between pages.  This can lead to inconsistent reads if the
+underlying vmas are concurrently modified.  For instance, if a vma split
+or merge occurs at a page boundary while /proc/pid/maps is being read, the
+same vma might be seen twice: once before and once after the change.  This
+duplication is considered acceptable for userspace handling.  However,
+observing a "hole" where a vma should be (e.g., due to a vma being
+replaced and the space temporarily being empty) is unacceptable.
+
+Implement a test that:
+
+1. Forks a child process which continuously modifies its address
+   space, specifically targeting a vma at the boundary between two pages.
+
+2. The parent process repeatedly reads the child's /proc/pid/maps.
+
+3. The parent process checks the last vma of the first page and the
+   first vma of the second page for consistency, looking for the effects
+   of vma splits or merges.
+
+The test duration is configurable via the -d command-line parameter in
+seconds to increase the likelihood of catching the race condition.  The
+default test duration is 5 seconds.
+
+Example Command: proc-pid-vm -d 10
+
+Link: https://lkml.kernel.org/r/20250624193359.3865351-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20250624193359.3865351-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: T.J. Mercier <tjmercier@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ye Bin <yebin10@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_objagg.c |   77 +++++++++++++++++++++++++-------------------
- 1 file changed, 45 insertions(+), 32 deletions(-)
+ tools/testing/selftests/proc/proc-pid-vm.c |  430 ++++++++++++++++++-
+ 1 file changed, 429 insertions(+), 1 deletion(-)
 
---- a/lib/test_objagg.c~lib-test_objagg-split-test_hints_case-into-two-functions
-+++ a/lib/test_objagg.c
-@@ -906,50 +906,22 @@ static int check_expect_hints_stats(stru
- 	return err;
+--- a/tools/testing/selftests/proc/proc-pid-vm.c~selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test
++++ a/tools/testing/selftests/proc/proc-pid-vm.c
+@@ -27,6 +27,7 @@
+ #undef NDEBUG
+ #include <assert.h>
+ #include <errno.h>
++#include <pthread.h>
+ #include <sched.h>
+ #include <signal.h>
+ #include <stdbool.h>
+@@ -34,6 +35,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdlib.h>
++#include <sys/mman.h>
+ #include <sys/mount.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+@@ -70,6 +72,8 @@ static void make_private_tmp(void)
+ 	}
  }
  
--static int test_hints_case(const struct hints_case *hints_case)
-+static int test_hints_case2(const struct hints_case *hints_case,
-+			    struct objagg_hints *hints, struct objagg *objagg)
++static unsigned long test_duration_sec = 5UL;
++static int page_size;
+ static pid_t pid = -1;
+ static void ate(void)
  {
- 	struct objagg_obj *objagg_obj;
--	struct objagg_hints *hints;
- 	struct world world2 = {};
--	struct world world = {};
- 	struct objagg *objagg2;
--	struct objagg *objagg;
- 	const char *errmsg;
- 	int i;
- 	int err;
- 
--	objagg = objagg_create(&delta_ops, NULL, &world);
--	if (IS_ERR(objagg))
--		return PTR_ERR(objagg);
--
--	for (i = 0; i < hints_case->key_ids_count; i++) {
--		objagg_obj = world_obj_get(&world, objagg,
--					   hints_case->key_ids[i]);
--		if (IS_ERR(objagg_obj)) {
--			err = PTR_ERR(objagg_obj);
--			goto err_world_obj_get;
--		}
--	}
--
--	pr_debug_stats(objagg);
--	err = check_expect_stats(objagg, &hints_case->expect_stats, &errmsg);
--	if (err) {
--		pr_err("Stats: %s\n", errmsg);
--		goto err_check_expect_stats;
--	}
--
--	hints = objagg_hints_get(objagg, OBJAGG_OPT_ALGO_SIMPLE_GREEDY);
--	if (IS_ERR(hints)) {
--		err = PTR_ERR(hints);
--		goto err_hints_get;
--	}
--
- 	pr_debug_hints_stats(hints);
- 	err = check_expect_hints_stats(hints, &hints_case->expect_stats_hints,
- 				       &errmsg);
- 	if (err) {
- 		pr_err("Hints stats: %s\n", errmsg);
--		goto err_check_expect_hints_stats;
-+		return err;
+@@ -281,11 +285,431 @@ static void vsyscall(void)
  	}
+ }
  
- 	objagg2 = objagg_create(&delta_ops, hints, &world2);
-@@ -981,7 +953,48 @@ err_world2_obj_get:
- 		world_obj_put(&world2, objagg, hints_case->key_ids[i]);
- 	i = hints_case->key_ids_count;
- 	objagg_destroy(objagg2);
--err_check_expect_hints_stats:
+-int main(void)
++/* /proc/pid/maps parsing routines */
++struct page_content {
++	char *data;
++	ssize_t size;
++};
 +
-+	return err;
++#define LINE_MAX_SIZE		256
++
++struct line_content {
++	char text[LINE_MAX_SIZE];
++	unsigned long start_addr;
++	unsigned long end_addr;
++};
++
++static void read_two_pages(int maps_fd, struct page_content *page1,
++			   struct page_content *page2)
++{
++	ssize_t  bytes_read;
++
++	assert(lseek(maps_fd, 0, SEEK_SET) >= 0);
++	bytes_read = read(maps_fd, page1->data, page_size);
++	assert(bytes_read > 0 && bytes_read < page_size);
++	page1->size = bytes_read;
++
++	bytes_read = read(maps_fd, page2->data, page_size);
++	assert(bytes_read > 0 && bytes_read < page_size);
++	page2->size = bytes_read;
 +}
 +
-+static int test_hints_case(const struct hints_case *hints_case)
++static void copy_first_line(struct page_content *page, char *first_line)
 +{
-+	struct objagg_obj *objagg_obj;
-+	struct objagg_hints *hints;
-+	struct world world = {};
-+	struct objagg *objagg;
-+	const char *errmsg;
++	char *pos = strchr(page->data, '\n');
++
++	strncpy(first_line, page->data, pos - page->data);
++	first_line[pos - page->data] = '\0';
++}
++
++static void copy_last_line(struct page_content *page, char *last_line)
++{
++	/* Get the last line in the first page */
++	const char *end = page->data + page->size - 1;
++	/* skip last newline */
++	const char *pos = end - 1;
++
++	/* search previous newline */
++	while (pos[-1] != '\n')
++		pos--;
++	strncpy(last_line, pos, end - pos);
++	last_line[end - pos] = '\0';
++}
++
++/* Read the last line of the first page and the first line of the second page */
++static void read_boundary_lines(int maps_fd, struct page_content *page1,
++				struct page_content *page2,
++				struct line_content *last_line,
++				struct line_content *first_line)
++{
++	read_two_pages(maps_fd, page1, page2);
++
++	copy_last_line(page1, last_line->text);
++	copy_first_line(page2, first_line->text);
++
++	assert(sscanf(last_line->text, "%lx-%lx", &last_line->start_addr,
++		      &last_line->end_addr) == 2);
++	assert(sscanf(first_line->text, "%lx-%lx", &first_line->start_addr,
++		      &first_line->end_addr) == 2);
++}
++
++/* Thread synchronization routines */
++enum test_state {
++	INIT,
++	CHILD_READY,
++	PARENT_READY,
++	SETUP_READY,
++	SETUP_MODIFY_MAPS,
++	SETUP_MAPS_MODIFIED,
++	SETUP_RESTORE_MAPS,
++	SETUP_MAPS_RESTORED,
++	TEST_READY,
++	TEST_DONE,
++};
++
++struct vma_modifier_info;
++
++typedef void (*vma_modifier_op)(const struct vma_modifier_info *mod_info);
++typedef void (*vma_mod_result_check_op)(struct line_content *mod_last_line,
++					struct line_content *mod_first_line,
++					struct line_content *restored_last_line,
++					struct line_content *restored_first_line);
++
++struct vma_modifier_info {
++	int vma_count;
++	void *addr;
++	int prot;
++	void *next_addr;
++	vma_modifier_op vma_modify;
++	vma_modifier_op vma_restore;
++	vma_mod_result_check_op vma_mod_check;
++	pthread_mutex_t sync_lock;
++	pthread_cond_t sync_cond;
++	enum test_state curr_state;
++	bool exit;
++	void *child_mapped_addr[];
++};
++
++static void wait_for_state(struct vma_modifier_info *mod_info, enum test_state state)
++{
++	pthread_mutex_lock(&mod_info->sync_lock);
++	while (mod_info->curr_state != state)
++		pthread_cond_wait(&mod_info->sync_cond, &mod_info->sync_lock);
++	pthread_mutex_unlock(&mod_info->sync_lock);
++}
++
++static void signal_state(struct vma_modifier_info *mod_info, enum test_state state)
++{
++	pthread_mutex_lock(&mod_info->sync_lock);
++	mod_info->curr_state = state;
++	pthread_cond_signal(&mod_info->sync_cond);
++	pthread_mutex_unlock(&mod_info->sync_lock);
++}
++
++/* VMA modification routines */
++static void *child_vma_modifier(struct vma_modifier_info *mod_info)
++{
++	int prot = PROT_READ | PROT_WRITE;
 +	int i;
-+	int err;
 +
-+	objagg = objagg_create(&delta_ops, NULL, &world);
-+	if (IS_ERR(objagg))
-+		return PTR_ERR(objagg);
++	for (i = 0; i < mod_info->vma_count; i++) {
++		mod_info->child_mapped_addr[i] = mmap(NULL, page_size * 3, prot,
++				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++		assert(mod_info->child_mapped_addr[i] != MAP_FAILED);
++		/* change protection in adjacent maps to prevent merging */
++		prot ^= PROT_WRITE;
++	}
++	signal_state(mod_info, CHILD_READY);
++	wait_for_state(mod_info, PARENT_READY);
++	while (true) {
++		signal_state(mod_info, SETUP_READY);
++		wait_for_state(mod_info, SETUP_MODIFY_MAPS);
++		if (mod_info->exit)
++			break;
 +
-+	for (i = 0; i < hints_case->key_ids_count; i++) {
-+		objagg_obj = world_obj_get(&world, objagg,
-+					   hints_case->key_ids[i]);
-+		if (IS_ERR(objagg_obj)) {
-+			err = PTR_ERR(objagg_obj);
-+			goto err_world_obj_get;
++		mod_info->vma_modify(mod_info);
++		signal_state(mod_info, SETUP_MAPS_MODIFIED);
++		wait_for_state(mod_info, SETUP_RESTORE_MAPS);
++		mod_info->vma_restore(mod_info);
++		signal_state(mod_info, SETUP_MAPS_RESTORED);
++
++		wait_for_state(mod_info, TEST_READY);
++		while (mod_info->curr_state != TEST_DONE) {
++			mod_info->vma_modify(mod_info);
++			mod_info->vma_restore(mod_info);
 +		}
 +	}
++	for (i = 0; i < mod_info->vma_count; i++)
++		munmap(mod_info->child_mapped_addr[i], page_size * 3);
 +
-+	pr_debug_stats(objagg);
-+	err = check_expect_stats(objagg, &hints_case->expect_stats, &errmsg);
-+	if (err) {
-+		pr_err("Stats: %s\n", errmsg);
-+		goto err_check_expect_stats;
++	return NULL;
++}
++
++static void stop_vma_modifier(struct vma_modifier_info *mod_info)
++{
++	wait_for_state(mod_info, SETUP_READY);
++	mod_info->exit = true;
++	signal_state(mod_info, SETUP_MODIFY_MAPS);
++}
++
++static void capture_mod_pattern(int maps_fd,
++				struct vma_modifier_info *mod_info,
++				struct page_content *page1,
++				struct page_content *page2,
++				struct line_content *last_line,
++				struct line_content *first_line,
++				struct line_content *mod_last_line,
++				struct line_content *mod_first_line,
++				struct line_content *restored_last_line,
++				struct line_content *restored_first_line)
++{
++	signal_state(mod_info, SETUP_MODIFY_MAPS);
++	wait_for_state(mod_info, SETUP_MAPS_MODIFIED);
++
++	/* Copy last line of the first page and first line of the last page */
++	read_boundary_lines(maps_fd, page1, page2, mod_last_line, mod_first_line);
++
++	signal_state(mod_info, SETUP_RESTORE_MAPS);
++	wait_for_state(mod_info, SETUP_MAPS_RESTORED);
++
++	/* Copy last line of the first page and first line of the last page */
++	read_boundary_lines(maps_fd, page1, page2, restored_last_line, restored_first_line);
++
++	mod_info->vma_mod_check(mod_last_line, mod_first_line,
++				restored_last_line, restored_first_line);
++
++	/*
++	 * The content of these lines after modify+resore should be the same
++	 * as the original.
++	 */
++	assert(strcmp(restored_last_line->text, last_line->text) == 0);
++	assert(strcmp(restored_first_line->text, first_line->text) == 0);
++}
++
++static inline void split_vma(const struct vma_modifier_info *mod_info)
++{
++	assert(mmap(mod_info->addr, page_size, mod_info->prot | PROT_EXEC,
++		    MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		    -1, 0) != MAP_FAILED);
++}
++
++static inline void merge_vma(const struct vma_modifier_info *mod_info)
++{
++	assert(mmap(mod_info->addr, page_size, mod_info->prot,
++		    MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		    -1, 0) != MAP_FAILED);
++}
++
++static inline void check_split_result(struct line_content *mod_last_line,
++				      struct line_content *mod_first_line,
++				      struct line_content *restored_last_line,
++				      struct line_content *restored_first_line)
++{
++	/* Make sure vmas at the boundaries are changing */
++	assert(strcmp(mod_last_line->text, restored_last_line->text) != 0);
++	assert(strcmp(mod_first_line->text, restored_first_line->text) != 0);
++}
++
++static void test_maps_tearing_from_split(int maps_fd,
++					 struct vma_modifier_info *mod_info,
++					 struct page_content *page1,
++					 struct page_content *page2,
++					 struct line_content *last_line,
++					 struct line_content *first_line)
++{
++	struct line_content split_last_line;
++	struct line_content split_first_line;
++	struct line_content restored_last_line;
++	struct line_content restored_first_line;
++
++	wait_for_state(mod_info, SETUP_READY);
++
++	/* re-read the file to avoid using stale data from previous test */
++	read_boundary_lines(maps_fd, page1, page2, last_line, first_line);
++
++	mod_info->vma_modify = split_vma;
++	mod_info->vma_restore = merge_vma;
++	mod_info->vma_mod_check = check_split_result;
++
++	capture_mod_pattern(maps_fd, mod_info, page1, page2, last_line, first_line,
++			    &split_last_line, &split_first_line,
++			    &restored_last_line, &restored_first_line);
++
++	/* Now start concurrent modifications for test_duration_sec */
++	signal_state(mod_info, TEST_READY);
++
++	struct line_content new_last_line;
++	struct line_content new_first_line;
++	struct timespec start_ts, end_ts;
++
++	clock_gettime(CLOCK_MONOTONIC_COARSE, &start_ts);
++	do {
++		bool last_line_changed;
++		bool first_line_changed;
++
++		read_boundary_lines(maps_fd, page1, page2, &new_last_line, &new_first_line);
++
++		/* Check if we read vmas after split */
++		if (!strcmp(new_last_line.text, split_last_line.text)) {
++			/*
++			 * The vmas should be consistent with split results,
++			 * however if vma was concurrently restored after a
++			 * split, it can be reported twice (first the original
++			 * split one, then the same vma but extended after the
++			 * merge) because we found it as the next vma again.
++			 * In that case new first line will be the same as the
++			 * last restored line.
++			 */
++			assert(!strcmp(new_first_line.text, split_first_line.text) ||
++			       !strcmp(new_first_line.text, restored_last_line.text));
++		} else {
++			/* The vmas should be consistent with merge results */
++			assert(!strcmp(new_last_line.text, restored_last_line.text) &&
++			       !strcmp(new_first_line.text, restored_first_line.text));
++		}
++		/*
++		 * First and last lines should change in unison. If the last
++		 * line changed then the first line should change as well and
++		 * vice versa.
++		 */
++		last_line_changed = strcmp(new_last_line.text, last_line->text) != 0;
++		first_line_changed = strcmp(new_first_line.text, first_line->text) != 0;
++		assert(last_line_changed == first_line_changed);
++
++		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
++	} while (end_ts.tv_sec - start_ts.tv_sec < test_duration_sec);
++
++	/* Signal the modifyer thread to stop and wait until it exits */
++	signal_state(mod_info, TEST_DONE);
++}
++
++static int test_maps_tearing(void)
++{
++	struct vma_modifier_info *mod_info;
++	pthread_mutexattr_t mutex_attr;
++	pthread_condattr_t cond_attr;
++	int shared_mem_size;
++	char fname[32];
++	int vma_count;
++	int maps_fd;
++	int status;
++	pid_t pid;
++
++	/*
++	 * Have to map enough vmas for /proc/pid/maps to containt more than one
++	 * page worth of vmas. Assume at least 32 bytes per line in maps output
++	 */
++	vma_count = page_size / 32 + 1;
++	shared_mem_size = sizeof(struct vma_modifier_info) + vma_count * sizeof(void *);
++
++	/* map shared memory for communication with the child process */
++	mod_info = (struct vma_modifier_info *)mmap(NULL, shared_mem_size,
++		    PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++
++	assert(mod_info != MAP_FAILED);
++
++	/* Initialize shared members */
++	pthread_mutexattr_init(&mutex_attr);
++	pthread_mutexattr_setpshared(&mutex_attr, PTHREAD_PROCESS_SHARED);
++	assert(!pthread_mutex_init(&mod_info->sync_lock, &mutex_attr));
++	pthread_condattr_init(&cond_attr);
++	pthread_condattr_setpshared(&cond_attr, PTHREAD_PROCESS_SHARED);
++	assert(!pthread_cond_init(&mod_info->sync_cond, &cond_attr));
++	mod_info->vma_count = vma_count;
++	mod_info->curr_state = INIT;
++	mod_info->exit = false;
++
++	pid = fork();
++	if (!pid) {
++		/* Child process */
++		child_vma_modifier(mod_info);
++		return 0;
 +	}
 +
-+	hints = objagg_hints_get(objagg, OBJAGG_OPT_ALGO_SIMPLE_GREEDY);
-+	if (IS_ERR(hints)) {
-+		err = PTR_ERR(hints);
-+		goto err_hints_get;
++	sprintf(fname, "/proc/%d/maps", pid);
++	maps_fd = open(fname, O_RDONLY);
++	assert(maps_fd != -1);
++
++	/* Wait for the child to map the VMAs */
++	wait_for_state(mod_info, CHILD_READY);
++
++	/* Read first two pages */
++	struct page_content page1;
++	struct page_content page2;
++
++	page1.data = malloc(page_size);
++	assert(page1.data);
++	page2.data = malloc(page_size);
++	assert(page2.data);
++
++	struct line_content last_line;
++	struct line_content first_line;
++
++	read_boundary_lines(maps_fd, &page1, &page2, &last_line, &first_line);
++
++	/*
++	 * Find the addresses corresponding to the last line in the first page
++	 * and the first line in the last page.
++	 */
++	mod_info->addr = NULL;
++	mod_info->next_addr = NULL;
++	for (int i = 0; i < mod_info->vma_count; i++) {
++		if (mod_info->child_mapped_addr[i] == (void *)last_line.start_addr) {
++			mod_info->addr = mod_info->child_mapped_addr[i];
++			mod_info->prot = PROT_READ;
++			/* Even VMAs have write permission */
++			if ((i % 2) == 0)
++				mod_info->prot |= PROT_WRITE;
++		} else if (mod_info->child_mapped_addr[i] == (void *)first_line.start_addr) {
++			mod_info->next_addr = mod_info->child_mapped_addr[i];
++		}
++
++		if (mod_info->addr && mod_info->next_addr)
++			break;
 +	}
++	assert(mod_info->addr && mod_info->next_addr);
 +
-+	err = test_hints_case2(hints_case, hints, objagg);
++	signal_state(mod_info, PARENT_READY);
 +
- 	objagg_hints_put(hints);
- err_hints_get:
- err_check_expect_stats:
++	test_maps_tearing_from_split(maps_fd, mod_info, &page1, &page2,
++				     &last_line, &first_line);
++
++	stop_vma_modifier(mod_info);
++
++	free(page2.data);
++	free(page1.data);
++
++	for (int i = 0; i < vma_count; i++)
++		munmap(mod_info->child_mapped_addr[i], page_size);
++	close(maps_fd);
++	waitpid(pid, &status, 0);
++	munmap(mod_info, shared_mem_size);
++
++	return 0;
++}
++
++int usage(void)
++{
++	fprintf(stderr, "Userland /proc/pid/{s}maps test cases\n");
++	fprintf(stderr, "  -d: Duration for time-consuming tests\n");
++	fprintf(stderr, "  -h: Help screen\n");
++	exit(-1);
++}
++
++int main(int argc, char **argv)
+ {
+ 	int pipefd[2];
+ 	int exec_fd;
++	int opt;
++
++	while ((opt = getopt(argc, argv, "d:h")) != -1) {
++		if (opt == 'd')
++			test_duration_sec = strtoul(optarg, NULL, 0);
++		else if (opt == 'h')
++			usage();
++	}
+ 
++	page_size = sysconf(_SC_PAGESIZE);
+ 	vsyscall();
+ 	switch (g_vsyscall) {
+ 	case 0:
+@@ -578,6 +1002,10 @@ int main(void)
+ 		assert(err == -ENOENT);
+ 	}
+ 
++	/* Test tearing in /proc/$PID/maps */
++	if (test_maps_tearing())
++		return 1;
++
+ 	return 0;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from surenb@google.com are
 
-crashdump-add-config_keys-dependency.patch
-lib-test_hmm-reduce-stack-usage.patch
+selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test.patch
+selftests-proc-extend-proc-pid-maps-tearing-test-to-include-vma-resizing.patch
+selftests-proc-extend-proc-pid-maps-tearing-test-to-include-vma-remapping.patch
+selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch
+selftests-proc-add-verbose-more-for-tests-to-facilitate-debugging.patch
+mm-maps-read-proc-pid-maps-under-per-vma-lock.patch
+mm-maps-execute-procmap_query-ioctl-under-per-vma-locks.patch
 
