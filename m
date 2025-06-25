@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AFC4139E
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 22:50:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49DC2201017
+	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 22:51:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750891814; cv=none; b=AT7ZrItwa+LK8d0PSH3M8QiApvx51c08k7FYYhT+9NyhervfU69PoGQl9KKxgm7KDEvnmLUYKpZV8auePk3n/gADT6Y7/nDVSPjtdx7JWBaI4FyLuoAj9eXscJUdPtqN8rqiBq2YlR5/Hagx3mJi9U6qs6synhL9QioW8Khl9Qs=
+	t=1750891870; cv=none; b=gDARU5HUxp9IBtHnwNMhdDzUSXKp+YmDA1EM8i7Ukhn9D3rwUZIL2U2ysGwACf1NdezoQ2ulv0cVTgT1/SEOarnqIsLsUrXPTpEErx0Jmw8x7a3+5yv8dgBzCmDaJQsZEP65EnVy5/x21wuHWpM7ViKFmxWsZWdXbKz9ceUnGWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750891814; c=relaxed/simple;
-	bh=KjK5EAVV78oAOw1tBcpCIqGrM3pH+v5FU+BvSQ1Ta5s=;
-	h=Date:To:From:Subject:Message-Id; b=LTdVhV/lDRezdafTQz76Gmk6VFQcPBZz8GNFR84ltKdhIsNFtyK1mNRAmlu8IfYO/WQHMRRYVtzXaStpCoAONAufbRB/IczlS1o4c1MszJeW+uGTA9mdfccTCiHV583rqw3bIrxzl2veAwpV+B/DlMSCKFPW0zbimo9CaFYJRyI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hW9C4R6l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750891870; c=relaxed/simple;
+	bh=MMmomMCqJSpWTCAn2TPnv1UzSIX2AyVqD6l3CJdQAv0=;
+	h=Date:To:From:Subject:Message-Id; b=EH3r7aji7WxFWlH5LGJppwzTQKLQlnKqxSFgJ7ZnmVZmikn75aPXaa4j6NxZF5zf0zbbfabydLswtP4IGd/X1f/OYDFRVn+6NxwbaotOKGqFrEVeX3Or7tl/zk61qdIUZYaFochKnvRiHTqZ5p175Ri9FXUYrgdjp8qhBAEOK2o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r8mbr/Bb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hW9C4R6l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16ED9C4CEEA;
-	Wed, 25 Jun 2025 22:50:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r8mbr/Bb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F294DC4CEEA;
+	Wed, 25 Jun 2025 22:51:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750891814;
-	bh=KjK5EAVV78oAOw1tBcpCIqGrM3pH+v5FU+BvSQ1Ta5s=;
+	s=korg; t=1750891869;
+	bh=MMmomMCqJSpWTCAn2TPnv1UzSIX2AyVqD6l3CJdQAv0=;
 	h=Date:To:From:Subject:From;
-	b=hW9C4R6l87VoaH+oJw/sGltNFmoYE16zE271c3Ahcxt2jHVCl7o37ohT05zwHIWi8
-	 NzilhWc59Rx8UzT1bvtubVVIZxATzylYDe36Idv/l5IC3D9JRM6yDOL9Sl2GnP6/H0
-	 0jKsX5iNEiGyvs32JxeC7FcnpBiYb1EgzybZwyU0=
-Date: Wed, 25 Jun 2025 15:50:13 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,shakeel.butt@linux.dev,rientjes@google.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=r8mbr/BbqZpiCQqToMexWsfe+d7swva93kVjaAhU7jNVdT8Q+Co+Zbom/38gWowOG
+	 M4aCO4bBmzpQdDoch8KMxm3R4K5omgsjKjsxw+TLsVQ/T7Ep679DK+CIL/pc+Mvqp7
+	 jfNjOM6sd28MnhBugjFllQsYH9sURZFHK10csLcs=
+Date: Wed, 25 Jun 2025 15:51:08 -0700
+To: mm-commits@vger.kernel.org,yi.zhang@huawei.com,yangerkun@huawei.com,tglx@linutronix.de,ming.lei@redhat.com,john.g.garry@oracle.com,axboe@kernel.dk,yukuai3@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20250625225014.16ED9C4CEEA@smtp.kernel.org>
+Subject: [folded-merged] lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix.patch removed from -mm tree
+Message-Id: <20250625225108.F294DC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes
+     Subject: lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes.patch
+     lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix.patch
 
-This patch was dropped because it was folded into mm-add-oom-killer-maintainer-structure.patch
+This patch was dropped because it was folded into lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes
-Date: Tue Jun 17 06:15:31 PM PDT 2025
+From: Yu Kuai <yukuai3@huawei.com>
+Subject: lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix
+Date: Fri, 20 Jun 2025 09:09:58 +0800
 
-WARNING: Misordered MAINTAINERS entry - list file patterns in alphabetic order
-#32: FILE: MAINTAINERS:15860:
- F:	mm/oom_kill.c
-+F:	include/linux/oom.h
+also fix the non-SMP version
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250620010958.1265984-1-yukuai1@huaweicloud.com
+Fixes: 6a6dcae8f486 ("blk-mq: Build default queue map via group_cpus_evenly()")
+Signed-off-by: Yu Kuai <yukuai3@huawei.com>
+Cc: ErKun Yang <yangerkun@huawei.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: John Garry <john.g.garry@oracle.com>
+Cc: Ming Lei <ming.lei@redhat.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: "zhangyi (F)" <yi.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/group_cpus.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes
-+++ a/MAINTAINERS
-@@ -15854,10 +15854,10 @@ R:	David Rientjes <rientjes@google.com>
- R:	Shakeel Butt <shakeel.butt@linux.dev>
- L:	linux-mm@kvack.org
- S:	Maintained
--F:	mm/oom_kill.c
- F:	include/linux/oom.h
- F:	include/trace/events/oom.h
- F:	include/uapi/linux/oom.h
-+F:	mm/oom_kill.c
+--- a/lib/group_cpus.c~lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix
++++ a/lib/group_cpus.c
+@@ -429,8 +429,12 @@ struct cpumask *group_cpus_evenly(unsign
+ #else /* CONFIG_SMP */
+ struct cpumask *group_cpus_evenly(unsigned int numgrps)
+ {
+-	struct cpumask *masks = kcalloc(numgrps, sizeof(*masks), GFP_KERNEL);
++	struct cpumask *masks;
  
- MEMORY MANAGEMENT - PAGE ALLOCATOR
- M:	Andrew Morton <akpm@linux-foundation.org>
++	if (numgrps == 0)
++		return NULL;
++
++	masks = kcalloc(numgrps, sizeof(*masks), GFP_KERNEL);
+ 	if (!masks)
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yukuai3@huawei.com are
 
-mm-add-oom-killer-maintainer-structure.patch
-fix-do_pages_stat-to-use-compat_uptr_t-fix.patch
-mmslub-use-node-notifier-instead-of-memory-notifier-fix.patch
-maple-tree-use-goto-label-to-simplify-code-fix.patch
-mm-memcg-make-memoryreclaim-interface-generic-fix.patch
-maintainers-add-lib-raid6-to-software-raid.patch
+lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch
 
