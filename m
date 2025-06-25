@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA9192DAFA0
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 20:43:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58B0A20E00B
+	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 20:58:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750884195; cv=none; b=B3xTNCy2MeY+rIe3F6JoYFYSkLCPqWAs7LlUbqIEqggp32aKhNGm9keCJVIti/TncQc8DzSxNh6EGeNP9VychsUwpwJa7NirVOQb+WFDHawGRIdC/8Q4D5Q/1mrGvMKQgDAAwidzter5UBQzqLIqTTopJ5u0SZDsSA3txy9kn04=
+	t=1750885080; cv=none; b=feuT+8D3TpG646J2vOLQIEAzG3toKnplzzoQBAe6iXyh5yXa0C5pwIzUgZ6VERSrq4FVwrNCSY7jb/L1xA+EF6jGNlUQfqSAsiVs1ubmTvN0U6Y3jhVHFEbYeg/7lu9VqE4ffe2ONAwqKoptnYSSMHEzpzHkMW8JihLKUP/GI6c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750884195; c=relaxed/simple;
-	bh=plBWpXsmkAzFYPaoiy7d4VQuOn/amlulNjSpSZWXc4M=;
-	h=Date:To:From:Subject:Message-Id; b=aN8D85K60hSRR+Ng9gd1EaGAK5ONd7EcAfiCmPYbozQeNCPOnXoRKpHi/y5LfpWjcHv/4q65/PMedoTGuY4M73BTVGmv8CfLsRF3gxuxKXQISd5IoWC34PbpHXaX7YvEk7GiprIWHn/Ae+rBivmm6g8zwL5a1wH4928XOp5absQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q4JC8Xdo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750885080; c=relaxed/simple;
+	bh=MIXzG4B4N6CU3v4LDCXLnQ5LmjOfyBUxdSDNH6SuKYc=;
+	h=Date:To:From:Subject:Message-Id; b=Jdg6qMzcOYy5UVpuLMMQGdC1qRmHkd0kXezeIHG5gl8EqmuvZJys/98xhQbraPvPa02jl154rWv6I+4JSZPqUuM/ngZsHiALScz+KFzS98iehWZ8t99r1Er4/YBmaog4ifZCoO6W3r7PLT6X8XQqXnM0oFpdpJJ0jWjS4xtRnVg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Em19gc0e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q4JC8Xdo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45D21C4CEEA;
-	Wed, 25 Jun 2025 20:43:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Em19gc0e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD7D7C4CEEA;
+	Wed, 25 Jun 2025 20:57:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750884195;
-	bh=plBWpXsmkAzFYPaoiy7d4VQuOn/amlulNjSpSZWXc4M=;
+	s=korg; t=1750885079;
+	bh=MIXzG4B4N6CU3v4LDCXLnQ5LmjOfyBUxdSDNH6SuKYc=;
 	h=Date:To:From:Subject:From;
-	b=q4JC8XdoZcDC88d4rewCQLpLmd613Q7zFGz/6VSMJcLmzPA+U3267CxCQZj81FDI/
-	 E6lDyi6t1yH4cQdTQlnMeRcnhkTGWyw1/2jaQJS1ZVNaxlsLVkB+3Qxh1435hT+sg6
-	 0hEqSaKF6O7Dqr8srjA9jZGKCR+i7WyKOkkAzF3g=
-Date: Wed, 25 Jun 2025 13:43:14 -0700
-To: mm-commits@vger.kernel.org,xiubli@redhat.com,willy@infradead.org,ira.weiny@intel.com,idryomov@gmail.com,hch@lst.de,axboe@kernel.dk,dan.carpenter@linaro.org,akpm@linux-foundation.org
+	b=Em19gc0eYS0UNppYfwgcBGlVjPLc+Paui1dMmyNeQ/bpBgMwV8kkhDAumWI2AsFrq
+	 WokrJKq3wBBc3aVsEALlo+d90bm2Sn4ntka47LlZ3w4r0yoyyle1Epv8e2w0Ejkww1
+	 Ua3K0/LiZIns0UbA9a4Y5clBy+gX6dFwqIWz4V0c=
+Date: Wed, 25 Jun 2025 13:57:59 -0700
+To: mm-commits@vger.kernel.org,yebin10@huawei.com,willy@infradead.org,vbabka@suse.cz,tjmercier@google.com,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,osalvador@suse.de,mhocko@kernel.org,linux@weissschuh.net,liam.howlett@oracle.com,kaleshsingh@google.com,josef@toxicpanda.com,jannh@google.com,hannes@cmpxchg.org,david@redhat.com,christophe.leroy@csgroup.eu,brauner@kernel.org,andrii@kernel.org,adobriyan@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch added to mm-unstable branch
-Message-Id: <20250625204315.45D21C4CEEA@smtp.kernel.org>
+Subject: + mm-maps-read-proc-pid-maps-under-per-vma-lock-fix.patch added to mm-new branch
+Message-Id: <20250625205759.BD7D7C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ceph: fix NULL vs IS_ERR() bug in ceph_zero_partial_page()
-has been added to the -mm mm-unstable branch.  Its filename is
-     ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch
+     Subject: mm/madvise: fixup stray mmap lock assert in anon_vma_name()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-maps-read-proc-pid-maps-under-per-vma-lock-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-maps-read-proc-pid-maps-under-per-vma-lock-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,53 +64,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: ceph: fix NULL vs IS_ERR() bug in ceph_zero_partial_page()
-Date: Wed, 25 Jun 2025 10:22:11 -0500
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/madvise: fixup stray mmap lock assert in anon_vma_name()
+Date: Wed, 25 Jun 2025 13:28:36 +0100
 
-The filemap_lock_folio() never returns NULL.  It returns error pointers.
-Update the checking to match.
+anon_vma_name() is being called under VMA lock, but is assert mmap lock which
+won't necessarily be held.
 
-Link: https://lkml.kernel.org/r/685c1424.050a0220.baa8.d6a1@mx.google.com
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Xiubo Li <xiubli@redhat.com>
+This results in the kernel spamming warnings about this on startup.
+
+Replace this with an open-coded 'mmap or VMA lock' assert to resolve.
+
+Link: https://lkml.kernel.org/r/fd305c41-b2a3-4f0c-a64d-6e2358859529@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: T.J. Mercier <tjmercier@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ye Bin <yebin10@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ceph/file.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/madvise.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/ceph/file.c~ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix
-+++ a/fs/ceph/file.c
-@@ -2536,12 +2536,13 @@ static inline void ceph_zero_partial_pag
- 	struct folio *folio;
+--- a/mm/madvise.c~mm-maps-read-proc-pid-maps-under-per-vma-lock-fix
++++ a/mm/madvise.c
+@@ -108,7 +108,8 @@ void anon_vma_name_free(struct kref *kre
  
- 	folio = filemap_lock_folio(inode->i_mapping, offset >> PAGE_SHIFT);
--	if (folio) {
--		folio_wait_writeback(folio);
--		folio_zero_range(folio, offset_in_folio(folio, offset), size);
--		folio_unlock(folio);
--		folio_put(folio);
--	}
-+	if (IS_ERR(folio))
-+		return;
-+
-+	folio_wait_writeback(folio);
-+	folio_zero_range(folio, offset_in_folio(folio, offset), size);
-+	folio_unlock(folio);
-+	folio_put(folio);
+ struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
+ {
+-	mmap_assert_locked(vma->vm_mm);
++	if (!rwsem_is_locked(&vma->vm_mm->mmap_lock))
++		vma_assert_locked(vma);
+ 
+ 	return vma->anon_name;
  }
- 
- static void ceph_zero_pagecache_range(struct inode *inode, loff_t offset,
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mmmemory_hotplug-implement-numa-node-notifier-fix.patch
-ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch
+maintainers-add-missing-files-to-mm-page-alloc-section.patch
+docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
+mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
+mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas-fix.patch
+tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
+mm-use-per_vma-lock-for-madv_dontneed-fix.patch
+mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
+secretmem-remove-uses-of-struct-page-fix.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
+mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge-fix.patch
+mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument.patch
+mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch
+mm-update-core-kernel-code-to-use-vm_flags_t-consistently.patch
+mm-update-architecture-and-driver-code-to-use-vm_flags_t.patch
+mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
+mm-madvise-thread-mm_struct-through-madvise_behavior.patch
+mm-madvise-thread-vma-range-state-through-madvise_behavior.patch
+mm-madvise-thread-all-madvise-state-through-madv_behavior.patch
+mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
+mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma-fix.patch
+mm-maps-read-proc-pid-maps-under-per-vma-lock-fix.patch
 
