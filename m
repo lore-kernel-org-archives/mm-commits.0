@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296D42DAFA0
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 20:28:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13EF520E031;
+	Wed, 25 Jun 2025 20:40:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750883339; cv=none; b=Wee7U1Ub0OFY6s6dSSm/vS7XEOkrHMlc1NrdJp2Pyqo4AbUtvCJA39TIT1lhahXVYtBwduhEw+ZvIiUYAyXgTZDPmH4D4r50xWEQ6co7aN+27VTHxwRe/HXDyZEeXoBJy6/W6qq7Mxh+zskAEq12o2Q+VdkZRLlvNw3+jNXdg4c=
+	t=1750884005; cv=none; b=cvKbKKsyUyRm55O1pJhpjO3OClt6EttUnSLDUGLQmgWrehJcaB1ARy4XRUt2yTasBNAJME2sQt9SAhlLlqDY2eSf69eSNq0eHLmIpjP0o4SFUWDyQG6WM09KcuztTKVGjBn6KaNMnOj7AFKtSLBA0qrWhYey2vijf0gXzcOA0yc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750883339; c=relaxed/simple;
-	bh=7S8hd9UmntyCN3wwD8MwiUICpXu3x67w63rsMljf5Eo=;
-	h=Date:To:From:Subject:Message-Id; b=bwa2aW0prW+GWJxVcgE0A4oRiMrpM8Vd1OfrQGgGBpVFWlkSssZ1hRRZaGtWrqezJrRs8QXUp6r/9YxblOBwbNpNhcJJJtNQPNQj5xkSdiDkkfuC42xf735U7t5P2JM8ZzNBAZUGFn2R0s+pSr5eJrWdYn5K8+S8zg5smChj+7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o47EMY4h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750884005; c=relaxed/simple;
+	bh=ozkF1RQtxWQSwdTh9X1qYOTAsbxBp1f5irTjsPEMmW0=;
+	h=Date:To:From:Subject:Message-Id; b=g367yuQRHlVuR4n0Pvf1tnnHPtvy6g3Pz9BeEgkn5d8YaBipGikUjhqt0knNdfgi5PIQkS3fV83xXpwzQd3BTdA1038u0YVrZGSungrHyncVOVUn5icEOXGTx1T16lwHaYpNcMFGeoI7n2tyz+jCiNzocl6gDrAIaDaS81V8MGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3kzPxW4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o47EMY4h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4F8DC4CEEA;
-	Wed, 25 Jun 2025 20:28:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3kzPxW4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DC09C4CEEA;
+	Wed, 25 Jun 2025 20:40:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750883338;
-	bh=7S8hd9UmntyCN3wwD8MwiUICpXu3x67w63rsMljf5Eo=;
+	s=korg; t=1750884004;
+	bh=ozkF1RQtxWQSwdTh9X1qYOTAsbxBp1f5irTjsPEMmW0=;
 	h=Date:To:From:Subject:From;
-	b=o47EMY4hlfIqMKdpefZVDVy5KhvMmtINCNhghnq7j8ddR7s7Yg7k4+qU/AQxNvB8o
-	 oVm6Rn4pEOmYrBAnmH+eV4IkfuxGDBf9FwVxjNDUrG+WqIYGrlXdVJHhOxg3358SUF
-	 RFHo16s+fGi56Y53BiIRjar82SNiD0a/PeBTZvBw=
-Date: Wed, 25 Jun 2025 13:28:58 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,Jonathan.Cameron@huawei.com,david@redhat.com,dan.carpenter@linaro.org,akpm@linux-foundation.org
+	b=j3kzPxW40+y0DXg/USw2QJfvZpPnpZz0cOs3rWMtfJVPOzymXX+mhdRrj7f3DAmzY
+	 FTanetEPuK+wFIO3yuGo4OUsXEV75JXR9QVG/k5FurtoVaM4IslmwQOTzvVBMkoSMA
+	 5uHu4uVWs9+Y3XJI3lq7/s5NQWY6FjnlL/7HSqk8=
+Date: Wed, 25 Jun 2025 13:40:04 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,bertranddrouvot.pg@gmail.com,apopple@nvidia.com,myon@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmmemory_hotplug-implement-numa-node-notifier-fix.patch added to mm-unstable branch
-Message-Id: <20250625202858.D4F8DC4CEEA@smtp.kernel.org>
+Subject: + fix-do_pages_stat-to-use-compat_uptr_t.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250625204004.9DC09C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,memory_hotplug: set failure reason in offline_pages()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmmemory_hotplug-implement-numa-node-notifier-fix.patch
+     Subject: mm/migrate.c: fix do_pages_stat to use compat_uptr_t
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fix-do_pages_stat-to-use-compat_uptr_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemory_hotplug-implement-numa-node-notifier-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-do_pages_stat-to-use-compat_uptr_t.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: mm,memory_hotplug: set failure reason in offline_pages()
-Date: Wed, 25 Jun 2025 10:32:04 -0500
+From: Christoph Berg <myon@debian.org>
+Subject: mm/migrate.c: fix do_pages_stat to use compat_uptr_t
+Date: Wed, 25 Jun 2025 17:24:14 +0200
 
-The "reason" variable is uninitialized on this error path.  It's supposed
-to explain why the function failed.
+For arrays with more than 16 entries, the old code would incorrectly
+advance the pages pointer by 16 words instead of 16 compat_uptr_t.
 
-Link: https://lkml.kernel.org/r/be4fd31b-7d09-46b0-8329-6d0464ffa7a5@sabinyo.mountain
-Fixes: e4e2806b639c ("mm,memory_hotplug: implement numa node notifier")
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/aFwUnu7ObizycCZ8@msg.df7cb.de
+Signed-off-by: Christoph Berg <myon@debian.org>
+Suggested-by: Bertrand Drouvot <bertranddrouvot.pg@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/migrate.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mmmemory_hotplug-implement-numa-node-notifier-fix
-+++ a/mm/memory_hotplug.c
-@@ -1978,8 +1978,10 @@ int offline_pages(unsigned long start_pf
- 		mem_arg.status_change_nid = node;
- 		ret = node_notify(NODE_REMOVING_LAST_MEMORY, &node_arg);
- 		ret = notifier_to_errno(ret);
--		if (ret)
-+		if (ret) {
-+			reason = "node notifier failure";
- 			goto failed_removal_isolated;
-+		}
- 	}
+--- a/mm/migrate.c~fix-do_pages_stat-to-use-compat_uptr_t
++++ a/mm/migrate.c
+@@ -2444,7 +2444,13 @@ static int do_pages_stat(struct mm_struc
+ 		if (copy_to_user(status, chunk_status, chunk_nr * sizeof(*status)))
+ 			break;
  
- 	ret = memory_notify(MEM_GOING_OFFLINE, &mem_arg);
+-		pages += chunk_nr;
++		if (in_compat_syscall()) {
++			compat_uptr_t __user *pages32 = (compat_uptr_t __user *)pages;
++
++			pages32 += chunk_nr;
++			pages = (const void __user * __user *) pages32;
++		} else
++			pages += chunk_nr;
+ 		status += chunk_nr;
+ 		nr_pages -= chunk_nr;
+ 	}
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from myon@debian.org are
 
-mmmemory_hotplug-implement-numa-node-notifier-fix.patch
+fix-do_pages_stat-to-use-compat_uptr_t.patch
 
