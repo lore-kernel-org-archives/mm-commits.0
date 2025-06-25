@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 849DB1FBCB2
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 21:12:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3413212B18
+	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 21:20:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750885971; cv=none; b=T2ZC+2/Pk/4VjxurFfT8cl8d8oph6jKmR1VJFRoefAXxuHvfIOTlvJmcM0dWvex4RpNqX4/ziEKFXgTG6yL89imFtTZ3Y2eS7GwJp1ImaJnKil387vx7nnfIatjYpRj5cNNg9jwfkq0UBGcAOv/v0vlDFNvroBsHaeV+ZlY6MDA=
+	t=1750886441; cv=none; b=YTs0SbMiHCd8ru5Vg5gy4h3cqDzHVO8dTmtJ7TpZcjcHTDi6AYix/RdS7CHVOOZx/MkDCXrTzZmJ1vpQ6QFOGrBtBE8uoZ+J3ix5g17zg39rRDczbk6mp1oJODbHgEm4ILjZJbns+BODO0N7yFT53PCUCRMWxgf/rT/x9s9p4gw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750885971; c=relaxed/simple;
-	bh=YGEs1p7bRiQRetzHjn1DBZBiNfq/zSVuxhWa6iMe83c=;
-	h=Date:To:From:Subject:Message-Id; b=PImwfMm1DyxpnlyW+Yr2wg4kqai8zCwsE92sa1bHBm7wopouOvomwtQfkxXvbATwMFfJAKDno9HcJ3KRceWa4I5a0HOT0WHAdnSjrjQKSHFTAd4H1EW2DT6+Jb3SHEIWxiJona20VTyU4vojI4toswtNfAPRgaUFemx8yqmy9WY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UxpPu2k5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750886441; c=relaxed/simple;
+	bh=TYe6/We4tFNn8h+Wn8nB8rdv8+tFI8Ma9l0BeScBOj0=;
+	h=Date:To:From:Subject:Message-Id; b=OVBIsrPDFVlAvAeLzBJj+RwqfcWyGKDLkDML0oSv7mMCWSQHfO0MU6Qjh0UERp1F87T86EYsBcFKQFUsHe1ALHcsmLfPkIQR6qxBV8CR+fXoQowb7Gdyo3rI236PlJXv6SeLve/nivFzaK2BMxnhh35a1o7KSFklzgmIGIxc/a8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o7sBPr43; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UxpPu2k5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 035F9C4CEEA;
-	Wed, 25 Jun 2025 21:12:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o7sBPr43"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59D33C4CEEA;
+	Wed, 25 Jun 2025 21:20:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750885971;
-	bh=YGEs1p7bRiQRetzHjn1DBZBiNfq/zSVuxhWa6iMe83c=;
+	s=korg; t=1750886441;
+	bh=TYe6/We4tFNn8h+Wn8nB8rdv8+tFI8Ma9l0BeScBOj0=;
 	h=Date:To:From:Subject:From;
-	b=UxpPu2k5bSSvH2mjhS743gJrBX5F7uckKPAh5L7EAq8UbfpyyoHBVuz00y3VB/+4x
-	 CEURz+3tfEq+NLmUSktgZgH0jK3roZy4KbkBQMeix9G0xNd/TyOzgMPeIp7EiIkGxQ
-	 OnM1u8vgXX4mH3C6kviR8ik6idQZlA0Frtq3n9A4=
-Date: Wed, 25 Jun 2025 14:12:50 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,dakr@kernel.org,aliceryhl@google.com,vitaly.wool@konsulko.se,akpm@linux-foundation.org
+	b=o7sBPr43jj0vfOkgUn0zIX+FIO8lGoQqNOi5M5uPHfZ7nfOjjxwwRSISJLe+dBP+z
+	 FTywpHjTcB0BJK7roKGnZwpg9P6njVnwL5mobWI6tsS4mnlQcl1J1OBETQl07zCmo4
+	 +f+rkKH3kMoyjpgTUOm0tMCUojVY16rnd+4X+XT4=
+Date: Wed, 25 Jun 2025 14:20:40 -0700
+To: mm-commits@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,florian.fainelli@broadcom.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rust-support-align-and-numa-id-in-allocations.patch added to mm-new branch
-Message-Id: <20250625211251.035F9C4CEEA@smtp.kernel.org>
+Subject: + scripts-gdb-de-reference-per-cpu-mce-interrupts.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250625212041.59D33C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rust: support align and NUMA id in allocations
-has been added to the -mm mm-new branch.  Its filename is
-     rust-support-align-and-numa-id-in-allocations.patch
+     Subject: scripts/gdb: de-reference per-CPU MCE interrupts
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     scripts-gdb-de-reference-per-cpu-mce-interrupts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-support-align-and-numa-id-in-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-de-reference-per-cpu-mce-interrupts.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,245 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitaly.wool@konsulko.se>
-Subject: rust: support align and NUMA id in allocations
-Date: Wed, 25 Jun 2025 08:30:26 +0200
+From: Florian Fainelli <florian.fainelli@broadcom.com>
+Subject: scripts/gdb: de-reference per-CPU MCE interrupts
+Date: Mon, 23 Jun 2025 20:00:19 -0700
 
-Add support for large (> PAGE_SIZE) alignments in Rust allocators (Kmalloc
-support for large alignments is limited to the requested size, which is a
-reasonable limitation anyway).  Besides, add support for NUMA id to
-Vmalloc.
+The per-CPU MCE interrupts are looked up by reference and need to be
+de-referenced before printing, otherwise we print the addresses of the
+variables instead of their contents:
 
-Link: https://lkml.kernel.org/r/20250625063026.3379921-1-vitaly.wool@konsulko.se
-Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.se>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+MCE: 18379471554386948492   Machine check exceptions
+MCP: 18379471554386948488   Machine check polls
+
+The corrected output looks like this instead now:
+
+MCE:          0   Machine check exceptions
+MCP:          1   Machine check polls
+
+Link: https://lkml.kernel.org/r/20250625021109.1057046-1-florian.fainelli@broadcom.com
+Link: https://lkml.kernel.org/r/20250624030020.882472-1-florian.fainelli@broadcom.com
+Fixes: b0969d7687a7 ("scripts/gdb: print interrupts")
+Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/helpers/slab.c            |    8 ++++--
- rust/helpers/vmalloc.c         |    4 +--
- rust/kernel/alloc.rs           |   28 ++++++++++++++++++++-
- rust/kernel/alloc/allocator.rs |   40 +++++++++++++++++--------------
- rust/kernel/alloc/kvec.rs      |    3 +-
- 5 files changed, 59 insertions(+), 24 deletions(-)
+ scripts/gdb/linux/interrupts.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/rust/helpers/slab.c~rust-support-align-and-numa-id-in-allocations
-+++ a/rust/helpers/slab.c
-@@ -3,13 +3,17 @@
- #include <linux/slab.h>
- 
- void * __must_check __realloc_size(2)
--rust_helper_krealloc(const void *objp, size_t new_size, gfp_t flags)
-+rust_helper_krealloc(const void *objp, size_t new_size, unsigned long align, gfp_t flags, int nid)
- {
-+	if (WARN_ON(new_size & (align - 1)))
-+		return NULL;
- 	return krealloc(objp, new_size, flags);
- }
- 
- void * __must_check __realloc_size(2)
--rust_helper_kvrealloc(const void *p, size_t size, gfp_t flags)
-+rust_helper_kvrealloc(const void *p, size_t size, unsigned long align, gfp_t flags, int nid)
- {
-+	if (WARN_ON(size & (align - 1)))
-+		return NULL;
- 	return kvrealloc(p, size, flags);
- }
---- a/rust/helpers/vmalloc.c~rust-support-align-and-numa-id-in-allocations
-+++ a/rust/helpers/vmalloc.c
-@@ -3,7 +3,7 @@
- #include <linux/vmalloc.h>
- 
- void * __must_check __realloc_size(2)
--rust_helper_vrealloc(const void *p, size_t size, gfp_t flags)
-+rust_helper_vrealloc_node(const void *p, size_t size, unsigned long align, gfp_t flags, int node)
- {
--	return vrealloc(p, size, flags);
-+	return vrealloc_node(p, size, align, flags, node);
- }
---- a/rust/kernel/alloc/allocator.rs~rust-support-align-and-numa-id-in-allocations
-+++ a/rust/kernel/alloc/allocator.rs
-@@ -58,7 +58,8 @@ fn aligned_size(new_layout: Layout) -> u
- ///
- /// One of the following: `krealloc`, `vrealloc`, `kvrealloc`.
- struct ReallocFunc(
--    unsafe extern "C" fn(*const crate::ffi::c_void, usize, u32) -> *mut crate::ffi::c_void,
-+    unsafe extern "C" fn(*const crate::ffi::c_void, usize, usize, u32, i32)
-+                        -> *mut crate::ffi::c_void,
- );
- 
- impl ReallocFunc {
-@@ -66,7 +67,7 @@ impl ReallocFunc {
-     const KREALLOC: Self = Self(bindings::krealloc);
- 
-     // INVARIANT: `vrealloc` satisfies the type invariants.
--    const VREALLOC: Self = Self(bindings::vrealloc);
-+    const VREALLOC: Self = Self(bindings::vrealloc_node);
- 
-     // INVARIANT: `kvrealloc` satisfies the type invariants.
-     const KVREALLOC: Self = Self(bindings::kvrealloc);
-@@ -87,6 +88,7 @@ impl ReallocFunc {
-         layout: Layout,
-         old_layout: Layout,
-         flags: Flags,
-+        nid: Option<i32>,
-     ) -> Result<NonNull<[u8]>, AllocError> {
-         let size = aligned_size(layout);
-         let ptr = match ptr {
-@@ -100,6 +102,11 @@ impl ReallocFunc {
-             None => ptr::null(),
-         };
- 
-+        let c_nid = match nid {
-+            None => bindings::NUMA_NO_NODE,
-+            Some(n) => n,
-+        };
-+
-         // SAFETY:
-         // - `self.0` is one of `krealloc`, `vrealloc`, `kvrealloc` and thus only requires that
-         //   `ptr` is NULL or valid.
-@@ -110,7 +117,7 @@ impl ReallocFunc {
-         // - Those functions provide the guarantees of this function.
-         let raw_ptr = unsafe {
-             // If `size == 0` and `ptr != NULL` the memory behind the pointer is freed.
--            self.0(ptr.cast(), size, flags.0).cast()
-+            self.0(ptr.cast(), size, layout.align(), flags.0, c_nid).cast()
-         };
- 
-         let ptr = if size == 0 {
-@@ -134,9 +141,10 @@ unsafe impl Allocator for Kmalloc {
-         layout: Layout,
-         old_layout: Layout,
-         flags: Flags,
-+        _nid: Option<i32>,
-     ) -> Result<NonNull<[u8]>, AllocError> {
-         // SAFETY: `ReallocFunc::call` has the same safety requirements as `Allocator::realloc`.
--        unsafe { ReallocFunc::KREALLOC.call(ptr, layout, old_layout, flags) }
-+        unsafe { ReallocFunc::KREALLOC.call(ptr, layout, old_layout, flags, None) }
-     }
- }
- 
-@@ -151,16 +159,11 @@ unsafe impl Allocator for Vmalloc {
-         layout: Layout,
-         old_layout: Layout,
-         flags: Flags,
-+        nid: Option<i32>,
-     ) -> Result<NonNull<[u8]>, AllocError> {
--        // TODO: Support alignments larger than PAGE_SIZE.
--        if layout.align() > bindings::PAGE_SIZE {
--            pr_warn!("Vmalloc does not support alignments larger than PAGE_SIZE yet.\n");
--            return Err(AllocError);
--        }
--
-         // SAFETY: If not `None`, `ptr` is guaranteed to point to valid memory, which was previously
-         // allocated with this `Allocator`.
--        unsafe { ReallocFunc::VREALLOC.call(ptr, layout, old_layout, flags) }
-+        unsafe { ReallocFunc::VREALLOC.call(ptr, layout, old_layout, flags, nid) }
-     }
- }
- 
-@@ -175,15 +178,18 @@ unsafe impl Allocator for KVmalloc {
-         layout: Layout,
-         old_layout: Layout,
-         flags: Flags,
-+        _nid: Option<i32>,
-     ) -> Result<NonNull<[u8]>, AllocError> {
--        // TODO: Support alignments larger than PAGE_SIZE.
--        if layout.align() > bindings::PAGE_SIZE {
--            pr_warn!("KVmalloc does not support alignments larger than PAGE_SIZE yet.\n");
--            return Err(AllocError);
--        }
-+        // if the caller wants to have alignment bigger than PAGE_SIZE
-+        // it's only vmalloc we can offer to satisfy that request
-+        let alloc_func = if layout.align() > bindings::PAGE_SIZE {
-+            ReallocFunc::VREALLOC
-+        } else {
-+            ReallocFunc::KVREALLOC
-+        };
- 
-         // SAFETY: If not `None`, `ptr` is guaranteed to point to valid memory, which was previously
-         // allocated with this `Allocator`.
--        unsafe { ReallocFunc::KVREALLOC.call(ptr, layout, old_layout, flags) }
-+        unsafe { alloc_func.call(ptr, layout, old_layout, flags, None) }
-     }
- }
---- a/rust/kernel/alloc/kvec.rs~rust-support-align-and-numa-id-in-allocations
-+++ a/rust/kernel/alloc/kvec.rs
-@@ -633,6 +633,7 @@ where
-                 layout.into(),
-                 self.layout.into(),
-                 flags,
-+                None,
-             )?
-         };
- 
-@@ -1058,7 +1059,7 @@ where
-             // the type invariant to be smaller than `cap`. Depending on `realloc` this operation
-             // may shrink the buffer or leave it as it is.
-             ptr = match unsafe {
--                A::realloc(Some(buf.cast()), layout.into(), old_layout.into(), flags)
-+                A::realloc(Some(buf.cast()), layout.into(), old_layout.into(), flags, None)
-             } {
-                 // If we fail to shrink, which likely can't even happen, continue with the existing
-                 // buffer.
---- a/rust/kernel/alloc.rs~rust-support-align-and-numa-id-in-allocations
-+++ a/rust/kernel/alloc.rs
-@@ -156,7 +156,30 @@ pub unsafe trait Allocator {
-     fn alloc(layout: Layout, flags: Flags) -> Result<NonNull<[u8]>, AllocError> {
-         // SAFETY: Passing `None` to `realloc` is valid by its safety requirements and asks for a
-         // new memory allocation.
--        unsafe { Self::realloc(None, layout, Layout::new::<()>(), flags) }
-+        unsafe { Self::realloc(None, layout, Layout::new::<()>(), flags, None) }
-+    }
-+
-+    /// Allocate memory based on `layout`, `flags` and `nid`.
-+    ///
-+    /// On success, returns a buffer represented as `NonNull<[u8]>` that satisfies the layout
-+    /// constraints (i.e. minimum size and alignment as specified by `layout`).
-+    ///
-+    /// This function is equivalent to `realloc` when called with `None`.
-+    ///
-+    /// # Guarantees
-+    ///
-+    /// When the return value is `Ok(ptr)`, then `ptr` is
-+    /// - valid for reads and writes for `layout.size()` bytes, until it is passed to
-+    ///   [`Allocator::free`] or [`Allocator::realloc`],
-+    /// - aligned to `layout.align()`,
-+    ///
-+    /// Additionally, `Flags` are honored as documented in
-+    /// <https://docs.kernel.org/core-api/mm-api.html#mm-api-gfp-flags>.
-+    fn alloc_node(layout: Layout, flags: Flags, nid: Option<i32>)
-+                -> Result<NonNull<[u8]>, AllocError> {
-+        // SAFETY: Passing `None` to `realloc` is valid by its safety requirements and asks for a
-+        // new memory allocation.
-+        unsafe { Self::realloc(None, layout, Layout::new::<()>(), flags, nid) }
-     }
- 
-     /// Re-allocate an existing memory allocation to satisfy the requested `layout`.
-@@ -196,6 +219,7 @@ pub unsafe trait Allocator {
-         layout: Layout,
-         old_layout: Layout,
-         flags: Flags,
-+        nid: Option<i32>,
-     ) -> Result<NonNull<[u8]>, AllocError>;
- 
-     /// Free an existing memory allocation.
-@@ -211,7 +235,7 @@ pub unsafe trait Allocator {
-         // SAFETY: The caller guarantees that `ptr` points at a valid allocation created by this
-         // allocator. We are passing a `Layout` with the smallest possible alignment, so it is
-         // smaller than or equal to the alignment previously used with this allocation.
--        let _ = unsafe { Self::realloc(Some(ptr), Layout::new::<()>(), layout, Flags(0)) };
-+        let _ = unsafe { Self::realloc(Some(ptr), Layout::new::<()>(), layout, Flags(0), None) };
-     }
- }
+--- a/scripts/gdb/linux/interrupts.py~scripts-gdb-de-reference-per-cpu-mce-interrupts
++++ a/scripts/gdb/linux/interrupts.py
+@@ -110,7 +110,7 @@ def x86_show_mce(prec, var, pfx, desc):
+     pvar = gdb.parse_and_eval(var)
+     text = "%*s: " % (prec, pfx)
+     for cpu in cpus.each_online_cpu():
+-        text += "%10u " % (cpus.per_cpu(pvar, cpu))
++        text += "%10u " % (cpus.per_cpu(pvar, cpu).dereference())
+     text += "  %s\n" % (desc)
+     return text
  
 _
 
-Patches currently in -mm which might be from vitaly.wool@konsulko.se are
+Patches currently in -mm which might be from florian.fainelli@broadcom.com are
 
-mm-vmalloc-allow-to-set-node-and-align-in-vrealloc.patch
-rust-support-align-and-numa-id-in-allocations.patch
-mm-add-zblock-allocator.patch
+scripts-gdb-fix-dentry_name-lookup.patch
+scripts-gdb-fix-interrupts-display-after-mcp-on-x86.patch
+scripts-gdb-fix-interruptspy-after-maple-tree-conversion.patch
+scripts-gdb-de-reference-per-cpu-mce-interrupts.patch
 
