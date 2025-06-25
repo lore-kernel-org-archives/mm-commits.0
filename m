@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 350BE20E031
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 20:40:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA9192DAFA0
+	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 20:43:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750884006; cv=none; b=AYsIM0dfNXTkMZXsnD27wh7U5ZjkUBh9HG3wkTaG2QeXkamR9kAaXNbCNBTyWTewxij+BN9XfnPnBsNhQFhu0xjqC3vH4xR+FFms0TMmaHAJ4Ky/zMB+r8yVyHOBAMypgZZeHM56Fm4ytTy89TRXv0QVTwN2lxL0EfGLIyA9/BY=
+	t=1750884195; cv=none; b=B3xTNCy2MeY+rIe3F6JoYFYSkLCPqWAs7LlUbqIEqggp32aKhNGm9keCJVIti/TncQc8DzSxNh6EGeNP9VychsUwpwJa7NirVOQb+WFDHawGRIdC/8Q4D5Q/1mrGvMKQgDAAwidzter5UBQzqLIqTTopJ5u0SZDsSA3txy9kn04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750884006; c=relaxed/simple;
-	bh=N40436RAhTEOAl4LUcHkUn9gztZLZIIuMNbpmakm2ZA=;
-	h=Date:To:From:Subject:Message-Id; b=IL158vaa0tJXE6v768gjM4NvrzI2x02hHuwhUqqCqNe9v5cmx9BdxXbvfLVzv3rJysV5PRwvtIjBfbms+dxCb2j94451Wcj18qt1dvxmdNhKQDWJQXiQYm9zl6dbPKovkVhTXOTmnqnyb3KBb4P7wRiCFWkAggGfimO6VyLymMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZBfKmniF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750884195; c=relaxed/simple;
+	bh=plBWpXsmkAzFYPaoiy7d4VQuOn/amlulNjSpSZWXc4M=;
+	h=Date:To:From:Subject:Message-Id; b=aN8D85K60hSRR+Ng9gd1EaGAK5ONd7EcAfiCmPYbozQeNCPOnXoRKpHi/y5LfpWjcHv/4q65/PMedoTGuY4M73BTVGmv8CfLsRF3gxuxKXQISd5IoWC34PbpHXaX7YvEk7GiprIWHn/Ae+rBivmm6g8zwL5a1wH4928XOp5absQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q4JC8Xdo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZBfKmniF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E239DC4CEEA;
-	Wed, 25 Jun 2025 20:40:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q4JC8Xdo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45D21C4CEEA;
+	Wed, 25 Jun 2025 20:43:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750884006;
-	bh=N40436RAhTEOAl4LUcHkUn9gztZLZIIuMNbpmakm2ZA=;
+	s=korg; t=1750884195;
+	bh=plBWpXsmkAzFYPaoiy7d4VQuOn/amlulNjSpSZWXc4M=;
 	h=Date:To:From:Subject:From;
-	b=ZBfKmniFT2g6pZyvvhRGltvk1qMQuB5ONRzI53wyDD0bhxxm5BzKQ74yrnt4EqPHV
-	 PM5IWUIDigUqQLhtU0oYdFl7hS39VtnrC1bozvlA5OQXz7xioOaEiTT8L2LqbrXwjI
-	 BQXYfqriouFX1RNDxHYyjud1aEATKKsdmTKx0gwQ=
-Date: Wed, 25 Jun 2025 13:40:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,myon@debian.org,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,bertranddrouvot.pg@gmail.com,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=q4JC8XdoZcDC88d4rewCQLpLmd613Q7zFGz/6VSMJcLmzPA+U3267CxCQZj81FDI/
+	 E6lDyi6t1yH4cQdTQlnMeRcnhkTGWyw1/2jaQJS1ZVNaxlsLVkB+3Qxh1435hT+sg6
+	 0hEqSaKF6O7Dqr8srjA9jZGKCR+i7WyKOkkAzF3g=
+Date: Wed, 25 Jun 2025 13:43:14 -0700
+To: mm-commits@vger.kernel.org,xiubli@redhat.com,willy@infradead.org,ira.weiny@intel.com,idryomov@gmail.com,hch@lst.de,axboe@kernel.dk,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fix-do_pages_stat-to-use-compat_uptr_t-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250625204005.E239DC4CEEA@smtp.kernel.org>
+Subject: + ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch added to mm-unstable branch
+Message-Id: <20250625204315.45D21C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fix-do_pages_stat-to-use-compat_uptr_t-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fix-do_pages_stat-to-use-compat_uptr_t-fix.patch
+     Subject: ceph: fix NULL vs IS_ERR() bug in ceph_zero_partial_page()
+has been added to the -mm mm-unstable branch.  Its filename is
+     ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-do_pages_stat-to-use-compat_uptr_t-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fix-do_pages_stat-to-use-compat_uptr_t-fix
-Date: Wed Jun 25 01:37:57 PM PDT 2025
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: ceph: fix NULL vs IS_ERR() bug in ceph_zero_partial_page()
+Date: Wed, 25 Jun 2025 10:22:11 -0500
 
-fix coding style
+The filemap_lock_folio() never returns NULL.  It returns error pointers.
+Update the checking to match.
 
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Bertrand Drouvot <bertranddrouvot.pg@gmail.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Christoph Berg <myon@debian.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/685c1424.050a0220.baa8.d6a1@mx.google.com
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ceph/file.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~fix-do_pages_stat-to-use-compat_uptr_t-fix
-+++ a/mm/migrate.c
-@@ -2449,8 +2449,9 @@ static int do_pages_stat(struct mm_struc
+--- a/fs/ceph/file.c~ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix
++++ a/fs/ceph/file.c
+@@ -2536,12 +2536,13 @@ static inline void ceph_zero_partial_pag
+ 	struct folio *folio;
  
- 			pages32 += chunk_nr;
- 			pages = (const void __user * __user *) pages32;
--		} else
-+		} else {
- 			pages += chunk_nr;
-+		}
- 		status += chunk_nr;
- 		nr_pages -= chunk_nr;
- 	}
+ 	folio = filemap_lock_folio(inode->i_mapping, offset >> PAGE_SHIFT);
+-	if (folio) {
+-		folio_wait_writeback(folio);
+-		folio_zero_range(folio, offset_in_folio(folio, offset), size);
+-		folio_unlock(folio);
+-		folio_put(folio);
+-	}
++	if (IS_ERR(folio))
++		return;
++
++	folio_wait_writeback(folio);
++	folio_zero_range(folio, offset_in_folio(folio, offset), size);
++	folio_unlock(folio);
++	folio_put(folio);
+ }
+ 
+ static void ceph_zero_pagecache_range(struct inode *inode, loff_t offset,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-mm-add-oom-killer-maintainer-structure-fix.patch
-mm-add-oom-killer-maintainer-structure-fix-checkpatch-fixes.patch
-fix-do_pages_stat-to-use-compat_uptr_t-fix.patch
-mmslub-use-node-notifier-instead-of-memory-notifier-fix.patch
-maple-tree-use-goto-label-to-simplify-code-fix.patch
-mm-memcg-make-memoryreclaim-interface-generic-fix.patch
-maintainers-add-lib-raid6-to-software-raid.patch
+mmmemory_hotplug-implement-numa-node-notifier-fix.patch
+ceph-convert-ceph_zero_partial_page-to-use-a-folio-fix.patch
 
