@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B9D1EA7EC
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 22:55:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E47D01EA7EC;
+	Wed, 25 Jun 2025 22:55:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750892154; cv=none; b=cxOhlOcrNFYLHjU6GZn1SNVecUKq2z2NJQy2fQ+XC1Ey6+OgnfwpkbhLmdHup5blhbHNvzYj9g0BhNHqDBikgdYKRe6Eh9kvmpjknjM/Bc91FssogMVLidWfD7+BwICG0Sn+MJDmkmwsNzEWww+0s5SsBMCwHAhtr/BHU3KlYgw=
+	t=1750892155; cv=none; b=vDPV9lNWhqmLo5fsJqt0rJTYvUxjFKsvwPBHuIW9xVMVUE7YgKIx/0NwBvdU/30X8goysPOoqmJvfMuKJqq8twvx11VJRcGgyqp8ZrzlSxVdWmpkgVcmvyTfB+2vzB+a3GWIuMKldt31HNbPpvv9HPF++UHX4CfMYLBcXjids1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750892154; c=relaxed/simple;
-	bh=Vqj1zROcXayhS8sEh951uPvpzcqdjlEMNq58iz9D3bQ=;
-	h=Date:To:From:Subject:Message-Id; b=fRqwFTDI8wQBDDPpzib8c8Q16cSeWHQNt8Z3bqqVxAOdNnqT5JfD/454p07ziXp3ed5NtFPo4Mt1c0/7j9DE8SsALH/Q9CxLy9iRHhRVeEVKcnodHwxt9AL3cOH50NazGhI1m59hC1E/iP/PyGKjIpwNi/aBUsfMgNDMQdtUPxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ie8dRY3c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750892155; c=relaxed/simple;
+	bh=7apdSq5EMmOXJ8z5is9qqpBv/JTiv+qxhMa4Yuftk+g=;
+	h=Date:To:From:Subject:Message-Id; b=YFTUn0wB9p5EnvRLPJ9q0JvQyagMK1uPkEJynKtgZC4ty2bFG/1VnorRRneP+Hb+hnT8lYsKGfzWcNfou9I0ZWjUrlicnj+ObtiSDFEuYkWgcFfqC6YptM0MyLeWSRp3Ippbv2vI7tYGE+32TsjwjMgby3wUuLZfqT29U1kHKBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0DdtsDXw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ie8dRY3c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74413C4CEEA;
-	Wed, 25 Jun 2025 22:55:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0DdtsDXw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62840C4CEEA;
+	Wed, 25 Jun 2025 22:55:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750892153;
-	bh=Vqj1zROcXayhS8sEh951uPvpzcqdjlEMNq58iz9D3bQ=;
+	s=korg; t=1750892154;
+	bh=7apdSq5EMmOXJ8z5is9qqpBv/JTiv+qxhMa4Yuftk+g=;
 	h=Date:To:From:Subject:From;
-	b=ie8dRY3cVL5I2bS+1xWOCiTkmG840Z55zmMECoNf7IPPiQhC6R/3EvUj0kssfA/aM
-	 jdiIPt5bd/vsQbZgdEtPoK5ybivGI2bKYvJefjwbxr8/Se4BUBGbHTAlytRBQR9mbw
-	 nM1CFYnJxfH+20zuBaYEeWgz7NKBTvkgFjyhAngk=
-Date: Wed, 25 Jun 2025 15:55:52 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@kernel.org,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=0DdtsDXwX9OvON5YWHXNQg8mBfW5roMWKrkb0xktYEJ4TcS0tSbvXUbz9MU4+U5qv
+	 5EXlNqL9tAx2dQ0lnG1oAwOT9rrWkgOy1H9zfTObEwKUQJmtlPGxtEeWnLlWFbJAq9
+	 k8Q7WBpBbeVoFAvQ7K8nl6RSx63SiyzSYuqY+ymA=
+Date: Wed, 25 Jun 2025 15:55:53 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-missing-files-to-mm-page-alloc-section.patch removed from -mm tree
-Message-Id: <20250625225553.74413C4CEEA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch removed from -mm tree
+Message-Id: <20250625225554.62840C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,170 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add missing files to mm page alloc section
+     Subject: mm/hugetlb: remove unnecessary holding of hugetlb_lock
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-missing-files-to-mm-page-alloc-section.patch
+     mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add missing files to mm page alloc section
-Date: Wed, 18 Jun 2025 11:59:53 +0100
+From: Ge Yang <yangge1116@126.com>
+Subject: mm/hugetlb: remove unnecessary holding of hugetlb_lock
+Date: Tue, 27 May 2025 11:36:50 +0800
 
-There are a number of files within memory management which appear to be
-most suitably placed within the page allocation section of MAINTAINERS and
-are otherwise unassigned, so place these there.
+In isolate_or_dissolve_huge_folio(), after acquiring the hugetlb_lock, it
+is only for the purpose of obtaining the correct hstate, which is then
+passed to alloc_and_dissolve_hugetlb_folio().
 
-Link: https://lkml.kernel.org/r/20250618105953.67630-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Brendan Jackman <jackmanb@google.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+alloc_and_dissolve_hugetlb_folio() itself also acquires the hugetlb_lock. 
+We can have alloc_and_dissolve_hugetlb_folio() obtain the hstate by
+itself, so that isolate_or_dissolve_huge_folio() no longer needs to
+acquire the hugetlb_lock.  In addition, we keep the folio_test_hugetlb()
+check within isolate_or_dissolve_huge_folio().  By doing so, we can avoid
+disrupting the normal path by vainly holding the hugetlb_lock.
+
+replace_free_hugepage_folios() has the same issue, and we should address
+it as well.
+
+Addresses a possible performance problem which was added by the hotfix
+113ed54ad276 ("mm/hugetlb: fix kernel NULL pointer dereference when
+replacing free hugetlb folios").
+
+Link: https://lkml.kernel.org/r/1748317010-16272-1-git-send-email-yangge1116@126.com
+Fixes: 113ed54ad276 ("mm/hugetlb: fix kernel NULL pointer dereference when replacing free hugetlb folios")
+Signed-off-by: Ge Yang <yangge1116@126.com>
+Suggested-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/hugetlb.c |   54 +++++++++++++++----------------------------------
+ 1 file changed, 17 insertions(+), 37 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-missing-files-to-mm-page-alloc-section
-+++ a/MAINTAINERS
-@@ -15875,8 +15875,17 @@ F:	include/linux/compaction.h
- F:	include/linux/gfp.h
- F:	include/linux/page-isolation.h
- F:	mm/compaction.c
-+F:	mm/debug_page_alloc.c
-+F:	mm/fail_page_alloc.c
- F:	mm/page_alloc.c
-+F:	mm/page_ext.c
-+F:	mm/page_frag_cache.c
- F:	mm/page_isolation.c
-+F:	mm/page_owner.c
-+F:	mm/page_poison.c
-+F:	mm/page_reporting.c
-+F:	mm/show_mem.c
-+F:	mm/shuffle.c
+--- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-holding-of-hugetlb_lock
++++ a/mm/hugetlb.c
+@@ -2787,20 +2787,24 @@ void restore_reserve_on_error(struct hst
+ /*
+  * alloc_and_dissolve_hugetlb_folio - Allocate a new folio and dissolve
+  * the old one
+- * @h: struct hstate old page belongs to
+  * @old_folio: Old folio to dissolve
+  * @list: List to isolate the page in case we need to
+  * Returns 0 on success, otherwise negated error.
+  */
+-static int alloc_and_dissolve_hugetlb_folio(struct hstate *h,
+-			struct folio *old_folio, struct list_head *list)
++static int alloc_and_dissolve_hugetlb_folio(struct folio *old_folio,
++			struct list_head *list)
+ {
+-	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
++	gfp_t gfp_mask;
++	struct hstate *h;
+ 	int nid = folio_nid(old_folio);
+ 	struct folio *new_folio = NULL;
+ 	int ret = 0;
  
- MEMORY MANAGEMENT - RECLAIM
- M:	Andrew Morton <akpm@linux-foundation.org>
+ retry:
++	/*
++	 * The old_folio might have been dissolved from under our feet, so make sure
++	 * to carefully check the state under the lock.
++	 */
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (!folio_test_hugetlb(old_folio)) {
+ 		/*
+@@ -2829,8 +2833,10 @@ retry:
+ 		cond_resched();
+ 		goto retry;
+ 	} else {
++		h = folio_hstate(old_folio);
+ 		if (!new_folio) {
+ 			spin_unlock_irq(&hugetlb_lock);
++			gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 			new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid,
+ 							      NULL, NULL);
+ 			if (!new_folio)
+@@ -2874,35 +2880,24 @@ free_new:
+ 
+ int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list)
+ {
+-	struct hstate *h;
+ 	int ret = -EBUSY;
+ 
+-	/*
+-	 * The page might have been dissolved from under our feet, so make sure
+-	 * to carefully check the state under the lock.
+-	 * Return success when racing as if we dissolved the page ourselves.
+-	 */
+-	spin_lock_irq(&hugetlb_lock);
+-	if (folio_test_hugetlb(folio)) {
+-		h = folio_hstate(folio);
+-	} else {
+-		spin_unlock_irq(&hugetlb_lock);
++	/* Not to disrupt normal path by vainly holding hugetlb_lock */
++	if (!folio_test_hugetlb(folio))
+ 		return 0;
+-	}
+-	spin_unlock_irq(&hugetlb_lock);
+ 
+ 	/*
+ 	 * Fence off gigantic pages as there is a cyclic dependency between
+ 	 * alloc_contig_range and them. Return -ENOMEM as this has the effect
+ 	 * of bailing out right away without further retrying.
+ 	 */
+-	if (hstate_is_gigantic(h))
++	if (folio_order(folio) > MAX_PAGE_ORDER)
+ 		return -ENOMEM;
+ 
+ 	if (folio_ref_count(folio) && folio_isolate_hugetlb(folio, list))
+ 		ret = 0;
+ 	else if (!folio_ref_count(folio))
+-		ret = alloc_and_dissolve_hugetlb_folio(h, folio, list);
++		ret = alloc_and_dissolve_hugetlb_folio(folio, list);
+ 
+ 	return ret;
+ }
+@@ -2916,7 +2911,6 @@ int isolate_or_dissolve_huge_folio(struc
+  */
+ int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	struct hstate *h;
+ 	struct folio *folio;
+ 	int ret = 0;
+ 
+@@ -2925,23 +2919,9 @@ int replace_free_hugepage_folios(unsigne
+ 	while (start_pfn < end_pfn) {
+ 		folio = pfn_folio(start_pfn);
+ 
+-		/*
+-		 * The folio might have been dissolved from under our feet, so make sure
+-		 * to carefully check the state under the lock.
+-		 */
+-		spin_lock_irq(&hugetlb_lock);
+-		if (folio_test_hugetlb(folio)) {
+-			h = folio_hstate(folio);
+-		} else {
+-			spin_unlock_irq(&hugetlb_lock);
+-			start_pfn++;
+-			continue;
+-		}
+-		spin_unlock_irq(&hugetlb_lock);
+-
+-		if (!folio_ref_count(folio)) {
+-			ret = alloc_and_dissolve_hugetlb_folio(h, folio,
+-							       &isolate_list);
++		/* Not to disrupt normal path by vainly holding hugetlb_lock */
++		if (folio_test_hugetlb(folio) && !folio_ref_count(folio)) {
++			ret = alloc_and_dissolve_hugetlb_folio(folio, &isolate_list);
+ 			if (ret)
+ 				break;
+ 
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
-docs-mm-expand-vma-doc-to-highlight-pte-freeing-non-vma-traversal.patch
-mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
-mm-ksm-refer-to-special-vmas-via-vm_special-in-ksm_compatible.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
-mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas-fix.patch
-tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
-mm-use-per_vma-lock-for-madv_dontneed-fix.patch
-mm-pagewalk-split-walk_page_range_novma-into-kernel-user-parts.patch
-secretmem-remove-uses-of-struct-page-fix.patch
-mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge.patch
-mm-vma-use-vmg-target-to-specify-target-vma-for-new-vma-merge-fix.patch
-mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument.patch
-mm-change-vm_get_page_prot-to-accept-vm_flags_t-argument-fix.patch
-mm-update-core-kernel-code-to-use-vm_flags_t-consistently.patch
-mm-update-architecture-and-driver-code-to-use-vm_flags_t.patch
-mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
-mm-madvise-thread-mm_struct-through-madvise_behavior.patch
-mm-madvise-thread-vma-range-state-through-madvise_behavior.patch
-mm-madvise-thread-all-madvise-state-through-madv_behavior.patch
-mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
-mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma-fix.patch
-mm-maps-read-proc-pid-maps-under-per-vma-lock-fix.patch
 
