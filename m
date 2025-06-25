@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49DC2201017
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 22:51:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52EE41EA7EC
+	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 22:52:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750891870; cv=none; b=gDARU5HUxp9IBtHnwNMhdDzUSXKp+YmDA1EM8i7Ukhn9D3rwUZIL2U2ysGwACf1NdezoQ2ulv0cVTgT1/SEOarnqIsLsUrXPTpEErx0Jmw8x7a3+5yv8dgBzCmDaJQsZEP65EnVy5/x21wuHWpM7ViKFmxWsZWdXbKz9ceUnGWU=
+	t=1750891922; cv=none; b=HY/a1sl3cjt8xsrL0Vj3oFumXcmEs24y7/yrdePBrBgBb1saGD85f4NGS2LLRJAmtqQoVVArIzgOAUzWKXoLukx8cl1kMFmJQyBhdcGsZvwVFV+4BtpXfCkAeyYh0ehGgBI6r0eJTYZwdYAi4nKGK5WptwCBMuRQgcJF3qbc9mY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750891870; c=relaxed/simple;
-	bh=MMmomMCqJSpWTCAn2TPnv1UzSIX2AyVqD6l3CJdQAv0=;
-	h=Date:To:From:Subject:Message-Id; b=EH3r7aji7WxFWlH5LGJppwzTQKLQlnKqxSFgJ7ZnmVZmikn75aPXaa4j6NxZF5zf0zbbfabydLswtP4IGd/X1f/OYDFRVn+6NxwbaotOKGqFrEVeX3Or7tl/zk61qdIUZYaFochKnvRiHTqZ5p175Ri9FXUYrgdjp8qhBAEOK2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r8mbr/Bb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750891922; c=relaxed/simple;
+	bh=n9urXCG1+/khssyDJhJ6RVBq3saiOIkik9UlBUzajtg=;
+	h=Date:To:From:Subject:Message-Id; b=S5fFVPjBMzgU+W+k8ujU2zEjvNM1lAU+k5oDfTOya004YIq7BJzqZGVFsOVnJd2YDIi3hXlu1GuVAJWXRlzLK2eoGuJuhZPe4Zazkwgylk9phuB648TKGa49uewcAuHiX/Lk0PWJmFC99EFOCXVQDZRTTdacYgoXJsAOBdJJ72w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CttNbB3X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r8mbr/Bb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F294DC4CEEA;
-	Wed, 25 Jun 2025 22:51:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CttNbB3X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F356C4CEEA;
+	Wed, 25 Jun 2025 22:52:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750891869;
-	bh=MMmomMCqJSpWTCAn2TPnv1UzSIX2AyVqD6l3CJdQAv0=;
+	s=korg; t=1750891922;
+	bh=n9urXCG1+/khssyDJhJ6RVBq3saiOIkik9UlBUzajtg=;
 	h=Date:To:From:Subject:From;
-	b=r8mbr/BbqZpiCQqToMexWsfe+d7swva93kVjaAhU7jNVdT8Q+Co+Zbom/38gWowOG
-	 M4aCO4bBmzpQdDoch8KMxm3R4K5omgsjKjsxw+TLsVQ/T7Ep679DK+CIL/pc+Mvqp7
-	 jfNjOM6sd28MnhBugjFllQsYH9sURZFHK10csLcs=
-Date: Wed, 25 Jun 2025 15:51:08 -0700
-To: mm-commits@vger.kernel.org,yi.zhang@huawei.com,yangerkun@huawei.com,tglx@linutronix.de,ming.lei@redhat.com,john.g.garry@oracle.com,axboe@kernel.dk,yukuai3@huawei.com,akpm@linux-foundation.org
+	b=CttNbB3XXy709f9KCYVeKUjkdZbNnW+pjAfXx5CQ/D0eIux0XyxLijqQbkqhYewbB
+	 dPs94gPvTdOUP/vnydqrf4zdbq5e0E42zplJhFr758UnbAvXyC3WhJfwff04FNyB7Y
+	 FFmdRzgQW4+OLX12Yjz6vzft6dFTUmFyJtPvKwKY=
+Date: Wed, 25 Jun 2025 15:52:01 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,catalin.marinas@arm.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix.patch removed from -mm tree
-Message-Id: <20250625225108.F294DC4CEEA@smtp.kernel.org>
+Subject: [folded-merged] mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters-v3.patch removed from -mm tree
+Message-Id: <20250625225202.1F356C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix
+     Subject: mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters-v3
 has been removed from the -mm tree.  Its filename was
-     lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix.patch
+     mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters-v3.patch
 
-This patch was dropped because it was folded into lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch
+This patch was dropped because it was folded into mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch
 
 ------------------------------------------------------
-From: Yu Kuai <yukuai3@huawei.com>
-Subject: lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix
-Date: Fri, 20 Jun 2025 09:09:58 +0800
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters-v3
+Date: Fri, 20 Jun 2025 17:31:02 +0800
 
-also fix the non-SMP version
+fix build error when CONFIG_DEBUG_KMEMLEAK=n, s/igonore/ignore/
 
-Link: https://lkml.kernel.org/r/20250620010958.1265984-1-yukuai1@huaweicloud.com
-Fixes: 6a6dcae8f486 ("blk-mq: Build default queue map via group_cpus_evenly()")
-Signed-off-by: Yu Kuai <yukuai3@huawei.com>
-Cc: ErKun Yang <yangerkun@huawei.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: John Garry <john.g.garry@oracle.com>
-Cc: Ming Lei <ming.lei@redhat.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: "zhangyi (F)" <yi.zhang@huawei.com>
+Link: https://lkml.kernel.org/r/20250620093102.2416767-1-hao.ge@linux.dev
+Fixes: 12ca42c23775 ("alloc_tag: allocate percpu counters for module tags dynamically")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/group_cpus.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/kmemleak.h |    5 ++++-
+ lib/alloc_tag.c          |    2 +-
+ mm/kmemleak.c            |    8 ++++----
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
---- a/lib/group_cpus.c~lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly-fix
-+++ a/lib/group_cpus.c
-@@ -429,8 +429,12 @@ struct cpumask *group_cpus_evenly(unsign
- #else /* CONFIG_SMP */
- struct cpumask *group_cpus_evenly(unsigned int numgrps)
+--- a/include/linux/kmemleak.h~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters-v3
++++ a/include/linux/kmemleak.h
+@@ -28,7 +28,7 @@ extern void kmemleak_update_trace(const
+ extern void kmemleak_not_leak(const void *ptr) __ref;
+ extern void kmemleak_transient_leak(const void *ptr) __ref;
+ extern void kmemleak_ignore(const void *ptr) __ref;
+-extern void kmemleak_igonore_percpu(const void __percpu *ptr) __ref;
++extern void kmemleak_ignore_percpu(const void __percpu *ptr) __ref;
+ extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
+ extern void kmemleak_no_scan(const void *ptr) __ref;
+ extern void kmemleak_alloc_phys(phys_addr_t phys, size_t size,
+@@ -98,6 +98,9 @@ static inline void kmemleak_not_leak(con
+ static inline void kmemleak_transient_leak(const void *ptr)
  {
--	struct cpumask *masks = kcalloc(numgrps, sizeof(*masks), GFP_KERNEL);
-+	struct cpumask *masks;
+ }
++static inline void kmemleak_ignore_percpu(const void __percpu *ptr)
++{
++}
+ static inline void kmemleak_ignore(const void *ptr)
+ {
+ }
+--- a/lib/alloc_tag.c~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters-v3
++++ a/lib/alloc_tag.c
+@@ -638,7 +638,7 @@ static int load_module(struct module *mo
+ 		 * Avoid a kmemleak false positive. The pointer to the counters is stored
+ 		 * in the alloc_tag section of the module and cannot be directly accessed.
+ 		 */
+-		kmemleak_igonore_percpu(tag->counters);
++		kmemleak_ignore_percpu(tag->counters);
+ 	}
+ 	return 0;
+ }
+--- a/mm/kmemleak.c~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters-v3
++++ a/mm/kmemleak.c
+@@ -1247,18 +1247,18 @@ void __ref kmemleak_transient_leak(const
+ EXPORT_SYMBOL(kmemleak_transient_leak);
  
-+	if (numgrps == 0)
-+		return NULL;
-+
-+	masks = kcalloc(numgrps, sizeof(*masks), GFP_KERNEL);
- 	if (!masks)
- 		return NULL;
+ /**
+- * kmemleak_ignore_phys - similar to kmemleak_ignore but taking a percpu
+- *			  address argument
++ * kmemleak_ignore_percpu - similar to kmemleak_ignore but taking a percpu
++ *			    address argument
+  * @ptr:	percpu address of the object
+  */
+-void __ref kmemleak_igonore_percpu(const void __percpu *ptr)
++void __ref kmemleak_ignore_percpu(const void __percpu *ptr)
+ {
+ 	pr_debug("%s(0x%px)\n", __func__, ptr);
  
+ 	if (kmemleak_enabled && ptr && !IS_ERR_PCPU(ptr))
+ 		make_black_object((unsigned long)ptr, OBJECT_PERCPU);
+ }
+-EXPORT_SYMBOL_GPL(kmemleak_igonore_percpu);
++EXPORT_SYMBOL_GPL(kmemleak_ignore_percpu);
+ 
+ /**
+  * kmemleak_ignore - ignore an allocated object
 _
 
-Patches currently in -mm which might be from yukuai3@huawei.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-lib-group_cpus-fix-null-pointer-dereference-from-group_cpus_evenly.patch
+mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch
+mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu.patch
 
