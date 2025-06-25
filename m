@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F852F3657
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 22:55:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536882F3657;
+	Wed, 25 Jun 2025 22:55:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750892157; cv=none; b=Ztiis6oCSvPit/+eN+H4Qg2tTNPPPpRot7rjkvO49zouMgQuRmcQOl/lUotb9iJYrhko0BVzvrvHHAdbuDN6zlZwsEi5ElbTCnwcsRZH1C2ymfIVa5QQZYC7/gOliapeuJBEwBkdZCYBFHktGzov1fDUsqdg0ORhRj31CspujdY=
+	t=1750892158; cv=none; b=RULnNf5hEG/41uVztGpPp1Teg3N6NlQBawF6J/JV5e9VpqDOG6qHvf+m0YBX6yD//kZL01Ve7CGue6lkbTWMkJTv6mzWuIjTRiBrBx4Xbi61r+ugzsVpgLm3REgZhFqLxOB2FpGFukUZX0hwPjxeCIiqqMhma5vMRgmoK3l5GiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750892157; c=relaxed/simple;
-	bh=TzlKNnRpIlTds0dRuUocGZlJdVWtkMhMzi3D5+W31LY=;
-	h=Date:To:From:Subject:Message-Id; b=MeYUukyHECTd73KAgt3N4QGgjjYmeRBDfLzmAyCFdQVyrtRw79hD/ZgxSAm03R8xRKyA6lk08Idi36ihAOEsO4SbrCs53twqLZwARygxoYrMt9kruia9kbru9asmPhjW+rfmdJz/h3de0BFlwVkSV86TjgVp2tHnTtOwYurMhgs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z8FerYHZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750892158; c=relaxed/simple;
+	bh=DpJ4kcjO8FKbfmpi10Lh12Uqfbh/VQPJY1DnBlkFNsg=;
+	h=Date:To:From:Subject:Message-Id; b=gXPAD8xt6XrED4j9rdfmrfHwssxJMslhjvXTrszsI61E4xUmjtoCFKzIk1EzZC3vNcLHT4WtJknKIvibu4HThz7sPO+EUsc7I+IqycmcEqNnRmCd767m3AH3/5tLv/G9yFnZY7IBszd/CTi4+lzsRY7MtIKcd5EvxPch+0AtfTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pBYD0tko; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z8FerYHZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB2FBC4CEEA;
-	Wed, 25 Jun 2025 22:55:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pBYD0tko"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25956C4CEEA;
+	Wed, 25 Jun 2025 22:55:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750892156;
-	bh=TzlKNnRpIlTds0dRuUocGZlJdVWtkMhMzi3D5+W31LY=;
+	s=korg; t=1750892158;
+	bh=DpJ4kcjO8FKbfmpi10Lh12Uqfbh/VQPJY1DnBlkFNsg=;
 	h=Date:To:From:Subject:From;
-	b=z8FerYHZIR8JSk6HsYP064t20UmBuNYt9sCj90eyUcA0XSI4O+yJX/3vM6x2RQWJd
-	 nRyfoUJhqAzq/tJI+8xUybj+4gv9ufFlDgVTOeQWxsCqHNkyBm1epy/WUb3iTD/woE
-	 NE4pWPW+JdJnyerlafe/MZT1Rh74aLfpyFxjOKj0=
-Date: Wed, 25 Jun 2025 15:55:56 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,catalin.marinas@arm.com,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=pBYD0tkoB9BaoY8Dl5eTiAdZc2ZaOz6h0A03EVaNLKI+4HSHQoLU6prM/eD7Z+mTm
+	 peDSmaFWFVCeV+xie9Fm3Ox0SFMEh+qhbeNdCUfs+bv7zNsLZ9YfrUbBVBzL3HD6uM
+	 Mgqi3cNNPM/B310pIDbRJhbSV06I+ETGFI/NlNhw=
+Date: Wed, 25 Jun 2025 15:55:57 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch removed from -mm tree
-Message-Id: <20250625225556.BB2FBC4CEEA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write.patch removed from -mm tree
+Message-Id: <20250625225558.25956C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,136 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/alloc_tag: fix the kmemleak false positive issue in the allocation of the percpu variable tag->counters
+     Subject: mm/damon/sysfs-schemes: free old damon_sysfs_scheme_filter->memcg_path on write
 has been removed from the -mm tree.  Its filename was
-     mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters.patch
+     mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/alloc_tag: fix the kmemleak false positive issue in the allocation of the percpu variable tag->counters
-Date: Fri, 20 Jun 2025 02:31:54 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: free old damon_sysfs_scheme_filter->memcg_path on write
+Date: Thu, 19 Jun 2025 11:36:07 -0700
 
-When loading a module, as long as the module has memory allocation
-operations, kmemleak produces a false positive report that resembles the
-following:
+memcg_path_store() assigns a newly allocated memory buffer to
+filter->memcg_path, without deallocating the previously allocated and
+assigned memory buffer.  As a result, users can leak kernel memory by
+continuously writing a data to memcg_path DAMOS sysfs file.  Fix the leak
+by deallocating the previously set memory buffer.
 
-unreferenced object (percpu) 0x7dfd232a1650 (size 16):
-  comm "modprobe", pid 1301, jiffies 4294940249
-  hex dump (first 16 bytes on cpu 2):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 0):
-    kmemleak_alloc_percpu+0xb4/0xd0
-    pcpu_alloc_noprof+0x700/0x1098
-    load_module+0xd4/0x348
-    codetag_module_init+0x20c/0x450
-    codetag_load_module+0x70/0xb8
-    load_module+0xef8/0x1608
-    init_module_from_file+0xec/0x158
-    idempotent_init_module+0x354/0x608
-    __arm64_sys_finit_module+0xbc/0x150
-    invoke_syscall+0xd4/0x258
-    el0_svc_common.constprop.0+0xb4/0x240
-    do_el0_svc+0x48/0x68
-    el0_svc+0x40/0xf8
-    el0t_64_sync_handler+0x10c/0x138
-    el0t_64_sync+0x1ac/0x1b0
-
-This is because the module can only indirectly reference
-alloc_tag_counters through the alloc_tag section, which misleads kmemleak.
-
-However, we don't have a kmemleak ignore interface for percpu allocations
-yet.  So let's create one and invoke it for tag->counters.
-
-[gehao@kylinos.cn: fix build error when CONFIG_DEBUG_KMEMLEAK=n, s/igonore/ignore/]
-  Link: https://lkml.kernel.org/r/20250620093102.2416767-1-hao.ge@linux.dev
-Link: https://lkml.kernel.org/r/20250619183154.2122608-1-hao.ge@linux.dev
-Fixes: 12ca42c23775 ("alloc_tag: allocate percpu counters for module tags dynamically")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Suren Baghdasaryan <surenb@google.com>	[lib/alloc_tag.c]
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20250619183608.6647-2-sj@kernel.org
+Fixes: 7ee161f18b5d ("mm/damon/sysfs-schemes: implement filter directory")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>		[6.3.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmemleak.h |    4 ++++
- lib/alloc_tag.c          |    8 +++++++-
- mm/kmemleak.c            |   14 ++++++++++++++
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ mm/damon/sysfs-schemes.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/kmemleak.h~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters
-+++ a/include/linux/kmemleak.h
-@@ -28,6 +28,7 @@ extern void kmemleak_update_trace(const
- extern void kmemleak_not_leak(const void *ptr) __ref;
- extern void kmemleak_transient_leak(const void *ptr) __ref;
- extern void kmemleak_ignore(const void *ptr) __ref;
-+extern void kmemleak_ignore_percpu(const void __percpu *ptr) __ref;
- extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
- extern void kmemleak_no_scan(const void *ptr) __ref;
- extern void kmemleak_alloc_phys(phys_addr_t phys, size_t size,
-@@ -97,6 +98,9 @@ static inline void kmemleak_not_leak(con
- static inline void kmemleak_transient_leak(const void *ptr)
- {
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-free-old-damon_sysfs_scheme_filter-memcg_path-on-write
++++ a/mm/damon/sysfs-schemes.c
+@@ -472,6 +472,7 @@ static ssize_t memcg_path_store(struct k
+ 		return -ENOMEM;
+ 
+ 	strscpy(path, buf, count + 1);
++	kfree(filter->memcg_path);
+ 	filter->memcg_path = path;
+ 	return count;
  }
-+static inline void kmemleak_ignore_percpu(const void __percpu *ptr)
-+{
-+}
- static inline void kmemleak_ignore(const void *ptr)
- {
- }
---- a/lib/alloc_tag.c~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters
-+++ a/lib/alloc_tag.c
-@@ -10,6 +10,7 @@
- #include <linux/seq_buf.h>
- #include <linux/seq_file.h>
- #include <linux/vmalloc.h>
-+#include <linux/kmemleak.h>
- 
- #define ALLOCINFO_FILE_NAME		"allocinfo"
- #define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
-@@ -632,8 +633,13 @@ static int load_module(struct module *mo
- 			       mod->name);
- 			return -ENOMEM;
- 		}
--	}
- 
-+		/*
-+		 * Avoid a kmemleak false positive. The pointer to the counters is stored
-+		 * in the alloc_tag section of the module and cannot be directly accessed.
-+		 */
-+		kmemleak_ignore_percpu(tag->counters);
-+	}
- 	return 0;
- }
- 
---- a/mm/kmemleak.c~mm-alloc_tag-fix-the-kmemleak-false-positive-issue-in-the-allocation-of-the-percpu-variable-tag-counters
-+++ a/mm/kmemleak.c
-@@ -1247,6 +1247,20 @@ void __ref kmemleak_transient_leak(const
- EXPORT_SYMBOL(kmemleak_transient_leak);
- 
- /**
-+ * kmemleak_ignore_percpu - similar to kmemleak_ignore but taking a percpu
-+ *			    address argument
-+ * @ptr:	percpu address of the object
-+ */
-+void __ref kmemleak_ignore_percpu(const void __percpu *ptr)
-+{
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
-+
-+	if (kmemleak_enabled && ptr && !IS_ERR_PCPU(ptr))
-+		make_black_object((unsigned long)ptr, OBJECT_PERCPU);
-+}
-+EXPORT_SYMBOL_GPL(kmemleak_ignore_percpu);
-+
-+/**
-  * kmemleak_ignore - ignore an allocated object
-  * @ptr:	pointer to beginning of the object
-  *
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu.patch
+mm-damon-introduce-damon_stat-module.patch
+mm-damon-introduce-damon_stat-module-fix.patch
+mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
+mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
+docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
+mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
+revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
+revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
+selftets-damon-add-a-test-for-memcg_path-leak.patch
+mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch
+mm-damon-sysfs-schemes-decouple-from-damos_action.patch
+mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
+mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
+mm-damon-sysfs-decouple-from-damon_ops_id.patch
 
