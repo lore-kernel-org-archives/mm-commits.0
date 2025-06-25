@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6D121FE47B
-	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 20:24:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A40FA2DA742
+	for <mm-commits@vger.kernel.org>; Wed, 25 Jun 2025 20:26:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750883058; cv=none; b=kCVZ1IXabjX6PSAbGViflntrjoELWuPDneBg/quREZnUo1UHm/9woCoKhiKqDnOTOLRzBO6QCG8OyZfPuxtyzn8ZMdg2s5/KbpDIHjlBNJlwcOTTWWypy27GuOxY3l/RSLLchoAUhlv1yV20bYgVwO0cVzR4AZ61kAD2x9xBDWA=
+	t=1750883201; cv=none; b=Jo/DEn8ax6pNL2T5go09Eu0GMlt8ALqxVqQBcF9cLojNUkIAK/y+i4eoYPR/UuMgJW/bHbPwesM5gJ5+92KqJGUjVX2d8MH9g3JtFEfP1wZKe8+9J4JbqSIpT5Uf4xXsrqoBVvYjPd8vtzaZoi27Y9yQSBoGrrniGaHGFRM3ILQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750883058; c=relaxed/simple;
-	bh=1kh5WNk61jjxQB5vsaNuEVOxb2fdPGkuRq28IyznIGY=;
-	h=Date:To:From:Subject:Message-Id; b=jspFylm//S1gS0Ka+2y6UROOn/wOvC94IIai9sHqlka9YyftVqIokTJCgPvMd/TxJARHMnTvPp6Ha+l3dVDe9Ru4AnCN8D4wa1hXmaduwSIcRTa5WW/UoH8tf6hcoCXAlv8dLPHOn75YNbgEPfegDwWjSYG5HG8eAdL1RatXXes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ta+0n3j9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750883201; c=relaxed/simple;
+	bh=z72b3GOeECmnxE9aoC+gekhMzKMoNqs3c1eksazwqMM=;
+	h=Date:To:From:Subject:Message-Id; b=UL8O/rreeX1N5D0aQdFfteUXi7I4SS5md3hrmc3NDNL+7biN97q6YYRWoK4vvOOvEapO0gOs7EYlvPjWkeIUXda+mNmqHZIsIJI1kHNOrnr9tgWxHwSN4JLjONgdt6orcR4mNQzY1yprk1J0TfTpgDR9OBM1jZK4sQ894O1dAlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zXWv2MhV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ta+0n3j9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AC87C4CEEA;
-	Wed, 25 Jun 2025 20:24:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zXWv2MhV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32EEAC4CEEA;
+	Wed, 25 Jun 2025 20:26:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750883058;
-	bh=1kh5WNk61jjxQB5vsaNuEVOxb2fdPGkuRq28IyznIGY=;
+	s=korg; t=1750883201;
+	bh=z72b3GOeECmnxE9aoC+gekhMzKMoNqs3c1eksazwqMM=;
 	h=Date:To:From:Subject:From;
-	b=ta+0n3j9Tc7b5oQ2mOdIG4YluS/wWPuUSZH+ddP0G6n3xbxSoLS2KAJIT5KmtYN1+
-	 mnHgvYhsv/RB40xicijaWAyE39hRLp4DruFDgSvKXomxl0k5FBbUGbue7jZsQWrOmc
-	 1ZwVKJ+QpNAeOcdvIlXwd9kf1zzQOJPeYJqEntGQ=
-Date: Wed, 25 Jun 2025 13:24:18 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,dave@stgolabs.net,akpm@linux-foundation.org
+	b=zXWv2MhVbS/9kA+XE3yuFZMzoIXU2OtBOUzSjIj6mSAmLs5dm+opkP/EoAgb1n6Rc
+	 75LJN2jcyxXirWQ87MLVib15vfOdrbikdPNnDzVJIRT8UmEzVO6S3r/c4fF00WWNqe
+	 mQcBjFATXpLOTbVwLgRRLZtBh8GmPt+XSIyqeeX0=
+Date: Wed, 25 Jun 2025 13:26:40 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,tj@kernel.org,surenb@google.com,mszeredi@redhat.com,mpatlasov@parallels.com,mhocko@suse.com,kirill.shutemov@linux.intel.com,joannelkoong@gmail.com,jlayton@kernel.org,jefflexu@linux.alibaba.com,jack@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,dakr@kernel.org,corbet@lwn.net,axboe@kernel.dk,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-per-node-proactive-reclaim-interface.patch added to mm-unstable branch
-Message-Id: <20250625202418.3AC87C4CEEA@smtp.kernel.org>
+Subject: + mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch added to mm-new branch
+Message-Id: <20250625202641.32EEAC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce per-node proactive reclaim interface
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-per-node-proactive-reclaim-interface.patch
+     Subject: mm, vmstat: remove the NR_WRITEBACK_TEMP node_stat_item counter
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-per-node-proactive-reclaim-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,233 +64,137 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mm: introduce per-node proactive reclaim interface
-Date: Mon, 23 Jun 2025 11:58:51 -0700
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, vmstat: remove the NR_WRITEBACK_TEMP node_stat_item counter
+Date: Wed, 25 Jun 2025 17:51:52 +0200
 
-This adds support for allowing proactive reclaim in general on a NUMA
-system.  A per-node interface extends support for beyond a memcg-specific
-interface, respecting the current semantics of memory.reclaim: respecting
-aging LRU and not supporting artificially triggering eviction on nodes
-belonging to non-bottom tiers.
+The only user of the counter (FUSE) was removed in commit 0c58a97f919c
+("fuse: remove tmp folio for writebacks and internal rb tree") so follow
+the established pattern of removing the counter and hardcoding 0 in
+meminfo output, as done recently with NR_BOUNCE.  Update documentation for
+procfs, including for the value for Bounce that was missed when removing
+its counter.
 
-This patch allows userspace to do:
-
-     echo "512M swappiness=10" > /sys/devices/system/node/nodeX/reclaim
-
-One of the premises for this is to semantically align as best as possible
-with memory.reclaim.  During a brief time memcg did support nodemask until
-55ab834a86a9 (Revert "mm: add nodes= arg to memory.reclaim"), for which
-semantics around reclaim (eviction) vs demotion were not clear, rendering
-charging expectations to be broken.
-
-With this approach:
-
-1. Users who do not use memcg can benefit from proactive reclaim.  The
-   memcg interface is not NUMA aware and there are usecases that are
-   focusing on NUMA balancing rather than workload memory footprint.
-
-2. Proactive reclaim on top tiers will trigger demotion, for which
-   memory is still byte-addressable.  Reclaiming on the bottom nodes will
-   trigger evicting to swap (the traditional sense of reclaim).  This
-   follows the semantics of what is today part of the aging process on
-   tiered memory, mirroring what every other form of reclaim does
-   (reactive and memcg proactive reclaim).  Furthermore per-node proactive
-   reclaim is not as susceptible to the memcg charging problem mentioned
-   above.
-
-3. Unlike the nodes= arg, this interface avoids confusing semantics,
-   such as what exactly the user wants when mixing top-tier and low-tier
-   nodes in the nodemask.  Further per-node interface is less exposed to
-   "free up memory in my container" usecases, where eviction is intended.
-
-4. Users that *really* want to free up memory can use proactive
-   reclaim on nodes knowingly to be on the bottom tiers to force eviction
-   in a natural way - higher access latencies are still better than swap. 
-   If compelled, while no guarantees and perhaps not worth the effort,
-   users could also also potentially follow a ladder-like approach to
-   eventually free up the memory.  Alternatively, perhaps an 'evict'
-   option could be added to the parameters for both memory.reclaim and
-   per-node interfaces to force this action unconditionally.
-
-Link: https://lkml.kernel.org/r/20250623185851.830632-5-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Link: https://lkml.kernel.org/r/20250625-nr_writeback_removal-v1-1-7f2a0df70faa@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joanne Koong <joannelkoong@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Maxim Patlasov <mpatlasov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/stable/sysfs-devices-node |    9 +++
- drivers/base/node.c                         |    2 
- include/linux/swap.h                        |   16 +++++
- mm/vmscan.c                                 |   53 +++++++++++++++---
- 4 files changed, 74 insertions(+), 6 deletions(-)
+ Documentation/filesystems/proc.rst |    8 +++++---
+ drivers/base/node.c                |    2 +-
+ fs/proc/meminfo.c                  |    3 +--
+ include/linux/mmzone.h             |    1 -
+ mm/show_mem.c                      |    2 --
+ mm/vmstat.c                        |    1 -
+ 6 files changed, 7 insertions(+), 10 deletions(-)
 
---- a/Documentation/ABI/stable/sysfs-devices-node~mm-introduce-per-node-proactive-reclaim-interface
-+++ a/Documentation/ABI/stable/sysfs-devices-node
-@@ -227,3 +227,12 @@ Contact:	Jiaqi Yan <jiaqiyan@google.com>
- Description:
- 		Of the raw poisoned pages on a NUMA node, how many pages are
- 		recovered by memory error recovery attempt.
-+
-+What:		/sys/devices/system/node/nodeX/reclaim
-+Date:		June 2025
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Perform user-triggered proactive reclaim on a NUMA node.
-+		This interface is equivalent to the memcg variant.
-+
-+		See Documentation/admin-guide/cgroup-v2.rst
---- a/drivers/base/node.c~mm-introduce-per-node-proactive-reclaim-interface
+--- a/Documentation/filesystems/proc.rst~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
++++ a/Documentation/filesystems/proc.rst
+@@ -1196,12 +1196,14 @@ SecPageTables
+               Memory consumed by secondary page tables, this currently includes
+               KVM mmu and IOMMU allocations on x86 and arm64.
+ NFS_Unstable
+-              Always zero. Previous counted pages which had been written to
++              Always zero. Previously counted pages which had been written to
+               the server, but has not been committed to stable storage.
+ Bounce
+-              Memory used for block device "bounce buffers"
++              Always zero. Previously memory used for block device
++              "bounce buffers".
+ WritebackTmp
+-              Memory used by FUSE for temporary writeback buffers
++              Always zero. Previously memory used by FUSE for temporary
++              writeback buffers.
+ CommitLimit
+               Based on the overcommit ratio ('vm.overcommit_ratio'),
+               this is the total amount of  memory currently available to
+--- a/drivers/base/node.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
 +++ a/drivers/base/node.c
-@@ -659,6 +659,7 @@ static int register_node(struct node *no
- 	} else {
- 		hugetlb_register_node(node);
- 		compaction_register_node(node);
-+		reclaim_register_node(node);
- 	}
+@@ -500,7 +500,7 @@ static ssize_t node_read_meminfo(struct
+ 			     nid, K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
+ 			     nid, 0UL,
+ 			     nid, 0UL,
+-			     nid, K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
++			     nid, 0UL,
+ 			     nid, K(sreclaimable +
+ 				    node_page_state(pgdat, NR_KERNEL_MISC_RECLAIMABLE)),
+ 			     nid, K(sreclaimable + sunreclaimable),
+--- a/fs/proc/meminfo.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
++++ a/fs/proc/meminfo.c
+@@ -121,8 +121,7 @@ static int meminfo_proc_show(struct seq_
  
- 	return error;
-@@ -675,6 +676,7 @@ void unregister_node(struct node *node)
- {
- 	hugetlb_unregister_node(node);
- 	compaction_unregister_node(node);
-+	reclaim_unregister_node(node);
- 	node_remove_accesses(node);
- 	node_remove_caches(node);
- 	device_unregister(&node->dev);
---- a/include/linux/swap.h~mm-introduce-per-node-proactive-reclaim-interface
-+++ a/include/linux/swap.h
-@@ -431,6 +431,22 @@ extern unsigned long shrink_all_memory(u
- extern int vm_swappiness;
- long remove_mapping(struct address_space *mapping, struct folio *folio);
- 
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-+extern int reclaim_register_node(struct node *node);
-+extern void reclaim_unregister_node(struct node *node);
-+
-+#else
-+
-+static inline int reclaim_register_node(struct node *node)
-+{
-+	return 0;
-+}
-+
-+static inline void reclaim_unregister_node(struct node *node)
-+{
-+}
-+#endif /* CONFIG_SYSFS && CONFIG_NUMA */
-+
- #ifdef CONFIG_NUMA
- extern int sysctl_min_unmapped_ratio;
- extern int sysctl_min_slab_ratio;
---- a/mm/vmscan.c~mm-introduce-per-node-proactive-reclaim-interface
-+++ a/mm/vmscan.c
-@@ -94,10 +94,8 @@ struct scan_control {
- 	unsigned long	anon_cost;
- 	unsigned long	file_cost;
- 
--#ifdef CONFIG_MEMCG
- 	/* Swappiness value for proactive reclaim. Always use sc_swappiness()! */
- 	int *proactive_swappiness;
--#endif
- 
- 	/* Can active folios be deactivated as part of reclaim? */
- #define DEACTIVATE_ANON 1
-@@ -121,7 +119,7 @@ struct scan_control {
- 	/* Has cache_trim_mode failed at least once? */
- 	unsigned int cache_trim_mode_failed:1;
- 
--	/* Proactive reclaim invoked by userspace through memory.reclaim */
-+	/* Proactive reclaim invoked by userspace */
- 	unsigned int proactive:1;
- 
- 	/*
-@@ -7730,13 +7728,15 @@ static const match_table_t tokens = {
- 	{ MEMORY_RECLAIM_NULL, NULL },
- };
- 
--int user_proactive_reclaim(char *buf, struct mem_cgroup *memcg, pg_data_t *pgdat)
-+int user_proactive_reclaim(char *buf,
-+			   struct mem_cgroup *memcg, pg_data_t *pgdat)
- {
- 	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
- 	unsigned long nr_to_reclaim, nr_reclaimed = 0;
- 	int swappiness = -1;
- 	char *old_buf, *start;
- 	substring_t args[MAX_OPT_ARGS];
-+	gfp_t gfp_mask = GFP_KERNEL;
- 
- 	if (!buf || (!memcg && !pgdat))
- 		return -EINVAL;
-@@ -7790,11 +7790,29 @@ int user_proactive_reclaim(char *buf, st
- 			reclaim_options = MEMCG_RECLAIM_MAY_SWAP |
- 					  MEMCG_RECLAIM_PROACTIVE;
- 			reclaimed = try_to_free_mem_cgroup_pages(memcg,
--						 batch_size, GFP_KERNEL,
-+						 batch_size, gfp_mask,
- 						 reclaim_options,
- 						 swappiness == -1 ? NULL : &swappiness);
- 		} else {
--			return -EINVAL;
-+			struct scan_control sc = {
-+				.gfp_mask = current_gfp_context(gfp_mask),
-+				.reclaim_idx = gfp_zone(gfp_mask),
-+				.proactive_swappiness = swappiness == -1 ? NULL : &swappiness,
-+				.priority = DEF_PRIORITY,
-+				.may_writepage = !laptop_mode,
-+				.nr_to_reclaim = max(batch_size, SWAP_CLUSTER_MAX),
-+				.may_unmap = 1,
-+				.may_swap = 1,
-+				.proactive = 1,
-+			};
-+
-+			if (test_and_set_bit_lock(PGDAT_RECLAIM_LOCKED,
-+						  &pgdat->flags))
-+				return -EAGAIN;
-+
-+			reclaimed = __node_reclaim(pgdat, gfp_mask,
-+						   batch_size, &sc);
-+			clear_bit_unlock(PGDAT_RECLAIM_LOCKED, &pgdat->flags);
- 		}
- 
- 		if (!reclaimed && !nr_retries--)
-@@ -7853,3 +7871,26 @@ void check_move_unevictable_folios(struc
- 	}
- }
- EXPORT_SYMBOL_GPL(check_move_unevictable_folios);
-+
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-+static ssize_t reclaim_store(struct device *dev,
-+			     struct device_attribute *attr,
-+			     const char *buf, size_t count)
-+{
-+	int ret, nid = dev->id;
-+
-+	ret = user_proactive_reclaim((char *)buf, NULL, NODE_DATA(nid));
-+	return ret ? -EAGAIN : count;
-+}
-+
-+static DEVICE_ATTR_WO(reclaim);
-+int reclaim_register_node(struct node *node)
-+{
-+	return device_create_file(&node->dev, &dev_attr_reclaim);
-+}
-+
-+void reclaim_unregister_node(struct node *node)
-+{
-+	return device_remove_file(&node->dev, &dev_attr_reclaim);
-+}
-+#endif
+ 	show_val_kb(m, "NFS_Unstable:   ", 0);
+ 	show_val_kb(m, "Bounce:         ", 0);
+-	show_val_kb(m, "WritebackTmp:   ",
+-		    global_node_page_state(NR_WRITEBACK_TEMP));
++	show_val_kb(m, "WritebackTmp:   ", 0);
+ 	show_val_kb(m, "CommitLimit:    ", vm_commit_limit());
+ 	show_val_kb(m, "Committed_AS:   ", committed);
+ 	seq_printf(m, "VmallocTotal:   %8lu kB\n",
+--- a/include/linux/mmzone.h~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
++++ a/include/linux/mmzone.h
+@@ -206,7 +206,6 @@ enum node_stat_item {
+ 	NR_FILE_PAGES,
+ 	NR_FILE_DIRTY,
+ 	NR_WRITEBACK,
+-	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
+ 	NR_SHMEM,		/* shmem pages (included tmpfs/GEM pages) */
+ 	NR_SHMEM_THPS,
+ 	NR_SHMEM_PMDMAPPED,
+--- a/mm/show_mem.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
++++ a/mm/show_mem.c
+@@ -246,7 +246,6 @@ static void show_free_areas(unsigned int
+ 			" shmem_pmdmapped:%lukB"
+ 			" anon_thp:%lukB"
+ #endif
+-			" writeback_tmp:%lukB"
+ 			" kernel_stack:%lukB"
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ 			" shadow_call_stack:%lukB"
+@@ -273,7 +272,6 @@ static void show_free_areas(unsigned int
+ 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
+ 			K(node_page_state(pgdat, NR_ANON_THPS)),
+ #endif
+-			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 			node_page_state(pgdat, NR_KERNEL_STACK_KB),
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ 			node_page_state(pgdat, NR_KERNEL_SCS_KB),
+--- a/mm/vmstat.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
++++ a/mm/vmstat.c
+@@ -1251,7 +1251,6 @@ const char * const vmstat_text[] = {
+ 	[I(NR_FILE_PAGES)]			= "nr_file_pages",
+ 	[I(NR_FILE_DIRTY)]			= "nr_dirty",
+ 	[I(NR_WRITEBACK)]			= "nr_writeback",
+-	[I(NR_WRITEBACK_TEMP)]			= "nr_writeback_temp",
+ 	[I(NR_SHMEM)]				= "nr_shmem",
+ 	[I(NR_SHMEM_THPS)]			= "nr_shmem_hugepages",
+ 	[I(NR_SHMEM_PMDMAPPED)]			= "nr_shmem_pmdmapped",
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-vmscan-respect-psi_memstall-region-in-node-reclaim.patch
-mm-memcg-make-memoryreclaim-interface-generic.patch
-mm-vmscan-make-__node_reclaim-more-generic.patch
-mm-introduce-per-node-proactive-reclaim-interface.patch
+mm-madvise-simplify-anon_name-handling.patch
+mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch
+mm-madvise-move-madvise_set_anon_name-down-the-file.patch
+mm-madvise-use-standard-madvise-locking-in-madvise_set_anon_name.patch
+mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
 
