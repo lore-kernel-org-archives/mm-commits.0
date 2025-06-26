@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B61C126056F
-	for <mm-commits@vger.kernel.org>; Thu, 26 Jun 2025 22:22:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF64E1DE3DC
+	for <mm-commits@vger.kernel.org>; Thu, 26 Jun 2025 22:22:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750976565; cv=none; b=id9/dmfIr1q1APJ+NqzmaZ0Q6C0MwhesnOoo1MVqNUPgFdjTeQUWI/2VEzxPndjRMR/TeSSjMAwurw2p90+uDXqCRtt53PFGLXapiqwKuB/74Vs/RlYYygDT1f6LH3Spial5woKay7ZkYPkbqlNV5HGYTp76kXjLn9EDH52IJO8=
+	t=1750976566; cv=none; b=Do2Sv9Bn/E99pr+xMRW0Sfuy4A+TO8in56aCODvU84Bm5taY++5LTxDsNOUDmsQPCJ+zpiJvvdGaZ8d8Qz6kIwgyXt2u79aUgPbUf3Otnuj8Yf7B2AdURiMjPy33MC6Yrn4KQ6duqZV+AsIpBMggf9tXpeFXrLNZoZeCW57VyjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750976565; c=relaxed/simple;
-	bh=3G7x8pDME72qWN18JLTx+5vAsy4EyL3heSFJDF8cSKU=;
-	h=Date:To:From:Subject:Message-Id; b=rFI58NU/V/ozrkeGIKsJ1Qc8RXk6vuNjbinc0dKOspX1BwChlwjqXFocI1LQr9xSkcm8XkWStHLXo54eHYrMYMnmhTrft2EiEHtoc51AKhz4jRnVwr3V1K8WAwndYUVf6IMACMbPs/NHuwptzvpwa+3ewQdaLzbfvbacWzhNaU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kMG7st/x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750976566; c=relaxed/simple;
+	bh=uwqV6qNgrAZDuhjvYqeH97VmuA11KM7yFyeUlJgm8o8=;
+	h=Date:To:From:Subject:Message-Id; b=uXLdjtnF29hDOSbNwHmo1cdE0kfD2/6rOg19t4ocPQVKqhjNvhLLSuVWiXZJwGSEdEhz+JFSTIUgztf8s9InsHjhF4c1BPhjPU6LAlhbXklcMe02z1lhCQ0NRbOF7LNzWCUs4+nZQ3qX1+FTq3d37PN7KHKBDye7gXj47I5FcSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r7Vv7Kfl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kMG7st/x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BA3EC4CEEB;
-	Thu, 26 Jun 2025 22:22:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r7Vv7Kfl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62D40C4CEEF;
+	Thu, 26 Jun 2025 22:22:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750976565;
-	bh=3G7x8pDME72qWN18JLTx+5vAsy4EyL3heSFJDF8cSKU=;
+	s=korg; t=1750976564;
+	bh=uwqV6qNgrAZDuhjvYqeH97VmuA11KM7yFyeUlJgm8o8=;
 	h=Date:To:From:Subject:From;
-	b=kMG7st/xwyghMTmITRU+tULwJpr65p8DTU3J5/1hXhtfbiqDC/9im3+VBO4ORxf4w
-	 +kykGHtQ2riuOZvOYXG3fYeXfY5BLEbA1VUw0iklrnP6QKjtIiQW/bbPQccxaGjAlx
-	 fGgmVpRmGCBt9bmT/GkwxbQvIqRjl1uwsc+cPasI=
-Date: Thu, 26 Jun 2025 15:22:45 -0700
+	b=r7Vv7Kflf2SgJ6b4MNoAg9slszituyFrZid98L8/NH5hNTC0ubO/xU+ssPhToLs4c
+	 +DzdcyGgIctemV1Pd5EenhgTHqZvKJ2hI65TfAUATfkDhKoqlx3F7BZCxkapS2hKK9
+	 GretTPA6JNcpRmie1KQRm/S+/LOxiVYfABvth3EY=
+Date: Thu, 26 Jun 2025 15:22:43 -0700
 To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-s390-call-kasan_init_generic-in-kasan_init.patch added to mm-new branch
-Message-Id: <20250626222245.8BA3EC4CEEB@smtp.kernel.org>
+Subject: + kasan-x86-call-kasan_init_generic-in-kasan_init.patch added to mm-new branch
+Message-Id: <20250626222244.62D40C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan/s390: call kasan_init_generic in kasan_init
+     Subject: kasan/x86: call kasan_init_generic in kasan_init
 has been added to the -mm mm-new branch.  Its filename is
-     kasan-s390-call-kasan_init_generic-in-kasan_init.patch
+     kasan-x86-call-kasan_init_generic-in-kasan_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-s390-call-kasan_init_generic-in-kasan_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-x86-call-kasan_init_generic-in-kasan_init.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan/s390: call kasan_init_generic in kasan_init
-Date: Thu, 26 Jun 2025 20:31:44 +0500
+Subject: kasan/x86: call kasan_init_generic in kasan_init
+Date: Thu, 26 Jun 2025 20:31:43 +0500
 
 Call kasan_init_generic() which enables the static flag to mark generic
 KASAN initialized, otherwise it's an inline stub.  Also prints the banner
 from the single place.
 
-Link: https://lkml.kernel.org/r/20250626153147.145312-9-snovitoll@gmail.com
+Link: https://lkml.kernel.org/r/20250626153147.145312-8-snovitoll@gmail.com
 Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Closes: https://bugzilla.kernel.org/show_bug.cgi?id=218315
 Cc: Alexander Potapenko <glider@google.com>
@@ -82,28 +82,18 @@ Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/early.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/mm/kasan_init_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/kernel/early.c~kasan-s390-call-kasan_init_generic-in-kasan_init
-+++ a/arch/s390/kernel/early.c
-@@ -21,6 +21,7 @@
- #include <linux/kernel.h>
- #include <asm/asm-extable.h>
- #include <linux/memblock.h>
-+#include <linux/kasan.h>
- #include <asm/access-regs.h>
- #include <asm/asm-offsets.h>
- #include <asm/machine.h>
-@@ -65,7 +66,7 @@ static void __init kasan_early_init(void
- {
- #ifdef CONFIG_KASAN
+--- a/arch/x86/mm/kasan_init_64.c~kasan-x86-call-kasan_init_generic-in-kasan_init
++++ a/arch/x86/mm/kasan_init_64.c
+@@ -451,5 +451,5 @@ void __init kasan_init(void)
+ 	__flush_tlb_all();
+ 
  	init_task.kasan_depth = 0;
 -	pr_info("KernelAddressSanitizer initialized\n");
 +	kasan_init_generic();
- #endif
  }
- 
 _
 
 Patches currently in -mm which might be from snovitoll@gmail.com are
