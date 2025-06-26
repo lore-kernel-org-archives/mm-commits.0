@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD04202990
-	for <mm-commits@vger.kernel.org>; Thu, 26 Jun 2025 21:17:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C36624503B
+	for <mm-commits@vger.kernel.org>; Thu, 26 Jun 2025 21:33:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750972656; cv=none; b=eU6xH+JiM2an4zhmXo0hbrwW7ySan8f3R98/iuhDZk45eCfGYQbHPgYrA7nDmQtbqKVoiSnpLExWyVuDRI07ua0DAqJ6B22PJxGoCteOfql/LZ3vtXL+Zso0zYJ4Ub4mSz4xWtoUIVmEcFSlKxn+8XyTcYPGYSkBfIxdWhdc0+c=
+	t=1750973629; cv=none; b=SHnKTGLSOQRfH51IvAi6pMM2bLl69nT7X6KSHDN2YFmbNrJTB32y3mnIcsM/VJ9G3Hkp657CtgUXvv791rIF84I1Ztc2gasnYJeM4cFIrhXScOoRGDgTVo6QlRF+RRgdi2kT64GyQlVvbcWQtne9681cPnuuX75sV3Ufbemxliw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750972656; c=relaxed/simple;
-	bh=yFCWWIjJF7UffzOXTdZo87g6hbAhQwyh8g+TZFADshI=;
-	h=Date:To:From:Subject:Message-Id; b=ahiLa1Zpm1AlxT0WhPsyWddd9BA+HNTOMBshfmqeZcMDGU/MfTS/XtnPDL2nsSzPvYQgwLQdKebgpqreuy39AoCIzTuVxWLPKzB1dK+m2oDmM/Fnn8rsCHW9IewIEhqmA1I/TQ0UlaVxaeYLEeWRNCjPkFm3lVGaofhRrVubJ7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xZM77GAA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750973629; c=relaxed/simple;
+	bh=RNZbv+fbxyzrKUwjZlF+CQAy4HhFdVoe2uRkDYA0ocA=;
+	h=Date:To:From:Subject:Message-Id; b=R+umiKeTiDipFlOrSeo+nCEfudCmiFDM3eVmd9oPpEhsbroKf6YfSHyPu78wxMTDO7jp9uv04zD1emZCiQxvyK6rL+LHhCZqzAJF4WaLMjTL6Rosn+UzffPTw+5gJLcZNspcY5sa/KFfbJTSFBYkGoWDOhaIxY/xGS5Vn4u5EBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dh92UTcu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xZM77GAA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50D1EC4CEEB;
-	Thu, 26 Jun 2025 21:17:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dh92UTcu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11C2BC4CEEB;
+	Thu, 26 Jun 2025 21:33:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750972655;
-	bh=yFCWWIjJF7UffzOXTdZo87g6hbAhQwyh8g+TZFADshI=;
+	s=korg; t=1750973629;
+	bh=RNZbv+fbxyzrKUwjZlF+CQAy4HhFdVoe2uRkDYA0ocA=;
 	h=Date:To:From:Subject:From;
-	b=xZM77GAAOUu6tnE4s7r3G85dHRrtnB5bM58Adkkc0jj5eQ56DJ22RpRtwzgd4/tNF
-	 tTtHbsX95sLz6HFVWcwZtgJDdSw99jRaXsHxicfz/7iMzAAOTf7ijfWuGODDQ8sNx7
-	 EeAcO5vrmGLI72DnPm8fbepnJHgpRMC+b/+QO5KM=
-Date: Thu, 26 Jun 2025 14:17:34 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=Dh92UTcuLLVmPTi0vnupY0UHR4A68OyBOcvQrRC8lZspMJWAvMHxBzdTtLs8QPIFM
+	 aWrWN+3K79J/tid8V7atZVzV50x6KPfl3Vx7xF3fKImBbMzfvIzAgljqdOMhtY2Zmz
+	 kRJuRNcqa+ROxq3u10X5yqM7/A81cx+6tG8PWarM=
+Date: Thu, 26 Jun 2025 14:33:48 -0700
+To: mm-commits@vger.kernel.org,steven.sistare@oracle.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,anshuman.khandual@arm.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-skip-extra-call-to-__alloc_pages_bulk-in-weighted-interleave.patch added to mm-new branch
-Message-Id: <20250626211735.50D1EC4CEEB@smtp.kernel.org>
+Subject: + mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250626213349.11C2BC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: skip extra call to __alloc_pages_bulk in weighted interleave
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mempolicy-skip-extra-call-to-__alloc_pages_bulk-in-weighted-interleave.patch
+     Subject: mm/hugetlb: don't crash when allocating a folio if there are no resv
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-skip-extra-call-to-__alloc_pages_bulk-in-weighted-interleave.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,156 +58,127 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/mempolicy: skip extra call to __alloc_pages_bulk in weighted interleave
-Date: Thu, 26 Jun 2025 13:09:34 -0700
+From: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Subject: mm/hugetlb: don't crash when allocating a folio if there are no resv
+Date: Thu, 26 Jun 2025 12:11:16 -0700
 
-Currently, alloc_pages_bulk_weighted_interleave can make up to
-nr_node_ids+1 calls to __alloc_pages_bulk.  The additional allocation can
-happen if the previous call to this function finished the weighted round
-robin allocation partially on a node.  To make up for this, the next time
-this function is called, an extra allocation is made to finish cleanly on
-the node boundaries before performing the weighted round-robin cycles
-again.
+There are cases when we try to pin a folio but discover that it has not
+been faulted-in.  So, we try to allocate it in memfd_alloc_folio() but
+there is a chance that we might encounter a fatal crash/failure
+(VM_BUG_ON(!h->resv_huge_pages) in alloc_hugetlb_folio_reserve()) if there
+are no active reservations at that instant.  This issue was reported by
+syzbot:
 
-Instead of making an additional call, we can calculate how many additional
-pages should be allocated from the first node (aka carryover) and add that
-value to the number of pages that should be allocated as part of the
-current round-robin cycle.
+kernel BUG at mm/hugetlb.c:2403!
+Oops: invalid opcode: 0000 [#1] PREEMPT SMP KASAN NOPTI
+CPU: 0 UID: 0 PID: 5315 Comm: syz.0.0 Not tainted
+6.13.0-rc5-syzkaller-00161-g63676eefb7a0 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS
+1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:alloc_hugetlb_folio_reserve+0xbc/0xc0 mm/hugetlb.c:2403
+Code: 1f eb 05 e8 56 18 a0 ff 48 c7 c7 40 56 61 8e e8 ba 21 cc 09 4c 89
+f0 5b 41 5c 41 5e 41 5f 5d c3 cc cc cc cc e8 35 18 a0 ff 90 <0f> 0b 66
+90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f
+RSP: 0018:ffffc9000d3d77f8 EFLAGS: 00010087
+RAX: ffffffff81ff6beb RBX: 0000000000000000 RCX: 0000000000100000
+RDX: ffffc9000e51a000 RSI: 00000000000003ec RDI: 00000000000003ed
+RBP: 1ffffffff34810d9 R08: ffffffff81ff6ba3 R09: 1ffffd4000093005
+R10: dffffc0000000000 R11: fffff94000093006 R12: dffffc0000000000
+R13: dffffc0000000000 R14: ffffea0000498000 R15: ffffffff9a4086c8
+FS:  00007f77ac12e6c0(0000) GS:ffff88801fc00000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f77ab54b170 CR3: 0000000040b70000 CR4: 0000000000352ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ memfd_alloc_folio+0x1bd/0x370 mm/memfd.c:88
+ memfd_pin_folios+0xf10/0x1570 mm/gup.c:3750
+ udmabuf_pin_folios drivers/dma-buf/udmabuf.c:346 [inline]
+ udmabuf_create+0x70e/0x10c0 drivers/dma-buf/udmabuf.c:443
+ udmabuf_ioctl_create drivers/dma-buf/udmabuf.c:495 [inline]
+ udmabuf_ioctl+0x301/0x4e0 drivers/dma-buf/udmabuf.c:526
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:906 [inline]
+ __se_sys_ioctl+0xf5/0x170 fs/ioctl.c:892
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-Running a quick benchmark by compiling the kernel shows a small increase
-in performance.  These experiments were run on a machine with 2 nodes,
-each with 125GB memory and 40 CPUs.
+Therefore, prevent the above crash by removing the VM_BUG_ON() as there is
+no need to crash the system in this situation and instead we could just
+fail the allocation request.
 
-time numactl -w 0,1 make -j$(nproc)
+Furthermore, as described above, the specific situation where this happens
+is when we try to pin memfd folios before they are faulted-in.  Although,
+this is a valid thing to do, it is not the regular or the common use-case.
+Let us consider the following scenarios:
 
-+----------+---------+------------+---------+
-| Time (s) |  6.16   | With patch | % Delta |
-+----------+---------+------------+---------+
-| Real     |  88.374 |    88.3356 | -0.2019 |
-| User     |  3631.7 |   3636.263 |  0.0631 |
-| Sys      | 366.029 |    363.792 | -0.7534 |
-+----------+---------+------------+---------+
+1) hugetlbfs_file_mmap()
+    memfd_alloc_folio()
+    hugetlb_fault()
 
-Link: https://lkml.kernel.org/r/20250626200936.3974420-3-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
+2) memfd_alloc_folio()
+    hugetlbfs_file_mmap()
+    hugetlb_fault()
+
+3) hugetlbfs_file_mmap()
+    hugetlb_fault()
+        alloc_hugetlb_folio()
+
+3) is the most common use-case where first a memfd is allocated followed
+by mmap(), user writes/updates and then the relevant folios are pinned
+(memfd_pin_folios()).  The BUG this patch is fixing occurs in 2) because
+we try to pin the folios before hugetlbfs_file_mmap() is called.  So, in
+this situation we try to allocate the folios before pinning them but since
+we did not make any reservations, resv_huge_pages would be 0, leading to
+this issue.
+
+Link: https://lkml.kernel.org/r/20250626191116.1377761-1-vivek.kasireddy@intel.com
+Fixes: 26a8ea80929c ("mm/hugetlb: fix memfd_pin_folios resv_huge_pages leak")
+Reported-by: syzbot+a504cb5bae4fe117ba94@syzkaller.appspotmail.com
+Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Closes: https://syzkaller.appspot.com/bug?extid=a504cb5bae4fe117ba94
+Closes: https://lore.kernel.org/all/677928b5.050a0220.3b53b0.004d.GAE@google.com/T/
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: Steve Sistare <steven.sistare@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   39 ++++++++++++++++++++-------------------
- 1 file changed, 20 insertions(+), 19 deletions(-)
+ mm/hugetlb.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-skip-extra-call-to-__alloc_pages_bulk-in-weighted-interleave
-+++ a/mm/mempolicy.c
-@@ -2569,7 +2569,7 @@ static unsigned long alloc_pages_bulk_we
- 	unsigned long node_pages, delta;
- 	u8 *weights, weight;
- 	unsigned int weight_total = 0;
--	unsigned long rem_pages = nr_pages;
-+	unsigned long rem_pages = nr_pages, carryover = 0;
- 	nodemask_t nodes;
- 	int nnodes, node;
- 	int resume_node = MAX_NUMNODES - 1;
-@@ -2594,18 +2594,12 @@ static unsigned long alloc_pages_bulk_we
- 	node = me->il_prev;
- 	weight = me->il_weight;
- 	if (weight && node_isset(node, nodes)) {
--		node_pages = min(rem_pages, weight);
--		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
--						  page_array);
--		page_array += nr_allocated;
--		total_allocated += nr_allocated;
--		/* if that's all the pages, no need to interleave */
- 		if (rem_pages <= weight) {
--			me->il_weight -= rem_pages;
--			return total_allocated;
-+			node_pages = rem_pages;
-+			me->il_weight -= node_pages;
-+			goto allocate;
- 		}
--		/* Otherwise we adjust remaining pages, continue from there */
--		rem_pages -= weight;
-+		carryover = weight;
- 	}
- 	/* clear active weight in case of an allocation failure */
- 	me->il_weight = 0;
-@@ -2614,7 +2608,7 @@ static unsigned long alloc_pages_bulk_we
- 	/* create a local copy of node weights to operate on outside rcu */
- 	weights = kzalloc(nr_node_ids, GFP_KERNEL);
- 	if (!weights)
--		return total_allocated;
-+		return 0;
+--- a/mm/hugetlb.c~mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv
++++ a/mm/hugetlb.c
+@@ -2340,12 +2340,15 @@ struct folio *alloc_hugetlb_folio_reserv
+ 	struct folio *folio;
  
- 	rcu_read_lock();
- 	state = rcu_dereference(wi_state);
-@@ -2634,16 +2628,17 @@ static unsigned long alloc_pages_bulk_we
- 	/*
- 	 * Calculate rounds/partial rounds to minimize __alloc_pages_bulk calls.
- 	 * Track which node weighted interleave should resume from.
-+	 * Account for carryover. It is always allocated from the first node.
- 	 *
- 	 * if (rounds > 0) and (delta == 0), resume_node will always be
- 	 * the node following prev_node and its weight.
- 	 */
--	rounds = rem_pages / weight_total;
--	delta = rem_pages % weight_total;
-+	rounds = (rem_pages - carryover) / weight_total;
-+	delta = (rem_pages - carryover) % weight_total;
- 	resume_node = next_node_in(prev_node, nodes);
- 	resume_weight = weights[resume_node];
-+	node = carryover ? prev_node : next_node_in(prev_node, nodes);
- 	for (i = 0; i < nnodes; i++) {
--		node = next_node_in(prev_node, nodes);
- 		weight = weights[node];
- 		/* when delta is depleted, resume from that node */
- 		if (delta && delta < weight) {
-@@ -2651,12 +2646,14 @@ static unsigned long alloc_pages_bulk_we
- 			resume_weight = weight - delta;
- 		}
- 		/* Add the node's portion of the delta, if there is one */
--		node_pages = weight * rounds + min(delta, weight);
-+		node_pages = weight * rounds + min(delta, weight) + carryover;
- 		delta -= min(delta, weight);
-+		carryover = 0;
- 
- 		/* node_pages can be 0 if an allocation fails and rounds == 0 */
- 		if (!node_pages)
- 			break;
-+allocate:
- 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
- 						  page_array);
- 		page_array += nr_allocated;
-@@ -2664,10 +2661,14 @@ static unsigned long alloc_pages_bulk_we
- 		if (total_allocated == nr_pages)
- 			break;
- 		prev_node = node;
-+		node = next_node_in(prev_node, nodes);
+ 	spin_lock_irq(&hugetlb_lock);
++	if (!h->resv_huge_pages) {
++		spin_unlock_irq(&hugetlb_lock);
++		return NULL;
 +	}
 +
-+	if (weights) {
-+		me->il_prev = resume_node;
-+		me->il_weight = resume_weight;
-+		kfree(weights);
- 	}
--	me->il_prev = resume_node;
--	me->il_weight = resume_weight;
--	kfree(weights);
- 	return total_allocated;
- }
+ 	folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask, preferred_nid,
+ 					       nmask);
+-	if (folio) {
+-		VM_BUG_ON(!h->resv_huge_pages);
++	if (folio)
+ 		h->resv_huge_pages--;
+-	}
  
+ 	spin_unlock_irq(&hugetlb_lock);
+ 	return folio;
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from vivek.kasireddy@intel.com are
 
-mm-mempolicy-skip-unnecessary-synchronize_rcu.patch
-mm-mempolicy-simplify-weighted-interleave-bulk-alloc-calculations.patch
-mm-mempolicy-skip-extra-call-to-__alloc_pages_bulk-in-weighted-interleave.patch
+mm-hugetlb-dont-crash-when-allocating-a-folio-if-there-are-no-resv.patch
+mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch
+mm-memfd-reserve-hugetlb-folios-before-allocation.patch
+selftests-udmabuf-add-a-test-to-pin-first-before-writing-to-memfd.patch
 
