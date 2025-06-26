@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E80D2248B0
-	for <mm-commits@vger.kernel.org>; Thu, 26 Jun 2025 22:49:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 365CEC8EB
+	for <mm-commits@vger.kernel.org>; Thu, 26 Jun 2025 22:59:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750978143; cv=none; b=tRlXmCc7gNdbLhuyMcjA/CTE6nOKVwioUptEdnZ/Tcelt7JJAodGDF0HXsNyfyuJMD8CBW40/W9JnX5eQaKxs4jBJYJmepD+jgxP/4fz4OztmO2dOY0ws6vrV8dfRlduCOhl4ya4T5v3erMU67T4qfrrVMwidqAdV60qdTinyu8=
+	t=1750978770; cv=none; b=qqorWCtzWfJIFkrFUIrNw+ql97HYCWL+Pw2cPkZ+YxG0LvHrtRhpeFxBWzJCnyh3YmSysk6p6EWvYwSB5SNFXrdnMd85HPKmqipiD7bMDkGHClMkXBSP2yb8M0vPElWfUJ6SuKwln5+XoYk7+KPJHke24EuVtMFeKeyv+/U0HZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750978143; c=relaxed/simple;
-	bh=FcXflelXpI/LA1pVhWSCYn4600DVGgsTzrtf1Yi8VIc=;
-	h=Date:To:From:Subject:Message-Id; b=KfVhvQ09x/GZzN5MSPtMEucT3SPjKNFudhIHKKuX5cAb2t/fGWbGGsbeMiGE9tEnizoxFaG4jC/5qIOO1hT2oXltGh1dC6TmHFgQqiwEysn6U/5+Tz60yrQb5PrhZBaWJEmE6RFQeGPPO1+rd2j40ox1T6UNVlLwaZb+I1RkbUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PA9B+pdW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750978770; c=relaxed/simple;
+	bh=OBhL0V4tNmmsz7bVybzeNCW8y5JIdYSF++eFhmLpTqw=;
+	h=Date:To:From:Subject:Message-Id; b=iewz1oZOuFAXJEqXVnjBjazJIosxbp8qlfJb3WxIhjjaAG5djm00P1hEVIPtaF5S4bAe+el4/OK5XfXSvJzbfU9+hBEdPIeUgheLFHZs+AveD4wzCwt1INtvvx8Nx8K5eo+hQnSsVCtvNl3a/MFedUFZQ7kpEPObaDFXgRK4f6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kOJrDM3T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PA9B+pdW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC571C4CEEF;
-	Thu, 26 Jun 2025 22:49:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kOJrDM3T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2B5DC4CEEB;
+	Thu, 26 Jun 2025 22:59:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750978142;
-	bh=FcXflelXpI/LA1pVhWSCYn4600DVGgsTzrtf1Yi8VIc=;
+	s=korg; t=1750978769;
+	bh=OBhL0V4tNmmsz7bVybzeNCW8y5JIdYSF++eFhmLpTqw=;
 	h=Date:To:From:Subject:From;
-	b=PA9B+pdWqWDNbWrzipma5PY7cP8+uWL7GEVaC42zKG7/I72lBIRHrhos+TgQkAEdb
-	 Xy3UIMf6rQpNA1RNwqEZKxpAhzmWekYdb9Getbb1IO3eJ41hkwugn0Bw6ohQCzp61d
-	 lcYN47Gj7VUSO2rx6ylooxA3fr7jhA9yGKcNr4Dc=
-Date: Thu, 26 Jun 2025 15:49:02 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,dev.jain@arm.com,moonhee.lee.ca@gmail.com,akpm@linux-foundation.org
+	b=kOJrDM3Tn82f6TOmBdXd1Xkrk3lcOQNb+KQhWwkf58U1CqjwEW05sHhYJEXb4V/8m
+	 ljYhUmGW1v0JV5IN+HSI30yfI++DOmcpBXGtcut0rAeRT1ryOzP2/nRX0eXbFCv4P0
+	 2QxzYiCK138vJ75l6qzUU5vFyaZ+Z5QHtxekjIck=
+Date: Thu, 26 Jun 2025 15:59:29 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,dan.carpenter@linaro.org,bhe@redhat.com,suhui@nfschina.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-duplicate-gitignore-entries.patch added to mm-unstable branch
-Message-Id: <20250626224902.BC571C4CEEF@smtp.kernel.org>
+Subject: + fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch added to mm-nonmm-unstable branch
+Message-Id: <20250626225929.A2B5DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove duplicate .gitignore entries
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-remove-duplicate-gitignore-entries.patch
+     Subject: fs/proc/vmcore: a few cleanups for vmcore_add_device_dump()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-duplicate-gitignore-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Moon Hee Lee <moonhee.lee.ca@gmail.com>
-Subject: selftests/mm: remove duplicate .gitignore entries
-Date: Wed, 25 Jun 2025 19:07:58 -0700
+From: Su Hui <suhui@nfschina.com>
+Subject: fs/proc/vmcore: a few cleanups for vmcore_add_device_dump()
+Date: Thu, 26 Jun 2025 18:54:41 +0800
 
-Remove redundant entries in .gitignore confirmed by:
+There are two cleanups for vmcore_add_device_dump().  Return -ENOMEM
+directly rather than goto the label to simplify the code and use
+scoped_guard() to simplify the lock/unlock code.
 
-$ sort tools/testing/selftests/mm/.gitignore | uniq -d
-hugetlb_dio
-pkey_sighandler_tests_32
-pkey_sighandler_tests_64
-
-These entries were originally added by [1], and later duplicated by [2].
-
-[1] https://lore.kernel.org/all/20240924185911.117937-1-lorenzo.stoakes@oracle.com/
-[2] https://lore.kernel.org/all/20241125064036.413536-1-lizhijian@fujitsu.com/
-
-Link: https://lkml.kernel.org/r/20250626020758.163243-1-moonhee.lee.ca@gmail.com
-Signed-off-by: Moon Hee Lee <moonhee.lee.ca@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250626105440.1053139-1-suhui@nfschina.com
+Signed-off-by: Su Hui <suhui@nfschina.com>
+Reviewed-by: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Suhui <suhui@nfschina.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/proc/vmcore.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-remove-duplicate-gitignore-entries
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -38,9 +38,6 @@ map_fixed_noreplace
- write_to_hugetlbfs
- hmm-tests
- memfd_secret
--hugetlb_dio
--pkey_sighandler_tests_32
--pkey_sighandler_tests_64
- soft-dirty
- split_huge_page_test
- ksm_tests
+--- a/fs/proc/vmcore.c~fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump
++++ a/fs/proc/vmcore.c
+@@ -1490,10 +1490,8 @@ int vmcore_add_device_dump(struct vmcore
+ 		return -EINVAL;
+ 
+ 	dump = vzalloc(sizeof(*dump));
+-	if (!dump) {
+-		ret = -ENOMEM;
+-		goto out_err;
+-	}
++	if (!dump)
++		return -ENOMEM;
+ 
+ 	/* Keep size of the buffer page aligned so that it can be mmaped */
+ 	data_size = roundup(sizeof(struct vmcoredd_header) + data->size,
+@@ -1519,22 +1517,19 @@ int vmcore_add_device_dump(struct vmcore
+ 	dump->size = data_size;
+ 
+ 	/* Add the dump to driver sysfs list and update the elfcore hdr */
+-	mutex_lock(&vmcore_mutex);
+-	if (vmcore_opened)
+-		pr_warn_once("Unexpected adding of device dump\n");
+-	if (vmcore_open) {
+-		ret = -EBUSY;
+-		goto unlock;
+-	}
++	scoped_guard(mutex, &vmcore_mutex) {
++		if (vmcore_opened)
++			pr_warn_once("Unexpected adding of device dump\n");
++		if (vmcore_open) {
++			ret = -EBUSY;
++			goto out_err;
++		}
+ 
+-	list_add_tail(&dump->list, &vmcoredd_list);
+-	vmcoredd_update_size(data_size);
+-	mutex_unlock(&vmcore_mutex);
++		list_add_tail(&dump->list, &vmcoredd_list);
++		vmcoredd_update_size(data_size);
++	}
+ 	return 0;
+ 
+-unlock:
+-	mutex_unlock(&vmcore_mutex);
+-
+ out_err:
+ 	vfree(buf);
+ 	vfree(dump);
 _
 
-Patches currently in -mm which might be from moonhee.lee.ca@gmail.com are
+Patches currently in -mm which might be from suhui@nfschina.com are
 
-selftests-mm-remove-duplicate-gitignore-entries.patch
-selftests-ptrace-add-set_syscall_info-to-gitignore.patch
+ocfs2-replace-simple_strtol-with-kstrtol.patch
+fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch
 
