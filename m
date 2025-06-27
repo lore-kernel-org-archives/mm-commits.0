@@ -1,130 +1,121 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF8A628A1D7
-	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 22:10:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EADE39855;
+	Fri, 27 Jun 2025 23:59:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751062222; cv=none; b=ZBj7qWIa6woj+aSv8cSQihlfTIaSjo70HcrPfOmlH/xaWOPXsCUyqihef/jT67TnJ05N5KDRmcSlY1R93axEHjDl8n+ibrSXqxwoghvdLVtF676yw0/nlbDKl7oSzooiE62YoTOQHpVnvuYyFKYl2MI6f/6dFV88f2YVlMbY5GM=
+	t=1751068788; cv=none; b=eGiecpIhfyN4oZzdULiUP2Cnp9D2yNjcwvSDyfTDcmEgYPTzaWqdu8QeKu2B/92PTi/+8r6ja5Op4UK09W4a+Nfkfu+xKbyzaciSMApO3iSC+QLquK79gB5nOuwKz+QL1LOKmEfqFPz7ox2ouqa05wUrU96cWZIvQqW9/2BGJOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751062222; c=relaxed/simple;
-	bh=nGNjKV5GyNyv7yhFol0FpT1cusKZUbulsCHeQyGEudA=;
-	h=Date:To:From:Subject:Message-Id; b=FM1N6AiXDtzIMpOHxY/qfzVCmE6LNiv7XEh81zkQoN6UaA2WNQiblQ2fVZ2fcFIhkXb2uta9sFA3TqL8MjimSXt0snrBrRH7P3wW8gPCYXuGTRxPNOkfRJAinJ8uxqx3BwotlgXXdx4xeODerOpxeSLH78K+0CaoBdbSmmtWjBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BPwD5zJh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751068788; c=relaxed/simple;
+	bh=a1ENHSL551kJXmAR2LSrT74baSsCp54WrKImrl4qs4s=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=S8fxFCcSuoSP94rBIOKfIU0enwBA0lIQMOjp4kZnT/JMwf9VcGsQNiv2huubdKIAPXtKf7F0AV6IoRYuej/fbe+BmA1o5BuzywksyQTfQa7Fk9OR51aWuPBeknPTx4vMD2K6mwYLpdOT0CpnfbZ/pAqOqKl1BkWWS/8VJLwdYlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rnlb7U3L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BPwD5zJh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BAC1C4CEE3;
-	Fri, 27 Jun 2025 22:10:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rnlb7U3L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA9BAC4CEED;
+	Fri, 27 Jun 2025 23:59:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751062221;
-	bh=nGNjKV5GyNyv7yhFol0FpT1cusKZUbulsCHeQyGEudA=;
-	h=Date:To:From:Subject:From;
-	b=BPwD5zJhEo57ysAwmj2gyT/nONE6NGe0zHry4VeQvQTl4llohMv28vY0XsYnfgpnx
-	 cn0eBk8SrHPEI1L1oUS/ra0WbIU0k246sBThgOb6c4GZJ34DJYVgqzeJ0/siIWJdvd
-	 0JA5f0hd3+h5NUcReayJ5OSmWAGvTAQkowA1zaaA=
-Date: Fri, 27 Jun 2025 15:10:20 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,gavinguo@igalia.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
+	s=korg; t=1751068788;
+	bh=a1ENHSL551kJXmAR2LSrT74baSsCp54WrKImrl4qs4s=;
+	h=Date:From:To:Cc:Subject:From;
+	b=Rnlb7U3L6HLLXNSKZYAtaKBHgN9BZr8JrsQA3VIGASgf8sh5SXuPOf4nJJt33HdbI
+	 LZP0Sg+z0O01KpfTo6VrQnaBJLGpTjxLDKz0csd6SAqYejm6eRz2JhVN4PcNt2YO95
+	 hghaF295RRAJpgZEKPrVzPSV3+Ssua4usZrq3kaY=
+Date: Fri, 27 Jun 2025 16:59:47 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch added to mm-new branch
-Message-Id: <20250627221021.6BAC1C4CEE3@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.16-rc4
+Message-Id: <20250627165947.26fdc00007e5acb0ac39bc8d@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 
-The patch titled
-     Subject: mm,hugetlb: drop unlikelys from hugetlb_fault
-has been added to the -mm mm-new branch.  Its filename is
-     mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 78f4e737a53e1163ded2687a922fce138aee73f5:
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+  Merge tag 'for-6.16/dm-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm (2025-06-23 15:02:57 -0700)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-06-27-16-56
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to c0cb210a87fcdda3c25f43b5a64420e6b07d3f53:
 
-------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hugetlb: drop unlikelys from hugetlb_fault
-Date: Fri, 27 Jun 2025 12:29:04 +0200
+  MAINTAINERS: add Lorenzo as THP co-maintainer (2025-06-25 15:55:04 -0700)
 
-The unlikely predates an era where we were checking for
-hwpoisoned/migration entries prior to checking whether the pte was
-present.
+----------------------------------------------------------------
+16 hotfixes.  6 are cc:stable and the remainder address post-6.15 issues
+or aren't considered necessary for -stable kernels.  5 are for MM.
 
-Currently, we check for the pte to be a migration/hwpoison entry after we
-have checked that is not present, so it must be either one or the other.
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      crashdump: add CONFIG_KEYS dependency
 
-Link: https://lkml.kernel.org/r/20250627102904.107202-6-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Guo <gavinguo@igalia.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+David Hildenbrand (1):
+      fs/proc/task_mmu: fix PAGE_IS_PFNZERO detection for the huge zero folio
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Dev Jain (1):
+      selftests/mm: fix validate_addr() helper
 
---- a/mm/hugetlb.c~mmhugetlb-drop-unlikelys-from-hugetlb_fault
-+++ a/mm/hugetlb.c
-@@ -6746,7 +6746,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 
- 	/* Not present, either a migration or a hwpoisoned entry */
- 	if (!pte_present(vmf.orig_pte)) {
--		if (unlikely(is_hugetlb_entry_migration(vmf.orig_pte))) {
-+		if (is_hugetlb_entry_migration(vmf.orig_pte)) {
- 			/*
- 			 * Release the hugetlb fault lock now, but retain
- 			 * the vma lock, because it is needed to guard the
-@@ -6757,7 +6757,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			migration_entry_wait_huge(vma, vmf.address, vmf.pte);
- 			return 0;
--		} else if (unlikely(is_hugetlb_entry_hwpoisoned(vmf.orig_pte)))
-+		} else if (is_hugetlb_entry_hwpoisoned(vmf.orig_pte))
- 			ret = VM_FAULT_HWPOISON_LARGE |
- 			    VM_FAULT_SET_HINDEX(hstate_index(h));
- 		goto out_mutex;
-_
+Duje Mihanović (1):
+      mailmap: update Duje Mihanović's email address
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Florian Fainelli (1):
+      scripts/gdb: fix dentry_name() lookup
 
-mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
-mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
-mmmemory_hotplug-implement-numa-node-notifier.patch
-mmslub-use-node-notifier-instead-of-memory-notifier.patch
-mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
-driverscxl-use-node-notifier-instead-of-memory-notifier.patch
-drivershmat-use-node-notifier-instead-of-memory-notifier.patch
-kernelcpuset-use-node-notifier-instead-of-memory-notifier.patch
-mmmempolicy-use-node-notifier-instead-of-memory-notifier.patch
-mmpage_ext-derive-the-node-from-the-pfn.patch
-mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
-mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch
-mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
-mmhugetlb-rename-anon_rmap-to-new_anon_folio-and-make-it-boolean.patch
-mmhugetlb-drop-obsolete-comment-about-non-present-pte-and-second-faults.patch
-mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch
+Ge Yang (1):
+      mm/hugetlb: remove unnecessary holding of hugetlb_lock
+
+Haiyue Wang (1):
+      fuse: fix runtime warning on truncate_folio_batch_exceptionals()
+
+Hao Ge (1):
+      mm/alloc_tag: fix the kmemleak false positive issue in the allocation of the percpu variable tag->counters
+
+Lorenzo Stoakes (2):
+      MAINTAINERS: add missing files to mm page alloc section
+      MAINTAINERS: add Lorenzo as THP co-maintainer
+
+Michal Hocko (1):
+      mm: add OOM killer maintainer structure
+
+Mike Rapoport (Microsoft) (1):
+      MAINTAINERS: add tree entry to mm init block
+
+SeongJae Park (1):
+      mm/damon/sysfs-schemes: free old damon_sysfs_scheme_filter->memcg_path on write
+
+Yu Kuai (1):
+      lib/group_cpus: fix NULL pointer dereference from group_cpus_evenly()
+
+Zijun Hu (2):
+      mailmap: add entries for Zijun Hu
+      mailmap: correct name for a historical account of Zijun Hu
+
+ .mailmap                                           |  4 ++
+ MAINTAINERS                                        | 24 +++++++++-
+ fs/fuse/inode.c                                    |  4 ++
+ fs/proc/task_mmu.c                                 |  2 +-
+ include/linux/kmemleak.h                           |  4 ++
+ kernel/Kconfig.kexec                               |  1 +
+ lib/alloc_tag.c                                    |  8 +++-
+ lib/group_cpus.c                                   |  9 +++-
+ mm/damon/sysfs-schemes.c                           |  1 +
+ mm/hugetlb.c                                       | 54 +++++++---------------
+ mm/kmemleak.c                                      | 14 ++++++
+ scripts/gdb/linux/vfs.py                           |  2 +-
+ tools/testing/selftests/mm/virtual_address_range.c |  7 ++-
+ 13 files changed, 90 insertions(+), 44 deletions(-)
 
