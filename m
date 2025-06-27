@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 365CEC8EB
-	for <mm-commits@vger.kernel.org>; Thu, 26 Jun 2025 22:59:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EA9A2E88A9
+	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 19:57:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750978770; cv=none; b=qqorWCtzWfJIFkrFUIrNw+ql97HYCWL+Pw2cPkZ+YxG0LvHrtRhpeFxBWzJCnyh3YmSysk6p6EWvYwSB5SNFXrdnMd85HPKmqipiD7bMDkGHClMkXBSP2yb8M0vPElWfUJ6SuKwln5+XoYk7+KPJHke24EuVtMFeKeyv+/U0HZk=
+	t=1751054257; cv=none; b=ClxqA7ZHGmUWV9ohglSdcOh5zG5OJuE9PfweTgWk1PR3D1c3ptZd0j+8w/1xQW8HUwaINCrk3C5krGBzs2OtNkKYPT5atZ8yUjJDnlkHqHgNM/EhuV2S1Q1c5O01BsCOIRgNA9Qc5RzbbIBDxZdWCcf+1AAccV5dRoaY43mrItI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750978770; c=relaxed/simple;
-	bh=OBhL0V4tNmmsz7bVybzeNCW8y5JIdYSF++eFhmLpTqw=;
-	h=Date:To:From:Subject:Message-Id; b=iewz1oZOuFAXJEqXVnjBjazJIosxbp8qlfJb3WxIhjjaAG5djm00P1hEVIPtaF5S4bAe+el4/OK5XfXSvJzbfU9+hBEdPIeUgheLFHZs+AveD4wzCwt1INtvvx8Nx8K5eo+hQnSsVCtvNl3a/MFedUFZQ7kpEPObaDFXgRK4f6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kOJrDM3T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751054257; c=relaxed/simple;
+	bh=KTLq+vwXvVEOwd6HkFLq9IIGFKpzIUuAIBn63gck4+g=;
+	h=Date:To:From:Subject:Message-Id; b=JF86G8dJDUQYBSR5m1kC6toqGLIsc5scDSx68DdBlEWyoE8YHrGmvDUKToXg2eYEPbDIRkwQ1G27XLubQ6c4dV2+QLN5QLwBzZcGBkXmmOxhJXxmTOmmlCoEG29GU690f7xud90nneY8lbo7s+frGV2SvIQKwBUQ/5VmCt2w7nk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gbNem3bj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kOJrDM3T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2B5DC4CEEB;
-	Thu, 26 Jun 2025 22:59:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gbNem3bj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FA21C4CEE3;
+	Fri, 27 Jun 2025 19:57:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1750978769;
-	bh=OBhL0V4tNmmsz7bVybzeNCW8y5JIdYSF++eFhmLpTqw=;
+	s=korg; t=1751054255;
+	bh=KTLq+vwXvVEOwd6HkFLq9IIGFKpzIUuAIBn63gck4+g=;
 	h=Date:To:From:Subject:From;
-	b=kOJrDM3Tn82f6TOmBdXd1Xkrk3lcOQNb+KQhWwkf58U1CqjwEW05sHhYJEXb4V/8m
-	 ljYhUmGW1v0JV5IN+HSI30yfI++DOmcpBXGtcut0rAeRT1ryOzP2/nRX0eXbFCv4P0
-	 2QxzYiCK138vJ75l6qzUU5vFyaZ+Z5QHtxekjIck=
-Date: Thu, 26 Jun 2025 15:59:29 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,dan.carpenter@linaro.org,bhe@redhat.com,suhui@nfschina.com,akpm@linux-foundation.org
+	b=gbNem3bj04GjRHJGA5aIFP9Qul3QckCtPXmgdgv2ySdF9Bvnd06se/bWvBGoWLYLZ
+	 aivxpIdFjGyqs5J0oXTb8Ly3smFiH4e4E3idcmKMuARRk/IPCY4rhjYCOfaoOSf5UA
+	 ieOEtx/ul/C4pwv19x43ThMC3n/PMeNi1OsMZhPI=
+Date: Fri, 27 Jun 2025 12:57:34 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch added to mm-nonmm-unstable branch
-Message-Id: <20250626225929.A2B5DC4CEEB@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-decouple-from-damos_action-fix.patch added to mm-unstable branch
+Message-Id: <20250627195735.7FA21C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/vmcore: a few cleanups for vmcore_add_device_dump()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch
+     Subject: mm-damon-sysfs-schemes-decouple-from-damos_action-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-sysfs-schemes-decouple-from-damos_action-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-decouple-from-damos_action-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,79 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Su Hui <suhui@nfschina.com>
-Subject: fs/proc/vmcore: a few cleanups for vmcore_add_device_dump()
-Date: Thu, 26 Jun 2025 18:54:41 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-damon-sysfs-schemes-decouple-from-damos_action-fix
+Date: Fri Jun 27 12:56:28 PM PDT 2025
 
-There are two cleanups for vmcore_add_device_dump().  Return -ENOMEM
-directly rather than goto the label to simplify the code and use
-scoped_guard() to simplify the lock/unlock code.
+make damos_sysfs_action_names static
 
-Link: https://lkml.kernel.org/r/20250626105440.1053139-1-suhui@nfschina.com
-Signed-off-by: Su Hui <suhui@nfschina.com>
-Reviewed-by: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Suhui <suhui@nfschina.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202506271655.b8yfEZIT-lkp@intel.com/
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   29 ++++++++++++-----------------
- 1 file changed, 12 insertions(+), 17 deletions(-)
+ mm/damon/sysfs-schemes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/vmcore.c~fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump
-+++ a/fs/proc/vmcore.c
-@@ -1490,10 +1490,8 @@ int vmcore_add_device_dump(struct vmcore
- 		return -EINVAL;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_action-fix
++++ a/mm/damon/sysfs-schemes.c
+@@ -1619,7 +1619,7 @@ struct damos_sysfs_action_name {
+ 	char *name;
+ };
  
- 	dump = vzalloc(sizeof(*dump));
--	if (!dump) {
--		ret = -ENOMEM;
--		goto out_err;
--	}
-+	if (!dump)
-+		return -ENOMEM;
- 
- 	/* Keep size of the buffer page aligned so that it can be mmaped */
- 	data_size = roundup(sizeof(struct vmcoredd_header) + data->size,
-@@ -1519,22 +1517,19 @@ int vmcore_add_device_dump(struct vmcore
- 	dump->size = data_size;
- 
- 	/* Add the dump to driver sysfs list and update the elfcore hdr */
--	mutex_lock(&vmcore_mutex);
--	if (vmcore_opened)
--		pr_warn_once("Unexpected adding of device dump\n");
--	if (vmcore_open) {
--		ret = -EBUSY;
--		goto unlock;
--	}
-+	scoped_guard(mutex, &vmcore_mutex) {
-+		if (vmcore_opened)
-+			pr_warn_once("Unexpected adding of device dump\n");
-+		if (vmcore_open) {
-+			ret = -EBUSY;
-+			goto out_err;
-+		}
- 
--	list_add_tail(&dump->list, &vmcoredd_list);
--	vmcoredd_update_size(data_size);
--	mutex_unlock(&vmcore_mutex);
-+		list_add_tail(&dump->list, &vmcoredd_list);
-+		vmcoredd_update_size(data_size);
-+	}
- 	return 0;
- 
--unlock:
--	mutex_unlock(&vmcore_mutex);
--
- out_err:
- 	vfree(buf);
- 	vfree(dump);
+-struct damos_sysfs_action_name damos_sysfs_action_names[] = {
++static struct damos_sysfs_action_name damos_sysfs_action_names[] = {
+ 	{
+ 		.action = DAMOS_WILLNEED,
+ 		.name = "willneed",
 _
 
-Patches currently in -mm which might be from suhui@nfschina.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-replace-simple_strtol-with-kstrtol.patch
-fs-proc-vmcore-a-few-cleanups-for-vmcore_add_device_dump.patch
+fix-do_pages_stat-to-use-compat_uptr_t-fix.patch
+mmslub-use-node-notifier-instead-of-memory-notifier-fix.patch
+maple-tree-use-goto-label-to-simplify-code-fix.patch
+mm-damon-sysfs-schemes-decouple-from-damos_action-fix.patch
+mm-memcg-make-memoryreclaim-interface-generic-fix.patch
+maintainers-add-lib-raid6-to-software-raid.patch
 
