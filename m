@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5BFF1E8322
-	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 21:12:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A8562737F7
+	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 21:23:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751058729; cv=none; b=aWijb4ip2d63TMV6Vqtjk6JLWDYgTzBzQwRGw+wYPBJYzPkGrgRoyKpJIy7JoFig+s70R3MSh+7ktAJ5Ruaewu/ylM7Fgl2kir3yqkqQLyIgj/ZI5NqkFcU27dv90GTwVTYkeFIA3yj7Z8dzWb9G264QVqJZef0HYlMG1jxbXmo=
+	t=1751059403; cv=none; b=MoMNMdk8ZoruYuHLSDzInzn9bHAcWqa3WsU9lzFYDvPd6x0T0dXlokfVDorjK+ljKpvqaU4SQS17s95xrL6pgV1gLLuxuw1o/jvTQC4UeI41wf27Xy5crv/wcrDZ+13T4QdstX3RWiZ6yazEkXn5w4bJikCs/cZxEkkiK/uGD0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751058729; c=relaxed/simple;
-	bh=wTH5KPi1rKyDmR202vV2Nk+M02jiOESSkUYCt2zZWTc=;
-	h=Date:To:From:Subject:Message-Id; b=E+6Bz3u/zZDTeGDmsPIgUB9Crl11G9e1/2qTx5e5v1Pmd6NB50wXspMXTzHEJvhk/qTS1gB3OV54L2L1MeHxkK7pBSPqzqN67kvn5QZB+n/qykCtr9vJ/4Bg6IKG851Y0RCoOwvuf4v7WVXOzULvN8LfE7eLdPSHZYB1twXXSug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cSJd9nD2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751059403; c=relaxed/simple;
+	bh=194T2gOB7KzhqliVNEuEpLyBHOZchoTNVv9quwLJFuE=;
+	h=Date:To:From:Subject:Message-Id; b=krIfQ6P2uG5ZyyLnnBMwaqID68kjURevGJZjAfYGhuJl+K+CrP9mm6T0vtNX72zgrnZUqBHMt6OFLyw2hUwY5+Cg00WRPvIfSKfEf6IOWZ529HhqImfzcYFi4/IDMM1IcS8jw2P0fq/KXopZM8wtkYx/koj2UKXz+gizG/Fok/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KGlZKXZm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cSJd9nD2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8366AC4CEE3;
-	Fri, 27 Jun 2025 21:12:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KGlZKXZm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDE31C4CEE3;
+	Fri, 27 Jun 2025 21:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751058728;
-	bh=wTH5KPi1rKyDmR202vV2Nk+M02jiOESSkUYCt2zZWTc=;
+	s=korg; t=1751059402;
+	bh=194T2gOB7KzhqliVNEuEpLyBHOZchoTNVv9quwLJFuE=;
 	h=Date:To:From:Subject:From;
-	b=cSJd9nD24hGGQTQ0vynBAl/nsmWzbTtvGSCHadY06rL/9Wh+NOtAMdv9tomr0R3YH
-	 3PrTw+/2G9+jSI6H6mPaYanbSYZbueo6kx4jtHsiPdZXsz3Zecx2TEpBzNiqkdvyG/
-	 ykKk2NurLyckrRtyDaitj8bE3D2+EurmzdnohFWQ=
-Date: Fri, 27 Jun 2025 14:12:08 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,tsbogend@alpha.franken.de,pfalcato@suse.de,osalvador@suse.de,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jgg@nvidia.com,jannh@google.com,david@redhat.com,chenhuacai@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
+	b=KGlZKXZmBIjsf2fDUkR58aRoGPpREqJOAik4f5XW3f+Fo5eA+uu04vpIePrKzAvK4
+	 XGAaOhu93umxcPe/IcnNv7dwmqEpIssmMcNF8NhiWpNZeEnvXcigwy/u3yalTnBNZv
+	 jNCEx/ckZrGrRQQB5vOC1Ia9dL/08SWUXzcpN2NE=
+Date: Fri, 27 Jun 2025 14:23:22 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jthoughton@google.com,hughd@google.com,david@redhat.com,axelrasmussen@google.com,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-deduplicate-mm_get_unmapped_area.patch added to mm-new branch
-Message-Id: <20250627211208.8366AC4CEE3@smtp.kernel.org>
+Subject: + mm-introduce-vm_uffd_ops-api.patch added to mm-new branch
+Message-Id: <20250627212322.BDE31C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: deduplicate mm_get_unmapped_area()
+     Subject: mm: introduce vm_uffd_ops API
 has been added to the -mm mm-new branch.  Its filename is
-     mm-deduplicate-mm_get_unmapped_area.patch
+     mm-introduce-vm_uffd_ops-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-deduplicate-mm_get_unmapped_area.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vm_uffd_ops-api.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,46 +65,205 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: deduplicate mm_get_unmapped_area()
-Date: Fri, 27 Jun 2025 12:07:39 -0400
+Subject: mm: introduce vm_uffd_ops API
+Date: Fri, 27 Jun 2025 11:46:52 -0400
 
-Essentially it sets vm_flags==0 for mm_get_unmapped_area_vmflags().  Use
-the helper instead to dedup the lines.
+Patch series "mm/userfaultfd: modulize memory types", v2.
 
-Link: https://lkml.kernel.org/r/20250627160739.2124768-1-peterx@redhat.com
+This series is an alternative proposal of what Nikita proposed here on the
+initial three patches:
+
+  https://lore.kernel.org/r/20250404154352.23078-1-kalyazin@amazon.com
+
+This is not yet relevant to any guest-memfd support, but paving way for
+it.  Here, the major goal is to make kernel modules be able to opt-in with
+any form of userfaultfd support, like guest-memfd.  This alternative
+option should hopefully be cleaner, and avoid leaking userfault details
+into vm_ops.fault().
+
+It also means this series does not depend on anything.  It's a pure
+refactoring of userfaultfd internals to provide a generic API, so that
+other types of files, especially RAM based, can support userfaultfd
+without touching mm/ at all.
+
+To achieve it, this series introduced a file operation called vm_uffd_ops.
+The ops needs to be provided when a file type supports any of
+userfaultfd.
+
+With that, I moved both hugetlbfs and shmem over.
+
+Hugetlbfs is still very special that it will only use partial of the
+vm_uffd_ops API, due to similar reason why hugetlb_vm_op_fault() has a
+BUG() and so far hard-coded into core mm.  But this should still be
+better, because at least hugetlbfs is still always involved in feature
+probing (e.g.  where it used to not support ZEROPAGE and we have a
+hard-coded line to fail that, and some more).  Meanwhile after this
+series, shmem will be completely converted to the new vm_uffd_ops API; the
+final vm_uffd_ops for shmem looks like this:
+
+static const vm_uffd_ops shmem_uffd_ops = {
+	.uffd_features	= 	__VM_UFFD_FLAGS,
+	.uffd_ioctls	= 	BIT(_UFFDIO_COPY) |
+				BIT(_UFFDIO_ZEROPAGE) |
+				BIT(_UFFDIO_WRITEPROTECT) |
+				BIT(_UFFDIO_CONTINUE) |
+				BIT(_UFFDIO_POISON),
+	.uffd_get_folio	=	shmem_uffd_get_folio,
+	.uffd_copy	=	shmem_mfill_atomic_pte,
+};
+
+As I mentioned in one of my replies to Nikita, I don't like the current
+interface of uffd_copy(), but this will be the minimum change version of
+such API to support complete extrenal-module-ready userfaultfd.  Here,
+very minimal change will be needed from shmem side to support that.
+
+Meanwhile, the vm_uffd_ops is also not the only place one will need to
+provide to support userfaultfd.  Normally vm_ops.fault() will also need to
+be updated, but that's a generic function and it'll play together with the
+new vm_uffd_ops to make everything fly.
+
+No functional change expected at all after the whole series applied. 
+There might be some slightly stricter check on uffd ops here and there in
+the last patch, but that really shouldn't stand out anywhere to anyone.
+
+For testing: besides the cross-compilation tests, I did also try with
+uffd-stress in a VM to measure any perf difference before/after the
+change; The static call becomes a pointer now.  I really cannot measure
+anything different, which is more or less expected.
+
+
+This patch (of 4):
+
+Introduce a generic userfaultfd API for vm_operations_struct, so that one
+vma, especially when as a module, can support userfaults without modifying
+the core files.  More importantly, when the module can be compiled out of
+the kernel.
+
+So, instead of having core mm referencing modules that may not ever exist,
+we need to have modules opt-in on core mm hooks instead.
+
+After this API applied, if a module wants to support userfaultfd, the
+module should only need to touch its own file and properly define
+vm_uffd_ops, instead of changing anything in core mm.
+
+Note that such API will not work for anonymous.  Core mm will process
+anonymous memory separately for userfault operations like before.
+
+This patch only introduces the API alone so that we can start to move
+existing users over but without breaking them.
+
+Currently the uffd_copy() API is almost designed to be the simplistic with
+minimum mm changes to move over to the API.
+
+Link: https://lkml.kernel.org/r/20250627154655.2085903-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20250627154655.2085903-2-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/mm.h            |    9 +++++
+ include/linux/userfaultfd_k.h |   52 ++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
 
---- a/mm/mmap.c~mm-deduplicate-mm_get_unmapped_area
-+++ a/mm/mmap.c
-@@ -871,9 +871,8 @@ mm_get_unmapped_area(struct mm_struct *m
- 		     unsigned long addr, unsigned long len,
- 		     unsigned long pgoff, unsigned long flags)
- {
--	if (test_bit(MMF_TOPDOWN, &mm->flags))
--		return arch_get_unmapped_area_topdown(file, addr, len, pgoff, flags, 0);
--	return arch_get_unmapped_area(file, addr, len, pgoff, flags, 0);
-+	return mm_get_unmapped_area_vmflags(mm, file, addr, len,
-+					    pgoff, flags, 0);
- }
- EXPORT_SYMBOL(mm_get_unmapped_area);
+--- a/include/linux/mm.h~mm-introduce-vm_uffd_ops-api
++++ a/include/linux/mm.h
+@@ -576,6 +576,8 @@ struct vm_fault {
+ 					 */
+ };
  
++struct vm_uffd_ops;
++
+ /*
+  * These are the virtual MM functions - opening of an area, closing and
+  * unmapping it (needed to keep files on disk up-to-date etc), pointer
+@@ -653,6 +655,13 @@ struct vm_operations_struct {
+ 	 */
+ 	struct page *(*find_special_page)(struct vm_area_struct *vma,
+ 					  unsigned long addr);
++#ifdef CONFIG_USERFAULTFD
++	/*
++	 * Userfaultfd related ops.  Modules need to define this to support
++	 * userfaultfd.
++	 */
++	const struct vm_uffd_ops *userfaultfd_ops;
++#endif
+ };
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+--- a/include/linux/userfaultfd_k.h~mm-introduce-vm_uffd_ops-api
++++ a/include/linux/userfaultfd_k.h
+@@ -92,6 +92,58 @@ enum mfill_atomic_mode {
+ 	NR_MFILL_ATOMIC_MODES,
+ };
+ 
++/* VMA userfaultfd operations */
++struct vm_uffd_ops {
++	/**
++	 * @uffd_features: features supported in bitmask.
++	 *
++	 * When the ops is defined, the driver must set non-zero features
++	 * to be a subset (or all) of: VM_UFFD_MISSING|WP|MINOR.
++	 */
++	unsigned long uffd_features;
++	/**
++	 * @uffd_ioctls: ioctls supported in bitmask.
++	 *
++	 * Userfaultfd ioctls supported by the module.  Below will always
++	 * be supported by default whenever a module provides vm_uffd_ops:
++	 *
++	 *   _UFFDIO_API, _UFFDIO_REGISTER, _UFFDIO_UNREGISTER, _UFFDIO_WAKE
++	 *
++	 * The module needs to provide all the rest optionally supported
++	 * ioctls.  For example, when VM_UFFD_MISSING was supported,
++	 * _UFFDIO_COPY must be supported as ioctl, while _UFFDIO_ZEROPAGE
++	 * is optional.
++	 */
++	unsigned long uffd_ioctls;
++	/**
++	 * uffd_get_folio: Handler to resolve UFFDIO_CONTINUE request.
++	 *
++	 * @inode: the inode for folio lookup
++	 * @pgoff: the pgoff of the folio
++	 * @folio: returned folio pointer
++	 *
++	 * Return: zero if succeeded, negative for errors.
++	 */
++	int (*uffd_get_folio)(struct inode *inode, pgoff_t pgoff,
++			      struct folio **folio);
++	/**
++	 * uffd_copy: Handler to resolve UFFDIO_COPY|ZEROPAGE request.
++	 *
++	 * @dst_pmd: target pmd to resolve page fault
++	 * @dst_vma: target vma
++	 * @dst_addr: target virtual address
++	 * @src_addr: source address to copy from
++	 * @flags: userfaultfd request flags
++	 * @foliop: previously allocated folio
++	 *
++	 * Return: zero if succeeded, negative for errors.
++	 */
++	int (*uffd_copy)(pmd_t *dst_pmd, struct vm_area_struct *dst_vma,
++			 unsigned long dst_addr, unsigned long src_addr,
++			 uffd_flags_t flags, struct folio **foliop);
++};
++typedef struct vm_uffd_ops vm_uffd_ops;
++
+ #define MFILL_ATOMIC_MODE_BITS (const_ilog2(NR_MFILL_ATOMIC_MODES - 1) + 1)
+ #define MFILL_ATOMIC_BIT(nr) BIT(MFILL_ATOMIC_MODE_BITS + (nr))
+ #define MFILL_ATOMIC_FLAG(nr) ((__force uffd_flags_t) MFILL_ATOMIC_BIT(nr))
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
@@ -113,4 +272,8 @@ selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum.patch
 selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum-fix.patch
 mm-hugetlb-remove-prepare_hugepage_range.patch
 mm-deduplicate-mm_get_unmapped_area.patch
+mm-introduce-vm_uffd_ops-api.patch
+mm-shmem-support-vm_uffd_ops-api.patch
+mm-hugetlb-support-vm_uffd_ops-api.patch
+mm-apply-vm_uffd_ops-api-to-core-mm.patch
 
