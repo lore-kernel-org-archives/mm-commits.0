@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA85F278754
-	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 21:28:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43F2A28A414
+	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 21:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751059700; cv=none; b=JC4Ymj92oQAEXjmpL2mKWdv4HBBRSRY84z2jepnPyP2JTwZBwsAxRPTjxhQZVQMaIxj0Nt0xXArVUtvwt8OBJZXIFHyMQXWRYEZ4nZCTeFPV0Y0grrxWAS1OZ9sMnitPRaU6VY6oGshD9LXQlEOV7Lu/W6PJfDzUC2ZI1OuGIkY=
+	t=1751061262; cv=none; b=S7qZwjSFt3jf5jT3QWZcK4pJTpRPgdat8RA89DR3mOOHKv8KVQ80ZPETLzKV4J9UjyP609MGT4IBikqF3ZsQ28qbxzNzLZ4atLcd8pXfX70tW5yAT3eQ+c6N7z4lXBkwrUyOLNGJK27lrDOygONXx/Q3uD1FI0+4jf4ye9QIDwk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751059700; c=relaxed/simple;
-	bh=XTQ6heRouRHRllA43eKLFFvJQ1LjGqfNLhfBS0Vc/FE=;
-	h=Date:To:From:Subject:Message-Id; b=IdCYz+4H0RdF7xNXmWKwpHgdSJoTHm0zXlY6u6AIbMy24helOamnUSIOQN2/SH7Z7zQpoB5m+LxLyr73Hf2OFri8OmsxWV9oV3RLkv20RJYp1mCxJLwjrhQ6y3QSq/40TN8jc6itcTxJDexvLcCohBIllWZhptjps4UN1tHsq/c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nh5G69dM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751061262; c=relaxed/simple;
+	bh=I+pyrYPWXX3mKcjqsSTyhUb251VCijXJjeHkSIuy5kc=;
+	h=Date:To:From:Subject:Message-Id; b=OVwQ4fEm/LGqH1746U1guZf9KB4lC8C+yOx5eugPy33h96OOeKOw7oL3rNdLUAUcKy5Qt2naQ4J4VWW5ESqjzDaHf0knaZfu2GLXcoG6ciTivR3AbUoVLM/Zyqj3DfmnY/R/uN5inT53zUY/usuq84fiQ7Z2GvEU3rDY/bhlY8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lNyAKO1q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nh5G69dM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E91C4CEE3;
-	Fri, 27 Jun 2025 21:28:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lNyAKO1q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0529C4CEE3;
+	Fri, 27 Jun 2025 21:54:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751059697;
-	bh=XTQ6heRouRHRllA43eKLFFvJQ1LjGqfNLhfBS0Vc/FE=;
+	s=korg; t=1751061261;
+	bh=I+pyrYPWXX3mKcjqsSTyhUb251VCijXJjeHkSIuy5kc=;
 	h=Date:To:From:Subject:From;
-	b=Nh5G69dMlBGVtnXS3r09Aqde7VFLG8rM43UDBfaxLdqS6eGY4bqvzWbu7K9xMWZTR
-	 G/DRR2TPbMa0TFk7xfDAoKq1LhsAzCALcNAiPaunHlt3t5kkX23bCTF07Q5Qghdwzm
-	 xD4B0nZ8mbqfUHMR1x320bv+e/NOnjmo43lFKx1Q=
-Date: Fri, 27 Jun 2025 14:28:16 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,syzbot+1134d3a5b062e9665a7a@syzkaller.appspotmail.com,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,gechangwei@live.cn,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
+	b=lNyAKO1qTQv9akahIoCLVdbpHNebnTodHUtHJd8lxrQZ9iYC97JiAypPKTAGZ2+GA
+	 7V30mz5f7+naYPeTFs8bxG6DGrIZWbsbjKFm0Ba7nnPRBok//gyshL3ppcq09QL/og
+	 16dkUk33O1Zigr9HFoi1ACTHxtDgYxJmrSHfA1X8=
+Date: Fri, 27 Jun 2025 14:54:21 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-update-d_splice_alias-return-code-checking.patch added to mm-nonmm-unstable branch
-Message-Id: <20250627212817.78E91C4CEE3@smtp.kernel.org>
+Subject: + mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250627215421.B0529C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: update d_splice_alias() return code checking
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-update-d_splice_alias-return-code-checking.patch
+     Subject: mm/memory_hotplug: fix hwpoisoned large folio handling in do_migrate_range
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-update-d_splice_alias-return-code-checking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,80 +58,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: ocfs2: update d_splice_alias() return code checking
-Date: Fri, 27 Jun 2025 23:19:30 +0900
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/memory_hotplug: fix hwpoisoned large folio handling in do_migrate_range
+Date: Fri, 27 Jun 2025 20:57:47 +0800
 
-When commit d3556babd7fa ("ocfs2: fix d_splice_alias() return code
-checking") was merged into v3.18-rc3, d_splice_alias() was returning one
-of a valid dentry, NULL or an ERR_PTR.
+In do_migrate_range(), the hwpoisoned folio may be large folio, which
+can't be handled by unmap_poisoned_folio().
 
-When commit b5ae6b15bd73 ("merge d_materialise_unique() into
-d_splice_alias()") was merged into v3.19-rc1, d_splice_alias() started
-returning -ELOOP as one of ERR_PTR values.
+I can reproduce this issue in qemu after adding delay in memory_failure()
 
-Now, when syzkaller mounts a crafted ocfs2 filesystem image that hits
-d_splice_alias() == -ELOOP case from ocfs2_lookup(), ocfs2_lookup() fails
-to handle -ELOOP case and generic_shutdown_super() hits "VFS: Busy inodes
-after unmount" message.
+BUG: kernel NULL pointer dereference, address: 0000000000000000
+Workqueue: kacpi_hotplug acpi_hotplug_work_fn
+RIP: 0010:try_to_unmap_one+0x16a/0xfc0
+ <TASK>
+ rmap_walk_anon+0xda/0x1f0
+ try_to_unmap+0x78/0x80
+ ? __pfx_try_to_unmap_one+0x10/0x10
+ ? __pfx_folio_not_mapped+0x10/0x10
+ ? __pfx_folio_lock_anon_vma_read+0x10/0x10
+ unmap_poisoned_folio+0x60/0x140
+ do_migrate_range+0x4d1/0x600
+ ? slab_memory_callback+0x6a/0x190
+ ? notifier_call_chain+0x56/0xb0
+ offline_pages+0x3e6/0x460
+ memory_subsys_offline+0x130/0x1f0
+ device_offline+0xba/0x110
+ acpi_bus_offline+0xb7/0x130
+ acpi_scan_hot_remove+0x77/0x290
+ acpi_device_hotplug+0x1e0/0x240
+ acpi_hotplug_work_fn+0x1a/0x30
+ process_one_work+0x186/0x340
 
-Instead of calling ocfs2_dentry_attach_lock() or ocfs2_dentry_attach_gen()
-when d_splice_alias() returned an ERR_PTR value, change ocfs2_lookup() to
-bail out immediately.
+In this case, just make offline_pages() fail.
 
-Also, ocfs2_lookup() needs to call dupt() when ocfs2_dentry_attach_lock()
-returned an ERR_PTR value.
+Also, do_migrate_range() may be called between memory_failure() setting
+the hwposion flag and isolation of the folio from the lru, so remove
+WARN_ON().
 
-Link: https://lkml.kernel.org/r/d84dc916-2982-45dc-a9a5-a6255cbc62bd@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: syzbot <syzbot+1134d3a5b062e9665a7a@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=1134d3a5b062e9665a7a
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Also, in other places unmap_poisoned_folio() is called when the folio is
+isolated, so obey that in do_migrate_range().
+
+Link: https://lkml.kernel.org/r/20250627125747.3094074-3-tujinjiang@huawei.com
+Fixes: b15c87263a69 ("hwpoison, memory_hotplug: allow hwpoisoned pages to be offlined")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-update-d_splice_alias-return-code-checking
-+++ a/fs/ocfs2/namei.c
-@@ -142,6 +142,8 @@ static struct dentry *ocfs2_lookup(struc
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range
++++ a/mm/memory_hotplug.c
+@@ -1795,7 +1795,7 @@ found:
+ 	return 0;
+ }
  
- bail_add:
- 	ret = d_splice_alias(inode, dentry);
-+	if (IS_ERR(ret))
-+		goto bail_unlock;
+-static void do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
++static int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+ {
+ 	struct folio *folio;
+ 	unsigned long pfn;
+@@ -1819,8 +1819,10 @@ static void do_migrate_range(unsigned lo
+ 			pfn = folio_pfn(folio) + folio_nr_pages(folio) - 1;
  
- 	if (inode) {
- 		/*
-@@ -154,13 +156,12 @@ bail_add:
- 		 * NOTE: This dentry already has ->d_op set from
- 		 * ocfs2_get_parent() and ocfs2_get_dentry()
- 		 */
--		if (!IS_ERR_OR_NULL(ret))
--			dentry = ret;
--
--		status = ocfs2_dentry_attach_lock(dentry, inode,
-+		status = ocfs2_dentry_attach_lock(ret ? ret : dentry, inode,
- 						  OCFS2_I(dir)->ip_blkno);
- 		if (status) {
- 			mlog_errno(status);
-+			if (ret)
-+				dput(ret);
- 			ret = ERR_PTR(status);
- 			goto bail_unlock;
+ 		if (folio_contain_hwpoisoned_page(folio)) {
+-			if (WARN_ON(folio_test_lru(folio)))
+-				folio_isolate_lru(folio);
++			if (folio_test_large(folio) && !folio_test_hugetlb(folio))
++				goto err_out;
++			if (folio_test_lru(folio) && !folio_isolate_lru(folio))
++				goto err_out;
+ 			if (folio_mapped(folio)) {
+ 				folio_lock(folio);
+ 				unmap_poisoned_folio(folio, pfn, false);
+@@ -1877,6 +1879,11 @@ put_folio:
+ 			putback_movable_pages(&source);
  		}
+ 	}
++	return 0;
++err_out:
++	folio_put(folio);
++	putback_movable_pages(&source);
++	return -EBUSY;
+ }
+ 
+ static int __init cmdline_parse_movable_node(char *p)
+@@ -2041,11 +2048,9 @@ int offline_pages(unsigned long start_pf
+ 
+ 			ret = scan_movable_pages(pfn, end_pfn, &pfn);
+ 			if (!ret) {
+-				/*
+-				 * TODO: fatal migration failures should bail
+-				 * out
+-				 */
+-				do_migrate_range(pfn, end_pfn);
++				ret = do_migrate_range(pfn, end_pfn);
++				if (ret)
++					break;
+ 			}
+ 		} while (!ret);
+ 
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-ocfs2-kill-osb-system_file_mutex-lock.patch
-ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names.patch
-ocfs2-update-d_splice_alias-return-code-checking.patch
+mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
 
