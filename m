@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D4AE1E8322
-	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 21:12:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5BFF1E8322
+	for <mm-commits@vger.kernel.org>; Fri, 27 Jun 2025 21:12:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751058725; cv=none; b=XvyHNS17Mwdn+gcrb8JDRGepJv6OrAi9byJ58MBJtY6H4lUuYs2+KP746fW7Zhz5/wVHJ+55cfTyktZ08i6kRPcqMus20jPpkPf0xsgM0qi2nDnQZ4PQojrGV0jAw51oIC/7XaJOTdvXGb4eCb7+jEMipddS+DzYBhSF/q7KDSY=
+	t=1751058729; cv=none; b=aWijb4ip2d63TMV6Vqtjk6JLWDYgTzBzQwRGw+wYPBJYzPkGrgRoyKpJIy7JoFig+s70R3MSh+7ktAJ5Ruaewu/ylM7Fgl2kir3yqkqQLyIgj/ZI5NqkFcU27dv90GTwVTYkeFIA3yj7Z8dzWb9G264QVqJZef0HYlMG1jxbXmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751058725; c=relaxed/simple;
-	bh=Z8jDwY3PijRfj/17HCTkRtkqInZDhNkzQxEGK0CN75o=;
-	h=Date:To:From:Subject:Message-Id; b=sxHCiY0iwg6/drkR8+f72Kq1LU9GYG+BtIYT2lRFLHodM0qE5CQ6fKqTOQ+GHYfo6jLKEeVR38tOaDv2FyXREf9aH2f9njpswTbvxsHA7ceqi4E2VfuLQGlN8aP9bARo3lyREL9vJrQInKxPhzQ7yRCjVUc2V6tAAoyU+AhhN9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Qx9Lvid; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751058729; c=relaxed/simple;
+	bh=wTH5KPi1rKyDmR202vV2Nk+M02jiOESSkUYCt2zZWTc=;
+	h=Date:To:From:Subject:Message-Id; b=E+6Bz3u/zZDTeGDmsPIgUB9Crl11G9e1/2qTx5e5v1Pmd6NB50wXspMXTzHEJvhk/qTS1gB3OV54L2L1MeHxkK7pBSPqzqN67kvn5QZB+n/qykCtr9vJ/4Bg6IKG851Y0RCoOwvuf4v7WVXOzULvN8LfE7eLdPSHZYB1twXXSug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cSJd9nD2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Qx9Lvid"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04836C4CEE3;
-	Fri, 27 Jun 2025 21:12:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cSJd9nD2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8366AC4CEE3;
+	Fri, 27 Jun 2025 21:12:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751058725;
-	bh=Z8jDwY3PijRfj/17HCTkRtkqInZDhNkzQxEGK0CN75o=;
+	s=korg; t=1751058728;
+	bh=wTH5KPi1rKyDmR202vV2Nk+M02jiOESSkUYCt2zZWTc=;
 	h=Date:To:From:Subject:From;
-	b=2Qx9LvidNGIZvQ7y/BLuNhNfYMKx0lsCPaGRziF0YDzUdYOyue4sYxrC4sz52WjuF
-	 xj66rGGULUx6fXMHp4xtBmm3YKYamLIVNrmrmzDgp4cmrea8cE+M6soIIdOmmW/irm
-	 GlYyQiEDA7yqvM37sRfPOyzShvvyo6x3R96Sfk3Y=
-Date: Fri, 27 Jun 2025 14:12:04 -0700
+	b=cSJd9nD24hGGQTQ0vynBAl/nsmWzbTtvGSCHadY06rL/9Wh+NOtAMdv9tomr0R3YH
+	 3PrTw+/2G9+jSI6H6mPaYanbSYZbueo6kx4jtHsiPdZXsz3Zecx2TEpBzNiqkdvyG/
+	 ykKk2NurLyckrRtyDaitj8bE3D2+EurmzdnohFWQ=
+Date: Fri, 27 Jun 2025 14:12:08 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,tsbogend@alpha.franken.de,pfalcato@suse.de,osalvador@suse.de,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jgg@nvidia.com,jannh@google.com,david@redhat.com,chenhuacai@kernel.org,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-prepare_hugepage_range.patch added to mm-new branch
-Message-Id: <20250627211205.04836C4CEE3@smtp.kernel.org>
+Subject: + mm-deduplicate-mm_get_unmapped_area.patch added to mm-new branch
+Message-Id: <20250627211208.8366AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: remove prepare_hugepage_range()
+     Subject: mm: deduplicate mm_get_unmapped_area()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-remove-prepare_hugepage_range.patch
+     mm-deduplicate-mm_get_unmapped_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-prepare_hugepage_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-deduplicate-mm_get_unmapped_area.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,141 +65,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: remove prepare_hugepage_range()
-Date: Fri, 27 Jun 2025 12:07:07 -0400
+Subject: mm: deduplicate mm_get_unmapped_area()
+Date: Fri, 27 Jun 2025 12:07:39 -0400
 
-Only mips and loongarch implemented this API, however what it does was
-checking against stack overflow for either len or addr.  That's already
-done in arch's arch_get_unmapped_area*() functions, even though it may not
-be 100% identical checks.
+Essentially it sets vm_flags==0 for mm_get_unmapped_area_vmflags().  Use
+the helper instead to dedup the lines.
 
-For example, for both of the architectures, there will be a trivial
-difference on how stack top was defined.  The old code uses STACK_TOP
-which may be slightly smaller than TASK_SIZE on either of them, but the
-hope is that shouldn't be a problem.
-
-It means the whole API is pretty much obsolete at least now, remove it
-completely.
-
-Link: https://lkml.kernel.org/r/20250627160707.2124580-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20250627160739.2124768-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/include/asm/hugetlb.h |   14 --------------
- arch/mips/include/asm/hugetlb.h      |   14 --------------
- fs/hugetlbfs/inode.c                 |    8 ++------
- include/asm-generic/hugetlb.h        |    8 --------
- include/linux/hugetlb.h              |    6 ------
- 5 files changed, 2 insertions(+), 48 deletions(-)
+ mm/mmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/loongarch/include/asm/hugetlb.h~mm-hugetlb-remove-prepare_hugepage_range
-+++ a/arch/loongarch/include/asm/hugetlb.h
-@@ -10,20 +10,6 @@
- 
- uint64_t pmd_to_entrylo(unsigned long pmd_val);
- 
--#define __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
--static inline int prepare_hugepage_range(struct file *file,
--					 unsigned long addr,
--					 unsigned long len)
--{
--	unsigned long task_size = STACK_TOP;
--
--	if (len > task_size)
--		return -ENOMEM;
--	if (task_size - len < addr)
--		return -EINVAL;
--	return 0;
--}
--
- #define __HAVE_ARCH_HUGE_PTE_CLEAR
- static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 				  pte_t *ptep, unsigned long sz)
---- a/arch/mips/include/asm/hugetlb.h~mm-hugetlb-remove-prepare_hugepage_range
-+++ a/arch/mips/include/asm/hugetlb.h
-@@ -11,20 +11,6 @@
- 
- #include <asm/page.h>
- 
--#define __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
--static inline int prepare_hugepage_range(struct file *file,
--					 unsigned long addr,
--					 unsigned long len)
--{
--	unsigned long task_size = STACK_TOP;
--
--	if (len > task_size)
--		return -ENOMEM;
--	if (task_size - len < addr)
--		return -EINVAL;
--	return 0;
--}
--
- #define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep,
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-remove-prepare_hugepage_range
-+++ a/fs/hugetlbfs/inode.c
-@@ -179,12 +179,8 @@ hugetlb_get_unmapped_area(struct file *f
- 
- 	if (len & ~huge_page_mask(h))
- 		return -EINVAL;
--	if (flags & MAP_FIXED) {
--		if (addr & ~huge_page_mask(h))
--			return -EINVAL;
--		if (prepare_hugepage_range(file, addr, len))
--			return -EINVAL;
--	}
-+	if ((flags & MAP_FIXED) && (addr & ~huge_page_mask(h)))
-+		return -EINVAL;
- 	if (addr)
- 		addr0 = ALIGN(addr, huge_page_size(h));
- 
---- a/include/asm-generic/hugetlb.h~mm-hugetlb-remove-prepare_hugepage_range
-+++ a/include/asm-generic/hugetlb.h
-@@ -114,14 +114,6 @@ static inline int huge_pte_none_mostly(p
- }
- #endif
- 
--#ifndef __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
--static inline int prepare_hugepage_range(struct file *file,
--		unsigned long addr, unsigned long len)
--{
--	return 0;
--}
--#endif
--
- #ifndef __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 		unsigned long addr, pte_t *ptep)
---- a/include/linux/hugetlb.h~mm-hugetlb-remove-prepare_hugepage_range
-+++ a/include/linux/hugetlb.h
-@@ -359,12 +359,6 @@ static inline void hugetlb_show_meminfo_
+--- a/mm/mmap.c~mm-deduplicate-mm_get_unmapped_area
++++ a/mm/mmap.c
+@@ -871,9 +871,8 @@ mm_get_unmapped_area(struct mm_struct *m
+ 		     unsigned long addr, unsigned long len,
+ 		     unsigned long pgoff, unsigned long flags)
  {
+-	if (test_bit(MMF_TOPDOWN, &mm->flags))
+-		return arch_get_unmapped_area_topdown(file, addr, len, pgoff, flags, 0);
+-	return arch_get_unmapped_area(file, addr, len, pgoff, flags, 0);
++	return mm_get_unmapped_area_vmflags(mm, file, addr, len,
++					    pgoff, flags, 0);
  }
+ EXPORT_SYMBOL(mm_get_unmapped_area);
  
--static inline int prepare_hugepage_range(struct file *file,
--				unsigned long addr, unsigned long len)
--{
--	return -EINVAL;
--}
--
- static inline void hugetlb_vma_lock_read(struct vm_area_struct *vma)
- {
- }
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
