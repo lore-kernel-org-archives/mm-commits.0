@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83AD1DE891
-	for <mm-commits@vger.kernel.org>; Sun, 29 Jun 2025 23:06:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37C35235046
+	for <mm-commits@vger.kernel.org>; Sun, 29 Jun 2025 23:06:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751238373; cv=none; b=QOo4fIRJJ5DWcrSOyv7vJ7CAObXcISvL2SSR2IRY8BbGsXG1aa/+bHcSSkJ15608KVrfgu3mL3f3vLMdXZAul9mWsKBDYvf1H9HkNmVfzPjfEiZ8/qk0TDrxQBmSdj4gF1KzyF+E+0ZqTbsc54I+3nnzvP92Ybh7JNx6F32chl0=
+	t=1751238376; cv=none; b=FE/ti6cxLldzQHiOvwGGc1vxc1vMdTvPWotZRd/0uv5cMJfA5HdgROI0MH0sG4IO7xD4NGBWRNstb1rwiL9ODfU4VVBDvtbMxcEZjWeYhuy4uVlB3aPCkQlHfrMFbXzDMenjoFYijxZQgE72t0pGC7T+59FRXuGo7EC3nAWREZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751238373; c=relaxed/simple;
-	bh=OQfAsGvsvNB5YdzGy3F3N/YKFTq0jtbBiH2UlGApAyU=;
-	h=Date:To:From:Subject:Message-Id; b=LluPNHAplxRPDmWqn7IdYACt5ojjC4Y3mlCekDUnzG87PbHTt1pUvsGvL1Y8Dt2iifFS0jkhJX9QwUXSk45arhePx3Wt1lu/vWzTCBm6t5+3F1Q53//KhOPi2PpSU2ACQI7VBLD6+33piVssPYcmYoJ31b+/8vTVz6dZVJD4JI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GcdmfOjx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751238376; c=relaxed/simple;
+	bh=ucrx9I0sV5/ILD3uRrNMtGZiXFdlzWrRjGytR0CGsiU=;
+	h=Date:To:From:Subject:Message-Id; b=uSihdDtEYPT3gNlxLetDlGH0J0wdfxpHLPXd9J4E8netcXxI4r5ujXuW0GsCBcy/5kn38EWgEjHFO8XjBdPtxED1vgmt2n5i99tq+4m9aqmX1B+sNr8TpOpq7xxcoyOfhIljLgDdj7sYvgg4YUc6QBTfByXaQh+uboHzk+3AzII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TkcNbhpN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GcdmfOjx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56ECDC4CEEB;
-	Sun, 29 Jun 2025 23:06:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TkcNbhpN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA31BC4CEEB;
+	Sun, 29 Jun 2025 23:06:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751238373;
-	bh=OQfAsGvsvNB5YdzGy3F3N/YKFTq0jtbBiH2UlGApAyU=;
+	s=korg; t=1751238375;
+	bh=ucrx9I0sV5/ILD3uRrNMtGZiXFdlzWrRjGytR0CGsiU=;
 	h=Date:To:From:Subject:From;
-	b=GcdmfOjxm+jApOB6ka7Ov9yYu6UAkrlN/QnO/Nd40BZbU8nIuy8bfTkIpcW7aVCPF
-	 2WjAzrSFyVIi1FpeKKEC+NEegp1axV3dZ/iGNf1ZDer73tkfEHhvQVL1KCBVR3221+
-	 E8fahibKioVgura0U8T2xw/FTg8tVNhcF+RhbZGk=
-Date: Sun, 29 Jun 2025 16:06:12 -0700
+	b=TkcNbhpNjP8fDlRFntqKD1b4YH5K2DzybtzAnzVY0QLnPzrBtJijVXY+fl9Tl9kOS
+	 5SY1J4PwdHuRWnSECXprcmbnhfUB+TgKT3TQI8Jqn0liYBt/AbZiRf8u9IDt1ygXSA
+	 Uxb4u17p2ZYowjXOtn3wSyZdEIUbC4hBblOE8JkY=
+Date: Sun, 29 Jun 2025 16:06:15 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangyicong@hisilicon.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,vbabka@suse.cz,ryan.roberts@arm.com,quic_zhenhuah@quicinc.com,peterx@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,joey.gouly@arm.com,jannh@google.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch added to mm-new branch
-Message-Id: <20250629230613.56ECDC4CEEB@smtp.kernel.org>
+Subject: + mm-add-batched-versions-of-ptep_modify_prot_start-commit.patch added to mm-new branch
+Message-Id: <20250629230615.AA31BC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: optimize mprotect() for MM_CP_PROT_NUMA by batch-skipping PTEs
+     Subject: mm: add batched versions of ptep_modify_prot_start/commit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch
+     mm-add-batched-versions-of-ptep_modify_prot_start-commit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-batched-versions-of-ptep_modify_prot_start-commit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,104 +65,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: mm: optimize mprotect() for MM_CP_PROT_NUMA by batch-skipping PTEs
-Date: Sat, 28 Jun 2025 17:04:32 +0530
+Subject: mm: add batched versions of ptep_modify_prot_start/commit
+Date: Sat, 28 Jun 2025 17:04:33 +0530
 
-Patch series "Optimize mprotect() for large folios", v4.
+Batch ptep_modify_prot_start/commit in preparation for optimizing
+mprotect.  Architecture can override these helpers; in case not, they are
+implemented as a simple loop over the corresponding single pte helpers.
 
-This patchset optimizes the mprotect() system call for large folios by
-PTE-batching.  No issues were observed with mm-selftests, build tested on
-x86_64.
-
-We use the following test cases to measure performance, mprotect()'ing the
-mapped memory to read-only then read-write 40 times:
-
-Test case 1: Mapping 1G of memory, touching it to get PMD-THPs, then
-pte-mapping those THPs
-Test case 2: Mapping 1G of memory with 64K mTHPs
-Test case 3: Mapping 1G of memory with 4K pages
-
-Average execution time on arm64, Apple M3:
-Before the patchset:
-T1: 7.9 seconds   T2: 7.9 seconds   T3: 4.2 seconds
-
-After the patchset:
-T1: 2.1 seconds   T2: 2.2 seconds   T3: 4.3 seconds
-
-Observing T1/T2 and T3 before the patchset, we also remove the regression
-introduced by ptep_get() on a contpte block.  And, for large folios we get
-an almost 74% performance improvement, albeit the trade-off being a slight
-degradation in the small folio case.
-
-Here is the test program:
-
- #define _GNU_SOURCE
- #include <sys/mman.h>
- #include <stdlib.h>
- #include <string.h>
- #include <stdio.h>
- #include <unistd.h>
-
- #define SIZE (1024*1024*1024)
-
-unsigned long pmdsize = (1UL << 21);
-unsigned long pagesize = (1UL << 12);
-
-static void pte_map_thps(char *mem, size_t size)
-{
-	size_t offs;
-	int ret = 0;
-
-
-	/* PTE-map each THP by temporarily splitting the VMAs. */
-	for (offs = 0; offs < size; offs += pmdsize) {
-		ret |= madvise(mem + offs, pagesize, MADV_DONTFORK);
-		ret |= madvise(mem + offs, pagesize, MADV_DOFORK);
-	}
-
-	if (ret) {
-		fprintf(stderr, "ERROR: mprotect() failed\n");
-		exit(1);
-	}
-}
-
-int main(int argc, char *argv[])
-{
-	char *p;
-        int ret = 0;
-	p = mmap((1UL << 30), SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	if (p != (1UL << 30)) {
-		perror("mmap");
-		return 1;
-	}
-
-
-
-	memset(p, 0, SIZE);
-	if (madvise(p, SIZE, MADV_NOHUGEPAGE))
-		perror("madvise");
-	explicit_bzero(p, SIZE);
-	pte_map_thps(p, SIZE);
-
-	for (int loops = 0; loops < 40; loops++) {
-		if (mprotect(p, SIZE, PROT_READ))
-			perror("mprotect"), exit(1);
-		if (mprotect(p, SIZE, PROT_READ|PROT_WRITE))
-			perror("mprotect"), exit(1);
-		explicit_bzero(p, SIZE);
-	}
-}
-
-
-This patch (of 4):
-
-In case of prot_numa, there are various cases in which we can skip to the
-next iteration.  Since the skip condition is based on the folio and not
-the PTEs, we can skip a PTE batch.  Additionally refactor all of this into
-a new function to clean up the existing code.
-
-Link: https://lkml.kernel.org/r/20250628113435.46678-1-dev.jain@arm.com
-Link: https://lkml.kernel.org/r/20250628113435.46678-2-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250628113435.46678-3-dev.jain@arm.com
 Signed-off-by: Dev Jain <dev.jain@arm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -188,183 +98,129 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |  134 +++++++++++++++++++++++++++++++-----------------
- 1 file changed, 87 insertions(+), 47 deletions(-)
+ include/linux/pgtable.h |   83 +++++++++++++++++++++++++++++++++++++-
+ mm/mprotect.c           |    4 -
+ 2 files changed, 84 insertions(+), 3 deletions(-)
 
---- a/mm/mprotect.c~mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes
-+++ a/mm/mprotect.c
-@@ -83,6 +83,83 @@ bool can_change_pte_writable(struct vm_a
- 	return pte_dirty(pte);
+--- a/include/linux/pgtable.h~mm-add-batched-versions-of-ptep_modify_prot_start-commit
++++ a/include/linux/pgtable.h
+@@ -1331,7 +1331,8 @@ static inline pte_t ptep_modify_prot_sta
+ 
+ /*
+  * Commit an update to a pte, leaving any hardware-controlled bits in
+- * the PTE unmodified.
++ * the PTE unmodified. The pte may have been "upgraded" w.r.t a/d bits compared
++ * to the old_pte, as in, it may have a/d bits on which were off in old_pte.
+  */
+ static inline void ptep_modify_prot_commit(struct vm_area_struct *vma,
+ 					   unsigned long addr,
+@@ -1340,6 +1341,86 @@ static inline void ptep_modify_prot_comm
+ 	__ptep_modify_prot_commit(vma, addr, ptep, pte);
  }
- 
-+static int mprotect_folio_pte_batch(struct folio *folio, unsigned long addr,
-+		pte_t *ptep, pte_t pte, int max_nr_ptes)
+ #endif /* __HAVE_ARCH_PTEP_MODIFY_PROT_TRANSACTION */
++
++/**
++ * modify_prot_start_ptes - Start a pte protection read-modify-write transaction
++ * over a batch of ptes, which protects against asynchronous hardware
++ * modifications to the ptes. The intention is not to prevent the hardware from
++ * making pte updates, but to prevent any updates it may make from being lost.
++ * Please see the comment above ptep_modify_prot_start() for full description.
++ *
++ * @vma: The virtual memory area the pages are mapped into.
++ * @addr: Address the first page is mapped at.
++ * @ptep: Page table pointer for the first entry.
++ * @nr: Number of entries.
++ *
++ * May be overridden by the architecture; otherwise, implemented as a simple
++ * loop over ptep_modify_prot_start(), collecting the a/d bits from each pte
++ * in the batch.
++ *
++ * Note that PTE bits in the PTE batch besides the PFN can differ.
++ *
++ * Context: The caller holds the page table lock.  The PTEs map consecutive
++ * pages that belong to the same folio.  The PTEs are all in the same PMD.
++ * Since the batch is determined from folio_pte_batch, the PTEs must differ
++ * only in a/d bits (and the soft dirty bit; see fpb_t flags in
++ * mprotect_folio_pte_batch()).
++ */
++#ifndef modify_prot_start_ptes
++static inline pte_t modify_prot_start_ptes(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep, unsigned int nr)
 +{
-+	const fpb_t flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
++	pte_t pte, tmp_pte;
 +
-+	if (!folio || !folio_test_large(folio) || (max_nr_ptes == 1))
-+		return 1;
-+
-+	return folio_pte_batch(folio, addr, ptep, pte, max_nr_ptes, flags,
-+			       NULL, NULL, NULL);
-+}
-+
-+static int prot_numa_skip_ptes(struct folio **foliop, struct vm_area_struct *vma,
-+		unsigned long addr, pte_t oldpte, pte_t *pte, int target_node,
-+		int max_nr_ptes)
-+{
-+	struct folio *folio = NULL;
-+	int nr_ptes = 1;
-+	bool toptier;
-+	int nid;
-+
-+	/* Avoid TLB flush if possible */
-+	if (pte_protnone(oldpte))
-+		goto skip_batch;
-+
-+	folio = vm_normal_folio(vma, addr, oldpte);
-+	if (!folio)
-+		goto skip_batch;
-+
-+	if (folio_is_zone_device(folio) || folio_test_ksm(folio))
-+		goto skip_batch;
-+
-+	/* Also skip shared copy-on-write pages */
-+	if (is_cow_mapping(vma->vm_flags) &&
-+	    (folio_maybe_dma_pinned(folio) || folio_maybe_mapped_shared(folio)))
-+		goto skip_batch;
-+
-+	/*
-+	 * While migration can move some dirty pages,
-+	 * it cannot move them all from MIGRATE_ASYNC
-+	 * context.
-+	 */
-+	if (folio_is_file_lru(folio) && folio_test_dirty(folio))
-+		goto skip_batch;
-+
-+	/*
-+	 * Don't mess with PTEs if page is already on the node
-+	 * a single-threaded process is running on.
-+	 */
-+	nid = folio_nid(folio);
-+	if (target_node == nid)
-+		goto skip_batch;
-+
-+	toptier = node_is_toptier(nid);
-+
-+	/*
-+	 * Skip scanning top tier node if normal numa
-+	 * balancing is disabled
-+	 */
-+	if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) && toptier)
-+		goto skip_batch;
-+
-+	if (folio_use_access_time(folio)) {
-+		folio_xchg_access_time(folio, jiffies_to_msecs(jiffies));
-+
-+		/* Do not skip in this case */
-+		nr_ptes = 0;
-+		goto out;
++	pte = ptep_modify_prot_start(vma, addr, ptep);
++	while (--nr) {
++		ptep++;
++		addr += PAGE_SIZE;
++		tmp_pte = ptep_modify_prot_start(vma, addr, ptep);
++		if (pte_dirty(tmp_pte))
++			pte = pte_mkdirty(pte);
++		if (pte_young(tmp_pte))
++			pte = pte_mkyoung(pte);
 +	}
-+
-+skip_batch:
-+	nr_ptes = mprotect_folio_pte_batch(folio, addr, pte, oldpte, max_nr_ptes);
-+out:
-+	*foliop = folio;
-+	return nr_ptes;
++	return pte;
 +}
++#endif
 +
- static long change_pte_range(struct mmu_gather *tlb,
- 		struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
- 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
-@@ -94,6 +171,7 @@ static long change_pte_range(struct mmu_
- 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
-+	int nr_ptes;
++/**
++ * modify_prot_commit_ptes - Commit an update to a batch of ptes, leaving any
++ * hardware-controlled bits in the PTE unmodified.
++ *
++ * @vma: The virtual memory area the pages are mapped into.
++ * @addr: Address the first page is mapped at.
++ * @ptep: Page table pointer for the first entry.
++ * @old_pte: Old page table entry (for the first entry) which is now cleared.
++ * @pte: New page table entry to be set.
++ * @nr: Number of entries.
++ *
++ * May be overridden by the architecture; otherwise, implemented as a simple
++ * loop over ptep_modify_prot_commit().
++ *
++ * Context: The caller holds the page table lock. The PTEs are all in the same
++ * PMD. On exit, the set ptes in the batch map the same folio. The pte may have
++ * been "upgraded" w.r.t a/d bits compared to the old_pte, as in, it may have
++ * a/d bits on which were off in old_pte.
++ */
++#ifndef modify_prot_commit_ptes
++static inline void modify_prot_commit_ptes(struct vm_area_struct *vma, unsigned long addr,
++		pte_t *ptep, pte_t old_pte, pte_t pte, unsigned int nr)
++{
++	int i;
++
++	for (i = 0; i < nr; ++i) {
++		ptep_modify_prot_commit(vma, addr, ptep, old_pte, pte);
++		ptep++;
++		addr += PAGE_SIZE;
++		old_pte = pte_next_pfn(old_pte);
++		pte = pte_next_pfn(pte);
++	}
++}
++#endif
++
+ #endif /* CONFIG_MMU */
  
- 	tlb_change_page_size(tlb, PAGE_SIZE);
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-@@ -108,8 +186,11 @@ static long change_pte_range(struct mmu_
- 	flush_tlb_batched_pending(vma->vm_mm);
- 	arch_enter_lazy_mmu_mode();
- 	do {
-+		nr_ptes = 1;
- 		oldpte = ptep_get(pte);
- 		if (pte_present(oldpte)) {
-+			int max_nr_ptes = (end - addr) >> PAGE_SHIFT;
-+			struct folio *folio = NULL;
- 			pte_t ptent;
- 
- 			/*
-@@ -117,53 +198,12 @@ static long change_pte_range(struct mmu_
- 			 * pages. See similar comment in change_huge_pmd.
- 			 */
- 			if (prot_numa) {
--				struct folio *folio;
--				int nid;
--				bool toptier;
--
--				/* Avoid TLB flush if possible */
--				if (pte_protnone(oldpte))
--					continue;
--
--				folio = vm_normal_folio(vma, addr, oldpte);
--				if (!folio || folio_is_zone_device(folio) ||
--				    folio_test_ksm(folio))
--					continue;
--
--				/* Also skip shared copy-on-write pages */
--				if (is_cow_mapping(vma->vm_flags) &&
--				    (folio_maybe_dma_pinned(folio) ||
--				     folio_maybe_mapped_shared(folio)))
--					continue;
--
--				/*
--				 * While migration can move some dirty pages,
--				 * it cannot move them all from MIGRATE_ASYNC
--				 * context.
--				 */
--				if (folio_is_file_lru(folio) &&
--				    folio_test_dirty(folio))
--					continue;
--
--				/*
--				 * Don't mess with PTEs if page is already on the node
--				 * a single-threaded process is running on.
--				 */
--				nid = folio_nid(folio);
--				if (target_node == nid)
--					continue;
--				toptier = node_is_toptier(nid);
--
--				/*
--				 * Skip scanning top tier node if normal numa
--				 * balancing is disabled
--				 */
--				if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) &&
--				    toptier)
-+				nr_ptes = prot_numa_skip_ptes(&folio, vma,
-+							      addr, oldpte, pte,
-+							      target_node,
-+							      max_nr_ptes);
-+				if (nr_ptes)
+ /*
+--- a/mm/mprotect.c~mm-add-batched-versions-of-ptep_modify_prot_start-commit
++++ a/mm/mprotect.c
+@@ -206,7 +206,7 @@ static long change_pte_range(struct mmu_
  					continue;
--				if (folio_use_access_time(folio))
--					folio_xchg_access_time(folio,
--						jiffies_to_msecs(jiffies));
  			}
  
- 			oldpte = ptep_modify_prot_start(vma, addr, pte);
-@@ -280,7 +320,7 @@ static long change_pte_range(struct mmu_
- 				pages++;
- 			}
- 		}
--	} while (pte++, addr += PAGE_SIZE, addr != end);
-+	} while (pte += nr_ptes, addr += nr_ptes * PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(pte - 1, ptl);
+-			oldpte = ptep_modify_prot_start(vma, addr, pte);
++			oldpte = modify_prot_start_ptes(vma, addr, pte, nr_ptes);
+ 			ptent = pte_modify(oldpte, newprot);
  
+ 			if (uffd_wp)
+@@ -232,7 +232,7 @@ static long change_pte_range(struct mmu_
+ 			    can_change_pte_writable(vma, addr, ptent))
+ 				ptent = pte_mkwrite(ptent, vma);
+ 
+-			ptep_modify_prot_commit(vma, addr, pte, oldpte, ptent);
++			modify_prot_commit_ptes(vma, addr, pte, oldpte, ptent, nr_ptes);
+ 			if (pte_needs_flush(oldpte, ptent))
+ 				tlb_flush_pte_range(tlb, addr, PAGE_SIZE);
+ 			pages++;
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
