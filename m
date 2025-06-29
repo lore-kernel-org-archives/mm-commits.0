@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 267FC27442
-	for <mm-commits@vger.kernel.org>; Sun, 29 Jun 2025 22:58:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83AD1DE891
+	for <mm-commits@vger.kernel.org>; Sun, 29 Jun 2025 23:06:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751237890; cv=none; b=pJHFuia3y1rU2mw1wKGGlBfRuKgG0DBlgbku9be6ebq7TBK/nYL1i49uUCToZSzSPHu8Lo0iZSX+Xrpvlj4KtUc+05iWsuw3D5rxdoziNIAIGhhFXEpK9M0eCtoWdWLhEw3QbgSPVkHB+ISVnYTysM+Xo5TBUvWljJgszcOzqFw=
+	t=1751238373; cv=none; b=QOo4fIRJJ5DWcrSOyv7vJ7CAObXcISvL2SSR2IRY8BbGsXG1aa/+bHcSSkJ15608KVrfgu3mL3f3vLMdXZAul9mWsKBDYvf1H9HkNmVfzPjfEiZ8/qk0TDrxQBmSdj4gF1KzyF+E+0ZqTbsc54I+3nnzvP92Ybh7JNx6F32chl0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751237890; c=relaxed/simple;
-	bh=uFbReH/nMh8ndye7nHPyvpa/2fqdsY9747hfWfVcySU=;
-	h=Date:To:From:Subject:Message-Id; b=g/c5fIGvSbU7azrwpBkjyStPj1AwtPdtQAN9WQu9YWF9AVuIQqS5hbLQUYSff6srAYZznP+DeVFsE8ezPT5q5vQZYvtd7O5GEQIt9iE5ZelpBmkReg+luTVk6NfBwmM0qfuRF4oxqqKON8uT28d8UnKWC8QHwuYiE4wTK8JCzQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NfnYhCG4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751238373; c=relaxed/simple;
+	bh=OQfAsGvsvNB5YdzGy3F3N/YKFTq0jtbBiH2UlGApAyU=;
+	h=Date:To:From:Subject:Message-Id; b=LluPNHAplxRPDmWqn7IdYACt5ojjC4Y3mlCekDUnzG87PbHTt1pUvsGvL1Y8Dt2iifFS0jkhJX9QwUXSk45arhePx3Wt1lu/vWzTCBm6t5+3F1Q53//KhOPi2PpSU2ACQI7VBLD6+33piVssPYcmYoJ31b+/8vTVz6dZVJD4JI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GcdmfOjx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NfnYhCG4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F9E3C4CEEB;
-	Sun, 29 Jun 2025 22:58:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GcdmfOjx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56ECDC4CEEB;
+	Sun, 29 Jun 2025 23:06:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751237889;
-	bh=uFbReH/nMh8ndye7nHPyvpa/2fqdsY9747hfWfVcySU=;
+	s=korg; t=1751238373;
+	bh=OQfAsGvsvNB5YdzGy3F3N/YKFTq0jtbBiH2UlGApAyU=;
 	h=Date:To:From:Subject:From;
-	b=NfnYhCG43PwQ7e5J/mS/xvzbw3auGoCCgVofyIqaBZAu8/Iky4Uh+ZAfIgyuCPavL
-	 3YW+ZEGBggj1OjjPKGejEcaXBQA+1rZoBNlt3UjZsSXfQw/+6zAskL5zMQl8nUpaTc
-	 lc2zHNFB5mQnmrbHnPiNlmah+AWMtwfq/uJvhoDc=
-Date: Sun, 29 Jun 2025 15:58:09 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
+	b=GcdmfOjxm+jApOB6ka7Ov9yYu6UAkrlN/QnO/Nd40BZbU8nIuy8bfTkIpcW7aVCPF
+	 2WjAzrSFyVIi1FpeKKEC+NEegp1axV3dZ/iGNf1ZDer73tkfEHhvQVL1KCBVR3221+
+	 E8fahibKioVgura0U8T2xw/FTg8tVNhcF+RhbZGk=
+Date: Sun, 29 Jun 2025 16:06:12 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangyicong@hisilicon.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,vbabka@suse.cz,ryan.roberts@arm.com,quic_zhenhuah@quicinc.com,peterx@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,joey.gouly@arm.com,jannh@google.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-process_madvise-tests.patch added to mm-new branch
-Message-Id: <20250629225809.9F9E3C4CEEB@smtp.kernel.org>
+Subject: + mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch added to mm-new branch
+Message-Id: <20250629230613.56ECDC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: Add process_madvise() tests
+     Subject: mm: optimize mprotect() for MM_CP_PROT_NUMA by batch-skipping PTEs
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-process_madvise-tests.patch
+     mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-process_madvise-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,497 +64,317 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wang lian <lianux.mm@gmail.com>
-Subject: selftests/mm: Add process_madvise() tests
-Date: Sat, 28 Jun 2025 19:39:45 +0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: mm: optimize mprotect() for MM_CP_PROT_NUMA by batch-skipping PTEs
+Date: Sat, 28 Jun 2025 17:04:32 +0530
 
-Add tests for process_madvise(), focusing on verifying behavior under
-various conditions including valid usage and error cases.
+Patch series "Optimize mprotect() for large folios", v4.
 
-Link: https://lkml.kernel.org/r/20250628113945.145588-1-lianux.mm@gmail.com
-Signed-off-by: wang lian<lianux.mm@gmail.com>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
+This patchset optimizes the mprotect() system call for large folios by
+PTE-batching.  No issues were observed with mm-selftests, build tested on
+x86_64.
+
+We use the following test cases to measure performance, mprotect()'ing the
+mapped memory to read-only then read-write 40 times:
+
+Test case 1: Mapping 1G of memory, touching it to get PMD-THPs, then
+pte-mapping those THPs
+Test case 2: Mapping 1G of memory with 64K mTHPs
+Test case 3: Mapping 1G of memory with 4K pages
+
+Average execution time on arm64, Apple M3:
+Before the patchset:
+T1: 7.9 seconds   T2: 7.9 seconds   T3: 4.2 seconds
+
+After the patchset:
+T1: 2.1 seconds   T2: 2.2 seconds   T3: 4.3 seconds
+
+Observing T1/T2 and T3 before the patchset, we also remove the regression
+introduced by ptep_get() on a contpte block.  And, for large folios we get
+an almost 74% performance improvement, albeit the trade-off being a slight
+degradation in the small folio case.
+
+Here is the test program:
+
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdio.h>
+ #include <unistd.h>
+
+ #define SIZE (1024*1024*1024)
+
+unsigned long pmdsize = (1UL << 21);
+unsigned long pagesize = (1UL << 12);
+
+static void pte_map_thps(char *mem, size_t size)
+{
+	size_t offs;
+	int ret = 0;
+
+
+	/* PTE-map each THP by temporarily splitting the VMAs. */
+	for (offs = 0; offs < size; offs += pmdsize) {
+		ret |= madvise(mem + offs, pagesize, MADV_DONTFORK);
+		ret |= madvise(mem + offs, pagesize, MADV_DOFORK);
+	}
+
+	if (ret) {
+		fprintf(stderr, "ERROR: mprotect() failed\n");
+		exit(1);
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	char *p;
+        int ret = 0;
+	p = mmap((1UL << 30), SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (p != (1UL << 30)) {
+		perror("mmap");
+		return 1;
+	}
+
+
+
+	memset(p, 0, SIZE);
+	if (madvise(p, SIZE, MADV_NOHUGEPAGE))
+		perror("madvise");
+	explicit_bzero(p, SIZE);
+	pte_map_thps(p, SIZE);
+
+	for (int loops = 0; loops < 40; loops++) {
+		if (mprotect(p, SIZE, PROT_READ))
+			perror("mprotect"), exit(1);
+		if (mprotect(p, SIZE, PROT_READ|PROT_WRITE))
+			perror("mprotect"), exit(1);
+		explicit_bzero(p, SIZE);
+	}
+}
+
+
+This patch (of 4):
+
+In case of prot_numa, there are various cases in which we can skip to the
+next iteration.  Since the skip condition is based on the folio and not
+the PTEs, we can skip a PTE batch.  Additionally refactor all of this into
+a new function to clean up the existing code.
+
+Link: https://lkml.kernel.org/r/20250628113435.46678-1-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250628113435.46678-2-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Joey Gouly <joey.gouly@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Yicong Yang <yangyicong@hisilicon.com>
+Cc: Zhenhua Huang <quic_zhenhuah@quicinc.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore     |    1 
- tools/testing/selftests/mm/Makefile       |    1 
- tools/testing/selftests/mm/process_madv.c |  414 ++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh |    5 
- 4 files changed, 421 insertions(+)
+ mm/mprotect.c |  134 +++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 87 insertions(+), 47 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -25,6 +25,7 @@ pfnmap
- protection_keys
- protection_keys_32
- protection_keys_64
-+process_madv
- madv_populate
- uffd-stress
- uffd-unit-tests
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -85,6 +85,7 @@ TEST_GEN_FILES += mseal_test
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
- TEST_GEN_FILES += pfnmap
-+TEST_GEN_FILES += process_madv
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
-diff --git a/tools/testing/selftests/mm/process_madv.c a/tools/testing/selftests/mm/process_madv.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/process_madv.c
-@@ -0,0 +1,414 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#define _GNU_SOURCE
-+#include "../kselftest_harness.h"
-+#include <errno.h>
-+#include <setjmp.h>
-+#include <signal.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/syscall.h>
-+#include <unistd.h>
-+#include <sched.h>
-+#include <sys/pidfd.h>
-+#include "vm_util.h"
-+
-+#include "../pidfd/pidfd.h"
-+
-+/*
-+ * Ignore the checkpatch warning, as per the C99 standard, section 7.14.1.1:
-+ *
-+ * "If the signal occurs other than as the result of calling the abort or raise
-+ *  function, the behavior is undefined if the signal handler refers to any
-+ *  object with static storage duration other than by assigning a value to an
-+ *  object declared as volatile sig_atomic_t"
-+ */
-+static volatile sig_atomic_t signal_jump_set;
-+static sigjmp_buf signal_jmp_buf;
-+
-+/*
-+ * Ignore the checkpatch warning, we must read from x but don't want to do
-+ * anything with it in order to trigger a read page fault. We therefore must use
-+ * volatile to stop the compiler from optimising this away.
-+ */
-+#define FORCE_READ(x) (*(volatile typeof(x) *)x)
-+
-+static void handle_fatal(int c)
-+{
-+	if (!signal_jump_set)
-+		return;
-+
-+	siglongjmp(signal_jmp_buf, c);
-+}
-+
-+FIXTURE(process_madvise)
-+{
-+	int pidfd;
-+	int flag;
-+};
-+
-+static void setup_sighandler(void)
-+{
-+	struct sigaction act = {
-+		.sa_handler = &handle_fatal,
-+		.sa_flags = SA_NODEFER,
-+	};
-+
-+	sigemptyset(&act.sa_mask);
-+	if (sigaction(SIGSEGV, &act, NULL))
-+		ksft_exit_fail_perror("sigaction");
-+}
-+
-+static void teardown_sighandler(void)
-+{
-+	struct sigaction act = {
-+		.sa_handler = SIG_DFL,
-+		.sa_flags = SA_NODEFER,
-+	};
-+
-+	sigemptyset(&act.sa_mask);
-+	sigaction(SIGSEGV, &act, NULL);
-+}
-+
-+FIXTURE_SETUP(process_madvise)
-+{
-+	self->pidfd = PIDFD_SELF;
-+	self->flag = 0;
-+	setup_sighandler();
-+};
-+
-+FIXTURE_TEARDOWN_PARENT(process_madvise)
-+{
-+	teardown_sighandler();
-+}
-+
-+static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
-+				   size_t vlen, int advice, unsigned int flags)
-+{
-+	return syscall(__NR_process_madvise, pidfd, iovec, vlen, advice, flags);
-+}
-+
-+/*
-+ * Enable our signal catcher and try to read/write the specified buffer. The
-+ * return value indicates whether the read/write succeeds without a fatal
-+ * signal.
-+ */
-+static bool try_access_buf(char *ptr, bool write)
-+{
-+	bool failed;
-+
-+	/* Tell signal handler to jump back here on fatal signal. */
-+	signal_jump_set = true;
-+	/* If a fatal signal arose, we will jump back here and failed is set. */
-+	failed = sigsetjmp(signal_jmp_buf, 0) != 0;
-+
-+	if (!failed) {
-+		if (write)
-+			*ptr = 'x';
-+		else
-+			FORCE_READ(ptr);
-+	}
-+
-+	signal_jump_set = false;
-+	return !failed;
-+}
-+
-+/* Try and read from a buffer, return true if no fatal signal. */
-+static bool try_read_buf(char *ptr)
-+{
-+	return try_access_buf(ptr, false);
-+}
-+
-+TEST_F(process_madvise, basic)
-+{
-+	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
-+	const int madvise_pages = 4;
-+	char *map;
-+	ssize_t ret;
-+	struct iovec vec[madvise_pages];
-+
-+	/*
-+	 * Create a single large mapping. We will pick pages from this
-+	 * mapping to advise on. This ensures we test non-contiguous iovecs.
-+	 */
-+	map = mmap(NULL, pagesize * 10, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(map, MAP_FAILED);
-+
-+	/* Fill the entire region with a known pattern. */
-+	memset(map, 'A', pagesize * 10);
-+
-+	/*
-+	 * Setup the iovec to point to 4 non-contiguous pages
-+	 * within the mapping.
-+	 */
-+	vec[0].iov_base = &map[0 * pagesize];
-+	vec[0].iov_len = pagesize;
-+	vec[1].iov_base = &map[3 * pagesize];
-+	vec[1].iov_len = pagesize;
-+	vec[2].iov_base = &map[5 * pagesize];
-+	vec[2].iov_len = pagesize;
-+	vec[3].iov_base = &map[8 * pagesize];
-+	vec[3].iov_len = pagesize;
-+
-+	ret = sys_process_madvise(PIDFD_SELF, vec, madvise_pages, MADV_DONTNEED,
-+				  0);
-+	if (ret == -1 && errno == EPERM)
-+		ksft_exit_skip(
-+			"process_madvise() unsupported or permission denied, try running as root.\n");
-+	else if (errno == EINVAL)
-+		ksft_exit_skip(
-+			"process_madvise() unsupported or parameter invalid, please check arguments.\n");
-+
-+	/* The call should succeed and report the total bytes processed. */
-+	ASSERT_EQ(ret, madvise_pages * pagesize);
-+
-+	/* Check that advised pages are now zero. */
-+	for (int i = 0; i < madvise_pages; i++) {
-+		char *advised_page = (char *)vec[i].iov_base;
-+
-+		/* Access should be successful (kernel provides a new page). */
-+		ASSERT_TRUE(try_read_buf(advised_page));
-+		/* Content must be 0, not 'A'. */
-+		ASSERT_EQ(*advised_page, 0);
-+	}
-+
-+	/* Check that an un-advised page in between is still 'A'. */
-+	char *unadvised_page = &map[1 * pagesize];
-+
-+	ASSERT_TRUE(try_read_buf(unadvised_page));
-+	ASSERT_EQ(*unadvised_page, 'A');
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize * 10), 0);
-+}
-+
-+static long get_smaps_anon_huge_pages(pid_t pid, void *addr)
-+{
-+	char smaps_path[64];
-+	char *line = NULL;
-+	unsigned long start, end;
-+	long anon_huge_kb;
-+	size_t len;
-+	FILE *f;
-+	bool in_vma;
-+
-+	in_vma = false;
-+	sprintf(smaps_path, "/proc/%d/smaps", pid);
-+	f = fopen(smaps_path, "r");
-+	if (!f)
-+		return -1;
-+
-+	while (getline(&line, &len, f) != -1) {
-+		/* Check if the line describes a VMA range */
-+		if (sscanf(line, "%lx-%lx", &start, &end) == 2) {
-+			if ((unsigned long)addr >= start &&
-+			    (unsigned long)addr < end)
-+				in_vma = true;
-+			else
-+				in_vma = false;
-+			continue;
-+		}
-+
-+		/* If we are in the correct VMA, look for the AnonHugePages field */
-+		if (in_vma &&
-+		    sscanf(line, "AnonHugePages: %ld kB", &anon_huge_kb) == 1)
-+			break;
-+	}
-+
-+	free(line);
-+	fclose(f);
-+
-+	return (anon_huge_kb > 0) ? (anon_huge_kb * 1024) : 0;
-+}
-+
-+/**
-+ * TEST_F(process_madvise, remote_collapse)
-+ *
-+ * This test deterministically validates process_madvise() with MADV_COLLAPSE
-+ * on a remote process, other advices are difficult to verify reliably.
-+ *
-+ * The test verifies that a memory region in a child process, initially
-+ * backed by small pages, can be collapsed into a Transparent Huge Page by a
-+ * request from the parent. The result is verified by parsing the child's
-+ * /proc/<pid>/smaps file.
-+ */
-+TEST_F(process_madvise, remote_collapse)
-+{
-+	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
-+	pid_t child_pid;
-+	int pidfd;
-+	long huge_page_size;
-+	int pipe_info[2];
-+	ssize_t ret;
-+	struct iovec vec;
-+
-+	struct child_info {
-+		pid_t pid;
-+		void *map_addr;
-+	} info;
-+
-+	huge_page_size = default_huge_page_size();
-+	if (huge_page_size <= 0)
-+		ksft_exit_skip("Could not determine a valid huge page size.\n");
-+
-+	ASSERT_EQ(pipe(pipe_info), 0);
-+
-+	child_pid = fork();
-+	ASSERT_NE(child_pid, -1);
-+
-+	if (child_pid == 0) {
-+		char *map;
-+		size_t map_size = 2 * huge_page_size;
-+
-+		close(pipe_info[0]);
-+
-+		map = mmap(NULL, map_size, PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+		ASSERT_NE(map, MAP_FAILED);
-+
-+		/* Fault in as small pages */
-+		for (size_t i = 0; i < map_size; i += pagesize)
-+			map[i] = 'A';
-+
-+		/* Send info and pause */
-+		info.pid = getpid();
-+		info.map_addr = map;
-+		ret = write(pipe_info[1], &info, sizeof(info));
-+		ASSERT_EQ(ret, sizeof(info));
-+		close(pipe_info[1]);
-+
-+		pause();
-+		exit(0);
-+	}
-+
-+	close(pipe_info[1]);
-+
-+	/* Receive child info */
-+	ret = read(pipe_info[0], &info, sizeof(info));
-+	if (ret <= 0) {
-+		waitpid(child_pid, NULL, 0);
-+		ksft_exit_skip("Failed to read child info from pipe.\n");
-+	}
-+	ASSERT_EQ(ret, sizeof(info));
-+	close(pipe_info[0]);
-+	child_pid = info.pid;
-+
-+	pidfd = pidfd_open(child_pid, 0);
-+	ASSERT_GE(pidfd, 0);
-+
-+	/* Baseline Check from Parent's perspective */
-+	ASSERT_EQ(get_smaps_anon_huge_pages(child_pid, info.map_addr), 0);
-+
-+	vec.iov_base = info.map_addr;
-+	vec.iov_len = huge_page_size;
-+	ret = sys_process_madvise(pidfd, &vec, 1, MADV_COLLAPSE, 0);
-+	if (ret == -1) {
-+		if (errno == EINVAL)
-+			ksft_exit_skip(
-+				"PROCESS_MADV_ADVISE is not supported.\n");
-+		else if (errno == EPERM)
-+			ksft_exit_skip(
-+				"No process_madvise() permissions, try running as root.\n");
-+		goto cleanup;
-+	}
-+	ASSERT_EQ(ret, huge_page_size);
-+
-+	ASSERT_EQ(get_smaps_anon_huge_pages(child_pid, info.map_addr),
-+		  huge_page_size);
-+
-+	ksft_test_result_pass(
-+		"MADV_COLLAPSE successfully verified via smaps.\n");
-+
-+cleanup:
-+	/* Cleanup */
-+	kill(child_pid, SIGKILL);
-+	waitpid(child_pid, NULL, 0);
-+	if (pidfd >= 0)
-+		close(pidfd);
-+}
-+
-+/*
-+ * Test process_madvise() with various invalid pidfds to ensure correct error
-+ * handling. This includes negative fds, non-pidfd fds, and pidfds for
-+ * processes that no longer exist.
-+ */
-+TEST_F(process_madvise, invalid_pidfd)
-+{
-+	struct iovec vec;
-+	pid_t child_pid;
-+	ssize_t ret;
-+	int pidfd;
-+
-+	vec.iov_base = (void *)0x1234;
-+	vec.iov_len = 4096;
-+
-+	/* Using an invalid fd number (-1) should fail with EBADF. */
-+	ret = sys_process_madvise(-1, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EBADF);
-+
-+	/*
-+	 * Using a valid fd that is not a pidfd (e.g. stdin) should fail
-+	 * with EBADF.
-+	 */
-+	ret = sys_process_madvise(STDIN_FILENO, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EBADF);
-+
-+	/*
-+	 * Using a pidfd for a process that has already exited should fail
-+	 * with ESRCH.
-+	 */
-+	child_pid = fork();
-+	ASSERT_NE(child_pid, -1);
-+
-+	if (child_pid == 0)
-+		exit(0);
-+
-+	pidfd = pidfd_open(child_pid, 0);
-+	ASSERT_GE(pidfd, 0);
-+
-+	/* Wait for the child to ensure it has terminated. */
-+	waitpid(child_pid, NULL, 0);
-+
-+	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, ESRCH);
-+	close(pidfd);
-+}
-+
-+/*
-+ * Test process_madvise() with an invalid flag value. Now we only support flag=0
-+ * future we will use it support sync so reserve this test.
-+ */
-+TEST_F(process_madvise, flag)
-+{
-+	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
-+	unsigned int invalid_flag;
-+	struct iovec vec;
-+	char *map;
-+	ssize_t ret;
-+
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	ASSERT_NE(map, MAP_FAILED);
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
-+
-+	invalid_flag = 0x80000000;
-+
-+	ret = sys_process_madvise(PIDFD_SELF, &vec, 1, MADV_DONTNEED,
-+				  invalid_flag);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize), 0);
-+}
-+
-+TEST_HARNESS_MAIN
-\ No newline at end of file
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -59,6 +59,8 @@ separated by spaces:
- 	ksm tests that require >=2 NUMA nodes
- - pkey
- 	memory protection key tests
-+- process_madvise
-+	test process_madvise
- - soft_dirty
- 	test soft dirty page bit semantics
- - pagemap
-@@ -422,6 +424,9 @@ CATEGORY="hmm" run_test bash ./test_hmm.
- # MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
- CATEGORY="madv_guard" run_test ./guard-regions
+--- a/mm/mprotect.c~mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes
++++ a/mm/mprotect.c
+@@ -83,6 +83,83 @@ bool can_change_pte_writable(struct vm_a
+ 	return pte_dirty(pte);
+ }
  
-+# PROCESS_MADVISE TEST
-+CATEGORY="process_madv" run_test ./process_madv
++static int mprotect_folio_pte_batch(struct folio *folio, unsigned long addr,
++		pte_t *ptep, pte_t pte, int max_nr_ptes)
++{
++	const fpb_t flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
 +
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
++	if (!folio || !folio_test_large(folio) || (max_nr_ptes == 1))
++		return 1;
++
++	return folio_pte_batch(folio, addr, ptep, pte, max_nr_ptes, flags,
++			       NULL, NULL, NULL);
++}
++
++static int prot_numa_skip_ptes(struct folio **foliop, struct vm_area_struct *vma,
++		unsigned long addr, pte_t oldpte, pte_t *pte, int target_node,
++		int max_nr_ptes)
++{
++	struct folio *folio = NULL;
++	int nr_ptes = 1;
++	bool toptier;
++	int nid;
++
++	/* Avoid TLB flush if possible */
++	if (pte_protnone(oldpte))
++		goto skip_batch;
++
++	folio = vm_normal_folio(vma, addr, oldpte);
++	if (!folio)
++		goto skip_batch;
++
++	if (folio_is_zone_device(folio) || folio_test_ksm(folio))
++		goto skip_batch;
++
++	/* Also skip shared copy-on-write pages */
++	if (is_cow_mapping(vma->vm_flags) &&
++	    (folio_maybe_dma_pinned(folio) || folio_maybe_mapped_shared(folio)))
++		goto skip_batch;
++
++	/*
++	 * While migration can move some dirty pages,
++	 * it cannot move them all from MIGRATE_ASYNC
++	 * context.
++	 */
++	if (folio_is_file_lru(folio) && folio_test_dirty(folio))
++		goto skip_batch;
++
++	/*
++	 * Don't mess with PTEs if page is already on the node
++	 * a single-threaded process is running on.
++	 */
++	nid = folio_nid(folio);
++	if (target_node == nid)
++		goto skip_batch;
++
++	toptier = node_is_toptier(nid);
++
++	/*
++	 * Skip scanning top tier node if normal numa
++	 * balancing is disabled
++	 */
++	if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) && toptier)
++		goto skip_batch;
++
++	if (folio_use_access_time(folio)) {
++		folio_xchg_access_time(folio, jiffies_to_msecs(jiffies));
++
++		/* Do not skip in this case */
++		nr_ptes = 0;
++		goto out;
++	}
++
++skip_batch:
++	nr_ptes = mprotect_folio_pte_batch(folio, addr, pte, oldpte, max_nr_ptes);
++out:
++	*foliop = folio;
++	return nr_ptes;
++}
++
+ static long change_pte_range(struct mmu_gather *tlb,
+ 		struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
+ 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
+@@ -94,6 +171,7 @@ static long change_pte_range(struct mmu_
+ 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
+ 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
+ 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
++	int nr_ptes;
+ 
+ 	tlb_change_page_size(tlb, PAGE_SIZE);
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+@@ -108,8 +186,11 @@ static long change_pte_range(struct mmu_
+ 	flush_tlb_batched_pending(vma->vm_mm);
+ 	arch_enter_lazy_mmu_mode();
+ 	do {
++		nr_ptes = 1;
+ 		oldpte = ptep_get(pte);
+ 		if (pte_present(oldpte)) {
++			int max_nr_ptes = (end - addr) >> PAGE_SHIFT;
++			struct folio *folio = NULL;
+ 			pte_t ptent;
+ 
+ 			/*
+@@ -117,53 +198,12 @@ static long change_pte_range(struct mmu_
+ 			 * pages. See similar comment in change_huge_pmd.
+ 			 */
+ 			if (prot_numa) {
+-				struct folio *folio;
+-				int nid;
+-				bool toptier;
+-
+-				/* Avoid TLB flush if possible */
+-				if (pte_protnone(oldpte))
+-					continue;
+-
+-				folio = vm_normal_folio(vma, addr, oldpte);
+-				if (!folio || folio_is_zone_device(folio) ||
+-				    folio_test_ksm(folio))
+-					continue;
+-
+-				/* Also skip shared copy-on-write pages */
+-				if (is_cow_mapping(vma->vm_flags) &&
+-				    (folio_maybe_dma_pinned(folio) ||
+-				     folio_maybe_mapped_shared(folio)))
+-					continue;
+-
+-				/*
+-				 * While migration can move some dirty pages,
+-				 * it cannot move them all from MIGRATE_ASYNC
+-				 * context.
+-				 */
+-				if (folio_is_file_lru(folio) &&
+-				    folio_test_dirty(folio))
+-					continue;
+-
+-				/*
+-				 * Don't mess with PTEs if page is already on the node
+-				 * a single-threaded process is running on.
+-				 */
+-				nid = folio_nid(folio);
+-				if (target_node == nid)
+-					continue;
+-				toptier = node_is_toptier(nid);
+-
+-				/*
+-				 * Skip scanning top tier node if normal numa
+-				 * balancing is disabled
+-				 */
+-				if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) &&
+-				    toptier)
++				nr_ptes = prot_numa_skip_ptes(&folio, vma,
++							      addr, oldpte, pte,
++							      target_node,
++							      max_nr_ptes);
++				if (nr_ptes)
+ 					continue;
+-				if (folio_use_access_time(folio))
+-					folio_xchg_access_time(folio,
+-						jiffies_to_msecs(jiffies));
+ 			}
+ 
+ 			oldpte = ptep_modify_prot_start(vma, addr, pte);
+@@ -280,7 +320,7 @@ static long change_pte_range(struct mmu_
+ 				pages++;
+ 			}
+ 		}
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
++	} while (pte += nr_ptes, addr += nr_ptes * PAGE_SIZE, addr != end);
+ 	arch_leave_lazy_mmu_mode();
+ 	pte_unmap_unlock(pte - 1, ptl);
  
 _
 
-Patches currently in -mm which might be from lianux.mm@gmail.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-selftests-mm-add-process_madvise-tests.patch
+xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
+mm-call-pointers-to-ptes-as-ptep.patch
+mm-optimize-mremap-by-pte-batching.patch
+maple-tree-use-goto-label-to-simplify-code.patch
+mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch
+mm-add-batched-versions-of-ptep_modify_prot_start-commit.patch
+mm-optimize-mprotect-by-pte-batching.patch
+arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch
 
