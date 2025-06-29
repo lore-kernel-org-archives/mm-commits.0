@@ -1,95 +1,125 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7A416EB42
-	for <mm-commits@vger.kernel.org>; Sat, 28 Jun 2025 14:31:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB14F12E7E
+	for <mm-commits@vger.kernel.org>; Sun, 29 Jun 2025 01:13:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751121114; cv=none; b=NxUzy1xbknM5rXJ4Ru4F3iApmbn2Sso0GCy+sOrlTG/LkjVB8hUtFjDIQtCdUL4agawGVpwlr5rTtRqLGWH9pkUxycocptE360C9vqkVdaPnSM9f/DJHfdHK9c1Y/WX8GjVmBcmdLG2V9zxVKEyQTo+S3ayzttnQuSsMBNn5DxA=
+	t=1751159611; cv=none; b=gSiFhK/cXU4xsABvVrGYOchSr8BjZRxFHQg+5bDSKgfPrBShLnTe/T3hmYCgZic2qIPyNaSirLkKEbbJuJPGSzllyhJyVIdcUe95Tn1+4+5U7YmuJlD6k3GJ7xhHjdx0JorUAGj6QzZPzMlJ6AT/VHxctF/fTOG05NVUbdS+0pI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751121114; c=relaxed/simple;
-	bh=nK1PMi6QKrTrXQbpsFPf8/YYhRWJDDVS74/b8RHpwmM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dCGXe2nmq2QvgUqA5aGfHlS+gdMgS41FjFPMy5XcOO8QuaCJFdzbc+EsX2mbBYl97RvLWpwrB08pLCov5c2p6rTIOOUu4j4gyta7ERAW9+QCQhqblGs9eaYdFmfsUCkWbsPgVdJWkZjAoOcPfzxvlMT5l7seaiuUgMC0jWz5vTw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XqiWNMEJ; arc=none smtp.client-ip=209.85.218.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1751159611; c=relaxed/simple;
+	bh=rfTioqpyihx8okOzrZsGWtqi+Tjxx+H2L1ej/JYwFBA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=awq3r+rCId/jgetWlIqA0KbwSfv77S3eFrp7KYf2ekyd/q5/1Pz8YgpiveYzYA5Yypf28hgkHMAKlD3tEyrYpUukUhZgBvkCYN6PZcMBfTkmdBiAjRFV9fAC+cx4s/5WS/mOqwmXqj2xT82np+WuBhIlB5lyIcrgy53Wge6vcv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=XwArhct9; arc=none smtp.client-ip=209.85.160.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XqiWNMEJ"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-ae0d4451a3fso128090466b.1
-        for <mm-commits@vger.kernel.org>; Sat, 28 Jun 2025 07:31:52 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="XwArhct9"
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-4a7f5abac0aso266151cf.0
+        for <mm-commits@vger.kernel.org>; Sat, 28 Jun 2025 18:13:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751121111; x=1751725911; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=CU8ALcwtSpkKehh7ClZXAcv86N3Fy3LdxzdimSnmhls=;
-        b=XqiWNMEJzw3nYD3qDzJXzKojPeG2qRuBTtwaVCnBBvpou/W8MXFd9IiQWzVGhbTFlz
-         kFYBI6s1uC/VyTzn22+ObZ+QQHKYv/aeP97lgVtmQJivAXg/MnfvKaHC0uuoEiUhhiRe
-         hPwRA8cI5iUu8yPQDsnl8vWPMoDZTJJ+D13XzBD33OnvozPiOd61eq1CUvtmwvy1Li3T
-         r5oJEtszFmJLvGSUiezDQtWjEir8nDJDobztmFePYUA90X+iWQpz35Fa7Hq1oQ0DaZsJ
-         WvDNcTKAu/bVhRpt6OZYBUqs8z7zM1jteZdMklnV0pV+cS2Sf5JVn7ay/8RVG87+VO7/
-         EoLg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751121111; x=1751725911;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=google.com; s=20230601; t=1751159608; x=1751764408; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=CU8ALcwtSpkKehh7ClZXAcv86N3Fy3LdxzdimSnmhls=;
-        b=HRn7/T7UONCtCJ08TRIv2+7pYoLpvWnbVWfuQXNNZaokptb/mv/l7VmtY5OTf7Gnh4
-         3cF3xKL9n80u+/yIgASA+W05vvrnGgVtjYzFgaRk2G1Td8C4Zwg6dAV3m1RHD6wMKb3g
-         /7lwpOvMLo2WIYF3mZJ+cZ1ylNuYM/OTT+QBo7+g4nnm9F5MJIk6mhcWFRB23qnMhCTD
-         3pq3jwbYF/PPHtPPgHdF1EtixtJDKWtX309vEt+ymoLUiK4pmUQc8ZE8S9zDM/DS7Aer
-         nHhuO5l5KZEdruOttr4HmWad5RQA7XpWXLqg6ZfSB6rCqUsi44D+RrwsnteQ2dDHxpMR
-         QDpA==
-X-Gm-Message-State: AOJu0YzOl+pr4vfgz8xxbOyB3EmCy0/hLh/3G7XA1nEvO3wcOk4XNfgA
-	t4QY3/zSyC/JHskvNv0eeRZS3IPrYSm2YYojSo8PHwzyMCqP3A+ohlM=
-X-Gm-Gg: ASbGncs+7F8pT9sGqC4YCH7SLBwJgb0D8YJSWeSUYJsHcuFIl5w9wPEnIaX53d/WZuO
-	vzDl8KYllZWcplVypjepdKwWUfQSOf1jfP1N3OSEH7pTr6Q6LWohlCibk2pn/uB96i2r00Q9woX
-	q/qBh2dmphiwFTB14vpUH8upVVyqvPQQoGS8/A3wyPRUAQOJrKK6zWtO/aOQUdUiYJAo8xOohim
-	FYIcSXWna/lVj+Hfs9YK/Mys2cIm98zOHjwSQRnmHKd2qJ4fowWKq0AXA0ra4abdceAKDVRdkLC
-	vv4ceh61oT7KnrpUw6MBdJQDuljwefustO37y1k5MMlMX4UZ
-X-Google-Smtp-Source: AGHT+IFFjZm8sjsuSxlAs94+0rz737HetHovfmcgajs4iZtJczlthQ52Q5OmAEQlrXDqy3082VNgaQ==
-X-Received: by 2002:a17:907:3c8f:b0:ae0:d013:8b20 with SMTP id a640c23a62f3a-ae350101c1dmr710131566b.41.1751121111335;
-        Sat, 28 Jun 2025 07:31:51 -0700 (PDT)
-Received: from p183 ([46.53.249.82])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae353ca2095sm320063166b.162.2025.06.28.07.31.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 28 Jun 2025 07:31:50 -0700 (PDT)
-Date: Sat, 28 Jun 2025 17:31:48 +0300
-From: Alexey Dobriyan <adobriyan@gmail.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, yebin10@huawei.com, willy@infradead.org,
-	vbabka@suse.cz, tjmercier@google.com, shuah@kernel.org,
-	ryan.roberts@arm.com, peterx@redhat.com, paulmck@kernel.org,
-	osalvador@suse.de, mhocko@kernel.org, lorenzo.stoakes@oracle.com,
-	linux@weissschuh.net, liam.howlett@oracle.com,
-	kaleshsingh@google.com, josef@toxicpanda.com, jannh@google.com,
-	hannes@cmpxchg.org, david@redhat.com, christophe.leroy@csgroup.eu,
-	brauner@kernel.org, andrii@kernel.org, surenb@google.com
-Subject: Re: + mm-maps-read-proc-pid-maps-under-per-vma-lock.patch added to
- mm-new branch
-Message-ID: <0760b4dd-b6e3-4b78-aab2-ae5cdb8076cd@p183>
-References: <20250624200809.54B9DC4CEE3@smtp.kernel.org>
+        bh=WXc2G0OQeWMzL+5K3wGXk+CQJgVS2AAi6U6Q81jyJlY=;
+        b=XwArhct9VP79q7nO2567jwXqp/eKkqU89nyMXJkCUc8jN9edg/vwLCZoWm1mIhOjth
+         SOqwQTVlzPtxXnvHq34mquChYMEQsnEfFvO14fL/R2dgD3PN9U83wHX6zhIl+6AZpIWX
+         87yZC206Au4SJkyxg78e3VbTJwSgFSaIe2cQgOk8qyWPf1yDKKeO6GPya6Koh/I3QC6q
+         UfZ1AoUoS4SagOJOttvbKwHhr21UGqjn8Wfx9u1CaGACf9D0zt5S4+HIprAiKEjQ1cOk
+         TsfonUQDlw/Lp6jPw6sopRvsssfOI04P6IkZXWR3UZQK2o6IDwhdIX3VL3fEqbPB9WGJ
+         8PcA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751159608; x=1751764408;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=WXc2G0OQeWMzL+5K3wGXk+CQJgVS2AAi6U6Q81jyJlY=;
+        b=vFPrW1URz3fGSeWhtISqwrLf6Rlioplcf9Oty/mcuJHDZoG2wqeDEJ8qtE+jNhHLCz
+         UwLCLyBksn9IEsdi/Ak7K2xf2zr6l2Pk9Y/REJK2dGAyDBWYtcGZnw7Y5lvKTuhe67GJ
+         3pGBWhy5nf49seh/YJTipgZG/nXjAkWyyVr/tK1h7L7QNHtfQj738aEnlNKVAXK9QHkt
+         VAgtZSHgU7PPYRFazRzPK2fzjxqJDQmrpSSnH6viL2KBe6VxrO9izpGnazfTDaSbyDrK
+         dP4RkLaOMq1gFL0MtL++LafcdmBd9/PbecfLSqlRx7Cx9CsfHqfZm05mZbGGu6XusSnF
+         g1XA==
+X-Forwarded-Encrypted: i=1; AJvYcCUD/uZIZjeIhwP2oLCHtt4vXLAOYhF0ZmvQwSDp1cLPGlJajov+AqvnyuNTN62SQrahoneWp88Syfib@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy1bt3Szbgw+wWs4yS4N1S26MN8auVZlROlboeVOLJhBpPFd+fw
+	zULgPfV1jizRN3HoA3W23EiUJYu9joFO17/887n9MWKC2Z/ATjh/02Lojut6+WtbtWNfb06OrWj
+	bFujQNIioepSvFrsvyPbsRogdv7a5IhYvpigXTGo7
+X-Gm-Gg: ASbGncs9gY2XA73d3VPF7DdiiX2uwpFdmYSXfUbA1sezPYDrayvTLhf4Guba5bwmZv+
+	G5idDrteVidh1X3FkYkD/sRbMS1QZnb1EyfzZrplOS30jtjMk1FC3JLUipArY3lAnGeSbLdeVUe
+	KQ/PMmcOnwOC9a0RK8IFfKpP1L11FSEwEPZqtrdBtmug==
+X-Google-Smtp-Source: AGHT+IGkHUhKRQqbV2rVvm2j8VBfwM9n76m1n9CbKXrTSIKOVAExi5xQmGBjvG3gO9hSrhM9Lgvhl+iPqKRBmNxJF6o=
+X-Received: by 2002:a05:622a:47cd:b0:4a7:ff6d:e956 with SMTP id
+ d75a77b69052e-4a808f48839mr2471961cf.3.1751159608129; Sat, 28 Jun 2025
+ 18:13:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250624200809.54B9DC4CEE3@smtp.kernel.org>
+References: <20250624200751.ADDEAC4CEE3@smtp.kernel.org> <df410ed0-054a-4867-a2f9-1baf92c2d41a@p183>
+In-Reply-To: <df410ed0-054a-4867-a2f9-1baf92c2d41a@p183>
+From: Suren Baghdasaryan <surenb@google.com>
+Date: Sat, 28 Jun 2025 18:13:17 -0700
+X-Gm-Features: Ac12FXydpF-ADyT4QhSWLYyH5F5DxH86P7SQ98-IIA8tJdbJDtOoRgXiY9xlrgA
+Message-ID: <CAJuCfpEeMjsK5RuD+fZyoDo+pG0D+752WtFM7VntyjYt_X0fuw@mail.gmail.com>
+Subject: Re: + selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test.patch
+ added to mm-new branch
+To: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
+	yebin10@huawei.com, willy@infradead.org, vbabka@suse.cz, tjmercier@google.com, 
+	shuah@kernel.org, ryan.roberts@arm.com, peterx@redhat.com, paulmck@kernel.org, 
+	osalvador@suse.de, mhocko@kernel.org, lorenzo.stoakes@oracle.com, 
+	linux@weissschuh.net, liam.howlett@oracle.com, kaleshsingh@google.com, 
+	josef@toxicpanda.com, jannh@google.com, hannes@cmpxchg.org, david@redhat.com, 
+	christophe.leroy@csgroup.eu, brauner@kernel.org, andrii@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 24, 2025 at 01:08:08PM -0700, Andrew Morton wrote:
->      mm-maps-read-proc-pid-maps-under-per-vma-lock.patch
+On Sat, Jun 28, 2025 at 7:20=E2=80=AFAM Alexey Dobriyan <adobriyan@gmail.co=
+m> wrote:
+>
+> On Tue, Jun 24, 2025 at 01:07:50PM -0700, Andrew Morton wrote:
+> > The patch titled
+> >      Subject: selftests/proc: add /proc/pid/maps tearing from vma split=
+ test
+> > has been added to the -mm mm-new branch.  Its filename is
+> >      selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test.patch
+>
+> > From: Suren Baghdasaryan <surenb@google.com>
+> > Subject: selftests/proc: add /proc/pid/maps tearing from vma split test
+>
+> Can this be moved to separate test?
 
->  static void *m_next(struct seq_file *m, void *v, loff_t *ppos)
->  {
->  	if (*ppos == -2UL) {
-> -		*ppos = -1UL;
-> +		*ppos = -1UL; /* -1 indicates no more vmas */
+Yes.
 
-What's going on here? loff_t is signed. Maybe it is OK.
+>
+> Original is about /proc/*/maps being correct and isn't about races.
 
-"unsigned long a = -1;" I can understand. Give me some time to recall
-casting rules.
+Well, this test is also about the correctness of /proc/pid/maps, only
+when there is a concurrent writer.
+
+> Original is amd64 only while yours is not.
+
+Are you saying that this test before my proposed changes can be run
+only on arm64? It's counter-intuitive to me that such a test for
+/proc/pid/maps correctness would be arch specific.
+
+>
+> And it is one-shot test not time limited.
+
+I see your point but would that still be a problem if we limit the
+default runs to some short time period, say a few seconds?
+
+>
+> > +     /* Test tearing in /proc/$PID/maps */
+> > +     if (test_maps_tearing())
+> > +             return 1;
+>
+> This just glues 2 tests together.
+
+Ok, I'm not really against splitting these tests. Just wondering what
+I would call it because, as I mentioned, both tests check
+/proc/pid/maps correctness. Maybe proc-maps-race test?
