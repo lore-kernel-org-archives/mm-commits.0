@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF91120103A
-	for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2025 22:55:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B94428DF29
+	for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2025 22:55:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751324138; cv=none; b=FFdgPumsQflszU3bH66hpP8+KVj5/Wg66GRAaYzrQgvB51fP4d+pmXWMeemY5OwJ+JTIL6Oo2n28FV0zQdibzPG3bHFWizRoFBLvbkhpJTuTCcdxNNRGA8I4HHn+eg6CbiXpgMPUiALB/+QwjBB9kMaYk9m7bH1kex5fP51Nbdo=
+	t=1751324139; cv=none; b=oKToxlQitiXAs1TkHkA62BGt2Gt1Pozgqdzl+dc/4X9/KAxmC+imwl9uCCZAuxrNNmuPdi4nY737Sxos7oLVTsniCYSWYsmcrb594WpmbZeL8kWBIxXqPy27AYWoTnWMC0Mq21jKSAzN+g26KHSY30A99G57H/wdZ/3yZk8Bh7E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751324138; c=relaxed/simple;
-	bh=51rbLgb150duYwZLa7+/BCO9JNoUIQh68vOabkASfPU=;
-	h=Date:To:From:Subject:Message-Id; b=Bi9e6syH3nmgC8PrFHXjfi96SsHleqmWiisySq/vV8L5j9DIXXfOYHwqScrQmD2qcWviYkSvbVqPBvbiawtkGozXJ8RNE+SOlNBmCSsinNvG/yz0a/nNSXeyDg9xRnl7Zl79DRiZi36S74/Tj00X4RcKbfeigo9diyHbDPJpGQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o1u65Bpp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751324139; c=relaxed/simple;
+	bh=e0qCPS7C5y4/KIX0FdY5bI4VySH/NVDmLj7oAjh9GXw=;
+	h=Date:To:From:Subject:Message-Id; b=ebeXNHqOJPbw40MGj34UwE7eTswuZUfDonhhspHkLrEZ5DVG9ltKRno62e+VaxgKiYBnXinMw/MuR0VrtETiiQjhMlLAihb4izJSoneDxFrsgQKau1tYx+n+5aDT6/734+9zev13SBY4z+XOSI6VNgiUACQGnFQpuHFfbwRK1hY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jDbG4yjz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o1u65Bpp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1328BC4CEE3;
-	Mon, 30 Jun 2025 22:55:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jDbG4yjz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C946AC4CEF0;
+	Mon, 30 Jun 2025 22:55:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751324135;
-	bh=51rbLgb150duYwZLa7+/BCO9JNoUIQh68vOabkASfPU=;
+	s=korg; t=1751324138;
+	bh=e0qCPS7C5y4/KIX0FdY5bI4VySH/NVDmLj7oAjh9GXw=;
 	h=Date:To:From:Subject:From;
-	b=o1u65BppPNnIO7WDEFkowhVhXFECS/Bsgl0uCj2KcCaS5Z+OPn9ZGe70zD/pn57uD
-	 XEua3RbnFl6sx6/QVlEroQfrl6N7nej971lXCAyFPHlSKjI4yK/uJfJYBGI/BIqQiM
-	 qeDfJbc8dmR5qgobT/5OZchK8orOv5D1d42EUC3c=
-Date: Mon, 30 Jun 2025 15:55:34 -0700
+	b=jDbG4yjzwDLD6IxNWeqSnORFcYcXj+9Dd100WGj0y5sgbBLXZeouCOQjaIHjvW2xP
+	 EY8W1/Q5E5tg1ZjCQicWlYbfmTaX8+Xwow5fGB7E/Vhb4+L8lWcJrKturs3PJCT5y1
+	 SQ7Fg9advbrrBBey0FawjiRVPbf6QAbmBZv4Dl0s=
+Date: Mon, 30 Jun 2025 15:55:38 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,gavinguo@igalia.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch added to mm-new branch
-Message-Id: <20250630225535.1328BC4CEE3@smtp.kernel.org>
+Subject: + mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch added to mm-new branch
+Message-Id: <20250630225538.C946AC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,hugetlb: sort out folio locking in the faulting path
+     Subject: mm,hugetlb: drop unlikelys from hugetlb_fault
 has been added to the -mm mm-new branch.  Its filename is
-     mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
+     mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,93 +65,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hugetlb: sort out folio locking in the faulting path
-Date: Mon, 30 Jun 2025 16:42:09 +0200
+Subject: mm,hugetlb: drop unlikelys from hugetlb_fault
+Date: Mon, 30 Jun 2025 16:42:12 +0200
 
-Recent conversations showed that there was a misunderstanding about why we
-were locking the folio prior to call in hugetlb_wp().  In fact, as soon as
-we have the folio mapped into the pagetables, we no longer need to hold it
-locked, because we know that no concurrent truncation could have happened.
+The unlikely predates an era where we were checking for
+hwpoisoned/migration entries prior to checking whether the pte was
+present.
 
-There is only one case where the folio needs to be locked, and that is
-when we are handling an anonymous folio, because hugetlb_wp() will check
-whether it can re-use it exclusively for the process that is faulting it
-in.
+Currently, we check for the pte to be a migration/hwpoison entry after we
+have checked that is not present, so it must be either one or the other.
 
-So, pass the folio locked to hugetlb_wp() when that is the case.
-
-Link: https://lkml.kernel.org/r/20250627102904.107202-3-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20250630144212.156938-3-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250627102904.107202-6-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250630144212.156938-6-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Gavin Guo <gavinguo@igalia.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mmhugetlb-sort-out-folio-locking-in-the-faulting-path
+--- a/mm/hugetlb.c~mmhugetlb-drop-unlikelys-from-hugetlb_fault
 +++ a/mm/hugetlb.c
-@@ -6435,6 +6435,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	pte_t new_pte;
- 	bool new_folio, new_pagecache_folio = false;
- 	u32 hash = hugetlb_fault_mutex_hash(mapping, vmf->pgoff);
-+	bool folio_locked = true;
+@@ -6748,7 +6748,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
  
- 	/*
- 	 * Currently, we are forced to kill the process in the event the
-@@ -6600,6 +6601,14 @@ static vm_fault_t hugetlb_no_page(struct
- 
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
- 	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
-+		/*
-+		 * No need to keep file folios locked. See comment in
-+		 * hugetlb_fault().
-+		 */
-+		if (!anon_rmap) {
-+			folio_locked = false;
-+			folio_unlock(folio);
-+		}
- 		/* Optimization, do the COW without a second fault */
- 		ret = hugetlb_wp(vmf);
- 	}
-@@ -6614,7 +6623,8 @@ static vm_fault_t hugetlb_no_page(struct
- 	if (new_folio)
- 		folio_set_hugetlb_migratable(folio);
- 
--	folio_unlock(folio);
-+	if (folio_locked)
-+		folio_unlock(folio);
- out:
- 	hugetlb_vma_unlock_read(vma);
- 
-@@ -6802,15 +6812,20 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 
- 	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
- 		if (!huge_pte_write(vmf.orig_pte)) {
--			/* hugetlb_wp() requires page locks of pte_page(vmf.orig_pte) */
-+			/*
-+			 * Anonymous folios need to be lock since hugetlb_wp()
-+			 * checks whether we can re-use the folio exclusively
-+			 * for us in case we are the only user of it.
-+			 */
- 			folio = page_folio(pte_page(vmf.orig_pte));
--			if (!folio_trylock(folio)) {
-+			if (folio_test_anon(folio) && !folio_trylock(folio)) {
- 				need_wait_lock = true;
- 				goto out_ptl;
- 			}
- 			folio_get(folio);
- 			ret = hugetlb_wp(&vmf);
--			folio_unlock(folio);
-+			if (folio_test_anon(folio))
-+				folio_unlock(folio);
- 			folio_put(folio);
- 			goto out_ptl;
- 		} else if (likely(flags & FAULT_FLAG_WRITE)) {
+ 	/* Not present, either a migration or a hwpoisoned entry */
+ 	if (!pte_present(vmf.orig_pte)) {
+-		if (unlikely(is_hugetlb_entry_migration(vmf.orig_pte))) {
++		if (is_hugetlb_entry_migration(vmf.orig_pte)) {
+ 			/*
+ 			 * Release the hugetlb fault lock now, but retain
+ 			 * the vma lock, because it is needed to guard the
+@@ -6759,7 +6759,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			migration_entry_wait_huge(vma, vmf.address, vmf.pte);
+ 			return 0;
+-		} else if (unlikely(is_hugetlb_entry_hwpoisoned(vmf.orig_pte)))
++		} else if (is_hugetlb_entry_hwpoisoned(vmf.orig_pte))
+ 			ret = VM_FAULT_HWPOISON_LARGE |
+ 			    VM_FAULT_SET_HINDEX(hstate_index(h));
+ 		goto out_mutex;
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
