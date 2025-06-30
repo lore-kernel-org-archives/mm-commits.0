@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB35C21ABA8
-	for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2025 22:47:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 356F420103A
+	for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2025 22:55:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751323636; cv=none; b=nCHQACrBfdBK/9MwrZYokwBtSl/DcoDCi3go14aPLTzHuN7qkRiKH4VjlH9/V4/p8NaZywGenW5cLY+yb429kOcaBweI/ZV7nSoMDfFncw1+voUS7tAT/qmW14wIcx+t7owYSjUwXfBDBbTYn04pnHDH/tnLW/VolZVxVIIG31E=
+	t=1751324134; cv=none; b=A6nEmnQryutk+Zsx9U5+LIXSQJJ8e3rn5B2P3fs6uiYUvWJOZjTCO3P4tZo43qHIMZ51VVnz2uK3o5MqsYgYIv0lrAxBQgBbAn5VA7pNnPUj4B4ctr4n7kJUsaoTZKTCTcaqhLucOCNVLDeybRiOSqGebMf61oaTMWmrIU78sAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751323636; c=relaxed/simple;
-	bh=HPAJUuoPEXH1vvh1QpiHCwWdRjROH40Ty48k62cAWzk=;
-	h=Date:To:From:Subject:Message-Id; b=gzc6tM9+S9ZOQ6/WTc/5MwBaYwUayu44pIinKJRts2xdg6I88SOuUq2lDDPZs3CpFjAhHvPd6lYvAxKg8zZDHkHsxfJ1VVDBGEGr6tN4aKxIc7/MEat/IZyWSb0oxv5akw5pLIQVNCJR+q0QwYYvOXyciWVR9rTTlcM/WXoc+9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GlIYDyhh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751324134; c=relaxed/simple;
+	bh=EDLduYlifmNIUIlQ/1GiTp/sECks57yVUIIphxUACUw=;
+	h=Date:To:From:Subject:Message-Id; b=DiD7cpRMAhx7CSxE0mhgfw2ZpOEBCEssfrjQGHh8NeReWU0vwy+18L1U9LlY9RLPc5jTd27unrxk7p+ei5nMohRFOdBmadaW1u/3tST5f9epC0e5WTPUp8CC0P4bDzriPEWSlNT9rJ4BO4iJ3tYIg53bUrW+dlNL/u/+t+qqSBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZFwid0Rd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GlIYDyhh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5129DC4CEE3;
-	Mon, 30 Jun 2025 22:47:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZFwid0Rd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE747C4CEE3;
+	Mon, 30 Jun 2025 22:55:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751323635;
-	bh=HPAJUuoPEXH1vvh1QpiHCwWdRjROH40Ty48k62cAWzk=;
+	s=korg; t=1751324133;
+	bh=EDLduYlifmNIUIlQ/1GiTp/sECks57yVUIIphxUACUw=;
 	h=Date:To:From:Subject:From;
-	b=GlIYDyhhPIcPlVgdOVUV03ts7buTPD8jYq8Z5HdUZQB9r6kOWtCNMstpmcslnG0M3
-	 eHQ3fyTlT7vzav6zsdBNoplG7zjbbK0rc9LwM+owbVGylrwUiK7lvRNuQ74y/97iM8
-	 9HjgNIzMP9xZO6qYklxWjinb96tmaeOD9OCHMojw=
-Date: Mon, 30 Jun 2025 15:47:14 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,anshuman.khandual@arm.com,gerald.schaefer@linux.ibm.com,akpm@linux-foundation.org
+	b=ZFwid0RdLJaBzRnT2AZduFmfGKQCo4Uy8xUFCTD0HFg1rxwH57huRWmb75inWb/2E
+	 f4kmBpgXnI7F4RKdaiTn3pCN+kF0xBZM0q8R7mib4d9kq2/HCzB8YEv0iXWUUov94N
+	 bBGe7rtQDfJg/fr3iZTyICf/WLGC2fcUJLxh+NW8=
+Date: Mon, 30 Jun 2025 15:55:33 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,gavinguo@igalia.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests.patch added to mm-new branch
-Message-Id: <20250630224715.5129DC4CEE3@smtp.kernel.org>
+Subject: + mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch added to mm-new branch
+Message-Id: <20250630225533.BE747C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: use a swp_entry_t input value for swap tests
+     Subject: mm,hugetlb: change mechanism to detect a COW on private mapping
 has been added to the -mm mm-new branch.  Its filename is
-     mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests.patch
+     mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,192 +64,353 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Subject: mm/debug_vm_pgtable: use a swp_entry_t input value for swap tests
-Date: Mon, 30 Jun 2025 18:47:25 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hugetlb: change mechanism to detect a COW on private mapping
+Date: Mon, 30 Jun 2025 16:42:08 +0200
 
-The various __pte/pmd_to_swp_entry and __swp_entry_to_pte/pmd helper
-functions are expected to operate on swap PTE/PMD entries, not on present
-and mapped entries.
+Patch series "Misc rework on hugetlb faulting path", v4.
 
-Reflect this in the swap tests by using a swp_entry_t as input value, and
-convert it to a swap PTE/PMD for testing, similar to how it is already
-done in pte_swap_exclusive_tests().  Move the swap entry creation from
-there to init_args() and store it in args, so it can also be used in other
-functions.
+This patchset aims to give some love to the hugetlb faulting path, doing
+so by removing obsolete comments that are no longer true, sorting out the
+folio lock, and changing the mechanism we use to determine whether we are
+COWing a private mapping already.
 
-The pte/pmd_swap_tests() are also changed to compare entries instead of
-pfn values, again similar to pte_swap_exclusive_tests().  pte/pmd_pfn()
-helpers are also not expected to operate on swap PTE/PMD entries at all.
+The most important patch of the series is #1, as it fixes a deadlock that
+was described in [1], where two processes were holding the same lock for
+the folio in the pagecache, and then deadlocked in the mutex.  Note that
+this can also happen for anymous folios.  This has been tested using this
+reproducer, below
 
-Also update documentation, to reflect that the helpers operate on swap
-PTE/PMD entries and not present and mapped entries, and use correct names,
-i.e.  __swp_to_pte/pmd_entry -> __swp_entry_to_pte/pmd.
+Looking up and locking the folio in the pagecache was done to check
+whether that folio was the same folio we had mapped in our pagetables,
+meaning that if it was different we knew that we already mapped that folio
+privately, so any further CoW would be made on a private mapping, which
+lead us to the question: __Was the reservation for that address
+consumed?__ That is all we care about, because if it was indeed consumed
+and we are the owner and we cannot allocate more folios, we need to unmap
+the folio from the processes pagetables and make it exclusive for us.
 
-For consistency, also change pte/pmd_swap_soft_dirty_tests() to use
-args->swp_entry instead of a present and mapped PTE/PMD.
+We figured we do not need to look up the folio at all, and it is just
+enough to check whether the folio we have mapped is anonymous, which means
+we mapped it privately, so the reservation was indeed consumed.
 
-Link: https://lore.kernel.org/all/20250623184321.927418-1-gerald.schaefer@linux.ibm.com
-Link: https://lkml.kernel.org/r/20250630164726.930405-1-gerald.schaefer@linux.ibm.com
-Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Patch#2 sorts out folio locking in the faulting path, reducing the scope
+of it ,only taking it when we are dealing with an anonymous folio and
+document it.  More details in the patch.
+
+Patch#3-5 are cleanups.
+
+Here is the reproducer:
+
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <sys/mman.h>
+ #include <sys/wait.h>
+ 
+ #define PROTECTION (PROT_READ | PROT_WRITE)
+ #define LENGTH (2UL*1024*1024)
+ 
+ #define ADDR (void *)(0x0UL)
+ #define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
+ 
+ void __read(char *addr)
+ {
+ 	int i = 0;
+ 
+ 	printf("a[%d]: %c\n", i, addr[i]);
+ }
+ 
+ void fill(char *addr)
+ {
+ 	addr[0] = 'd';
+ 
+ 	printf("addr: %c\n", addr[0]);
+ }
+ 
+ int main(void)
+ {
+ 	void *addr;
+ 	pid_t pid, wpid;
+ 	int status;
+ 
+ 	addr = mmap(ADDR, LENGTH, PROTECTION, FLAGS, -1, 0);
+ 	if (addr == MAP_FAILED) {
+ 		perror("mmap");
+ 		return -1;
+ 	}
+ 
+ 	printf("Parent faulting in RO\n");
+ 	__read(addr);
+ 
+ 	sleep (10);
+ 	printf("Forking\n");
+ 
+ 	pid = fork();
+ 	switch (pid) {
+ 	case -1:
+ 		perror("fork");
+ 		break;
+ 	case 0:
+ 		sleep (4);
+ 		printf("Child: Faulting in\n");
+ 		fill(addr);
+ 		exit(0);
+ 		break;
+ 	default:
+ 		printf("Parent: Faulting in\n");
+ 		fill(addr);
+ 		while((wpid = wait(&status)) > 0);
+ 		if (munmap(addr, LENGTH))
+ 			perror("munmap");
+ 	}
+ 
+ 
+ 	return 0;
+ }
+
+You will also have to add a delay in hugetlb_wp, after releasing the mutex
+and before unmapping, so the window is large enough to reproduce it
+reliably.
+
+:  --- a/mm/hugetlb.c
+:  +++ b/mm/hugetlb.c
+:  @@ -38,6 +38,7 @@
+:   #include <linux/memory.h>
+:   #include <linux/mm_inline.h>
+:   #include <linux/padata.h>
+:  +#include <linux/delay.h>
+:   
+:   #include <asm/page.h>
+:   #include <asm/pgalloc.h>
+:  @@ -6261,6 +6262,8 @@ static vm_fault_t hugetlb_wp(struct vm_fault *vmf)
+:   			hugetlb_vma_unlock_read(vma);
+:   			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+:   
+:  +			mdelay(8000);
+:  +
+:   			unmap_ref_private(mm, vma, old_folio, vmf->address);
+:   
+:   			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+
+
+This patch (of 5):
+
+hugetlb_wp() checks whether the process is trying to COW on a private
+mapping in order to know whether the reservation for that address was
+already consumed.  If it was consumed and we are the ownner of the
+mapping, the folio will have to be unmapped from the other processes.
+
+Currently, that check is done by looking up the folio in the pagecache and
+compare it to the folio which is mapped in our pagetables.  If it differs,
+it means we already mapped it privately before, consuming a reservation on
+the way.  All we are interested in is whether the mapped folio is
+anonymous, so we can simplify and check for that instead.
+
+Link: https://lkml.kernel.org/r/20250630144212.156938-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250627102904.107202-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250627102904.107202-2-osalvador@suse.de
+Link: https://lore.kernel.org/lkml/20250513093448.592150-1-gavinguo@igalia.com/ [1]
+Link: https://lkml.kernel.org/r/20250630144212.156938-2-osalvador@suse.de
+Fixes: 40549ba8f8e0 ("hugetlb: use new vma_lock for pmd sharing synchronization")
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reported-by: Gavin Guo <gavinguo@igalia.com>
+Closes: https://lore.kernel.org/lkml/20250513093448.592150-1-gavinguo@igalia.com/
+Suggested-by: Peter Xu <peterx@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/arch_pgtable_helpers.rst |    8 +--
- mm/debug_vm_pgtable.c                     |   53 ++++++++++++--------
- 2 files changed, 36 insertions(+), 25 deletions(-)
+ mm/hugetlb.c |   88 ++++++++++++++++++-------------------------------
+ 1 file changed, 34 insertions(+), 54 deletions(-)
 
---- a/Documentation/mm/arch_pgtable_helpers.rst~mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests
-+++ a/Documentation/mm/arch_pgtable_helpers.rst
-@@ -236,13 +236,13 @@ SWAP Page Table Helpers
- ========================
- 
- +---------------------------+--------------------------------------------------+
--| __pte_to_swp_entry        | Creates a swapped entry (arch) from a mapped PTE |
-+| __pte_to_swp_entry        | Creates a swp_entry_t (arch) from a swap PTE     |
- +---------------------------+--------------------------------------------------+
--| __swp_to_pte_entry        | Creates a mapped PTE from a swapped entry (arch) |
-+| __swp_entry_to_pte        | Creates a swap PTE from a swp_entry_t (arch)     |
- +---------------------------+--------------------------------------------------+
--| __pmd_to_swp_entry        | Creates a swapped entry (arch) from a mapped PMD |
-+| __pmd_to_swp_entry        | Creates a swp_entry_t (arch) from a swap PMD     |
- +---------------------------+--------------------------------------------------+
--| __swp_to_pmd_entry        | Creates a mapped PMD from a swapped entry (arch) |
-+| __swp_entry_to_pmd        | Creates a swap PMD from a swp_entry_t (arch)     |
- +---------------------------+--------------------------------------------------+
- | is_migration_entry        | Tests a migration (read or write) swapped entry  |
- +-------------------------------+----------------------------------------------+
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests
-+++ a/mm/debug_vm_pgtable.c
-@@ -72,6 +72,8 @@ struct pgtable_debug_args {
- 	unsigned long		fixed_pud_pfn;
- 	unsigned long		fixed_pmd_pfn;
- 	unsigned long		fixed_pte_pfn;
-+
-+	swp_entry_t		swp_entry;
- };
- 
- static void __init pte_basic_tests(struct pgtable_debug_args *args, int idx)
-@@ -698,12 +700,15 @@ static void __init pte_soft_dirty_tests(
- 
- static void __init pte_swap_soft_dirty_tests(struct pgtable_debug_args *args)
+--- a/mm/hugetlb.c~mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping
++++ a/mm/hugetlb.c
+@@ -6150,8 +6150,7 @@ static void unmap_ref_private(struct mm_
+  * cannot race with other handlers or page migration.
+  * Keep the pte_same checks anyway to make transition from the mutex easier.
+  */
+-static vm_fault_t hugetlb_wp(struct folio *pagecache_folio,
+-		       struct vm_fault *vmf)
++static vm_fault_t hugetlb_wp(struct vm_fault *vmf)
  {
--	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
-+	pte_t pte;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -6213,16 +6212,17 @@ retry_avoidcopy:
+ 		       PageAnonExclusive(&old_folio->page), &old_folio->page);
  
- 	if (!IS_ENABLED(CONFIG_MEM_SOFT_DIRTY))
- 		return;
- 
- 	pr_debug("Validating PTE swap soft dirty\n");
-+	pte = swp_entry_to_pte(args->swp_entry);
-+	WARN_ON(!is_swap_pte(pte));
-+
- 	WARN_ON(!pte_swp_soft_dirty(pte_swp_mksoft_dirty(pte)));
- 	WARN_ON(pte_swp_soft_dirty(pte_swp_clear_soft_dirty(pte)));
- }
-@@ -737,7 +742,9 @@ static void __init pmd_swap_soft_dirty_t
- 		return;
- 
- 	pr_debug("Validating PMD swap soft dirty\n");
--	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
-+	pmd = swp_entry_to_pmd(args->swp_entry);
-+	WARN_ON(!is_swap_pmd(pmd));
-+
- 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
- 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
- }
-@@ -748,17 +755,11 @@ static void __init pmd_swap_soft_dirty_t
- 
- static void __init pte_swap_exclusive_tests(struct pgtable_debug_args *args)
- {
--	unsigned long max_swap_offset;
- 	swp_entry_t entry, entry2;
- 	pte_t pte;
- 
- 	pr_debug("Validating PTE swap exclusive\n");
--
--	/* See generic_max_swapfile_size(): probe the maximum offset */
--	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
--
--	/* Create a swp entry with all possible bits set */
--	entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1, max_swap_offset);
-+	entry = args->swp_entry;
- 
- 	pte = swp_entry_to_pte(entry);
- 	WARN_ON(pte_swp_exclusive(pte));
-@@ -782,30 +783,34 @@ static void __init pte_swap_exclusive_te
- 
- static void __init pte_swap_tests(struct pgtable_debug_args *args)
- {
--	swp_entry_t swp;
--	pte_t pte;
-+	swp_entry_t arch_entry;
-+	pte_t pte1, pte2;
- 
- 	pr_debug("Validating PTE swap\n");
--	pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
--	swp = __pte_to_swp_entry(pte);
--	pte = __swp_entry_to_pte(swp);
--	WARN_ON(args->fixed_pte_pfn != pte_pfn(pte));
-+	pte1 = swp_entry_to_pte(args->swp_entry);
-+	WARN_ON(!is_swap_pte(pte1));
-+
-+	arch_entry = __pte_to_swp_entry(pte1);
-+	pte2 = __swp_entry_to_pte(arch_entry);
-+	WARN_ON(memcmp(&pte1, &pte2, sizeof(pte1)));
- }
- 
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
- static void __init pmd_swap_tests(struct pgtable_debug_args *args)
- {
--	swp_entry_t swp;
--	pmd_t pmd;
-+	swp_entry_t arch_entry;
-+	pmd_t pmd1, pmd2;
- 
- 	if (!has_transparent_hugepage())
- 		return;
- 
- 	pr_debug("Validating PMD swap\n");
--	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
--	swp = __pmd_to_swp_entry(pmd);
--	pmd = __swp_entry_to_pmd(swp);
--	WARN_ON(args->fixed_pmd_pfn != pmd_pfn(pmd));
-+	pmd1 = swp_entry_to_pmd(args->swp_entry);
-+	WARN_ON(!is_swap_pmd(pmd1));
-+
-+	arch_entry = __pmd_to_swp_entry(pmd1);
-+	pmd2 = __swp_entry_to_pmd(arch_entry);
-+	WARN_ON(memcmp(&pmd1, &pmd2, sizeof(pmd1)));
- }
- #else  /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
- static void __init pmd_swap_tests(struct pgtable_debug_args *args) { }
-@@ -1110,6 +1115,7 @@ static void __init init_fixed_pfns(struc
- 
- static int __init init_args(struct pgtable_debug_args *args)
- {
-+	unsigned long max_swap_offset;
- 	struct page *page = NULL;
- 	int ret = 0;
- 
-@@ -1192,6 +1198,11 @@ static int __init init_args(struct pgtab
- 
- 	init_fixed_pfns(args);
- 
-+	/* See generic_max_swapfile_size(): probe the maximum offset */
-+	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
-+	/* Create a swp entry with all possible bits set */
-+	args->swp_entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1, max_swap_offset);
-+
  	/*
- 	 * Allocate (huge) pages because some of the tests need to access
- 	 * the data in the pages. The corresponding tests will be skipped
+-	 * If the process that created a MAP_PRIVATE mapping is about to
+-	 * perform a COW due to a shared page count, attempt to satisfy
+-	 * the allocation without using the existing reserves. The pagecache
+-	 * page is used to determine if the reserve at this address was
+-	 * consumed or not. If reserves were used, a partial faulted mapping
+-	 * at the time of fork() could consume its reserves on COW instead
+-	 * of the full address range.
++	 * If the process that created a MAP_PRIVATE mapping is about to perform
++	 * a COW due to a shared page count, attempt to satisfy the allocation
++	 * without using the existing reserves.
++	 * In order to determine where this is a COW on a MAP_PRIVATE mapping it
++	 * is enough to check whether the old_folio is anonymous. This means that
++	 * the reserve for this address was consumed. If reserves were used, a
++	 * partial faulted mapping at the fime of fork() could consume its reserves
++	 * on COW instead of the full address range.
+ 	 */
+ 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
+-			old_folio != pagecache_folio)
++	    folio_test_anon(old_folio))
+ 		cow_from_owner = true;
+ 
+ 	folio_get(old_folio);
+@@ -6601,7 +6601,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 	hugetlb_count_add(pages_per_huge_page(h), mm);
+ 	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+ 		/* Optimization, do the COW without a second fault */
+-		ret = hugetlb_wp(folio, vmf);
++		ret = hugetlb_wp(vmf);
+ 	}
+ 
+ 	spin_unlock(vmf->ptl);
+@@ -6669,10 +6669,9 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	vm_fault_t ret;
+ 	u32 hash;
+ 	struct folio *folio = NULL;
+-	struct folio *pagecache_folio = NULL;
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct address_space *mapping;
+-	int need_wait_lock = 0;
++	bool need_wait_lock = false;
+ 	struct vm_fault vmf = {
+ 		.vma = vma,
+ 		.address = address & huge_page_mask(h),
+@@ -6767,8 +6766,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	 * If we are going to COW/unshare the mapping later, we examine the
+ 	 * pending reservations for this page now. This will ensure that any
+ 	 * allocations necessary to record that reservation occur outside the
+-	 * spinlock. Also lookup the pagecache page now as it is used to
+-	 * determine if a reservation has been consumed.
++	 * spinlock.
+ 	 */
+ 	if ((flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) &&
+ 	    !(vma->vm_flags & VM_MAYSHARE) && !huge_pte_write(vmf.orig_pte)) {
+@@ -6778,11 +6776,6 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		}
+ 		/* Just decrements count, does not deallocate */
+ 		vma_end_reservation(h, vma, vmf.address);
+-
+-		pagecache_folio = filemap_lock_hugetlb_folio(h, mapping,
+-							     vmf.pgoff);
+-		if (IS_ERR(pagecache_folio))
+-			pagecache_folio = NULL;
+ 	}
+ 
+ 	vmf.ptl = huge_pte_lock(h, mm, vmf.pte);
+@@ -6796,10 +6789,6 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	    (flags & FAULT_FLAG_WRITE) && !huge_pte_write(vmf.orig_pte)) {
+ 		if (!userfaultfd_wp_async(vma)) {
+ 			spin_unlock(vmf.ptl);
+-			if (pagecache_folio) {
+-				folio_unlock(pagecache_folio);
+-				folio_put(pagecache_folio);
+-			}
+ 			hugetlb_vma_unlock_read(vma);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			return handle_userfault(&vmf, VM_UFFD_WP);
+@@ -6811,24 +6800,19 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		/* Fallthrough to CoW */
+ 	}
+ 
+-	/*
+-	 * hugetlb_wp() requires page locks of pte_page(vmf.orig_pte) and
+-	 * pagecache_folio, so here we need take the former one
+-	 * when folio != pagecache_folio or !pagecache_folio.
+-	 */
+-	folio = page_folio(pte_page(vmf.orig_pte));
+-	if (folio != pagecache_folio)
+-		if (!folio_trylock(folio)) {
+-			need_wait_lock = 1;
+-			goto out_ptl;
+-		}
+-
+-	folio_get(folio);
+-
+ 	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
+ 		if (!huge_pte_write(vmf.orig_pte)) {
+-			ret = hugetlb_wp(pagecache_folio, &vmf);
+-			goto out_put_page;
++			/* hugetlb_wp() requires page locks of pte_page(vmf.orig_pte) */
++			folio = page_folio(pte_page(vmf.orig_pte));
++			if (!folio_trylock(folio)) {
++				need_wait_lock = true;
++				goto out_ptl;
++			}
++			folio_get(folio);
++			ret = hugetlb_wp(&vmf);
++			folio_unlock(folio);
++			folio_put(folio);
++			goto out_ptl;
+ 		} else if (likely(flags & FAULT_FLAG_WRITE)) {
+ 			vmf.orig_pte = huge_pte_mkdirty(vmf.orig_pte);
+ 		}
+@@ -6837,17 +6821,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	if (huge_ptep_set_access_flags(vma, vmf.address, vmf.pte, vmf.orig_pte,
+ 						flags & FAULT_FLAG_WRITE))
+ 		update_mmu_cache(vma, vmf.address, vmf.pte);
+-out_put_page:
+-	if (folio != pagecache_folio)
+-		folio_unlock(folio);
+-	folio_put(folio);
+ out_ptl:
+ 	spin_unlock(vmf.ptl);
+-
+-	if (pagecache_folio) {
+-		folio_unlock(pagecache_folio);
+-		folio_put(pagecache_folio);
+-	}
+ out_mutex:
+ 	hugetlb_vma_unlock_read(vma);
+ 
+@@ -6860,11 +6835,16 @@ out_mutex:
+ 
+ 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 	/*
+-	 * Generally it's safe to hold refcount during waiting page lock. But
+-	 * here we just wait to defer the next page fault to avoid busy loop and
+-	 * the page is not used after unlocked before returning from the current
+-	 * page fault. So we are safe from accessing freed page, even if we wait
+-	 * here without taking refcount.
++	 * hugetlb_wp drops all the locks, but the folio lock, before trying to
++	 * unmap the folio from other processes. During that window, if another
++	 * process mapping that folio faults in, it will take the mutex and then
++	 * it will wait on folio_lock, causing an ABBA deadlock.
++	 * Use trylock instead and bail out if we fail.
++	 *
++	 * Ideally, we should hold a refcount on the folio we wait for, but we do
++	 * not want to use the folio after it becomes unlocked, but rather just
++	 * wait for it to become unlocked, so hopefully next fault successes on
++	 * the trylock.
+ 	 */
+ 	if (need_wait_lock)
+ 		folio_wait_locked(folio);
 _
 
-Patches currently in -mm which might be from gerald.schaefer@linux.ibm.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests.patch
+mmslub-do-not-special-case-n_normal-nodes-for-slab_nodes.patch
+mmmemory_hotplug-remove-status_change_nid_normal-and-update-documentation.patch
+mmmemory_hotplug-implement-numa-node-notifier.patch
+mmslub-use-node-notifier-instead-of-memory-notifier.patch
+mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
+driverscxl-use-node-notifier-instead-of-memory-notifier.patch
+drivershmat-use-node-notifier-instead-of-memory-notifier.patch
+kernelcpuset-use-node-notifier-instead-of-memory-notifier.patch
+mmmempolicy-use-node-notifier-instead-of-memory-notifier.patch
+mmpage_ext-derive-the-node-from-the-pfn.patch
+mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
+mmhugetlb-change-mechanism-to-detect-a-cow-on-private-mapping.patch
+mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
+mmhugetlb-rename-anon_rmap-to-new_anon_folio-and-make-it-boolean.patch
+mmhugetlb-drop-obsolete-comment-about-non-present-pte-and-second-faults.patch
+mmhugetlb-drop-unlikelys-from-hugetlb_fault.patch
 
