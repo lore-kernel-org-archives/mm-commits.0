@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A59720103A
-	for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2025 22:55:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF91120103A
+	for <mm-commits@vger.kernel.org>; Mon, 30 Jun 2025 22:55:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751324136; cv=none; b=eh7X0Uo9F/F8ebukqB1TejomaD/FWMMuWRF3deiq8wdYovUDecZaevf4dzHWHIe0+zl/mLRi9/+M5O8RkC16J1PKhO9+0XGxFMRd+9R/PYLIe9nW7CStRIpppk45JNp8MpsAMlRImP2yuNu88/V9+6aP7c8Y5iSZTj0+RXrU9ic=
+	t=1751324138; cv=none; b=FFdgPumsQflszU3bH66hpP8+KVj5/Wg66GRAaYzrQgvB51fP4d+pmXWMeemY5OwJ+JTIL6Oo2n28FV0zQdibzPG3bHFWizRoFBLvbkhpJTuTCcdxNNRGA8I4HHn+eg6CbiXpgMPUiALB/+QwjBB9kMaYk9m7bH1kex5fP51Nbdo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751324136; c=relaxed/simple;
-	bh=RadXptLQ0YP+hj6Z46CVd8kXBhTi+tSK0IH0Ia163Cs=;
-	h=Date:To:From:Subject:Message-Id; b=IlcuHVndDhd/KUvApwrpuC/d6nONic2YkkILIXs/FmQkF1Q/KDNPrO/r1VT6pteic77VFed4bVQga8hbEAwNWSdn8a3d8wREyoiNISeonUFGGrj1CrrkqcRZ8LPvrTMv9tggZDJBEiq2tws9ZxGr22Uf0S1043A/9PEVMiRYDic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m4ybkoaJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751324138; c=relaxed/simple;
+	bh=51rbLgb150duYwZLa7+/BCO9JNoUIQh68vOabkASfPU=;
+	h=Date:To:From:Subject:Message-Id; b=Bi9e6syH3nmgC8PrFHXjfi96SsHleqmWiisySq/vV8L5j9DIXXfOYHwqScrQmD2qcWviYkSvbVqPBvbiawtkGozXJ8RNE+SOlNBmCSsinNvG/yz0a/nNSXeyDg9xRnl7Zl79DRiZi36S74/Tj00X4RcKbfeigo9diyHbDPJpGQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o1u65Bpp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m4ybkoaJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B0E3C4CEEF;
-	Mon, 30 Jun 2025 22:55:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o1u65Bpp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1328BC4CEE3;
+	Mon, 30 Jun 2025 22:55:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751324136;
-	bh=RadXptLQ0YP+hj6Z46CVd8kXBhTi+tSK0IH0Ia163Cs=;
+	s=korg; t=1751324135;
+	bh=51rbLgb150duYwZLa7+/BCO9JNoUIQh68vOabkASfPU=;
 	h=Date:To:From:Subject:From;
-	b=m4ybkoaJWDYvk0thJRqDVleiDpz0hisn4JjEnmc33qEZW1CZFGqGYb52+D25aXoo3
-	 WWZVwiM+NchZ2Lu0CE8XWLSUuU6IDoSQKAF5ymRsm2QfyPD3eTXaaY5KAtPiNx+eCW
-	 850p04/2DXJ7EaNTiJKqQ3+lVIL1yIwX1w37Hot8=
-Date: Mon, 30 Jun 2025 15:55:35 -0700
+	b=o1u65BppPNnIO7WDEFkowhVhXFECS/Bsgl0uCj2KcCaS5Z+OPn9ZGe70zD/pn57uD
+	 XEua3RbnFl6sx6/QVlEroQfrl6N7nej971lXCAyFPHlSKjI4yK/uJfJYBGI/BIqQiM
+	 qeDfJbc8dmR5qgobT/5OZchK8orOv5D1d42EUC3c=
+Date: Mon, 30 Jun 2025 15:55:34 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,gavinguo@igalia.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmhugetlb-rename-anon_rmap-to-new_anon_folio-and-make-it-boolean.patch added to mm-new branch
-Message-Id: <20250630225536.4B0E3C4CEEF@smtp.kernel.org>
+Subject: + mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch added to mm-new branch
+Message-Id: <20250630225535.1328BC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,hugetlb: rename anon_rmap to new_anon_folio and make it boolean
+     Subject: mm,hugetlb: sort out folio locking in the faulting path
 has been added to the -mm mm-new branch.  Its filename is
-     mmhugetlb-rename-anon_rmap-to-new_anon_folio-and-make-it-boolean.patch
+     mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-rename-anon_rmap-to-new_anon_folio-and-make-it-boolean.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-sort-out-folio-locking-in-the-faulting-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,93 +65,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hugetlb: rename anon_rmap to new_anon_folio and make it boolean
-Date: Mon, 30 Jun 2025 16:42:10 +0200
+Subject: mm,hugetlb: sort out folio locking in the faulting path
+Date: Mon, 30 Jun 2025 16:42:09 +0200
 
-anon_rmap is used to determine whether the new allocated folio is
-anonymous.  Rename it to something more meaningul like new_anon_folio and
-make it boolean, as we use it like that.
+Recent conversations showed that there was a misunderstanding about why we
+were locking the folio prior to call in hugetlb_wp().  In fact, as soon as
+we have the folio mapped into the pagetables, we no longer need to hold it
+locked, because we know that no concurrent truncation could have happened.
 
-While we are at it, drop 'new_pagecache_folio' as 'new_anon_folio' is
-enough to check whether we need to restore the consumed reservation.
+There is only one case where the folio needs to be locked, and that is
+when we are handling an anonymous folio, because hugetlb_wp() will check
+whether it can re-use it exclusively for the process that is faulting it
+in.
 
-Link: https://lkml.kernel.org/r/20250627102904.107202-4-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20250630144212.156938-4-osalvador@suse.de
+So, pass the folio locked to hugetlb_wp() when that is the case.
+
+Link: https://lkml.kernel.org/r/20250627102904.107202-3-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250630144212.156938-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: Gavin Guo <gavinguo@igalia.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mmhugetlb-rename-anon_rmap-to-new_anon_folio-and-make-it-boolean
+--- a/mm/hugetlb.c~mmhugetlb-sort-out-folio-locking-in-the-faulting-path
 +++ a/mm/hugetlb.c
-@@ -6425,17 +6425,16 @@ static bool hugetlb_pte_stable(struct hs
- static vm_fault_t hugetlb_no_page(struct address_space *mapping,
- 			struct vm_fault *vmf)
- {
-+	u32 hash = hugetlb_fault_mutex_hash(mapping, vmf->pgoff);
-+	bool new_folio, new_anon_folio = false;
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct hstate *h = hstate_vma(vma);
- 	vm_fault_t ret = VM_FAULT_SIGBUS;
--	int anon_rmap = 0;
--	unsigned long size;
-+	bool folio_locked = true;
- 	struct folio *folio;
-+	unsigned long size;
+@@ -6435,6 +6435,7 @@ static vm_fault_t hugetlb_no_page(struct
  	pte_t new_pte;
--	bool new_folio, new_pagecache_folio = false;
--	u32 hash = hugetlb_fault_mutex_hash(mapping, vmf->pgoff);
--	bool folio_locked = true;
+ 	bool new_folio, new_pagecache_folio = false;
+ 	u32 hash = hugetlb_fault_mutex_hash(mapping, vmf->pgoff);
++	bool folio_locked = true;
  
  	/*
  	 * Currently, we are forced to kill the process in the event the
-@@ -6534,10 +6533,9 @@ static vm_fault_t hugetlb_no_page(struct
- 				ret = VM_FAULT_SIGBUS;
- 				goto out;
+@@ -6600,6 +6601,14 @@ static vm_fault_t hugetlb_no_page(struct
+ 
+ 	hugetlb_count_add(pages_per_huge_page(h), mm);
+ 	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
++		/*
++		 * No need to keep file folios locked. See comment in
++		 * hugetlb_fault().
++		 */
++		if (!anon_rmap) {
++			folio_locked = false;
++			folio_unlock(folio);
++		}
+ 		/* Optimization, do the COW without a second fault */
+ 		ret = hugetlb_wp(vmf);
+ 	}
+@@ -6614,7 +6623,8 @@ static vm_fault_t hugetlb_no_page(struct
+ 	if (new_folio)
+ 		folio_set_hugetlb_migratable(folio);
+ 
+-	folio_unlock(folio);
++	if (folio_locked)
++		folio_unlock(folio);
+ out:
+ 	hugetlb_vma_unlock_read(vma);
+ 
+@@ -6802,15 +6812,20 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 
+ 	if (flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
+ 		if (!huge_pte_write(vmf.orig_pte)) {
+-			/* hugetlb_wp() requires page locks of pte_page(vmf.orig_pte) */
++			/*
++			 * Anonymous folios need to be lock since hugetlb_wp()
++			 * checks whether we can re-use the folio exclusively
++			 * for us in case we are the only user of it.
++			 */
+ 			folio = page_folio(pte_page(vmf.orig_pte));
+-			if (!folio_trylock(folio)) {
++			if (folio_test_anon(folio) && !folio_trylock(folio)) {
+ 				need_wait_lock = true;
+ 				goto out_ptl;
  			}
--			new_pagecache_folio = true;
- 		} else {
-+			new_anon_folio = true;
- 			folio_lock(folio);
--			anon_rmap = 1;
- 		}
- 	} else {
- 		/*
-@@ -6586,7 +6584,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	if (!pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), vmf->orig_pte))
- 		goto backout;
- 
--	if (anon_rmap)
-+	if (new_anon_folio)
- 		hugetlb_add_new_anon_rmap(folio, vma, vmf->address);
- 	else
- 		hugetlb_add_file_rmap(folio);
-@@ -6605,7 +6603,7 @@ static vm_fault_t hugetlb_no_page(struct
- 		 * No need to keep file folios locked. See comment in
- 		 * hugetlb_fault().
- 		 */
--		if (!anon_rmap) {
-+		if (!new_anon_folio) {
- 			folio_locked = false;
- 			folio_unlock(folio);
- 		}
-@@ -6641,7 +6639,8 @@ out:
- backout:
- 	spin_unlock(vmf->ptl);
- backout_unlocked:
--	if (new_folio && !new_pagecache_folio)
-+	/* We only need to restore reservations for private mappings */
-+	if (new_anon_folio)
- 		restore_reserve_on_error(h, vma, vmf->address, folio);
- 
- 	folio_unlock(folio);
+ 			folio_get(folio);
+ 			ret = hugetlb_wp(&vmf);
+-			folio_unlock(folio);
++			if (folio_test_anon(folio))
++				folio_unlock(folio);
+ 			folio_put(folio);
+ 			goto out_ptl;
+ 		} else if (likely(flags & FAULT_FLAG_WRITE)) {
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
