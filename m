@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E852C1E50E
-	for <mm-commits@vger.kernel.org>; Tue,  1 Jul 2025 01:00:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F15AC433A5;
+	Tue,  1 Jul 2025 01:04:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751331613; cv=none; b=hwRaGSlpgyBHIEUrWy+xofBKDQzrwevE/uixtO6l/t/prqlBsX+9rrms6wRQnwjKO1ibrx1WY5GVVe24gDqeq6GIpXg/q7N4dE3Jbn/uDO7zLam6sOGirgCNYlIJOa651oDIyCB1/zHr8ERDZXXf3NckQ++nOUCawSurXyKT6RY=
+	t=1751331855; cv=none; b=aUFVMCb9UHP/fZUJUikqEQt6MxKiOE65007+MM59Ui0XPpyOMQ3P012l4zofQQSMVW7rUTWjBTAT1LKSJiFbUvFHVN9i0jG3Nb2XqEf48wpGRZN+XzgU2/d2ZIm+VvIgxWt8gc5kKk6ZqX9U9U6JdjsfRZY6fWo7brSShw2OvtI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751331613; c=relaxed/simple;
-	bh=cLxaWvCtniNXQZGzSJcN5vEL7niXqyIGjmcjuu96c0o=;
-	h=Date:To:From:Subject:Message-Id; b=oqKIgf6hemtSBbS8ri34VOqDHpzsJ9JyQUWd+y+asE2ZeoGE5LvEqFumx6SwFpEIs/IkCDU+hHqxKvtCgoPCj1KKZWUnPBdAaGTmAOW7/Bnu5Zh6Xu8C1hIXShkamVu8YxnLY9DHehIxQaI8AGhsRVV5/4dv42b0ZL3VcmpNg5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0j+oIUhe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751331855; c=relaxed/simple;
+	bh=0Cwn85ERz8QjxvuUguS+RaHbcN2zy61QAW7DYQRus0E=;
+	h=Date:To:From:Subject:Message-Id; b=D57i0Y3+ExnlT4ZWCqknnA+9+bDW9DWP+1ei5nYrb7MCIotuzVCD9XlXNykqA4OFbHBo750BiWvfwS/OhZyiH4uKg2ROoguvj0uMIOeDO/rkep5BoY0mJHUkRV2oZooSkYIwV9o/FFpNyVAYYhAL2foIk9AE6ag+IjAUUg+DWMs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yFeSk+OX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0j+oIUhe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72CA9C4CEE3;
-	Tue,  1 Jul 2025 01:00:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yFeSk+OX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3908C4CEE3;
+	Tue,  1 Jul 2025 01:04:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751331612;
-	bh=cLxaWvCtniNXQZGzSJcN5vEL7niXqyIGjmcjuu96c0o=;
+	s=korg; t=1751331854;
+	bh=0Cwn85ERz8QjxvuUguS+RaHbcN2zy61QAW7DYQRus0E=;
 	h=Date:To:From:Subject:From;
-	b=0j+oIUhePpwDJ3deizv02srjeKAfuSyJTDw+e1K0bgCRUWmgthbRxGb6nCeMXVXV+
-	 37gE/kJVHaqCuxIOal7dDK1ibRrYjRn0CRARua2GXe6QqZ5IJpcw2WMk4f4IddnF5R
-	 cMrVSmD5PLG4V698Kocjoy0/MHKiSV8zx24++Bmc=
-Date: Mon, 30 Jun 2025 18:00:11 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,syzbot+1134d3a5b062e9665a7a@syzkaller.appspotmail.com,richard@nod.at,piaojun@huawei.com,penguin-kernel@i-love-sakura.ne.jp,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
+	b=yFeSk+OXjRFbBwWJwb1R97ZnPdLV6iYDlnB/b9+p8pMDh+H2kjUGP8XKNftDqKuZV
+	 40QdfFRHJVcjo56HKV5ZLk92rH0a4Fa4NKUBnDfhsZaRXRmDVvKuG+gFzb+3L8X+94
+	 WfKA6xeGXyrUZUvZcSytzzo0y3a0q2uCvcapyrpo=
+Date: Mon, 30 Jun 2025 18:04:14 -0700
+To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,vbabka@suse.cz,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,mingzhe.yang@ly.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kasong@tencent.com,huang.ying.caritas@gmail.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-update-d_splice_alias-return-code-checking.patch added to mm-nonmm-unstable branch
-Message-Id: <20250701010012.72CA9C4CEE3@smtp.kernel.org>
+Subject: + mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250701010414.B3908C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: update d_splice_alias() return code checking
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-update-d_splice_alias-return-code-checking.patch
+     Subject: mm/rmap: fix potential out-of-bounds page table access during batched unmap
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-update-d_splice_alias-return-code-checking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,85 +58,135 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: ocfs2: update d_splice_alias() return code checking
-Date: Mon, 30 Jun 2025 19:21:31 +0900
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm/rmap: fix potential out-of-bounds page table access during batched unmap
+Date: Fri, 27 Jun 2025 14:23:19 +0800
 
-When commit d3556babd7fa ("ocfs2: fix d_splice_alias() return code
-checking") was merged into v3.18-rc3, d_splice_alias() was returning one
-of a valid dentry, NULL or an ERR_PTR.
+As pointed out by David[1], the batched unmap logic in
+try_to_unmap_one() may read past the end of a PTE table when a large
+folio's PTE mappings are not fully contained within a single page
+table.
 
-When commit b5ae6b15bd73 ("merge d_materialise_unique() into
-d_splice_alias()") was merged into v3.19-rc1, d_splice_alias() started
-returning -ELOOP as one of ERR_PTR values.
+While this scenario might be rare, an issue triggerable from userspace
+must be fixed regardless of its likelihood.  This patch fixes the
+out-of-bounds access by refactoring the logic into a new helper,
+folio_unmap_pte_batch().
 
-Now, when syzkaller mounts a crafted ocfs2 filesystem image that hits
-d_splice_alias() == -ELOOP case from ocfs2_lookup(), ocfs2_lookup() fails
-to handle -ELOOP case and generic_shutdown_super() hits "VFS: Busy inodes
-after unmount" message.
+The new helper correctly calculates the safe batch size by capping the
+scan at both the VMA and PMD boundaries.  To simplify the code, it also
+supports partial batching (i.e., any number of pages from 1 up to the
+calculated safe maximum), as there is no strong reason to special-case
+for fully mapped folios.
 
-Instead of calling ocfs2_dentry_attach_lock() or ocfs2_dentry_attach_gen()
-when d_splice_alias() returned an ERR_PTR value, change ocfs2_lookup() to
-bail out immediately.
-
-Also, ocfs2_lookup() needs to call dupt() when ocfs2_dentry_attach_lock()
-returned an ERR_PTR value.
-
-Link: https://lkml.kernel.org/r/da5be67d-2a0b-4b93-85d6-42f3b7440135@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: syzbot <syzbot+1134d3a5b062e9665a7a@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=1134d3a5b062e9665a7a
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Tetsuo Handa <penguin-kernel@i-love-sakura.ne.jp>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20250630011305.23754-1-lance.yang@linux.dev
+Link: https://lkml.kernel.org/r/20250627062319.84936-1-lance.yang@linux.dev
+Link: https://lore.kernel.org/linux-mm/a694398c-9f03-4737-81b9-7e49c857fcbe@redhat.com [1]
+Fixes: 354dffd29575 ("mm: support batched unmap for lazyfree large folios during reclamation")
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Barry Song <baohua@kernel.org>
+Acked-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: "Huang, Ying" <huang.ying.caritas@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mingzhe Yang <mingzhe.yang@ly.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Tangquan Zheng <zhengtangquan@oppo.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/rmap.c |   46 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 28 insertions(+), 18 deletions(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-update-d_splice_alias-return-code-checking
-+++ a/fs/ocfs2/namei.c
-@@ -142,6 +142,8 @@ static struct dentry *ocfs2_lookup(struc
+--- a/mm/rmap.c~mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap
++++ a/mm/rmap.c
+@@ -1845,23 +1845,32 @@ void folio_remove_rmap_pud(struct folio
+ #endif
+ }
  
- bail_add:
- 	ret = d_splice_alias(inode, dentry);
-+	if (IS_ERR(ret))
-+		goto bail_unlock;
+-/* We support batch unmapping of PTEs for lazyfree large folios */
+-static inline bool can_batch_unmap_folio_ptes(unsigned long addr,
+-			struct folio *folio, pte_t *ptep)
++static inline unsigned int folio_unmap_pte_batch(struct folio *folio,
++			struct page_vma_mapped_walk *pvmw,
++			enum ttu_flags flags, pte_t pte)
+ {
+ 	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
+-	int max_nr = folio_nr_pages(folio);
+-	pte_t pte = ptep_get(ptep);
++	unsigned long end_addr, addr = pvmw->address;
++	struct vm_area_struct *vma = pvmw->vma;
++	unsigned int max_nr;
++
++	if (flags & TTU_HWPOISON)
++		return 1;
++	if (!folio_test_large(folio))
++		return 1;
++
++	/* We may only batch within a single VMA and a single page table. */
++	end_addr = pmd_addr_end(addr, vma->vm_end);
++	max_nr = (end_addr - addr) >> PAGE_SHIFT;
  
- 	if (inode) {
- 		/*
-@@ -154,15 +156,16 @@ bail_add:
- 		 * NOTE: This dentry already has ->d_op set from
- 		 * ocfs2_get_parent() and ocfs2_get_dentry()
- 		 */
--		if (!IS_ERR_OR_NULL(ret))
-+		if (ret)
- 			dentry = ret;
++	/* We only support lazyfree batching for now ... */
+ 	if (!folio_test_anon(folio) || folio_test_swapbacked(folio))
+-		return false;
++		return 1;
+ 	if (pte_unused(pte))
+-		return false;
+-	if (pte_pfn(pte) != folio_pfn(folio))
+-		return false;
++		return 1;
  
- 		status = ocfs2_dentry_attach_lock(dentry, inode,
- 						  OCFS2_I(dir)->ip_blkno);
- 		if (status) {
- 			mlog_errno(status);
-+			if (ret)
-+				dput(ret);
- 			ret = ERR_PTR(status);
--			goto bail_unlock;
+-	return folio_pte_batch(folio, addr, ptep, pte, max_nr, fpb_flags, NULL,
+-			       NULL, NULL) == max_nr;
++	return folio_pte_batch(folio, addr, pvmw->pte, pte, max_nr, fpb_flags,
++			       NULL, NULL, NULL);
+ }
+ 
+ /*
+@@ -2024,9 +2033,7 @@ static bool try_to_unmap_one(struct foli
+ 			if (pte_dirty(pteval))
+ 				folio_mark_dirty(folio);
+ 		} else if (likely(pte_present(pteval))) {
+-			if (folio_test_large(folio) && !(flags & TTU_HWPOISON) &&
+-			    can_batch_unmap_folio_ptes(address, folio, pvmw.pte))
+-				nr_pages = folio_nr_pages(folio);
++			nr_pages = folio_unmap_pte_batch(folio, &pvmw, flags, pteval);
+ 			end_addr = address + nr_pages * PAGE_SIZE;
+ 			flush_cache_range(vma, address, end_addr);
+ 
+@@ -2206,13 +2213,16 @@ discard:
+ 			hugetlb_remove_rmap(folio);
+ 		} else {
+ 			folio_remove_rmap_ptes(folio, subpage, nr_pages, vma);
+-			folio_ref_sub(folio, nr_pages - 1);
  		}
- 	} else
- 		ocfs2_dentry_attach_gen(dentry);
+ 		if (vma->vm_flags & VM_LOCKED)
+ 			mlock_drain_local();
+-		folio_put(folio);
+-		/* We have already batched the entire folio */
+-		if (nr_pages > 1)
++		folio_put_refs(folio, nr_pages);
++
++		/*
++		 * If we are sure that we batched the entire folio and cleared
++		 * all PTEs, we can just optimize and stop right here.
++		 */
++		if (nr_pages == folio_nr_pages(folio))
+ 			goto walk_done;
+ 		continue;
+ walk_abort:
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-ocfs2-kill-osb-system_file_mutex-lock.patch
-ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names.patch
-ocfs2-update-d_splice_alias-return-code-checking.patch
+mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap.patch
 
