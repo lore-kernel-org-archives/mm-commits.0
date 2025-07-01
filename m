@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC22722094
-	for <mm-commits@vger.kernel.org>; Tue,  1 Jul 2025 00:37:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E852C1E50E
+	for <mm-commits@vger.kernel.org>; Tue,  1 Jul 2025 01:00:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751330239; cv=none; b=FTUxEzKQxgIsxvvp+0ulWz/pjMHprWFXomBQ8z67HOzu7xD85jw34jGDyooY6EaYYkHQ2Gf/OCQMRKWyWSiNicwPEja6hepthZdQyAmS+mLhzpW94dTCXoV9W/+aWHBBuJOiQRLaBZbw45qsqHbtwbLwTJddAWM3CruRtcCFUsE=
+	t=1751331613; cv=none; b=hwRaGSlpgyBHIEUrWy+xofBKDQzrwevE/uixtO6l/t/prqlBsX+9rrms6wRQnwjKO1ibrx1WY5GVVe24gDqeq6GIpXg/q7N4dE3Jbn/uDO7zLam6sOGirgCNYlIJOa651oDIyCB1/zHr8ERDZXXf3NckQ++nOUCawSurXyKT6RY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751330239; c=relaxed/simple;
-	bh=hUP3TDCAeObc11Ipe3O7SoqxcO9edDZPeFLLs+XksLc=;
-	h=Date:To:From:Subject:Message-Id; b=XuxaN0k+Rf5w62hywrVvGAkFLIbWCFiqjr8tkxA4G1DI2uaOButJ65BqaDe/+ogHNTowk2XHoWtofKehNGu0mL8DVES/+lxpnv6+ZbOHO0KZdCQlpnmhMzSuLb+s7J7zV5fK+AQ+TrRUIFZYNbxZA1j7dWLFI568cvlAo0QRMVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ty2yPNMt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751331613; c=relaxed/simple;
+	bh=cLxaWvCtniNXQZGzSJcN5vEL7niXqyIGjmcjuu96c0o=;
+	h=Date:To:From:Subject:Message-Id; b=oqKIgf6hemtSBbS8ri34VOqDHpzsJ9JyQUWd+y+asE2ZeoGE5LvEqFumx6SwFpEIs/IkCDU+hHqxKvtCgoPCj1KKZWUnPBdAaGTmAOW7/Bnu5Zh6Xu8C1hIXShkamVu8YxnLY9DHehIxQaI8AGhsRVV5/4dv42b0ZL3VcmpNg5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0j+oIUhe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ty2yPNMt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C5B6C4CEE3;
-	Tue,  1 Jul 2025 00:37:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0j+oIUhe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72CA9C4CEE3;
+	Tue,  1 Jul 2025 01:00:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751330238;
-	bh=hUP3TDCAeObc11Ipe3O7SoqxcO9edDZPeFLLs+XksLc=;
+	s=korg; t=1751331612;
+	bh=cLxaWvCtniNXQZGzSJcN5vEL7niXqyIGjmcjuu96c0o=;
 	h=Date:To:From:Subject:From;
-	b=Ty2yPNMtErwJ2bNGGzAQ1V61XWyuVprbkhynMyzbAVV6UHuduqtLa0fBVpxo8lWgh
-	 8MByKeFpj/LrZuEieDW3nUCgMnZ5c1M6dTUXLIIDbMJE1wDVFYQMNK5ii6wKrO9tY/
-	 3cmHosCyPFXTyM0kAu2U10Eud5qxoBKWsgDB+KjQ=
-Date: Mon, 30 Jun 2025 17:37:17 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,yuanchu@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,kinseyho@google.com,hannes@cmpxchg.org,gthelen@google.com,david@redhat.com,axelrasmussen@google.com,jiahao1@lixiang.com,akpm@linux-foundation.org
+	b=0j+oIUhePpwDJ3deizv02srjeKAfuSyJTDw+e1K0bgCRUWmgthbRxGb6nCeMXVXV+
+	 37gE/kJVHaqCuxIOal7dDK1ibRrYjRn0CRARua2GXe6QqZ5IJpcw2WMk4f4IddnF5R
+	 cMrVSmD5PLG4V698Kocjoy0/MHKiSV8zx24++Bmc=
+Date: Mon, 30 Jun 2025 18:00:11 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,syzbot+1134d3a5b062e9665a7a@syzkaller.appspotmail.com,richard@nod.at,piaojun@huawei.com,penguin-kernel@i-love-sakura.ne.jp,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-stop-try_to_inc_min_seq-if-the-oldest-generation-lru-lists-are-not-empty.patch added to mm-new branch
-Message-Id: <20250701003718.3C5B6C4CEE3@smtp.kernel.org>
+Subject: + ocfs2-update-d_splice_alias-return-code-checking.patch added to mm-nonmm-unstable branch
+Message-Id: <20250701010012.72CA9C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: stop try_to_inc_min_seq() if the oldest generation LRU lists are not empty
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-stop-try_to_inc_min_seq-if-the-oldest-generation-lru-lists-are-not-empty.patch
+     Subject: ocfs2: update d_splice_alias() return code checking
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-update-d_splice_alias-return-code-checking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-stop-try_to_inc_min_seq-if-the-oldest-generation-lru-lists-are-not-empty.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-update-d_splice_alias-return-code-checking.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,94 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Jia <jiahao1@lixiang.com>
-Subject: mm/mglru: stop try_to_inc_min_seq() if the oldest generation LRU lists are not empty
-Date: Mon, 30 Jun 2025 16:06:03 +0800
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: ocfs2: update d_splice_alias() return code checking
+Date: Mon, 30 Jun 2025 19:21:31 +0900
 
-In try_to_inc_min_seq(), if the oldest generation of LRU lists (anonymous
-and file) are not empty.  Then we should return directly to avoid
-unnecessary subsequent overhead.
+When commit d3556babd7fa ("ocfs2: fix d_splice_alias() return code
+checking") was merged into v3.18-rc3, d_splice_alias() was returning one
+of a valid dentry, NULL or an ERR_PTR.
 
-Corollary: If the lrugen->folios[gen][type][zone] lists of both anonymous
-and file are not empty, try_to_inc_min_seq() will fail.
+When commit b5ae6b15bd73 ("merge d_materialise_unique() into
+d_splice_alias()") was merged into v3.19-rc1, d_splice_alias() started
+returning -ELOOP as one of ERR_PTR values.
 
-Proof: Taking LRU_GEN_ANON as an example, consider the following two cases:
+Now, when syzkaller mounts a crafted ocfs2 filesystem image that hits
+d_splice_alias() == -ELOOP case from ocfs2_lookup(), ocfs2_lookup() fails
+to handle -ELOOP case and generic_shutdown_super() hits "VFS: Busy inodes
+after unmount" message.
 
-Case 1: min_seq[LRU_GEN_ANON] <= seq (seq is lrugen->max_seq - MIN_NR_GENS)
+Instead of calling ocfs2_dentry_attach_lock() or ocfs2_dentry_attach_gen()
+when d_splice_alias() returned an ERR_PTR value, change ocfs2_lookup() to
+bail out immediately.
 
-Since min_seq[LRU_GEN_ANON] has not increased, so min_seq[LRU_GEN_ANON] is
-still equal to lrugen->min_seq[LRU_GEN_ANON].  Therefore, in the following
-judgment: min_seq[LRU_GEN_ANON] <= lrugen->min_seq[LRU_GEN_ANON] is always
-true.  So we will not increase the seq of the oldest generation of
-anonymous, and try_to_inc_min_seq() will return false.
+Also, ocfs2_lookup() needs to call dupt() when ocfs2_dentry_attach_lock()
+returned an ERR_PTR value.
 
-case 2: min_seq[LRU_GEN_ANON] > seq (seq is lrugen->max_seq - MIN_NR_GENS)
-
-If min_seq[LRU_GEN_ANON] > seq, that is, lrugen->min_seq[LRU_GEN_ANON] >
-seq Then min_seq[LRU_GEN_ANON] is assigned seq.  Therefore, in the
-following judgment:
-min_seq[LRU_GEN_ANON] (seq) <= lrugen->min_seq[LRU_GEN_ANON] is always true.
-So, we will not update the oldest generation seq of anonymous, and
-try_to_inc_min_seq() will return false.
-
-It is similar for LRU_GEN_FILE.  Therefore, in try_to_inc_min_seq(), if
-the oldest generation LRU lists (anonymous and file) are not empty, in
-other words, min_seq[type] has not increased.  we can directly return
-false to avoid unnecessary checking overhead later.
-
-Link: https://lkml.kernel.org/r/20250630080603.36171-1-jiahao.kernel@gmail.com
-Signed-off-by: Hao Jia <jiahao1@lixiang.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kinsey Ho <kinseyho@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/da5be67d-2a0b-4b93-85d6-42f3b7440135@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: syzbot <syzbot+1134d3a5b062e9665a7a@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=1134d3a5b062e9665a7a
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Tetsuo Handa <penguin-kernel@i-love-sakura.ne.jp>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/ocfs2/namei.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-stop-try_to_inc_min_seq-if-the-oldest-generation-lru-lists-are-not-empty
-+++ a/mm/vmscan.c
-@@ -3928,6 +3928,7 @@ static bool try_to_inc_min_seq(struct lr
- 	int gen, type, zone;
- 	bool success = false;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+	int seq_inc_flags[ANON_AND_FILE] = {0};
- 	DEFINE_MIN_SEQ(lruvec);
+--- a/fs/ocfs2/namei.c~ocfs2-update-d_splice_alias-return-code-checking
++++ a/fs/ocfs2/namei.c
+@@ -142,6 +142,8 @@ static struct dentry *ocfs2_lookup(struc
  
- 	VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
-@@ -3943,11 +3944,20 @@ static bool try_to_inc_min_seq(struct lr
- 			}
+ bail_add:
+ 	ret = d_splice_alias(inode, dentry);
++	if (IS_ERR(ret))
++		goto bail_unlock;
  
- 			min_seq[type]++;
-+			seq_inc_flags[type] = 1;
+ 	if (inode) {
+ 		/*
+@@ -154,15 +156,16 @@ bail_add:
+ 		 * NOTE: This dentry already has ->d_op set from
+ 		 * ocfs2_get_parent() and ocfs2_get_dentry()
+ 		 */
+-		if (!IS_ERR_OR_NULL(ret))
++		if (ret)
+ 			dentry = ret;
+ 
+ 		status = ocfs2_dentry_attach_lock(dentry, inode,
+ 						  OCFS2_I(dir)->ip_blkno);
+ 		if (status) {
+ 			mlog_errno(status);
++			if (ret)
++				dput(ret);
+ 			ret = ERR_PTR(status);
+-			goto bail_unlock;
  		}
- next:
- 		;
- 	}
- 
-+	/*
-+	 * If the oldest generation of LRU lists (anonymous and file)
-+	 * are not empty, we can directly return false to avoid unnecessary
-+	 * checking overhead later.
-+	 */
-+	if (!seq_inc_flags[LRU_GEN_ANON] && !seq_inc_flags[LRU_GEN_FILE])
-+		return success;
-+
- 	/* see the comment on lru_gen_folio */
- 	if (swappiness && swappiness <= MAX_SWAPPINESS) {
- 		unsigned long seq = lrugen->max_seq - MIN_NR_GENS;
+ 	} else
+ 		ocfs2_dentry_attach_gen(dentry);
 _
 
-Patches currently in -mm which might be from jiahao1@lixiang.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-mm-mglru-stop-try_to_inc_min_seq-if-the-oldest-generation-lru-lists-are-not-empty.patch
+ocfs2-kill-osb-system_file_mutex-lock.patch
+ocfs2-embed-actual-values-into-ocfs2_sysfile_lock_key-names.patch
+ocfs2-update-d_splice_alias-return-code-checking.patch
 
