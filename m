@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88AFD27FB34;
-	Tue,  1 Jul 2025 19:09:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5940A1C84B3
+	for <mm-commits@vger.kernel.org>; Tue,  1 Jul 2025 20:45:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751396983; cv=none; b=irM4ppabJ0DTRcw41zQfUctLbY3v3OGkVMg/rr5RD1NFBA5J2E36LIstOl07msOpykBLj7GfbUbogXQm5wmdptOI2Yq7LtQClCDZOEDH4UfW18MrzmhQaad5o3YWqABTxA/j0C9igdw2Dgbbk3kbLHukuE2XhoAHQSHhTP7U8ZY=
+	t=1751402746; cv=none; b=J1ykvxC1HBJsn6YLO0mx3MrgoEhcHGoCYaPGS0790QzzJB3QwGHF4aXTpKkg9oJb/rxT4apelV6WNFIRYHxqwffiylHexodk3YZz1nDC/RycovsZ/SoXIqRSqnl97RiTc2kwATb0oOyTqlNYJ2ASElXzH8tCHb1SEn45umT0/4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751396983; c=relaxed/simple;
-	bh=+aq+ORyCy6Lpz9SFUKrcE4bWltJnfJWhZuLKvrvBDpQ=;
-	h=Date:To:From:Subject:Message-Id; b=KCMwEO4ZCuSCumgShno1CByZUHVBgE4vGn7swiniBPpG/jSgasHNt6fh14/J2nCrs5CcBmA78SPAhtyuxHTxlo6ps7A+ve0VOFQVJJmU3JXGqQIipMz/1UuIIAqcKNLyJwTLRN13k67WQVm+CXdlZERWjRMoHBBaVDfDGTYUV7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NAJkSLnS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751402746; c=relaxed/simple;
+	bh=xvZhGpNRviRED5H0rojwFHnafk+GQXAz7sW1Zx/BrLY=;
+	h=Date:To:From:Subject:Message-Id; b=cPp5R2vO4niKNPUoH4nTjUqceBrqFPFIQk5HqOXXxMF8Re57U3gNBYHz/coYFw9OJJRZZTi8LCDz8+TGOxYtNUDY402V4aV5qqPU0seBjaMJQusnEZPTQL1/ygCvLOd3IguT72fkEKtErKAUGpTJzNga1CdCp7euZ9AYCRV5FSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1MpKw+FP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NAJkSLnS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F122C4CEEB;
-	Tue,  1 Jul 2025 19:09:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1MpKw+FP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD62CC4CEEB;
+	Tue,  1 Jul 2025 20:45:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751396983;
-	bh=+aq+ORyCy6Lpz9SFUKrcE4bWltJnfJWhZuLKvrvBDpQ=;
+	s=korg; t=1751402745;
+	bh=xvZhGpNRviRED5H0rojwFHnafk+GQXAz7sW1Zx/BrLY=;
 	h=Date:To:From:Subject:From;
-	b=NAJkSLnSeQ7vFh8xP4Vqrut7oceEPRJ1AQ+AuAjhniKrMECFJi+fRzxgsJHzGv4Jy
-	 RgL5P0sCFj4y+aofKeBU49/qpD7UhuCkVrZnuE0eqVUE4J670Hok1nEesgTeZ9GIfC
-	 4M3tP/1nspHbGd7rKfsWk0npOg19dzhV0vnVyOAs=
-Date: Tue, 01 Jul 2025 12:09:42 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,luis@igalia.com,gregkh@linuxfoundation.org,fossdd@pwned.life,akpm@linux-foundation.org
+	b=1MpKw+FPsb88/jSkzulJfunpc8gRtvE6ab1jTZzSDM6xv/aLiiU0hn7dzFRk/2Q3s
+	 gDWjRIi5dSk4/N/3IF4BHO1OVVuwk+HXYNA30RNwPGecpAfAWCRGrw8wd1/vZUq97q
+	 fqTl6p/lZ+ait21RvxDbCnrdOOgUGgdf1pGCHCSM=
+Date: Tue, 01 Jul 2025 13:45:45 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,myon@debian.org,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,bertranddrouvot.pg@gmail.com,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kallsyms-fix-build-without-execinfo.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250701190943.0F122C4CEEB@smtp.kernel.org>
+Subject: [folded-merged] fix-do_pages_stat-to-use-compat_uptr_t-fix.patch removed from -mm tree
+Message-Id: <20250701204545.AD62CC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,76 +34,60 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: kallsyms: fix build without execinfo
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kallsyms-fix-build-without-execinfo.patch
+The quilt patch titled
+     Subject: fix-do_pages_stat-to-use-compat_uptr_t-fix
+has been removed from the -mm tree.  Its filename was
+     fix-do_pages_stat-to-use-compat_uptr_t-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kallsyms-fix-build-without-execinfo.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into fix-do_pages_stat-to-use-compat_uptr_t.patch
 
 ------------------------------------------------------
-From: Achill Gilgenast <fossdd@pwned.life>
-Subject: kallsyms: fix build without execinfo
-Date: Sun, 22 Jun 2025 03:45:49 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix-do_pages_stat-to-use-compat_uptr_t-fix
+Date: Wed Jun 25 01:37:57 PM PDT 2025
 
-Some libc's like musl libc don't provide execinfo.h since it's not part of
-POSIX.  In order to fix compilation on musl, only include execinfo.h if
-available (HAVE_BACKTRACE_SUPPORT)
+fix coding style
 
-This was discovered with c104c16073b7 ("Kunit to check the longest symbol
-length") which starts to include linux/kallsyms.h with Alpine Linux'
-configs.
-
-Link: https://lkml.kernel.org/r/20250622014608.448718-1-fossdd@pwned.life
-Fixes: c104c16073b7 ("Kunit to check the longest symbol length")
-Signed-off-by: Achill Gilgenast <fossdd@pwned.life>
-Cc: Luis Henriques <luis@igalia.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Bertrand Drouvot <bertranddrouvot.pg@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Christoph Berg <myon@debian.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/kallsyms.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/migrate.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/include/linux/kallsyms.h~kallsyms-fix-build-without-execinfo
-+++ a/tools/include/linux/kallsyms.h
-@@ -18,6 +18,7 @@ static inline const char *kallsyms_looku
- 	return NULL;
- }
+--- a/mm/migrate.c~fix-do_pages_stat-to-use-compat_uptr_t-fix
++++ a/mm/migrate.c
+@@ -2449,8 +2449,9 @@ static int do_pages_stat(struct mm_struc
  
-+#ifdef HAVE_BACKTRACE_SUPPORT
- #include <execinfo.h>
- #include <stdlib.h>
- static inline void print_ip_sym(const char *loglvl, unsigned long ip)
-@@ -30,5 +31,8 @@ static inline void print_ip_sym(const ch
- 
- 	free(name);
- }
-+#else
-+static inline void print_ip_sym(const char *loglvl, unsigned long ip) {}
-+#endif
- 
- #endif
+ 			pages32 += chunk_nr;
+ 			pages = (const void __user * __user *) pages32;
+-		} else
++		} else {
+ 			pages += chunk_nr;
++		}
+ 		status += chunk_nr;
+ 		nr_pages -= chunk_nr;
+ 	}
 _
 
-Patches currently in -mm which might be from fossdd@pwned.life are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kallsyms-fix-build-without-execinfo.patch
+fix-do_pages_stat-to-use-compat_uptr_t.patch
+mmslub-use-node-notifier-instead-of-memory-notifier-fix.patch
+maple-tree-use-goto-label-to-simplify-code-fix.patch
+mm-damon-sysfs-schemes-decouple-from-damos_action-fix.patch
+mm-memcg-make-memoryreclaim-interface-generic-fix.patch
+mm-shmem-support-vm_uffd_ops-api-checkpatch-fixes.patch
+mm-hugetlb-support-vm_uffd_ops-api-checkpatch-fixes.patch
+maintainers-add-lib-raid6-to-software-raid.patch
 
