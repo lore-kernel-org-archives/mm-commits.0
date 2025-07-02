@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45ABB30E836
-	for <mm-commits@vger.kernel.org>; Wed,  2 Jul 2025 18:07:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A4752DE6E0
+	for <mm-commits@vger.kernel.org>; Wed,  2 Jul 2025 20:48:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751479667; cv=none; b=W6G7Bz7tzGxCaKTMv5AQgp059+KF8WWl+cv0Pk96muRSflyz8mxiJI4zOmFl4XX493PqKAP3MTfX/AqarDF0K3pLQNsqLNEMN6mdH2QfzB7gK6wk853WHk+d6kLxaJxVnLNS4E/rBX3xQsafRaWU3PagXUWIZPG2577XNNnOnPk=
+	t=1751489318; cv=none; b=Zrw6IuNcPHtbAgRgKrZRtgEwwTE7qzurn43r0ne4nfv95TnOC9MEUxy5Rt6OFRkkoKpYBwSOhwfLdUIlTONRZHpb2AvJNKAN/zl40DxstHbO4pPngQpb7ww28zbvLZdiORkC+k5JIqLzQbAQjz2EpssWNJhfmupcwAxhsvWgRNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751479667; c=relaxed/simple;
-	bh=PZWEJPdp30pXoPINMl0ZGlstogF2NKuaHlAIcQew+40=;
-	h=Date:To:From:Subject:Message-Id; b=Q3ydoEx07bDwz6N0g10eP8q0nJ2PgdE/Iv0KG0Z6sn9f/1WvPVpft+YDnmLH398zqgwykQv78K9H0TDYMgqPWp701MUFyfVZo3G+MVJ+gB2s1ymdisltyDjaMsGofNPbVA7L/S22WmiLm6MtkdJ3avYN5SAxgq4qtZzZ9tT7fsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VWKzy5ik; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751489318; c=relaxed/simple;
+	bh=e3p9f+e2cyTcql+rpMTKJbI4WVAEFMa7SGWM43IQMfs=;
+	h=Date:To:From:Subject:Message-Id; b=IBgFMSWVs86P3lZ9pNMYEAlF49WlYn/Towkd9bMnWs1XjWeh1NskwaSNzFfAi2sg0cuRLdr1cb6KSLWTsgWEpbs/jV6zkYPfeJpdGf3Ub6aCcUkMswHJSzMOx3dISL3hetaPfjzZ9oarRJu37o+/zZXWdBkjfMDzzAWvoGaFygg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yUF8/FB9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VWKzy5ik"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA00CC4CEEE;
-	Wed,  2 Jul 2025 18:07:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yUF8/FB9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D767C4CEEE;
+	Wed,  2 Jul 2025 20:48:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751479666;
-	bh=PZWEJPdp30pXoPINMl0ZGlstogF2NKuaHlAIcQew+40=;
+	s=korg; t=1751489317;
+	bh=e3p9f+e2cyTcql+rpMTKJbI4WVAEFMa7SGWM43IQMfs=;
 	h=Date:To:From:Subject:From;
-	b=VWKzy5ikxxZqn4iDSkv5i32v/9i3ddTKu5wpv991BzOzjJfRjEzLZZijnocOj5Rbe
-	 AhU47QSdHD1jNcWK41v6U1WEPX0DVV6NG8hRmCjtDKfiw+NWiUO+S/dXFFG6yy1zQb
-	 TmWItzQ8OT+EJ6JhdDDuHD6o5mnJdrEewJTBu4Wk=
-Date: Wed, 02 Jul 2025 11:07:46 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,oleg@redhat.com,ldv@strace.io,moonhee.lee.ca@gmail.com,akpm@linux-foundation.org
+	b=yUF8/FB9OPCjvyAWYa3uRgpCDr+1i8JFhBglOGUx0LDBiD0Z42+p5SUoJ+L+tN1oZ
+	 7rB0GHTz52qOPE54atU+ZsVzmRYijV9YKu+eXnPTxDR/dBCCKmrtYY9fh4/a9bwv9F
+	 qLhCRzFbtpvKJfPm9SEASloT/SYhJhtYS54n7AKs=
+Date: Wed, 02 Jul 2025 13:48:36 -0700
+To: mm-commits@vger.kernel.org,ptyadav@amazon.de,osalvador@suse.de,david@redhat.com,alexghiti@rivosinc.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-ptrace-add-set_syscall_info-to-gitignore.patch added to mm-nonmm-unstable branch
-Message-Id: <20250702180746.DA00CC4CEEE@smtp.kernel.org>
+Subject: + cma-split-resrvation-of-fixed-area-into-a-helper-function.patch added to mm-new branch
+Message-Id: <20250702204837.7D767C4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: ptrace: add set_syscall_info to .gitignore
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-ptrace-add-set_syscall_info-to-gitignore.patch
+     Subject: cma: split reservation of fixed area into a helper function
+has been added to the -mm mm-new branch.  Its filename is
+     cma-split-resrvation-of-fixed-area-into-a-helper-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-ptrace-add-set_syscall_info-to-gitignore.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cma-split-resrvation-of-fixed-area-into-a-helper-function.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,35 +64,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Moon Hee Lee <moonhee.lee.ca@gmail.com>
-Subject: selftests: ptrace: add set_syscall_info to .gitignore
-Date: Mon, 23 Jun 2025 11:34:06 -0700
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: cma: split reservation of fixed area into a helper function
+Date: Wed, 2 Jul 2025 20:36:04 +0300
 
-Add the set_syscall_info test binary to .gitignore to avoid tracking build
-artifacts in the ptrace selftests directory.
+Move the check that verifies that reservation of fixed area does not cross
+HIGHMEM boundary and the actual memblock_resrve() call into a helper
+function.
 
-Link: https://lkml.kernel.org/r/20250623183405.133434-2-moonhee.lee.ca@gmail.com
-Signed-off-by: Moon Hee Lee <moonhee.lee.ca@gmail.com>
-Cc: "Dmitry V. Levin" <ldv@strace.io>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+This makes code more readable and decouples logic related to
+CONFIG_HIGHMEM from the core functionality of
+__cma_declare_contiguous_nid().
+
+Link: https://lkml.kernel.org/r/20250702173605.2198924-3-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pratyush Yadav <ptyadav@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/ptrace/.gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ mm/cma.c |   41 ++++++++++++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 13 deletions(-)
 
---- a/tools/testing/selftests/ptrace/.gitignore~selftests-ptrace-add-set_syscall_info-to-gitignore
-+++ a/tools/testing/selftests/ptrace/.gitignore
-@@ -3,3 +3,4 @@ get_syscall_info
- get_set_sud
- peeksiginfo
- vmaccess
-+set_syscall_info
+--- a/mm/cma.c~cma-split-resrvation-of-fixed-area-into-a-helper-function
++++ a/mm/cma.c
+@@ -353,6 +353,30 @@ static void __init list_insert_sorted(
+ 	}
+ }
+ 
++static int __init cma_fixed_reserve(phys_addr_t base, phys_addr_t size)
++{
++	if (IS_ENABLED(CONFIG_HIGHMEM)) {
++		phys_addr_t highmem_start = __pa(high_memory - 1) + 1;
++
++		/*
++		 * If allocating at a fixed base the request region must not
++		 * cross the low/high memory boundary.
++		 */
++		if (base < highmem_start && base + size > highmem_start) {
++			pr_err("Region at %pa defined on low/high memory boundary (%pa)\n",
++			       &base, &highmem_start);
++			return -EINVAL;
++		}
++	}
++
++	if (memblock_is_region_reserved(base, size) ||
++	    memblock_reserve(base, size) < 0) {
++		return -EBUSY;
++	}
++
++	return 0;
++}
++
+ static int __init __cma_declare_contiguous_nid(phys_addr_t *basep,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+@@ -408,15 +432,6 @@ static int __init __cma_declare_contiguo
+ 	if (!IS_ALIGNED(size >> PAGE_SHIFT, 1 << order_per_bit))
+ 		return -EINVAL;
+ 
+-	/*
+-	 * If allocating at a fixed base the request region must not cross the
+-	 * low/high memory boundary.
+-	 */
+-	if (fixed && base < highmem_start && base + size > highmem_start) {
+-		pr_err("Region at %pa defined on low/high memory boundary (%pa)\n",
+-			&base, &highmem_start);
+-		return -EINVAL;
+-	}
+ 
+ 	/*
+ 	 * If the limit is unspecified or above the memblock end, its effective
+@@ -434,10 +449,10 @@ static int __init __cma_declare_contiguo
+ 
+ 	/* Reserve memory */
+ 	if (fixed) {
+-		if (memblock_is_region_reserved(base, size) ||
+-		    memblock_reserve(base, size) < 0) {
+-			return -EBUSY;
+-		}
++		int err = cma_fixed_reserve(base, size);
++
++		if (err)
++			return err;
+ 	} else {
+ 		phys_addr_t addr = 0;
+ 
 _
 
-Patches currently in -mm which might be from moonhee.lee.ca@gmail.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-selftests-mm-remove-duplicate-gitignore-entries.patch
-selftests-ptrace-add-set_syscall_info-to-gitignore.patch
+cma-move-__cma_declare_contiguous_nid-before-its-usage.patch
+cma-split-resrvation-of-fixed-area-into-a-helper-function.patch
+cma-move-allocation-from-highmem-to-a-helper-function.patch
 
