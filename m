@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F7571885B8
-	for <mm-commits@vger.kernel.org>; Thu,  3 Jul 2025 20:29:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1571025A333;
+	Thu,  3 Jul 2025 20:35:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751574599; cv=none; b=gLtDUt6AuhrGH9u8RJT1cC4dwWzeK7Fmwmg4akRbgtX/Gi/7kdS8aAgVvSFHPQZ6rBxU7r6XlutMKyMwP9JCqJuk/MaWqCB2T3N6XhsDXSCFEQugCImieAaEDyI/ordfCqalnVxKzZ3SK1suibuc47tzheedHb85j94ivO8qX+I=
+	t=1751574951; cv=none; b=KxT2tyd8sVWqt/GpT3mX15Rv5Fkoa7+Nb+IEos2sPWnLNfXLSoEkVUQ8HFhphlsLynMm18na3BF3VmWMMBk5ix1GZtLN04R/PofHnnUEEuD8YrzluYr2+6+1+4UBlxMPrS0n9ETE8O7ayhtTCEMwYRlNkv7YxJdHPYQJu23rwk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751574599; c=relaxed/simple;
-	bh=ZrSDUhUbbLP0u/ohIBKXxNdCeH//6DnVXycG4CzgQ/o=;
-	h=Date:To:From:Subject:Message-Id; b=Z1pIutPpkIe5KO8ircf9uEnvfMln/gl5E5+Gu0bqZOcTGCZxKhxZoUO43fRSw5HnNN3Z6un95Gptk0e7/XdRr/x7oLOoI3OK+muQ/3O6e1wx+8cRSRHz4Wwe9j86o81jfz69najOB6/656j9dmqZ/lAk+uh+7xPWpSCN7pENEkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aY1gd67v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751574951; c=relaxed/simple;
+	bh=wcCeWL9cnkFn3jH/2S0OjNOIlT2v4H09COjmuUme2cg=;
+	h=Date:To:From:Subject:Message-Id; b=VZJvRk38+OPSxr5TmQfR1L3VPB/Es8r5eZVBUj9rXXDnXQTy12eG4RnGNxGHRfbLMPHYJPrLsUT9zqo1YO7oB0IMLvdEyHcD5PYBBzGOsMg4KCQnw0+4r7Zf4jGDBGJ9Rfu6CmyRSBFVnflxeIR0G0aDUHcZ7e2r0HsAoa9bgyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xsU4PSTh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aY1gd67v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22349C4CEE3;
-	Thu,  3 Jul 2025 20:29:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xsU4PSTh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7EAC4CEE3;
+	Thu,  3 Jul 2025 20:35:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751574599;
-	bh=ZrSDUhUbbLP0u/ohIBKXxNdCeH//6DnVXycG4CzgQ/o=;
+	s=korg; t=1751574950;
+	bh=wcCeWL9cnkFn3jH/2S0OjNOIlT2v4H09COjmuUme2cg=;
 	h=Date:To:From:Subject:From;
-	b=aY1gd67vuryeoVPM/6rpouMAKHY7SCB6ruvMU564uwdKVE1i5fzGozZNjnxMLahoU
-	 Je+9qZDqIKw9BJMN+IUq7yEGzfO5DHBL1FUVgtx1BIF7E3t8UQBq8zvpEfoLkf+rDy
-	 tXC++KChR+DunRUFlb8V2+JP4/vgjUhypkRroZZ8=
-Date: Thu, 03 Jul 2025 13:29:58 -0700
-To: mm-commits@vger.kernel.org,ptyadav@amazon.de,osalvador@suse.de,david@redhat.com,alexghiti@rivosinc.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=xsU4PSTh3/vGcf+ui9Sxr0zMGbHG3vZsSahG5dRB/ndRoceHqWMrTLGxiaBAuv6GF
+	 rNRO7GlxMR+4BqxQ/2L0tWVU5lCEyu26NhC/spgJL5ZEL4mRDXy0zg3iHpcD3SqRHW
+	 oLtKhKSzL1eHc51OWoNrPP7C5eu44YbkOrVlSswQ=
+Date: Thu, 03 Jul 2025 13:35:49 -0700
+To: mm-commits@vger.kernel.org,ysk@kzalloc.com,vincenzo.frascino@arm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,rostedt@goodmis.org,glider@google.com,dvyukov@google.com,byungchul@sk.com,bigeasy@linutronix.de,andreyknvl@gmail.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cma-move-memory-allocation-to-a-helper-function.patch added to mm-new branch
-Message-Id: <20250703202959.22349C4CEE3@smtp.kernel.org>
+Subject: + kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250703203550.8B7EAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cma: move memory allocation to a helper function
-has been added to the -mm mm-new branch.  Its filename is
-     cma-move-memory-allocation-to-a-helper-function.patch
+     Subject: kasan: remove kasan_find_vm_area() to prevent possible deadlock
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cma-move-memory-allocation-to-a-helper-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,173 +58,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: cma: move memory allocation to a helper function
-Date: Thu, 3 Jul 2025 21:47:11 +0300
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: kasan: remove kasan_find_vm_area() to prevent possible deadlock
+Date: Thu, 3 Jul 2025 19:10:18 +0100
 
-__cma_declare_contiguous_nid() tries to allocate memory in several ways:
-* on systems with 64 bit physical address and enough memory it first
-  attempts to allocate memory just above 4GiB
-* if that fails, on systems with HIGHMEM the next attempt is from high
-  memory
-* and at last, if none of the previous attempts succeeded, or was even
-  tried because of incompatible configuration, the memory is allocated
-  anywhere within specified limits.
+find_vm_area() couldn't be called in atomic_context.  If find_vm_area() is
+called to reports vm area information, kasan can trigger deadlock like:
 
-Move all the allocation logic to a helper function to make these steps more
-obvious.
+CPU0                                CPU1
+vmalloc();
+ alloc_vmap_area();
+  spin_lock(&vn->busy.lock)
+                                    spin_lock_bh(&some_lock);
+   <interrupt occurs>
+   <in softirq>
+   spin_lock(&some_lock);
+                                    <access invalid address>
+                                    kasan_report();
+                                     print_report();
+                                      print_address_description();
+                                       kasan_find_vm_area();
+                                        find_vm_area();
+                                         spin_lock(&vn->busy.lock) // deadlock!
 
-Link: https://lkml.kernel.org/r/20250703184711.3485940-4-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Pratyush Yadav <ptyadav@amazon.de>
+To prevent possible deadlock while kasan reports, remove kasan_find_vm_area().
+
+Link: https://lkml.kernel.org/r/20250703181018.580833-1-yeoreum.yun@arm.com
+Fixes: c056a364e954 ("kasan: print virtual mapping info in reports")
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Reported-by: Yunseong Kim <ysk@kzalloc.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |  104 +++++++++++++++++++++++++++--------------------------
- 1 file changed, 54 insertions(+), 50 deletions(-)
+ mm/kasan/report.c |   45 +-------------------------------------------
+ 1 file changed, 2 insertions(+), 43 deletions(-)
 
---- a/mm/cma.c~cma-move-memory-allocation-to-a-helper-function
-+++ a/mm/cma.c
-@@ -377,6 +377,55 @@ static int __init cma_fixed_reserve(phys
- 	return 0;
+--- a/mm/kasan/report.c~kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock
++++ a/mm/kasan/report.c
+@@ -370,36 +370,6 @@ static inline bool init_task_stack_addr(
+ 			sizeof(init_thread_union.stack));
  }
  
-+static phys_addr_t __init cma_alloc_mem(phys_addr_t base, phys_addr_t size,
-+			phys_addr_t align, phys_addr_t limit, int nid)
-+{
-+	phys_addr_t addr = 0;
-+
-+	/*
-+	 * If there is enough memory, try a bottom-up allocation first.
-+	 * It will place the new cma area close to the start of the node
-+	 * and guarantee that the compaction is moving pages out of the
-+	 * cma area and not into it.
-+	 * Avoid using first 4GB to not interfere with constrained zones
-+	 * like DMA/DMA32.
-+	 */
-+#ifdef CONFIG_PHYS_ADDR_T_64BIT
-+	if (!memblock_bottom_up() && limit >= SZ_4G + size) {
-+		memblock_set_bottom_up(true);
-+		addr = memblock_alloc_range_nid(size, align, SZ_4G, limit,
-+						nid, true);
-+		memblock_set_bottom_up(false);
-+	}
-+#endif
-+
-+	/*
-+	 * On systems with HIGHMEM try allocating from there before consuming
-+	 * memory in lower zones.
-+	 */
-+	if (!addr && IS_ENABLED(CONFIG_HIGHMEM)) {
-+		phys_addr_t highmem = __pa(high_memory - 1) + 1;
-+
-+		/*
-+		 * All pages in the reserved area must come from the same zone.
-+		 * If the requested region crosses the low/high memory boundary,
-+		 * try allocating from high memory first and fall back to low
-+		 * memory in case of failure.
-+		 */
-+		if (base < highmem && limit > highmem) {
-+			addr = memblock_alloc_range_nid(size, align, highmem,
-+							limit, nid, true);
-+			limit = highmem;
-+		}
-+	}
-+
-+	if (!addr)
-+		addr = memblock_alloc_range_nid(size, align, base, limit, nid,
-+						true);
-+
-+	return addr;
-+}
-+
- static int __init __cma_declare_contiguous_nid(phys_addr_t *basep,
- 			phys_addr_t size, phys_addr_t limit,
- 			phys_addr_t alignment, unsigned int order_per_bit,
-@@ -384,19 +433,9 @@ static int __init __cma_declare_contiguo
- 			int nid)
- {
- 	phys_addr_t memblock_end = memblock_end_of_DRAM();
--	phys_addr_t highmem_start, base = *basep;
-+	phys_addr_t base = *basep;
- 	int ret;
- 
+-/*
+- * This function is invoked with report_lock (a raw_spinlock) held. A
+- * PREEMPT_RT kernel cannot call find_vm_area() as it will acquire a sleeping
+- * rt_spinlock.
+- *
+- * For !RT kernel, the PROVE_RAW_LOCK_NESTING config option will print a
+- * lockdep warning for this raw_spinlock -> spinlock dependency. This config
+- * option is enabled by default to ensure better test coverage to expose this
+- * kind of RT kernel problem. This lockdep splat, however, can be suppressed
+- * by using DEFINE_WAIT_OVERRIDE_MAP() if it serves a useful purpose and the
+- * invalid PREEMPT_RT case has been taken care of.
+- */
+-static inline struct vm_struct *kasan_find_vm_area(void *addr)
+-{
+-	static DEFINE_WAIT_OVERRIDE_MAP(vmalloc_map, LD_WAIT_SLEEP);
+-	struct vm_struct *va;
+-
+-	if (IS_ENABLED(CONFIG_PREEMPT_RT))
+-		return NULL;
+-
 -	/*
--	 * We can't use __pa(high_memory) directly, since high_memory
--	 * isn't a valid direct map VA, and DEBUG_VIRTUAL will (validly)
--	 * complain. Find the boundary by adding one to the last valid
--	 * address.
+-	 * Suppress lockdep warning and fetch vmalloc area of the
+-	 * offending address.
 -	 */
--	if (IS_ENABLED(CONFIG_HIGHMEM))
--		highmem_start = __pa(high_memory - 1) + 1;
--	else
--		highmem_start = memblock_end_of_DRAM();
- 	pr_debug("%s(size %pa, base %pa, limit %pa alignment %pa)\n",
- 		__func__, &size, &base, &limit, &alignment);
- 
-@@ -453,50 +492,15 @@ static int __init __cma_declare_contiguo
- 		if (ret)
- 			return ret;
- 	} else {
--		phys_addr_t addr = 0;
+-	lock_map_acquire_try(&vmalloc_map);
+-	va = find_vm_area(addr);
+-	lock_map_release(&vmalloc_map);
+-	return va;
+-}
 -
--		/*
--		 * If there is enough memory, try a bottom-up allocation first.
--		 * It will place the new cma area close to the start of the node
--		 * and guarantee that the compaction is moving pages out of the
--		 * cma area and not into it.
--		 * Avoid using first 4GB to not interfere with constrained zones
--		 * like DMA/DMA32.
--		 */
--#ifdef CONFIG_PHYS_ADDR_T_64BIT
--		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
--			memblock_set_bottom_up(true);
--			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
--							limit, nid, true);
--			memblock_set_bottom_up(false);
--		}
--#endif
--
--		/*
--		 * All pages in the reserved area must come from the same zone.
--		 * If the requested region crosses the low/high memory boundary,
--		 * try allocating from high memory first and fall back to low
--		 * memory in case of failure.
--		 */
--		if (!addr && base < highmem_start && limit > highmem_start) {
--			addr = memblock_alloc_range_nid(size, alignment,
--					highmem_start, limit, nid, true);
--			limit = highmem_start;
--		}
--
--		if (!addr) {
--			addr = memblock_alloc_range_nid(size, alignment, base,
--					limit, nid, true);
--			if (!addr)
--				return -ENOMEM;
--		}
-+		base = cma_alloc_mem(base, size, alignment, limit, nid);
-+		if (!base)
-+			return -ENOMEM;
- 
- 		/*
- 		 * kmemleak scans/reads tracked objects for pointers to other
- 		 * objects but this address isn't mapped and accessible
- 		 */
--		kmemleak_ignore_phys(addr);
--		base = addr;
-+		kmemleak_ignore_phys(base);
+ static void print_address_description(void *addr, u8 tag,
+ 				      struct kasan_report_info *info)
+ {
+@@ -429,19 +399,8 @@ static void print_address_description(vo
  	}
  
- 	ret = cma_init_reserved_mem(base, size, order_per_bit, name, res_cma);
+ 	if (is_vmalloc_addr(addr)) {
+-		struct vm_struct *va = kasan_find_vm_area(addr);
+-
+-		if (va) {
+-			pr_err("The buggy address belongs to the virtual mapping at\n"
+-			       " [%px, %px) created by:\n"
+-			       " %pS\n",
+-			       va->addr, va->addr + va->size, va->caller);
+-			pr_err("\n");
+-
+-			page = vmalloc_to_page(addr);
+-		} else {
+-			pr_err("The buggy address %px belongs to a vmalloc virtual mapping\n", addr);
+-		}
++		pr_err("The buggy address %px belongs to a vmalloc virtual mapping\n", addr);
++		page = vmalloc_to_page(addr);
+ 	}
+ 
+ 	if (page) {
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
-cma-move-__cma_declare_contiguous_nid-before-its-usage.patch
-cma-split-resrvation-of-fixed-area-into-a-helper-function.patch
-cma-move-memory-allocation-to-a-helper-function.patch
+kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch
 
