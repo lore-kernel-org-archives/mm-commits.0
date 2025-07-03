@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32D6621CC40
-	for <mm-commits@vger.kernel.org>; Thu,  3 Jul 2025 22:24:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F76F2BF3E2
+	for <mm-commits@vger.kernel.org>; Thu,  3 Jul 2025 22:41:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751581479; cv=none; b=WD32XaK/NVP+vxFm7An9XEqozh13ouxv3arn4OtfIE8BToqg44N8SZyyRGGPNKISxPO12F3ZaHb5PrO8QqMVw1pOFq9E1UZya7+2pfbTIhvl4NFeiE9mG6vva8B5/RNC8lzWoTV9GS1us86bRU4Oo0jnhN5CZocV4WUuv9a7GJs=
+	t=1751582498; cv=none; b=sNLPPcW54CEsi9iEz7k3ElMhAYbny4OCXiPfwV3FBHeit7XTL2Guqy16mMRA7zmFhKFATr6n/Ya7f6EsFnSmFH+n9qfyqlN1Gsn/ZZdjq/4yr7tl+4zTA+DC2K4FPtClaqwS6HrSM/Buox/ptv4ZAfLc51cteaMbQt+GIa+wtfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751581479; c=relaxed/simple;
-	bh=Wotspd+ePuvuLleH8WwXVZQPsiX9+tD3N9x96oFD7vs=;
-	h=Date:To:From:Subject:Message-Id; b=SgSjbDVAOHWdHO1f82t8lLRiQIJHsnnzPUjLKe2aS3ZM/WJ4Xfii6zK0LKCK/5R7MpRoF/2xALq/hARVDyMDV8L6/0s+BFvG3IfsoAOu1k3/8XiQL5P8G1osXLpec/G2KcGJAkXZSU1fdI+LqEzv7dZOYBneM2Eg4kzpfmNNSR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oiyIXTZ5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751582498; c=relaxed/simple;
+	bh=/5CdmM/jWL26fxt17dlmUj6Bk4RCpiNL9ju8PEbKABs=;
+	h=Date:To:From:Subject:Message-Id; b=UJAgWuTZgj8RI9mxILcupTt/MVZTUjbc/hnDfvyUAH8blnQic9XaJXe66J7DS3FqxbnaQprWCNYL31dIODZVDrMFub+2RAwQRH5Hw0k4tfMfqdXBREj0gCxQRxa5LaJTkzhKKwO8kEZYk4mHim1OHG0L6nGr2f0cLqmIE690MS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GVGhOZ4h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oiyIXTZ5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4E84C4CEE3;
-	Thu,  3 Jul 2025 22:24:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GVGhOZ4h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B507C4CEF0;
+	Thu,  3 Jul 2025 22:41:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751581478;
-	bh=Wotspd+ePuvuLleH8WwXVZQPsiX9+tD3N9x96oFD7vs=;
+	s=korg; t=1751582495;
+	bh=/5CdmM/jWL26fxt17dlmUj6Bk4RCpiNL9ju8PEbKABs=;
 	h=Date:To:From:Subject:From;
-	b=oiyIXTZ5E0rMuUVzBv/VsoABrNZQ6GBZWwWJVkAzDtBfm7D8MIBHiLYHp9SCq3zfx
-	 AySeiXhg601IC2D7XCDWGb2xx1U0mOQ26UH4Z2PiXl620lYiDMgOgBAXyXXgjiIJV2
-	 FUIWJpRaAIoQfBi2mvTNGhmY6d5WmTMr90eCGqB0=
-Date: Thu, 03 Jul 2025 15:24:38 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
+	b=GVGhOZ4hSV7YhO90N81G2Pl2gDomsjJZVNRpoWAWC70Svbu1W374euuJY8U7tmZkD
+	 lD0muEh+igQqn/pkwdCOq/xaic5WboxlmRxVSJ5Z8KyrKluewYUNn8yW/E+Ftgwf4j
+	 1zczVeJdGjR75SQdO9PwuQkDF89O8HEKtAiDmPL4=
+Date: Thu, 03 Jul 2025 15:41:34 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-process_madvise-tests.patch added to mm-new branch
-Message-Id: <20250703222438.D4E84C4CEE3@smtp.kernel.org>
+Subject: + panic-clean-up-code-for-console-replay.patch added to mm-nonmm-unstable branch
+Message-Id: <20250703224135.3B507C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add process_madvise() tests
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-process_madvise-tests.patch
+     Subject: panic: clean up code for console replay
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-clean-up-code-for-console-replay.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-process_madvise-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-clean-up-code-for-console-replay.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,617 +58,147 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wang lian <lianux.mm@gmail.com>
-Subject: selftests/mm: add process_madvise() tests
-Date: Thu, 3 Jul 2025 12:43:26 +0800
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: panic: clean up code for console replay
+Date: Thu, 3 Jul 2025 10:10:00 +0800
 
-Add tests for process_madvise(), focusing on verifying behavior under
-various conditions including valid usage and error cases.
+Patch series "generalize panic_print's dump function to be used by other
+kernel parts", v3.
 
-Link: https://lkml.kernel.org/r/20250703044326.65061-1-lianux.mm@gmail.com
-Signed-off-by: wang lian <lianux.mm@gmail.com>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+When working on kernel stability issues, panic, task-hung and
+software/hardware lockup are frequently met.  And to debug them, user may
+need lots of system information at that time, like task call stacks, lock
+info, memory info etc.  
+
+panic case already has panic_print_sys_info() for this purpose, and has a
+'panic_print' bitmask to control what kinds of information is needed,
+which is also helpful to debug other task-hung and lockup cases.
+
+So this patchset extract the function out to a new file 'lib/sys_info.c',
+and make it available for other cases which also need to dump system info
+for debugging.  
+
+Also as suggested by Petr Mladek, add 'panic_sys_info=' interface to take
+human readable string like "tasks,mem,locks,timers,ftrace,....", and
+eventually obsolete the current 'panic_print' bitmap interface.
+
+In RFC and V1 version, hung_task and SW/HW watchdog modules are enabled
+with the new sys_info dump interface.  In v2, they are kept out for better
+review of current change, and will be posted later.  
+
+Locally these have been used in our bug chasing for stability issues and
+was proven helpful.
+
+Many thanks to Petr Mladek for great suggestions on both the code and
+architectures!
+
+
+This patch (of 5):
+
+Currently the panic_print_sys_info() was called twice with different
+parameters to handle console replay case, which is kind of confusing.
+
+Add panic_console_replay() explicitly and rename
+'PANIC_PRINT_ALL_PRINTK_MSG' to 'PANIC_CONSOLE_REPLAY', to make the code
+straightforward.  The related kernel document is also updated.
+
+Link: https://lkml.kernel.org/r/20250703021004.42328-1-feng.tang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20250703021004.42328-2-feng.tang@linux.alibaba.com
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Suggested-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore      |    1 
- tools/testing/selftests/mm/Makefile        |    1 
- tools/testing/selftests/mm/guard-regions.c |   51 --
- tools/testing/selftests/mm/process_madv.c  |  358 +++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh  |    5 
- tools/testing/selftests/mm/vm_util.c       |   35 +
- tools/testing/selftests/mm/vm_util.h       |   22 +
- 7 files changed, 422 insertions(+), 51 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 -
+ Documentation/admin-guide/sysctl/kernel.rst     |    2 -
+ kernel/panic.c                                  |   18 +++++++-------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -25,6 +25,7 @@ pfnmap
- protection_keys
- protection_keys_32
- protection_keys_64
-+process_madv
- madv_populate
- uffd-stress
- uffd-unit-tests
---- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -9,8 +9,6 @@
- #include <linux/limits.h>
- #include <linux/userfaultfd.h>
- #include <linux/fs.h>
--#include <setjmp.h>
--#include <signal.h>
- #include <stdbool.h>
- #include <stdio.h>
- #include <stdlib.h>
-@@ -25,24 +23,6 @@
- #include "../pidfd/pidfd.h"
- 
- /*
-- * Ignore the checkpatch warning, as per the C99 standard, section 7.14.1.1:
-- *
-- * "If the signal occurs other than as the result of calling the abort or raise
-- *  function, the behavior is undefined if the signal handler refers to any
-- *  object with static storage duration other than by assigning a value to an
-- *  object declared as volatile sig_atomic_t"
-- */
--static volatile sig_atomic_t signal_jump_set;
--static sigjmp_buf signal_jmp_buf;
--
--/*
-- * Ignore the checkpatch warning, we must read from x but don't want to do
-- * anything with it in order to trigger a read page fault. We therefore must use
-- * volatile to stop the compiler from optimising this away.
-- */
--#define FORCE_READ(x) (*(volatile typeof(x) *)x)
--
--/*
-  * How is the test backing the mapping being tested?
-  */
- enum backing_type {
-@@ -120,14 +100,6 @@ static int userfaultfd(int flags)
- 	return syscall(SYS_userfaultfd, flags);
+--- a/Documentation/admin-guide/kernel-parameters.txt~panic-clean-up-code-for-console-replay
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4555,7 +4555,7 @@
+ 			bit 2: print timer info
+ 			bit 3: print locks info if CONFIG_LOCKDEP is on
+ 			bit 4: print ftrace buffer
+-			bit 5: print all printk messages in buffer
++			bit 5: replay all messages on consoles at the end of panic
+ 			bit 6: print all CPUs backtrace (if available in the arch)
+ 			bit 7: print only tasks in uninterruptible (blocked) state
+ 			*Be aware* that this option may print a _lot_ of lines,
+--- a/Documentation/admin-guide/sysctl/kernel.rst~panic-clean-up-code-for-console-replay
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -889,7 +889,7 @@ bit 1  print system memory info
+ bit 2  print timer info
+ bit 3  print locks info if ``CONFIG_LOCKDEP`` is on
+ bit 4  print ftrace buffer
+-bit 5  print all printk messages in buffer
++bit 5  replay all messages on consoles at the end of panic
+ bit 6  print all CPUs backtrace (if available in the arch)
+ bit 7  print only tasks in uninterruptible (blocked) state
+ =====  ============================================
+--- a/kernel/panic.c~panic-clean-up-code-for-console-replay
++++ a/kernel/panic.c
+@@ -74,7 +74,7 @@ EXPORT_SYMBOL_GPL(panic_timeout);
+ #define PANIC_PRINT_TIMER_INFO		0x00000004
+ #define PANIC_PRINT_LOCK_INFO		0x00000008
+ #define PANIC_PRINT_FTRACE_INFO		0x00000010
+-#define PANIC_PRINT_ALL_PRINTK_MSG	0x00000020
++#define PANIC_CONSOLE_REPLAY		0x00000020
+ #define PANIC_PRINT_ALL_CPU_BT		0x00000040
+ #define PANIC_PRINT_BLOCKED_TASKS	0x00000080
+ unsigned long panic_print;
+@@ -238,14 +238,14 @@ void nmi_panic(struct pt_regs *regs, con
  }
+ EXPORT_SYMBOL(nmi_panic);
  
--static void handle_fatal(int c)
--{
--	if (!signal_jump_set)
+-static void panic_print_sys_info(bool console_flush)
++static void panic_console_replay(void)
+ {
+-	if (console_flush) {
+-		if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
+-			console_flush_on_panic(CONSOLE_REPLAY_ALL);
 -		return;
--
--	siglongjmp(signal_jmp_buf, c);
--}
--
- static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
- 				   size_t n, int advice, unsigned int flags)
- {
-@@ -180,29 +152,6 @@ static bool try_read_write_buf(char *ptr
- 	return try_read_buf(ptr) && try_write_buf(ptr);
- }
+-	}
++	if (panic_print & PANIC_CONSOLE_REPLAY)
++		console_flush_on_panic(CONSOLE_REPLAY_ALL);
++}
  
--static void setup_sighandler(void)
--{
--	struct sigaction act = {
--		.sa_handler = &handle_fatal,
--		.sa_flags = SA_NODEFER,
--	};
--
--	sigemptyset(&act.sa_mask);
--	if (sigaction(SIGSEGV, &act, NULL))
--		ksft_exit_fail_perror("sigaction");
--}
--
--static void teardown_sighandler(void)
--{
--	struct sigaction act = {
--		.sa_handler = SIG_DFL,
--		.sa_flags = SA_NODEFER,
--	};
--
--	sigemptyset(&act.sa_mask);
--	sigaction(SIGSEGV, &act, NULL);
--}
--
- static int open_file(const char *prefix, char *path)
- {
- 	int fd;
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -85,6 +85,7 @@ TEST_GEN_FILES += mseal_test
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
- TEST_GEN_FILES += pfnmap
-+TEST_GEN_FILES += process_madv
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
-diff --git a/tools/testing/selftests/mm/process_madv.c a/tools/testing/selftests/mm/process_madv.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/process_madv.c
-@@ -0,0 +1,358 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#define _GNU_SOURCE
-+#include "../kselftest_harness.h"
-+#include <errno.h>
-+#include <setjmp.h>
-+#include <signal.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/syscall.h>
-+#include <unistd.h>
-+#include <sched.h>
-+#include <sys/pidfd.h>
-+#include "vm_util.h"
-+
-+#include "../pidfd/pidfd.h"
-+
-+FIXTURE(process_madvise)
++static void panic_print_sys_info(void)
 +{
-+	int pidfd;
-+	int flag;
-+};
-+
-+FIXTURE_SETUP(process_madvise)
-+{
-+	self->pidfd = PIDFD_SELF;
-+	self->flag = 0;
-+	setup_sighandler();
-+};
-+
-+FIXTURE_TEARDOWN(process_madvise)
-+{
-+	teardown_sighandler();
-+}
-+
-+static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
-+				   size_t vlen, int advice, unsigned int flags)
-+{
-+	return syscall(__NR_process_madvise, pidfd, iovec, vlen, advice, flags);
-+}
-+
-+/*
-+ * Enable our signal catcher and try to read the specified buffer. The
-+ * return value indicates whether the read succeeds without a fatal
-+ * signal.
-+ */
-+static bool try_read_buf(char *ptr)
-+{
-+	bool failed;
-+
-+	/* Tell signal handler to jump back here on fatal signal. */
-+	signal_jump_set = true;
-+	/* If a fatal signal arose, we will jump back here and failed is set. */
-+	failed = sigsetjmp(signal_jmp_buf, 0) != 0;
-+
-+	if (!failed)
-+		FORCE_READ(ptr);
-+
-+	signal_jump_set = false;
-+	return !failed;
-+}
-+
-+TEST_F(process_madvise, basic)
-+{
-+	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
-+	const int madvise_pages = 4;
-+	char *map;
-+	ssize_t ret;
-+	struct iovec vec[madvise_pages];
-+
-+	/*
-+	 * Create a single large mapping. We will pick pages from this
-+	 * mapping to advise on. This ensures we test non-contiguous iovecs.
-+	 */
-+	map = mmap(NULL, pagesize * 10, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (map == MAP_FAILED)
-+		ksft_exit_skip("mmap failed, not enough memory.\n");
-+
-+	/* Fill the entire region with a known pattern. */
-+	memset(map, 'A', pagesize * 10);
-+
-+	/*
-+	 * Setup the iovec to point to 4 non-contiguous pages
-+	 * within the mapping.
-+	 */
-+	vec[0].iov_base = &map[0 * pagesize];
-+	vec[0].iov_len = pagesize;
-+	vec[1].iov_base = &map[3 * pagesize];
-+	vec[1].iov_len = pagesize;
-+	vec[2].iov_base = &map[5 * pagesize];
-+	vec[2].iov_len = pagesize;
-+	vec[3].iov_base = &map[8 * pagesize];
-+	vec[3].iov_len = pagesize;
-+
-+	ret = sys_process_madvise(PIDFD_SELF, vec, madvise_pages, MADV_DONTNEED,
-+				  0);
-+	if (ret == -1 && errno == EPERM)
-+		ksft_exit_skip(
-+			"process_madvise() unsupported or permission denied, try running as root.\n");
-+	else if (errno == EINVAL)
-+		ksft_exit_skip(
-+			"process_madvise() unsupported or parameter invalid, please check arguments.\n");
-+
-+	/* The call should succeed and report the total bytes processed. */
-+	ASSERT_EQ(ret, madvise_pages * pagesize);
-+
-+	/* Check that advised pages are now zero. */
-+	for (int i = 0; i < madvise_pages; i++) {
-+		char *advised_page = (char *)vec[i].iov_base;
-+
-+		/* Access should be successful (kernel provides a new page). */
-+		ASSERT_TRUE(try_read_buf(advised_page));
-+		/* Content must be 0, not 'A'. */
-+		ASSERT_EQ(*advised_page, 0);
-+	}
-+
-+	/* Check that an un-advised page in between is still 'A'. */
-+	char *unadvised_page = &map[1 * pagesize];
-+
-+	ASSERT_TRUE(try_read_buf(unadvised_page));
-+	for (int i = 0; i < pagesize; i++)
-+		ASSERT_EQ(unadvised_page[i], 'A');
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize * 10), 0);
-+}
-+
-+static long get_smaps_anon_huge_pages(pid_t pid, void *addr)
-+{
-+	char smaps_path[64];
-+	char *line = NULL;
-+	unsigned long start, end;
-+	long anon_huge_kb;
-+	size_t len;
-+	FILE *f;
-+	bool in_vma;
-+
-+	in_vma = false;
-+	snprintf(smaps_path, sizeof(smaps_path), "/proc/%d/smaps", pid);
-+	f = fopen(smaps_path, "r");
-+	if (!f)
-+		return -1;
-+
-+	while (getline(&line, &len, f) != -1) {
-+		/* Check if the line describes a VMA range */
-+		if (sscanf(line, "%lx-%lx", &start, &end) == 2) {
-+			if ((unsigned long)addr >= start &&
-+			    (unsigned long)addr < end)
-+				in_vma = true;
-+			else
-+				in_vma = false;
-+			continue;
-+		}
-+
-+		/* If we are in the correct VMA, look for the AnonHugePages field */
-+		if (in_vma &&
-+		    sscanf(line, "AnonHugePages: %ld kB", &anon_huge_kb) == 1)
-+			break;
-+	}
-+
-+	free(line);
-+	fclose(f);
-+
-+	return (anon_huge_kb > 0) ? (anon_huge_kb * 1024) : 0;
-+}
-+
-+/**
-+ * TEST_F(process_madvise, remote_collapse)
-+ *
-+ * This test deterministically validates process_madvise() with MADV_COLLAPSE
-+ * on a remote process, other advices are difficult to verify reliably.
-+ *
-+ * The test verifies that a memory region in a child process, initially
-+ * backed by small pages, can be collapsed into a Transparent Huge Page by a
-+ * request from the parent. The result is verified by parsing the child's
-+ * /proc/<pid>/smaps file.
-+ */
-+TEST_F(process_madvise, remote_collapse)
-+{
-+	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
-+	pid_t child_pid;
-+	int pidfd;
-+	long huge_page_size;
-+	int pipe_info[2];
-+	ssize_t ret;
-+	struct iovec vec;
-+
-+	struct child_info {
-+		pid_t pid;
-+		void *map_addr;
-+	} info;
-+
-+	huge_page_size = default_huge_page_size();
-+	if (huge_page_size <= 0)
-+		ksft_exit_skip("Could not determine a valid huge page size.\n");
-+
-+	ASSERT_EQ(pipe(pipe_info), 0);
-+
-+	child_pid = fork();
-+	ASSERT_NE(child_pid, -1);
-+
-+	if (child_pid == 0) {
-+		char *map;
-+		size_t map_size = 2 * huge_page_size;
-+
-+		close(pipe_info[0]);
-+
-+		map = mmap(NULL, map_size, PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+		ASSERT_NE(map, MAP_FAILED);
-+
-+		/* Fault in as small pages */
-+		for (size_t i = 0; i < map_size; i += pagesize)
-+			map[i] = 'A';
-+
-+		/* Send info and pause */
-+		info.pid = getpid();
-+		info.map_addr = map;
-+		ret = write(pipe_info[1], &info, sizeof(info));
-+		ASSERT_EQ(ret, sizeof(info));
-+		close(pipe_info[1]);
-+
-+		pause();
-+		exit(0);
-+	}
-+
-+	close(pipe_info[1]);
-+
-+	/* Receive child info */
-+	ret = read(pipe_info[0], &info, sizeof(info));
-+	if (ret <= 0) {
-+		waitpid(child_pid, NULL, 0);
-+		ksft_exit_skip("Failed to read child info from pipe.\n");
-+	}
-+	ASSERT_EQ(ret, sizeof(info));
-+	close(pipe_info[0]);
-+	child_pid = info.pid;
-+
-+	pidfd = pidfd_open(child_pid, 0);
-+	ASSERT_GE(pidfd, 0);
-+
-+	/* Baseline Check from Parent's perspective */
-+	ASSERT_EQ(get_smaps_anon_huge_pages(child_pid, info.map_addr), 0);
-+
-+	vec.iov_base = info.map_addr;
-+	vec.iov_len = huge_page_size;
-+	ret = sys_process_madvise(pidfd, &vec, 1, MADV_COLLAPSE, 0);
-+	if (ret == -1) {
-+		if (errno == EINVAL)
-+			ksft_exit_skip(
-+				"PROCESS_MADV_ADVISE is not supported.\n");
-+		else if (errno == EPERM)
-+			ksft_exit_skip(
-+				"No process_madvise() permissions, try running as root.\n");
-+		goto cleanup;
-+	}
-+	ASSERT_EQ(ret, huge_page_size);
-+
-+	ASSERT_EQ(get_smaps_anon_huge_pages(child_pid, info.map_addr),
-+		  huge_page_size);
-+
-+	ksft_test_result_pass(
-+		"MADV_COLLAPSE successfully verified via smaps.\n");
-+
-+cleanup:
-+	/* Cleanup */
-+	kill(child_pid, SIGKILL);
-+	waitpid(child_pid, NULL, 0);
-+	if (pidfd >= 0)
-+		close(pidfd);
-+}
-+
-+/*
-+ * Test process_madvise() with various invalid pidfds to ensure correct error
-+ * handling. This includes negative fds, non-pidfd fds, and pidfds for
-+ * processes that no longer exist.
-+ */
-+TEST_F(process_madvise, invalid_pidfd)
-+{
-+	struct iovec vec;
-+	pid_t child_pid;
-+	ssize_t ret;
-+	int pidfd;
-+
-+	vec.iov_base = (void *)0x1234;
-+	vec.iov_len = 4096;
-+
-+	/* Using an invalid fd number (-1) should fail with EBADF. */
-+	ret = sys_process_madvise(-1, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EBADF);
-+
-+	/*
-+	 * Using a valid fd that is not a pidfd (e.g. stdin) should fail
-+	 * with EBADF.
-+	 */
-+	ret = sys_process_madvise(STDIN_FILENO, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EBADF);
-+
-+	/*
-+	 * Using a pidfd for a process that has already exited should fail
-+	 * with ESRCH.
-+	 */
-+	child_pid = fork();
-+	ASSERT_NE(child_pid, -1);
-+
-+	if (child_pid == 0)
-+		exit(0);
-+
-+	pidfd = pidfd_open(child_pid, 0);
-+	ASSERT_GE(pidfd, 0);
-+
-+	/* Wait for the child to ensure it has terminated. */
-+	waitpid(child_pid, NULL, 0);
-+
-+	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, ESRCH);
-+	close(pidfd);
-+}
-+
-+/*
-+ * Test process_madvise() with an invalid flag value. Now we only support flag=0
-+ * future we will use it support sync so reserve this test.
-+ */
-+TEST_F(process_madvise, flag)
-+{
-+	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
-+	unsigned int invalid_flag;
-+	struct iovec vec;
-+	char *map;
-+	ssize_t ret;
-+
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		ksft_exit_skip("mmap failed, not enough memory.\n");
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
-+
-+	invalid_flag = 0x80000000;
-+
-+	ret = sys_process_madvise(PIDFD_SELF, &vec, 1, MADV_DONTNEED,
-+				  invalid_flag);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize), 0);
-+}
-+
-+TEST_HARNESS_MAIN
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -65,6 +65,8 @@ separated by spaces:
- 	test pagemap_scan IOCTL
- - pfnmap
- 	tests for VM_PFNMAP handling
-+- process_madv
-+	test process_madvise
- - cow
- 	test copy-on-write semantics
- - thp
-@@ -422,6 +424,9 @@ CATEGORY="hmm" run_test bash ./test_hmm.
- # MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
- CATEGORY="madv_guard" run_test ./guard-regions
+ 	if (panic_print & PANIC_PRINT_TASK_INFO)
+ 		show_state();
  
-+# PROCESS_MADVISE TEST
-+CATEGORY="process_madv" run_test ./process_madv
-+
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
+@@ -410,7 +410,7 @@ void panic(const char *fmt, ...)
+ 	 */
+ 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
  
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -20,6 +20,9 @@
- unsigned int __page_size;
- unsigned int __page_shift;
+-	panic_print_sys_info(false);
++	panic_print_sys_info();
  
-+volatile sig_atomic_t signal_jump_set;
-+sigjmp_buf signal_jmp_buf;
-+
- uint64_t pagemap_get_entry(int fd, char *start)
- {
- 	const unsigned long pfn = (unsigned long)start / getpagesize();
-@@ -524,3 +527,35 @@ int read_sysfs(const char *file_path, un
+ 	kmsg_dump_desc(KMSG_DUMP_PANIC, buf);
  
- 	return 0;
- }
-+
-+static void handle_fatal(int c)
-+{
-+	if (!signal_jump_set)
-+		return;
-+
-+	siglongjmp(signal_jmp_buf, c);
-+}
-+
-+void setup_sighandler(void)
-+{
-+	struct sigaction act = {
-+		.sa_handler = &handle_fatal,
-+		.sa_flags = SA_NODEFER,
-+	};
-+
-+	sigemptyset(&act.sa_mask);
-+	if (sigaction(SIGSEGV, &act, NULL))
-+		ksft_exit_fail_perror("sigaction in setup");
-+}
-+
-+void teardown_sighandler(void)
-+{
-+	struct sigaction act = {
-+		.sa_handler = SIG_DFL,
-+		.sa_flags = SA_NODEFER,
-+	};
-+
-+	sigemptyset(&act.sa_mask);
-+	if (sigaction(SIGSEGV, &act, NULL))
-+		ksft_exit_fail_perror("sigaction in teardown");
-+}
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -8,6 +8,8 @@
- #include <unistd.h> /* _SC_PAGESIZE */
- #include "../kselftest.h"
- #include <linux/fs.h>
-+#include <setjmp.h>
-+#include <signal.h>
+@@ -439,7 +439,7 @@ void panic(const char *fmt, ...)
+ 	debug_locks_off();
+ 	console_flush_on_panic(CONSOLE_FLUSH_PENDING);
  
- #define BIT_ULL(nr)                   (1ULL << (nr))
- #define PM_SOFT_DIRTY                 BIT_ULL(55)
-@@ -61,6 +63,24 @@ static inline void skip_test_dodgy_fs(co
- 	ksft_test_result_skip("%s failed with ENOENT. Filesystem might be buggy (9pfs?)\n", op_name);
- }
+-	panic_print_sys_info(true);
++	panic_console_replay();
  
-+/*
-+ * Ignore the checkpatch warning, as per the C99 standard, section 7.14.1.1:
-+ *
-+ * "If the signal occurs other than as the result of calling the abort or raise
-+ *  function, the behavior is undefined if the signal handler refers to any
-+ *  object with static storage duration other than by assigning a value to an
-+ *  object declared as volatile sig_atomic_t"
-+ */
-+extern volatile sig_atomic_t signal_jump_set;
-+extern sigjmp_buf signal_jmp_buf;
-+
-+/*
-+ * Ignore the checkpatch warning, we must read from x but don't want to do
-+ * anything with it in order to trigger a read page fault. We therefore must use
-+ * volatile to stop the compiler from optimising this away.
-+ */
-+#define FORCE_READ(x) (*(volatile typeof(x) *)x)
-+
- uint64_t pagemap_get_entry(int fd, char *start);
- bool pagemap_is_softdirty(int fd, char *start);
- bool pagemap_is_swapped(int fd, char *start);
-@@ -90,6 +110,8 @@ bool find_vma_procmap(struct procmap_fd
- int close_procmap(struct procmap_fd *procmap);
- int write_sysfs(const char *file_path, unsigned long val);
- int read_sysfs(const char *file_path, unsigned long *val);
-+void setup_sighandler(void);
-+void teardown_sighandler(void);
- 
- static inline int open_self_procmap(struct procmap_fd *procmap_out)
- {
+ 	if (!panic_blink)
+ 		panic_blink = no_blink;
 _
 
-Patches currently in -mm which might be from lianux.mm@gmail.com are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-selftests-mm-add-process_madvise-tests.patch
+panic-clean-up-code-for-console-replay.patch
+panic-generalize-panic_prints-function-to-show-sys-info.patch
+panic-add-panic_sys_info-sysctl-to-take-human-readable-string-parameter.patch
+panic-add-panic_sys_info=-setup-option-for-kernel-cmdline.patch
+panic-add-note-that-panic_print-sysctl-interface-is-deprecated.patch
 
