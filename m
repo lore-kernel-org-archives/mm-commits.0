@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96FED28A1F8
-	for <mm-commits@vger.kernel.org>; Thu,  3 Jul 2025 21:40:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32D6621CC40
+	for <mm-commits@vger.kernel.org>; Thu,  3 Jul 2025 22:24:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751578820; cv=none; b=tn5qxUgsx3G5GLTyKRy/dVBbHB0T8+wl7m567Zp1Ip1hCpiv0PrSffb85Iju29s/t3zec83pjiOX9MYM4wIqlwLdRDYYnaw+RL0OPsqxCOe+Rd+fEY1cPcAJoWCDYZzu75JKrfwXQrtZ2sUdFcjl5oYk87O6hzj0Fy4gURrTSo0=
+	t=1751581479; cv=none; b=WD32XaK/NVP+vxFm7An9XEqozh13ouxv3arn4OtfIE8BToqg44N8SZyyRGGPNKISxPO12F3ZaHb5PrO8QqMVw1pOFq9E1UZya7+2pfbTIhvl4NFeiE9mG6vva8B5/RNC8lzWoTV9GS1us86bRU4Oo0jnhN5CZocV4WUuv9a7GJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751578820; c=relaxed/simple;
-	bh=LbT+j5te9/CKgJ2Ovqq0TzJbQaktgKXjrbagrmX3MSU=;
-	h=Date:To:From:Subject:Message-Id; b=H5kRv/46uKOmxlGM153DKu/gvXa2pvFaOn+lOAWoG8lJq3wwgBH3bkwp0MdnfzE7Op4RzpPMMeTWzOPmKqVAsgmJY++dV16uFYVQu5TMEucfnOgt2D2QoH+OE+H+U2Ejup7fntT1o6YGvaZnJw1SeNe50Gcprq15xYn8sEMaQy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WwOvATCd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751581479; c=relaxed/simple;
+	bh=Wotspd+ePuvuLleH8WwXVZQPsiX9+tD3N9x96oFD7vs=;
+	h=Date:To:From:Subject:Message-Id; b=SgSjbDVAOHWdHO1f82t8lLRiQIJHsnnzPUjLKe2aS3ZM/WJ4Xfii6zK0LKCK/5R7MpRoF/2xALq/hARVDyMDV8L6/0s+BFvG3IfsoAOu1k3/8XiQL5P8G1osXLpec/G2KcGJAkXZSU1fdI+LqEzv7dZOYBneM2Eg4kzpfmNNSR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oiyIXTZ5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WwOvATCd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EF0DC4CEED;
-	Thu,  3 Jul 2025 21:40:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oiyIXTZ5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4E84C4CEE3;
+	Thu,  3 Jul 2025 22:24:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751578820;
-	bh=LbT+j5te9/CKgJ2Ovqq0TzJbQaktgKXjrbagrmX3MSU=;
+	s=korg; t=1751581478;
+	bh=Wotspd+ePuvuLleH8WwXVZQPsiX9+tD3N9x96oFD7vs=;
 	h=Date:To:From:Subject:From;
-	b=WwOvATCdk8PHp8YMBa9OhEqRYD3TrwS25AqXqVCAHqHgdi+VCcciaeCDTDcZTW1Pv
-	 NUBtbdv6gYVAe3mb1uyHQvT4y4wRb/Vs6KTGEkGueWZ26XbtnEaN+fEWo5WrWd6fS0
-	 VaM9Cnl+Hn2kGT2pxCmDfWGlKYtKkin96Vb66IFg=
-Date: Thu, 03 Jul 2025 14:40:19 -0700
-To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,liam.howlett@oracle.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=oiyIXTZ5E0rMuUVzBv/VsoABrNZQ6GBZWwWJVkAzDtBfm7D8MIBHiLYHp9SCq3zfx
+	 AySeiXhg601IC2D7XCDWGb2xx1U0mOQ26UH4Z2PiXl620lYiDMgOgBAXyXXgjiIJV2
+	 FUIWJpRaAIoQfBi2mvTNGhmY6d5WmTMr90eCGqB0=
+Date: Thu, 03 Jul 2025 15:24:38 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple-tree-add-some-comments.patch added to mm-new branch
-Message-Id: <20250703214020.1EF0DC4CEED@smtp.kernel.org>
+Subject: + selftests-mm-add-process_madvise-tests.patch added to mm-new branch
+Message-Id: <20250703222438.D4E84C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple tree: add some comments
+     Subject: selftests/mm: add process_madvise() tests
 has been added to the -mm mm-new branch.  Its filename is
-     maple-tree-add-some-comments.patch
+     selftests-mm-add-process_madvise-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-some-comments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-process_madvise-tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,74 +64,617 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: maple tree: add some comments
-Date: Thu, 3 Jul 2025 12:03:38 +0530
+From: wang lian <lianux.mm@gmail.com>
+Subject: selftests/mm: add process_madvise() tests
+Date: Thu, 3 Jul 2025 12:43:26 +0800
 
-Add comments explaining the fields for maple_metadata, since "end" is
-ambiguous and "gap" can be confused as the largest gap, whereas it is
-actually the offset of the largest gap.
+Add tests for process_madvise(), focusing on verifying behavior under
+various conditions including valid usage and error cases.
 
-Add comment for mas_ascend() to explain, whose min and max we are trying
-to find.  Explain that, for example, if we are already on offset zero,
-then the parent min is mas->min, otherwise we need to walk up to find the
-implied pivot min.
-
-Link: https://lkml.kernel.org/r/20250703063338.51509-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
+Link: https://lkml.kernel.org/r/20250703044326.65061-1-lianux.mm@gmail.com
+Signed-off-by: wang lian <lianux.mm@gmail.com>
+Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    4 ++--
- lib/maple_tree.c           |    8 +++++++-
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/.gitignore      |    1 
+ tools/testing/selftests/mm/Makefile        |    1 
+ tools/testing/selftests/mm/guard-regions.c |   51 --
+ tools/testing/selftests/mm/process_madv.c  |  358 +++++++++++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh  |    5 
+ tools/testing/selftests/mm/vm_util.c       |   35 +
+ tools/testing/selftests/mm/vm_util.h       |   22 +
+ 7 files changed, 422 insertions(+), 51 deletions(-)
 
---- a/include/linux/maple_tree.h~maple-tree-add-some-comments
-+++ a/include/linux/maple_tree.h
-@@ -75,8 +75,8 @@
-  * searching for gaps or any other code that needs to find the end of the data.
-  */
- struct maple_metadata {
--	unsigned char end;
--	unsigned char gap;
-+	unsigned char end;	/* end of data */
-+	unsigned char gap;	/* offset of largest gap */
- };
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-process_madvise-tests
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -25,6 +25,7 @@ pfnmap
+ protection_keys
+ protection_keys_32
+ protection_keys_64
++process_madv
+ madv_populate
+ uffd-stress
+ uffd-unit-tests
+--- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-add-process_madvise-tests
++++ a/tools/testing/selftests/mm/guard-regions.c
+@@ -9,8 +9,6 @@
+ #include <linux/limits.h>
+ #include <linux/userfaultfd.h>
+ #include <linux/fs.h>
+-#include <setjmp.h>
+-#include <signal.h>
+ #include <stdbool.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -25,24 +23,6 @@
+ #include "../pidfd/pidfd.h"
  
  /*
---- a/lib/maple_tree.c~maple-tree-add-some-comments
-+++ a/lib/maple_tree.c
-@@ -1053,7 +1053,7 @@ static inline void mte_set_gap(const str
-  * mas_ascend() - Walk up a level of the tree.
-  * @mas: The maple state
-  *
-- * Sets the @mas->max and @mas->min to the correct values when walking up.  This
-+ * Sets the @mas->max and @mas->min for the parent node of mas->node.  This
-  * may cause several levels of walking up to find the correct min and max.
-  * May find a dead node which will cause a premature return.
-  * Return: 1 on dead node, 0 otherwise
-@@ -1098,6 +1098,12 @@ static int mas_ascend(struct ma_state *m
+- * Ignore the checkpatch warning, as per the C99 standard, section 7.14.1.1:
+- *
+- * "If the signal occurs other than as the result of calling the abort or raise
+- *  function, the behavior is undefined if the signal handler refers to any
+- *  object with static storage duration other than by assigning a value to an
+- *  object declared as volatile sig_atomic_t"
+- */
+-static volatile sig_atomic_t signal_jump_set;
+-static sigjmp_buf signal_jmp_buf;
+-
+-/*
+- * Ignore the checkpatch warning, we must read from x but don't want to do
+- * anything with it in order to trigger a read page fault. We therefore must use
+- * volatile to stop the compiler from optimising this away.
+- */
+-#define FORCE_READ(x) (*(volatile typeof(x) *)x)
+-
+-/*
+  * How is the test backing the mapping being tested?
+  */
+ enum backing_type {
+@@ -120,14 +100,6 @@ static int userfaultfd(int flags)
+ 	return syscall(SYS_userfaultfd, flags);
+ }
  
- 	min = 0;
- 	max = ULONG_MAX;
+-static void handle_fatal(int c)
+-{
+-	if (!signal_jump_set)
+-		return;
+-
+-	siglongjmp(signal_jmp_buf, c);
+-}
+-
+ static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
+ 				   size_t n, int advice, unsigned int flags)
+ {
+@@ -180,29 +152,6 @@ static bool try_read_write_buf(char *ptr
+ 	return try_read_buf(ptr) && try_write_buf(ptr);
+ }
+ 
+-static void setup_sighandler(void)
+-{
+-	struct sigaction act = {
+-		.sa_handler = &handle_fatal,
+-		.sa_flags = SA_NODEFER,
+-	};
+-
+-	sigemptyset(&act.sa_mask);
+-	if (sigaction(SIGSEGV, &act, NULL))
+-		ksft_exit_fail_perror("sigaction");
+-}
+-
+-static void teardown_sighandler(void)
+-{
+-	struct sigaction act = {
+-		.sa_handler = SIG_DFL,
+-		.sa_flags = SA_NODEFER,
+-	};
+-
+-	sigemptyset(&act.sa_mask);
+-	sigaction(SIGSEGV, &act, NULL);
+-}
+-
+ static int open_file(const char *prefix, char *path)
+ {
+ 	int fd;
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-process_madvise-tests
++++ a/tools/testing/selftests/mm/Makefile
+@@ -85,6 +85,7 @@ TEST_GEN_FILES += mseal_test
+ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += pagemap_ioctl
+ TEST_GEN_FILES += pfnmap
++TEST_GEN_FILES += process_madv
+ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += uffd-stress
+diff --git a/tools/testing/selftests/mm/process_madv.c a/tools/testing/selftests/mm/process_madv.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/process_madv.c
+@@ -0,0 +1,358 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#define _GNU_SOURCE
++#include "../kselftest_harness.h"
++#include <errno.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include <unistd.h>
++#include <sched.h>
++#include <sys/pidfd.h>
++#include "vm_util.h"
++
++#include "../pidfd/pidfd.h"
++
++FIXTURE(process_madvise)
++{
++	int pidfd;
++	int flag;
++};
++
++FIXTURE_SETUP(process_madvise)
++{
++	self->pidfd = PIDFD_SELF;
++	self->flag = 0;
++	setup_sighandler();
++};
++
++FIXTURE_TEARDOWN(process_madvise)
++{
++	teardown_sighandler();
++}
++
++static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
++				   size_t vlen, int advice, unsigned int flags)
++{
++	return syscall(__NR_process_madvise, pidfd, iovec, vlen, advice, flags);
++}
++
++/*
++ * Enable our signal catcher and try to read the specified buffer. The
++ * return value indicates whether the read succeeds without a fatal
++ * signal.
++ */
++static bool try_read_buf(char *ptr)
++{
++	bool failed;
++
++	/* Tell signal handler to jump back here on fatal signal. */
++	signal_jump_set = true;
++	/* If a fatal signal arose, we will jump back here and failed is set. */
++	failed = sigsetjmp(signal_jmp_buf, 0) != 0;
++
++	if (!failed)
++		FORCE_READ(ptr);
++
++	signal_jump_set = false;
++	return !failed;
++}
++
++TEST_F(process_madvise, basic)
++{
++	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
++	const int madvise_pages = 4;
++	char *map;
++	ssize_t ret;
++	struct iovec vec[madvise_pages];
 +
 +	/*
-+	 * !mas->offset implies that parent node min == mas->min.
-+	 * mas->offset > 0 implies that we need to walk up to find the
-+	 * implied pivot min.
++	 * Create a single large mapping. We will pick pages from this
++	 * mapping to advise on. This ensures we test non-contiguous iovecs.
 +	 */
- 	if (!mas->offset) {
- 		min = mas->min;
- 		set_min = true;
++	map = mmap(NULL, pagesize * 10, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_skip("mmap failed, not enough memory.\n");
++
++	/* Fill the entire region with a known pattern. */
++	memset(map, 'A', pagesize * 10);
++
++	/*
++	 * Setup the iovec to point to 4 non-contiguous pages
++	 * within the mapping.
++	 */
++	vec[0].iov_base = &map[0 * pagesize];
++	vec[0].iov_len = pagesize;
++	vec[1].iov_base = &map[3 * pagesize];
++	vec[1].iov_len = pagesize;
++	vec[2].iov_base = &map[5 * pagesize];
++	vec[2].iov_len = pagesize;
++	vec[3].iov_base = &map[8 * pagesize];
++	vec[3].iov_len = pagesize;
++
++	ret = sys_process_madvise(PIDFD_SELF, vec, madvise_pages, MADV_DONTNEED,
++				  0);
++	if (ret == -1 && errno == EPERM)
++		ksft_exit_skip(
++			"process_madvise() unsupported or permission denied, try running as root.\n");
++	else if (errno == EINVAL)
++		ksft_exit_skip(
++			"process_madvise() unsupported or parameter invalid, please check arguments.\n");
++
++	/* The call should succeed and report the total bytes processed. */
++	ASSERT_EQ(ret, madvise_pages * pagesize);
++
++	/* Check that advised pages are now zero. */
++	for (int i = 0; i < madvise_pages; i++) {
++		char *advised_page = (char *)vec[i].iov_base;
++
++		/* Access should be successful (kernel provides a new page). */
++		ASSERT_TRUE(try_read_buf(advised_page));
++		/* Content must be 0, not 'A'. */
++		ASSERT_EQ(*advised_page, 0);
++	}
++
++	/* Check that an un-advised page in between is still 'A'. */
++	char *unadvised_page = &map[1 * pagesize];
++
++	ASSERT_TRUE(try_read_buf(unadvised_page));
++	for (int i = 0; i < pagesize; i++)
++		ASSERT_EQ(unadvised_page[i], 'A');
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(map, pagesize * 10), 0);
++}
++
++static long get_smaps_anon_huge_pages(pid_t pid, void *addr)
++{
++	char smaps_path[64];
++	char *line = NULL;
++	unsigned long start, end;
++	long anon_huge_kb;
++	size_t len;
++	FILE *f;
++	bool in_vma;
++
++	in_vma = false;
++	snprintf(smaps_path, sizeof(smaps_path), "/proc/%d/smaps", pid);
++	f = fopen(smaps_path, "r");
++	if (!f)
++		return -1;
++
++	while (getline(&line, &len, f) != -1) {
++		/* Check if the line describes a VMA range */
++		if (sscanf(line, "%lx-%lx", &start, &end) == 2) {
++			if ((unsigned long)addr >= start &&
++			    (unsigned long)addr < end)
++				in_vma = true;
++			else
++				in_vma = false;
++			continue;
++		}
++
++		/* If we are in the correct VMA, look for the AnonHugePages field */
++		if (in_vma &&
++		    sscanf(line, "AnonHugePages: %ld kB", &anon_huge_kb) == 1)
++			break;
++	}
++
++	free(line);
++	fclose(f);
++
++	return (anon_huge_kb > 0) ? (anon_huge_kb * 1024) : 0;
++}
++
++/**
++ * TEST_F(process_madvise, remote_collapse)
++ *
++ * This test deterministically validates process_madvise() with MADV_COLLAPSE
++ * on a remote process, other advices are difficult to verify reliably.
++ *
++ * The test verifies that a memory region in a child process, initially
++ * backed by small pages, can be collapsed into a Transparent Huge Page by a
++ * request from the parent. The result is verified by parsing the child's
++ * /proc/<pid>/smaps file.
++ */
++TEST_F(process_madvise, remote_collapse)
++{
++	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
++	pid_t child_pid;
++	int pidfd;
++	long huge_page_size;
++	int pipe_info[2];
++	ssize_t ret;
++	struct iovec vec;
++
++	struct child_info {
++		pid_t pid;
++		void *map_addr;
++	} info;
++
++	huge_page_size = default_huge_page_size();
++	if (huge_page_size <= 0)
++		ksft_exit_skip("Could not determine a valid huge page size.\n");
++
++	ASSERT_EQ(pipe(pipe_info), 0);
++
++	child_pid = fork();
++	ASSERT_NE(child_pid, -1);
++
++	if (child_pid == 0) {
++		char *map;
++		size_t map_size = 2 * huge_page_size;
++
++		close(pipe_info[0]);
++
++		map = mmap(NULL, map_size, PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++		ASSERT_NE(map, MAP_FAILED);
++
++		/* Fault in as small pages */
++		for (size_t i = 0; i < map_size; i += pagesize)
++			map[i] = 'A';
++
++		/* Send info and pause */
++		info.pid = getpid();
++		info.map_addr = map;
++		ret = write(pipe_info[1], &info, sizeof(info));
++		ASSERT_EQ(ret, sizeof(info));
++		close(pipe_info[1]);
++
++		pause();
++		exit(0);
++	}
++
++	close(pipe_info[1]);
++
++	/* Receive child info */
++	ret = read(pipe_info[0], &info, sizeof(info));
++	if (ret <= 0) {
++		waitpid(child_pid, NULL, 0);
++		ksft_exit_skip("Failed to read child info from pipe.\n");
++	}
++	ASSERT_EQ(ret, sizeof(info));
++	close(pipe_info[0]);
++	child_pid = info.pid;
++
++	pidfd = pidfd_open(child_pid, 0);
++	ASSERT_GE(pidfd, 0);
++
++	/* Baseline Check from Parent's perspective */
++	ASSERT_EQ(get_smaps_anon_huge_pages(child_pid, info.map_addr), 0);
++
++	vec.iov_base = info.map_addr;
++	vec.iov_len = huge_page_size;
++	ret = sys_process_madvise(pidfd, &vec, 1, MADV_COLLAPSE, 0);
++	if (ret == -1) {
++		if (errno == EINVAL)
++			ksft_exit_skip(
++				"PROCESS_MADV_ADVISE is not supported.\n");
++		else if (errno == EPERM)
++			ksft_exit_skip(
++				"No process_madvise() permissions, try running as root.\n");
++		goto cleanup;
++	}
++	ASSERT_EQ(ret, huge_page_size);
++
++	ASSERT_EQ(get_smaps_anon_huge_pages(child_pid, info.map_addr),
++		  huge_page_size);
++
++	ksft_test_result_pass(
++		"MADV_COLLAPSE successfully verified via smaps.\n");
++
++cleanup:
++	/* Cleanup */
++	kill(child_pid, SIGKILL);
++	waitpid(child_pid, NULL, 0);
++	if (pidfd >= 0)
++		close(pidfd);
++}
++
++/*
++ * Test process_madvise() with various invalid pidfds to ensure correct error
++ * handling. This includes negative fds, non-pidfd fds, and pidfds for
++ * processes that no longer exist.
++ */
++TEST_F(process_madvise, invalid_pidfd)
++{
++	struct iovec vec;
++	pid_t child_pid;
++	ssize_t ret;
++	int pidfd;
++
++	vec.iov_base = (void *)0x1234;
++	vec.iov_len = 4096;
++
++	/* Using an invalid fd number (-1) should fail with EBADF. */
++	ret = sys_process_madvise(-1, &vec, 1, MADV_DONTNEED, 0);
++	ASSERT_EQ(ret, -1);
++	ASSERT_EQ(errno, EBADF);
++
++	/*
++	 * Using a valid fd that is not a pidfd (e.g. stdin) should fail
++	 * with EBADF.
++	 */
++	ret = sys_process_madvise(STDIN_FILENO, &vec, 1, MADV_DONTNEED, 0);
++	ASSERT_EQ(ret, -1);
++	ASSERT_EQ(errno, EBADF);
++
++	/*
++	 * Using a pidfd for a process that has already exited should fail
++	 * with ESRCH.
++	 */
++	child_pid = fork();
++	ASSERT_NE(child_pid, -1);
++
++	if (child_pid == 0)
++		exit(0);
++
++	pidfd = pidfd_open(child_pid, 0);
++	ASSERT_GE(pidfd, 0);
++
++	/* Wait for the child to ensure it has terminated. */
++	waitpid(child_pid, NULL, 0);
++
++	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, 0);
++	ASSERT_EQ(ret, -1);
++	ASSERT_EQ(errno, ESRCH);
++	close(pidfd);
++}
++
++/*
++ * Test process_madvise() with an invalid flag value. Now we only support flag=0
++ * future we will use it support sync so reserve this test.
++ */
++TEST_F(process_madvise, flag)
++{
++	const unsigned long pagesize = (unsigned long)sysconf(_SC_PAGESIZE);
++	unsigned int invalid_flag;
++	struct iovec vec;
++	char *map;
++	ssize_t ret;
++
++	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
++		   0);
++	if (map == MAP_FAILED)
++		ksft_exit_skip("mmap failed, not enough memory.\n");
++
++	vec.iov_base = map;
++	vec.iov_len = pagesize;
++
++	invalid_flag = 0x80000000;
++
++	ret = sys_process_madvise(PIDFD_SELF, &vec, 1, MADV_DONTNEED,
++				  invalid_flag);
++	ASSERT_EQ(ret, -1);
++	ASSERT_EQ(errno, EINVAL);
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(map, pagesize), 0);
++}
++
++TEST_HARNESS_MAIN
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-process_madvise-tests
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -65,6 +65,8 @@ separated by spaces:
+ 	test pagemap_scan IOCTL
+ - pfnmap
+ 	tests for VM_PFNMAP handling
++- process_madv
++	test process_madvise
+ - cow
+ 	test copy-on-write semantics
+ - thp
+@@ -422,6 +424,9 @@ CATEGORY="hmm" run_test bash ./test_hmm.
+ # MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
+ CATEGORY="madv_guard" run_test ./guard-regions
+ 
++# PROCESS_MADVISE TEST
++CATEGORY="process_madv" run_test ./process_madv
++
+ # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
+ CATEGORY="madv_populate" run_test ./madv_populate
+ 
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-process_madvise-tests
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -20,6 +20,9 @@
+ unsigned int __page_size;
+ unsigned int __page_shift;
+ 
++volatile sig_atomic_t signal_jump_set;
++sigjmp_buf signal_jmp_buf;
++
+ uint64_t pagemap_get_entry(int fd, char *start)
+ {
+ 	const unsigned long pfn = (unsigned long)start / getpagesize();
+@@ -524,3 +527,35 @@ int read_sysfs(const char *file_path, un
+ 
+ 	return 0;
+ }
++
++static void handle_fatal(int c)
++{
++	if (!signal_jump_set)
++		return;
++
++	siglongjmp(signal_jmp_buf, c);
++}
++
++void setup_sighandler(void)
++{
++	struct sigaction act = {
++		.sa_handler = &handle_fatal,
++		.sa_flags = SA_NODEFER,
++	};
++
++	sigemptyset(&act.sa_mask);
++	if (sigaction(SIGSEGV, &act, NULL))
++		ksft_exit_fail_perror("sigaction in setup");
++}
++
++void teardown_sighandler(void)
++{
++	struct sigaction act = {
++		.sa_handler = SIG_DFL,
++		.sa_flags = SA_NODEFER,
++	};
++
++	sigemptyset(&act.sa_mask);
++	if (sigaction(SIGSEGV, &act, NULL))
++		ksft_exit_fail_perror("sigaction in teardown");
++}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-process_madvise-tests
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -8,6 +8,8 @@
+ #include <unistd.h> /* _SC_PAGESIZE */
+ #include "../kselftest.h"
+ #include <linux/fs.h>
++#include <setjmp.h>
++#include <signal.h>
+ 
+ #define BIT_ULL(nr)                   (1ULL << (nr))
+ #define PM_SOFT_DIRTY                 BIT_ULL(55)
+@@ -61,6 +63,24 @@ static inline void skip_test_dodgy_fs(co
+ 	ksft_test_result_skip("%s failed with ENOENT. Filesystem might be buggy (9pfs?)\n", op_name);
+ }
+ 
++/*
++ * Ignore the checkpatch warning, as per the C99 standard, section 7.14.1.1:
++ *
++ * "If the signal occurs other than as the result of calling the abort or raise
++ *  function, the behavior is undefined if the signal handler refers to any
++ *  object with static storage duration other than by assigning a value to an
++ *  object declared as volatile sig_atomic_t"
++ */
++extern volatile sig_atomic_t signal_jump_set;
++extern sigjmp_buf signal_jmp_buf;
++
++/*
++ * Ignore the checkpatch warning, we must read from x but don't want to do
++ * anything with it in order to trigger a read page fault. We therefore must use
++ * volatile to stop the compiler from optimising this away.
++ */
++#define FORCE_READ(x) (*(volatile typeof(x) *)x)
++
+ uint64_t pagemap_get_entry(int fd, char *start);
+ bool pagemap_is_softdirty(int fd, char *start);
+ bool pagemap_is_swapped(int fd, char *start);
+@@ -90,6 +110,8 @@ bool find_vma_procmap(struct procmap_fd
+ int close_procmap(struct procmap_fd *procmap);
+ int write_sysfs(const char *file_path, unsigned long val);
+ int read_sysfs(const char *file_path, unsigned long *val);
++void setup_sighandler(void);
++void teardown_sighandler(void);
+ 
+ static inline int open_self_procmap(struct procmap_fd *procmap_out)
+ {
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from lianux.mm@gmail.com are
 
-xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
-mm-call-pointers-to-ptes-as-ptep.patch
-mm-optimize-mremap-by-pte-batching.patch
-maple-tree-use-goto-label-to-simplify-code.patch
-maple-tree-add-some-comments.patch
+selftests-mm-add-process_madvise-tests.patch
 
