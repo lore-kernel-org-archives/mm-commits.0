@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1571025A333;
-	Thu,  3 Jul 2025 20:35:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680EC29A300
+	for <mm-commits@vger.kernel.org>; Thu,  3 Jul 2025 21:34:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751574951; cv=none; b=KxT2tyd8sVWqt/GpT3mX15Rv5Fkoa7+Nb+IEos2sPWnLNfXLSoEkVUQ8HFhphlsLynMm18na3BF3VmWMMBk5ix1GZtLN04R/PofHnnUEEuD8YrzluYr2+6+1+4UBlxMPrS0n9ETE8O7ayhtTCEMwYRlNkv7YxJdHPYQJu23rwk0=
+	t=1751578460; cv=none; b=m1k1XcjbukAyiwzYs7Ux6zAqawZt+mec7d+/WDzMHTj66R3MksY2szZ/RaF4OMQnC7vOXsxbfDekWPdHC/9x52Xt4QtNm7dR5/1lop4z9AYJdvVDbxIUVgnXMSAz/FO3O4R57yhk8CDGksAgytRsC0zYWSO9tMZt7l3cdZxJqTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751574951; c=relaxed/simple;
-	bh=wcCeWL9cnkFn3jH/2S0OjNOIlT2v4H09COjmuUme2cg=;
-	h=Date:To:From:Subject:Message-Id; b=VZJvRk38+OPSxr5TmQfR1L3VPB/Es8r5eZVBUj9rXXDnXQTy12eG4RnGNxGHRfbLMPHYJPrLsUT9zqo1YO7oB0IMLvdEyHcD5PYBBzGOsMg4KCQnw0+4r7Zf4jGDBGJ9Rfu6CmyRSBFVnflxeIR0G0aDUHcZ7e2r0HsAoa9bgyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xsU4PSTh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751578460; c=relaxed/simple;
+	bh=WESsdR6XqhbsjqdOgswo8di8SPNtlaoZM62X3sYblyk=;
+	h=Date:To:From:Subject:Message-Id; b=PWFFGRgC+nneHL7ievGTgmS5kXWnERnTMvNyae/afBbpgN/MOmIG6T+z05zTvM43m6KIjuzOHR0n7CXUncTy1o0wo2/iR+hQQmTddhb7PvOy8arGfI7Sxn3Fiv4SxwECKF4fbESHWkrDQ17/EOSv/zPcquNKwD1YQgyYPjcB6Ng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cKJaUmtI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xsU4PSTh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7EAC4CEE3;
-	Thu,  3 Jul 2025 20:35:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cKJaUmtI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC51AC4CEE3;
+	Thu,  3 Jul 2025 21:34:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751574950;
-	bh=wcCeWL9cnkFn3jH/2S0OjNOIlT2v4H09COjmuUme2cg=;
+	s=korg; t=1751578459;
+	bh=WESsdR6XqhbsjqdOgswo8di8SPNtlaoZM62X3sYblyk=;
 	h=Date:To:From:Subject:From;
-	b=xsU4PSTh3/vGcf+ui9Sxr0zMGbHG3vZsSahG5dRB/ndRoceHqWMrTLGxiaBAuv6GF
-	 rNRO7GlxMR+4BqxQ/2L0tWVU5lCEyu26NhC/spgJL5ZEL4mRDXy0zg3iHpcD3SqRHW
-	 oLtKhKSzL1eHc51OWoNrPP7C5eu44YbkOrVlSswQ=
-Date: Thu, 03 Jul 2025 13:35:49 -0700
-To: mm-commits@vger.kernel.org,ysk@kzalloc.com,vincenzo.frascino@arm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,rostedt@goodmis.org,glider@google.com,dvyukov@google.com,byungchul@sk.com,bigeasy@linutronix.de,andreyknvl@gmail.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
+	b=cKJaUmtIHcgN8fB5sEqSmNn5l04ih8IqPefwm8r8wHgeZj6hqXO1ebOH4x04n3oRU
+	 3zrcnnBbxLc1xcFKy36x3HBEVonppCGrVkmzDwAbNCBr1OgfmSEq1B4bnsVLf0iEXG
+	 38t+7xp3MwR9DMaiIwcLJ8Ad5BAo+939r08e1Avc=
+Date: Thu, 03 Jul 2025 14:34:19 -0700
+To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,briannorris@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250703203550.8B7EAC4CEE3@smtp.kernel.org>
+Subject: + checkpatch-check-for-missing-sentinels-in-id-arrays.patch added to mm-nonmm-unstable branch
+Message-Id: <20250703213419.AC51AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: remove kasan_find_vm_area() to prevent possible deadlock
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch
+     Subject: checkpatch: check for missing sentinels in ID arrays
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     checkpatch-check-for-missing-sentinels-in-id-arrays.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-check-for-missing-sentinels-in-id-arrays.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,114 +58,124 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: kasan: remove kasan_find_vm_area() to prevent possible deadlock
-Date: Thu, 3 Jul 2025 19:10:18 +0100
+From: Brian Norris <briannorris@chromium.org>
+Subject: checkpatch: check for missing sentinels in ID arrays
+Date: Wed, 2 Jul 2025 16:52:00 -0700
 
-find_vm_area() couldn't be called in atomic_context.  If find_vm_area() is
-called to reports vm area information, kasan can trigger deadlock like:
+All of the ID tables based on <linux/mod_devicetable.h> (of_device_id,
+pci_device_id, ...) require their arrays to end in an empty sentinel
+value.  That's usually spelled with an empty initializer entry (e.g.,
+"{}"), but also sometimes with explicit 0 entries, field initializers
+(e.g., '.id = ""'), or even a macro entry (like PCMCIA_DEVICE_NULL).
 
-CPU0                                CPU1
-vmalloc();
- alloc_vmap_area();
-  spin_lock(&vn->busy.lock)
-                                    spin_lock_bh(&some_lock);
-   <interrupt occurs>
-   <in softirq>
-   spin_lock(&some_lock);
-                                    <access invalid address>
-                                    kasan_report();
-                                     print_report();
-                                      print_address_description();
-                                       kasan_find_vm_area();
-                                        find_vm_area();
-                                         spin_lock(&vn->busy.lock) // deadlock!
+Without a sentinel, device-matching code may read out of bounds.
 
-To prevent possible deadlock while kasan reports, remove kasan_find_vm_area().
+I've found a number of such bugs in driver reviews, and we even
+occasionally commit one to the tree.  See commit 5751eee5c620 ("i2c:
+nomadik: Add missing sentinel to match table") for example.
 
-Link: https://lkml.kernel.org/r/20250703181018.580833-1-yeoreum.yun@arm.com
-Fixes: c056a364e954 ("kasan: print virtual mapping info in reports")
-Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Reported-by: Yunseong Kim <ysk@kzalloc.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <stable@vger.kernel.org>
+Teach checkpatch to find these ID tables, and complain if it looks like
+there wasn't a sentinel value.
+
+Test output:
+
+  $ git format-patch -1 a0d15cc47f29be6d --stdout | scripts/checkpatch.pl -
+  ERROR: missing sentinel in ID array
+  #57: FILE: drivers/i2c/busses/i2c-nomadik.c:1073:
+  +static const struct of_device_id nmk_i2c_eyeq_match_table[] = {
+   	{
+   		.compatible = "XXXXXXXXXXXXXXXXXX",
+   		.data = (void *)(NMK_I2C_EYEQ_FLAG_32B_BUS | NMK_I2C_EYEQ_FLAG_IS_EYEQ5),
+   	},
+   };
+
+  total: 1 errors, 0 warnings, 66 lines checked
+
+  NOTE: For some of the reported defects, checkpatch may be able to
+        mechanically convert to the typical style using --fix or --fix-inplace.
+
+  "[PATCH] i2c: nomadik: switch from of_device_is_compatible() to" has style problems, please review.
+
+  NOTE: If any of the errors are false positives, please report
+        them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+When run across the entire tree (scripts/checkpatch.pl -q --types
+MISSING_SENTINEL -f ...), false positives exist:
+
+* where macros are used that hide the table from analysis
+  (e.g., drivers/gpu/drm/radeon/radeon_drv.c / radeon_PCI_IDS).
+  There are fewer than 5 of these.
+
+* where such tables are processed correctly via ARRAY_SIZE() (fewer than
+  5 instances). This is by far not the typical usage of *_device_id
+  arrays.
+
+* some odd parsing artifacts, where ctx_statement_block() seems to quit
+  in the middle of a block due to #if/#else/#endif.
+
+Also, not every "struct *_device_id" is in fact a sentinel-requiring
+structure, but even with such types, false positives are very rare.
+
+Link: https://lkml.kernel.org/r/20250702235245.1007351-1-briannorris@chromium.org
+Signed-off-by: Brian Norris <briannorris@chromium.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Brian Norris <briannorris@chromium.org>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   45 +-------------------------------------------
- 1 file changed, 2 insertions(+), 43 deletions(-)
+ scripts/checkpatch.pl |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
---- a/mm/kasan/report.c~kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock
-+++ a/mm/kasan/report.c
-@@ -370,36 +370,6 @@ static inline bool init_task_stack_addr(
- 			sizeof(init_thread_union.stack));
- }
+--- a/scripts/checkpatch.pl~checkpatch-check-for-missing-sentinels-in-id-arrays
++++ a/scripts/checkpatch.pl
+@@ -685,6 +685,9 @@ our $tracing_logging_tags = qr{(?xi:
+ 	[\.\!:\s]*
+ )};
  
--/*
-- * This function is invoked with report_lock (a raw_spinlock) held. A
-- * PREEMPT_RT kernel cannot call find_vm_area() as it will acquire a sleeping
-- * rt_spinlock.
-- *
-- * For !RT kernel, the PROVE_RAW_LOCK_NESTING config option will print a
-- * lockdep warning for this raw_spinlock -> spinlock dependency. This config
-- * option is enabled by default to ensure better test coverage to expose this
-- * kind of RT kernel problem. This lockdep splat, however, can be suppressed
-- * by using DEFINE_WAIT_OVERRIDE_MAP() if it serves a useful purpose and the
-- * invalid PREEMPT_RT case has been taken care of.
-- */
--static inline struct vm_struct *kasan_find_vm_area(void *addr)
--{
--	static DEFINE_WAIT_OVERRIDE_MAP(vmalloc_map, LD_WAIT_SLEEP);
--	struct vm_struct *va;
--
--	if (IS_ENABLED(CONFIG_PREEMPT_RT))
--		return NULL;
--
--	/*
--	 * Suppress lockdep warning and fetch vmalloc area of the
--	 * offending address.
--	 */
--	lock_map_acquire_try(&vmalloc_map);
--	va = find_vm_area(addr);
--	lock_map_release(&vmalloc_map);
--	return va;
--}
--
- static void print_address_description(void *addr, u8 tag,
- 				      struct kasan_report_info *info)
- {
-@@ -429,19 +399,8 @@ static void print_address_description(vo
++# Device ID types like found in include/linux/mod_devicetable.h.
++our $dev_id_types = qr{\b[a-z]\w*_device_id\b};
++
+ sub edit_distance_min {
+ 	my (@arr) = @_;
+ 	my $len = scalar @arr;
+@@ -7679,6 +7682,31 @@ sub process {
+ 			WARN("DUPLICATED_SYSCTL_CONST",
+ 				"duplicated sysctl range checking value '$1', consider using the shared one in include/linux/sysctl.h\n" . $herecurr);
+ 		}
++
++# Check that *_device_id tables have sentinel entries.
++		if (defined $stat && $line =~ /struct\s+$dev_id_types\s+\w+\s*\[\s*\]\s*=\s*\{/) {
++			my $stripped = $stat;
++
++			# Strip diff line prefixes.
++			$stripped =~ s/(^|\n)./$1/g;
++			# Line continuations.
++			$stripped =~ s/\\\n/\n/g;
++			# Strip whitespace, empty strings, zeroes, and commas.
++			$stripped =~ s/""//g;
++			$stripped =~ s/0x0//g;
++			$stripped =~ s/[\s$;,0]//g;
++			# Strip field assignments.
++			$stripped =~ s/\.$Ident=//g;
++
++			if (!(substr($stripped, -4) eq "{}};" ||
++			      substr($stripped, -6) eq "{{}}};" ||
++			      $stripped =~ /ISAPNP_DEVICE_SINGLE_END}};$/ ||
++			      $stripped =~ /ISAPNP_CARD_END}};$/ ||
++			      $stripped =~ /NULL};$/ ||
++			      $stripped =~ /PCMCIA_DEVICE_NULL};$/)) {
++				ERROR("MISSING_SENTINEL", "missing sentinel in ID array\n" . "$here\n$stat\n");
++			}
++		}
  	}
  
- 	if (is_vmalloc_addr(addr)) {
--		struct vm_struct *va = kasan_find_vm_area(addr);
--
--		if (va) {
--			pr_err("The buggy address belongs to the virtual mapping at\n"
--			       " [%px, %px) created by:\n"
--			       " %pS\n",
--			       va->addr, va->addr + va->size, va->caller);
--			pr_err("\n");
--
--			page = vmalloc_to_page(addr);
--		} else {
--			pr_err("The buggy address %px belongs to a vmalloc virtual mapping\n", addr);
--		}
-+		pr_err("The buggy address %px belongs to a vmalloc virtual mapping\n", addr);
-+		page = vmalloc_to_page(addr);
- 	}
- 
- 	if (page) {
+ 	# If we have no input at all, then there is nothing to report on
 _
 
-Patches currently in -mm which might be from yeoreum.yun@arm.com are
+Patches currently in -mm which might be from briannorris@chromium.org are
 
-kasan-remove-kasan_find_vm_area-to-prevent-possible-deadlock.patch
+checkpatch-check-for-missing-sentinels-in-id-arrays.patch
 
