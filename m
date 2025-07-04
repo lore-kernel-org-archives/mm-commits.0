@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64DBEA2D
-	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 21:23:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C334A2D
+	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 21:23:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751664210; cv=none; b=WV6xCgMoZiZmeD4zNJZEqbkTrJhWf7TbV7jqiqmtI7+ueADJSRPHoopcuHkTBRHb0/j1LJIbeC6H9rlmqSrzP8EI2LdD7C9+NbnpjUJfXxZoo8rpWOw7JDILEiaNoqTUcVD7x3vlxPHr1afQwzr1454+gCkItxJIgF0XTU6cEzc=
+	t=1751664212; cv=none; b=tczzSsTCOCt/RhfValMl+6s0VPtMbJOqSn4ZqcvpjRj05gJVlzI85xJtSXs/LqgebZ2HtvwatCw/+YQmy2+IZnOdXDk+U9l0fZfUwfXYI6fSvqETkJYrn4m4LWSIaAzLT8BiJNaYZ/oO5XSeOG/3UGD7GHVhEKMXB13m+7sh298=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751664210; c=relaxed/simple;
-	bh=Y1sYGuIQ1n0XED5/xmkzIpQH77q5+fqXB6IWjjjStko=;
-	h=Date:To:From:Subject:Message-Id; b=aJBOIVltzToNIjuAebcyRTDKl9PFXFTvT3VJarJhbgVGnS3UcyOHY7mLi5jpwUCK5If9lP4PFf12zqHXL/Q2/agY38CWVVpIIzlcVFS7lI8J4S8I4Ug7x0FBkYPiFZtMpKZexhALVV/tfaJ96pTutkd8sVQHxvbhFpvqRGyBGQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ikeSBxFc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751664212; c=relaxed/simple;
+	bh=xLME2J2z3+pWWbjehgAc3FgL8P7KRn3bsDEqRAEwBd8=;
+	h=Date:To:From:Subject:Message-Id; b=DNhs2W/OZrrDR29Jh3WJ+rWFEfInH49PPS1KVq8FFGG5kKfQTAX4aeMRRdByNZPjlFgmxf4TOScckF6axZbVRor14xCUXEDbrOUkdjQhWzcwWl7Jn12sNApUzHOZe/IggziNtmYSCDnnO6o/zKMEDSO5xts+qqnLRWl6LYf0dFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1w8OpS6i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ikeSBxFc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF224C4CEE3;
-	Fri,  4 Jul 2025 21:23:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1w8OpS6i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A2ABC4CEE3;
+	Fri,  4 Jul 2025 21:23:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751664209;
-	bh=Y1sYGuIQ1n0XED5/xmkzIpQH77q5+fqXB6IWjjjStko=;
+	s=korg; t=1751664212;
+	bh=xLME2J2z3+pWWbjehgAc3FgL8P7KRn3bsDEqRAEwBd8=;
 	h=Date:To:From:Subject:From;
-	b=ikeSBxFcmV30pWcpkeaLRYZXikrS/DQiKZBqe0C79qFVMLcAC71XKWebPkne2G2/O
-	 V2ms/mx0StbO969fJy2jLTR6up0YW8D9qNjhqCVuHZPmc/dDFeuqmVLS9U8IcDD2lO
-	 fm77Bmfqw0qRgeU5x0C6p4juy8ZIhqO1smT1VzEs=
-Date: Fri, 04 Jul 2025 14:23:29 -0700
+	b=1w8OpS6iJvHYUy+i9YopZv0xj4p26QPvm3WUDr0PFuGzG/m1mDWpaBOtgqkSAT0/X
+	 zHiVMVBgamLysgJk/MaXek5y8Zt8hjzQljki+6PrqAvQRsi792aEIPznbhQMLstPqC
+	 X4F2VYmNyldA7CO3RKjdP/owf2VnCMjg7xzPh1Jw=
+Date: Fri, 04 Jul 2025 14:23:31 -0700
 To: mm-commits@vger.kernel.org,yebin10@huawei.com,willy@infradead.org,vbabka@suse.cz,tjmercier@google.com,shuah@kernel.org,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,osalvador@suse.de,mhocko@kernel.org,lorenzo.stoakes@oracle.com,linux@weissschuh.net,liam.howlett@oracle.com,kaleshsingh@google.com,josef@toxicpanda.com,jannh@google.com,hannes@cmpxchg.org,david@redhat.com,christophe.leroy@csgroup.eu,brauner@kernel.org,andrii@kernel.org,aha310510@gmail.com,adobriyan@gmail.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-remove-conversion-of-seq_file-position-to-unsigned.patch added to mm-new branch
-Message-Id: <20250704212329.CF224C4CEE3@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock.patch added to mm-new branch
+Message-Id: <20250704212332.1A2ABC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: remove conversion of seq_file position to unsigned
+     Subject: fs/proc/task_mmu: read proc/pid/maps under per-vma lock
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-task_mmu-remove-conversion-of-seq_file-position-to-unsigned.patch
+     fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-remove-conversion-of-seq_file-position-to-unsigned.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,18 +65,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: fs/proc/task_mmu: remove conversion of seq_file position to unsigned
-Date: Thu, 3 Jul 2025 23:07:24 -0700
+Subject: fs/proc/task_mmu: read proc/pid/maps under per-vma lock
+Date: Thu, 3 Jul 2025 23:07:25 -0700
 
-Back in 2.6 era, last_addr used to be stored in seq_file->version
-variable, which was unsigned long.  As a result, sentinels to represent
-gate vma and end of all vmas used unsigned values.  In more recent kernels
-we don't used seq_file->version anymore and therefore conversion from
-loff_t into unsigned type is not needed.  Similarly, sentinel values don't
-need to be unsigned.  Remove type conversion for set_file position and
-change sentinel values to signed.
+With maple_tree supporting vma tree traversal under RCU and per-vma
+locks, /proc/pid/maps can be read while holding individual vma locks
+instead of locking the entire address space.
 
-Link: https://lkml.kernel.org/r/20250704060727.724817-7-surenb@google.com
+Completely lockless approach (walking vma tree under RCU) would be quite
+complex with the main issue being get_vma_name() using callbacks which
+might not work correctly with a stable vma copy, requiring original
+(unstable) vma - see special_mapping_name() for an example.  When per-vma
+lock acquisition fails, we take the mmap_lock for reading, lock the vma,
+release the mmap_lock and continue.  This fallback to mmap read lock
+guarantees the reader to make forward progress even during lock
+contention.  This will interfere with the writer but for a very short time
+while we are acquiring the per-vma lock and only when there was contention
+on the vma reader is interested in.  We shouldn't see a repeated fallback
+to mmap read locks in practice, as this require a very unlikely series of
+lock contentions (for instance due to repeated vma split operations). 
+However even if this did somehow happen, we would still progress.
+
+One case requiring special handling is when vma changes between the time
+it was found and the time it got locked.  A problematic case would be if
+vma got shrunk so that it's start moved higher in the address space and a
+new vma was installed at the beginning:
+
+reader found:               |--------VMA A--------|
+VMA is modified:            |-VMA B-|----VMA A----|
+reader locks modified VMA A
+reader reports VMA A:       |  gap  |----VMA A----|
+
+This would result in reporting a gap in the address space that does not
+exist. To prevent this we retry the lookup after locking the vma, however
+we do that only when we identify a gap and detect that the address space
+was changed after we found the vma.
+
+This change is designed to reduce mmap_lock contention and prevent a
+process reading /proc/pid/maps files (often a low priority task, such as
+monitoring/data collection services) from blocking address space updates.
+
+Note that this change has a userspace visible disadvantage: it allows for
+sub-page data tearing as opposed to the previous mechanism where data
+tearing could happen only between pages of generated output data.  Since
+current userspace considers data tearing between pages to be acceptable,
+we assume is will be able to handle sub-page data tearing as well.
+
+Link: https://lkml.kernel.org/r/20250704060727.724817-8-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Andrii Nakryiko <andrii@kernel.org>
@@ -104,57 +139,319 @@ Cc: Ye Bin <yebin10@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/proc/internal.h        |    5 +
+ fs/proc/task_mmu.c        |  118 ++++++++++++++++++++++++++++++++----
+ include/linux/mmap_lock.h |   11 +++
+ mm/madvise.c              |    3 
+ mm/mmap_lock.c            |   88 ++++++++++++++++++++++++++
+ 5 files changed, 214 insertions(+), 11 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-remove-conversion-of-seq_file-position-to-unsigned
+--- a/fs/proc/internal.h~fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock
++++ a/fs/proc/internal.h
+@@ -384,6 +384,11 @@ struct proc_maps_private {
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+ 	struct vma_iterator iter;
++	loff_t last_pos;
++#ifdef CONFIG_PER_VMA_LOCK
++	bool mmap_locked;
++	struct vm_area_struct *locked_vma;
++#endif
+ #ifdef CONFIG_NUMA
+ 	struct mempolicy *task_mempolicy;
+ #endif
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock
 +++ a/fs/proc/task_mmu.c
-@@ -135,7 +135,7 @@ static struct vm_area_struct *proc_get_v
+@@ -127,15 +127,107 @@ static void release_task_mempolicy(struc
+ }
+ #endif
+ 
+-static struct vm_area_struct *proc_get_vma(struct proc_maps_private *priv,
+-						loff_t *ppos)
++#ifdef CONFIG_PER_VMA_LOCK
++
++static void unlock_vma(struct proc_maps_private *priv)
++{
++	if (priv->locked_vma) {
++		vma_end_read(priv->locked_vma);
++		priv->locked_vma = NULL;
++	}
++}
++
++static const struct seq_operations proc_pid_maps_op;
++
++static inline bool lock_vma_range(struct seq_file *m,
++				  struct proc_maps_private *priv)
++{
++	/*
++	 * smaps and numa_maps perform page table walk, therefore require
++	 * mmap_lock but maps can be read with locking just the vma.
++	 */
++	if (m->op != &proc_pid_maps_op) {
++		if (mmap_read_lock_killable(priv->mm))
++			return false;
++
++		priv->mmap_locked = true;
++	} else {
++		rcu_read_lock();
++		priv->locked_vma = NULL;
++		priv->mmap_locked = false;
++	}
++
++	return true;
++}
++
++static inline void unlock_vma_range(struct proc_maps_private *priv)
++{
++	if (priv->mmap_locked) {
++		mmap_read_unlock(priv->mm);
++	} else {
++		unlock_vma(priv);
++		rcu_read_unlock();
++	}
++}
++
++static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
++					   loff_t last_pos)
++{
++	struct vm_area_struct *vma;
++
++	if (priv->mmap_locked)
++		return vma_next(&priv->iter);
++
++	unlock_vma(priv);
++	vma = lock_next_vma(priv->mm, &priv->iter, last_pos);
++	if (!IS_ERR_OR_NULL(vma))
++		priv->locked_vma = vma;
++
++	return vma;
++}
++
++#else /* CONFIG_PER_VMA_LOCK */
++
++static inline bool lock_vma_range(struct seq_file *m,
++				  struct proc_maps_private *priv)
++{
++	return mmap_read_lock_killable(priv->mm) == 0;
++}
++
++static inline void unlock_vma_range(struct proc_maps_private *priv)
+ {
+-	struct vm_area_struct *vma = vma_next(&priv->iter);
++	mmap_read_unlock(priv->mm);
++}
++
++static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
++					   loff_t last_pos)
++{
++	return vma_next(&priv->iter);
++}
++
++#endif /* CONFIG_PER_VMA_LOCK */
++
++static struct vm_area_struct *proc_get_vma(struct seq_file *m, loff_t *ppos)
++{
++	struct proc_maps_private *priv = m->private;
++	struct vm_area_struct *vma;
++
++	vma = get_next_vma(priv, *ppos);
++	/* EINTR is possible */
++	if (IS_ERR(vma))
++		return vma;
+ 
++	/* Store previous position to be able to restart if needed */
++	priv->last_pos = *ppos;
  	if (vma) {
- 		*ppos = vma->vm_start;
+-		*ppos = vma->vm_start;
++		/*
++		 * Track the end of the reported vma to ensure position changes
++		 * even if previous vma was merged with the next vma and we
++		 * found the extended vma with the same vm_start.
++		 */
++		*ppos = vma->vm_end;
  	} else {
--		*ppos = -2UL;
-+		*ppos = -2;
+-		*ppos = -2;
++		*ppos = -2; /* -2 indicates gate vma */
  		vma = get_gate_vma(priv->mm);
  	}
  
-@@ -145,11 +145,11 @@ static struct vm_area_struct *proc_get_v
- static void *m_start(struct seq_file *m, loff_t *ppos)
- {
- 	struct proc_maps_private *priv = m->private;
--	unsigned long last_addr = *ppos;
-+	loff_t last_addr = *ppos;
- 	struct mm_struct *mm;
- 
- 	/* See m_next(). Zero at the start or after lseek. */
--	if (last_addr == -1UL)
-+	if (last_addr == -1)
+@@ -163,28 +255,34 @@ static void *m_start(struct seq_file *m,
  		return NULL;
+ 	}
  
- 	priv->task = get_proc_task(priv->inode);
-@@ -170,9 +170,9 @@ static void *m_start(struct seq_file *m,
+-	if (mmap_read_lock_killable(mm)) {
++	if (!lock_vma_range(m, priv)) {
+ 		mmput(mm);
+ 		put_task_struct(priv->task);
+ 		priv->task = NULL;
  		return ERR_PTR(-EINTR);
  	}
  
--	vma_iter_init(&priv->iter, mm, last_addr);
-+	vma_iter_init(&priv->iter, mm, (unsigned long)last_addr);
++	/*
++	 * Reset current position if last_addr was set before
++	 * and it's not a sentinel.
++	 */
++	if (last_addr > 0)
++		*ppos = last_addr = priv->last_pos;
+ 	vma_iter_init(&priv->iter, mm, (unsigned long)last_addr);
  	hold_task_mempolicy(priv);
--	if (last_addr == -2UL)
-+	if (last_addr == -2)
+ 	if (last_addr == -2)
  		return get_gate_vma(mm);
  
- 	return proc_get_vma(priv, ppos);
-@@ -180,8 +180,8 @@ static void *m_start(struct seq_file *m,
+-	return proc_get_vma(priv, ppos);
++	return proc_get_vma(m, ppos);
+ }
  
  static void *m_next(struct seq_file *m, void *v, loff_t *ppos)
  {
--	if (*ppos == -2UL) {
--		*ppos = -1UL;
-+	if (*ppos == -2) {
-+		*ppos = -1;
+ 	if (*ppos == -2) {
+-		*ppos = -1;
++		*ppos = -1; /* -1 indicates no more vmas */
  		return NULL;
  	}
- 	return proc_get_vma(m->private, ppos);
+-	return proc_get_vma(m->private, ppos);
++	return proc_get_vma(m, ppos);
+ }
+ 
+ static void m_stop(struct seq_file *m, void *v)
+@@ -196,7 +294,7 @@ static void m_stop(struct seq_file *m, v
+ 		return;
+ 
+ 	release_task_mempolicy(priv);
+-	mmap_read_unlock(mm);
++	unlock_vma_range(priv);
+ 	mmput(mm);
+ 	put_task_struct(priv->task);
+ 	priv->task = NULL;
+--- a/include/linux/mmap_lock.h~fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock
++++ a/include/linux/mmap_lock.h
+@@ -309,6 +309,17 @@ void vma_mark_detached(struct vm_area_st
+ struct vm_area_struct *lock_vma_under_rcu(struct mm_struct *mm,
+ 					  unsigned long address);
+ 
++/*
++ * Locks next vma pointed by the iterator. Confirms the locked vma has not
++ * been modified and will retry under mmap_lock protection if modification
++ * was detected. Should be called from read RCU section.
++ * Returns either a valid locked VMA, NULL if no more VMAs or -EINTR if the
++ * process was interrupted.
++ */
++struct vm_area_struct *lock_next_vma(struct mm_struct *mm,
++				     struct vma_iterator *iter,
++				     unsigned long address);
++
+ #else /* CONFIG_PER_VMA_LOCK */
+ 
+ static inline void mm_lock_seqcount_init(struct mm_struct *mm) {}
+--- a/mm/madvise.c~fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock
++++ a/mm/madvise.c
+@@ -108,7 +108,8 @@ void anon_vma_name_free(struct kref *kre
+ 
+ struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
+ {
+-	mmap_assert_locked(vma->vm_mm);
++	if (!rwsem_is_locked(&vma->vm_mm->mmap_lock))
++		vma_assert_locked(vma);
+ 
+ 	return vma->anon_name;
+ }
+--- a/mm/mmap_lock.c~fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock
++++ a/mm/mmap_lock.c
+@@ -178,6 +178,94 @@ inval:
+ 	count_vm_vma_lock_event(VMA_LOCK_ABORT);
+ 	return NULL;
+ }
++
++static struct vm_area_struct *lock_vma_under_mmap_lock(struct mm_struct *mm,
++						       struct vma_iterator *iter,
++						       unsigned long address)
++{
++	struct vm_area_struct *vma;
++	int ret;
++
++	ret = mmap_read_lock_killable(mm);
++	if (ret)
++		return ERR_PTR(ret);
++
++	/* Lookup the vma at the last position again under mmap_read_lock */
++	vma_iter_init(iter, mm, address);
++	vma = vma_next(iter);
++	if (vma)
++		vma_start_read_locked(vma);
++
++	mmap_read_unlock(mm);
++
++	return vma;
++}
++
++struct vm_area_struct *lock_next_vma(struct mm_struct *mm,
++				     struct vma_iterator *iter,
++				     unsigned long address)
++{
++	struct vm_area_struct *vma;
++	unsigned int mm_wr_seq;
++	bool mmap_unlocked;
++
++	RCU_LOCKDEP_WARN(!rcu_read_lock_held(), "no rcu read lock held");
++retry:
++	/* Start mmap_lock speculation in case we need to verify the vma later */
++	mmap_unlocked = mmap_lock_speculate_try_begin(mm, &mm_wr_seq);
++	vma = vma_next(iter);
++	if (!vma)
++		return NULL;
++
++	vma = vma_start_read(mm, vma);
++
++	if (IS_ERR_OR_NULL(vma)) {
++		/*
++		 * Retry immediately if the vma gets detached from under us.
++		 * Infinite loop should not happen because the vma we find will
++		 * have to be constantly knocked out from under us.
++		 */
++		if (PTR_ERR(vma) == -EAGAIN) {
++			vma_iter_init(iter, mm, address);
++			goto retry;
++		}
++
++		goto out;
++	}
++
++	/*
++	 * Verify the vma we locked belongs to the same address space and it's
++	 * not behind of the last search position.
++	 */
++	if (unlikely(vma->vm_mm != mm || address >= vma->vm_end))
++		goto out_unlock;
++
++	/*
++	 * vma can be ahead of the last search position but we need to verify
++	 * it was not shrunk after we found it and another vma has not been
++	 * installed ahead of it. Otherwise we might observe a gap that should
++	 * not be there.
++	 */
++	if (address < vma->vm_start) {
++		/* Verify only if the address space might have changed since vma lookup. */
++		if (!mmap_unlocked || mmap_lock_speculate_retry(mm, mm_wr_seq)) {
++			vma_iter_init(iter, mm, address);
++			if (vma != vma_next(iter))
++				goto out_unlock;
++		}
++	}
++
++	return vma;
++
++out_unlock:
++	vma_end_read(vma);
++out:
++	rcu_read_unlock();
++	vma = lock_vma_under_mmap_lock(mm, iter, address);
++	rcu_read_lock();
++
++	return vma;
++}
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
+ #ifdef CONFIG_LOCK_MM_AND_FIND_VMA
 _
 
 Patches currently in -mm which might be from surenb@google.com are
