@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E2FBE65
-	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 00:59:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95CD25FEE6;
+	Fri,  4 Jul 2025 01:17:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751590781; cv=none; b=mlDOVCRH1HJpBgCc1elQ+9n445idZJ3wVbR9yQApYFL1aX6ouAR1JwY7/NySBtXBGcBHgCyMGkHUg6lVzmhrVcRZ41cgod9GsFlo//414SKuQcQG5R5Yc5SR34bJjXDpTdDl1KbKSb6DDmC3Nhkdcym0SxQK44Rbpwa6XJ1CuRQ=
+	t=1751591862; cv=none; b=l7SGYbzOZb2nd1rM5csGM54A4bpvjSJxzim3rgcib8PgrHqpjaCW4YrOvqR5spi73Q1r8IpYljeVvaiQip8lb4cyWXWp8XfdRkPgOpTuqf6HNp1jsexVH57fekJ07TBhtR0LhFu/MfQwJj0ueODFuxt5f930LUOU+Da1nTyx7hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751590781; c=relaxed/simple;
-	bh=G8Yn1dqn1H7AlkHTTWegOB90bqYIrKTJSx/4ZIungvo=;
-	h=Date:To:From:Subject:Message-Id; b=Cu5An1QDKKR2b9HUPbjZczdV3nPXXakDDKPJhQ3pjuSJac123RZcyRiGXIXm/3RNH22c4zkY3pSECN+2HqVsP6HhA2v9X7B+tnBcsxSnaXL+7hMvGS4LCDGw1p2OYt+le+g0aTiga+AdMPEcteHsr9KNA1DN1Kn4rp4MNnNdSBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sw7FIjKq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751591862; c=relaxed/simple;
+	bh=hWrXrD1IoJbdn9NXmRw6/BLolkc8uCt92/6wOMLJfGQ=;
+	h=Date:To:From:Subject:Message-Id; b=c1CrhL1O5bnhL5pO8iNTXDGnV7svfgVyQ2QsDUVSEeXMNfOoGBQR1mVHdwkY+6p3jmfIkcCv5Xvw1pFFGFH3l6a7XZNoC7kMedxjne1Yfa8hQFf5NG9buNYXFVPMwPyBIXcCpKRNbNI5U4TIAO4+Lk12yGu0DlefeLSpa9kUOIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cn4zUr2Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sw7FIjKq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17F4EC4CEE3;
-	Fri,  4 Jul 2025 00:59:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cn4zUr2Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E6E1C4CEE3;
+	Fri,  4 Jul 2025 01:17:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751590781;
-	bh=G8Yn1dqn1H7AlkHTTWegOB90bqYIrKTJSx/4ZIungvo=;
+	s=korg; t=1751591862;
+	bh=hWrXrD1IoJbdn9NXmRw6/BLolkc8uCt92/6wOMLJfGQ=;
 	h=Date:To:From:Subject:From;
-	b=sw7FIjKq2gZjHb3w88Hz/VAxgO3fHgxgHyYT1y1ZcDz/a7nYdTvct5yFWdKE5tKyi
-	 OU/ero9WuouGZv2h8WFfr8UvRcZD2HwsjxuLMkQHRNA2FIEqOwhI0qsn/x4D81B2w5
-	 SCq/xhQYOWq+r7KxekyCvaCECZWuaKrhgPw0vIiw=
-Date: Thu, 03 Jul 2025 17:59:40 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
+	b=cn4zUr2ZBOTI+1zk8zD66ISpVXwvNHLdvC9SN//mYik9qP14IYN8cbz6u60sPskA1
+	 K2rlZ8p0RGaPNd9bEH0OmpZ6r3pIlhVD11/cd3P60o6v9U5i/02ZdaUmRzu2Tmt1U7
+	 qYrtWbwnyNt0OJWc4hr8/LN7Q1tnY+tM+WLo/VJY=
+Date: Thu, 03 Jul 2025 18:17:41 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-mm-update-the-admin-guide-for-mthp-collapse.patch added to mm-new branch
-Message-Id: <20250704005941.17F4EC4CEE3@smtp.kernel.org>
+Subject: + samples-damon-fix-damon-sample-prcl-for-start-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250704011742.0E6E1C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: mm: update the admin guide for mTHP collapse
-has been added to the -mm mm-new branch.  Its filename is
-     documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+     Subject: samples/damon: fix damon sample prcl for start failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     samples-damon-fix-damon-sample-prcl-for-start-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-fix-damon-sample-prcl-for-start-failure.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,112 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: Documentation: mm: update the admin guide for mTHP collapse
-Date: Tue, 1 Jul 2025 23:57:42 -0600
+From: Honggyu Kim <honggyu.kim@sk.com>
+Subject: samples/damon: fix damon sample prcl for start failure
+Date: Wed, 2 Jul 2025 09:02:01 +0900
 
-Now that we can collapse to mTHPs lets update the admin guide to
-reflect these changes and provide proper guidence on how to utilize it.
+Patch series "mm/damon: fix divide by zero and its samples", v3.
 
-Link: https://lkml.kernel.org/r/20250702055742.102808-16-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rafael Aquini <raquini@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Reported-by:Takashi Iwai <tiwai@suse.de>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Hellstrom <thomas.hellstrom@linux.intel.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+This series includes fixes against damon and its samples to make it safer
+when damon sample starting fails.
+
+It includes the following changes.
+- fix unexpected divide by zero crash for zero size regions
+- fix bugs for damon samples in case of start failures
+
+
+This patch (of 4):
+
+The damon_sample_prcl_start() can fail so we must reset the "enable"
+parameter to "false" again for proper rollback.
+
+In such cases, setting Y to "enable" then N triggers the following crash
+because damon sample start failed but the "enable" stays as Y.
+
+  [ 2441.419649] damon_sample_prcl: start
+  [ 2454.146817] damon_sample_prcl: stop
+  [ 2454.146862] ------------[ cut here ]------------
+  [ 2454.146865] kernel BUG at mm/slub.c:546!
+  [ 2454.148183] Oops: invalid opcode: 0000 [#1] SMP NOPTI
+  	...
+  [ 2454.167555] Call Trace:
+  [ 2454.167822]  <TASK>
+  [ 2454.168061]  damon_destroy_ctx+0x78/0x140
+  [ 2454.168454]  damon_sample_prcl_enable_store+0x8d/0xd0
+  [ 2454.168932]  param_attr_store+0xa1/0x120
+  [ 2454.169315]  module_attr_store+0x20/0x50
+  [ 2454.169695]  sysfs_kf_write+0x72/0x90
+  [ 2454.170065]  kernfs_fop_write_iter+0x150/0x1e0
+  [ 2454.170491]  vfs_write+0x315/0x440
+  [ 2454.170833]  ksys_write+0x69/0xf0
+  [ 2454.171162]  __x64_sys_write+0x19/0x30
+  [ 2454.171525]  x64_sys_call+0x18b2/0x2700
+  [ 2454.171900]  do_syscall_64+0x7f/0x680
+  [ 2454.172258]  ? exit_to_user_mode_loop+0xf6/0x180
+  [ 2454.172694]  ? clear_bhb_loop+0x30/0x80
+  [ 2454.173067]  ? clear_bhb_loop+0x30/0x80
+  [ 2454.173439]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+Link: https://lkml.kernel.org/r/20250702000205.1921-1-honggyu.kim@sk.com
+Link: https://lkml.kernel.org/r/20250702000205.1921-2-honggyu.kim@sk.com
+Fixes: 2aca254620a8 ("samples/damon: introduce a skeleton of a smaple DAMON module for proactive reclamation")
+Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ samples/damon/prcl.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~documentation-mm-update-the-admin-guide-for-mthp-collapse
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -63,7 +63,7 @@ often.
- THP can be enabled system wide or restricted to certain tasks or even
- memory ranges inside task's address space. Unless THP is completely
- disabled, there is ``khugepaged`` daemon that scans memory and
--collapses sequences of basic pages into PMD-sized huge pages.
-+collapses sequences of basic pages into huge pages.
+--- a/samples/damon/prcl.c~samples-damon-fix-damon-sample-prcl-for-start-failure
++++ a/samples/damon/prcl.c
+@@ -122,8 +122,12 @@ static int damon_sample_prcl_enable_stor
+ 	if (enable == enabled)
+ 		return 0;
  
- The THP behaviour is controlled via :ref:`sysfs <thp_sysfs>`
- interface and using madvise(2) and prctl(2) system calls.
-@@ -144,6 +144,18 @@ hugepage sizes have enabled="never". If
- sizes, the kernel will select the most appropriate enabled size for a
- given allocation.
- 
-+khugepaged uses max_ptes_none scaled to the order of the enabled mTHP size
-+to determine collapses. When using mTHPs it's recommended to set
-+max_ptes_none low-- ideally less than HPAGE_PMD_NR / 2 (255 on 4k page
-+size). This will prevent undesired "creep" behavior that leads to
-+continuously collapsing to the largest mTHP size; when we collapse, we are
-+bringing in new non-zero pages that will, on a subsequent scan, cause the
-+max_ptes_none check of the +1 order to always be satisfied. By limiting
-+this to less than half the current order, we make sure we don't cause this
-+feedback loop. max_ptes_shared and max_ptes_swap have no effect when
-+collapsing to a mTHP, and mTHP collapse will fail on shared or swapped out
-+pages.
-+
- It's also possible to limit defrag efforts in the VM to generate
- anonymous hugepages in case they're not immediately free to madvise
- regions or to never try to defrag memory and simply fallback to regular
-@@ -221,11 +233,6 @@ top-level control are "never")
- Khugepaged controls
- -------------------
- 
--.. note::
--   khugepaged currently only searches for opportunities to collapse to
--   PMD-sized THP and no attempt is made to collapse to other THP
--   sizes.
--
- khugepaged runs usually at low frequency so while one may not want to
- invoke defrag algorithms synchronously during the page faults, it
- should be worth invoking defrag at least in khugepaged. However it's
+-	if (enable)
+-		return damon_sample_prcl_start();
++	if (enable) {
++		err = damon_sample_prcl_start();
++		if (err)
++			enable = false;
++		return err;
++	}
+ 	damon_sample_prcl_stop();
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from honggyu.kim@sk.com are
 
-khugepaged-rename-hpage_collapse_-to-khugepaged_.patch
-introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch
-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
-khugepaged-introduce-khugepaged_scan_bitmap-for-mthp-support.patch
-khugepaged-add-mthp-support.patch
-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
-khugepaged-allow-madvise_collapse-to-check-all-anonymous-mthp-orders.patch
-khugepaged-improve-tracepoints-for-mthp-orders.patch
-khugepaged-add-per-order-mthp-khugepaged-stats.patch
-documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+samples-damon-fix-damon-sample-prcl-for-start-failure.patch
+samples-damon-fix-damon-sample-wsse-for-start-failure.patch
+samples-damon-fix-damon-sample-mtier-for-start-failure.patch
+mm-damon-fix-divide-by-zero-in-damon_get_intervals_score.patch
 
