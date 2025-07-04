@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C95BE65
-	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 00:59:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB5C7BE65
+	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 00:59:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751590752; cv=none; b=Qkvwkqh9ilCcX+qyrzjw0/fFf+udr3ZaWWGW1TeGdLs/Gnx86kBYvsmIHzRYn6THn8GlyVYexp+eniL0NCbXjyxkHBopIMwGiBmvYD3sToOTOO6NeCVqkS6ixgqNXm2YgKfKjH7PWT1oeVVbxVXlcXgn11A7CpVF1SVoqNGCy/U=
+	t=1751590755; cv=none; b=eEgvC65lzDZRo1IF0qjMPoiKyTalmU5VQ2aiPz11A6mOFcgxdm8Z6FfJQ13+ZyGTKGe6sqLPnbv5PFZ+JFgy8oZA9UJ+yV7JtGcaC50pW5QpEZamaQJy969d4xjihJLYqOYdMRwGj6DKXlpPHcPYw/p6fPo6OEb5QYzyr/Fo7/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751590752; c=relaxed/simple;
-	bh=mj4rvL7S3+gbSlV2Kk9K/fKCMQ7RpQs/t6+b4i5U8CA=;
-	h=Date:To:From:Subject:Message-Id; b=apzsJ1DARf7WnQFG8rn0zH7P1BBOdzKcbR8COQS7jExhqrWpBodbWvbCFrhi0qddU+GbTx3/sp5AkcWpR1umi62+nNgLO8JoXt8ZCMuk+gSRkDMo6QDISnQNGQbmUfbenyV+ok03TDM/nwffaGRSRC8cRD4zPOTL8hXPlcCwdoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ESdJZo1X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751590755; c=relaxed/simple;
+	bh=VzMyw5b4GzBw85MRB8XQS2IuYu9a7XliHW9N7lhCaw4=;
+	h=Date:To:From:Subject:Message-Id; b=GjC1IDDg0+sMbSp/JBkiOCngCbgmrN08BvzGiPaOnobYWrljXWLFuWm/xFyviP8KcZOrk/VqRAeq2f+hJsi4LTMDuEnDlz2T+iZnNGT4TvGa5DhYX0ggGWZTZ52oPvU8vaU5ilYjqLDfh2rm9V3c0x98EuLLCtalgyWCwnEnSok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G3Ql0P2H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ESdJZo1X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 603DDC4CEE3;
-	Fri,  4 Jul 2025 00:59:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G3Ql0P2H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7320AC4CEE3;
+	Fri,  4 Jul 2025 00:59:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751590752;
-	bh=mj4rvL7S3+gbSlV2Kk9K/fKCMQ7RpQs/t6+b4i5U8CA=;
+	s=korg; t=1751590755;
+	bh=VzMyw5b4GzBw85MRB8XQS2IuYu9a7XliHW9N7lhCaw4=;
 	h=Date:To:From:Subject:From;
-	b=ESdJZo1XOGm7i8gNl1XFuCNcB0fKWqJvL69KRZ7wzhwJRJKSarRlojC56YOrUdESk
-	 NFoXNsBTAdcSlGX0LAEE2rVnzwvAA6MvKo7OqbC6TdBO11rTFLJkjPJFc17leV+onw
-	 SXz721625DQPwvJfMOs+QENxgGapgxvl62CRp4Mk=
-Date: Thu, 03 Jul 2025 17:59:11 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=G3Ql0P2HBW6qIL2Ul9ZilisdoaIJtIClyLpm7EIxq/BmZBtnGTKFFzu/g+RTSMJWC
+	 xYPWeAwlZG6qn64Bw6rfHgg/zw/Dby1p3TRt94BfGlR0rAfEecXywd2he/2sybvoM3
+	 PtTI+Muv88l7I1XrwG4epgZR+JbQpZCSX/P7/6iM=
+Date: Thu, 03 Jul 2025 17:59:14 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-generalize-alloc_charge_folio.patch added to mm-new branch
-Message-Id: <20250704005912.603DDC4CEE3@smtp.kernel.org>
+Subject: + khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch added to mm-new branch
+Message-Id: <20250704005915.7320AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: generalize alloc_charge_folio()
+     Subject: khugepaged: generalize __collapse_huge_page_* for mTHP support
 has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-generalize-alloc_charge_folio.patch
+     khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-generalize-alloc_charge_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,17 +64,23 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: khugepaged: generalize alloc_charge_folio()
-Date: Tue, 1 Jul 2025 23:57:31 -0600
+From: Nico Pache <npache@redhat.com>
+Subject: khugepaged: generalize __collapse_huge_page_* for mTHP support
+Date: Tue, 1 Jul 2025 23:57:32 -0600
 
-Pass order to alloc_charge_folio() and update mTHP statistics.
+Generalize the order of the __collapse_huge_page_* functions to support
+future mTHP collapse.
 
-Link: https://lkml.kernel.org/r/20250702055742.102808-5-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
+mTHP collapse can suffer from incosistant behavior, and memory waste
+"creep".  disable swapin and shared support for mTHP collapse.
+
+No functional changes in this patch.
+
+Link: https://lkml.kernel.org/r/20250702055742.102808-6-npache@redhat.com
 Signed-off-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Nico Pache <npache@redhat.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Co-developed-by: Nico Pache <npache@redhat.com>
+Co-developed-by: Dev Jain <dev.jain@arm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Bagas Sanjaya <bagasdotme@gmail.com>
@@ -111,101 +117,188 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 ++
- mm/huge_memory.c        |    4 ++++
- mm/khugepaged.c         |   17 +++++++++++------
- 3 files changed, 17 insertions(+), 6 deletions(-)
+ mm/khugepaged.c |   48 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 18 deletions(-)
 
---- a/include/linux/huge_mm.h~khugepaged-generalize-alloc_charge_folio
-+++ a/include/linux/huge_mm.h
-@@ -125,6 +125,8 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_ALLOC,
- 	MTHP_STAT_ANON_FAULT_FALLBACK,
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
-+	MTHP_STAT_COLLAPSE_ALLOC,
-+	MTHP_STAT_COLLAPSE_ALLOC_FAILED,
- 	MTHP_STAT_ZSWPOUT,
- 	MTHP_STAT_SWPIN,
- 	MTHP_STAT_SWPIN_FALLBACK,
---- a/mm/huge_memory.c~khugepaged-generalize-alloc_charge_folio
-+++ a/mm/huge_memory.c
-@@ -614,6 +614,8 @@ static struct kobj_attribute _name##_att
- DEFINE_MTHP_STAT_ATTR(anon_fault_alloc, MTHP_STAT_ANON_FAULT_ALLOC);
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
-+DEFINE_MTHP_STAT_ATTR(collapse_alloc, MTHP_STAT_COLLAPSE_ALLOC);
-+DEFINE_MTHP_STAT_ATTR(collapse_alloc_failed, MTHP_STAT_COLLAPSE_ALLOC_FAILED);
- DEFINE_MTHP_STAT_ATTR(zswpout, MTHP_STAT_ZSWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpin, MTHP_STAT_SWPIN);
- DEFINE_MTHP_STAT_ATTR(swpin_fallback, MTHP_STAT_SWPIN_FALLBACK);
-@@ -679,6 +681,8 @@ static struct attribute *any_stats_attrs
- #endif
- 	&split_attr.attr,
- 	&split_failed_attr.attr,
-+	&collapse_alloc_attr.attr,
-+	&collapse_alloc_failed_attr.attr,
- 	NULL,
- };
- 
---- a/mm/khugepaged.c~khugepaged-generalize-alloc_charge_folio
+--- a/mm/khugepaged.c~khugepaged-generalize-__collapse_huge_page_-for-mthp-support
 +++ a/mm/khugepaged.c
-@@ -1060,21 +1060,26 @@ out:
+@@ -552,15 +552,17 @@ static int __collapse_huge_page_isolate(
+ 					unsigned long address,
+ 					pte_t *pte,
+ 					struct collapse_control *cc,
+-					struct list_head *compound_pagelist)
++					struct list_head *compound_pagelist,
++					u8 order)
+ {
+ 	struct page *page = NULL;
+ 	struct folio *folio = NULL;
+ 	pte_t *_pte;
+ 	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
+ 	bool writable = false;
++	int scaled_none = khugepaged_max_ptes_none >> (HPAGE_PMD_ORDER - order);
+ 
+-	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
++	for (_pte = pte; _pte < pte + (1 << order);
+ 	     _pte++, address += PAGE_SIZE) {
+ 		pte_t pteval = ptep_get(_pte);
+ 		if (pte_none(pteval) || (pte_present(pteval) &&
+@@ -568,7 +570,7 @@ static int __collapse_huge_page_isolate(
+ 			++none_or_zero;
+ 			if (!userfaultfd_armed(vma) &&
+ 			    (!cc->is_khugepaged ||
+-			     none_or_zero <= khugepaged_max_ptes_none)) {
++			     none_or_zero <= scaled_none)) {
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_NONE_PTE;
+@@ -596,8 +598,8 @@ static int __collapse_huge_page_isolate(
+ 		/* See hpage_collapse_scan_pmd(). */
+ 		if (folio_maybe_mapped_shared(folio)) {
+ 			++shared;
+-			if (cc->is_khugepaged &&
+-			    shared > khugepaged_max_ptes_shared) {
++			if (order != HPAGE_PMD_ORDER || (cc->is_khugepaged &&
++			    shared > khugepaged_max_ptes_shared)) {
+ 				result = SCAN_EXCEED_SHARED_PTE;
+ 				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+ 				goto out;
+@@ -698,13 +700,14 @@ static void __collapse_huge_page_copy_su
+ 						struct vm_area_struct *vma,
+ 						unsigned long address,
+ 						spinlock_t *ptl,
+-						struct list_head *compound_pagelist)
++						struct list_head *compound_pagelist,
++						u8 order)
+ {
+ 	struct folio *src, *tmp;
+ 	pte_t *_pte;
+ 	pte_t pteval;
+ 
+-	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
++	for (_pte = pte; _pte < pte + (1 << order);
+ 	     _pte++, address += PAGE_SIZE) {
+ 		pteval = ptep_get(_pte);
+ 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+@@ -751,7 +754,8 @@ static void __collapse_huge_page_copy_fa
+ 					     pmd_t *pmd,
+ 					     pmd_t orig_pmd,
+ 					     struct vm_area_struct *vma,
+-					     struct list_head *compound_pagelist)
++					     struct list_head *compound_pagelist,
++					     u8 order)
+ {
+ 	spinlock_t *pmd_ptl;
+ 
+@@ -768,7 +772,7 @@ static void __collapse_huge_page_copy_fa
+ 	 * Release both raw and compound pages isolated
+ 	 * in __collapse_huge_page_isolate.
+ 	 */
+-	release_pte_pages(pte, pte + HPAGE_PMD_NR, compound_pagelist);
++	release_pte_pages(pte, pte + (1 << order), compound_pagelist);
  }
  
- static int alloc_charge_folio(struct folio **foliop, struct mm_struct *mm,
--			      struct collapse_control *cc)
-+			      struct collapse_control *cc, u8 order)
+ /*
+@@ -789,7 +793,7 @@ static void __collapse_huge_page_copy_fa
+ static int __collapse_huge_page_copy(pte_t *pte, struct folio *folio,
+ 		pmd_t *pmd, pmd_t orig_pmd, struct vm_area_struct *vma,
+ 		unsigned long address, spinlock_t *ptl,
+-		struct list_head *compound_pagelist)
++		struct list_head *compound_pagelist, u8 order)
  {
- 	gfp_t gfp = (cc->is_khugepaged ? alloc_hugepage_khugepaged_gfpmask() :
- 		     GFP_TRANSHUGE);
- 	int node = khugepaged_find_target_node(cc);
- 	struct folio *folio;
- 
--	folio = __folio_alloc(gfp, HPAGE_PMD_ORDER, node, &cc->alloc_nmask);
-+	folio = __folio_alloc(gfp, order, node, &cc->alloc_nmask);
- 	if (!folio) {
- 		*foliop = NULL;
--		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
-+		if (order == HPAGE_PMD_ORDER)
-+			count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
-+		count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC_FAILED);
- 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
- 	}
- 
--	count_vm_event(THP_COLLAPSE_ALLOC);
-+	if (order == HPAGE_PMD_ORDER)
-+		count_vm_event(THP_COLLAPSE_ALLOC);
-+	count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC);
-+
- 	if (unlikely(mem_cgroup_charge(folio, mm, gfp))) {
- 		folio_put(folio);
- 		*foliop = NULL;
-@@ -1111,7 +1116,7 @@ static int collapse_huge_page(struct mm_
+ 	unsigned int i;
+ 	int result = SCAN_SUCCEED;
+@@ -797,7 +801,7 @@ static int __collapse_huge_page_copy(pte
+ 	/*
+ 	 * Copying pages' contents is subject to memory poison at any iteration.
  	 */
- 	mmap_read_unlock(mm);
+-	for (i = 0; i < HPAGE_PMD_NR; i++) {
++	for (i = 0; i < (1 << order); i++) {
+ 		pte_t pteval = ptep_get(pte + i);
+ 		struct page *page = folio_page(folio, i);
+ 		unsigned long src_addr = address + i * PAGE_SIZE;
+@@ -816,10 +820,10 @@ static int __collapse_huge_page_copy(pte
  
--	result = alloc_charge_folio(&folio, mm, cc);
-+	result = alloc_charge_folio(&folio, mm, cc, HPAGE_PMD_ORDER);
- 	if (result != SCAN_SUCCEED)
- 		goto out_nolock;
+ 	if (likely(result == SCAN_SUCCEED))
+ 		__collapse_huge_page_copy_succeeded(pte, vma, address, ptl,
+-						    compound_pagelist);
++						    compound_pagelist, order);
+ 	else
+ 		__collapse_huge_page_copy_failed(pte, pmd, orig_pmd, vma,
+-						 compound_pagelist);
++						 compound_pagelist, order);
  
-@@ -1835,7 +1840,7 @@ static int collapse_file(struct mm_struc
- 	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
- 	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
+ 	return result;
+ }
+@@ -986,11 +990,11 @@ static int check_pmd_still_valid(struct
+ static int __collapse_huge_page_swapin(struct mm_struct *mm,
+ 				       struct vm_area_struct *vma,
+ 				       unsigned long haddr, pmd_t *pmd,
+-				       int referenced)
++				       int referenced, u8 order)
+ {
+ 	int swapped_in = 0;
+ 	vm_fault_t ret = 0;
+-	unsigned long address, end = haddr + (HPAGE_PMD_NR * PAGE_SIZE);
++	unsigned long address, end = haddr + (PAGE_SIZE << order);
+ 	int result;
+ 	pte_t *pte = NULL;
+ 	spinlock_t *ptl;
+@@ -1021,6 +1025,14 @@ static int __collapse_huge_page_swapin(s
+ 		if (!is_swap_pte(vmf.orig_pte))
+ 			continue;
  
--	result = alloc_charge_folio(&new_folio, mm, cc);
-+	result = alloc_charge_folio(&new_folio, mm, cc, HPAGE_PMD_ORDER);
- 	if (result != SCAN_SUCCEED)
- 		goto out;
++		/* Dont swapin for mTHP collapse */
++		if (order != HPAGE_PMD_ORDER) {
++			pte_unmap(pte);
++			mmap_read_unlock(mm);
++			result = SCAN_EXCEED_SWAP_PTE;
++			goto out;
++		}
++
+ 		vmf.pte = pte;
+ 		vmf.ptl = ptl;
+ 		ret = do_swap_page(&vmf);
+@@ -1141,7 +1153,7 @@ static int collapse_huge_page(struct mm_
+ 		 * that case.  Continuing to collapse causes inconsistency.
+ 		 */
+ 		result = __collapse_huge_page_swapin(mm, vma, address, pmd,
+-						     referenced);
++				referenced, HPAGE_PMD_ORDER);
+ 		if (result != SCAN_SUCCEED)
+ 			goto out_nolock;
+ 	}
+@@ -1189,7 +1201,7 @@ static int collapse_huge_page(struct mm_
+ 	pte = pte_offset_map_lock(mm, &_pmd, address, &pte_ptl);
+ 	if (pte) {
+ 		result = __collapse_huge_page_isolate(vma, address, pte, cc,
+-						      &compound_pagelist);
++					&compound_pagelist, HPAGE_PMD_ORDER);
+ 		spin_unlock(pte_ptl);
+ 	} else {
+ 		result = SCAN_PMD_NULL;
+@@ -1219,7 +1231,7 @@ static int collapse_huge_page(struct mm_
  
+ 	result = __collapse_huge_page_copy(pte, folio, pmd, _pmd,
+ 					   vma, address, pte_ptl,
+-					   &compound_pagelist);
++					   &compound_pagelist, HPAGE_PMD_ORDER);
+ 	pte_unmap(pte);
+ 	if (unlikely(result != SCAN_SUCCEED))
+ 		goto out_up_write;
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from npache@redhat.com are
 
-xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
-mm-call-pointers-to-ptes-as-ptep.patch
-mm-optimize-mremap-by-pte-batching.patch
-maple-tree-use-goto-label-to-simplify-code.patch
-maple-tree-add-some-comments.patch
-khugepaged-generalize-alloc_charge_folio.patch
+khugepaged-rename-hpage_collapse_-to-khugepaged_.patch
+introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch
+khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
+khugepaged-introduce-khugepaged_scan_bitmap-for-mthp-support.patch
+khugepaged-add-mthp-support.patch
+khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+khugepaged-allow-madvise_collapse-to-check-all-anonymous-mthp-orders.patch
+khugepaged-improve-tracepoints-for-mthp-orders.patch
+khugepaged-add-per-order-mthp-khugepaged-stats.patch
+documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
 
