@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47EE3A2D
-	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 21:23:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C885134A8
+	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 22:11:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751664216; cv=none; b=vFi/qrgBQ0GfIX0dYv9xDhgS5oDy3/YGqpw2yjvNUdZXyl/mIzMI/V7XjXQsTiKXCsL8aOEvo5M6LdyFdRD+5WtIvIidYuoLqYDqrbAe9vOWl55JlJ0/4+NnL/YED98fBEA3qJUE0ZYad42+PhYzy5YmnASU3nrK6w9dRNA31kk=
+	t=1751667116; cv=none; b=VU1ee2Wli6YWrv6z6Q9r4yTNwaor23gamaIchKsJGlesmahSp1ZMdE9pPJZkpBlaY/Klbz2gkaHd0oM0tcRUkklCz1N75NqponSFjMnniL0w5TYJB9cQ+8MDdUf0v62QZvONGzwKzgpmF+oeEJVZ5e/t3p1FR1JDuGvfRvS/Pso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751664216; c=relaxed/simple;
-	bh=IGSEl/G4dRLvI/W00Rfy4q4Uq6HTpm3RY3VsMyRKb/c=;
-	h=Date:To:From:Subject:Message-Id; b=M2a3/b1PjYObpOPIANPi647g5xBlcw6rqKCEGJA9CwAOsQ7/iKQ5n+ScggKzNfTuYVmdNBIX0S+WYzQbCGxU4qO/EGMkw3wZ3tm7ZGRyT1ZFbpvsJPIXyuMxJe8Y+XMKE14hKmccNHh6wBM+jN1TaYqT7CofvkdiSvhY5xJGYPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LIl/8Tch; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751667116; c=relaxed/simple;
+	bh=ZwBMUPrFp8Y+j328G488tsv3pgVHb9H6/inz3dYbt2k=;
+	h=Date:To:From:Subject:Message-Id; b=MYo+gR+62oteD2zr++dOvHdTIhc0HPzHbSndErAwSWm7MqWzTiIUXrq1HHNpbobXo8S4aeJGHy/p+lG36jy/14Ov61I35FBRRPl3kEu3xIwWAbIVZpsnLczT90pFxnBVaAxUsioYI+96VZsmLjRZzKR75+ZpXAtIsK2bMz6kED4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wmapJKgH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LIl/8Tch"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C1C2C4CEE3;
-	Fri,  4 Jul 2025 21:23:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wmapJKgH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B021AC4CEE3;
+	Fri,  4 Jul 2025 22:11:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751664216;
-	bh=IGSEl/G4dRLvI/W00Rfy4q4Uq6HTpm3RY3VsMyRKb/c=;
+	s=korg; t=1751667115;
+	bh=ZwBMUPrFp8Y+j328G488tsv3pgVHb9H6/inz3dYbt2k=;
 	h=Date:To:From:Subject:From;
-	b=LIl/8TchWLECFKlkm/wgMwSgRoOLK0XTAKoINnxNF6Qv4CJ0w6OMzBkCRBB5hxPbx
-	 0qTCHgCt9PjLjC3yA/EiYhdIaIuPR1ZV7nJ1dbOp4UvVkWpNkZdURihemRJJP1f7Qk
-	 bqaMHHBRr5h1mBPY1W7BaIrqiNXQ4e/yK945B8JY=
-Date: Fri, 04 Jul 2025 14:23:35 -0700
-To: mm-commits@vger.kernel.org,yebin10@huawei.com,willy@infradead.org,vbabka@suse.cz,tjmercier@google.com,shuah@kernel.org,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,osalvador@suse.de,mhocko@kernel.org,lorenzo.stoakes@oracle.com,linux@weissschuh.net,liam.howlett@oracle.com,kaleshsingh@google.com,josef@toxicpanda.com,jannh@google.com,hannes@cmpxchg.org,david@redhat.com,christophe.leroy@csgroup.eu,brauner@kernel.org,andrii@kernel.org,aha310510@gmail.com,adobriyan@gmail.com,surenb@google.com,akpm@linux-foundation.org
+	b=wmapJKgHGq/rZYlMBiW6b2gJGTYCrG3lwItOLpTa4S1pnxju3pOlzRUNl7RrpIFMx
+	 3X/rOU6QbvKRoQZTx/S/Euf4yFTef6kNK3Uz/DmSpfRB8aPlWM093vpXCJsc+Ago5z
+	 EIYkOh4tGfHlHpDfik885FM5S8esShNQ3v8ETY64=
+Date: Fri, 04 Jul 2025 15:11:55 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,osalvador@suse.de,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks.patch added to mm-new branch
-Message-Id: <20250704212336.1C1C2C4CEE3@smtp.kernel.org>
+Subject: + khugepaged-reduce-race-probability-between-migration-and-khugepaged.patch added to mm-new branch
+Message-Id: <20250704221155.B021AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: execute PROCMAP_QUERY ioctl under per-vma locks
+     Subject: khugepaged: reduce race probability between migration and khugepaged
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks.patch
+     khugepaged-reduce-race-probability-between-migration-and-khugepaged.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-reduce-race-probability-between-migration-and-khugepaged.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,168 +64,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: fs/proc/task_mmu: execute PROCMAP_QUERY ioctl under per-vma locks
-Date: Thu, 3 Jul 2025 23:07:26 -0700
+From: Dev Jain <dev.jain@arm.com>
+Subject: khugepaged: reduce race probability between migration and khugepaged
+Date: Fri, 4 Jul 2025 09:34:17 +0530
 
-Utilize per-vma locks to stabilize vma after lookup without taking
-mmap_lock during PROCMAP_QUERY ioctl execution.  While we might take
-mmap_lock for reading during contention, we do that momentarily only to
-lock the vma.
+Suppose a folio is under migration, and khugepaged is also trying to
+collapse it.  collapse_pte_mapped_thp() will retrieve the folio from the
+page cache via filemap_lock_folio(), thus taking a reference on the folio
+and sleeping on the folio lock, since the lock is held by the migration
+path.  Migration will then fail in __folio_migrate_mapping ->
+folio_ref_freeze.  Reduce the probability of such a race happening
+(leading to migration failure) by bailing out if we detect a PMD is marked
+with a migration entry.
 
-This change is designed to reduce mmap_lock contention and prevent
-PROCMAP_QUERY ioctl calls from blocking address space updates.
+This fixes the migration-shared-anon-thp testcase failure on Apple M3.
 
-Link: https://lkml.kernel.org/r/20250704060727.724817-9-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Andrii Nakryiko <andrii@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeongjun Park <aha310510@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
+Note that, this is not a "fix" since it only reduces the chance of
+interference of khugepaged with migration, wherein both the kernel
+functionalities are deemed "best-effort".
+
+Link: https://lkml.kernel.org/r/20250704040417.63826-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Mariano Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
-Cc: T.J. Mercier <tjmercier@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ye Bin <yebin10@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   60 ++++++++++++++++++++++++++++++++++---------
- 1 file changed, 48 insertions(+), 12 deletions(-)
+ mm/khugepaged.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks
-+++ a/fs/proc/task_mmu.c
-@@ -487,28 +487,64 @@ static int pid_maps_open(struct inode *i
- 		PROCMAP_QUERY_VMA_FLAGS				\
- )
+--- a/mm/khugepaged.c~khugepaged-reduce-race-probability-between-migration-and-khugepaged
++++ a/mm/khugepaged.c
+@@ -977,6 +977,14 @@ static inline int check_pmd_state(pmd_t
  
--static int query_vma_setup(struct mm_struct *mm)
-+#ifdef CONFIG_PER_VMA_LOCK
+ 	if (pmd_none(pmde))
+ 		return SCAN_PMD_NONE;
 +
-+static int query_vma_setup(struct proc_maps_private *priv)
-+{
-+	priv->locked_vma = NULL;
-+	priv->mmap_locked = false;
-+
-+	return 0;
-+}
-+
-+static void query_vma_teardown(struct proc_maps_private *priv)
- {
--	return mmap_read_lock_killable(mm);
-+	unlock_vma(priv);
- }
- 
--static void query_vma_teardown(struct mm_struct *mm, struct vm_area_struct *vma)
-+static struct vm_area_struct *query_vma_find_by_addr(struct proc_maps_private *priv,
-+						     unsigned long addr)
- {
--	mmap_read_unlock(mm);
-+	struct vm_area_struct *vma;
-+
-+	rcu_read_lock();
-+	vma_iter_init(&priv->iter, priv->mm, addr);
-+	vma = get_next_vma(priv, addr);
-+	rcu_read_unlock();
-+
-+	return vma;
- }
- 
--static struct vm_area_struct *query_vma_find_by_addr(struct mm_struct *mm, unsigned long addr)
-+#else /* CONFIG_PER_VMA_LOCK */
-+
-+static int query_vma_setup(struct proc_maps_private *priv)
- {
--	return find_vma(mm, addr);
-+	return mmap_read_lock_killable(priv->mm);
- }
- 
--static struct vm_area_struct *query_matching_vma(struct mm_struct *mm,
-+static void query_vma_teardown(struct proc_maps_private *priv)
-+{
-+	mmap_read_unlock(priv->mm);
-+}
-+
-+static struct vm_area_struct *query_vma_find_by_addr(struct proc_maps_private *priv,
-+						     unsigned long addr)
-+{
-+	return find_vma(priv->mm, addr);
-+}
-+
-+#endif  /* CONFIG_PER_VMA_LOCK */
-+
-+static struct vm_area_struct *query_matching_vma(struct proc_maps_private *priv,
- 						 unsigned long addr, u32 flags)
- {
- 	struct vm_area_struct *vma;
- 
- next_vma:
--	vma = query_vma_find_by_addr(mm, addr);
-+	vma = query_vma_find_by_addr(priv, addr);
-+	if (IS_ERR(vma))
-+		return vma;
-+
- 	if (!vma)
- 		goto no_vma;
- 
-@@ -584,13 +620,13 @@ static int do_procmap_query(struct proc_
- 	if (!mm || !mmget_not_zero(mm))
- 		return -ESRCH;
- 
--	err = query_vma_setup(mm);
-+	err = query_vma_setup(priv);
- 	if (err) {
- 		mmput(mm);
- 		return err;
- 	}
- 
--	vma = query_matching_vma(mm, karg.query_addr, karg.query_flags);
-+	vma = query_matching_vma(priv, karg.query_addr, karg.query_flags);
- 	if (IS_ERR(vma)) {
- 		err = PTR_ERR(vma);
- 		vma = NULL;
-@@ -675,7 +711,7 @@ static int do_procmap_query(struct proc_
- 	}
- 
- 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
--	query_vma_teardown(mm, vma);
-+	query_vma_teardown(priv);
- 	mmput(mm);
- 
- 	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
-@@ -695,7 +731,7 @@ static int do_procmap_query(struct proc_
- 	return 0;
- 
- out:
--	query_vma_teardown(mm, vma);
-+	query_vma_teardown(priv);
- 	mmput(mm);
- 	kfree(name_buf);
- 	return err;
++	/*
++	 * The folio may be under migration when khugepaged is trying to
++	 * collapse it. Migration success or failure will eventually end
++	 * up with a present PMD mapping a folio again.
++	 */
++	if (is_pmd_migration_entry(pmde))
++		return SCAN_PMD_MAPPED;
+ 	if (!pmd_present(pmde))
+ 		return SCAN_PMD_NULL;
+ 	if (pmd_trans_huge(pmde))
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-selftests-proc-add-proc-pid-maps-tearing-from-vma-split-test.patch
-selftests-proc-extend-proc-pid-maps-tearing-test-to-include-vma-resizing.patch
-selftests-proc-extend-proc-pid-maps-tearing-test-to-include-vma-remapping.patch
-selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch
-selftests-proc-add-verbose-more-for-tests-to-facilitate-debugging.patch
-fs-proc-task_mmu-remove-conversion-of-seq_file-position-to-unsigned.patch
-fs-proc-task_mmu-read-proc-pid-maps-under-per-vma-lock.patch
-fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks.patch
+xarray-add-a-bug_on-to-ensure-caller-is-not-sibling.patch
+mm-call-pointers-to-ptes-as-ptep.patch
+mm-optimize-mremap-by-pte-batching.patch
+maple-tree-use-goto-label-to-simplify-code.patch
+maple-tree-add-some-comments.patch
+khugepaged-generalize-alloc_charge_folio.patch
+khugepaged-reduce-race-probability-between-migration-and-khugepaged.patch
 
