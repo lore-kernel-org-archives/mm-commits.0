@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 567341FC0FC
-	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 20:44:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1332E371E;
+	Fri,  4 Jul 2025 20:49:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751661861; cv=none; b=L4G0uT28gfeqMi9CjcY+mtYsm5PdHear7qdr7UF/BZHEfbNJqlbVYv6MPnPkeOB1xlFpbCQy+VHg0n6no/+0ypxw880Nvr8KiK1gdWX0wlz8PXPcoLiVF2ZDUmioVsRp+NxbFlNl+4c7rra2bLPy4OsgU8SxQGoNHqceECPXGNM=
+	t=1751662182; cv=none; b=e+eLr4MI6pZzqPqQmRejY2PTEklIu/jbHquXAInOM+GXno/pBBW2WHnQE2WZxCP42eIxxQJjZACm2qubdcO9Uh1apK5QIZqd/gvNIL1fOTim+chVvTn6Zj1f7+RYtuU3xoz4lE3GSV50Y6l43fTF0s6HEL45I+MeF9QepGjxWD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751661861; c=relaxed/simple;
-	bh=GJxW71LazLQo5JgDJ0vc/FDWmqj5e4h7/ABUgVhSfc0=;
-	h=Date:To:From:Subject:Message-Id; b=UfIkzjCtw8PpH6tUfvNXByEHNu/9YrETCo/g/VIZLUYAqA3m7+r6BDefsrs/DA2dHg2Ytp8RrmUlpvC4to8ijpqYt1RDMOC875cWOBUi+Of+ZH6zyQ9RSkOAi+rVPORxlUWezbsPPXAx1+HOWM1bj5jYQRfFVnIV/djfDNicnTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e4G5Ypj1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751662182; c=relaxed/simple;
+	bh=VDkQIuEYyfL+0b/2jLf/NgxzUs97PHZkUjWLE2AmEp8=;
+	h=Date:To:From:Subject:Message-Id; b=ujMqxyN+YT3EKd9906s7kM8TP+NNgWGgB453gDpHu4zM0AZ+fvzQN0FljEai+uqpYY5J+S6dMCAErfASX/PHaPvEsSsWDKW8YPbso+dG1zMSPR/IK8lq2qPTF2Qs3OG0YECY/McKqZunUjOz1qxLHqAHGl/c7LZNmYffPGNNrrk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sLtKEfBM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e4G5Ypj1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8666C4CEEE;
-	Fri,  4 Jul 2025 20:44:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sLtKEfBM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D65A3C4CEE3;
+	Fri,  4 Jul 2025 20:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751661860;
-	bh=GJxW71LazLQo5JgDJ0vc/FDWmqj5e4h7/ABUgVhSfc0=;
+	s=korg; t=1751662181;
+	bh=VDkQIuEYyfL+0b/2jLf/NgxzUs97PHZkUjWLE2AmEp8=;
 	h=Date:To:From:Subject:From;
-	b=e4G5Ypj1MbWoI2reYn8r8avnKfJqcFFlRz0SLKDvtMdIujshsg/xy+WD5K5EPXQBt
-	 MJhwuYgTKK9cLAa8N3qbi2qYencnXmWKEvHKj1mN86evqa7YQ7iW5EcvKPPry7Mjbi
-	 UV4GWHUCmeupo26zVTABRaTq9I/ivWCon5Y3/oBY=
-Date: Fri, 04 Jul 2025 13:44:20 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,mfleming@cloudflare.com,akpm@linux-foundation.org
+	b=sLtKEfBMV8tfPXGglpw8h0obDDJpXonlgF10nIE+9OZywc2G9BwJKzIt7AtKwRbiI
+	 lWuMk2SV9Tvus8TAwWapiXFRYix/3R7TaRxPZj3WrRefDPNzarF+idVbaAUagWmrDj
+	 Yqh9MToaEYfh/9KlHN68Bm1ZF17CKesw6OSfjNzk=
+Date: Fri, 04 Jul 2025 13:49:41 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,david@redhat.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + stackdepot-make-max-number-of-pools-build-time-configurable.patch added to mm-nonmm-unstable branch
-Message-Id: <20250704204420.C8666C4CEEE@smtp.kernel.org>
+Subject: + mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250704204941.D65A3C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: stackdepot: make max number of pools build-time configurable
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     stackdepot-make-max-number-of-pools-build-time-configurable.patch
+     Subject: mm/zsmalloc: do not pass __GFP_MOVABLE if CONFIG_COMPACTION=n
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-make-max-number-of-pools-build-time-configurable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Matt Fleming <mfleming@cloudflare.com>
-Subject: stackdepot: make max number of pools build-time configurable
-Date: Fri, 4 Jul 2025 13:06:04 +0100
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: mm/zsmalloc: do not pass __GFP_MOVABLE if CONFIG_COMPACTION=n
+Date: Fri, 4 Jul 2025 19:30:53 +0900
 
-We're hitting the WARN in depot_init_pool() about reaching the stack depot
-limit because we have long stacks that don't dedup very well.
+Commit 48b4800a1c6a ("zsmalloc: page migration support") added support for
+migrating zsmalloc pages using the movable_operations migration framework.
+However, the commit did not take into account that zsmalloc supports
+migration only when CONFIG_COMPACTION is enabled.  Tracing shows that
+zsmalloc was still passing the __GFP_MOVABLE flag even when compaction is
+not supported.
 
-Introduce a new config to allow users to set the number of maximum stack
-depot pools at build time.  Also, turn the silent capping into a
-build-time assert to provide more obvious feedback when users set this
-value too high.
+This can result in unmovable pages being allocated from movable page
+blocks (even without stealing page blocks), ZONE_MOVABLE and CMA area.
 
-Link: https://lkml.kernel.org/r/20250704120604.2688934-1-matt@readmodwrite.com
-Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Macro Elver <elver@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Possible user visible effects:
+- Some ZONE_MOVABLE memory can be not actually movable
+- CMA allocation can fail because of this
+- Increased memory fragmentation due to ignoring the page mobility
+  grouping feature  
+I'm not really sure who uses kernels without compaction support, though :(
+
+
+To fix this, clear the __GFP_MOVABLE flag when
+!IS_ENABLED(CONFIG_COMPACTION).
+
+Link: https://lkml.kernel.org/r/20250704103053.6913-1-harry.yoo@oracle.com
+Fixes: 48b4800a1c6a ("zsmalloc: page migration support")
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig      |    6 ++++++
- lib/stackdepot.c |    8 ++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ mm/zsmalloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/Kconfig~stackdepot-make-max-number-of-pools-build-time-configurable
-+++ a/lib/Kconfig
-@@ -669,6 +669,12 @@ config STACKDEPOT_MAX_FRAMES
- 	default 64
- 	depends on STACKDEPOT
+--- a/mm/zsmalloc.c~mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n
++++ a/mm/zsmalloc.c
+@@ -1043,6 +1043,9 @@ static struct zspage *alloc_zspage(struc
+ 	if (!zspage)
+ 		return NULL;
  
-+config STACKDEPOT_MAX_POOLS
-+	int "Maximum number of stack depot pools to store stack traces" if EXPERT
-+	range 1024 131071
-+	default 8192
-+	depends on STACKDEPOT
++	if (!IS_ENABLED(CONFIG_COMPACTION))
++		gfp &= ~__GFP_MOVABLE;
 +
- config REF_TRACKER
- 	bool
- 	depends on STACKTRACE_SUPPORT
---- a/lib/stackdepot.c~stackdepot-make-max-number-of-pools-build-time-configurable
-+++ a/lib/stackdepot.c
-@@ -36,11 +36,11 @@
- #include <linux/memblock.h>
- #include <linux/kasan-enabled.h>
- 
--#define DEPOT_POOLS_CAP 8192
-+#define DEPOT_MAX_POOLS CONFIG_STACKDEPOT_MAX_POOLS
-+
- /* The pool_index is offset by 1 so the first record does not have a 0 handle. */
--#define DEPOT_MAX_POOLS \
--	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
--	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
-+static_assert(DEPOT_MAX_POOLS <= (1LL << (DEPOT_POOL_INDEX_BITS)) - 1);
-+
- 
- static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+ 	zspage->magic = ZSPAGE_MAGIC;
+ 	zspage->pool = pool;
+ 	zspage->class = class->index;
 _
 
-Patches currently in -mm which might be from mfleming@cloudflare.com are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-stackdepot-make-max-number-of-pools-build-time-configurable.patch
+lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
+lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3.patch
+mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n.patch
 
