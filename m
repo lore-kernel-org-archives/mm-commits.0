@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63648156237
-	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 22:28:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED1F156237
+	for <mm-commits@vger.kernel.org>; Fri,  4 Jul 2025 22:28:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751668131; cv=none; b=UhTKE5C6V+QWhXAnflLcqI001jD9CosbWbD7rBuYO649t7E5tknfvhAdLOblzaFxAaFBucxEk7bsJOI0A1EllfVxQ26jaHltRb5N7p7QGryvj8iOchHRn+DsKAawtUpP5/tYNvWnsoYGBdJiUp3S0zyWwUAVscmTwkdlqhd550s=
+	t=1751668134; cv=none; b=U3K/B4C2lKqz0bs7isbtCdLw8gNeijXVSizdsmty3+ebl+XWg/q6cLoQDqa8gTX7l1dZ9ptw3n5XUIM+qmFbjvS3RKBeAl5z+xynACckK6RjSg9FdZZvva6iYZLbpm9D28qxBuVpEGMl+B7gcbGK6OWi8n0t+9BdIwed4ALix6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751668131; c=relaxed/simple;
-	bh=dOLq095YGWXWZ+DxlvyQLsPFeVwc03d3Fq9QdA6YBjk=;
-	h=Date:To:From:Subject:Message-Id; b=hIsP6xdXcJVJXKSoX+iv/A1XnpNXRnjfCqb58l1rVC0sbcRbxDa2NS4xolHvnHzCpSZumsirjj899bhxavut6H1OyjEYwgWy2CHXOBcUQWxe2Puu0NX4DDd2MA+j21FbWffBG+C8oHI+4Yl9zx/tGCA/muTvx++fP/5LfqBLb3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=avH0dGqO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751668134; c=relaxed/simple;
+	bh=12ZWnobcS8lXIAhfK7NdK+Dr2CMH5wZIimIPBNTzl+Y=;
+	h=Date:To:From:Subject:Message-Id; b=IpZXPuh/gLuXbGSzmR7MmloB03Zh98j7IA2WYwnwA0groGWOVSprl6Zm5X0LNfM6dOlBMQraxqWludZuOtII0WKhatZlFOZKi7Q/UsiaZc5S0LiMz1Ad0VldPrO944zF8qRvBkxVeKDJlGkeASj2Hd02OGTGVOvGyyVTXUU6yE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XsfwNLYP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="avH0dGqO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C131BC4CEE3;
-	Fri,  4 Jul 2025 22:28:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XsfwNLYP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BCC7C4CEE3;
+	Fri,  4 Jul 2025 22:28:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751668130;
-	bh=dOLq095YGWXWZ+DxlvyQLsPFeVwc03d3Fq9QdA6YBjk=;
+	s=korg; t=1751668133;
+	bh=12ZWnobcS8lXIAhfK7NdK+Dr2CMH5wZIimIPBNTzl+Y=;
 	h=Date:To:From:Subject:From;
-	b=avH0dGqOQNvwdPYcPiAVuEDiZlwlXoNcOg6FrY95A/8ABOXuwADhPAhcxMzxMi4Eh
-	 IvsM8DlQca3mM4JXdUUhc/NPe7QQA81erYTrUUV+YgiVulVjSoNdWPl55To6TvW0R8
-	 vFdGnQvStC/7D8OhAW6JgJVAfuGa8XojGFZSX3mA=
-Date: Fri, 04 Jul 2025 15:28:50 -0700
+	b=XsfwNLYP/JkyDjqJBvk0WuNTNu7Wc9pg1NXz9Ofh2GYCpXvx5qxX4iZz/7aOdDz3n
+	 h3QLHFGZ9VxUcNBekRd3wtJfqRV7CAz2HbC0YOXxvEXvBze10xTeg537jm/45uwANm
+	 bA/Zu7nNKn4ZUGqiOi/BctofAgE2bgO8cfzQe4gA=
+Date: Fri, 04 Jul 2025 15:28:53 -0700
 To: mm-commits@vger.kernel.org,zi.li@linux.dev,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,peterz@infradead.org,mingzhe.yang@ly.com,mingo@redhat.com,mhiramat@kernel.org,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,jstultz@google.com,joel.granados@kernel.org,boqun.feng@gmail.com,anna.schumaker@oracle.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + locking-rwsem-make-owner-helpers-globally-available.patch added to mm-nonmm-unstable branch
-Message-Id: <20250704222850.C131BC4CEE3@smtp.kernel.org>
+Subject: + hung_task-extend-hung-task-blocker-tracking-to-rwsems.patch added to mm-nonmm-unstable branch
+Message-Id: <20250704222853.9BCC7C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: locking/rwsem: make owner helpers globally available
+     Subject: hung_task: extend hung task blocker tracking to rwsems
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     locking-rwsem-make-owner-helpers-globally-available.patch
+     hung_task-extend-hung-task-blocker-tracking-to-rwsems.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/locking-rwsem-make-owner-helpers-globally-available.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-extend-hung-task-blocker-tracking-to-rwsems.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,10 +59,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lance Yang <lance.yang@linux.dev>
-Subject: locking/rwsem: make owner helpers globally available
-Date: Fri, 27 Jun 2025 15:29:22 +0800
-
-Patch series "extend hung task blocker tracking to rwsems".
+Subject: hung_task: extend hung task blocker tracking to rwsems
+Date: Fri, 27 Jun 2025 15:29:23 +0800
 
 Inspired by mutex blocker tracking[1], and having already extended it to
 semaphores, let's now add support for reader-writer semaphores (rwsems).
@@ -156,23 +154,11 @@ like below:
 [Fri Jun 27 15:21:34 2025] R13: 0000000000000003 R14: 0000000000000000 R15: 0000000000000fff
 [Fri Jun 27 15:21:34 2025]  </TASK>
 
+[1] https://lore.kernel.org/all/174046694331.2194069.15472952050240807469.stgit@mhiramat.tok.corp.google.com/
 
-This patch (of 3):
-
-In preparation for extending blocker tracking to support rwsems, make the
-rwsem_owner() and is_rwsem_reader_owned() helpers globally available for
-determining if the blocker is a writer or one of the readers.
-
-Additionally, a stale owner pointer in a reader-owned rwsem can lead to
-false positives in blocker tracking when CONFIG_DETECT_HUNG_TASK_BLOCKER
-is enabled.  To mitigate this, clear the owner field on the reader unlock
-path, similar to what CONFIG_DEBUG_RWSEMS does.  A NULL owner is better
-than a stale one for diagnostics.
-
-Link: https://lkml.kernel.org/r/20250627072924.36567-1-lance.yang@linux.dev
-Link: https://lkml.kernel.org/r/20250627072924.36567-2-lance.yang@linux.dev
-Link: https://lore.kernel.org/all/174046694331.2194069.15472952050240807469.stgit@mhiramat.tok.corp.google.com/ [1]
+Link: https://lkml.kernel.org/r/20250627072924.36567-3-lance.yang@linux.dev
 Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Suggested-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Boqun Feng <boqun.feng@gmail.com>
@@ -192,71 +178,167 @@ Cc: Zi Li <zi.li@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwsem.h  |   12 ++++++++++++
- kernel/locking/rwsem.c |   14 +++++++-------
- 2 files changed, 19 insertions(+), 7 deletions(-)
+ include/linux/hung_task.h |   18 +++++++++---------
+ kernel/hung_task.c        |   29 +++++++++++++++++++++++++----
+ kernel/locking/rwsem.c    |   17 ++++++++++++++++-
+ 3 files changed, 50 insertions(+), 14 deletions(-)
 
---- a/include/linux/rwsem.h~locking-rwsem-make-owner-helpers-globally-available
-+++ a/include/linux/rwsem.h
-@@ -132,6 +132,18 @@ static inline int rwsem_is_contended(str
- 	return !list_empty(&sem->wait_list);
- }
+--- a/include/linux/hung_task.h~hung_task-extend-hung-task-blocker-tracking-to-rwsems
++++ a/include/linux/hung_task.h
+@@ -21,17 +21,17 @@
+  * type.
+  *
+  * Type encoding:
+- * 00 - Blocked on mutex        (BLOCKER_TYPE_MUTEX)
+- * 01 - Blocked on semaphore    (BLOCKER_TYPE_SEM)
+- * 10 - Blocked on rt-mutex     (BLOCKER_TYPE_RTMUTEX)
+- * 11 - Blocked on rw-semaphore (BLOCKER_TYPE_RWSEM)
++ * 00 - Blocked on mutex			(BLOCKER_TYPE_MUTEX)
++ * 01 - Blocked on semaphore			(BLOCKER_TYPE_SEM)
++ * 10 - Blocked on rw-semaphore as READER	(BLOCKER_TYPE_RWSEM_READER)
++ * 11 - Blocked on rw-semaphore as WRITER	(BLOCKER_TYPE_RWSEM_WRITER)
+  */
+-#define BLOCKER_TYPE_MUTEX      0x00UL
+-#define BLOCKER_TYPE_SEM        0x01UL
+-#define BLOCKER_TYPE_RTMUTEX    0x02UL
+-#define BLOCKER_TYPE_RWSEM      0x03UL
++#define BLOCKER_TYPE_MUTEX		0x00UL
++#define BLOCKER_TYPE_SEM		0x01UL
++#define BLOCKER_TYPE_RWSEM_READER	0x02UL
++#define BLOCKER_TYPE_RWSEM_WRITER	0x03UL
  
-+#if defined(CONFIG_DEBUG_RWSEMS) || defined(CONFIG_DETECT_HUNG_TASK_BLOCKER)
-+/*
-+ * Return just the real task structure pointer of the owner
-+ */
-+extern struct task_struct *rwsem_owner(struct rw_semaphore *sem);
-+
-+/*
-+ * Return true if the rwsem is owned by a reader.
-+ */
-+extern bool is_rwsem_reader_owned(struct rw_semaphore *sem);
-+#endif
-+
- #else /* !CONFIG_PREEMPT_RT */
+-#define BLOCKER_TYPE_MASK       0x03UL
++#define BLOCKER_TYPE_MASK		0x03UL
  
- #include <linux/rwbase_rt.h>
---- a/kernel/locking/rwsem.c~locking-rwsem-make-owner-helpers-globally-available
+ #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
+ static inline void hung_task_set_blocker(void *lock, unsigned long type)
+--- a/kernel/hung_task.c~hung_task-extend-hung-task-blocker-tracking-to-rwsems
++++ a/kernel/hung_task.c
+@@ -23,6 +23,7 @@
+ #include <linux/sched/debug.h>
+ #include <linux/sched/sysctl.h>
+ #include <linux/hung_task.h>
++#include <linux/rwsem.h>
+ 
+ #include <trace/events/sched.h>
+ 
+@@ -100,6 +101,7 @@ static void debug_show_blocker(struct ta
+ {
+ 	struct task_struct *g, *t;
+ 	unsigned long owner, blocker, blocker_type;
++	const char *rwsem_blocked_by, *rwsem_blocked_as;
+ 
+ 	RCU_LOCKDEP_WARN(!rcu_read_lock_held(), "No rcu lock held");
+ 
+@@ -111,12 +113,20 @@ static void debug_show_blocker(struct ta
+ 
+ 	switch (blocker_type) {
+ 	case BLOCKER_TYPE_MUTEX:
+-		owner = mutex_get_owner(
+-			(struct mutex *)hung_task_blocker_to_lock(blocker));
++		owner = mutex_get_owner(hung_task_blocker_to_lock(blocker));
+ 		break;
+ 	case BLOCKER_TYPE_SEM:
+-		owner = sem_last_holder(
+-			(struct semaphore *)hung_task_blocker_to_lock(blocker));
++		owner = sem_last_holder(hung_task_blocker_to_lock(blocker));
++		break;
++	case BLOCKER_TYPE_RWSEM_READER:
++	case BLOCKER_TYPE_RWSEM_WRITER:
++		owner = (unsigned long)rwsem_owner(
++					hung_task_blocker_to_lock(blocker));
++		rwsem_blocked_as = (blocker_type == BLOCKER_TYPE_RWSEM_READER) ?
++					"reader" : "writer";
++		rwsem_blocked_by = is_rwsem_reader_owned(
++					hung_task_blocker_to_lock(blocker)) ?
++					"reader" : "writer";
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -134,6 +144,11 @@ static void debug_show_blocker(struct ta
+ 			pr_err("INFO: task %s:%d is blocked on a semaphore, but the last holder is not found.\n",
+ 			       task->comm, task->pid);
+ 			break;
++		case BLOCKER_TYPE_RWSEM_READER:
++		case BLOCKER_TYPE_RWSEM_WRITER:
++			pr_err("INFO: task %s:%d is blocked on an rw-semaphore, but the owner is not found.\n",
++			       task->comm, task->pid);
++			break;
+ 		}
+ 		return;
+ 	}
+@@ -152,6 +167,12 @@ static void debug_show_blocker(struct ta
+ 			pr_err("INFO: task %s:%d blocked on a semaphore likely last held by task %s:%d\n",
+ 			       task->comm, task->pid, t->comm, t->pid);
+ 			break;
++		case BLOCKER_TYPE_RWSEM_READER:
++		case BLOCKER_TYPE_RWSEM_WRITER:
++			pr_err("INFO: task %s:%d <%s> blocked on an rw-semaphore likely owned by task %s:%d <%s>\n",
++			       task->comm, task->pid, rwsem_blocked_as, t->comm,
++			       t->pid, rwsem_blocked_by);
++			break;
+ 		}
+ 		sched_show_task(t);
+ 		return;
+--- a/kernel/locking/rwsem.c~hung_task-extend-hung-task-blocker-tracking-to-rwsems
 +++ a/kernel/locking/rwsem.c
-@@ -181,11 +181,11 @@ static inline void rwsem_set_reader_owne
- 	__rwsem_set_reader_owned(sem, current);
- }
+@@ -27,6 +27,7 @@
+ #include <linux/export.h>
+ #include <linux/rwsem.h>
+ #include <linux/atomic.h>
++#include <linux/hung_task.h>
+ #include <trace/events/lock.h>
  
--#ifdef CONFIG_DEBUG_RWSEMS
-+#if defined(CONFIG_DEBUG_RWSEMS) || defined(CONFIG_DETECT_HUNG_TASK_BLOCKER)
- /*
-  * Return just the real task structure pointer of the owner
-  */
--static inline struct task_struct *rwsem_owner(struct rw_semaphore *sem)
-+struct task_struct *rwsem_owner(struct rw_semaphore *sem)
- {
- 	return (struct task_struct *)
- 		(atomic_long_read(&sem->owner) & ~RWSEM_OWNER_FLAGS_MASK);
-@@ -194,7 +194,7 @@ static inline struct task_struct *rwsem_
- /*
-  * Return true if the rwsem is owned by a reader.
-  */
--static inline bool is_rwsem_reader_owned(struct rw_semaphore *sem)
-+bool is_rwsem_reader_owned(struct rw_semaphore *sem)
- {
- 	/*
- 	 * Check the count to see if it is write-locked.
-@@ -207,10 +207,10 @@ static inline bool is_rwsem_reader_owned
- }
+ #ifndef CONFIG_PREEMPT_RT
+@@ -1065,10 +1066,13 @@ queue:
+ 		wake_up_q(&wake_q);
  
- /*
-- * With CONFIG_DEBUG_RWSEMS configured, it will make sure that if there
-- * is a task pointer in owner of a reader-owned rwsem, it will be the
-- * real owner or one of the real owners. The only exception is when the
-- * unlock is done by up_read_non_owner().
-+ * With CONFIG_DEBUG_RWSEMS or CONFIG_DETECT_HUNG_TASK_BLOCKER configured,
-+ * it will make sure that the owner field of a reader-owned rwsem either
-+ * points to a real reader-owner(s) or gets cleared. The only exception is
-+ * when the unlock is done by up_read_non_owner().
-  */
- static inline void rwsem_clear_reader_owned(struct rw_semaphore *sem)
- {
+ 	trace_contention_begin(sem, LCB_F_READ);
++	set_current_state(state);
++
++	if (state == TASK_UNINTERRUPTIBLE)
++		hung_task_set_blocker(sem, BLOCKER_TYPE_RWSEM_READER);
+ 
+ 	/* wait to be given the lock */
+ 	for (;;) {
+-		set_current_state(state);
+ 		if (!smp_load_acquire(&waiter.task)) {
+ 			/* Matches rwsem_mark_wake()'s smp_store_release(). */
+ 			break;
+@@ -1083,8 +1087,12 @@ queue:
+ 		}
+ 		schedule_preempt_disabled();
+ 		lockevent_inc(rwsem_sleep_reader);
++		set_current_state(state);
+ 	}
+ 
++	if (state == TASK_UNINTERRUPTIBLE)
++		hung_task_clear_blocker();
++
+ 	__set_current_state(TASK_RUNNING);
+ 	lockevent_inc(rwsem_rlock);
+ 	trace_contention_end(sem, 0);
+@@ -1146,6 +1154,9 @@ rwsem_down_write_slowpath(struct rw_sema
+ 	set_current_state(state);
+ 	trace_contention_begin(sem, LCB_F_WRITE);
+ 
++	if (state == TASK_UNINTERRUPTIBLE)
++		hung_task_set_blocker(sem, BLOCKER_TYPE_RWSEM_WRITER);
++
+ 	for (;;) {
+ 		if (rwsem_try_write_lock(sem, &waiter)) {
+ 			/* rwsem_try_write_lock() implies ACQUIRE on success */
+@@ -1179,6 +1190,10 @@ rwsem_down_write_slowpath(struct rw_sema
+ trylock_again:
+ 		raw_spin_lock_irq(&sem->wait_lock);
+ 	}
++
++	if (state == TASK_UNINTERRUPTIBLE)
++		hung_task_clear_blocker();
++
+ 	__set_current_state(TASK_RUNNING);
+ 	raw_spin_unlock_irq(&sem->wait_lock);
+ 	lockevent_inc(rwsem_wlock);
 _
 
 Patches currently in -mm which might be from lance.yang@linux.dev are
