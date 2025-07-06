@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C0F7846F
-	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 21:49:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26DC846F
+	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 21:49:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751838598; cv=none; b=L6L55XttGIjy8mYbfy1uzH2NkVtc4kjZ29phAogqpz/F8Vkel5VQja4jNX+ENJpPjjlFzavl7Pyj/MuVOk5utA683hiS67ybQVvK+O2usgkKAWTNj+RiYKALa4ic/crSXqrmJ9KPlZCs5ekHTgFtSZJultGy51tNUP3vqwRkfeg=
+	t=1751838599; cv=none; b=huKpcXa5mAUvnkDZRx6L+GUb+FCmeHsvgfnJtjXJojJdL9/c2yVx3i3XSR/+VZIPHuIu7N+qKPbGxGJ1stgN/3bHR6/D7UkyJwbhylFT4S4wtbmZ1HaQvumTN5h/dhOSiIZH93sGxHU0hfNhDHO7j7tf5yPBaKSiSw3VdIN/XiI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751838598; c=relaxed/simple;
-	bh=sFFp1puK/ktfNXBkx1NbwuG0K2MxyZ7S4o82UB6q8M8=;
-	h=Date:To:From:Subject:Message-Id; b=g6knGhNaHa6xOJXMRo28ySxmI2OAQ6J5QaXiiM4LX+18UI8xdDg24nk4HhtqSwVOsVFzTSvWlCk8qEZqonfVHaOEluEq90hD89SZYfy9MRnqRBt3g2wKOx6umLFxkUEywcSCd/jzmmfWiDc+/86FMNnYw0ycmbIDho879tUGYSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P/s3JzOe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751838599; c=relaxed/simple;
+	bh=XEAF9d3FV4QXLSB+Z08j9VuvA9VEUh0UI4OIFLSJOIo=;
+	h=Date:To:From:Subject:Message-Id; b=Nmqf4SE0QICvy4ghptvA5lQoiLYfl8Ibim0n1zsHfKcZBQfxn4iq8T3XQPwIQdCYNPVndWjnQQlg2uAFP8AGABFR+smGqUlDbY0gbwx5qQD589JkHMr6fWL2HdgSGaOwLxBd8UvB3pJbIu9LHosvAUxzGsFV04nxvIcBEas0HuM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=le4AGV2F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P/s3JzOe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0407C4CEED;
-	Sun,  6 Jul 2025 21:49:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="le4AGV2F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BC3EC4CEED;
+	Sun,  6 Jul 2025 21:49:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751838597;
-	bh=sFFp1puK/ktfNXBkx1NbwuG0K2MxyZ7S4o82UB6q8M8=;
+	s=korg; t=1751838599;
+	bh=XEAF9d3FV4QXLSB+Z08j9VuvA9VEUh0UI4OIFLSJOIo=;
 	h=Date:To:From:Subject:From;
-	b=P/s3JzOeL2HxMdDqza5k3+/wg5qgVtCTWrrx/khLOBSmgunTlMGuCd9J6p06R/cMI
-	 P0sCV7v6CDetmJx4QUoz4YkGoaGSEN6R6jssRK/78X9oipzHs/l/6/Lr1tV/n0JhSl
-	 iEZwI9gC+p/CZDmqaoqf7CbN0og0d49XDkj5hqcU=
-Date: Sun, 06 Jul 2025 14:49:57 -0700
+	b=le4AGV2FHLerYa8ilQMudOvUoLFhUsWPlpSmk2dFG+GfYTUeAjmAJgG8vvSAc7wMJ
+	 tIUhjwAF1puTtah+uNJeAB0Cse8Xn7x9zEf9/FIODvbAR2xs850LmDYv49xw00AC6z
+	 zxIWQvhyXqJKgwjSHj7agqZPrs5EHhlGhMfZvWOo=
+Date: Sun, 06 Jul 2025 14:49:59 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch added to mm-new branch
-Message-Id: <20250706214957.C0407C4CEED@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch added to mm-new branch
+Message-Id: <20250706214959.8BC3EC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: don't hold kdamond_lock in before_terminate()
+     Subject: Docs/mm/damon/maintainer-profile: update for mm-new tree
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
+     docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,37 +65,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: don't hold kdamond_lock in before_terminate()
-Date: Sat, 5 Jul 2025 10:49:59 -0700
+Subject: Docs/mm/damon/maintainer-profile: update for mm-new tree
+Date: Sat, 5 Jul 2025 10:50:00 -0700
 
-damon_sysfs_before_terminate() is a DAMON callback that is executed from
-the kdamond's context.  Hence it is safe to access DAMON context internal
-data.  But the function is unnecessarily holding kdamond_lock of the
-context.  It is just unnecessary.  Remove the locking code.
+Recently a new mm tree for new patches, namely mm-new, has been added. 
+Update DAMON maintainer's profile doc for DAMON patches life cycle, which
+depend on those of mm trees.
 
-Link: https://lkml.kernel.org/r/20250705175000.56259-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250705175000.56259-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |   35 ++++++++--------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate
-+++ a/mm/damon/sysfs.c
-@@ -1387,12 +1387,10 @@ static void damon_sysfs_before_terminate
- 	if (!damon_target_has_pid(ctx))
- 		return;
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-update-for-mm-new-tree
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -7,9 +7,9 @@ The DAMON subsystem covers the files tha
+ section of 'MAINTAINERS' file.
  
--	mutex_lock(&ctx->kdamond_lock);
- 	damon_for_each_target_safe(t, next, ctx) {
- 		put_pid(t->pid);
- 		damon_destroy_target(t);
- 	}
--	mutex_unlock(&ctx->kdamond_lock);
- }
+ The mailing lists for the subsystem are damon@lists.linux.dev and
+-linux-mm@kvack.org.  Patches should be made against the `mm-unstable tree
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ whenever possible and posted
+-to the mailing lists.
++linux-mm@kvack.org.  Patches should be made against the `mm-new tree
++<https://git.kernel.org/akpm/mm/h/mm-new>`_ whenever possible and posted to the
++mailing lists.
  
- /*
+ SCM Trees
+ ---------
+@@ -17,17 +17,19 @@ SCM Trees
+ There are multiple Linux trees for DAMON development.  Patches under
+ development or testing are queued in `damon/next
+ <https://git.kernel.org/sj/h/damon/next>`_ by the DAMON maintainer.
+-Sufficiently reviewed patches will be queued in `mm-unstable
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ by the memory management
+-subsystem maintainer.  After more sufficient tests, the patches will be queued
+-in `mm-stable <https://git.kernel.org/akpm/mm/h/mm-stable>`_, and finally
+-pull-requested to the mainline by the memory management subsystem maintainer.
+-
+-Note again the patches for `mm-unstable tree
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ are queued by the memory
+-management subsystem maintainer.  If the patches requires some patches in
+-`damon/next tree <https://git.kernel.org/sj/h/damon/next>`_ which not yet merged
+-in mm-unstable, please make sure the requirement is clearly specified.
++Sufficiently reviewed patches will be queued in `mm-new
++<https://git.kernel.org/akpm/mm/h/mm-new>`_ by the memory management subsystem
++maintainer.  As more sufficient tests are done, the patches will move to
++`mm-unstable <https://git.kernel.org/akpm/mm/h/mm-unstable>`_ and then to
++`mm-stable <https://git.kernel.org/akpm/mm/h/mm-stable>`_.  And finally those
++will be pull-requested to the mainline by the memory management subsystem
++maintainer.
++
++Note again the patches for `mm-new tree
++<https://git.kernel.org/akpm/mm/h/mm-new>`_ are queued by the memory management
++subsystem maintainer.  If the patches requires some patches in `damon/next tree
++<https://git.kernel.org/sj/h/damon/next>`_ which not yet merged in mm-new,
++please make sure the requirement is clearly specified.
+ 
+ Submit checklist addendum
+ -------------------------
+@@ -53,8 +55,9 @@ Further doing below and putting the resu
+ Key cycle dates
+ ---------------
+ 
+-Patches can be sent anytime.  Key cycle dates of the `mm-unstable
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ and `mm-stable
++Patches can be sent anytime.  Key cycle dates of the `mm-new
++<https://git.kernel.org/akpm/mm/h/mm-new>`_, `mm-unstable
++<https://git.kernel.org/akpm/mm/h/mm-unstable>`_and `mm-stable
+ <https://git.kernel.org/akpm/mm/h/mm-stable>`_ trees depend on the memory
+ management subsystem maintainer.
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
