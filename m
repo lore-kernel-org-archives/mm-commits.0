@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9AE32AD00
-	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 20:14:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A841846F
+	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 21:49:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751832861; cv=none; b=lqRI8QFWDEjILy/NhsHxdNtzQq2Hz2VbOuKh+z6hsA6uGJkyoo0arVpWpyRGw3kskpnuM7v1SjTHY5LLjPYPy6PFh+lv7dW3Z7ABB1m0frC68nXPOVqMg3Sp7VLfF8XlUioIyOVRioSQKlP2P8KNmlKXerV53ksjc554elyEnBc=
+	t=1751838590; cv=none; b=LGa5iYgzxJcOVtS+Gi1BlobNtl499bb/bomLePZ2oxmpcPhAsWF51Pk6+VMTeuLPGXbj/4I8cu9Z+FBfc1Qlu2WCStWHjOw4U2YiWmo7x5olhp/QYtStitU0NY7ckM1xX3itkfix0M6Vvet+OeB27oUXp7ff7OcLeV6M5E3FkDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751832861; c=relaxed/simple;
-	bh=cwqVTfVuzD2hksB23KZ6oY8AQsj384wR5ibEgyAnAcw=;
-	h=Date:To:From:Subject:Message-Id; b=Z32/sTQei98gmkBxHNN7A3S4SRCljtuJH9ySE8yHvkbIqMWraYogsHj9YdEUI8IayHxV7tvnzXze/lYvDl8EblH42W+PHRB8LCv5sJw1azEUXeI3cjUueFMaB10KUu/+QqnCD4NCr4IKDTY+Lebxnh0SyjsucBON1bpwRF3Qv9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LkYfuX4K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751838590; c=relaxed/simple;
+	bh=Yx4mgiEfSU/LaE7CDAlNCKJFiXXK6BiaOxPxhGlhQUs=;
+	h=Date:To:From:Subject:Message-Id; b=pj4UmsOh/sOeaEMl2NGAyIkj5tRf5XwNdR3T/IPQpT5xK3BG3VRFXbYnI/IX5YFqqLj3OLChXaGTugnzNBQZ4sbYHuhinPHDmp8ZeFidCMUMb+fDO1DiIbvJBRzZD5uurqOfdoOZVgb3OZQd8icSV37eTXdXDnjoaqO2Mk8Hkj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l7M20JsL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LkYfuX4K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34DD8C4CEED;
-	Sun,  6 Jul 2025 20:14:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l7M20JsL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 969D7C4CEED;
+	Sun,  6 Jul 2025 21:49:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751832861;
-	bh=cwqVTfVuzD2hksB23KZ6oY8AQsj384wR5ibEgyAnAcw=;
+	s=korg; t=1751838589;
+	bh=Yx4mgiEfSU/LaE7CDAlNCKJFiXXK6BiaOxPxhGlhQUs=;
 	h=Date:To:From:Subject:From;
-	b=LkYfuX4KpYEkTwsVOOa2E9B4dEGiw8Xk7J93fCvQQPVNCB0BMDW7siQUiwXDX2ZQL
-	 8yUhnBcgBd1oiIE9ICWHOwJz4PQ139B5D3izYDlG+XysPK+RRJceSqq0VfdwtmEd3i
-	 dNLnDl1kLYKJj/+zFZgQjalgAlKmgKwhEgHeIjW8=
-Date: Sun, 06 Jul 2025 13:14:20 -0700
+	b=l7M20JsLS+ERrhZoyoq52ZfB3pmYlCkLbw9F7uj7BzYh3ZUuFN2clcwMehf0IHqGv
+	 I0jpFDO6KamDxVSzfTHPJ6ntL7t9QGvb33JdBIhgFUIusWSJFmsxs1rkTFV6b6nuZ5
+	 DKnUmt2C9ggb7qAfsam6GTIqPtxasllc9Z1jPoZQ=
+Date: Sun, 06 Jul 2025 14:49:49 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-introduce-damon_stat-module-fix-2.patch added to mm-unstable branch
-Message-Id: <20250706201421.34DD8C4CEED@smtp.kernel.org>
+Subject: + samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch added to mm-new branch
+Message-Id: <20250706214949.969D7C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/stat: reset enabled when DAMON start failed
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-introduce-damon_stat-module-fix-2.patch
+     Subject: samples/damon/wsse: rename to have damon_sample_ prefix
+has been added to the -mm mm-new branch.  Its filename is
+     samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-introduce-damon_stat-module-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,47 +65,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: reset enabled when DAMON start failed
-Date: Sun, 6 Jul 2025 11:47:50 -0700
+Subject: samples/damon/wsse: rename to have damon_sample_ prefix
+Date: Sat, 5 Jul 2025 10:49:55 -0700
 
-When damon_stat_start() fails, 'enabled' parameter is not reset.  As a
-result, users show the parameter 'Y' while it is not really working.  Fix
-it by resetting 'enabled' to 'false' when damon_stat_start() failed.
+Patch series "mm/damon: misc cleanups".
 
-Link: https://lkml.kernel.org/r/20250706184750.36588-1-sj@kernel.org
+Yet another round of miscellaneous DAMON cleanups.
+
+
+This patch (of 6):
+
+DAMON sample module, wsse has its name 'wsse'.  It could conflict with
+future modules, and not very easy to identify it by name.  Use a prefix,
+"damon_sample_" for the name.
+
+Note that this could break users if they depend on the old name.  But it
+is just a sample, so no such usage is expected, or known.  Even if such
+usage exists, updating it for the new name should be straightforward.
+
+Link: https://lkml.kernel.org/r/20250705175000.56259-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250705175000.56259-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ samples/damon/wsse.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/damon/stat.c~mm-damon-introduce-damon_stat-module-fix-2
-+++ a/mm/damon/stat.c
-@@ -118,8 +118,12 @@ static int damon_stat_enabled_store(
- 		 */
- 		return 0;
+--- a/samples/damon/wsse.c~samples-damon-wsse-rename-to-have-damon_sample_-prefix
++++ a/samples/damon/wsse.c
+@@ -12,6 +12,11 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
  
--	if (enabled)
--		return damon_stat_start();
-+	if (enabled) {
-+		err = damon_stat_start();
-+		if (err)
-+			enabled = false;
-+		return err;
-+	}
- 	damon_stat_stop();
- 	return 0;
- }
-@@ -133,6 +137,9 @@ static int __init damon_stat_init(void)
- 	/* probably set via command line */
- 	if (enabled)
- 		err = damon_stat_start();
++#ifdef MODULE_PARAM_PREFIX
++#undef MODULE_PARAM_PREFIX
++#endif
++#define MODULE_PARAM_PREFIX "damon_sample_wsse."
 +
-+	if (err && enabled)
-+		enabled = false;
- 	return err;
- }
+ static int target_pid __read_mostly;
+ module_param(target_pid, int, 0600);
  
 _
 
@@ -135,4 +140,10 @@ samples-damon-mtier-support-boot-time-enable-setup.patch
 mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
 mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
 mm-damon-reclaim-use-parameter-context-correctly.patch
+samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
+samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
+samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
+mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
+mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
+docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
 
