@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46A5B2BD58A
-	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 20:00:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22FEC2BCF70
+	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 20:00:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751832047; cv=none; b=QHshrkkderzhyiaAmFFW/XHtd2Lphsy3L1br3V1x9iA229sJzjp8bCSowbkHEbSDhEDQSm7EcsWmG4pYrFSxSKLkU0YrcKjrR99uWJJYzfECGCOHY+R1stwx0Sm4f7lsn24EBAiE57xP+eWDPEVTAgaDdnPxc+VfepLAEpSLq2A=
+	t=1751832049; cv=none; b=SmXqAJmSy18lYqM1k1NSe+1BlaskP0FYUohy3xuyhQWQ9OfVaksWnp6SQT+FAvtbzINGXohANTyFcdMu4Grxjew2RjTdSfNvWTw5u7kS4Cn85+ipeGM6kP5eeuHtqY2rhH57DGfWLISyJbv8CtPbjgVe8ZaVGOc/KAB6vkdxvCY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751832047; c=relaxed/simple;
-	bh=vweGvL3+tgy4BGO5Bex0rbwzvxW6AxU2jbWGnTHWh0w=;
-	h=Date:To:From:Subject:Message-Id; b=aHsvETNYFobBAZDkvLI0uymgLsvS1KZH3OMG4/xPjL+RnuPPRYZZhEmJkyYDRJOX3M5HLfGwF/rJWO6bA0uKt2M/Gge54ad2MJgcmqvgsxPDPBfUdN3LxTP97MprHzT3DMyf1G14AI5nruJxqerDWMAjqDE5WiBURfg96E7bo90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MhLzwUEh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751832049; c=relaxed/simple;
+	bh=yvxnzvjDYUwppSBF6/qHe5xIFmToxgDEWwOaCv4aPj0=;
+	h=Date:To:From:Subject:Message-Id; b=I0tcrmjBvDZIdlZZQyVF0QL2Tl8YrofCambKTksv6WRiEkfijTogTieTAMNLh6oMCjhHN2/gqmQC/N18OKmBmhCEE6lvHgP4qXrjCQTXzQJv0wEjKZmBMyVexzkdKCxO/fp3WEbjbkiaYjq/TLCVL+PQ/t/uveOBAOjYRG07oQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E5SGWQPT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MhLzwUEh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE52AC4CEED;
-	Sun,  6 Jul 2025 20:00:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E5SGWQPT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A47CDC4CEED;
+	Sun,  6 Jul 2025 20:00:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751832046;
-	bh=vweGvL3+tgy4BGO5Bex0rbwzvxW6AxU2jbWGnTHWh0w=;
+	s=korg; t=1751832048;
+	bh=yvxnzvjDYUwppSBF6/qHe5xIFmToxgDEWwOaCv4aPj0=;
 	h=Date:To:From:Subject:From;
-	b=MhLzwUEhUXfjDo4TC24mL3TrxCtv0VYbD7g/ozOqmqn70Rxv3W9sagXo1dS/qo2nv
-	 49fSYRH0fN/YJt7k8sSgDvvF6EoIX8aW9+RAGsO+s5RJuFVOpp9pJS4Ty1gdV4WXY3
-	 Wn3Dy4OS3LbJTRbpCWjYJMFtV1/8j4X4EJSfJRis=
-Date: Sun, 06 Jul 2025 13:00:46 -0700
+	b=E5SGWQPTj/JtaCgcCn/n5Uj7icNvNP1oIb9QFs4CVgi3sAEjoKJqXUrutgaoj9ASL
+	 ixRfT4JT77IODlmHDtV+DBVJEYmhyO6nePzzFsq1ohAp3Qd2KwZx5PYNaPIsGd2f61
+	 jBneX9eZbLLJveZ+JDQ6JOKOwDc5fgyaoTf4AOsU=
+Date: Sun, 06 Jul 2025 13:00:48 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch added to mm-new branch
-Message-Id: <20250706200046.BE52AC4CEED@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch added to mm-new branch
+Message-Id: <20250706200048.A47CDC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: reset enabled when DAMON start failed
+     Subject: mm/damon/lru_sort: reset enabled when DAMON start failed
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
+     mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,36 +65,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: reset enabled when DAMON start failed
-Date: Sun, 6 Jul 2025 12:32:05 -0700
+Subject: mm/damon/lru_sort: reset enabled when DAMON start failed
+Date: Sun, 6 Jul 2025 12:32:06 -0700
 
 When the startup fails, 'enabled' parameter is not reset.  As a result,
 users show the parameter 'Y' while it is not really working.  Fix it by
 resetting 'enabled' to 'false' when the work is failed.
 
-Link: https://lkml.kernel.org/r/20250706193207.39810-5-sj@kernel.org
-Fixes: 04e98764befa ("mm/damon/reclaim: enable and disable synchronously")
+Link: https://lkml.kernel.org/r/20250706193207.39810-6-sj@kernel.org
+Fixes: 7a034fbba336 ("mm/damon/lru_sort: enable and disable synchronously")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    5 ++++-
+ mm/damon/lru_sort.c |    5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-reset-enabled-when-damon-start-failed
-+++ a/mm/damon/reclaim.c
-@@ -329,7 +329,7 @@ static int __init damon_reclaim_init(voi
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-reset-enabled-when-damon-start-failed
++++ a/mm/damon/lru_sort.c
+@@ -325,7 +325,7 @@ static int __init damon_lru_sort_init(vo
  	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
  
  	if (err)
 -		return err;
 +		goto out;
  
- 	ctx->callback.after_wmarks_check = damon_reclaim_after_wmarks_check;
- 	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
-@@ -338,6 +338,9 @@ static int __init damon_reclaim_init(voi
+ 	ctx->callback.after_wmarks_check = damon_lru_sort_after_wmarks_check;
+ 	ctx->callback.after_aggregation = damon_lru_sort_after_aggregation;
+@@ -334,6 +334,9 @@ static int __init damon_lru_sort_init(vo
  	if (enabled)
- 		err = damon_reclaim_turn(true);
+ 		err = damon_lru_sort_turn(true);
  
 +out:
 +	if (err && enabled)
