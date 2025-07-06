@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 136351C5F14
-	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 20:00:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9AE32AD00
+	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 20:14:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751832051; cv=none; b=gKHyXF8lkB/IJY+PLM8inE2+CHjJysZYjs7IKAPIbKFwZXDdQIsDyfUvglhXeuQzTspP7iz34yK9XB6DDK6cxTPiMcdVHVBXi6aw01tbeNL4R3YUFjh8VTTvGpghHtEEbr4Zd2Ovx2JS3pQSKHnnydu6Ob296ZpdCU2sW3y/54I=
+	t=1751832861; cv=none; b=lqRI8QFWDEjILy/NhsHxdNtzQq2Hz2VbOuKh+z6hsA6uGJkyoo0arVpWpyRGw3kskpnuM7v1SjTHY5LLjPYPy6PFh+lv7dW3Z7ABB1m0frC68nXPOVqMg3Sp7VLfF8XlUioIyOVRioSQKlP2P8KNmlKXerV53ksjc554elyEnBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751832051; c=relaxed/simple;
-	bh=O5+DcqqIjo7Sl2Rn9YH/3Z6GNzTsDctS1MlKc6pdw+w=;
-	h=Date:To:From:Subject:Message-Id; b=YKyzWwHdMIY6jSq1UBRwRJ1EFlMR/L0oTO343Q3311oLfrTaLRkMYh1y8KoJd/H0v51RAhpSaCawV6iygsuNnBGAuxW1nDoITg/oNPeSphQ+o1XvPQFQL/uolHS85TV9MNCOuRdFVcEDaH8MFqTqVb/eYntiByPZdg7p14shGqU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F6Azc6IX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751832861; c=relaxed/simple;
+	bh=cwqVTfVuzD2hksB23KZ6oY8AQsj384wR5ibEgyAnAcw=;
+	h=Date:To:From:Subject:Message-Id; b=Z32/sTQei98gmkBxHNN7A3S4SRCljtuJH9ySE8yHvkbIqMWraYogsHj9YdEUI8IayHxV7tvnzXze/lYvDl8EblH42W+PHRB8LCv5sJw1azEUXeI3cjUueFMaB10KUu/+QqnCD4NCr4IKDTY+Lebxnh0SyjsucBON1bpwRF3Qv9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LkYfuX4K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F6Azc6IX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93DC3C4CEED;
-	Sun,  6 Jul 2025 20:00:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LkYfuX4K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34DD8C4CEED;
+	Sun,  6 Jul 2025 20:14:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751832050;
-	bh=O5+DcqqIjo7Sl2Rn9YH/3Z6GNzTsDctS1MlKc6pdw+w=;
+	s=korg; t=1751832861;
+	bh=cwqVTfVuzD2hksB23KZ6oY8AQsj384wR5ibEgyAnAcw=;
 	h=Date:To:From:Subject:From;
-	b=F6Azc6IX3DVKz9kdrbOh1pn5tJ8YbzhQU/Ep4DNznM1aA/5K6qM2dWjuOALk9unFB
-	 eZ3a5yPriVhExOP/K707HwFg7QGi2YuShqKrIQVaskTkHRaE2TL3ibk+bKeftPEYlY
-	 chge75NyGVB9Sr7QSXay8hBz8Ei3fvRoqDhmPZCI=
-Date: Sun, 06 Jul 2025 13:00:50 -0700
+	b=LkYfuX4KpYEkTwsVOOa2E9B4dEGiw8Xk7J93fCvQQPVNCB0BMDW7siQUiwXDX2ZQL
+	 8yUhnBcgBd1oiIE9ICWHOwJz4PQ139B5D3izYDlG+XysPK+RRJceSqq0VfdwtmEd3i
+	 dNLnDl1kLYKJj/+zFZgQjalgAlKmgKwhEgHeIjW8=
+Date: Sun, 06 Jul 2025 13:14:20 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-use-parameter-context-correctly.patch added to mm-new branch
-Message-Id: <20250706200050.93DC3C4CEED@smtp.kernel.org>
+Subject: + mm-damon-introduce-damon_stat-module-fix-2.patch added to mm-unstable branch
+Message-Id: <20250706201421.34DD8C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: use parameter context correctly
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaim-use-parameter-context-correctly.patch
+     Subject: mm/damon/stat: reset enabled when DAMON start failed
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-introduce-damon_stat-module-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-use-parameter-context-correctly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-introduce-damon_stat-module-fix-2.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,46 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: use parameter context correctly
-Date: Sun, 6 Jul 2025 12:32:07 -0700
+Subject: mm/damon/stat: reset enabled when DAMON start failed
+Date: Sun, 6 Jul 2025 11:47:50 -0700
 
-damon_reclaim_apply_parameters() allocates a new DAMON context, stages
-user-specified DAMON parameters on it, and commits to running DAMON
-context at once, using damon_commit_ctx().  The code is mistakenly
-over-writing the monitoring attributes and the reclaim scheme on the
-running context.  It is not causing a real problem for monitoring
-attributes, but the scheme overwriting can remove scheme's internal status
-such as charged quota.  Fix the wrong use of the parameter context.
+When damon_stat_start() fails, 'enabled' parameter is not reset.  As a
+result, users show the parameter 'Y' while it is not really working.  Fix
+it by resetting 'enabled' to 'false' when damon_stat_start() failed.
 
-Link: https://lkml.kernel.org/r/20250706193207.39810-7-sj@kernel.org
-Fixes: 11ddcfc257a3 ("mm/damon/reclaim: use damon_commit_ctx()")
+Link: https://lkml.kernel.org/r/20250706184750.36588-1-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/damon/stat.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-use-parameter-context-correctly
-+++ a/mm/damon/reclaim.c
-@@ -194,7 +194,7 @@ static int damon_reclaim_apply_parameter
- 	if (err)
- 		return err;
+--- a/mm/damon/stat.c~mm-damon-introduce-damon_stat-module-fix-2
++++ a/mm/damon/stat.c
+@@ -118,8 +118,12 @@ static int damon_stat_enabled_store(
+ 		 */
+ 		return 0;
  
--	err = damon_set_attrs(ctx, &damon_reclaim_mon_attrs);
-+	err = damon_set_attrs(param_ctx, &damon_reclaim_mon_attrs);
- 	if (err)
- 		goto out;
+-	if (enabled)
+-		return damon_stat_start();
++	if (enabled) {
++		err = damon_stat_start();
++		if (err)
++			enabled = false;
++		return err;
++	}
+ 	damon_stat_stop();
+ 	return 0;
+ }
+@@ -133,6 +137,9 @@ static int __init damon_stat_init(void)
+ 	/* probably set via command line */
+ 	if (enabled)
+ 		err = damon_stat_start();
++
++	if (err && enabled)
++		enabled = false;
+ 	return err;
+ }
  
-@@ -202,7 +202,7 @@ static int damon_reclaim_apply_parameter
- 	scheme = damon_reclaim_new_scheme();
- 	if (!scheme)
- 		goto out;
--	damon_set_schemes(ctx, &scheme, 1);
-+	damon_set_schemes(param_ctx, &scheme, 1);
- 
- 	if (quota_mem_pressure_us) {
- 		goal = damos_new_quota_goal(DAMOS_QUOTA_SOME_MEM_PSI_US,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -112,6 +108,7 @@ Patches currently in -mm which might be from sj@kernel.org are
 mm-damon-core-handle-damon_call_control-as-normal-under-kdmond-deactivation.patch
 mm-damon-introduce-damon_stat-module.patch
 mm-damon-introduce-damon_stat-module-fix.patch
+mm-damon-introduce-damon_stat-module-fix-2.patch
 mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
 mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
 docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
