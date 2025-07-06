@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 251AA2C15A8
-	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 20:00:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 670832BCF75;
+	Sun,  6 Jul 2025 20:00:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751832043; cv=none; b=KQu2k3NjofEQe5tbVTA1vAwqcYhqQCH6HYATzEbhoS6g+CzS2iq9N+NEeCEMv/qhsNGf7CwnoDKC2uuGqIFZWpetARVaMe2sLQbTE5FDjBMWGQcopSmRfSYvIHlFx8HVp3mS5J7lFZOtemUeBTX0hguGjJ3bkuvMU34gT7I+vQs=
+	t=1751832045; cv=none; b=u5oXyYOwSXFsFUQciDEVlJLyszXjEtAUDvVEsMA8y6cg7STRgBoOYL8Y9Y9q02GNOvlIRhAAkMfsmLFVFnIFv3P5vUvkpKEOUPlF1CSPtS0smAMttfSmlDVi72MMaNdJ9khaiBLS1QFF0x94Bvuw6gIIpvGAytXiWRG308PUunQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751832043; c=relaxed/simple;
-	bh=2JsSTZLLr5CHjTpBI8nxxrxlklRysz01RAONoWT7Caw=;
-	h=Date:To:From:Subject:Message-Id; b=nPkrPSq6YgQnqmskMBt9MdUeDeOIBIPFZUXPKQU29U/z1JW3dEaejk3rx7UjfrqGIboMR3cRavlw08luw/n/X8ztFWJrCz7GOTIEQJjt+gCKIQtg/ckywu6ZxwwhbQclfApkLc7fw4zttg98onwa+tnXkovF62DGpFHBZWU05b8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CO9oKI0a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751832045; c=relaxed/simple;
+	bh=hY/0MJQsza+izedSJJ03XLPYSzkvnobjs1JkQo0KpaY=;
+	h=Date:To:From:Subject:Message-Id; b=PuY1ap/ceQr3xxdyqlmnYqXmL50ZWZXje6Wk5W1iX27CUENSfvdiZrHv1HvRz+q4nfaif9DG1Awh6Bl/GgSSW9XGZTu2gO6a6ev1q7ER1f+Af1FiN0XT0UvltoL01k9Wr2gtcdb8qHfI0ukJXa/2MeK8MG8ictQL3wSIj49B1dA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vtdzM+0U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CO9oKI0a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0207C4CEF1;
-	Sun,  6 Jul 2025 20:00:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vtdzM+0U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D11ECC4CEF1;
+	Sun,  6 Jul 2025 20:00:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751832042;
-	bh=2JsSTZLLr5CHjTpBI8nxxrxlklRysz01RAONoWT7Caw=;
+	s=korg; t=1751832044;
+	bh=hY/0MJQsza+izedSJJ03XLPYSzkvnobjs1JkQo0KpaY=;
 	h=Date:To:From:Subject:From;
-	b=CO9oKI0apoT+MYWKVnAKgM+N8JiMNn9Fw/LtEy2Ca5bSre4v+sxtCIm7PiYmyWpcY
-	 8haQxZraHKrAaohAzE3J3wjHP7fIm1RXCgg3hL/lEi17tjV2PeC/mMXnmsDWWIT8Pr
-	 5x8N38TiPivi6BmoGK5qe2HCfUJpHhBFirOE8dLw=
-Date: Sun, 06 Jul 2025 13:00:42 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=vtdzM+0UNgApJ6wgor4TeUE39JIKt+u9RRqGjkYa7SwG0WipPXQ7MhEwDc8H5p/qB
+	 6vt8CamktxSz7qW3CG8n1XbsWTiJzRZnnjUi4KF8VSvxlarzxBVplhndP5z8gKN464
+	 EShk6E0+tqzi9fcH3Sc3K/PyQxzJkesClQOhh6ik=
+Date: Sun, 06 Jul 2025 13:00:44 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-prcl-fix-boot-time-enable-crash.patch added to mm-new branch
-Message-Id: <20250706200042.D0207C4CEF1@smtp.kernel.org>
+Subject: + samples-damon-mtier-support-boot-time-enable-setup.patch added to mm-new branch
+Message-Id: <20250706200044.D11ECC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/prcl: fix boot time enable crash
+     Subject: samples/damon/mtier: support boot time enable setup
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-prcl-fix-boot-time-enable-crash.patch
+     samples-damon-mtier-support-boot-time-enable-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-prcl-fix-boot-time-enable-crash.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-support-boot-time-enable-setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,35 +65,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/prcl: fix boot time enable crash
-Date: Sun, 6 Jul 2025 12:32:03 -0700
+Subject: samples/damon/mtier: support boot time enable setup
+Date: Sun, 6 Jul 2025 12:32:04 -0700
 
-If 'enable' parameter of the 'prcl' DAMON sample module is set at boot
+If 'enable' parameter of the 'mtier' DAMON sample module is set at boot
 time via the kernel command line, memory allocation is tried before the
 slab is initialized.  As a result kernel NULL pointer dereference BUG can
 happen.  Fix it by checking the initialization status.
 
-Link: https://lkml.kernel.org/r/20250706193207.39810-3-sj@kernel.org
-Fixes: 2aca254620a8 ("samples/damon: introduce a skeleton of a smaple DAMON module for proactive reclamation")
+Link: https://lkml.kernel.org/r/20250706193207.39810-4-sj@kernel.org
+Fixes: 82a08bde3cf7 ("samples/damon: implement a DAMON module for memory tiering")
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/prcl.c |   13 +++++++++++++
+ samples/damon/mtier.c |   13 +++++++++++++
  1 file changed, 13 insertions(+)
 
---- a/samples/damon/prcl.c~samples-damon-prcl-fix-boot-time-enable-crash
-+++ a/samples/damon/prcl.c
-@@ -109,6 +109,8 @@ static void damon_sample_prcl_stop(void)
- 		put_pid(target_pidp);
+--- a/samples/damon/mtier.c~samples-damon-mtier-support-boot-time-enable-setup
++++ a/samples/damon/mtier.c
+@@ -157,6 +157,8 @@ static void damon_sample_mtier_stop(void
+ 	damon_destroy_ctx(ctxs[1]);
  }
  
 +static bool init_called;
 +
- static int damon_sample_prcl_enable_store(
+ static int damon_sample_mtier_enable_store(
  		const char *val, const struct kernel_param *kp)
  {
-@@ -122,6 +124,9 @@ static int damon_sample_prcl_enable_stor
+@@ -170,6 +172,9 @@ static int damon_sample_mtier_enable_sto
  	if (enable == enabled)
  		return 0;
  
@@ -101,17 +102,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		return 0;
 +
  	if (enable) {
- 		err = damon_sample_prcl_start();
+ 		err = damon_sample_mtier_start();
  		if (err)
-@@ -134,6 +139,14 @@ static int damon_sample_prcl_enable_stor
+@@ -182,6 +187,14 @@ static int damon_sample_mtier_enable_sto
  
- static int __init damon_sample_prcl_init(void)
+ static int __init damon_sample_mtier_init(void)
  {
 +	int err = 0;
 +
 +	init_called = true;
 +	if (enable) {
-+		err = damon_sample_prcl_start();
++		err = damon_sample_mtier_start();
 +		if (err)
 +			enable = false;
 +	}
