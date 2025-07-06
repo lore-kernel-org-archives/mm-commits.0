@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C7D01EEA40
-	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 21:49:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52DC41E8335
+	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 21:49:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751838594; cv=none; b=IuCKycCGa3y5HSia5pJpEUAKcDewDWNoPTDDhktq4pxd2hsAm5c0myzuI3m2qwoRpviRZ/wEBEv/8AawKSWmrrhp8mfBvjoaUj0yJZMpCE+VYwfs8pbxH01Gu6KUkOnjcP/3V3bcHD5kJKhH38VYL1kYsyFgrApCmXFCGgkNJKI=
+	t=1751838595; cv=none; b=EneLstcJfqzNrtXmwZavI9MgZ1ROG63dEnfWko3s5I7qZspzf5uEFPU2ivlyU+ZxbKzedoukF7cmQuN6VP14zGrsPwU1uRR9v5ZOJ4PbIq9OeJotlhzUXHRolseaAoMTqtid1C1Nuv/7DR0vfze9tqNYijRVuScB6/wsBZnHimc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751838594; c=relaxed/simple;
-	bh=QWMA7/BZ614ZsNQjyM5nFGITu7SRxLeoBB57PIsPlLQ=;
-	h=Date:To:From:Subject:Message-Id; b=QcxJdLjTpvlDCb7KpWA3OEAXg++SPSjd4DpT9DymdH6ffHl3JTeh7yGeVv0j6nYFxHUJ2tIygBc2eWEheXxjjYH1mzW/sYKa7jjfxezgWKX8qcoEOOVblTaDj2hBDZLxnidL94ptqxMmdfqRCq6FrFGzGFp3zcr/5+9VXWRPrA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLDR/cEa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751838595; c=relaxed/simple;
+	bh=TGegFf1MI1JcaadulcrfCTG7zboCNiDvyBieKq9m3T8=;
+	h=Date:To:From:Subject:Message-Id; b=W1aJTzW21r0aruwSubzhBCkXxNSOraWtHPsPOa3Ni8jopUXNFNVxcB5eQCmYbcDEOpIhktgbJ4vbj0YyFirEs+KI//lp2vxgXBCGFlOLEBbfdqQIppvEQEY0AIAvZ0z5eBMw1tXz7VZBd8lX/vPvy3RMSggJQFRQlVQq43AF21k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=04wzkP7c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLDR/cEa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C6DCC4CEED;
-	Sun,  6 Jul 2025 21:49:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="04wzkP7c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24352C4CEED;
+	Sun,  6 Jul 2025 21:49:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751838593;
-	bh=QWMA7/BZ614ZsNQjyM5nFGITu7SRxLeoBB57PIsPlLQ=;
+	s=korg; t=1751838595;
+	bh=TGegFf1MI1JcaadulcrfCTG7zboCNiDvyBieKq9m3T8=;
 	h=Date:To:From:Subject:From;
-	b=gLDR/cEa/HMiul9qAoiZqdTx/fwuv15vqmnHch6vG+c9iWnrM4TW2IlEb81dVOnyz
-	 CemSkkhZWKUiafrzOQurnLrcIhoGnU2gneJpIVFdPIb/aSHDdkgYy0V9Dyh5McKtAd
-	 ifxeo3BMpKOiodHA5ieJKpyssLhAGiZFttxucuBA=
-Date: Sun, 06 Jul 2025 14:49:52 -0700
+	b=04wzkP7cTS8qDYxLOszxirI3UP/nVp0A1YppFoZWIGdGGB8PcoC1Ow0/4V4AFhbOz
+	 QQ6cVrysqxCrSt+HmxsG+IOdFv28amjqMCuirPOuVBvQAmVLdvUAwPCsXinoNiojO1
+	 paVVYkiPHI3sAp5xlAaR3okT0deTBl8PVQYVzhn8=
+Date: Sun, 06 Jul 2025 14:49:54 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch added to mm-new branch
-Message-Id: <20250706214953.4C6DCC4CEED@smtp.kernel.org>
+Subject: + mm-damon-sysfs-use-damon-core-api-damon_is_running.patch added to mm-new branch
+Message-Id: <20250706214955.24352C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/mtier: rename to have damon_sample_ prefix
+     Subject: mm/damon/sysfs: use DAMON core API damon_is_running()
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
+     mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,39 +65,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/mtier: rename to have damon_sample_ prefix
-Date: Sat, 5 Jul 2025 10:49:57 -0700
+Subject: mm/damon/sysfs: use DAMON core API damon_is_running()
+Date: Sat, 5 Jul 2025 10:49:58 -0700
 
-DAMON sample module, mtier has its name 'mtier'.  It could conflict with
-future modules, and not very easy to identify it by name.  Use a prefix,
-"damon_sample_" for the name.
+DAMON core implements a static function to see if a given DAMON context is
+running.  DAMON sysfs interface is implementing the same one on its own. 
+Make the core function non-static and reuse it from the DAMON sysfs
+interface.
 
-Note that this could break users if they depend on the old name.  But it
-is just a sample, so no such usage is expected, or known.  Even if such
-usage exists, updating it for the new name should be straightforward.
-
-Link: https://lkml.kernel.org/r/20250705175000.56259-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250705175000.56259-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/damon.h |    1 +
+ mm/damon/core.c       |    8 +++++++-
+ mm/damon/sysfs.c      |   14 ++------------
+ 3 files changed, 10 insertions(+), 13 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-rename-to-have-damon_sample_-prefix
-+++ a/samples/damon/mtier.c
-@@ -12,6 +12,11 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
+--- a/include/linux/damon.h~mm-damon-sysfs-use-damon-core-api-damon_is_running
++++ a/include/linux/damon.h
+@@ -934,6 +934,7 @@ static inline unsigned int damon_max_nr_
  
-+#ifdef MODULE_PARAM_PREFIX
-+#undef MODULE_PARAM_PREFIX
-+#endif
-+#define MODULE_PARAM_PREFIX "damon_sample_mtier."
-+
- static unsigned long node0_start_addr __read_mostly;
- module_param(node0_start_addr, ulong, 0600);
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
++bool damon_is_running(struct damon_ctx *ctx);
  
+ int damon_call(struct damon_ctx *ctx, struct damon_call_control *control);
+ int damos_walk(struct damon_ctx *ctx, struct damos_walk_control *control);
+--- a/mm/damon/core.c~mm-damon-sysfs-use-damon-core-api-damon_is_running
++++ a/mm/damon/core.c
+@@ -1311,7 +1311,13 @@ int damon_stop(struct damon_ctx **ctxs,
+ 	return err;
+ }
+ 
+-static bool damon_is_running(struct damon_ctx *ctx)
++/**
++ * damon_is_running() - Returns if a given DAMON context is running.
++ * @ctx:	The DAMON context to see if running.
++ *
++ * Return: true if @ctx is running, false otherwise.
++ */
++bool damon_is_running(struct damon_ctx *ctx)
+ {
+ 	bool running;
+ 
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-use-damon-core-api-damon_is_running
++++ a/mm/damon/sysfs.c
+@@ -1189,16 +1189,6 @@ static void damon_sysfs_kdamond_rm_dirs(
+ 	kobject_put(&kdamond->contexts->kobj);
+ }
+ 
+-static bool damon_sysfs_ctx_running(struct damon_ctx *ctx)
+-{
+-	bool running;
+-
+-	mutex_lock(&ctx->kdamond_lock);
+-	running = ctx->kdamond != NULL;
+-	mutex_unlock(&ctx->kdamond_lock);
+-	return running;
+-}
+-
+ /*
+  * enum damon_sysfs_cmd - Commands for a specific kdamond.
+  */
+@@ -1275,7 +1265,7 @@ static ssize_t state_show(struct kobject
+ 	if (!ctx)
+ 		running = false;
+ 	else
+-		running = damon_sysfs_ctx_running(ctx);
++		running = damon_is_running(ctx);
+ 
+ 	return sysfs_emit(buf, "%s\n", running ?
+ 			damon_sysfs_cmd_strs[DAMON_SYSFS_CMD_ON] :
+@@ -1429,7 +1419,7 @@ static inline bool damon_sysfs_kdamond_r
+ 		struct damon_sysfs_kdamond *kdamond)
+ {
+ 	return kdamond->damon_ctx &&
+-		damon_sysfs_ctx_running(kdamond->damon_ctx);
++		damon_is_running(kdamond->damon_ctx);
+ }
+ 
+ static int damon_sysfs_apply_inputs(struct damon_ctx *ctx,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
