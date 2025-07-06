@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC5F846F
-	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 21:49:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C7D01EEA40
+	for <mm-commits@vger.kernel.org>; Sun,  6 Jul 2025 21:49:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751838592; cv=none; b=D4b1fwCYUPPEIkjUtjnjM3RU2u2cyfu0lLOsekGmhXRLg32+3ECokWcMMdJhFeoDbaoYsvalQ2Iv8nIs7kPouOzMRF6k4Zsd/8sOTjUd5PDoIP03IbYXB2qWzNbcVyyPADbSsEK1se7HQqFC7EPWDYdagZSKxjjNjmG8uD9haiA=
+	t=1751838594; cv=none; b=IuCKycCGa3y5HSia5pJpEUAKcDewDWNoPTDDhktq4pxd2hsAm5c0myzuI3m2qwoRpviRZ/wEBEv/8AawKSWmrrhp8mfBvjoaUj0yJZMpCE+VYwfs8pbxH01Gu6KUkOnjcP/3V3bcHD5kJKhH38VYL1kYsyFgrApCmXFCGgkNJKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751838592; c=relaxed/simple;
-	bh=huZHqOHOC5XJv438F82Pdtqlba6wCPTIeZNfbB9s6Rk=;
-	h=Date:To:From:Subject:Message-Id; b=YV0wHF0L94Vapw/N14i3ZOrP3W2f/eh1K1B3AAxxq5TunM+owLhmqF+D/NwH/9oGqYG5sXnKI8NYb90JkcrO/wyjdlLa08luFCtfNNUYDJWxLFOHG2xVxXQTtndELPappxXqwwBVBZ+H/js5tLod2GK67O91ScboFcv3th/jPuw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tDZYmpp4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751838594; c=relaxed/simple;
+	bh=QWMA7/BZ614ZsNQjyM5nFGITu7SRxLeoBB57PIsPlLQ=;
+	h=Date:To:From:Subject:Message-Id; b=QcxJdLjTpvlDCb7KpWA3OEAXg++SPSjd4DpT9DymdH6ffHl3JTeh7yGeVv0j6nYFxHUJ2tIygBc2eWEheXxjjYH1mzW/sYKa7jjfxezgWKX8qcoEOOVblTaDj2hBDZLxnidL94ptqxMmdfqRCq6FrFGzGFp3zcr/5+9VXWRPrA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLDR/cEa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tDZYmpp4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72C0CC4CEED;
-	Sun,  6 Jul 2025 21:49:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLDR/cEa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C6DCC4CEED;
+	Sun,  6 Jul 2025 21:49:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751838591;
-	bh=huZHqOHOC5XJv438F82Pdtqlba6wCPTIeZNfbB9s6Rk=;
+	s=korg; t=1751838593;
+	bh=QWMA7/BZ614ZsNQjyM5nFGITu7SRxLeoBB57PIsPlLQ=;
 	h=Date:To:From:Subject:From;
-	b=tDZYmpp4Ywy2wh9xGfKg/CX36KIhZd5Cq57QQghtbPqsLbHHi3829/ia8sGuZkZjn
-	 2eNE+55EeBXa1ufFxQWRRyJqYc4FQYS2LEXlXauzfAcrcZGz5sbHlSSeEXTlmrxs38
-	 cj2RNFOa+gREN5PxqxjZZnUZxFWe7zcIg6TYlaa0=
-Date: Sun, 06 Jul 2025 14:49:50 -0700
+	b=gLDR/cEa/HMiul9qAoiZqdTx/fwuv15vqmnHch6vG+c9iWnrM4TW2IlEb81dVOnyz
+	 CemSkkhZWKUiafrzOQurnLrcIhoGnU2gneJpIVFdPIb/aSHDdkgYy0V9Dyh5McKtAd
+	 ifxeo3BMpKOiodHA5ieJKpyssLhAGiZFttxucuBA=
+Date: Sun, 06 Jul 2025 14:49:52 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch added to mm-new branch
-Message-Id: <20250706214951.72C0CC4CEED@smtp.kernel.org>
+Subject: + samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch added to mm-new branch
+Message-Id: <20250706214953.4C6DCC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/prcl: rename to have damon_sample_ prefix
+     Subject: samples/damon/mtier: rename to have damon_sample_ prefix
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
+     samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,10 +65,10 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/prcl: rename to have damon_sample_ prefix
-Date: Sat, 5 Jul 2025 10:49:56 -0700
+Subject: samples/damon/mtier: rename to have damon_sample_ prefix
+Date: Sat, 5 Jul 2025 10:49:57 -0700
 
-DAMON sample module, prcl has its name 'prcl'.  It could conflict with
+DAMON sample module, mtier has its name 'mtier'.  It could conflict with
 future modules, and not very easy to identify it by name.  Use a prefix,
 "damon_sample_" for the name.
 
@@ -76,27 +76,27 @@ Note that this could break users if they depend on the old name.  But it
 is just a sample, so no such usage is expected, or known.  Even if such
 usage exists, updating it for the new name should be straightforward.
 
-Link: https://lkml.kernel.org/r/20250705175000.56259-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250705175000.56259-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/prcl.c |    5 +++++
+ samples/damon/mtier.c |    5 +++++
  1 file changed, 5 insertions(+)
 
---- a/samples/damon/prcl.c~samples-damon-prcl-rename-to-have-damon_sample_-prefix
-+++ a/samples/damon/prcl.c
-@@ -11,6 +11,11 @@
+--- a/samples/damon/mtier.c~samples-damon-mtier-rename-to-have-damon_sample_-prefix
++++ a/samples/damon/mtier.c
+@@ -12,6 +12,11 @@
  #include <linux/kernel.h>
  #include <linux/module.h>
  
 +#ifdef MODULE_PARAM_PREFIX
 +#undef MODULE_PARAM_PREFIX
 +#endif
-+#define MODULE_PARAM_PREFIX "damon_sample_prcl."
++#define MODULE_PARAM_PREFIX "damon_sample_mtier."
 +
- static int target_pid __read_mostly;
- module_param(target_pid, int, 0600);
+ static unsigned long node0_start_addr __read_mostly;
+ module_param(node0_start_addr, ulong, 0600);
  
 _
 
