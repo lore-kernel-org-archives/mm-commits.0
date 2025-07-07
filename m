@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 954B4254858
-	for <mm-commits@vger.kernel.org>; Mon,  7 Jul 2025 19:49:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0140233736
+	for <mm-commits@vger.kernel.org>; Mon,  7 Jul 2025 19:49:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751917782; cv=none; b=eUdip4nSpYzkTwAewdbbVQCPFPbAaCicxLvZEKrcyQ/DaUAoLcT4rN96iPveLgB3ULT0YKmSberfVzig1Z8oTvk3zwYnwBkgou3E3qK/SSwUWB4tMeqAa9HCMXIszrcg9uMof9TtBl92STZ8bizMoXkYo6q0xNsdkDs+zPDqOdU=
+	t=1751917783; cv=none; b=Cbx+wLkGfxpaHL+X1J7YWv+ZrBBfsbM1jmH1JCRxnVPSFtKENj8cJxy2VIEybP9LVQrbw7/98llYj3y3ud+KZkYdmNKgL7Rl7eRePT2IAS4HI+svYpcI7RpKu4LmG67zNYBQR+Sk6kk43KSJySbgN9fTgSnMQeYbE5tsICMz3y0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751917782; c=relaxed/simple;
-	bh=aC42e9oP/DktO87z0FTKB+58N0y+4eLMirzmnLDoPps=;
-	h=Date:To:From:Subject:Message-Id; b=MQuRGc9Vnm89sVCg7BbwNetZ4wPf+ziEIxJVFi6c954v1f6APlZNwzk36tGdI/BvMGrAoT/hFTwiF7rwY+NXOLz+6EG4oLfxnyKUw2KcV1qjZonroL1ddxRz8iDHPcqk03pqXpWeeDmoHZ2pR/3OmeNPsHx7r55tL/9EH8Szc1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zT4vUu/I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751917783; c=relaxed/simple;
+	bh=CcnhHlMCup9LDDF3oYaqQkpX+5gg2oFYCGyPxvlrv9c=;
+	h=Date:To:From:Subject:Message-Id; b=JJOkq33vu8ZmyBkuAxfq7g4ZVHWMv5hlvUq4EY4EE1v/6gtg1VMfaBOBSn5vRyJ5k1FcTVDNc/AyQxJSrFK+A45zBIte/uWpJDIR62KyNgkhbxZcJxBp+mUOA1dumR8TsOnBr5If3qltybBv9vCc5Vj7Qq+oEZxklsA/kzhDcsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QE8+nU4Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zT4vUu/I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A2EFC4CEE3;
-	Mon,  7 Jul 2025 19:49:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QE8+nU4Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A191C4CEE3;
+	Mon,  7 Jul 2025 19:49:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751917782;
-	bh=aC42e9oP/DktO87z0FTKB+58N0y+4eLMirzmnLDoPps=;
+	s=korg; t=1751917783;
+	bh=CcnhHlMCup9LDDF3oYaqQkpX+5gg2oFYCGyPxvlrv9c=;
 	h=Date:To:From:Subject:From;
-	b=zT4vUu/IJji9nYYLhd4KJV3LYVVLsazEcY/GxxWLp2MvIF36+/W35BKYUwMFcYYSN
-	 5K3rmIs6Yk2XyEpCFn4djUjSAq8GCfuDUoB0RsjRFuHFb9cx640u3LuQLbjB1XGnAc
-	 /Rgbja5ydmyRjKnHu1/nrWboqEbqtCfDDFY7n15M=
-Date: Mon, 07 Jul 2025 12:49:41 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,shivankg@amd.com,osalvador@suse.de,luizcap@redhat.com,david@redhat.com,akpm@linux-foundation.org
+	b=QE8+nU4YxiweSzRK+4Pddb5qrHDteIO2tArkvgiNrNuVwQq1hvGn84ZJQcHvyfZpI
+	 rtu5rIlzDQsiIBYeH9NXeZfTV10XQjInflSDJpVOA26eHQz2mDoY085lT1tY/zN9+l
+	 XL+IKf60gb3TEZqXymAKCKeDfuypwvM4Xn37vEk8=
+Date: Mon, 07 Jul 2025 12:49:42 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,shivankg@amd.com,osalvador@suse.de,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch added to mm-new branch
-Message-Id: <20250707194942.1A2EFC4CEE3@smtp.kernel.org>
+Subject: + mm-util-introduce-snapshot_page.patch added to mm-new branch
+Message-Id: <20250707194943.7A191C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
+     Subject: mm/util: introduce snapshot_page()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
+     mm-util-introduce-snapshot_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-util-introduce-snapshot_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,127 +64,218 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
-Date: Mon, 7 Jul 2025 14:50:43 -0400
+From: Luiz Capitulino <luizcap@redhat.com>
+Subject: mm/util: introduce snapshot_page()
+Date: Mon, 7 Jul 2025 14:50:44 -0400
 
-Patch series "mm: introduce snapshot_page()", v2.
+This commit refactors __dump_page() into snapshot_page().
 
-This series introduces snapshot_page(), a helper function that can be used
-to create a snapshot of a struct page and its associated struct folio.
+snapshot_page() tries to take a faithful snapshot of a page and its folio
+representation.  The snapshot is returned in the struct page_snapshot
+parameter along with additional flags that are best retrieved at snapshot
+creation time to reduce race windows.
 
-This function is intended to help callers with a consistent view of a a
-folio while reducing the chance of encountering partially updated or
-inconsistent state, such as during folio splitting which could lead to
-crashes and BUG_ON()s being triggered.
+This function is intended to be used by callers that need a stable
+representation of a struct page and struct folio so that pointers or page
+information doesn't change while working on a page.
 
+The idea and original implementation of snapshot_page() comes from Matthew
+Wilcox with suggestions for improvements from David Hildenbrand.  All bugs
+and misconceptions are mine.
 
-This patch (of 4):
-
-Let's avoid working with the PMD when not required.  If
-vm_normal_page_pmd() would be called on something that is not a present
-pmd, it would already be a bug (pfn possibly garbage).
-
-While at it, let's support passing in any pfn covered by the huge zero
-folio by masking off PFN bits -- which should be rather cheap.
-
-Link: https://lkml.kernel.org/r/cover.1751914235.git.luizcap@redhat.com
-Link: https://lkml.kernel.org/r/0e343f6f088fc79f625161b5d74567d696f2228e.1751914235.git.luizcap@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/88d956248f7528b7998ef00ca8742061839d1036.1751914235.git.luizcap@redhat.com
 Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Shivank Garg <shivankg@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   12 +++++++++++-
- mm/memory.c             |    2 +-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ include/linux/mm.h |   19 ++++++++++
+ mm/debug.c         |   42 ++---------------------
+ mm/util.c          |   77 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 100 insertions(+), 38 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd
-+++ a/include/linux/huge_mm.h
-@@ -487,9 +487,14 @@ static inline bool is_huge_zero_folio(co
- 	return READ_ONCE(huge_zero_folio) == folio;
+--- a/include/linux/mm.h~mm-util-introduce-snapshot_page
++++ a/include/linux/mm.h
+@@ -4199,4 +4199,23 @@ static inline bool page_pool_page_is_pp(
  }
+ #endif
  
-+static inline bool is_huge_zero_pfn(unsigned long pfn)
++#define PAGE_SNAPSHOT_FAITHFUL     (1 << 0)
++#define PAGE_SNAPSHOT_PG_FREE      (1 << 1)
++#define PAGE_SNAPSHOT_PG_IDLE      (1 << 2)
++
++struct page_snapshot {
++	struct folio folio_snapshot;
++	struct page page_snapshot;
++	unsigned long pfn;
++	unsigned long idx;
++	unsigned long flags;
++};
++
++static inline bool snapshot_page_is_faithful(const struct page_snapshot *ps)
 +{
-+	return READ_ONCE(huge_zero_pfn) == (pfn & ~(HPAGE_PMD_NR - 1));
++	return ps->flags & PAGE_SNAPSHOT_FAITHFUL;
 +}
 +
- static inline bool is_huge_zero_pmd(pmd_t pmd)
- {
--	return pmd_present(pmd) && READ_ONCE(huge_zero_pfn) == pmd_pfn(pmd);
-+	return pmd_present(pmd) && is_huge_zero_pfn(pmd_pfn(pmd));
- }
- 
- struct folio *mm_get_huge_zero_folio(struct mm_struct *mm);
-@@ -636,6 +641,11 @@ static inline bool is_huge_zero_folio(co
- {
- 	return false;
- }
++void snapshot_page(struct page_snapshot *ps, const struct page *page);
 +
-+static inline bool is_huge_zero_pfn(unsigned long pfn)
-+{
-+	return false;
-+}
+ #endif /* _LINUX_MM_H */
+--- a/mm/debug.c~mm-util-introduce-snapshot_page
++++ a/mm/debug.c
+@@ -129,47 +129,13 @@ static void __dump_folio(struct folio *f
  
- static inline bool is_huge_zero_pmd(pmd_t pmd)
+ static void __dump_page(const struct page *page)
  {
---- a/mm/memory.c~mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd
-+++ a/mm/memory.c
-@@ -674,7 +674,7 @@ struct page *vm_normal_page_pmd(struct v
- 		}
- 	}
+-	struct folio *foliop, folio;
+-	struct page precise;
+-	unsigned long head;
+-	unsigned long pfn = page_to_pfn(page);
+-	unsigned long idx, nr_pages = 1;
+-	int loops = 5;
++	struct page_snapshot ps;
  
--	if (is_huge_zero_pmd(pmd))
-+	if (is_huge_zero_pfn(pfn))
- 		return NULL;
- 	if (unlikely(pfn > highest_memmap_pfn))
- 		return NULL;
+-again:
+-	memcpy(&precise, page, sizeof(*page));
+-	head = precise.compound_head;
+-	if ((head & 1) == 0) {
+-		foliop = (struct folio *)&precise;
+-		idx = 0;
+-		if (!folio_test_large(foliop))
+-			goto dump;
+-		foliop = (struct folio *)page;
+-	} else {
+-		foliop = (struct folio *)(head - 1);
+-		idx = folio_page_idx(foliop, page);
+-	}
+-
+-	if (idx < MAX_FOLIO_NR_PAGES) {
+-		memcpy(&folio, foliop, 2 * sizeof(struct page));
+-		nr_pages = folio_nr_pages(&folio);
+-		if (nr_pages > 1)
+-			memcpy(&folio.__page_2, &foliop->__page_2,
+-			       sizeof(struct page));
+-		foliop = &folio;
+-	}
+-
+-	if (idx > nr_pages) {
+-		if (loops-- > 0)
+-			goto again;
++	snapshot_page(&ps, page);
++	if (!snapshot_page_is_faithful(&ps))
+ 		pr_warn("page does not match folio\n");
+-		precise.compound_head &= ~1UL;
+-		foliop = (struct folio *)&precise;
+-		idx = 0;
+-	}
+ 
+-dump:
+-	__dump_folio(foliop, &precise, pfn, idx);
++	__dump_folio(&ps.folio_snapshot, &ps.page_snapshot, ps.pfn, ps.idx);
+ }
+ 
+ void dump_page(const struct page *page, const char *reason)
+--- a/mm/util.c~mm-util-introduce-snapshot_page
++++ a/mm/util.c
+@@ -25,6 +25,7 @@
+ #include <linux/sizes.h>
+ #include <linux/compat.h>
+ #include <linux/fsnotify.h>
++#include <linux/page_idle.h>
+ 
+ #include <linux/uaccess.h>
+ 
+@@ -1172,6 +1173,82 @@ int compat_vma_mmap_prepare(struct file
+ }
+ EXPORT_SYMBOL(compat_vma_mmap_prepare);
+ 
++static void set_flags(struct page_snapshot *ps, const struct folio *folio,
++		      const struct page *page)
++{
++	/*
++	 * Caveats on high order pages: PG_buddy and PG_slab will only be set
++	 * on the head page.
++	 */
++	if (PageBuddy(page))
++		ps->flags |= PAGE_SNAPSHOT_PG_FREE;
++	else if (page_count(page) == 0 && is_free_buddy_page(page))
++		ps->flags |= PAGE_SNAPSHOT_PG_FREE;
++
++	if (folio_test_idle(folio))
++		ps->flags |= PAGE_SNAPSHOT_PG_IDLE;
++}
++
++/*
++ * Create a snapshot of a page and store its struct page and struct folio
++ * representations in a struct page_snapshot.
++ *
++ * @ps: struct page_snapshot to store the page snapshot
++ * @page: the page we want to snapshot
++ *
++ * Note that creating a faithful snapshot of a page may fail if the page
++ * compound keeps changing (eg. due to folio split). In this case we set
++ * ps->faithful to false and the snapshot will assume that @page refers
++ * to a single page.
++ */
++void snapshot_page(struct page_snapshot *ps, const struct page *page)
++{
++	unsigned long head, nr_pages = 1;
++	struct folio *foliop, folio;
++	int loops = 5;
++
++	ps->pfn = page_to_pfn(page);
++	ps->flags = PAGE_SNAPSHOT_FAITHFUL;
++
++again:
++	memcpy(&ps->page_snapshot, page, sizeof(*page));
++	head = ps->page_snapshot.compound_head;
++	if ((head & 1) == 0) {
++		foliop = (struct folio *)&ps->page_snapshot;
++		ps->idx = 0;
++		if (!folio_test_large(foliop)) {
++			set_flags(ps, page_folio(page), page);
++			goto out;
++		}
++		foliop = (struct folio *)page;
++	} else {
++		foliop = (struct folio *)(page->compound_head - 1);
++		ps->idx = folio_page_idx(foliop, page);
++	}
++
++	if (ps->idx < MAX_FOLIO_NR_PAGES) {
++		memcpy(&folio, foliop, 2 * sizeof(struct page));
++		nr_pages = folio_nr_pages(&folio);
++		if (nr_pages > 1)
++			memcpy(&folio.__page_2, &foliop->__page_2,
++			       sizeof(struct page));
++		set_flags(ps, foliop, page);
++		foliop = &folio;
++	}
++
++	if (ps->idx > nr_pages) {
++		if (loops-- > 0)
++			goto again;
++		ps->page_snapshot.compound_head &= ~1UL;
++		foliop = (struct folio *)&ps->page_snapshot;
++		ps->flags = 0;
++		ps->idx = 0;
++	}
++
++out:
++	memcpy(&ps->folio_snapshot, foliop, sizeof(struct folio));
++}
++
+ #ifdef CONFIG_MMU
+ /**
+  * folio_pte_batch - detect a PTE batch for a large folio
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from luizcap@redhat.com are
 
-mm-gup-remove-vm_bug_ons.patch
-mm-gup-remove-vm_bug_ons-fix.patch
-mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pmd.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pud.patch
-mm-convert-fpb_ignore_-into-fpb_respect_.patch
-mm-smaller-folio_pte_batch-improvements.patch
-mm-split-folio_pte_batch-into-folio_pte_batch-and-folio_pte_batch_flags.patch
-mm-remove-boolean-output-parameters-from-folio_pte_batch_ext.patch
-mm-balloon_compaction-we-cannot-have-isolated-pages-in-the-balloon-list.patch
-mm-balloon_compaction-convert-balloon_page_delete-to-balloon_page_finalize.patch
-mm-zsmalloc-drop-pageisolated-related-vm_bug_ons.patch
-mm-page_alloc-let-page-freeing-clear-any-set-page-type.patch
-mm-balloon_compaction-make-pageoffline-sticky-until-the-page-is-freed.patch
-mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed.patch
-mm-migrate-rename-isolate_movable_page-to-isolate_movable_ops_page.patch
-mm-migrate-rename-putback_movable_folio-to-putback_movable_ops_page.patch
-mm-migrate-factor-out-movable_ops-page-handling-into-migrate_movable_ops_page.patch
-mm-migrate-remove-folio_test_movable-and-folio_movable_ops.patch
-mm-migrate-move-movable_ops-page-handling-out-of-move_to_new_folio.patch
-mm-zsmalloc-stop-using-__clearpagemovable.patch
-mm-balloon_compaction-stop-using-__clearpagemovable.patch
-mm-migrate-remove-__clearpagemovable.patch
-mm-migration-remove-pagemovable.patch
-mm-rename-__pagemovable-to-page_has_movable_ops.patch
-mm-page_isolation-drop-__folio_test_movable-check-for-large-folios.patch
-mm-remove-__folio_test_movable.patch
-mm-stop-storing-migration_ops-in-page-mapping.patch
-mm-convert-movable-flag-in-page-mapping-to-a-page-flag.patch
-mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch
-mm-page-flags-rename-page_mapping_movable-to-page_mapping_anon_ksm.patch
-mm-page-alloc-remove-pagemappingflags.patch
-mm-page-flags-remove-folio_mapping_flags.patch
-mm-simplify-folio_expected_ref_count.patch
-mm-rename-page_mapping_-to-folio_mapping_.patch
-docs-mm-convert-from-non-lru-page-migration-to-movable_ops-page-migration.patch
-mm-balloon_compaction-movable_ops-doc-updates.patch
-mm-balloon_compaction-provide-single-balloon_page_insert-and-balloon_mapping_gfp_mask.patch
-mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
+mm-util-introduce-snapshot_page.patch
+proc-kpagecount-use-snapshot_page.patch
+fs-stable_page_flags-use-snapshot_page.patch
 
