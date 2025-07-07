@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EDE61F4168
-	for <mm-commits@vger.kernel.org>; Mon,  7 Jul 2025 22:40:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D22921A76D0;
+	Mon,  7 Jul 2025 23:48:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751928045; cv=none; b=HNnlUZtmd1ym/GRZBpPdk5/bYe0z3D+romboZPP6AqNEZnAweKFcZ6Kli8PgW8BKUF0Uk/k0pLYZDOgR+ZfiwnjypK6vl0JvS38SO/+V9Iw8m53msP9F5Frq9Ke9IpZzSR1DfmuHqm7sJ+GS2gzyT7yM04YfgaLxS12t3id2XN0=
+	t=1751932114; cv=none; b=EMTjDJc4t2SP2DqNM5H9oqJjKKcTB4lOc9NjvaE4+z0PC72hmnqk6vQwjqhkFH8xZkH30EPsDZI+9T4e+suRoELHc+UATqKoTZzJJXQYyU8EzYV4yQU2XqA0/flotdtAn2N/gYcaAGlaH+tbSN90Vf7zl1osfu+GZLCIRvsB0RE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751928045; c=relaxed/simple;
-	bh=IxTLtJ6YLyGgnu0cGS3Uzohjw0+ykkDgpRfUIfcdwdA=;
-	h=Date:To:From:Subject:Message-Id; b=Ge6QiDdgCWRaMCbzC8fEg0Gdiakgql/C2TOvzh806f5eRdfXfMskkbkJXjeS+nGCru2v8Ba9HdjN666qt+zRFPA4nD0ph8rGH25QLg6N2I+5FpxL5YHiZnFOe+YNVCkLIGmqg3ZXOZz7027TfN1bz1okeJ1GuzMtEb/60dKP+RE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w4Xht23b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751932114; c=relaxed/simple;
+	bh=uFGcVC28YdRdpiqvCMoSXomY41MXaicNNF/paUdf1Po=;
+	h=Date:To:From:Subject:Message-Id; b=VLyzmLZjX+RRy26zmuC4LO8AU+04ZDPRM2gSAaCD3GsOdG73lEpRdLoRhhkO71KolPF7lR45WtcdJFUmLvMWwukZRlUSFaXGIdT1EiMJ/xA398ouniQ6bimezk5QeYKxIij/yR1yD7dY3SxY4YBl6ENpR74eDxK+J2vumtdGCaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bI7kggyo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w4Xht23b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96DEFC4CEE3;
-	Mon,  7 Jul 2025 22:40:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bI7kggyo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6640BC4CEF1;
+	Mon,  7 Jul 2025 23:48:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751928044;
-	bh=IxTLtJ6YLyGgnu0cGS3Uzohjw0+ykkDgpRfUIfcdwdA=;
+	s=korg; t=1751932113;
+	bh=uFGcVC28YdRdpiqvCMoSXomY41MXaicNNF/paUdf1Po=;
 	h=Date:To:From:Subject:From;
-	b=w4Xht23bpLggNSVCabwsQE77L9JwM2+BMdTHrnIbSMkhIyNHeiLR0jdKwIUS0X4OP
-	 dzkRx7Y/zvCsjm6v//Rnh2lrnNNcniJoWVfvxFoWDi388UFVJeIHTjkdJILgMr/x5b
-	 oOQhKx/Te5dqSDg5Z5mk6pQbDaze+3jwRGrrQlZQ=
-Date: Mon, 07 Jul 2025 15:40:44 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,tj@kernel.org,surenb@google.com,mszeredi@redhat.com,mpatlasov@parallels.com,mhocko@suse.com,kirill.shutemov@linux.intel.com,joannelkoong@gmail.com,jlayton@kernel.org,jefflexu@linux.alibaba.com,jack@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,dakr@kernel.org,corbet@lwn.net,axboe@kernel.dk,vbabka@suse.cz,akpm@linux-foundation.org
+	b=bI7kggyoYc6CQpgh2E9vF7TncReOxP1P3Ljx6+yLxEk92OZM2psfHXJnaCK2uaxIP
+	 VwCXoOo14UH7jlIST0CyTagowIdGs+1fDBuq8GmgMGSM1ec81oSBy4DNUA9qcxn5F+
+	 4XHVKNNTtHvg0cNy+ETIarM3oeKf4a0XTkRyg5wU=
+Date: Mon, 07 Jul 2025 16:48:32 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,cl@gentwo.org,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix.patch added to mm-unstable branch
-Message-Id: <20250707224044.96DEFC4CEE3@smtp.kernel.org>
+Subject: + mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary.patch added to mm-new branch
+Message-Id: <20250707234833.6640BC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix.patch
+     Subject: mm: check if folio has valid mapcount before folio_test_{anon,ksm}() when necessary
+has been added to the -mm mm-new branch.  Its filename is
+     mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,62 +64,139 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix
-Date: Mon, 7 Jul 2025 16:09:31 +0200
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: mm: check if folio has valid mapcount before folio_test_{anon,ksm}() when necessary
+Date: Mon, 7 Jul 2025 21:07:40 +0900
 
-Also remove the mention of NR_WRITEBACK_TEMP implications from a comment
-in wb_position_ratio(). The rest of the comment there about fuse setting
-bdi->max_ratio to 1% is still correct.
+folio_test_anon() and folio_test_ksm() may return false positives when the
+folio is a typed page (except hugetlb), because lower bits of
+folio->mapping field can be set even if it doesn't mean FOLIO_MAPPING_*
+flags.
 
-Link: https://lkml.kernel.org/r/5a848e15-6a57-4ecb-a015-d4f358b8a5d3@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joanne Koong <joannelkoong@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+To avoid false positives, folio_test_{anon,ksm}() should be called only if
+!page_has_type(&folio->page) || folio_test_hugetlb(folio).  However, the
+check can be skipped if a folio is or will be mapped to userspace because
+typed pages that are not hugetlb folios cannot be mapped to userspace.
+
+As folio_expected_ref_count() already does the check, introduce a helper
+function folio_has_mapcount() and use it in folio_expected_ref_count() and
+stable_page_flags().
+
+Update the comment in FOLIO_MAPPING_* flags accordingly.
+
+This fixes tools/mm/page-types reporting pages with
+KPF_SLAB, KPF_ANON and KPF_SLAB (with flags, page-counts, MB omitted):
+  $ sudo ./page-types | grep slab
+  _______S___________________________________	slab
+  _______S____a________x_____________________	slab,anonymous,ksm
+
+Link: https://lkml.kernel.org/r/20250707120740.4413-1-harry.yoo@oracle.com
+Fixes: 130d4df57390 ("mm/sl[au]b: rearrange struct slab fields to allow larger rcu_head")
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Maxim Patlasov <mpatlasov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/proc/page.c             |   19 +++++++++++--------
+ include/linux/mm.h         |    2 +-
+ include/linux/page-flags.h |   20 ++++++++++++++------
+ 3 files changed, 26 insertions(+), 15 deletions(-)
 
---- a/mm/page-writeback.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix
-+++ a/mm/page-writeback.c
-@@ -1101,9 +1101,7 @@ static void wb_position_ratio(struct dir
- 	 * such filesystems balance_dirty_pages always checks wb counters
- 	 * against wb limits. Even if global "nr_dirty" is under "freerun".
- 	 * This is especially important for fuse which sets bdi->max_ratio to
--	 * 1% by default. Without strictlimit feature, fuse writeback may
--	 * consume arbitrary amount of RAM because it is accounted in
--	 * NR_WRITEBACK_TEMP which is not involved in calculating "nr_dirty".
-+	 * 1% by default.
- 	 *
- 	 * Here, in wb_position_ratio(), we calculate pos_ratio based on
- 	 * two values: wb_dirty and wb_thresh. Let's consider an example:
+--- a/fs/proc/page.c~mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary
++++ a/fs/proc/page.c
+@@ -148,18 +148,21 @@ u64 stable_page_flags(const struct page
+ 	folio = page_folio(page);
+ 
+ 	k = folio->flags;
+-	mapping = (unsigned long)folio->mapping;
+-	is_anon = mapping & FOLIO_MAPPING_ANON;
+ 
+ 	/*
+ 	 * pseudo flags for the well known (anonymous) memory mapped pages
+ 	 */
+-	if (page_mapped(page))
+-		u |= 1 << KPF_MMAP;
+-	if (is_anon) {
+-		u |= 1 << KPF_ANON;
+-		if (mapping & FOLIO_MAPPING_KSM)
+-			u |= 1 << KPF_KSM;
++	if (folio_has_mapcount(folio)) {
++		mapping = (unsigned long)folio->mapping;
++		is_anon = mapping & FOLIO_MAPPING_ANON;
++
++		if (page_mapped(page))
++			u |= 1 << KPF_MMAP;
++		if (is_anon) {
++			u |= 1 << KPF_ANON;
++			if (mapping & FOLIO_MAPPING_KSM)
++				u |= 1 << KPF_KSM;
++		}
+ 	}
+ 
+ 	/*
+--- a/include/linux/mm.h~mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary
++++ a/include/linux/mm.h
+@@ -2167,7 +2167,7 @@ static inline int folio_expected_ref_cou
+ 	const int order = folio_order(folio);
+ 	int ref_count = 0;
+ 
+-	if (WARN_ON_ONCE(page_has_type(&folio->page) && !folio_test_hugetlb(folio)))
++	if (WARN_ON_ONCE(!folio_has_mapcount(folio)))
+ 		return 0;
+ 
+ 	if (folio_test_anon(folio)) {
+--- a/include/linux/page-flags.h~mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary
++++ a/include/linux/page-flags.h
+@@ -706,12 +706,15 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
+  * address_space which maps the folio from disk; whereas "folio_mapped"
+  * refers to user virtual address space into which the folio is mapped.
+  *
+- * For slab pages, since slab reuses the bits in struct page to store its
+- * internal states, the folio->mapping does not exist as such, nor do
+- * these flags below.  So in order to avoid testing non-existent bits,
+- * please make sure that folio_test_slab(folio) actually evaluates to
+- * false before calling the following functions (e.g., folio_test_anon).
+- * See mm/slab.h.
++ * For certain typed pages like slabs, since they reuse bits in struct page
++ * to store internal states, folio->mapping does not point to a valid
++ * mapping, nor do these flags exist. To avoid testing non-existent bits,
++ * make sure folio_has_mapcount() actually evaluates to true before calling
++ * the following functions (e.g., folio_test_anon).
++ *
++ * The folio_has_mapcount() check can be skipped if the folio is mapped
++ * to userspace, since a folio with !folio_has_mapcount() cannot be mapped
++ * to userspace at all.
+  */
+ #define FOLIO_MAPPING_ANON	0x1
+ #define FOLIO_MAPPING_ANON_KSM	0x2
+@@ -1092,6 +1095,11 @@ static inline bool PageHuge(const struct
+ 	return folio_test_hugetlb(page_folio(page));
+ }
+ 
++static inline bool folio_has_mapcount(const struct folio *folio)
++{
++	return !page_has_type(&folio->page) || folio_test_hugetlb(folio);
++}
++
+ /*
+  * Check if a page is currently marked HWPoisoned. Note that this check is
+  * best effort only and inherently racy: there is no way to synchronize with
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-mm-madvise-simplify-anon_name-handling.patch
-mm-madvise-extract-mm-code-from-prctl_set_vma-to-mm-madvisec.patch
-mm-madvise-move-madvise_set_anon_name-down-the-file.patch
-mm-madvise-use-standard-madvise-locking-in-madvise_set_anon_name.patch
-mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
-mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix.patch
+lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
+lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3.patch
+mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n.patch
+mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary.patch
 
