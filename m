@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42B6A1FBCA1
-	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 01:58:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60BA123DE
+	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 01:58:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751939904; cv=none; b=T+9i20qa4qeHjWIH93DRV7CKVcXBQbQZ2LO7voBDk3v62GV46oo57Tx7Y8kk91FzQCZg9XZ2T9ma5yphb8y/Ekt0OZnQV9OjQx/mqcM5E6A0qbey7e34Ctzbw4Kr09BvwTuy//LJz9I7tuOULcVhr6FUZp/cZEpWzIuESEZlaLk=
+	t=1751939906; cv=none; b=ECXdnbYA8d4SCb25uV12gPkkkQCm+IokFTo8ZNdZYy4kpaIVpgjnWn/0sb/H/wg+aZPwEcg+9E8OIqZS65VQHAwL0c2YNqfksXNB/WXRpxdoc/QIC8lZWUk/f+UbklbYhxCb65uwnkrLNCNDPTPRBl6RsvxmFuiBErZnuanSIv8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751939904; c=relaxed/simple;
-	bh=/eSGj9T0nHaSccAIcqD1zhq8d7UXjFdcsJcs1lO0mp8=;
-	h=Date:To:From:Subject:Message-Id; b=L9E0Kk3LYT1ajT3+/izwjetpwKDxH8GRAVkqPRlEwNybGx7zY/CVOvcbB3MKuK8S/yvWJMn77MFgIXWBs1PzfwbmJ41QbUWLcoV2llLX2btkiwSjxgQWXJ/ENuksk4sJMdPsmSRgtycA/VBNDc+DJFTIFdyheQOwswpdIMoloDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NH+pArRu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751939906; c=relaxed/simple;
+	bh=RnntQz2XaLHbkyrOrDgg9dwTreMB7cU+AyX5A2Op9Xs=;
+	h=Date:To:From:Subject:Message-Id; b=jSRnhgSj1nBxHy4soTm81OoKYjySx+9z0GwrwB6afuMPT8s6qL/8Okyw96eYkCAPGxeT+0yE87NJxeWj72lt53TxDnfK4nxrfJkbpKZEoSZJnVL/fuOQ48IpN70xVqJsT4eNh2mahkKbFrSV+TqG7+2OOILz67q6iAujCH4pxxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i9ZA12ko; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NH+pArRu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C78DAC4CEE3;
-	Tue,  8 Jul 2025 01:58:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i9ZA12ko"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0EFDC4CEE3;
+	Tue,  8 Jul 2025 01:58:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751939903;
-	bh=/eSGj9T0nHaSccAIcqD1zhq8d7UXjFdcsJcs1lO0mp8=;
+	s=korg; t=1751939906;
+	bh=RnntQz2XaLHbkyrOrDgg9dwTreMB7cU+AyX5A2Op9Xs=;
 	h=Date:To:From:Subject:From;
-	b=NH+pArRuKccqt20Nm60DFhUWFshx+iNKAFvqy/boVDaQyXX2hy96Ch2OQo+h4td4M
-	 kGUNUizdYgchujMiTEb0ST2qSv3qtwjrVLdTmUtoLl1cjQQjQCYBknbLtGtYAHzBcD
-	 e6fxInYyFTnY5R4d0wGxKY2+DaQ77IwU6CW7KEGI=
-Date: Mon, 07 Jul 2025 18:58:22 -0700
+	b=i9ZA12koVXWW52x8LbPda5UOyICLFyjGh53zeCTlkt9MJUb354qX9kkX+7bFZQVj+
+	 Keb4z320aLxwb54gHj8/ivORIeRQYPlV+fZEMrF3eIwx1oyewgyDZoA4p4jtPB7q7h
+	 +0Wwk6XOvDOs9DB0Bm7ymSYccu4sFxFmZRiGdPyY=
+Date: Mon, 07 Jul 2025 18:58:25 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,lkp@intel.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-refactor-initial-parameter-sanity-checks.patch added to mm-new branch
-Message-Id: <20250708015823.C78DAC4CEE3@smtp.kernel.org>
+Subject: + mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch added to mm-new branch
+Message-Id: <20250708015825.E0EFDC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: refactor initial parameter sanity checks
+     Subject: mm/mremap: put VMA check and prep logic into helper function
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-refactor-initial-parameter-sanity-checks.patch
+     mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-refactor-initial-parameter-sanity-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,34 +65,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: refactor initial parameter sanity checks
-Date: Mon, 7 Jul 2025 06:27:45 +0100
+Subject: mm/mremap: put VMA check and prep logic into helper function
+Date: Mon, 7 Jul 2025 06:27:46 +0100
 
-We are currently checking some things later, and some things
-immediately. Aggregate the checks and avoid ones that need not be made.
+Rather than lumping everything together in do_mremap(), add a new helper
+function, check_prep_vma(), to do the work relating to each VMA.
 
-Simplify things by aligning lengths immediately. Defer setting the delta
-parameter until later, which removes some duplicate code in the hugetlb
-case.
+This further lays groundwork for subsequent patches which will allow for
+batched VMA mremap().
 
-We can safely perform the checks moved from mremap_to() to
-check_mremap_params() because:
-
-* If we set a new address via vrm_set_new_addr(), then this is guaranteed
-  to not overlap nor to position the new VMA past TASK_SIZE, so there's no
-  need to check these later.
-
-* We can simply page align lengths immediately. We do not need to check for
-  overlap nor TASK_SIZE sanity after hugetlb alignment as this asserts
-  addresses are huge-aligned, then huge-aligns lengths, rounding down. This
-  means any existing overlap would have already been caught.
-
-Moving things around like this lays the groundwork for subsequent changes
-to permit operations on batches of VMAs.
+Additionally, if we set vrm->new_addr == vrm->addr when prepping the VMA,
+this avoids us needing to do so in the expand VMA mlocked case.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/eae3ffbee3c0ba66b4ee872f6bb48ec77ee25609.1751865330.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/a09be10810ca3e3d53aa89408a47d8d2ef12682b.1751865330.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -106,86 +93,102 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ mm/mremap.c |   58 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 28 insertions(+), 30 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-refactor-initial-parameter-sanity-checks
+--- a/mm/mremap.c~mm-mremap-put-vma-check-and-prep-logic-into-helper-function
 +++ a/mm/mremap.c
-@@ -1413,14 +1413,6 @@ static unsigned long mremap_to(struct vm
- 	struct mm_struct *mm = current->mm;
+@@ -1634,7 +1634,6 @@ static bool align_hugetlb(struct vma_rem
+ static unsigned long expand_vma(struct vma_remap_struct *vrm)
+ {
  	unsigned long err;
+-	unsigned long addr = vrm->addr;
  
--	/* Is the new length or address silly? */
--	if (vrm->new_len > TASK_SIZE ||
--	    vrm->new_addr > TASK_SIZE - vrm->new_len)
--		return -EINVAL;
+ 	err = remap_is_valid(vrm);
+ 	if (err)
+@@ -1649,16 +1648,8 @@ static unsigned long expand_vma(struct v
+ 		if (err)
+ 			return err;
+ 
+-		/*
+-		 * We want to populate the newly expanded portion of the VMA to
+-		 * satisfy the expectation that mlock()'ing a VMA maintains all
+-		 * of its pages in memory.
+-		 */
+-		if (vrm->mlocked)
+-			vrm->new_addr = addr;
 -
--	if (vrm_overlaps(vrm))
--		return -EINVAL;
--
- 	if (vrm->flags & MREMAP_FIXED) {
- 		/*
- 		 * In mremap_to().
-@@ -1525,7 +1517,12 @@ static unsigned long check_mremap_params
- 	 * for DOS-emu "duplicate shm area" thing. But
- 	 * a zero new-len is nonsensical.
- 	 */
--	if (!PAGE_ALIGN(vrm->new_len))
-+	if (!vrm->new_len)
-+		return -EINVAL;
-+
-+	/* Is the new length or address silly? */
-+	if (vrm->new_len > TASK_SIZE ||
-+	    vrm->new_addr > TASK_SIZE - vrm->new_len)
- 		return -EINVAL;
- 
- 	/* Remainder of checks are for cases with specific new_addr. */
-@@ -1544,6 +1541,10 @@ static unsigned long check_mremap_params
- 	if (flags & MREMAP_DONTUNMAP && vrm->old_len != vrm->new_len)
- 		return -EINVAL;
- 
-+	/* Target VMA must not overlap source VMA. */
-+	if (vrm_overlaps(vrm))
-+		return -EINVAL;
-+
- 	/*
- 	 * move_vma() need us to stay 4 maps below the threshold, otherwise
- 	 * it will bail out at the very beginning.
-@@ -1620,8 +1621,6 @@ static bool align_hugetlb(struct vma_rem
- 	if (vrm->new_len > vrm->old_len)
- 		return false;
- 
--	vrm_set_delta(vrm);
--
- 	return true;
- }
- 
-@@ -1721,14 +1720,13 @@ static unsigned long do_mremap(struct vm
- 	struct vm_area_struct *vma;
- 	unsigned long res;
- 
-+	vrm->old_len = PAGE_ALIGN(vrm->old_len);
-+	vrm->new_len = PAGE_ALIGN(vrm->new_len);
-+
- 	res = check_mremap_params(vrm);
- 	if (res)
- 		return res;
- 
--	vrm->old_len = PAGE_ALIGN(vrm->old_len);
--	vrm->new_len = PAGE_ALIGN(vrm->new_len);
--	vrm_set_delta(vrm);
--
- 	if (mmap_write_lock_killable(mm))
- 		return -EINTR;
- 	vrm->mmap_locked = true;
-@@ -1751,6 +1749,7 @@ static unsigned long do_mremap(struct vm
- 		goto out;
+ 		/* OK we're done! */
+-		return addr;
++		return vrm->addr;
  	}
  
+ 	/*
+@@ -1714,10 +1705,33 @@ static unsigned long mremap_at(struct vm
+ 	return -EINVAL;
+ }
+ 
++static int check_prep_vma(struct vma_remap_struct *vrm)
++{
++	struct vm_area_struct *vma = vrm->vma;
++
++	if (!vma)
++		return -EFAULT;
++
++	/* If mseal()'d, mremap() is prohibited. */
++	if (!can_modify_vma(vma))
++		return -EPERM;
++
++	/* Align to hugetlb page size, if required. */
++	if (is_vm_hugetlb_page(vma) && !align_hugetlb(vrm))
++		return -EINVAL;
++
 +	vrm_set_delta(vrm);
- 	vrm->remap_type = vrm_remap_type(vrm);
++	vrm->remap_type = vrm_remap_type(vrm);
++	/* For convenience, we set new_addr even if VMA won't move. */
++	if (!vrm_implies_new_addr(vrm))
++		vrm->new_addr = vrm->addr;
++
++	return 0;
++}
++
+ static unsigned long do_mremap(struct vma_remap_struct *vrm)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+ 	unsigned long res;
+ 
+ 	vrm->old_len = PAGE_ALIGN(vrm->old_len);
+@@ -1731,26 +1745,10 @@ static unsigned long do_mremap(struct vm
+ 		return -EINTR;
+ 	vrm->mmap_locked = true;
+ 
+-	vma = vrm->vma = vma_lookup(mm, vrm->addr);
+-	if (!vma) {
+-		res = -EFAULT;
+-		goto out;
+-	}
+-
+-	/* If mseal()'d, mremap() is prohibited. */
+-	if (!can_modify_vma(vma)) {
+-		res = -EPERM;
+-		goto out;
+-	}
+-
+-	/* Align to hugetlb page size, if required. */
+-	if (is_vm_hugetlb_page(vma) && !align_hugetlb(vrm)) {
+-		res = -EINVAL;
++	vrm->vma = vma_lookup(current->mm, vrm->addr);
++	res = check_prep_vma(vrm);
++	if (res)
+ 		goto out;
+-	}
+-
+-	vrm_set_delta(vrm);
+-	vrm->remap_type = vrm_remap_type(vrm);
  
  	/* Actually execute mremap. */
+ 	res = vrm_implies_new_addr(vrm) ? mremap_to(vrm) : mremap_at(vrm);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
