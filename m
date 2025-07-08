@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E2891FBCA1
-	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 01:58:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 635D71D5150
+	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 01:58:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751939915; cv=none; b=H3xWlpFvk54I86XQRFIfBmm/zbZSd6uxHEthOu6vF22Je5k9em7icetd8Ck/w1UZZcZ/C5blGoCJUY/suOBKKti2slmcaKfQTorKXjFRxk5t0mpGy7VON+QRsP1+BgPtPGcDJ9cQWT6BHE27zhxLmAO/S+K/DIz5uFS6OJqzwkE=
+	t=1751939919; cv=none; b=H4lq8nhsKWS8DefXAO+9kCtR5x6Qz8qiUaAmJv+aFqIqhbwhukzn8KT1vXNMFTAuVxegG4N7O1RbuvlzGXJVnH0yNHQsnXwxaABjYfu0klYOigKl6/kVCYQu7bGX6hbchUj2A+v74LmRYdSWIs7M2otQJLGm9utbWM5KIHNrF6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751939915; c=relaxed/simple;
-	bh=MfxTCSJb66qPVpnTxAdHOaNJKw6W/VtleA3eZsJo578=;
-	h=Date:To:From:Subject:Message-Id; b=FCFiKYXcM6cRC8FlIP2IUeOpcKriGAk7X3ptFjE/MqUGImwvFhxan2BYG98+uQbHN3YLy/NYyqml41ViMTghPrp30mMKM3MDp4a455tKM5Cdae/rHuX8MUNhUAczRrSiFcxLg7RUzlhW1B57d2x+EvscfDWCwSou/5GYk5zCABs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tB6vcHfX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751939919; c=relaxed/simple;
+	bh=HkdUeGdrVNgnmG7AdOWTTLvtkpZad/oT2bV+btu12vg=;
+	h=Date:To:From:Subject:Message-Id; b=KmMQR3oIs4Ff0AdpgoWDOMIGt6KInRsXQzkZ5PRZKw2A3LxAsrfoH+oKhIf7oTbdo5Jxj3JXixSpPljZDFf7ql5bVP+Mhh2Hw3aqG79es1NEC4eyaVfGzSnZGBbCMprp/k+Sd5TzUhZO9cu/HYRSOOfUlOcOHUXwOEtc6aRzwgA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fuDdzK0y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tB6vcHfX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6EADC4CEE3;
-	Tue,  8 Jul 2025 01:58:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fuDdzK0y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7234C4CEF4;
+	Tue,  8 Jul 2025 01:58:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751939914;
-	bh=MfxTCSJb66qPVpnTxAdHOaNJKw6W/VtleA3eZsJo578=;
+	s=korg; t=1751939919;
+	bh=HkdUeGdrVNgnmG7AdOWTTLvtkpZad/oT2bV+btu12vg=;
 	h=Date:To:From:Subject:From;
-	b=tB6vcHfXqeIIDRDkHGMsvZYL3l5SoFnYmuGX8v7nBdrFEIt/H9OlA/0liL8bHSKht
-	 p+lr2YBgEcwy+c3I4YkSJCq8Peti14C+Msw5qi37TwQ6G+lFsHJCYgenfMKcfEvVAc
-	 dmPRkPrTIiiwKii3f6rSLf1H2dCKLuvUtwqcfjfc=
-Date: Mon, 07 Jul 2025 18:58:34 -0700
+	b=fuDdzK0yqsoRoFY9h/B4ji6o9Kznf/D2Jjj6bnKSl3bXewtNkOjfQdHxVPTgCruAd
+	 cr/Xa/lFGbXbwAL4oEP0kbVtCdSPsZTF1ciClKnS45CLEQGqDBAp2pjTGpj3/0fT88
+	 wL5w3IMD2GLSelx8JfYl61ZQRw7C6pWxDK/3JLuM=
+Date: Mon, 07 Jul 2025 18:58:38 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,lkp@intel.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-check-remap-conditions-earlier.patch added to mm-new branch
-Message-Id: <20250708015834.C6EADC4CEE3@smtp.kernel.org>
+Subject: + mm-mremap-clean-up-mlock-populate-behaviour.patch added to mm-new branch
+Message-Id: <20250708015838.E7234C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: check remap conditions earlier
+     Subject: mm/mremap: clean up mlock populate behaviour
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-check-remap-conditions-earlier.patch
+     mm-mremap-clean-up-mlock-populate-behaviour.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-check-remap-conditions-earlier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-clean-up-mlock-populate-behaviour.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,22 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: check remap conditions earlier
-Date: Mon, 7 Jul 2025 06:27:49 +0100
+Subject: mm/mremap: clean up mlock populate behaviour
+Date: Mon, 7 Jul 2025 06:27:51 +0100
 
-When we expand or move a VMA, this requires a number of additional checks
-to be performed.
+When an mlock()'d VMA is expanded, we need to populate the expanded region
+to maintain the contract that all mlock()'d memory is present (albeit -
+with some period after mmap unlock where the expanded part of the mapping
+remains unfaulted).
 
-Make it really obvious under what circumstances these checks must be
-performed and aggregate all the checks in one place by invoking this in
-check_prep_vma().
+The current implementation is very unclear, so make it absolutely explicit
+under what circumstances we do this.
 
-We have to adjust the checks to account for shrink + move operations by
-checking new_len <= old_len rather than new_len == old_len.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/3a24bca518001fea3a5f2733c55cf727e566b438.1751865330.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/1bea4f7b5093d603ff323570076142eaabc8a480.1751865330.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -94,74 +90,53 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ mm/mremap.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-check-remap-conditions-earlier
+--- a/mm/mremap.c~mm-mremap-clean-up-mlock-populate-behaviour
 +++ a/mm/mremap.c
-@@ -1343,7 +1343,7 @@ static int remap_is_valid(struct vma_rem
- 	if (old_len > vma->vm_end - addr)
- 		return -EFAULT;
+@@ -65,7 +65,7 @@ struct vma_remap_struct {
  
--	if (new_len == old_len)
-+	if (new_len <= old_len)
+ 	/* Internal state, determined in do_mremap(). */
+ 	unsigned long delta;		/* Absolute delta of old_len,new_len. */
+-	bool mlocked;			/* Was the VMA mlock()'d? */
++	bool populate_expand;		/* mlock()'d expanded, must populate. */
+ 	enum mremap_type remap_type;	/* expand, shrink, etc. */
+ 	bool mmap_locked;		/* Is mm currently write-locked? */
+ 	unsigned long charged;		/* If VM_ACCOUNT, # pages to account. */
+@@ -1010,10 +1010,8 @@ static void vrm_stat_account(struct vma_
+ 	struct vm_area_struct *vma = vrm->vma;
+ 
+ 	vm_stat_account(mm, vma->vm_flags, pages);
+-	if (vma->vm_flags & VM_LOCKED) {
++	if (vma->vm_flags & VM_LOCKED)
+ 		mm->locked_vm += pages;
+-		vrm->mlocked = true;
+-	}
+ }
+ 
+ /*
+@@ -1653,6 +1651,10 @@ static int check_prep_vma(struct vma_rem
+ 	if (new_len <= old_len)
  		return 0;
  
++	/* We are expanding and the VMA is mlock()'d so we need to populate. */
++	if (vma->vm_flags & VM_LOCKED)
++		vrm->populate_expand = true;
++
  	/* Need to be careful about a growing mapping */
-@@ -1443,10 +1443,6 @@ static unsigned long mremap_to(struct vm
- 		vrm->old_len = vrm->new_len;
- 	}
+ 	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+ 	pgoff += vma->vm_pgoff;
+@@ -1773,7 +1775,8 @@ out:
+ 	if (vrm->mmap_locked)
+ 		mmap_write_unlock(mm);
  
--	err = remap_is_valid(vrm);
--	if (err)
--		return err;
--
- 	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
- 	if (vrm->flags & MREMAP_DONTUNMAP) {
- 		vm_flags_t vm_flags = vrm->vma->vm_flags;
-@@ -1635,10 +1631,6 @@ static unsigned long expand_vma(struct v
- {
- 	unsigned long err;
+-	if (!failed && vrm->mlocked && vrm->new_len > vrm->old_len)
++	/* VMA mlock'd + was expanded, so populated expanded region. */
++	if (!failed && vrm->populate_expand)
+ 		mm_populate(vrm->new_addr + vrm->old_len, vrm->delta);
  
--	err = remap_is_valid(vrm);
--	if (err)
--		return err;
--
- 	/*
- 	 * [addr, old_len) spans precisely to the end of the VMA, so try to
- 	 * expand it in-place.
-@@ -1705,6 +1697,21 @@ static unsigned long mremap_at(struct vm
- 	return -EINVAL;
- }
- 
-+/*
-+ * Will this operation result in the VMA being expanded or moved and thus need
-+ * to map a new portion of virtual address space?
-+ */
-+static bool vrm_will_map_new(struct vma_remap_struct *vrm)
-+{
-+	if (vrm->remap_type == MREMAP_EXPAND)
-+		return true;
-+
-+	if (vrm_implies_new_addr(vrm))
-+		return true;
-+
-+	return false;
-+}
-+
- static int check_prep_vma(struct vma_remap_struct *vrm)
- {
- 	struct vm_area_struct *vma = vrm->vma;
-@@ -1726,6 +1733,9 @@ static int check_prep_vma(struct vma_rem
- 	if (!vrm_implies_new_addr(vrm))
- 		vrm->new_addr = vrm->addr;
- 
-+	if (vrm_will_map_new(vrm))
-+		return remap_is_valid(vrm);
-+
- 	return 0;
- }
- 
+ 	notify_uffd(vrm, failed);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
