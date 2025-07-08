@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6B901401B
-	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 00:09:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8452CBE6C
+	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 01:43:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751933384; cv=none; b=gb+1n7614Zpfhsj4TKrd2rjPoGTumIY0JXAyydwDs2FgagBPO9SbawwwKYvQoE3uLzcYcqYBXWjektW4trpaSc3Y86Paq6Y0NX8fvl0zL8wmwIElKsT0EATsf1deKXE+Q/qfbhmYFXy9F6MMuKkvtzJTtgsrSRwd3V7SF72qmhU=
+	t=1751939038; cv=none; b=uGzzGiGDAkImmfUx6WKgNG7mWBy7rob0nEUb4sEOLu5MTSBFQnTxJgEFKMmg+QubPzCBq8y09m/u+RWNgsO6Hc38sf9Lg0v+XPhoTkU4dNq7awYrtXIZ2T8A3K3CgI7j+tWA1pde4vbHE+sbLqN7Hwky/s/e6Iq0F7+gKJoXJTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751933384; c=relaxed/simple;
-	bh=cjN5XTAC+oXG9H8OZ8BhcomGO10ZmUE3NIWK00gijkE=;
-	h=Date:To:From:Subject:Message-Id; b=gwNO4DCOJsM8VSvp5leKlKLFhxymDQ9qFTkNTYobUlIHh6E9odKgxOyFePmoxRZ6Hk9T2ORJvW7Fw7GjcaCE+XZ00pYyEPRGDkisDpViSOWiVpX/bCYNCIOeVbytalUILwnna/3gZ7TVWTYxHKjovuKn3iT3IzRmWxfuWRpfNSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qkPjW09J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751939038; c=relaxed/simple;
+	bh=dOv5Tbh0bgURj4jXJm5J0O8ebt6S142MoIxPSRBzXnM=;
+	h=Date:To:From:Subject:Message-Id; b=fKXmG0Quf7KtWJ/2K/jom3/oI9jhXsPnd3rf7qKEJ1gwIIKeE9eW2OXePHKGGPJFZrFM07jVkMNcQb1ax1k6NgGD07rwjb8uMk7g4gesjo3YGYlEn1HS7tr6YXBgYdy66Q5fdjz2PWtjCLQeIqJgAR9ZLA2onkOE9rVtCn7qz5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MbsQtSKf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qkPjW09J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83516C4CEE3;
-	Tue,  8 Jul 2025 00:09:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MbsQtSKf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E589C4CEE3;
+	Tue,  8 Jul 2025 01:43:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751933384;
-	bh=cjN5XTAC+oXG9H8OZ8BhcomGO10ZmUE3NIWK00gijkE=;
+	s=korg; t=1751939036;
+	bh=dOv5Tbh0bgURj4jXJm5J0O8ebt6S142MoIxPSRBzXnM=;
 	h=Date:To:From:Subject:From;
-	b=qkPjW09JtyYTvLTMCMTD1srvNwQWDNfURcJ/z6foj29phJrSZYWbZEeC1E9MDF84j
-	 AniLL9MroyDThMI2QrvoRItL365E+obVV6NiZiul9PYBFHp77HBWgoQhAe70kBPpt7
-	 lGWIySC0Ban0G3UOiS/5uoq6jqlio8aNurvHqbcQ=
-Date: Mon, 07 Jul 2025 17:09:43 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=MbsQtSKf0/y9nIZ/LgyVFOOaXyiosQHfvOoUoEme/czqQZb83H0Qe72FS05TO7waU
+	 m/j5y8jJ/i26sc5cq0zVdyLcsvK95c6pQI8Tn6mGFrdjDPT5YgwkNRt3Xv5Hlsy/RC
+	 Yzu5EPgIFrjIPmhFwPUp9UIeMv/oGNr3zwOxq4w8=
+Date: Mon, 07 Jul 2025 18:43:55 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases.patch added to mm-new branch
-Message-Id: <20250708000944.83516C4CEE3@smtp.kernel.org>
+Subject: + mm-migrate-remove-the-eexist-conversion-for-move_pages.patch added to mm-new branch
+Message-Id: <20250708014356.8E589C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: pagemap_scan ioctl: add PFN ZERO test cases
+     Subject: mm/migrate: remove the -EEXIST conversion for move_pages()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases.patch
+     mm-migrate-remove-the-eexist-conversion-for-move_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-the-eexist-conversion-for-move_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,220 +64,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: pagemap_scan ioctl: add PFN ZERO test cases
-Date: Mon, 7 Jul 2025 12:33:20 +0500
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/migrate: remove the -EEXIST conversion for move_pages()
+Date: Mon, 7 Jul 2025 06:57:11 +0000
 
-Add test cases to test the correctness of PFN ZERO flag of pagemap_scan
-ioctl.  Test with normal pages backed memory and huge pages backed memory.
+The -EEXIST conversion is introduced in commit 65462462ffb2 ("mm/gup:
+follow_pfn_pte(): -EEXIST cleanup"), since follow_page() may call
+follow_pfn_pte() which may return -EEXIST.
 
-Link: https://lkml.kernel.org/r/20250707073321.106431-1-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
+But after commit 7dff875c9436 ("mm/migrate: convert
+add_page_for_migration() from follow_page() to folio_walk"), it use
+folio_walk instead.  This limit the error code and won't return -EEXIST.
+
+Remove the error code conversion here.
+
+Link: https://lkml.kernel.org/r/20250707065711.18056-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c           |   27 -------
- tools/testing/selftests/mm/pagemap_ioctl.c |   72 ++++++++++++++++++-
- tools/testing/selftests/mm/vm_util.c       |   23 ++++++
- tools/testing/selftests/mm/vm_util.h       |    2 
- 4 files changed, 95 insertions(+), 29 deletions(-)
+ mm/migrate.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -72,31 +72,6 @@ static int detect_thp_sizes(size_t sizes
- 	return count;
- }
+--- a/mm/migrate.c~mm-migrate-remove-the-eexist-conversion-for-move_pages
++++ a/mm/migrate.c
+@@ -2361,13 +2361,6 @@ static int do_pages_move(struct mm_struc
+ 		}
  
--static void detect_huge_zeropage(void)
--{
--	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
--		      O_RDONLY);
--	size_t enabled = 0;
--	char buf[15];
--	int ret;
+ 		/*
+-		 * The move_pages() man page does not have an -EEXIST choice, so
+-		 * use -EFAULT instead.
+-		 */
+-		if (err == -EEXIST)
+-			err = -EFAULT;
 -
--	if (fd < 0)
--		return;
--
--	ret = pread(fd, buf, sizeof(buf), 0);
--	if (ret > 0 && ret < sizeof(buf)) {
--		buf[ret] = 0;
--
--		enabled = strtoul(buf, NULL, 10);
--		if (enabled == 1) {
--			has_huge_zeropage = true;
--			ksft_print_msg("[INFO] huge zeropage is enabled\n");
--		}
--	}
--
--	close(fd);
--}
--
- static bool range_is_swapped(void *addr, size_t size)
- {
- 	for (; size; addr += pagesize, size -= pagesize)
-@@ -1903,7 +1878,7 @@ int main(int argc, char **argv)
- 	}
- 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
- 						    ARRAY_SIZE(hugetlbsizes));
--	detect_huge_zeropage();
-+	has_huge_zeropage = detect_huge_zeropage();
- 
- 	ksft_set_plan(ARRAY_SIZE(anon_test_cases) * tests_per_anon_test_case() +
- 		      ARRAY_SIZE(anon_thp_test_cases) * tests_per_anon_thp_test_case() +
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
-+
- #define _GNU_SOURCE
- #include <stdio.h>
- #include <fcntl.h>
-@@ -34,8 +35,8 @@
- #define PAGEMAP "/proc/self/pagemap"
- int pagemap_fd;
- int uffd;
--unsigned long page_size;
--unsigned int hpage_size;
-+size_t page_size;
-+size_t hpage_size;
- const char *progname;
- 
- #define LEN(region)	((region.end - region.start)/page_size)
-@@ -1480,6 +1481,68 @@ static void transact_test(int page_size)
- 			      extra_thread_faults);
- }
- 
-+void zeropfn_tests(void)
-+{
-+	unsigned long long mem_size;
-+	struct page_region vec;
-+	int i, ret;
-+	char *mmap_mem, *mem;
-+
-+	/* Test with normal memory */
-+	mem_size = 10 * page_size;
-+	mem = mmap(NULL, mem_size, PROT_READ, MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (mem == MAP_FAILED)
-+		ksft_exit_fail_msg("error nomem\n");
-+
-+	/* Touch each page to ensure it's mapped */
-+	for (i = 0; i < mem_size; i += page_size)
-+		(void)((volatile char *)mem)[i];
-+
-+	ret = pagemap_ioctl(mem, mem_size, &vec, 1, 0,
-+			    (mem_size / page_size), PAGE_IS_PFNZERO, 0, 0, PAGE_IS_PFNZERO);
-+	if (ret < 0)
-+		ksft_exit_fail_msg("error %d %d %s\n", ret, errno, strerror(errno));
-+
-+	ksft_test_result(ret == 1 && LEN(vec) == (mem_size / page_size),
-+			 "%s all pages must have PFNZERO set\n", __func__);
-+
-+	munmap(mem, mem_size);
-+
-+	/* Test with huge page if user_zero_page is set to 1 */
-+	if (!detect_huge_zeropage()) {
-+		ksft_test_result_skip("%s use_zero_page not supported or set to 1\n", __func__);
-+		return;
-+	}
-+
-+	mem_size = 2 * hpage_size;
-+	mmap_mem = mmap(NULL, mem_size, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (mmap_mem == MAP_FAILED)
-+		ksft_exit_fail_msg("error nomem\n");
-+
-+	/* We need a THP-aligned memory area. */
-+	mem = (char *)(((uintptr_t)mmap_mem + hpage_size) & ~(hpage_size - 1));
-+
-+	ret = madvise(mem, hpage_size, MADV_HUGEPAGE);
-+	if (!ret) {
-+		char tmp = *mem;
-+
-+		asm volatile("" : "+r" (tmp));
-+
-+		ret = pagemap_ioctl(mem, hpage_size, &vec, 1, 0,
-+				    0, PAGE_IS_PFNZERO, 0, 0, PAGE_IS_PFNZERO);
-+		if (ret < 0)
-+			ksft_exit_fail_msg("error %d %d %s\n", ret, errno, strerror(errno));
-+
-+		ksft_test_result(ret == 1 && LEN(vec) == (hpage_size / page_size),
-+				 "%s all huge pages must have PFNZERO set\n", __func__);
-+	} else {
-+		ksft_test_result_skip("%s huge page not supported\n", __func__);
-+	}
-+
-+	munmap(mmap_mem, mem_size);
-+}
-+
- int main(int __attribute__((unused)) argc, char *argv[])
- {
- 	int shmid, buf_size, fd, i, ret;
-@@ -1494,7 +1557,7 @@ int main(int __attribute__((unused)) arg
- 	if (init_uffd())
- 		ksft_exit_pass();
- 
--	ksft_set_plan(115);
-+	ksft_set_plan(117);
- 
- 	page_size = getpagesize();
- 	hpage_size = read_pmd_pagesize();
-@@ -1669,6 +1732,9 @@ int main(int __attribute__((unused)) arg
- 	/* 16. Userfaultfd tests */
- 	userfaultfd_tests();
- 
-+	/* 17. ZEROPFN tests */
-+	zeropfn_tests();
-+
- 	close(pagemap_fd);
- 	ksft_exit_pass();
- }
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -567,3 +567,26 @@ void *sys_mremap(void *old_address, unsi
- 			       old_size, new_size, flags,
- 			       (unsigned long)new_address);
- }
-+
-+bool detect_huge_zeropage(void)
-+{
-+	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
-+		      O_RDONLY);
-+	bool enabled = 0;
-+	char buf[15];
-+	int ret;
-+
-+	if (fd < 0)
-+		return 0;
-+
-+	ret = pread(fd, buf, sizeof(buf), 0);
-+	if (ret > 0 && ret < sizeof(buf)) {
-+		buf[ret] = 0;
-+
-+		if (strtoul(buf, NULL, 10) == 1)
-+			enabled = 1;
-+	}
-+
-+	close(fd);
-+	return enabled;
-+}
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -74,6 +74,8 @@ static inline void skip_test_dodgy_fs(co
- extern volatile sig_atomic_t signal_jump_set;
- extern sigjmp_buf signal_jmp_buf;
- 
-+bool detect_huge_zeropage(void);
-+
- /*
-  * Ignore the checkpatch warning, we must read from x but don't want to do
-  * anything with it in order to trigger a read page fault. We therefore must use
+-		/*
+ 		 * If the page is already on the target node (!err), store the
+ 		 * node, otherwise, store the err.
+ 		 */
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-selftests-mm-pagemap_scan-ioctl-add-pfn-zero-test-cases.patch
+maple_tree-fix-mt_destroy_walk-on-root-leaf-node.patch
+mm-migrate-remove-the-eexist-conversion-for-move_pages.patch
 
