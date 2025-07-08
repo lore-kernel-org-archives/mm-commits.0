@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E97A1F9EC0
-	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 01:58:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E2891FBCA1
+	for <mm-commits@vger.kernel.org>; Tue,  8 Jul 2025 01:58:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751939913; cv=none; b=pZ8eLNalmNTd4SAvcTO4LIDgw0t09ZuBmbBjyHgdBfi+vXgW0lV5D705dfDhKXmMAelife/r8Z1OQrjXcQx1z8WzfJkljMdRmZ+Uvtx6n3PYxNXm1ut/qaSIoc92c/O+trXGuv8ueqpL0abnfMCYdXyAZUpGeL0dDug0iKKuHLk=
+	t=1751939915; cv=none; b=H3xWlpFvk54I86XQRFIfBmm/zbZSd6uxHEthOu6vF22Je5k9em7icetd8Ck/w1UZZcZ/C5blGoCJUY/suOBKKti2slmcaKfQTorKXjFRxk5t0mpGy7VON+QRsP1+BgPtPGcDJ9cQWT6BHE27zhxLmAO/S+K/DIz5uFS6OJqzwkE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751939913; c=relaxed/simple;
-	bh=p4/icbxYsf9GLYsaslhIwT+zAb6rCNno8G95Pp2KDPQ=;
-	h=Date:To:From:Subject:Message-Id; b=SHt+LbEGYGfwCMrb2h3eA10XAUZ/MY+DZDHEvMM7D2DaZIUU/BO5oI+pGhJClzojLcalsBTTbDdl1AXNnSSxByZD7q+2RkctiVasGU7rFMlvClSXtOBvncA47myeL4PS2rFy0IS2qVKlibTwyl8/aCsNjcZOLmHFafeRiERp0FY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d9JUdfoE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751939915; c=relaxed/simple;
+	bh=MfxTCSJb66qPVpnTxAdHOaNJKw6W/VtleA3eZsJo578=;
+	h=Date:To:From:Subject:Message-Id; b=FCFiKYXcM6cRC8FlIP2IUeOpcKriGAk7X3ptFjE/MqUGImwvFhxan2BYG98+uQbHN3YLy/NYyqml41ViMTghPrp30mMKM3MDp4a455tKM5Cdae/rHuX8MUNhUAczRrSiFcxLg7RUzlhW1B57d2x+EvscfDWCwSou/5GYk5zCABs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tB6vcHfX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d9JUdfoE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C89A8C4CEE3;
-	Tue,  8 Jul 2025 01:58:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tB6vcHfX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6EADC4CEE3;
+	Tue,  8 Jul 2025 01:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1751939912;
-	bh=p4/icbxYsf9GLYsaslhIwT+zAb6rCNno8G95Pp2KDPQ=;
+	s=korg; t=1751939914;
+	bh=MfxTCSJb66qPVpnTxAdHOaNJKw6W/VtleA3eZsJo578=;
 	h=Date:To:From:Subject:From;
-	b=d9JUdfoEWSyfl/z8r6vtwUnMckFTuzm06veyRTzPQGc329JMcDNm1mF6I4jbtZldY
-	 lb52WLbGHW+W2ak2CeX31ocnFuO6wbW8/T/IOrQoQB2iPFcWNpWcIyeh5fUIUl5lPb
-	 6yJq49gqava7fEvUUs4WHaVqYfb6b9rwpcNJZ3EM=
-Date: Mon, 07 Jul 2025 18:58:32 -0700
+	b=tB6vcHfXqeIIDRDkHGMsvZYL3l5SoFnYmuGX8v7nBdrFEIt/H9OlA/0liL8bHSKht
+	 p+lr2YBgEcwy+c3I4YkSJCq8Peti14C+Msw5qi37TwQ6G+lFsHJCYgenfMKcfEvVAc
+	 dmPRkPrTIiiwKii3f6rSLf1H2dCKLuvUtwqcfjfc=
+Date: Mon, 07 Jul 2025 18:58:34 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,lkp@intel.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-use-an-explicit-uffd-failure-path-for-mremap-fix.patch added to mm-new branch
-Message-Id: <20250708015832.C89A8C4CEE3@smtp.kernel.org>
+Subject: + mm-mremap-check-remap-conditions-earlier.patch added to mm-new branch
+Message-Id: <20250708015834.C6EADC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: add missing mremap_userfaultfd_fail() stub
+     Subject: mm/mremap: check remap conditions earlier
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-use-an-explicit-uffd-failure-path-for-mremap-fix.patch
+     mm-mremap-check-remap-conditions-earlier.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-use-an-explicit-uffd-failure-path-for-mremap-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-check-remap-conditions-earlier.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,20 +65,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: add missing mremap_userfaultfd_fail() stub
-Date: Mon, 7 Jul 2025 11:13:12 +0100
+Subject: mm/mremap: check remap conditions earlier
+Date: Mon, 7 Jul 2025 06:27:49 +0100
 
-This covers the !CONFIG_USERFAULTFD case.
+When we expand or move a VMA, this requires a number of additional checks
+to be performed.
 
-Link: https://lkml.kernel.org/r/3dadd329-484e-40c8-b04c-4c4ffab24957@lucifer.local
+Make it really obvious under what circumstances these checks must be
+performed and aggregate all the checks in one place by invoking this in
+check_prep_vma().
+
+We have to adjust the checks to account for shrink + move operations by
+checking new_len <= old_len rather than new_len == old_len.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/3a24bca518001fea3a5f2733c55cf727e566b438.1751865330.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202507071505.e2HFMCH2-lkp@intel.com/
-
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Rik van Riel <riel@surriel.com>
@@ -86,22 +94,74 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/mremap.c |   28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
---- a/include/linux/userfaultfd_k.h~mm-mremap-use-an-explicit-uffd-failure-path-for-mremap-fix
-+++ a/include/linux/userfaultfd_k.h
-@@ -372,6 +372,10 @@ static inline void mremap_userfaultfd_co
+--- a/mm/mremap.c~mm-mremap-check-remap-conditions-earlier
++++ a/mm/mremap.c
+@@ -1343,7 +1343,7 @@ static int remap_is_valid(struct vma_rem
+ 	if (old_len > vma->vm_end - addr)
+ 		return -EFAULT;
+ 
+-	if (new_len == old_len)
++	if (new_len <= old_len)
+ 		return 0;
+ 
+ 	/* Need to be careful about a growing mapping */
+@@ -1443,10 +1443,6 @@ static unsigned long mremap_to(struct vm
+ 		vrm->old_len = vrm->new_len;
+ 	}
+ 
+-	err = remap_is_valid(vrm);
+-	if (err)
+-		return err;
+-
+ 	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
+ 	if (vrm->flags & MREMAP_DONTUNMAP) {
+ 		vm_flags_t vm_flags = vrm->vma->vm_flags;
+@@ -1635,10 +1631,6 @@ static unsigned long expand_vma(struct v
  {
+ 	unsigned long err;
+ 
+-	err = remap_is_valid(vrm);
+-	if (err)
+-		return err;
+-
+ 	/*
+ 	 * [addr, old_len) spans precisely to the end of the VMA, so try to
+ 	 * expand it in-place.
+@@ -1705,6 +1697,21 @@ static unsigned long mremap_at(struct vm
+ 	return -EINVAL;
  }
  
-+static inline void mremap_userfaultfd_fail(struct vm_userfaultfd_ctx *ctx)
++/*
++ * Will this operation result in the VMA being expanded or moved and thus need
++ * to map a new portion of virtual address space?
++ */
++static bool vrm_will_map_new(struct vma_remap_struct *vrm)
 +{
++	if (vrm->remap_type == MREMAP_EXPAND)
++		return true;
++
++	if (vrm_implies_new_addr(vrm))
++		return true;
++
++	return false;
 +}
 +
- static inline bool userfaultfd_remove(struct vm_area_struct *vma,
- 				      unsigned long start,
- 				      unsigned long end)
+ static int check_prep_vma(struct vma_remap_struct *vrm)
+ {
+ 	struct vm_area_struct *vma = vrm->vma;
+@@ -1726,6 +1733,9 @@ static int check_prep_vma(struct vma_rem
+ 	if (!vrm_implies_new_addr(vrm))
+ 		vrm->new_addr = vrm->addr;
+ 
++	if (vrm_will_map_new(vrm))
++		return remap_is_valid(vrm);
++
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
