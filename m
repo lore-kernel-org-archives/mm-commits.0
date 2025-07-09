@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E35C0227B94
-	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 22:45:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A870F1FF1C4
+	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 22:56:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752101110; cv=none; b=KOKRwltHTlW0fM5e+qJvgVy0VRLWnEqZxYsBh0UzQeE4j6MocVrj6+kTayi8v+vfZYXWof4TSWfzZI2PG5B7UYw/jO/p9Jm2v4OAfPtP5XpodJHaTs2SVTODU/ch/0yYhZqqsmlepLADvzeaxpSSwhVGc+SgG3yIY3G2y6yxpDk=
+	t=1752101782; cv=none; b=oKQKthwXGGxcVIeZbyaOXmQBQfRye9mO65KrICtEWnYLdFif2qw3uA3w4Mth9/lv7lVIskQ9EERDimRKcOp8vcDeBdRIj0yaibXoQlGHSIk/kzNlOCw9uSfaJ3UCefSTx4EMOfpyjmvFHHVu2YTxVgwx6W1xrO4MqBzfaEZ1YMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752101110; c=relaxed/simple;
-	bh=eGjIT84xj1P7jVwTZm4M8ZZG1Pdp6EujkLA5587UEy4=;
-	h=Date:To:From:Subject:Message-Id; b=pUZrphlFp/neCvWLbTJa0gcpMoOpu8tH1sqEUH3tean28msFWzoQwCn+qKYm3A5mSHdLwHAHi2imxt6ymJhVi6TEoOU77kgCRZe1v+3wXISyJzUiI63UlnBNwwKf+bwlgP1nYfDXbWKUdgSfqvWe0O7Ha/h1eZya92YRONtzc2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EX0+xJ0Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752101782; c=relaxed/simple;
+	bh=Ufkm+Ru7lUEtC6hlxmawUOv3hcwPNF6AmMVTrOGr4Ow=;
+	h=Date:To:From:Subject:Message-Id; b=e/7HYVP8QnmNFBfo8Gg+JZGR4qvIwK0KE1gK33wzFcYmBSsO+IunE7OW4Kl+AoQk38dWXy45nzAXJlHoFVjFZaIF8mTXZVTMt7W28uOByHFWN+Yw3VG1L1mYYdSo+2jIve5176MwUzL784y/3Jvo4GJO3DVAvs8o+puiTL2jbjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AsBbtY6c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EX0+xJ0Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAFF1C4CEEF;
-	Wed,  9 Jul 2025 22:45:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AsBbtY6c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08680C4CEEF;
+	Wed,  9 Jul 2025 22:56:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752101109;
-	bh=eGjIT84xj1P7jVwTZm4M8ZZG1Pdp6EujkLA5587UEy4=;
+	s=korg; t=1752101782;
+	bh=Ufkm+Ru7lUEtC6hlxmawUOv3hcwPNF6AmMVTrOGr4Ow=;
 	h=Date:To:From:Subject:From;
-	b=EX0+xJ0QoACV7q3IDyO6EZVYGCQ9zeelDHu9W4KEZlsw5RsOb7kqgMUgQpqJhMSMH
-	 Fk+l5yB79Ka8IpG/LJsTZhL/YNAe+wOe9+WW1tbH5sVki7Wy3Ep6BBxtQsAtH1lt/h
-	 7WrTcd8ErWq7ef0ICUF4b3xCaXxh76GHo7SE4y7M=
-Date: Wed, 09 Jul 2025 15:45:09 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,rostedt@goodmis.org,pmladek@suse.com,pandoh@google.com,mjguzik@gmail.com,kuniyu@amazon.com,karolina.stolarek@oracle.com,john.ogness@linutronix.de,bhelgaas@google.com,paulmck@kernel.org,akpm@linux-foundation.org
+	b=AsBbtY6csVYhpY9KvADHjC6W1p8lc3j5cKBH4UIC5no2GV1Fcm7lushmdARH6IoEA
+	 EHXRP3wJaNxwUUJg9xCUPXQdpHNzVECJfowv/JaldfkD/pYXi/hG2Ml/4+6M+6+Xhu
+	 vpHWV9rDk3knv8jmqHXX2WqY7mEBM5zksfzK/7ow=
+Date: Wed, 09 Jul 2025 15:56:20 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lkp@intel.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-add-stress-test-for-ratelimit.patch added to mm-nonmm-unstable branch
-Message-Id: <20250709224509.AAFF1C4CEEF@smtp.kernel.org>
+Subject: + mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch added to mm-unstable branch
+Message-Id: <20250709225622.08680C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: add stress test for ratelimit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-add-stress-test-for-ratelimit.patch
+     Subject: mm/damon: make damos_esz unconditional trace event
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-stress-test-for-ratelimit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,136 +58,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Paul E. McKenney" <paulmck@kernel.org>
-Subject: lib: add stress test for ratelimit
-Date: Wed, 9 Jul 2025 11:03:35 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: make damos_esz unconditional trace event
+Date: Wed, 9 Jul 2025 11:22:39 -0700
 
-Add a simple stress test for lib/ratelimit.c
+It has no reason to be conditional.  Make it unconditional trace event.
 
-To run on x86:
-
-	./tools/testing/kunit/kunit.py run --arch x86_64 --kconfig_add CONFIG_RATELIMIT_KUNIT_TEST=y --kconfig_add CONFIG_SMP=y --qemu_args "-smp 4" lib_ratelimit
-
-On a 16-CPU system, the "4" in "-smp 4" can be varied between 1 and 8. 
-Larger numbers have higher probabilities of introducing delays that break
-the smoke test.  In the extreme case, increasing the number to larger than
-the number of CPUs in the underlying system is an excellent way to get a
-test failure.
-
-Link: https://lore.kernel.org/all/fbe93a52-365e-47fe-93a4-44a44547d601@paulmck-laptop/
-Link: https://lore.kernel.org/all/20250423115409.3425-1-spasswolf@web.de/
-Link: https://lkml.kernel.org/r/20250709180335.1716384-3-paulmck@kernel.org
-Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Kuniyuki Iwashima <kuniyu@amazon.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jon Pan-Doh <pandoh@google.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Karolina Stolarek <karolina.stolarek@oracle.com>
+Link: https://lkml.kernel.org/r/20250709182843.35812-1-sj@kernel.org
+Closes: https://lore.kernel.org/20250709122123.779c874f@batman.local.home
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: kernel test robot <lkp@intel.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/test_ratelimit.c |   69 +++++++++++++++++++++++++++++++++--
- 1 file changed, 67 insertions(+), 2 deletions(-)
+ include/trace/events/damon.h |    8 +++-----
+ mm/damon/core.c              |    2 +-
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
---- a/lib/tests/test_ratelimit.c~lib-add-stress-test-for-ratelimit
-+++ a/lib/tests/test_ratelimit.c
-@@ -4,6 +4,8 @@
+--- a/include/trace/events/damon.h~mm-damon-add-trace-event-for-effective-size-quota-fix-2
++++ a/include/trace/events/damon.h
+@@ -9,14 +9,12 @@
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
  
- #include <linux/ratelimit.h>
- #include <linux/module.h>
-+#include <linux/kthread.h>
-+#include <linux/cpumask.h>
+-TRACE_EVENT_CONDITION(damos_esz,
++TRACE_EVENT(damos_esz,
  
- /* a simple boot-time regression test */
+ 	TP_PROTO(unsigned int context_idx, unsigned int scheme_idx,
+-		unsigned long esz, bool do_trace),
++		unsigned long esz),
  
-@@ -63,14 +65,77 @@ static void test_ratelimit_smoke(struct
- 	test_ratelimited(test, false);
+-	TP_ARGS(context_idx, scheme_idx, esz, do_trace),
+-
+-	TP_CONDITION(do_trace),
++	TP_ARGS(context_idx, scheme_idx, esz),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(unsigned int, context_idx)
+--- a/mm/damon/core.c~mm-damon-add-trace-event-for-effective-size-quota-fix-2
++++ a/mm/damon/core.c
+@@ -2022,7 +2022,7 @@ static void damos_trace_esz(struct damon
+ 			break;
+ 		sidx++;
+ 	}
+-	trace_damos_esz(cidx, sidx, quota->esz, true);
++	trace_damos_esz(cidx, sidx, quota->esz);
  }
  
--static struct kunit_case sort_test_cases[] = {
-+static struct ratelimit_state stressrl = RATELIMIT_STATE_INIT_FLAGS("stressrl", HZ / 10, 3,
-+								    RATELIMIT_MSG_ON_RELEASE);
-+
-+static int doneflag;
-+static const int stress_duration = 2 * HZ;
-+
-+struct stress_kthread {
-+	unsigned long nattempts;
-+	unsigned long nunlimited;
-+	unsigned long nlimited;
-+	unsigned long nmissed;
-+	struct task_struct *tp;
-+};
-+
-+static int test_ratelimit_stress_child(void *arg)
-+{
-+	struct stress_kthread *sktp = arg;
-+
-+	set_user_nice(current, MAX_NICE);
-+	WARN_ON_ONCE(!sktp->tp);
-+
-+	while (!READ_ONCE(doneflag)) {
-+		sktp->nattempts++;
-+		if (___ratelimit(&stressrl, __func__))
-+			sktp->nunlimited++;
-+		else
-+			sktp->nlimited++;
-+		cond_resched();
-+	}
-+
-+	sktp->nmissed = ratelimit_state_reset_miss(&stressrl);
-+	return 0;
-+}
-+
-+static void test_ratelimit_stress(struct kunit *test)
-+{
-+	int i;
-+	const int n_stress_kthread = cpumask_weight(cpu_online_mask);
-+	struct stress_kthread skt = { 0 };
-+	struct stress_kthread *sktp = kcalloc(n_stress_kthread, sizeof(*sktp), GFP_KERNEL);
-+
-+	KUNIT_EXPECT_NOT_NULL_MSG(test, sktp, "Memory allocation failure");
-+	for (i = 0; i < n_stress_kthread; i++) {
-+		sktp[i].tp = kthread_run(test_ratelimit_stress_child, &sktp[i], "%s/%i",
-+					 "test_ratelimit_stress_child", i);
-+		KUNIT_EXPECT_NOT_NULL_MSG(test, sktp, "kthread creation failure");
-+		pr_alert("Spawned test_ratelimit_stress_child %d\n", i);
-+	}
-+	schedule_timeout_idle(stress_duration);
-+	WRITE_ONCE(doneflag, 1);
-+	for (i = 0; i < n_stress_kthread; i++) {
-+		kthread_stop(sktp[i].tp);
-+		skt.nattempts += sktp[i].nattempts;
-+		skt.nunlimited += sktp[i].nunlimited;
-+		skt.nlimited += sktp[i].nlimited;
-+		skt.nmissed += sktp[i].nmissed;
-+	}
-+	KUNIT_ASSERT_EQ_MSG(test, skt.nunlimited + skt.nlimited, skt.nattempts,
-+			    "Outcomes not equal to attempts");
-+	KUNIT_ASSERT_EQ_MSG(test, skt.nlimited, skt.nmissed, "Misses not equal to limits");
-+}
-+
-+static struct kunit_case ratelimit_test_cases[] = {
- 	KUNIT_CASE_SLOW(test_ratelimit_smoke),
-+	KUNIT_CASE_SLOW(test_ratelimit_stress),
- 	{}
- };
- 
- static struct kunit_suite ratelimit_test_suite = {
- 	.name = "lib_ratelimit",
--	.test_cases = sort_test_cases,
-+	.test_cases = ratelimit_test_cases,
- };
- 
- kunit_test_suites(&ratelimit_test_suite);
+ static void damos_adjust_quota(struct damon_ctx *c, struct damos *s)
 _
 
-Patches currently in -mm which might be from paulmck@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-lib-add-trivial-kunit-test-for-ratelimit.patch
-lib-add-stress-test-for-ratelimit.patch
+mm-damon-core-handle-damon_call_control-as-normal-under-kdmond-deactivation.patch
+mm-damon-introduce-damon_stat-module.patch
+mm-damon-introduce-damon_stat-module-fix.patch
+mm-damon-introduce-damon_stat-module-fix-2.patch
+mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
+mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
+docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
+mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
+revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
+revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
+selftets-damon-add-a-test-for-memcg_path-leak.patch
+mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch
+mm-damon-sysfs-schemes-decouple-from-damos_action.patch
+mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
+mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
+mm-damon-sysfs-decouple-from-damon_ops_id.patch
+selftests-damon-add-drgn-script-for-extracting-damon-status.patch
+selftests-damon-_damon_sysfs-set-kdamondpid-in-start.patch
+selftests-damon-add-python-and-drgn-based-damon-sysfs-test.patch
+selftests-damon-sysfspy-test-monitoring-attribute-parameters.patch
+selftests-damon-sysfspy-test-adaptive-targets-parameter.patch
+selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch
+mm-damon-add-trace-event-for-auto-tuned-monitoring-intervals.patch
+mm-damon-add-trace-event-for-effective-size-quota.patch
+mm-damon-add-trace-event-for-effective-size-quota-fix.patch
+mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
+samples-damon-wsse-fix-boot-time-enable-handling.patch
+samples-damon-prcl-fix-boot-time-enable-crash.patch
+samples-damon-mtier-support-boot-time-enable-setup.patch
+mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
+mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
+mm-damon-reclaim-use-parameter-context-correctly.patch
+samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
+samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
+samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
+mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
+mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
+docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
+mm-damon-add-struct-damos_migrate_dests.patch
+mm-damon-core-add-damos-migrate_dests-field.patch
+mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
+mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
+docs-abi-damon-document-schemes-dests-directory.patch
+docs-admin-guide-mm-damon-usage-document-dests-directory.patch
 
