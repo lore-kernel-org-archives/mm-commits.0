@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1056B1FDE22
-	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 02:23:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E95FD1CBEB9
+	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 02:23:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752027813; cv=none; b=T5qnKRLZIiyJgcA/YAkqtFvmBaHfO4GF+CbMFAAYCqeKzrAJFkkBD5k4m8Boad4pdTdW/ZPWu6Ik20e9ATlNvKzeVVRfiNgRIXp6K1FImScx7pxzw5RPPBRgpEpoGQcF56Lf3LlXzOJbiloViN1NrCR4s9Ab1uHnhby+7rDwuVI=
+	t=1752027815; cv=none; b=RUnEWJ01W3zySKvDaOlOz5d40Z46X+fA2EMu0YpKWpewAdwNH61+/H2k2q99dYWRahSeAz1a1CZOirW/WcakgCwu+ctjILsytMN6jjfYCurr7A+i9EBwXEvTbyTRJHKjXk0ypFro7poN8je2IepZpodLQcAAzaIaI6/HyKHTl6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752027813; c=relaxed/simple;
-	bh=au8/Sgr1FT7m2eNTT/yaYLN6v1q9bR0ET121/ORt5yg=;
-	h=Date:To:From:Subject:Message-Id; b=kZi2YIQCENuQvIvK/OzJEjlBc7TEFVlnvdY7Tr2XBqgv2Hu7a8LCgrHLTJ6z2iWS5aktxB0ez31SxJk5Pn4ngxobQVPKI4qBjabFEpB1DONVKUx36tQx8MjkOGfM7W43dY8l1ZnRARa9XgzhmZRcxbvUpYf0eZE3+86lYToG1lQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xEqUDUk2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752027815; c=relaxed/simple;
+	bh=VblLUPc5R+zjsR4biETOntprItM1mPogWz+99AcE63Q=;
+	h=Date:To:From:Subject:Message-Id; b=ufAOEWSB1dBqTTwPeuWzzSoMuYm4Rp0miD2dT8Jft5fKcBvqMsxAni6KjWjo/RjgJs399fSW+hKUeZCaG6UfAVnBfRed5aKOYjAHs/6cP6XlecidThGj/ePNxKIIfsPKZNgbRo0ETKA7CHDrZEMl1uUQOHvaTPQdLbtN8+nkpQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TTnbArlK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xEqUDUk2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B50FC4CEF6;
-	Wed,  9 Jul 2025 02:23:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TTnbArlK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 831F7C4CEF0;
+	Wed,  9 Jul 2025 02:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752027812;
-	bh=au8/Sgr1FT7m2eNTT/yaYLN6v1q9bR0ET121/ORt5yg=;
+	s=korg; t=1752027814;
+	bh=VblLUPc5R+zjsR4biETOntprItM1mPogWz+99AcE63Q=;
 	h=Date:To:From:Subject:From;
-	b=xEqUDUk2k9/j6odJV8JN75nDo2VkpinWkPcnZz+8NBPkkkOYkUGZ08svDt0/J/OrJ
-	 V+4ZEjTgxECj9tqTDQBJ1mJBiRMFEmU7zlvqiAQ6SGUr5e/CoCEf+Yw/O1J2TplMgv
-	 hOXAMpIitx7BLlzlQvnyficqtDBGp4dmV9xX2NRs=
-Date: Tue, 08 Jul 2025 19:23:31 -0700
+	b=TTnbArlKbcB1v7Oj1FetpD4PJLJhw+gtb2idY9+ZJnVbdJy8Y+fuSpezyqml0nlRC
+	 V8g05KHzqClWIt3QhNzECdAXZ5XKqHYD1gXG/bMeBEyhDjghCDq+ir+46I4oNXrE6S
+	 BlwgeNYthC9duMAc9RHFLrlHqrDpujU27cUhFww4=
+Date: Tue, 08 Jul 2025 19:23:33 -0700
 To: mm-commits@vger.kernel.org,ravis.opensrc@micron.com,corbet@lwn.net,bijantabatab@micron.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-set-damos-migrate_dests.patch added to mm-new branch
-Message-Id: <20250709022332.8B50FC4CEF6@smtp.kernel.org>
+Subject: + docs-abi-damon-document-schemes-dests-directory.patch added to mm-new branch
+Message-Id: <20250709022334.831F7C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: set damos->migrate_dests
+     Subject: Docs/ABI/damon: document schemes dests directory
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
+     docs-abi-damon-document-schemes-dests-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-schemes-dests-directory.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,67 +65,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: set damos->migrate_dests
-Date: Tue, 8 Jul 2025 19:59:34 -0500
+Subject: Docs/ABI/damon: document schemes dests directory
+Date: Tue, 8 Jul 2025 19:59:35 -0500
 
-Pass user-specified multiple DAMOS action destinations and their weights
-to DAMON core API, so that user requests can really work.
+Document the new DAMOS action destinations sysfs directories on ABI doc.
 
-Link: https://lkml.kernel.org/r/20250709005952.17776-5-bijan311@gmail.com
+Link: https://lkml.kernel.org/r/20250709005952.17776-6-bijan311@gmail.com
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
+Cc: Bijan Tabatabai <bijantabatab@micron.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   22 ++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-set-damos-migrate_dests
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2576,6 +2576,29 @@ void damos_sysfs_update_effective_quotas
- 	}
- }
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-schemes-dests-directory
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -431,6 +431,28 @@ Description:	Directory for DAMON operati
+ 		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters
+ 		directory.
  
-+static int damos_sysfs_add_migrate_dest(struct damos *scheme,
-+		struct damos_sysfs_dests *sysfs_dests)
-+{
-+	struct damos_migrate_dests *dests = &scheme->migrate_dests;
-+	int i;
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/dests/nr_dests
++Date:		Jul 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number 'N' to this file creates the number of
++		directories for setting action destinations of the scheme named
++		'0' to 'N-1' under the dests/ directory.
 +
-+	dests->node_id_arr = kmalloc_array(sysfs_dests->nr,
-+			sizeof(*dests->node_id_arr), GFP_KERNEL);
-+	if (!dests->node_id_arr)
-+		return -ENOMEM;
-+	dests->weight_arr = kmalloc_array(sysfs_dests->nr,
-+			sizeof(*dests->weight_arr), GFP_KERNEL);
-+	if (!dests->weight_arr)
-+		/* ->node_id_arr will be freed by scheme destruction */
-+		return -ENOMEM;
-+	for (i = 0; i < sysfs_dests->nr; i++) {
-+		dests->node_id_arr[i] = sysfs_dests->dests_arr[i]->id;
-+		dests->weight_arr[i] = sysfs_dests->dests_arr[i]->weight;
-+	}
-+	dests->nr_dests = sysfs_dests->nr;
-+	return 0;
-+}
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/dests/<D>/id
++Date:		Jul 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the id of
++		the DAMOS action destination.  For DAMOS_MIGRATE_{HOT,COLD}
++		actions, the destination node's node id can be written and
++		read.
 +
- static struct damos *damon_sysfs_mk_scheme(
- 		struct damon_sysfs_scheme *sysfs_scheme)
- {
-@@ -2637,6 +2660,11 @@ static struct damos *damon_sysfs_mk_sche
- 	if (err) {
- 		damon_destroy_scheme(scheme);
- 		return NULL;
-+	}
-+	err = damos_sysfs_add_migrate_dest(scheme, sysfs_scheme->dests);
-+	if (err) {
-+		damon_destroy_scheme(scheme);
-+		return NULL;
- 	}
- 	return scheme;
- }
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/dests/<D>/weight
++Date:		Jul 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the weight
++		of the DAMOS action destination to select as the destination of
++		each action among the destinations.
++
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_tried
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
