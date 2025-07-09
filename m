@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E95FD1CBEB9
-	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 02:23:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C94420B1F4
+	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 02:23:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752027815; cv=none; b=RUnEWJ01W3zySKvDaOlOz5d40Z46X+fA2EMu0YpKWpewAdwNH61+/H2k2q99dYWRahSeAz1a1CZOirW/WcakgCwu+ctjILsytMN6jjfYCurr7A+i9EBwXEvTbyTRJHKjXk0ypFro7poN8je2IepZpodLQcAAzaIaI6/HyKHTl6w=
+	t=1752027819; cv=none; b=e9xlZ3/v4OKtA8nOXSBRitmvIulpJ2VNyWMjzqM9PEsTRaYglcgTFz7dk3xWSRqqUdTZcsCpk8ZNNhckAPtsgW/HXXvTgpXWFtMD9xCJXkMMt4HSl2lVoICN+DB95XkTns7QOMSTTDiRtkw4Q6iECOweJmk6QRgEpdyhuYDNT/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752027815; c=relaxed/simple;
-	bh=VblLUPc5R+zjsR4biETOntprItM1mPogWz+99AcE63Q=;
-	h=Date:To:From:Subject:Message-Id; b=ufAOEWSB1dBqTTwPeuWzzSoMuYm4Rp0miD2dT8Jft5fKcBvqMsxAni6KjWjo/RjgJs399fSW+hKUeZCaG6UfAVnBfRed5aKOYjAHs/6cP6XlecidThGj/ePNxKIIfsPKZNgbRo0ETKA7CHDrZEMl1uUQOHvaTPQdLbtN8+nkpQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TTnbArlK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752027819; c=relaxed/simple;
+	bh=UYU9xCQmhQ3kwhSvIHSEzUdtv5Mzgn9CFiVVamMrS40=;
+	h=Date:To:From:Subject:Message-Id; b=p26qub3hkTtAkGvFmBVxTL68aZZXZh5TmPPMZGWfEDLSgiPA5Og80JgETytK5okbHu54L0GAihX+4mkCg06VQ7Xfs498ziJOhuU1GWhlw2POczuXGcS/2WE6pa9S6y7Mmx4bgMJS4Hohso8P149sOOvLTFs4Q+xCJrnPrv85X/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vxZ8cnx8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TTnbArlK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 831F7C4CEF0;
-	Wed,  9 Jul 2025 02:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vxZ8cnx8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3431C4CEF7;
+	Wed,  9 Jul 2025 02:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752027814;
-	bh=VblLUPc5R+zjsR4biETOntprItM1mPogWz+99AcE63Q=;
+	s=korg; t=1752027817;
+	bh=UYU9xCQmhQ3kwhSvIHSEzUdtv5Mzgn9CFiVVamMrS40=;
 	h=Date:To:From:Subject:From;
-	b=TTnbArlKbcB1v7Oj1FetpD4PJLJhw+gtb2idY9+ZJnVbdJy8Y+fuSpezyqml0nlRC
-	 V8g05KHzqClWIt3QhNzECdAXZ5XKqHYD1gXG/bMeBEyhDjghCDq+ir+46I4oNXrE6S
-	 BlwgeNYthC9duMAc9RHFLrlHqrDpujU27cUhFww4=
-Date: Tue, 08 Jul 2025 19:23:33 -0700
+	b=vxZ8cnx8gfMkMbzau4wd+w7mwHX4i21GruoUIrq1h59CLGMuBB/zGsmDrLu2hBMRl
+	 OCvHpuCo62o+SqKMH6ASwCnNs58MT30Bc5RHS2bzHL+ZSRbhqlUZU4nbR5munR4lUO
+	 pU45p1FEqzjhRzB9ps/aMkeXNOuOHIKFfEK8vblE=
+Date: Tue, 08 Jul 2025 19:23:35 -0700
 To: mm-commits@vger.kernel.org,ravis.opensrc@micron.com,corbet@lwn.net,bijantabatab@micron.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-schemes-dests-directory.patch added to mm-new branch
-Message-Id: <20250709022334.831F7C4CEF0@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-dests-directory.patch added to mm-new branch
+Message-Id: <20250709022337.C3431C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document schemes dests directory
+     Subject: Docs/admin-guide/mm/damon/usage: document dests directory
 has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-document-schemes-dests-directory.patch
+     docs-admin-guide-mm-damon-usage-document-dests-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-schemes-dests-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-dests-directory.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,12 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document schemes dests directory
-Date: Tue, 8 Jul 2025 19:59:35 -0500
+Subject: Docs/admin-guide/mm/damon/usage: document dests directory
+Date: Tue, 8 Jul 2025 19:59:36 -0500
 
-Document the new DAMOS action destinations sysfs directories on ABI doc.
+Document the newly added DAMOS action destination directory of the DAMON
+sysfs interface on the usage document.
 
-Link: https://lkml.kernel.org/r/20250709005952.17776-6-bijan311@gmail.com
+Link: https://lkml.kernel.org/r/20250709005952.17776-7-bijan311@gmail.com
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Bijan Tabatabai <bijantabatab@micron.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -78,40 +79,65 @@ Cc: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |   22 ++++++++++++++
- 1 file changed, 22 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   33 ++++++++++++++---
+ 1 file changed, 29 insertions(+), 4 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-schemes-dests-directory
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -431,6 +431,28 @@ Description:	Directory for DAMON operati
- 		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters
- 		directory.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-dests-directory
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -85,6 +85,8 @@ comma (",").
+     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
+     │ │ │ │ │ │ │ :ref:`{core_,ops_,}filters <sysfs_filters>`/nr_filters
+     │ │ │ │ │ │ │ │ 0/type,matching,allow,memcg_path,addr_start,addr_end,target_idx,min,max
++    │ │ │ │ │ │ │ :ref:`dests <damon_sysfs_dests>`/nr_dests
++    │ │ │ │ │ │ │ │ 0/id,weight
+     │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds
+     │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
+     │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age,sz_filter_passed
+@@ -307,10 +309,10 @@ to ``N-1``.  Each directory represents e
+ schemes/<N>/
+ ------------
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/dests/nr_dests
-+Date:		Jul 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for setting action destinations of the scheme named
-+		'0' to 'N-1' under the dests/ directory.
+-In each scheme directory, seven directories (``access_pattern``, ``quotas``,
+-``watermarks``, ``core_filters``, ``ops_filters``, ``filters``, ``stats``, and
+-``tried_regions``) and three files (``action``, ``target_nid`` and
+-``apply_interval``) exist.
++In each scheme directory, eight directories (``access_pattern``, ``quotas``,
++``watermarks``, ``core_filters``, ``ops_filters``, ``filters``, ``dests``,
++``stats``, and ``tried_regions``) and three files (``action``, ``target_nid``
++and ``apply_interval``) exist.
+ 
+ The ``action`` file is for setting and getting the scheme's :ref:`action
+ <damon_design_damos_action>`.  The keywords that can be written to and read
+@@ -484,6 +486,29 @@ Refer to the :ref:`DAMOS filters design
+ of different ``allow`` works, when each of the filters are supported, and
+ differences on stats.
+ 
++.. _damon_sysfs_dests:
 +
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/dests/<D>/id
-+Date:		Jul 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the id of
-+		the DAMOS action destination.  For DAMOS_MIGRATE_{HOT,COLD}
-+		actions, the destination node's node id can be written and
-+		read.
++schemes/<N>/dests/
++------------------
 +
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/dests/<D>/weight
-+Date:		Jul 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the weight
-+		of the DAMOS action destination to select as the destination of
-+		each action among the destinations.
++Directory for specifying the destinations of given DAMON-based operation
++scheme's action.  This directory is ignored if the action of the given scheme
++is not supporting multiple destinations.  Only ``DAMOS_MIGRATE_{HOT,COLD}``
++actions are supporting multiple destinations.
 +
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_tried
- Date:		Mar 2022
- Contact:	SeongJae Park <sj@kernel.org>
++In the beginning, the directory has only one file, ``nr_dests``.  Writing a
++number (``N``) to the file creates the number of child directories named ``0``
++to ``N-1``.  Each directory represents each action destination.
++
++Each destination directory contains two files, namely ``id`` and ``weight``.
++Users can write and read the identifier of the destination to ``id`` file.
++For ``DAMOS_MIGRATE_{HOT,COLD}`` actions, the migrate destination node's node
++id should be written to ``id`` file.  Users can write and read the weight of
++the destination among the given destinations to the ``weight`` file.  The
++weight can be an arbitrary integer.  When DAMOS apply the action to each entity
++of the memory region, it will select the destination of the action based on the
++relative weights of the destinations.
++
+ .. _sysfs_schemes_stats:
+ 
+ schemes/<N>/stats/
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
