@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C75421766A
-	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 23:19:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C28D21766A
+	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 23:19:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752103194; cv=none; b=mqRn+zsoZZGCXsXFkidtd4C58XWlI4xj6M6snusBsy874BzxHhTj0xYeqRdTdHsMDbw81OryrViZ37VE4SXn3x/1kQoz86hW2QuOo/fJhNAA8ia3XLxArs0PxYWyPpMSch4m51wmSaMYdFb+9Mnl0TrOCwdkr6OfNA9LEYht3q8=
+	t=1752103195; cv=none; b=MI6UbhfgWyPLolmtcpw/s8deXnocmNzUMNy1oPHkRGMhJXbzoa/BMSlsGX0WAKSvE9uuPZWVvQ/bDuKv6sUaZSx7WHGuxibjUYQecqjRo2mbpQsijjiiDZmOY4mWLemN6E1J8xe7NNgrz1y/XqMgZ/aWzvL0dw7E4o8pm2+BGJw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752103194; c=relaxed/simple;
-	bh=nSAeicDa+LJDStL80lfbsnQciljeWHp0w2FHQvZlsRw=;
-	h=Date:To:From:Subject:Message-Id; b=OUqQK6KbJIWlbRO+8GXL9xmFKqXNMgLnF5zEjp0FbM9/Pa7OlvNTkChsAXrwML0blbHeCJZ5gDyZKNJe6mtD+WJbKYvQn25nKv/AHzZiHt92o+L1CPj2VZCfg4NoCQSeTPUgoRGZC8fh7+uFNUy8CnwbrlsMnV/89bKW9C7DfV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cJpmq6OA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752103195; c=relaxed/simple;
+	bh=nwLdVRpSG2bcZNQRnpUy4tPgnSWnUrVMoG4bunJmoe4=;
+	h=Date:To:From:Subject:Message-Id; b=lz9RH1oOTyOe5BbBUS/V9o7PiQMnqfYkH2rAoLWeQHH5Dry5Eqixwy+cFfSjtVZwZOxRNeJA9TA6rsqoLRJNYKVO6RnBUbxKo90QsagID1hFt72uS8/iQrmmDaptsxnDNJGjPZEAPhgaMGg3cawee8ax6pjNB6cZc7r3iiGw1Uo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xxd7+tBv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cJpmq6OA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40CD1C4CEF1;
-	Wed,  9 Jul 2025 23:19:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xxd7+tBv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92E98C4CEEF;
+	Wed,  9 Jul 2025 23:19:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752103193;
-	bh=nSAeicDa+LJDStL80lfbsnQciljeWHp0w2FHQvZlsRw=;
+	s=korg; t=1752103194;
+	bh=nwLdVRpSG2bcZNQRnpUy4tPgnSWnUrVMoG4bunJmoe4=;
 	h=Date:To:From:Subject:From;
-	b=cJpmq6OAMzRD8dwFGDCrpANkb0OIHdjddCKHflF/ADA+QtIv+KYnwftPZEzasj3rW
-	 x9l44aAi/T3TlUYBA4lcy0riztHqfXsL3edNll2WW0vbIPK3fufeZrpRBPIMCrQM16
-	 ngQNgHOrPuMWbpkoPJx9VU998iLyyaShhWV11S5I=
-Date: Wed, 09 Jul 2025 16:19:52 -0700
+	b=Xxd7+tBv8Bs5jm2jAxU1q5IQzmkL/IiK1j/M8vHrGBDLsv3nsW7Pf6gTBtXSpVsqL
+	 6tlcNx6Zgsj+A4ynFOzsXzzzIhx9yAOdV/U1Z3MJVVwH7ZpLQ0bnIAmG5mykFO5qh5
+	 Eesgg3ImIQahIF1gqdE2N/CZCn0DH5U8i9XLbx44=
+Date: Wed, 09 Jul 2025 16:19:53 -0700
 To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,jserv@ccns.ncku.edu.tw,eleanor15x@gmail.com,aou@eecs.berkeley.edu,alexghiti@rivosinc.com,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch added to mm-nonmm-unstable branch
-Message-Id: <20250709231953.40CD1C4CEF1@smtp.kernel.org>
+Subject: + riscv-optimize-gcd-performance-on-risc-v-without-zbb-extension.patch added to mm-nonmm-unstable branch
+Message-Id: <20250709231954.92E98C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv: optimize gcd() code size when CONFIG_RISCV_ISA_ZBB is disabled
+     Subject: riscv: Optimize gcd() performance on RISC-V without Zbb extension
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch
+     riscv-optimize-gcd-performance-on-risc-v-without-zbb-extension.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-optimize-gcd-performance-on-risc-v-without-zbb-extension.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: riscv: optimize gcd() code size when CONFIG_RISCV_ISA_ZBB is disabled
-Date: Fri, 6 Jun 2025 21:47:57 +0800
+Subject: riscv: Optimize gcd() performance on RISC-V without Zbb extension
+Date: Fri, 6 Jun 2025 21:47:58 +0800
 
-The binary GCD implementation depends on efficient ffs(), which on RISC-V
-requires hardware support for the Zbb extension.  When
-CONFIG_RISCV_ISA_ZBB is not enabled, the kernel will never use binary GCD,
-as runtime logic will always fall back to the odd-even implementation.
+The binary GCD implementation uses FFS (find first set), which benefits
+from hardware support for the ctz instruction, provided by the Zbb
+extension on RISC-V.  Without Zbb, this results in slower
+software-emulated behavior.
 
-To avoid compiling unused code and reduce code size, select
-CONFIG_CPU_NO_EFFICIENT_FFS when CONFIG_RISCV_ISA_ZBB is not set.
+Previously, RISC-V always used the binary GCD, regardless of actual
+hardware support.  This patch improves runtime efficiency by disabling the
+efficient_ffs_key static branch when Zbb is either not enabled in the
+kernel (config) or not supported on the executing CPU.  This selects the
+odd-even GCD implementation, which is faster in the absence of efficient
+FFS.
 
-$ ./scripts/bloat-o-meter ./lib/math/gcd.o.old ./lib/math/gcd.o.new
-add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-274 (-274)
-Function                                     old     new   delta
-gcd                                          360      86    -274
-Total: Before=384, After=110, chg -71.35%
+This change ensures the most suitable GCD algorithm is chosen dynamically
+based on actual hardware capabilities.
 
-Link: https://lkml.kernel.org/r/20250606134758.1308400-3-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20250606134758.1308400-4-visitorckw@gmail.com
 Co-developed-by: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
@@ -88,19 +89,30 @@ Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/riscv/kernel/setup.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/arch/riscv/Kconfig~riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled
-+++ a/arch/riscv/Kconfig
-@@ -96,6 +96,7 @@ config RISCV
- 	select CLINT_TIMER if RISCV_M_MODE
- 	select CLONE_BACKWARDS
- 	select COMMON_CLK
-+	select CPU_NO_EFFICIENT_FFS if !RISCV_ISA_ZBB
- 	select CPU_PM if CPU_IDLE || HIBERNATION || SUSPEND
- 	select EDAC_SUPPORT
- 	select FRAME_POINTER if PERF_EVENTS || (FUNCTION_TRACER && !DYNAMIC_FTRACE)
+--- a/arch/riscv/kernel/setup.c~riscv-optimize-gcd-performance-on-risc-v-without-zbb-extension
++++ a/arch/riscv/kernel/setup.c
+@@ -21,6 +21,8 @@
+ #include <linux/efi.h>
+ #include <linux/crash_dump.h>
+ #include <linux/panic_notifier.h>
++#include <linux/jump_label.h>
++#include <linux/gcd.h>
+ 
+ #include <asm/acpi.h>
+ #include <asm/alternative.h>
+@@ -362,6 +364,9 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	riscv_user_isa_enable();
+ 	riscv_spinlock_init();
++
++	if (!IS_ENABLED(CONFIG_RISCV_ISA_ZBB) || !riscv_isa_extension_available(NULL, ZBB))
++		static_branch_disable(&efficient_ffs_key);
+ }
+ 
+ bool arch_cpu_is_hotpluggable(int cpu)
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
