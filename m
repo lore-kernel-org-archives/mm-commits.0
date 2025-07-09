@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B8301C861B
-	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 03:06:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 156ED1B87F0;
+	Wed,  9 Jul 2025 03:06:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752030393; cv=none; b=lamgxf9IGzeOyH/19oCcEnCk64Lxt3m5efsz9+oF93L6vwBJwK93DxmP8RqjN3XdVgmgT8x2SaOdxw3zs1tCmVG/cjDsK1WVYE4UloFe21zkcnTQUkDzluYPqFB+is+nrrQ5L0TXzdHYUB94ZgGkOTrSaZz74kKLxxDan0sA6qk=
+	t=1752030418; cv=none; b=AdmOiwQBxmBZaUBEyT2ZUdEPZVLiQGFHQdwL7VVQGEWVgPR9fPhT218/rZhtpI9Rz3L09NrnrMb5F8b3qrsn5SEkiNoQjOexBf835g/spO8hCMETBWN58ShY+IuxhxyJKltRXGGaQasrY5kwo+iEXOYzR0rMMqXNtASnJSdtcTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752030393; c=relaxed/simple;
-	bh=YTCJLthGWpVnl9JSy9vLmDc9mnnpaBYT/kA/Pip+NMM=;
-	h=Date:To:From:Subject:Message-Id; b=rGaj+2y1O9IOp/0uYfVQ7/E4kXQEEl4vzkjBlEStcBz38V2A36DqDve5AfCzvmoYeitqvSMwlvxc9RVY9cKIUuV05UDkNB8c3xsgNh80WjrMe82Viv1sTPKzncgHpdV/ydbmFH8+dMQSHoEhGYpCwUpfj4vWc83jO5xQnAbedvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fmc/Wb+b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752030418; c=relaxed/simple;
+	bh=3UXdImVFngjrU07xU94cXC60rGJ4ROdaKComLgcXd9k=;
+	h=Date:To:From:Subject:Message-Id; b=ss1jo8ttf0BjG55ia6BDNmbXeWHSmlZadDwHo0M06er/nV0tbtBTmgYTNu4jfB6c3D/bpNvplhTPiyt8vVbzTqdufJClzgmcjJRTwYtxFdGvwtJaF3CrIDLENSRtxUZzYC18H5fu6tKYVyYV2vh+eH1cVRXNeLUw2yP/jWXBHSc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bHe+m+5Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fmc/Wb+b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01149C4CEED;
-	Wed,  9 Jul 2025 03:06:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bHe+m+5Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E79DC4CEED;
+	Wed,  9 Jul 2025 03:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752030393;
-	bh=YTCJLthGWpVnl9JSy9vLmDc9mnnpaBYT/kA/Pip+NMM=;
+	s=korg; t=1752030417;
+	bh=3UXdImVFngjrU07xU94cXC60rGJ4ROdaKComLgcXd9k=;
 	h=Date:To:From:Subject:From;
-	b=Fmc/Wb+bDy6OIcclstxf2S8bnqQFYbAocP/qI16My2ZCFBmk42AW4NVOZPVsI1hTV
-	 w79jsFsdy1d68t+o5+zby+ah160bUpdUH3zlnC83qy3FZC7FG+XVyuMbN9tBWRVmb0
-	 BP1BWgcjVtHL0O+AAJkqopIL+VDP5ypDk8Celwgc=
-Date: Tue, 08 Jul 2025 20:06:32 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,ipravdin.official@gmail.com,akpm@linux-foundation.org
+	b=bHe+m+5YtVoxUrJ/EiQ8RZWyg6KX0uJTVdLaae5CEr50MRVdMWza2jvqOUdQF9eif
+	 ls6vUmb8DzqMCE9jt+WnXGo68QMOyh7XZt84vudM/FISFC8W7RdSJt9cNF2sBRILRF
+	 6gACkHGf8rg7yI9VD52wRuYABhMxIc8CV1yW4Jcc=
+Date: Tue, 08 Jul 2025 20:06:56 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ravis.opensrc@micron.com,corbet@lwn.net,bijantabatab@micron.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch added to mm-nonmm-unstable branch
-Message-Id: <20250709030633.01149C4CEED@smtp.kernel.org>
+Subject: + mm-damon-core-commit-damos-target_nid.patch added to mm-new branch
+Message-Id: <20250709030657.4E79DC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: avoid potential ABBA deadlock by reordering tl_inode lock
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch
+     Subject: mm/damon/core: commit damos->target_nid
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-commit-damos-target_nid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-commit-damos-target_nid.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,101 +64,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ivan Pravdin <ipravdin.official@gmail.com>
-Subject: ocfs2: avoid potential ABBA deadlock by reordering tl_inode lock
-Date: Mon, 7 Jul 2025 22:06:40 -0400
+From: Bijan Tabatabai <bijantabatab@micron.com>
+Subject: mm/damon/core: commit damos->target_nid
+Date: Tue, 8 Jul 2025 19:47:29 -0500
 
-In ocfs2_move_extent(), tl_inode is currently locked after the global
-bitmap inode.  However, in ocfs2_flush_truncate_log(), the lock order is
-reversed: tl_inode is locked first, followed by the global bitmap inode.
+When committing new scheme parameters from the sysfs, the target_nid field
+of the damos struct would not be copied.  This would result in the
+target_nid field to retain its original value, despite being updated in
+the sysfs interface.
 
-This creates a classic ABBA deadlock scenario if two threads attempt these
-operations concurrently and acquire the locks in different orders.
+This patch fixes this issue by copying target_nid in damos_commit().
 
-To prevent this, move the tl_inode locking earlier in ocfs2_move_extent(),
-so that it always precedes the global bitmap inode lock.
-
-No functional changes beyond lock ordering.
-
-Link: https://lkml.kernel.org/r/20250708020640.387741-1-ipravdin.official@gmail.com
-Reported-by: syzbot+6bf948e47f9bac7aacfa@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67d5645c.050a0220.1dc86f.0004.GAE@google.com/
-Signed-off-by: Ivan Pravdin <ipravdin.official@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20250709004729.17252-1-bijan311@gmail.com
+Fixes: 83dc7bbaecae ("mm/damon/sysfs: use damon_commit_ctx()")
+Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ mm/damon/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ocfs2/move_extents.c~ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock
-+++ a/fs/ocfs2/move_extents.c
-@@ -617,6 +617,8 @@ static int ocfs2_move_extent(struct ocfs
- 	 */
- 	credits += OCFS2_INODE_UPDATE_CREDITS + 1;
+--- a/mm/damon/core.c~mm-damon-core-commit-damos-target_nid
++++ a/mm/damon/core.c
+@@ -978,6 +978,7 @@ static int damos_commit(struct damos *ds
+ 		return err;
  
-+	inode_lock(tl_inode);
-+
- 	/*
- 	 * ocfs2_move_extent() didn't reserve any clusters in lock_allocators()
- 	 * logic, while we still need to lock the global_bitmap.
-@@ -626,7 +628,7 @@ static int ocfs2_move_extent(struct ocfs
- 	if (!gb_inode) {
- 		mlog(ML_ERROR, "unable to get global_bitmap inode\n");
- 		ret = -EIO;
--		goto out;
-+		goto out_unlock_tl_inode;
- 	}
+ 	dst->wmarks = src->wmarks;
++	dst->target_nid = src->target_nid;
  
- 	inode_lock(gb_inode);
-@@ -634,16 +636,14 @@ static int ocfs2_move_extent(struct ocfs
- 	ret = ocfs2_inode_lock(gb_inode, &gb_bh, 1);
- 	if (ret) {
- 		mlog_errno(ret);
--		goto out_unlock_gb_mutex;
-+		goto out_unlock_gb_inode;
- 	}
- 
--	inode_lock(tl_inode);
--
- 	handle = ocfs2_start_trans(osb, credits);
- 	if (IS_ERR(handle)) {
- 		ret = PTR_ERR(handle);
- 		mlog_errno(ret);
--		goto out_unlock_tl_inode;
-+		goto out_unlock;
- 	}
- 
- 	new_phys_blkno = ocfs2_clusters_to_blocks(inode->i_sb, *new_phys_cpos);
-@@ -703,15 +703,14 @@ static int ocfs2_move_extent(struct ocfs
- out_commit:
- 	ocfs2_commit_trans(osb, handle);
- 	brelse(gd_bh);
--
--out_unlock_tl_inode:
--	inode_unlock(tl_inode);
--
-+out_unlock:
- 	ocfs2_inode_unlock(gb_inode, 1);
--out_unlock_gb_mutex:
-+out_unlock_gb_inode:
- 	inode_unlock(gb_inode);
- 	brelse(gb_bh);
- 	iput(gb_inode);
-+out_unlock_tl_inode:
-+	inode_unlock(tl_inode);
- 
- out:
- 	if (context->meta_ac) {
+ 	err = damos_commit_filters(dst, src);
+ 	return err;
 _
 
-Patches currently in -mm which might be from ipravdin.official@gmail.com are
+Patches currently in -mm which might be from bijantabatab@micron.com are
 
-ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec.patch
-ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch
+mm-damon-core-commit-damos-target_nid.patch
+mm-damon-core-commit-damos-migrate_dests.patch
+mm-damon-move-migration-helpers-from-paddr-to-ops-common.patch
+mm-damon-vaddr-add-vaddr-versions-of-migrate_hotcold.patch
+docs-mm-damon-design-document-vaddr-support-for-migrate_hotcold.patch
+mm-damon-vaddr-use-damos-migrate_dests-in-migrate_hotcold.patch
+mm-damon-move-folio-filtering-from-paddr-to-ops-common.patch
+mm-damon-vaddr-apply-filters-in-migrate_hot-cold.patch
 
