@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48608188A0C
-	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 03:04:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B8301C861B
+	for <mm-commits@vger.kernel.org>; Wed,  9 Jul 2025 03:06:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752030264; cv=none; b=BCm/kr54CfDXebRr0xhVbHbk3dRLhR2g3diEINuqKKs7VQkCMSK00D9ptJ6VbDSNlkvxPUuUHUqKSc4VXAPkx1uVs1/uE5bQmTM7ipmvqDEq2OIVoZSXLqcGmCTrBXAvolNCPOLQfFoDwbmZVPuYk0mvLab6QAevo0LI5+5pjec=
+	t=1752030393; cv=none; b=lamgxf9IGzeOyH/19oCcEnCk64Lxt3m5efsz9+oF93L6vwBJwK93DxmP8RqjN3XdVgmgT8x2SaOdxw3zs1tCmVG/cjDsK1WVYE4UloFe21zkcnTQUkDzluYPqFB+is+nrrQ5L0TXzdHYUB94ZgGkOTrSaZz74kKLxxDan0sA6qk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752030264; c=relaxed/simple;
-	bh=JX7518cvWcGzxp+ckJcuCZFXNUlIGpdXCwiIl6iUboA=;
-	h=Date:To:From:Subject:Message-Id; b=Ji5siDb+7Ycbnh6S/X7s6q/vYzCpnMDYMHgCKxo2DXvRqPnEnFrLWxhWi7/FMGIYTrMvPI/G/4WwCjsSmw7UISG6PgjKgZS/jWRMCOIa4mCcOYNPcXlmCoxeNbN3VnTkdUyu38r+WawmLOBaG5iafAbNkrDvtWoPvirzbJbdnSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g4yGQq2g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752030393; c=relaxed/simple;
+	bh=YTCJLthGWpVnl9JSy9vLmDc9mnnpaBYT/kA/Pip+NMM=;
+	h=Date:To:From:Subject:Message-Id; b=rGaj+2y1O9IOp/0uYfVQ7/E4kXQEEl4vzkjBlEStcBz38V2A36DqDve5AfCzvmoYeitqvSMwlvxc9RVY9cKIUuV05UDkNB8c3xsgNh80WjrMe82Viv1sTPKzncgHpdV/ydbmFH8+dMQSHoEhGYpCwUpfj4vWc83jO5xQnAbedvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fmc/Wb+b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g4yGQq2g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA11EC4CEED;
-	Wed,  9 Jul 2025 03:04:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fmc/Wb+b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01149C4CEED;
+	Wed,  9 Jul 2025 03:06:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752030263;
-	bh=JX7518cvWcGzxp+ckJcuCZFXNUlIGpdXCwiIl6iUboA=;
+	s=korg; t=1752030393;
+	bh=YTCJLthGWpVnl9JSy9vLmDc9mnnpaBYT/kA/Pip+NMM=;
 	h=Date:To:From:Subject:From;
-	b=g4yGQq2gF/gUclQpDhq+wYacIwzUgXkeOrxVOMEfiEvGoJM0/C0wj0K4WS7yWx/6M
-	 Gl4fqdc3T2csfEueIwqCDiSIpZreC/DCKTnNpTfQ01+2p8pOX4oVWbCTiUg1ZdKzXc
-	 QUYad1AeCHebP7DJ2PWpUOd9aCU8Y6AsCCfRhw/M=
-Date: Tue, 08 Jul 2025 20:04:23 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,shivankg@amd.com,osalvador@suse.de,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
+	b=Fmc/Wb+bDy6OIcclstxf2S8bnqQFYbAocP/qI16My2ZCFBmk42AW4NVOZPVsI1hTV
+	 w79jsFsdy1d68t+o5+zby+ah160bUpdUH3zlnC83qy3FZC7FG+XVyuMbN9tBWRVmb0
+	 BP1BWgcjVtHL0O+AAJkqopIL+VDP5ypDk8Celwgc=
+Date: Tue, 08 Jul 2025 20:06:32 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,ipravdin.official@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-util-introduce-snapshot_page-fix.patch added to mm-new branch
-Message-Id: <20250709030423.AA11EC4CEED@smtp.kernel.org>
+Subject: + ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20250709030633.01149C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-util-introduce-snapshot_page-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-util-introduce-snapshot_page-fix.patch
+     Subject: ocfs2: avoid potential ABBA deadlock by reordering tl_inode lock
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-util-introduce-snapshot_page-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,42 +58,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luiz Capitulino <luizcap@redhat.com>
-Subject: mm-util-introduce-snapshot_page-fix
-Date: Tue, 8 Jul 2025 12:59:07 -0400
+From: Ivan Pravdin <ipravdin.official@gmail.com>
+Subject: ocfs2: avoid potential ABBA deadlock by reordering tl_inode lock
+Date: Mon, 7 Jul 2025 22:06:40 -0400
 
-use clear_compound_head(), per Shivank
+In ocfs2_move_extent(), tl_inode is currently locked after the global
+bitmap inode.  However, in ocfs2_flush_truncate_log(), the lock order is
+reversed: tl_inode is locked first, followed by the global bitmap inode.
 
-Link: https://lkml.kernel.org/r/60a1a526-52dd-478a-9ed4-79e6428743ac@redhat.com
-Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: SeongJae Park <sj@kernel.org>
+This creates a classic ABBA deadlock scenario if two threads attempt these
+operations concurrently and acquire the locks in different orders.
+
+To prevent this, move the tl_inode locking earlier in ocfs2_move_extent(),
+so that it always precedes the global bitmap inode lock.
+
+No functional changes beyond lock ordering.
+
+Link: https://lkml.kernel.org/r/20250708020640.387741-1-ipravdin.official@gmail.com
+Reported-by: syzbot+6bf948e47f9bac7aacfa@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67d5645c.050a0220.1dc86f.0004.GAE@google.com/
+Signed-off-by: Ivan Pravdin <ipravdin.official@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/move_extents.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
---- a/mm/util.c~mm-util-introduce-snapshot_page-fix
-+++ a/mm/util.c
-@@ -1239,7 +1239,7 @@ again:
- 	if (ps->idx > nr_pages) {
- 		if (loops-- > 0)
- 			goto again;
--		ps->page_snapshot.compound_head &= ~1UL;
-+		clear_compound_head(&ps->page_snapshot);
- 		foliop = (struct folio *)&ps->page_snapshot;
- 		ps->flags = 0;
- 		ps->idx = 0;
+--- a/fs/ocfs2/move_extents.c~ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock
++++ a/fs/ocfs2/move_extents.c
+@@ -617,6 +617,8 @@ static int ocfs2_move_extent(struct ocfs
+ 	 */
+ 	credits += OCFS2_INODE_UPDATE_CREDITS + 1;
+ 
++	inode_lock(tl_inode);
++
+ 	/*
+ 	 * ocfs2_move_extent() didn't reserve any clusters in lock_allocators()
+ 	 * logic, while we still need to lock the global_bitmap.
+@@ -626,7 +628,7 @@ static int ocfs2_move_extent(struct ocfs
+ 	if (!gb_inode) {
+ 		mlog(ML_ERROR, "unable to get global_bitmap inode\n");
+ 		ret = -EIO;
+-		goto out;
++		goto out_unlock_tl_inode;
+ 	}
+ 
+ 	inode_lock(gb_inode);
+@@ -634,16 +636,14 @@ static int ocfs2_move_extent(struct ocfs
+ 	ret = ocfs2_inode_lock(gb_inode, &gb_bh, 1);
+ 	if (ret) {
+ 		mlog_errno(ret);
+-		goto out_unlock_gb_mutex;
++		goto out_unlock_gb_inode;
+ 	}
+ 
+-	inode_lock(tl_inode);
+-
+ 	handle = ocfs2_start_trans(osb, credits);
+ 	if (IS_ERR(handle)) {
+ 		ret = PTR_ERR(handle);
+ 		mlog_errno(ret);
+-		goto out_unlock_tl_inode;
++		goto out_unlock;
+ 	}
+ 
+ 	new_phys_blkno = ocfs2_clusters_to_blocks(inode->i_sb, *new_phys_cpos);
+@@ -703,15 +703,14 @@ static int ocfs2_move_extent(struct ocfs
+ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ 	brelse(gd_bh);
+-
+-out_unlock_tl_inode:
+-	inode_unlock(tl_inode);
+-
++out_unlock:
+ 	ocfs2_inode_unlock(gb_inode, 1);
+-out_unlock_gb_mutex:
++out_unlock_gb_inode:
+ 	inode_unlock(gb_inode);
+ 	brelse(gb_bh);
+ 	iput(gb_inode);
++out_unlock_tl_inode:
++	inode_unlock(tl_inode);
+ 
+ out:
+ 	if (context->meta_ac) {
 _
 
-Patches currently in -mm which might be from luizcap@redhat.com are
+Patches currently in -mm which might be from ipravdin.official@gmail.com are
 
-mm-util-introduce-snapshot_page.patch
-mm-util-introduce-snapshot_page-fix.patch
-proc-kpagecount-use-snapshot_page.patch
-fs-stable_page_flags-use-snapshot_page.patch
+ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec.patch
+ocfs2-avoid-potential-abba-deadlock-by-reordering-tl_inode-lock.patch
 
