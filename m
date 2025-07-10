@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9873622154B
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E373322154B
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126332; cv=none; b=IITuf2GwkEpqGqvHGHA6xYzWrb8tyG9ZFxpc1ISS4m9JTHbUgwofyrAJEXAGM0fXtKoCclj2LlmfdmFtO62T+KdfAuE8jEJsoxXaEy8hOvlEx+T0IKke99fgSCfVUrrtG5duS4KVXJg9YTW+k6RkMzexlclw9PCkIPC1PZ1fOEc=
+	t=1752126334; cv=none; b=Zf56eiJkzVSoDz3FtRT2AdRbMTTzGMPn2awMecsa841Vivxm7vBcptYeERrR0mGJBRyvR/CX7h+5Wik2NwT33L6cOEAu2J5eUsu76YHEw49y0eKEpIBZ0RMIqyG5k3i2pJD7L0oJfRUc6PoylJZSumolVhwHQwtjGwZElTDF3kM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126332; c=relaxed/simple;
-	bh=SmQa/GceebN7rOOO/3XXkEGt9SXIJoJJAk+9J7r6AEs=;
-	h=Date:To:From:Subject:Message-Id; b=nPiOCRL24OA7hw2mWWVKywaten9x6u9MSzC3kMmtvS0EXPShDHXdeRzaTCOlEM5ZhDhwomgnSt0siLEUJwpMOlLjGDWnkUKTiS8zzMZo5FJ8+9X/DPhYQOpAQJTv9ir6oj5UkzB4UuirAmATECrjEgCOSaAXDvkciQoA4E1NQRs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RJr5SElc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126334; c=relaxed/simple;
+	bh=0caw6uywCA6mXAF165UL1Nd0L+wBeXBgoZLtNQZml/o=;
+	h=Date:To:From:Subject:Message-Id; b=YEmDvyx08XN62C0oF8C/7HhZHyNLnVNuomztsNYChDqGWMrWnUKsliwDQ6CgK58n04Lv9a7q8yCx1OSo+8ft2UBQZWUB5Eq56RJQGcFHupgKP3fQA3J67VDc7MQhbkByVHrzDh7U0exAJvSVhCeCcjhXcAxqOG/lfj9KzHKub2c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pa+8KVaB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RJr5SElc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A861C4CEE3;
-	Thu, 10 Jul 2025 05:45:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pa+8KVaB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7405C4CEE3;
+	Thu, 10 Jul 2025 05:45:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126332;
-	bh=SmQa/GceebN7rOOO/3XXkEGt9SXIJoJJAk+9J7r6AEs=;
+	s=korg; t=1752126333;
+	bh=0caw6uywCA6mXAF165UL1Nd0L+wBeXBgoZLtNQZml/o=;
 	h=Date:To:From:Subject:From;
-	b=RJr5SElcT4W7xiJT9tdX5BYhbfouwayGJorVvXIlRes7YXt/tKc2wEDWgViMpNxo0
-	 80Lbqa2ovtZ/R5mCobpdVMvfINEyRBTArFwlUN25h77w8/arfB1y+u2dkjm6AFGJFy
-	 5HdbFZm0nQxYFmEjxHss7p16w4reKkScfMPzNqyE=
-Date: Wed, 09 Jul 2025 22:45:31 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,richard.henderson@linaro.org,mattst88@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kent.overstreet@linux.dev,hca@linux.ibm.com,gor@linux.ibm.com,dennis@kernel.org,david@redhat.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=pa+8KVaBJS4WGHm6sx4dQQlcpqwP/YdSmIzbTE+akIMNoXygq6w7uFXjq8QXBJiU1
+	 8x/1lMg/f7FyH4UZQwWql8CZTaO72hjgEttdfSEXDhrX2kXqxqh/Ja7Y1dCxf4GMfG
+	 ZeuOxjucM84ibGezg2h7m5nql5+WQyO9N24aZ4+E=
+Date: Wed, 09 Jul 2025 22:45:33 -0700
+To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,john@groves.net,jhubbard@nvidia.com,jgg@nvidia.com,hch@lst.de,gerald.schaefer@linux.ibm.com,debug@rivosinc.com,david@redhat.com,dan.j.williams@intel.com,bjorn@rivosinc.com,bjorn@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu.patch removed from -mm tree
-Message-Id: <20250710054532.6A861C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-pxd_devmap-checks-to-vma_is_dax.patch removed from -mm tree
+Message-Id: <20250710054533.B7405C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,203 +35,123 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/percpu: conditionally define _shared_alloc_tag via CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
+     Subject: mm: convert pXd_devmap checks to vma_is_dax
 has been removed from the -mm tree.  Its filename was
-     mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu.patch
+     mm-convert-pxd_devmap-checks-to-vma_is_dax.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/percpu: conditionally define _shared_alloc_tag via CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
-Date: Wed, 18 Jun 2025 09:58:09 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm: convert pXd_devmap checks to vma_is_dax
+Date: Thu, 19 Jun 2025 18:57:53 +1000
 
-Recently discovered this entry while checking kallsyms on ARM64:
-ffff800083e509c0 D _shared_alloc_tag
+Patch series "mm: Remove pXX_devmap page table bit and pfn_t type", v3.
 
-If ARCH_NEEDS_WEAK_PER_CPU is not defined(it is only defined for s390 and
-alpha architectures), there's no need to statically define the percpu
-variable _shared_alloc_tag.
+All users of dax now require a ZONE_DEVICE page which is properly
+refcounted.  This means there is no longer any need for the PFN_DEV,
+PFN_MAP and PFN_SPECIAL flags.  Furthermore the PFN_SG_CHAIN and
+PFN_SG_LAST flags never appear to have been used.  It is therefore
+possible to remove the pfn_t type and replace any usage with raw pfns.
 
-Therefore, we need to implement isolation for this purpose.
+The remaining users of PFN_DEV have simply passed this to
+vmf_insert_mixed() to create pte_devmap() mappings.  It is unclear why
+this was the case but presumably to ensure vm_normal_page() does not
+return these pages.  These users can be trivially converted to raw pfns
+and creating a pXX_special() mapping to ensure vm_normal_page() still
+doesn't return these pages.
 
-When building the core kernel code for s390 or alpha architectures,
-ARCH_NEEDS_WEAK_PER_CPU remains undefined (as it is gated by #if
-defined(MODULE)).  However, when building modules for these architectures,
-the macro is explicitly defined.
+Now that there are no users of PFN_DEV we can remove the devmap page table
+bit and all associated functions and macros, freeing up a software page
+table bit.
 
-Therefore, we remove all instances of ARCH_NEEDS_WEAK_PER_CPU from the
-code and introduced CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU to replace the
-relevant logic.  We can now conditionally define the perpcu variable
-_shared_alloc_tag based on CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU.  This
-allows architectures (such as s390/alpha) that require weak definitions
-for percpu variables in modules to include the definition, while others
-can omit it via compile-time exclusion.
 
-Link: https://lkml.kernel.org/r/20250618015809.1235761-1-hao.ge@linux.dev
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Suggested-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>	[s390]
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Chistoph Lameter <cl@linux.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+This patch (of 14):
+
+Currently dax is the only user of pmd and pud mapped ZONE_DEVICE pages. 
+Therefore page walkers that want to exclude DAX pages can check pmd_devmap
+or pud_devmap.  However soon dax will no longer set PFN_DEV, meaning dax
+pages are mapped as normal pages.
+
+Ensure page walkers that currently use pXd_devmap to skip DAX pages
+continue to do so by adding explicit checks of the VMA instead.
+
+Remove vma_is_dax() check from mm/userfaultfd.c as validate_move_areas()
+will already skip DAX VMA's on account of them not being anonymous.
+
+The check in userfaultfd_must_wait() is also redundant as
+vma_can_userfault() should have already filtered out dax vma's.
+
+For HMM the pud_devmap check seems unnecessary as there is no reason we
+shouldn't be able to handle any leaf PUD here so remove it also.
+
+Link: https://lkml.kernel.org/r/cover.176965585864cb8d2cf41464b44dcc0471e643a0.1750323463.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/f0611f6f475f48fcdf34c65084a359aefef4cccc.1750323463.git-series.apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Björn Töpel <bjorn@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chunyan Zhang <zhang.lyra@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Deepak Gupta <debug@rivosinc.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Inki Dae <m.szyprowski@samsung.com>
+Cc: John Groves <john@groves.net>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Björn Töpel <bjorn@rivosinc.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig              |    1 +
- arch/alpha/include/asm/percpu.h |    5 ++---
- arch/s390/Kconfig               |    1 +
- arch/s390/include/asm/percpu.h  |    5 ++---
- include/linux/alloc_tag.h       |    6 +++---
- include/linux/percpu-defs.h     |    7 ++++---
- lib/alloc_tag.c                 |    2 ++
- mm/Kconfig                      |    7 +++++++
- 8 files changed, 22 insertions(+), 12 deletions(-)
+ fs/userfaultfd.c |    2 +-
+ mm/hmm.c         |    2 +-
+ mm/userfaultfd.c |    6 ------
+ 3 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/arch/alpha/include/asm/percpu.h~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/arch/alpha/include/asm/percpu.h
-@@ -9,10 +9,9 @@
-  * way above 4G.
-  *
-  * Always use weak definitions for percpu variables in modules.
-+ * Therefore, we have enabled CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
-+ * in the Kconfig.
-  */
--#if defined(MODULE) && defined(CONFIG_SMP)
--#define ARCH_NEEDS_WEAK_PER_CPU
--#endif
+--- a/fs/userfaultfd.c~mm-convert-pxd_devmap-checks-to-vma_is_dax
++++ a/fs/userfaultfd.c
+@@ -304,7 +304,7 @@ again:
+ 		goto out;
  
- #include <asm-generic/percpu.h>
+ 	ret = false;
+-	if (!pmd_present(_pmd) || pmd_devmap(_pmd))
++	if (!pmd_present(_pmd))
+ 		goto out;
  
---- a/arch/alpha/Kconfig~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/arch/alpha/Kconfig
-@@ -7,6 +7,7 @@ config ALPHA
- 	select ARCH_HAS_DMA_OPS if PCI
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
-+	select ARCH_MODULE_NEEDS_WEAK_PER_CPU if SMP
- 	select ARCH_NO_PREEMPT
- 	select ARCH_NO_SG_CHAIN
- 	select ARCH_USE_CMPXCHG_LOCKREF
---- a/arch/s390/include/asm/percpu.h~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/arch/s390/include/asm/percpu.h
-@@ -16,10 +16,9 @@
-  * For 64 bit module code, the module may be more than 4G above the
-  * per cpu area, use weak definitions to force the compiler to
-  * generate external references.
-+ * Therefore, we have enabled CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
-+ * in the Kconfig.
-  */
--#if defined(MODULE)
--#define ARCH_NEEDS_WEAK_PER_CPU
--#endif
+ 	if (pmd_trans_huge(_pmd)) {
+--- a/mm/hmm.c~mm-convert-pxd_devmap-checks-to-vma_is_dax
++++ a/mm/hmm.c
+@@ -441,7 +441,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ 		return hmm_vma_walk_hole(start, end, -1, walk);
+ 	}
  
- /*
-  * We use a compare-and-swap loop since that uses less cpu cycles than
---- a/arch/s390/Kconfig~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/arch/s390/Kconfig
-@@ -132,6 +132,7 @@ config S390
- 	select ARCH_INLINE_WRITE_UNLOCK_IRQ
- 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
- 	select ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
-+	select ARCH_MODULE_NEEDS_WEAK_PER_CPU
- 	select ARCH_STACKWALK
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
---- a/include/linux/alloc_tag.h~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/include/linux/alloc_tag.h
-@@ -88,7 +88,7 @@ static inline struct alloc_tag *ct_to_al
- 	return container_of(ct, struct alloc_tag, ct);
- }
+-	if (pud_leaf(pud) && pud_devmap(pud)) {
++	if (pud_leaf(pud)) {
+ 		unsigned long i, npages, pfn;
+ 		unsigned int required_fault;
+ 		unsigned long *hmm_pfns;
+--- a/mm/userfaultfd.c~mm-convert-pxd_devmap-checks-to-vma_is_dax
++++ a/mm/userfaultfd.c
+@@ -1818,12 +1818,6 @@ ssize_t move_pages(struct userfaultfd_ct
  
--#ifdef ARCH_NEEDS_WEAK_PER_CPU
-+#if defined(CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU) && defined(MODULE)
- /*
-  * When percpu variables are required to be defined as weak, static percpu
-  * variables can't be used inside a function (see comments for DECLARE_PER_CPU_SECTION).
-@@ -102,7 +102,7 @@ DECLARE_PER_CPU(struct alloc_tag_counter
- 		.ct = CODE_TAG_INIT,						\
- 		.counters = &_shared_alloc_tag };
- 
--#else /* ARCH_NEEDS_WEAK_PER_CPU */
-+#else /* CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU && MODULE */
- 
- #ifdef MODULE
- 
-@@ -123,7 +123,7 @@ DECLARE_PER_CPU(struct alloc_tag_counter
- 
- #endif /* MODULE */
- 
--#endif /* ARCH_NEEDS_WEAK_PER_CPU */
-+#endif /* CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU && MODULE */
- 
- DECLARE_STATIC_KEY_MAYBE(CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT,
- 			mem_alloc_profiling_key);
---- a/include/linux/percpu-defs.h~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/include/linux/percpu-defs.h
-@@ -63,14 +63,15 @@
-  * 1. The symbol must be globally unique, even the static ones.
-  * 2. Static percpu variables cannot be defined inside a function.
-  *
-- * Archs which need weak percpu definitions should define
-- * ARCH_NEEDS_WEAK_PER_CPU in asm/percpu.h when necessary.
-+ * Archs which need weak percpu definitions should set
-+ * CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU when necessary.
-  *
-  * To ensure that the generic code observes the above two
-  * restrictions, if CONFIG_DEBUG_FORCE_WEAK_PER_CPU is set weak
-  * definition is used for all cases.
-  */
--#if defined(ARCH_NEEDS_WEAK_PER_CPU) || defined(CONFIG_DEBUG_FORCE_WEAK_PER_CPU)
-+#if (defined(CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU) && defined(MODULE)) || \
-+	defined(CONFIG_DEBUG_FORCE_WEAK_PER_CPU)
- /*
-  * __pcpu_scope_* dummy variable is used to enforce scope.  It
-  * receives the static modifier when it's used in front of
---- a/lib/alloc_tag.c~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/lib/alloc_tag.c
-@@ -25,8 +25,10 @@ static bool mem_profiling_support;
- 
- static struct codetag_type *alloc_tag_cttype;
- 
-+#ifdef CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
- DEFINE_PER_CPU(struct alloc_tag_counters, _shared_alloc_tag);
- EXPORT_SYMBOL(_shared_alloc_tag);
-+#endif
- 
- DEFINE_STATIC_KEY_MAYBE(CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT,
- 			mem_alloc_profiling_key);
---- a/mm/Kconfig~mm-percpu-conditionally-define-_shared_alloc_tag-via-config_arch_module_needs_weak_per_cpu
-+++ a/mm/Kconfig
-@@ -934,6 +934,13 @@ config ARCH_SUPPORTS_PUD_PFNMAP
- 	depends on ARCH_SUPPORTS_HUGE_PFNMAP && HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- 
- #
-+# Architectures that always use weak definitions for percpu
-+# variables in modules should set this.
-+#
-+config ARCH_MODULE_NEEDS_WEAK_PER_CPU
-+       bool
-+
-+#
- # UP and nommu archs use km based percpu allocator
- #
- config NEED_PER_CPU_KM
+ 		ptl = pmd_trans_huge_lock(src_pmd, src_vma);
+ 		if (ptl) {
+-			if (pmd_devmap(*src_pmd)) {
+-				spin_unlock(ptl);
+-				err = -ENOENT;
+-				break;
+-			}
+-
+ 			/* Check if we can move the pmd without splitting it. */
+ 			if (move_splits_huge_pmd(dst_addr, src_addr, src_start + len) ||
+ 			    !pmd_none(dst_pmdval)) {
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
 
