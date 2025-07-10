@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 119A2286883
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37383286435
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126368; cv=none; b=Ec4zPOwvlta+3vWxJG1Rm+RfPdjOYVIMVNOCHGkmglzE64b7elRCwyWFtPG4t80i85MvK8GBcQpRDDinc2qFD2CzfCBZDOHejYomDGv+3O747cB1bo4DtHzc5pTIiAXHwMVTZ2fUxOM0ADp6tXgufN8VkJTJI3LEZY0CFNJlOmE=
+	t=1752126371; cv=none; b=OLh4YWTA5/j0GlDPSmor781DZJH9PB3xB7Sjpw/AYVhY2KBZGiIztn7iRiBzLiJDISHI0uT3Wvv7f6uQtaIPN73ZEd22PBDf/SQPM+VzWzyeAQyXrsu97qKP2usl6KhdF2n4xJzDw53ZsxDNaciEcBTCMlTeeB1gm7fuHRL7wW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126368; c=relaxed/simple;
-	bh=DSsbVoEt4sYbpG6Si+iYMbG5Ym9/yL3xzFW+e1K2EZk=;
-	h=Date:To:From:Subject:Message-Id; b=mWFT6wcaVbnXuFbkc1VUSo0bSb0gqWrxnyW6iW0c4Q8hAUH7DF1tNSkdWRsyUgtgSUSwX2UusbXPJE1Ib0a12001UzfwZvx9LGeX/MKrYOHSZje8KRZD+dO476TqSJK2X5JePT61JUmCA6J2KaPoVmIbAgaaCgFq01vn0PdTHDw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xQoLIVpy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126371; c=relaxed/simple;
+	bh=OdoOVd+wXdqallBxDbD5VcnQmoaQag2uNa647522geU=;
+	h=Date:To:From:Subject:Message-Id; b=tJOOKRTQ/xaK2r3RGZehzXQ1EBSwIFfr1WpwPzLZJEORcdpKWtFWNPTVNgQ/Cmb68Eq8tvWmTRRA7ni5SH9EUGRYOZjDTqIQ9ONXjL/T8hgL5F9zstLxR8oZv9xml6q5rhM8rP7oXQV1NNGchdHILcljHl7A9peKGZQMmCDUggU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YKEztmK8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xQoLIVpy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA6ACC4CEE3;
-	Thu, 10 Jul 2025 05:46:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YKEztmK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AADE3C4CEE3;
+	Thu, 10 Jul 2025 05:46:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126367;
-	bh=DSsbVoEt4sYbpG6Si+iYMbG5Ym9/yL3xzFW+e1K2EZk=;
+	s=korg; t=1752126370;
+	bh=OdoOVd+wXdqallBxDbD5VcnQmoaQag2uNa647522geU=;
 	h=Date:To:From:Subject:From;
-	b=xQoLIVpy19vzcv8gEoAdde7REfHgKFPb5wbZqQpJxNYLm71yFawxxV8Ss+EuWz+PZ
-	 /TotM+9RSNIFe2h7wAk/GxnFyqn27Kx5OUTJKD9Za6uATrDpqeeSY4Y5QPBEaFYhfw
-	 0tUb8eK/WrTAkNKtdxrMKZaPKG8VRVXu0sTM4x2g=
-Date: Wed, 09 Jul 2025 22:46:07 -0700
+	b=YKEztmK8Gqa6iv6156ngUW/BE5rK+LaQdqGFwfp/quvx7lrOdw+YBuahxDpQAm4pD
+	 Ym1M3lqtpJ4/8BxSR8/HcxX1zEr6yf/koImWfkzBqbuKVxJXpabo1YR1CjAob0659h
+	 rRx1tgfStnaRE5vq5NB0zM+CcoveiKW7Uw36SdBo=
+Date: Wed, 09 Jul 2025 22:46:10 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-decouple-from-damos_action.patch removed from -mm tree
-Message-Id: <20250710054607.DA6ACC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch removed from -mm tree
+Message-Id: <20250710054610.AADE3C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,135 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: decouple from damos_action
+     Subject: mm/damon/sysfs-schemes: decouple from damos_wmark_metric
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-decouple-from-damos_action.patch
+     mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: decouple from damos_action
-Date: Sun, 22 Jun 2025 14:37:56 -0700
+Subject: mm/damon/sysfs-schemes: decouple from damos_wmark_metric
+Date: Sun, 22 Jun 2025 14:37:57 -0700
 
-Decouple DAMOS sysfs interface from damos_action.  For this, define and
-use new sysfs-schemes internal data structure that maps the user-space
-keywords and damos_action, instead of having the implicit and unflexible
-array index rule.
+Decouple DAMOS sysfs interface from damos_wmark_metric.  For this, define
+and use new sysfs-schemes internal data structure that maps the user-space
+keywords and damos_wmark_metric, instead of having the implicit and
+unflexible array index rule.
 
-[akpm@linux-foundation.org: make damos_sysfs_action_names static]
-  Closes: https://lore.kernel.org/oe-kbuild-all/202506271655.b8yfEZIT-lkp@intel.com/
-Link: https://lkml.kernel.org/r/20250622213759.50930-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250622213759.50930-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   80 ++++++++++++++++++++++++++++---------
- 1 file changed, 62 insertions(+), 18 deletions(-)
+ mm/damon/sysfs-schemes.c |   41 +++++++++++++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 10 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_action
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric
 +++ a/mm/damon/sysfs-schemes.c
-@@ -1614,18 +1614,52 @@ struct damon_sysfs_scheme {
- 	int target_nid;
- };
+@@ -785,10 +785,21 @@ static struct damon_sysfs_watermarks *da
+ 	return watermarks;
+ }
  
--/* This should match with enum damos_action */
--static const char * const damon_sysfs_damos_action_strs[] = {
--	"willneed",
--	"cold",
--	"pageout",
--	"hugepage",
--	"nohugepage",
--	"lru_prio",
--	"lru_deprio",
--	"migrate_hot",
--	"migrate_cold",
--	"stat",
-+struct damos_sysfs_action_name {
-+	enum damos_action action;
+-/* Should match with enum damos_wmark_metric */
+-static const char * const damon_sysfs_wmark_metric_strs[] = {
+-	"none",
+-	"free_mem_rate",
++struct damos_sysfs_wmark_metric_name {
++	enum damos_wmark_metric metric;
 +	char *name;
 +};
 +
-+static struct damos_sysfs_action_name damos_sysfs_action_names[] = {
++static const struct damos_sysfs_wmark_metric_name
++damos_sysfs_wmark_metric_names[] = {
 +	{
-+		.action = DAMOS_WILLNEED,
-+		.name = "willneed",
++		.metric = DAMOS_WMARK_NONE,
++		.name = "none",
 +	},
 +	{
-+		.action = DAMOS_COLD,
-+		.name = "cold",
-+	},
-+	{
-+		.action = DAMOS_PAGEOUT,
-+		.name = "pageout",
-+	},
-+	{
-+		.action = DAMOS_HUGEPAGE,
-+		.name = "hugepage",
-+	},
-+	{
-+		.action = DAMOS_NOHUGEPAGE,
-+		.name = "nohugepage",
-+	},
-+	{
-+		.action = DAMOS_LRU_PRIO,
-+		.name = "lru_prio",
-+	},
-+	{
-+		.action = DAMOS_LRU_DEPRIO,
-+		.name = "lru_deprio",
-+	},
-+	{
-+		.action = DAMOS_MIGRATE_HOT,
-+		.name = "migrate_hot",
-+	},
-+	{
-+		.action = DAMOS_MIGRATE_COLD,
-+		.name = "migrate_cold",
-+	},
-+	{
-+		.action = DAMOS_STAT,
-+		.name = "stat",
++		.metric = DAMOS_WMARK_FREE_MEM_RATE,
++		.name = "free_mem_rate",
 +	},
  };
  
- static struct damon_sysfs_scheme *damon_sysfs_scheme_alloc(
-@@ -1862,9 +1896,16 @@ static ssize_t action_show(struct kobjec
+ static ssize_t metric_show(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -796,9 +807,16 @@ static ssize_t metric_show(struct kobjec
  {
- 	struct damon_sysfs_scheme *scheme = container_of(kobj,
- 			struct damon_sysfs_scheme, kobj);
+ 	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
+ 			struct damon_sysfs_watermarks, kobj);
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_action_names); i++) {
-+		struct damos_sysfs_action_name *action_name;
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_wmark_metric_names); i++) {
++		const struct damos_sysfs_wmark_metric_name *metric_name;
  
 -	return sysfs_emit(buf, "%s\n",
--			damon_sysfs_damos_action_strs[scheme->action]);
-+		action_name = &damos_sysfs_action_names[i];
-+		if (action_name->action == scheme->action)
-+			return sysfs_emit(buf, "%s\n", action_name->name);
+-			damon_sysfs_wmark_metric_strs[watermarks->metric]);
++		metric_name = &damos_sysfs_wmark_metric_names[i];
++		if (metric_name->metric == watermarks->metric)
++			return sysfs_emit(buf, "%s\n", metric_name->name);
 +	}
 +	return -EINVAL;
  }
  
- static ssize_t action_store(struct kobject *kobj, struct kobj_attribute *attr,
-@@ -1872,11 +1913,14 @@ static ssize_t action_store(struct kobje
+ static ssize_t metric_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -806,11 +824,14 @@ static ssize_t metric_store(struct kobje
  {
- 	struct damon_sysfs_scheme *scheme = container_of(kobj,
- 			struct damon_sysfs_scheme, kobj);
--	enum damos_action action;
+ 	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
+ 			struct damon_sysfs_watermarks, kobj);
+-	enum damos_wmark_metric metric;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_action_names); i++) {
-+		struct damos_sysfs_action_name *action_name;
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_wmark_metric_names); i++) {
++		const struct damos_sysfs_wmark_metric_name *metric_name;
  
--	for (action = 0; action < NR_DAMOS_ACTIONS; action++) {
--		if (sysfs_streq(buf, damon_sysfs_damos_action_strs[action])) {
--			scheme->action = action;
-+		action_name = &damos_sysfs_action_names[i];
-+		if (sysfs_streq(buf, action_name->name)) {
-+			scheme->action = action_name->action;
+-	for (metric = 0; metric < NR_DAMOS_WMARK_METRICS; metric++) {
+-		if (sysfs_streq(buf, damon_sysfs_wmark_metric_strs[metric])) {
+-			watermarks->metric = metric;
++		metric_name = &damos_sysfs_wmark_metric_names[i];
++		if (sysfs_streq(buf, metric_name->name)) {
++			watermarks->metric = metric_name->metric;
  			return count;
  		}
  	}
