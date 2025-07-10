@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 062BF28467B
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81E4E28467B;
+	Thu, 10 Jul 2025 05:43:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126229; cv=none; b=l01OTjks4NK/xUxZUcICyz0KXINC6z/Y7DC7vA4kJtkuOegjnOTXwMhVCrVZ1uhZ382I35s7k+j4/EtDGMFhdYgIGz15sbFoubHj1y9LeIi0qbKfA2rXloTzg3o1sx59c/dsjTvgIzlqcHzTHQiISluOZooAwQxSuvaw2b6av/M=
+	t=1752126230; cv=none; b=J2xphBFLpjNue4z1UgwJxojDa9tBmmlwYnVgfRBmywKedvJFnTLYzbiwDS6s06r61nPjbGPlj5ncFbD34i5qX7oCxuPRXn8auquf6rQ8jHM6YVqghDVJd19cXolBC98hXsUXPfmpCWqgIWgG/QGyWh/Ob1yVhqpWjlouWV1OW+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126229; c=relaxed/simple;
-	bh=g0kw1hhOzYXUyty7K+bI0QIAQ5QCioAXsHt6EBGVvGs=;
-	h=Date:To:From:Subject:Message-Id; b=nzrX8Q1WQ5p86r3i57/7hy4VtWonalQ9iusGbLnpXBdWkRBsENyj/G0DCreeeMmqKICV1vv43y9kg89BnulyTSRex704DkFLlLX6XEMWx2UCfMJu3x+rgvPzwLxyVQNKJk8579ZIJerUsHGDy/Wm8MRrbShT8nMIO6thGkX6kzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s8K9aLXN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126230; c=relaxed/simple;
+	bh=EdSFCn1zjmyJlce2sPpqOqCUqeuTT2D3BJb4YlwgN9Q=;
+	h=Date:To:From:Subject:Message-Id; b=kAgn3dWwTswMapu7waWtkDq6AEUjb6xMPJ67QRF3QJLrD8OKpCZztmN04URVZiRy0ookpPB6t2FJqMDcx9WphxZJW0qNxHKqhtuDpeLz/adm8AJ9p+XNExsW4d29E6JljCKjV7YmdKM5ElUs5HFji638P0MCqugG0pc3UGqCnCo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pk0k+6Ul; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s8K9aLXN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE41FC4CEE3;
-	Thu, 10 Jul 2025 05:43:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pk0k+6Ul"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3F74C4CEE3;
+	Thu, 10 Jul 2025 05:43:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126228;
-	bh=g0kw1hhOzYXUyty7K+bI0QIAQ5QCioAXsHt6EBGVvGs=;
+	s=korg; t=1752126230;
+	bh=EdSFCn1zjmyJlce2sPpqOqCUqeuTT2D3BJb4YlwgN9Q=;
 	h=Date:To:From:Subject:From;
-	b=s8K9aLXN6FelN1Qffumpll7ZKmcOW/Cm7LKT/1HvxXow+srPvC5CQXH5PahhTdCmn
-	 Moxgijz/Qauf6yuXG12X8jSJGpMH5fOOCv1jutKGGkV+Ier/0uO1PI8UK5uMI3rcba
-	 pBpKholhCCn+Z0W3G3GTU3iwhKYyatucv+fLmyqM=
-Date: Wed, 09 Jul 2025 22:43:48 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,liumartin@google.com,kaleshsingh@google.com,david@redhat.com,richardycc@google.com,akpm@linux-foundation.org
+	b=pk0k+6UlDw+d/nNeXMox0HthNifk00aOZOqlhDUe52hopZRvwt1xpEZCQPnNyhIKG
+	 SPvihvqMHxE1qNaZ6Jos5E+HoAGEMHBF60JDRjMG1ZkL3HXcjNChpFeJ0r4vhvczVw
+	 hLsrXlDaWh7ULDTyAHUdqNGNYFubYrtd18KyyAOk=
+Date: Wed, 09 Jul 2025 22:43:49 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,josef@toxicpanda.com,jack@suse.cz,chizhiling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-cma-pairing-the-trace_cma_alloc_start-finish.patch removed from -mm tree
-Message-Id: <20250710054348.CE41FC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] readahead-fix-return-value-of-page_cache_next_miss-when-no-hole-is-found.patch removed from -mm tree
+Message-Id: <20250710054349.F3F74C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/cma: pair the trace_cma_alloc_start/finish
+     Subject: readahead: fix return value of page_cache_next_miss() when no hole is found
 has been removed from the -mm tree.  Its filename was
-     mm-cma-pairing-the-trace_cma_alloc_start-finish.patch
+     readahead-fix-return-value-of-page_cache_next_miss-when-no-hole-is-found.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Richard Chang <richardycc@google.com>
-Subject: mm/cma: pair the trace_cma_alloc_start/finish
-Date: Thu, 5 Jun 2025 07:25:32 +0000
+From: Chi Zhiling <chizhiling@kylinos.cn>
+Subject: readahead: fix return value of page_cache_next_miss() when no hole is found
+Date: Thu, 5 Jun 2025 13:49:35 +0800
 
-In the bad input validation cases, there is no trace_cma_alloc_finish to
-match the trace_cma_alloc_start.  Move the trace_cma_alloc_start event
-after the validations.
+max_scan in page_cache_next_miss always decreases to zero when no hole is
+found, causing the return value to be index + 0.
 
-Link: https://lkml.kernel.org/r/20250605072532.972081-1-richardycc@google.com
-Signed-off-by: Richard Chang <richardycc@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Fix this by preserving the max_scan value throughout the loop.
+
+Jan said "From what I know and have seen in the past, wrong responses
+from page_cache_next_miss() can lead to readahead window reduction and
+thus reduced read speeds."
+
+Link: https://lkml.kernel.org/r/20250605054935.2323451-1-chizhiling@163.com
+Fixes: 901a269ff3d5 ("filemap: fix page_cache_next_miss() when no hole found")
+Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/cma.c~mm-cma-pairing-the-trace_cma_alloc_start-finish
-+++ a/mm/cma.c
-@@ -854,8 +854,6 @@ static struct page *__cma_alloc(struct c
- 	unsigned long i;
- 	const char *name = cma ? cma->name : NULL;
+--- a/mm/filemap.c~readahead-fix-return-value-of-page_cache_next_miss-when-no-hole-is-found
++++ a/mm/filemap.c
+@@ -1778,8 +1778,9 @@ pgoff_t page_cache_next_miss(struct addr
+ 			     pgoff_t index, unsigned long max_scan)
+ {
+ 	XA_STATE(xas, &mapping->i_pages, index);
++	unsigned long nr = max_scan;
  
--	trace_cma_alloc_start(name, count, align);
--
- 	if (!cma || !cma->count)
- 		return page;
- 
-@@ -865,6 +863,8 @@ static struct page *__cma_alloc(struct c
- 	if (!count)
- 		return page;
- 
-+	trace_cma_alloc_start(name, count, align);
-+
- 	for (r = 0; r < cma->nranges; r++) {
- 		page = NULL;
- 
+-	while (max_scan--) {
++	while (nr--) {
+ 		void *entry = xas_next(&xas);
+ 		if (!entry || xa_is_value(entry))
+ 			return xas.xa_index;
 _
 
-Patches currently in -mm which might be from richardycc@google.com are
+Patches currently in -mm which might be from chizhiling@kylinos.cn are
 
 
