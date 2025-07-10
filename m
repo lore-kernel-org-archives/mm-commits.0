@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6E50286420
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F93B286420
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126359; cv=none; b=uDbvHgAgI6QQi7rP1abNHUUm3RlWKBUx+6c/R8jLbdINDc9l0j7spEujuPHTRxT/Y7XPLH08CXXYKInVuyzbb/J2sxvngs5qJHojfkvrDJV8/uuOC9lyIGSTM6Fyrqv5xGtUy2Y5a3dzDSC5XuzxYqaMF6uPc+DL/V6P9uG8JoE=
+	t=1752126360; cv=none; b=Oq7zBup+GfCqSwUz3tsASXW+uav2F92Ci10kxH+ANU21L6DlHe7B41WyKYxqVjbFL71zDPJM5Z9tiUZQymqLm8d+9DHJ3I5EnFacuvOrDfIZp4MrRYRJ4L5sgjufHCvQJ8Q709xobnaPmncDXYBmqTY/VZoQPIcvmcS6Vh04vio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126359; c=relaxed/simple;
-	bh=fD21bAy1RVqUIBGd67oNeB10vivc5pGAb4Cj0a18Tk4=;
-	h=Date:To:From:Subject:Message-Id; b=cbvfwXd5j8ppAhq7VIyJDGdixsG2xGg1eTbrbhDzM5MBxQfsq7SGPKftiRI2cYe/TKk1FdINrdwOrIfvoUiQKEz2JErFVVfFF0z97LZTK26qXy0zwcHO+oAFQP1qX8GDiEAsgS6VlOGrGABZyCHGkaYc/FwVtCuiseJS7wL4e9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qmgSv1bf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126360; c=relaxed/simple;
+	bh=GdbsCUPMFPA615towYhgLBIIsr02zkwIVRqgRb9iEtc=;
+	h=Date:To:From:Subject:Message-Id; b=aUqXNuZSA+qBLvMiPXInOmSxC7jY4Iw1F6hXJk6LoJFegbKxxGKZNEy5FQDCM/48M9D7J3t/5UsOhJI4KsiEpYQ//yJqfJXGEsvJEF6LbQbi7kAZxIzTXe6DhG28O4SMb3MUo6C9/GdterHGdaoZXu8n3Wpc7PEzDOlUYm9oL9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lxa7/tFB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qmgSv1bf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEBF4C4CEE3;
-	Thu, 10 Jul 2025 05:45:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lxa7/tFB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E10CCC4CEF4;
+	Thu, 10 Jul 2025 05:45:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126358;
-	bh=fD21bAy1RVqUIBGd67oNeB10vivc5pGAb4Cj0a18Tk4=;
+	s=korg; t=1752126360;
+	bh=GdbsCUPMFPA615towYhgLBIIsr02zkwIVRqgRb9iEtc=;
 	h=Date:To:From:Subject:From;
-	b=qmgSv1bfurPAKGcW2+go7ZtX3BcVQb4+0m7cauwts11cKSFFy2xa6658uOLxBmVR3
-	 93SovKNB46sgNwsc0z1LwEWBc/mjjtES2+mR3yx/PXTnjD6aLfsstFCFYjDlf//olA
-	 dcgRE9G4HghpO5hdAyM0gmrdotrABoSYArmnFvD0=
-Date: Wed, 09 Jul 2025 22:45:58 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=lxa7/tFB/8YxOgt4WAFVnx38wNRZFwUXk5oeOfcZ/rUAs7OxeaAy1rt1rBkt/vEkn
+	 GtZwYZv2gH2zA0yvWuAt8md+2xJh/1QIsFR6Sc+nlYDCx9AS43J7YJMLVHS0P6+VJa
+	 hdAqPOh6I3YcHbBN6yciL6LfPbqzwLBYN4N7Q32g=
+Date: Wed, 09 Jul 2025 22:45:59 -0700
+To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,Liam.Howlett@oracle.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftets-damon-add-a-test-for-memcg_path-leak.patch removed from -mm tree
-Message-Id: <20250710054558.BEBF4C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] maple-tree-use-goto-label-to-simplify-code.patch removed from -mm tree
+Message-Id: <20250710054559.E10CCC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftets/damon: add a test for memcg_path leak
+     Subject: maple tree: use goto label to simplify code
 has been removed from the -mm tree.  Its filename was
-     selftets-damon-add-a-test-for-memcg_path-leak.patch
+     maple-tree-use-goto-label-to-simplify-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftets/damon: add a test for memcg_path leak
-Date: Thu, 19 Jun 2025 11:36:08 -0700
+From: Dev Jain <dev.jain@arm.com>
+Subject: maple tree: use goto label to simplify code
+Date: Tue, 24 Jun 2025 13:37:48 +0530
 
-There was a memory leak bug in DAMOS sysfs memcg_path file.  Add a
-selftest to ensure the bug never comes back.
+Use the underflow goto label to set the status to ma_underflow and return
+NULL, as is being done elsewhere.
 
-Link: https://lkml.kernel.org/r/20250619183608.6647-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+[akpm@linux-foundation.org: add newline, per Liam (and remove one, per akpm)]
+Link: https://lkml.kernel.org/r/20250624080748.4855-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile                 |    1 
- tools/testing/selftests/damon/sysfs_memcg_path_leak.sh |   43 ++++++++++
- 2 files changed, 44 insertions(+)
+ lib/maple_tree.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftets-damon-add-a-test-for-memcg_path-leak
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -15,6 +15,7 @@ TEST_PROGS += reclaim.sh lru_sort.sh
- # regression tests (reproducers of previously found bugs)
- TEST_PROGS += sysfs_update_removed_scheme_dir.sh
- TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
-+TEST_PROGS += sysfs_memcg_path_leak.sh
+--- a/lib/maple_tree.c~maple-tree-use-goto-label-to-simplify-code
++++ a/lib/maple_tree.c
+@@ -4560,15 +4560,12 @@ again:
+ 	if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
+ 		goto retry;
  
- EXTRA_CLEAN = __pycache__
+-
+ 	if (likely(entry))
+ 		return entry;
  
-diff --git a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-@@ -0,0 +1,43 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+if [ $EUID -ne 0 ]
-+then
-+	echo "Run as root"
-+	exit $ksft_skip
-+fi
-+
-+damon_sysfs="/sys/kernel/mm/damon/admin"
-+if [ ! -d "$damon_sysfs" ]
-+then
-+	echo "damon sysfs not found"
-+	exit $ksft_skip
-+fi
-+
-+# ensure filter directory
-+echo 1 > "$damon_sysfs/kdamonds/nr_kdamonds"
-+echo 1 > "$damon_sysfs/kdamonds/0/contexts/nr_contexts"
-+echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/nr_schemes"
-+echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/0/filters/nr_filters"
-+
-+filter_dir="$damon_sysfs/kdamonds/0/contexts/0/schemes/0/filters/0"
-+
-+before_kb=$(grep Slab /proc/meminfo | awk '{print $2}')
-+
-+# try to leak 3000 KiB
-+for i in {1..102400};
-+do
-+	echo "012345678901234567890123456789" > "$filter_dir/memcg_path"
-+done
-+
-+after_kb=$(grep Slab /proc/meminfo | awk '{print $2}')
-+# expect up to 1500 KiB free from other tasks memory
-+expected_after_kb_max=$((before_kb + 1500))
-+
-+if [ "$after_kb" -gt "$expected_after_kb_max" ]
-+then
-+	echo "maybe memcg_path are leaking: $before_kb -> $after_kb"
-+	exit 1
-+else
-+	exit 0
-+fi
+ 	if (!empty) {
+-		if (mas->index <= min) {
+-			mas->status = ma_underflow;
+-			return NULL;
+-		}
++		if (mas->index <= min)
++			goto underflow;
+ 
+ 		goto again;
+ 	}
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-selftests-damon-add-drgn-script-for-extracting-damon-status.patch
-selftests-damon-_damon_sysfs-set-kdamondpid-in-start.patch
-selftests-damon-add-python-and-drgn-based-damon-sysfs-test.patch
-selftests-damon-sysfspy-test-monitoring-attribute-parameters.patch
-selftests-damon-sysfspy-test-adaptive-targets-parameter.patch
-selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch
-mm-damon-add-trace-event-for-auto-tuned-monitoring-intervals.patch
-mm-damon-add-trace-event-for-effective-size-quota.patch
-mm-damon-add-trace-event-for-effective-size-quota-fix.patch
-mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
-samples-damon-wsse-fix-boot-time-enable-handling.patch
-samples-damon-prcl-fix-boot-time-enable-crash.patch
-samples-damon-mtier-support-boot-time-enable-setup.patch
-mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
-mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
-mm-damon-reclaim-use-parameter-context-correctly.patch
-samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
-samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
-samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
-mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
-mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
-docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
-mm-damon-add-struct-damos_migrate_dests.patch
-mm-damon-core-add-damos-migrate_dests-field.patch
-mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
-mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
-docs-abi-damon-document-schemes-dests-directory.patch
-docs-admin-guide-mm-damon-usage-document-dests-directory.patch
+maple-tree-add-some-comments.patch
+khugepaged-reduce-race-probability-between-migration-and-khugepaged.patch
+khugepaged-generalize-alloc_charge_folio.patch
 
