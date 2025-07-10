@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8EA34C97
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 22:36:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC19D29993F
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 22:38:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752187011; cv=none; b=J+3tMLjyS5Y9PR03C2FkzvmsHB4XbIqf8lOMDvHttpfQN1+Wt8FD7P1UBZzhUpEd4ZkPBX7jVLuLu2XuuWm4ZO6QaillqxdNpfbB/f7j54GN164NHCM4o6B1kkWYGLm5yalPYE942LreJP5w1fbXH9dGxQHFU0F82SWdzKxm6UQ=
+	t=1752187101; cv=none; b=Kq4Cwctuuwu/Lsj7FwdMIFRrhz1HzIx0dPVpJcId35+yw/8WRMP7RA4uzkBthBSJVniOCaYLzLhAutOgJRuib32xg2VzAFjXTE+gEczUC0lR3JmfDZhZy7CoodeMTsucb8OSVCJDI5jkYz9ynWV8qsTdU7Rc6mWOPYS7OZ+wQX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752187011; c=relaxed/simple;
-	bh=mXT74Ci5TJuSmAIGndNr52cJw5qCPYbAgdeydK2bFHY=;
-	h=Date:To:From:Subject:Message-Id; b=WojQygCBEqclwza8Ss9s1ufPMOU2UM/zdpBQruxnMcCY+Nv4bpKDrc6I83jb83yHIEVlaEE0mO6XBO/E3qYfZOXackBvVpx+9VGsowBeTQwM06bFwSx/jQybFZ+IeAQyJRAMOH4iuPUmanjaHuNK/sR222Y3jDuupzau0VpcmDI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MXxS7fhG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752187101; c=relaxed/simple;
+	bh=LjDLJ7Pa6pCYhRgXvwiwDdmQQuM5WHq8xzZF9BrfczA=;
+	h=Date:To:From:Subject:Message-Id; b=AaCI4JqSn7nE1d24o5yxvUrlT2MBynNqaNgOVwvy67ae8fJb7cCbTvgCMf0txz9r/JX4KSpLE4NmZyksIVeO4IkCvDQQ2kQO/lVvt6U7AVdTlldLBJ0lsDOolpFATvXoHJcsck2H5zcm2rRwQYkCG00sq/imUPnerkx8bREtOrw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y+Zr9VFr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MXxS7fhG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14016C4CEE3;
-	Thu, 10 Jul 2025 22:36:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y+Zr9VFr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4813AC4CEE3;
+	Thu, 10 Jul 2025 22:38:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752187011;
-	bh=mXT74Ci5TJuSmAIGndNr52cJw5qCPYbAgdeydK2bFHY=;
+	s=korg; t=1752187101;
+	bh=LjDLJ7Pa6pCYhRgXvwiwDdmQQuM5WHq8xzZF9BrfczA=;
 	h=Date:To:From:Subject:From;
-	b=MXxS7fhGzdOamkZB/I4PNUjjg34yav21myGD2srXXt74BVpHURaxR59+G+Rmw8knI
-	 yx8YABNH30dYSpRUseORTUSTmUFGou7P4dHGe2na44v2aLOa29suPMw9a9KK+BPP35
-	 nlR+GCl7mUsuzqP2o08bgAYq0DGNofq3E4Cnu+30=
-Date: Thu, 10 Jul 2025 15:36:50 -0700
+	b=y+Zr9VFrjmQj852qot1tSAznvjGwKnN+oU62u5r4kixHMH18jN40bwVVQX3IsNhAN
+	 Ts7RWwdLBwQDohNLoYV6A1AsrWnHrXQ9ZR8BVMlLTlVcD6DTbMtl0dzW21n0sdtjr/
+	 tK0EHFMoXRv5AZEoOducwD7jAy0rKfxHC7FqsMAY=
+Date: Thu, 10 Jul 2025 15:38:20 -0700
 To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delaytop-add-psi-info-to-show-system-delay.patch added to mm-nonmm-unstable branch
-Message-Id: <20250710223651.14016C4CEE3@smtp.kernel.org>
+Subject: + docs-update-docs-after-introducing-delaytop.patch added to mm-nonmm-unstable branch
+Message-Id: <20250710223821.4813AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delaytop: add psi info to show system delay
+     Subject: docs: update docs after introducing delaytop
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delaytop-add-psi-info-to-show-system-delay.patch
+     docs-update-docs-after-introducing-delaytop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delaytop-add-psi-info-to-show-system-delay.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-update-docs-after-introducing-delaytop.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,50 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: delaytop: add psi info to show system delay
-Date: Thu, 10 Jul 2025 13:54:51 +0800 (CST)
+Subject: docs: update docs after introducing delaytop
+Date: Thu, 10 Jul 2025 13:51:41 +0800 (CST)
 
-Support showing whole delay of system by reading PSI, just like the first
-few lines of information output by the top command.  the output of
-delaytop includes both system-wide delay and delay of individual tasks,
-providing a more comprehensive reflection of system latency status.
+The "getdelays" can only display the latency of a single task by
+specifying a PID, we introduce the "delaytop" with the following
+capabilities:
 
-Use case
-========
-bash# ./delaytop
-System Pressure Information: (avg10/avg60/avg300/total)
-CPU:    full:    0.0%/   0.0%/   0.0%/0           some:    0.1%/   0.0%/   0.0%/14216596
-Memory: full:    0.0%/   0.0%/   0.0%/34010659    some:    0.0%/   0.0%/   0.0%/35406492
-IO:     full:    0.1%/   0.0%/   0.0%/51029453    some:    0.1%/   0.0%/   0.0%/55330465
-IRQ:    full:    0.0%/   0.0%/   0.0%/0
+1. system view: monitors latency metrics (CPU, I/O, memory, IRQ, etc.)
+   for all system processes
 
-Top 20 processes (sorted by CPU delay):
+2. supports field-based sorting (e.g., default sort by CPU latency in
+   descending order)
 
-  PID   TGID  COMMAND            CPU(ms)  IO(ms)        SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)
----------------------------------------------------------------------------------------------
-   32     32  kworker/2:0H-sy   23.65     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-  497    497  kworker/R-scsi_    1.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-  495    495  kworker/R-scsi_    1.13     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-  494    494  scsi_eh_0          1.12     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-  485    485  kworker/R-ata_s    0.90     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-  574    574  kworker/R-kdmfl    0.36     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-   34     34  idle_inject/3      0.33     0.00     0.00     0.00    0.00     0.00     0.00     0.00
- 1123   1123  nde-netfilter      0.28     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-   60     60  ksoftirqd/7        0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-  114    114  kworker/0:2-cgr    0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-  496    496  scsi_eh_1          0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-   51     51  cpuhp/6            0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
- 1667   1667  atd                0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-   45     45  cpuhp/5            0.23     0.00     0.00     0.00    0.00     0.00     0.00     0.00
- 1102   1102  nde-backupservi    0.22     0.00     0.00     0.00    0.00     0.00     0.00     0.00
- 1098   1098  systemsettings     0.21     0.00     0.00     0.00    0.00     0.00     0.00     0.00
- 1100   1100  audit-monitor      0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-   53     53  migration/6        0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
- 1482   1482  sshd               0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-   39     39  cpuhp/4            0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+3. dynamic interactive interface: focus on specific processes with
+   --pid; limit displayed entries with --processes 20; control monitoring
+   duration with --iterations;
 
-Link: https://lkml.kernel.org/r/20250710135451340_5pOgpIFi0M5AE7H44W1D@zte.com.cn
-Co-developed-by: Fan Yu <fan.yu9@zte.com.cn>
+Link: https://lkml.kernel.org/r/2025071013514177028RdjISjqeIOnTCRvGAwy@zte.com.cn
 Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
 Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
 Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
@@ -117,247 +91,66 @@ Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/delaytop.c |  163 +++++++++++++++++++++++++++++++---
- 1 file changed, 149 insertions(+), 14 deletions(-)
+ Documentation/accounting/delay-accounting.rst |   47 ++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
---- a/tools/accounting/delaytop.c~delaytop-add-psi-info-to-show-system-delay
-+++ a/tools/accounting/delaytop.c
-@@ -10,9 +10,9 @@
-  * individual tasks (PIDs).
-  *
-  * Key features:
-- *   - Collects per-task delay accounting statistics via taskstats.
-- *   - Supports sorting, filtering.
-- *   - Supports both interactive (screen refresh).
-+ *	- Collects per-task delay accounting statistics via taskstats.
-+ *	- Supports sorting, filtering.
-+ *	- Supports both interactive (screen refresh).
-  *
-  * Copyright (C) Fan Yu, ZTE Corp. 2025
-  * Copyright (C) Wang Yaxin, ZTE Corp. 2025
-@@ -43,6 +43,14 @@
- #include <linux/cgroupstats.h>
- #include <ncurses.h>
+--- a/Documentation/accounting/delay-accounting.rst~docs-update-docs-after-introducing-delaytop
++++ a/Documentation/accounting/delay-accounting.rst
+@@ -131,3 +131,50 @@ Get IO accounting for pid 1, it works on
+ 	linuxrc: read=65536, write=0, cancelled_write=0
  
-+#define PSI_CPU_SOME "/proc/pressure/cpu"
-+#define PSI_CPU_FULL	"/proc/pressure/cpu"
-+#define PSI_MEMORY_SOME "/proc/pressure/memory"
-+#define PSI_MEMORY_FULL "/proc/pressure/memory"
-+#define PSI_IO_SOME "/proc/pressure/io"
-+#define PSI_IO_FULL "/proc/pressure/io"
-+#define PSI_IRQ_FULL	"/proc/pressure/irq"
+ The above command can be used with -v to get more debug information.
 +
- #define NLA_NEXT(na)			((struct nlattr *)((char *)(na) + NLA_ALIGN((na)->nla_len)))
- #define NLA_DATA(na)			((void *)((char *)(na) + NLA_HDRLEN))
- #define NLA_PAYLOAD(len)		(len - NLA_HDRLEN)
-@@ -66,6 +74,24 @@ struct config {
- 	char *container_path;	/* Path to container cgroup */
- };
- 
-+/* PSI statistics structure */
-+struct psi_stats {
-+	double cpu_some_avg10, cpu_some_avg60, cpu_some_avg300;
-+	unsigned long long cpu_some_total;
-+	double cpu_full_avg10, cpu_full_avg60, cpu_full_avg300;
-+	unsigned long long cpu_full_total;
-+	double memory_some_avg10, memory_some_avg60, memory_some_avg300;
-+	unsigned long long memory_some_total;
-+	double memory_full_avg10, memory_full_avg60, memory_full_avg300;
-+	unsigned long long memory_full_total;
-+	double io_some_avg10, io_some_avg60, io_some_avg300;
-+	unsigned long long io_some_total;
-+	double io_full_avg10, io_full_avg60, io_full_avg300;
-+	unsigned long long io_full_total;
-+	double irq_full_avg10, irq_full_avg60, irq_full_avg300;
-+	unsigned long long irq_full_total;
-+};
++After the system starts, use `delaytop` to get the Top-N high-latency tasks.
++this tool supports sorting by CPU latency in descending order by default,
++displays the top 20 high-latency tasks by default, and refreshes the latency
++data every 2 seconds by default.
 +
- /* Task delay information structure */
- struct task_info {
- 	int pid;
-@@ -100,6 +126,7 @@ struct container_stats {
- 
- /* Global variables */
- static struct config cfg;
-+static struct psi_stats psi;
- static struct task_info tasks[MAX_TASKS];
- static int task_count;
- static int running = 1;
-@@ -130,13 +157,13 @@ static void usage(void)
- {
- 	printf("Usage: delaytop [Options]\n"
- 	"Options:\n"
--	"  -h, --help               Show this help message and exit\n"
--	"  -d, --delay=SECONDS      Set refresh interval (default: 2 seconds, min: 1)\n"
--	"  -n, --iterations=COUNT   Set number of updates (default: 0 = infinite)\n"
--	"  -P, --processes=NUMBER   Set maximum number of processes to show (default: 20, max: 1000)\n"
--	"  -o, --once               Display once and exit\n"
--	"  -p, --pid=PID            Monitor only the specified PID\n"
--	"  -C, --container=PATH     Monitor the container at specified cgroup path\n");
-+	"  -h, --help				Show this help message and exit\n"
-+	"  -d, --delay=SECONDS	  Set refresh interval (default: 2 seconds, min: 1)\n"
-+	"  -n, --iterations=COUNT	Set number of updates (default: 0 = infinite)\n"
-+	"  -P, --processes=NUMBER	Set maximum number of processes to show (default: 20, max: 1000)\n"
-+	"  -o, --once				Display once and exit\n"
-+	"  -p, --pid=PID			Monitor only the specified PID\n"
-+	"  -C, --container=PATH	 Monitor the container at specified cgroup path\n");
- 	exit(0);
- }
- 
-@@ -276,7 +303,7 @@ static int send_cmd(int sd, __u16 nlmsg_
- 	memset(&nladdr, 0, sizeof(nladdr));
- 	nladdr.nl_family = AF_NETLINK;
- 	while ((r = sendto(sd, buf, buflen, 0, (struct sockaddr *) &nladdr,
--				   sizeof(nladdr))) < buflen) {
-+					sizeof(nladdr))) < buflen) {
- 		if (r > 0) {
- 			buf += r;
- 			buflen -= r;
-@@ -320,6 +347,89 @@ static int get_family_id(int sd)
- 	return id;
- }
- 
-+static void read_psi_stats(void)
-+{
-+	FILE *fp;
-+	char line[256];
-+	int ret = 0;
-+	/* Zero all fields */
-+	memset(&psi, 0, sizeof(psi));
-+	/* CPU pressure */
-+	fp = fopen(PSI_CPU_SOME, "r");
-+	if (fp) {
-+		while (fgets(line, sizeof(line), fp)) {
-+			if (strncmp(line, "some", 4) == 0) {
-+				ret = sscanf(line, "some avg10=%lf avg60=%lf avg300=%lf total=%llu",
-+							&psi.cpu_some_avg10, &psi.cpu_some_avg60,
-+							&psi.cpu_some_avg300, &psi.cpu_some_total);
-+				if (ret != 4)
-+					fprintf(stderr, "Failed to parse CPU some PSI data\n");
-+			} else if (strncmp(line, "full", 4) == 0) {
-+				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
-+						&psi.cpu_full_avg10, &psi.cpu_full_avg60,
-+						&psi.cpu_full_avg300, &psi.cpu_full_total);
-+				if (ret != 4)
-+					fprintf(stderr, "Failed to parse CPU full PSI data\n");
-+			}
-+		}
-+		fclose(fp);
-+	}
-+	/* Memory pressure */
-+	fp = fopen(PSI_MEMORY_SOME, "r");
-+	if (fp) {
-+		while (fgets(line, sizeof(line), fp)) {
-+			if (strncmp(line, "some", 4) == 0) {
-+				ret = sscanf(line, "some avg10=%lf avg60=%lf avg300=%lf total=%llu",
-+						&psi.memory_some_avg10, &psi.memory_some_avg60,
-+						&psi.memory_some_avg300, &psi.memory_some_total);
-+				if (ret != 4)
-+					fprintf(stderr, "Failed to parse Memory some PSI data\n");
-+			} else if (strncmp(line, "full", 4) == 0) {
-+				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
-+						&psi.memory_full_avg10, &psi.memory_full_avg60,
-+						&psi.memory_full_avg300, &psi.memory_full_total);
-+			}
-+				if (ret != 4)
-+					fprintf(stderr, "Failed to parse Memory full PSI data\n");
-+		}
-+		fclose(fp);
-+	}
-+	/* IO pressure */
-+	fp = fopen(PSI_IO_SOME, "r");
-+	if (fp) {
-+		while (fgets(line, sizeof(line), fp)) {
-+			if (strncmp(line, "some", 4) == 0) {
-+				ret = sscanf(line, "some avg10=%lf avg60=%lf avg300=%lf total=%llu",
-+						&psi.io_some_avg10, &psi.io_some_avg60,
-+						&psi.io_some_avg300, &psi.io_some_total);
-+				if (ret != 4)
-+					fprintf(stderr, "Failed to parse IO some PSI data\n");
-+			} else if (strncmp(line, "full", 4) == 0) {
-+				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
-+						&psi.io_full_avg10, &psi.io_full_avg60,
-+						&psi.io_full_avg300, &psi.io_full_total);
-+				if (ret != 4)
-+					fprintf(stderr, "Failed to parse IO full PSI data\n");
-+			}
-+		}
-+		fclose(fp);
-+	}
-+	/* IRQ pressure (only full) */
-+	fp = fopen(PSI_IRQ_FULL, "r");
-+	if (fp) {
-+		while (fgets(line, sizeof(line), fp)) {
-+			if (strncmp(line, "full", 4) == 0) {
-+				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
-+						&psi.irq_full_avg10, &psi.irq_full_avg60,
-+						&psi.irq_full_avg300, &psi.irq_full_total);
-+				if (ret != 4)
-+					fprintf(stderr, "Failed to parse IRQ full PSI data\n");
-+			}
-+		}
-+		fclose(fp);
-+	}
-+}
++Get Top-N tasks delay, since system boot::
 +
- static int read_comm(int pid, char *comm_buf, size_t buf_size)
- {
- 	char path[64];
-@@ -549,7 +659,29 @@ static void display_results(void)
- 	FILE *out = stdout;
- 
- 	fprintf(out, "\033[H\033[J");
--
-+	/* PSI output (one-line, no cat style) */
-+	fprintf(out, "System Pressure Information: ");
-+	fprintf(out, "(avg10/avg60/avg300/total)\n");
-+	fprintf(out, "CPU:");
-+	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.cpu_full_avg10,
-+			psi.cpu_full_avg60, psi.cpu_full_avg300, psi.cpu_full_total);
-+	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.cpu_some_avg10,
-+			psi.cpu_some_avg60, psi.cpu_some_avg300, psi.cpu_some_total);
++	bash# ./delaytop
++	Top 20 processes (sorted by CPU delay):
 +
-+	fprintf(out, "Memory:");
-+	fprintf(out, " full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.memory_full_avg10,
-+			psi.memory_full_avg60, psi.memory_full_avg300, psi.memory_full_total);
-+	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.memory_some_avg10,
-+			psi.memory_some_avg60, psi.memory_some_avg300, psi.memory_some_total);
++	  PID   TGID  COMMAND            CPU(ms)  IO(ms)        SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)
++	---------------------------------------------------------------------------------------------
++	   32     32  kworker/2:0H-sy   23.65     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  497    497  kworker/R-scsi_    1.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  495    495  kworker/R-scsi_    1.13     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  494    494  scsi_eh_0          1.12     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  485    485  kworker/R-ata_s    0.90     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  574    574  kworker/R-kdmfl    0.36     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	   34     34  idle_inject/3      0.33     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	 1123   1123  nde-netfilter      0.28     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	   60     60  ksoftirqd/7        0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  114    114  kworker/0:2-cgr    0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  496    496  scsi_eh_1          0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	   51     51  cpuhp/6            0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	 1667   1667  atd                0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	   45     45  cpuhp/5            0.23     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	 1102   1102  nde-backupservi    0.22     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	 1098   1098  systemsettings     0.21     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	 1100   1100  audit-monitor      0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	   53     53  migration/6        0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	 1482   1482  sshd               0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	   39     39  cpuhp/4            0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
 +
-+	fprintf(out, "IO:");
-+	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.io_full_avg10,
-+			psi.io_full_avg60, psi.io_full_avg300, psi.io_full_total);
-+	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.io_some_avg10,
-+			psi.io_some_avg60, psi.io_some_avg300, psi.io_some_total);
-+	fprintf(out, "IRQ:");
-+	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n\n", psi.irq_full_avg10,
-+			psi.irq_full_avg60, psi.irq_full_avg300, psi.irq_full_total);
- 	if (cfg.container_path) {
- 		fprintf(out, "Container Information (%s):\n", cfg.container_path);
- 		fprintf(out, "Processes: running=%d, sleeping=%d, ",
-@@ -559,8 +691,8 @@ static void display_results(void)
- 			container_stats.nr_io_wait);
- 	}
- 	fprintf(out, "Top %d processes (sorted by CPU delay):\n\n",
--		   cfg.max_processes);
--	fprintf(out, "  PID	TGID  COMMAND		 CPU(ms)  IO(ms)   ");
-+			cfg.max_processes);
-+	fprintf(out, "  PID	TGID  COMMAND		 CPU(ms)  IO(ms)	");
- 	fprintf(out, "SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)\n");
- 	fprintf(out, "-----------------------------------------------");
- 	fprintf(out, "----------------------------------------------\n");
-@@ -616,6 +748,9 @@ int main(int argc, char **argv)
- 
- 	/* Main loop */
- 	while (running) {
-+		/* Read PSI statistics */
-+		read_psi_stats();
++Dynamic interactive interface of delaytop::
 +
- 		/* Get container stats if container path provided */
- 		if (cfg.container_path)
- 			get_container_stats();
++	# ./delaytop -p pid
++	Print delayacct stats
++
++	# ./delaytop -P num
++	Display the top N tasks
++
++	# ./delaytop -n num
++	Set delaytop refresh frequency (num times)
++
++	# ./delaytop -d secs
++	Specify refresh interval as secs
 _
 
 Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
 delaytop-add-psi-info-to-show-system-delay.patch
+docs-update-docs-after-introducing-delaytop.patch
 
