@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA6E21A285;
-	Thu, 10 Jul 2025 04:09:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB1B1A285;
+	Thu, 10 Jul 2025 04:09:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752120543; cv=none; b=DSZJ8a5MeUZpnQNxRfxecaYhNjsdlDkb9nxP7AHzXcdt0uJMizcwWVSIjasjWOrbfNiEEEHHfGUDlTJgY55WkEz4TGkaRKj5peOBMHRshAmEEBLOYvsUA5p4xXrURlmr61e7Awf4dHEssi2MIlcQqiNUh294u85MNh3wXPjyH20=
+	t=1752120544; cv=none; b=PgUU7dFHQYEyV+zK6o1R0S8rDRyOb3fCtyHgNGpA/cDtku7DVe8ZiqD54MWx4XZGCRG7cGARDO6QFDDsl1XYSytcYmiiBy2Bopq+kb3/fI5JQ7sIUOdshQ2eDE4TfGSYFuoFBYu258LG0wx28ycMbPI3+dnZlRXq2QeCTYo9CuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752120543; c=relaxed/simple;
-	bh=BxFYviZ7q/DtDjC0z8zhZVdnb5NKLsH7FwBz2glSSWI=;
-	h=Date:To:From:Subject:Message-Id; b=Su6v7IivSMRn4+4rfmOAmS6RYO/BC7M27ZNS1Dy1dywWL6S4W9D0NNJU6EhdLKAFyfRG7aDYeYOC9M64yE8IcoLTJjxFLvRP3/E3WD/a9QZTnSf2eGuyOy/L1/b7Ghsc3c3nNw2gto/jl5pwAfn107N0y50dSGXJhgAW2CuLL0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wwKvATkN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752120544; c=relaxed/simple;
+	bh=VbhwAtPDhLq7fGWp7wDgKkmSc5982JOoO6N5snEgLBw=;
+	h=Date:To:From:Subject:Message-Id; b=UGt5Cxkv4N4ifq0x8WjJHAlooZhHNaRcP3HhsQlniUxO5fDB+3CM91HBXpTAAqZLXOq0rPrUIpf2ojP2sY4cKfswo6ZEpgl40FtBO2jhwDhErnPz17pA+04b+l6KUvk0YGMHxt8q+ntWpZNiBxQpus8FpnigMt1u7wm+EeZYfbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pBDaheWL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wwKvATkN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 692ACC4CEE3;
-	Thu, 10 Jul 2025 04:09:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pBDaheWL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D6F6C4CEE3;
+	Thu, 10 Jul 2025 04:09:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752120542;
-	bh=BxFYviZ7q/DtDjC0z8zhZVdnb5NKLsH7FwBz2glSSWI=;
+	s=korg; t=1752120543;
+	bh=VbhwAtPDhLq7fGWp7wDgKkmSc5982JOoO6N5snEgLBw=;
 	h=Date:To:From:Subject:From;
-	b=wwKvATkNo1OyVlwC+L69XwqP+t0KSECfNJMH+M4Fout9aPSQH+1PG+dpVC5p/qJ1P
-	 RcpJTK35XZlUx6pAHfMw5D8AGQD6GLznLi7szUtVyRr93IjtfaT6SFXkguY1ZTSh1C
-	 yzCO5/PO8ozNT4oJTHRF23SQG5NdcpKVWZaM56+E=
-Date: Wed, 09 Jul 2025 21:09:01 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,florian.fainelli@broadcom.com,akpm@linux-foundation.org
+	b=pBDaheWLq6TfUUqSZ0+ti5buqGlYcLUSrgNIDbEwDCst9nJQ/Zr7RUZlqlg2C3x3Z
+	 yfA9xMT6GHswk38YUghy7CAsZ8ZZcONnFiPLjoJp2AvSN31yyAJqcj9bx7wRyvKYwS
+	 DNR5FVHiwEefezoABlirHFpe1m0am3C8DVnOi/V0=
+Date: Wed, 09 Jul 2025 21:09:03 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,lkp@intel.com,dan.carpenter@linaro.org,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] scripts-gdb-fix-interrupts-display-after-mcp-on-x86.patch removed from -mm tree
-Message-Id: <20250710040902.692ACC4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch removed from -mm tree
+Message-Id: <20250710040903.8D6F6C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/gdb: fix interrupts display after MCP on x86
+     Subject: mm/vmalloc: leave lazy MMU mode on PTE mapping error
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-fix-interrupts-display-after-mcp-on-x86.patch
+     mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Florian Fainelli <florian.fainelli@broadcom.com>
-Subject: scripts/gdb: fix interrupts display after MCP on x86
-Date: Mon, 23 Jun 2025 09:41:52 -0700
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm/vmalloc: leave lazy MMU mode on PTE mapping error
+Date: Mon, 23 Jun 2025 09:57:21 +0200
 
-The text line would not be appended to as it should have, it should have
-been a '+=' but ended up being a '==', fix that.
+vmap_pages_pte_range() enters the lazy MMU mode, but fails to leave it in
+case an error is encountered.
 
-Link: https://lkml.kernel.org/r/20250623164153.746359-1-florian.fainelli@broadcom.com
-Fixes: b0969d7687a7 ("scripts/gdb: print interrupts")
-Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
+Link: https://lkml.kernel.org/r/20250623075721.2817094-1-agordeev@linux.ibm.com
+Fixes: 2ba3e6947aed ("mm/vmalloc: track which page-table levels were modified")
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Closes: https://lore.kernel.org/r/202506132017.T1l1l6ME-lkp@intel.com/
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/interrupts.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
---- a/scripts/gdb/linux/interrupts.py~scripts-gdb-fix-interrupts-display-after-mcp-on-x86
-+++ a/scripts/gdb/linux/interrupts.py
-@@ -142,7 +142,7 @@ def x86_show_interupts(prec):
+--- a/mm/vmalloc.c~mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error
++++ a/mm/vmalloc.c
+@@ -514,6 +514,7 @@ static int vmap_pages_pte_range(pmd_t *p
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
+ {
++	int err = 0;
+ 	pte_t *pte;
  
-     if constants.LX_CONFIG_X86_MCE:
-         text += x86_show_mce(prec, "&mce_exception_count", "MCE", "Machine check exceptions")
--        text == x86_show_mce(prec, "&mce_poll_count", "MCP", "Machine check polls")
-+        text += x86_show_mce(prec, "&mce_poll_count", "MCP", "Machine check polls")
+ 	/*
+@@ -530,12 +531,18 @@ static int vmap_pages_pte_range(pmd_t *p
+ 	do {
+ 		struct page *page = pages[*nr];
  
-     text += show_irq_err_count(prec)
+-		if (WARN_ON(!pte_none(ptep_get(pte))))
+-			return -EBUSY;
+-		if (WARN_ON(!page))
+-			return -ENOMEM;
+-		if (WARN_ON(!pfn_valid(page_to_pfn(page))))
+-			return -EINVAL;
++		if (WARN_ON(!pte_none(ptep_get(pte)))) {
++			err = -EBUSY;
++			break;
++		}
++		if (WARN_ON(!page)) {
++			err = -ENOMEM;
++			break;
++		}
++		if (WARN_ON(!pfn_valid(page_to_pfn(page)))) {
++			err = -EINVAL;
++			break;
++		}
  
+ 		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
+ 		(*nr)++;
+@@ -543,7 +550,8 @@ static int vmap_pages_pte_range(pmd_t *p
+ 
+ 	arch_leave_lazy_mmu_mode();
+ 	*mask |= PGTBL_PTE_MODIFIED;
+-	return 0;
++
++	return err;
+ }
+ 
+ static int vmap_pages_pmd_range(pud_t *pud, unsigned long addr,
 _
 
-Patches currently in -mm which might be from florian.fainelli@broadcom.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
 
