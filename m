@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474754A0C;
-	Thu, 10 Jul 2025 21:51:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6153428C2B1
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 21:53:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752184281; cv=none; b=twoLUh3kwl4305CecBQsfawUHYtzwfOkJaII0rtxiRmjwXDJtcoFdlm8rRMGnvf2VrX7kcVrpWF/YyGpr/mTK0UcNuyFcIKOF4B1DHvcJrKl5bI9DIQ5PZrAUh0BybIXf3ZIGx4SYWDwULBiB8+MhsUX08NHUtlZC4hgky7hV2w=
+	t=1752184389; cv=none; b=G/YoGVofwmNUSsGXdY3l9Vw2SvSusAED8Ss/7fjGrGvwYHeXNg2Ghgfz91RkogThe50/DD+CbWX3Sff1ojDyUd+XYZ0dAdCFvzI0tIjZpCFlcBaddvo/er5uk7jiwuCIxzdwLgUpDKwsfF/Ltc/clsHos5iySid+vPlzKoxLTeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752184281; c=relaxed/simple;
-	bh=5m6qJ9eZoJPjAGXkbNfPJq6weZQQsBSwKfU7jVBaEaQ=;
-	h=Date:To:From:Subject:Message-Id; b=VDeEXL8a+sMgoB3WulgHVf3zH/7CzE+VNDiFVyi4L/U+VlpJwytUGxAeiyOXg6a05oheQrYhR7LoIZKZqYPVcmii985OjDwIJrbg/LDbkCQa/5E+1Sw+Hd8ep08lnMLR9bp+QlHCC0oZqm0kn/ukPck2mKUIDiA1up96jYPkMDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VhG4pzoG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752184389; c=relaxed/simple;
+	bh=MM+kYk7enBf3Jf2Lu9jrou6B9NcVMqAQsb1dgVr3Sj0=;
+	h=Date:To:From:Subject:Message-Id; b=b8xFLi9nTxgz9pu1DRxbWIs40K3NkFThjkyEwC25+wjqyQwaVQJdxLKsqJdtDbF5yAoll54jxDWsjlxCYlpfrP/aAF8n+jameciEO2BQVvk1XuzZ5DYEX0QB5eu+fc5yfn4TTWQWtWfz7RSjVWIWiv/Swjb+Sum1JuwDn/voUVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UoPmHXe4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VhG4pzoG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2973C4CEE3;
-	Thu, 10 Jul 2025 21:51:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UoPmHXe4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6344C4CEE3;
+	Thu, 10 Jul 2025 21:53:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752184280;
-	bh=5m6qJ9eZoJPjAGXkbNfPJq6weZQQsBSwKfU7jVBaEaQ=;
+	s=korg; t=1752184388;
+	bh=MM+kYk7enBf3Jf2Lu9jrou6B9NcVMqAQsb1dgVr3Sj0=;
 	h=Date:To:From:Subject:From;
-	b=VhG4pzoG026nII0MShiZCaEVymN1/dg3yvsKP+bqq6wEy6Gp7mfVtU/p8NOY+197z
-	 OK8ExSnkp8yjp98ZTA/pG/twGcbAcmIe6kae0W0LpPFL4F4LeqckdhknE7J0jm4X3o
-	 aBGRW6A0Pe3oaM7qxIg0df+ANlnOkoT/tAoSQal8=
-Date: Thu, 10 Jul 2025 14:51:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=UoPmHXe4yq+iXX07b4N8qXwkuoR3iq+UtzDrNIx372ZVqimaE18J+MPTfOUsit76n
+	 Q1oQz+05MxdfXV//73B1ylzUWAYi3v1NlJzliCjpwI1LpcusMTe5PaxfZRM4SKqzum
+	 11TG/nIF/6CmUT022Tlv4YkgUTKsCelZqD5vBoaU=
+Date: Thu, 10 Jul 2025 14:53:08 -0700
+To: mm-commits@vger.kernel.org,mario.limonciello@amd.com,dyoung@redhat.com,dwmw2@infradead.org,bhe@redhat.com,rafael.j.wysocki@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-reject-invalid-file-types-when-reading-inodes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250710215120.B2973C4CEE3@smtp.kernel.org>
+Subject: + kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250710215308.C6344C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: reject invalid file types when reading inodes
+     Subject: kexec_core: fix error code path in the KEXEC_JUMP flow
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-reject-invalid-file-types-when-reading-inodes.patch
+     kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-reject-invalid-file-types-when-reading-inodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: reject invalid file types when reading inodes
-Date: Thu, 10 Jul 2025 22:49:08 +0900
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: kexec_core: fix error code path in the KEXEC_JUMP flow
+Date: Thu, 10 Jul 2025 15:10:41 +0200
 
-To prevent inodes with invalid file types from tripping through the vfs
-and causing malfunctions or assertion failures, add a missing sanity check
-when reading an inode from a block device.  If the file type is not valid,
-treat it as a filesystem error.
+If dpm_suspend_start() fails, dpm_resume_end() must be called to recover
+devices whose suspend callbacks have been called, but this does not happen
+in the KEXEC_JUMP flow's error path due to a confused goto target label.
 
-Link: https://lkml.kernel.org/r/20250710134952.29862-1-konishi.ryusuke@gmail.com
-Fixes: 05fe58fdc10d ("nilfs2: inode operations")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+895c23f6917da440ed0d@syzkaller.appspotmail.com
-Link: https://syzkaller.appspot.com/bug?extid=895c23f6917da440ed0d
-Cc: <stable@vger.kernel.org>
+Address this by using the correct target label in the goto statement in
+question.
+
+Link: https://lkml.kernel.org/r/2396879.ElGaqSPkdT@rjwysocki.net
+Fixes: 2965faa5e03d ("kexec: split kexec_load syscall from kexec core code")
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ kernel/kexec_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/inode.c~nilfs2-reject-invalid-file-types-when-reading-inodes
-+++ a/fs/nilfs2/inode.c
-@@ -472,11 +472,18 @@ static int __nilfs_read_inode(struct sup
- 		inode->i_op = &nilfs_symlink_inode_operations;
- 		inode_nohighmem(inode);
- 		inode->i_mapping->a_ops = &nilfs_aops;
--	} else {
-+	} else if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode) ||
-+		   S_ISFIFO(inode->i_mode) || S_ISSOCK(inode->i_mode)) {
- 		inode->i_op = &nilfs_special_inode_operations;
- 		init_special_inode(
- 			inode, inode->i_mode,
- 			huge_decode_dev(le64_to_cpu(raw_inode->i_device_code)));
-+	} else {
-+		nilfs_error(sb,
-+			    "invalid file type bits in mode 0%o for inode %lu",
-+			    inode->i_mode, ino);
-+		err = -EIO;
-+		goto failed_unmap;
- 	}
- 	nilfs_ifile_unmap_inode(raw_inode);
- 	brelse(bh);
+--- a/kernel/kexec_core.c~kexec_core-fix-error-code-path-in-the-kexec_jump-flow
++++ a/kernel/kexec_core.c
+@@ -1080,7 +1080,7 @@ int kernel_kexec(void)
+ 		console_suspend_all();
+ 		error = dpm_suspend_start(PMSG_FREEZE);
+ 		if (error)
+-			goto Resume_console;
++			goto Resume_devices;
+ 		/*
+ 		 * dpm_suspend_end() must be called after dpm_suspend_start()
+ 		 * to complete the transition, like in the hibernation flows
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from rafael.j.wysocki@intel.com are
 
-nilfs2-reject-invalid-file-types-when-reading-inodes.patch
+kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch
 
