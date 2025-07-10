@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB1B1A285;
-	Thu, 10 Jul 2025 04:09:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BFDA1A285;
+	Thu, 10 Jul 2025 04:09:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752120544; cv=none; b=PgUU7dFHQYEyV+zK6o1R0S8rDRyOb3fCtyHgNGpA/cDtku7DVe8ZiqD54MWx4XZGCRG7cGARDO6QFDDsl1XYSytcYmiiBy2Bopq+kb3/fI5JQ7sIUOdshQ2eDE4TfGSYFuoFBYu258LG0wx28ycMbPI3+dnZlRXq2QeCTYo9CuY=
+	t=1752120545; cv=none; b=UXQbSHR7UKQFFga17wcjB47IBxx9MesThnhqG8HhZVqtRvNi0Mk20KrSSly8COsVXFGDjIpWspiyq+j6qkPxolHgHNdcQ6Ka2SBcI4j22NldjrMxdkBEl+8zmVx2T2IQaPIpI336yqhBB3lxgz8StkiCj6XrOdeijm1NkEiWByQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752120544; c=relaxed/simple;
-	bh=VbhwAtPDhLq7fGWp7wDgKkmSc5982JOoO6N5snEgLBw=;
-	h=Date:To:From:Subject:Message-Id; b=UGt5Cxkv4N4ifq0x8WjJHAlooZhHNaRcP3HhsQlniUxO5fDB+3CM91HBXpTAAqZLXOq0rPrUIpf2ojP2sY4cKfswo6ZEpgl40FtBO2jhwDhErnPz17pA+04b+l6KUvk0YGMHxt8q+ntWpZNiBxQpus8FpnigMt1u7wm+EeZYfbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pBDaheWL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752120545; c=relaxed/simple;
+	bh=tK5ooo5ikku6vovvA7reTh+etqI8yCrlqoXvpiLo+6I=;
+	h=Date:To:From:Subject:Message-Id; b=NlF3DiaqL9U3qR6NvEAjFkdI6DdhK+Zo5wmPwL14ZF6LSeKC9fWeHfkgqfzdxq9BitsHW0gNKzGQZBix6iD65OxbTtVQomHwTN5OrByFfN4dg9cWjeznlA3LapW/SD7xWUMZn71ed4C/6Q8ycHbDtP9PbR5filNv1BEeyB6uBaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NwvZi42C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pBDaheWL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D6F6C4CEE3;
-	Thu, 10 Jul 2025 04:09:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NwvZi42C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B764BC4CEE3;
+	Thu, 10 Jul 2025 04:09:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752120543;
-	bh=VbhwAtPDhLq7fGWp7wDgKkmSc5982JOoO6N5snEgLBw=;
+	s=korg; t=1752120544;
+	bh=tK5ooo5ikku6vovvA7reTh+etqI8yCrlqoXvpiLo+6I=;
 	h=Date:To:From:Subject:From;
-	b=pBDaheWLq6TfUUqSZ0+ti5buqGlYcLUSrgNIDbEwDCst9nJQ/Zr7RUZlqlg2C3x3Z
-	 yfA9xMT6GHswk38YUghy7CAsZ8ZZcONnFiPLjoJp2AvSN31yyAJqcj9bx7wRyvKYwS
-	 DNR5FVHiwEefezoABlirHFpe1m0am3C8DVnOi/V0=
-Date: Wed, 09 Jul 2025 21:09:03 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,lkp@intel.com,dan.carpenter@linaro.org,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=NwvZi42CjLMCwtdLgbqF5aDqFnSHgqYgGFM7h2YDaenFYtcnLHt+VoMPG7pTtDx5W
+	 XH2NYkTP6rDp7J74/Lu/+PCnHRZHLxk0jQCNhYCUaqSnqxtxX6gYhZEo5zn+MGkgKB
+	 CY5M3N7671cs5X7zVVlygPNWQQSl9Hyfo2Naq/6A=
+Date: Wed, 09 Jul 2025 21:09:04 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@oracle.com,dev.jain@arm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch removed from -mm tree
-Message-Id: <20250710040903.8D6F6C4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-fix-mt_destroy_walk-on-root-leaf-node.patch removed from -mm tree
+Message-Id: <20250710040904.B764BC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: leave lazy MMU mode on PTE mapping error
+     Subject: maple_tree: fix mt_destroy_walk() on root leaf node
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error.patch
+     maple_tree-fix-mt_destroy_walk-on-root-leaf-node.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: mm/vmalloc: leave lazy MMU mode on PTE mapping error
-Date: Mon, 23 Jun 2025 09:57:21 +0200
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: maple_tree: fix mt_destroy_walk() on root leaf node
+Date: Tue, 24 Jun 2025 15:18:40 -0400
 
-vmap_pages_pte_range() enters the lazy MMU mode, but fails to leave it in
-case an error is encountered.
+On destroy, we should set each node dead.  But current code miss this when
+the maple tree has only the root node.
 
-Link: https://lkml.kernel.org/r/20250623075721.2817094-1-agordeev@linux.ibm.com
-Fixes: 2ba3e6947aed ("mm/vmalloc: track which page-table levels were modified")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/r/202506132017.T1l1l6ME-lkp@intel.com/
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+The reason is mt_destroy_walk() leverage mte_destroy_descend() to set node
+dead, but this is skipped since the only root node is a leaf.
+
+Fixes this by setting the node dead if it is a leaf.
+
+Link: https://lore.kernel.org/all/20250407231354.11771-1-richard.weiyang@gmail.com/
+Link: https://lkml.kernel.org/r/20250624191841.64682-1-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ lib/maple_tree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-leave-lazy-mmu-mode-on-pte-mapping-error
-+++ a/mm/vmalloc.c
-@@ -514,6 +514,7 @@ static int vmap_pages_pte_range(pmd_t *p
- 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
- 		pgtbl_mod_mask *mask)
- {
-+	int err = 0;
- 	pte_t *pte;
+--- a/lib/maple_tree.c~maple_tree-fix-mt_destroy_walk-on-root-leaf-node
++++ a/lib/maple_tree.c
+@@ -5319,6 +5319,7 @@ static void mt_destroy_walk(struct maple
+ 	struct maple_enode *start;
  
- 	/*
-@@ -530,12 +531,18 @@ static int vmap_pages_pte_range(pmd_t *p
- 	do {
- 		struct page *page = pages[*nr];
- 
--		if (WARN_ON(!pte_none(ptep_get(pte))))
--			return -EBUSY;
--		if (WARN_ON(!page))
--			return -ENOMEM;
--		if (WARN_ON(!pfn_valid(page_to_pfn(page))))
--			return -EINVAL;
-+		if (WARN_ON(!pte_none(ptep_get(pte)))) {
-+			err = -EBUSY;
-+			break;
-+		}
-+		if (WARN_ON(!page)) {
-+			err = -ENOMEM;
-+			break;
-+		}
-+		if (WARN_ON(!pfn_valid(page_to_pfn(page)))) {
-+			err = -EINVAL;
-+			break;
-+		}
- 
- 		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
- 		(*nr)++;
-@@ -543,7 +550,8 @@ static int vmap_pages_pte_range(pmd_t *p
- 
- 	arch_leave_lazy_mmu_mode();
- 	*mask |= PGTBL_PTE_MODIFIED;
--	return 0;
-+
-+	return err;
- }
- 
- static int vmap_pages_pmd_range(pud_t *pud, unsigned long addr,
+ 	if (mte_is_leaf(enode)) {
++		mte_set_node_dead(enode);
+ 		node->type = mte_node_type(enode);
+ 		goto free_leaf;
+ 	}
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
+mm-migrate-remove-the-eexist-conversion-for-move_pages.patch
 
