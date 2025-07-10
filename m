@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CAB14A0C
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 21:46:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A94E29117A
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 21:46:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752183989; cv=none; b=g5JMCzZ9glTesVffE9XN1XnBMQTFpHS9a/I95/so3296qpcQ+q0NPXdhSTajSgsF/BMSrPMS6xzKRnD9mC60N+UtzPeQnnsgUNHHitF6Abj/niumw9FRFAAQzCc2ef1IelRSYUIgjJ6IBt+72wpGA3sgjGJvI2yMIqidYV8a79E=
+	t=1752183991; cv=none; b=UMWuFpglcwk4t+yxZe0Jpz/ENqtvnV3zdVoAKjHUqZRfcVtbytwfs+bU6NIFOREC1cJFOTYQRgmvPJEVKobx0XzUDzyUdELQy/KZPUyqHf9ALL2zxlF+ibA5iJG9ljUeWgOCdJeUREULbIGERalY0liF8dRBK1zPXDqSm0lPS/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752183989; c=relaxed/simple;
-	bh=U+iZLsd0kL19QpQMoGuYwpHEEDXFeVLaRR+dU/RbrQI=;
-	h=Date:To:From:Subject:Message-Id; b=mCmTlLlcBbVudiilQiTJ8qSePY+haxdmQ4jDi50sQWzkHSRPceJTd4B1C38HOqajTrwnHVP5R5aHDMptItXnG69oZ4Q4dbsw2U26li0+jwEzrUxmPB07ZUAQyLAa8x5m3uxvDRLGjdo5pduvSYjtYAmm0C9Sk/Xdh5rbK0vddrQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SvAM2bFT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752183991; c=relaxed/simple;
+	bh=amNGIIX5U4OLURfgcAmPzuV1fK2p6HbZ1wAuUaea2gU=;
+	h=Date:To:From:Subject:Message-Id; b=ozqCKwo55W4lqBP3sJuVrkgMKCf0zE5V7pir4Bp3kzjbONMjLIEcnnBIF2FycRUij93vLfkjLpI0COSr49BKVVrDp3dv1ZB1/z39hSGxJrs454F/4z2FNS72n/YyJkOHimE+AE+4lolwmoNLAqzG4bUhftfUd8guYcIkTGWpGv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W1quBwAo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SvAM2bFT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1563AC4CEE3;
-	Thu, 10 Jul 2025 21:46:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W1quBwAo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45188C4CEE3;
+	Thu, 10 Jul 2025 21:46:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752183989;
-	bh=U+iZLsd0kL19QpQMoGuYwpHEEDXFeVLaRR+dU/RbrQI=;
+	s=korg; t=1752183991;
+	bh=amNGIIX5U4OLURfgcAmPzuV1fK2p6HbZ1wAuUaea2gU=;
 	h=Date:To:From:Subject:From;
-	b=SvAM2bFTnh+3W86HpO1LbnIJp3Se5TJ4dmDhhTHLzNcEba7ItzxD5gV+7HMi5IZFA
-	 zr7owBP13Qf+6HgmlUS9AajHza9q+UE375nd9ROrfJi3mKrk7VBkpTiEYGhAJ6hyLW
-	 b/5W78Q/xDLQ6aSRPgeclDCctuJ65uSOpUCr8jD8=
-Date: Thu, 10 Jul 2025 14:46:28 -0700
+	b=W1quBwAoedAFV1alCjQQIdYT3Vw7uh2fFHZHOh1HRDLTMeGTY+KQuIhXMpoCHYy2J
+	 p/tr2DdDsULi9EtqYHBvKiRzuNNupa1VEJsWrCUTLaY2TVxyfUMs5/+eySOIjyn9ly
+	 Hbvbp/mj+OYQvEmIZaLzAzkWpvU3A2A0A7jg+xks=
+Date: Thu, 10 Jul 2025 14:46:30 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-move-remap_is_valid-into-check_prep_vma.patch added to mm-new branch
-Message-Id: <20250710214629.1563AC4CEE3@smtp.kernel.org>
+Subject: + mm-mremap-clean-up-mlock-populate-behaviour.patch added to mm-new branch
+Message-Id: <20250710214631.45188C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: move remap_is_valid() into check_prep_vma()
+     Subject: mm/mremap: clean up mlock populate behaviour
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
+     mm-mremap-clean-up-mlock-populate-behaviour.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-clean-up-mlock-populate-behaviour.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,18 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: move remap_is_valid() into check_prep_vma()
-Date: Thu, 10 Jul 2025 16:50:31 +0100
+Subject: mm/mremap: clean up mlock populate behaviour
+Date: Thu, 10 Jul 2025 16:50:32 +0100
 
-Group parameter check logic together, moving check_mremap_params() next to
-it.
+When an mlock()'d VMA is expanded, we need to populate the expanded region
+to maintain the contract that all mlock()'d memory is present (albeit -
+with some period after mmap unlock where the expanded part of the mapping
+remains unfaulted).
 
-This puts all such checks into a single place, and invokes them early so we
-can simply bail out as soon as we are aware that a condition is not met.
+The current implementation is very unclear, so make it absolutely explicit
+under what circumstances we do this.
 
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/093fb54b5dc0c4e21abcfebb57060f9a016af216.1752162066.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/26d2af0a6dbbdfe839b3b09d3a8ddd7b10d4be7f.1752162066.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -89,322 +89,53 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |  273 +++++++++++++++++++++++---------------------------
- 1 file changed, 131 insertions(+), 142 deletions(-)
+ mm/mremap.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-move-remap_is_valid-into-check_prep_vma
+--- a/mm/mremap.c~mm-mremap-clean-up-mlock-populate-behaviour
 +++ a/mm/mremap.c
-@@ -1309,64 +1309,6 @@ static unsigned long move_vma(struct vma
- }
+@@ -65,7 +65,7 @@ struct vma_remap_struct {
  
- /*
-- * remap_is_valid() - Ensure the VMA can be moved or resized to the new length,
-- * at the given address.
-- *
-- * Return 0 on success, error otherwise.
-- */
--static int remap_is_valid(struct vma_remap_struct *vrm)
--{
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma = vrm->vma;
--	unsigned long addr = vrm->addr;
--	unsigned long old_len = vrm->old_len;
--	unsigned long new_len = vrm->new_len;
--	unsigned long pgoff;
--
--	/*
--	 * !old_len is a special case where an attempt is made to 'duplicate'
--	 * a mapping.  This makes no sense for private mappings as it will
--	 * instead create a fresh/new mapping unrelated to the original.  This
--	 * is contrary to the basic idea of mremap which creates new mappings
--	 * based on the original.  There are no known use cases for this
--	 * behavior.  As a result, fail such attempts.
--	 */
--	if (!old_len && !(vma->vm_flags & (VM_SHARED | VM_MAYSHARE))) {
--		pr_warn_once("%s (%d): attempted to duplicate a private mapping with mremap.  This is not supported.\n",
--			     current->comm, current->pid);
--		return -EINVAL;
--	}
--
--	if ((vrm->flags & MREMAP_DONTUNMAP) &&
--			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
--		return -EINVAL;
--
--	/* We can't remap across vm area boundaries */
--	if (old_len > vma->vm_end - addr)
--		return -EFAULT;
--
--	if (new_len <= old_len)
--		return 0;
--
--	/* Need to be careful about a growing mapping */
--	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
--	pgoff += vma->vm_pgoff;
--	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
--		return -EINVAL;
--
--	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
--		return -EFAULT;
--
--	if (!mlock_future_ok(mm, vma->vm_flags, vrm->delta))
--		return -EAGAIN;
--
--	if (!may_expand_vm(mm, vma->vm_flags, vrm->delta >> PAGE_SHIFT))
--		return -ENOMEM;
--
--	return 0;
--}
--
--/*
-  * The user has requested that the VMA be shrunk (i.e., old_len > new_len), so
-  * execute this, optionally dropping the mmap lock when we do so.
-  *
-@@ -1493,77 +1435,6 @@ static bool vrm_can_expand_in_place(stru
- }
- 
- /*
-- * Are the parameters passed to mremap() valid? If so return 0, otherwise return
-- * error.
-- */
--static unsigned long check_mremap_params(struct vma_remap_struct *vrm)
--
--{
--	unsigned long addr = vrm->addr;
--	unsigned long flags = vrm->flags;
--
--	/* Ensure no unexpected flag values. */
--	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP))
--		return -EINVAL;
--
--	/* Start address must be page-aligned. */
--	if (offset_in_page(addr))
--		return -EINVAL;
--
--	/*
--	 * We allow a zero old-len as a special case
--	 * for DOS-emu "duplicate shm area" thing. But
--	 * a zero new-len is nonsensical.
--	 */
--	if (!vrm->new_len)
--		return -EINVAL;
--
--	/* Is the new length or address silly? */
--	if (vrm->new_len > TASK_SIZE ||
--	    vrm->new_addr > TASK_SIZE - vrm->new_len)
--		return -EINVAL;
--
--	/* Remainder of checks are for cases with specific new_addr. */
--	if (!vrm_implies_new_addr(vrm))
--		return 0;
--
--	/* The new address must be page-aligned. */
--	if (offset_in_page(vrm->new_addr))
--		return -EINVAL;
--
--	/* A fixed address implies a move. */
--	if (!(flags & MREMAP_MAYMOVE))
--		return -EINVAL;
--
--	/* MREMAP_DONTUNMAP does not allow resizing in the process. */
--	if (flags & MREMAP_DONTUNMAP && vrm->old_len != vrm->new_len)
--		return -EINVAL;
--
--	/* Target VMA must not overlap source VMA. */
--	if (vrm_overlaps(vrm))
--		return -EINVAL;
--
--	/*
--	 * move_vma() need us to stay 4 maps below the threshold, otherwise
--	 * it will bail out at the very beginning.
--	 * That is a problem if we have already unmaped the regions here
--	 * (new_addr, and old_addr), because userspace will not know the
--	 * state of the vma's after it gets -ENOMEM.
--	 * So, to avoid such scenario we can pre-compute if the whole
--	 * operation has high chances to success map-wise.
--	 * Worst-scenario case is when both vma's (new_addr and old_addr) get
--	 * split in 3 before unmapping it.
--	 * That means 2 more maps (1 for each) to the ones we already hold.
--	 * Check whether current map count plus 2 still leads us to 4 maps below
--	 * the threshold, otherwise return -ENOMEM here to be more safe.
--	 */
--	if ((current->mm->map_count + 2) >= sysctl_max_map_count - 3)
--		return -ENOMEM;
--
--	return 0;
--}
--
--/*
-  * We know we can expand the VMA in-place by delta pages, so do so.
-  *
-  * If we discover the VMA is locked, update mm_struct statistics accordingly and
-@@ -1714,9 +1585,26 @@ static bool vrm_will_map_new(struct vma_
- 	return false;
- }
- 
-+static void notify_uffd(struct vma_remap_struct *vrm, bool failed)
-+{
-+	struct mm_struct *mm = current->mm;
-+
-+	/* Regardless of success/failure, we always notify of any unmaps. */
-+	userfaultfd_unmap_complete(mm, vrm->uf_unmap_early);
-+	if (failed)
-+		mremap_userfaultfd_fail(vrm->uf);
-+	else
-+		mremap_userfaultfd_complete(vrm->uf, vrm->addr,
-+			vrm->new_addr, vrm->old_len);
-+	userfaultfd_unmap_complete(mm, vrm->uf_unmap);
-+}
-+
- static int check_prep_vma(struct vma_remap_struct *vrm)
- {
+ 	/* Internal state, determined in do_mremap(). */
+ 	unsigned long delta;		/* Absolute delta of old_len,new_len. */
+-	bool mlocked;			/* Was the VMA mlock()'d? */
++	bool populate_expand;		/* mlock()'d expanded, must populate. */
+ 	enum mremap_type remap_type;	/* expand, shrink, etc. */
+ 	bool mmap_locked;		/* Is mm currently write-locked? */
+ 	unsigned long charged;		/* If VM_ACCOUNT, # pages to account. */
+@@ -1012,10 +1012,8 @@ static void vrm_stat_account(struct vma_
  	struct vm_area_struct *vma = vrm->vma;
-+	struct mm_struct *mm = current->mm;
-+	unsigned long addr = vrm->addr;
-+	unsigned long old_len, new_len, pgoff;
  
- 	if (!vma)
- 		return -EFAULT;
-@@ -1733,26 +1621,127 @@ static int check_prep_vma(struct vma_rem
- 	vrm->remap_type = vrm_remap_type(vrm);
- 	/* For convenience, we set new_addr even if VMA won't move. */
- 	if (!vrm_implies_new_addr(vrm))
--		vrm->new_addr = vrm->addr;
-+		vrm->new_addr = addr;
-+
-+	/* Below only meaningful if we expand or move a VMA. */
-+	if (!vrm_will_map_new(vrm))
-+		return 0;
-+
-+	old_len = vrm->old_len;
-+	new_len = vrm->new_len;
-+
-+	/*
-+	 * !old_len is a special case where an attempt is made to 'duplicate'
-+	 * a mapping.  This makes no sense for private mappings as it will
-+	 * instead create a fresh/new mapping unrelated to the original.  This
-+	 * is contrary to the basic idea of mremap which creates new mappings
-+	 * based on the original.  There are no known use cases for this
-+	 * behavior.  As a result, fail such attempts.
-+	 */
-+	if (!old_len && !(vma->vm_flags & (VM_SHARED | VM_MAYSHARE))) {
-+		pr_warn_once("%s (%d): attempted to duplicate a private mapping with mremap.  This is not supported.\n",
-+			     current->comm, current->pid);
-+		return -EINVAL;
-+	}
-+
-+	if ((vrm->flags & MREMAP_DONTUNMAP) &&
-+			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
-+		return -EINVAL;
-+
-+	/* We can't remap across vm area boundaries */
-+	if (old_len > vma->vm_end - addr)
-+		return -EFAULT;
-+
-+	if (new_len <= old_len)
-+		return 0;
-+
-+	/* Need to be careful about a growing mapping */
-+	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
-+	pgoff += vma->vm_pgoff;
-+	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
-+		return -EINVAL;
-+
-+	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
-+		return -EFAULT;
-+
-+	if (!mlock_future_ok(mm, vma->vm_flags, vrm->delta))
-+		return -EAGAIN;
- 
--	if (vrm_will_map_new(vrm))
--		return remap_is_valid(vrm);
-+	if (!may_expand_vm(mm, vma->vm_flags, vrm->delta >> PAGE_SHIFT))
-+		return -ENOMEM;
- 
- 	return 0;
+ 	vm_stat_account(mm, vma->vm_flags, pages);
+-	if (vma->vm_flags & VM_LOCKED) {
++	if (vma->vm_flags & VM_LOCKED)
+ 		mm->locked_vm += pages;
+-		vrm->mlocked = true;
+-	}
  }
  
--static void notify_uffd(struct vma_remap_struct *vrm, bool failed)
-+/*
-+ * Are the parameters passed to mremap() valid? If so return 0, otherwise return
-+ * error.
-+ */
-+static unsigned long check_mremap_params(struct vma_remap_struct *vrm)
-+
- {
--	struct mm_struct *mm = current->mm;
-+	unsigned long addr = vrm->addr;
-+	unsigned long flags = vrm->flags;
+ /*
+@@ -1655,6 +1653,10 @@ static int check_prep_vma(struct vma_rem
+ 	if (new_len <= old_len)
+ 		return 0;
  
--	/* Regardless of success/failure, we always notify of any unmaps. */
--	userfaultfd_unmap_complete(mm, vrm->uf_unmap_early);
--	if (failed)
--		mremap_userfaultfd_fail(vrm->uf);
--	else
--		mremap_userfaultfd_complete(vrm->uf, vrm->addr,
--			vrm->new_addr, vrm->old_len);
--	userfaultfd_unmap_complete(mm, vrm->uf_unmap);
-+	/* Ensure no unexpected flag values. */
-+	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP))
-+		return -EINVAL;
++	/* We are expanding and the VMA is mlock()'d so we need to populate. */
++	if (vma->vm_flags & VM_LOCKED)
++		vrm->populate_expand = true;
 +
-+	/* Start address must be page-aligned. */
-+	if (offset_in_page(addr))
-+		return -EINVAL;
-+
-+	/*
-+	 * We allow a zero old-len as a special case
-+	 * for DOS-emu "duplicate shm area" thing. But
-+	 * a zero new-len is nonsensical.
-+	 */
-+	if (!vrm->new_len)
-+		return -EINVAL;
-+
-+	/* Is the new length or address silly? */
-+	if (vrm->new_len > TASK_SIZE ||
-+	    vrm->new_addr > TASK_SIZE - vrm->new_len)
-+		return -EINVAL;
-+
-+	/* Remainder of checks are for cases with specific new_addr. */
-+	if (!vrm_implies_new_addr(vrm))
-+		return 0;
-+
-+	/* The new address must be page-aligned. */
-+	if (offset_in_page(vrm->new_addr))
-+		return -EINVAL;
-+
-+	/* A fixed address implies a move. */
-+	if (!(flags & MREMAP_MAYMOVE))
-+		return -EINVAL;
-+
-+	/* MREMAP_DONTUNMAP does not allow resizing in the process. */
-+	if (flags & MREMAP_DONTUNMAP && vrm->old_len != vrm->new_len)
-+		return -EINVAL;
-+
-+	/* Target VMA must not overlap source VMA. */
-+	if (vrm_overlaps(vrm))
-+		return -EINVAL;
-+
-+	/*
-+	 * move_vma() need us to stay 4 maps below the threshold, otherwise
-+	 * it will bail out at the very beginning.
-+	 * That is a problem if we have already unmaped the regions here
-+	 * (new_addr, and old_addr), because userspace will not know the
-+	 * state of the vma's after it gets -ENOMEM.
-+	 * So, to avoid such scenario we can pre-compute if the whole
-+	 * operation has high chances to success map-wise.
-+	 * Worst-scenario case is when both vma's (new_addr and old_addr) get
-+	 * split in 3 before unmapping it.
-+	 * That means 2 more maps (1 for each) to the ones we already hold.
-+	 * Check whether current map count plus 2 still leads us to 4 maps below
-+	 * the threshold, otherwise return -ENOMEM here to be more safe.
-+	 */
-+	if ((current->mm->map_count + 2) >= sysctl_max_map_count - 3)
-+		return -ENOMEM;
-+
-+	return 0;
- }
+ 	/* Need to be careful about a growing mapping */
+ 	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+ 	pgoff += vma->vm_pgoff;
+@@ -1775,7 +1777,8 @@ out:
+ 	if (vrm->mmap_locked)
+ 		mmap_write_unlock(mm);
  
- static unsigned long do_mremap(struct vma_remap_struct *vrm)
+-	if (!failed && vrm->mlocked && vrm->new_len > vrm->old_len)
++	/* VMA mlock'd + was expanded, so populated expanded region. */
++	if (!failed && vrm->populate_expand)
+ 		mm_populate(vrm->new_addr + vrm->old_len, vrm->delta);
+ 
+ 	notify_uffd(vrm, failed);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
