@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE005469D
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:36:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA0FC469D
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:37:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752122205; cv=none; b=mTp/FMY+rWO+xLRu1UNip2T+O9JcPS8L1qWAo8urL5JXOSpybUVrYy5xZkeMDr9wHUWxnKNxzh+HYrKe/RxfC01qognU/NG14rXS8yeCOAdcNIVaBF4R9IRLyyUWPehDb9vbrrJ1JcGR1z+luCqRqcDVBvWiM3vJD/b9+Qm+YTk=
+	t=1752122243; cv=none; b=OCErKC67E6bwrNQE6hnIEXVjUB4BryrnHvEvX2uLmgKfpCKSbsXPORJlm1k3KmbtA9qtLdU2BKd4B50XH6RwjnYO6RzvQZKyp27MrKL/9ED7RbtBlftLBuZuHwsRYkOkwRzr3P/EM1nJhJtU4kA3Ygf4OU1OJt9yoog5xShdcc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752122205; c=relaxed/simple;
-	bh=z8W/D5MnIrH5mlmxZp6Qxg8pXALyKzJDCEIPj2egjpY=;
-	h=Date:To:From:Subject:Message-Id; b=LFV1hNB0FKPzFcBYE65dSa08PXqdwNgFjljIcYpvoQzypqt9uxHYvwKD5EdzlFNDn+1MQF+KfoTKVBml+lnntKALXJyzyj3inN/Nu2TUonOyrpcGUHB9+L4Uo1gsIuSQMuTPiq4kX/Xa62tNiIyNJol9gkVceA5o5qLurkGZbao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CpQJ/pPz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752122243; c=relaxed/simple;
+	bh=qH3ztzmR9ok5jXvs9+jcG+mjnMOO9BermI1DH6cgVHU=;
+	h=Date:To:From:Subject:Message-Id; b=ITOydG6jnyEIfrrJLXE3pFACuWWu8iE54PSmybi12w6U9tWZsk48U+O16oyUJm0gAwz8zSYHM/DR29Boc+NB27u7ZXmQATKIxjcdAYhivOsoFjfMAzi3omz0WL/tbSIbfXbVTJS6rkw+F/XX9ZzOs41dGG8Z+hNNNacNOUZEkgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cSSwi8fm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CpQJ/pPz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0BB4C4CEE3;
-	Thu, 10 Jul 2025 04:36:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cSSwi8fm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB0E1C4CEE3;
+	Thu, 10 Jul 2025 04:37:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752122205;
-	bh=z8W/D5MnIrH5mlmxZp6Qxg8pXALyKzJDCEIPj2egjpY=;
+	s=korg; t=1752122242;
+	bh=qH3ztzmR9ok5jXvs9+jcG+mjnMOO9BermI1DH6cgVHU=;
 	h=Date:To:From:Subject:From;
-	b=CpQJ/pPzT4ITRNGD53ZRg4tz3yw7RoE6TkmEqExU901RT8q9zPVqRjQH1520iAjK1
-	 YWDHskjrGtpnwB9oBbuxaCK9tR/sG3DiShRg+goaERNl5XA1IqB42foPo8S3CaxiNp
-	 1kroOzMQfMomH3XKdJ99lv5BhT2mAds8B4EMTa9o=
-Date: Wed, 09 Jul 2025 21:36:45 -0700
-To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,osalvador@suse.de,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=cSSwi8fmXxTnWiiVoFeiXGdMBbGaioJcXWjImHT/W7CR9jyQCeGZSZjFhVfOL2oE7
+	 leFQ4O9p0W0h6EeWHfNVdUPvJnkVu0IY+BSXMuhDr8pqh1dD1jFm87xPsRNBKyP8Rm
+	 BPEPHF9HjPwOLbun/WNrgmi4y6ZF0YkDlrm/uLsg=
+Date: Wed, 09 Jul 2025 21:37:22 -0700
+To: mm-commits@vger.kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range-fix.patch removed from -mm tree
-Message-Id: <20250710043645.B0BB4C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix.patch removed from -mm tree
+Message-Id: <20250710043722.AB0E1C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: madvise: revert the walk_page_range_vma change for MADV_GUARD_INSTALL
+     Subject: drivers/base/node: restore removed extra line
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range-fix.patch
+     drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix.patch
 
-This patch was dropped because it was folded into mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range.patch
+This patch was dropped because it was folded into drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time.patch
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: madvise: revert the walk_page_range_vma change for MADV_GUARD_INSTALL
-Date: Mon, 9 Jun 2025 22:42:13 +1200
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: drivers/base/node: restore removed extra line
+Date: Mon, 9 Jun 2025 09:03:54 -0500
 
-Fix the broken MADV_GUARD_INSTALL reported by Ryan.
- # guard-regions.c:719:split_merge:Expected madvise(ptr, 10 * page_size,
- MADV_GUARD_INSTALL) (-1) == 0 (0)
+Re-added the extra blank line at the end of the memory.h that was removed
+by the commit 'commit d61861e3bb35 ("drivers/base/node: optimize memory
+block registration to reduce boot time")'
 
-Link: https://lkml.kernel.org/r/20250609105513.10901-1-21cnbao@gmail.com
-Closes: https://lore.kernel.org/linux-mm/671f8164-a90b-48d7-9446-359eb9493500@arm.com/
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reported-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tangquan Zheng <zhengtangquan@oppo.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250609140354.467908-1-donettom@linux.ibm.com
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memory.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/madvise.c~mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range-fix
-+++ a/mm/madvise.c
-@@ -1162,7 +1162,7 @@ static long madvise_guard_install(struct
- 		unsigned long nr_pages = 0;
- 
- 		/* Returns < 0 on error, == 0 if success, > 0 if zap needed. */
--		err = walk_page_range_vma(vma, start, end,
-+		err = walk_page_range_mm(vma->vm_mm, start, end,
- 					 &guard_install_walk_ops, &nr_pages);
- 		if (err < 0)
- 			return err;
+--- a/include/linux/memory.h~drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time-fix
++++ a/include/linux/memory.h
+@@ -216,4 +216,5 @@ unsigned long memory_block_advised_max_s
+  * can sleep.
+  */
+ extern struct mutex text_mutex;
++
+ #endif /* _LINUX_MEMORY_H_ */
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range.patch
-mm-use-per_vma-lock-for-madv_dontneed.patch
-mm-madvise-use-per_vma-lock-for-madv_free.patch
+drivers-base-node-optimize-memory-block-registration-to-reduce-boot-time.patch
+drivers-base-node-remove-register_mem_block_under_node_early.patch
+drivers-base-node-remove-register_memory_blocks_under_node-function-call-from-register_one_node.patch
+drivers-base-node-rename-register_memory_blocks_under_node-and-remove-context-argument.patch
+drivers-base-node-rename-__register_one_node-to-register_one_node.patch
 
