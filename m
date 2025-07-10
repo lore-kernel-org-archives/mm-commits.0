@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E38F17741
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:59:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 006C6286893
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:59:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752127150; cv=none; b=K3Ya+KhrIFBAD7AXLkEQgA3hkwAEiiHWOWCgMU4SBon00SpnPjz/IFuVecZbdPPRo9t5rOGrkkIlQ6Sy08YrSayZZXr7AHRUpojfaX5bxiX5ozbrZ2D2giPu988k0+olacnZakyWAt0yogrl/dUxUKXgpfusjVJ0xxkqaAR5zjc=
+	t=1752127152; cv=none; b=koDPsfPe/0iPZjuUbUXmIxK39Azws7lKv441toPWnreHuzJlzEWm4hEmP9w4y2MzzYMIC5ZwfApQ/ya0tvsP92iGXNjX24FHG4IpC31h7omvEwIR3NGo1QuPDVlrQiP/tVsfUfoITELNulnu21zC+lZIDR+n2DMGGq/8IgZ7ZTc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752127150; c=relaxed/simple;
-	bh=r6tEmM4cHH3qV+NzliaTevO4A7m+PvEn3Y4zpcy0+hM=;
-	h=Date:To:From:Subject:Message-Id; b=CkZbPsTNYAU48vgb4r1/Q/eynpt1jpR0QANBGkSfTSoThU/nVYfkJJBQinWutgv5Ws6+iGk6v3kEWcyn48p8kv6JxSrUVZna/mIlCozwgbKBEs5wCiEBrpEa4nTZuhrp6OuWiEYM4S+8mrX/Wgtr4cD9clA4EihXf0vCOgRlx24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hOhgnBVi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752127152; c=relaxed/simple;
+	bh=DtywTBfgk6vJUVbTDbpePaWXPm3dCjEPkqHPRfX4Pqg=;
+	h=Date:To:From:Subject:Message-Id; b=eXykhNV5WMsBA/79JKbpSdKGraHobh4qFicJof5pbL1aK315lucoEczTDqW1JZDCUxocl2XtRjd8fq8uJrukcTTiTJGJ1QHstOVEHukUvu0q+nbvaqcqr0GuQ7xy6VxLB0vxY4ZQ7x2QdrT0/FXBw8Kdq2wiMe/ZWiGysQw8M/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t/WncoT4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hOhgnBVi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 393D7C4CEE3;
-	Thu, 10 Jul 2025 05:59:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t/WncoT4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70EB3C4CEE3;
+	Thu, 10 Jul 2025 05:59:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752127150;
-	bh=r6tEmM4cHH3qV+NzliaTevO4A7m+PvEn3Y4zpcy0+hM=;
+	s=korg; t=1752127151;
+	bh=DtywTBfgk6vJUVbTDbpePaWXPm3dCjEPkqHPRfX4Pqg=;
 	h=Date:To:From:Subject:From;
-	b=hOhgnBVitKN5Ow1V8oHjEMkDXtIYZWDUdZb7gwCthldOB2/6Fnb09wTgTkAneFcxW
-	 jmJ1c1rCdR4VvqSUjlR7RH2MfqqjEtFlf1wHhrZQbyfIAJTZq/JW0heA8/jwKFHiWP
-	 /t/THF6Cb6mtz8GW7dd63ZA1szt+Z8qa5Y2qJrqU=
-Date: Wed, 09 Jul 2025 22:59:09 -0700
-To: mm-commits@vger.kernel.org,git@elijahs.space,akpm@linux-foundation.org
+	b=t/WncoT4mwQePEM3Cf5tBKet+xVAD0CjkSb3VBCvuT7QlE06zMROLwkGsZrrYYxUV
+	 iGFEu1GjjY/x765uLNk1QNikaF/Li/dWpMlhqf5Z5NNORUSRYf0ekDLJQBns6ZKtAV
+	 ZeeqkUshgguOAinrZ6KiPiiHrE4D6fptycPaPPGE=
+Date: Wed, 09 Jul 2025 22:59:10 -0700
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-relay-use-__gfp_zero-in-relay_alloc_buf.patch removed from -mm tree
-Message-Id: <20250710055910.393D7C4CEE3@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-pass-the-inode-to-squashfs_readahead_fragment.patch removed from -mm tree
+Message-Id: <20250710055911.70EB3C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel: relay: use __GFP_ZERO in relay_alloc_buf
+     Subject: squashfs: pass the inode to squashfs_readahead_fragment()
 has been removed from the -mm tree.  Its filename was
-     kernel-relay-use-__gfp_zero-in-relay_alloc_buf.patch
+     squashfs-pass-the-inode-to-squashfs_readahead_fragment.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Elijah Wright <git@elijahs.space>
-Subject: kernel: relay: use __GFP_ZERO in relay_alloc_buf
-Date: Tue, 10 Jun 2025 15:56:28 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: squashfs: pass the inode to squashfs_readahead_fragment()
+Date: Thu, 12 Jun 2025 15:39:00 +0100
 
-Passing the __GFP_ZERO flag to alloc_page should result in less overhead
-th= an using memset()
+Patch series "squashfs: Remove page->mapping references".
 
-Link: https://lkml.kernel.org/r/20250610225639.314970-3-git@elijahs.space
-Signed-off-by: Elijah Wright <git@elijahs.space>
+We're close to being able to kill page->mapping.  These two patches get us
+a little bit closer.
+
+
+This patch (of 2):
+
+Eliminate a reference to page->mapping by passing the inode from the
+caller.
+
+Link: https://lkml.kernel.org/r/20250612143903.2849289-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250612143903.2849289-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/squashfs/file.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/kernel/relay.c~kernel-relay-use-__gfp_zero-in-relay_alloc_buf
-+++ a/kernel/relay.c
-@@ -118,7 +118,7 @@ static void *relay_alloc_buf(struct rcha
- 		return NULL;
+--- a/fs/squashfs/file.c~squashfs-pass-the-inode-to-squashfs_readahead_fragment
++++ a/fs/squashfs/file.c
+@@ -493,10 +493,9 @@ out:
+ 	return res;
+ }
  
- 	for (i = 0; i < n_pages; i++) {
--		buf->page_array[i] = alloc_page(GFP_KERNEL);
-+		buf->page_array[i] = alloc_page(GFP_KERNEL | __GFP_ZERO);
- 		if (unlikely(!buf->page_array[i]))
- 			goto depopulate;
- 		set_page_private(buf->page_array[i], (unsigned long)buf);
-@@ -127,7 +127,6 @@ static void *relay_alloc_buf(struct rcha
- 	if (!mem)
- 		goto depopulate;
+-static int squashfs_readahead_fragment(struct page **page,
++static int squashfs_readahead_fragment(struct inode *inode, struct page **page,
+ 	unsigned int pages, unsigned int expected, loff_t start)
+ {
+-	struct inode *inode = page[0]->mapping->host;
+ 	struct squashfs_cache_entry *buffer = squashfs_get_fragment(inode->i_sb,
+ 		squashfs_i(inode)->fragment_block,
+ 		squashfs_i(inode)->fragment_size);
+@@ -605,8 +604,8 @@ static void squashfs_readahead(struct re
  
--	memset(mem, 0, *size);
- 	buf->page_count = n_pages;
- 	return mem;
- 
+ 		if (start >> msblk->block_log == file_end &&
+ 				squashfs_i(inode)->fragment_block != SQUASHFS_INVALID_BLK) {
+-			res = squashfs_readahead_fragment(pages, nr_pages,
+-							  expected, start);
++			res = squashfs_readahead_fragment(inode, pages,
++					nr_pages, expected, start);
+ 			if (res)
+ 				goto skip_pages;
+ 			continue;
 _
 
-Patches currently in -mm which might be from git@elijahs.space are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
