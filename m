@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B2FB2905
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9101284687
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126210; cv=none; b=GaF7z/k3sr/oXqSRgEdClK4qqTeSos6oltQK8vn3zJRUTT0LOp8VEgPznBmSoFBhP/ADPWJ9lxGE/7Z4WLpbQep7wvhs378aKXp0a2KMrYP4w4uSHN/j60sxJqziPV8GjCrSpF1sUHFyhxV4QQleBIN0qkQLgeaFCCdRQAjcOPY=
+	t=1752126211; cv=none; b=gbNiDSFWbQOjnz9kS+EtSe5wggRrgDT617tZtvvraN0/me6LXj4zrMOidOikGp/2L6V/0iqcchDzVpUvoy5mt+LU9E6H7Wu0lTJQ+HHOG+6wLJSaELFUNcwI+K7NdGYDa01db0vdZjfG/y+HAMKy2LJ2pcidta8w1aKKRtnWCkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126210; c=relaxed/simple;
-	bh=wrhy3eIBMszHkpXgnm9nxU5x5QoSGcjUdEObT0ptF2Y=;
-	h=Date:To:From:Subject:Message-Id; b=JIOPP06NWOSWoLzQIt6UK4aMCmf+LAp5TEtlNHjRpqIfZBJJuGdnEw7jJFNwrpWqnsQe8QzKkvFpY8aAra41yB7NHhVYsJEzJTvWikWq6/Ma2ZkmL44++S1aV7xWbDl1mn9xHjptmKTgJ6LGk0SK4peljaVEDPuAn19s90jVOT4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GvNCfe3U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126211; c=relaxed/simple;
+	bh=UomESgMZbLKayJHf0S3tzpPZmHxWFxBLfHkmL7pwd3s=;
+	h=Date:To:From:Subject:Message-Id; b=mXdq5XWmcCsS27M4PRU88I8zjVr9vq+fc69zVKfFsWazsxkZJ2V9ETgLOxgbDzGtFRjBz6tk9nGhnJ1GXlukN7aAVqG9gz2K1Gd0csxgdP4ArBb/lxKQsJ9oKGX5N7oJhRY9QU3UnmcF74Plbf6+ej8otWvHtMimRFHClvKZbE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uS7VqyPJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GvNCfe3U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8770C4CEE3;
-	Thu, 10 Jul 2025 05:43:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uS7VqyPJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20855C4CEE3;
+	Thu, 10 Jul 2025 05:43:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126210;
-	bh=wrhy3eIBMszHkpXgnm9nxU5x5QoSGcjUdEObT0ptF2Y=;
+	s=korg; t=1752126211;
+	bh=UomESgMZbLKayJHf0S3tzpPZmHxWFxBLfHkmL7pwd3s=;
 	h=Date:To:From:Subject:From;
-	b=GvNCfe3U8R6tjwXV9UD9tPpfXwK3LciBsPWqAkYP1Rk587GTzjY9bPanx+gHUAWA9
-	 EBTv8UTdEaKLXa3CVqjNM7BVW6+k+1aM3ba6HH6Tv1AOjkjO+9/+YXmZrLFlC9QblQ
-	 x4yLNpXhYIZKiJT+dLVhpr54hTSAezb+NA6dHgQ0=
-Date: Wed, 09 Jul 2025 22:43:29 -0700
+	b=uS7VqyPJRugzjL5vGLpG1LVh26wZkHyA/Gb5eLXYTc+pvgyDHAiVS4O8VXKT+N8d7
+	 hd3LvM7arFVk1uiXXe4pRdcaP93rJPWoHMdHYJSCUlnyXJSF/poJVwarKcA3luO4BM
+	 X8QQusuvkh+f7Zy3FRBNUHdb01R+Nka48tKCF0LI=
+Date: Wed, 09 Jul 2025 22:43:30 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch removed from -mm tree
-Message-Id: <20250710054329.E8770C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch removed from -mm tree
+Message-Id: <20250710054331.20855C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,147 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/stat: calculate and expose idle time percentiles
+     Subject: Docs/admin-guide/mm/damon: add DAMON_STAT usage document
 has been removed from the -mm tree.  Its filename was
-     mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
+     docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: calculate and expose idle time percentiles
-Date: Wed, 4 Jun 2025 11:31:26 -0700
+Subject: Docs/admin-guide/mm/damon: add DAMON_STAT usage document
+Date: Wed, 4 Jun 2025 11:31:27 -0700
 
-Knowing how much memory is how cold can be useful for understanding
-coldness and utilization efficiency of memory.  The raw form of DAMON's
-monitoring results has the information.  Convert the raw results into the
-per-byte idle time distributions and expose it as percentiles metric to
-users, as a read-only DAMON_STAT parameter.
+Document DAMON_STAT usage and add a link to it on DAMON admin-guide page.
 
-In detail, the metrics are calculated as follows.  First, DAMON's
-per-region access frequency and age information is converted into per-byte
-idle time.  If access frequency of a region is higher than zero, every
-byte of the region has zero idle time.  If the access frequency of a
-region is zero, every byte of the region has idle time as the age of the
-region.  Then the logic sorts the per-byte idle times and provides the
-value at 0/100, 1/100, ..., 99/100 and 100/100 location of the sorted
-array.
-
-The metric can be easily aggregated and compared on large scale production
-systems.  For example, if an average of 75-th percentile idle time of
-machines that collected on similar time is two minutes, it means the
-system's 25 percent memory is not accessed at all for two minutes or more
-on average.  If a workload considers two minutes as unit work time, we can
-conclude its working set size is only 75 percent of the memory.  If the
-system utilizes proactive reclamation and it supports coldness-based
-thresholds like DAMON_RECLAIM, the idle time percentiles can be used to
-find a more safe or aggressive coldness threshold for aimed memory saving.
-
-Link: https://lkml.kernel.org/r/20250604183127.13968-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250604183127.13968-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   72 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ Documentation/admin-guide/mm/damon/index.rst |    1 
+ Documentation/admin-guide/mm/damon/stat.rst  |   69 +++++++++++++++++
+ 2 files changed, 70 insertions(+)
 
---- a/mm/damon/stat.c~mm-damon-stat-calculate-and-expose-idle-time-percentiles
-+++ a/mm/damon/stat.c
-@@ -34,6 +34,11 @@ module_param(estimated_memory_bandwidth,
- MODULE_PARM_DESC(estimated_memory_bandwidth,
- 		"Estimated memory bandwidth usage in bytes per second");
- 
-+static unsigned long memory_idle_ms_percentiles[101] __read_mostly = {0,};
-+module_param_array(memory_idle_ms_percentiles, ulong, NULL, 0400);
-+MODULE_PARM_DESC(memory_idle_ms_percentiles,
-+		"Memory idle time percentiles in milliseconds");
+--- a/Documentation/admin-guide/mm/damon/index.rst~docs-admin-guide-mm-damon-add-damon_stat-usage-document
++++ a/Documentation/admin-guide/mm/damon/index.rst
+@@ -14,3 +14,4 @@ access monitoring and access-aware syste
+    usage
+    reclaim
+    lru_sort
++   stat
+diff --git a/Documentation/admin-guide/mm/damon/stat.rst a/Documentation/admin-guide/mm/damon/stat.rst
+new file mode 100644
+--- /dev/null
++++ a/Documentation/admin-guide/mm/damon/stat.rst
+@@ -0,0 +1,69 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
- static struct damon_ctx *damon_stat_context;
- 
- static void damon_stat_set_estimated_memory_bandwidth(struct damon_ctx *c)
-@@ -51,6 +56,72 @@ static void damon_stat_set_estimated_mem
- 		MSEC_PER_SEC / c->attrs.aggr_interval;
- }
- 
-+static unsigned int damon_stat_idletime(const struct damon_region *r)
-+{
-+	if (r->nr_accesses)
-+		return 0;
-+	return r->age + 1;
-+}
++===================================
++Data Access Monitoring Results Stat
++===================================
 +
-+static int damon_stat_cmp_regions(const void *a, const void *b)
-+{
-+	const struct damon_region *ra = *(const struct damon_region **)a;
-+	const struct damon_region *rb = *(const struct damon_region **)b;
++Data Access Monitoring Results Stat (DAMON_STAT) is a static kernel module that
++is aimed to be used for simple access pattern monitoring.  It monitors accesses
++on the system's entire physical memory using DAMON, and provides simplified
++access monitoring results statistics, namely idle time percentiles and
++estimated memory bandwidth.
 +
-+	return damon_stat_idletime(ra) - damon_stat_idletime(rb);
-+}
++Monitoring Accuracy and Overhead
++================================
 +
-+static int damon_stat_sort_regions(struct damon_ctx *c,
-+		struct damon_region ***sorted_ptr, int *nr_regions_ptr,
-+		unsigned long *total_sz_ptr)
-+{
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	struct damon_region **region_pointers;
-+	unsigned int nr_regions = 0;
-+	unsigned long total_sz = 0;
++DAMON_STAT uses monitoring intervals :ref:`auto-tuning
++<damon_design_monitoring_intervals_autotuning>` to make its accuracy high and
++overhead minimum.  It auto-tunes the intervals aiming 4 % of observable access
++events to be captured in each snapshot, while limiting the resulting sampling
++events to be 5 milliseconds in minimum and 10 seconds in maximum.  On a few
++production server systems, it resulted in consuming only 0.x % single CPU time,
++while capturing reasonable quality of access patterns.
 +
-+	damon_for_each_target(t, c) {
-+		/* there is only one target */
-+		region_pointers = kmalloc_array(damon_nr_regions(t),
-+				sizeof(*region_pointers), GFP_KERNEL);
-+		if (!region_pointers)
-+			return -ENOMEM;
-+		damon_for_each_region(r, t) {
-+			region_pointers[nr_regions++] = r;
-+			total_sz += r->ar.end - r->ar.start;
-+		}
-+	}
-+	sort(region_pointers, nr_regions, sizeof(*region_pointers),
-+			damon_stat_cmp_regions, NULL);
-+	*sorted_ptr = region_pointers;
-+	*nr_regions_ptr = nr_regions;
-+	*total_sz_ptr = total_sz;
-+	return 0;
-+}
++Interface: Module Parameters
++============================
 +
-+static void damon_stat_set_idletime_percentiles(struct damon_ctx *c)
-+{
-+	struct damon_region **sorted_regions, *region;
-+	int nr_regions;
-+	unsigned long total_sz, accounted_bytes = 0;
-+	int err, i, next_percentile = 0;
++To use this feature, you should first ensure your system is running on a kernel
++that is built with ``CONFIG_DAMON_STAT=y``.  The feature can be enabled by
++default at build time, by setting ``CONFIG_DAMON_STAT_ENABLED_DEFAULT`` true.
 +
-+	err = damon_stat_sort_regions(c, &sorted_regions, &nr_regions,
-+			&total_sz);
-+	if (err)
-+		return;
-+	for (i = 0; i < nr_regions; i++) {
-+		region = sorted_regions[i];
-+		accounted_bytes += region->ar.end - region->ar.start;
-+		while (next_percentile <= accounted_bytes * 100 / total_sz)
-+			memory_idle_ms_percentiles[next_percentile++] =
-+				damon_stat_idletime(region) *
-+				c->attrs.aggr_interval / USEC_PER_MSEC;
-+	}
-+	kfree(sorted_regions);
-+}
++To let sysadmins enable or disable it at boot and/or runtime, and read the
++monitoring results, DAMON_STAT provides module parameters.  Following
++sections are descriptions of the parameters.
 +
- static int damon_stat_after_aggregation(struct damon_ctx *c)
- {
- 	static unsigned long last_refresh_jiffies;
-@@ -62,6 +133,7 @@ static int damon_stat_after_aggregation(
- 	last_refresh_jiffies = jiffies;
- 
- 	damon_stat_set_estimated_memory_bandwidth(c);
-+	damon_stat_set_idletime_percentiles(c);
- 	return 0;
- }
- 
++enabled
++-------
++
++Enable or disable DAMON_STAT.
++
++You can enable DAMON_STAT by setting the value of this parameter as ``Y``.
++Setting it as ``N`` disables DAMON_STAT.  The default value is set by
++``CONFIG_DAMON_STAT_ENABLED_DEFAULT`` build config option.
++
++estimated_memory_bandwidth
++--------------------------
++
++Estimated memory bandwidth consumption (bytes per second) of the system.
++
++DAMON_STAT reads observed access events on the current DAMON results snapshot
++and converts it to memory bandwidth consumption estimation in bytes per second.
++The resulting metric is exposed to user via this read-only parameter.  Because
++DAMON uses sampling, this is only an estimation of the access intensity rather
++than accurate memory bandwidth.
++
++memory_idle_ms_percentiles
++--------------------------
++
++Per-byte idle time (milliseconds) percentiles of the system.
++
++DAMON_STAT calculates how long each byte of the memory was not accessed until
++now (idle time), based on the current DAMON results snapshot.  If DAMON found a
++region of access frequency (nr_accesses) larger than zero, every byte of the
++region gets zero idle time.  If a region has zero access frequency
++(nr_accesses), how long the region was keeping the zero access frequency (age)
++becomes the idle time of every byte of the region.  Then, DAMON_STAT exposes
++the percentiles of the idle time values via this read-only parameter.  Reading
++the parameter returns 101 idle time values in milliseconds, separated by comma.
++Each value represents 0-th, 1st, 2nd, 3rd, ..., 99th and 100th percentile idle
++times.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
