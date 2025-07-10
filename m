@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519002905
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2C32905
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126191; cv=none; b=c0JxyiUdJIopLd5dRYRkQ/ob0VYMKAegUT5tOKKW8h6GfUfabt3OqrMx0ZUU84mAf70xqDI0w7DFfSuxo+Q6cbEcgzjvQ6dS0Rp/a3bPIBmMDUXxdKhaejhYINITn4ojp5It2ecV/oKIi8NXPWwO1KiMEjrM2+sxbiS6rOisLu0=
+	t=1752126194; cv=none; b=sGd3RNG/1ApTLBdxG8//VqbSSEgs6V8kIayeIuIsS6bn/fbrrSpXnEaYoRis9B1THgMBQ84+S+Drp48z08eJJa02pLrU7RDFLPM4bCqrJCIfBGOvhO7Zee1ISoRUnO+/Qu2x+x0CKVDUeRBP1Mn9OrEiH1AqDoynz+fWLvaiw2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126191; c=relaxed/simple;
-	bh=XQ/JVoaOXtO4/ZgSCtIE+3V1aJFevZ2DDC30Ucu71PY=;
-	h=Date:To:From:Subject:Message-Id; b=SqSGUzf55IONT2gW4QWZUYlTLVOMrwT2Rs7gA3mqJWumW1h1wZb5zYA4nozIRGNeMLPKhf9fp7BlFu55qawQXbZPwHwIguvrGj5xcQCW/vSXnBQ2Jfb1bTlZCIMCMIS13Ef3uMhSy3gUnw0IcDQ+/EFNsgZZw78Oi6o5DZA9z50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yLCdfqlZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126194; c=relaxed/simple;
+	bh=k7BALdck8NNvuRosx56ZdMaVgm+UaLV+SD9rniydOLE=;
+	h=Date:To:From:Subject:Message-Id; b=nHM9l3we9V1/rBHS4wxSiHO2HnLrUP2MLJ8Y4EbJn3TERtWvJdZ9pJzKug2z3mM3OCJRc67NZrflWas2RKhKj7bOQahfIJS6epq6nObuqJLnzyF5AA4wd/C7SYtgCUdvup3R1CR8BJiKYN1vSlMSUeVlMxESnT8+qRWEF/NCbNc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IK5UmWZp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yLCdfqlZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16531C4CEE3;
-	Thu, 10 Jul 2025 05:43:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IK5UmWZp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73BD1C4CEE3;
+	Thu, 10 Jul 2025 05:43:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126191;
-	bh=XQ/JVoaOXtO4/ZgSCtIE+3V1aJFevZ2DDC30Ucu71PY=;
+	s=korg; t=1752126193;
+	bh=k7BALdck8NNvuRosx56ZdMaVgm+UaLV+SD9rniydOLE=;
 	h=Date:To:From:Subject:From;
-	b=yLCdfqlZSLPQTa3igviG434Ow8kccR7oR67waCfe+mqx/vPQMm2uy1VFOeXOfG3SZ
-	 RFKawqiFEjH8Q/HLWtjEDgnqwcrl5KOcddpvv4Ryfjk28roAdmsTCDJ/H0juzArYXW
-	 V5OjsxOyl103Ge09kh2w09BtXq07UJ3dGV/+4fxw=
-Date: Wed, 09 Jul 2025 22:43:10 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,axelrasmussen@google.com,koichiro.den@canonical.com,akpm@linux-foundation.org
+	b=IK5UmWZp//m6xZQyKhTbSvTzBmGjajt8dKA0gC2H71W3nScRB+FU4vQwRjfnmN7fG
+	 Asl4XYsnsXYix5nFMgVFPj/FdFNyJXFpKIJ4bydCH2KPAxmxxUROhE8w8tigWWCvgT
+	 +oc8dEsbHhkLOR7mHafznOOaPs199FibjFZKVsuc=
+Date: Wed, 09 Jul 2025 22:43:12 -0700
+To: mm-commits@vger.kernel.org,sweettea-kernel@dorminy.me,stephen.s.brennan@oracle.com,sj@kernel.org,paulmck@kernel.org,osandov@osandov.com,fweimer@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled.patch removed from -mm tree
-Message-Id: <20250710054311.16531C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch removed from -mm tree
+Message-Id: <20250710054313.73BD1C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,293 +35,260 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: apply proportional reclaim pressure for memcg when MGLRU is enabled
+     Subject: tools/mm: add script to display page state for a given PID and VADDR
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled.patch
+     tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Koichiro Den <koichiro.den@canonical.com>
-Subject: mm: vmscan: apply proportional reclaim pressure for memcg when MGLRU is enabled
-Date: Sat, 31 May 2025 01:23:53 +0900
+From: Ye Liu <liuye@kylinos.cn>
+Subject: tools/mm: add script to display page state for a given PID and VADDR
+Date: Fri, 30 May 2025 13:58:55 +0800
 
-The scan implementation for MGLRU was missing proportional reclaim
-pressure for memcg, which contradicts the description in
-Documentation/admin-guide/cgroup-v2.rst (memory.{low,min} section).
+Introduces a new drgn script, `show_page_info.py`, which allows users
+to analyze the state of a page given a process ID (PID) and a virtual
+address (VADDR).  This can help kernel developers or debuggers easily
+inspect page-related information in a live kernel or vmcore.
 
-This issue can be observed in kselftest cgroup:test_memcontrol
-(specifically test_memcg_min and test_memcg_low).  The following table
-shows the actual values observed in my local test env (on xfs) and the
-error "e", which is the symmetric absolute percentage error from the ideal
-values of 29M for c[0] and 21M for c[1].
+The script extracts information such as the page flags, mapping, and
+other metadata relevant to diagnosing memory issues.
 
-  test_memcg_min
+Output example:
+sudo ./show_page_info.py 1 0x7fc988181000
+PID: 1 Comm: systemd mm: 0xffff8d22c4089700
+RAW: 0017ffffc000416c fffff939062ff708 fffff939062ffe08 ffff8d23062a12a8
+RAW: 0000000000000000 ffff8d2323438f60 0000002500000007 ffff8d23203ff500
+Page Address:    0xfffff93905664e00
+Page Flags:      PG_referenced|PG_uptodate|PG_lru|PG_head|PG_active|
+                 PG_private|PG_reported|PG_has_hwpoisoned
+Page Size:       4096
+Page PFN:        0x159938
+Page Physical:   0x159938000
+Page Virtual:    0xffff8d2319938000
+Page Refcount:   37
+Page Mapcount:   7
+Page Index:      0x0
+Page Memcg Data: 0xffff8d23203ff500
+Memcg Name:      init.scope
+Memcg Path:      /sys/fs/cgroup/memory/init.scope
+Page Mapping:    0xffff8d23062a12a8
+Page Anon/File:  File
+Page VMA:        0xffff8d22e06e0e40
+VMA Start:       0x7fc988181000
+VMA End:         0x7fc988185000
+This page is part of a compound page.
+This page is the head page of a compound page.
+Head Page:       0xfffff93905664e00
+Compound Order:  2
+Number of Pages: 4
 
-         | MGLRU enabled   | MGLRU enabled   | MGLRU disabled
-         | Without patch   | With patch      |
-    -----|-----------------|-----------------|---------------
-    c[0] | 25964544 (e=8%) | 28770304 (e=3%) | 27820032 (e=4%)
-    c[1] | 26214400 (e=9%) | 23998464 (e=4%) | 24776704 (e=6%)
-
-  test_memcg_low
-
-         | MGLRU enabled   | MGLRU enabled   | MGLRU disabled
-         | Without patch   | With patch      |
-    -----|-----------------|-----------------|---------------
-    c[0] | 26214400 (e=7%) | 27930624 (e=4%) | 27688960 (e=5%)
-    c[1] | 26214400 (e=9%) | 24764416 (e=6%) | 24920064 (e=6%)
-
-Factor out the proportioning logic to a new function and have MGLRU reuse
-it.  While at it, update the eviction behavior via debugfs 'lru_gen'
-interface ('-' command with an explicit 'nr_to_reclaim' parameter) to
-ensure eviction is limited to the specified number.
-
-Link: https://lkml.kernel.org/r/20250530162353.541882-1-den@valinux.co.jp
-Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
-Reviewed-by: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lkml.kernel.org/r/20250530055855.687067-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Tested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Stephen Brennan <stephen.s.brennan@oracle.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Omar Sandoval <osandov@osandov.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |  149 ++++++++++++++++++++++++++------------------------
- 1 file changed, 79 insertions(+), 70 deletions(-)
+ MAINTAINERS                |    5 +
+ tools/mm/show_page_info.py |  169 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 174 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-apply-proportional-reclaim-pressure-for-memcg-when-mglru-is-enabled
-+++ a/mm/vmscan.c
-@@ -2482,6 +2482,69 @@ static inline void calculate_pressure_ba
- 	*denominator = ap + fp;
- }
+--- a/MAINTAINERS~tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr
++++ a/MAINTAINERS
+@@ -18818,6 +18818,11 @@ F:	Documentation/mm/page_table_check.rst
+ F:	include/linux/page_table_check.h
+ F:	mm/page_table_check.c
  
-+static unsigned long apply_proportional_protection(struct mem_cgroup *memcg,
-+		struct scan_control *sc, unsigned long scan)
-+{
-+	unsigned long min, low;
++PAGE STATE DEBUG SCRIPT
++M:	Ye Liu <liuye@kylinos.cn>
++S:	Maintained
++F:	tools/mm/show_page_info.py
 +
-+	mem_cgroup_protection(sc->target_mem_cgroup, memcg, &min, &low);
+ PANASONIC LAPTOP ACPI EXTRAS DRIVER
+ M:	Kenneth Chan <kenneth.t.chan@gmail.com>
+ L:	platform-driver-x86@vger.kernel.org
+diff --git a/tools/mm/show_page_info.py a/tools/mm/show_page_info.py
+new file mode 100644
+--- /dev/null
++++ a/tools/mm/show_page_info.py
+@@ -0,0 +1,169 @@
++#!/usr/bin/env drgn
++# SPDX-License-Identifier: GPL-2.0-only
++# Copyright (C) 2025 Ye Liu <liuye@kylinos.cn>
 +
-+	if (min || low) {
-+		/*
-+		 * Scale a cgroup's reclaim pressure by proportioning
-+		 * its current usage to its memory.low or memory.min
-+		 * setting.
-+		 *
-+		 * This is important, as otherwise scanning aggression
-+		 * becomes extremely binary -- from nothing as we
-+		 * approach the memory protection threshold, to totally
-+		 * nominal as we exceed it.  This results in requiring
-+		 * setting extremely liberal protection thresholds. It
-+		 * also means we simply get no protection at all if we
-+		 * set it too low, which is not ideal.
-+		 *
-+		 * If there is any protection in place, we reduce scan
-+		 * pressure by how much of the total memory used is
-+		 * within protection thresholds.
-+		 *
-+		 * There is one special case: in the first reclaim pass,
-+		 * we skip over all groups that are within their low
-+		 * protection. If that fails to reclaim enough pages to
-+		 * satisfy the reclaim goal, we come back and override
-+		 * the best-effort low protection. However, we still
-+		 * ideally want to honor how well-behaved groups are in
-+		 * that case instead of simply punishing them all
-+		 * equally. As such, we reclaim them based on how much
-+		 * memory they are using, reducing the scan pressure
-+		 * again by how much of the total memory used is under
-+		 * hard protection.
-+		 */
-+		unsigned long cgroup_size = mem_cgroup_size(memcg);
-+		unsigned long protection;
++import argparse
++import sys
++from drgn import Object, FaultError, PlatformFlags, cast
++from drgn.helpers.linux import find_task, follow_page, page_size
++from drgn.helpers.linux.mm import (
++    decode_page_flags, page_to_pfn, page_to_phys, page_to_virt, vma_find,
++    PageSlab, PageCompound, PageHead, PageTail, compound_head, compound_order, compound_nr
++)
++from drgn.helpers.linux.cgroup import cgroup_name, cgroup_path
 +
-+		/* memory.low scaling, make sure we retry before OOM */
-+		if (!sc->memcg_low_reclaim && low > min) {
-+			protection = low;
-+			sc->memcg_low_skipped = 1;
-+		} else {
-+			protection = min;
-+		}
++DESC = """
++This is a drgn script to show the page state.
++For more info on drgn, visit https://github.com/osandov/drgn.
++"""
 +
-+		/* Avoid TOCTOU with earlier protection check */
-+		cgroup_size = max(cgroup_size, protection);
++def format_page_data(page):
++    """
++    Format raw page data into a readable hex dump with "RAW:" prefix.
 +
-+		scan -= scan * protection / (cgroup_size + 1);
++    :param page: drgn.Object instance representing the page.
++    :return: Formatted string of memory contents.
++    """
++    try:
++        address = page.value_()
++        size = prog.type("struct page").size
 +
-+		/*
-+		 * Minimally target SWAP_CLUSTER_MAX pages to keep
-+		 * reclaim moving forwards, avoiding decrementing
-+		 * sc->priority further than desirable.
-+		 */
-+		scan = max(scan, SWAP_CLUSTER_MAX);
-+	}
-+	return scan;
-+}
++        if prog.platform.flags & PlatformFlags.IS_64_BIT:
++            word_size = 8
++        else:
++            word_size = 4
++        num_words = size // word_size
 +
- /*
-  * Determine how aggressively the anon and file LRU lists should be
-  * scanned.
-@@ -2560,70 +2623,10 @@ out:
- 	for_each_evictable_lru(lru) {
- 		bool file = is_file_lru(lru);
- 		unsigned long lruvec_size;
--		unsigned long low, min;
- 		unsigned long scan;
- 
- 		lruvec_size = lruvec_lru_size(lruvec, lru, sc->reclaim_idx);
--		mem_cgroup_protection(sc->target_mem_cgroup, memcg,
--				      &min, &low);
--
--		if (min || low) {
--			/*
--			 * Scale a cgroup's reclaim pressure by proportioning
--			 * its current usage to its memory.low or memory.min
--			 * setting.
--			 *
--			 * This is important, as otherwise scanning aggression
--			 * becomes extremely binary -- from nothing as we
--			 * approach the memory protection threshold, to totally
--			 * nominal as we exceed it.  This results in requiring
--			 * setting extremely liberal protection thresholds. It
--			 * also means we simply get no protection at all if we
--			 * set it too low, which is not ideal.
--			 *
--			 * If there is any protection in place, we reduce scan
--			 * pressure by how much of the total memory used is
--			 * within protection thresholds.
--			 *
--			 * There is one special case: in the first reclaim pass,
--			 * we skip over all groups that are within their low
--			 * protection. If that fails to reclaim enough pages to
--			 * satisfy the reclaim goal, we come back and override
--			 * the best-effort low protection. However, we still
--			 * ideally want to honor how well-behaved groups are in
--			 * that case instead of simply punishing them all
--			 * equally. As such, we reclaim them based on how much
--			 * memory they are using, reducing the scan pressure
--			 * again by how much of the total memory used is under
--			 * hard protection.
--			 */
--			unsigned long cgroup_size = mem_cgroup_size(memcg);
--			unsigned long protection;
--
--			/* memory.low scaling, make sure we retry before OOM */
--			if (!sc->memcg_low_reclaim && low > min) {
--				protection = low;
--				sc->memcg_low_skipped = 1;
--			} else {
--				protection = min;
--			}
--
--			/* Avoid TOCTOU with earlier protection check */
--			cgroup_size = max(cgroup_size, protection);
--
--			scan = lruvec_size - lruvec_size * protection /
--				(cgroup_size + 1);
--
--			/*
--			 * Minimally target SWAP_CLUSTER_MAX pages to keep
--			 * reclaim moving forwards, avoiding decrementing
--			 * sc->priority further than desirable.
--			 */
--			scan = max(scan, SWAP_CLUSTER_MAX);
--		} else {
--			scan = lruvec_size;
--		}
--
-+		scan = apply_proportional_protection(memcg, sc, lruvec_size);
- 		scan >>= sc->priority;
- 
- 		/*
-@@ -4554,8 +4557,9 @@ static bool isolate_folio(struct lruvec
- 	return true;
- }
- 
--static int scan_folios(struct lruvec *lruvec, struct scan_control *sc,
--		       int type, int tier, struct list_head *list)
-+static int scan_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
-+		       struct scan_control *sc, int type, int tier,
-+		       struct list_head *list)
- {
- 	int i;
- 	int gen;
-@@ -4564,7 +4568,7 @@ static int scan_folios(struct lruvec *lr
- 	int scanned = 0;
- 	int isolated = 0;
- 	int skipped = 0;
--	int remaining = MAX_LRU_BATCH;
-+	int remaining = min(nr_to_scan, MAX_LRU_BATCH);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 
-@@ -4675,7 +4679,8 @@ static int get_type_to_scan(struct lruve
- 	return positive_ctrl_err(&sp, &pv);
- }
- 
--static int isolate_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness,
-+static int isolate_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
-+			  struct scan_control *sc, int swappiness,
- 			  int *type_scanned, struct list_head *list)
- {
- 	int i;
-@@ -4687,7 +4692,7 @@ static int isolate_folios(struct lruvec
- 
- 		*type_scanned = type;
- 
--		scanned = scan_folios(lruvec, sc, type, tier, list);
-+		scanned = scan_folios(nr_to_scan, lruvec, sc, type, tier, list);
- 		if (scanned)
- 			return scanned;
- 
-@@ -4697,7 +4702,8 @@ static int isolate_folios(struct lruvec
- 	return 0;
- }
- 
--static int evict_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness)
-+static int evict_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
-+			struct scan_control *sc, int swappiness)
- {
- 	int type;
- 	int scanned;
-@@ -4716,7 +4722,7 @@ static int evict_folios(struct lruvec *l
- 
- 	spin_lock_irq(&lruvec->lru_lock);
- 
--	scanned = isolate_folios(lruvec, sc, swappiness, &type, &list);
-+	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness, &type, &list);
- 
- 	scanned += try_to_inc_min_seq(lruvec, swappiness);
- 
-@@ -4837,6 +4843,8 @@ static long get_nr_to_scan(struct lruvec
- 	if (nr_to_scan && !mem_cgroup_online(memcg))
- 		return nr_to_scan;
- 
-+	nr_to_scan = apply_proportional_protection(memcg, sc, nr_to_scan);
++        values = []
++        for i in range(num_words):
++            word_address = address + i * word_size
++            word = prog.read_word(word_address)
++            values.append(f"{word:0{word_size * 2}x}")
 +
- 	/* try to get away with not aging at the default priority */
- 	if (!success || sc->priority == DEF_PRIORITY)
- 		return nr_to_scan >> sc->priority;
-@@ -4889,7 +4897,7 @@ static bool try_to_shrink_lruvec(struct
- 		if (nr_to_scan <= 0)
- 			break;
- 
--		delta = evict_folios(lruvec, sc, swappiness);
-+		delta = evict_folios(nr_to_scan, lruvec, sc, swappiness);
- 		if (!delta)
- 			break;
- 
-@@ -5510,7 +5518,8 @@ static int run_eviction(struct lruvec *l
- 		if (sc->nr_reclaimed >= nr_to_reclaim)
- 			return 0;
- 
--		if (!evict_folios(lruvec, sc, swappiness))
-+		if (!evict_folios(nr_to_reclaim - sc->nr_reclaimed, lruvec, sc,
-+				  swappiness))
- 			return 0;
- 
- 		cond_resched();
++        lines = [f"RAW: {' '.join(values[i:i + 4])}" for i in range(0, len(values), 4)]
++
++        return "\n".join(lines)
++
++    except FaultError as e:
++        return f"Error reading memory: {e}"
++    except Exception as e:
++        return f"Unexpected error: {e}"
++
++def get_memcg_info(page):
++    """Retrieve memory cgroup information for a page."""
++    try:
++        MEMCG_DATA_OBJEXTS = prog.constant("MEMCG_DATA_OBJEXTS").value_()
++        MEMCG_DATA_KMEM = prog.constant("MEMCG_DATA_KMEM").value_()
++        mask = prog.constant('__NR_MEMCG_DATA_FLAGS').value_() - 1
++        memcg_data = page.memcg_data.read_()
++        if memcg_data & MEMCG_DATA_OBJEXTS:
++            slabobj_ext = cast("struct slabobj_ext *", memcg_data & ~mask)
++            memcg = slabobj_ext.objcg.memcg.value_()
++        elif memcg_data & MEMCG_DATA_KMEM:
++            objcg = cast("struct obj_cgroup *", memcg_data & ~mask)
++            memcg = objcg.memcg.value_()
++        else:
++            memcg = cast("struct mem_cgroup *", memcg_data & ~mask)
++
++        if memcg.value_() == 0:
++            return "none", "/sys/fs/cgroup/memory/"
++        cgrp = memcg.css.cgroup
++        return cgroup_name(cgrp).decode(), f"/sys/fs/cgroup/memory{cgroup_path(cgrp).decode()}"
++    except FaultError as e:
++        return "unknown", f"Error retrieving memcg info: {e}"
++    except Exception as e:
++        return "unknown", f"Unexpected error: {e}"
++
++def show_page_state(page, addr, mm, pid, task):
++    """Display detailed information about a page."""
++    try:
++        print(f'PID: {pid} Comm: {task.comm.string_().decode()} mm: {hex(mm)}')
++        try:
++            print(format_page_data(page))
++        except FaultError as e:
++            print(f"Error reading page data: {e}")
++        fields = {
++            "Page Address": hex(page.value_()),
++            "Page Flags": decode_page_flags(page),
++            "Page Size": prog["PAGE_SIZE"].value_(),
++            "Page PFN": hex(page_to_pfn(page).value_()),
++            "Page Physical": hex(page_to_phys(page).value_()),
++            "Page Virtual": hex(page_to_virt(page).value_()),
++            "Page Refcount": page._refcount.counter.value_(),
++            "Page Mapcount": page._mapcount.counter.value_(),
++            "Page Index": hex(page.__folio_index.value_()),
++            "Page Memcg Data": hex(page.memcg_data.value_()),
++        }
++
++        memcg_name, memcg_path = get_memcg_info(page)
++        fields["Memcg Name"] = memcg_name
++        fields["Memcg Path"] = memcg_path
++        fields["Page Mapping"] = hex(page.mapping.value_())
++        fields["Page Anon/File"] = "Anon" if page.mapping.value_() & 0x1 else "File"
++
++        try:
++            vma = vma_find(mm, addr)
++            fields["Page VMA"] = hex(vma.value_())
++            fields["VMA Start"] = hex(vma.vm_start.value_())
++            fields["VMA End"] = hex(vma.vm_end.value_())
++        except FaultError as e:
++            fields["Page VMA"] = "Unavailable"
++            fields["VMA Start"] = "Unavailable"
++            fields["VMA End"] = "Unavailable"
++            print(f"Error retrieving VMA information: {e}")
++
++        # Calculate the maximum field name length for alignment
++        max_field_len = max(len(field) for field in fields)
++
++        # Print aligned fields
++        for field, value in fields.items():
++            print(f"{field}:".ljust(max_field_len + 2) + f"{value}")
++
++        # Additional information about the page
++        if PageSlab(page):
++            print("This page belongs to the slab allocator.")
++
++        if PageCompound(page):
++            print("This page is part of a compound page.")
++            if PageHead(page):
++                print("This page is the head page of a compound page.")
++            if PageTail(page):
++                print("This page is the tail page of a compound page.")
++            print(f"{'Head Page:'.ljust(max_field_len + 2)}{hex(compound_head(page).value_())}")
++            print(f"{'Compound Order:'.ljust(max_field_len + 2)}{compound_order(page).value_()}")
++            print(f"{'Number of Pages:'.ljust(max_field_len + 2)}{compound_nr(page).value_()}")
++        else:
++            print("This page is not part of a compound page.")
++    except FaultError as e:
++        print(f"Error accessing page state: {e}")
++    except Exception as e:
++        print(f"Unexpected error: {e}")
++
++def main():
++    """Main function to parse arguments and display page state."""
++    parser = argparse.ArgumentParser(description=DESC, formatter_class=argparse.RawTextHelpFormatter)
++    parser.add_argument('pid', metavar='PID', type=int, help='Target process ID (PID)')
++    parser.add_argument('vaddr', metavar='VADDR', type=str, help='Target virtual address in hexadecimal format (e.g., 0x7fff1234abcd)')
++    args = parser.parse_args()
++
++    try:
++        vaddr = int(args.vaddr, 16)
++    except ValueError:
++        sys.exit(f"Error: Invalid virtual address format: {args.vaddr}")
++
++    try:
++        task = find_task(args.pid)
++        mm = task.mm
++        page = follow_page(mm, vaddr)
++
++        if page:
++            show_page_state(page, vaddr, mm, args.pid, task)
++        else:
++            sys.exit(f"Address {hex(vaddr)} is not mapped.")
++    except FaultError as e:
++        sys.exit(f"Error accessing task or memory: {e}")
++    except Exception as e:
++        sys.exit(f"Unexpected error: {e}")
++
++if __name__ == "__main__":
++    main()
 _
 
-Patches currently in -mm which might be from koichiro.den@canonical.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
 
