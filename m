@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20DAC2868A6
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 119A2286883
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126367; cv=none; b=ZHO1OTXxf2MtgfKk0m9BVv0cabEZ9gmOsY78OrbLW7961dDSksxlxZxfsHdUZzFPv/QQganHt0QaQ0uPOCYh+V6XHnj8borcKgv34mUruG9VZAWFZZUjwZBuFC5d+1rK0VXUGj2pdkFyO9NLndoIK5zI5wVo7muns62wHoTeByo=
+	t=1752126368; cv=none; b=Ec4zPOwvlta+3vWxJG1Rm+RfPdjOYVIMVNOCHGkmglzE64b7elRCwyWFtPG4t80i85MvK8GBcQpRDDinc2qFD2CzfCBZDOHejYomDGv+3O747cB1bo4DtHzc5pTIiAXHwMVTZ2fUxOM0ADp6tXgufN8VkJTJI3LEZY0CFNJlOmE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126367; c=relaxed/simple;
-	bh=DoTo5Cir8tW2HR5nxs0do+3vZXtqShWEeikOLLzcH9s=;
-	h=Date:To:From:Subject:Message-Id; b=SJ0waxk04eftTDAQbjMsPlnME0mxNeqqLXYz0EXyP2FXK0JMK4Z3Htq+oReX1JFoY3DaBB5/keZaGx3TjdwK7b5EzFOaFEdp2HAiMaOlOEXNTrpiN+CelzHMGknt4QDxb9oO0QZnoEd3aqSXziMrF6O+HYjZBEZGlwn2oMuNbOU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T6zRl2LP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126368; c=relaxed/simple;
+	bh=DSsbVoEt4sYbpG6Si+iYMbG5Ym9/yL3xzFW+e1K2EZk=;
+	h=Date:To:From:Subject:Message-Id; b=mWFT6wcaVbnXuFbkc1VUSo0bSb0gqWrxnyW6iW0c4Q8hAUH7DF1tNSkdWRsyUgtgSUSwX2UusbXPJE1Ib0a12001UzfwZvx9LGeX/MKrYOHSZje8KRZD+dO476TqSJK2X5JePT61JUmCA6J2KaPoVmIbAgaaCgFq01vn0PdTHDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xQoLIVpy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T6zRl2LP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBE73C4CEF5;
-	Thu, 10 Jul 2025 05:46:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xQoLIVpy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA6ACC4CEE3;
+	Thu, 10 Jul 2025 05:46:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126366;
-	bh=DoTo5Cir8tW2HR5nxs0do+3vZXtqShWEeikOLLzcH9s=;
+	s=korg; t=1752126367;
+	bh=DSsbVoEt4sYbpG6Si+iYMbG5Ym9/yL3xzFW+e1K2EZk=;
 	h=Date:To:From:Subject:From;
-	b=T6zRl2LPSJMLYebALx1fCq7EsiWw7o3RulYxrXWKYYCFUILf5uG8IYU14FlPZQUUU
-	 fm3+Dj0TR/whb1ye617pWwqQ0FqadOkVy2i0XeERImj+FXIt2JLUYYX5EQQNqWGS2E
-	 6Q02I68tR9QWIyuwu+M1kxNGFfWcRrVxMqbnO6FU=
-Date: Wed, 09 Jul 2025 22:46:06 -0700
+	b=xQoLIVpy19vzcv8gEoAdde7REfHgKFPb5wbZqQpJxNYLm71yFawxxV8Ss+EuWz+PZ
+	 /TotM+9RSNIFe2h7wAk/GxnFyqn27Kx5OUTJKD9Za6uATrDpqeeSY4Y5QPBEaFYhfw
+	 0tUb8eK/WrTAkNKtdxrMKZaPKG8VRVXu0sTM4x2g=
+Date: Wed, 09 Jul 2025 22:46:07 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch removed from -mm tree
-Message-Id: <20250710054606.CBE73C4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-decouple-from-damos_action.patch removed from -mm tree
+Message-Id: <20250710054607.DA6ACC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,123 +35,135 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: decouple from damos_quota_goal_metric
+     Subject: mm/damon/sysfs-schemes: decouple from damos_action
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch
+     mm-damon-sysfs-schemes-decouple-from-damos_action.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: decouple from damos_quota_goal_metric
-Date: Sun, 22 Jun 2025 14:37:55 -0700
+Subject: mm/damon/sysfs-schemes: decouple from damos_action
+Date: Sun, 22 Jun 2025 14:37:56 -0700
 
-Patch series "mm/damon: decouple sysfs from core".
+Decouple DAMOS sysfs interface from damos_action.  For this, define and
+use new sysfs-schemes internal data structure that maps the user-space
+keywords and damos_action, instead of having the implicit and unflexible
+array index rule.
 
-DAMON sysfs interface is coupled with core layer.  It maintains some of
-its keywords arrays be synchronized with matching DAMON core API enums. 
-It is unnecessary coupling that makes separated changes for different
-layers difficult.  Decouple the layers by introducing new data structure
-for the mappings on DAMON sysfs interface.
-
-
-This patch (of 5):
-
-Decouple DAMOS sysfs interface from damos_quota_goal_metric.  For this,
-define and use new sysfs-schemes internal data structure that maps the
-user-space keywords and damos_quota_goal_metric, instead of having the
-implicit and unflexible array index rule.
-
-Link: https://lkml.kernel.org/r/20250622213759.50930-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250622213759.50930-2-sj@kernel.org
+[akpm@linux-foundation.org: make damos_sysfs_action_names static]
+  Closes: https://lore.kernel.org/oe-kbuild-all/202506271655.b8yfEZIT-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20250622213759.50930-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   55 +++++++++++++++++++++++++++----------
- 1 file changed, 41 insertions(+), 14 deletions(-)
+ mm/damon/sysfs-schemes.c |   80 ++++++++++++++++++++++++++++---------
+ 1 file changed, 62 insertions(+), 18 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_action
 +++ a/mm/damon/sysfs-schemes.c
-@@ -941,27 +941,51 @@ struct damos_sysfs_quota_goal {
- 	int nid;
+@@ -1614,18 +1614,52 @@ struct damon_sysfs_scheme {
+ 	int target_nid;
  };
  
--/* This should match with enum damos_quota_goal_metric */
--static const char * const damos_sysfs_quota_goal_metric_strs[] = {
--	"user_input",
--	"some_mem_psi_us",
--	"node_mem_used_bp",
--	"node_mem_free_bp",
--};
--
- static struct damos_sysfs_quota_goal *damos_sysfs_quota_goal_alloc(void)
- {
- 	return kzalloc(sizeof(struct damos_sysfs_quota_goal), GFP_KERNEL);
- }
- 
-+struct damos_sysfs_qgoal_metric_name {
-+	enum damos_quota_goal_metric metric;
+-/* This should match with enum damos_action */
+-static const char * const damon_sysfs_damos_action_strs[] = {
+-	"willneed",
+-	"cold",
+-	"pageout",
+-	"hugepage",
+-	"nohugepage",
+-	"lru_prio",
+-	"lru_deprio",
+-	"migrate_hot",
+-	"migrate_cold",
+-	"stat",
++struct damos_sysfs_action_name {
++	enum damos_action action;
 +	char *name;
 +};
 +
-+static
-+struct damos_sysfs_qgoal_metric_name damos_sysfs_qgoal_metric_names[] = {
++static struct damos_sysfs_action_name damos_sysfs_action_names[] = {
 +	{
-+		.metric = DAMOS_QUOTA_USER_INPUT,
-+		.name = "user_input",
++		.action = DAMOS_WILLNEED,
++		.name = "willneed",
 +	},
 +	{
-+		.metric = DAMOS_QUOTA_SOME_MEM_PSI_US,
-+		.name = "some_mem_psi_us",
++		.action = DAMOS_COLD,
++		.name = "cold",
 +	},
 +	{
-+		.metric = DAMOS_QUOTA_NODE_MEM_USED_BP,
-+		.name = "node_mem_used_bp",
++		.action = DAMOS_PAGEOUT,
++		.name = "pageout",
 +	},
 +	{
-+		.metric = DAMOS_QUOTA_NODE_MEM_FREE_BP,
-+		.name = "node_mem_free_bp",
++		.action = DAMOS_HUGEPAGE,
++		.name = "hugepage",
 +	},
-+};
-+
- static ssize_t target_metric_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
++	{
++		.action = DAMOS_NOHUGEPAGE,
++		.name = "nohugepage",
++	},
++	{
++		.action = DAMOS_LRU_PRIO,
++		.name = "lru_prio",
++	},
++	{
++		.action = DAMOS_LRU_DEPRIO,
++		.name = "lru_deprio",
++	},
++	{
++		.action = DAMOS_MIGRATE_HOT,
++		.name = "migrate_hot",
++	},
++	{
++		.action = DAMOS_MIGRATE_COLD,
++		.name = "migrate_cold",
++	},
++	{
++		.action = DAMOS_STAT,
++		.name = "stat",
++	},
+ };
+ 
+ static struct damon_sysfs_scheme *damon_sysfs_scheme_alloc(
+@@ -1862,9 +1896,16 @@ static ssize_t action_show(struct kobjec
  {
- 	struct damos_sysfs_quota_goal *goal = container_of(kobj,
- 			struct damos_sysfs_quota_goal, kobj);
+ 	struct damon_sysfs_scheme *scheme = container_of(kobj,
+ 			struct damon_sysfs_scheme, kobj);
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_qgoal_metric_names); i++) {
-+		struct damos_sysfs_qgoal_metric_name *metric_name;
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_action_names); i++) {
++		struct damos_sysfs_action_name *action_name;
  
 -	return sysfs_emit(buf, "%s\n",
--			damos_sysfs_quota_goal_metric_strs[goal->metric]);
-+		metric_name = &damos_sysfs_qgoal_metric_names[i];
-+		if (metric_name->metric == goal->metric)
-+			return sysfs_emit(buf, "%s\n", metric_name->name);
+-			damon_sysfs_damos_action_strs[scheme->action]);
++		action_name = &damos_sysfs_action_names[i];
++		if (action_name->action == scheme->action)
++			return sysfs_emit(buf, "%s\n", action_name->name);
 +	}
 +	return -EINVAL;
  }
  
- static ssize_t target_metric_store(struct kobject *kobj,
-@@ -969,11 +993,14 @@ static ssize_t target_metric_store(struc
+ static ssize_t action_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1872,11 +1913,14 @@ static ssize_t action_store(struct kobje
  {
- 	struct damos_sysfs_quota_goal *goal = container_of(kobj,
- 			struct damos_sysfs_quota_goal, kobj);
--	enum damos_quota_goal_metric m;
+ 	struct damon_sysfs_scheme *scheme = container_of(kobj,
+ 			struct damon_sysfs_scheme, kobj);
+-	enum damos_action action;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_qgoal_metric_names); i++) {
-+		struct damos_sysfs_qgoal_metric_name *metric_name;
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_action_names); i++) {
++		struct damos_sysfs_action_name *action_name;
  
--	for (m = 0; m < NR_DAMOS_QUOTA_GOAL_METRICS; m++) {
--		if (sysfs_streq(buf, damos_sysfs_quota_goal_metric_strs[m])) {
--			goal->metric = m;
-+		metric_name = &damos_sysfs_qgoal_metric_names[i];
-+		if (sysfs_streq(buf, metric_name->name)) {
-+			goal->metric = metric_name->metric;
+-	for (action = 0; action < NR_DAMOS_ACTIONS; action++) {
+-		if (sysfs_streq(buf, damon_sysfs_damos_action_strs[action])) {
+-			scheme->action = action;
++		action_name = &damos_sysfs_action_names[i];
++		if (sysfs_streq(buf, action_name->name)) {
++			scheme->action = action_name->action;
  			return count;
  		}
  	}
