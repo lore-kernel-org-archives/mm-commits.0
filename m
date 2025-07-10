@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15D1E2857F2
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20B4E22154B
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126328; cv=none; b=pc1PIGPSgVMV62NvHmTQunS5gMuclHKTfEDe8KvNY3B3L3j/y8SxPoI8Zq4QPhmShZgvsirqXMvYQG1chSmaQeKeQ5I8rggh871TsTr5F38/1wk3VTWCZ/usGJ3KfXx76ZFrEsH7erjK8Ysji944Woev9+yY4ccAqSDB12h7ovc=
+	t=1752126330; cv=none; b=O//CSjXb/fP8szEzkEbVDJSxjNlE5cKeMAAdZl0UqHFeQ9KmBzoC2AhnFxrk4gRghu9PcezTxDmFp69K5Qmgq0FwFX2wTYjwVfiJyP7ZJ+D/94t0ze2epBvnUttk/A4/3wOdo+B0x0c8lo09SC7ycCCstSz1yrIKCwS/GKQfjj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126328; c=relaxed/simple;
-	bh=53w15jjG1CtQwouihZrf3M7DQzdHsqNeJdmF/noID94=;
-	h=Date:To:From:Subject:Message-Id; b=t620DkJEaJOWslrtBnlfLdyyjz2v/MGktLMZrPBbOqLbU/rajN5xELHY0uF+wrR+qr0oa1jReDPJAQC9D2+uXbOasLfu/wD+dhCatPWbN/TSfXj8qazGTCDMrcEBcws0AePbvZzqvCuBxQFht8XHNH5qT7IHXWNwuceYM5E+9jw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VLlwn9zU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126330; c=relaxed/simple;
+	bh=ktNONJQzwOW7UMl42PZNitcc1IhULyHzmJXkQSJ5fiE=;
+	h=Date:To:From:Subject:Message-Id; b=DR4s5xD5uvJlNNrYyF0LO2Va52LBwp56SvkcdPc/i45/n8OF7SrlfOW/064F+yhbjAXBtox/ccpfQCqYbuod1nKU1BiSc5aOHBWGBMO80XnVTkrbKHdm1He9/y8AbcD7p1IWUkAwC+M68Nda/aY+VblRXadQKg2lOUdyrMgSvd0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0JTHWfjZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VLlwn9zU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF80CC4CEE3;
-	Thu, 10 Jul 2025 05:45:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0JTHWfjZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA73DC4CEE3;
+	Thu, 10 Jul 2025 05:45:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126328;
-	bh=53w15jjG1CtQwouihZrf3M7DQzdHsqNeJdmF/noID94=;
+	s=korg; t=1752126330;
+	bh=ktNONJQzwOW7UMl42PZNitcc1IhULyHzmJXkQSJ5fiE=;
 	h=Date:To:From:Subject:From;
-	b=VLlwn9zUJZQBrrfnlHTBDMY6dSq9/18uqKfUg/ySLxDXdtN8yua+1o+/sCqC6Qs2Q
-	 hKAjLPqxTUFhX9EASput6ob+HBC8/Dzzo68dJAZdt9OP0nFVWK11WJF0jOJn/PyTq8
-	 vb7OQh3gWx2kzsmOX+EFPKfqYwOEITYT6bq8/3jY=
-Date: Wed, 09 Jul 2025 22:45:27 -0700
+	b=0JTHWfjZJgTaN0nCQOrqTXnPerIYTvBbdPdrnm1JB2jpXFC866TEmByzi3zIJRbCG
+	 jQOBujwZvErUISaXguRj8P3cWjERF/gfsDdnEAB7AUoQw9VOge2JGnkTLjBOEL2QTy
+	 tTvHp/0xUtbCk0wzm2ddnUoQ3Q4hIQ+KX3oBRiXo=
+Date: Wed, 09 Jul 2025 22:45:29 -0700
 To: mm-commits@vger.kernel.org,steven.sistare@oracle.com,osalvador@suse.de,muchun.song@linux.dev,kraxel@redhat.com,david@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch removed from -mm tree
-Message-Id: <20250710054527.DF80CC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memfd-reserve-hugetlb-folios-before-allocation.patch removed from -mm tree
+Message-Id: <20250710054529.EA73DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: make hugetlb_reserve_pages() return nr of entries updated
+     Subject: mm/memfd: reserve hugetlb folios before allocation
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch
+     mm-memfd-reserve-hugetlb-folios-before-allocation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Subject: mm/hugetlb: make hugetlb_reserve_pages() return nr of entries updated
-Date: Tue, 17 Jun 2025 22:30:53 -0700
+Subject: mm/memfd: reserve hugetlb folios before allocation
+Date: Tue, 17 Jun 2025 22:30:54 -0700
 
-Patch series "mm/memfd: Reserve hugetlb folios before allocation", v4.
+When we try to allocate a folio via alloc_hugetlb_folio_reserve(), we need
+to ensure that there is an active reservation associated with the
+allocation.  Otherwise, our allocation request would fail if there are no
+active reservations made at that moment against any other allocations. 
+This is because alloc_hugetlb_folio_reserve() checks h->resv_huge_pages
+before proceeding with the allocation.
 
-There are cases when we try to pin a folio but discover that it has not
-been faulted-in.  So, we try to allocate it in memfd_alloc_folio() but the
-allocation request may not succeed if there are no active reservations in
-the system at that instant.
+Therefore, to address this issue, we just need to make a reservation (by
+calling hugetlb_reserve_pages()) before we try to allocate the folio. 
+This will also ensure that proper region/subpool accounting is done
+associated with our allocation.
 
-Therefore, making a reservation (by calling hugetlb_reserve_pages())
-associated with the allocation will ensure that our request would not fail
-due to lack of reservations.  This will also ensure that proper
-region/subpool accounting is done with our allocation.
-
-
-This patch (of 3):
-
-Currently, hugetlb_reserve_pages() returns a bool to indicate whether the
-reservation map update for the range [from, to] was successful or not. 
-This is not sufficient for the case where the caller needs to determine
-how many entries were updated for the range.
-
-Therefore, have hugetlb_reserve_pages() return the number of entries
-updated in the reservation map associated with the range [from, to]. 
-Also, update the callers of hugetlb_reserve_pages() to handle the new
-return value.
-
-Link: https://lkml.kernel.org/r/20250618053415.1036185-1-vivek.kasireddy@intel.com
-Link: https://lkml.kernel.org/r/20250618053415.1036185-2-vivek.kasireddy@intel.com
+Link: https://lkml.kernel.org/r/20250618053415.1036185-3-vivek.kasireddy@intel.com
 Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Cc: Steve Sistare <steven.sistare@oracle.com>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -83,105 +69,89 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |    8 ++++----
- include/linux/hugetlb.h |    2 +-
- mm/hugetlb.c            |   19 +++++++++++++------
- 3 files changed, 18 insertions(+), 11 deletions(-)
+ include/linux/hugetlb.h |    5 +++++
+ mm/hugetlb.c            |    5 -----
+ mm/memfd.c              |   17 ++++++++++++++---
+ 3 files changed, 19 insertions(+), 8 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
-+++ a/fs/hugetlbfs/inode.c
-@@ -150,10 +150,10 @@ static int hugetlbfs_file_mmap(struct fi
- 	if (inode->i_flags & S_PRIVATE)
- 		vm_flags |= VM_NORESERVE;
- 
--	if (!hugetlb_reserve_pages(inode,
-+	if (hugetlb_reserve_pages(inode,
- 				vma->vm_pgoff >> huge_page_order(h),
- 				len >> huge_page_shift(h), vma,
--				vm_flags))
-+				vm_flags) < 0)
- 		goto out;
- 
- 	ret = 0;
-@@ -1561,9 +1561,9 @@ struct file *hugetlb_file_setup(const ch
- 	inode->i_size = size;
- 	clear_nlink(inode);
- 
--	if (!hugetlb_reserve_pages(inode, 0,
-+	if (hugetlb_reserve_pages(inode, 0,
- 			size >> huge_page_shift(hstate_inode(inode)), NULL,
--			acctflag))
-+			acctflag) < 0)
- 		file = ERR_PTR(-ENOMEM);
- 	else
- 		file = alloc_file_pseudo(inode, mnt, name, O_RDWR,
---- a/include/linux/hugetlb.h~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
+--- a/include/linux/hugetlb.h~mm-memfd-reserve-hugetlb-folios-before-allocation
 +++ a/include/linux/hugetlb.h
-@@ -149,7 +149,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 			     uffd_flags_t flags,
- 			     struct folio **foliop);
- #endif /* CONFIG_USERFAULTFD */
--bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
-+long hugetlb_reserve_pages(struct inode *inode, long from, long to,
- 						struct vm_area_struct *vma,
- 						vm_flags_t vm_flags);
- long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
---- a/mm/hugetlb.c~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
-+++ a/mm/hugetlb.c
-@@ -7244,8 +7244,15 @@ long hugetlb_change_protection(struct vm
- 	return pages > 0 ? (pages << h->order) : pages;
- }
+@@ -740,6 +740,11 @@ extern unsigned int default_hstate_idx;
  
--/* Return true if reservation was successful, false otherwise.  */
--bool hugetlb_reserve_pages(struct inode *inode,
-+/*
-+ * Update the reservation map for the range [from, to].
-+ *
-+ * Returns the number of entries that would be added to the reservation map
-+ * associated with the range [from, to].  This number is greater or equal to
-+ * zero. -EINVAL or -ENOMEM is returned in case of any errors.
-+ */
+ #define default_hstate (hstates[default_hstate_idx])
+ 
++static inline struct hugepage_subpool *subpool_inode(struct inode *inode)
++{
++	return HUGETLBFS_SB(inode->i_sb)->spool;
++}
 +
-+long hugetlb_reserve_pages(struct inode *inode,
- 					long from, long to,
- 					struct vm_area_struct *vma,
- 					vm_flags_t vm_flags)
-@@ -7260,7 +7267,7 @@ bool hugetlb_reserve_pages(struct inode
- 	/* This should never happen */
- 	if (from > to) {
- 		VM_WARN(1, "%s called with a negative range\n", __func__);
--		return false;
-+		return -EINVAL;
- 	}
- 
- 	/*
-@@ -7275,7 +7282,7 @@ bool hugetlb_reserve_pages(struct inode
- 	 * without using reserves
- 	 */
- 	if (vm_flags & VM_NORESERVE)
--		return true;
-+		return 0;
- 
- 	/*
- 	 * Shared mappings base their reservation on the number of pages that
-@@ -7382,7 +7389,7 @@ bool hugetlb_reserve_pages(struct inode
- 			hugetlb_cgroup_put_rsvd_cgroup(h_cg);
- 		}
- 	}
--	return true;
-+	return chg;
- 
- out_put_pages:
- 	spool_resv = chg - gbl_reserve;
-@@ -7410,7 +7417,7 @@ out_err:
- 		kref_put(&resv_map->refs, resv_map_release);
- 		set_vma_resv_map(vma, NULL);
- 	}
--	return false;
-+	return chg < 0 ? chg : add < 0 ? add : -EINVAL;
+ static inline struct hugepage_subpool *hugetlb_folio_subpool(struct folio *folio)
+ {
+ 	return folio->_hugetlb_subpool;
+--- a/mm/hugetlb.c~mm-memfd-reserve-hugetlb-folios-before-allocation
++++ a/mm/hugetlb.c
+@@ -284,11 +284,6 @@ static long hugepage_subpool_put_pages(s
+ 	return ret;
  }
  
- long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+-static inline struct hugepage_subpool *subpool_inode(struct inode *inode)
+-{
+-	return HUGETLBFS_SB(inode->i_sb)->spool;
+-}
+-
+ static inline struct hugepage_subpool *subpool_vma(struct vm_area_struct *vma)
+ {
+ 	return subpool_inode(file_inode(vma->vm_file));
+--- a/mm/memfd.c~mm-memfd-reserve-hugetlb-folios-before-allocation
++++ a/mm/memfd.c
+@@ -70,7 +70,6 @@ struct folio *memfd_alloc_folio(struct f
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	struct folio *folio;
+ 	gfp_t gfp_mask;
+-	int err;
+ 
+ 	if (is_file_hugepages(memfd)) {
+ 		/*
+@@ -79,12 +78,19 @@ struct folio *memfd_alloc_folio(struct f
+ 		 * alloc from. Also, the folio will be pinned for an indefinite
+ 		 * amount of time, so it is not expected to be migrated away.
+ 		 */
++		struct inode *inode = file_inode(memfd);
+ 		struct hstate *h = hstate_file(memfd);
++		int err = -ENOMEM;
++		long nr_resv;
+ 
+ 		gfp_mask = htlb_alloc_mask(h);
+ 		gfp_mask &= ~(__GFP_HIGHMEM | __GFP_MOVABLE);
+ 		idx >>= huge_page_order(h);
+ 
++		nr_resv = hugetlb_reserve_pages(inode, idx, idx + 1, NULL, 0);
++		if (nr_resv < 0)
++			return ERR_PTR(nr_resv);
++
+ 		folio = alloc_hugetlb_folio_reserve(h,
+ 						    numa_node_id(),
+ 						    NULL,
+@@ -95,12 +101,17 @@ struct folio *memfd_alloc_folio(struct f
+ 							idx);
+ 			if (err) {
+ 				folio_put(folio);
+-				return ERR_PTR(err);
++				goto err_unresv;
+ 			}
++
++			hugetlb_set_folio_subpool(folio, subpool_inode(inode));
+ 			folio_unlock(folio);
+ 			return folio;
+ 		}
+-		return ERR_PTR(-ENOMEM);
++err_unresv:
++		if (nr_resv > 0)
++			hugetlb_unreserve_pages(inode, idx, idx + 1, 0);
++		return ERR_PTR(err);
+ 	}
+ #endif
+ 	return shmem_read_folio(memfd->f_mapping, idx);
 _
 
 Patches currently in -mm which might be from vivek.kasireddy@intel.com are
