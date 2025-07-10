@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 460FA469D
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:36:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE005469D
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:36:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752122172; cv=none; b=dwZttXOiN+xA7JqGBV+3AH7KBfeZgrOvQavHVQ1q9TpYyMKBpzlmT/+cUNRgGQPR4kgu0HaV6v0novcaN2+w/rbYmnePGbMVFTTn7AzFtf8+fUXZKrzZkWMDpemQWP3D2YtCBAiMrvpY15rIzhMUqKMJBXSsv/21wRHrEib49z8=
+	t=1752122205; cv=none; b=mTp/FMY+rWO+xLRu1UNip2T+O9JcPS8L1qWAo8urL5JXOSpybUVrYy5xZkeMDr9wHUWxnKNxzh+HYrKe/RxfC01qognU/NG14rXS8yeCOAdcNIVaBF4R9IRLyyUWPehDb9vbrrJ1JcGR1z+luCqRqcDVBvWiM3vJD/b9+Qm+YTk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752122172; c=relaxed/simple;
-	bh=e73q7XtVk9yaM3n44rtc2k1wma0o8q3baK+sTBugC5I=;
-	h=Date:To:From:Subject:Message-Id; b=LVQC1RAvcXQYhboehlukpWS934Rt4Zq0kO4L2+k8EIna6/fv5e6e8WoBXepK+NWLOgqTFwLEcUNZ9k2FvoifKj8w5fgY7jobG4jeIp50NsQY1Ow67BfGs7Y1fjGTzVrXpmF3ZrB7q95t4wTl+Lvf1bmHv6LRKxDG7xMI3ewwDx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UnxgR48S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752122205; c=relaxed/simple;
+	bh=z8W/D5MnIrH5mlmxZp6Qxg8pXALyKzJDCEIPj2egjpY=;
+	h=Date:To:From:Subject:Message-Id; b=LFV1hNB0FKPzFcBYE65dSa08PXqdwNgFjljIcYpvoQzypqt9uxHYvwKD5EdzlFNDn+1MQF+KfoTKVBml+lnntKALXJyzyj3inN/Nu2TUonOyrpcGUHB9+L4Uo1gsIuSQMuTPiq4kX/Xa62tNiIyNJol9gkVceA5o5qLurkGZbao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CpQJ/pPz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UnxgR48S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE664C4CEE3;
-	Thu, 10 Jul 2025 04:36:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CpQJ/pPz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0BB4C4CEE3;
+	Thu, 10 Jul 2025 04:36:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752122171;
-	bh=e73q7XtVk9yaM3n44rtc2k1wma0o8q3baK+sTBugC5I=;
+	s=korg; t=1752122205;
+	bh=z8W/D5MnIrH5mlmxZp6Qxg8pXALyKzJDCEIPj2egjpY=;
 	h=Date:To:From:Subject:From;
-	b=UnxgR48SvhnhhcpdxEuivoYlSZwcn+BQe/NGOc50xO+/aGObT+/a03WZHgyHXdys9
-	 Czo9opKDekCe1qmy34DO1G8fT0VfEKD3KUBc4pjqpeywSbSSXW5XL0Tc4vY3lHJhNA
-	 Pq86IgBNsSIJbP1Lo90CiVH/V3BJQKh7oQv1Tvu0=
-Date: Wed, 09 Jul 2025 21:36:11 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@redhat.com,akpm@linux-foundation.org
+	b=CpQJ/pPzT4ITRNGD53ZRg4tz3yw7RoE6TkmEqExU901RT8q9zPVqRjQH1520iAjK1
+	 YWDHskjrGtpnwB9oBbuxaCK9tR/sG3DiShRg+goaERNl5XA1IqB42foPo8S3CaxiNp
+	 1kroOzMQfMomH3XKdJ99lv5BhT2mAds8B4EMTa9o=
+Date: Wed, 09 Jul 2025 21:36:45 -0700
+To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,osalvador@suse.de,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-gup-remove-vm_bug_ons-fix.patch removed from -mm tree
-Message-Id: <20250710043611.BE664C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range-fix.patch removed from -mm tree
+Message-Id: <20250710043645.B0BB4C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-gup-remove-vm_bug_ons-fix
+     Subject: mm: madvise: revert the walk_page_range_vma change for MADV_GUARD_INSTALL
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-vm_bug_ons-fix.patch
+     mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range-fix.patch
 
-This patch was dropped because it was folded into mm-gup-remove-vm_bug_ons.patch
+This patch was dropped because it was folded into mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range.patch
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm-gup-remove-vm_bug_ons-fix
-Date: Fri, 6 Jun 2025 10:08:20 +0200
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: madvise: revert the walk_page_range_vma change for MADV_GUARD_INSTALL
+Date: Mon, 9 Jun 2025 22:42:13 +1200
 
-use the _FOLIO variant where possible, per Lorenzo
+Fix the broken MADV_GUARD_INSTALL reported by Ryan.
+ # guard-regions.c:719:split_merge:Expected madvise(ptr, 10 * page_size,
+ MADV_GUARD_INSTALL) (-1) == 0 (0)
 
-
-Link: https://lkml.kernel.org/r/844bd929-a551-48e3-a12e-285cd65ba580@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20250609105513.10901-1-21cnbao@gmail.com
+Closes: https://lore.kernel.org/linux-mm/671f8164-a90b-48d7-9446-359eb9493500@arm.com/
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reported-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Harry Yoo <harry.yoo@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: SeongJae Park <sj@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tangquan Zheng <zhengtangquan@oppo.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
+ mm/madvise.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-remove-vm_bug_ons-fix
-+++ a/mm/gup.c
-@@ -64,7 +64,7 @@ static inline void sanity_check_pinned_p
- 		    !folio_test_anon(folio))
- 			continue;
- 		if (!folio_test_large(folio) || folio_test_hugetlb(folio))
--			VM_WARN_ON_ONCE_PAGE(!PageAnonExclusive(&folio->page), page);
-+			VM_WARN_ON_ONCE_FOLIO(!PageAnonExclusive(&folio->page), folio);
- 		else
- 			/* Either a PTE-mapped or a PMD-mapped THP. */
- 			VM_WARN_ON_ONCE_PAGE(!PageAnonExclusive(&folio->page) &&
+--- a/mm/madvise.c~mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range-fix
++++ a/mm/madvise.c
+@@ -1162,7 +1162,7 @@ static long madvise_guard_install(struct
+ 		unsigned long nr_pages = 0;
+ 
+ 		/* Returns < 0 on error, == 0 if success, > 0 if zap needed. */
+-		err = walk_page_range_vma(vma, start, end,
++		err = walk_page_range_mm(vma->vm_mm, start, end,
+ 					 &guard_install_walk_ops, &nr_pages);
+ 		if (err < 0)
+ 			return err;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-gup-remove-vm_bug_ons.patch
-mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pmd.patch
-mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pud.patch
-mm-balloon_compaction-we-cannot-have-isolated-pages-in-the-balloon-list.patch
-mm-balloon_compaction-convert-balloon_page_delete-to-balloon_page_finalize.patch
-mm-zsmalloc-drop-pageisolated-related-vm_bug_ons.patch
-mm-page_alloc-let-page-freeing-clear-any-set-page-type.patch
-mm-balloon_compaction-make-pageoffline-sticky-until-the-page-is-freed.patch
-mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed.patch
-mm-migrate-rename-isolate_movable_page-to-isolate_movable_ops_page.patch
-mm-migrate-rename-putback_movable_folio-to-putback_movable_ops_page.patch
-mm-migrate-factor-out-movable_ops-page-handling-into-migrate_movable_ops_page.patch
-mm-migrate-remove-folio_test_movable-and-folio_movable_ops.patch
-mm-migrate-move-movable_ops-page-handling-out-of-move_to_new_folio.patch
-mm-zsmalloc-stop-using-__clearpagemovable.patch
-mm-balloon_compaction-stop-using-__clearpagemovable.patch
-mm-migrate-remove-__clearpagemovable.patch
-mm-migration-remove-pagemovable.patch
-mm-rename-__pagemovable-to-page_has_movable_ops.patch
-mm-page_isolation-drop-__folio_test_movable-check-for-large-folios.patch
-mm-remove-__folio_test_movable.patch
-mm-stop-storing-migration_ops-in-page-mapping.patch
-mm-convert-movable-flag-in-page-mapping-to-a-page-flag.patch
-mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch
-mm-page-flags-rename-page_mapping_movable-to-page_mapping_anon_ksm.patch
-mm-page-alloc-remove-pagemappingflags.patch
-mm-page-flags-remove-folio_mapping_flags.patch
-mm-simplify-folio_expected_ref_count.patch
-mm-rename-page_mapping_-to-folio_mapping_.patch
-docs-mm-convert-from-non-lru-page-migration-to-movable_ops-page-migration.patch
-mm-balloon_compaction-movable_ops-doc-updates.patch
-mm-balloon_compaction-provide-single-balloon_page_insert-and-balloon_mapping_gfp_mask.patch
-mm-convert-fpb_ignore_-into-fpb_respect_.patch
-mm-smaller-folio_pte_batch-improvements.patch
-mm-split-folio_pte_batch-into-folio_pte_batch-and-folio_pte_batch_flags.patch
-mm-remove-boolean-output-parameters-from-folio_pte_batch_ext.patch
-mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
+mm-madvise-use-walk_page_range_vma-instead-of-walk_page_range.patch
+mm-use-per_vma-lock-for-madv_dontneed.patch
+mm-madvise-use-per_vma-lock-for-madv_free.patch
 
