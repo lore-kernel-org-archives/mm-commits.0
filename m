@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E952285CB3;
-	Thu, 10 Jul 2025 05:46:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20DAC2868A6
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126366; cv=none; b=p+xDLn2GCJHoxlCnBQCW98aD4bWj2pe/UnISaMdt8se8CuOGO057kYeznIeaf/2t/TEA/NIPp9FoE8JIROgYf8DJiZCdNaFOX00nTg7ELwFt0pT21H6NwESWj7Rfbpi45q1xanLuqZz2wZIDyRoE3iS5IpanyNHUjFYk0VWOFSg=
+	t=1752126367; cv=none; b=ZHO1OTXxf2MtgfKk0m9BVv0cabEZ9gmOsY78OrbLW7961dDSksxlxZxfsHdUZzFPv/QQganHt0QaQ0uPOCYh+V6XHnj8borcKgv34mUruG9VZAWFZZUjwZBuFC5d+1rK0VXUGj2pdkFyO9NLndoIK5zI5wVo7muns62wHoTeByo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126366; c=relaxed/simple;
-	bh=mMJw3qN7xBWYMFed7RotGp+EeqE3Q3iMoWZChDD72DA=;
-	h=Date:To:From:Subject:Message-Id; b=Vq9Qzp4WNSGFkcPVTEYv75Hu4r7rsnZdjoerHlwh+b4bOWmyJPHZmwpT5jFbEz7id8G8yN957IxDpOE2hbFhRuHj0x4VRMP4wXoqB9dd87R7C/U1WSipvonXo9be9Rf39fiWfEYgc3SH7J10BuGWT/9lw35x5z3sRdhmmYvvGEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pYnW4UJn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126367; c=relaxed/simple;
+	bh=DoTo5Cir8tW2HR5nxs0do+3vZXtqShWEeikOLLzcH9s=;
+	h=Date:To:From:Subject:Message-Id; b=SJ0waxk04eftTDAQbjMsPlnME0mxNeqqLXYz0EXyP2FXK0JMK4Z3Htq+oReX1JFoY3DaBB5/keZaGx3TjdwK7b5EzFOaFEdp2HAiMaOlOEXNTrpiN+CelzHMGknt4QDxb9oO0QZnoEd3aqSXziMrF6O+HYjZBEZGlwn2oMuNbOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T6zRl2LP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pYnW4UJn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8589C4CEE3;
-	Thu, 10 Jul 2025 05:46:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T6zRl2LP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBE73C4CEF5;
+	Thu, 10 Jul 2025 05:46:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126365;
-	bh=mMJw3qN7xBWYMFed7RotGp+EeqE3Q3iMoWZChDD72DA=;
+	s=korg; t=1752126366;
+	bh=DoTo5Cir8tW2HR5nxs0do+3vZXtqShWEeikOLLzcH9s=;
 	h=Date:To:From:Subject:From;
-	b=pYnW4UJnX5n1WE0eq6+ZQT68qvjEy3yImY1jcGUwagsmuF4+R2GGP73KRhaj7UDpf
-	 ufDZHVAuZof69E020d1cFK/iWUdbFH3JsXEx+OqaFSacEjG+vR/H1G7qHVKx9Tcqqr
-	 7PiGAdZzoaZXkWMtpFRHsvsufbarVcFKtwvtRu4s=
-Date: Wed, 09 Jul 2025 22:46:05 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,svens@linux.ibm.com,stable@vger.kernel.org,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dev.jain@arm.com,david@redhat.com,catalin.marinas@arm.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=T6zRl2LPSJMLYebALx1fCq7EsiWw7o3RulYxrXWKYYCFUILf5uG8IYU14FlPZQUUU
+	 fm3+Dj0TR/whb1ye617pWwqQ0FqadOkVy2i0XeERImj+FXIt2JLUYYX5EQQNqWGS2E
+	 6Q02I68tR9QWIyuwu+M1kxNGFfWcRrVxMqbnO6FU=
+Date: Wed, 09 Jul 2025 22:46:06 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd.patch removed from -mm tree
-Message-Id: <20250710054605.B8589C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch removed from -mm tree
+Message-Id: <20250710054606.CBE73C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,142 +35,156 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ptdump: take the memory hotplug lock inside ptdump_walk_pgd()
+     Subject: mm/damon/sysfs-schemes: decouple from damos_quota_goal_metric
 has been removed from the -mm tree.  Its filename was
-     mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd.patch
+     mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/ptdump: take the memory hotplug lock inside ptdump_walk_pgd()
-Date: Fri, 20 Jun 2025 10:54:27 +0530
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: decouple from damos_quota_goal_metric
+Date: Sun, 22 Jun 2025 14:37:55 -0700
 
-Memory hot remove unmaps and tears down various kernel page table regions
-as required.  The ptdump code can race with concurrent modifications of
-the kernel page tables.  When leaf entries are modified concurrently, the
-dump code may log stale or inconsistent information for a VA range, but
-this is otherwise not harmful.
+Patch series "mm/damon: decouple sysfs from core".
 
-But when intermediate levels of kernel page table are freed, the dump code
-will continue to use memory that has been freed and potentially
-reallocated for another purpose.  In such cases, the ptdump code may
-dereference bogus addresses, leading to a number of potential problems.
+DAMON sysfs interface is coupled with core layer.  It maintains some of
+its keywords arrays be synchronized with matching DAMON core API enums. 
+It is unnecessary coupling that makes separated changes for different
+layers difficult.  Decouple the layers by introducing new data structure
+for the mappings on DAMON sysfs interface.
 
-To avoid the above mentioned race condition, platforms such as arm64,
-riscv and s390 take memory hotplug lock, while dumping kernel page table
-via the sysfs interface /sys/kernel/debug/kernel_page_tables.
 
-Similar race condition exists while checking for pages that might have
-been marked W+X via /sys/kernel/debug/kernel_page_tables/check_wx_pages
-which in turn calls ptdump_check_wx().  Instead of solving this race
-condition again, let's just move the memory hotplug lock inside generic
-ptdump_check_wx() which will benefit both the scenarios.
+This patch (of 5):
 
-Drop get_online_mems() and put_online_mems() combination from all existing
-platform ptdump code paths.
+Decouple DAMOS sysfs interface from damos_quota_goal_metric.  For this,
+define and use new sysfs-schemes internal data structure that maps the
+user-space keywords and damos_quota_goal_metric, instead of having the
+implicit and unflexible array index rule.
 
-Link: https://lkml.kernel.org/r/20250620052427.2092093-1-anshuman.khandual@arm.com
-Fixes: bbd6ec605c0f ("arm64/mm: Enable memory hot remove")
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>	[s390]
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250622213759.50930-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250622213759.50930-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/ptdump_debugfs.c |    3 ---
- arch/riscv/mm/ptdump.c         |    3 ---
- arch/s390/mm/dump_pagetables.c |    2 --
- mm/ptdump.c                    |    2 ++
- 4 files changed, 2 insertions(+), 8 deletions(-)
+ mm/damon/sysfs-schemes.c |   55 +++++++++++++++++++++++++++----------
+ 1 file changed, 41 insertions(+), 14 deletions(-)
 
---- a/arch/arm64/mm/ptdump_debugfs.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/arch/arm64/mm/ptdump_debugfs.c
-@@ -1,6 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/debugfs.h>
--#include <linux/memory_hotplug.h>
- #include <linux/seq_file.h>
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric
++++ a/mm/damon/sysfs-schemes.c
+@@ -941,27 +941,51 @@ struct damos_sysfs_quota_goal {
+ 	int nid;
+ };
  
- #include <asm/ptdump.h>
-@@ -9,9 +8,7 @@ static int ptdump_show(struct seq_file *
+-/* This should match with enum damos_quota_goal_metric */
+-static const char * const damos_sysfs_quota_goal_metric_strs[] = {
+-	"user_input",
+-	"some_mem_psi_us",
+-	"node_mem_used_bp",
+-	"node_mem_free_bp",
+-};
+-
+ static struct damos_sysfs_quota_goal *damos_sysfs_quota_goal_alloc(void)
  {
- 	struct ptdump_info *info = m->private;
- 
--	get_online_mems();
- 	ptdump_walk(m, info);
--	put_online_mems();
- 	return 0;
+ 	return kzalloc(sizeof(struct damos_sysfs_quota_goal), GFP_KERNEL);
  }
- DEFINE_SHOW_ATTRIBUTE(ptdump);
---- a/arch/riscv/mm/ptdump.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/arch/riscv/mm/ptdump.c
-@@ -6,7 +6,6 @@
- #include <linux/efi.h>
- #include <linux/init.h>
- #include <linux/debugfs.h>
--#include <linux/memory_hotplug.h>
- #include <linux/seq_file.h>
- #include <linux/ptdump.h>
  
-@@ -413,9 +412,7 @@ bool ptdump_check_wx(void)
- 
- static int ptdump_show(struct seq_file *m, void *v)
++struct damos_sysfs_qgoal_metric_name {
++	enum damos_quota_goal_metric metric;
++	char *name;
++};
++
++static
++struct damos_sysfs_qgoal_metric_name damos_sysfs_qgoal_metric_names[] = {
++	{
++		.metric = DAMOS_QUOTA_USER_INPUT,
++		.name = "user_input",
++	},
++	{
++		.metric = DAMOS_QUOTA_SOME_MEM_PSI_US,
++		.name = "some_mem_psi_us",
++	},
++	{
++		.metric = DAMOS_QUOTA_NODE_MEM_USED_BP,
++		.name = "node_mem_used_bp",
++	},
++	{
++		.metric = DAMOS_QUOTA_NODE_MEM_FREE_BP,
++		.name = "node_mem_free_bp",
++	},
++};
++
+ static ssize_t target_metric_show(struct kobject *kobj,
+ 		struct kobj_attribute *attr, char *buf)
  {
--	get_online_mems();
- 	ptdump_walk(m, m->private);
--	put_online_mems();
+ 	struct damos_sysfs_quota_goal *goal = container_of(kobj,
+ 			struct damos_sysfs_quota_goal, kobj);
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_qgoal_metric_names); i++) {
++		struct damos_sysfs_qgoal_metric_name *metric_name;
  
- 	return 0;
+-	return sysfs_emit(buf, "%s\n",
+-			damos_sysfs_quota_goal_metric_strs[goal->metric]);
++		metric_name = &damos_sysfs_qgoal_metric_names[i];
++		if (metric_name->metric == goal->metric)
++			return sysfs_emit(buf, "%s\n", metric_name->name);
++	}
++	return -EINVAL;
  }
---- a/arch/s390/mm/dump_pagetables.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/arch/s390/mm/dump_pagetables.c
-@@ -247,11 +247,9 @@ static int ptdump_show(struct seq_file *
- 		.marker = markers,
- 	};
  
--	get_online_mems();
- 	mutex_lock(&cpa_mutex);
- 	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
- 	mutex_unlock(&cpa_mutex);
--	put_online_mems();
- 	return 0;
- }
- DEFINE_SHOW_ATTRIBUTE(ptdump);
---- a/mm/ptdump.c~mm-ptdump-take-the-memory-hotplug-lock-inside-ptdump_walk_pgd
-+++ a/mm/ptdump.c
-@@ -176,6 +176,7 @@ void ptdump_walk_pgd(struct ptdump_state
+ static ssize_t target_metric_store(struct kobject *kobj,
+@@ -969,11 +993,14 @@ static ssize_t target_metric_store(struc
  {
- 	const struct ptdump_range *range = st->range;
+ 	struct damos_sysfs_quota_goal *goal = container_of(kobj,
+ 			struct damos_sysfs_quota_goal, kobj);
+-	enum damos_quota_goal_metric m;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(damos_sysfs_qgoal_metric_names); i++) {
++		struct damos_sysfs_qgoal_metric_name *metric_name;
  
-+	get_online_mems();
- 	mmap_write_lock(mm);
- 	while (range->start != range->end) {
- 		walk_page_range_debug(mm, range->start, range->end,
-@@ -183,6 +184,7 @@ void ptdump_walk_pgd(struct ptdump_state
- 		range++;
+-	for (m = 0; m < NR_DAMOS_QUOTA_GOAL_METRICS; m++) {
+-		if (sysfs_streq(buf, damos_sysfs_quota_goal_metric_strs[m])) {
+-			goal->metric = m;
++		metric_name = &damos_sysfs_qgoal_metric_names[i];
++		if (sysfs_streq(buf, metric_name->name)) {
++			goal->metric = metric_name->metric;
+ 			return count;
+ 		}
  	}
- 	mmap_write_unlock(mm);
-+	put_online_mems();
- 
- 	/* Flush out the last page */
- 	st->note_page_flush(st);
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+selftests-damon-add-drgn-script-for-extracting-damon-status.patch
+selftests-damon-_damon_sysfs-set-kdamondpid-in-start.patch
+selftests-damon-add-python-and-drgn-based-damon-sysfs-test.patch
+selftests-damon-sysfspy-test-monitoring-attribute-parameters.patch
+selftests-damon-sysfspy-test-adaptive-targets-parameter.patch
+selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch
+mm-damon-add-trace-event-for-auto-tuned-monitoring-intervals.patch
+mm-damon-add-trace-event-for-effective-size-quota.patch
+mm-damon-add-trace-event-for-effective-size-quota-fix.patch
+mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
+samples-damon-wsse-fix-boot-time-enable-handling.patch
+samples-damon-prcl-fix-boot-time-enable-crash.patch
+samples-damon-mtier-support-boot-time-enable-setup.patch
+mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
+mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
+mm-damon-reclaim-use-parameter-context-correctly.patch
+samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
+samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
+samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
+mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
+mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
+docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
+mm-damon-add-struct-damos_migrate_dests.patch
+mm-damon-core-add-damos-migrate_dests-field.patch
+mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
+mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
+docs-abi-damon-document-schemes-dests-directory.patch
+docs-admin-guide-mm-damon-usage-document-dests-directory.patch
 
