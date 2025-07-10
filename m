@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E48BE286435
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5998828640C
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:46:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126372; cv=none; b=g4Nrt//grGoafxoPjd6iL7pNiiSXGFhxsI8/0sRgoWcp15kHRA57gAGx/sxGdE62PJjEM53WWpO+NvZv/tbFWYlzSu8OrbM8dho9yn0DhXsPS0YD9qMKxnaWWofL3aEsN2kKU00SDBM2jkLSlsTWGcxUoIagPAq9k5Tk9WuvcxY=
+	t=1752126373; cv=none; b=enMlRrSQhKJXX7CEay9nmTH3nug7o80ljuB1Yo0e4zC6+QJFQX1/98l4V8PTHQSASd3s6aEZs252+kImVbXcpoTKNQX6TviRHo2iUNGpbu2nRugRRSiDQmbCo8BkCLOD/czTvKETldcsom6Um8bz0aJjFD7hfDf9CdX8vwrwesQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126372; c=relaxed/simple;
-	bh=qEJYDGlxo5wHx67Mq6oADk+D4xEvXKBXvDOooRdzQGI=;
-	h=Date:To:From:Subject:Message-Id; b=Pv4sx0p2CqcH3Qoc0mnrT7yArHkx5t/DTBBmUbhsAoiPvbwACDk2lwCXUkxTEegeIW/XpGmrcFCJrwsrSy856R1WKUPWYi5p2g1EBrKNQyQ0X9AXhGHgtN0Zm6nrWPbATXJmqhUT5nVYGH9mAguQ14VFXghr3gLuvorTVrFHZEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ecO9G2HN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126373; c=relaxed/simple;
+	bh=nKZETh1L98CYWJKwtR/0AOMEIPKyM3YL5/A5amToX70=;
+	h=Date:To:From:Subject:Message-Id; b=I3D0lEsR+1Kq08yljmuN+hlLfIn2MkDto3/zymfvVIYjlqTYUdydPM7lurHSOuRBBQBGP3oycD/OSgf91VXkq0Zukd7YXSFugDH8F4PdT8kkDag7KV+hC8nGD1tHKMcgIi1fuMW0sf9fuXLzCN7lYMkJHx7NDJ7mtoN9ayLKjRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wT9tvJED; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ecO9G2HN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA082C4CEE3;
-	Thu, 10 Jul 2025 05:46:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wT9tvJED"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C535FC4CEE3;
+	Thu, 10 Jul 2025 05:46:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126371;
-	bh=qEJYDGlxo5wHx67Mq6oADk+D4xEvXKBXvDOooRdzQGI=;
+	s=korg; t=1752126372;
+	bh=nKZETh1L98CYWJKwtR/0AOMEIPKyM3YL5/A5amToX70=;
 	h=Date:To:From:Subject:From;
-	b=ecO9G2HNWTO/Yw7JRrK5uuaqrzHVD7sRORym9NSGG8n2Y0OnHlGsxxuGnM+Gom74+
-	 YHOtdi3/Jaey+mJby7HfI8NAQ/9Kbdqb0iWDC1HesA96nBSsRVZsBdiQOJ1KnuVKDJ
-	 hyC5UdPfDYendhc5UZ565omQY3tD6N2U9IGjzNRw=
-Date: Wed, 09 Jul 2025 22:46:11 -0700
+	b=wT9tvJEDdb9bfNQ1AZ+buh63GZgSt0O7z/N2JTpIr5kF3GO7wZxieFWdpIQE9WeTB
+	 o+9NS38Z5NhdPT6o6Z2LkTJIlg1YF8cRCWxuvTDHCjV2HL1v0dzxYt34prw0ASP/8+
+	 Zm3yw+VimmaIiNtNhObCZChfbVPJCSwT1kEYJlto=
+Date: Wed, 09 Jul 2025 22:46:12 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch removed from -mm tree
-Message-Id: <20250710054611.BA082C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-decouple-from-damon_ops_id.patch removed from -mm tree
+Message-Id: <20250710054612.C535FC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,134 +35,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: decouple from damos_filter_type
+     Subject: mm/damon/sysfs: decouple from damon_ops_id
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
+     mm-damon-sysfs-decouple-from-damon_ops_id.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: decouple from damos_filter_type
-Date: Sun, 22 Jun 2025 14:37:58 -0700
+Subject: mm/damon/sysfs: decouple from damon_ops_id
+Date: Sun, 22 Jun 2025 14:37:59 -0700
 
-Decouple DAMOS sysfs interface from damos_filter_type.  For this, define
-and use new sysfs-schemes internal data structure that maps the user-space
-keywords and damos_filter_type, instead of having the implicit and
-unflexible array index rule.
+Decouple DAMON sysfs interface from damon_ops_id.  For this, define and
+use new mm/damon/sysfs.c internal data structure that maps the user-space
+keywords and damon_ops_id, instead of having the implicit and unflexible
+array index rule.
 
-Link: https://lkml.kernel.org/r/20250622213759.50930-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250622213759.50930-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   75 ++++++++++++++++++++++++++++---------
- 1 file changed, 57 insertions(+), 18 deletions(-)
+ mm/damon/sysfs.c |   56 ++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 15 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_filter_type
-+++ a/mm/damon/sysfs-schemes.c
-@@ -341,16 +341,45 @@ static struct damon_sysfs_scheme_filter
- 	return filter;
- }
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-decouple-from-damon_ops_id
++++ a/mm/damon/sysfs.c
+@@ -811,11 +811,24 @@ static const struct kobj_type damon_sysf
+  * context directory
+  */
  
--/* Should match with enum damos_filter_type */
--static const char * const damon_sysfs_scheme_filter_type_strs[] = {
--	"anon",
--	"active",
--	"memcg",
--	"young",
--	"hugepage_size",
--	"unmapped",
--	"addr",
--	"target",
-+struct damos_sysfs_filter_type_name {
-+	enum damos_filter_type type;
+-/* This should match with enum damon_ops_id */
+-static const char * const damon_sysfs_ops_strs[] = {
+-	"vaddr",
+-	"fvaddr",
+-	"paddr",
++struct damon_sysfs_ops_name {
++	enum damon_ops_id ops_id;
 +	char *name;
 +};
 +
-+static const struct damos_sysfs_filter_type_name
-+damos_sysfs_filter_type_names[] = {
++static const struct damon_sysfs_ops_name damon_sysfs_ops_names[] = {
 +	{
-+		.type = DAMOS_FILTER_TYPE_ANON,
-+		.name = "anon",
++		.ops_id = DAMON_OPS_VADDR,
++		.name = "vaddr",
 +	},
 +	{
-+		.type = DAMOS_FILTER_TYPE_ACTIVE,
-+		.name = "active",
++		.ops_id = DAMON_OPS_FVADDR,
++		.name = "fvaddr",
 +	},
 +	{
-+		.type = DAMOS_FILTER_TYPE_MEMCG,
-+		.name = "memcg",
-+	},
-+	{
-+		.type = DAMOS_FILTER_TYPE_YOUNG,
-+		.name = "young",
-+	},
-+	{
-+		.type = DAMOS_FILTER_TYPE_HUGEPAGE_SIZE,
-+		.name = "hugepage_size",
-+	},
-+	{
-+		.type = DAMOS_FILTER_TYPE_UNMAPPED,
-+		.name = "unmapped",
-+	},
-+	{
-+		.type = DAMOS_FILTER_TYPE_ADDR,
-+		.name = "addr",
-+	},
-+	{
-+		.type = DAMOS_FILTER_TYPE_TARGET,
-+		.name = "target",
++		.ops_id = DAMON_OPS_PADDR,
++		.name = "paddr",
 +	},
  };
  
- static ssize_t type_show(struct kobject *kobj,
-@@ -358,9 +387,16 @@ static ssize_t type_show(struct kobject
+ struct damon_sysfs_context {
+@@ -934,14 +947,16 @@ static void damon_sysfs_context_rm_dirs(
+ static ssize_t avail_operations_show(struct kobject *kobj,
+ 		struct kobj_attribute *attr, char *buf)
  {
- 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
- 			struct damon_sysfs_scheme_filter, kobj);
+-	enum damon_ops_id id;
+ 	int len = 0;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_filter_type_names); i++) {
-+		const struct damos_sysfs_filter_type_name *type_name;
++	for (i = 0; i < ARRAY_SIZE(damon_sysfs_ops_names); i++) {
++		const struct damon_sysfs_ops_name *ops_name;
  
--	return sysfs_emit(buf, "%s\n",
--			damon_sysfs_scheme_filter_type_strs[filter->type]);
-+		type_name = &damos_sysfs_filter_type_names[i];
-+		if (type_name->type == filter->type)
-+			return sysfs_emit(buf, "%s\n", type_name->name);
+-	for (id = 0; id < NR_DAMON_OPS; id++) {
+-		if (!damon_is_registered_ops(id))
++		ops_name = &damon_sysfs_ops_names[i];
++		if (!damon_is_registered_ops(ops_name->ops_id))
+ 			continue;
+-		len += sysfs_emit_at(buf, len, "%s\n",
+-				damon_sysfs_ops_strs[id]);
++		len += sysfs_emit_at(buf, len, "%s\n", ops_name->name);
+ 	}
+ 	return len;
+ }
+@@ -951,8 +966,16 @@ static ssize_t operations_show(struct ko
+ {
+ 	struct damon_sysfs_context *context = container_of(kobj,
+ 			struct damon_sysfs_context, kobj);
++	int i;
+ 
+-	return sysfs_emit(buf, "%s\n", damon_sysfs_ops_strs[context->ops_id]);
++	for (i = 0; i < ARRAY_SIZE(damon_sysfs_ops_names); i++) {
++		const struct damon_sysfs_ops_name *ops_name;
++
++		ops_name = &damon_sysfs_ops_names[i];
++		if (ops_name->ops_id == context->ops_id)
++			return sysfs_emit(buf, "%s\n", ops_name->name);
 +	}
 +	return -EINVAL;
  }
  
- static bool damos_sysfs_scheme_filter_valid_type(
-@@ -385,16 +421,19 @@ static ssize_t type_store(struct kobject
+ static ssize_t operations_store(struct kobject *kobj,
+@@ -960,11 +983,14 @@ static ssize_t operations_store(struct k
  {
- 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
- 			struct damon_sysfs_scheme_filter, kobj);
--	enum damos_filter_type type;
- 	ssize_t ret = -EINVAL;
+ 	struct damon_sysfs_context *context = container_of(kobj,
+ 			struct damon_sysfs_context, kobj);
+-	enum damon_ops_id id;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_filter_type_names); i++) {
-+		const struct damos_sysfs_filter_type_name *type_name;
++	for (i = 0; i < ARRAY_SIZE(damon_sysfs_ops_names); i++) {
++		const struct damon_sysfs_ops_name *ops_name;
  
--	for (type = 0; type < NR_DAMOS_FILTER_TYPES; type++) {
--		if (sysfs_streq(buf, damon_sysfs_scheme_filter_type_strs[
--					type])) {
-+		type_name = &damos_sysfs_filter_type_names[i];
-+		if (sysfs_streq(buf, type_name->name)) {
- 			if (!damos_sysfs_scheme_filter_valid_type(
--						filter->handle_layer, type))
-+						filter->handle_layer,
-+						type_name->type))
- 				break;
--			filter->type = type;
-+			filter->type = type_name->type;
- 			ret = count;
- 			break;
+-	for (id = 0; id < NR_DAMON_OPS; id++) {
+-		if (sysfs_streq(buf, damon_sysfs_ops_strs[id])) {
+-			context->ops_id = id;
++		ops_name = &damon_sysfs_ops_names[i];
++		if (sysfs_streq(buf, ops_name->name)) {
++			context->ops_id = ops_name->ops_id;
+ 			return count;
  		}
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
