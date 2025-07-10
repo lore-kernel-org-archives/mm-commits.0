@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C939986334
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:43:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23A7B27FD71
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:44:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752122626; cv=none; b=ritAuO4ENKfyRlHnPIKNzZJhpCTQsvoRbrooTop3aXR0CFqkTcCxR1YvkZcW6YtNvY+g7yaMcIKO8BUdGek35pSlQ0afHaixgnEfgmQKuApdYC8BacmnSyoCZj2WsCqnZCkIgGCmX4HHOYUTw58bwk+KaJd2OAEdcEH8Ac8pdE4=
+	t=1752122665; cv=none; b=M8iIqSKCHjw5TOItK6d2Wd242Pz9BerNthuKlfNUo/mmMSr9ALdNqBzcg6eFCK2pwpmsLORHsMAN/JT4R3TqHxvrWjsr0JwVJhiJ0gScOPtvBXtfn1y4EKmxpL6CwpPVgTnQXom2M4X2ZtEZpQ1I3V2B1mmz4Oi7ZjkltBb40w4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752122626; c=relaxed/simple;
-	bh=HgY0GtcpXzkOPCVzLvjzu33ONPPEsFsaqya0K93iGvg=;
-	h=Date:To:From:Subject:Message-Id; b=DB0M1DG145TB5Ofo/3ydkkanotFM1ZtRUKrzuv/fy2CS9s1ZcuJD/l6y9rfIzsgWxmUqIv0EhNLDryn/S6o7gtKvKwjWlLhQbsr2cK0mrs2AQk69bVvcbxHOt1Stp+a9kcXeHELqFj9OYK/h0xewVzXZAKKObSmRY+kBVwQg8Iw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IhaXPcK4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752122665; c=relaxed/simple;
+	bh=QkPJvnsUxMTBbJCBzTxnd7uu3KIvJVGLp22lyOioHtQ=;
+	h=Date:To:From:Subject:Message-Id; b=O3mVCL+Eu3vF+U56Tags/InVRJPIYgShq4CoOQl8qsYNuNif25QyZcKrfvJ1U3ik2ah/2d5gPbcjvhcqkSHW/qsb+5Q6P3OyQMteXnH1sIY8onoVGmfkMfYPaiKQiJj8W2YbOHj9Zj9vQnfnSAyLOjXF8cir5+wSexypgk2/fXU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g92gE5TW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IhaXPcK4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A7F9C4CEE3;
-	Thu, 10 Jul 2025 04:43:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g92gE5TW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 867F1C4CEE3;
+	Thu, 10 Jul 2025 04:44:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752122626;
-	bh=HgY0GtcpXzkOPCVzLvjzu33ONPPEsFsaqya0K93iGvg=;
+	s=korg; t=1752122664;
+	bh=QkPJvnsUxMTBbJCBzTxnd7uu3KIvJVGLp22lyOioHtQ=;
 	h=Date:To:From:Subject:From;
-	b=IhaXPcK46PB5RzZQEvQUG34dXUDS9chl/GJGt8bcgyE5leUDgYdbiUhdR1mgtwHs6
-	 GemprYYjKEUl5BdsgfaOAkG2M6Fh4Nt9Jb9bO6UpdttAF/boTYHKoncRAA+LtizCQZ
-	 EBGNXsF931uXPO6aYWAJbzRs3p+s8KkLbea2G1LA=
-Date: Wed, 09 Jul 2025 21:43:45 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,jackmanb@google.com,david@redhat.com,axelrasmussen@google.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=g92gE5TWXr+qcawm8krJQOdLLw+JyPLLFnTsDx7rYBCxgGtwRvH+Doo3lJ3hb1pIK
+	 ynhAr17rdgzTWNwxtwLySpi8kY9LVu98Xv66xc9nJMe8Rp3RXnxJD+UUCi7RJM1w6Y
+	 lyqcYC6pZkMUnPU1Zie3t2Nz8sgNcOHTCUbqwVuc=
+Date: Wed, 09 Jul 2025 21:44:23 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum-fix.patch removed from -mm tree
-Message-Id: <20250710044346.3A7F9C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-sysfs-schemes-decouple-from-damos_action-fix.patch removed from -mm tree
+Message-Id: <20250710044424.867F1C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum-fix
+     Subject: mm-damon-sysfs-schemes-decouple-from-damos_action-fix
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum-fix.patch
+     mm-damon-sysfs-schemes-decouple-from-damos_action-fix.patch
 
-This patch was dropped because it was folded into selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum.patch
+This patch was dropped because it was folded into mm-damon-sysfs-schemes-decouple-from-damos_action.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum-fix
-Date: Thu Jun 26 14:22:21 2025 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-damon-sysfs-schemes-decouple-from-damos_action-fix
+Date: Fri Jun 27 12:56:28 PM PDT 2025
 
-reduce uffd-unit-test poison test to minimum
+make damos_sysfs_action_names static
 
-Link: https://lkml.kernel.org/r/aF2RSsjuEOtzXcUa@x1.local
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202506271655.b8yfEZIT-lkp@intel.com/
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |    2 +-
+ mm/damon/sysfs-schemes.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum-fix
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1040,7 +1040,7 @@ static void uffd_poison_test(uffd_test_a
- 	unsigned long nr, poison_pages = UFFD_POISON_TEST_NPAGES;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-decouple-from-damos_action-fix
++++ a/mm/damon/sysfs-schemes.c
+@@ -1619,7 +1619,7 @@ struct damos_sysfs_action_name {
+ 	char *name;
+ };
  
- 	if (nr_pages < poison_pages) {
--		uffd_test_skip("Too less pages for POISON test");
-+		uffd_test_skip("Too few pages for POISON test");
- 		return;
- 	}
- 
+-struct damos_sysfs_action_name damos_sysfs_action_names[] = {
++static struct damos_sysfs_action_name damos_sysfs_action_names[] = {
+ 	{
+ 		.action = DAMOS_WILLNEED,
+ 		.name = "willneed",
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-mm-reduce-uffd-unit-test-poison-test-to-minimum.patch
-mm-hugetlb-remove-prepare_hugepage_range.patch
-mm-deduplicate-mm_get_unmapped_area.patch
+mm-damon-sysfs-schemes-decouple-from-damos_action.patch
+mmslub-use-node-notifier-instead-of-memory-notifier-fix.patch
+mm-memcg-make-memoryreclaim-interface-generic-fix.patch
+introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse-fix.patch
+maintainers-add-lib-raid6-to-software-raid.patch
+squashfs-fix-incorrect-argument-to-sizeof-in-kmalloc_array-call-fix.patch
 
