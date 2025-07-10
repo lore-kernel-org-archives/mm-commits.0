@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 160A4469D
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:35:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 460FA469D
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:36:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752122122; cv=none; b=FE9SqkC7XJD2R7g5mobAKPWbLPlG8wcWcXoycLT5P6J5AIcb5LQWI5uYpP6UjK4CfgEHKFQBbjE4n+VjuH2JtlyWKeiXqUF0zUqJZUsgbLXWl4EzNtHHH773vz3STnRWgt2U0awwcADs0ScwXSzdovZBptoDcWwLRFO984kGN5I=
+	t=1752122172; cv=none; b=dwZttXOiN+xA7JqGBV+3AH7KBfeZgrOvQavHVQ1q9TpYyMKBpzlmT/+cUNRgGQPR4kgu0HaV6v0novcaN2+w/rbYmnePGbMVFTTn7AzFtf8+fUXZKrzZkWMDpemQWP3D2YtCBAiMrvpY15rIzhMUqKMJBXSsv/21wRHrEib49z8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752122122; c=relaxed/simple;
-	bh=AQUGD+k8KhCXNLpt0F2YpY/qIosoJ/y9V8Kc852m92s=;
-	h=Date:To:From:Subject:Message-Id; b=O3YqC4FGqmEtYb707s1I9Unkn0fGJ+OQjZMe2sY6ltX+ZuWkVs9t8lXAfZklkO7uD3caLp7ZY1BdEnVIq16iS9sgeIzGL/sGs7INUmOX58d7I2s4hCFrMrW4PbiExllHl+yyyel8uk6wssKkRpIX2tOAQYqPknanxluMTC2FOPQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kb4C00Ut; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752122172; c=relaxed/simple;
+	bh=e73q7XtVk9yaM3n44rtc2k1wma0o8q3baK+sTBugC5I=;
+	h=Date:To:From:Subject:Message-Id; b=LVQC1RAvcXQYhboehlukpWS934Rt4Zq0kO4L2+k8EIna6/fv5e6e8WoBXepK+NWLOgqTFwLEcUNZ9k2FvoifKj8w5fgY7jobG4jeIp50NsQY1Ow67BfGs7Y1fjGTzVrXpmF3ZrB7q95t4wTl+Lvf1bmHv6LRKxDG7xMI3ewwDx8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UnxgR48S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kb4C00Ut"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7248BC4CEE3;
-	Thu, 10 Jul 2025 04:35:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UnxgR48S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE664C4CEE3;
+	Thu, 10 Jul 2025 04:36:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752122121;
-	bh=AQUGD+k8KhCXNLpt0F2YpY/qIosoJ/y9V8Kc852m92s=;
+	s=korg; t=1752122171;
+	bh=e73q7XtVk9yaM3n44rtc2k1wma0o8q3baK+sTBugC5I=;
 	h=Date:To:From:Subject:From;
-	b=Kb4C00Ut7CFwbd1Gg1hFNFP+Zys/Cqf2PcM5nkYbeNL0SB0aycEYik+3qNlJRxQyi
-	 4iejZDys9xIZIKvhDX2TrDiFfHmlwEvVpR4sNV9gqOarDs28RFmqzXR7eVzQu0KuAP
-	 +xfpDCcCwWmuNLd6kK2Dhpce1clVpKq6LEYdIja4=
-Date: Wed, 09 Jul 2025 21:35:20 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=UnxgR48SvhnhhcpdxEuivoYlSZwcn+BQe/NGOc50xO+/aGObT+/a03WZHgyHXdys9
+	 Czo9opKDekCe1qmy34DO1G8fT0VfEKD3KUBc4pjqpeywSbSSXW5XL0Tc4vY3lHJhNA
+	 Pq86IgBNsSIJbP1Lo90CiVH/V3BJQKh7oQv1Tvu0=
+Date: Wed, 09 Jul 2025 21:36:11 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-introduce-damon_stat-module-fix-2.patch removed from -mm tree
-Message-Id: <20250710043521.7248BC4CEE3@smtp.kernel.org>
+Subject: [folded-merged] mm-gup-remove-vm_bug_ons-fix.patch removed from -mm tree
+Message-Id: <20250710043611.BE664C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/stat: reset enabled when DAMON start failed
+     Subject: mm-gup-remove-vm_bug_ons-fix
 has been removed from the -mm tree.  Its filename was
-     mm-damon-introduce-damon_stat-module-fix-2.patch
+     mm-gup-remove-vm_bug_ons-fix.patch
 
-This patch was dropped because it was folded into mm-damon-introduce-damon_stat-module.patch
+This patch was dropped because it was folded into mm-gup-remove-vm_bug_ons.patch
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: reset enabled when DAMON start failed
-Date: Sun, 6 Jul 2025 11:47:50 -0700
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-gup-remove-vm_bug_ons-fix
+Date: Fri, 6 Jun 2025 10:08:20 +0200
 
-When damon_stat_start() fails, 'enabled' parameter is not reset.  As a
-result, users show the parameter 'Y' while it is not really working.  Fix
-it by resetting 'enabled' to 'false' when damon_stat_start() failed.
+use the _FOLIO variant where possible, per Lorenzo
 
-Link: https://lkml.kernel.org/r/20250706184750.36588-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+
+Link: https://lkml.kernel.org/r/844bd929-a551-48e3-a12e-285cd65ba580@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/stat.c~mm-damon-introduce-damon_stat-module-fix-2
-+++ a/mm/damon/stat.c
-@@ -118,8 +118,12 @@ static int damon_stat_enabled_store(
- 		 */
- 		return 0;
- 
--	if (enabled)
--		return damon_stat_start();
-+	if (enabled) {
-+		err = damon_stat_start();
-+		if (err)
-+			enabled = false;
-+		return err;
-+	}
- 	damon_stat_stop();
- 	return 0;
- }
-@@ -133,6 +137,9 @@ static int __init damon_stat_init(void)
- 	/* probably set via command line */
- 	if (enabled)
- 		err = damon_stat_start();
-+
-+	if (err && enabled)
-+		enabled = false;
- 	return err;
- }
- 
+--- a/mm/gup.c~mm-gup-remove-vm_bug_ons-fix
++++ a/mm/gup.c
+@@ -64,7 +64,7 @@ static inline void sanity_check_pinned_p
+ 		    !folio_test_anon(folio))
+ 			continue;
+ 		if (!folio_test_large(folio) || folio_test_hugetlb(folio))
+-			VM_WARN_ON_ONCE_PAGE(!PageAnonExclusive(&folio->page), page);
++			VM_WARN_ON_ONCE_FOLIO(!PageAnonExclusive(&folio->page), folio);
+ 		else
+ 			/* Either a PTE-mapped or a PMD-mapped THP. */
+ 			VM_WARN_ON_ONCE_PAGE(!PageAnonExclusive(&folio->page) &&
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-damon-introduce-damon_stat-module.patch
-mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
-mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
-docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
-mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
-revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
-revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
-selftets-damon-add-a-test-for-memcg_path-leak.patch
-mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch
-mm-damon-sysfs-schemes-decouple-from-damos_action.patch
-mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
-mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
-mm-damon-sysfs-decouple-from-damon_ops_id.patch
-selftests-damon-add-drgn-script-for-extracting-damon-status.patch
-selftests-damon-_damon_sysfs-set-kdamondpid-in-start.patch
-selftests-damon-add-python-and-drgn-based-damon-sysfs-test.patch
-selftests-damon-sysfspy-test-monitoring-attribute-parameters.patch
-selftests-damon-sysfspy-test-adaptive-targets-parameter.patch
-selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch
-mm-damon-add-trace-event-for-auto-tuned-monitoring-intervals.patch
-mm-damon-add-trace-event-for-effective-size-quota.patch
-mm-damon-add-trace-event-for-effective-size-quota-fix.patch
-mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
-samples-damon-wsse-fix-boot-time-enable-handling.patch
-samples-damon-prcl-fix-boot-time-enable-crash.patch
-samples-damon-mtier-support-boot-time-enable-setup.patch
-mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
-mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
-mm-damon-reclaim-use-parameter-context-correctly.patch
-samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
-samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
-samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
-mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
-mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
-docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
-mm-damon-add-struct-damos_migrate_dests.patch
-mm-damon-core-add-damos-migrate_dests-field.patch
-mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
-mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
-docs-abi-damon-document-schemes-dests-directory.patch
-docs-admin-guide-mm-damon-usage-document-dests-directory.patch
+mm-gup-remove-vm_bug_ons.patch
+mm-huge_memory-dont-ignore-queried-cachemode-in-vmf_insert_pfn_pud.patch
+mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pmd.patch
+mm-huge_memory-dont-mark-refcounted-folios-special-in-vmf_insert_folio_pud.patch
+mm-balloon_compaction-we-cannot-have-isolated-pages-in-the-balloon-list.patch
+mm-balloon_compaction-convert-balloon_page_delete-to-balloon_page_finalize.patch
+mm-zsmalloc-drop-pageisolated-related-vm_bug_ons.patch
+mm-page_alloc-let-page-freeing-clear-any-set-page-type.patch
+mm-balloon_compaction-make-pageoffline-sticky-until-the-page-is-freed.patch
+mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed.patch
+mm-migrate-rename-isolate_movable_page-to-isolate_movable_ops_page.patch
+mm-migrate-rename-putback_movable_folio-to-putback_movable_ops_page.patch
+mm-migrate-factor-out-movable_ops-page-handling-into-migrate_movable_ops_page.patch
+mm-migrate-remove-folio_test_movable-and-folio_movable_ops.patch
+mm-migrate-move-movable_ops-page-handling-out-of-move_to_new_folio.patch
+mm-zsmalloc-stop-using-__clearpagemovable.patch
+mm-balloon_compaction-stop-using-__clearpagemovable.patch
+mm-migrate-remove-__clearpagemovable.patch
+mm-migration-remove-pagemovable.patch
+mm-rename-__pagemovable-to-page_has_movable_ops.patch
+mm-page_isolation-drop-__folio_test_movable-check-for-large-folios.patch
+mm-remove-__folio_test_movable.patch
+mm-stop-storing-migration_ops-in-page-mapping.patch
+mm-convert-movable-flag-in-page-mapping-to-a-page-flag.patch
+mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch
+mm-page-flags-rename-page_mapping_movable-to-page_mapping_anon_ksm.patch
+mm-page-alloc-remove-pagemappingflags.patch
+mm-page-flags-remove-folio_mapping_flags.patch
+mm-simplify-folio_expected_ref_count.patch
+mm-rename-page_mapping_-to-folio_mapping_.patch
+docs-mm-convert-from-non-lru-page-migration-to-movable_ops-page-migration.patch
+mm-balloon_compaction-movable_ops-doc-updates.patch
+mm-balloon_compaction-provide-single-balloon_page_insert-and-balloon_mapping_gfp_mask.patch
+mm-convert-fpb_ignore_-into-fpb_respect_.patch
+mm-smaller-folio_pte_batch-improvements.patch
+mm-split-folio_pte_batch-into-folio_pte_batch-and-folio_pte_batch_flags.patch
+mm-remove-boolean-output-parameters-from-folio_pte_batch_ext.patch
+mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
 
