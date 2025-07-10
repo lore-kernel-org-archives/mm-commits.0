@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6123A280A58;
-	Thu, 10 Jul 2025 03:59:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E61561A285;
+	Thu, 10 Jul 2025 04:08:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752119992; cv=none; b=ar2hgZd+Lb3oQcW+AohORlQ79I6ZFlVY0I6Aa9qvL5w1rAGWk83pjSUDVohwQlHfP1Y93EUAs9A4pYKi9kYMZXiMCt7Bib3j7AbwN+WtPUNjKqljamFBxr4Ni/SJ3b49SgaFdwKfO4HOYBleEkuqLX+gX8xEuG29EJCp+IpLTvk=
+	t=1752120539; cv=none; b=LhPNBiy/VZMFJbeyrGLYI2PC2QIrmpyqWTVQAV45XFCvCCkibmciAxBKAXSeRjqrs2iX4lSu5XLokJIKVVJgsgME9ZWlFOtDzXjXZzl4JVDiO0HDkB8Rp45UIMPV3ZI9u6BqV2YfJ6AvAgZOzPonnL/ziF38D2dz6ebpLAdpKuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752119992; c=relaxed/simple;
-	bh=kEtiM8cSFZN+M2rZgs7rEbuYg9eapiJgnxY0KAeqWOg=;
-	h=Date:To:From:Subject:Message-Id; b=huCp+iUiOzDcYpVthgd9RK9izRJu5n95MbrbTKiNPXinL7heMnOvvlzH/qrpWkSyy7nh/t8X9FgKYCVRRmdbmf2EGBzfFARGWmMf40v3PrLUC7SHVzvozd2uDUAXrx9kaylrgli5PzG5BfEIlg2NeniTQxl7i38fRlFceyzR5ik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=slXJIMwm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752120539; c=relaxed/simple;
+	bh=fweoABG85MNv8GTowspSS4Q03wrZiJz4aoSNjRkRRNc=;
+	h=Date:To:From:Subject:Message-Id; b=FstxZ210frP71/ynYzlCVX4s9Rqon6xK32jN1meOKzGEC0suN31JVrgxReWxLmoHARJYMFhg+UvOF8EkdU3H9jpC6JVj6wKlq6i1diGoDT38nRB08BSejvNEocMRwCvoFmx7gfuCVLw7Vrv95o628GrSLk8MS7iH5is7S1GpGqU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SlU1hcAj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="slXJIMwm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5DD5C4CEE3;
-	Thu, 10 Jul 2025 03:59:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SlU1hcAj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5630DC4CEE3;
+	Thu, 10 Jul 2025 04:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752119991;
-	bh=kEtiM8cSFZN+M2rZgs7rEbuYg9eapiJgnxY0KAeqWOg=;
+	s=korg; t=1752120538;
+	bh=fweoABG85MNv8GTowspSS4Q03wrZiJz4aoSNjRkRRNc=;
 	h=Date:To:From:Subject:From;
-	b=slXJIMwmyFJjKRmkHgQWq55SIIaZTY+seydUxLjh+Cmo8jChf6qjjCikrvTkxkqw9
-	 HM7xbtLTy4WFE4BP55dfIFHKr0xXoUr1J8miX+XKSFwaQbe4T5VIRpXncBNFtGXwr5
-	 S2g8ZzNpE3bCcmaKywj7K78bO/MDoEMXPLsJfbYQ=
-Date: Wed, 09 Jul 2025 20:59:51 -0700
-To: mm-commits@vger.kernel.org,yzhong@purestorage.com,surenb@google.com,stable@vger.kernel.org,oliver.sang@intel.com,kent.overstreet@linux.dev,cachen@purestorage.com,00107082@163.com,harry.yoo@oracle.com,akpm@linux-foundation.org
+	b=SlU1hcAjDrJofz3RG4XnXOi28vE5MW/7HB7H1zJ1vbwvQgg2Rl7hw4anxrdWWpNsl
+	 33nWAiNoNwcCdYZBf5SnwxGBQlpUEO7Qr72Pa0gb2haV7CgrVS28ih9lVAftP9//TV
+	 kZ+LdBzF4whPPBgo2GrF477XufRvXoGsbbfMa7d8=
+Date: Wed, 09 Jul 2025 21:08:57 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,luis@igalia.com,gregkh@linuxfoundation.org,fossdd@pwned.life,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3.patch removed from -mm tree
-Message-Id: <20250710035951.C5DD5C4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kallsyms-fix-build-without-execinfo.patch removed from -mm tree
+Message-Id: <20250710040858.5630DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3
+     Subject: kallsyms: fix build without execinfo
 has been removed from the -mm tree.  Its filename was
-     lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3.patch
+     kallsyms-fix-build-without-execinfo.patch
 
-This patch was dropped because it was folded into lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Harry Yoo <harry.yoo@oracle.com>
-Subject: lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3
-Date: Tue, 24 Jun 2025 16:25:13 +0900
+From: Achill Gilgenast <fossdd@pwned.life>
+Subject: kallsyms: fix build without execinfo
+Date: Sun, 22 Jun 2025 03:45:49 +0200
 
-Link: https://lkml.kernel.org/r/20250624072513.84219-1-harry.yoo@oracle.com
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202506181351.bba867dd-lkp@intel.com
-Closes: https://lore.kernel.org/oe-lkp/202506131711.5b41931c-lkp@intel.com
-Fixes: 780138b12381 ("alloc_tag: check mem_profiling_support in alloc_tag_init")
-Fixes: 1438d349d16b ("lib: add memory allocations report in show_mem()")
-Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: Casey Chen <cachen@purestorage.com>
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yuanyuan Zhong <yzhong@purestorage.com>
+Some libc's like musl libc don't provide execinfo.h since it's not part of
+POSIX.  In order to fix compilation on musl, only include execinfo.h if
+available (HAVE_BACKTRACE_SUPPORT)
+
+This was discovered with c104c16073b7 ("Kunit to check the longest symbol
+length") which starts to include linux/kallsyms.h with Alpine Linux'
+configs.
+
+Link: https://lkml.kernel.org/r/20250622014608.448718-1-fossdd@pwned.life
+Fixes: c104c16073b7 ("Kunit to check the longest symbol length")
+Signed-off-by: Achill Gilgenast <fossdd@pwned.life>
+Cc: Luis Henriques <luis@igalia.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/include/linux/kallsyms.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/lib/alloc_tag.c~lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3
-+++ a/lib/alloc_tag.c
-@@ -137,7 +137,8 @@ size_t alloc_tag_top_users(struct codeta
+--- a/tools/include/linux/kallsyms.h~kallsyms-fix-build-without-execinfo
++++ a/tools/include/linux/kallsyms.h
+@@ -18,6 +18,7 @@ static inline const char *kallsyms_looku
+ 	return NULL;
+ }
  
- 	if (IS_ERR_OR_NULL(alloc_tag_cttype))
- 		return 0;
--	else if (can_sleep)
-+
-+	if (can_sleep)
- 		codetag_lock_module_list(alloc_tag_cttype, true);
- 	else if (!codetag_trylock_module_list(alloc_tag_cttype))
- 		return 0;
++#ifdef HAVE_BACKTRACE_SUPPORT
+ #include <execinfo.h>
+ #include <stdlib.h>
+ static inline void print_ip_sym(const char *loglvl, unsigned long ip)
+@@ -30,5 +31,8 @@ static inline void print_ip_sym(const ch
+ 
+ 	free(name);
+ }
++#else
++static inline void print_ip_sym(const char *loglvl, unsigned long ip) {}
++#endif
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from harry.yoo@oracle.com are
+Patches currently in -mm which might be from fossdd@pwned.life are
 
-lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
-mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n.patch
-mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary.patch
 
