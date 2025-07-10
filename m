@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2846E5383
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB41283FE4
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126309; cv=none; b=M5maGcKsHQqYPebIJ/WtbkbKk/M5v8PRg2IWyB/XMSjW7b0cn8ObkgM2N5Ab7kuPNAlfFHE8EyJ5QElxv1Pub8ptZDvhmK/db8breXKJaNT9mENaFxawh3F9kWKEWUYWU3IysZlN4sTRhcQLxnAfuy6Py7R6/AqJqWYqCQJUOKc=
+	t=1752126311; cv=none; b=gQ9pUAHLcMUSHA8V0WCahyQiN+55dqAsjQnBVmLoRmLX0EWe3OOkAq9Y6gl7H7E2vNNZKIt9eeYOBX2Sxsfi3BOzeGGiW4VKg058B3+wwxBpQT8ZChCmPkgK/5rbeTTW3MkwAeDozLD3/i6RMMkbI+cRKV0wC/LKsmYgUs8owqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126309; c=relaxed/simple;
-	bh=NkWWNqzAm8t48C+2BUwLI/vwiMStgaDG6L32WwAa04s=;
-	h=Date:To:From:Subject:Message-Id; b=lR1ytEIh6hO780/I6PW1g6lL8uBw676ZjkwGPBtMef+O6dhNxkfuJ18HzOrNT30DUEW2LwzJEvAg5rGtUmZ88GtAWPsoFbtn/b89nB4aC7cMPdDCVvVfz1jvpoyECludpXHuF+onDanDPznCXiGE+qdMOOWg0sI1Sl/rWk+nCaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PFcZSrHJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126311; c=relaxed/simple;
+	bh=5sIbSHaP6RQXOtcWPnzlrQs1yz2HgIoKoktpq51YPvE=;
+	h=Date:To:From:Subject:Message-Id; b=SkkdWFxfIbKW1LVregbqdDnZToPhUHRAz8oDGa3Y+dmwt5RqXZmSYFnhba8dj7y18YUYuAHKJCXqm1+v5CRrIAeWeXh5bnJLlu1JqzsKkIPBHdh00DQ5vrrlynmy4I6UhmS2co1lf6oojdLHYpR8FYFDqaAMoj8zNqTuIuJGGsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kon4DKWl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PFcZSrHJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9821C4CEE3;
-	Thu, 10 Jul 2025 05:45:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kon4DKWl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DAD2C4CEE3;
+	Thu, 10 Jul 2025 05:45:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126308;
-	bh=NkWWNqzAm8t48C+2BUwLI/vwiMStgaDG6L32WwAa04s=;
+	s=korg; t=1752126311;
+	bh=5sIbSHaP6RQXOtcWPnzlrQs1yz2HgIoKoktpq51YPvE=;
 	h=Date:To:From:Subject:From;
-	b=PFcZSrHJTkDvYV7aimjFrdHq67aAVWzQvt9B+yaFXNhNKSCFE5WjI1ipA+4hapSrg
-	 qHKhXWG0XnlxjvtdTx33l2LFKGaW7bFAPBDxHw+CcoKRHGFIvgbh5SAkZEBUvXmX3Q
-	 R2vOyHHpxhwL+wpR7G+2i3GwuSpQJmFC45BpYsm4=
-Date: Wed, 09 Jul 2025 22:45:08 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=kon4DKWlO1oInHsTUByt8lLKkf5wxFuuwAW3L8P5bI8zvKd26dqsDoxKY3TDOUhK0
+	 hrk+HAu77IOq092eQ/7eb+mMW6+yFC8qvv1UP45kVonmbgKubXhmThQUvxP1Fi8llZ
+	 szbMyHjtishTSutzAfxH5RH/bHON+jzf5g5RCv9Y=
+Date: Wed, 09 Jul 2025 22:45:09 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm.patch removed from -mm tree
-Message-Id: <20250710054508.C9821C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch removed from -mm tree
+Message-Id: <20250710054511.1DAD2C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftest/mm: skip if fallocate() is unsupported in gup_longterm
+     Subject: mm: huge_memory: fix the check for allowed huge orders in shmem
 has been removed from the -mm tree.  Its filename was
-     selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm.patch
+     mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftest/mm: skip if fallocate() is unsupported in gup_longterm
-Date: Fri, 13 Jun 2025 12:44:07 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: huge_memory: fix the check for allowed huge orders in shmem
+Date: Fri, 13 Jun 2025 17:12:19 +0800
 
-Currently gup_longterm assumes that filesystems support fallocate() and
-uses that to allocate space in files, however this is an optional feature
-and is in particular not implemented by NFSv3 which is commonly used in CI
-systems leading to spurious failures.  Check for lack of support and
-report a skip instead for that case.
+Shmem already supports mTHP, and shmem_allowable_huge_orders() will return
+the huge orders allowed by shmem.  However, there is no check against the
+'orders' parameter passed by __thp_vma_allowable_orders(), which can lead
+to incorrect check results for __thp_vma_allowable_orders().
 
-Link: https://lkml.kernel.org/r/20250613-selftest-mm-gup-longterm-fallocate-nfs-v1-1-758a104c175f@kernel.org
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+For example, when a user wants to check if shmem supports PMD-sized THP by
+thp_vma_allowable_order(), if shmem only enables 64K mTHP, the current
+logic would cause thp_vma_allowable_order() to return true, implying that
+shmem allows PMD-sized THP allocation, which it actually does not.
+
+I don't think this will cause a significant impact on users, and this will
+only have some impact on the shmem THP collapse.  That is to say, even
+though the shmem sysfs setting does not enable the PMD-sized THP, the
+thp_vma_allowable_order() still indicates that shmem allows PMD-sized
+collapse, meaning it might successfully collapse into THP, or it might not
+(for example, thp_vma_suitable_order() check failed in the collapse
+process).  However, this still does not align with the shmem sysfs
+configuration, fix it.
+
+Link: https://lkml.kernel.org/r/529affb3220153d0d5a542960b535cdfc33f51d7.1749804835.git.baolin.wang@linux.alibaba.com
+Fixes: 26c7d8413aaf ("mm: thp: support "THPeligible" semantics for mTHP with anonymous shmem")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/gup_longterm.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/gup_longterm.c~selftest-mm-skip-if-fallocate-is-unsupported-in-gup_longterm
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -114,7 +114,15 @@ static void do_test(int fd, size_t size,
- 	}
+--- a/mm/huge_memory.c~mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem
++++ a/mm/huge_memory.c
+@@ -166,7 +166,7 @@ unsigned long __thp_vma_allowable_orders
+ 	 * own flags.
+ 	 */
+ 	if (!in_pf && shmem_file(vma->vm_file))
+-		return shmem_allowable_huge_orders(file_inode(vma->vm_file),
++		return orders & shmem_allowable_huge_orders(file_inode(vma->vm_file),
+ 						   vma, vma->vm_pgoff, 0,
+ 						   !enforce_sysfs);
  
- 	if (fallocate(fd, 0, 0, size)) {
--		if (size == pagesize) {
-+		/*
-+		 * Some filesystems (eg, NFSv3) don't support
-+		 * fallocate(), report this as a skip rather than a
-+		 * test failure.
-+		 */
-+		if (errno == EOPNOTSUPP) {
-+			ksft_print_msg("fallocate() not supported by filesystem\n");
-+			result = KSFT_SKIP;
-+		} else if (size == pagesize) {
- 			ksft_print_msg("fallocate() failed (%s)\n", strerror(errno));
- 			result = KSFT_FAIL;
- 		} else {
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders.patch
+khugepaged-kick-khugepaged-for-enabling-none-pmd-sized-mthps.patch
+mm-fault-in-complete-folios-instead-of-individual-pages-for-tmpfs.patch
 
