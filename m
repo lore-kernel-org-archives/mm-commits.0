@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36D0E2857F2
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC2CA28642C
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126348; cv=none; b=S9yuwyjfn1Zj1Rx7gd8DLrovfdYN0YbMdv91+O/xJBjuyjyk2vKp0cta0z2efnoUfclMZKuDNDHa8i7jArR44+iw5p3d9aWwE7peg+95YrtYuf8mxGm3vJH8pUPmBAxL/9j5RFAfBj2z9jxA7lXywfYwfRi0EcHOpohg9I1aea8=
+	t=1752126349; cv=none; b=R/GQyE/ttMKo58zPmfkw6gXXPWUjkyb5ccfJ+kCB0pX4pt2XwAFMUmgNXqcpoWSFSJJcdCC2UKZYoQLsFETF+v+b7paqe9msfDxFsQU8q4JJpBbL4/zMXJ5WBVsl+l3PfeWcihMe7Asdn2eylW4aMxmdw4AKsUffK+6/sZgpFWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126348; c=relaxed/simple;
-	bh=p3pylphmDW5LNjh++YfL8UJWyJcdW/9YVQqUW36cMTk=;
-	h=Date:To:From:Subject:Message-Id; b=GY8mvpwfzN97ESSln3RNhw7AUegjGDgnx60mdmyAdGtyembuooynbegGxPUSB5IbohP5JRImo82Q/tPbFkOxpOpe1OxdM2TQ6Hr4OqTjEmKgbQQd38fBOMXwtjG8OXlEraI+iapXgX1778AG86yHiue8ug5wgGEQ+nfXTJ1B7Jg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GetLh+yB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126349; c=relaxed/simple;
+	bh=UpMl/NhNGUA/Z1qP1C0B+TiJ/JAy/TMOtF6F3Lg6c5w=;
+	h=Date:To:From:Subject:Message-Id; b=PDu1IpQXeQ6rYGL3gFLf90bIdae4LGemVUeZGVW0IKYg5339iQbL9bRiuXgH/7PhweOwmtuMSBESTV0IZGGGdi8RafPyEfJUfIh8Fds9W4SSRdgxsqmlzmywdIKFsHGHFQid4z4Cyag44z2w12AP+w/KNT3stCX3AKwLD5eIrKM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SaXPEtPS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GetLh+yB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E486C4CEF4;
-	Thu, 10 Jul 2025 05:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SaXPEtPS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F3CEC4CEE3;
+	Thu, 10 Jul 2025 05:45:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126348;
-	bh=p3pylphmDW5LNjh++YfL8UJWyJcdW/9YVQqUW36cMTk=;
+	s=korg; t=1752126349;
+	bh=UpMl/NhNGUA/Z1qP1C0B+TiJ/JAy/TMOtF6F3Lg6c5w=;
 	h=Date:To:From:Subject:From;
-	b=GetLh+yBM1awu5aNYOtfEhvyKFc7BBEqzXmke9NUtItqgObxqp767aAoAZEjIfzyj
-	 KbHSbGqoe8krOPDYqHY2KXCt8a9AFeZMOlJ5Rz/KZTmH2W23cZTUUqExFDke6aY4++
-	 CN22JQ2lzLaD+YyLL8rlW6JvJI2CosOUCjxm9i4o=
-Date: Wed, 09 Jul 2025 22:45:47 -0700
+	b=SaXPEtPSH5AVkWJJ7lGZtM6A3Nxxj05HzwtfGamtnihIQ+Ac+wxwFu3n6uFmQ5HXn
+	 HynZskYXpNMLOdFpWLhGeLbcPznwNRhB1cV5KpDv4QO5MXXPJhW2M2PU2f0r81cCoC
+	 Xq5TGcNRurxe+36/ABBIKsV/etn3YGAuxk4124bg=
+Date: Wed, 09 Jul 2025 22:45:49 -0700
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,john@groves.net,jhubbard@nvidia.com,jgg@nvidia.com,hch@lst.de,gerald.schaefer@linux.ibm.com,debug@rivosinc.com,david@redhat.com,dan.j.williams@intel.com,bjorn@rivosinc.com,bjorn@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-remove-checks-for-devmap-pages-and-pmds-puds.patch removed from -mm tree
-Message-Id: <20250710054548.0E486C4CEF4@smtp.kernel.org>
+Subject: [merged mm-stable] fs-dax-remove-fs_dax_limited-config-option.patch removed from -mm tree
+Message-Id: <20250710054549.8F3CEC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: powerpc: remove checks for devmap pages and PMDs/PUDs
+     Subject: fs/dax: remove FS_DAX_LIMITED config option
 has been removed from the -mm tree.  Its filename was
-     powerpc-remove-checks-for-devmap-pages-and-pmds-puds.patch
+     fs-dax-remove-fs_dax_limited-config-option.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: powerpc: remove checks for devmap pages and PMDs/PUDs
-Date: Thu, 19 Jun 2025 18:58:01 +1000
+Subject: fs/dax: remove FS_DAX_LIMITED config option
+Date: Thu, 19 Jun 2025 18:58:02 +1000
 
-PFN_DEV no longer exists.  This means no devmap PMDs or PUDs will be
-created, so checking for them is redundant.  Instead mappings of pages
-that would have previously returned true for pXd_devmap() will return true
-for pXd_trans_huge()
+The dcssblk driver was the last user of FS_DAX_LIMITED.  That was marked
+broken by 653d7825c149 ("dcssblk: mark DAX broken, remove FS_DAX_LIMITED
+support") to allow removal of PFN_SPECIAL.  However the FS_DAX_LIMITED
+config option itself was not removed, so do that now.
 
-Link: https://lkml.kernel.org/r/31f63cc8dd518f9e2ec300681fe302eb4adf49b4.1750323463.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/b47bf164b4a1013d736fa1a3d501bc8b8e71311f.1750323463.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Björn Töpel <bjorn@kernel.org>
@@ -65,6 +64,7 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Deepak Gupta <debug@rivosinc.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Inki Dae <m.szyprowski@samsung.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Groves <john@groves.net>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -73,134 +73,84 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/hash_hugepage.c |    2 +-
- arch/powerpc/mm/book3s64/hash_pgtable.c  |    3 +--
- arch/powerpc/mm/book3s64/hugetlbpage.c   |    2 +-
- arch/powerpc/mm/book3s64/pgtable.c       |   10 ++++------
- arch/powerpc/mm/book3s64/radix_pgtable.c |    5 ++---
- arch/powerpc/mm/pgtable.c                |    2 +-
- 6 files changed, 10 insertions(+), 14 deletions(-)
+ fs/Kconfig    |    9 +--------
+ fs/dax.c      |   12 ------------
+ mm/memremap.c |    4 ----
+ 3 files changed, 1 insertion(+), 24 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/hash_hugepage.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
-+++ a/arch/powerpc/mm/book3s64/hash_hugepage.c
-@@ -54,7 +54,7 @@ int __hash_page_thp(unsigned long ea, un
- 	/*
- 	 * Make sure this is thp or devmap entry
- 	 */
--	if (!(old_pmd & (H_PAGE_THP_HUGE | _PAGE_DEVMAP)))
-+	if (!(old_pmd & H_PAGE_THP_HUGE))
- 		return 0;
+--- a/fs/dax.c~fs-dax-remove-fs_dax_limited-config-option
++++ a/fs/dax.c
+@@ -449,9 +449,6 @@ static void dax_associate_entry(void *en
+ 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+ 		return;
  
- 	rflags = htab_convert_pte_flags(new_pmd, flags);
---- a/arch/powerpc/mm/book3s64/hash_pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
-+++ a/arch/powerpc/mm/book3s64/hash_pgtable.c
-@@ -195,7 +195,7 @@ unsigned long hash__pmd_hugepage_update(
- 	unsigned long old;
- 
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!hash__pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
-+	WARN_ON(!hash__pmd_trans_huge(*pmdp));
- 	assert_spin_locked(pmd_lockptr(mm, pmdp));
- #endif
- 
-@@ -227,7 +227,6 @@ pmd_t hash__pmdp_collapse_flush(struct v
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON(pmd_trans_huge(*pmdp));
--	VM_BUG_ON(pmd_devmap(*pmdp));
- 
- 	pmd = *pmdp;
- 	pmd_clear(pmdp);
---- a/arch/powerpc/mm/book3s64/hugetlbpage.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
-+++ a/arch/powerpc/mm/book3s64/hugetlbpage.c
-@@ -74,7 +74,7 @@ int __hash_page_huge(unsigned long ea, u
- 	} while(!pte_xchg(ptep, __pte(old_pte), __pte(new_pte)));
- 
- 	/* Make sure this is a hugetlb entry */
--	if (old_pte & (H_PAGE_THP_HUGE | _PAGE_DEVMAP))
-+	if (old_pte & H_PAGE_THP_HUGE)
- 		return 0;
- 
- 	rflags = htab_convert_pte_flags(new_pte, flags);
---- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -62,7 +62,7 @@ int pmdp_set_access_flags(struct vm_area
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+-		return;
+-
+ 	index = linear_page_index(vma, address & ~(size - 1));
+ 	if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
+ 		if (folio->mapping)
+@@ -474,9 +471,6 @@ static void dax_disassociate_entry(void
  {
- 	int changed;
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
-+	WARN_ON(!pmd_trans_huge(*pmdp));
- 	assert_spin_locked(pmd_lockptr(vma->vm_mm, pmdp));
- #endif
- 	changed = !pmd_same(*(pmdp), entry);
-@@ -82,7 +82,6 @@ int pudp_set_access_flags(struct vm_area
- {
- 	int changed;
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!pud_devmap(*pudp));
- 	assert_spin_locked(pud_lockptr(vma->vm_mm, pudp));
- #endif
- 	changed = !pud_same(*(pudp), entry);
-@@ -204,8 +203,8 @@ pmd_t pmdp_huge_get_and_clear_full(struc
- {
- 	pmd_t pmd;
- 	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
--	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
--		   !pmd_devmap(*pmdp)) || !pmd_present(*pmdp));
-+	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp)) ||
-+		   !pmd_present(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, addr, pmdp);
- 	/*
- 	 * if it not a fullmm flush, then we can possibly end up converting
-@@ -223,8 +222,7 @@ pud_t pudp_huge_get_and_clear_full(struc
- 	pud_t pud;
+ 	struct folio *folio = dax_to_folio(entry);
  
- 	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
--	VM_BUG_ON((pud_present(*pudp) && !pud_devmap(*pudp)) ||
--		  !pud_present(*pudp));
-+	VM_BUG_ON(!pud_present(*pudp));
- 	pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
- 	/*
- 	 * if it not a fullmm flush, then we can possibly end up converting
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -1426,7 +1426,7 @@ unsigned long radix__pmd_hugepage_update
- 	unsigned long old;
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+-		return;
+-
+ 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+ 		return;
  
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!radix__pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
-+	WARN_ON(!radix__pmd_trans_huge(*pmdp));
- 	assert_spin_locked(pmd_lockptr(mm, pmdp));
- #endif
+@@ -768,12 +762,6 @@ struct page *dax_layout_busy_page_range(
+ 	pgoff_t end_idx;
+ 	XA_STATE(xas, &mapping->i_pages, start_idx);
  
-@@ -1443,7 +1443,7 @@ unsigned long radix__pud_hugepage_update
- 	unsigned long old;
- 
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!pud_devmap(*pudp));
-+	WARN_ON(!pud_trans_huge(*pudp));
- 	assert_spin_locked(pud_lockptr(mm, pudp));
- #endif
- 
-@@ -1461,7 +1461,6 @@ pmd_t radix__pmdp_collapse_flush(struct
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON(radix__pmd_trans_huge(*pmdp));
--	VM_BUG_ON(pmd_devmap(*pmdp));
- 	/*
- 	 * khugepaged calls this for normal pmd
- 	 */
---- a/arch/powerpc/mm/pgtable.c~powerpc-remove-checks-for-devmap-pages-and-pmds-puds
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -509,7 +509,7 @@ pte_t *__find_linux_pte(pgd_t *pgdir, un
+-	/*
+-	 * In the 'limited' case get_user_pages() for dax is disabled.
+-	 */
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+-		return NULL;
+-
+ 	if (!dax_mapping(mapping))
  		return NULL;
- #endif
  
--	if (pmd_trans_huge(pmd) || pmd_devmap(pmd)) {
-+	if (pmd_trans_huge(pmd)) {
- 		if (is_thp)
- 			*is_thp = true;
- 		ret_pte = (pte_t *)pmdp;
+--- a/fs/Kconfig~fs-dax-remove-fs_dax_limited-config-option
++++ a/fs/Kconfig
+@@ -59,7 +59,7 @@ endif # BLOCK
+ config FS_DAX
+ 	bool "File system based Direct Access (DAX) support"
+ 	depends on MMU
+-	depends on ZONE_DEVICE || FS_DAX_LIMITED
++	depends on ZONE_DEVICE
+ 	select FS_IOMAP
+ 	select DAX
+ 	help
+@@ -95,13 +95,6 @@ config FS_DAX_PMD
+ 	depends on ZONE_DEVICE
+ 	depends on TRANSPARENT_HUGEPAGE
+ 
+-# Selected by DAX drivers that do not expect filesystem DAX to support
+-# get_user_pages() of DAX mappings. I.e. "limited" indicates no support
+-# for fork() of processes with MAP_SHARED mappings or support for
+-# direct-I/O to a DAX mapping.
+-config FS_DAX_LIMITED
+-	bool
+-
+ # Posix ACL utility routines
+ #
+ # Note: Posix ACLs can be implemented without these helpers.  Never use
+--- a/mm/memremap.c~fs-dax-remove-fs_dax_limited-config-option
++++ a/mm/memremap.c
+@@ -332,10 +332,6 @@ void *memremap_pages(struct dev_pagemap
+ 		}
+ 		break;
+ 	case MEMORY_DEVICE_FS_DAX:
+-		if (IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
+-			WARN(1, "File system DAX not supported\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+ 		params.pgprot = pgprot_decrypted(params.pgprot);
+ 		break;
+ 	case MEMORY_DEVICE_GENERIC:
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
