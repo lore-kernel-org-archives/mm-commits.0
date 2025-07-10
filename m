@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C57DCB660
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 03:47:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6123A280A58;
+	Thu, 10 Jul 2025 03:59:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752119240; cv=none; b=Q1WiLpYaYlwkm42jSs2fLWHuKwuyw+tKrvoS7PT7/BTxTuHlqPD0MHtutS9udegyRcxnyWn8NMv/ja/Dwv3mFbnatY7aWgfap9nJNKomMcTxDEzXKM6fGDhRgSHeA/OFRLfgaXU3JOAlo9iv97gu1cs7SBCyYocQeMaJLbo6Dec=
+	t=1752119992; cv=none; b=ar2hgZd+Lb3oQcW+AohORlQ79I6ZFlVY0I6Aa9qvL5w1rAGWk83pjSUDVohwQlHfP1Y93EUAs9A4pYKi9kYMZXiMCt7Bib3j7AbwN+WtPUNjKqljamFBxr4Ni/SJ3b49SgaFdwKfO4HOYBleEkuqLX+gX8xEuG29EJCp+IpLTvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752119240; c=relaxed/simple;
-	bh=7QAvyirA1b9xy9DbpEQIqGh1GJ66n2wtSqcWKohsYVA=;
-	h=Date:To:From:Subject:Message-Id; b=MwnSNpbSLNcoDBN6q+l5FdP37f0JDM3bZGzlmwl786wW9UFSQcveGPczNwLO9/zkK3jGlrgIzz/mjeoAIYO6XfdC0IjTk82XpH09C4leewN9D/OJLxQ55vQ1mu414stynC855W0pZ4EbhLpfQLQO7mdz9rkQ5K3tIoCg/JwA28s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kEvTFfS4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752119992; c=relaxed/simple;
+	bh=kEtiM8cSFZN+M2rZgs7rEbuYg9eapiJgnxY0KAeqWOg=;
+	h=Date:To:From:Subject:Message-Id; b=huCp+iUiOzDcYpVthgd9RK9izRJu5n95MbrbTKiNPXinL7heMnOvvlzH/qrpWkSyy7nh/t8X9FgKYCVRRmdbmf2EGBzfFARGWmMf40v3PrLUC7SHVzvozd2uDUAXrx9kaylrgli5PzG5BfEIlg2NeniTQxl7i38fRlFceyzR5ik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=slXJIMwm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kEvTFfS4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E2A8C4CEE3;
-	Thu, 10 Jul 2025 03:47:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="slXJIMwm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5DD5C4CEE3;
+	Thu, 10 Jul 2025 03:59:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752119240;
-	bh=7QAvyirA1b9xy9DbpEQIqGh1GJ66n2wtSqcWKohsYVA=;
+	s=korg; t=1752119991;
+	bh=kEtiM8cSFZN+M2rZgs7rEbuYg9eapiJgnxY0KAeqWOg=;
 	h=Date:To:From:Subject:From;
-	b=kEvTFfS4/8w2JSPjnaU8tHY5PDZ4TGPUuRcilubkvj3oQP+cPP5xJ07e8Yhg5NKkD
-	 pMmtJXXA/aPbwY/Rtd2HKvHy5lvq338pTpx1MNwYecevotZ2ik1hPuFjfjI0ywvs6S
-	 AEon0gJ3rBB7kh2pzLH2lq8vx1fu2axCd0JJ5DUo=
-Date: Wed, 09 Jul 2025 20:47:19 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,dev.jain@arm.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=slXJIMwmyFJjKRmkHgQWq55SIIaZTY+seydUxLjh+Cmo8jChf6qjjCikrvTkxkqw9
+	 HM7xbtLTy4WFE4BP55dfIFHKr0xXoUr1J8miX+XKSFwaQbe4T5VIRpXncBNFtGXwr5
+	 S2g8ZzNpE3bCcmaKywj7K78bO/MDoEMXPLsJfbYQ=
+Date: Wed, 09 Jul 2025 20:59:51 -0700
+To: mm-commits@vger.kernel.org,yzhong@purestorage.com,surenb@google.com,stable@vger.kernel.org,oliver.sang@intel.com,kent.overstreet@linux.dev,cachen@purestorage.com,00107082@163.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-fix-major-fault-counting.patch added to mm-new branch
-Message-Id: <20250710034720.3E2A8C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3.patch removed from -mm tree
+Message-Id: <20250710035951.C5DD5C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,99 +34,54 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/shmem, swap: fix major fault counting
-has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-swap-fix-major-fault-counting.patch
+The quilt patch titled
+     Subject: lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3
+has been removed from the -mm tree.  Its filename was
+     lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-fix-major-fault-counting.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem, swap: fix major fault counting
-Date: Thu, 10 Jul 2025 11:37:06 +0800
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3
+Date: Tue, 24 Jun 2025 16:25:13 +0900
 
-If the swapin failed, don't update the major fault count.  There is a long
-existing comment for doing it this way, now with previous cleanups, we can
-finally fix it.
-
-Link: https://lkml.kernel.org/r/20250710033706.71042-9-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20250624072513.84219-1-harry.yoo@oracle.com
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202506181351.bba867dd-lkp@intel.com
+Closes: https://lore.kernel.org/oe-lkp/202506131711.5b41931c-lkp@intel.com
+Fixes: 780138b12381 ("alloc_tag: check mem_profiling_support in alloc_tag_init")
+Fixes: 1438d349d16b ("lib: add memory allocations report in show_mem()")
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: Casey Chen <cachen@purestorage.com>
+Cc: David Wang <00107082@163.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yuanyuan Zhong <yzhong@purestorage.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ lib/alloc_tag.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-swap-fix-major-fault-counting
-+++ a/mm/shmem.c
-@@ -2319,13 +2319,6 @@ static int shmem_swapin_folio(struct ino
- 	/* Look it up and read it in.. */
- 	folio = swap_cache_get_folio(swap, NULL, 0);
- 	if (!folio) {
--		/* Or update major stats only when swapin succeeds?? */
--		if (fault_type) {
--			*fault_type |= VM_FAULT_MAJOR;
--			count_vm_event(PGMAJFAULT);
--			count_memcg_event_mm(fault_mm, PGMAJFAULT);
--		}
--
- 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
- 			/* Direct mTHP swapin skipping swap cache & readhaed */
- 			folio = shmem_swap_alloc_folio(inode, vma, index,
-@@ -2344,6 +2337,11 @@ static int shmem_swapin_folio(struct ino
- 				goto failed;
- 			}
- 		}
-+		if (fault_type) {
-+			*fault_type |= VM_FAULT_MAJOR;
-+			count_vm_event(PGMAJFAULT);
-+			count_memcg_event_mm(fault_mm, PGMAJFAULT);
-+		}
- 	}
- 	if (order > folio_order(folio)) {
- 		/*
+--- a/lib/alloc_tag.c~lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users-v3
++++ a/lib/alloc_tag.c
+@@ -137,7 +137,8 @@ size_t alloc_tag_top_users(struct codeta
+ 
+ 	if (IS_ERR_OR_NULL(alloc_tag_cttype))
+ 		return 0;
+-	else if (can_sleep)
++
++	if (can_sleep)
+ 		codetag_lock_module_list(alloc_tag_cttype, true);
+ 	else if (!codetag_trylock_module_list(alloc_tag_cttype))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-mm-list_lru-refactor-the-locking-code.patch
-mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hung.patch
-mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
-mm-shmem-swap-tidy-up-thp-swapin-checks.patch
-mm-shmem-swap-tidy-up-swap-entry-splitting.patch
-mm-shmem-swap-never-use-swap-cache-and-readahead-for-swp_synchronous_io.patch
-mm-shmem-swap-simplify-swapin-path-and-result-handling.patch
-mm-shmem-swap-rework-swap-entry-and-index-calculation-for-large-swapin.patch
-mm-shmem-swap-fix-major-fault-counting.patch
+lib-alloc_tag-do-not-acquire-non-existent-lock-in-alloc_tag_top_users.patch
+mm-zsmalloc-do-not-pass-__gfp_movable-if-config_compaction=n.patch
+mm-check-if-folio-has-valid-mapcount-before-folio_test_anonksm-when-necessary.patch
 
