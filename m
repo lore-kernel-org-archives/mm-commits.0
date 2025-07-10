@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6153428C2B1
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 21:53:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E18B928DF27
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 21:53:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752184389; cv=none; b=G/YoGVofwmNUSsGXdY3l9Vw2SvSusAED8Ss/7fjGrGvwYHeXNg2Ghgfz91RkogThe50/DD+CbWX3Sff1ojDyUd+XYZ0dAdCFvzI0tIjZpCFlcBaddvo/er5uk7jiwuCIxzdwLgUpDKwsfF/Ltc/clsHos5iySid+vPlzKoxLTeY=
+	t=1752184433; cv=none; b=F/8KgYztVjtYM8jeWSTco+a9JmIrt8n8U+TzATGy8lENUamtrU0RtLjHTlhItrSEc+h28BNzuBF4IgUJJM0tQvo8CGZFZ4zaAmXI0PmQwnpWu+okPegbdlZHOiiqKr47JGe70W2qbp3WmN18NtaGUPkf/at1nGCkXcbD9NC0fxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752184389; c=relaxed/simple;
-	bh=MM+kYk7enBf3Jf2Lu9jrou6B9NcVMqAQsb1dgVr3Sj0=;
-	h=Date:To:From:Subject:Message-Id; b=b8xFLi9nTxgz9pu1DRxbWIs40K3NkFThjkyEwC25+wjqyQwaVQJdxLKsqJdtDbF5yAoll54jxDWsjlxCYlpfrP/aAF8n+jameciEO2BQVvk1XuzZ5DYEX0QB5eu+fc5yfn4TTWQWtWfz7RSjVWIWiv/Swjb+Sum1JuwDn/voUVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UoPmHXe4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752184433; c=relaxed/simple;
+	bh=PnVFxoVf2NTX2el5N137k4P/RkWBFEM2Zq9Ceje0+rc=;
+	h=Date:To:From:Subject:Message-Id; b=XNbQ10nu3j9Awzwz7Hv06G5i7F4657h7CNUe1CY8eC1Dx4ZidAEqE7FT5dGQGCFBF/CrCk643e0PIYBOBBkt5OhyZ4ZYdAz2AaLSsFo/uVAt6iXCqni3iLYmGtPNhgfqtWWNDXBIIMpmONuwsAyWj37p3hfGE6qlbt9RogrWFOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t8xAcq8R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UoPmHXe4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6344C4CEE3;
-	Thu, 10 Jul 2025 21:53:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t8xAcq8R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A170CC4CEE3;
+	Thu, 10 Jul 2025 21:53:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752184388;
-	bh=MM+kYk7enBf3Jf2Lu9jrou6B9NcVMqAQsb1dgVr3Sj0=;
+	s=korg; t=1752184432;
+	bh=PnVFxoVf2NTX2el5N137k4P/RkWBFEM2Zq9Ceje0+rc=;
 	h=Date:To:From:Subject:From;
-	b=UoPmHXe4yq+iXX07b4N8qXwkuoR3iq+UtzDrNIx372ZVqimaE18J+MPTfOUsit76n
-	 Q1oQz+05MxdfXV//73B1ylzUWAYi3v1NlJzliCjpwI1LpcusMTe5PaxfZRM4SKqzum
-	 11TG/nIF/6CmUT022Tlv4YkgUTKsCelZqD5vBoaU=
-Date: Thu, 10 Jul 2025 14:53:08 -0700
-To: mm-commits@vger.kernel.org,mario.limonciello@amd.com,dyoung@redhat.com,dwmw2@infradead.org,bhe@redhat.com,rafael.j.wysocki@intel.com,akpm@linux-foundation.org
+	b=t8xAcq8RhxdDTcS9LFYot4znYOCp4zBYQeXeGwdd4recEEBRe2zbQejtDIOJyLwUj
+	 yyxvSKSnya9j67sc2zCN55rTq+y7unr8jqhN9T2j5KOBpeDPOv/eYcq7AUxSxxJrVq
+	 15U4fMV34qVMCPR0RVebrWV8JqQY9LDXVE9GDRrE=
+Date: Thu, 10 Jul 2025 14:53:52 -0700
+To: mm-commits@vger.kernel.org,rafael.j.wysocki@intel.com,mario.limonciello@amd.com,dyoung@redhat.com,dwmw2@infradead.org,bhe@redhat.com,rafael@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250710215308.C6344C4CEE3@smtp.kernel.org>
+Subject: + kexec_core-drop-redundant-pm_restore_gfp_mask-call.patch added to mm-nonmm-unstable branch
+Message-Id: <20250710215352.A170CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec_core: fix error code path in the KEXEC_JUMP flow
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch
+     Subject: kexec_core: Drop redundant pm_restore_gfp_mask() call
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec_core-drop-redundant-pm_restore_gfp_mask-call.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_core-drop-redundant-pm_restore_gfp_mask-call.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,19 +58,17 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: kexec_core: fix error code path in the KEXEC_JUMP flow
-Date: Thu, 10 Jul 2025 15:10:41 +0200
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: kexec_core: Drop redundant pm_restore_gfp_mask() call
+Date: Thu, 10 Jul 2025 15:12:20 +0200
 
-If dpm_suspend_start() fails, dpm_resume_end() must be called to recover
-devices whose suspend callbacks have been called, but this does not happen
-in the KEXEC_JUMP flow's error path due to a confused goto target label.
 
-Address this by using the correct target label in the goto statement in
-question.
+Drop the direct pm_restore_gfp_mask() call from the KEXEC_JUMP flow in
+kernel_kexec() because it is redundant.  Namely, dpm_resume_end()
+called beforehand in the same code path invokes that function and
+it is sufficient to invoke it once.
 
-Link: https://lkml.kernel.org/r/2396879.ElGaqSPkdT@rjwysocki.net
-Fixes: 2965faa5e03d ("kexec: split kexec_load syscall from kexec core code")
+Link: https://lkml.kernel.org/r/1949230.tdWV9SEqCh@rjwysocki.net
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -79,23 +77,22 @@ Cc: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec_core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/kernel/kexec_core.c~kexec_core-fix-error-code-path-in-the-kexec_jump-flow
+--- a/kernel/kexec_core.c~kexec_core-drop-redundant-pm_restore_gfp_mask-call
 +++ a/kernel/kexec_core.c
-@@ -1080,7 +1080,7 @@ int kernel_kexec(void)
- 		console_suspend_all();
- 		error = dpm_suspend_start(PMSG_FREEZE);
- 		if (error)
--			goto Resume_console;
-+			goto Resume_devices;
- 		/*
- 		 * dpm_suspend_end() must be called after dpm_suspend_start()
- 		 * to complete the transition, like in the hibernation flows
+@@ -1136,7 +1136,6 @@ int kernel_kexec(void)
+  Resume_devices:
+ 		dpm_resume_end(PMSG_RESTORE);
+  Resume_console:
+-		pm_restore_gfp_mask();
+ 		console_resume_all();
+ 		thaw_processes();
+  Restore_console:
 _
 
-Patches currently in -mm which might be from rafael.j.wysocki@intel.com are
+Patches currently in -mm which might be from rafael@kernel.org are
 
-kexec_core-fix-error-code-path-in-the-kexec_jump-flow.patch
+kexec_core-drop-redundant-pm_restore_gfp_mask-call.patch
 
