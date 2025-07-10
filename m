@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EECBA28505D
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:44:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1481728504F
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:44:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126265; cv=none; b=mh4WwXaiVneFRHi0Sfp8vfIYBYEt3O/7JimQJwXkFXiRsFjHi+t9wYKM5Ac0QZCAo9Y0/y2anM0z5v1DWqSeJWkgp9OuLkTy+YlFv8IqGVx2MMCth27IVPPJOcGa0jkaOOQOHh535g35gc7MwWExoQMZ0LL4A+et/HIzryDIw04=
+	t=1752126266; cv=none; b=X3NuFseVrAeiolF0HOZ1jtluMy915zCjdnk+layGXy+jE87XcpFKJ5eul54xYIkGdTRt/rup2YX/IdBJl+7DMvnd9WfahOtFJtYyVhLg+kt/NnmI+kjRhFMjNN+z9ndwmTqaYtRU24m6azNVCx+pWIxcvE3Q95V2dlaRbtsvPUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126265; c=relaxed/simple;
-	bh=riLHmNMhaEe5ViZxi8KrLxkP9jFn2yS2BZzvkPt8weQ=;
-	h=Date:To:From:Subject:Message-Id; b=a69+IG/lOb2NHVZra+CI+FvW/fyEQu/s98649DTDu8WFyNu9P6WSlNZ0GZK75B1lk7AzpOca9Tk89Y93XQabQRvw3tfAWJ0qlkJuo2pdj2aqshq81W3hfi4AKWfHfonU280+NYkvjUg0DNJMiyOfA2BJuMyEgAs5gupxOH+k5bE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=leJFWAdW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126266; c=relaxed/simple;
+	bh=UYEF3LcWP5P23G72T6kkhiYbUXIwc9nUjsZbS4XvIPk=;
+	h=Date:To:From:Subject:Message-Id; b=kADT1hAs2H3E8x1ZVPXhyz4hmcMFcVhCTZduFMAtvmO6Qndz/0RvlqE/4l+1+j0f66Xz7LvoH9OYdAT6N2bu5kpeqqZtp13vMAsaBllbak+kp7HEuJnD6++spt+qSeZiydetITNivc7jFPvFZN4SfL/MWjTfUpDZ/wGaKPXca1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zUblIzg0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="leJFWAdW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2530C4CEE3;
-	Thu, 10 Jul 2025 05:44:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zUblIzg0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD0F8C4CEE3;
+	Thu, 10 Jul 2025 05:44:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126264;
-	bh=riLHmNMhaEe5ViZxi8KrLxkP9jFn2yS2BZzvkPt8weQ=;
+	s=korg; t=1752126265;
+	bh=UYEF3LcWP5P23G72T6kkhiYbUXIwc9nUjsZbS4XvIPk=;
 	h=Date:To:From:Subject:From;
-	b=leJFWAdWB4ffUCxy2pIbVtcIiZxF9jgvpXocXiMrNe/38nz3Emwhz6mZnTjP6Qg7V
-	 Obx/Zev78l7gAe16WTDfE9uswbh+fILIE2Cbew4DD9y9aZDvVexq5tyN2KCkGYOrHh
-	 WxjXf/iw9q+ODPDevBEBIuTO18bbxx7pb9wVwdPY=
-Date: Wed, 09 Jul 2025 22:44:24 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=zUblIzg0oVgqU5x2xIRVop11cC2W6hUb9WT3y2Fue+D7uKf5OLIvEofgfK1r9kO9d
+	 AZWAjzCCw4raTkZp43fEpimZbftGXTkEitXJH6b4exa8DrKKNEqZ/dlfuua/jit+VP
+	 O8Qy3XiR8Dm+pZM7WSL7xWJfmGnPn+xytYPZJW1U=
+Date: Wed, 09 Jul 2025 22:44:25 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,david@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-messages-about-test-errors-to-the-cow-tests.patch removed from -mm tree
-Message-Id: <20250710054424.C2530C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-check-for-yama-ptrace_scope-configuraiton-before-modifying-it.patch removed from -mm tree
+Message-Id: <20250710054425.DD0F8C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add messages about test errors to the cow tests
+     Subject: selftests/mm: check for YAMA ptrace_scope configuraiton before modifying it
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-messages-about-test-errors-to-the-cow-tests.patch
+     selftests-mm-check-for-yama-ptrace_scope-configuraiton-before-modifying-it.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: add messages about test errors to the cow tests
-Date: Tue, 10 Jun 2025 15:13:57 +0100
+Subject: selftests/mm: check for YAMA ptrace_scope configuraiton before modifying it
+Date: Tue, 10 Jun 2025 15:07:44 +0100
 
-It is not sufficiently clear what the individual tests in the cow test
-program are checking so add messages for the failure cases.
+When running the memfd_secret test run_vmtests.sh unconditionally tries
+to confgiure the YAMA LSM's ptrace_scope configuration, leading to an error
+if YAMA is not in the running kernel:
 
-Link: https://lkml.kernel.org/r/20250610-selftest-mm-cow-tweaks-v1-4-43cd7457500f@kernel.org
+# ./run_vmtests.sh: line 432: /proc/sys/kernel/yama/ptrace_scope: No such file or directory
+# # ----------------------
+# # running ./memfd_secret
+# # ----------------------
+
+Check that this file is present before trying to write to it.
+
+The indentation here is a bit odd, and it doesn't seem great that we
+configure but don't restore ptrace_scope.
+
+Link: https://lkml.kernel.org/r/20250610-selftest-mm-enable-yama-v1-1-0097b6713116@kernel.org
 Signed-off-by: Mark Brown <broonie@kernel.org>
-Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |   28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-add-messages-about-test-errors-to-the-cow-tests
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -268,8 +268,10 @@ static void do_test_cow_in_parent(char *
- 		 * fail because (a) harder to fix and (b) nobody really cares.
- 		 * Flag them as expected failure for now.
- 		 */
-+		ksft_print_msg("Leak from parent into child\n");
- 		log_test_result(KSFT_XFAIL);
- 	} else {
-+		ksft_print_msg("Leak from parent into child\n");
- 		log_test_result(KSFT_FAIL);
- 	}
- close_comm_pipes:
-@@ -397,8 +399,10 @@ static void do_test_vmsplice_in_parent(c
- 		 * fail because (a) harder to fix and (b) nobody really cares.
- 		 * Flag them as expected failure for now.
- 		 */
-+		ksft_print_msg("Leak from child into parent\n");
- 		log_test_result(KSFT_XFAIL);
- 	} else {
-+		ksft_print_msg("Leak from child into parent\n");
- 		log_test_result(KSFT_FAIL);
- 	}
- close_pipe:
-@@ -570,10 +574,12 @@ static void do_test_iouring(char *mem, s
- 	}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-check-for-yama-ptrace_scope-configuraiton-before-modifying-it
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -429,7 +429,9 @@ CATEGORY="vma_merge" run_test ./merge
  
- 	/* Finally, check if we read what we expected. */
--	if (!memcmp(mem, tmp, size))
-+	if (!memcmp(mem, tmp, size)) {
- 		log_test_result(KSFT_PASS);
--	else
-+	} else {
-+		ksft_print_msg("Longtom R/W pin is not reliable\n");
- 		log_test_result(KSFT_FAIL);
-+	}
- 
- quit_child:
- 	if (use_fork) {
-@@ -725,10 +731,12 @@ static void do_test_ro_pin(char *mem, si
- 		ksft_perror("PIN_LONGTERM_TEST_READ failed");
- 		log_test_result(KSFT_FAIL);
- 	} else {
--		if (!memcmp(mem, tmp, size))
-+		if (!memcmp(mem, tmp, size)) {
- 			log_test_result(KSFT_PASS);
--		else
-+		} else {
-+			ksft_print_msg("Longterm R/O pin is not reliable\n");
- 			log_test_result(KSFT_FAIL);
-+		}
- 	}
- 
- 	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_STOP);
-@@ -1417,10 +1425,12 @@ static void do_test_anon_thp_collapse(ch
- 	else
- 		ret = -EINVAL;
- 
--	if (!ret)
-+	if (!ret) {
- 		log_test_result(KSFT_PASS);
--	else
-+	} else {
-+		ksft_print_msg("Leak from parent into child\n");
- 		log_test_result(KSFT_FAIL);
-+	}
- close_comm_pipes:
- 	close_comm_pipes(&comm_pipes);
- }
-@@ -1528,10 +1538,12 @@ static void test_cow(char *mem, const ch
- 	memset(mem, 0xff, size);
- 
- 	/* See if we still read the old values via the other mapping. */
--	if (!memcmp(smem, old, size))
-+	if (!memcmp(smem, old, size)) {
- 		log_test_result(KSFT_PASS);
--	else
-+	} else {
-+		ksft_print_msg("Other mapping modified\n");
- 		log_test_result(KSFT_FAIL);
-+	}
- 	free(old);
- }
+ if [ -x ./memfd_secret ]
+ then
+-(echo 0 > /proc/sys/kernel/yama/ptrace_scope 2>&1) | tap_prefix
++if [ -f /proc/sys/kernel/yama/ptrace_scope ]; then
++	(echo 0 > /proc/sys/kernel/yama/ptrace_scope 2>&1) | tap_prefix
++fi
+ CATEGORY="memfd_secret" run_test ./memfd_secret
+ fi
  
 _
 
