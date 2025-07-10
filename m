@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7332E286D60
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:59:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95491286D60
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:59:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752127176; cv=none; b=RaLvP/UG1J0hGhFHi85ze1ISbC/4upK/eeBtVya6Y98+VttaWrdYVrtUm8NhJYk55JTLnmzzm6rEq07m8vV5lKa82bfFtLq9moNP4u0i6KMgqnh8s9A7Xq3ZaLoXGlWGq9/QyCxO5ETT8b6Fzyj4oSbRx9fOCOqw/UgNmy900W4=
+	t=1752127177; cv=none; b=li+Zo9jOlR0CUTq+wovcIhAZL7P1cUlKb9qMy0zhmxUVLgKKe48Rnr5r+ynfd5FZH+Rfks3OjOSPCSDIffbzcDn4p0f7So3LgKi2hYtl+jE8WWMh1S+P4Cz7BF+eCwvgF/YWJq9TPKU6YrKP/wVet0Qx1V0P+qCf0UVcWT2VlDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752127176; c=relaxed/simple;
-	bh=pSRrcUdRgQZFi1mcO+/pWDS10ggCR+Bm4N/t+IsU+4w=;
-	h=Date:To:From:Subject:Message-Id; b=dfAxhs8UNP+QIj4K4tl4H/4lDumkkWSkvPg4W0L3amxwJV4aYacNCkv4ge1E7PPD+agMvc2k2XF9avdzbNiqGvVrnZkzSn42RMH9Vvy+6c8CRbgG+J6KdNCD8iZdHYGxs9x2IC3EjTCaquZ7jgttZHDLdVicRKEQBuNepasN9og=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PEDocyQl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752127177; c=relaxed/simple;
+	bh=ShWK36Ev95IuKSaA9A8z05YUg6Y9HGzMXc+4FuHKY0o=;
+	h=Date:To:From:Subject:Message-Id; b=Xt7i1OuyeE6n/8OeJQ9VeF0Q2LdOSAHcjovZDwmKEjB+zvBa2QMNc9Dz82YUvuja8+I7lsVA0NbzZYOc19g8bwxa43jnx17e7pFpnkn1Mdh8SL1nDH8NvpnV2sfQzLoH3p0x7AjthgT6S/4RbbyehKq8N+2mn8DIG428a8yCphQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nibBaV6e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PEDocyQl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48725C4CEE3;
-	Thu, 10 Jul 2025 05:59:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nibBaV6e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AB60C4CEE3;
+	Thu, 10 Jul 2025 05:59:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752127176;
-	bh=pSRrcUdRgQZFi1mcO+/pWDS10ggCR+Bm4N/t+IsU+4w=;
+	s=korg; t=1752127177;
+	bh=ShWK36Ev95IuKSaA9A8z05YUg6Y9HGzMXc+4FuHKY0o=;
 	h=Date:To:From:Subject:From;
-	b=PEDocyQlLBn9hzyIEvqe6GK4teE4F5szsMZlf2fRgilzX5U35sr69U8hIQuARPLIv
-	 KPAi7CrCuL8JJp+b3W48GVCFPUfumRbx2GnICi6exCvRtSxbVaYnNPC+fMAxuy3HZ1
-	 RxPBLyF/u8Z9cf+fjU8AQLP8HZYzBBHVBG2E90ys=
-Date: Wed, 09 Jul 2025 22:59:35 -0700
-To: mm-commits@vger.kernel.org,jiri@resnulli.us,arnd@arndb.de,akpm@linux-foundation.org
+	b=nibBaV6e4KG69FFfdmO754sTUxewzFahrnwXMHAjEXJ9jwrhzpc3ejMscpozjIs3L
+	 DikmlT/eL/S0TZq7EZBCMZ1XMAzC4Ejaf3r55DnBulN42SSmDmLcaGmpzMllyZwP3F
+	 UgPd2Xjv+bOYMS2/S+IgJ930V4MQuXmZ5HFgTikw=
+Date: Wed, 09 Jul 2025 22:59:36 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,mingzhu.wang@transsion.com,ebiederm@xmission.com,jqqlijiazi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-test_objagg-split-test_hints_case-into-two-functions.patch removed from -mm tree
-Message-Id: <20250710055936.48725C4CEE3@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kthread-update-comment-for-__to_kthread.patch removed from -mm tree
+Message-Id: <20250710055937.6AB60C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: test_objagg: split test_hints_case() into two functions
+     Subject: kthread: update comment for __to_kthread
 has been removed from the -mm tree.  Its filename was
-     lib-test_objagg-split-test_hints_case-into-two-functions.patch
+     kthread-update-comment-for-__to_kthread.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: lib: test_objagg: split test_hints_case() into two functions
-Date: Fri, 20 Jun 2025 13:19:04 +0200
+From: Jiazi Li <jqqlijiazi@gmail.com>
+Subject: kthread: update comment for __to_kthread
+Date: Fri, 20 Jun 2025 18:07:56 +0800
 
-With sanitizers enabled, this function uses a lot of stack, causing a
-harmless warning:
+With commit 343f4c49f243 ("kthread: Don't allocate kthread_struct for init
+and umh") and commit 753550eb0ce1 ("fork: Explicitly set PF_KTHREAD"), umh
+task no longer have struct kthread and PF_KTHREAD flag.
 
-lib/test_objagg.c: In function 'test_hints_case.constprop':
-lib/test_objagg.c:994:1: error: the frame size of 1440 bytes is larger than 1408 bytes [-Werror=frame-larger-than=]
+Update the comment to describe what the current rules are to detect
+is something is a kthread.
 
-Most of this is from the two 'struct world' structures.  Since most of the
-work in this function is duplicated for the two, split it up into separate
-functions that each use one of them.
-
-The combined stack usage is still the same here, but there is no warning
-any more, and the code is still safe because of the known call chain.
-
-Link: https://lkml.kernel.org/r/20250620111907.3395296-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jiri Pirko <jiri@resnulli.us>
+Link: https://lkml.kernel.org/r/20250620100801.23185-1-jqqlijiazi@gmail.com
+Signed-off-by: Jiazi Li <jqqlijiazi@gmail.com>
+Signed-off-by: mingzhu.wang <mingzhu.wang@transsion.com>
+Suggested-by Eric W . Biederman <ebiederm@xmission.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_objagg.c |   77 +++++++++++++++++++++++++-------------------
- 1 file changed, 45 insertions(+), 32 deletions(-)
+ kernel/kthread.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/lib/test_objagg.c~lib-test_objagg-split-test_hints_case-into-two-functions
-+++ a/lib/test_objagg.c
-@@ -908,50 +908,22 @@ static int check_expect_hints_stats(stru
- 	return err;
- }
- 
--static int test_hints_case(const struct hints_case *hints_case)
-+static int test_hints_case2(const struct hints_case *hints_case,
-+			    struct objagg_hints *hints, struct objagg *objagg)
+--- a/kernel/kthread.c~kthread-update-comment-for-__to_kthread
++++ a/kernel/kthread.c
+@@ -88,13 +88,12 @@ static inline struct kthread *to_kthread
+ /*
+  * Variant of to_kthread() that doesn't assume @p is a kthread.
+  *
+- * Per construction; when:
++ * When "(p->flags & PF_KTHREAD)" is set the task is a kthread and will
++ * always remain a kthread.  For kthreads p->worker_private always
++ * points to a struct kthread.  For tasks that are not kthreads
++ * p->worker_private is used to point to other things.
+  *
+- *   (p->flags & PF_KTHREAD) && p->worker_private
+- *
+- * the task is both a kthread and struct kthread is persistent. However
+- * PF_KTHREAD on it's own is not, kernel_thread() can exec() (See umh.c and
+- * begin_new_exec()).
++ * Return NULL for any task that is not a kthread.
+  */
+ static inline struct kthread *__to_kthread(struct task_struct *p)
  {
- 	struct objagg_obj *objagg_obj;
--	struct objagg_hints *hints;
- 	struct world world2 = {};
--	struct world world = {};
- 	struct objagg *objagg2;
--	struct objagg *objagg;
- 	const char *errmsg;
- 	int i;
- 	int err;
- 
--	objagg = objagg_create(&delta_ops, NULL, &world);
--	if (IS_ERR(objagg))
--		return PTR_ERR(objagg);
--
--	for (i = 0; i < hints_case->key_ids_count; i++) {
--		objagg_obj = world_obj_get(&world, objagg,
--					   hints_case->key_ids[i]);
--		if (IS_ERR(objagg_obj)) {
--			err = PTR_ERR(objagg_obj);
--			goto err_world_obj_get;
--		}
--	}
--
--	pr_debug_stats(objagg);
--	err = check_expect_stats(objagg, &hints_case->expect_stats, &errmsg);
--	if (err) {
--		pr_err("Stats: %s\n", errmsg);
--		goto err_check_expect_stats;
--	}
--
--	hints = objagg_hints_get(objagg, OBJAGG_OPT_ALGO_SIMPLE_GREEDY);
--	if (IS_ERR(hints)) {
--		err = PTR_ERR(hints);
--		goto err_hints_get;
--	}
--
- 	pr_debug_hints_stats(hints);
- 	err = check_expect_hints_stats(hints, &hints_case->expect_stats_hints,
- 				       &errmsg);
- 	if (err) {
- 		pr_err("Hints stats: %s\n", errmsg);
--		goto err_check_expect_hints_stats;
-+		return err;
- 	}
- 
- 	objagg2 = objagg_create(&delta_ops, hints, &world2);
-@@ -983,7 +955,48 @@ err_world2_obj_get:
- 		world_obj_put(&world2, objagg, hints_case->key_ids[i]);
- 	i = hints_case->key_ids_count;
- 	objagg_destroy(objagg2);
--err_check_expect_hints_stats:
-+
-+	return err;
-+}
-+
-+static int test_hints_case(const struct hints_case *hints_case)
-+{
-+	struct objagg_obj *objagg_obj;
-+	struct objagg_hints *hints;
-+	struct world world = {};
-+	struct objagg *objagg;
-+	const char *errmsg;
-+	int i;
-+	int err;
-+
-+	objagg = objagg_create(&delta_ops, NULL, &world);
-+	if (IS_ERR(objagg))
-+		return PTR_ERR(objagg);
-+
-+	for (i = 0; i < hints_case->key_ids_count; i++) {
-+		objagg_obj = world_obj_get(&world, objagg,
-+					   hints_case->key_ids[i]);
-+		if (IS_ERR(objagg_obj)) {
-+			err = PTR_ERR(objagg_obj);
-+			goto err_world_obj_get;
-+		}
-+	}
-+
-+	pr_debug_stats(objagg);
-+	err = check_expect_stats(objagg, &hints_case->expect_stats, &errmsg);
-+	if (err) {
-+		pr_err("Stats: %s\n", errmsg);
-+		goto err_check_expect_stats;
-+	}
-+
-+	hints = objagg_hints_get(objagg, OBJAGG_OPT_ALGO_SIMPLE_GREEDY);
-+	if (IS_ERR(hints)) {
-+		err = PTR_ERR(hints);
-+		goto err_hints_get;
-+	}
-+
-+	err = test_hints_case2(hints_case, hints, objagg);
-+
- 	objagg_hints_put(hints);
- err_hints_get:
- err_check_expect_stats:
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from jqqlijiazi@gmail.com are
 
 
