@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1AA1284B2E
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5980B284B2E
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:44:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126239; cv=none; b=edAu0XpjKuppgUVtrQXYh+MpLhdHCVUwrRsStukf7arH7Ld5a8DadnawIyQIRWySgtDP3GRfzwa1sAQ0pdLwFrXfiv96+FoTaRZGdIRubJRLqcZE/iW/QTt0r4B/BXdGV6cmv0y+jqF+c8afrWpMMWb45NN+7Lg4a6mG1socbnY=
+	t=1752126241; cv=none; b=IY8UvaHAmThPOsofXx0bBNY/VaqWws44pcvzNLzmXmGatCtZtyswileuPW5AoSaaltyJnkaz0LxMOHyTBuRKuBnnL3uaFpXuvMdI7X9OVTpfj/K+o6kFedXN5WOohLQhoU310m7uRB4Xx7+IVrNNk2Tub7NrxFet+SeuMklQ5zE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126239; c=relaxed/simple;
-	bh=9SE6Qjj9UUERhNpxOs8kJTvXdLdeOv2Kri9i+02taQA=;
-	h=Date:To:From:Subject:Message-Id; b=DoDWfAEu7H7GG17g5Zlve2DwHbZlhZ2ms5493iULECouGYxjbx2GRXWzh+tx4vr/u+TMtMEaoCXjEdGzgl2DvIafeyYbPkfriMSWlkv6WX0TcYRm8oX13MxXcODwhNkoamg2RvxjSFQreMNgr3tQXmmShD+FWKTieXeFpkOOuMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mf/olY8o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126241; c=relaxed/simple;
+	bh=gKCxnvN0sGLTnAjucEi4kRXJQLPrN2VCpSzDOMMfCGI=;
+	h=Date:To:From:Subject:Message-Id; b=qTJ7Ak4fwlfN2YGlkOAE/HR7DKOU9DzZvw1CNDX/UX745rzIWJ7lhArnEKWLqALW+Wj05c3s0x136lRoB4h1vYFzijmwal/nbCraiqGcOoe6/cUrNw5bY60yA/I3XmmTMmyuU8qD9nDXzAe46DAT/ixrvtMZT+3LdLLGLpxKlCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uXQFr0Ln; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mf/olY8o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A66D4C4CEF5;
-	Thu, 10 Jul 2025 05:43:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uXQFr0Ln"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F73EC4CEE3;
+	Thu, 10 Jul 2025 05:44:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126239;
-	bh=9SE6Qjj9UUERhNpxOs8kJTvXdLdeOv2Kri9i+02taQA=;
+	s=korg; t=1752126241;
+	bh=gKCxnvN0sGLTnAjucEi4kRXJQLPrN2VCpSzDOMMfCGI=;
 	h=Date:To:From:Subject:From;
-	b=Mf/olY8oWklnN5mNzLAFXEek1Qs5XOAupCnbrWoMXrhNZGgsqOp99Vb6KeJQmrLAZ
-	 djmPv7YlVJRe9AEt3pCs+jFiOGZUM23xuca4t21zezJSIvJnyGCFyZ9Zq45tRbd9NY
-	 YVadV0yNn/UO5GpfnMPv2oAgOIzd5THcrnMTOxRM=
-Date: Wed, 09 Jul 2025 22:43:58 -0700
+	b=uXQFr0LnG7fMeOZ1/FPzvWUjv4Oq4RIaKSRXCc5s5QydgFe//IXIIwiiivpLm1bvn
+	 ZeDJPQWLrBlwuj+kBGzylXtG3TAZJge8lfYgVBbu4Ja5RJ/eoCJHHG+bde/qMDxJsB
+	 lNFPrB/1BTu7S9bjd8hUgvdGFO73RhwIkqbm3DUw=
+Date: Wed, 09 Jul 2025 22:44:00 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,peterx@redhat.com,Jason@zx2c4.com,jack@suse.cz,david@redhat.com,brauner@kernel.org,aarcange@redhat.com,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-correctly-prevent-registering-vm_droppable-regions.patch removed from -mm tree
-Message-Id: <20250710054359.A66D4C4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd.patch removed from -mm tree
+Message-Id: <20250710054401.2F73EC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,97 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: correctly prevent registering VM_DROPPABLE regions
+     Subject: userfaultfd: prevent unregistering VMAs through a different userfaultfd
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-correctly-prevent-registering-vm_droppable-regions.patch
+     userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: userfaultfd: correctly prevent registering VM_DROPPABLE regions
-Date: Thu, 19 Jun 2025 21:24:23 -0400
+Subject: userfaultfd: prevent unregistering VMAs through a different userfaultfd
+Date: Thu, 19 Jun 2025 21:24:24 -0400
 
-Patch series "mm: userfaultfd: assorted fixes and cleanups", v3.
+Currently, a VMA registered with a uffd can be unregistered through a
+different uffd associated with the same mm_struct.
 
-Two fixes and two cleanups for userfaultfd.
+The existing behavior is slightly broken and may incorrectly reject
+unregistering some VMAs due to the following check:
 
-Note that the third patch yields a small change in the ABI, but we seem to
-have concluded that it is acceptable in this case.
+	if (!vma_can_userfault(cur, cur->vm_flags, wp_async))
+		goto out_unlock;
 
+where wp_async is derived from ctx, not from cur.  For example, a
+file-backed VMA registered with wp_async enabled and UFFD_WP mode cannot
+be unregistered through a uffd that does not have wp_async enabled.
 
-This patch (of 4):
+Rather than fix this and maintain this odd behavior, make unregistration
+stricter by requiring VMAs to be unregistered through the same uffd they
+were registered with.  Additionally, reorder the BUG() checks to avoid the
+aforementioned wp_async issue in them.  Convert the existing check to
+VM_WARN_ON_ONCE() as BUG_ON() is deprecated.
 
-vma_can_userfault() masks off non-userfaultfd VM flags from vm_flags.  The
-vm_flags & VM_DROPPABLE test will then always be false, incorrectly
-allowing VM_DROPPABLE regions to be registered with userfaultfd.
+This change slightly modifies the ABI.  It should not be backported to
+-stable.  It is expected that no one depends on this behavior, and no such
+cases are known.
 
-Additionally, vm_flags is not guaranteed to correspond to the actual VMA's
-flags.  Fix this test by checking the VMA's flags directly.
+While at it, correct the comment for the no userfaultfd case.  This seems
+to be a copy-paste artifact from the analogous userfaultfd_register()
+check.
 
-Link: https://lkml.kernel.org/r/20250619-uffd-fixes-v3-0-a7274d3bd5e4@columbia.edu
-Link: https://lore.kernel.org/linux-mm/5a875a3a-2243-4eab-856f-bc53ccfec3ea@redhat.com/
-Link: https://lkml.kernel.org/r/20250619-uffd-fixes-v3-1-a7274d3bd5e4@columbia.edu
-Fixes: 9651fcedf7b9 ("mm: add MAP_DROPPABLE for designating always lazily freeable mappings")
+Link: https://lkml.kernel.org/r/20250619-uffd-fixes-v3-2-a7274d3bd5e4@columbia.edu
+Fixes: 86039bd3b4e6 ("userfaultfd: add new syscall to provide memory externalization")
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: Jason A. Donenfeld <Jason@zx2c4.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/userfaultfd.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
---- a/include/linux/userfaultfd_k.h~userfaultfd-correctly-prevent-registering-vm_droppable-regions
-+++ a/include/linux/userfaultfd_k.h
-@@ -218,7 +218,7 @@ static inline bool vma_can_userfault(str
- {
- 	vm_flags &= __VM_UFFD_FLAGS;
+--- a/fs/userfaultfd.c~userfaultfd-prevent-unregistering-vmas-through-a-different-userfaultfd
++++ a/fs/userfaultfd.c
+@@ -1468,6 +1468,14 @@ static int userfaultfd_unregister(struct
+ 		       !!(cur->vm_flags & __VM_UFFD_FLAGS));
  
--	if (vm_flags & VM_DROPPABLE)
-+	if (vma->vm_flags & VM_DROPPABLE)
- 		return false;
+ 		/*
++		 * Prevent unregistering through a different userfaultfd than
++		 * the one used for registration.
++		 */
++		if (cur->vm_userfaultfd_ctx.ctx &&
++		    cur->vm_userfaultfd_ctx.ctx != ctx)
++			goto out_unlock;
++
++		/*
+ 		 * Check not compatible vmas, not strictly required
+ 		 * here as not compatible vmas cannot have an
+ 		 * userfaultfd_ctx registered on them, but this
+@@ -1490,15 +1498,12 @@ static int userfaultfd_unregister(struct
+ 	for_each_vma_range(vmi, vma, end) {
+ 		cond_resched();
  
- 	if ((vm_flags & VM_UFFD_MINOR) &&
+-		BUG_ON(!vma_can_userfault(vma, vma->vm_flags, wp_async));
+-
+-		/*
+-		 * Nothing to do: this vma is already registered into this
+-		 * userfaultfd and with the right tracking mode too.
+-		 */
++		/* VMA not registered with userfaultfd. */
+ 		if (!vma->vm_userfaultfd_ctx.ctx)
+ 			goto skip;
+ 
++		VM_WARN_ON_ONCE(vma->vm_userfaultfd_ctx.ctx != ctx);
++		VM_WARN_ON_ONCE(!vma_can_userfault(vma, vma->vm_flags, wp_async));
+ 		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
+ 
+ 		if (vma->vm_start > start)
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
