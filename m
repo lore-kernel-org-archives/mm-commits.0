@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80BE22905
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E214A2905
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126197; cv=none; b=fdlWXuD/6EPob/8J7CKA6SnjN1YNLmvkjkrJFZBtCf3GsoafyPlx7AuaQ9kvm45duDfunMhkq7yLTwzVi51WNSFwk+ABDrrbPdNODPxAlU4gxcRXtrM9FxQ+fFeN7rxX1LGiQSau7vXaHgp8/b7SJS6bkIheYaRFQQNnmV5f9vI=
+	t=1752126201; cv=none; b=EmVNzFRe6DINk0HOhVpN1tvIG4wO6MD7O+kxKRlE8Ns/Gek0BA6ngTJlNsIKq/GDwh9PrJIp1/ULiS8pV6oVnYVj+m16jyQOHyknCiSvaD5d39BMJNoBjP57SQ4Oq9yWChbctdOyOaufOCtVu8Lxka54nidT9rxX5OQ0joTRVMw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126197; c=relaxed/simple;
-	bh=+htCRZBEcbh0vIAkN13vIeZqivgx8/iuhtX5Zs8WWzA=;
-	h=Date:To:From:Subject:Message-Id; b=hSD7LsAhMiTVd0KbjrWuC32hYGyWtkpgvpRJZ4KShnQCgLXkjLS/15svdZ9U3TCRbqJWgNyqFNXWDRZEwrmVnehS9pObu6hlRiR7GPP6X/EPtF6ad2jgWhqMh8Ly/kgbh4QuIOCrTrX7AwnCd6ebI6pFUYqwyt9oRixXoOtsBYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vu9cTMR2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126201; c=relaxed/simple;
+	bh=19RbCJESXlDq5vdG0I4sAabj4Q9uFK8s9sqBhpJlKZU=;
+	h=Date:To:From:Subject:Message-Id; b=XhMFKLehY7rt9PupIN6xCycbcgDXJUp0VyzrK6PAkoVVntjmvaLQNIPC0USuVH0pv634eXgE3TXgR12reYLa0uNWpwqdA0srWohB+g23cbeMVnAuuk3gnDO/RLRmEgoQ+dVqGRg6jt2oAm0KznYevzLTmqB6AOKLGK8Da6ebOCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aG5Aigkk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vu9cTMR2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54D1DC4CEE3;
-	Thu, 10 Jul 2025 05:43:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aG5Aigkk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68619C4CEE3;
+	Thu, 10 Jul 2025 05:43:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126197;
-	bh=+htCRZBEcbh0vIAkN13vIeZqivgx8/iuhtX5Zs8WWzA=;
+	s=korg; t=1752126200;
+	bh=19RbCJESXlDq5vdG0I4sAabj4Q9uFK8s9sqBhpJlKZU=;
 	h=Date:To:From:Subject:From;
-	b=vu9cTMR2rvhJvvxcVG6yCW9GLR7zccTSthGkoPc7yklBrEJn9S8wFNEDZCLdIGOYG
-	 JRpnfMRdEO29W0JWi6abVcF/4MXwRmY9kQM9JNhrx9ajFwtCaNmTMyLoVisd3mkNAb
-	 4JiwUaZ/r6qooKWEIICPAkkYBsrHBNuM2sXmEbKo=
-Date: Wed, 09 Jul 2025 22:43:16 -0700
+	b=aG5Aigkk9xsR253Rqc+6vryklLcZhhSlfqbMM4qN+NTZu4b/nVfg7bCa5bfoBsB0i
+	 4YPSkygCt4xbYVLpkAZQQI5df2VN+k6VskEXVz9ceiJqwaAZbrurvCreobhwZgc0mb
+	 ZJVuA6lYmKYggQDThMW1n0MyuPMbSshMQ63WFk2c=
+Date: Wed, 09 Jul 2025 22:43:19 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,viro@zeniv.linux.org.uk,vbabka@suse.cz,shr@devkernel.io,Liam.Howlett@oracle.com,jannh@google.com,jack@suse.cz,david@redhat.com,chengming.zhou@linux.dev,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch removed from -mm tree
-Message-Id: <20250710054317.54D1DC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch removed from -mm tree
+Message-Id: <20250710054320.68619C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,278 +35,150 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: prevent KSM from breaking VMA merging for new VMAs
+     Subject: tools/testing/selftests: add VMA merge tests for KSM merge
 has been removed from the -mm tree.  Its filename was
-     mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas.patch
+     tools-testing-selftests-add-vma-merge-tests-for-ksm-merge.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: prevent KSM from breaking VMA merging for new VMAs
-Date: Thu, 29 May 2025 18:15:47 +0100
+Subject: tools/testing/selftests: add VMA merge tests for KSM merge
+Date: Thu, 29 May 2025 18:15:48 +0100
 
-If a user wishes to enable KSM mergeability for an entire process and all
-fork/exec'd processes that come after it, they use the prctl()
-PR_SET_MEMORY_MERGE operation.
+Add test to assert that we have now allowed merging of VMAs when KSM
+merging-by-default has been set by prctl(PR_SET_MEMORY_MERGE, ...).
 
-This defaults all newly mapped VMAs to have the VM_MERGEABLE VMA flag set
-(in order to indicate they are KSM mergeable), as well as setting this
-flag for all existing VMAs and propagating this across fork/exec.
+We simply perform a trivial mapping of adjacent VMAs expecting a merge,
+however prior to recent changes implementing this mode earlier than
+before, these merges would not have succeeded.
 
-However it also breaks VMA merging for new VMAs, both in the process and
-all forked (and fork/exec'd) child processes.
+Assert that we have fixed this!
 
-This is because when a new mapping is proposed, the flags specified will
-never have VM_MERGEABLE set.  However all adjacent VMAs will already have
-VM_MERGEABLE set, rendering VMAs unmergeable by default.
-
-To work around this, we try to set the VM_MERGEABLE flag prior to
-attempting a merge.  In the case of brk() this can always be done.
-
-However on mmap() things are more complicated - while KSM is not supported
-for MAP_SHARED file-backed mappings, it is supported for MAP_PRIVATE
-file-backed mappings.
-
-These mappings may have deprecated .mmap() callbacks specified which
-could, in theory, adjust flags and thus KSM eligibility.
-
-So we check to determine whether this is possible.  If not, we set
-VM_MERGEABLE prior to the merge attempt on mmap(), otherwise we retain the
-previous behaviour.
-
-This fixes VMA merging for all new anonymous mappings, which covers the
-majority of real-world cases, so we should see a significant improvement
-in VMA mergeability.
-
-For MAP_PRIVATE file-backed mappings, those which implement the
-.mmap_prepare() hook and shmem are both known to be safe, so we allow
-these, disallowing all other cases.
-
-Also add stubs for newly introduced function invocations to VMA userland
-testing.
-
-[lorenzo.stoakes@oracle.com: correctly invoke late KSM check after mmap hook]
-  Link: https://lkml.kernel.org/r/5861f8f6-cf5a-4d82-a062-139fb3f9cddb@lucifer.local
-Link: https://lkml.kernel.org/r/3ba660af716d87a18ca5b4e635f2101edeb56340.1748537921.git.lorenzo.stoakes@oracle.com
-Fixes: d7597f59d1d3 ("mm: add new api to enable ksm per process") # please no backport!
+Link: https://lkml.kernel.org/r/6dec7aabf062c6b121cfac992c9c716cefdda00c.1748537921.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Chengming Zhou <chengming.zhou@linux.dev>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
 Cc: Stefan Roesch <shr@devkernel.io>
+Cc: Xu Xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h              |    8 ++--
- mm/ksm.c                         |   18 ++++++----
- mm/vma.c                         |   51 +++++++++++++++++++++++++++--
- tools/testing/vma/vma_internal.h |   11 ++++++
- 4 files changed, 77 insertions(+), 11 deletions(-)
+ tools/testing/selftests/mm/merge.c |   78 +++++++++++++++++++++++++++
+ 1 file changed, 78 insertions(+)
 
---- a/include/linux/ksm.h~mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas
-+++ a/include/linux/ksm.h
-@@ -17,8 +17,8 @@
- #ifdef CONFIG_KSM
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags);
--
--void ksm_add_vma(struct vm_area_struct *vma);
-+vm_flags_t ksm_vma_flags(const struct mm_struct *mm, const struct file *file,
-+			 vm_flags_t vm_flags);
- int ksm_enable_merge_any(struct mm_struct *mm);
- int ksm_disable_merge_any(struct mm_struct *mm);
- int ksm_disable(struct mm_struct *mm);
-@@ -97,8 +97,10 @@ bool ksm_process_mergeable(struct mm_str
+--- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-vma-merge-tests-for-ksm-merge
++++ a/tools/testing/selftests/mm/merge.c
+@@ -2,11 +2,13 @@
  
- #else  /* !CONFIG_KSM */
- 
--static inline void ksm_add_vma(struct vm_area_struct *vma)
-+static inline vm_flags_t ksm_vma_flags(const struct mm_struct *mm,
-+		const struct file *file, vm_flags_t vm_flags)
+ #define _GNU_SOURCE
+ #include "../kselftest_harness.h"
++#include <linux/prctl.h>
+ #include <fcntl.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <sys/mman.h>
++#include <sys/prctl.h>
+ #include <sys/syscall.h>
+ #include <sys/wait.h>
+ #include <linux/perf_event.h>
+@@ -34,6 +36,11 @@ FIXTURE_TEARDOWN(merge)
  {
-+	return vm_flags;
+ 	ASSERT_EQ(munmap(self->carveout, 12 * self->page_size), 0);
+ 	ASSERT_EQ(close_procmap(&self->procmap), 0);
++	/*
++	 * Clear unconditionally, as some tests set this. It is no issue if this
++	 * fails (KSM may be disabled for instance).
++	 */
++	prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
  }
  
- static inline int ksm_disable(struct mm_struct *mm)
---- a/mm/ksm.c~mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas
-+++ a/mm/ksm.c
-@@ -2731,16 +2731,22 @@ static int __ksm_del_vma(struct vm_area_
- 	return 0;
- }
- /**
-- * ksm_add_vma - Mark vma as mergeable if compatible
-+ * ksm_vma_flags - Update VMA flags to mark as mergeable if compatible
-  *
-- * @vma:  Pointer to vma
-+ * @mm:       Proposed VMA's mm_struct
-+ * @file:     Proposed VMA's file-backed mapping, if any.
-+ * @vm_flags: Proposed VMA"s flags.
-+ *
-+ * Returns: @vm_flags possibly updated to mark mergeable.
-  */
--void ksm_add_vma(struct vm_area_struct *vma)
-+vm_flags_t ksm_vma_flags(const struct mm_struct *mm, const struct file *file,
-+			 vm_flags_t vm_flags)
- {
--	struct mm_struct *mm = vma->vm_mm;
-+	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags) &&
-+	    __ksm_should_add_vma(file, vm_flags))
-+		vm_flags |= VM_MERGEABLE;
- 
--	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
--		__ksm_add_vma(vma);
-+	return vm_flags;
+ TEST_F(merge, mprotect_unfaulted_left)
+@@ -498,4 +505,75 @@ out:
+ 	remove(probe_file);
  }
  
- static void ksm_add_vmas(struct mm_struct *mm)
---- a/mm/vma.c~mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas
-+++ a/mm/vma.c
-@@ -32,6 +32,9 @@ struct mmap_state {
- 	struct vma_munmap_struct vms;
- 	struct ma_state mas_detach;
- 	struct maple_tree mt_detach;
-+
-+	/* Determine if we can check KSM flags early in mmap() logic. */
-+	bool check_ksm_early;
- };
- 
- #define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, flags_, file_) \
-@@ -2320,6 +2323,11 @@ static void vms_abort_munmap_vmas(struct
- 	vms_complete_munmap_vmas(vms, mas_detach);
- }
- 
-+static void update_ksm_flags(struct mmap_state *map)
++TEST_F(merge, ksm_merge)
 +{
-+	map->flags = ksm_vma_flags(map->mm, map->file, map->flags);
-+}
-+
- /*
-  * __mmap_prepare() - Prepare to gather any overlapping VMAs that need to be
-  * unmapped once the map operation is completed, check limits, account mapping
-@@ -2424,6 +2432,7 @@ static int __mmap_new_file_vma(struct mm
- 			!(map->flags & VM_MAYWRITE) &&
- 			(vma->vm_flags & VM_MAYWRITE));
- 
-+	map->file = vma->vm_file;
- 	map->flags = vma->vm_flags;
- 
- 	return 0;
-@@ -2473,6 +2482,11 @@ static int __mmap_new_vma(struct mmap_st
- 	if (error)
- 		goto free_iter_vma;
- 
-+	if (!map->check_ksm_early) {
-+		update_ksm_flags(map);
-+		vm_flags_init(vma, map->flags);
-+	}
-+
- #ifdef CONFIG_SPARC64
- 	/* TODO: Fix SPARC ADI! */
- 	WARN_ON_ONCE(!arch_validate_flags(map->flags));
-@@ -2490,7 +2504,6 @@ static int __mmap_new_vma(struct mmap_st
- 	 */
- 	if (!vma_is_anonymous(vma))
- 		khugepaged_enter_vma(vma, map->flags);
--	ksm_add_vma(vma);
- 	*vmap = vma;
- 	return 0;
- 
-@@ -2593,6 +2606,35 @@ static void set_vma_user_defined_fields(
- 	vma->vm_private_data = map->vm_private_data;
- }
- 
-+/*
-+ * Are we guaranteed no driver can change state such as to preclude KSM merging?
-+ * If so, let's set the KSM mergeable flag early so we don't break VMA merging.
-+ */
-+static bool can_set_ksm_flags_early(struct mmap_state *map)
-+{
-+	struct file *file = map->file;
-+
-+	/* Anonymous mappings have no driver which can change them. */
-+	if (!file)
-+		return true;
++	unsigned int page_size = self->page_size;
++	char *carveout = self->carveout;
++	struct procmap_fd *procmap = &self->procmap;
++	char *ptr, *ptr2;
++	int err;
 +
 +	/*
-+	 * If .mmap_prepare() is specified, then the driver will have already
-+	 * manipulated state prior to updating KSM flags. So no need to worry
-+	 * about mmap callbacks modifying VMA flags after the KSM flag has been
-+	 * updated here, which could otherwise affect KSM eligibility.
++	 * Map two R/W immediately adjacent to one another, they should
++	 * trivially merge:
++	 *
++	 * |-----------|-----------|
++	 * |    R/W    |    R/W    |
++	 * |-----------|-----------|
++	 *      ptr         ptr2
 +	 */
-+	if (file->f_op->mmap_prepare)
-+		return true;
 +
-+	/* shmem is safe. */
-+	if (shmem_file(file))
-+		return true;
++	ptr = mmap(&carveout[page_size], page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	ptr2 = mmap(&carveout[2 * page_size], page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr2, MAP_FAILED);
++	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
++	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
++	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 2 * page_size);
 +
-+	/* Any other .mmap callback is not safe. */
-+	return false;
++	/* Unmap the second half of this merged VMA. */
++	ASSERT_EQ(munmap(ptr2, page_size), 0);
++
++	/* OK, now enable global KSM merge. We clear this on test teardown. */
++	err = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
++	if (err == -1) {
++		int errnum = errno;
++
++		/* Only non-failure case... */
++		ASSERT_EQ(errnum, EINVAL);
++		/* ...but indicates we should skip. */
++		SKIP(return, "KSM memory merging not supported, skipping.");
++	}
++
++	/*
++	 * Now map a VMA adjacent to the existing that was just made
++	 * VM_MERGEABLE, this should merge as well.
++	 */
++	ptr2 = mmap(&carveout[2 * page_size], page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr2, MAP_FAILED);
++	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
++	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
++	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 2 * page_size);
++
++	/* Now this VMA altogether. */
++	ASSERT_EQ(munmap(ptr, 2 * page_size), 0);
++
++	/* Try the same operation as before, asserting this also merges fine. */
++	ptr = mmap(&carveout[page_size], page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	ptr2 = mmap(&carveout[2 * page_size], page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ASSERT_NE(ptr2, MAP_FAILED);
++	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
++	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
++	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 2 * page_size);
 +}
 +
- static unsigned long __mmap_region(struct file *file, unsigned long addr,
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
- 		struct list_head *uf)
-@@ -2604,12 +2646,17 @@ static unsigned long __mmap_region(struc
- 	VMA_ITERATOR(vmi, mm, addr);
- 	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, vm_flags, file);
- 
-+	map.check_ksm_early = can_set_ksm_flags_early(&map);
-+
- 	error = __mmap_prepare(&map, uf);
- 	if (!error && have_mmap_prepare)
- 		error = call_mmap_prepare(&map);
- 	if (error)
- 		goto abort_munmap;
- 
-+	if (map.check_ksm_early)
-+		update_ksm_flags(&map);
-+
- 	/* Attempt to merge with adjacent VMAs... */
- 	if (map.prev || map.next) {
- 		VMG_MMAP_STATE(vmg, &map, /* vma = */ NULL);
-@@ -2721,6 +2768,7 @@ int do_brk_flags(struct vma_iterator *vm
- 	 * Note: This happens *after* clearing old mappings in some code paths.
- 	 */
- 	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
-+	flags = ksm_vma_flags(mm, NULL, flags);
- 	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
- 		return -ENOMEM;
- 
-@@ -2764,7 +2812,6 @@ int do_brk_flags(struct vma_iterator *vm
- 
- 	mm->map_count++;
- 	validate_mm(mm);
--	ksm_add_vma(vma);
- out:
- 	perf_event_mmap(vma);
- 	mm->total_vm += len >> PAGE_SHIFT;
---- a/tools/testing/vma/vma_internal.h~mm-prevent-ksm-from-breaking-vma-merging-for-new-vmas
-+++ a/tools/testing/vma/vma_internal.h
-@@ -1484,4 +1484,15 @@ static inline void vma_set_file(struct v
- 	fput(file);
- }
- 
-+static inline bool shmem_file(struct file *)
-+{
-+	return false;
-+}
-+
-+static inline vm_flags_t ksm_vma_flags(const struct mm_struct *, const struct file *,
-+			 vm_flags_t vm_flags)
-+{
-+	return vm_flags;
-+}
-+
- #endif	/* __MM_VMA_INTERNAL_H */
+ TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
