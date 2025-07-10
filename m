@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB41283FE4
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CB57283FE4
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126311; cv=none; b=gQ9pUAHLcMUSHA8V0WCahyQiN+55dqAsjQnBVmLoRmLX0EWe3OOkAq9Y6gl7H7E2vNNZKIt9eeYOBX2Sxsfi3BOzeGGiW4VKg058B3+wwxBpQT8ZChCmPkgK/5rbeTTW3MkwAeDozLD3/i6RMMkbI+cRKV0wC/LKsmYgUs8owqY=
+	t=1752126312; cv=none; b=XZwkUbKuTxV0GMLYLGjhCoOkzdWE/hRkXGSK/W0DqhMJueorQTvbMrRNypeMrHRqja0nA7qBZfbsVGBMWwqA4EyekquYU4gy3A2r/3tm50MvnVXPZ4i6VPfaxaI8uzwRxltY0PCeM5QuvXmhmuYUJTjqFwAnF7NkeAgk9TRo44s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126311; c=relaxed/simple;
-	bh=5sIbSHaP6RQXOtcWPnzlrQs1yz2HgIoKoktpq51YPvE=;
-	h=Date:To:From:Subject:Message-Id; b=SkkdWFxfIbKW1LVregbqdDnZToPhUHRAz8oDGa3Y+dmwt5RqXZmSYFnhba8dj7y18YUYuAHKJCXqm1+v5CRrIAeWeXh5bnJLlu1JqzsKkIPBHdh00DQ5vrrlynmy4I6UhmS2co1lf6oojdLHYpR8FYFDqaAMoj8zNqTuIuJGGsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kon4DKWl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126312; c=relaxed/simple;
+	bh=Kr10c7+RU6/9sQ9o12YUggRc4zh7ZA1M+H85r4NBdNI=;
+	h=Date:To:From:Subject:Message-Id; b=ulnqPu/pD6kDDeL2aSUAJt/yP5TTy7d77IWxsEWFb8XuhqS6JgvPkV2MjsAz8vsgEq87zA6h1Xm1ZL9hrPWIsSVTfwTmsx2umn0ztEF8uln2sFw8xCxaI8kA6UzecVTLblpVUtlwTghDZCiSCHopjoucwKGUnys7JoSzKc4mXXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qxyNkBGi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kon4DKWl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DAD2C4CEE3;
-	Thu, 10 Jul 2025 05:45:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qxyNkBGi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53C5AC4CEE3;
+	Thu, 10 Jul 2025 05:45:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126311;
-	bh=5sIbSHaP6RQXOtcWPnzlrQs1yz2HgIoKoktpq51YPvE=;
+	s=korg; t=1752126312;
+	bh=Kr10c7+RU6/9sQ9o12YUggRc4zh7ZA1M+H85r4NBdNI=;
 	h=Date:To:From:Subject:From;
-	b=kon4DKWlO1oInHsTUByt8lLKkf5wxFuuwAW3L8P5bI8zvKd26dqsDoxKY3TDOUhK0
-	 hrk+HAu77IOq092eQ/7eb+mMW6+yFC8qvv1UP45kVonmbgKubXhmThQUvxP1Fi8llZ
-	 szbMyHjtishTSutzAfxH5RH/bHON+jzf5g5RCv9Y=
-Date: Wed, 09 Jul 2025 22:45:09 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=qxyNkBGiq5sKkcpdFNb7qlqKI6W6OhefCpRNG2uY4XDTeNd2QVOeHBG4NfL28HW42
+	 U3U3DsH5u/DBf2yoHq7AhLkUEjCQnZn6ogFAWNecKZdopXjUS5dtkqwcoun9caQJLu
+	 p7F/pa4xuS+iDblHOvrMqYg79fVf1UYMK8Pl5zM8=
+Date: Wed, 09 Jul 2025 22:45:11 -0700
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,willy@infradead.org,surenb@google.com,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,hailong.liu@oppo.com,howlett@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch removed from -mm tree
-Message-Id: <20250710054511.1DAD2C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines.patch removed from -mm tree
+Message-Id: <20250710054512.53C5AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: huge_memory: fix the check for allowed huge orders in shmem
+     Subject: testing/radix-tree/maple: increase readers and reduce delay for faster machines
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem.patch
+     testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: huge_memory: fix the check for allowed huge orders in shmem
-Date: Fri, 13 Jun 2025 17:12:19 +0800
+From: "Liam R. Howlett" <howlett@gmail.com>
+Subject: testing/radix-tree/maple: increase readers and reduce delay for faster machines
+Date: Mon, 16 Jun 2025 14:45:19 -0400
 
-Shmem already supports mTHP, and shmem_allowable_huge_orders() will return
-the huge orders allowed by shmem.  However, there is no check against the
-'orders' parameter passed by __thp_vma_allowable_orders(), which can lead
-to incorrect check results for __thp_vma_allowable_orders().
+Faster machines may not see the initial or updated value in the race
+condition.  Reduce the delay so that faster machines are less likely to
+fail testing of the race conditions.
 
-For example, when a user wants to check if shmem supports PMD-sized THP by
-thp_vma_allowable_order(), if shmem only enables 64K mTHP, the current
-logic would cause thp_vma_allowable_order() to return true, implying that
-shmem allows PMD-sized THP allocation, which it actually does not.
-
-I don't think this will cause a significant impact on users, and this will
-only have some impact on the shmem THP collapse.  That is to say, even
-though the shmem sysfs setting does not enable the PMD-sized THP, the
-thp_vma_allowable_order() still indicates that shmem allows PMD-sized
-collapse, meaning it might successfully collapse into THP, or it might not
-(for example, thp_vma_suitable_order() check failed in the collapse
-process).  However, this still does not align with the shmem sysfs
-configuration, fix it.
-
-Link: https://lkml.kernel.org/r/529affb3220153d0d5a542960b535cdfc33f51d7.1749804835.git.baolin.wang@linux.alibaba.com
-Fixes: 26c7d8413aaf ("mm: thp: support "THPeligible" semantics for mTHP with anonymous shmem")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20250616184521.3382795-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <howlett@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Hailong Liu <hailong.liu@oppo.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/radix-tree/maple.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-the-check-for-allowed-huge-orders-in-shmem
-+++ a/mm/huge_memory.c
-@@ -166,7 +166,7 @@ unsigned long __thp_vma_allowable_orders
- 	 * own flags.
- 	 */
- 	if (!in_pf && shmem_file(vma->vm_file))
--		return shmem_allowable_huge_orders(file_inode(vma->vm_file),
-+		return orders & shmem_allowable_huge_orders(file_inode(vma->vm_file),
- 						   vma, vma->vm_pgoff, 0,
- 						   !enforce_sysfs);
+--- a/tools/testing/radix-tree/maple.c~testing-raix-tree-maple-increase-readers-and-reduce-delay-for-faster-machines
++++ a/tools/testing/radix-tree/maple.c
+@@ -35062,7 +35062,7 @@ void run_check_rcu_slowread(struct maple
  
+ 	int i;
+ 	void *(*function)(void *);
+-	pthread_t readers[20];
++	pthread_t readers[30];
+ 	unsigned int index = vals->index;
+ 
+ 	mt_set_in_rcu(mt);
+@@ -35080,14 +35080,14 @@ void run_check_rcu_slowread(struct maple
+ 		}
+ 	}
+ 
+-	usleep(5); /* small yield to ensure all threads are at least started. */
++	usleep(3); /* small yield to ensure all threads are at least started. */
+ 
+ 	while (index <= vals->last) {
+ 		mtree_store(mt, index,
+ 			    (index % 2 ? vals->entry2 : vals->entry3),
+ 			    GFP_KERNEL);
+ 		index++;
+-		usleep(5);
++		usleep(2);
+ 	}
+ 
+ 	while (i--)
+@@ -35098,6 +35098,7 @@ void run_check_rcu_slowread(struct maple
+ 	MT_BUG_ON(mt, !vals->seen_entry3);
+ 	MT_BUG_ON(mt, !vals->seen_both);
+ }
++
+ static noinline void __init check_rcu_simulated(struct maple_tree *mt)
+ {
+ 	unsigned long i, nr_entries = 1000;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from howlett@gmail.com are
 
-khugepaged-allow-khugepaged-to-check-all-anonymous-mthp-orders.patch
-khugepaged-kick-khugepaged-for-enabling-none-pmd-sized-mthps.patch
-mm-fault-in-complete-folios-instead-of-individual-pages-for-tmpfs.patch
 
