@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B19E469D
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:38:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 909DF469D
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 04:38:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752122331; cv=none; b=ZQ+T7Seg6buo8fHUGEaH0h4bG+S1PI7Xk7ibARLdoUFB0pd9YK8a2S/Q//xm/362QWO89UqHoCcyi4npiX1TS/TSqFcBtL+yCxyfj1k8TOkZKZIwo+n8oqvloxrowrLsbUoNgyLWMwZ+XzFmromKOj7siV5CdrMsb/MievfZ1TI=
+	t=1752122332; cv=none; b=pcfrtg+Yk3YN8QfIswrTFIsLGW5KnrG02ouP0z+3T+qTMEMXvRZD9Ad5/Q0AeDi2hJ5pXLjplmFAYtxOUiq6O9VL31u93zmmM5HAV/W/x8t/HxbNQt81wLjHQyHi+jCjxC3fDdBHWlDJ39Lhm3YS+DyStQi5eyOy8NbubuayeVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752122331; c=relaxed/simple;
-	bh=mxVac+QQ4XlAdBAZzE4ByorwxHOehTSJukDlyJ9SahY=;
-	h=Date:To:From:Subject:Message-Id; b=j67i4pEKvSh+5OT/MFGxWD/87aUb4xk7mqmWiupSbsB8xzDCSFbn++GLDUdJxJwASoTRzPHfhmswZdvhs+yNDsXQUyVHUbLXioyztX2cdtNm2U3nW13cpgSajya/hVVetgAZlUmAv+YNIWbLUN2uD9aVffGoBbVZJC1LW9EKyzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1fqu9xjh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752122332; c=relaxed/simple;
+	bh=uY3IFurrBEsEyCUTxgHwqN1ZsPF+iDHHomti1eDO3HI=;
+	h=Date:To:From:Subject:Message-Id; b=JUE4D+Ls6oIeNzd69dSyhEGJV8w8qWzr/oppzcpq6+vVlIY6yejq7SztGZ3Io27t3DeuK4kvfWl4XRgDbs9Qfkcc1lcVZ3MLT2aVJT+1300VXEAJ8VuH2LUSXzDTMGbORhxar8qkWYyhtVLmi0NkgpGAR7y/SVbl6wxo/i4GzSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SAnd3NF9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1fqu9xjh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C41C5C4CEE3;
-	Thu, 10 Jul 2025 04:38:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SAnd3NF9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AD84C4CEE3;
+	Thu, 10 Jul 2025 04:38:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752122330;
-	bh=mxVac+QQ4XlAdBAZzE4ByorwxHOehTSJukDlyJ9SahY=;
+	s=korg; t=1752122332;
+	bh=uY3IFurrBEsEyCUTxgHwqN1ZsPF+iDHHomti1eDO3HI=;
 	h=Date:To:From:Subject:From;
-	b=1fqu9xjhgwf3cNFbRHPtYDAn+PFq3nFAqzPxSmmSTuv2N9WaQZn9EGK9nU/T3fepB
-	 wBws7cWP5MXqfucYcr55G2zovhykA2hUxc0b6kXdLjhKTp9l2dDxlIw2pbbCO9Nujx
-	 vDLE190a4lGx0aW3zH/GE/+WTnDA3XpVTmDMslsI=
-Date: Wed, 09 Jul 2025 21:38:49 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,jack@suse.cz,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=SAnd3NF9Ur8eEpuHf+1mD1gJAfmptVvqFwrdwHR1MP/Hw+6Y53KHQn6383se3e9gh
+	 PD9V5K9tf9qz7pZ2yh9/3xaKq15KeaXqos/KTIoIp9d0xKCfim+H5FPohKPmi5skfB
+	 5g4C0sBD0t8LNcf+F8MiBsKXqvNiszaE1mDqFssQ=
+Date: Wed, 09 Jul 2025 21:38:51 -0700
+To: mm-commits@vger.kernel.org,lkp@intel.com,julia.lawall@inria.fr,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix.patch removed from -mm tree
-Message-Id: <20250710043850.C41C5C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix-2.patch removed from -mm tree
+Message-Id: <20250710043852.0AD84C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix
+     Subject: mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix.patch
+     mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix-2.patch
 
 This patch was dropped because it was folded into mm-filemap-allow-arch-to-request-folio-size-for-exec-memory.patch
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix
-Date: Thu, 19 Jun 2025 12:07:05 +0100
+Subject: mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix-2
+Date: Mon, 7 Jul 2025 10:08:09 +0100
 
-this into the patch?
-A use-after-free issue was reported againt this patch. The problem is that I'm accessing the vma after unlocking it. So
-the fix is to move the unlock to after the if/else.
+use the vma_pages() helper instead of open-coding
 
-Link: https://lkml.kernel.org/r/ea7f9da7-9a9f-4b85-9d0a-35b320f5ed25@arm.com
+Link: https://lkml.kernel.org/r/0e0f674b-3b7e-494f-ae7a-fc9dbb98dad4@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reported-by: syzbot+8e4be574cb8c40140a2a@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/hi6tsbuplmf6jcr44tqu6mdhtyebyqgsfif7okhnrzkcowpo4d@agoyrl4ozyth/
-Cc: Jan Kara <jack@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Julia Lawall <julia.lawall@inria.fr>
+Closes: https://lore.kernel.org/r/202507071459.lLPSj5Bd-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix
+--- a/mm/filemap.c~mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix-2
 +++ a/mm/filemap.c
-@@ -3265,7 +3265,6 @@ static struct file *do_sync_mmap_readahe
- 	if (mmap_miss > MMAP_LOTSAMISS)
- 		return fpin;
+@@ -3279,7 +3279,7 @@ static struct file *do_sync_mmap_readahe
+ 		 */
+ 		struct vm_area_struct *vma = vmf->vma;
+ 		unsigned long start = vma->vm_pgoff;
+-		unsigned long end = start + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT);
++		unsigned long end = start + vma_pages(vma);
+ 		unsigned long ra_end;
  
--	fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 	if (vm_flags & VM_EXEC) {
- 		/*
- 		 * Allow arch to request a preferred minimum folio order for
-@@ -3299,6 +3298,8 @@ static struct file *do_sync_mmap_readahe
- 		ra->async_size = ra->ra_pages / 4;
- 		ra->order = 0;
- 	}
-+
-+	fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 	ractl._index = ra->start;
- 	page_cache_ra_order(&ractl, ra);
- 	return fpin;
+ 		ra->order = exec_folio_order();
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
@@ -90,6 +79,5 @@ mm-readahead-terminate-async-readahead-on-natural-boundary.patch
 mm-readahead-make-space-in-struct-file_ra_state.patch
 mm-readahead-store-folio-order-in-struct-file_ra_state.patch
 mm-filemap-allow-arch-to-request-folio-size-for-exec-memory.patch
-mm-filemap-allow-arch-to-request-folio-size-for-exec-memory-fix-2.patch
 mm-remove-arch_flush_tlb_batched_pending-arch-helper.patch
 
