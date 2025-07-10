@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E281F2857F2
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15D1E2857F2
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:45:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126327; cv=none; b=eIcIkRFyqVYO8eCWOiJCB+ZkTlP+MHdB6iEadsMpLIx1rk0gVrJYkQOSPwzVJqsAwMLYCkqKf/pADrT2/37VYgtcsFSZDLTCmwfRG1abVMdGsgHu2xpsl1C1KZQeY/cRI9A9qIh8FU1D0yePEyi42YKUL78SdQzTb7Z+2AHWxmM=
+	t=1752126328; cv=none; b=pc1PIGPSgVMV62NvHmTQunS5gMuclHKTfEDe8KvNY3B3L3j/y8SxPoI8Zq4QPhmShZgvsirqXMvYQG1chSmaQeKeQ5I8rggh871TsTr5F38/1wk3VTWCZ/usGJ3KfXx76ZFrEsH7erjK8Ysji944Woev9+yY4ccAqSDB12h7ovc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126327; c=relaxed/simple;
-	bh=L7ipCEevsEFgzgNpw9ygee37jimbYXRBUIprWjqYsKY=;
-	h=Date:To:From:Subject:Message-Id; b=GWazWfSTDnuCHxT0lgdhwQLaoqGtCIUqESU9ygj0L3rD/EygEQEYYSG3H5x2grQiLPJfsBeMHSWScFU4TZKnOHpMT/27CAjF/sgVIk/h3JASTCdEB1LUSohJcD79nJTVnxg54YfZAcLERfYjEJr4ImV96WSSzVlonk4mfIdD+Io=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQB6hvWd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126328; c=relaxed/simple;
+	bh=53w15jjG1CtQwouihZrf3M7DQzdHsqNeJdmF/noID94=;
+	h=Date:To:From:Subject:Message-Id; b=t620DkJEaJOWslrtBnlfLdyyjz2v/MGktLMZrPBbOqLbU/rajN5xELHY0uF+wrR+qr0oa1jReDPJAQC9D2+uXbOasLfu/wD+dhCatPWbN/TSfXj8qazGTCDMrcEBcws0AePbvZzqvCuBxQFht8XHNH5qT7IHXWNwuceYM5E+9jw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VLlwn9zU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQB6hvWd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B87F6C4CEE3;
-	Thu, 10 Jul 2025 05:45:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VLlwn9zU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF80CC4CEE3;
+	Thu, 10 Jul 2025 05:45:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126326;
-	bh=L7ipCEevsEFgzgNpw9ygee37jimbYXRBUIprWjqYsKY=;
+	s=korg; t=1752126328;
+	bh=53w15jjG1CtQwouihZrf3M7DQzdHsqNeJdmF/noID94=;
 	h=Date:To:From:Subject:From;
-	b=CQB6hvWdJPBq5ND2i2ZcMkWD4JqvpDeOl8WKb4SUVCjNzwoSpOm0t/rTKZcCYTfdp
-	 +ouSogBg2s6un/ZGFpQ+VGuuBphd7b4HXEnXjScPOA39rYmVdbW6xmNDgDwRmWUHrY
-	 trrgrP/dHcAeCs90m8x4wLHrve3yDHF2PmWr9des=
-Date: Wed, 09 Jul 2025 22:45:26 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,cachen@purestorage.com,arnd@arndb.de,petr.pavlu@suse.com,akpm@linux-foundation.org
+	b=VLlwn9zUJZQBrrfnlHTBDMY6dSq9/18uqKfUg/ySLxDXdtN8yua+1o+/sCqC6Qs2Q
+	 hKAjLPqxTUFhX9EASput6ob+HBC8/Dzzo68dJAZdt9OP0nFVWK11WJF0jOJn/PyTq8
+	 vb7OQh3gWx2kzsmOX+EFPKfqYwOEITYT6bq8/3jY=
+Date: Wed, 09 Jul 2025 22:45:27 -0700
+To: mm-commits@vger.kernel.org,steven.sistare@oracle.com,osalvador@suse.de,muchun.song@linux.dev,kraxel@redhat.com,david@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] codetag-avoid-unused-alloc_tags-sections-symbols.patch removed from -mm tree
-Message-Id: <20250710054526.B87F6C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch removed from -mm tree
+Message-Id: <20250710054527.DF80CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,155 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: codetag: avoid unused alloc_tags sections/symbols
+     Subject: mm/hugetlb: make hugetlb_reserve_pages() return nr of entries updated
 has been removed from the -mm tree.  Its filename was
-     codetag-avoid-unused-alloc_tags-sections-symbols.patch
+     mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Pavlu <petr.pavlu@suse.com>
-Subject: codetag: avoid unused alloc_tags sections/symbols
-Date: Wed, 18 Jun 2025 14:50:35 +0200
+From: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Subject: mm/hugetlb: make hugetlb_reserve_pages() return nr of entries updated
+Date: Tue, 17 Jun 2025 22:30:53 -0700
 
-With CONFIG_MEM_ALLOC_PROFILING=n, vmlinux and all modules unnecessarily
-contain the symbols __start_alloc_tags and __stop_alloc_tags, which define
-an empty range.  In the case of modules, the presence of these symbols
-also forces the linker to create an empty .codetag.alloc_tags section.
+Patch series "mm/memfd: Reserve hugetlb folios before allocation", v4.
 
-Update codetag.lds.h to make the data conditional on
-CONFIG_MEM_ALLOC_PROFILING.
+There are cases when we try to pin a folio but discover that it has not
+been faulted-in.  So, we try to allocate it in memfd_alloc_folio() but the
+allocation request may not succeed if there are no active reservations in
+the system at that instant.
 
-Link: https://lkml.kernel.org/r/20250618125037.53182-1-petr.pavlu@suse.com
-Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
-Reviewed-by: Kent Overstreet <kent.overstreet@linux.dev>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Casey Chen <cachen@purestorage.com>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
+Therefore, making a reservation (by calling hugetlb_reserve_pages())
+associated with the allocation will ensure that our request would not fail
+due to lack of reservations.  This will also ensure that proper
+region/subpool accounting is done with our allocation.
+
+
+This patch (of 3):
+
+Currently, hugetlb_reserve_pages() returns a bool to indicate whether the
+reservation map update for the range [from, to] was successful or not. 
+This is not sufficient for the case where the caller needs to determine
+how many entries were updated for the range.
+
+Therefore, have hugetlb_reserve_pages() return the number of entries
+updated in the reservation map associated with the range [from, to]. 
+Also, update the callers of hugetlb_reserve_pages() to handle the new
+return value.
+
+Link: https://lkml.kernel.org/r/20250618053415.1036185-1-vivek.kasireddy@intel.com
+Link: https://lkml.kernel.org/r/20250618053415.1036185-2-vivek.kasireddy@intel.com
+Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: Steve Sistare <steven.sistare@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/codetag.lds.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c    |    8 ++++----
+ include/linux/hugetlb.h |    2 +-
+ mm/hugetlb.c            |   19 +++++++++++++------
+ 3 files changed, 18 insertions(+), 11 deletions(-)
 
---- a/include/asm-generic/codetag.lds.h~codetag-avoid-unused-alloc_tags-sections-symbols
-+++ a/include/asm-generic/codetag.lds.h
-@@ -2,6 +2,12 @@
- #ifndef __ASM_GENERIC_CODETAG_LDS_H
- #define __ASM_GENERIC_CODETAG_LDS_H
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
++++ a/fs/hugetlbfs/inode.c
+@@ -150,10 +150,10 @@ static int hugetlbfs_file_mmap(struct fi
+ 	if (inode->i_flags & S_PRIVATE)
+ 		vm_flags |= VM_NORESERVE;
  
-+#ifdef CONFIG_MEM_ALLOC_PROFILING
-+#define IF_MEM_ALLOC_PROFILING(...) __VA_ARGS__
-+#else
-+#define IF_MEM_ALLOC_PROFILING(...)
-+#endif
+-	if (!hugetlb_reserve_pages(inode,
++	if (hugetlb_reserve_pages(inode,
+ 				vma->vm_pgoff >> huge_page_order(h),
+ 				len >> huge_page_shift(h), vma,
+-				vm_flags))
++				vm_flags) < 0)
+ 		goto out;
+ 
+ 	ret = 0;
+@@ -1561,9 +1561,9 @@ struct file *hugetlb_file_setup(const ch
+ 	inode->i_size = size;
+ 	clear_nlink(inode);
+ 
+-	if (!hugetlb_reserve_pages(inode, 0,
++	if (hugetlb_reserve_pages(inode, 0,
+ 			size >> huge_page_shift(hstate_inode(inode)), NULL,
+-			acctflag))
++			acctflag) < 0)
+ 		file = ERR_PTR(-ENOMEM);
+ 	else
+ 		file = alloc_file_pseudo(inode, mnt, name, O_RDWR,
+--- a/include/linux/hugetlb.h~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
++++ a/include/linux/hugetlb.h
+@@ -149,7 +149,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 			     uffd_flags_t flags,
+ 			     struct folio **foliop);
+ #endif /* CONFIG_USERFAULTFD */
+-bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
++long hugetlb_reserve_pages(struct inode *inode, long from, long to,
+ 						struct vm_area_struct *vma,
+ 						vm_flags_t vm_flags);
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+--- a/mm/hugetlb.c~mm-hugetlb-make-hugetlb_reserve_pages-return-nr-of-entries-updated
++++ a/mm/hugetlb.c
+@@ -7244,8 +7244,15 @@ long hugetlb_change_protection(struct vm
+ 	return pages > 0 ? (pages << h->order) : pages;
+ }
+ 
+-/* Return true if reservation was successful, false otherwise.  */
+-bool hugetlb_reserve_pages(struct inode *inode,
++/*
++ * Update the reservation map for the range [from, to].
++ *
++ * Returns the number of entries that would be added to the reservation map
++ * associated with the range [from, to].  This number is greater or equal to
++ * zero. -EINVAL or -ENOMEM is returned in case of any errors.
++ */
 +
- #define SECTION_WITH_BOUNDARIES(_name)	\
- 	. = ALIGN(8);			\
- 	__start_##_name = .;		\
-@@ -9,7 +15,7 @@
- 	__stop_##_name = .;
++long hugetlb_reserve_pages(struct inode *inode,
+ 					long from, long to,
+ 					struct vm_area_struct *vma,
+ 					vm_flags_t vm_flags)
+@@ -7260,7 +7267,7 @@ bool hugetlb_reserve_pages(struct inode
+ 	/* This should never happen */
+ 	if (from > to) {
+ 		VM_WARN(1, "%s called with a negative range\n", __func__);
+-		return false;
++		return -EINVAL;
+ 	}
  
- #define CODETAG_SECTIONS()		\
--	SECTION_WITH_BOUNDARIES(alloc_tags)
-+	IF_MEM_ALLOC_PROFILING(SECTION_WITH_BOUNDARIES(alloc_tags))
+ 	/*
+@@ -7275,7 +7282,7 @@ bool hugetlb_reserve_pages(struct inode
+ 	 * without using reserves
+ 	 */
+ 	if (vm_flags & VM_NORESERVE)
+-		return true;
++		return 0;
  
- #define MOD_SEPARATE_CODETAG_SECTION(_name)	\
- 	.codetag.##_name : {			\
-@@ -22,6 +28,6 @@
-  * unload them individually once unused.
-  */
- #define MOD_SEPARATE_CODETAG_SECTIONS()		\
--	MOD_SEPARATE_CODETAG_SECTION(alloc_tags)
-+	IF_MEM_ALLOC_PROFILING(MOD_SEPARATE_CODETAG_SECTION(alloc_tags))
+ 	/*
+ 	 * Shared mappings base their reservation on the number of pages that
+@@ -7382,7 +7389,7 @@ bool hugetlb_reserve_pages(struct inode
+ 			hugetlb_cgroup_put_rsvd_cgroup(h_cg);
+ 		}
+ 	}
+-	return true;
++	return chg;
  
- #endif /* __ASM_GENERIC_CODETAG_LDS_H */
+ out_put_pages:
+ 	spool_resv = chg - gbl_reserve;
+@@ -7410,7 +7417,7 @@ out_err:
+ 		kref_put(&resv_map->refs, resv_map_release);
+ 		set_vma_resv_map(vma, NULL);
+ 	}
+-	return false;
++	return chg < 0 ? chg : add < 0 ? add : -EINVAL;
+ }
+ 
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
 _
 
-Patches currently in -mm which might be from petr.pavlu@suse.com are
+Patches currently in -mm which might be from vivek.kasireddy@intel.com are
 
 
