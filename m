@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC19D29993F
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 22:38:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49FE829993F
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 22:39:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752187101; cv=none; b=Kq4Cwctuuwu/Lsj7FwdMIFRrhz1HzIx0dPVpJcId35+yw/8WRMP7RA4uzkBthBSJVniOCaYLzLhAutOgJRuib32xg2VzAFjXTE+gEczUC0lR3JmfDZhZy7CoodeMTsucb8OSVCJDI5jkYz9ynWV8qsTdU7Rc6mWOPYS7OZ+wQX4=
+	t=1752187158; cv=none; b=iDtkgbEU0Z4caT5SiTG7TR0sa7Xx4RmHJbVQ+ndoPwaKnRiDTWDOtOCd0G+V/kfO6QaRBglDyoRSeFaiVdC6Fu4snDOwXLrerRHHNMpmxWPH7R2d3Wc+ZL8v6dW7iHBXfXiaUQsJJ/AJ6gL7hcVbDsngPDYCR6HvmSqStPFQquk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752187101; c=relaxed/simple;
-	bh=LjDLJ7Pa6pCYhRgXvwiwDdmQQuM5WHq8xzZF9BrfczA=;
-	h=Date:To:From:Subject:Message-Id; b=AaCI4JqSn7nE1d24o5yxvUrlT2MBynNqaNgOVwvy67ae8fJb7cCbTvgCMf0txz9r/JX4KSpLE4NmZyksIVeO4IkCvDQQ2kQO/lVvt6U7AVdTlldLBJ0lsDOolpFATvXoHJcsck2H5zcm2rRwQYkCG00sq/imUPnerkx8bREtOrw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y+Zr9VFr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752187158; c=relaxed/simple;
+	bh=sSWC40hHdVCRP/Cah9v+LQ5SsylvfzWFGXJGirOdylM=;
+	h=Date:To:From:Subject:Message-Id; b=ViF+mg+7oNj3cPdGDDXPlNRv0CHh9ypDFiUH+UGQjWt7lxSzWYove5AaWNfbAoG7puuLGwxifrfjGSPxa7fTaL6D9psZB1Vn8wxnsXDoydfS+3MkSmWNflk2lv3d2RznrxeEVqbOgpskNG0aToyuHF15yBEKEP3qtUu1FLuumrA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jk5NRNyv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y+Zr9VFr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4813AC4CEE3;
-	Thu, 10 Jul 2025 22:38:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jk5NRNyv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C77FBC4CEE3;
+	Thu, 10 Jul 2025 22:39:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752187101;
-	bh=LjDLJ7Pa6pCYhRgXvwiwDdmQQuM5WHq8xzZF9BrfczA=;
+	s=korg; t=1752187156;
+	bh=sSWC40hHdVCRP/Cah9v+LQ5SsylvfzWFGXJGirOdylM=;
 	h=Date:To:From:Subject:From;
-	b=y+Zr9VFrjmQj852qot1tSAznvjGwKnN+oU62u5r4kixHMH18jN40bwVVQX3IsNhAN
-	 Ts7RWwdLBwQDohNLoYV6A1AsrWnHrXQ9ZR8BVMlLTlVcD6DTbMtl0dzW21n0sdtjr/
-	 tK0EHFMoXRv5AZEoOducwD7jAy0rKfxHC7FqsMAY=
-Date: Thu, 10 Jul 2025 15:38:20 -0700
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=jk5NRNyvkZXlGI/wHyYqF8GZ1Kt91N8lYcoW76lVvtr4sw2l8xqNdqiRjV79XMwU6
+	 FEARUtvRX4Pljp/VpN0E2nBDDHYEhcS5MYvOt3pXCTxQwn6r8N28P2k724znXH43mV
+	 RiSmHCs2xuVvcf4COzaRbnIkvj1ObbJYcr0y967o=
+Date: Thu, 10 Jul 2025 15:39:15 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,liuqiye2025@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-update-docs-after-introducing-delaytop.patch added to mm-nonmm-unstable branch
-Message-Id: <20250710223821.4813AC4CEE3@smtp.kernel.org>
+Subject: + mm-simplify-min_brk-handling-in-brk.patch added to mm-new branch
+Message-Id: <20250710223916.C77FBC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: update docs after introducing delaytop
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     docs-update-docs-after-introducing-delaytop.patch
+     Subject: mm: simplify min_brk handling in brk()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-simplify-min_brk-handling-in-brk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-update-docs-after-introducing-delaytop.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-simplify-min_brk-handling-in-brk.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,99 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: docs: update docs after introducing delaytop
-Date: Thu, 10 Jul 2025 13:51:41 +0800 (CST)
+From: Xuanye Liu <liuqiye2025@163.com>
+Subject: mm: simplify min_brk handling in brk()
+Date: Thu, 10 Jul 2025 10:58:58 +0800
 
-The "getdelays" can only display the latency of a single task by
-specifying a PID, we introduce the "delaytop" with the following
-capabilities:
+Set min_brk to mm->start_brk by default, and override it with mm->end_data
+only when CONFIG_COMPAT_BRK is enabled and brk_randomized is false.
 
-1. system view: monitors latency metrics (CPU, I/O, memory, IRQ, etc.)
-   for all system processes
+This makes the logic clearer with no functional change.
 
-2. supports field-based sorting (e.g., default sort by CPU latency in
-   descending order)
-
-3. dynamic interactive interface: focus on specific processes with
-   --pid; limit displayed entries with --processes 20; control monitoring
-   duration with --iterations;
-
-Link: https://lkml.kernel.org/r/2025071013514177028RdjISjqeIOnTCRvGAwy@zte.com.cn
-Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Peilin He <he.peilin@zte.com.cn>
-Cc: Qiang Tu <tu.qiang35@zte.com.cn>
-Cc: wangyong <wang.yong12@zte.com.cn>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
+Link: https://lkml.kernel.org/r/20250710025859.926355-1-liuqiye2025@163.com
+Signed-off-by: Xuanye Liu <liuqiye2025@163.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   47 ++++++++++++++++
- 1 file changed, 47 insertions(+)
+ mm/mmap.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~docs-update-docs-after-introducing-delaytop
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -131,3 +131,50 @@ Get IO accounting for pid 1, it works on
- 	linuxrc: read=65536, write=0, cancelled_write=0
+--- a/mm/mmap.c~mm-simplify-min_brk-handling-in-brk
++++ a/mm/mmap.c
+@@ -127,18 +127,15 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
  
- The above command can be used with -v to get more debug information.
-+
-+After the system starts, use `delaytop` to get the Top-N high-latency tasks.
-+this tool supports sorting by CPU latency in descending order by default,
-+displays the top 20 high-latency tasks by default, and refreshes the latency
-+data every 2 seconds by default.
-+
-+Get Top-N tasks delay, since system boot::
-+
-+	bash# ./delaytop
-+	Top 20 processes (sorted by CPU delay):
-+
-+	  PID   TGID  COMMAND            CPU(ms)  IO(ms)        SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)
-+	---------------------------------------------------------------------------------------------
-+	   32     32  kworker/2:0H-sy   23.65     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  497    497  kworker/R-scsi_    1.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  495    495  kworker/R-scsi_    1.13     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  494    494  scsi_eh_0          1.12     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  485    485  kworker/R-ata_s    0.90     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  574    574  kworker/R-kdmfl    0.36     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	   34     34  idle_inject/3      0.33     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	 1123   1123  nde-netfilter      0.28     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	   60     60  ksoftirqd/7        0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  114    114  kworker/0:2-cgr    0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  496    496  scsi_eh_1          0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	   51     51  cpuhp/6            0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	 1667   1667  atd                0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	   45     45  cpuhp/5            0.23     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	 1102   1102  nde-backupservi    0.22     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	 1098   1098  systemsettings     0.21     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	 1100   1100  audit-monitor      0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	   53     53  migration/6        0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	 1482   1482  sshd               0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	   39     39  cpuhp/4            0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+
-+Dynamic interactive interface of delaytop::
-+
-+	# ./delaytop -p pid
-+	Print delayacct stats
-+
-+	# ./delaytop -P num
-+	Display the top N tasks
-+
-+	# ./delaytop -n num
-+	Set delaytop refresh frequency (num times)
-+
-+	# ./delaytop -d secs
-+	Specify refresh interval as secs
+ 	origbrk = mm->brk;
+ 
++	min_brk = mm->start_brk;
+ #ifdef CONFIG_COMPAT_BRK
+ 	/*
+ 	 * CONFIG_COMPAT_BRK can still be overridden by setting
+ 	 * randomize_va_space to 2, which will still cause mm->start_brk
+ 	 * to be arbitrarily shifted
+ 	 */
+-	if (current->brk_randomized)
+-		min_brk = mm->start_brk;
+-	else
++	if (!current->brk_randomized)
+ 		min_brk = mm->end_data;
+-#else
+-	min_brk = mm->start_brk;
+ #endif
+ 	if (brk < min_brk)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from liuqiye2025@163.com are
 
-delaytop-add-psi-info-to-show-system-delay.patch
-docs-update-docs-after-introducing-delaytop.patch
+mm-fix-spelling-issue-in-swaph.patch
+mm-remove-outdated-filename-comment-in-percpu-statsc.patch
+mm-simplify-min_brk-handling-in-brk.patch
 
