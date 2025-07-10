@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E90321FF3B;
-	Thu, 10 Jul 2025 04:09:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C2331A285;
+	Thu, 10 Jul 2025 04:09:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752120552; cv=none; b=hKwpXrxX73LnnUWCWdLAOLbR0F2hQMJgF4UU60c9mQWzQjaVoc7sC8oLlJDTT4bgfV5W/pLTUuTuRE87siBrI7mRTz/1J/L00YVtw/tTSt6oCD+QQUV/H6vzheaOBOt3daT2sPMvkvHMq/Y/f3KOmTzC/JV80NH3kzijmnt63z4=
+	t=1752120554; cv=none; b=p70jVW8ccD598Etouia2r7bZIo6NBuAE46+ESZdMlMwKvMjzQY6m7VssZLozxkGvaYJtWkb7ORxItXJTI2NlrOkoTDR7lUYmbepxxhJBPWHxG7XRbsy7YfBzypy7plgBLXzkWL/clrFatb34ZsX4lIclNDO79Gjl1mjSBpoqsH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752120552; c=relaxed/simple;
-	bh=rymEoL51MRzsnAS9ZpvjiVb+apckSTAKtmAz69IKIpM=;
-	h=Date:To:From:Subject:Message-Id; b=d4lc4R3shM+E59DDAQh+bviuSNxAXbwFAZB8AiUigyi2JC7Z3uP86qg980ZDvw/vbXh1NmumNFlK6i2zXcHHUp+xXs+2rjR8kRRaIeYvqKoc1Qllk79KZhHHr/y+syQPScJaRBynb1NC7d4mOp5iQyIEqPhymnffZUqnOHOt8gU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TEz8QX02; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752120554; c=relaxed/simple;
+	bh=DyJmltEUifqgQ01OZJ1yL6SiCv3NuQ5vXGGci7Fz3mQ=;
+	h=Date:To:From:Subject:Message-Id; b=o5Ng4VpfDtQwjrNfFeKWQdvGVQZ8QVc5rlMLKxWxXTPC2UkTQ+MM0rmSWU7BfkuXQLdmP5CS0vOASrBFHA4M1PYOCZx0vwCe7KUQj8NoS4TSjnw2CvpX0qsfjL1coihWFbhVxE78rHU7Ut2S5qUaXSQ5n3TYgi/o+qXsiB229Ec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uADYAXWm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TEz8QX02"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 009E1C4CEE3;
-	Thu, 10 Jul 2025 04:09:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uADYAXWm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EEF2C4CEE3;
+	Thu, 10 Jul 2025 04:09:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752120552;
-	bh=rymEoL51MRzsnAS9ZpvjiVb+apckSTAKtmAz69IKIpM=;
+	s=korg; t=1752120554;
+	bh=DyJmltEUifqgQ01OZJ1yL6SiCv3NuQ5vXGGci7Fz3mQ=;
 	h=Date:To:From:Subject:From;
-	b=TEz8QX022ZmNyjPVUc8UJZ8W2+289GJDxW0mNyAUZqttjiWhaYm612XVMhaYwcPnV
-	 cQuF0zIxRccFPBesrp+yP9oNvnSk/aRBKOx+aGEa+RBjDlr8gIz8Cg4lx1Xa/S+SBM
-	 bFBuhzj8zNG7KDyZ5kCDTaI4uE0C3TOgEZh4rlqM=
-Date: Wed, 09 Jul 2025 21:09:11 -0700
-To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,vbabka@suse.cz,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,mingzhe.yang@ly.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kasong@tencent.com,huang.ying.caritas@gmail.com,harry.yoo@oracle.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=uADYAXWmEPGzOLeQM+96bk+yRNhV3k4VIfK/KSeJdWU5iCaYqA5j1PeOkbRsOQelr
+	 3XS43pp6ZytJvY7ivwNPQzbrpc3KJy3D9+ITk6FgsjAABHw8zqGYIzM3FrHXgTmqxj
+	 AgqauuKkAth+F4V7K/YEJbgCcUd905ZsgRQ1R3dg=
+Date: Wed, 09 Jul 2025 21:09:13 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap.patch removed from -mm tree
-Message-Id: <20250710040912.009E1C4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-core-handle-damon_call_control-as-normal-under-kdmond-deactivation.patch removed from -mm tree
+Message-Id: <20250710040914.6EEF2C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: fix potential out-of-bounds page table access during batched unmap
+     Subject: mm/damon/core: handle damon_call_control as normal under kdmond deactivation
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap.patch
+     mm-damon-core-handle-damon_call_control-as-normal-under-kdmond-deactivation.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/rmap: fix potential out-of-bounds page table access during batched unmap
-Date: Fri, 27 Jun 2025 14:23:19 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: handle damon_call_control as normal under kdmond deactivation
+Date: Sun, 29 Jun 2025 13:49:14 -0700
 
-As pointed out by David[1], the batched unmap logic in
-try_to_unmap_one() may read past the end of a PTE table when a large
-folio's PTE mappings are not fully contained within a single page
-table.
+DAMON sysfs interface internally uses damon_call() to update DAMON
+parameters as users requested, online.  However, DAMON core cancels any
+damon_call() requests when it is deactivated by DAMOS watermarks.
 
-While this scenario might be rare, an issue triggerable from userspace
-must be fixed regardless of its likelihood.  This patch fixes the
-out-of-bounds access by refactoring the logic into a new helper,
-folio_unmap_pte_batch().
+As a result, users cannot change DAMON parameters online while DAMON is
+deactivated.  Note that users can turn DAMON off and on with different
+watermarks to work around.  Since deactivated DAMON is nearly same to
+stopped DAMON, the work around should have no big problem.  Anyway, a bug
+is a bug.
 
-The new helper correctly calculates the safe batch size by capping the
-scan at both the VMA and PMD boundaries.  To simplify the code, it also
-supports partial batching (i.e., any number of pages from 1 up to the
-calculated safe maximum), as there is no strong reason to special-case
-for fully mapped folios.
+There is no real good reason to cancel the damon_call() request under
+DAMOS deactivation.  Fix it by simply handling the request as normal,
+rather than cancelling under the situation.
 
-Link: https://lkml.kernel.org/r/20250701143100.6970-1-lance.yang@linux.dev
-Link: https://lkml.kernel.org/r/20250630011305.23754-1-lance.yang@linux.dev
-Link: https://lkml.kernel.org/r/20250627062319.84936-1-lance.yang@linux.dev
-Link: https://lore.kernel.org/linux-mm/a694398c-9f03-4737-81b9-7e49c857fcbe@redhat.com [1]
-Fixes: 354dffd29575 ("mm: support batched unmap for lazyfree large folios during reclamation")
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reported-by: David Hildenbrand <david@redhat.com>
-Closes: https://lore.kernel.org/linux-mm/a694398c-9f03-4737-81b9-7e49c857fcbe@redhat.com
-Suggested-by: Barry Song <baohua@kernel.org>
-Acked-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <huang.ying.caritas@gmail.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mingzhe Yang <mingzhe.yang@ly.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Tangquan Zheng <zhengtangquan@oppo.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250629204914.54114-1-sj@kernel.org
+Fixes: 42b7491af14c ("mm/damon/core: introduce damon_call()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   46 ++++++++++++++++++++++++++++------------------
- 1 file changed, 28 insertions(+), 18 deletions(-)
+ mm/damon/core.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-fix-potential-out-of-bounds-page-table-access-during-batched-unmap
-+++ a/mm/rmap.c
-@@ -1845,23 +1845,32 @@ void folio_remove_rmap_pud(struct folio
- #endif
- }
- 
--/* We support batch unmapping of PTEs for lazyfree large folios */
--static inline bool can_batch_unmap_folio_ptes(unsigned long addr,
--			struct folio *folio, pte_t *ptep)
-+static inline unsigned int folio_unmap_pte_batch(struct folio *folio,
-+			struct page_vma_mapped_walk *pvmw,
-+			enum ttu_flags flags, pte_t pte)
+--- a/mm/damon/core.c~mm-damon-core-handle-damon_call_control-as-normal-under-kdmond-deactivation
++++ a/mm/damon/core.c
+@@ -2355,9 +2355,8 @@ static void kdamond_usleep(unsigned long
+  *
+  * If there is a &struct damon_call_control request that registered via
+  * &damon_call() on @ctx, do or cancel the invocation of the function depending
+- * on @cancel.  @cancel is set when the kdamond is deactivated by DAMOS
+- * watermarks, or the kdamond is already out of the main loop and therefore
+- * will be terminated.
++ * on @cancel.  @cancel is set when the kdamond is already out of the main loop
++ * and therefore will be terminated.
+  */
+ static void kdamond_call(struct damon_ctx *ctx, bool cancel)
  {
- 	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
--	int max_nr = folio_nr_pages(folio);
--	pte_t pte = ptep_get(ptep);
-+	unsigned long end_addr, addr = pvmw->address;
-+	struct vm_area_struct *vma = pvmw->vma;
-+	unsigned int max_nr;
-+
-+	if (flags & TTU_HWPOISON)
-+		return 1;
-+	if (!folio_test_large(folio))
-+		return 1;
-+
-+	/* We may only batch within a single VMA and a single page table. */
-+	end_addr = pmd_addr_end(addr, vma->vm_end);
-+	max_nr = (end_addr - addr) >> PAGE_SHIFT;
- 
-+	/* We only support lazyfree batching for now ... */
- 	if (!folio_test_anon(folio) || folio_test_swapbacked(folio))
--		return false;
-+		return 1;
- 	if (pte_unused(pte))
--		return false;
--	if (pte_pfn(pte) != folio_pfn(folio))
--		return false;
-+		return 1;
- 
--	return folio_pte_batch(folio, addr, ptep, pte, max_nr, fpb_flags, NULL,
--			       NULL, NULL) == max_nr;
-+	return folio_pte_batch(folio, addr, pvmw->pte, pte, max_nr, fpb_flags,
-+			       NULL, NULL, NULL);
- }
- 
- /*
-@@ -2024,9 +2033,7 @@ static bool try_to_unmap_one(struct foli
- 			if (pte_dirty(pteval))
- 				folio_mark_dirty(folio);
- 		} else if (likely(pte_present(pteval))) {
--			if (folio_test_large(folio) && !(flags & TTU_HWPOISON) &&
--			    can_batch_unmap_folio_ptes(address, folio, pvmw.pte))
--				nr_pages = folio_nr_pages(folio);
-+			nr_pages = folio_unmap_pte_batch(folio, &pvmw, flags, pteval);
- 			end_addr = address + nr_pages * PAGE_SIZE;
- 			flush_cache_range(vma, address, end_addr);
- 
-@@ -2206,13 +2213,16 @@ discard:
- 			hugetlb_remove_rmap(folio);
- 		} else {
- 			folio_remove_rmap_ptes(folio, subpage, nr_pages, vma);
--			folio_ref_sub(folio, nr_pages - 1);
- 		}
- 		if (vma->vm_flags & VM_LOCKED)
- 			mlock_drain_local();
--		folio_put(folio);
--		/* We have already batched the entire folio */
--		if (nr_pages > 1)
-+		folio_put_refs(folio, nr_pages);
-+
-+		/*
-+		 * If we are sure that we batched the entire folio and cleared
-+		 * all PTEs, we can just optimize and stop right here.
-+		 */
-+		if (nr_pages == folio_nr_pages(folio))
- 			goto walk_done;
- 		continue;
- walk_abort:
+@@ -2405,7 +2404,7 @@ static int kdamond_wait_activation(struc
+ 		if (ctx->callback.after_wmarks_check &&
+ 				ctx->callback.after_wmarks_check(ctx))
+ 			break;
+-		kdamond_call(ctx, true);
++		kdamond_call(ctx, false);
+ 		damos_walk_cancel(ctx);
+ 	}
+ 	return -EBUSY;
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
-locking-rwsem-make-owner-helpers-globally-available.patch
-hung_task-extend-hung-task-blocker-tracking-to-rwsems.patch
+mm-damon-introduce-damon_stat-module.patch
+mm-damon-introduce-damon_stat-module-fix.patch
+mm-damon-introduce-damon_stat-module-fix-2.patch
+mm-damon-stat-calculate-and-expose-estimated-memory-bandwidth.patch
+mm-damon-stat-calculate-and-expose-idle-time-percentiles.patch
+docs-admin-guide-mm-damon-add-damon_stat-usage-document.patch
+mm-damon-paddr-use-alloc_migartion_target-with-no-migration-fallback-nodemask.patch
+revert-mm-rename-alloc_demote_folio-to-alloc_migrate_folio.patch
+revert-mm-make-alloc_demote_folio-externally-invokable-for-migration.patch
+selftets-damon-add-a-test-for-memcg_path-leak.patch
+mm-damon-sysfs-schemes-decouple-from-damos_quota_goal_metric.patch
+mm-damon-sysfs-schemes-decouple-from-damos_action.patch
+mm-damon-sysfs-schemes-decouple-from-damos_wmark_metric.patch
+mm-damon-sysfs-schemes-decouple-from-damos_filter_type.patch
+mm-damon-sysfs-decouple-from-damon_ops_id.patch
+selftests-damon-add-drgn-script-for-extracting-damon-status.patch
+selftests-damon-_damon_sysfs-set-kdamondpid-in-start.patch
+selftests-damon-add-python-and-drgn-based-damon-sysfs-test.patch
+selftests-damon-sysfspy-test-monitoring-attribute-parameters.patch
+selftests-damon-sysfspy-test-adaptive-targets-parameter.patch
+selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch
+mm-damon-add-trace-event-for-auto-tuned-monitoring-intervals.patch
+mm-damon-add-trace-event-for-effective-size-quota.patch
+mm-damon-add-trace-event-for-effective-size-quota-fix.patch
+mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
+samples-damon-wsse-fix-boot-time-enable-handling.patch
+samples-damon-prcl-fix-boot-time-enable-crash.patch
+samples-damon-mtier-support-boot-time-enable-setup.patch
+mm-damon-reclaim-reset-enabled-when-damon-start-failed.patch
+mm-damon-lru_sort-reset-enabled-when-damon-start-failed.patch
+mm-damon-reclaim-use-parameter-context-correctly.patch
+samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
+samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
+samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
+mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
+mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
+docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
+mm-damon-add-struct-damos_migrate_dests.patch
+mm-damon-core-add-damos-migrate_dests-field.patch
+mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
+mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
+docs-abi-damon-document-schemes-dests-directory.patch
+docs-admin-guide-mm-damon-usage-document-dests-directory.patch
 
