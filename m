@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2C32905
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F6B02905
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:43:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126194; cv=none; b=sGd3RNG/1ApTLBdxG8//VqbSSEgs6V8kIayeIuIsS6bn/fbrrSpXnEaYoRis9B1THgMBQ84+S+Drp48z08eJJa02pLrU7RDFLPM4bCqrJCIfBGOvhO7Zee1ISoRUnO+/Qu2x+x0CKVDUeRBP1Mn9OrEiH1AqDoynz+fWLvaiw2Y=
+	t=1752126195; cv=none; b=oLu7VACrCF9r2SDdM7t6OwC+nRFF2DxjH4vTpVCj04/e4/nxIfkQrvqH+I23GyNyUXRdxk3t3/1JozhLsG2+xxRL4v+6VZxssQDAFwlndMLlEee+UNUomnk3frYK2U28vcrO5FKFASRpHeZ4MX9T+UHwsTXivP0LuQwEheX+eDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126194; c=relaxed/simple;
-	bh=k7BALdck8NNvuRosx56ZdMaVgm+UaLV+SD9rniydOLE=;
-	h=Date:To:From:Subject:Message-Id; b=nHM9l3we9V1/rBHS4wxSiHO2HnLrUP2MLJ8Y4EbJn3TERtWvJdZ9pJzKug2z3mM3OCJRc67NZrflWas2RKhKj7bOQahfIJS6epq6nObuqJLnzyF5AA4wd/C7SYtgCUdvup3R1CR8BJiKYN1vSlMSUeVlMxESnT8+qRWEF/NCbNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IK5UmWZp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126195; c=relaxed/simple;
+	bh=j20z3/ZERKfFh2deYT9Acmd0mi/2bfghxNdoydjldu4=;
+	h=Date:To:From:Subject:Message-Id; b=LNMAkTiPov1dD8yL5eIziJSm5C2ETj2QPY2yphrQDKuWSILyQg6tTm+RKn2ryLqVC5a9gtkQazXethEUdjUHFkfifZsr01snEvdYWcf2X4HgDZwUI1dHTZO993RUOLlVWgBv68dFG5XIJRZPeZQKyTJNL6zhm0fampiPe0kNRM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KoOq+glg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IK5UmWZp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73BD1C4CEE3;
-	Thu, 10 Jul 2025 05:43:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KoOq+glg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFADCC4CEF4;
+	Thu, 10 Jul 2025 05:43:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126193;
-	bh=k7BALdck8NNvuRosx56ZdMaVgm+UaLV+SD9rniydOLE=;
+	s=korg; t=1752126194;
+	bh=j20z3/ZERKfFh2deYT9Acmd0mi/2bfghxNdoydjldu4=;
 	h=Date:To:From:Subject:From;
-	b=IK5UmWZp//m6xZQyKhTbSvTzBmGjajt8dKA0gC2H71W3nScRB+FU4vQwRjfnmN7fG
-	 Asl4XYsnsXYix5nFMgVFPj/FdFNyJXFpKIJ4bydCH2KPAxmxxUROhE8w8tigWWCvgT
-	 +oc8dEsbHhkLOR7mHafznOOaPs199FibjFZKVsuc=
-Date: Wed, 09 Jul 2025 22:43:12 -0700
-To: mm-commits@vger.kernel.org,sweettea-kernel@dorminy.me,stephen.s.brennan@oracle.com,sj@kernel.org,paulmck@kernel.org,osandov@osandov.com,fweimer@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=KoOq+glgeBIiKciMiUEWuoK62cSjN/PCO/Qs3grggS/d7ZDdotjS52C63yvxHNnwE
+	 sd7xqcsnIQmXYj5a3181D9Oq31I0XIaHACiEWEMwhg057zDXl8ScOGU4ZPCX11fAWc
+	 5dd5j5GTSpiI34NANvPqH2//ZGBG74F/R+hXA5EY=
+Date: Wed, 09 Jul 2025 22:43:14 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,viro@zeniv.linux.org.uk,vbabka@suse.cz,shr@devkernel.io,Liam.Howlett@oracle.com,jannh@google.com,jack@suse.cz,david@redhat.com,chengming.zhou@linux.dev,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch removed from -mm tree
-Message-Id: <20250710054313.73BD1C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch removed from -mm tree
+Message-Id: <20250710054314.BFADCC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,260 +35,194 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm: add script to display page state for a given PID and VADDR
+     Subject: mm: ksm: have KSM VMA checks not require a VMA pointer
 has been removed from the -mm tree.  Its filename was
-     tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr.patch
+     mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: tools/mm: add script to display page state for a given PID and VADDR
-Date: Fri, 30 May 2025 13:58:55 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: ksm: have KSM VMA checks not require a VMA pointer
+Date: Thu, 29 May 2025 18:15:45 +0100
 
-Introduces a new drgn script, `show_page_info.py`, which allows users
-to analyze the state of a page given a process ID (PID) and a virtual
-address (VADDR).  This can help kernel developers or debuggers easily
-inspect page-related information in a live kernel or vmcore.
+Patch series "mm: ksm: prevent KSM from breaking merging of new VMAs", v3.
 
-The script extracts information such as the page flags, mapping, and
-other metadata relevant to diagnosing memory issues.
+When KSM-by-default is established using prctl(PR_SET_MEMORY_MERGE), this
+defaults all newly mapped VMAs to having VM_MERGEABLE set, and thus makes
+them available to KSM for samepage merging.  It also sets VM_MERGEABLE in
+all existing VMAs.
 
-Output example:
-sudo ./show_page_info.py 1 0x7fc988181000
-PID: 1 Comm: systemd mm: 0xffff8d22c4089700
-RAW: 0017ffffc000416c fffff939062ff708 fffff939062ffe08 ffff8d23062a12a8
-RAW: 0000000000000000 ffff8d2323438f60 0000002500000007 ffff8d23203ff500
-Page Address:    0xfffff93905664e00
-Page Flags:      PG_referenced|PG_uptodate|PG_lru|PG_head|PG_active|
-                 PG_private|PG_reported|PG_has_hwpoisoned
-Page Size:       4096
-Page PFN:        0x159938
-Page Physical:   0x159938000
-Page Virtual:    0xffff8d2319938000
-Page Refcount:   37
-Page Mapcount:   7
-Page Index:      0x0
-Page Memcg Data: 0xffff8d23203ff500
-Memcg Name:      init.scope
-Memcg Path:      /sys/fs/cgroup/memory/init.scope
-Page Mapping:    0xffff8d23062a12a8
-Page Anon/File:  File
-Page VMA:        0xffff8d22e06e0e40
-VMA Start:       0x7fc988181000
-VMA End:         0x7fc988185000
-This page is part of a compound page.
-This page is the head page of a compound page.
-Head Page:       0xfffff93905664e00
-Compound Order:  2
-Number of Pages: 4
+However this causes an issue upon mapping of new VMAs - the initial flags
+will never have VM_MERGEABLE set when attempting a merge with adjacent
+VMAs (this is set later in the mmap() logic), and adjacent VMAs will
+ALWAYS have VM_MERGEABLE set.
 
-Link: https://lkml.kernel.org/r/20250530055855.687067-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Tested-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Stephen Brennan <stephen.s.brennan@oracle.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Omar Sandoval <osandov@osandov.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+This renders all newly mapped VMAs unmergeable.
+
+To avoid this, this series performs the check for PR_SET_MEMORY_MERGE far
+earlier in the mmap() logic, prior to the merge being attempted.
+
+However we run into complexity with the depreciated .mmap() callback - if
+a driver hooks this, it might change flags which adjust KSM merge
+eligibility.
+
+We have to worry about this because, while KSM is only applicable to
+private mappings, this includes both anonymous and MAP_PRIVATE-mapped
+file-backed mappings.
+
+This isn't a problem for brk(), where the VMA must be anonymous.  However
+in mmap() we must be conservative - if the VMA is anonymous then we can
+always proceed, however if not, we permit only shmem mappings (whose .mmap
+hook does not affect KSM eligibility) and drivers which implement
+.mmap_prepare() (invoked prior to the KSM eligibility check).
+
+If we can't be sure of the driver changing things, then we maintain the
+same behaviour of performing the KSM check later in the mmap() logic (and
+thus losing new VMA mergeability).
+
+A great many use-cases for this logic will use anonymous mappings any
+rate, so this change should already cover the majority of actual KSM
+use-cases.
+
+
+This patch (of 4):
+
+In subsequent commits we are going to determine KSM eligibility prior to a
+VMA being constructed, at which point we will of course not yet have
+access to a VMA pointer.
+
+It is trivial to boil down the check logic to be parameterised on
+mm_struct, file and VMA flags, so do so.
+
+As a part of this change, additionally expose and use file_is_dax() to
+determine whether a file is being mapped under a DAX inode.
+
+Link: https://lkml.kernel.org/r/cover.1748537921.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/36ad13eb50cdbd8aac6dcfba22c65d5031667295.1748537921.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                |    5 +
- tools/mm/show_page_info.py |  169 +++++++++++++++++++++++++++++++++++
- 2 files changed, 174 insertions(+)
+ include/linux/fs.h |    7 ++++++-
+ mm/ksm.c           |   32 ++++++++++++++++++++------------
+ 2 files changed, 26 insertions(+), 13 deletions(-)
 
---- a/MAINTAINERS~tools-mm-add-script-to-display-page-state-for-a-given-pid-and-vaddr
-+++ a/MAINTAINERS
-@@ -18818,6 +18818,11 @@ F:	Documentation/mm/page_table_check.rst
- F:	include/linux/page_table_check.h
- F:	mm/page_table_check.c
+--- a/include/linux/fs.h~mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer
++++ a/include/linux/fs.h
+@@ -3726,9 +3726,14 @@ void setattr_copy(struct mnt_idmap *, st
  
-+PAGE STATE DEBUG SCRIPT
-+M:	Ye Liu <liuye@kylinos.cn>
-+S:	Maintained
-+F:	tools/mm/show_page_info.py
+ extern int file_update_time(struct file *file);
+ 
++static inline bool file_is_dax(const struct file *file)
++{
++	return file && IS_DAX(file->f_mapping->host);
++}
 +
- PANASONIC LAPTOP ACPI EXTRAS DRIVER
- M:	Kenneth Chan <kenneth.t.chan@gmail.com>
- L:	platform-driver-x86@vger.kernel.org
-diff --git a/tools/mm/show_page_info.py a/tools/mm/show_page_info.py
-new file mode 100644
---- /dev/null
-+++ a/tools/mm/show_page_info.py
-@@ -0,0 +1,169 @@
-+#!/usr/bin/env drgn
-+# SPDX-License-Identifier: GPL-2.0-only
-+# Copyright (C) 2025 Ye Liu <liuye@kylinos.cn>
+ static inline bool vma_is_dax(const struct vm_area_struct *vma)
+ {
+-	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
++	return file_is_dax(vma->vm_file);
+ }
+ 
+ static inline bool vma_is_fsdax(struct vm_area_struct *vma)
+--- a/mm/ksm.c~mm-ksm-have-ksm-vma-checks-not-require-a-vma-pointer
++++ a/mm/ksm.c
+@@ -677,28 +677,33 @@ static int break_ksm(struct vm_area_stru
+ 	return (ret & VM_FAULT_OOM) ? -ENOMEM : 0;
+ }
+ 
+-static bool vma_ksm_compatible(struct vm_area_struct *vma)
++static bool ksm_compatible(const struct file *file, vm_flags_t vm_flags)
+ {
+-	if (vma->vm_flags & (VM_SHARED  | VM_MAYSHARE   | VM_PFNMAP  |
+-			     VM_IO      | VM_DONTEXPAND | VM_HUGETLB |
+-			     VM_MIXEDMAP| VM_DROPPABLE))
++	if (vm_flags & (VM_SHARED   | VM_MAYSHARE   | VM_PFNMAP  |
++			VM_IO       | VM_DONTEXPAND | VM_HUGETLB |
++			VM_MIXEDMAP | VM_DROPPABLE))
+ 		return false;		/* just ignore the advice */
+ 
+-	if (vma_is_dax(vma))
++	if (file_is_dax(file))
+ 		return false;
+ 
+ #ifdef VM_SAO
+-	if (vma->vm_flags & VM_SAO)
++	if (vm_flags & VM_SAO)
+ 		return false;
+ #endif
+ #ifdef VM_SPARC_ADI
+-	if (vma->vm_flags & VM_SPARC_ADI)
++	if (vm_flags & VM_SPARC_ADI)
+ 		return false;
+ #endif
+ 
+ 	return true;
+ }
+ 
++static bool vma_ksm_compatible(struct vm_area_struct *vma)
++{
++	return ksm_compatible(vma->vm_file, vma->vm_flags);
++}
 +
-+import argparse
-+import sys
-+from drgn import Object, FaultError, PlatformFlags, cast
-+from drgn.helpers.linux import find_task, follow_page, page_size
-+from drgn.helpers.linux.mm import (
-+    decode_page_flags, page_to_pfn, page_to_phys, page_to_virt, vma_find,
-+    PageSlab, PageCompound, PageHead, PageTail, compound_head, compound_order, compound_nr
-+)
-+from drgn.helpers.linux.cgroup import cgroup_name, cgroup_path
+ static struct vm_area_struct *find_mergeable_vma(struct mm_struct *mm,
+ 		unsigned long addr)
+ {
+@@ -2696,14 +2701,17 @@ static int ksm_scan_thread(void *nothing
+ 	return 0;
+ }
+ 
+-static void __ksm_add_vma(struct vm_area_struct *vma)
++static bool __ksm_should_add_vma(const struct file *file, vm_flags_t vm_flags)
+ {
+-	unsigned long vm_flags = vma->vm_flags;
+-
+ 	if (vm_flags & VM_MERGEABLE)
+-		return;
++		return false;
 +
-+DESC = """
-+This is a drgn script to show the page state.
-+For more info on drgn, visit https://github.com/osandov/drgn.
-+"""
-+
-+def format_page_data(page):
-+    """
-+    Format raw page data into a readable hex dump with "RAW:" prefix.
-+
-+    :param page: drgn.Object instance representing the page.
-+    :return: Formatted string of memory contents.
-+    """
-+    try:
-+        address = page.value_()
-+        size = prog.type("struct page").size
-+
-+        if prog.platform.flags & PlatformFlags.IS_64_BIT:
-+            word_size = 8
-+        else:
-+            word_size = 4
-+        num_words = size // word_size
-+
-+        values = []
-+        for i in range(num_words):
-+            word_address = address + i * word_size
-+            word = prog.read_word(word_address)
-+            values.append(f"{word:0{word_size * 2}x}")
-+
-+        lines = [f"RAW: {' '.join(values[i:i + 4])}" for i in range(0, len(values), 4)]
-+
-+        return "\n".join(lines)
-+
-+    except FaultError as e:
-+        return f"Error reading memory: {e}"
-+    except Exception as e:
-+        return f"Unexpected error: {e}"
-+
-+def get_memcg_info(page):
-+    """Retrieve memory cgroup information for a page."""
-+    try:
-+        MEMCG_DATA_OBJEXTS = prog.constant("MEMCG_DATA_OBJEXTS").value_()
-+        MEMCG_DATA_KMEM = prog.constant("MEMCG_DATA_KMEM").value_()
-+        mask = prog.constant('__NR_MEMCG_DATA_FLAGS').value_() - 1
-+        memcg_data = page.memcg_data.read_()
-+        if memcg_data & MEMCG_DATA_OBJEXTS:
-+            slabobj_ext = cast("struct slabobj_ext *", memcg_data & ~mask)
-+            memcg = slabobj_ext.objcg.memcg.value_()
-+        elif memcg_data & MEMCG_DATA_KMEM:
-+            objcg = cast("struct obj_cgroup *", memcg_data & ~mask)
-+            memcg = objcg.memcg.value_()
-+        else:
-+            memcg = cast("struct mem_cgroup *", memcg_data & ~mask)
-+
-+        if memcg.value_() == 0:
-+            return "none", "/sys/fs/cgroup/memory/"
-+        cgrp = memcg.css.cgroup
-+        return cgroup_name(cgrp).decode(), f"/sys/fs/cgroup/memory{cgroup_path(cgrp).decode()}"
-+    except FaultError as e:
-+        return "unknown", f"Error retrieving memcg info: {e}"
-+    except Exception as e:
-+        return "unknown", f"Unexpected error: {e}"
-+
-+def show_page_state(page, addr, mm, pid, task):
-+    """Display detailed information about a page."""
-+    try:
-+        print(f'PID: {pid} Comm: {task.comm.string_().decode()} mm: {hex(mm)}')
-+        try:
-+            print(format_page_data(page))
-+        except FaultError as e:
-+            print(f"Error reading page data: {e}")
-+        fields = {
-+            "Page Address": hex(page.value_()),
-+            "Page Flags": decode_page_flags(page),
-+            "Page Size": prog["PAGE_SIZE"].value_(),
-+            "Page PFN": hex(page_to_pfn(page).value_()),
-+            "Page Physical": hex(page_to_phys(page).value_()),
-+            "Page Virtual": hex(page_to_virt(page).value_()),
-+            "Page Refcount": page._refcount.counter.value_(),
-+            "Page Mapcount": page._mapcount.counter.value_(),
-+            "Page Index": hex(page.__folio_index.value_()),
-+            "Page Memcg Data": hex(page.memcg_data.value_()),
-+        }
-+
-+        memcg_name, memcg_path = get_memcg_info(page)
-+        fields["Memcg Name"] = memcg_name
-+        fields["Memcg Path"] = memcg_path
-+        fields["Page Mapping"] = hex(page.mapping.value_())
-+        fields["Page Anon/File"] = "Anon" if page.mapping.value_() & 0x1 else "File"
-+
-+        try:
-+            vma = vma_find(mm, addr)
-+            fields["Page VMA"] = hex(vma.value_())
-+            fields["VMA Start"] = hex(vma.vm_start.value_())
-+            fields["VMA End"] = hex(vma.vm_end.value_())
-+        except FaultError as e:
-+            fields["Page VMA"] = "Unavailable"
-+            fields["VMA Start"] = "Unavailable"
-+            fields["VMA End"] = "Unavailable"
-+            print(f"Error retrieving VMA information: {e}")
-+
-+        # Calculate the maximum field name length for alignment
-+        max_field_len = max(len(field) for field in fields)
-+
-+        # Print aligned fields
-+        for field, value in fields.items():
-+            print(f"{field}:".ljust(max_field_len + 2) + f"{value}")
-+
-+        # Additional information about the page
-+        if PageSlab(page):
-+            print("This page belongs to the slab allocator.")
-+
-+        if PageCompound(page):
-+            print("This page is part of a compound page.")
-+            if PageHead(page):
-+                print("This page is the head page of a compound page.")
-+            if PageTail(page):
-+                print("This page is the tail page of a compound page.")
-+            print(f"{'Head Page:'.ljust(max_field_len + 2)}{hex(compound_head(page).value_())}")
-+            print(f"{'Compound Order:'.ljust(max_field_len + 2)}{compound_order(page).value_()}")
-+            print(f"{'Number of Pages:'.ljust(max_field_len + 2)}{compound_nr(page).value_()}")
-+        else:
-+            print("This page is not part of a compound page.")
-+    except FaultError as e:
-+        print(f"Error accessing page state: {e}")
-+    except Exception as e:
-+        print(f"Unexpected error: {e}")
-+
-+def main():
-+    """Main function to parse arguments and display page state."""
-+    parser = argparse.ArgumentParser(description=DESC, formatter_class=argparse.RawTextHelpFormatter)
-+    parser.add_argument('pid', metavar='PID', type=int, help='Target process ID (PID)')
-+    parser.add_argument('vaddr', metavar='VADDR', type=str, help='Target virtual address in hexadecimal format (e.g., 0x7fff1234abcd)')
-+    args = parser.parse_args()
-+
-+    try:
-+        vaddr = int(args.vaddr, 16)
-+    except ValueError:
-+        sys.exit(f"Error: Invalid virtual address format: {args.vaddr}")
-+
-+    try:
-+        task = find_task(args.pid)
-+        mm = task.mm
-+        page = follow_page(mm, vaddr)
-+
-+        if page:
-+            show_page_state(page, vaddr, mm, args.pid, task)
-+        else:
-+            sys.exit(f"Address {hex(vaddr)} is not mapped.")
-+    except FaultError as e:
-+        sys.exit(f"Error accessing task or memory: {e}")
-+    except Exception as e:
-+        sys.exit(f"Unexpected error: {e}")
-+
-+if __name__ == "__main__":
-+    main()
++	return ksm_compatible(file, vm_flags);
++}
+ 
+-	if (vma_ksm_compatible(vma))
++static void __ksm_add_vma(struct vm_area_struct *vma)
++{
++	if (__ksm_should_add_vma(vma->vm_file, vma->vm_flags))
+ 		vm_flags_set(vma, VM_MERGEABLE);
+ }
+ 
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
+mm-madvise-thread-mm_struct-through-madvise_behavior.patch
+mm-madvise-thread-vma-range-state-through-madvise_behavior.patch
+mm-madvise-thread-all-madvise-state-through-madv_behavior.patch
+mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
+mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma-fix.patch
+tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases.patch
+mm-mremap-perform-some-simple-cleanups.patch
+mm-mremap-refactor-initial-parameter-sanity-checks.patch
+mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
+mm-mremap-cleanup-post-processing-stage-of-mremap.patch
+mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
+mm-mremap-use-an-explicit-uffd-failure-path-for-mremap-fix.patch
+mm-mremap-check-remap-conditions-earlier.patch
+mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
+mm-mremap-clean-up-mlock-populate-behaviour.patch
+mm-mremap-permit-mremap-move-of-multiple-vmas.patch
+tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
 
