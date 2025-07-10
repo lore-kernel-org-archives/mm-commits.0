@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76B812036FF
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:44:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96740285071
+	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 05:44:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752126283; cv=none; b=HTl7l8whX3WNFGD0LR3/QDKVzj9PzhIVNJZY4jnH82j+mFPOo1642Oh7Ohi9ruMKgeJn+OAWSORL6BcFsfdvZxWjjoMOeyFIXjQQul6KCyI8aU/6SbUKgmboNLF4MgAEO5yQ35cIMsuW23wgiv24pmk+SbXr12ouavBwUFpFWs0=
+	t=1752126284; cv=none; b=EQcrd2441/8LqbPtWXzx9/MIgI6mhYDfoxGzXG5k9ShmcotsyiJplidmGf5d45OlVtKrKU4FLd2Litsw8/6SxZUhI+earAt8uLK/9DbbGwxtvlwcVeMvLEJTSbgp/Ifg1iejUgRz7okz6si0F8x25J+OdZU8jOndKQ81ZiXWM1g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752126283; c=relaxed/simple;
-	bh=Lc8GZ09ePGnRvAen2xB5HbW/XrUGKkRYBQTC4hEsNwQ=;
-	h=Date:To:From:Subject:Message-Id; b=BDh6v1OWL2UGh/N0pQgCoD27EUDzTt3tt6DMgc8YA/kTaYknYfC6DZoRjW6VGwRO6QnZK9yak7i4ZMa8j3BkT/P7E9caMKQjVyqhvkWu6wNqoiqKkZKE5/7KZj2ieVIalBVHENp58ZTSLJYJDrD0lU9NRNtbigJfhxqobAbrBR4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R+IqTkBy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752126284; c=relaxed/simple;
+	bh=pMXQRr3nwiOsrnhg5vWw7b/abj00TLEQ+2WL7DmwRLo=;
+	h=Date:To:From:Subject:Message-Id; b=usMCR+dqt2tjI54YTuw397ke9V4THb6FLmwXD7gbAeUCeOwMX0CPZHFN01qe+enhOm0Owdau5At52BSTauL2aDxKonWGLS1EU39cByVWH9EzMGUOt+Ha1gRluimsSENmdYwX7D/lMyYAMsS1cjPnFRQmrqjsiOcFOOEWBlG/lX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PJ9WhNZp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R+IqTkBy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D0CFC4CEE3;
-	Thu, 10 Jul 2025 05:44:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PJ9WhNZp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B97DC4CEE3;
+	Thu, 10 Jul 2025 05:44:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752126283;
-	bh=Lc8GZ09ePGnRvAen2xB5HbW/XrUGKkRYBQTC4hEsNwQ=;
+	s=korg; t=1752126284;
+	bh=pMXQRr3nwiOsrnhg5vWw7b/abj00TLEQ+2WL7DmwRLo=;
 	h=Date:To:From:Subject:From;
-	b=R+IqTkBy0YCPD6N5UOkbsWOB9OWLLYKCDRDsNh2YBiJLze7SFdA1KS2judKz+zhaA
-	 h9RRE6/p9REkPnsNM5WK5OLiVNFhNPeBocQQT9yvw37kEeS6iSjIOrx6OtW92NLztQ
-	 Uf7BYyKRRkFqLvORgixYcKJF1jEdUNcxtpbYd1Bk=
-Date: Wed, 09 Jul 2025 22:44:42 -0700
-To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,jannh@google.com,david@redhat.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=PJ9WhNZpZirfgiwbWvjIo/PrBNyuqs//UnmgwIeQblHJserx6mcw2CZPh3Qm5H50p
+	 GvfqVxOspWC9FAUrm7+43QZCN5LT/PfhSB/mXfw6vNGvHlvQ5IFwf8phSGS2yOO7zw
+	 0GX+T1Q7jCJ9y6t3Nu8SgxzyZ0YqFX5ScHJasmo8=
+Date: Wed, 09 Jul 2025 22:44:43 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,lorenzo.stoakes@oracle.com,pulehui@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-use-per_vma-lock-for-madv_free.patch removed from -mm tree
-Message-Id: <20250710054443.4D0CFC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-use-generic-read_sysfs-in-thuge-gen-test.patch removed from -mm tree
+Message-Id: <20250710054444.6B97DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,157 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: madvise: use per_vma lock for MADV_FREE
+     Subject: selftests/mm: use generic read_sysfs in thuge-gen test
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-use-per_vma-lock-for-madv_free.patch
+     selftests-mm-use-generic-read_sysfs-in-thuge-gen-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: madvise: use per_vma lock for MADV_FREE
-Date: Wed, 11 Jun 2025 22:47:45 +1200
+From: Pu Lehui <pulehui@huawei.com>
+Subject: selftests/mm: use generic read_sysfs in thuge-gen test
+Date: Wed, 11 Jun 2025 10:01:06 +0000
 
-MADV_FREE is another option, besides MADV_DONTNEED, for dynamic memory
-freeing in user-space native or Java heap memory management.  For example,
-jemalloc can be configured to use MADV_FREE, and recent versions of the
-Android Java heap have also increasingly adopted MADV_FREE.  Supporting
-per-VMA locking for MADV_FREE thus appears increasingly necessary.
+As generic read_sysfs is available in vm_utils, let's use is in thuge-gen
+test.
 
-We have replaced walk_page_range() with walk_page_range_vma().  Along with
-the proposed madvise_lock_mode by Lorenzo, the necessary infrastructure is
-now in place to begin exploring per-VMA locking support for MADV_FREE and
-potentially other madvise using walk_page_range_vma().
-
-This patch adds support for the PGWALK_VMA_RDLOCK walk_lock mode in
-walk_page_range_vma(), and leverages madvise_lock_mode from madv_behavior
-to select the appropriate walk_lock—either mmap_lock or per-VMA
-lock—based on the context.
-
-Because we now dynamically update the walk_ops->walk_lock field, we must
-ensure this is thread-safe.  The madvise_free_walk_ops is now defined as a
-stack variable instead of a global constant.
-
-Link: https://lkml.kernel.org/r/20250611104745.57405-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20250611100106.1331197-1-pulehui@huaweicloud.com
+Signed-off-by: Pu Lehui <pulehui@huawei.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tangquan Zheng <zhengtangquan@oppo.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagewalk.h |    2 ++
- mm/madvise.c             |   25 +++++++++++++++++++------
- mm/pagewalk.c            |    5 ++++-
- 3 files changed, 25 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/thuge-gen.c |   40 ++++++-----------------
+ 1 file changed, 11 insertions(+), 29 deletions(-)
 
---- a/include/linux/pagewalk.h~mm-madvise-use-per_vma-lock-for-madv_free
-+++ a/include/linux/pagewalk.h
-@@ -14,6 +14,8 @@ enum page_walk_lock {
- 	PGWALK_WRLOCK = 1,
- 	/* vma is expected to be already write-locked during the walk */
- 	PGWALK_WRLOCK_VERIFY = 2,
-+	/* vma is expected to be already read-locked during the walk */
-+	PGWALK_VMA_RDLOCK_VERIFY = 3,
- };
- 
- /**
---- a/mm/madvise.c~mm-madvise-use-per_vma-lock-for-madv_free
-+++ a/mm/madvise.c
-@@ -777,10 +777,19 @@ static int madvise_free_pte_range(pmd_t
- 	return 0;
+--- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-use-generic-read_sysfs-in-thuge-gen-test
++++ a/tools/testing/selftests/mm/thuge-gen.c
+@@ -77,38 +77,18 @@ void show(unsigned long ps)
+ 	system(buf);
  }
  
--static const struct mm_walk_ops madvise_free_walk_ops = {
--	.pmd_entry		= madvise_free_pte_range,
--	.walk_lock		= PGWALK_RDLOCK,
--};
-+static inline enum page_walk_lock get_walk_lock(enum madvise_lock_mode mode)
-+{
-+	switch (mode) {
-+	case MADVISE_VMA_READ_LOCK:
-+		return PGWALK_VMA_RDLOCK_VERIFY;
-+	case MADVISE_MMAP_READ_LOCK:
-+		return PGWALK_RDLOCK;
-+	default:
-+		/* Other modes don't require fixing up the walk_lock */
-+		WARN_ON_ONCE(1);
-+		return PGWALK_RDLOCK;
-+	}
-+}
- 
- static int madvise_free_single_vma(struct madvise_behavior *madv_behavior,
- 			struct vm_area_struct *vma,
-@@ -789,6 +798,9 @@ static int madvise_free_single_vma(struc
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct mmu_notifier_range range;
- 	struct mmu_gather *tlb = madv_behavior->tlb;
-+	struct mm_walk_ops walk_ops = {
-+		.pmd_entry		= madvise_free_pte_range,
-+	};
- 
- 	/* MADV_FREE works for only anon vma at the moment */
- 	if (!vma_is_anonymous(vma))
-@@ -808,8 +820,9 @@ static int madvise_free_single_vma(struc
- 
- 	mmu_notifier_invalidate_range_start(&range);
- 	tlb_start_vma(tlb, vma);
-+	walk_ops.walk_lock = get_walk_lock(madv_behavior->lock_mode);
- 	walk_page_range_vma(vma, range.start, range.end,
--			&madvise_free_walk_ops, tlb);
-+			&walk_ops, tlb);
- 	tlb_end_vma(tlb, vma);
- 	mmu_notifier_invalidate_range_end(&range);
- 	return 0;
-@@ -1658,7 +1671,6 @@ static enum madvise_lock_mode get_lock_m
- 	case MADV_WILLNEED:
- 	case MADV_COLD:
- 	case MADV_PAGEOUT:
--	case MADV_FREE:
- 	case MADV_POPULATE_READ:
- 	case MADV_POPULATE_WRITE:
- 	case MADV_COLLAPSE:
-@@ -1667,6 +1679,7 @@ static enum madvise_lock_mode get_lock_m
- 		return MADVISE_MMAP_READ_LOCK;
- 	case MADV_DONTNEED:
- 	case MADV_DONTNEED_LOCKED:
-+	case MADV_FREE:
- 		return MADVISE_VMA_READ_LOCK;
- 	default:
- 		return MADVISE_MMAP_WRITE_LOCK;
---- a/mm/pagewalk.c~mm-madvise-use-per_vma-lock-for-madv_free
-+++ a/mm/pagewalk.c
-@@ -422,7 +422,7 @@ static inline void process_mm_walk_lock(
+-unsigned long thuge_read_sysfs(int warn, char *fmt, ...)
++unsigned long read_free(unsigned long ps)
  {
- 	if (walk_lock == PGWALK_RDLOCK)
- 		mmap_assert_locked(mm);
--	else
-+	else if (walk_lock != PGWALK_VMA_RDLOCK_VERIFY)
- 		mmap_assert_write_locked(mm);
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	char buf[100];
+-	FILE *f;
+-	va_list ap;
+ 	unsigned long val = 0;
++	char buf[100];
+ 
+-	va_start(ap, fmt);
+-	vsnprintf(buf, sizeof buf, fmt, ap);
+-	va_end(ap);
+-
+-	f = fopen(buf, "r");
+-	if (!f) {
+-		if (warn)
+-			ksft_print_msg("missing %s\n", buf);
+-		return 0;
+-	}
+-	if (getline(&line, &linelen, f) > 0) {
+-		sscanf(line, "%lu", &val);
+-	}
+-	fclose(f);
+-	free(line);
+-	return val;
+-}
++	snprintf(buf, sizeof(buf),
++		 "/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
++		 ps >> 10);
++	if (read_sysfs(buf, &val) && ps != getpagesize())
++		ksft_print_msg("missing %s\n", buf);
+ 
+-unsigned long read_free(unsigned long ps)
+-{
+-	return thuge_read_sysfs(ps != getpagesize(),
+-			  "/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
+-			  ps >> 10);
++	return val;
  }
  
-@@ -437,6 +437,9 @@ static inline void process_vma_walk_lock
- 	case PGWALK_WRLOCK_VERIFY:
- 		vma_assert_write_locked(vma);
- 		break;
-+	case PGWALK_VMA_RDLOCK_VERIFY:
-+		vma_assert_locked(vma);
-+		break;
- 	case PGWALK_RDLOCK:
- 		/* PGWALK_RDLOCK is handled by process_mm_walk_lock */
- 		break;
+ void test_mmap(unsigned long size, unsigned flags)
+@@ -173,6 +153,7 @@ void test_shmget(unsigned long size, uns
+ void find_pagesizes(void)
+ {
+ 	unsigned long largest = getpagesize();
++	unsigned long shmmax_val = 0;
+ 	int i;
+ 	glob_t g;
+ 
+@@ -195,7 +176,8 @@ void find_pagesizes(void)
+ 	}
+ 	globfree(&g);
+ 
+-	if (thuge_read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest)
++	read_sysfs("/proc/sys/kernel/shmmax", &shmmax_val);
++	if (shmmax_val < NUM_PAGES * largest)
+ 		ksft_exit_fail_msg("Please do echo %lu > /proc/sys/kernel/shmmax",
+ 				   largest * NUM_PAGES);
+ 
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from pulehui@huawei.com are
 
 
