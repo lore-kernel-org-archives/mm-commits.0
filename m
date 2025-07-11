@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49FE829993F
-	for <mm-commits@vger.kernel.org>; Thu, 10 Jul 2025 22:39:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF9161A29A
+	for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2025 01:43:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752187158; cv=none; b=iDtkgbEU0Z4caT5SiTG7TR0sa7Xx4RmHJbVQ+ndoPwaKnRiDTWDOtOCd0G+V/kfO6QaRBglDyoRSeFaiVdC6Fu4snDOwXLrerRHHNMpmxWPH7R2d3Wc+ZL8v6dW7iHBXfXiaUQsJJ/AJ6gL7hcVbDsngPDYCR6HvmSqStPFQquk=
+	t=1752198213; cv=none; b=N5+eg/0DPpVpHCtLPTNNJbpwK/oJhKvYwGLGsSe4fCfdPm5AgE73Ff3pjgBoKlFcRYzan4yYHrC9mKukwHHDLG4fLo10mwnfosAxTNoaDnFxnswEtR/pD/OEc4VlHoXLGpEzkmr1g2cTnSPM6FtU+bwq4/segCGr1vtOgoEIrg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752187158; c=relaxed/simple;
-	bh=sSWC40hHdVCRP/Cah9v+LQ5SsylvfzWFGXJGirOdylM=;
-	h=Date:To:From:Subject:Message-Id; b=ViF+mg+7oNj3cPdGDDXPlNRv0CHh9ypDFiUH+UGQjWt7lxSzWYove5AaWNfbAoG7puuLGwxifrfjGSPxa7fTaL6D9psZB1Vn8wxnsXDoydfS+3MkSmWNflk2lv3d2RznrxeEVqbOgpskNG0aToyuHF15yBEKEP3qtUu1FLuumrA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jk5NRNyv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752198213; c=relaxed/simple;
+	bh=LVCHMVfCCg+O/ghL6ULzYm1A060AZOQ/OqnTb4mRajE=;
+	h=Date:To:From:Subject:Message-Id; b=Ftsz8Ed/+2ScxqFZp7m4COxN9ycHepMK24W4TDTgH4ozN4lv+U/OQdsXQHpywEeGtJI8Wh+dRICw7m/a9XQW2zKOExYQ0CakpqXYYASwcYwfPUZqAVPf4Rq7O0Ti1O6CCge27e07HQbiCAUcsmvjrPrW1/DpKSLZ9H6Zl4ysYKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GPvPGUER; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jk5NRNyv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C77FBC4CEE3;
-	Thu, 10 Jul 2025 22:39:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GPvPGUER"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25A4DC4CEE3;
+	Fri, 11 Jul 2025 01:43:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752187156;
-	bh=sSWC40hHdVCRP/Cah9v+LQ5SsylvfzWFGXJGirOdylM=;
+	s=korg; t=1752198212;
+	bh=LVCHMVfCCg+O/ghL6ULzYm1A060AZOQ/OqnTb4mRajE=;
 	h=Date:To:From:Subject:From;
-	b=jk5NRNyvkZXlGI/wHyYqF8GZ1Kt91N8lYcoW76lVvtr4sw2l8xqNdqiRjV79XMwU6
-	 FEARUtvRX4Pljp/VpN0E2nBDDHYEhcS5MYvOt3pXCTxQwn6r8N28P2k724znXH43mV
-	 RiSmHCs2xuVvcf4COzaRbnIkvj1ObbJYcr0y967o=
-Date: Thu, 10 Jul 2025 15:39:15 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,liuqiye2025@163.com,akpm@linux-foundation.org
+	b=GPvPGUERFLsnutlhtUtYGJdGsqy1Ma8IvX5aDSArYnZfGoE+9N7brLI5fMwsIZy/1
+	 jrBS6+H/aJuxK1JTr7Exlbuey6Y76womwfO5dZrvtxLXeraxVW3KO8/px5F+gkKtOj
+	 7CkG8vbZubkoREcecBSDatZ6qNfEdSPxjvsJCUPw=
+Date: Thu, 10 Jul 2025 18:43:31 -0700
+To: mm-commits@vger.kernel.org,rafael.j.wysocki@intel.com,sfr@canb.auug.org.au,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-simplify-min_brk-handling-in-brk.patch added to mm-new branch
-Message-Id: <20250710223916.C77FBC4CEE3@smtp.kernel.org>
+Subject: + kexec_core-fix-error-code-path-in-the-kexec_jump-flow-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250711014332.25A4DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: simplify min_brk handling in brk()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-simplify-min_brk-handling-in-brk.patch
+     Subject: kexec_core-fix-error-code-path-in-the-kexec_jump-flow-fix
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kexec_core-fix-error-code-path-in-the-kexec_jump-flow-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-simplify-min_brk-handling-in-brk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_core-fix-error-code-path-in-the-kexec_jump-flow-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,56 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xuanye Liu <liuqiye2025@163.com>
-Subject: mm: simplify min_brk handling in brk()
-Date: Thu, 10 Jul 2025 10:58:58 +0800
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: kexec_core-fix-error-code-path-in-the-kexec_jump-flow-fix
+Date: Fri, 11 Jul 2025 10:35:39 +1000
 
-Set min_brk to mm->start_brk by default, and override it with mm->end_data
-only when CONFIG_COMPAT_BRK is enabled and brk_randomized is false.
+remove now-unused label
 
-This makes the logic clearer with no functional change.
-
-Link: https://lkml.kernel.org/r/20250710025859.926355-1-liuqiye2025@163.com
-Signed-off-by: Xuanye Liu <liuqiye2025@163.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250711105804.3447e832@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ kernel/kexec_core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/mmap.c~mm-simplify-min_brk-handling-in-brk
-+++ a/mm/mmap.c
-@@ -127,18 +127,15 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
- 
- 	origbrk = mm->brk;
- 
-+	min_brk = mm->start_brk;
- #ifdef CONFIG_COMPAT_BRK
- 	/*
- 	 * CONFIG_COMPAT_BRK can still be overridden by setting
- 	 * randomize_va_space to 2, which will still cause mm->start_brk
- 	 * to be arbitrarily shifted
- 	 */
--	if (current->brk_randomized)
--		min_brk = mm->start_brk;
--	else
-+	if (!current->brk_randomized)
- 		min_brk = mm->end_data;
--#else
--	min_brk = mm->start_brk;
- #endif
- 	if (brk < min_brk)
- 		goto out;
+--- a/kernel/kexec_core.c~kexec_core-fix-error-code-path-in-the-kexec_jump-flow-fix
++++ a/kernel/kexec_core.c
+@@ -1135,7 +1135,6 @@ int kernel_kexec(void)
+ 		dpm_resume_start(PMSG_RESTORE);
+  Resume_devices:
+ 		dpm_resume_end(PMSG_RESTORE);
+- Resume_console:
+ 		pm_restore_gfp_mask();
+ 		console_resume_all();
+ 		thaw_processes();
 _
 
-Patches currently in -mm which might be from liuqiye2025@163.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-fix-spelling-issue-in-swaph.patch
-mm-remove-outdated-filename-comment-in-percpu-statsc.patch
-mm-simplify-min_brk-handling-in-brk.patch
+kexec_core-fix-error-code-path-in-the-kexec_jump-flow-fix.patch
 
