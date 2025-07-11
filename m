@@ -1,120 +1,142 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BCAB1B0421
-	for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2025 23:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4956719E7F9;
+	Fri, 11 Jul 2025 23:18:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752275341; cv=none; b=qP/HurYf7/NK3nBFXM+/eT8kwj/7bgO8SLTLs7+s8CK4U9UNZw2iY8JKfaV/xCIflk/nZzJrK4kq4DJBuCSCIKG/tCdw1TSaU1ITEXFve7CbLguI9uvl4GdszQYtn39TPJ+llJgf7qG3pT39MG7WLZrvz/NDdpEUCAb518+1cLQ=
+	t=1752275932; cv=none; b=E0OOMRoesahZqey9YOququxDVkgcBA8gxxulx9zkgIUFrZPek0Vi2Yg9jlxO7rmb5Dr3gS6YzWwfQbaEHiSwkikxuVtw5PvqATQeGK8LRjf65utGODSH4RS/qb9Q1IzROF1jEh+/g9VtGHO79ySHMHrlkiEdAnuSu2Y8a1kc/h8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752275341; c=relaxed/simple;
-	bh=zRjd6t2b5+ipfolgycoqWx1w/d4rnSCzGYE1pBX3lZU=;
-	h=Date:To:From:Subject:Message-Id; b=Wth2C6Li2wr9pvAafgDiouhl0q1HEcJ3cNTNf81pXPkB+HIm9f34g8lrI5f/LjB2EGaIachCoUzVY6tMYUZQAZE/Ha/VOXO6y4HBzhN9ICQbMhxenXnzpgdkulR2LPYqsJjfoLEGcgCw8byoVPYVvQK55LpxHtMm0dZ1ra8dKPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O76rVw9l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752275932; c=relaxed/simple;
+	bh=8/sM6gFYX94+sHDfgekSw0dkB7hQT1Gs8PFRkrIVh+8=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=jzFnD760I1cOeHw0jXowALykBbrlbsKXdXGfhz4/jNB2wAR2tRd8LpPwe8z+T4HQ/A55n32jbIGiZ6NhtE+p9zE0+qgVr20EMHlWq0Ap4BAWnPStV2/loPHvKm93jzIWSPTiZMoL/TPlXOCF6jMif4ii02XwlaGMeCPEeNlu968=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FJe31KoQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O76rVw9l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84660C4CEED;
-	Fri, 11 Jul 2025 23:09:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FJe31KoQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFCFBC4CEED;
+	Fri, 11 Jul 2025 23:18:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752275340;
-	bh=zRjd6t2b5+ipfolgycoqWx1w/d4rnSCzGYE1pBX3lZU=;
-	h=Date:To:From:Subject:From;
-	b=O76rVw9li6pn5RcEOS10VCwlYCNnKAPWSIVRqqblEnSfKdHK+3TJRGr8140qJq4L1
-	 E2b74aAKdN1v+FmdUQHVZ4++OQBoqJeSJ8QLh1Y4yNrr23CUiie5XJNqyAIo3RMPuA
-	 O65xSWImSAqpAMWyegqv6gpBBFDqYap8XKSxotpE=
-Date: Fri, 11 Jul 2025 16:08:58 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org
+	s=korg; t=1752275931;
+	bh=8/sM6gFYX94+sHDfgekSw0dkB7hQT1Gs8PFRkrIVh+8=;
+	h=Date:From:To:Cc:Subject:From;
+	b=FJe31KoQ0AgHiPvAYOTdxjiwY0Kdk4QjsVj63KaUJBH07LjrPGMZ+dRjmxP7iaHK1
+	 CqkzjDWZLcqSiF2ISQ9esGrHUMheB4d5OcLVS6YvlksHfjuCv/ZPJzUII7LscxaHUV
+	 ZOdtS3pDHoxJKMFaKr+0XvO2gQPOgE4OmqfLwuwY=
+Date: Fri, 11 Jul 2025 16:18:51 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-movable-flag-in-page-mapping-to-a-page-flag-fix.patch added to mm-unstable branch
-Message-Id: <20250711230900.84660C4CEED@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.16-rc6
+Message-Id: <20250711161851.7b0e9d2d962b79f38c2f67d1@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm-convert-movable-flag-in-page-mapping-to-a-page-flag-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-movable-flag-in-page-mapping-to-a-page-flag-fix.patch
+Linus, please pull this batch of hotfixes for the next -rc release,
+thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-movable-flag-in-page-mapping-to-a-page-flag-fix.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit d7b8f8e20813f0179d8ef519541a3527e7661d3a:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.16-rc5 (2025-07-06 14:10:26 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-07-11-16-16
 
-------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm-convert-movable-flag-in-page-mapping-to-a-page-flag-fix
-Date: Fri, 11 Jul 2025 11:57:37 +0200
+for you to fetch changes up to db6cc3f4ac2e6cdc898fc9cbc8b32ae1bf56bdad:
 
-add missing `:' in kerneldoc
+  Revert "sched/numa: add statistics of numa balance task" (2025-07-09 21:07:56 -0700)
 
-Link: https://lkml.kernel.org/r/d96e2916-2c43-462c-b6a1-2375ef397d8b@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+19 hotfixes.  A whopping 16 are cc:stable and the remainder address
+post-6.15 issues or aren't considered necessary for -stable kernels.
 
- include/linux/page-flags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+14 are for MM.  Three gdb-script fixes and a kallsyms build fix.
 
---- a/include/linux/page-flags.h~mm-convert-movable-flag-in-page-mapping-to-a-page-flag-fix
-+++ a/include/linux/page-flags.h
-@@ -1154,7 +1154,7 @@ SETPAGEFLAG_NOOP(MovableOps, movable_ops
- 
- /**
-  * page_has_movable_ops - test for a movable_ops page
-- * @page The page to test.
-+ * @page: The page to test.
-  *
-  * Test whether this is a movable_ops page. Such pages will stay that
-  * way until freed.
-_
+----------------------------------------------------------------
+Achill Gilgenast (1):
+      kallsyms: fix build without execinfo
 
-Patches currently in -mm which might be from david@redhat.com are
+Alexander Gordeev (1):
+      mm/vmalloc: leave lazy MMU mode on PTE mapping error
 
-mm-balloon_compaction-we-cannot-have-isolated-pages-in-the-balloon-list.patch
-mm-balloon_compaction-convert-balloon_page_delete-to-balloon_page_finalize.patch
-mm-zsmalloc-drop-pageisolated-related-vm_bug_ons.patch
-mm-page_alloc-let-page-freeing-clear-any-set-page-type.patch
-mm-balloon_compaction-make-pageoffline-sticky-until-the-page-is-freed.patch
-mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed.patch
-mm-migrate-rename-isolate_movable_page-to-isolate_movable_ops_page.patch
-mm-migrate-rename-putback_movable_folio-to-putback_movable_ops_page.patch
-mm-migrate-factor-out-movable_ops-page-handling-into-migrate_movable_ops_page.patch
-mm-migrate-remove-folio_test_movable-and-folio_movable_ops.patch
-mm-migrate-move-movable_ops-page-handling-out-of-move_to_new_folio.patch
-mm-zsmalloc-stop-using-__clearpagemovable.patch
-mm-balloon_compaction-stop-using-__clearpagemovable.patch
-mm-migrate-remove-__clearpagemovable.patch
-mm-migration-remove-pagemovable.patch
-mm-rename-__pagemovable-to-page_has_movable_ops.patch
-mm-page_isolation-drop-__folio_test_movable-check-for-large-folios.patch
-mm-remove-__folio_test_movable.patch
-mm-stop-storing-migration_ops-in-page-mapping.patch
-mm-convert-movable-flag-in-page-mapping-to-a-page-flag.patch
-mm-convert-movable-flag-in-page-mapping-to-a-page-flag-fix.patch
-mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch
-mm-page-flags-rename-page_mapping_movable-to-page_mapping_anon_ksm.patch
-mm-page-alloc-remove-pagemappingflags.patch
-mm-page-flags-remove-folio_mapping_flags.patch
-mm-simplify-folio_expected_ref_count.patch
-mm-rename-page_mapping_-to-folio_mapping_.patch
-docs-mm-convert-from-non-lru-page-migration-to-movable_ops-page-migration.patch
-mm-balloon_compaction-movable_ops-doc-updates.patch
-mm-balloon_compaction-provide-single-balloon_page_insert-and-balloon_mapping_gfp_mask.patch
+Baolin Wang (1):
+      mm: fix the inaccurate memory statistics issue for users
+
+Chen Yu (1):
+      Revert "sched/numa: add statistics of numa balance task"
+
+Christoph Berg (1):
+      mm/migrate: fix do_pages_stat in compat mode
+
+Florian Fainelli (3):
+      scripts/gdb: fix interrupts display after MCP on x86
+      scripts/gdb: fix interrupts.py after maple tree conversion
+      scripts/gdb: de-reference per-CPU MCE interrupts
+
+Harry Yoo (1):
+      lib/alloc_tag: do not acquire non-existent lock in alloc_tag_top_users()
+
+Honggyu Kim (4):
+      samples/damon: fix damon sample prcl for start failure
+      samples/damon: fix damon sample wsse for start failure
+      samples/damon: fix damon sample mtier for start failure
+      mm/damon: fix divide by zero in damon_get_intervals_score()
+
+Illia Ostapyshyn (1):
+      scripts: gdb: vfs: support external dentry names
+
+Lance Yang (1):
+      mm/rmap: fix potential out-of-bounds page table access during batched unmap
+
+SeongJae Park (1):
+      mm/damon/core: handle damon_call_control as normal under kdmond deactivation
+
+Vivek Kasireddy (1):
+      mm/hugetlb: don't crash when allocating a folio if there are no resv
+
+Wei Yang (1):
+      maple_tree: fix mt_destroy_walk() on root leaf node
+
+Yeoreum Yun (1):
+      kasan: remove kasan_find_vm_area() to prevent possible deadlock
+
+ Documentation/admin-guide/cgroup-v2.rst |   6 -
+ fs/proc/task_mmu.c                      |  14 +-
+ include/linux/mm.h                      |   5 +
+ include/linux/sched.h                   |   4 -
+ include/linux/vm_event_item.h           |   2 -
+ kernel/sched/core.c                     |   9 +-
+ kernel/sched/debug.c                    |   4 -
+ lib/alloc_tag.c                         |   3 +
+ lib/maple_tree.c                        |   1 +
+ mm/damon/core.c                         |   8 +-
+ mm/hugetlb.c                            |   9 +-
+ mm/kasan/report.c                       |  45 +-----
+ mm/memcontrol.c                         |   2 -
+ mm/migrate.c                            |  14 +-
+ mm/rmap.c                               |  46 +++---
+ mm/vmalloc.c                            |  22 ++-
+ mm/vmstat.c                             |   2 -
+ samples/damon/mtier.c                   |   8 +-
+ samples/damon/prcl.c                    |   8 +-
+ samples/damon/wsse.c                    |   8 +-
+ scripts/gdb/linux/constants.py.in       |   7 +
+ scripts/gdb/linux/interrupts.py         |  16 +-
+ scripts/gdb/linux/mapletree.py          | 252 ++++++++++++++++++++++++++++++++
+ scripts/gdb/linux/vfs.py                |   2 +-
+ scripts/gdb/linux/xarray.py             |  28 ++++
+ tools/include/linux/kallsyms.h          |   4 +
+ 26 files changed, 399 insertions(+), 130 deletions(-)
+ create mode 100644 scripts/gdb/linux/mapletree.py
+ create mode 100644 scripts/gdb/linux/xarray.py
 
