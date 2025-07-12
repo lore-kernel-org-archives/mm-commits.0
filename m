@@ -1,68 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C14AA4A1D
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:49:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 470784A1D
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:49:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752360561; cv=none; b=FAJl305OBpazOKJw4SgQfIb7+tBlAofuDdeRKiHPh/K38L6rGJj713CYdHXayWduDCA/wXaMFzAmccP6uxy6/8CazH5AVnS1gOlxR6DbszADKkGm8jJv/1rS78nXWl8u9k1W0K6ZiIu0spOjjr8aS9wJoF6yI3GMnEFTCa9vYzA=
+	t=1752360572; cv=none; b=ImZcnI8SebNdYpZZv1xDMtSY9hvn5SMyN62bEvQpUgsWQtl2KFJgtUWIh6iGrgJLCmkWkBmOsATMptowDsAGcl06mPn3EZisY3vP9GGDMoaG9HPHB9L3T1CghR7d8nzcjOGcBKAijrtlndpDqE0jHx/0fseLvuJ/jKoe3McUU8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752360561; c=relaxed/simple;
-	bh=UEm/xoBugqFFnuFXAkJGVrkiBNa6ffx/A+zgPcZ7ryU=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=lOEL7gVRz7Azy7Blsa6MbObJ0hpM7TLgovoqvxQisy6HsW/Bsq/s2c2QvGRm8kWz/AqPWRAqhEEcrjBziOVrli8ywQFlUPr3oX6jsSNhze0L8vPmt9j4bob+74MJsdJi1uq+7dPI+cJiJM7PcDzkfQ5BdWk1HJg80i72LSZ8Y44=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A98y7JKF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752360572; c=relaxed/simple;
+	bh=E+ZaICawhfh9XIDPEy4IXVAXuuAjMVXEKMxE6OcgoBA=;
+	h=Date:To:From:Subject:Message-Id; b=AEefbE5HSBljS6luoZjGNvFdoAS5x+29fkxqssXVX++ClDvBYNuXY4GrQUb2uSAMDYkOtIn1FQw3VHH9ajRFOfff6uAFUDSKAD7UwVdKCJKy8C1ORQhUDIVpz9i+cB1DHLrP754O7lm2d2ptFYqf8J6E9S6VE/zTDKw+ksCHKGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IKQ2yVcx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A98y7JKF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03235C4CEEF;
-	Sat, 12 Jul 2025 22:49:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IKQ2yVcx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 316A8C4CEEF;
+	Sat, 12 Jul 2025 22:49:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752360561;
-	bh=UEm/xoBugqFFnuFXAkJGVrkiBNa6ffx/A+zgPcZ7ryU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=A98y7JKFgf56WCy/gpGh4jdqOGbyBFRyPmywBNg4yfDvgMxdo7zAAnFjOjHNSik88
-	 eaNL8v6StQJWgiuK3ODk8tq3IbvhfCSNibbu6Gh9LAZxRd0kESX82W9E+koOhGlKpH
-	 fd+7dm+gkKEaEfdrr/bcjg9VX9I3pGbiLN5LHUvc=
-Date: Sat, 12 Jul 2025 15:49:20 -0700
+	s=korg; t=1752360571;
+	bh=E+ZaICawhfh9XIDPEy4IXVAXuuAjMVXEKMxE6OcgoBA=;
+	h=Date:To:From:Subject:From;
+	b=IKQ2yVcxlt6Khb/naQb8rHv4mX5eJaPlz4UI/nYIDeq1MUhLkIWa0pbh4cAMJUyQt
+	 DxJEnOtorppPjXUswmMbGyVwAxl33YCFXDKMw4ifZo6rSF0vRuMFo9KNdHmX4jqiKd
+	 AVjytNUJ91wIi/IX11NoGnWEGXwCOEgt11Jt6WPc=
+Date: Sat, 12 Jul 2025 15:49:30 -0700
+To: mm-commits@vger.kernel.org,yukuai3@huawei.com,song@kernel.org,klarasmodin@gmail.com,herbert@gondor.apana.org.au,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Klara Modin <klarasmodin@gmail.com>
-Cc: mm-commits@vger.kernel.org, yukuai3@huawei.com, song@kernel.org,
- herbert@gondor.apana.org.au
-Subject: Re: [merged mm-nonmm-stable]
- lib-raid6-replace-custom-zero-page-with-zero_page.patch removed from -mm
- tree
-Message-Id: <20250712154920.aa19ba0aaa09f46225b30db1@linux-foundation.org>
-In-Reply-To: <sr7kg67kaeuisbxitmvb3rfcvf2b6l2pelnrmgt2s4qsykw6eq@nxid2ju5tcho>
-References: <20250710055932.49250C4CEE3@smtp.kernel.org>
-	<sr7kg67kaeuisbxitmvb3rfcvf2b6l2pelnrmgt2s4qsykw6eq@nxid2ju5tcho>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + lib-raid6-replace-custom-zero-page-with-zero_page-v3.patch added to mm-nonmm-unstable branch
+Message-Id: <20250712224931.316A8C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Fri, 11 Jul 2025 13:49:27 +0200 Klara Modin <klarasmodin@gmail.com> wrote:
 
-> > From: Herbert Xu <herbert@gondor.apana.org.au>
-> > Subject: lib/raid6: replace custom zero page with ZERO_PAGE
-> > Date: Mon, 17 Mar 2025 17:02:28 +0800
-> > 
-> > Use the system-wide zero page instead of a custom zero page.
-> > 
-> 
-> > [herbert@gondor.apana.org.au: update lib/raid6/recov_rvv.c, per Klara]
-> >   Link: https://lkml.kernel.org/r/aFkUnXWtxcgOTVkw@gondor.apana.org.au
-> 
-> Something seems to have went wrong here, the version in mm-nonmm-stable
-> does not seem to have this folded in and the diff below doesn't either.
+The patch titled
+     Subject: lib/raid6: update recov_rvv.c zero page usage
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-raid6-replace-custom-zero-page-with-zero_page-v3.patch
 
-Yes, thanks, somehow I managed to not fold that change in.  How does
-this look?
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-raid6-replace-custom-zero-page-with-zero_page-v3.patch
 
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
 From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: lib/raid6: update recov_rvv.c zero page usage
 Date: Mon, 23 Jun 2025 16:47:25 +0800
@@ -107,4 +102,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	raid6_call.gen_syndrome(disks, bytes, ptrs);
 _
+
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+
+lib-raid6-replace-custom-zero-page-with-zero_page-v3.patch
 
