@@ -1,279 +1,146 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com [209.85.167.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65AE15258
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:55:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3BAB78F2B
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 23:03:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752360916; cv=none; b=lLNPRLjjfnBDUm965tp/n/ox8NvVQtaBs6i7j1CTlG39t8flavlhy/hlj20udcIdYiKPYMeI0eft4bB9D42bZwGgs4E1OEm+DKgbaMBwqmWXofLg5K2EVHdzkhLeuSCdn5V6Sw0E9ehVf9GXjFMb0tRy+BQska7Ku6cqAJKBpAM=
+	t=1752361383; cv=none; b=Nl2/NILZMIlxVQWzvXAGi0uV1lLPP+HbktPzvongl4gl8XpZYdapEjhk+SQeEQVY7nSN6V/krRV+UdWiTHanKYJd8GTi8dgYbrklHoaVi4U2V3R8apnzXlhyzksw6T8AAyfWxE8rxnPQocnLh/QdhLuznMg/+zj8I1SBKpbpcAM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752360916; c=relaxed/simple;
-	bh=zHmo+MNO5SNMPNl3rw7KT6wqXIH9IHsWFjt1r4lm/L4=;
-	h=Date:To:From:Subject:Message-Id; b=qPJpIZRKYC3ZB/dvVz/4a1xsavB6wnLhjrbYSb5Mde8noLqC658x8oxJEa6QMEcWshEjHMbV8sHSeErs9pkpGqUE7QXB6KQx57EKpPnAcYA8G7OYB9wW3xL2cf0ATdTPLWzjhH4lTCASOzTQ0tlop9PuKcAOXJDv7KBLIY07qQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ukR42HyY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752361383; c=relaxed/simple;
+	bh=GQT1Lf77aH9hBArFl55iPb+ZROTat+8kD+dEnV/NooU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hOn7rUl9PutWwmowuB/O+ycGPnQUhRsOxWGnj+8tepZbqdJD9gyEwxQztOm4yfJuJfJ+/KRV8DXUO0Sb8Z52o+E9q77DymZWBxpAmC7sDw6X9lhWrtLprFisxWiq6RkXXGdY/4vZWRI7xjN0N97rQtn9cSMb+L0uhadpMjLVKyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F7+YHppa; arc=none smtp.client-ip=209.85.167.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ukR42HyY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38E16C4CEEF;
-	Sat, 12 Jul 2025 22:55:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752360916;
-	bh=zHmo+MNO5SNMPNl3rw7KT6wqXIH9IHsWFjt1r4lm/L4=;
-	h=Date:To:From:Subject:From;
-	b=ukR42HyY/2c+KxPWaeE2/Ii9vCueWZhwu2U/gd9uzH2Mi1kcZy+X4cWBS6IjtUZ9f
-	 4lKiLc0+PHdHSmY/zOT7R1EzegQTJ7tkFdDYhStnL6b4fQ6Ii1P0HrP+DwItxmPsys
-	 OY8GGCyJHh6OP4ox7/f2Wj+zZz0Kpcd8diNi8gEc=
-Date: Sat, 12 Jul 2025 15:55:15 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch added to mm-unstable branch
-Message-Id: <20250712225516.38E16C4CEEF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F7+YHppa"
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-553d2eb03a0so4758154e87.1
+        for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 16:03:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1752361380; x=1752966180; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=2tJg9o3HmwmUUIibn+scE823kIYJowc/rOtSy+LTnvE=;
+        b=F7+YHppaxaW+8EkBVcUr6ZFOBevjhdMrDd22h4jFkOSbaARaUU1kpmZVkumR1SLzOR
+         IDe1BWbbA+3WMh1ImoOA3cBcj6kTuVM53TSUbWGF1dkqPImX9Djo8iXMgw3DcMYLPfRr
+         hYVZ5YfVLbmtA/ZpCp+DqV1CbpyAcTg/XH29i+oCS4ri8ld3IfL5KEQIrGYAws8/WKdB
+         g+LCMd9tYVF7eEEhIl1vyBDX38pfgYNMNWCxSAcf6S5xTmAEl6SUAak279DVhwtpRXw0
+         Mc1eVHG4EgXmGGlcOXIHw5kjdYv840YElw2H82EEebeYJmjXXaawLMTCdWcFok3YuORp
+         Zb4g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752361380; x=1752966180;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2tJg9o3HmwmUUIibn+scE823kIYJowc/rOtSy+LTnvE=;
+        b=RLWXEMmykNnNjZfL2omlgbIIp9GeWGaNiguFyxQ/CQvuUqMiMTOBCd6khL8iFqbNaN
+         BaaJZybbfFSkx1LbSUQ7wQpAqjh1u4kp02MRbNE0u0g076o9nKyPHXrH3Pu9DLnKS35H
+         WvPki1z/5RH/G3/1D8ZtCD87osDmd5aA5rrVtRfQrrCVkTQc9WXbY1XcfPOiF8oC3aXj
+         JlLKIGghW78qmnQJjBjzx7lU5D5Gc3rtodOWDhpKWuK4qEi8Hj+U6QHNPGhzONSC0ZkJ
+         cQeRWPTlZcbttbNQwnCJuQ9A3fIVQTeLXyOSK7jL1OZ0NfzOdlgIaJtTrchULvQXpLxA
+         3tHA==
+X-Gm-Message-State: AOJu0YwllYIihwCsb5BkrKG4mDXLSWCTMJk0w1dAdX5ApehO4NStdTIU
+	m8AT/sDLEF+66QKzy5q7O/oa/dEZkB3azt0VZ62p8zoRJOMwNX090Zr5
+X-Gm-Gg: ASbGnctcuOJakyFJ5IMOMB8uj6bJzoWTLIoGN53SWzP85uMNIfllbCax9R4pKwRirmx
+	R5PyKTqDiEXKUv37/7PMzqbMbPiAiAnJNa+cUbayJAfGNpEHJA6Xgqj5mXPz3ssv8SVR1FiQOTj
+	Hfcf00TjqaVlEDzv09mBZ0T1cgXfV6YdehLVrHNYOnLJBOwozal9U2jXdOBqOyZ+NLHxCbAzXr4
+	W+2DrDKnKDV2W4habAr+tkoTTmNadbradHV4GUmjIoT2Db629ZG7NovIhYLAHG+XuDOUDaCaZcN
+	5kVxgtZV50FOktzCkJtp8l98ROzoxNY47pNYBOB05adoqNv1zJIMT8Zio5L754QfIURHeFzijs/
+	jyXZfBVIxgTDxWjnANi6/L+fS9tgcPYTCHH0PRA==
+X-Google-Smtp-Source: AGHT+IHjmwV8vbC9uDNKCOg3cvtTvbpILoes0DxxaUShuwclO6o171E19yD052SW0Op/awF7qGAtEA==
+X-Received: by 2002:a05:6512:39d1:b0:550:e50a:bf49 with SMTP id 2adb3069b0e04-5590071e4d3mr4560512e87.19.1752361379335;
+        Sat, 12 Jul 2025 16:02:59 -0700 (PDT)
+Received: from localhost (soda.int.kasm.eu. [2001:678:a5c:1202:4fb5:f16a:579c:6dcb])
+        by smtp.gmail.com with UTF8SMTPSA id 38308e7fff4ca-32fa294bf63sm11315901fa.47.2025.07.12.16.02.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 12 Jul 2025 16:02:58 -0700 (PDT)
+Date: Sun, 13 Jul 2025 01:02:58 +0200
+From: Klara Modin <klarasmodin@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, yukuai3@huawei.com, song@kernel.org, 
+	herbert@gondor.apana.org.au
+Subject: Re: [merged mm-nonmm-stable]
+ lib-raid6-replace-custom-zero-page-with-zero_page.patch removed from -mm
+ tree
+Message-ID: <jwecjj2fkmmnan3t33r7rxxa7h6l6lgi4yf7qqq4kmboynd7rx@qtijxjnvj4sq>
+References: <20250710055932.49250C4CEE3@smtp.kernel.org>
+ <sr7kg67kaeuisbxitmvb3rfcvf2b6l2pelnrmgt2s4qsykw6eq@nxid2ju5tcho>
+ <20250712154920.aa19ba0aaa09f46225b30db1@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250712154920.aa19ba0aaa09f46225b30db1@linux-foundation.org>
 
+On 2025-07-12 15:49:20 -0700, Andrew Morton wrote:
+> On Fri, 11 Jul 2025 13:49:27 +0200 Klara Modin <klarasmodin@gmail.com> wrote:
+> 
+> > > From: Herbert Xu <herbert@gondor.apana.org.au>
+> > > Subject: lib/raid6: replace custom zero page with ZERO_PAGE
+> > > Date: Mon, 17 Mar 2025 17:02:28 +0800
+> > > 
+> > > Use the system-wide zero page instead of a custom zero page.
+> > > 
+> > 
+> > > [herbert@gondor.apana.org.au: update lib/raid6/recov_rvv.c, per Klara]
+> > >   Link: https://lkml.kernel.org/r/aFkUnXWtxcgOTVkw@gondor.apana.org.au
+> > 
+> > Something seems to have went wrong here, the version in mm-nonmm-stable
+> > does not seem to have this folded in and the diff below doesn't either.
+> 
+> Yes, thanks, somehow I managed to not fold that change in.  How does
+> this look?
+> 
+> From: Herbert Xu <herbert@gondor.apana.org.au>
+> Subject: lib/raid6: update recov_rvv.c zero page usage
+> Date: Mon, 23 Jun 2025 16:47:25 +0800
+> 
+> Update lib/raid6/recov_rvv.c, for 1857fcc84744 ("lib/raid6: replace custom
+> zero page with ZERO_PAGE"), per Klara.
+> 
+> Link: https://lkml.kernel.org/r/aFkUnXWtxcgOTVkw@gondor.apana.org.au
+> Fixes: 1857fcc84744 ("lib/raid6: replace custom zero page with ZERO_PAGE")
+> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+> Cc: Song Liu <song@kernel.org>
+> Cc: Yu Kuai <yukuai3@huawei.com>
+> Cc: Klara Modin <klarasmodin@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  lib/raid6/recov_rvv.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> --- a/lib/raid6/recov_rvv.c~lib-raid6-replace-custom-zero-page-with-zero_page-v3
+> +++ a/lib/raid6/recov_rvv.c
+> @@ -165,10 +165,10 @@ static void raid6_2data_recov_rvv(int di
+>  	 * delta p and delta q
+>  	 */
+>  	dp = (u8 *)ptrs[faila];
+> -	ptrs[faila] = (void *)raid6_empty_zero_page;
+> +	ptrs[faila] = raid6_get_zero_page();
+>  	ptrs[disks - 2] = dp;
+>  	dq = (u8 *)ptrs[failb];
+> -	ptrs[failb] = (void *)raid6_empty_zero_page;
+> +	ptrs[failb] = raid6_get_zero_page();
+>  	ptrs[disks - 1] = dq;
+>  
+>  	raid6_call.gen_syndrome(disks, bytes, ptrs);
+> @@ -203,7 +203,7 @@ static void raid6_datap_recov_rvv(int di
+>  	 * Use the dead data page as temporary storage for delta q
+>  	 */
+>  	dq = (u8 *)ptrs[faila];
+> -	ptrs[faila] = (void *)raid6_empty_zero_page;
+> +	ptrs[faila] = raid6_get_zero_page();
+>  	ptrs[disks - 1] = dq;
+>  
+>  	raid6_call.gen_syndrome(disks, bytes, ptrs);
+> _
+> 
 
-The patch titled
-     Subject: tools/testing/selftests: extend mremap_test to test multi-VMA mremap
-has been added to the -mm mm-unstable branch.  Its filename is
-     tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: extend mremap_test to test multi-VMA mremap
-Date: Fri, 11 Jul 2025 12:38:24 +0100
-
-Now that we have added the ability to move multiple VMAs at once, assert
-that this functions correctly, both overwriting VMAs and moving backwards
-and forwards with merge and VMA invalidation.
-
-Additionally assert that page tables are correctly propagated by setting
-random data and reading it back.
-
-Link: https://lkml.kernel.org/r/d9c6ef51fc73138ab523e0867a3fc654b88b4a1a.1752232673.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- tools/testing/selftests/mm/mremap_test.c |  146 ++++++++++++++++++++-
- 1 file changed, 145 insertions(+), 1 deletion(-)
-
---- a/tools/testing/selftests/mm/mremap_test.c~tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -380,6 +380,149 @@ out:
- 		ksft_test_result_fail("%s\n", test_name);
- }
- 
-+static bool is_multiple_vma_range_ok(unsigned int pattern_seed,
-+				     char *ptr, unsigned long page_size)
-+{
-+	int i;
-+
-+	srand(pattern_seed);
-+	for (i = 0; i <= 10; i += 2) {
-+		int j;
-+		char *buf = &ptr[i * page_size];
-+		size_t size = i == 4 ? 2 * page_size : page_size;
-+
-+		for (j = 0; j < size; j++) {
-+			char chr = rand();
-+
-+			if (chr != buf[j]) {
-+				ksft_print_msg("page %d offset %d corrupted, expected %d got %d\n",
-+					       i, j, chr, buf[j]);
-+				return false;
-+			}
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static void mremap_move_multiple_vmas(unsigned int pattern_seed,
-+				      unsigned long page_size)
-+{
-+	char *test_name = "mremap move multiple vmas";
-+	const size_t size = 11 * page_size;
-+	bool success = true;
-+	char *ptr, *tgt_ptr;
-+	int i;
-+
-+	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (ptr == MAP_FAILED) {
-+		perror("mmap");
-+		success = false;
-+		goto out;
-+	}
-+
-+	tgt_ptr = mmap(NULL, 2 * size, PROT_READ | PROT_WRITE,
-+		       MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (tgt_ptr == MAP_FAILED) {
-+		perror("mmap");
-+		success = false;
-+		goto out;
-+	}
-+	if (munmap(tgt_ptr, 2 * size)) {
-+		perror("munmap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/*
-+	 * Unmap so we end up with:
-+	 *
-+	 *  0   2   4 5 6   8   10 offset in buffer
-+	 * |*| |*| |*****| |*| |*|
-+	 * |*| |*| |*****| |*| |*|
-+	 *  0   1   2 3 4   5   6  pattern offset
-+	 */
-+	for (i = 1; i < 10; i += 2) {
-+		if (i == 5)
-+			continue;
-+
-+		if (munmap(&ptr[i * page_size], page_size)) {
-+			perror("munmap");
-+			success = false;
-+			goto out_unmap;
-+		}
-+	}
-+
-+	srand(pattern_seed);
-+
-+	/* Set up random patterns. */
-+	for (i = 0; i <= 10; i += 2) {
-+		int j;
-+		size_t size = i == 4 ? 2 * page_size : page_size;
-+		char *buf = &ptr[i * page_size];
-+
-+		for (j = 0; j < size; j++)
-+			buf[j] = rand();
-+	}
-+
-+	/* First, just move the whole thing. */
-+	if (mremap(ptr, size, size,
-+		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
-+		perror("mremap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+	/* Check move was ok. */
-+	if (!is_multiple_vma_range_ok(pattern_seed, tgt_ptr, page_size)) {
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/* Move next to itself. */
-+	if (mremap(tgt_ptr, size, size,
-+		   MREMAP_MAYMOVE | MREMAP_FIXED, &tgt_ptr[size]) == MAP_FAILED) {
-+		perror("mremap");
-+		goto out_unmap;
-+	}
-+	/* Check that the move is ok. */
-+	if (!is_multiple_vma_range_ok(pattern_seed, &tgt_ptr[size], page_size)) {
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/* Map a range to overwrite. */
-+	if (mmap(tgt_ptr, size, PROT_NONE,
-+		 MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0) == MAP_FAILED) {
-+		perror("mmap tgt");
-+		success = false;
-+		goto out_unmap;
-+	}
-+	/* Move and overwrite. */
-+	if (mremap(&tgt_ptr[size], size, size,
-+		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
-+		perror("mremap");
-+		goto out_unmap;
-+	}
-+	/* Check that the move is ok. */
-+	if (!is_multiple_vma_range_ok(pattern_seed, tgt_ptr, page_size)) {
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+out_unmap:
-+	if (munmap(tgt_ptr, 2 * size))
-+		perror("munmap tgt");
-+	if (munmap(ptr, size))
-+		perror("munmap src");
-+
-+out:
-+	if (success)
-+		ksft_test_result_pass("%s\n", test_name);
-+	else
-+		ksft_test_result_fail("%s\n", test_name);
-+}
-+
- /* Returns the time taken for the remap on success else returns -1. */
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char *rand_addr)
-@@ -721,7 +864,7 @@ int main(int argc, char **argv)
- 	char *rand_addr;
- 	size_t rand_size;
- 	int num_expand_tests = 2;
--	int num_misc_tests = 2;
-+	int num_misc_tests = 3;
- 	struct test test_cases[MAX_TEST] = {};
- 	struct test perf_test_cases[MAX_PERF_TEST];
- 	int page_size;
-@@ -848,6 +991,7 @@ int main(int argc, char **argv)
- 
- 	mremap_move_within_range(pattern_seed, rand_addr);
- 	mremap_move_1mb_from_start(pattern_seed, rand_addr);
-+	mremap_move_multiple_vmas(pattern_seed, page_size);
- 
- 	if (run_perf_tests) {
- 		ksft_print_msg("\n%s\n",
-_
-
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
-
-mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
-mm-madvise-thread-mm_struct-through-madvise_behavior.patch
-mm-madvise-thread-vma-range-state-through-madvise_behavior.patch
-mm-madvise-thread-all-madvise-state-through-madv_behavior.patch
-mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
-mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma-fix.patch
-tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases.patch
-mm-mremap-perform-some-simple-cleanups.patch
-mm-mremap-refactor-initial-parameter-sanity-checks.patch
-mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
-mm-mremap-cleanup-post-processing-stage-of-mremap.patch
-mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
-mm-mremap-check-remap-conditions-earlier.patch
-mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
-mm-mremap-clean-up-mlock-populate-behaviour.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
-tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
-
+This looks correct, thanks!
