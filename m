@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E43F5258
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:55:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65AE15258
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:55:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752360914; cv=none; b=TJTgUdWw2fgKVfGJ+PeS+i62gbdaDuFGVSWMZLgdOb5BsFTDs5MbUj4z/O1uhaLRr1cF412504SzAl9JcM9rnoGmQPuIpZOluk3OG8H6wwLtZqBch/KxwR3I/uRFVfZWdybOZtpcjs9q8Af62MEH1MC7TF/XmiHVNosiDK4eS88=
+	t=1752360916; cv=none; b=lLNPRLjjfnBDUm965tp/n/ox8NvVQtaBs6i7j1CTlG39t8flavlhy/hlj20udcIdYiKPYMeI0eft4bB9D42bZwGgs4E1OEm+DKgbaMBwqmWXofLg5K2EVHdzkhLeuSCdn5V6Sw0E9ehVf9GXjFMb0tRy+BQska7Ku6cqAJKBpAM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752360914; c=relaxed/simple;
-	bh=jnvvqDLF57G84FuSlKpZ2dZGJMuqwWKz9gvffJdvdqk=;
-	h=Date:To:From:Subject:Message-Id; b=tsxA/dBQqAE4zEBTFDp4YjltD40u11ZofdtHOilKW9S/KqrPRB/Bt9zF/tGfnetAjgaQWOzQbBY3bAYsnE197YUBs5fgVsAdY2o3oNLfd+udQFj8O4iE21sC7iip4kGZfkRdfsVwnOmuDqOKwQ+JlE60TmIeV9cIA9YZFuk+gds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yeNrO81s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752360916; c=relaxed/simple;
+	bh=zHmo+MNO5SNMPNl3rw7KT6wqXIH9IHsWFjt1r4lm/L4=;
+	h=Date:To:From:Subject:Message-Id; b=qPJpIZRKYC3ZB/dvVz/4a1xsavB6wnLhjrbYSb5Mde8noLqC658x8oxJEa6QMEcWshEjHMbV8sHSeErs9pkpGqUE7QXB6KQx57EKpPnAcYA8G7OYB9wW3xL2cf0ATdTPLWzjhH4lTCASOzTQ0tlop9PuKcAOXJDv7KBLIY07qQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ukR42HyY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yeNrO81s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 265AFC4CEEF;
-	Sat, 12 Jul 2025 22:55:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ukR42HyY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38E16C4CEEF;
+	Sat, 12 Jul 2025 22:55:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752360914;
-	bh=jnvvqDLF57G84FuSlKpZ2dZGJMuqwWKz9gvffJdvdqk=;
+	s=korg; t=1752360916;
+	bh=zHmo+MNO5SNMPNl3rw7KT6wqXIH9IHsWFjt1r4lm/L4=;
 	h=Date:To:From:Subject:From;
-	b=yeNrO81sl1YF31R3QYyAu5C150uUiP21seOAEjjzPxX+7cnEZJ0EeVeBA62kvK4Zp
-	 wtTTXYIDfokj4nCVawdMvhxqtG60dEGzV9lW7to2PCGvZck4mLtdEA69quuGFDsrKX
-	 /k0pfSGH1ttA6BCy0F+GRrh13OMJSNzzVrzwGM6g=
-Date: Sat, 12 Jul 2025 15:55:13 -0700
+	b=ukR42HyY/2c+KxPWaeE2/Ii9vCueWZhwu2U/gd9uzH2Mi1kcZy+X4cWBS6IjtUZ9f
+	 4lKiLc0+PHdHSmY/zOT7R1EzegQTJ7tkFdDYhStnL6b4fQ6Ii1P0HrP+DwItxmPsys
+	 OY8GGCyJHh6OP4ox7/f2Wj+zZz0Kpcd8diNi8gEc=
+Date: Sat, 12 Jul 2025 15:55:15 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch added to mm-unstable branch
-Message-Id: <20250712225514.265AFC4CEEF@smtp.kernel.org>
+Subject: + tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch added to mm-unstable branch
+Message-Id: <20250712225516.38E16C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: address review comments
+     Subject: tools/testing/selftests: extend mremap_test to test multi-VMA mremap
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
+     tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: address review comments
-Date: Fri, 11 Jul 2025 15:06:06 +0100
+Subject: tools/testing/selftests: extend mremap_test to test multi-VMA mremap
+Date: Fri, 11 Jul 2025 12:38:24 +0100
 
-Make seen_vma a local variable, and add a comment when vmi_needs_reset is
-set to explain what it's for.
+Now that we have added the ability to move multiple VMAs at once, assert
+that this functions correctly, both overwriting VMAs and moving backwards
+and forwards with merge and VMA invalidation.
 
-Link: https://lkml.kernel.org/r/e5a58805-e621-4628-b78d-f5d6e4b6334c@lucifer.local
+Additionally assert that page tables are correctly propagated by setting
+random data and reading it back.
+
+Link: https://lkml.kernel.org/r/d9c6ef51fc73138ab523e0867a3fc654b88b4a1a.1752232673.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -78,84 +82,178 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/mremap_test.c |  146 ++++++++++++++++++++-
+ 1 file changed, 145 insertions(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-permit-mremap-move-of-multiple-vmas-fix
-+++ a/mm/mremap.c
-@@ -69,7 +69,6 @@ struct vma_remap_struct {
- 	enum mremap_type remap_type;	/* expand, shrink, etc. */
- 	bool mmap_locked;		/* Is mm currently write-locked? */
- 	unsigned long charged;		/* If VM_ACCOUNT, # pages to account. */
--	bool seen_vma;			/* Is >1 VMA being moved? */
- 	bool vmi_needs_reset;		/* Was the VMA iterator invalidated? */
- };
+--- a/tools/testing/selftests/mm/mremap_test.c~tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -380,6 +380,149 @@ out:
+ 		ksft_test_result_fail("%s\n", test_name);
+ }
  
-@@ -1188,6 +1187,7 @@ static int copy_vma_and_data(struct vma_
- 		*new_vma_ptr = NULL;
- 		return -ENOMEM;
- 	}
-+	/* By merging, we may have invalidated any iterator in use. */
- 	if (vma != vrm->vma)
- 		vrm->vmi_needs_reset = true;
++static bool is_multiple_vma_range_ok(unsigned int pattern_seed,
++				     char *ptr, unsigned long page_size)
++{
++	int i;
++
++	srand(pattern_seed);
++	for (i = 0; i <= 10; i += 2) {
++		int j;
++		char *buf = &ptr[i * page_size];
++		size_t size = i == 4 ? 2 * page_size : page_size;
++
++		for (j = 0; j < size; j++) {
++			char chr = rand();
++
++			if (chr != buf[j]) {
++				ksft_print_msg("page %d offset %d corrupted, expected %d got %d\n",
++					       i, j, chr, buf[j]);
++				return false;
++			}
++		}
++	}
++
++	return true;
++}
++
++static void mremap_move_multiple_vmas(unsigned int pattern_seed,
++				      unsigned long page_size)
++{
++	char *test_name = "mremap move multiple vmas";
++	const size_t size = 11 * page_size;
++	bool success = true;
++	char *ptr, *tgt_ptr;
++	int i;
++
++	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANON, -1, 0);
++	if (ptr == MAP_FAILED) {
++		perror("mmap");
++		success = false;
++		goto out;
++	}
++
++	tgt_ptr = mmap(NULL, 2 * size, PROT_READ | PROT_WRITE,
++		       MAP_PRIVATE | MAP_ANON, -1, 0);
++	if (tgt_ptr == MAP_FAILED) {
++		perror("mmap");
++		success = false;
++		goto out;
++	}
++	if (munmap(tgt_ptr, 2 * size)) {
++		perror("munmap");
++		success = false;
++		goto out_unmap;
++	}
++
++	/*
++	 * Unmap so we end up with:
++	 *
++	 *  0   2   4 5 6   8   10 offset in buffer
++	 * |*| |*| |*****| |*| |*|
++	 * |*| |*| |*****| |*| |*|
++	 *  0   1   2 3 4   5   6  pattern offset
++	 */
++	for (i = 1; i < 10; i += 2) {
++		if (i == 5)
++			continue;
++
++		if (munmap(&ptr[i * page_size], page_size)) {
++			perror("munmap");
++			success = false;
++			goto out_unmap;
++		}
++	}
++
++	srand(pattern_seed);
++
++	/* Set up random patterns. */
++	for (i = 0; i <= 10; i += 2) {
++		int j;
++		size_t size = i == 4 ? 2 * page_size : page_size;
++		char *buf = &ptr[i * page_size];
++
++		for (j = 0; j < size; j++)
++			buf[j] = rand();
++	}
++
++	/* First, just move the whole thing. */
++	if (mremap(ptr, size, size,
++		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
++		perror("mremap");
++		success = false;
++		goto out_unmap;
++	}
++	/* Check move was ok. */
++	if (!is_multiple_vma_range_ok(pattern_seed, tgt_ptr, page_size)) {
++		success = false;
++		goto out_unmap;
++	}
++
++	/* Move next to itself. */
++	if (mremap(tgt_ptr, size, size,
++		   MREMAP_MAYMOVE | MREMAP_FIXED, &tgt_ptr[size]) == MAP_FAILED) {
++		perror("mremap");
++		goto out_unmap;
++	}
++	/* Check that the move is ok. */
++	if (!is_multiple_vma_range_ok(pattern_seed, &tgt_ptr[size], page_size)) {
++		success = false;
++		goto out_unmap;
++	}
++
++	/* Map a range to overwrite. */
++	if (mmap(tgt_ptr, size, PROT_NONE,
++		 MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0) == MAP_FAILED) {
++		perror("mmap tgt");
++		success = false;
++		goto out_unmap;
++	}
++	/* Move and overwrite. */
++	if (mremap(&tgt_ptr[size], size, size,
++		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
++		perror("mremap");
++		goto out_unmap;
++	}
++	/* Check that the move is ok. */
++	if (!is_multiple_vma_range_ok(pattern_seed, tgt_ptr, page_size)) {
++		success = false;
++		goto out_unmap;
++	}
++
++out_unmap:
++	if (munmap(tgt_ptr, 2 * size))
++		perror("munmap tgt");
++	if (munmap(ptr, size))
++		perror("munmap src");
++
++out:
++	if (success)
++		ksft_test_result_pass("%s\n", test_name);
++	else
++		ksft_test_result_fail("%s\n", test_name);
++}
++
+ /* Returns the time taken for the remap on success else returns -1. */
+ static long long remap_region(struct config c, unsigned int threshold_mb,
+ 			      char *rand_addr)
+@@ -721,7 +864,7 @@ int main(int argc, char **argv)
+ 	char *rand_addr;
+ 	size_t rand_size;
+ 	int num_expand_tests = 2;
+-	int num_misc_tests = 2;
++	int num_misc_tests = 3;
+ 	struct test test_cases[MAX_TEST] = {};
+ 	struct test perf_test_cases[MAX_PERF_TEST];
+ 	int page_size;
+@@ -848,6 +991,7 @@ int main(int argc, char **argv)
  
-@@ -1805,10 +1805,10 @@ static unsigned long remap_move(struct v
- 	unsigned long start = vrm->addr;
- 	unsigned long end = vrm->addr + vrm->old_len;
- 	unsigned long new_addr = vrm->new_addr;
-+	bool allowed = true, seen_vma = false;
- 	unsigned long target_addr = new_addr;
- 	unsigned long res = -EFAULT;
- 	unsigned long last_end;
--	bool allowed = true;
- 	VMA_ITERATOR(vmi, current->mm, start);
+ 	mremap_move_within_range(pattern_seed, rand_addr);
+ 	mremap_move_1mb_from_start(pattern_seed, rand_addr);
++	mremap_move_multiple_vmas(pattern_seed, page_size);
  
- 	/*
-@@ -1826,7 +1826,7 @@ static unsigned long remap_move(struct v
- 			return -EFAULT;
- 
- 		/* No gap permitted at the start of the range. */
--		if (!vrm->seen_vma && start < vma->vm_start)
-+		if (!seen_vma && start < vma->vm_start)
- 			return -EFAULT;
- 
- 		/*
-@@ -1844,7 +1844,7 @@ static unsigned long remap_move(struct v
- 		 *
- 		 * So we map B' at A'->vm_end + X, and C' at B'->vm_end + Y.
- 		 */
--		offset = vrm->seen_vma ? vma->vm_start - last_end : 0;
-+		offset = seen_vma ? vma->vm_start - last_end : 0;
- 		last_end = vma->vm_end;
- 
- 		vrm->vma = vma;
-@@ -1853,7 +1853,7 @@ static unsigned long remap_move(struct v
- 		vrm->old_len = vrm->new_len = len;
- 
- 		allowed = vma_multi_allowed(vma);
--		if (vrm->seen_vma && !allowed)
-+		if (seen_vma && !allowed)
- 			return -EFAULT;
- 
- 		res_vma = check_prep_vma(vrm);
-@@ -1862,7 +1862,7 @@ static unsigned long remap_move(struct v
- 		if (IS_ERR_VALUE(res_vma))
- 			return res_vma;
- 
--		if (!vrm->seen_vma) {
-+		if (!seen_vma) {
- 			VM_WARN_ON_ONCE(allowed && res_vma != new_addr);
- 			res = res_vma;
- 		}
-@@ -1876,7 +1876,7 @@ static unsigned long remap_move(struct v
- 			vma_iter_reset(&vmi);
- 			vrm->vmi_needs_reset = false;
- 		}
--		vrm->seen_vma = true;
-+		seen_vma = true;
- 		target_addr = res_vma + vrm->new_len;
- 	}
- 
+ 	if (run_perf_tests) {
+ 		ksft_print_msg("\n%s\n",
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
