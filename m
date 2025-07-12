@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A42B225771
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3024E225771
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752357990; cv=none; b=aEtOh1nQvUZo0dlLdPqQvlIbRMwWC+2dDeZW/YBvmGbYWT2JhIN1AwP33ld+oHIhE/cxC+WXXNHqqvrffK4Cm6jC1C1C6aWxS/TTudTaxk8DTICqCZ6u1FjyPFN9BDyoW926n40BGONKG9tIpIEw89uQYt0x8AxAFdrxI9Wjx7U=
+	t=1752357992; cv=none; b=fNjuGvYq5OOC+d5tC17se/xn2EjXnIh15JkbcFj0fw7csbQysXQd3VSkhDO49n+9lsGy5rYy9NzeXvtzdaQZGnLubbhJtALbswflrFeKpA54gJt5OKKQRXhqbdF3suFmv0hiAB8p0QNPy9Ivg7hlqeLyoZ3PZL/xOp8PVYsFeJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752357990; c=relaxed/simple;
-	bh=PNfjIDX9CyQ2QwNuSw0V1dFkfA1n7kw1Mfm/jjy/aQ4=;
-	h=Date:To:From:Subject:Message-Id; b=hlA64LoyRymBG/2bBW9T6lXzF6KQrdtgwBRqLta2MigJCK2s3z9vP109FpdW38CSwVg/13mdiSoITo04NwXG5EBTnHHqbiK3fShwiZSdEzYr5sgVEAZZeCdlQa4J5HJMxEYTqZnsDbC1pydPeem8M990THgifk9efKU4jNCMK7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQrJZEEA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752357992; c=relaxed/simple;
+	bh=XSeHh/UMWpKbZaZk6Qrld7i7CkeIWslSTdpHrbxLKbg=;
+	h=Date:To:From:Subject:Message-Id; b=b6ooxEuREnyc03GYWH+HRWhjOKvZtpYn8xZMaNBoLYeY9uGTAfWb7df9Vo7hR82fb9M5R/X6KMZetCLpATMa9ijtkH+nm3Ar6kFnrGPqeB9p4wAPlS7EUjZCsx+2GkeclkDHqttZRsP33F+K1z1jSYPbfy04zLtHALOMhKBQX/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=unDgr1rA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQrJZEEA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09F81C4CEEF;
-	Sat, 12 Jul 2025 22:06:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="unDgr1rA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E21A7C4CEEF;
+	Sat, 12 Jul 2025 22:06:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752357990;
-	bh=PNfjIDX9CyQ2QwNuSw0V1dFkfA1n7kw1Mfm/jjy/aQ4=;
+	s=korg; t=1752357992;
+	bh=XSeHh/UMWpKbZaZk6Qrld7i7CkeIWslSTdpHrbxLKbg=;
 	h=Date:To:From:Subject:From;
-	b=JQrJZEEAkn/nSURLUnQID3teqGiRKqqqr26UT5oxVRBJ0uYGaduavJr5iOux4tRd5
-	 xZTBlgUZR8IlFun8nLrV4gy8NUGO+Xqp+IolSab5A/EH/WQ9hzrm296k7WDi/yG0W3
-	 5WdC0fEDt2vSseEHB1SznwlcHt76oYzE2GzSxsO4=
-Date: Sat, 12 Jul 2025 15:06:29 -0700
+	b=unDgr1rAInjQ/4PoatDNL9PJJc86IAa6h5Sn4V793uNWAJZpW2URzqZLp6itnqxyf
+	 UsInplnoPglehO9OLUG1HAVaQ5TvoH8KMrdciXT8HSyHBA/E7nKKPCyO7VsDlKbqyQ
+	 zPFnXRkm6mKPRTHFsngT8+nhVDMhrgy1En8WgcwM=
+Date: Sat, 12 Jul 2025 15:06:31 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch added to mm-new branch
-Message-Id: <20250712220630.09F81C4CEEF@smtp.kernel.org>
+Subject: + mm-damon-core-do-not-call-opscleanup-when-destroying-targets.patch added to mm-new branch
+Message-Id: <20250712220631.E21A7C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/wsse: use damon_call() repeat mode instead of damon_callback
+     Subject: mm/damon/core: do not call ops.cleanup() when destroying targets
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+     mm-damon-core-do-not-call-opscleanup-when-destroying-targets.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-do-not-call-opscleanup-when-destroying-targets.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,63 +65,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/wsse: use damon_call() repeat mode instead of damon_callback
-Date: Sat, 12 Jul 2025 12:50:09 -0700
+Subject: mm/damon/core: do not call ops.cleanup() when destroying targets
+Date: Sat, 12 Jul 2025 12:50:10 -0700
 
-wsse uses damon_callback for periodically reading DAMON internal data. 
-Use its alternative, damon_call() repeat mode.
+damon_operations.cleanup() is documented to be called for kdamond
+termination, but also being called for targets destruction, which is done
+for any damon_ctx destruction.  Nobody is using the callback for now,
+though.  Remove the cleanup() call under the destruction.
 
-Link: https://lkml.kernel.org/r/20250712195016.151108-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250712195016.151108-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/wsse.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/damon/core.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/samples/damon/wsse.c~samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback
-+++ a/samples/damon/wsse.c
-@@ -35,8 +35,9 @@ MODULE_PARM_DESC(enabled, "Enable or dis
- static struct damon_ctx *ctx;
- static struct pid *target_pidp;
- 
--static int damon_sample_wsse_after_aggregate(struct damon_ctx *c)
-+static int damon_sample_wsse_repeat_call_fn(void *data)
+--- a/mm/damon/core.c~mm-damon-core-do-not-call-opscleanup-when-destroying-targets
++++ a/mm/damon/core.c
+@@ -550,11 +550,6 @@ static void damon_destroy_targets(struct
  {
-+	struct damon_ctx *c = data;
- 	struct damon_target *t;
+ 	struct damon_target *t, *next_t;
  
- 	damon_for_each_target(t, c) {
-@@ -52,9 +53,15 @@ static int damon_sample_wsse_after_aggre
- 	return 0;
+-	if (ctx->ops.cleanup) {
+-		ctx->ops.cleanup(ctx);
+-		return;
+-	}
+-
+ 	damon_for_each_target_safe(t, next_t, ctx)
+ 		damon_destroy_target(t);
  }
- 
-+static struct damon_call_control repeat_call_control = {
-+	.fn = damon_sample_wsse_repeat_call_fn,
-+	.repeat = true,
-+};
-+
- static int damon_sample_wsse_start(void)
- {
- 	struct damon_target *target;
-+	int err;
- 
- 	pr_info("start\n");
- 
-@@ -79,8 +86,11 @@ static int damon_sample_wsse_start(void)
- 	}
- 	target->pid = target_pidp;
- 
--	ctx->callback.after_aggregation = damon_sample_wsse_after_aggregate;
--	return damon_start(&ctx, 1, true);
-+	err = damon_start(&ctx, 1, true);
-+	if (err)
-+		return err;
-+	repeat_call_control.data = ctx;
-+	return damon_call(ctx, &repeat_call_control);
- }
- 
- static void damon_sample_wsse_stop(void)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
