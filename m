@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94D25225771
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A42B225771
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752357988; cv=none; b=EF/m/H7OVAu0exbVNYeWQpNgYY3u1GbDWl1Zslc7taWidmeoWUESjb50EuDZhlqEW/f16B/ZGJQJkrjONE3IOXN9K4Bi7a735wFcMKobdpAWoLe4ULe58tQQc3l6yGhNJQo5ik9RthbtTWkUjgWnxsU1cQYWgdk5wXDQpncW0oI=
+	t=1752357990; cv=none; b=aEtOh1nQvUZo0dlLdPqQvlIbRMwWC+2dDeZW/YBvmGbYWT2JhIN1AwP33ld+oHIhE/cxC+WXXNHqqvrffK4Cm6jC1C1C6aWxS/TTudTaxk8DTICqCZ6u1FjyPFN9BDyoW926n40BGONKG9tIpIEw89uQYt0x8AxAFdrxI9Wjx7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752357988; c=relaxed/simple;
-	bh=CeztcWIlrcr3MBOovGVRdNDkhdfbc6A2IlU/Ot6TIhM=;
-	h=Date:To:From:Subject:Message-Id; b=dLKUBH28lNlwnrFNI9kQsjgYrPFha1efup7fi/28/1Sb3/PH11IM7U3V2B38gP2bEaTaYNrYRfUxfY/WIKhL2dYHHcgZqWtn1qdBQ9sTaCdtTP08IZ7N16+JaaqDziObJuop0YWnrA0zMvs3ijbR0jgEGuxyVq78knfLRE5d2fg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UgUoxlu6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752357990; c=relaxed/simple;
+	bh=PNfjIDX9CyQ2QwNuSw0V1dFkfA1n7kw1Mfm/jjy/aQ4=;
+	h=Date:To:From:Subject:Message-Id; b=hlA64LoyRymBG/2bBW9T6lXzF6KQrdtgwBRqLta2MigJCK2s3z9vP109FpdW38CSwVg/13mdiSoITo04NwXG5EBTnHHqbiK3fShwiZSdEzYr5sgVEAZZeCdlQa4J5HJMxEYTqZnsDbC1pydPeem8M990THgifk9efKU4jNCMK7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQrJZEEA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UgUoxlu6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19551C4CEEF;
-	Sat, 12 Jul 2025 22:06:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQrJZEEA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09F81C4CEEF;
+	Sat, 12 Jul 2025 22:06:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752357988;
-	bh=CeztcWIlrcr3MBOovGVRdNDkhdfbc6A2IlU/Ot6TIhM=;
+	s=korg; t=1752357990;
+	bh=PNfjIDX9CyQ2QwNuSw0V1dFkfA1n7kw1Mfm/jjy/aQ4=;
 	h=Date:To:From:Subject:From;
-	b=UgUoxlu6AX8kjkweOxeOKqr+Rcz6jNV0Vv0AB6gyj6acOZ9D5qhNst8lMBgPrnnhF
-	 mwRr+/7LzAwue9k9xTzE0dn51GZosmbm8kz79PGSyjr9Yd5nvyxZq4ChXEEN++FfUr
-	 z8U3qOjptDcML+Ao3dV8pM2lPIyc52IHpE8LTP7k=
-Date: Sat, 12 Jul 2025 15:06:27 -0700
+	b=JQrJZEEAkn/nSURLUnQID3teqGiRKqqqr26UT5oxVRBJ0uYGaduavJr5iOux4tRd5
+	 xZTBlgUZR8IlFun8nLrV4gy8NUGO+Xqp+IolSab5A/EH/WQ9hzrm296k7WDi/yG0W3
+	 5WdC0fEDt2vSseEHB1SznwlcHt76oYzE2GzSxsO4=
+Date: Sat, 12 Jul 2025 15:06:29 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-prcl-use-damon_call-repeat-mode-instead-of-damon_callback.patch added to mm-new branch
-Message-Id: <20250712220628.19551C4CEEF@smtp.kernel.org>
+Subject: + samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch added to mm-new branch
+Message-Id: <20250712220630.09F81C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/prcl: use damon_call() repeat mode instead of damon_callback
+     Subject: samples/damon/wsse: use damon_call() repeat mode instead of damon_callback
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-prcl-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+     samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-prcl-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,73 +65,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/prcl: use damon_call() repeat mode instead of damon_callback
-Date: Sat, 12 Jul 2025 12:50:08 -0700
+Subject: samples/damon/wsse: use damon_call() repeat mode instead of damon_callback
+Date: Sat, 12 Jul 2025 12:50:09 -0700
 
-prcl uses damon_callback for periodically reading DAMON internal data. 
+wsse uses damon_callback for periodically reading DAMON internal data. 
 Use its alternative, damon_call() repeat mode.
 
-Link: https://lkml.kernel.org/r/20250712195016.151108-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250712195016.151108-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/prcl.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ samples/damon/wsse.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/samples/damon/prcl.c~samples-damon-prcl-use-damon_call-repeat-mode-instead-of-damon_callback
-+++ a/samples/damon/prcl.c
-@@ -34,8 +34,9 @@ MODULE_PARM_DESC(enabled, "Enable or dis
+--- a/samples/damon/wsse.c~samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback
++++ a/samples/damon/wsse.c
+@@ -35,8 +35,9 @@ MODULE_PARM_DESC(enabled, "Enable or dis
  static struct damon_ctx *ctx;
  static struct pid *target_pidp;
  
--static int damon_sample_prcl_after_aggregate(struct damon_ctx *c)
-+static int damon_sample_prcl_repeat_call_fn(void *data)
+-static int damon_sample_wsse_after_aggregate(struct damon_ctx *c)
++static int damon_sample_wsse_repeat_call_fn(void *data)
  {
 +	struct damon_ctx *c = data;
  	struct damon_target *t;
  
  	damon_for_each_target(t, c) {
-@@ -51,10 +52,16 @@ static int damon_sample_prcl_after_aggre
+@@ -52,9 +53,15 @@ static int damon_sample_wsse_after_aggre
  	return 0;
  }
  
 +static struct damon_call_control repeat_call_control = {
-+	.fn = damon_sample_prcl_repeat_call_fn,
++	.fn = damon_sample_wsse_repeat_call_fn,
 +	.repeat = true,
 +};
 +
- static int damon_sample_prcl_start(void)
+ static int damon_sample_wsse_start(void)
  {
  	struct damon_target *target;
- 	struct damos *scheme;
 +	int err;
  
  	pr_info("start\n");
  
-@@ -79,8 +86,6 @@ static int damon_sample_prcl_start(void)
+@@ -79,8 +86,11 @@ static int damon_sample_wsse_start(void)
  	}
  	target->pid = target_pidp;
  
--	ctx->callback.after_aggregation = damon_sample_prcl_after_aggregate;
--
- 	scheme = damon_new_scheme(
- 			&(struct damos_access_pattern) {
- 			.min_sz_region = PAGE_SIZE,
-@@ -100,7 +105,12 @@ static int damon_sample_prcl_start(void)
- 	}
- 	damon_set_schemes(ctx, &scheme, 1);
- 
+-	ctx->callback.after_aggregation = damon_sample_wsse_after_aggregate;
 -	return damon_start(&ctx, 1, true);
 +	err = damon_start(&ctx, 1, true);
 +	if (err)
 +		return err;
-+
 +	repeat_call_control.data = ctx;
 +	return damon_call(ctx, &repeat_call_control);
  }
  
- static void damon_sample_prcl_stop(void)
+ static void damon_sample_wsse_stop(void)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
