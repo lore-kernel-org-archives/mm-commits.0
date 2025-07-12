@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDB122E402
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 23:22:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7A211F7569
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 23:28:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752362576; cv=none; b=Ako1E+ZDPPGV/91I6OnDjym/2DJVj9rsXATvyqQ7q71s0qN/PRdeUeO1ipBoxLwSUVMOjcjzephmiEcvp0LZgj7JyE7bsqT++VyBswyqAa42Jsz5N3C0zERxeyNKyvGE7DSGI8CMv+l+uDFErAYbR6yWmHniW4A+QQ1VlKtXZBQ=
+	t=1752362888; cv=none; b=ToYMDB35XBCt2Fdgw2QiOFhAb4TvkY4UZZINaunG4BNy/XLE5kDjFRk+3RWhDEA8IpPzxdlJejUjw1plAtTZzhRtVOybHq3/ugTv58JvGYyoAz+d11hpByqFIihWk1PskWEaLcwQ/PQT4yv6Nqk4w+QYkNvMDH3Vtgkb8kCTVl8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752362576; c=relaxed/simple;
-	bh=UyJx27ohwm/K4udNJUROvMP8LcVyyayNefutfv7rE5Y=;
-	h=Date:To:From:Subject:Message-Id; b=NKglIW2Qpyrq2gKEN9oKPxFoVKnvQeAdvBXVJsL1ctyOS+uRxj1M8ZH+8TgP8/zOF3kRAc602l7xXcc616g68cw6GQeahT0HsWQ+6p/gvKRV9uWiLtpLjX6pluzOWn1jLcnxhtvFCfR/iLf+4QVY+unXCA73RQZUYLZhxxOc0ig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WRS/xJK5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752362888; c=relaxed/simple;
+	bh=NPz8b9NohsJhB77mkc8wfGc5+k41gWGuF6Y9Exdd4cI=;
+	h=Date:To:From:Subject:Message-Id; b=SOr58reu7G9GleIcri6P6Op/eSGreVBzxOhRWMA/dLN3b6o1gzzheXaaRgOXdYQbdScayx6r7QVXUgKPVTdIn1ttR0fKlEmGHJZZxjgedYtdmXem0TUBUxT2CskoZjPVWekctDUpQTTYLEfuUlyf3UTbT2pLG3VCv62fBQ45Nl0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fqqey0aq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WRS/xJK5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB5AEC4CEEF;
-	Sat, 12 Jul 2025 23:22:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fqqey0aq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23B54C4CEEF;
+	Sat, 12 Jul 2025 23:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752362575;
-	bh=UyJx27ohwm/K4udNJUROvMP8LcVyyayNefutfv7rE5Y=;
+	s=korg; t=1752362888;
+	bh=NPz8b9NohsJhB77mkc8wfGc5+k41gWGuF6Y9Exdd4cI=;
 	h=Date:To:From:Subject:From;
-	b=WRS/xJK5nOIi9c5fGGzWW+rqcvd3aj2sxIBZuyrMP2VGrWDqsCIWeRaR94JzchECs
-	 atHmg8xQvQmbAXSIUPRTkryDl12Aiz0jliK1Zk6PO7NhkNQhTasqSvOLUCHfaN2Z3M
-	 t+zVvUJX/cXwa8cxc5ar3k11rEAaIJ3lKSew5bF0=
-Date: Sat, 12 Jul 2025 16:22:55 -0700
-To: mm-commits@vger.kernel.org,kasong@tencent.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=fqqey0aqI85nnSXU6aC5t+ScZH3Z2UlrYxcAELh8zBQ1idjuf8N0j2u4Q4ZeV4gVx
+	 HBQ2f5CTIqq6/ZuC3kQEHNGnZbgD2/urEvYJ6q8WHqFvCodjSfsAJ5M5wKPxzD8PoZ
+	 QAb18SaSQVkoIqNzf4JTWs+UkVWHqeMcCo3x3ba4=
+Date: Sat, 12 Jul 2025 16:28:07 -0700
+To: mm-commits@vger.kernel.org,youling.tang@linux.dev,willy@infradead.org,ryan.roberts@arm.com,jack@suse.cz,david@redhat.com,chizhiling@kylinos.cn,tangyouling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch added to mm-unstable branch
-Message-Id: <20250712232255.DB5AEC4CEEF@smtp.kernel.org>
+Subject: + mm-filemap-align-last_index-to-folio-size.patch added to mm-new branch
+Message-Id: <20250712232808.23B54C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-shmem-swap-simplify-swapin-path-and-result-handling-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
+     Subject: mm/filemap: align last_index to folio size
+has been added to the -mm mm-new branch.  Its filename is
+     mm-filemap-align-last_index-to-folio-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-align-last_index-to-folio-size.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,39 +64,155 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-shmem-swap-simplify-swapin-path-and-result-handling-fix
-Date: Sat Jul 12 04:21:54 PM PDT 2025
+From: Youling Tang <tangyouling@kylinos.cn>
+Subject: mm/filemap: align last_index to folio size
+Date: Fri, 11 Jul 2025 13:55:09 +0800
 
-fix comment, per Baolin
+On XFS systems with pagesize=4K, blocksize=16K, and
+CONFIG_TRANSPARENT_HUGEPAGE enabled, We observed the following readahead
+behaviors:
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Kairui Song <kasong@tencent.com>
+ # echo 3 > /proc/sys/vm/drop_caches
+ # dd if=test of=/dev/null bs=64k count=1
+ # ./tools/mm/page-types -r -L -f  /mnt/xfs/test
+ foffset	offset	flags
+ 0	136d4c	__RU_l_________H______t_________________F_1
+ 1	136d4d	__RU_l__________T_____t_________________F_1
+ 2	136d4e	__RU_l__________T_____t_________________F_1
+ 3	136d4f	__RU_l__________T_____t_________________F_1
+ ...
+ c	136bb8	__RU_l_________H______t_________________F_1
+ d	136bb9	__RU_l__________T_____t_________________F_1
+ e	136bba	__RU_l__________T_____t_________________F_1
+ f	136bbb	__RU_l__________T_____t_________________F_1   <-- first read
+ 10	13c2cc	___U_l_________H______t______________I__F_1   <-- readahead flag
+ 11	13c2cd	___U_l__________T_____t______________I__F_1
+ 12	13c2ce	___U_l__________T_____t______________I__F_1
+ 13	13c2cf	___U_l__________T_____t______________I__F_1
+ ...
+ 1c	1405d4	___U_l_________H______t_________________F_1
+ 1d	1405d5	___U_l__________T_____t_________________F_1
+ 1e	1405d6	___U_l__________T_____t_________________F_1
+ 1f	1405d7	___U_l__________T_____t_________________F_1
+ [ra_size = 32, req_count = 16, async_size = 16]
+
+ # echo 3 > /proc/sys/vm/drop_caches
+ # dd if=test of=/dev/null bs=60k count=1
+ # ./page-types -r -L -f  /mnt/xfs/test
+ foffset	offset	flags
+ 0	136048	__RU_l_________H______t_________________F_1
+ ...
+ c	110a40	__RU_l_________H______t_________________F_1
+ d	110a41	__RU_l__________T_____t_________________F_1
+ e	110a42	__RU_l__________T_____t_________________F_1   <-- first read
+ f	110a43	__RU_l__________T_____t_________________F_1   <-- first readahead flag
+ 10	13e7a8	___U_l_________H______t_________________F_1
+ ...
+ 20	137a00	___U_l_________H______t_______P______I__F_1   <-- second readahead flag (20 - 2f)
+ 21	137a01	___U_l__________T_____t_______P______I__F_1
+ ...
+ 3f	10d4af	___U_l__________T_____t_______P_________F_1
+ [first readahead: ra_size = 32, req_count = 15, async_size = 17]
+
+When reading 64k data (same for 61-63k range, where last_index is
+page-aligned in filemap_get_pages()), 128k readahead is triggered via
+page_cache_sync_ra() and the PG_readahead flag is set on the next folio
+(the one containing 0x10 page).
+
+When reading 60k data, 128k readahead is also triggered via
+page_cache_sync_ra().  However, in this case the readahead flag is set on
+the 0xf page.  Although the requested read size (req_count) is 60k, the
+actual read will be aligned to folio size (64k), which triggers the
+readahead flag and initiates asynchronous readahead via
+page_cache_async_ra().  This results in two readahead operations totaling
+256k.
+
+The root cause is that when the requested size is smaller than the actual
+read size (due to folio alignment), it triggers asynchronous readahead. 
+By changing last_index alignment from page size to folio size, we ensure
+the requested size matches the actual read size, preventing the case where
+a single read operation triggers two readahead operations.
+
+After applying the patch:
+ # echo 3 > /proc/sys/vm/drop_caches
+ # dd if=test of=/dev/null bs=60k count=1
+ # ./page-types -r -L -f  /mnt/xfs/test
+ foffset	offset	flags
+ 0	136d4c	__RU_l_________H______t_________________F_1
+ 1	136d4d	__RU_l__________T_____t_________________F_1
+ 2	136d4e	__RU_l__________T_____t_________________F_1
+ 3	136d4f	__RU_l__________T_____t_________________F_1
+ ...
+ c	136bb8	__RU_l_________H______t_________________F_1
+ d	136bb9	__RU_l__________T_____t_________________F_1
+ e	136bba	__RU_l__________T_____t_________________F_1   <-- first read
+ f	136bbb	__RU_l__________T_____t_________________F_1
+ 10	13c2cc	___U_l_________H______t______________I__F_1   <-- readahead flag
+ 11	13c2cd	___U_l__________T_____t______________I__F_1
+ 12	13c2ce	___U_l__________T_____t______________I__F_1
+ 13	13c2cf	___U_l__________T_____t______________I__F_1
+ ...
+ 1c	1405d4	___U_l_________H______t_________________F_1
+ 1d	1405d5	___U_l__________T_____t_________________F_1
+ 1e	1405d6	___U_l__________T_____t_________________F_1
+ 1f	1405d7	___U_l__________T_____t_________________F_1
+ [ra_size = 32, req_count = 16, async_size = 16]
+
+The same phenomenon will occur when reading from 49k to 64k.  Set the
+readahead flag to the next folio.
+
+Because the minimum order of folio in address_space equals the block size
+(at least in xfs and bcachefs that already support bs > ps), having
+request_count aligned to block size will not cause overread.
+
+Link: https://lkml.kernel.org/r/20250711055509.91587-1-youling.tang@linux.dev
+Co-developed-by: Chi Zhiling <chizhiling@kylinos.cn>
+Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
+Signed-off-by: Youling Tang <tangyouling@kylinos.cn>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Youling Tang <youling.tang@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pagemap.h |    6 ++++++
+ mm/filemap.c            |    5 +++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-swap-simplify-swapin-path-and-result-handling-fix
-+++ a/mm/shmem.c
-@@ -2321,7 +2321,7 @@ static int shmem_swapin_folio(struct ino
- 		}
+--- a/include/linux/pagemap.h~mm-filemap-align-last_index-to-folio-size
++++ a/include/linux/pagemap.h
+@@ -480,6 +480,12 @@ mapping_min_folio_nrpages(struct address
+ 	return 1UL << mapping_min_folio_order(mapping);
+ }
  
- 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
--			/* Direct mTHP swapin skipping swap cache & readhaed */
-+			/* Direct swapin skipping swap cache & readhaed */
- 			folio = shmem_swap_alloc_folio(inode, vma, index, swap, order, gfp);
- 			if (IS_ERR(folio)) {
- 				error = PTR_ERR(folio);
++static inline unsigned long
++mapping_min_folio_nrbytes(struct address_space *mapping)
++{
++	return mapping_min_folio_nrpages(mapping) << PAGE_SHIFT;
++}
++
+ /**
+  * mapping_align_index() - Align index for this mapping.
+  * @mapping: The address_space.
+--- a/mm/filemap.c~mm-filemap-align-last_index-to-folio-size
++++ a/mm/filemap.c
+@@ -2584,8 +2584,9 @@ static int filemap_get_pages(struct kioc
+ 	unsigned int flags;
+ 	int err = 0;
+ 
+-	/* "last_index" is the index of the page beyond the end of the read */
+-	last_index = DIV_ROUND_UP(iocb->ki_pos + count, PAGE_SIZE);
++	/* "last_index" is the index of the folio beyond the end of the read */
++	last_index = round_up(iocb->ki_pos + count, mapping_min_folio_nrbytes(mapping));
++	last_index >>= PAGE_SHIFT;
+ retry:
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tangyouling@kylinos.cn are
 
-mmslub-use-node-notifier-instead-of-memory-notifier-fix.patch
-mm-percpu-prevent-concurrency-problem-for-pcpu_nr_populated-read-with-spin-lock-fix.patch
-mm-migrate-factor-out-movable_ops-page-handling-into-migrate_movable_ops_page-fix.patch
-mm-memcg-make-memoryreclaim-interface-generic-fix.patch
-mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
-squashfs-fix-incorrect-argument-to-sizeof-in-kmalloc_array-call-fix.patch
+mm-filemap-align-last_index-to-folio-size.patch
 
