@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E786A19DF60
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 23:16:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDB122E402
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 23:22:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752362204; cv=none; b=s3AZxmB+jSmb/+lA2ERcOmLw6MeO6uPm1IM0sSxpD8XwltLJN7WHXcybM3OV6JeLpX7Bw1GQNMyvT9bWusI9a9hfltlzEEOqe28ClDTpPJF10Gmxsk/1Y6D6FpCNBQcST75MV3OBP/HiloAd/w2TsMftqfYKwHjwmiETunkzD28=
+	t=1752362576; cv=none; b=Ako1E+ZDPPGV/91I6OnDjym/2DJVj9rsXATvyqQ7q71s0qN/PRdeUeO1ipBoxLwSUVMOjcjzephmiEcvp0LZgj7JyE7bsqT++VyBswyqAa42Jsz5N3C0zERxeyNKyvGE7DSGI8CMv+l+uDFErAYbR6yWmHniW4A+QQ1VlKtXZBQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752362204; c=relaxed/simple;
-	bh=Pa2dOlk51as2Ao4za83QYTwAhTZ1XItRq8+DtZGaV/k=;
-	h=Date:To:From:Subject:Message-Id; b=koORWYykibmh/+OtByLnl1/2NSf2jL4o1AtolSAE+q22KzT5SDxQUkUGO+ZiB6aR8iPzP9zAQtqB6mPHRi3Gqgox1HMK4zpSo6o6wiCtqDKP/f+vNxIYp0C5GvAtD12sFMVFWqnkvIqRk+FNYByofs1X9uoRZJKfjkO2DrdE8gU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z6hbCBJj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752362576; c=relaxed/simple;
+	bh=UyJx27ohwm/K4udNJUROvMP8LcVyyayNefutfv7rE5Y=;
+	h=Date:To:From:Subject:Message-Id; b=NKglIW2Qpyrq2gKEN9oKPxFoVKnvQeAdvBXVJsL1ctyOS+uRxj1M8ZH+8TgP8/zOF3kRAc602l7xXcc616g68cw6GQeahT0HsWQ+6p/gvKRV9uWiLtpLjX6pluzOWn1jLcnxhtvFCfR/iLf+4QVY+unXCA73RQZUYLZhxxOc0ig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WRS/xJK5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z6hbCBJj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48AB8C4CEEF;
-	Sat, 12 Jul 2025 23:16:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WRS/xJK5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB5AEC4CEEF;
+	Sat, 12 Jul 2025 23:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752362203;
-	bh=Pa2dOlk51as2Ao4za83QYTwAhTZ1XItRq8+DtZGaV/k=;
+	s=korg; t=1752362575;
+	bh=UyJx27ohwm/K4udNJUROvMP8LcVyyayNefutfv7rE5Y=;
 	h=Date:To:From:Subject:From;
-	b=Z6hbCBJjZf+IPfa0QxhXfzYYnZBEPyBFcYRETgcYPoYtlSsMtoJJiQ50IrRKa/crc
-	 jB02cTQR35wFk3FRDxFZ4xVRc4IacDMLPkTKfML86kGODetjsyHP23NCb5EJ25HIe3
-	 f9+yYf5euuLEoi9aS4IvxeKrrXIOGi0MjRNS6Fo0=
-Date: Sat, 12 Jul 2025 16:16:42 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,mingo@redhat.com,davem@davemloft.net,brauner@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=WRS/xJK5nOIi9c5fGGzWW+rqcvd3aj2sxIBZuyrMP2VGrWDqsCIWeRaR94JzchECs
+	 atHmg8xQvQmbAXSIUPRTkryDl12Aiz0jliK1Zk6PO7NhkNQhTasqSvOLUCHfaN2Z3M
+	 t+zVvUJX/cXwa8cxc5ar3k11rEAaIJ3lKSew5bF0=
+Date: Sat, 12 Jul 2025 16:22:55 -0700
+To: mm-commits@vger.kernel.org,kasong@tencent.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs.patch added to mm-nonmm-unstable branch
-Message-Id: <20250712231643.48AB8C4CEEF@smtp.kernel.org>
+Subject: + mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch added to mm-unstable branch
+Message-Id: <20250712232255.DB5AEC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/Kconfig: enable HUGETLBFS only if ARCH_SUPPORTS_HUGETLBFS
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs.patch
+     Subject: mm-shmem-swap-simplify-swapin-path-and-result-handling-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: fs/Kconfig: enable HUGETLBFS only if ARCH_SUPPORTS_HUGETLBFS
-Date: Fri, 11 Jul 2025 15:59:34 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-shmem-swap-simplify-swapin-path-and-result-handling-fix
+Date: Sat Jul 12 04:21:54 PM PDT 2025
 
-Enable HUGETLBFS only when platform subscrbes via ARCH_SUPPORTS_HUGETLBFS.
-Hence select ARCH_SUPPORTS_HUGETLBFS on existing x86 and sparc for their
-continuing HUGETLBFS support.  While here also just drop existing 'BROKEN'
-dependency.
+fix comment, per Baolin
 
-Link: https://lkml.kernel.org/r/20250711102934.2399533-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig |    1 +
- arch/x86/Kconfig   |    1 +
- fs/Kconfig         |    2 +-
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/Kconfig~fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs
-+++ a/arch/sparc/Kconfig
-@@ -97,6 +97,7 @@ config SPARC64
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+	select ARCH_SUPPORTS_HUGETLBFS
- 	select HAVE_NMI
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select ARCH_USE_QUEUED_RWLOCKS
---- a/arch/x86/Kconfig~fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs
-+++ a/arch/x86/Kconfig
-@@ -125,6 +125,7 @@ config X86
- 	select ARCH_SUPPORTS_ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK	if X86_64
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_SUPPORTS_KMAP_LOCAL_FORCE_MAP	if NR_CPUS <= 4096
---- a/fs/Kconfig~fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs
-+++ a/fs/Kconfig
-@@ -249,7 +249,7 @@ config ARCH_SUPPORTS_HUGETLBFS
+--- a/mm/shmem.c~mm-shmem-swap-simplify-swapin-path-and-result-handling-fix
++++ a/mm/shmem.c
+@@ -2321,7 +2321,7 @@ static int shmem_swapin_folio(struct ino
+ 		}
  
- menuconfig HUGETLBFS
- 	bool "HugeTLB file system support"
--	depends on X86 || SPARC64 || ARCH_SUPPORTS_HUGETLBFS || BROKEN
-+	depends on ARCH_SUPPORTS_HUGETLBFS
- 	depends on (SYSFS || SYSCTL)
- 	select MEMFD_CREATE
- 	select PADATA if SMP
+ 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
+-			/* Direct mTHP swapin skipping swap cache & readhaed */
++			/* Direct swapin skipping swap cache & readhaed */
+ 			folio = shmem_swap_alloc_folio(inode, vma, index, swap, order, gfp);
+ 			if (IS_ERR(folio)) {
+ 				error = PTR_ERR(folio);
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs.patch
+mmslub-use-node-notifier-instead-of-memory-notifier-fix.patch
+mm-percpu-prevent-concurrency-problem-for-pcpu_nr_populated-read-with-spin-lock-fix.patch
+mm-migrate-factor-out-movable_ops-page-handling-into-migrate_movable_ops_page-fix.patch
+mm-memcg-make-memoryreclaim-interface-generic-fix.patch
+mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
+squashfs-fix-incorrect-argument-to-sizeof-in-kmalloc_array-call-fix.patch
 
