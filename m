@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D702522B8CF
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE9D226CE6
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752357982; cv=none; b=s9FZoBwjOfLyrEE+QtHBHbbbGJ/qxvjsMpTT/HBuNOGRyGaiLfzNxWfV9yqxOCZ4EyDmR9dhNUY7LTxc7XX8njypUd2QBY+mt4fepj43FVZbEazawFBI+Fj3BIMJeeMufZA3qu+m3Xep9YIEYQ5JjL2mYLW8wVXh2SbzHzZqvao=
+	t=1752357984; cv=none; b=hpn+jebBQhlNrlIufIAApFEfvZgiZsNGoXT1+MVojzK9jyYIwWz+w5fbIA9bGAhHX2866sNRRxlyoUPZ6IKOFSajUW3FiWH8k1XPyIH2/zt49mztS4c7MP+cixS1ySfXBWXD3NZTfOU2sLtEVyG0nfpYsf5184gmq6KiGYA1i2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752357982; c=relaxed/simple;
-	bh=NYHrK8Y7CUzMkIat3/UWs41voDWegkKSJyeVnRghSws=;
-	h=Date:To:From:Subject:Message-Id; b=YzVgX+vGcBlP6gOqmUmze8Dbjnlgy327LtEQ6xGoQd/Tw9gqCQx60HphMri0sxRpji2vxMRDjY6DxqP1URI6aBu/ku6VvS7FhJImlM2bhjfFHuHtEjjwRDeTVCANdiQzF1i9b3fSWx//fnoDMiauL2ZhGr1kapwbK19J3+XzJcE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k56qONl3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752357984; c=relaxed/simple;
+	bh=GtE0V0lSC16Lq2xUfy4QH0HUNdY2o0EXP9RqpIdqAEo=;
+	h=Date:To:From:Subject:Message-Id; b=D0imZUe4x4gw2D/D8ELrhZNLD6iGwTnAdGf4iM+s7OihPCMvfSZzK5596X1R5PiiTUWGvbOlJGyAAxMN3ccwyQ4Q4/C5LHn20cAnPMpvivPeicbQVhPQCOydHgDe3Mk/A6tI3z0HFERIO5t1QWkRI2Z//w0sbGzgFOhyvGsOcck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cD+m9hou; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k56qONl3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56659C4CEEF;
-	Sat, 12 Jul 2025 22:06:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cD+m9hou"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42948C4CEEF;
+	Sat, 12 Jul 2025 22:06:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752357982;
-	bh=NYHrK8Y7CUzMkIat3/UWs41voDWegkKSJyeVnRghSws=;
+	s=korg; t=1752357984;
+	bh=GtE0V0lSC16Lq2xUfy4QH0HUNdY2o0EXP9RqpIdqAEo=;
 	h=Date:To:From:Subject:From;
-	b=k56qONl31NSUSu7RKkhe+IVdibqsw9g/KxELMhWvf9Fk3jkwhV2gxtgVmFQe1MY1h
-	 lMFUoafJV0gdQAJzMyMjKjblu7/16WsvF4On/zCcUcQyoS+X8Xsb3svpSBl6nV5iFo
-	 +RZ2ul6YKjs6tN8Bs+ZMYR+HdWFEkeO8CF3rhnPk=
-Date: Sat, 12 Jul 2025 15:06:21 -0700
+	b=cD+m9houkh88O9Oy+cKxif+SNFWgEiT78rIeIt/qQ1moMogT/hf6GbNx2iImYjKPr
+	 9g9AxuoC12uiqhjMHkHZWv0N3q91JLxHdh1dsiua9RUmi1VphP18L+JnXqTwOii2JS
+	 WS5UGOqiKrjz3YnO4+6JbHWHnAAw8my83ywiFaMU=
+Date: Sat, 12 Jul 2025 15:06:23 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-use-damon_call-repeat-mode-instead-of-damon_callback.patch added to mm-new branch
-Message-Id: <20250712220622.56659C4CEEF@smtp.kernel.org>
+Subject: + mm-damon-reclaim-use-damon_call-repeat-mode-instead-of-damon_callback.patch added to mm-new branch
+Message-Id: <20250712220624.42948C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/stat: use damon_call() repeat mode instead of damon_callback
+     Subject: mm/damon/reclaim: use damon_call() repeat mode instead of damon_callback
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-stat-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+     mm-damon-reclaim-use-damon_call-repeat-mode-instead-of-damon_callback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-use-damon_call-repeat-mode-instead-of-damon_callback.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,65 +65,113 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: use damon_call() repeat mode instead of damon_callback
-Date: Sat, 12 Jul 2025 12:50:05 -0700
+Subject: mm/damon/reclaim: use damon_call() repeat mode instead of damon_callback
+Date: Sat, 12 Jul 2025 12:50:06 -0700
 
-DAMON_STAT uses damon_callback for periodically reading DAMON internal
-data.  Use its alternative, damon_call() repeat mode.
+DAMON_RECLAIM uses damon_callback for periodically reading and writing
+DAMON internal data and parameters.  Use its alternative, damon_call()
+repeat mode.
 
-Link: https://lkml.kernel.org/r/20250712195016.151108-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250712195016.151108-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/damon/reclaim.c |   62 +++++++++++++++++++++----------------------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-use-damon_call-repeat-mode-instead-of-damon_callback
-+++ a/mm/damon/stat.c
-@@ -122,8 +122,9 @@ static void damon_stat_set_idletime_perc
- 	kfree(sorted_regions);
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-use-damon_call-repeat-mode-instead-of-damon_callback
++++ a/mm/damon/reclaim.c
+@@ -238,6 +238,35 @@ out:
+ 	return err;
  }
  
--static int damon_stat_after_aggregation(struct damon_ctx *c)
-+static int damon_stat_damon_call_fn(void *data)
- {
-+	struct damon_ctx *c = data;
- 	static unsigned long last_refresh_jiffies;
- 
- 	/* avoid unnecessarily frequent stat update */
-@@ -182,19 +183,29 @@ static struct damon_ctx *damon_stat_buil
- 	damon_add_target(ctx, target);
- 	if (damon_set_region_biggest_system_ram_default(target, &start, &end))
- 		goto free_out;
--	ctx->callback.after_aggregation = damon_stat_after_aggregation;
- 	return ctx;
- free_out:
- 	damon_destroy_ctx(ctx);
- 	return NULL;
- }
- 
++static int damon_reclaim_handle_commit_inputs(void)
++{
++	int err;
++
++	if (!commit_inputs)
++		return 0;
++
++	err = damon_reclaim_apply_parameters();
++	commit_inputs = false;
++	return err;
++}
++
++static int damon_reclaim_damon_call_fn(void *arg)
++{
++	struct damon_ctx *c = arg;
++	struct damos *s;
++
++	/* update the stats parameter */
++	damon_for_each_scheme(s, c)
++		damon_reclaim_stat = s->stat;
++
++	return damon_reclaim_handle_commit_inputs();
++}
++
 +static struct damon_call_control call_control = {
-+	.fn = damon_stat_damon_call_fn,
++	.fn = damon_reclaim_damon_call_fn,
 +	.repeat = true,
 +};
 +
- static int damon_stat_start(void)
+ static int damon_reclaim_turn(bool on)
  {
-+	int err;
-+
- 	damon_stat_context = damon_stat_build_ctx();
- 	if (!damon_stat_context)
- 		return -ENOMEM;
--	return damon_start(&damon_stat_context, 1, true);
-+	err = damon_start(&damon_stat_context, 1, true);
-+	if (err)
-+		return err;
-+	call_control.data = damon_stat_context;
-+	return damon_call(damon_stat_context, &call_control);
+ 	int err;
+@@ -257,7 +286,7 @@ static int damon_reclaim_turn(bool on)
+ 	if (err)
+ 		return err;
+ 	kdamond_pid = ctx->kdamond->pid;
+-	return 0;
++	return damon_call(ctx, &call_control);
  }
  
- static void damon_stat_stop(void)
+ static int damon_reclaim_enabled_store(const char *val,
+@@ -296,34 +325,6 @@ module_param_cb(enabled, &enabled_param_
+ MODULE_PARM_DESC(enabled,
+ 	"Enable or disable DAMON_RECLAIM (default: disabled)");
+ 
+-static int damon_reclaim_handle_commit_inputs(void)
+-{
+-	int err;
+-
+-	if (!commit_inputs)
+-		return 0;
+-
+-	err = damon_reclaim_apply_parameters();
+-	commit_inputs = false;
+-	return err;
+-}
+-
+-static int damon_reclaim_after_aggregation(struct damon_ctx *c)
+-{
+-	struct damos *s;
+-
+-	/* update the stats parameter */
+-	damon_for_each_scheme(s, c)
+-		damon_reclaim_stat = s->stat;
+-
+-	return damon_reclaim_handle_commit_inputs();
+-}
+-
+-static int damon_reclaim_after_wmarks_check(struct damon_ctx *c)
+-{
+-	return damon_reclaim_handle_commit_inputs();
+-}
+-
+ static int __init damon_reclaim_init(void)
+ {
+ 	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
+@@ -331,8 +332,7 @@ static int __init damon_reclaim_init(voi
+ 	if (err)
+ 		goto out;
+ 
+-	ctx->callback.after_wmarks_check = damon_reclaim_after_wmarks_check;
+-	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
++	call_control.data = ctx;
+ 
+ 	/* 'enabled' has set before this function, probably via command line */
+ 	if (enabled)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
