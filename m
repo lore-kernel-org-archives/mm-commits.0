@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A75F3225771
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B2EE225771
+	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 22:06:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752358003; cv=none; b=GAvnqMMoCTx7VaA1/dxI3IGfxktkNsDlUX90aiwfV5tisQMBk1iKeLK+03LBYvlTJ1ljck2KDOol82Tea1F5Wupu2GnjiFrUqn/VGxZjuSJgDJ4bxKXRX8kUS4exO9fsEA+8ngF23ru4U0LRFT/G0f8Ie4Pk8NdQ/jDUOgK9W7w=
+	t=1752358005; cv=none; b=HR/9X7Ohp0aKw9BFYP58d+0eY//0wG5p0KHOXKS25/Y6w3KjmmavwbcuZPBd6kWq5ZJQcDoQSTSNS17irAJ8EHrVQrgfCuvcpP4GuUeRhkW0uQR0o194YW9dxZmPynZIfyoDTTl8uOrVa5b5wGputw0R+kDzP37uRtCD6S+9ntU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752358003; c=relaxed/simple;
-	bh=bpL4CFC9Fx7Mw5o7NSXRYRlZq550UU1VT+VHzN1ZBcw=;
-	h=Date:To:From:Subject:Message-Id; b=YmQXSxVA52B0vcQulXC3A4wUPMn+lNFHh/abbOkO0xhTQ1gvgRdYeusH54plBI15RvB4NqOIliONDmH7h/H9iUQRGwO7hBL/5BugzopGgHOGaYTGLfZS+nG1tSDPN/HpehPKY4lR97grtoiB7PDLnwui29Z6bmN9Ur2tba0rPW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x8S5RHYz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752358005; c=relaxed/simple;
+	bh=vSQ5XfHlelDEZLOi5mw3U4V2/+8Ry/6+naePOQ1iByA=;
+	h=Date:To:From:Subject:Message-Id; b=ff7ZClTu2GGJi1WRKTs5DdsNgYfALzU2BU93OmmZ8mJRGotQ2Rxy1vVBW430ox2e/W9X77hH1Bzwe81pVAfo1qGGozO7+MERD4BGTjrL93beO7luYCtcr+U9dzabwkiRB8H0wRPiB1ZyoRkiC+ynDBu8Dy8P+Jv2UZbd7r4zuD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JO3s6nbz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x8S5RHYz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AE78C4CEEF;
-	Sat, 12 Jul 2025 22:06:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JO3s6nbz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E27EC4CEEF;
+	Sat, 12 Jul 2025 22:06:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752358003;
-	bh=bpL4CFC9Fx7Mw5o7NSXRYRlZq550UU1VT+VHzN1ZBcw=;
+	s=korg; t=1752358005;
+	bh=vSQ5XfHlelDEZLOi5mw3U4V2/+8Ry/6+naePOQ1iByA=;
 	h=Date:To:From:Subject:From;
-	b=x8S5RHYzdYtBQDj8wWGo5NlMGFiDoM/zmtDBUaF+ChE6S3TLCqe/U97e+ziuvIJOP
-	 jHy9XMP7dzMPzJEi+j7wMPQZ9tPgIHMmbREfl0AcuUMgbMTC5noTIH3UeZTKcY8BrZ
-	 YKG4fbyAqZo7DtSBU/u7JlvnkP1tDTAxxBOogixY=
-Date: Sat, 12 Jul 2025 15:06:41 -0700
+	b=JO3s6nbzEOUsGwmzIH0qo/bljjqLFnnehhXXZGlLJWG6s1ZL+FGyuGe8K0zXkA0/O
+	 vKxzxjAfU+yLgVPBavT+gcRKq86+Ir6GmL/5TBYV0b94KPrzyce2934Nvvjc9MDXm4
+	 rSizBYfhBdrkPNeMEx/49/xW5XJrurB7sa5eEXSs=
+Date: Sat, 12 Jul 2025 15:06:44 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-destroy-targets-when-kdamond_fn-finish.patch added to mm-new branch
-Message-Id: <20250712220643.7AE78C4CEEF@smtp.kernel.org>
+Subject: + mm-damon-sysfs-remove-damon_sysfs_before_terminate.patch added to mm-new branch
+Message-Id: <20250712220645.4E27EC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: destroy targets when kdamond_fn() finish
+     Subject: mm/damon/sysfs: remove damon_sysfs_before_terminate()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-destroy-targets-when-kdamond_fn-finish.patch
+     mm-damon-sysfs-remove-damon_sysfs_before_terminate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-destroy-targets-when-kdamond_fn-finish.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-damon_sysfs_before_terminate.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,32 +65,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: destroy targets when kdamond_fn() finish
-Date: Sat, 12 Jul 2025 12:50:14 -0700
+Subject: mm/damon/sysfs: remove damon_sysfs_before_terminate()
+Date: Sat, 12 Jul 2025 12:50:15 -0700
 
-When kdamond_fn() completes, the targets are kept.  Those are kept to let
-callers do additional cleanups if they need.  There are no such additional
-cleanups though.  DAMON sysfs interface deallocates those in
-before_terminate() callback, to reduce unnecessary memory usage, for
-[f]vaddr use case.  Just destroy the targets for every case in the core
-layer.  This saves more memory and simplifies the logic.
+DAMON core layer does target cleanup on its own.  Remove duplicated and
+unnecessarily selective cleanup attempts in DAMON sysfs interface.
 
-Link: https://lkml.kernel.org/r/20250712195016.151108-13-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250712195016.151108-14-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/damon/sysfs.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-destroy-targets-when-kdamond_fn-finish
-+++ a/mm/damon/core.c
-@@ -2657,6 +2657,7 @@ done:
- 		running_exclusive_ctxs = false;
- 	mutex_unlock(&damon_lock);
- 
-+	damon_destroy_targets(ctx);
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-damon_sysfs_before_terminate
++++ a/mm/damon/sysfs.c
+@@ -1361,17 +1361,6 @@ static int damon_sysfs_add_targets(struc
  	return 0;
+ }
+ 
+-static void damon_sysfs_before_terminate(struct damon_ctx *ctx)
+-{
+-	struct damon_target *t, *next;
+-
+-	if (!damon_target_has_pid(ctx))
+-		return;
+-
+-	damon_for_each_target_safe(t, next, ctx)
+-		damon_destroy_target(t, ctx);
+-}
+-
+ /*
+  * damon_sysfs_upd_schemes_stats() - Update schemes stats sysfs files.
+  * @data:	The kobject wrapper that associated to the kdamond thread.
+@@ -1516,7 +1505,6 @@ static struct damon_ctx *damon_sysfs_bui
+ 		return ERR_PTR(err);
+ 	}
+ 
+-	ctx->callback.before_terminate = damon_sysfs_before_terminate;
+ 	return ctx;
  }
  
 _
