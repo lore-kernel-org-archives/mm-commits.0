@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9367D20F070
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:34:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF8DF20F076
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:34:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752449660; cv=none; b=PagDjXwmorz6mDQX5cQIPGUpmOvSVpZeUZNcuLum4nhRoBZiKyu+32V+WBSHQJPxRULjqDG1EUT/zCBS91K6yUqUjz1yXs6F3Pa0IwbeDlUGpPCtYn1Vw1UthHT8582SYmI9Rz9XIDNiyOtoYlKxLcjLYIz946+MSVDBqJobEP8=
+	t=1752449661; cv=none; b=dPAb0iDpWj4Hs5MS6nIfShQ+FmL4VJg7nqZAVtWcO2SKNlS5pM0v2XeSAty2I/M9UmDkSr2jNNpQ9+xxpdNuivqG5L3QwHdZmIoOhjq+M98EIKOjDu2sxv7XNmFYBlvC4oHnvaNojpN5EWiQmnasMT05MpItPobACpfjU/E5m5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752449660; c=relaxed/simple;
-	bh=Sc+jqa/8CfQSv/RV7LWgFVSxuo5QgtAivyePA/McC+E=;
-	h=Date:To:From:Subject:Message-Id; b=CksaOv0KVQAextbBiMUJiX5UQu7kx7bjGJYG9VMya1gcMD3fo25fhoKdXE72jfkKVXn0nkZurpo+xL8I24xFn6lX7jx39uGE1Sa4I4YiPWRTo4ka5Spon5SkSSumfPWK3DwVHO7ruQQXFRTGbodMvYj5W5B3HCHzA09PonjWej4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pzfiIJsW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752449661; c=relaxed/simple;
+	bh=IfmLmSfKt40X55MzfyAlr/uFWZno/CMb25OStZ+ZfnQ=;
+	h=Date:To:From:Subject:Message-Id; b=YR9NDG/rptnlmauhysseNk1Y7Mn/Z+4X1JB5zUFEeJrAN9fUHilJ+jUhjZ/qmin9Bz3i6tL0TidXmgDYrXGzyt4Bgzr+8U3Jm+KTLBojw7d1/LL2T97muOcdLM5F2CL/l3QNe5KzTYaYczBs9FScuKuRUHmVgGTLTqMegltMYPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wZ0PiQaZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pzfiIJsW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 097BEC4CEE3;
-	Sun, 13 Jul 2025 23:34:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wZ0PiQaZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4485BC4CEE3;
+	Sun, 13 Jul 2025 23:34:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752449660;
-	bh=Sc+jqa/8CfQSv/RV7LWgFVSxuo5QgtAivyePA/McC+E=;
+	s=korg; t=1752449661;
+	bh=IfmLmSfKt40X55MzfyAlr/uFWZno/CMb25OStZ+ZfnQ=;
 	h=Date:To:From:Subject:From;
-	b=pzfiIJsWZaB4rykblqlVVjRq2ZgNzkkOWMj+CkPEYdW5v9kbFw5o5Gdw/xKvVZpsL
-	 xmYMQJSH0i62C1m9viRWCktdQvJEuv/aeHqvuNujhF1YatrWnikg/9HJDeK+8o/D/3
-	 rk4t763E1csgFjfXgd6c4cbIDl+/a/OYCPkIiNKw=
-Date: Sun, 13 Jul 2025 16:34:19 -0700
+	b=wZ0PiQaZZBrcrDwWF6Gd8z2gMrf6A+Bm4XODC/5Ki11HCeAIEBxKJdFQB2r6FQzyk
+	 itJ6+ZoiZzA2dn8ANDJOqrKL0qYcJftB20Xr/8Qy8Z9576Y4vSobFhNxNg1wvau0xf
+	 R3Vz/pgtem6qHRhRwJAM4QrHjg5xmh5jCBzcechg=
+Date: Sun, 13 Jul 2025 16:34:20 -0700
 To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lkp@intel.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-add-trace-event-for-effective-size-quota-fix.patch removed from -mm tree
-Message-Id: <20250713233420.097BEC4CEE3@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch removed from -mm tree
+Message-Id: <20250713233421.4485BC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: initialize sidx in damos_trace_esz()
+     Subject: mm/damon: make damos_esz unconditional trace event
 has been removed from the -mm tree.  Its filename was
-     mm-damon-add-trace-event-for-effective-size-quota-fix.patch
+     mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
 
 This patch was dropped because it was folded into mm-damon-add-trace-event-for-effective-size-quota.patch
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: initialize sidx in damos_trace_esz()
-Date: Sat, 5 Jul 2025 10:20:03 -0700
+Subject: mm/damon: make damos_esz unconditional trace event
+Date: Wed, 9 Jul 2025 11:22:39 -0700
 
-Commit ae4dc5a31d0f ("mm/damon: add trace event for effective size
-quota") introduced damos_trac_esz(), which uses sidx variable without
-initialization.  Initialize before using it.
+It has no reason to be conditional.  Make it unconditional trace event.
 
-Link: https://lkml.kernel.org/r/20250705172003.52324-1-sj@kernel.org
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202507051517.bs3jd8RW-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20250709182843.35812-1-sj@kernel.org
+Closes: https://lore.kernel.org/20250709122123.779c874f@batman.local.home
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: kernel test robot <lkp@intel.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/damon.h |    8 +++-----
+ mm/damon/core.c              |    2 +-
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-add-trace-event-for-effective-size-quota-fix
-+++ a/mm/damon/core.c
-@@ -2014,7 +2014,7 @@ static void damos_set_effective_quota(st
- static void damos_trace_esz(struct damon_ctx *c, struct damos *s,
- 		struct damos_quota *quota)
- {
--	unsigned int cidx = 0, sidx;
-+	unsigned int cidx = 0, sidx = 0;
- 	struct damos *siter;
+--- a/include/trace/events/damon.h~mm-damon-add-trace-event-for-effective-size-quota-fix-2
++++ a/include/trace/events/damon.h
+@@ -9,14 +9,12 @@
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
  
- 	damon_for_each_scheme(siter, c) {
+-TRACE_EVENT_CONDITION(damos_esz,
++TRACE_EVENT(damos_esz,
+ 
+ 	TP_PROTO(unsigned int context_idx, unsigned int scheme_idx,
+-		unsigned long esz, bool do_trace),
++		unsigned long esz),
+ 
+-	TP_ARGS(context_idx, scheme_idx, esz, do_trace),
+-
+-	TP_CONDITION(do_trace),
++	TP_ARGS(context_idx, scheme_idx, esz),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(unsigned int, context_idx)
+--- a/mm/damon/core.c~mm-damon-add-trace-event-for-effective-size-quota-fix-2
++++ a/mm/damon/core.c
+@@ -2022,7 +2022,7 @@ static void damos_trace_esz(struct damon
+ 			break;
+ 		sidx++;
+ 	}
+-	trace_damos_esz(cidx, sidx, quota->esz, true);
++	trace_damos_esz(cidx, sidx, quota->esz);
+ }
+ 
+ static void damos_adjust_quota(struct damon_ctx *c, struct damos *s)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -86,7 +105,6 @@ selftests-damon-sysfspy-test-adaptive-targets-parameter.patch
 selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch
 mm-damon-add-trace-event-for-auto-tuned-monitoring-intervals.patch
 mm-damon-add-trace-event-for-effective-size-quota.patch
-mm-damon-add-trace-event-for-effective-size-quota-fix-2.patch
 samples-damon-wsse-fix-boot-time-enable-handling.patch
 samples-damon-prcl-fix-boot-time-enable-crash.patch
 samples-damon-mtier-support-boot-time-enable-setup.patch
