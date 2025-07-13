@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E880C1EF38E
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36531211A15
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450031; cv=none; b=LlMojHms6qEdMlzotQ8KdDWFUCezZH+vzS3BCF+qtkXs8wVgWvdt4giiRM4utS+fiTBdvxsfWv3qX6BH3V081d4zxrqeSvZuvoaA3WbhPFLTdj6KzFWZt+PQU5ooBcqfyfFEjzxqXqwwLLTLs+1F5fn3bzdDfsxyl0Gd10N5810=
+	t=1752450032; cv=none; b=dl7DROb8rPclcagk1xilxfhISWz4EW8wXBdbPJpC7hj10AY+W0naA7qS90bSSqUS/hsmO3UGLvXdJwNL3Zy+aUvH1rwModmfRh/k5fDC1c5F9v4fpgmGsQv5PF7886H6ImNy/IsctVt6grKp8sQJY8pfeuKEHw/UYemb3DQ7BjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450031; c=relaxed/simple;
-	bh=ymu8YJG+8fITih7IfX9XkU8KRaHPWGL/dq+TxlTqqwc=;
-	h=Date:To:From:Subject:Message-Id; b=IAC6NaYJBQ+PJbZSwId8ldeQ4NihuTOhOC+Z/W9rphLzyzH33R4SiFvYMvbTZn2TH5HasKz9DoU30r0O3DxQKLgrWV2GxuHKme304r3Rf7fQA7hNqqoj+LB0sLkxYmMajZrS3TFDzI7UBLloXRQIIF9U35rXxl2wcNYEboTbZf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pHiJoAsK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450032; c=relaxed/simple;
+	bh=pzMxaZ34dacnX7TDGK1If+LRyoKdfcUyxzlGqlToUOE=;
+	h=Date:To:From:Subject:Message-Id; b=cZ1zf2M2UZ1TI8hkRuRXsYxFOx3YJ7ir1EtEW86Uu17C+0JaTwkbyWhkO9c+uwo/CzTx/DAbd8273VYKhJrIjQK5IC+8RpuRR8x1Q+3NpSCXYxHU6lXzwWX0qOJrIL2lHo3FQwOFDdabB1w30oqt0sS32sS8UZzc/Uu4EPeMNWY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0YmXJrez; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pHiJoAsK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE7CEC4CEF5;
-	Sun, 13 Jul 2025 23:40:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0YmXJrez"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA81CC4CEE3;
+	Sun, 13 Jul 2025 23:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450030;
-	bh=ymu8YJG+8fITih7IfX9XkU8KRaHPWGL/dq+TxlTqqwc=;
+	s=korg; t=1752450032;
+	bh=pzMxaZ34dacnX7TDGK1If+LRyoKdfcUyxzlGqlToUOE=;
 	h=Date:To:From:Subject:From;
-	b=pHiJoAsKHv8K2V+V03L2NmW86Ssq0za500kW4zbNvhZFCLN2LaHc8ycQy+BZr1yH2
-	 vd6ny/QGFSTXPuDVWSbFFnWwxtT7hvkRRD5ho8cElpHr/WfWxcZUU6EmQywM2+96sJ
-	 2qHIjW9d2QZFmLaIXalBjzO8xmi/beT2sRG8N2OA=
-Date: Sun, 13 Jul 2025 16:40:30 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=0YmXJrez7+ZBgnQKiZ5kJ5XAGrxkRal/VBicm5KxE543OODBp0/c5BINfcgw244Ik
+	 pDIW0JSjEBbKs5AURreBIIg7liaOe6+Z+fuuuqi0IPrbFhxpBP/6JRk4f9OP0aNWCT
+	 Vh3uimVBvfCx3WBPbOSY//xFGc00cqobtUOxOrLQ=
+Date: Sun, 13 Jul 2025 16:40:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,dennis@kernel.org,cl@gentwo.org,aha310510@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch removed from -mm tree
-Message-Id: <20250713234030.BE7CEC4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-percpu-prevent-concurrency-problem-for-pcpu_nr_populated-read-with-spin-lock.patch removed from -mm tree
+Message-Id: <20250713234031.EA81CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,120 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/sysfs.py: test DAMOS schemes parameters setup
+     Subject: mm/percpu: prevent concurrency problem for pcpu_nr_populated read with spin lock
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfspy-test-damos-schemes-parameters-setup.patch
+     mm-percpu-prevent-concurrency-problem-for-pcpu_nr_populated-read-with-spin-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: test DAMOS schemes parameters setup
-Date: Sat, 28 Jun 2025 09:04:28 -0700
+From: Jeongjun Park <aha310510@gmail.com>
+Subject: mm/percpu: prevent concurrency problem for pcpu_nr_populated read with spin lock
+Date: Thu, 3 Jul 2025 15:56:00 +0900
 
-Add DAMON sysfs interface functionality tests for basic DAMOS schemes
-parameters setup.
+pcpu_nr_pages() reads pcpu_nr_populated without any protection, which
+causes a data race between read/write.
 
-Link: https://lkml.kernel.org/r/20250628160428.53115-7-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+However, since this is an intended race, we should add a data_race
+annotation instead of add a spin lock.
+
+[akpm@linux-foundation.org: move pcpu_nr_units multiplication outside data_race(), per Vlastimil]
+Link: https://lkml.kernel.org/r/20250703065600.132221-1-aha310510@gmail.com
+Fixes: 7e8a6304d541 ("/proc/meminfo: add percpu populated pages count")
+Signed-off-by: Jeongjun Park <aha310510@gmail.com>
+Reported-by: syzbot+e5bd32b79413e86f389e@syzkaller.appspotmail.com
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   46 +++++++++++++++++++++--
- 1 file changed, 43 insertions(+), 3 deletions(-)
+ mm/percpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-damos-schemes-parameters-setup
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -29,7 +29,9 @@ def main():
-     kdamonds = _damon_sysfs.Kdamonds(
-             [_damon_sysfs.Kdamond(
-                 contexts=[_damon_sysfs.DamonCtx(
--                    targets=[_damon_sysfs.DamonTarget(pid=-1)])])])
-+                    targets=[_damon_sysfs.DamonTarget(pid=-1)],
-+                    schemes=[_damon_sysfs.Damos()],
-+                    )])])
-     err = kdamonds.start()
-     if err is not None:
-         print('kdamond start failed: %s' % err)
-@@ -66,8 +68,46 @@ def main():
-             { 'pid': 0, 'nr_regions': 0, 'regions_list': []}]:
-         fail('adaptive targets', status)
+--- a/mm/percpu.c~mm-percpu-prevent-concurrency-problem-for-pcpu_nr_populated-read-with-spin-lock
++++ a/mm/percpu.c
+@@ -3355,7 +3355,7 @@ void __init setup_per_cpu_areas(void)
+  */
+ unsigned long pcpu_nr_pages(void)
+ {
+-	return pcpu_nr_populated * pcpu_nr_units;
++	return data_race(READ_ONCE(pcpu_nr_populated)) * pcpu_nr_units;
+ }
  
--    if ctx['schemes'] != []:
--        fail('schemes')
-+    if len(ctx['schemes']) != 1:
-+        fail('number of schemes', status)
-+
-+    scheme = ctx['schemes'][0]
-+    if scheme['pattern'] != {
-+            'min_sz_region': 0,
-+            'max_sz_region': 2**64 - 1,
-+            'min_nr_accesses': 0,
-+            'max_nr_accesses': 2**32 - 1,
-+            'min_age_region': 0,
-+            'max_age_region': 2**32 - 1,
-+            }:
-+        fail('damos pattern', status)
-+    if scheme['action'] != 9:   # stat
-+        fail('damos action', status)
-+    if scheme['apply_interval_us'] != 0:
-+        fail('damos apply interval', status)
-+    if scheme['target_nid'] != -1:
-+        fail('damos target nid', status)
-+
-+    if scheme['quota'] != {
-+            'reset_interval': 0,
-+            'ms': 0,
-+            'sz': 0,
-+            'goals': [],
-+            'esz': 0,
-+            'weight_sz': 0,
-+            'weight_nr_accesses': 0,
-+            'weight_age': 0,
-+            }:
-+        fail('damos quota', status)
-+
-+    if scheme['wmarks'] != {
-+            'metric': 0,
-+            'interval': 0,
-+            'high': 0,
-+            'mid': 0,
-+            'low': 0,
-+            }:
-+        fail('damos wmarks', status)
- 
-     kdamonds.stop()
- 
+ /*
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from aha310510@gmail.com are
 
-samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
-samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
-samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
-mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
-mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
-docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
-mm-damon-add-struct-damos_migrate_dests.patch
-mm-damon-core-add-damos-migrate_dests-field.patch
-mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
-mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
-docs-abi-damon-document-schemes-dests-directory.patch
-docs-admin-guide-mm-damon-usage-document-dests-directory.patch
-mm-damon-accept-parallel-damon_call-requests.patch
-mm-damon-core-introduce-repeat-mode-damon_call.patch
-mm-damon-stat-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-mm-damon-reclaim-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-mm-damon-lru_sort-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-samples-damon-prcl-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-mm-damon-core-do-not-call-opscleanup-when-destroying-targets.patch
-mm-damon-core-add-cleanup_target-ops-callback.patch
-mm-damon-vaddr-put-pid-in-cleanup_target.patch
-mm-damon-sysfs-remove-damon_sysfs_destroy_targets.patch
-mm-damon-core-destroy-targets-when-kdamond_fn-finish.patch
-mm-damon-sysfs-remove-damon_sysfs_before_terminate.patch
-mm-damon-core-remove-damon_callback.patch
 
