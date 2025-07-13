@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A252A231849
-	for <mm-commits@vger.kernel.org>; Sat, 12 Jul 2025 23:54:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5EA91E22E6
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:30:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752364481; cv=none; b=u6a8cN7XpF9n/5ocv5CL7N9cFu7hXa0H/8gbvXCg0dXpuDQZrNx8ttXHJA0rMwsavL0cwKiC7zPYSuUIhGIE/PG/Q7X58EqnRSXPBIbdh2whd6xA2Put7p7QPFMfnXZvHuBlnDo5/9ds+c1k/CSfgdizmVeFZvqmgu2zfGeC1ig=
+	t=1752449409; cv=none; b=ihuOlzU/LBIJ0LxnD2YN1Gc996ELze4fSzxgwiYanVM4aY4FrXrGyjJVXEqdAauhPiSuPrJUO9inKcNnCWYb6hMBSUqswQHORVUEtrcX1ualmjPKnUO0+tP47WfqJKReNDc05XDrB/qNUhCqwuiYDhGNnHa8I2JmpV7jk6DCE1g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752364481; c=relaxed/simple;
-	bh=ZK6J4lnMS2UF9CnyeM7EX9KGdM7mGmKZvYRRWKhO53Y=;
-	h=Date:To:From:Subject:Message-Id; b=LIzog39CxpiiwFaEPU2XGOFSZq2u6wdSg+BnM2TvwiodMPEpU3up2wbVAZI66l6KYXCFYG+A45uZfru6eia4aHzRImgvH50XpD3McKzqGiYGs7GJpUy6i3mu6O9ycjPAbbKqWbBfBN4Xxhc8hziOcD3PvOgiXj94Afbq20DF7V4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DgBDoWaT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752449409; c=relaxed/simple;
+	bh=G1hBcsdF6n8ZCbYF2uikJtEFcByJcsKrstUAYtVJ27Q=;
+	h=Date:To:From:Subject:Message-Id; b=Pc9Ctf9p3CEjfWobFkqm/JjRITApqm6/ebmj6s9k7jlsHYKhhJuWwokVidbGCjQaU8bCaHDD5InDUir49IpKoqrX/VtNfq4T3UtiD0CyPOOpg3wlCCD+aYegC+vfW6CoXOlnRqNjHvuf/U9hrvqEDz4rn91MBopfGI24RZ4WeJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P2tG0kCH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DgBDoWaT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6355AC4CEEF;
-	Sat, 12 Jul 2025 23:54:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P2tG0kCH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 384BDC4CEE3;
+	Sun, 13 Jul 2025 23:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752364481;
-	bh=ZK6J4lnMS2UF9CnyeM7EX9KGdM7mGmKZvYRRWKhO53Y=;
+	s=korg; t=1752449409;
+	bh=G1hBcsdF6n8ZCbYF2uikJtEFcByJcsKrstUAYtVJ27Q=;
 	h=Date:To:From:Subject:From;
-	b=DgBDoWaTDPuKznQMJ2+H2Y3A780SJdhHX56NbPkBlcPVTQH3Nw3+FUCX/4WctZQcc
-	 wZn5+a/I+if7xbbV0akvKZkdwoHixwWmr/m68Iq+p0q1vNeULaWzXP5qwSbxIPLR13
-	 lYrVKyNccG2QMGCKNC6jF+dGx7gakUcf5YDjdUmA=
-Date: Sat, 12 Jul 2025 16:54:40 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,wangkefeng.wang@huawei.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=P2tG0kCHibnca8pDINs2/69oasP7oEuZ9NjB+L8siblqm41+1Rd218zVOdbf3HEhx
+	 zYq4f2i5f4ZqumSUtiZ4B0eB1jYL3nojdNfkPGnEL2n7ULxsTvKqYolwVnjgP8sJY+
+	 av2qO0rA0uNOwzb4Rxt9VOHZd+SQ26FFnPFcUL9A=
+Date: Sun, 13 Jul 2025 16:30:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,jannh@google.com,ioworker0@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-hwpoisoned-large-folio-handling-in-shrink_folio_list-v4.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250712235441.6355AC4CEEF@smtp.kernel.org>
+Subject: [folded-merged] mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma-fix.patch removed from -mm tree
+Message-Id: <20250713233009.384BDC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,71 +34,76 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vmscan: fix hwpoisoned large folio handling in shrink_folio_list
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-fix-hwpoisoned-large-folio-handling-in-shrink_folio_list-v4.patch
+The quilt patch titled
+     Subject: mm/madvise: fix very subtle bug
+has been removed from the -mm tree.  Its filename was
+     mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-hwpoisoned-large-folio-handling-in-shrink_folio_list-v4.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/vmscan: fix hwpoisoned large folio handling in shrink_folio_list
-Date: Fri, 11 Jul 2025 16:55:45 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/madvise: fix very subtle bug
+Date: Tue, 24 Jun 2025 14:14:19 +0100
 
-add comment to unmap_poisoned_folio()
+With thanks to stress-ng --madvise :)
 
-Link: https://lkml.kernel.org/r/69fd4e00-1b13-d5f7-1c82-705c7d977ea4@huawei.com
-Fixes: 1b0449544c64 ("mm/vmscan: don't try to reclaim hwpoison folio")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Reported-by: syzbot+3b220254df55d8ca8a61@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/68412d57.050a0220.2461cf.000e.GAE@google.com/
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+vma may have been updated (in the modify call in madvise_update_vma()), so
+we can't assign prev = vma, we must first reassign vma to
+madv_behavior->vma to account for this, before setting prev = vma.
+
+Link: https://lkml.kernel.org/r/dca94cde-8afb-4eab-8e57-3f508624d670@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-vmscan-fix-hwpoisoned-large-folio-handling-in-shrink_folio_list-v4
-+++ a/mm/memory-failure.c
-@@ -1561,6 +1561,10 @@ static int get_hwpoison_page(struct page
- 	return ret;
- }
+--- a/mm/madvise.c~mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma-fix
++++ a/mm/madvise.c
+@@ -1665,8 +1665,8 @@ int madvise_walk_vmas(struct madvise_beh
+ 			vma = NULL;
+ 			madv_behavior->lock_dropped = false;
+ 		} else {
+-			prev = vma;
+ 			vma = madv_behavior->vma;
++			prev = vma;
+ 		}
  
-+/*
-+ * The caller must guarantee the folio isn't large folio, except hugetlb.
-+ * try_to_unmap() can't handle it.
-+ */
- int unmap_poisoned_folio(struct folio *folio, unsigned long pfn, bool must_kill)
- {
- 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC | TTU_HWPOISON;
+ 		if (vma && range->end < vma->vm_end)
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
-mm-vmscan-fix-hwpoisoned-large-folio-handling-in-shrink_folio_list.patch
-mm-vmscan-fix-hwpoisoned-large-folio-handling-in-shrink_folio_list-v4.patch
+mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
+mm-madvise-thread-mm_struct-through-madvise_behavior.patch
+mm-madvise-thread-vma-range-state-through-madvise_behavior.patch
+mm-madvise-thread-all-madvise-state-through-madv_behavior.patch
+mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
+tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases.patch
+mm-mremap-perform-some-simple-cleanups.patch
+mm-mremap-refactor-initial-parameter-sanity-checks.patch
+mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
+mm-mremap-cleanup-post-processing-stage-of-mremap.patch
+mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
+mm-mremap-check-remap-conditions-earlier.patch
+mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
+mm-mremap-clean-up-mlock-populate-behaviour.patch
+mm-mremap-permit-mremap-move-of-multiple-vmas.patch
+mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
+tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
 
