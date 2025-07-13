@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2906A21FF3F
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5914821FF3F
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450109; cv=none; b=o2aNAaUIrzSTeQdx4H+CaymeefNtnkkQ6AsiefMcrq6ZoWkxZRzVOX04gLteZPQKxIyPvx9N2b1VI1Q0tZo6Gh1Ly8+dsEJhlsWUPOjnpdYG5GI32qZXrXeVY25/ng49NMOmoBQ6Mc9OgYK5grjKOXmpFTk9IDeQYOdh+VZXIJg=
+	t=1752450110; cv=none; b=uAEn479cCzCM82LYLpRZhvZ1y1YdDu7CCoq5vOaiGQQl66Mh5HdbIflKmcQ0Xsbn1k6gCKpGXVdTSoLdMaXS8yuH10BjqrBYPQd1g/mwHLea2wdjlaI+Hmes4q2Yuqrn6RZW6lSd77HKC3nvmwUmorTBwfFpEyKXNpr3/tjbgI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450109; c=relaxed/simple;
-	bh=w/tAjOGUg2/kCK2VAC/BvQvlM74b6qGgOvLd2g+k1vo=;
-	h=Date:To:From:Subject:Message-Id; b=OnZ3tJL7QOzELf4EbF8hSCwo1W/xu8+TF+ByGbhKtrabbTKhc+E8p+g/aLi8eBrPfV5lyy8EcwP1qyefmkFLWJ2eU6TRkSrzr1zoVDijO9vqVdNkdu25lMQdBWYVt6V1WOmQfminE8OOuHSW9B7Rj7aSj6cJyAnUijUmYPI2qxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f7tLrRKC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450110; c=relaxed/simple;
+	bh=JIuWbZ2ohnP8f68Nx++cPBxx6iUA88Zkcxa+7eF8nDk=;
+	h=Date:To:From:Subject:Message-Id; b=CPyIuMfDPj8ZQuotSPuiOBmWvD59Z9ZZUdJ9/4G9YJi0mTLM404txHmdjm1VWCtilr5FUmUgjlg0e0Pbf4Hy9Cq/6e4vKjno4RPNOYDQx1WjZdFctesexL4L6EQKCMc0L/k6WNqie+0l9xIYI5iI5PBwN3FUxmrxnQYjIVe7OcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yeEMtHNo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f7tLrRKC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00FA4C4CEE3;
-	Sun, 13 Jul 2025 23:41:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yeEMtHNo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F535C4CEE3;
+	Sun, 13 Jul 2025 23:41:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450109;
-	bh=w/tAjOGUg2/kCK2VAC/BvQvlM74b6qGgOvLd2g+k1vo=;
+	s=korg; t=1752450110;
+	bh=JIuWbZ2ohnP8f68Nx++cPBxx6iUA88Zkcxa+7eF8nDk=;
 	h=Date:To:From:Subject:From;
-	b=f7tLrRKCFd5jnT3fU+x6KMCt8upXD5Xym8AzCu03hgSNKk8v9BwGUNLKBK228R2jq
-	 yCyA/1P5G56WIzW0LaoyNYApZrZpiEiezMeihhifelgN+Z8P8/cBNGk+rvvtdtl7l6
-	 GpCGfXziBT/1xa5bCiGo75ebraGdaxWLvPEqKpls=
-Date: Sun, 13 Jul 2025 16:41:48 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,dev.jain@arm.com,raghavendra.kt@amd.com,akpm@linux-foundation.org
+	b=yeEMtHNoIYPp18R2xpnLAOcdWMczofJibtL6/ulsY+KtTJih+51Xc+JikcFxo5PMn
+	 71meii950FFyAFo6PxZrZzH287TikRh9IZtB2Zx9L9Pi5Niucn5HYyOEeOT8WiIuRB
+	 VyIGQJD8xwbA7wT0Qo1zIm1jik4soV2Ctejma4+o=
+Date: Sun, 13 Jul 2025 16:41:49 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,osalvador@suse.de,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-test_vmallocc-introduce-xfail-for-failing-tests.patch removed from -mm tree
-Message-Id: <20250713234149.00FA4C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] khugepaged-reduce-race-probability-between-migration-and-khugepaged.patch removed from -mm tree
+Message-Id: <20250713234150.2F535C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/test_vmalloc.c: introduce xfail for failing tests
+     Subject: khugepaged: reduce race probability between migration and khugepaged
 has been removed from the -mm tree.  Its filename was
-     lib-test_vmallocc-introduce-xfail-for-failing-tests.patch
+     khugepaged-reduce-race-probability-between-migration-and-khugepaged.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Raghavendra K T <raghavendra.kt@amd.com>
-Subject: lib/test_vmalloc.c: introduce xfail for failing tests
-Date: Wed, 2 Jul 2025 06:43:19 +0000
+From: Dev Jain <dev.jain@arm.com>
+Subject: khugepaged: reduce race probability between migration and khugepaged
+Date: Fri, 4 Jul 2025 09:34:17 +0530
 
-The test align_shift_alloc_test is expected to fail.  Reporting the test
-as fail confuses to be a genuine failure.  Introduce widely used xfail
-sematics to address the issue.
+Suppose a folio is under migration, and khugepaged is also trying to
+collapse it.  collapse_pte_mapped_thp() will retrieve the folio from the
+page cache via filemap_lock_folio(), thus taking a reference on the folio
+and sleeping on the folio lock, since the lock is held by the migration
+path.  Migration will then fail in __folio_migrate_mapping ->
+folio_ref_freeze.  Reduce the probability of such a race happening
+(leading to migration failure) by bailing out if we detect a PMD is marked
+with a migration entry.
 
-Note: a warn_alloc dump similar to below is still expected:
+This fixes the migration-shared-anon-thp testcase failure on Apple M3.
 
- Call Trace:
-  <TASK>
-  dump_stack_lvl+0x64/0x80
-  warn_alloc+0x137/0x1b0
-  ? __get_vm_area_node+0x134/0x140
+Note that, this is not a "fix" since it only reduces the chance of
+interference of khugepaged with migration, wherein both the kernel
+functionalities are deemed "best-effort".
 
-Snippet of dmesg after change:
-
-Summary: random_size_align_alloc_test passed: 1 failed: 0 xfailed: 0 ..
-Summary: align_shift_alloc_test passed: 0 failed: 0 xfailed: 1 ..
-Summary: pcpu_alloc_test passed: 1 failed: 0 xfailed: 0 ..
-
-Link: https://lkml.kernel.org/r/20250702064319.885-1-raghavendra.kt@amd.com
-Signed-off-by: Raghavendra K T <raghavendra.kt@amd.com>
-Reviewed-by: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Dev Jain <dev.jain@arm.com>
+Link: https://lkml.kernel.org/r/20250704040417.63826-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |   36 +++++++++++++++++++++---------------
- 1 file changed, 21 insertions(+), 15 deletions(-)
+ mm/khugepaged.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/lib/test_vmalloc.c~lib-test_vmallocc-introduce-xfail-for-failing-tests
-+++ a/lib/test_vmalloc.c
-@@ -396,25 +396,27 @@ cleanup:
- struct test_case_desc {
- 	const char *test_name;
- 	int (*test_func)(void);
-+	bool xfail;
- };
+--- a/mm/khugepaged.c~khugepaged-reduce-race-probability-between-migration-and-khugepaged
++++ a/mm/khugepaged.c
+@@ -941,6 +941,14 @@ static inline int check_pmd_state(pmd_t
  
- static struct test_case_desc test_case_array[] = {
--	{ "fix_size_alloc_test", fix_size_alloc_test },
--	{ "full_fit_alloc_test", full_fit_alloc_test },
--	{ "long_busy_list_alloc_test", long_busy_list_alloc_test },
--	{ "random_size_alloc_test", random_size_alloc_test },
--	{ "fix_align_alloc_test", fix_align_alloc_test },
--	{ "random_size_align_alloc_test", random_size_align_alloc_test },
--	{ "align_shift_alloc_test", align_shift_alloc_test },
--	{ "pcpu_alloc_test", pcpu_alloc_test },
--	{ "kvfree_rcu_1_arg_vmalloc_test", kvfree_rcu_1_arg_vmalloc_test },
--	{ "kvfree_rcu_2_arg_vmalloc_test", kvfree_rcu_2_arg_vmalloc_test },
--	{ "vm_map_ram_test", vm_map_ram_test },
-+	{ "fix_size_alloc_test", fix_size_alloc_test, },
-+	{ "full_fit_alloc_test", full_fit_alloc_test, },
-+	{ "long_busy_list_alloc_test", long_busy_list_alloc_test, },
-+	{ "random_size_alloc_test", random_size_alloc_test, },
-+	{ "fix_align_alloc_test", fix_align_alloc_test, },
-+	{ "random_size_align_alloc_test", random_size_align_alloc_test, },
-+	{ "align_shift_alloc_test", align_shift_alloc_test, true },
-+	{ "pcpu_alloc_test", pcpu_alloc_test, },
-+	{ "kvfree_rcu_1_arg_vmalloc_test", kvfree_rcu_1_arg_vmalloc_test, },
-+	{ "kvfree_rcu_2_arg_vmalloc_test", kvfree_rcu_2_arg_vmalloc_test, },
-+	{ "vm_map_ram_test", vm_map_ram_test, },
- 	/* Add a new test case here. */
- };
- 
- struct test_case_data {
- 	int test_failed;
-+	int test_xfailed;
- 	int test_passed;
- 	u64 time;
- };
-@@ -444,7 +446,7 @@ static int test_func(void *private)
- {
- 	struct test_driver *t = private;
- 	int random_array[ARRAY_SIZE(test_case_array)];
--	int index, i, j;
-+	int index, i, j, ret;
- 	ktime_t kt;
- 	u64 delta;
- 
-@@ -468,11 +470,14 @@ static int test_func(void *private)
- 		 */
- 		if (!((run_test_mask & (1 << index)) >> index))
- 			continue;
--
- 		kt = ktime_get();
- 		for (j = 0; j < test_repeat_count; j++) {
--			if (!test_case_array[index].test_func())
-+			ret = test_case_array[index].test_func();
+ 	if (pmd_none(pmde))
+ 		return SCAN_PMD_NONE;
 +
-+			if (!ret && !test_case_array[index].xfail)
- 				t->data[index].test_passed++;
-+			else if (ret && test_case_array[index].xfail)
-+				t->data[index].test_xfailed++;
- 			else
- 				t->data[index].test_failed++;
- 		}
-@@ -576,10 +581,11 @@ static void do_concurrent_test(void)
- 				continue;
- 
- 			pr_info(
--				"Summary: %s passed: %d failed: %d repeat: %d loops: %d avg: %llu usec\n",
-+				"Summary: %s passed: %d failed: %d xfailed: %d repeat: %d loops: %d avg: %llu usec\n",
- 				test_case_array[j].test_name,
- 				t->data[j].test_passed,
- 				t->data[j].test_failed,
-+				t->data[j].test_xfailed,
- 				test_repeat_count, test_loop_count,
- 				t->data[j].time);
- 		}
++	/*
++	 * The folio may be under migration when khugepaged is trying to
++	 * collapse it. Migration success or failure will eventually end
++	 * up with a present PMD mapping a folio again.
++	 */
++	if (is_pmd_migration_entry(pmde))
++		return SCAN_PMD_MAPPED;
+ 	if (!pmd_present(pmde))
+ 		return SCAN_PMD_NULL;
+ 	if (pmd_trans_huge(pmde))
 _
 
-Patches currently in -mm which might be from raghavendra.kt@amd.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
 
