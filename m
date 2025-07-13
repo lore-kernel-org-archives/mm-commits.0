@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45BFE1D54FA
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:39:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5F501D54FA
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752449998; cv=none; b=KCsOuAgLDjIH5QRW73aAgXCZSfFkz0B+oCsJFNtfGMKWyglBE5F3OJ9oic5sNYocEzeBy55trtKfGnwRmR/rxwYyAvKbnx9I49bb7gTxl7r3LzOtkbKSZ4CKHFoTj/GM9+SJCgKs2ftIeucuAE0oMElF5BBzydlg0uWNH65Aqqc=
+	t=1752450000; cv=none; b=tS7Yr3CaDC7KEfpqFWD18O3zbQ8SJ+GG/9kY0F8Y9oRuXn9v3MwpuVXX/veT3qlHsIxEwJDS/6j1nv4q8EZCDrrpSbBXxsO8aOa8Xmv+wRhLa9ENj2+qJNWIexsvn8pZbm1ObOoD4Il1HlAtwPX723VnvYQjsGH26QW1DFkVdOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752449998; c=relaxed/simple;
-	bh=yg0qXIsnhWtJCEgd7rpIzWfKF9T5H3+q1WTUQ82BFtE=;
-	h=Date:To:From:Subject:Message-Id; b=ptLWwRO2ZhH1FKAD6jw3QmnhMJaS/RCPdW4SL0euYfJp3hwckzWd0woB6OE4JktwM8EpQtzWBEpN3SK2MjO7g90rPo9EVHYHevuUtTzBvWNKUUlVMKJnC3uh70SHwYXDWNwCr+Agyyswyt3hNjkgJywjPCyVwTpdCYHcQ7TjaTw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qH/iDCE3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450000; c=relaxed/simple;
+	bh=+7I/SrNRvYXrwk2+LCL5SVj9sp8dE+zxM3TpF1d/aLA=;
+	h=Date:To:From:Subject:Message-Id; b=IKAHYygMLlU5Ek7KG5c2kHi58tD96nMBDNl9DiXBtEIvjn4ksXwTMkVj8RDeKjWI2Po0HxtRGa0TzjcYaFvLZQ9Fn6e64/03ha8iHZmivwa4O/BPyO3pzjrqwFsA/7cEmfhhck5YE+6tnv859pO9UxEkpy+xbd5KniA4VfhTt2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nBr7wfNI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qH/iDCE3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B5B9C4CEE3;
-	Sun, 13 Jul 2025 23:39:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nBr7wfNI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B343C4CEE3;
+	Sun, 13 Jul 2025 23:40:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752449998;
-	bh=yg0qXIsnhWtJCEgd7rpIzWfKF9T5H3+q1WTUQ82BFtE=;
+	s=korg; t=1752450000;
+	bh=+7I/SrNRvYXrwk2+LCL5SVj9sp8dE+zxM3TpF1d/aLA=;
 	h=Date:To:From:Subject:From;
-	b=qH/iDCE30UfwUoJb73z+mDzdyBzLSaZ6kSCVHMI+TxqOU8t/v5jgNF6iAV+iicLXq
-	 TkdTvUpt/JXPWRK5zO4NnMCmNLoVxRA1IHHg7qQBo8Rdeh8JTD+m9Uq8sBlx70xCi+
-	 DA7Zo9coQGbaZH8mjlTg3gFptJOoZ8YYzQScB5DA=
-Date: Sun, 13 Jul 2025 16:39:57 -0700
+	b=nBr7wfNIrXTQvFQapZS5xn1mHZRnNROHgOy3MUDresNTNwL8PaKt+qJFE3e1xvx7P
+	 2EHq0lb3/pC38qpmYezFBFL0rljs5P/K2gwL7TOMhcEuWQ4oyuWu//ZABRA4unMRtG
+	 xvyhHYTCb8F5NdjG1Dm8uTNAn32RN0PEu7IWqovc=
+Date: Sun, 13 Jul 2025 16:40:00 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mmslub-use-node-notifier-instead-of-memory-notifier.patch removed from -mm tree
-Message-Id: <20250713233958.1B5B9C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch removed from -mm tree
+Message-Id: <20250713234000.9B343C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm,slub: use node-notifier instead of memory-notifier
+     Subject: mm,memory-tiers: use node-notifier instead of memory-notifier
 has been removed from the -mm tree.  Its filename was
-     mmslub-use-node-notifier-instead-of-memory-notifier.patch
+     mmmemory-tiers-use-node-notifier-instead-of-memory-notifier.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,slub: use node-notifier instead of memory-notifier
-Date: Mon, 16 Jun 2025 15:51:47 +0200
+Subject: mm,memory-tiers: use node-notifier instead of memory-notifier
+Date: Mon, 16 Jun 2025 15:51:48 +0200
 
-slub is only concerned when a numa node changes its memory state, so stop
-using the memory notifier and use the new numa node notifer instead.
+memory-tier is only concerned when a numa node changes its memory state,
+because it then needs to re-create the demotion list.  So stop using the
+memory notifier and use the new numa node notifer instead.
 
-[akpm@linux-foundation.org: slub.c needs node.h for struct node_notify]
-  Link: https://lore.kernel.org/oe-kbuild-all/202506202144.dGkFxasv-lkp@intel.com/
-Link: https://lkml.kernel.org/r/20250616135158.450136-5-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20250616135158.450136-6-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
@@ -63,85 +62,51 @@ Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   29 ++++++++++-------------------
- 1 file changed, 10 insertions(+), 19 deletions(-)
+ mm/memory-tiers.c |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
---- a/mm/slub.c~mmslub-use-node-notifier-instead-of-memory-notifier
-+++ a/mm/slub.c
-@@ -23,6 +23,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/kasan.h>
-+#include <linux/node.h>
- #include <linux/kmsan.h>
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
-@@ -6149,7 +6150,7 @@ int __kmem_cache_shrink(struct kmem_cach
- 	return __kmem_cache_do_shrink(s);
- }
- 
--static int slab_mem_going_offline_callback(void *arg)
-+static int slab_mem_going_offline_callback(void)
+--- a/mm/memory-tiers.c~mmmemory-tiers-use-node-notifier-instead-of-memory-notifier
++++ a/mm/memory-tiers.c
+@@ -872,25 +872,18 @@ static int __meminit memtier_hotplug_cal
+ 					      unsigned long action, void *_arg)
  {
- 	struct kmem_cache *s;
- 
-@@ -6163,22 +6164,13 @@ static int slab_mem_going_offline_callba
- 	return 0;
- }
- 
--static int slab_mem_going_online_callback(void *arg)
-+static int slab_mem_going_online_callback(int nid)
- {
- 	struct kmem_cache_node *n;
- 	struct kmem_cache *s;
--	struct memory_notify *marg = arg;
--	int nid = marg->status_change_nid;
- 	int ret = 0;
- 
- 	/*
--	 * If the node's memory is already available, then kmem_cache_node is
--	 * already created. Nothing to do.
--	 */
--	if (nid < 0)
--		return 0;
+ 	struct memory_tier *memtier;
+-	struct memory_notify *arg = _arg;
 -
 -	/*
- 	 * We are bringing a node online. No memory is available yet. We must
- 	 * allocate a kmem_cache_node structure in order to bring the node
- 	 * online.
-@@ -6217,17 +6209,16 @@ out:
- static int slab_memory_callback(struct notifier_block *self,
- 				unsigned long action, void *arg)
- {
-+	struct node_notify *nn = arg;
-+	int nid = nn->nid;
- 	int ret = 0;
+-	 * Only update the node migration order when a node is
+-	 * changing status, like online->offline.
+-	 */
+-	if (arg->status_change_nid < 0)
+-		return notifier_from_errno(0);
++	struct node_notify *nn = _arg;
  
  	switch (action) {
--	case MEM_GOING_ONLINE:
--		ret = slab_mem_going_online_callback(arg);
--		break;
--	case MEM_GOING_OFFLINE:
--		ret = slab_mem_going_offline_callback(arg);
-+	case NODE_ADDING_FIRST_MEMORY:
-+		ret = slab_mem_going_online_callback(nid);
+-	case MEM_OFFLINE:
++	case NODE_REMOVED_LAST_MEMORY:
+ 		mutex_lock(&memory_tier_lock);
+-		if (clear_node_memory_tier(arg->status_change_nid))
++		if (clear_node_memory_tier(nn->nid))
+ 			establish_demotion_targets();
+ 		mutex_unlock(&memory_tier_lock);
  		break;
 -	case MEM_ONLINE:
--	case MEM_CANCEL_OFFLINE:
-+	case NODE_REMOVING_LAST_MEMORY:
-+		ret = slab_mem_going_offline_callback();
- 		break;
- 	}
- 	if (ret)
-@@ -6303,7 +6294,7 @@ void __init kmem_cache_init(void)
- 			sizeof(struct kmem_cache_node),
- 			SLAB_HWCACHE_ALIGN | SLAB_NO_OBJ_EXT, 0, 0);
++	case NODE_ADDED_FIRST_MEMORY:
+ 		mutex_lock(&memory_tier_lock);
+-		memtier = set_node_memory_tier(arg->status_change_nid);
++		memtier = set_node_memory_tier(nn->nid);
+ 		if (!IS_ERR(memtier))
+ 			establish_demotion_targets();
+ 		mutex_unlock(&memory_tier_lock);
+@@ -929,7 +922,7 @@ static int __init memory_tier_init(void)
+ 	nodes_and(default_dram_nodes, node_states[N_MEMORY],
+ 		  node_states[N_CPU]);
  
--	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
-+	hotplug_node_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
- 
- 	/* Able to allocate the per node structures */
- 	slab_state = PARTIAL;
+-	hotplug_memory_notifier(memtier_hotplug_callback, MEMTIER_HOTPLUG_PRI);
++	hotplug_node_notifier(memtier_hotplug_callback, MEMTIER_HOTPLUG_PRI);
+ 	return 0;
+ }
+ subsys_initcall(memory_tier_init);
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
