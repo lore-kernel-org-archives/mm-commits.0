@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2679A1EF38E
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8911EF38E
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450098; cv=none; b=Y6ad2GvNB9v/oVivsEeNTgGJUbMaG7KIBfLwxc5RUDD8ZR8zSKi2tR/jBD2WKRAX2YNp6pMTUNsdzwUdg3ooSTfzRPD1J8rfJ4vZG0w66vL6ECHV2leKDFlE48rfDPs+h6gOTSCpFr8cUnYRNWUnYWiqbf1V5CHhq+9MH2azm7g=
+	t=1752450099; cv=none; b=aTh/ZzI36PZPn5y4fyfixnstZKbSIt7AJwn0LgwyLnscBBz2+jpjLVvIJL6ZvKdLwd6jxFYH/CJ2sqouSkaX5VoxirHpJDx5syCnhkzdIoxZXJb3oHL0uYDKsJ3AhtwDl0qf+0qMCmZ2Yd8Cuhc9Y8VlHgTeSnyw7NxDtCbeGOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450098; c=relaxed/simple;
-	bh=J1kURAW/uIhBxU/wkKlbGjwCFNDs9ou3iRKbRaC4V3w=;
-	h=Date:To:From:Subject:Message-Id; b=rCMbfrru+PiEjpogxGkwhhNzU6GNdAm0y5abjpudqnE9IVaX/SfE8+t9OjFZKU/oHi7TrI8cyNV65T9Fn9Q3YhfcqskvXJ/4m5ZJfGJtdwChb4Bqifql/RCKkc4U/Cji6lLrJXx0pUGQzXxVCys9AUyGiRgBnqy77s9Yx35ubXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0cf/g03I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450099; c=relaxed/simple;
+	bh=gYwmhHGE9yfoeQuFkyWLN1qR46WeijDzZ7xnBfPud7c=;
+	h=Date:To:From:Subject:Message-Id; b=QjlyXO2lrCKTqNHZgXH/zC/LofFJjq3n/I5YoHFezirC9tnZYqc47DcodR0amplVXYiSuXfit6aRBhBZHq/6QGCn5EzOVIFe3pCTIIGD9G7Hrw4wfCLv0SRqpea5zE2MJt1V3X37nr9xWAhgejTbluEA4/yuZhAPGrQ7IYNAi5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2q0xXMyd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0cf/g03I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC693C4CEE3;
-	Sun, 13 Jul 2025 23:41:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2q0xXMyd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E74EC4CEE3;
+	Sun, 13 Jul 2025 23:41:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450098;
-	bh=J1kURAW/uIhBxU/wkKlbGjwCFNDs9ou3iRKbRaC4V3w=;
+	s=korg; t=1752450099;
+	bh=gYwmhHGE9yfoeQuFkyWLN1qR46WeijDzZ7xnBfPud7c=;
 	h=Date:To:From:Subject:From;
-	b=0cf/g03IdOEMU+dHm8Qa4C6Pp1LxpNrlYJDhzQ09erEH+sxI44ogIbXHcXHVXDjKE
-	 kpiUlQGZug+kprij7U9Zkvyd0SSSLtuT9HlUWQCb7EFOLwV4tL8G2U4ucImo5ESc/R
-	 s1eOFiQXfjGwCRbIw8OTTdnBqJp8U5+pkcppwGmo=
-Date: Sun, 13 Jul 2025 16:41:37 -0700
+	b=2q0xXMydkOYSJWFEuompK5B4P5HHhcivKvwY6HIEITYmSnZE/rID1omG+D+9dIz9M
+	 4tfX1XzeN446ccD2LkrisVbZcsPOVvukGvPAgt637oTHYtROvf64lNF6NYshTBaV6u
+	 snHeojedbWSHM5p+s4uGQPA0j+J+h1cyZvTRhipE=
+Date: Sun, 13 Jul 2025 16:41:39 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,xuanzhuo@linux.alibaba.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nao.horiguchi@gmail.com,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,mhocko@suse.com,matthew.brost@intel.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,jackmanb@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page-alloc-remove-pagemappingflags.patch removed from -mm tree
-Message-Id: <20250713234137.EC693C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page-flags-remove-folio_mapping_flags.patch removed from -mm tree
+Message-Id: <20250713234139.8E74EC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page-alloc: remove PageMappingFlags()
+     Subject: mm/page-flags: remove folio_mapping_flags()
 has been removed from the -mm tree.  Its filename was
-     mm-page-alloc-remove-pagemappingflags.patch
+     mm-page-flags-remove-folio_mapping_flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page-alloc: remove PageMappingFlags()
-Date: Fri, 4 Jul 2025 12:25:17 +0200
+Subject: mm/page-flags: remove folio_mapping_flags()
+Date: Fri, 4 Jul 2025 12:25:18 +0200
 
-As PageMappingFlags() now only indicates anon (incl.  KSM) folios, we can
-now simply check for PageAnon() and remove PageMappingFlags().
+It's unused and the page counterpart is gone, so let's remove it.
 
-...  and while at it, use the folio instead and operate on folio->mapping.
-
-Link: https://lkml.kernel.org/r/20250704102524.326966-24-david@redhat.com
+Link: https://lkml.kernel.org/r/20250704102524.326966-25-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -104,39 +101,22 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/page-flags.h |    5 -----
- mm/page_alloc.c            |    7 +++----
- 2 files changed, 3 insertions(+), 9 deletions(-)
+ 1 file changed, 5 deletions(-)
 
---- a/include/linux/page-flags.h~mm-page-alloc-remove-pagemappingflags
+--- a/include/linux/page-flags.h~mm-page-flags-remove-folio_mapping_flags
 +++ a/include/linux/page-flags.h
-@@ -723,11 +723,6 @@ static __always_inline bool folio_mappin
- 	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) != 0;
- }
+@@ -718,11 +718,6 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
+ #define PAGE_MAPPING_KSM	(PAGE_MAPPING_ANON | PAGE_MAPPING_ANON_KSM)
+ #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_ANON_KSM)
  
--static __always_inline bool PageMappingFlags(const struct page *page)
+-static __always_inline bool folio_mapping_flags(const struct folio *folio)
 -{
--	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) != 0;
+-	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) != 0;
 -}
 -
  static __always_inline bool folio_test_anon(const struct folio *folio)
  {
  	return ((unsigned long)folio->mapping & PAGE_MAPPING_ANON) != 0;
---- a/mm/page_alloc.c~mm-page-alloc-remove-pagemappingflags
-+++ a/mm/page_alloc.c
-@@ -1375,10 +1375,9 @@ __always_inline bool free_pages_prepare(
- 			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 		}
- 	}
--	if (PageMappingFlags(page)) {
--		if (PageAnon(page))
--			mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
--		page->mapping = NULL;
-+	if (folio_test_anon(folio)) {
-+		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
-+		folio->mapping = NULL;
- 	}
- 	if (unlikely(page_has_type(page)))
- 		/* Reset the page_type (which overlays _mapcount) */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
