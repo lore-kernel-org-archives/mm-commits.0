@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B391EF38E
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7E6C20F070
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450027; cv=none; b=XEjaCjL88ad68hq75wbed96JAiIgdH6UIoSaXR0XtdOwsYgSlJZYuVqic2cCTgrS+8OHYbaS7VJ98oTjmdREfJK+ZJSCqYJ1kDP+pGw6HEOmEwS5vahGhs9tywk0tfujzSZlkrvlK8Z/QhUpKORzOzmbPsnFBAygcf19+/qwXsQ=
+	t=1752450028; cv=none; b=Jz+qPv2ChcV/awWuuigjssVlL1qK0KfIghPbn8To4FvgmB9zQIhjm7RNTYVfxp8gQbLDhIeODlFVSs/OGsuUUnJ1KEOR/U5b/8vpOrXOHWyXE7ft+nZmryoaCZUus3RupRU9MgQw9dXjyrMvc5Dq9v2nJnB0Cqw329ldGzcFTYg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450027; c=relaxed/simple;
-	bh=qiWlcbMpu/VI+yG4aoq3jmirEbpAW078AkTrH+xeB9c=;
-	h=Date:To:From:Subject:Message-Id; b=QvibZnPwPYy05Ze8MrVo+n3gjGjMErb+fgA5XP3bljFeedQ1T6jl7912brDXRh9E78RVrIELRP2y9kGPB4xvSR0rK1bwRrR0hY/GVzZCiGAYsmGse/R/dHcTDl+utgcQ3PkKMhIX8QTf9+NYzHObQz2bkvov+5E4ZhT4geiL+wo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a8jZYz48; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450028; c=relaxed/simple;
+	bh=dTtMjwe/8rrBairE5d2HJPCpPfLLe3neFeD2kJmK1O4=;
+	h=Date:To:From:Subject:Message-Id; b=Nr29GygI/U2+yHmqsma6HHYBK6rEmDOKQALkQtuMhasvfznWfJGj9RzylyjmgzAaquSakAIULodkwMPkbcljvoi+1C0H0PoXPFvWSYlrEDsOGjTGsUMdbfCn5K4wo0IUiu7J1pOu0Oz9sBAllonnHssu8Y9PT6rd/a9P8V6cikY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J8DnyBcn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a8jZYz48"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC0BC4CEE3;
-	Sun, 13 Jul 2025 23:40:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J8DnyBcn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B578C4CEE3;
+	Sun, 13 Jul 2025 23:40:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450027;
-	bh=qiWlcbMpu/VI+yG4aoq3jmirEbpAW078AkTrH+xeB9c=;
+	s=korg; t=1752450028;
+	bh=dTtMjwe/8rrBairE5d2HJPCpPfLLe3neFeD2kJmK1O4=;
 	h=Date:To:From:Subject:From;
-	b=a8jZYz48AE1inAMSRV1fLkPIHa9cp9BQPWtiBtzjQCQlnmuOsWMbdzZp4N/+b8iGU
-	 I54i9OMaZ0NOV2OqRhqc9WckAYbhU3UjI6Zm1x+ubDH0j13yuzjw0z3DHC8qK5sG5J
-	 SESDrmdF8iJ15ePM10jZpVNAcU0Kmy8vvkkrjGBY=
-Date: Sun, 13 Jul 2025 16:40:27 -0700
+	b=J8DnyBcnqDayQ7rE4Umzk1Gw0Pi/Gfw89oUopr5z3z8KQSyfHJMOJDlYqFRSzZWuY
+	 wkRdkpvcj9MYG+zBQWGncf6jNFlnBOU51O/riiQ7Dp7GhmeqklPZBCZNbwhO45t5yV
+	 VKxwr5jR+aBHDo6yOjD3+vsUCakjnxIbvwwbXXLY=
+Date: Sun, 13 Jul 2025 16:40:28 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-add-python-and-drgn-based-damon-sysfs-test.patch removed from -mm tree
-Message-Id: <20250713234027.7EC0BC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-sysfspy-test-monitoring-attribute-parameters.patch removed from -mm tree
+Message-Id: <20250713234028.9B578C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: add python and drgn-based DAMON sysfs test
+     Subject: selftests/damon/sysfs.py: test monitoring attribute parameters
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-add-python-and-drgn-based-damon-sysfs-test.patch
+     selftests-damon-sysfspy-test-monitoring-attribute-parameters.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: add python and drgn-based DAMON sysfs test
-Date: Sat, 28 Jun 2025 09:04:25 -0700
+Subject: selftests/damon/sysfs.py: test monitoring attribute parameters
+Date: Sat, 28 Jun 2025 09:04:26 -0700
 
-Add a python-written DAMON sysfs functionality selftest.  It sets DAMON
-parameters using Python module _damon_sysfs, reads updated kernel internal
-DAMON status and parameters using a 'drgn' script, namely
-drgn_dump_damon_status.py, and compare if the resulted DAMON internal
-status is as expected.  The test is very minimum at the moment.
+Add DAMON sysfs interface functionality tests for DAMON monitoring
+attribute parameters, including intervals, intervals tuning goals, and
+min/max number of regions.
 
-Link: https://lkml.kernel.org/r/20250628160428.53115-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250628160428.53115-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile |    1 
- tools/testing/selftests/damon/sysfs.py |   42 +++++++++++++++++++++++
- 2 files changed, 43 insertions(+)
+ tools/testing/selftests/damon/sysfs.py |   34 +++++++++++++++++++++--
+ 1 file changed, 32 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-add-python-and-drgn-based-damon-sysfs-test
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -7,6 +7,7 @@ TEST_FILES = _damon_sysfs.py
- 
- # functionality tests
- TEST_PROGS += sysfs.sh
-+TEST_PROGS += sysfs.py
- TEST_PROGS += sysfs_update_schemes_tried_regions_wss_estimation.py
- TEST_PROGS += damos_quota.py damos_quota_goal.py damos_apply_interval.py
- TEST_PROGS += damos_tried_regions.py damon_nr_regions.py
-diff --git a/tools/testing/selftests/damon/sysfs.py a/tools/testing/selftests/damon/sysfs.py
-new file mode 100755
---- /dev/null
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-monitoring-attribute-parameters
 +++ a/tools/testing/selftests/damon/sysfs.py
-@@ -0,0 +1,42 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
+@@ -20,6 +20,11 @@ def dump_damon_status_dict(pid):
+     except Exception as e:
+         return None, 'json.load fail (%s)' % e
+ 
++def fail(expectation, status):
++    print('unexpected %s' % expectation)
++    print(json.dumps(status, indent=4))
++    exit(1)
 +
-+import json
-+import os
-+import subprocess
+ def main():
+     kdamonds = _damon_sysfs.Kdamonds(
+             [_damon_sysfs.Kdamond(contexts=[_damon_sysfs.DamonCtx()])])
+@@ -34,8 +39,33 @@ def main():
+         exit(1)
+ 
+     if len(status['contexts']) != 1:
+-        print('number of contexts: %d' % len(status['contexts']))
+-        exit(1)
++        fail('number of contexts', status)
 +
-+import _damon_sysfs
++    ctx = status['contexts'][0]
++    attrs = ctx['attrs']
++    if attrs['sample_interval'] != 5000:
++        fail('sample interval', status)
++    if attrs['aggr_interval'] != 100000:
++        fail('aggr interval', status)
++    if attrs['ops_update_interval'] != 1000000:
++        fail('ops updte interval', status)
 +
-+def dump_damon_status_dict(pid):
-+    file_dir = os.path.dirname(os.path.abspath(__file__))
-+    dump_script = os.path.join(file_dir, 'drgn_dump_damon_status.py')
-+    rc = subprocess.call(['drgn', dump_script, pid, 'damon_dump_output'],
-+                         stderr=subprocess.DEVNULL)
-+    if rc != 0:
-+        return None, 'drgn fail'
-+    try:
-+        with open('damon_dump_output', 'r') as f:
-+            return json.load(f), None
-+    except Exception as e:
-+        return None, 'json.load fail (%s)' % e
++    if attrs['intervals_goal'] != {
++            'access_bp': 0, 'aggrs': 0,
++            'min_sample_us': 0, 'max_sample_us': 0}:
++        fail('intervals goal')
 +
-+def main():
-+    kdamonds = _damon_sysfs.Kdamonds(
-+            [_damon_sysfs.Kdamond(contexts=[_damon_sysfs.DamonCtx()])])
-+    err = kdamonds.start()
-+    if err is not None:
-+        print('kdamond start failed: %s' % err)
-+        exit(1)
++    if attrs['min_nr_regions'] != 10:
++        fail('min_nr_regions')
++    if attrs['max_nr_regions'] != 1000:
++        fail('max_nr_regions')
 +
-+    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+    if err is not None:
-+        print(err)
-+        exit(1)
++    if ctx['adaptive_targets'] != []:
++        fail('adaptive_targets')
 +
-+    if len(status['contexts']) != 1:
-+        print('number of contexts: %d' % len(status['contexts']))
-+        exit(1)
-+    kdamonds.stop()
++    if ctx['schemes'] != []:
++        fail('schemes')
 +
-+if __name__ == '__main__':
-+    main()
+     kdamonds.stop()
+ 
+ if __name__ == '__main__':
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
