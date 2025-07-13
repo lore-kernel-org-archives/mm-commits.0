@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C30C1EF38E
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E101EF38E
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450061; cv=none; b=syyU+2Lp/F1tmYz08mTQJAAGqbxOTZ4qa09uQBwYKC0XGMgiCwDnI29Bnm7Mfi5vatldyhvMzaPsyE/rFoe4PGSFyz9yM7bQGI2uOEA+swSyde6wMbC9WTw5KulKopLWHlKenwgK74WAjijaSfuC1J2zCo4m5os+b1jZoBqJMPc=
+	t=1752450063; cv=none; b=p/5ZHF2GGjG22raB3tKD0qTk9ELCfcHHlnb7crl8WbsaR38qfPT8mq8su3n3UVBoqQZuVv/Va/eBCUUZEiRXoJqL4RNLtInZZHB6+lHqcYYZ6MAq6J3qR0kVMdFVe+m9FmucecDFeS94V534bvugJqn+07AJKmY+ony8uCwO63Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450061; c=relaxed/simple;
-	bh=rgVIy/lP44+mh9JFgDDT6PrVDa4TWvUZV1CauexztYg=;
-	h=Date:To:From:Subject:Message-Id; b=GaKRob9GmhaGzwYebHfJck6DXngJyAnhy4bTqEF28S0ulq1nin/ZH7cnZ7jPr9YlL35VXzPC6v2BUa+FS2rvtWEgqVLaYQFZGLZqE00ubxmUpVKIV1qB9E5GnoG/trgb4Alo0796e8OiNQlBbSS58W18zXUfCKE2HysmpgrqrIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HXrO2Hrc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450063; c=relaxed/simple;
+	bh=1tsOZAOUPsBrTuC5bLFqfsn/6won7Xj/9+0UT0wzvhM=;
+	h=Date:To:From:Subject:Message-Id; b=TVSBwIJACXzdMLOECjxW3jT8tf9wNywwA7eR4M1ry8t+XvmGONioRNodSgpCoojjgkSVTl0PYmbN6Ntq4+cHkutjs7lAOkd/ujomgQmOkdbngSAwG4AN618avsvble4QfyOyB+nBmYeaEOhegAZHSxbdpAV0lFHsFuxzPAcTsYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EHcHgd2R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HXrO2Hrc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B36FC4CEE3;
-	Sun, 13 Jul 2025 23:41:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EHcHgd2R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D80F8C4CEE3;
+	Sun, 13 Jul 2025 23:41:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450061;
-	bh=rgVIy/lP44+mh9JFgDDT6PrVDa4TWvUZV1CauexztYg=;
+	s=korg; t=1752450062;
+	bh=1tsOZAOUPsBrTuC5bLFqfsn/6won7Xj/9+0UT0wzvhM=;
 	h=Date:To:From:Subject:From;
-	b=HXrO2HrcotnukWwme2XSwgholsV0vKKGbcix+JVfL7oEYl/4bjh82CBDTo6cpe2QU
-	 TGXM/FbZjcBuVw7o+E/Zohelf+xeVmoDLwJOuvDNYrO0OtMOsYgG9VkGWGlkin3pOK
-	 LYX8u06pe8LvpLBBOUybrfzue3bQvptooq14eJx8=
-Date: Sun, 13 Jul 2025 16:41:00 -0700
+	b=EHcHgd2Rs3q5qWKw/UUfyXGj3zjgXrKFC7lGfGcEnFU6/NtJ7L8k51DRqI3yu7YG3
+	 yOsVg7OHC1+6jfOoYBBk+bFEfHxTtoph+ZgLDKCADkXlhm9R7Y/ir4UmMUyVbm+taI
+	 OoVuTKkHTsixfuNabEVlxJ0DlrLNmjfyCna30sqQ=
+Date: Sun, 13 Jul 2025 16:41:02 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,xuanzhuo@linux.alibaba.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nao.horiguchi@gmail.com,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,mhocko@suse.com,matthew.brost@intel.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,jackmanb@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-balloon_compaction-make-pageoffline-sticky-until-the-page-is-freed.patch removed from -mm tree
-Message-Id: <20250713234101.3B36FC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed.patch removed from -mm tree
+Message-Id: <20250713234102.D80F8C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/balloon_compaction: make PageOffline sticky until the page is freed
+     Subject: mm/zsmalloc: make PageZsmalloc() sticky until the page is freed
 has been removed from the -mm tree.  Its filename was
-     mm-balloon_compaction-make-pageoffline-sticky-until-the-page-is-freed.patch
+     mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/balloon_compaction: make PageOffline sticky until the page is freed
-Date: Fri, 4 Jul 2025 12:24:59 +0200
+Subject: mm/zsmalloc: make PageZsmalloc() sticky until the page is freed
+Date: Fri, 4 Jul 2025 12:25:00 +0200
 
 Let the page freeing code handle clearing the page type.  Being able to
 identify balloon pages until actually freed is a requirement for upcoming
 movable_ops migration changes.
 
-Link: https://lkml.kernel.org/r/20250704102524.326966-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20250704102524.326966-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Harry Yoo <harry.yoo@oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -93,7 +94,6 @@ Cc: Peter Xu <peterx@redhat.com>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -102,20 +102,51 @@ Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zpdesc.h   |    5 -----
+ mm/zsmalloc.c |    4 ++--
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-make-pageoffline-sticky-until-the-page-is-freed
-+++ a/include/linux/balloon_compaction.h
-@@ -140,7 +140,7 @@ static inline void balloon_page_finalize
- 		__ClearPageMovable(page);
- 		set_page_private(page, 0);
- 	}
--	__ClearPageOffline(page);
-+	/* PageOffline is sticky until the page is freed to the buddy. */
+--- a/mm/zpdesc.h~mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed
++++ a/mm/zpdesc.h
+@@ -163,11 +163,6 @@ static inline void __zpdesc_set_zsmalloc
+ 	__SetPageZsmalloc(zpdesc_page(zpdesc));
  }
  
- /*
+-static inline void __zpdesc_clear_zsmalloc(struct zpdesc *zpdesc)
+-{
+-	__ClearPageZsmalloc(zpdesc_page(zpdesc));
+-}
+-
+ static inline struct zone *zpdesc_zone(struct zpdesc *zpdesc)
+ {
+ 	return page_zone(zpdesc_page(zpdesc));
+--- a/mm/zsmalloc.c~mm-zsmalloc-make-pagezsmalloc-sticky-until-the-page-is-freed
++++ a/mm/zsmalloc.c
+@@ -244,6 +244,7 @@ static inline void free_zpdesc(struct zp
+ {
+ 	struct page *page = zpdesc_page(zpdesc);
+ 
++	/* PageZsmalloc is sticky until the page is freed to the buddy. */
+ 	__free_page(page);
+ }
+ 
+@@ -880,7 +881,7 @@ static void reset_zpdesc(struct zpdesc *
+ 	ClearPagePrivate(page);
+ 	zpdesc->zspage = NULL;
+ 	zpdesc->next = NULL;
+-	__ClearPageZsmalloc(page);
++	/* PageZsmalloc is sticky until the page is freed to the buddy. */
+ }
+ 
+ static int trylock_zspage(struct zspage *zspage)
+@@ -1055,7 +1056,6 @@ static struct zspage *alloc_zspage(struc
+ 		if (!zpdesc) {
+ 			while (--i >= 0) {
+ 				zpdesc_dec_zone_page_state(zpdescs[i]);
+-				__zpdesc_clear_zsmalloc(zpdescs[i]);
+ 				free_zpdesc(zpdescs[i]);
+ 			}
+ 			cache_free_zspage(pool, zspage);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
