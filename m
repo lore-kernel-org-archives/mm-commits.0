@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE457219A9B
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F051B219A9B
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450091; cv=none; b=upsQY7NS+FWH3NngpLTiQDnGj8kmzXR7BmrDComcatBCkdgIxTmKRY6TD2WvUGfQSog5GMMO0XLe/OfGf3wTyPG8BDSvaeH48pFDwkBk8x1vqSf4dBPqTJnSg3dQC/XlDZ6Mz2BaGqhhAkFeGhQna6T7kVaAwOv0cJdKmeagWmA=
+	t=1752450095; cv=none; b=DDKPcpCjSFCdzNWPgLszLrBsMahCUBzdx0WLUkR5mBmZd1rgsUb2GEi18x/anbkWJJ81m8MSnzTA2gSKR5k2uYvv9iAtPoMIVex6c+NJtjlOMZes5Wj9nFjzMV5Wamhppf5G8Q1ePQmwpXi9cOSbDE4j4+ZD1qYIoJDkdI/PrfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450091; c=relaxed/simple;
-	bh=Wugrw8yW3cp+TD2mivL+So6i/8eNbxzQjptkyDdVq/0=;
-	h=Date:To:From:Subject:Message-Id; b=SBmFsolVKcy6R4R3G9Z13lPhF3noH9qjjvs6gIki3lAMC8MqXrk9MssZQx/gowcKGHqoYT4pZBJgXw48K1OfzpJpSLsu+j/ELo3MKb6tTjoQd3SFp8CyaZPdiLgQcZzFIN28qrQHlpPNzWdhHYc658EsBo5AHtfQ2pbOy23C3P4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D3Sq9xHi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450095; c=relaxed/simple;
+	bh=LsCVlr6ELli3qzdO8QuWjXAgV+JENzQa2uUJChMwhiM=;
+	h=Date:To:From:Subject:Message-Id; b=ldhKvzK+0x2a8/yWTABQvMAyLob9RNhp31ie4g2NM3nqgi1gsxH3mqdWOzWdrn4WRw8wKOliUxjuvupff+/SrVc6ChcKSxWqIj1tczTyKSK6wx5p/Ovo+8fp+r1xB3l2QHwLB5wNC10Ide+QKxSO62FQDmxRVjcZUHiBkpnpYdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=emQPOkEj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D3Sq9xHi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D931C4CEE3;
-	Sun, 13 Jul 2025 23:41:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="emQPOkEj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F42C4CEE3;
+	Sun, 13 Jul 2025 23:41:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450091;
-	bh=Wugrw8yW3cp+TD2mivL+So6i/8eNbxzQjptkyDdVq/0=;
+	s=korg; t=1752450094;
+	bh=LsCVlr6ELli3qzdO8QuWjXAgV+JENzQa2uUJChMwhiM=;
 	h=Date:To:From:Subject:From;
-	b=D3Sq9xHizh1x83DjPah+ffX/QfhHc9gBrBufRxUrMASMeb8xbhn7hHR9NwUSHMT3A
-	 1keVKbwky2nDdgkze1NV3Lsuvd1Ybgb8mEyUbT15x1Fhyy2EWCnMzv0wVmfyYMSUx1
-	 lCIYNJjLWp5KZ3PhF+BsWOMBAfHql5BxGVGeBNmw=
-Date: Sun, 13 Jul 2025 16:41:31 -0700
+	b=emQPOkEjdQ6mjNjKwyBXYdUY/72VMT2Q5Z5ETTN+RQdGt+P+UyU3b1gXspoVCKT4H
+	 S7uuw/e9r9eDpl+88YurTEpDsxlzXLA0PJzSQf2vowKN3QafTsTB6/o508VmVoJ91z
+	 GTDZe6gvYsmScS4YQZf6Qb0HlU3FsA+6Y41O1e3c=
+Date: Sun, 13 Jul 2025 16:41:34 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,xuanzhuo@linux.alibaba.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nao.horiguchi@gmail.com,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,mhocko@suse.com,matthew.brost@intel.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,jackmanb@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-movable-flag-in-page-mapping-to-a-page-flag.patch removed from -mm tree
-Message-Id: <20250713234131.8D931C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch removed from -mm tree
+Message-Id: <20250713234134.C0F42C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert "movable" flag in page->mapping to a page flag
+     Subject: mm: rename PG_isolated to PG_movable_ops_isolated
 has been removed from the -mm tree.  Its filename was
-     mm-convert-movable-flag-in-page-mapping-to-a-page-flag.patch
+     mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: convert "movable" flag in page->mapping to a page flag
-Date: Fri, 4 Jul 2025 12:25:14 +0200
+Subject: mm: rename PG_isolated to PG_movable_ops_isolated
+Date: Fri, 4 Jul 2025 12:25:15 +0200
 
-Instead, let's use a page flag.  As the page flag can result in
-false-positives, glue it to the page types for which we support/implement
-movable_ops page migration.
+Let's rename the flag to make it clearer where it applies (not folios
+...).
 
-We are reusing PG_uptodate, that is for example used to track file system
-state and does not apply to movable_ops pages.  So warning in case it is
-set in page_has_movable_ops() on other page types could result in
-false-positive warnings.
+While at it, define the flag only with CONFIG_MIGRATION.
 
-Likely we could set the bit using a non-atomic update: in contrast to
-page->mapping, we could have others trying to update the flags
-concurrently when trying to lock the folio.  In
-isolate_movable_ops_page(), we already take care of that by checking if
-the page has movable_ops before locking it.  Let's start with the atomic
-variant, we could later switch to the non-atomic variant once we are sure
-other cases are similarly fine.  Once we perform the switch, we'll have to
-introduce __SETPAGEFLAG_NOOP().
-
-[david@redhat.com: add missing `:' in kerneldoc]
-  Link: https://lkml.kernel.org/r/d96e2916-2c43-462c-b6a1-2375ef397d8b@redhat.com
-Link: https://lkml.kernel.org/r/20250704102524.326966-21-david@redhat.com
+Link: https://lkml.kernel.org/r/20250704102524.326966-22-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -82,7 +68,6 @@ Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Eugenio Pé rez <eperezma@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Gregory Price <gourry@gourry.net>
-Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -118,151 +103,113 @@ Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |    2 -
- include/linux/migrate.h            |    8 ----
- include/linux/page-flags.h         |   54 ++++++++++++++++++++++-----
- mm/compaction.c                    |    6 ---
- mm/zpdesc.h                        |    2 -
- 5 files changed, 46 insertions(+), 26 deletions(-)
+ include/linux/page-flags.h |   16 +++++++++++-----
+ mm/compaction.c            |    2 +-
+ mm/migrate.c               |   14 +++++++-------
+ 3 files changed, 19 insertions(+), 13 deletions(-)
 
---- a/include/linux/balloon_compaction.h~mm-convert-movable-flag-in-page-mapping-to-a-page-flag
-+++ a/include/linux/balloon_compaction.h
-@@ -92,7 +92,7 @@ static inline void balloon_page_insert(s
- 				       struct page *page)
- {
- 	__SetPageOffline(page);
--	__SetPageMovable(page);
-+	SetPageMovableOps(page);
- 	set_page_private(page, (unsigned long)balloon);
- 	list_add(&page->lru, &balloon->pages);
- }
---- a/include/linux/migrate.h~mm-convert-movable-flag-in-page-mapping-to-a-page-flag
-+++ a/include/linux/migrate.h
-@@ -103,14 +103,6 @@ static inline int migrate_huge_page_move
+--- a/include/linux/page-flags.h~mm-rename-pg_isolated-to-pg_movable_ops_isolated
++++ a/include/linux/page-flags.h
+@@ -167,10 +167,9 @@ enum pageflags {
+ 	/* Remapped by swiotlb-xen. */
+ 	PG_xen_remapped = PG_owner_priv_1,
  
+-	/* non-lru isolated movable page */
+-	PG_isolated = PG_reclaim,
+-
+ #ifdef CONFIG_MIGRATION
++	/* movable_ops page that is isolated for migration */
++	PG_movable_ops_isolated = PG_reclaim,
+ 	/* this is a movable_ops page (for selected typed pages only) */
+ 	PG_movable_ops = PG_uptodate,
+ #endif
+@@ -1126,8 +1125,6 @@ static inline bool folio_contain_hwpoiso
+ 
+ bool is_free_buddy_page(const struct page *page);
+ 
+-PAGEFLAG(Isolated, isolated, PF_ANY);
+-
+ #ifdef CONFIG_MIGRATION
+ /*
+  * This page is migratable through movable_ops (for selected typed pages
+@@ -1147,9 +1144,18 @@ PAGEFLAG(Isolated, isolated, PF_ANY);
+  */
+ TESTPAGEFLAG(MovableOps, movable_ops, PF_NO_TAIL);
+ SETPAGEFLAG(MovableOps, movable_ops, PF_NO_TAIL);
++/*
++ * A movable_ops page has this flag set while it is isolated for migration.
++ * This flag primarily protects against concurrent migration attempts.
++ *
++ * Once migration ended (success or failure), the flag is cleared. The
++ * flag is managed by the migration core.
++ */
++PAGEFLAG(MovableOpsIsolated, movable_ops_isolated, PF_NO_TAIL);
+ #else /* !CONFIG_MIGRATION */
+ TESTPAGEFLAG_FALSE(MovableOps, movable_ops);
+ SETPAGEFLAG_NOOP(MovableOps, movable_ops);
++PAGEFLAG_FALSE(MovableOpsIsolated, movable_ops_isolated);
  #endif /* CONFIG_MIGRATION */
  
--#ifdef CONFIG_COMPACTION
--void __SetPageMovable(struct page *page);
--#else
--static inline void __SetPageMovable(struct page *page)
--{
--}
--#endif
--
- #ifdef CONFIG_NUMA_BALANCING
- int migrate_misplaced_folio_prepare(struct folio *folio,
- 		struct vm_area_struct *vma, int node);
---- a/include/linux/page-flags.h~mm-convert-movable-flag-in-page-mapping-to-a-page-flag
-+++ a/include/linux/page-flags.h
-@@ -170,6 +170,11 @@ enum pageflags {
- 	/* non-lru isolated movable page */
- 	PG_isolated = PG_reclaim,
- 
-+#ifdef CONFIG_MIGRATION
-+	/* this is a movable_ops page (for selected typed pages only) */
-+	PG_movable_ops = PG_uptodate,
-+#endif
-+
- 	/* Only valid for buddy pages. Used to track pages that are reported */
- 	PG_reported = PG_uptodate,
- 
-@@ -698,9 +703,6 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
-  * bit; and then folio->mapping points, not to an anon_vma, but to a private
-  * structure which KSM associates with that merged page.  See ksm.h.
-  *
-- * PAGE_MAPPING_KSM without PAGE_MAPPING_ANON is used for non-lru movable
-- * page and then folio->mapping points to a struct movable_operations.
-- *
-  * Please note that, confusingly, "folio_mapping" refers to the inode
-  * address_space which maps the folio from disk; whereas "folio_mapped"
-  * refers to user virtual address space into which the folio is mapped.
-@@ -743,13 +745,6 @@ static __always_inline bool PageAnon(con
- {
- 	return folio_test_anon(page_folio(page));
- }
--
--static __always_inline bool page_has_movable_ops(const struct page *page)
--{
--	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
--				PAGE_MAPPING_MOVABLE;
--}
--
- #ifdef CONFIG_KSM
- /*
-  * A KSM page is one of those write-protected "shared pages" or "merged pages"
-@@ -1133,6 +1128,45 @@ bool is_free_buddy_page(const struct pag
- 
- PAGEFLAG(Isolated, isolated, PF_ANY);
- 
-+#ifdef CONFIG_MIGRATION
-+/*
-+ * This page is migratable through movable_ops (for selected typed pages
-+ * only).
-+ *
-+ * Page migration of such pages might fail, for example, if the page is
-+ * already isolated by somebody else, or if the page is about to get freed.
-+ *
-+ * While a subsystem might set selected typed pages that support page migration
-+ * as being movable through movable_ops, it must never clear this flag.
-+ *
-+ * This flag is only cleared when the page is freed back to the buddy.
-+ *
-+ * Only selected page types support this flag (see page_movable_ops()) and
-+ * the flag might be used in other context for other pages. Always use
-+ * page_has_movable_ops() instead.
-+ */
-+TESTPAGEFLAG(MovableOps, movable_ops, PF_NO_TAIL);
-+SETPAGEFLAG(MovableOps, movable_ops, PF_NO_TAIL);
-+#else /* !CONFIG_MIGRATION */
-+TESTPAGEFLAG_FALSE(MovableOps, movable_ops);
-+SETPAGEFLAG_NOOP(MovableOps, movable_ops);
-+#endif /* CONFIG_MIGRATION */
-+
-+/**
-+ * page_has_movable_ops - test for a movable_ops page
-+ * @page: The page to test.
-+ *
-+ * Test whether this is a movable_ops page. Such pages will stay that
-+ * way until freed.
-+ *
-+ * Returns true if this is a movable_ops page, otherwise false.
-+ */
-+static inline bool page_has_movable_ops(const struct page *page)
-+{
-+	return PageMovableOps(page) &&
-+	       (PageOffline(page) || PageZsmalloc(page));
-+}
-+
- static __always_inline int PageAnonExclusive(const struct page *page)
- {
- 	VM_BUG_ON_PGFLAGS(!PageAnon(page), page);
---- a/mm/compaction.c~mm-convert-movable-flag-in-page-mapping-to-a-page-flag
+ /**
+--- a/mm/compaction.c~mm-rename-pg_isolated-to-pg_movable_ops_isolated
 +++ a/mm/compaction.c
-@@ -114,12 +114,6 @@ static unsigned long release_free_list(s
+@@ -1051,7 +1051,7 @@ isolate_migratepages_block(struct compac
+ 		if (!PageLRU(page)) {
+ 			/* Isolation code will deal with any races. */
+ 			if (unlikely(page_has_movable_ops(page)) &&
+-					!PageIsolated(page)) {
++			    !PageMovableOpsIsolated(page)) {
+ 				if (locked) {
+ 					unlock_page_lruvec_irqrestore(locked, flags);
+ 					locked = NULL;
+--- a/mm/migrate.c~mm-rename-pg_isolated-to-pg_movable_ops_isolated
++++ a/mm/migrate.c
+@@ -135,7 +135,7 @@ bool isolate_movable_ops_page(struct pag
+ 		goto out_putfolio;
+ 
+ 	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(page), page);
+-	if (PageIsolated(page))
++	if (PageMovableOpsIsolated(page))
+ 		goto out_no_isolated;
+ 
+ 	mops = page_movable_ops(page);
+@@ -146,8 +146,8 @@ bool isolate_movable_ops_page(struct pag
+ 		goto out_no_isolated;
+ 
+ 	/* Driver shouldn't use the isolated flag */
+-	VM_WARN_ON_ONCE_PAGE(PageIsolated(page), page);
+-	SetPageIsolated(page);
++	VM_WARN_ON_ONCE_PAGE(PageMovableOpsIsolated(page), page);
++	SetPageMovableOpsIsolated(page);
+ 	folio_unlock(folio);
+ 
+ 	return true;
+@@ -177,10 +177,10 @@ static void putback_movable_ops_page(str
+ 	struct folio *folio = page_folio(page);
+ 
+ 	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(page), page);
+-	VM_WARN_ON_ONCE_PAGE(!PageIsolated(page), page);
++	VM_WARN_ON_ONCE_PAGE(!PageMovableOpsIsolated(page), page);
+ 	folio_lock(folio);
+ 	page_movable_ops(page)->putback_page(page);
+-	ClearPageIsolated(page);
++	ClearPageMovableOpsIsolated(page);
+ 	folio_unlock(folio);
+ 	folio_put(folio);
+ }
+@@ -218,10 +218,10 @@ static int migrate_movable_ops_page(stru
+ 	int rc = MIGRATEPAGE_SUCCESS;
+ 
+ 	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(src), src);
+-	VM_WARN_ON_ONCE_PAGE(!PageIsolated(src), src);
++	VM_WARN_ON_ONCE_PAGE(!PageMovableOpsIsolated(src), src);
+ 	rc = page_movable_ops(src)->migrate_page(dst, src, mode);
+ 	if (rc == MIGRATEPAGE_SUCCESS)
+-		ClearPageIsolated(src);
++		ClearPageMovableOpsIsolated(src);
+ 	return rc;
  }
  
- #ifdef CONFIG_COMPACTION
--void __SetPageMovable(struct page *page)
--{
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	page->mapping = (void *)(PAGE_MAPPING_MOVABLE);
--}
--EXPORT_SYMBOL(__SetPageMovable);
- 
- /* Do not skip compaction more than 64 times */
- #define COMPACT_MAX_DEFER_SHIFT 6
---- a/mm/zpdesc.h~mm-convert-movable-flag-in-page-mapping-to-a-page-flag
-+++ a/mm/zpdesc.h
-@@ -154,7 +154,7 @@ static inline struct zpdesc *pfn_zpdesc(
- 
- static inline void __zpdesc_set_movable(struct zpdesc *zpdesc)
- {
--	__SetPageMovable(zpdesc_page(zpdesc));
-+	SetPageMovableOps(zpdesc_page(zpdesc));
- }
- 
- static inline void __zpdesc_set_zsmalloc(struct zpdesc *zpdesc)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
