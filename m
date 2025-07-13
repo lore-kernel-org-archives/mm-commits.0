@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF660219A9B
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5186C1EF38E
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450086; cv=none; b=kgOrgoBjOJ2ed3MJzAFYQUTucEcEzKlql/mpCbwOw5VmqiIrsYK0Jm45HP4YKwbSQaCNEDWXTmhqbvV8LfSmNCm82GGAFHtEsIPiSQAxtV9RO+kBTca/J+hfSsEOQIFbCvjwTxBpN8p1MHM+Q838BH7E2UWWjaucwj5y/YP/2Y4=
+	t=1752450089; cv=none; b=seH0J6vCPnqY6ZyoL2dQx7EI3hE5l2GYbgeNKr4+OdvzmTxassXeXl/+QtZwQsnJtZ0YXL0u1RTv2j/7/7hQttdLzNaNC5pFv06ir4e4Sixp+PB+VkvriAsVB8k0jdB6sSHKfYmiIk5BdhSXp00tVN/1T+5G4LK4np1WDQQcP1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450086; c=relaxed/simple;
-	bh=Yc9TIoPLImvXL/vkCkMSRAIsbw7ycplHMg1nOnvNTvM=;
-	h=Date:To:From:Subject:Message-Id; b=q6xNgb5mMc4rj6rXXPCt5zER4rFw6wfWhxyZsotKwJHD4uhWtWOfoByTs112SMFEGDIxL+DPe9FEZNUJMloGyfD/yCjVWf+EVv8v0XRvOa1EdyPovEObIcpmzcufCJMeAFC2AuqoOKb+DWi03eijyZCX8XJYknScTdiCX3mIIEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rQE24Qip; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450089; c=relaxed/simple;
+	bh=L8dX/1X0r2a5xwcm6/IXxGwk27bughBLs4BsAR8U7vU=;
+	h=Date:To:From:Subject:Message-Id; b=Mrs+uUbaL/1PPU+3r2jbW1LjtNG6Pu8nlQDMJAgbwXhmvq5n97zMQGMtzl90ogjk1uiijz7b1tI2AkkBfUe4etlWFVKiOgb68kEhpp5U/v5G0jGBDSr1KSeeYMPKjcNnjVElvRfy8Er72ajrqNNmAB1uVZLmfO/MTHH7siTgg5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WrB8ytPT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rQE24Qip"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99C6EC4CEE3;
-	Sun, 13 Jul 2025 23:41:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WrB8ytPT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19B9AC4CEE3;
+	Sun, 13 Jul 2025 23:41:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450086;
-	bh=Yc9TIoPLImvXL/vkCkMSRAIsbw7ycplHMg1nOnvNTvM=;
+	s=korg; t=1752450089;
+	bh=L8dX/1X0r2a5xwcm6/IXxGwk27bughBLs4BsAR8U7vU=;
 	h=Date:To:From:Subject:From;
-	b=rQE24QipRls9ua8Ny7ZfLQljvjw7mavw+gWKh5srm+PckAJoBUgsx59FauWOWavbc
-	 hvTZsjoLhbIVUY/+HtCcncFyE6PRmMJQ5UilOz8efAS/fLQqCAoTW70XqaDy9RiwwC
-	 M0yFwihx4XDciggg+sZHBccLPdKWwFxApWD7wIwU=
-Date: Sun, 13 Jul 2025 16:41:26 -0700
+	b=WrB8ytPTPouX1O/v0Igp8TKz7h4sD6qxejV/jM2ESl8xQJk+00YA+kcdRMd4+Vzuo
+	 PZ+qnGfq0zQLdTuxBUl0NPEfajpDBt3BUn9mUuEKMxBAaJLbo5V2n7R/HbJ8PphT5I
+	 ZbJzFRnOVvz8zPF8Pa7NJTaVkek4g0oqRAVK3HDk=
+Date: Sun, 13 Jul 2025 16:41:28 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,xuanzhuo@linux.alibaba.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nao.horiguchi@gmail.com,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,mhocko@suse.com,matthew.brost@intel.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,jackmanb@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-__folio_test_movable.patch removed from -mm tree
-Message-Id: <20250713234126.99C6EC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-stop-storing-migration_ops-in-page-mapping.patch removed from -mm tree
+Message-Id: <20250713234129.19B9AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove __folio_test_movable()
+     Subject: mm: stop storing migration_ops in page->mapping
 has been removed from the -mm tree.  Its filename was
-     mm-remove-__folio_test_movable.patch
+     mm-stop-storing-migration_ops-in-page-mapping.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove __folio_test_movable()
-Date: Fri, 4 Jul 2025 12:25:12 +0200
+Subject: mm: stop storing migration_ops in page->mapping
+Date: Fri, 4 Jul 2025 12:25:13 +0200
 
-Convert to page_has_movable_ops().  While at it, cleanup relevant code a
-bit.
+...  instead, look them up statically based on the page type.  Maybe in
+the future we want a registration interface?  At least for now, it can be
+easily handled using the two page types that actually support page
+migration.
 
-The data_race() in migrate_folio_unmap() is questionable: we already hold
-a page reference, and concurrent modifications can no longer happen (iow:
-__ClearPageMovable() no longer exists).  Drop it for now, we'll rework
-page_has_movable_ops() soon either way to no longer rely on page->mapping.
+The remaining usage of page->mapping is to flag such pages as actually
+being movable (having movable_ops), which we will change next.
 
-Wherever we cast from folio to page now is a clear sign that this code has
-to be decoupled.
-
-Link: https://lkml.kernel.org/r/20250704102524.326966-19-david@redhat.com
+Link: https://lkml.kernel.org/r/20250704102524.326966-20-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -109,134 +106,181 @@ Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 ----
- mm/migrate.c               |   43 ++++++++++-------------------------
- mm/vmscan.c                |    6 +++-
- 3 files changed, 17 insertions(+), 38 deletions(-)
+ include/linux/balloon_compaction.h |    2 +-
+ include/linux/migrate.h            |   14 ++------------
+ include/linux/zsmalloc.h           |    2 ++
+ mm/balloon_compaction.c            |    1 -
+ mm/compaction.c                    |    5 ++---
+ mm/migrate.c                       |   23 +++++++++++++++++++++++
+ mm/zpdesc.h                        |    5 ++---
+ mm/zsmalloc.c                      |    8 +++-----
+ 8 files changed, 35 insertions(+), 25 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-__folio_test_movable
-+++ a/include/linux/page-flags.h
-@@ -744,12 +744,6 @@ static __always_inline bool PageAnon(con
- 	return folio_test_anon(page_folio(page));
+--- a/include/linux/balloon_compaction.h~mm-stop-storing-migration_ops-in-page-mapping
++++ a/include/linux/balloon_compaction.h
+@@ -92,7 +92,7 @@ static inline void balloon_page_insert(s
+ 				       struct page *page)
+ {
+ 	__SetPageOffline(page);
+-	__SetPageMovable(page, &balloon_mops);
++	__SetPageMovable(page);
+ 	set_page_private(page, (unsigned long)balloon);
+ 	list_add(&page->lru, &balloon->pages);
  }
+--- a/include/linux/migrate.h~mm-stop-storing-migration_ops-in-page-mapping
++++ a/include/linux/migrate.h
+@@ -104,23 +104,13 @@ static inline int migrate_huge_page_move
+ #endif /* CONFIG_MIGRATION */
  
--static __always_inline bool __folio_test_movable(const struct folio *folio)
+ #ifdef CONFIG_COMPACTION
+-void __SetPageMovable(struct page *page, const struct movable_operations *ops);
++void __SetPageMovable(struct page *page);
+ #else
+-static inline void __SetPageMovable(struct page *page,
+-		const struct movable_operations *ops)
++static inline void __SetPageMovable(struct page *page)
+ {
+ }
+ #endif
+ 
+-static inline
+-const struct movable_operations *page_movable_ops(struct page *page)
 -{
--	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) ==
--			PAGE_MAPPING_MOVABLE;
+-	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(page), page);
+-
+-	return (const struct movable_operations *)
+-		((unsigned long)page->mapping - PAGE_MAPPING_MOVABLE);
 -}
 -
- static __always_inline bool page_has_movable_ops(const struct page *page)
- {
- 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
---- a/mm/migrate.c~mm-remove-__folio_test_movable
-+++ a/mm/migrate.c
-@@ -221,12 +221,7 @@ void putback_movable_pages(struct list_h
- 			continue;
- 		}
- 		list_del(&folio->lru);
--		/*
--		 * We isolated non-lru movable folio so here we can use
--		 * __folio_test_movable because LRU folio's mapping cannot
--		 * have PAGE_MAPPING_MOVABLE.
--		 */
--		if (unlikely(__folio_test_movable(folio))) {
-+		if (unlikely(page_has_movable_ops(&folio->page))) {
- 			putback_movable_ops_page(&folio->page);
- 		} else {
- 			node_stat_mod_folio(folio, NR_ISOLATED_ANON +
-@@ -239,26 +234,20 @@ void putback_movable_pages(struct list_h
- /* Must be called with an elevated refcount on the non-hugetlb folio */
- bool isolate_folio_to_list(struct folio *folio, struct list_head *list)
- {
--	bool isolated, lru;
--
- 	if (folio_test_hugetlb(folio))
- 		return folio_isolate_hugetlb(folio, list);
+ #ifdef CONFIG_NUMA_BALANCING
+ int migrate_misplaced_folio_prepare(struct folio *folio,
+ 		struct vm_area_struct *vma, int node);
+--- a/include/linux/zsmalloc.h~mm-stop-storing-migration_ops-in-page-mapping
++++ a/include/linux/zsmalloc.h
+@@ -46,4 +46,6 @@ void zs_obj_read_end(struct zs_pool *poo
+ void zs_obj_write(struct zs_pool *pool, unsigned long handle,
+ 		  void *handle_mem, size_t mem_len);
  
--	lru = !__folio_test_movable(folio);
--	if (lru)
--		isolated = folio_isolate_lru(folio);
--	else
--		isolated = isolate_movable_ops_page(&folio->page,
--						    ISOLATE_UNEVICTABLE);
--
--	if (!isolated)
--		return false;
--
--	list_add(&folio->lru, list);
--	if (lru)
-+	if (page_has_movable_ops(&folio->page)) {
-+		if (!isolate_movable_ops_page(&folio->page,
-+					      ISOLATE_UNEVICTABLE))
-+			return false;
-+	} else {
-+		if (!folio_isolate_lru(folio))
-+			return false;
- 		node_stat_add_folio(folio, NR_ISOLATED_ANON +
- 				    folio_is_file_lru(folio));
--
-+	}
-+	list_add(&folio->lru, list);
- 	return true;
++extern const struct movable_operations zsmalloc_mops;
++
+ #endif
+--- a/mm/balloon_compaction.c~mm-stop-storing-migration_ops-in-page-mapping
++++ a/mm/balloon_compaction.c
+@@ -253,6 +253,5 @@ const struct movable_operations balloon_
+ 	.isolate_page = balloon_page_isolate,
+ 	.putback_page = balloon_page_putback,
+ };
+-EXPORT_SYMBOL_GPL(balloon_mops);
+ 
+ #endif /* CONFIG_BALLOON_COMPACTION */
+--- a/mm/compaction.c~mm-stop-storing-migration_ops-in-page-mapping
++++ a/mm/compaction.c
+@@ -114,11 +114,10 @@ static unsigned long release_free_list(s
  }
  
-@@ -1142,12 +1131,7 @@ static void migrate_folio_undo_dst(struc
- static void migrate_folio_done(struct folio *src,
- 			       enum migrate_reason reason)
+ #ifdef CONFIG_COMPACTION
+-void __SetPageMovable(struct page *page, const struct movable_operations *mops)
++void __SetPageMovable(struct page *page)
  {
--	/*
--	 * Compaction can migrate also non-LRU pages which are
--	 * not accounted to NR_ISOLATED_*. They can be recognized
--	 * as __folio_test_movable
--	 */
--	if (likely(!__folio_test_movable(src)) && reason != MR_DEMOTION)
-+	if (likely(!page_has_movable_ops(&src->page)) && reason != MR_DEMOTION)
- 		mod_node_page_state(folio_pgdat(src), NR_ISOLATED_ANON +
- 				    folio_is_file_lru(src), -folio_nr_pages(src));
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+-	VM_BUG_ON_PAGE((unsigned long)mops & PAGE_MAPPING_MOVABLE, page);
+-	page->mapping = (void *)((unsigned long)mops | PAGE_MAPPING_MOVABLE);
++	page->mapping = (void *)(PAGE_MAPPING_MOVABLE);
+ }
+ EXPORT_SYMBOL(__SetPageMovable);
  
-@@ -1166,7 +1150,6 @@ static int migrate_folio_unmap(new_folio
- 	int rc = -EAGAIN;
- 	int old_page_state = 0;
- 	struct anon_vma *anon_vma = NULL;
--	bool is_lru = data_race(!__folio_test_movable(src));
- 	bool locked = false;
- 	bool dst_locked = false;
+--- a/mm/migrate.c~mm-stop-storing-migration_ops-in-page-mapping
++++ a/mm/migrate.c
+@@ -43,6 +43,8 @@
+ #include <linux/sched/sysctl.h>
+ #include <linux/memory-tiers.h>
+ #include <linux/pagewalk.h>
++#include <linux/balloon_compaction.h>
++#include <linux/zsmalloc.h>
  
-@@ -1267,7 +1250,7 @@ static int migrate_folio_unmap(new_folio
- 		goto out;
- 	dst_locked = true;
+ #include <asm/tlbflush.h>
  
--	if (unlikely(!is_lru)) {
-+	if (unlikely(page_has_movable_ops(&src->page))) {
- 		__migrate_folio_record(dst, old_page_state, anon_vma);
- 		return MIGRATEPAGE_UNMAP;
- 	}
-@@ -1332,7 +1315,7 @@ static int migrate_folio_move(free_folio
- 	prev = dst->lru.prev;
- 	list_del(&dst->lru);
+@@ -51,6 +53,27 @@
+ #include "internal.h"
+ #include "swap.h"
  
--	if (unlikely(__folio_test_movable(src))) {
-+	if (unlikely(page_has_movable_ops(&src->page))) {
- 		rc = migrate_movable_ops_page(&dst->page, &src->page, mode);
- 		if (rc)
- 			goto out;
---- a/mm/vmscan.c~mm-remove-__folio_test_movable
-+++ a/mm/vmscan.c
-@@ -1651,9 +1651,11 @@ unsigned int reclaim_clean_pages_from_li
- 	unsigned int noreclaim_flag;
++static const struct movable_operations *page_movable_ops(struct page *page)
++{
++	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(page), page);
++
++	/*
++	 * If we enable page migration for a page of a certain type by marking
++	 * it as movable, the page type must be sticky until the page gets freed
++	 * back to the buddy.
++	 */
++#ifdef CONFIG_BALLOON_COMPACTION
++	if (PageOffline(page))
++		/* Only balloon compaction sets PageOffline pages movable. */
++		return &balloon_mops;
++#endif /* CONFIG_BALLOON_COMPACTION */
++#if defined(CONFIG_ZSMALLOC) && defined(CONFIG_COMPACTION)
++	if (PageZsmalloc(page))
++		return &zsmalloc_mops;
++#endif /* defined(CONFIG_ZSMALLOC) && defined(CONFIG_COMPACTION) */
++	return NULL;
++}
++
+ /**
+  * isolate_movable_ops_page - isolate a movable_ops page for migration
+  * @page: The page.
+--- a/mm/zpdesc.h~mm-stop-storing-migration_ops-in-page-mapping
++++ a/mm/zpdesc.h
+@@ -152,10 +152,9 @@ static inline struct zpdesc *pfn_zpdesc(
+ 	return page_zpdesc(pfn_to_page(pfn));
+ }
  
- 	list_for_each_entry_safe(folio, next, folio_list, lru) {
-+		/* TODO: these pages should not even appear in this list. */
-+		if (page_has_movable_ops(&folio->page))
-+			continue;
- 		if (!folio_test_hugetlb(folio) && folio_is_file_lru(folio) &&
--		    !folio_test_dirty(folio) && !__folio_test_movable(folio) &&
--		    !folio_test_unevictable(folio)) {
-+		    !folio_test_dirty(folio) && !folio_test_unevictable(folio)) {
- 			folio_clear_active(folio);
- 			list_move(&folio->lru, &clean_folios);
- 		}
+-static inline void __zpdesc_set_movable(struct zpdesc *zpdesc,
+-					const struct movable_operations *mops)
++static inline void __zpdesc_set_movable(struct zpdesc *zpdesc)
+ {
+-	__SetPageMovable(zpdesc_page(zpdesc), mops);
++	__SetPageMovable(zpdesc_page(zpdesc));
+ }
+ 
+ static inline void __zpdesc_set_zsmalloc(struct zpdesc *zpdesc)
+--- a/mm/zsmalloc.c~mm-stop-storing-migration_ops-in-page-mapping
++++ a/mm/zsmalloc.c
+@@ -1685,8 +1685,6 @@ static void lock_zspage(struct zspage *z
+ 
+ #ifdef CONFIG_COMPACTION
+ 
+-static const struct movable_operations zsmalloc_mops;
+-
+ static void replace_sub_page(struct size_class *class, struct zspage *zspage,
+ 				struct zpdesc *newzpdesc, struct zpdesc *oldzpdesc)
+ {
+@@ -1709,7 +1707,7 @@ static void replace_sub_page(struct size
+ 	set_first_obj_offset(newzpdesc, first_obj_offset);
+ 	if (unlikely(ZsHugePage(zspage)))
+ 		newzpdesc->handle = oldzpdesc->handle;
+-	__zpdesc_set_movable(newzpdesc, &zsmalloc_mops);
++	__zpdesc_set_movable(newzpdesc);
+ }
+ 
+ static bool zs_page_isolate(struct page *page, isolate_mode_t mode)
+@@ -1819,7 +1817,7 @@ static void zs_page_putback(struct page
+ {
+ }
+ 
+-static const struct movable_operations zsmalloc_mops = {
++const struct movable_operations zsmalloc_mops = {
+ 	.isolate_page = zs_page_isolate,
+ 	.migrate_page = zs_page_migrate,
+ 	.putback_page = zs_page_putback,
+@@ -1882,7 +1880,7 @@ static void SetZsPageMovable(struct zs_p
+ 
+ 	do {
+ 		WARN_ON(!zpdesc_trylock(zpdesc));
+-		__zpdesc_set_movable(zpdesc, &zsmalloc_mops);
++		__zpdesc_set_movable(zpdesc);
+ 		zpdesc_unlock(zpdesc);
+ 	} while ((zpdesc = get_next_zpdesc(zpdesc)) != NULL);
+ }
 _
 
 Patches currently in -mm which might be from david@redhat.com are
