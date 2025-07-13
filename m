@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BB181EF38E
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ADA71EF38E
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450034; cv=none; b=sJDeGw0jCDIofgiNNxgtWs75MviBr7A33DtJPEjEuEFmh683JcXv+3kolG+YMDb8AG3x9iQ8/oy6Tr2RtRo7NWYJ8KPuVmLDbDF/XMkM4HaG9VycRQZpds+SD1ZaB5/o5H96SoyuhPiXrjlpoh8/zT3kTYDrqiEpxNxxUeXkGpM=
+	t=1752450035; cv=none; b=TDS76XYqmO2umZoc7JEmSDc6EB+47gCpck3ulqgXFCPEp76DFVoCv4E+FZHrfXvOKqxvpv1+3DLIatp3reARJG887u2JaAxgvTqkHtn4QISmyI11xr1IhbAU60vQ85otZzIdUmhWGikDNka2Qtsh6wWcukEehoNjByJzVQ2VKtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450034; c=relaxed/simple;
-	bh=DVTLNGleYjRkNAzyT9BUKj3wAb/pXxeWzF4nOBXEAAE=;
-	h=Date:To:From:Subject:Message-Id; b=tXRhTIlBNuZ+xUI3VRgKum8AP4wYsjCCBde4Q0XIL26qD7tD6XuStPV62wgzC5VAm91Q8nhi5HWft8l+X5V2W10t6JQaS0FOVZYlH1SEZlleXgvoAMbgpb3mPyC/P1Gt7TI1ZU4j/zrR4MBsjKmWQgAft6SqHchcRtPMfxx0M84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ps/afWZw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450035; c=relaxed/simple;
+	bh=d+mx7lcjXrPljHKDRAXLafapToXhf00Ds+wQvOA7sqs=;
+	h=Date:To:From:Subject:Message-Id; b=rUxhMEIWL8w5e9G4w5Ek2ZNXi1L4aYD4UkdfYkizT/RK8jo60UZC5pF021mlvsqXZbekMhJRjc/2xNltM08GHQnWZ7jY3s9VH5CkBSBgCFYACPUk4VhU3/Cnz+FNav22xpbcLYbMmJZNKJmOxMBKDYmS9NHv/3VCFqe4KMdQTa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ISjeuY/t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ps/afWZw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15BD3C4CEE3;
-	Sun, 13 Jul 2025 23:40:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ISjeuY/t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EA09C4CEE3;
+	Sun, 13 Jul 2025 23:40:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450034;
-	bh=DVTLNGleYjRkNAzyT9BUKj3wAb/pXxeWzF4nOBXEAAE=;
+	s=korg; t=1752450035;
+	bh=d+mx7lcjXrPljHKDRAXLafapToXhf00Ds+wQvOA7sqs=;
 	h=Date:To:From:Subject:From;
-	b=Ps/afWZwfQqm5sG7ylon8KoIZ/f1L9F/XtLuL3uPfX9O9TC9clZmOiIV+PStGdLSV
-	 v4jevl1W4QD3XeqS7EVwFznrsmlPnyQzO0r1lCpzA7diT/3oX7yWU02V7xo//vkynM
-	 Bv7+J8Wpawag6X3Fc3wlOjgu7iaYjxOvcanOZ6TQ=
-Date: Sun, 13 Jul 2025 16:40:33 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=ISjeuY/tNdGSYN8qvQU9I3bi2Kwb8/msBOU73Y7ZWnHTXAadDXSRzReuzeDsc8Tzr
+	 WNKO4+jGa6dCj1GsGej+IDOlbDCvVEeKZwHuSuRGfbnHjfdbKEPAd+YbvV+k66n/oy
+	 62aC0DeGiHje71T7Y/2BJRZxnuy8Y3u3Ws0nQ7lw=
+Date: Sun, 13 Jul 2025 16:40:34 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,anshuman.khandual@arm.com,gerald.schaefer@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-use-str_plural-in-report_hugepages.patch removed from -mm tree
-Message-Id: <20250713234034.15BD3C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests.patch removed from -mm tree
+Message-Id: <20250713234035.3EA09C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,199 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: use str_plural() in report_hugepages()
+     Subject: mm/debug_vm_pgtable: use a swp_entry_t input value for swap tests
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-use-str_plural-in-report_hugepages.patch
+     mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: mm/hugetlb: use str_plural() in report_hugepages()
-Date: Mon, 30 Jun 2025 19:18:26 +0200
+From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Subject: mm/debug_vm_pgtable: use a swp_entry_t input value for swap tests
+Date: Mon, 30 Jun 2025 18:47:25 +0200
 
-Use the string choice helper function str_plural() to simplify the code
-and to fix the following Coccinelle/coccicheck warning reported by
-string_choices.cocci:
+The various __pte/pmd_to_swp_entry and __swp_entry_to_pte/pmd helper
+functions are expected to operate on swap PTE/PMD entries, not on present
+and mapped entries.
 
-  opportunity for str_plural(nrinvalid)
+Reflect this in the swap tests by using a swp_entry_t as input value, and
+convert it to a swap PTE/PMD for testing, similar to how it is already
+done in pte_swap_exclusive_tests().  Move the swap entry creation from
+there to init_args() and store it in args, so it can also be used in other
+functions.
 
-Link: https://lkml.kernel.org/r/20250630171826.114008-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+The pte/pmd_swap_tests() are also changed to compare entries instead of
+pfn values, again similar to pte_swap_exclusive_tests().  pte/pmd_pfn()
+helpers are also not expected to operate on swap PTE/PMD entries at all.
+
+Also update documentation, to reflect that the helpers operate on swap
+PTE/PMD entries and not present and mapped entries, and use correct names,
+i.e.  __swp_to_pte/pmd_entry -> __swp_entry_to_pte/pmd.
+
+For consistency, also change pte/pmd_swap_soft_dirty_tests() to use
+args->swp_entry instead of a present and mapped PTE/PMD.
+
+Link: https://lore.kernel.org/all/20250623184321.927418-1-gerald.schaefer@linux.ibm.com
+Link: https://lkml.kernel.org/r/20250630164726.930405-1-gerald.schaefer@linux.ibm.com
+Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/mm/arch_pgtable_helpers.rst |    8 +--
+ mm/debug_vm_pgtable.c                     |   53 ++++++++++++--------
+ 2 files changed, 36 insertions(+), 25 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-use-str_plural-in-report_hugepages
-+++ a/mm/hugetlb.c
-@@ -25,6 +25,7 @@
- #include <linux/mmdebug.h>
- #include <linux/sched/signal.h>
- #include <linux/rmap.h>
-+#include <linux/string_choices.h>
- #include <linux/string_helpers.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-@@ -3722,7 +3723,7 @@ static void __init report_hugepages(void
- 			buf, h->nr_huge_pages);
- 		if (nrinvalid)
- 			pr_info("HugeTLB: %s page size: %lu invalid page%s discarded\n",
--					buf, nrinvalid, nrinvalid > 1 ? "s" : "");
-+					buf, nrinvalid, str_plural(nrinvalid));
- 		pr_info("HugeTLB: %d KiB vmemmap can be freed for a %s page\n",
- 			hugetlb_vmemmap_optimizable_size(h) / SZ_1K, buf);
- 	}
+--- a/Documentation/mm/arch_pgtable_helpers.rst~mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests
++++ a/Documentation/mm/arch_pgtable_helpers.rst
+@@ -236,13 +236,13 @@ SWAP Page Table Helpers
+ ========================
+ 
+ +---------------------------+--------------------------------------------------+
+-| __pte_to_swp_entry        | Creates a swapped entry (arch) from a mapped PTE |
++| __pte_to_swp_entry        | Creates a swp_entry_t (arch) from a swap PTE     |
+ +---------------------------+--------------------------------------------------+
+-| __swp_to_pte_entry        | Creates a mapped PTE from a swapped entry (arch) |
++| __swp_entry_to_pte        | Creates a swap PTE from a swp_entry_t (arch)     |
+ +---------------------------+--------------------------------------------------+
+-| __pmd_to_swp_entry        | Creates a swapped entry (arch) from a mapped PMD |
++| __pmd_to_swp_entry        | Creates a swp_entry_t (arch) from a swap PMD     |
+ +---------------------------+--------------------------------------------------+
+-| __swp_to_pmd_entry        | Creates a mapped PMD from a swapped entry (arch) |
++| __swp_entry_to_pmd        | Creates a swap PMD from a swp_entry_t (arch)     |
+ +---------------------------+--------------------------------------------------+
+ | is_migration_entry        | Tests a migration (read or write) swapped entry  |
+ +-------------------------------+----------------------------------------------+
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-a-swp_entry_t-input-value-for-swap-tests
++++ a/mm/debug_vm_pgtable.c
+@@ -72,6 +72,8 @@ struct pgtable_debug_args {
+ 	unsigned long		fixed_pud_pfn;
+ 	unsigned long		fixed_pmd_pfn;
+ 	unsigned long		fixed_pte_pfn;
++
++	swp_entry_t		swp_entry;
+ };
+ 
+ static void __init pte_basic_tests(struct pgtable_debug_args *args, int idx)
+@@ -698,12 +700,15 @@ static void __init pte_soft_dirty_tests(
+ 
+ static void __init pte_swap_soft_dirty_tests(struct pgtable_debug_args *args)
+ {
+-	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
++	pte_t pte;
+ 
+ 	if (!IS_ENABLED(CONFIG_MEM_SOFT_DIRTY))
+ 		return;
+ 
+ 	pr_debug("Validating PTE swap soft dirty\n");
++	pte = swp_entry_to_pte(args->swp_entry);
++	WARN_ON(!is_swap_pte(pte));
++
+ 	WARN_ON(!pte_swp_soft_dirty(pte_swp_mksoft_dirty(pte)));
+ 	WARN_ON(pte_swp_soft_dirty(pte_swp_clear_soft_dirty(pte)));
+ }
+@@ -737,7 +742,9 @@ static void __init pmd_swap_soft_dirty_t
+ 		return;
+ 
+ 	pr_debug("Validating PMD swap soft dirty\n");
+-	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
++	pmd = swp_entry_to_pmd(args->swp_entry);
++	WARN_ON(!is_swap_pmd(pmd));
++
+ 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
+ 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
+ }
+@@ -748,17 +755,11 @@ static void __init pmd_swap_soft_dirty_t
+ 
+ static void __init pte_swap_exclusive_tests(struct pgtable_debug_args *args)
+ {
+-	unsigned long max_swap_offset;
+ 	swp_entry_t entry, entry2;
+ 	pte_t pte;
+ 
+ 	pr_debug("Validating PTE swap exclusive\n");
+-
+-	/* See generic_max_swapfile_size(): probe the maximum offset */
+-	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
+-
+-	/* Create a swp entry with all possible bits set */
+-	entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1, max_swap_offset);
++	entry = args->swp_entry;
+ 
+ 	pte = swp_entry_to_pte(entry);
+ 	WARN_ON(pte_swp_exclusive(pte));
+@@ -782,30 +783,34 @@ static void __init pte_swap_exclusive_te
+ 
+ static void __init pte_swap_tests(struct pgtable_debug_args *args)
+ {
+-	swp_entry_t swp;
+-	pte_t pte;
++	swp_entry_t arch_entry;
++	pte_t pte1, pte2;
+ 
+ 	pr_debug("Validating PTE swap\n");
+-	pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
+-	swp = __pte_to_swp_entry(pte);
+-	pte = __swp_entry_to_pte(swp);
+-	WARN_ON(args->fixed_pte_pfn != pte_pfn(pte));
++	pte1 = swp_entry_to_pte(args->swp_entry);
++	WARN_ON(!is_swap_pte(pte1));
++
++	arch_entry = __pte_to_swp_entry(pte1);
++	pte2 = __swp_entry_to_pte(arch_entry);
++	WARN_ON(memcmp(&pte1, &pte2, sizeof(pte1)));
+ }
+ 
+ #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+ static void __init pmd_swap_tests(struct pgtable_debug_args *args)
+ {
+-	swp_entry_t swp;
+-	pmd_t pmd;
++	swp_entry_t arch_entry;
++	pmd_t pmd1, pmd2;
+ 
+ 	if (!has_transparent_hugepage())
+ 		return;
+ 
+ 	pr_debug("Validating PMD swap\n");
+-	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
+-	swp = __pmd_to_swp_entry(pmd);
+-	pmd = __swp_entry_to_pmd(swp);
+-	WARN_ON(args->fixed_pmd_pfn != pmd_pfn(pmd));
++	pmd1 = swp_entry_to_pmd(args->swp_entry);
++	WARN_ON(!is_swap_pmd(pmd1));
++
++	arch_entry = __pmd_to_swp_entry(pmd1);
++	pmd2 = __swp_entry_to_pmd(arch_entry);
++	WARN_ON(memcmp(&pmd1, &pmd2, sizeof(pmd1)));
+ }
+ #else  /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
+ static void __init pmd_swap_tests(struct pgtable_debug_args *args) { }
+@@ -1110,6 +1115,7 @@ static void __init init_fixed_pfns(struc
+ 
+ static int __init init_args(struct pgtable_debug_args *args)
+ {
++	unsigned long max_swap_offset;
+ 	struct page *page = NULL;
+ 	int ret = 0;
+ 
+@@ -1192,6 +1198,11 @@ static int __init init_args(struct pgtab
+ 
+ 	init_fixed_pfns(args);
+ 
++	/* See generic_max_swapfile_size(): probe the maximum offset */
++	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
++	/* Create a swp entry with all possible bits set */
++	args->swp_entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1, max_swap_offset);
++
+ 	/*
+ 	 * Allocate (huge) pages because some of the tests need to access
+ 	 * the data in the pages. The corresponding tests will be skipped
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from gerald.schaefer@linux.ibm.com are
 
-mm-memfd-replace-deprecated-strcpy-with-memcpy-in-alloc_name.patch
 
