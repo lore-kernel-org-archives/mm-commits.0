@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F051B219A9B
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A052219A9B
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450095; cv=none; b=DDKPcpCjSFCdzNWPgLszLrBsMahCUBzdx0WLUkR5mBmZd1rgsUb2GEi18x/anbkWJJ81m8MSnzTA2gSKR5k2uYvv9iAtPoMIVex6c+NJtjlOMZes5Wj9nFjzMV5Wamhppf5G8Q1ePQmwpXi9cOSbDE4j4+ZD1qYIoJDkdI/PrfU=
+	t=1752450096; cv=none; b=bjdCi3ka+1vnqovgPJoTuf+4Vjr8ddUHp3YtbazS3lGUCGHrPd37+CRmW6VxV8KUHwqx6uU9x/4h3mNUrW2wpEHxSSydFweP+dV8QMQoB6/rel2Z/u8Y58Sp14C7oEJgJhMzyLA1eE4moEdoaP9PXXDif5H/DlszptKPVASe0Lc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450095; c=relaxed/simple;
-	bh=LsCVlr6ELli3qzdO8QuWjXAgV+JENzQa2uUJChMwhiM=;
-	h=Date:To:From:Subject:Message-Id; b=ldhKvzK+0x2a8/yWTABQvMAyLob9RNhp31ie4g2NM3nqgi1gsxH3mqdWOzWdrn4WRw8wKOliUxjuvupff+/SrVc6ChcKSxWqIj1tczTyKSK6wx5p/Ovo+8fp+r1xB3l2QHwLB5wNC10Ide+QKxSO62FQDmxRVjcZUHiBkpnpYdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=emQPOkEj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450096; c=relaxed/simple;
+	bh=+GhKXMOTli6Yv/wL7PL6BI7qh752vhTwsCFr+mRIM9M=;
+	h=Date:To:From:Subject:Message-Id; b=PDFsReuxuL/ix/QrWZbqsKfQGKTSRiZHY2r2vi5f/WOKNOduoELZ74BXZQQ1GMwZFoFuSrEoDJWflMAhg7L+Mp5l74g+p9uZvuvsa276w7WHeE6vFyzooZjRI/0xdpm+qxf8JQQkdyJAwL1crB/i3QV7PPk4uHD1pcuXxQ/TZSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=loQ+uCxJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="emQPOkEj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F42C4CEE3;
-	Sun, 13 Jul 2025 23:41:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="loQ+uCxJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CFD1C4CEE3;
+	Sun, 13 Jul 2025 23:41:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450094;
-	bh=LsCVlr6ELli3qzdO8QuWjXAgV+JENzQa2uUJChMwhiM=;
+	s=korg; t=1752450096;
+	bh=+GhKXMOTli6Yv/wL7PL6BI7qh752vhTwsCFr+mRIM9M=;
 	h=Date:To:From:Subject:From;
-	b=emQPOkEjdQ6mjNjKwyBXYdUY/72VMT2Q5Z5ETTN+RQdGt+P+UyU3b1gXspoVCKT4H
-	 S7uuw/e9r9eDpl+88YurTEpDsxlzXLA0PJzSQf2vowKN3QafTsTB6/o508VmVoJ91z
-	 GTDZe6gvYsmScS4YQZf6Qb0HlU3FsA+6Y41O1e3c=
-Date: Sun, 13 Jul 2025 16:41:34 -0700
+	b=loQ+uCxJ4PSxK1Ie4m2B2TR5OWivZAieINnS5/aLpNRam17Ei7namiGCUKKSP6ycI
+	 cQzpO5BCTmnjFdXv6Ljw/1E3i8anvbDjNy9KtrV5uRIJx67awMD3JW6eYkTQhQW9Sr
+	 uij/+tSp2GGmGYht4og0NO111+4pt1gFY8+OMyhg=
+Date: Sun, 13 Jul 2025 16:41:35 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,xuanzhuo@linux.alibaba.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nao.horiguchi@gmail.com,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,mhocko@suse.com,matthew.brost@intel.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,jackmanb@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch removed from -mm tree
-Message-Id: <20250713234134.C0F42C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page-flags-rename-page_mapping_movable-to-page_mapping_anon_ksm.patch removed from -mm tree
+Message-Id: <20250713234136.5CFD1C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: rename PG_isolated to PG_movable_ops_isolated
+     Subject: mm/page-flags: rename PAGE_MAPPING_MOVABLE to PAGE_MAPPING_ANON_KSM
 has been removed from the -mm tree.  Its filename was
-     mm-rename-pg_isolated-to-pg_movable_ops_isolated.patch
+     mm-page-flags-rename-page_mapping_movable-to-page_mapping_anon_ksm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: rename PG_isolated to PG_movable_ops_isolated
-Date: Fri, 4 Jul 2025 12:25:15 +0200
+Subject: mm/page-flags: rename PAGE_MAPPING_MOVABLE to PAGE_MAPPING_ANON_KSM
+Date: Fri, 4 Jul 2025 12:25:16 +0200
 
-Let's rename the flag to make it clearer where it applies (not folios
-...).
+KSM is the only remaining user, let's rename the flag.  While at it,
+adjust to remaining page -> folio in the doc.
 
-While at it, define the flag only with CONFIG_MIGRATION.
-
-Link: https://lkml.kernel.org/r/20250704102524.326966-22-david@redhat.com
+Link: https://lkml.kernel.org/r/20250704102524.326966-23-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -103,113 +101,38 @@ Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   16 +++++++++++-----
- mm/compaction.c            |    2 +-
- mm/migrate.c               |   14 +++++++-------
- 3 files changed, 19 insertions(+), 13 deletions(-)
+ include/linux/page-flags.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/page-flags.h~mm-rename-pg_isolated-to-pg_movable_ops_isolated
+--- a/include/linux/page-flags.h~mm-page-flags-rename-page_mapping_movable-to-page_mapping_anon_ksm
 +++ a/include/linux/page-flags.h
-@@ -167,10 +167,9 @@ enum pageflags {
- 	/* Remapped by swiotlb-xen. */
- 	PG_xen_remapped = PG_owner_priv_1,
- 
--	/* non-lru isolated movable page */
--	PG_isolated = PG_reclaim,
--
- #ifdef CONFIG_MIGRATION
-+	/* movable_ops page that is isolated for migration */
-+	PG_movable_ops_isolated = PG_reclaim,
- 	/* this is a movable_ops page (for selected typed pages only) */
- 	PG_movable_ops = PG_uptodate,
- #endif
-@@ -1126,8 +1125,6 @@ static inline bool folio_contain_hwpoiso
- 
- bool is_free_buddy_page(const struct page *page);
- 
--PAGEFLAG(Isolated, isolated, PF_ANY);
--
- #ifdef CONFIG_MIGRATION
- /*
-  * This page is migratable through movable_ops (for selected typed pages
-@@ -1147,9 +1144,18 @@ PAGEFLAG(Isolated, isolated, PF_ANY);
+@@ -697,10 +697,10 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
+  * folio->mapping points to its anon_vma, not to a struct address_space;
+  * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
+  *
+- * On an anonymous page in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
+- * the PAGE_MAPPING_MOVABLE bit may be set along with the PAGE_MAPPING_ANON
++ * On an anonymous folio in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
++ * the PAGE_MAPPING_ANON_KSM bit may be set along with the PAGE_MAPPING_ANON
+  * bit; and then folio->mapping points, not to an anon_vma, but to a private
+- * structure which KSM associates with that merged page.  See ksm.h.
++ * structure which KSM associates with that merged folio.  See ksm.h.
+  *
+  * Please note that, confusingly, "folio_mapping" refers to the inode
+  * address_space which maps the folio from disk; whereas "folio_mapped"
+@@ -714,9 +714,9 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
+  * See mm/slab.h.
   */
- TESTPAGEFLAG(MovableOps, movable_ops, PF_NO_TAIL);
- SETPAGEFLAG(MovableOps, movable_ops, PF_NO_TAIL);
-+/*
-+ * A movable_ops page has this flag set while it is isolated for migration.
-+ * This flag primarily protects against concurrent migration attempts.
-+ *
-+ * Once migration ended (success or failure), the flag is cleared. The
-+ * flag is managed by the migration core.
-+ */
-+PAGEFLAG(MovableOpsIsolated, movable_ops_isolated, PF_NO_TAIL);
- #else /* !CONFIG_MIGRATION */
- TESTPAGEFLAG_FALSE(MovableOps, movable_ops);
- SETPAGEFLAG_NOOP(MovableOps, movable_ops);
-+PAGEFLAG_FALSE(MovableOpsIsolated, movable_ops_isolated);
- #endif /* CONFIG_MIGRATION */
+ #define PAGE_MAPPING_ANON	0x1
+-#define PAGE_MAPPING_MOVABLE	0x2
+-#define PAGE_MAPPING_KSM	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
+-#define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
++#define PAGE_MAPPING_ANON_KSM	0x2
++#define PAGE_MAPPING_KSM	(PAGE_MAPPING_ANON | PAGE_MAPPING_ANON_KSM)
++#define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_ANON_KSM)
  
- /**
---- a/mm/compaction.c~mm-rename-pg_isolated-to-pg_movable_ops_isolated
-+++ a/mm/compaction.c
-@@ -1051,7 +1051,7 @@ isolate_migratepages_block(struct compac
- 		if (!PageLRU(page)) {
- 			/* Isolation code will deal with any races. */
- 			if (unlikely(page_has_movable_ops(page)) &&
--					!PageIsolated(page)) {
-+			    !PageMovableOpsIsolated(page)) {
- 				if (locked) {
- 					unlock_page_lruvec_irqrestore(locked, flags);
- 					locked = NULL;
---- a/mm/migrate.c~mm-rename-pg_isolated-to-pg_movable_ops_isolated
-+++ a/mm/migrate.c
-@@ -135,7 +135,7 @@ bool isolate_movable_ops_page(struct pag
- 		goto out_putfolio;
- 
- 	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(page), page);
--	if (PageIsolated(page))
-+	if (PageMovableOpsIsolated(page))
- 		goto out_no_isolated;
- 
- 	mops = page_movable_ops(page);
-@@ -146,8 +146,8 @@ bool isolate_movable_ops_page(struct pag
- 		goto out_no_isolated;
- 
- 	/* Driver shouldn't use the isolated flag */
--	VM_WARN_ON_ONCE_PAGE(PageIsolated(page), page);
--	SetPageIsolated(page);
-+	VM_WARN_ON_ONCE_PAGE(PageMovableOpsIsolated(page), page);
-+	SetPageMovableOpsIsolated(page);
- 	folio_unlock(folio);
- 
- 	return true;
-@@ -177,10 +177,10 @@ static void putback_movable_ops_page(str
- 	struct folio *folio = page_folio(page);
- 
- 	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(page), page);
--	VM_WARN_ON_ONCE_PAGE(!PageIsolated(page), page);
-+	VM_WARN_ON_ONCE_PAGE(!PageMovableOpsIsolated(page), page);
- 	folio_lock(folio);
- 	page_movable_ops(page)->putback_page(page);
--	ClearPageIsolated(page);
-+	ClearPageMovableOpsIsolated(page);
- 	folio_unlock(folio);
- 	folio_put(folio);
- }
-@@ -218,10 +218,10 @@ static int migrate_movable_ops_page(stru
- 	int rc = MIGRATEPAGE_SUCCESS;
- 
- 	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(src), src);
--	VM_WARN_ON_ONCE_PAGE(!PageIsolated(src), src);
-+	VM_WARN_ON_ONCE_PAGE(!PageMovableOpsIsolated(src), src);
- 	rc = page_movable_ops(src)->migrate_page(dst, src, mode);
- 	if (rc == MIGRATEPAGE_SUCCESS)
--		ClearPageIsolated(src);
-+		ClearPageMovableOpsIsolated(src);
- 	return rc;
- }
- 
+ static __always_inline bool folio_mapping_flags(const struct folio *folio)
+ {
 _
 
 Patches currently in -mm which might be from david@redhat.com are
