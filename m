@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B61F1EF38E
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E95C81EF38E
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450052; cv=none; b=l39UHltdqumIH1JJ8dpWSVgIcLeMAg0vWS950C5BhGmHp7YbIqOYXvUQXUljxLJeqLnNMZvUbwTR2vWIPEJLGIT35qF7o9ojNGskNcDTZL8aUw9uVKJbapYw2fkbuskfUyMTqGbR5XF1KVBgL3ekLpF7/FnXN8Sq9l4rp+938eQ=
+	t=1752450054; cv=none; b=s6btPY9qDqxGIFa7L8Fpyup7NmHRNxdqDasUnYi2Y4+T9KUUNfMrnSyZ3EnIDPBgmiE0n23u6cQAHUhzTQt9HIQNO5LhMYZSn3P3OGNYVdgr6sH+tUodTxNGCVmSaNwuaVoGDgcpGXu6G9alrQ0jG4HNjweA4pOE84bJN1pvyc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450052; c=relaxed/simple;
-	bh=dGAhN7pwE9E+1LBYKJz/G+VV4BKeVAWbeh1gdP20Jv0=;
-	h=Date:To:From:Subject:Message-Id; b=WL6X7XiBRfnWPXuCRyc0fmOCUxsSOBgLL0yaIZj1Iv3Qh0LQoaye4QievsDUP4pu54QK4X+sTbHzBxDRD1gPdwJc5pyfSVMLS6+QG0ZLMN+I/X0ciDsLvnobimDTvodFzAIl4K0v9kVfTB+fLP+4iOEdvSkvpg/2RfJStOj2FXs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SJ7U2ZBV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450054; c=relaxed/simple;
+	bh=7gZf7RX6X95pVckMumunKZ5hGVWwQ+adB9gAJz3Ae/4=;
+	h=Date:To:From:Subject:Message-Id; b=KRqxhmKWz9Trk7B7adi0qYwUxXfyNxwAioDr24c3nghaL7lyZChtDcqhX+mGf0Ox1eBQJnTLQEpXquj6KtLLhwFzKz9fMjVkHa1fIOyS+tNGHTAJeVfNh9j45QW8fOZ/xMFq23CixoE6lIzYKln75mksx7wmaLFhHrHrH9CDW5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mFWCyvTh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SJ7U2ZBV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D4CAC4CEE3;
-	Sun, 13 Jul 2025 23:40:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mFWCyvTh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9F3EC4CEE3;
+	Sun, 13 Jul 2025 23:40:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450052;
-	bh=dGAhN7pwE9E+1LBYKJz/G+VV4BKeVAWbeh1gdP20Jv0=;
+	s=korg; t=1752450053;
+	bh=7gZf7RX6X95pVckMumunKZ5hGVWwQ+adB9gAJz3Ae/4=;
 	h=Date:To:From:Subject:From;
-	b=SJ7U2ZBV8OSmyX626zeZvM4GlPLIwT7ZSqarB59YsG0B1s8BwCC0KsrXx3m6jNr/J
-	 rEcjALMT6q+jSEl51dnPt0tvui/1YG8kXBnO5dnAILPpMmsxxPBkYDf+UkhNxQMTWf
-	 QPxUNrj2SnTsnrfiBToHrrVBz+7GrWaoCX7/ZcbI=
-Date: Sun, 13 Jul 2025 16:40:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=mFWCyvThswmQqu/jo0mP5XkOPa8eEptCD0kUYE13I4L8hBoFMADsijLFiTxWs4GVj
+	 3vgN+9CsNC4qsdpq178xyOslG9gGuLcwvUjePpFAcS1ackheSYb3C9H314YchpzBDg
+	 KnU/7ucf/LJD8zGDdFoW5QrvoaKj9SeYbMj+0OrU=
+Date: Sun, 13 Jul 2025 16:40:53 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,xuanzhuo@linux.alibaba.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nao.horiguchi@gmail.com,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,mhocko@suse.com,matthew.brost@intel.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,jackmanb@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases.patch removed from -mm tree
-Message-Id: <20250713234052.1D4CAC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-balloon_compaction-we-cannot-have-isolated-pages-in-the-balloon-list.patch removed from -mm tree
+Message-Id: <20250713234053.B9F3EC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,705 +35,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests: add mremap() unfaulted/faulted test cases
+     Subject: mm/balloon_compaction: we cannot have isolated pages in the balloon list
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases.patch
+     mm-balloon_compaction-we-cannot-have-isolated-pages-in-the-balloon-list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: add mremap() unfaulted/faulted test cases
-Date: Wed, 2 Jul 2025 09:47:17 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/balloon_compaction: we cannot have isolated pages in the balloon list
+Date: Fri, 4 Jul 2025 12:24:55 +0200
 
-Assert that mremap() behaviour is as expected when moving around unfaulted
-VMAs immediately adjacent to faulted ones, as well as moving around
-faulted VMAs and placing them back immediately adjacent to the VMA from
-which they were moved.
+Patch series "mm/migration: rework movable_ops page migration (part 1)",
+v2.
 
-This also introduces a shared helper for the syscall version of mremap()
-so we don't encounter any issues with libc filtering parameters.
+In the future, as we decouple "struct page" from "struct folio", pages
+that support "non-lru page migration" -- movable_ops page migration such
+as memory balloons and zsmalloc -- will no longer be folios.  They will
+not have ->mapping, ->lru, and likely no refcount and no page lock.  But
+they will have a type and flags 🙂
 
-Link: https://lkml.kernel.org/r/20250702084717.21360-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jann Horn <jannh@google.com>
+This is the first part (other parts not written yet) of decoupling
+movable_ops page migration from folio migration.
+
+In this series, we get rid of the ->mapping usage, and start cleaning up
+the code + separating it from folio migration.
+
+Migration core will have to be further reworked to not treat movable_ops
+pages like folios.  This is the first step into that direction.
+
+
+This patch (of 29):
+
+The core will set PG_isolated only after mops->isolate_page() was called. 
+In case of the balloon, that is where we will remove it from the balloon
+list.  So we cannot have isolated pages in the balloon list.
+
+Let's drop this unnecessary check.
+
+Link: https://lkml.kernel.org/r/20250704102524.326966-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Eugenio Pé rez <eperezma@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jerrin Shaji George <jerrin.shaji-george@broadcom.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c   |  599 ++++++++++++++++++++++++-
- tools/testing/selftests/mm/vm_util.c |    8 
- tools/testing/selftests/mm/vm_util.h |    3 
- 3 files changed, 608 insertions(+), 2 deletions(-)
+ mm/balloon_compaction.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -13,6 +13,7 @@
- #include <sys/wait.h>
- #include <linux/perf_event.h>
- #include "vm_util.h"
-+#include <linux/mman.h>
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-we-cannot-have-isolated-pages-in-the-balloon-list
++++ a/mm/balloon_compaction.c
+@@ -94,12 +94,6 @@ size_t balloon_page_list_dequeue(struct
+ 		if (!trylock_page(page))
+ 			continue;
  
- FIXTURE(merge)
- {
-@@ -25,7 +26,7 @@ FIXTURE_SETUP(merge)
- {
- 	self->page_size = psize();
- 	/* Carve out PROT_NONE region to map over. */
--	self->carveout = mmap(NULL, 12 * self->page_size, PROT_NONE,
-+	self->carveout = mmap(NULL, 30 * self->page_size, PROT_NONE,
- 			      MAP_ANON | MAP_PRIVATE, -1, 0);
- 	ASSERT_NE(self->carveout, MAP_FAILED);
- 	/* Setup PROCMAP_QUERY interface. */
-@@ -34,7 +35,7 @@ FIXTURE_SETUP(merge)
- 
- FIXTURE_TEARDOWN(merge)
- {
--	ASSERT_EQ(munmap(self->carveout, 12 * self->page_size), 0);
-+	ASSERT_EQ(munmap(self->carveout, 30 * self->page_size), 0);
- 	ASSERT_EQ(close_procmap(&self->procmap), 0);
- 	/*
- 	 * Clear unconditionally, as some tests set this. It is no issue if this
-@@ -576,4 +577,598 @@ TEST_F(merge, ksm_merge)
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 2 * page_size);
- }
- 
-+TEST_F(merge, mremap_unfaulted_to_faulted)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr, *ptr2;
-+
-+	/*
-+	 * Map two distinct areas:
-+	 *
-+	 * |-----------|  |-----------|
-+	 * | unfaulted |  | unfaulted |
-+	 * |-----------|  |-----------|
-+	 *      ptr            ptr2
-+	 */
-+	ptr = mmap(&carveout[page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ptr2 = mmap(&carveout[7 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Offset ptr2 further away. */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/*
-+	 * Fault in ptr:
-+	 *                \
-+	 * |-----------|  /  |-----------|
-+	 * |  faulted  |  \  | unfaulted |
-+	 * |-----------|  /  |-----------|
-+	 *      ptr       \       ptr2
-+	 */
-+	ptr[0] = 'x';
-+
-+	/*
-+	 * Now move ptr2 adjacent to ptr:
-+	 *
-+	 * |-----------|-----------|
-+	 * |  faulted  | unfaulted |
-+	 * |-----------|-----------|
-+	 *      ptr         ptr2
-+	 *
-+	 * It should merge:
-+	 *
-+	 * |----------------------|
-+	 * |       faulted        |
-+	 * |----------------------|
-+	 *            ptr
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+}
-+
-+TEST_F(merge, mremap_unfaulted_behind_faulted)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr, *ptr2;
-+
-+	/*
-+	 * Map two distinct areas:
-+	 *
-+	 * |-----------|  |-----------|
-+	 * | unfaulted |  | unfaulted |
-+	 * |-----------|  |-----------|
-+	 *      ptr            ptr2
-+	 */
-+	ptr = mmap(&carveout[6 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ptr2 = mmap(&carveout[14 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Offset ptr2 further away. */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/*
-+	 * Fault in ptr:
-+	 *                \
-+	 * |-----------|  /  |-----------|
-+	 * |  faulted  |  \  | unfaulted |
-+	 * |-----------|  /  |-----------|
-+	 *      ptr       \       ptr2
-+	 */
-+	ptr[0] = 'x';
-+
-+	/*
-+	 * Now move ptr2 adjacent, but behind, ptr:
-+	 *
-+	 * |-----------|-----------|
-+	 * | unfaulted |  faulted  |
-+	 * |-----------|-----------|
-+	 *      ptr2        ptr
-+	 *
-+	 * It should merge:
-+	 *
-+	 * |----------------------|
-+	 * |       faulted        |
-+	 * |----------------------|
-+	 *            ptr2
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &carveout[page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr2));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr2);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr2 + 10 * page_size);
-+}
-+
-+TEST_F(merge, mremap_unfaulted_between_faulted)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr, *ptr2, *ptr3;
-+
-+	/*
-+	 * Map three distinct areas:
-+	 *
-+	 * |-----------|  |-----------|  |-----------|
-+	 * | unfaulted |  | unfaulted |  | unfaulted |
-+	 * |-----------|  |-----------|  |-----------|
-+	 *      ptr            ptr2           ptr3
-+	 */
-+	ptr = mmap(&carveout[page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ptr2 = mmap(&carveout[7 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+	ptr3 = mmap(&carveout[14 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	/* Offset ptr3 further away. */
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	/* Offset ptr2 further away. */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/*
-+	 * Fault in ptr, ptr3:
-+	 *                \                 \
-+	 * |-----------|  /  |-----------|  /  |-----------|
-+	 * |  faulted  |  \  | unfaulted |  \  |  faulted  |
-+	 * |-----------|  /  |-----------|  /  |-----------|
-+	 *      ptr       \       ptr2      \       ptr3
-+	 */
-+	ptr[0] = 'x';
-+	ptr3[0] = 'x';
-+
-+	/*
-+	 * Move ptr3 back into place, leaving a place for ptr2:
-+	 *                                        \
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 * |  faulted  |           |  faulted  |  \  | unfaulted |
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 *      ptr                     ptr3      \       ptr2
-+	 */
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[10 * page_size]);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	/*
-+	 * Finally, move ptr2 into place:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |  faulted  | unfaulted |  faulted  |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr        ptr2         ptr3
-+	 *
-+	 * It should merge, but only ptr, ptr2:
-+	 *
-+	 * |-----------------------|-----------|
-+	 * |        faulted        | unfaulted |
-+	 * |-----------------------|-----------|
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr3));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr3);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr3 + 5 * page_size);
-+}
-+
-+TEST_F(merge, mremap_unfaulted_between_faulted_unfaulted)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr, *ptr2, *ptr3;
-+
-+	/*
-+	 * Map three distinct areas:
-+	 *
-+	 * |-----------|  |-----------|  |-----------|
-+	 * | unfaulted |  | unfaulted |  | unfaulted |
-+	 * |-----------|  |-----------|  |-----------|
-+	 *      ptr            ptr2           ptr3
-+	 */
-+	ptr = mmap(&carveout[page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ptr2 = mmap(&carveout[7 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+	ptr3 = mmap(&carveout[14 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	/* Offset ptr3 further away. */
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+
-+	/* Offset ptr2 further away. */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/*
-+	 * Fault in ptr:
-+	 *                \                 \
-+	 * |-----------|  /  |-----------|  /  |-----------|
-+	 * |  faulted  |  \  | unfaulted |  \  | unfaulted |
-+	 * |-----------|  /  |-----------|  /  |-----------|
-+	 *      ptr       \       ptr2      \       ptr3
-+	 */
-+	ptr[0] = 'x';
-+
-+	/*
-+	 * Move ptr3 back into place, leaving a place for ptr2:
-+	 *                                        \
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 * |  faulted  |           | unfaulted |  \  | unfaulted |
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 *      ptr                     ptr3      \       ptr2
-+	 */
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[10 * page_size]);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	/*
-+	 * Finally, move ptr2 into place:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |  faulted  | unfaulted | unfaulted |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr        ptr2         ptr3
-+	 *
-+	 * It should merge:
-+	 *
-+	 * |-----------------------------------|
-+	 * |              faulted              |
-+	 * |-----------------------------------|
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
-+}
-+
-+TEST_F(merge, mremap_unfaulted_between_correctly_placed_faulted)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr, *ptr2;
-+
-+	/*
-+	 * Map one larger area:
-+	 *
-+	 * |-----------------------------------|
-+	 * |            unfaulted              |
-+	 * |-----------------------------------|
-+	 */
-+	ptr = mmap(&carveout[page_size], 15 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Fault in ptr:
-+	 *
-+	 * |-----------------------------------|
-+	 * |              faulted              |
-+	 * |-----------------------------------|
-+	 */
-+	ptr[0] = 'x';
-+
-+	/*
-+	 * Unmap middle:
-+	 *
-+	 * |-----------|           |-----------|
-+	 * |  faulted  |           |  faulted  |
-+	 * |-----------|           |-----------|
-+	 *
-+	 * Now the faulted areas are compatible with each other (anon_vma the
-+	 * same, vma->vm_pgoff equal to virtual page offset).
-+	 */
-+	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
-+
-+	/*
-+	 * Map a new area, ptr2:
-+	 *                                        \
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 * |  faulted  |           |  faulted  |  \  | unfaulted |
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 *      ptr                               \       ptr2
-+	 */
-+	ptr2 = mmap(&carveout[20 * page_size], 5 * page_size, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/*
-+	 * Finally, move ptr2 into place:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |  faulted  | unfaulted |  faulted  |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr        ptr2         ptr3
-+	 *
-+	 * It should merge:
-+	 *
-+	 * |-----------------------------------|
-+	 * |              faulted              |
-+	 * |-----------------------------------|
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
-+}
-+
-+TEST_F(merge, mremap_correct_placed_faulted)
-+{
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr, *ptr2, *ptr3;
-+
-+	/*
-+	 * Map one larger area:
-+	 *
-+	 * |-----------------------------------|
-+	 * |            unfaulted              |
-+	 * |-----------------------------------|
-+	 */
-+	ptr = mmap(&carveout[page_size], 15 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Fault in ptr:
-+	 *
-+	 * |-----------------------------------|
-+	 * |              faulted              |
-+	 * |-----------------------------------|
-+	 */
-+	ptr[0] = 'x';
-+
-+	/*
-+	 * Offset the final and middle 5 pages further away:
-+	 *                \                 \
-+	 * |-----------|  /  |-----------|  /  |-----------|
-+	 * |  faulted  |  \  |  faulted  |  \  |  faulted  |
-+	 * |-----------|  /  |-----------|  /  |-----------|
-+	 *      ptr       \       ptr2      \       ptr3
-+	 */
-+	ptr3 = &ptr[10 * page_size];
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+	ptr2 = &ptr[5 * page_size];
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/*
-+	 * Move ptr2 into its correct place:
-+	 *                            \
-+	 * |-----------|-----------|  /  |-----------|
-+	 * |  faulted  |  faulted  |  \  |  faulted  |
-+	 * |-----------|-----------|  /  |-----------|
-+	 *      ptr         ptr2      \       ptr3
-+	 *
-+	 * It should merge:
-+	 *                            \
-+	 * |-----------------------|  /  |-----------|
-+	 * |        faulted        |  \  |  faulted  |
-+	 * |-----------------------|  /  |-----------|
-+	 *            ptr             \       ptr3
-+	 */
-+
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+
-+	/*
-+	 * Now move ptr out of place:
-+	 *                            \                 \
-+	 *             |-----------|  /  |-----------|  /  |-----------|
-+	 *             |  faulted  |  \  |  faulted  |  \  |  faulted  |
-+	 *             |-----------|  /  |-----------|  /  |-----------|
-+	 *                  ptr2      \       ptr       \       ptr3
-+	 */
-+	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Now move ptr back into place:
-+	 *                            \
-+	 * |-----------|-----------|  /  |-----------|
-+	 * |  faulted  |  faulted  |  \  |  faulted  |
-+	 * |-----------|-----------|  /  |-----------|
-+	 *      ptr         ptr2      \       ptr3
-+	 *
-+	 * It should merge:
-+	 *                            \
-+	 * |-----------------------|  /  |-----------|
-+	 * |        faulted        |  \  |  faulted  |
-+	 * |-----------------------|  /  |-----------|
-+	 *            ptr             \       ptr3
-+	 */
-+	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, &carveout[page_size]);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+
-+	/*
-+	 * Now move ptr out of place again:
-+	 *                            \                 \
-+	 *             |-----------|  /  |-----------|  /  |-----------|
-+	 *             |  faulted  |  \  |  faulted  |  \  |  faulted  |
-+	 *             |-----------|  /  |-----------|  /  |-----------|
-+	 *                  ptr2      \       ptr       \       ptr3
-+	 */
-+	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Now move ptr3 back into place:
-+	 *                                        \
-+	 *             |-----------|-----------|  /  |-----------|
-+	 *             |  faulted  |  faulted  |  \  |  faulted  |
-+	 *             |-----------|-----------|  /  |-----------|
-+	 *                  ptr2        ptr3      \       ptr
-+	 *
-+	 * It should merge:
-+	 *                                        \
-+	 *             |-----------------------|  /  |-----------|
-+	 *             |        faulted        |  \  |  faulted  |
-+	 *             |-----------------------|  /  |-----------|
-+	 *                        ptr2            \       ptr
-+	 */
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr2[5 * page_size]);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr2));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr2);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr2 + 10 * page_size);
-+
-+	/*
-+	 * Now move ptr back into place:
-+	 *
-+	 * |-----------|-----------------------|
-+	 * |  faulted  |        faulted        |
-+	 * |-----------|-----------------------|
-+	 *      ptr               ptr2
-+	 *
-+	 * It should merge:
-+	 *
-+	 * |-----------------------------------|
-+	 * |              faulted              |
-+	 * |-----------------------------------|
-+	 *                  ptr
-+	 */
-+	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, &carveout[page_size]);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
-+
-+	/*
-+	 * Now move ptr2 out of the way:
-+	 *                                        \
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 * |  faulted  |           |  faulted  |  \  |  faulted  |
-+	 * |-----------|           |-----------|  /  |-----------|
-+	 *      ptr                     ptr3      \       ptr2
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/*
-+	 * Now move it back:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |  faulted  |  faulted  |  faulted  |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr         ptr2        ptr3
-+	 *
-+	 * It should merge:
-+	 *
-+	 * |-----------------------------------|
-+	 * |              faulted              |
-+	 * |-----------------------------------|
-+	 *                  ptr
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
-+
-+	/*
-+	 * Move ptr3 out of place:
-+	 *                                        \
-+	 * |-----------------------|              /  |-----------|
-+	 * |        faulted        |              \  |  faulted  |
-+	 * |-----------------------|              /  |-----------|
-+	 *            ptr                         \       ptr3
-+	 */
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 1000);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	/*
-+	 * Now move it back:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |  faulted  |  faulted  |  faulted  |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr         ptr2        ptr3
-+	 *
-+	 * It should merge:
-+	 *
-+	 * |-----------------------------------|
-+	 * |              faulted              |
-+	 * |-----------------------------------|
-+	 *                  ptr
-+	 */
-+	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, &ptr[10 * page_size]);
-+	ASSERT_NE(ptr3, MAP_FAILED);
-+
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
-+}
-+
- TEST_HARNESS_MAIN
---- a/tools/testing/selftests/mm/vm_util.c~tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -524,3 +524,11 @@ int read_sysfs(const char *file_path, un
- 
- 	return 0;
- }
-+
-+void *sys_mremap(void *old_address, unsigned long old_size,
-+		 unsigned long new_size, int flags, void *new_address)
-+{
-+	return (void *)syscall(__NR_mremap, (unsigned long)old_address,
-+			       old_size, new_size, flags,
-+			       (unsigned long)new_address);
-+}
---- a/tools/testing/selftests/mm/vm_util.h~tools-testing-selftests-add-mremap-unfaulted-faulted-test-cases
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -117,6 +117,9 @@ static inline void log_test_result(int r
- 	ksft_test_result_report(result, "%s\n", test_name);
- }
- 
-+void *sys_mremap(void *old_address, unsigned long old_size,
-+		 unsigned long new_size, int flags, void *new_address);
-+
- /*
-  * On ppc64 this will only work with radix 2M hugepage size
-  */
+-		if (IS_ENABLED(CONFIG_BALLOON_COMPACTION) &&
+-		    PageIsolated(page)) {
+-			/* raced with isolation */
+-			unlock_page(page);
+-			continue;
+-		}
+ 		balloon_page_delete(page);
+ 		__count_vm_event(BALLOON_DEFLATE);
+ 		list_add(&page->lru, pages);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-mremap-perform-some-simple-cleanups.patch
-mm-mremap-refactor-initial-parameter-sanity-checks.patch
-mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
-mm-mremap-cleanup-post-processing-stage-of-mremap.patch
-mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
-mm-mremap-check-remap-conditions-earlier.patch
-mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
-mm-mremap-clean-up-mlock-populate-behaviour.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
-tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
+mm-convert-fpb_ignore_-into-fpb_respect_.patch
+mm-smaller-folio_pte_batch-improvements.patch
+mm-split-folio_pte_batch-into-folio_pte_batch-and-folio_pte_batch_flags.patch
+mm-remove-boolean-output-parameters-from-folio_pte_batch_ext.patch
+mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
 
