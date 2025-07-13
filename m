@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 172F51D54FA
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3240720E011
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:40:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450009; cv=none; b=NjqojR8RYfw64mTLTiJEN0lAs3oEclYnB4Np32ZxLRuCujY79Gw7mgflkIu6QJMfQN6iHW9r45gJCEMOgnGH2uCcLVjWu8WHh2UnZ6aa7fp/Ra3F8MgPAyuC9SeCMGSoHEd5efGfEkupq7LsG+ylJIX1JSLynPwPurtUQz5ZHow=
+	t=1752450011; cv=none; b=QgVjPkhK5MD0DfRzUMA1Ciq5lmsl/jTZ71DwC/ZSfnq8MzhckLrs2JbW8Er5+EMjcjFBYl2FEzoFuwW6ApP0CdJPVJ5PpKVNzim0ZjPSaZCHh85cBONs2oVEHsNqbIF7h5NvBKMVv0Io9nvIopWzEK1RUwMmbCB7OWlfazmC5SE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450009; c=relaxed/simple;
-	bh=yTU23qm3B3Jw8nn5BNhwK/dCtHSwdClK70K/MlIcK1Y=;
-	h=Date:To:From:Subject:Message-Id; b=NLIttBG41PaTyRqcG08QF6hNGfn9mLLsauURKg3hEUYbVWxUNHWTw0Ej5fJVNVQwmm6K5inVYxHBDs8NNirGjzN4wl5aflnohvCzKvPxzUII8h507tMUygZOop6nDx7yS6LNJElqL1+5DjMzayVVuuNo8Gi1SvIGglf5v4Ra/10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=isL1JFAv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450011; c=relaxed/simple;
+	bh=8aztbil/ptinpLiZ19aPJKG5THLyFv4WXcf8wk6z054=;
+	h=Date:To:From:Subject:Message-Id; b=bZzb9tz31HuIfbeAbI86L5+COhwvuwRPfE0FI3VL8n59QpDJ1576M3hPFckGxR/zvfAF3gFhQmYDSYMLNgD+aoW/oo7yc1cbgXJ++2sytbIJU9KIYMbfQUxyW1xaKduSTsy5MIH7nY5DQBvNMerMhiegiTJ4qMXLZziV9ROk+/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VeT+WR05; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="isL1JFAv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFC5CC4CEE3;
-	Sun, 13 Jul 2025 23:40:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VeT+WR05"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2B54C4CEE3;
+	Sun, 13 Jul 2025 23:40:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450009;
-	bh=yTU23qm3B3Jw8nn5BNhwK/dCtHSwdClK70K/MlIcK1Y=;
+	s=korg; t=1752450011;
+	bh=8aztbil/ptinpLiZ19aPJKG5THLyFv4WXcf8wk6z054=;
 	h=Date:To:From:Subject:From;
-	b=isL1JFAvtwRfCMQygbsGPCOATM0NFQErwmuI1u/9/SLG0MxUaEhGZDT4cTPaSsXGM
-	 pSj561BvxDtq86VVOPJZ0ADw/CpI0A/GdQGDS5bZLt1xEIlKNnnZDmWji3/lmoC0Xm
-	 Vh1G8ZwvMB9LJLMr5SlhvFOZv3zt1LMSU78pqFpU=
-Date: Sun, 13 Jul 2025 16:40:08 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rakie.kim@sk.com,Jonathan.Cameron@huawei.com,harry.yoo@oracle.com,david@redhat.com,42.hyeyoo@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=VeT+WR05e7wlrbDJtGcuiQrXi2HVY4NZMZTmQcyvbxBCV7heNkEq3JJMb3tgKnV99
+	 /57FufeshIbospeDucGJNv2eFAPxz6m6n0l/Vcb7W1a5V+H/etS4xZzlOlWpZ5dpg+
+	 dhb6g4loBzxczqY+w+9LYsZzxA80J6uR6QMbt4cY=
+Date: Sun, 13 Jul 2025 16:40:10 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,richardycc@google.com,osalvador@suse.de,mhocko@suse.com,mgorman@techsingularity.net,kirill.shutemov@linux.intel.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch removed from -mm tree
-Message-Id: <20250713234008.DFC5CC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-pageblock-flags-functions-clean-up.patch removed from -mm tree
+Message-Id: <20250713234010.F2B54C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,472 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm,memory_hotplug: drop status_change_nid parameter from memory_notify
+     Subject: mm/page_alloc: pageblock flags functions clean up
 has been removed from the -mm tree.  Its filename was
-     mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify.patch
+     mm-page_alloc-pageblock-flags-functions-clean-up.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_hotplug: drop status_change_nid parameter from memory_notify
-Date: Mon, 16 Jun 2025 15:51:54 +0200
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/page_alloc: pageblock flags functions clean up
+Date: Mon, 16 Jun 2025 22:11:09 -0400
 
-There no users left of status_change_nid, so drop it from memory_notify
-struct.
+Patch series "Make MIGRATE_ISOLATE a standalone bit", v10.
 
-Link: https://lkml.kernel.org/r/20250616135158.450136-12-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+This patchset moves MIGRATE_ISOLATE to a standalone bit to avoid being
+overwritten during pageblock isolation process.  Currently,
+MIGRATE_ISOLATE is part of enum migratetype (in include/linux/mmzone.h),
+thus, setting a pageblock to MIGRATE_ISOLATE overwrites its original
+migratetype.  This causes pageblock migratetype loss during
+alloc_contig_range() and memory offline, especially when the process fails
+due to a failed pageblock isolation and the code tries to undo the
+finished pageblock isolations.
+
+In terms of performance for changing pageblock types, no performance
+change is observed:
+
+1. I used perf to collect stats of offlining and onlining all memory
+   of a 40GB VM 10 times and see that get_pfnblock_flags_mask() and
+   set_pfnblock_flags_mask() take about 0.12% and 0.02% of the whole
+   process respectively with and without this patchset across 3 runs.
+
+2. I used perf to collect stats of dd from /dev/random to a 40GB tmpfs
+   file and find get_pfnblock_flags_mask() takes about 0.05% of the
+   process with and without this patchset across 3 runs.
+
+
+This patch (of 6):
+
+No functional change is intended.
+
+1. Add __NR_PAGEBLOCK_BITS for the number of pageblock flag bits and use
+   roundup_pow_of_two(__NR_PAGEBLOCK_BITS) as NR_PAGEBLOCK_BITS to take
+   right amount of bits for pageblock flags.
+2. Rename PB_migrate_skip to PB_compact_skip.
+3. Add {get,set,clear}_pfnblock_bit() to operate one a standalone bit,
+   like PB_compact_skip.
+3. Make {get,set}_pfnblock_flags_mask() internal functions and use
+   {get,set}_pfnblock_migratetype() for pageblock migratetype operations.
+4. Move pageblock flags common code to get_pfnblock_bitmap_bitidx().
+3. Use MIGRATETYPE_MASK to get the migratetype of a pageblock from its
+   flags.
+4. Use PB_migrate_end in the definition of MIGRATETYPE_MASK instead of
+   PB_migrate_bits.
+5. Add a comment on is_migrate_cma_folio() to prevent one from changing it
+   to use get_pageblock_migratetype() and causing issues.
+
+Link: https://lkml.kernel.org/r/20250617021115.2331563-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250617021115.2331563-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Richard Chang <richardycc@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/memory-hotplug.rst |    7 -------
- include/linux/memory.h                    |    1 -
- mm/memory_hotplug.c                       |    4 ----
- 3 files changed, 12 deletions(-)
+ Documentation/mm/physical_memory.rst |    2 
+ include/linux/mmzone.h               |   18 +-
+ include/linux/page-isolation.h       |    2 
+ include/linux/pageblock-flags.h      |   34 ++--
+ mm/memory_hotplug.c                  |    2 
+ mm/page_alloc.c                      |  171 +++++++++++++++++++------
+ 6 files changed, 162 insertions(+), 67 deletions(-)
 
---- a/Documentation/core-api/memory-hotplug.rst~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
-+++ a/Documentation/core-api/memory-hotplug.rst
-@@ -59,17 +59,10 @@ The third argument (arg) passes a pointe
- 	struct memory_notify {
- 		unsigned long start_pfn;
- 		unsigned long nr_pages;
--		int status_change_nid;
- 	}
+--- a/Documentation/mm/physical_memory.rst~mm-page_alloc-pageblock-flags-functions-clean-up
++++ a/Documentation/mm/physical_memory.rst
+@@ -584,7 +584,7 @@ Compaction control
  
- - start_pfn is start_pfn of online/offline memory.
- - nr_pages is # of pages of online/offline memory.
--- status_change_nid is set node id when N_MEMORY of nodemask is (will be)
--  set/clear. It means a new(memoryless) node gets new memory by online and a
--  node loses all memory. If this is -1, then nodemask status is not changed.
--
--  If status_changed_nid* >= 0, callback should create/discard structures for the
--  node if necessary.
+ ``compact_blockskip_flush``
+   Set to true when compaction migration scanner and free scanner meet, which
+-  means the ``PB_migrate_skip`` bits should be cleared.
++  means the ``PB_compact_skip`` bits should be cleared.
  
- It is possible to get notified for MEM_CANCEL_ONLINE without having been notified
- for MEM_GOING_ONLINE, and the same applies to MEM_CANCEL_OFFLINE and
---- a/include/linux/memory.h~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
-+++ a/include/linux/memory.h
-@@ -109,7 +109,6 @@ struct memory_notify {
- 	unsigned long altmap_nr_pages;
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
--	int status_change_nid;
+ ``contiguous``
+   Set to true when the zone is contiguous (in other words, no hole).
+--- a/include/linux/mmzone.h~mm-page_alloc-pageblock-flags-functions-clean-up
++++ a/include/linux/mmzone.h
+@@ -92,8 +92,12 @@ extern const char * const migratetype_na
+ #ifdef CONFIG_CMA
+ #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
+ #  define is_migrate_cma_page(_page) (get_pageblock_migratetype(_page) == MIGRATE_CMA)
+-#  define is_migrate_cma_folio(folio, pfn)	(MIGRATE_CMA ==		\
+-	get_pfnblock_flags_mask(&folio->page, pfn, MIGRATETYPE_MASK))
++/*
++ * __dump_folio() in mm/debug.c passes a folio pointer to on-stack struct folio,
++ * so folio_pfn() cannot be used and pfn is needed.
++ */
++#  define is_migrate_cma_folio(folio, pfn) \
++	(get_pfnblock_migratetype(&folio->page, pfn) == MIGRATE_CMA)
+ #else
+ #  define is_migrate_cma(migratetype) false
+ #  define is_migrate_cma_page(_page) false
+@@ -122,14 +126,12 @@ static inline bool migratetype_is_mergea
+ 
+ extern int page_group_by_mobility_disabled;
+ 
+-#define MIGRATETYPE_MASK ((1UL << PB_migratetype_bits) - 1)
++#define get_pageblock_migratetype(page) \
++	get_pfnblock_migratetype(page, page_to_pfn(page))
+ 
+-#define get_pageblock_migratetype(page)					\
+-	get_pfnblock_flags_mask(page, page_to_pfn(page), MIGRATETYPE_MASK)
++#define folio_migratetype(folio) \
++	get_pageblock_migratetype(&folio->page)
+ 
+-#define folio_migratetype(folio)				\
+-	get_pfnblock_flags_mask(&folio->page, folio_pfn(folio),		\
+-			MIGRATETYPE_MASK)
+ struct free_area {
+ 	struct list_head	free_list[MIGRATE_TYPES];
+ 	unsigned long		nr_free;
+--- a/include/linux/pageblock-flags.h~mm-page_alloc-pageblock-flags-functions-clean-up
++++ a/include/linux/pageblock-flags.h
+@@ -19,15 +19,19 @@ enum pageblock_bits {
+ 	PB_migrate,
+ 	PB_migrate_end = PB_migrate + PB_migratetype_bits - 1,
+ 			/* 3 bits required for migrate types */
+-	PB_migrate_skip,/* If set the block is skipped by compaction */
++	PB_compact_skip,/* If set the block is skipped by compaction */
+ 
+ 	/*
+ 	 * Assume the bits will always align on a word. If this assumption
+ 	 * changes then get/set pageblock needs updating.
+ 	 */
+-	NR_PAGEBLOCK_BITS
++	__NR_PAGEBLOCK_BITS
  };
  
- struct notifier_block;
---- a/mm/memory_hotplug.c~mmmemory_hotplug-drop-status_change_nid-parameter-from-memory_notify
++#define NR_PAGEBLOCK_BITS (roundup_pow_of_two(__NR_PAGEBLOCK_BITS))
++
++#define MIGRATETYPE_MASK ((1UL << (PB_migrate_end + 1)) - 1)
++
+ #if defined(CONFIG_HUGETLB_PAGE)
+ 
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+@@ -65,27 +69,23 @@ extern unsigned int pageblock_order;
+ /* Forward declaration */
+ struct page;
+ 
+-unsigned long get_pfnblock_flags_mask(const struct page *page,
+-				unsigned long pfn,
+-				unsigned long mask);
+-
+-void set_pfnblock_flags_mask(struct page *page,
+-				unsigned long flags,
+-				unsigned long pfn,
+-				unsigned long mask);
++enum migratetype get_pfnblock_migratetype(const struct page *page,
++					  unsigned long pfn);
++bool get_pfnblock_bit(const struct page *page, unsigned long pfn,
++		      enum pageblock_bits pb_bit);
++void set_pfnblock_bit(const struct page *page, unsigned long pfn,
++		      enum pageblock_bits pb_bit);
++void clear_pfnblock_bit(const struct page *page, unsigned long pfn,
++			enum pageblock_bits pb_bit);
+ 
+ /* Declarations for getting and setting flags. See mm/page_alloc.c */
+ #ifdef CONFIG_COMPACTION
+ #define get_pageblock_skip(page) \
+-	get_pfnblock_flags_mask(page, page_to_pfn(page),	\
+-			(1 << (PB_migrate_skip)))
++	get_pfnblock_bit(page, page_to_pfn(page), PB_compact_skip)
+ #define clear_pageblock_skip(page) \
+-	set_pfnblock_flags_mask(page, 0, page_to_pfn(page),	\
+-			(1 << PB_migrate_skip))
++	clear_pfnblock_bit(page, page_to_pfn(page), PB_compact_skip)
+ #define set_pageblock_skip(page) \
+-	set_pfnblock_flags_mask(page, (1 << PB_migrate_skip),	\
+-			page_to_pfn(page),			\
+-			(1 << PB_migrate_skip))
++	set_pfnblock_bit(page, page_to_pfn(page), PB_compact_skip)
+ #else
+ static inline bool get_pageblock_skip(struct page *page)
+ {
+--- a/include/linux/page-isolation.h~mm-page_alloc-pageblock-flags-functions-clean-up
++++ a/include/linux/page-isolation.h
+@@ -25,7 +25,7 @@ static inline bool is_migrate_isolate(in
+ #define MEMORY_OFFLINE	0x1
+ #define REPORT_FAILURE	0x2
+ 
+-void set_pageblock_migratetype(struct page *page, int migratetype);
++void set_pageblock_migratetype(struct page *page, enum migratetype migratetype);
+ 
+ bool move_freepages_block_isolate(struct zone *zone, struct page *page,
+ 				  int migratetype);
+--- a/mm/memory_hotplug.c~mm-page_alloc-pageblock-flags-functions-clean-up
 +++ a/mm/memory_hotplug.c
-@@ -1153,7 +1153,6 @@ int online_pages(unsigned long pfn, unsi
- 	struct memory_notify mem_arg = {
- 		.start_pfn = pfn,
- 		.nr_pages = nr_pages,
--		.status_change_nid = NUMA_NO_NODE,
- 	};
- 	struct node_notify node_arg = {
- 		.nid = NUMA_NO_NODE,
-@@ -1181,7 +1180,6 @@ int online_pages(unsigned long pfn, unsi
- 	if (!node_state(nid, N_MEMORY)) {
- 		/* Adding memory to the node for the first time */
- 		node_arg.nid = nid;
--		mem_arg.status_change_nid = nid;
- 		ret = node_notify(NODE_ADDING_FIRST_MEMORY, &node_arg);
- 		ret = notifier_to_errno(ret);
- 		if (ret)
-@@ -1904,7 +1902,6 @@ int offline_pages(unsigned long start_pf
- 	struct memory_notify mem_arg = {
- 		.start_pfn = start_pfn,
- 		.nr_pages = nr_pages,
--		.status_change_nid = NUMA_NO_NODE,
- 	};
- 	struct node_notify node_arg = {
- 		.nid = NUMA_NO_NODE,
-@@ -1975,7 +1972,6 @@ int offline_pages(unsigned long start_pf
+@@ -774,7 +774,7 @@ void move_pfn_range_to_zone(struct zone
+ 
+ 	/*
+ 	 * TODO now we have a visible range of pages which are not associated
+-	 * with their zone properly. Not nice but set_pfnblock_flags_mask
++	 * with their zone properly. Not nice but set_pfnblock_migratetype()
+ 	 * expects the zone spans the pfn range. All the pages in the range
+ 	 * are reserved so nobody should be touching them so we should be safe
  	 */
- 	if (nr_pages >= pgdat->node_present_pages) {
- 		node_arg.nid = node;
--		mem_arg.status_change_nid = node;
- 		ret = node_notify(NODE_REMOVING_LAST_MEMORY, &node_arg);
- 		ret = notifier_to_errno(ret);
- 		if (ret) {
+--- a/mm/page_alloc.c~mm-page_alloc-pageblock-flags-functions-clean-up
++++ a/mm/page_alloc.c
+@@ -353,81 +353,174 @@ static inline int pfn_to_bitidx(const st
+ 	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
+ }
+ 
++static __always_inline bool is_standalone_pb_bit(enum pageblock_bits pb_bit)
++{
++	return pb_bit > PB_migrate_end && pb_bit < __NR_PAGEBLOCK_BITS;
++}
++
++static __always_inline void
++get_pfnblock_bitmap_bitidx(const struct page *page, unsigned long pfn,
++			   unsigned long **bitmap_word, unsigned long *bitidx)
++{
++	unsigned long *bitmap;
++	unsigned long word_bitidx;
++
++	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
++	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
++	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
++
++	bitmap = get_pageblock_bitmap(page, pfn);
++	*bitidx = pfn_to_bitidx(page, pfn);
++	word_bitidx = *bitidx / BITS_PER_LONG;
++	*bitidx &= (BITS_PER_LONG - 1);
++	*bitmap_word = &bitmap[word_bitidx];
++}
++
++
+ /**
+- * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
++ * __get_pfnblock_flags_mask - Return the requested group of flags for
++ * a pageblock_nr_pages block of pages
+  * @page: The page within the block of interest
+  * @pfn: The target page frame number
+  * @mask: mask of bits that the caller is interested in
+  *
+  * Return: pageblock_bits flags
+  */
+-unsigned long get_pfnblock_flags_mask(const struct page *page,
+-					unsigned long pfn, unsigned long mask)
++static unsigned long __get_pfnblock_flags_mask(const struct page *page,
++					       unsigned long pfn,
++					       unsigned long mask)
+ {
+-	unsigned long *bitmap;
+-	unsigned long bitidx, word_bitidx;
++	unsigned long *bitmap_word;
++	unsigned long bitidx;
+ 	unsigned long word;
+ 
+-	bitmap = get_pageblock_bitmap(page, pfn);
+-	bitidx = pfn_to_bitidx(page, pfn);
+-	word_bitidx = bitidx / BITS_PER_LONG;
+-	bitidx &= (BITS_PER_LONG-1);
++	get_pfnblock_bitmap_bitidx(page, pfn, &bitmap_word, &bitidx);
+ 	/*
+-	 * This races, without locks, with set_pfnblock_flags_mask(). Ensure
++	 * This races, without locks, with set_pfnblock_migratetype(). Ensure
+ 	 * a consistent read of the memory array, so that results, even though
+ 	 * racy, are not corrupted.
+ 	 */
+-	word = READ_ONCE(bitmap[word_bitidx]);
++	word = READ_ONCE(*bitmap_word);
+ 	return (word >> bitidx) & mask;
+ }
+ 
+-static __always_inline int get_pfnblock_migratetype(const struct page *page,
+-					unsigned long pfn)
++/**
++ * get_pfnblock_bit - Check if a standalone bit of a pageblock is set
++ * @page: The page within the block of interest
++ * @pfn: The target page frame number
++ * @pb_bit: pageblock bit to check
++ *
++ * Return: true if the bit is set, otherwise false
++ */
++bool get_pfnblock_bit(const struct page *page, unsigned long pfn,
++		      enum pageblock_bits pb_bit)
+ {
+-	return get_pfnblock_flags_mask(page, pfn, MIGRATETYPE_MASK);
++	unsigned long *bitmap_word;
++	unsigned long bitidx;
++
++	if (WARN_ON_ONCE(!is_standalone_pb_bit(pb_bit)))
++		return false;
++
++	get_pfnblock_bitmap_bitidx(page, pfn, &bitmap_word, &bitidx);
++
++	return test_bit(bitidx + pb_bit, bitmap_word);
+ }
+ 
+ /**
+- * set_pfnblock_flags_mask - Set the requested group of flags for a pageblock_nr_pages block of pages
++ * get_pfnblock_migratetype - Return the migratetype of a pageblock
++ * @page: The page within the block of interest
++ * @pfn: The target page frame number
++ *
++ * Return: The migratetype of the pageblock
++ *
++ * Use get_pfnblock_migratetype() if caller already has both @page and @pfn
++ * to save a call to page_to_pfn().
++ */
++__always_inline enum migratetype
++get_pfnblock_migratetype(const struct page *page, unsigned long pfn)
++{
++	return __get_pfnblock_flags_mask(page, pfn, MIGRATETYPE_MASK);
++}
++
++/**
++ * __set_pfnblock_flags_mask - Set the requested group of flags for
++ * a pageblock_nr_pages block of pages
+  * @page: The page within the block of interest
+- * @flags: The flags to set
+  * @pfn: The target page frame number
++ * @flags: The flags to set
+  * @mask: mask of bits that the caller is interested in
+  */
+-void set_pfnblock_flags_mask(struct page *page, unsigned long flags,
+-					unsigned long pfn,
+-					unsigned long mask)
++static void __set_pfnblock_flags_mask(struct page *page, unsigned long pfn,
++				      unsigned long flags, unsigned long mask)
+ {
+-	unsigned long *bitmap;
+-	unsigned long bitidx, word_bitidx;
++	unsigned long *bitmap_word;
++	unsigned long bitidx;
+ 	unsigned long word;
+ 
+-	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
+-	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
+-
+-	bitmap = get_pageblock_bitmap(page, pfn);
+-	bitidx = pfn_to_bitidx(page, pfn);
+-	word_bitidx = bitidx / BITS_PER_LONG;
+-	bitidx &= (BITS_PER_LONG-1);
+-
+-	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
++	get_pfnblock_bitmap_bitidx(page, pfn, &bitmap_word, &bitidx);
+ 
+ 	mask <<= bitidx;
+ 	flags <<= bitidx;
+ 
+-	word = READ_ONCE(bitmap[word_bitidx]);
++	word = READ_ONCE(*bitmap_word);
+ 	do {
+-	} while (!try_cmpxchg(&bitmap[word_bitidx], &word, (word & ~mask) | flags));
++	} while (!try_cmpxchg(bitmap_word, &word, (word & ~mask) | flags));
++}
++
++/**
++ * set_pfnblock_bit - Set a standalone bit of a pageblock
++ * @page: The page within the block of interest
++ * @pfn: The target page frame number
++ * @pb_bit: pageblock bit to set
++ */
++void set_pfnblock_bit(const struct page *page, unsigned long pfn,
++		      enum pageblock_bits pb_bit)
++{
++	unsigned long *bitmap_word;
++	unsigned long bitidx;
++
++	if (WARN_ON_ONCE(!is_standalone_pb_bit(pb_bit)))
++		return;
++
++	get_pfnblock_bitmap_bitidx(page, pfn, &bitmap_word, &bitidx);
++
++	set_bit(bitidx + pb_bit, bitmap_word);
+ }
+ 
+-void set_pageblock_migratetype(struct page *page, int migratetype)
++/**
++ * clear_pfnblock_bit - Clear a standalone bit of a pageblock
++ * @page: The page within the block of interest
++ * @pfn: The target page frame number
++ * @pb_bit: pageblock bit to clear
++ */
++void clear_pfnblock_bit(const struct page *page, unsigned long pfn,
++			enum pageblock_bits pb_bit)
++{
++	unsigned long *bitmap_word;
++	unsigned long bitidx;
++
++	if (WARN_ON_ONCE(!is_standalone_pb_bit(pb_bit)))
++		return;
++
++	get_pfnblock_bitmap_bitidx(page, pfn, &bitmap_word, &bitidx);
++
++	clear_bit(bitidx + pb_bit, bitmap_word);
++}
++
++/**
++ * set_pageblock_migratetype - Set the migratetype of a pageblock
++ * @page: The page within the block of interest
++ * @migratetype: migratetype to set
++ */
++__always_inline void set_pageblock_migratetype(struct page *page,
++					       enum migratetype migratetype)
+ {
+ 	if (unlikely(page_group_by_mobility_disabled &&
+ 		     migratetype < MIGRATE_PCPTYPES))
+ 		migratetype = MIGRATE_UNMOVABLE;
+ 
+-	set_pfnblock_flags_mask(page, (unsigned long)migratetype,
+-				page_to_pfn(page), MIGRATETYPE_MASK);
++	__set_pfnblock_flags_mask(page, page_to_pfn(page),
++				  (unsigned long)migratetype, MIGRATETYPE_MASK);
+ }
+ 
+ #ifdef CONFIG_DEBUG_VM
+@@ -667,7 +760,7 @@ static inline void __add_to_free_list(st
+ 	int nr_pages = 1 << order;
+ 
+ 	VM_WARN_ONCE(get_pageblock_migratetype(page) != migratetype,
+-		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
++		     "page type is %d, passed migratetype is %d (nr=%d)\n",
+ 		     get_pageblock_migratetype(page), migratetype, nr_pages);
+ 
+ 	if (tail)
+@@ -693,7 +786,7 @@ static inline void move_to_free_list(str
+ 
+ 	/* Free page moving can fail, so it happens before the type update */
+ 	VM_WARN_ONCE(get_pageblock_migratetype(page) != old_mt,
+-		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
++		     "page type is %d, passed migratetype is %d (nr=%d)\n",
+ 		     get_pageblock_migratetype(page), old_mt, nr_pages);
+ 
+ 	list_move_tail(&page->buddy_list, &area->free_list[new_mt]);
+@@ -715,7 +808,7 @@ static inline void __del_page_from_free_
+ 	int nr_pages = 1 << order;
+ 
+         VM_WARN_ONCE(get_pageblock_migratetype(page) != migratetype,
+-		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
++		     "page type is %d, passed migratetype is %d (nr=%d)\n",
+ 		     get_pageblock_migratetype(page), migratetype, nr_pages);
+ 
+ 	/* clear reported state and update reported page count */
+@@ -3123,7 +3216,7 @@ static struct page *rmqueue_pcplist(stru
+ 
+ /*
+  * Do not instrument rmqueue() with KMSAN. This function may call
+- * __msan_poison_alloca() through a call to set_pfnblock_flags_mask().
++ * __msan_poison_alloca() through a call to set_pfnblock_migratetype().
+  * If __msan_poison_alloca() attempts to allocate pages for the stack depot, it
+  * may call rmqueue() again, which will result in a deadlock.
+  */
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
+selftests-mm-fix-split_huge_page_test-for-folio_split-tests.patch
+mm-huge_memory-move-unrelated-code-out-of-__split_unmapped_folio.patch
+mm-huge_memory-use-folio_expected_ref_count-to-calculate-ref_count.patch
 
