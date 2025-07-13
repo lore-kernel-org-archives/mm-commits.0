@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F7611EF38E
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02A21EF38E
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:41:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450076; cv=none; b=G4dikjhBkkYiFfkHeROGuIfgu4F0v/9FLQXIe5vmQl9UZyxlpTBhRv2x8UT1/xGLhjg3jIeWOrQU61iHBoPPYB2wMCBSMX5Zz7n3uGkqq6gPyI9qML0CfA3lHMGeWArCmPtCJs+XyuyfxUFXihHc/8zsOdG4GXgrApYuzXpz3oU=
+	t=1752450078; cv=none; b=khHypK85WNA0dPcWv8EkzIgqJ2Meu5aB2vus1XakXqNI0l0EStIAsNqJ/UfVKqvD6UIr4uNR7Tbg7D3hwJRPVjBAQb7iLK8mONEGXr17B6BHaYK1Dz1N2icwd1xbQTzuP4U5J5C7t8gPJN0mO3rj8pQ3vY5+obAq5SgipmZ0jwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450076; c=relaxed/simple;
-	bh=+mGD7TILZwVIkA1ch9apX5AMjdJYdPy/Eoui6xkGj2E=;
-	h=Date:To:From:Subject:Message-Id; b=c1+G3d3cg2X3sk9LF9+l+xW1jqxa1DL+m3uNPetW52y/UrfnDWYMebCd/jjhC6YkTViFc/v742yZRcmslNoO8/ZN6VRpikXi3og5KWirYno0Irzhg39fzPphnqbFJW3FewHg4Jrn9OYu3BpqaNn2FQ/oTOmgcddseLXGXgUVEpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EnmNoIpF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752450078; c=relaxed/simple;
+	bh=zOn+avnhJ6bXh5awsw4HJCZMcumvwgxVCbh/NacPBS4=;
+	h=Date:To:From:Subject:Message-Id; b=Aaf83LtAj2MvS4MYR3DWMLTOvJ8YGmLU28AcffmfcXp4jlIP2cOde2duTeWR02d9VX4G1zk3KMnBAbWBkFRHvzYamjBJRPGFpnKgQcx1GShTwmf8wzyaCN7QcpGEekEObDxkDd3Gj8djAtS6h7yPOe3myrWk6nq28p0mFItxoRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lpy7+mZX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EnmNoIpF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 109E7C4CEE3;
-	Sun, 13 Jul 2025 23:41:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lpy7+mZX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E852C4CEE3;
+	Sun, 13 Jul 2025 23:41:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450076;
-	bh=+mGD7TILZwVIkA1ch9apX5AMjdJYdPy/Eoui6xkGj2E=;
+	s=korg; t=1752450078;
+	bh=zOn+avnhJ6bXh5awsw4HJCZMcumvwgxVCbh/NacPBS4=;
 	h=Date:To:From:Subject:From;
-	b=EnmNoIpFhJ3kasHcUAlfgLetyaS9TmCWIyv0h/7SLWnwinHpohvNpt3RZwk3rGEPT
-	 /w9sfSI9sknHwDXJBjn5KVBkeDrCqgxVyW/dSJeFnx6ucMAP3h8fx0osSosNe0Qqe8
-	 GefoISkK8I0VQmJVwWIvqU0E6UNFgdi/gjHGpv1c=
-Date: Sun, 13 Jul 2025 16:41:15 -0700
+	b=Lpy7+mZXq2Dmiku3ZAVq1tP9+U1v/grrZST1hfpA3SqbakAE63N2Cl/a6p7dpF/xx
+	 RPK60vHRtLO1FqMrW4PIGuYmxnaj+y9mLfshjkNmDjj0T1OaxB7FZ/DE9RNl6572yN
+	 E7RfaSXIpIoyWU2HdYMLWEvIlSDC0oH9Cd7/xgq8=
+Date: Sun, 13 Jul 2025 16:41:18 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,xuanzhuo@linux.alibaba.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nao.horiguchi@gmail.com,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,mhocko@suse.com,matthew.brost@intel.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,jackmanb@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-stop-using-__clearpagemovable.patch removed from -mm tree
-Message-Id: <20250713234116.109E7C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-balloon_compaction-stop-using-__clearpagemovable.patch removed from -mm tree
+Message-Id: <20250713234118.7E852C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: stop using __ClearPageMovable()
+     Subject: mm/balloon_compaction: stop using __ClearPageMovable()
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-stop-using-__clearpagemovable.patch
+     mm-balloon_compaction-stop-using-__clearpagemovable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/zsmalloc: stop using __ClearPageMovable()
-Date: Fri, 4 Jul 2025 12:25:06 +0200
+Subject: mm/balloon_compaction: stop using __ClearPageMovable()
+Date: Fri, 4 Jul 2025 12:25:07 +0200
 
-Instead, let's check in the callbacks if the page was already destroyed,
-which can be checked by looking at zpdesc->zspage (see reset_zpdesc()).
+We can just look at the balloon device (stored in page->private), to see
+if the page is still part of the balloon.
 
-If we detect that the page was destroyed:
+As isolated balloon pages cannot get released (they are taken off the
+balloon list while isolated), we don't have to worry about this case in
+the putback and migration callback.  Add a WARN_ON_ONCE for now.
 
-(1) Fail isolation, just like the migration core would
-
-(2) Fake migration success just like the migration core would
-
-In the putback case there is nothing to do, as we don't do anything just
-like the migration core would do.
-
-In the future, we should look into not letting these pages get destroyed
-while they are isolated -- and instead delaying that to the
-putback/migration call.  Add a TODO for that.
-
-Link: https://lkml.kernel.org/r/20250704102524.326966-13-david@redhat.com
+Link: https://lkml.kernel.org/r/20250704102524.326966-14-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -79,6 +68,7 @@ Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Eugenio Pé rez <eperezma@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Gregory Price <gourry@gourry.net>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -105,6 +95,7 @@ Cc: Peter Xu <peterx@redhat.com>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Rik van Riel <riel@surriel.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -114,51 +105,58 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ include/linux/balloon_compaction.h |    4 +---
+ mm/balloon_compaction.c            |   11 +++++++++++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-stop-using-__clearpagemovable
-+++ a/mm/zsmalloc.c
-@@ -877,7 +877,6 @@ static void reset_zpdesc(struct zpdesc *
+--- a/include/linux/balloon_compaction.h~mm-balloon_compaction-stop-using-__clearpagemovable
++++ a/include/linux/balloon_compaction.h
+@@ -136,10 +136,8 @@ static inline gfp_t balloon_mapping_gfp_
+  */
+ static inline void balloon_page_finalize(struct page *page)
  {
- 	struct page *page = zpdesc_page(zpdesc);
- 
--	__ClearPageMovable(page);
- 	ClearPagePrivate(page);
- 	zpdesc->zspage = NULL;
- 	zpdesc->next = NULL;
-@@ -1716,10 +1715,11 @@ static void replace_sub_page(struct size
- static bool zs_page_isolate(struct page *page, isolate_mode_t mode)
- {
- 	/*
--	 * Page is locked so zspage couldn't be destroyed. For detail, look at
--	 * lock_zspage in free_zspage.
-+	 * Page is locked so zspage can't be destroyed concurrently
-+	 * (see free_zspage()). But if the page was already destroyed
-+	 * (see reset_zpdesc()), refuse isolation here.
- 	 */
--	return true;
-+	return page_zpdesc(page)->zspage;
+-	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION)) {
+-		__ClearPageMovable(page);
++	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION))
+ 		set_page_private(page, 0);
+-	}
+ 	/* PageOffline is sticky until the page is freed to the buddy. */
  }
  
- static int zs_page_migrate(struct page *newpage, struct page *page,
-@@ -1737,6 +1737,16 @@ static int zs_page_migrate(struct page *
- 	unsigned long old_obj, new_obj;
- 	unsigned int obj_idx;
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-stop-using-__clearpagemovable
++++ a/mm/balloon_compaction.c
+@@ -206,6 +206,9 @@ static bool balloon_page_isolate(struct
+ 	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
+ 	unsigned long flags;
  
-+	/*
-+	 * TODO: nothing prevents a zspage from getting destroyed while
-+	 * it is isolated for migration, as the page lock is temporarily
-+	 * dropped after zs_page_isolate() succeeded: we should rework that
-+	 * and defer destroying such pages once they are un-isolated (putback)
-+	 * instead.
-+	 */
-+	if (!zpdesc->zspage)
-+		return MIGRATEPAGE_SUCCESS;
++	if (!b_dev_info)
++		return false;
 +
- 	/* The page is locked, so this pointer must remain valid */
- 	zspage = get_zspage(zpdesc);
- 	pool = zspage->pool;
+ 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+ 	list_del(&page->lru);
+ 	b_dev_info->isolated_pages++;
+@@ -219,6 +222,10 @@ static void balloon_page_putback(struct
+ 	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
+ 	unsigned long flags;
+ 
++	/* Isolated balloon pages cannot get deflated. */
++	if (WARN_ON_ONCE(!b_dev_info))
++		return;
++
+ 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+ 	list_add(&page->lru, &b_dev_info->pages);
+ 	b_dev_info->isolated_pages--;
+@@ -234,6 +241,10 @@ static int balloon_page_migrate(struct p
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+ 
++	/* Isolated balloon pages cannot get deflated. */
++	if (WARN_ON_ONCE(!balloon))
++		return -EAGAIN;
++
+ 	return balloon->migratepage(balloon, newpage, page, mode);
+ }
+ 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
