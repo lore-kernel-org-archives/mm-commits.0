@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4A020C038
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:39:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E1C31EE7B7
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:39:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752449985; cv=none; b=mgKILNVVd1OKPd/9CGQYRhA+p3LwayPdaokk5yN7s88fWMQgEYGcAaFspzRyy1bRp/AOKS3GT2vjGoSPE8l63VhPeCwIsxbk1FT354JR9SxLIXuU6fxLu4lJvsqgHTPoO25QVwYT0RRlEyaUwP6CO3/7gSGHs1G5N4gMPnbtvGk=
+	t=1752449987; cv=none; b=UAD0jqo0tP1gT04ipjf+IV67gTUGwfoDmG9ugCXpQ7yo9S6X+RXRqFrNjGoJaYfFVPtQ93p1be/U1bnE01PtKBeJCYF+KZ2Fiwjm+k/ljtphQlobE1lBOwYWpLFRLAzJsXx6sfe2XjGrkCBvepEm/G4yvIF43DeEr9UMs+QdCpQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752449985; c=relaxed/simple;
-	bh=Sqm2jWiXjlIQa8Op+C8PGMdwCVXHCACXHaML7Th4qtM=;
-	h=Date:To:From:Subject:Message-Id; b=P13j0N9dh72JzW+EZDMvFTJUcq/SdfWguDgoj+sSirlKeTJyI1RJ+5YoyTx0kaJdy5NWChN6sgDNQ52fOs0v22x0wcJGvkWV0h6x1BQlETZj/el/PbNhVQmbwLcRox293mYZ66+3YkAhqxyyeOiQWwGpEtfHN0A+XohWsItOAog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F9MpWJ0K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752449987; c=relaxed/simple;
+	bh=1iP5Kd+uWiBweTEjQkXJhXPcQKp739DKLz4OVMSumYg=;
+	h=Date:To:From:Subject:Message-Id; b=nliuwjxHxQUzQfkddGDrlZVxZFdr1eQgX2idyfWG7f7vI0P4DXTHD3JV9TthSp7W/kBmL+7beXpQyefeO0rGuV3ULgpEBcnQI16YOHKMY0GS3PBQg+GYaqnOJiCslt7LCy9h9BKPyLejYs/TPSRKt/wM/OJn8uSTq2c6gtVkOaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WjEX1cV/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F9MpWJ0K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A93C3C4CEE3;
-	Sun, 13 Jul 2025 23:39:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WjEX1cV/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50200C4CEE3;
+	Sun, 13 Jul 2025 23:39:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752449984;
-	bh=Sqm2jWiXjlIQa8Op+C8PGMdwCVXHCACXHaML7Th4qtM=;
+	s=korg; t=1752449987;
+	bh=1iP5Kd+uWiBweTEjQkXJhXPcQKp739DKLz4OVMSumYg=;
 	h=Date:To:From:Subject:From;
-	b=F9MpWJ0KCFIQc1UBXqNdvv3oNBC5r/kZfqA3as45iH0Qv1CHtfp7fuOi/zov15Cq5
-	 SrbLbYsiYI4eA7o2ZXM5zJcPQkSXC+5F2SHd7Kc+Y9e7Y+S4WbOFaFbngqTF2vxR+F
-	 T+qp/bB+MJjE7c572qws6n9z8/bPw31r+O3PJDSs=
-Date: Sun, 13 Jul 2025 16:39:44 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,jannh@google.com,ioworker0@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=WjEX1cV/rPFwW+bNFkv4UFSQX+wR1XKn/GQCCjPHMifYz6m/V+siYpHjqYPx4fmxs
+	 2aCRlH1zH9WPs+2U/apWA1Th9fHmxnLkSNCFqq/FVNKLS43xEdZuvBwQRpCGwASPyO
+	 vqTYvXZQyrP+Yk0+pzT2cWOncJpNDNhVk6QqTtWg=
+Date: Sun, 13 Jul 2025 16:39:46 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,ccross@google.com,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch removed from -mm tree
-Message-Id: <20250713233944.A93C3C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-simplify-anon_name-handling.patch removed from -mm tree
+Message-Id: <20250713233947.50200C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,367 +35,172 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: eliminate very confusing manipulation of prev VMA
+     Subject: mm, madvise: simplify anon_name handling
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma.patch
+     mm-madvise-simplify-anon_name-handling.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/madvise: eliminate very confusing manipulation of prev VMA
-Date: Fri, 20 Jun 2025 16:33:05 +0100
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, madvise: simplify anon_name handling
+Date: Tue, 24 Jun 2025 15:03:45 +0200
 
-The madvise code has for the longest time had very confusing code around
-the 'prev' VMA pointer passed around various functions which, in all cases
-except madvise_update_vma(), is unused and instead simply updated as soon
-as the function is invoked.
+Patch series "madvise anon_name cleanups", v2.
 
-To compound the confusion, the prev pointer is also used to indicate to
-the caller that the mmap lock has been dropped and that we can therefore
-not safely access the end of the current VMA (which might have been
-updated by madvise_update_vma()).
+While reviewing Lorenzo's madvise cleanups I've noticed that we can handle
+anon_name in madvise code much better, so sending that as patch 1. 
+Initially I wanted to do first move the existing logic from
+madvise_vma_behavior() to madvise_update_vma() as a separate patch before
+the actual simplification but that would require adding
+anon_vma_name_put() in error handling paths only to be removed again, so
+it's a single patch to avoid churn.
 
-Clear up this confusion by not setting prev = vma anywhere except in
-madvise_walk_vmas(), update all references to prev which will always be
-equal to vma after madvise_vma_behavior() is invoked, and adding a flag to
-indicate that the lock has been dropped to make this explicit.
+It's also an opportunity to move some mm code from prctl under mm, hence
+patch 2.  After code moving preparation in patch 3, also unify madvise
+lock handling for madvise_set_anon_name() in patch 4.
 
-Additionally, drop a redundant BUG_ON() from madvise_collapse(), which is
-simply reiterating the BUG_ON(mmap_locked) above it (note that BUG_ON() is
-not appropriate here, but we leave existing code as-is).
 
-We finally adjust the madvise_walk_vmas() logic to be a little clearer -
-delaying the assignment of the end of the range to the start of the new
-range until the last moment and handling the lock being dropped scenario
-immediately.
+This patch (of 4):
 
-Additionally add some explanatory comments.
+Since the introduction in 9a10064f5625 ("mm: add a field to store names
+for private anonymous memory") the code to set anon_name on a vma has been
+using madvise_update_vma() to call replace_anon_vma_name().  Since the
+former is called also by a number of other madvise behaviours that do not
+set a new anon_name, they have been passing the existing anon_name of the
+vma to make replace_anon_vma_name() a no-op.
 
-[lorenzo.stoakes@oracle.com: fix very subtle bug]
-  Link: https://lkml.kernel.org/r/dca94cde-8afb-4eab-8e57-3f508624d670@lucifer.local
-Link: https://lkml.kernel.org/r/63d281c5df2e64225ab5b4bda398b45e22818701.1750433500.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
+This is rather wasteful as it needs anon_vma_name_eq() to determine the
+no-op situations, and checks for when replace_anon_vma_name() is allowed
+(the vma is anon/shmem) duplicate the checks already done earlier in
+madvise_vma_behavior().  It has also lead to commit 942341dcc574 ("mm: fix
+use-after-free when anon vma name is used after vma is freed") adding
+anon_name refcount get/put operations exactly to the cases that actually
+do not change anon_name - just so the replace_anon_vma_name() can keep
+safely determining it has nothing to do.
+
+The recent madvise cleanups made this suboptimal handling very obvious,
+but happily also allow for an easy fix.  madvise_update_vma() now has the
+complete information whether it's been called to set a new anon_name, so
+stop passing it the existing vma's name and doing the refcount get/put in
+its only caller madvise_vma_behavior().
+
+In madvise_update_vma() itself, limit calling of replace_anon_vma_name()
+only to cases where we are setting a new name, otherwise we know it's a
+no-op.  We can rely solely on the __MADV_SET_ANON_VMA_NAME behaviour and
+can remove the duplicate checks for vma being anon/shmem that were done
+already in madvise_vma_behavior().
+
+Additionally, by using vma_modify_flags() when not modifying the
+anon_name, avoid explicitly passing the existing vma's anon_name and
+storing a pointer to it in struct madv_behavior or a local variable.  This
+prevents the danger of accessing a freed anon_name after vma merging,
+previously fixed by commit 942341dcc574.
+
+Link: https://lkml.kernel.org/r/20250624-anon_name_cleanup-v2-0-600075462a11@suse.cz
+Link: https://lkml.kernel.org/r/20250624-anon_name_cleanup-v2-1-600075462a11@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Colin Cross <ccross@google.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    9 +---
- mm/khugepaged.c         |    9 +---
- mm/madvise.c            |   77 +++++++++++++++++++-------------------
- 3 files changed, 47 insertions(+), 48 deletions(-)
+ mm/madvise.c |   37 +++++++++++++------------------------
+ 1 file changed, 13 insertions(+), 24 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma
-+++ a/include/linux/huge_mm.h
-@@ -433,9 +433,8 @@ change_huge_pud(struct mmu_gather *tlb,
- 
- int hugepage_madvise(struct vm_area_struct *vma, vm_flags_t *vm_flags,
- 		     int advice);
--int madvise_collapse(struct vm_area_struct *vma,
--		     struct vm_area_struct **prev,
--		     unsigned long start, unsigned long end);
-+int madvise_collapse(struct vm_area_struct *vma, unsigned long start,
-+		     unsigned long end, bool *lock_dropped);
- void vma_adjust_trans_huge(struct vm_area_struct *vma, unsigned long start,
- 			   unsigned long end, struct vm_area_struct *next);
- spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma);
-@@ -596,8 +595,8 @@ static inline int hugepage_madvise(struc
- }
- 
- static inline int madvise_collapse(struct vm_area_struct *vma,
--				   struct vm_area_struct **prev,
--				   unsigned long start, unsigned long end)
-+				   unsigned long start,
-+				   unsigned long end, bool *lock_dropped)
- {
- 	return -EINVAL;
- }
---- a/mm/khugepaged.c~mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma
-+++ a/mm/khugepaged.c
-@@ -2727,8 +2727,8 @@ static int madvise_collapse_errno(enum s
- 	}
- }
- 
--int madvise_collapse(struct vm_area_struct *vma, struct vm_area_struct **prev,
--		     unsigned long start, unsigned long end)
-+int madvise_collapse(struct vm_area_struct *vma, unsigned long start,
-+		     unsigned long end, bool *lock_dropped)
- {
- 	struct collapse_control *cc;
- 	struct mm_struct *mm = vma->vm_mm;
-@@ -2739,8 +2739,6 @@ int madvise_collapse(struct vm_area_stru
- 	BUG_ON(vma->vm_start > start);
- 	BUG_ON(vma->vm_end < end);
- 
--	*prev = vma;
--
- 	if (!thp_vma_allowable_order(vma, vma->vm_flags, 0, PMD_ORDER))
- 		return -EINVAL;
- 
-@@ -2788,7 +2786,7 @@ int madvise_collapse(struct vm_area_stru
- 							 &mmap_locked, cc);
- 		}
- 		if (!mmap_locked)
--			*prev = NULL;  /* Tell caller we dropped mmap_lock */
-+			*lock_dropped = true;
- 
- handle_result:
- 		switch (result) {
-@@ -2798,7 +2796,6 @@ handle_result:
- 			break;
- 		case SCAN_PTE_MAPPED_HUGEPAGE:
- 			BUG_ON(mmap_locked);
--			BUG_ON(*prev);
- 			mmap_read_lock(mm);
- 			result = collapse_pte_mapped_thp(mm, addr, true);
- 			mmap_read_unlock(mm);
---- a/mm/madvise.c~mm-madvise-eliminate-very-confusing-manipulation-of-prev-vma
+--- a/mm/madvise.c~mm-madvise-simplify-anon_name-handling
 +++ a/mm/madvise.c
-@@ -75,7 +75,9 @@ struct madvise_behavior {
- 	 */
- 	struct madvise_behavior_range range;
- 	/* The VMA and VMA preceding it (if applicable) currently targeted. */
--	struct vm_area_struct *prev, *vma;
-+	struct vm_area_struct *prev;
-+	struct vm_area_struct *vma;
-+	bool lock_dropped;
- };
- 
- #ifdef CONFIG_ANON_VMA_NAME
-@@ -188,10 +190,8 @@ static int madvise_update_vma(vm_flags_t
+@@ -176,25 +176,29 @@ static int replace_anon_vma_name(struct
+ }
+ #endif /* CONFIG_ANON_VMA_NAME */
+ /*
+- * Update the vm_flags on region of a vma, splitting it or merging it as
+- * necessary.  Must be called with mmap_lock held for writing;
+- * Caller should ensure anon_name stability by raising its refcount even when
+- * anon_name belongs to a valid vma because this function might free that vma.
++ * Update the vm_flags and/or anon_name on region of a vma, splitting it or
++ * merging it as necessary. Must be called with mmap_lock held for writing.
+  */
+ static int madvise_update_vma(vm_flags_t new_flags,
+ 		struct madvise_behavior *madv_behavior)
+ {
+-	int error;
+ 	struct vm_area_struct *vma = madv_behavior->vma;
+ 	struct madvise_behavior_range *range = &madv_behavior->range;
  	struct anon_vma_name *anon_name = madv_behavior->anon_name;
++	bool set_new_anon_name = madv_behavior->behavior == __MADV_SET_ANON_VMA_NAME;
  	VMA_ITERATOR(vmi, madv_behavior->mm, range->start);
  
--	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name)) {
--		madv_behavior->prev = vma;
-+	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name))
+-	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name))
++	if (new_flags == vma->vm_flags && (!set_new_anon_name ||
++			anon_vma_name_eq(anon_vma_name(vma), anon_name)))
  		return 0;
--	}
  
- 	vma = vma_modify_flags_name(&vmi, madv_behavior->prev, vma,
+-	vma = vma_modify_flags_name(&vmi, madv_behavior->prev, vma,
++	if (set_new_anon_name)
++		vma = vma_modify_flags_name(&vmi, madv_behavior->prev, vma,
  			range->start, range->end, new_flags, anon_name);
-@@ -199,7 +199,6 @@ static int madvise_update_vma(vm_flags_t
++	else
++		vma = vma_modify_flags(&vmi, madv_behavior->prev, vma,
++			range->start, range->end, new_flags);
++
+ 	if (IS_ERR(vma))
  		return PTR_ERR(vma);
  
- 	madv_behavior->vma = vma;
--	madv_behavior->prev = vma;
- 
+@@ -203,11 +207,8 @@ static int madvise_update_vma(vm_flags_t
  	/* vm_flags is protected by the mmap_lock held in write mode. */
  	vma_start_write(vma);
-@@ -301,6 +300,12 @@ static void shmem_swapin_range(struct vm
+ 	vm_flags_reset(vma, new_flags);
+-	if (!vma->vm_file || vma_is_anon_shmem(vma)) {
+-		error = replace_anon_vma_name(vma, anon_name);
+-		if (error)
+-			return error;
+-	}
++	if (set_new_anon_name)
++		return replace_anon_vma_name(vma, anon_name);
+ 
+ 	return 0;
  }
- #endif		/* CONFIG_SWAP */
- 
-+static void mark_mmap_lock_dropped(struct madvise_behavior *madv_behavior)
-+{
-+	VM_WARN_ON_ONCE(madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK);
-+	madv_behavior->lock_dropped = true;
-+}
-+
- /*
-  * Schedule all required I/O operations.  Do not wait for completion.
-  */
-@@ -313,7 +318,6 @@ static long madvise_willneed(struct madv
- 	unsigned long end = madv_behavior->range.end;
- 	loff_t offset;
- 
--	madv_behavior->prev = vma;
- #ifdef CONFIG_SWAP
- 	if (!file) {
- 		walk_page_range_vma(vma, start, end, &swapin_walk_ops, vma);
-@@ -342,7 +346,7 @@ static long madvise_willneed(struct madv
- 	 * vma's reference to the file) can go away as soon as we drop
- 	 * mmap_lock.
- 	 */
--	madv_behavior->prev = NULL;	/* tell sys_madvise we drop mmap_lock */
-+	mark_mmap_lock_dropped(madv_behavior);
- 	get_file(file);
- 	offset = (loff_t)(start - vma->vm_start)
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
-@@ -633,7 +637,6 @@ static long madvise_cold(struct madvise_
- 	struct vm_area_struct *vma = madv_behavior->vma;
- 	struct mmu_gather tlb;
- 
--	madv_behavior->prev = vma;
- 	if (!can_madv_lru_vma(vma))
- 		return -EINVAL;
- 
-@@ -665,7 +668,6 @@ static long madvise_pageout(struct madvi
- 	struct mmu_gather tlb;
- 	struct vm_area_struct *vma = madv_behavior->vma;
- 
--	madv_behavior->prev = vma;
- 	if (!can_madv_lru_vma(vma))
- 		return -EINVAL;
- 
-@@ -954,7 +956,6 @@ static long madvise_dontneed_free(struct
- 	struct madvise_behavior_range *range = &madv_behavior->range;
+@@ -1313,7 +1314,6 @@ static int madvise_vma_behavior(struct m
  	int behavior = madv_behavior->behavior;
- 
--	madv_behavior->prev = madv_behavior->vma;
- 	if (!madvise_dontneed_free_valid_vma(madv_behavior))
- 		return -EINVAL;
- 
-@@ -964,8 +965,7 @@ static long madvise_dontneed_free(struct
- 	if (!userfaultfd_remove(madv_behavior->vma, range->start, range->end)) {
- 		struct vm_area_struct *vma;
- 
--		madv_behavior->prev = NULL; /* mmap_lock has been dropped, prev is stale */
--
-+		mark_mmap_lock_dropped(madv_behavior);
- 		mmap_read_lock(mm);
- 		madv_behavior->vma = vma = vma_lookup(mm, range->start);
- 		if (!vma)
-@@ -1064,7 +1064,7 @@ static long madvise_remove(struct madvis
- 	unsigned long start = madv_behavior->range.start;
- 	unsigned long end = madv_behavior->range.end;
- 
--	madv_behavior->prev = NULL; /* tell sys_madvise we drop mmap_lock */
-+	mark_mmap_lock_dropped(madv_behavior);
- 
- 	if (vma->vm_flags & VM_LOCKED)
- 		return -EINVAL;
-@@ -1183,7 +1183,6 @@ static long madvise_guard_install(struct
- 	long err;
- 	int i;
- 
--	madv_behavior->prev = vma;
- 	if (!is_valid_guard_vma(vma, /* allow_locked = */false))
- 		return -EINVAL;
- 
-@@ -1293,7 +1292,6 @@ static long madvise_guard_remove(struct
  	struct vm_area_struct *vma = madv_behavior->vma;
+ 	vm_flags_t new_flags = vma->vm_flags;
+-	bool set_new_anon_name = behavior == __MADV_SET_ANON_VMA_NAME;
  	struct madvise_behavior_range *range = &madv_behavior->range;
- 
--	madv_behavior->prev = vma;
- 	/*
- 	 * We're ok with removing guards in mlock()'d ranges, as this is a
- 	 * non-destructive action.
-@@ -1336,8 +1334,8 @@ static int madvise_vma_behavior(struct m
- 	case MADV_DONTNEED_LOCKED:
- 		return madvise_dontneed_free(madv_behavior);
- 	case MADV_COLLAPSE:
--		return madvise_collapse(vma, &madv_behavior->prev,
--					range->start, range->end);
-+		return madvise_collapse(vma, range->start, range->end,
-+			&madv_behavior->lock_dropped);
- 	case MADV_GUARD_INSTALL:
- 		return madvise_guard_install(madv_behavior);
- 	case MADV_GUARD_REMOVE:
-@@ -1589,7 +1587,6 @@ static bool try_vma_read_lock(struct mad
- 		vma_end_read(vma);
- 		goto take_mmap_read_lock;
- 	}
--	madv_behavior->prev = vma; /* Not currently required. */
- 	madv_behavior->vma = vma;
- 	return true;
- 
-@@ -1617,7 +1614,7 @@ int madvise_walk_vmas(struct madvise_beh
- 	unsigned long last_end = range->end;
- 	int unmapped_error = 0;
  	int error;
--	struct vm_area_struct *vma;
-+	struct vm_area_struct *prev, *vma;
  
- 	/*
- 	 * If VMA read lock is supported, apply madvise to a single VMA
-@@ -1630,24 +1627,23 @@ int madvise_walk_vmas(struct madvise_beh
- 		return error;
- 	}
+@@ -1403,18 +1403,7 @@ static int madvise_vma_behavior(struct m
+ 	/* This is a write operation.*/
+ 	VM_WARN_ON_ONCE(madv_behavior->lock_mode != MADVISE_MMAP_WRITE_LOCK);
  
 -	/*
--	 * If the interval [start,end) covers some unmapped address
--	 * ranges, just ignore them, but return -ENOMEM at the end.
--	 * - different from the way of handling in mlock etc.
+-	 * madvise_update_vma() might cause a VMA merge which could put an
+-	 * anon_vma_name, so we must hold an additional reference on the
+-	 * anon_vma_name so it doesn't disappear from under us.
 -	 */
--	vma = find_vma_prev(mm, range->start, &madv_behavior->prev);
-+	vma = find_vma_prev(mm, range->start, &prev);
- 	if (vma && range->start > vma->vm_start)
--		madv_behavior->prev = vma;
-+		prev = vma;
- 
- 	for (;;) {
--		struct vm_area_struct *prev;
--
- 		/* Still start < end. */
- 		if (!vma)
- 			return -ENOMEM;
- 
- 		/* Here start < (last_end|vma->vm_end). */
- 		if (range->start < vma->vm_start) {
-+			/*
-+			 * This indicates a gap between VMAs in the input
-+			 * range. This does not cause the operation to abort,
-+			 * rather we simply return -ENOMEM to indicate that this
-+			 * has happened, but carry on.
-+			 */
- 			unmapped_error = -ENOMEM;
- 			range->start = vma->vm_start;
- 			if (range->start >= last_end)
-@@ -1658,21 +1654,28 @@ int madvise_walk_vmas(struct madvise_beh
- 		range->end = min(vma->vm_end, last_end);
- 
- 		/* Here vma->vm_start <= range->start < range->end <= (last_end|vma->vm_end). */
-+		madv_behavior->prev = prev;
- 		madv_behavior->vma = vma;
- 		error = madvise_vma_behavior(madv_behavior);
- 		if (error)
- 			return error;
--		prev = madv_behavior->prev;
-+		if (madv_behavior->lock_dropped) {
-+			/* We dropped the mmap lock, we can't ref the VMA. */
-+			prev = NULL;
-+			vma = NULL;
-+			madv_behavior->lock_dropped = false;
-+		} else {
-+			vma = madv_behavior->vma;
-+			prev = vma;
-+		}
- 
--		range->start = range->end;
--		if (prev && range->start < prev->vm_end)
--			range->start = prev->vm_end;
--		if (range->start >= last_end)
-+		if (vma && range->end < vma->vm_end)
-+			range->end = vma->vm_end;
-+		if (range->end >= last_end)
- 			break;
--		if (prev)
--			vma = find_vma(mm, prev->vm_end);
--		else	/* madvise_remove dropped mmap_lock */
--			vma = find_vma(mm, range->start);
-+
-+		vma = find_vma(mm, vma ? vma->vm_end : range->end);
-+		range->start = range->end;
- 	}
- 
- 	return unmapped_error;
+-	if (!set_new_anon_name) {
+-		madv_behavior->anon_name = anon_vma_name(vma);
+-		anon_vma_name_get(madv_behavior->anon_name);
+-	}
+ 	error = madvise_update_vma(new_flags, madv_behavior);
+-	if (!set_new_anon_name)
+-		anon_vma_name_put(madv_behavior->anon_name);
+ out:
+ 	/*
+ 	 * madvise() returns EAGAIN if kernel resources, such as
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-mremap-perform-some-simple-cleanups.patch
-mm-mremap-refactor-initial-parameter-sanity-checks.patch
-mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
-mm-mremap-cleanup-post-processing-stage-of-mremap.patch
-mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
-mm-mremap-check-remap-conditions-earlier.patch
-mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
-mm-mremap-clean-up-mlock-populate-behaviour.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
-tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
+mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
+mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix.patch
 
