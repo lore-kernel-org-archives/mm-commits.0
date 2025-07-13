@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD1D72E36E8
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:39:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83D2F20297E
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:39:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752449979; cv=none; b=tKGyAW4dXhlF1mrnRuwzzEd8KY1Eqd/YEtKehCvjb0WNnDLgyWwG4u6tIY4R5KQfsfEpO/6fvkqm+M1KmLQGopPsruvH142X1OW4HQlNoUfc3BiMrlj9JY3y+Z/kCCtKaZTRExOAhT6fhGaLX7ZWrVeYba7TGIA4FRA6KgSifFk=
+	t=1752449980; cv=none; b=VHf4HsMEpTw27c+FaSksmxlRBma/4D1Y1uCG8XE4YpTCGuMP7nO6tSvCU8MmurxrRb7UlXuPCLvRhG84IBPHwXKiIiw/RP9bwWk7g1Cmd4eDH/auCkNCl3N6TkuXAHuifUnM1tfbQdnsOFOtiPmaRfJV8dZ+9U5IeA/Gbvo5qpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752449979; c=relaxed/simple;
-	bh=xw2YbxvRt2Qdm0opIC82q7rkq/oawpMGyR7a7Q3xYKg=;
-	h=Date:To:From:Subject:Message-Id; b=CI/VvZ6AbUdPVmHISNgHUA0qN+f2fjOIoq/oGimKT53jF78wHDNc2oLoJe5KBcW5k3Vis+Cq5RnNITrr8IJ1+ar1mAe+OLwM5RnV3vNQt703/UySVKJbJWhOwfh3p6xUkmaGZS+47NxAUMWRrUmKlIEexO6bIw8H6kIwclnpS9k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nDrlxbPu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752449980; c=relaxed/simple;
+	bh=Rns0CqP0GVchwxPd0MAdqLJawXigE7LBCOgRKig1iqE=;
+	h=Date:To:From:Subject:Message-Id; b=Fy8JIW79rDyj9N7s29VkQQ+dpHSK9bCfdMEuawu0CfYbxYt3dzCML2t+DKTBEs4kgWEZk8FuhJL2ye1dUYpSCbKb6pfGtQE0kCOXli8iLvh8DAzJwmmraoD1TS8CQdL0TN/cvd1tYJZxBx0PNKKJt6KrKHvxyzQM215URB2aoX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ytXJgHuL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nDrlxbPu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48627C4CEE3;
-	Sun, 13 Jul 2025 23:39:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ytXJgHuL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D15BCC4CEF5;
+	Sun, 13 Jul 2025 23:39:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752449978;
-	bh=xw2YbxvRt2Qdm0opIC82q7rkq/oawpMGyR7a7Q3xYKg=;
+	s=korg; t=1752449979;
+	bh=Rns0CqP0GVchwxPd0MAdqLJawXigE7LBCOgRKig1iqE=;
 	h=Date:To:From:Subject:From;
-	b=nDrlxbPugZeIOJTYYjbxI/Ea2Rcg1MWclOd2vaHMynmQ+QAWfpATQ8JLKO8Kskfkg
-	 02b9lS46cN7MvOM6OKvdu5nc1VPzcw6CBODiDwVdUOpj2WSbwC/fjqMvCBDspnzT3X
-	 pX/T86zyDzsCBHkkjzvwLwmIokBLf5zdsROd7/uU=
-Date: Sun, 13 Jul 2025 16:39:37 -0700
+	b=ytXJgHuLCE0XVSnSndhYUKEYYGIJ8M3BX4DriUl20j4Fk0ta6kQCJ8EhKnixVCxwD
+	 IuLldHzX3rgxWlE01wOMlE1VPICICb6HTU7rXdZKS86jSdE7BuyCyLTORmYbMwCxzv
+	 G7RggD7iWpPhzu9sYBIVKh32H5L7zGcXA6VnZDLQ=
+Date: Sun, 13 Jul 2025 16:39:39 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,jannh@google.com,ioworker0@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch removed from -mm tree
-Message-Id: <20250713233938.48627C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-thread-mm_struct-through-madvise_behavior.patch removed from -mm tree
+Message-Id: <20250713233939.D15BCC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: remove the visitor pattern and thread anon_vma state
+     Subject: mm/madvise: thread mm_struct through madvise_behavior
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state.patch
+     mm-madvise-thread-mm_struct-through-madvise_behavior.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/madvise: remove the visitor pattern and thread anon_vma state
-Date: Fri, 20 Jun 2025 16:33:01 +0100
+Subject: mm/madvise: thread mm_struct through madvise_behavior
+Date: Fri, 20 Jun 2025 16:33:02 +0100
 
-Patch series "madvise cleanup", v2.
+There's no need to thread a pointer to the mm_struct nor have different
+functions signatures for each behaviour, instead store state in the struct
+madvise_behavior object consistently and use it for all madvise() actions.
 
-This is a series of patches that helps address a number of historic
-problems in the madvise() implementation:
-
-* Eliminate the visitor pattern and having the code which is implemented
-  for both the anon_vma_name implementation and ordinary madvise()
-  operations use the same madvise_vma_behavior() implementation.
-
-* Thread state through the madvise_behavior state object - this object,
-  very usefully introduced by SJ, is already used to transmit state
-  through operations.  This series extends this by having all madvise()
-  operations use this, including anon_vma_name.
-
-* Thread range, VMA state through madvise_behavior - This helps avoid a
-  lot of the confusing code around range and VMA state and again keeps
-  things consistent and with a single 'source of truth'.
-
-* Addressing the very strange behaviour around the passed around struct
-  vm_area_struct **prev pointer - all read-only users do absolutely
-  nothing with the prev pointer.  The only function that uses it is
-  madvise_update_vma(), and in all cases prev is always reset to VMA.
-
-  Fix this by no longer having aything but madvise_update_vma()
-  reference prev, and having madvise_walk_vmas() update prev in each
-  instance.  Additionally make it clear that the meaningful change in vma
-  state is when madvise_update_vma() potentially merges a VMA, so
-  explicitly retrieve the VMA in this case.
-
-* Update and clarify the madvise_walk_vmas() function - this is a source
-  of a great deal of confusion, so simplify, stop using prev = NULL to
-  signify that the mmap lock has been dropped (!) and make that explicit,
-  and add some comments to explain what's going on.
-
-
-This patch (of 5):
-
-Now we have the madvise_behavior helper struct we no longer need to mess
-around with void* pointers in order to propagate anon_vma_name, and this
-means we can get rid of the confusing and inconsistent visitor pattern
-implementation in madvise_vma_anon_name().
-
-This means we now have a single state object that threads through most of
-madvise()'s logic and a single code path which executes the majority of
-madvise() behaviour (we maintain separate logic for failure injection and
-memory population for the time being).
-
-We are able to remove the visitor pattern by handling the anon_vma_name
-setting logic via an internal madvise flag - __MADV_SET_ANON_VMA_NAME. 
-This uses a negative value so it isn't reasonable that we will ever add
-this as a UAPI flag.
-
-Additionally, the madvise_behavior_valid() check ensures that
-user-specified behaviours are strictly only those we permit which, of
-course, this flag will be excluded from.
-
-We are able to propagate the anon_vma_name object through use of the
-madvise_behavior helper struct.
-
-Doing this results in a can_modify_vma_madv() check for anonymous VMA name
-changes, however this will cause no issues as this operation is not
-prohibited.
-
-We can also then reuse more code and drop the redundant
-madvise_vma_anon_name() function altogether.
-
-Additionally separate out behaviours that update VMAs from those that do
-not.
-
-Link: https://lkml.kernel.org/r/cover.1750433500.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/c5094bfccb41ecd19d4e9bcaa1c4a11e00158bba.1750433500.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/a47d850b0111735e026d438c3300c0e3b7f439f4.1750433500.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Lance Yang <ioworker0@gmail.com>
@@ -131,274 +66,337 @@ Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |  166 ++++++++++++++++++++++++-------------------------
- 1 file changed, 83 insertions(+), 83 deletions(-)
+ mm/madvise.c |  110 +++++++++++++++++++++++++------------------------
+ 1 file changed, 57 insertions(+), 53 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-remove-the-visitor-pattern-and-thread-anon_vma-state
+--- a/mm/madvise.c~mm-madvise-thread-mm_struct-through-madvise_behavior
 +++ a/mm/madvise.c
-@@ -37,6 +37,8 @@
- #include "internal.h"
- #include "swap.h"
+@@ -58,6 +58,7 @@ enum madvise_lock_mode {
+ };
  
-+#define __MADV_SET_ANON_VMA_NAME (-1)
-+
- /*
-  * Maximum number of attempts we make to install guard pages before we give up
-  * and return -ERESTARTNOINTR to have userspace try again.
-@@ -59,9 +61,13 @@ struct madvise_behavior {
+ struct madvise_behavior {
++	struct mm_struct *mm;
  	int behavior;
  	struct mmu_gather *tlb;
  	enum madvise_lock_mode lock_mode;
-+	struct anon_vma_name *anon_name;
+@@ -65,8 +66,8 @@ struct madvise_behavior {
  };
  
  #ifdef CONFIG_ANON_VMA_NAME
-+static int madvise_walk_vmas(struct mm_struct *mm, unsigned long start,
-+		unsigned long end, struct madvise_behavior *madv_behavior);
-+
+-static int madvise_walk_vmas(struct mm_struct *mm, unsigned long start,
+-		unsigned long end, struct madvise_behavior *madv_behavior);
++static int madvise_walk_vmas(unsigned long start, unsigned long end,
++		struct madvise_behavior *madv_behavior);
+ 
  struct anon_vma_name *anon_vma_name_alloc(const char *name)
  {
- 	struct anon_vma_name *anon_name;
-@@ -112,6 +118,35 @@ static int replace_anon_vma_name(struct
+@@ -125,6 +126,7 @@ int madvise_set_anon_name(struct mm_stru
+ 	unsigned long end;
+ 	unsigned long len;
+ 	struct madvise_behavior madv_behavior = {
++		.mm = mm,
+ 		.behavior = __MADV_SET_ANON_VMA_NAME,
+ 		.lock_mode = MADVISE_MMAP_WRITE_LOCK,
+ 		.anon_name = anon_name,
+@@ -145,7 +147,7 @@ int madvise_set_anon_name(struct mm_stru
+ 	if (end == start)
+ 		return 0;
  
- 	return 0;
+-	return madvise_walk_vmas(mm, start, end, &madv_behavior);
++	return madvise_walk_vmas(start, end, &madv_behavior);
  }
-+
-+int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
-+			  unsigned long len_in, struct anon_vma_name *anon_name)
-+{
-+	unsigned long end;
-+	unsigned long len;
-+	struct madvise_behavior madv_behavior = {
-+		.behavior = __MADV_SET_ANON_VMA_NAME,
-+		.lock_mode = MADVISE_MMAP_WRITE_LOCK,
-+		.anon_name = anon_name,
-+	};
-+
-+	if (start & ~PAGE_MASK)
-+		return -EINVAL;
-+	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
-+
-+	/* Check to see whether len was rounded up from small -ve to zero */
-+	if (len_in && !len)
-+		return -EINVAL;
-+
-+	end = start + len;
-+	if (end < start)
-+		return -EINVAL;
-+
-+	if (end == start)
-+		return 0;
-+
-+	return madvise_walk_vmas(mm, start, end, &madv_behavior);
-+}
  #else /* CONFIG_ANON_VMA_NAME */
  static int replace_anon_vma_name(struct vm_area_struct *vma,
- 				 struct anon_vma_name *anon_name)
-@@ -1252,13 +1287,13 @@ static long madvise_guard_remove(struct
- static int madvise_vma_behavior(struct vm_area_struct *vma,
- 				struct vm_area_struct **prev,
- 				unsigned long start, unsigned long end,
--				void *behavior_arg)
-+				struct madvise_behavior *madv_behavior)
- {
--	struct madvise_behavior *arg = behavior_arg;
--	int behavior = arg->behavior;
--	int error;
--	struct anon_vma_name *anon_name;
-+	int behavior = madv_behavior->behavior;
-+	struct anon_vma_name *anon_name = madv_behavior->anon_name;
- 	vm_flags_t new_flags = vma->vm_flags;
-+	bool set_new_anon_name = behavior == __MADV_SET_ANON_VMA_NAME;
-+	int error;
- 
- 	if (unlikely(!can_modify_vma_madv(vma, behavior)))
- 		return -EPERM;
-@@ -1275,7 +1310,17 @@ static int madvise_vma_behavior(struct v
- 	case MADV_FREE:
- 	case MADV_DONTNEED:
- 	case MADV_DONTNEED_LOCKED:
--		return madvise_dontneed_free(vma, prev, start, end, arg);
-+		return madvise_dontneed_free(vma, prev, start, end,
-+					     madv_behavior);
-+	case MADV_COLLAPSE:
-+		return madvise_collapse(vma, prev, start, end);
-+	case MADV_GUARD_INSTALL:
-+		return madvise_guard_install(vma, prev, start, end);
-+	case MADV_GUARD_REMOVE:
-+		return madvise_guard_remove(vma, prev, start, end);
-+
-+	/* The below behaviours update VMAs via madvise_update_vma(). */
-+
- 	case MADV_NORMAL:
- 		new_flags = new_flags & ~VM_RAND_READ & ~VM_SEQ_READ;
- 		break;
-@@ -1325,21 +1370,29 @@ static int madvise_vma_behavior(struct v
- 		if (error)
- 			goto out;
- 		break;
--	case MADV_COLLAPSE:
--		return madvise_collapse(vma, prev, start, end);
--	case MADV_GUARD_INSTALL:
--		return madvise_guard_install(vma, prev, start, end);
--	case MADV_GUARD_REMOVE:
--		return madvise_guard_remove(vma, prev, start, end);
-+	case __MADV_SET_ANON_VMA_NAME:
-+		/* Only anonymous mappings can be named */
-+		if (vma->vm_file && !vma_is_anon_shmem(vma))
-+			return -EBADF;
-+		break;
- 	}
- 
- 	/* We cannot provide prev in this lock mode. */
--	VM_WARN_ON_ONCE(arg->lock_mode == MADVISE_VMA_READ_LOCK);
--	anon_name = anon_vma_name(vma);
--	anon_vma_name_get(anon_name);
-+	VM_WARN_ON_ONCE(madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK);
-+
-+	/*
-+	 * madvise_update_vma() might cause a VMA merge which could put an
-+	 * anon_vma_name, so we must hold an additional reference on the
-+	 * anon_vma_name so it doesn't disappear from under us.
-+	 */
-+	if (!set_new_anon_name) {
-+		anon_name = anon_vma_name(vma);
-+		anon_vma_name_get(anon_name);
-+	}
- 	error = madvise_update_vma(vma, prev, start, end, new_flags,
- 				   anon_name);
--	anon_vma_name_put(anon_name);
-+	if (!set_new_anon_name)
-+		anon_vma_name_put(anon_name);
- 
- out:
- 	/*
-@@ -1523,20 +1576,17 @@ take_mmap_read_lock:
+@@ -991,10 +993,11 @@ static long madvise_dontneed_free(struct
+ 		return -EINVAL;
  }
  
+-static long madvise_populate(struct mm_struct *mm, unsigned long start,
+-		unsigned long end, int behavior)
++static long madvise_populate(unsigned long start, unsigned long end,
++		struct madvise_behavior *madv_behavior)
+ {
+-	const bool write = behavior == MADV_POPULATE_WRITE;
++	struct mm_struct *mm = madv_behavior->mm;
++	const bool write = madv_behavior->behavior == MADV_POPULATE_WRITE;
+ 	int locked = 1;
+ 	long pages;
+ 
+@@ -1408,15 +1411,14 @@ out:
  /*
-- * Walk the vmas in range [start,end), and call the visit function on each one.
-- * The visit function will get start and end parameters that cover the overlap
-- * between the current vma and the original range.  Any unmapped regions in the
-- * original range will result in this function returning -ENOMEM while still
-- * calling the visit function on all of the existing vmas in the range.
-- * Must be called with the mmap_lock held for reading or writing.
-+ * Walk the vmas in range [start,end), and call the madvise_vma_behavior
-+ * function on each one.  The function will get start and end parameters that
-+ * cover the overlap between the current vma and the original range.  Any
-+ * unmapped regions in the original range will result in this function returning
-+ * -ENOMEM while still calling the madvise_vma_behavior function on all of the
-+ * existing vmas in the range.  Must be called with the mmap_lock held for
-+ * reading or writing.
+  * Error injection support for memory error handling.
+  */
+-static int madvise_inject_error(int behavior,
+-		unsigned long start, unsigned long end)
++static int madvise_inject_error(unsigned long start, unsigned long end,
++		struct madvise_behavior *madv_behavior)
+ {
+ 	unsigned long size;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-
+ 	for (; start < end; start += size) {
+ 		unsigned long pfn;
+ 		struct page *page;
+@@ -1434,7 +1436,7 @@ static int madvise_inject_error(int beha
+ 		 */
+ 		size = page_size(compound_head(page));
+ 
+-		if (behavior == MADV_SOFT_OFFLINE) {
++		if (madv_behavior->behavior == MADV_SOFT_OFFLINE) {
+ 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
+ 				 pfn, start);
+ 			ret = soft_offline_page(pfn, MF_COUNT_INCREASED);
+@@ -1453,9 +1455,9 @@ static int madvise_inject_error(int beha
+ 	return 0;
+ }
+ 
+-static bool is_memory_failure(int behavior)
++static bool is_memory_failure(struct madvise_behavior *madv_behavior)
+ {
+-	switch (behavior) {
++	switch (madv_behavior->behavior) {
+ 	case MADV_HWPOISON:
+ 	case MADV_SOFT_OFFLINE:
+ 		return true;
+@@ -1466,13 +1468,13 @@ static bool is_memory_failure(int behavi
+ 
+ #else
+ 
+-static int madvise_inject_error(int behavior,
+-		unsigned long start, unsigned long end)
++static int madvise_inject_error(unsigned long start, unsigned long end,
++		struct madvise_behavior *madv_behavior)
+ {
+ 	return 0;
+ }
+ 
+-static bool is_memory_failure(int behavior)
++static bool is_memory_failure(struct madvise_behavior *madv_behavior)
+ {
+ 	return false;
+ }
+@@ -1549,10 +1551,11 @@ static bool process_madvise_remote_valid
+  * If a VMA read lock could not be acquired, we return NULL and expect caller to
+  * fallback to mmap lock behaviour.
+  */
+-static struct vm_area_struct *try_vma_read_lock(struct mm_struct *mm,
++static struct vm_area_struct *try_vma_read_lock(
+ 		struct madvise_behavior *madv_behavior,
+ 		unsigned long start, unsigned long end)
+ {
++	struct mm_struct *mm = madv_behavior->mm;
+ 	struct vm_area_struct *vma;
+ 
+ 	vma = lock_vma_under_rcu(mm, start);
+@@ -1585,9 +1588,10 @@ take_mmap_read_lock:
+  * reading or writing.
   */
  static
- int madvise_walk_vmas(struct mm_struct *mm, unsigned long start,
--		      unsigned long end, struct madvise_behavior *madv_behavior,
--		      void *arg,
--		      int (*visit)(struct vm_area_struct *vma,
--				   struct vm_area_struct **prev, unsigned long start,
--				   unsigned long end, void *arg))
-+		      unsigned long end, struct madvise_behavior *madv_behavior)
+-int madvise_walk_vmas(struct mm_struct *mm, unsigned long start,
+-		      unsigned long end, struct madvise_behavior *madv_behavior)
++int madvise_walk_vmas(unsigned long start, unsigned long end,
++		      struct madvise_behavior *madv_behavior)
  {
++	struct mm_struct *mm = madv_behavior->mm;
  	struct vm_area_struct *vma;
  	struct vm_area_struct *prev;
-@@ -1548,11 +1598,12 @@ int madvise_walk_vmas(struct mm_struct *
- 	 * If VMA read lock is supported, apply madvise to a single VMA
+ 	unsigned long tmp;
+@@ -1599,7 +1603,7 @@ int madvise_walk_vmas(struct mm_struct *
  	 * tentatively, avoiding walking VMAs.
  	 */
--	if (madv_behavior && madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK) {
-+	if (madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK) {
- 		vma = try_vma_read_lock(mm, madv_behavior, start, end);
+ 	if (madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK) {
+-		vma = try_vma_read_lock(mm, madv_behavior, start, end);
++		vma = try_vma_read_lock(madv_behavior, start, end);
  		if (vma) {
  			prev = vma;
--			error = visit(vma, &prev, start, end, arg);
-+			error = madvise_vma_behavior(vma, &prev, start, end,
-+						     madv_behavior);
- 			vma_end_read(vma);
- 			return error;
- 		}
-@@ -1586,7 +1637,8 @@ int madvise_walk_vmas(struct mm_struct *
- 			tmp = end;
+ 			error = madvise_vma_behavior(vma, &prev, start, end,
+@@ -1662,12 +1666,10 @@ int madvise_walk_vmas(struct mm_struct *
+  */
+ static enum madvise_lock_mode get_lock_mode(struct madvise_behavior *madv_behavior)
+ {
+-	int behavior = madv_behavior->behavior;
+-
+-	if (is_memory_failure(behavior))
++	if (is_memory_failure(madv_behavior))
+ 		return MADVISE_NO_LOCK;
  
- 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
--		error = visit(vma, &prev, start, tmp, arg);
-+		error = madvise_vma_behavior(vma, &prev, start, tmp,
-+					     madv_behavior);
- 		if (error)
- 			return error;
- 		start = tmp;
-@@ -1603,57 +1655,6 @@ int madvise_walk_vmas(struct mm_struct *
- 	return unmapped_error;
+-	switch (behavior) {
++	switch (madv_behavior->behavior) {
+ 	case MADV_REMOVE:
+ 	case MADV_WILLNEED:
+ 	case MADV_COLD:
+@@ -1687,9 +1689,9 @@ static enum madvise_lock_mode get_lock_m
+ 	}
  }
  
--#ifdef CONFIG_ANON_VMA_NAME
--static int madvise_vma_anon_name(struct vm_area_struct *vma,
--				 struct vm_area_struct **prev,
--				 unsigned long start, unsigned long end,
--				 void *anon_name)
--{
--	int error;
--
--	/* Only anonymous mappings can be named */
--	if (vma->vm_file && !vma_is_anon_shmem(vma))
--		return -EBADF;
--
--	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
--				   anon_name);
--
--	/*
--	 * madvise() returns EAGAIN if kernel resources, such as
--	 * slab, are temporarily unavailable.
--	 */
--	if (error == -ENOMEM)
--		error = -EAGAIN;
--	return error;
--}
--
--int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
--			  unsigned long len_in, struct anon_vma_name *anon_name)
--{
--	unsigned long end;
--	unsigned long len;
--
--	if (start & ~PAGE_MASK)
--		return -EINVAL;
--	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
--
--	/* Check to see whether len was rounded up from small -ve to zero */
--	if (len_in && !len)
--		return -EINVAL;
--
--	end = start + len;
--	if (end < start)
--		return -EINVAL;
--
--	if (end == start)
--		return 0;
--
--	return madvise_walk_vmas(mm, start, end, NULL, anon_name,
--				 madvise_vma_anon_name);
--}
--#endif /* CONFIG_ANON_VMA_NAME */
--
--
- /*
-  * Any behaviour which results in changes to the vma->vm_flags needs to
-  * take mmap_lock for writing. Others, which simply traverse vmas, need
-@@ -1845,8 +1846,7 @@ static int madvise_do_behavior(struct mm
- 	if (is_madvise_populate(behavior))
- 		error = madvise_populate(mm, start, end, behavior);
+-static int madvise_lock(struct mm_struct *mm,
+-		struct madvise_behavior *madv_behavior)
++static int madvise_lock(struct madvise_behavior *madv_behavior)
+ {
++	struct mm_struct *mm = madv_behavior->mm;
+ 	enum madvise_lock_mode lock_mode = get_lock_mode(madv_behavior);
+ 
+ 	switch (lock_mode) {
+@@ -1711,9 +1713,10 @@ static int madvise_lock(struct mm_struct
+ 	return 0;
+ }
+ 
+-static void madvise_unlock(struct mm_struct *mm,
+-		struct madvise_behavior *madv_behavior)
++static void madvise_unlock(struct madvise_behavior *madv_behavior)
+ {
++	struct mm_struct *mm = madv_behavior->mm;
++
+ 	switch (madv_behavior->lock_mode) {
+ 	case  MADVISE_NO_LOCK:
+ 		return;
+@@ -1743,11 +1746,10 @@ static bool madvise_batch_tlb_flush(int
+ 	}
+ }
+ 
+-static void madvise_init_tlb(struct madvise_behavior *madv_behavior,
+-		struct mm_struct *mm)
++static void madvise_init_tlb(struct madvise_behavior *madv_behavior)
+ {
+ 	if (madvise_batch_tlb_flush(madv_behavior->behavior))
+-		tlb_gather_mmu(madv_behavior->tlb, mm);
++		tlb_gather_mmu(madv_behavior->tlb, madv_behavior->mm);
+ }
+ 
+ static void madvise_finish_tlb(struct madvise_behavior *madv_behavior)
+@@ -1802,9 +1804,9 @@ static bool madvise_should_skip(unsigned
+ 	return false;
+ }
+ 
+-static bool is_madvise_populate(int behavior)
++static bool is_madvise_populate(struct madvise_behavior *madv_behavior)
+ {
+-	switch (behavior) {
++	switch (madv_behavior->behavior) {
+ 	case MADV_POPULATE_READ:
+ 	case MADV_POPULATE_WRITE:
+ 		return true;
+@@ -1828,25 +1830,26 @@ static inline unsigned long get_untagged
+ 				   untagged_addr_remote(mm, start);
+ }
+ 
+-static int madvise_do_behavior(struct mm_struct *mm,
+-		unsigned long start, size_t len_in,
++static int madvise_do_behavior(unsigned long start, size_t len_in,
+ 		struct madvise_behavior *madv_behavior)
+ {
+-	int behavior = madv_behavior->behavior;
+ 	struct blk_plug plug;
+ 	unsigned long end;
+ 	int error;
+ 
+-	if (is_memory_failure(behavior))
+-		return madvise_inject_error(behavior, start, start + len_in);
+-	start = get_untagged_addr(mm, start);
++	if (is_memory_failure(madv_behavior)) {
++		end = start + len_in;
++		return madvise_inject_error(start, end, madv_behavior);
++	}
++
++	start = get_untagged_addr(madv_behavior->mm, start);
+ 	end = start + PAGE_ALIGN(len_in);
+ 
+ 	blk_start_plug(&plug);
+-	if (is_madvise_populate(behavior))
+-		error = madvise_populate(mm, start, end, behavior);
++	if (is_madvise_populate(madv_behavior))
++		error = madvise_populate(start, end, madv_behavior);
  	else
--		error = madvise_walk_vmas(mm, start, end, madv_behavior,
--				madv_behavior, madvise_vma_behavior);
-+		error = madvise_walk_vmas(mm, start, end, madv_behavior);
+-		error = madvise_walk_vmas(mm, start, end, madv_behavior);
++		error = madvise_walk_vmas(start, end, madv_behavior);
  	blk_finish_plug(&plug);
  	return error;
  }
+@@ -1928,19 +1931,20 @@ int do_madvise(struct mm_struct *mm, uns
+ 	int error;
+ 	struct mmu_gather tlb;
+ 	struct madvise_behavior madv_behavior = {
++		.mm = mm,
+ 		.behavior = behavior,
+ 		.tlb = &tlb,
+ 	};
+ 
+ 	if (madvise_should_skip(start, len_in, behavior, &error))
+ 		return error;
+-	error = madvise_lock(mm, &madv_behavior);
++	error = madvise_lock(&madv_behavior);
+ 	if (error)
+ 		return error;
+-	madvise_init_tlb(&madv_behavior, mm);
+-	error = madvise_do_behavior(mm, start, len_in, &madv_behavior);
++	madvise_init_tlb(&madv_behavior);
++	error = madvise_do_behavior(start, len_in, &madv_behavior);
+ 	madvise_finish_tlb(&madv_behavior);
+-	madvise_unlock(mm, &madv_behavior);
++	madvise_unlock(&madv_behavior);
+ 
+ 	return error;
+ }
+@@ -1958,16 +1962,17 @@ static ssize_t vector_madvise(struct mm_
+ 	size_t total_len;
+ 	struct mmu_gather tlb;
+ 	struct madvise_behavior madv_behavior = {
++		.mm = mm,
+ 		.behavior = behavior,
+ 		.tlb = &tlb,
+ 	};
+ 
+ 	total_len = iov_iter_count(iter);
+ 
+-	ret = madvise_lock(mm, &madv_behavior);
++	ret = madvise_lock(&madv_behavior);
+ 	if (ret)
+ 		return ret;
+-	madvise_init_tlb(&madv_behavior, mm);
++	madvise_init_tlb(&madv_behavior);
+ 
+ 	while (iov_iter_count(iter)) {
+ 		unsigned long start = (unsigned long)iter_iov_addr(iter);
+@@ -1977,8 +1982,7 @@ static ssize_t vector_madvise(struct mm_
+ 		if (madvise_should_skip(start, len_in, behavior, &error))
+ 			ret = error;
+ 		else
+-			ret = madvise_do_behavior(mm, start, len_in,
+-					&madv_behavior);
++			ret = madvise_do_behavior(start, len_in, &madv_behavior);
+ 		/*
+ 		 * An madvise operation is attempting to restart the syscall,
+ 		 * but we cannot proceed as it would not be correct to repeat
+@@ -1997,11 +2001,11 @@ static ssize_t vector_madvise(struct mm_
+ 
+ 			/* Drop and reacquire lock to unwind race. */
+ 			madvise_finish_tlb(&madv_behavior);
+-			madvise_unlock(mm, &madv_behavior);
+-			ret = madvise_lock(mm, &madv_behavior);
++			madvise_unlock(&madv_behavior);
++			ret = madvise_lock(&madv_behavior);
+ 			if (ret)
+ 				goto out;
+-			madvise_init_tlb(&madv_behavior, mm);
++			madvise_init_tlb(&madv_behavior);
+ 			continue;
+ 		}
+ 		if (ret < 0)
+@@ -2009,7 +2013,7 @@ static ssize_t vector_madvise(struct mm_
+ 		iov_iter_advance(iter, iter_iov_len(iter));
+ 	}
+ 	madvise_finish_tlb(&madv_behavior);
+-	madvise_unlock(mm, &madv_behavior);
++	madvise_unlock(&madv_behavior);
+ 
+ out:
+ 	ret = (total_len - iov_iter_count(iter)) ? : ret;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
