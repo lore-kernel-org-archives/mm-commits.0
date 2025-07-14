@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C8421C9F5
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jul 2025 23:42:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A739C5103F
+	for <mm-commits@vger.kernel.org>; Mon, 14 Jul 2025 22:43:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752450122; cv=none; b=pplwig3pYzijbhuJviV3MiSq94wFLgmbqi0aceUn/ARim8NgKLPWK5kZbIfyo6CmdFmxlncYMdgLqq4fm+U7fDBeWSmM2qmYoQRn7bNCehenLsFsUSIAqYFUWnSniWkTytKXY2VnEsbTJHHT+8Ct4h7hQBpf0EsEDUlUyzhMM0I=
+	t=1752532997; cv=none; b=M82ozBftHvcmp6DtrwakWJWywZq7ZZHLglggwAZLz/SdITL0C4XmyW8jkSKH/pYfugGBk+5vlgNkmDl8Nx5cN81069yifIfQHInHFKgRuKqAz75BNEFkltbRGTPyTArL1z6K/cGpLQ/t9vmhYI318T46gf2+yGo4pXQxVbXKd60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752450122; c=relaxed/simple;
-	bh=5IazPnaUgP5ygVIMo0ZmoSBUUd5nToebMXWgFGlJepI=;
-	h=Date:To:From:Subject:Message-Id; b=clpZhLgFlV+EPV/RnxaiNc7bJksNK3fz+/E5xo8ytmC/FSFqRdeFefEoPUz3okEjDbnEvL9ISUzbn+cxB0josWcD8cS7eWIFd33MBVxyvyuiRMGb+evkddUjfJlu+neketZpE2fF+B+Ny2arGyfhVBuW13RjC3/PuKMsyQ970o4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V5Fhkmfn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752532997; c=relaxed/simple;
+	bh=dFc/J4cNQjGfJmUUxScf4jfzrCvnZATgTtJOD6IcHyQ=;
+	h=Date:To:From:Subject:Message-Id; b=WP2FmJGXlz5IFcolwrLSh5DqOOEsUbHQxoLQSuxMl0PIC3e5tPhjp/nSvmAk1gxAlRjRDzT0B+FXYO6Ir3oMBf/aIfA1YuoFqDdz1vl5ScNS0Hms0Dt/VbdDOu9v3RXSdJgiJcglUNmjDjlno6naHYieqfYb9RsY6VqSKBbi0iA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q5NHMeq/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V5Fhkmfn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF6A4C4CEE3;
-	Sun, 13 Jul 2025 23:42:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q5NHMeq/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D665C4CEF0;
+	Mon, 14 Jul 2025 22:43:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752450122;
-	bh=5IazPnaUgP5ygVIMo0ZmoSBUUd5nToebMXWgFGlJepI=;
+	s=korg; t=1752532997;
+	bh=dFc/J4cNQjGfJmUUxScf4jfzrCvnZATgTtJOD6IcHyQ=;
 	h=Date:To:From:Subject:From;
-	b=V5FhkmfnxRcgDOoJgymMahqdlqo4Ybqper/09lZsRDKkrCNBjPpcLi/8vhycJMc+E
-	 kFs8NriCstpWxPPKHcnmPfgXrsNOJ5YwMpVWHmUHU7hztPf3gqPFlGe0chXfDF5aEl
-	 gQtk29RRhzGPwxawd/b4rgyyNqURy6GkBhbmFUiY=
-Date: Sun, 13 Jul 2025 16:42:01 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=q5NHMeq/pl7BPmiAQqAipZslEz6agYuZdoemhwCRKRpMrcszxA7ES/fzkUoQcjAnA
+	 MR8ce+xJJutlCk3mQYKnUAZpS+LpkO71hjNin0AzrKXhPo4rmBXYMQYgU3Aa3C8JZi
+	 FqCPniVBtk/ntppE2ZUJQwejqt1V8M5YykwGJxvk=
+Date: Mon, 14 Jul 2025 15:43:16 -0700
+To: mm-commits@vger.kernel.org,youling.tang@linux.dev,willy@infradead.org,tangyouling@kylinos.cn,ryan.roberts@arm.com,jack@suse.cz,david@redhat.com,chizhiling@kylinos.cn,klarasmodin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-reclaim-use-parameter-context-correctly.patch removed from -mm tree
-Message-Id: <20250713234201.DF6A4C4CEE3@smtp.kernel.org>
+Subject: + mm-filemap-align-last_index-to-folio-size-fix.patch added to mm-new branch
+Message-Id: <20250714224317.5D665C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,84 +34,77 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/damon/reclaim: use parameter context correctly
-has been removed from the -mm tree.  Its filename was
-     mm-damon-reclaim-use-parameter-context-correctly.patch
+The patch titled
+     Subject: mm-filemap-align-last_index-to-folio-size-fix
+has been added to the -mm mm-new branch.  Its filename is
+     mm-filemap-align-last_index-to-folio-size-fix.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-align-last_index-to-folio-size-fix.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: use parameter context correctly
-Date: Sun, 6 Jul 2025 12:32:07 -0700
+From: Klara Modin <klarasmodin@gmail.com>
+Subject: mm-filemap-align-last_index-to-folio-size-fix
+Date: Tue, 15 Jul 2025 00:34:12 +0200
 
-damon_reclaim_apply_parameters() allocates a new DAMON context, stages
-user-specified DAMON parameters on it, and commits to running DAMON
-context at once, using damon_commit_ctx().  The code is mistakenly
-over-writing the monitoring attributes and the reclaim scheme on the
-running context.  It is not causing a real problem for monitoring
-attributes, but the scheme overwriting can remove scheme's internal status
-such as charged quota.  Fix the wrong use of the parameter context.
+fix overflow on 32-bit
 
-Link: https://lkml.kernel.org/r/20250706193207.39810-7-sj@kernel.org
-Fixes: 11ddcfc257a3 ("mm/damon/reclaim: use damon_commit_ctx()")
-Signed-off-by: SeongJae Park <sj@kernel.org>
+iocb->ki_pos is loff_t (long long) while pgoff_t is unsigned long and
+this overflow seems to happen in practice, resulting in last_index being
+before index.
+
+Link: https://lkml.kernel.org/r/yru7qf5gvyzccq5ohhpylvxug5lr5tf54omspbjh4sm6pcdb2r@fpjgj2pxw7va
+Signed-off-by: Klara Modin <klarasmodin@gmail.com>
+Cc: Chi Zhiling <chizhiling@kylinos.cn>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Youling Tang <tangyouling@kylinos.cn>
+Cc: Youling Tang <youling.tang@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    4 ++--
+ mm/filemap.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-use-parameter-context-correctly
-+++ a/mm/damon/reclaim.c
-@@ -194,7 +194,7 @@ static int damon_reclaim_apply_parameter
- 	if (err)
- 		return err;
+--- a/mm/filemap.c~mm-filemap-align-last_index-to-folio-size-fix
++++ a/mm/filemap.c
+@@ -2585,8 +2585,8 @@ static int filemap_get_pages(struct kioc
+ 	int err = 0;
  
--	err = damon_set_attrs(ctx, &damon_reclaim_mon_attrs);
-+	err = damon_set_attrs(param_ctx, &damon_reclaim_mon_attrs);
- 	if (err)
- 		goto out;
- 
-@@ -202,7 +202,7 @@ static int damon_reclaim_apply_parameter
- 	scheme = damon_reclaim_new_scheme();
- 	if (!scheme)
- 		goto out;
--	damon_set_schemes(ctx, &scheme, 1);
-+	damon_set_schemes(param_ctx, &scheme, 1);
- 
- 	if (quota_mem_pressure_us) {
- 		goal = damos_new_quota_goal(DAMOS_QUOTA_SOME_MEM_PSI_US,
+ 	/* "last_index" is the index of the folio beyond the end of the read */
+-	last_index = round_up(iocb->ki_pos + count, mapping_min_folio_nrbytes(mapping));
+-	last_index >>= PAGE_SHIFT;
++	last_index = round_up(iocb->ki_pos + count,
++			mapping_min_folio_nrbytes(mapping)) >> PAGE_SHIFT;
+ retry:
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from klarasmodin@gmail.com are
 
-samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
-samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
-samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
-mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
-mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
-docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
-mm-damon-add-struct-damos_migrate_dests.patch
-mm-damon-core-add-damos-migrate_dests-field.patch
-mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
-mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
-docs-abi-damon-document-schemes-dests-directory.patch
-docs-admin-guide-mm-damon-usage-document-dests-directory.patch
-mm-damon-accept-parallel-damon_call-requests.patch
-mm-damon-core-introduce-repeat-mode-damon_call.patch
-mm-damon-stat-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-mm-damon-reclaim-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-mm-damon-lru_sort-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-samples-damon-prcl-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch
-mm-damon-core-do-not-call-opscleanup-when-destroying-targets.patch
-mm-damon-core-add-cleanup_target-ops-callback.patch
-mm-damon-vaddr-put-pid-in-cleanup_target.patch
-mm-damon-sysfs-remove-damon_sysfs_destroy_targets.patch
-mm-damon-core-destroy-targets-when-kdamond_fn-finish.patch
-mm-damon-sysfs-remove-damon_sysfs_before_terminate.patch
-mm-damon-core-remove-damon_callback.patch
+mm-filemap-align-last_index-to-folio-size-fix.patch
 
