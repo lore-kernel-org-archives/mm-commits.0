@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C36253B71
-	for <mm-commits@vger.kernel.org>; Mon, 14 Jul 2025 23:48:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D9F810FD
+	for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2025 00:03:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752536900; cv=none; b=Z/sGVlVhqRSVCdBrULWbnPJAJkbKra3WRpmnZMoidgS27aPyduQddfB3esD99bHH8DGaWh5s7mERlm+FQhpzHoZG3vt93dk2hlt2BMkDvHXF/FEYhYxZ7yuEVYTwqyQILtcHcOyWntLmRFa0DhRB4GhR5/qoo6Trz1pNv88QWhE=
+	t=1752537810; cv=none; b=KvGbw3jwv1kiK7hXpgXHcRaXicFZrc4VVQtfImiTMlaT6VzmLLO359Eefe9PR5BlB6IgLZON/05KnPxiy0KDYbwa37eAGM0I1n5sC3mwM7QLC16p9bNnszfaRH6cAMlmmEvdpcA19IzkNs5gPBhHRbdomFWSvDTGUeWxHQJw8co=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752536900; c=relaxed/simple;
-	bh=J+WOk24jinhBNGwgRqLCQSUeljzcXu8PmdJtmA+j8tI=;
-	h=Date:To:From:Subject:Message-Id; b=rOlkRx8XA/i8NzzQcMlF7k19jS82jbGNlYLbZQh6UKSHfKGK85m2+KdCBUKOHDIqfOBKcGXT7xBMoIvyBTArLIIcHvAipw62tYpJYS43/oEwUEn/+o+1CGNo3BwFHkPZlmBhoNsOymT7VR85tsm2DpTDcAppC0bFbqTrAZWBSbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1FNcelZ7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752537810; c=relaxed/simple;
+	bh=ouDJJhdkJjvE4KNqDvn97lAzZSYlMcKsi5ljc03dR8s=;
+	h=Date:To:From:Subject:Message-Id; b=dXco+JEeyKSCUl5JcsSL+jzR/XF2dmxqHtoGreXZGYiWO+qUJ5bH+RcZ1trgFqzr5IUjX4aOZZhJtEIsSDSulv9i9oCjQBRuaZqwydPukuxEr6raN3NYkfbKTURRAtZXn55dayh0AGq1QzRp363miHieQ551WaFUgD5jEi+x2rE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b3T0jelq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1FNcelZ7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A5C4C4CEF0;
-	Mon, 14 Jul 2025 23:48:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b3T0jelq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B4AEC4CEED;
+	Tue, 15 Jul 2025 00:03:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752536899;
-	bh=J+WOk24jinhBNGwgRqLCQSUeljzcXu8PmdJtmA+j8tI=;
+	s=korg; t=1752537809;
+	bh=ouDJJhdkJjvE4KNqDvn97lAzZSYlMcKsi5ljc03dR8s=;
 	h=Date:To:From:Subject:From;
-	b=1FNcelZ7Oi2CTWFPMNai8Mp71eEQvhJEIBrD1HpdZ2V6b1bLCk1DTrN62Hbp938k4
-	 mfFwyDEpUH1RvsYjhK8yQY28mEg3BRLxhN8QFiHR8zRD+DTFDS1dv2tvObFJI1HzSu
-	 tKdEuY34DYfLDFy0aL6Ic9rNDEHmH4tAAh75tG5I=
-Date: Mon, 14 Jul 2025 16:48:18 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=b3T0jelqilnRWis/sNlh/uxwdf+/OiA/pg/9S6lDY615aIpF0pxV54CzEVM+A7f1J
+	 NjQBQkruNkW64Vg8kSmxHjWYuOKuPGV+uYbVYfbrTG3csNZcsoFNaOR0SB1FLr5itW
+	 Xpbw0wZTcUgSgvUlya2P/CJ5HQl0eBkq3By4Xsdg=
+Date: Mon, 14 Jul 2025 17:03:28 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,shivankg@amd.com,osalvador@suse.de,luizcap@redhat.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name-fix.patch added to mm-new branch
-Message-Id: <20250714234819.9A5C4C4CEF0@smtp.kernel.org>
+Subject: + mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch added to mm-new branch
+Message-Id: <20250715000329.4B4AEC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: correct comment
+     Subject: mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name-fix.patch
+     mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,53 +64,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/madvise: correct comment
-Date: Mon, 14 Jul 2025 15:29:59 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
+Date: Mon, 14 Jul 2025 09:16:51 -0400
 
-We only either update vm_flags or anon vma name, not a combination of the
-two.  Per David.
+Patch series "mm: introduce snapshot_page()", v3.
 
-Link: https://lkml.kernel.org/r/77f45b2e-a748-4635-9381-a5051091087f@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This series introduces snapshot_page(), a helper function that can be used
+to create a snapshot of a struct page and its associated struct folio.
+
+This function is intended to help callers with a consistent view of a a
+folio while reducing the chance of encountering partially updated or
+inconsistent state, such as during folio splitting which could lead to
+crashes and BUG_ON()s being triggered.
+
+
+This patch (of 4):
+
+Let's avoid working with the PMD when not required.  If
+vm_normal_page_pmd() would be called on something that is not a present
+pmd, it would already be a bug (pfn possibly garbage).
+
+While at it, let's support passing in any pfn covered by the huge zero
+folio by masking off PFN bits -- which should be rather cheap.
+
+Link: https://lkml.kernel.org/r/cover.1752499009.git.luizcap@redhat.com
+Link: https://lkml.kernel.org/r/4940826e99f0c709a7cf7beb94f53288320aea5a.1752499009.git.luizcap@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/huge_mm.h |   12 +++++++++++-
+ mm/memory.c             |    2 +-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name-fix
-+++ a/mm/madvise.c
-@@ -145,8 +145,8 @@ static int replace_anon_vma_name(struct
+--- a/include/linux/huge_mm.h~mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd
++++ a/include/linux/huge_mm.h
+@@ -482,9 +482,14 @@ static inline bool is_huge_zero_folio(co
+ 	return READ_ONCE(huge_zero_folio) == folio;
  }
- #endif /* CONFIG_ANON_VMA_NAME */
- /*
-- * Update the vm_flags and/or anon_name on region of a vma, splitting it or
-- * merging it as necessary. Must be called with mmap_lock held for writing.
-+ * Update the vm_flags or anon_name on region of a vma, splitting it or merging
-+ * it as necessary. Must be called with mmap_lock held for writing.
-  */
- static int madvise_update_vma(vm_flags_t new_flags,
- 		struct madvise_behavior *madv_behavior)
+ 
++static inline bool is_huge_zero_pfn(unsigned long pfn)
++{
++	return READ_ONCE(huge_zero_pfn) == (pfn & ~(HPAGE_PMD_NR - 1));
++}
++
+ static inline bool is_huge_zero_pmd(pmd_t pmd)
+ {
+-	return pmd_present(pmd) && READ_ONCE(huge_zero_pfn) == pmd_pfn(pmd);
++	return pmd_present(pmd) && is_huge_zero_pfn(pmd_pfn(pmd));
+ }
+ 
+ struct folio *mm_get_huge_zero_folio(struct mm_struct *mm);
+@@ -631,6 +636,11 @@ static inline bool is_huge_zero_folio(co
+ {
+ 	return false;
+ }
++
++static inline bool is_huge_zero_pfn(unsigned long pfn)
++{
++	return false;
++}
+ 
+ static inline bool is_huge_zero_pmd(pmd_t pmd)
+ {
+--- a/mm/memory.c~mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd
++++ a/mm/memory.c
+@@ -674,7 +674,7 @@ struct page *vm_normal_page_pmd(struct v
+ 		}
+ 	}
+ 
+-	if (is_huge_zero_pmd(pmd))
++	if (is_huge_zero_pfn(pfn))
+ 		return NULL;
+ 	if (unlikely(pfn > highest_memmap_pfn))
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-mremap-perform-some-simple-cleanups.patch
-mm-mremap-refactor-initial-parameter-sanity-checks.patch
-mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
-mm-mremap-cleanup-post-processing-stage-of-mremap.patch
-mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
-mm-mremap-check-remap-conditions-earlier.patch
-mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
-mm-mremap-clean-up-mlock-populate-behaviour.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
-tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
-mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name.patch
-mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name-fix.patch
+mm-convert-fpb_ignore_-into-fpb_respect_.patch
+mm-smaller-folio_pte_batch-improvements.patch
+mm-split-folio_pte_batch-into-folio_pte_batch-and-folio_pte_batch_flags.patch
+mm-remove-boolean-output-parameters-from-folio_pte_batch_ext.patch
+mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
 
