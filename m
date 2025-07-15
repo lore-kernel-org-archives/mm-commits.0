@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50CB31C6FE9
-	for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2025 23:11:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79CCD1C6FE9
+	for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2025 23:11:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752621082; cv=none; b=fAtI6KTtN84Wxjm7vEGWzu8cGw57cz1vhNr9kl8pG5E2uIsAu+/vHpKeXxTjpiD+8nGH1y4oz36ClAKBvbueQd6744k01VPGOZzJSwOSxaJHM1MgdL8wVPwVq6t1ClRVJDK6kE347uBbdTuB9hKrTlxgAWLrTJpP9kDyeiqvKx8=
+	t=1752621084; cv=none; b=Dr1B4aO/fe9uXxlkrTr3Uga+4EarwxgYwXsd1kJNofQcsQS99nF7/PMuNtPtKI3HL1uSJKntgmHlcY6qv++KxVrMR5zOzEKBam/Aydl9Gz5MDWjCv66X8MF/mC1anrdejyFxyBpElh9RvVvZB4wpst0e9SJQZTGaTgsZby6uhoQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752621082; c=relaxed/simple;
-	bh=hcQsvJ9uAxY7h/n5OouRWjGWg8213/gbKcbO+0cqPeU=;
-	h=Date:To:From:Subject:Message-Id; b=qr16pCdV6IskmB5Lpx1mVcvL1ovCvOvCc3IEZ1e8nSO+G6WHSR2Uh/pT02bZTP8xXtQFpFO+DmheBSKFRN57N0K6chnjOVN4g0eoreaDWDEmm79Owb0hvJUeIwnNemMVQoi4Stb6jR3vZ+qUkTsJcpc8E84ad7aGbojzLm8Ibqc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J5SqaeRQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752621084; c=relaxed/simple;
+	bh=1VWtFv96kiqutWzDVBIENLA2nrePXJEg28kOLuUjAGE=;
+	h=Date:To:From:Subject:Message-Id; b=lEiQuYY4d1q6+oLSzSwfzaS7id2hwa1QZrW64ZUAtn6EnrTlFmQsrnQQd+E0GVb5O83xElHJug2ghepEyWIHkRs+XuDoVgYZXJ0pJhYm1pRNErobk5AGAfdQJkyWBsHQzBLJQy0l5oJk8wjFu6NALEkSPFezC1e2yBVQzr4HyNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QI486Ci3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J5SqaeRQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A979C4CEE3;
-	Tue, 15 Jul 2025 23:11:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QI486Ci3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 013B4C4CEE3;
+	Tue, 15 Jul 2025 23:11:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752621081;
-	bh=hcQsvJ9uAxY7h/n5OouRWjGWg8213/gbKcbO+0cqPeU=;
+	s=korg; t=1752621084;
+	bh=1VWtFv96kiqutWzDVBIENLA2nrePXJEg28kOLuUjAGE=;
 	h=Date:To:From:Subject:From;
-	b=J5SqaeRQ4TD3WMNW+4u4qRgQB3JG2PBI12U55hMgXF7uNKomqlNSOfKx7Cz5t5tNj
-	 QJ+MMXGurwcpLhjRyhxa08QwaEdzRMjVy9nG1ZSI8b+/ppcBLo7B4/ov9vyPjeDtN2
-	 8GHQ/gPam82fYKrB7L5iPpTda/p63puCv9c/G/Ug=
-Date: Tue, 15 Jul 2025 16:11:21 -0700
+	b=QI486Ci3teA3/5cs1zLLgPRFdPJyLJGnHYoIAp5C+XKf408jT1Mj+ZuNVmVoyWhVC
+	 mEUidByyiK6tzXm4x/FVMfz0OX+SRCczeKYLlZW+FgBUHg6Vdn9TdA6lzvGsOSaslV
+	 fphsUT79tXhsDfjlgpJX0ZOYl+D+6eCs4ueCFAI4=
+Date: Tue, 15 Jul 2025 16:11:23 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mseal-small-cleanups.patch added to mm-new branch
-Message-Id: <20250715231121.8A979C4CEE3@smtp.kernel.org>
+Subject: + mm-mseal-simplify-and-rename-vma-gap-check.patch added to mm-new branch
+Message-Id: <20250715231124.013B4C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mseal: small cleanups
+     Subject: mm/mseal: Simplify and rename VMA gap check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mseal-small-cleanups.patch
+     mm-mseal-simplify-and-rename-vma-gap-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-small-cleanups.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-simplify-and-rename-vma-gap-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,105 +65,119 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mseal: small cleanups
-Date: Tue, 15 Jul 2025 14:37:40 +0100
+Subject: mm/mseal: Simplify and rename VMA gap check
+Date: Tue, 15 Jul 2025 14:37:41 +0100
 
-Drop the wholly unnecessary set_vma_sealed() and vma_is_sealed() helpers
-which are used only once, and place VMA_ITERATOR() declarations in the
-correct place.
+The check_mm_seal() function is doing something general - checking whether
+a range contains only VMAs (or rather that it does NOT contain any
+unmapped regions).
+
+So rename this function to range_contains_unmapped().
+
+Additionally simplify the logic, we are simply checking whether the last
+vma->vm_end has either a VMA starting after it or ends before the end
+parameter.
+
+This check is rather dubious, so it is sensible to keep it local to
+mm/mseal.c as at a later stage it may be removed, and we don't want any
+other mm code to perform such a check.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/7c0b2bb1f88db0c587190c2ae8bf3557f889cb3f.1752586090.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/8efef79c46553a9b8924878c1f4363998c1f49ed.1752586090.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mseal.c |    9 +--------
- mm/vma.h   |   16 ++--------------
- 2 files changed, 3 insertions(+), 22 deletions(-)
+ mm/mseal.c |   56 +++++++++++++++++++--------------------------------
+ 1 file changed, 21 insertions(+), 35 deletions(-)
 
---- a/mm/mseal.c~mm-mseal-small-cleanups
+--- a/mm/mseal.c~mm-mseal-simplify-and-rename-vma-gap-check
 +++ a/mm/mseal.c
-@@ -15,11 +15,6 @@
- #include <linux/sched.h>
- #include "internal.h"
- 
--static inline void set_vma_sealed(struct vm_area_struct *vma)
--{
--	vm_flags_set(vma, VM_SEALED);
--}
--
- static int mseal_fixup(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 		struct vm_area_struct **prev, unsigned long start,
- 		unsigned long end, vm_flags_t newflags)
-@@ -36,7 +31,7 @@ static int mseal_fixup(struct vma_iterat
- 		goto out;
- 	}
- 
--	set_vma_sealed(vma);
-+	vm_flags_set(vma, VM_SEALED);
- out:
- 	*prev = vma;
- 	return ret;
-@@ -53,7 +48,6 @@ static int check_mm_seal(unsigned long s
- {
- 	struct vm_area_struct *vma;
- 	unsigned long nstart = start;
--
- 	VMA_ITERATOR(vmi, current->mm, start);
- 
- 	/* going through each vma to check. */
-@@ -78,7 +72,6 @@ static int apply_mm_seal(unsigned long s
- {
- 	unsigned long nstart;
- 	struct vm_area_struct *vma, *prev;
--
- 	VMA_ITERATOR(vmi, current->mm, start);
- 
- 	vma = vma_iter_load(&vmi);
---- a/mm/vma.h~mm-mseal-small-cleanups
-+++ a/mm/vma.h
-@@ -559,31 +559,19 @@ struct vm_area_struct *vma_iter_next_rew
+@@ -38,34 +38,6 @@ out:
  }
  
- #ifdef CONFIG_64BIT
--
--static inline bool vma_is_sealed(struct vm_area_struct *vma)
+ /*
+- * Check for do_mseal:
+- * 1> start is part of a valid vma.
+- * 2> end is part of a valid vma.
+- * 3> No gap (unallocated address) between start and end.
+- * 4> map is sealable.
+- */
+-static int check_mm_seal(unsigned long start, unsigned long end)
 -{
--	return (vma->vm_flags & VM_SEALED);
+-	struct vm_area_struct *vma;
+-	unsigned long nstart = start;
+-	VMA_ITERATOR(vmi, current->mm, start);
+-
+-	/* going through each vma to check. */
+-	for_each_vma_range(vmi, vma, end) {
+-		if (vma->vm_start > nstart)
+-			/* unallocated memory found. */
+-			return -ENOMEM;
+-
+-		if (vma->vm_end >= end)
+-			return 0;
+-
+-		nstart = vma->vm_end;
+-	}
+-
+-	return -ENOMEM;
 -}
 -
 -/*
-- * check if a vma is sealed for modification.
-- * return true, if modification is allowed.
-- */
-+/* Check if a vma is sealed for modification. */
- static inline bool can_modify_vma(struct vm_area_struct *vma)
- {
--	if (unlikely(vma_is_sealed(vma)))
-+	if (unlikely(vma->vm_flags & VM_SEALED))
- 		return false;
- 
- 	return true;
+  * Apply sealing.
+  */
+ static int apply_mm_seal(unsigned long start, unsigned long end)
+@@ -102,6 +74,24 @@ static int apply_mm_seal(unsigned long s
+ 	return 0;
  }
--
- #else
--
- static inline bool can_modify_vma(struct vm_area_struct *vma)
- {
- 	return true;
- }
--
- #endif
  
- #if defined(CONFIG_STACK_GROWSUP)
++/* Does the [start, end) range contain any unmapped memory? */
++static bool range_contains_unmapped(struct mm_struct *mm,
++		unsigned long start, unsigned long end)
++{
++	struct vm_area_struct *vma;
++	unsigned long prev_end = start;
++	VMA_ITERATOR(vmi, current->mm, start);
++
++	for_each_vma_range(vmi, vma, end) {
++		if (vma->vm_start > prev_end)
++			return true;
++
++		prev_end = vma->vm_end;
++	}
++
++	return prev_end < end;
++}
++
+ /*
+  * mseal(2) seals the VM's meta data from
+  * selected syscalls.
+@@ -184,14 +174,10 @@ int do_mseal(unsigned long start, size_t
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+ 
+-	/*
+-	 * First pass, this helps to avoid
+-	 * partial sealing in case of error in input address range,
+-	 * e.g. ENOMEM error.
+-	 */
+-	ret = check_mm_seal(start, end);
+-	if (ret)
++	if (range_contains_unmapped(mm, start, end)) {
++		ret = -ENOMEM;
+ 		goto out;
++	}
+ 
+ 	/*
+ 	 * Second pass, this should success, unless there are errors
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
