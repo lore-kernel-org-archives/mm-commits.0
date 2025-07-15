@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9509726AD9;
-	Tue, 15 Jul 2025 21:49:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02F2A2CCC0
+	for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2025 22:02:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752616173; cv=none; b=gyFtM1E3gzcBdsVtbb9mqJ9QpVHF/7GAd8+Rf74ULf1sNkHRGqvoF9KHDePT4UuN7tg5sYDpLOkNZNg1s+cTZAbf3ih7V6l5XailNAVVW6nFirfZfchVDnB6jfa7AIOaatnJZ5XvY8gFah1u0o1yNIdmaIHXv6Km+02Tf+ewvxw=
+	t=1752616921; cv=none; b=uaIEnABwYxqstwcQt526KjnwPTBVM/jv4UY4wMTATeBHRI0EXKc9zta6CgTknMxkxd1yL5pqrPC+sI/Y+w1wF8wdHiVkNxxULyFqwQqIlprpTvv3+lj3rwtlGfO4Oo/cZRDdqOZK7u99gTjR3NOTkCU0bGDoIXEJB/V1JthsrVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752616173; c=relaxed/simple;
-	bh=Y6Kwqw2XBwaFF9GeOQDluWNxZchC3R6QjKcFLzYDC3g=;
-	h=Date:To:From:Subject:Message-Id; b=rMDWfuEtRgXyL2or+UOoTYuRehuGay4Hw3087qEaOZW8Gf85AieYwV/pCV/ejLI6epyh36yGZNfrH9IO+xs8N/wUM/h2IVxRQp7pymErlmOTNJw0Es2Lz+xIradhZSyA9pssuA8xUCWUIhBRju8nXVsyrdNxJgtZIi3WI0S0/TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j/Ls23FQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752616921; c=relaxed/simple;
+	bh=UVg54IWU/kT7DnfecichtYWfuPUybJaftSD/aXUMV2c=;
+	h=Date:To:From:Subject:Message-Id; b=LC/ZC0/EzTssGKDgDXMogyxv1I5k7o8K7wN2vLv5GD1E31Or8DY13j96i6NWiGpgqC51/+jBS8t9EW8Ii3xR2FKKUSxClpyfFKnBiAOPXcd2EYjs2fapM2PjGAuExyZc/JeFLUT/dYMffq8u8XFcUvqtbmYJSD14DXB7pZiGZ1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yBQV642S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j/Ls23FQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25CA4C4CEE3;
-	Tue, 15 Jul 2025 21:49:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yBQV642S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B56FC4CEE3;
+	Tue, 15 Jul 2025 22:02:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752616173;
-	bh=Y6Kwqw2XBwaFF9GeOQDluWNxZchC3R6QjKcFLzYDC3g=;
+	s=korg; t=1752616920;
+	bh=UVg54IWU/kT7DnfecichtYWfuPUybJaftSD/aXUMV2c=;
 	h=Date:To:From:Subject:From;
-	b=j/Ls23FQlJT0KJ4+lDW5gCj5JF7I6EDOZT2OpxHEp41Uc7KEbCsHnWkZaSdSX2Qr3
-	 wK5a2Uzkpo+DK6IFZtNy8Dx995sVVAelp6pEkONc2ZrCzNb5keBQU6flMAqmmNo+8k
-	 vskHPQt8t8PwIF8eXo6z50qTgZBPcnq4aucpvtFU=
-Date: Tue, 15 Jul 2025 14:49:32 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,shr@devkernel.io,david@redhat.com,chengming.zhou@linux.dev,nathan@kernel.org,akpm@linux-foundation.org
+	b=yBQV642SciJvuy64LNtLF7MhLR8k2ElXKTY+DfVR9A52aa/3AVFR1aXVJcAPfVy3+
+	 j46WIJa4bKHFNKsZX85vf/azbFspTh7NyyR2MVv/cC0xQRYtqfwGmwkTHe6WBBaUJ3
+	 ilphPVNcbfaIK7GQYxI3TgtCkMtnP099DW6+D9CU=
+Date: Tue, 15 Jul 2025 15:01:59 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250715214933.25CA4C4CEE3@smtp.kernel.org>
+Subject: + mm-damon-core-add-cleanup_target-ops-callback-fix.patch added to mm-unstable branch
+Message-Id: <20250715220200.5B56FC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: fix -Wsometimes-uninitialized from clang-21 in advisor_mode_show()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show.patch
+     Subject: mm/damon: add kernel-doc comment for damon_operations->cleanup_target
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-core-add-cleanup_target-ops-callback-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-cleanup_target-ops-callback-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,62 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: mm/ksm: fix -Wsometimes-uninitialized from clang-21 in advisor_mode_show()
-Date: Tue, 15 Jul 2025 12:56:16 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: add kernel-doc comment for damon_operations->cleanup_target
+Date: Tue, 15 Jul 2025 11:52:38 -0700
 
-After a recent change in clang to expose uninitialized warnings from const
-variables [1], there is a false positive warning from the if statement in
-advisor_mode_show().
+Commit 769bd386e490 ("mm/damon/core: add cleanup_target() ops callback")
+on mm-unstable added cleanup_target field to damon_operations, but forgot
+adding the kernel-doc description.  This causes a build warning.  Fix it
+by adding the description.
 
-  mm/ksm.c:3687:11: error: variable 'output' is used uninitialized whenever 'if' condition is false [-Werror,-Wsometimes-uninitialized]
-   3687 |         else if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
-        |                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  mm/ksm.c:3690:33: note: uninitialized use occurs here
-   3690 |         return sysfs_emit(buf, "%s\n", output);
-        |                                        ^~~~~~
-
-Rewrite the if statement to implicitly make KSM_ADVISOR_NONE the else
-branch so that it is obvious to the compiler that ksm_advisor can only be
-KSM_ADVISOR_NONE or KSM_ADVISOR_SCAN_TIME due to the assignments in
-advisor_mode_store().
-
-Link: https://lkml.kernel.org/r/20250715-ksm-fix-clang-21-uninit-warning-v1-1-f443feb4bfc4@kernel.org
-Fixes: 66790e9a735b ("mm/ksm: add sysfs knobs for advisor")
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Closes: https://github.com/ClangBuiltLinux/linux/issues/2100
-Link: https://github.com/llvm/llvm-project/commit/2464313eef01c5b1edf0eccf57a32cdee01472c7 [1]
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250715185239.89152-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Closes: https://lore.kernel.org/20250715185549.264260b8@canb.auug.org.au
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/ksm.c~mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show
-+++ a/mm/ksm.c
-@@ -3669,10 +3669,10 @@ static ssize_t advisor_mode_show(struct
- {
- 	const char *output;
- 
--	if (ksm_advisor == KSM_ADVISOR_NONE)
--		output = "[none] scan-time";
--	else if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
-+	if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
- 		output = "none [scan-time]";
-+	else
-+		output = "[none] scan-time";
- 
- 	return sysfs_emit(buf, "%s\n", output);
- }
+--- a/include/linux/damon.h~mm-damon-core-add-cleanup_target-ops-callback-fix
++++ a/include/linux/damon.h
+@@ -576,6 +576,7 @@ enum damon_ops_id {
+  * @get_scheme_score:		Get the score of a region for a scheme.
+  * @apply_scheme:		Apply a DAMON-based operation scheme.
+  * @target_valid:		Determine if the target is valid.
++ * @cleanup_target:		Clean up each target before deallocation.
+  * @cleanup:			Clean up the context.
+  *
+  * DAMON can be extended for various address spaces and usages.  For this,
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show.patch
-panic-add-panic_sys_info-sysctl-to-take-human-readable-string-parameter-fix.patch
+samples-damon-wsse-rename-to-have-damon_sample_-prefix.patch
+samples-damon-prcl-rename-to-have-damon_sample_-prefix.patch
+samples-damon-mtier-rename-to-have-damon_sample_-prefix.patch
+mm-damon-sysfs-use-damon-core-api-damon_is_running.patch
+mm-damon-sysfs-dont-hold-kdamond_lock-in-before_terminate.patch
+docs-mm-damon-maintainer-profile-update-for-mm-new-tree.patch
+mm-damon-add-struct-damos_migrate_dests.patch
+mm-damon-core-add-damos-migrate_dests-field.patch
+mm-damon-sysfs-schemes-implement-damos-action-destinations-directory.patch
+mm-damon-sysfs-schemes-set-damos-migrate_dests.patch
+docs-abi-damon-document-schemes-dests-directory.patch
+docs-admin-guide-mm-damon-usage-document-dests-directory.patch
+mm-damon-accept-parallel-damon_call-requests.patch
+mm-damon-core-introduce-repeat-mode-damon_call.patch
+mm-damon-stat-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+mm-damon-reclaim-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+mm-damon-lru_sort-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+samples-damon-prcl-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+samples-damon-wsse-use-damon_call-repeat-mode-instead-of-damon_callback.patch
+mm-damon-core-do-not-call-opscleanup-when-destroying-targets.patch
+mm-damon-core-add-cleanup_target-ops-callback.patch
+mm-damon-core-add-cleanup_target-ops-callback-fix.patch
+mm-damon-vaddr-put-pid-in-cleanup_target.patch
+mm-damon-sysfs-remove-damon_sysfs_destroy_targets.patch
+mm-damon-core-destroy-targets-when-kdamond_fn-finish.patch
+mm-damon-sysfs-remove-damon_sysfs_before_terminate.patch
+mm-damon-core-remove-damon_callback.patch
 
