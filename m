@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CFB51C6FE9
-	for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2025 23:11:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E42A51C6FE9
+	for <mm-commits@vger.kernel.org>; Tue, 15 Jul 2025 23:11:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752621077; cv=none; b=Uou2gBMwopH7tnfJWNKIz6RtR3eMxaPlRqjyiCPUZ/irpzQGh8tGDWtXVe11cQta2+gzL6CzQdPbiU0lzwnnbb3LuqgpwObQOY+D/averlsh908xav+A8ZTxiM/kVuRRjmBf/1rh0Z71XFln16X9QCB1kmRphEfx1wQ0FU6RSX4=
+	t=1752621080; cv=none; b=jRcvxZRLm9qJU7mcpzJMDn8MsUrZ/VS7jDxyW9+B8WoXLm+VuWsWi2M6ApD/QAQnVQ5g7L7/TgYuAXRmtKIabDkreYHE6osJpWuAz48rlAvLHCL474Qc6v+ugNklkgstmr1P8dWnoWCU5HSOMiiqYfvadt3Q7wTiCfsrW7ryG6A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752621077; c=relaxed/simple;
-	bh=EiPlB/KCm2FFglOotUyfNckGBc32PkW3ntcHV+qUJ7w=;
-	h=Date:To:From:Subject:Message-Id; b=T9JxzO4NVD+f0sKCiE4IgSkh7IrbH+9xrJOt3k+sJv/eJCBbqMn/UHiG2KlYIeMYQKOYk276A1c8zWByzJ8yaOAP9+rDzbK/X+YeiutIkGaeGZR59VHDIRBDEGenlluomkmv0ICQW6Lsod552VoEzDP3QyAc0k/cwozjPSXsEnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bJJyWWha; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752621080; c=relaxed/simple;
+	bh=DRedMoWZ6PjKiJBEU4ZHDnDLqyNtNebgoLq87DJNCHk=;
+	h=Date:To:From:Subject:Message-Id; b=fk8BK0caar9JC1MyT64sIoFHxbA98+IfMw5HuCAiVKYSqZlaj9OeYQ8BkDtKjteDyIF4cQYInPnl4OYrgxmzAPYuk1J1r4S/wNNlSR8Wvkie/cLfmhp0YSGQJGYQc/7SgC2ZCn3TFmxsMx1FUzTIKYiOhaU3DjgUCf6mEWnfGTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OMt2frfx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bJJyWWha"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DACB5C4CEE3;
-	Tue, 15 Jul 2025 23:11:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OMt2frfx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E5DBC4CEE3;
+	Tue, 15 Jul 2025 23:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752621075;
-	bh=EiPlB/KCm2FFglOotUyfNckGBc32PkW3ntcHV+qUJ7w=;
+	s=korg; t=1752621078;
+	bh=DRedMoWZ6PjKiJBEU4ZHDnDLqyNtNebgoLq87DJNCHk=;
 	h=Date:To:From:Subject:From;
-	b=bJJyWWhakhiGwntQ4uLZYDhHrWGnRZgUho8rY70Ddx8ud6szmWH875Mds9yS7K9Z6
-	 z2EZNUSvuSh6dpHB89npx0rb7BBrF8hYpQ0djCoJxENkPDliSRx2s5YQjw7M+LPOT5
-	 U6vWElpWD4POlfrbY8uN8oyBGhDauUr1B0OMyM9M=
-Date: Tue, 15 Jul 2025 16:11:15 -0700
+	b=OMt2frfxzCigFGVvmYcUND+y00OZyR6T7qe9nerV81wl3IxD4Xogaik9OIiY52gvn
+	 ileaRLqsLnfX6vG1ndxZwrksV1rQCtdF8r/Pe3nodQeYnvM1oZhBFDYn8KoKVS7I2g
+	 FDPjMMTgjrjsDsYevTwaCfNRbNTcXitDGgfiXMso=
+Date: Tue, 15 Jul 2025 16:11:17 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mseal-always-define-vm_sealed.patch added to mm-new branch
-Message-Id: <20250715231115.DACB5C4CEE3@smtp.kernel.org>
+Subject: + mm-mseal-update-madvise-logic.patch added to mm-new branch
+Message-Id: <20250715231118.4E5DBC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mseal: always define VM_SEALED
+     Subject: mm/mseal: update madvise() logic
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mseal-always-define-vm_sealed.patch
+     mm-mseal-update-madvise-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-always-define-vm_sealed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-update-madvise-logic.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,103 +65,255 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mseal: always define VM_SEALED
-Date: Tue, 15 Jul 2025 14:37:38 +0100
+Subject: mm/mseal: update madvise() logic
+Date: Tue, 15 Jul 2025 14:37:39 +0100
 
-Patch series "mseal cleanups, fixup MAP_PRIVATE file-backed case", v2.
+The madvise() logic is inexplicably performed in mm/mseal.c - this ought
+to be located in mm/madvise.c.
 
-Perform a number of cleanups to the mseal logic.  Firstly, VM_SEALED is
-treated differently from every other VMA flag, it really doesn't make
-sense to do this, so we start by making this consistent with everything
-else.
+Additionally can_modify_vma_madv() is inconsistently named and, in
+combination with is_ro_anon(), is very confusing logic.
 
-Next we place the madvise logic where it belongs - in mm/madvise.c.  It
-really makes no sense to abstract this elsewhere.  In doing so, we go to
-great lengths to explain very clearly the previously very confusing logic
-as to what sealed mappings are impacted here.
+Put a static function in mm/madvise.c instead - can_madvise_modify() -
+that spells out exactly what's happening.  Also explicitly check for an
+anon VMA.
 
-In doing so, we fix an existing logical oversight - previously we
-permitted an madvise() discard operation for a sealed, read-only
-MAP_PRIVATE file-backed mapping.
+Also add commentary to explain what's going on.
 
-However this is incorrect. To see why consider:
+Essentially - we disallow discarding of data in mseal()'d mappings in
+instances where the user couldn't otherwise write to that data.
+
+Shared mappings are always backed, so no discard will actually truly
+discard the data.  Read-only anonymous and MAP_PRIVATE file-backed
+mappings are the ones we are interested in.
+
+We make a change to the logic here to correct a mistake - we must disallow
+discard of read-only MAP_PRIVATE file-backed mappings, which previously we
+were not.
+
+The justification for this change is to account for the case where:
 
 1. A MAP_PRIVATE R/W file-backed mapping is established.
 2. The mapping is written to, which backs it with anonymous memory.
 3. The mapping is mprotect()'d read-only.
 4. The mapping is mseal()'d.
 
-At this point you have data that, once sealed, a user cannot alter, but a
-discard operation can unrecoverably remove.  This contradicts the
-semantics of mseal(), so should not be permitted.
+If we were to now allow discard of this data, it would mean mseal() would
+not prevent the unrecoverable discarding of data and it was thus violate
+the semantics of sealed VMAs.
 
-We then abstract out and explain the 'are there are any gaps in this range
-in the mm?' check being performed as a prerequisite to mseal being
-performed.
+Finally, update the mseal tests, which were asserting previously that a
+read-only MAP_PRIVATE file-backed mapping could be discarded.
 
-Finally, we simplify the actual mseal logic which is really quite
-straightforward.
-
-
-This patch (of 5):
-
-There is no reason to treat VM_SEALED in a special way, in each other case
-in which a VMA flag is unavailable due to configuration, we simply assign
-that flag to VM_NONE, so make VM_SEALED consistent with all other VMA
-flags in this respect.
-
-Additionally, use the next available bit for VM_SEALED, 42, rather than
-arbitrarily putting it at 63 and update the declaration to match all other
-VMA flags.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/cover.1752586090.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/48376d052928a56b6e66a5add238dcfa1fe91886.1752586090.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/bbbbd8b8b1d0bb2cd2f63dece62ed8d773cdd4d1.1752586090.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |    6 ++++--
- tools/testing/vma/vma_internal.h |    6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ mm/madvise.c                            |   63 +++++++++++++++++++++-
+ mm/mseal.c                              |   49 -----------------
+ mm/vma.h                                |    7 --
+ tools/testing/selftests/mm/mseal_test.c |    3 -
+ 4 files changed, 63 insertions(+), 59 deletions(-)
 
---- a/include/linux/mm.h~mm-mseal-always-define-vm_sealed
-+++ a/include/linux/mm.h
-@@ -414,8 +414,10 @@ extern unsigned int kobjsize(const void
- #endif
+--- a/mm/madvise.c~mm-mseal-update-madvise-logic
++++ a/mm/madvise.c
+@@ -19,6 +19,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+ #include <linux/mm_inline.h>
++#include <linux/mmu_context.h>
+ #include <linux/string.h>
+ #include <linux/uio.h>
+ #include <linux/ksm.h>
+@@ -1256,6 +1257,66 @@ static long madvise_guard_remove(struct
+ 			       &guard_remove_walk_ops, NULL);
+ }
  
- #ifdef CONFIG_64BIT
--/* VM is sealed, in vm_flags */
--#define VM_SEALED	_BITUL(63)
-+#define VM_SEALED_BIT	42
-+#define VM_SEALED	BIT(VM_SEALED_BIT)
++#ifdef CONFIG_64BIT
++/* Does the madvise operation result in discarding of mapped data? */
++static bool is_discard(int behavior)
++{
++	switch (behavior) {
++	case MADV_FREE:
++	case MADV_DONTNEED:
++	case MADV_DONTNEED_LOCKED:
++	case MADV_REMOVE:
++	case MADV_DONTFORK:
++	case MADV_WIPEONFORK:
++	case MADV_GUARD_INSTALL:
++		return true;
++	}
++
++	return false;
++}
++
++/*
++ * We are restricted from madvise()'ing mseal()'d VMAs only in very particular
++ * circumstances - discarding of data from read-only anonymous SEALED mappings.
++ *
++ * This is because users cannot trivally discard data from these VMAs, and may
++ * only do so via an appropriate madvise() call.
++ */
++static bool can_madvise_modify(struct madvise_behavior *madv_behavior)
++{
++	struct vm_area_struct *vma = madv_behavior->vma;
++
++	/* If the VMA isn't sealed we're good. */
++	if (can_modify_vma(vma))
++		return true;
++
++	/* For a sealed VMA, we only care about discard operations. */
++	if (!is_discard(madv_behavior->behavior))
++		return true;
++
++	/*
++	 * But shared mappings are fine, as dirty pages will be written to a
++	 * backing store regardless of discard.
++	 */
++	if (vma->vm_flags & VM_SHARED)
++		return true;
++
++	/* If the user could write to the mapping anyway, then this is fine. */
++	if ((vma->vm_flags & VM_WRITE) &&
++	    arch_vma_access_permitted(vma, /* write= */ true,
++			/* execute= */ false, /* foreign= */ false))
++		return true;
++
++	/* Otherwise, we are not permitted to perform this operation. */
++	return false;
++}
 +#else
-+#define VM_SEALED	VM_NONE
++static bool can_madvise_modify(struct madvise_behavior *madv_behavior)
++{
++	return true;
++}
++#endif
++
+ /*
+  * Apply an madvise behavior to a region of a vma.  madvise_update_vma
+  * will handle splitting a vm area into separate areas, each area with its own
+@@ -1269,7 +1330,7 @@ static int madvise_vma_behavior(struct m
+ 	struct madvise_behavior_range *range = &madv_behavior->range;
+ 	int error;
+ 
+-	if (unlikely(!can_modify_vma_madv(madv_behavior->vma, behavior)))
++	if (unlikely(!can_madvise_modify(madv_behavior)))
+ 		return -EPERM;
+ 
+ 	switch (behavior) {
+--- a/mm/mseal.c~mm-mseal-update-madvise-logic
++++ a/mm/mseal.c
+@@ -11,7 +11,6 @@
+ #include <linux/mman.h>
+ #include <linux/mm.h>
+ #include <linux/mm_inline.h>
+-#include <linux/mmu_context.h>
+ #include <linux/syscalls.h>
+ #include <linux/sched.h>
+ #include "internal.h"
+@@ -21,54 +20,6 @@ static inline void set_vma_sealed(struct
+ 	vm_flags_set(vma, VM_SEALED);
+ }
+ 
+-static bool is_madv_discard(int behavior)
+-{
+-	switch (behavior) {
+-	case MADV_FREE:
+-	case MADV_DONTNEED:
+-	case MADV_DONTNEED_LOCKED:
+-	case MADV_REMOVE:
+-	case MADV_DONTFORK:
+-	case MADV_WIPEONFORK:
+-	case MADV_GUARD_INSTALL:
+-		return true;
+-	}
+-
+-	return false;
+-}
+-
+-static bool is_ro_anon(struct vm_area_struct *vma)
+-{
+-	/* check anonymous mapping. */
+-	if (vma->vm_file || vma->vm_flags & VM_SHARED)
+-		return false;
+-
+-	/*
+-	 * check for non-writable:
+-	 * PROT=RO or PKRU is not writeable.
+-	 */
+-	if (!(vma->vm_flags & VM_WRITE) ||
+-		!arch_vma_access_permitted(vma, true, false, false))
+-		return true;
+-
+-	return false;
+-}
+-
+-/*
+- * Check if a vma is allowed to be modified by madvise.
+- */
+-bool can_modify_vma_madv(struct vm_area_struct *vma, int behavior)
+-{
+-	if (!is_madv_discard(behavior))
+-		return true;
+-
+-	if (unlikely(!can_modify_vma(vma) && is_ro_anon(vma)))
+-		return false;
+-
+-	/* Allow by default. */
+-	return true;
+-}
+-
+ static int mseal_fixup(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		struct vm_area_struct **prev, unsigned long start,
+ 		unsigned long end, vm_flags_t newflags)
+--- a/mm/vma.h~mm-mseal-update-madvise-logic
++++ a/mm/vma.h
+@@ -577,19 +577,12 @@ static inline bool can_modify_vma(struct
+ 	return true;
+ }
+ 
+-bool can_modify_vma_madv(struct vm_area_struct *vma, int behavior);
+-
+ #else
+ 
+ static inline bool can_modify_vma(struct vm_area_struct *vma)
+ {
+ 	return true;
+ }
+-
+-static inline bool can_modify_vma_madv(struct vm_area_struct *vma, int behavior)
+-{
+-	return true;
+-}
+ 
  #endif
  
- /* Bits set in the VMA until the stack is in its final location */
---- a/tools/testing/vma/vma_internal.h~mm-mseal-always-define-vm_sealed
-+++ a/tools/testing/vma/vma_internal.h
-@@ -108,8 +108,10 @@ extern unsigned long dac_mmap_min_addr;
- #define CAP_IPC_LOCK         14
+--- a/tools/testing/selftests/mm/mseal_test.c~mm-mseal-update-madvise-logic
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -1712,7 +1712,6 @@ static void test_seal_discard_ro_anon_on
+ 	unsigned long size = 4 * page_size;
+ 	int ret;
+ 	int fd;
+-	unsigned long mapflags = MAP_PRIVATE;
  
- #ifdef CONFIG_64BIT
--/* VM is sealed, in vm_flags */
--#define VM_SEALED	_BITUL(63)
-+#define VM_SEALED_BIT	42
-+#define VM_SEALED	BIT(VM_SEALED_BIT)
-+#else
-+#define VM_SEALED	VM_NONE
- #endif
+ 	fd = memfd_create("test", 0);
+ 	FAIL_TEST_IF_FALSE(fd > 0);
+@@ -1720,7 +1719,7 @@ static void test_seal_discard_ro_anon_on
+ 	ret = fallocate(fd, 0, 0, size);
+ 	FAIL_TEST_IF_FALSE(!ret);
  
- #define FIRST_USER_ADDRESS	0UL
+-	ptr = mmap(NULL, size, PROT_READ, mapflags, fd, 0);
++	ptr = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+ 	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
+ 
+ 	if (seal) {
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
