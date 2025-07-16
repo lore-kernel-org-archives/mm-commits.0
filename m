@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27D1718C008
-	for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2025 22:32:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBDE32EE96E
+	for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2025 22:59:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752705139; cv=none; b=Nzmt4pPCuT4nk8+j4wSszHQlDecwHiiehNgtabpnCRPM/sl9We/IEjFuHR9NvnDHcx/Vnbzz5h/k+sdjUm6V54QyIy5coeF7NL96IUSW2GVgGgc2f/3PEOInz94ryuhAeNfC8NAxcu38VGmq67XDH7U/8b6ZoZ1swyUpQ3Vh9Pc=
+	t=1752706765; cv=none; b=PnplnMoO+jCMpV+KEstnUo246gxGOObSvP+etmWZw1id0Bz8vetFJXKOcHVO16oxJrNMUQXLLX+Ji10Ap2eXCuXGQk4UoGsx15B+SB2GQZdNP6N7ZbipbPQedvp2lkOlYnxVKaCR/eUSDCw/p9BIXhxK2CMrkcO4CSmOVyhXTe0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752705139; c=relaxed/simple;
-	bh=M0H/8NN/x9bBBvZWu16lEkylxVMcyJSnFvyv/f/h0yo=;
-	h=Date:To:From:Subject:Message-Id; b=iUEQ5en+eR2wZD5lJDzYpcL17PIS9i6N4vnPjXusBBRiXW5Ai5RzZPfAyNcPCmtzzr8fAx0jH+AlsLgYpaXOJdtJiOPNNmfJseRP/nIluD8BEtJhNnFPXlBNUjr0xUsJApGC+uaotQsK0BPyw8aYJRB3whymODAcofanfnbN7w4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fkr04wd5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752706765; c=relaxed/simple;
+	bh=5vbtXSXbmLAIxzvLgWZDyoiQHMG6GshmIBmRA/7vWDE=;
+	h=Date:To:From:Subject:Message-Id; b=cU2/ktsnDj8e8dIDi6rc25XOS2XuQn7/XfbrNH8LvmKrwskGYc0X0kQSHPRvYXh/wtkqMDzy5NX341UofJw7dLn/ZT/RtL/1a0SHdm40BjxuDCswqWuS6V9+eMwV68/bWJ4wXSKq6uqT39U/nq6oicI55N2cjfh05QHn+lTAoU4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pru4yDYo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fkr04wd5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68C2C4CEE7;
-	Wed, 16 Jul 2025 22:32:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pru4yDYo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BCEEC4CEE7;
+	Wed, 16 Jul 2025 22:59:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752705139;
-	bh=M0H/8NN/x9bBBvZWu16lEkylxVMcyJSnFvyv/f/h0yo=;
+	s=korg; t=1752706765;
+	bh=5vbtXSXbmLAIxzvLgWZDyoiQHMG6GshmIBmRA/7vWDE=;
 	h=Date:To:From:Subject:From;
-	b=Fkr04wd53MqIU3vOnt4N/YHlIEFs9TbDfIHf2A9yZhm+vJojsbOIGCbS5p9DcVHaa
-	 ryOt+1edEQEv4Tp5AkjO73z5e6pFFZ5/QJVnrvdWhwvQ5Xh62Vm+azaha4YntW/i3D
-	 z8Tn+FCoEsAoQPNvKhIeLtH1kD3/sDpg144mypvU=
-Date: Wed, 16 Jul 2025 15:32:18 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,rientjes@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,hughd@google.com,akpm@linux-foundation.org
+	b=Pru4yDYoqCNzszrn72iUBSafTGP/lRTTRA8DXIGFwIRePB58BhFeItb+DxkwosonE
+	 nhrCXchC73+sCZRNI6G4V88QAfWwd/0ke4NZNbd1dLF4vDMr7JvV0zFl7VaZ7EhtrZ
+	 VAdgQt8FE4ijUn5a/8mElPXFWshY5Xcpz08luedI=
+Date: Wed, 16 Jul 2025 15:59:24 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,davem@davemloft.net,christophe.leroy@csgroup.eu,arnd@arndb.de,anshuman.khandual@arm.com,andreas@gaisler.com,alexghiti@rivosinc.com,agordeev@linux.ibm.com,anthony.yznaga@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-writeout-free-swap-if-swap_writeout-reactivates.patch added to mm-new branch
-Message-Id: <20250716223218.E68C2C4CEE7@smtp.kernel.org>
+Subject: + sparc64-remove-hugetlb_free_pgd_range.patch added to mm-new branch
+Message-Id: <20250716225925.4BCEEC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem: writeout free swap if swap_writeout() reactivates
+     Subject: sparc64: remove hugetlb_free_pgd_range()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-writeout-free-swap-if-swap_writeout-reactivates.patch
+     sparc64-remove-hugetlb_free_pgd_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-writeout-free-swap-if-swap_writeout-reactivates.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc64-remove-hugetlb_free_pgd_range.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,96 +64,209 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/shmem: writeout free swap if swap_writeout() reactivates
-Date: Wed, 16 Jul 2025 01:08:39 -0700 (PDT)
+From: Anthony Yznaga <anthony.yznaga@oracle.com>
+Subject: sparc64: remove hugetlb_free_pgd_range()
+Date: Tue, 15 Jul 2025 18:26:09 -0700
 
-If swap_writeout() returns AOP_WRITEPAGE_ACTIVATE (for example, because
-zswap cannot compress and memcg disables writeback), there is no virtue in
-keeping that folio in swap cache and holding the swap allocation:
-shmem_writeout() switch it back to shmem page cache before returning.
+Patch series "drop hugetlb_free_pgd_range()".
 
-Folio lock is held, and folio->memcg_data remains set throughout, so there
-is no need to get into any memcg or memsw charge complications:
-swap_free_nr() and delete_from_swap_cache() do as much as is needed (but
-beware the race with shmem_free_swap() when inode truncated or evicted).
+For all architectures that support hugetlb except for sparc,
+hugetlb_free_pgd_range() just calls free_pgd_range().  It turns out the
+sparc implementation is essentially identical to free_pgd_range() and can
+be removed.  Remove it and update free_pgtables() to treat hugetlb VMAs
+the same as others.
 
-Doing the same for an anonymous folio is harder, since it will usually
-have been unmapped, with references to the swap left in the page tables. 
-Adding a function to remap the folio would be fun, but not worthwhile
-unless it has other uses, or an urgent bug with anon is demonstrated.
 
-Link: https://lkml.kernel.org/r/5c911f7a-af7a-5029-1dd4-2e00b66d565c@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+This patch (of 3):
+
+The sparc implementation of hugetlb_free_pgd_range() is identical to
+free_pgd_range() with the exception of checking for and skipping possible
+leaf entries at the PUD and PMD levels.
+
+These checks are unnecessary because any huge pages have been freed and
+their PTEs cleared by the time page tables needed to map them are freed. 
+While some huge page sizes do populate the page table with multiple PTEs,
+they are correctly cleared by huge_ptep_get_and_clear().
+
+To verify this, libhugetlbfs tests were run for 64K, 8M, and 256M page
+sizes with an instrumented kernel on a qemu guest modified to support the
+256M page size.  The same tests were used to verify no regressions after
+applying this patch and were also run on x86 for both 2M and 1G page
+sizes.
+
+Link: https://lkml.kernel.org/r/20250716012611.10369-1-anthony.yznaga@oracle.com
+Link: https://lkml.kernel.org/r/20250716012611.10369-2-anthony.yznaga@oracle.com
+Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/hugetlb.h |    5 -
+ arch/sparc/mm/hugetlbpage.c      |  119 -----------------------------
+ 2 files changed, 124 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-writeout-free-swap-if-swap_writeout-reactivates
-+++ a/mm/shmem.c
-@@ -1655,6 +1655,7 @@ try_split:
+--- a/arch/sparc/include/asm/hugetlb.h~sparc64-remove-hugetlb_free_pgd_range
++++ a/arch/sparc/include/asm/hugetlb.h
+@@ -50,11 +50,6 @@ static inline int huge_ptep_set_access_f
+ 	return changed;
+ }
  
- 	if (!folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN)) {
- 		bool first_swapped = shmem_recalc_inode(inode, 0, nr_pages);
-+		int error;
+-#define __HAVE_ARCH_HUGETLB_FREE_PGD_RANGE
+-void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
+-			    unsigned long end, unsigned long floor,
+-			    unsigned long ceiling);
+-
+ #include <asm-generic/hugetlb.h>
  
- 		/*
- 		 * Add inode to shmem_unuse()'s list of swapped-out inodes,
-@@ -1675,7 +1676,37 @@ try_split:
- 		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
+ #endif /* _ASM_SPARC64_HUGETLB_H */
+--- a/arch/sparc/mm/hugetlbpage.c~sparc64-remove-hugetlb_free_pgd_range
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -295,122 +295,3 @@ pte_t huge_ptep_get_and_clear(struct mm_
  
- 		BUG_ON(folio_mapped(folio));
--		return swap_writeout(folio, plug);
-+		error = swap_writeout(folio, plug);
-+		if (error != AOP_WRITEPAGE_ACTIVATE) {
-+			/* folio has been unlocked */
-+			return error;
-+		}
-+
-+		/*
-+		 * The intention here is to avoid holding on to the swap when
-+		 * zswap was unable to compress and unable to writeback; but
-+		 * it will be appropriate if other reactivate cases are added.
-+		 */
-+		error = shmem_add_to_page_cache(folio, mapping, index,
-+				swp_to_radix_entry(folio->swap),
-+				__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
-+		/* Swap entry might be erased by racing shmem_free_swap() */
-+		if (!error) {
-+			spin_lock(&info->lock);
-+			info->swapped -= nr_pages;
-+			spin_unlock(&info->lock);
-+			swap_free_nr(folio->swap, nr_pages);
-+		}
-+
-+		/*
-+		 * The delete_from_swap_cache() below could be left for
-+		 * shrink_folio_list()'s folio_free_swap() to dispose of;
-+		 * but I'm a little nervous about letting this folio out of
-+		 * shmem_writeout() in a hybrid half-tmpfs-half-swap state
-+		 * e.g. folio_mapping(folio) might give an unexpected answer.
-+		 */
-+		delete_from_swap_cache(folio);
-+		goto redirty;
- 	}
- 	if (nr_pages > 1)
- 		goto try_split;
+ 	return entry;
+ }
+-
+-static void hugetlb_free_pte_range(struct mmu_gather *tlb, pmd_t *pmd,
+-			   unsigned long addr)
+-{
+-	pgtable_t token = pmd_pgtable(*pmd);
+-
+-	pmd_clear(pmd);
+-	pte_free_tlb(tlb, token, addr);
+-	mm_dec_nr_ptes(tlb->mm);
+-}
+-
+-static void hugetlb_free_pmd_range(struct mmu_gather *tlb, pud_t *pud,
+-				   unsigned long addr, unsigned long end,
+-				   unsigned long floor, unsigned long ceiling)
+-{
+-	pmd_t *pmd;
+-	unsigned long next;
+-	unsigned long start;
+-
+-	start = addr;
+-	pmd = pmd_offset(pud, addr);
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		if (pmd_none(*pmd))
+-			continue;
+-		if (is_hugetlb_pmd(*pmd))
+-			pmd_clear(pmd);
+-		else
+-			hugetlb_free_pte_range(tlb, pmd, addr);
+-	} while (pmd++, addr = next, addr != end);
+-
+-	start &= PUD_MASK;
+-	if (start < floor)
+-		return;
+-	if (ceiling) {
+-		ceiling &= PUD_MASK;
+-		if (!ceiling)
+-			return;
+-	}
+-	if (end - 1 > ceiling - 1)
+-		return;
+-
+-	pmd = pmd_offset(pud, start);
+-	pud_clear(pud);
+-	pmd_free_tlb(tlb, pmd, start);
+-	mm_dec_nr_pmds(tlb->mm);
+-}
+-
+-static void hugetlb_free_pud_range(struct mmu_gather *tlb, p4d_t *p4d,
+-				   unsigned long addr, unsigned long end,
+-				   unsigned long floor, unsigned long ceiling)
+-{
+-	pud_t *pud;
+-	unsigned long next;
+-	unsigned long start;
+-
+-	start = addr;
+-	pud = pud_offset(p4d, addr);
+-	do {
+-		next = pud_addr_end(addr, end);
+-		if (pud_none_or_clear_bad(pud))
+-			continue;
+-		if (is_hugetlb_pud(*pud))
+-			pud_clear(pud);
+-		else
+-			hugetlb_free_pmd_range(tlb, pud, addr, next, floor,
+-					       ceiling);
+-	} while (pud++, addr = next, addr != end);
+-
+-	start &= PGDIR_MASK;
+-	if (start < floor)
+-		return;
+-	if (ceiling) {
+-		ceiling &= PGDIR_MASK;
+-		if (!ceiling)
+-			return;
+-	}
+-	if (end - 1 > ceiling - 1)
+-		return;
+-
+-	pud = pud_offset(p4d, start);
+-	p4d_clear(p4d);
+-	pud_free_tlb(tlb, pud, start);
+-	mm_dec_nr_puds(tlb->mm);
+-}
+-
+-void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+-			    unsigned long addr, unsigned long end,
+-			    unsigned long floor, unsigned long ceiling)
+-{
+-	pgd_t *pgd;
+-	p4d_t *p4d;
+-	unsigned long next;
+-
+-	addr &= PMD_MASK;
+-	if (addr < floor) {
+-		addr += PMD_SIZE;
+-		if (!addr)
+-			return;
+-	}
+-	if (ceiling) {
+-		ceiling &= PMD_MASK;
+-		if (!ceiling)
+-			return;
+-	}
+-	if (end - 1 > ceiling - 1)
+-		end -= PMD_SIZE;
+-	if (addr > end - 1)
+-		return;
+-
+-	pgd = pgd_offset(tlb->mm, addr);
+-	p4d = p4d_offset(pgd, addr);
+-	do {
+-		next = p4d_addr_end(addr, end);
+-		if (p4d_none_or_clear_bad(p4d))
+-			continue;
+-		hugetlb_free_pud_range(tlb, p4d, addr, next, floor, ceiling);
+-	} while (p4d++, addr = next, addr != end);
+-}
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from anthony.yznaga@oracle.com are
 
-mm-optimize-lru_note_cost-by-adding-lru_note_cost_unlock_irq.patch
-mm-optimize-lru_note_cost-by-adding-lru_note_cost_unlock_irq-fix.patch
-mm-shmem-hold-shmem_swaplist-spinlock-not-mutex-much-less.patch
-mm-shmem-writeout-free-swap-if-swap_writeout-reactivates.patch
+sparc64-remove-hugetlb_free_pgd_range.patch
+mm-remove-call-to-hugetlb_free_pgd_range.patch
+mm-drop-hugetlb_free_pgd_range.patch
 
