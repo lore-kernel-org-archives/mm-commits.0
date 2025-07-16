@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A3DC28E611
-	for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2025 21:01:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E7B28E611
+	for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2025 21:03:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752699687; cv=none; b=t9Aqycp5+HOs2O3e61OuCLvfJxCZxLst9sguoEn2b13Y/OZj24w4DviVMMHBGwWBRvDW7WSPACkOAybqihU9CtQqH/1qqqY2mfXO2qeJ4JMqu6rxCcyC1++6LXBUzR/ljzDzXGTu1fGZ1nQvL/LLfwyvcqW7PwrSSWkLDSI8glw=
+	t=1752699803; cv=none; b=hgSN5oTnA8X+ZBGLKzMF4IOouzv7/opK8lN25bF1dKAQungBrhRpTzkcZ53yBhCOAAeVuz5I32CrOLXSRaEPG/t73T8XYrSFTFgaj5N2ZMkGkSabcVMZ6B6P5NUtJYaSHUQDHMmiUgOeRRIp/u8nGNKP191qGQErhUwz/8jfI6Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752699687; c=relaxed/simple;
-	bh=5dGsG7b5HvrezLMs3tfSKA5SfK1ApezYp20DevyRBeE=;
-	h=Date:To:From:Subject:Message-Id; b=Ca9qZBta2lNq5gcx8HD1gnqFNhXp4zRpDULO106b9/89D3fMvwIwx25nBiibEKlgs3vyqiNsrJbcJdcaSbHs1kc4M2qQaJ7EfD0Xfaeq7nH6fIS9cBLKH1BQcgouuaWOOOhAwS8Z1o4q3P4BpC+RMDSSnbLzTPGAbxUOPrVfNEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=orlt5dJ2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752699803; c=relaxed/simple;
+	bh=wzdZUFmHlM8jkTgNBvGnQdgDdJfBv+Emn5+NfV7iZn8=;
+	h=Date:To:From:Subject:Message-Id; b=I0KBtHGAT3JVlJtfgk5RnI7JHvRsosKh1mPjFiEJ0OprfPc4PqJ/3IO1tRkoXArq7+ye/gtg9Go6NwBeLBy6jIIwaoCcL5ZV1lCeeumVAuy7zfrcIL5eJ9Zl3u0UwFHoefyquma/Nvr1Gn9YT2tWwABsIyCaKvFvxjpv6bHfZck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UTjTXPUT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="orlt5dJ2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C214C4CEE7;
-	Wed, 16 Jul 2025 21:01:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UTjTXPUT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2836C4CEF4;
+	Wed, 16 Jul 2025 21:03:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752699687;
-	bh=5dGsG7b5HvrezLMs3tfSKA5SfK1ApezYp20DevyRBeE=;
+	s=korg; t=1752699803;
+	bh=wzdZUFmHlM8jkTgNBvGnQdgDdJfBv+Emn5+NfV7iZn8=;
 	h=Date:To:From:Subject:From;
-	b=orlt5dJ2+3OiGOKskVVRUXRmhrFFWF3NizL2CxcQpZnr6t0hPZiVoijAWJ1VIlhxG
-	 xl0Dv7HgxXRcXkadFb0COYpftkeAcbFrAvWL8VOHPOk56gIx+ytZjopTjgK8tNhiqF
-	 xnOyBOq7J1NZ5KPWCd+EeT8UOty2rNB4AStbZz0o=
-Date: Wed, 16 Jul 2025 14:01:26 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=UTjTXPUT29ul/ZPll++CdkSJaIfgdYgQLoPBP4nJy0RASbk4BOloh6Py+KOmEY7b0
+	 VwOJMu0YVmJDkeuqdFyCETxxMoHl8uruwHwxb2pf3RM1WyWs/pBXJVmIHB9FCRpOWu
+	 7C0eCW8PJEYWcFpc5pkI6T1ZsBVf0hPrdUtMU0/o=
+Date: Wed, 16 Jul 2025 14:03:22 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,k.shutemov@gmail.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,dan.carpenter@linaro.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,antonio@mandelbit.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mseal-rework-mseal-apply-logic.patch added to mm-new branch
-Message-Id: <20250716210127.4C214C4CEE7@smtp.kernel.org>
+Subject: + mm-huge_memory-refactor-after-split-page-cache-code.patch added to mm-new branch
+Message-Id: <20250716210322.E2836C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mseal: rework mseal apply logic
+     Subject: mm/huge_memory: refactor after-split (page) cache code.
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mseal-rework-mseal-apply-logic.patch
+     mm-huge_memory-refactor-after-split-page-cache-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-rework-mseal-apply-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-refactor-after-split-page-cache-code.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,163 +64,111 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mseal: rework mseal apply logic
-Date: Wed, 16 Jul 2025 18:38:06 +0100
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: refactor after-split (page) cache code.
+Date: Wed, 16 Jul 2025 13:11:12 -0400
 
-The logic can be simplified - firstly by renaming the inconsistently named
-apply_mm_seal() to mseal_apply().
+Smatch/coverity checkers report NULL mapping referencing issues[1][2][3]
+every time the code is modified, because they do not understand that
+mapping cannot be NULL when a folio is in page cache in the code. 
+Refactor the code to make it explicit.
 
-We then wrap mseal_fixup() into the main loop as the logic is simple
-enough to not require it, equally it isn't a hugely pleasant pattern in
-mprotect() etc.  so it's not something we want to perpetuate.
+No functional change is intended.
 
-We eliminate the need for invoking vma_iter_end() on each loop by directly
-determining if the VMA was merged - the only thing we need concern
-ourselves with is whether the start/end of the (gapless) range are offset
-into VMAs.
+[1]https://lore.kernel.org/linux-mm/2afe3d59-aca5-40f7-82a3-a6d976fb0f4f@stanley.mountain/
+[2]https://lore.kernel.org/oe-kbuild/64b54034-f311-4e7d-b935-c16775dbb642@suswa.mountain/
+[3]https://lore.kernel.org/linux-mm/20250716145804.4836-1-antonio@mandelbit.com/
 
-This refactoring also avoids the rather horrid 'pass pointer to prev
-around' pattern used in mprotect() et al.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/9ae70e1c509d790cf174f16e491975efd9be50b6.1752687069.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20250716171112.3666150-1-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Antonio Quartulli <antonio@mandelbit.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <k.shutemov@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mseal.c |   67 +++++++++++++++------------------------------------
- 1 file changed, 20 insertions(+), 47 deletions(-)
+ mm/huge_memory.c |   43 ++++++++++++++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 15 deletions(-)
 
---- a/mm/mseal.c~mm-mseal-rework-mseal-apply-logic
-+++ a/mm/mseal.c
-@@ -15,28 +15,6 @@
- #include <linux/sched.h>
- #include "internal.h"
- 
--static int mseal_fixup(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		struct vm_area_struct **prev, unsigned long start,
--		unsigned long end, vm_flags_t newflags)
--{
--	int ret = 0;
--	vm_flags_t oldflags = vma->vm_flags;
--
--	if (newflags == oldflags)
--		goto out;
--
--	vma = vma_modify_flags(vmi, *prev, vma, start, end, newflags);
--	if (IS_ERR(vma)) {
--		ret = PTR_ERR(vma);
--		goto out;
--	}
--
--	vm_flags_set(vma, VM_SEALED);
--out:
--	*prev = vma;
--	return ret;
--}
--
- /* Does the [start, end) range contain any unmapped memory? */
- static bool range_contains_unmapped(struct mm_struct *mm,
- 		unsigned long start, unsigned long end)
-@@ -55,38 +33,33 @@ static bool range_contains_unmapped(stru
- 	return prev_end < end;
- }
- 
--/*
-- * Apply sealing.
-- */
--static int apply_mm_seal(unsigned long start, unsigned long end)
-+static int mseal_apply(struct mm_struct *mm,
-+		unsigned long start, unsigned long end)
- {
--	unsigned long nstart;
- 	struct vm_area_struct *vma, *prev;
--	VMA_ITERATOR(vmi, current->mm, start);
-+	unsigned long curr_start = start;
-+	VMA_ITERATOR(vmi, mm, start);
- 
-+	/* We know there are no gaps so this will be non-NULL. */
- 	vma = vma_iter_load(&vmi);
--	/*
--	 * Note: check_mm_seal should already checked ENOMEM case.
--	 * so vma should not be null, same for the other ENOMEM cases.
--	 */
- 	prev = vma_prev(&vmi);
- 	if (start > vma->vm_start)
- 		prev = vma;
- 
--	nstart = start;
- 	for_each_vma_range(vmi, vma, end) {
--		int error;
--		unsigned long tmp;
--		vm_flags_t newflags;
--
--		newflags = vma->vm_flags | VM_SEALED;
--		tmp = vma->vm_end;
--		if (tmp > end)
--			tmp = end;
--		error = mseal_fixup(&vmi, vma, &prev, nstart, tmp, newflags);
--		if (error)
--			return error;
--		nstart = vma_iter_end(&vmi);
-+		unsigned long curr_end = MIN(vma->vm_end, end);
+--- a/mm/huge_memory.c~mm-huge_memory-refactor-after-split-page-cache-code
++++ a/mm/huge_memory.c
+@@ -3804,6 +3804,8 @@ static int __folio_split(struct folio *f
+ 		 */
+ 		for (new_folio = folio_next(folio); new_folio != next_folio;
+ 		     new_folio = next) {
++			unsigned long nr_pages = folio_nr_pages(new_folio);
 +
-+		if (!(vma->vm_flags & VM_SEALED)) {
-+			vma = vma_modify_flags(&vmi, prev, vma,
-+					curr_start, curr_end,
-+					vma->vm_flags | VM_SEALED);
-+			if (IS_ERR(vma))
-+				return PTR_ERR(vma);
-+			vm_flags_set(vma, VM_SEALED);
-+		}
+ 			next = folio_next(new_folio);
+ 
+ 			expected_refs = folio_expected_ref_count(new_folio) + 1;
+@@ -3811,25 +3813,36 @@ static int __folio_split(struct folio *f
+ 
+ 			lru_add_split_folio(folio, new_folio, lruvec, list);
+ 
+-			/* Some pages can be beyond EOF: drop them from cache */
+-			if (new_folio->index >= end) {
+-				if (shmem_mapping(mapping))
+-					nr_shmem_dropped += folio_nr_pages(new_folio);
+-				else if (folio_test_clear_dirty(new_folio))
+-					folio_account_cleaned(
+-						new_folio,
+-						inode_to_wb(mapping->host));
+-				__filemap_remove_folio(new_folio, NULL);
+-				folio_put_refs(new_folio,
+-					       folio_nr_pages(new_folio));
+-			} else if (mapping) {
+-				__xa_store(&mapping->i_pages, new_folio->index,
+-					   new_folio, 0);
+-			} else if (swap_cache) {
++			/*
++			 * Anonymous folio with swap cache.
++			 * NOTE: shmem in swap cache is not supported yet.
++			 */
++			if (swap_cache) {
+ 				__xa_store(&swap_cache->i_pages,
+ 					   swap_cache_index(new_folio->swap),
+ 					   new_folio, 0);
++				continue;
+ 			}
 +
-+		prev = vma;
-+		curr_start = curr_end;
- 	}
- 
- 	return 0;
-@@ -185,10 +158,10 @@ int do_mseal(unsigned long start, size_t
- 	 * reaching the max supported VMAs, however, those cases shall
- 	 * be rare.
- 	 */
--	ret = apply_mm_seal(start, end);
-+	ret = mseal_apply(mm, start, end);
- 
- out:
--	mmap_write_unlock(current->mm);
-+	mmap_write_unlock(mm);
- 	return ret;
- }
- 
++			/* Anonymouse folio without swap cache */
++			if (!mapping)
++				continue;
++
++			/* Add the new folio to the page cache. */
++			if (new_folio->index < end) {
++				__xa_store(&mapping->i_pages, new_folio->index,
++					   new_folio, 0);
++				continue;
++			}
++
++			/* Drop folio beyond EOF: ->index >= end */
++			if (shmem_mapping(mapping))
++				nr_shmem_dropped += nr_pages;
++			else if (folio_test_clear_dirty(new_folio))
++				folio_account_cleaned(
++					new_folio, inode_to_wb(mapping->host));
++			__filemap_remove_folio(new_folio, NULL);
++			folio_put_refs(new_folio, nr_pages);
+ 		}
+ 		/*
+ 		 * Unfreeze @folio only after all page cache entries, which
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-mremap-perform-some-simple-cleanups.patch
-mm-mremap-refactor-initial-parameter-sanity-checks.patch
-mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
-mm-mremap-cleanup-post-processing-stage-of-mremap.patch
-mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
-mm-mremap-check-remap-conditions-earlier.patch
-mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
-mm-mremap-clean-up-mlock-populate-behaviour.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas-fix.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas-fix-2.patch
-tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
-mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name.patch
-mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name-fix.patch
-mm-mseal-always-define-vm_sealed.patch
-mm-mseal-update-madvise-logic.patch
-mm-mseal-small-cleanups.patch
-mm-mseal-simplify-and-rename-vma-gap-check.patch
-mm-mseal-rework-mseal-apply-logic.patch
+selftests-mm-fix-split_huge_page_test-for-folio_split-tests.patch
+mm-huge_memory-move-unrelated-code-out-of-__split_unmapped_folio.patch
+mm-huge_memory-use-folio_expected_ref_count-to-calculate-ref_count.patch
+mm-huge_memory-refactor-after-split-page-cache-code.patch
 
