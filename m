@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F632266F05;
-	Wed, 16 Jul 2025 21:33:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59CD82ECD11
+	for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2025 21:51:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752701611; cv=none; b=oNCMK6xOj/NXsCFp5aL9SrJvjE8pPKYJZKJtnKMiZWLyEljxi8nEyOEfYhQkqGG547CcJh96YZLO54fCSYLePz03mrplal0xrG7jrDArvvRVlYPp0IeGb7kdkBmVKUS6wzTzXiefDGUsY0qie+XHjdgLqnhjF7MJnBH/s4yxm9A=
+	t=1752702700; cv=none; b=FTIYCVDTgXB9bvYYbt8RxrUhEsRc2lxCnyE8+8zXGwxkMWjdE26ThCMy7Gajfn4YERFoE73TFwRHKaPzUZYy5FnQMtj3RMCqipzYPOuRhJv1v5CoVPQ1z/s8XmDakqTxoa3tLD7aRe6IeiEtibg7Hl6x4XG3j9N1BIm8AtRj2rI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752701611; c=relaxed/simple;
-	bh=4dhREyYvxWITPwcJlpKpuCkixJrjrTpEX3Z1DqcQpMU=;
-	h=Date:To:From:Subject:Message-Id; b=OCQeoOuLsYDUuTV1WRUsznoSjv/nI/xKmF5HPRoFJkILeEBCg8Cb5z/oegAmhIlmeThp6zGQ0/1xJLTzpj+CXYkO+io2tNg2Ndc5wnOOviGuhos30kNptapJ9x3sGuwHiNrBtVQcfiRFKsemKpynA2vxVgmZSGV6s8muOiXsa/M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1UWIFd8o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752702700; c=relaxed/simple;
+	bh=l3rjtk7X43z/hDEysIgfSNjHC2RGBVtlPiAKSmSFuRA=;
+	h=Date:To:From:Subject:Message-Id; b=jnw2aRtNFDgJumOp6UvkYSBBFtH6Bj+5uQerPqrak+JMOms2MH9cnWsOtyDBj67wTxZXyo0+OSCXLTc0w41iSaq5473ToG4ILAbjWflGAPS688vaZsWHBnIHJFvsMg4DNP1fdSYBrsij88EQoWL36eCb6EwZkSwO1SO/nTbdg4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YmTMRPUt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1UWIFd8o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E19EC4CEE7;
-	Wed, 16 Jul 2025 21:33:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YmTMRPUt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 901B6C4CEE7;
+	Wed, 16 Jul 2025 21:51:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752701610;
-	bh=4dhREyYvxWITPwcJlpKpuCkixJrjrTpEX3Z1DqcQpMU=;
+	s=korg; t=1752702697;
+	bh=l3rjtk7X43z/hDEysIgfSNjHC2RGBVtlPiAKSmSFuRA=;
 	h=Date:To:From:Subject:From;
-	b=1UWIFd8oo6DErpEipwK6chJ9LkOh43rvhjptcL8QXCA1IUfJfMAxTUWhE0GqgJN4k
-	 xI910LeGOl6P29OT6U6ybwelDE3BjU83dweJoChoQg2FadqJf2lV+/7qcQaxGtix9I
-	 6p2P753vnWbn8kfXRcG+9FswqOrZe9ehk42EQiMg=
-Date: Wed, 16 Jul 2025 14:33:29 -0700
-To: mm-commits@vger.kernel.org,ysk@kzalloc.com,yeoreum.yun@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,bigeasy@linutronix.de,andreyknvl@gmail.com,elver@google.com,akpm@linux-foundation.org
+	b=YmTMRPUtpTWmKbWUdISleJxb7iEseU0vBOhxtTgIgFYY+NmnELjqs1Yk4081itbAB
+	 0xdaF42vTmg3YfRLSFCgcmZ8sYmuRebN4uraJPSoQ/IXMThjIbI97tQdnVh1qIenAX
+	 lq7Z0udvByR92btPP6NwjA3A74zadjK+dIkE6Zic=
+Date: Wed, 16 Jul 2025 14:51:36 -0700
+To: mm-commits@vger.kernel.org,terrelln@fb.com,hch@lst.de,linux@treblig.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250716213330.8E19EC4CEE7@smtp.kernel.org>
+Subject: + lib-xxhash-remove-unused-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20250716215137.901B6C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: use vmalloc_dump_obj() for vmalloc error reports
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports.patch
+     Subject: lib/xxhash: remove unused functions
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-xxhash-remove-unused-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-xxhash-remove-unused-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,77 +58,182 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan: use vmalloc_dump_obj() for vmalloc error reports
-Date: Wed, 16 Jul 2025 17:23:28 +0200
+From: "Dr. David Alan Gilbert" <linux@treblig.org>
+Subject: lib/xxhash: remove unused functions
+Date: Wed, 16 Jul 2025 14:32:45 +0100
 
-Since 6ee9b3d84775 ("kasan: remove kasan_find_vm_area() to prevent
-possible deadlock"), more detailed info about the vmalloc mapping and the
-origin was dropped due to potential deadlocks.
+xxh32_digest() and xxh32_update() were added in 2017 in the original
+xxhash commit, but have remained unused.
 
-While fixing the deadlock is necessary, that patch was too quick in
-killing an otherwise useful feature, and did no due-diligence in
-understanding if an alternative option is available.
+Remove them.
 
-Restore printing more helpful vmalloc allocation info in KASAN reports
-with the help of vmalloc_dump_obj().  Example report:
-
-| BUG: KASAN: vmalloc-out-of-bounds in vmalloc_oob+0x4c9/0x610
-| Read of size 1 at addr ffffc900002fd7f3 by task kunit_try_catch/493
-|
-| CPU: [...]
-| Call Trace:
-|  <TASK>
-|  dump_stack_lvl+0xa8/0xf0
-|  print_report+0x17e/0x810
-|  kasan_report+0x155/0x190
-|  vmalloc_oob+0x4c9/0x610
-|  [...]
-|
-| The buggy address belongs to a 1-page vmalloc region starting at 0xffffc900002fd000 allocated at vmalloc_oob+0x36/0x610
-| The buggy address belongs to the physical page:
-| page: refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x126364
-| flags: 0x200000000000000(node=0|zone=2)
-| raw: 0200000000000000 0000000000000000 dead000000000122 0000000000000000
-| raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
-| page dumped because: kasan: bad access detected
-|
-| [..]
-
-Link: https://lkml.kernel.org/r/20250716152448.3877201-1-elver@google.com
-Fixes: 6ee9b3d84775 ("kasan: remove kasan_find_vm_area() to prevent possible deadlock")
-Signed-off-by: Marco Elver <elver@google.com>
-Suggested-by: Uladzislau Rezki <urezki@gmail.com>
-Acked-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: Yunseong Kim <ysk@kzalloc.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250716133245.243363-1-linux@treblig.org
+Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Dave Gilbert <linux@treblig.org>
+Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/xxhash.h |   26 ---------
+ lib/xxhash.c           |  107 ---------------------------------------
+ 2 files changed, 133 deletions(-)
 
---- a/mm/kasan/report.c~kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports
-+++ a/mm/kasan/report.c
-@@ -399,7 +399,9 @@ static void print_address_description(vo
- 	}
+--- a/include/linux/xxhash.h~lib-xxhash-remove-unused-functions
++++ a/include/linux/xxhash.h
+@@ -178,32 +178,6 @@ struct xxh64_state {
+ void xxh32_reset(struct xxh32_state *state, uint32_t seed);
  
- 	if (is_vmalloc_addr(addr)) {
--		pr_err("The buggy address %px belongs to a vmalloc virtual mapping\n", addr);
-+		pr_err("The buggy address belongs to a");
-+		if (!vmalloc_dump_obj(addr))
-+			pr_cont(" vmalloc virtual mapping\n");
- 		page = vmalloc_to_page(addr);
- 	}
+ /**
+- * xxh32_update() - hash the data given and update the xxh32 state
+- *
+- * @state:  The xxh32 state to update.
+- * @input:  The data to hash.
+- * @length: The length of the data to hash.
+- *
+- * After calling xxh32_reset() call xxh32_update() as many times as necessary.
+- *
+- * Return:  Zero on success, otherwise an error code.
+- */
+-int xxh32_update(struct xxh32_state *state, const void *input, size_t length);
+-
+-/**
+- * xxh32_digest() - produce the current xxh32 hash
+- *
+- * @state: Produce the current xxh32 hash of this state.
+- *
+- * A hash value can be produced at any time. It is still possible to continue
+- * inserting input into the hash state after a call to xxh32_digest(), and
+- * generate new hashes later on, by calling xxh32_digest() again.
+- *
+- * Return: The xxh32 hash stored in the state.
+- */
+-uint32_t xxh32_digest(const struct xxh32_state *state);
+-
+-/**
+  * xxh64_reset() - reset the xxh64 state to start a new hashing operation
+  *
+  * @state: The xxh64 state to reset.
+--- a/lib/xxhash.c~lib-xxhash-remove-unused-functions
++++ a/lib/xxhash.c
+@@ -267,113 +267,6 @@ void xxh64_reset(struct xxh64_state *sta
+ }
+ EXPORT_SYMBOL(xxh64_reset);
  
+-int xxh32_update(struct xxh32_state *state, const void *input, const size_t len)
+-{
+-	const uint8_t *p = (const uint8_t *)input;
+-	const uint8_t *const b_end = p + len;
+-
+-	if (input == NULL)
+-		return -EINVAL;
+-
+-	state->total_len_32 += (uint32_t)len;
+-	state->large_len |= (len >= 16) | (state->total_len_32 >= 16);
+-
+-	if (state->memsize + len < 16) { /* fill in tmp buffer */
+-		memcpy((uint8_t *)(state->mem32) + state->memsize, input, len);
+-		state->memsize += (uint32_t)len;
+-		return 0;
+-	}
+-
+-	if (state->memsize) { /* some data left from previous update */
+-		const uint32_t *p32 = state->mem32;
+-
+-		memcpy((uint8_t *)(state->mem32) + state->memsize, input,
+-			16 - state->memsize);
+-
+-		state->v1 = xxh32_round(state->v1, get_unaligned_le32(p32));
+-		p32++;
+-		state->v2 = xxh32_round(state->v2, get_unaligned_le32(p32));
+-		p32++;
+-		state->v3 = xxh32_round(state->v3, get_unaligned_le32(p32));
+-		p32++;
+-		state->v4 = xxh32_round(state->v4, get_unaligned_le32(p32));
+-		p32++;
+-
+-		p += 16-state->memsize;
+-		state->memsize = 0;
+-	}
+-
+-	if (p <= b_end - 16) {
+-		const uint8_t *const limit = b_end - 16;
+-		uint32_t v1 = state->v1;
+-		uint32_t v2 = state->v2;
+-		uint32_t v3 = state->v3;
+-		uint32_t v4 = state->v4;
+-
+-		do {
+-			v1 = xxh32_round(v1, get_unaligned_le32(p));
+-			p += 4;
+-			v2 = xxh32_round(v2, get_unaligned_le32(p));
+-			p += 4;
+-			v3 = xxh32_round(v3, get_unaligned_le32(p));
+-			p += 4;
+-			v4 = xxh32_round(v4, get_unaligned_le32(p));
+-			p += 4;
+-		} while (p <= limit);
+-
+-		state->v1 = v1;
+-		state->v2 = v2;
+-		state->v3 = v3;
+-		state->v4 = v4;
+-	}
+-
+-	if (p < b_end) {
+-		memcpy(state->mem32, p, (size_t)(b_end-p));
+-		state->memsize = (uint32_t)(b_end-p);
+-	}
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(xxh32_update);
+-
+-uint32_t xxh32_digest(const struct xxh32_state *state)
+-{
+-	const uint8_t *p = (const uint8_t *)state->mem32;
+-	const uint8_t *const b_end = (const uint8_t *)(state->mem32) +
+-		state->memsize;
+-	uint32_t h32;
+-
+-	if (state->large_len) {
+-		h32 = xxh_rotl32(state->v1, 1) + xxh_rotl32(state->v2, 7) +
+-			xxh_rotl32(state->v3, 12) + xxh_rotl32(state->v4, 18);
+-	} else {
+-		h32 = state->v3 /* == seed */ + PRIME32_5;
+-	}
+-
+-	h32 += state->total_len_32;
+-
+-	while (p + 4 <= b_end) {
+-		h32 += get_unaligned_le32(p) * PRIME32_3;
+-		h32 = xxh_rotl32(h32, 17) * PRIME32_4;
+-		p += 4;
+-	}
+-
+-	while (p < b_end) {
+-		h32 += (*p) * PRIME32_5;
+-		h32 = xxh_rotl32(h32, 11) * PRIME32_1;
+-		p++;
+-	}
+-
+-	h32 ^= h32 >> 15;
+-	h32 *= PRIME32_2;
+-	h32 ^= h32 >> 13;
+-	h32 *= PRIME32_3;
+-	h32 ^= h32 >> 16;
+-
+-	return h32;
+-}
+-EXPORT_SYMBOL(xxh32_digest);
+-
+ int xxh64_update(struct xxh64_state *state, const void *input, const size_t len)
+ {
+ 	const uint8_t *p = (const uint8_t *)input;
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from linux@treblig.org are
 
-kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports.patch
+lib-xxhash-remove-unused-functions.patch
+lib-xxhash-comment-out-unused-functions.patch
 
