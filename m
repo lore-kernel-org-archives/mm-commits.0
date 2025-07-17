@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BB132EF295
-	for <mm-commits@vger.kernel.org>; Wed, 16 Jul 2025 22:59:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE74113B58A
+	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 21:30:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752706768; cv=none; b=RvAHfGS5/quwBkuPs6qXjQKeFeYCOXHVY/MP01tzH7uoSA79O61SbI+hH0NZ2mLbyEkDwaNUMYSe5B1WmtgECu93O2EG4ZydqybdT56qD7mD7Xrsw3AM3L/hIDWtRscuNqhUIE+KTTs8RBcjfgF9T1/SZtHGIYLVgSEm283ki7E=
+	t=1752787816; cv=none; b=CV7XHSHS2c4dQ/k7dV5GlKwMZut8Ked76LhsAtx/dE03iPJAI0Z/KPx+MahQQFYEorV6ysH3eiRWb9KS29IyyxaXtB/YlDkyUA56oFvHeoGgry5YaapTbhUB15+YGep4btjJpuLmomINmOfNxGxxOuuCgyPSs81YDoyMjQznvXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752706768; c=relaxed/simple;
-	bh=0AVijhCXffKLCmCbggr/NK0/J+CPslNKMm3u8xKjDZI=;
-	h=Date:To:From:Subject:Message-Id; b=HRvwtrpcPcz6l1i8bYr9fElFa/X7IGASOpjl66XYEOoeOonv6a3R/JzAIAvhxeWI0nkIsQNk1eOkp37N6jKFtmK733+RH8di85S9pJZ8UHLGTo9W1snbeFes5jDKvhrqbncOGsUzn4zMY24hGwwokzsY7gB+KfUWfwyG2CVXQuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UKKebKwv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752787816; c=relaxed/simple;
+	bh=Wy9/F4D5+9YiKGu/VkHFFZ6b1STfdrC6sl3uaYIQ7/Q=;
+	h=Date:To:From:Subject:Message-Id; b=kjykSgQkgW/JdzBKMh9IIVHCoc/ti904rO4011v6r+w29S5Cuthgj2rN0pkJFMvUdXP+I+3tRlnucQmYkE+MJBpB70y09vKNBld8DmSpwPRepLj/6It0hqGsuc6/q7SLPWya6iUjlRDu05nHc2rS8Cq2ASr+nc+RbM1wwknTYyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M6jnQwiE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UKKebKwv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09593C4CEE7;
-	Wed, 16 Jul 2025 22:59:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M6jnQwiE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D902C4CEE3;
+	Thu, 17 Jul 2025 21:30:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752706768;
-	bh=0AVijhCXffKLCmCbggr/NK0/J+CPslNKMm3u8xKjDZI=;
+	s=korg; t=1752787815;
+	bh=Wy9/F4D5+9YiKGu/VkHFFZ6b1STfdrC6sl3uaYIQ7/Q=;
 	h=Date:To:From:Subject:From;
-	b=UKKebKwvR4LXw7uiwEkuGDPaSZ4ZdsSnf7a3UT0NNnbTQDgsxvdKT6YbY5SZs7SQS
-	 sddiGC9mohp8yb57emJ+Yycw4OydvzJwaU9OYyELN1uRuI236DeaLII/3UjZDArqCC
-	 /9sQXD7gMdIxVf18QXtTmjP5GLoOX/XC4ny5GfxM=
-Date: Wed, 16 Jul 2025 15:59:27 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,davem@davemloft.net,christophe.leroy@csgroup.eu,arnd@arndb.de,anshuman.khandual@arm.com,andreas@gaisler.com,alexghiti@rivosinc.com,agordeev@linux.ibm.com,anthony.yznaga@oracle.com,akpm@linux-foundation.org
+	b=M6jnQwiESuU7LzCWb3zy69hPqUO18QnMEyE8aIPjoyBysktSBjqs5wZjmVU/nvPdS
+	 C2M8by9a0JR8y56zine9ZexEKAJaEz1jG48E0lMi2SgWh0LybwycCYEg6N7xi6mMb4
+	 hduLZ+NruQhV7/yelABrSm3zk33JQg8lK2bVc5Pw=
+Date: Thu, 17 Jul 2025 14:30:14 -0700
+To: mm-commits@vger.kernel.org,vdavydov.dev@gmail.com,shakeel.butt@linux.dev,ncardwell@google.com,hannes@cmpxchg.org,davem@davemloft.net,akpm@linux-foundation.org,kuniyu@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-drop-hugetlb_free_pgd_range.patch added to mm-new branch
-Message-Id: <20250716225928.09593C4CEE7@smtp.kernel.org>
+Subject: + memcg-convert-memcg-socket_pressure-to-u64.patch added to mm-new branch
+Message-Id: <20250717213015.4D902C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: drop hugetlb_free_pgd_range()
+     Subject: memcg: convert memcg->socket_pressure to u64
 has been added to the -mm mm-new branch.  Its filename is
-     mm-drop-hugetlb_free_pgd_range.patch
+     memcg-convert-memcg-socket_pressure-to-u64.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-hugetlb_free_pgd_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-convert-memcg-socket_pressure-to-u64.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,78 +64,196 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anthony Yznaga <anthony.yznaga@oracle.com>
-Subject: mm: drop hugetlb_free_pgd_range()
-Date: Tue, 15 Jul 2025 18:26:11 -0700
+From: Kuniyuki Iwashima <kuniyu@google.com>
+Subject: memcg: convert memcg->socket_pressure to u64
+Date: Thu, 17 Jul 2025 19:46:43 +0000
 
-There are no longer any callers of hugetlb_free_pgd_range().
+memcg->socket_pressure is initialised with jiffies when the memcg is
+created.
 
-Link: https://lkml.kernel.org/r/20250716012611.10369-4-anthony.yznaga@oracle.com
-Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
+Once vmpressure detects that the cgroup is under memory pressure, the
+field is updated with jiffies + HZ to signal the fact to the socket layer
+and suppress memory allocation for one second.
+
+Otherwise, the field is not updated.
+
+mem_cgroup_under_socket_pressure() uses time_before() to check if jiffies
+is less than memcg->socket_pressure, and this has a bug on 32-bit kernel.
+
+  if (time_before(jiffies, memcg->socket_pressure))
+          return true;
+
+As time_before() casts the final result to long, the acceptable delta
+between two timestamps is 2 ^ (BITS_PER_LONG - 1).
+
+On 32-bit kernel with CONFIG_HZ=1000, this is about 24 days.
+
+  >>> (2 ** 31) / 1000 / 60 / 60 / 24
+  24.855134814814818
+
+Once 24 days have passed since the last update of socket_pressure,
+mem_cgroup_under_socket_pressure() starts to lie until the next 24 days
+pass.
+
+We don't need to worry about this on 64-bit machines unless they serve for
+300 million years.
+
+  >>> (2 ** 63) / 1000 / 60 / 60 / 24 / 365
+  292471208.6775361
+
+Let's convert memcg->socket_pressure to u64.
+
+Performance teting:
+
+I don't have a real 32-bit machine so this is a result on QEMU, but
+with/without the u64 jiffie patch, the time spent in
+mem_cgroup_under_socket_pressure() was 1~5us and I didn't see any
+measurable delta.
+
+no patch applied:
+iperf3   273 [000]   137.296248:
+probe:mem_cgroup_under_socket_pressure: (c13660d0)
+                c13660d1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   273 [000]   137.296249:
+probe:mem_cgroup_under_socket_pressure__return: (c13660d0 <- c1d8fd7f)
+iperf3   273 [000]   137.296251:
+probe:mem_cgroup_under_socket_pressure: (c13660d0)
+                c13660d1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   273 [000]   137.296253:
+probe:mem_cgroup_under_socket_pressure__return: (c13660d0 <- c1d8fd7f)
+
+
+u64 jiffies patch applied:
+iperf3   308 [001]   330.669370:
+probe:mem_cgroup_under_socket_pressure: (c12ddba0)
+                c12ddba1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   308 [001]   330.669371:
+probe:mem_cgroup_under_socket_pressure__return: (c12ddba0 <- c1ce98bf)
+iperf3   308 [001]   330.669382:
+probe:mem_cgroup_under_socket_pressure: (c12ddba0)
+                c12ddba1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   308 [001]   330.669384:
+probe:mem_cgroup_under_socket_pressure__return: (c12ddba0 <- c1ce98bf)
+
+So the u64 approach is good enough.
+
+Link: https://lkml.kernel.org/r/20250717194645.1096500-1-kuniyu@google.com
+Fixes: 8e8ae645249b8 ("mm: memcontrol: hook up vmpressure to socket pressure")
+Signed-off-by: Kuniyuki Iwashima <kuniyu@google.com>
+Reported-by: Neal Cardwell <ncardwell@google.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: David S. Miller <davem@davemloft.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Eric Dumazet <ncardwell@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/hugetlb.h |    9 ---------
- include/linux/hugetlb.h       |    7 -------
- 2 files changed, 16 deletions(-)
+ include/linux/memcontrol.h |   44 ++++++++++++++++++++++++++++++++---
+ mm/memcontrol.c            |    5 +++
+ mm/vmpressure.c            |    2 -
+ 3 files changed, 46 insertions(+), 5 deletions(-)
 
---- a/include/asm-generic/hugetlb.h~mm-drop-hugetlb_free_pgd_range
-+++ a/include/asm-generic/hugetlb.h
-@@ -66,15 +66,6 @@ static inline void huge_pte_clear(struct
- }
- #endif
- 
--#ifndef __HAVE_ARCH_HUGETLB_FREE_PGD_RANGE
--static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
--		unsigned long addr, unsigned long end,
--		unsigned long floor, unsigned long ceiling)
--{
--	free_pgd_range(tlb, addr, end, floor, ceiling);
--}
--#endif
+--- a/include/linux/memcontrol.h~memcg-convert-memcg-socket_pressure-to-u64
++++ a/include/linux/memcontrol.h
+@@ -251,8 +251,10 @@ struct mem_cgroup {
+ 	 * that this indicator should NOT be used in legacy cgroup mode
+ 	 * where socket memory is accounted/charged separately.
+ 	 */
+-	unsigned long		socket_pressure;
 -
- #ifndef __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
- static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		pte_t *ptep, pte_t pte, unsigned long sz)
---- a/include/linux/hugetlb.h~mm-drop-hugetlb_free_pgd_range
-+++ a/include/linux/hugetlb.h
-@@ -390,13 +390,6 @@ static inline int is_hugepage_only_range
- 	return 0;
++	u64			socket_pressure;
++#if BITS_PER_LONG < 64
++	seqlock_t		socket_pressure_seqlock;
++#endif
+ 	int kmemcg_id;
+ 	/*
+ 	 * memcg->objcg is wiped out as a part of the objcg repaprenting
+@@ -1602,6 +1604,42 @@ extern struct static_key_false memcg_soc
+ #define mem_cgroup_sockets_enabled static_branch_unlikely(&memcg_sockets_enabled_key)
+ void mem_cgroup_sk_alloc(struct sock *sk);
+ void mem_cgroup_sk_free(struct sock *sk);
++
++#if BITS_PER_LONG < 64
++static inline void mem_cgroup_set_socket_pressure(struct mem_cgroup *memcg)
++{
++	u64 val = get_jiffies_64() + HZ;
++	unsigned long flags;
++
++	write_seqlock_irqsave(&memcg->socket_pressure_seqlock, flags);
++	memcg->socket_pressure = val;
++	write_sequnlock_irqrestore(&memcg->socket_pressure_seqlock, flags);
++}
++
++static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
++{
++	unsigned int seq;
++	u64 val;
++
++	do {
++		seq = read_seqbegin(&memcg->socket_pressure_seqlock);
++		val = memcg->socket_pressure;
++	} while (read_seqretry(&memcg->socket_pressure_seqlock, seq));
++
++	return val;
++}
++#else
++static inline void mem_cgroup_set_socket_pressure(struct mem_cgroup *memcg)
++{
++	WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
++}
++
++static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
++{
++	return READ_ONCE(memcg->socket_pressure);
++}
++#endif
++
+ static inline bool mem_cgroup_under_socket_pressure(struct mem_cgroup *memcg)
+ {
+ #ifdef CONFIG_MEMCG_V1
+@@ -1609,7 +1647,7 @@ static inline bool mem_cgroup_under_sock
+ 		return !!memcg->tcpmem_pressure;
+ #endif /* CONFIG_MEMCG_V1 */
+ 	do {
+-		if (time_before(jiffies, READ_ONCE(memcg->socket_pressure)))
++		if (time_before64(get_jiffies_64(), mem_cgroup_get_socket_pressure(memcg)))
+ 			return true;
+ 	} while ((memcg = parent_mem_cgroup(memcg)));
+ 	return false;
+--- a/mm/memcontrol.c~memcg-convert-memcg-socket_pressure-to-u64
++++ a/mm/memcontrol.c
+@@ -3754,7 +3754,10 @@ static struct mem_cgroup *mem_cgroup_all
+ 	INIT_LIST_HEAD(&memcg->memory_peaks);
+ 	INIT_LIST_HEAD(&memcg->swap_peaks);
+ 	spin_lock_init(&memcg->peaks_lock);
+-	memcg->socket_pressure = jiffies;
++	memcg->socket_pressure = get_jiffies_64();
++#if BITS_PER_LONG < 64
++	seqlock_init(&memcg->socket_pressure_seqlock);
++#endif
+ 	memcg1_memcg_init(memcg);
+ 	memcg->kmemcg_id = -1;
+ 	INIT_LIST_HEAD(&memcg->objcg_list);
+--- a/mm/vmpressure.c~memcg-convert-memcg-socket_pressure-to-u64
++++ a/mm/vmpressure.c
+@@ -316,7 +316,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 			 * asserted for a second in which subsequent
+ 			 * pressure events can occur.
+ 			 */
+-			WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
++			mem_cgroup_set_socket_pressure(memcg);
+ 		}
+ 	}
  }
- 
--static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
--				unsigned long addr, unsigned long end,
--				unsigned long floor, unsigned long ceiling)
--{
--	BUG();
--}
--
- #ifdef CONFIG_USERFAULTFD
- static inline int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
- 					   struct vm_area_struct *dst_vma,
 _
 
-Patches currently in -mm which might be from anthony.yznaga@oracle.com are
+Patches currently in -mm which might be from kuniyu@google.com are
 
-sparc64-remove-hugetlb_free_pgd_range.patch
-mm-remove-call-to-hugetlb_free_pgd_range.patch
-mm-drop-hugetlb_free_pgd_range.patch
+memcg-convert-memcg-socket_pressure-to-u64.patch
 
