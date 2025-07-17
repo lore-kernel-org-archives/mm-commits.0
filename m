@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45FE82153CE
-	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 21:55:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFD6A94F
+	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 22:23:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752789306; cv=none; b=V7Ru0muO7G6LDZU3Xpf58TZ/2ykg7qHrYGbWwXJIBFuHxP5pMaViRPFH/pZzRMkI6N+aDQ7pa5o25i0SMVOSkFE0HvFX4rUgDafcFOejn88vhxgU7fKl5REtDJ80Qz8wPPDA4qHg6E7xvYJESPTLBRp400gHdNxT8uDd18HiIPY=
+	t=1752791016; cv=none; b=cjYcN3AbpKA5i+M4XW9ifP/QuRJUpxK7kEl2TfixDe/CQUgLA2tv07oWdfDumOVoKPnCldqkiuqdnBvzlvr2FFOdlndJlWgwIVjDqOWW24xTLCoravLlcn6j/6SKXczED/c3wVbhVCyppkzf5qjaMtnlPqR+Dj+t4fop7Fz/7aY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752789306; c=relaxed/simple;
-	bh=gdoMqBlBHjZ/YOnodEsXm0r0GAB7Uz2T2PtUVnI8Xzs=;
-	h=Date:To:From:Subject:Message-Id; b=I8Hsv+d/cJOXupjJwmhpmQ3U6uzf8Z9U7l29vIo7ouPPZDGfFkLoIlgbLpp0PfBpbssTAvjfNJREtSPEeXcsZKtWJLBcu0znontj3VIxh9xOXARA8nBxzG2It5ljIXuxIDJjOHTzPCQzcy2KJhVx5oq5kWac2cgMJGDL88JXavk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o7d+GWe/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752791016; c=relaxed/simple;
+	bh=frLxyxrkrAWVx/kJbClYrQtLfSJAD4nFhtK8FWrc78Q=;
+	h=Date:To:From:Subject:Message-Id; b=Hp9g/LwK1tFkr2/TpHaQz8mKjU1uIEs4uqFp8mmG6Nd0TqdsJq1GGr/dIOxwwdKL07RM0NNsSPBb3EQyoxuEqM2cDeq/tfSBLLHkcyUQZ3FKUMj2wHMNh9v51EFWl8FSyBu82s/I9A3Q73RkZFG6E4WfT243oIpo+veF05BOcFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oCoRJqIE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o7d+GWe/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAFCDC4CEE3;
-	Thu, 17 Jul 2025 21:55:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oCoRJqIE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C86A4C4CEE3;
+	Thu, 17 Jul 2025 22:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752789305;
-	bh=gdoMqBlBHjZ/YOnodEsXm0r0GAB7Uz2T2PtUVnI8Xzs=;
+	s=korg; t=1752791015;
+	bh=frLxyxrkrAWVx/kJbClYrQtLfSJAD4nFhtK8FWrc78Q=;
 	h=Date:To:From:Subject:From;
-	b=o7d+GWe/LCdgb3SwXO78owsH+INfSWj6ml6KXEY7o8aP3xxxS/K/N4rG8bu9SOI3c
-	 VOEg6l8Ix2oL89t+Yq08FEqlCBLB1RBWr4wCsOWmff5XykpaGbxx3ebZiUFF/Sc4w5
-	 vjyuZ/vVCOiPymB6qv1ZKaO7VJjg/p0KmGDJQdss=
-Date: Thu, 17 Jul 2025 14:55:04 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,shivankg@amd.com,osalvador@suse.de,harry.yoo@oracle.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
+	b=oCoRJqIEg1lE0UT8M/aFoZldncUMVU5B4fXzJYtuYHUWVNcBMmqQRgmlroTHB0cZ6
+	 xnozSPe6Wm5enNM8b6FfwP5fg8mAOTbQvi5tIu6XqtY5PmKdWJp3taN6b02EhTq3eZ
+	 gJuTp6wHJnN3u8uG5l9uK241oj4uZWZXZfPxygR4=
+Date: Thu, 17 Jul 2025 15:23:35 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,broonie@kernel.org,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-util-introduce-snapshot_page-fix.patch added to mm-new branch
-Message-Id: <20250717215505.AAFCDC4CEE3@smtp.kernel.org>
+Subject: + selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx.patch added to mm-unstable branch
+Message-Id: <20250717222335.C86A4C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-util-introduce-snapshot_page-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-util-introduce-snapshot_page-fix.patch
+     Subject: selftests/mm: reuse FORCE_READ to replace "asm volatile("" : "+r" (XXX));"
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-util-introduce-snapshot_page-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,51 +58,277 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luiz Capitulino <luizcap@redhat.com>
-Subject: mm-util-introduce-snapshot_page-fix
-Date: Thu, 17 Jul 2025 11:54:07 -0400
+From: wang lian <lianux.mm@gmail.com>
+Subject: selftests/mm: reuse FORCE_READ to replace "asm volatile("" : "+r" (XXX));"
+Date: Thu, 17 Jul 2025 21:18:56 +0800
 
-fix set_ps_flags() commentary
+Patch series "selftests/mm: reuse FORCE_READ to replace "asm volatile("" :
+"+r" (XXX));" and some cleanup", v2.
 
-Link: https://lkml.kernel.org/r/d5c75701-b353-4536-a306-187fab0655b3@redhat.com
-Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+This series introduces a common FORCE_READ() macro to replace the cryptic
+asm volatile("" : "+r" (variable)); construct used in several mm
+selftests.  This improves code readability and maintainability by removing
+duplicated, hard-to-understand code.
+
+
+This patch (of 2):
+
+Several mm selftests use the `asm volatile("" : "+r" (variable));`
+construct to force a read of a variable, preventing the compiler from
+optimizing away the memory access.  This idiom is cryptic and duplicated
+across multiple test files.
+
+Following a suggestion from David[1], this patch refactors this common
+pattern into a FORCE_READ() macro
+
+Link: https://lkml.kernel.org/r/20250717131857.59909-1-lianux.mm@gmail.com
+Link: https://lkml.kernel.org/r/20250717131857.59909-2-lianux.mm@gmail.com
+Link: https://lore.kernel.org/lkml/4a3e0759-caa1-4cfa-bc3f-402593f1eee3@redhat.com/ [1]
+Signed-off-by: wang lian <lianux.mm@gmail.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: SeongJae Park <sj@kernel.org>
-Cc: Shivank Garg <shivankg@amd.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/cow.c                  |   30 ++++++------
+ tools/testing/selftests/mm/guard-regions.c        |    7 --
+ tools/testing/selftests/mm/hugetlb-madvise.c      |    5 --
+ tools/testing/selftests/mm/migration.c            |   13 ++---
+ tools/testing/selftests/mm/pagemap_ioctl.c        |    4 -
+ tools/testing/selftests/mm/split_huge_page_test.c |    4 -
+ tools/testing/selftests/mm/vm_util.h              |    7 ++
+ 7 files changed, 31 insertions(+), 39 deletions(-)
 
---- a/mm/util.c~mm-util-introduce-snapshot_page-fix
-+++ a/mm/util.c
-@@ -1198,10 +1198,12 @@ static void set_ps_flags(struct page_sna
-  * Create a snapshot of the page and store both its struct page and struct
-  * folio representations in @ps.
-  *
-- * Note that creating a faithful snapshot may fail if the compound
-- * state of the page keeps changing (e.g., due to a folio split). In
-- * this case, ps->faithful is set to false, and the snapshot assumes
-- * that @page refers to a single page.
-+ * A snapshot is marked as "faithful" if the compound state of @page was
-+ * stable and allowed safe reconstruction of the folio representation. In
-+ * rare cases where this is not possible (e.g. due to folio splitting),
-+ * snapshot_page() falls back to treating @page as a single page and the
-+ * snapshot is marked as "unfaithful". The snapshot_page_is_faithful()
-+ * helper can be used to check for this condition.
-  */
- void snapshot_page(struct page_snapshot *ps, const struct page *page)
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1534,7 +1534,7 @@ static void test_ro_fast_pin(char *mem,
+ 
+ static void run_with_zeropage(non_anon_test_fn fn, const char *desc)
  {
+-	char *mem, *smem, tmp;
++	char *mem, *smem;
+ 
+ 	log_test_start("%s ... with shared zeropage", desc);
+ 
+@@ -1554,8 +1554,8 @@ static void run_with_zeropage(non_anon_t
+ 	}
+ 
+ 	/* Read from the page to populate the shared zeropage. */
+-	tmp = *mem + *smem;
+-	asm volatile("" : "+r" (tmp));
++	FORCE_READ(mem);
++	FORCE_READ(smem);
+ 
+ 	fn(mem, smem, pagesize);
+ munmap:
+@@ -1566,7 +1566,7 @@ munmap:
+ 
+ static void run_with_huge_zeropage(non_anon_test_fn fn, const char *desc)
+ {
+-	char *mem, *smem, *mmap_mem, *mmap_smem, tmp;
++	char *mem, *smem, *mmap_mem, *mmap_smem;
+ 	size_t mmap_size;
+ 	int ret;
+ 
+@@ -1617,8 +1617,8 @@ static void run_with_huge_zeropage(non_a
+ 	 * the first sub-page and test if we get another sub-page populated
+ 	 * automatically.
+ 	 */
+-	tmp = *mem + *smem;
+-	asm volatile("" : "+r" (tmp));
++	FORCE_READ(mem);
++	FORCE_READ(smem);
+ 	if (!pagemap_is_populated(pagemap_fd, mem + pagesize) ||
+ 	    !pagemap_is_populated(pagemap_fd, smem + pagesize)) {
+ 		ksft_test_result_skip("Did not get THPs populated\n");
+@@ -1634,7 +1634,7 @@ munmap:
+ 
+ static void run_with_memfd(non_anon_test_fn fn, const char *desc)
+ {
+-	char *mem, *smem, tmp;
++	char *mem, *smem;
+ 	int fd;
+ 
+ 	log_test_start("%s ... with memfd", desc);
+@@ -1668,8 +1668,8 @@ static void run_with_memfd(non_anon_test
+ 	}
+ 
+ 	/* Fault the page in. */
+-	tmp = *mem + *smem;
+-	asm volatile("" : "+r" (tmp));
++	FORCE_READ(mem);
++	FORCE_READ(smem);
+ 
+ 	fn(mem, smem, pagesize);
+ munmap:
+@@ -1682,7 +1682,7 @@ close:
+ 
+ static void run_with_tmpfile(non_anon_test_fn fn, const char *desc)
+ {
+-	char *mem, *smem, tmp;
++	char *mem, *smem;
+ 	FILE *file;
+ 	int fd;
+ 
+@@ -1724,8 +1724,8 @@ static void run_with_tmpfile(non_anon_te
+ 	}
+ 
+ 	/* Fault the page in. */
+-	tmp = *mem + *smem;
+-	asm volatile("" : "+r" (tmp));
++	FORCE_READ(mem);
++	FORCE_READ(smem);
+ 
+ 	fn(mem, smem, pagesize);
+ munmap:
+@@ -1740,7 +1740,7 @@ static void run_with_memfd_hugetlb(non_a
+ 				   size_t hugetlbsize)
+ {
+ 	int flags = MFD_HUGETLB;
+-	char *mem, *smem, tmp;
++	char *mem, *smem;
+ 	int fd;
+ 
+ 	log_test_start("%s ... with memfd hugetlb (%zu kB)", desc,
+@@ -1778,8 +1778,8 @@ static void run_with_memfd_hugetlb(non_a
+ 	}
+ 
+ 	/* Fault the page in. */
+-	tmp = *mem + *smem;
+-	asm volatile("" : "+r" (tmp));
++	FORCE_READ(mem);
++	FORCE_READ(smem);
+ 
+ 	fn(mem, smem, hugetlbsize);
+ munmap:
+--- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx
++++ a/tools/testing/selftests/mm/guard-regions.c
+@@ -36,13 +36,6 @@ static volatile sig_atomic_t signal_jump
+ static sigjmp_buf signal_jmp_buf;
+ 
+ /*
+- * Ignore the checkpatch warning, we must read from x but don't want to do
+- * anything with it in order to trigger a read page fault. We therefore must use
+- * volatile to stop the compiler from optimising this away.
+- */
+-#define FORCE_READ(x) (*(volatile typeof(x) *)x)
+-
+-/*
+  * How is the test backing the mapping being tested?
+  */
+ enum backing_type {
+--- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx
++++ a/tools/testing/selftests/mm/hugetlb-madvise.c
+@@ -47,14 +47,11 @@ void write_fault_pages(void *addr, unsig
+ 
+ void read_fault_pages(void *addr, unsigned long nr_pages)
+ {
+-	volatile unsigned long dummy = 0;
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+-		dummy += *((unsigned long *)(addr + (i * huge_page_size)));
+-
+ 		/* Prevent the compiler from optimizing out the entire loop: */
+-		asm volatile("" : "+r" (dummy));
++		FORCE_READ(((unsigned long *)(addr + (i * huge_page_size))));
+ 	}
+ }
+ 
+--- a/tools/testing/selftests/mm/migration.c~selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx
++++ a/tools/testing/selftests/mm/migration.c
+@@ -16,6 +16,7 @@
+ #include <sys/types.h>
+ #include <signal.h>
+ #include <time.h>
++#include "vm_util.h"
+ 
+ #define TWOMEG		(2<<20)
+ #define RUNTIME		(20)
+@@ -103,15 +104,13 @@ int migrate(uint64_t *ptr, int n1, int n
+ 
+ void *access_mem(void *ptr)
+ {
+-	volatile uint64_t y = 0;
+-	volatile uint64_t *x = ptr;
+-
+ 	while (1) {
+ 		pthread_testcancel();
+-		y += *x;
+-
+-		/* Prevent the compiler from optimizing out the writes to y: */
+-		asm volatile("" : "+r" (y));
++		/* Force a read from the memory pointed to by ptr. This ensures
++		 * the memory access actually happens and prevents the compiler
++		 * from optimizing away this entire loop.
++		 */
++		FORCE_READ((uint64_t *)ptr);
+ 	}
+ 
+ 	return NULL;
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -1525,9 +1525,7 @@ void zeropfn_tests(void)
+ 
+ 	ret = madvise(mem, hpage_size, MADV_HUGEPAGE);
+ 	if (!ret) {
+-		char tmp = *mem;
+-
+-		asm volatile("" : "+r" (tmp));
++		FORCE_READ(mem);
+ 
+ 		ret = pagemap_ioctl(mem, hpage_size, &vec, 1, 0,
+ 				    0, PAGE_IS_PFNZERO, 0, 0, PAGE_IS_PFNZERO);
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -399,7 +399,6 @@ int create_pagecache_thp_and_fd(const ch
+ 		char **addr)
+ {
+ 	size_t i;
+-	int dummy = 0;
+ 	unsigned char buf[1024];
+ 
+ 	srand(time(NULL));
+@@ -441,8 +440,7 @@ int create_pagecache_thp_and_fd(const ch
+ 	madvise(*addr, fd_size, MADV_HUGEPAGE);
+ 
+ 	for (size_t i = 0; i < fd_size; i++)
+-		dummy += *(*addr + i);
+-	asm volatile("" : "+r" (dummy));
++		FORCE_READ((*addr + i));
+ 
+ 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
+ 		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -18,6 +18,13 @@
+ #define PM_SWAP                       BIT_ULL(62)
+ #define PM_PRESENT                    BIT_ULL(63)
+ 
++/*
++ * Ignore the checkpatch warning, we must read from x but don't want to do
++ * anything with it in order to trigger a read page fault. We therefore must use
++ * volatile to stop the compiler from optimising this away.
++ */
++#define FORCE_READ(x) (*(volatile typeof(x) *)x)
++
+ extern unsigned int __page_size;
+ extern unsigned int __page_shift;
+ 
 _
 
-Patches currently in -mm which might be from luizcap@redhat.com are
+Patches currently in -mm which might be from lianux.mm@gmail.com are
 
-mm-util-introduce-snapshot_page.patch
-mm-util-introduce-snapshot_page-fix.patch
-proc-kpagecount-use-snapshot_page.patch
-fs-stable_page_flags-use-snapshot_page.patch
+selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx.patch
+selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip.patch
 
