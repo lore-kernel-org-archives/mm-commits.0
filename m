@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA8871A2541
-	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 23:12:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E09AB1A2541
+	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 23:12:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752793948; cv=none; b=NDcYI0rRfDpn0PxHSWqcUo4KIBWoMQ7ftub29tzWbbQS/Dm3K7KG9xF6xVLI9MSSx6decSxR6U3VwOeQho2VB2y9E2BsGBdaNizV9la9gd26SYFDpjUXrWtmGRtt0rDtHVS3K/8JF2gDFBYmEEK0VMIlfWb0kXlDbn2UzygGiRs=
+	t=1752793950; cv=none; b=JBNH4tP/I9iGBUzDZJdyh4iyXaZfANx/02Hcm8rhss1yhn7oLVhFAUOpyANmhc9L3fgpepXKFsG7BM8EBsJvta8GygVx/wgXT1ZZ5+U2ho3UzH40EiiWrLjvE/fvLN04aEPesZagwIfZipuxHROH8nUWueDQQrUdxyRw2/p+dPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752793948; c=relaxed/simple;
-	bh=NvtZ4IXJQFcCpbLqaJ/RLtmSbF7zA8sC+qk3ovN5TBA=;
-	h=Date:To:From:Subject:Message-Id; b=MgLYVyHMhB5PWMs9ZQ1rBMuKuxFNC9AbvHwHOLoqUr+K9JK/SEbtZw+nwkX4qmaHX7RmiM5/pEP4cOvYgXJG7x1DiNN1Jv79jBK02A7BXvZxsarEHpSVl2lMa5dYVmhr9nUPB3Y//pludmsI/ZwlFuxK2jvYhpSb6ITSzOkDAUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zdbCa3vM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752793950; c=relaxed/simple;
+	bh=yUObJPhp6JNl5wXWmdkYkKCcFV61TdE5QoQA5qKp8xY=;
+	h=Date:To:From:Subject:Message-Id; b=CFewu2y18xbYYwl7PsGt/8DeK6/f1O3LyeuhCA0s+pUguNsTrXOXHWfeEcQ93f4wOXbRYw3f2oj/XthDjbhj+u90h/Ag5VIsKv+6m/mKmL/yoa1iq3LANHpIMSu8glEtAtAnI5886r7DoDciw6RPTFbvRd2OD6NsdR8Q8XXMLOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hJ2gP0nQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zdbCa3vM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74864C4CEE3;
-	Thu, 17 Jul 2025 23:12:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hJ2gP0nQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4ED8C4CEE3;
+	Thu, 17 Jul 2025 23:12:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752793948;
-	bh=NvtZ4IXJQFcCpbLqaJ/RLtmSbF7zA8sC+qk3ovN5TBA=;
+	s=korg; t=1752793949;
+	bh=yUObJPhp6JNl5wXWmdkYkKCcFV61TdE5QoQA5qKp8xY=;
 	h=Date:To:From:Subject:From;
-	b=zdbCa3vMZpcP/tv22u27m5MwRGJUPQR3xhbtO0Rj05sh/Ncf0rlzhHmAssIl+UCjY
-	 0eASCu/WHevjOHm94S96f85ChgrySDSUkUZmSv2uTwResyllIek15W5tlpeuwq+11t
-	 f4pC+CvME+y11bZyfdyPjH67dbZyEf2Qt/09oUpQ=
-Date: Thu, 17 Jul 2025 16:12:27 -0700
+	b=hJ2gP0nQf3XPPkVEjEyqYaHnTK4x2zkmGXAPwXShtHmO8E5z1suZLfTE3vMJGfA/7
+	 0RlvED4xWerzfLE8SPwaBA6TtlVxCr9dXHxzDXBZQzkkUmIMz7iSZ6/8ftAm1E0cK0
+	 YW6FCQNFGZnRMeI+bX42CXfIGQWgDPRK1q13z0Mo=
+Date: Thu, 17 Jul 2025 16:12:29 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-implement-refresh_ms-file-internal-work.patch added to mm-new branch
-Message-Id: <20250717231228.74864C4CEE3@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch added to mm-new branch
+Message-Id: <20250717231229.A4ED8C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: implement refresh_ms file internal work
+     Subject: Docs/admin-guide/mm/damon/usage: document refresh_ms file
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-implement-refresh_ms-file-internal-work.patch
+     docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-refresh_ms-file-internal-work.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,72 +65,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement refresh_ms file internal work
-Date: Wed, 16 Jul 2025 22:54:46 -0700
+Subject: Docs/admin-guide/mm/damon/usage: document refresh_ms file
+Date: Wed, 16 Jul 2025 22:54:47 -0700
 
-Only minimum file operations for refresh_ms file is implemented.  Further
-implement its designed behavior, the periodic essential files content
-update, using repeat mode damon_call().
+Document the new DAMON sysfs file, refresh_ms, on the usage document.
 
-If non-zero value is written to the file, update DAMON sysfs files for
-auto-tuned monitoring intervals, DAMOS stats, and auto-tuned DAMOS quota
-values, which are essential to be monitored in most DAMON use cases.  The
-user-written non-zero value becomes the time delay between the update.  If
-zero is written to the file, the periodic refresh is disabled.
-
-Link: https://lkml.kernel.org/r/20250717055448.56976-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250717055448.56976-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-refresh_ms-file-internal-work
-+++ a/mm/damon/sysfs.c
-@@ -1509,6 +1509,32 @@ static struct damon_ctx *damon_sysfs_bui
- 	return ctx;
- }
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-refresh_ms-file
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -59,7 +59,7 @@ comma (",").
  
-+static int damon_sysfs_repeat_call_fn(void *data)
-+{
-+	struct damon_sysfs_kdamond *sysfs_kdamond = data;
-+	static unsigned long next_update_jiffies;
+     :ref:`/sys/kernel/mm/damon <sysfs_root>`/admin
+     │ :ref:`kdamonds <sysfs_kdamonds>`/nr_kdamonds
+-    │ │ :ref:`0 <sysfs_kdamond>`/state,pid
++    │ │ :ref:`0 <sysfs_kdamond>`/state,pid,refresh_ms
+     │ │ │ :ref:`contexts <sysfs_contexts>`/nr_contexts
+     │ │ │ │ :ref:`0 <sysfs_context>`/avail_operations,operations
+     │ │ │ │ │ :ref:`monitoring_attrs <sysfs_monitoring_attrs>`/
+@@ -123,8 +123,8 @@ kdamond.
+ kdamonds/<N>/
+ -------------
+ 
+-In each kdamond directory, two files (``state`` and ``pid``) and one directory
+-(``contexts``) exist.
++In each kdamond directory, three files (``state``, ``pid`` and ``refresh_ms``)
++and one directory (``contexts``) exist.
+ 
+ Reading ``state`` returns ``on`` if the kdamond is currently running, or
+ ``off`` if it is not running.
+@@ -161,6 +161,13 @@ Users can write below commands for the k
+ 
+ If the state is ``on``, reading ``pid`` shows the pid of the kdamond thread.
+ 
++Users can ask the kernel to periodically update files showing auto-tuned
++parameters and DAMOS stats instead of manually writing
++``update_tuned_intervals`` like keywords to ``state`` file.  For this, users
++should write the desired update time interval in milliseconds to ``refresh_ms``
++file.  If the interval is zero, the periodic update is disabled.  Reading the
++file shows currently set time interval.
 +
-+	if (!sysfs_kdamond->refresh_ms)
-+		return 0;
-+	if (time_before(jiffies, next_update_jiffies))
-+		return 0;
-+	next_update_jiffies = jiffies +
-+		msecs_to_jiffies(sysfs_kdamond->refresh_ms);
-+
-+	if (!mutex_trylock(&damon_sysfs_lock))
-+		return 0;
-+	damon_sysfs_upd_tuned_intervals(sysfs_kdamond);
-+	damon_sysfs_upd_schemes_stats(sysfs_kdamond);
-+	damon_sysfs_upd_schemes_effective_quotas(sysfs_kdamond);
-+	mutex_unlock(&damon_sysfs_lock);
-+	return 0;
-+}
-+
-+static struct damon_call_control damon_sysfs_repeat_call_control = {
-+	.fn = damon_sysfs_repeat_call_fn,
-+	.repeat = true,
-+};
-+
- static int damon_sysfs_turn_damon_on(struct damon_sysfs_kdamond *kdamond)
- {
- 	struct damon_ctx *ctx;
-@@ -1533,6 +1559,9 @@ static int damon_sysfs_turn_damon_on(str
- 		return err;
- 	}
- 	kdamond->damon_ctx = ctx;
-+
-+	damon_sysfs_repeat_call_control.data = kdamond;
-+	damon_call(ctx, &damon_sysfs_repeat_call_control);
- 	return err;
- }
+ ``contexts`` directory contains files for controlling the monitoring contexts
+ that this kdamond will execute.
  
 _
 
