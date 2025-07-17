@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 353E91547CC
-	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 22:46:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 508261D5CE8
+	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 23:05:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752792416; cv=none; b=Cw0ggNZFPl55BF30ygxA5m0lzzaJ8a4ovFe8MYs7nmboQKgyi9zSWySmBjGHkOxgz7YMw4SefN4WYjcYH3HkdWxF1moVMg4XnTVss8yAiZ+JkhpUZhlX7pVCloBjqexKP9ivp7/Dms76Pt4KDd557koa4diGSPICN2PeNOwjS0k=
+	t=1752793538; cv=none; b=SazEEZeZSgta4H3bHs9YSP4ezcQUObei0NXq/D8tYR2WOT0yZnydHFHee2F4yvQUYwVy11kJsicaMcU0NzCvSvnvpbq1PFaYgqF14vlJpsIQoGr9EUB37AXSlIFSWPOT9E91oY6R6QPoVE8wB/zbWhD0hecUfllbxrehfnmnvOs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752792416; c=relaxed/simple;
-	bh=rNHlP8wh/qTHlca0a2KREMugW6qYwSevxsBqJKabfdE=;
-	h=Date:To:From:Subject:Message-Id; b=ggo8LRPfIiK3CJ0j2gcvsSVsuYMT45W7vcfYmAOcHeHsObjD3FqmKenyhTEuN1sKbBSYfgR6FgKOFJLGKjXI5sLAhPapCOdDs/QabBkr//dtL0ul96hU2u1+NA/AOsV7Qr3zDLWLmEeMkR0a23qxXopvVc06fT1BmX08rTgpgO0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jckdzFV3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752793538; c=relaxed/simple;
+	bh=ItAJrTRaoOLv52ZcW1UfDZ5BAKrB6yMfU6jOUU145hE=;
+	h=Date:To:From:Subject:Message-Id; b=PKLMtDktEhFzHMVwCDKYPTekde4gEJx+b//QS5muqtIhsoX1j46VULNARa6+qJfnhVZneanKtPW8+8X9DuFqOtKklQOki7diZSGUID3yNxK3TyqO7gzu8lxv3zQnhMFpcb0XsZWAuVfOkzJJLEXi6hTg4hxFfxg63wSgkE72of0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jX5bWNMR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jckdzFV3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95AEDC4CEEB;
-	Thu, 17 Jul 2025 22:46:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jX5bWNMR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A439BC4CEE3;
+	Thu, 17 Jul 2025 23:05:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752792415;
-	bh=rNHlP8wh/qTHlca0a2KREMugW6qYwSevxsBqJKabfdE=;
+	s=korg; t=1752793536;
+	bh=ItAJrTRaoOLv52ZcW1UfDZ5BAKrB6yMfU6jOUU145hE=;
 	h=Date:To:From:Subject:From;
-	b=jckdzFV3mf/Z9JG+OteARkLvUlcJ+lc3DWf0eJE1uxsfH8EPaX8G4uIOgCPMAhRgD
-	 hHYPzA53utNAT/9CWUeCkKGArQ+9niHsvq7645DIhtPRNtsRhB0FuXhO2vuQQn5oDz
-	 gFx00GHS9/GzWCR8r4Mtql3wF/ZyRgmXxaIoagoo=
-Date: Thu, 17 Jul 2025 15:46:55 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,dave@stgolabs.net,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=jX5bWNMRgenddQ8w2geYuybo9tFpOCAfYR6oGuQZx+Faj1MYrJIgPS8ND4Tukc991
+	 TzqKekXNQu+e6XywIeSExTowFXDPn1ZEkQO3IzCbcc2l1yvr7jXd+9Y5i8VrERN0WZ
+	 hiEWmyfQA9LbZ7m0Buk4X7uV6Frc6eVCqJHXgSkI=
+Date: Thu, 17 Jul 2025 16:05:36 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,yuanchu@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,kinseyho@google.com,hannes@cmpxchg.org,gthelen@google.com,david@redhat.com,axelrasmussen@google.com,jiahao1@lixiang.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-per-node-proactive-reclaim-interface-fix.patch added to mm-unstable branch
-Message-Id: <20250717224655.95AEDC4CEEB@smtp.kernel.org>
+Subject: + mm-mglru-update-mg-lru-proactive-reclaim-statistics-only-to-memcg.patch added to mm-new branch
+Message-Id: <20250717230536.A439BC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-introduce-per-node-proactive-reclaim-interface-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-per-node-proactive-reclaim-interface-fix.patch
+     Subject: mm/mglru: update MG-LRU proactive reclaim statistics only to memcg
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mglru-update-mg-lru-proactive-reclaim-statistics-only-to-memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-per-node-proactive-reclaim-interface-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-update-mg-lru-proactive-reclaim-statistics-only-to-memcg.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,44 +64,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-per-node-proactive-reclaim-interface-fix
-Date: Thu Jul 17 03:44:14 PM PDT 2025
+From: Hao Jia <jiahao1@lixiang.com>
+Subject: mm/mglru: update MG-LRU proactive reclaim statistics only to memcg
+Date: Thu, 17 Jul 2025 16:28:45 +0800
 
-user_proactive_reclaim(): return -EBUSY on PGDAT_RECLAIM_LOCKED
-contention, per Roman
+Users can use /sys/kernel/debug/lru_gen to trigger proactive memory
+reclaim of a specified memcg.  Currently, statistics such as pgrefill,
+pgscan and pgsteal will be updated to the /proc/vmstat system memory
+statistics.
 
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+This will confuse some system memory pressure monitoring tools, making it
+difficult to determine whether pgscan and pgsteal are caused by
+system-level pressure or by proactive memory reclaim of some specific
+memory cgroup.
+
+Therefore, make this interface behave similarly to memory.reclaim.  Update
+proactive memory reclaim statistics only to its memory cgroup.
+
+Link: https://lkml.kernel.org/r/20250717082845.34673-1-jiahao.kernel@gmail.com
+Signed-off-by: Hao Jia <jiahao1@lixiang.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kinsey Ho <kinseyho@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmscan.c~mm-introduce-per-node-proactive-reclaim-interface-fix
+--- a/mm/vmscan.c~mm-mglru-update-mg-lru-proactive-reclaim-statistics-only-to-memcg
 +++ a/mm/vmscan.c
-@@ -7818,7 +7818,7 @@ int user_proactive_reclaim(char *buf,
+@@ -5561,6 +5561,7 @@ static int run_cmd(char cmd, int memcg_i
+ 	if (memcg_id != mem_cgroup_id(memcg))
+ 		goto done;
  
- 			if (test_and_set_bit_lock(PGDAT_RECLAIM_LOCKED,
- 						  &pgdat->flags))
--				return -EAGAIN;
-+				return -EBUSY;
++	sc->target_mem_cgroup = memcg;
+ 	lruvec = get_lruvec(memcg, nid);
  
- 			reclaimed = __node_reclaim(pgdat, gfp_mask,
- 						   batch_size, &sc);
+ 	if (swappiness < MIN_SWAPPINESS)
+@@ -5597,6 +5598,7 @@ static ssize_t lru_gen_seq_write(struct
+ 		.may_swap = true,
+ 		.reclaim_idx = MAX_NR_ZONES - 1,
+ 		.gfp_mask = GFP_KERNEL,
++		.proactive = true,
+ 	};
+ 
+ 	buf = kvmalloc(len + 1, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jiahao1@lixiang.com are
 
-mm-memcg-make-memoryreclaim-interface-generic-fix.patch
-mm-introduce-per-node-proactive-reclaim-interface-fix.patch
-mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
-mm-shmem-swap-simplify-swapin-path-and-result-handling-fix-fix.patch
-squashfs-fix-incorrect-argument-to-sizeof-in-kmalloc_array-call-fix.patch
-init-kconfig-restore-config_broken-help-text.patch
+mm-mglru-stop-try_to_inc_min_seq-if-min_seq-has-not-increased.patch
+mm-mglru-update-mg-lru-proactive-reclaim-statistics-only-to-memcg.patch
 
