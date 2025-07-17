@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E09AB1A2541
-	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 23:12:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037E01A2541
+	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 23:12:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752793950; cv=none; b=JBNH4tP/I9iGBUzDZJdyh4iyXaZfANx/02Hcm8rhss1yhn7oLVhFAUOpyANmhc9L3fgpepXKFsG7BM8EBsJvta8GygVx/wgXT1ZZ5+U2ho3UzH40EiiWrLjvE/fvLN04aEPesZagwIfZipuxHROH8nUWueDQQrUdxyRw2/p+dPU=
+	t=1752793951; cv=none; b=DvvOs07ALEcETa1JaBo8tTRNogP3mUq++Zvzu6lMmXDICMBkZBIWOO7YTtLsaTgt2lZAzdpRzKuIhlhVTSn5w4stcuvto5RSUyEC8aQYoON7pTQPFn/gUDvkulbWPjt/Qc5A4wBdjaeFKQPOUntmHMqKEiiglBU+FGskYC7EBTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752793950; c=relaxed/simple;
-	bh=yUObJPhp6JNl5wXWmdkYkKCcFV61TdE5QoQA5qKp8xY=;
-	h=Date:To:From:Subject:Message-Id; b=CFewu2y18xbYYwl7PsGt/8DeK6/f1O3LyeuhCA0s+pUguNsTrXOXHWfeEcQ93f4wOXbRYw3f2oj/XthDjbhj+u90h/Ag5VIsKv+6m/mKmL/yoa1iq3LANHpIMSu8glEtAtAnI5886r7DoDciw6RPTFbvRd2OD6NsdR8Q8XXMLOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hJ2gP0nQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752793951; c=relaxed/simple;
+	bh=J+505Vb/dlGxS8WGagW0RAyLt7rbsIOl9JIWSFB7/vU=;
+	h=Date:To:From:Subject:Message-Id; b=hAXf4HHRxD4C0LNQrGK0xW0GKXknlcTe/oBa4e1ZJioGNlJKfXYYlxxupyMKBUSap0zMdHSDAcS23IQXAP3TZMUO2NNUYnneUFSjZ4x/XUiWc9061gbfkHe+zhXg/lEuZWWHxL46RAbUxT+Go6YbyCd57MF7EX6c4EuZQMDfhB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K4VwnRHi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hJ2gP0nQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4ED8C4CEE3;
-	Thu, 17 Jul 2025 23:12:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K4VwnRHi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6FC1C4CEE3;
+	Thu, 17 Jul 2025 23:12:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752793949;
-	bh=yUObJPhp6JNl5wXWmdkYkKCcFV61TdE5QoQA5qKp8xY=;
+	s=korg; t=1752793950;
+	bh=J+505Vb/dlGxS8WGagW0RAyLt7rbsIOl9JIWSFB7/vU=;
 	h=Date:To:From:Subject:From;
-	b=hJ2gP0nQf3XPPkVEjEyqYaHnTK4x2zkmGXAPwXShtHmO8E5z1suZLfTE3vMJGfA/7
-	 0RlvED4xWerzfLE8SPwaBA6TtlVxCr9dXHxzDXBZQzkkUmIMz7iSZ6/8ftAm1E0cK0
-	 YW6FCQNFGZnRMeI+bX42CXfIGQWgDPRK1q13z0Mo=
-Date: Thu, 17 Jul 2025 16:12:29 -0700
+	b=K4VwnRHiwIz+F2gD0tXVmxRhLruhior0rYY0t7g5YWfDT/19YYhCpOrlDuJeJxK8i
+	 EEzck0AHXccnGJ/D6GJ+CHDJJPDNGVKNXAyEbVxypsxRHA4qP73uchW9e8fjy7AsUH
+	 08TbFtt14AFmEW+K3J/vhv1iH1zVq/N21PbxtXgg=
+Date: Thu, 17 Jul 2025 16:12:30 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch added to mm-new branch
-Message-Id: <20250717231229.A4ED8C4CEE3@smtp.kernel.org>
+Subject: + docs-abi-damon-update-for-refresh_ms.patch added to mm-new branch
+Message-Id: <20250717231230.C6FC1C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document refresh_ms file
+     Subject: Docs/ABI/damon: update for refresh_ms
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch
+     docs-abi-damon-update-for-refresh_ms.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-update-for-refresh_ms.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,56 +65,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document refresh_ms file
-Date: Wed, 16 Jul 2025 22:54:47 -0700
+Subject: Docs/ABI/damon: update for refresh_ms
+Date: Wed, 16 Jul 2025 22:54:48 -0700
 
-Document the new DAMON sysfs file, refresh_ms, on the usage document.
+Document the new DAMON sysfs file, refresh_ms, on the ABI document.
 
-Link: https://lkml.kernel.org/r/20250717055448.56976-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250717055448.56976-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-refresh_ms-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -59,7 +59,7 @@ comma (",").
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-refresh_ms
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -44,6 +44,13 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Reading this file returns the pid of the kdamond if it is
+ 		running.
  
-     :ref:`/sys/kernel/mm/damon <sysfs_root>`/admin
-     │ :ref:`kdamonds <sysfs_kdamonds>`/nr_kdamonds
--    │ │ :ref:`0 <sysfs_kdamond>`/state,pid
-+    │ │ :ref:`0 <sysfs_kdamond>`/state,pid,refresh_ms
-     │ │ │ :ref:`contexts <sysfs_contexts>`/nr_contexts
-     │ │ │ │ :ref:`0 <sysfs_context>`/avail_operations,operations
-     │ │ │ │ │ :ref:`monitoring_attrs <sysfs_monitoring_attrs>`/
-@@ -123,8 +123,8 @@ kdamond.
- kdamonds/<N>/
- -------------
- 
--In each kdamond directory, two files (``state`` and ``pid``) and one directory
--(``contexts``) exist.
-+In each kdamond directory, three files (``state``, ``pid`` and ``refresh_ms``)
-+and one directory (``contexts``) exist.
- 
- Reading ``state`` returns ``on`` if the kdamond is currently running, or
- ``off`` if it is not running.
-@@ -161,6 +161,13 @@ Users can write below commands for the k
- 
- If the state is ``on``, reading ``pid`` shows the pid of the kdamond thread.
- 
-+Users can ask the kernel to periodically update files showing auto-tuned
-+parameters and DAMOS stats instead of manually writing
-+``update_tuned_intervals`` like keywords to ``state`` file.  For this, users
-+should write the desired update time interval in milliseconds to ``refresh_ms``
-+file.  If the interval is zero, the periodic update is disabled.  Reading the
-+file shows currently set time interval.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/refresh_ms
++Date:		Jul 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the time interval for
++		automatic DAMON status file contents update.  Writing '0'
++		disables the update.  Reading this file returns the value.
 +
- ``contexts`` directory contains files for controlling the monitoring contexts
- that this kdamond will execute.
- 
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/nr_contexts
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
