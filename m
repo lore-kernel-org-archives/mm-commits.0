@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75C16A94F
-	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 22:23:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 353E91547CC
+	for <mm-commits@vger.kernel.org>; Thu, 17 Jul 2025 22:46:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752791018; cv=none; b=rUWfbVTO1db3EyZzWRQ9nLsnxSKHuQJ3sn/UL3G3yIq8rr/a2bWsC/+Lmll333rWbdz75P2jKaVKUvRZlQs0xcfrN0alEdlvXBshrPkYTk3lA3nFHDdyzKaRg+4ndVj29FsYCNTv0mHqY1v1pabD0c53T2AEME3O3BbR5QWui1w=
+	t=1752792416; cv=none; b=Cw0ggNZFPl55BF30ygxA5m0lzzaJ8a4ovFe8MYs7nmboQKgyi9zSWySmBjGHkOxgz7YMw4SefN4WYjcYH3HkdWxF1moVMg4XnTVss8yAiZ+JkhpUZhlX7pVCloBjqexKP9ivp7/Dms76Pt4KDd557koa4diGSPICN2PeNOwjS0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752791018; c=relaxed/simple;
-	bh=gNECbzwFcLsmHfkWscw5DLFLALTVc2Q/W5cI4cM0Msc=;
-	h=Date:To:From:Subject:Message-Id; b=TwxkEXc4x3cd+ELZ1mJJi+LcH6OwV66/kCQd7m0eZRu8BjyhzEhIIxlS3B2LZ9rT+Nkn2EbC2IHDaQC3J5a4cNn/gs5wUKhqUyJIgS4rs4GDaI0O4i74TaOL8bgC4016qjK6xvrvP96o+sb7DSSi2nevgipLXjIZUNEwYoHRUlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gn1IM6EH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752792416; c=relaxed/simple;
+	bh=rNHlP8wh/qTHlca0a2KREMugW6qYwSevxsBqJKabfdE=;
+	h=Date:To:From:Subject:Message-Id; b=ggo8LRPfIiK3CJ0j2gcvsSVsuYMT45W7vcfYmAOcHeHsObjD3FqmKenyhTEuN1sKbBSYfgR6FgKOFJLGKjXI5sLAhPapCOdDs/QabBkr//dtL0ul96hU2u1+NA/AOsV7Qr3zDLWLmEeMkR0a23qxXopvVc06fT1BmX08rTgpgO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jckdzFV3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gn1IM6EH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE7D7C4CEE3;
-	Thu, 17 Jul 2025 22:23:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jckdzFV3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95AEDC4CEEB;
+	Thu, 17 Jul 2025 22:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752791018;
-	bh=gNECbzwFcLsmHfkWscw5DLFLALTVc2Q/W5cI4cM0Msc=;
+	s=korg; t=1752792415;
+	bh=rNHlP8wh/qTHlca0a2KREMugW6qYwSevxsBqJKabfdE=;
 	h=Date:To:From:Subject:From;
-	b=gn1IM6EHQ7/OHKSePgriSw0ef9Yx8JTcBvnjAMt8JDpNSgJ2cPds5ye6Nq25c9ZmA
-	 m4RCR9ispJ4mLzMTqZXeHbu6S86C9+/rmjt/HbZmSNf1+D+RMtGNZkffaz9qOw/2In
-	 jB1kACDIjm4vBwuQi9sqW4+ayn6vR+COAwBhEmCA=
-Date: Thu, 17 Jul 2025 15:23:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,broonie@kernel.org,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
+	b=jckdzFV3mf/Z9JG+OteARkLvUlcJ+lc3DWf0eJE1uxsfH8EPaX8G4uIOgCPMAhRgD
+	 hHYPzA53utNAT/9CWUeCkKGArQ+9niHsvq7645DIhtPRNtsRhB0FuXhO2vuQQn5oDz
+	 gFx00GHS9/GzWCR8r4Mtql3wF/ZyRgmXxaIoagoo=
+Date: Thu, 17 Jul 2025 15:46:55 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,dave@stgolabs.net,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip.patch added to mm-unstable branch
-Message-Id: <20250717222337.DE7D7C4CEE3@smtp.kernel.org>
+Subject: + mm-introduce-per-node-proactive-reclaim-interface-fix.patch added to mm-unstable branch
+Message-Id: <20250717224655.95AEDC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: guard-regions: Use SKIP() instead of ksft_exit_skip()
+     Subject: mm-introduce-per-node-proactive-reclaim-interface-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip.patch
+     mm-introduce-per-node-proactive-reclaim-interface-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-per-node-proactive-reclaim-interface-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,48 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wang lian <lianux.mm@gmail.com>
-Subject: selftests/mm: guard-regions: Use SKIP() instead of ksft_exit_skip()
-Date: Thu, 17 Jul 2025 21:18:57 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-introduce-per-node-proactive-reclaim-interface-fix
+Date: Thu Jul 17 03:44:14 PM PDT 2025
 
-To ensure only the current test is skipped on permission failure, instead
-of terminating the entire test binary.
+user_proactive_reclaim(): return -EBUSY on PGDAT_RECLAIM_LOCKED
+contention, per Roman
 
-Link: https://lkml.kernel.org/r/20250717131857.59909-3-lianux.mm@gmail.com
-Signed-off-by: wang lian <lianux.mm@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/guard-regions.c |    2 +-
+ mm/vmscan.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip
-+++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -575,7 +575,7 @@ TEST_F(guard_regions, process_madvise)
+--- a/mm/vmscan.c~mm-introduce-per-node-proactive-reclaim-interface-fix
++++ a/mm/vmscan.c
+@@ -7818,7 +7818,7 @@ int user_proactive_reclaim(char *buf,
  
- 	/* OK we don't have permission to do this, skip. */
- 	if (count == -1 && errno == EPERM)
--		ksft_exit_skip("No process_madvise() permissions, try running as root.\n");
-+		SKIP(return, "No process_madvise() permissions, try running as root.\n");
+ 			if (test_and_set_bit_lock(PGDAT_RECLAIM_LOCKED,
+ 						  &pgdat->flags))
+-				return -EAGAIN;
++				return -EBUSY;
  
- 	/* Returns the number of bytes advised. */
- 	ASSERT_EQ(count, 6 * page_size);
+ 			reclaimed = __node_reclaim(pgdat, gfp_mask,
+ 						   batch_size, &sc);
 _
 
-Patches currently in -mm which might be from lianux.mm@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-mm-reuse-force_read-to-replace-asm-volatile-r-xxx.patch
-selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip.patch
+mm-memcg-make-memoryreclaim-interface-generic-fix.patch
+mm-introduce-per-node-proactive-reclaim-interface-fix.patch
+mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
+mm-shmem-swap-simplify-swapin-path-and-result-handling-fix-fix.patch
+squashfs-fix-incorrect-argument-to-sizeof-in-kmalloc_array-call-fix.patch
+init-kconfig-restore-config_broken-help-text.patch
 
