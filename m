@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC3221CC7B
-	for <mm-commits@vger.kernel.org>; Fri, 18 Jul 2025 21:12:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F917C2C9
+	for <mm-commits@vger.kernel.org>; Fri, 18 Jul 2025 21:15:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752873150; cv=none; b=cbBZcS1/QMZS3x4IJeadCWq/BAaf0NyPb0nQfHcA38L3hAJybOoo4WD5x++aIBT/JaiV6w/x7IRY9AfKUm4ufy/cxN4L1nfp040uE04loDVcTiDNvaLnV/VBs3CaNQnETWlU+jY658YYLdU4UzMLfazgtQcZJ0JkfO6y2edNGj0=
+	t=1752873343; cv=none; b=PNsz9CGo5KaV7vGr0MFE1QbKvSRefACZ+mMu3dSeh8Uh11AiNkkx1ZxkfacJVA/H2TMlTKxhg3lgHYOeeONNdJvhtX8cM23lcYg0jLhdPDGDFLNdDrMMiyY/2A5+II250BXDnPTltSJgr3pU1/HNHClfEPQZ8a3Ga9nWGh2W770=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752873150; c=relaxed/simple;
-	bh=+L7nCkeykQEy7XSC9mgUIugyG0u4U7eH2t8re3IQ0ng=;
-	h=Date:To:From:Subject:Message-Id; b=r9A/fPuNKlcQAhPOF97xxPyiwUoFJS4b8DaIdvMnDX46tfduxpBRbmVFt6EQQjQFKUUpQDtXkKuUzJhD50R7VVf9EUh5exVDpIz8sK91zWu8SYao/G6fXiZQK21bSiAhHmeCpKLvygwkMAyRWJVli3A71wcWKwVI5mNXJXG+rLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fh/yZg5I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752873343; c=relaxed/simple;
+	bh=NbteYGTUr8p4crj7zXJzi7/jhKZfMmpsq+U3RAZSWtE=;
+	h=Date:To:From:Subject:Message-Id; b=ZjDyuUoB7kT7jpsxerKgdsl6VbcOrO6Oo8D7wH0oucnc3/gREcP2aQTxbvPLENtvB10LOhnFhAnlrOYmRzfiKmt4HjpQnqHrqv59IYrPQp3l1gqPtGWSTeuESrAFcCC81Cguqp8T/ylFLJTL1rjZnqrazQwgB+9Ym64lAA69QMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hrG2oegp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fh/yZg5I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F6BEC4CEEB;
-	Fri, 18 Jul 2025 21:12:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hrG2oegp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABE27C4CEEB;
+	Fri, 18 Jul 2025 21:15:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752873150;
-	bh=+L7nCkeykQEy7XSC9mgUIugyG0u4U7eH2t8re3IQ0ng=;
+	s=korg; t=1752873342;
+	bh=NbteYGTUr8p4crj7zXJzi7/jhKZfMmpsq+U3RAZSWtE=;
 	h=Date:To:From:Subject:From;
-	b=fh/yZg5II5962+huitXxHid5xm5d7qaGV8V4yGh4gZam7CkYhs9+3HmXpFUuQkAwL
-	 CUYDE4frZZUTTKo+eCBeiEjtFSFWj9P7b0KeUMwso9J8KHjCWRNMromgqUzTaI0wWv
-	 q1XToWjisepTZHHI/PwNO0f6AU5+AJvU0h45JT6o=
-Date: Fri, 18 Jul 2025 14:12:29 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,k.shutemov@gmail.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,dan.carpenter@linaro.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=hrG2oegphxMeCnLG6R9tFzIptR2Yu6TU7OAStboM4k3sFIHPjmRhOUQRwiUTMoEGQ
+	 iA1Iczt7sSMIU77HCewZICMj9lgFZz1TYmz1/Ch1ELHTc6BM+UieIImBz6EvlcptkY
+	 UnB4tPpxn8ZhNJ7EjWqHhowis0olg7Q1X8RRO7kc=
+Date: Fri, 18 Jul 2025 14:15:42 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,liam.howlett@oracle.com,pfalcato@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-refactor-after-split-page-cache-code.patch added to mm-new branch
-Message-Id: <20250718211230.8F6BEC4CEEB@smtp.kernel.org>
+Subject: + maple_tree-use-kfree_rcu-in-ma_free_rcu.patch added to mm-new branch
+Message-Id: <20250718211542.ABE27C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: refactor after-split (page) cache code
+     Subject: maple_tree: use kfree_rcu in ma_free_rcu
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-refactor-after-split-page-cache-code.patch
+     maple_tree-use-kfree_rcu-in-ma_free_rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-refactor-after-split-page-cache-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-kfree_rcu-in-ma_free_rcu.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,126 +64,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: refactor after-split (page) cache code
-Date: Fri, 18 Jul 2025 14:37:20 -0400
+From: Pedro Falcato <pfalcato@suse.de>
+Subject: maple_tree: use kfree_rcu in ma_free_rcu
+Date: Fri, 18 Jul 2025 18:21:36 +0100
 
-Smatch/coverity checkers report NULL mapping referencing issues[1][2][3]
-every time the code is modified, because they do not understand that
-mapping cannot be NULL when a folio is in page cache in the code. 
-Refactor the code to make it explicit.
+kfree_rcu is an optimized version of call_rcu + kfree.  It used to not be
+possible to call it on non-kmalloc objects, but this restriction was
+lifted ever since SLOB was dropped from the kernel, and since commit
+6c6c47b063b5 ("mm, slab: call kvfree_rcu_barrier() from
+kmem_cache_destroy()").
 
-Remove "end = -1" for anonymous folios, since after code refactoring, end
-is no longer used by anonymous folio handling code.
+Thus, replace call_rcu + mt_free_rcu with kfree_rcu.
 
-No functional change is intended.
-
-[1]https://lore.kernel.org/linux-mm/2afe3d59-aca5-40f7-82a3-a6d976fb0f4f@stanley.mountain/
-[2]https://lore.kernel.org/oe-kbuild/64b54034-f311-4e7d-b935-c16775dbb642@suswa.mountain/
-[3]https://lore.kernel.org/linux-mm/20250716145804.4836-1-antonio@mandelbit.com/
-
-Link: https://lkml.kernel.org/r/20250718183720.4054515-7-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <k.shutemov@gmail.com>
+Link: https://lkml.kernel.org/r/20250718172138.103116-1-pfalcato@suse.de
+Signed-off-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   44 ++++++++++++++++++++++++++++----------------
- 1 file changed, 28 insertions(+), 16 deletions(-)
+ lib/maple_tree.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-refactor-after-split-page-cache-code
-+++ a/mm/huge_memory.c
-@@ -3640,7 +3640,6 @@ static int __folio_split(struct folio *f
- 			ret = -EBUSY;
- 			goto out;
- 		}
--		end = -1;
- 		mapping = NULL;
- 		anon_vma_lock_write(anon_vma);
- 	} else {
-@@ -3793,6 +3792,8 @@ static int __folio_split(struct folio *f
- 		 */
- 		for (new_folio = folio_next(folio); new_folio != end_folio;
- 		     new_folio = next) {
-+			unsigned long nr_pages = folio_nr_pages(new_folio);
-+
- 			next = folio_next(new_folio);
+--- a/lib/maple_tree.c~maple_tree-use-kfree_rcu-in-ma_free_rcu
++++ a/lib/maple_tree.c
+@@ -191,13 +191,6 @@ static inline void mt_free_bulk(size_t s
+ 	kmem_cache_free_bulk(maple_node_cache, size, (void **)nodes);
+ }
  
- 			expected_refs = folio_expected_ref_count(new_folio) + 1;
-@@ -3800,25 +3801,36 @@ static int __folio_split(struct folio *f
+-static void mt_free_rcu(struct rcu_head *head)
+-{
+-	struct maple_node *node = container_of(head, struct maple_node, rcu);
+-
+-	kmem_cache_free(maple_node_cache, node);
+-}
+-
+ /*
+  * ma_free_rcu() - Use rcu callback to free a maple node
+  * @node: The node to free
+@@ -208,7 +201,7 @@ static void mt_free_rcu(struct rcu_head
+ static void ma_free_rcu(struct maple_node *node)
+ {
+ 	WARN_ON(node->parent != ma_parent_ptr(node));
+-	call_rcu(&node->rcu, mt_free_rcu);
++	kfree_rcu(node, rcu);
+ }
  
- 			lru_add_split_folio(folio, new_folio, lruvec, list);
+ static void mt_set_height(struct maple_tree *mt, unsigned char height)
+@@ -5281,7 +5274,7 @@ static void mt_free_walk(struct rcu_head
+ 	mt_free_bulk(node->slot_len, slots);
  
--			/* Some pages can be beyond EOF: drop them from cache */
--			if (new_folio->index >= end) {
--				if (shmem_mapping(mapping))
--					nr_shmem_dropped += folio_nr_pages(new_folio);
--				else if (folio_test_clear_dirty(new_folio))
--					folio_account_cleaned(
--						new_folio,
--						inode_to_wb(mapping->host));
--				__filemap_remove_folio(new_folio, NULL);
--				folio_put_refs(new_folio,
--					       folio_nr_pages(new_folio));
--			} else if (mapping) {
--				__xa_store(&mapping->i_pages, new_folio->index,
--					   new_folio, 0);
--			} else if (swap_cache) {
-+			/*
-+			 * Anonymous folio with swap cache.
-+			 * NOTE: shmem in swap cache is not supported yet.
-+			 */
-+			if (swap_cache) {
- 				__xa_store(&swap_cache->i_pages,
- 					   swap_cache_index(new_folio->swap),
- 					   new_folio, 0);
-+				continue;
- 			}
-+
-+			/* Anonymous folio without swap cache */
-+			if (!mapping)
-+				continue;
-+
-+			/* Add the new folio to the page cache. */
-+			if (new_folio->index < end) {
-+				__xa_store(&mapping->i_pages, new_folio->index,
-+					   new_folio, 0);
-+				continue;
-+			}
-+
-+			/* Drop folio beyond EOF: ->index >= end */
-+			if (shmem_mapping(mapping))
-+				nr_shmem_dropped += nr_pages;
-+			else if (folio_test_clear_dirty(new_folio))
-+				folio_account_cleaned(
-+					new_folio, inode_to_wb(mapping->host));
-+			__filemap_remove_folio(new_folio, NULL);
-+			folio_put_refs(new_folio, nr_pages);
- 		}
- 		/*
- 		 * Unfreeze @folio only after all page cache entries, which
+ free_leaf:
+-	mt_free_rcu(&node->rcu);
++	mt_free_one(node);
+ }
+ 
+ static inline void __rcu **mte_destroy_descend(struct maple_enode **enode,
+@@ -5365,7 +5358,7 @@ next:
+ 
+ free_leaf:
+ 	if (free)
+-		mt_free_rcu(&node->rcu);
++		mt_free_one(node);
+ 	else
+ 		mt_clear_meta(mt, node, node->type);
+ }
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from pfalcato@suse.de are
 
-selftests-mm-fix-split_huge_page_test-for-folio_split-tests.patch
-mm-huge_memory-move-unrelated-code-out-of-__split_unmapped_folio.patch
-mm-huge_memory-remove-after_split-label-in-__split_unmapped_folio.patch
-mm-huge_memory-deduplicate-code-in-__folio_split.patch
-mm-huge_memory-convert-vm_bug-to-vm_warn-in-__folio_split.patch
-mm-huge_memory-get-frozen-folio-refcount-with-folio_expected_ref_count.patch
-mm-huge_memory-refactor-after-split-page-cache-code.patch
+maple_tree-use-kfree_rcu-in-ma_free_rcu.patch
+testing-radix-tree-maple-hack-around-kfree_rcu-not-existing.patch
 
