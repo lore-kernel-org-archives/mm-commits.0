@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E8811712
-	for <mm-commits@vger.kernel.org>; Fri, 18 Jul 2025 21:29:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8F261DA10B
+	for <mm-commits@vger.kernel.org>; Sat, 19 Jul 2025 23:11:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752874174; cv=none; b=dg7YdyvlzjjUtHgBXJ6jv58ebU42mHXYrzaO7/cmDlIe3Yi+ak4lACRjo8BfKninZJ+Lb41OMlZf1EvGI0hvQPK9Jky+I8UtzgSBgEZjPoFS8FTlgC3Kd9ORAPF5/zib/uc1RewawCOBTX4atmyuPZ3/F4xgiYRx6tya6mHdZdI=
+	t=1752966696; cv=none; b=rfT6x6uNeFMfuDfufnJ4QsuOp97/GeNgPXdoXQeKxLkmkaV9HLZ+N99R7FBy8Fh0u0vANuki6N6BKHOVUKxFUhVkWs8AmJaWNnGbPszeHAzM8FzqaeLxuey215O558vjXC+wFbvGD55m0RjZfpE0jdzKVk36uLTA5PYDePWMpj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752874174; c=relaxed/simple;
-	bh=Df/NEXolldqSR1WV9OIqu08FnAhO1kQ8hnl8Z0T5+nw=;
-	h=Date:To:From:Subject:Message-Id; b=c3/0+YPbmJ+DT9MgxN6RSYAl+DRP73Iyi/ofIqM80QGArc3BnY38+sUrrRFa6A+plI7yc6GSqXqbzdWqly7rqMoIryMhnNPuRjBKVbZhz7nSce/32QJYO6Iyh5zR8m5bzkBG2sRYI2wNJ48CVfHROaZQjfoZPdAgtZCvFDxzjZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xOgeWpEq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752966696; c=relaxed/simple;
+	bh=b4bvIMBJw2Y23Tv1cnm33nXGTs1sNjAb32nTyM6KzLI=;
+	h=Date:To:From:Subject:Message-Id; b=Mnuzd3KR+tfBCrCPqyxOqUdLvPv4h+kof+jWBvCJzffaYwpxLaUGoSzJ84GGnNNbdwI8saziBkjsWvJ1ROw440BydZdqcewSMInRNrIpUBekSc0PrryFlUHqc2xDKcj/ZJhW5KV4rPgyWGi/8dyVarCfQnbrC0U6ccZ3g0YRZ5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OcCVZ02K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xOgeWpEq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10BA9C4CEEB;
-	Fri, 18 Jul 2025 21:29:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OcCVZ02K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31153C4CEE3;
+	Sat, 19 Jul 2025 23:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752874174;
-	bh=Df/NEXolldqSR1WV9OIqu08FnAhO1kQ8hnl8Z0T5+nw=;
+	s=korg; t=1752966696;
+	bh=b4bvIMBJw2Y23Tv1cnm33nXGTs1sNjAb32nTyM6KzLI=;
 	h=Date:To:From:Subject:From;
-	b=xOgeWpEqkePZxGEpUbw+dUOceYsBNi3HpEev4FbWThBVqWfQQQxC+4kFvr5JYbMx8
-	 vtoaXLYq5fAAiwzLzUPRIjvxNYz1bDNLXMYytPGUCd7bQnlqZUuUDaSA+pJEmNhI2k
-	 IJeNNHsQmio+HRX/+9q2qCL2Ou6FQvEgAy0dF6r4=
-Date: Fri, 18 Jul 2025 14:29:33 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,mfleming@cloudflare.com,akpm@linux-foundation.org
+	b=OcCVZ02K3RCNu+wR+KffVSbwgeyRCqV6MiEh+CZ9x3iRUiweAlkPmGd510swBVl9U
+	 vLv1pLbhQ/nYhVQmCca6/ksUPyhyIb6zLPoZwFky3nFmMV3r4ZnHyyP5WqPRu2LJtI
+	 2fzq8wxpNBo3ea7RURVLBRf1ACecfwd7xqvY8cAQ=
+Date: Sat, 19 Jul 2025 16:11:35 -0700
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + stackdepot-make-max-number-of-pools-boot-time-configurable.patch added to mm-nonmm-unstable branch
-Message-Id: <20250718212934.10BA9C4CEEB@smtp.kernel.org>
+Subject: + mm-cma-simplify-cma_debug_show_areas.patch added to mm-new branch
+Message-Id: <20250719231136.31153C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: stackdepot: make max number of pools boot-time configurable
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     stackdepot-make-max-number-of-pools-boot-time-configurable.patch
+     Subject: mm: cma: simplify cma_debug_show_areas()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-cma-simplify-cma_debug_show_areas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-make-max-number-of-pools-boot-time-configurable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-simplify-cma_debug_show_areas.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,167 +64,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Matt Fleming <mfleming@cloudflare.com>
-Subject: stackdepot: make max number of pools boot-time configurable
-Date: Fri, 18 Jul 2025 16:39:28 +0100
+From: Yury Norov (NVIDIA) <yury.norov@gmail.com>
+Subject: mm: cma: simplify cma_debug_show_areas()
+Date: Sat, 19 Jul 2025 16:53:59 -0400
 
-We're hitting the WARN in depot_init_pool() about reaching the stack depot
-limit because we have long stacks that don't dedup very well.
+The function opencodes for_each_clear_bitrange().  Fix that and drop most
+of housekeeping code.
 
-Introduce a new start-up parameter to allow users to set the number of
-maximum stack depot pools.
-
-Link: https://lkml.kernel.org/r/20250718153928.94229-1-matt@readmodwrite.com
-Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Macro Elver <elver@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250719205401.399475-2-yury.norov@gmail.com
+Signed-off-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    5 +
- lib/stackdepot.c                                |   67 ++++++++++++--
- 2 files changed, 63 insertions(+), 9 deletions(-)
+ mm/cma.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~stackdepot-make-max-number-of-pools-boot-time-configurable
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -7029,6 +7029,11 @@
- 			consumed by the stack hash table. By default this is set
- 			to false.
+--- a/mm/cma.c~mm-cma-simplify-cma_debug_show_areas
++++ a/mm/cma.c
+@@ -751,8 +751,7 @@ int __init cma_declare_contiguous_nid(ph
  
-+	stack_depot_max_pools= [KNL,EARLY]
-+			Specify the maximum number of pools to use for storing
-+			stack traces. Pools are allocated on-demand up to this
-+			limit. Default value is 8191 pools.
-+
- 	stacktrace	[FTRACE]
- 			Enabled the stack tracer on boot up.
- 
---- a/lib/stackdepot.c~stackdepot-make-max-number-of-pools-boot-time-configurable
-+++ a/lib/stackdepot.c
-@@ -36,11 +36,11 @@
- #include <linux/memblock.h>
- #include <linux/kasan-enabled.h>
- 
--#define DEPOT_POOLS_CAP 8192
--/* The pool_index is offset by 1 so the first record does not have a 0 handle. */
--#define DEPOT_MAX_POOLS \
--	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
--	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
-+/*
-+ * The pool_index is offset by 1 so the first record does not have a 0 handle.
-+ */
-+static unsigned int stack_max_pools __read_mostly =
-+	MIN((1LL << DEPOT_POOL_INDEX_BITS) - 1, 8192);
- 
- static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
-@@ -62,7 +62,7 @@ static unsigned int stack_bucket_number_
- static unsigned int stack_hash_mask;
- 
- /* Array of memory regions that store stack records. */
--static void *stack_pools[DEPOT_MAX_POOLS];
-+static void **stack_pools;
- /* Newly allocated pool that is not yet added to stack_pools. */
- static void *new_pool;
- /* Number of pools in stack_pools. */
-@@ -101,6 +101,34 @@ static int __init disable_stack_depot(ch
- }
- early_param("stack_depot_disable", disable_stack_depot);
- 
-+static int __init parse_max_pools(char *str)
-+{
-+	const long long limit = (1LL << (DEPOT_POOL_INDEX_BITS)) - 1;
-+	unsigned int max_pools;
-+	int rv;
-+
-+	rv = kstrtouint(str, 0, &max_pools);
-+	if (rv)
-+		return rv;
-+
-+	if (max_pools < 1024) {
-+		pr_err("stack_depot_max_pools below 1024, using default of %u\n",
-+		       stack_max_pools);
-+		goto out;
-+	}
-+
-+	if (max_pools > limit) {
-+		pr_err("stack_depot_max_pools exceeds %lld, using default of %u\n",
-+		       limit, stack_max_pools);
-+		goto out;
-+	}
-+
-+	stack_max_pools = max_pools;
-+out:
-+	return 0;
-+}
-+early_param("stack_depot_max_pools", parse_max_pools);
-+
- void __init stack_depot_request_early_init(void)
+ static void cma_debug_show_areas(struct cma *cma)
  {
- 	/* Too late to request early init now. */
-@@ -182,6 +210,17 @@ int __init stack_depot_early_init(void)
+-	unsigned long next_zero_bit, next_set_bit, nr_zero;
+-	unsigned long start;
++	unsigned long start, end;
+ 	unsigned long nr_part;
+ 	unsigned long nbits;
+ 	int r;
+@@ -763,22 +762,12 @@ static void cma_debug_show_areas(struct
+ 	for (r = 0; r < cma->nranges; r++) {
+ 		cmr = &cma->ranges[r];
+ 
+-		start = 0;
+ 		nbits = cma_bitmap_maxno(cma, cmr);
+ 
+ 		pr_info("range %d: ", r);
+-		for (;;) {
+-			next_zero_bit = find_next_zero_bit(cmr->bitmap,
+-							   nbits, start);
+-			if (next_zero_bit >= nbits)
+-				break;
+-			next_set_bit = find_next_bit(cmr->bitmap, nbits,
+-						     next_zero_bit);
+-			nr_zero = next_set_bit - next_zero_bit;
+-			nr_part = nr_zero << cma->order_per_bit;
+-			pr_cont("%s%lu@%lu", start ? "+" : "", nr_part,
+-				next_zero_bit);
+-			start = next_zero_bit + nr_zero;
++		for_each_clear_bitrange(start, end, cmr->bitmap, nbits) {
++			nr_part = (end - start) << cma->order_per_bit;
++			pr_cont("%s%lu@%lu", start ? "+" : "", nr_part, start);
+ 		}
+ 		pr_info("\n");
  	}
- 	init_stack_table(entries);
- 
-+	pr_info("allocating space for %u stack pools via memblock\n",
-+		stack_max_pools);
-+	stack_pools =
-+		memblock_alloc(stack_max_pools * sizeof(void *), PAGE_SIZE);
-+	if (!stack_pools) {
-+		pr_err("stack pools allocation failed, disabling\n");
-+		memblock_free(stack_table, entries * sizeof(struct list_head));
-+		stack_depot_disabled = true;
-+		return -ENOMEM;
-+	}
-+
- 	return 0;
- }
- 
-@@ -231,6 +270,16 @@ int stack_depot_init(void)
- 	stack_hash_mask = entries - 1;
- 	init_stack_table(entries);
- 
-+	pr_info("allocating space for %u stack pools via kvcalloc\n",
-+		stack_max_pools);
-+	stack_pools = kvcalloc(stack_max_pools, sizeof(void *), GFP_KERNEL);
-+	if (!stack_pools) {
-+		pr_err("stack pools allocation failed, disabling\n");
-+		kvfree(stack_table);
-+		stack_depot_disabled = true;
-+		ret = -ENOMEM;
-+	}
-+
- out_unlock:
- 	mutex_unlock(&stack_depot_init_mutex);
- 
-@@ -245,9 +294,9 @@ static bool depot_init_pool(void **preal
- {
- 	lockdep_assert_held(&pool_lock);
- 
--	if (unlikely(pools_num >= DEPOT_MAX_POOLS)) {
-+	if (unlikely(pools_num >= stack_max_pools)) {
- 		/* Bail out if we reached the pool limit. */
--		WARN_ON_ONCE(pools_num > DEPOT_MAX_POOLS); /* should never happen */
-+		WARN_ON_ONCE(pools_num > stack_max_pools); /* should never happen */
- 		WARN_ON_ONCE(!new_pool); /* to avoid unnecessary pre-allocation */
- 		WARN_ONCE(1, "Stack depot reached limit capacity");
- 		return false;
-@@ -273,7 +322,7 @@ static bool depot_init_pool(void **preal
- 	 * NULL; do not reset to NULL if we have reached the maximum number of
- 	 * pools.
- 	 */
--	if (pools_num < DEPOT_MAX_POOLS)
-+	if (pools_num < stack_max_pools)
- 		WRITE_ONCE(new_pool, NULL);
- 	else
- 		WRITE_ONCE(new_pool, STACK_DEPOT_POISON);
 _
 
-Patches currently in -mm which might be from mfleming@cloudflare.com are
+Patches currently in -mm which might be from yury.norov@gmail.com are
 
-stackdepot-make-max-number-of-pools-boot-time-configurable.patch
+mm-cma-simplify-cma_debug_show_areas.patch
+mm-cma-simplify-cma_maxchunk_get.patch
 
