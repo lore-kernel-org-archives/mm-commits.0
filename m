@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0D5C20101F
-	for <mm-commits@vger.kernel.org>; Sat, 19 Jul 2025 23:31:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2E091CD1E4
+	for <mm-commits@vger.kernel.org>; Sat, 19 Jul 2025 23:39:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752967914; cv=none; b=WMUqP0gY7xJTHO4DUe5o75tOrHojKIawW3XBQRhE1TU1R9FaUuL1LRJKpBMeA5LxKkC2Kmz60Y0N/MJoJwoQptyvBpiDtBxhLiPMK7RhwHIkGP6frW/wrTK0Iq3xtyfYBFrWVpaeTxzDLEDIXnJaKbid0LbBcThPAGlo7BxMhMA=
+	t=1752968361; cv=none; b=MFEj75IASvPVDV2Gzv4Rm0keh2PY0cIv+KJ/xjdAM/KEgxUvLaxCP65X29apCk7kkjU8+DIMf/y9FVX9QjsWtdBh1kKqebtaM2euS3dZy8NmGh9YXp5AXmkuPGhOp9bDmAbhf1+hJcHSccWyC0zV/GsODm5txs+GYZTBxNBuw9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752967914; c=relaxed/simple;
-	bh=Ogu0qNWaPjLkBbKWr//Gu7yp5uzNjmW9j4iUUN1rbSg=;
-	h=Date:To:From:Subject:Message-Id; b=Sgn6lhhlrn1MkrBsshMwPFNFV5HrMplh6keMed2VB33agO7kp+AVtKMJoLDDArhR+5NT7NxeknWxAQzkUW1wBFpEnYoFqIOm+BFe2TJGxTvzpedi19RLirSYUJn6WmIGo/sh5noMLO92vUdiPnqgrFhZ8g3M4TSgTY3S+KCxuM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RzkyUohN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752968361; c=relaxed/simple;
+	bh=cAOt8FDu41S4AjHIiM52sL8OgY0QhM9EPzi9SZLVdFQ=;
+	h=Date:To:From:Subject:Message-Id; b=J21ludwXNrQ09HLGpfBUxOWtiRyNkcvTcRnLazU1nha1s3NRq2GGKfUKuyIY7G9KhVGSFwZgecmZyyIveqDsdb1wzZqbqQtoZu9R448ySxbQd3lxOfkOsYCbGuNu4DYw3z3VWmuysGcw8pTVXO5bBw9IK6iq46L8I3Tt8nagEJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hot6nxc3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RzkyUohN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DC36C4CEE3;
-	Sat, 19 Jul 2025 23:31:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hot6nxc3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AFF6C4CEE3;
+	Sat, 19 Jul 2025 23:39:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752967913;
-	bh=Ogu0qNWaPjLkBbKWr//Gu7yp5uzNjmW9j4iUUN1rbSg=;
+	s=korg; t=1752968361;
+	bh=cAOt8FDu41S4AjHIiM52sL8OgY0QhM9EPzi9SZLVdFQ=;
 	h=Date:To:From:Subject:From;
-	b=RzkyUohNcndsi41X4LM/q8K0Zt5jhNRPaXEZ/jpuagNkDWd9PO4RzwdVmppJ5gy12
-	 ekWeI67o5NKleF8aiw76pQX0Ea7O53ey7kF7Ny8okxlefSp8OuDvJgfiIhDeEaNzkr
-	 tAMvFHTgwmV9ycBkwdN4D1CJc6kaxkfOChOuAZyE=
-Date: Sat, 19 Jul 2025 16:31:52 -0700
-To: mm-commits@vger.kernel.org,akinobu.mita@gmail.com,akpm@linux-foundation.org
+	b=hot6nxc38TCN1gqRFRxmKYfiCPrfEV39V+jq1zdmShald5R871g1wD/8w9mMR/J0z
+	 ZLOG9Y8gSRF7FIue+iwxR89vkFub/pL4Xmp/mMw1zUdW03dx2q2v7cw5+kCzSozAzi
+	 kWIUUxHNpfT7w2lcmhoNEYxPeJ/m/gGTW697JHrU=
+Date: Sat, 19 Jul 2025 16:39:20 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,rientjes@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-fix-false-warning-in-__request_region.patch added to mm-nonmm-unstable branch
-Message-Id: <20250719233153.1DC36C4CEE3@smtp.kernel.org>
+Subject: + mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix.patch added to mm-unstable branch
+Message-Id: <20250719233921.3AFF6C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource: fix false warning in __request_region()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-fix-false-warning-in-__request_region.patch
+     Subject: mm/shmem: writeout free swap if swap_writeout() reactivates fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-fix-false-warning-in-__request_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,45 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: resource: fix false warning in __request_region()
-Date: Sat, 19 Jul 2025 20:26:04 +0900
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/shmem: writeout free swap if swap_writeout() reactivates fix
+Date: Fri, 18 Jul 2025 17:56:52 -0700 (PDT)
 
-A warning is raised when __request_region() detects a conflict with a
-resource whose resource.desc is IORES_DESC_DEVICE_PRIVATE_MEMORY.
+Per Baolin: use shmem_recalc_inode() rather than open coding.
 
-But this warning is only valid for iomem_resources.
-The hmem device resource uses resource.desc as the numa node id, which can
-cause spurious warnings.
-
-This change fixes this by restricting the warning to only iomem_resource.
-This also adds a missing new line to the warning message.
-
-Link: https://lkml.kernel.org/r/20250719112604.25500-1-akinobu.mita@gmail.com
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Link: https://lkml.kernel.org/r/101a7d89-290c-545d-8a6d-b1174ed8b1e5@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/shmem.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/kernel/resource.c~resource-fix-false-warning-in-__request_region
-+++ a/kernel/resource.c
-@@ -1279,8 +1279,9 @@ static int __request_region_locked(struc
- 		 * become unavailable to other users.  Conflicts are
- 		 * not expected.  Warn to aid debugging if encountered.
- 		 */
--		if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
--			pr_warn("Unaddressable device %s %pR conflicts with %pR",
-+		if (parent == &iomem_resource &&
-+		    conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
-+			pr_warn("Unaddressable device %s %pR conflicts with %pR\n",
- 				conflict->name, conflict, res);
+--- a/mm/shmem.c~mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix
++++ a/mm/shmem.c
+@@ -1692,9 +1692,7 @@ try_split:
+ 				__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
+ 		/* Swap entry might be erased by racing shmem_free_swap() */
+ 		if (!error) {
+-			spin_lock(&info->lock);
+-			info->swapped -= nr_pages;
+-			spin_unlock(&info->lock);
++			shmem_recalc_inode(inode, 0, -nr_pages);
+ 			swap_free_nr(folio->swap, nr_pages);
  		}
- 		if (conflict != parent) {
+ 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-resource-fix-false-warning-in-__request_region.patch
+mm-optimize-lru_note_cost-by-adding-lru_note_cost_unlock_irq.patch
+mm-optimize-lru_note_cost-by-adding-lru_note_cost_unlock_irq-fix.patch
+mm-shmem-hold-shmem_swaplist-spinlock-not-mutex-much-less.patch
+mm-shmem-writeout-free-swap-if-swap_writeout-reactivates.patch
+mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix.patch
 
