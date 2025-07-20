@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D91F11624E1
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF936157E6B
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752977362; cv=none; b=KDYu2ldhSj2atFcAp+NQmwhfjo1AvJyz/ldo63mmyqALDyaBBo7rBXW8uX3x3Zh8yhzQ9Pifu3z8zphzyd0/jQ5W3kRHtGwouAhvvX8V4pWh3iL6LUYzlqfS8z0e4OkB4V0inx+r3wWfO8jMIu0JU9VyVATPGXZp5n2NGLuJ5Ls=
+	t=1752977364; cv=none; b=Qb724laSYUnMqISUsqVbswf7+gNHr4soKAzD9rbsH9IslvD03rrOfPiShII4SxxjzCDe65Ts1B5M2aFkoEtIP9j7tPxj/Af11q32iXfwu0QpMF+/KWLDanpTvn4pX1pYV6F1OPUCiZl820FYxptFHGUn9bwXNXZ9Bk/QzE/nqOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752977362; c=relaxed/simple;
-	bh=1hh+OjoL3Zki/+Z0lgpjvRWMZhzNIDOjgOladDv3jJI=;
-	h=Date:To:From:Subject:Message-Id; b=VkUX7Xcx7c7nf4rg5qSeEFsk/StWd4YvOeWIlkfbvhqD0psUEUZnqvB+Kgk4wdsEWUyBqXgiC8KckOajkJ+B1RnTc3G9DRVZpkilG5WnYV6/JyaJcEAJlFaZrg5eVdJB+pGqPNMm8DmwUMvHNlQzHbGjamxd8v1j5qkcP+kmm+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0qLTvP3s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752977364; c=relaxed/simple;
+	bh=7ANlbXGXyckBQ7T9A+r9EGZCsTJPBFLh/C11i/h++Qs=;
+	h=Date:To:From:Subject:Message-Id; b=jAai6QOngj6786NfcUZciLYPfLOzHvM/f2jAeq51m7DZs6NLnxQiarLcHnVTgMj9pqgyrXD9y8/Fi0fkpAyZst5bjcBG+W7bIgaNRq4MNxDSl63yK29KQchJ+qj3oC9OO8uh2lPyqlr4/DOUu8wNpil/4ns0CE81fyAWSyKXNbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2F+aG4/M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0qLTvP3s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB56EC4CEE3;
-	Sun, 20 Jul 2025 02:09:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2F+aG4/M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C534CC4CEE3;
+	Sun, 20 Jul 2025 02:09:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752977362;
-	bh=1hh+OjoL3Zki/+Z0lgpjvRWMZhzNIDOjgOladDv3jJI=;
+	s=korg; t=1752977363;
+	bh=7ANlbXGXyckBQ7T9A+r9EGZCsTJPBFLh/C11i/h++Qs=;
 	h=Date:To:From:Subject:From;
-	b=0qLTvP3sgWJEeHBRLsgvNmjDBU8xrwxeXMaFlTQzwfPDqUijoQYijy94OWMzT9gJr
-	 3t/LCuQPBa0S4MZNUpTLa1GmPYmo8IhVjrT/zGHiwfpbb6ARQxR/VZCtSrpM2KImE6
-	 bpThhTeCnDZe3FXBPViliyD5d26Lw9VmKuizwxnQ=
-Date: Sat, 19 Jul 2025 19:09:22 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,peterz@infradead.org,mingzhe.yang@ly.com,mingo@redhat.com,mhiramat@kernel.org,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,jstultz@google.com,joel.granados@kernel.org,boqun.feng@gmail.com,anna.schumaker@oracle.com,zi.li@linux.dev,akpm@linux-foundation.org
+	b=2F+aG4/M8PbTtKcP3PTLk6uCMr/VonNWlOAZ/nJmxLwQMSP+QqiOtqmGOAIwCoFle
+	 oU14DOOXQxQJMFHmfRIH2wsJvfz+/LTnvdH94ruve3Tue/3P2OO2NuEwlz7nh+BVgM
+	 x12yKuhbvN+j9uitRgO4uBRtFN6d8MCpkIfVdqm8=
+Date: Sat, 19 Jul 2025 19:09:23 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,lillian@star-ark.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] samples-enhance-hung_task-detector-test-with-read-write-semaphore-support.patch removed from -mm tree
-Message-Id: <20250720020922.AB56EC4CEE3@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] init-mainc-add-warning-when-file-specified-in-rdinit-is-inaccessible.patch removed from -mm tree
+Message-Id: <20250720020923.C534CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,224 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples: enhance hung_task detector test with read-write semaphore support
+     Subject: init/main.c: add warning when file specified in rdinit is inaccessible
 has been removed from the -mm tree.  Its filename was
-     samples-enhance-hung_task-detector-test-with-read-write-semaphore-support.patch
+     init-mainc-add-warning-when-file-specified-in-rdinit-is-inaccessible.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Li <zi.li@linux.dev>
-Subject: samples: enhance hung_task detector test with read-write semaphore support
-Date: Fri, 27 Jun 2025 15:29:24 +0800
+From: Lillian Berry <lillian@star-ark.net>
+Subject: init/main.c: add warning when file specified in rdinit is inaccessible
+Date: Mon, 7 Jul 2025 09:14:11 +0000
 
-Extend the hung_task detector test module to include read-write semaphore
-support alongside existing mutex and semaphore tests.  This module now
-creates additional debugfs files under <debugfs>/hung_task, namely
-'rw_semaphore_read' and 'rw_semaphore_write', in addition to 'mutex' and
-'semaphore'.  Reading these files with multiple processes triggers a
-prolonged sleep (256 seconds) while holding the respective lock, enabling
-hung_task detector testing for various locking mechanisms.
+Avoid silently ignoring the initramfs when the file specified in rdinit is
+not usable.  This prints an error that clearly explains the issue (file
+was not found, vs initramfs was not found).
 
-This change builds on the extensible hung_task_tests module, adding
-read-write semaphore functionality to improve test coverage for kernel
-locking primitives.  The implementation ensures proper lock handling and
-includes checks to prevent redundant data reads.
-
-Usage is:
-
-        > cd /sys/kernel/debug/hung_task
-        > cat mutex & cat mutex           # Test mutex blocking
-        > cat semaphore & cat semaphore   # Test semaphore blocking
-        > cat rw_semaphore_write \
-            & cat rw_semaphore_read       # Test rwsem blocking
-        > cat rw_semaphore_write \
-            & cat rw_semaphore_write      # Test rwsem blocking
-
-Update the Kconfig description to reflect the addition of read-write
-semaphore debugfs files.
-
-Link: https://lkml.kernel.org/r/20250627072924.36567-4-lance.yang@linux.dev
-Signed-off-by: Zi Li <zi.li@linux.dev>
-Suggested-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: John Stultz <jstultz@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Mingzhe Yang <mingzhe.yang@ly.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tomasz Figa <tfiga@chromium.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yongliang Gao <leonylgao@tencent.com>
+Link: https://lkml.kernel.org/r/20250707091411.1412681-1-lillian@star-ark.net
+Signed-off-by: Lillian Berry <lillian@star-ark.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/Kconfig                     |    7 --
- samples/hung_task/hung_task_tests.c |   81 +++++++++++++++++++++++---
- 2 files changed, 77 insertions(+), 11 deletions(-)
+ init/main.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/samples/hung_task/hung_task_tests.c~samples-enhance-hung_task-detector-test-with-read-write-semaphore-support
-+++ a/samples/hung_task/hung_task_tests.c
-@@ -4,11 +4,12 @@
-  * semaphore, etc.
-  *
-  * Usage: Load this module and read `<debugfs>/hung_task/mutex`,
-- *        `<debugfs>/hung_task/semaphore`, etc., with 2 or more processes.
-+ *        `<debugfs>/hung_task/semaphore`, `<debugfs>/hung_task/rw_semaphore_read`,
-+ *        `<debugfs>/hung_task/rw_semaphore_write`, etc., with 2 or more processes.
-  *
-  * This is for testing kernel hung_task error messages with various locking
-- * mechanisms (e.g., mutex, semaphore, etc.). Note that this may freeze
-- * your system or cause a panic. Use only for testing purposes.
-+ * mechanisms (e.g., mutex, semaphore, rw_semaphore_read, rw_semaphore_write, etc.).
-+ * Note that this may freeze your system or cause a panic. Use only for testing purposes.
-  */
- 
- #include <linux/debugfs.h>
-@@ -17,21 +18,29 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/semaphore.h>
-+#include <linux/rwsem.h>
- 
--#define HUNG_TASK_DIR		"hung_task"
--#define HUNG_TASK_MUTEX_FILE	"mutex"
--#define HUNG_TASK_SEM_FILE	"semaphore"
--#define SLEEP_SECOND		256
-+#define HUNG_TASK_DIR			"hung_task"
-+#define HUNG_TASK_MUTEX_FILE		"mutex"
-+#define HUNG_TASK_SEM_FILE		"semaphore"
-+#define HUNG_TASK_RWSEM_READ_FILE	"rw_semaphore_read"
-+#define HUNG_TASK_RWSEM_WRITE_FILE	"rw_semaphore_write"
-+#define SLEEP_SECOND			256
- 
- static const char dummy_string[] = "This is a dummy string.";
- static DEFINE_MUTEX(dummy_mutex);
- static DEFINE_SEMAPHORE(dummy_sem, 1);
-+static DECLARE_RWSEM(dummy_rwsem);
- static struct dentry *hung_task_dir;
- 
- /* Mutex-based read function */
- static ssize_t read_dummy_mutex(struct file *file, char __user *user_buf,
- 				size_t count, loff_t *ppos)
- {
-+	/* Check if data is already read */
-+	if (*ppos >= sizeof(dummy_string))
-+		return 0;
-+
- 	/* Second task waits on mutex, entering uninterruptible sleep */
- 	guard(mutex)(&dummy_mutex);
- 
-@@ -46,6 +55,10 @@ static ssize_t read_dummy_mutex(struct f
- static ssize_t read_dummy_semaphore(struct file *file, char __user *user_buf,
- 				    size_t count, loff_t *ppos)
- {
-+	/* Check if data is already read */
-+	if (*ppos >= sizeof(dummy_string))
-+		return 0;
-+
- 	/* Second task waits on semaphore, entering uninterruptible sleep */
- 	down(&dummy_sem);
- 
-@@ -58,6 +71,46 @@ static ssize_t read_dummy_semaphore(stru
- 				       sizeof(dummy_string));
- }
- 
-+/* Read-write semaphore read function */
-+static ssize_t read_dummy_rwsem_read(struct file *file, char __user *user_buf,
-+				     size_t count, loff_t *ppos)
-+{
-+	/* Check if data is already read */
-+	if (*ppos >= sizeof(dummy_string))
-+		return 0;
-+
-+	/* Acquires read lock, allowing concurrent readers but blocks if write lock is held */
-+	down_read(&dummy_rwsem);
-+
-+	/* Sleeps here, potentially triggering hung task detection if lock is held too long */
-+	msleep_interruptible(SLEEP_SECOND * 1000);
-+
-+	up_read(&dummy_rwsem);
-+
-+	return simple_read_from_buffer(user_buf, count, ppos, dummy_string,
-+				       sizeof(dummy_string));
-+}
-+
-+/* Read-write semaphore write function */
-+static ssize_t read_dummy_rwsem_write(struct file *file, char __user *user_buf,
-+				      size_t count, loff_t *ppos)
-+{
-+	/* Check if data is already read */
-+	if (*ppos >= sizeof(dummy_string))
-+		return 0;
-+
-+	/* Acquires exclusive write lock, blocking all other readers and writers */
-+	down_write(&dummy_rwsem);
-+
-+	/* Sleeps here, potentially triggering hung task detection if lock is held too long */
-+	msleep_interruptible(SLEEP_SECOND * 1000);
-+
-+	up_write(&dummy_rwsem);
-+
-+	return simple_read_from_buffer(user_buf, count, ppos, dummy_string,
-+				       sizeof(dummy_string));
-+}
-+
- /* File operations for mutex */
- static const struct file_operations hung_task_mutex_fops = {
- 	.read = read_dummy_mutex,
-@@ -68,6 +121,16 @@ static const struct file_operations hung
- 	.read = read_dummy_semaphore,
- };
- 
-+/* File operations for rw_semaphore read */
-+static const struct file_operations hung_task_rwsem_read_fops = {
-+	.read = read_dummy_rwsem_read,
-+};
-+
-+/* File operations for rw_semaphore write */
-+static const struct file_operations hung_task_rwsem_write_fops = {
-+	.read = read_dummy_rwsem_write,
-+};
-+
- static int __init hung_task_tests_init(void)
- {
- 	hung_task_dir = debugfs_create_dir(HUNG_TASK_DIR, NULL);
-@@ -79,6 +142,10 @@ static int __init hung_task_tests_init(v
- 			    &hung_task_mutex_fops);
- 	debugfs_create_file(HUNG_TASK_SEM_FILE, 0400, hung_task_dir, NULL,
- 			    &hung_task_sem_fops);
-+	debugfs_create_file(HUNG_TASK_RWSEM_READ_FILE, 0400, hung_task_dir, NULL,
-+			    &hung_task_rwsem_read_fops);
-+	debugfs_create_file(HUNG_TASK_RWSEM_WRITE_FILE, 0400, hung_task_dir, NULL,
-+			    &hung_task_rwsem_write_fops);
- 
- 	return 0;
- }
---- a/samples/Kconfig~samples-enhance-hung_task-detector-test-with-read-write-semaphore-support
-+++ a/samples/Kconfig
-@@ -316,10 +316,9 @@ config SAMPLE_HUNG_TASK
- 	depends on DETECT_HUNG_TASK && DEBUG_FS
- 	help
- 	  Build a module that provides debugfs files (e.g., mutex, semaphore,
--	  etc.) under <debugfs>/hung_task. If user reads one of these files,
--	  it will sleep long time (256 seconds) with holding a lock. Thus,
--	  if 2 or more processes read the same file concurrently, it will
--	  be detected by the hung_task watchdog.
-+	  rw_semaphore_read, rw_semaphore_write) under <debugfs>/hung_task.
-+	  Reading these files with multiple processes triggers hung task
-+	  detection by holding locks for a long time (256 seconds).
- 
- source "samples/rust/Kconfig"
- 
+--- a/init/main.c~init-mainc-add-warning-when-file-specified-in-rdinit-is-inaccessible
++++ a/init/main.c
+@@ -1592,7 +1592,11 @@ static noinline void __init kernel_init_
+ 	 * check if there is an early userspace init.  If yes, let it do all
+ 	 * the work
+ 	 */
+-	if (init_eaccess(ramdisk_execute_command) != 0) {
++	int ramdisk_command_access;
++	ramdisk_command_access = init_eaccess(ramdisk_execute_command);
++	if (ramdisk_command_access != 0) {
++		pr_warn("check access for rdinit=%s failed: %i, ignoring\n",
++			ramdisk_execute_command, ramdisk_command_access);
+ 		ramdisk_execute_command = NULL;
+ 		prepare_namespace();
+ 	}
 _
 
-Patches currently in -mm which might be from zi.li@linux.dev are
+Patches currently in -mm which might be from lillian@star-ark.net are
 
 
