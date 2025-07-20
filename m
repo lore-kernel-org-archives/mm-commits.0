@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B6515687D
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6872F15687D
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752977366; cv=none; b=EJfoqLh1Jmk0iwuQW+bT/GVZHGxii9J79o0g1gfGDOZ2q+4AVyhErAYpTFOHLLNTgx6U5Kx0MsDmHakg2vtsVtEOrlYIzXI/7xq/KX19V1KzVeTOGZq56l3xEF8tGAhnOrBlqd/85Ki+TK/mwdoNEYWyqjzCmzNdn4g0Aye22bo=
+	t=1752977367; cv=none; b=Vo77BTg3bNP09T5KoiCCAdMb4c+WorOEkfFjqrWSz8VqF92gNgFxJ79YYIjvFXJMAlE82tL60Zh2K1ZrhkP47oQ7SUacT5B/hSX78nlWZOG1WCUeaaVWi/d2nuIa2hjNX03pkFjK3JIx/7yqTF1Y4W6keMC8CgfWjCommkAAqjU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752977366; c=relaxed/simple;
-	bh=WmI0wwYVhSDcRyLMozow3VzdJa7SMRa4NdYqOBq8y9s=;
-	h=Date:To:From:Subject:Message-Id; b=Q0l1SrlzFOwE2qgN79vX00HehwSl/Or2H8DFracm6YItCChceTr+LOt9MnaKO9C98UtTINwWHalbIz6Y+jxIyfV6FM5lS4tR4/iRRH0yVDXwgFOds0eHGQbZkYtbJbru7LkjuLZ8+8DuiTTnyZXF7qoQAnWYDxGTGqEk1xL7/3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u6TVRhGC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752977367; c=relaxed/simple;
+	bh=v9J+ktJxnXSYYk/R+1x93fSgTDqcKmt++ONxKEziNaw=;
+	h=Date:To:From:Subject:Message-Id; b=OyPC2NVpAux4LeAS7VPwmJNn3PyzEwhkVTh85AH/fFbpc2k9lURf2Z93UxsIgqpJXtfTKXolgJwDxxywBDSNHcdb1JmVoCGH9yurKKYnqJNTVt0wovDITSXYJfd8hi1eSGrGMlyqe/O1IH8bxZAbd3ZFjxK6MduClNe6l7IDQ58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uh/hbpgy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u6TVRhGC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15584C4CEE3;
-	Sun, 20 Jul 2025 02:09:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uh/hbpgy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B71DC4CEE3;
+	Sun, 20 Jul 2025 02:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752977366;
-	bh=WmI0wwYVhSDcRyLMozow3VzdJa7SMRa4NdYqOBq8y9s=;
+	s=korg; t=1752977367;
+	bh=v9J+ktJxnXSYYk/R+1x93fSgTDqcKmt++ONxKEziNaw=;
 	h=Date:To:From:Subject:From;
-	b=u6TVRhGCZVwBJrffqa6RROisyFKLHXQ2CA0qn1fbWue/2GXvSqRX3JirObtY8BGJp
-	 I6y/ZhtgKyBlmujEpkGM/1FMqSjklzIFsai0T3Y22+1mneu1kcyQF1vCDD01s0qW9r
-	 9RgZ4kE1B8FhBu/RnK09NR643dFZiMrtnQKDU8mI=
-Date: Sat, 19 Jul 2025 19:09:25 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,ipravdin.official@gmail.com,akpm@linux-foundation.org
+	b=uh/hbpgy9SuS5oyzx0K+O08FmzsxCvMJ6xhYMUOUjGkg92ZbpJ5lOHpvQz7x50E2F
+	 FiHCYbdSpDdgP0aBf3muvm0AK0IzhEC3l8v60yDIrqB6ntVdsUo5pPNfi83Kj40jgC
+	 Ks3e9v847hUBDfb/ajsAXnMjLbrle/60OJ//ATMY=
+Date: Sat, 19 Jul 2025 19:09:26 -0700
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,colin.i.king@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec.patch removed from -mm tree
-Message-Id: <20250720020926.15584C4CEE3@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-replace-with-and-end-of-fi-declaration.patch removed from -mm tree
+Message-Id: <20250720020927.3B71DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: avoid NULL pointer dereference in dx_dir_lookup_rec()
+     Subject: squashfs: replace ;; with ; and end of fi declaration
 has been removed from the -mm tree.  Its filename was
-     ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec.patch
+     squashfs-replace-with-and-end-of-fi-declaration.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ivan Pravdin <ipravdin.official@gmail.com>
-Subject: ocfs2: avoid NULL pointer dereference in dx_dir_lookup_rec()
-Date: Mon, 7 Jul 2025 20:10:09 -0400
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: squashfs: replace ;; with ; and end of fi declaration
+Date: Tue, 8 Jul 2025 12:49:00 +0100
 
-When a directory entry is not found, ocfs2_dx_dir_lookup_rec() prints an
-error message that unconditionally dereferences the 'rec' pointer. 
-However, if 'rec' is NULL, this leads to a NULL pointer dereference and a
-kernel panic.
+There is an extraneous ; after a declaration, remove it.
 
-Add an explicit check empty extent list to avoid dereferencing NULL
-'rec' pointer.
-
-Link: https://lkml.kernel.org/r/20250708001009.372263-1-ipravdin.official@gmail.com
-Reported-by: syzbot+20282c1b2184a857ac4c@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67cd7e29.050a0220.e1a89.0007.GAE@google.com/
-Signed-off-by: Ivan Pravdin <ipravdin.official@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20250708114900.1883130-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/squashfs/block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec
-+++ a/fs/ocfs2/dir.c
-@@ -798,6 +798,14 @@ static int ocfs2_dx_dir_lookup_rec(struc
- 		}
- 	}
- 
-+	if (le16_to_cpu(el->l_next_free_rec) == 0) {
-+		ret = ocfs2_error(inode->i_sb,
-+				  "Inode %lu has empty extent list at depth %u\n",
-+				  inode->i_ino,
-+				  le16_to_cpu(el->l_tree_depth));
-+		goto out;
-+	}
-+
- 	found = 0;
- 	for (i = le16_to_cpu(el->l_next_free_rec) - 1; i >= 0; i--) {
- 		rec = &el->l_recs[i];
+--- a/fs/squashfs/block.c~squashfs-replace-with-and-end-of-fi-declaration
++++ a/fs/squashfs/block.c
+@@ -83,7 +83,7 @@ static int squashfs_bio_read_cached(stru
+ 	struct folio *head_to_cache = NULL, *tail_to_cache = NULL;
+ 	struct block_device *bdev = fullbio->bi_bdev;
+ 	int start_idx = 0, end_idx = 0;
+-	struct folio_iter fi;;
++	struct folio_iter fi;
+ 	struct bio *bio = NULL;
+ 	int idx = 0;
+ 	int err = 0;
 _
 
-Patches currently in -mm which might be from ipravdin.official@gmail.com are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
 
