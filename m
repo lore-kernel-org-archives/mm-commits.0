@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10B804C97
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:47:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A6704C97
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:47:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752972444; cv=none; b=stoRpQlVPc36nULe8oElMHYlEuKwOgueWQKe41vKHjp9RHnpR1YhNFBT20sOK7fGQbEPV1x6gM8owXNmhmMicSP72Nr/5RISTjbuq6GZsXv47xUuVsNjXDe5lugZQO1gKeapwLc1lz2We7v6VmSdeoDD5Zxr2ZVZtiOQI5ufzPY=
+	t=1752972446; cv=none; b=uji76VlKzOG08jMMeeGdCyEPqtUsUWUYIbA37nUICMOq9Fm9Krwfi6HSs6RbX11gqKe+bwsVIOrDTjAj/5nrVbC3j5KYSw+Nf4hgCGrmwJ19okE4NFXYk4PkzFsRZFIkCNNeudxO75s0Lv57KFCzsBKq8t/ekO0NLggIh+XFHJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752972444; c=relaxed/simple;
-	bh=CgCaxoFNAEoYYZgm9oimZ4wP6geHUZIwhGFreketaIk=;
-	h=Date:To:From:Subject:Message-Id; b=a37LlvluXbDmnSB4pIy3OqccMKCHjF3bFJB6eeyGBh8pov+r/erWlp/TCeWzevZ/9CwVcPFri+F8QRLwGoRMOqEdkvvFJxBx/hDvuyjcKeIwTPk4ZMXlhkMC+yH8ivX7fVr9APoSaHh+DUSYZuj4PGQYkKRrf/ED2wV2PSBArY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=chONkyO8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752972446; c=relaxed/simple;
+	bh=7Zgwkxllymb/EwRQCbysGqctHpNFUcVRVS6JI+QwRzA=;
+	h=Date:To:From:Subject:Message-Id; b=nL+cGdUsCOQpNGuYDGECbpOU5wMkWNTQTBBZ3WO8EkqhtqyWBNQoghhWj+tBjvkxWHGiVtpzA7i6oRrHlK6TCpbBug6axeXMIFmCtSSZEgmYxSfUAXmPKcqi+ZshDkArQVBHFToWwjGqd2UciUgXgQhhVdT0QpwOLrQJsbBjUzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GUA0bCIG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="chONkyO8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 837BBC4CEE3;
-	Sun, 20 Jul 2025 00:47:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GUA0bCIG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB1A7C4CEE3;
+	Sun, 20 Jul 2025 00:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752972443;
-	bh=CgCaxoFNAEoYYZgm9oimZ4wP6geHUZIwhGFreketaIk=;
+	s=korg; t=1752972445;
+	bh=7Zgwkxllymb/EwRQCbysGqctHpNFUcVRVS6JI+QwRzA=;
 	h=Date:To:From:Subject:From;
-	b=chONkyO8gwkeNA0BDTursKvsDsnV+AG3Mj87MLwwEeQhPSyMeYX9HfIVq/w5WD+sX
-	 GU97QWj9RTXeuxhmf9JvdgTs59wkS5LKEO+1mP4SSIy9+ayvk07beaFvdwETeodsV1
-	 S11vccPtb1vejtBGZsn4qRwEgVrhK2UTAJC7A7Ks=
-Date: Sat, 19 Jul 2025 17:47:23 -0700
+	b=GUA0bCIGKbM8SKLjrhlNysgtJ1H3f0MCdgQEJ/oefPmPuqy/CwMa1EE6rcFfBRVqR
+	 X8bUVtLc+OucVCMhtkusZ8W76U37nyug8dD1j37yeCJkMTbQVuQ4pgsBu3DNtHjSQb
+	 ly1Ldh4ijWrClRdkRfQf6UYRhizf/A4SYZGPLjrQ=
+Date: Sat, 19 Jul 2025 17:47:25 -0700
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,k.shutemov@gmail.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,dan.carpenter@linaro.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,antonio@mandelbit.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-deduplicate-code-in-__folio_split.patch added to mm-new branch
-Message-Id: <20250720004723.837BBC4CEE3@smtp.kernel.org>
+Subject: + mm-huge_memory-convert-vm_bug-to-vm_warn-in-__folio_split.patch added to mm-new branch
+Message-Id: <20250720004725.AB1A7C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: deduplicate code in __folio_split()
+     Subject: mm/huge_memory: convert VM_BUG* to VM_WARN* in __folio_split
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-deduplicate-code-in-__folio_split.patch
+     mm-huge_memory-convert-vm_bug-to-vm_warn-in-__folio_split.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-deduplicate-code-in-__folio_split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-convert-vm_bug-to-vm_warn-in-__folio_split.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,152 +65,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: deduplicate code in __folio_split()
-Date: Thu, 17 Jul 2025 22:29:57 -0400
+Subject: mm/huge_memory: convert VM_BUG* to VM_WARN* in __folio_split
+Date: Thu, 17 Jul 2025 22:29:58 -0400
 
-xas unlock, remap_page(), local_irq_enable() are moved out of if branches
-to deduplicate the code.  While at it, add remap_flags to clean up
-remap_page() call site.  nr_dropped is renamed to nr_shmem_dropped, as it
-becomes a variable at __folio_split() scope.
+These VM_BUG* can be handled gracefully without crashing kernel.
 
-Link: https://lkml.kernel.org/r/20250718023000.4044406-4-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250718023000.4044406-5-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Antonio Quartulli <antonio@mandelbit.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Kirill A. Shutemov <k.shutemov@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
 Cc: Mathew Brost <matthew.brost@intel.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   73 +++++++++++++++++++++------------------------
- 1 file changed, 35 insertions(+), 38 deletions(-)
+ mm/huge_memory.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-deduplicate-code-in-__folio_split
+--- a/mm/huge_memory.c~mm-huge_memory-convert-vm_bug-to-vm_warn-in-__folio_split
 +++ a/mm/huge_memory.c
-@@ -3595,6 +3595,8 @@ static int __folio_split(struct folio *f
- 	struct anon_vma *anon_vma = NULL;
- 	int order = folio_order(folio);
- 	struct folio *new_folio, *next;
-+	int nr_shmem_dropped = 0;
-+	int remap_flags = 0;
- 	int extra_pins, ret;
+@@ -3601,8 +3601,14 @@ static int __folio_split(struct folio *f
  	pgoff_t end;
  	bool is_hzp;
-@@ -3718,15 +3720,16 @@ static int __folio_split(struct folio *f
- 		 */
- 		xas_lock(&xas);
- 		xas_reset(&xas);
--		if (xas_load(&xas) != folio)
-+		if (xas_load(&xas) != folio) {
-+			ret = -EAGAIN;
- 			goto fail;
-+		}
- 	}
  
- 	/* Prevent deferred_split_scan() touching ->_refcount */
- 	spin_lock(&ds_queue->split_queue_lock);
- 	if (folio_ref_freeze(folio, 1 + extra_pins)) {
- 		struct address_space *swap_cache = NULL;
--		int nr_dropped = 0;
- 		struct lruvec *lruvec;
- 
- 		if (folio_order(folio) > 1 &&
-@@ -3798,7 +3801,7 @@ static int __folio_split(struct folio *f
- 			/* Some pages can be beyond EOF: drop them from cache */
- 			if (new_folio->index >= end) {
- 				if (shmem_mapping(mapping))
--					nr_dropped += folio_nr_pages(new_folio);
-+					nr_shmem_dropped += folio_nr_pages(new_folio);
- 				else if (folio_test_clear_dirty(new_folio))
- 					folio_account_cleaned(
- 						new_folio,
-@@ -3828,47 +3831,41 @@ static int __folio_split(struct folio *f
- 
- 		if (swap_cache)
- 			xa_unlock(&swap_cache->i_pages);
--		if (mapping)
--			xas_unlock(&xas);
-+	} else {
-+		spin_unlock(&ds_queue->split_queue_lock);
-+		ret = -EAGAIN;
+-	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+-	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
++	if (!folio_test_locked(folio)) {
++		VM_WARN_ON_ONCE_FOLIO(1, folio);
++		return -EINVAL;
 +	}
-+fail:
-+	if (mapping)
-+		xas_unlock(&xas);
++	if (!folio_test_large(folio)) {
++		VM_WARN_ON_ONCE_FOLIO(1, folio);
++		return -EINVAL;
++	}
  
--		local_irq_enable();
-+	local_irq_enable();
+ 	if (folio != page_folio(split_at) || folio != page_folio(lock_at))
+ 		return -EINVAL;
+@@ -3766,7 +3772,11 @@ static int __folio_split(struct folio *f
+ 		}
  
--		if (nr_dropped)
--			shmem_uncharge(mapping->host, nr_dropped);
-+	if (nr_shmem_dropped)
-+		shmem_uncharge(mapping->host, nr_shmem_dropped);
+ 		if (folio_test_swapcache(folio)) {
+-			VM_BUG_ON(mapping);
++			if (mapping) {
++				VM_WARN_ON_ONCE_FOLIO(mapping, folio);
++				ret = -EINVAL;
++				goto fail;
++			}
  
--		remap_page(folio, 1 << order,
--			   !ret && folio_test_anon(folio) ?
--				   RMP_USE_SHARED_ZEROPAGE :
--				   0);
-+	if (!ret && is_anon)
-+		remap_flags = RMP_USE_SHARED_ZEROPAGE;
-+	remap_page(folio, 1 << order, remap_flags);
- 
-+	/*
-+	 * Unlock all after-split folios except the one containing
-+	 * @lock_at page. If @folio is not split, it will be kept locked.
-+	 */
-+	for (new_folio = folio; new_folio != end_folio; new_folio = next) {
-+		next = folio_next(new_folio);
-+		if (new_folio == page_folio(lock_at))
-+			continue;
-+
-+		folio_unlock(new_folio);
- 		/*
--		 * Unlock all after-split folios except the one containing
--		 * @lock_at page. If @folio is not split, it will be kept locked.
-+		 * Subpages may be freed if there wasn't any mapping
-+		 * like if add_to_swap() is running on a lru page that
-+		 * had its mapping zapped. And freeing these pages
-+		 * requires taking the lru_lock so we do the put_page
-+		 * of the tail pages after the split is complete.
- 		 */
--		for (new_folio = folio; new_folio != end_folio;
--		     new_folio = next) {
--			next = folio_next(new_folio);
--			if (new_folio == page_folio(lock_at))
--				continue;
--
--			folio_unlock(new_folio);
--			/*
--			 * Subpages may be freed if there wasn't any mapping
--			 * like if add_to_swap() is running on a lru page that
--			 * had its mapping zapped. And freeing these pages
--			 * requires taking the lru_lock so we do the put_page
--			 * of the tail pages after the split is complete.
--			 */
--			free_folio_and_swap_cache(new_folio);
--		}
--	} else {
--		spin_unlock(&ds_queue->split_queue_lock);
--fail:
--		if (mapping)
--			xas_unlock(&xas);
--		local_irq_enable();
--		remap_page(folio, folio_nr_pages(folio), 0);
--		ret = -EAGAIN;
-+		free_folio_and_swap_cache(new_folio);
- 	}
- 
- out_unlock:
+ 			swap_cache = swap_address_space(folio->swap);
+ 			xa_lock(&swap_cache->i_pages);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
