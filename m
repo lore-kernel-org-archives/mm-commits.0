@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684A9C8F0
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:18:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1F34746E
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:18:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752970712; cv=none; b=j5QQJH1czqmPAo3qpcAXSv72GxKqJhqJt3WQ+bBJrPpFZVh9/2o1+VR/+QQGlFzZ3H8iopQoRXrOtBgcByNLTPyhQR1OSv7xM+zpjIWDKkns1GyLbzKbnUwadljfjkYzxCUJ9o7bhbSD8rpmkayl3rNfPH6H4q8qujjY+S1sfvw=
+	t=1752970714; cv=none; b=oHgf6JZa+BZGhpyPMo+3SFMtP9rBFRuWr3XNsyuaMaYUFqdft3SmgXCpfoT9BDkgMBWhzZ7yPPt4wqtO/H0EToSm+Ru1vGOkUGf9lTLt5/GfSYbn6vO6ooluH4c5zAppXdTXgWth4As1wSUBeeqRX7hM56+//odHpZ6ToAjLSoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752970712; c=relaxed/simple;
-	bh=yx1I7s6BIlLhPnrzDeasNUxFjtOVJ2GCLpyIoU3ycYc=;
-	h=Date:To:From:Subject:Message-Id; b=SUUXcWY3+fJfjf1UXBVcqN9EeAX4O6rrrfIoUlU7pjwT6vyoYfvJA0xPEY6n7tJxGXS/78oDPoFnPhFa4TvavS5W94kjTADaihO3qocbeRAyJVh964DNFLZNBnJO7SyXzAiPkHiY9UkekmvDb1lh8RFoXxuvO4HvpoidWwldawU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z+rXvINZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752970714; c=relaxed/simple;
+	bh=VP12tH9B5VKurxqaY+Yb/YxHbQcvyutgev2skCbqxxk=;
+	h=Date:To:From:Subject:Message-Id; b=Ei7MkTU4lL9Br+L8koFikS6LUqPppRtD/4caUkP8BMZegm1kvQsTFn6+RzOjMfqxRD/fxnjpaITUF4CREMA8UjsdqAGKB2QskpGct7YMb9KYgX/eBhYQYmhfwHZVf2Zf4Qiy4ZM+9dvjDvfm8a/xswIBpIytGmDeNxtK1f+ffpA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GuDpaEkD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z+rXvINZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2060C4CEE3;
-	Sun, 20 Jul 2025 00:18:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GuDpaEkD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37A60C4CEE3;
+	Sun, 20 Jul 2025 00:18:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752970711;
-	bh=yx1I7s6BIlLhPnrzDeasNUxFjtOVJ2GCLpyIoU3ycYc=;
+	s=korg; t=1752970714;
+	bh=VP12tH9B5VKurxqaY+Yb/YxHbQcvyutgev2skCbqxxk=;
 	h=Date:To:From:Subject:From;
-	b=Z+rXvINZGnjXTwZlOv9o59+9RXGIw0vpbghzaKK0bZO+CrRFtJW544TKTO7Kaed23
-	 3v/ADr/kZ/GsjDpMUCvoEzL2HGG7fIaS+Lzkw86HcGauLyEgh0VoW0V0r3ikKmbqyG
-	 WA1NHtvlMyF5qo3qdAYb0aUgEtCsjxg5ELwkudtA=
-Date: Sat, 19 Jul 2025 17:18:31 -0700
+	b=GuDpaEkDkHl0oHTCaJCdSPErgVgG26LXr+anZKc6D4ob7cEoKvwxIhhX0pWVaMSFC
+	 HbaLUmTDTySxQQNzfNoIUspjEdED4w0cG5mbRoJ++3Xr2v5Z3yOUU11+IQ1H7DcLQk
+	 CUygd2f76oaSAoMCiLB04vx5PJ3RDVF0WQgybRpg=
+Date: Sat, 19 Jul 2025 17:18:33 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangyicong@hisilicon.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,vbabka@suse.cz,ryan.roberts@arm.com,quic_zhenhuah@quicinc.com,peterx@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,joey.gouly@arm.com,jannh@google.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-optimize-mprotect-by-pte-batching.patch added to mm-new branch
-Message-Id: <20250720001831.D2060C4CEE3@smtp.kernel.org>
+Subject: + arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch added to mm-new branch
+Message-Id: <20250720001834.37A60C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: optimize mprotect() by PTE batching
+     Subject: arm64: add batched versions of ptep_modify_prot_start/commit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-optimize-mprotect-by-pte-batching.patch
+     arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-mprotect-by-pte-batching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,69 +65,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: mm: optimize mprotect() by PTE batching
-Date: Fri, 18 Jul 2025 14:32:43 +0530
+Subject: arm64: add batched versions of ptep_modify_prot_start/commit
+Date: Fri, 18 Jul 2025 14:32:44 +0530
 
-Use folio_pte_batch to batch process a large folio.  Note that, PTE
-batching here will save a few function calls, and this strategy in certain
-cases (not this one) batches atomic operations in general, so we have a
-performance win for all arches.  This patch paves the way for patch 7
-which will help us elide the TLBI per contig block on arm64.
+Override the generic definition of modify_prot_start_ptes() to use
+get_and_clear_full_ptes().  This helper does a TLBI only for the starting
+and ending contpte block of the range, whereas the current implementation
+will call ptep_get_and_clear() for every contpte block, thus doing a TLBI
+on every contpte block.  Therefore, we have a performance win.
 
-The correctness of this patch lies on the correctness of setting the new
-ptes based upon information only from the first pte of the batch (which
-may also have accumulated a/d bits via modify_prot_start_ptes()).
+The arm64 definition of pte_accessible() allows us to batch in the
+errata specific case:
 
-Observe that the flag combination we pass to mprotect_folio_pte_batch()
-guarantees that the batch is uniform w.r.t the soft-dirty bit and the
-writable bit.  Therefore, the only bits which may differ are the a/d bits.
-So we only need to worry about code which is concerned about the a/d bits
-of the PTEs.
+#define pte_accessible(mm, pte)	\
+	(mm_tlb_flush_pending(mm) ? pte_present(pte) : pte_valid(pte))
 
-Setting extra a/d bits on the new ptes where previously they were not set,
-is fine - setting access bit when it was not set is not an incorrectness
-problem but will only possibly delay the reclaim of the page mapped by the
-pte (which is in fact intended because the kernel just operated on this
-region via mprotect()!).  Setting dirty bit when it was not set is again
-not an incorrectness problem but will only possibly force an unnecessary
-writeback.
+All ptes are obviously present in the folio batch, and they are also valid.
 
-So now we need to reason whether something can go wrong via
-can_change_pte_writable().  The pte_protnone, pte_needs_soft_dirty_wp, and
-userfaultfd_pte_wp cases are solved due to uniformity in the corresponding
-bits guaranteed by the flag combination.  The ptes all belong to the same
-VMA (since callers guarantee that [start, end) will lie within the VMA)
-therefore the conditional based on the VMA is also safe to batch around.
+Override the generic definition of modify_prot_commit_ptes() to simply use
+set_ptes() to map the new ptes into the pagetable.
 
-Since the dirty bit on the PTE really is just an indication that the folio
-got written to - even if the PTE is not actually dirty but one of the PTEs
-in the batch is, the wp-fault optimization can be made.  Therefore, it is
-safe to batch around pte_dirty() in can_change_shared_pte_writable() (in
-fact this is better since without batching, it may happen that some ptes
-aren't changed to writable just because they are not dirty, even though
-the other ptes mapping the same large folio are dirty).
-
-To batch around the PageAnonExclusive case, we must check the
-corresponding condition for every single page.  Therefore, from the large
-folio batch, we process sub batches of ptes mapping pages with the same
-PageAnonExclusive condition, and process that sub batch, then determine
-and process the next sub batch, and so on.  Note that this does not cause
-any extra overhead; if suppose the size of the folio batch is 512, then
-the sub batch processing in total will take 512 iterations, which is the
-same as what we would have done before.
-
-For pte_needs_flush():
-
-ppc does not care about the a/d bits.
-
-For x86, PAGE_SAVED_DIRTY is ignored.  We will flush only when a/d bits
-get cleared; since we can only have extra a/d bits due to batching, we
-will only have an extra flush, not a case where we elide a flush due to
-batching when we shouldn't have.
-
-Link: https://lkml.kernel.org/r/20250718090244.21092-7-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250718090244.21092-8-dev.jain@arm.com
 Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -139,9 +99,9 @@ Cc: Joey Gouly <joey.gouly@arm.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yang Shi <yang@os.amperecomputing.com>
@@ -151,183 +111,86 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |  125 +++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 113 insertions(+), 12 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   10 ++++++++++
+ arch/arm64/mm/mmu.c              |   28 +++++++++++++++++++++++-----
+ 2 files changed, 33 insertions(+), 5 deletions(-)
 
---- a/mm/mprotect.c~mm-optimize-mprotect-by-pte-batching
-+++ a/mm/mprotect.c
-@@ -106,7 +106,7 @@ bool can_change_pte_writable(struct vm_a
- }
+--- a/arch/arm64/include/asm/pgtable.h~arm64-add-batched-versions-of-ptep_modify_prot_start-commit
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -1643,6 +1643,16 @@ extern void ptep_modify_prot_commit(stru
+ 				    unsigned long addr, pte_t *ptep,
+ 				    pte_t old_pte, pte_t new_pte);
  
- static int mprotect_folio_pte_batch(struct folio *folio, pte_t *ptep,
--				    pte_t pte, int max_nr_ptes)
-+				    pte_t pte, int max_nr_ptes, fpb_t flags)
++#define modify_prot_start_ptes modify_prot_start_ptes
++extern pte_t modify_prot_start_ptes(struct vm_area_struct *vma,
++				    unsigned long addr, pte_t *ptep,
++				    unsigned int nr);
++
++#define modify_prot_commit_ptes modify_prot_commit_ptes
++extern void modify_prot_commit_ptes(struct vm_area_struct *vma, unsigned long addr,
++				    pte_t *ptep, pte_t old_pte, pte_t pte,
++				    unsigned int nr);
++
+ #ifdef CONFIG_ARM64_CONTPTE
+ 
+ /*
+--- a/arch/arm64/mm/mmu.c~arm64-add-batched-versions-of-ptep_modify_prot_start-commit
++++ a/arch/arm64/mm/mmu.c
+@@ -26,6 +26,7 @@
+ #include <linux/set_memory.h>
+ #include <linux/kfence.h>
+ #include <linux/pkeys.h>
++#include <linux/mm_inline.h>
+ 
+ #include <asm/barrier.h>
+ #include <asm/cputype.h>
+@@ -1524,24 +1525,41 @@ static int __init prevent_bootmem_remove
+ early_initcall(prevent_bootmem_remove_init);
+ #endif
+ 
+-pte_t ptep_modify_prot_start(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
++pte_t modify_prot_start_ptes(struct vm_area_struct *vma, unsigned long addr,
++			     pte_t *ptep, unsigned int nr)
  {
- 	/* No underlying folio, so cannot batch */
- 	if (!folio)
-@@ -115,7 +115,7 @@ static int mprotect_folio_pte_batch(stru
- 	if (!folio_test_large(folio))
- 		return 1;
- 
--	return folio_pte_batch(folio, ptep, pte, max_nr_ptes);
-+	return folio_pte_batch_flags(folio, NULL, ptep, &pte, max_nr_ptes, flags);
++	pte_t pte = get_and_clear_full_ptes(vma->vm_mm, addr, ptep, nr, /* full = */ 0);
++
+ 	if (alternative_has_cap_unlikely(ARM64_WORKAROUND_2645198)) {
+ 		/*
+ 		 * Break-before-make (BBM) is required for all user space mappings
+ 		 * when the permission changes from executable to non-executable
+ 		 * in cases where cpu is affected with errata #2645198.
+ 		 */
+-		if (pte_user_exec(ptep_get(ptep)))
+-			return ptep_clear_flush(vma, addr, ptep);
++		if (pte_accessible(vma->vm_mm, pte) && pte_user_exec(pte))
++			__flush_tlb_range(vma, addr, nr * PAGE_SIZE,
++					  PAGE_SIZE, true, 3);
+ 	}
+-	return ptep_get_and_clear(vma->vm_mm, addr, ptep);
++
++	return pte;
++}
++
++pte_t ptep_modify_prot_start(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
++{
++	return modify_prot_start_ptes(vma, addr, ptep, 1);
++}
++
++void modify_prot_commit_ptes(struct vm_area_struct *vma, unsigned long addr,
++			     pte_t *ptep, pte_t old_pte, pte_t pte,
++			     unsigned int nr)
++{
++	set_ptes(vma->vm_mm, addr, ptep, pte, nr);
  }
  
- static bool prot_numa_skip(struct vm_area_struct *vma, unsigned long addr,
-@@ -177,6 +177,102 @@ skip:
- 	return ret;
+ void ptep_modify_prot_commit(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
+ 			     pte_t old_pte, pte_t pte)
+ {
+-	set_pte_at(vma->vm_mm, addr, ptep, pte);
++	modify_prot_commit_ptes(vma, addr, ptep, old_pte, pte, 1);
  }
  
-+/* Set nr_ptes number of ptes, starting from idx */
-+static void prot_commit_flush_ptes(struct vm_area_struct *vma, unsigned long addr,
-+		pte_t *ptep, pte_t oldpte, pte_t ptent, int nr_ptes,
-+		int idx, bool set_write, struct mmu_gather *tlb)
-+{
-+	/*
-+	 * Advance the position in the batch by idx; note that if idx > 0,
-+	 * then the nr_ptes passed here is <= batch size - idx.
-+	 */
-+	addr += idx * PAGE_SIZE;
-+	ptep += idx;
-+	oldpte = pte_advance_pfn(oldpte, idx);
-+	ptent = pte_advance_pfn(ptent, idx);
-+
-+	if (set_write)
-+		ptent = pte_mkwrite(ptent, vma);
-+
-+	modify_prot_commit_ptes(vma, addr, ptep, oldpte, ptent, nr_ptes);
-+	if (pte_needs_flush(oldpte, ptent))
-+		tlb_flush_pte_range(tlb, addr, nr_ptes * PAGE_SIZE);
-+}
-+
-+/*
-+ * Get max length of consecutive ptes pointing to PageAnonExclusive() pages or
-+ * !PageAnonExclusive() pages, starting from start_idx. Caller must enforce
-+ * that the ptes point to consecutive pages of the same anon large folio.
-+ */
-+static int page_anon_exclusive_sub_batch(int start_idx, int max_len,
-+		struct page *first_page, bool expected_anon_exclusive)
-+{
-+	int idx;
-+
-+	for (idx = start_idx + 1; idx < start_idx + max_len; ++idx) {
-+		if (expected_anon_exclusive != PageAnonExclusive(first_page + idx))
-+			break;
-+	}
-+	return idx - start_idx;
-+}
-+
-+/*
-+ * This function is a result of trying our very best to retain the
-+ * "avoid the write-fault handler" optimization. In can_change_pte_writable(),
-+ * if the vma is a private vma, and we cannot determine whether to change
-+ * the pte to writable just from the vma and the pte, we then need to look
-+ * at the actual page pointed to by the pte. Unfortunately, if we have a
-+ * batch of ptes pointing to consecutive pages of the same anon large folio,
-+ * the anon-exclusivity (or the negation) of the first page does not guarantee
-+ * the anon-exclusivity (or the negation) of the other pages corresponding to
-+ * the pte batch; hence in this case it is incorrect to decide to change or
-+ * not change the ptes to writable just by using information from the first
-+ * pte of the batch. Therefore, we must individually check all pages and
-+ * retrieve sub-batches.
-+ */
-+static void commit_anon_folio_batch(struct vm_area_struct *vma,
-+		struct folio *folio, unsigned long addr, pte_t *ptep,
-+		pte_t oldpte, pte_t ptent, int nr_ptes, struct mmu_gather *tlb)
-+{
-+	struct page *first_page = folio_page(folio, 0);
-+	bool expected_anon_exclusive;
-+	int sub_batch_idx = 0;
-+	int len;
-+
-+	while (nr_ptes) {
-+		expected_anon_exclusive = PageAnonExclusive(first_page + sub_batch_idx);
-+		len = page_anon_exclusive_sub_batch(sub_batch_idx, nr_ptes,
-+					first_page, expected_anon_exclusive);
-+		prot_commit_flush_ptes(vma, addr, ptep, oldpte, ptent, len,
-+				       sub_batch_idx, expected_anon_exclusive, tlb);
-+		sub_batch_idx += len;
-+		nr_ptes -= len;
-+	}
-+}
-+
-+static void set_write_prot_commit_flush_ptes(struct vm_area_struct *vma,
-+		struct folio *folio, unsigned long addr, pte_t *ptep,
-+		pte_t oldpte, pte_t ptent, int nr_ptes, struct mmu_gather *tlb)
-+{
-+	bool set_write;
-+
-+	if (vma->vm_flags & VM_SHARED) {
-+		set_write = can_change_shared_pte_writable(vma, ptent);
-+		prot_commit_flush_ptes(vma, addr, ptep, oldpte, ptent, nr_ptes,
-+				       /* idx = */ 0, set_write, tlb);
-+		return;
-+	}
-+
-+	set_write = maybe_change_pte_writable(vma, ptent) &&
-+		    (folio && folio_test_anon(folio));
-+	if (!set_write) {
-+		prot_commit_flush_ptes(vma, addr, ptep, oldpte, ptent, nr_ptes,
-+				       /* idx = */ 0, set_write, tlb);
-+		return;
-+	}
-+	commit_anon_folio_batch(vma, folio, addr, ptep, oldpte, ptent, nr_ptes, tlb);
-+}
-+
- static long change_pte_range(struct mmu_gather *tlb,
- 		struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
- 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
-@@ -206,8 +302,9 @@ static long change_pte_range(struct mmu_
- 		nr_ptes = 1;
- 		oldpte = ptep_get(pte);
- 		if (pte_present(oldpte)) {
-+			const fpb_t flags = FPB_RESPECT_SOFT_DIRTY | FPB_RESPECT_WRITE;
- 			int max_nr_ptes = (end - addr) >> PAGE_SHIFT;
--			struct folio *folio;
-+			struct folio *folio = NULL;
- 			pte_t ptent;
- 
- 			/*
-@@ -221,11 +318,16 @@ static long change_pte_range(struct mmu_
- 
- 					/* determine batch to skip */
- 					nr_ptes = mprotect_folio_pte_batch(folio,
--						  pte, oldpte, max_nr_ptes);
-+						  pte, oldpte, max_nr_ptes, /* flags = */ 0);
- 					continue;
- 				}
- 			}
- 
-+			if (!folio)
-+				folio = vm_normal_folio(vma, addr, oldpte);
-+
-+			nr_ptes = mprotect_folio_pte_batch(folio, pte, oldpte, max_nr_ptes, flags);
-+
- 			oldpte = modify_prot_start_ptes(vma, addr, pte, nr_ptes);
- 			ptent = pte_modify(oldpte, newprot);
- 
-@@ -248,14 +350,13 @@ static long change_pte_range(struct mmu_
- 			 * COW or special handling is required.
- 			 */
- 			if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) &&
--			    !pte_write(ptent) &&
--			    can_change_pte_writable(vma, addr, ptent))
--				ptent = pte_mkwrite(ptent, vma);
--
--			modify_prot_commit_ptes(vma, addr, pte, oldpte, ptent, nr_ptes);
--			if (pte_needs_flush(oldpte, ptent))
--				tlb_flush_pte_range(tlb, addr, PAGE_SIZE);
--			pages++;
-+			     !pte_write(ptent))
-+				set_write_prot_commit_flush_ptes(vma, folio,
-+				addr, pte, oldpte, ptent, nr_ptes, tlb);
-+			else
-+				prot_commit_flush_ptes(vma, addr, pte, oldpte, ptent,
-+					nr_ptes, /* idx = */ 0, /* set_write = */ false, tlb);
-+			pages += nr_ptes;
- 		} else if (is_swap_pte(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
- 			pte_t newpte;
+ /*
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
