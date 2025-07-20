@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1F34746E
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:18:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 833193C463;
+	Sun, 20 Jul 2025 00:35:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752970714; cv=none; b=oHgf6JZa+BZGhpyPMo+3SFMtP9rBFRuWr3XNsyuaMaYUFqdft3SmgXCpfoT9BDkgMBWhzZ7yPPt4wqtO/H0EToSm+Ru1vGOkUGf9lTLt5/GfSYbn6vO6ooluH4c5zAppXdTXgWth4As1wSUBeeqRX7hM56+//odHpZ6ToAjLSoY=
+	t=1752971704; cv=none; b=CZwQgQY26e4juosrIdjorng043RsLvMh9NDZjkwrzM7XVklXvpx3Kn6gPIqeSytgodwM1DqF8GOcP7tP+P0tnu7V6Z/GYkRcvm00RWYxWjDC1cIrc4xkJN1xO5JU/RAZts0fxtIuyX9duoMPmYm0aowxu262WZ2s4Qebm/aqNpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752970714; c=relaxed/simple;
-	bh=VP12tH9B5VKurxqaY+Yb/YxHbQcvyutgev2skCbqxxk=;
-	h=Date:To:From:Subject:Message-Id; b=Ei7MkTU4lL9Br+L8koFikS6LUqPppRtD/4caUkP8BMZegm1kvQsTFn6+RzOjMfqxRD/fxnjpaITUF4CREMA8UjsdqAGKB2QskpGct7YMb9KYgX/eBhYQYmhfwHZVf2Zf4Qiy4ZM+9dvjDvfm8a/xswIBpIytGmDeNxtK1f+ffpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GuDpaEkD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752971704; c=relaxed/simple;
+	bh=MqOds7hJME7C7SPLSM/qwETiVGHBcTbsr/R/f4eZFso=;
+	h=Date:To:From:Subject:Message-Id; b=rXbxrcW0xTp5mVp7WWTNdZPIOsbs1k9YlPX7RE6u8tuJ6qTlIeP8BX7QTZWIDreRz1mt4P8vtelV+kRTRZM1vZh207nk6wPw9DH+ejsTUu4u1Bqs0KO25Fz0Ijd9ca0fIIgK8WvvKQS8iRpzPTZqLT5lvmZEpo4NzfgDfRVWQJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r2D3NrEy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GuDpaEkD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37A60C4CEE3;
-	Sun, 20 Jul 2025 00:18:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r2D3NrEy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFF97C4CEE3;
+	Sun, 20 Jul 2025 00:35:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752970714;
-	bh=VP12tH9B5VKurxqaY+Yb/YxHbQcvyutgev2skCbqxxk=;
+	s=korg; t=1752971704;
+	bh=MqOds7hJME7C7SPLSM/qwETiVGHBcTbsr/R/f4eZFso=;
 	h=Date:To:From:Subject:From;
-	b=GuDpaEkDkHl0oHTCaJCdSPErgVgG26LXr+anZKc6D4ob7cEoKvwxIhhX0pWVaMSFC
-	 HbaLUmTDTySxQQNzfNoIUspjEdED4w0cG5mbRoJ++3Xr2v5Z3yOUU11+IQ1H7DcLQk
-	 CUygd2f76oaSAoMCiLB04vx5PJ3RDVF0WQgybRpg=
-Date: Sat, 19 Jul 2025 17:18:33 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangyicong@hisilicon.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,vbabka@suse.cz,ryan.roberts@arm.com,quic_zhenhuah@quicinc.com,peterx@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,joey.gouly@arm.com,jannh@google.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=r2D3NrEy/K7vsOASMS3QyUbpCcgpLyGpMp6u/ls/edKBBTNdSLpQkyj5t/MVEWbfW
+	 TBx6+S0xJkrrpSmrRKBFjpgAGb/Nv8WWMOW0qkBUC5x6C9mOh8k2QXtfp03fVQh4V0
+	 MoNtJRNS6RfMpozYp8f8dzy0GYGCmpjSupquv7vo=
+Date: Sat, 19 Jul 2025 17:35:03 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kasong@tencent.com,hannes@cmpxchg.org,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch added to mm-new branch
-Message-Id: <20250720001834.37A60C4CEE3@smtp.kernel.org>
+Subject: + mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch added to mm-new branch
+Message-Id: <20250720003503.DFF97C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: add batched versions of ptep_modify_prot_start/commit
+     Subject: mm: swap: correctly use maxpages in swapon syscall to avoid potential deadloop
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch
+     mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,142 +64,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: arm64: add batched versions of ptep_modify_prot_start/commit
-Date: Fri, 18 Jul 2025 14:32:44 +0530
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm: swap: correctly use maxpages in swapon syscall to avoid potential deadloop
+Date: Fri, 18 Jul 2025 14:51:39 +0800
 
-Override the generic definition of modify_prot_start_ptes() to use
-get_and_clear_full_ptes().  This helper does a TLBI only for the starting
-and ending contpte block of the range, whereas the current implementation
-will call ptep_get_and_clear() for every contpte block, thus doing a TLBI
-on every contpte block.  Therefore, we have a performance win.
+ensure si->pages == si->max - 1 after setup_swap_extents()
 
-The arm64 definition of pte_accessible() allows us to batch in the
-errata specific case:
-
-#define pte_accessible(mm, pte)	\
-	(mm_tlb_flush_pending(mm) ? pte_present(pte) : pte_valid(pte))
-
-All ptes are obviously present in the folio batch, and they are also valid.
-
-Override the generic definition of modify_prot_commit_ptes() to simply use
-set_ptes() to map the new ptes into the pagetable.
-
-Link: https://lkml.kernel.org/r/20250718090244.21092-8-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Joey Gouly <joey.gouly@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Yicong Yang <yangyicong@hisilicon.com>
-Cc: Zhenhua Huang <quic_zhenhuah@quicinc.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250522122554.12209-3-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250718065139.61989-1-shikemeng@huaweicloud.com
+Fixes: 661383c6111a ("mm: swap: relaim the cached parts that got scanned")
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   10 ++++++++++
- arch/arm64/mm/mmu.c              |   28 +++++++++++++++++++++++-----
- 2 files changed, 33 insertions(+), 5 deletions(-)
+ mm/swapfile.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-add-batched-versions-of-ptep_modify_prot_start-commit
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1643,6 +1643,16 @@ extern void ptep_modify_prot_commit(stru
- 				    unsigned long addr, pte_t *ptep,
- 				    pte_t old_pte, pte_t new_pte);
- 
-+#define modify_prot_start_ptes modify_prot_start_ptes
-+extern pte_t modify_prot_start_ptes(struct vm_area_struct *vma,
-+				    unsigned long addr, pte_t *ptep,
-+				    unsigned int nr);
-+
-+#define modify_prot_commit_ptes modify_prot_commit_ptes
-+extern void modify_prot_commit_ptes(struct vm_area_struct *vma, unsigned long addr,
-+				    pte_t *ptep, pte_t old_pte, pte_t pte,
-+				    unsigned int nr);
-+
- #ifdef CONFIG_ARM64_CONTPTE
- 
- /*
---- a/arch/arm64/mm/mmu.c~arm64-add-batched-versions-of-ptep_modify_prot_start-commit
-+++ a/arch/arm64/mm/mmu.c
-@@ -26,6 +26,7 @@
- #include <linux/set_memory.h>
- #include <linux/kfence.h>
- #include <linux/pkeys.h>
-+#include <linux/mm_inline.h>
- 
- #include <asm/barrier.h>
- #include <asm/cputype.h>
-@@ -1524,24 +1525,41 @@ static int __init prevent_bootmem_remove
- early_initcall(prevent_bootmem_remove_init);
- #endif
- 
--pte_t ptep_modify_prot_start(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
-+pte_t modify_prot_start_ptes(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t *ptep, unsigned int nr)
- {
-+	pte_t pte = get_and_clear_full_ptes(vma->vm_mm, addr, ptep, nr, /* full = */ 0);
-+
- 	if (alternative_has_cap_unlikely(ARM64_WORKAROUND_2645198)) {
- 		/*
- 		 * Break-before-make (BBM) is required for all user space mappings
- 		 * when the permission changes from executable to non-executable
- 		 * in cases where cpu is affected with errata #2645198.
- 		 */
--		if (pte_user_exec(ptep_get(ptep)))
--			return ptep_clear_flush(vma, addr, ptep);
-+		if (pte_accessible(vma->vm_mm, pte) && pte_user_exec(pte))
-+			__flush_tlb_range(vma, addr, nr * PAGE_SIZE,
-+					  PAGE_SIZE, true, 3);
+--- a/mm/swapfile.c~mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix
++++ a/mm/swapfile.c
+@@ -3357,6 +3357,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		error = nr_extents;
+ 		goto bad_swap_unlock_inode;
  	}
--	return ptep_get_and_clear(vma->vm_mm, addr, ptep);
++	if (si->pages != si->max - 1) {
++		pr_err("swap:%u != (max:%u - 1)\n", si->pages, si->max);
++		error = -EINVAL;
++		goto bad_swap_unlock_inode;
++	}
 +
-+	return pte;
-+}
-+
-+pte_t ptep_modify_prot_start(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
-+{
-+	return modify_prot_start_ptes(vma, addr, ptep, 1);
-+}
-+
-+void modify_prot_commit_ptes(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t *ptep, pte_t old_pte, pte_t pte,
-+			     unsigned int nr)
-+{
-+	set_ptes(vma->vm_mm, addr, ptep, pte, nr);
- }
+ 	maxpages = si->max;
  
- void ptep_modify_prot_commit(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
- 			     pte_t old_pte, pte_t pte)
- {
--	set_pte_at(vma->vm_mm, addr, ptep, pte);
-+	modify_prot_commit_ptes(vma, addr, ptep, old_pte, pte, 1);
- }
- 
- /*
+ 	/* OK, set up the swap map and apply the bad block list */
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-mm-refactor-mm_cp_prot_numa-skipping-case-into-new-function.patch
-mm-optimize-mprotect-for-mm_cp_prot_numa-by-batch-skipping-ptes.patch
-mm-add-batched-versions-of-ptep_modify_prot_start-commit.patch
-mm-introduce-fpb_respect_write-for-pte-batching-infrastructure.patch
-mm-split-can_change_pte_writable-into-private-and-shared-parts.patch
-mm-optimize-mprotect-by-pte-batching.patch
-arm64-add-batched-versions-of-ptep_modify_prot_start-commit.patch
+mm-swap-move-nr_swap_pages-counter-decrement-from-folio_alloc_swap-to-swap_range_alloc.patch
+mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop.patch
+mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch
+mm-swap-fix-potensial-buffer-overflow-in-setup_clusters.patch
+mm-swap-remove-stale-comment-stale-comment-in-cluster_alloc_swap_entry.patch
 
