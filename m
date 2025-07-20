@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54DAF7DA6A
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:02:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E63A7DA6A
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:02:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976925; cv=none; b=Er8y53pm02yW8IpqclgHXFYwWbgve/fsTRkSVXvfuvbYRLUjBNbsHGwkiUABYVPKV4uDWDzo3WsTkSWj+wG+XCy+THotw2WR/KS4+d0yFOKLS93SVbmvnNnUS1BFpnmbYnRZ2NKXoEjIepAzq/NFhpje3rl4YW53TW6EK3+/0jM=
+	t=1752976926; cv=none; b=eb0+p6FoNwPNZ0BUyZ15/a/AaP0dZmShR62kYaYdz4JaGN2vJgVQqjWvRchJ/m4+vYhbCcqozL+OSmjC8VlJRQUr+55Dk82INahlYe2Lkc5TDcOJ/gIn9vr3R6ESEzZHzTeAlk0PUl9Kr2B5qNFirvAH4/Nz+jYiHKEMCdtrj2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976925; c=relaxed/simple;
-	bh=K+s8YVquCamTMWbC3GLg5jfPXxGWcz5hGg3jGENUIIo=;
-	h=Date:To:From:Subject:Message-Id; b=rO3FouqUKPasSY/yX4uRUVV/ZGP72UsMIP7odPW0j/sBuTRgYY7uxuEB2s6RUjpVSoU4lJWqYtL9lUv9TZMyArMC7kD5GR+CkgzeC7yi4PtKi4VOb795ODda8WEbyHTydRd0kCmdSGGFjgSXWrK0eDEdcR4c0bhdZezSSPUfeZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o9gLfeMz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976926; c=relaxed/simple;
+	bh=ML1FnbMWBIom2CobhLszZxLVzpInUwsWArtymhTpDy8=;
+	h=Date:To:From:Subject:Message-Id; b=SOaS6Go9N4I8ccnMM8KsQF1Zewn/LavvD+z3vdST9NYqZ8/5A3n6zcGDRsRXJQhK+pruzPBv6+oQvZjr+gGYQAoOYWySyiaKzvwj4ZgJ9pF/MGCPHL1feHKPDFaLXmKISsRv3drcxVc9X+OMzqT55/S8l9jcZRPWOOLcJzUbkv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gKLOSc52; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o9gLfeMz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC21CC4CEF5;
-	Sun, 20 Jul 2025 02:02:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gKLOSc52"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0251CC4CEF4;
+	Sun, 20 Jul 2025 02:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976924;
-	bh=K+s8YVquCamTMWbC3GLg5jfPXxGWcz5hGg3jGENUIIo=;
+	s=korg; t=1752976926;
+	bh=ML1FnbMWBIom2CobhLszZxLVzpInUwsWArtymhTpDy8=;
 	h=Date:To:From:Subject:From;
-	b=o9gLfeMzXoSche67UoaxRKzoYG9aEdZp9uy9OKud2VOlm3thkH5Axf7rpZhAFSWYN
-	 TQPwIJJTteBzY4XJGqDOBvt8xr4Hn3vid4I3t6n0xaX2lskDAmsfLXsNy219rVZI5a
-	 N0gqoqgodxtbIRS8S/ItpFN7Bf3GaEyXl5Q9Xr3A=
-Date: Sat, 19 Jul 2025 19:02:04 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,david@redhat.com,chizhiling@kylinos.cn,akpm@linux-foundation.org
+	b=gKLOSc52400on8hmERmer26zi4r8wb96BdJBBH+MDbbFYrnrWA3kKm1JRfU/dJI+5
+	 GkIM4PLXj7t22A7b3JeO9AY9cUTWruXY/I+GqJthZUwLMGB60D/nrSHj8+eZ8LMAIl
+	 HTJ6NPyyWaSvgiV0fumvFh+JThImUD0WcpoDS39o=
+Date: Sat, 19 Jul 2025 19:02:05 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,liuqiye2025@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] readahead-use-folio_nr_pages-instead-of-shift-operation.patch removed from -mm tree
-Message-Id: <20250720020204.CC21CC4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-simplify-min_brk-handling-in-brk.patch removed from -mm tree
+Message-Id: <20250720020206.0251CC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: readahead: use folio_nr_pages() instead of shift operation
+     Subject: mm: simplify min_brk handling in brk()
 has been removed from the -mm tree.  Its filename was
-     readahead-use-folio_nr_pages-instead-of-shift-operation.patch
+     mm-simplify-min_brk-handling-in-brk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chi Zhiling <chizhiling@kylinos.cn>
-Subject: readahead: use folio_nr_pages() instead of shift operation
-Date: Thu, 10 Jul 2025 14:04:51 +0800
+From: Xuanye Liu <liuqiye2025@163.com>
+Subject: mm: simplify min_brk handling in brk()
+Date: Thu, 10 Jul 2025 10:58:58 +0800
 
-folio_nr_pages() is faster helper function to get the number of pages when
-NR_PAGES_IN_LARGE_FOLIO is enabled.
+Set min_brk to mm->start_brk by default, and override it with mm->end_data
+only when CONFIG_COMPAT_BRK is enabled and brk_randomized is false.
 
-Link: https://lkml.kernel.org/r/20250710060451.3535957-1-chizhiling@163.com
-Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+This makes the logic clearer with no functional change.
+
+Link: https://lkml.kernel.org/r/20250710025859.926355-1-liuqiye2025@163.com
+Signed-off-by: Xuanye Liu <liuqiye2025@163.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/readahead.c~readahead-use-folio_nr_pages-instead-of-shift-operation
-+++ a/mm/readahead.c
-@@ -649,7 +649,7 @@ void page_cache_async_ra(struct readahea
- 	 * Ramp up sizes, and push forward the readahead window.
+--- a/mm/mmap.c~mm-simplify-min_brk-handling-in-brk
++++ a/mm/mmap.c
+@@ -127,18 +127,15 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 
+ 	origbrk = mm->brk;
+ 
++	min_brk = mm->start_brk;
+ #ifdef CONFIG_COMPAT_BRK
+ 	/*
+ 	 * CONFIG_COMPAT_BRK can still be overridden by setting
+ 	 * randomize_va_space to 2, which will still cause mm->start_brk
+ 	 * to be arbitrarily shifted
  	 */
- 	expected = round_down(ra->start + ra->size - ra->async_size,
--			1UL << folio_order(folio));
-+			folio_nr_pages(folio));
- 	if (index == expected) {
- 		ra->start += ra->size;
- 		/*
+-	if (current->brk_randomized)
+-		min_brk = mm->start_brk;
+-	else
++	if (!current->brk_randomized)
+ 		min_brk = mm->end_data;
+-#else
+-	min_brk = mm->start_brk;
+ #endif
+ 	if (brk < min_brk)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from chizhiling@kylinos.cn are
+Patches currently in -mm which might be from liuqiye2025@163.com are
 
 
