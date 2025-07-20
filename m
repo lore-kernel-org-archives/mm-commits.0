@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25DC9C120
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 725FD1537A7
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752977350; cv=none; b=CgUi3IAVZ9HggPVbRfNR1D2EW8lnSDiJek5Jtw2pZWJihHW4qfXAZv6zezZ4Clwnxqh9KKRWT9g93RltXdRrkmHK66hSL+VbyvlyKZXzYAcBMoMaromvb21nk7H2AJuu7FKAHUSHZ+Nz7FgW2+D9+564vmk8UB0rHCxIRkRbsrI=
+	t=1752977351; cv=none; b=XBzyo1V3wG/TiaPP1xRIFt0/6z4VfWVdZR3gZKNEZZMVAx6orwgQVcQQgKki/a/PeO9xQWNzkrbjy+dYb8gkh/11Z/3Af4E8XXJvl9RdVmPbiuGjWke4WyQMKgNosJDSKsxvDmgWQwh44CfeT8Dt1kxc/o06ysV68bO2lo1BGo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752977350; c=relaxed/simple;
-	bh=CNL3bctpSFjEQ6m5ZrI88vrEM/SSGdvLVUASK0MknKY=;
-	h=Date:To:From:Subject:Message-Id; b=AjjU3ybunggdohAzEEQNLx6mZbvqITtAuGGlc2SYJJJmA4cCradh6cB2gE3mNx5wV2iefB2LAkdMbapp9IKlABFscUSVnhn5sdVpu1G0Oppzbnd1dw5ZeVZbdlrgspxfwH9GwqL5uVrjKI7hLSICOAZfdM8jPoUZxtThiv1n+HI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=esBtl474; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752977351; c=relaxed/simple;
+	bh=TRb1y0GKLGVrWa2uR4POQmAFSsqX88uxYL/rqn5SsAU=;
+	h=Date:To:From:Subject:Message-Id; b=oeIVxJ7GuAhWuWifNdPj1ge26eT6a6QzPJyQ0lID5fyaZSa/Q64TGq64n5mGZOxFNZ/XU7mb6/4RZWM8UZU5Z3OE2VXDyhKEZn1rWVcLIqUSYCkDV4I7R6s9ZH1mfFZzG5lZ6Y0acOexTuX8RJoP0ycpkiKgn+xAmC98leSHGBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MS7Qmgze; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="esBtl474"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D174C4CEE3;
-	Sun, 20 Jul 2025 02:09:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MS7Qmgze"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9BE5C4CEE3;
+	Sun, 20 Jul 2025 02:09:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752977349;
-	bh=CNL3bctpSFjEQ6m5ZrI88vrEM/SSGdvLVUASK0MknKY=;
+	s=korg; t=1752977350;
+	bh=TRb1y0GKLGVrWa2uR4POQmAFSsqX88uxYL/rqn5SsAU=;
 	h=Date:To:From:Subject:From;
-	b=esBtl474u2GxeHKbBqxWQHW6bqTk9QFJXztTECtpMWcWTx43TNUb/9TA0r4LwJI1p
-	 1vjhG4ZwF4LI1Mx1SgUwpnV1qfhXbz5PCoHez6W8Jf0E2RTbYCRQhO+kAukaUGMAcr
-	 tAFK+tHo1EMkoR44I985zYVcMGE+5sv4++lePC1o=
-Date: Sat, 19 Jul 2025 19:09:09 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,prudo@redhat.com,piliu@redhat.com,mhocko@suse.cz,ltao@redhat.com,dyoung@redhat.com,ddutile@redhat.com,david@redhat.com,bhe@redhat.com,jbohac@suse.cz,akpm@linux-foundation.org
+	b=MS7Qmgze/kidh12coY9dGBjolaEgQpBCUBLWSPsdl6uyh2p3gWdq8Z3vHhQYf112z
+	 sQOAZlmdguTxorcy2LQPiBR5sd46Xttk/uhiPcSsvnng3KLha5Dv+jPgoyyJtTe/8H
+	 dW8PNexbzL7cGCWA38c+I1qOzzM8Y7Zl/vsVUe0o=
+Date: Sat, 19 Jul 2025 19:09:10 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,nathan@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] x86-implement-crashkernel-cma-reservation.patch removed from -mm tree
-Message-Id: <20250720020909.9D174C4CEE3@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] panic-clean-up-code-for-console-replay.patch removed from -mm tree
+Message-Id: <20250720020910.D9BE5C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,151 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86: implement crashkernel cma reservation
+     Subject: panic: clean up code for console replay
 has been removed from the -mm tree.  Its filename was
-     x86-implement-crashkernel-cma-reservation.patch
+     panic-clean-up-code-for-console-replay.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jiri Bohac <jbohac@suse.cz>
-Subject: x86: implement crashkernel cma reservation
-Date: Thu, 12 Jun 2025 12:20:04 +0200
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: panic: clean up code for console replay
+Date: Thu, 3 Jul 2025 10:10:00 +0800
 
-Implement the crashkernel CMA reservation for x86:
-- enable parsing of the cma suffix by parse_crashkernel()
-- reserve memory with reserve_crashkernel_cma()
-- add the CMA-reserved ranges to the e820 map for the crash kernel
-- exclude the CMA-reserved ranges from vmcore
+Patch series "generalize panic_print's dump function to be used by other
+kernel parts", v3.
 
-Link: https://lkml.kernel.org/r/aEqp1LD2og4QeBw9@dwarf.suse.cz
-Signed-off-by: Jiri Bohac <jbohac@suse.cz>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Donald Dutile <ddutile@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Philipp Rudo <prudo@redhat.com>
-Cc: Pingfan Liu <piliu@redhat.com>
-Cc: Tao Liu <ltao@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+When working on kernel stability issues, panic, task-hung and
+software/hardware lockup are frequently met.  And to debug them, user may
+need lots of system information at that time, like task call stacks, lock
+info, memory info etc.  
+
+panic case already has panic_print_sys_info() for this purpose, and has a
+'panic_print' bitmask to control what kinds of information is needed,
+which is also helpful to debug other task-hung and lockup cases.
+
+So this patchset extracts the function out to a new file 'lib/sys_info.c',
+and makes it available for other cases which also need to dump system info
+for debugging.  
+
+Also as suggested by Petr Mladek, add 'panic_sys_info=' interface to take
+human readable string like "tasks,mem,locks,timers,ftrace,....", and
+eventually obsolete the current 'panic_print' bitmap interface.
+
+In RFC and V1 version, hung_task and SW/HW watchdog modules are enabled
+with the new sys_info dump interface.  In v2, they are kept out for better
+review of current change, and will be posted later.  
+
+Locally these have been used in our bug chasing for stability issues and
+was proven helpful.
+
+Many thanks to Petr Mladek for great suggestions on both the code and
+architectures!
+
+
+This patch (of 5):
+
+Currently the panic_print_sys_info() was called twice with different
+parameters to handle console replay case, which is kind of confusing.
+
+Add panic_console_replay() explicitly and rename
+'PANIC_PRINT_ALL_PRINTK_MSG' to 'PANIC_CONSOLE_REPLAY', to make the code
+straightforward.  The related kernel document is also updated.
+
+Link: https://lkml.kernel.org/r/20250703021004.42328-1-feng.tang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20250703021004.42328-2-feng.tang@linux.alibaba.com
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Suggested-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c |   26 ++++++++++++++++++++++----
- arch/x86/kernel/setup.c |    5 +++--
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 -
+ Documentation/admin-guide/sysctl/kernel.rst     |    2 -
+ kernel/panic.c                                  |   18 +++++++-------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/arch/x86/kernel/crash.c~x86-implement-crashkernel-cma-reservation
-+++ a/arch/x86/kernel/crash.c
-@@ -163,10 +163,10 @@ static struct crash_mem *fill_up_crash_e
- 		return NULL;
+--- a/Documentation/admin-guide/kernel-parameters.txt~panic-clean-up-code-for-console-replay
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4555,7 +4555,7 @@
+ 			bit 2: print timer info
+ 			bit 3: print locks info if CONFIG_LOCKDEP is on
+ 			bit 4: print ftrace buffer
+-			bit 5: print all printk messages in buffer
++			bit 5: replay all messages on consoles at the end of panic
+ 			bit 6: print all CPUs backtrace (if available in the arch)
+ 			bit 7: print only tasks in uninterruptible (blocked) state
+ 			*Be aware* that this option may print a _lot_ of lines,
+--- a/Documentation/admin-guide/sysctl/kernel.rst~panic-clean-up-code-for-console-replay
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -889,7 +889,7 @@ bit 1  print system memory info
+ bit 2  print timer info
+ bit 3  print locks info if ``CONFIG_LOCKDEP`` is on
+ bit 4  print ftrace buffer
+-bit 5  print all printk messages in buffer
++bit 5  replay all messages on consoles at the end of panic
+ bit 6  print all CPUs backtrace (if available in the arch)
+ bit 7  print only tasks in uninterruptible (blocked) state
+ =====  ============================================
+--- a/kernel/panic.c~panic-clean-up-code-for-console-replay
++++ a/kernel/panic.c
+@@ -74,7 +74,7 @@ EXPORT_SYMBOL_GPL(panic_timeout);
+ #define PANIC_PRINT_TIMER_INFO		0x00000004
+ #define PANIC_PRINT_LOCK_INFO		0x00000008
+ #define PANIC_PRINT_FTRACE_INFO		0x00000010
+-#define PANIC_PRINT_ALL_PRINTK_MSG	0x00000020
++#define PANIC_CONSOLE_REPLAY		0x00000020
+ #define PANIC_PRINT_ALL_CPU_BT		0x00000040
+ #define PANIC_PRINT_BLOCKED_TASKS	0x00000080
+ unsigned long panic_print;
+@@ -238,14 +238,14 @@ void nmi_panic(struct pt_regs *regs, con
+ }
+ EXPORT_SYMBOL(nmi_panic);
  
- 	/*
--	 * Exclusion of crash region and/or crashk_low_res may cause
--	 * another range split. So add extra two slots here.
-+	 * Exclusion of crash region, crashk_low_res and/or crashk_cma_ranges
-+	 * may cause range splits. So add extra slots here.
+-static void panic_print_sys_info(bool console_flush)
++static void panic_console_replay(void)
+ {
+-	if (console_flush) {
+-		if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
+-			console_flush_on_panic(CONSOLE_REPLAY_ALL);
+-		return;
+-	}
++	if (panic_print & PANIC_CONSOLE_REPLAY)
++		console_flush_on_panic(CONSOLE_REPLAY_ALL);
++}
+ 
++static void panic_print_sys_info(void)
++{
+ 	if (panic_print & PANIC_PRINT_TASK_INFO)
+ 		show_state();
+ 
+@@ -410,7 +410,7 @@ void panic(const char *fmt, ...)
  	 */
--	nr_ranges += 2;
-+	nr_ranges += 2 + crashk_cma_cnt;
- 	cmem = vzalloc(struct_size(cmem, ranges, nr_ranges));
- 	if (!cmem)
- 		return NULL;
-@@ -184,6 +184,7 @@ static struct crash_mem *fill_up_crash_e
- static int elf_header_exclude_ranges(struct crash_mem *cmem)
- {
- 	int ret = 0;
-+	int i;
+ 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
  
- 	/* Exclude the low 1M because it is always reserved */
- 	ret = crash_exclude_mem_range(cmem, 0, SZ_1M - 1);
-@@ -198,8 +199,17 @@ static int elf_header_exclude_ranges(str
- 	if (crashk_low_res.end)
- 		ret = crash_exclude_mem_range(cmem, crashk_low_res.start,
- 					      crashk_low_res.end);
-+	if (ret)
-+		return ret;
+-	panic_print_sys_info(false);
++	panic_print_sys_info();
  
--	return ret;
-+	for (i = 0; i < crashk_cma_cnt; ++i) {
-+		ret = crash_exclude_mem_range(cmem, crashk_cma_ranges[i].start,
-+					      crashk_cma_ranges[i].end);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
- }
+ 	kmsg_dump_desc(KMSG_DUMP_PANIC, buf);
  
- static int prepare_elf64_ram_headers_callback(struct resource *res, void *arg)
-@@ -373,6 +383,14 @@ int crash_setup_memmap_entries(struct ki
- 		ei.type = E820_TYPE_RAM;
- 		add_e820_entry(params, &ei);
- 	}
-+
-+	for (i = 0; i < crashk_cma_cnt; ++i) {
-+		ei.addr = crashk_cma_ranges[i].start;
-+		ei.size = crashk_cma_ranges[i].end -
-+			  crashk_cma_ranges[i].start + 1;
-+		ei.type = E820_TYPE_RAM;
-+		add_e820_entry(params, &ei);
-+	}
+@@ -439,7 +439,7 @@ void panic(const char *fmt, ...)
+ 	debug_locks_off();
+ 	console_flush_on_panic(CONSOLE_FLUSH_PENDING);
  
- out:
- 	vfree(cmem);
---- a/arch/x86/kernel/setup.c~x86-implement-crashkernel-cma-reservation
-+++ a/arch/x86/kernel/setup.c
-@@ -599,7 +599,7 @@ static void __init memblock_x86_reserve_
+-	panic_print_sys_info(true);
++	panic_console_replay();
  
- static void __init arch_reserve_crashkernel(void)
- {
--	unsigned long long crash_base, crash_size, low_size = 0;
-+	unsigned long long crash_base, crash_size, low_size = 0, cma_size = 0;
- 	bool high = false;
- 	int ret;
- 
-@@ -608,7 +608,7 @@ static void __init arch_reserve_crashker
- 
- 	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
- 				&crash_size, &crash_base,
--				&low_size, NULL, &high);
-+				&low_size, &cma_size, &high);
- 	if (ret)
- 		return;
- 
-@@ -618,6 +618,7 @@ static void __init arch_reserve_crashker
- 	}
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
-+	reserve_crashkernel_cma(cma_size);
- }
- 
- static struct resource standard_io_resources[] = {
+ 	if (!panic_blink)
+ 		panic_blink = no_blink;
 _
 
-Patches currently in -mm which might be from jbohac@suse.cz are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
 
