@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CA401519A6
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:02:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E4E14F9FB
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976949; cv=none; b=EL2sOYgm0d9uhDntH+1h+SzEj7p572PU2iUJwp0OmyRiQCLTHDWt7SmbAd3258UTZNJFyiTOknaa95ZZnM44o4TmhvJX/3ey2drYUqfgEycXV0P+YcUPtbK28VBjf2JNVYi9Gry2mOpYsm9DUzQBhBtElT8jl2MnPpfa/uUvK4Y=
+	t=1752976950; cv=none; b=W1CRxhoREMJHeKgP2oNQUeaBErQm7OK0CAxkMh3ctLo6tuDmHZizvZ9qErJkUcTZisemsnrmIXgfiqrpPJS6Hbnb0DC9V42p/15p6UJbN/2so5yte71p702H9kJ89PW+05TodOXH+0Cox0mk8DriMwya+dh+Ru8twMZ2yyOJbZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976949; c=relaxed/simple;
-	bh=wEvncUiuQ0ACprkw9b6gacLYQmqyMV0nbEtCQcM6TZk=;
-	h=Date:To:From:Subject:Message-Id; b=nH60ypEIadeG7h6LLPN0WBtU571IqhYKOs6pIkJWaMJ8ugMVfSkEB7AfnlZioK1GUfalk4wWBPjdvCqp7scKPTryBX3RGi/hadSwAaUllhfEFC1XrB+qeJo7VNp/YOTc2NhfBDB9E/UQ4jY6EZ9cJCo3iW1XTxjJIquG3MzTYXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DvlpCArI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976950; c=relaxed/simple;
+	bh=l0la2WhOwTrzyKFx+gPWM7LoJzshB+WulxitLcGfcD4=;
+	h=Date:To:From:Subject:Message-Id; b=YfYlPqY/KIOKPgJjG1uEi2laZsKArT2xyd9jQo6ZC4zsi7kdVT81l8jjxFzB5cVQb9miZKn3IPRFnfSLkVJknW6boMoJwAgemwPwb72S0JwqSJcTRvmevniJH2jmnXlfh7zqjvWciLtNVUpZJWRlvHINgH2GuTrnlKNATjDgS0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nVQ8gSCa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DvlpCArI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A43DCC4CEE3;
-	Sun, 20 Jul 2025 02:02:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nVQ8gSCa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB8E0C4CEE3;
+	Sun, 20 Jul 2025 02:02:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976948;
-	bh=wEvncUiuQ0ACprkw9b6gacLYQmqyMV0nbEtCQcM6TZk=;
+	s=korg; t=1752976949;
+	bh=l0la2WhOwTrzyKFx+gPWM7LoJzshB+WulxitLcGfcD4=;
 	h=Date:To:From:Subject:From;
-	b=DvlpCArIXXZMYwCDUNdQDbwcb2A17Ezn+8x65zn2qJpWGdPsjwtMjDhCNdqpYaa0n
-	 MY/OkP+5dnVl8XEIBHjOfp2wDOcytGNtFGcAEP6gKb6QsnYKn0LQ0/vW2QRuR5lSMA
-	 IWWaKSvEhxCpGJKYoDwA6JRkTkmyovpxixSjWzC8=
-Date: Sat, 19 Jul 2025 19:02:28 -0700
-To: mm-commits@vger.kernel.org,hughd@google.com,baolin.wang@linux.alibaba.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=nVQ8gSCaAYQWwx1/z8OziCLvXIm+lZPe8NAasyuWZ+YRSezpVqooDF4G4vT99ZvPn
+	 IqgrjEyOaejTg4gkRWSg7e+fEEPqIUAYoxd/8QwwPe9ftfPLNIK6aESfGHQchi9Egd
+	 Gxmi/gDujS72AowPtig+Rk4TjD34yKrO6QBzy1dE=
+Date: Sat, 19 Jul 2025 19:02:29 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memfd-replace-deprecated-strcpy-with-memcpy-in-alloc_name.patch removed from -mm tree
-Message-Id: <20250720020228.A43DCC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_owner-convert-set_page_owner_migrate_reason-to-folios.patch removed from -mm tree
+Message-Id: <20250720020229.CB8E0C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memfd: replace deprecated strcpy() with memcpy() in alloc_name()
+     Subject: mm/page_owner: convert set_page_owner_migrate_reason() to folios
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-replace-deprecated-strcpy-with-memcpy-in-alloc_name.patch
+     mm-page_owner-convert-set_page_owner_migrate_reason-to-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: mm/memfd: replace deprecated strcpy() with memcpy() in alloc_name()
-Date: Sat, 12 Jul 2025 19:45:17 +0200
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm/page_owner: convert set_page_owner_migrate_reason() to folios
+Date: Fri, 11 Jul 2025 10:59:10 -0400
 
-strcpy() is deprecated; use memcpy() instead.
+Both callers of set_page_owner_migrate_reason() use folios.  Convert the
+function to take a folio directly and move the &folio->page conversion
+inside __set_page_owner_migrate_reason().
 
-Not copying the NUL terminator is safe because strncpy_from_user() would
-overwrite it anyway by appending uname to the destination buffer at index
-MFD_NAME_PREFIX_LEN.
-
-No functional changes intended.
-
-Link: https://github.com/KSPP/linux/issues/88
-Link: https://lkml.kernel.org/r/20250712174516.64243-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20250711145910.90135-1-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/page_owner.h |    8 ++++----
+ mm/hugetlb.c               |    2 +-
+ mm/migrate.c               |    2 +-
+ mm/page_owner.c            |    4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/memfd.c~mm-memfd-replace-deprecated-strcpy-with-memcpy-in-alloc_name
-+++ a/mm/memfd.c
-@@ -411,7 +411,7 @@ static char *alloc_name(const char __use
- 	if (!name)
- 		return ERR_PTR(-ENOMEM);
+--- a/include/linux/page_owner.h~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
++++ a/include/linux/page_owner.h
+@@ -14,7 +14,7 @@ extern void __set_page_owner(struct page
+ extern void __split_page_owner(struct page *page, int old_order,
+ 			int new_order);
+ extern void __folio_copy_owner(struct folio *newfolio, struct folio *old);
+-extern void __set_page_owner_migrate_reason(struct page *page, int reason);
++extern void __folio_set_owner_migrate_reason(struct folio *folio, int reason);
+ extern void __dump_page_owner(const struct page *page);
+ extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+ 					pg_data_t *pgdat, struct zone *zone);
+@@ -43,10 +43,10 @@ static inline void folio_copy_owner(stru
+ 	if (static_branch_unlikely(&page_owner_inited))
+ 		__folio_copy_owner(newfolio, old);
+ }
+-static inline void set_page_owner_migrate_reason(struct page *page, int reason)
++static inline void folio_set_owner_migrate_reason(struct folio *folio, int reason)
+ {
+ 	if (static_branch_unlikely(&page_owner_inited))
+-		__set_page_owner_migrate_reason(page, reason);
++		__folio_set_owner_migrate_reason(folio, reason);
+ }
+ static inline void dump_page_owner(const struct page *page)
+ {
+@@ -68,7 +68,7 @@ static inline void split_page_owner(stru
+ static inline void folio_copy_owner(struct folio *newfolio, struct folio *folio)
+ {
+ }
+-static inline void set_page_owner_migrate_reason(struct page *page, int reason)
++static inline void folio_set_owner_migrate_reason(struct folio *folio, int reason)
+ {
+ }
+ static inline void dump_page_owner(const struct page *page)
+--- a/mm/hugetlb.c~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
++++ a/mm/hugetlb.c
+@@ -7835,7 +7835,7 @@ void move_hugetlb_state(struct folio *ol
+ 	struct hstate *h = folio_hstate(old_folio);
  
--	strcpy(name, MFD_NAME_PREFIX);
-+	memcpy(name, MFD_NAME_PREFIX, MFD_NAME_PREFIX_LEN);
- 	/* returned length does not include terminating zero */
- 	len = strncpy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, MFD_NAME_MAX_LEN + 1);
- 	if (len < 0) {
+ 	hugetlb_cgroup_migrate(old_folio, new_folio);
+-	set_page_owner_migrate_reason(&new_folio->page, reason);
++	folio_set_owner_migrate_reason(new_folio, reason);
+ 
+ 	/*
+ 	 * transfer temporary state of the new hugetlb folio. This is
+--- a/mm/migrate.c~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
++++ a/mm/migrate.c
+@@ -1367,7 +1367,7 @@ static int migrate_folio_move(free_folio
+ 
+ out_unlock_both:
+ 	folio_unlock(dst);
+-	set_page_owner_migrate_reason(&dst->page, reason);
++	folio_set_owner_migrate_reason(dst, reason);
+ 	/*
+ 	 * If migration is successful, decrease refcount of dst,
+ 	 * which will not free the page because new page owner increased
+--- a/mm/page_owner.c~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
++++ a/mm/page_owner.c
+@@ -333,9 +333,9 @@ noinline void __set_page_owner(struct pa
+ 	inc_stack_record_count(handle, gfp_mask, 1 << order);
+ }
+ 
+-void __set_page_owner_migrate_reason(struct page *page, int reason)
++void __folio_set_owner_migrate_reason(struct folio *folio, int reason)
+ {
+-	struct page_ext *page_ext = page_ext_get(page);
++	struct page_ext *page_ext = page_ext_get(&folio->page);
+ 	struct page_owner *page_owner;
+ 
+ 	if (unlikely(!page_ext))
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
 
