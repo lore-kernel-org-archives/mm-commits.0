@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4149A16F265;
-	Sun, 20 Jul 2025 02:26:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05D98F6C;
+	Sun, 20 Jul 2025 02:36:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752978414; cv=none; b=anj3WFL7MmEwHTy6xHW529uTwKZFTTZs13bDcMoi4l1BMw8huICLogoR4hbCFGqPwUJHktyHdiEAItHeyoQQLdEgip5Vpm2MsKIIYxRpVKFbhqsNGcAzYrin5Tp6lm82UtmFQ8ZsiexVljlKJ8apePTerj3BqYUFCP5nBsx2buY=
+	t=1752978962; cv=none; b=FQvahb8GT8IDe29YoamcXk0Ibe1Twnqr8x0rg/74FQHQMwCqTMoWD8PTmLUyC/C6FYsO7BDCOyui2AJDL/WlLEmpmynxm/g6YgCp3MQ7tZSMSvT2x6xvv51GMJ+DS1jj5aNB407WadgbcYdO8oPT3/8LbpUYckTmMYpxTsVh6Sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752978414; c=relaxed/simple;
-	bh=ARvBRiVtPOoV66yYuCa+IDRlrdzu0AuvmAt1MXp2ZFo=;
-	h=Date:To:From:Subject:Message-Id; b=UB5h9Ps4JyD3iifoqW5K5+H5uaeb1hJ6F/fMmXvko1s0a07Ff74cg6zBko85TriCgsiULWjwAKASc4HfGEcDGAhb0Psc052B/3nRwoJsvbP9Avfp7vnKSGA3cMqwFCIZhrWjJ7pnYj8XlN7VEKL+6cI31CLp8xOI1OTUQlqH0BY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H3VQampy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752978962; c=relaxed/simple;
+	bh=u71PyHMzkLJiXGKlAF+hxR4QkLxXLuRTlcwaqa0jg+c=;
+	h=Date:To:From:Subject:Message-Id; b=dI+zKoBF5YY4IsxiY9m0yYZv2JS0pNuIZw4ZAI4g9E4FXkKYiXhyG39hFfHBBXP5aRcrOuchOMZr5hC4F0qryWPzqLCnn/A3AHuXGyDYoxnqzLEKYaHbC8AavZiSAhCU8+8JG1hHn2haPl14jNucy3nZECKeqp/EpSKbGAP65JE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nHeRejHb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H3VQampy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B115C4CEE3;
-	Sun, 20 Jul 2025 02:26:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nHeRejHb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BCAAC4CEE3;
+	Sun, 20 Jul 2025 02:36:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752978414;
-	bh=ARvBRiVtPOoV66yYuCa+IDRlrdzu0AuvmAt1MXp2ZFo=;
+	s=korg; t=1752978962;
+	bh=u71PyHMzkLJiXGKlAF+hxR4QkLxXLuRTlcwaqa0jg+c=;
 	h=Date:To:From:Subject:From;
-	b=H3VQampy6sZW7oBayHx86ydGMA0UYO2u00Yq/9+j2NEBSpuBlJFNy5PyqgRXIFUu8
-	 DFKdIYaGa6SBGbZZEMqsMfNhx6nHxp3W2Gc2sCeSaUc3Ho5KuL5Eh+ns6ZlqRsjHmp
-	 qio4iDH7WwKqxto8hNK1Rgi2MVJiDoXW8XryGh5U=
-Date: Sat, 19 Jul 2025 19:26:53 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,shr@devkernel.io,david@redhat.com,chengming.zhou@linux.dev,nathan@kernel.org,akpm@linux-foundation.org
+	b=nHeRejHb6+mbuE/Pb6EsD7q9qY4AaA9sw8nO4iN/XL6UMGlmkbdFqr01JaDcvEZbo
+	 OHCnJbTdTr7q0i9/EeJif/EjyYM+Mr1q37v5mnislXZ7KNQcA1BjwgpmYOp2nZGmhs
+	 xYC3g24EHN7SiAWqHTUxt7dLFTHkctT71q1D7leE=
+Date: Sat, 19 Jul 2025 19:36:01 -0700
+To: mm-commits@vger.kernel.org,ysk@kzalloc.com,yeoreum.yun@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,bigeasy@linutronix.de,andreyknvl@gmail.com,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show.patch removed from -mm tree
-Message-Id: <20250720022654.0B115C4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports.patch removed from -mm tree
+Message-Id: <20250720023602.1BCAAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: fix -Wsometimes-uninitialized from clang-21 in advisor_mode_show()
+     Subject: kasan: use vmalloc_dump_obj() for vmalloc error reports
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show.patch
+     kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: mm/ksm: fix -Wsometimes-uninitialized from clang-21 in advisor_mode_show()
-Date: Tue, 15 Jul 2025 12:56:16 -0700
+From: Marco Elver <elver@google.com>
+Subject: kasan: use vmalloc_dump_obj() for vmalloc error reports
+Date: Wed, 16 Jul 2025 17:23:28 +0200
 
-After a recent change in clang to expose uninitialized warnings from const
-variables [1], there is a false positive warning from the if statement in
-advisor_mode_show().
+Since 6ee9b3d84775 ("kasan: remove kasan_find_vm_area() to prevent
+possible deadlock"), more detailed info about the vmalloc mapping and the
+origin was dropped due to potential deadlocks.
 
-  mm/ksm.c:3687:11: error: variable 'output' is used uninitialized whenever 'if' condition is false [-Werror,-Wsometimes-uninitialized]
-   3687 |         else if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
-        |                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  mm/ksm.c:3690:33: note: uninitialized use occurs here
-   3690 |         return sysfs_emit(buf, "%s\n", output);
-        |                                        ^~~~~~
+While fixing the deadlock is necessary, that patch was too quick in
+killing an otherwise useful feature, and did no due-diligence in
+understanding if an alternative option is available.
 
-Rewrite the if statement to implicitly make KSM_ADVISOR_NONE the else
-branch so that it is obvious to the compiler that ksm_advisor can only be
-KSM_ADVISOR_NONE or KSM_ADVISOR_SCAN_TIME due to the assignments in
-advisor_mode_store().
+Restore printing more helpful vmalloc allocation info in KASAN reports
+with the help of vmalloc_dump_obj().  Example report:
 
-Link: https://lkml.kernel.org/r/20250715-ksm-fix-clang-21-uninit-warning-v1-1-f443feb4bfc4@kernel.org
-Fixes: 66790e9a735b ("mm/ksm: add sysfs knobs for advisor")
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Closes: https://github.com/ClangBuiltLinux/linux/issues/2100
-Link: https://github.com/llvm/llvm-project/commit/2464313eef01c5b1edf0eccf57a32cdee01472c7 [1]
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: xu xin <xu.xin16@zte.com.cn>
+| BUG: KASAN: vmalloc-out-of-bounds in vmalloc_oob+0x4c9/0x610
+| Read of size 1 at addr ffffc900002fd7f3 by task kunit_try_catch/493
+|
+| CPU: [...]
+| Call Trace:
+|  <TASK>
+|  dump_stack_lvl+0xa8/0xf0
+|  print_report+0x17e/0x810
+|  kasan_report+0x155/0x190
+|  vmalloc_oob+0x4c9/0x610
+|  [...]
+|
+| The buggy address belongs to a 1-page vmalloc region starting at 0xffffc900002fd000 allocated at vmalloc_oob+0x36/0x610
+| The buggy address belongs to the physical page:
+| page: refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x126364
+| flags: 0x200000000000000(node=0|zone=2)
+| raw: 0200000000000000 0000000000000000 dead000000000122 0000000000000000
+| raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+| page dumped because: kasan: bad access detected
+|
+| [..]
+
+Link: https://lkml.kernel.org/r/20250716152448.3877201-1-elver@google.com
+Fixes: 6ee9b3d84775 ("kasan: remove kasan_find_vm_area() to prevent possible deadlock")
+Signed-off-by: Marco Elver <elver@google.com>
+Suggested-by: Uladzislau Rezki <urezki@gmail.com>
+Acked-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Yeoreum Yun <yeoreum.yun@arm.com>
+Cc: Yunseong Kim <ysk@kzalloc.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/kasan/report.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/ksm.c~mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show
-+++ a/mm/ksm.c
-@@ -3669,10 +3669,10 @@ static ssize_t advisor_mode_show(struct
- {
- 	const char *output;
+--- a/mm/kasan/report.c~kasan-use-vmalloc_dump_obj-for-vmalloc-error-reports
++++ a/mm/kasan/report.c
+@@ -399,7 +399,9 @@ static void print_address_description(vo
+ 	}
  
--	if (ksm_advisor == KSM_ADVISOR_NONE)
--		output = "[none] scan-time";
--	else if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
-+	if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
- 		output = "none [scan-time]";
-+	else
-+		output = "[none] scan-time";
+ 	if (is_vmalloc_addr(addr)) {
+-		pr_err("The buggy address %px belongs to a vmalloc virtual mapping\n", addr);
++		pr_err("The buggy address belongs to a");
++		if (!vmalloc_dump_obj(addr))
++			pr_cont(" vmalloc virtual mapping\n");
+ 		page = vmalloc_to_page(addr);
+ 	}
  
- 	return sysfs_emit(buf, "%s\n", output);
- }
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from elver@google.com are
 
 
