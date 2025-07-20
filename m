@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D85CC2110E
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA24E7DA6A
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976886; cv=none; b=P/jketbkciLtkeX/BOG1KMacZpizFBSOb2Da57wNEzIaQiW8dcDwGhiSEln9GZSuxfjbkOD6RG8maLWZ1+nzWQdr0DNhmVXQDH/sWgUMbiOW/HsdarLq+WAc46xqRNud6E85YRa3r3/vz/0XdveU4wx2cYwSp8JrQKsht7YyH14=
+	t=1752976889; cv=none; b=RpoAUlhBgVBA7RKSwFFpuVJMXX6JW4LQvVvwqTixuSxLrcPWcG1RP93fMbW6IX3bhtblYbZAnVWitUco7TLSms1IWpYoO9lEbh6hwgenslnavo3VFQxiw6R62Qa2vvsxOoSZll2z7zr7b32SE1A17dKQ1enHuGUEHMiAfbrkf6A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976886; c=relaxed/simple;
-	bh=Su2K3PhZT4jTXqRytWOuVMii5foJ91EEQLKXH2srDp8=;
-	h=Date:To:From:Subject:Message-Id; b=T0sd+7FEItN3XpW5sQ26797ltGgHC0eRFk5ByVfBI8IJGfTKvMtpCtQ1SML9cdZ88XcyXouuxWjC4pDMkv1bWIy1gHW20WSAGAZQaOonfMlqpIj5JHT+7aFp5dVifXWayNBSR1KHD42FmVj+8yGBQECxFC3e+bXAdsOOdB1j2Vs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ylCNGBer; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976889; c=relaxed/simple;
+	bh=A5Dprro/HSok5P+v4DDNh3NuOXC9DMluxaKyLH8PMzg=;
+	h=Date:To:From:Subject:Message-Id; b=sxPnNUonevyrfbVr4b8dK75mD53emkf2jzgUwEGoSd7DejLUd0Mx5KncWNtArrbwNZelbiwd8VHWxzPxvBEmvji5xAYcIYFtFgJ5MkWtv/rWTUfLDxKiWSwRfgyaggomJtkZVo1PDwLy2G6fSwdJC1t3Ghhogav+3NBhO78+i6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TIqjD2Ba; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ylCNGBer"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60581C4CEE3;
-	Sun, 20 Jul 2025 02:01:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TIqjD2Ba"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEEF3C4CEE3;
+	Sun, 20 Jul 2025 02:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976886;
-	bh=Su2K3PhZT4jTXqRytWOuVMii5foJ91EEQLKXH2srDp8=;
+	s=korg; t=1752976889;
+	bh=A5Dprro/HSok5P+v4DDNh3NuOXC9DMluxaKyLH8PMzg=;
 	h=Date:To:From:Subject:From;
-	b=ylCNGBerpgU9lVUuihbzyz2LbPMULOfZfZQPjv4GkJbE25lEFjarpmrEfXNjQGiOW
-	 H4ZComnbY5N/ioRMfGyetJ5yunBrf/DtWRdiWoNiTCJjgQ1kt26UHBtcVDM/xbltyw
-	 6ARCn6F3piNSDL5X6U0hdGoIBVz5sHeevrseWq6U=
-Date: Sat, 19 Jul 2025 19:01:25 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,tj@kernel.org,surenb@google.com,mszeredi@redhat.com,mpatlasov@parallels.com,mhocko@suse.com,kirill.shutemov@linux.intel.com,joannelkoong@gmail.com,jlayton@kernel.org,jefflexu@linux.alibaba.com,jack@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,dakr@kernel.org,corbet@lwn.net,axboe@kernel.dk,vbabka@suse.cz,akpm@linux-foundation.org
+	b=TIqjD2BasRCnAmYqmSJgnIw9DbAem/0Np3qQk+NYJssX3vGYlsx9Ef0fffJu/PxKq
+	 /pDBuchc7e9FP1oJ6ibo3zbqcQdgS2cElAI5YnAB3Z7A8NeYFqgznDCfZbkj/4qs7v
+	 gLSTac8YKZXBxC00i+kXI/1sCi37BuPDrI37LMzY=
+Date: Sat, 19 Jul 2025 19:01:29 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch removed from -mm tree
-Message-Id: <20250720020126.60581C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-change-enable-parameters-to-enabled.patch removed from -mm tree
+Message-Id: <20250720020129.AEEF3C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,160 +35,234 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, vmstat: remove the NR_WRITEBACK_TEMP node_stat_item counter
+     Subject: samples/damon: change enable parameters to enabled
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
+     samples-damon-change-enable-parameters-to-enabled.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, vmstat: remove the NR_WRITEBACK_TEMP node_stat_item counter
-Date: Wed, 25 Jun 2025 17:51:52 +0200
+From: Honggyu Kim <honggyu.kim@sk.com>
+Subject: samples/damon: change enable parameters to enabled
+Date: Mon, 7 Jul 2025 11:45:47 +0900
 
-The only user of the counter (FUSE) was removed in commit 0c58a97f919c
-("fuse: remove tmp folio for writebacks and internal rb tree") so follow
-the established pattern of removing the counter and hardcoding 0 in
-meminfo output, as done recently with NR_BOUNCE.  Update documentation for
-procfs, including for the value for Bounce that was missed when removing
-its counter.
+The damon_{lru_sort,reclaim,stat} kernel modules use "enabled" parameter
+knobs as follows.
 
-Also remove the mention of NR_WRITEBACK_TEMP implications from a comment
-in wb_position_ratio(). The rest of the comment there about fuse setting
-bdi->max_ratio to 1% is still correct.
+  /sys/module/damon_lru_sort/parameters/enabled
+  /sys/module/damon_reclaim/parameters/enabled
+  /sys/module/damon_stat/parameters/enabled
 
-[vbabka@suse.cz: v2]
-  Link: https://lkml.kernel.org/r/5a848e15-6a57-4ecb-a015-d4f358b8a5d3@suse.cz
-Link: https://lkml.kernel.org/r/20250625-nr_writeback_removal-v1-1-7f2a0df70faa@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joanne Koong <joannelkoong@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Maxim Patlasov <mpatlasov@parallels.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+However, other sample modules of damon use "enable" parameter knobs so
+it'd be better to rename them from "enable" to "enabled" to keep the
+consistency with other damon modules.
+
+Before:
+  /sys/module/damon_sample_wsse/parameters/enable
+  /sys/module/damon_sample_prcl/parameters/enable
+  /sys/module/damon_sample_mtier/parameters/enable
+
+After:
+  /sys/module/damon_sample_wsse/parameters/enabled
+  /sys/module/damon_sample_prcl/parameters/enabled
+  /sys/module/damon_sample_mtier/parameters/enabled
+
+There is no functional changes in this patch.
+
+Link: https://lkml.kernel.org/r/20250707024548.1964-1-honggyu.kim@sk.com
+Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    8 +++++---
- drivers/base/node.c                |    2 +-
- fs/proc/meminfo.c                  |    3 +--
- include/linux/mmzone.h             |    1 -
- mm/page-writeback.c                |    4 +---
- mm/show_mem.c                      |    2 --
- mm/vmstat.c                        |    1 -
- 7 files changed, 8 insertions(+), 13 deletions(-)
+ samples/damon/mtier.c |   22 +++++++++++-----------
+ samples/damon/prcl.c  |   22 +++++++++++-----------
+ samples/damon/wsse.c  |   22 +++++++++++-----------
+ 3 files changed, 33 insertions(+), 33 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
-+++ a/Documentation/filesystems/proc.rst
-@@ -1196,12 +1196,14 @@ SecPageTables
-               Memory consumed by secondary page tables, this currently includes
-               KVM mmu and IOMMU allocations on x86 and arm64.
- NFS_Unstable
--              Always zero. Previous counted pages which had been written to
-+              Always zero. Previously counted pages which had been written to
-               the server, but has not been committed to stable storage.
- Bounce
--              Memory used for block device "bounce buffers"
-+              Always zero. Previously memory used for block device
-+              "bounce buffers".
- WritebackTmp
--              Memory used by FUSE for temporary writeback buffers
-+              Always zero. Previously memory used by FUSE for temporary
-+              writeback buffers.
- CommitLimit
-               Based on the overcommit ratio ('vm.overcommit_ratio'),
-               this is the total amount of  memory currently available to
---- a/drivers/base/node.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
-+++ a/drivers/base/node.c
-@@ -500,7 +500,7 @@ static ssize_t node_read_meminfo(struct
- 			     nid, K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
- 			     nid, 0UL,
- 			     nid, 0UL,
--			     nid, K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
-+			     nid, 0UL,
- 			     nid, K(sreclaimable +
- 				    node_page_state(pgdat, NR_KERNEL_MISC_RECLAIMABLE)),
- 			     nid, K(sreclaimable + sunreclaimable),
---- a/fs/proc/meminfo.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
-+++ a/fs/proc/meminfo.c
-@@ -121,8 +121,7 @@ static int meminfo_proc_show(struct seq_
+--- a/samples/damon/mtier.c~samples-damon-change-enable-parameters-to-enabled
++++ a/samples/damon/mtier.c
+@@ -38,14 +38,14 @@ module_param(node0_mem_free_bp, ulong, 0
+ static int damon_sample_mtier_enable_store(
+ 		const char *val, const struct kernel_param *kp);
  
- 	show_val_kb(m, "NFS_Unstable:   ", 0);
- 	show_val_kb(m, "Bounce:         ", 0);
--	show_val_kb(m, "WritebackTmp:   ",
--		    global_node_page_state(NR_WRITEBACK_TEMP));
-+	show_val_kb(m, "WritebackTmp:   ", 0);
- 	show_val_kb(m, "CommitLimit:    ", vm_commit_limit());
- 	show_val_kb(m, "Committed_AS:   ", committed);
- 	seq_printf(m, "VmallocTotal:   %8lu kB\n",
---- a/include/linux/mmzone.h~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
-+++ a/include/linux/mmzone.h
-@@ -206,7 +206,6 @@ enum node_stat_item {
- 	NR_FILE_PAGES,
- 	NR_FILE_DIRTY,
- 	NR_WRITEBACK,
--	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
- 	NR_SHMEM,		/* shmem pages (included tmpfs/GEM pages) */
- 	NR_SHMEM_THPS,
- 	NR_SHMEM_PMDMAPPED,
---- a/mm/page-writeback.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
-+++ a/mm/page-writeback.c
-@@ -1101,9 +1101,7 @@ static void wb_position_ratio(struct dir
- 	 * such filesystems balance_dirty_pages always checks wb counters
- 	 * against wb limits. Even if global "nr_dirty" is under "freerun".
- 	 * This is especially important for fuse which sets bdi->max_ratio to
--	 * 1% by default. Without strictlimit feature, fuse writeback may
--	 * consume arbitrary amount of RAM because it is accounted in
--	 * NR_WRITEBACK_TEMP which is not involved in calculating "nr_dirty".
-+	 * 1% by default.
- 	 *
- 	 * Here, in wb_position_ratio(), we calculate pos_ratio based on
- 	 * two values: wb_dirty and wb_thresh. Let's consider an example:
---- a/mm/show_mem.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
-+++ a/mm/show_mem.c
-@@ -246,7 +246,6 @@ static void show_free_areas(unsigned int
- 			" shmem_pmdmapped:%lukB"
- 			" anon_thp:%lukB"
- #endif
--			" writeback_tmp:%lukB"
- 			" kernel_stack:%lukB"
- #ifdef CONFIG_SHADOW_CALL_STACK
- 			" shadow_call_stack:%lukB"
-@@ -273,7 +272,6 @@ static void show_free_areas(unsigned int
- 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
- 			K(node_page_state(pgdat, NR_ANON_THPS)),
- #endif
--			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
- 			node_page_state(pgdat, NR_KERNEL_STACK_KB),
- #ifdef CONFIG_SHADOW_CALL_STACK
- 			node_page_state(pgdat, NR_KERNEL_SCS_KB),
---- a/mm/vmstat.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter
-+++ a/mm/vmstat.c
-@@ -1251,7 +1251,6 @@ const char * const vmstat_text[] = {
- 	[I(NR_FILE_PAGES)]			= "nr_file_pages",
- 	[I(NR_FILE_DIRTY)]			= "nr_dirty",
- 	[I(NR_WRITEBACK)]			= "nr_writeback",
--	[I(NR_WRITEBACK_TEMP)]			= "nr_writeback_temp",
- 	[I(NR_SHMEM)]				= "nr_shmem",
- 	[I(NR_SHMEM_THPS)]			= "nr_shmem_hugepages",
- 	[I(NR_SHMEM_PMDMAPPED)]			= "nr_shmem_pmdmapped",
+-static const struct kernel_param_ops enable_param_ops = {
++static const struct kernel_param_ops enabled_param_ops = {
+ 	.set = damon_sample_mtier_enable_store,
+ 	.get = param_get_bool,
+ };
+ 
+-static bool enable __read_mostly;
+-module_param_cb(enable, &enable_param_ops, &enable, 0600);
+-MODULE_PARM_DESC(enable, "Enable of disable DAMON_SAMPLE_MTIER");
++static bool enabled __read_mostly;
++module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
++MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_MTIER");
+ 
+ static struct damon_ctx *ctxs[2];
+ 
+@@ -167,20 +167,20 @@ static bool init_called;
+ static int damon_sample_mtier_enable_store(
+ 		const char *val, const struct kernel_param *kp)
+ {
+-	bool enabled = enable;
++	bool is_enabled = enabled;
+ 	int err;
+ 
+-	err = kstrtobool(val, &enable);
++	err = kstrtobool(val, &enabled);
+ 	if (err)
+ 		return err;
+ 
+-	if (enable == enabled)
++	if (enabled == is_enabled)
+ 		return 0;
+ 
+-	if (enable) {
++	if (enabled) {
+ 		err = damon_sample_mtier_start();
+ 		if (err)
+-			enable = false;
++			enabled = false;
+ 		return err;
+ 	}
+ 	damon_sample_mtier_stop();
+@@ -192,10 +192,10 @@ static int __init damon_sample_mtier_ini
+ 	int err = 0;
+ 
+ 	init_called = true;
+-	if (enable) {
++	if (enabled) {
+ 		err = damon_sample_mtier_start();
+ 		if (err)
+-			enable = false;
++			enabled = false;
+ 	}
+ 	return 0;
+ }
+--- a/samples/damon/prcl.c~samples-damon-change-enable-parameters-to-enabled
++++ a/samples/damon/prcl.c
+@@ -22,14 +22,14 @@ module_param(target_pid, int, 0600);
+ static int damon_sample_prcl_enable_store(
+ 		const char *val, const struct kernel_param *kp);
+ 
+-static const struct kernel_param_ops enable_param_ops = {
++static const struct kernel_param_ops enabled_param_ops = {
+ 	.set = damon_sample_prcl_enable_store,
+ 	.get = param_get_bool,
+ };
+ 
+-static bool enable __read_mostly;
+-module_param_cb(enable, &enable_param_ops, &enable, 0600);
+-MODULE_PARM_DESC(enable, "Enable of disable DAMON_SAMPLE_WSSE");
++static bool enabled __read_mostly;
++module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
++MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_PRCL");
+ 
+ static struct damon_ctx *ctx;
+ static struct pid *target_pidp;
+@@ -119,20 +119,20 @@ static bool init_called;
+ static int damon_sample_prcl_enable_store(
+ 		const char *val, const struct kernel_param *kp)
+ {
+-	bool enabled = enable;
++	bool is_enabled = enabled;
+ 	int err;
+ 
+-	err = kstrtobool(val, &enable);
++	err = kstrtobool(val, &enabled);
+ 	if (err)
+ 		return err;
+ 
+-	if (enable == enabled)
++	if (enabled == is_enabled)
+ 		return 0;
+ 
+-	if (enable) {
++	if (enabled) {
+ 		err = damon_sample_prcl_start();
+ 		if (err)
+-			enable = false;
++			enabled = false;
+ 		return err;
+ 	}
+ 	damon_sample_prcl_stop();
+@@ -144,10 +144,10 @@ static int __init damon_sample_prcl_init
+ 	int err = 0;
+ 
+ 	init_called = true;
+-	if (enable) {
++	if (enabled) {
+ 		err = damon_sample_prcl_start();
+ 		if (err)
+-			enable = false;
++			enabled = false;
+ 	}
+ 	return 0;
+ }
+--- a/samples/damon/wsse.c~samples-damon-change-enable-parameters-to-enabled
++++ a/samples/damon/wsse.c
+@@ -23,14 +23,14 @@ module_param(target_pid, int, 0600);
+ static int damon_sample_wsse_enable_store(
+ 		const char *val, const struct kernel_param *kp);
+ 
+-static const struct kernel_param_ops enable_param_ops = {
++static const struct kernel_param_ops enabled_param_ops = {
+ 	.set = damon_sample_wsse_enable_store,
+ 	.get = param_get_bool,
+ };
+ 
+-static bool enable __read_mostly;
+-module_param_cb(enable, &enable_param_ops, &enable, 0600);
+-MODULE_PARM_DESC(enable, "Enable or disable DAMON_SAMPLE_WSSE");
++static bool enabled __read_mostly;
++module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
++MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_WSSE");
+ 
+ static struct damon_ctx *ctx;
+ static struct pid *target_pidp;
+@@ -99,20 +99,20 @@ static bool init_called;
+ static int damon_sample_wsse_enable_store(
+ 		const char *val, const struct kernel_param *kp)
+ {
+-	bool enabled = enable;
++	bool is_enabled = enabled;
+ 	int err;
+ 
+-	err = kstrtobool(val, &enable);
++	err = kstrtobool(val, &enabled);
+ 	if (err)
+ 		return err;
+ 
+-	if (enable == enabled)
++	if (enabled == is_enabled)
+ 		return 0;
+ 
+-	if (enable) {
++	if (enabled) {
+ 		err = damon_sample_wsse_start();
+ 		if (err)
+-			enable = false;
++			enabled = false;
+ 		return err;
+ 	}
+ 	damon_sample_wsse_stop();
+@@ -124,10 +124,10 @@ static int __init damon_sample_wsse_init
+ 	int err = 0;
+ 
+ 	init_called = true;
+-	if (enable) {
++	if (enabled) {
+ 		err = damon_sample_wsse_start();
+ 		if (err)
+-			enable = false;
++			enabled = false;
+ 	}
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from honggyu.kim@sk.com are
 
 
