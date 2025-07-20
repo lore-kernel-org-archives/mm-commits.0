@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030C2208CA
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 229AA208CA;
+	Sun, 20 Jul 2025 02:01:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976891; cv=none; b=Z3pIBRZ7nb7DjgoCe5gWI6IGfxdN6Er5jNGXa2UfPPzT+Md2iHneeNxdCoza9SXWUkfSHRGI4a8aiPRCYMbXA5ctbY2gEnSP7frJDGpZnxJME7Yjwy7Tc6jL8YwGBiuSMTrviXSHua2GWwdyyE+19xLRcKUtN4+QYfDG88WJAWo=
+	t=1752976892; cv=none; b=Uu6SHo8CF58CFz7Vv2bRF5euAvDWiAWvsYFeJj56c/2BPL0mAudfS6nazy8VPMZeHiBhC4VXYXwlNZjWa3U/4xgQkMbUzYoK3EszbzUg4RlFvGp1VE25TdZTJLOaafHNVzQJI9paqEt4JHvZgoI3ufTg/+Q3TIucYmIV+GAteW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976891; c=relaxed/simple;
-	bh=bj+8hz7M8iE3kA1ZfmIYl/qwWJ22aNDj8g+HkLWjxLo=;
-	h=Date:To:From:Subject:Message-Id; b=WISTYyJWhYBonZzZ20UdwfiP+zfxvLuk/Z7u15hlxmYqBNuSo0FCaFUAKlgIYWebvwIQP7HO4GxHyTOx/JZZdIsO8UO+xM9aAsabHBHJBz6xF6wmT/GsZ3UuF3YXfqSJRaOzP67NYgdPPBja/Mpq6flNnxrNG9g5yipIkAq3tQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M7XBmUK8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976892; c=relaxed/simple;
+	bh=R6Q65nkhf9SMmJHRgUq22aqQR5FnPcJTj7ZXdz8VVJM=;
+	h=Date:To:From:Subject:Message-Id; b=rgTTb2PYmBBU9jELGUE3PqYQsobVA0NJDoL1NJEG0h70WTvZHADe5q5jhDuIzYf0DIoLwMYLezmDAK6QiWy0pJELg4Ccc2Vvk83ZxWN21F83zccKCgoJvR6w29pkNXRroK2ue/fQJGXaDxJ9KktcjD8AffoxsuYg7CCHHbYknbE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iAw9G0zg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M7XBmUK8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA915C4CEE3;
-	Sun, 20 Jul 2025 02:01:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iAw9G0zg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA8FBC4CEE3;
+	Sun, 20 Jul 2025 02:01:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976890;
-	bh=bj+8hz7M8iE3kA1ZfmIYl/qwWJ22aNDj8g+HkLWjxLo=;
+	s=korg; t=1752976892;
+	bh=R6Q65nkhf9SMmJHRgUq22aqQR5FnPcJTj7ZXdz8VVJM=;
 	h=Date:To:From:Subject:From;
-	b=M7XBmUK8GyiNla8DaiuLuRTyWXVzuApDyqir4Es4v4KyZtpjFBI/4AEOVAQS3w0qQ
-	 5w5NGb7z1CNUZlVayhcD660yD/AboxMT2g/W1GCaWo7xTRyQwUuXWtjUuRDclgHSsr
-	 nS6qdCCYoZXpqy38xUAprZ6F4LMMB0GtDZRutapA=
-Date: Sat, 19 Jul 2025 19:01:30 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,yunjeong.mun@sk.com,akpm@linux-foundation.org
+	b=iAw9G0zgSoKqcKQyizpjGV0uzYhlIR3cmyyIVRo8CIU/aXPODhsNigYhJLOc8E1vq
+	 L34PcvIV8R5KrZFUS9NTnohCr7i2nihtCAkdsuLNMVX65s+LqMRJhpKZUEpSiTr3E0
+	 OzdjwfcMu5Fz66f7sTYFr6cnP9ZOnJ2ptKBfUfx0=
+Date: Sat, 19 Jul 2025 19:01:31 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ravis.opensrc@micron.com,corbet@lwn.net,bijantabatab@micron.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-support-automatic-node-address-detection.patch removed from -mm tree
-Message-Id: <20250720020130.CA915C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-commit-damos-target_nid.patch removed from -mm tree
+Message-Id: <20250720020131.EA8FBC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon: support automatic node address detection
+     Subject: mm/damon/core: commit damos->target_nid
 has been removed from the -mm tree.  Its filename was
-     samples-damon-support-automatic-node-address-detection.patch
+     mm-damon-core-commit-damos-target_nid.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yunjeong Mun <yunjeong.mun@sk.com>
-Subject: samples/damon: support automatic node address detection
-Date: Tue, 8 Jul 2025 08:59:18 +0900
+From: Bijan Tabatabai <bijantabatab@micron.com>
+Subject: mm/damon/core: commit damos->target_nid
+Date: Tue, 8 Jul 2025 19:47:29 -0500
 
-This patch adds a new knob `detect_node_addresses`, which determines
-whether the physical address range is set manually using the existing
-knobs or automatically by the mtier module.  When `detect_node_addresses`
-set to 'Y', mtier automatically converts node0 and node1 to their physical
-addresses.  If set to 'N', it uses the existing 'node#_start_addr' and
-'node#_end_addr' to define regions as before.
+When committing new scheme parameters from the sysfs, the target_nid field
+of the damos struct would not be copied.  This would result in the
+target_nid field to retain its original value, despite being updated in
+the sysfs interface.
 
-Link: https://lkml.kernel.org/r/20250707235919.513-1-yunjeong.mun@sk.com
-Signed-off-by: Yunjeong Mun <yunjeong.mun@sk.com>
-Suggested-by: Honggyu Kim <honggyu.kim@sk.com>
+This patch fixes this issue by copying target_nid in damos_commit().
+
+Link: https://lkml.kernel.org/r/20250709004729.17252-1-bijan311@gmail.com
+Fixes: 83dc7bbaecae ("mm/damon/sysfs: use damon_commit_ctx()")
+Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |   37 ++++++++++++++++++++++++++++++++++---
- 1 file changed, 34 insertions(+), 3 deletions(-)
+ mm/damon/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/samples/damon/mtier.c~samples-damon-support-automatic-node-address-detection
-+++ a/samples/damon/mtier.c
-@@ -47,8 +47,29 @@ static bool enabled __read_mostly;
- module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
- MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_MTIER");
+--- a/mm/damon/core.c~mm-damon-core-commit-damos-target_nid
++++ a/mm/damon/core.c
+@@ -978,6 +978,7 @@ static int damos_commit(struct damos *ds
+ 		return err;
  
-+static bool detect_node_addresses __read_mostly;
-+module_param(detect_node_addresses, bool, 0600);
-+
- static struct damon_ctx *ctxs[2];
+ 	dst->wmarks = src->wmarks;
++	dst->target_nid = src->target_nid;
  
-+struct region_range {
-+	phys_addr_t start;
-+	phys_addr_t end;
-+};
-+
-+static int nid_to_phys(int target_node, struct region_range *range)
-+{
-+	if (!node_online(target_node)) {
-+		pr_err("NUMA node %d is not online\n", target_node);
-+		return -EINVAL;
-+	}
-+
-+	range->start = PFN_PHYS(node_start_pfn(target_node));
-+	range->end  = PFN_PHYS(node_end_pfn(target_node));
-+
-+	return 0;
-+}
-+
- static struct damon_ctx *damon_sample_mtier_build_ctx(bool promote)
- {
- 	struct damon_ctx *ctx;
-@@ -58,6 +79,8 @@ static struct damon_ctx *damon_sample_mt
- 	struct damos *scheme;
- 	struct damos_quota_goal *quota_goal;
- 	struct damos_filter *filter;
-+	struct region_range addr;
-+	int ret;
- 
- 	ctx = damon_new_ctx();
- 	if (!ctx)
-@@ -87,9 +110,17 @@ static struct damon_ctx *damon_sample_mt
- 	if (!target)
- 		goto free_out;
- 	damon_add_target(ctx, target);
--	region = damon_new_region(
--			promote ? node1_start_addr : node0_start_addr,
--			promote ? node1_end_addr : node0_end_addr);
-+
-+	if (detect_node_addresses) {
-+		ret = promote ? nid_to_phys(1, &addr) : nid_to_phys(0, &addr);
-+		if (ret)
-+			goto free_out;
-+	} else {
-+		addr.start = promote ? node1_start_addr : node0_start_addr;
-+		addr.end = promote ? node1_end_addr : node0_end_addr;
-+	}
-+
-+	region = damon_new_region(addr.start, addr.end);
- 	if (!region)
- 		goto free_out;
- 	damon_add_region(region, target);
+ 	err = damos_commit_filters(dst, src);
+ 	return err;
 _
 
-Patches currently in -mm which might be from yunjeong.mun@sk.com are
+Patches currently in -mm which might be from bijantabatab@micron.com are
 
 
