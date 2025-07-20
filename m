@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DEF11C861E
-	for <mm-commits@vger.kernel.org>; Sat, 19 Jul 2025 23:58:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 277434409
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:04:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752969482; cv=none; b=EPOE2zC+8RH0Q+Wcb0vvTo4kSgd0MUQWrsxfjnwT9QzGYlWYs5L+CHejtmvQrR5Xo4QqG7ns9fLMefzotkQCUmEFK/FEv4OlhiZO5ix5kMBgRxUWvfRcP4xlRO6gt8IfD2T2WUyHWWRzIToS5q3zQ3Dvp+b44MUXL4Zn/pjDXQY=
+	t=1752969861; cv=none; b=jv1DzAWrrvz5MtjmTReqAFXuKzCbQRH3D2aJmmbcXGCkfr8LOUWITk9aWsePXF3/CuWtsDb8wyCJJqAXBDuB/ymb+11YRWQf7tl8QqmGpfrPgpb8vYSPdXktpNgJXTzeKbojsLZ4UdjIGS5R+EQSsGDmuzDCxEWMr6mKQoldaVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752969482; c=relaxed/simple;
-	bh=2jPJpuBe98SlG9uRgeBepZ4lKiyuihuu8o/Wq/J1q+Q=;
-	h=Date:To:From:Subject:Message-Id; b=TGKbFj4qCriKOlLVgdOQ9ude/mOHLkUy7gofNpevMmpt+iB+Do9ax7Rlgf3/M1+bdeFKa56Uke6LW9F28rriRE8RGobKeWss/F5wmpp6vOi0JvdR4WjrTUR97Lp1og2lO6+75HA4Nnqlgdq0NldDjiwtAhXd2RYTTfgerdeGqKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lXgmLYey; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752969861; c=relaxed/simple;
+	bh=3G/93ThzNXrwl35+R1WPcQisWmX/SHTIpbEFydQra4M=;
+	h=Date:To:From:Subject:Message-Id; b=VEz8GAsNniBs7MWj1JGCzZ8SdtRS5v+M9NBwKfwNXxRtGS52rWm4qOMVRV6oO4HPflvob/maa1gv9xx8i8ozJpYuqupUxqW0GuZOwgmEw5oK5IczjsRGuMVKimMWgqp6zgsmicEkL3ISdmKXcDmX1jzFwLsRVoGEBOpAgR/lpxs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vchyJELD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lXgmLYey"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAD9CC4CEE3;
-	Sat, 19 Jul 2025 23:58:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vchyJELD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2C7C4CEE3;
+	Sun, 20 Jul 2025 00:04:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752969482;
-	bh=2jPJpuBe98SlG9uRgeBepZ4lKiyuihuu8o/Wq/J1q+Q=;
+	s=korg; t=1752969860;
+	bh=3G/93ThzNXrwl35+R1WPcQisWmX/SHTIpbEFydQra4M=;
 	h=Date:To:From:Subject:From;
-	b=lXgmLYeyWYBZ1w4E2fvOmSBntoGeTI7HD3F6nSk7PVkNzuzxtVbtd7fKIR19jt0Qc
-	 z1nUyZl+hfoAFtH8KP9LFsw8exQN8LjxzFlVHQyMeaAL6NwDz48fmAD+tfk5rcQ3wF
-	 Y9CyDhr6Iy+na7x72vM969XoqhT0B4JVjKrylFJI=
-Date: Sat, 19 Jul 2025 16:58:01 -0700
-To: mm-commits@vger.kernel.org,ydfan@suse.com,akpm@linux-foundation.org
+	b=vchyJELD5PbWV4LWAoKk6EgypFNaQ4gSwvs12s39F0mVuK/sBxrSvYB2hsoIxJ1HC
+	 2VKrjutrlRtpGZvAwzKYideLhscpXfiw44XKJeHJ0Ul790qA2rL4u72J8C4Yt1UmHQ
+	 1OY15OZ6RCEtuaz6WX1dsT5G1jrvTjND0r2zhpFo=
+Date: Sat, 19 Jul 2025 17:04:20 -0700
+To: mm-commits@vger.kernel.org,snovitoll@gmail.com,ryabinin.a.a@gmail.com,lkp@intel.com,hca@linux.ibm.com,glider@google.com,dvyukov@google.com,christophe.leroy@csgroup.eu,andreyknvl@gmail.com,agordeev@linux.ibm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempool-fix-wake-up-edge-case-bug-for-zero-minimum-pools.patch added to mm-new branch
-Message-Id: <20250719235801.EAD9CC4CEE3@smtp.kernel.org>
+Subject: + kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix.patch added to mm-new branch
+Message-Id: <20250720000420.9C2C7C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mempool: fix wake-up edge case bug for zero-minimum pools
+     Subject: kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mempool-fix-wake-up-edge-case-bug-for-zero-minimum-pools.patch
+     kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempool-fix-wake-up-edge-case-bug-for-zero-minimum-pools.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,85 +64,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yadan Fan <ydfan@suse.com>
-Subject: mm: mempool: fix wake-up edge case bug for zero-minimum pools
-Date: Sat, 19 Jul 2025 06:06:51 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix
+Date: Sat Jul 19 05:01:18 PM PDT 2025
 
-The mempool wake-up path has a edge case bug that affects pools created
-with min_nr=0.  When a thread blocks waiting for memory from an empty pool
-(curr_nr == 0), subsequent mempool_free() calls fail to wake the waiting
-thread because the condition "curr_nr < min_nr" evaluates to "0 < 0" which
-is false, this can cause threads to sleep indefinitely according to the
-code logic.
+fix build
 
-There is at least 2 places where the mempool created with min_nr=0:
+>> mm/kasan/tags.c:145:6: error: redefinition of 'kasan_save_free_info'
+     145 | void kasan_save_free_info(struct kmem_cache *cache, void *object)
+         |      ^
+   mm/kasan/kasan.h:403:20: note: previous definition is here
+     403 | static inline void kasan_save_free_info(struct kmem_cache *cache, void *object)
+         |                    ^
 
-1. lib/btree.c:191: mempool_create(0, btree_alloc, btree_free, NULL)
-2. drivers/md/dm-verity-fec.c:791:
- mempool_init_slab_pool(&f->extra_pool, 0, f->cache)
-
-Add an explicit check in mempool_free() to handle the min_nr=0 case: when
-the pool has zero minimum reserves, is currently empty, and has active
-waiters, allocate the element then wake up the sleeper.
-
-Link: https://lkml.kernel.org/r/f28a81ba-615c-481e-86fb-c0bf4115ec89@suse.com
-Signed-off-by: Yadan Fan <ydfan@suse.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202507190528.W6ndwfyg-lkp@intel.com/
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ mm/kasan/tags.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempool.c~mm-mempool-fix-wake-up-edge-case-bug-for-zero-minimum-pools
-+++ a/mm/mempool.c
-@@ -540,11 +540,43 @@ void mempool_free(void *element, mempool
- 		if (likely(pool->curr_nr < pool->min_nr)) {
- 			add_element(pool, element);
- 			spin_unlock_irqrestore(&pool->lock, flags);
--			wake_up(&pool->wait);
-+			if (wq_has_sleeper(&pool->wait))
-+				wake_up(&pool->wait);
- 			return;
- 		}
- 		spin_unlock_irqrestore(&pool->lock, flags);
- 	}
-+
-+	/*
-+	 * Handle the min_nr = 0 edge case:
-+	 *
-+	 * For zero-minimum pools, curr_nr < min_nr (0 < 0) never succeeds,
-+	 * so waiters sleeping on pool->wait would never be woken by the
-+	 * wake-up path of previous test. This explicit check ensures the
-+	 * allocation of element when both min_nr and curr_nr are 0, and
-+	 * any active waiters are properly awakened.
-+	 *
-+	 * Inline the same logic as previous test, add_element() cannot be
-+	 * directly used here since it has BUG_ON to deny if min_nr equals
-+	 * curr_nr, so here picked rest of add_element() to use without
-+	 * BUG_ON check.
-+	 */
-+	if (unlikely(pool->min_nr == 0 &&
-+		     READ_ONCE(pool->curr_nr) == 0)) {
-+		spin_lock_irqsave(&pool->lock, flags);
-+		if (likely(pool->curr_nr == 0)) {
-+			/* Inline the logic of add_element() */
-+			poison_element(pool, element);
-+			if (kasan_poison_element(pool, element))
-+				pool->elements[pool->curr_nr++] = element;
-+			spin_unlock_irqrestore(&pool->lock, flags);
-+			if (wq_has_sleeper(&pool->wait))
-+				wake_up(&pool->wait);
-+			return;
-+		}
-+		spin_unlock_irqrestore(&pool->lock, flags);
-+	}
-+
- 	pool->free(element, pool->pool_data);
+--- a/mm/kasan/tags.c~kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix
++++ a/mm/kasan/tags.c
+@@ -142,7 +142,7 @@ void kasan_save_alloc_info(struct kmem_c
+ 	save_stack_info(cache, object, flags, false);
  }
- EXPORT_SYMBOL(mempool_free);
+ 
+-void kasan_save_free_info(struct kmem_cache *cache, void *object)
++void __kasan_save_free_info(struct kmem_cache *cache, void *object)
+ {
+ 	save_stack_info(cache, object, 0, true);
+ }
 _
 
-Patches currently in -mm which might be from ydfan@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mempool-fix-wake-up-edge-case-bug-for-zero-minimum-pools.patch
+mm-memcg-make-memoryreclaim-interface-generic-fix.patch
+mm-introduce-per-node-proactive-reclaim-interface-fix.patch
+mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
+mm-shmem-swap-simplify-swapin-path-and-result-handling-fix-fix.patch
+kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix.patch
+squashfs-fix-incorrect-argument-to-sizeof-in-kmalloc_array-call-fix.patch
+init-kconfig-restore-config_broken-help-text.patch
 
