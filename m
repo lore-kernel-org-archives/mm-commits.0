@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC54D2907
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:18:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12092A94F
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 00:18:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752970707; cv=none; b=LJN3Gn6JqRQy3f7wZpi2Oyx4Fzv+h1laOwZJuw1j7l5hjug8cuCRr+ISm6braFTK4Ffc9OM0b8ddoLnhGa5s19xoaPlLc3GBcnPRoF/cYQ0UdWzW+/nCSyH8giLhQARC89OH0NqF6wDUS5MJ+IkmKxtZcc+O1UAHGntRurkEOTo=
+	t=1752970710; cv=none; b=XLz3Qy+tlFOIhnZhJbFSw+0IGVKGrvjgcoCYm/+74QMlrhn0SQu/iOJOY/lzV3ZVSF/X4vbqgyI5wNYWL+FsMPAsRJcny1YnPu/Wwqbnv9QJvtLMMJAzq0y/W8/53I3ebtmat5o7molqTGzTWTm/cmW99ikZYJ36w+LB4T8Bw1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752970707; c=relaxed/simple;
-	bh=7+CrfihwmiciUCsD6RLwL2yIKMKDde7Onoj6I2Pyd2c=;
-	h=Date:To:From:Subject:Message-Id; b=kDr0VqSxCUOPbPMN6J68NmiVRO7PvyoNu3aNXYAkQYBoLBkXiQNxbcrNriVsILmHNckIlSNR4cVsFdBf+H77FzMYE9qQhXX7WNX2P7e5wEy0v3YwyefMJUa24RMccHb301K1ezvTzSkguZ07f0Udtqvp2LKs3+B4yeK2INllVKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SPMO837M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752970710; c=relaxed/simple;
+	bh=5EAX10X7KhCdNpgkjQ75T3l06Ej7igWI3RlPwhjBE70=;
+	h=Date:To:From:Subject:Message-Id; b=eMAC3y5m16ZzelKSTQsfbmBmTc38Xij8N015W46ZT7vKRoMBDYpEYNgdMcYb9gsXD1XZESM5HUrE2im0vexTx4MX87HjCzWV9mXJzaedw0tDPj5xc+7bgdkSmco91JTG1Gpx80Bu/0GLTMzaUdtoDTldB9+GnnQYntZD0CFurl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OjsN7ZDL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SPMO837M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E15EC4CEE3;
-	Sun, 20 Jul 2025 00:18:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OjsN7ZDL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78050C4CEE3;
+	Sun, 20 Jul 2025 00:18:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752970707;
-	bh=7+CrfihwmiciUCsD6RLwL2yIKMKDde7Onoj6I2Pyd2c=;
+	s=korg; t=1752970709;
+	bh=5EAX10X7KhCdNpgkjQ75T3l06Ej7igWI3RlPwhjBE70=;
 	h=Date:To:From:Subject:From;
-	b=SPMO837MZZYZyfh08yU/2laQ1Ilt/a2zLpxeHogjc14S/vkidB3G+r5aoskLJTFby
-	 /JF53koTY73SyJ3UxRPBwFstwO2+qvxYf6eDN5HBTrPnsNz3JK07SLwF5ZiT4OOK5j
-	 4g9G/SG2LEgwcpJIafaiIQehfxUp4vhoXKxiB2YA=
-Date: Sat, 19 Jul 2025 17:18:26 -0700
+	b=OjsN7ZDLHxbVFnJ8F2U1kvtvCa3FsVXj/Lr6luGFTYsAaByWBVASjWAL0KHQKDurs
+	 IwzSgWTvaV/BgoO7/5lmH3hALmKdyVrosWOV0Z6aTDHxfx3/9vT9AVWTUiM9N+qghj
+	 RdfMV97GWk5c7eIRPl/iZ4P3Cn7QXseqyW+xwHpY=
+Date: Sat, 19 Jul 2025 17:18:28 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangyicong@hisilicon.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,vbabka@suse.cz,ryan.roberts@arm.com,quic_zhenhuah@quicinc.com,peterx@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,joey.gouly@arm.com,jannh@google.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-fpb_respect_write-for-pte-batching-infrastructure.patch added to mm-new branch
-Message-Id: <20250720001827.4E15EC4CEE3@smtp.kernel.org>
+Subject: + mm-split-can_change_pte_writable-into-private-and-shared-parts.patch added to mm-new branch
+Message-Id: <20250720001829.78050C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce FPB_RESPECT_WRITE for PTE batching infrastructure
+     Subject: mm: split can_change_pte_writable() into private and shared parts
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-fpb_respect_write-for-pte-batching-infrastructure.patch
+     mm-split-can_change_pte_writable-into-private-and-shared-parts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-fpb_respect_write-for-pte-batching-infrastructure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-can_change_pte_writable-into-private-and-shared-parts.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,22 +65,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: mm: introduce FPB_RESPECT_WRITE for PTE batching infrastructure
-Date: Fri, 18 Jul 2025 14:32:41 +0530
+Subject: mm: split can_change_pte_writable() into private and shared parts
+Date: Fri, 18 Jul 2025 14:32:42 +0530
 
-Patch 6 ("mm: Optimize mprotect() by PTE batching") optimizes mprotect()
-by batch clearing the ptes, masking in the new protections, and batch
-setting the ptes.  Suppose that the first pte of the batch is writable -
-with the current implementation of folio_pte_batch(), it is not guaranteed
-that the other ptes in the batch are already writable too, so we may
-incorrectly end up setting the writable bit on all ptes via
-modify_prot_commit_ptes().
+In preparation for patch 6 and modularizing the code in general, split
+can_change_pte_writable() into private and shared VMA parts.  No
+functional change intended.
 
-Therefore, introduce FPB_RESPECT_WRITE so that all ptes in the batch are
-writable or not.
-
-Link: https://lkml.kernel.org/r/20250718090244.21092-5-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250718090244.21092-6-dev.jain@arm.com
 Signed-off-by: Dev Jain <dev.jain@arm.com>
+Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -105,45 +99,83 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/mprotect.c |   50 ++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 36 insertions(+), 14 deletions(-)
 
---- a/mm/internal.h~mm-introduce-fpb_respect_write-for-pte-batching-infrastructure
-+++ a/mm/internal.h
-@@ -208,17 +208,20 @@ typedef int __bitwise fpb_t;
- /* Compare PTEs respecting the soft-dirty bit. */
- #define FPB_RESPECT_SOFT_DIRTY		((__force fpb_t)BIT(1))
+--- a/mm/mprotect.c~mm-split-can_change_pte_writable-into-private-and-shared-parts
++++ a/mm/mprotect.c
+@@ -40,11 +40,8 @@
  
-+/* Compare PTEs respecting the writable bit. */
-+#define FPB_RESPECT_WRITE		((__force fpb_t)BIT(2))
-+
- /*
-  * Merge PTE write bits: if any PTE in the batch is writable, modify the
-  * PTE at @ptentp to be writable.
-  */
--#define FPB_MERGE_WRITE			((__force fpb_t)BIT(2))
-+#define FPB_MERGE_WRITE			((__force fpb_t)BIT(3))
+ #include "internal.h"
  
- /*
-  * Merge PTE young and dirty bits: if any PTE in the batch is young or dirty,
-  * modify the PTE at @ptentp to be young or dirty, respectively.
-  */
--#define FPB_MERGE_YOUNG_DIRTY		((__force fpb_t)BIT(3))
-+#define FPB_MERGE_YOUNG_DIRTY		((__force fpb_t)BIT(4))
- 
- static inline pte_t __pte_batch_clear_ignored(pte_t pte, fpb_t flags)
+-bool can_change_pte_writable(struct vm_area_struct *vma, unsigned long addr,
+-			     pte_t pte)
++static bool maybe_change_pte_writable(struct vm_area_struct *vma, pte_t pte)
  {
-@@ -226,7 +229,9 @@ static inline pte_t __pte_batch_clear_ig
- 		pte = pte_mkclean(pte);
- 	if (likely(!(flags & FPB_RESPECT_SOFT_DIRTY)))
- 		pte = pte_clear_soft_dirty(pte);
--	return pte_wrprotect(pte_mkold(pte));
-+	if (likely(!(flags & FPB_RESPECT_WRITE)))
-+		pte = pte_wrprotect(pte);
-+	return pte_mkold(pte);
+-	struct page *page;
+-
+ 	if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE)))
+ 		return false;
+ 
+@@ -60,16 +57,32 @@ bool can_change_pte_writable(struct vm_a
+ 	if (userfaultfd_pte_wp(vma, pte))
+ 		return false;
+ 
+-	if (!(vma->vm_flags & VM_SHARED)) {
+-		/*
+-		 * Writable MAP_PRIVATE mapping: We can only special-case on
+-		 * exclusive anonymous pages, because we know that our
+-		 * write-fault handler similarly would map them writable without
+-		 * any additional checks while holding the PT lock.
+-		 */
+-		page = vm_normal_page(vma, addr, pte);
+-		return page && PageAnon(page) && PageAnonExclusive(page);
+-	}
++	return true;
++}
++
++static bool can_change_private_pte_writable(struct vm_area_struct *vma,
++					    unsigned long addr, pte_t pte)
++{
++	struct page *page;
++
++	if (!maybe_change_pte_writable(vma, pte))
++		return false;
++
++	/*
++	 * Writable MAP_PRIVATE mapping: We can only special-case on
++	 * exclusive anonymous pages, because we know that our
++	 * write-fault handler similarly would map them writable without
++	 * any additional checks while holding the PT lock.
++	 */
++	page = vm_normal_page(vma, addr, pte);
++	return page && PageAnon(page) && PageAnonExclusive(page);
++}
++
++static bool can_change_shared_pte_writable(struct vm_area_struct *vma,
++					   pte_t pte)
++{
++	if (!maybe_change_pte_writable(vma, pte))
++		return false;
+ 
+ 	VM_WARN_ON_ONCE(is_zero_pfn(pte_pfn(pte)) && pte_dirty(pte));
+ 
+@@ -83,6 +96,15 @@ bool can_change_pte_writable(struct vm_a
+ 	return pte_dirty(pte);
  }
  
- /**
++bool can_change_pte_writable(struct vm_area_struct *vma, unsigned long addr,
++			     pte_t pte)
++{
++	if (!(vma->vm_flags & VM_SHARED))
++		return can_change_private_pte_writable(vma, addr, pte);
++
++	return can_change_shared_pte_writable(vma, pte);
++}
++
+ static int mprotect_folio_pte_batch(struct folio *folio, pte_t *ptep,
+ 				    pte_t pte, int max_nr_ptes)
+ {
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
