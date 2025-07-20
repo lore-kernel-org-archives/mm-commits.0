@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90CAF1487C3
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A79DD1487C3
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976909; cv=none; b=cb8+Y6yrj4buU9lUNtR93dPObUcsowTAJNZrZW5PENKPQgWRwTYIWvw0ZQVGI8Fdk9hj9wo1cKfBQELs4VUM7DpMcO2QVjP6rd3x3WX5flLqO+UVf7vy60OkSl6sMHpEsrdUOCjSBqrR6uxr5GibNlyKgiKnoL2GlG9qQMhhwjM=
+	t=1752976910; cv=none; b=cOqqqN/i86CG8R1MkX2iBPtVz8vadfTQ2UMwk1cmxAg2iNyxdMQjNUtAmVLyu/RHMu1OwLi/w+1Np6Ooy8LAGAiGrAUAD+6rmcOkJQ+gR5+eTfPsZXHu1xdOb7yYmRl32v5Q2zDpv37bQ6WqmR/ta4j6D9uvA2D/90OXYl9tc78=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976909; c=relaxed/simple;
-	bh=Xeaca4ZuKDE5t5k6x01RsEEuiDkksFAm0YIR5zghEEc=;
-	h=Date:To:From:Subject:Message-Id; b=cTDCfK6iu1lXjBu2QwsFVXBrydcdnlc8gk8G6DUWRxQsMtSPe8TQ0RY9h8/nkr3eNnU8bibdDuICZ/KkEtvcc3H8YYn3cfKQ9iDQ/A2F0anmrzH7k/ARxaOVLLWeTuuQdjAmvfb9kW3tjvRoZVHYlN+k+dHpMghRz1iW9+NYiJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aUE7V0vs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976910; c=relaxed/simple;
+	bh=yFypaauE5kB/aE45RXcMKMkwQTt6qihB2iECmwvhyAU=;
+	h=Date:To:From:Subject:Message-Id; b=TSJrF54S1ZBjwf5yQRjGdDqXyg7t0l3XggRlEuNngeSx9WlFjSOo84rHoZe5HDtwxz8prMf0RQ0etiEvw9YHWuGE+Etq+FyOuUaMQi2CSqUxwYMM7k/3VGxCck/9hMDBtMurA1Me7If5LQ8jsJw94P55nQuQIw+2+OLaP2T1cs8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tam63diR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aUE7V0vs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C1ABC4CEE3;
-	Sun, 20 Jul 2025 02:01:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tam63diR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AF3AC4CEE3;
+	Sun, 20 Jul 2025 02:01:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976909;
-	bh=Xeaca4ZuKDE5t5k6x01RsEEuiDkksFAm0YIR5zghEEc=;
+	s=korg; t=1752976910;
+	bh=yFypaauE5kB/aE45RXcMKMkwQTt6qihB2iECmwvhyAU=;
 	h=Date:To:From:Subject:From;
-	b=aUE7V0vsYzz02R9KGRLa83gWipehr7vUogcF63VNnVYy1BDXXQwZzFD7I+SQ57O4D
-	 DCPTkO0BrmQE5cBsALNqZ2qtvlCsgA2bysqU3V3pHfdEZi4n+oEo3wruHKpifs4iu9
-	 TlAUE5VNDZN955XM8GFYegRKGfuXMSdP+dUR9xF4=
-Date: Sat, 19 Jul 2025 19:01:48 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,ravis.opensrc@micron.com,corbet@lwn.net,bijantabatab@micron.com,akpm@linux-foundation.org
+	b=Tam63diRsGby+6YEMX2IWGTa1G5/iGbrXla9VHUOGBf+IUXN8RxEkN4vzIUKkhG4P
+	 /jzgIGaXIdGNSTckCVb99SpiQkJJJFC7IP13Nc7VBkGGIks/GGn3lHwKmL9K1RIhPV
+	 JkNjY8SmKrt7tVtgQ+xMu2XF8s3ZZaMsJPCcPw5k=
+Date: Sat, 19 Jul 2025 19:01:49 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,linux@jordanrome.com,david@redhat.com,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-apply-filters-in-migrate_hot-cold.patch removed from -mm tree
-Message-Id: <20250720020149.5C1ABC4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memoryc-use-folios-in-__copy_remote_vm_str.patch removed from -mm tree
+Message-Id: <20250720020150.7AF3AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,163 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: apply filters in migrate_{hot/cold}
+     Subject: mm/memory.c: use folios in __copy_remote_vm_str()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-apply-filters-in-migrate_hot-cold.patch
+     mm-memoryc-use-folios-in-__copy_remote_vm_str.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bijan Tabatabai <bijantabatab@micron.com>
-Subject: mm/damon/vaddr: apply filters in migrate_{hot/cold}
-Date: Tue, 8 Jul 2025 19:59:43 -0500
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/memory.c: use folios in __copy_remote_vm_str()
+Date: Wed, 9 Jul 2025 12:40:16 -0700
 
-The paddr versions of migrate_{hot/cold} filter out folios from migration
-based on the scheme's filters.  This patch does the same for the vaddr
-versions of those schemes.
+Patch series "Remove unmap_and_put_page()".
 
-The filtering code is mostly the same for the paddr and vaddr versions. 
-The exception is the young filter.  paddr determines if a page is young by
-doing a folio rmap walk to find the page table entries corresponding to
-the folio.  However, vaddr schemes have easier access to the page tables,
-so we add some logic to avoid the extra work.
+This patchset uses folios in both the callers of unmap_and_put_page(),
+saving a couple calls to compound_head() wrappers.
 
-Link: https://lkml.kernel.org/r/20250709005952.17776-14-bijan311@gmail.com
-Co-developed-by: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
-Signed-off-by: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
-Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+
+This patch (of 3):
+
+Use kmap_local_folio() instead of kmap_local_page().  Replaces 2 calls to
+compound_head() from unmap_and_put_page() with one.
+
+This prepares us for the removal of unmap_and_put_page().
+
+Link: https://lkml.kernel.org/r/20250709194017.927978-3-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20250709194017.927978-4-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jordan Rome <linux@jordanrome.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   69 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 65 insertions(+), 4 deletions(-)
+ mm/memory.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-apply-filters-in-migrate_hot-cold
-+++ a/mm/damon/vaddr.c
-@@ -611,9 +611,60 @@ static unsigned int damon_va_check_acces
- 	return max_nr_accesses;
- }
+--- a/mm/memory.c~mm-memoryc-use-folios-in-__copy_remote_vm_str
++++ a/mm/memory.c
+@@ -6815,6 +6815,7 @@ static int __copy_remote_vm_str(struct m
+ 	while (len) {
+ 		int bytes, offset, retval;
+ 		void *maddr;
++		struct folio *folio;
+ 		struct page *page;
+ 		struct vm_area_struct *vma = NULL;
  
-+static bool damos_va_filter_young_match(struct damos_filter *filter,
-+		struct folio *folio, struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep, pmd_t *pmdp)
-+{
-+	bool young = false;
-+
-+	if (ptep)
-+		young = pte_young(ptep_get(ptep));
-+	else if (pmdp)
-+		young = pmd_young(pmdp_get(pmdp));
-+
-+	young = young || !folio_test_idle(folio) ||
-+		mmu_notifier_test_young(vma->vm_mm, addr);
-+
-+	if (young && ptep)
-+		damon_ptep_mkold(ptep, vma, addr);
-+	else if (young && pmdp)
-+		damon_pmdp_mkold(pmdp, vma, addr);
-+
-+	return young == filter->matching;
-+}
-+
-+static bool damos_va_filter_out(struct damos *scheme, struct folio *folio,
-+		struct vm_area_struct *vma, unsigned long addr,
-+		pte_t *ptep, pmd_t *pmdp)
-+{
-+	struct damos_filter *filter;
-+	bool matched;
-+
-+	if (scheme->core_filters_allowed)
-+		return false;
-+
-+	damos_for_each_ops_filter(filter, scheme) {
-+		/*
-+		 * damos_folio_filter_match checks the young filter by doing an
-+		 * rmap on the folio to find its page table. However, being the
-+		 * vaddr scheme, we have direct access to the page tables, so
-+		 * use that instead.
-+		 */
-+		if (filter->type == DAMOS_FILTER_TYPE_YOUNG)
-+			matched = damos_va_filter_young_match(filter, folio,
-+				vma, addr, ptep, pmdp);
-+		else
-+			matched = damos_folio_filter_match(filter, folio);
-+
-+		if (matched)
-+			return !filter->allow;
-+	}
-+	return scheme->ops_filters_default_reject;
-+}
-+
- struct damos_va_migrate_private {
- 	struct list_head *migration_lists;
--	struct damos_migrate_dests *dests;
-+	struct damos *scheme;
- };
+@@ -6830,17 +6831,18 @@ static int __copy_remote_vm_str(struct m
+ 			goto out;
+ 		}
  
- /*
-@@ -673,7 +724,8 @@ static int damos_va_migrate_pmd_entry(pm
- {
- 	struct damos_va_migrate_private *priv = walk->private;
- 	struct list_head *migration_lists = priv->migration_lists;
--	struct damos_migrate_dests *dests = priv->dests;
-+	struct damos *s = priv->scheme;
-+	struct damos_migrate_dests *dests = &s->migrate_dests;
- 	struct folio *folio;
- 	spinlock_t *ptl;
- 	pmd_t pmde;
-@@ -691,9 +743,13 @@ static int damos_va_migrate_pmd_entry(pm
- 	if (!folio)
- 		goto unlock;
++		folio = page_folio(page);
+ 		bytes = len;
+ 		offset = addr & (PAGE_SIZE - 1);
+ 		if (bytes > PAGE_SIZE - offset)
+ 			bytes = PAGE_SIZE - offset;
  
-+	if (damos_va_filter_out(s, folio, walk->vma, addr, NULL, pmd))
-+		goto put_folio;
-+
- 	damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
- 		migration_lists);
+-		maddr = kmap_local_page(page);
++		maddr = kmap_local_folio(folio, folio_page_idx(folio, page) * PAGE_SIZE);
+ 		retval = strscpy(buf, maddr + offset, bytes);
+ 		if (retval >= 0) {
+ 			/* Found the end of the string */
+ 			buf += retval;
+-			unmap_and_put_page(page, maddr);
++			folio_release_kmap(folio, maddr);
+ 			break;
+ 		}
  
-+put_folio:
- 	folio_put(folio);
- unlock:
- 	spin_unlock(ptl);
-@@ -708,7 +764,8 @@ static int damos_va_migrate_pte_entry(pt
- {
- 	struct damos_va_migrate_private *priv = walk->private;
- 	struct list_head *migration_lists = priv->migration_lists;
--	struct damos_migrate_dests *dests = priv->dests;
-+	struct damos *s = priv->scheme;
-+	struct damos_migrate_dests *dests = &s->migrate_dests;
- 	struct folio *folio;
- 	pte_t ptent;
+@@ -6858,7 +6860,7 @@ static int __copy_remote_vm_str(struct m
+ 		}
+ 		len -= bytes;
  
-@@ -720,9 +777,13 @@ static int damos_va_migrate_pte_entry(pt
- 	if (!folio)
- 		return 0;
+-		unmap_and_put_page(page, maddr);
++		folio_release_kmap(folio, maddr);
+ 	}
  
-+	if (damos_va_filter_out(s, folio, walk->vma, addr, pte, NULL))
-+		goto put_folio;
-+
- 	damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
- 		migration_lists);
- 
-+put_folio:
- 	folio_put(folio);
- 	return 0;
- }
-@@ -790,7 +851,7 @@ static unsigned long damos_va_migrate(st
- 
- 	use_target_nid = dests->nr_dests == 0;
- 	nr_dests = use_target_nid ? 1 : dests->nr_dests;
--	priv.dests = dests;
-+	priv.scheme = s;
- 	priv.migration_lists = kmalloc_array(nr_dests,
- 		sizeof(*priv.migration_lists), GFP_KERNEL);
- 	if (!priv.migration_lists)
+ out:
 _
 
-Patches currently in -mm which might be from bijantabatab@micron.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 
