@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA24E7DA6A
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030C2208CA
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976889; cv=none; b=RpoAUlhBgVBA7RKSwFFpuVJMXX6JW4LQvVvwqTixuSxLrcPWcG1RP93fMbW6IX3bhtblYbZAnVWitUco7TLSms1IWpYoO9lEbh6hwgenslnavo3VFQxiw6R62Qa2vvsxOoSZll2z7zr7b32SE1A17dKQ1enHuGUEHMiAfbrkf6A=
+	t=1752976891; cv=none; b=Z3pIBRZ7nb7DjgoCe5gWI6IGfxdN6Er5jNGXa2UfPPzT+Md2iHneeNxdCoza9SXWUkfSHRGI4a8aiPRCYMbXA5ctbY2gEnSP7frJDGpZnxJME7Yjwy7Tc6jL8YwGBiuSMTrviXSHua2GWwdyyE+19xLRcKUtN4+QYfDG88WJAWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976889; c=relaxed/simple;
-	bh=A5Dprro/HSok5P+v4DDNh3NuOXC9DMluxaKyLH8PMzg=;
-	h=Date:To:From:Subject:Message-Id; b=sxPnNUonevyrfbVr4b8dK75mD53emkf2jzgUwEGoSd7DejLUd0Mx5KncWNtArrbwNZelbiwd8VHWxzPxvBEmvji5xAYcIYFtFgJ5MkWtv/rWTUfLDxKiWSwRfgyaggomJtkZVo1PDwLy2G6fSwdJC1t3Ghhogav+3NBhO78+i6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TIqjD2Ba; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976891; c=relaxed/simple;
+	bh=bj+8hz7M8iE3kA1ZfmIYl/qwWJ22aNDj8g+HkLWjxLo=;
+	h=Date:To:From:Subject:Message-Id; b=WISTYyJWhYBonZzZ20UdwfiP+zfxvLuk/Z7u15hlxmYqBNuSo0FCaFUAKlgIYWebvwIQP7HO4GxHyTOx/JZZdIsO8UO+xM9aAsabHBHJBz6xF6wmT/GsZ3UuF3YXfqSJRaOzP67NYgdPPBja/Mpq6flNnxrNG9g5yipIkAq3tQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M7XBmUK8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TIqjD2Ba"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEEF3C4CEE3;
-	Sun, 20 Jul 2025 02:01:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M7XBmUK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA915C4CEE3;
+	Sun, 20 Jul 2025 02:01:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976889;
-	bh=A5Dprro/HSok5P+v4DDNh3NuOXC9DMluxaKyLH8PMzg=;
+	s=korg; t=1752976890;
+	bh=bj+8hz7M8iE3kA1ZfmIYl/qwWJ22aNDj8g+HkLWjxLo=;
 	h=Date:To:From:Subject:From;
-	b=TIqjD2BasRCnAmYqmSJgnIw9DbAem/0Np3qQk+NYJssX3vGYlsx9Ef0fffJu/PxKq
-	 /pDBuchc7e9FP1oJ6ibo3zbqcQdgS2cElAI5YnAB3Z7A8NeYFqgznDCfZbkj/4qs7v
-	 gLSTac8YKZXBxC00i+kXI/1sCi37BuPDrI37LMzY=
-Date: Sat, 19 Jul 2025 19:01:29 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,akpm@linux-foundation.org
+	b=M7XBmUK8GyiNla8DaiuLuRTyWXVzuApDyqir4Es4v4KyZtpjFBI/4AEOVAQS3w0qQ
+	 5w5NGb7z1CNUZlVayhcD660yD/AboxMT2g/W1GCaWo7xTRyQwUuXWtjUuRDclgHSsr
+	 nS6qdCCYoZXpqy38xUAprZ6F4LMMB0GtDZRutapA=
+Date: Sat, 19 Jul 2025 19:01:30 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,yunjeong.mun@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-change-enable-parameters-to-enabled.patch removed from -mm tree
-Message-Id: <20250720020129.AEEF3C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-support-automatic-node-address-detection.patch removed from -mm tree
+Message-Id: <20250720020130.CA915C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,234 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon: change enable parameters to enabled
+     Subject: samples/damon: support automatic node address detection
 has been removed from the -mm tree.  Its filename was
-     samples-damon-change-enable-parameters-to-enabled.patch
+     samples-damon-support-automatic-node-address-detection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Honggyu Kim <honggyu.kim@sk.com>
-Subject: samples/damon: change enable parameters to enabled
-Date: Mon, 7 Jul 2025 11:45:47 +0900
+From: Yunjeong Mun <yunjeong.mun@sk.com>
+Subject: samples/damon: support automatic node address detection
+Date: Tue, 8 Jul 2025 08:59:18 +0900
 
-The damon_{lru_sort,reclaim,stat} kernel modules use "enabled" parameter
-knobs as follows.
+This patch adds a new knob `detect_node_addresses`, which determines
+whether the physical address range is set manually using the existing
+knobs or automatically by the mtier module.  When `detect_node_addresses`
+set to 'Y', mtier automatically converts node0 and node1 to their physical
+addresses.  If set to 'N', it uses the existing 'node#_start_addr' and
+'node#_end_addr' to define regions as before.
 
-  /sys/module/damon_lru_sort/parameters/enabled
-  /sys/module/damon_reclaim/parameters/enabled
-  /sys/module/damon_stat/parameters/enabled
-
-However, other sample modules of damon use "enable" parameter knobs so
-it'd be better to rename them from "enable" to "enabled" to keep the
-consistency with other damon modules.
-
-Before:
-  /sys/module/damon_sample_wsse/parameters/enable
-  /sys/module/damon_sample_prcl/parameters/enable
-  /sys/module/damon_sample_mtier/parameters/enable
-
-After:
-  /sys/module/damon_sample_wsse/parameters/enabled
-  /sys/module/damon_sample_prcl/parameters/enabled
-  /sys/module/damon_sample_mtier/parameters/enabled
-
-There is no functional changes in this patch.
-
-Link: https://lkml.kernel.org/r/20250707024548.1964-1-honggyu.kim@sk.com
-Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Link: https://lkml.kernel.org/r/20250707235919.513-1-yunjeong.mun@sk.com
+Signed-off-by: Yunjeong Mun <yunjeong.mun@sk.com>
+Suggested-by: Honggyu Kim <honggyu.kim@sk.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |   22 +++++++++++-----------
- samples/damon/prcl.c  |   22 +++++++++++-----------
- samples/damon/wsse.c  |   22 +++++++++++-----------
- 3 files changed, 33 insertions(+), 33 deletions(-)
+ samples/damon/mtier.c |   37 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 34 insertions(+), 3 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-change-enable-parameters-to-enabled
+--- a/samples/damon/mtier.c~samples-damon-support-automatic-node-address-detection
 +++ a/samples/damon/mtier.c
-@@ -38,14 +38,14 @@ module_param(node0_mem_free_bp, ulong, 0
- static int damon_sample_mtier_enable_store(
- 		const char *val, const struct kernel_param *kp);
+@@ -47,8 +47,29 @@ static bool enabled __read_mostly;
+ module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
+ MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_MTIER");
  
--static const struct kernel_param_ops enable_param_ops = {
-+static const struct kernel_param_ops enabled_param_ops = {
- 	.set = damon_sample_mtier_enable_store,
- 	.get = param_get_bool,
- };
- 
--static bool enable __read_mostly;
--module_param_cb(enable, &enable_param_ops, &enable, 0600);
--MODULE_PARM_DESC(enable, "Enable of disable DAMON_SAMPLE_MTIER");
-+static bool enabled __read_mostly;
-+module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
-+MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_MTIER");
- 
++static bool detect_node_addresses __read_mostly;
++module_param(detect_node_addresses, bool, 0600);
++
  static struct damon_ctx *ctxs[2];
  
-@@ -167,20 +167,20 @@ static bool init_called;
- static int damon_sample_mtier_enable_store(
- 		const char *val, const struct kernel_param *kp)
++struct region_range {
++	phys_addr_t start;
++	phys_addr_t end;
++};
++
++static int nid_to_phys(int target_node, struct region_range *range)
++{
++	if (!node_online(target_node)) {
++		pr_err("NUMA node %d is not online\n", target_node);
++		return -EINVAL;
++	}
++
++	range->start = PFN_PHYS(node_start_pfn(target_node));
++	range->end  = PFN_PHYS(node_end_pfn(target_node));
++
++	return 0;
++}
++
+ static struct damon_ctx *damon_sample_mtier_build_ctx(bool promote)
  {
--	bool enabled = enable;
-+	bool is_enabled = enabled;
- 	int err;
+ 	struct damon_ctx *ctx;
+@@ -58,6 +79,8 @@ static struct damon_ctx *damon_sample_mt
+ 	struct damos *scheme;
+ 	struct damos_quota_goal *quota_goal;
+ 	struct damos_filter *filter;
++	struct region_range addr;
++	int ret;
  
--	err = kstrtobool(val, &enable);
-+	err = kstrtobool(val, &enabled);
- 	if (err)
- 		return err;
- 
--	if (enable == enabled)
-+	if (enabled == is_enabled)
- 		return 0;
- 
--	if (enable) {
-+	if (enabled) {
- 		err = damon_sample_mtier_start();
- 		if (err)
--			enable = false;
-+			enabled = false;
- 		return err;
- 	}
- 	damon_sample_mtier_stop();
-@@ -192,10 +192,10 @@ static int __init damon_sample_mtier_ini
- 	int err = 0;
- 
- 	init_called = true;
--	if (enable) {
-+	if (enabled) {
- 		err = damon_sample_mtier_start();
- 		if (err)
--			enable = false;
-+			enabled = false;
- 	}
- 	return 0;
- }
---- a/samples/damon/prcl.c~samples-damon-change-enable-parameters-to-enabled
-+++ a/samples/damon/prcl.c
-@@ -22,14 +22,14 @@ module_param(target_pid, int, 0600);
- static int damon_sample_prcl_enable_store(
- 		const char *val, const struct kernel_param *kp);
- 
--static const struct kernel_param_ops enable_param_ops = {
-+static const struct kernel_param_ops enabled_param_ops = {
- 	.set = damon_sample_prcl_enable_store,
- 	.get = param_get_bool,
- };
- 
--static bool enable __read_mostly;
--module_param_cb(enable, &enable_param_ops, &enable, 0600);
--MODULE_PARM_DESC(enable, "Enable of disable DAMON_SAMPLE_WSSE");
-+static bool enabled __read_mostly;
-+module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
-+MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_PRCL");
- 
- static struct damon_ctx *ctx;
- static struct pid *target_pidp;
-@@ -119,20 +119,20 @@ static bool init_called;
- static int damon_sample_prcl_enable_store(
- 		const char *val, const struct kernel_param *kp)
- {
--	bool enabled = enable;
-+	bool is_enabled = enabled;
- 	int err;
- 
--	err = kstrtobool(val, &enable);
-+	err = kstrtobool(val, &enabled);
- 	if (err)
- 		return err;
- 
--	if (enable == enabled)
-+	if (enabled == is_enabled)
- 		return 0;
- 
--	if (enable) {
-+	if (enabled) {
- 		err = damon_sample_prcl_start();
- 		if (err)
--			enable = false;
-+			enabled = false;
- 		return err;
- 	}
- 	damon_sample_prcl_stop();
-@@ -144,10 +144,10 @@ static int __init damon_sample_prcl_init
- 	int err = 0;
- 
- 	init_called = true;
--	if (enable) {
-+	if (enabled) {
- 		err = damon_sample_prcl_start();
- 		if (err)
--			enable = false;
-+			enabled = false;
- 	}
- 	return 0;
- }
---- a/samples/damon/wsse.c~samples-damon-change-enable-parameters-to-enabled
-+++ a/samples/damon/wsse.c
-@@ -23,14 +23,14 @@ module_param(target_pid, int, 0600);
- static int damon_sample_wsse_enable_store(
- 		const char *val, const struct kernel_param *kp);
- 
--static const struct kernel_param_ops enable_param_ops = {
-+static const struct kernel_param_ops enabled_param_ops = {
- 	.set = damon_sample_wsse_enable_store,
- 	.get = param_get_bool,
- };
- 
--static bool enable __read_mostly;
--module_param_cb(enable, &enable_param_ops, &enable, 0600);
--MODULE_PARM_DESC(enable, "Enable or disable DAMON_SAMPLE_WSSE");
-+static bool enabled __read_mostly;
-+module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
-+MODULE_PARM_DESC(enabled, "Enable or disable DAMON_SAMPLE_WSSE");
- 
- static struct damon_ctx *ctx;
- static struct pid *target_pidp;
-@@ -99,20 +99,20 @@ static bool init_called;
- static int damon_sample_wsse_enable_store(
- 		const char *val, const struct kernel_param *kp)
- {
--	bool enabled = enable;
-+	bool is_enabled = enabled;
- 	int err;
- 
--	err = kstrtobool(val, &enable);
-+	err = kstrtobool(val, &enabled);
- 	if (err)
- 		return err;
- 
--	if (enable == enabled)
-+	if (enabled == is_enabled)
- 		return 0;
- 
--	if (enable) {
-+	if (enabled) {
- 		err = damon_sample_wsse_start();
- 		if (err)
--			enable = false;
-+			enabled = false;
- 		return err;
- 	}
- 	damon_sample_wsse_stop();
-@@ -124,10 +124,10 @@ static int __init damon_sample_wsse_init
- 	int err = 0;
- 
- 	init_called = true;
--	if (enable) {
-+	if (enabled) {
- 		err = damon_sample_wsse_start();
- 		if (err)
--			enable = false;
-+			enabled = false;
- 	}
- 	return err;
- }
+ 	ctx = damon_new_ctx();
+ 	if (!ctx)
+@@ -87,9 +110,17 @@ static struct damon_ctx *damon_sample_mt
+ 	if (!target)
+ 		goto free_out;
+ 	damon_add_target(ctx, target);
+-	region = damon_new_region(
+-			promote ? node1_start_addr : node0_start_addr,
+-			promote ? node1_end_addr : node0_end_addr);
++
++	if (detect_node_addresses) {
++		ret = promote ? nid_to_phys(1, &addr) : nid_to_phys(0, &addr);
++		if (ret)
++			goto free_out;
++	} else {
++		addr.start = promote ? node1_start_addr : node0_start_addr;
++		addr.end = promote ? node1_end_addr : node0_end_addr;
++	}
++
++	region = damon_new_region(addr.start, addr.end);
+ 	if (!region)
+ 		goto free_out;
+ 	damon_add_region(region, target);
 _
 
-Patches currently in -mm which might be from honggyu.kim@sk.com are
+Patches currently in -mm which might be from yunjeong.mun@sk.com are
 
 
