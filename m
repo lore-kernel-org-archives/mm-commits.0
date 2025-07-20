@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E4E14F9FB
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:02:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3936200A3
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:05:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976950; cv=none; b=W1CRxhoREMJHeKgP2oNQUeaBErQm7OK0CAxkMh3ctLo6tuDmHZizvZ9qErJkUcTZisemsnrmIXgfiqrpPJS6Hbnb0DC9V42p/15p6UJbN/2so5yte71p702H9kJ89PW+05TodOXH+0Cox0mk8DriMwya+dh+Ru8twMZ2yyOJbZc=
+	t=1752977132; cv=none; b=mu8MERn530sLDJN0AlviwDEKYJY8ByFzifHspPvEDxUuB6BmUdrLdrNdgZBKtaGWbRdjWU1W38l0brnhC0d8Maly098sFLCFT2kO9PUl8BKY/etm1MZzZ2KbuuvARJ7+yi68hRApzXi5xLFra6Qa1kVG/TDG7S4OmkclYhlHadY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976950; c=relaxed/simple;
-	bh=l0la2WhOwTrzyKFx+gPWM7LoJzshB+WulxitLcGfcD4=;
-	h=Date:To:From:Subject:Message-Id; b=YfYlPqY/KIOKPgJjG1uEi2laZsKArT2xyd9jQo6ZC4zsi7kdVT81l8jjxFzB5cVQb9miZKn3IPRFnfSLkVJknW6boMoJwAgemwPwb72S0JwqSJcTRvmevniJH2jmnXlfh7zqjvWciLtNVUpZJWRlvHINgH2GuTrnlKNATjDgS0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nVQ8gSCa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752977132; c=relaxed/simple;
+	bh=uzmLG9LERrOQX9lJ2Sl6CIRyzSAH24xqoma3aJQoeqQ=;
+	h=Date:To:From:Subject:Message-Id; b=Mx/wO08Cl7n3z/CWJJEfuZ5aYqldGpwxQe1Q5lMihWS8VoJJeWK1iirkPcy6f0pAaFBn/3TVAJkRnaGZfnUUUqa5TGJUFpORa5dJGHhCslXcnBVFvx5C6bwAk389oJcNmaS1gz8xuM7NI/8YxaFppO1Zjy7inMK0sJBS7z5/Iq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eHIRW/Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nVQ8gSCa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB8E0C4CEE3;
-	Sun, 20 Jul 2025 02:02:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eHIRW/Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D3C1C4CEE3;
+	Sun, 20 Jul 2025 02:05:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976949;
-	bh=l0la2WhOwTrzyKFx+gPWM7LoJzshB+WulxitLcGfcD4=;
+	s=korg; t=1752977132;
+	bh=uzmLG9LERrOQX9lJ2Sl6CIRyzSAH24xqoma3aJQoeqQ=;
 	h=Date:To:From:Subject:From;
-	b=nVQ8gSCaAYQWwx1/z8OziCLvXIm+lZPe8NAasyuWZ+YRSezpVqooDF4G4vT99ZvPn
-	 IqgrjEyOaejTg4gkRWSg7e+fEEPqIUAYoxd/8QwwPe9ftfPLNIK6aESfGHQchi9Egd
-	 Gxmi/gDujS72AowPtig+Rk4TjD34yKrO6QBzy1dE=
-Date: Sat, 19 Jul 2025 19:02:29 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=0eHIRW/Qqa4kibVuo+M34AFgLKuCF/aKu8dSojqy3jTKvWky1SBG7z7Nq01AqNc1H
+	 aWMmOEkZbbNYBo0ieImdqLfaz6NM01iA5J9OErerdVtBbw/c3T1UyNGM6ERWIKa2EX
+	 Vjtkll0ovsPIRoFvVVBNyvv/7ykGbGmPMF8bnWTY=
+Date: Sat, 19 Jul 2025 19:05:31 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,feng.tang@linux.alibaba.com,corbet@lwn.net,andriy.shevchenko@linux.intel.com,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_owner-convert-set_page_owner_migrate_reason-to-folios.patch removed from -mm tree
-Message-Id: <20250720020229.CB8E0C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] panic-add-panic_sys_info-sysctl-to-take-human-readable-string-parameter-fix.patch removed from -mm tree
+Message-Id: <20250720020532.3D3C1C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: convert set_page_owner_migrate_reason() to folios
+     Subject: panic: add __maybe_unused to sys_info_avail
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-convert-set_page_owner_migrate_reason-to-folios.patch
+     panic-add-panic_sys_info-sysctl-to-take-human-readable-string-parameter-fix.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into panic-add-panic_sys_info-sysctl-to-take-human-readable-string-parameter.patch
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/page_owner: convert set_page_owner_migrate_reason() to folios
-Date: Fri, 11 Jul 2025 10:59:10 -0400
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: panic: add __maybe_unused to sys_info_avail
+Date: Tue, 08 Jul 2025 08:37:57 -0700
 
-Both callers of set_page_owner_migrate_reason() use folios.  Convert the
-function to take a folio directly and move the &folio->page conversion
-inside __set_page_owner_migrate_reason().
+Clang warns (or errors with CONFIG_WERROR=y):
 
-Link: https://lkml.kernel.org/r/20250711145910.90135-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+  lib/sys_info.c:52:19: error: variable 'sys_info_avail' is not needed and will not be emitted [-Werror,-Wunneeded-internal-declaration]
+     52 | static const char sys_info_avail[] = "tasks,mem,timers,locks,ftrace,all_bt,blocked_tasks";
+        |                   ^~~~~~~~~~~~~~
+
+sys_info_avail is only used within sizeof(), meaning it is only used at
+compile time, which clang warns about in case the developer intended to
+use the variable elsewhere. This appears to be intentional in this case,
+so mark sys_info_avail with __maybe_unused to silence the warning.
+
+Link: https://lkml.kernel.org/r/20250708-fix-clang-sys_info_avail-warning-v1-1-60d239eacd64@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_owner.h |    8 ++++----
- mm/hugetlb.c               |    2 +-
- mm/migrate.c               |    2 +-
- mm/page_owner.c            |    4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ lib/sys_info.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/page_owner.h~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
-+++ a/include/linux/page_owner.h
-@@ -14,7 +14,7 @@ extern void __set_page_owner(struct page
- extern void __split_page_owner(struct page *page, int old_order,
- 			int new_order);
- extern void __folio_copy_owner(struct folio *newfolio, struct folio *old);
--extern void __set_page_owner_migrate_reason(struct page *page, int reason);
-+extern void __folio_set_owner_migrate_reason(struct folio *folio, int reason);
- extern void __dump_page_owner(const struct page *page);
- extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone);
-@@ -43,10 +43,10 @@ static inline void folio_copy_owner(stru
- 	if (static_branch_unlikely(&page_owner_inited))
- 		__folio_copy_owner(newfolio, old);
- }
--static inline void set_page_owner_migrate_reason(struct page *page, int reason)
-+static inline void folio_set_owner_migrate_reason(struct folio *folio, int reason)
- {
- 	if (static_branch_unlikely(&page_owner_inited))
--		__set_page_owner_migrate_reason(page, reason);
-+		__folio_set_owner_migrate_reason(folio, reason);
- }
- static inline void dump_page_owner(const struct page *page)
- {
-@@ -68,7 +68,7 @@ static inline void split_page_owner(stru
- static inline void folio_copy_owner(struct folio *newfolio, struct folio *folio)
- {
- }
--static inline void set_page_owner_migrate_reason(struct page *page, int reason)
-+static inline void folio_set_owner_migrate_reason(struct folio *folio, int reason)
- {
- }
- static inline void dump_page_owner(const struct page *page)
---- a/mm/hugetlb.c~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
-+++ a/mm/hugetlb.c
-@@ -7835,7 +7835,7 @@ void move_hugetlb_state(struct folio *ol
- 	struct hstate *h = folio_hstate(old_folio);
+--- a/lib/sys_info.c~panic-add-panic_sys_info-sysctl-to-take-human-readable-string-parameter-fix
++++ a/lib/sys_info.c
+@@ -49,7 +49,7 @@ unsigned long sys_info_parse_param(char
  
- 	hugetlb_cgroup_migrate(old_folio, new_folio);
--	set_page_owner_migrate_reason(&new_folio->page, reason);
-+	folio_set_owner_migrate_reason(new_folio, reason);
+ #ifdef CONFIG_SYSCTL
  
- 	/*
- 	 * transfer temporary state of the new hugetlb folio. This is
---- a/mm/migrate.c~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
-+++ a/mm/migrate.c
-@@ -1367,7 +1367,7 @@ static int migrate_folio_move(free_folio
+-static const char sys_info_avail[] = "tasks,mem,timers,locks,ftrace,all_bt,blocked_tasks";
++static const char sys_info_avail[] __maybe_unused = "tasks,mem,timers,locks,ftrace,all_bt,blocked_tasks";
  
- out_unlock_both:
- 	folio_unlock(dst);
--	set_page_owner_migrate_reason(&dst->page, reason);
-+	folio_set_owner_migrate_reason(dst, reason);
- 	/*
- 	 * If migration is successful, decrease refcount of dst,
- 	 * which will not free the page because new page owner increased
---- a/mm/page_owner.c~mm-page_owner-convert-set_page_owner_migrate_reason-to-folios
-+++ a/mm/page_owner.c
-@@ -333,9 +333,9 @@ noinline void __set_page_owner(struct pa
- 	inc_stack_record_count(handle, gfp_mask, 1 << order);
- }
- 
--void __set_page_owner_migrate_reason(struct page *page, int reason)
-+void __folio_set_owner_migrate_reason(struct folio *folio, int reason)
- {
--	struct page_ext *page_ext = page_ext_get(page);
-+	struct page_ext *page_ext = page_ext_get(&folio->page);
- 	struct page_owner *page_owner;
- 
- 	if (unlikely(!page_ext))
+ int sysctl_sys_info_handler(const struct ctl_table *ro_table, int write,
+ 					  void *buffer, size_t *lenp,
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
+mm-ksm-fix-wsometimes-uninitialized-from-clang-21-in-advisor_mode_show.patch
+panic-add-panic_sys_info-sysctl-to-take-human-readable-string-parameter.patch
 
