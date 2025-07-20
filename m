@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 235EC4C62
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B6515687D
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752977365; cv=none; b=DfCFoGILENJyXKX1cM5vvqsurx3enrhqzL9yga2PFHjY3EJRY7LyyoKyfalJN3akqqS3SmicZgS41dEV64rnU85Ajp7e+oVVE1iVEZhtKUx8gHGCDrlw6fsrEHeX3+79G828mu0iQV+pgxXwiwQGyLWH0DR9TXgcjCtbF2DFsdA=
+	t=1752977366; cv=none; b=EJfoqLh1Jmk0iwuQW+bT/GVZHGxii9J79o0g1gfGDOZ2q+4AVyhErAYpTFOHLLNTgx6U5Kx0MsDmHakg2vtsVtEOrlYIzXI/7xq/KX19V1KzVeTOGZq56l3xEF8tGAhnOrBlqd/85Ki+TK/mwdoNEYWyqjzCmzNdn4g0Aye22bo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752977365; c=relaxed/simple;
-	bh=LlZS6AO/0XIDIhDDLElUTYtMWbFvQIGXLy6jq6NZ4is=;
-	h=Date:To:From:Subject:Message-Id; b=KSvD5qVPg/5qfGU8vusphBq1lnxvQadjggogIEUFyo6GDVc0WeQIstxpZmxKPDu5BJ7u2viniH00o6K1rOJQ2r5aNRaYgV1QCiEQ/Y6SOJW3J6sQUwDWcWMlWiTo/FqhsaewBu2heaQnGe2rVNdqiuyyIqyyQXxAFQYakeZbgAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SimjzIre; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752977366; c=relaxed/simple;
+	bh=WmI0wwYVhSDcRyLMozow3VzdJa7SMRa4NdYqOBq8y9s=;
+	h=Date:To:From:Subject:Message-Id; b=Q0l1SrlzFOwE2qgN79vX00HehwSl/Or2H8DFracm6YItCChceTr+LOt9MnaKO9C98UtTINwWHalbIz6Y+jxIyfV6FM5lS4tR4/iRRH0yVDXwgFOds0eHGQbZkYtbJbru7LkjuLZ8+8DuiTTnyZXF7qoQAnWYDxGTGqEk1xL7/3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u6TVRhGC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SimjzIre"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2725C4CEE3;
-	Sun, 20 Jul 2025 02:09:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u6TVRhGC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15584C4CEE3;
+	Sun, 20 Jul 2025 02:09:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752977365;
-	bh=LlZS6AO/0XIDIhDDLElUTYtMWbFvQIGXLy6jq6NZ4is=;
+	s=korg; t=1752977366;
+	bh=WmI0wwYVhSDcRyLMozow3VzdJa7SMRa4NdYqOBq8y9s=;
 	h=Date:To:From:Subject:From;
-	b=SimjzIreUAC1Sh39TvUKCwivLTg17IEo2F/v/+rSfB8tEEjpSoJn92Bfo4VQqpTXe
-	 j1e5e2jEfx290apIUraEFVUtAf1PwZs8S3HWU6drXEW+Fie01PEQvfxR3IkQF31plo
-	 jP+2k073NQun+GpHoO38N4prByJeigtREk87v6I0=
-Date: Sat, 19 Jul 2025 19:09:24 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,gechangwei@live.cn,nabijaczleweli@nabijaczleweli.xyz,akpm@linux-foundation.org
+	b=u6TVRhGCZVwBJrffqa6RROisyFKLHXQ2CA0qn1fbWue/2GXvSqRX3JirObtY8BGJp
+	 I6y/ZhtgKyBlmujEpkGM/1FMqSjklzIFsai0T3Y22+1mneu1kcyQF1vCDD01s0qW9r
+	 9RgZ4kE1B8FhBu/RnK09NR643dFZiMrtnQKDU8mI=
+Date: Sat, 19 Jul 2025 19:09:25 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,ipravdin.official@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-dlm-fix-take-a-while-typo.patch removed from -mm tree
-Message-Id: <20250720020924.E2725C4CEE3@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec.patch removed from -mm tree
+Message-Id: <20250720020926.15584C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2/dlm: fix "take a while" typo
+     Subject: ocfs2: avoid NULL pointer dereference in dx_dir_lookup_rec()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-fix-take-a-while-typo.patch
+     ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
-Subject: ocfs2/dlm: fix "take a while" typo
-Date: Thu, 3 Jul 2025 20:21:27 +0200
+From: Ivan Pravdin <ipravdin.official@gmail.com>
+Subject: ocfs2: avoid NULL pointer dereference in dx_dir_lookup_rec()
+Date: Mon, 7 Jul 2025 20:10:09 -0400
 
-Signed-off-by: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
+When a directory entry is not found, ocfs2_dx_dir_lookup_rec() prints an
+error message that unconditionally dereferences the 'rec' pointer. 
+However, if 'rec' is NULL, this leads to a NULL pointer dereference and a
+kernel panic.
+
+Add an explicit check empty extent list to avoid dereferencing NULL
+'rec' pointer.
+
+Link: https://lkml.kernel.org/r/20250708001009.372263-1-ipravdin.official@gmail.com
+Reported-by: syzbot+20282c1b2184a857ac4c@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67cd7e29.050a0220.e1a89.0007.GAE@google.com/
+Signed-off-by: Ivan Pravdin <ipravdin.official@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dir.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-take-a-while-typo
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2632,7 +2632,7 @@ again:
- 					 dlm_reco_master_ready(dlm),
- 					 msecs_to_jiffies(1000));
- 		if (!dlm_reco_master_ready(dlm)) {
--			mlog(0, "%s: reco master taking awhile\n",
-+			mlog(0, "%s: reco master taking a while\n",
- 			     dlm->name);
- 			goto again;
+--- a/fs/ocfs2/dir.c~ocfs2-avoid-null-pointer-dereference-in-dx_dir_lookup_rec
++++ a/fs/ocfs2/dir.c
+@@ -798,6 +798,14 @@ static int ocfs2_dx_dir_lookup_rec(struc
  		}
+ 	}
+ 
++	if (le16_to_cpu(el->l_next_free_rec) == 0) {
++		ret = ocfs2_error(inode->i_sb,
++				  "Inode %lu has empty extent list at depth %u\n",
++				  inode->i_ino,
++				  le16_to_cpu(el->l_tree_depth));
++		goto out;
++	}
++
+ 	found = 0;
+ 	for (i = le16_to_cpu(el->l_next_free_rec) - 1; i >= 0; i--) {
+ 		rec = &el->l_recs[i];
 _
 
-Patches currently in -mm which might be from nabijaczleweli@nabijaczleweli.xyz are
+Patches currently in -mm which might be from ipravdin.official@gmail.com are
 
 
