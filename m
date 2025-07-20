@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B064BA2D
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 01:51:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4501712B73
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 01:52:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976274; cv=none; b=Lzfm1QncsCXpBhjwkNbnIOwJf1og1gmHIZdVxZ3puKYrAZPMczeGsrBemEAhgf6GMCD+Mldors4RbZVQG5SpiFS5/hrEBu7rTpUlxa5GmNgQqYUmbmtFWoMptWbNLb5Id4Xt8vvG3DanUDr5ivLCqQ5hejmkJ7uP1VKsCOywLJw=
+	t=1752976324; cv=none; b=M4wxUGj3Lh/ipKWg6e6M0uK2h2eXWJnpVrFS8QGGZ5oU01qhTwBKuvDmij3RpwGIKhqKhfJFVjPnGkIBgHM7qGdgY3lXU6BKfQj/YyBOBNJOGMhY0Q8E83yfmeADz5S/HcUghTBX5g0gIpLG99kdHRJNE+gg4l1hkUdEB2Bz6mk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976274; c=relaxed/simple;
-	bh=ZEFgF8rBrbLeUqhO6oth+ORQZ8XxGw1ogbB79OBqvi0=;
-	h=Date:To:From:Subject:Message-Id; b=n6V3dbVU6sle4bySzFEeC9WDl8RDjEmyHqw6Ha+ZgUDWDKtRgOvZ1Zd1em94PYTktdGQx7oZsg6CEQeGhypZoTNGfqkoolGiKVaIqaPeU1cUsekoYLsNBaMqAyPp/P4xCsw3inrKW00BgOgIRc28/A2iR0elSlgo1kOQTeYNxUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iGYDReza; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976324; c=relaxed/simple;
+	bh=A+LpQUsu505pQRIxZN5V9JR/N5UbQChcfRsfvTx4xXU=;
+	h=Date:To:From:Subject:Message-Id; b=d7//bkyA1FL2beV9qhnDqGCpkapYsF0sjNTDEUnbmeMTGbHsVZlC11FowuYnCpN4lPJaFjGDDeDGSH8E4TCKvgkgRnGWR6cbcGfqjDsiCTvRmH+Kw7ahUeq1MXObVtgMIO1U/dTZG6zT7a8dcIZf6/HEB3x1YODpjg55yMAsIyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GfzP7PQR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iGYDReza"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64771C4CEE3;
-	Sun, 20 Jul 2025 01:51:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GfzP7PQR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE392C4CEE3;
+	Sun, 20 Jul 2025 01:52:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976273;
-	bh=ZEFgF8rBrbLeUqhO6oth+ORQZ8XxGw1ogbB79OBqvi0=;
+	s=korg; t=1752976323;
+	bh=A+LpQUsu505pQRIxZN5V9JR/N5UbQChcfRsfvTx4xXU=;
 	h=Date:To:From:Subject:From;
-	b=iGYDRezaeUT5fsxCbsqGR3QAe7wNAMECrCVH46xYr0VU1UvcH4DfUBAyTPB0gba61
-	 cEjoNfm+gtkSXs1s+UiDpaQBJtnTffLEDGEqoPmwdzxdgPvahFNxAXwPSJ+HiV7UoB
-	 u2XARZ16MmC350I64vfjU0J2hFR/W2zXnAwZeKdQ=
-Date: Sat, 19 Jul 2025 18:51:12 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,tj@kernel.org,surenb@google.com,mszeredi@redhat.com,mpatlasov@parallels.com,mhocko@suse.com,kirill.shutemov@linux.intel.com,joannelkoong@gmail.com,jlayton@kernel.org,jefflexu@linux.alibaba.com,jack@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,dakr@kernel.org,corbet@lwn.net,axboe@kernel.dk,vbabka@suse.cz,akpm@linux-foundation.org
+	b=GfzP7PQR8pjdeSsAEI/nkB3RbhiAY31Qhz7I9Nt8c2St3qX6toPMl3WD64pF29mBX
+	 NzenSQvZKkEhpMJ9WranbBWmRj9sNPG1M7to3XbfNhF4HE6mwsrtXHFGIzv8G5mczQ
+	 mzBUVCmVl0npsvX6UOt6jj+9pTq5sVlD5FWvyUFY=
+Date: Sat, 19 Jul 2025 18:52:03 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,lkp@intel.com,hannes@cmpxchg.org,dave@stgolabs.net,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix.patch removed from -mm tree
-Message-Id: <20250720015113.64771C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] mm-memcg-make-memoryreclaim-interface-generic-fix.patch removed from -mm tree
+Message-Id: <20250720015203.BE392C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix
+     Subject: mm-memcg-make-memoryreclaim-interface-generic-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix.patch
+     mm-memcg-make-memoryreclaim-interface-generic-fix.patch
 
-This patch was dropped because it was folded into mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
+This patch was dropped because it was folded into mm-memcg-make-memoryreclaim-interface-generic.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix
-Date: Mon, 7 Jul 2025 16:09:31 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcg-make-memoryreclaim-interface-generic-fix
+Date: Tue Jun 24 02:08:06 PM PDT 2025
 
-Also remove the mention of NR_WRITEBACK_TEMP implications from a comment
-in wb_position_ratio(). The rest of the comment there about fuse setting
-bdi->max_ratio to 1% is still correct.
+fix CONFIG_NUMA=n build
 
-Link: https://lkml.kernel.org/r/5a848e15-6a57-4ecb-a015-d4f358b8a5d3@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joanne Koong <joannelkoong@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202506250208.ZOcoZLb6-lkp@intel.com/
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Maxim Patlasov <mpatlasov@parallels.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/internal.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/page-writeback.c~mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter-fix
-+++ a/mm/page-writeback.c
-@@ -1101,9 +1101,7 @@ static void wb_position_ratio(struct dir
- 	 * such filesystems balance_dirty_pages always checks wb counters
- 	 * against wb limits. Even if global "nr_dirty" is under "freerun".
- 	 * This is especially important for fuse which sets bdi->max_ratio to
--	 * 1% by default. Without strictlimit feature, fuse writeback may
--	 * consume arbitrary amount of RAM because it is accounted in
--	 * NR_WRITEBACK_TEMP which is not involved in calculating "nr_dirty".
-+	 * 1% by default.
- 	 *
- 	 * Here, in wb_position_ratio(), we calculate pos_ratio based on
- 	 * two values: wb_dirty and wb_thresh. Let's consider an example:
+--- a/mm/internal.h~mm-memcg-make-memoryreclaim-interface-generic-fix
++++ a/mm/internal.h
+@@ -533,8 +533,16 @@ extern unsigned long highest_memmap_pfn;
+ bool folio_isolate_lru(struct folio *folio);
+ void folio_putback_lru(struct folio *folio);
+ extern void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason);
++#ifdef CONFIG_NUMA
+ int user_proactive_reclaim(char *buf,
+ 			   struct mem_cgroup *memcg, pg_data_t *pgdat);
++#else
++static inline int user_proactive_reclaim(char *buf,
++			   struct mem_cgroup *memcg, pg_data_t *pgdat)
++{
++	return 0;
++}
++#endif
+ 
+ /*
+  * in mm/rmap.c:
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmstat-remove-the-nr_writeback_temp-node_stat_item-counter.patch
+mm-memcg-make-memoryreclaim-interface-generic.patch
+mm-introduce-per-node-proactive-reclaim-interface-fix.patch
+mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
+mm-shmem-swap-simplify-swapin-path-and-result-handling-fix-fix.patch
+kasan-add-shadow-checks-to-wrappers-and-rename-kasan_arch_is_ready-fix.patch
+squashfs-fix-incorrect-argument-to-sizeof-in-kmalloc_array-call-fix.patch
+init-kconfig-restore-config_broken-help-text.patch
 
