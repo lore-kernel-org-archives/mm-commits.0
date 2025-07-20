@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60EEF1487C3
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90CAF1487C3
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:01:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752976908; cv=none; b=m8soyV+6ddQfK3GNigVnyNP9tuXPDHHpy2nFk+fvBCq352ghCc6hxbxbDcWGgwM2yw06Jk7sTbOXOAogDAnb+yywLeBGHLw4BmPFBtGpS+sr69LSSuCT8w7N6kkSPtmJ55c9OCvCyk1y0enNtHzzsAqcCT03e5WjkkVviDyKcDU=
+	t=1752976909; cv=none; b=cb8+Y6yrj4buU9lUNtR93dPObUcsowTAJNZrZW5PENKPQgWRwTYIWvw0ZQVGI8Fdk9hj9wo1cKfBQELs4VUM7DpMcO2QVjP6rd3x3WX5flLqO+UVf7vy60OkSl6sMHpEsrdUOCjSBqrR6uxr5GibNlyKgiKnoL2GlG9qQMhhwjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752976908; c=relaxed/simple;
-	bh=8RiZWxLJnDPwsEiRJZLsxilHbVdC8X28BS5/t9J0UBo=;
-	h=Date:To:From:Subject:Message-Id; b=qvatjaepIf3/OV1OXr8O6QR5GCMEOpOdUL++odcrAmCc3RQSgEgmCGiVP/XMm4fkq35CZh9usUBlcK0f2jtz9VNE4SNcUPG5PDetYvH6k+DW5u9DPDy9xlVt97r9zIsiS5vgbBtUlJHZvudB2swvUPzMDsGpHP7roPJnoQrb+mc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=slXVvLw8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752976909; c=relaxed/simple;
+	bh=Xeaca4ZuKDE5t5k6x01RsEEuiDkksFAm0YIR5zghEEc=;
+	h=Date:To:From:Subject:Message-Id; b=cTDCfK6iu1lXjBu2QwsFVXBrydcdnlc8gk8G6DUWRxQsMtSPe8TQ0RY9h8/nkr3eNnU8bibdDuICZ/KkEtvcc3H8YYn3cfKQ9iDQ/A2F0anmrzH7k/ARxaOVLLWeTuuQdjAmvfb9kW3tjvRoZVHYlN+k+dHpMghRz1iW9+NYiJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aUE7V0vs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="slXVvLw8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34B43C4CEE3;
-	Sun, 20 Jul 2025 02:01:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aUE7V0vs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C1ABC4CEE3;
+	Sun, 20 Jul 2025 02:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752976908;
-	bh=8RiZWxLJnDPwsEiRJZLsxilHbVdC8X28BS5/t9J0UBo=;
+	s=korg; t=1752976909;
+	bh=Xeaca4ZuKDE5t5k6x01RsEEuiDkksFAm0YIR5zghEEc=;
 	h=Date:To:From:Subject:From;
-	b=slXVvLw86uTIT5xsIuCZmChC5xY5Z6bR8RZ0CXGeEc6i1JKzw+mDJpgr/1Vs5Pxsl
-	 AWw3a+wyph3u7xujTbgx7Xcjr89SQ6nIMwErHmiMbxCwc8PAaY1OzUiPhocel1Yocg
-	 1n5/D6q0TBTgrT+otgDxYJBoXfLLd59BHdIkFH8Q=
-Date: Sat, 19 Jul 2025 19:01:47 -0700
+	b=aUE7V0vsYzz02R9KGRLa83gWipehr7vUogcF63VNnVYy1BDXXQwZzFD7I+SQ57O4D
+	 DCPTkO0BrmQE5cBsALNqZ2qtvlCsgA2bysqU3V3pHfdEZi4n+oEo3wruHKpifs4iu9
+	 TlAUE5VNDZN955XM8GFYegRKGfuXMSdP+dUR9xF4=
+Date: Sat, 19 Jul 2025 19:01:48 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,ravis.opensrc@micron.com,corbet@lwn.net,bijantabatab@micron.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-move-folio-filtering-from-paddr-to-ops-common.patch removed from -mm tree
-Message-Id: <20250720020148.34B43C4CEE3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-apply-filters-in-migrate_hot-cold.patch removed from -mm tree
+Message-Id: <20250720020149.5C1ABC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: move folio filtering from paddr to ops-common
+     Subject: mm/damon/vaddr: apply filters in migrate_{hot/cold}
 has been removed from the -mm tree.  Its filename was
-     mm-damon-move-folio-filtering-from-paddr-to-ops-common.patch
+     mm-damon-vaddr-apply-filters-in-migrate_hot-cold.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Bijan Tabatabai <bijantabatab@micron.com>
-Subject: mm/damon: move folio filtering from paddr to ops-common
-Date: Tue, 8 Jul 2025 19:59:42 -0500
+Subject: mm/damon/vaddr: apply filters in migrate_{hot/cold}
+Date: Tue, 8 Jul 2025 19:59:43 -0500
 
-This patch moves damos_pa_filter_match and the functions it calls to
-ops-common, renaming it to damos_folio_filter_match.  Doing so allows us
-to share the filtering logic for the vaddr version of the
-migrate_{hot,cold} schemes.
+The paddr versions of migrate_{hot/cold} filter out folios from migration
+based on the scheme's filters.  This patch does the same for the vaddr
+versions of those schemes.
 
-Link: https://lkml.kernel.org/r/20250709005952.17776-13-bijan311@gmail.com
+The filtering code is mostly the same for the paddr and vaddr versions. 
+The exception is the young filter.  paddr determines if a page is young by
+doing a folio rmap walk to find the page table entries corresponding to
+the folio.  However, vaddr schemes have easier access to the page tables,
+so we add some logic to avoid the extra work.
+
+Link: https://lkml.kernel.org/r/20250709005952.17776-14-bijan311@gmail.com
 Co-developed-by: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
 Signed-off-by: Ravi Shankar Jonnalagadda <ravis.opensrc@micron.com>
 Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
@@ -61,369 +66,130 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |  150 +++++++++++++++++++++++++++++++++++++++
- mm/damon/ops-common.h |    3 
- mm/damon/paddr.c      |  153 ----------------------------------------
- 3 files changed, 154 insertions(+), 152 deletions(-)
+ mm/damon/vaddr.c |   69 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 65 insertions(+), 4 deletions(-)
 
---- a/mm/damon/ops-common.c~mm-damon-move-folio-filtering-from-paddr-to-ops-common
-+++ a/mm/damon/ops-common.c
-@@ -141,6 +141,156 @@ int damon_cold_score(struct damon_ctx *c
- 	return DAMOS_MAX_SCORE - hotness;
- }
- 
-+static bool damon_folio_mkold_one(struct folio *folio,
-+		struct vm_area_struct *vma, unsigned long addr, void *arg)
-+{
-+	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, addr, 0);
-+
-+	while (page_vma_mapped_walk(&pvmw)) {
-+		addr = pvmw.address;
-+		if (pvmw.pte)
-+			damon_ptep_mkold(pvmw.pte, vma, addr);
-+		else
-+			damon_pmdp_mkold(pvmw.pmd, vma, addr);
-+	}
-+	return true;
-+}
-+
-+void damon_folio_mkold(struct folio *folio)
-+{
-+	struct rmap_walk_control rwc = {
-+		.rmap_one = damon_folio_mkold_one,
-+		.anon_lock = folio_lock_anon_vma_read,
-+	};
-+	bool need_lock;
-+
-+	if (!folio_mapped(folio) || !folio_raw_mapping(folio)) {
-+		folio_set_idle(folio);
-+		return;
-+	}
-+
-+	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
-+	if (need_lock && !folio_trylock(folio))
-+		return;
-+
-+	rmap_walk(folio, &rwc);
-+
-+	if (need_lock)
-+		folio_unlock(folio);
-+
-+}
-+
-+static bool damon_folio_young_one(struct folio *folio,
-+		struct vm_area_struct *vma, unsigned long addr, void *arg)
-+{
-+	bool *accessed = arg;
-+	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, addr, 0);
-+	pte_t pte;
-+
-+	*accessed = false;
-+	while (page_vma_mapped_walk(&pvmw)) {
-+		addr = pvmw.address;
-+		if (pvmw.pte) {
-+			pte = ptep_get(pvmw.pte);
-+
-+			/*
-+			 * PFN swap PTEs, such as device-exclusive ones, that
-+			 * actually map pages are "old" from a CPU perspective.
-+			 * The MMU notifier takes care of any device aspects.
-+			 */
-+			*accessed = (pte_present(pte) && pte_young(pte)) ||
-+				!folio_test_idle(folio) ||
-+				mmu_notifier_test_young(vma->vm_mm, addr);
-+		} else {
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			*accessed = pmd_young(pmdp_get(pvmw.pmd)) ||
-+				!folio_test_idle(folio) ||
-+				mmu_notifier_test_young(vma->vm_mm, addr);
-+#else
-+			WARN_ON_ONCE(1);
-+#endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
-+		}
-+		if (*accessed) {
-+			page_vma_mapped_walk_done(&pvmw);
-+			break;
-+		}
-+	}
-+
-+	/* If accessed, stop walking */
-+	return *accessed == false;
-+}
-+
-+bool damon_folio_young(struct folio *folio)
-+{
-+	bool accessed = false;
-+	struct rmap_walk_control rwc = {
-+		.arg = &accessed,
-+		.rmap_one = damon_folio_young_one,
-+		.anon_lock = folio_lock_anon_vma_read,
-+	};
-+	bool need_lock;
-+
-+	if (!folio_mapped(folio) || !folio_raw_mapping(folio)) {
-+		if (folio_test_idle(folio))
-+			return false;
-+		else
-+			return true;
-+	}
-+
-+	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
-+	if (need_lock && !folio_trylock(folio))
-+		return false;
-+
-+	rmap_walk(folio, &rwc);
-+
-+	if (need_lock)
-+		folio_unlock(folio);
-+
-+	return accessed;
-+}
-+
-+bool damos_folio_filter_match(struct damos_filter *filter, struct folio *folio)
-+{
-+	bool matched = false;
-+	struct mem_cgroup *memcg;
-+	size_t folio_sz;
-+
-+	switch (filter->type) {
-+	case DAMOS_FILTER_TYPE_ANON:
-+		matched = folio_test_anon(folio);
-+		break;
-+	case DAMOS_FILTER_TYPE_ACTIVE:
-+		matched = folio_test_active(folio);
-+		break;
-+	case DAMOS_FILTER_TYPE_MEMCG:
-+		rcu_read_lock();
-+		memcg = folio_memcg_check(folio);
-+		if (!memcg)
-+			matched = false;
-+		else
-+			matched = filter->memcg_id == mem_cgroup_id(memcg);
-+		rcu_read_unlock();
-+		break;
-+	case DAMOS_FILTER_TYPE_YOUNG:
-+		matched = damon_folio_young(folio);
-+		if (matched)
-+			damon_folio_mkold(folio);
-+		break;
-+	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
-+		folio_sz = folio_size(folio);
-+		matched = filter->sz_range.min <= folio_sz &&
-+			  folio_sz <= filter->sz_range.max;
-+		break;
-+	case DAMOS_FILTER_TYPE_UNMAPPED:
-+		matched = !folio_mapped(folio) || !folio_raw_mapping(folio);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return matched == filter->matching;
-+}
-+
- static unsigned int __damon_migrate_folio_list(
- 		struct list_head *migrate_folios, struct pglist_data *pgdat,
- 		int target_nid)
---- a/mm/damon/ops-common.h~mm-damon-move-folio-filtering-from-paddr-to-ops-common
-+++ a/mm/damon/ops-common.h
-@@ -11,10 +11,13 @@ struct folio *damon_get_folio(unsigned l
- 
- void damon_ptep_mkold(pte_t *pte, struct vm_area_struct *vma, unsigned long addr);
- void damon_pmdp_mkold(pmd_t *pmd, struct vm_area_struct *vma, unsigned long addr);
-+void damon_folio_mkold(struct folio *folio);
-+bool damon_folio_young(struct folio *folio);
- 
- int damon_cold_score(struct damon_ctx *c, struct damon_region *r,
- 			struct damos *s);
- int damon_hot_score(struct damon_ctx *c, struct damon_region *r,
- 			struct damos *s);
- 
-+bool damos_folio_filter_match(struct damos_filter *filter, struct folio *folio);
- unsigned long damon_migrate_pages(struct list_head *folio_list, int target_nid);
---- a/mm/damon/paddr.c~mm-damon-move-folio-filtering-from-paddr-to-ops-common
-+++ a/mm/damon/paddr.c
-@@ -18,45 +18,6 @@
- #include "../internal.h"
- #include "ops-common.h"
- 
--static bool damon_folio_mkold_one(struct folio *folio,
--		struct vm_area_struct *vma, unsigned long addr, void *arg)
--{
--	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, addr, 0);
--
--	while (page_vma_mapped_walk(&pvmw)) {
--		addr = pvmw.address;
--		if (pvmw.pte)
--			damon_ptep_mkold(pvmw.pte, vma, addr);
--		else
--			damon_pmdp_mkold(pvmw.pmd, vma, addr);
--	}
--	return true;
--}
--
--static void damon_folio_mkold(struct folio *folio)
--{
--	struct rmap_walk_control rwc = {
--		.rmap_one = damon_folio_mkold_one,
--		.anon_lock = folio_lock_anon_vma_read,
--	};
--	bool need_lock;
--
--	if (!folio_mapped(folio) || !folio_raw_mapping(folio)) {
--		folio_set_idle(folio);
--		return;
--	}
--
--	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
--	if (need_lock && !folio_trylock(folio))
--		return;
--
--	rmap_walk(folio, &rwc);
--
--	if (need_lock)
--		folio_unlock(folio);
--
--}
--
- static void damon_pa_mkold(unsigned long paddr)
- {
- 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
-@@ -86,75 +47,6 @@ static void damon_pa_prepare_access_chec
- 	}
- }
- 
--static bool damon_folio_young_one(struct folio *folio,
--		struct vm_area_struct *vma, unsigned long addr, void *arg)
--{
--	bool *accessed = arg;
--	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, addr, 0);
--	pte_t pte;
--
--	*accessed = false;
--	while (page_vma_mapped_walk(&pvmw)) {
--		addr = pvmw.address;
--		if (pvmw.pte) {
--			pte = ptep_get(pvmw.pte);
--
--			/*
--			 * PFN swap PTEs, such as device-exclusive ones, that
--			 * actually map pages are "old" from a CPU perspective.
--			 * The MMU notifier takes care of any device aspects.
--			 */
--			*accessed = (pte_present(pte) && pte_young(pte)) ||
--				!folio_test_idle(folio) ||
--				mmu_notifier_test_young(vma->vm_mm, addr);
--		} else {
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--			*accessed = pmd_young(pmdp_get(pvmw.pmd)) ||
--				!folio_test_idle(folio) ||
--				mmu_notifier_test_young(vma->vm_mm, addr);
--#else
--			WARN_ON_ONCE(1);
--#endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
--		}
--		if (*accessed) {
--			page_vma_mapped_walk_done(&pvmw);
--			break;
--		}
--	}
--
--	/* If accessed, stop walking */
--	return *accessed == false;
--}
--
--static bool damon_folio_young(struct folio *folio)
--{
--	bool accessed = false;
--	struct rmap_walk_control rwc = {
--		.arg = &accessed,
--		.rmap_one = damon_folio_young_one,
--		.anon_lock = folio_lock_anon_vma_read,
--	};
--	bool need_lock;
--
--	if (!folio_mapped(folio) || !folio_raw_mapping(folio)) {
--		if (folio_test_idle(folio))
--			return false;
--		else
--			return true;
--	}
--
--	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
--	if (need_lock && !folio_trylock(folio))
--		return false;
--
--	rmap_walk(folio, &rwc);
--
--	if (need_lock)
--		folio_unlock(folio);
--
--	return accessed;
--}
--
- static bool damon_pa_young(unsigned long paddr, unsigned long *folio_sz)
- {
- 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
-@@ -205,49 +97,6 @@ static unsigned int damon_pa_check_acces
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-apply-filters-in-migrate_hot-cold
++++ a/mm/damon/vaddr.c
+@@ -611,9 +611,60 @@ static unsigned int damon_va_check_acces
  	return max_nr_accesses;
  }
  
--static bool damos_pa_filter_match(struct damos_filter *filter,
--		struct folio *folio)
--{
--	bool matched = false;
--	struct mem_cgroup *memcg;
--	size_t folio_sz;
--
--	switch (filter->type) {
--	case DAMOS_FILTER_TYPE_ANON:
--		matched = folio_test_anon(folio);
--		break;
--	case DAMOS_FILTER_TYPE_ACTIVE:
--		matched = folio_test_active(folio);
--		break;
--	case DAMOS_FILTER_TYPE_MEMCG:
--		rcu_read_lock();
--		memcg = folio_memcg_check(folio);
--		if (!memcg)
--			matched = false;
--		else
--			matched = filter->memcg_id == mem_cgroup_id(memcg);
--		rcu_read_unlock();
--		break;
--	case DAMOS_FILTER_TYPE_YOUNG:
--		matched = damon_folio_young(folio);
--		if (matched)
--			damon_folio_mkold(folio);
--		break;
--	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
--		folio_sz = folio_size(folio);
--		matched = filter->sz_range.min <= folio_sz &&
--			  folio_sz <= filter->sz_range.max;
--		break;
--	case DAMOS_FILTER_TYPE_UNMAPPED:
--		matched = !folio_mapped(folio) || !folio_raw_mapping(folio);
--		break;
--	default:
--		break;
--	}
--
--	return matched == filter->matching;
--}
--
- /*
-  * damos_pa_filter_out - Return true if the page should be filtered out.
-  */
-@@ -259,7 +108,7 @@ static bool damos_pa_filter_out(struct d
- 		return false;
++static bool damos_va_filter_young_match(struct damos_filter *filter,
++		struct folio *folio, struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep, pmd_t *pmdp)
++{
++	bool young = false;
++
++	if (ptep)
++		young = pte_young(ptep_get(ptep));
++	else if (pmdp)
++		young = pmd_young(pmdp_get(pmdp));
++
++	young = young || !folio_test_idle(folio) ||
++		mmu_notifier_test_young(vma->vm_mm, addr);
++
++	if (young && ptep)
++		damon_ptep_mkold(ptep, vma, addr);
++	else if (young && pmdp)
++		damon_pmdp_mkold(pmdp, vma, addr);
++
++	return young == filter->matching;
++}
++
++static bool damos_va_filter_out(struct damos *scheme, struct folio *folio,
++		struct vm_area_struct *vma, unsigned long addr,
++		pte_t *ptep, pmd_t *pmdp)
++{
++	struct damos_filter *filter;
++	bool matched;
++
++	if (scheme->core_filters_allowed)
++		return false;
++
++	damos_for_each_ops_filter(filter, scheme) {
++		/*
++		 * damos_folio_filter_match checks the young filter by doing an
++		 * rmap on the folio to find its page table. However, being the
++		 * vaddr scheme, we have direct access to the page tables, so
++		 * use that instead.
++		 */
++		if (filter->type == DAMOS_FILTER_TYPE_YOUNG)
++			matched = damos_va_filter_young_match(filter, folio,
++				vma, addr, ptep, pmdp);
++		else
++			matched = damos_folio_filter_match(filter, folio);
++
++		if (matched)
++			return !filter->allow;
++	}
++	return scheme->ops_filters_default_reject;
++}
++
+ struct damos_va_migrate_private {
+ 	struct list_head *migration_lists;
+-	struct damos_migrate_dests *dests;
++	struct damos *scheme;
+ };
  
- 	damos_for_each_ops_filter(filter, scheme) {
--		if (damos_pa_filter_match(filter, folio))
-+		if (damos_folio_filter_match(filter, folio))
- 			return !filter->allow;
- 	}
- 	return scheme->ops_filters_default_reject;
+ /*
+@@ -673,7 +724,8 @@ static int damos_va_migrate_pmd_entry(pm
+ {
+ 	struct damos_va_migrate_private *priv = walk->private;
+ 	struct list_head *migration_lists = priv->migration_lists;
+-	struct damos_migrate_dests *dests = priv->dests;
++	struct damos *s = priv->scheme;
++	struct damos_migrate_dests *dests = &s->migrate_dests;
+ 	struct folio *folio;
+ 	spinlock_t *ptl;
+ 	pmd_t pmde;
+@@ -691,9 +743,13 @@ static int damos_va_migrate_pmd_entry(pm
+ 	if (!folio)
+ 		goto unlock;
+ 
++	if (damos_va_filter_out(s, folio, walk->vma, addr, NULL, pmd))
++		goto put_folio;
++
+ 	damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
+ 		migration_lists);
+ 
++put_folio:
+ 	folio_put(folio);
+ unlock:
+ 	spin_unlock(ptl);
+@@ -708,7 +764,8 @@ static int damos_va_migrate_pte_entry(pt
+ {
+ 	struct damos_va_migrate_private *priv = walk->private;
+ 	struct list_head *migration_lists = priv->migration_lists;
+-	struct damos_migrate_dests *dests = priv->dests;
++	struct damos *s = priv->scheme;
++	struct damos_migrate_dests *dests = &s->migrate_dests;
+ 	struct folio *folio;
+ 	pte_t ptent;
+ 
+@@ -720,9 +777,13 @@ static int damos_va_migrate_pte_entry(pt
+ 	if (!folio)
+ 		return 0;
+ 
++	if (damos_va_filter_out(s, folio, walk->vma, addr, pte, NULL))
++		goto put_folio;
++
+ 	damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
+ 		migration_lists);
+ 
++put_folio:
+ 	folio_put(folio);
+ 	return 0;
+ }
+@@ -790,7 +851,7 @@ static unsigned long damos_va_migrate(st
+ 
+ 	use_target_nid = dests->nr_dests == 0;
+ 	nr_dests = use_target_nid ? 1 : dests->nr_dests;
+-	priv.dests = dests;
++	priv.scheme = s;
+ 	priv.migration_lists = kmalloc_array(nr_dests,
+ 		sizeof(*priv.migration_lists), GFP_KERNEL);
+ 	if (!priv.migration_lists)
 _
 
 Patches currently in -mm which might be from bijantabatab@micron.com are
