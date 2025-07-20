@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D59C17A30F
-	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA8A315CD74
+	for <mm-commits@vger.kernel.org>; Sun, 20 Jul 2025 02:09:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752977374; cv=none; b=dgALkN22RgUP3YQqyq3RnmeU2HpVRyom9Gvrytc5C41NZ2WCD2NuN5sivsobFrPC3z5mMgQhl0W5N0xbBJx1kkXZN0UEugGipE9IPDb4U3mRjQdz5+MHCJsNO1h0QL54UOJBEvP7jviWKw7LYWbfHJRDxohIUrV6MtgISo/em58=
+	t=1752977375; cv=none; b=vCG8LGYEGW0uP51+lpfNH1mj+k7MYOSmia1q9g2IFyVRMYDqdfsK9TZrI6apuHa9uqMy2BdIYjbvypLeArNrxES5vBQPLSzi4bZCFNo3aFwqjX2hw6HxnXevaUtWOmwDUklNvBbq9ysTw3aa6p0KK9u7FQeGJ74Wv0mmhrJ9VVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752977374; c=relaxed/simple;
-	bh=ubFtTFHk7nDtVdiWFz2vexpUJDRcSngtnbPsX9wxxgs=;
-	h=Date:To:From:Subject:Message-Id; b=q157Ahrc/WiyTUd5nTGaao9HP8snPVna4zfpLFZQIks+tXdMVQqYoh1AvnvyXRelxpEqcvNs5YKB4j2Hp+xmy/qdiUelqbdDX9y9ueHvQWra/o7S9J3iS6lb2ZFG/CYuqD9Jz+0CFS71zObHOibb7+k3XBURHfebihOcF/4zLA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y30RoSX0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752977375; c=relaxed/simple;
+	bh=ojAuS7okg7ePoeTTS6MAIUzW4HJA3nhX648kcdRF5Vo=;
+	h=Date:To:From:Subject:Message-Id; b=mSqYMbXawSlMzEJFPBgKmrMRGgPvVdg33QMj3FdLKCKkBYKuOgNvWLyfDxxFYRq7krSFHMzhSS2aSIVTbhf3nTeCK/np8qi5z7DKdx/CBxgL+C3h0Qlp4UUdaz0E48rJaunEyYgIVdgmb7h8+T01yc1QSuxgJLcieQxh5eM2Ago=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z1IA74AM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y30RoSX0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FB54C4CEE3;
-	Sun, 20 Jul 2025 02:09:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z1IA74AM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FEFAC4CEE3;
+	Sun, 20 Jul 2025 02:09:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1752977374;
-	bh=ubFtTFHk7nDtVdiWFz2vexpUJDRcSngtnbPsX9wxxgs=;
+	s=korg; t=1752977375;
+	bh=ojAuS7okg7ePoeTTS6MAIUzW4HJA3nhX648kcdRF5Vo=;
 	h=Date:To:From:Subject:From;
-	b=Y30RoSX0Ng5u+61zxDOqorAgMnELcMXr4hLza9fWjMEVuBlsJbfLLF2ZjYJsJd5GJ
-	 Q1Cjpf26gRV34K5TDb7as97+ViPVALwpJA8uRCoXFz39ognnad45I1OviXfMREyEFn
-	 iNIyDuEdHfAoVjDM5sEH1LjWN3QZ8XRFrhkI2iZg=
-Date: Sat, 19 Jul 2025 19:09:33 -0700
+	b=Z1IA74AMDx4R2V2q58bh1UeQjZg9GdbtLhcXuItPy8Ts6aFHdMS1BOsId9XmrNcEe
+	 y2abKxFvlLqrNwCyAvz1uY0guRHy3lUaI+hUmAlngojrPI6CqOgzCayXopqzWJPz4r
+	 cNgmP+VqOFzLWpmgxoekn63EkH2zeDDeCjaQNfv8=
+Date: Sat, 19 Jul 2025 19:09:35 -0700
 To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,jserv@ccns.ncku.edu.tw,eleanor15x@gmail.com,aou@eecs.berkeley.edu,alexghiti@rivosinc.com,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch removed from -mm tree
-Message-Id: <20250720020934.0FB54C4CEE3@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] riscv-optimize-gcd-performance-on-risc-v-without-zbb-extension.patch removed from -mm tree
+Message-Id: <20250720020935.7FEFAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: riscv: optimize gcd() code size when CONFIG_RISCV_ISA_ZBB is disabled
+     Subject: riscv: optimize gcd() performance on RISC-V without Zbb extension
 has been removed from the -mm tree.  Its filename was
-     riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled.patch
+     riscv-optimize-gcd-performance-on-risc-v-without-zbb-extension.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: riscv: optimize gcd() code size when CONFIG_RISCV_ISA_ZBB is disabled
-Date: Fri, 6 Jun 2025 21:47:57 +0800
+Subject: riscv: optimize gcd() performance on RISC-V without Zbb extension
+Date: Fri, 6 Jun 2025 21:47:58 +0800
 
-The binary GCD implementation depends on efficient ffs(), which on RISC-V
-requires hardware support for the Zbb extension.  When
-CONFIG_RISCV_ISA_ZBB is not enabled, the kernel will never use binary GCD,
-as runtime logic will always fall back to the odd-even implementation.
+The binary GCD implementation uses FFS (find first set), which benefits
+from hardware support for the ctz instruction, provided by the Zbb
+extension on RISC-V.  Without Zbb, this results in slower
+software-emulated behavior.
 
-To avoid compiling unused code and reduce code size, select
-CONFIG_CPU_NO_EFFICIENT_FFS when CONFIG_RISCV_ISA_ZBB is not set.
+Previously, RISC-V always used the binary GCD, regardless of actual
+hardware support.  This patch improves runtime efficiency by disabling the
+efficient_ffs_key static branch when Zbb is either not enabled in the
+kernel (config) or not supported on the executing CPU.  This selects the
+odd-even GCD implementation, which is faster in the absence of efficient
+FFS.
 
-$ ./scripts/bloat-o-meter ./lib/math/gcd.o.old ./lib/math/gcd.o.new
-add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-274 (-274)
-Function                                     old     new   delta
-gcd                                          360      86    -274
-Total: Before=384, After=110, chg -71.35%
+This change ensures the most suitable GCD algorithm is chosen dynamically
+based on actual hardware capabilities.
 
-Link: https://lkml.kernel.org/r/20250606134758.1308400-3-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20250606134758.1308400-4-visitorckw@gmail.com
 Co-developed-by: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
@@ -73,19 +74,30 @@ Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/riscv/kernel/setup.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/arch/riscv/Kconfig~riscv-optimize-gcd-code-size-when-config_riscv_isa_zbb-is-disabled
-+++ a/arch/riscv/Kconfig
-@@ -97,6 +97,7 @@ config RISCV
- 	select CLINT_TIMER if RISCV_M_MODE
- 	select CLONE_BACKWARDS
- 	select COMMON_CLK
-+	select CPU_NO_EFFICIENT_FFS if !RISCV_ISA_ZBB
- 	select CPU_PM if CPU_IDLE || HIBERNATION || SUSPEND
- 	select EDAC_SUPPORT
- 	select FRAME_POINTER if PERF_EVENTS || (FUNCTION_TRACER && !DYNAMIC_FTRACE)
+--- a/arch/riscv/kernel/setup.c~riscv-optimize-gcd-performance-on-risc-v-without-zbb-extension
++++ a/arch/riscv/kernel/setup.c
+@@ -21,6 +21,8 @@
+ #include <linux/efi.h>
+ #include <linux/crash_dump.h>
+ #include <linux/panic_notifier.h>
++#include <linux/jump_label.h>
++#include <linux/gcd.h>
+ 
+ #include <asm/acpi.h>
+ #include <asm/alternative.h>
+@@ -362,6 +364,9 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	riscv_user_isa_enable();
+ 	riscv_spinlock_init();
++
++	if (!IS_ENABLED(CONFIG_RISCV_ISA_ZBB) || !riscv_isa_extension_available(NULL, ZBB))
++		static_branch_disable(&efficient_ffs_key);
+ }
+ 
+ bool arch_cpu_is_hotpluggable(int cpu)
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
