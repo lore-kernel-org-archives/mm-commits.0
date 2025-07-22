@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07E452E36FD
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2CAD28BAB0
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:12:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753153915; cv=none; b=JDaK1bqgBgP2446bUULo4EeUUKqM+qQnwq+ZXnKm7N6G+dwGDNngesNq6oxNyg01xrMeZAOcAOI/IltGULawC4oycSNp5YKGnCZAgSJdoZW4QJrI58n8LlZuccvdIvGJghHD6VmP/uHviofF+3aYBZBs+M/KUYwjibaesbrlulw=
+	t=1753153943; cv=none; b=YxqYWTIIny0lSGgxT5dJyLwlCsieJxCN28Wa5C5aCJJJa5yR21RRx+2CjXYr6e+MNU9CGCGTWVdXa+oE4dQfcrA434dN5WQh/FmsOb27PpQeeqSJO6LqgivyGm6rVQlkemstxIvw7+rGFpv0X4XBYZbw3iQ01aaVsa61XZUBUcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753153915; c=relaxed/simple;
-	bh=tdRQkMFjURtdynD13zS/mwbjxjWKDptyY3oXPbHokyI=;
-	h=Date:To:From:Subject:Message-Id; b=n3k7WdJ4f+/kW3vQm+D5Y1prNaW8MYl++MMSAMLsQRQpWA2nSngfbhDsqFgpX32zAF3pPpCw+iYhYoHSkSV8GqLVFgLcA+kfOMrn/t9cTicgvlbWlIdiOoYIxLyWfr9dh1R4rcHBAOxcpmMO3v7qtm6kwg7B5iE+rCPDbKRqe0w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1kpGP6G/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753153943; c=relaxed/simple;
+	bh=ru5bGk5VV+3gZjo9A5vR8doYwM/mwHrHcM7HruECdYY=;
+	h=Date:To:From:Subject:Message-Id; b=JoRzxyig99KihZY9oqaUX/M3MKee32cARVYPt++47lKgpw4SRHvQQYHNox9pl4LWF6hxEeGZ7Q01Je/t7jXCp3CxFj5euYc582JIWo4xIoOtTZ7jU54NW6OiPz2Qn9+yqq635Km11ymq3FCov9Ow8wRXMVNx+fKW4B1IlBUsEXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GsnVmc/G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1kpGP6G/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92CCDC4CEED;
-	Tue, 22 Jul 2025 03:11:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GsnVmc/G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C667BC4CEED;
+	Tue, 22 Jul 2025 03:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753153914;
-	bh=tdRQkMFjURtdynD13zS/mwbjxjWKDptyY3oXPbHokyI=;
+	s=korg; t=1753153942;
+	bh=ru5bGk5VV+3gZjo9A5vR8doYwM/mwHrHcM7HruECdYY=;
 	h=Date:To:From:Subject:From;
-	b=1kpGP6G/W2Fx40x1zIak0WvIneRSZaSvjqml1In4UsrWusbjdnyLTk/7S/Qyw06TY
-	 Whg3qoTecIPgl9fgIGCxLY9xITcnN9of+JW/ZRgyKMSKEdNEEoJQFGMU2ce867HJHg
-	 oMbbHtUihxHKdOi33urTeyaz4Fq8xGTPb0XvDJh4=
-Date: Mon, 21 Jul 2025 20:11:53 -0700
+	b=GsnVmc/GH8ImKgvf6o5KXi8iaFYGtWDRcQc1/xLNUq+FPq1G9Dm4U6YWcmzglrATn
+	 YkNLICO+jNpHrfT3AZCBbHRTRMCIQryOqpCGxcdqtW4tWPHGZNXaROUdOSUM5LBdDg
+	 TrsqOnILwX5Ok5gnc8jxnWw0Mr2xQqbKTn3Ykjbk=
+Date: Mon, 21 Jul 2025 20:12:22 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion.patch added to mm-new branch
-Message-Id: <20250722031154.92CCDC4CEED@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion.patch added to mm-new branch
+Message-Id: <20250722031222.C667BC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.py: generalize DAMOS schemes commit assertion
+     Subject: selftests/damon/sysfs.py: generalize monitoring attributes commit assertion
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion.patch
+     selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,48 +65,80 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: generalize DAMOS schemes commit assertion
-Date: Sun, 20 Jul 2025 10:16:48 -0700
+Subject: selftests/damon/sysfs.py: generalize monitoring attributes commit assertion
+Date: Sun, 20 Jul 2025 10:16:49 -0700
 
-DAMOS schemes commitment assertion is hard-coded for a specific test case.
-Split it out into a general version that can be reused for different test
-cases.
+DAMON monitoring attributes commitment assertion is hard-coded for a
+specific test case.  Split it out into a general version that can be
+reused for different test cases.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-19-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-20-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ tools/testing/selftests/damon/sysfs.py |   42 +++++++++++++----------
+ 1 file changed, 25 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion
 +++ a/tools/testing/selftests/damon/sysfs.py
-@@ -132,6 +132,11 @@ def assert_scheme_committed(scheme, dump
-     for idx, f in enumerate(scheme.ops_filters.filters):
-         assert_filter_committed(f, dump['ops_filters'][idx])
+@@ -137,6 +137,29 @@ def assert_schemes_committed(schemes, du
+     for idx, scheme in enumerate(schemes):
+         assert_scheme_committed(scheme, dump[idx])
  
-+def assert_schemes_committed(schemes, dump):
-+    assert_true(len(schemes) == len(dump), 'len_schemes', dump)
-+    for idx, scheme in enumerate(schemes):
-+        assert_scheme_committed(scheme, dump[idx])
++def assert_monitoring_attrs_committed(attrs, dump):
++    assert_true(dump['sample_interval'] == attrs.sample_us, 'sample_interval',
++                dump)
++    assert_true(dump['aggr_interval'] == attrs.aggr_us, 'aggr_interval', dump)
++    assert_true(dump['intervals_goal']['access_bp'] ==
++                attrs.intervals_goal.access_bp, 'access_bp',
++                dump['intervals_goal'])
++    assert_true(dump['intervals_goal']['aggrs'] == attrs.intervals_goal.aggrs,
++                'aggrs', dump['intervals_goal'])
++    assert_true(dump['intervals_goal']['min_sample_us'] ==
++                attrs.intervals_goal.min_sample_us, 'min_sample_us',
++                dump['intervals_goal'])
++    assert_true(dump['intervals_goal']['max_sample_us'] ==
++                attrs.intervals_goal.max_sample_us, 'max_sample_us',
++                dump['intervals_goal'])
++
++    assert_true(dump['ops_update_interval'] == attrs.update_us,
++                'ops_update_interval', dump)
++    assert_true(dump['min_nr_regions'] == attrs.min_nr_regions,
++                'min_nr_regions', dump)
++    assert_true(dump['max_nr_regions'] == attrs.max_nr_regions,
++                'max_nr_regions', dump)
 +
  def main():
      kdamonds = _damon_sysfs.Kdamonds(
              [_damon_sysfs.Kdamond(
-@@ -175,10 +180,7 @@ def main():
-             { 'pid': 0, 'nr_regions': 0, 'regions_list': []}]:
-         fail('adaptive targets', status)
+@@ -158,23 +181,8 @@ def main():
+         fail('number of contexts', status)
  
--    if len(ctx['schemes']) != 1:
--        fail('number of schemes', status)
+     ctx = status['contexts'][0]
+-    attrs = ctx['attrs']
+-    if attrs['sample_interval'] != 5000:
+-        fail('sample interval', status)
+-    if attrs['aggr_interval'] != 100000:
+-        fail('aggr interval', status)
+-    if attrs['ops_update_interval'] != 1000000:
+-        fail('ops updte interval', status)
 -
--    assert_scheme_committed(_damon_sysfs.Damos(), ctx['schemes'][0])
-+    assert_schemes_committed([_damon_sysfs.Damos()], ctx['schemes'])
+-    if attrs['intervals_goal'] != {
+-            'access_bp': 0, 'aggrs': 0,
+-            'min_sample_us': 0, 'max_sample_us': 0}:
+-        fail('intervals goal')
+-
+-    if attrs['min_nr_regions'] != 10:
+-        fail('min_nr_regions')
+-    if attrs['max_nr_regions'] != 1000:
+-        fail('max_nr_regions')
++
++    assert_monitoring_attrs_committed(_damon_sysfs.DamonAttrs(), ctx['attrs'])
  
-     kdamonds.stop()
- 
+     if ctx['adaptive_targets'] != [
+             { 'pid': 0, 'nr_regions': 0, 'regions_list': []}]:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
