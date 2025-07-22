@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3BC12E36FD
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2976E28BAAB
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753153907; cv=none; b=TDvvgrGcCZCqf2IAHhQ/AFoLw/5nQF5HS1kg5G2tR0SZkiRRVtp32l6QbvNZT2iA506YIpZmZrWxWTRKK2vEf+ighmQiUrnGbLIQ1VhElCufVLZTACdNqE8qbUudKfW6ICGs80GQNtM5WDFZt7ZHMHoIyzAxnDbwgx1mDrArtz0=
+	t=1753153909; cv=none; b=iQ639bmntRmrMrQU9aPCvRyDDFMJq2+HuPv3xRmt4J9/5fMkQ3aOUn5aIRBgrEch1lLghtw6SOz7/W5R8re5aNFw+SwumEkkVCgcEBxEJzlKmoS1+amUmWjHtTd8gafjGW80MgKi8jhiyGUypshV1kTBNg/DnY+QrlRM7CFYMAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753153907; c=relaxed/simple;
-	bh=yaBaMNVlvSXHG2y3W3bwmjw11tI7tL15PWVZFYBN+o0=;
-	h=Date:To:From:Subject:Message-Id; b=fOMysN4Cx7YxCLlXR4kQSLVs7UhnP3OdHGQ7A9OEw/JeOSGSr/TcFAaHtfyyZlRMsTpVbYjV64Oyge0EV0LCmIUwsu+6/jRuXb6UeLtS9JrNbVQOWoVfQDSNfgIt5ask7mjSUPE8Ej6Y2bFBvMiMjKoVQ66vFmxtW/S7lB21Tig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JnTN3bZ6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753153909; c=relaxed/simple;
+	bh=4xfe2mPO+/ZnLSfSWDl+KBdEoiG3T6/uJzWK9wBwoE8=;
+	h=Date:To:From:Subject:Message-Id; b=CjVU9azVIlP5WU9AzCHIXWgNfyeJ1FrDhWqjMJQhTJGUhyfhU2rPCj7QrWULsvNN3vIY2zbpfUM3aViyzwacfSThjvwpTW3TdA67S1H7rCRTDO1NZD8xC5p2hcXFDNcqGTfLzzb6P35lOUwPYjHRSsWHaAS5HmRtLCRxrYCwt5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1vocLtCe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JnTN3bZ6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D31DC4CEED;
-	Tue, 22 Jul 2025 03:11:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1vocLtCe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3570C4CEED;
+	Tue, 22 Jul 2025 03:11:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753153907;
-	bh=yaBaMNVlvSXHG2y3W3bwmjw11tI7tL15PWVZFYBN+o0=;
+	s=korg; t=1753153909;
+	bh=4xfe2mPO+/ZnLSfSWDl+KBdEoiG3T6/uJzWK9wBwoE8=;
 	h=Date:To:From:Subject:From;
-	b=JnTN3bZ6QguRNl/HZl+dzPN3kobp0H8vpXusfWw1LHBcQs5abId9PQe08YIQp+yYb
-	 Vqe3duT8fgMeqofcoSweY84D6HeNf0MJpCCDICs86PUGbtyKfPmgicOgWHjwVBwQYu
-	 SzN31B5mwmbZ8MzYDSQ010zbNUVTyWNapFRFS2AQ=
-Date: Mon, 21 Jul 2025 20:11:46 -0700
+	b=1vocLtCenNxeP/UgxXQGukzKxk6I1cNXE3gtWnYODpRYo2DJRHW//CVM7/S+nJCuE
+	 8SLD4XLx3yZetCjR+n9gA5mAHuDkYhtN1toLqBv34U9GolS0Elab9Th+sqjnjsc7a7
+	 AA3suVCJ8gGKuO9UWeGCxnwZ/5pmjbD1Pdv/CsKU=
+Date: Mon, 21 Jul 2025 20:11:48 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-test-quota-goal-commitment.patch added to mm-new branch
-Message-Id: <20250722031147.2D31DC4CEED@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-test-damos-destinations-commitment.patch added to mm-new branch
+Message-Id: <20250722031148.F3570C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.py: test quota goal commitment
+     Subject: selftests/damon/sysfs.py: test DAMOS destinations commitment
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfspy-test-quota-goal-commitment.patch
+     selftests-damon-sysfspy-test-damos-destinations-commitment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-test-quota-goal-commitment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-test-damos-destinations-commitment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,53 +65,54 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: test quota goal commitment
-Date: Sun, 20 Jul 2025 10:16:44 -0700
+Subject: selftests/damon/sysfs.py: test DAMOS destinations commitment
+Date: Sun, 20 Jul 2025 10:16:45 -0700
 
-Current DAMOS quota commitment assertion is not testing quota goal
+Current DAMOS commitment assertion is not testing quota destinations
 commitment.  Add the test.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-15-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-16-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ tools/testing/selftests/damon/sysfs.py |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-quota-goal-commitment
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-damos-destinations-commitment
 +++ a/tools/testing/selftests/damon/sysfs.py
-@@ -41,12 +41,28 @@ def assert_watermarks_committed(watermar
-     assert_true(dump['mid'] == watermarks.mid, 'mid', dump)
-     assert_true(dump['low'] == watermarks.low, 'low', dump)
+@@ -69,6 +69,13 @@ def assert_quota_committed(quota, dump):
+     assert_true(
+             dump['weight_age'] == quota.weight_age_permil, 'weight_age', dump)
  
-+def assert_quota_goal_committed(qgoal, dump):
-+    metric_val = {
-+            'user_input': 0,
-+            'some_mem_psi_us': 1,
-+            'node_mem_used_bp': 2,
-+            'node_mem_free_bp': 3,
-+            }
-+    assert_true(dump['metric'] == metric_val[qgoal.metric], 'metric', dump)
-+    assert_true(dump['target_value'] == qgoal.target_value, 'target_value',
-+                dump)
-+    if qgoal.metric == 'user_input':
-+        assert_true(dump['current_value'] == qgoal.current_value,
-+                    'current_value', dump)
-+    assert_true(dump['nid'] == qgoal.nid, 'nid', dump)
 +
- def assert_quota_committed(quota, dump):
-     assert_true(dump['reset_interval'] == quota.reset_interval_ms,
-                 'reset_interval', dump)
-     assert_true(dump['ms'] == quota.ms, 'ms', dump)
-     assert_true(dump['sz'] == quota.sz, 'sz', dump)
--    # TODO: assert goals are committed
-+    for idx, qgoal in enumerate(quota.goals):
-+        assert_quota_goal_committed(qgoal, dump['goals'][idx])
-     assert_true(dump['weight_sz'] == quota.weight_sz_permil, 'weight_sz', dump)
-     assert_true(dump['weight_nr_accesses'] == quota.weight_nr_accesses_permil,
-                 'weight_nr_accesses', dump)
++def assert_migrate_dests_committed(dests, dump):
++    assert_true(dump['nr_dests'] == len(dests.dests), 'nr_dests', dump)
++    for idx, dest in enumerate(dests.dests):
++        assert_true(dump['node_id_arr'][idx] == dest.id, 'node_id', dump)
++        assert_true(dump['weight_arr'][idx] == dest.weight, 'weight', dump)
++
+ def main():
+     kdamonds = _damon_sysfs.Kdamonds(
+             [_damon_sysfs.Kdamond(
+@@ -132,14 +139,8 @@ def main():
+     if scheme['target_nid'] != -1:
+         fail('damos target nid', status)
+ 
+-    migrate_dests = scheme['migrate_dests']
+-    if migrate_dests['nr_dests'] != 0:
+-        fail('nr_dests', status)
+-    if migrate_dests['node_id_arr'] != []:
+-        fail('node_id_arr', status)
+-    if migrate_dests['weight_arr'] != []:
+-        fail('weight_arr', status)
+-
++    assert_migrate_dests_committed(_damon_sysfs.DamosDests(),
++                                   scheme['migrate_dests'])
+     assert_quota_committed(_damon_sysfs.DamosQuota(), scheme['quota'])
+     assert_watermarks_committed(_damon_sysfs.DamosWatermarks(),
+                                 scheme['wmarks'])
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
