@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6D628506B
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 20:12:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8DB4285070
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 20:12:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753215150; cv=none; b=s1O5155fbql+NsmKxmvggT7nKA0LboHWkFnjsD2W+jp8vw9JLA/jN0TGAdKPDcptZZxl+ZwdLkkUQoWG4Wnnz8VeG0X0CfW8EIntgl5fKNOgn7TE99i9d1aNf7UZhMaNW3i/YuLtKADP+TA5j/5RXuV33ioYiHLJUPUmDX/HT4s=
+	t=1753215152; cv=none; b=Psa4oK5aypQ9lyEErYOTkQETJh+aMVl9Bl5PJQHfgtgQcxCamC4cRQXtmm/R5KINOVlqvG7iBvrIYeza1nuNx50Dm/cPxoqH6YD58xksAUCEl0UGOyU+cE19abPApSuk7p4hzSImSom4CQj396Gg1TPcguFx+j1NoDFMHLNwvzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753215150; c=relaxed/simple;
-	bh=LnwK/SS54Y+/tJ0R+2NyiEgwwUabz3fwxDRaCmjMY7M=;
-	h=Date:To:From:Subject:Message-Id; b=r2DKRKGfzVSUTxIllHQzXDbfql+MqvtERTmiTOBUAD3I27RF9EAfks5zmJVYz1p1FdJq140a+dvR+MswIZbK/Dm2meWxO8vg7yereYTfN/IkY2POr4uZnccLMPM8tBeCF5U7MUifdmqj3m2OnbQSKdY+Mm3GHBw6Pq69D0nM8BU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q5+Le3e+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753215152; c=relaxed/simple;
+	bh=pBhels7eqY5h0lXfDT0ab5e/3qAEczAEHY0QAX9xuXA=;
+	h=Date:To:From:Subject:Message-Id; b=PxlfMzrTpZCKIQQTFWWtOWoTV8dLpodU7ro6poZaj5yjhEHF3KfXtbuWLZIbHfmSI+Q1ygO6eI/6nGL1QmwnwGQoMnDCAkJXEE2mBfA4KboyorlJuPHZs0OgbeWjfGkKeyNnM4SLcPd4TaNdj9bNuQyujCSWrljScP1aMvS3JGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K3NH0LIR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q5+Le3e+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E102C4CEEB;
-	Tue, 22 Jul 2025 20:12:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K3NH0LIR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 386D4C4CEEB;
+	Tue, 22 Jul 2025 20:12:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753215150;
-	bh=LnwK/SS54Y+/tJ0R+2NyiEgwwUabz3fwxDRaCmjMY7M=;
+	s=korg; t=1753215152;
+	bh=pBhels7eqY5h0lXfDT0ab5e/3qAEczAEHY0QAX9xuXA=;
 	h=Date:To:From:Subject:From;
-	b=Q5+Le3e+yqlCs+VU8MySasxD9kfGMM81kuhDp9/mplKixXHNVK29dKYYTj1YcRYLb
-	 CjK8/8XM7ZESWKH0fhq3W90aiJdwBpnaos5NQJtwR7Te4hL3xAlkumntWvXZnhPmuP
-	 vX3lufhQvcybZcWRTBzDcV0LgQ/iGjMeZuBv5GXM=
-Date: Tue, 22 Jul 2025 13:12:29 -0700
+	b=K3NH0LIRl1oktOSlRiouRBp6IFoPQBZmWrK7xlOInAVkAIC8/Msxp5VjamK8B8E5Y
+	 AGzQNzPOZfiIFuss7VhJZXFJ8eLC42lgrEN1EPtJkx94P5TxFY+CG4DdGyJWqv0goz
+	 C9etIMe+GhIPYVgL4Wi1U3C7R/1dA0USkbkbPbLU=
+Date: Tue, 22 Jul 2025 13:12:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,roman.gushchin@linux.dev,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,liam.howlett@oracle.com,jannh@google.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-move-memremap-to-hotplug-section.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250722201230.2E102C4CEEB@smtp.kernel.org>
+Subject: + maintainers-add-missing-shrinker-files.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250722201232.386D4C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: move memremap.[ch] to hotplug section
+     Subject: MAINTAINERS: add missing shrinker files
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-move-memremap-to-hotplug-section.patch
+     maintainers-add-missing-shrinker-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-move-memremap-to-hotplug-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-missing-shrinker-files.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,53 +59,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: move memremap.[ch] to hotplug section
-Date: Tue, 22 Jul 2025 18:22:58 +0100
+Subject: MAINTAINERS: add missing shrinker files
+Date: Tue, 22 Jul 2025 18:34:36 +0100
 
-This seems to be the most appropriate place for these files.
+The mm/list_lru.[ch] files implement a shrinker-specific data structure so
+seem most suited to the SHRINKER section.
 
-Link: https://lkml.kernel.org/r/20250722172258.143488-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250722173436.145526-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nico Pache <npache@redhat.com>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-move-memremap-to-hotplug-section
+--- a/MAINTAINERS~maintainers-add-missing-shrinker-files
 +++ a/MAINTAINERS
-@@ -15729,6 +15729,8 @@ F:	Documentation/admin-guide/mm/memory-h
- F:	Documentation/core-api/memory-hotplug.rst
- F:	drivers/base/memory.c
- F:	include/linux/memory_hotplug.h
-+F:	include/linux/memremap.h
-+F:	mm/memremap.c
- F:	mm/memory_hotplug.c
- F:	tools/testing/selftests/memory-hotplug/
+@@ -22630,7 +22630,9 @@ R:	Muchun Song <muchun.song@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/admin-guide/mm/shrinker_debugfs.rst
++F:	include/linux/list_lru.h
+ F:	include/linux/shrinker.h
++F:	mm/list_lru.c
+ F:	mm/shrinker.c
+ F:	mm/shrinker_debug.c
  
-@@ -15747,7 +15749,6 @@ F:	include/linux/memory_hotplug.h
- F:	include/linux/memory-tiers.h
- F:	include/linux/mempolicy.h
- F:	include/linux/mempool.h
--F:	include/linux/memremap.h
- F:	include/linux/mmzone.h
- F:	include/linux/mmu_notifier.h
- F:	include/linux/pagewalk.h
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
