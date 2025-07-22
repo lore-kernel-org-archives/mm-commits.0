@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB6AB28BA9A
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C0128BAA9
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753153897; cv=none; b=fWDSgHNqs9t3nD+Hk/v2js2SFKH06Wt1GumGTg4kdMXjE4uhw8sZbUsDMYZSZEHBHHT53rEmpsD8KIZyEXIKdy+qPbRxH26vX6tPHBTHl3diisNkljtGK3tGU1V7Vi+0J9CTYUssvWOtlpYHCYt4F2XJ6j5IX+yvPKLlWjqe6EQ=
+	t=1753153898; cv=none; b=FpmYjujezHs8wCYMxrwV3SEgrcReCmmB4bgU+cAGva8xHEvzgzkw5BLlkPBmw2yzbSvDqHpTTkrl05+s4m9tbyKZvOW+4uO2tiL0LMsq4brR3LhQbuZf7S910yMhFU+FOlO/wB9yPKsuO4GiL/MKhT0p/BoPNLceIjitFmQLtbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753153897; c=relaxed/simple;
-	bh=zWBqZ+W2ZXvyXmEgvkgDAU6+RMo2WSL+Xgre3si6768=;
-	h=Date:To:From:Subject:Message-Id; b=I7HP1V+cZnHWfrZGrd96kG0HFvWAH9SoKPhHWEyxTP/XTnHlGSu2XYnPV4Gg5YDKCI8lXwxwPX1h10hQ237H9t810ZXGn8xYLeNhEZ88h92BreO4Xhkq4JPNksu2l0a8T7Zj1vI+6bgutJ6SSx/iv6+BBujljAyCQbQG4SviIqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jj/AqFqi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753153898; c=relaxed/simple;
+	bh=FKgL3p6v7+P5pCOV4skm9URkwts66KgXf7/Se63PmHY=;
+	h=Date:To:From:Subject:Message-Id; b=lPQub2HJbEzuHd5CvKQdExPJEGeanfcyi44gJw8ugegfCxmvoxAqhwQIe4hNVmFQuP2hnlDudEbiLkAfzZvWfr+plR2/jGbhnvmHkhHQu4wn9AP21eVNSdLn0uBwjhp5jlTPdRxqU+OQxlBjS5Ute4NOMyXvmtX0FHDB9Aa0pmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RbZnfLix; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jj/AqFqi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4674EC4CEED;
-	Tue, 22 Jul 2025 03:11:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RbZnfLix"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1470AC4CEED;
+	Tue, 22 Jul 2025 03:11:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753153896;
-	bh=zWBqZ+W2ZXvyXmEgvkgDAU6+RMo2WSL+Xgre3si6768=;
+	s=korg; t=1753153898;
+	bh=FKgL3p6v7+P5pCOV4skm9URkwts66KgXf7/Se63PmHY=;
 	h=Date:To:From:Subject:From;
-	b=Jj/AqFqi/U7g1rqtPKumua6JHpc4g0rz3dH68PzN3KvZdH9vaTZrmyzpF7UPROzb6
-	 s6Gz6mVn3DfU5NoEQB3qQP4ZLlMXbXyDnNKGQhdI+17sHRsc/2St9zAxHuBSghuBrw
-	 rjWNUzEEalf/XmkQBakCmM/PxkmKyV8wENgPp04Y=
-Date: Mon, 21 Jul 2025 20:11:35 -0700
+	b=RbZnfLixpHqo+P/tG/UzyUyzVBvGHPgWtZLKXnVa+mKaBHVNgCUCOT79qDgmqiCdY
+	 MPPPAhO2qHRGe2gLJWONBN7VBUQq44DpekM1Q6lkxjpQsSr1PS049g/wg/wt0qJ1aU
+	 80QVr+X/3JD/4CfyL/GWWtHbxm6p6NcXOhgBmG/s=
+Date: Mon, 21 Jul 2025 20:11:37 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch added to mm-new branch
-Message-Id: <20250722031136.4674EC4CEED@smtp.kernel.org>
+Subject: + selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch added to mm-new branch
+Message-Id: <20250722031138.1470AC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_damon_sysfs: use 2**32 - 1 as max nr_accesses and age
+     Subject: selftests/damon/drgn_dump_damon_status: dump damos->migrate_dests
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch
+     selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,34 +65,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: use 2**32 - 1 as max nr_accesses and age
-Date: Sun, 20 Jul 2025 10:16:38 -0700
+Subject: selftests/damon/drgn_dump_damon_status: dump damos->migrate_dests
+Date: Sun, 20 Jul 2025 10:16:39 -0700
 
-nr_accesses and age are unsigned int.  Use the proper max value.
+drgn_dump_damon_status.py is a script for dumping DAMON internal status in
+json format.  It is being used for seeing if DAMON parameters that are set
+using _damon_sysfs.py are actually passed to DAMON in the kernel space. 
+It is, however, not dumping full DAMON internal status, and it makes
+increasing test coverage difficult.  Add damos->migrate_dests dumping for
+more tests.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/damon/drgn_dump_damon_status.py |   14 ++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age
-+++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -52,9 +52,9 @@ class DamosAccessPattern:
-         if self.size is None:
-             self.size = [0, 2**64 - 1]
-         if self.nr_accesses is None:
--            self.nr_accesses = [0, 2**64 - 1]
-+            self.nr_accesses = [0, 2**32 - 1]
-         if self.age is None:
--            self.age = [0, 2**64 - 1]
-+            self.age = [0, 2**32 - 1]
+--- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests
++++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
+@@ -117,6 +117,19 @@ def damos_watermarks_to_dict(watermarks)
+         ['high', int], ['mid', int], ['low', int],
+         ])
  
-     def sysfs_dir(self):
-         return os.path.join(self.scheme.sysfs_dir(), 'access_pattern')
++def damos_migrate_dests_to_dict(dests):
++    nr_dests = int(dests.nr_dests)
++    node_id_arr = []
++    weight_arr = []
++    for i in range(nr_dests):
++        node_id_arr.append(int(dests.node_id_arr[i]))
++        weight_arr.append(int(dests.weight_arr[i]))
++    return {
++            'node_id_arr': node_id_arr,
++            'weight_arr': weight_arr,
++            'nr_dests': nr_dests,
++            }
++
+ def scheme_to_dict(scheme):
+     return to_dict(scheme, [
+         ['pattern', damos_access_pattern_to_dict],
+@@ -125,6 +138,7 @@ def scheme_to_dict(scheme):
+         ['quota', damos_quota_to_dict],
+         ['wmarks', damos_watermarks_to_dict],
+         ['target_nid', int],
++        ['migrate_dests', damos_migrate_dests_to_dict],
+         ])
+ 
+ def schemes_to_list(schemes):
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
