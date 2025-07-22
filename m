@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E38E28BAA2
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45FE128BAA2
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753153900; cv=none; b=JFqQu0HdMrRYdmDUfrmfNOLo7s0z3irDkOU2sXr/zbAPHjNWgcmJrNw4OcYRvi4sztm+7TrSNdOz+s3jLA+hjF3Eox5CpOjuCg1c5oNLtM4C2U4Zpb5xcGmQC4SCk9UPOk2cyrroRYlCmwmgBgB1aQqg039YWuOvgbB1bDMgxRg=
+	t=1753153902; cv=none; b=Mk0JBXefs3thOWLuD9/9HM8LWIcPxr8Zn0V6u6oDIzCEPq59ZxuN5i+3tMLDVj4qpX4dbuC0pR1DCnLGT8VOfznukD6PK9oTHSwOEmQKoVnQjgkN0ZQDOOpNOivk7hcXoYpi/Xmi3+fzoi6gB/s/wCFxGTC0hyZN/fBofD22qZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753153900; c=relaxed/simple;
-	bh=AZyoqtOGVtXIfKPl+c+FmhxQ3Z6xy4DZM+2B9TSwEv0=;
-	h=Date:To:From:Subject:Message-Id; b=HfhaOvGCZv5HxqLzt4bLR8xBKwtLJE65MV+Ld968jJCWpYgXPO81VpoB9h/tS0LwW3lKNIqdXQQiqUahkO0b/nT2pqH/Q32Y+l6g0xkL7XzDbzc+rDVxsPgEAZkYFAk0vqIL4kInoUmUtl9kuX9Rhny7ZLbba/rV/PCgNVyNyCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IfEUZIPd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753153902; c=relaxed/simple;
+	bh=z0adlg8jEQ/aaMTxGlb5MTYfWjHPRnUPYeeF+hQNDLk=;
+	h=Date:To:From:Subject:Message-Id; b=H462AQbRZtZ5A69lxWCyULXfgMDQVYqATimCNpX7utiDnqdqpz4RL/V393YK10g5mhi6fZeAvBIX4Yz+bZGMAUs2i6ITPiNLR95SN+jB7e+nDBsCY87cWJ60GSJIj6LrVTFSMC0aDrLdztH8QCRHsKaAaEcqGtBKBousstbeSOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XoV5w1Ib; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IfEUZIPd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD5D3C4CEED;
-	Tue, 22 Jul 2025 03:11:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XoV5w1Ib"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7D60C4CEED;
+	Tue, 22 Jul 2025 03:11:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753153899;
-	bh=AZyoqtOGVtXIfKPl+c+FmhxQ3Z6xy4DZM+2B9TSwEv0=;
+	s=korg; t=1753153901;
+	bh=z0adlg8jEQ/aaMTxGlb5MTYfWjHPRnUPYeeF+hQNDLk=;
 	h=Date:To:From:Subject:From;
-	b=IfEUZIPd/eCsgfZV+7lLwR9E0hwQdn7PiqrV32uxRq99UT/wQgYVlTiGlEEQpDE6r
-	 1lLh2auU1IUsLLpeWDsjHMkJQ0beE9cOA77+WH3yc0QyYAb7YB+mrsPtRVCUiR5YtB
-	 ZRmArqsnshe0zd/YQla909jP+dE1gBpSX6WKzXTg=
-Date: Mon, 21 Jul 2025 20:11:39 -0700
+	b=XoV5w1Ibdj+QP2PP9oyDB7lRcan4Nxz7mgcyH6Mw4kkBvnkmD4Nbrfk9iVnH6dDmV
+	 TwpO/hCi0Q8wHIqjV3sJFwx7Vs5EY59j4qHqmJGGKcfgZOyZ9ZvDGLIlCkJJt86nSW
+	 C1PvQsAsAzLl+nKbSF5JH5rxL/S9W9WZS4b19UKw=
+Date: Mon, 21 Jul 2025 20:11:41 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch added to mm-new branch
-Message-Id: <20250722031139.DD5D3C4CEED@smtp.kernel.org>
+Subject: + selftests-damon-drgn_dump_damon_status-dump-damos-filters.patch added to mm-new branch
+Message-Id: <20250722031141.B7D60C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/drgn_dump_damon_status: dump ctx->ops.id
+     Subject: selftests/damon/drgn_dump_damon_status: dump DAMOS filters
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
+     selftests-damon-drgn_dump_damon_status-dump-damos-filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-dump-damos-filters.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,47 +65,85 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/drgn_dump_damon_status: dump ctx->ops.id
-Date: Sun, 20 Jul 2025 10:16:40 -0700
+Subject: selftests/damon/drgn_dump_damon_status: dump DAMOS filters
+Date: Sun, 20 Jul 2025 10:16:41 -0700
 
 drgn_dump_damon_status.py is a script for dumping DAMON internal status in
 json format.  It is being used for seeing if DAMON parameters that are set
 using _damon_sysfs.py are actually passed to DAMON in the kernel space. 
 It is, however, not dumping full DAMON internal status, and it makes
-increasing test coverage difficult.  Add ctx->ops.id dumping for more
+increasing test coverage difficult.  Add damos filters dumping for more
 tests.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-11-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-12-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/drgn_dump_damon_status.py |    6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/testing/selftests/damon/drgn_dump_damon_status.py |   43 +++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-ctx-opsid
+--- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-damos-filters
 +++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -25,6 +25,11 @@ def to_dict(object, attr_name_converter)
-         d[attr_name] = converter(getattr(object, attr_name))
-     return d
+@@ -135,8 +135,37 @@ def damos_migrate_dests_to_dict(dests):
+             'nr_dests': nr_dests,
+             }
  
-+def ops_to_dict(ops):
-+    return to_dict(ops, [
-+        ['id', int],
-+        ])
++def damos_filter_to_dict(damos_filter):
++    filter_type_keyword = {
++            0: 'anon',
++            1: 'active',
++            2: 'memcg',
++            3: 'young',
++            4: 'hugepage_size',
++            5: 'unmapped',
++            6: 'addr',
++            7: 'target'
++            }
++    dict_ = {
++            'type': filter_type_keyword[int(damos_filter.type)],
++            'matching': bool(damos_filter.matching),
++            'allow': bool(damos_filter.allow),
++            }
++    type_ = dict_['type']
++    if type_ == 'memcg':
++        dict_['memcg_id'] = int(damos_filter.memcg_id)
++    elif type_ == 'addr':
++        dict_['addr_range'] = [int(damos_filter.addr_range.start),
++                               int(damos_filter.addr_range.end)]
++    elif type_ == 'target':
++        dict_['target_idx'] = int(damos_filter.target_idx)
++    elif type_ == 'hugeapge_size':
++        dict_['sz_range'] = [int(damos_filter.sz_range.min),
++                             int(damos_filter.sz_range.max)]
++    return dict_
 +
- def intervals_goal_to_dict(goal):
-     return to_dict(goal, [
-         ['access_bp', int],
-@@ -148,6 +153,7 @@ def schemes_to_list(schemes):
+ def scheme_to_dict(scheme):
+-    return to_dict(scheme, [
++    dict_ = to_dict(scheme, [
+         ['pattern', damos_access_pattern_to_dict],
+         ['action', int],
+         ['apply_interval_us', int],
+@@ -145,6 +174,18 @@ def scheme_to_dict(scheme):
+         ['target_nid', int],
+         ['migrate_dests', damos_migrate_dests_to_dict],
+         ])
++    filters = []
++    for f in list_for_each_entry(
++            'struct damos_filter', scheme.filters.address_of_(), 'list'):
++        filters.append(damos_filter_to_dict(f))
++    dict_['filters'] = filters
++    ops_filters = []
++    for f in list_for_each_entry(
++            'struct damos_filter', scheme.ops_filters.address_of_(), 'list'):
++        ops_filters.append(damos_filter_to_dict(f))
++    dict_['ops_filters'] = ops_filters
++
++    return dict_
  
- def damon_ctx_to_dict(ctx):
-     return to_dict(ctx, [
-+        ['ops', ops_to_dict],
-         ['attrs', attrs_to_dict],
-         ['adaptive_targets', targets_to_list],
-         ['schemes', schemes_to_list],
+ def schemes_to_list(schemes):
+     return [scheme_to_dict(s)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
