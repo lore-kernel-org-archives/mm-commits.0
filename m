@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67252157A67
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 06:41:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86A361C5D6A
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 06:43:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753166490; cv=none; b=Z+Meo00QTAxGYi5MozdwqpWoNBcI/4gHscjXlrGbK51occehdqwx8vYmkVeh3yP9Pgn5Pw6Zkiky6ge4kG6E5QILz8ECoEHEeFmhrktFXOF5KWaXRKayfe+k1GOEnBAt2zpUAybpSW5GGZRxalciEZde/TG1ZgkUxcaWI4Pm9hw=
+	t=1753166628; cv=none; b=eG6PywbXP/HYsMo0Wn2O4AiPbwAYMlQ2Ew3nRHotVZu4Z4mVFKDzh6en/WimymYmwV1zQKtXdx/qmSEdFArDMwpactsiS4jZOJ9TEUnyX1eVxdEZjwcCFz/HpAU5A/qHuhQOemCGIzk7iFspgouWLyuSvVWt06TmmzvisySGfbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753166490; c=relaxed/simple;
-	bh=2xPwqqn1Cb336ABLfuVpMBfP28+f8JhiKwowsopTzeE=;
-	h=Date:To:From:Subject:Message-Id; b=ArjxQu/xRuK4dXhrOo0fj5wwteq3P18xgYzX9m3bMU6xiutPdmSKirwDSud5oIeXpLg45RM4P+lLMLYGFu+IDT5vkM8CFlyg/KUF6OcJBw1ygSF6sRK0FH6Zz8UsVAN9oa3jryul0B/7eZ7yt5LPjDuN6Q2EgMgXM2VKYI5dPyo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z3aS+Wrh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753166628; c=relaxed/simple;
+	bh=IVNr0891AgUbZKYaVQsjzEBc78A/Y7y5xex1QPyx4fQ=;
+	h=Date:To:From:Subject:Message-Id; b=l9BbTx/y22ftsseFtP9aT6Y2mKWTFsrj1SLIZYkg4sQqQ7r819P+M/nSszmMvBk0vS09v9ZPVbsOjyjoExwUr91OlvjUbsZc0fTO3BEdZZG69v2cX5lXCH+hyc7Iwv2sFs2uUwPRRGeL6sey2oHLC7/0jke7/lJ7qQY1yPOGNOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kKzVSbzv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z3aS+Wrh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB3D1C4CEEB;
-	Tue, 22 Jul 2025 06:41:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kKzVSbzv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA0CCC4CEEB;
+	Tue, 22 Jul 2025 06:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753166489;
-	bh=2xPwqqn1Cb336ABLfuVpMBfP28+f8JhiKwowsopTzeE=;
+	s=korg; t=1753166628;
+	bh=IVNr0891AgUbZKYaVQsjzEBc78A/Y7y5xex1QPyx4fQ=;
 	h=Date:To:From:Subject:From;
-	b=z3aS+WrhW+HoV9ic98wD9DR4BOlsLet0taNgOhJ7IMffJRXfsA4SVZfhpWMkykXpw
-	 TlrhrY5Gu4gbnE9wnR4vCneZALPVtT3wtXhGLiaNXemSyrm0dzk6CbPoxCWJNrS7+F
-	 SwKL5qu8iuhO8/sUW2ura6qUsy6qtYyqOjrQP4EI=
-Date: Mon, 21 Jul 2025 23:41:29 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=kKzVSbzvbQaDskwlZF+bb3LKLGHmyVgEZkTm77RvkJJbEilaTTYVMTRQGKOQO1L2T
+	 lC/OTIbmzoQpFBUubV9qYmD1QBrNup+bLSrcBo5BSFPq+73g1FLKXv9hVQpEb8mia0
+	 HrPeT2dLCJSIXpek2cuEr/3TXf00tRWcO8nLV8OI=
+Date: Mon, 21 Jul 2025 23:43:47 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,oliver.sang@intel.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-update-thp-documentation-to-clarify-sysfs-never-setting-fix.patch added to mm-unstable branch
-Message-Id: <20250722064129.CB3D1C4CEEB@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch added to mm-unstable branch
+Message-Id: <20250722064347.DA0CCC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: update admin guide transhuge page to mention MADV_COLLAPSE everywhere
+     Subject: selftests/damon/sysfs.py: stop DAMON for dumping failures
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-update-thp-documentation-to-clarify-sysfs-never-setting-fix.patch
+     selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-update-thp-documentation-to-clarify-sysfs-never-setting-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,79 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: docs: update admin guide transhuge page to mention MADV_COLLAPSE everywhere
-Date: Tue, 22 Jul 2025 06:32:18 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: selftests/damon/sysfs.py: stop DAMON for dumping failures
+Date: Mon, 21 Jul 2025 23:03:30 -0700
 
-We previously missed a couple places where the 'never' mode was described,
-put the caveat regarding MADV_COLLAPSE in these locations also.
+Commit 4ece01897627 ("selftests/damon: add python and drgn-based DAMON
+sysfs test") in mm-stable tree introduced sysfs.py that runs drgn for
+dumping DAMON status.  When the DAMON status dumping fails for reasons
+including drgn uninstalled environment, the test fails without stopping
+DAMON.  Following DAMON selftests that assumes DAMON is not running when
+they executed therefore fail.  Catch dumping failures and stop DAMON for
+that case.
 
-Link: https://lkml.kernel.org/r/d54d1dfb-f06d-4979-983b-73998f05867e@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250722060330.56068-1-sj@kernel.org
+Fixes: 4ece01897627 ("selftests/damon: add python and drgn-based DAMON sysfs test")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202507220707.9c5d6247-lkp@intel.com
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ tools/testing/selftests/damon/sysfs.py |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~docs-update-thp-documentation-to-clarify-sysfs-never-setting-fix
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -385,7 +385,9 @@ always
-     Attempt to allocate huge pages every time we need a new page;
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-stop-damon-for-dumping-failures
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -8,6 +8,10 @@ import subprocess
+ import _damon_sysfs
  
- never
--    Do not allocate huge pages;
-+    Do not allocate huge pages. Note that ``madvise(..., MADV_COLLAPSE)``
-+    can still cause transparent huge pages to be obtained even if this mode
-+    is specified everywhere;
+ def dump_damon_status_dict(pid):
++    try:
++        subprocess.check_output(['which', 'drgn'], stderr=subprocess.DEVNULL)
++    except:
++        return None, 'drgn not found'
+     file_dir = os.path.dirname(os.path.abspath(__file__))
+     dump_script = os.path.join(file_dir, 'drgn_dump_damon_status.py')
+     rc = subprocess.call(['drgn', dump_script, pid, 'damon_dump_output'],
+@@ -40,6 +44,7 @@ def main():
+     status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
+     if err is not None:
+         print(err)
++        kdamonds.stop()
+         exit(1)
  
- within_size
-     Only allocate huge page if it will be fully within i_size.
-@@ -441,7 +443,9 @@ inherit
-     have enabled="inherit" and all other hugepage sizes have enabled="never";
- 
- never
--    Do not allocate <size> huge pages;
-+    Do not allocate <size> huge pages. Note that ``madvise(...,
-+    MADV_COLLAPSE)`` can still cause transparent huge pages to be obtained
-+    even if this mode is specified everywhere;
- 
- within_size
-     Only allocate <size> huge page if it will be fully within i_size.
+     if len(status['contexts']) != 1:
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name.patch
-mm-mremap-perform-some-simple-cleanups.patch
-mm-mremap-refactor-initial-parameter-sanity-checks.patch
-mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
-mm-mremap-cleanup-post-processing-stage-of-mremap.patch
-mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
-mm-mremap-check-remap-conditions-earlier.patch
-mm-mremap-check-remap-conditions-earlier-fix.patch
-mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
-mm-mremap-clean-up-mlock-populate-behaviour.patch
-mm-mremap-permit-mremap-move-of-multiple-vmas.patch
-tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
-mm-mseal-always-define-vm_sealed.patch
-mm-mseal-update-madvise-logic.patch
-mm-mseal-small-cleanups.patch
-mm-mseal-simplify-and-rename-vma-gap-check.patch
-mm-mseal-rework-mseal-apply-logic.patch
-tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas.patch
-tools-testing-selftests-test-mremap_dontunmap-on-multiple-vma-move.patch
-tools-testing-selftests-explicitly-test-split-multi-vma-mremap-move.patch
-docs-update-thp-documentation-to-clarify-sysfs-never-setting.patch
-docs-update-thp-documentation-to-clarify-sysfs-never-setting-fix.patch
+mm-damon-core-commit-damos_quota_goal-nid.patch
+mm-damon-sysfs-implement-refresh_ms-file-under-kdamond-directory.patch
+mm-damon-sysfs-implement-refresh_ms-file-internal-work.patch
+docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch
+docs-abi-damon-update-for-refresh_ms.patch
+mm-damon-ops-common-ignore-migration-request-to-invalid-nodes.patch
+selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch
+selftests-damon-_damon_sysfs-support-damos-watermarks-setup.patch
+selftests-damon-_damon_sysfs-support-damos-filters-setup.patch
+selftests-damon-_damon_sysfs-support-monitoring-intervals-goal-setup.patch
+selftests-damon-_damon_sysfs-support-damos-quota-weights-setup.patch
+selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup.patch
+selftests-damon-_damon_sysfs-support-damos-action-dests-setup.patch
+selftests-damon-_damon_sysfs-support-damos-target_nid-setup.patch
+selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch
+selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
+selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
+selftests-damon-drgn_dump_damon_status-dump-damos-filters.patch
+selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion.patch
+selftests-damon-sysfspy-generalize-damosquota-commit-assertion.patch
+selftests-damon-sysfspy-test-quota-goal-commitment.patch
+selftests-damon-sysfspy-test-damos-destinations-commitment.patch
+selftests-damon-sysfspy-generalize-damos-scheme-commit-assertion.patch
+selftests-damon-sysfspy-test-damos-filters-commitment.patch
+selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion.patch
+selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion.patch
+selftests-damon-sysfspy-generalize-damon-context-commit-assertion.patch
+selftests-damon-sysfspy-test-non-default-parameters-runtime-commit.patch
+selftests-damon-sysfspy-test-runtime-reduction-of-damon-parameters.patch
 
