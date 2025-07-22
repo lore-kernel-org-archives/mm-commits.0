@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA522868BD
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 21:40:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E5CA286426
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 21:40:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753220450; cv=none; b=UOtgf1zd+voB5ZIiVyzFIQyqpwnXuh2Em7sshxPEy7/QZPC7YuZ5IGxloXpwoEExb7v5ONd1ufRAXZq1t1tKOZAqVDixGTEEZjV6Y8EKfO267PMd9PcQN2qYmDpZWdRIMdwuNFaenWil1hKR65SKxtclJpR2gxmrOm0sF/+m38Q=
+	t=1753220452; cv=none; b=mJWzbdYZOjOAErsLeOvG4H5/ZtQ3Uim2FJfC5Sy1ZQ+2H6oWsQhUdIU8wgZGLiNFxLDEV3btyaw3w/baVeubQpijQtBs2s9KbiO3bhPLITYIOXdHaVSmEisaOcD/tLYswtOs35GcZyf5jPNNPhLVXh7U3p85m9K2cstYvrsD9g8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753220450; c=relaxed/simple;
-	bh=h94EginYmX+bWNaNBphicJfgBBCyIsxKZZ5b75hhVog=;
-	h=Date:To:From:Subject:Message-Id; b=HQ96qTM0PC4Tb/7ZgWbQESsRBfEt0oBFW+pQeeIADInZOJXzsTTNhChz+AJQ8qwMbW+ZQAeJmCssm+vfP9YvF4dzUI7cy1mHyzoojZVejfjfQ2Gd8c592aRi7XjJuEoD5LHwaGQRba1MY+q0iB39pU12Fme0DsDtOU3z3k78Nvs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RX2V3fE6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753220452; c=relaxed/simple;
+	bh=pvlIB3C0DZ6cBNk2oQOfhyC2PdHEenlKhf9Ru4lDRJw=;
+	h=Date:To:From:Subject:Message-Id; b=j5tnte94UUfboIUM8RC+pQLamuDF/KVRJAw9rKaYUWdAjGaU5ew4oUEQmy9awqCNPWz1Y66G4VmnviK4zyVoNOJOS/B0J00++QY46qv8V8I4ZN0J1Ts0LaPJj/mkov3epHLsGpYzgB4f6fkxDkamcv8PWd3eJ96mVMaAvDUhQCE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cR3zss9/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RX2V3fE6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30E39C4CEEB;
-	Tue, 22 Jul 2025 21:40:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cR3zss9/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21403C4CEF6;
+	Tue, 22 Jul 2025 21:40:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753220450;
-	bh=h94EginYmX+bWNaNBphicJfgBBCyIsxKZZ5b75hhVog=;
+	s=korg; t=1753220452;
+	bh=pvlIB3C0DZ6cBNk2oQOfhyC2PdHEenlKhf9Ru4lDRJw=;
 	h=Date:To:From:Subject:From;
-	b=RX2V3fE6F7icg62tJUezT2/eMQdxavA0AC+IhQy8un/zWyqxnu89qNfmP/vzlXVfV
-	 mh4wxg7IrD9/Gi+dCmcWMqu8fEtx7zLWAgIH2QiTu6pEjTz1zblOHVcpBcqxgxsKuR
-	 9DST/LnOyMoHNhGp7Es9+ZwoikLPA24++GKgZsGs=
-Date: Tue, 22 Jul 2025 14:40:49 -0700
-To: mm-commits@vger.kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=cR3zss9/3jjXK9mr2wuyZ98Dpi9/rfAkszLXfiyWA5u8R2VDKIqcEKGUNEZMirxjf
+	 ab/OioCpO8OK0bGPLQm9HFNNMUFjeuQWI1j97w23oKUDbtKwJs3RWPUslva7EDPaut
+	 BshAp73YXi78cKkkbny8Js5FNOxFuwhGhyhY8xPI=
+Date: Tue, 22 Jul 2025 14:40:51 -0700
+To: mm-commits@vger.kernel.org,jonathan.cameron@huawei.com,dave.jiang@intel.com,wangyuli@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-x86-fix-typo-notifer.patch added to mm-nonmm-unstable branch
-Message-Id: <20250722214050.30E39C4CEEB@smtp.kernel.org>
+Subject: + cxl-mce-fix-typo-notifer.patch added to mm-nonmm-unstable branch
+Message-Id: <20250722214052.21403C4CEF6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: KVM: x86: fix typo "notifer"
+     Subject: cxl: mce: fix typo "notifer"
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kvm-x86-fix-typo-notifer.patch
+     cxl-mce-fix-typo-notifer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-x86-fix-typo-notifer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cxl-mce-fix-typo-notifer.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,50 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: WangYuli <wangyuli@uniontech.com>
-Subject: KVM: x86: fix typo "notifer"
-Date: Tue, 22 Jul 2025 15:34:24 +0800
+Subject: cxl: mce: fix typo "notifer"
+Date: Tue, 22 Jul 2025 15:34:25 +0800
 
-Patch series "treewide: Fix typo "notifer"", v3.
+According to the context, "mce_notifer" should be "mce_notifier".
 
-There are some spelling mistakes of 'notifer' in comments which
-should be 'notifier'.
-
-Fix them and add it to scripts/spelling.txt.
-
-
-This patch (of 8):
-
-There are some spelling mistakes of 'notifer' which should be 'notifier'.
-
-Link: https://lkml.kernel.org/r/576F0D85F6853074+20250722072734.19367-1-wangyuli@uniontech.com
-Link: https://lkml.kernel.org/r/7F05778C3A1A9F8B+20250722073431.21983-1-wangyuli@uniontech.com
+Link: https://lkml.kernel.org/r/E1EB1BA9FDF07D53+20250722073431.21983-2-wangyuli@uniontech.com
+Fixes: 516e5bd0b6bf ("cxl: Add mce notifier to emit aliased address for extended linear cache")
 Signed-off-by: WangYuli <wangyuli@uniontech.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/i8254.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/cxl/core/mce.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kvm/i8254.c~kvm-x86-fix-typo-notifer
-+++ a/arch/x86/kvm/i8254.c
-@@ -641,7 +641,7 @@ static void kvm_pit_reset(struct kvm_pit
- 	kvm_pit_reset_reinject(pit);
- }
+--- a/drivers/cxl/core/mce.h~cxl-mce-fix-typo-notifer
++++ a/drivers/cxl/core/mce.h
+@@ -7,7 +7,7 @@
  
--static void pit_mask_notifer(struct kvm_irq_mask_notifier *kimn, bool mask)
-+static void pit_mask_notifier(struct kvm_irq_mask_notifier *kimn, bool mask)
- {
- 	struct kvm_pit *pit = container_of(kimn, struct kvm_pit, mask_notifier);
- 
-@@ -694,7 +694,7 @@ struct kvm_pit *kvm_create_pit(struct kv
- 
- 	pit_state->irq_ack_notifier.gsi = 0;
- 	pit_state->irq_ack_notifier.irq_acked = kvm_pit_ack_irq;
--	pit->mask_notifier.func = pit_mask_notifer;
-+	pit->mask_notifier.func = pit_mask_notifier;
- 
- 	kvm_pit_reset(pit);
- 
+ #ifdef CONFIG_CXL_MCE
+ int devm_cxl_register_mce_notifier(struct device *dev,
+-				   struct notifier_block *mce_notifer);
++				   struct notifier_block *mce_notifier);
+ #else
+ static inline int
+ devm_cxl_register_mce_notifier(struct device *dev,
 _
 
 Patches currently in -mm which might be from wangyuli@uniontech.com are
