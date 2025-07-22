@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8DB4285070
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 20:12:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D90714A2D
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 20:12:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753215152; cv=none; b=Psa4oK5aypQ9lyEErYOTkQETJh+aMVl9Bl5PJQHfgtgQcxCamC4cRQXtmm/R5KINOVlqvG7iBvrIYeza1nuNx50Dm/cPxoqH6YD58xksAUCEl0UGOyU+cE19abPApSuk7p4hzSImSom4CQj396Gg1TPcguFx+j1NoDFMHLNwvzA=
+	t=1753215154; cv=none; b=oO7a5P5922k6UOgpM4eR3ZkEt1YLClgmt8p6TLbgdC4NpsGJy09352XeK0jTc/eE8QM7P9Hz1FUYpfO5hxSWxd2hPZDB6mmnk6wsXGojJmcRP5fCIr/X8dHEa6Fe3h0FM7bZlu9bnpkD73lZUMq3WEGusPndQryOEKRsK4FcOYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753215152; c=relaxed/simple;
-	bh=pBhels7eqY5h0lXfDT0ab5e/3qAEczAEHY0QAX9xuXA=;
-	h=Date:To:From:Subject:Message-Id; b=PxlfMzrTpZCKIQQTFWWtOWoTV8dLpodU7ro6poZaj5yjhEHF3KfXtbuWLZIbHfmSI+Q1ygO6eI/6nGL1QmwnwGQoMnDCAkJXEE2mBfA4KboyorlJuPHZs0OgbeWjfGkKeyNnM4SLcPd4TaNdj9bNuQyujCSWrljScP1aMvS3JGE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K3NH0LIR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753215154; c=relaxed/simple;
+	bh=dypzgcuxLSmTUx1Ax0R4CbyR30qmzrJCtia0XFn893A=;
+	h=Date:To:From:Subject:Message-Id; b=MvDQZjkeF8KwMDbGC1mhQCVlB2SHqEak+Kg0D7u0woAm4e94mnto8PwT8EqIZjItkz1OuneIivpc6IAv63inDawJMssiNVY+g3mSEteC8ifkhDTmwYq22yl1F86A1mlmN5OnF6Y8PjeTGxkMTG+PEA5KSxzqI0RSpgkujC8AOQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E2oOJnW/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K3NH0LIR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 386D4C4CEEB;
-	Tue, 22 Jul 2025 20:12:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E2oOJnW/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66415C4CEEB;
+	Tue, 22 Jul 2025 20:12:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753215152;
-	bh=pBhels7eqY5h0lXfDT0ab5e/3qAEczAEHY0QAX9xuXA=;
+	s=korg; t=1753215154;
+	bh=dypzgcuxLSmTUx1Ax0R4CbyR30qmzrJCtia0XFn893A=;
 	h=Date:To:From:Subject:From;
-	b=K3NH0LIRl1oktOSlRiouRBp6IFoPQBZmWrK7xlOInAVkAIC8/Msxp5VjamK8B8E5Y
-	 AGzQNzPOZfiIFuss7VhJZXFJ8eLC42lgrEN1EPtJkx94P5TxFY+CG4DdGyJWqv0goz
-	 C9etIMe+GhIPYVgL4Wi1U3C7R/1dA0USkbkbPbLU=
-Date: Tue, 22 Jul 2025 13:12:31 -0700
+	b=E2oOJnW/GYqmlKyLYoO84ScmFmYFpQt3nldhfmwNCtT3BBY+2Jxt7yQ1L4BOzLQxT
+	 gKkn84En3R96xJTu3cnpmOddxTK5OzELXNxwFKYJeEs53XLLHwZnob58lPjsPtXK6B
+	 PBMpcj7c4fmqqXMvuCLVmF6qmcJ6zqMGvv7QF1bU=
+Date: Tue, 22 Jul 2025 13:12:33 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,roman.gushchin@linux.dev,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,liam.howlett@oracle.com,jannh@google.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-missing-shrinker-files.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250722201232.386D4C4CEEB@smtp.kernel.org>
+Subject: + maintainers-add-missing-files-to-page-alloc-section.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250722201234.66415C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add missing shrinker files
+     Subject: MAINTAINERS: add missing files to page alloc section
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-missing-shrinker-files.patch
+     maintainers-add-missing-files-to-page-alloc-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-missing-shrinker-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-missing-files-to-page-alloc-section.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,47 +59,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add missing shrinker files
-Date: Tue, 22 Jul 2025 18:34:36 +0100
+Subject: MAINTAINERS: add missing files to page alloc section
+Date: Tue, 22 Jul 2025 18:41:43 +0100
 
-The mm/list_lru.[ch] files implement a shrinker-specific data structure so
-seem most suited to the SHRINKER section.
+There are a couple of mm/-specific header files that were accidentally
+missed previously, and some page ref debug code also that ought to live
+here.
 
-Link: https://lkml.kernel.org/r/20250722173436.145526-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250722174143.147143-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-missing-shrinker-files
+--- a/MAINTAINERS~maintainers-add-missing-files-to-page-alloc-section
 +++ a/MAINTAINERS
-@@ -22630,7 +22630,9 @@ R:	Muchun Song <muchun.song@linux.dev>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/admin-guide/mm/shrinker_debugfs.rst
-+F:	include/linux/list_lru.h
- F:	include/linux/shrinker.h
-+F:	mm/list_lru.c
- F:	mm/shrinker.c
- F:	mm/shrinker_debug.c
+@@ -15880,6 +15880,7 @@ F:	include/linux/gfp.h
+ F:	include/linux/page-isolation.h
+ F:	mm/compaction.c
+ F:	mm/debug_page_alloc.c
++F:	mm/debug_page_ref.c
+ F:	mm/fail_page_alloc.c
+ F:	mm/page_alloc.c
+ F:	mm/page_ext.c
+@@ -15888,8 +15889,10 @@ F:	mm/page_isolation.c
+ F:	mm/page_owner.c
+ F:	mm/page_poison.c
+ F:	mm/page_reporting.c
++F:	mm/page_reporting.h
+ F:	mm/show_mem.c
+ F:	mm/shuffle.c
++F:	mm/shuffle.h
  
+ MEMORY MANAGEMENT - RECLAIM
+ M:	Andrew Morton <akpm@linux-foundation.org>
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
