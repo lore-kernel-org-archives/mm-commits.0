@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C0128BAA9
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E38E28BAA2
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753153898; cv=none; b=FpmYjujezHs8wCYMxrwV3SEgrcReCmmB4bgU+cAGva8xHEvzgzkw5BLlkPBmw2yzbSvDqHpTTkrl05+s4m9tbyKZvOW+4uO2tiL0LMsq4brR3LhQbuZf7S910yMhFU+FOlO/wB9yPKsuO4GiL/MKhT0p/BoPNLceIjitFmQLtbY=
+	t=1753153900; cv=none; b=JFqQu0HdMrRYdmDUfrmfNOLo7s0z3irDkOU2sXr/zbAPHjNWgcmJrNw4OcYRvi4sztm+7TrSNdOz+s3jLA+hjF3Eox5CpOjuCg1c5oNLtM4C2U4Zpb5xcGmQC4SCk9UPOk2cyrroRYlCmwmgBgB1aQqg039YWuOvgbB1bDMgxRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753153898; c=relaxed/simple;
-	bh=FKgL3p6v7+P5pCOV4skm9URkwts66KgXf7/Se63PmHY=;
-	h=Date:To:From:Subject:Message-Id; b=lPQub2HJbEzuHd5CvKQdExPJEGeanfcyi44gJw8ugegfCxmvoxAqhwQIe4hNVmFQuP2hnlDudEbiLkAfzZvWfr+plR2/jGbhnvmHkhHQu4wn9AP21eVNSdLn0uBwjhp5jlTPdRxqU+OQxlBjS5Ute4NOMyXvmtX0FHDB9Aa0pmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RbZnfLix; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753153900; c=relaxed/simple;
+	bh=AZyoqtOGVtXIfKPl+c+FmhxQ3Z6xy4DZM+2B9TSwEv0=;
+	h=Date:To:From:Subject:Message-Id; b=HfhaOvGCZv5HxqLzt4bLR8xBKwtLJE65MV+Ld968jJCWpYgXPO81VpoB9h/tS0LwW3lKNIqdXQQiqUahkO0b/nT2pqH/Q32Y+l6g0xkL7XzDbzc+rDVxsPgEAZkYFAk0vqIL4kInoUmUtl9kuX9Rhny7ZLbba/rV/PCgNVyNyCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IfEUZIPd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RbZnfLix"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1470AC4CEED;
-	Tue, 22 Jul 2025 03:11:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IfEUZIPd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD5D3C4CEED;
+	Tue, 22 Jul 2025 03:11:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753153898;
-	bh=FKgL3p6v7+P5pCOV4skm9URkwts66KgXf7/Se63PmHY=;
+	s=korg; t=1753153899;
+	bh=AZyoqtOGVtXIfKPl+c+FmhxQ3Z6xy4DZM+2B9TSwEv0=;
 	h=Date:To:From:Subject:From;
-	b=RbZnfLixpHqo+P/tG/UzyUyzVBvGHPgWtZLKXnVa+mKaBHVNgCUCOT79qDgmqiCdY
-	 MPPPAhO2qHRGe2gLJWONBN7VBUQq44DpekM1Q6lkxjpQsSr1PS049g/wg/wt0qJ1aU
-	 80QVr+X/3JD/4CfyL/GWWtHbxm6p6NcXOhgBmG/s=
-Date: Mon, 21 Jul 2025 20:11:37 -0700
+	b=IfEUZIPd/eCsgfZV+7lLwR9E0hwQdn7PiqrV32uxRq99UT/wQgYVlTiGlEEQpDE6r
+	 1lLh2auU1IUsLLpeWDsjHMkJQ0beE9cOA77+WH3yc0QyYAb7YB+mrsPtRVCUiR5YtB
+	 ZRmArqsnshe0zd/YQla909jP+dE1gBpSX6WKzXTg=
+Date: Mon, 21 Jul 2025 20:11:39 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch added to mm-new branch
-Message-Id: <20250722031138.1470AC4CEED@smtp.kernel.org>
+Subject: + selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch added to mm-new branch
+Message-Id: <20250722031139.DD5D3C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/drgn_dump_damon_status: dump damos->migrate_dests
+     Subject: selftests/damon/drgn_dump_damon_status: dump ctx->ops.id
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
+     selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,55 +65,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/drgn_dump_damon_status: dump damos->migrate_dests
-Date: Sun, 20 Jul 2025 10:16:39 -0700
+Subject: selftests/damon/drgn_dump_damon_status: dump ctx->ops.id
+Date: Sun, 20 Jul 2025 10:16:40 -0700
 
 drgn_dump_damon_status.py is a script for dumping DAMON internal status in
 json format.  It is being used for seeing if DAMON parameters that are set
 using _damon_sysfs.py are actually passed to DAMON in the kernel space. 
 It is, however, not dumping full DAMON internal status, and it makes
-increasing test coverage difficult.  Add damos->migrate_dests dumping for
-more tests.
+increasing test coverage difficult.  Add ctx->ops.id dumping for more
+tests.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/drgn_dump_damon_status.py |   14 ++++++++++
- 1 file changed, 14 insertions(+)
+ tools/testing/selftests/damon/drgn_dump_damon_status.py |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests
+--- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-ctx-opsid
 +++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -117,6 +117,19 @@ def damos_watermarks_to_dict(watermarks)
-         ['high', int], ['mid', int], ['low', int],
-         ])
+@@ -25,6 +25,11 @@ def to_dict(object, attr_name_converter)
+         d[attr_name] = converter(getattr(object, attr_name))
+     return d
  
-+def damos_migrate_dests_to_dict(dests):
-+    nr_dests = int(dests.nr_dests)
-+    node_id_arr = []
-+    weight_arr = []
-+    for i in range(nr_dests):
-+        node_id_arr.append(int(dests.node_id_arr[i]))
-+        weight_arr.append(int(dests.weight_arr[i]))
-+    return {
-+            'node_id_arr': node_id_arr,
-+            'weight_arr': weight_arr,
-+            'nr_dests': nr_dests,
-+            }
++def ops_to_dict(ops):
++    return to_dict(ops, [
++        ['id', int],
++        ])
 +
- def scheme_to_dict(scheme):
-     return to_dict(scheme, [
-         ['pattern', damos_access_pattern_to_dict],
-@@ -125,6 +138,7 @@ def scheme_to_dict(scheme):
-         ['quota', damos_quota_to_dict],
-         ['wmarks', damos_watermarks_to_dict],
-         ['target_nid', int],
-+        ['migrate_dests', damos_migrate_dests_to_dict],
-         ])
+ def intervals_goal_to_dict(goal):
+     return to_dict(goal, [
+         ['access_bp', int],
+@@ -148,6 +153,7 @@ def schemes_to_list(schemes):
  
- def schemes_to_list(schemes):
+ def damon_ctx_to_dict(ctx):
+     return to_dict(ctx, [
++        ['ops', ops_to_dict],
+         ['attrs', attrs_to_dict],
+         ['adaptive_targets', targets_to_list],
+         ['schemes', schemes_to_list],
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
