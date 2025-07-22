@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6939A28640E
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 21:40:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F57E286426
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 21:40:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753220459; cv=none; b=FJ/M09Z0Izb3yvt8Z6wTZZKEhfWauEF4z2Ho0myb3ardY8GWh/Kzao27VpPaxo0uy2oCWoUjaxVdnQfAk4IarsDPXGLCR+7hv9o9a9UQY6has/Kra+MJ6NWz3xb9YPBL1S/aEwOodC+wWG9V0UuKujE3wcdPfmVfQJ7nXB1wLHE=
+	t=1753220460; cv=none; b=ra+9IHU5TDGnTOQ65rUqZp9xi2RrIhDK3pjE3K5SZTjGtaRrXVIBgSYfjwczIXgz6v2lYywnD0lhxj2BBBbZ6I3y99yw/5+dUMSGxWcXcdwiTKHaWdPLrCwfG4RYIO14Pan28tfVCZrl2d59vhLrrxPLQRpQ/L2Ib1D0NYjUit4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753220459; c=relaxed/simple;
-	bh=KX4vDQ0f9XuxWLC1W3tJKWAw8xvXmKgyeqHDxS2qDwc=;
-	h=Date:To:From:Subject:Message-Id; b=HwGELmKeMp7YLRgvCaTANxzxx+q4Qef1gsScFNRZN55p4gfaAtCiz4DmdrANGB3v3v6LDZ7FdedUcYGwo4JcELefoz6PaTyQPwek39rfcRGB9jfN3IJjKL4Mc/eRTbF88uC3tta7keHJGaYn2PN5tLneWQW3vIxbaJwBeuQxG5E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ohjDL6o+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753220460; c=relaxed/simple;
+	bh=HnNFPtZbfpU0GwhDfSK25Lo2nMsL0GXdOkVMbCmzWxA=;
+	h=Date:To:From:Subject:Message-Id; b=CeNzKwbAjYNUghPKX/WFvRVMuCiLbIyOtbls2k6fWRUnkvykc47WJ+YVPnIjIqBdAzVkzmWAAalLCVqIE4OQudobTkdc/5GdAfDQhUDFTLqhHOTJo6vTo1H99OHXo80p2uLdAL0LqtnIzrvcDOW7o85lEik8MALrhvtaSLEEZCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQ4UYpB0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ohjDL6o+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B06C4CEEB;
-	Tue, 22 Jul 2025 21:40:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQ4UYpB0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B130DC4CEEB;
+	Tue, 22 Jul 2025 21:40:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753220457;
-	bh=KX4vDQ0f9XuxWLC1W3tJKWAw8xvXmKgyeqHDxS2qDwc=;
+	s=korg; t=1753220459;
+	bh=HnNFPtZbfpU0GwhDfSK25Lo2nMsL0GXdOkVMbCmzWxA=;
 	h=Date:To:From:Subject:From;
-	b=ohjDL6o+G9f9qLU1ke5jtIn9+60f6eMcgJBgul9iSf6xSGFOUNoC+RwcN23nBXnO+
-	 yoNWWhsXHSQOO444UqvqfMuJ5P0P3TJ2in+zCjV81sEWsEj3bDcRqrUu3j7LgqF2rO
-	 n91B1QTrfOzj5uBkOh3jFT3MtkskdpSbQB9BUqK8=
-Date: Tue, 22 Jul 2025 14:40:57 -0700
-To: mm-commits@vger.kernel.org,arend.vanspriel@broadcom.com,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=aQ4UYpB0xqOMlSLJUxuDK65KX2YTxDhk2Tt4xGAar0iLGW9egVPXzE6FB4wRS15kp
+	 6bghTl6diwj/51e9j+b5PrtKZVeebWs/y9zwMG79WMRpReD3PQaDuRoY2DOCTnUVx6
+	 QrXNkIIeGQpAN8zdlt+rDeF/A9BdOnGXP9NOXKHk=
+Date: Tue, 22 Jul 2025 14:40:59 -0700
+To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,wangyuli@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + wifi-brcmfmac-fix-typo-notifer.patch added to mm-nonmm-unstable branch
-Message-Id: <20250722214057.D5B06C4CEEB@smtp.kernel.org>
+Subject: + serial-8250_dw-fix-typo-notifer.patch added to mm-nonmm-unstable branch
+Message-Id: <20250722214059.B130DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: wifi: brcmfmac: fix typo "notifer"
+     Subject: serial: 8250_dw: fix typo "notifer"
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     wifi-brcmfmac-fix-typo-notifer.patch
+     serial-8250_dw-fix-typo-notifer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/wifi-brcmfmac-fix-typo-notifer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/serial-8250_dw-fix-typo-notifer.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: WangYuli <wangyuli@uniontech.com>
-Subject: wifi: brcmfmac: fix typo "notifer"
-Date: Tue, 22 Jul 2025 15:34:28 +0800
+Subject: serial: 8250_dw: fix typo "notifer"
+Date: Tue, 22 Jul 2025 15:34:29 +0800
 
 There is a spelling mistake of 'notifer' in the comment which
 should be 'notifier'.
 
-Link: https://lkml.kernel.org/r/6CA31F0821E6687F+20250722073431.21983-5-wangyuli@uniontech.com
+Link: https://lkml.kernel.org/r/BD4804BF4FBA1648+20250722073431.21983-6-wangyuli@uniontech.com
 Signed-off-by: WangYuli <wangyuli@uniontech.com>
-Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c |    2 +-
+ drivers/tty/serial/8250/8250_dw.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c~wifi-brcmfmac-fix-typo-notifer
-+++ a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
-@@ -8313,7 +8313,7 @@ struct brcmf_cfg80211_info *brcmf_cfg802
- 	cfg->d11inf.io_type = (u8)io_type;
- 	brcmu_d11_attach(&cfg->d11inf);
- 
--	/* regulatory notifer below needs access to cfg so
-+	/* regulatory notifier below needs access to cfg so
- 	 * assign it now.
- 	 */
- 	drvr->config = cfg;
+--- a/drivers/tty/serial/8250/8250_dw.c~serial-8250_dw-fix-typo-notifer
++++ a/drivers/tty/serial/8250/8250_dw.c
+@@ -392,7 +392,7 @@ static void dw8250_set_termios(struct ua
+ 	rate = clk_round_rate(d->clk, newrate);
+ 	if (rate > 0) {
+ 		/*
+-		 * Note that any clock-notifer worker will block in
++		 * Note that any clock-notifier worker will block in
+ 		 * serial8250_update_uartclk() until we are done.
+ 		 */
+ 		ret = clk_set_rate(d->clk, newrate);
 _
 
 Patches currently in -mm which might be from wangyuli@uniontech.com are
