@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E27317A30A
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 00:53:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 504471C32
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 00:53:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753145622; cv=none; b=G9CUnrHq+c3bNYug2oBF70wku0UpT7gvC3WfpclUVkVjUk230eGjzb2caZ/GXtXAUv/xY3Y55G6h4GCgQdC7L7JzGMNQm4Fv+M+nIel8CSpedkMTfvR07xPh0xfVZOHPKkoyPyeaWu1Nr4Hv5nyCdLrBs0Mfu3hRImPrm3LR6II=
+	t=1753145629; cv=none; b=YT1CBxzhtVgsJoDvIOO9X+FDxKtC+PS03TSt+JR8ln7Rb71gFBNTf5hQtpyOfXMYNrVgQCHd3Tezf9OU3CvAIJPdZcrOdx3D9DBplNFbO+QiqaACAYF53tkxMb0FPC5n/3UJE0CIflTjkEp1T2W3tGoLCyiWcjpiiSXfI5VllRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753145622; c=relaxed/simple;
-	bh=iGqcYC2Bi0xF5hJfeI/mhmKCqtr1bsfAotxmCaRpL7Q=;
-	h=Date:To:From:Subject:Message-Id; b=q77wopgZMTl4yRzNW41uWCQSjq2bb8FqsnAVzJ1yk3qLx1svPRxhgXwW+TDXmYqpsTdiw437gNORbg4FNttlAgR6G730CAKYlsmfIrm7ZtmKDhBvuwLZkwob3CMg3O5PQxPwzvDLtTucACPELmA2MJ5aL77HEfyRqtv8Xo3DIQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d8Dte3hp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753145629; c=relaxed/simple;
+	bh=xrMEor6W0AsELlS1zWfrJCBKWiRDbsWK2fZFuJBgZPI=;
+	h=Date:To:From:Subject:Message-Id; b=FjcEqPc4Mfm3GEdYRZ4aC0/zS5v9vbqDIf9eJDl32bRhec5KLhLXniVB8kUjMzS41Ppa4yBkcV5oHwffcFFwMG82AhfA4nM2I5epsYR4pctaS3jii/Ll1b9EFgGkpK2xZ8qI6KdOdBP3jjlNWr1thxeBk5ieMqFvk7ZZ2kD06CQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kD+S1ypb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d8Dte3hp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D69B1C4CEED;
-	Tue, 22 Jul 2025 00:53:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kD+S1ypb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCABEC4CEED;
+	Tue, 22 Jul 2025 00:53:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753145621;
-	bh=iGqcYC2Bi0xF5hJfeI/mhmKCqtr1bsfAotxmCaRpL7Q=;
+	s=korg; t=1753145628;
+	bh=xrMEor6W0AsELlS1zWfrJCBKWiRDbsWK2fZFuJBgZPI=;
 	h=Date:To:From:Subject:From;
-	b=d8Dte3hphiYnUCBqEn5necv0V+pDfPkTHyq4VWQHMtRVIVY8pu6QI8LbINO3WtVmM
-	 367u/cTUCwkbjvaCRlyI37Ab3+OgLW5afbe5kAZsGVqSKNWuNy5hDigqtQspn9eDk7
-	 xuwJBBREFaypdF55vV6u61XVmhooi+Ybydv9d3G8=
-Date: Mon, 21 Jul 2025 17:53:41 -0700
+	b=kD+S1ypb25Gq11vhttycaFkjI3hF2rEigLHxK1o0y8MPR6w3fHnCXscLEAXRevAge
+	 rFpCsT/TjHQQxwjNdnrR54FX9LewLI2oonJw3acIjhbntuZgrFwppVcGKmNKPbg5QG
+	 mLPEcG6+62XBaiwyxagTda/bzcB8+kb96En+iOqI=
+Date: Mon, 21 Jul 2025 17:53:48 -0700
 To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,krzk@kernel.org,fan.yu9@zte.com.cn,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4ig5lehrdie1bsu5uqulorvjtoibhzgqgbwfpbnrhaw5lcnmgzm9yigrlbgf5dg9w=.patch added to mm-nonmm-unstable branch
-Message-Id: <20250722005341.D69B1C4CEED@smtp.kernel.org>
+Subject: + maintainers-add-maintainers-for-delaytop.patch added to mm-nonmm-unstable branch
+Message-Id: <20250722005348.BCABEC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      Subject: MAINTAINERS: add maintainers for delaytop
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4ig5lehrdie1bsu5uqulorvjtoibhzgqgbwfpbnrhaw5lcnmgzm9yigrlbgf5dg9w=.patch
+     maintainers-add-maintainers-for-delaytop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4ig5lehrdie1bsu5uqulorvjtoibhzgqgbwfpbnrhaw5lcnmgzm9yigrlbgf5dg9w=.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-maintainers-for-delaytop.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -83,7 +83,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MAINTAINERS |   10 ++++++++++
  1 file changed, 10 insertions(+)
 
---- a/MAINTAINERS~=utf-8bw1bbveniigxpbnv4ig5lehrdie1bsu5uqulorvjtoibhzgqgbwfpbnrhaw5lcnmgzm9yigrlbgf5dg9w=
+--- a/MAINTAINERS~maintainers-add-maintainers-for-delaytop
 +++ a/MAINTAINERS
 @@ -19468,6 +19468,16 @@ S:	Maintained
  F:	include/linux/delayacct.h
@@ -106,5 +106,5 @@ _
 
 Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-=utf-8bw1bbveniigxpbnv4ig5lehrdie1bsu5uqulorvjtoibhzgqgbwfpbnrhaw5lcnmgzm9yigrlbgf5dg9w=.patch
+maintainers-add-maintainers-for-delaytop.patch
 
