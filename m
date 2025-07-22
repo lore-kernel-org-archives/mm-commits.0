@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B43653C463
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81D0B3C463
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753153903; cv=none; b=ZQ3GzE4IupF+ELg/yP75EWdfYuUB3ZFWkTsM1k5/NYgmB7XHAZ0amDJHwRuxvKQeIgbDC4Ia6cufwVp3Q878aEj/R1PTyrKQHrQ/NJV4E0/bdb2Cms+VWkXyxVcwdxjg1kTDtkP5vTM2m/Oouxd3LGz8GTD9cHIOj6rbprpg6YI=
+	t=1753153905; cv=none; b=DZc804Cg/q/d/Qgg79JDXzwTAVF06+Mxpeh8tDdFt6pNl4NlEaCIGCkztA4kVdkZFQu7/tI1PPlK4RrPlhpTdMQPrtlitkNiEAiIj+gcwkP7D0RLXkujAYtC3yKS+EPLfXDRWzXh+u59dh/hzu5O6Sy1w+pfKXORTjxBVIQvrn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753153903; c=relaxed/simple;
-	bh=mdQgfNaWtNZZ1hjTF2MptDD6lj7QIPD/wQFUWoeiFpE=;
-	h=Date:To:From:Subject:Message-Id; b=hTW8P53dnoKxhwjN3PmIGtKyE+Dot+iOg6SFDFuctuGuejz5VC5bHa8wzRFPkSASanau2a8EiL6bPKFihipANG49mItEY/tBgvw1Zl70lAzIxcvDguT2gisT8HIoc59KdY4LsrHBbbWgomqsLfRDw50YlH6qGwuNP+stX9cddss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NsOvKFyG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753153905; c=relaxed/simple;
+	bh=fhPtMZYyqI6TJk7QtQ7jtvStnQgxoA4fNFINIhiz6XI=;
+	h=Date:To:From:Subject:Message-Id; b=Dj5Px9Oub1729TQ6TwahwaKC4jiagKK04A6424xF7J2GvaSexI6tSkzh8Vgiil3OcYxJaNzVr1LA5jGFGHcM24DfvPSZC+5T6Eb9SV0mfsEKOuXZCUFsCJGjSLx7OssyiNRRa9uEVxCPlP/bhzRRvSD408/qnLiEY77A8h/PkBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=snt/Iiqd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NsOvKFyG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87A20C4CEED;
-	Tue, 22 Jul 2025 03:11:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="snt/Iiqd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 592CBC4CEED;
+	Tue, 22 Jul 2025 03:11:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753153903;
-	bh=mdQgfNaWtNZZ1hjTF2MptDD6lj7QIPD/wQFUWoeiFpE=;
+	s=korg; t=1753153905;
+	bh=fhPtMZYyqI6TJk7QtQ7jtvStnQgxoA4fNFINIhiz6XI=;
 	h=Date:To:From:Subject:From;
-	b=NsOvKFyGs6qpUsLYfuZMRIG5EhT7sPaLNjFA6svLL3qhfUCz1oySClcUNe4Pxk3PV
-	 K4Huqjf12oRSikMOd9VFPSCa3eAjiWbYzBpa0Aey0pm1VKg6OmJEk/7Vt0dVMRJ80M
-	 gb8iTRKZYT0W/jQGGiQXPHMQdxlHiT6080/lSHuM=
-Date: Mon, 21 Jul 2025 20:11:43 -0700
+	b=snt/IiqdgMr97JSPrMMQc6vqJXyR5AqFXLDsIt4ppd4XCckFzCc8ODUiKRfqzm8i8
+	 aFc1ZsU691hOaaTCkytE3AIsugerdOx2cfusrwDvURE3hHlNzv7V3MLcZUoRPITAyC
+	 gpCrr+npDNgKrAhG0qxyPdgCJM5VtnfF2U5r268A=
+Date: Mon, 21 Jul 2025 20:11:44 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion.patch added to mm-new branch
-Message-Id: <20250722031143.87A20C4CEED@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-generalize-damosquota-commit-assertion.patch added to mm-new branch
+Message-Id: <20250722031145.592CBC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.py: generalize DAMOS Watermarks commit assertion
+     Subject: selftests/damon/sysfs.py: generalize DamosQuota commit assertion
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion.patch
+     selftests-damon-sysfspy-generalize-damosquota-commit-assertion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-generalize-damosquota-commit-assertion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,63 +65,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: generalize DAMOS Watermarks commit assertion
-Date: Sun, 20 Jul 2025 10:16:42 -0700
+Subject: selftests/damon/sysfs.py: generalize DamosQuota commit assertion
+Date: Sun, 20 Jul 2025 10:16:43 -0700
 
-DamosWatermarks commitment assertion is hard-coded for a specific test
-case.  Split it out into a general version that can be reused for
-different test cases.
+DamosQuota commitment assertion is hard-coded for a specific test case. 
+Split it out into a general version that can be reused for different test
+cases.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-13-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-14-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   26 +++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ tools/testing/selftests/damon/sysfs.py |   31 ++++++++++++++---------
+ 1 file changed, 20 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-generalize-damosquota-commit-assertion
 +++ a/tools/testing/selftests/damon/sysfs.py
-@@ -25,6 +25,22 @@ def fail(expectation, status):
-     print(json.dumps(status, indent=4))
-     exit(1)
+@@ -41,6 +41,18 @@ def assert_watermarks_committed(watermar
+     assert_true(dump['mid'] == watermarks.mid, 'mid', dump)
+     assert_true(dump['low'] == watermarks.low, 'low', dump)
  
-+def assert_true(condition, expectation, status):
-+    if condition is not True:
-+        fail(expectation, status)
-+
-+def assert_watermarks_committed(watermarks, dump):
-+    wmark_metric_val = {
-+            'none': 0,
-+            'free_mem_rate': 1,
-+            }
-+    assert_true(dump['metric'] == wmark_metric_val[watermarks.metric],
-+                'metric', dump)
-+    assert_true(dump['interval'] == watermarks.interval, 'interval', dump)
-+    assert_true(dump['high'] == watermarks.high, 'high', dump)
-+    assert_true(dump['mid'] == watermarks.mid, 'mid', dump)
-+    assert_true(dump['low'] == watermarks.low, 'low', dump)
++def assert_quota_committed(quota, dump):
++    assert_true(dump['reset_interval'] == quota.reset_interval_ms,
++                'reset_interval', dump)
++    assert_true(dump['ms'] == quota.ms, 'ms', dump)
++    assert_true(dump['sz'] == quota.sz, 'sz', dump)
++    # TODO: assert goals are committed
++    assert_true(dump['weight_sz'] == quota.weight_sz_permil, 'weight_sz', dump)
++    assert_true(dump['weight_nr_accesses'] == quota.weight_nr_accesses_permil,
++                'weight_nr_accesses', dump)
++    assert_true(
++            dump['weight_age'] == quota.weight_age_permil, 'weight_age', dump)
 +
  def main():
      kdamonds = _damon_sysfs.Kdamonds(
              [_damon_sysfs.Kdamond(
-@@ -100,14 +116,8 @@ def main():
-             }:
-         fail('damos quota', status)
+@@ -104,18 +116,15 @@ def main():
+     if scheme['target_nid'] != -1:
+         fail('damos target nid', status)
  
--    if scheme['wmarks'] != {
--            'metric': 0,
--            'interval': 0,
--            'high': 0,
--            'mid': 0,
--            'low': 0,
+-    if scheme['quota'] != {
+-            'reset_interval': 0,
+-            'ms': 0,
+-            'sz': 0,
+-            'goals': [],
+-            'esz': 0,
+-            'weight_sz': 0,
+-            'weight_nr_accesses': 0,
+-            'weight_age': 0,
 -            }:
--        fail('damos wmarks', status)
-+    assert_watermarks_committed(_damon_sysfs.DamosWatermarks(),
-+                                scheme['wmarks'])
+-        fail('damos quota', status)
++    migrate_dests = scheme['migrate_dests']
++    if migrate_dests['nr_dests'] != 0:
++        fail('nr_dests', status)
++    if migrate_dests['node_id_arr'] != []:
++        fail('node_id_arr', status)
++    if migrate_dests['weight_arr'] != []:
++        fail('weight_arr', status)
  
-     kdamonds.stop()
++    assert_quota_committed(_damon_sysfs.DamosQuota(), scheme['quota'])
+     assert_watermarks_committed(_damon_sysfs.DamosWatermarks(),
+                                 scheme['wmarks'])
  
 _
 
