@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58B502E36FD
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EB4F2E36FD
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 03:11:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753153891; cv=none; b=QSrfPw6MimPS3OEk6aTE/+4YstBu7R4KbxMhhClW6D59aJRKWxIDnH6cEIpRlplpHh+5JW71eiFzbIZ/ESPvqoms+12unqkt+YfGjaOOUOCWnd4sf9R2eddni6dcLuzKg3vygUfyeMDhgLYbzEF5Mg/Zrhs5RSWpl7OWUxqrOBU=
+	t=1753153893; cv=none; b=VsEAF93O+IeaiKA485m10F3luESUd9KsR3x53d7wgbqxPKa2qKrxjbU9TY9zgZuEFE4tlWcP7zqYmqRIuE4ini5ECSZRjrFl8W30TgV9tPpgRoPat4GIH3zHd4uYAI5ACjvjnjtreeUdtZnXIrELh38Jdwuox9rUYpDyY09bYk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753153891; c=relaxed/simple;
-	bh=p936CwdsF0Uz35of9Q+QWyg9Qwor4+0JgRb2RyqDqnA=;
-	h=Date:To:From:Subject:Message-Id; b=WW3TUcSd6wuq4h8ZRqp+yjBfNCU8So4J5ak8/Mvw2jNyGMqTQ+6vLq2B31xJdOG4hW5GmjCieaeyzjrCkvCXUvyKABMywwiXnIEbNx+Poa5i/JbUSxRCX/6mfMlBC9B8Sa6lQzyL4p+yTIt8k4sO2H5xa2AC030xH57Q+wcvZkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NjNvLC5Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753153893; c=relaxed/simple;
+	bh=kthYgPVgN7nqHLrOserNb8liWl+JBs8iUGloaH4++VA=;
+	h=Date:To:From:Subject:Message-Id; b=dhAaj43bBmHTOfzCSDP1/SXPG7HAqi6q/bBvZS0SSauoFubqEH9ETqUKp/FKQ7I+waBurxxujQ9sCq+tnsTXpZdIhSI4Txmti1Nl7FN64lZ6kkWYv63DM3emngAR5fZchud62EsD7pXqWhlIsXYfatJTqxdIYqrLmbxVVlmrBJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZdZn/TML; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NjNvLC5Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9057C4CEED;
-	Tue, 22 Jul 2025 03:11:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZdZn/TML"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A75EDC4CEED;
+	Tue, 22 Jul 2025 03:11:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753153890;
-	bh=p936CwdsF0Uz35of9Q+QWyg9Qwor4+0JgRb2RyqDqnA=;
+	s=korg; t=1753153892;
+	bh=kthYgPVgN7nqHLrOserNb8liWl+JBs8iUGloaH4++VA=;
 	h=Date:To:From:Subject:From;
-	b=NjNvLC5Q5wwmFa5aQVGhp8p26ayiDLh902gv6IzHdm9QGGCQxCTVuWVMILDUNZwfT
-	 RQvRhR2kJ46wrOmPwXiZ0A2xl+pHHiL20VTTU5AKioNCEi+oiBGGuMLh3XqGHPK5gR
-	 FgC4GKJGHKxCx57yVxaTToywiaiE3gwPXGFKovNM=
-Date: Mon, 21 Jul 2025 20:11:30 -0700
+	b=ZdZn/TMLGqTcn5O8P054mACwwfACRPa0LNMmeW3CCc1yIoxI4btCpPRKsBegzJDSi
+	 73fqPW+XnRyvGWJpCJFN8vbYr7dBN8hRAzkd6IP0C/hR24MQfm2hR0lk6CRhqQgb2a
+	 00+B8NLymSYhigza0RJt54zgAEcCmxu06Qxb4r1w=
+Date: Mon, 21 Jul 2025 20:11:32 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup.patch added to mm-new branch
-Message-Id: <20250722031130.D9057C4CEED@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-support-damos-action-dests-setup.patch added to mm-new branch
+Message-Id: <20250722031132.A75EDC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_damon_sysfs: support DAMOS quota goal nid setup
+     Subject: selftests/damon/_damon_sysfs: support DAMOS action dests setup
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup.patch
+     selftests-damon-_damon_sysfs-support-damos-action-dests-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-damos-action-dests-setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,52 +65,114 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: support DAMOS quota goal nid setup
-Date: Sun, 20 Jul 2025 10:16:35 -0700
+Subject: selftests/damon/_damon_sysfs: support DAMOS action dests setup
+Date: Sun, 20 Jul 2025 10:16:36 -0700
 
 _damon_sysfs.py contains code for test-purpose DAMON sysfs interface
-control.  Add support of DAMOS quota goal nid setup for more tests.
+control.  Add support of DAMOS action destinations setup for more tests.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ tools/testing/selftests/damon/_damon_sysfs.py |   56 +++++++++++++++-
+ 1 file changed, 55 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-damos-action-dests-setup
 +++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -93,14 +93,16 @@ class DamosQuotaGoal:
-     metric = None
-     target_value = None
-     current_value = None
-+    nid = None
-     effective_bytes = None
-     quota = None            # owner quota
-     idx = None
+@@ -319,6 +319,52 @@ class DamosFilters:
+                 return err
+         return None
  
--    def __init__(self, metric, target_value=10000, current_value=0):
-+    def __init__(self, metric, target_value=10000, current_value=0, nid=0):
-         self.metric = metric
-         self.target_value = target_value
-         self.current_value = current_value
-+        self.nid = nid
++class DamosDest:
++    id = None
++    weight = None
++    idx = None
++    dests = None    # owner dests
++
++    def __init__(self, id=0, weight=0):
++        self.id = id
++        self.weight = weight
++
++    def sysfs_dir(self):
++        return os.path.join(self.dests.sysfs_dir(), '%d' % self.idx)
++
++    def stage(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'id'), self.id)
++        if err is not None:
++            return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'weight'), self.weight)
++        if err is not None:
++            return err
++        return None
++
++class DamosDests:
++    dests = None
++    scheme = None   # owner scheme
++
++    def __init__(self, dests=[]):
++        self.dests = dests
++        for idx, dest in enumerate(self.dests):
++            dest.idx = idx
++            dest.dests = self
++
++    def sysfs_dir(self):
++        return os.path.join(self.scheme.sysfs_dir(), 'dests')
++
++    def stage(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'nr_dests'),
++                         len(self.dests))
++        if err is not None:
++            return err
++        for dest in self.dests:
++            err = dest.stage()
++            if err is not None:
++                return err
++        return None
++
+ class DamosStats:
+     nr_tried = None
+     sz_tried = None
+@@ -349,6 +395,7 @@ class Damos:
+     ops_filters = None
+     filters = None
+     apply_interval_us = None
++    dests = None
+     idx = None
+     context = None
+     tried_bytes = None
+@@ -358,7 +405,7 @@ class Damos:
+     def __init__(self, action='stat', access_pattern=DamosAccessPattern(),
+                  quota=DamosQuota(), watermarks=DamosWatermarks(),
+                  core_filters=[], ops_filters=[], filters=[],
+-                 apply_interval_us=0):
++                 dests=DamosDests(), apply_interval_us=0):
+         self.action = action
+         self.access_pattern = access_pattern
+         self.access_pattern.scheme = self
+@@ -376,6 +423,9 @@ class Damos:
+         self.filters = DamosFilters(name='filters', filters=filters)
+         self.filters.scheme = self
+ 
++        self.dests = dests
++        self.dests.scheme = self
++
+         self.apply_interval_us = apply_interval_us
  
      def sysfs_dir(self):
-         return os.path.join(self.quota.sysfs_dir(), 'goals', '%d' % self.idx)
-@@ -118,6 +120,10 @@ class DamosQuotaGoal:
-                          self.current_value)
+@@ -412,6 +462,10 @@ class Damos:
          if err is not None:
              return err
-+        err = write_file(os.path.join(self.sysfs_dir(), 'nid'), self.nid)
+ 
++        err = self.dests.stage()
 +        if err is not None:
 +            return err
 +
-         return None
- 
- class DamosQuota:
+ class DamonTarget:
+     pid = None
+     # todo: Support target regions if test is made
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
