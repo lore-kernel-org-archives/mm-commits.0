@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA944A2D
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 20:12:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B13E91E4928
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 20:12:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753215144; cv=none; b=AtGgubf5QiaVk7wKaI+e0kdUkQrrADhjhvIgcYLReDSXE7hwnayD0mrKSKtDblX+yMJneDAdQI2cPlkOASQ04Kok1BU3JYckhTy3vu57AYtQN6EOdZ7wRL/KHgWPea2JaFOiL/17Eyw9blTdBw3rf2bAT/otut6eCZpyEbQnphY=
+	t=1753215146; cv=none; b=K433P/2Hryc+bCizTJMFdlF80sT2JkClPVSD6I0Oagem2tQzMNBbLtLflUQeIGe9DqWInbSaSJA1rxNyG68Sw4uJRC5qFek5guOwDoqvpne6ROfOEYncrrMyFs9lp6Wyi8p/3FKJYwoFXwQnBdABPncqiXMhvh3ewNOlxaPn2Rk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753215144; c=relaxed/simple;
-	bh=E3dilkD9Fuw+8+orCKPr7TzS4R9457D8NyTD6sHVZKc=;
-	h=Date:To:From:Subject:Message-Id; b=irpAmLSu+QZyW/e3ZwObvK1iAbh+2Q2qd3kOff6Kkgkw6JQ1+ywBd5G68B41YXMb4DGkfoW/Y8eOdeZVmqUDxbnkhk03eV1JXnFlXpclb3aoDeceuspnsNu1TEpjaFdHWKvC5HM1S9Hr/atxJ8PjhYxgK3ccT8fOCoTrC3bI9pc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hCkDxAL5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753215146; c=relaxed/simple;
+	bh=2WD612/BDoxkaW4xHhsJmxpd4I1nPkXrOdQGUZd1mUw=;
+	h=Date:To:From:Subject:Message-Id; b=qptdPJGh4tu0T9PvBDent4z1ypHxJ9Oy/fXqbR2ptdxvJy2cdb3BahhAIlHeQqIWoB6Vucz+z5dpiYXJO3RN4dO2qfmrxY+f2LiQebFNNAYE7oejgbyHQL9g3i8tOODG9tPBGJz2t5arYxKFQQ47dtPbCL1qwd/psq/Oly2mX8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TyyE65sm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hCkDxAL5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A98DC4CEEB;
-	Tue, 22 Jul 2025 20:12:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TyyE65sm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2184DC4CEEB;
+	Tue, 22 Jul 2025 20:12:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753215144;
-	bh=E3dilkD9Fuw+8+orCKPr7TzS4R9457D8NyTD6sHVZKc=;
+	s=korg; t=1753215146;
+	bh=2WD612/BDoxkaW4xHhsJmxpd4I1nPkXrOdQGUZd1mUw=;
 	h=Date:To:From:Subject:From;
-	b=hCkDxAL571TGk/d8iuw6dbBPOVlXJHvrCPcQk6SMUYg9+CBnQae4Fg7xyNCKP8UDF
-	 DK2F3WFAboQOTauPI7Zyzvg0uXuNc3+9YkhfDjiZWXkNYZKgK6D5q7idw/hCh252cw
-	 FvSXvNLUZd0kR+OtqfCQNZ3fFiDc9YIXnMBkP33c=
-Date: Tue, 22 Jul 2025 13:12:23 -0700
+	b=TyyE65smR74BlNrabXjT5UQi0CzAxfqRD6GDSbPCnWlZ5qcW065348qOCDtDm+U4Y
+	 f79nqdk0RDlUFwh9QEtp0ED16LWmMaKtT91W+0FvFaAofakglgXv4viRXoMxSvYvpE
+	 ipgRoWRmFFFvM9rIQq0tGc60DolVs2y2Ph0bF5Cw=
+Date: Tue, 22 Jul 2025 13:12:25 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,roman.gushchin@linux.dev,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,liam.howlett@oracle.com,jannh@google.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250722201224.1A98DC4CEEB@smtp.kernel.org>
+Subject: + maintainers-add-missing-interval_treec-to-memory-mapping-section.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250722201226.2184DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add missing percpu-internal.h file to per-cpu section
+     Subject: MAINTAINERS: add missing interval_tree.c to memory mapping section
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
+     maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add missing percpu-internal.h file to per-cpu section
-Date: Tue, 22 Jul 2025 18:10:23 +0100
+Subject: MAINTAINERS: add missing interval_tree.c to memory mapping section
+Date: Tue, 22 Jul 2025 18:15:28 +0100
 
-This file seems to most appropriately belong to the PER-CPU MEMORY
-ALLOCATOR section, so place it there.
+This seems to be the best place for this file.
 
-Link: https://lkml.kernel.org/r/20250722171023.139777-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250722171528.141083-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
@@ -88,16 +87,16 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
---- a/MAINTAINERS~maintainers-add-missing-percpu-internalh-file-to-per-cpu-section
+--- a/MAINTAINERS~maintainers-add-missing-interval_treec-to-memory-mapping-section
 +++ a/MAINTAINERS
-@@ -19455,6 +19455,7 @@ F:	arch/*/include/asm/percpu.h
- F:	include/linux/percpu*.h
- F:	lib/percpu*.c
- F:	mm/percpu*.c
-+F:	mm/percpu-internal.h
- 
- PER-TASK DELAY ACCOUNTING
- M:	Balbir Singh <bsingharora@gmail.com>
+@@ -16008,6 +16008,7 @@ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ F:	include/trace/events/mmap.h
++F:	mm/interval_tree.c
+ F:	mm/mincore.c
+ F:	mm/mlock.c
+ F:	mm/mmap.c
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
