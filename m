@@ -1,247 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00AE626A0FD
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2025 22:24:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C34CF2F5489;
+	Wed, 23 Jul 2025 15:29:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753223049; cv=none; b=HZkaHax4shvSSbHxeTFjJfDFmqQKnqIhABghGWQC4uuouZ9DMvMXaP3Qr2sLxO+6lb8Zq0pzZBE5GyXkbwJL9Q7Q30+v46dN/QcXVf+hmsVK4zVIvCzPYRgEPyDwK0d5DHRHCWlXhRdv7sOzzorw5FsxgL0bCHb8ogDrZQQFzVM=
+	t=1753284601; cv=none; b=DcVlbpsEMQUKevgD5PT6NDoeS7g5HH1HsLtp0AeZChv/q08oFZe6yhpNoFeYjv7ZhOlfa3RhfVz7DCFGfnnJEzi5sfAFg8o+ih9ESoQkPKEA998Ka6mlHPzqslM01Ev75BSlZ2TLqH+ASu/WAmRXvQy+GWsSQVBO+zzQLpsGYVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753223049; c=relaxed/simple;
-	bh=/P2xgV+9xBm5uSBxJrzABH7FuCDRWGfdy7TfX0sRA7c=;
-	h=Date:To:From:Subject:Message-Id; b=otISphCOwO5Rc8QAFm6Ebe3k3PhmhkDgFNfxQ9Bw6pjh46kNbbw+AL9UimQfHsl0x68UVDR8KegMz2eLB7MI92Es12qdtnohEJQ8Xx2aIeozXPLNq+6/vhjz0zOBb0pwDHaLucSfYwm3T8FLKUBhB6NLv7L6VoAdvzhpJJSOKok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g0bILZGx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753284601; c=relaxed/simple;
+	bh=ZuSatsKI4Rx94XwYYxkfMq6Qhs4pQX2KC5850F7oxqA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OtcE6dlj7Si7YveAW8W8pG2MsAp0po4d2J4/3sBhvzahb+8y69z6yULfFhky8xpwmsNt4OzOP6lq7tHNhlnELlnNclqTaOBLZYOMI1JEj66sv+MQFbNZ8RBfkV5XNzMDyfMFsQP5asV6XCGpbZHcyOI6EuHMz0Dj6sIGXkaUm+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IzC83CWb; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g0bILZGx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8278C4CEEB;
-	Tue, 22 Jul 2025 22:24:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753223048;
-	bh=/P2xgV+9xBm5uSBxJrzABH7FuCDRWGfdy7TfX0sRA7c=;
-	h=Date:To:From:Subject:From;
-	b=g0bILZGx3Y3o/P2GDPC9mClgmHTDRfbBv35tXhfBpDdqmDGuMsEm8HORFcE6SN+wq
-	 Bq6ToEF4vzA/URXm04wXTEvO5d0yBvdl+QgrdwT1Lr0p3Sftv2143zghrudOwaZKIC
-	 r1XQICQ0WRGGVWECN2lMpDvNzCw3enfIZNR+ykjI=
-Date: Tue, 22 Jul 2025 15:24:08 -0700
-To: mm-commits@vger.kernel.org,suresh.k.chandrappa@gmail.com,shuah@kernel.org,nphamcs@gmail.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes.patch added to mm-new branch
-Message-Id: <20250722222408.A8278C4CEEB@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IzC83CWb"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1753284600; x=1784820600;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=ZuSatsKI4Rx94XwYYxkfMq6Qhs4pQX2KC5850F7oxqA=;
+  b=IzC83CWbHjp6fWuOikPF/N2w5pqk1ScOfuv7zXBto420LvwiYy6yGJ+2
+   xe2Aj88kdtLVihuSY41v7przkokoM+1CvKSE7m/+XdKUi88JNYU3S5Vbq
+   1+A1f34xqD+gsqJhSXVpPcyYOIjx+4ymtHkays9Qt2VT7wlaaDUo2yGrw
+   rT8IFdSa2BmGEqEYvfEHWIB1+tskMirqpfbPzu6+ErJzR34UfBMAlqIGl
+   fn/MZaAt6CxQvQ0LDtjb1lKkqE9ZOddyA7iY6GHS2ShFtnIBX1CO+xg6j
+   El2AEUQJhwLt7/BXwWJI6Qb15C5HYqWbNA1h7Nc/rsiUcDhXoulUfq8T0
+   g==;
+X-CSE-ConnectionGUID: bKLGpR/3RmaDPmFu1GIJGw==
+X-CSE-MsgGUID: BNX4dwnBTXinxaC8qb/rNA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11501"; a="55278128"
+X-IronPort-AV: E=Sophos;i="6.16,333,1744095600"; 
+   d="scan'208";a="55278128"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2025 08:29:41 -0700
+X-CSE-ConnectionGUID: pXyfxTAcSAGDtanLRNiTFg==
+X-CSE-MsgGUID: wDW645APReOQL84DRNbFxg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,333,1744095600"; 
+   d="scan'208";a="163824350"
+Received: from smile.fi.intel.com ([10.237.72.52])
+  by fmviesa005.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2025 08:29:38 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.98.2)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1uebPT-00000000KIF-0htP;
+	Wed, 23 Jul 2025 18:29:35 +0300
+Date: Wed, 23 Jul 2025 18:29:34 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org,
+	senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
+	linux@rasmusvillemoes.dk, herbert@gondor.apana.org.au,
+	sfr@canb.auug.org.au
+Subject: Re: + sprintfh-requires-stdargh.patch added to mm-hotfixes-unstable
+ branch
+Message-ID: <aID_3hHxWXd1LC5F@smile.fi.intel.com>
+References: <20250721211353.41334C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250721211353.41334C4CEED@smtp.kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
+On Mon, Jul 21, 2025 at 02:13:52PM -0700, Andrew Morton wrote:
 
-The patch titled
-     Subject: selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes.patch
+> ------------------------------------------------------
+> From: Stephen Rothwell <sfr@canb.auug.org.au>
+> Subject: sprintf.h requires stdarg.h
+> Date: Mon, 21 Jul 2025 16:15:57 +1000
+> 
+> In file included from drivers/crypto/intel/qat/qat_common/adf_pm_dbgfs_utils.c:4:
+> include/linux/sprintf.h:11:54: error: unknown type name 'va_list'
+>    11 | __printf(2, 0) int vsprintf(char *buf, const char *, va_list);
+>       |                                                      ^~~~~~~
+> include/linux/sprintf.h:1:1: note: 'va_list' is defined in header '<stdarg.h>'; this is probably fixable by adding '#include <stdarg.h>'
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes.patch
+...
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>  #include <linux/compiler_attributes.h>
+>  #include <linux/types.h>
+> +#include <linux/stdarg.h>
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+Can we prevent the ordering?
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+-- 
+With Best Regards,
+Andy Shevchenko
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes
-Date: Tue Jul 22 03:21:42 PM PDT 2025
-
-ERROR: "foo* bar" should be "foo *bar"
-#41: FILE: tools/testing/selftests/cachestat/test_cachestat.c:209:
-+const char* file_type_str(enum file_type type) {
-
-ERROR: open brace '{' following function definitions go on the next line
-#41: FILE: tools/testing/selftests/cachestat/test_cachestat.c:209:
-+const char* file_type_str(enum file_type type) {
-
-ERROR: switch and case should be at the same indent
-#42: FILE: tools/testing/selftests/cachestat/test_cachestat.c:210:
-+	switch (type) {
-+		case FILE_SHMEM:
-[...]
-+		case FILE_MMAP:
-[...]
-+		default:
-
-ERROR: space required after that ',' (ctx:VxV)
-#72: FILE: tools/testing/selftests/cachestat/test_cachestat.c:239:
-+		ksft_print_msg("Unable to create %s file.\n",file_type_str(type));
- 		                                            ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#79: FILE: tools/testing/selftests/cachestat/test_cachestat.c:245:
-+		ksft_print_msg("Unable to truncate %s file.\n",file_type_str(type));
- 		                                              ^
-
-ERROR: switch and case should be at the same indent
-#88: FILE: tools/testing/selftests/cachestat/test_cachestat.c:249:
-+	switch (type){
-+		case FILE_SHMEM:
-[...]
-+		case FILE_MMAP:
-[...]
-+		default:
-
-ERROR: space required before the open brace '{'
-#88: FILE: tools/testing/selftests/cachestat/test_cachestat.c:249:
-+	switch (type){
-
-WARNING: Missing a blank line after declarations
-#98: FILE: tools/testing/selftests/cachestat/test_cachestat.c:259:
-+			char *map = mmap(NULL, filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-+			if (map == MAP_FAILED) {
-
-WARNING: braces {} are not necessary for single statement blocks
-#103: FILE: tools/testing/selftests/cachestat/test_cachestat.c:264:
-+			for (int i = 0; i < filesize; i++) {
-+				map[i] = 'A';
-+			}
-
-WARNING: break is not useful after a goto
-#111: FILE: tools/testing/selftests/cachestat/test_cachestat.c:272:
-+			goto close_fd;
-+			break;
-
-total: 7 errors, 3 warnings, 108 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suresh K C <suresh.k.chandrappa@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- tools/testing/selftests/cachestat/test_cachestat.c |   62 +++++------
- 1 file changed, 32 insertions(+), 30 deletions(-)
-
---- a/tools/testing/selftests/cachestat/test_cachestat.c~selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes
-+++ a/tools/testing/selftests/cachestat/test_cachestat.c
-@@ -206,14 +206,15 @@ out1:
- out:
- 	return ret;
- }
--const char* file_type_str(enum file_type type) {
-+const char *file_type_str(enum file_type type)
-+{
- 	switch (type) {
--		case FILE_SHMEM:
--			return "shmem";
--		case FILE_MMAP:
--			return "mmap";
--		default:
--			return "unknown";
-+	case FILE_SHMEM:
-+		return "shmem";
-+	case FILE_MMAP:
-+		return "mmap";
-+	default:
-+		return "unknown";
- 	}
- }
- 
-@@ -236,7 +237,8 @@ bool run_cachestat_test(enum file_type t
- 		fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
- 
- 	if (fd < 0) {
--		ksft_print_msg("Unable to create %s file.\n",file_type_str(type));
-+		ksft_print_msg("Unable to create %s file.\n",
-+				file_type_str(type));
- 		ret = false;
- 		goto out;
- 	}
-@@ -246,30 +248,30 @@ bool run_cachestat_test(enum file_type t
- 		ret = false;
- 		goto close_fd;
- 	}
--	switch (type){
--		case FILE_SHMEM:
--			if (!write_exactly(fd, filesize)) {
--				ksft_print_msg("Unable to write to file.\n");
--				ret = false;
--				goto close_fd;
--			}
--			break;
--		case FILE_MMAP:
--			char *map = mmap(NULL, filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
--			if (map == MAP_FAILED) {
--				ksft_print_msg("mmap failed.\n");
--				ret = false;
--				goto close_fd;
--			}
--			for (int i = 0; i < filesize; i++) {
--				map[i] = 'A';
--			}
--			break;
--		default:
--			ksft_print_msg("Unsupported file type.\n");
-+	switch (type) {
-+	case FILE_SHMEM:
-+		if (!write_exactly(fd, filesize)) {
-+			ksft_print_msg("Unable to write to file.\n");
- 			ret = false;
- 			goto close_fd;
--			break;
-+		}
-+		break;
-+	case FILE_MMAP:
-+		char *map = mmap(NULL, filesize, PROT_READ | PROT_WRITE,
-+				 MAP_SHARED, fd, 0);
-+
-+		if (map == MAP_FAILED) {
-+			ksft_print_msg("mmap failed.\n");
-+			ret = false;
-+			goto close_fd;
-+		}
-+		for (int i = 0; i < filesize; i++)
-+			map[i] = 'A';
-+		break;
-+	default:
-+		ksft_print_msg("Unsupported file type.\n");
-+		ret = false;
-+		goto close_fd;
- 	}
- 	syscall_ret = syscall(__NR_cachestat, fd, &cs_range, &cs, 0);
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
-mm-shmem-swap-simplify-swapin-path-and-result-handling-fix-fix.patch
-mm-shmem-swap-rework-swap-entry-and-index-calculation-for-large-swapin-fix.patch
-selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes.patch
-init-kconfig-restore-config_broken-help-text.patch
 
