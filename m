@@ -1,98 +1,72 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C34CF2F5489;
-	Wed, 23 Jul 2025 15:29:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225124A2D;
+	Wed, 23 Jul 2025 22:39:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753284601; cv=none; b=DcVlbpsEMQUKevgD5PT6NDoeS7g5HH1HsLtp0AeZChv/q08oFZe6yhpNoFeYjv7ZhOlfa3RhfVz7DCFGfnnJEzi5sfAFg8o+ih9ESoQkPKEA998Ka6mlHPzqslM01Ev75BSlZ2TLqH+ASu/WAmRXvQy+GWsSQVBO+zzQLpsGYVI=
+	t=1753310376; cv=none; b=p0MePp7R3m6kjqhd6emLFeS8kJDKkGNZWFH3g90E0ztoE5TloA86uQqbX9FmCsD9YDq9ucKnMh5GJuBP/boxiVwB2XvoIAw1qJyv51xgq6YNGuyXOUTN7NWh+TQ215H24857V3DbpcPkN7dQgYTBfQZ0dbMQ2rljWAReiteZclM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753284601; c=relaxed/simple;
-	bh=ZuSatsKI4Rx94XwYYxkfMq6Qhs4pQX2KC5850F7oxqA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OtcE6dlj7Si7YveAW8W8pG2MsAp0po4d2J4/3sBhvzahb+8y69z6yULfFhky8xpwmsNt4OzOP6lq7tHNhlnELlnNclqTaOBLZYOMI1JEj66sv+MQFbNZ8RBfkV5XNzMDyfMFsQP5asV6XCGpbZHcyOI6EuHMz0Dj6sIGXkaUm+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IzC83CWb; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1753310376; c=relaxed/simple;
+	bh=P9J/VV7e9axpz2DEeGsRPdqwtL7ZkrxKtOOk7OofnAo=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=F0A0zioJRQTRKRyAlzrBilNpmIC5Z0dfXaStG3Rezl1j0fhogfAltJx4jPh0H4lgw1cUHCMlq7SmVZQFk71NyVgk/8oy3B75RFekiCkV0xt9PAk0ORQ60e8RHbP2jWEtlRlThxD9LpOeAGIrNR8RhlzPxKqjPmZeVoOu8k1Qfho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WflWrjbP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IzC83CWb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1753284600; x=1784820600;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ZuSatsKI4Rx94XwYYxkfMq6Qhs4pQX2KC5850F7oxqA=;
-  b=IzC83CWbHjp6fWuOikPF/N2w5pqk1ScOfuv7zXBto420LvwiYy6yGJ+2
-   xe2Aj88kdtLVihuSY41v7przkokoM+1CvKSE7m/+XdKUi88JNYU3S5Vbq
-   1+A1f34xqD+gsqJhSXVpPcyYOIjx+4ymtHkays9Qt2VT7wlaaDUo2yGrw
-   rT8IFdSa2BmGEqEYvfEHWIB1+tskMirqpfbPzu6+ErJzR34UfBMAlqIGl
-   fn/MZaAt6CxQvQ0LDtjb1lKkqE9ZOddyA7iY6GHS2ShFtnIBX1CO+xg6j
-   El2AEUQJhwLt7/BXwWJI6Qb15C5HYqWbNA1h7Nc/rsiUcDhXoulUfq8T0
-   g==;
-X-CSE-ConnectionGUID: bKLGpR/3RmaDPmFu1GIJGw==
-X-CSE-MsgGUID: BNX4dwnBTXinxaC8qb/rNA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11501"; a="55278128"
-X-IronPort-AV: E=Sophos;i="6.16,333,1744095600"; 
-   d="scan'208";a="55278128"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2025 08:29:41 -0700
-X-CSE-ConnectionGUID: pXyfxTAcSAGDtanLRNiTFg==
-X-CSE-MsgGUID: wDW645APReOQL84DRNbFxg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,333,1744095600"; 
-   d="scan'208";a="163824350"
-Received: from smile.fi.intel.com ([10.237.72.52])
-  by fmviesa005.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2025 08:29:38 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.98.2)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1uebPT-00000000KIF-0htP;
-	Wed, 23 Jul 2025 18:29:35 +0300
-Date: Wed, 23 Jul 2025 18:29:34 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Andrew Morton <akpm@linux-foundation.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WflWrjbP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B126C4CEE7;
+	Wed, 23 Jul 2025 22:39:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1753310375;
+	bh=P9J/VV7e9axpz2DEeGsRPdqwtL7ZkrxKtOOk7OofnAo=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=WflWrjbP+ekXorFH4uxm6zud90mBtWLtF2E0Pz22hg4cW91rZVX21EM8tNGKJDEcM
+	 RZgtVrMqmFuiPrYKNMpe7YZp0MIPauwQ5zl1E9CO1IVGcnRaQxIeEpd8sJPgenauzQ
+	 m6Aw9rvO0+JFucAf9I4cQ+ga+qqM3XwOvYwrvCdE=
+Date: Wed, 23 Jul 2025 15:39:34 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org,
-	senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
-	linux@rasmusvillemoes.dk, herbert@gondor.apana.org.au,
-	sfr@canb.auug.org.au
+ senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
+ linux@rasmusvillemoes.dk, herbert@gondor.apana.org.au, sfr@canb.auug.org.au
 Subject: Re: + sprintfh-requires-stdargh.patch added to mm-hotfixes-unstable
  branch
-Message-ID: <aID_3hHxWXd1LC5F@smile.fi.intel.com>
+Message-Id: <20250723153934.0e76b00985dd2bd477b69009@linux-foundation.org>
+In-Reply-To: <aID_3hHxWXd1LC5F@smile.fi.intel.com>
 References: <20250721211353.41334C4CEED@smtp.kernel.org>
+	<aID_3hHxWXd1LC5F@smile.fi.intel.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250721211353.41334C4CEED@smtp.kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 21, 2025 at 02:13:52PM -0700, Andrew Morton wrote:
+On Wed, 23 Jul 2025 18:29:34 +0300 Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
 
-> ------------------------------------------------------
-> From: Stephen Rothwell <sfr@canb.auug.org.au>
-> Subject: sprintf.h requires stdarg.h
-> Date: Mon, 21 Jul 2025 16:15:57 +1000
+> On Mon, Jul 21, 2025 at 02:13:52PM -0700, Andrew Morton wrote:
 > 
-> In file included from drivers/crypto/intel/qat/qat_common/adf_pm_dbgfs_utils.c:4:
-> include/linux/sprintf.h:11:54: error: unknown type name 'va_list'
->    11 | __printf(2, 0) int vsprintf(char *buf, const char *, va_list);
->       |                                                      ^~~~~~~
-> include/linux/sprintf.h:1:1: note: 'va_list' is defined in header '<stdarg.h>'; this is probably fixable by adding '#include <stdarg.h>'
+> > ------------------------------------------------------
+> > From: Stephen Rothwell <sfr@canb.auug.org.au>
+> > Subject: sprintf.h requires stdarg.h
+> > Date: Mon, 21 Jul 2025 16:15:57 +1000
+> > 
+> > In file included from drivers/crypto/intel/qat/qat_common/adf_pm_dbgfs_utils.c:4:
+> > include/linux/sprintf.h:11:54: error: unknown type name 'va_list'
+> >    11 | __printf(2, 0) int vsprintf(char *buf, const char *, va_list);
+> >       |                                                      ^~~~~~~
+> > include/linux/sprintf.h:1:1: note: 'va_list' is defined in header '<stdarg.h>'; this is probably fixable by adding '#include <stdarg.h>'
+> 
+> ...
+> 
+> >  #include <linux/compiler_attributes.h>
+> >  #include <linux/types.h>
+> > +#include <linux/stdarg.h>
+> 
+> Can we prevent the ordering?
+> 
 
-...
-
->  #include <linux/compiler_attributes.h>
->  #include <linux/types.h>
-> +#include <linux/stdarg.h>
-
-Can we prevent the ordering?
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+What do you mean?
