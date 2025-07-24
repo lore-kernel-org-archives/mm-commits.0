@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58D8061FFE
-	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 22:02:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F5961FFE
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 22:02:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753394535; cv=none; b=r7kpW/E1beTVHfOgHyldigKeg0BCkTrthqj69UtQXpttz3rHvDf7hVoPNf9+8e9QXB0JklwdH3H4fvkKk0isOqyBjUCWTARJk7WgSETnXQpzJBpXrMs8Utx/KvJ6jKGGuZSXPqCXsuA7PBsa7hCf5gM3/llqVJjtj5GG+DTk6mA=
+	t=1753394538; cv=none; b=UrI4XQzuCkp/0FA3w/Wd36WeupFrsKvlZPTN8mOqBf5wPkWFzd9cRw3FuSMHshF2/L3xNvZkXTvknpXyLgBBuoGMAbO4HLhDsmUgxySH1JS1fzWNsGkjCtfSmvZ7eusau58JnPxm4VM+lAabZxPFGxyvxEJ7Zb2KeFbsQnL6hHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753394535; c=relaxed/simple;
-	bh=UgWsFN4kYU98EHvKtY89IiRySId3W009wWEQKVfCyBU=;
-	h=Date:To:From:Subject:Message-Id; b=e6j4iPVdFLdLi0zYfmA0/Pwynf+Y6nhehepYfhGQQw2kvvGPllTtu0GVhLPTAo6t5Qzwh4F6jfG/xn/G1ODWNWsF6BOVZATT5Et1PBw9rhxP9Qx5w0MJE1S8YVkWOtbZMv2aKZAgGmif7Np5t7qd/6vtZCvPzB7nYJlw5okA46o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zcl/nA9J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753394538; c=relaxed/simple;
+	bh=UqLgjQOGA8+vprXsU5GhweeWRjxZnYBSDHky0ibN7PA=;
+	h=Date:To:From:Subject:Message-Id; b=fLSoxzN3zSyAFS7H8l2w2F1c4DCkACu0Q1krK29Y/5QGZ9R1u0zh7eVsrTj33Se19AE7CAkQgMmjL0l23y29kfrK6mNIwRSvFkdQ5G4XdJXN0+GrMQ7ZQkrxYVEAiNKGu00IZ3y4wL/zJeGs3UdJnVa0XhmnHGGuNkH/kuqqpxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QLeWmmGE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zcl/nA9J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C681DC4CEED;
-	Thu, 24 Jul 2025 22:02:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QLeWmmGE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D849DC4CEED;
+	Thu, 24 Jul 2025 22:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753394534;
-	bh=UgWsFN4kYU98EHvKtY89IiRySId3W009wWEQKVfCyBU=;
+	s=korg; t=1753394536;
+	bh=UqLgjQOGA8+vprXsU5GhweeWRjxZnYBSDHky0ibN7PA=;
 	h=Date:To:From:Subject:From;
-	b=zcl/nA9JslUukYdYtolkZO5WbBKRLfEd3EEguJmMLUhuzlChR4ufee/8qDtMD03wB
-	 +X2fDUYS3xSb/reo71h+u1a4y0zA1HmU4xO8JX3/zOJQCspd3xPx6Hf6VpzD1ZqeP3
-	 geiH3wC6ZJDvazMDaBh9JZK64loBALDIopMzjC28=
-Date: Thu, 24 Jul 2025 15:02:14 -0700
+	b=QLeWmmGEAcZp4y9apKIgO3Wvj7T2V5DWwUt91diR7Z8gFppxRrkfgg7KVvDeK04YS
+	 YiWVx+5E8JxpHdZoZSWFCGBqHwAJc9cTY1rcMlAywAw6BTHAQD6BSjsUF58jm8tQdo
+	 jfHU3JMbdHoFjxVeBUJDLhU1BlaccP9NJAe15C20=
+Date: Thu, 24 Jul 2025 15:02:16 -0700
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,thiago.bauermann@linaro.org,ryan.roberts@arm.com,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,joern@logfs.org,hughd@google.com,dev.jain@arm.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,brahmajit.xyz@gmail.com,baolin.wang@linux.alibaba.com,avagin@gmail.com,andrii@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch added to mm-new branch
-Message-Id: <20250724220214.C681DC4CEED@smtp.kernel.org>
+Subject: + mm-mincore-hold-ptl-in-mincore_hugetlb.patch added to mm-new branch
+Message-Id: <20250724220216.D849DC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: hold PTL in pagemap_hugetlb_range and gather_hugetlb_stats
+     Subject: mm/mincore: hold PTL in mincore_hugetlb
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch
+     mm-mincore-hold-ptl-in-mincore_hugetlb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mincore-hold-ptl-in-mincore_hugetlb.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: fs/proc/task_mmu: hold PTL in pagemap_hugetlb_range and gather_hugetlb_stats
-Date: Thu, 24 Jul 2025 17:09:57 +0800
+Subject: mm/mincore: hold PTL in mincore_hugetlb
+Date: Thu, 24 Jul 2025 17:09:58 +0800
 
-Hold PTL in pagemap_hugetlb_range() and gather_hugetlb_stats() to avoid
-operating on stale page, as pagemap_pmd_range() and gather_pte_stats()
-have done.
+Hold PTL in mincore_hugetlb() to avoid operating on stale page, as
+mincore_pte_range() have done.
 
-Link: https://lkml.kernel.org/r/20250724090958.455887-3-tujinjiang@huawei.com
+Link: https://lkml.kernel.org/r/20250724090958.455887-4-tujinjiang@huawei.com
 Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Andrei Vagin <avagin@gmail.com>
@@ -93,65 +92,29 @@ Cc: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ mm/mincore.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats
-+++ a/fs/proc/task_mmu.c
-@@ -2021,12 +2021,14 @@ static int pagemap_hugetlb_range(pte_t *
- 	struct pagemapread *pm = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
- 	u64 flags = 0, frame = 0;
-+	spinlock_t *ptl;
- 	int err = 0;
- 	pte_t pte;
- 
- 	if (vma->vm_flags & VM_SOFTDIRTY)
- 		flags |= PM_SOFT_DIRTY;
- 
-+	ptl = huge_pte_lock(hstate_vma(vma), walk->mm, ptep);
- 	pte = huge_ptep_get(walk->mm, addr, ptep);
- 	if (pte_present(pte)) {
- 		struct folio *folio = page_folio(pte_page(pte));
-@@ -2054,11 +2056,12 @@ static int pagemap_hugetlb_range(pte_t *
- 
- 		err = add_to_pagemap(&pme, pm);
- 		if (err)
--			return err;
-+			break;
- 		if (pm->show_pfn && (flags & PM_PRESENT))
- 			frame++;
- 	}
- 
-+	spin_unlock(ptl);
- 	cond_resched();
- 
- 	return err;
-@@ -3132,17 +3135,22 @@ static int gather_pte_stats(pmd_t *pmd,
- static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
- 		unsigned long addr, unsigned long end, struct mm_walk *walk)
- {
--	pte_t huge_pte = huge_ptep_get(walk->mm, addr, pte);
-+	pte_t huge_pte;
- 	struct numa_maps *md;
- 	struct page *page;
+--- a/mm/mincore.c~mm-mincore-hold-ptl-in-mincore_hugetlb
++++ a/mm/mincore.c
+@@ -29,7 +29,9 @@ static int mincore_hugetlb(pte_t *pte, u
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	unsigned char present;
+ 	unsigned char *vec = walk->private;
 +	spinlock_t *ptl;
  
 +	ptl = huge_pte_lock(hstate_vma(walk->vma), walk->mm, pte);
-+	huge_pte = huge_ptep_get(walk->mm, addr, pte);
- 	if (!pte_present(huge_pte))
--		return 0;
-+		goto out;
- 
- 	page = pte_page(huge_pte);
- 
- 	md = walk->private;
- 	gather_stats(page, md, pte_dirty(huge_pte), 1);
-+out:
+ 	/*
+ 	 * Hugepages under user process are always in RAM and never
+ 	 * swapped out, but theoretically it needs to be checked.
+@@ -38,6 +40,7 @@ static int mincore_hugetlb(pte_t *pte, u
+ 	for (; addr != end; vec++, addr += PAGE_SIZE)
+ 		*vec = present;
+ 	walk->private = vec;
 +	spin_unlock(ptl);
- 	return 0;
- }
- 
+ #else
+ 	BUG();
+ #endif
 _
 
 Patches currently in -mm which might be from tujinjiang@huawei.com are
