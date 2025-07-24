@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E99521771C
-	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 20:37:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38AD2EE5F6
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 21:20:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753389441; cv=none; b=kTxyPZF3Nu5OWCLCOu+4rtNktXILcU9DHZnArU5q2AhjmB4biqtpXNRfnvO8JXtTHhhiAafITAOZzTooBkm+bOPc4HT8idiMWzwlchiGEwfXCGJ8V4Nihioa6fylEi2fZLgHA9IWRWKkQyouubSII8auVfmhKWPjL9jco+eqohk=
+	t=1753392006; cv=none; b=LuoUyMBtDGJrwU3/6HnSNAuvu1APorezCe2/KFLQnXBQGJO1WUn2JnNZyOJGekqs9bFsQ7YDYWvrQM51dBP2wDU+l/VN7Wpc8hNbKNKjpSviDQZadTdzJD3JATHYBJc169c1K0Bg+eNT1IStjvQvgVrlNO6W6w2PNA+0eX2t1M0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753389441; c=relaxed/simple;
-	bh=ZaMUWbDXuYjgMJkC/7676yMeTuBkM5326IGFQBXTtVQ=;
-	h=Date:To:From:Subject:Message-Id; b=Yl+ZgCBS9Q/S7SKsWXbggHpNTxQ/Q87g2bsX6yXwSMSeHIopOhcLqAcT/3FQKzWABszxdKQ+m/bee2n9IlqXxz2Bd5/F9Rdm9wFDLFLZRpUgWitr64bZnhGcapGVx75EpqmsBRydNkP/YQBR0fGztGKzP+jI4KTtfe/IZIxksZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0fCHQmHZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753392006; c=relaxed/simple;
+	bh=GBcrudwAZ4fMLCZulAVGVg672wjO8hrNLxa6UU4Uhyw=;
+	h=Date:To:From:Subject:Message-Id; b=rzoJ1PH8EsODGoTY2aB+18ka07on7L1N6QoOLRJ2Q2KGh6uOGK/40s/iZokl7aVC0A4VR/eGdROrM0kxwVhtbHeEwj1Jf+Tte9Vdp3DXnoGDIpmp4CB1JgoAN0LNY3sZDyxQiskWwtjof0dglFsedzajnJ76Xz5XQMY59fVO2rU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t6RAqjTJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0fCHQmHZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72178C4CEED;
-	Thu, 24 Jul 2025 20:37:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t6RAqjTJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69B87C4CEED;
+	Thu, 24 Jul 2025 21:20:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753389440;
-	bh=ZaMUWbDXuYjgMJkC/7676yMeTuBkM5326IGFQBXTtVQ=;
+	s=korg; t=1753392005;
+	bh=GBcrudwAZ4fMLCZulAVGVg672wjO8hrNLxa6UU4Uhyw=;
 	h=Date:To:From:Subject:From;
-	b=0fCHQmHZWwiyOdY3IR9j7y2DczmylgcKflb04DFEBUWn0twBEjs4gAYvhv4CMf1/D
-	 NS7SwmAf9G7I3TCW6x/rkBW0h0Y2+qFzH6ASngdW5YLQbL6U/euhjEQX/12muZXFbT
-	 gcTSSIblO1FlWFzhV0G6NEYuJR+xjfUI0wIu2UqU=
-Date: Thu, 24 Jul 2025 13:37:19 -0700
-To: mm-commits@vger.kernel.org,sj1557.seo@samsung.com,linkinjeon@kernel.org,hirofumi@mail.parknet.co.jp,akpm@linux-foundation.org
+	b=t6RAqjTJcSjjGDN/r92V9TVC8GQ0sMvYiLzsQqpJrMlL55ijbsUC++o3S24Mn/Kz9
+	 2DjZudlD2bKEF2rNDimqhIPAAmKezGS+VzJ0wg7afHugwHGPFnv03TjlSysj0t4OhX
+	 zH3VpZx4XZ1d0Fh4ce8ZBYuyPiC/09diT7usCFEE=
+Date: Thu, 24 Jul 2025 14:20:04 -0700
+To: mm-commits@vger.kernel.org,colin.i.king@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-fix-too-many-log-in-fat_chain_add.patch added to mm-nonmm-unstable branch
-Message-Id: <20250724203720.72178C4CEED@smtp.kernel.org>
+Subject: + samples-kconfig-fix-spelling-mistake-instancess-instances.patch added to mm-nonmm-unstable branch
+Message-Id: <20250724212005.69B87C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fat: fix too many log in fat_chain_add()
+     Subject: samples: Kconfig: fix spelling mistake "instancess" -> "instances"
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fat-fix-too-many-log-in-fat_chain_add.patch
+     samples-kconfig-fix-spelling-mistake-instancess-instances.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-fix-too-many-log-in-fat_chain_add.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-kconfig-fix-spelling-mistake-instancess-instances.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: fix too many log in fat_chain_add()
-Date: Thu, 24 Jul 2025 16:42:10 +0900
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: samples: Kconfig: fix spelling mistake "instancess" -> "instances"
+Date: Thu, 24 Jul 2025 12:17:15 +0100
 
-This log was excessive for a serial console.  So use the ratelimited
-version instead.
+There is a spelling mistake in the SAMPLE_TRACE_ARRAY config. Fix it.
 
-Link: https://lkml.kernel.org/r/87qzy611d9.fsf@mail.parknet.co.jp
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Reported-by: syzbot+fa7ef54f66c189c04b73@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=fa7ef54f66c189c04b73
-Cc: Namjae Jeon <linkinjeon@kernel.org>
-Cc: Sungjong Seo <sj1557.seo@samsung.com>
+Link: https://lkml.kernel.org/r/20250724111715.141826-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/misc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ samples/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/fat/misc.c~fat-fix-too-many-log-in-fat_chain_add
-+++ a/fs/fat/misc.c
-@@ -158,9 +158,9 @@ int fat_chain_add(struct inode *inode, i
- 			mark_inode_dirty(inode);
- 	}
- 	if (new_fclus != (inode->i_blocks >> (sbi->cluster_bits - 9))) {
--		fat_fs_error(sb, "clusters badly computed (%d != %llu)",
--			     new_fclus,
--			     (llu)(inode->i_blocks >> (sbi->cluster_bits - 9)));
-+		fat_fs_error_ratelimit(
-+			sb, "clusters badly computed (%d != %llu)", new_fclus,
-+			(llu)(inode->i_blocks >> (sbi->cluster_bits - 9)));
- 		fat_cache_inval_inode(inode);
- 	}
- 	inode->i_blocks += nr_cluster << (sbi->cluster_bits - 9);
+--- a/samples/Kconfig~samples-kconfig-fix-spelling-mistake-instancess-instances
++++ a/samples/Kconfig
+@@ -54,7 +54,7 @@ config SAMPLE_FTRACE_OPS
+ 	  measures the time taken to invoke one function a number of times.
+ 
+ config SAMPLE_TRACE_ARRAY
+-        tristate "Build sample module for kernel access to Ftrace instancess"
++        tristate "Build sample module for kernel access to Ftrace instances"
+ 	depends on EVENT_TRACING && m
+ 	help
+ 	 This builds a module that demonstrates the use of various APIs to
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
-fat-fix-too-many-log-in-fat_chain_add.patch
+samples-kconfig-fix-spelling-mistake-instancess-instances.patch
 
