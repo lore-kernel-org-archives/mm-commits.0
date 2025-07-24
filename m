@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C505286328
-	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 22:15:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA25986328
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 22:15:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753395318; cv=none; b=T0Ju0WIRWzBlvAVTw7HEF30j/sptMfQ91Ww23oon80patEn3wT/oiAoRmYLmCpL1OUMFpA+nLXS1Kjn8SC2FeWzc4fqc9DaeAlDg4sSKEHOrOqqE3ZVHV8stg0njzN6vRKErT0UXqjnfizZZveuwbCvZovV4/tnXhDhp4REL8Bc=
+	t=1753395320; cv=none; b=lzCQQ2T0dGhiPWi5+S4U/z06dSVWQ8m6Eud1FTyWVqyha3rhlAj9ySaeIZheQxIlkSEaS+Al8XZDO8Pn73XF40XM6+IoYmomA9Ve5cZ+k6rKcmFXTJWVc74ZkTgGJKS+GJFtf42o6Ao56CMyn11KHB1VEKyhxQPadrol+TVy6wg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753395318; c=relaxed/simple;
-	bh=dg+3+u2QEL6J7E5/Qkq943n27/hT7ufqJPh+eQNYdcY=;
-	h=Date:To:From:Subject:Message-Id; b=VrPCtZCacPcRE7BSgqeZ/qnaUXbtf5MrB/50FcUMFskYFoTlh2GluYb3CAdfrYi28uzC23zFSrcQL4MMayzq26ntzYvl4LE8nUN08J2yZ2NsRI9YI1jzzFnCdJ25Fg91Ly45M19LYCw4ALTlKdunJ6ZEdui/vHIkQal8Ezw1abw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FURRBBAz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753395320; c=relaxed/simple;
+	bh=NJ0Q3YJx7QSkT4GaqkzjfkDDHc8KDO7M202sBuNvgcM=;
+	h=Date:To:From:Subject:Message-Id; b=JQUmEfsfGq5dYyzfNH2alMfVTHY6+BXq0fqu/qdOgP8Igt4LqpMjSoId0zKXTWftnHv2K/Nxi+KwNC3re3PqNMNXJ66XGeGIE+LqQ22e8XUSNnow4KIrmgmBISVokIDEAHwfUooGFBu5YPlW+0o/i12v0hi80qqPjpKwqmfItI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QBDomL1x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FURRBBAz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52FC2C4CEED;
-	Thu, 24 Jul 2025 22:15:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QBDomL1x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54AD7C4CEED;
+	Thu, 24 Jul 2025 22:15:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753395318;
-	bh=dg+3+u2QEL6J7E5/Qkq943n27/hT7ufqJPh+eQNYdcY=;
+	s=korg; t=1753395320;
+	bh=NJ0Q3YJx7QSkT4GaqkzjfkDDHc8KDO7M202sBuNvgcM=;
 	h=Date:To:From:Subject:From;
-	b=FURRBBAz8lfjcySj9/kcBcx+YmkJqxI8qGEZ1gs0Ga1MBIciBtyDGeAyatqqZUKSM
-	 4FazvZQW005pIcvYXOOPCTkqlOt+HEM7KNhzTzwV7oIERGM+k6QMEPgZERlQpY8us4
-	 BfTE9mWQk1Jv7k7E/3gxnOlpfxc30QVygKslxOBs=
-Date: Thu, 24 Jul 2025 15:15:17 -0700
+	b=QBDomL1xT91AxWlieo5ZqgJ/81qbmCsA0USly/m8qmgFTylONDec8hgZnm9eq5LNW
+	 D8oGuQe1isG6UFUJKeVlRwDRBDO1gCFBrJVLWKV+KeNN3fKAujUWKiN3ZkE5OJMIKJ
+	 +gUNtD+AAMVLgBV+m/uq6+wOHLz+dw7Ku5x6xBXo=
+Date: Thu, 24 Jul 2025 15:15:19 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-optimize-__collapse_huge_page_copy_succeeded-by-pte-batching.patch added to mm-new branch
-Message-Id: <20250724221518.52FC2C4CEED@smtp.kernel.org>
+Subject: + khugepaged-optimize-collapse_pte_mapped_thp-by-pte-batching.patch added to mm-new branch
+Message-Id: <20250724221520.54AD7C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: optimize __collapse_huge_page_copy_succeeded() by PTE batching
+     Subject: khugepaged: optimize collapse_pte_mapped_thp() by PTE batching
 has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-optimize-__collapse_huge_page_copy_succeeded-by-pte-batching.patch
+     khugepaged-optimize-collapse_pte_mapped_thp-by-pte-batching.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-optimize-__collapse_huge_page_copy_succeeded-by-pte-batching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-optimize-collapse_pte_mapped_thp-by-pte-batching.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,15 +65,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: khugepaged: optimize __collapse_huge_page_copy_succeeded() by PTE batching
-Date: Thu, 24 Jul 2025 10:53:00 +0530
+Subject: khugepaged: optimize collapse_pte_mapped_thp() by PTE batching
+Date: Thu, 24 Jul 2025 10:53:01 +0530
 
 Use PTE batching to batch process PTEs mapping the same large folio. An
-improvement is expected due to batching refcount-mapcount manipulation on
-the folios, and for arm64 which supports contig mappings, the number of
+improvement is expected due to batching mapcount manipulation on the
+folios, and for arm64 which supports contig mappings, the number of
 TLB flushes is also reduced.
 
-Link: https://lkml.kernel.org/r/20250724052301.23844-3-dev.jain@arm.com
+Note that we do not need to make a change to the check
+"if (folio_page(folio, i) != page)"; if i'th page of the folio is equal
+to the first page of our batch, then i + 1, .... i + nr_batch_ptes - 1
+pages of the folio will be equal to the corresponding pages of our
+batch mapping consecutive pages.
+
+Link: https://lkml.kernel.org/r/20250724052301.23844-4-dev.jain@arm.com
 Signed-off-by: Dev Jain <dev.jain@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -86,61 +92,98 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |   33 +++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-optimize-__collapse_huge_page_copy_succeeded-by-pte-batching
+--- a/mm/khugepaged.c~khugepaged-optimize-collapse_pte_mapped_thp-by-pte-batching
 +++ a/mm/khugepaged.c
-@@ -700,12 +700,15 @@ static void __collapse_huge_page_copy_su
- 						spinlock_t *ptl,
- 						struct list_head *compound_pagelist)
+@@ -1503,15 +1503,17 @@ static int set_huge_pmd(struct vm_area_s
+ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+ 			    bool install_pmd)
  {
-+	unsigned long end = address + HPAGE_PMD_SIZE;
- 	struct folio *src, *tmp;
--	pte_t *_pte;
- 	pte_t pteval;
-+	pte_t *_pte;
-+	unsigned int nr_ptes;
++	int nr_mapped_ptes = 0, result = SCAN_FAIL;
++	unsigned int nr_batch_ptes;
+ 	struct mmu_notifier_range range;
+ 	bool notified = false;
+ 	unsigned long haddr = addr & HPAGE_PMD_MASK;
++	unsigned long end = haddr + HPAGE_PMD_SIZE;
+ 	struct vm_area_struct *vma = vma_lookup(mm, haddr);
+ 	struct folio *folio;
+ 	pte_t *start_pte, *pte;
+ 	pmd_t *pmd, pgt_pmd;
+ 	spinlock_t *pml = NULL, *ptl;
+-	int nr_ptes = 0, result = SCAN_FAIL;
+ 	int i;
  
--	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
--	     _pte++, address += PAGE_SIZE) {
-+	for (_pte = pte; _pte < pte + HPAGE_PMD_NR; _pte += nr_ptes,
-+	     address += nr_ptes * PAGE_SIZE) {
-+		nr_ptes = 1;
- 		pteval = ptep_get(_pte);
- 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
- 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
-@@ -722,18 +725,26 @@ static void __collapse_huge_page_copy_su
- 			struct page *src_page = pte_page(pteval);
+ 	mmap_assert_locked(mm);
+@@ -1625,11 +1627,15 @@ int collapse_pte_mapped_thp(struct mm_st
+ 		goto abort;
  
- 			src = page_folio(src_page);
--			if (!folio_test_large(src))
+ 	/* step 2: clear page table and adjust rmap */
+-	for (i = 0, addr = haddr, pte = start_pte;
+-	     i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE, pte++) {
++	for (i = 0, addr = haddr, pte = start_pte; i < HPAGE_PMD_NR;
++	     i += nr_batch_ptes, addr += nr_batch_ptes * PAGE_SIZE,
++	     pte += nr_batch_ptes) {
++		unsigned int max_nr_batch_ptes = (end - addr) >> PAGE_SHIFT;
+ 		struct page *page;
+ 		pte_t ptent = ptep_get(pte);
+ 
++		nr_batch_ptes = 1;
 +
-+			if (folio_test_large(src)) {
-+				unsigned int max_nr_ptes = (end - address) >> PAGE_SHIFT;
-+
-+				nr_ptes = folio_pte_batch(src, _pte, pteval, max_nr_ptes);
-+			} else {
- 				release_pte_folio(src);
-+			}
-+
- 			/*
- 			 * ptl mostly unnecessary, but preempt has to
- 			 * be disabled to update the per-cpu stats
- 			 * inside folio_remove_rmap_pte().
- 			 */
- 			spin_lock(ptl);
--			ptep_clear(vma->vm_mm, address, _pte);
--			folio_remove_rmap_pte(src, src_page, vma);
-+			clear_ptes(vma->vm_mm, address, _pte, nr_ptes);
-+			folio_remove_rmap_ptes(src, src_page, nr_ptes, vma);
- 			spin_unlock(ptl);
--			free_folio_and_swap_cache(src);
-+			free_swap_cache(src);
-+			folio_put_refs(src, nr_ptes);
+ 		if (pte_none(ptent))
+ 			continue;
+ 		/*
+@@ -1643,26 +1649,29 @@ int collapse_pte_mapped_thp(struct mm_st
+ 			goto abort;
  		}
+ 		page = vm_normal_page(vma, addr, ptent);
++
+ 		if (folio_page(folio, i) != page)
+ 			goto abort;
+ 
++		nr_batch_ptes = folio_pte_batch(folio, pte, ptent, max_nr_batch_ptes);
++
+ 		/*
+ 		 * Must clear entry, or a racing truncate may re-remove it.
+ 		 * TLB flush can be left until pmdp_collapse_flush() does it.
+ 		 * PTE dirty? Shmem page is already dirty; file is read-only.
+ 		 */
+-		ptep_clear(mm, addr, pte);
+-		folio_remove_rmap_pte(folio, page, vma);
+-		nr_ptes++;
++		clear_ptes(mm, addr, pte, nr_batch_ptes);
++		folio_remove_rmap_ptes(folio, page, nr_batch_ptes, vma);
++		nr_mapped_ptes += nr_batch_ptes;
  	}
  
+ 	if (!pml)
+ 		spin_unlock(ptl);
+ 
+ 	/* step 3: set proper refcount and mm_counters. */
+-	if (nr_ptes) {
+-		folio_ref_sub(folio, nr_ptes);
+-		add_mm_counter(mm, mm_counter_file(folio), -nr_ptes);
++	if (nr_mapped_ptes) {
++		folio_ref_sub(folio, nr_mapped_ptes);
++		add_mm_counter(mm, mm_counter_file(folio), -nr_mapped_ptes);
+ 	}
+ 
+ 	/* step 4: remove empty page table */
+@@ -1695,10 +1704,10 @@ maybe_install_pmd:
+ 			: SCAN_SUCCEED;
+ 	goto drop_folio;
+ abort:
+-	if (nr_ptes) {
++	if (nr_mapped_ptes) {
+ 		flush_tlb_mm(mm);
+-		folio_ref_sub(folio, nr_ptes);
+-		add_mm_counter(mm, mm_counter_file(folio), -nr_ptes);
++		folio_ref_sub(folio, nr_mapped_ptes);
++		add_mm_counter(mm, mm_counter_file(folio), -nr_mapped_ptes);
+ 	}
+ unlock:
+ 	if (start_pte)
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
