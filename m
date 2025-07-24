@@ -1,111 +1,154 @@
-Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CB661C863B;
-	Wed, 23 Jul 2025 22:40:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8058929A5
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 00:26:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753310423; cv=none; b=P2LIGRpIbyGyX9n0n27HYJHgzZsu2s2Mo8RC7UEi4e6/F6N+jVSwUSjUvpRD3Gxy8/V8qYr00c0LkXy26+zzJiQb6Fi6iboFYYkFdl5ofvN/UiFpu07RpwLYtQhaSd6J7HrO4FLQXeeryyjQLetuPp6xCjubT8PkK7e3BBYkriI=
+	t=1753316780; cv=none; b=S+b7X7SWzvpiknC+FdrbVhC8WPLjZHIR4SKCPjigvxX7j9quS5JBNDIyclxugcWZz5VAo+eLBY+KK5QWdrFhBkKM/J1QE7WEOiFfR0n6H82leqsa2nqVZ7SukTMk7647XxO0O5qr9HydZWkpLAcEdQ47sv6R2w1Dg0Jt/x6Zgr0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753310423; c=relaxed/simple;
-	bh=qPt1t5YC/lIa/8UTL/q+3h6YL6/f0oD4nfi9f6O0SOU=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=bHjaGe3tQseVwv+7oHdz4IyJbYrX0y/6tQcKbIic5iw9/3/VzztEQKVvknapztDntAxHjxgQBu46FXikEpHGc3KkRtSRfJVQzNrQQBf3QrGmU1OSSI2mChK5BxTgIgL+3RJVoOUJSwQNoIRgEUt2+jpQCb0yYW8tDbFhRPsPKVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au; spf=pass smtp.mailfrom=canb.auug.org.au; dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b=YtKIaGCw; arc=none smtp.client-ip=150.107.74.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canb.auug.org.au
+	s=arc-20240116; t=1753316780; c=relaxed/simple;
+	bh=bGZd7p01CMrOdzh8PKjG1OGMNB0SYvU0yc9AUiwpLM0=;
+	h=Date:To:From:Subject:Message-Id; b=XZ6g6INHaevcKMDNh7LzNV3i1EaFE96yvlzrVH1Z8r2iVuNc3r3ZgQ3CzvlZ3OiY18e9LDgOgDzjYoubdZZfvG1JhhDphqc8kGp/Ey9IFmqYPtT830C34FvbHGI+PVw08vBjInPn6blFF1g5yCFrq7LWjikwpgGVIzFJkeAOW2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xd3DMwRJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="YtKIaGCw"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-	s=202503; t=1753310243;
-	bh=O8vGPj42JXQgPWGzEXGzW+BZBP+2Ptm+BwM8qMFX2TU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=YtKIaGCw0H2VnP2J2DcpiOxH2B8MLcmjxs7MhYp/UrG5A15IYmygtl7ZSaphJXKg2
-	 CwmWmKiOkg2lczl2mqPbJ5hemxiZIaAl9IhHpJVJiJsXsNkMPPydgBvBdv5hOI6xSV
-	 INm5m3bSNaIVzlI0Dgm9e0+h6WupOKzxMEkk5IaYD77d8fD7FTV3ozmU26/2IOJQPm
-	 IUH+hUPMH09hMBB4A6J0xt+Jq9+ag1RqqFwSIDs/zIcSXwT/wu06BkdKetX/MfYTz7
-	 ph2iEVAMKb2/Uu47jP2Ul0l3Wvnke+AI3QZujipXvOzfR/0uVoTIfbXuOJ7DigkaY3
-	 Ni/5PD2wUQr5g==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4bnTXf5Zjjz4wcg;
-	Thu, 24 Jul 2025 08:37:22 +1000 (AEST)
-Date: Thu, 24 Jul 2025 08:40:12 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- stable@vger.kernel.org, senozhatsky@chromium.org, rostedt@goodmis.org,
- pmladek@suse.com, linux@rasmusvillemoes.dk, herbert@gondor.apana.org.au
-Subject: Re: + sprintfh-requires-stdargh.patch added to mm-hotfixes-unstable
- branch
-Message-ID: <20250724084012.5d7bbc47@canb.auug.org.au>
-In-Reply-To: <aID_3hHxWXd1LC5F@smile.fi.intel.com>
-References: <20250721211353.41334C4CEED@smtp.kernel.org>
-	<aID_3hHxWXd1LC5F@smile.fi.intel.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xd3DMwRJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0DD4C4CEE7;
+	Thu, 24 Jul 2025 00:26:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1753316779;
+	bh=bGZd7p01CMrOdzh8PKjG1OGMNB0SYvU0yc9AUiwpLM0=;
+	h=Date:To:From:Subject:From;
+	b=Xd3DMwRJiMOLvwgy30DAHggNLY8RCLJHwI2KWKBrl4wFltPPGqpZ+KA5SjD8hFaKB
+	 EC3wIiAMyYie7aRmL807PL2R2FfQDEpDbB9VtPyI789EnVY6nNwMvjKFWNWn/cC5we
+	 wDN7nMrXfuNTmG2j9Ls2lgYt+S02lTJp0Bh0gLUk=
+Date: Wed, 23 Jul 2025 17:26:19 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + kasan-skip-quarantine-if-object-is-still-accessible-under-rcu.patch added to mm-unstable branch
+Message-Id: <20250724002619.D0DD4C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/Qs/fAjh=599rO=8v+9Ri.ud";
- protocol="application/pgp-signature"; micalg=pgp-sha256
 
---Sig_/Qs/fAjh=599rO=8v+9Ri.ud
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andy,
+The patch titled
+     Subject: kasan: skip quarantine if object is still accessible under RCU
+has been added to the -mm mm-unstable branch.  Its filename is
+     kasan-skip-quarantine-if-object-is-still-accessible-under-rcu.patch
 
-On Wed, 23 Jul 2025 18:29:34 +0300 Andy Shevchenko <andriy.shevchenko@linux=
-.intel.com> wrote:
->
-> On Mon, Jul 21, 2025 at 02:13:52PM -0700, Andrew Morton wrote:
->=20
-> > ------------------------------------------------------
-> > From: Stephen Rothwell <sfr@canb.auug.org.au>
-> > Subject: sprintf.h requires stdarg.h
-> > Date: Mon, 21 Jul 2025 16:15:57 +1000
-> >=20
-> > In file included from drivers/crypto/intel/qat/qat_common/adf_pm_dbgfs_=
-utils.c:4:
-> > include/linux/sprintf.h:11:54: error: unknown type name 'va_list'
-> >    11 | __printf(2, 0) int vsprintf(char *buf, const char *, va_list);
-> >       |                                                      ^~~~~~~
-> > include/linux/sprintf.h:1:1: note: 'va_list' is defined in header '<std=
-arg.h>'; this is probably fixable by adding '#include <stdarg.h>' =20
->=20
-> ...
->=20
-> >  #include <linux/compiler_attributes.h>
-> >  #include <linux/types.h>
-> > +#include <linux/stdarg.h> =20
->=20
-> Can we prevent the ordering?
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-skip-quarantine-if-object-is-still-accessible-under-rcu.patch
 
-I am not sure what you mean by this.  Do you want alphabetical, reverse
-christmas tree, or something else?  Or are you concerned with something
-completely different?
---=20
-Cheers,
-Stephen Rothwell
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
---Sig_/Qs/fAjh=599rO=8v+9Ri.ud
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
------BEGIN PGP SIGNATURE-----
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmiBZMwACgkQAVBC80lX
-0GxQpAf8DjwIOehxdYkJ7ovgC9HZmEz7t8kYnx//4wgJ6BdZY40E29yRSNPB2P9d
-2io5gFFHlQL96V5cbKN0XIKupGcJfzR2FdEhRk6f+oEkNFsqIGE0UemBMxO3imFw
-P3OBDRVzOi4BuDifacKml5q6nmvoDy4W+OK5BaDyXQxwyHxsFS05uSLIyuGY0uD4
-liJQcPKnjORfz/tWZwUJ5vXW4sTX/8m+UyJFkohX70zJhPa0RM24PKlUD4ORxYti
-R2/SOPCPmff23XdvIQwZC/1iq3DA6Gcq6pluMtsgPxP457rkfvDbE+i5EIxNduO9
-beta7ZPwF3USK9F486nerr3jg+f7tQ==
-=y9eI
------END PGP SIGNATURE-----
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
---Sig_/Qs/fAjh=599rO=8v+9Ri.ud--
+------------------------------------------------------
+From: Jann Horn <jannh@google.com>
+Subject: kasan: skip quarantine if object is still accessible under RCU
+Date: Wed, 23 Jul 2025 16:59:19 +0200
+
+Currently, enabling KASAN masks bugs where a lockless lookup path gets a
+pointer to a SLAB_TYPESAFE_BY_RCU object that might concurrently be
+recycled and is insufficiently careful about handling recycled objects:
+KASAN puts freed objects in SLAB_TYPESAFE_BY_RCU slabs onto its quarantine
+queues, even when it can't actually detect UAF in these objects, and the
+quarantine prevents fast recycling.
+
+When I introduced CONFIG_SLUB_RCU_DEBUG, my intention was that enabling
+CONFIG_SLUB_RCU_DEBUG should cause KASAN to mark such objects as freed
+after an RCU grace period and put them on the quarantine, while disabling
+CONFIG_SLUB_RCU_DEBUG should allow such objects to be reused immediately;
+but that hasn't actually been working.
+
+I discovered such a UAF bug involving SLAB_TYPESAFE_BY_RCU yesterday; I
+could only trigger this bug in a KASAN build by disabling
+CONFIG_SLUB_RCU_DEBUG and applying this patch.
+
+Link: https://lkml.kernel.org/r/20250723-kasan-tsbrcu-noquarantine-v1-1-846c8645976c@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/kasan/common.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
+
+--- a/mm/kasan/common.c~kasan-skip-quarantine-if-object-is-still-accessible-under-rcu
++++ a/mm/kasan/common.c
+@@ -230,16 +230,12 @@ static bool check_slab_allocation(struct
+ }
+ 
+ static inline void poison_slab_object(struct kmem_cache *cache, void *object,
+-				      bool init, bool still_accessible)
++				      bool init)
+ {
+ 	void *tagged_object = object;
+ 
+ 	object = kasan_reset_tag(object);
+ 
+-	/* RCU slabs could be legally used after free within the RCU period. */
+-	if (unlikely(still_accessible))
+-		return;
+-
+ 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
+ 			KASAN_SLAB_FREE, init);
+ 
+@@ -261,7 +257,22 @@ bool __kasan_slab_free(struct kmem_cache
+ 	if (!kasan_arch_is_ready() || is_kfence_address(object))
+ 		return false;
+ 
+-	poison_slab_object(cache, object, init, still_accessible);
++	/*
++	 * If this point is reached with an object that must still be
++	 * accessible under RCU, we can't poison it; in that case, also skip the
++	 * quarantine. This should mostly only happen when CONFIG_SLUB_RCU_DEBUG
++	 * has been disabled manually.
++	 *
++	 * Putting the object on the quarantine wouldn't help catch UAFs (since
++	 * we can't poison it here), and it would mask bugs caused by
++	 * SLAB_TYPESAFE_BY_RCU users not being careful enough about object
++	 * reuse; so overall, putting the object into the quarantine here would
++	 * be counterproductive.
++	 */
++	if (still_accessible)
++		return false;
++
++	poison_slab_object(cache, object, init);
+ 
+ 	/*
+ 	 * If the object is put into quarantine, do not let slab put the object
+@@ -519,7 +530,7 @@ bool __kasan_mempool_poison_object(void
+ 	if (check_slab_allocation(slab->slab_cache, ptr, ip))
+ 		return false;
+ 
+-	poison_slab_object(slab->slab_cache, ptr, false, false);
++	poison_slab_object(slab->slab_cache, ptr, false);
+ 	return true;
+ }
+ 
+_
+
+Patches currently in -mm which might be from jannh@google.com are
+
+kasan-skip-quarantine-if-object-is-still-accessible-under-rcu.patch
+
