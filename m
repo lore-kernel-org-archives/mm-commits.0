@@ -1,105 +1,100 @@
-Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D156BB5B;
-	Thu, 24 Jul 2025 13:47:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E99521771C
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 20:37:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753364845; cv=none; b=aKSe4H38vCUczlP6Qfv0zX3OaqPcU6mgJQ7TtcvphHfBwlo1ZYHnaVGhTkxlAURFk3hMet92pTwp7PBoNUf4RsCTV1u1loTn5DI06tuj9zZri2ZGqpnCz6/Nm7a7K8ODQcQlP7ZsS5D1EdBc8btKR28Q+XPwH/FxjzfLaz8DaRk=
+	t=1753389441; cv=none; b=kTxyPZF3Nu5OWCLCOu+4rtNktXILcU9DHZnArU5q2AhjmB4biqtpXNRfnvO8JXtTHhhiAafITAOZzTooBkm+bOPc4HT8idiMWzwlchiGEwfXCGJ8V4Nihioa6fylEi2fZLgHA9IWRWKkQyouubSII8auVfmhKWPjL9jco+eqohk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753364845; c=relaxed/simple;
-	bh=2kdZ4xvUYXwlOleN9a/KN6UiK3wSYlarxxKPxFl/eFc=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TddJYt3J7AXLwDMwcnVN4UdWqryDy6xIlz1cIPSNN9YlVkIZ4hvuk+4Up+LMe9fqSZg0edRgduQgm0kQjBvB4UskxMtxTtX9u+4206fR5VNGa5CjVR6gBKQuN4/4ilonABzflXmv/Bz5IEZd5mllbF4Vot7bbseYZ3fMm8AjdjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au; spf=pass smtp.mailfrom=canb.auug.org.au; dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b=bgKWeb14; arc=none smtp.client-ip=150.107.74.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canb.auug.org.au
+	s=arc-20240116; t=1753389441; c=relaxed/simple;
+	bh=ZaMUWbDXuYjgMJkC/7676yMeTuBkM5326IGFQBXTtVQ=;
+	h=Date:To:From:Subject:Message-Id; b=Yl+ZgCBS9Q/S7SKsWXbggHpNTxQ/Q87g2bsX6yXwSMSeHIopOhcLqAcT/3FQKzWABszxdKQ+m/bee2n9IlqXxz2Bd5/F9Rdm9wFDLFLZRpUgWitr64bZnhGcapGVx75EpqmsBRydNkP/YQBR0fGztGKzP+jI4KTtfe/IZIxksZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0fCHQmHZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="bgKWeb14"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-	s=202503; t=1753364660;
-	bh=Wyb3wp6qFEX/SdEeQNb+HyojfhrBOwJWLpGcOwCl/BE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=bgKWeb14NXrC8IjsZdHw3Wra65z2AAsBaaK0hwmMo1krznGejfEj+0/HCuB4ODZ4t
-	 HebyBOsEr/m8WSXKT0AQa7ZJwAJfXSM9onHB3X8U9R4TZO566g2NARgeRVeR7Pail3
-	 /4conJbtaBvwpC9T75aovj2iVjby5Psy3NIMDtyUWHlD2AXPpiPECI4oaqzKITSf85
-	 g78rw/PgnSxvLTmB8ityt4Chm/Wvnxr5fDagVhrSV54hvagATTrL06vMcHSVDHlXo1
-	 yKoAEPPHITGb5Zew//Qyh8pTkO+s3ICItEreX80akhMvNUXKNod99jwOXkj0FJfQ7b
-	 LjCUDnwb30uDQ==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4bnsg44GQrz4x11;
-	Thu, 24 Jul 2025 23:44:16 +1000 (AEST)
-Date: Thu, 24 Jul 2025 23:46:57 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- stable@vger.kernel.org, senozhatsky@chromium.org, rostedt@goodmis.org,
- pmladek@suse.com, linux@rasmusvillemoes.dk, herbert@gondor.apana.org.au
-Subject: Re: + sprintfh-requires-stdargh.patch added to mm-hotfixes-unstable
- branch
-Message-ID: <20250724234547.737912c1@canb.auug.org.au>
-In-Reply-To: <aIIcGulQp7MOsYtP@smile.fi.intel.com>
-References: <20250721211353.41334C4CEED@smtp.kernel.org>
-	<aID_3hHxWXd1LC5F@smile.fi.intel.com>
-	<20250724084012.5d7bbc47@canb.auug.org.au>
-	<aIIcGulQp7MOsYtP@smile.fi.intel.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0fCHQmHZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72178C4CEED;
+	Thu, 24 Jul 2025 20:37:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1753389440;
+	bh=ZaMUWbDXuYjgMJkC/7676yMeTuBkM5326IGFQBXTtVQ=;
+	h=Date:To:From:Subject:From;
+	b=0fCHQmHZWwiyOdY3IR9j7y2DczmylgcKflb04DFEBUWn0twBEjs4gAYvhv4CMf1/D
+	 NS7SwmAf9G7I3TCW6x/rkBW0h0Y2+qFzH6ASngdW5YLQbL6U/euhjEQX/12muZXFbT
+	 gcTSSIblO1FlWFzhV0G6NEYuJR+xjfUI0wIu2UqU=
+Date: Thu, 24 Jul 2025 13:37:19 -0700
+To: mm-commits@vger.kernel.org,sj1557.seo@samsung.com,linkinjeon@kernel.org,hirofumi@mail.parknet.co.jp,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + fat-fix-too-many-log-in-fat_chain_add.patch added to mm-nonmm-unstable branch
+Message-Id: <20250724203720.72178C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/aMLhU40Npbud8+Di1qBqoOL";
- protocol="application/pgp-signature"; micalg=pgp-sha256
 
---Sig_/aMLhU40Npbud8+Di1qBqoOL
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andy,
+The patch titled
+     Subject: fat: fix too many log in fat_chain_add()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fat-fix-too-many-log-in-fat_chain_add.patch
 
-On Thu, 24 Jul 2025 14:42:18 +0300 Andy Shevchenko <andriy.shevchenko@linux=
-.intel.com> wrote:
->
-> > > >  #include <linux/compiler_attributes.h>
-> > > >  #include <linux/types.h>
-> > > > +#include <linux/stdarg.h>   =20
-> > >=20
-> > > Can we prevent the ordering? =20
-> >=20
-> > I am not sure what you mean by this.  Do you want alphabetical, reverse
-> > christmas tree, or something else?  Or are you concerned with something
-> > completely different? =20
->=20
-> Alphabetical
->=20
-> #include <linux/compiler_attributes.h>
-> #include <linux/stdarg.h> =20
-> #include <linux/types.h>
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-fix-too-many-log-in-fat_chain_add.patch
 
-I have no strong opinion, so fine by me.
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
---=20
-Cheers,
-Stephen Rothwell
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---Sig_/aMLhU40Npbud8+Di1qBqoOL
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
------BEGIN PGP SIGNATURE-----
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmiCOVMACgkQAVBC80lX
-0GwonQf9EHmHJ7tpYBFmwqQVKPGqnctEg41METeKXPZSiZsXEIngKsd2gjv7pPVs
-qNwY/sDMq1HJ/ErsozcEUv8/w5ukuz12uNVEp/sioLx7V6G7nW5iBf4i4cYpaWU4
-LdRSFVh28VYIsD1neGf8AG2Orvoqkyvjs3QATk2xcqMYHasU/Ur3oAruXzxsjYvW
-lkrCNLwBotiM8VUYU9tKPpmdZDY0cmhgLW2jSH83v++0KbYtm3Nl233XztFERFZS
-9rTQuFrldw1gNHCfCYUmFr1o8lbtOvLUqelXBWwg9eUjZ7FXmhWxzNyw7aadX2YQ
-Er0MN2iDHbLVHrRkdJuPcCZDnMvAxg==
-=VWYK
------END PGP SIGNATURE-----
+------------------------------------------------------
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: fix too many log in fat_chain_add()
+Date: Thu, 24 Jul 2025 16:42:10 +0900
 
---Sig_/aMLhU40Npbud8+Di1qBqoOL--
+This log was excessive for a serial console.  So use the ratelimited
+version instead.
+
+Link: https://lkml.kernel.org/r/87qzy611d9.fsf@mail.parknet.co.jp
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Reported-by: syzbot+fa7ef54f66c189c04b73@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=fa7ef54f66c189c04b73
+Cc: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Sungjong Seo <sj1557.seo@samsung.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/fat/misc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/fs/fat/misc.c~fat-fix-too-many-log-in-fat_chain_add
++++ a/fs/fat/misc.c
+@@ -158,9 +158,9 @@ int fat_chain_add(struct inode *inode, i
+ 			mark_inode_dirty(inode);
+ 	}
+ 	if (new_fclus != (inode->i_blocks >> (sbi->cluster_bits - 9))) {
+-		fat_fs_error(sb, "clusters badly computed (%d != %llu)",
+-			     new_fclus,
+-			     (llu)(inode->i_blocks >> (sbi->cluster_bits - 9)));
++		fat_fs_error_ratelimit(
++			sb, "clusters badly computed (%d != %llu)", new_fclus,
++			(llu)(inode->i_blocks >> (sbi->cluster_bits - 9)));
+ 		fat_cache_inval_inode(inode);
+ 	}
+ 	inode->i_blocks += nr_cluster << (sbi->cluster_bits - 9);
+_
+
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+
+fat-fix-too-many-log-in-fat_chain_add.patch
+
