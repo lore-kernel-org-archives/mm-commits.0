@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 188B1232386
-	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 21:24:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 290242EE289
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2025 21:24:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753392286; cv=none; b=f1QJrO+0+VpzAkRUyAUA1nD3TMEwtdLaAY59dtRFk/b2OFlrmx1owy1NhXPK4DkGWPysMF8vhh1dJKBCcjrIdgZ1iHO3MdAosqbvfWy/iV7oShyMwxYeSwtKidHxV1BgsJY9BaVYK+iZosS6LpSWmJkFaJh7kOi7omNZHr1fcFU=
+	t=1753392288; cv=none; b=gx7H+Y447PKS1WPSj3KCoDDTG1CJ0zKIOPyygpcajCroQHhf4GZkFCKC2gIp0+mEpirEovZGNAISDJL6xHFcknDvt6NrucBvWDvDzasorG7qbUmWGzwi2ItGNlNQYi2HhMgQ+S1TabL/XfElEPD33GPkPQjoT9XYA4RFSkQpd/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753392286; c=relaxed/simple;
-	bh=JqSYGu+r6tMar1lYEeILvncWZjcRlVXY9aseRtWxtOY=;
-	h=Date:To:From:Subject:Message-Id; b=bp0iyfyYOCTGFkVhfCVS/4OiCdfomU6QQ2+19wUVbJYhrLsRxlCJLhyvTRaMpkaZt7pv5aTAx8t+HX/ZhoaaJcngSMNdB+E9EI0AhITVYFonUfGGDTPbYlwv6iYO6ID2ry8SYyp6c/xFt/xytGAbN/J44BWGFDMc4eqK42rCQzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cQzihfB8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753392288; c=relaxed/simple;
+	bh=bQrnNjXM9Ojxs3Vhlr3qGlQtIn17S5rwQbcS6Do5+kA=;
+	h=Date:To:From:Subject:Message-Id; b=km5WxnnadYX0v94nLPMNxpFOg9zaCY/2LugF1oOK3k2i8m5PABXPjT77CPSxRj8kFHX0sbOpMlHN3SFHG9QzJ74t5897YgJe/p5BEJcimbfexHR1XS6P8n7phWA/YBVF0XgXdsykTtFaQ1UUYHqWMwJBCbP2USely7rVJxroTdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VhSiNRRP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cQzihfB8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 825D2C4CEED;
-	Thu, 24 Jul 2025 21:24:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VhSiNRRP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E93DC4CEED;
+	Thu, 24 Jul 2025 21:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753392285;
-	bh=JqSYGu+r6tMar1lYEeILvncWZjcRlVXY9aseRtWxtOY=;
+	s=korg; t=1753392287;
+	bh=bQrnNjXM9Ojxs3Vhlr3qGlQtIn17S5rwQbcS6Do5+kA=;
 	h=Date:To:From:Subject:From;
-	b=cQzihfB8LJbRLdFub4cxUEmyb/RzB8kFZG+EemhRfxA28jrISwigXagVzw2dUjKXG
-	 CzgeKFO9ai+MMphkeBfid5sqQ07dOTZ+oSyrcHKyE75cqxs/oBmZWvWiMOH4ueuKxH
-	 g45hSHNFfSw2cxPe2wwLMG18YOYbzyNNczF0gCIA=
-Date: Thu, 24 Jul 2025 14:24:44 -0700
+	b=VhSiNRRPAgIeZUIxbjllDVGZjQBlcUMAm3haXMvcvG91A3rgc4Ondqs21XNk2rZOS
+	 2EkT7kiVAJnM8Do/zzdEcjxGyZc6KUJKVsFbohuIF5Epre0GyCz09KhgpMH2HvI+7z
+	 hmk7NDtYfmJgN8x7qwH4W/zxgPaVmC2UyQYdDOv8=
+Date: Thu, 24 Jul 2025 14:24:47 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch added to mm-unstable branch
-Message-Id: <20250724212445.825D2C4CEED@smtp.kernel.org>
+Subject: + maintainers-add-missing-file-to-cgroup-section.patch added to mm-unstable branch
+Message-Id: <20250724212447.9E93DC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add MM MISC section, add missing files to MISC and CORE
+     Subject: MAINTAINERS: add missing file to cgroup section
 has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
+     maintainers-add-missing-file-to-cgroup-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-missing-file-to-cgroup-section.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,160 +59,54 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add MM MISC section, add missing files to MISC and CORE
-Date: Thu, 24 Jul 2025 14:33:56 +0100
+Subject: MAINTAINERS: add missing file to cgroup section
+Date: Thu, 24 Jul 2025 14:54:21 +0100
 
-Add a MEMORY MANAGEMENT - MISC section to contain files that are not
-described by other sections, moving all but the catch-all mm/ and
-tools/mm/ from MEMORY MANAGEMENT to MEMORY MANAGEMENT - CORE and MEMORY
-MANAGEMENT - MISC as appropriate.
+The page_counter files seems most appropriately placed here.
 
-In both sections add remaining missing files.  At this point, with the
-other recent MAINTAINERS changes, this should now mean that every memory
-management-related file has a section and assigned maintainers/reviewers.
-
-Finally, we copy across the maintainers/reviewers from MEMORY MANAGEMENT -
-CORE to MEMORY MANAGEMENT - MISC, as it seems the two are sufficiently
-related for this to be sensible.
-
-Link: https://lkml.kernel.org/r/20250724133356.49487-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250724135421.54510-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   72 ++++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 58 insertions(+), 14 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core
+--- a/MAINTAINERS~maintainers-add-missing-file-to-cgroup-section
 +++ a/MAINTAINERS
-@@ -15741,22 +15741,8 @@ S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- T:	quilt git://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new
--F:	Documentation/admin-guide/mm/
--F:	Documentation/mm/
--F:	include/linux/gfp.h
--F:	include/linux/gfp_types.h
--F:	include/linux/memory_hotplug.h
--F:	include/linux/memory-tiers.h
--F:	include/linux/mempolicy.h
--F:	include/linux/mempool.h
--F:	include/linux/mmzone.h
--F:	include/linux/mmu_notifier.h
--F:	include/linux/pagewalk.h
--F:	include/trace/events/ksm.h
- F:	mm/
- F:	tools/mm/
--F:	tools/testing/selftests/mm/
--N:	include/linux/page[-_]*
- 
- MEMORY MANAGEMENT - CORE
- M:	Andrew Morton <akpm@linux-foundation.org>
-@@ -15771,18 +15757,40 @@ L:	linux-mm@kvack.org
+@@ -6163,9 +6163,11 @@ L:	cgroups@vger.kernel.org
+ L:	linux-mm@kvack.org
  S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	include/linux/gfp.h
-+F:	include/linux/gfp_types.h
-+F:	include/linux/highmem.h
- F:	include/linux/memory.h
- F:	include/linux/mm.h
- F:	include/linux/mm_*.h
-+F:	include/linux/mmzone.h
- F:	include/linux/mmdebug.h
-+F:	include/linux/mmu_notifier.h
- F:	include/linux/pagewalk.h
-+F:	include/linux/pgtable.h
-+F:	include/linux/ptdump.h
-+F:	include/linux/vmpressure.h
-+F:	include/linux/vmstat.h
- F:	kernel/fork.c
- F:	mm/Kconfig
- F:	mm/debug.c
-+F:	mm/folio-compat.c
-+F:	mm/highmem.c
- F:	mm/init-mm.c
-+F:	mm/internal.h
-+F:	mm/maccess.c
- F:	mm/memory.c
-+F:	mm/mmu_notifier.c
-+F:	mm/mmzone.c
- F:	mm/pagewalk.c
-+F:	mm/pgtable-generic.c
-+F:	mm/ptdump.c
-+F:	mm/sparse-vmemmap.c
-+F:	mm/sparse.c
- F:	mm/util.c
-+F:	mm/vmpressure.c
-+F:	mm/vmstat.c
-+N:	include/linux/page[-_]*
- 
- MEMORY MANAGEMENT - EXECMEM
- M:	Andrew Morton <akpm@linux-foundation.org>
-@@ -15845,6 +15853,42 @@ F:	mm/mempolicy.c
- F:	mm/migrate.c
- F:	mm/migrate_device.c
- 
-+MEMORY MANAGEMENT - MISC
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	David Hildenbrand <david@redhat.com>
-+R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-+R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Mike Rapoport <rppt@kernel.org>
-+R:	Suren Baghdasaryan <surenb@google.com>
-+R:	Michal Hocko <mhocko@suse.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+W:	http://www.linux-mm.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	Documentation/admin-guide/mm/
-+F:	Documentation/mm/
-+F:	include/linux/cma.h
-+F:	include/linux/dmapool.h
-+F:	include/linux/ioremap.h
-+F:	include/linux/memory-tiers.h
-+F:	include/linux/page_idle.h
-+F:	mm/backing-dev.c
-+F:	mm/cma.c
-+F:	mm/cma_debug.c
-+F:	mm/cma_sysfs.c
-+F:	mm/dmapool.c
-+F:	mm/dmapool_test.c
-+F:	mm/early_ioremap.c
-+F:	mm/fadvise.c
-+F:	mm/ioremap.c
-+F:	mm/mapping_dirty_helpers.c
-+F:	mm/memory-tiers.c
-+F:	mm/page_idle.c
-+F:	mm/pgalloc-track.h
-+F:	mm/process_vm_access.c
-+F:	tools/testing/selftests/mm/
-+
- MEMORY MANAGEMENT - NUMA MEMBLOCKS AND NUMA EMULATION
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Mike Rapoport <rppt@kernel.org>
+ F:	include/linux/memcontrol.h
++F:	include/linux/page_counter.h
+ F:	mm/memcontrol.c
+ F:	mm/memcontrol-v1.c
+ F:	mm/memcontrol-v1.h
++F:	mm/page_counter.c
+ F:	mm/swap_cgroup.c
+ F:	samples/cgroup/*
+ F:	tools/testing/selftests/cgroup/memcg_protection.m
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
