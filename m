@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADB72BA3D;
-	Fri, 25 Jul 2025 00:58:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BAA1BA3D;
+	Fri, 25 Jul 2025 00:58:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753405111; cv=none; b=V0Ub+ddkANm3maP7k1BaJAc5JjChjTcEjHNRd5VKbxNNk+R8tKWKC8aDQSfKWMhzQ3TzKELv8xtwtPq8utgFz/kshmQGBDTQwvxFrZ9GSbIEAG5OhEsyWtw7/o2tDJalOiSltArIqxMk5KIXZ2I3MgEslvqS8i7EuDugQv6epv0=
+	t=1753405113; cv=none; b=Elxz9TDZaYMY5gl1e5a/WU8YBncQ4JJawVjONHouyKJeBCzFa5AaZNP8phDpltpeY1ZbxMo76sTMAJZxcH1Cl8bEHt+hpB4titVGvZeE97MsKDZiUdz3Dy9BtA8Von3A57Bn4ISeXWUHsVNbTTiDbq1mMYV4u4yoGMoV9tPggIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753405111; c=relaxed/simple;
-	bh=/sWG7Hu8uNEY3A5D6seheMXhvyuh2famuFqzPqgiKPk=;
-	h=Date:To:From:Subject:Message-Id; b=K2bdNMeijLGEISRZx+4Mx6N9dmaBqMzCnnO9vgJO/WngjvzR/XCWoepH8HA+H8ZXbMNJFWxCKR09CGDVeKCwg01Nc21Hi0FfpEiU0TQYSpyprFvmDjS3XfPkLZuXM1Tj0QhYDDwam5pVUWCO8lWUymxvpZ6aWz3DK6OX8kOaw6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MluffViY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753405113; c=relaxed/simple;
+	bh=LreqLlbt4aArL7/PKDEilD8ZoX7Qrxl7L6FnAVhP3BI=;
+	h=Date:To:From:Subject:Message-Id; b=jEEFNs0trJ4JJkMPpp/syP5thZTr2RvK5jMNrgmWyfFPGDMkSmYsjeEHswvluoAIls1hhOaFYWzNKc9fpnTdaV9oHvdZB05HfEFXt3Ok6h5cvbLm6Yad02MBFVhIFkNo6saSZncVDwcQOnwenBUQk/bqye3ICnVPTiHCK5qwypY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KJZGHhO7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MluffViY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37F76C4CEED;
-	Fri, 25 Jul 2025 00:58:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KJZGHhO7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8098BC4CEEF;
+	Fri, 25 Jul 2025 00:58:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753405111;
-	bh=/sWG7Hu8uNEY3A5D6seheMXhvyuh2famuFqzPqgiKPk=;
+	s=korg; t=1753405112;
+	bh=LreqLlbt4aArL7/PKDEilD8ZoX7Qrxl7L6FnAVhP3BI=;
 	h=Date:To:From:Subject:From;
-	b=MluffViYyT2yr2O6YRvukwgEOWpmbTzt0ITcfv5BiY/RYJeO/8nmSM/NwiHzskcUj
-	 utSzgbCQqDM7KoDY7EILt9YCtNVPPXepLEvBv9+WQoWgDZoZbL12dipKh7B+xzvcy/
-	 U3H2gf0fwp5FsaNRQkrFJciiQSp4w+WbyFaSPavU=
-Date: Thu, 24 Jul 2025 17:58:30 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=KJZGHhO7jxorwCAVLNFLNQkyn+xgJ52Nblf7p2O6Nk5BZVV0sw+SqX5cVS0+GjSDM
+	 kRj7dWHr4HoQe2/n00VoU07LaGaZgmHIPH1JShpWGhhNLJrCJE+tsFXaYcruimZf0V
+	 eFF1p0fhxHgsgSu60k9oMTAe0hEFAcQsEbiidYoA=
+Date: Thu, 24 Jul 2025 17:58:31 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,dan.j.williams@intel.com,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-commit-damos_quota_goal-nid.patch removed from -mm tree
-Message-Id: <20250725005831.37F76C4CEED@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] resource-fix-false-warning-in-__request_region.patch removed from -mm tree
+Message-Id: <20250725005832.8098BC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,100 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: commit damos_quota_goal->nid
+     Subject: resource: fix false warning in __request_region()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-commit-damos_quota_goal-nid.patch
+     resource-fix-false-warning-in-__request_region.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: commit damos_quota_goal->nid
-Date: Sat, 19 Jul 2025 11:19:32 -0700
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: resource: fix false warning in __request_region()
+Date: Sat, 19 Jul 2025 20:26:04 +0900
 
-DAMOS quota goal uses 'nid' field when the metric is
-DAMOS_QUOTA_NODE_MEM_{USED,FREE}_BP.  But the goal commit function is not
-updating the goal's nid field.  Fix it.
+A warning is raised when __request_region() detects a conflict with a
+resource whose resource.desc is IORES_DESC_DEVICE_PRIVATE_MEMORY.
 
-Link: https://lkml.kernel.org/r/20250719181932.72944-1-sj@kernel.org
-Fixes: 0e1c773b501f ("mm/damon/core: introduce damos quota goal metrics for memory node utilization")	[6.16.x]
-Signed-off-by: SeongJae Park <sj@kernel.org>
+But this warning is only valid for iomem_resources.
+The hmem device resource uses resource.desc as the numa node id, which can
+cause spurious warnings.
+
+This warning appeared on a machine with multiple cxl memory expanders. 
+One of the NUMA node id is 6, which is the same as the value of
+IORES_DESC_DEVICE_PRIVATE_MEMORY.
+
+In this environment it was just a spurious warning, but when I saw the
+warning I suspected a real problem so it's better to fix it.
+
+This change fixes this by restricting the warning to only iomem_resource.
+This also adds a missing new line to the warning message.
+
+Link: https://lkml.kernel.org/r/20250719112604.25500-1-akinobu.mita@gmail.com
+Fixes: 7dab174e2e27 ("dax/hmem: Move hmem device registration to dax_hmem.ko")
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ kernel/resource.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-commit-damos_quota_goal-nid
-+++ a/mm/damon/core.c
-@@ -754,6 +754,19 @@ static struct damos_quota_goal *damos_nt
- 	return NULL;
- }
- 
-+static void damos_commit_quota_goal_union(
-+		struct damos_quota_goal *dst, struct damos_quota_goal *src)
-+{
-+	switch (dst->metric) {
-+	case DAMOS_QUOTA_NODE_MEM_USED_BP:
-+	case DAMOS_QUOTA_NODE_MEM_FREE_BP:
-+		dst->nid = src->nid;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
- static void damos_commit_quota_goal(
- 		struct damos_quota_goal *dst, struct damos_quota_goal *src)
- {
-@@ -762,6 +775,7 @@ static void damos_commit_quota_goal(
- 	if (dst->metric == DAMOS_QUOTA_USER_INPUT)
- 		dst->current_value = src->current_value;
- 	/* keep last_psi_total as is, since it will be updated in next cycle */
-+	damos_commit_quota_goal_union(dst, src);
- }
- 
- /**
-@@ -795,6 +809,7 @@ int damos_commit_quota_goals(struct damo
- 				src_goal->metric, src_goal->target_value);
- 		if (!new_goal)
- 			return -ENOMEM;
-+		damos_commit_quota_goal_union(new_goal, src_goal);
- 		damos_add_quota_goal(dst, new_goal);
- 	}
- 	return 0;
+--- a/kernel/resource.c~resource-fix-false-warning-in-__request_region
++++ a/kernel/resource.c
+@@ -1279,8 +1279,9 @@ static int __request_region_locked(struc
+ 		 * become unavailable to other users.  Conflicts are
+ 		 * not expected.  Warn to aid debugging if encountered.
+ 		 */
+-		if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
+-			pr_warn("Unaddressable device %s %pR conflicts with %pR",
++		if (parent == &iomem_resource &&
++		    conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
++			pr_warn("Unaddressable device %s %pR conflicts with %pR\n",
+ 				conflict->name, conflict, res);
+ 		}
+ 		if (conflict != parent) {
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-damon-sysfs-implement-refresh_ms-file-under-kdamond-directory.patch
-mm-damon-sysfs-implement-refresh_ms-file-internal-work.patch
-docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch
-docs-abi-damon-update-for-refresh_ms.patch
-mm-damon-ops-common-ignore-migration-request-to-invalid-nodes.patch
-selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch
-selftests-damon-_damon_sysfs-support-damos-watermarks-setup.patch
-selftests-damon-_damon_sysfs-support-damos-filters-setup.patch
-selftests-damon-_damon_sysfs-support-monitoring-intervals-goal-setup.patch
-selftests-damon-_damon_sysfs-support-damos-quota-weights-setup.patch
-selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup.patch
-selftests-damon-_damon_sysfs-support-damos-action-dests-setup.patch
-selftests-damon-_damon_sysfs-support-damos-target_nid-setup.patch
-selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch
-selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
-selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
-selftests-damon-drgn_dump_damon_status-dump-damos-filters.patch
-selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion.patch
-selftests-damon-sysfspy-generalize-damosquota-commit-assertion.patch
-selftests-damon-sysfspy-test-quota-goal-commitment.patch
-selftests-damon-sysfspy-test-damos-destinations-commitment.patch
-selftests-damon-sysfspy-generalize-damos-scheme-commit-assertion.patch
-selftests-damon-sysfspy-test-damos-filters-commitment.patch
-selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion.patch
-selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion.patch
-selftests-damon-sysfspy-generalize-damon-context-commit-assertion.patch
-selftests-damon-sysfspy-test-non-default-parameters-runtime-commit.patch
-selftests-damon-sysfspy-test-runtime-reduction-of-damon-parameters.patch
 
