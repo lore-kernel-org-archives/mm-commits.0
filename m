@@ -1,63 +1,103 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE5F7234973;
-	Fri, 25 Jul 2025 02:49:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2097425B31D
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 23:07:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753411789; cv=none; b=iNCq7nQ4S7spNReniQK528R8ovkRnZbevralR5Gl2NN6n85u3xXhSMAM0tujD0EJyTUOZMuKUH0748ziquUhnQZSjOzPLtMk3JOWNFL6/8ziKXNQWMqwNR7Z7zTbySX8yQntEonR7eWKH9DG32klj2hwn7Jb4KtwgdhM95ezFrI=
+	t=1753484826; cv=none; b=NFN5NVoFbyuG7PQDb9xOduekpb4cjkhD5QzGKPJfb/za+FH7qTvdJzh3+hreyFAKEldHp2ZbVS1AC53bKkcfRD792m6Ddh/H478sOcbRIkLGJk8Jb3RHUAk95kzKbTL6szWrc9/KR1CTvD0Bksjf+fbk9XLfjQveb5Z00L2/FEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753411789; c=relaxed/simple;
-	bh=qUCSrAgl+i6cCOtcKNxDQMp0yHB2JDvPJZobt3f40XA=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=BrNz3YWR2kdjf5EGxiQaZaWDQhH/h+Qsi+UDHd3d+T3U2LNz15n6S7mWADAutdhIKoO8Bm1yy78QfjMNcAX+wTCV1bT2MR5UMuuLoyaHZXrTS2S5joNhOTwM9KfyFfvn6xA8xmxHLaTsroPDATJge7eshrC4MCrAIsWTtr7mGlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=olzSoiu/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753484826; c=relaxed/simple;
+	bh=hg2frJ98c9X3CLGiPeo5stS+F14FN2oAAPoKdb1ynLE=;
+	h=Date:To:From:Subject:Message-Id; b=inbVX3so9Y/m+meMurWHIdc/jGfmp1Azq4UfbLI76zRMjKFeZizGBgfVO98B0OGLJE0GmJX9mKOjo0GPxqkPmLufiEgOMG/bI/kdouvTGIpV+lnolEZJfALezbsUl757xfURKcE8K4Ar+LLl+1+Mk3yJyccGUR5sOKAzV7Y4OIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HVOoah7k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="olzSoiu/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7963EC4CEED;
-	Fri, 25 Jul 2025 02:49:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1753411789;
-	bh=qUCSrAgl+i6cCOtcKNxDQMp0yHB2JDvPJZobt3f40XA=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=olzSoiu/cgwUrcS6qR4oFnQAaMPu1oi7AKpl9XFOquxrYPnxzSVDJCZnUcijUc4hu
-	 TPStRmwMT6QHqI7zXjIH1vsPuIL9NtF9F5HaKW6chvU1SGezRisUyYPrSH0kMu6ztP
-	 5Dj2bhtXaLV0Z0f6MmKcQbFw6hDQ9dKir72n6caMjAPfjf7dMqLc/NaJsSOz+Dfjgd
-	 6B70B7j9WwL8INmN5gv0yXwOrBwVkxxuN3ptHf54m/FJSyBUSFGuMt3yq8fw1TrPme
-	 cZMZCscGUbFhD44uiiXSJhz1fkp7hzAjr5OQG/sPZma701XOG49p7FZYTf3WHPsgxj
-	 DRf4PrRIzqFZA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3907C383BF4E;
-	Fri, 25 Jul 2025 02:50:08 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.16
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20250724180503.a8a80b0b0c904c1c7f967448@linux-foundation.org>
-References: <20250724180503.a8a80b0b0c904c1c7f967448@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20250724180503.a8a80b0b0c904c1c7f967448@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-07-24-18-03
-X-PR-Tracked-Commit-Id: 0dec7201788b9152f06321d0dab46eed93834cda
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 2942242dde896ea8544f321617c86f941899c544
-Message-Id: <175341180659.2616960.3118846587587977860.pr-tracker-bot@kernel.org>
-Date: Fri, 25 Jul 2025 02:50:06 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HVOoah7k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 869F2C4CEE7;
+	Fri, 25 Jul 2025 23:07:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1753484825;
+	bh=hg2frJ98c9X3CLGiPeo5stS+F14FN2oAAPoKdb1ynLE=;
+	h=Date:To:From:Subject:From;
+	b=HVOoah7kNIy5UBl3JVUX9eyjdy+kv8fLDSHjyjwunq1xrhM3GzildO4MJEB3nX2QH
+	 7eTo/3aRf9OKFvGVOwuQZ46nrDnQahg8mS3t954BJ5CgCpeRVJh9PJ2OecJnJgm0y/
+	 0UasqfFI63hUxD0mUynno/s19wAFSUUkHvQOCCnY=
+Date: Fri, 25 Jul 2025 16:07:04 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,liushixin2@huawei.com,jack@suse.cz,roman.gushchin@linux.dev,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-consider-disabling-readahead-if-there-are-signs-of-thrashing.patch removed from -mm tree
+Message-Id: <20250725230705.869F2C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Thu, 24 Jul 2025 18:05:03 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-07-24-18-03
+The quilt patch titled
+     Subject: mm: consider disabling readahead if there are signs of thrashing
+has been removed from the -mm tree.  Its filename was
+     mm-consider-disabling-readahead-if-there-are-signs-of-thrashing.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/2942242dde896ea8544f321617c86f941899c544
+This patch was dropped because an updated version will be issued
 
-Thank you!
+------------------------------------------------------
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: consider disabling readahead if there are signs of thrashing
+Date: Thu, 10 Jul 2025 12:52:32 -0700
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+We've noticed in production that under a very heavy memory pressure the
+readahead behavior becomes unstable causing spikes in memory pressure and
+CPU contention on zone locks.
+
+The current mmap_miss heuristics considers minor pagefaults as a good
+reason to decrease mmap_miss and conditionally start async readahead. 
+This creates a vicious cycle: asynchronous readahead loads more pages,
+which in turn causes more minor pagefaults.  This problem is especially
+pronounced when multiple threads of an application fault on consecutive
+pages of an evicted executable, aggressively lowering the mmap_miss
+counter and preventing readahead from being disabled.
+
+To improve the logic let's check for !uptodate and workingset folios in
+do_async_mmap_readahead().  The presence of such pages is a strong
+indicator of thrashing, which is also used by the delay accounting code,
+e.g.  in folio_wait_bit_common().  So instead of decreasing mmap_miss and
+lower chances to disable readahead, let's do the opposite and bump it by
+MMAP_LOTSAMISS / 2.
+
+Link: https://lkml.kernel.org/r/20250710195232.124790-1-roman.gushchin@linux.dev
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/filemap.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+--- a/mm/filemap.c~mm-consider-disabling-readahead-if-there-are-signs-of-thrashing
++++ a/mm/filemap.c
+@@ -3324,6 +3324,17 @@ static struct file *do_async_mmap_readah
+ 		return fpin;
+ 
+ 	mmap_miss = READ_ONCE(ra->mmap_miss);
++	if (unlikely(!folio_test_uptodate(folio) &&
++		     folio_test_workingset(folio))) {
++		/*
++		 * If there are signs of thrashing, take a big step
++		 * towards disabling readahead.
++		 */
++		mmap_miss += MMAP_LOTSAMISS / 2;
++		mmap_miss = min(mmap_miss, MMAP_LOTSAMISS * 10);
++		WRITE_ONCE(ra->mmap_miss, mmap_miss);
++		return fpin;
++	}
+ 	if (mmap_miss)
+ 		WRITE_ONCE(ra->mmap_miss, --mmap_miss);
+ 
+_
+
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
+
+
