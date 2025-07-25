@@ -1,83 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F15A2E36EC
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:17:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE5F7234973;
+	Fri, 25 Jul 2025 02:49:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409823; cv=none; b=XiqmKhZ+ISbrQ/DDmEsGZc3FfpzMfHXCm0P1uk4UT/gsNORevMQDqp3JmTzRWOmiSqg6VU+zyCNdBrfbrciLALuzf6FHPvHKj8garLlolvRlhM0exgA4iZu6rS4gMFLxcqL4HVh0dH1W6ML/+jkWs17lcuDhoznDRtA1vYEIQx4=
+	t=1753411789; cv=none; b=iNCq7nQ4S7spNReniQK528R8ovkRnZbevralR5Gl2NN6n85u3xXhSMAM0tujD0EJyTUOZMuKUH0748ziquUhnQZSjOzPLtMk3JOWNFL6/8ziKXNQWMqwNR7Z7zTbySX8yQntEonR7eWKH9DG32klj2hwn7Jb4KtwgdhM95ezFrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409823; c=relaxed/simple;
-	bh=DKFFjbnuK0l0AYv38WbzABYPtWWPLQS2NsE15titRuk=;
-	h=Date:To:From:Subject:Message-Id; b=CkTwJ/D2iSRgFyAUkyEQVcUw6fS+XiIQpK4+dYQEoLOX+b284VEdhAJAoJyrCPkKHVrUV4A4Y2QcrlDhgNXVBR0lNgLz/t64aNxRMFVp9cOSvIYkjB41YpZM38DvfUC8AuvVq87ly0LGfudg6DmQwiumaKopvJ3rioRhg6Iialo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kMwB68Tm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753411789; c=relaxed/simple;
+	bh=qUCSrAgl+i6cCOtcKNxDQMp0yHB2JDvPJZobt3f40XA=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=BrNz3YWR2kdjf5EGxiQaZaWDQhH/h+Qsi+UDHd3d+T3U2LNz15n6S7mWADAutdhIKoO8Bm1yy78QfjMNcAX+wTCV1bT2MR5UMuuLoyaHZXrTS2S5joNhOTwM9KfyFfvn6xA8xmxHLaTsroPDATJge7eshrC4MCrAIsWTtr7mGlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=olzSoiu/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kMwB68Tm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BDDAC4CEED;
-	Fri, 25 Jul 2025 02:17:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409822;
-	bh=DKFFjbnuK0l0AYv38WbzABYPtWWPLQS2NsE15titRuk=;
-	h=Date:To:From:Subject:From;
-	b=kMwB68Tm/xps8mgmHUH1eMjVBRHEsspz7S1O0bWBM0+j6EuVDxO/H/DmUtbD9Tpux
-	 39PGtU2UWvBCHdcxH0kfM0zjU+lC9DiuB8l/3y8tFvQUZ9lFiBTfiUL5wIZbM4PUnU
-	 kQsWJlXJjqQIMiM7cG9V1sALgCpVXSe1J912K9LQ=
-Date: Thu, 24 Jul 2025 19:17:02 -0700
-To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,andriy.shevchenko@linux.intel.com,wangyuli@uniontech.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] serial-8250_dw-fix-typo-notifer.patch removed from -mm tree
-Message-Id: <20250725021702.9BDDAC4CEED@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="olzSoiu/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7963EC4CEED;
+	Fri, 25 Jul 2025 02:49:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1753411789;
+	bh=qUCSrAgl+i6cCOtcKNxDQMp0yHB2JDvPJZobt3f40XA=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=olzSoiu/cgwUrcS6qR4oFnQAaMPu1oi7AKpl9XFOquxrYPnxzSVDJCZnUcijUc4hu
+	 TPStRmwMT6QHqI7zXjIH1vsPuIL9NtF9F5HaKW6chvU1SGezRisUyYPrSH0kMu6ztP
+	 5Dj2bhtXaLV0Z0f6MmKcQbFw6hDQ9dKir72n6caMjAPfjf7dMqLc/NaJsSOz+Dfjgd
+	 6B70B7j9WwL8INmN5gv0yXwOrBwVkxxuN3ptHf54m/FJSyBUSFGuMt3yq8fw1TrPme
+	 cZMZCscGUbFhD44uiiXSJhz1fkp7hzAjr5OQG/sPZma701XOG49p7FZYTf3WHPsgxj
+	 DRf4PrRIzqFZA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3907C383BF4E;
+	Fri, 25 Jul 2025 02:50:08 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.16
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20250724180503.a8a80b0b0c904c1c7f967448@linux-foundation.org>
+References: <20250724180503.a8a80b0b0c904c1c7f967448@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20250724180503.a8a80b0b0c904c1c7f967448@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-07-24-18-03
+X-PR-Tracked-Commit-Id: 0dec7201788b9152f06321d0dab46eed93834cda
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 2942242dde896ea8544f321617c86f941899c544
+Message-Id: <175341180659.2616960.3118846587587977860.pr-tracker-bot@kernel.org>
+Date: Fri, 25 Jul 2025 02:50:06 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Thu, 24 Jul 2025 18:05:03 -0700:
 
-The quilt patch titled
-     Subject: serial: 8250_dw: fix typo "notifer"
-has been removed from the -mm tree.  Its filename was
-     serial-8250_dw-fix-typo-notifer.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-07-24-18-03
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/2942242dde896ea8544f321617c86f941899c544
 
-------------------------------------------------------
-From: WangYuli <wangyuli@uniontech.com>
-Subject: serial: 8250_dw: fix typo "notifer"
-Date: Tue, 22 Jul 2025 15:34:29 +0800
+Thank you!
 
-There is a spelling mistake of 'notifer' in the comment which
-should be 'notifier'.
-
-Link: https://lkml.kernel.org/r/BD4804BF4FBA1648+20250722073431.21983-6-wangyuli@uniontech.com
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/tty/serial/8250/8250_dw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/drivers/tty/serial/8250/8250_dw.c~serial-8250_dw-fix-typo-notifer
-+++ a/drivers/tty/serial/8250/8250_dw.c
-@@ -392,7 +392,7 @@ static void dw8250_set_termios(struct ua
- 	rate = clk_round_rate(d->clk, newrate);
- 	if (rate > 0) {
- 		/*
--		 * Note that any clock-notifer worker will block in
-+		 * Note that any clock-notifier worker will block in
- 		 * serial8250_update_uartclk() until we are done.
- 		 */
- 		ret = clk_set_rate(d->clk, newrate);
-_
-
-Patches currently in -mm which might be from wangyuli@uniontech.com are
-
-kvm-x86-fix-typo-notifer.patch
-cxl-mce-fix-typo-notifer.patch
-drm-xe-fix-typo-notifer.patch
-net-mvneta-fix-typo-notifer.patch
-xen-xenbus-fix-typo-notifer.patch
-scripts-spellingtxt-add-notifernotifier-to-spellingtxt.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
