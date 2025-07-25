@@ -1,112 +1,125 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D88C28371;
-	Fri, 25 Jul 2025 01:05:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20CEB194124
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 01:13:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753405505; cv=none; b=TAI1oKp3sxJfMlF7CEouEBhrCn1Ma79itjRG80st/Qrpti/CveMvuKKax/2XGCENXRSmjpE7FJ3bDVjQc+2kab8cWx03mnoTUbvFMo8bXWxkA6PZkMpeawePlSfvjvPrRvOdq8gF/jPpayHx7Pr3ynS9yMJLRLq5aW2Kw0oy12s=
+	t=1753406006; cv=none; b=ETQB38Ols3CjiJ/Vy2qX/RBArjC4WuyUQk4n9fDDWO2cQApsZeKttScK3WrsMxLA+Nm8PYmr3WuBWYubc5OWo1HP7Q6UGDKri6nWrTKzlWQbnFEZ8OXUN08TQ+e7rBZcU0oREwkhzoU1atHZeWje0tnlm6qgZqoVxQPieHgi5xc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753405505; c=relaxed/simple;
-	bh=tAi5yNbVWJZar85JYgxMKocAfRchNPvqbGllAqQ8wQY=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=pfzLCOPILvwd7X+1bKi2Plq2treI2b+FcqLxIZKCqnOBVA2pyHeOD1p7Kg4np/XIuS/wqevwL+FPXGEwPUHyqJ8Yagn8DCwMwJQ56fSdhyyV2wgeEOAoZAAHMQVmqBYQVWGL9AZ0dMPhsCuVbCPR0KOSf/1wc9i6O+4O9UUbi8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HXP5UqLi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753406006; c=relaxed/simple;
+	bh=gKZs3Y/H4f4/lvWRNaEojehafo2R9YcyZiQng9VI8+s=;
+	h=Date:To:From:Subject:Message-Id; b=fu7pRQl45xAqdxMrQFHHmjoYQ4wGD6TuAu2sOXU5wGMtXGDrDLAoW4roblLlWjoAFKpF/l3UD+S7C6+N+sVw2WVVqdnAflVYvrya28SZ1GqbZ0BVxFaFNlC/OzXhdMTwZTEiTN3Dr6g3V9EWSh6i1rscjVstErGG15gad1zjGeY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hivUjtm+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HXP5UqLi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BA5EC4CEED;
-	Fri, 25 Jul 2025 01:05:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hivUjtm+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 767CBC4CEED;
+	Fri, 25 Jul 2025 01:13:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753405504;
-	bh=tAi5yNbVWJZar85JYgxMKocAfRchNPvqbGllAqQ8wQY=;
-	h=Date:From:To:Cc:Subject:From;
-	b=HXP5UqLif1X61lXGPABx2KAbUTpnbRg6hpTtBn2nMNaygxT8Ase/sMQtr+pAG10nO
-	 b3LAKC0oGKgS28/tNtifcdkHB7Kat3YQBizSFC9avU4m7SBa85DKyk3DqtQV+Sxb2C
-	 N0HOhwDaozGo8fO7kqrt6Y122N85kyQm6kJK8UJg=
-Date: Thu, 24 Jul 2025 18:05:03 -0700
+	s=korg; t=1753406005;
+	bh=gKZs3Y/H4f4/lvWRNaEojehafo2R9YcyZiQng9VI8+s=;
+	h=Date:To:From:Subject:From;
+	b=hivUjtm+Te5tSSvN+JhJGniwJseJJeqZDcDmfmzstvfxxsaiXGfNy0Pal26SXK9Am
+	 hHmIJBi3a2jVszOmo5qolD1R6pn6vhTaOkOay6zJZMmKmjorgomGAddaoW6KRvm9Kd
+	 POhGv9we/yAsexMhXpMliGaTylwpTj9DsWOMLh2c=
+Date: Thu, 24 Jul 2025 18:13:24 -0700
+To: mm-commits@vger.kernel.org,oliver.sang@intel.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.16
-Message-Id: <20250724180503.a8a80b0b0c904c1c7f967448@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] mm-mremap-check-remap-conditions-earlier-fix.patch removed from -mm tree
+Message-Id: <20250725011325.767CBC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please pull this batch of hotfixes, thanks.
+The quilt patch titled
+     Subject: mm/mremap: allow undocumented mremap() shrink behaviour
+has been removed from the -mm tree.  Its filename was
+     mm-mremap-check-remap-conditions-earlier-fix.patch
 
+This patch was dropped because it was folded into mm-mremap-check-remap-conditions-earlier.patch
 
-The following changes since commit db6cc3f4ac2e6cdc898fc9cbc8b32ae1bf56bdad:
+------------------------------------------------------
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: allow undocumented mremap() shrink behaviour
+Date: Sun, 20 Jul 2025 11:41:48 +0100
 
-  Revert "sched/numa: add statistics of numa balance task" (2025-07-09 21:07:56 -0700)
+It turns out that, in apparent contradiction to the man page, and at odds
+with every other mremap() operation - we are allowed to specify an input
+addr, old_len range that spans any number of VMAs and any number of gaps,
+as long as we shrink that range to the point at which the new range spans
+only one.
 
-are available in the Git repository at:
+In order to accommodate this, adjust the remap validity check to account
+for this.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-07-24-18-03
+Link: https://lkml.kernel.org/r/8fc92a38-c636-465e-9a2f-2c6ac9cb49b8@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202507201002.69144b74-lkp@intel.com
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-for you to fetch changes up to 0dec7201788b9152f06321d0dab46eed93834cda:
+ mm/mremap.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-  sprintf.h requires stdarg.h (2025-07-24 17:58:00 -0700)
+--- a/mm/mremap.c~mm-mremap-check-remap-conditions-earlier-fix
++++ a/mm/mremap.c
+@@ -1339,11 +1339,18 @@ static int remap_is_valid(struct vma_rem
+ 			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
+ 		return -EINVAL;
+ 
++	/*
++	 * We permit crossing of boundaries for the range being unmapped due to
++	 * a shrink.
++	 */
++	if (vrm->remap_type == MREMAP_SHRINK)
++		old_len = new_len;
++
+ 	/* We can't remap across vm area boundaries */
+ 	if (old_len > vma->vm_end - addr)
+ 		return -EFAULT;
+ 
+-	if (new_len <= old_len)
++	if (new_len == old_len)
+ 		return 0;
+ 
+ 	/* Need to be careful about a growing mapping */
+_
 
-----------------------------------------------------------------
-11 hotfixes.  9 are cc:stable and the remainder address post-6.15 issues
-or aren't considered necessary for -stable kernels.
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-7 are for MM.
-
-----------------------------------------------------------------
-Akinobu Mita (1):
-      resource: fix false warning in __request_region()
-
-Harry Yoo (1):
-      mm/zsmalloc: do not pass __GFP_MOVABLE if CONFIG_COMPACTION=n
-
-Jason Gunthorpe (1):
-      mm: update MAINTAINERS entry for HMM
-
-Jinjiang Tu (1):
-      mm/vmscan: fix hwpoisoned large folio handling in shrink_folio_list
-
-Marco Elver (1):
-      kasan: use vmalloc_dump_obj() for vmalloc error reports
-
-Nathan Chancellor (1):
-      mm/ksm: fix -Wsometimes-uninitialized from clang-21 in advisor_mode_show()
-
-Ryusuke Konishi (1):
-      nilfs2: reject invalid file types when reading inodes
-
-SeongJae Park (1):
-      mm/damon/core: commit damos_quota_goal->nid
-
-Sergey Senozhatsky (1):
-      mailmap: add entry for Senozhatsky
-
-Stephen Rothwell (1):
-      sprintf.h requires stdarg.h
-
-Zi Yan (1):
-      selftests/mm: fix split_huge_page_test for folio_split() tests
-
- .mailmap                                          |  4 ++++
- CREDITS                                           |  4 ++++
- MAINTAINERS                                       |  3 ++-
- fs/nilfs2/inode.c                                 |  9 ++++++++-
- include/linux/sprintf.h                           |  1 +
- kernel/resource.c                                 |  5 +++--
- mm/damon/core.c                                   | 15 +++++++++++++++
- mm/kasan/report.c                                 |  4 +++-
- mm/ksm.c                                          |  6 +++---
- mm/memory-failure.c                               |  4 ++++
- mm/vmscan.c                                       |  8 ++++++++
- mm/zsmalloc.c                                     |  3 +++
- tools/testing/selftests/mm/split_huge_page_test.c |  3 ++-
- 13 files changed, 60 insertions(+), 9 deletions(-)
+mm-vma-refactor-vma_modify_flags_name-to-vma_modify_name.patch
+mm-mremap-perform-some-simple-cleanups.patch
+mm-mremap-refactor-initial-parameter-sanity-checks.patch
+mm-mremap-put-vma-check-and-prep-logic-into-helper-function.patch
+mm-mremap-cleanup-post-processing-stage-of-mremap.patch
+mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
+mm-mremap-check-remap-conditions-earlier.patch
+mm-mremap-move-remap_is_valid-into-check_prep_vma.patch
+mm-mremap-clean-up-mlock-populate-behaviour.patch
+mm-mremap-permit-mremap-move-of-multiple-vmas.patch
+tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
+tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas.patch
+tools-testing-selftests-test-mremap_dontunmap-on-multiple-vma-move.patch
+tools-testing-selftests-explicitly-test-split-multi-vma-mremap-move.patch
+docs-update-thp-documentation-to-clarify-sysfs-never-setting.patch
+docs-update-thp-documentation-to-clarify-sysfs-never-setting-fix.patch
+mm-mseal-always-define-vm_sealed.patch
+mm-mseal-update-madvise-logic.patch
+mm-mseal-small-cleanups.patch
+mm-mseal-simplify-and-rename-vma-gap-check.patch
+mm-mseal-rework-mseal-apply-logic.patch
+maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
+maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
+maintainers-add-missing-mm_sloth-file-thp-section.patch
+maintainers-add-missing-mm_sloth-file-thp-section-fix.patch
+maintainers-move-memremap-to-hotplug-section.patch
+maintainers-add-missing-shrinker-files.patch
+maintainers-add-missing-files-to-page-alloc-section.patch
+maintainers-add-missing-zsmalloc-file.patch
+maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
+maintainers-add-missing-file-to-cgroup-section.patch
 
