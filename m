@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACACB2063F0
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B8C6214232
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409684; cv=none; b=PcUL+o/hSfaWsir0KBK5Pj7JxrBhZM/z1GfURzrNdRocuJyy6VtkURubVmNbJFe4ghWJGrhKa4o2mFZADdU3Y3kxV1BaIwvYUFcjw+eSAShAsqJjgWBdoCDt/T0JBOvViiYdFOwZiSw7/OhwB7WnasY7nOwD2IUG8+l5zRfoTfU=
+	t=1753409686; cv=none; b=H/Facf4L4Gp3ZsnbeUUEyxiMn5KZ/6f6jAO6E4X+lZ07bQrbEFmFMJbIz+LIYvsx3/2niewbfFYE16bzWEoPc4n4CpKowu0zIrKJq1fd7pY4kfHX21MkHN9NUq6WqsB//4KUXz/pqJo3Wxqes8zgmPpYoOmxntyQpqsfVTnRZRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409684; c=relaxed/simple;
-	bh=/KHiMFLSk0vTBA/+n7ozLFoBytvkQ77XFGgso6Z4qJg=;
-	h=Date:To:From:Subject:Message-Id; b=WMsOYQCHncd0YPY0pOady1xLkX0G46KtP9BlyfnVixqAfuwJw6exRc0vzIOQJt71XvNyWGX629Y1x/lt56l0pdU8OHFVsQyEkeihRAquz3Fp2VevegIQE6olPaXVyPrhZHQrb/E8sBPU/qDL7369RD6gG5y4yO8rBiXhXLjinO8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fxaHFRXv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409686; c=relaxed/simple;
+	bh=bmr9VF6RSraIMy6Urr6zC7XPRpsfJNnabdbvMvAU9Vw=;
+	h=Date:To:From:Subject:Message-Id; b=rBFG8M2w/GwomRbbdi8JYstOJtwUgd2pM6hlGF3f5jRy54KBCiywSJhT7WK8OFEguhnvGTJN7otGJGhl+MBYHB4S6cKN4H7QjIcx+HwqS87FbzzzQHHGJJyTj0Kghs+IYFqF+igHiHv/reZKwy/1PF4ec6xoHki6NUsN1kEIbGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dwu8lwer; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fxaHFRXv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F36FC4CEED;
-	Fri, 25 Jul 2025 02:14:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dwu8lwer"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5C40C4CEED;
+	Fri, 25 Jul 2025 02:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409684;
-	bh=/KHiMFLSk0vTBA/+n7ozLFoBytvkQ77XFGgso6Z4qJg=;
+	s=korg; t=1753409685;
+	bh=bmr9VF6RSraIMy6Urr6zC7XPRpsfJNnabdbvMvAU9Vw=;
 	h=Date:To:From:Subject:From;
-	b=fxaHFRXvU+CHPq4PLxt/fC929JrOH+pO2a1nWCC91ejmJgCIZ5b1T/xzETMJ4y42W
-	 n7fSrG+UuCniryaE2scj4BTfr1uO6dKPgVI8naiktinv06WeIcLi9fS6SzZacpG2cp
-	 60FrgSRxjzgqIph6B1KaueCTgdaUPXOM9Rl/4Ef0=
-Date: Thu, 24 Jul 2025 19:14:43 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,tglx@linutronix.de,riel@surriel.com,paul.walmsley@sifive.com,palmer@dabbelt.com,mingo@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hpa@zytor.com,david@redhat.com,catalin.marinas@arm.com,bp@alien8.de,aou@eecs.berkeley.edu,anshuman.khandual@arm.com,alex@ghiti.fr,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=Dwu8lwerg5ZWeJjkwqAXD4v1QACz0diPle7cOs6ZVB6uzry2RQ3MRU/pTjd2BhLzU
+	 PiioyF7vgyZ3ZproNOljbo522A6rWVefT0rmaIYgiK9hxbR4HoCVPJHk7TIFAYW79m
+	 nr6taSfbtw1If662Qz2/KJsTr4tmdr7Vt/RKzwjY=
+Date: Thu, 24 Jul 2025 19:14:45 -0700
+To: mm-commits@vger.kernel.org,vdavydov.dev@gmail.com,shakeel.butt@linux.dev,ncardwell@google.com,hannes@cmpxchg.org,davem@davemloft.net,akpm@linux-foundation.org,kuniyu@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-arch_flush_tlb_batched_pending-arch-helper.patch removed from -mm tree
-Message-Id: <20250725021444.7F36FC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-convert-memcg-socket_pressure-to-u64.patch removed from -mm tree
+Message-Id: <20250725021445.D5C40C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,204 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove arch_flush_tlb_batched_pending() arch helper
+     Subject: memcg: convert memcg->socket_pressure to u64
 has been removed from the -mm tree.  Its filename was
-     mm-remove-arch_flush_tlb_batched_pending-arch-helper.patch
+     memcg-convert-memcg-socket_pressure-to-u64.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: remove arch_flush_tlb_batched_pending() arch helper
-Date: Mon, 9 Jun 2025 11:31:30 +0100
+From: Kuniyuki Iwashima <kuniyu@google.com>
+Subject: memcg: convert memcg->socket_pressure to u64
+Date: Thu, 17 Jul 2025 19:46:43 +0000
 
-Since commit 4b634918384c ("arm64/mm: Close theoretical race where stale
-TLB entry remains valid"), all arches that use tlbbatch for reclaim
-(arm64, riscv, x86) implement arch_flush_tlb_batched_pending() with a
-flush_tlb_mm().
+memcg->socket_pressure is initialised with jiffies when the memcg is
+created.
 
-So let's simplify by removing the unnecessary abstraction and doing the
-flush_tlb_mm() directly in flush_tlb_batched_pending().  This effectively
-reverts commit db6c1f6f236d ("mm/tlbbatch: introduce
-arch_flush_tlb_batched_pending()").
+Once vmpressure detects that the cgroup is under memory pressure, the
+field is updated with jiffies + HZ to signal the fact to the socket layer
+and suppress memory allocation for one second.
 
-Link: https://lkml.kernel.org/r/20250609103132.447370-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Suggested-by: Will Deacon <will@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Otherwise, the field is not updated.
+
+mem_cgroup_under_socket_pressure() uses time_before() to check if jiffies
+is less than memcg->socket_pressure, and this has a bug on 32-bit kernel.
+
+  if (time_before(jiffies, memcg->socket_pressure))
+          return true;
+
+As time_before() casts the final result to long, the acceptable delta
+between two timestamps is 2 ^ (BITS_PER_LONG - 1).
+
+On 32-bit kernel with CONFIG_HZ=1000, this is about 24 days.
+
+  >>> (2 ** 31) / 1000 / 60 / 60 / 24
+  24.855134814814818
+
+Once 24 days have passed since the last update of socket_pressure,
+mem_cgroup_under_socket_pressure() starts to lie until the next 24 days
+pass.
+
+We don't need to worry about this on 64-bit machines unless they serve for
+300 million years.
+
+  >>> (2 ** 63) / 1000 / 60 / 60 / 24 / 365
+  292471208.6775361
+
+Let's convert memcg->socket_pressure to u64.
+
+Performance teting:
+
+I don't have a real 32-bit machine so this is a result on QEMU, but
+with/without the u64 jiffie patch, the time spent in
+mem_cgroup_under_socket_pressure() was 1~5us and I didn't see any
+measurable delta.
+
+no patch applied:
+iperf3   273 [000]   137.296248:
+probe:mem_cgroup_under_socket_pressure: (c13660d0)
+                c13660d1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   273 [000]   137.296249:
+probe:mem_cgroup_under_socket_pressure__return: (c13660d0 <- c1d8fd7f)
+iperf3   273 [000]   137.296251:
+probe:mem_cgroup_under_socket_pressure: (c13660d0)
+                c13660d1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   273 [000]   137.296253:
+probe:mem_cgroup_under_socket_pressure__return: (c13660d0 <- c1d8fd7f)
+
+
+u64 jiffies patch applied:
+iperf3   308 [001]   330.669370:
+probe:mem_cgroup_under_socket_pressure: (c12ddba0)
+                c12ddba1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   308 [001]   330.669371:
+probe:mem_cgroup_under_socket_pressure__return: (c12ddba0 <- c1ce98bf)
+iperf3   308 [001]   330.669382:
+probe:mem_cgroup_under_socket_pressure: (c12ddba0)
+                c12ddba1 mem_cgroup_under_socket_pressure+0x1
+([kernel.kallsyms])
+iperf3   308 [001]   330.669384:
+probe:mem_cgroup_under_socket_pressure__return: (c12ddba0 <- c1ce98bf)
+
+So the u64 approach is good enough.
+
+Link: https://lkml.kernel.org/r/20250717194645.1096500-1-kuniyu@google.com
+Fixes: 8e8ae645249b ("mm: memcontrol: hook up vmpressure to socket pressure")
+Signed-off-by: Kuniyuki Iwashima <kuniyu@google.com>
+Reported-by: Neal Cardwell <ncardwell@google.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Dumazet <ncardwell@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/tlbflush.h |   11 -----------
- arch/riscv/include/asm/tlbflush.h |    1 -
- arch/riscv/mm/tlbflush.c          |    5 -----
- arch/x86/include/asm/tlbflush.h   |    5 -----
- mm/rmap.c                         |    2 +-
- 5 files changed, 1 insertion(+), 23 deletions(-)
+ include/linux/memcontrol.h |   44 ++++++++++++++++++++++++++++++++---
+ mm/memcontrol.c            |    5 +++
+ mm/vmpressure.c            |    2 -
+ 3 files changed, 46 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/include/asm/tlbflush.h~mm-remove-arch_flush_tlb_batched_pending-arch-helper
-+++ a/arch/arm64/include/asm/tlbflush.h
-@@ -323,17 +323,6 @@ static inline bool arch_tlbbatch_should_
- }
- 
- /*
-- * If mprotect/munmap/etc occurs during TLB batched flushing, we need to ensure
-- * all the previously issued TLBIs targeting mm have completed. But since we
-- * can be executing on a remote CPU, a DSB cannot guarantee this like it can
-- * for arch_tlbbatch_flush(). Our only option is to flush the entire mm.
-- */
--static inline void arch_flush_tlb_batched_pending(struct mm_struct *mm)
--{
--	flush_tlb_mm(mm);
--}
+--- a/include/linux/memcontrol.h~memcg-convert-memcg-socket_pressure-to-u64
++++ a/include/linux/memcontrol.h
+@@ -251,8 +251,10 @@ struct mem_cgroup {
+ 	 * that this indicator should NOT be used in legacy cgroup mode
+ 	 * where socket memory is accounted/charged separately.
+ 	 */
+-	unsigned long		socket_pressure;
 -
--/*
-  * To support TLB batched flush for multiple pages unmapping, we only send
-  * the TLBI for each page in arch_tlbbatch_add_pending() and wait for the
-  * completion at the end in arch_tlbbatch_flush(). Since we've already issued
---- a/arch/riscv/include/asm/tlbflush.h~mm-remove-arch_flush_tlb_batched_pending-arch-helper
-+++ a/arch/riscv/include/asm/tlbflush.h
-@@ -63,7 +63,6 @@ void flush_pud_tlb_range(struct vm_area_
- bool arch_tlbbatch_should_defer(struct mm_struct *mm);
- void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
- 		struct mm_struct *mm, unsigned long start, unsigned long end);
--void arch_flush_tlb_batched_pending(struct mm_struct *mm);
- void arch_tlbbatch_flush(struct arch_tlbflush_unmap_batch *batch);
- 
- extern unsigned long tlb_flush_all_threshold;
---- a/arch/riscv/mm/tlbflush.c~mm-remove-arch_flush_tlb_batched_pending-arch-helper
-+++ a/arch/riscv/mm/tlbflush.c
-@@ -234,11 +234,6 @@ void arch_tlbbatch_add_pending(struct ar
- 	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
- }
- 
--void arch_flush_tlb_batched_pending(struct mm_struct *mm)
--{
--	flush_tlb_mm(mm);
--}
--
- void arch_tlbbatch_flush(struct arch_tlbflush_unmap_batch *batch)
++	u64			socket_pressure;
++#if BITS_PER_LONG < 64
++	seqlock_t		socket_pressure_seqlock;
++#endif
+ 	int kmemcg_id;
+ 	/*
+ 	 * memcg->objcg is wiped out as a part of the objcg repaprenting
+@@ -1602,6 +1604,42 @@ extern struct static_key_false memcg_soc
+ #define mem_cgroup_sockets_enabled static_branch_unlikely(&memcg_sockets_enabled_key)
+ void mem_cgroup_sk_alloc(struct sock *sk);
+ void mem_cgroup_sk_free(struct sock *sk);
++
++#if BITS_PER_LONG < 64
++static inline void mem_cgroup_set_socket_pressure(struct mem_cgroup *memcg)
++{
++	u64 val = get_jiffies_64() + HZ;
++	unsigned long flags;
++
++	write_seqlock_irqsave(&memcg->socket_pressure_seqlock, flags);
++	memcg->socket_pressure = val;
++	write_sequnlock_irqrestore(&memcg->socket_pressure_seqlock, flags);
++}
++
++static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
++{
++	unsigned int seq;
++	u64 val;
++
++	do {
++		seq = read_seqbegin(&memcg->socket_pressure_seqlock);
++		val = memcg->socket_pressure;
++	} while (read_seqretry(&memcg->socket_pressure_seqlock, seq));
++
++	return val;
++}
++#else
++static inline void mem_cgroup_set_socket_pressure(struct mem_cgroup *memcg)
++{
++	WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
++}
++
++static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
++{
++	return READ_ONCE(memcg->socket_pressure);
++}
++#endif
++
+ static inline bool mem_cgroup_under_socket_pressure(struct mem_cgroup *memcg)
  {
- 	__flush_tlb_range(NULL, &batch->cpumask,
---- a/arch/x86/include/asm/tlbflush.h~mm-remove-arch_flush_tlb_batched_pending-arch-helper
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -356,11 +356,6 @@ static inline void arch_tlbbatch_add_pen
- 	mmu_notifier_arch_invalidate_secondary_tlbs(mm, 0, -1UL);
+ #ifdef CONFIG_MEMCG_V1
+@@ -1609,7 +1647,7 @@ static inline bool mem_cgroup_under_sock
+ 		return !!memcg->tcpmem_pressure;
+ #endif /* CONFIG_MEMCG_V1 */
+ 	do {
+-		if (time_before(jiffies, READ_ONCE(memcg->socket_pressure)))
++		if (time_before64(get_jiffies_64(), mem_cgroup_get_socket_pressure(memcg)))
+ 			return true;
+ 	} while ((memcg = parent_mem_cgroup(memcg)));
+ 	return false;
+--- a/mm/memcontrol.c~memcg-convert-memcg-socket_pressure-to-u64
++++ a/mm/memcontrol.c
+@@ -3754,7 +3754,10 @@ static struct mem_cgroup *mem_cgroup_all
+ 	INIT_LIST_HEAD(&memcg->memory_peaks);
+ 	INIT_LIST_HEAD(&memcg->swap_peaks);
+ 	spin_lock_init(&memcg->peaks_lock);
+-	memcg->socket_pressure = jiffies;
++	memcg->socket_pressure = get_jiffies_64();
++#if BITS_PER_LONG < 64
++	seqlock_init(&memcg->socket_pressure_seqlock);
++#endif
+ 	memcg1_memcg_init(memcg);
+ 	memcg->kmemcg_id = -1;
+ 	INIT_LIST_HEAD(&memcg->objcg_list);
+--- a/mm/vmpressure.c~memcg-convert-memcg-socket_pressure-to-u64
++++ a/mm/vmpressure.c
+@@ -316,7 +316,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 			 * asserted for a second in which subsequent
+ 			 * pressure events can occur.
+ 			 */
+-			WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
++			mem_cgroup_set_socket_pressure(memcg);
+ 		}
+ 	}
  }
- 
--static inline void arch_flush_tlb_batched_pending(struct mm_struct *mm)
--{
--	flush_tlb_mm(mm);
--}
--
- extern void arch_tlbbatch_flush(struct arch_tlbflush_unmap_batch *batch);
- 
- static inline bool pte_flags_need_flush(unsigned long oldflags,
---- a/mm/rmap.c~mm-remove-arch_flush_tlb_batched_pending-arch-helper
-+++ a/mm/rmap.c
-@@ -746,7 +746,7 @@ void flush_tlb_batched_pending(struct mm
- 	int flushed = batch >> TLB_FLUSH_BATCH_FLUSHED_SHIFT;
- 
- 	if (pending != flushed) {
--		arch_flush_tlb_batched_pending(mm);
-+		flush_tlb_mm(mm);
- 		/*
- 		 * If the new TLB flushing is pending during flushing, leave
- 		 * mm->tlb_flush_batched as is, to avoid losing flushing.
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from kuniyu@google.com are
 
 
