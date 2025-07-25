@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7B5321CA04
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DCA02E36FA;
+	Fri, 25 Jul 2025 02:15:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409746; cv=none; b=Ru8Mm9fdHKv9o+Kkj1CFCzV2U9tFssTpSr06cOCQldcPWebJ6Ad1Mrd0SSA5Rmo+PkYEqmPzs7mwpfAHXBOQypSEQ9X8BQ1fc7dZJEytdHaRx32pfKnRDG46utv6bgjrCgWFstMo/BAcbVUv03OuLONBBUXMjEslPVTIh9ssgdc=
+	t=1753409749; cv=none; b=GXkf6H5S+sIrCxtyBm2GIGNnow8U5OwmmGK/UK9/VseRcpaPibpIGGxGahLKbIjxOWLF5B4LoGmBRYDUhkFW4m7oFb4jT+BDmPh7ixRMEcbSt3Kt4q7gAoSS2TUQekdj1eCgUruse5S5N/loABVyYlA/mAOKL1PlmoBV2ceXimk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409746; c=relaxed/simple;
-	bh=Y9kYOKO5NQvReMYFoXf/yc929N9Ak7waBOm/qUayiN0=;
-	h=Date:To:From:Subject:Message-Id; b=E1Ae0A2wSQg3+UFim1o1c9x88HPxJ1Gd1bIzi8trsZ6MN9lNtVZwel8vfGRfm4F5rlJqZvls9eD3BllyfE1U88/TvSYfhjOOXE8WhGbb793U1nEXl+qTn+K9GUsh7zJonegudW/K5a7l9CUEJyElxBo+rpqxgHShlK+5Ov795wA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mup0zunb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409749; c=relaxed/simple;
+	bh=LRzcVhGmtO9fSerVc3HgTOVBHk9O6k0wwi2UywaOkQQ=;
+	h=Date:To:From:Subject:Message-Id; b=JteiE/XtKsIykm7Yxj4Y/2MY6f8mRSn2ad++MDNbytJAiUQ5UYXANfkJ+AKxHq4OrpJN+0K9BS9rveCDXx8OVV3G3cAchiibvT5RAdyqtVTCdRTnrDu4/FtO6si7DPOTNglfWLQrL/i2Us0MveejuWlE2b14GBwx6+oKBcnj/sg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YyxeUSer; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mup0zunb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BD0EC4CEED;
-	Fri, 25 Jul 2025 02:15:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YyxeUSer"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 612C0C4CEED;
+	Fri, 25 Jul 2025 02:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409746;
-	bh=Y9kYOKO5NQvReMYFoXf/yc929N9Ak7waBOm/qUayiN0=;
+	s=korg; t=1753409749;
+	bh=LRzcVhGmtO9fSerVc3HgTOVBHk9O6k0wwi2UywaOkQQ=;
 	h=Date:To:From:Subject:From;
-	b=mup0zunbLRVOVMkUoXlgErTrcoR/C2jRpDaXrlpsnwKYKgAXnxoSeAEn+IoC+S/pu
-	 KI16NE46Sx4FNLDCFP67FdlM+0WYjWqAmgFGgeG+yNshur3utUX+mhgNFBG956PSRt
-	 fjM/ls9zTZojsZp7z0UiRNObK84X+33V3Qap6Gkk=
-Date: Thu, 24 Jul 2025 19:15:46 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=YyxeUSerdi0uQmZgp1FzQ28+/Dz5eBgo33ytWHMNHYPV6/utJnXgTv1n8lcBiUNS1
+	 CWiz73CRQiaXAr6YWiflNv6JnDTmnMLErmngv2Kj4Xo8SguELf3w/J/IWDdOVbV0U0
+	 7tWesLYFAPh+Nd9YBFWSGGZROFPZcPHsBqe1H518=
+Date: Thu, 24 Jul 2025 19:15:48 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,joshua.hahnjy@gmail.com,hyeongtak.ji@sk.com,honggyu.kim@sk.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-update-thp-documentation-to-clarify-sysfs-never-setting.patch removed from -mm tree
-Message-Id: <20250725021546.9BD0EC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-ops-common-ignore-migration-request-to-invalid-nodes.patch removed from -mm tree
+Message-Id: <20250725021549.612C0C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,124 +35,97 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs: update THP documentation to clarify sysfs "never" setting
+     Subject: mm/damon/ops-common: ignore migration request to invalid nodes
 has been removed from the -mm tree.  Its filename was
-     docs-update-thp-documentation-to-clarify-sysfs-never-setting.patch
+     mm-damon-ops-common-ignore-migration-request-to-invalid-nodes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: docs: update THP documentation to clarify sysfs "never" setting
-Date: Mon, 21 Jul 2025 16:55:30 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/ops-common: ignore migration request to invalid nodes
+Date: Sun, 20 Jul 2025 11:58:22 -0700
 
-Rather confusingly, setting all Transparent Huge Page sysfs settings to
-"never" does not in fact result in THP being globally disabled.
+damon_migrate_pages() tries migration even if the target node is invalid. 
+If users mistakenly make such invalid requests via
+DAMOS_MIGRATE_{HOT,COLD} action, the below kernel BUG can happen.
 
-Rather, it results in khugepaged being disabled, but one can still obtain
-THP pages using madvise(..., MADV_COLLAPSE).
+    [ 7831.883495] BUG: unable to handle page fault for address: 0000000000001f48
+    [ 7831.884160] #PF: supervisor read access in kernel mode
+    [ 7831.884681] #PF: error_code(0x0000) - not-present page
+    [ 7831.885203] PGD 0 P4D 0
+    [ 7831.885468] Oops: Oops: 0000 [#1] SMP PTI
+    [ 7831.885852] CPU: 31 UID: 0 PID: 94202 Comm: kdamond.0 Not tainted 6.16.0-rc5-mm-new-damon+ #93 PREEMPT(voluntary)
+    [ 7831.886913] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-4.el9 04/01/2014
+    [ 7831.887777] RIP: 0010:__alloc_frozen_pages_noprof (include/linux/mmzone.h:1724 include/linux/mmzone.h:1750 mm/page_alloc.c:4936 mm/page_alloc.c:5137)
+    [...]
+    [ 7831.895953] Call Trace:
+    [ 7831.896195]  <TASK>
+    [ 7831.896397] __folio_alloc_noprof (mm/page_alloc.c:5183 mm/page_alloc.c:5192)
+    [ 7831.896787] migrate_pages_batch (mm/migrate.c:1189 mm/migrate.c:1851)
+    [ 7831.897228] ? __pfx_alloc_migration_target (mm/migrate.c:2137)
+    [ 7831.897735] migrate_pages (mm/migrate.c:2078)
+    [ 7831.898141] ? __pfx_alloc_migration_target (mm/migrate.c:2137)
+    [ 7831.898664] damon_migrate_folio_list (mm/damon/ops-common.c:321 mm/damon/ops-common.c:354)
+    [ 7831.899140] damon_migrate_pages (mm/damon/ops-common.c:405)
+    [...]
 
-This is something that has remained poorly documented for some time, and
-it is likely the received wisdom of most users of THP that never does, in
-fact, mean never.
+Add a target node validity check in damon_migrate_pages().  The validity
+check is stolen from that of do_pages_move(), which is being used for the
+move_pages() system call.
 
-It is therefore important to highlight, very clearly, that this is not the
-case.
-
-[lorenzo.stoakes@oracle.com: update transhuge page to mention MADV_COLLAPSE]
-  Link: https://lkml.kernel.org/r/d54d1dfb-f06d-4979-983b-73998f05867e@lucifer.local
-Link: https://lkml.kernel.org/r/20250721155530.75944-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20250720185822.1451-1-sj@kernel.org
+Fixes: b51820ebea65 ("mm/damon/paddr: introduce DAMOS_MIGRATE_COLD action for demotion")	[6.11.x]
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
+Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ mm/damon/ops-common.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~docs-update-thp-documentation-to-clarify-sysfs-never-setting
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -107,7 +107,7 @@ sysfs
- Global THP controls
- -------------------
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-ignore-migration-request-to-invalid-nodes
++++ a/mm/damon/ops-common.c
+@@ -383,6 +383,10 @@ unsigned long damon_migrate_pages(struct
+ 	if (list_empty(folio_list))
+ 		return nr_migrated;
  
--Transparent Hugepage Support for anonymous memory can be entirely disabled
-+Transparent Hugepage Support for anonymous memory can be disabled
- (mostly for debugging purposes) or only enabled inside MADV_HUGEPAGE
- regions (to avoid the risk of consuming more memory resources) or enabled
- system wide. This can be achieved per-supported-THP-size with one of::
-@@ -119,6 +119,11 @@ system wide. This can be achieved per-su
- where <size> is the hugepage size being addressed, the available sizes
- for which vary by system.
- 
-+.. note:: Setting "never" in all sysfs THP controls does **not** disable
-+          Transparent Huge Pages globally. This is because ``madvise(...,
-+          MADV_COLLAPSE)`` ignores these settings and collapses ranges to
-+          PMD-sized huge pages unconditionally.
++	if (target_nid < 0 || target_nid >= MAX_NUMNODES ||
++			!node_state(target_nid, N_MEMORY))
++		return nr_migrated;
 +
- For example::
+ 	noreclaim_flag = memalloc_noreclaim_save();
  
- 	echo always >/sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
-@@ -187,7 +192,9 @@ madvise
- 	behaviour.
- 
- never
--	should be self-explanatory.
-+	should be self-explanatory. Note that ``madvise(...,
-+	MADV_COLLAPSE)`` can still cause transparent huge pages to be
-+	obtained even if this mode is specified everywhere.
- 
- By default kernel tries to use huge, PMD-mappable zero page on read
- page fault to anonymous mapping. It's possible to disable huge zero
-@@ -378,7 +385,9 @@ always
-     Attempt to allocate huge pages every time we need a new page;
- 
- never
--    Do not allocate huge pages;
-+    Do not allocate huge pages. Note that ``madvise(..., MADV_COLLAPSE)``
-+    can still cause transparent huge pages to be obtained even if this mode
-+    is specified everywhere;
- 
- within_size
-     Only allocate huge page if it will be fully within i_size.
-@@ -434,7 +443,9 @@ inherit
-     have enabled="inherit" and all other hugepage sizes have enabled="never";
- 
- never
--    Do not allocate <size> huge pages;
-+    Do not allocate <size> huge pages. Note that ``madvise(...,
-+    MADV_COLLAPSE)`` can still cause transparent huge pages to be obtained
-+    even if this mode is specified everywhere;
- 
- within_size
-     Only allocate <size> huge page if it will be fully within i_size.
+ 	nid = folio_nid(lru_to_folio(folio_list));
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-mseal-always-define-vm_sealed.patch
-mm-mseal-update-madvise-logic.patch
-mm-mseal-small-cleanups.patch
-mm-mseal-simplify-and-rename-vma-gap-check.patch
-mm-mseal-rework-mseal-apply-logic.patch
-maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
-maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
-maintainers-add-missing-mm_sloth-file-thp-section.patch
-maintainers-add-missing-mm_sloth-file-thp-section-fix.patch
-maintainers-move-memremap-to-hotplug-section.patch
-maintainers-add-missing-shrinker-files.patch
-maintainers-add-missing-files-to-page-alloc-section.patch
-maintainers-add-missing-zsmalloc-file.patch
-maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
-maintainers-add-missing-file-to-cgroup-section.patch
+selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch
+selftests-damon-_damon_sysfs-support-damos-watermarks-setup.patch
+selftests-damon-_damon_sysfs-support-damos-filters-setup.patch
+selftests-damon-_damon_sysfs-support-monitoring-intervals-goal-setup.patch
+selftests-damon-_damon_sysfs-support-damos-quota-weights-setup.patch
+selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup.patch
+selftests-damon-_damon_sysfs-support-damos-action-dests-setup.patch
+selftests-damon-_damon_sysfs-support-damos-target_nid-setup.patch
+selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch
+selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
+selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
+selftests-damon-drgn_dump_damon_status-dump-damos-filters.patch
+selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion.patch
+selftests-damon-sysfspy-generalize-damosquota-commit-assertion.patch
+selftests-damon-sysfspy-test-quota-goal-commitment.patch
+selftests-damon-sysfspy-test-damos-destinations-commitment.patch
+selftests-damon-sysfspy-generalize-damos-scheme-commit-assertion.patch
+selftests-damon-sysfspy-test-damos-filters-commitment.patch
+selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion.patch
+selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion.patch
+selftests-damon-sysfspy-generalize-damon-context-commit-assertion.patch
+selftests-damon-sysfspy-test-non-default-parameters-runtime-commit.patch
+selftests-damon-sysfspy-test-runtime-reduction-of-damon-parameters.patch
 
