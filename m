@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC8C21C9E0
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C716715E90
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409743; cv=none; b=SLslc5Nw0YJ0ISEFtMlfsXBpcAIJMcqo2C1oLNkNcoeQCiG66af2Jl80HV9yPlMnA5qcr6sYDZIrJCW0a3RCwlLNCBa7OhtKiGky5K0NuNG2pQ0kvfNR99IV32ZjWYUndGSKOz+383ITVCqwRMEyUtV50ZoYyqR5DxBYwvKHVN4=
+	t=1753409744; cv=none; b=LVYp5o6qrwygCcX3OQBn53CtXaURjYt4W90q6ASMbMgO8cnGXxoeodHxsqvpq4cJ1tjh5Qx4QCkKcs1M7M0kfD+OSiq7hNhKlkz4l4w0ajxHDYPZNyWovesxR60m4pd9QST1A/0L8tYs5ggGgV4UxT9ou8y7URc8Oj+LRIHTEpM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409743; c=relaxed/simple;
-	bh=Hn/mcPiPXhhLafSltflLzOSRahx30PFMEpK1rXlr/6g=;
-	h=Date:To:From:Subject:Message-Id; b=EwHZYGByrPm+bnFHhng51iyKdFTy8ftgrgUwt18B7854Pksl1KsbA3EI/t657tisVjyE651XYgfnblxwJhr/LqwVzkSvLz0d/gEBkjlJ4NUoisbMbr7inXhROoX17Qmzg9tajiDylS5AWwIHSFA2CJCuGxn2lABnUzzfyDUb940=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F3eZBn6u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409744; c=relaxed/simple;
+	bh=Y2WBYPfsF+qIYW3H5N685fKdiKkS0IEjJljrpc97p5Y=;
+	h=Date:To:From:Subject:Message-Id; b=O5U+Al6wFt3oxh5emV+OgaiK+QeXiCuYh0DMcCweWqTfGl9gAqws0y1qWsaSWecE18H2uHVr+qQUYWUDTnWdmbWD0rb00TNb+4PrCH34SDJS2Vl9qUiG2KZTMLzLDUXcSdlx7KzNKtLT0fAY6cvOjVLoCTjFx4WyTqgQfrw59eM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0qnC4xm9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F3eZBn6u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28882C4CEED;
-	Fri, 25 Jul 2025 02:15:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0qnC4xm9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47A39C4CEED;
+	Fri, 25 Jul 2025 02:15:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409743;
-	bh=Hn/mcPiPXhhLafSltflLzOSRahx30PFMEpK1rXlr/6g=;
+	s=korg; t=1753409744;
+	bh=Y2WBYPfsF+qIYW3H5N685fKdiKkS0IEjJljrpc97p5Y=;
 	h=Date:To:From:Subject:From;
-	b=F3eZBn6uelM4m9dTz9rp2TYPeJ3D4HKkjjZhLRMQQ4a5aGRyPlIVesf/Z/mP7KKon
-	 tc96rkIaYsyv2FhQ8mwU04wlEWn4zR9ECMXZ5JVAWmFLLZS+klnWCFZvFoJCcNOlBr
-	 BsrTQ25tzRyF9XJb8WkfLi263pgYxUIkQucIsGHI=
-Date: Thu, 24 Jul 2025 19:15:42 -0700
+	b=0qnC4xm9Z7olGHHkkfs+Ygn/rD1PsRz2gU8CtJDF9lWhxWFAI7Au+EbX6aXVT6BdM
+	 7lKnHCQIRVHzcKhh7q1HB47eJenjpApvNcwnu6Yi2OYdPBKv65YjtqyUAx1ydZK/AA
+	 Vgy8mAyxveCePm2ecMk5F3DrX4bhCK3pl7kWKMOI=
+Date: Thu, 24 Jul 2025 19:15:43 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas.patch removed from -mm tree
-Message-Id: <20250725021543.28882C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-selftests-test-mremap_dontunmap-on-multiple-vma-move.patch removed from -mm tree
+Message-Id: <20250725021544.47A39C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests: add mremap() shrink test for multiple VMAs
+     Subject: tools/testing/selftests: test MREMAP_DONTUNMAP on multiple VMA move
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas.patch
+     tools-testing-selftests-test-mremap_dontunmap-on-multiple-vma-move.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: add mremap() shrink test for multiple VMAs
-Date: Mon, 21 Jul 2025 18:33:25 +0100
+Subject: tools/testing/selftests: test MREMAP_DONTUNMAP on multiple VMA move
+Date: Mon, 21 Jul 2025 18:33:26 +0100
 
-Patch series "tools/testing: expand mremap testing".
+We support MREMAP_MAYMOVE | MREMAP_FIXED | MREMAP_DONTUNMAP for moving
+multiple VMAs via mremap(), so assert that the tests pass with both
+MREMAP_DONTUNMAP set and not set.
 
-Expand our mremap() testing to further assert that behaviour is as
-expected.
+Additionally, add success = false settings when mremap() fails.  This is
+something that cannot realistically happen, so in no way impacted test
+outcome, but it is incorrect to indicate a test pass when something has
+failed.
 
-There is a poorly documented mremap() feature whereby it is possible to
-mremap() multiple VMAs (even with gaps) when shrinking, as long as the
-resultant shrunk range spans only a single VMA.
-
-So we start by asserting this behaviour functions correctly both with an
-in-place shrink and a shrink/move.
-
-Next, we further test the newly introduced ability to mremap() multiple
-VMAs when performing a MAP_FIXED move (that is without the size being
-changed), firstly by asserting that MREMAP_DONTUNMAP has no bearing on
-this behaviour.
-
-Finally, we explicitly test that such moves, when splitting source VMAs,
-function correctly.
-
-
-This patch (of 3):
-
-There is an apparently little-known feature of mremap() whereby, in stark
-contrast to other modes (other than the recently introduced capacity to
-move multiple VMAs), the input source range span multiple VMAs with gaps
-between.
-
-This is, when shrinking a VMA, whether moving it or not, and the shrink
-would reduce the range to a single VMA - this is permitted, as the shrink
-is actioned by an unmap.
-
-This patch adds tests to assert that this behaves as expected.
-
-Link: https://lkml.kernel.org/r/cover.1753119043.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/f08122893a26092a2bec6e69443e87f468ffdbed.1753119043.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/d7359941981e4e44c774753b3e364d1c54928e6a.1753119043.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -90,112 +64,98 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |   83 ++++++++++++++++++++-
- 1 file changed, 82 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/mremap_test.c |   29 +++++++++++++--------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas
+--- a/tools/testing/selftests/mm/mremap_test.c~tools-testing-selftests-test-mremap_dontunmap-on-multiple-vma-move
 +++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -523,6 +523,85 @@ out:
- 		ksft_test_result_fail("%s\n", test_name);
+@@ -406,14 +406,19 @@ static bool is_multiple_vma_range_ok(uns
  }
  
-+static void mremap_shrink_multiple_vmas(unsigned long page_size,
-+					bool inplace)
-+{
-+	char *test_name = "mremap shrink multiple vmas";
-+	const size_t size = 10 * page_size;
-+	bool success = true;
-+	char *ptr, *tgt_ptr;
-+	void *res;
-+	int i;
+ static void mremap_move_multiple_vmas(unsigned int pattern_seed,
+-				      unsigned long page_size)
++				      unsigned long page_size,
++				      bool dont_unmap)
+ {
++	int mremap_flags = MREMAP_FIXED | MREMAP_MAYMOVE;
+ 	char *test_name = "mremap move multiple vmas";
+ 	const size_t size = 11 * page_size;
+ 	bool success = true;
+ 	char *ptr, *tgt_ptr;
+ 	int i;
+ 
++	if (dont_unmap)
++		mremap_flags |= MREMAP_DONTUNMAP;
 +
-+	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (ptr == MAP_FAILED) {
-+		perror("mmap");
+ 	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
+ 		   MAP_PRIVATE | MAP_ANON, -1, 0);
+ 	if (ptr == MAP_FAILED) {
+@@ -467,8 +472,7 @@ static void mremap_move_multiple_vmas(un
+ 	}
+ 
+ 	/* First, just move the whole thing. */
+-	if (mremap(ptr, size, size,
+-		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
++	if (mremap(ptr, size, size, mremap_flags, tgt_ptr) == MAP_FAILED) {
+ 		perror("mremap");
+ 		success = false;
+ 		goto out_unmap;
+@@ -480,9 +484,10 @@ static void mremap_move_multiple_vmas(un
+ 	}
+ 
+ 	/* Move next to itself. */
+-	if (mremap(tgt_ptr, size, size,
+-		   MREMAP_MAYMOVE | MREMAP_FIXED, &tgt_ptr[size]) == MAP_FAILED) {
++	if (mremap(tgt_ptr, size, size, mremap_flags,
++		   &tgt_ptr[size]) == MAP_FAILED) {
+ 		perror("mremap");
 +		success = false;
-+		goto out;
-+	}
-+
-+	tgt_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
-+		       MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (tgt_ptr == MAP_FAILED) {
-+		perror("mmap");
+ 		goto out_unmap;
+ 	}
+ 	/* Check that the move is ok. */
+@@ -500,8 +505,9 @@ static void mremap_move_multiple_vmas(un
+ 	}
+ 	/* Move and overwrite. */
+ 	if (mremap(&tgt_ptr[size], size, size,
+-		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
++		   mremap_flags, tgt_ptr) == MAP_FAILED) {
+ 		perror("mremap");
 +		success = false;
-+		goto out;
-+	}
-+	if (munmap(tgt_ptr, size)) {
-+		perror("munmap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/*
-+	 * Unmap so we end up with:
-+	 *
-+	 *  0   2   4   6   8   10 offset in buffer
-+	 * |*| |*| |*| |*| |*| |*|
-+	 * |*| |*| |*| |*| |*| |*|
-+	 */
-+	for (i = 1; i < 10; i += 2) {
-+		if (munmap(&ptr[i * page_size], page_size)) {
-+			perror("munmap");
-+			success = false;
-+			goto out_unmap;
-+		}
-+	}
-+
-+	/*
-+	 * Shrink in-place across multiple VMAs and gaps so we end up with:
-+	 *
-+	 *  0
-+	 * |*|
-+	 * |*|
-+	 */
-+	if (inplace)
-+		res = mremap(ptr, size, page_size, 0);
-+	else
-+		res = mremap(ptr, size, page_size, MREMAP_MAYMOVE | MREMAP_FIXED,
-+			     tgt_ptr);
-+
-+	if (res == MAP_FAILED) {
-+		perror("mremap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+out_unmap:
-+	if (munmap(tgt_ptr, size))
-+		perror("munmap tgt");
-+	if (munmap(ptr, size))
-+		perror("munmap src");
-+out:
-+	if (success)
+ 		goto out_unmap;
+ 	}
+ 	/* Check that the move is ok. */
+@@ -518,9 +524,11 @@ out_unmap:
+ 
+ out:
+ 	if (success)
+-		ksft_test_result_pass("%s\n", test_name);
 +		ksft_test_result_pass("%s%s\n", test_name,
-+				      inplace ? " [inplace]" : "");
-+	else
++				      dont_unmap ? " [dontunnmap]" : "");
+ 	else
+-		ksft_test_result_fail("%s\n", test_name);
 +		ksft_test_result_fail("%s%s\n", test_name,
-+				      inplace ? " [inplace]" : "");
-+}
-+
- /* Returns the time taken for the remap on success else returns -1. */
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char *rand_addr)
-@@ -864,7 +943,7 @@ int main(int argc, char **argv)
++				      dont_unmap ? " [dontunnmap]" : "");
+ }
+ 
+ static void mremap_shrink_multiple_vmas(unsigned long page_size,
+@@ -943,7 +951,7 @@ int main(int argc, char **argv)
  	char *rand_addr;
  	size_t rand_size;
  	int num_expand_tests = 2;
--	int num_misc_tests = 3;
-+	int num_misc_tests = 5;
+-	int num_misc_tests = 5;
++	int num_misc_tests = 6;
  	struct test test_cases[MAX_TEST] = {};
  	struct test perf_test_cases[MAX_PERF_TEST];
  	int page_size;
-@@ -992,6 +1071,8 @@ int main(int argc, char **argv)
+@@ -1070,9 +1078,10 @@ int main(int argc, char **argv)
+ 
  	mremap_move_within_range(pattern_seed, rand_addr);
  	mremap_move_1mb_from_start(pattern_seed, rand_addr);
- 	mremap_move_multiple_vmas(pattern_seed, page_size);
-+	mremap_shrink_multiple_vmas(page_size, /* inplace= */true);
-+	mremap_shrink_multiple_vmas(page_size, /* inplace= */false);
+-	mremap_move_multiple_vmas(pattern_seed, page_size);
+ 	mremap_shrink_multiple_vmas(page_size, /* inplace= */true);
+ 	mremap_shrink_multiple_vmas(page_size, /* inplace= */false);
++	mremap_move_multiple_vmas(pattern_seed, page_size, /* dontunmap= */ false);
++	mremap_move_multiple_vmas(pattern_seed, page_size, /* dontunmap= */ true);
  
  	if (run_perf_tests) {
  		ksft_print_msg("\n%s\n",
