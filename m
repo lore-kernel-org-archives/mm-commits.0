@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4AAA21ABD7
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2529321B9DE
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409719; cv=none; b=r+fIMyiskMRQccikiO7JYJAcshVJXMiOU/TsSD7ipdFpq9q8peb58MZ2n9DsvCbclaCKnjKdGrrL8FxJxKlmOdEX3oazCkXwHVxvo8YRRt+x+6n6o2EUcizr/EKsVFfFbcmspEVh+avTB3pyIhXiTGQkK5p4ZU/ZvPoYSH8xbvY=
+	t=1753409721; cv=none; b=XlbYNNTvG2SIWcwA5iig/kSI/AuzTKHd4I319iyB+PeEFBt84go3jTLbV6NyfrEktmXrghwO/cxou50vEGEwRU2vv6poFzJdPMtR02NLJD1O3StWtUonl63poTy9mRCc79rlYsncKY0SPfRWtzCRMR1iiHW/TS56UMOmN54XxSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409719; c=relaxed/simple;
-	bh=esL7nxe1je4X+vqpC5FqqJDp4IZ9kFnFCluSpTH1dyM=;
-	h=Date:To:From:Subject:Message-Id; b=sQo4Imxblmruvb3iVBMyZSolIZ8+SRTO84cMm16AREspzwfU2b0U0akkANxW5S4+dbRr6CrrUmKHGlnRRBkfxpEAbiVn0NmhxXs7ZSiqDB3uKR1ftw728IUwoaSC24wllwKt+DRn+qkuRnuofTGhBb5piZiJcRcxO8ycf9caGR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MTTL1S7J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409721; c=relaxed/simple;
+	bh=zycNREsjWEggpO3ZLO+5E7ZZYd2q7VjCdAeUkRT3l6I=;
+	h=Date:To:From:Subject:Message-Id; b=I9gM4ToW8/x+p+PI6gv1Jk5WjgstgwwNK3yvB38KatsVGm2SIzAFHqff+JTeaNncxPXNeIrr+JOuqOBUDEoJwv0+PyAo9zaMaMS/VE82w9T0kV/Mi5/BoSMtRqWphdIwC5IlBnaqsy3CL/Zrm3dmmFZdecbRFAMzYUrPB/bQ/dg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mrv7auAM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MTTL1S7J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 883A9C4CEED;
-	Fri, 25 Jul 2025 02:15:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mrv7auAM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE282C4CEED;
+	Fri, 25 Jul 2025 02:15:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409719;
-	bh=esL7nxe1je4X+vqpC5FqqJDp4IZ9kFnFCluSpTH1dyM=;
+	s=korg; t=1753409721;
+	bh=zycNREsjWEggpO3ZLO+5E7ZZYd2q7VjCdAeUkRT3l6I=;
 	h=Date:To:From:Subject:From;
-	b=MTTL1S7JSlLlKiEewzQ99BGb++l4FLENeXCzFhPUIjBE07ZNDq9Sjd5sfKuEHZgq3
-	 sCdmrjHicWjYzOH4lNWaqpbOmkcopYyL4VglXHEdveSi54lrlemNljol0DqAZo8hfY
-	 kG3+iD2JVuMQG6+uC6gMs6q44y5w8x7o4TMkL6o4=
-Date: Thu, 24 Jul 2025 19:15:19 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,mingo@redhat.com,davem@davemloft.net,brauner@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=Mrv7auAMMyFuw//RyuXMM0XxNJwKtzTu0h2kR4V4T8YGaTgjheheZPzIIyHGzbA6s
+	 ydMt0pylaaf2fQgZe9Qy5GO+MHJaW+OlFKWxkyvmvXjNM6YSdc7iOZQnIAOlgpWTTX
+	 ITZVr3PrlqhrOYErCTtGKa3qqEAZexQDXbp0naKY=
+Date: Thu, 24 Jul 2025 19:15:20 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,k.shutemov@gmail.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,dan.carpenter@linaro.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,antonio@mandelbit.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs.patch removed from -mm tree
-Message-Id: <20250725021519.883A9C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-move-unrelated-code-out-of-__split_unmapped_folio.patch removed from -mm tree
+Message-Id: <20250725021520.EE282C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,443 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/Kconfig: enable HUGETLBFS only if ARCH_SUPPORTS_HUGETLBFS
+     Subject: mm/huge_memory: move unrelated code out of __split_unmapped_folio()
 has been removed from the -mm tree.  Its filename was
-     fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs.patch
+     mm-huge_memory-move-unrelated-code-out-of-__split_unmapped_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: fs/Kconfig: enable HUGETLBFS only if ARCH_SUPPORTS_HUGETLBFS
-Date: Fri, 11 Jul 2025 15:59:34 +0530
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: move unrelated code out of __split_unmapped_folio()
+Date: Fri, 18 Jul 2025 14:37:15 -0400
 
-Enable HUGETLBFS only when platform subscrbes via ARCH_SUPPORTS_HUGETLBFS.
-Hence select ARCH_SUPPORTS_HUGETLBFS on existing x86 and sparc for their
-continuing HUGETLBFS support.  While here also just drop existing 'BROKEN'
-dependency.
+Patch series "__folio_split() clean up", v5.
 
-Link: https://lkml.kernel.org/r/20250711102934.2399533-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
+This patchset refactors __folio_split() and __split_unmapped_folio() to:
+1. make __split_unmapped_folio() reusable for splitting unmapped
+   folios.  It avoids the need for a new boolean unmapped parameter to
+   guard mapping-related code when __split_unmapped_folio() is reused to
+   split unmapped folios.
+2. improve code readability and prevent smatch/coverity checkers from
+   complaining about NULL mapping referencing.
+
+An additional benefit for __split_unmapped_folio() refactoring is that
+__split_unmapped_folio() could be called on after-split folios by
+__folio_split().  It can enable new split methods.  For example, at
+deferred split time, unmapped subpages can scatter arbitrarily within a
+large folio, neither uniform nor non-uniform split can maximize
+after-split folio orders for mapped subpages.  The hope is that by calling
+__split_unmapped_folio() multiple times, a better split result can be
+achieved.
+
+
+This patch (of 6):
+
+remap(), folio_ref_unfreeze(), lru_add_split_folio() are not relevant to
+splitting unmapped folio operations.  Move them out to __folio_split() so
+that __split_unmapped_folio() only handles unmapped folio splits.  This
+makes __split_unmapped_folio() reusable.
+
+Remove the swapcache folio split check code before
+__split_unmapped_folio() call, since it is already checked at the
+beginning of __folio_split() in uniform_split_supported() and
+non_uniform_split_supported().
+
+Along with the code move, there are some variable renames:
+
+1. release is renamed to new_folio,
+2. origin_folio is now folio, since __folio_split() has folio pointing to
+   the original folio already.
+
+Link: https://lkml.kernel.org/r/20250718023000.4044406-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250718023000.4044406-2-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250718183720.4054515-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250718183720.4054515-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Antonio Quartulli <antonio@mandelbit.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <k.shutemov@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig |    1 +
- arch/x86/Kconfig   |    1 +
- fs/Kconfig         |    2 +-
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |  270 ++++++++++++++++++++++-----------------------
+ 1 file changed, 133 insertions(+), 137 deletions(-)
 
---- a/arch/sparc/Kconfig~fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs
-+++ a/arch/sparc/Kconfig
-@@ -97,6 +97,7 @@ config SPARC64
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+	select ARCH_SUPPORTS_HUGETLBFS
- 	select HAVE_NMI
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select ARCH_USE_QUEUED_RWLOCKS
---- a/arch/x86/Kconfig~fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs
-+++ a/arch/x86/Kconfig
-@@ -125,6 +125,7 @@ config X86
- 	select ARCH_SUPPORTS_ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK	if X86_64
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_SUPPORTS_KMAP_LOCAL_FORCE_MAP	if NR_CPUS <= 4096
---- a/fs/Kconfig~fs-kconfig-enable-hugetlbfs-only-if-arch_supports_hugetlbfs
-+++ a/fs/Kconfig
-@@ -249,7 +249,7 @@ config ARCH_SUPPORTS_HUGETLBFS
+--- a/mm/huge_memory.c~mm-huge_memory-move-unrelated-code-out-of-__split_unmapped_folio
++++ a/mm/huge_memory.c
+@@ -3385,10 +3385,6 @@ static void __split_folio_to_order(struc
+  *             order - 1 to new_order).
+  * @split_at: in buddy allocator like split, the folio containing @split_at
+  *            will be split until its order becomes @new_order.
+- * @lock_at: the folio containing @lock_at is left locked for caller.
+- * @list: the after split folios will be added to @list if it is not NULL,
+- *        otherwise to LRU lists.
+- * @end: the end of the file @folio maps to. -1 if @folio is anonymous memory.
+  * @xas: xa_state pointing to folio->mapping->i_pages and locked by caller
+  * @mapping: @folio->mapping
+  * @uniform_split: if the split is uniform or not (buddy allocator like split)
+@@ -3414,52 +3410,26 @@ static void __split_folio_to_order(struc
+  *    @page, which is split in next for loop.
+  *
+  * After splitting, the caller's folio reference will be transferred to the
+- * folio containing @page. The other folios may be freed if they are not mapped.
+- *
+- * In terms of locking, after splitting,
+- * 1. uniform split leaves @page (or the folio contains it) locked;
+- * 2. buddy allocator like (non-uniform) split leaves @folio locked.
+- *
++ * folio containing @page. The caller needs to unlock and/or free after-split
++ * folios if necessary.
+  *
+  * For !uniform_split, when -ENOMEM is returned, the original folio might be
+  * split. The caller needs to check the input folio.
+  */
+ static int __split_unmapped_folio(struct folio *folio, int new_order,
+-		struct page *split_at, struct page *lock_at,
+-		struct list_head *list, pgoff_t end,
+-		struct xa_state *xas, struct address_space *mapping,
+-		bool uniform_split)
++		struct page *split_at, struct xa_state *xas,
++		struct address_space *mapping, bool uniform_split)
+ {
+-	struct lruvec *lruvec;
+-	struct address_space *swap_cache = NULL;
+-	struct folio *origin_folio = folio;
+-	struct folio *next_folio = folio_next(folio);
+-	struct folio *new_folio;
+-	struct folio *next;
+ 	int order = folio_order(folio);
+-	int split_order;
+ 	int start_order = uniform_split ? new_order : order - 1;
+-	int nr_dropped = 0;
+-	int ret = 0;
+ 	bool stop_split = false;
+-
+-	if (folio_test_swapcache(folio)) {
+-		VM_BUG_ON(mapping);
+-
+-		/* a swapcache folio can only be uniformly split to order-0 */
+-		if (!uniform_split || new_order != 0)
+-			return -EINVAL;
+-
+-		swap_cache = swap_address_space(folio->swap);
+-		xa_lock(&swap_cache->i_pages);
+-	}
++	struct folio *next;
++	int split_order;
++	int ret = 0;
  
- menuconfig HUGETLBFS
- 	bool "HugeTLB file system support"
--	depends on X86 || SPARC64 || ARCH_SUPPORTS_HUGETLBFS || BROKEN
-+	depends on ARCH_SUPPORTS_HUGETLBFS
- 	depends on (SYSFS || SYSCTL)
- 	select MEMFD_CREATE
- 	select PADATA if SMP
+ 	if (folio_test_anon(folio))
+ 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+ 
+-	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
+-	lruvec = folio_lruvec_lock(folio);
+-
+ 	folio_clear_has_hwpoisoned(folio);
+ 
+ 	/*
+@@ -3469,9 +3439,9 @@ static int __split_unmapped_folio(struct
+ 	for (split_order = start_order;
+ 	     split_order >= new_order && !stop_split;
+ 	     split_order--) {
+-		int old_order = folio_order(folio);
+-		struct folio *release;
+ 		struct folio *end_folio = folio_next(folio);
++		int old_order = folio_order(folio);
++		struct folio *new_folio;
+ 
+ 		/* order-1 anonymous folio is not supported */
+ 		if (folio_test_anon(folio) && split_order == 1)
+@@ -3506,113 +3476,32 @@ static int __split_unmapped_folio(struct
+ 
+ after_split:
+ 		/*
+-		 * Iterate through after-split folios and perform related
+-		 * operations. But in buddy allocator like split, the folio
++		 * Iterate through after-split folios and update folio stats.
++		 * But in buddy allocator like split, the folio
+ 		 * containing the specified page is skipped until its order
+ 		 * is new_order, since the folio will be worked on in next
+ 		 * iteration.
+ 		 */
+-		for (release = folio; release != end_folio; release = next) {
+-			next = folio_next(release);
++		for (new_folio = folio; new_folio != end_folio; new_folio = next) {
++			next = folio_next(new_folio);
+ 			/*
+-			 * for buddy allocator like split, the folio containing
+-			 * page will be split next and should not be released,
+-			 * until the folio's order is new_order or stop_split
+-			 * is set to true by the above xas_split() failure.
++			 * for buddy allocator like split, new_folio containing
++			 * @split_at page could be split again, thus do not
++			 * change stats yet. Wait until new_folio's order is
++			 * @new_order or stop_split is set to true by the above
++			 * xas_split() failure.
+ 			 */
+-			if (release == page_folio(split_at)) {
+-				folio = release;
++			if (new_folio == page_folio(split_at)) {
++				folio = new_folio;
+ 				if (split_order != new_order && !stop_split)
+ 					continue;
+ 			}
+-			if (folio_test_anon(release)) {
+-				mod_mthp_stat(folio_order(release),
+-						MTHP_STAT_NR_ANON, 1);
+-			}
+-
+-			/*
+-			 * origin_folio should be kept frozon until page cache
+-			 * entries are updated with all the other after-split
+-			 * folios to prevent others seeing stale page cache
+-			 * entries.
+-			 */
+-			if (release == origin_folio)
+-				continue;
+-
+-			folio_ref_unfreeze(release, 1 +
+-					((mapping || swap_cache) ?
+-						folio_nr_pages(release) : 0));
+-
+-			lru_add_split_folio(origin_folio, release, lruvec,
+-					list);
+-
+-			/* Some pages can be beyond EOF: drop them from cache */
+-			if (release->index >= end) {
+-				if (shmem_mapping(mapping))
+-					nr_dropped += folio_nr_pages(release);
+-				else if (folio_test_clear_dirty(release))
+-					folio_account_cleaned(release,
+-						inode_to_wb(mapping->host));
+-				__filemap_remove_folio(release, NULL);
+-				folio_put_refs(release, folio_nr_pages(release));
+-			} else if (mapping) {
+-				__xa_store(&mapping->i_pages,
+-						release->index, release, 0);
+-			} else if (swap_cache) {
+-				__xa_store(&swap_cache->i_pages,
+-						swap_cache_index(release->swap),
+-						release, 0);
+-			}
++			if (folio_test_anon(new_folio))
++				mod_mthp_stat(folio_order(new_folio),
++					      MTHP_STAT_NR_ANON, 1);
+ 		}
+ 	}
+ 
+-	/*
+-	 * Unfreeze origin_folio only after all page cache entries, which used
+-	 * to point to it, have been updated with new folios. Otherwise,
+-	 * a parallel folio_try_get() can grab origin_folio and its caller can
+-	 * see stale page cache entries.
+-	 */
+-	folio_ref_unfreeze(origin_folio, 1 +
+-		((mapping || swap_cache) ? folio_nr_pages(origin_folio) : 0));
+-
+-	unlock_page_lruvec(lruvec);
+-
+-	if (swap_cache)
+-		xa_unlock(&swap_cache->i_pages);
+-	if (mapping)
+-		xa_unlock(&mapping->i_pages);
+-
+-	/* Caller disabled irqs, so they are still disabled here */
+-	local_irq_enable();
+-
+-	if (nr_dropped)
+-		shmem_uncharge(mapping->host, nr_dropped);
+-
+-	remap_page(origin_folio, 1 << order,
+-			folio_test_anon(origin_folio) ?
+-				RMP_USE_SHARED_ZEROPAGE : 0);
+-
+-	/*
+-	 * At this point, folio should contain the specified page.
+-	 * For uniform split, it is left for caller to unlock.
+-	 * For buddy allocator like split, the first after-split folio is left
+-	 * for caller to unlock.
+-	 */
+-	for (new_folio = origin_folio; new_folio != next_folio; new_folio = next) {
+-		next = folio_next(new_folio);
+-		if (new_folio == page_folio(lock_at))
+-			continue;
+-
+-		folio_unlock(new_folio);
+-		/*
+-		 * Subpages may be freed if there wasn't any mapping
+-		 * like if add_to_swap() is running on a lru page that
+-		 * had its mapping zapped. And freeing these pages
+-		 * requires taking the lru_lock so we do the put_page
+-		 * of the tail pages after the split is complete.
+-		 */
+-		free_folio_and_swap_cache(new_folio);
+-	}
+ 	return ret;
+ }
+ 
+@@ -3686,6 +3575,11 @@ bool uniform_split_supported(struct foli
+  * It is in charge of checking whether the split is supported or not and
+  * preparing @folio for __split_unmapped_folio().
+  *
++ * After splitting, the after-split folio containing @lock_at remains locked
++ * and others are unlocked:
++ * 1. for uniform split, @lock_at points to one of @folio's subpages;
++ * 2. for buddy allocator like (non-uniform) split, @lock_at points to @folio.
++ *
+  * return: 0: successful, <0 failed (if -ENOMEM is returned, @folio might be
+  * split but not to @new_order, the caller needs to check)
+  */
+@@ -3695,10 +3589,12 @@ static int __folio_split(struct folio *f
+ {
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
++	struct folio *end_folio = folio_next(folio);
+ 	bool is_anon = folio_test_anon(folio);
+ 	struct address_space *mapping = NULL;
+ 	struct anon_vma *anon_vma = NULL;
+ 	int order = folio_order(folio);
++	struct folio *new_folio, *next;
+ 	int extra_pins, ret;
+ 	pgoff_t end;
+ 	bool is_hzp;
+@@ -3829,6 +3725,10 @@ static int __folio_split(struct folio *f
+ 	/* Prevent deferred_split_scan() touching ->_refcount */
+ 	spin_lock(&ds_queue->split_queue_lock);
+ 	if (folio_ref_freeze(folio, 1 + extra_pins)) {
++		struct address_space *swap_cache = NULL;
++		int nr_dropped = 0;
++		struct lruvec *lruvec;
++
+ 		if (folio_order(folio) > 1 &&
+ 		    !list_empty(&folio->_deferred_list)) {
+ 			ds_queue->split_queue_len--;
+@@ -3862,9 +3762,105 @@ static int __folio_split(struct folio *f
+ 			}
+ 		}
+ 
+-		ret = __split_unmapped_folio(folio, new_order,
+-				split_at, lock_at, list, end, &xas, mapping,
+-				uniform_split);
++		if (folio_test_swapcache(folio)) {
++			VM_BUG_ON(mapping);
++
++			swap_cache = swap_address_space(folio->swap);
++			xa_lock(&swap_cache->i_pages);
++		}
++
++		/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
++		lruvec = folio_lruvec_lock(folio);
++
++		ret = __split_unmapped_folio(folio, new_order, split_at, &xas,
++					     mapping, uniform_split);
++
++		/*
++		 * Unfreeze after-split folios and put them back to the right
++		 * list. @folio should be kept frozon until page cache
++		 * entries are updated with all the other after-split folios
++		 * to prevent others seeing stale page cache entries.
++		 * As a result, new_folio starts from the next folio of
++		 * @folio.
++		 */
++		for (new_folio = folio_next(folio); new_folio != end_folio;
++		     new_folio = next) {
++			next = folio_next(new_folio);
++
++			folio_ref_unfreeze(
++				new_folio,
++				1 + ((mapping || swap_cache) ?
++					     folio_nr_pages(new_folio) :
++					     0));
++
++			lru_add_split_folio(folio, new_folio, lruvec, list);
++
++			/* Some pages can be beyond EOF: drop them from cache */
++			if (new_folio->index >= end) {
++				if (shmem_mapping(mapping))
++					nr_dropped += folio_nr_pages(new_folio);
++				else if (folio_test_clear_dirty(new_folio))
++					folio_account_cleaned(
++						new_folio,
++						inode_to_wb(mapping->host));
++				__filemap_remove_folio(new_folio, NULL);
++				folio_put_refs(new_folio,
++					       folio_nr_pages(new_folio));
++			} else if (mapping) {
++				__xa_store(&mapping->i_pages, new_folio->index,
++					   new_folio, 0);
++			} else if (swap_cache) {
++				__xa_store(&swap_cache->i_pages,
++					   swap_cache_index(new_folio->swap),
++					   new_folio, 0);
++			}
++		}
++		/*
++		 * Unfreeze @folio only after all page cache entries, which
++		 * used to point to it, have been updated with new folios.
++		 * Otherwise, a parallel folio_try_get() can grab @folio
++		 * and its caller can see stale page cache entries.
++		 */
++		folio_ref_unfreeze(folio, 1 +
++			((mapping || swap_cache) ? folio_nr_pages(folio) : 0));
++
++		unlock_page_lruvec(lruvec);
++
++		if (swap_cache)
++			xa_unlock(&swap_cache->i_pages);
++		if (mapping)
++			xas_unlock(&xas);
++
++		local_irq_enable();
++
++		if (nr_dropped)
++			shmem_uncharge(mapping->host, nr_dropped);
++
++		remap_page(folio, 1 << order,
++			   !ret && folio_test_anon(folio) ?
++				   RMP_USE_SHARED_ZEROPAGE :
++				   0);
++
++		/*
++		 * Unlock all after-split folios except the one containing
++		 * @lock_at page. If @folio is not split, it will be kept locked.
++		 */
++		for (new_folio = folio; new_folio != end_folio;
++		     new_folio = next) {
++			next = folio_next(new_folio);
++			if (new_folio == page_folio(lock_at))
++				continue;
++
++			folio_unlock(new_folio);
++			/*
++			 * Subpages may be freed if there wasn't any mapping
++			 * like if add_to_swap() is running on a lru page that
++			 * had its mapping zapped. And freeing these pages
++			 * requires taking the lru_lock so we do the put_page
++			 * of the tail pages after the split is complete.
++			 */
++			free_folio_and_swap_cache(new_folio);
++		}
+ 	} else {
+ 		spin_unlock(&ds_queue->split_queue_lock);
+ fail:
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
+mm-page_alloc-remove-trace_mm_alloc_contig_migrate_range_info.patch
 
