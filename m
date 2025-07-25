@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8131B221FBB
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC8C21C9E0
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409742; cv=none; b=lta/5QRR51lYnjzSQiFvnuNSzdmBf54qDQWsYu63J2q2+TJFCgMcIP9f0UR+5gzeUhes/TxCm/tzehtZaAp7/aveJ5gFFRnizJID0BsA6iCpoXYw+Uu/FjRN1jdh9rLisnU6D+HZFzHtwQIIf0CikPx5jLd4f1c6RJQyHT/2Ymg=
+	t=1753409743; cv=none; b=SLslc5Nw0YJ0ISEFtMlfsXBpcAIJMcqo2C1oLNkNcoeQCiG66af2Jl80HV9yPlMnA5qcr6sYDZIrJCW0a3RCwlLNCBa7OhtKiGky5K0NuNG2pQ0kvfNR99IV32ZjWYUndGSKOz+383ITVCqwRMEyUtV50ZoYyqR5DxBYwvKHVN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409742; c=relaxed/simple;
-	bh=dVb/HURjp/+T0YDt3WiHCKdVqnX4uxkhvrg9N9sxTVY=;
-	h=Date:To:From:Subject:Message-Id; b=qBeuxOkDvnh+Rq4ZxiV/Vm09hkLAlm31FCKiOqN9HkaNwsZE93jTDV0xMvacU0s/ddsEusG95ZV/3Z31oZ7fTJo8KidbvQP9DRujH6/KM62IhI5bLhp9MWcAiyKFHKTqWmzcir0CDwP5HMe3OhTBhfcitnEFE9iUoZNs5KF6HtM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t5CxUteJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409743; c=relaxed/simple;
+	bh=Hn/mcPiPXhhLafSltflLzOSRahx30PFMEpK1rXlr/6g=;
+	h=Date:To:From:Subject:Message-Id; b=EwHZYGByrPm+bnFHhng51iyKdFTy8ftgrgUwt18B7854Pksl1KsbA3EI/t657tisVjyE651XYgfnblxwJhr/LqwVzkSvLz0d/gEBkjlJ4NUoisbMbr7inXhROoX17Qmzg9tajiDylS5AWwIHSFA2CJCuGxn2lABnUzzfyDUb940=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F3eZBn6u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t5CxUteJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE639C4CEED;
-	Fri, 25 Jul 2025 02:15:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F3eZBn6u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28882C4CEED;
+	Fri, 25 Jul 2025 02:15:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409742;
-	bh=dVb/HURjp/+T0YDt3WiHCKdVqnX4uxkhvrg9N9sxTVY=;
+	s=korg; t=1753409743;
+	bh=Hn/mcPiPXhhLafSltflLzOSRahx30PFMEpK1rXlr/6g=;
 	h=Date:To:From:Subject:From;
-	b=t5CxUteJF494e5hIPoIeCt9Tr4/UJvqaBz1mQ89jEU7YwD6r1oxN+XcerSg1kiXM2
-	 /t1JO4VvCY/CSHo/ztvQjN4gIaJrNm6OpkXrHfhKMh7hTZYbu5gmjs6k/RY/zEN9Gt
-	 bG11IM8bm1KF6maZDH1po3okPWq0dVk1OBFhQSTk=
-Date: Thu, 24 Jul 2025 19:15:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,broonie@kernel.org,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
+	b=F3eZBn6uelM4m9dTz9rp2TYPeJ3D4HKkjjZhLRMQQ4a5aGRyPlIVesf/Z/mP7KKon
+	 tc96rkIaYsyv2FhQ8mwU04wlEWn4zR9ECMXZ5JVAWmFLLZS+klnWCFZvFoJCcNOlBr
+	 BsrTQ25tzRyF9XJb8WkfLi263pgYxUIkQucIsGHI=
+Date: Thu, 24 Jul 2025 19:15:42 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip.patch removed from -mm tree
-Message-Id: <20250725021541.EE639C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas.patch removed from -mm tree
+Message-Id: <20250725021543.28882C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,187 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: guard-regions: Use SKIP() instead of ksft_exit_skip()
+     Subject: tools/testing/selftests: add mremap() shrink test for multiple VMAs
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip.patch
+     tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: wang lian <lianux.mm@gmail.com>
-Subject: selftests/mm: guard-regions: Use SKIP() instead of ksft_exit_skip()
-Date: Thu, 17 Jul 2025 21:18:57 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: tools/testing/selftests: add mremap() shrink test for multiple VMAs
+Date: Mon, 21 Jul 2025 18:33:25 +0100
 
-To ensure only the current test is skipped on permission failure, instead
-of terminating the entire test binary.
+Patch series "tools/testing: expand mremap testing".
 
-Link: https://lkml.kernel.org/r/20250717131857.59909-3-lianux.mm@gmail.com
-Signed-off-by: wang lian <lianux.mm@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Expand our mremap() testing to further assert that behaviour is as
+expected.
+
+There is a poorly documented mremap() feature whereby it is possible to
+mremap() multiple VMAs (even with gaps) when shrinking, as long as the
+resultant shrunk range spans only a single VMA.
+
+So we start by asserting this behaviour functions correctly both with an
+in-place shrink and a shrink/move.
+
+Next, we further test the newly introduced ability to mremap() multiple
+VMAs when performing a MAP_FIXED move (that is without the size being
+changed), firstly by asserting that MREMAP_DONTUNMAP has no bearing on
+this behaviour.
+
+Finally, we explicitly test that such moves, when splitting source VMAs,
+function correctly.
+
+
+This patch (of 3):
+
+There is an apparently little-known feature of mremap() whereby, in stark
+contrast to other modes (other than the recently introduced capacity to
+move multiple VMAs), the input source range span multiple VMAs with gaps
+between.
+
+This is, when shrinking a VMA, whether moving it or not, and the shrink
+would reduce the range to a single VMA - this is permitted, as the shrink
+is actioned by an unmap.
+
+This patch adds tests to assert that this behaves as expected.
+
+Link: https://lkml.kernel.org/r/cover.1753119043.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/f08122893a26092a2bec6e69443e87f468ffdbed.1753119043.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/guard-regions.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/mremap_test.c |   83 ++++++++++++++++++++-
+ 1 file changed, 82 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-guard-regions-use-skip-instead-of-ksft_exit_skip
-+++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -575,7 +575,7 @@ TEST_F(guard_regions, process_madvise)
+--- a/tools/testing/selftests/mm/mremap_test.c~tools-testing-selftests-add-mremap-shrink-test-for-multiple-vmas
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -523,6 +523,85 @@ out:
+ 		ksft_test_result_fail("%s\n", test_name);
+ }
  
- 	/* OK we don't have permission to do this, skip. */
- 	if (count == -1 && errno == EPERM)
--		ksft_exit_skip("No process_madvise() permissions, try running as root.\n");
-+		SKIP(return, "No process_madvise() permissions, try running as root.\n");
++static void mremap_shrink_multiple_vmas(unsigned long page_size,
++					bool inplace)
++{
++	char *test_name = "mremap shrink multiple vmas";
++	const size_t size = 10 * page_size;
++	bool success = true;
++	char *ptr, *tgt_ptr;
++	void *res;
++	int i;
++
++	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANON, -1, 0);
++	if (ptr == MAP_FAILED) {
++		perror("mmap");
++		success = false;
++		goto out;
++	}
++
++	tgt_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
++		       MAP_PRIVATE | MAP_ANON, -1, 0);
++	if (tgt_ptr == MAP_FAILED) {
++		perror("mmap");
++		success = false;
++		goto out;
++	}
++	if (munmap(tgt_ptr, size)) {
++		perror("munmap");
++		success = false;
++		goto out_unmap;
++	}
++
++	/*
++	 * Unmap so we end up with:
++	 *
++	 *  0   2   4   6   8   10 offset in buffer
++	 * |*| |*| |*| |*| |*| |*|
++	 * |*| |*| |*| |*| |*| |*|
++	 */
++	for (i = 1; i < 10; i += 2) {
++		if (munmap(&ptr[i * page_size], page_size)) {
++			perror("munmap");
++			success = false;
++			goto out_unmap;
++		}
++	}
++
++	/*
++	 * Shrink in-place across multiple VMAs and gaps so we end up with:
++	 *
++	 *  0
++	 * |*|
++	 * |*|
++	 */
++	if (inplace)
++		res = mremap(ptr, size, page_size, 0);
++	else
++		res = mremap(ptr, size, page_size, MREMAP_MAYMOVE | MREMAP_FIXED,
++			     tgt_ptr);
++
++	if (res == MAP_FAILED) {
++		perror("mremap");
++		success = false;
++		goto out_unmap;
++	}
++
++out_unmap:
++	if (munmap(tgt_ptr, size))
++		perror("munmap tgt");
++	if (munmap(ptr, size))
++		perror("munmap src");
++out:
++	if (success)
++		ksft_test_result_pass("%s%s\n", test_name,
++				      inplace ? " [inplace]" : "");
++	else
++		ksft_test_result_fail("%s%s\n", test_name,
++				      inplace ? " [inplace]" : "");
++}
++
+ /* Returns the time taken for the remap on success else returns -1. */
+ static long long remap_region(struct config c, unsigned int threshold_mb,
+ 			      char *rand_addr)
+@@ -864,7 +943,7 @@ int main(int argc, char **argv)
+ 	char *rand_addr;
+ 	size_t rand_size;
+ 	int num_expand_tests = 2;
+-	int num_misc_tests = 3;
++	int num_misc_tests = 5;
+ 	struct test test_cases[MAX_TEST] = {};
+ 	struct test perf_test_cases[MAX_PERF_TEST];
+ 	int page_size;
+@@ -992,6 +1071,8 @@ int main(int argc, char **argv)
+ 	mremap_move_within_range(pattern_seed, rand_addr);
+ 	mremap_move_1mb_from_start(pattern_seed, rand_addr);
+ 	mremap_move_multiple_vmas(pattern_seed, page_size);
++	mremap_shrink_multiple_vmas(page_size, /* inplace= */true);
++	mremap_shrink_multiple_vmas(page_size, /* inplace= */false);
  
- 	/* Returns the number of bytes advised. */
- 	ASSERT_EQ(count, 6 * page_size);
+ 	if (run_perf_tests) {
+ 		ksft_print_msg("\n%s\n",
 _
 
-Patches currently in -mm which might be from lianux.mm@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-selftests-mm-add-process_madvise-tests.patch
+mm-mseal-always-define-vm_sealed.patch
+mm-mseal-update-madvise-logic.patch
+mm-mseal-small-cleanups.patch
+mm-mseal-simplify-and-rename-vma-gap-check.patch
+mm-mseal-rework-mseal-apply-logic.patch
+maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
+maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
+maintainers-add-missing-mm_sloth-file-thp-section.patch
+maintainers-add-missing-mm_sloth-file-thp-section-fix.patch
+maintainers-move-memremap-to-hotplug-section.patch
+maintainers-add-missing-shrinker-files.patch
+maintainers-add-missing-files-to-page-alloc-section.patch
+maintainers-add-missing-zsmalloc-file.patch
+maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
+maintainers-add-missing-file-to-cgroup-section.patch
 
