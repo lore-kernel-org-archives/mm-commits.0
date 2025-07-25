@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B8C6214232
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37FAA214232
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409686; cv=none; b=H/Facf4L4Gp3ZsnbeUUEyxiMn5KZ/6f6jAO6E4X+lZ07bQrbEFmFMJbIz+LIYvsx3/2niewbfFYE16bzWEoPc4n4CpKowu0zIrKJq1fd7pY4kfHX21MkHN9NUq6WqsB//4KUXz/pqJo3Wxqes8zgmPpYoOmxntyQpqsfVTnRZRk=
+	t=1753409687; cv=none; b=SfiTiXd2zoR6Hab+GWIJJ+mpxtUX5W24b6LqhkWCSM/vWK80L0n72cqx/R3X/1Wcfrj99MhFMoPQmApYfEibaRDSF5hU+wuifVhvfll0gDePOf5ioG14NhmJ9aEKESaop6MRbQQMWsJvWIVHshywFKjtXFuFadIfAVnmdIYuZR8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409686; c=relaxed/simple;
-	bh=bmr9VF6RSraIMy6Urr6zC7XPRpsfJNnabdbvMvAU9Vw=;
-	h=Date:To:From:Subject:Message-Id; b=rBFG8M2w/GwomRbbdi8JYstOJtwUgd2pM6hlGF3f5jRy54KBCiywSJhT7WK8OFEguhnvGTJN7otGJGhl+MBYHB4S6cKN4H7QjIcx+HwqS87FbzzzQHHGJJyTj0Kghs+IYFqF+igHiHv/reZKwy/1PF4ec6xoHki6NUsN1kEIbGc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dwu8lwer; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409687; c=relaxed/simple;
+	bh=bmStH3SOQrReigu/ys+ZTro/XHr2Z14KVNxNJzAVB9o=;
+	h=Date:To:From:Subject:Message-Id; b=EUaZ65Q54Qm7vUQ3iAyNuFtVf3upeOBYf1nNh2uJ7wkY7oZk2XLbNm0Ro5XQWUcoXskXDBJlIZz4lCFzO5t6u4SFmmjIuwwb+zLuvWV2AnEyL/SXHdxl9oM0btBiQ9D5wbiNm2NrvUkFP5S1Hwb/h9fOliH34vYhmY/MG5o6dyA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wijri+9l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dwu8lwer"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5C40C4CEED;
-	Fri, 25 Jul 2025 02:14:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wijri+9l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AE3BC4CEED;
+	Fri, 25 Jul 2025 02:14:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409685;
-	bh=bmr9VF6RSraIMy6Urr6zC7XPRpsfJNnabdbvMvAU9Vw=;
+	s=korg; t=1753409687;
+	bh=bmStH3SOQrReigu/ys+ZTro/XHr2Z14KVNxNJzAVB9o=;
 	h=Date:To:From:Subject:From;
-	b=Dwu8lwerg5ZWeJjkwqAXD4v1QACz0diPle7cOs6ZVB6uzry2RQ3MRU/pTjd2BhLzU
-	 PiioyF7vgyZ3ZproNOljbo522A6rWVefT0rmaIYgiK9hxbR4HoCVPJHk7TIFAYW79m
-	 nr6taSfbtw1If662Qz2/KJsTr4tmdr7Vt/RKzwjY=
-Date: Thu, 24 Jul 2025 19:14:45 -0700
-To: mm-commits@vger.kernel.org,vdavydov.dev@gmail.com,shakeel.butt@linux.dev,ncardwell@google.com,hannes@cmpxchg.org,davem@davemloft.net,akpm@linux-foundation.org,kuniyu@google.com,akpm@linux-foundation.org
+	b=Wijri+9l08PpCRmZIFQGRmo6eOVtpPJa8BeDI5NW2cXmv1vVS9wV/7ItIpTDxlYzm
+	 2vwGEk1EJRoFSvz8Z/WXQLNPhjGxglRInI3ydmJEKWMgU4Eo7hODyTZI0kbv20dh5O
+	 GlJjaLDEVrHVHda3pCo5exiWqBloqniMTDyeY/U0=
+Date: Thu, 24 Jul 2025 19:14:46 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-convert-memcg-socket_pressure-to-u64.patch removed from -mm tree
-Message-Id: <20250725021445.D5C40C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-implement-refresh_ms-file-under-kdamond-directory.patch removed from -mm tree
+Message-Id: <20250725021447.0AE3BC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,204 +35,160 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: convert memcg->socket_pressure to u64
+     Subject: mm/damon/sysfs: implement refresh_ms file under kdamond directory
 has been removed from the -mm tree.  Its filename was
-     memcg-convert-memcg-socket_pressure-to-u64.patch
+     mm-damon-sysfs-implement-refresh_ms-file-under-kdamond-directory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuniyuki Iwashima <kuniyu@google.com>
-Subject: memcg: convert memcg->socket_pressure to u64
-Date: Thu, 17 Jul 2025 19:46:43 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: implement refresh_ms file under kdamond directory
+Date: Wed, 16 Jul 2025 22:54:45 -0700
 
-memcg->socket_pressure is initialised with jiffies when the memcg is
-created.
+Patch series "mm/damon/sysfs: support periodic and automated stats
+update".
 
-Once vmpressure detects that the cgroup is under memory pressure, the
-field is updated with jiffies + HZ to signal the fact to the socket layer
-and suppress memory allocation for one second.
+DAMON sysfs interface provides files for reading DAMON internal status
+including auto-tuned monitoring intervals, DAMOS stats, DAMOS action
+applied regions, and auto-tuned DAMOS effective quota.  Among those,
+auto-tuned monitoring intervals, DAMOS stats and auto-tuned DAMOS
+effective quota are essential for common DAMON/S use cases.
 
-Otherwise, the field is not updated.
+The content of the files are not automatically updated, though.  Users
+should manually request updates of the contents by writing a special
+command to 'state' file of each kdamond directory.  This interface is good
+for minimizing overhead, but causes the below problems.
 
-mem_cgroup_under_socket_pressure() uses time_before() to check if jiffies
-is less than memcg->socket_pressure, and this has a bug on 32-bit kernel.
+First, the usage is cumbersome.  This is arguably not a big problem, since
+the user-space tool (damo) can do this instead of the user.
 
-  if (time_before(jiffies, memcg->socket_pressure))
-          return true;
+Second, it can be too slow.  The update request is not directly handled by
+the sysfs interface but kdamond thread.  And kdamond threads wake up only
+once per the sampling interval.  Hence if sampling interval is not short,
+each update request could take too long time.  The recommended sampling
+interval setup is asking DAMON to automatically tune it, within a range
+between 5 milliseconds and 10 seconds.  On production systems it is not
+very rare to have a few seconds sampling interval as a result of the
+auto-tuning, so this can disturb observing DAMON internal status.
 
-As time_before() casts the final result to long, the acceptable delta
-between two timestamps is 2 ^ (BITS_PER_LONG - 1).
+Finally, parallel update requests can conflict with each other.  When
+parallel update requests are received, DAMON sysfs interface simply
+returns -EBUSY to one of the requests.  DAMON user-space tool is hence
+implementing its own backoff mechanism, but this can make the operation
+even slower.
 
-On 32-bit kernel with CONFIG_HZ=1000, this is about 24 days.
-
-  >>> (2 ** 31) / 1000 / 60 / 60 / 24
-  24.855134814814818
-
-Once 24 days have passed since the last update of socket_pressure,
-mem_cgroup_under_socket_pressure() starts to lie until the next 24 days
-pass.
-
-We don't need to worry about this on 64-bit machines unless they serve for
-300 million years.
-
-  >>> (2 ** 63) / 1000 / 60 / 60 / 24 / 365
-  292471208.6775361
-
-Let's convert memcg->socket_pressure to u64.
-
-Performance teting:
-
-I don't have a real 32-bit machine so this is a result on QEMU, but
-with/without the u64 jiffie patch, the time spent in
-mem_cgroup_under_socket_pressure() was 1~5us and I didn't see any
-measurable delta.
-
-no patch applied:
-iperf3   273 [000]   137.296248:
-probe:mem_cgroup_under_socket_pressure: (c13660d0)
-                c13660d1 mem_cgroup_under_socket_pressure+0x1
-([kernel.kallsyms])
-iperf3   273 [000]   137.296249:
-probe:mem_cgroup_under_socket_pressure__return: (c13660d0 <- c1d8fd7f)
-iperf3   273 [000]   137.296251:
-probe:mem_cgroup_under_socket_pressure: (c13660d0)
-                c13660d1 mem_cgroup_under_socket_pressure+0x1
-([kernel.kallsyms])
-iperf3   273 [000]   137.296253:
-probe:mem_cgroup_under_socket_pressure__return: (c13660d0 <- c1d8fd7f)
+Introduce a new sysfs file, namely refresh_ms, for asking DAMON sysfs
+interface to repeat the update of the above mentioned essential contents
+with a user-specified time delay.  If non-zero value is written to the
+file, DAMON sysfs interface does the updates for essential DAMON internal
+status including auto-tuned monitoring intervals, DAMOS stats, and
+auto-tuned DAMOS quotas using the user-written value as the time delay. 
+In other words, it is similar to periodically writing
+'update_schemes_stats', 'update_schemes_effective_quotas', and
+'update_tuned_intervals' keywords to the 'state' file.  If zero is written
+to the file, the automatic refresh is disabled.
 
 
-u64 jiffies patch applied:
-iperf3   308 [001]   330.669370:
-probe:mem_cgroup_under_socket_pressure: (c12ddba0)
-                c12ddba1 mem_cgroup_under_socket_pressure+0x1
-([kernel.kallsyms])
-iperf3   308 [001]   330.669371:
-probe:mem_cgroup_under_socket_pressure__return: (c12ddba0 <- c1ce98bf)
-iperf3   308 [001]   330.669382:
-probe:mem_cgroup_under_socket_pressure: (c12ddba0)
-                c12ddba1 mem_cgroup_under_socket_pressure+0x1
-([kernel.kallsyms])
-iperf3   308 [001]   330.669384:
-probe:mem_cgroup_under_socket_pressure__return: (c12ddba0 <- c1ce98bf)
+This patch (of 4):
 
-So the u64 approach is good enough.
+Implement a new DAMON sysfs file named 'refresh_ms' under each kdamond
+directory.  The file will be used as a control knob of automatic refresh
+of a few DAMON internal status files.  This commit implements only minimum
+file operations, though.  The automatic refresh feature will be
+implemented by the following commit.
 
-Link: https://lkml.kernel.org/r/20250717194645.1096500-1-kuniyu@google.com
-Fixes: 8e8ae645249b ("mm: memcontrol: hook up vmpressure to socket pressure")
-Signed-off-by: Kuniyuki Iwashima <kuniyu@google.com>
-Reported-by: Neal Cardwell <ncardwell@google.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <ncardwell@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20250717055448.56976-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250717055448.56976-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   44 ++++++++++++++++++++++++++++++++---
- mm/memcontrol.c            |    5 +++
- mm/vmpressure.c            |    2 -
- 3 files changed, 46 insertions(+), 5 deletions(-)
+ mm/damon/sysfs.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
---- a/include/linux/memcontrol.h~memcg-convert-memcg-socket_pressure-to-u64
-+++ a/include/linux/memcontrol.h
-@@ -251,8 +251,10 @@ struct mem_cgroup {
- 	 * that this indicator should NOT be used in legacy cgroup mode
- 	 * where socket memory is accounted/charged separately.
- 	 */
--	unsigned long		socket_pressure;
--
-+	u64			socket_pressure;
-+#if BITS_PER_LONG < 64
-+	seqlock_t		socket_pressure_seqlock;
-+#endif
- 	int kmemcg_id;
- 	/*
- 	 * memcg->objcg is wiped out as a part of the objcg repaprenting
-@@ -1602,6 +1604,42 @@ extern struct static_key_false memcg_soc
- #define mem_cgroup_sockets_enabled static_branch_unlikely(&memcg_sockets_enabled_key)
- void mem_cgroup_sk_alloc(struct sock *sk);
- void mem_cgroup_sk_free(struct sock *sk);
-+
-+#if BITS_PER_LONG < 64
-+static inline void mem_cgroup_set_socket_pressure(struct mem_cgroup *memcg)
-+{
-+	u64 val = get_jiffies_64() + HZ;
-+	unsigned long flags;
-+
-+	write_seqlock_irqsave(&memcg->socket_pressure_seqlock, flags);
-+	memcg->socket_pressure = val;
-+	write_sequnlock_irqrestore(&memcg->socket_pressure_seqlock, flags);
-+}
-+
-+static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
-+{
-+	unsigned int seq;
-+	u64 val;
-+
-+	do {
-+		seq = read_seqbegin(&memcg->socket_pressure_seqlock);
-+		val = memcg->socket_pressure;
-+	} while (read_seqretry(&memcg->socket_pressure_seqlock, seq));
-+
-+	return val;
-+}
-+#else
-+static inline void mem_cgroup_set_socket_pressure(struct mem_cgroup *memcg)
-+{
-+	WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
-+}
-+
-+static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
-+{
-+	return READ_ONCE(memcg->socket_pressure);
-+}
-+#endif
-+
- static inline bool mem_cgroup_under_socket_pressure(struct mem_cgroup *memcg)
- {
- #ifdef CONFIG_MEMCG_V1
-@@ -1609,7 +1647,7 @@ static inline bool mem_cgroup_under_sock
- 		return !!memcg->tcpmem_pressure;
- #endif /* CONFIG_MEMCG_V1 */
- 	do {
--		if (time_before(jiffies, READ_ONCE(memcg->socket_pressure)))
-+		if (time_before64(get_jiffies_64(), mem_cgroup_get_socket_pressure(memcg)))
- 			return true;
- 	} while ((memcg = parent_mem_cgroup(memcg)));
- 	return false;
---- a/mm/memcontrol.c~memcg-convert-memcg-socket_pressure-to-u64
-+++ a/mm/memcontrol.c
-@@ -3754,7 +3754,10 @@ static struct mem_cgroup *mem_cgroup_all
- 	INIT_LIST_HEAD(&memcg->memory_peaks);
- 	INIT_LIST_HEAD(&memcg->swap_peaks);
- 	spin_lock_init(&memcg->peaks_lock);
--	memcg->socket_pressure = jiffies;
-+	memcg->socket_pressure = get_jiffies_64();
-+#if BITS_PER_LONG < 64
-+	seqlock_init(&memcg->socket_pressure_seqlock);
-+#endif
- 	memcg1_memcg_init(memcg);
- 	memcg->kmemcg_id = -1;
- 	INIT_LIST_HEAD(&memcg->objcg_list);
---- a/mm/vmpressure.c~memcg-convert-memcg-socket_pressure-to-u64
-+++ a/mm/vmpressure.c
-@@ -316,7 +316,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
- 			 * asserted for a second in which subsequent
- 			 * pressure events can occur.
- 			 */
--			WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
-+			mem_cgroup_set_socket_pressure(memcg);
- 		}
- 	}
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-refresh_ms-file-under-kdamond-directory
++++ a/mm/damon/sysfs.c
+@@ -1155,6 +1155,7 @@ struct damon_sysfs_kdamond {
+ 	struct kobject kobj;
+ 	struct damon_sysfs_contexts *contexts;
+ 	struct damon_ctx *damon_ctx;
++	unsigned int refresh_ms;
+ };
+ 
+ static struct damon_sysfs_kdamond *damon_sysfs_kdamond_alloc(void)
+@@ -1690,6 +1691,30 @@ out:
+ 	return sysfs_emit(buf, "%d\n", pid);
  }
+ 
++static ssize_t refresh_ms_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_kdamond *kdamond = container_of(kobj,
++			struct damon_sysfs_kdamond, kobj);
++
++	return sysfs_emit(buf, "%u\n", kdamond->refresh_ms);
++}
++
++static ssize_t refresh_ms_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_kdamond *kdamond = container_of(kobj,
++			struct damon_sysfs_kdamond, kobj);
++	unsigned int nr;
++	int err = kstrtouint(buf, 0, &nr);
++
++	if (err)
++		return err;
++
++	kdamond->refresh_ms = nr;
++	return count;
++}
++
+ static void damon_sysfs_kdamond_release(struct kobject *kobj)
+ {
+ 	struct damon_sysfs_kdamond *kdamond = container_of(kobj,
+@@ -1706,9 +1731,13 @@ static struct kobj_attribute damon_sysfs
+ static struct kobj_attribute damon_sysfs_kdamond_pid_attr =
+ 		__ATTR_RO_MODE(pid, 0400);
+ 
++static struct kobj_attribute damon_sysfs_kdamond_refresh_ms_attr =
++		__ATTR_RW_MODE(refresh_ms, 0600);
++
+ static struct attribute *damon_sysfs_kdamond_attrs[] = {
+ 	&damon_sysfs_kdamond_state_attr.attr,
+ 	&damon_sysfs_kdamond_pid_attr.attr,
++	&damon_sysfs_kdamond_refresh_ms_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_kdamond);
 _
 
-Patches currently in -mm which might be from kuniyu@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch
+selftests-damon-_damon_sysfs-support-damos-watermarks-setup.patch
+selftests-damon-_damon_sysfs-support-damos-filters-setup.patch
+selftests-damon-_damon_sysfs-support-monitoring-intervals-goal-setup.patch
+selftests-damon-_damon_sysfs-support-damos-quota-weights-setup.patch
+selftests-damon-_damon_sysfs-support-damos-quota-goal-nid-setup.patch
+selftests-damon-_damon_sysfs-support-damos-action-dests-setup.patch
+selftests-damon-_damon_sysfs-support-damos-target_nid-setup.patch
+selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch
+selftests-damon-drgn_dump_damon_status-dump-damos-migrate_dests.patch
+selftests-damon-drgn_dump_damon_status-dump-ctx-opsid.patch
+selftests-damon-drgn_dump_damon_status-dump-damos-filters.patch
+selftests-damon-sysfspy-generalize-damos-watermarks-commit-assertion.patch
+selftests-damon-sysfspy-generalize-damosquota-commit-assertion.patch
+selftests-damon-sysfspy-test-quota-goal-commitment.patch
+selftests-damon-sysfspy-test-damos-destinations-commitment.patch
+selftests-damon-sysfspy-generalize-damos-scheme-commit-assertion.patch
+selftests-damon-sysfspy-test-damos-filters-commitment.patch
+selftests-damon-sysfspy-generalize-damos-schemes-commit-assertion.patch
+selftests-damon-sysfspy-generalize-monitoring-attributes-commit-assertion.patch
+selftests-damon-sysfspy-generalize-damon-context-commit-assertion.patch
+selftests-damon-sysfspy-test-non-default-parameters-runtime-commit.patch
+selftests-damon-sysfspy-test-runtime-reduction-of-damon-parameters.patch
 
