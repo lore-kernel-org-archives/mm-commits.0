@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68FB1F4606
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 23:18:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C3DE25F97A
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 23:18:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753485515; cv=none; b=sjyvd7s5orwzaDEYJY6/WUeQF1NS9xg/2JmkuNp0pkckE357oHvdYjjx2Bd77P8GBP5rtEhpYx8Bh+J63jWTSUDjgocpjGXUXCNwRNeU0/QfNNg0KJfd471lTvlUUZePpYNgablgwLyhVXEl7Ee+n2hwuKhqEbJVnSnrGxl4SS8=
+	t=1753485534; cv=none; b=KnnikVP5k1Av9OyW3l5iyVtBGzazi4SASbnKtYhBrKdGG0LH6jIReeax4pY8+N58H97L2GJsx73zQcaBXbc9QJ3kVZWVyLQURgrsiIpaLPOc7gnm9XA4D4BT6qzoZsy3/JG8laoq+mI/sTfNIFHvUCTj/oEyJxQC7AgIsJaF4rs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753485515; c=relaxed/simple;
-	bh=6PkWgFgHpGDNNUHM34PFFBPZE0d1AlD2JxtsWyspTN8=;
-	h=Date:To:From:Subject:Message-Id; b=DzoHmD6WV7uO1jOvGusmdte+eMeOwoUHHr0xPvCh6Educ3KSD6CivIpVrztuqBIHyDP2VhTZf4/N7+XvGpPn2S6tgvIPI0fvRmSdv4eC4dKN2qHCKHNqyDw+MOSu9G8OvE17vI0JcqFafkV8NNeaovy9phMdyxAGBgwfsEzoXAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SaiDjp+5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753485534; c=relaxed/simple;
+	bh=7xg9dkx/E7pkB5gNd5yV42l0nZmjiKxh+s7BrLkqa9o=;
+	h=Date:To:From:Subject:Message-Id; b=HQFkMWRRVpvzJ175ciQloXc+rpHiQkQKIgWd0UPLtHAIlpK7OiL2B6A5KJxSEIr/WMWaCo242VcOQImfJBl+0RxoE3WEjzI+dHCVIp4LbFKrEIS+Bnqf29UUy0HRjY0XnKP5w2H+TrorVAv2+XKbF/yfQb7AnUvW2r4ybbIDx90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FaZVn3av; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SaiDjp+5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A323C4CEE7;
-	Fri, 25 Jul 2025 23:18:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FaZVn3av"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3B45C4CEF4;
+	Fri, 25 Jul 2025 23:18:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753485514;
-	bh=6PkWgFgHpGDNNUHM34PFFBPZE0d1AlD2JxtsWyspTN8=;
+	s=korg; t=1753485533;
+	bh=7xg9dkx/E7pkB5gNd5yV42l0nZmjiKxh+s7BrLkqa9o=;
 	h=Date:To:From:Subject:From;
-	b=SaiDjp+509g5muq1w6Y4P2Wjiv2Pz+SusRJ7+vSEJGIEHfT3nrrQzk8iPSZC6CaNB
-	 XNxIP1ke2cjchZ/lUUaVoxDv1Ac666Ob45wyzl7tkPzgWB3RRhLga5wPMEVg0lIY04
-	 29N20aOkom1Y3GU1QboeX5yfzn3uzct4VqUH5Vds=
-Date: Fri, 25 Jul 2025 16:18:33 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=FaZVn3av6puCg5qT3f4MH4St9B1Jzae8iIZbQciHHiWoxyRWv4AjH9fAexiO97GSr
+	 Ju4ZcbHNDBv4np3py5Tv1Zth4cfGp6t/8G8uRNGoo96MDyMlhsSVRtGvicY/hMl314
+	 FfLMk4ym0/IklNbnnTcR4VTi1P0BiPl/ROnGGg1A=
+Date: Fri, 25 Jul 2025 16:18:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-rmap-add-anon_vma-lifetime-debug-check-fix.patch removed from -mm tree
-Message-Id: <20250725231834.5A323C4CEE7@smtp.kernel.org>
+Subject: [to-be-updated] mm-rmap-add-anon_vma-lifetime-debug-check.patch removed from -mm tree
+Message-Id: <20250725231853.D3B45C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-rmap-add-anon_vma-lifetime-debug-check-fix
+     Subject: mm/rmap: add anon_vma lifetime debug check
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-add-anon_vma-lifetime-debug-check-fix.patch
+     mm-rmap-add-anon_vma-lifetime-debug-check.patch
 
-This patch was dropped because it was folded into mm-rmap-add-anon_vma-lifetime-debug-check.patch
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rmap-add-anon_vma-lifetime-debug-check-fix
-Date: Thu Jul 24 02:48:22 PM PDT 2025
+From: Jann Horn <jannh@google.com>
+Subject: mm/rmap: add anon_vma lifetime debug check
+Date: Thu, 24 Jul 2025 21:13:50 +0200
 
-PAGE_MAPPING_ANON became FOLIO_MAPPING_ANON
+If an anon page is mapped into userspace, its anon_vma must be alive,
+otherwise rmap walks can hit UAF.
 
+There have been syzkaller reports a few months ago[1][2] of UAF in rmap
+walks that seems to indicate that there can be pages with elevated
+mapcount whose anon_vma has already been freed, but I think we never
+figured out what the cause is; and syzkaller only hit these UAFs when
+memory pressure randomly caused reclaim to rmap-walk the affected pages,
+so it of course didn't manage to create a reproducer.
+
+Add a VM_WARN_ON_FOLIO() when we add/remove mappings of anonymous pages to
+hopefully catch such issues more reliably.
+
+Implementation note: I'm checking IS_ENABLED(CONFIG_DEBUG_VM) because,
+unlike the checks above, this one would otherwise be hard to write such
+that it completely compiles away in non-debug builds by itself, without
+looking extremely ugly.
+
+[akpm@linux-foundation.org: PAGE_MAPPING_ANON became FOLIO_MAPPING_ANON]
+Link: https://lkml.kernel.org/r/20250724-anonvma-uaf-debug-v1-1-29989ddc4e2a@google.com
+Link: https://lore.kernel.org/r/67abaeaf.050a0220.110943.0041.GAE@google.com [1]
+Link: https://lore.kernel.org/r/67a76f33.050a0220.3d72c.0028.GAE@google.com [2]
+Signed-off-by: Jann Horn <jannh@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Rik van Riel <riel@surriel.com>
@@ -57,31 +77,35 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/rmap.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/include/linux/rmap.h~mm-rmap-add-anon_vma-lifetime-debug-check-fix
+--- a/include/linux/rmap.h~mm-rmap-add-anon_vma-lifetime-debug-check
 +++ a/include/linux/rmap.h
-@@ -458,8 +458,9 @@ static inline void __folio_rmap_sanity_c
- 	 */
- 	if (IS_ENABLED(CONFIG_DEBUG_VM) && PageAnonNotKsm(page)) {
- 		unsigned long mapping = (unsigned long)folio->mapping;
--		struct anon_vma *anon_vma = (void *)(mapping - PAGE_MAPPING_ANON);
-+		struct anon_vma *anon_vma;
- 
-+		anon_vma = (void *)(mapping - FOLIO_MAPPING_ANON);
- 		VM_WARN_ON_FOLIO(atomic_read(&anon_vma->refcount) == 0, folio);
+@@ -449,6 +449,20 @@ static inline void __folio_rmap_sanity_c
+ 	default:
+ 		VM_WARN_ON_ONCE(true);
  	}
++
++	/*
++	 * Anon folios must have an associated live anon_vma as long as they're
++	 * mapped into userspace.
++	 * Part of the purpose of the atomic_read() is to make KASAN check that
++	 * the anon_vma is still alive.
++	 */
++	if (IS_ENABLED(CONFIG_DEBUG_VM) && PageAnonNotKsm(page)) {
++		unsigned long mapping = (unsigned long)folio->mapping;
++		struct anon_vma *anon_vma;
++
++		anon_vma = (void *)(mapping - FOLIO_MAPPING_ANON);
++		VM_WARN_ON_FOLIO(atomic_read(&anon_vma->refcount) == 0, folio);
++	}
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-shmem-swap-simplify-swapin-path-and-result-handling-fix.patch
-mm-shmem-swap-simplify-swapin-path-and-result-handling-fix-fix.patch
-mm-shmem-swap-rework-swap-entry-and-index-calculation-for-large-swapin-fix.patch
-selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation-checkpatch-fixes.patch
-mm-rmap-add-anon_vma-lifetime-debug-check.patch
-mm-remove-mm-io-mappingc-fix.patch
-init-kconfig-restore-config_broken-help-text.patch
+kasan-skip-quarantine-if-object-is-still-accessible-under-rcu.patch
 
