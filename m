@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 577D6262FF9
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 23:27:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A004E257AF9
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 23:29:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753486030; cv=none; b=aQ0dR3GqybMwdPNQNRZNgU22qPBqO2tVSkZEYmqqdv9RL5BxE3jMp5U6yY6vRzhrowUDIgEQxYJ9co29FqymYvzWXNBHYX7arBMukaICGfr69SNWCWGN/g4NeMnUCQZ3b2+WgrVgw+tREGVIV+EgRPfFfB9iFU2Y3w8CuACc4VY=
+	t=1753486175; cv=none; b=cWUZKueeqmBg5+/ZB+mZkoLRKyQmK6/dvvdypAWGRuJ3LW+H469YWTjZRhMSmkWfXzOlPt6RjYqQL/eXtOaTICiqslgLod8kcjTNGYVYe1B/F/TnSBHxbyd2yjnG4V8+CjiX6PBLMOMlZ6PKjKU5CwTNs3Wu6EdM41bzy7YT5F0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753486030; c=relaxed/simple;
-	bh=yIp/w7aqPSsXNyl0XJONx5pxRUXQg1JWV9QmaKPRHZA=;
-	h=Date:To:From:Subject:Message-Id; b=dDBt8o1iisNewJxbjJnWjZBHKDk9NaGVTzpprWSuHAf80qNAW9/AlyOL6bBt1Ngp3JTlSe6YRATxC6SgbEvdqUgYDfgKZSW7OMmvRFTeu7WmFf/5DrcGFGqX7MdKwE0lxlyA2NmDBTojnsk+BRQ8gi3/lFq2TQY8+LqfTZZBUlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VteIUN7f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753486175; c=relaxed/simple;
+	bh=vKT3eQMEToxO3fViIXFkX+9u8Wfi38KFAEh/h8fcMqY=;
+	h=Date:To:From:Subject:Message-Id; b=ARrE1klFkp82FCCUSMTTUvDlAEvnufsB1Hs1w60MsopdRCtC7r6GVNIW9obfFlrqVxfps9HqDLsFzZdRW3bHao6bs8YqBSkF/EuL9lNK0AGBfjgOiuxmKA2RqxoTDxYyO6CLil+S0d6cRISv9pwY8zCyYKgV3P5rLRfK3PaQyoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n/HOoDK1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VteIUN7f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C922C4CEE7;
-	Fri, 25 Jul 2025 23:27:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n/HOoDK1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 724E3C4CEE7;
+	Fri, 25 Jul 2025 23:29:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753486030;
-	bh=yIp/w7aqPSsXNyl0XJONx5pxRUXQg1JWV9QmaKPRHZA=;
+	s=korg; t=1753486175;
+	bh=vKT3eQMEToxO3fViIXFkX+9u8Wfi38KFAEh/h8fcMqY=;
 	h=Date:To:From:Subject:From;
-	b=VteIUN7fY+aiw1538R/08+Nfw/roS0Kfclii+OO3Wq7Nan/27mcAvvV0DKLXNN93a
-	 PLKEpeaPJudS+ESDnnEgkVN7UmXHmGhbq/je/72us7lWY2EWiVIZ2XWsKLPgD5W9WS
-	 2K020LKLe6WK1OiceeSobGyQ4LdGlpqOnuih1LTQ=
-Date: Fri, 25 Jul 2025 16:27:09 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=n/HOoDK1CffU+Vep30xRI5lmkdlEkPPAHByzsLtUEknzlOoDD8Gj6hmVrlMnXQfbO
+	 WhWHXLopP4wBPd0Ig05Gq1JiWALa+oyc/+jspSFglZfnZDu33wtBtrkxO2gM7vGPsW
+	 6dm4e2B5fTq3cd2vurfLV/9dHqWooRaETaSUSnuA=
+Date: Fri, 25 Jul 2025 16:29:34 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,thiago.bauermann@linaro.org,ryan.roberts@arm.com,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,joern@logfs.org,hughd@google.com,dev.jain@arm.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,brahmajit.xyz@gmail.com,baolin.wang@linux.alibaba.com,avagin@gmail.com,andrii@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mseal-rework-mseal-apply-logic.patch added to mm-unstable branch
-Message-Id: <20250725232710.2C922C4CEE7@smtp.kernel.org>
+Subject: + mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range.patch added to mm-unstable branch
+Message-Id: <20250725232935.724E3C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mseal: rework mseal apply logic
+     Subject: mm/memory-failure: hold PTL in hwpoison_hugetlb_range
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mseal-rework-mseal-apply-logic.patch
+     mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-rework-mseal-apply-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,162 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mseal: rework mseal apply logic
-Date: Fri, 25 Jul 2025 09:29:45 +0100
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/memory-failure: hold PTL in hwpoison_hugetlb_range
+Date: Fri, 25 Jul 2025 11:31:12 +0800
 
-The logic can be simplified - firstly by renaming the inconsistently named
-apply_mm_seal() to mseal_apply().
+Hold PTL in hwpoison_hugetlb_range() to avoid operating on stale page, as
+hwpoison_pte_range() have done.
 
-We then wrap mseal_fixup() into the main loop as the logic is simple
-enough to not require it, equally it isn't a hugely pleasant pattern in
-mprotect() etc.  so it's not something we want to perpetuate.
-
-We eliminate the need for invoking vma_iter_end() on each loop by directly
-determining if the VMA was merged - the only thing we need concern
-ourselves with is whether the start/end of the (gapless) range are offset
-into VMAs.
-
-This refactoring also avoids the rather horrid 'pass pointer to prev
-around' pattern used in mprotect() et al.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/ddfa4376ce29f19a589d7dc8c92cb7d4f7605a4c.1753431105.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20250725033112.2690158-1-tujinjiang@huawei.com
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Jeff Xu <jeffxu@chromium.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Brahmajit Das <brahmajit.xyz@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mseal.c |   67 +++++++++++++++------------------------------------
- 1 file changed, 20 insertions(+), 47 deletions(-)
+ mm/memory-failure.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/mseal.c~mm-mseal-rework-mseal-apply-logic
-+++ a/mm/mseal.c
-@@ -15,28 +15,6 @@
- #include <linux/sched.h>
- #include "internal.h"
- 
--static int mseal_fixup(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		struct vm_area_struct **prev, unsigned long start,
--		unsigned long end, vm_flags_t newflags)
--{
--	int ret = 0;
--	vm_flags_t oldflags = vma->vm_flags;
--
--	if (newflags == oldflags)
--		goto out;
--
--	vma = vma_modify_flags(vmi, *prev, vma, start, end, newflags);
--	if (IS_ERR(vma)) {
--		ret = PTR_ERR(vma);
--		goto out;
--	}
--
--	vm_flags_set(vma, VM_SEALED);
--out:
--	*prev = vma;
--	return ret;
--}
--
- /*
-  * mseal() disallows an input range which contain unmapped ranges (VMA holes).
-  *
-@@ -74,38 +52,33 @@ static bool range_contains_unmapped(stru
- 	return prev_end < end;
- }
- 
--/*
-- * Apply sealing.
-- */
--static int apply_mm_seal(unsigned long start, unsigned long end)
-+static int mseal_apply(struct mm_struct *mm,
-+		unsigned long start, unsigned long end)
+--- a/mm/memory-failure.c~mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range
++++ a/mm/memory-failure.c
+@@ -837,11 +837,17 @@ static int hwpoison_hugetlb_range(pte_t
+ 			    struct mm_walk *walk)
  {
--	unsigned long nstart;
- 	struct vm_area_struct *vma, *prev;
--	VMA_ITERATOR(vmi, current->mm, start);
-+	unsigned long curr_start = start;
-+	VMA_ITERATOR(vmi, mm, start);
+ 	struct hwpoison_walk *hwp = walk->private;
+-	pte_t pte = huge_ptep_get(walk->mm, addr, ptep);
+ 	struct hstate *h = hstate_vma(walk->vma);
++	spinlock_t *ptl;
++	pte_t pte;
++	int ret;
  
-+	/* We know there are no gaps so this will be non-NULL. */
- 	vma = vma_iter_load(&vmi);
--	/*
--	 * Note: check_mm_seal should already checked ENOMEM case.
--	 * so vma should not be null, same for the other ENOMEM cases.
--	 */
- 	prev = vma_prev(&vmi);
- 	if (start > vma->vm_start)
- 		prev = vma;
- 
--	nstart = start;
- 	for_each_vma_range(vmi, vma, end) {
--		int error;
--		unsigned long tmp;
--		vm_flags_t newflags;
--
--		newflags = vma->vm_flags | VM_SEALED;
--		tmp = vma->vm_end;
--		if (tmp > end)
--			tmp = end;
--		error = mseal_fixup(&vmi, vma, &prev, nstart, tmp, newflags);
--		if (error)
--			return error;
--		nstart = vma_iter_end(&vmi);
-+		unsigned long curr_end = MIN(vma->vm_end, end);
-+
-+		if (!(vma->vm_flags & VM_SEALED)) {
-+			vma = vma_modify_flags(&vmi, prev, vma,
-+					curr_start, curr_end,
-+					vma->vm_flags | VM_SEALED);
-+			if (IS_ERR(vma))
-+				return PTR_ERR(vma);
-+			vm_flags_set(vma, VM_SEALED);
-+		}
-+
-+		prev = vma;
-+		curr_start = curr_end;
- 	}
- 
- 	return 0;
-@@ -204,10 +177,10 @@ int do_mseal(unsigned long start, size_t
- 	 * reaching the max supported VMAs, however, those cases shall
- 	 * be rare.
- 	 */
--	ret = apply_mm_seal(start, end);
-+	ret = mseal_apply(mm, start, end);
- 
- out:
--	mmap_write_unlock(current->mm);
-+	mmap_write_unlock(mm);
- 	return ret;
+-	return check_hwpoisoned_entry(pte, addr, huge_page_shift(h),
+-				      hwp->pfn, &hwp->tk);
++	ptl = huge_pte_lock(h, walk->mm, ptep);
++	pte = huge_ptep_get(walk->mm, addr, ptep);
++	ret = check_hwpoisoned_entry(pte, addr, huge_page_shift(h),
++					hwp->pfn, &hwp->tk);
++	spin_unlock(ptl);
++	return ret;
  }
- 
+ #else
+ #define hwpoison_hugetlb_range	NULL
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
-maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
-maintainers-add-missing-mm_sloth-file-thp-section.patch
-maintainers-add-missing-mm_sloth-file-thp-section-fix.patch
-maintainers-move-memremap-to-hotplug-section.patch
-maintainers-add-missing-shrinker-files.patch
-maintainers-add-missing-files-to-page-alloc-section.patch
-maintainers-add-missing-zsmalloc-file.patch
-maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
-maintainers-add-missing-file-to-cgroup-section.patch
-mm-mseal-always-define-vm_sealed.patch
-mm-mseal-update-madvise-logic.patch
-mm-mseal-small-cleanups.patch
-mm-mseal-simplify-and-rename-vma-gap-check.patch
-mm-mseal-simplify-and-rename-vma-gap-check-fix.patch
-mm-mseal-rework-mseal-apply-logic.patch
-mm-remove-mm-io-mappingc.patch
+mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
+mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range.patch
+mm-smaps-fix-race-between-smaps_hugetlb_range-and-migration.patch
+fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch
+mm-mincore-hold-ptl-in-mincore_hugetlb.patch
 
