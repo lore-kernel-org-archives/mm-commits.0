@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C10115E90
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7B5321CA04
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:15:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409745; cv=none; b=oYasan4uJ/4jWmuczhfNsBScBB0iypSqFlNj9DWJb+/JAqScbR8O/S13yp70OL4KAAr6gH3W743+zjV1Q2yj/fzfa4hR1I9OQ/7Ou2oCbnv+8gv/vmgEQ92PlZBPQQeIsewr32r9oFRh8ne5usQSX40EMWu7bwUPCViUgAGvXFk=
+	t=1753409746; cv=none; b=Ru8Mm9fdHKv9o+Kkj1CFCzV2U9tFssTpSr06cOCQldcPWebJ6Ad1Mrd0SSA5Rmo+PkYEqmPzs7mwpfAHXBOQypSEQ9X8BQ1fc7dZJEytdHaRx32pfKnRDG46utv6bgjrCgWFstMo/BAcbVUv03OuLONBBUXMjEslPVTIh9ssgdc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409745; c=relaxed/simple;
-	bh=W0rDjeCaHE1HQu2SjixHjGHuQZXzxNCf+WzlON25z7w=;
-	h=Date:To:From:Subject:Message-Id; b=PJmW8sHPqlrBXdmBfGKPzdLBUNPeFACVhqPg4QdrHU51FJmGkTE6IvbLdfWfjoMwIOFYIpW8A9M1vUAeAwiAEnNzircqXd1iQEiVTFtO/ylUrxYKOsxc7Qb1dMzZkwav/NfW7SPWrytu0UDre1VypXx3bjC9CC/smrNbSmMPjZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=thWRyp2l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409746; c=relaxed/simple;
+	bh=Y9kYOKO5NQvReMYFoXf/yc929N9Ak7waBOm/qUayiN0=;
+	h=Date:To:From:Subject:Message-Id; b=E1Ae0A2wSQg3+UFim1o1c9x88HPxJ1Gd1bIzi8trsZ6MN9lNtVZwel8vfGRfm4F5rlJqZvls9eD3BllyfE1U88/TvSYfhjOOXE8WhGbb793U1nEXl+qTn+K9GUsh7zJonegudW/K5a7l9CUEJyElxBo+rpqxgHShlK+5Ov795wA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mup0zunb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="thWRyp2l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63E97C4CEED;
-	Fri, 25 Jul 2025 02:15:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mup0zunb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BD0EC4CEED;
+	Fri, 25 Jul 2025 02:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409745;
-	bh=W0rDjeCaHE1HQu2SjixHjGHuQZXzxNCf+WzlON25z7w=;
+	s=korg; t=1753409746;
+	bh=Y9kYOKO5NQvReMYFoXf/yc929N9Ak7waBOm/qUayiN0=;
 	h=Date:To:From:Subject:From;
-	b=thWRyp2lvjMRsFh6/ct1EKbGM1taPN5cQwDW/HSrJEMjYwcA0dR9w6AAGZNQdFpqN
-	 Qye9WLefUJ8vP6XCTyYPo+/MjO3fIbSbuEsEQnhQ5qnpe0gBNK+uyBagkhdxvRnJ1M
-	 FOKLYchs/vcoqoJcE8YMcYfj7WHb2IkTt/v9EV6M=
-Date: Thu, 24 Jul 2025 19:15:44 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=mup0zunbLRVOVMkUoXlgErTrcoR/C2jRpDaXrlpsnwKYKgAXnxoSeAEn+IoC+S/pu
+	 KI16NE46Sx4FNLDCFP67FdlM+0WYjWqAmgFGgeG+yNshur3utUX+mhgNFBG956PSRt
+	 fjM/ls9zTZojsZp7z0UiRNObK84X+33V3Qap6Gkk=
+Date: Thu, 24 Jul 2025 19:15:46 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-explicitly-test-split-multi-vma-mremap-move.patch removed from -mm tree
-Message-Id: <20250725021545.63E97C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] docs-update-thp-documentation-to-clarify-sysfs-never-setting.patch removed from -mm tree
+Message-Id: <20250725021546.9BD0EC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,188 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests: explicitly test split multi VMA mremap move
+     Subject: docs: update THP documentation to clarify sysfs "never" setting
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-explicitly-test-split-multi-vma-mremap-move.patch
+     docs-update-thp-documentation-to-clarify-sysfs-never-setting.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: explicitly test split multi VMA mremap move
-Date: Mon, 21 Jul 2025 18:33:27 +0100
+Subject: docs: update THP documentation to clarify sysfs "never" setting
+Date: Mon, 21 Jul 2025 16:55:30 +0100
 
-Check that moving a range of VMAs where we are offset into the first and
-last VMAs works correctly.
+Rather confusingly, setting all Transparent Huge Page sysfs settings to
+"never" does not in fact result in THP being globally disabled.
 
-This results in the VMAs being split at these points at which we are offset
-into VMAs.
+Rather, it results in khugepaged being disabled, but one can still obtain
+THP pages using madvise(..., MADV_COLLAPSE).
 
-We explicitly test both the ordinary MREMAP_FIXED multi VMA move case and
-the MREMAP_DONTUNMAP multi VMA move case.
+This is something that has remained poorly documented for some time, and
+it is likely the received wisdom of most users of THP that never does, in
+fact, mean never.
 
-Link: https://lkml.kernel.org/r/b04920bb6c09dc86c207c251eab8ec670fbbcaef.1753119043.git.lorenzo.stoakes@oracle.com
+It is therefore important to highlight, very clearly, that this is not the
+case.
+
+[lorenzo.stoakes@oracle.com: update transhuge page to mention MADV_COLLAPSE]
+  Link: https://lkml.kernel.org/r/d54d1dfb-f06d-4979-983b-73998f05867e@lucifer.local
+Link: https://lkml.kernel.org/r/20250721155530.75944-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jann Horn <jannh@google.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |  127 ++++++++++++++++++++-
- 1 file changed, 126 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/transhuge.rst |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~tools-testing-selftests-explicitly-test-split-multi-vma-mremap-move
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -610,6 +610,129 @@ out:
- 				      inplace ? " [inplace]" : "");
- }
+--- a/Documentation/admin-guide/mm/transhuge.rst~docs-update-thp-documentation-to-clarify-sysfs-never-setting
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -107,7 +107,7 @@ sysfs
+ Global THP controls
+ -------------------
  
-+static void mremap_move_multiple_vmas_split(unsigned int pattern_seed,
-+					    unsigned long page_size,
-+					    bool dont_unmap)
-+{
-+	char *test_name = "mremap move multiple vmas split";
-+	int mremap_flags = MREMAP_FIXED | MREMAP_MAYMOVE;
-+	const size_t size = 10 * page_size;
-+	bool success = true;
-+	char *ptr, *tgt_ptr;
-+	int i;
-+
-+	if (dont_unmap)
-+		mremap_flags |= MREMAP_DONTUNMAP;
-+
-+	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (ptr == MAP_FAILED) {
-+		perror("mmap");
-+		success = false;
-+		goto out;
-+	}
-+
-+	tgt_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
-+		       MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (tgt_ptr == MAP_FAILED) {
-+		perror("mmap");
-+		success = false;
-+		goto out;
-+	}
-+	if (munmap(tgt_ptr, size)) {
-+		perror("munmap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/*
-+	 * Unmap so we end up with:
-+	 *
-+	 *  0 1 2 3 4 5 6 7 8 9 10 offset in buffer
-+	 * |**********| |*******|
-+	 * |**********| |*******|
-+	 *  0 1 2 3 4   5 6 7 8 9  pattern offset
-+	 */
-+	if (munmap(&ptr[5 * page_size], page_size)) {
-+		perror("munmap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/* Set up random patterns. */
-+	srand(pattern_seed);
-+	for (i = 0; i < 10; i++) {
-+		int j;
-+		char *buf = &ptr[i * page_size];
-+
-+		if (i == 5)
-+			continue;
-+
-+		for (j = 0; j < page_size; j++)
-+			buf[j] = rand();
-+	}
-+
-+	/*
-+	 * Move the below:
-+	 *
-+	 *      <------------->
-+	 *  0 1 2 3 4 5 6 7 8 9 10 offset in buffer
-+	 * |**********| |*******|
-+	 * |**********| |*******|
-+	 *  0 1 2 3 4   5 6 7 8 9  pattern offset
-+	 *
-+	 * Into:
-+	 *
-+	 * 0 1 2 3 4 5 6 7 offset in buffer
-+	 * |*****| |*****|
-+	 * |*****| |*****|
-+	 * 2 3 4   5 6 7   pattern offset
-+	 */
-+	if (mremap(&ptr[2 * page_size], size - 3 * page_size, size - 3 * page_size,
-+		   mremap_flags, tgt_ptr) == MAP_FAILED) {
-+		perror("mremap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/* Offset into random pattern. */
-+	srand(pattern_seed);
-+	for (i = 0; i < 2 * page_size; i++)
-+		rand();
-+
-+	/* Check pattern. */
-+	for (i = 0; i < 7; i++) {
-+		int j;
-+		char *buf = &tgt_ptr[i * page_size];
-+
-+		if (i == 3)
-+			continue;
-+
-+		for (j = 0; j < page_size; j++) {
-+			char chr = rand();
-+
-+			if (chr != buf[j]) {
-+				ksft_print_msg("page %d offset %d corrupted, expected %d got %d\n",
-+					       i, j, chr, buf[j]);
-+				goto out_unmap;
-+			}
-+		}
-+	}
-+
-+out_unmap:
-+	if (munmap(tgt_ptr, size))
-+		perror("munmap tgt");
-+	if (munmap(ptr, size))
-+		perror("munmap src");
-+out:
-+	if (success)
-+		ksft_test_result_pass("%s%s\n", test_name,
-+				      dont_unmap ? " [dontunnmap]" : "");
-+	else
-+		ksft_test_result_fail("%s%s\n", test_name,
-+				      dont_unmap ? " [dontunnmap]" : "");
-+}
-+
- /* Returns the time taken for the remap on success else returns -1. */
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char *rand_addr)
-@@ -951,7 +1074,7 @@ int main(int argc, char **argv)
- 	char *rand_addr;
- 	size_t rand_size;
- 	int num_expand_tests = 2;
--	int num_misc_tests = 6;
-+	int num_misc_tests = 8;
- 	struct test test_cases[MAX_TEST] = {};
- 	struct test perf_test_cases[MAX_PERF_TEST];
- 	int page_size;
-@@ -1082,6 +1205,8 @@ int main(int argc, char **argv)
- 	mremap_shrink_multiple_vmas(page_size, /* inplace= */false);
- 	mremap_move_multiple_vmas(pattern_seed, page_size, /* dontunmap= */ false);
- 	mremap_move_multiple_vmas(pattern_seed, page_size, /* dontunmap= */ true);
-+	mremap_move_multiple_vmas_split(pattern_seed, page_size, /* dontunmap= */ false);
-+	mremap_move_multiple_vmas_split(pattern_seed, page_size, /* dontunmap= */ true);
+-Transparent Hugepage Support for anonymous memory can be entirely disabled
++Transparent Hugepage Support for anonymous memory can be disabled
+ (mostly for debugging purposes) or only enabled inside MADV_HUGEPAGE
+ regions (to avoid the risk of consuming more memory resources) or enabled
+ system wide. This can be achieved per-supported-THP-size with one of::
+@@ -119,6 +119,11 @@ system wide. This can be achieved per-su
+ where <size> is the hugepage size being addressed, the available sizes
+ for which vary by system.
  
- 	if (run_perf_tests) {
- 		ksft_print_msg("\n%s\n",
++.. note:: Setting "never" in all sysfs THP controls does **not** disable
++          Transparent Huge Pages globally. This is because ``madvise(...,
++          MADV_COLLAPSE)`` ignores these settings and collapses ranges to
++          PMD-sized huge pages unconditionally.
++
+ For example::
+ 
+ 	echo always >/sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
+@@ -187,7 +192,9 @@ madvise
+ 	behaviour.
+ 
+ never
+-	should be self-explanatory.
++	should be self-explanatory. Note that ``madvise(...,
++	MADV_COLLAPSE)`` can still cause transparent huge pages to be
++	obtained even if this mode is specified everywhere.
+ 
+ By default kernel tries to use huge, PMD-mappable zero page on read
+ page fault to anonymous mapping. It's possible to disable huge zero
+@@ -378,7 +385,9 @@ always
+     Attempt to allocate huge pages every time we need a new page;
+ 
+ never
+-    Do not allocate huge pages;
++    Do not allocate huge pages. Note that ``madvise(..., MADV_COLLAPSE)``
++    can still cause transparent huge pages to be obtained even if this mode
++    is specified everywhere;
+ 
+ within_size
+     Only allocate huge page if it will be fully within i_size.
+@@ -434,7 +443,9 @@ inherit
+     have enabled="inherit" and all other hugepage sizes have enabled="never";
+ 
+ never
+-    Do not allocate <size> huge pages;
++    Do not allocate <size> huge pages. Note that ``madvise(...,
++    MADV_COLLAPSE)`` can still cause transparent huge pages to be obtained
++    even if this mode is specified everywhere;
+ 
+ within_size
+     Only allocate <size> huge page if it will be fully within i_size.
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
