@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8531C549F;
-	Fri, 25 Jul 2025 01:15:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0838E2BAF4
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 01:15:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753406112; cv=none; b=IiAwV3I4knGK7Xd1HKgX1QGRum6EHyXev5xBV+NBiM6axg1/wrf0XcZ4NvVk0iPsPfwNBUrOkHme29HJAQTmW+R3lxAhWRCfCAMPqddFDLE2iA5/t/yr/gfka4FF3q+6sYwhKbEMJe9CnxHwHa6ok0CxbL5WxX/UhlRP1xv4NPs=
+	t=1753406151; cv=none; b=RtowgC7wYutNVQ6zF6JLkZG1rt2OcEyU+ALy5irSTsAdiQXB3zbBhiolNnCMv6sUTT6QfutbGz8e8n6i8zuNXtxZQKVi8rPq2yvs5zT7fHZqnXxqTsuCkLQ44UvhnhpRLO4//BV0HnU6e9XmM9YhNgmtmFHGxP0DwjWjCpQG0jA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753406112; c=relaxed/simple;
-	bh=89Yza8Xv2Li3h+dr5UEgW+Lj7H39SWvzgfWawX74SGI=;
-	h=Date:To:From:Subject:Message-Id; b=hGYpibpXhfGDNvzn3dxum5a2Yd3huryu1LhUOfjEaMxkVDn1IYhMHW2+6qxnBIobFSZbdkrQnM1qUgAKzoasQ8fPUNGv0XoX8LutBwlHasUIi/JG9D9RBpKeMjqOpAN1DvOtzI+hI1x0CoZhIoVJ4R9KPvIF3sGuZYHDJQreEBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J5wVkoao; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753406151; c=relaxed/simple;
+	bh=cjcis14RxSytQB+6/Lj+xhPqlOY5lTm0jMf6Qrrw18Y=;
+	h=Date:To:From:Subject:Message-Id; b=ey2tpX0CSuybEOjiIl578ExCEC/VAXS70BK1n2Byf1xCk4PoOdvBL/wHGBbfrOjRQcNZWhonT2sL9FrMds4Q5Eg9JzH1m9L/9TTbSOaQj6pmvJH2xw9tfRlBAO2z9KuCDYPe9NNY2GEujgaim0JX6nNofyDlH9y/Z4/57YI/Kv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CiinIuII; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J5wVkoao"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81E66C4CEED;
-	Fri, 25 Jul 2025 01:15:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CiinIuII"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8113BC4CEED;
+	Fri, 25 Jul 2025 01:15:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753406111;
-	bh=89Yza8Xv2Li3h+dr5UEgW+Lj7H39SWvzgfWawX74SGI=;
+	s=korg; t=1753406150;
+	bh=cjcis14RxSytQB+6/Lj+xhPqlOY5lTm0jMf6Qrrw18Y=;
 	h=Date:To:From:Subject:From;
-	b=J5wVkoaoZ6l+0UR3AR6J+bmeRzpJW0gCvII3y4CHk3WlPGzrdhHBlcja25vIoZnyl
-	 1jM6vUgp744URl7F+gLw6XX7PDdOtoCghaOnsn/BBub720j/or6FWn4KrnD711wMpv
-	 EKS5Nrjm5MB+6bgE5xoEuiqQ2LgJNsMzrg/Wg8Zc=
-Date: Thu, 24 Jul 2025 18:15:11 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kasong@tencent.com,hannes@cmpxchg.org,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=CiinIuIIrAd75hKfogCSdQrn8wRjz0pNYnft9yQVZzGYIvABfDdZ6d2LXAgH4z72/
+	 mPPK12KQKedmqh8gZZ8FuA8XRkQVxZvNq05JqKN18MD3q9Ig/kN8YLe3iRihPDF5F0
+	 lEhxU7CUUECfKqbej+1NIhew2+hsw1hQiZOAbYTU=
+Date: Thu, 24 Jul 2025 18:15:49 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,shivankg@amd.com,osalvador@suse.de,harry.yoo@oracle.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch removed from -mm tree
-Message-Id: <20250725011511.81E66C4CEED@smtp.kernel.org>
+Subject: [folded-merged] mm-util-introduce-snapshot_page-fix.patch removed from -mm tree
+Message-Id: <20250725011550.8113BC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: correctly use maxpages in swapon syscall to avoid potential deadloop
+     Subject: mm-util-introduce-snapshot_page-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch
+     mm-util-introduce-snapshot_page-fix.patch
 
-This patch was dropped because it was folded into mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop.patch
+This patch was dropped because it was folded into mm-util-introduce-snapshot_page.patch
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm: swap: correctly use maxpages in swapon syscall to avoid potential deadloop
-Date: Fri, 18 Jul 2025 14:51:39 +0800
+From: Luiz Capitulino <luizcap@redhat.com>
+Subject: mm-util-introduce-snapshot_page-fix
+Date: Thu, 17 Jul 2025 11:54:07 -0400
 
-ensure si->pages == si->max - 1 after setup_swap_extents()
+fix set_ps_flags() commentary
 
-Link: https://lkml.kernel.org/r/20250522122554.12209-3-shikemeng@huaweicloud.com
-Link: https://lkml.kernel.org/r/20250718065139.61989-1-shikemeng@huaweicloud.com
-Fixes: 661383c6111a ("mm: swap: relaim the cached parts that got scanned")
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/d5c75701-b353-4536-a306-187fab0655b3@redhat.com
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Harry Yoo <harry.yoo@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shivank Garg <shivankg@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/util.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix
-+++ a/mm/swapfile.c
-@@ -3357,6 +3357,12 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		error = nr_extents;
- 		goto bad_swap_unlock_inode;
- 	}
-+	if (si->pages != si->max - 1) {
-+		pr_err("swap:%u != (max:%u - 1)\n", si->pages, si->max);
-+		error = -EINVAL;
-+		goto bad_swap_unlock_inode;
-+	}
-+
- 	maxpages = si->max;
- 
- 	/* OK, set up the swap map and apply the bad block list */
+--- a/mm/util.c~mm-util-introduce-snapshot_page-fix
++++ a/mm/util.c
+@@ -1198,10 +1198,12 @@ static void set_ps_flags(struct page_sna
+  * Create a snapshot of the page and store both its struct page and struct
+  * folio representations in @ps.
+  *
+- * Note that creating a faithful snapshot may fail if the compound
+- * state of the page keeps changing (e.g., due to a folio split). In
+- * this case, ps->faithful is set to false, and the snapshot assumes
+- * that @page refers to a single page.
++ * A snapshot is marked as "faithful" if the compound state of @page was
++ * stable and allowed safe reconstruction of the folio representation. In
++ * rare cases where this is not possible (e.g. due to folio splitting),
++ * snapshot_page() falls back to treating @page as a single page and the
++ * snapshot is marked as "unfaithful". The snapshot_page_is_faithful()
++ * helper can be used to check for this condition.
+  */
+ void snapshot_page(struct page_snapshot *ps, const struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from luizcap@redhat.com are
 
-mm-swap-move-nr_swap_pages-counter-decrement-from-folio_alloc_swap-to-swap_range_alloc.patch
-mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop.patch
-mm-swap-fix-potensial-buffer-overflow-in-setup_clusters.patch
-mm-swap-remove-stale-comment-stale-comment-in-cluster_alloc_swap_entry.patch
+mm-util-introduce-snapshot_page.patch
+proc-kpagecount-use-snapshot_page.patch
+fs-stable_page_flags-use-snapshot_page.patch
 
