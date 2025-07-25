@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0E84218589
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1BB1218EBA
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409696; cv=none; b=L/jdxykrwv7b4GnUj3yO9bP/lFEldjWV2lEXAsRGHqDrhihezu4ape+HOiTTH/d0uahqo6kjEbqLVtsTjjWy2kPeiMfp9fiL6VOoE8e3mzHBF7vfx3uIFPQFlTvtJounwMDN8LTW0CjlYFaYA4Xl4mW4RhaoracdSSfOYriXSXQ=
+	t=1753409697; cv=none; b=shvz5j6CLBv2oU3M8peqgrWoPPYGI+YDuNpr5M2dO17bwflob6EsHPEYxJO3eZuT1xcAde1qpaRuIgSQmH23h7pk/1HsEt5rsSlBGIpMtrunnS2Tn6s+XXv0jgoYL5p6LD6BnBcoAfdG5IiJpI0bfPDbgCa0Q3SDjIeMKGK7EKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409696; c=relaxed/simple;
-	bh=yrXYrLYKuzU2nPDaD7n2XV3RX3bc2TwYyfX8YBMHBQk=;
-	h=Date:To:From:Subject:Message-Id; b=ucIED8biXLzr/CygKPbsHMY6z9EoOwbdk+G9Uz4MVaV8ceIITKubYo5GJH7iQ8j+mIHkX1KjQ0Fk7eMtTIWYpuo2tfn59BdJnNN+NXm4LCoTclPFkWriZTl/0QVKxiTRufscUVhLgLMhuT0PdbzL+3nT5HC6PZjY+XgSaWGBzlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f0b4sr+c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409697; c=relaxed/simple;
+	bh=930C1VR2uxoYG4Dz5Cm/kUWDlUzUQ/T8nnyjTSkT9u0=;
+	h=Date:To:From:Subject:Message-Id; b=KCbGfr7pSUK+YBuYTCf2nX42qvJ4xDydi/gwikTu3ozXfjeSdq6iVpcr0CJJ+1YRecwngf7yS7aPsAwt4aPHL6OejW/l2jkgloLckI0YhDjTAHz8Ot58rqSZFmTQUXTf0l5W2HryLNSacZjPelRDe3JbM9n/JeuYW7mJjeE880Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ton62lRW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f0b4sr+c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75EE6C4CEED;
-	Fri, 25 Jul 2025 02:14:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ton62lRW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4E79C4CEED;
+	Fri, 25 Jul 2025 02:14:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409696;
-	bh=yrXYrLYKuzU2nPDaD7n2XV3RX3bc2TwYyfX8YBMHBQk=;
+	s=korg; t=1753409697;
+	bh=930C1VR2uxoYG4Dz5Cm/kUWDlUzUQ/T8nnyjTSkT9u0=;
 	h=Date:To:From:Subject:From;
-	b=f0b4sr+cJoGOnM1qif6goDyiMt7PiqmZDvQrrDiVCNnSMoeP/ekmwla83tVQTxUxB
-	 czC7pUR05aPiCYWL+7bQhO8uyQlMLcWJefPQbFOzFnNjjhSFOOeTbEYyIQCm/v2KTP
-	 /8X7o9E6bFzBsZ5VOZBavK/kQDsQryiw8jKszC34=
-Date: Thu, 24 Jul 2025 19:14:55 -0700
-To: mm-commits@vger.kernel.org,kasong@tencent.com,hannes@cmpxchg.org,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=ton62lRWV5cT38+BPRT69N/ev1iOttongAN4rrL0aUZrirOMksAn3aqENmTe3RVUj
+	 ZR92arIAOATJNqNhvmWuNcf7Z9JbnNLWBF8xKLiepjUZpSiePOYpaRhZFgLQcOK+Go
+	 x0tETJ0vVQk+6jGP3AdkOrbJoCBwUBLTMC21GLbc=
+Date: Thu, 24 Jul 2025 19:14:57 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,shivankg@amd.com,osalvador@suse.de,luizcap@redhat.com,harry.yoo@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-remove-stale-comment-stale-comment-in-cluster_alloc_swap_entry.patch removed from -mm tree
-Message-Id: <20250725021456.75EE6C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch removed from -mm tree
+Message-Id: <20250725021457.A4E79C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,98 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: remove stale comment stale comment in cluster_alloc_swap_entry()
+     Subject: mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-stale-comment-stale-comment-in-cluster_alloc_swap_entry.patch
+     mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm: swap: remove stale comment stale comment in cluster_alloc_swap_entry()
-Date: Thu, 22 May 2025 20:25:54 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
+Date: Mon, 14 Jul 2025 09:16:51 -0400
 
-As cluster_next_cpu was already dropped, the associated comment is stale
-now.
+Patch series "mm: introduce snapshot_page()", v3.
 
-Link: https://lkml.kernel.org/r/20250522122554.12209-5-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+This series introduces snapshot_page(), a helper function that can be used
+to create a snapshot of a struct page and its associated struct folio.
+
+This function is intended to help callers with a consistent view of a a
+folio while reducing the chance of encountering partially updated or
+inconsistent state, such as during folio splitting which could lead to
+crashes and BUG_ON()s being triggered.
+
+
+This patch (of 4):
+
+Let's avoid working with the PMD when not required.  If
+vm_normal_page_pmd() would be called on something that is not a present
+pmd, it would already be a bug (pfn possibly garbage).
+
+While at it, let's support passing in any pfn covered by the huge zero
+folio by masking off PFN bits -- which should be rather cheap.
+
+Link: https://lkml.kernel.org/r/cover.1752499009.git.luizcap@redhat.com
+Link: https://lkml.kernel.org/r/4940826e99f0c709a7cf7beb94f53288320aea5a.1752499009.git.luizcap@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Tested-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/huge_mm.h |   12 +++++++++++-
+ mm/memory.c             |    2 +-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-remove-stale-comment-stale-comment-in-cluster_alloc_swap_entry
-+++ a/mm/swapfile.c
-@@ -956,9 +956,8 @@ new_cluster:
+--- a/include/linux/huge_mm.h~mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd
++++ a/include/linux/huge_mm.h
+@@ -482,9 +482,14 @@ static inline bool is_huge_zero_folio(co
+ 	return READ_ONCE(huge_zero_folio) == folio;
+ }
+ 
++static inline bool is_huge_zero_pfn(unsigned long pfn)
++{
++	return READ_ONCE(huge_zero_pfn) == (pfn & ~(HPAGE_PMD_NR - 1));
++}
++
+ static inline bool is_huge_zero_pmd(pmd_t pmd)
+ {
+-	return pmd_present(pmd) && READ_ONCE(huge_zero_pfn) == pmd_pfn(pmd);
++	return pmd_present(pmd) && is_huge_zero_pfn(pmd_pfn(pmd));
+ }
+ 
+ struct folio *mm_get_huge_zero_folio(struct mm_struct *mm);
+@@ -631,6 +636,11 @@ static inline bool is_huge_zero_folio(co
+ {
+ 	return false;
+ }
++
++static inline bool is_huge_zero_pfn(unsigned long pfn)
++{
++	return false;
++}
+ 
+ static inline bool is_huge_zero_pmd(pmd_t pmd)
+ {
+--- a/mm/memory.c~mm-memory-introduce-is_huge_zero_pfn-and-use-it-in-vm_normal_page_pmd
++++ a/mm/memory.c
+@@ -668,7 +668,7 @@ struct page *vm_normal_page_pmd(struct v
+ 		}
  	}
  
- 	/*
--	 * We don't have free cluster but have some clusters in
--	 * discarding, do discard now and reclaim them, then
--	 * reread cluster_next_cpu since we dropped si->lock
-+	 * We don't have free cluster but have some clusters in discarding,
-+	 * do discard now and reclaim them.
- 	 */
- 	if ((si->flags & SWP_PAGE_DISCARD) && swap_do_scheduled_discard(si))
- 		goto new_cluster;
+-	if (is_huge_zero_pmd(pmd))
++	if (is_huge_zero_pfn(pfn))
+ 		return NULL;
+ 	if (unlikely(pfn > highest_memmap_pfn))
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from david@redhat.com are
 
+mm-add-get_and_clear_ptes-and-clear_ptes.patch
 
