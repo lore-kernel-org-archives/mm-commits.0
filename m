@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB2E020F063
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EB8D213237
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409666; cv=none; b=IZZYTgVegmSdvZYh1j15IB4Mt1z/wePl/6mhFBakQLmnMC8X3CKbSEPF8/WCeFjLXqCAWij7L8RVjeDyQfgpzCHPR6FogCxD+/pz7MwY0jOyqWM9OEJu/iG5pHE/KW/WbRZaPW1bSPE509lEVDZskUOrDhqIfJgy//n4BkgcGI4=
+	t=1753409667; cv=none; b=Zx4QPQvbiwJAzXakBe/TmITxGTpK9z/BzpAcApWfcAnDSR68eGhUcevV5bpTR21N87moMV0JAG9kavkmukisxwE+3kMhH9ZU+OhcfM7UpT7SUfV/UmRgOhXvktFVJKkyhu2ivSljGpIgDw3b8z/BoMdX5ZfhH+lNMfBLoY5/zsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409666; c=relaxed/simple;
-	bh=Gp7pfsY1N4xEbdpDMGC6ubz5f2MUUtDzCZ7ARkPqSpo=;
-	h=Date:To:From:Subject:Message-Id; b=lqF82UkIbgmxdgEI2K51n1nDqKx12ftkcuttRkJ+vCJPg0MW1UUfu9AasU3F5LDgPccIewVDRhL5h0QiwWb995mWElkDDapT5qZccNcBjR2OqRJMso2Arw5GECTAcGfBw8VXx3GISpZ9u7tts01h6OuYepPdnisjL7032KZOlmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iV4YeVt/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409667; c=relaxed/simple;
+	bh=BRMsL8cmz3efrU8QN5vX+4yyWfu0DSzEBhBXRY5GtEA=;
+	h=Date:To:From:Subject:Message-Id; b=d7cFwvTBmRvWMsKCQ75e8Bl1ZgwnOXqlzn9dJQhBXA5T41VzK3S5fxulZi/xJ3ZsfrUWYzwBhakjWbFHsFuuovSHrXbcCQ1taxP5ZADiF1zoA07kPidSSooX4t0AbeYHZfBqbsKr7NDny6vlGvaTxHhjLqrweiNEIKjvsclcHmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f/lBcbTH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iV4YeVt/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 525B7C4CEED;
-	Fri, 25 Jul 2025 02:14:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f/lBcbTH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D48A6C4CEED;
+	Fri, 25 Jul 2025 02:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409665;
-	bh=Gp7pfsY1N4xEbdpDMGC6ubz5f2MUUtDzCZ7ARkPqSpo=;
+	s=korg; t=1753409666;
+	bh=BRMsL8cmz3efrU8QN5vX+4yyWfu0DSzEBhBXRY5GtEA=;
 	h=Date:To:From:Subject:From;
-	b=iV4YeVt/nXTIK3ScdTyAy+KWe7RxFMbgPzDes4lyEfQzWynzK3KSDzpwrpwz/LwfT
-	 QThtZjeEd27MuEuIYd5CBty5feRt6QNlGK4i5VQd14ZFHager06rFoFwZNePZG4JC7
-	 bfgbH5F3WuILKQc41Zh/Eps5FtWAZXgcwUWHtgfI=
-Date: Thu, 24 Jul 2025 19:14:24 -0700
+	b=f/lBcbTHm9ciMubqymZkvGz6fPoVLd7hEzO4rkSPQEfunZm9plbG3xq5NxXZe4UJo
+	 0IY8O8fZYl9wweQenBloGiBUQRmINfBP/g2/zUZO5dUoN9c948R6wQyF5v5S7zHGbE
+	 5nHlBD/IDdNp9UhcBftPs9E23Ag/7GybiUHISv78=
+Date: Thu, 24 Jul 2025 19:14:26 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch removed from -mm tree
-Message-Id: <20250725021425.525B7C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mremap-check-remap-conditions-earlier.patch removed from -mm tree
+Message-Id: <20250725021426.D48A6C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mremap: use an explicit uffd failure path for mremap
+     Subject: mm/mremap: check remap conditions earlier
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-use-an-explicit-uffd-failure-path-for-mremap.patch
+     mm-mremap-check-remap-conditions-earlier.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: use an explicit uffd failure path for mremap
-Date: Thu, 17 Jul 2025 17:55:55 +0100
+Subject: mm/mremap: check remap conditions earlier
+Date: Thu, 17 Jul 2025 17:55:56 +0100
 
-Right now it appears that the code is relying upon the returned
-destination address having bits outside PAGE_MASK to indicate whether an
-error value is specified, and decrementing the increased refcount on the
-uffd ctx if so.
+When we expand or move a VMA, this requires a number of additional checks
+to be performed.
 
-This is not a safe means of determining an error value, so instead, be
-specific.  It makes far more sense to do so in a dedicated error path, so
-add mremap_userfaultfd_fail() for this purpose and use this when an error
-arises.
+Make it really obvious under what circumstances these checks must be
+performed and aggregate all the checks in one place by invoking this in
+check_prep_vma().
 
-A vm_userfaultfd_ctx is not established until we are at the point where
-mremap_userfaultfd_prep() is invoked in copy_vma_and_data(), so this is a
-no-op until this happens.
-
-That is - uffd remap notification only occurs if the VMA is actually moved
-- at which point a UFFD_EVENT_REMAP event is raised.
-
-No errors can occur after this point currently, though it's certainly not
-guaranteed this will always remain the case, and we mustn't rely on this.
-
-However, the reason for needing to handle this case is that, when an error
-arises on a VMA move at the point of adjusting page tables, we revert this
-operation, and propagate the error.
-
-At this point, it is not correct to raise a uffd remap event, and we must
-handle it.
-
-This refactoring makes it abundantly clear what we are doing.
-
-We assume vrm->new_addr is always valid, which a prior change made the
-case even for mremap() invocations which don't move the VMA, however given
-no uffd context would be set up in this case it's immaterial to this
-change anyway.
+We have to adjust the checks to account for shrink + move operations by
+checking new_len <= old_len rather than new_len == old_len.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/a70e8a1f7bce9f43d1431065b414e0f212297297.1752770784.git.lorenzo.stoakes@oracle.com
+[lorenzo.stoakes@oracle.com: allow undocumented mremap() shrink behaviour]
+  Link: https://lkml.kernel.org/r/8fc92a38-c636-465e-9a2f-2c6ac9cb49b8@lucifer.local
+Link: https://lkml.kernel.org/r/8b4161ce074901e00602a446d81f182db92b0430.1752770784.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -96,109 +74,77 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c              |   15 ++++++++++-----
- include/linux/userfaultfd_k.h |    5 +++++
- mm/mremap.c                   |   16 ++++++++++++----
- 3 files changed, 27 insertions(+), 9 deletions(-)
+ mm/mremap.c |   33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
---- a/fs/userfaultfd.c~mm-mremap-use-an-explicit-uffd-failure-path-for-mremap
-+++ a/fs/userfaultfd.c
-@@ -750,11 +750,6 @@ void mremap_userfaultfd_complete(struct
- 	if (!ctx)
- 		return;
- 
--	if (to & ~PAGE_MASK) {
--		userfaultfd_ctx_put(ctx);
--		return;
--	}
--
- 	msg_init(&ewq.msg);
- 
- 	ewq.msg.event = UFFD_EVENT_REMAP;
-@@ -765,6 +760,16 @@ void mremap_userfaultfd_complete(struct
- 	userfaultfd_event_wait_completion(ctx, &ewq);
- }
- 
-+void mremap_userfaultfd_fail(struct vm_userfaultfd_ctx *vm_ctx)
-+{
-+	struct userfaultfd_ctx *ctx = vm_ctx->ctx;
-+
-+	if (!ctx)
-+		return;
-+
-+	userfaultfd_ctx_put(ctx);
-+}
-+
- bool userfaultfd_remove(struct vm_area_struct *vma,
- 			unsigned long start, unsigned long end)
- {
---- a/include/linux/userfaultfd_k.h~mm-mremap-use-an-explicit-uffd-failure-path-for-mremap
-+++ a/include/linux/userfaultfd_k.h
-@@ -259,6 +259,7 @@ extern void mremap_userfaultfd_prep(stru
- extern void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx *,
- 					unsigned long from, unsigned long to,
- 					unsigned long len);
-+void mremap_userfaultfd_fail(struct vm_userfaultfd_ctx *);
- 
- extern bool userfaultfd_remove(struct vm_area_struct *vma,
- 			       unsigned long start,
-@@ -371,6 +372,10 @@ static inline void mremap_userfaultfd_co
- {
- }
- 
-+static inline void mremap_userfaultfd_fail(struct vm_userfaultfd_ctx *ctx)
-+{
-+}
-+
- static inline bool userfaultfd_remove(struct vm_area_struct *vma,
- 				      unsigned long start,
- 				      unsigned long end)
---- a/mm/mremap.c~mm-mremap-use-an-explicit-uffd-failure-path-for-mremap
+--- a/mm/mremap.c~mm-mremap-check-remap-conditions-earlier
 +++ a/mm/mremap.c
-@@ -1729,12 +1729,17 @@ static int check_prep_vma(struct vma_rem
- 	return 0;
- }
+@@ -1339,6 +1339,13 @@ static int remap_is_valid(struct vma_rem
+ 			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
+ 		return -EINVAL;
  
--static void notify_uffd(struct vma_remap_struct *vrm, unsigned long to)
-+static void notify_uffd(struct vma_remap_struct *vrm, bool failed)
- {
- 	struct mm_struct *mm = current->mm;
- 
-+	/* Regardless of success/failure, we always notify of any unmaps. */
- 	userfaultfd_unmap_complete(mm, vrm->uf_unmap_early);
--	mremap_userfaultfd_complete(vrm->uf, vrm->addr, to, vrm->old_len);
-+	if (failed)
-+		mremap_userfaultfd_fail(vrm->uf);
-+	else
-+		mremap_userfaultfd_complete(vrm->uf, vrm->addr,
-+			vrm->new_addr, vrm->old_len);
- 	userfaultfd_unmap_complete(mm, vrm->uf_unmap);
- }
- 
-@@ -1742,6 +1747,7 @@ static unsigned long do_mremap(struct vm
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long res;
-+	bool failed;
- 
- 	vrm->old_len = PAGE_ALIGN(vrm->old_len);
- 	vrm->new_len = PAGE_ALIGN(vrm->new_len);
-@@ -1763,13 +1769,15 @@ static unsigned long do_mremap(struct vm
- 	res = vrm_implies_new_addr(vrm) ? mremap_to(vrm) : mremap_at(vrm);
- 
- out:
-+	failed = IS_ERR_VALUE(res);
++	/*
++	 * We permit crossing of boundaries for the range being unmapped due to
++	 * a shrink.
++	 */
++	if (vrm->remap_type == MREMAP_SHRINK)
++		old_len = new_len;
 +
- 	if (vrm->mmap_locked)
- 		mmap_write_unlock(mm);
+ 	/* We can't remap across vm area boundaries */
+ 	if (old_len > vma->vm_end - addr)
+ 		return -EFAULT;
+@@ -1443,10 +1450,6 @@ static unsigned long mremap_to(struct vm
+ 		vrm->old_len = vrm->new_len;
+ 	}
  
--	if (!IS_ERR_VALUE(res) && vrm->mlocked && vrm->new_len > vrm->old_len)
-+	if (!failed && vrm->mlocked && vrm->new_len > vrm->old_len)
- 		mm_populate(vrm->new_addr + vrm->old_len, vrm->delta);
+-	err = remap_is_valid(vrm);
+-	if (err)
+-		return err;
+-
+ 	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
+ 	if (vrm->flags & MREMAP_DONTUNMAP) {
+ 		vm_flags_t vm_flags = vrm->vma->vm_flags;
+@@ -1635,10 +1638,6 @@ static unsigned long expand_vma(struct v
+ {
+ 	unsigned long err;
  
--	notify_uffd(vrm, res);
-+	notify_uffd(vrm, failed);
- 	return res;
+-	err = remap_is_valid(vrm);
+-	if (err)
+-		return err;
+-
+ 	/*
+ 	 * [addr, old_len) spans precisely to the end of the VMA, so try to
+ 	 * expand it in-place.
+@@ -1705,6 +1704,21 @@ static unsigned long mremap_at(struct vm
+ 	return -EINVAL;
+ }
+ 
++/*
++ * Will this operation result in the VMA being expanded or moved and thus need
++ * to map a new portion of virtual address space?
++ */
++static bool vrm_will_map_new(struct vma_remap_struct *vrm)
++{
++	if (vrm->remap_type == MREMAP_EXPAND)
++		return true;
++
++	if (vrm_implies_new_addr(vrm))
++		return true;
++
++	return false;
++}
++
+ static int check_prep_vma(struct vma_remap_struct *vrm)
+ {
+ 	struct vm_area_struct *vma = vrm->vma;
+@@ -1726,6 +1740,9 @@ static int check_prep_vma(struct vma_rem
+ 	if (!vrm_implies_new_addr(vrm))
+ 		vrm->new_addr = vrm->addr;
+ 
++	if (vrm_will_map_new(vrm))
++		return remap_is_valid(vrm);
++
+ 	return 0;
  }
  
 _
