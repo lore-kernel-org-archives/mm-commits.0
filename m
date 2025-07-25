@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53A22212F98
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C1042063F0
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409689; cv=none; b=XLZde85NPohJayoMAofVUjGVFAxvoFnM3BnJwaK+xiX5lrF7bOV9ty49ryuBGBOKyo9dhDH2jRmnjo77buREks8ETKrrwLI/QtPOs1epYPaQSxcRZPenDFVpoDy9e8gcqTIge8YBqfATNkwRBGLd2j4+rUkWer0RD6rgBAdhIKQ=
+	t=1753409690; cv=none; b=h3brGQxzKNdrFfuXV9WRfr+sSW4/JcqBzAUu8fXVC1X3Llo0Age49Ie5D0Itt1bhAhROv4p+ZASisRFDKzh58ifur/Aqye2cGthNnteHaNhO9ttaS3nRwft+CA2+MwxlE0cwUvQA1RkjudQxMzqVyPI+8bsXtH3LwEpT9Q79BYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409689; c=relaxed/simple;
-	bh=zCLt1oZyiHCkFSVOYbHL+RsgPT/dgTxUi2+PxJ+6W54=;
-	h=Date:To:From:Subject:Message-Id; b=KTEaSX6zFu2HB0qqb4raYcZIn/UNKAAsZmn13X7pxaVvvBoNvDSUFdhL1X7sMALjpxTJritflIjoHI3Kq8hAqdqDsbDgkYsMtvqJEAac8QxGafcr8zThbuJvfjntz9kzTMc6dik2aj4U+g4PGxi+JkSu/me0PQjQLNAx0Qfb/wA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g6XQfuho; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409690; c=relaxed/simple;
+	bh=0o4MbOZjoZuhWKtS/DmMFmTtSRQrN+LcaJWXIwi23/o=;
+	h=Date:To:From:Subject:Message-Id; b=gWdn1SdNB38TgI/LWq+hZwdPH/FiAw0LCy4BPhg1O7JqfZ0i1FGr9HQcqBwz+OhpJR2E4aegaHklao+sPSp2F/CwOAK6bATu6BFPw0ANAzGdlqc1H7YtLEgb2w3s/EvylX85G5/PZSASTPaIm6whuBI1jq9hz4ANnbF/fOD9UWY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RLUV8TP9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g6XQfuho"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 278F3C4CEED;
-	Fri, 25 Jul 2025 02:14:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RLUV8TP9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E438C4CEED;
+	Fri, 25 Jul 2025 02:14:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409689;
-	bh=zCLt1oZyiHCkFSVOYbHL+RsgPT/dgTxUi2+PxJ+6W54=;
+	s=korg; t=1753409690;
+	bh=0o4MbOZjoZuhWKtS/DmMFmTtSRQrN+LcaJWXIwi23/o=;
 	h=Date:To:From:Subject:From;
-	b=g6XQfuho2RUYnnSSJ+zqHXKwjG+faoAj3uSxqlERO5NqzfSXD+4NRFnXruao74fD7
-	 mr5EordQ0ixOuL8gie+o6sLjwpo8EoZLo9DPCZaLPiywL1Q5fczrQ2T9nkOq8HuPDO
-	 Mvb4OLr4XQyONM3eKzs81fog4IQOE7Bimlxu6eGo=
-Date: Thu, 24 Jul 2025 19:14:48 -0700
+	b=RLUV8TP9nJZMhKbE5df59xvIqARXZ668deqQjka6Eem2+AKzIVum5FTTvVGXVFt/j
+	 xzfCZEnEzW/g0AFXzkW/J6yd+NQR+fgOtHDc5ddls4KsdbgVPITBG3UrFFDCiSlR6M
+	 xWGrUP9T7t+b1zgC0jwbLbGKk+9XColeUrNnoYRg=
+Date: Thu, 24 Jul 2025 19:14:49 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch removed from -mm tree
-Message-Id: <20250725021449.278F3C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] docs-abi-damon-update-for-refresh_ms.patch removed from -mm tree
+Message-Id: <20250725021450.3E438C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document refresh_ms file
+     Subject: Docs/ABI/damon: update for refresh_ms
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-document-refresh_ms-file.patch
+     docs-abi-damon-update-for-refresh_ms.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document refresh_ms file
-Date: Wed, 16 Jul 2025 22:54:47 -0700
+Subject: Docs/ABI/damon: update for refresh_ms
+Date: Wed, 16 Jul 2025 22:54:48 -0700
 
-Document the new DAMON sysfs file, refresh_ms, on the usage document.
+Document the new DAMON sysfs file, refresh_ms, on the ABI document.
 
-Link: https://lkml.kernel.org/r/20250717055448.56976-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250717055448.56976-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-refresh_ms-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -59,7 +59,7 @@ comma (",").
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-refresh_ms
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -44,6 +44,13 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Reading this file returns the pid of the kdamond if it is
+ 		running.
  
-     :ref:`/sys/kernel/mm/damon <sysfs_root>`/admin
-     │ :ref:`kdamonds <sysfs_kdamonds>`/nr_kdamonds
--    │ │ :ref:`0 <sysfs_kdamond>`/state,pid
-+    │ │ :ref:`0 <sysfs_kdamond>`/state,pid,refresh_ms
-     │ │ │ :ref:`contexts <sysfs_contexts>`/nr_contexts
-     │ │ │ │ :ref:`0 <sysfs_context>`/avail_operations,operations
-     │ │ │ │ │ :ref:`monitoring_attrs <sysfs_monitoring_attrs>`/
-@@ -123,8 +123,8 @@ kdamond.
- kdamonds/<N>/
- -------------
- 
--In each kdamond directory, two files (``state`` and ``pid``) and one directory
--(``contexts``) exist.
-+In each kdamond directory, three files (``state``, ``pid`` and ``refresh_ms``)
-+and one directory (``contexts``) exist.
- 
- Reading ``state`` returns ``on`` if the kdamond is currently running, or
- ``off`` if it is not running.
-@@ -161,6 +161,13 @@ Users can write below commands for the k
- 
- If the state is ``on``, reading ``pid`` shows the pid of the kdamond thread.
- 
-+Users can ask the kernel to periodically update files showing auto-tuned
-+parameters and DAMOS stats instead of manually writing
-+``update_tuned_intervals`` like keywords to ``state`` file.  For this, users
-+should write the desired update time interval in milliseconds to ``refresh_ms``
-+file.  If the interval is zero, the periodic update is disabled.  Reading the
-+file shows currently set time interval.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/refresh_ms
++Date:		Jul 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the time interval for
++		automatic DAMON status file contents update.  Writing '0'
++		disables the update.  Reading this file returns the value.
 +
- ``contexts`` directory contains files for controlling the monitoring contexts
- that this kdamond will execute.
- 
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/nr_contexts
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
