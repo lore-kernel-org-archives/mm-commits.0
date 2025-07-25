@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B885A74040
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 690C41373
+	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 02:14:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753409674; cv=none; b=Km/mfA7cdWPIsuMITLR69ejMMsTMTuoMh/kVbLXFrvblcv/HxOKNy5y6yLDz8tps+DM7k0YP3y+TzQB864+l4XG5vnNOadKQz1TKKlVhCA/aJyIznbnXQmwqGDEO2adJZ9Q2iRmL7JtEkEaLlDt57uyVFDSRzD51EGXsb1EmiIE=
+	t=1753409676; cv=none; b=UVeUYHmjO/4AbFRUSZWbNOg6JA9XTVRtLO8z/iQ5Dq/xrN7Bc/Vq9FDZAJmuU4ozB92m8Q7n5EUkfB1YdZHtpqo/B1Pn6Y2YD8C+0i1TQ2U6ibU3zRtDho11431r6ZMgU6HYRuP+gr8mS2dl4iNCsKnWxSaQms2Iop24y998mDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753409674; c=relaxed/simple;
-	bh=449HRF0kP0MsA5dJ0YHd3jHZcMQ9tLwA8dLss76qTEc=;
-	h=Date:To:From:Subject:Message-Id; b=n7bqWWIRVkBnck/N3Wqjo3JVMQwGCJgrm2QoUzuzwG96EZL2TozX8XtRipI012CHXvNbPxELOQ0WX6HzBmyUCslUDNxbrdtiPRIj/KHy9PP1X05OFjW0hHGR/Nw2WmEXosW+C3sfBU2LHTJuE0tO1+ZWoMCIyfzXZUgjcB8sBmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xmU0gYKy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753409676; c=relaxed/simple;
+	bh=aJLBOh2SxOePrub7QWi6EqBd7GC86PS9ix3Yi28jZd8=;
+	h=Date:To:From:Subject:Message-Id; b=V/M4/5DysFDV76pmai06kMoeN0TP9gDUiiZ6izT70qvwx8NBXY1fO13kYpLZnd4KjMb+EJLtmmMJ8LHUgx9Rgbhl3WBdBWBC99K54PKalpJ2pck3QGI9zgo3+MPKyZ0LEEcAB7DzDGu+1DtJX52tzfkuRjV3CcrLRJ0BKOMaNCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sXMNh6zp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xmU0gYKy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D0F7C4CEED;
-	Fri, 25 Jul 2025 02:14:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sXMNh6zp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBBB5C4CEED;
+	Fri, 25 Jul 2025 02:14:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753409674;
-	bh=449HRF0kP0MsA5dJ0YHd3jHZcMQ9tLwA8dLss76qTEc=;
+	s=korg; t=1753409675;
+	bh=aJLBOh2SxOePrub7QWi6EqBd7GC86PS9ix3Yi28jZd8=;
 	h=Date:To:From:Subject:From;
-	b=xmU0gYKyE6SOIMLoxYLlzkTpWilav39Lrd+IzxgRRIYylWhawi6ucZXZk+ExdLuVG
-	 5mn1M+ueeTQJ/RsMIGXPMHhk/KfO/Y987DPshy3tQ0yx6JVznvD8KU1TDLe4Nh0wSp
-	 WTxLawQ5i06I9b3iPxvkocQWcscLgCiqku8qbIVk=
-Date: Thu, 24 Jul 2025 19:14:33 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,riel@surriel.com,peterx@redhat.com,liam.howlett@oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=sXMNh6zpMYcvOATeWKnLTTBaCJtSrbXmGwtb/vUQpnZQi7R1p7nQqfaHcamJR7oWs
+	 WQ8TurBDXednRS2mpmxEZwSkBOVENljYjcbiiGnL87YE9/A6S14SpYkyIpr2kruaDI
+	 h/OwjtEVYKkhSAOhOG9gOV2XGSmwo/lXdSMhH9sI=
+Date: Thu, 24 Jul 2025 19:14:35 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rientjes@google.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch removed from -mm tree
-Message-Id: <20250725021434.5D0F7C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-hold-shmem_swaplist-spinlock-not-mutex-much-less.patch removed from -mm tree
+Message-Id: <20250725021435.DBBB5C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,227 +35,213 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests: extend mremap_test to test multi-VMA mremap
+     Subject: mm/shmem: hold shmem_swaplist spinlock (not mutex) much less
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap.patch
+     mm-shmem-hold-shmem_swaplist-spinlock-not-mutex-much-less.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: extend mremap_test to test multi-VMA mremap
-Date: Thu, 17 Jul 2025 17:56:00 +0100
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/shmem: hold shmem_swaplist spinlock (not mutex) much less
+Date: Wed, 16 Jul 2025 01:05:50 -0700 (PDT)
 
-Now that we have added the ability to move multiple VMAs at once, assert
-that this functions correctly, both overwriting VMAs and moving backwards
-and forwards with merge and VMA invalidation.
+A flamegraph (from an MGLRU load) showed shmem_writeout()'s use of the
+global shmem_swaplist_mutex worryingly hot: improvement is long overdue.
 
-Additionally assert that page tables are correctly propagated by setting
-random data and reading it back.
+3.1 commit 6922c0c7abd3 ("tmpfs: convert shmem_writepage and enable swap")
+apologized for extending shmem_swaplist_mutex across add_to_swap_cache(),
+and hoped to find another way: yes, there may be lots of work to allocate
+radix tree nodes in there.  Then 6.15 commit b487a2da3575 ("mm, swap:
+simplify folio swap allocation") will have made it worse, by moving
+shmem_writeout()'s swap allocation under that mutex too (but the worrying
+flamegraph was observed even before that change).
 
-Link: https://lkml.kernel.org/r/139074a24a011ca4ed52498a7fa2080024b43917.1752770784.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+There's a useful comment about pagelock no longer protecting from eviction
+once moved to swap cache: but it's good till
+shmem_delete_from_page_cache() replaces page pointer by swap entry, so
+move the swaplist add between them.
+
+We would much prefer to take the global lock once per inode than once per
+page: given the possible races with shmem_unuse() pruning when !swapped
+(and other tasks racing to swap other pages out or in), try the swaplist
+add whenever swapped was incremented from 0 (but inode may already be on
+the list - only unuse and evict bother to remove it).
+
+This technique is more subtle than it looks (we're avoiding the very lock
+which would make it easy), but works: whereas an unlocked list_empty()
+check runs a risk of the inode being unqueued and left off the swaplist
+forever, swapoff only completing when the page is faulted in or removed.
+
+The need for a sleepable mutex went away in 5.1 commit b56a2d8af914 ("mm:
+rid swapoff of quadratic complexity"): a spinlock works better now.
+
+This commit is certain to take shmem_swaplist_mutex out of contention, and
+has been seen to make a practical improvement (but there is likely to have
+been an underlying issue which made its contention so visible).
+
+Link: https://lkml.kernel.org/r/87beaec6-a3b0-ce7a-c892-1e1e5bd57aa3@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |  146 ++++++++++++++++++++-
- 1 file changed, 145 insertions(+), 1 deletion(-)
+ mm/shmem.c |   59 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 33 insertions(+), 26 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~tools-testing-selftests-extend-mremap_test-to-test-multi-vma-mremap
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -380,6 +380,149 @@ out:
- 		ksft_test_result_fail("%s\n", test_name);
+--- a/mm/shmem.c~mm-shmem-hold-shmem_swaplist-spinlock-not-mutex-much-less
++++ a/mm/shmem.c
+@@ -292,7 +292,7 @@ bool vma_is_shmem(struct vm_area_struct
  }
  
-+static bool is_multiple_vma_range_ok(unsigned int pattern_seed,
-+				     char *ptr, unsigned long page_size)
-+{
-+	int i;
-+
-+	srand(pattern_seed);
-+	for (i = 0; i <= 10; i += 2) {
-+		int j;
-+		char *buf = &ptr[i * page_size];
-+		size_t size = i == 4 ? 2 * page_size : page_size;
-+
-+		for (j = 0; j < size; j++) {
-+			char chr = rand();
-+
-+			if (chr != buf[j]) {
-+				ksft_print_msg("page %d offset %d corrupted, expected %d got %d\n",
-+					       i, j, chr, buf[j]);
-+				return false;
-+			}
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static void mremap_move_multiple_vmas(unsigned int pattern_seed,
-+				      unsigned long page_size)
-+{
-+	char *test_name = "mremap move multiple vmas";
-+	const size_t size = 11 * page_size;
-+	bool success = true;
-+	char *ptr, *tgt_ptr;
-+	int i;
-+
-+	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (ptr == MAP_FAILED) {
-+		perror("mmap");
-+		success = false;
-+		goto out;
-+	}
-+
-+	tgt_ptr = mmap(NULL, 2 * size, PROT_READ | PROT_WRITE,
-+		       MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (tgt_ptr == MAP_FAILED) {
-+		perror("mmap");
-+		success = false;
-+		goto out;
-+	}
-+	if (munmap(tgt_ptr, 2 * size)) {
-+		perror("munmap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/*
-+	 * Unmap so we end up with:
-+	 *
-+	 *  0   2   4 5 6   8   10 offset in buffer
-+	 * |*| |*| |*****| |*| |*|
-+	 * |*| |*| |*****| |*| |*|
-+	 *  0   1   2 3 4   5   6  pattern offset
-+	 */
-+	for (i = 1; i < 10; i += 2) {
-+		if (i == 5)
-+			continue;
-+
-+		if (munmap(&ptr[i * page_size], page_size)) {
-+			perror("munmap");
-+			success = false;
-+			goto out_unmap;
-+		}
-+	}
-+
-+	srand(pattern_seed);
-+
-+	/* Set up random patterns. */
-+	for (i = 0; i <= 10; i += 2) {
-+		int j;
-+		size_t size = i == 4 ? 2 * page_size : page_size;
-+		char *buf = &ptr[i * page_size];
-+
-+		for (j = 0; j < size; j++)
-+			buf[j] = rand();
-+	}
-+
-+	/* First, just move the whole thing. */
-+	if (mremap(ptr, size, size,
-+		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
-+		perror("mremap");
-+		success = false;
-+		goto out_unmap;
-+	}
-+	/* Check move was ok. */
-+	if (!is_multiple_vma_range_ok(pattern_seed, tgt_ptr, page_size)) {
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/* Move next to itself. */
-+	if (mremap(tgt_ptr, size, size,
-+		   MREMAP_MAYMOVE | MREMAP_FIXED, &tgt_ptr[size]) == MAP_FAILED) {
-+		perror("mremap");
-+		goto out_unmap;
-+	}
-+	/* Check that the move is ok. */
-+	if (!is_multiple_vma_range_ok(pattern_seed, &tgt_ptr[size], page_size)) {
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+	/* Map a range to overwrite. */
-+	if (mmap(tgt_ptr, size, PROT_NONE,
-+		 MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0) == MAP_FAILED) {
-+		perror("mmap tgt");
-+		success = false;
-+		goto out_unmap;
-+	}
-+	/* Move and overwrite. */
-+	if (mremap(&tgt_ptr[size], size, size,
-+		   MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr) == MAP_FAILED) {
-+		perror("mremap");
-+		goto out_unmap;
-+	}
-+	/* Check that the move is ok. */
-+	if (!is_multiple_vma_range_ok(pattern_seed, tgt_ptr, page_size)) {
-+		success = false;
-+		goto out_unmap;
-+	}
-+
-+out_unmap:
-+	if (munmap(tgt_ptr, 2 * size))
-+		perror("munmap tgt");
-+	if (munmap(ptr, size))
-+		perror("munmap src");
-+
-+out:
-+	if (success)
-+		ksft_test_result_pass("%s\n", test_name);
-+	else
-+		ksft_test_result_fail("%s\n", test_name);
-+}
-+
- /* Returns the time taken for the remap on success else returns -1. */
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char *rand_addr)
-@@ -721,7 +864,7 @@ int main(int argc, char **argv)
- 	char *rand_addr;
- 	size_t rand_size;
- 	int num_expand_tests = 2;
--	int num_misc_tests = 2;
-+	int num_misc_tests = 3;
- 	struct test test_cases[MAX_TEST] = {};
- 	struct test perf_test_cases[MAX_PERF_TEST];
- 	int page_size;
-@@ -848,6 +991,7 @@ int main(int argc, char **argv)
+ static LIST_HEAD(shmem_swaplist);
+-static DEFINE_MUTEX(shmem_swaplist_mutex);
++static DEFINE_SPINLOCK(shmem_swaplist_lock);
  
- 	mremap_move_within_range(pattern_seed, rand_addr);
- 	mremap_move_1mb_from_start(pattern_seed, rand_addr);
-+	mremap_move_multiple_vmas(pattern_seed, page_size);
+ #ifdef CONFIG_TMPFS_QUOTA
  
- 	if (run_perf_tests) {
- 		ksft_print_msg("\n%s\n",
+@@ -432,10 +432,13 @@ static void shmem_free_inode(struct supe
+  *
+  * But normally   info->alloced == inode->i_mapping->nrpages + info->swapped
+  * So mm freed is info->alloced - (inode->i_mapping->nrpages + info->swapped)
++ *
++ * Return: true if swapped was incremented from 0, for shmem_writeout().
+  */
+-static void shmem_recalc_inode(struct inode *inode, long alloced, long swapped)
++static bool shmem_recalc_inode(struct inode *inode, long alloced, long swapped)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
++	bool first_swapped = false;
+ 	long freed;
+ 
+ 	spin_lock(&info->lock);
+@@ -450,8 +453,11 @@ static void shmem_recalc_inode(struct in
+ 	 * to stop a racing shmem_recalc_inode() from thinking that a page has
+ 	 * been freed.  Compensate here, to avoid the need for a followup call.
+ 	 */
+-	if (swapped > 0)
++	if (swapped > 0) {
++		if (info->swapped == swapped)
++			first_swapped = true;
+ 		freed += swapped;
++	}
+ 	if (freed > 0)
+ 		info->alloced -= freed;
+ 	spin_unlock(&info->lock);
+@@ -459,6 +465,7 @@ static void shmem_recalc_inode(struct in
+ 	/* The quota case may block */
+ 	if (freed > 0)
+ 		shmem_inode_unacct_blocks(inode, freed);
++	return first_swapped;
+ }
+ 
+ bool shmem_charge(struct inode *inode, long pages)
+@@ -1375,11 +1382,11 @@ static void shmem_evict_inode(struct ino
+ 			/* Wait while shmem_unuse() is scanning this inode... */
+ 			wait_var_event(&info->stop_eviction,
+ 				       !atomic_read(&info->stop_eviction));
+-			mutex_lock(&shmem_swaplist_mutex);
++			spin_lock(&shmem_swaplist_lock);
+ 			/* ...but beware of the race if we peeked too early */
+ 			if (!atomic_read(&info->stop_eviction))
+ 				list_del_init(&info->swaplist);
+-			mutex_unlock(&shmem_swaplist_mutex);
++			spin_unlock(&shmem_swaplist_lock);
+ 		}
+ 	}
+ 
+@@ -1502,7 +1509,7 @@ int shmem_unuse(unsigned int type)
+ 	if (list_empty(&shmem_swaplist))
+ 		return 0;
+ 
+-	mutex_lock(&shmem_swaplist_mutex);
++	spin_lock(&shmem_swaplist_lock);
+ start_over:
+ 	list_for_each_entry_safe(info, next, &shmem_swaplist, swaplist) {
+ 		if (!info->swapped) {
+@@ -1516,12 +1523,12 @@ start_over:
+ 		 * (igrab() would protect from unlink, but not from unmount).
+ 		 */
+ 		atomic_inc(&info->stop_eviction);
+-		mutex_unlock(&shmem_swaplist_mutex);
++		spin_unlock(&shmem_swaplist_lock);
+ 
+ 		error = shmem_unuse_inode(&info->vfs_inode, type);
+ 		cond_resched();
+ 
+-		mutex_lock(&shmem_swaplist_mutex);
++		spin_lock(&shmem_swaplist_lock);
+ 		if (atomic_dec_and_test(&info->stop_eviction))
+ 			wake_up_var(&info->stop_eviction);
+ 		if (error)
+@@ -1532,7 +1539,7 @@ start_over:
+ 		if (!info->swapped)
+ 			list_del_init(&info->swaplist);
+ 	}
+-	mutex_unlock(&shmem_swaplist_mutex);
++	spin_unlock(&shmem_swaplist_lock);
+ 
+ 	return error;
+ }
+@@ -1622,30 +1629,30 @@ try_split:
+ 		folio_mark_uptodate(folio);
+ 	}
+ 
+-	/*
+-	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
+-	 * if it's not already there.  Do it now before the folio is
+-	 * moved to swap cache, when its pagelock no longer protects
+-	 * the inode from eviction.  But don't unlock the mutex until
+-	 * we've incremented swapped, because shmem_unuse_inode() will
+-	 * prune a !swapped inode from the swaplist under this mutex.
+-	 */
+-	mutex_lock(&shmem_swaplist_mutex);
+-	if (list_empty(&info->swaplist))
+-		list_add(&info->swaplist, &shmem_swaplist);
+-
+ 	if (!folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN)) {
+-		shmem_recalc_inode(inode, 0, nr_pages);
++		bool first_swapped = shmem_recalc_inode(inode, 0, nr_pages);
++
++		/*
++		 * Add inode to shmem_unuse()'s list of swapped-out inodes,
++		 * if it's not already there.  Do it now before the folio is
++		 * removed from page cache, when its pagelock no longer
++		 * protects the inode from eviction.  And do it now, after
++		 * we've incremented swapped, because shmem_unuse() will
++		 * prune a !swapped inode from the swaplist.
++		 */
++		if (first_swapped) {
++			spin_lock(&shmem_swaplist_lock);
++			if (list_empty(&info->swaplist))
++				list_add(&info->swaplist, &shmem_swaplist);
++			spin_unlock(&shmem_swaplist_lock);
++		}
++
+ 		swap_shmem_alloc(folio->swap, nr_pages);
+ 		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
+ 
+-		mutex_unlock(&shmem_swaplist_mutex);
+ 		BUG_ON(folio_mapped(folio));
+ 		return swap_writeout(folio, plug);
+ 	}
+-	if (!info->swapped)
+-		list_del_init(&info->swaplist);
+-	mutex_unlock(&shmem_swaplist_mutex);
+ 	if (nr_pages > 1)
+ 		goto try_split;
+ redirty:
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-mseal-always-define-vm_sealed.patch
-mm-mseal-update-madvise-logic.patch
-mm-mseal-small-cleanups.patch
-mm-mseal-simplify-and-rename-vma-gap-check.patch
-mm-mseal-rework-mseal-apply-logic.patch
-maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
-maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
-maintainers-add-missing-mm_sloth-file-thp-section.patch
-maintainers-add-missing-mm_sloth-file-thp-section-fix.patch
-maintainers-move-memremap-to-hotplug-section.patch
-maintainers-add-missing-shrinker-files.patch
-maintainers-add-missing-files-to-page-alloc-section.patch
-maintainers-add-missing-zsmalloc-file.patch
-maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
-maintainers-add-missing-file-to-cgroup-section.patch
 
