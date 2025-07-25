@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B155262BE
-	for <mm-commits@vger.kernel.org>; Fri, 25 Jul 2025 01:14:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8531C549F;
+	Fri, 25 Jul 2025 01:15:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753406043; cv=none; b=PY/uetQmRX4ENPX1xcQ9Ce1hsqHU5exeQkOPTN583woUyttQMkh/st6dOyk3MLoHxMyuCikR3GFDYozfqXqPoVxRJW31z/aqtLLNoTanycxqTjzxZDiBZwueVDM0Cjokric0pU4wgsR6HSGkbC3K3J/uYZY51Dyg6qp4ikaLdoY=
+	t=1753406112; cv=none; b=IiAwV3I4knGK7Xd1HKgX1QGRum6EHyXev5xBV+NBiM6axg1/wrf0XcZ4NvVk0iPsPfwNBUrOkHme29HJAQTmW+R3lxAhWRCfCAMPqddFDLE2iA5/t/yr/gfka4FF3q+6sYwhKbEMJe9CnxHwHa6ok0CxbL5WxX/UhlRP1xv4NPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753406043; c=relaxed/simple;
-	bh=fdpNFdt4azQ9qXUoV5su+jH82DKI1fc4OPX8FMTYRvc=;
-	h=Date:To:From:Subject:Message-Id; b=LlMafUFCxAmpI2m38HdrX/WxaZ/V7aAVdqM8TD5tpHSrcft2EsgkSi4RBbiQKjmCQ1khU+4R2/P8tb6h5iWo+Nv+KEwjk4vMkjyJxi4EXp65YQOSrneLz6eardLZyBIZZoJtgTfNCPs1eJsd4sSDVC66IaTHw25uxuaqnvCs5EE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u3WKa4oz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753406112; c=relaxed/simple;
+	bh=89Yza8Xv2Li3h+dr5UEgW+Lj7H39SWvzgfWawX74SGI=;
+	h=Date:To:From:Subject:Message-Id; b=hGYpibpXhfGDNvzn3dxum5a2Yd3huryu1LhUOfjEaMxkVDn1IYhMHW2+6qxnBIobFSZbdkrQnM1qUgAKzoasQ8fPUNGv0XoX8LutBwlHasUIi/JG9D9RBpKeMjqOpAN1DvOtzI+hI1x0CoZhIoVJ4R9KPvIF3sGuZYHDJQreEBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J5wVkoao; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u3WKa4oz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 970F2C4CEED;
-	Fri, 25 Jul 2025 01:14:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J5wVkoao"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81E66C4CEED;
+	Fri, 25 Jul 2025 01:15:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753406042;
-	bh=fdpNFdt4azQ9qXUoV5su+jH82DKI1fc4OPX8FMTYRvc=;
+	s=korg; t=1753406111;
+	bh=89Yza8Xv2Li3h+dr5UEgW+Lj7H39SWvzgfWawX74SGI=;
 	h=Date:To:From:Subject:From;
-	b=u3WKa4ozZKLKJrmZeoIjyBBUlnYUBEHKyFOpUOg+8MjmFbS3ZevsFa2IDroND26EN
-	 KXf8DDXyPuEkyjxLGrlzhGb18LUTJxdK0Mu2PmLYXCAZMN3JfaxvTaj5KuFlqjcc7W
-	 RBcl920udan+zvh/T0U5q5UDFdj3chqgcdgIoPBk=
-Date: Thu, 24 Jul 2025 18:14:01 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,rientjes@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,hughd@google.com,akpm@linux-foundation.org
+	b=J5wVkoaoZ6l+0UR3AR6J+bmeRzpJW0gCvII3y4CHk3WlPGzrdhHBlcja25vIoZnyl
+	 1jM6vUgp744URl7F+gLw6XX7PDdOtoCghaOnsn/BBub720j/or6FWn4KrnD711wMpv
+	 EKS5Nrjm5MB+6bgE5xoEuiqQ2LgJNsMzrg/Wg8Zc=
+Date: Thu, 24 Jul 2025 18:15:11 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kasong@tencent.com,hannes@cmpxchg.org,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix.patch removed from -mm tree
-Message-Id: <20250725011402.970F2C4CEED@smtp.kernel.org>
+Subject: [folded-merged] mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch removed from -mm tree
+Message-Id: <20250725011511.81E66C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: writeout free swap if swap_writeout() reactivates fix
+     Subject: mm: swap: correctly use maxpages in swapon syscall to avoid potential deadloop
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix.patch
+     mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix.patch
 
-This patch was dropped because it was folded into mm-shmem-writeout-free-swap-if-swap_writeout-reactivates.patch
+This patch was dropped because it was folded into mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/shmem: writeout free swap if swap_writeout() reactivates fix
-Date: Fri, 18 Jul 2025 17:56:52 -0700 (PDT)
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm: swap: correctly use maxpages in swapon syscall to avoid potential deadloop
+Date: Fri, 18 Jul 2025 14:51:39 +0800
 
-Per Baolin: use shmem_recalc_inode() rather than open coding.
+ensure si->pages == si->max - 1 after setup_swap_extents()
 
-Link: https://lkml.kernel.org/r/101a7d89-290c-545d-8a6d-b1174ed8b1e5@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20250522122554.12209-3-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250718065139.61989-1-shikemeng@huaweicloud.com
+Fixes: 661383c6111a ("mm: swap: relaim the cached parts that got scanned")
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/swapfile.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-writeout-free-swap-if-swap_writeout-reactivates-fix
-+++ a/mm/shmem.c
-@@ -1692,9 +1692,7 @@ try_split:
- 				__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
- 		/* Swap entry might be erased by racing shmem_free_swap() */
- 		if (!error) {
--			spin_lock(&info->lock);
--			info->swapped -= nr_pages;
--			spin_unlock(&info->lock);
-+			shmem_recalc_inode(inode, 0, -nr_pages);
- 			swap_free_nr(folio->swap, nr_pages);
- 		}
+--- a/mm/swapfile.c~mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop-fix
++++ a/mm/swapfile.c
+@@ -3357,6 +3357,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		error = nr_extents;
+ 		goto bad_swap_unlock_inode;
+ 	}
++	if (si->pages != si->max - 1) {
++		pr_err("swap:%u != (max:%u - 1)\n", si->pages, si->max);
++		error = -EINVAL;
++		goto bad_swap_unlock_inode;
++	}
++
+ 	maxpages = si->max;
  
+ 	/* OK, set up the swap map and apply the bad block list */
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-mm-optimize-lru_note_cost-by-adding-lru_note_cost_unlock_irq.patch
-mm-shmem-hold-shmem_swaplist-spinlock-not-mutex-much-less.patch
-mm-shmem-writeout-free-swap-if-swap_writeout-reactivates.patch
+mm-swap-move-nr_swap_pages-counter-decrement-from-folio_alloc_swap-to-swap_range_alloc.patch
+mm-swap-correctly-use-maxpages-in-swapon-syscall-to-avoid-potensial-deadloop.patch
+mm-swap-fix-potensial-buffer-overflow-in-setup_clusters.patch
+mm-swap-remove-stale-comment-stale-comment-in-cluster_alloc_swap_entry.patch
 
