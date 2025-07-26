@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18B25227BB9
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98086224B1B
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567832; cv=none; b=HKuNZ9Sce5gHKDRQlL36GYjWsn1U0BrIMJ7kpFZxI/ln5deZcAAJqJpcCIKfX51zjboM6Ubqr3nbCKYE0n/iu3mLl7RxacFke3lPQcBd0L1fnTsXDhqJdSKEndz9o/KUdSaQg+8qko2OZBMenQzvIwpLF49n+wTTiRBQ4D6mr9A=
+	t=1753567833; cv=none; b=sIkWKn79lhM8nFZukBKwc3eLNv4muy1xWcqAyrzD9csSxQhBFTAQpk6CTiBCQ52WN60U+OjH/+mKSQ3aXW1q8LoP6qPyqRowGv2S5fkLTTZEYjc9qxvx0QVQ+oUFsjyLiLLZpQlZx4jeG7KP4SdMi9FwYvzZlixOzHlG+zn9kHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567832; c=relaxed/simple;
-	bh=LXXqPzHDszB0M2LVmVcLKvMrHcP6kNrzbbDv4c9ATCQ=;
-	h=Date:To:From:Subject:Message-Id; b=Tx7F4UQfN6GM92KMGBr1FCD1hdYR8IungD0mriogRSmbDufk+VHMb430hsMZ0VSinkbfzShrViUeRblJAIu9kqYdRKsEIqf1FlJAelTjAApNRFwanmPNBgBMMrBUWMBEl63qWAyxZBTKFIzKxRp6/nEC9N0QmvtV2c1jr14qBmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F076pfz3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753567833; c=relaxed/simple;
+	bh=l34qWLgJHienHDUpNxKs4nLMULrl5c3tnPOiPzEM+Aw=;
+	h=Date:To:From:Subject:Message-Id; b=dVpnPw8oSA4rB803h1hY08xFs4Myyf54TS0SicvVqfyR6ve4SW3i5rGfjN3opamx0+SRNDtSvsQpS5rZBp3BmhkVBM/gyIFC2pZExOIutzyRW+m4PMJ+M57JLHsBWueQrzfcrGfUylQzf/+dvP752TuPh8YYXe7Obng7zWYJe8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cBZkcKem; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F076pfz3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1503C4CEED;
-	Sat, 26 Jul 2025 22:10:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cBZkcKem"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AB85C4CEED;
+	Sat, 26 Jul 2025 22:10:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567831;
-	bh=LXXqPzHDszB0M2LVmVcLKvMrHcP6kNrzbbDv4c9ATCQ=;
+	s=korg; t=1753567833;
+	bh=l34qWLgJHienHDUpNxKs4nLMULrl5c3tnPOiPzEM+Aw=;
 	h=Date:To:From:Subject:From;
-	b=F076pfz3RI+/cfMbpUC4f0CJtJQ6RfjKFkuCWRkBsFEqfE01+p8xSBMjNkGG5dA3i
-	 vWnyAgcxACn5W6T9cuqpCxcwEQShJO0D6tfu6/o6dRKCVPRKOnmpXq1imZ6bxTRKml
-	 9/F2UJLDuiUM27uNS985Y3CnBS7h+3KrK9weRxWQ=
-Date: Sat, 26 Jul 2025 15:10:31 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=cBZkcKemiSbACaBadNMs4Qvl8Qj7RcpAcjfG+p/UshmawepQnNuLgjG6vrAZGeTY5
+	 Ynsiw+RgtDXAZZ6WTjCktZ9bEVXBWrUHG2qRtvaDjy8iNiEv2+rxcnpY6Ww1nLyBRB
+	 QaTpg968bV+n5AhivyIcEN+l9QdTRuOxzFIrQkNY=
+Date: Sat, 26 Jul 2025 15:10:32 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rostedt@goodmis.org,rientjes@google.com,richardycc@google.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lkp@intel.com,liumartin@google.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-introduce-_commonsh-to-host-shared-function.patch removed from -mm tree
-Message-Id: <20250726221031.B1503C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-remove-trace_mm_alloc_contig_migrate_range_info.patch removed from -mm tree
+Message-Id: <20250726221033.0AB85C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,139 +35,169 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: introduce _common.sh to host shared function
+     Subject: mm/page_alloc: remove trace_mm_alloc_contig_migrate_range_info()
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-introduce-_commonsh-to-host-shared-function.patch
+     mm-page_alloc-remove-trace_mm_alloc_contig_migrate_range_info.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: selftests/damon: introduce _common.sh to host shared function
-Date: Fri, 18 Jul 2025 14:42:17 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/page_alloc: remove trace_mm_alloc_contig_migrate_range_info()
+Date: Tue, 22 Jul 2025 15:46:49 -0400
 
-The current test scripts contain duplicated root permission checks in
-multiple locations.  This patch consolidates these checks into _common.sh
-to eliminate code redundancy.
+The trace event has not recorded the right data since it was introduced at
+commit c8b360031218 ("mm: add alloc_contig_migrate_range allocation
+statistics").  Remove it.
 
-Link: https://lkml.kernel.org/r/20250718064217.299300-1-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20250722194649.4135191-1-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202507220742.P3SaKlI6-lkp@intel.com/
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Martin Liu <liumartin@google.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Richard Chang <richardycc@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_common.sh                         |   11 ++++++++++
- tools/testing/selftests/damon/lru_sort.sh                        |    8 ++-----
- tools/testing/selftests/damon/reclaim.sh                         |    8 ++-----
- tools/testing/selftests/damon/sysfs.sh                           |   11 +---------
- tools/testing/selftests/damon/sysfs_update_removed_scheme_dir.sh |    8 ++-----
- 5 files changed, 22 insertions(+), 24 deletions(-)
+ include/trace/events/kmem.h |   40 ----------------------------------
+ mm/page_alloc.c             |   32 ++-------------------------
+ 2 files changed, 3 insertions(+), 69 deletions(-)
 
-diff --git a/tools/testing/selftests/damon/_common.sh a/tools/testing/selftests/damon/_common.sh
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/damon/_common.sh
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+check_dependencies()
-+{
-+	if [ $EUID -ne 0 ]
-+	then
-+		echo "Run as root"
-+		exit $ksft_skip
-+	fi
-+}
---- a/tools/testing/selftests/damon/lru_sort.sh~selftests-damon-introduce-_commonsh-to-host-shared-function
-+++ a/tools/testing/selftests/damon/lru_sort.sh
-@@ -1,14 +1,12 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
+--- a/include/trace/events/kmem.h~mm-page_alloc-remove-trace_mm_alloc_contig_migrate_range_info
++++ a/include/trace/events/kmem.h
+@@ -304,46 +304,6 @@ TRACE_EVENT(mm_page_alloc_extfrag,
+ 		__entry->change_ownership)
+ );
  
-+source _common.sh
-+
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
+-#ifdef CONFIG_CONTIG_ALLOC
+-TRACE_EVENT(mm_alloc_contig_migrate_range_info,
+-
+-	TP_PROTO(unsigned long start,
+-		 unsigned long end,
+-		 unsigned long nr_migrated,
+-		 unsigned long nr_reclaimed,
+-		 unsigned long nr_mapped,
+-		 acr_flags_t alloc_flags),
+-
+-	TP_ARGS(start, end, nr_migrated, nr_reclaimed, nr_mapped, alloc_flags),
+-
+-	TP_STRUCT__entry(
+-		__field(unsigned long, start)
+-		__field(unsigned long, end)
+-		__field(unsigned long, nr_migrated)
+-		__field(unsigned long, nr_reclaimed)
+-		__field(unsigned long, nr_mapped)
+-		__field(acr_flags_t, alloc_flags)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->start = start;
+-		__entry->end = end;
+-		__entry->nr_migrated = nr_migrated;
+-		__entry->nr_reclaimed = nr_reclaimed;
+-		__entry->nr_mapped = nr_mapped;
+-		__entry->alloc_flags = alloc_flags;
+-	),
+-
+-	TP_printk("start=0x%lx end=0x%lx alloc_flags=%d nr_migrated=%lu nr_reclaimed=%lu nr_mapped=%lu",
+-		  __entry->start,
+-		  __entry->end,
+-		  __entry->alloc_flags,
+-		  __entry->nr_migrated,
+-		  __entry->nr_reclaimed,
+-		  __entry->nr_mapped)
+-);
+-#endif
+-
+ TRACE_EVENT(mm_setup_per_zone_wmarks,
  
--if [ $EUID -ne 0 ]
--then
--	echo "Run as root"
--	exit $ksft_skip
--fi
-+check_dependencies
- 
- damon_lru_sort_enabled="/sys/module/damon_lru_sort/parameters/enabled"
- if [ ! -f "$damon_lru_sort_enabled" ]
---- a/tools/testing/selftests/damon/reclaim.sh~selftests-damon-introduce-_commonsh-to-host-shared-function
-+++ a/tools/testing/selftests/damon/reclaim.sh
-@@ -1,14 +1,12 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
- 
-+source _common.sh
-+
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
- 
--if [ $EUID -ne 0 ]
--then
--	echo "Run as root"
--	exit $ksft_skip
--fi
-+check_dependencies
- 
- damon_reclaim_enabled="/sys/module/damon_reclaim/parameters/enabled"
- if [ ! -f "$damon_reclaim_enabled" ]
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-introduce-_commonsh-to-host-shared-function
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -1,6 +1,8 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
- 
-+source _common.sh
-+
- # Kselftest frmework requirement - SKIP code is 4.
- ksft_skip=4
- 
-@@ -364,14 +366,5 @@ test_damon_sysfs()
- 	test_kdamonds "$damon_sysfs/kdamonds"
+ 	TP_PROTO(struct zone *zone),
+--- a/mm/page_alloc.c~mm-page_alloc-remove-trace_mm_alloc_contig_migrate_range_info
++++ a/mm/page_alloc.c
+@@ -6694,14 +6694,9 @@ static void alloc_contig_dump_pages(stru
+ 	}
  }
  
--check_dependencies()
--{
--	if [ $EUID -ne 0 ]
--	then
--		echo "Run as root"
--		exit $ksft_skip
--	fi
--}
+-/*
+- * [start, end) must belong to a single zone.
+- * @alloc_flags: using acr_flags_t to filter the type of migration in
+- *		trace_mm_alloc_contig_migrate_range_info.
+- */
++/* [start, end) must belong to a single zone. */
+ static int __alloc_contig_migrate_range(struct compact_control *cc,
+-					unsigned long start, unsigned long end,
+-					acr_flags_t alloc_flags)
++					unsigned long start, unsigned long end)
+ {
+ 	/* This function is based on compact_zone() from compaction.c. */
+ 	unsigned int nr_reclaimed;
+@@ -6713,10 +6708,6 @@ static int __alloc_contig_migrate_range(
+ 		.gfp_mask = cc->gfp_mask,
+ 		.reason = MR_CONTIG_RANGE,
+ 	};
+-	struct page *page;
+-	unsigned long total_mapped = 0;
+-	unsigned long total_migrated = 0;
+-	unsigned long total_reclaimed = 0;
+ 
+ 	lru_cache_disable();
+ 
+@@ -6742,22 +6733,9 @@ static int __alloc_contig_migrate_range(
+ 							&cc->migratepages);
+ 		cc->nr_migratepages -= nr_reclaimed;
+ 
+-		if (trace_mm_alloc_contig_migrate_range_info_enabled()) {
+-			total_reclaimed += nr_reclaimed;
+-			list_for_each_entry(page, &cc->migratepages, lru) {
+-				struct folio *folio = page_folio(page);
 -
- check_dependencies
- test_damon_sysfs "/sys/kernel/mm/damon/admin"
---- a/tools/testing/selftests/damon/sysfs_update_removed_scheme_dir.sh~selftests-damon-introduce-_commonsh-to-host-shared-function
-+++ a/tools/testing/selftests/damon/sysfs_update_removed_scheme_dir.sh
-@@ -1,14 +1,12 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
+-				total_mapped += folio_mapped(folio) *
+-						folio_nr_pages(folio);
+-			}
+-		}
+-
+ 		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
+ 			NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE, NULL);
  
-+source _common.sh
-+
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
+-		if (trace_mm_alloc_contig_migrate_range_info_enabled() && !ret)
+-			total_migrated += cc->nr_migratepages;
+-
+ 		/*
+ 		 * On -ENOMEM, migrate_pages() bails out right away. It is pointless
+ 		 * to retry again over this error, so do the same here.
+@@ -6773,10 +6751,6 @@ static int __alloc_contig_migrate_range(
+ 		putback_movable_pages(&cc->migratepages);
+ 	}
  
--if [ $EUID -ne 0 ]
--then
--	echo "Run as root"
--	exit $ksft_skip
--fi
-+check_dependencies
+-	trace_mm_alloc_contig_migrate_range_info(start, end, alloc_flags,
+-						 total_migrated,
+-						 total_reclaimed,
+-						 total_mapped);
+ 	return (ret < 0) ? ret : 0;
+ }
  
- damon_sysfs="/sys/kernel/mm/damon/admin"
- if [ ! -d "$damon_sysfs" ]
+@@ -6921,7 +6895,7 @@ int alloc_contig_range_noprof(unsigned l
+ 	 * allocated.  So, if we fall through be sure to clear ret so that
+ 	 * -EBUSY is not accidentally used or returned to caller.
+ 	 */
+-	ret = __alloc_contig_migrate_range(&cc, start, end, alloc_flags);
++	ret = __alloc_contig_migrate_range(&cc, start, end);
+ 	if (ret && ret != -EBUSY)
+ 		goto done;
+ 
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
 
