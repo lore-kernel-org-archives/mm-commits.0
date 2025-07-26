@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A7EE244690
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CBBA22333B
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567836; cv=none; b=rhpd8VbxQkLX5XIn2IzlVzGoEZDfuH7qE+nFNmXjkgztCD7EHeJYHnpKsMXBirhKYOOU4V/iWp6HBruJg5mevqM/Sie7sKflV31pQG58Lhjt4ojblTDLhHM2LrTZ93xcSKVntrg7qzmC5/8+eJiGGGnPlPodDsO3LfRH3dbWveM=
+	t=1753567838; cv=none; b=DaDmUaur8OaX/tzl+TNhe9sds98hCO+JFtvkQtTXni0z2l1yOVubrvJ9ZYIdsqWxfkpmOff2Vm/4kCoIGsIKzKq9ozVWxLJrJM1cw3NcpRni3DvKNSrANwWkFKBMnX8XutoRsefSpsrudeR1rZJZ7RGXslBpODFFuSN9SVqu19s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567836; c=relaxed/simple;
-	bh=Lka3LVZ87TyhNOAth5xKTRuwN8hJ6wnLPvPwkvREqo4=;
-	h=Date:To:From:Subject:Message-Id; b=j1H1h503pFVhgHQMtZpyTNv7+GdaZ+RoMmYOhJ6afIjlnOsvT/IljZE5N7W/Tr7h+RuvzY2essCkcLEbB8LdHuQb04muNgvjnr0UkDRUArWMU/bRnSQAKEF8T+HCOykIdSLAZoon8cES+qyb49YHDCY6LqYiQhUxUIzeuQhO+8Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=exiUhQDU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753567838; c=relaxed/simple;
+	bh=lhsiBz3hv9e5JFMxRkFOBwVwSRGAYYel6KZ1LiYB+Y4=;
+	h=Date:To:From:Subject:Message-Id; b=NSWJh7Ct8j8E4vMpqkf5UQIXwPH+VPS0zqfNIZA3DY3bSsem7/Pae4nIEBYlPED0jaH0bfwOhC/VuEMZksUuzKKi31uTc7dX7hks6GHr5MLjOnTbtI28GN2ZP9MFVyG08efrEeU/+SrOk+CJqFOVvUMsS0fKAphxKcJt3/cXlUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=owCt4rIh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="exiUhQDU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F4ACC4CEED;
-	Sat, 26 Jul 2025 22:10:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="owCt4rIh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FE0EC4CEED;
+	Sat, 26 Jul 2025 22:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567836;
-	bh=Lka3LVZ87TyhNOAth5xKTRuwN8hJ6wnLPvPwkvREqo4=;
+	s=korg; t=1753567838;
+	bh=lhsiBz3hv9e5JFMxRkFOBwVwSRGAYYel6KZ1LiYB+Y4=;
 	h=Date:To:From:Subject:From;
-	b=exiUhQDUGHIUozL8Q0MPZQqDA/4KZlwfmYULEelVXHgz+82fV6vNedhXwo4niYO2g
-	 Os0TeJO0wmKMkog4p5ykDBqlqxgvpIM5JAwJVQ951gkkucrWL0z3SAp2ydVJFrfvmy
-	 V5/n+Kxo9zQ+HivNwfukYVjtIv4inoq4CVaBibcI=
-Date: Sat, 26 Jul 2025 15:10:35 -0700
+	b=owCt4rIhbJuF2cDmBRenDzZzUznvoIiUydS/8bHqj5RPy3fCxOWSqM6EmeyiA2G/Z
+	 3Z0FLtdjNjMsXF0W9Ai0J9p0mC0k/kTXQN6nFNWS76hRfzt3YMStcV9TtsMi2W7gp7
+	 vzfDT7ceFE7LhGItB7fS6Wgv2kMeGvqxOPkVBwOc=
+Date: Sat, 26 Jul 2025 15:10:37 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jannh@google.com,dev.jain@arm.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-add-missing-interval_treec-to-memory-mapping-section.patch removed from -mm tree
-Message-Id: <20250726221036.6F4ACC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-missing-mm_sloth-file-thp-section.patch removed from -mm tree
+Message-Id: <20250726221038.6FE0EC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add missing interval_tree.c to memory mapping section
+     Subject: MAINTAINERS: add missing mm_slot.h file THP section
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
+     maintainers-add-missing-mm_sloth-file-thp-section.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add missing interval_tree.c to memory mapping section
-Date: Tue, 22 Jul 2025 18:15:28 +0100
+Subject: MAINTAINERS: add missing mm_slot.h file THP section
+Date: Tue, 22 Jul 2025 18:19:04 +0100
 
-This seems to be the best place for this file.
+This seems to be the most appropriate place for this file.
 
-Link: https://lkml.kernel.org/r/20250722171528.141083-1-lorenzo.stoakes@oracle.com
+[lorenzo.stoakes@oracle.com: also add mm_slot.h to KSM section]
+  Link: https://lkml.kernel.org/r/685747e2-a8cb-4620-a0c0-5cd9048d69b8@lucifer.local
+Link: https://lkml.kernel.org/r/20250722171904.142306-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Nico Pache <npache@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nico Pache <npache@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Dev Jain <dev.jain@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-missing-interval_treec-to-memory-mapping-section
+--- a/MAINTAINERS~maintainers-add-missing-mm_sloth-file-thp-section
 +++ a/MAINTAINERS
-@@ -16007,6 +16007,7 @@ S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	include/trace/events/mmap.h
-+F:	mm/interval_tree.c
- F:	mm/mincore.c
- F:	mm/mlock.c
- F:	mm/mmap.c
+@@ -15820,6 +15820,7 @@ F:	Documentation/mm/ksm.rst
+ F:	include/linux/ksm.h
+ F:	include/trace/events/ksm.h
+ F:	mm/ksm.c
++F:	mm/mm_slot.h
+ 
+ MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
+ M:	Andrew Morton <akpm@linux-foundation.org>
+@@ -15965,6 +15966,7 @@ F:	include/linux/khugepaged.h
+ F:	include/trace/events/huge_memory.h
+ F:	mm/huge_memory.c
+ F:	mm/khugepaged.c
++F:	mm/mm_slot.h
+ F:	tools/testing/selftests/mm/khugepaged.c
+ F:	tools/testing/selftests/mm/split_huge_page_test.c
+ F:	tools/testing/selftests/mm/transhuge-stress.c
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
