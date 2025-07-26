@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452711D90AD
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:04:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 577C521CA1D
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567492; cv=none; b=uqNdoYFvLiCV5Ug3l3z4sUbz3RT+qJg3LpDtGV0nf93P5Iy9EafSng86NT17W69f/HkndGuQ5ypmkcKIOur1FWFAKL9wda0vci2uHr3HJK+RjtIoawbeNtXhFurqhnLz6d1WCgmsn5hI0qJKJt8+Yh/L7/2v/fbauig3Gr1bhbQ=
+	t=1753567805; cv=none; b=UL59m3chvGF1EXD4pnvWqUuRa3uvhay3g/oymLBvcHq5ZritJP0WZqc4s0i0NBU1oFk7IE6Co/TI9F9nm4K9DwwucWO/nFd6hcxR8ycvdWqNLKgNjqApDbvnav2qs8TGdfVRmGOzAT4679pPWywDzr4m5DiNav+QBM6hi9vzxEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567492; c=relaxed/simple;
-	bh=WMHVPvgczZJNOPCJxGhmkMywRFYlqYXK6JWVnaXmwuU=;
-	h=Date:To:From:Subject:Message-Id; b=TjkYJYUsIJxH6YGQk4rb8M9MtlPw8k2/4JF+X7agssZZDECns50QqbQDvw2WsoINGJqxrFDSD0K8LBDJC/F10j0bDWfke8ZNyQUD3u0Yz9Wa0qcGupLfjO5BufsvL1s04kK81KvaTMh9k0Z6LtQElNHdZpba+uZuHBEeRbnDO1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k+4gNWsg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753567805; c=relaxed/simple;
+	bh=WJdcC9LpX3bEOqyMmLNDjcKIkv4jczI7iXRodUK/P+0=;
+	h=Date:To:From:Subject:Message-Id; b=lBaeWUWGoogP9rfqwrI+cc7TyzQitUYSLNbNDJe+EanOn+QDm/Wf+iXGfHNbSv8GNUXsnrOemer6DTYc4Tno0V0s0Kms/huQFB4axRCXgvd1VQrbpnEw+cH23+CAA9AEkiy1SFzPxKRPysYa3DcXcCZh8QhSCmr3WqkxVDMJllI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XhvRkMs9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k+4gNWsg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFAD6C4CEED;
-	Sat, 26 Jul 2025 22:04:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XhvRkMs9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BF6EC4CEED;
+	Sat, 26 Jul 2025 22:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567491;
-	bh=WMHVPvgczZJNOPCJxGhmkMywRFYlqYXK6JWVnaXmwuU=;
+	s=korg; t=1753567805;
+	bh=WJdcC9LpX3bEOqyMmLNDjcKIkv4jczI7iXRodUK/P+0=;
 	h=Date:To:From:Subject:From;
-	b=k+4gNWsgVbZkVk8Yjw0KV2JDhlQ86aN2WcM0Et8jZ7f/y9Y6fx1gM9DJqcPCWUQpF
-	 gHj/wn+UdCgGWuw3eZuvp9zdJZZDiOEqRZ78vUInxJ9oDPeM3sC6gzLeVXW5yJzPZ6
-	 2VvzcWWVuu4mdgcKAfl+Vwi0/Rj2NW9oCzOCuzXo=
-Date: Sat, 26 Jul 2025 15:04:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jannh@google.com,dev.jain@arm.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=XhvRkMs99FSLJLTkJnbeZqDlBz8d1LyAgOK9/vSRwEHgnhpNp4bVW2xvnlNJ5onRa
+	 avliHNx7wLt978ilfij24PdLg9HAUWpa3RQDTXOaWMLJYgHe2r8fueQ8eUwh4NJXSN
+	 NkrPPjV+C4WZ5AY3lyh6jMFrNlCTKDLE75ZHsJuI=
+Date: Sat, 26 Jul 2025 15:10:04 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,oliver.sang@intel.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maintainers-add-missing-mm_sloth-file-thp-section-fix.patch removed from -mm tree
-Message-Id: <20250726220451.AFAD6C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch removed from -mm tree
+Message-Id: <20250726221005.0BF6EC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: also add mm_slot.h to KSM section
+     Subject: selftests/damon/sysfs.py: stop DAMON for dumping failures
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-missing-mm_sloth-file-thp-section-fix.patch
+     selftests-damon-sysfspy-stop-damon-for-dumping-failures.patch
 
-This patch was dropped because it was folded into maintainers-add-missing-mm_sloth-file-thp-section.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: also add mm_slot.h to KSM section
-Date: Wed, 23 Jul 2025 05:50:08 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: selftests/damon/sysfs.py: stop DAMON for dumping failures
+Date: Mon, 21 Jul 2025 23:03:30 -0700
 
-The mm_slot implementation is in fact common between THP and KSM so ought
-to be included in both sections.
+Commit 4ece01897627 ("selftests/damon: add python and drgn-based DAMON
+sysfs test") in mm-stable tree introduced sysfs.py that runs drgn for
+dumping DAMON status.  When the DAMON status dumping fails for reasons
+including drgn uninstalled environment, the test fails without stopping
+DAMON.  Following DAMON selftests that assumes DAMON is not running when
+they executed therefore fail.  Catch dumping failures and stop DAMON for
+that case.
 
-Link: https://lkml.kernel.org/r/685747e2-a8cb-4620-a0c0-5cd9048d69b8@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Link: https://lkml.kernel.org/r/20250722060330.56068-1-sj@kernel.org
+Fixes: 4ece01897627 ("selftests/damon: add python and drgn-based DAMON sysfs test")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202507220707.9c5d6247-lkp@intel.com
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/damon/sysfs.py |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-missing-mm_sloth-file-thp-section-fix
-+++ a/MAINTAINERS
-@@ -15821,6 +15821,7 @@ F:	Documentation/mm/ksm.rst
- F:	include/linux/ksm.h
- F:	include/trace/events/ksm.h
- F:	mm/ksm.c
-+F:	mm/mm_slot.h
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-stop-damon-for-dumping-failures
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -8,6 +8,10 @@ import subprocess
+ import _damon_sysfs
  
- MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
- M:	Andrew Morton <akpm@linux-foundation.org>
+ def dump_damon_status_dict(pid):
++    try:
++        subprocess.check_output(['which', 'drgn'], stderr=subprocess.DEVNULL)
++    except:
++        return None, 'drgn not found'
+     file_dir = os.path.dirname(os.path.abspath(__file__))
+     dump_script = os.path.join(file_dir, 'drgn_dump_damon_status.py')
+     rc = subprocess.call(['drgn', dump_script, pid, 'damon_dump_output'],
+@@ -40,6 +44,7 @@ def main():
+     status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
+     if err is not None:
+         print(err)
++        kdamonds.stop()
+         exit(1)
+ 
+     if len(status['contexts']) != 1:
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-maintainers-add-missing-percpu-internalh-file-to-per-cpu-section.patch
-maintainers-add-missing-interval_treec-to-memory-mapping-section.patch
-maintainers-add-missing-mm_sloth-file-thp-section.patch
-maintainers-move-memremap-to-hotplug-section.patch
-maintainers-add-missing-shrinker-files.patch
-maintainers-add-missing-files-to-page-alloc-section.patch
-maintainers-add-missing-zsmalloc-file.patch
-maintainers-add-mm-misc-section-add-missing-files-to-misc-and-core.patch
-maintainers-add-missing-file-to-cgroup-section.patch
-mm-mseal-always-define-vm_sealed.patch
-mm-mseal-update-madvise-logic.patch
-mm-mseal-small-cleanups.patch
-mm-mseal-simplify-and-rename-vma-gap-check.patch
-mm-mseal-simplify-and-rename-vma-gap-check-fix.patch
-mm-mseal-rework-mseal-apply-logic.patch
-mm-remove-mm-io-mappingc.patch
 
