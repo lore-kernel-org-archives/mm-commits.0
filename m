@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AAB81D5AD4
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:13:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4771D5AD4
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:13:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567989; cv=none; b=pcsNfud/WQKQQsov4CjOi9GOY8biE03Gxqv4PewtZ4/P5xQoIFLvFFJVVvW63UFz/ZWJWsLyT5g4a7Yam7a8sYUgTcDFY9UTLHeUOK0YlMRvegoGGIQB7cW74nRIem74n2BkK8i9+clZ+0uG+QN12JkwC4bLa2ko2jqA0TGc0uc=
+	t=1753567992; cv=none; b=AePNLdcjhlj9AoHX3YGeo3QNqNek6W+ZvvCbXeeLnks6B3hdiM9dAQvnDQSLQ9JZMhi6ZuEhcc/rAL342PFAcLdKnVZTTONzBP2ZCrjuQzsnnWvpClYs2UUj6iXg0dBnC0KTLbJ04v6oyAA5swavr/ZYl0gmk9t7JwySxZog79U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567989; c=relaxed/simple;
-	bh=085gV5n79++LpvcfcDujiYhbXKV30Oovbv7tJ+GSuMM=;
-	h=Date:To:From:Subject:Message-Id; b=MWOxfaPStTynIJFa/Sj2VkIcNKOUS7pyYCZ8SrOBuiMY19w78/Vz6k//3hUlaGQxqiguPmWfMzGMOcofgO8Wdd41NyFp2pdcLlfaQeC0IcM3E8dNexovEp3UYduPLU039bYuup+/WTabN6iNpfB26af47OCTgmwxYqe+kCdqoh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=atIjeZEe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753567992; c=relaxed/simple;
+	bh=FHzDkSzqWGbdxjOHDlCkMT5Ft+JZnKMh5N7uXKJ2hsA=;
+	h=Date:To:From:Subject:Message-Id; b=oH7OpUq0FoSkwbx6qpyFHfPGlhNV7QuTRoc8hipmlsd83rqFwjr2cNWXCVGkOQHXhIsZx5DQYVguXOCxhQm455x5fCOFnlmyAuo6aeLYPYhBpyowaiSdVCUgXDHlcTk0jTcRpAUUzbYHGmK9pRFMEQ+0TobCCgs0UpNbFdqeuS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eE7ySHJ7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="atIjeZEe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3C22C4CEED;
-	Sat, 26 Jul 2025 22:13:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eE7ySHJ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3697C4CEED;
+	Sat, 26 Jul 2025 22:13:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567988;
-	bh=085gV5n79++LpvcfcDujiYhbXKV30Oovbv7tJ+GSuMM=;
+	s=korg; t=1753567991;
+	bh=FHzDkSzqWGbdxjOHDlCkMT5Ft+JZnKMh5N7uXKJ2hsA=;
 	h=Date:To:From:Subject:From;
-	b=atIjeZEefNhSPrJlX5W3ZnfZZdk2gxRrkaWj5u8r+eTKN001G3x3bvIg1bS/dQnVl
-	 igELglDi7cTn0HDcKbCl89wVfHf/dSWwZcaAzqqOuUX9ygsgVNGVv3YARHrDiry7fm
-	 Qlsj70Qdjhv6+grpwItLqxqNpLbP9rRAkgF3GNqw=
-Date: Sat, 26 Jul 2025 15:13:08 -0700
+	b=eE7ySHJ7lJAMrNmRgx6+gGKCcptb5Kapw8jbcEy3a/m2UhQrzwIC9ltl2GFvag1tA
+	 EprR4K4q6gNbD4YBXPSXf9tbjxR7DCmRzQGG2E83aLqregYcuHgeb5LYw90qDP3PSM
+	 URPo7wmCeU48+O3T1J4ExVjOwZIQmEalmRRCj4Bw=
+Date: Sat, 26 Jul 2025 15:13:11 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-put-general-ksm-operation-into-vm_util.patch added to mm-new branch
-Message-Id: <20250726221308.D3C22C4CEED@smtp.kernel.org>
+Subject: + selftests-mm-assert-rmap-behave-as-expected.patch added to mm-new branch
+Message-Id: <20250726221311.C3697C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: put general ksm operation into vm_util
+     Subject: selftests/mm: assert rmap behave as expected
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-put-general-ksm-operation-into-vm_util.patch
+     selftests-mm-assert-rmap-behave-as-expected.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-put-general-ksm-operation-into-vm_util.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-assert-rmap-behave-as-expected.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,25 +65,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: selftests/mm: put general ksm operation into vm_util
-Date: Sat, 26 Jul 2025 02:52:22 +0000
-
-Patch series "assert rmap behaves as expected", v2.
+Subject: selftests/mm: assert rmap behave as expected
+Date: Sat, 26 Jul 2025 02:52:23 +0000
 
 As David suggested, currently we don't have a high level test case to
-verify the behavior of rmap.  This patchset introduces the verification of
+verify the behavior of rmap. This patch introduce the verification on
 rmap by migration.
 
+The general idea is if migrate one shared page between processes, this
+would be reflected in all related processes. Otherwise, we have problem
+in rmap.
 
-This patch (of 2):
+Currently it covers following four scenarios:
 
-There are some general ksm operations could be used by other related
-test case. Put them into vm_util for common use.
+  * anonymous page
+  * shmem page
+  * pagecache page
+  * ksm page
 
-This is a preparation patch for later use.
-
-Link: https://lkml.kernel.org/r/20250726025223.350-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20250726025223.350-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250726025223.350-3-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -92,368 +92,510 @@ Cc: Rik van Riel <riel@surriel.com>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Harry Yoo <harry.yoo@oracle.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |  128 +-----------
- tools/testing/selftests/mm/vm_util.c              |  123 +++++++++++
- tools/testing/selftests/mm/vm_util.h              |    7 
- 3 files changed, 147 insertions(+), 111 deletions(-)
+ MAINTAINERS                               |    1 
+ tools/testing/selftests/mm/.gitignore     |    1 
+ tools/testing/selftests/mm/Makefile       |    3 
+ tools/testing/selftests/mm/rmap.c         |  432 ++++++++++++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh |    4 
+ 5 files changed, 441 insertions(+)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-put-general-ksm-operation-into-vm_util
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -38,11 +38,6 @@ enum ksm_merge_mode {
- };
+--- a/MAINTAINERS~selftests-mm-assert-rmap-behave-as-expected
++++ a/MAINTAINERS
+@@ -15917,6 +15917,7 @@ S:	Maintained
+ F:	include/linux/rmap.h
+ F:	mm/page_vma_mapped.c
+ F:	mm/rmap.c
++F:	tools/testing/selftests/mm/rmap.c
  
- static int mem_fd;
--static int ksm_fd;
--static int ksm_full_scans_fd;
--static int proc_self_ksm_stat_fd;
--static int proc_self_ksm_merging_pages_fd;
--static int ksm_use_zero_pages_fd;
- static int pagemap_fd;
- static size_t pagesize;
+ MEMORY MANAGEMENT - SECRETMEM
+ M:	Andrew Morton <akpm@linux-foundation.org>
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-assert-rmap-behave-as-expected
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -58,3 +58,4 @@ pkey_sighandler_tests_32
+ pkey_sighandler_tests_64
+ guard-regions
+ merge
++rmap
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-assert-rmap-behave-as-expected
++++ a/tools/testing/selftests/mm/Makefile
+@@ -101,6 +101,7 @@ TEST_GEN_FILES += hugetlb_dio
+ TEST_GEN_FILES += droppable
+ TEST_GEN_FILES += guard-regions
+ TEST_GEN_FILES += merge
++TEST_GEN_FILES += rmap
  
-@@ -73,88 +68,6 @@ static bool range_maps_duplicates(char *
- 	return false;
- }
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_FILES += soft-dirty
+@@ -228,6 +229,8 @@ $(OUTPUT)/ksm_tests: LDLIBS += -lnuma
  
--static long get_my_ksm_zero_pages(void)
--{
--	char buf[200];
--	char *substr_ksm_zero;
--	size_t value_pos;
--	ssize_t read_size;
--	unsigned long my_ksm_zero_pages;
--
--	if (!proc_self_ksm_stat_fd)
--		return 0;
--
--	read_size = pread(proc_self_ksm_stat_fd, buf, sizeof(buf) - 1, 0);
--	if (read_size < 0)
--		return -errno;
--
--	buf[read_size] = 0;
--
--	substr_ksm_zero = strstr(buf, "ksm_zero_pages");
--	if (!substr_ksm_zero)
--		return 0;
--
--	value_pos = strcspn(substr_ksm_zero, "0123456789");
--	my_ksm_zero_pages = strtol(substr_ksm_zero + value_pos, NULL, 10);
--
--	return my_ksm_zero_pages;
--}
--
--static long get_my_merging_pages(void)
--{
--	char buf[10];
--	ssize_t ret;
--
--	if (proc_self_ksm_merging_pages_fd < 0)
--		return proc_self_ksm_merging_pages_fd;
--
--	ret = pread(proc_self_ksm_merging_pages_fd, buf, sizeof(buf) - 1, 0);
--	if (ret <= 0)
--		return -errno;
--	buf[ret] = 0;
--
--	return strtol(buf, NULL, 10);
--}
--
--static long ksm_get_full_scans(void)
--{
--	char buf[10];
--	ssize_t ret;
--
--	ret = pread(ksm_full_scans_fd, buf, sizeof(buf) - 1, 0);
--	if (ret <= 0)
--		return -errno;
--	buf[ret] = 0;
--
--	return strtol(buf, NULL, 10);
--}
--
--static int ksm_merge(void)
--{
--	long start_scans, end_scans;
--
--	/* Wait for two full scans such that any possible merging happened. */
--	start_scans = ksm_get_full_scans();
--	if (start_scans < 0)
--		return start_scans;
--	if (write(ksm_fd, "1", 1) != 1)
--		return -errno;
--	do {
--		end_scans = ksm_get_full_scans();
--		if (end_scans < 0)
--			return end_scans;
--	} while (end_scans < start_scans + 2);
--
--	return 0;
--}
--
--static int ksm_unmerge(void)
--{
--	if (write(ksm_fd, "2", 1) != 1)
--		return -errno;
--	return 0;
--}
--
- static char *__mmap_and_merge_range(char val, unsigned long size, int prot,
- 				  enum ksm_merge_mode mode)
- {
-@@ -163,12 +76,12 @@ static char *__mmap_and_merge_range(char
- 	int ret;
+ $(OUTPUT)/migration: LDLIBS += -lnuma
  
- 	/* Stabilize accounting by disabling KSM completely. */
--	if (ksm_unmerge()) {
-+	if (ksm_stop() < 0) {
- 		ksft_print_msg("Disabling (unmerging) KSM failed\n");
- 		return err_map;
- 	}
- 
--	if (get_my_merging_pages() > 0) {
-+	if (ksm_get_self_merging_pages() > 0) {
- 		ksft_print_msg("Still pages merged\n");
- 		return err_map;
- 	}
-@@ -218,7 +131,7 @@ static char *__mmap_and_merge_range(char
- 	}
- 
- 	/* Run KSM to trigger merging and wait. */
--	if (ksm_merge()) {
-+	if (ksm_start() < 0) {
- 		ksft_print_msg("Running KSM failed\n");
- 		goto unmap;
- 	}
-@@ -227,7 +140,7 @@ static char *__mmap_and_merge_range(char
- 	 * Check if anything was merged at all. Ignore the zero page that is
- 	 * accounted differently (depending on kernel support).
- 	 */
--	if (val && !get_my_merging_pages()) {
-+	if (val && !ksm_get_self_merging_pages()) {
- 		ksft_print_msg("No pages got merged\n");
- 		goto unmap;
- 	}
-@@ -286,15 +199,12 @@ static void test_unmerge_zero_pages(void
- 
- 	ksft_print_msg("[RUN] %s\n", __func__);
- 
--	if (proc_self_ksm_stat_fd < 0) {
--		ksft_test_result_skip("open(\"/proc/self/ksm_stat\") failed\n");
--		return;
--	}
--	if (ksm_use_zero_pages_fd < 0) {
--		ksft_test_result_skip("open \"/sys/kernel/mm/ksm/use_zero_pages\" failed\n");
-+	if (ksm_get_self_zero_pages() < 0) {
-+		ksft_test_result_skip("accessing \"/proc/self/ksm_stat\" failed\n");
- 		return;
- 	}
--	if (write(ksm_use_zero_pages_fd, "1", 1) != 1) {
++$(OUTPUT)/rmap: LDLIBS += -lnuma
 +
-+	if (ksm_use_zero_pages() < 0) {
- 		ksft_test_result_skip("write \"/sys/kernel/mm/ksm/use_zero_pages\" failed\n");
- 		return;
- 	}
-@@ -306,7 +216,7 @@ static void test_unmerge_zero_pages(void
+ local_config.mk local_config.h: check_config.sh
+ 	/bin/sh ./check_config.sh $(CC)
  
- 	/* Check if ksm_zero_pages is updated correctly after KSM merging */
- 	pages_expected = size / pagesize;
--	if (pages_expected != get_my_ksm_zero_pages()) {
-+	if (pages_expected != ksm_get_self_zero_pages()) {
- 		ksft_test_result_fail("'ksm_zero_pages' updated after merging\n");
- 		goto unmap;
- 	}
-@@ -319,7 +229,7 @@ static void test_unmerge_zero_pages(void
- 
- 	/* Check if ksm_zero_pages is updated correctly after unmerging */
- 	pages_expected /= 2;
--	if (pages_expected != get_my_ksm_zero_pages()) {
-+	if (pages_expected != ksm_get_self_zero_pages()) {
- 		ksft_test_result_fail("'ksm_zero_pages' updated after unmerging\n");
- 		goto unmap;
- 	}
-@@ -329,7 +239,7 @@ static void test_unmerge_zero_pages(void
- 		*((unsigned int *)&map[offs]) = offs;
- 
- 	/* Now we should have no zeropages remaining. */
--	if (get_my_ksm_zero_pages()) {
-+	if (ksm_get_self_zero_pages()) {
- 		ksft_test_result_fail("'ksm_zero_pages' updated after write fault\n");
- 		goto unmap;
- 	}
-@@ -685,19 +595,15 @@ static void init_global_file_handles(voi
- 	mem_fd = open("/proc/self/mem", O_RDWR);
- 	if (mem_fd < 0)
- 		ksft_exit_fail_msg("opening /proc/self/mem failed\n");
--	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
--	if (ksm_fd < 0)
--		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/run\") failed\n");
--	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
--	if (ksm_full_scans_fd < 0)
--		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/full_scans\") failed\n");
-+	if (ksm_stop() < 0)
-+		ksft_exit_skip("accessing \"/sys/kernel/mm/ksm/run\") failed\n");
-+	if (ksm_get_full_scans() < 0)
-+		ksft_exit_skip("accessing \"/sys/kernel/mm/ksm/full_scans\") failed\n");
- 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
- 	if (pagemap_fd < 0)
- 		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
--	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
--	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
--						O_RDONLY);
--	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
-+	if (ksm_get_self_merging_pages() < 0)
-+		ksft_exit_skip("accessing \"/proc/self/ksm_merging_pages\") failed\n");
- }
- 
- int main(int argc, char **argv)
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-put-general-ksm-operation-into-vm_util
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -555,3 +555,126 @@ bool detect_huge_zeropage(void)
- 	close(fd);
- 	return enabled;
- }
+diff --git a/tools/testing/selftests/mm/rmap.c a/tools/testing/selftests/mm/rmap.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/rmap.c
+@@ -0,0 +1,432 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * RMAP functional tests
++ *
++ * Author(s): Wei Yang <richard.weiyang@gmail.com>
++ */
 +
-+long ksm_get_self_zero_pages(void)
++#include "../kselftest_harness.h"
++#include <strings.h>
++#include <pthread.h>
++#include <numa.h>
++#include <numaif.h>
++#include <sys/mman.h>
++#include <sys/prctl.h>
++#include <sys/types.h>
++#include <signal.h>
++#include <time.h>
++#include <sys/sem.h>
++#include <unistd.h>
++#include <fcntl.h>
++
++#include "vm_util.h"
++
++#define TOTAL_LEVEL 5
++#define MAX_CHILDREN 3
++
++#define FAIL_ON_CHECK	(1 << 0)
++#define FAIL_ON_WORK	(1 << 1)
++
++struct sembuf sem_wait = {0, -1, 0};
++struct sembuf sem_signal = {0, 1, 0};
++
++enum backend_type {
++	ANON,
++	SHM,
++	NORM_FILE,
++};
++
++#define PREFIX "kst_rmap"
++#define MAX_FILENAME_LEN 256
++const char *suffixes[] = {
++	"",
++	"_shm",
++	"_file",
++};
++
++struct global_data;
++typedef int (*work_fn)(struct global_data *data);
++typedef int (*check_fn)(struct global_data *data);
++typedef void (*prepare_fn)(struct global_data *data);
++
++struct global_data {
++	int worker_level;
++
++	int semid;
++	int pipefd[2];
++
++	unsigned int mapsize;
++	unsigned int rand_seed;
++	char *region;
++
++	prepare_fn do_prepare;
++	work_fn do_work;
++	check_fn do_check;
++
++	enum backend_type backend;
++	char filename[MAX_FILENAME_LEN];
++
++	unsigned long *expected_pfn;
++};
++
++/*
++ * Create a process tree with TOTAL_LEVEL height and at most MAX_CHILDREN
++ * children for each.
++ *
++ * It will randomly select one process as 'worker' process which will
++ * 'do_work' until all processes are created. And all other processes will
++ * wait until 'worker' finish its work.
++ */
++void propagate_children(struct __test_metadata *_metadata, struct global_data *data)
 +{
-+	int proc_self_ksm_stat_fd;
-+	char buf[200];
-+	char *substr_ksm_zero;
-+	size_t value_pos;
-+	ssize_t read_size;
++	pid_t root_pid, pid;
++	unsigned int num_child;
++	int status;
++	int ret = 0;
++	int curr_child, worker_child;
++	int curr_level = 1;
++	bool is_worker = true;
 +
-+	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
-+	if (proc_self_ksm_stat_fd < 0)
-+		return -errno;
++	root_pid = getpid();
++repeat:
++	num_child = rand_r(&data->rand_seed) % MAX_CHILDREN + 1;
++	worker_child = is_worker ? rand_r(&data->rand_seed) % num_child : -1;
 +
-+	read_size = pread(proc_self_ksm_stat_fd, buf, sizeof(buf) - 1, 0);
-+	close(proc_self_ksm_stat_fd);
-+	if (read_size < 0)
-+		return -errno;
++	for (curr_child = 0; curr_child < num_child; curr_child++) {
++		pid = fork();
 +
-+	buf[read_size] = 0;
++		if (pid < 0) {
++			perror("Error: fork\n");
++		} else if (pid == 0) {
++			curr_level++;
 +
-+	substr_ksm_zero = strstr(buf, "ksm_zero_pages");
-+	if (!substr_ksm_zero)
-+		return 0;
++			if (curr_child != worker_child)
++				is_worker = false;
 +
-+	value_pos = strcspn(substr_ksm_zero, "0123456789");
-+	return strtol(substr_ksm_zero + value_pos, NULL, 10);
-+}
++			if (curr_level == TOTAL_LEVEL)
++				break;
 +
-+long ksm_get_self_merging_pages(void)
-+{
-+	int proc_self_ksm_merging_pages_fd;
-+	char buf[10];
-+	ssize_t ret;
-+
-+	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
-+						O_RDONLY);
-+	if (proc_self_ksm_merging_pages_fd < 0)
-+		return -errno;
-+
-+	ret = pread(proc_self_ksm_merging_pages_fd, buf, sizeof(buf) - 1, 0);
-+	close(proc_self_ksm_merging_pages_fd);
-+	if (ret <= 0)
-+		return -errno;
-+	buf[ret] = 0;
-+
-+	return strtol(buf, NULL, 10);
-+}
-+
-+long ksm_get_full_scans(void)
-+{
-+	int ksm_full_scans_fd;
-+	char buf[10];
-+	ssize_t ret;
-+
-+	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
-+	if (ksm_full_scans_fd < 0)
-+		return -errno;
-+
-+	ret = pread(ksm_full_scans_fd, buf, sizeof(buf) - 1, 0);
-+	close(ksm_full_scans_fd);
-+	if (ret <= 0)
-+		return -errno;
-+	buf[ret] = 0;
-+
-+	return strtol(buf, NULL, 10);
-+}
-+
-+int ksm_use_zero_pages(void)
-+{
-+	int ksm_use_zero_pages_fd;
-+	ssize_t ret;
-+
-+	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
-+	if (ksm_use_zero_pages_fd < 0)
-+		return -errno;
-+
-+	ret = write(ksm_use_zero_pages_fd, "1", 1);
-+	close(ksm_use_zero_pages_fd);
-+	return ret == 1 ? 0 : -errno;
-+}
-+
-+int ksm_start(void)
-+{
-+	int ksm_fd;
-+	ssize_t ret;
-+	long start_scans, end_scans;
-+
-+	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
-+	if (ksm_fd < 0)
-+		return -errno;
-+
-+	/* Wait for two full scans such that any possible merging happened. */
-+	start_scans = ksm_get_full_scans();
-+	if (start_scans < 0) {
-+		close(ksm_fd);
-+		return start_scans;
++			data->rand_seed += curr_child;
++			goto repeat;
++		}
 +	}
-+	ret = write(ksm_fd, "1", 1);
-+	close(ksm_fd);
-+	if (ret != 1)
-+		return -errno;
-+	do {
-+		end_scans = ksm_get_full_scans();
-+		if (end_scans < 0)
-+			return end_scans;
-+	} while (end_scans < start_scans + 2);
++
++	if (data->do_prepare)
++		data->do_prepare(data);
++
++	close(data->pipefd[1]);
++
++	if (is_worker && curr_level == data->worker_level) {
++		/* This is the worker process, first wait last process created */
++		char buf;
++
++		while (read(data->pipefd[0], &buf, 1) > 0)
++			;
++
++		if (data->do_work)
++			ret = data->do_work(data);
++
++		/* Kick others */
++		semctl(data->semid, 0, IPC_RMID);
++	} else {
++		/* Wait worker finish */
++		semop(data->semid, &sem_wait, 1);
++		if (data->do_check)
++			ret = data->do_check(data);
++	}
++
++	/* Wait all child to quit */
++	while (wait(&status) > 0) {
++		if (WIFEXITED(status))
++			ret |= WEXITSTATUS(status);
++	}
++
++	if (getpid() == root_pid) {
++		if (ret & FAIL_ON_WORK)
++			SKIP(return, "Failed in worker");
++
++		ASSERT_EQ(ret, 0);
++	} else {
++		exit(ret);
++	}
++}
++
++FIXTURE(migrate)
++{
++	struct global_data data;
++};
++
++FIXTURE_SETUP(migrate)
++{
++	struct global_data *data = &self->data;
++
++	if (numa_available() < 0)
++		SKIP(return, "NUMA not available");
++	if (numa_bitmask_weight(numa_all_nodes_ptr) <= 1)
++		SKIP(return, "Not enough NUMA nodes available");
++
++	data->mapsize = getpagesize();
++
++	data->expected_pfn = mmap(0, sizeof(unsigned long),
++				PROT_READ | PROT_WRITE,
++				MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(data->expected_pfn, MAP_FAILED);
++
++	/* Prepare semaphore */
++	data->semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
++	ASSERT_NE(data->semid, -1);
++	ASSERT_NE(semctl(data->semid, 0, SETVAL, 0), -1);
++
++	/* Prepare pipe */
++	ASSERT_NE(pipe(data->pipefd), -1);
++
++	data->rand_seed = time(NULL);
++	srand(data->rand_seed);
++
++	data->worker_level = rand() % TOTAL_LEVEL + 1;
++
++	data->do_prepare = NULL;
++	data->do_work = NULL;
++	data->do_check = NULL;
++
++	data->backend = ANON;
++};
++
++FIXTURE_TEARDOWN(migrate)
++{
++	struct global_data *data = &self->data;
++
++	if (data->region != MAP_FAILED)
++		munmap(data->region, data->mapsize);
++	data->region = MAP_FAILED;
++	if (data->expected_pfn != MAP_FAILED)
++		munmap(data->expected_pfn, sizeof(unsigned long));
++	data->expected_pfn = MAP_FAILED;
++	semctl(data->semid, 0, IPC_RMID);
++	data->semid = -1;
++
++	close(data->pipefd[0]);
++
++	switch (data->backend) {
++	case ANON:
++		break;
++	case SHM:
++		shm_unlink(data->filename);
++		break;
++	case NORM_FILE:
++		unlink(data->filename);
++		break;
++	}
++}
++
++void access_region(struct global_data *data)
++{
++	/*
++	 * Force read "region" to make sure page fault in.
++	 */
++	FORCE_READ(data->region);
++}
++
++int try_to_move_page(char *region)
++{
++	int ret;
++	int node;
++	int status = 0;
++	int failures = 0;
++
++	ret = move_pages(0, 1, (void **)&region, NULL, &status, MPOL_MF_MOVE_ALL);
++	if (ret != 0) {
++		perror("Failed to get original numa");
++		return FAIL_ON_WORK;
++	}
++
++	/* Pick up a different target node */
++	for (node = 0; node <= numa_max_node(); node++) {
++		if (numa_bitmask_isbitset(numa_all_nodes_ptr, node) && node != status)
++			break;
++	}
++
++	if (node > numa_max_node()) {
++		ksft_print_msg("Couldn't find available numa node for testing\n");
++		return FAIL_ON_WORK;
++	}
++
++	while (1) {
++		ret = move_pages(0, 1, (void **)&region, &node, &status, MPOL_MF_MOVE_ALL);
++
++		/* migrate successfully */
++		if (!ret)
++			break;
++
++		/* error happened */
++		if (ret < 0) {
++			ksft_perror("Failed to move pages");
++			return FAIL_ON_WORK;
++		}
++
++		/* migration is best effort; try again */
++		if (++failures >= 100)
++			return FAIL_ON_WORK;
++	}
 +
 +	return 0;
 +}
 +
-+int ksm_stop(void)
++int move_region(struct global_data *data)
 +{
-+	int ksm_fd;
-+	ssize_t ret;
++	int ret;
++	int pagemap_fd;
 +
-+	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
-+	if (ksm_fd < 0)
-+		return -errno;
++	ret = try_to_move_page(data->region);
++	if (ret != 0)
++		return ret;
 +
-+	ret = write(ksm_fd, "2", 1);
-+	close(ksm_fd);
-+	return ret == 1 ? 0 : -errno;
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd == -1)
++		return FAIL_ON_WORK;
++	*data->expected_pfn = pagemap_get_pfn(pagemap_fd, data->region);
++
++	return 0;
 +}
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-put-general-ksm-operation-into-vm_util
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -129,6 +129,13 @@ static inline void log_test_result(int r
- void *sys_mremap(void *old_address, unsigned long old_size,
- 		 unsigned long new_size, int flags, void *new_address);
- 
-+long ksm_get_self_zero_pages(void);
-+long ksm_get_self_merging_pages(void);
-+long ksm_get_full_scans(void);
-+int ksm_use_zero_pages(void);
-+int ksm_start(void);
-+int ksm_stop(void);
 +
- /*
-  * On ppc64 this will only work with radix 2M hugepage size
-  */
++int has_same_pfn(struct global_data *data)
++{
++	unsigned long pfn;
++	int pagemap_fd;
++
++	if (data->region == MAP_FAILED)
++		return 0;
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd == -1)
++		return FAIL_ON_CHECK;
++
++	pfn = pagemap_get_pfn(pagemap_fd, data->region);
++	if (pfn != *data->expected_pfn)
++		return FAIL_ON_CHECK;
++
++	return 0;
++}
++
++TEST_F(migrate, anon)
++{
++	struct global_data *data = &self->data;
++
++	/* Map an area and fault in */
++	data->region = mmap(0, data->mapsize, PROT_READ | PROT_WRITE,
++				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(data->region, MAP_FAILED);
++	memset(data->region, 0xcf, data->mapsize);
++
++	data->do_prepare = access_region;
++	data->do_work = move_region;
++	data->do_check = has_same_pfn;
++
++	propagate_children(_metadata, data);
++}
++
++TEST_F(migrate, shm)
++{
++	int shm_fd;
++	struct global_data *data = &self->data;
++
++	snprintf(data->filename, MAX_FILENAME_LEN, "%s%s", PREFIX, suffixes[SHM]);
++	shm_fd = shm_open(data->filename, O_CREAT | O_RDWR, 0666);
++	ASSERT_NE(shm_fd, -1);
++	ftruncate(shm_fd, data->mapsize);
++	data->backend = SHM;
++
++	/* Map a shared area and fault in */
++	data->region = mmap(0, data->mapsize, PROT_READ | PROT_WRITE,
++				MAP_SHARED, shm_fd, 0);
++	ASSERT_NE(data->region, MAP_FAILED);
++	memset(data->region, 0xcf, data->mapsize);
++	close(shm_fd);
++
++	data->do_prepare = access_region;
++	data->do_work = move_region;
++	data->do_check = has_same_pfn;
++
++	propagate_children(_metadata, data);
++}
++
++TEST_F(migrate, file)
++{
++	int fd;
++	struct global_data *data = &self->data;
++
++	snprintf(data->filename, MAX_FILENAME_LEN, "%s%s", PREFIX, suffixes[NORM_FILE]);
++	fd = open(data->filename, O_CREAT | O_RDWR | O_EXCL, 0666);
++	ASSERT_NE(fd, -1);
++	ftruncate(fd, data->mapsize);
++	data->backend = NORM_FILE;
++
++	/* Map a shared area and fault in */
++	data->region = mmap(0, data->mapsize, PROT_READ | PROT_WRITE,
++				MAP_SHARED, fd, 0);
++	ASSERT_NE(data->region, MAP_FAILED);
++	memset(data->region, 0xcf, data->mapsize);
++	close(fd);
++
++	data->do_prepare = access_region;
++	data->do_work = move_region;
++	data->do_check = has_same_pfn;
++
++	propagate_children(_metadata, data);
++}
++
++void prepare_local_region(struct global_data *data)
++{
++	/* Allocate range and set the same data */
++	data->region = mmap(NULL, data->mapsize, PROT_READ|PROT_WRITE,
++			   MAP_PRIVATE|MAP_ANON, -1, 0);
++	if (data->region == MAP_FAILED)
++		return;
++
++	memset(data->region, 0xcf, data->mapsize);
++}
++
++int merge_and_migrate(struct global_data *data)
++{
++	int pagemap_fd;
++	int ret = 0;
++
++	if (data->region == MAP_FAILED)
++		return FAIL_ON_WORK;
++
++	ksm_start();
++
++	ret = try_to_move_page(data->region);
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd == -1)
++		return FAIL_ON_WORK;
++	*data->expected_pfn = pagemap_get_pfn(pagemap_fd, data->region);
++
++	return ret;
++}
++
++TEST_F(migrate, ksm)
++{
++	int ret;
++	struct global_data *data = &self->data;
++
++	if (ksm_stop() < 0)
++		SKIP(return, "accessing \"/sys/kernel/mm/ksm/run\") failed");
++	if (ksm_get_full_scans() < 0)
++		SKIP(return, "accessing \"/sys/kernel/mm/ksm/full_scan\") failed");
++
++	ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
++	if (ret < 0 && errno == EINVAL)
++		SKIP(return, "PR_SET_MEMORY_MERGE not supported");
++	else if (ret)
++		ksft_exit_fail_perror("PR_SET_MEMORY_MERGE=1 failed");
++
++	data->do_prepare = prepare_local_region;
++	data->do_work = merge_and_migrate;
++	data->do_check = has_same_pfn;
++
++	propagate_children(_metadata, data);
++}
++
++TEST_HARNESS_MAIN
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-assert-rmap-behave-as-expected
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -85,6 +85,8 @@ separated by spaces:
+ 	test handling of page fragment allocation and freeing
+ - vma_merge
+ 	test VMA merge cases behave as expected
++- rmap
++	test rmap behaves as expected
+ 
+ example: ./run_vmtests.sh -t "hmm mmap ksm"
+ EOF
+@@ -532,6 +534,8 @@ CATEGORY="page_frag" run_test ./test_pag
+ 
+ CATEGORY="page_frag" run_test ./test_page_frag.sh nonaligned
+ 
++CATEGORY="rmap" run_test ./rmap
++
+ echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}" | tap_prefix
+ echo "1..${count_total}" | tap_output
+ 
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
