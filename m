@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3B6122333B
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF19222333B
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567813; cv=none; b=byRSRcwnufQaUMYzcpsurrqBCBvIHRSPTsw+QE6m49z0YDktU1AebfbKVojQC/bGLRHQ9CghFKhR+9IYzP/2HHedRjoqKhuLJnaXyyEVxc8GRYvS+gJ7XA4GOww+a+neW8dqNMuz0VG39atqd3c58JqE7fnGHW4GZ4XfnadSlBs=
+	t=1753567815; cv=none; b=X/n7YgTIStHNygA0MXBmC7EBp54cWXXf4GvJhoRYKBuGAfYRRsO7NEMr4JuoPtsHbkOlpo7ooAcsXPMah/CBhXxlHOCdPcGYiqTuuDMAP9V9suTi2SlEp6fW2yv8rxOIvTsWnFNvRYAbM+vazboP1ps5iyzrbF1hNEsdX3uXZcM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567813; c=relaxed/simple;
-	bh=Q17vUcb8UPkkXFdp6gXDqtrCemRIipJb83ukF82GG8A=;
-	h=Date:To:From:Subject:Message-Id; b=dK/7uuK6c67+zR7hAC9Mrl61xEFUPLvke8nmqzL7lEbN1FFxpHYjEN5ZPjTUdV46hkMBQJgncovENxvyx2dj/OBT6GiO2bHa8v6pRHM5udhJEultyTH3PJdLqrVnuJ8mfGI1gB7RPnX3H/BdZBME9cYXjmTi4jfSW9YzjP32b0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rh6v8SPm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753567815; c=relaxed/simple;
+	bh=fQfofhTf1+TuqEx2XPDRZnEHBvYbeKRMyXpLyWadsTk=;
+	h=Date:To:From:Subject:Message-Id; b=dxQjqyFKIHqZgNjKzAWQsgWWmL9kQHL0O7/7g/KLSDY779WKluHqapkjvM1N3iTCWmMbtqAKzz0NtyLC08vueyBnTVOS1TIIWVNJtna4zlvgZ75OuZ8558jHa4yLX7qBPopMs9UC0BHTUB8uE7JhWhwxvEtIllr3EdLs5ijfZe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UIViK9qv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rh6v8SPm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AEF6C4CEED;
-	Sat, 26 Jul 2025 22:10:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UIViK9qv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72E4AC4CEED;
+	Sat, 26 Jul 2025 22:10:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567813;
-	bh=Q17vUcb8UPkkXFdp6gXDqtrCemRIipJb83ukF82GG8A=;
+	s=korg; t=1753567814;
+	bh=fQfofhTf1+TuqEx2XPDRZnEHBvYbeKRMyXpLyWadsTk=;
 	h=Date:To:From:Subject:From;
-	b=Rh6v8SPmOJ4zqz+gly5bHbynGnxES8B3Ncgl9ueHQUfrbPVW9hyREWFh6cG8ufJq1
-	 IpOV1lP6J1XsGM0fOuAIFuS5nrBh8ZQX2oSiDnAonroD2Le6eCh4HINDwMzEvg70jC
-	 naQZpdBbMEJibljTicmqONYG19MG7OcMGdxjFMso=
-Date: Sat, 26 Jul 2025 15:10:12 -0700
+	b=UIViK9qvQtj1Dcd9IGbWaAm3FeorhW0E3ZYIVkDE26gjWJA1lyg9PjCJ0JPoJTNgq
+	 LCLLAwmkJPhsC1QGgwnNFJgox1iThRydZfrkDOoNHSWGTAmwa+7poKUH8OfwlRf8Ql
+	 J0pUdXXnS5UJzwiyDIYzozmhTG39cwUTIeNkYDu8=
+Date: Sat, 26 Jul 2025 15:10:13 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-_damon_sysfs-support-damos-target_nid-setup.patch removed from -mm tree
-Message-Id: <20250726221013.4AEF6C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch removed from -mm tree
+Message-Id: <20250726221014.72E4AC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/_damon_sysfs: support DAMOS target_nid setup
+     Subject: selftests/damon/_damon_sysfs: use 2**32 - 1 as max nr_accesses and age
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-_damon_sysfs-support-damos-target_nid-setup.patch
+     selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: support DAMOS target_nid setup
-Date: Sun, 20 Jul 2025 10:16:37 -0700
+Subject: selftests/damon/_damon_sysfs: use 2**32 - 1 as max nr_accesses and age
+Date: Sun, 20 Jul 2025 10:16:38 -0700
 
-_damon_sysfs.py contains code for test-purpose DAMON sysfs interface
-control.  Add support of DAMOS action destination target_nid setup for
-more tests.
+nr_accesses and age are unsigned int.  Use the proper max value.
 
-Link: https://lkml.kernel.org/r/20250720171652.92309-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250720171652.92309-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ tools/testing/selftests/damon/_damon_sysfs.py |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-damos-target_nid-setup
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-use-232-1-as-max-nr_accesses-and-age
 +++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -395,6 +395,7 @@ class Damos:
-     ops_filters = None
-     filters = None
-     apply_interval_us = None
-+    target_nid = None
-     dests = None
-     idx = None
-     context = None
-@@ -404,7 +405,7 @@ class Damos:
+@@ -52,9 +52,9 @@ class DamosAccessPattern:
+         if self.size is None:
+             self.size = [0, 2**64 - 1]
+         if self.nr_accesses is None:
+-            self.nr_accesses = [0, 2**64 - 1]
++            self.nr_accesses = [0, 2**32 - 1]
+         if self.age is None:
+-            self.age = [0, 2**64 - 1]
++            self.age = [0, 2**32 - 1]
  
-     def __init__(self, action='stat', access_pattern=DamosAccessPattern(),
-                  quota=DamosQuota(), watermarks=DamosWatermarks(),
--                 core_filters=[], ops_filters=[], filters=[],
-+                 core_filters=[], ops_filters=[], filters=[], target_nid=0,
-                  dests=DamosDests(), apply_interval_us=0):
-         self.action = action
-         self.access_pattern = access_pattern
-@@ -423,6 +424,7 @@ class Damos:
-         self.filters = DamosFilters(name='filters', filters=filters)
-         self.filters.scheme = self
- 
-+        self.target_nid = target_nid
-         self.dests = dests
-         self.dests.scheme = self
- 
-@@ -462,6 +464,11 @@ class Damos:
-         if err is not None:
-             return err
- 
-+        err = write_file(os.path.join(self.sysfs_dir(), 'target_nid'), '%d' %
-+                         self.target_nid)
-+        if err is not None:
-+            return err
-+
-         err = self.dests.stage()
-         if err is not None:
-             return err
+     def sysfs_dir(self):
+         return os.path.join(self.scheme.sysfs_dir(), 'access_pattern')
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
