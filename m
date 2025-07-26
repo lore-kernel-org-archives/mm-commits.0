@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CBBA22333B
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C9EC2253EE
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567838; cv=none; b=DaDmUaur8OaX/tzl+TNhe9sds98hCO+JFtvkQtTXni0z2l1yOVubrvJ9ZYIdsqWxfkpmOff2Vm/4kCoIGsIKzKq9ozVWxLJrJM1cw3NcpRni3DvKNSrANwWkFKBMnX8XutoRsefSpsrudeR1rZJZ7RGXslBpODFFuSN9SVqu19s=
+	t=1753567841; cv=none; b=YHNe1TVyoHdtNVMkDtOT+Lf95G+7P/c0zqhpjRCT5iSNg21d5jVIQYoN8+e7tEWdCwbqNUfGaZtmqGGjouKIdHsHQuvFHxFlPIgTjNTAE8OOv2HsSdFrSc0jICirysBSZEkD7/CMACuq0fsR5S3n4p5htNrDsnOER9FaF7Juf18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567838; c=relaxed/simple;
-	bh=lhsiBz3hv9e5JFMxRkFOBwVwSRGAYYel6KZ1LiYB+Y4=;
-	h=Date:To:From:Subject:Message-Id; b=NSWJh7Ct8j8E4vMpqkf5UQIXwPH+VPS0zqfNIZA3DY3bSsem7/Pae4nIEBYlPED0jaH0bfwOhC/VuEMZksUuzKKi31uTc7dX7hks6GHr5MLjOnTbtI28GN2ZP9MFVyG08efrEeU/+SrOk+CJqFOVvUMsS0fKAphxKcJt3/cXlUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=owCt4rIh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753567841; c=relaxed/simple;
+	bh=X2iObhrwVgjZalKbodhtmdqIRT5nqtoPPc9lnpNCIfs=;
+	h=Date:To:From:Subject:Message-Id; b=Wli9/w2hNcyJWBOa5PhWAUEjdFqqMc5wJT3XpwocWudL8Cg7lRwxLASRrPqpfbjh1dY3+BVkXE33gzWJrvGWayvo8VNafZcvk9ZxVF3kPv5WOHjnqqg019ENcCph5utxyj0i2K52TpNXWEP7cKbrkRLgpOHkDSAtyml80EocXTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZEDpr0hq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="owCt4rIh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FE0EC4CEED;
-	Sat, 26 Jul 2025 22:10:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZEDpr0hq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E57FDC4CEED;
+	Sat, 26 Jul 2025 22:10:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567838;
-	bh=lhsiBz3hv9e5JFMxRkFOBwVwSRGAYYel6KZ1LiYB+Y4=;
+	s=korg; t=1753567841;
+	bh=X2iObhrwVgjZalKbodhtmdqIRT5nqtoPPc9lnpNCIfs=;
 	h=Date:To:From:Subject:From;
-	b=owCt4rIhbJuF2cDmBRenDzZzUznvoIiUydS/8bHqj5RPy3fCxOWSqM6EmeyiA2G/Z
-	 3Z0FLtdjNjMsXF0W9Ai0J9p0mC0k/kTXQN6nFNWS76hRfzt3YMStcV9TtsMi2W7gp7
-	 vzfDT7ceFE7LhGItB7fS6Wgv2kMeGvqxOPkVBwOc=
-Date: Sat, 26 Jul 2025 15:10:37 -0700
+	b=ZEDpr0hqPII1yixXEpRW9DOBkAt3iCmvpKtnRDO7jh4p6dUd8fajquErNchNeYcKo
+	 KzbLZOh25PRLo2MCFoYjr5vb31jUqvfthTsHrB9heMZoj3nT9Kc4NKCeT1XckY+Iy8
+	 lPeg5Aa325W8y7d3V49OaLK4j6jFILJenkEnIRcA=
+Date: Sat, 26 Jul 2025 15:10:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jannh@google.com,dev.jain@arm.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-add-missing-mm_sloth-file-thp-section.patch removed from -mm tree
-Message-Id: <20250726221038.6FE0EC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-move-memremap-to-hotplug-section.patch removed from -mm tree
+Message-Id: <20250726221040.E57FDC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add missing mm_slot.h file THP section
+     Subject: MAINTAINERS: move memremap.[ch] to hotplug section
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-missing-mm_sloth-file-thp-section.patch
+     maintainers-move-memremap-to-hotplug-section.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add missing mm_slot.h file THP section
-Date: Tue, 22 Jul 2025 18:19:04 +0100
+Subject: MAINTAINERS: move memremap.[ch] to hotplug section
+Date: Tue, 22 Jul 2025 18:22:58 +0100
 
-This seems to be the most appropriate place for this file.
+This seems to be the most appropriate place for these files.
 
-[lorenzo.stoakes@oracle.com: also add mm_slot.h to KSM section]
-  Link: https://lkml.kernel.org/r/685747e2-a8cb-4620-a0c0-5cd9048d69b8@lucifer.local
-Link: https://lkml.kernel.org/r/20250722171904.142306-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250722172258.143488-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Nico Pache <npache@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Pedro Falcato <pfalcato@suse.de>
@@ -78,27 +76,28 @@ Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-missing-mm_sloth-file-thp-section
+--- a/MAINTAINERS~maintainers-move-memremap-to-hotplug-section
 +++ a/MAINTAINERS
-@@ -15820,6 +15820,7 @@ F:	Documentation/mm/ksm.rst
- F:	include/linux/ksm.h
- F:	include/trace/events/ksm.h
- F:	mm/ksm.c
-+F:	mm/mm_slot.h
+@@ -15728,6 +15728,8 @@ F:	Documentation/admin-guide/mm/memory-h
+ F:	Documentation/core-api/memory-hotplug.rst
+ F:	drivers/base/memory.c
+ F:	include/linux/memory_hotplug.h
++F:	include/linux/memremap.h
++F:	mm/memremap.c
+ F:	mm/memory_hotplug.c
+ F:	tools/testing/selftests/memory-hotplug/
  
- MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
- M:	Andrew Morton <akpm@linux-foundation.org>
-@@ -15965,6 +15966,7 @@ F:	include/linux/khugepaged.h
- F:	include/trace/events/huge_memory.h
- F:	mm/huge_memory.c
- F:	mm/khugepaged.c
-+F:	mm/mm_slot.h
- F:	tools/testing/selftests/mm/khugepaged.c
- F:	tools/testing/selftests/mm/split_huge_page_test.c
- F:	tools/testing/selftests/mm/transhuge-stress.c
+@@ -15746,7 +15748,6 @@ F:	include/linux/memory_hotplug.h
+ F:	include/linux/memory-tiers.h
+ F:	include/linux/mempolicy.h
+ F:	include/linux/mempool.h
+-F:	include/linux/memremap.h
+ F:	include/linux/mmzone.h
+ F:	include/linux/mmu_notifier.h
+ F:	include/linux/pagewalk.h
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
