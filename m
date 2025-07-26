@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28CFE21CA1D
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AA3621CA1D
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:10:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567845; cv=none; b=XhRDav/FX+8Ixq8J9ohQgeqQfZWQGMzmr+dHoCLh+tE0gBpHtyRYcQIXJOm3gtzmQGEwB4u3gQgwky/PcO7r0mDBkb6w6JkZ5CwJ/x6i7+33DbqMKbkIN5FyWk5+MLPv5VS5hgfLfsjKQmM81ffAbPgRpLUIST4cTkgXDeBZ2Y4=
+	t=1753567847; cv=none; b=GbtjPW9ZSwA5gwCqulTdmymaLfOzvjlsprzUmMM0xU7Ts0efvBlibJEA/lm7ReRVIPIbV5FkqT1CHUTR6l8p+GaK1M2uagY6d8VQew2EjlrFRaw9hDsnMEpstIlnuls+Bhuq4VEE1koI6KOxCqArJy1rE4RA1p8RB6flXCCmEdw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567845; c=relaxed/simple;
-	bh=s9cqKaPA99BcnU1cUwfS3ySc0cY8TJ+nCj6b/ClbIoM=;
-	h=Date:To:From:Subject:Message-Id; b=j7sddaepbbJDqmotaHBVROszT1EplJyYJLTNfQJy4iQ3iZGp0A63cZCw0VI2aDHCOTP6/swP2sYeMePBbYfIOR6t6Y5RRew6xkMmC1JLMHUTsJwAtC8/B5qiDyK4A2xArenZBzI20B5dEVD041KSZLnoyp2wXf2L16/uzAVgbEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rPucobO7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753567847; c=relaxed/simple;
+	bh=9hVzvzsXl0kDDCkClRy6Zl5yX4luagyJZ7obR3LinMs=;
+	h=Date:To:From:Subject:Message-Id; b=uBm0lMsuoVLVO2YdYsCapmawFabtn8gZtA65IMoqpuv+swX3mEWPhv9LgYsZxwDU22GG3j737hfNmWfs7qYY5aSu2LD+7tWmMLnNv04DIDFzRPGP2U4oTKqLsCA2CxCd79elyXd57XiWJLitbtpmjPUEogiZUVRIFG/c5aw/kLg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dzsNUDea; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rPucobO7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC5BEC4CEED;
-	Sat, 26 Jul 2025 22:10:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dzsNUDea"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0FEAC4CEED;
+	Sat, 26 Jul 2025 22:10:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567844;
-	bh=s9cqKaPA99BcnU1cUwfS3ySc0cY8TJ+nCj6b/ClbIoM=;
+	s=korg; t=1753567846;
+	bh=9hVzvzsXl0kDDCkClRy6Zl5yX4luagyJZ7obR3LinMs=;
 	h=Date:To:From:Subject:From;
-	b=rPucobO76HS3uGuUMpgHuVnLaCUjEyYXz5XmpB0IJ6dU17cm5K+11s71RzTQgPEhl
-	 Mr15VmQxDxymFZ8Q4wzPX0ebwCaaGJqj4cS7RRFxH5wepQYdNOwOqhvt86M1ZM3Ddk
-	 UDNSm6guudGxuf+ozNHA2K51fDOdCYzA5JQOQZsU=
-Date: Sat, 26 Jul 2025 15:10:44 -0700
+	b=dzsNUDeaN/ZsAZfnJYqt6gLVr4nBlv0HCSxjRdPyPlV0+sCyMmP8ah2ww+agr/3st
+	 mxEsnH8c/Qu2tdsmINxGFiVrO5xe+qfFqaxDlHjRLV9uQPp0TBVH2mH3M3jBpwMosL
+	 QzAAdXlgHPg/ln45fBqyKBASbC3UlPh5ZuiycCv0=
+Date: Sat, 26 Jul 2025 15:10:46 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jannh@google.com,dev.jain@arm.com,dennis@kernel.org,david@redhat.com,david@fromorbit.com,cl@gentwo.org,apopple@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-add-missing-files-to-page-alloc-section.patch removed from -mm tree
-Message-Id: <20250726221044.BC5BEC4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-missing-zsmalloc-file.patch removed from -mm tree
+Message-Id: <20250726221046.B0FEAC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add missing files to page alloc section
+     Subject: MAINTAINERS: add missing zsmalloc file
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-missing-files-to-page-alloc-section.patch
+     maintainers-add-missing-zsmalloc-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add missing files to page alloc section
-Date: Tue, 22 Jul 2025 18:41:43 +0100
+Subject: MAINTAINERS: add missing zsmalloc file
+Date: Tue, 22 Jul 2025 19:18:27 +0100
 
-There are a couple of mm/-specific header files that were accidentally
-missed previously, and some page ref debug code also that ought to live
-here.
+The mm/zpdesc.h file is only included by mm/zsmalloc.c so the zsmalloc
+section seems the most appropriate place for this file.
 
-Link: https://lkml.kernel.org/r/20250722174143.147143-1-lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/20250722181827.156035-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +++
- 1 file changed, 3 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/MAINTAINERS~maintainers-add-missing-files-to-page-alloc-section
+--- a/MAINTAINERS~maintainers-add-missing-zsmalloc-file
 +++ a/MAINTAINERS
-@@ -15880,6 +15880,7 @@ F:	include/linux/gfp.h
- F:	include/linux/page-isolation.h
- F:	mm/compaction.c
- F:	mm/debug_page_alloc.c
-+F:	mm/debug_page_ref.c
- F:	mm/fail_page_alloc.c
- F:	mm/page_alloc.c
- F:	mm/page_ext.c
-@@ -15888,8 +15889,10 @@ F:	mm/page_isolation.c
- F:	mm/page_owner.c
- F:	mm/page_poison.c
- F:	mm/page_reporting.c
-+F:	mm/page_reporting.h
- F:	mm/show_mem.c
- F:	mm/shuffle.c
-+F:	mm/shuffle.h
+@@ -27465,6 +27465,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/mm/zsmalloc.rst
+ F:	include/linux/zsmalloc.h
++F:	mm/zpdesc.h
+ F:	mm/zsmalloc.c
  
- MEMORY MANAGEMENT - RECLAIM
- M:	Andrew Morton <akpm@linux-foundation.org>
+ ZSTD
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
