@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BF12233128;
-	Mon, 28 Jul 2025 20:58:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAB622539D
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2025 21:00:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753736339; cv=none; b=UnEKsO4276UyHKlQLIiiORorNTzweZFCsr2foH8PzGwKFUviBiTxuLNExN/RGxMS1rAwjskueHWfuO0vKMh+UxzrFLpD7aO1HTNbVn5x/bHMOV/F/BmdHl4uuqonbkwodSOOThSYDByJ9ROs0hqFWpeAryo0vJt2lzTXcmEO2eI=
+	t=1753736407; cv=none; b=HXbvnQiLSXCZe2914Dw4cuHKW9Aw1AVtS9Cgu/W92zL89Cmv26eSUiLCWYpveOiCT89pxHHhw3B/YkfRilspcvqRDB3oLdCyGefYb7DpYy11/82avdFJ+XoME/WYIoTbXv3wfzwL2qWMbtomRlgX1y0ESxl7rNFZgiZwhHBynG4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753736339; c=relaxed/simple;
-	bh=20kt8ogzRmfIlLxilIdw1bcBgw+Ce0mU0iK2lR53poE=;
-	h=Date:To:From:Subject:Message-Id; b=PwwobupaqVtyBd1Pt02VmbJ7ad/epz80uZ50DOS8Ie11FNtI9WkReSOM5GTWNPZe91khn3DvK9C/I2TI5ET+W4hK1pzpARv+j9fKCkw0+yvN56RIgdK6q7tj69fHgvPfAvgZpLHhtcPdY7dZZJ/67ukl0ThZxqqG8R8Q99Lv67w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kcOSnW1E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753736407; c=relaxed/simple;
+	bh=x5XZ8qObQfvuTda7xucQ4RJtaZsjJI1RAHl3Dw3yGQU=;
+	h=Date:To:From:Subject:Message-Id; b=HHjq+6HK/rw3b6H8RrrdY0t9Ep0AD1iuqi/R/SC/h1SKWIUYIbppj3p11JwfoVxMEA69qqRmoBUsjrUtbanVlQ1ufv2lE4jK0L3f2O4w+pu8GGGnmlpB+HMDJ9bcm9ZbKoSoMxvymVIZd/QEIMYwHuIiVKQNT21cwDTLI8IcPJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BzHR4O46; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kcOSnW1E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E80A9C4CEE7;
-	Mon, 28 Jul 2025 20:58:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BzHR4O46"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CFE4C4CEE7;
+	Mon, 28 Jul 2025 21:00:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753736339;
-	bh=20kt8ogzRmfIlLxilIdw1bcBgw+Ce0mU0iK2lR53poE=;
+	s=korg; t=1753736406;
+	bh=x5XZ8qObQfvuTda7xucQ4RJtaZsjJI1RAHl3Dw3yGQU=;
 	h=Date:To:From:Subject:From;
-	b=kcOSnW1EGiojNk5TOhgFzOvidOlF+KY81d54iB6Q35iMQMadqLFy4qLn1KGUdfsga
-	 t3f6N9/QTpQc9+KDc7EipCD0hQ9rY8YoBhD9cg0ZEAwvfkhQ6gE/i2DHCqbt4XcAzd
-	 I47aq5hIO3Ow+ycnjM5tV2Y4QS1jJnm+nCFXd8sA=
-Date: Mon, 28 Jul 2025 13:58:58 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
+	b=BzHR4O46k4uqcoy9UNDs1ZQYWni1v4GUzhgkeS5vfW1t+vc20mGznSKcirDR+IfTN
+	 VQPP4lzSbYxF6ghnd1Mlz5oSBFNt/5feeC2RRKA3p4v99txeKm9ZaIm6uAQqaI4kbA
+	 8GXpagTfofstOUv2Sja3hw7B9CbuG2UAdd+KLsnw=
+Date: Mon, 28 Jul 2025 14:00:05 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped.patch added to mm-unstable branch
-Message-Id: <20250728205858.E80A9C4CEE7@smtp.kernel.org>
+Subject: + kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch added to mm-new branch
+Message-Id: <20250728210006.3CFE4C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix a UAF when vma->mm is freed after vma->vm_refcnt got dropped
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped.patch
+     Subject: kasan: add test for SLAB_TYPESAFE_BY_RCU quarantine skipping
+has been added to the -mm mm-new branch.  Its filename is
+     kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,140 +64,86 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: fix a UAF when vma->mm is freed after vma->vm_refcnt got dropped
-Date: Mon, 28 Jul 2025 10:53:55 -0700
+From: Jann Horn <jannh@google.com>
+Subject: kasan: add test for SLAB_TYPESAFE_BY_RCU quarantine skipping
+Date: Mon, 28 Jul 2025 17:25:07 +0200
 
-By inducing delays in the right places, Jann Horn created a reproducer for
-a hard to hit UAF issue that became possible after VMAs were allowed to be
-recycled by adding SLAB_TYPESAFE_BY_RCU to their cache.
+Verify that KASAN does not quarantine objects in SLAB_TYPESAFE_BY_RCU
+slabs if CONFIG_SLUB_RCU_DEBUG is off.
 
-Race description is borrowed from Jann's discovery report:
-lock_vma_under_rcu() looks up a VMA locklessly with mas_walk() under
-rcu_read_lock().  At that point, the VMA may be concurrently freed, and it
-can be recycled by another process.  vma_start_read() then increments the
-vma->vm_refcnt (if it is in an acceptable range), and if this succeeds,
-vma_start_read() can return a recycled VMA.
-
-In this scenario where the VMA has been recycled, lock_vma_under_rcu()
-will then detect the mismatching ->vm_mm pointer and drop the VMA through
-vma_end_read(), which calls vma_refcount_put().  vma_refcount_put() drops
-the refcount and then calls rcuwait_wake_up() using a copy of vma->vm_mm. 
-This is wrong: It implicitly assumes that the caller is keeping the VMA's
-mm alive, but in this scenario the caller has no relation to the VMA's mm,
-so the rcuwait_wake_up() can cause UAF.
-
-The diagram depicting the race:
-T1         T2         T3
-==         ==         ==
-lock_vma_under_rcu
-  mas_walk
-          <VMA gets removed from mm>
-                      mmap
-                        <the same VMA is reallocated>
-  vma_start_read
-    __refcount_inc_not_zero_limited_acquire
-                      munmap
-                        __vma_enter_locked
-                          refcount_add_not_zero
-  vma_end_read
-    vma_refcount_put
-      __refcount_dec_and_test
-                          rcuwait_wait_event
-                            <finish operation>
-      rcuwait_wake_up [UAF]
-
-Note that rcuwait_wait_event() in T3 does not block because refcount was
-already dropped by T1.  At this point T3 can exit and free the mm causing
-UAF in T1.  To avoid this we move vma->vm_mm verification into
-vma_start_read() and grab vma->vm_mm to stabilize it before
-vma_refcount_put() operation.
-
-Link: https://lkml.kernel.org/r/20250728175355.2282375-1-surenb@google.com
-Fixes: 3104138517fc ("mm: make vma cache SLAB_TYPESAFE_BY_RCU")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Jann Horn <jannh@google.com>
-Closes: https://lore.kernel.org/all/CAG48ez0-deFbVH=E3jbkWx=X3uVbd8nWeo6kbJPQ0KoUD+m2tA@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20250728-kasan-tsbrcu-noquarantine-test-v1-1-fa24d9ab7f41@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Suggested-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |   23 +++++++++++++++++++++++
- mm/mmap_lock.c            |   10 +++-------
- 2 files changed, 26 insertions(+), 7 deletions(-)
+ mm/kasan/kasan_test_c.c |   36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
---- a/include/linux/mmap_lock.h~mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped
-+++ a/include/linux/mmap_lock.h
-@@ -12,6 +12,7 @@ extern int rcuwait_wake_up(struct rcuwai
- #include <linux/tracepoint-defs.h>
- #include <linux/types.h>
- #include <linux/cleanup.h>
-+#include <linux/sched/mm.h>
+--- a/mm/kasan/kasan_test_c.c~kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping
++++ a/mm/kasan/kasan_test_c.c
+@@ -1073,6 +1073,41 @@ static void kmem_cache_rcu_uaf(struct ku
+ 	kmem_cache_destroy(cache);
+ }
  
- #define MMAP_LOCK_INITIALIZER(name) \
- 	.mmap_lock = __RWSEM_INITIALIZER((name).mmap_lock),
-@@ -183,6 +184,28 @@ static inline struct vm_area_struct *vma
- 	}
- 
- 	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
++/*
++ * Check that SLAB_TYPESAFE_BY_RCU objects are immediately reused when
++ * CONFIG_SLUB_RCU_DEBUG is off, and stay at the same address.
++ */
++static void kmem_cache_rcu_reuse(struct kunit *test)
++{
++	char *p, *p2;
++	struct kmem_cache *cache;
 +
-+	/*
-+	 * If vma got attached to another mm from under us, that mm is not
-+	 * stable and can be freed in the narrow window after vma->vm_refcnt
-+	 * is dropped and before rcuwait_wake_up(mm) is called. Grab it before
-+	 * releasing vma->vm_refcnt.
-+	 */
-+	if (unlikely(vma->vm_mm != mm)) {
-+		/* Use a copy of vm_mm in case vma is freed after we drop vm_refcnt */
-+		struct mm_struct *other_mm = vma->vm_mm;
-+		/*
-+		 * __mmdrop() is a heavy operation and we don't need RCU
-+		 * protection here. Release RCU lock during these operations.
-+		 */
-+		rcu_read_unlock();
-+		mmgrab(other_mm);
-+		vma_refcount_put(vma);
-+		mmdrop(other_mm);
-+		rcu_read_lock();
-+		return NULL;
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_SLUB_RCU_DEBUG);
++
++	cache = kmem_cache_create("test_cache", 16, 0, SLAB_TYPESAFE_BY_RCU,
++				  NULL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
++
++	p = kmem_cache_alloc(cache, GFP_KERNEL);
++	if (!p) {
++		kunit_err(test, "Allocation failed: %s\n", __func__);
++		kmem_cache_destroy(cache);
++		return;
 +	}
 +
- 	/*
- 	 * Overflow of vm_lock_seq/mm_lock_seq might produce false locked result.
- 	 * False unlocked result is impossible because we modify and check
---- a/mm/mmap_lock.c~mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped
-+++ a/mm/mmap_lock.c
-@@ -164,8 +164,7 @@ retry:
- 	 */
- 
- 	/* Check if the vma we locked is the right one. */
--	if (unlikely(vma->vm_mm != mm ||
--		     address < vma->vm_start || address >= vma->vm_end))
-+	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
- 		goto inval_end_read;
- 
- 	rcu_read_unlock();
-@@ -236,11 +235,8 @@ retry:
- 		goto fallback;
- 	}
- 
--	/*
--	 * Verify the vma we locked belongs to the same address space and it's
--	 * not behind of the last search position.
--	 */
--	if (unlikely(vma->vm_mm != mm || from_addr >= vma->vm_end))
-+	/* Verify the vma is not behind of the last search position. */
-+	if (unlikely(from_addr >= vma->vm_end))
- 		goto fallback_unlock;
- 
- 	/*
++	kmem_cache_free(cache, p);
++	p2 = kmem_cache_alloc(cache, GFP_KERNEL);
++	if (!p2) {
++		kunit_err(test, "Allocation failed: %s\n", __func__);
++		kmem_cache_destroy(cache);
++		return;
++	}
++	KUNIT_ASSERT_PTR_EQ(test, p, p2);
++
++	kmem_cache_free(cache, p2);
++	kmem_cache_destroy(cache);
++}
++
+ static void kmem_cache_double_destroy(struct kunit *test)
+ {
+ 	struct kmem_cache *cache;
+@@ -2104,6 +2139,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kmem_cache_double_free),
+ 	KUNIT_CASE(kmem_cache_invalid_free),
+ 	KUNIT_CASE(kmem_cache_rcu_uaf),
++	KUNIT_CASE(kmem_cache_rcu_reuse),
+ 	KUNIT_CASE(kmem_cache_double_destroy),
+ 	KUNIT_CASE(kmem_cache_accounted),
+ 	KUNIT_CASE(kmem_cache_bulk),
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped.patch
+kasan-test-fix-protection-against-compiler-elision.patch
+kasan-skip-quarantine-if-object-is-still-accessible-under-rcu.patch
+mm-rmap-add-anon_vma-lifetime-debug-check.patch
+kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
 
