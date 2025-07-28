@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 103608488;
-	Mon, 28 Jul 2025 22:03:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39D038488
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2025 22:05:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753740237; cv=none; b=p/X2GacOsk7oKOO7AH21Tx/5br8q3MgQsKWyo/WWm+UWbobt39hRUQcet3ICDyOIfvwgQXDUE8DOH6zgvIgbiTf3UPreS9/D249D1JA9ofqD98w11BGE/sviA7I/1mZWBUY5H07xdBxtmc29W/SuLzeBRC01CMv1ipLWUeVLhO0=
+	t=1753740320; cv=none; b=HP+z82Mvq1a7hZVlJCr1sXddhEDyFVyP9I7ckOh9+vScVXdKVCW1LIjcJPFF0K60kC5+1pNbUfIQFZ6GCXd6AN+t4w77uu1yYtbMutNBAgVoiS1d4Luw9X9DQ0PVXFmtsmX5XwE9Z6J6gzZ3A1awpGG9mbxwdgiJnrNorKzwA8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753740237; c=relaxed/simple;
-	bh=LYMqeCNYoqdVhaUedebpRm5h8Uoscy3p/WxHOEoB4RY=;
-	h=Date:To:From:Subject:Message-Id; b=dM+kbRpij/7lNqxVZleMoQ0RYroTQnqvCm9GnzyfHb0A07S3zZjWcwrD+sVvQhP7Tv8kuQeojgjiL1ly+qPPitn0T03NF5ejzNTMu6eSo2m8XmF06qIk44J2iNAPViJenvXY/RPE7u6yUeCSkYhJ4m8MseWsQGSHXQAjG1dfjvc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e559EDBV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753740320; c=relaxed/simple;
+	bh=+FrffnuR0+U2mTPBw5hVfVogaPCyJ4kszxjoGtmgUY4=;
+	h=Date:To:From:Subject:Message-Id; b=CRoXR8SRwmr47gljVD6f5Z71+kxmJlPKJr2Zv6JgGkBM6o295nfhoulPJIn44nTixGkJQvu6cff9StsHQlOlEEyD/Mc9FSXaKwOM8Uoh84umzcTov2LqVW3YTkrHj3ZLkJr6M3rBst3DxSCNgFfb/4ZDb+4CKIipgUcVbRK9gFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hW9VDtNe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e559EDBV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64777C4CEE7;
-	Mon, 28 Jul 2025 22:03:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hW9VDtNe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADC85C4CEE7;
+	Mon, 28 Jul 2025 22:05:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753740236;
-	bh=LYMqeCNYoqdVhaUedebpRm5h8Uoscy3p/WxHOEoB4RY=;
+	s=korg; t=1753740319;
+	bh=+FrffnuR0+U2mTPBw5hVfVogaPCyJ4kszxjoGtmgUY4=;
 	h=Date:To:From:Subject:From;
-	b=e559EDBVF9B5FKKAz5Fu29o/haOtE0J2WG4QkWx7kNRqesqo1Oic3rfdNM3QvxCcF
-	 qFDdYqe+SUNcE/3hvxznf57+FlKEaopeTKrgFpmcFVPGikJ+E4OY0pw89/7wVyOMqf
-	 yoaSJQAtpsRDMAyRsCUXa/1g2bDtiEPkhxLCpQMQ=
-Date: Mon, 28 Jul 2025 15:03:55 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,dev.jain@arm.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=hW9VDtNeXCgndKXA2xwQRb9ggDWWjSbNFR1uiSDH+DfyYqVjTZpH/CtwuIJxLE4AS
+	 InAG1OexIuy3jAPuBV4rT47xK89NZW52ez0VFYasfEI9VXN+V/Rx4sVkLgt4CdX1WX
+	 snfDd4lFhyYFYeKouucP94qBABSBruiE2MPWpzD8=
+Date: Mon, 28 Jul 2025 15:05:19 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,dev.jain@arm.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hang.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250728220356.64777C4CEE7@smtp.kernel.org>
+Subject: + mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch added to mm-new branch
+Message-Id: <20250728220519.ADC85C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem, swap: improve cached mTHP handling and fix potential hang
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hang.patch
+     Subject: mm/shmem, swap: avoid redundant Xarray lookup during swapin
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hang.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,157 +65,156 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem, swap: improve cached mTHP handling and fix potential hang
-Date: Mon, 28 Jul 2025 15:52:59 +0800
+Subject: mm/shmem, swap: avoid redundant Xarray lookup during swapin
+Date: Mon, 28 Jul 2025 15:53:00 +0800
 
-The current swap-in code assumes that, when a swap entry in shmem mapping
-is order 0, its cached folios (if present) must be order 0 too, which
-turns out not always correct.
+Patch series "mm/shmem, swap: bugfix and improvement of mTHP swap in", v6.
 
-The problem is shmem_split_large_entry is called before verifying the
-folio will eventually be swapped in, one possible race is:
+The current THP swapin path have several problems.  It may potentially
+hang, may cause redundant faults due to false positive swap cache lookup,
+and it issues redundant Xarray walks.  !CONFIG_TRANSPARENT_HUGEPAGE builds
+may also contain unnecessary THP checks.
 
-    CPU1                          CPU2
-shmem_swapin_folio
-/* swap in of order > 0 swap entry S1 */
-  folio = swap_cache_get_folio
-  /* folio = NULL */
-  order = xa_get_order
-  /* order > 0 */
-  folio = shmem_swap_alloc_folio
-  /* mTHP alloc failure, folio = NULL */
-  <... Interrupted ...>
-                                 shmem_swapin_folio
-                                 /* S1 is swapped in */
-                                 shmem_writeout
-                                 /* S1 is swapped out, folio cached */
-  shmem_split_large_entry(..., S1)
-  /* S1 is split, but the folio covering it has order > 0 now */
+This series fixes all of the mentioned issues, the code should be more
+robust and prepared for the swap table series.  Now 4 walks is reduced to
+3 (get order & confirm, confirm, insert folio),
+!CONFIG_TRANSPARENT_HUGEPAGE build overhead is also minimized, and comes
+with a sanity check now.
 
-Now any following swapin of S1 will hang: `xa_get_order` returns 0, and
-folio lookup will return a folio with order > 0.  The
-`xa_get_order(&mapping->i_pages, index) != folio_order(folio)` will always
-return false causing swap-in to return -EEXIST.
+The performance is slightly better after this series, sequential swap in
+of 24G data from ZRAM, using transparent_hugepage_tmpfs=always (24 samples
+each):
 
-And this looks fragile.  So fix this up by allowing seeing a larger folio
-in swap cache, and check the whole shmem mapping range covered by the
-swapin have the right swap value upon inserting the folio.  And drop the
-redundant tree walks before the insertion.
+Before:         avg: 10.66s, stddev: 0.04
+After patch 1:  avg: 10.58s, stddev: 0.04
+After patch 2:  avg: 10.65s, stddev: 0.05
+After patch 3:  avg: 10.65s, stddev: 0.04
+After patch 4:  avg: 10.67s, stddev: 0.04
+After patch 5:  avg: 9.79s,  stddev: 0.04
+After patch 6:  avg: 9.79s,  stddev: 0.05
+After patch 7:  avg: 9.78s,  stddev: 0.05
+After patch 8:  avg: 9.79s,  stddev: 0.04
 
-This will actually improve performance, as it avoids two redundant Xarray
-tree walks in the hot path, and the only side effect is that in the
-failure path, shmem may redundantly reallocate a few folios causing
-temporary slight memory pressure.
+Several patches improve the performance by a little, which is about ~8%
+faster in total.
 
-And worth noting, it may seems the order and value check before inserting
-might help reducing the lock contention, which is not true.  The swap
-cache layer ensures raced swapin will either see a swap cache folio or
-failed to do a swapin (we have SWAP_HAS_CACHE bit even if swap cache is
-bypassed), so holding the folio lock and checking the folio flag is
-already good enough for avoiding the lock contention.  The chance that a
-folio passes the swap entry value check but the shmem mapping slot has
-changed should be very low.
+Build kernel test showed very slightly improvement, testing with make -j48
+with defconfig in a 768M memcg also using ZRAM as swap, and
+transparent_hugepage_tmpfs=always (6 test runs):
+
+Before:         avg: 3334.66s, stddev: 43.76
+After patch 1:  avg: 3349.77s, stddev: 18.55
+After patch 2:  avg: 3325.01s, stddev: 42.96
+After patch 3:  avg: 3354.58s, stddev: 14.62
+After patch 4:  avg: 3336.24s, stddev: 32.15
+After patch 5:  avg: 3325.13s, stddev: 22.14
+After patch 6:  avg: 3285.03s, stddev: 38.95
+After patch 7:  avg: 3287.32s, stddev: 26.37
+After patch 8:  avg: 3295.87s, stddev: 46.24
+
+
+This patch (of 7):
+
+Currently shmem calls xa_get_order to get the swap radix entry order,
+requiring a full tree walk.  This can be easily combined with the swap
+entry value checking (shmem_confirm_swap) to avoid the duplicated lookup
+and abort early if the entry is gone already.  Which should improve the
+performance.
 
 Link: https://lkml.kernel.org/r/20250728075306.12704-1-ryncsn@gmail.com
-Link: https://lkml.kernel.org/r/20250728075306.12704-2-ryncsn@gmail.com
-Fixes: 809bc86517cc ("mm: shmem: support large folio swap out")
+Link: https://lkml.kernel.org/r/20250728075306.12704-3-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ mm/shmem.c |   34 +++++++++++++++++++++++++---------
+ 1 file changed, 25 insertions(+), 9 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-swap-improve-cached-mthp-handling-and-fix-potential-hang
+--- a/mm/shmem.c~mm-shmem-swap-avoid-redundant-xarray-lookup-during-swapin
 +++ a/mm/shmem.c
-@@ -884,7 +884,9 @@ static int shmem_add_to_page_cache(struc
- 				   pgoff_t index, void *expected, gfp_t gfp)
+@@ -512,15 +512,27 @@ static int shmem_replace_entry(struct ad
+ 
+ /*
+  * Sometimes, before we decide whether to proceed or to fail, we must check
+- * that an entry was not already brought back from swap by a racing thread.
++ * that an entry was not already brought back or split by a racing thread.
+  *
+  * Checking folio is not enough: by the time a swapcache folio is locked, it
+  * might be reused, and again be swapcache, using the same swap as before.
++ * Returns the swap entry's order if it still presents, else returns -1.
+  */
+-static bool shmem_confirm_swap(struct address_space *mapping,
+-			       pgoff_t index, swp_entry_t swap)
++static int shmem_confirm_swap(struct address_space *mapping, pgoff_t index,
++			      swp_entry_t swap)
  {
- 	XA_STATE_ORDER(xas, &mapping->i_pages, index, folio_order(folio));
--	long nr = folio_nr_pages(folio);
-+	unsigned long nr = folio_nr_pages(folio);
-+	swp_entry_t iter, swap;
+-	return xa_load(&mapping->i_pages, index) == swp_to_radix_entry(swap);
++	XA_STATE(xas, &mapping->i_pages, index);
++	int ret = -1;
 +	void *entry;
++
++	rcu_read_lock();
++	do {
++		entry = xas_load(&xas);
++		if (entry == swp_to_radix_entry(swap))
++			ret = xas_get_order(&xas);
++	} while (xas_retry(&xas, entry));
++	rcu_read_unlock();
++	return ret;
+ }
  
- 	VM_BUG_ON_FOLIO(index != round_down(index, nr), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-@@ -896,14 +898,25 @@ static int shmem_add_to_page_cache(struc
+ /*
+@@ -2293,16 +2305,20 @@ static int shmem_swapin_folio(struct ino
+ 		return -EIO;
  
- 	gfp &= GFP_RECLAIM_MASK;
- 	folio_throttle_swaprate(folio, gfp);
-+	swap = radix_to_swp_entry(expected);
- 
- 	do {
-+		iter = swap;
- 		xas_lock_irq(&xas);
--		if (expected != xas_find_conflict(&xas)) {
--			xas_set_err(&xas, -EEXIST);
--			goto unlock;
-+		xas_for_each_conflict(&xas, entry) {
-+			/*
-+			 * The range must either be empty, or filled with
-+			 * expected swap entries. Shmem swap entries are never
-+			 * partially freed without split of both entry and
-+			 * folio, so there shouldn't be any holes.
-+			 */
-+			if (!expected || entry != swp_to_radix_entry(iter)) {
-+				xas_set_err(&xas, -EEXIST);
-+				goto unlock;
-+			}
-+			iter.val += 1 << xas_get_order(&xas);
- 		}
--		if (expected && xas_find_conflict(&xas)) {
-+		if (expected && iter.val - nr != swap.val) {
- 			xas_set_err(&xas, -EEXIST);
- 			goto unlock;
- 		}
-@@ -2327,7 +2340,7 @@ static int shmem_swapin_folio(struct ino
- 			error = -ENOMEM;
- 			goto failed;
- 		}
--	} else if (order != folio_order(folio)) {
-+	} else if (order > folio_order(folio)) {
- 		/*
- 		 * Swap readahead may swap in order 0 folios into swapcache
- 		 * asynchronously, while the shmem mapping can still stores
-@@ -2352,15 +2365,23 @@ static int shmem_swapin_folio(struct ino
- 
- 			swap = swp_entry(swp_type(swap), swp_offset(swap) + offset);
- 		}
-+	} else if (order < folio_order(folio)) {
-+		swap.val = round_down(swap.val, 1 << folio_order(folio));
-+		index = round_down(index, 1 << folio_order(folio));
+ 	si = get_swap_device(swap);
+-	if (!si) {
+-		if (!shmem_confirm_swap(mapping, index, swap))
++	order = shmem_confirm_swap(mapping, index, swap);
++	if (unlikely(!si)) {
++		if (order < 0)
+ 			return -EEXIST;
+ 		else
+ 			return -EINVAL;
  	}
++	if (unlikely(order < 0)) {
++		put_swap_device(si);
++		return -EEXIST;
++	}
  
- alloced:
--	/* We have to do this with folio locked to prevent races */
-+	/*
-+	 * We have to do this with the folio locked to prevent races.
-+	 * The shmem_confirm_swap below only checks if the first swap
-+	 * entry matches the folio, that's enough to ensure the folio
-+	 * is not used outside of shmem, as shmem swap entries
-+	 * and swap cache folios are never partially freed.
-+	 */
+ 	/* Look it up and read it in.. */
+ 	folio = swap_cache_get_folio(swap, NULL, 0);
+-	order = xa_get_order(&mapping->i_pages, index);
+ 	if (!folio) {
+ 		int nr_pages = 1 << order;
+ 		bool fallback_order0 = false;
+@@ -2412,7 +2428,7 @@ alloced:
+ 	 */
  	folio_lock(folio);
  	if ((!skip_swapcache && !folio_test_swapcache(folio)) ||
--	    folio->swap.val != swap.val ||
- 	    !shmem_confirm_swap(mapping, index, swap) ||
--	    xa_get_order(&mapping->i_pages, index) != folio_order(folio)) {
-+	    folio->swap.val != swap.val) {
+-	    !shmem_confirm_swap(mapping, index, swap) ||
++	    shmem_confirm_swap(mapping, index, swap) < 0 ||
+ 	    folio->swap.val != swap.val) {
  		error = -EEXIST;
  		goto unlock;
- 	}
+@@ -2460,7 +2476,7 @@ alloced:
+ 	*foliop = folio;
+ 	return 0;
+ failed:
+-	if (!shmem_confirm_swap(mapping, index, swap))
++	if (shmem_confirm_swap(mapping, index, swap) < 0)
+ 		error = -EEXIST;
+ 	if (error == -EIO)
+ 		shmem_set_folio_swapin_error(inode, index, folio, swap,
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
