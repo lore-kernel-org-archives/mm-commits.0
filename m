@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAB622539D
-	for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2025 21:00:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5157C4A11
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2025 21:40:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753736407; cv=none; b=HXbvnQiLSXCZe2914Dw4cuHKW9Aw1AVtS9Cgu/W92zL89Cmv26eSUiLCWYpveOiCT89pxHHhw3B/YkfRilspcvqRDB3oLdCyGefYb7DpYy11/82avdFJ+XoME/WYIoTbXv3wfzwL2qWMbtomRlgX1y0ESxl7rNFZgiZwhHBynG4=
+	t=1753738830; cv=none; b=Oom6KL5Qga4GbmEeFdJxU7KP8Mv0y35Vg8Yht/SgvMUFak9EG+vHNiD/CL28SLYz2UEEzzHljToLZdKFvLvxLlIiX+yZZ+f7Qo5WKp+sVwH6DA82aewLWEjGtuyLZF5lPctIDAFIMRQn6A6CcgZ/UwFhR/EimeqY7zqe46OyJBo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753736407; c=relaxed/simple;
-	bh=x5XZ8qObQfvuTda7xucQ4RJtaZsjJI1RAHl3Dw3yGQU=;
-	h=Date:To:From:Subject:Message-Id; b=HHjq+6HK/rw3b6H8RrrdY0t9Ep0AD1iuqi/R/SC/h1SKWIUYIbppj3p11JwfoVxMEA69qqRmoBUsjrUtbanVlQ1ufv2lE4jK0L3f2O4w+pu8GGGnmlpB+HMDJ9bcm9ZbKoSoMxvymVIZd/QEIMYwHuIiVKQNT21cwDTLI8IcPJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BzHR4O46; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753738830; c=relaxed/simple;
+	bh=eONy/RatN8q1DM3wsrW/bSTZRxYGEB9K7YTPJHfr+xY=;
+	h=Date:To:From:Subject:Message-Id; b=Od7Nvt6NBrEopQLtEkWe0+TlbiyzKgulpNeqCyPG+dM24IdPmus1phUqRkyT3+Wt/tRSX9xmZMoYOuV8Bqx3OqzXrdYYZkXaJACCZe91/QTtW4i5ok5yvgq4AInImUUaPMMCooxMMqjs4ZAVFKZ4BJCAg+dz46w2vc+EGL3ciBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZnxqcmnE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BzHR4O46"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CFE4C4CEE7;
-	Mon, 28 Jul 2025 21:00:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZnxqcmnE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A34CDC4CEE7;
+	Mon, 28 Jul 2025 21:40:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753736406;
-	bh=x5XZ8qObQfvuTda7xucQ4RJtaZsjJI1RAHl3Dw3yGQU=;
+	s=korg; t=1753738829;
+	bh=eONy/RatN8q1DM3wsrW/bSTZRxYGEB9K7YTPJHfr+xY=;
 	h=Date:To:From:Subject:From;
-	b=BzHR4O46k4uqcoy9UNDs1ZQYWni1v4GUzhgkeS5vfW1t+vc20mGznSKcirDR+IfTN
-	 VQPP4lzSbYxF6ghnd1Mlz5oSBFNt/5feeC2RRKA3p4v99txeKm9ZaIm6uAQqaI4kbA
-	 8GXpagTfofstOUv2Sja3hw7B9CbuG2UAdd+KLsnw=
-Date: Mon, 28 Jul 2025 14:00:05 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
+	b=ZnxqcmnEhM4gaTDp8cFVZRZY+OIuvh7NFnokvGIxQJqeIu3+OdYwn/ATYJIde92E3
+	 P7Zr0hY3gEgUqyqItgRoVp5N01EkYBVWvpfT0N6jgMQOdCSWX33dcweTPm8ucBYLT/
+	 epHkYuDcW4dHo6sGYeaem+OiowDg7LI29/su4J+Y=
+Date: Mon, 28 Jul 2025 14:40:28 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,corbet@lwn.net,fan.yu9@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch added to mm-new branch
-Message-Id: <20250728210006.3CFE4C4CEE7@smtp.kernel.org>
+Subject: + delaytop-enhance-error-logging-and-add-psi-feature-description.patch added to mm-nonmm-unstable branch
+Message-Id: <20250728214029.A34CDC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: add test for SLAB_TYPESAFE_BY_RCU quarantine skipping
-has been added to the -mm mm-new branch.  Its filename is
-     kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
+     Subject: delaytop: enhance error logging and add PSI feature description
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     delaytop-enhance-error-logging-and-add-psi-feature-description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delaytop-enhance-error-logging-and-add-psi-feature-description.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,86 +58,404 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: kasan: add test for SLAB_TYPESAFE_BY_RCU quarantine skipping
-Date: Mon, 28 Jul 2025 17:25:07 +0200
+From: <fan.yu9@zte.com.cn>
+Subject: delaytop: enhance error logging and add PSI feature description
+Date: Mon, 28 Jul 2025 16:28:34 +0800 (CST)
 
-Verify that KASAN does not quarantine objects in SLAB_TYPESAFE_BY_RCU
-slabs if CONFIG_SLUB_RCU_DEBUG is off.
+This patch improves error diagnostics and documentation for delaytop:
 
-Link: https://lkml.kernel.org/r/20250728-kasan-tsbrcu-noquarantine-test-v1-1-fa24d9ab7f41@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Suggested-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+1) Enhanced error logging:
+   - Added explicit error messages in critical failure paths
+   - Implemented BOOL_FPRINT macro for robust output handling
+
+2) PSI feature documentation:
+   - Updated header comment to reflect PSI monitoring capability
+   - Improved output formatting for PSI information
+
+System Pressure Information: (avg10/avg60/avg300/total)
+CPU some:       0.0%/   0.0%/   0.0%/     345(ms)
+CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
+Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
+Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
+IO full:        0.0%/   0.0%/   0.0%/      65(ms)
+IO some:        0.0%/   0.0%/   0.0%/      79(ms)
+IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
+
+Link: https://lkml.kernel.org/r/202507281628341752gMXCMN7S-Vz_LHYHum9r@zte.com.cn
+Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ Documentation/accounting/delay-accounting.rst |   61 +++---
+ tools/accounting/delaytop.c                   |  162 ++++++++++------
+ 2 files changed, 143 insertions(+), 80 deletions(-)
 
---- a/mm/kasan/kasan_test_c.c~kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1073,6 +1073,41 @@ static void kmem_cache_rcu_uaf(struct ku
- 	kmem_cache_destroy(cache);
+--- a/Documentation/accounting/delay-accounting.rst~delaytop-enhance-error-logging-and-add-psi-feature-description
++++ a/Documentation/accounting/delay-accounting.rst
+@@ -132,38 +132,47 @@ Get IO accounting for pid 1, it works on
+ 
+ The above command can be used with -v to get more debug information.
+ 
+-After the system starts, use `delaytop` to get the Top-N high-latency tasks.
+-this tool supports sorting by CPU latency in descending order by default,
++After the system starts, use `delaytop` to get the system-wide delay information,
++which includes system-wide PSI information and Top-N high-latency tasks.
++
++`delaytop` supports sorting by CPU latency in descending order by default,
+ displays the top 20 high-latency tasks by default, and refreshes the latency
+ data every 2 seconds by default.
+ 
+-Get Top-N tasks delay, since system boot::
++Get PSI information and Top-N tasks delay, since system boot::
+ 
+ 	bash# ./delaytop
++	System Pressure Information: (avg10/avg60/avg300/total)
++	CPU some:       0.0%/   0.0%/   0.0%/     345(ms)
++	CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
++	Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
++	Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
++	IO full:        0.0%/   0.0%/   0.0%/      65(ms)
++	IO some:        0.0%/   0.0%/   0.0%/      79(ms)
++	IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
+ 	Top 20 processes (sorted by CPU delay):
+-
+-	  PID   TGID  COMMAND            CPU(ms)  IO(ms)        SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)
+-	---------------------------------------------------------------------------------------------
+-	   32     32  kworker/2:0H-sy   23.65     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	  497    497  kworker/R-scsi_    1.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	  495    495  kworker/R-scsi_    1.13     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	  494    494  scsi_eh_0          1.12     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	  485    485  kworker/R-ata_s    0.90     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	  574    574  kworker/R-kdmfl    0.36     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	   34     34  idle_inject/3      0.33     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	 1123   1123  nde-netfilter      0.28     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	   60     60  ksoftirqd/7        0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	  114    114  kworker/0:2-cgr    0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	  496    496  scsi_eh_1          0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	   51     51  cpuhp/6            0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	 1667   1667  atd                0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	   45     45  cpuhp/5            0.23     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	 1102   1102  nde-backupservi    0.22     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	 1098   1098  systemsettings     0.21     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	 1100   1100  audit-monitor      0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	   53     53  migration/6        0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	 1482   1482  sshd               0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
+-	   39     39  cpuhp/4            0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
++	  PID   TGID  COMMAND          CPU(ms)  IO(ms) SWAP(ms) RCL(ms) THR(ms) CMP(ms)  WP(ms) IRQ(ms)
++	----------------------------------------------------------------------------------------------
++	  161    161  zombie_memcg_re   1.40    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	  130    130  blkcg_punt_bio    1.37    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	  444    444  scsi_tmf_0        0.73    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	 1280   1280  rsyslogd          0.53    0.04    0.00    0.00    0.00    0.00    0.00    0.00
++	   12     12  ksoftirqd/0       0.47    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	 1277   1277  nbd-server        0.44    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	  308    308  kworker/2:2-sys   0.41    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	   55     55  netns             0.36    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	 1187   1187  acpid             0.31    0.03    0.00    0.00    0.00    0.00    0.00    0.00
++	 6184   6184  kworker/1:2-sys   0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	  186    186  kaluad            0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	   18     18  ksoftirqd/1       0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	  185    185  kmpath_rdacd      0.23    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	  190    190  kstrp             0.23    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	 2759   2759  agetty            0.20    0.03    0.00    0.00    0.00    0.00    0.00    0.00
++	 1190   1190  kworker/0:3-sys   0.19    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	 1272   1272  sshd              0.15    0.04    0.00    0.00    0.00    0.00    0.00    0.00
++	 1156   1156  license           0.15    0.11    0.00    0.00    0.00    0.00    0.00    0.00
++	  134    134  md                0.13    0.00    0.00    0.00    0.00    0.00    0.00    0.00
++	 6142   6142  kworker/3:2-xfs   0.13    0.00    0.00    0.00    0.00    0.00    0.00    0.00
+ 
+ Dynamic interactive interface of delaytop::
+ 
+--- a/tools/accounting/delaytop.c~delaytop-enhance-error-logging-and-add-psi-feature-description
++++ a/tools/accounting/delaytop.c
+@@ -1,16 +1,16 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * delaytop.c - task delay monitoring tool.
++ * delaytop.c - system-wide delay monitoring tool.
+  *
+  * This tool provides real-time monitoring and statistics of
+  * system, container, and task-level delays, including CPU,
+- * memory, IO, and IRQ and delay accounting. It supports both
+- * interactive (top-like), and can output delay information
+- * for the whole system, specific containers (cgroups), or
+- * individual tasks (PIDs).
++ * memory, IO, and IRQ. It supports both interactive (top-like),
++ * and can output delay information for the whole system, specific
++ * containers (cgroups), or individual tasks (PIDs).
+  *
+  * Key features:
+  *	- Collects per-task delay accounting statistics via taskstats.
++ *	- Collects system-wide PSI information.
+  *	- Supports sorting, filtering.
+  *	- Supports both interactive (screen refresh).
+  *
+@@ -32,6 +32,7 @@
+ #include <time.h>
+ #include <dirent.h>
+ #include <ctype.h>
++#include <stdbool.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/socket.h>
+@@ -41,7 +42,6 @@
+ #include <linux/genetlink.h>
+ #include <linux/taskstats.h>
+ #include <linux/cgroupstats.h>
+-#include <ncurses.h>
+ 
+ #define PSI_CPU_SOME "/proc/pressure/cpu"
+ #define PSI_CPU_FULL	"/proc/pressure/cpu"
+@@ -62,6 +62,12 @@
+ #define MAX_MSG_SIZE	1024
+ #define MAX_TASKS		1000
+ #define SET_TASK_STAT(task_count, field) tasks[task_count].field = stats.field
++#define BOOL_FPRINT(stream, fmt, ...) \
++({ \
++	int ret = fprintf(stream, fmt, ##__VA_ARGS__); \
++	ret >= 0; \
++})
++#define PSI_LINE_FORMAT "%-12s %6.1f%%/%6.1f%%/%6.1f%%/%8llu(ms)\n"
+ 
+ /* Program settings structure */
+ struct config {
+@@ -262,6 +268,7 @@ static int create_nl_socket(void)
+ 	local.nl_family = AF_NETLINK;
+ 
+ 	if (bind(fd, (struct sockaddr *) &local, sizeof(local)) < 0) {
++		fprintf(stderr, "Failed to bind socket when create nl_socket\n");
+ 		close(fd);
+ 		return -1;
+ 	}
+@@ -332,13 +339,17 @@ static int get_family_id(int sd)
+ 	rc = send_cmd(sd, GENL_ID_CTRL, getpid(), CTRL_CMD_GETFAMILY,
+ 			CTRL_ATTR_FAMILY_NAME, (void *)name,
+ 			strlen(TASKSTATS_GENL_NAME)+1);
+-	if (rc < 0)
++	if (rc < 0) {
++		fprintf(stderr, "Failed to send cmd for family id\n");
+ 		return 0;
++	}
+ 
+ 	rep_len = recv(sd, &ans, sizeof(ans), 0);
+ 	if (ans.n.nlmsg_type == NLMSG_ERROR ||
+-		(rep_len < 0) || !NLMSG_OK((&ans.n), rep_len))
++		(rep_len < 0) || !NLMSG_OK((&ans.n), rep_len)) {
++		fprintf(stderr, "Failed to receive response for family id\n");
+ 		return 0;
++	}
+ 
+ 	na = (struct nlattr *) GENLMSG_DATA(&ans);
+ 	na = (struct nlattr *) ((char *) na + NLA_ALIGN(na->nla_len));
+@@ -433,26 +444,30 @@ static void read_psi_stats(void)
+ static int read_comm(int pid, char *comm_buf, size_t buf_size)
+ {
+ 	char path[64];
++	int ret = -1;
+ 	size_t len;
+ 	FILE *fp;
+ 
+ 	snprintf(path, sizeof(path), "/proc/%d/comm", pid);
+ 	fp = fopen(path, "r");
+-	if (!fp)
+-		return -1;
++	if (!fp) {
++		fprintf(stderr, "Failed to open comm file /proc/%d/comm\n", pid);
++		return ret;
++	}
++
+ 	if (fgets(comm_buf, buf_size, fp)) {
+ 		len = strlen(comm_buf);
+ 		if (len > 0 && comm_buf[len - 1] == '\n')
+ 			comm_buf[len - 1] = '\0';
+-	} else {
+-		fclose(fp);
+-		return -1;
++		ret = 0;
+ 	}
++
+ 	fclose(fp);
+-	return 0;
++
++	return ret;
  }
  
-+/*
-+ * Check that SLAB_TYPESAFE_BY_RCU objects are immediately reused when
-+ * CONFIG_SLUB_RCU_DEBUG is off, and stay at the same address.
-+ */
-+static void kmem_cache_rcu_reuse(struct kunit *test)
-+{
-+	char *p, *p2;
-+	struct kmem_cache *cache;
-+
-+	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_SLUB_RCU_DEBUG);
-+
-+	cache = kmem_cache_create("test_cache", 16, 0, SLAB_TYPESAFE_BY_RCU,
-+				  NULL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
-+	p = kmem_cache_alloc(cache, GFP_KERNEL);
-+	if (!p) {
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+
-+	kmem_cache_free(cache, p);
-+	p2 = kmem_cache_alloc(cache, GFP_KERNEL);
-+	if (!p2) {
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+	KUNIT_ASSERT_PTR_EQ(test, p, p2);
-+
-+	kmem_cache_free(cache, p2);
-+	kmem_cache_destroy(cache);
-+}
-+
- static void kmem_cache_double_destroy(struct kunit *test)
+-static int fetch_and_fill_task_info(int pid, const char *comm)
++static void fetch_and_fill_task_info(int pid, const char *comm)
  {
- 	struct kmem_cache *cache;
-@@ -2104,6 +2139,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kmem_cache_double_free),
- 	KUNIT_CASE(kmem_cache_invalid_free),
- 	KUNIT_CASE(kmem_cache_rcu_uaf),
-+	KUNIT_CASE(kmem_cache_rcu_reuse),
- 	KUNIT_CASE(kmem_cache_double_destroy),
- 	KUNIT_CASE(kmem_cache_accounted),
- 	KUNIT_CASE(kmem_cache_bulk),
+ 	struct {
+ 		struct nlmsghdr n;
+@@ -466,13 +481,21 @@ static int fetch_and_fill_task_info(int
+ 	int nl_len;
+ 	int rc;
+ 
++	/* Send request for task stats */
+ 	if (send_cmd(nl_sd, family_id, getpid(), TASKSTATS_CMD_GET,
+ 				 TASKSTATS_CMD_ATTR_PID, &pid, sizeof(pid)) < 0) {
+-		return -1;
++		fprintf(stderr, "Failed to send request for task stats\n");
++		return;
+ 	}
++
++	/* Receive response */
+ 	rc = recv(nl_sd, &resp, sizeof(resp), 0);
+-	if (rc < 0 || resp.n.nlmsg_type == NLMSG_ERROR)
+-		return -1;
++	if (rc < 0 || resp.n.nlmsg_type == NLMSG_ERROR) {
++		fprintf(stderr, "Failed to receive response for task stats\n");
++		return;
++	}
++
++	/* Parse response */
+ 	nl_len = GENLMSG_PAYLOAD(&resp.n);
+ 	na = (struct nlattr *) GENLMSG_DATA(&resp);
+ 	while (nl_len > 0) {
+@@ -515,7 +538,7 @@ static int fetch_and_fill_task_info(int
+ 		nl_len -= NLA_ALIGN(na->nla_len);
+ 		na = NLA_NEXT(na);
+ 	}
+-	return 0;
++	return;
+ }
+ 
+ static void get_task_delays(void)
+@@ -654,54 +677,82 @@ static void display_results(void)
+ {
+ 	time_t now = time(NULL);
+ 	struct tm *tm_now = localtime(&now);
++	FILE *out = stdout;
+ 	char timestamp[32];
++	bool suc = true;
+ 	int i, count;
+-	FILE *out = stdout;
+ 
+-	fprintf(out, "\033[H\033[J");
++	/* Clear terminal screen */
++	suc &= BOOL_FPRINT(out, "\033[H\033[J");
++
+ 	/* PSI output (one-line, no cat style) */
+-	fprintf(out, "System Pressure Information: ");
+-	fprintf(out, "(avg10/avg60/avg300/total)\n");
+-	fprintf(out, "CPU:");
+-	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.cpu_full_avg10,
+-			psi.cpu_full_avg60, psi.cpu_full_avg300, psi.cpu_full_total);
+-	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.cpu_some_avg10,
+-			psi.cpu_some_avg60, psi.cpu_some_avg300, psi.cpu_some_total);
+-
+-	fprintf(out, "Memory:");
+-	fprintf(out, " full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.memory_full_avg10,
+-			psi.memory_full_avg60, psi.memory_full_avg300, psi.memory_full_total);
+-	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.memory_some_avg10,
+-			psi.memory_some_avg60, psi.memory_some_avg300, psi.memory_some_total);
+-
+-	fprintf(out, "IO:");
+-	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.io_full_avg10,
+-			psi.io_full_avg60, psi.io_full_avg300, psi.io_full_total);
+-	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.io_some_avg10,
+-			psi.io_some_avg60, psi.io_some_avg300, psi.io_some_total);
+-	fprintf(out, "IRQ:");
+-	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n\n", psi.irq_full_avg10,
+-			psi.irq_full_avg60, psi.irq_full_avg300, psi.irq_full_total);
++	suc &= BOOL_FPRINT(out, "System Pressure Information: (avg10/avg60/avg300/total)\n");
++	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++		"CPU some:",
++		psi.cpu_some_avg10,
++		psi.cpu_some_avg60,
++		psi.cpu_some_avg300,
++		psi.cpu_some_total / 1000);
++	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++		"CPU full:",
++		psi.cpu_full_avg10,
++		psi.cpu_full_avg60,
++		psi.cpu_full_avg300,
++		psi.cpu_full_total / 1000);
++	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++		"Memory full:",
++		psi.memory_full_avg10,
++		psi.memory_full_avg60,
++		psi.memory_full_avg300,
++		psi.memory_full_total / 1000);
++	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++		"Memory some:",
++		psi.memory_some_avg10,
++		psi.memory_some_avg60,
++		psi.memory_some_avg300,
++		psi.memory_some_total / 1000);
++	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++		"IO full:",
++		psi.io_full_avg10,
++		psi.io_full_avg60,
++		psi.io_full_avg300,
++		psi.io_full_total / 1000);
++	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++		"IO some:",
++		psi.io_some_avg10,
++		psi.io_some_avg60,
++		psi.io_some_avg300,
++		psi.io_some_total / 1000);
++	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++		"IRQ full:",
++		psi.irq_full_avg10,
++		psi.irq_full_avg60,
++		psi.irq_full_avg300,
++		psi.irq_full_total / 1000);
++
+ 	if (cfg.container_path) {
+-		fprintf(out, "Container Information (%s):\n", cfg.container_path);
+-		fprintf(out, "Processes: running=%d, sleeping=%d, ",
++		suc &= BOOL_FPRINT(out, "Container Information (%s):\n", cfg.container_path);
++		suc &= BOOL_FPRINT(out, "Processes: running=%d, sleeping=%d, ",
+ 			container_stats.nr_running, container_stats.nr_sleeping);
+-		fprintf(out, "stopped=%d, uninterruptible=%d, io_wait=%d\n\n",
++		suc &= BOOL_FPRINT(out, "stopped=%d, uninterruptible=%d, io_wait=%d\n\n",
+ 			container_stats.nr_stopped, container_stats.nr_uninterruptible,
+ 			container_stats.nr_io_wait);
+ 	}
+-	fprintf(out, "Top %d processes (sorted by CPU delay):\n\n",
++	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by CPU delay):\n",
+ 			cfg.max_processes);
+-	fprintf(out, "  PID	TGID  COMMAND		 CPU(ms)  IO(ms)	");
+-	fprintf(out, "SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)\n");
+-	fprintf(out, "-----------------------------------------------");
+-	fprintf(out, "----------------------------------------------\n");
++	suc &= BOOL_FPRINT(out, "%5s  %5s  %-17s", "PID", "TGID", "COMMAND");
++	suc &= BOOL_FPRINT(out, "%7s %7s %7s %7s %7s %7s %7s %7s\n",
++		"CPU(ms)", "IO(ms)", "SWAP(ms)", "RCL(ms)",
++		"THR(ms)", "CMP(ms)", "WP(ms)", "IRQ(ms)");
++
++	suc &= BOOL_FPRINT(out, "-----------------------------------------------");
++	suc &= BOOL_FPRINT(out, "----------------------------------------------\n");
+ 	count = task_count < cfg.max_processes ? task_count : cfg.max_processes;
+ 
+ 	for (i = 0; i < count; i++) {
+-		fprintf(out, "%5d  %5d  %-15s ",
++		suc &= BOOL_FPRINT(out, "%5d  %5d  %-15s",
+ 			tasks[i].pid, tasks[i].tgid, tasks[i].command);
+-		fprintf(out, "%7.2f  %7.2f  %7.2f  %7.2f %7.2f  %7.2f  %7.2f  %7.2f\n",
++		suc &= BOOL_FPRINT(out, "%7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n",
+ 			average_ms(tasks[i].cpu_delay_total, tasks[i].cpu_count),
+ 			average_ms(tasks[i].blkio_delay_total, tasks[i].blkio_count),
+ 			average_ms(tasks[i].swapin_delay_total, tasks[i].swapin_count),
+@@ -712,7 +763,10 @@ static void display_results(void)
+ 			average_ms(tasks[i].irq_delay_total, tasks[i].irq_count));
+ 	}
+ 
+-	fprintf(out, "\n");
++	suc &= BOOL_FPRINT(out, "\n");
++
++	if (!suc)
++		perror("Error writing to output");
+ }
+ 
+ /* Main function */
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from fan.yu9@zte.com.cn are
 
-kasan-test-fix-protection-against-compiler-elision.patch
-kasan-skip-quarantine-if-object-is-still-accessible-under-rcu.patch
-mm-rmap-add-anon_vma-lifetime-debug-check.patch
-kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
+delaytop-enhance-error-logging-and-add-psi-feature-description.patch
 
