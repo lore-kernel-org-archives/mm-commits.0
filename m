@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4771D5AD4
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2025 22:13:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8C4D26B767;
+	Mon, 28 Jul 2025 19:44:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753567992; cv=none; b=AePNLdcjhlj9AoHX3YGeo3QNqNek6W+ZvvCbXeeLnks6B3hdiM9dAQvnDQSLQ9JZMhi6ZuEhcc/rAL342PFAcLdKnVZTTONzBP2ZCrjuQzsnnWvpClYs2UUj6iXg0dBnC0KTLbJ04v6oyAA5swavr/ZYl0gmk9t7JwySxZog79U=
+	t=1753731889; cv=none; b=ouRDrP3EQi+kvQK3HhNrgUCHzVdnp1e3DCGVKFFPkujSqQPoCWBmC2as0LeboBrNq+uLAtyWg4ZFvp5Q3IZXvwcQQiFM++w7RoMuZekWD27f+KDlbNc5KfUwE2Eo2L+pblWFO2bLYE0sobov4rNTmnsVDVJq4mXZFQnQOz+BP0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753567992; c=relaxed/simple;
-	bh=FHzDkSzqWGbdxjOHDlCkMT5Ft+JZnKMh5N7uXKJ2hsA=;
-	h=Date:To:From:Subject:Message-Id; b=oH7OpUq0FoSkwbx6qpyFHfPGlhNV7QuTRoc8hipmlsd83rqFwjr2cNWXCVGkOQHXhIsZx5DQYVguXOCxhQm455x5fCOFnlmyAuo6aeLYPYhBpyowaiSdVCUgXDHlcTk0jTcRpAUUzbYHGmK9pRFMEQ+0TobCCgs0UpNbFdqeuS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eE7ySHJ7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753731889; c=relaxed/simple;
+	bh=DfSclBjlddJc1UCKxu4XDjsKHM1abcpJNcQtgq0sEjk=;
+	h=Date:To:From:Subject:Message-Id; b=oISYzzhzJjn6uf8jfP847PnvpMMopmYlOsZCi/xsez5/i3ZTV6/AwSaOC3zBtGZfguSOUWLfQ2KtzpVZDnHEx+G2/Ex9I/DHCGKnt+m5ezmHQS5xC6llxFMmXCVDwjcQrR4SQ7vkuh5s603EgFBsu7Khsk8K2yyx3jBzwamiXUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kfOLoYyd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eE7ySHJ7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3697C4CEED;
-	Sat, 26 Jul 2025 22:13:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kfOLoYyd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D729C4CEE7;
+	Mon, 28 Jul 2025 19:44:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753567991;
-	bh=FHzDkSzqWGbdxjOHDlCkMT5Ft+JZnKMh5N7uXKJ2hsA=;
+	s=korg; t=1753731889;
+	bh=DfSclBjlddJc1UCKxu4XDjsKHM1abcpJNcQtgq0sEjk=;
 	h=Date:To:From:Subject:From;
-	b=eE7ySHJ7lJAMrNmRgx6+gGKCcptb5Kapw8jbcEy3a/m2UhQrzwIC9ltl2GFvag1tA
-	 EprR4K4q6gNbD4YBXPSXf9tbjxR7DCmRzQGG2E83aLqregYcuHgeb5LYw90qDP3PSM
-	 URPo7wmCeU48+O3T1J4ExVjOwZIQmEalmRRCj4Bw=
-Date: Sat, 26 Jul 2025 15:13:11 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=kfOLoYydhbRKZaTacK72QLaVQtxh3pHOIdrWZ0LfOAnvvyXfNKn9O0oFO8lYmWArl
+	 1W45vCMk3UJdkUfZbFkheyNG9KRY6j9dmKwpyEyilbzKA/2XK/DkQzw/p3Gpah255M
+	 ifsV2GYt1EfB8xQlN2sImIWU6eA+eGyTOEBffA0s=
+Date: Mon, 28 Jul 2025 12:44:48 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,catalin.marinas@arm.com,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-assert-rmap-behave-as-expected.patch added to mm-new branch
-Message-Id: <20250726221311.C3697C4CEED@smtp.kernel.org>
+Subject: + mm-kmemleak-avoid-soft-lockup-in-__kmemleak_do_cleanup.patch added to mm-nonmm-unstable branch
+Message-Id: <20250728194449.2D729C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: assert rmap behave as expected
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-assert-rmap-behave-as-expected.patch
+     Subject: mm/kmemleak: avoid soft lockup in __kmemleak_do_cleanup()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mm-kmemleak-avoid-soft-lockup-in-__kmemleak_do_cleanup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-assert-rmap-behave-as-expected.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-avoid-soft-lockup-in-__kmemleak_do_cleanup.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,542 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: selftests/mm: assert rmap behave as expected
-Date: Sat, 26 Jul 2025 02:52:23 +0000
+From: Waiman Long <longman@redhat.com>
+Subject: mm/kmemleak: avoid soft lockup in __kmemleak_do_cleanup()
+Date: Mon, 28 Jul 2025 15:02:48 -0400
 
-As David suggested, currently we don't have a high level test case to
-verify the behavior of rmap. This patch introduce the verification on
-rmap by migration.
+A soft lockup warning was observed on a relative small system x86-64
+system with 16 GB of memory when running a debug kernel with kmemleak
+enabled.
 
-The general idea is if migrate one shared page between processes, this
-would be reflected in all related processes. Otherwise, we have problem
-in rmap.
+  watchdog: BUG: soft lockup - CPU#8 stuck for 33s! [kworker/8:1:134]
 
-Currently it covers following four scenarios:
+The test system was running a workload with hot unplug happening in
+parallel.  Then kemleak decided to disable itself due to its inability to
+allocate more kmemleak objects.  The debug kernel has its
+CONFIG_DEBUG_KMEMLEAK_MEM_POOL_SIZE set to 40,000.
 
-  * anonymous page
-  * shmem page
-  * pagecache page
-  * ksm page
+The soft lockup happened in kmemleak_do_cleanup() when the existing
+kmemleak objects were being removed and deleted one-by-one in a loop via a
+workqueue.  In this particular case, there are at least 40,000 objects
+that need to be processed and given the slowness of a debug kernel and the
+fact that a raw_spinlock has to be acquired and released in
+__delete_object(), it could take a while to properly handle all these
+objects.
 
-Link: https://lkml.kernel.org/r/20250726025223.350-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Harry Yoo <harry.yoo@oracle.com>
+As kmemleak has been disabled in this case, the object removal and
+deletion process can be further optimized as locking isn't really needed. 
+However, it is probably not worth the effort to optimize for such an edge
+case that should rarely happen.  So the simple solution is to call
+cond_resched() at periodic interval in the iteration loop to avoid soft
+lockup.
 
+Link: https://lkml.kernel.org/r/20250728190248.605750-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                               |    1 
- tools/testing/selftests/mm/.gitignore     |    1 
- tools/testing/selftests/mm/Makefile       |    3 
- tools/testing/selftests/mm/rmap.c         |  432 ++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh |    4 
- 5 files changed, 441 insertions(+)
+ mm/kmemleak.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/MAINTAINERS~selftests-mm-assert-rmap-behave-as-expected
-+++ a/MAINTAINERS
-@@ -15917,6 +15917,7 @@ S:	Maintained
- F:	include/linux/rmap.h
- F:	mm/page_vma_mapped.c
- F:	mm/rmap.c
-+F:	tools/testing/selftests/mm/rmap.c
+--- a/mm/kmemleak.c~mm-kmemleak-avoid-soft-lockup-in-__kmemleak_do_cleanup
++++ a/mm/kmemleak.c
+@@ -2181,6 +2181,7 @@ static const struct file_operations kmem
+ static void __kmemleak_do_cleanup(void)
+ {
+ 	struct kmemleak_object *object, *tmp;
++	unsigned int cnt = 0;
  
- MEMORY MANAGEMENT - SECRETMEM
- M:	Andrew Morton <akpm@linux-foundation.org>
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-assert-rmap-behave-as-expected
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -58,3 +58,4 @@ pkey_sighandler_tests_32
- pkey_sighandler_tests_64
- guard-regions
- merge
-+rmap
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-assert-rmap-behave-as-expected
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -101,6 +101,7 @@ TEST_GEN_FILES += hugetlb_dio
- TEST_GEN_FILES += droppable
- TEST_GEN_FILES += guard-regions
- TEST_GEN_FILES += merge
-+TEST_GEN_FILES += rmap
- 
- ifneq ($(ARCH),arm64)
- TEST_GEN_FILES += soft-dirty
-@@ -228,6 +229,8 @@ $(OUTPUT)/ksm_tests: LDLIBS += -lnuma
- 
- $(OUTPUT)/migration: LDLIBS += -lnuma
- 
-+$(OUTPUT)/rmap: LDLIBS += -lnuma
-+
- local_config.mk local_config.h: check_config.sh
- 	/bin/sh ./check_config.sh $(CC)
- 
-diff --git a/tools/testing/selftests/mm/rmap.c a/tools/testing/selftests/mm/rmap.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/rmap.c
-@@ -0,0 +1,432 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * RMAP functional tests
-+ *
-+ * Author(s): Wei Yang <richard.weiyang@gmail.com>
-+ */
-+
-+#include "../kselftest_harness.h"
-+#include <strings.h>
-+#include <pthread.h>
-+#include <numa.h>
-+#include <numaif.h>
-+#include <sys/mman.h>
-+#include <sys/prctl.h>
-+#include <sys/types.h>
-+#include <signal.h>
-+#include <time.h>
-+#include <sys/sem.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+
-+#include "vm_util.h"
-+
-+#define TOTAL_LEVEL 5
-+#define MAX_CHILDREN 3
-+
-+#define FAIL_ON_CHECK	(1 << 0)
-+#define FAIL_ON_WORK	(1 << 1)
-+
-+struct sembuf sem_wait = {0, -1, 0};
-+struct sembuf sem_signal = {0, 1, 0};
-+
-+enum backend_type {
-+	ANON,
-+	SHM,
-+	NORM_FILE,
-+};
-+
-+#define PREFIX "kst_rmap"
-+#define MAX_FILENAME_LEN 256
-+const char *suffixes[] = {
-+	"",
-+	"_shm",
-+	"_file",
-+};
-+
-+struct global_data;
-+typedef int (*work_fn)(struct global_data *data);
-+typedef int (*check_fn)(struct global_data *data);
-+typedef void (*prepare_fn)(struct global_data *data);
-+
-+struct global_data {
-+	int worker_level;
-+
-+	int semid;
-+	int pipefd[2];
-+
-+	unsigned int mapsize;
-+	unsigned int rand_seed;
-+	char *region;
-+
-+	prepare_fn do_prepare;
-+	work_fn do_work;
-+	check_fn do_check;
-+
-+	enum backend_type backend;
-+	char filename[MAX_FILENAME_LEN];
-+
-+	unsigned long *expected_pfn;
-+};
-+
-+/*
-+ * Create a process tree with TOTAL_LEVEL height and at most MAX_CHILDREN
-+ * children for each.
-+ *
-+ * It will randomly select one process as 'worker' process which will
-+ * 'do_work' until all processes are created. And all other processes will
-+ * wait until 'worker' finish its work.
-+ */
-+void propagate_children(struct __test_metadata *_metadata, struct global_data *data)
-+{
-+	pid_t root_pid, pid;
-+	unsigned int num_child;
-+	int status;
-+	int ret = 0;
-+	int curr_child, worker_child;
-+	int curr_level = 1;
-+	bool is_worker = true;
-+
-+	root_pid = getpid();
-+repeat:
-+	num_child = rand_r(&data->rand_seed) % MAX_CHILDREN + 1;
-+	worker_child = is_worker ? rand_r(&data->rand_seed) % num_child : -1;
-+
-+	for (curr_child = 0; curr_child < num_child; curr_child++) {
-+		pid = fork();
-+
-+		if (pid < 0) {
-+			perror("Error: fork\n");
-+		} else if (pid == 0) {
-+			curr_level++;
-+
-+			if (curr_child != worker_child)
-+				is_worker = false;
-+
-+			if (curr_level == TOTAL_LEVEL)
-+				break;
-+
-+			data->rand_seed += curr_child;
-+			goto repeat;
-+		}
-+	}
-+
-+	if (data->do_prepare)
-+		data->do_prepare(data);
-+
-+	close(data->pipefd[1]);
-+
-+	if (is_worker && curr_level == data->worker_level) {
-+		/* This is the worker process, first wait last process created */
-+		char buf;
-+
-+		while (read(data->pipefd[0], &buf, 1) > 0)
-+			;
-+
-+		if (data->do_work)
-+			ret = data->do_work(data);
-+
-+		/* Kick others */
-+		semctl(data->semid, 0, IPC_RMID);
-+	} else {
-+		/* Wait worker finish */
-+		semop(data->semid, &sem_wait, 1);
-+		if (data->do_check)
-+			ret = data->do_check(data);
-+	}
-+
-+	/* Wait all child to quit */
-+	while (wait(&status) > 0) {
-+		if (WIFEXITED(status))
-+			ret |= WEXITSTATUS(status);
-+	}
-+
-+	if (getpid() == root_pid) {
-+		if (ret & FAIL_ON_WORK)
-+			SKIP(return, "Failed in worker");
-+
-+		ASSERT_EQ(ret, 0);
-+	} else {
-+		exit(ret);
-+	}
-+}
-+
-+FIXTURE(migrate)
-+{
-+	struct global_data data;
-+};
-+
-+FIXTURE_SETUP(migrate)
-+{
-+	struct global_data *data = &self->data;
-+
-+	if (numa_available() < 0)
-+		SKIP(return, "NUMA not available");
-+	if (numa_bitmask_weight(numa_all_nodes_ptr) <= 1)
-+		SKIP(return, "Not enough NUMA nodes available");
-+
-+	data->mapsize = getpagesize();
-+
-+	data->expected_pfn = mmap(0, sizeof(unsigned long),
-+				PROT_READ | PROT_WRITE,
-+				MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(data->expected_pfn, MAP_FAILED);
-+
-+	/* Prepare semaphore */
-+	data->semid = semget(IPC_PRIVATE, 1, 0666 | IPC_CREAT);
-+	ASSERT_NE(data->semid, -1);
-+	ASSERT_NE(semctl(data->semid, 0, SETVAL, 0), -1);
-+
-+	/* Prepare pipe */
-+	ASSERT_NE(pipe(data->pipefd), -1);
-+
-+	data->rand_seed = time(NULL);
-+	srand(data->rand_seed);
-+
-+	data->worker_level = rand() % TOTAL_LEVEL + 1;
-+
-+	data->do_prepare = NULL;
-+	data->do_work = NULL;
-+	data->do_check = NULL;
-+
-+	data->backend = ANON;
-+};
-+
-+FIXTURE_TEARDOWN(migrate)
-+{
-+	struct global_data *data = &self->data;
-+
-+	if (data->region != MAP_FAILED)
-+		munmap(data->region, data->mapsize);
-+	data->region = MAP_FAILED;
-+	if (data->expected_pfn != MAP_FAILED)
-+		munmap(data->expected_pfn, sizeof(unsigned long));
-+	data->expected_pfn = MAP_FAILED;
-+	semctl(data->semid, 0, IPC_RMID);
-+	data->semid = -1;
-+
-+	close(data->pipefd[0]);
-+
-+	switch (data->backend) {
-+	case ANON:
-+		break;
-+	case SHM:
-+		shm_unlink(data->filename);
-+		break;
-+	case NORM_FILE:
-+		unlink(data->filename);
-+		break;
-+	}
-+}
-+
-+void access_region(struct global_data *data)
-+{
-+	/*
-+	 * Force read "region" to make sure page fault in.
-+	 */
-+	FORCE_READ(data->region);
-+}
-+
-+int try_to_move_page(char *region)
-+{
-+	int ret;
-+	int node;
-+	int status = 0;
-+	int failures = 0;
-+
-+	ret = move_pages(0, 1, (void **)&region, NULL, &status, MPOL_MF_MOVE_ALL);
-+	if (ret != 0) {
-+		perror("Failed to get original numa");
-+		return FAIL_ON_WORK;
-+	}
-+
-+	/* Pick up a different target node */
-+	for (node = 0; node <= numa_max_node(); node++) {
-+		if (numa_bitmask_isbitset(numa_all_nodes_ptr, node) && node != status)
-+			break;
-+	}
-+
-+	if (node > numa_max_node()) {
-+		ksft_print_msg("Couldn't find available numa node for testing\n");
-+		return FAIL_ON_WORK;
-+	}
-+
-+	while (1) {
-+		ret = move_pages(0, 1, (void **)&region, &node, &status, MPOL_MF_MOVE_ALL);
-+
-+		/* migrate successfully */
-+		if (!ret)
-+			break;
-+
-+		/* error happened */
-+		if (ret < 0) {
-+			ksft_perror("Failed to move pages");
-+			return FAIL_ON_WORK;
-+		}
-+
-+		/* migration is best effort; try again */
-+		if (++failures >= 100)
-+			return FAIL_ON_WORK;
-+	}
-+
-+	return 0;
-+}
-+
-+int move_region(struct global_data *data)
-+{
-+	int ret;
-+	int pagemap_fd;
-+
-+	ret = try_to_move_page(data->region);
-+	if (ret != 0)
-+		return ret;
-+
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd == -1)
-+		return FAIL_ON_WORK;
-+	*data->expected_pfn = pagemap_get_pfn(pagemap_fd, data->region);
-+
-+	return 0;
-+}
-+
-+int has_same_pfn(struct global_data *data)
-+{
-+	unsigned long pfn;
-+	int pagemap_fd;
-+
-+	if (data->region == MAP_FAILED)
-+		return 0;
-+
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd == -1)
-+		return FAIL_ON_CHECK;
-+
-+	pfn = pagemap_get_pfn(pagemap_fd, data->region);
-+	if (pfn != *data->expected_pfn)
-+		return FAIL_ON_CHECK;
-+
-+	return 0;
-+}
-+
-+TEST_F(migrate, anon)
-+{
-+	struct global_data *data = &self->data;
-+
-+	/* Map an area and fault in */
-+	data->region = mmap(0, data->mapsize, PROT_READ | PROT_WRITE,
-+				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(data->region, MAP_FAILED);
-+	memset(data->region, 0xcf, data->mapsize);
-+
-+	data->do_prepare = access_region;
-+	data->do_work = move_region;
-+	data->do_check = has_same_pfn;
-+
-+	propagate_children(_metadata, data);
-+}
-+
-+TEST_F(migrate, shm)
-+{
-+	int shm_fd;
-+	struct global_data *data = &self->data;
-+
-+	snprintf(data->filename, MAX_FILENAME_LEN, "%s%s", PREFIX, suffixes[SHM]);
-+	shm_fd = shm_open(data->filename, O_CREAT | O_RDWR, 0666);
-+	ASSERT_NE(shm_fd, -1);
-+	ftruncate(shm_fd, data->mapsize);
-+	data->backend = SHM;
-+
-+	/* Map a shared area and fault in */
-+	data->region = mmap(0, data->mapsize, PROT_READ | PROT_WRITE,
-+				MAP_SHARED, shm_fd, 0);
-+	ASSERT_NE(data->region, MAP_FAILED);
-+	memset(data->region, 0xcf, data->mapsize);
-+	close(shm_fd);
-+
-+	data->do_prepare = access_region;
-+	data->do_work = move_region;
-+	data->do_check = has_same_pfn;
-+
-+	propagate_children(_metadata, data);
-+}
-+
-+TEST_F(migrate, file)
-+{
-+	int fd;
-+	struct global_data *data = &self->data;
-+
-+	snprintf(data->filename, MAX_FILENAME_LEN, "%s%s", PREFIX, suffixes[NORM_FILE]);
-+	fd = open(data->filename, O_CREAT | O_RDWR | O_EXCL, 0666);
-+	ASSERT_NE(fd, -1);
-+	ftruncate(fd, data->mapsize);
-+	data->backend = NORM_FILE;
-+
-+	/* Map a shared area and fault in */
-+	data->region = mmap(0, data->mapsize, PROT_READ | PROT_WRITE,
-+				MAP_SHARED, fd, 0);
-+	ASSERT_NE(data->region, MAP_FAILED);
-+	memset(data->region, 0xcf, data->mapsize);
-+	close(fd);
-+
-+	data->do_prepare = access_region;
-+	data->do_work = move_region;
-+	data->do_check = has_same_pfn;
-+
-+	propagate_children(_metadata, data);
-+}
-+
-+void prepare_local_region(struct global_data *data)
-+{
-+	/* Allocate range and set the same data */
-+	data->region = mmap(NULL, data->mapsize, PROT_READ|PROT_WRITE,
-+			   MAP_PRIVATE|MAP_ANON, -1, 0);
-+	if (data->region == MAP_FAILED)
-+		return;
-+
-+	memset(data->region, 0xcf, data->mapsize);
-+}
-+
-+int merge_and_migrate(struct global_data *data)
-+{
-+	int pagemap_fd;
-+	int ret = 0;
-+
-+	if (data->region == MAP_FAILED)
-+		return FAIL_ON_WORK;
-+
-+	ksm_start();
-+
-+	ret = try_to_move_page(data->region);
-+
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd == -1)
-+		return FAIL_ON_WORK;
-+	*data->expected_pfn = pagemap_get_pfn(pagemap_fd, data->region);
-+
-+	return ret;
-+}
-+
-+TEST_F(migrate, ksm)
-+{
-+	int ret;
-+	struct global_data *data = &self->data;
-+
-+	if (ksm_stop() < 0)
-+		SKIP(return, "accessing \"/sys/kernel/mm/ksm/run\") failed");
-+	if (ksm_get_full_scans() < 0)
-+		SKIP(return, "accessing \"/sys/kernel/mm/ksm/full_scan\") failed");
-+
-+	ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
-+	if (ret < 0 && errno == EINVAL)
-+		SKIP(return, "PR_SET_MEMORY_MERGE not supported");
-+	else if (ret)
-+		ksft_exit_fail_perror("PR_SET_MEMORY_MERGE=1 failed");
-+
-+	data->do_prepare = prepare_local_region;
-+	data->do_work = merge_and_migrate;
-+	data->do_check = has_same_pfn;
-+
-+	propagate_children(_metadata, data);
-+}
-+
-+TEST_HARNESS_MAIN
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-assert-rmap-behave-as-expected
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -85,6 +85,8 @@ separated by spaces:
- 	test handling of page fragment allocation and freeing
- - vma_merge
- 	test VMA merge cases behave as expected
-+- rmap
-+	test rmap behaves as expected
- 
- example: ./run_vmtests.sh -t "hmm mmap ksm"
- EOF
-@@ -532,6 +534,8 @@ CATEGORY="page_frag" run_test ./test_pag
- 
- CATEGORY="page_frag" run_test ./test_page_frag.sh nonaligned
- 
-+CATEGORY="rmap" run_test ./rmap
-+
- echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}" | tap_prefix
- echo "1..${count_total}" | tap_output
+ 	/*
+ 	 * Kmemleak has already been disabled, no need for RCU list traversal
+@@ -2189,6 +2190,10 @@ static void __kmemleak_do_cleanup(void)
+ 	list_for_each_entry_safe(object, tmp, &object_list, object_list) {
+ 		__remove_object(object);
+ 		__delete_object(object);
++
++		/* Call cond_resched() once per 64 iterations to avoid soft lockup */
++		if (!(++cnt & 0x3f))
++			cond_resched();
+ 	}
+ }
  
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-selftests-mm-put-general-ksm-operation-into-vm_util.patch
-selftests-mm-assert-rmap-behave-as-expected.patch
+mm-kmemleak-avoid-soft-lockup-in-__kmemleak_do_cleanup.patch
 
