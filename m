@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5157C4A11
-	for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2025 21:40:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 962AB21348
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2025 21:45:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753738830; cv=none; b=Oom6KL5Qga4GbmEeFdJxU7KP8Mv0y35Vg8Yht/SgvMUFak9EG+vHNiD/CL28SLYz2UEEzzHljToLZdKFvLvxLlIiX+yZZ+f7Qo5WKp+sVwH6DA82aewLWEjGtuyLZF5lPctIDAFIMRQn6A6CcgZ/UwFhR/EimeqY7zqe46OyJBo=
+	t=1753739127; cv=none; b=id3/H2Gz+JM0KB3N5ZgWPiqtn8Jd8hAYCHoVqkVtxBuGWHoHLF70/v21kQ1C08FHmWP75FfyTt5RGWlfWK6S2BqK6/7n56n6CuFjCxRwODtdHUyI2WPkQhPrHnaT7NSpVN3F8Vq3VFGTx8MchMsLbb+UcBy8fY3swX/N6R/iH7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753738830; c=relaxed/simple;
-	bh=eONy/RatN8q1DM3wsrW/bSTZRxYGEB9K7YTPJHfr+xY=;
-	h=Date:To:From:Subject:Message-Id; b=Od7Nvt6NBrEopQLtEkWe0+TlbiyzKgulpNeqCyPG+dM24IdPmus1phUqRkyT3+Wt/tRSX9xmZMoYOuV8Bqx3OqzXrdYYZkXaJACCZe91/QTtW4i5ok5yvgq4AInImUUaPMMCooxMMqjs4ZAVFKZ4BJCAg+dz46w2vc+EGL3ciBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZnxqcmnE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753739127; c=relaxed/simple;
+	bh=oDjwyp7+5hWKImm18d80eYEbKtv9uZR2f4CC4csSnWY=;
+	h=Date:To:From:Subject:Message-Id; b=Xe8scMVbb9iDawrQLsO4pcfHrqZgE8Udu/beHtEiizKRAIZbDb5th9pFCa8XcxVtHVvi4nqfsrpXbPFXpgXZYwpGjSRFYC+v/BUOgFEF4UFMxFdVIwwCzePz3PIOlJp6ien1xKFPEgwyYfOta5kEi39Kkj/hHcvMMbHwUbWXKSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ANj93XST; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZnxqcmnE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A34CDC4CEE7;
-	Mon, 28 Jul 2025 21:40:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ANj93XST"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C39CC4CEE7;
+	Mon, 28 Jul 2025 21:45:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753738829;
-	bh=eONy/RatN8q1DM3wsrW/bSTZRxYGEB9K7YTPJHfr+xY=;
+	s=korg; t=1753739127;
+	bh=oDjwyp7+5hWKImm18d80eYEbKtv9uZR2f4CC4csSnWY=;
 	h=Date:To:From:Subject:From;
-	b=ZnxqcmnEhM4gaTDp8cFVZRZY+OIuvh7NFnokvGIxQJqeIu3+OdYwn/ATYJIde92E3
-	 P7Zr0hY3gEgUqyqItgRoVp5N01EkYBVWvpfT0N6jgMQOdCSWX33dcweTPm8ucBYLT/
-	 epHkYuDcW4dHo6sGYeaem+OiowDg7LI29/su4J+Y=
-Date: Mon, 28 Jul 2025 14:40:28 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,corbet@lwn.net,fan.yu9@zte.com.cn,akpm@linux-foundation.org
+	b=ANj93XSTxVmiutohckvgZjaXguPTLPW6Rin2vLthg+IGY6KrohYY5iGlO8+9AYBd/
+	 DATFH/HgUvKIffT2Xb0OelY+AQ1yFFdwqUm1bWBC9uJNIc/OxyXYJDsP8ofB39/X1E
+	 /D7onjBxJsLP75L/gurowvjHLBMXgk5b7CEh7+b8=
+Date: Mon, 28 Jul 2025 14:45:26 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ville.syrjala@linux.intel.com,tzimmermann@suse.de,tursulin@ursulin.net,rodrigo.vivi@intel.com,Ray.Huang@amd.com,patryk@kowalczyk.ws,mripard@kernel.org,matthew.brost@intel.com,matthew.auld@intel.com,maarten.lankhorst@linux.intel.com,joonas.lahtinen@linux.intel.com,jani.nikula@linux.intel.com,hughd@google.com,david@redhat.com,christian.koenig@amd.com,airlied@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delaytop-enhance-error-logging-and-add-psi-feature-description.patch added to mm-nonmm-unstable branch
-Message-Id: <20250728214029.A34CDC4CEE7@smtp.kernel.org>
+Subject: + mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver.patch added to mm-new branch
+Message-Id: <20250728214527.0C39CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delaytop: enhance error logging and add PSI feature description
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delaytop-enhance-error-logging-and-add-psi-feature-description.patch
+     Subject: mm: shmem: fix the shmem large folio allocation for the i915 driver
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delaytop-enhance-error-logging-and-add-psi-feature-description.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,404 +64,168 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: <fan.yu9@zte.com.cn>
-Subject: delaytop: enhance error logging and add PSI feature description
-Date: Mon, 28 Jul 2025 16:28:34 +0800 (CST)
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: fix the shmem large folio allocation for the i915 driver
+Date: Mon, 28 Jul 2025 16:03:53 +0800
 
-This patch improves error diagnostics and documentation for delaytop:
+After commit acd7ccb284b8 ("mm: shmem: add large folio support for
+tmpfs"), we extend the 'huge=' option to allow any sized large folios for
+tmpfs, which means tmpfs will allow getting a highest order hint based on
+the size of write() and fallocate() paths, and then will try each
+allowable large order.
 
-1) Enhanced error logging:
-   - Added explicit error messages in critical failure paths
-   - Implemented BOOL_FPRINT macro for robust output handling
+However, when the i915 driver allocates shmem memory, it doesn't provide
+hint information about the size of the large folio to be allocated,
+resulting in the inability to allocate PMD-sized shmem, which in turn
+affects GPU performance.
 
-2) PSI feature documentation:
-   - Updated header comment to reflect PSI monitoring capability
-   - Improved output formatting for PSI information
+To fix this issue, add the 'end' information for shmem_read_folio_gfp() to
+help allocate PMD-sized large folios.  Additionally, use the maximum
+allocation chunk (via mapping_max_folio_size()) to determine the size of
+the large folios to allocate in the i915 driver.
 
-System Pressure Information: (avg10/avg60/avg300/total)
-CPU some:       0.0%/   0.0%/   0.0%/     345(ms)
-CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
-Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
-Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
-IO full:        0.0%/   0.0%/   0.0%/      65(ms)
-IO some:        0.0%/   0.0%/   0.0%/      79(ms)
-IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
-
-Link: https://lkml.kernel.org/r/202507281628341752gMXCMN7S-Vz_LHYHum9r@zte.com.cn
-Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/0d734549d5ed073c80b11601da3abdd5223e1889.1753689802.git.baolin.wang@linux.alibaba.com
+Fixes: acd7ccb284b8 ("mm: shmem: add large folio support for tmpfs")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Patryk Kowalczyk <patryk@kowalczyk.ws>
+Reported-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Tested-by: Patryk Kowalczyk <patryk@kowalczyk.ws>
+Cc: Christan König <christian.koenig@amd.com>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ray <Ray.Huang@amd.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Matthew Auld <matthew.auld@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
+Cc: Tvrtko Ursulin <tursulin@ursulin.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   61 +++---
- tools/accounting/delaytop.c                   |  162 ++++++++++------
- 2 files changed, 143 insertions(+), 80 deletions(-)
+ drivers/gpu/drm/drm_gem.c                 |    2 +-
+ drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    7 ++++++-
+ drivers/gpu/drm/ttm/ttm_backup.c          |    2 +-
+ include/linux/shmem_fs.h                  |    4 ++--
+ mm/shmem.c                                |    7 ++++---
+ 5 files changed, 14 insertions(+), 8 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delaytop-enhance-error-logging-and-add-psi-feature-description
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -132,38 +132,47 @@ Get IO accounting for pid 1, it works on
+--- a/drivers/gpu/drm/drm_gem.c~mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -627,7 +627,7 @@ struct page **drm_gem_get_pages(struct d
+ 	i = 0;
+ 	while (i < npages) {
+ 		long nr;
+-		folio = shmem_read_folio_gfp(mapping, i,
++		folio = shmem_read_folio_gfp(mapping, i, 0,
+ 				mapping_gfp_mask(mapping));
+ 		if (IS_ERR(folio))
+ 			goto fail;
+--- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver
++++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+@@ -69,6 +69,7 @@ int shmem_sg_alloc_table(struct drm_i915
+ 	struct scatterlist *sg;
+ 	unsigned long next_pfn = 0;	/* suppress gcc warning */
+ 	gfp_t noreclaim;
++	size_t chunk;
+ 	int ret;
  
- The above command can be used with -v to get more debug information.
+ 	if (overflows_type(size / PAGE_SIZE, page_count))
+@@ -94,6 +95,7 @@ int shmem_sg_alloc_table(struct drm_i915
+ 	mapping_set_unevictable(mapping);
+ 	noreclaim = mapping_gfp_constraint(mapping, ~__GFP_RECLAIM);
+ 	noreclaim |= __GFP_NORETRY | __GFP_NOWARN;
++	chunk = mapping_max_folio_size(mapping);
  
--After the system starts, use `delaytop` to get the Top-N high-latency tasks.
--this tool supports sorting by CPU latency in descending order by default,
-+After the system starts, use `delaytop` to get the system-wide delay information,
-+which includes system-wide PSI information and Top-N high-latency tasks.
-+
-+`delaytop` supports sorting by CPU latency in descending order by default,
- displays the top 20 high-latency tasks by default, and refreshes the latency
- data every 2 seconds by default.
+ 	sg = st->sgl;
+ 	st->nents = 0;
+@@ -105,10 +107,13 @@ int shmem_sg_alloc_table(struct drm_i915
+ 			0,
+ 		}, *s = shrink;
+ 		gfp_t gfp = noreclaim;
++		loff_t bytes = (page_count - i) << PAGE_SHIFT;
++		loff_t pos = i << PAGE_SHIFT;
  
--Get Top-N tasks delay, since system boot::
-+Get PSI information and Top-N tasks delay, since system boot::
++		bytes = min_t(loff_t, chunk, bytes);
+ 		do {
+ 			cond_resched();
+-			folio = shmem_read_folio_gfp(mapping, i, gfp);
++			folio = shmem_read_folio_gfp(mapping, i, pos + bytes, gfp);
+ 			if (!IS_ERR(folio))
+ 				break;
  
- 	bash# ./delaytop
-+	System Pressure Information: (avg10/avg60/avg300/total)
-+	CPU some:       0.0%/   0.0%/   0.0%/     345(ms)
-+	CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
-+	Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
-+	Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
-+	IO full:        0.0%/   0.0%/   0.0%/      65(ms)
-+	IO some:        0.0%/   0.0%/   0.0%/      79(ms)
-+	IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
- 	Top 20 processes (sorted by CPU delay):
--
--	  PID   TGID  COMMAND            CPU(ms)  IO(ms)        SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)
--	---------------------------------------------------------------------------------------------
--	   32     32  kworker/2:0H-sy   23.65     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	  497    497  kworker/R-scsi_    1.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	  495    495  kworker/R-scsi_    1.13     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	  494    494  scsi_eh_0          1.12     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	  485    485  kworker/R-ata_s    0.90     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	  574    574  kworker/R-kdmfl    0.36     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	   34     34  idle_inject/3      0.33     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	 1123   1123  nde-netfilter      0.28     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	   60     60  ksoftirqd/7        0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	  114    114  kworker/0:2-cgr    0.25     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	  496    496  scsi_eh_1          0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	   51     51  cpuhp/6            0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	 1667   1667  atd                0.24     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	   45     45  cpuhp/5            0.23     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	 1102   1102  nde-backupservi    0.22     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	 1098   1098  systemsettings     0.21     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	 1100   1100  audit-monitor      0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	   53     53  migration/6        0.20     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	 1482   1482  sshd               0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
--	   39     39  cpuhp/4            0.19     0.00     0.00     0.00    0.00     0.00     0.00     0.00
-+	  PID   TGID  COMMAND          CPU(ms)  IO(ms) SWAP(ms) RCL(ms) THR(ms) CMP(ms)  WP(ms) IRQ(ms)
-+	----------------------------------------------------------------------------------------------
-+	  161    161  zombie_memcg_re   1.40    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	  130    130  blkcg_punt_bio    1.37    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	  444    444  scsi_tmf_0        0.73    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	 1280   1280  rsyslogd          0.53    0.04    0.00    0.00    0.00    0.00    0.00    0.00
-+	   12     12  ksoftirqd/0       0.47    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	 1277   1277  nbd-server        0.44    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	  308    308  kworker/2:2-sys   0.41    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	   55     55  netns             0.36    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	 1187   1187  acpid             0.31    0.03    0.00    0.00    0.00    0.00    0.00    0.00
-+	 6184   6184  kworker/1:2-sys   0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	  186    186  kaluad            0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	   18     18  ksoftirqd/1       0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	  185    185  kmpath_rdacd      0.23    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	  190    190  kstrp             0.23    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	 2759   2759  agetty            0.20    0.03    0.00    0.00    0.00    0.00    0.00    0.00
-+	 1190   1190  kworker/0:3-sys   0.19    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	 1272   1272  sshd              0.15    0.04    0.00    0.00    0.00    0.00    0.00    0.00
-+	 1156   1156  license           0.15    0.11    0.00    0.00    0.00    0.00    0.00    0.00
-+	  134    134  md                0.13    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	 6142   6142  kworker/3:2-xfs   0.13    0.00    0.00    0.00    0.00    0.00    0.00    0.00
+--- a/drivers/gpu/drm/ttm/ttm_backup.c~mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver
++++ a/drivers/gpu/drm/ttm/ttm_backup.c
+@@ -100,7 +100,7 @@ ttm_backup_backup_page(struct file *back
+ 	struct folio *to_folio;
+ 	int ret;
  
- Dynamic interactive interface of delaytop::
+-	to_folio = shmem_read_folio_gfp(mapping, idx, alloc_gfp);
++	to_folio = shmem_read_folio_gfp(mapping, idx, 0, alloc_gfp);
+ 	if (IS_ERR(to_folio))
+ 		return PTR_ERR(to_folio);
  
---- a/tools/accounting/delaytop.c~delaytop-enhance-error-logging-and-add-psi-feature-description
-+++ a/tools/accounting/delaytop.c
-@@ -1,16 +1,16 @@
- // SPDX-License-Identifier: GPL-2.0
- /*
-- * delaytop.c - task delay monitoring tool.
-+ * delaytop.c - system-wide delay monitoring tool.
-  *
-  * This tool provides real-time monitoring and statistics of
-  * system, container, and task-level delays, including CPU,
-- * memory, IO, and IRQ and delay accounting. It supports both
-- * interactive (top-like), and can output delay information
-- * for the whole system, specific containers (cgroups), or
-- * individual tasks (PIDs).
-+ * memory, IO, and IRQ. It supports both interactive (top-like),
-+ * and can output delay information for the whole system, specific
-+ * containers (cgroups), or individual tasks (PIDs).
-  *
-  * Key features:
-  *	- Collects per-task delay accounting statistics via taskstats.
-+ *	- Collects system-wide PSI information.
-  *	- Supports sorting, filtering.
-  *	- Supports both interactive (screen refresh).
-  *
-@@ -32,6 +32,7 @@
- #include <time.h>
- #include <dirent.h>
- #include <ctype.h>
-+#include <stdbool.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <sys/socket.h>
-@@ -41,7 +42,6 @@
- #include <linux/genetlink.h>
- #include <linux/taskstats.h>
- #include <linux/cgroupstats.h>
--#include <ncurses.h>
+--- a/include/linux/shmem_fs.h~mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver
++++ a/include/linux/shmem_fs.h
+@@ -156,12 +156,12 @@ enum sgp_type {
+ int shmem_get_folio(struct inode *inode, pgoff_t index, loff_t write_end,
+ 		struct folio **foliop, enum sgp_type sgp);
+ struct folio *shmem_read_folio_gfp(struct address_space *mapping,
+-		pgoff_t index, gfp_t gfp);
++		pgoff_t index, loff_t end, gfp_t gfp);
  
- #define PSI_CPU_SOME "/proc/pressure/cpu"
- #define PSI_CPU_FULL	"/proc/pressure/cpu"
-@@ -62,6 +62,12 @@
- #define MAX_MSG_SIZE	1024
- #define MAX_TASKS		1000
- #define SET_TASK_STAT(task_count, field) tasks[task_count].field = stats.field
-+#define BOOL_FPRINT(stream, fmt, ...) \
-+({ \
-+	int ret = fprintf(stream, fmt, ##__VA_ARGS__); \
-+	ret >= 0; \
-+})
-+#define PSI_LINE_FORMAT "%-12s %6.1f%%/%6.1f%%/%6.1f%%/%8llu(ms)\n"
- 
- /* Program settings structure */
- struct config {
-@@ -262,6 +268,7 @@ static int create_nl_socket(void)
- 	local.nl_family = AF_NETLINK;
- 
- 	if (bind(fd, (struct sockaddr *) &local, sizeof(local)) < 0) {
-+		fprintf(stderr, "Failed to bind socket when create nl_socket\n");
- 		close(fd);
- 		return -1;
- 	}
-@@ -332,13 +339,17 @@ static int get_family_id(int sd)
- 	rc = send_cmd(sd, GENL_ID_CTRL, getpid(), CTRL_CMD_GETFAMILY,
- 			CTRL_ATTR_FAMILY_NAME, (void *)name,
- 			strlen(TASKSTATS_GENL_NAME)+1);
--	if (rc < 0)
-+	if (rc < 0) {
-+		fprintf(stderr, "Failed to send cmd for family id\n");
- 		return 0;
-+	}
- 
- 	rep_len = recv(sd, &ans, sizeof(ans), 0);
- 	if (ans.n.nlmsg_type == NLMSG_ERROR ||
--		(rep_len < 0) || !NLMSG_OK((&ans.n), rep_len))
-+		(rep_len < 0) || !NLMSG_OK((&ans.n), rep_len)) {
-+		fprintf(stderr, "Failed to receive response for family id\n");
- 		return 0;
-+	}
- 
- 	na = (struct nlattr *) GENLMSG_DATA(&ans);
- 	na = (struct nlattr *) ((char *) na + NLA_ALIGN(na->nla_len));
-@@ -433,26 +444,30 @@ static void read_psi_stats(void)
- static int read_comm(int pid, char *comm_buf, size_t buf_size)
+ static inline struct folio *shmem_read_folio(struct address_space *mapping,
+ 		pgoff_t index)
  {
- 	char path[64];
-+	int ret = -1;
- 	size_t len;
- 	FILE *fp;
- 
- 	snprintf(path, sizeof(path), "/proc/%d/comm", pid);
- 	fp = fopen(path, "r");
--	if (!fp)
--		return -1;
-+	if (!fp) {
-+		fprintf(stderr, "Failed to open comm file /proc/%d/comm\n", pid);
-+		return ret;
-+	}
-+
- 	if (fgets(comm_buf, buf_size, fp)) {
- 		len = strlen(comm_buf);
- 		if (len > 0 && comm_buf[len - 1] == '\n')
- 			comm_buf[len - 1] = '\0';
--	} else {
--		fclose(fp);
--		return -1;
-+		ret = 0;
- 	}
-+
- 	fclose(fp);
--	return 0;
-+
-+	return ret;
+-	return shmem_read_folio_gfp(mapping, index, mapping_gfp_mask(mapping));
++	return shmem_read_folio_gfp(mapping, index, 0, mapping_gfp_mask(mapping));
  }
  
--static int fetch_and_fill_task_info(int pid, const char *comm)
-+static void fetch_and_fill_task_info(int pid, const char *comm)
+ static inline struct page *shmem_read_mapping_page(
+--- a/mm/shmem.c~mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver
++++ a/mm/shmem.c
+@@ -5960,6 +5960,7 @@ int shmem_zero_setup(struct vm_area_stru
+  * shmem_read_folio_gfp - read into page cache, using specified page allocation flags.
+  * @mapping:	the folio's address_space
+  * @index:	the folio index
++ * @end:	end of a read if allocating a new folio
+  * @gfp:	the page allocator flags to use if allocating
+  *
+  * This behaves as a tmpfs "read_cache_page_gfp(mapping, index, gfp)",
+@@ -5972,14 +5973,14 @@ int shmem_zero_setup(struct vm_area_stru
+  * with the mapping_gfp_mask(), to avoid OOMing the machine unnecessarily.
+  */
+ struct folio *shmem_read_folio_gfp(struct address_space *mapping,
+-		pgoff_t index, gfp_t gfp)
++		pgoff_t index, loff_t end, gfp_t gfp)
  {
- 	struct {
- 		struct nlmsghdr n;
-@@ -466,13 +481,21 @@ static int fetch_and_fill_task_info(int
- 	int nl_len;
- 	int rc;
+ #ifdef CONFIG_SHMEM
+ 	struct inode *inode = mapping->host;
+ 	struct folio *folio;
+ 	int error;
  
-+	/* Send request for task stats */
- 	if (send_cmd(nl_sd, family_id, getpid(), TASKSTATS_CMD_GET,
- 				 TASKSTATS_CMD_ATTR_PID, &pid, sizeof(pid)) < 0) {
--		return -1;
-+		fprintf(stderr, "Failed to send request for task stats\n");
-+		return;
- 	}
-+
-+	/* Receive response */
- 	rc = recv(nl_sd, &resp, sizeof(resp), 0);
--	if (rc < 0 || resp.n.nlmsg_type == NLMSG_ERROR)
--		return -1;
-+	if (rc < 0 || resp.n.nlmsg_type == NLMSG_ERROR) {
-+		fprintf(stderr, "Failed to receive response for task stats\n");
-+		return;
-+	}
-+
-+	/* Parse response */
- 	nl_len = GENLMSG_PAYLOAD(&resp.n);
- 	na = (struct nlattr *) GENLMSG_DATA(&resp);
- 	while (nl_len > 0) {
-@@ -515,7 +538,7 @@ static int fetch_and_fill_task_info(int
- 		nl_len -= NLA_ALIGN(na->nla_len);
- 		na = NLA_NEXT(na);
- 	}
--	return 0;
-+	return;
- }
- 
- static void get_task_delays(void)
-@@ -654,54 +677,82 @@ static void display_results(void)
+-	error = shmem_get_folio_gfp(inode, index, 0, &folio, SGP_CACHE,
++	error = shmem_get_folio_gfp(inode, index, end, &folio, SGP_CACHE,
+ 				    gfp, NULL, NULL);
+ 	if (error)
+ 		return ERR_PTR(error);
+@@ -5998,7 +5999,7 @@ EXPORT_SYMBOL_GPL(shmem_read_folio_gfp);
+ struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
+ 					 pgoff_t index, gfp_t gfp)
  {
- 	time_t now = time(NULL);
- 	struct tm *tm_now = localtime(&now);
-+	FILE *out = stdout;
- 	char timestamp[32];
-+	bool suc = true;
- 	int i, count;
--	FILE *out = stdout;
+-	struct folio *folio = shmem_read_folio_gfp(mapping, index, gfp);
++	struct folio *folio = shmem_read_folio_gfp(mapping, index, 0, gfp);
+ 	struct page *page;
  
--	fprintf(out, "\033[H\033[J");
-+	/* Clear terminal screen */
-+	suc &= BOOL_FPRINT(out, "\033[H\033[J");
-+
- 	/* PSI output (one-line, no cat style) */
--	fprintf(out, "System Pressure Information: ");
--	fprintf(out, "(avg10/avg60/avg300/total)\n");
--	fprintf(out, "CPU:");
--	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.cpu_full_avg10,
--			psi.cpu_full_avg60, psi.cpu_full_avg300, psi.cpu_full_total);
--	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.cpu_some_avg10,
--			psi.cpu_some_avg60, psi.cpu_some_avg300, psi.cpu_some_total);
--
--	fprintf(out, "Memory:");
--	fprintf(out, " full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.memory_full_avg10,
--			psi.memory_full_avg60, psi.memory_full_avg300, psi.memory_full_total);
--	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.memory_some_avg10,
--			psi.memory_some_avg60, psi.memory_some_avg300, psi.memory_some_total);
--
--	fprintf(out, "IO:");
--	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu", psi.io_full_avg10,
--			psi.io_full_avg60, psi.io_full_avg300, psi.io_full_total);
--	fprintf(out, "  some: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n", psi.io_some_avg10,
--			psi.io_some_avg60, psi.io_some_avg300, psi.io_some_total);
--	fprintf(out, "IRQ:");
--	fprintf(out, "	full: %6.1f%%/%6.1f%%/%6.1f%%/%-10llu\n\n", psi.irq_full_avg10,
--			psi.irq_full_avg60, psi.irq_full_avg300, psi.irq_full_total);
-+	suc &= BOOL_FPRINT(out, "System Pressure Information: (avg10/avg60/avg300/total)\n");
-+	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
-+		"CPU some:",
-+		psi.cpu_some_avg10,
-+		psi.cpu_some_avg60,
-+		psi.cpu_some_avg300,
-+		psi.cpu_some_total / 1000);
-+	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
-+		"CPU full:",
-+		psi.cpu_full_avg10,
-+		psi.cpu_full_avg60,
-+		psi.cpu_full_avg300,
-+		psi.cpu_full_total / 1000);
-+	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
-+		"Memory full:",
-+		psi.memory_full_avg10,
-+		psi.memory_full_avg60,
-+		psi.memory_full_avg300,
-+		psi.memory_full_total / 1000);
-+	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
-+		"Memory some:",
-+		psi.memory_some_avg10,
-+		psi.memory_some_avg60,
-+		psi.memory_some_avg300,
-+		psi.memory_some_total / 1000);
-+	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
-+		"IO full:",
-+		psi.io_full_avg10,
-+		psi.io_full_avg60,
-+		psi.io_full_avg300,
-+		psi.io_full_total / 1000);
-+	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
-+		"IO some:",
-+		psi.io_some_avg10,
-+		psi.io_some_avg60,
-+		psi.io_some_avg300,
-+		psi.io_some_total / 1000);
-+	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
-+		"IRQ full:",
-+		psi.irq_full_avg10,
-+		psi.irq_full_avg60,
-+		psi.irq_full_avg300,
-+		psi.irq_full_total / 1000);
-+
- 	if (cfg.container_path) {
--		fprintf(out, "Container Information (%s):\n", cfg.container_path);
--		fprintf(out, "Processes: running=%d, sleeping=%d, ",
-+		suc &= BOOL_FPRINT(out, "Container Information (%s):\n", cfg.container_path);
-+		suc &= BOOL_FPRINT(out, "Processes: running=%d, sleeping=%d, ",
- 			container_stats.nr_running, container_stats.nr_sleeping);
--		fprintf(out, "stopped=%d, uninterruptible=%d, io_wait=%d\n\n",
-+		suc &= BOOL_FPRINT(out, "stopped=%d, uninterruptible=%d, io_wait=%d\n\n",
- 			container_stats.nr_stopped, container_stats.nr_uninterruptible,
- 			container_stats.nr_io_wait);
- 	}
--	fprintf(out, "Top %d processes (sorted by CPU delay):\n\n",
-+	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by CPU delay):\n",
- 			cfg.max_processes);
--	fprintf(out, "  PID	TGID  COMMAND		 CPU(ms)  IO(ms)	");
--	fprintf(out, "SWAP(ms) RCL(ms) THR(ms)  CMP(ms)  WP(ms)  IRQ(ms)\n");
--	fprintf(out, "-----------------------------------------------");
--	fprintf(out, "----------------------------------------------\n");
-+	suc &= BOOL_FPRINT(out, "%5s  %5s  %-17s", "PID", "TGID", "COMMAND");
-+	suc &= BOOL_FPRINT(out, "%7s %7s %7s %7s %7s %7s %7s %7s\n",
-+		"CPU(ms)", "IO(ms)", "SWAP(ms)", "RCL(ms)",
-+		"THR(ms)", "CMP(ms)", "WP(ms)", "IRQ(ms)");
-+
-+	suc &= BOOL_FPRINT(out, "-----------------------------------------------");
-+	suc &= BOOL_FPRINT(out, "----------------------------------------------\n");
- 	count = task_count < cfg.max_processes ? task_count : cfg.max_processes;
- 
- 	for (i = 0; i < count; i++) {
--		fprintf(out, "%5d  %5d  %-15s ",
-+		suc &= BOOL_FPRINT(out, "%5d  %5d  %-15s",
- 			tasks[i].pid, tasks[i].tgid, tasks[i].command);
--		fprintf(out, "%7.2f  %7.2f  %7.2f  %7.2f %7.2f  %7.2f  %7.2f  %7.2f\n",
-+		suc &= BOOL_FPRINT(out, "%7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n",
- 			average_ms(tasks[i].cpu_delay_total, tasks[i].cpu_count),
- 			average_ms(tasks[i].blkio_delay_total, tasks[i].blkio_count),
- 			average_ms(tasks[i].swapin_delay_total, tasks[i].swapin_count),
-@@ -712,7 +763,10 @@ static void display_results(void)
- 			average_ms(tasks[i].irq_delay_total, tasks[i].irq_count));
- 	}
- 
--	fprintf(out, "\n");
-+	suc &= BOOL_FPRINT(out, "\n");
-+
-+	if (!suc)
-+		perror("Error writing to output");
- }
- 
- /* Main function */
+ 	if (IS_ERR(folio))
 _
 
-Patches currently in -mm which might be from fan.yu9@zte.com.cn are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-delaytop-enhance-error-logging-and-add-psi-feature-description.patch
+mm-shmem-fix-the-shmem-large-folio-allocation-for-the-i915-driver.patch
 
