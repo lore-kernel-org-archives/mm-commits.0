@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7036F23958D
-	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:37:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CCF2272E4A
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:37:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753821458; cv=none; b=sw1ym6/HoO0WImemUYkT7oi1fcgIQVtLztgZVDu/GRiq8LOsF/+09XtQQpXRplKFuASiQhc5EU8TnkQJ8LDqP3K/6g+wloUSsvAUa0/OncblzNWUMo/yXNCBhWQt5J7eVGfAo3koWpTp2UwXt7nxRp1kl9iAiwlzBgssiHIHo2g=
+	t=1753821459; cv=none; b=T5HOnpXPcv0UtW0pKxu91bMVirnHsPDJWaGdBDAdzwQG04EES1QkjuOVnTdw0g5MexosuuvezSOJu3i0b/d3ykMKXP2C8VyRfF5qpgWGQBZXbSGA3P34fY9SgV5ArSFsva0K/ZoanHObrTF83Ko9p8t8pMsVmeNLp3VtdQl4CZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753821458; c=relaxed/simple;
-	bh=Vq66gN6Ed6SK691y8tMzDcxylAHzXF0tnnwBkU6QX7o=;
-	h=Date:To:From:Subject:Message-Id; b=Lp9UYZrnjmF5QDqJ1eAwQugUBklAv0FPzEQeXNSSHFmNE94CK/JPxSMurKyFU7I1w19ryvXuMI341RMpa2PMcHxa13690T+wRDIBaQB0zne46fbsf7FzI38ekMOYmH2GioRyg6dKUjG4w+DYbQFihFNidmeSiisU51BL9kXzlSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PnbemCOd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753821459; c=relaxed/simple;
+	bh=5URCocP3CoZXrYIms0zpy5AW1gkKFvI4OEDaZVKXqgY=;
+	h=Date:To:From:Subject:Message-Id; b=ROqwO0HezRjbn/gmVI2g9yk5ZnwfDLb98gYlImQjllUQzlrYoreTtYrvLlPWg3cxIRv5ZO+4HecCXfqb1cdIc9BQP9rHxtfzojfl/ZtevUrFbLhe8dJBQMMwPF7RuhBILjgrt0f9Tf9bJtPlq9XsfNYsmFds4yuf5+x3lFoYnBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H64ioqEi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PnbemCOd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBCDDC4CEEF;
-	Tue, 29 Jul 2025 20:37:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H64ioqEi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B571AC4CEEF;
+	Tue, 29 Jul 2025 20:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753821455;
-	bh=Vq66gN6Ed6SK691y8tMzDcxylAHzXF0tnnwBkU6QX7o=;
+	s=korg; t=1753821458;
+	bh=5URCocP3CoZXrYIms0zpy5AW1gkKFvI4OEDaZVKXqgY=;
 	h=Date:To:From:Subject:From;
-	b=PnbemCOd9HMscZ5jeZvZaJTCZz0A/MJQYmH+H9E351MjaNR+XFhHSuL72mdRDT8yZ
-	 1wvsFnTbb1+hYQytSiKJFHEjtcie17GOu7oTU5c8wdmRulu9eJ2NO8wD/HP5r0ENN5
-	 kqzb2a1+k1gCBg27wfo2ARNJytEO1IwqB0jVrVfY=
-Date: Tue, 29 Jul 2025 13:37:35 -0700
+	b=H64ioqEiY0XJPzWMUgDmgS9HnxbxuhZ0xUYCKlDAy49ll9jTAbipi8qP0IIveahQ2
+	 cAh3wG4QTGep82GIeIPFNkP/eggPsQWXv5j/ryKPK0Ksa9/Edm67g4Xei5IfoVg59e
+	 I6joaifbR6gVjJaquQzwrkIetqIK79XiS2k2120Q=
+Date: Tue, 29 Jul 2025 13:37:38 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,donettom@linux.ibm.com,david@redhat.com,hare@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-activate-node-before-adding-new-memory-blocks.patch added to mm-new branch
-Message-Id: <20250729203735.CBCDDC4CEEF@smtp.kernel.org>
+Subject: + drivers-base-move-memory_block_add_nid-into-the-caller.patch added to mm-new branch
+Message-Id: <20250729203738.B571AC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: activate node before adding new memory blocks
+     Subject: drivers/base: move memory_block_add_nid() into the caller
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory_hotplug-activate-node-before-adding-new-memory-blocks.patch
+     drivers-base-move-memory_block_add_nid-into-the-caller.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-activate-node-before-adding-new-memory-blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-move-memory_block_add_nid-into-the-caller.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,16 +65,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hannes Reinecke <hare@kernel.org>
-Subject: mm/memory_hotplug: activate node before adding new memory blocks
-Date: Tue, 29 Jul 2025 08:46:35 +0200
+Subject: drivers/base: move memory_block_add_nid() into the caller
+Date: Tue, 29 Jul 2025 08:46:36 +0200
 
-The sysfs attributes for memory blocks require the node ID to be set and
-initialized, so move the node activation before adding new memory blocks. 
-This also has the nice side effect that the BUG_ON() can be converted into
-a WARN_ON() as we now can handle registration errors.
+Now the node id only needs to be set for early memory, so move
+memory_block_add_nid() into the caller and rename it into
+memory_block_add_nid_early().  This allows us to further simplify the code
+by dropping the 'context' argument to
+do_register_memory_block_under_node().
 
-Link: https://lkml.kernel.org/r/20250729064637.51662-3-hare@kernel.org
-Fixes: b9ff036082cd ("mm/memory_hotplug.c: make add_memory_resource use __try_online_node")
+Link: https://lkml.kernel.org/r/20250729064637.51662-4-hare@kernel.org
+Suggested-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Hannes Reinecke <hare@kernel.org>
 Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Oscar Salvador <osalvador@suse.de>
@@ -82,110 +83,117 @@ Reviewed-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |    4 ++--
- include/linux/memory.h |    2 +-
- mm/memory_hotplug.c    |   32 +++++++++++++++++---------------
- 3 files changed, 20 insertions(+), 18 deletions(-)
+ drivers/base/memory.c  |   36 ++++++++++++++++++------------------
+ drivers/base/node.c    |   10 ++++------
+ include/linux/memory.h |    3 +--
+ 3 files changed, 23 insertions(+), 26 deletions(-)
 
---- a/drivers/base/memory.c~mm-memory_hotplug-activate-node-before-adding-new-memory-blocks
+--- a/drivers/base/memory.c~drivers-base-move-memory_block_add_nid-into-the-caller
 +++ a/drivers/base/memory.c
-@@ -879,7 +879,7 @@ static void remove_memory_block(struct m
-  * Called under device_hotplug_lock.
+@@ -769,21 +769,22 @@ static struct zone *early_node_zone_for_
+ 
+ #ifdef CONFIG_NUMA
+ /**
+- * memory_block_add_nid() - Indicate that system RAM falling into this memory
+- *			    block device (partially) belongs to the given node.
++ * memory_block_add_nid_early() - Indicate that early system RAM falling into
++ *				  this memory block device (partially) belongs
++ *				  to the given node.
+  * @mem: The memory block device.
+  * @nid: The node id.
+- * @context: The memory initialization context.
+  *
+- * Indicate that system RAM falling into this memory block (partially) belongs
+- * to the given node. If the context indicates ("early") that we are adding the
+- * node during node device subsystem initialization, this will also properly
+- * set/adjust mem->zone based on the zone ranges of the given node.
++ * Indicate that early system RAM falling into this memory block (partially)
++ * belongs to the given node. This will also properly set/adjust mem->zone based
++ * on the zone ranges of the given node.
++ *
++ * Memory hotplug handles this on memory block creation, where we can only have
++ * a single nid span a memory block.
   */
- int create_memory_block_devices(unsigned long start, unsigned long size,
--				struct vmem_altmap *altmap,
-+				int nid, struct vmem_altmap *altmap,
- 				struct memory_group *group)
+-void memory_block_add_nid(struct memory_block *mem, int nid,
+-			  enum meminit_context context)
++void memory_block_add_nid_early(struct memory_block *mem, int nid)
  {
- 	const unsigned long start_block_id = pfn_to_block_id(PFN_DOWN(start));
-@@ -893,7 +893,7 @@ int create_memory_block_devices(unsigned
- 		return -EINVAL;
- 
- 	for (block_id = start_block_id; block_id != end_block_id; block_id++) {
--		ret = add_memory_block(block_id, NUMA_NO_NODE, MEM_OFFLINE, altmap, group);
-+		ret = add_memory_block(block_id, nid, MEM_OFFLINE, altmap, group);
- 		if (ret)
- 			break;
+-	if (context == MEMINIT_EARLY && mem->nid != nid) {
++	if (mem->nid != nid) {
+ 		/*
+ 		 * For early memory we have to determine the zone when setting
+ 		 * the node id and handle multiple nodes spanning a single
+@@ -797,15 +798,14 @@ void memory_block_add_nid(struct memory_
+ 			mem->zone = early_node_zone_for_memory_block(mem, nid);
+ 		else
+ 			mem->zone = NULL;
++		/*
++		 * If this memory block spans multiple nodes, we only indicate
++		 * the last processed node. If we span multiple nodes (not applicable
++		 * to hotplugged memory), zone == NULL will prohibit memory offlining
++		 * and consequently unplug.
++		 */
++		mem->nid = nid;
  	}
---- a/include/linux/memory.h~mm-memory_hotplug-activate-node-before-adding-new-memory-blocks
-+++ a/include/linux/memory.h
-@@ -159,7 +159,7 @@ static inline unsigned long memory_block
- extern int register_memory_notifier(struct notifier_block *nb);
- extern void unregister_memory_notifier(struct notifier_block *nb);
- int create_memory_block_devices(unsigned long start, unsigned long size,
--				struct vmem_altmap *altmap,
-+				int nid, struct vmem_altmap *altmap,
- 				struct memory_group *group);
- void remove_memory_block_devices(unsigned long start, unsigned long size);
- extern void memory_dev_init(void);
---- a/mm/memory_hotplug.c~mm-memory_hotplug-activate-node-before-adding-new-memory-blocks
-+++ a/mm/memory_hotplug.c
-@@ -1477,7 +1477,7 @@ static int create_altmaps_and_memory_blo
- 		}
- 
- 		/* create memory block devices after memory was added */
--		ret = create_memory_block_devices(cur_start, memblock_size,
-+		ret = create_memory_block_devices(cur_start, memblock_size, nid,
- 						  params.altmap, group);
- 		if (ret) {
- 			arch_remove_memory(cur_start, memblock_size, NULL);
-@@ -1539,8 +1539,16 @@ int add_memory_resource(int nid, struct
- 
- 	ret = __try_online_node(nid, false);
- 	if (ret < 0)
--		goto error;
--	new_node = ret;
-+		goto error_memblock_remove;
-+	if (ret) {
-+		node_set_online(nid);
-+		ret = register_one_node(nid);
-+		if (WARN_ON(ret)) {
-+			node_set_offline(nid);
-+			goto error_memblock_remove;
-+		}
-+		new_node = true;
-+	}
- 
- 	/*
- 	 * Self hosted memmap array
-@@ -1556,24 +1564,13 @@ int add_memory_resource(int nid, struct
- 			goto error;
- 
- 		/* create memory block devices after memory was added */
--		ret = create_memory_block_devices(start, size, NULL, group);
-+		ret = create_memory_block_devices(start, size, nid, NULL, group);
- 		if (ret) {
- 			arch_remove_memory(start, size, params.altmap);
- 			goto error;
- 		}
- 	}
- 
--	if (new_node) {
--		/* If sysfs file of new node can't be created, cpu on the node
--		 * can't be hot-added. There is no rollback way now.
--		 * So, check by BUG_ON() to catch it reluctantly..
--		 * We online node here. We can't roll back from here.
--		 */
--		node_set_online(nid);
--		ret = register_one_node(nid);
--		BUG_ON(ret);
--	}
 -
- 	register_memory_blocks_under_node_hotplug(nid, PFN_DOWN(start),
- 					  PFN_UP(start + size - 1));
+-	/*
+-	 * If this memory block spans multiple nodes, we only indicate
+-	 * the last processed node. If we span multiple nodes (not applicable
+-	 * to hotplugged memory), zone == NULL will prohibit memory offlining
+-	 * and consequently unplug.
+-	 */
+-	mem->nid = nid;
+ }
+ #endif
  
-@@ -1597,6 +1594,11 @@ int add_memory_resource(int nid, struct
+--- a/drivers/base/node.c~drivers-base-move-memory_block_add_nid-into-the-caller
++++ a/drivers/base/node.c
+@@ -781,13 +781,10 @@ int unregister_cpu_under_node(unsigned i
  
- 	return ret;
- error:
-+	if (new_node) {
-+		node_set_offline(nid);
-+		unregister_one_node(nid);
-+	}
-+error_memblock_remove:
- 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
- 		memblock_remove(start, size);
- error_mem_hotplug_end:
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ static void do_register_memory_block_under_node(int nid,
+-						struct memory_block *mem_blk,
+-						enum meminit_context context)
++						struct memory_block *mem_blk)
+ {
+ 	int ret;
+ 
+-	memory_block_add_nid(mem_blk, nid, context);
+-
+ 	ret = sysfs_create_link_nowarn(&node_devices[nid]->dev.kobj,
+ 				       &mem_blk->dev.kobj,
+ 				       kobject_name(&mem_blk->dev.kobj));
+@@ -815,7 +812,7 @@ static int register_mem_block_under_node
+ {
+ 	int nid = *(int *)arg;
+ 
+-	do_register_memory_block_under_node(nid, mem_blk, MEMINIT_HOTPLUG);
++	do_register_memory_block_under_node(nid, mem_blk);
+ 	return 0;
+ }
+ 
+@@ -855,7 +852,8 @@ static void register_memory_blocks_under
+ 			if (!mem)
+ 				continue;
+ 
+-			do_register_memory_block_under_node(nid, mem, MEMINIT_EARLY);
++			memory_block_add_nid_early(mem, nid);
++			do_register_memory_block_under_node(nid, mem);
+ 			put_device(&mem->dev);
+ 		}
+ 
+--- a/include/linux/memory.h~drivers-base-move-memory_block_add_nid-into-the-caller
++++ a/include/linux/memory.h
+@@ -202,8 +202,7 @@ static inline unsigned long phys_to_bloc
+ }
+ 
+ #ifdef CONFIG_NUMA
+-void memory_block_add_nid(struct memory_block *mem, int nid,
+-			  enum meminit_context context);
++void memory_block_add_nid_early(struct memory_block *mem, int nid);
+ #endif /* CONFIG_NUMA */
+ int memory_block_advise_max_size(unsigned long size);
+ unsigned long memory_block_advised_max_size(void);
 _
 
 Patches currently in -mm which might be from hare@kernel.org are
