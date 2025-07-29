@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2DCB2737E7
-	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:44:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06CFA2737F9
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:44:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753821845; cv=none; b=O8+3kmrIF0dIhOteRmpOr3NH6hPb1r+HfouAElufONwX9hQ2k0Fd3aA3CRqdpO/VCjAiUhGoykBhdyPMtwGL2sgSo4e1pCca54sOcVEHJNZi4BfXq2Y0Rd+uwsusjQBSfHUn3bJoyrhpcGYUdT9/BLyt90XEU5GAfQXnltKd1so=
+	t=1753821847; cv=none; b=mGNaeyKdeb4AhZMlxmuxaH313ivYI1u13K/k1MTZRR1KH/E7pmOYmttSZnRkKRhnnU6Sewj0drQtsXUkWpFoJNqJYM6k30A11OQ0/FeHvkD5bV6ie8ZXV34fZJ4iGU6SyfEinUxVCb2mz3uZoaNWaokT1BiGy5RiqlNbtzluXEE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753821845; c=relaxed/simple;
-	bh=fZy31Rc6h6y0JpXyqHzDP8yAZ7BNgTKXvTNT/kAHNvY=;
-	h=Date:To:From:Subject:Message-Id; b=mLSscX9ONJm/ClpaOstjuCmEc/xyQWCuhpnpYXMCGHyA4REUiCe6fqbxnqZCFv+6vQ0fBKsS2EtnAvVs24VuK6BRVp/RKDhGhxqQwgokdMtGyQtqOeJP2N7qr1eEdnH20S+3CJwSS6AoLnnE0tqbK/N+LfdqQdAq7crodJ4CwXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Up10t12b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753821847; c=relaxed/simple;
+	bh=Hl51vwO5UHvyV4dxhCcrcYu2FgFIxOz+Vo/jpLWE7ZE=;
+	h=Date:To:From:Subject:Message-Id; b=HkgqdCSHh3oUsgboJwvZGfSqv3h0/ZRBkzbydW4s9MGhFSAHPlfEpBo3t4bsDdDmEgiC71YywDNIGSbCNzkbpVcDfYjgy7ipGEtdn4LiAwmtoaYrgAETlFcFuIZiRqE/Xp4gSuDL3/rLk2K466CbHZOPM61V39U8TEUGQfkFHfY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h4ThnQiD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Up10t12b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83ACCC4CEEF;
-	Tue, 29 Jul 2025 20:44:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h4ThnQiD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFB39C4CEEF;
+	Tue, 29 Jul 2025 20:44:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753821844;
-	bh=fZy31Rc6h6y0JpXyqHzDP8yAZ7BNgTKXvTNT/kAHNvY=;
+	s=korg; t=1753821846;
+	bh=Hl51vwO5UHvyV4dxhCcrcYu2FgFIxOz+Vo/jpLWE7ZE=;
 	h=Date:To:From:Subject:From;
-	b=Up10t12bv5WxzQYN/Ul+yaSvFC7jIbpoDGirdtEv1+y7mB22GdsjuwqLwiWRPjMi1
-	 XN0b9F2EXTXIkNKh6zkJo3oUqvzG5a4kSUhK8BXvluLfAZAyiPWotyv3l7hEVSn6L6
-	 AaQ5ij/SYr5/JGRUJSkiSMivuuql6+zBEZVg/AJ0=
-Date: Tue, 29 Jul 2025 13:44:03 -0700
+	b=h4ThnQiD2uR0+m6TziH/KRc1JPRaNVM6G1D9nlt6pJ7hJAL1+n0QO7QBZGDCQFzMS
+	 9mdHl3AuwpLdJKk8eBH4Vy49Ia02OafJimptccTV9L2UaSoHirBEP6d/DRrMERNdwT
+	 /U4UOGgpHjl7Q9BFuQZ6Ma4jP2gPlTyTHDKZe7Ns=
+Date: Tue, 29 Jul 2025 13:44:06 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ryan.roberts@arm.com,ritesh.list@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-support-to-test-4pb-va-on-ppc64.patch added to mm-new branch
-Message-Id: <20250729204404.83ACCC4CEEF@smtp.kernel.org>
+Subject: + selftest-mm-fix-ksm_funtional_test-failures.patch added to mm-new branch
+Message-Id: <20250729204406.AFB39C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add support to test 4PB VA on PPC64
+     Subject: selftest/mm: fix ksm_funtional_test failures
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-support-to-test-4pb-va-on-ppc64.patch
+     selftest-mm-fix-ksm_funtional_test-failures.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-support-to-test-4pb-va-on-ppc64.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-fix-ksm_funtional_test-failures.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,70 +65,147 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Donet Tom <donettom@linux.ibm.com>
-Subject: selftests/mm: add support to test 4PB VA on PPC64
-Date: Tue, 29 Jul 2025 11:03:58 +0530
+Subject: selftest/mm: fix ksm_funtional_test failures
+Date: Tue, 29 Jul 2025 11:03:59 +0530
 
-PowerPC64 supports a 4PB virtual address space, but this test was
-previously limited to 512TB.  This patch extends the coverage up to the
-full 4PB VA range on PowerPC64.
+This patch fixes 2 issues.
 
-Memory from 0 to 128TB is allocated without an address hint, while
-allocations from 128TB to 4PB use a hint address.
+1) After fork() in test_prctl_fork, the child process uses the file
+   descriptors from the parent process to read ksm_stat and
+   ksm_merging_pages.  This results in incorrect values being read (parent
+   process ksm_stat and ksm_merging_pages will be read in child), causing
+   the test to fail.
 
-Link: https://lkml.kernel.org/r/20250729053403.1071807-3-aboorvad@linux.ibm.com
+   This patch calls init_global_file_handles() in the child process to
+   ensure that the current process's file descriptors are used to read
+   ksm_stat and ksm_merging_pages.
+
+2) All tests currently call ksm_merge to trigger page merging.  To
+   ensure the system remains in a consistent state for subsequent tests,
+   it is better to call ksm_unmerge during the test cleanup phase.
+
+   In the test_prctl_fork test, after a fork(), reading
+   ksm_merging_pages in the child process returns a non-zero value because
+   a previous test performed a merge, and the child's memory state is
+   inherited from the parent.
+
+Although the child process calls ksm_unmerge, the ksm_merging_pages
+counter in the parent is reset to zero, while the child's counter remains
+unchanged.  This discrepancy causes the test to fail.
+
+To avoid this issue, each test should call ksm_unmerge during cleanup to
+ensure the counter is reset and the system is in a clean state for
+subsequent tests.
+
+execv argument is an array of pointers to null-terminated strings.  In
+this patch we also added NULL in the execv argument.
+
+Link: https://lkml.kernel.org/r/20250729053403.1071807-4-aboorvad@linux.ibm.com
+Fixes: 6c47de3be3a0 ("selftest/mm: ksm_functional_tests: extend test case for ksm fork/exec")
 Co-developed-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
 Signed-off-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
 Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ tools/testing/selftests/mm/ksm_functional_tests.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-add-support-to-test-4pb-va-on-ppc64
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -44,12 +44,18 @@
-  * On Arm64 the address space is 256TB and support for
-  * high mappings up to 4PB virtual address space has
-  * been added.
-+ *
-+ * On PowerPC64, the address space up to 128TB can be
-+ * mapped without a hint. Addresses beyond 128TB, up to
-+ * 4PB, can be mapped with a hint.
-+ *
-  */
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftest-mm-fix-ksm_funtional_test-failures
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -46,6 +46,8 @@ static int ksm_use_zero_pages_fd;
+ static int pagemap_fd;
+ static size_t pagesize;
  
- #define NR_CHUNKS_128TB   ((128 * SZ_1TB) / MAP_CHUNK_SIZE) /* Number of chunks for 128TB */
- #define NR_CHUNKS_256TB   (NR_CHUNKS_128TB * 2UL)
- #define NR_CHUNKS_384TB   (NR_CHUNKS_128TB * 3UL)
- #define NR_CHUNKS_3840TB  (NR_CHUNKS_128TB * 30UL)
-+#define NR_CHUNKS_3968TB  (NR_CHUNKS_128TB * 31UL)
++static void init_global_file_handles(void);
++
+ static bool range_maps_duplicates(char *addr, unsigned long size)
+ {
+ 	unsigned long offs_a, offs_b, pfn_a, pfn_b;
+@@ -274,6 +276,7 @@ static void test_unmerge(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
++	ksm_unmerge();
+ 	munmap(map, size);
+ }
  
- #define ADDR_MARK_128TB  (1UL << 47) /* First address beyond 128TB */
- #define ADDR_MARK_256TB  (1UL << 48) /* First address beyond 256TB */
-@@ -59,6 +65,11 @@
- #define HIGH_ADDR_SHIFT 49
- #define NR_CHUNKS_LOW   NR_CHUNKS_256TB
- #define NR_CHUNKS_HIGH  NR_CHUNKS_3840TB
-+#elif defined(__PPC64__)
-+#define HIGH_ADDR_MARK  ADDR_MARK_128TB
-+#define HIGH_ADDR_SHIFT 48
-+#define NR_CHUNKS_LOW   NR_CHUNKS_128TB
-+#define NR_CHUNKS_HIGH  NR_CHUNKS_3968TB
- #else
- #define HIGH_ADDR_MARK  ADDR_MARK_128TB
- #define HIGH_ADDR_SHIFT 48
+@@ -338,6 +341,7 @@ static void test_unmerge_zero_pages(void
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			"KSM zero pages were unmerged\n");
+ unmap:
++	ksm_unmerge();
+ 	munmap(map, size);
+ }
+ 
+@@ -366,6 +370,7 @@ static void test_unmerge_discarded(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
++	ksm_unmerge();
+ 	munmap(map, size);
+ }
+ 
+@@ -452,6 +457,7 @@ static void test_unmerge_uffd_wp(void)
+ close_uffd:
+ 	close(uffd);
+ unmap:
++	ksm_unmerge();
+ 	munmap(map, size);
+ }
+ #endif
+@@ -515,6 +521,7 @@ static int test_child_ksm(void)
+ 	else if (map == MAP_MERGE_SKIP)
+ 		return -3;
+ 
++	ksm_unmerge();
+ 	munmap(map, size);
+ 	return 0;
+ }
+@@ -548,6 +555,7 @@ static void test_prctl_fork(void)
+ 
+ 	child_pid = fork();
+ 	if (!child_pid) {
++		init_global_file_handles();
+ 		exit(test_child_ksm());
+ 	} else if (child_pid < 0) {
+ 		ksft_test_result_fail("fork() failed\n");
+@@ -595,7 +603,7 @@ static void test_prctl_fork_exec(void)
+ 		return;
+ 	} else if (child_pid == 0) {
+ 		char *prg_name = "./ksm_functional_tests";
+-		char *argv_for_program[] = { prg_name, FORK_EXEC_CHILD_PRG_NAME };
++		char *argv_for_program[] = { prg_name, FORK_EXEC_CHILD_PRG_NAME, NULL };
+ 
+ 		execv(prg_name, argv_for_program);
+ 		return;
+@@ -644,6 +652,7 @@ static void test_prctl_unmerge(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
++	ksm_unmerge();
+ 	munmap(map, size);
+ }
+ 
+@@ -677,6 +686,7 @@ static void test_prot_none(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
++	ksm_unmerge();
+ 	munmap(map, size);
+ }
+ 
 _
 
 Patches currently in -mm which might be from donettom@linux.ibm.com are
