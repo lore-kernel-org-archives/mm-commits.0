@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 014DA2327A3
-	for <mm-commits@vger.kernel.org>; Mon, 28 Jul 2025 22:41:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85624347DD
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 19:28:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753742496; cv=none; b=jIB+YyEhOcBOkJLBgDsGriytOjKAic5lRXBS/awvWtdumyWTZWKvfLEO8OKZgXL/qog3ESry4KFoX2CWZMQEin5m0ZdiMpQq/fVd4VOIxYbh6zjwkeyQ1wFPXSL9Dcox5zjsACm/B9pYtTwt8o5+gpMvmAL/++Rp3rpf3yPeUHU=
+	t=1753817303; cv=none; b=NuggIamB+hAvW5qfH9qTz0Ah66E0y+f2dIDeRAu05b13ictAKuJGhd3nEwCpbnvVR7PUhV8rs7CwTYi8edoVV4c7DxBw4v6+qifhZWklBvl9HKY1d3cTibljLPWE3Q2bN57Bq6P5FT8JT+zHy7nBU0SLxh4UhPxtO6aX0nMd8nk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753742496; c=relaxed/simple;
-	bh=ivkoWus3BP0oqUpLaliqpNNQ5jF+yGdpaNMjvNrFNo4=;
-	h=Date:To:From:Subject:Message-Id; b=NuejvEKW7DzqfMDvUr/NdwMbvDkCospAzpIJdLHIVjCJEvfYXuoCNLjW3MXkd9UUN/W8ky3eERjnHAo304mFrcAQrQVm+VGfroIgxBp7XEGf3Sx9hS6ahDexiCyLK0UkitiD5Q7ptnKzYfJwibCP53LL1IL5VmITbHuX3kC591k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kblpjrgN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753817303; c=relaxed/simple;
+	bh=KONCInvwYvsrfPTxkPZF2vKNeK23wyhN2fLRniieEzI=;
+	h=Date:To:From:Subject:Message-Id; b=DRGkQF+3SbuPPqv468ZTRR21wAo/Yw/E3ooFaHDUNBM4xDx9ckfDW6rqYvRh11J4D9KGEm/R0Tb9batghDnja9535VeTudixN6u4AVRkoablbHWikg9/CT6L8O2N3yglOVsSPpcutMjRIW3rCeUEz8lvwJtRORlYlnBsK0UlUoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dob2+gJ+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kblpjrgN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C87B1C4CEE7;
-	Mon, 28 Jul 2025 22:41:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dob2+gJ+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3255AC4CEEF;
+	Tue, 29 Jul 2025 19:28:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753742495;
-	bh=ivkoWus3BP0oqUpLaliqpNNQ5jF+yGdpaNMjvNrFNo4=;
+	s=korg; t=1753817303;
+	bh=KONCInvwYvsrfPTxkPZF2vKNeK23wyhN2fLRniieEzI=;
 	h=Date:To:From:Subject:From;
-	b=kblpjrgNg7hDegp1Eyf5t4+/mdhdF6e4jUenDNsdybdRSPhKI3ebh010CkEfohGCb
-	 +tSw44UTybghfr+VKZV+lsCJz5UZbd8W0+kZwdO5CHuRKhpNvun4p/BpWC+nw9IEW2
-	 smQiYX+iJ7Xkm01TF1hxnEIM/c8LW/yiLrx0/9dY=
-Date: Mon, 28 Jul 2025 15:41:35 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,petr.pavlu@suse.com,peterz@infradead.org,mhiramat@kernel.org,da.gomez@samsung.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=Dob2+gJ+Qptrelet7JPcV24D22JLXE9+dJA51+aqwqDh+d53TDqq2w1B6mSWeMJsj
+	 aDFkkyOXO5Cl5gpgBK8VymyD3Bgx3MxC9/2CWIy8t4tYh1NSrMNlCMpZkPvuYQvug0
+	 s7h16h+Ng/x9wdY9LHImTszOTw6Q3+0fYKTssjf4=
+Date: Tue, 29 Jul 2025 12:28:22 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-ftrace-enable-execmem_rox_cache-for-ftrace-allocations.patch added to mm-unstable branch
-Message-Id: <20250728224135.C87B1C4CEE7@smtp.kernel.org>
+Subject: + kho-add-test-for-kexec-handover-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250729192823.3255AC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/ftrace: enable EXECMEM_ROX_CACHE for ftrace allocations
-has been added to the -mm mm-unstable branch.  Its filename is
-     x86-ftrace-enable-execmem_rox_cache-for-ftrace-allocations.patch
+     Subject: kho-add-test-for-kexec-handover-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kho-add-test-for-kexec-handover-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-ftrace-enable-execmem_rox_cache-for-ftrace-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-add-test-for-kexec-handover-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,60 +58,31 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: x86/ftrace: enable EXECMEM_ROX_CACHE for ftrace allocations
-Date: Sun, 13 Jul 2025 10:17:30 +0300
+From: Mike Rapoport <rppt@kernel.org>
+Subject: kho-add-test-for-kexec-handover-fix
+Date: Tue, 29 Jul 2025 12:14:51 +0300
 
-For the most part ftrace uses text poking and can handle ROX memory.  The
-only place that requires writable memory is create_trampoline() that
-updates the allocated memory and in the end makes it ROX.
+fix section mismatch
 
-Use execmem_alloc_rw() in x86::ftrace::alloc_tramp() and enable ROX cache
-for EXECMEM_FTRACE when configuration and CPU features allow that.
-
-Link: https://lkml.kernel.org/r/20250713071730.4117334-9-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
+Link: https://lkml.kernel.org/r/aIiRC8fXiOXKbPM_@kernel.org
+Signed-off-by: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ftrace.c |    2 +-
- arch/x86/mm/init.c       |    9 ++++++++-
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ lib/test_kho.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/ftrace.c~x86-ftrace-enable-execmem_rox_cache-for-ftrace-allocations
-+++ a/arch/x86/kernel/ftrace.c
-@@ -263,7 +263,7 @@ void arch_ftrace_update_code(int command
- 
- static inline void *alloc_tramp(unsigned long size)
- {
--	return execmem_alloc(EXECMEM_FTRACE, size);
-+	return execmem_alloc_rw(EXECMEM_FTRACE, size);
+--- a/lib/test_kho.c~kho-add-test-for-kexec-handover-fix
++++ a/lib/test_kho.c
+@@ -194,7 +194,7 @@ static int kho_test_save(void)
+ 	return register_kho_notifier(&kho_test_nb);
  }
- static inline void tramp_free(void *tramp)
+ 
+-static int __init kho_test_restore_data(const void *fdt, int node)
++static int kho_test_restore_data(const void *fdt, int node)
  {
---- a/arch/x86/mm/init.c~x86-ftrace-enable-execmem_rox_cache-for-ftrace-allocations
-+++ a/arch/x86/mm/init.c
-@@ -1105,7 +1105,14 @@ struct execmem_info __init *execmem_arch
- 				.pgprot	= PAGE_KERNEL_ROX,
- 				.alignment = MODULE_ALIGN,
- 			},
--			[EXECMEM_FTRACE ... EXECMEM_BPF] = {
-+			[EXECMEM_FTRACE] = {
-+				.flags	= flags,
-+				.start	= start,
-+				.end	= MODULES_END,
-+				.pgprot	= pgprot,
-+				.alignment = MODULE_ALIGN,
-+			},
-+			[EXECMEM_BPF] = {
- 				.flags	= EXECMEM_KASAN_SHADOW,
- 				.start	= start,
- 				.end	= MODULES_END,
+ 	const unsigned int *nr_folios;
+ 	const phys_addr_t *folios_info;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
@@ -125,4 +96,5 @@ execmem-drop-writable-parameter-from-execmem_fill_trapping_insns.patch
 x86-kprobes-enable-execmem_rox_cache-for-kprobes-allocations.patch
 x86-ftrace-enable-execmem_rox_cache-for-ftrace-allocations.patch
 kho-add-test-for-kexec-handover.patch
+kho-add-test-for-kexec-handover-fix.patch
 
