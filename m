@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CCF2272E4A
-	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:37:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEE3E23B629
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:44:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753821459; cv=none; b=T5HOnpXPcv0UtW0pKxu91bMVirnHsPDJWaGdBDAdzwQG04EES1QkjuOVnTdw0g5MexosuuvezSOJu3i0b/d3ykMKXP2C8VyRfF5qpgWGQBZXbSGA3P34fY9SgV5ArSFsva0K/ZoanHObrTF83Ko9p8t8pMsVmeNLp3VtdQl4CZk=
+	t=1753821843; cv=none; b=FIFskFBJ5K7jRTS3CIOr7xmrBJ1x11tK9FgMGAWgeWE5xBZ6R/lZE1a6iQRgGhheeI5BFa2ecyQKFeOg7z4sc4NE9cerVOKMJWczB2s3Pwq6aRw1chWl+IVcnuvif7BXhW4KEtKi8OhDzWHLbebj1N8QR/VGpEQuzzya06qnI74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753821459; c=relaxed/simple;
-	bh=5URCocP3CoZXrYIms0zpy5AW1gkKFvI4OEDaZVKXqgY=;
-	h=Date:To:From:Subject:Message-Id; b=ROqwO0HezRjbn/gmVI2g9yk5ZnwfDLb98gYlImQjllUQzlrYoreTtYrvLlPWg3cxIRv5ZO+4HecCXfqb1cdIc9BQP9rHxtfzojfl/ZtevUrFbLhe8dJBQMMwPF7RuhBILjgrt0f9Tf9bJtPlq9XsfNYsmFds4yuf5+x3lFoYnBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H64ioqEi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753821843; c=relaxed/simple;
+	bh=Xm48iFurk6SUDKL36KiQwDOSjO1onlQpqF0b+dbkL34=;
+	h=Date:To:From:Subject:Message-Id; b=Yb+UQct/sNhRcSOTNAwchAEwNsHJjFWEKofFIK35ecvYDBxTB7Va1OrEsV0Acmnn+S6U9K5qhw1Q+1huGtHopI4rkKFqAyKHsyEWy3D6yC+TTiYigkenr4FI2CNRxQKYp/hVCPvyb73zdvTROfG+EAHcsQAkRxMwYZevVYnspKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2bdRX0sg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H64ioqEi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B571AC4CEEF;
-	Tue, 29 Jul 2025 20:37:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2bdRX0sg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F43C4CEEF;
+	Tue, 29 Jul 2025 20:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753821458;
-	bh=5URCocP3CoZXrYIms0zpy5AW1gkKFvI4OEDaZVKXqgY=;
+	s=korg; t=1753821842;
+	bh=Xm48iFurk6SUDKL36KiQwDOSjO1onlQpqF0b+dbkL34=;
 	h=Date:To:From:Subject:From;
-	b=H64ioqEiY0XJPzWMUgDmgS9HnxbxuhZ0xUYCKlDAy49ll9jTAbipi8qP0IIveahQ2
-	 cAh3wG4QTGep82GIeIPFNkP/eggPsQWXv5j/ryKPK0Ksa9/Edm67g4Xei5IfoVg59e
-	 I6joaifbR6gVjJaquQzwrkIetqIK79XiS2k2120Q=
-Date: Tue, 29 Jul 2025 13:37:38 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,donettom@linux.ibm.com,david@redhat.com,hare@kernel.org,akpm@linux-foundation.org
+	b=2bdRX0sgwuTX/D0QQgJT6sIm9fFXvQXHvOfvB6xlecI21x/fxVQfAMOWzjRC8Nkqd
+	 SOV51dO7bpgWmQoDRljUIEy9WTRL09SmkJSBnt80HqRdzcbQfXgf/rU1ZT+fYpmj/8
+	 Kpo6yhCj8YsftfZBi3xrnxhKO0y9sl2b9Lnx+UZM=
+Date: Tue, 29 Jul 2025 13:44:01 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ryan.roberts@arm.com,ritesh.list@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-move-memory_block_add_nid-into-the-caller.patch added to mm-new branch
-Message-Id: <20250729203738.B571AC4CEEF@smtp.kernel.org>
+Subject: + mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch added to mm-new branch
+Message-Id: <20250729204402.61F43C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base: move memory_block_add_nid() into the caller
+     Subject: mm/selftests: fix incorrect pointer being passed to mark_range()
 has been added to the -mm mm-new branch.  Its filename is
-     drivers-base-move-memory_block_add_nid-into-the-caller.patch
+     mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-move-memory_block_add_nid-into-the-caller.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,141 +64,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hannes Reinecke <hare@kernel.org>
-Subject: drivers/base: move memory_block_add_nid() into the caller
-Date: Tue, 29 Jul 2025 08:46:36 +0200
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: mm/selftests: fix incorrect pointer being passed to mark_range()
+Date: Tue, 29 Jul 2025 11:03:57 +0530
 
-Now the node id only needs to be set for early memory, so move
-memory_block_add_nid() into the caller and rename it into
-memory_block_add_nid_early().  This allows us to further simplify the code
-by dropping the 'context' argument to
-do_register_memory_block_under_node().
+Patch series "selftests/mm: Fix false positives and skip unsupported
+tests", v3.
 
-Link: https://lkml.kernel.org/r/20250729064637.51662-4-hare@kernel.org
-Suggested-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Hannes Reinecke <hare@kernel.org>
+This series addresses false positives in the generic mm selftests and
+skips tests that cannot run correctly due to missing features or system
+limitations.
+
+
+This patch (of 3):
+
+In main(), the high address is stored in hptr, but for mark_range(), the
+address passed is ptr, not hptr.  Fixed this by changing ptr[i] to hptr[i]
+in mark_range() function call.
+
+Link: https://lkml.kernel.org/r/20250729053403.1071807-1-aboorvad@linux.ibm.com
+Link: https://lkml.kernel.org/r/20250729053403.1071807-2-aboorvad@linux.ibm.com
+Fixes: b2a79f62133a ("selftests/mm: virtual_address_range: unmap chunks after validation")
+Co-developed-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Signed-off-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   36 ++++++++++++++++++------------------
- drivers/base/node.c    |   10 ++++------
- include/linux/memory.h |    3 +--
- 3 files changed, 23 insertions(+), 26 deletions(-)
+ tools/testing/selftests/mm/virtual_address_range.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/base/memory.c~drivers-base-move-memory_block_add_nid-into-the-caller
-+++ a/drivers/base/memory.c
-@@ -769,21 +769,22 @@ static struct zone *early_node_zone_for_
+--- a/tools/testing/selftests/mm/virtual_address_range.c~mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range
++++ a/tools/testing/selftests/mm/virtual_address_range.c
+@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
+ 		if (hptr[i] == MAP_FAILED)
+ 			break;
  
- #ifdef CONFIG_NUMA
- /**
-- * memory_block_add_nid() - Indicate that system RAM falling into this memory
-- *			    block device (partially) belongs to the given node.
-+ * memory_block_add_nid_early() - Indicate that early system RAM falling into
-+ *				  this memory block device (partially) belongs
-+ *				  to the given node.
-  * @mem: The memory block device.
-  * @nid: The node id.
-- * @context: The memory initialization context.
-  *
-- * Indicate that system RAM falling into this memory block (partially) belongs
-- * to the given node. If the context indicates ("early") that we are adding the
-- * node during node device subsystem initialization, this will also properly
-- * set/adjust mem->zone based on the zone ranges of the given node.
-+ * Indicate that early system RAM falling into this memory block (partially)
-+ * belongs to the given node. This will also properly set/adjust mem->zone based
-+ * on the zone ranges of the given node.
-+ *
-+ * Memory hotplug handles this on memory block creation, where we can only have
-+ * a single nid span a memory block.
-  */
--void memory_block_add_nid(struct memory_block *mem, int nid,
--			  enum meminit_context context)
-+void memory_block_add_nid_early(struct memory_block *mem, int nid)
- {
--	if (context == MEMINIT_EARLY && mem->nid != nid) {
-+	if (mem->nid != nid) {
- 		/*
- 		 * For early memory we have to determine the zone when setting
- 		 * the node id and handle multiple nodes spanning a single
-@@ -797,15 +798,14 @@ void memory_block_add_nid(struct memory_
- 			mem->zone = early_node_zone_for_memory_block(mem, nid);
- 		else
- 			mem->zone = NULL;
-+		/*
-+		 * If this memory block spans multiple nodes, we only indicate
-+		 * the last processed node. If we span multiple nodes (not applicable
-+		 * to hotplugged memory), zone == NULL will prohibit memory offlining
-+		 * and consequently unplug.
-+		 */
-+		mem->nid = nid;
+-		mark_range(ptr[i], MAP_CHUNK_SIZE);
++		mark_range(hptr[i], MAP_CHUNK_SIZE);
+ 		validate_addr(hptr[i], 1);
  	}
--
--	/*
--	 * If this memory block spans multiple nodes, we only indicate
--	 * the last processed node. If we span multiple nodes (not applicable
--	 * to hotplugged memory), zone == NULL will prohibit memory offlining
--	 * and consequently unplug.
--	 */
--	mem->nid = nid;
- }
- #endif
- 
---- a/drivers/base/node.c~drivers-base-move-memory_block_add_nid-into-the-caller
-+++ a/drivers/base/node.c
-@@ -781,13 +781,10 @@ int unregister_cpu_under_node(unsigned i
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- static void do_register_memory_block_under_node(int nid,
--						struct memory_block *mem_blk,
--						enum meminit_context context)
-+						struct memory_block *mem_blk)
- {
- 	int ret;
- 
--	memory_block_add_nid(mem_blk, nid, context);
--
- 	ret = sysfs_create_link_nowarn(&node_devices[nid]->dev.kobj,
- 				       &mem_blk->dev.kobj,
- 				       kobject_name(&mem_blk->dev.kobj));
-@@ -815,7 +812,7 @@ static int register_mem_block_under_node
- {
- 	int nid = *(int *)arg;
- 
--	do_register_memory_block_under_node(nid, mem_blk, MEMINIT_HOTPLUG);
-+	do_register_memory_block_under_node(nid, mem_blk);
- 	return 0;
- }
- 
-@@ -855,7 +852,8 @@ static void register_memory_blocks_under
- 			if (!mem)
- 				continue;
- 
--			do_register_memory_block_under_node(nid, mem, MEMINIT_EARLY);
-+			memory_block_add_nid_early(mem, nid);
-+			do_register_memory_block_under_node(nid, mem);
- 			put_device(&mem->dev);
- 		}
- 
---- a/include/linux/memory.h~drivers-base-move-memory_block_add_nid-into-the-caller
-+++ a/include/linux/memory.h
-@@ -202,8 +202,7 @@ static inline unsigned long phys_to_bloc
- }
- 
- #ifdef CONFIG_NUMA
--void memory_block_add_nid(struct memory_block *mem, int nid,
--			  enum meminit_context context);
-+void memory_block_add_nid_early(struct memory_block *mem, int nid);
- #endif /* CONFIG_NUMA */
- int memory_block_advise_max_size(unsigned long size);
- unsigned long memory_block_advised_max_size(void);
+ 	hchunks = i;
 _
 
-Patches currently in -mm which might be from hare@kernel.org are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-drivers-base-memory-add-node-id-parameter-to-add_memory_block.patch
-mm-memory_hotplug-activate-node-before-adding-new-memory-blocks.patch
-drivers-base-move-memory_block_add_nid-into-the-caller.patch
+mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch
+selftests-mm-add-support-to-test-4pb-va-on-ppc64.patch
+selftest-mm-fix-ksm_funtional_test-failures.patch
+mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size.patch
 
