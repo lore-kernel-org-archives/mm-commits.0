@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8490B267386
-	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:21:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B9C023958D
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 20:37:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753820517; cv=none; b=FTZBQbpxnP276X879RODNC6dqUICLaWm/dF/AsO/wN/+JtlbEJ/iyks50nTwqwKibZW7gIcfIIEITUORra2OlgJjunTvDRhD/q8LHLfDHdEOPYo0SWw303BhqU8BGbBIs2K48aMJmmivYRdWqdfabcYC7hQWcd9HY5Xe3QwdLTE=
+	t=1753821454; cv=none; b=iAiAw4lU0n81DCCHfhaJbfqrl/+mX12U00P4/JbcRMZH3759kjlqEAdQmCNjBmIn1w2v0d5SNUR5e2LgxI1WDgQQGZrPj4WbA/5NH1X+rP8EbQjTldirQz7hnxC+59TeibCkGtvEpz77/eSLbBTwA9nW9hkfm/QWu7WXuU1R/wA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753820517; c=relaxed/simple;
-	bh=2ifRYI7e6ddH0SrsJ7BGJdkdZ/3oMyf8gkqstiG7g1c=;
-	h=Date:To:From:Subject:Message-Id; b=Xq4vlfumXA9nnbTdgp28ju5jLZeSiSRqTgJ0ebedd8UK9zhP75d3T6Nk7VTCGvV82CmUQaKGmB0RCSe21ot2gKmo8AviK+atqi8m+EOE+fVb47y6SZbkdn9fqDB9a2YxqT6TYl9Lnmn9h+vxlIll/3Ub7tr2tHK00Dg5QuBcaAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fOXydpw/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753821454; c=relaxed/simple;
+	bh=sB5sTpSyQD3D0TJ9lwqtz0+N+gU35LhVOL4KUYCrl9E=;
+	h=Date:To:From:Subject:Message-Id; b=l7XE6qipw0j13WaW9/eiWO0fsccnwOnw4UzMIyu4HzQZ8nfshkHk5KYU2B9YZ3rda904AxYBq+4OzXFOqDTC7DPEg3lTDM/CH3ScKgj7nncLmmVVwxW4oLaJpYIFAywMj7emhCoD4pDundn7+Gt62I7GiVEbKKc+ShVGh9fhteM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z4EYdc7s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fOXydpw/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39B2CC4CEEF;
-	Tue, 29 Jul 2025 20:21:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z4EYdc7s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3A96C4CEEF;
+	Tue, 29 Jul 2025 20:37:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753820517;
-	bh=2ifRYI7e6ddH0SrsJ7BGJdkdZ/3oMyf8gkqstiG7g1c=;
+	s=korg; t=1753821453;
+	bh=sB5sTpSyQD3D0TJ9lwqtz0+N+gU35LhVOL4KUYCrl9E=;
 	h=Date:To:From:Subject:From;
-	b=fOXydpw/p55kcye+d69231QArnBIlh6Wu198rH5Lrs0M7EIUu9U7nYvexSlWWMhrt
-	 7C7VxVM6lvPUnaO1a7bqjxNdmL11zddQOoESk1M6NoCB9K4OhPdlI9oM5aerYfSibG
-	 v/4AI+Pa2XC5cl48IR34GkdpH3vZ6/HCuLtLr60M=
-Date: Tue, 29 Jul 2025 13:21:56 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=z4EYdc7svQBXBLz6aQrU9ilMSIDWTgodJRZ/Z/Q3+Qs9hmsB6/osDbI7D6JJ7p9Ue
+	 bKwqujHG/jbPHYYWxs2J+MEqxMlSbWS9mqF0ue3X68r3wDRoI30l1Y2YFhhFBTKFFD
+	 iazC6fvepGfejyoEJG5MlMOjcTx0QtQH1XhmZGVM=
+Date: Tue, 29 Jul 2025 13:37:33 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,donettom@linux.ibm.com,david@redhat.com,hare@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-correct-type-for-vmalloc-vm_flags-fields-fix.patch added to mm-unstable branch
-Message-Id: <20250729202157.39B2CC4CEEF@smtp.kernel.org>
+Subject: + drivers-base-memory-add-node-id-parameter-to-add_memory_block.patch added to mm-new branch
+Message-Id: <20250729203733.D3A96C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fixup very disguised vmalloc flags parameter
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-correct-type-for-vmalloc-vm_flags-fields-fix.patch
+     Subject: drivers/base/memory: add node id parameter to add_memory_block()
+has been added to the -mm mm-new branch.  Its filename is
+     drivers-base-memory-add-node-id-parameter-to-add_memory_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-correct-type-for-vmalloc-vm_flags-fields-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-add-node-id-parameter-to-add_memory_block.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,61 +64,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: fixup very disguised vmalloc flags parameter
-Date: Tue, 29 Jul 2025 13:48:50 +0100
+From: Hannes Reinecke <hare@kernel.org>
+Subject: drivers/base/memory: add node id parameter to add_memory_block()
+Date: Tue, 29 Jul 2025 08:46:34 +0200
 
-The declare_vma() function in arm64 arch code liberally mixes the concepts
-of VMAs and near-identically named vmalloc data structures, so I
-accidentally changed the 'vm_flags' field' that is assigned to a 'vma'
-thinking it was... the vm_flags field of a vma, which it turns out, it
-isn't.
+We have some udev rules trying to read the sysfs attribute 'valid_zones'
+during an memory 'add' event, causing a crash in zone_for_pfn_range(). 
+Debugging found that mem->nid was set to NUMA_NO_NODE, which crashed in
+NODE_DATA(nid).  Further analysis revealed that we're running into a race
+with udev event processing: add_memory_resource() has this function calls:
 
-Revert the type from vm_flags_t to unsigned long.
+1) __try_online_node()
+2) arch_add_memory()
+3) create_memory_block_devices()
+  -> calls device_register() -> memory 'add' event
+4) node_set_online()/__register_one_node()
+  -> calls device_register() -> node 'add' event
+5) register_memory_blocks_under_node()
+  -> sets mem->nid
 
-Given vm_flags_t == unsigned long, there is no change in any behaviour
-before or after this patch, but in future this will matter.
+Which, to the uninitated, is ... weird ...
 
-Link: https://lkml.kernel.org/r/e74dd8de-7e60-47ab-8a45-2c851f3c5d26@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Why do we try to online the node in 1), but only register the node in 4)
+_after_ we have created the memory blocks in 3) ?  And why do we set the
+'nid' value in 5), when the uevent (which might need to see the correct
+'nid' value) is sent out in 3) ?  There must be a reason, I'm sure ...
+
+So here's a small patchset to fixup uevent ordering.  The first patch adds
+a 'nid' parameter to add_memory_blocks() (to avoid mem->nid being
+initialized with NUMA_NO_NODE), and the second patch reshuffles the code
+in add_memory_resource() to fully initialize the node prior to calling
+create_memory_block_devices() so that the node is valid at that time and
+uevent processing will see correct values in sysfs.
+
+
+This patch (of 3):
+
+Add a 'nid' parameter to add_memory_block() to initialize the memory block
+with the correct node id.
+
+Link: https://lkml.kernel.org/r/20250729064637.51662-1-hare@kernel.org
+Link: https://lkml.kernel.org/r/20250729064637.51662-2-hare@kernel.org
+Signed-off-by: Hannes Reinecke <hare@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/memory.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~mm-correct-type-for-vmalloc-vm_flags-fields-fix
-+++ a/arch/arm64/mm/mmu.c
-@@ -721,7 +721,7 @@ void mark_rodata_ro(void)
+--- a/drivers/base/memory.c~drivers-base-memory-add-node-id-parameter-to-add_memory_block
++++ a/drivers/base/memory.c
+@@ -809,7 +809,7 @@ void memory_block_add_nid(struct memory_
+ }
+ #endif
  
- static void __init declare_vma(struct vm_struct *vma,
- 			       void *va_start, void *va_end,
--			       vm_flags_t vm_flags)
-+			       unsigned long vm_flags)
+-static int add_memory_block(unsigned long block_id, unsigned long state,
++static int add_memory_block(unsigned long block_id, int nid, unsigned long state,
+ 			    struct vmem_altmap *altmap,
+ 			    struct memory_group *group)
  {
- 	phys_addr_t pa_start = __pa_symbol(va_start);
- 	unsigned long size = va_end - va_start;
+@@ -827,7 +827,7 @@ static int add_memory_block(unsigned lon
+ 
+ 	mem->start_section_nr = block_id * sections_per_block;
+ 	mem->state = state;
+-	mem->nid = NUMA_NO_NODE;
++	mem->nid = nid;
+ 	mem->altmap = altmap;
+ 	INIT_LIST_HEAD(&mem->group_next);
+ 
+@@ -854,13 +854,6 @@ static int add_memory_block(unsigned lon
+ 	return 0;
+ }
+ 
+-static int add_hotplug_memory_block(unsigned long block_id,
+-				    struct vmem_altmap *altmap,
+-				    struct memory_group *group)
+-{
+-	return add_memory_block(block_id, MEM_OFFLINE, altmap, group);
+-}
+-
+ static void remove_memory_block(struct memory_block *memory)
+ {
+ 	if (WARN_ON_ONCE(memory->dev.bus != &memory_subsys))
+@@ -900,7 +893,7 @@ int create_memory_block_devices(unsigned
+ 		return -EINVAL;
+ 
+ 	for (block_id = start_block_id; block_id != end_block_id; block_id++) {
+-		ret = add_hotplug_memory_block(block_id, altmap, group);
++		ret = add_memory_block(block_id, NUMA_NO_NODE, MEM_OFFLINE, altmap, group);
+ 		if (ret)
+ 			break;
+ 	}
+@@ -1005,7 +998,7 @@ void __init memory_dev_init(void)
+ 			continue;
+ 
+ 		block_id = memory_block_id(nr);
+-		ret = add_memory_block(block_id, MEM_ONLINE, NULL, NULL);
++		ret = add_memory_block(block_id, NUMA_NO_NODE, MEM_ONLINE, NULL, NULL);
+ 		if (ret) {
+ 			panic("%s() failed to add memory block: %d\n",
+ 			      __func__, ret);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from hare@kernel.org are
 
-mm-mseal-always-define-vm_sealed.patch
-mm-mseal-update-madvise-logic.patch
-mm-mseal-small-cleanups.patch
-mm-mseal-simplify-and-rename-vma-gap-check.patch
-mm-mseal-simplify-and-rename-vma-gap-check-fix.patch
-mm-mseal-rework-mseal-apply-logic.patch
-mm-remove-mm-io-mappingc.patch
-mm-correct-type-for-vmalloc-vm_flags-fields.patch
-mm-correct-type-for-vmalloc-vm_flags-fields-fix.patch
+drivers-base-memory-add-node-id-parameter-to-add_memory_block.patch
+mm-memory_hotplug-activate-node-before-adding-new-memory-blocks.patch
+drivers-base-move-memory_block_add_nid-into-the-caller.patch
 
