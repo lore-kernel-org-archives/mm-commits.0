@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B45F1F956
-	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2025 19:46:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9682E2550C2;
+	Tue, 29 Jul 2025 19:51:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753818388; cv=none; b=X+WnvbabhsD4wZYfmf1oVarzybIH5RAYXXWHMl9xtBHXEO9/iiRyoQ1x6m/8VHoIYcRmWYjOb0nrQNwOaOvGH2GDySdBPJG7VbsxJJYvCjWN/FjOqeCL/L6jpjRDNSokBjqDSLPJqAAPPFMTKQ2l/F8OIO6D1axS3LfnpuGfnuo=
+	t=1753818698; cv=none; b=oUUQUGb4VQrmIZamKs5W8U2ap+6zTpBt3E7BikB0fEBfPh8HdOq8F7ATui5BOn7vAqe9pMhdCoeRY1i17FhRrkAG5fHyXr+ZRAZnQK5XE3m1cw1nynuxNiQ//6nD+vDsclVc8SVrV7O6ihMfvgvuFyve20m7z98aN1/doJfAIwE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753818388; c=relaxed/simple;
-	bh=+1oRGCvkVFjYgnDoTffoGVfYjik2ZDYo1uuj7g24nK4=;
-	h=Date:To:From:Subject:Message-Id; b=eOP7SRXz7U7KhTF/8HDBL00Qb4vwgXfNenwc3fZZMkAqeT6hoZVotNAfih2TKYt+pyTJmkGUN1TB4aK3MfpRcvKfPSiwp844EsZQSVTBPmKlPT2WFsX6TEwpXFJjo5TZurT9dO7gUjVnzocRA7avyfFuX/Y8WXEO8tV94xrKKkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WyRvWiVC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753818698; c=relaxed/simple;
+	bh=q2S8U1ciBfQTHyN+dfvvDmFzPPQgh+W3lJmwr8gcIHE=;
+	h=Date:To:From:Subject:Message-Id; b=BjS+CuvTtvM5MvXRm3kdu1j/TxFwllTjNZUDKlinEJq4FsLGuLzz8oBU4Nnz3QnWxqkRBcC+9pJT4ZprkjGYJtAFpZZDjbEXHI+4FbKMi+65QCllqizvVwJSSGtvv3O6dE9BJK6ZTnRD4Duf6J9/skye2UTfVKbh86GDLJRe+cI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wOHgRkbE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WyRvWiVC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00FA0C4CEF6;
-	Tue, 29 Jul 2025 19:46:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wOHgRkbE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4293BC4CEF7;
+	Tue, 29 Jul 2025 19:51:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1753818388;
-	bh=+1oRGCvkVFjYgnDoTffoGVfYjik2ZDYo1uuj7g24nK4=;
+	s=korg; t=1753818698;
+	bh=q2S8U1ciBfQTHyN+dfvvDmFzPPQgh+W3lJmwr8gcIHE=;
 	h=Date:To:From:Subject:From;
-	b=WyRvWiVCkt2A4WWtf6iMxIqXA1KhbUYvJXIJguejpV+44Ewx7qCe1cFtRo4vMNUoW
-	 yvOEYw2VQ8MqirrXf9kjhy2IMAjGPbwYoVHC3bXOP04a8lJIFw5yHpXrWuX6dYLrRD
-	 XV4pngzX+hJu9zrjaEbXzXJnaNQH+/VEdLKu6lIU=
-Date: Tue, 29 Jul 2025 12:46:27 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,broonie@kernel.org,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
+	b=wOHgRkbELklwxJkk/fCwvbd7HD4uH4gkCdEB6EXVTZNuUUuw2JPkb1Io7vfToh++3
+	 2rUyGmw0Hzm6ewWKEjd2VoXp4T87pWKHMM/Xk0ive0/V1Z0m6e6cPp7TXWLqYK2YiL
+	 bVZ89GHdFeIz6U5S+ETo++FEF1fA6aFzS2N23YGk=
+Date: Tue, 29 Jul 2025 12:51:37 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-process_madvise-tests-v7.patch added to mm-unstable branch
-Message-Id: <20250729194628.00FA0C4CEF6@smtp.kernel.org>
+Subject: + mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3.patch added to mm-unstable branch
+Message-Id: <20250729195138.4293BC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests-mm-add-process_madvise-tests-v7
+     Subject: mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-process_madvise-tests-v7.patch
+     mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-process_madvise-tests-v7.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,160 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wang lian <lianux.mm@gmail.com>
-Subject: selftests-mm-add-process_madvise-tests-v7
-Date: Tue, 29 Jul 2025 19:31:09 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3
+Date: Tue, 29 Jul 2025 07:57:09 -0700
 
-- In the remote_collapse test, replace default_huge_page_size() with
-  read_pmd_pagesize()
+- Addressed Lorenzo's nits, per Lorenzo Stoakes
+- Added a warning comment for vma_start_read()
+- Added Reviewed-by and Acked-by, per Vlastimil Babka and Lorenzo Stoakes
 
-- Add a new test, invalid_vlen, to verify that process_madvise()
-  correctly fails with EINVAL when the vlen argument exceeds UIO_MAXIOV.
-
-Link: https://lkml.kernel.org/r/20250729113109.12272-1-lianux.mm@gmail.com
-Signed-off-by: wang lian <lianux.mm@gmail.com>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Mark Brown <broonie@kernel.org>
-Acked-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Zi Yan <ziy@nvidia.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20250729145709.2731370-1-surenb@google.com
+Fixes: 3104138517fc ("mm: make vma cache SLAB_TYPESAFE_BY_RCU")
+Reported-by: Jann Horn <jannh@google.com>
+Closes: https://lore.kernel.org/all/CAG48ez0-deFbVH=E3jbkWx=X3uVbd8nWeo6kbJPQ0KoUD+m2tA@mail.gmail.com/
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kairui Song <ryncsn@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/process_madv.c |   64 ++++++++++++++++----
- 1 file changed, 53 insertions(+), 11 deletions(-)
+ include/linux/mmap_lock.h |    7 +++++++
+ mm/mmap_lock.c            |    2 +-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/process_madv.c~selftests-mm-add-process_madvise-tests-v7
-+++ a/tools/testing/selftests/mm/process_madv.c
-@@ -141,7 +141,7 @@ TEST_F(process_madvise, remote_collapse)
- 		void *map_addr;
- 	} info;
- 
--	huge_page_size = default_huge_page_size();
-+	huge_page_size = read_pmd_pagesize();
- 	if (huge_page_size <= 0)
- 		SKIP(return, "Could not determine a valid huge page size.\n");
- 
-@@ -193,7 +193,8 @@ TEST_F(process_madvise, remote_collapse)
- 	vec.iov_base = info.map_addr;
- 	vec.iov_len = huge_page_size;
- 
--	ret = sys_process_madvise(self->remote_pidfd, &vec, 1, MADV_COLLAPSE, 0);
-+	ret = sys_process_madvise(self->remote_pidfd, &vec, 1, MADV_COLLAPSE,
-+				  0);
- 	if (ret == -1) {
- 		if (errno == EINVAL)
- 			SKIP(return, "PROCESS_MADV_ADVISE is not supported.\n");
-@@ -212,12 +213,18 @@ TEST_F(process_madvise, remote_collapse)
+--- a/include/linux/mmap_lock.h~mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3
++++ a/include/linux/mmap_lock.h
+@@ -155,6 +155,10 @@ static inline void vma_refcount_put(stru
+  * reused and attached to a different mm before we lock it.
+  * Returns the vma on success, NULL on failure to lock and EAGAIN if vma got
+  * detached.
++ *
++ * WARNING! The vma passed to this function cannot be used if the function
++ * fails to lock it because in certain cases RCU lock is dropped and then
++ * reacquired. Once RCU lock is dropped the vma can be concurently freed.
   */
- TEST_F(process_madvise, exited_process_pidfd)
- {
-+	const unsigned long pagesize = self->page_size;
- 	struct iovec vec;
-+	char *map;
- 	ssize_t ret;
--	int pidfd;
- 
--	vec.iov_base = (void *)0x1234;
--	vec.iov_len = 4096;
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
+ static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
+ 						    struct vm_area_struct *vma)
+@@ -194,9 +198,12 @@ static inline struct vm_area_struct *vma
+ 	if (unlikely(vma->vm_mm != mm)) {
+ 		/* Use a copy of vm_mm in case vma is freed after we drop vm_refcnt */
+ 		struct mm_struct *other_mm = vma->vm_mm;
 +
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
+ 		/*
+ 		 * __mmdrop() is a heavy operation and we don't need RCU
+ 		 * protection here. Release RCU lock during these operations.
++		 * We reinstate the RCU read lock as the caller expects it to
++		 * be held when this function returns even on error.
+ 		 */
+ 		rcu_read_unlock();
+ 		mmgrab(other_mm);
+--- a/mm/mmap_lock.c~mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3
++++ a/mm/mmap_lock.c
+@@ -235,7 +235,7 @@ retry:
+ 		goto fallback;
+ 	}
  
- 	/*
- 	 * Using a pidfd for a process that has already exited should fail
-@@ -229,16 +236,16 @@ TEST_F(process_madvise, exited_process_p
- 	if (self->child_pid == 0)
- 		exit(0);
+-	/* Verify the vma is not behind of the last search position. */
++	/* Verify the vma is not behind the last search position. */
+ 	if (unlikely(from_addr >= vma->vm_end))
+ 		goto fallback_unlock;
  
--	pidfd = syscall(__NR_pidfd_open, self->child_pid, 0);
--	ASSERT_GE(pidfd, 0);
-+	self->remote_pidfd = syscall(__NR_pidfd_open, self->child_pid, 0);
-+	ASSERT_GE(self->remote_pidfd, 0);
- 
- 	/* Wait for the child to ensure it has terminated. */
- 	waitpid(self->child_pid, NULL, 0);
- 
--	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, 0);
-+	ret = sys_process_madvise(self->remote_pidfd, &vec, 1, MADV_DONTNEED,
-+				  0);
- 	ASSERT_EQ(ret, -1);
- 	ASSERT_EQ(errno, ESRCH);
--	close(pidfd);
- }
- 
- /*
-@@ -247,11 +254,18 @@ TEST_F(process_madvise, exited_process_p
-  */
- TEST_F(process_madvise, bad_pidfd)
- {
-+	const unsigned long pagesize = self->page_size;
- 	struct iovec vec;
-+	char *map;
- 	ssize_t ret;
- 
--	vec.iov_base = (void *)0x1234;
--	vec.iov_len = 4096;
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
- 
- 	/* Using an invalid fd number (-1) should fail with EBADF. */
- 	ret = sys_process_madvise(-1, &vec, 1, MADV_DONTNEED, 0);
-@@ -268,6 +282,34 @@ TEST_F(process_madvise, bad_pidfd)
- }
- 
- /*
-+ * Test that process_madvise() rejects vlen > UIO_MAXIOV.
-+ * The kernel should return -EINVAL when the number of iovecs exceeds 1024.
-+ */
-+TEST_F(process_madvise, invalid_vlen)
-+{
-+	const unsigned long pagesize = self->page_size;
-+	int pidfd = self->pidfd;
-+	struct iovec vec;
-+	char *map;
-+	ssize_t ret;
-+
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
-+
-+	ret = sys_process_madvise(pidfd, &vec, 1025, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize), 0);
-+}
-+
-+/*
-  * Test process_madvise() with an invalid flag value. Currently, only a flag
-  * value of 0 is supported. This test is reserved for the future, e.g., if
-  * synchronous flags are added.
 _
 
-Patches currently in -mm which might be from lianux.mm@gmail.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-selftests-mm-add-process_madvise-tests.patch
-selftests-mm-add-process_madvise-tests-v7.patch
+mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped.patch
+mm-fix-a-uaf-when-vma-mm-is-freed-after-vma-vm_refcnt-got-dropped-v3.patch
 
