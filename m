@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F908DF71;
-	Fri,  1 Aug 2025 20:14:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 142D11EA65;
+	Fri,  1 Aug 2025 20:50:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754079264; cv=none; b=G7CtdojoCWOhhN1YaXuGjgkUbhc7L2yRWpqUAIcOm8ZQzSUjL0GbcxQAF1j0fOpv6wDZSYjxU2cDRJ/ejrQsWuHnuJM5gg5Mz4zCxdXfJL1LFfi3A4+vx4gJQZZs4vPMfyyz5Wr3k1h0mWMjafIq+mHCJjIX2cUDJcNCgBRXEJI=
+	t=1754081456; cv=none; b=mP/35rparSpwt78nS0Fo7v82ZSalPXyJ4LQq4umSepWOiQphK4K/FiWCz4Y4zf2Vt+LcTXj5bRJpiWU+wYUvQdB131MQunIq6XOan8QM6i+yzpSu8Ty5mtJWiOAspwvkHegUjKZdrKYRLKZVoSkBbnImdBZwRttNfH7nb6kGpt0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754079264; c=relaxed/simple;
-	bh=d2XZyV+/gWsZx/bSr/1trDF83S2snHbP0P55uU9+S5Q=;
-	h=Date:To:From:Subject:Message-Id; b=u/Lg19bGJAeY5ThEEfExQEb7z6ynHXvx21xayHdPii9WCqPBw98e4VFlSkuIyx2JvJohtBojBin1vtNA0USjEPxcD01XUfRPp8Wep2FHTlIPD61BB7Jcjz/ViLVmdcGoyU6/oL/Xw7SNpdj6BLVcJ7UWwvLLgs91VdtwGY0ljr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Aiwa2GL5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754081456; c=relaxed/simple;
+	bh=/s57BzkrDIMHFkT4puTsJ4UADvRWytsAht44at+tfkI=;
+	h=Date:To:From:Subject:Message-Id; b=LX7TofGQkRt7V5Oprq1ELScMvOo3lITXDpm0Zq81s9KmzKgrIeeOFz4/cKmfLZ74plVYFLkilV5VRCCg27kSDkdQ4P8REZO8DQ/y+Gpc1eDvE+XBj+3LtqYGnJHdDLJHyW8HFegft5z8R6wcPbfuNqddhlbBpzd5k5CcZqAwFmI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EBkNA2tY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Aiwa2GL5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDD0EC4CEE7;
-	Fri,  1 Aug 2025 20:14:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EBkNA2tY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FFD3C4CEE7;
+	Fri,  1 Aug 2025 20:50:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754079264;
-	bh=d2XZyV+/gWsZx/bSr/1trDF83S2snHbP0P55uU9+S5Q=;
+	s=korg; t=1754081455;
+	bh=/s57BzkrDIMHFkT4puTsJ4UADvRWytsAht44at+tfkI=;
 	h=Date:To:From:Subject:From;
-	b=Aiwa2GL5/tx3Sec5ZB7gCySzFABtxOy50miN4+URgVTFRJ3eGNGVQbN4cO1um4nHz
-	 1C8lw4Zcuc37g6y7K5XGIm66svEw9ujNUVoDD4FNhdsBtLDrN8W6sZxhKdmPPFlige
-	 U+DxVhjHewl1dSVuk/v180V88FLeHY1mrOODgqiY=
-Date: Fri, 01 Aug 2025 13:14:23 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
+	b=EBkNA2tY8vhd9XUOuFhjLgtY2+qXrl4Cwzl575sZt/E/YLQV292Ng3CwPaIiSuw7R
+	 8/s8R4h1HkF6BB9rRBOFmVR5YCLmpnaQply5STt2P3nAURBoa5L9g2iqnAvD4mH7/Q
+	 ipgbow6ubZIh5PNWQgMIMzwpKJ5HeRzBX5nF7klg=
+Date: Fri, 01 Aug 2025 13:50:54 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,gshan@redhat.com,gerald.schaefer@linux.ibm.com,christophe.leroy@csgroup.eu,anshuman.khandual@arm.com,herton@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kunit-kasan_test-disable-fortify-string-checker-on-kasan_strings-test.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250801201423.EDD0EC4CEE7@smtp.kernel.org>
+Subject: + mm-debug_vm_pgtable-clear-page-table-entries-at-destroy_args.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250801205055.8FFD3C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kunit: kasan_test: disable fortify string checker on kasan_strings() test
+     Subject: mm/debug_vm_pgtable: clear page table entries at destroy_args()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kunit-kasan_test-disable-fortify-string-checker-on-kasan_strings-test.patch
+     mm-debug_vm_pgtable-clear-page-table-entries-at-destroy_args.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-kasan_test-disable-fortify-string-checker-on-kasan_strings-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtable-clear-page-table-entries-at-destroy_args.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,149 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: kunit: kasan_test: disable fortify string checker on kasan_strings() test
-Date: Fri, 1 Aug 2025 13:02:36 +0100
+From: "Herton R. Krzesinski" <herton@redhat.com>
+Subject: mm/debug_vm_pgtable: clear page table entries at destroy_args()
+Date: Thu, 31 Jul 2025 18:40:51 -0300
 
-Similar to commit 09c6304e38e4 ("kasan: test: fix compatibility with
-FORTIFY_SOURCE") the kernel is panicing in kasan_string().
+The mm/debug_vm_pagetable test allocates manually page table entries for
+the tests it runs, using also its manually allocated mm_struct.  That in
+itself is ok, but when it exits, at destroy_args() it fails to clear those
+entries with the *_clear functions.
 
-This is due to the `src` and `ptr` not being hidden from the optimizer
-which would disable the runtime fortify string checker.
+The problem is that leaves stale entries.  If another process allocates an
+mm_struct with a pgd at the same address, it may end up running into the
+stale entry.  This is happening in practice on a debug kernel with
+CONFIG_DEBUG_VM_PGTABLE=y, for example this is the output with some extra
+debugging I added (it prints a warning trace if pgtables_bytes goes
+negative, in addition to the warning at check_mm() function):
 
-Call trace:
-  __fortify_panic+0x10/0x20 (P)
-  kasan_strings+0x980/0x9b0
-  kunit_try_run_case+0x68/0x190
-  kunit_generic_run_threadfn_adapter+0x34/0x68
-  kthread+0x1c4/0x228
-  ret_from_fork+0x10/0x20
- Code: d503233f a9bf7bfd 910003fd 9424b243 (d4210000)
- ---[ end trace 0000000000000000 ]---
- note: kunit_try_catch[128] exited with irqs disabled
- note: kunit_try_catch[128] exited with preempt_count 1
-     # kasan_strings: try faulted: last
-** replaying previous printk message **
-     # kasan_strings: try faulted: last line seen mm/kasan/kasan_test_c.c:1600
-     # kasan_strings: internal error occurred preventing test case from running: -4
+[    2.539353] debug_vm_pgtable: [get_random_vaddr         ]: random_vaddr is 0x7ea247140000
+[    2.539366] kmem_cache info
+[    2.539374] kmem_cachep 0x000000002ce82385 - freelist 0x0000000000000000 - offset 0x508
+[    2.539447] debug_vm_pgtable: [init_args                ]: args->mm is 0x000000002267cc9e
+(...)
+[    2.552800] WARNING: CPU: 5 PID: 116 at include/linux/mm.h:2841 free_pud_range+0x8bc/0x8d0
+[    2.552816] Modules linked in:
+[    2.552843] CPU: 5 UID: 0 PID: 116 Comm: modprobe Not tainted 6.12.0-105.debug_vm2.el10.ppc64le+debug #1 VOLUNTARY
+[    2.552859] Hardware name: IBM,9009-41A POWER9 (architected) 0x4e0202 0xf000005 of:IBM,FW910.00 (VL910_062) hv:phyp pSeries
+[    2.552872] NIP:  c0000000007eef3c LR: c0000000007eef30 CTR: c0000000003d8c90
+[    2.552885] REGS: c0000000622e73b0 TRAP: 0700   Not tainted  (6.12.0-105.debug_vm2.el10.ppc64le+debug)
+[    2.552899] MSR:  800000000282b033 <SF,VEC,VSX,EE,FP,ME,IR,DR,RI,LE>  CR: 24002822  XER: 0000000a
+[    2.552954] CFAR: c0000000008f03f0 IRQMASK: 0
+[    2.552954] GPR00: c0000000007eef30 c0000000622e7650 c000000002b1ac00 0000000000000001
+[    2.552954] GPR04: 0000000000000008 0000000000000000 c0000000007eef30 ffffffffffffffff
+[    2.552954] GPR08: 00000000ffff00f5 0000000000000001 0000000000000048 0000000000004000
+[    2.552954] GPR12: 00000003fa440000 c000000017ffa300 c0000000051d9f80 ffffffffffffffdb
+[    2.552954] GPR16: 0000000000000000 0000000000000008 000000000000000a 60000000000000e0
+[    2.552954] GPR20: 4080000000000000 c0000000113af038 00007fffcf130000 0000700000000000
+[    2.552954] GPR24: c000000062a6a000 0000000000000001 8000000062a68000 0000000000000001
+[    2.552954] GPR28: 000000000000000a c000000062ebc600 0000000000002000 c000000062ebc760
+[    2.553170] NIP [c0000000007eef3c] free_pud_range+0x8bc/0x8d0
+[    2.553185] LR [c0000000007eef30] free_pud_range+0x8b0/0x8d0
+[    2.553199] Call Trace:
+[    2.553207] [c0000000622e7650] [c0000000007eef30] free_pud_range+0x8b0/0x8d0 (unreliable)
+[    2.553229] [c0000000622e7750] [c0000000007f40b4] free_pgd_range+0x284/0x3b0
+[    2.553248] [c0000000622e7800] [c0000000007f4630] free_pgtables+0x450/0x570
+[    2.553274] [c0000000622e78e0] [c0000000008161c0] exit_mmap+0x250/0x650
+[    2.553292] [c0000000622e7a30] [c0000000001b95b8] __mmput+0x98/0x290
+[    2.558344] [c0000000622e7a80] [c0000000001d1018] exit_mm+0x118/0x1b0
+[    2.558361] [c0000000622e7ac0] [c0000000001d141c] do_exit+0x2ec/0x870
+[    2.558376] [c0000000622e7b60] [c0000000001d1ca8] do_group_exit+0x88/0x150
+[    2.558391] [c0000000622e7bb0] [c0000000001d1db8] sys_exit_group+0x48/0x50
+[    2.558407] [c0000000622e7be0] [c00000000003d810] system_call_exception+0x1e0/0x4c0
+[    2.558423] [c0000000622e7e50] [c00000000000d05c] system_call_vectored_common+0x15c/0x2ec
+(...)
+[    2.558892] ---[ end trace 0000000000000000 ]---
+[    2.559022] BUG: Bad rss-counter state mm:000000002267cc9e type:MM_ANONPAGES val:1
+[    2.559037] BUG: non-zero pgtables_bytes on freeing mm: -6144
 
-Link: https://lkml.kernel.org/r/20250801120236.2962642-1-yeoreum.yun@arm.com
-Fixes: 73228c7ecc5e ("KASAN: port KASAN Tests to KUnit")
-Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Here the modprobe process ended up with an allocated mm_struct from the
+mm_struct slab that was used before by the debug_vm_pgtable test.  That is
+not a problem, since the mm_struct is initialized again etc., however, if
+it ends up using the same pgd table, it bumps into the old stale entry
+when clearing/freeing the page table entries, so it tries to free an entry
+already gone (that one which was allocated by the debug_vm_pgtable test),
+which also explains the negative pgtables_bytes since it's accounting for
+not allocated entries in the current process.
+
+As far as I looked pgd_{alloc,free} etc.  does not clear entries, and
+clearing of the entries is explicitly done in the free_pgtables->
+free_pgd_range->free_p4d_range->free_pud_range->free_pmd_range->
+free_pte_range path.  However, the debug_vm_pgtable test does not call
+free_pgtables, since it allocates mm_struct and entries manually for its
+test and eg.  not goes through page faults.  So it also should clear
+manually the entries before exit at destroy_args().
+
+This problem was noticed on a reboot X number of times test being done on
+a powerpc host, with a debug kernel with CONFIG_DEBUG_VM_PGTABLE enabled. 
+Depends on the system, but on a 100 times reboot loop the problem could
+manifest once or twice, if a process ends up getting the right mm->pgd
+entry with the stale entries used by mm/debug_vm_pagetable.  After using
+this patch, I couldn't reproduce/experience the problems anymore.  I was
+able to reproduce the problem as well on latest upstream kernel (6.16).
+
+I also modified destroy_args() to use mmput() instead of mmdrop(), there
+is no reason to hold mm_users reference and not release the mm_struct
+entirely, and in the output above with my debugging prints I already had
+patched it to use mmput, it did not fix the problem, but helped in the
+debugging as well.
+
+Link: https://lkml.kernel.org/r/20250731214051.4115182-1-herton@redhat.com
+Fixes: 3c9b84f044a9e ("mm/debug_vm_pgtable: introduce struct pgtable_debug_args")
+Signed-off-by: Herton R. Krzesinski <herton@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/debug_vm_pgtable.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/kasan_test_c.c~kunit-kasan_test-disable-fortify-string-checker-on-kasan_strings-test
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1578,9 +1578,11 @@ static void kasan_strings(struct kunit *
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-clear-page-table-entries-at-destroy_args
++++ a/mm/debug_vm_pgtable.c
+@@ -1041,29 +1041,34 @@ static void __init destroy_args(struct p
  
- 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+	OPTIMIZER_HIDE_VAR(ptr);
+ 	/* Free page table entries */
+ 	if (args->start_ptep) {
++		pmd_clear(args->pmdp);
+ 		pte_free(args->mm, args->start_ptep);
+ 		mm_dec_nr_ptes(args->mm);
+ 	}
  
- 	src = kmalloc(KASAN_GRANULE_SIZE, GFP_KERNEL | __GFP_ZERO);
- 	strscpy(src, "f0cacc1a0000000", KASAN_GRANULE_SIZE);
-+	OPTIMIZER_HIDE_VAR(src);
+ 	if (args->start_pmdp) {
++		pud_clear(args->pudp);
+ 		pmd_free(args->mm, args->start_pmdp);
+ 		mm_dec_nr_pmds(args->mm);
+ 	}
  
- 	/*
- 	 * Make sure that strscpy() does not trigger KASAN if it overreads into
+ 	if (args->start_pudp) {
++		p4d_clear(args->p4dp);
+ 		pud_free(args->mm, args->start_pudp);
+ 		mm_dec_nr_puds(args->mm);
+ 	}
+ 
+-	if (args->start_p4dp)
++	if (args->start_p4dp) {
++		pgd_clear(args->pgdp);
+ 		p4d_free(args->mm, args->start_p4dp);
++	}
+ 
+ 	/* Free vma and mm struct */
+ 	if (args->vma)
+ 		vm_area_free(args->vma);
+ 
+ 	if (args->mm)
+-		mmdrop(args->mm);
++		mmput(args->mm);
+ }
+ 
+ static struct page * __init
 _
 
-Patches currently in -mm which might be from yeoreum.yun@arm.com are
+Patches currently in -mm which might be from herton@redhat.com are
 
-kunit-kasan_test-disable-fortify-string-checker-on-kasan_strings-test.patch
+mm-debug_vm_pgtable-clear-page-table-entries-at-destroy_args.patch
 
