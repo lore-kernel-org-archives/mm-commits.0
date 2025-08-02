@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 539781A8412
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 093C3255248
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160888; cv=none; b=ijt+85Ev2P+HwcYI9wzxPngcG9JiG9lea4Uqk9bcCXqnVQkyNALHaUQO2L3fT9jK22hhWAClkfXCd5MHYtXXxXgbQsuyVRX+MhwvZPl6tixwg3PdMAa39I+/7geLvxu5kSctm+0Z22DjVuBLXafdxHW6+jBFTpDM1qXMm59GWgo=
+	t=1754160891; cv=none; b=Ob3Zz2sg+rtNfO42lgtZm2FNbiJ4XqFGt4j0kcXG63aUuqU3PX6PMyPhlt00qR3QVezLbDdSMxJoPKLH8vpNyThT7GrwqATlAeR1mbuC6WcK8+izAkoibAbg2Dhbr3JdlqF9U9pOFdC9XfAgoZR7E/6RqrUmeArzxoC/d5QnEtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160888; c=relaxed/simple;
-	bh=MuzsBKFikNgAGh+EZeqvOylInV8I2s5hCmAKUqyyDws=;
-	h=Date:To:From:Subject:Message-Id; b=O9jlwtKp4a6ILJdQC3oZT6wZ+LUDqBrf2cYo0nyVcby5dofvl6k32AtT7PUEW+BYRLNk7CTlZBQwdy6PsisyB5GSTHu2qWSUPT6WzME0l85G6WtIkXEK1e8elsLjTCXT6sujKxpLl208eee4pPfWmejLW6gaERd5fXgMzfwJBgQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xZYLzibk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160891; c=relaxed/simple;
+	bh=Fc1Tn/HHNs51JN0eA74wkLFE2+/f849oUrsZAQo+VJc=;
+	h=Date:To:From:Subject:Message-Id; b=eAStOAswVI/Zc440OWP9aQlXtuZqdV6ca4D3RTNAj2JMzGffDmRrdLGJzIJd/aZ5E0FxglhbwVZV6GUCNm4P80m4c6kyNz6vDGIcyBTcVOcssvwu41elm3hBq1MlpBKKxYXpqqDmdVxscZRlpkS6cnfrFGrM4d40yFgBgT5guFk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fMeRbN6y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xZYLzibk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28512C4CEEF;
-	Sat,  2 Aug 2025 18:54:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fMeRbN6y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3A46C4CEEF;
+	Sat,  2 Aug 2025 18:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160888;
-	bh=MuzsBKFikNgAGh+EZeqvOylInV8I2s5hCmAKUqyyDws=;
+	s=korg; t=1754160890;
+	bh=Fc1Tn/HHNs51JN0eA74wkLFE2+/f849oUrsZAQo+VJc=;
 	h=Date:To:From:Subject:From;
-	b=xZYLzibkRr0hbNh1ZqTAdyxe0/DawZ7ELbV7QbXUkRx0Y2w6QTFrw+qB3FfBsgz7z
-	 kpxNgg044LUJ0JbjDCu+dx1TYpy7n1OueO6AM1PxKFGe6Dt4Dc0JsqorMBA6MfAJVH
-	 kNKS3YZxcegGq0+jUbSb0wJrkljOO/qQLjS+SOEM=
-Date: Sat, 02 Aug 2025 11:54:47 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=fMeRbN6y5tHzNy/FohCMMqvNQRx7+bi9fArPAVt17glgl/hNVPs6d4a9wkLv9UOS4
+	 Wrgi++4IomhvVzn62haqNH5sYHthkoubUtb2vCWyrSusB9wMd7GlDTa3s+7BGLg2wu
+	 FGQRkCmblv+wtkeIg19YJisGDKFWKBYKCT7Zg9h4=
+Date: Sat, 02 Aug 2025 11:54:50 -0700
+To: mm-commits@vger.kernel.org,ydfan@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-correct-type-for-vmalloc-vm_flags-fields.patch removed from -mm tree
-Message-Id: <20250802185448.28512C4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempool-fix-crash-in-mempool_free-for-zero-minimum-pools.patch removed from -mm tree
+Message-Id: <20250802185450.D3A46C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: correct type for vmalloc vm_flags fields
+     Subject: mm: mempool: fix crash in mempool_free() for zero-minimum pools
 has been removed from the -mm tree.  Its filename was
-     mm-correct-type-for-vmalloc-vm_flags-fields.patch
+     mm-mempool-fix-crash-in-mempool_free-for-zero-minimum-pools.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: correct type for vmalloc vm_flags fields
-Date: Tue, 29 Jul 2025 12:49:06 +0100
+From: Yadan Fan <ydfan@suse.com>
+Subject: mm: mempool: fix crash in mempool_free() for zero-minimum pools
+Date: Fri, 1 Aug 2025 02:14:45 +0800
 
-Several functions refer to the unfortunately named 'vm_flags' field when
-referencing vmalloc flags, which happens to be the precise same name used
-for VMA flags.
+The mempool wake-up fix introduced in commit a5867a218d7c ("mm: mempool:
+fix wake-up edge case bug for zero-minimum pools") inlined the
+add_element() logic in mempool_free() to return the element to the
+zero-minimum pool:
 
-As a result these were erroneously changed to use the vm_flags_t type
-(which currently is a typedef equivalent to unsigned long).
+pool->elements[pool->curr_nr++] = element;
 
-Currently this has no impact, but in future when vm_flags_t changes this
-will result in issues, so change the type to unsigned long to account for
-this.
+This causes crash, because mempool_init_node() does not initialize with
+real allocation for zero-minimum pool, it only returns ZERO_SIZE_PTR to
+the elements array which is unable to be dereferenced, and the
+pre-allocation of this array never happened since the while test:
 
-[lorenzo.stoakes@oracle.com: fixup very disguised vmalloc flags parameter]
-  Link: https://lkml.kernel.org/r/e74dd8de-7e60-47ab-8a45-2c851f3c5d26@lucifer.local
-Link: https://lkml.kernel.org/r/20250729114906.55347-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: Harry Yoo <harry.yoo@oracle.com>
-Closes: https://lore.kernel.org/all/aIgSpAnU8EaIcqd9@hyeyoo/
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+while (pool->curr_nr < pool->min_nr)
+
+can never be satisfied as min_nr is zero, so the pool does not actually
+reserve any buffer, the only way so far is to call alloc_fn() to get
+buffer from SLUB, but if the memory is under high pressure the alloc_fn()
+could never get any buffer, the waiting thread would be in an indefinite
+loop of wake-sleep in a period until there is free memory to get.
+
+This patch changes mempool_init_node() to allocate 1 element for the
+elements array of zero-minimum pool, so that the pool will have reserved
+buffer to use.  This will fix the crash issue and let the waiting thread
+can get the reserved element when alloc_fn() failed to get buffer under
+high memory pressure.
+
+Also modify add_element() to support zero-minimum pool with simplifying
+codes of zero-minimum handling in mempool_free().
+
+Link: https://lkml.kernel.org/r/e01f00f3-58d9-4ca7-af54-bfa42fec9527@suse.com
+Fixes: a5867a218d7c ("mm: mempool: fix wake-up edge case bug for zero-minimum pools")
+Signed-off-by: Yadan Fan <ydfan@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |    2 +-
- mm/execmem.c        |    8 ++++----
- mm/internal.h       |    2 +-
- mm/nommu.c          |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ mm/mempool.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~mm-correct-type-for-vmalloc-vm_flags-fields
-+++ a/arch/arm64/mm/mmu.c
-@@ -721,7 +721,7 @@ void mark_rodata_ro(void)
+--- a/mm/mempool.c~mm-mempool-fix-crash-in-mempool_free-for-zero-minimum-pools
++++ a/mm/mempool.c
+@@ -136,7 +136,7 @@ static void kasan_unpoison_element(mempo
  
- static void __init declare_vma(struct vm_struct *vma,
- 			       void *va_start, void *va_end,
--			       vm_flags_t vm_flags)
-+			       unsigned long vm_flags)
+ static __always_inline void add_element(mempool_t *pool, void *element)
  {
- 	phys_addr_t pa_start = __pa_symbol(va_start);
- 	unsigned long size = va_end - va_start;
---- a/mm/execmem.c~mm-correct-type-for-vmalloc-vm_flags-fields
-+++ a/mm/execmem.c
-@@ -26,7 +26,7 @@ static struct execmem_info default_execm
+-	BUG_ON(pool->curr_nr >= pool->min_nr);
++	BUG_ON(pool->min_nr != 0 && pool->curr_nr >= pool->min_nr);
+ 	poison_element(pool, element);
+ 	if (kasan_poison_element(pool, element))
+ 		pool->elements[pool->curr_nr++] = element;
+@@ -202,16 +202,20 @@ int mempool_init_node(mempool_t *pool, i
+ 	pool->alloc	= alloc_fn;
+ 	pool->free	= free_fn;
+ 	init_waitqueue_head(&pool->wait);
+-
+-	pool->elements = kmalloc_array_node(min_nr, sizeof(void *),
++	/*
++	 * max() used here to ensure storage for at least 1 element to support
++	 * zero minimum pool
++	 */
++	pool->elements = kmalloc_array_node(max(1, min_nr), sizeof(void *),
+ 					    gfp_mask, node_id);
+ 	if (!pool->elements)
+ 		return -ENOMEM;
  
- #ifdef CONFIG_MMU
- static void *execmem_vmalloc(struct execmem_range *range, size_t size,
--			     pgprot_t pgprot, vm_flags_t vm_flags)
-+			     pgprot_t pgprot, unsigned long vm_flags)
- {
- 	bool kasan = range->flags & EXECMEM_KASAN_SHADOW;
- 	gfp_t gfp_flags = GFP_KERNEL | __GFP_NOWARN;
-@@ -82,7 +82,7 @@ struct vm_struct *execmem_vmap(size_t si
- }
- #else
- static void *execmem_vmalloc(struct execmem_range *range, size_t size,
--			     pgprot_t pgprot, vm_flags_t vm_flags)
-+			     pgprot_t pgprot, unsigned long vm_flags)
- {
- 	return vmalloc(size);
- }
-@@ -283,7 +283,7 @@ out_unlock:
+ 	/*
+-	 * First pre-allocate the guaranteed number of buffers.
++	 * First pre-allocate the guaranteed number of buffers,
++	 * also pre-allocate 1 element for zero minimum pool.
+ 	 */
+-	while (pool->curr_nr < pool->min_nr) {
++	while (pool->curr_nr < max(1, pool->min_nr)) {
+ 		void *element;
  
- static int execmem_cache_populate(struct execmem_range *range, size_t size)
- {
--	vm_flags_t vm_flags = VM_ALLOW_HUGE_VMAP;
-+	unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
- 	struct vm_struct *vm;
- 	size_t alloc_size;
- 	int err = -ENOMEM;
-@@ -465,7 +465,7 @@ void *execmem_alloc(enum execmem_type ty
- {
- 	struct execmem_range *range = &execmem_info->ranges[type];
- 	bool use_cache = range->flags & EXECMEM_ROX_CACHE;
--	vm_flags_t vm_flags = VM_FLUSH_RESET_PERMS;
-+	unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
- 	pgprot_t pgprot = range->pgprot;
- 	void *p = NULL;
- 
---- a/mm/internal.h~mm-correct-type-for-vmalloc-vm_flags-fields
-+++ a/mm/internal.h
-@@ -1391,7 +1391,7 @@ int migrate_device_coherent_folio(struct
- 
- struct vm_struct *__get_vm_area_node(unsigned long size,
- 				     unsigned long align, unsigned long shift,
--				     vm_flags_t vm_flags, unsigned long start,
-+				     unsigned long vm_flags, unsigned long start,
- 				     unsigned long end, int node, gfp_t gfp_mask,
- 				     const void *caller);
- 
---- a/mm/nommu.c~mm-correct-type-for-vmalloc-vm_flags-fields
-+++ a/mm/nommu.c
-@@ -126,7 +126,7 @@ void *vrealloc_noprof(const void *p, siz
- 
- void *__vmalloc_node_range_noprof(unsigned long size, unsigned long align,
- 		unsigned long start, unsigned long end, gfp_t gfp_mask,
--		pgprot_t prot, vm_flags_t vm_flags, int node,
-+		pgprot_t prot, unsigned long vm_flags, int node,
- 		const void *caller)
- {
- 	return __vmalloc_noprof(size, gfp_mask);
+ 		element = pool->alloc(gfp_mask, pool->pool_data);
+@@ -555,20 +559,12 @@ void mempool_free(void *element, mempool
+ 	 * wake-up path of previous test. This explicit check ensures the
+ 	 * allocation of element when both min_nr and curr_nr are 0, and
+ 	 * any active waiters are properly awakened.
+-	 *
+-	 * Inline the same logic as previous test, add_element() cannot be
+-	 * directly used here since it has BUG_ON to deny if min_nr equals
+-	 * curr_nr, so here picked rest of add_element() to use without
+-	 * BUG_ON check.
+ 	 */
+ 	if (unlikely(pool->min_nr == 0 &&
+ 		     READ_ONCE(pool->curr_nr) == 0)) {
+ 		spin_lock_irqsave(&pool->lock, flags);
+ 		if (likely(pool->curr_nr == 0)) {
+-			/* Inline the logic of add_element() */
+-			poison_element(pool, element);
+-			if (kasan_poison_element(pool, element))
+-				pool->elements[pool->curr_nr++] = element;
++			add_element(pool, element);
+ 			spin_unlock_irqrestore(&pool->lock, flags);
+ 			if (wq_has_sleeper(&pool->wait))
+ 				wake_up(&pool->wait);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ydfan@suse.com are
 
 
