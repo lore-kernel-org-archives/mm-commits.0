@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C6931E7C1C
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72E11E7C1C
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160860; cv=none; b=hbECwQq+XTk1ktgZQji49BhuyT4WD9xPz6b8iqH8VkObGrcEXmioIvEhAAgaTwFP5LTqgRUMfw3FDq9+oBFsz3dg5ez1LYf5EyzkKHx5V0q0j+k85aF22S16VJxWFsdfH5W2atUT8lpbpFLKLKejBQgK3jvWl7p059bn+grIoA8=
+	t=1754160861; cv=none; b=Df3fnYj662Mc9SDAHVVbVPyy4XmdWfNLeUwgpJun3gdWCfBJOqOI8YlVCBpx7w9yOpx+Ju6tjZOUCKYMoEQAmEA0xWORZ9CqTvBgB9BWDHLxHxq2KIdiNnvG0uinwA8OVPKyvY9+5QvytgmzegGhql/696xIe6qdTcn7IBy5wPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160860; c=relaxed/simple;
-	bh=v8z8RpMwy62ExwrG76vRLLBSxRNXbw753tfpxqNqVwU=;
-	h=Date:To:From:Subject:Message-Id; b=dpNiZCuRXMZUd8YISLW8TUtdAGDFFSam3FcE7XBy6q8Mp5XDOW+ibB00bWEY/A9mqLzU+sGVEs4s3Pm2/sBjBfpCmnlz5lEN2HGWcujov6e2Xul+Cd91wzprl2N2x7Fv93WAlxJpXkr0KBgsrNDUy/yuYqglrimlsBEZfk/lpXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fXdIqVQb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160861; c=relaxed/simple;
+	bh=3idsfsu21gDtdOWPXU9cX4z+krrZ23iTMhm4VTqaOMI=;
+	h=Date:To:From:Subject:Message-Id; b=oTdKo1BmkDwvtGrudkUnzgI9cv3zMzLtp0f+vJWhKHheVlIELtcCHonkBxKsTXoL3PILpzLFUMLUQ/cPW5NIuIk8Y5GHuu5hff+XDXBm29aWMM+uAZIdlJvuyUB+RP73MEpOaY9cZ+tQAPKxAV/1mAPQZ94I1Lrq7KxnaaXV+n4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lpYvfKPb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fXdIqVQb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E735FC4CEEF;
-	Sat,  2 Aug 2025 18:54:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lpYvfKPb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 618D2C4CEEF;
+	Sat,  2 Aug 2025 18:54:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160860;
-	bh=v8z8RpMwy62ExwrG76vRLLBSxRNXbw753tfpxqNqVwU=;
+	s=korg; t=1754160861;
+	bh=3idsfsu21gDtdOWPXU9cX4z+krrZ23iTMhm4VTqaOMI=;
 	h=Date:To:From:Subject:From;
-	b=fXdIqVQbr9nr1ONyz0IsuKxZuWgtwUUbJTGNUa650ziXz6iBV1W5m+UgeptRL5gbs
-	 HleNvqWvipJtF2o/9n4G5LHE+utOtgDVV6gjk78ps3hcpcjrQ33mYOYKoeGi7J1bM+
-	 juUD0cTDcvGDkSuCBryjkY/xZwzdXJi85uvrp+v8=
-Date: Sat, 02 Aug 2025 11:54:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
+	b=lpYvfKPbzopNVtAxgKxdElGCjOLsKwFKumgdoeMJJoi01MY2BUsE7CH5oh1W12KgL
+	 Mik/emD/nw1wdFWBEO1JCboeK/TzvtGIwYMmVyQmDvXaFGCmq6cgj7XnsEZ4gkeX5r
+	 MTDn3HsM55i0pi2wbZWOCw4T+WZPQMDVSXUo6GcY=
+Date: Sat, 02 Aug 2025 11:54:20 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] khugepaged-optimize-collapse_pte_mapped_thp-by-pte-batching.patch removed from -mm tree
-Message-Id: <20250802185419.E735FC4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-mm-io-mappingc.patch removed from -mm tree
+Message-Id: <20250802185421.618D2C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,136 +35,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: khugepaged: optimize collapse_pte_mapped_thp() by PTE batching
+     Subject: mm: remove mm/io-mapping.c
 has been removed from the -mm tree.  Its filename was
-     khugepaged-optimize-collapse_pte_mapped_thp-by-pte-batching.patch
+     mm-remove-mm-io-mappingc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: khugepaged: optimize collapse_pte_mapped_thp() by PTE batching
-Date: Thu, 24 Jul 2025 10:53:01 +0530
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: remove mm/io-mapping.c
+Date: Fri, 25 Jul 2025 15:29:01 +0100
 
-Use PTE batching to batch process PTEs mapping the same large folio. An
-improvement is expected due to batching mapcount manipulation on the
-folios, and for arm64 which supports contig mappings, the number of
-TLB flushes is also reduced.
+This is dead code, which was used from commit b739f125e4eb ("i915: use
+io_mapping_map_user") but reverted a month later by commit 0e4fe0c9f2f9
+("Revert "i915: use io_mapping_map_user"") back in 2021.
 
-Note that we do not need to make a change to the check
-"if (folio_page(folio, i) != page)"; if i'th page of the folio is equal
-to the first page of our batch, then i + 1, .... i + nr_batch_ptes - 1
-pages of the folio will be equal to the corresponding pages of our
-batch mapping consecutive pages.
+Since then nobody has used it, so remove it.
 
-Link: https://lkml.kernel.org/r/20250724052301.23844-4-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
+[akpm@linux-foundation.org: update Documentation/core-api/mm-api.rst, per Vlastimil]
+Link: https://lkml.kernel.org/r/20250725142901.81502-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Barry Song <baohua@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ Documentation/core-api/mm-api.rst |    1 
+ include/linux/io-mapping.h        |    3 --
+ mm/Kconfig                        |    4 ---
+ mm/Makefile                       |    1 
+ mm/io-mapping.c                   |   30 ----------------------------
+ 5 files changed, 39 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-optimize-collapse_pte_mapped_thp-by-pte-batching
-+++ a/mm/khugepaged.c
-@@ -1503,15 +1503,17 @@ static int set_huge_pmd(struct vm_area_s
- int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
- 			    bool install_pmd)
- {
-+	int nr_mapped_ptes = 0, result = SCAN_FAIL;
-+	unsigned int nr_batch_ptes;
- 	struct mmu_notifier_range range;
- 	bool notified = false;
- 	unsigned long haddr = addr & HPAGE_PMD_MASK;
-+	unsigned long end = haddr + HPAGE_PMD_SIZE;
- 	struct vm_area_struct *vma = vma_lookup(mm, haddr);
- 	struct folio *folio;
- 	pte_t *start_pte, *pte;
- 	pmd_t *pmd, pgt_pmd;
- 	spinlock_t *pml = NULL, *ptl;
--	int nr_ptes = 0, result = SCAN_FAIL;
- 	int i;
+--- a/Documentation/core-api/mm-api.rst~mm-remove-mm-io-mappingc
++++ a/Documentation/core-api/mm-api.rst
+@@ -139,4 +139,3 @@ More Memory Management Functions
+ .. kernel-doc:: mm/mmu_notifier.c
+ .. kernel-doc:: mm/balloon_compaction.c
+ .. kernel-doc:: mm/huge_memory.c
+-.. kernel-doc:: mm/io-mapping.c
+--- a/include/linux/io-mapping.h~mm-remove-mm-io-mappingc
++++ a/include/linux/io-mapping.h
+@@ -225,7 +225,4 @@ io_mapping_free(struct io_mapping *iomap
+ 	kfree(iomap);
+ }
  
- 	mmap_assert_locked(mm);
-@@ -1625,11 +1627,15 @@ int collapse_pte_mapped_thp(struct mm_st
- 		goto abort;
+-int io_mapping_map_user(struct io_mapping *iomap, struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn, unsigned long size);
+-
+ #endif /* _LINUX_IO_MAPPING_H */
+diff --git a/mm/io-mapping.c a/mm/io-mapping.c
+deleted file mode 100644
+--- a/mm/io-mapping.c
++++ /dev/null
+@@ -1,30 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-
+-#include <linux/mm.h>
+-#include <linux/io-mapping.h>
+-
+-/**
+- * io_mapping_map_user - remap an I/O mapping to userspace
+- * @iomap: the source io_mapping
+- * @vma: user vma to map to
+- * @addr: target user address to start at
+- * @pfn: physical address of kernel memory
+- * @size: size of map area
+- *
+- *  Note: this is only safe if the mm semaphore is held when called.
+- */
+-int io_mapping_map_user(struct io_mapping *iomap, struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn, unsigned long size)
+-{
+-	vm_flags_t expected_flags = VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
+-
+-	if (WARN_ON_ONCE((vma->vm_flags & expected_flags) != expected_flags))
+-		return -EINVAL;
+-
+-	pgprot_t remap_prot = __pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
+-				       (pgprot_val(vma->vm_page_prot) & ~_PAGE_CACHE_MASK));
+-
+-	/* We rely on prevalidation of the io-mapping to skip pfnmap tracking. */
+-	return remap_pfn_range_notrack(vma, addr, pfn, size, remap_prot);
+-}
+-EXPORT_SYMBOL_GPL(io_mapping_map_user);
+--- a/mm/Kconfig~mm-remove-mm-io-mappingc
++++ a/mm/Kconfig
+@@ -1242,10 +1242,6 @@ config KMAP_LOCAL
+ config KMAP_LOCAL_NON_LINEAR_PTE_ARRAY
+ 	bool
  
- 	/* step 2: clear page table and adjust rmap */
--	for (i = 0, addr = haddr, pte = start_pte;
--	     i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE, pte++) {
-+	for (i = 0, addr = haddr, pte = start_pte; i < HPAGE_PMD_NR;
-+	     i += nr_batch_ptes, addr += nr_batch_ptes * PAGE_SIZE,
-+	     pte += nr_batch_ptes) {
-+		unsigned int max_nr_batch_ptes = (end - addr) >> PAGE_SHIFT;
- 		struct page *page;
- 		pte_t ptent = ptep_get(pte);
+-# struct io_mapping based helper.  Selected by drivers that need them
+-config IO_MAPPING
+-	bool
+-
+ config MEMFD_CREATE
+ 	bool "Enable memfd_create() system call" if EXPERT
  
-+		nr_batch_ptes = 1;
-+
- 		if (pte_none(ptent))
- 			continue;
- 		/*
-@@ -1643,26 +1649,29 @@ int collapse_pte_mapped_thp(struct mm_st
- 			goto abort;
- 		}
- 		page = vm_normal_page(vma, addr, ptent);
-+
- 		if (folio_page(folio, i) != page)
- 			goto abort;
- 
-+		nr_batch_ptes = folio_pte_batch(folio, pte, ptent, max_nr_batch_ptes);
-+
- 		/*
- 		 * Must clear entry, or a racing truncate may re-remove it.
- 		 * TLB flush can be left until pmdp_collapse_flush() does it.
- 		 * PTE dirty? Shmem page is already dirty; file is read-only.
- 		 */
--		ptep_clear(mm, addr, pte);
--		folio_remove_rmap_pte(folio, page, vma);
--		nr_ptes++;
-+		clear_ptes(mm, addr, pte, nr_batch_ptes);
-+		folio_remove_rmap_ptes(folio, page, nr_batch_ptes, vma);
-+		nr_mapped_ptes += nr_batch_ptes;
- 	}
- 
- 	if (!pml)
- 		spin_unlock(ptl);
- 
- 	/* step 3: set proper refcount and mm_counters. */
--	if (nr_ptes) {
--		folio_ref_sub(folio, nr_ptes);
--		add_mm_counter(mm, mm_counter_file(folio), -nr_ptes);
-+	if (nr_mapped_ptes) {
-+		folio_ref_sub(folio, nr_mapped_ptes);
-+		add_mm_counter(mm, mm_counter_file(folio), -nr_mapped_ptes);
- 	}
- 
- 	/* step 4: remove empty page table */
-@@ -1695,10 +1704,10 @@ maybe_install_pmd:
- 			: SCAN_SUCCEED;
- 	goto drop_folio;
- abort:
--	if (nr_ptes) {
-+	if (nr_mapped_ptes) {
- 		flush_tlb_mm(mm);
--		folio_ref_sub(folio, nr_ptes);
--		add_mm_counter(mm, mm_counter_file(folio), -nr_ptes);
-+		folio_ref_sub(folio, nr_mapped_ptes);
-+		add_mm_counter(mm, mm_counter_file(folio), -nr_mapped_ptes);
- 	}
- unlock:
- 	if (start_pte)
+--- a/mm/Makefile~mm-remove-mm-io-mappingc
++++ a/mm/Makefile
+@@ -141,7 +141,6 @@ obj-$(CONFIG_MEMFD_CREATE) += memfd.o
+ obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
+ obj-$(CONFIG_PTDUMP) += ptdump.o
+ obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
+-obj-$(CONFIG_IO_MAPPING) += io-mapping.o
+ obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
+ obj-$(CONFIG_GENERIC_IOREMAP) += ioremap.o
+ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
 
