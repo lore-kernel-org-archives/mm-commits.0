@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE35820CCE5
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:53:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6EB01C3C18
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:53:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160835; cv=none; b=dtEoKaabMXu4yEbGaQrxaWZs1XNPhxEeO3MaBczANlmkvpT0FV8VEltrYU3GFQpv50JTRBxBSh5rE3yJ0/CuBsUgpKptGa/xNIRQQ+iowwIy6bAcsyB7YnW2S9qCOWh2WQ48Eax9deTr1P/5pUDy2k8oKolW5JEJ7/rRlpVtCME=
+	t=1754160836; cv=none; b=VuWFKohTVFB9DA1CUtHG1T7N3yBCIR1oeGtyE/2c5EKjY2tL8y2V1bYF4Nf0O9d/tXmCnUl9SItEvh5vVg6PJlFEYn+Kk88gXzAFD2pl4aF9D4FZOhGqEFWn4SKlzsdqd+vZkSWUQUym9CQMK+xB9hwlrY75itEvquvPZNsXl0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160835; c=relaxed/simple;
-	bh=aFRcrsOtz+Q8DK3ns1BcemnVOTfOK5N6d5Iv9nnmAhU=;
-	h=Date:To:From:Subject:Message-Id; b=WuLRKnDrYYKStO83uSGubFz0+ijdBFGWtbtCfwJfGUTKz8Evco1EZ8OUc5VtvcfDrAYyOfpHGdStQ9RRsMdm1lqrDNoKaSrUsQslDXVGSECKMxlnTVhfHWbvKfLiQSm3V7ZVXY948vm8KtEw2nh/1z81jXntXliJZujfVDNHEEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TEHvMeIK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160836; c=relaxed/simple;
+	bh=Ir/UvfpmZWWtFj61xBrk5eZffbrvy00riaI7oIththw=;
+	h=Date:To:From:Subject:Message-Id; b=m13bEf3T/cIIgT3u+Tdci3XSdPNIRgPtngex+ua5JJBqL6R49CtrR2wm8St2F2nynUHCjlfEjj7Mv2l9nAJNt9d1btF5mDEIiMAWY/jVvoaAWn4odqc4RiN4AG24f+Qrc/GnJEqu9h0iZQsacXLsUTOOcCT4sR9lA/lEvQGqDUg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e1JpW+6+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TEHvMeIK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23A5CC4CEEF;
-	Sat,  2 Aug 2025 18:53:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e1JpW+6+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C7FDC4CEEF;
+	Sat,  2 Aug 2025 18:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160835;
-	bh=aFRcrsOtz+Q8DK3ns1BcemnVOTfOK5N6d5Iv9nnmAhU=;
+	s=korg; t=1754160836;
+	bh=Ir/UvfpmZWWtFj61xBrk5eZffbrvy00riaI7oIththw=;
 	h=Date:To:From:Subject:From;
-	b=TEHvMeIKzs8hQTf6JJT5Vatsa+1i/xQnLQ376qiarQUd0GZ7DYJF3qnvgSeyaP8/h
-	 ROSn+ntJtJgjWzHmGSL7iAWNncDvy0mAZf6imM0lEfeAAoepljo19cg4lYKw5tyDZa
-	 uQj5Pa94bUDDEaxEMtsIpeZEWkQeMjNRsm09H7g4=
-Date: Sat, 02 Aug 2025 11:53:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,broonie@kernel.org,brauner@kernel.org,lianux.mm@gmail.com,akpm@linux-foundation.org
+	b=e1JpW+6+WDCOd7fCJqbzzcouAa7hGcZOxiqK+e4t9acv8BTwIu4DL4N3dX53EnGIw
+	 7PPS/D2xmKX6/wHoySNkcGTzGBMCehhyWeg/8DGsyMNj1zmH0O5fmT7jQmG8jgh/vs
+	 yLwDx1OG3HsggJI11fv3yKUMuchVR2siTxkt4iwE=
+Date: Sat, 02 Aug 2025 11:53:56 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-process_madvise-tests.patch removed from -mm tree
-Message-Id: <20250802185355.23A5CC4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page-flags-remove-folio_start_writeback_keepwrite.patch removed from -mm tree
+Message-Id: <20250802185356.9C7FDC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,440 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add process_madvise() tests
+     Subject: mm/page-flags: remove folio_start_writeback_keepwrite()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-process_madvise-tests.patch
+     mm-page-flags-remove-folio_start_writeback_keepwrite.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: wang lian <lianux.mm@gmail.com>
-Subject: selftests/mm: add process_madvise() tests
-Date: Mon, 21 Jul 2025 19:46:14 +0800
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: mm/page-flags: remove folio_start_writeback_keepwrite()
+Date: Tue, 22 Jul 2025 11:22:30 -0700
 
-Add tests for process_madvise(), focusing on verifying behavior under
-various conditions including valid usage and error cases.
+Commit cd57b77197a4 ("ext4: Convert ext4_bio_write_page() to use a folio)
+removed set_page_writeback_keepwrite() which was the last/only caller of
+folio_start_writeback_keepwrite().
 
-[lianux.mm@gmail.com: v7]
-  Link: https://lkml.kernel.org/r/20250729113109.12272-1-lianux.mm@gmail.com
-Link: https://lkml.kernel.org/r/20250729113109.12272-1-lianux.mm@gmail.com
-Link: https://lkml.kernel.org/r/20250721114614.40996-1-lianux.mm@gmail.com
-Signed-off-by: wang lian <lianux.mm@gmail.com>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: Mark Brown <broonie@kernel.org>
-Acked-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Zi Yan <ziy@nvidia.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250722182230.2114587-1-joannelkoong@gmail.com
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore     |    1 
- tools/testing/selftests/mm/Makefile       |    1 
- tools/testing/selftests/mm/process_madv.c |  344 ++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh |    5 
- 4 files changed, 351 insertions(+)
+ include/linux/page-flags.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -21,6 +21,7 @@ on-fault-limit
- transhuge-stress
- pagemap_ioctl
- pfnmap
-+process_madv
- *.tmp*
- protection_keys
- protection_keys_32
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -85,6 +85,7 @@ TEST_GEN_FILES += mseal_test
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
- TEST_GEN_FILES += pfnmap
-+TEST_GEN_FILES += process_madv
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
-diff --git a/tools/testing/selftests/mm/process_madv.c a/tools/testing/selftests/mm/process_madv.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/process_madv.c
-@@ -0,0 +1,344 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#define _GNU_SOURCE
-+#include "../kselftest_harness.h"
-+#include <errno.h>
-+#include <setjmp.h>
-+#include <signal.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <linux/mman.h>
-+#include <sys/syscall.h>
-+#include <unistd.h>
-+#include <sched.h>
-+#include "vm_util.h"
-+
-+#include "../pidfd/pidfd.h"
-+
-+FIXTURE(process_madvise)
-+{
-+	unsigned long page_size;
-+	pid_t child_pid;
-+	int remote_pidfd;
-+	int pidfd;
-+};
-+
-+FIXTURE_SETUP(process_madvise)
-+{
-+	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
-+	self->pidfd = PIDFD_SELF;
-+	self->remote_pidfd = -1;
-+	self->child_pid = -1;
-+};
-+
-+FIXTURE_TEARDOWN_PARENT(process_madvise)
-+{
-+	/* This teardown is guaranteed to run, even if tests SKIP or ASSERT */
-+	if (self->child_pid > 0) {
-+		kill(self->child_pid, SIGKILL);
-+		waitpid(self->child_pid, NULL, 0);
-+	}
-+
-+	if (self->remote_pidfd >= 0)
-+		close(self->remote_pidfd);
-+}
-+
-+static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
-+				   size_t vlen, int advice, unsigned int flags)
-+{
-+	return syscall(__NR_process_madvise, pidfd, iovec, vlen, advice, flags);
-+}
-+
-+/*
-+ * This test uses PIDFD_SELF to target the current process. The main
-+ * goal is to verify the basic behavior of process_madvise() with
-+ * a vector of non-contiguous memory ranges, not its cross-process
-+ * capabilities.
-+ */
-+TEST_F(process_madvise, basic)
-+{
-+	const unsigned long pagesize = self->page_size;
-+	const int madvise_pages = 4;
-+	struct iovec vec[madvise_pages];
-+	int pidfd = self->pidfd;
-+	ssize_t ret;
-+	char *map;
-+
-+	/*
-+	 * Create a single large mapping. We will pick pages from this
-+	 * mapping to advise on. This ensures we test non-contiguous iovecs.
-+	 */
-+	map = mmap(NULL, pagesize * 10, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+
-+	/* Fill the entire region with a known pattern. */
-+	memset(map, 'A', pagesize * 10);
-+
-+	/*
-+	 * Setup the iovec to point to 4 non-contiguous pages
-+	 * within the mapping.
-+	 */
-+	vec[0].iov_base = &map[0 * pagesize];
-+	vec[0].iov_len = pagesize;
-+	vec[1].iov_base = &map[3 * pagesize];
-+	vec[1].iov_len = pagesize;
-+	vec[2].iov_base = &map[5 * pagesize];
-+	vec[2].iov_len = pagesize;
-+	vec[3].iov_base = &map[8 * pagesize];
-+	vec[3].iov_len = pagesize;
-+
-+	ret = sys_process_madvise(pidfd, vec, madvise_pages, MADV_DONTNEED, 0);
-+	if (ret == -1 && errno == EPERM)
-+		SKIP(return,
-+			   "process_madvise() unsupported or permission denied, try running as root.\n");
-+	else if (errno == EINVAL)
-+		SKIP(return,
-+			   "process_madvise() unsupported or parameter invalid, please check arguments.\n");
-+
-+	/* The call should succeed and report the total bytes processed. */
-+	ASSERT_EQ(ret, madvise_pages * pagesize);
-+
-+	/* Check that advised pages are now zero. */
-+	for (int i = 0; i < madvise_pages; i++) {
-+		char *advised_page = (char *)vec[i].iov_base;
-+
-+		/* Content must be 0, not 'A'. */
-+		ASSERT_EQ(*advised_page, '\0');
-+	}
-+
-+	/* Check that an un-advised page in between is still 'A'. */
-+	char *unadvised_page = &map[1 * pagesize];
-+
-+	for (int i = 0; i < pagesize; i++)
-+		ASSERT_EQ(unadvised_page[i], 'A');
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize * 10), 0);
-+}
-+
-+/*
-+ * This test deterministically validates process_madvise() with MADV_COLLAPSE
-+ * on a remote process, other advices are difficult to verify reliably.
-+ *
-+ * The test verifies that a memory region in a child process,
-+ * focus on process_madv remote result, only check addresses and lengths.
-+ * The correctness of the MADV_COLLAPSE can be found in the relevant test examples in khugepaged.
-+ */
-+TEST_F(process_madvise, remote_collapse)
-+{
-+	const unsigned long pagesize = self->page_size;
-+	long huge_page_size;
-+	int pipe_info[2];
-+	ssize_t ret;
-+	struct iovec vec;
-+
-+	struct child_info {
-+		pid_t pid;
-+		void *map_addr;
-+	} info;
-+
-+	huge_page_size = read_pmd_pagesize();
-+	if (huge_page_size <= 0)
-+		SKIP(return, "Could not determine a valid huge page size.\n");
-+
-+	ASSERT_EQ(pipe(pipe_info), 0);
-+
-+	self->child_pid = fork();
-+	ASSERT_NE(self->child_pid, -1);
-+
-+	if (self->child_pid == 0) {
-+		char *map;
-+		size_t map_size = 2 * huge_page_size;
-+
-+		close(pipe_info[0]);
-+
-+		map = mmap(NULL, map_size, PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+		ASSERT_NE(map, MAP_FAILED);
-+
-+		/* Fault in as small pages */
-+		for (size_t i = 0; i < map_size; i += pagesize)
-+			map[i] = 'A';
-+
-+		/* Send info and pause */
-+		info.pid = getpid();
-+		info.map_addr = map;
-+		ret = write(pipe_info[1], &info, sizeof(info));
-+		ASSERT_EQ(ret, sizeof(info));
-+		close(pipe_info[1]);
-+
-+		pause();
-+		exit(0);
-+	}
-+
-+	close(pipe_info[1]);
-+
-+	/* Receive child info */
-+	ret = read(pipe_info[0], &info, sizeof(info));
-+	if (ret <= 0) {
-+		waitpid(self->child_pid, NULL, 0);
-+		SKIP(return, "Failed to read child info from pipe.\n");
-+	}
-+	ASSERT_EQ(ret, sizeof(info));
-+	close(pipe_info[0]);
-+	self->child_pid = info.pid;
-+
-+	self->remote_pidfd = syscall(__NR_pidfd_open, self->child_pid, 0);
-+	ASSERT_GE(self->remote_pidfd, 0);
-+
-+	vec.iov_base = info.map_addr;
-+	vec.iov_len = huge_page_size;
-+
-+	ret = sys_process_madvise(self->remote_pidfd, &vec, 1, MADV_COLLAPSE,
-+				  0);
-+	if (ret == -1) {
-+		if (errno == EINVAL)
-+			SKIP(return, "PROCESS_MADV_ADVISE is not supported.\n");
-+		else if (errno == EPERM)
-+			SKIP(return,
-+				   "No process_madvise() permissions, try running as root.\n");
-+		return;
-+	}
-+
-+	ASSERT_EQ(ret, huge_page_size);
-+}
-+
-+/*
-+ * Test process_madvise() with a pidfd for a process that has already
-+ * exited to ensure correct error handling.
-+ */
-+TEST_F(process_madvise, exited_process_pidfd)
-+{
-+	const unsigned long pagesize = self->page_size;
-+	struct iovec vec;
-+	char *map;
-+	ssize_t ret;
-+
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
-+
-+	/*
-+	 * Using a pidfd for a process that has already exited should fail
-+	 * with ESRCH.
-+	 */
-+	self->child_pid = fork();
-+	ASSERT_NE(self->child_pid, -1);
-+
-+	if (self->child_pid == 0)
-+		exit(0);
-+
-+	self->remote_pidfd = syscall(__NR_pidfd_open, self->child_pid, 0);
-+	ASSERT_GE(self->remote_pidfd, 0);
-+
-+	/* Wait for the child to ensure it has terminated. */
-+	waitpid(self->child_pid, NULL, 0);
-+
-+	ret = sys_process_madvise(self->remote_pidfd, &vec, 1, MADV_DONTNEED,
-+				  0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, ESRCH);
-+}
-+
-+/*
-+ * Test process_madvise() with bad pidfds to ensure correct error
-+ * handling.
-+ */
-+TEST_F(process_madvise, bad_pidfd)
-+{
-+	const unsigned long pagesize = self->page_size;
-+	struct iovec vec;
-+	char *map;
-+	ssize_t ret;
-+
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
-+
-+	/* Using an invalid fd number (-1) should fail with EBADF. */
-+	ret = sys_process_madvise(-1, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EBADF);
-+
-+	/*
-+	 * Using a valid fd that is not a pidfd (e.g. stdin) should fail
-+	 * with EBADF.
-+	 */
-+	ret = sys_process_madvise(STDIN_FILENO, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EBADF);
-+}
-+
-+/*
-+ * Test that process_madvise() rejects vlen > UIO_MAXIOV.
-+ * The kernel should return -EINVAL when the number of iovecs exceeds 1024.
-+ */
-+TEST_F(process_madvise, invalid_vlen)
-+{
-+	const unsigned long pagesize = self->page_size;
-+	int pidfd = self->pidfd;
-+	struct iovec vec;
-+	char *map;
-+	ssize_t ret;
-+
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
-+
-+	ret = sys_process_madvise(pidfd, &vec, 1025, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize), 0);
-+}
-+
-+/*
-+ * Test process_madvise() with an invalid flag value. Currently, only a flag
-+ * value of 0 is supported. This test is reserved for the future, e.g., if
-+ * synchronous flags are added.
-+ */
-+TEST_F(process_madvise, flag)
-+{
-+	const unsigned long pagesize = self->page_size;
-+	unsigned int invalid_flag;
-+	int pidfd = self->pidfd;
-+	struct iovec vec;
-+	char *map;
-+	ssize_t ret;
-+
-+	map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-+		   0);
-+	if (map == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+
-+	vec.iov_base = map;
-+	vec.iov_len = pagesize;
-+
-+	invalid_flag = 0x80000000;
-+
-+	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, invalid_flag);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+
-+	/* Cleanup. */
-+	ASSERT_EQ(munmap(map, pagesize), 0);
-+}
-+
-+TEST_HARNESS_MAIN
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-process_madvise-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -65,6 +65,8 @@ separated by spaces:
- 	test pagemap_scan IOCTL
- - pfnmap
- 	tests for VM_PFNMAP handling
-+- process_madv
-+	test for process_madv
- - cow
- 	test copy-on-write semantics
- - thp
-@@ -425,6 +427,9 @@ CATEGORY="madv_guard" run_test ./guard-r
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
+--- a/include/linux/page-flags.h~mm-page-flags-remove-folio_start_writeback_keepwrite
++++ a/include/linux/page-flags.h
+@@ -837,8 +837,6 @@ void set_page_writeback(struct page *pag
  
-+# PROCESS_MADV test
-+CATEGORY="process_madv" run_test ./process_madv
-+
- CATEGORY="vma_merge" run_test ./merge
+ #define folio_start_writeback(folio)			\
+ 	__folio_start_writeback(folio, false)
+-#define folio_start_writeback_keepwrite(folio)	\
+-	__folio_start_writeback(folio, true)
  
- if [ -x ./memfd_secret ]
+ static __always_inline bool folio_test_head(const struct folio *folio)
+ {
 _
 
-Patches currently in -mm which might be from lianux.mm@gmail.com are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
 
