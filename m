@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72E11E7C1C
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BCB51E7C1C
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160861; cv=none; b=Df3fnYj662Mc9SDAHVVbVPyy4XmdWfNLeUwgpJun3gdWCfBJOqOI8YlVCBpx7w9yOpx+Ju6tjZOUCKYMoEQAmEA0xWORZ9CqTvBgB9BWDHLxHxq2KIdiNnvG0uinwA8OVPKyvY9+5QvytgmzegGhql/696xIe6qdTcn7IBy5wPs=
+	t=1754160864; cv=none; b=BWkbR3QiAXFWZ0pQDDTxwmwQXg3QU8qXD5Exr4tQw9ohWTwCwSznoKzTwyn6Qqo29YiHQISXXzy+ZEbbnUk1nSnIJ2vpzoiO6JXWg+ilU9NghEIWYC8Wq7462c6wfHoG7dt5KXBgkK8mQ/h0rzAMqGsO4LUap3OmqIZenFRa32g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160861; c=relaxed/simple;
-	bh=3idsfsu21gDtdOWPXU9cX4z+krrZ23iTMhm4VTqaOMI=;
-	h=Date:To:From:Subject:Message-Id; b=oTdKo1BmkDwvtGrudkUnzgI9cv3zMzLtp0f+vJWhKHheVlIELtcCHonkBxKsTXoL3PILpzLFUMLUQ/cPW5NIuIk8Y5GHuu5hff+XDXBm29aWMM+uAZIdlJvuyUB+RP73MEpOaY9cZ+tQAPKxAV/1mAPQZ94I1Lrq7KxnaaXV+n4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lpYvfKPb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160864; c=relaxed/simple;
+	bh=Ftkv2ucrMMcMVlaqfQ6xZat1x1RkhcgUjwQbw80cWRU=;
+	h=Date:To:From:Subject:Message-Id; b=K2N/WpYCVl3DVS+mEtJswux/C5OXeI8dlJaey0gtsjobfcQQIvcCl8eigpXaS5ZYz9owXiatV7BGajuuyjPoxPNEtJcNgolBuFij3VUFPyH/wLvIMgN3WiaGGW1IrJ0bUnLLBsNfBES+k4S3YMG0Fj/PJwQy5uqpp1trBW07eGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HjKEJvF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lpYvfKPb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 618D2C4CEEF;
-	Sat,  2 Aug 2025 18:54:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HjKEJvF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBA4CC4CEEF;
+	Sat,  2 Aug 2025 18:54:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160861;
-	bh=3idsfsu21gDtdOWPXU9cX4z+krrZ23iTMhm4VTqaOMI=;
+	s=korg; t=1754160863;
+	bh=Ftkv2ucrMMcMVlaqfQ6xZat1x1RkhcgUjwQbw80cWRU=;
 	h=Date:To:From:Subject:From;
-	b=lpYvfKPbzopNVtAxgKxdElGCjOLsKwFKumgdoeMJJoi01MY2BUsE7CH5oh1W12KgL
-	 Mik/emD/nw1wdFWBEO1JCboeK/TzvtGIwYMmVyQmDvXaFGCmq6cgj7XnsEZ4gkeX5r
-	 MTDn3HsM55i0pi2wbZWOCw4T+WZPQMDVSXUo6GcY=
-Date: Sat, 02 Aug 2025 11:54:20 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=0HjKEJvFiaP++7TxibCiocCDXrOVtpibb0vTuiwJIa3eB8Tb4PA2XR5FkG4Fn6d97
+	 w289alWm0mP+RqFVmvucV6jf2iCZRJSJTmykfcwhmGgtej/6zZaLoPseTgksIYE1LL
+	 LqXiRauMynccX0rvzwPLU1/ji1E2K3ks2BlXT0pA=
+Date: Sat, 02 Aug 2025 11:54:23 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-mm-io-mappingc.patch removed from -mm tree
-Message-Id: <20250802185421.618D2C4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-add-anon_vma-lifetime-debug-check.patch removed from -mm tree
+Message-Id: <20250802185423.CBA4CC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove mm/io-mapping.c
+     Subject: mm/rmap: add anon_vma lifetime debug check
 has been removed from the -mm tree.  Its filename was
-     mm-remove-mm-io-mappingc.patch
+     mm-rmap-add-anon_vma-lifetime-debug-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: remove mm/io-mapping.c
-Date: Fri, 25 Jul 2025 15:29:01 +0100
+From: Jann Horn <jannh@google.com>
+Subject: mm/rmap: add anon_vma lifetime debug check
+Date: Fri, 25 Jul 2025 14:16:24 +0200
 
-This is dead code, which was used from commit b739f125e4eb ("i915: use
-io_mapping_map_user") but reverted a month later by commit 0e4fe0c9f2f9
-("Revert "i915: use io_mapping_map_user"") back in 2021.
+If an anon folio is mapped into userspace, its anon_vma must be alive,
+otherwise rmap walks can hit UAF.
 
-Since then nobody has used it, so remove it.
+There have been syzkaller reports a few months ago[1][2] of UAF in rmap
+walks that seems to indicate that there can be pages with elevated
+mapcount whose anon_vma has already been freed, but I think we never
+figured out what the cause is; and syzkaller only hit these UAFs when
+memory pressure randomly caused reclaim to rmap-walk the affected pages,
+so it of course didn't manage to create a reproducer.
 
-[akpm@linux-foundation.org: update Documentation/core-api/mm-api.rst, per Vlastimil]
-Link: https://lkml.kernel.org/r/20250725142901.81502-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Add a VM_WARN_ON_FOLIO() when we add/remove mappings of anonymous folios
+to hopefully catch such issues more reliably.
+
+[1] https://lore.kernel.org/r/67abaeaf.050a0220.110943.0041.GAE@google.com
+[2] https://lore.kernel.org/r/67a76f33.050a0220.3d72c.0028.GAE@google.com
+
+Link: https://lkml.kernel.org/r/20250725-anonvma-uaf-debug-v2-1-bc3c7e5ba5b1@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
 Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/mm-api.rst |    1 
- include/linux/io-mapping.h        |    3 --
- mm/Kconfig                        |    4 ---
- mm/Makefile                       |    1 
- mm/io-mapping.c                   |   30 ----------------------------
- 5 files changed, 39 deletions(-)
+ include/linux/rmap.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/Documentation/core-api/mm-api.rst~mm-remove-mm-io-mappingc
-+++ a/Documentation/core-api/mm-api.rst
-@@ -139,4 +139,3 @@ More Memory Management Functions
- .. kernel-doc:: mm/mmu_notifier.c
- .. kernel-doc:: mm/balloon_compaction.c
- .. kernel-doc:: mm/huge_memory.c
--.. kernel-doc:: mm/io-mapping.c
---- a/include/linux/io-mapping.h~mm-remove-mm-io-mappingc
-+++ a/include/linux/io-mapping.h
-@@ -225,7 +225,4 @@ io_mapping_free(struct io_mapping *iomap
- 	kfree(iomap);
+--- a/include/linux/rmap.h~mm-rmap-add-anon_vma-lifetime-debug-check
++++ a/include/linux/rmap.h
+@@ -449,6 +449,28 @@ static inline void __folio_rmap_sanity_c
+ 	default:
+ 		VM_WARN_ON_ONCE(true);
+ 	}
++
++	/*
++	 * Anon folios must have an associated live anon_vma as long as they're
++	 * mapped into userspace.
++	 * Note that the atomic_read() mainly does two things:
++	 *
++	 * 1. In KASAN builds with CONFIG_SLUB_RCU_DEBUG, it causes KASAN to
++	 *    check that the associated anon_vma has not yet been freed (subject
++	 *    to KASAN's usual limitations). This check will pass if the
++	 *    anon_vma's refcount has already dropped to 0 but an RCU grace
++	 *    period hasn't passed since then.
++	 * 2. If the anon_vma has not yet been freed, it checks that the
++	 *    anon_vma still has a nonzero refcount (as opposed to being in the
++	 *    middle of an RCU delay for getting freed).
++	 */
++	if (folio_test_anon(folio) && !folio_test_ksm(folio)) {
++		unsigned long mapping = (unsigned long)folio->mapping;
++		struct anon_vma *anon_vma;
++
++		anon_vma = (void *)(mapping - FOLIO_MAPPING_ANON);
++		VM_WARN_ON_FOLIO(atomic_read(&anon_vma->refcount) == 0, folio);
++	}
  }
  
--int io_mapping_map_user(struct io_mapping *iomap, struct vm_area_struct *vma,
--		unsigned long addr, unsigned long pfn, unsigned long size);
--
- #endif /* _LINUX_IO_MAPPING_H */
-diff --git a/mm/io-mapping.c a/mm/io-mapping.c
-deleted file mode 100644
---- a/mm/io-mapping.c
-+++ /dev/null
-@@ -1,30 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--
--#include <linux/mm.h>
--#include <linux/io-mapping.h>
--
--/**
-- * io_mapping_map_user - remap an I/O mapping to userspace
-- * @iomap: the source io_mapping
-- * @vma: user vma to map to
-- * @addr: target user address to start at
-- * @pfn: physical address of kernel memory
-- * @size: size of map area
-- *
-- *  Note: this is only safe if the mm semaphore is held when called.
-- */
--int io_mapping_map_user(struct io_mapping *iomap, struct vm_area_struct *vma,
--		unsigned long addr, unsigned long pfn, unsigned long size)
--{
--	vm_flags_t expected_flags = VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
--
--	if (WARN_ON_ONCE((vma->vm_flags & expected_flags) != expected_flags))
--		return -EINVAL;
--
--	pgprot_t remap_prot = __pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
--				       (pgprot_val(vma->vm_page_prot) & ~_PAGE_CACHE_MASK));
--
--	/* We rely on prevalidation of the io-mapping to skip pfnmap tracking. */
--	return remap_pfn_range_notrack(vma, addr, pfn, size, remap_prot);
--}
--EXPORT_SYMBOL_GPL(io_mapping_map_user);
---- a/mm/Kconfig~mm-remove-mm-io-mappingc
-+++ a/mm/Kconfig
-@@ -1242,10 +1242,6 @@ config KMAP_LOCAL
- config KMAP_LOCAL_NON_LINEAR_PTE_ARRAY
- 	bool
- 
--# struct io_mapping based helper.  Selected by drivers that need them
--config IO_MAPPING
--	bool
--
- config MEMFD_CREATE
- 	bool "Enable memfd_create() system call" if EXPERT
- 
---- a/mm/Makefile~mm-remove-mm-io-mappingc
-+++ a/mm/Makefile
-@@ -141,7 +141,6 @@ obj-$(CONFIG_MEMFD_CREATE) += memfd.o
- obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
- obj-$(CONFIG_PTDUMP) += ptdump.o
- obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
--obj-$(CONFIG_IO_MAPPING) += io-mapping.o
- obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
- obj-$(CONFIG_GENERIC_IOREMAP) += ioremap.o
- obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
+ /*
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from jannh@google.com are
 
+kasan-test-fix-protection-against-compiler-elision.patch
+kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
+kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v2.patch
 
