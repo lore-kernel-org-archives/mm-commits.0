@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19161204C07
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 006D21E7C1C
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160849; cv=none; b=CN8McCqdB5y0Ns601RYW2yESihTKF+Nswp/QOfwTCRj9Goayk8UowKoQfU3G3s7sM22vovTbDfqtjowuy96HDntLkj/PyUX59jWwWWq9htgHxp/wRtyosIn5pFdsiJl9FjI8uul85e7VQhtsQ1z8JghilDUIeeBlzXg/13fX5+I=
+	t=1754160851; cv=none; b=LpP+krnuIZr+8vyBmiHPX+HfP4cq3UdD0KZZirqDpzylt/IFcEz+Y7qsriKSiY5UFkqKwpAbYVPy026039xZUbUuG5ffi1HuS+EH7UY0C3I56la1gClTl5nC0ChdJpcSudTzGtUJMM9uIWe5u53wg7dRjHpAGvoBYME9DhprGS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160849; c=relaxed/simple;
-	bh=PQXBzrc/23QoqHMwdlFz7uBnRyuUcKb5wu31OluwUOg=;
-	h=Date:To:From:Subject:Message-Id; b=LiP1OsJlto1F6lJnrk8KiF25yG5vzi/dc9WnhsGgMnh01gBd3KSbZLuJGcZro/QFHzMZgJR4e68Cn96yrS83JA4cf2he5om6RC+uEkyOmmr8+XBcPbnSsd3Ledi5hM/GZzxoYMfZzp2ooFC0uNvDWFJnEg7FhNw2vj2S+HgAtNA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OqY3kN8G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160851; c=relaxed/simple;
+	bh=LlfgiBlGx4Rtj+MYeJ6zqFbw0/QqKBlskUWOips0WcA=;
+	h=Date:To:From:Subject:Message-Id; b=oy2jGNLVKltIOyVCj9RXn5sWJTKraJaF0RJ8mpnmjd+xLWuxeI1N08FEdaTqSz55Zsz9ZAehzMZ+bqFngjzEgA3aC92Sxmlb2lr+UIaov0zD7I7ufQCMJo21s0wMovpABGU7Vggzatxz6pX5z9ptf8EpXx6mFhVvFRDFMKjKts8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QVpCvwdS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OqY3kN8G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1F2CC4CEEF;
-	Sat,  2 Aug 2025 18:54:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QVpCvwdS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7978BC4CEEF;
+	Sat,  2 Aug 2025 18:54:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160849;
-	bh=PQXBzrc/23QoqHMwdlFz7uBnRyuUcKb5wu31OluwUOg=;
+	s=korg; t=1754160850;
+	bh=LlfgiBlGx4Rtj+MYeJ6zqFbw0/QqKBlskUWOips0WcA=;
 	h=Date:To:From:Subject:From;
-	b=OqY3kN8Glk6/bANsuJK4k2n2AOf23En7qf7UN1seTFMfF3yn0RXhh7sF8n9he9EkF
-	 AvRWI8qV2jFsj2Pt8bvh7zzBLyhV60G6h0TPAzry7H60OFUE2PQKfkFAo+rLw3EH+t
-	 WPSDjLVsAH7SbsE+b2BwW97aJeuEgv5le+gOGis0=
-Date: Sat, 02 Aug 2025 11:54:08 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=QVpCvwdSZ9SfVdIDh7uJr04Hgl0xt/7j5fuWIK/gZaNx84eENMeO7yFYRhlenFs5z
+	 IPc11dHk2dFnPvUcxdwgwvW9SFwBliUOCiup0Nl4Mgh6wspQqMdVZCCV+FaEb8eyUL
+	 Dsryq/RTP6yy44o3UGWUDh3au9WdnByBLUOHt+RE=
+Date: Sat, 02 Aug 2025 11:54:09 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,thiago.bauermann@linaro.org,ryan.roberts@arm.com,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,joern@logfs.org,hughd@google.com,dev.jain@arm.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,brahmajit.xyz@gmail.com,baolin.wang@linux.alibaba.com,avagin@gmail.com,andrii@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mseal-rework-mseal-apply-logic.patch removed from -mm tree
-Message-Id: <20250802185408.E1F2CC4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range.patch removed from -mm tree
+Message-Id: <20250802185410.7978BC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,153 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mseal: rework mseal apply logic
+     Subject: mm/memory-failure: hold PTL in hwpoison_hugetlb_range
 has been removed from the -mm tree.  Its filename was
-     mm-mseal-rework-mseal-apply-logic.patch
+     mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mseal: rework mseal apply logic
-Date: Fri, 25 Jul 2025 09:29:45 +0100
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/memory-failure: hold PTL in hwpoison_hugetlb_range
+Date: Fri, 25 Jul 2025 11:31:12 +0800
 
-The logic can be simplified - firstly by renaming the inconsistently named
-apply_mm_seal() to mseal_apply().
+Hold PTL in hwpoison_hugetlb_range() to avoid operating on stale page, as
+hwpoison_pte_range() have done.
 
-We then wrap mseal_fixup() into the main loop as the logic is simple
-enough to not require it, equally it isn't a hugely pleasant pattern in
-mprotect() etc.  so it's not something we want to perpetuate.
+This change is not known to address any issues which users have
+experienced.
 
-We eliminate the need for invoking vma_iter_end() on each loop by directly
-determining if the VMA was merged - the only thing we need concern
-ourselves with is whether the start/end of the (gapless) range are offset
-into VMAs.
-
-This refactoring also avoids the rather horrid 'pass pointer to prev
-around' pattern used in mprotect() et al.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/ddfa4376ce29f19a589d7dc8c92cb7d4f7605a4c.1753431105.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20250725033112.2690158-1-tujinjiang@huawei.com
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Jeff Xu <jeffxu@chromium.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Brahmajit Das <brahmajit.xyz@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mseal.c |   67 +++++++++++++++------------------------------------
- 1 file changed, 20 insertions(+), 47 deletions(-)
+ mm/memory-failure.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/mseal.c~mm-mseal-rework-mseal-apply-logic
-+++ a/mm/mseal.c
-@@ -15,28 +15,6 @@
- #include <linux/sched.h>
- #include "internal.h"
- 
--static int mseal_fixup(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		struct vm_area_struct **prev, unsigned long start,
--		unsigned long end, vm_flags_t newflags)
--{
--	int ret = 0;
--	vm_flags_t oldflags = vma->vm_flags;
--
--	if (newflags == oldflags)
--		goto out;
--
--	vma = vma_modify_flags(vmi, *prev, vma, start, end, newflags);
--	if (IS_ERR(vma)) {
--		ret = PTR_ERR(vma);
--		goto out;
--	}
--
--	vm_flags_set(vma, VM_SEALED);
--out:
--	*prev = vma;
--	return ret;
--}
--
- /*
-  * mseal() disallows an input range which contain unmapped ranges (VMA holes).
-  *
-@@ -74,38 +52,33 @@ static bool range_contains_unmapped(stru
- 	return prev_end < end;
- }
- 
--/*
-- * Apply sealing.
-- */
--static int apply_mm_seal(unsigned long start, unsigned long end)
-+static int mseal_apply(struct mm_struct *mm,
-+		unsigned long start, unsigned long end)
+--- a/mm/memory-failure.c~mm-memory-failure-hold-ptl-in-hwpoison_hugetlb_range
++++ a/mm/memory-failure.c
+@@ -837,11 +837,17 @@ static int hwpoison_hugetlb_range(pte_t
+ 			    struct mm_walk *walk)
  {
--	unsigned long nstart;
- 	struct vm_area_struct *vma, *prev;
--	VMA_ITERATOR(vmi, current->mm, start);
-+	unsigned long curr_start = start;
-+	VMA_ITERATOR(vmi, mm, start);
+ 	struct hwpoison_walk *hwp = walk->private;
+-	pte_t pte = huge_ptep_get(walk->mm, addr, ptep);
+ 	struct hstate *h = hstate_vma(walk->vma);
++	spinlock_t *ptl;
++	pte_t pte;
++	int ret;
  
-+	/* We know there are no gaps so this will be non-NULL. */
- 	vma = vma_iter_load(&vmi);
--	/*
--	 * Note: check_mm_seal should already checked ENOMEM case.
--	 * so vma should not be null, same for the other ENOMEM cases.
--	 */
- 	prev = vma_prev(&vmi);
- 	if (start > vma->vm_start)
- 		prev = vma;
- 
--	nstart = start;
- 	for_each_vma_range(vmi, vma, end) {
--		int error;
--		unsigned long tmp;
--		vm_flags_t newflags;
--
--		newflags = vma->vm_flags | VM_SEALED;
--		tmp = vma->vm_end;
--		if (tmp > end)
--			tmp = end;
--		error = mseal_fixup(&vmi, vma, &prev, nstart, tmp, newflags);
--		if (error)
--			return error;
--		nstart = vma_iter_end(&vmi);
-+		unsigned long curr_end = MIN(vma->vm_end, end);
-+
-+		if (!(vma->vm_flags & VM_SEALED)) {
-+			vma = vma_modify_flags(&vmi, prev, vma,
-+					curr_start, curr_end,
-+					vma->vm_flags | VM_SEALED);
-+			if (IS_ERR(vma))
-+				return PTR_ERR(vma);
-+			vm_flags_set(vma, VM_SEALED);
-+		}
-+
-+		prev = vma;
-+		curr_start = curr_end;
- 	}
- 
- 	return 0;
-@@ -204,10 +177,10 @@ int do_mseal(unsigned long start, size_t
- 	 * reaching the max supported VMAs, however, those cases shall
- 	 * be rare.
- 	 */
--	ret = apply_mm_seal(start, end);
-+	ret = mseal_apply(mm, start, end);
- 
- out:
--	mmap_write_unlock(current->mm);
-+	mmap_write_unlock(mm);
- 	return ret;
+-	return check_hwpoisoned_entry(pte, addr, huge_page_shift(h),
+-				      hwp->pfn, &hwp->tk);
++	ptl = huge_pte_lock(h, walk->mm, ptep);
++	pte = huge_ptep_get(walk->mm, addr, ptep);
++	ret = check_hwpoisoned_entry(pte, addr, huge_page_shift(h),
++					hwp->pfn, &hwp->tk);
++	spin_unlock(ptl);
++	return ret;
  }
- 
+ #else
+ #define hwpoison_hugetlb_range	NULL
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
+mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
+mm-smaps-fix-race-between-smaps_hugetlb_range-and-migration.patch
+fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch
 
