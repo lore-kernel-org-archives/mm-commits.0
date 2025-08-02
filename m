@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC4C1A5B86
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178091E5B72
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754161335; cv=none; b=ix7SswqcisOHt9NkxIE4sd3ja77eBdOynv1b9/RJfSiuJhjIMtVAP2FGL754bMTUmEq3fEHoNNMHQdkAnwKS+wKzQ4c4+kkRafFEU6yhhsQ2359QWz7u6yO1xpCFg4/iaoa4eV+D/lnK/iZ579bm26sDnVrra9UbZq/FzP8aPPc=
+	t=1754161337; cv=none; b=XonSQzCCiCe/gLVb7yb9v9+BqzqPNF7poOvGrNjfeU1iWGhli5lDJ593ahIMxgdJOrd9IY2TCXamBpnvqHWrildGPSWi6ygYrAbotrFs7n7AvrfUmFMKPMRGe3nkg2e/eASKIKhvCG+KvnMrafQEWmbZvnvI/F8SgB3Ot1oOnLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754161335; c=relaxed/simple;
-	bh=DRNEKAROG0yOTEy9u7v0S9EW/M8P8IKzFKa71rFzJKo=;
-	h=Date:To:From:Subject:Message-Id; b=nGpTaySDwkwcFHUMtUzhnLoHOccolPEyaTZGgERSxkHNlTwjnJICXtQk6D1uGWSTiskMYJOTBzRVHYmxnLSVlFIbLdtt+I+rzcwVP/X7pzYFhVJeD3W/Tu9zSJeWKSc8lU3PIxlmhyUjsBJDHf0kRcQWVysuI9W4uytQjCKNB9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HIaEtdZD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754161337; c=relaxed/simple;
+	bh=TALftInW9RKfcvM3ISfErvxGYZFlMSdj/RvCK6x3a3Q=;
+	h=Date:To:From:Subject:Message-Id; b=rGqABxy+ZUmMp415veH6rTO386k8MqRegHXVvXfXPCPAiqV6WwXKwznsggLTCaEyhC+ZaAE3OABn4ZIqOTRpIhVdz2klrPQMk42fDy+qMGQTlaV3n/6H8B3D9pJQz8PpQkQll76dDHrjZ8HT9dPYTvYwa5Pz7ijO/jO9wYYpPp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yjYfEEmt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HIaEtdZD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B800C4CEEF;
-	Sat,  2 Aug 2025 19:02:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yjYfEEmt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CAFCC4CEEF;
+	Sat,  2 Aug 2025 19:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754161335;
-	bh=DRNEKAROG0yOTEy9u7v0S9EW/M8P8IKzFKa71rFzJKo=;
+	s=korg; t=1754161336;
+	bh=TALftInW9RKfcvM3ISfErvxGYZFlMSdj/RvCK6x3a3Q=;
 	h=Date:To:From:Subject:From;
-	b=HIaEtdZDTuaW2JI6Zzr4yokAt/sTC01Hd0gksj/s5cLOqkBN95TmO0sVt3ci6CDqz
-	 flQb7zjpZmlSjCMXSuKweorroX9xKKGXjMcA0/lvAAQ8DDNf37UvkybvJ6xzHw5/jf
-	 5hqK1ZerTuCuCahjpbKWHM9cf9sIwfFPNJIBYcHw=
-Date: Sat, 02 Aug 2025 12:02:14 -0700
-To: mm-commits@vger.kernel.org,terrelln@fb.com,hch@lst.de,linux@treblig.org,akpm@linux-foundation.org
+	b=yjYfEEmtklvd1X9LePiQZcD1AH8UoPHkEZ5DavQwVIPOe9G6EJ2INfwmabmoM8J0p
+	 dQW/5OAWdm9RFnz1QJiDwLlnkPzx1AOCr5GU8vjIvD0WnAMAzkDxqWdsTfEZnlDkXi
+	 +lBLs12oqu+O6t6LH+3dr04u+i2s/TFnJOS6aV68=
+Date: Sat, 02 Aug 2025 12:02:16 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,mfleming@cloudflare.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-xxhash-remove-unused-functions.patch removed from -mm tree
-Message-Id: <20250802190215.5B800C4CEEF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] stackdepot-make-max-number-of-pools-boot-time-configurable.patch removed from -mm tree
+Message-Id: <20250802190216.8CAFCC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,188 +35,174 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/xxhash: remove unused functions
+     Subject: stackdepot: make max number of pools boot-time configurable
 has been removed from the -mm tree.  Its filename was
-     lib-xxhash-remove-unused-functions.patch
+     stackdepot-make-max-number-of-pools-boot-time-configurable.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: lib/xxhash: remove unused functions
-Date: Wed, 16 Jul 2025 14:32:45 +0100
+From: Matt Fleming <mfleming@cloudflare.com>
+Subject: stackdepot: make max number of pools boot-time configurable
+Date: Fri, 18 Jul 2025 16:39:28 +0100
 
-xxh32_digest() and xxh32_update() were added in 2017 in the original
-xxhash commit, but have remained unused.
+We're hitting the WARN in depot_init_pool() about reaching the stack depot
+limit because we have long stacks that don't dedup very well.
 
-Remove them.
+Introduce a new start-up parameter to allow users to set the number of
+maximum stack depot pools.
 
-Link: https://lkml.kernel.org/r/20250716133245.243363-1-linux@treblig.org
-Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Dave Gilbert <linux@treblig.org>
-Cc: Nick Terrell <terrelln@fb.com>
+Link: https://lkml.kernel.org/r/20250718153928.94229-1-matt@readmodwrite.com
+Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xxhash.h |   26 ---------
- lib/xxhash.c           |  107 ---------------------------------------
- 2 files changed, 133 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    5 +
+ lib/stackdepot.c                                |   67 ++++++++++++--
+ 2 files changed, 63 insertions(+), 9 deletions(-)
 
---- a/include/linux/xxhash.h~lib-xxhash-remove-unused-functions
-+++ a/include/linux/xxhash.h
-@@ -178,32 +178,6 @@ struct xxh64_state {
- void xxh32_reset(struct xxh32_state *state, uint32_t seed);
+--- a/Documentation/admin-guide/kernel-parameters.txt~stackdepot-make-max-number-of-pools-boot-time-configurable
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -7029,6 +7029,11 @@
+ 			consumed by the stack hash table. By default this is set
+ 			to false.
  
- /**
-- * xxh32_update() - hash the data given and update the xxh32 state
-- *
-- * @state:  The xxh32 state to update.
-- * @input:  The data to hash.
-- * @length: The length of the data to hash.
-- *
-- * After calling xxh32_reset() call xxh32_update() as many times as necessary.
-- *
-- * Return:  Zero on success, otherwise an error code.
-- */
--int xxh32_update(struct xxh32_state *state, const void *input, size_t length);
--
--/**
-- * xxh32_digest() - produce the current xxh32 hash
-- *
-- * @state: Produce the current xxh32 hash of this state.
-- *
-- * A hash value can be produced at any time. It is still possible to continue
-- * inserting input into the hash state after a call to xxh32_digest(), and
-- * generate new hashes later on, by calling xxh32_digest() again.
-- *
-- * Return: The xxh32 hash stored in the state.
-- */
--uint32_t xxh32_digest(const struct xxh32_state *state);
--
--/**
-  * xxh64_reset() - reset the xxh64 state to start a new hashing operation
-  *
-  * @state: The xxh64 state to reset.
---- a/lib/xxhash.c~lib-xxhash-remove-unused-functions
-+++ a/lib/xxhash.c
-@@ -267,113 +267,6 @@ void xxh64_reset(struct xxh64_state *sta
++	stack_depot_max_pools= [KNL,EARLY]
++			Specify the maximum number of pools to use for storing
++			stack traces. Pools are allocated on-demand up to this
++			limit. Default value is 8191 pools.
++
+ 	stacktrace	[FTRACE]
+ 			Enabled the stack tracer on boot up.
+ 
+--- a/lib/stackdepot.c~stackdepot-make-max-number-of-pools-boot-time-configurable
++++ a/lib/stackdepot.c
+@@ -36,11 +36,11 @@
+ #include <linux/memblock.h>
+ #include <linux/kasan-enabled.h>
+ 
+-#define DEPOT_POOLS_CAP 8192
+-/* The pool_index is offset by 1 so the first record does not have a 0 handle. */
+-#define DEPOT_MAX_POOLS \
+-	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
+-	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
++/*
++ * The pool_index is offset by 1 so the first record does not have a 0 handle.
++ */
++static unsigned int stack_max_pools __read_mostly =
++	MIN((1LL << DEPOT_POOL_INDEX_BITS) - 1, 8192);
+ 
+ static bool stack_depot_disabled;
+ static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+@@ -62,7 +62,7 @@ static unsigned int stack_bucket_number_
+ static unsigned int stack_hash_mask;
+ 
+ /* Array of memory regions that store stack records. */
+-static void *stack_pools[DEPOT_MAX_POOLS];
++static void **stack_pools;
+ /* Newly allocated pool that is not yet added to stack_pools. */
+ static void *new_pool;
+ /* Number of pools in stack_pools. */
+@@ -101,6 +101,34 @@ static int __init disable_stack_depot(ch
  }
- EXPORT_SYMBOL(xxh64_reset);
+ early_param("stack_depot_disable", disable_stack_depot);
  
--int xxh32_update(struct xxh32_state *state, const void *input, const size_t len)
--{
--	const uint8_t *p = (const uint8_t *)input;
--	const uint8_t *const b_end = p + len;
--
--	if (input == NULL)
--		return -EINVAL;
--
--	state->total_len_32 += (uint32_t)len;
--	state->large_len |= (len >= 16) | (state->total_len_32 >= 16);
--
--	if (state->memsize + len < 16) { /* fill in tmp buffer */
--		memcpy((uint8_t *)(state->mem32) + state->memsize, input, len);
--		state->memsize += (uint32_t)len;
--		return 0;
--	}
--
--	if (state->memsize) { /* some data left from previous update */
--		const uint32_t *p32 = state->mem32;
--
--		memcpy((uint8_t *)(state->mem32) + state->memsize, input,
--			16 - state->memsize);
--
--		state->v1 = xxh32_round(state->v1, get_unaligned_le32(p32));
--		p32++;
--		state->v2 = xxh32_round(state->v2, get_unaligned_le32(p32));
--		p32++;
--		state->v3 = xxh32_round(state->v3, get_unaligned_le32(p32));
--		p32++;
--		state->v4 = xxh32_round(state->v4, get_unaligned_le32(p32));
--		p32++;
--
--		p += 16-state->memsize;
--		state->memsize = 0;
--	}
--
--	if (p <= b_end - 16) {
--		const uint8_t *const limit = b_end - 16;
--		uint32_t v1 = state->v1;
--		uint32_t v2 = state->v2;
--		uint32_t v3 = state->v3;
--		uint32_t v4 = state->v4;
--
--		do {
--			v1 = xxh32_round(v1, get_unaligned_le32(p));
--			p += 4;
--			v2 = xxh32_round(v2, get_unaligned_le32(p));
--			p += 4;
--			v3 = xxh32_round(v3, get_unaligned_le32(p));
--			p += 4;
--			v4 = xxh32_round(v4, get_unaligned_le32(p));
--			p += 4;
--		} while (p <= limit);
--
--		state->v1 = v1;
--		state->v2 = v2;
--		state->v3 = v3;
--		state->v4 = v4;
--	}
--
--	if (p < b_end) {
--		memcpy(state->mem32, p, (size_t)(b_end-p));
--		state->memsize = (uint32_t)(b_end-p);
--	}
--
--	return 0;
--}
--EXPORT_SYMBOL(xxh32_update);
--
--uint32_t xxh32_digest(const struct xxh32_state *state)
--{
--	const uint8_t *p = (const uint8_t *)state->mem32;
--	const uint8_t *const b_end = (const uint8_t *)(state->mem32) +
--		state->memsize;
--	uint32_t h32;
--
--	if (state->large_len) {
--		h32 = xxh_rotl32(state->v1, 1) + xxh_rotl32(state->v2, 7) +
--			xxh_rotl32(state->v3, 12) + xxh_rotl32(state->v4, 18);
--	} else {
--		h32 = state->v3 /* == seed */ + PRIME32_5;
--	}
--
--	h32 += state->total_len_32;
--
--	while (p + 4 <= b_end) {
--		h32 += get_unaligned_le32(p) * PRIME32_3;
--		h32 = xxh_rotl32(h32, 17) * PRIME32_4;
--		p += 4;
--	}
--
--	while (p < b_end) {
--		h32 += (*p) * PRIME32_5;
--		h32 = xxh_rotl32(h32, 11) * PRIME32_1;
--		p++;
--	}
--
--	h32 ^= h32 >> 15;
--	h32 *= PRIME32_2;
--	h32 ^= h32 >> 13;
--	h32 *= PRIME32_3;
--	h32 ^= h32 >> 16;
--
--	return h32;
--}
--EXPORT_SYMBOL(xxh32_digest);
--
- int xxh64_update(struct xxh64_state *state, const void *input, const size_t len)
++static int __init parse_max_pools(char *str)
++{
++	const long long limit = (1LL << (DEPOT_POOL_INDEX_BITS)) - 1;
++	unsigned int max_pools;
++	int rv;
++
++	rv = kstrtouint(str, 0, &max_pools);
++	if (rv)
++		return rv;
++
++	if (max_pools < 1024) {
++		pr_err("stack_depot_max_pools below 1024, using default of %u\n",
++		       stack_max_pools);
++		goto out;
++	}
++
++	if (max_pools > limit) {
++		pr_err("stack_depot_max_pools exceeds %lld, using default of %u\n",
++		       limit, stack_max_pools);
++		goto out;
++	}
++
++	stack_max_pools = max_pools;
++out:
++	return 0;
++}
++early_param("stack_depot_max_pools", parse_max_pools);
++
+ void __init stack_depot_request_early_init(void)
  {
- 	const uint8_t *p = (const uint8_t *)input;
+ 	/* Too late to request early init now. */
+@@ -182,6 +210,17 @@ int __init stack_depot_early_init(void)
+ 	}
+ 	init_stack_table(entries);
+ 
++	pr_info("allocating space for %u stack pools via memblock\n",
++		stack_max_pools);
++	stack_pools =
++		memblock_alloc(stack_max_pools * sizeof(void *), PAGE_SIZE);
++	if (!stack_pools) {
++		pr_err("stack pools allocation failed, disabling\n");
++		memblock_free(stack_table, entries * sizeof(struct list_head));
++		stack_depot_disabled = true;
++		return -ENOMEM;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -231,6 +270,16 @@ int stack_depot_init(void)
+ 	stack_hash_mask = entries - 1;
+ 	init_stack_table(entries);
+ 
++	pr_info("allocating space for %u stack pools via kvcalloc\n",
++		stack_max_pools);
++	stack_pools = kvcalloc(stack_max_pools, sizeof(void *), GFP_KERNEL);
++	if (!stack_pools) {
++		pr_err("stack pools allocation failed, disabling\n");
++		kvfree(stack_table);
++		stack_depot_disabled = true;
++		ret = -ENOMEM;
++	}
++
+ out_unlock:
+ 	mutex_unlock(&stack_depot_init_mutex);
+ 
+@@ -245,9 +294,9 @@ static bool depot_init_pool(void **preal
+ {
+ 	lockdep_assert_held(&pool_lock);
+ 
+-	if (unlikely(pools_num >= DEPOT_MAX_POOLS)) {
++	if (unlikely(pools_num >= stack_max_pools)) {
+ 		/* Bail out if we reached the pool limit. */
+-		WARN_ON_ONCE(pools_num > DEPOT_MAX_POOLS); /* should never happen */
++		WARN_ON_ONCE(pools_num > stack_max_pools); /* should never happen */
+ 		WARN_ON_ONCE(!new_pool); /* to avoid unnecessary pre-allocation */
+ 		WARN_ONCE(1, "Stack depot reached limit capacity");
+ 		return false;
+@@ -273,7 +322,7 @@ static bool depot_init_pool(void **preal
+ 	 * NULL; do not reset to NULL if we have reached the maximum number of
+ 	 * pools.
+ 	 */
+-	if (pools_num < DEPOT_MAX_POOLS)
++	if (pools_num < stack_max_pools)
+ 		WRITE_ONCE(new_pool, NULL);
+ 	else
+ 		WRITE_ONCE(new_pool, STACK_DEPOT_POISON);
 _
 
-Patches currently in -mm which might be from linux@treblig.org are
+Patches currently in -mm which might be from mfleming@cloudflare.com are
 
 
