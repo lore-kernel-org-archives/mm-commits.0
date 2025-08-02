@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C42641A5B86
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC4C1A5B86
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754161334; cv=none; b=Le7MkQDPMX1C10jpWcqnqZrP/cojoTfXVvnDiLCZv10En3G6+2WH7tgF5YwR7LTdXTBdpyuRZUlym1Z42HOEBrGuHg5JQlNxXM2ejIQeoGoCkwxY9tsvdjoUIw8wVqqbvV+pUyA/ilwRGh+AN7XQZUkbtxfjc4ol/Lzsk5i4+RE=
+	t=1754161335; cv=none; b=ix7SswqcisOHt9NkxIE4sd3ja77eBdOynv1b9/RJfSiuJhjIMtVAP2FGL754bMTUmEq3fEHoNNMHQdkAnwKS+wKzQ4c4+kkRafFEU6yhhsQ2359QWz7u6yO1xpCFg4/iaoa4eV+D/lnK/iZ579bm26sDnVrra9UbZq/FzP8aPPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754161334; c=relaxed/simple;
-	bh=YJtCZ/gcV0fQYz/NWXeZxQz0wpGMAke1oQT7dOuQhl4=;
-	h=Date:To:From:Subject:Message-Id; b=jgxB+yyFKx7izdndWhsH4T5q0WxS3QAUzJ3J9NqTkBesISc0xXoPjr3AFxBO5WlDbimBVSBmFFtVkCBbyEY3qxB2TzEsx85OVltGIv/otET1skDd7rBmeTOheKH8urdMMW2AMyqMliTxcjHHT0mqj9XCv/rFHsEJRxCXDsWTzu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XoNWe+2k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754161335; c=relaxed/simple;
+	bh=DRNEKAROG0yOTEy9u7v0S9EW/M8P8IKzFKa71rFzJKo=;
+	h=Date:To:From:Subject:Message-Id; b=nGpTaySDwkwcFHUMtUzhnLoHOccolPEyaTZGgERSxkHNlTwjnJICXtQk6D1uGWSTiskMYJOTBzRVHYmxnLSVlFIbLdtt+I+rzcwVP/X7pzYFhVJeD3W/Tu9zSJeWKSc8lU3PIxlmhyUjsBJDHf0kRcQWVysuI9W4uytQjCKNB9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HIaEtdZD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XoNWe+2k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3358BC4CEEF;
-	Sat,  2 Aug 2025 19:02:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HIaEtdZD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B800C4CEEF;
+	Sat,  2 Aug 2025 19:02:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754161334;
-	bh=YJtCZ/gcV0fQYz/NWXeZxQz0wpGMAke1oQT7dOuQhl4=;
+	s=korg; t=1754161335;
+	bh=DRNEKAROG0yOTEy9u7v0S9EW/M8P8IKzFKa71rFzJKo=;
 	h=Date:To:From:Subject:From;
-	b=XoNWe+2kV5BMdSiWbuxDE3+TvXTFYDA+GWAe+8ezSBfMSDZB7CFMQvJ6BVQzX+BD0
-	 bm5pNAFxlqP32LsXH7RlGvBrF9hEfIYI/dgKtZfGm3rplZJIUjLxyEcOZlYCURtMen
-	 +jZiY0yX/CSciPFVFieJC3iwzEmCnbbR625FbMT8=
-Date: Sat, 02 Aug 2025 12:02:13 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,mingo@redhat.com,davem@davemloft.net,christophe.leroy@csgroup.eu,bp@alien8.de,anshuman.khandual@arm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=HIaEtdZDTuaW2JI6Zzr4yokAt/sTC01Hd0gksj/s5cLOqkBN95TmO0sVt3ci6CDqz
+	 flQb7zjpZmlSjCMXSuKweorroX9xKKGXjMcA0/lvAAQ8DDNf37UvkybvJ6xzHw5/jf
+	 5hqK1ZerTuCuCahjpbKWHM9cf9sIwfFPNJIBYcHw=
+Date: Sat, 02 Aug 2025 12:02:14 -0700
+To: mm-commits@vger.kernel.org,terrelln@fb.com,hch@lst.de,linux@treblig.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] init-kconfig-restore-config_broken-help-text.patch removed from -mm tree
-Message-Id: <20250802190214.3358BC4CEEF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-xxhash-remove-unused-functions.patch removed from -mm tree
+Message-Id: <20250802190215.5B800C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,188 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: init/Kconfig: restore CONFIG_BROKEN help text
+     Subject: lib/xxhash: remove unused functions
 has been removed from the -mm tree.  Its filename was
-     init-kconfig-restore-config_broken-help-text.patch
+     lib-xxhash-remove-unused-functions.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init/Kconfig: restore CONFIG_BROKEN help text
-Date: Mon Jul 14 05:20:02 PM PDT 2025
+From: "Dr. David Alan Gilbert" <linux@treblig.org>
+Subject: lib/xxhash: remove unused functions
+Date: Wed, 16 Jul 2025 14:32:45 +0100
 
-Linus added it in 2003, it later was removed.  Put it back.
+xxh32_digest() and xxh32_update() were added in 2017 in the original
+xxhash commit, but have remained unused.
 
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Remove them.
+
+Link: https://lkml.kernel.org/r/20250716133245.243363-1-linux@treblig.org
+Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Dave Gilbert <linux@treblig.org>
+Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/xxhash.h |   26 ---------
+ lib/xxhash.c           |  107 ---------------------------------------
+ 2 files changed, 133 deletions(-)
 
---- a/init/Kconfig~init-kconfig-restore-config_broken-help-text
-+++ a/init/Kconfig
-@@ -169,6 +169,10 @@ menu "General setup"
+--- a/include/linux/xxhash.h~lib-xxhash-remove-unused-functions
++++ a/include/linux/xxhash.h
+@@ -178,32 +178,6 @@ struct xxh64_state {
+ void xxh32_reset(struct xxh32_state *state, uint32_t seed);
  
- config BROKEN
- 	bool
-+	help
-+	  This option allows you to choose whether you want to try to
-+	  compile (and fix) old drivers that haven't been updated to
-+	  new infrastructure.
+ /**
+- * xxh32_update() - hash the data given and update the xxh32 state
+- *
+- * @state:  The xxh32 state to update.
+- * @input:  The data to hash.
+- * @length: The length of the data to hash.
+- *
+- * After calling xxh32_reset() call xxh32_update() as many times as necessary.
+- *
+- * Return:  Zero on success, otherwise an error code.
+- */
+-int xxh32_update(struct xxh32_state *state, const void *input, size_t length);
+-
+-/**
+- * xxh32_digest() - produce the current xxh32 hash
+- *
+- * @state: Produce the current xxh32 hash of this state.
+- *
+- * A hash value can be produced at any time. It is still possible to continue
+- * inserting input into the hash state after a call to xxh32_digest(), and
+- * generate new hashes later on, by calling xxh32_digest() again.
+- *
+- * Return: The xxh32 hash stored in the state.
+- */
+-uint32_t xxh32_digest(const struct xxh32_state *state);
+-
+-/**
+  * xxh64_reset() - reset the xxh64 state to start a new hashing operation
+  *
+  * @state: The xxh64 state to reset.
+--- a/lib/xxhash.c~lib-xxhash-remove-unused-functions
++++ a/lib/xxhash.c
+@@ -267,113 +267,6 @@ void xxh64_reset(struct xxh64_state *sta
+ }
+ EXPORT_SYMBOL(xxh64_reset);
  
- config BROKEN_ON_SMP
- 	bool
+-int xxh32_update(struct xxh32_state *state, const void *input, const size_t len)
+-{
+-	const uint8_t *p = (const uint8_t *)input;
+-	const uint8_t *const b_end = p + len;
+-
+-	if (input == NULL)
+-		return -EINVAL;
+-
+-	state->total_len_32 += (uint32_t)len;
+-	state->large_len |= (len >= 16) | (state->total_len_32 >= 16);
+-
+-	if (state->memsize + len < 16) { /* fill in tmp buffer */
+-		memcpy((uint8_t *)(state->mem32) + state->memsize, input, len);
+-		state->memsize += (uint32_t)len;
+-		return 0;
+-	}
+-
+-	if (state->memsize) { /* some data left from previous update */
+-		const uint32_t *p32 = state->mem32;
+-
+-		memcpy((uint8_t *)(state->mem32) + state->memsize, input,
+-			16 - state->memsize);
+-
+-		state->v1 = xxh32_round(state->v1, get_unaligned_le32(p32));
+-		p32++;
+-		state->v2 = xxh32_round(state->v2, get_unaligned_le32(p32));
+-		p32++;
+-		state->v3 = xxh32_round(state->v3, get_unaligned_le32(p32));
+-		p32++;
+-		state->v4 = xxh32_round(state->v4, get_unaligned_le32(p32));
+-		p32++;
+-
+-		p += 16-state->memsize;
+-		state->memsize = 0;
+-	}
+-
+-	if (p <= b_end - 16) {
+-		const uint8_t *const limit = b_end - 16;
+-		uint32_t v1 = state->v1;
+-		uint32_t v2 = state->v2;
+-		uint32_t v3 = state->v3;
+-		uint32_t v4 = state->v4;
+-
+-		do {
+-			v1 = xxh32_round(v1, get_unaligned_le32(p));
+-			p += 4;
+-			v2 = xxh32_round(v2, get_unaligned_le32(p));
+-			p += 4;
+-			v3 = xxh32_round(v3, get_unaligned_le32(p));
+-			p += 4;
+-			v4 = xxh32_round(v4, get_unaligned_le32(p));
+-			p += 4;
+-		} while (p <= limit);
+-
+-		state->v1 = v1;
+-		state->v2 = v2;
+-		state->v3 = v3;
+-		state->v4 = v4;
+-	}
+-
+-	if (p < b_end) {
+-		memcpy(state->mem32, p, (size_t)(b_end-p));
+-		state->memsize = (uint32_t)(b_end-p);
+-	}
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(xxh32_update);
+-
+-uint32_t xxh32_digest(const struct xxh32_state *state)
+-{
+-	const uint8_t *p = (const uint8_t *)state->mem32;
+-	const uint8_t *const b_end = (const uint8_t *)(state->mem32) +
+-		state->memsize;
+-	uint32_t h32;
+-
+-	if (state->large_len) {
+-		h32 = xxh_rotl32(state->v1, 1) + xxh_rotl32(state->v2, 7) +
+-			xxh_rotl32(state->v3, 12) + xxh_rotl32(state->v4, 18);
+-	} else {
+-		h32 = state->v3 /* == seed */ + PRIME32_5;
+-	}
+-
+-	h32 += state->total_len_32;
+-
+-	while (p + 4 <= b_end) {
+-		h32 += get_unaligned_le32(p) * PRIME32_3;
+-		h32 = xxh_rotl32(h32, 17) * PRIME32_4;
+-		p += 4;
+-	}
+-
+-	while (p < b_end) {
+-		h32 += (*p) * PRIME32_5;
+-		h32 = xxh_rotl32(h32, 11) * PRIME32_1;
+-		p++;
+-	}
+-
+-	h32 ^= h32 >> 15;
+-	h32 *= PRIME32_2;
+-	h32 ^= h32 >> 13;
+-	h32 *= PRIME32_3;
+-	h32 ^= h32 >> 16;
+-
+-	return h32;
+-}
+-EXPORT_SYMBOL(xxh32_digest);
+-
+ int xxh64_update(struct xxh64_state *state, const void *input, const size_t len)
+ {
+ 	const uint8_t *p = (const uint8_t *)input;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linux@treblig.org are
 
 
