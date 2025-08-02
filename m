@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C417A1E7C1C
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 712B71DCB09
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160841; cv=none; b=mAy2I5ipdVuDKXsQNM/Pvb+VmMvw4M5mHbuownm2yC9Jk4Fx5Y+/aS+5Y8Dix2px3Ys0X+L0Yr01sUNh5BdOkza5i6xRVJYtI2/7sv3paLEQC2P8ZYKFqN1ZUu4BzRHNTcjfyN1TXj8+WcKzj391cpyRxEgNB8at+wFXKwJNnAs=
+	t=1754160843; cv=none; b=OwSedE/vTcuYrm3XQKipZz8hJaxmRbXl4JtV4uPJOH8pRIiZbe8w+p0AlYbdJoVLWhzGclW5tznHYwxWXXYHKwZXcjw9PYaVu9+IiGuDk6kj+EaRBoMEyfFeIjWgz90G7xiGD9X1fgn1m7zPlHw91C+C6xurjsMVucjkUFwSj48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160841; c=relaxed/simple;
-	bh=EDT1FJ5AAgq29AQvyiRHmPN2xmL8lciFvTwoqiv1rxI=;
-	h=Date:To:From:Subject:Message-Id; b=F/uhpgVwrQlZwimPzMyx/rMt3/YD3W7/h0bSgiYrePViwjlzKRSgyBPY2MuP9lz378Szir4P3hljfRtgLqJ3ZrEsl5ugmKp68QP5lhhMq8s7xmNZvu757Lk9Ih1CrFAJuLdeTeZ7ZEwO1rWJsy9CzCbQ9NpTnsX3vXuqSGmfV8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vFxByNhC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160843; c=relaxed/simple;
+	bh=WmkRzMAQERnVuHeRP1IJIgrQSH31ZR9HeehB6SDpdic=;
+	h=Date:To:From:Subject:Message-Id; b=BArPRz6LzS2Kj1VkXigoFTZKGcdd3JQnq+h6swfm7ogVKFI9y8XlmqFmaAzUqcwOXetY8rPcP+MP1IQYFKSIsnbiI0BjhaAQot16EoDA2N6RRJR6pBk6GxZgF6iIjSYWvMJF+Nexaj0bbeDTZLgNNRQyfempeKlPs6qg5TsEa94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ID85hGO3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vFxByNhC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DCD6C4CEEF;
-	Sat,  2 Aug 2025 18:54:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ID85hGO3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2732C4CEEF;
+	Sat,  2 Aug 2025 18:54:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160841;
-	bh=EDT1FJ5AAgq29AQvyiRHmPN2xmL8lciFvTwoqiv1rxI=;
+	s=korg; t=1754160842;
+	bh=WmkRzMAQERnVuHeRP1IJIgrQSH31ZR9HeehB6SDpdic=;
 	h=Date:To:From:Subject:From;
-	b=vFxByNhCqQPxQUu0IoQ1/2+uMo8gOqlEEoPsOnWwCoq3r3fp5zk/VH2PHvXRt0jev
-	 eKpr1Q3yJ7A8cxnk8KUQO3JOc4lRoR+XYbQbb2fmBmmJ1TH4mZqwpr0wyZpSjcGSyg
-	 OgJ61sN53/b4/nSIpikEsRtrgAcRCsS7cOqHu2oU=
-Date: Sat, 02 Aug 2025 11:54:01 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,raghavendra.kt@amd.com,bijantabatab@micron.com,akpm@linux-foundation.org
+	b=ID85hGO3LIcHWLr67GmxcUyccMCBZZQoxjtyP+3rRorHQw3FxD3s/PqvaoSXr/iLG
+	 4JtkAVVRIj9agu9BtnAULVv/uHyfjUNmSeOsa0r0uKxti7HeI8gn+6GraH5QcRymiO
+	 8wgHWQdEcnbB83hf0ty7Ds0Pr6WAGMav75L09AWU=
+Date: Sat, 02 Aug 2025 11:54:02 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-skip-isolating-folios-already-in-destination-nid.patch removed from -mm tree
-Message-Id: <20250802185401.8DCD6C4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mseal-always-define-vm_sealed.patch removed from -mm tree
+Message-Id: <20250802185402.D2732C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: skip isolating folios already in destination nid
+     Subject: mm/mseal: always define VM_SEALED
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-skip-isolating-folios-already-in-destination-nid.patch
+     mm-mseal-always-define-vm_sealed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bijan Tabatabai <bijantabatab@micron.com>
-Subject: mm/damon/vaddr: skip isolating folios already in destination nid
-Date: Fri, 25 Jul 2025 11:33:00 -0500
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mseal: always define VM_SEALED
+Date: Fri, 25 Jul 2025 09:29:41 +0100
 
-damos_va_migrate_dests_add() determines the node a folio should be in
-based on the struct damos_migrate_dests associated with the migration
-scheme and adds the folio to the linked list corresponding to that node so
-it can be migrated later.  Currently, folios are isolated and added to the
-list even if they are already in the node they should be in.
+Patch series "mseal cleanups", v4.
 
-In using damon weighted interleave more, I've found that the overhead of
-needlessly adding these folios to the migration lists can be quite high. 
-The overhead comes from isolating folios and placing them in the migration
-lists inside of damos_va_migrate_dests_add(), as well as the cost of
-handling those folios in damon_migrate_pages().  This patch eliminates
-that overhead by simply avoiding the addition of folios that are already
-in their intended location to the migration list.
+Perform a number of cleanups to the mseal logic.  Firstly, VM_SEALED is
+treated differently from every other VMA flag, it really doesn't make
+sense to do this, so we start by making this consistent with everything
+else.
 
-To show the benefit of this patch, we start the test workload and start a
-DAMON instance attached to that workload with a migrate_hot scheme that
-has one dest field sending data to the local node.  This way, we are only
-measuring the overheads of the scheme, and not the cost of migrating
-pages, since data will be allocated to the local node by default.  I
-tested with two workloads: the embedding reduction workload used in [1]
-and a microbenchmark that allocates 20GB of data then sleeps, which is
-similar to the memory usage of the embedding reduction workload.
+Next we place the madvise logic where it belongs - in mm/madvise.c.  It
+really makes no sense to abstract this elsewhere.  In doing so, we go to
+great lengths to explain very clearly the previously very confusing logic
+as to what sealed mappings are impacted here.
 
-The time taken in damos_va_migrate_dests_add() and damon_migrate_pages()
-each aggregation interval is shown below.
+In doing so, we retain existing logic regarding treatment of madvise()
+discard operations for a sealed, read-only MAP_PRIVATE file-backed
+mapping.  This is something we likely need to revisit.
 
-Before this patch:
-                       damos_va_migrate_dests_add damon_migrate_pages
-microbenchmark                   ~2ms                      ~3ms
-embedding reduction              ~1s                       ~3s
+We then abstract out and explain the 'are there are any gaps in this range
+in the mm?' check being performed as a prerequisite to mseal being
+performed.
 
-After this patch:
-                       damos_va_migrate_dests_add damon_migrate_pages
-microbenchmark                    0us                      ~40us
-embedding reduction               0us                      ~100us
+Finally, we simplify the actual mseal logic which is really quite
+straightforward.
 
-I did not do an in depth analysis for why things are much slower in the
-embedding reduction workload than the microbenchmark.  However, I assume
-it's because the embedding reduction workload oversaturates the bandwidth
-of the local memory node, increasing the memory access latency, and in
-turn making the pointer chasing involved in iterating through a linked
-list much slower.  Regardless of that, this patch results in a significant
-speedup.
+No functional change is intended.
 
-[1] https://lore.kernel.org/damon/20250709005952.17776-1-bijan311@gmail.com/
 
-Link: https://lkml.kernel.org/r/20250725163300.4602-1-bijan311@gmail.com
-Fixes: 19c1dc15c859 ("mm/damon/vaddr: use damos->migrate_dests in migrate_{hot,cold}")
-Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
+This patch (of 4):
+
+There is no reason to treat VM_SEALED in a special way, in each other case
+in which a VMA flag is unavailable due to configuration, we simply assign
+that flag to VM_NONE, so make VM_SEALED consistent with all other VMA
+flags in this respect.
+
+Additionally, use the next available bit for VM_SEALED, 42, rather than
+arbitrarily putting it at 63 and update the declaration to match all other
+VMA flags.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/cover.1753431105.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/aeb398a77029b6e7377cd944328bc9bbc3c90537.1753431105.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/mm.h               |    6 ++++--
+ tools/testing/vma/vma_internal.h |    6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-skip-isolating-folios-already-in-destination-nid
-+++ a/mm/damon/vaddr.c
-@@ -711,6 +711,10 @@ static void damos_va_migrate_dests_add(s
- 		target -= dests->weight_arr[i];
- 	}
+--- a/include/linux/mm.h~mm-mseal-always-define-vm_sealed
++++ a/include/linux/mm.h
+@@ -414,8 +414,10 @@ extern unsigned int kobjsize(const void
+ #endif
  
-+	/* If the folio is already in the right node, don't do anything */
-+	if (folio_nid(folio) == dests->node_id_arr[i])
-+		return;
-+
- isolate:
- 	if (!folio_isolate_lru(folio))
- 		return;
+ #ifdef CONFIG_64BIT
+-/* VM is sealed, in vm_flags */
+-#define VM_SEALED	_BITUL(63)
++#define VM_SEALED_BIT	42
++#define VM_SEALED	BIT(VM_SEALED_BIT)
++#else
++#define VM_SEALED	VM_NONE
+ #endif
+ 
+ /* Bits set in the VMA until the stack is in its final location */
+--- a/tools/testing/vma/vma_internal.h~mm-mseal-always-define-vm_sealed
++++ a/tools/testing/vma/vma_internal.h
+@@ -108,8 +108,10 @@ extern unsigned long dac_mmap_min_addr;
+ #define CAP_IPC_LOCK         14
+ 
+ #ifdef CONFIG_64BIT
+-/* VM is sealed, in vm_flags */
+-#define VM_SEALED	_BITUL(63)
++#define VM_SEALED_BIT	42
++#define VM_SEALED	BIT(VM_SEALED_BIT)
++#else
++#define VM_SEALED	VM_NONE
+ #endif
+ 
+ #define FIRST_USER_ADDRESS	0UL
 _
 
-Patches currently in -mm which might be from bijantabatab@micron.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
 
