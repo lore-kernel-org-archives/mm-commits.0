@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178091E5B72
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DC001E5B72
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754161337; cv=none; b=XonSQzCCiCe/gLVb7yb9v9+BqzqPNF7poOvGrNjfeU1iWGhli5lDJ593ahIMxgdJOrd9IY2TCXamBpnvqHWrildGPSWi6ygYrAbotrFs7n7AvrfUmFMKPMRGe3nkg2e/eASKIKhvCG+KvnMrafQEWmbZvnvI/F8SgB3Ot1oOnLQ=
+	t=1754161338; cv=none; b=Rw8eyDQEIF7Db7wpQqlHw4wB/+FI4DOYuoDMYtp8aMUGkF4azkoRpQXlWcrwjAGk7JfQpwUh5vn0R68++AmQ0oIVckwpGcFjU9F2pwOEh1KYGACmHGY/TzN3h4mP/oLViu4AeZ9vGZoktM8leynaplAjA1IE1QSHoM+d8Wp/O0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754161337; c=relaxed/simple;
-	bh=TALftInW9RKfcvM3ISfErvxGYZFlMSdj/RvCK6x3a3Q=;
-	h=Date:To:From:Subject:Message-Id; b=rGqABxy+ZUmMp415veH6rTO386k8MqRegHXVvXfXPCPAiqV6WwXKwznsggLTCaEyhC+ZaAE3OABn4ZIqOTRpIhVdz2klrPQMk42fDy+qMGQTlaV3n/6H8B3D9pJQz8PpQkQll76dDHrjZ8HT9dPYTvYwa5Pz7ijO/jO9wYYpPp0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yjYfEEmt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754161338; c=relaxed/simple;
+	bh=umZLC47NoQKDoAVd7ZuiBca+VaU7gFEt5kJk44Ylqgk=;
+	h=Date:To:From:Subject:Message-Id; b=Y1FtwPhEAT1Zru77yhHshmXB4Cbog1Nsa4ww5elx6O6pRs9d3mvFmKFUEunhvKBYdGjXomcflvR8V7fTJ5+Bu5dghoaUgCguIl/q7U5UeYwtlqQBQePv93TGe8jz8WPWk9YOt9cCyGkuHk7vIttmvXGUhcQhrbYQsgwS18FdZT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eSjdgrYy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yjYfEEmt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CAFCC4CEEF;
-	Sat,  2 Aug 2025 19:02:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eSjdgrYy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CACFFC4CEEF;
+	Sat,  2 Aug 2025 19:02:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754161336;
-	bh=TALftInW9RKfcvM3ISfErvxGYZFlMSdj/RvCK6x3a3Q=;
+	s=korg; t=1754161337;
+	bh=umZLC47NoQKDoAVd7ZuiBca+VaU7gFEt5kJk44Ylqgk=;
 	h=Date:To:From:Subject:From;
-	b=yjYfEEmtklvd1X9LePiQZcD1AH8UoPHkEZ5DavQwVIPOe9G6EJ2INfwmabmoM8J0p
-	 dQW/5OAWdm9RFnz1QJiDwLlnkPzx1AOCr5GU8vjIvD0WnAMAzkDxqWdsTfEZnlDkXi
-	 +lBLs12oqu+O6t6LH+3dr04u+i2s/TFnJOS6aV68=
-Date: Sat, 02 Aug 2025 12:02:16 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,mfleming@cloudflare.com,akpm@linux-foundation.org
+	b=eSjdgrYy6Q4r8MilCr1J0DKg0iiNB2EDqlUIn7/of2+SdvGeDJME7/C1iH5scy+iT
+	 Q/bUcWpTaiTVMY1uAWwOzRAFDhbUfjSfUkkW1StjNV6D96wOU8yUwNTcYUxqzPA9k0
+	 QWuwxuA8F8S3T5duUiUaIng4OssBMzd9Y2TJNXYk=
+Date: Sat, 02 Aug 2025 12:02:17 -0700
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,hezhongkun.hzk@bytedance.com,bhe@redhat.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] stackdepot-make-max-number-of-pools-boot-time-configurable.patch removed from -mm tree
-Message-Id: <20250802190216.8CAFCC4CEEF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-enable-cma-based-contiguous-allocation.patch removed from -mm tree
+Message-Id: <20250802190217.CACFFC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,174 +35,441 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: stackdepot: make max number of pools boot-time configurable
+     Subject: kexec: enable CMA based contiguous allocation
 has been removed from the -mm tree.  Its filename was
-     stackdepot-make-max-number-of-pools-boot-time-configurable.patch
+     kexec-enable-cma-based-contiguous-allocation.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Matt Fleming <mfleming@cloudflare.com>
-Subject: stackdepot: make max number of pools boot-time configurable
-Date: Fri, 18 Jul 2025 16:39:28 +0100
+From: Alexander Graf <graf@amazon.com>
+Subject: kexec: enable CMA based contiguous allocation
+Date: Tue, 10 Jun 2025 08:53:27 +0000
 
-We're hitting the WARN in depot_init_pool() about reaching the stack depot
-limit because we have long stacks that don't dedup very well.
+When booting a new kernel with kexec_file, the kernel picks a target
+location that the kernel should live at, then allocates random pages,
+checks whether any of those patches magically happens to coincide with a
+target address range and if so, uses them for that range.
 
-Introduce a new start-up parameter to allow users to set the number of
-maximum stack depot pools.
+For every page allocated this way, it then creates a page list that the
+relocation code - code that executes while all CPUs are off and we are
+just about to jump into the new kernel - copies to their final memory
+location.  We can not put them there before, because chances are pretty
+good that at least some page in the target range is already in use by the
+currently running Linux environment.  Copying is happening from a single
+CPU at RAM rate, which takes around 4-50 ms per 100 MiB.
 
-Link: https://lkml.kernel.org/r/20250718153928.94229-1-matt@readmodwrite.com
-Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+All of this is inefficient and error prone.
+
+To successfully kexec, we need to quiesce all devices of the outgoing
+kernel so they don't scribble over the new kernel's memory.  We have seen
+cases where that does not happen properly (*cough* GIC *cough*) and hence
+the new kernel was corrupted.  This started a month long journey to root
+cause failing kexecs to eventually see memory corruption, because the new
+kernel was corrupted severely enough that it could not emit output to tell
+us about the fact that it was corrupted.  By allocating memory for the
+next kernel from a memory range that is guaranteed scribbling free, we can
+boot the next kernel up to a point where it is at least able to detect
+corruption and maybe even stop it before it becomes severe.  This
+increases the chance for successful kexecs.
+
+Since kexec got introduced, Linux has gained the CMA framework which can
+perform physically contiguous memory mappings, while keeping that memory
+available for movable memory when it is not needed for contiguous
+allocations.  The default CMA allocator is for DMA allocations.
+
+This patch adds logic to the kexec file loader to attempt to place the
+target payload at a location allocated from CMA.  If successful, it uses
+that memory range directly instead of creating copy instructions during
+the hot phase.  To ensure that there is a safety net in case anything goes
+wrong with the CMA allocation, it also adds a flag for user space to force
+disable CMA allocations.
+
+Using CMA allocations has two advantages:
+
+  1) Faster by 4-50 ms per 100 MiB. There is no more need to copy in the
+     hot phase.
+  2) More robust. Even if by accident some page is still in use for DMA,
+     the new kernel image will be safe from that access because it resides
+     in a memory region that is considered allocated in the old kernel and
+     has a chance to reinitialize that component.
+
+Link: https://lkml.kernel.org/r/20250610085327.51817-1-graf@amazon.com
+Signed-off-by: Alexander Graf <graf@amazon.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Zhongkun He <hezhongkun.hzk@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    5 +
- lib/stackdepot.c                                |   67 ++++++++++++--
- 2 files changed, 63 insertions(+), 9 deletions(-)
+ arch/riscv/kernel/kexec_elf.c |    1 
+ include/linux/kexec.h         |   10 +++
+ include/uapi/linux/kexec.h    |    1 
+ kernel/kexec.c                |    2 
+ kernel/kexec_core.c           |  100 +++++++++++++++++++++++++++++---
+ kernel/kexec_file.c           |   51 ++++++++++++++++
+ kernel/kexec_internal.h       |    2 
+ 7 files changed, 156 insertions(+), 11 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~stackdepot-make-max-number-of-pools-boot-time-configurable
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -7029,6 +7029,11 @@
- 			consumed by the stack hash table. By default this is set
- 			to false.
+--- a/arch/riscv/kernel/kexec_elf.c~kexec-enable-cma-based-contiguous-allocation
++++ a/arch/riscv/kernel/kexec_elf.c
+@@ -95,6 +95,7 @@ static int elf_find_pbase(struct kimage
+ 	kbuf.buf_align = PMD_SIZE;
+ 	kbuf.mem = KEXEC_BUF_MEM_UNKNOWN;
+ 	kbuf.memsz = ALIGN(kernel_len, PAGE_SIZE);
++	kbuf.cma = NULL;
+ 	kbuf.top_down = false;
+ 	ret = arch_kexec_locate_mem_hole(&kbuf);
+ 	if (!ret) {
+--- a/include/linux/kexec.h~kexec-enable-cma-based-contiguous-allocation
++++ a/include/linux/kexec.h
+@@ -79,6 +79,12 @@ extern note_buf_t __percpu *crash_notes;
  
-+	stack_depot_max_pools= [KNL,EARLY]
-+			Specify the maximum number of pools to use for storing
-+			stack traces. Pools are allocated on-demand up to this
-+			limit. Default value is 8191 pools.
-+
- 	stacktrace	[FTRACE]
- 			Enabled the stack tracer on boot up.
+ typedef unsigned long kimage_entry_t;
  
---- a/lib/stackdepot.c~stackdepot-make-max-number-of-pools-boot-time-configurable
-+++ a/lib/stackdepot.c
-@@ -36,11 +36,11 @@
- #include <linux/memblock.h>
- #include <linux/kasan-enabled.h>
- 
--#define DEPOT_POOLS_CAP 8192
--/* The pool_index is offset by 1 so the first record does not have a 0 handle. */
--#define DEPOT_MAX_POOLS \
--	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
--	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
 +/*
-+ * The pool_index is offset by 1 so the first record does not have a 0 handle.
++ * This is a copy of the UAPI struct kexec_segment and must be identical
++ * to it because it gets copied straight from user space into kernel
++ * memory. Do not modify this structure unless you change the way segments
++ * get ingested from user space.
 + */
-+static unsigned int stack_max_pools __read_mostly =
-+	MIN((1LL << DEPOT_POOL_INDEX_BITS) - 1, 8192);
+ struct kexec_segment {
+ 	/*
+ 	 * This pointer can point to user memory if kexec_load() system
+@@ -172,6 +178,7 @@ int kexec_image_post_load_cleanup_defaul
+  * @buf_align:	Minimum alignment needed.
+  * @buf_min:	The buffer can't be placed below this address.
+  * @buf_max:	The buffer can't be placed above this address.
++ * @cma:	CMA page if the buffer is backed by CMA.
+  * @top_down:	Allocate from top of memory.
+  * @random:	Place the buffer at a random position.
+  */
+@@ -184,6 +191,7 @@ struct kexec_buf {
+ 	unsigned long buf_align;
+ 	unsigned long buf_min;
+ 	unsigned long buf_max;
++	struct page *cma;
+ 	bool top_down;
+ #ifdef CONFIG_CRASH_DUMP
+ 	bool random;
+@@ -340,6 +348,7 @@ struct kimage {
  
- static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
-@@ -62,7 +62,7 @@ static unsigned int stack_bucket_number_
- static unsigned int stack_hash_mask;
+ 	unsigned long nr_segments;
+ 	struct kexec_segment segment[KEXEC_SEGMENT_MAX];
++	struct page *segment_cma[KEXEC_SEGMENT_MAX];
  
- /* Array of memory regions that store stack records. */
--static void *stack_pools[DEPOT_MAX_POOLS];
-+static void **stack_pools;
- /* Newly allocated pool that is not yet added to stack_pools. */
- static void *new_pool;
- /* Number of pools in stack_pools. */
-@@ -101,6 +101,34 @@ static int __init disable_stack_depot(ch
+ 	struct list_head control_pages;
+ 	struct list_head dest_pages;
+@@ -361,6 +370,7 @@ struct kimage {
+ 	 */
+ 	unsigned int hotplug_support:1;
+ #endif
++	unsigned int no_cma:1;
+ 
+ #ifdef ARCH_HAS_KIMAGE_ARCH
+ 	struct kimage_arch arch;
+--- a/include/uapi/linux/kexec.h~kexec-enable-cma-based-contiguous-allocation
++++ a/include/uapi/linux/kexec.h
+@@ -27,6 +27,7 @@
+ #define KEXEC_FILE_ON_CRASH	0x00000002
+ #define KEXEC_FILE_NO_INITRAMFS	0x00000004
+ #define KEXEC_FILE_DEBUG	0x00000008
++#define KEXEC_FILE_NO_CMA	0x00000010
+ 
+ /* These values match the ELF architecture values.
+  * Unless there is a good reason that should continue to be the case.
+--- a/kernel/kexec.c~kexec-enable-cma-based-contiguous-allocation
++++ a/kernel/kexec.c
+@@ -152,7 +152,7 @@ static int do_kexec_load(unsigned long e
+ 		goto out;
+ 
+ 	for (i = 0; i < nr_segments; i++) {
+-		ret = kimage_load_segment(image, &image->segment[i]);
++		ret = kimage_load_segment(image, i);
+ 		if (ret)
+ 			goto out;
+ 	}
+--- a/kernel/kexec_core.c~kexec-enable-cma-based-contiguous-allocation
++++ a/kernel/kexec_core.c
+@@ -40,6 +40,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/objtool.h>
+ #include <linux/kmsg_dump.h>
++#include <linux/dma-map-ops.h>
+ 
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -553,6 +554,24 @@ static void kimage_free_entry(kimage_ent
+ 	kimage_free_pages(page);
  }
- early_param("stack_depot_disable", disable_stack_depot);
  
-+static int __init parse_max_pools(char *str)
++static void kimage_free_cma(struct kimage *image)
 +{
-+	const long long limit = (1LL << (DEPOT_POOL_INDEX_BITS)) - 1;
-+	unsigned int max_pools;
-+	int rv;
++	unsigned long i;
 +
-+	rv = kstrtouint(str, 0, &max_pools);
-+	if (rv)
-+		return rv;
++	for (i = 0; i < image->nr_segments; i++) {
++		struct page *cma = image->segment_cma[i];
++		u32 nr_pages = image->segment[i].memsz >> PAGE_SHIFT;
 +
-+	if (max_pools < 1024) {
-+		pr_err("stack_depot_max_pools below 1024, using default of %u\n",
-+		       stack_max_pools);
-+		goto out;
++		if (!cma)
++			continue;
++
++		arch_kexec_pre_free_pages(page_address(cma), nr_pages);
++		dma_release_from_contiguous(NULL, cma, nr_pages);
++		image->segment_cma[i] = NULL;
 +	}
 +
-+	if (max_pools > limit) {
-+		pr_err("stack_depot_max_pools exceeds %lld, using default of %u\n",
-+		       limit, stack_max_pools);
-+		goto out;
++}
++
+ void kimage_free(struct kimage *image)
+ {
+ 	kimage_entry_t *ptr, entry;
+@@ -591,6 +610,9 @@ void kimage_free(struct kimage *image)
+ 	/* Free the kexec control pages... */
+ 	kimage_free_page_list(&image->control_pages);
+ 
++	/* Free CMA allocations */
++	kimage_free_cma(image);
++
+ 	/*
+ 	 * Free up any temporary buffers allocated. This might hit if
+ 	 * error occurred much later after buffer allocation.
+@@ -716,9 +738,69 @@ static struct page *kimage_alloc_page(st
+ 	return page;
+ }
+ 
+-static int kimage_load_normal_segment(struct kimage *image,
+-					 struct kexec_segment *segment)
++static int kimage_load_cma_segment(struct kimage *image, int idx)
++{
++	struct kexec_segment *segment = &image->segment[idx];
++	struct page *cma = image->segment_cma[idx];
++	char *ptr = page_address(cma);
++	unsigned long maddr;
++	size_t ubytes, mbytes;
++	int result = 0;
++	unsigned char __user *buf = NULL;
++	unsigned char *kbuf = NULL;
++
++	if (image->file_mode)
++		kbuf = segment->kbuf;
++	else
++		buf = segment->buf;
++	ubytes = segment->bufsz;
++	mbytes = segment->memsz;
++	maddr = segment->mem;
++
++	/* Then copy from source buffer to the CMA one */
++	while (mbytes) {
++		size_t uchunk, mchunk;
++
++		ptr += maddr & ~PAGE_MASK;
++		mchunk = min_t(size_t, mbytes,
++				PAGE_SIZE - (maddr & ~PAGE_MASK));
++		uchunk = min(ubytes, mchunk);
++
++		if (uchunk) {
++			/* For file based kexec, source pages are in kernel memory */
++			if (image->file_mode)
++				memcpy(ptr, kbuf, uchunk);
++			else
++				result = copy_from_user(ptr, buf, uchunk);
++			ubytes -= uchunk;
++			if (image->file_mode)
++				kbuf += uchunk;
++			else
++				buf += uchunk;
++		}
++
++		if (result) {
++			result = -EFAULT;
++			goto out;
++		}
++
++		ptr    += mchunk;
++		maddr  += mchunk;
++		mbytes -= mchunk;
++
++		cond_resched();
 +	}
 +
-+	stack_max_pools = max_pools;
++	/* Clear any remainder */
++	memset(ptr, 0, mbytes);
++
 +out:
++	return result;
++}
++
++static int kimage_load_normal_segment(struct kimage *image, int idx)
+ {
++	struct kexec_segment *segment = &image->segment[idx];
+ 	unsigned long maddr;
+ 	size_t ubytes, mbytes;
+ 	int result;
+@@ -733,6 +815,9 @@ static int kimage_load_normal_segment(st
+ 	mbytes = segment->memsz;
+ 	maddr = segment->mem;
+ 
++	if (image->segment_cma[idx])
++		return kimage_load_cma_segment(image, idx);
++
+ 	result = kimage_set_destination(image, maddr);
+ 	if (result < 0)
+ 		goto out;
+@@ -787,13 +872,13 @@ out:
+ }
+ 
+ #ifdef CONFIG_CRASH_DUMP
+-static int kimage_load_crash_segment(struct kimage *image,
+-					struct kexec_segment *segment)
++static int kimage_load_crash_segment(struct kimage *image, int idx)
+ {
+ 	/* For crash dumps kernels we simply copy the data from
+ 	 * user space to it's destination.
+ 	 * We do things a page at a time for the sake of kmap.
+ 	 */
++	struct kexec_segment *segment = &image->segment[idx];
+ 	unsigned long maddr;
+ 	size_t ubytes, mbytes;
+ 	int result;
+@@ -858,18 +943,17 @@ out:
+ }
+ #endif
+ 
+-int kimage_load_segment(struct kimage *image,
+-				struct kexec_segment *segment)
++int kimage_load_segment(struct kimage *image, int idx)
+ {
+ 	int result = -ENOMEM;
+ 
+ 	switch (image->type) {
+ 	case KEXEC_TYPE_DEFAULT:
+-		result = kimage_load_normal_segment(image, segment);
++		result = kimage_load_normal_segment(image, idx);
+ 		break;
+ #ifdef CONFIG_CRASH_DUMP
+ 	case KEXEC_TYPE_CRASH:
+-		result = kimage_load_crash_segment(image, segment);
++		result = kimage_load_crash_segment(image, idx);
+ 		break;
+ #endif
+ 	}
+--- a/kernel/kexec_file.c~kexec-enable-cma-based-contiguous-allocation
++++ a/kernel/kexec_file.c
+@@ -26,6 +26,7 @@
+ #include <linux/kernel_read_file.h>
+ #include <linux/syscalls.h>
+ #include <linux/vmalloc.h>
++#include <linux/dma-map-ops.h>
+ #include "kexec_internal.h"
+ 
+ #ifdef CONFIG_KEXEC_SIG
+@@ -253,6 +254,8 @@ kimage_file_prepare_segments(struct kima
+ 		ret = 0;
+ 	}
+ 
++	image->no_cma = !!(flags & KEXEC_FILE_NO_CMA);
++
+ 	if (cmdline_len) {
+ 		image->cmdline_buf = memdup_user(cmdline_ptr, cmdline_len);
+ 		if (IS_ERR(image->cmdline_buf)) {
+@@ -434,7 +437,7 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
+ 			      i, ksegment->buf, ksegment->bufsz, ksegment->mem,
+ 			      ksegment->memsz);
+ 
+-		ret = kimage_load_segment(image, &image->segment[i]);
++		ret = kimage_load_segment(image, i);
+ 		if (ret)
+ 			goto out;
+ 	}
+@@ -663,6 +666,43 @@ static int kexec_walk_resources(struct k
+ 		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
+ }
+ 
++static int kexec_alloc_contig(struct kexec_buf *kbuf)
++{
++	size_t nr_pages = kbuf->memsz >> PAGE_SHIFT;
++	unsigned long mem;
++	struct page *p;
++
++	/* User space disabled CMA allocations, bail out. */
++	if (kbuf->image->no_cma)
++		return -EPERM;
++
++	/* Skip CMA logic for crash kernel */
++	if (kbuf->image->type == KEXEC_TYPE_CRASH)
++		return -EPERM;
++
++	p = dma_alloc_from_contiguous(NULL, nr_pages, get_order(kbuf->buf_align), true);
++	if (!p)
++		return -ENOMEM;
++
++	pr_debug("allocated %zu DMA pages at 0x%lx", nr_pages, page_to_boot_pfn(p));
++
++	mem = page_to_boot_pfn(p) << PAGE_SHIFT;
++
++	if (kimage_is_destination_range(kbuf->image, mem, mem + kbuf->memsz)) {
++		/* Our region is already in use by a statically defined one. Bail out. */
++		pr_debug("CMA overlaps existing mem: 0x%lx+0x%lx\n", mem, kbuf->memsz);
++		dma_release_from_contiguous(NULL, p, nr_pages);
++		return -EBUSY;
++	}
++
++	kbuf->mem = page_to_boot_pfn(p) << PAGE_SHIFT;
++	kbuf->cma = p;
++
++	arch_kexec_post_alloc_pages(page_address(p), (int)nr_pages, 0);
++
 +	return 0;
 +}
-+early_param("stack_depot_max_pools", parse_max_pools);
 +
- void __init stack_depot_request_early_init(void)
- {
- 	/* Too late to request early init now. */
-@@ -182,6 +210,17 @@ int __init stack_depot_early_init(void)
- 	}
- 	init_stack_table(entries);
+ /**
+  * kexec_locate_mem_hole - find free memory for the purgatory or the next kernel
+  * @kbuf:	Parameters for the memory search.
+@@ -687,6 +727,13 @@ int kexec_locate_mem_hole(struct kexec_b
+ 	if (ret <= 0)
+ 		return ret;
  
-+	pr_info("allocating space for %u stack pools via memblock\n",
-+		stack_max_pools);
-+	stack_pools =
-+		memblock_alloc(stack_max_pools * sizeof(void *), PAGE_SIZE);
-+	if (!stack_pools) {
-+		pr_err("stack pools allocation failed, disabling\n");
-+		memblock_free(stack_table, entries * sizeof(struct list_head));
-+		stack_depot_disabled = true;
-+		return -ENOMEM;
-+	}
++	/*
++	 * Try to find a free physically contiguous block of memory first. With that, we
++	 * can avoid any copying at kexec time.
++	 */
++	if (!kexec_alloc_contig(kbuf))
++		return 0;
 +
+ 	if (!IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
+ 		ret = kexec_walk_resources(kbuf, locate_mem_hole_callback);
+ 	else
+@@ -732,6 +779,7 @@ int kexec_add_buffer(struct kexec_buf *k
+ 	/* Ensure minimum alignment needed for segments. */
+ 	kbuf->memsz = ALIGN(kbuf->memsz, PAGE_SIZE);
+ 	kbuf->buf_align = max(kbuf->buf_align, PAGE_SIZE);
++	kbuf->cma = NULL;
+ 
+ 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
+ 	ret = arch_kexec_locate_mem_hole(kbuf);
+@@ -744,6 +792,7 @@ int kexec_add_buffer(struct kexec_buf *k
+ 	ksegment->bufsz = kbuf->bufsz;
+ 	ksegment->mem = kbuf->mem;
+ 	ksegment->memsz = kbuf->memsz;
++	kbuf->image->segment_cma[kbuf->image->nr_segments] = kbuf->cma;
+ 	kbuf->image->nr_segments++;
  	return 0;
  }
- 
-@@ -231,6 +270,16 @@ int stack_depot_init(void)
- 	stack_hash_mask = entries - 1;
- 	init_stack_table(entries);
- 
-+	pr_info("allocating space for %u stack pools via kvcalloc\n",
-+		stack_max_pools);
-+	stack_pools = kvcalloc(stack_max_pools, sizeof(void *), GFP_KERNEL);
-+	if (!stack_pools) {
-+		pr_err("stack pools allocation failed, disabling\n");
-+		kvfree(stack_table);
-+		stack_depot_disabled = true;
-+		ret = -ENOMEM;
-+	}
-+
- out_unlock:
- 	mutex_unlock(&stack_depot_init_mutex);
- 
-@@ -245,9 +294,9 @@ static bool depot_init_pool(void **preal
- {
- 	lockdep_assert_held(&pool_lock);
- 
--	if (unlikely(pools_num >= DEPOT_MAX_POOLS)) {
-+	if (unlikely(pools_num >= stack_max_pools)) {
- 		/* Bail out if we reached the pool limit. */
--		WARN_ON_ONCE(pools_num > DEPOT_MAX_POOLS); /* should never happen */
-+		WARN_ON_ONCE(pools_num > stack_max_pools); /* should never happen */
- 		WARN_ON_ONCE(!new_pool); /* to avoid unnecessary pre-allocation */
- 		WARN_ONCE(1, "Stack depot reached limit capacity");
- 		return false;
-@@ -273,7 +322,7 @@ static bool depot_init_pool(void **preal
- 	 * NULL; do not reset to NULL if we have reached the maximum number of
- 	 * pools.
- 	 */
--	if (pools_num < DEPOT_MAX_POOLS)
-+	if (pools_num < stack_max_pools)
- 		WRITE_ONCE(new_pool, NULL);
- 	else
- 		WRITE_ONCE(new_pool, STACK_DEPOT_POISON);
+--- a/kernel/kexec_internal.h~kexec-enable-cma-based-contiguous-allocation
++++ a/kernel/kexec_internal.h
+@@ -10,7 +10,7 @@ struct kimage *do_kimage_alloc_init(void
+ int sanity_check_segment_list(struct kimage *image);
+ void kimage_free_page_list(struct list_head *list);
+ void kimage_free(struct kimage *image);
+-int kimage_load_segment(struct kimage *image, struct kexec_segment *segment);
++int kimage_load_segment(struct kimage *image, int idx);
+ void kimage_terminate(struct kimage *image);
+ int kimage_is_destination_range(struct kimage *image,
+ 				unsigned long start, unsigned long end);
 _
 
-Patches currently in -mm which might be from mfleming@cloudflare.com are
+Patches currently in -mm which might be from graf@amazon.com are
 
 
