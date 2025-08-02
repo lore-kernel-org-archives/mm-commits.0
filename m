@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 741812505CE
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4A72505CE
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160882; cv=none; b=BfTCtf/yVJZTIcipcLFKjYN2unmVothfXalA1DMAraJ3LPiZESOi3rMYl6jWXjgXKLkq3M20RRAdccRugGvIT6vcCuUwPwl+RoX6oRaihpDJdu2oIU1GrPEfbkx+ldpe5tfnUmLkPKDV6lzEtb7EZ/hQf6UUSbRKbffuU/UxX3c=
+	t=1754160883; cv=none; b=dI5qeRKIs17mqjvrFrngXTtePSsODYJmO8eLP2/qYyPw0NnXgqqAAOkY37VI001/pstd3b1Lcs3/e2+dvecg5g2v+aPOLWPfqs+Sc6DJKqYsoyZFEWaQEivz5WPHtcE8R5rKFIw6OxWJf6l6fkOVUrrQR/ZRmHCGf1gJSFZf410=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160882; c=relaxed/simple;
-	bh=gb7SBq/+bsxr7Rw5cCXlcXNVDxhdPCC8so56MoMAmqA=;
-	h=Date:To:From:Subject:Message-Id; b=lzYJBfWwahNcNQLAXGqmTigelgcf8exkk1jvqfxKIE4VeiermVd3QwQ9vLMxGpKKhbhE1cYAADAlrOLImtEB5zLLUbIpFuzeJPl+vP9qhKh775HoYbVNR9kaEH3HeaBsLPHdeBuZcBtEqdGVXUPhcu8CbnFxYd0vWXnoLK+/tGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYGIaQUb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160883; c=relaxed/simple;
+	bh=y4hoA6rdHeQ2OYumH35FBQmsxjihHoApathkf2N8vB4=;
+	h=Date:To:From:Subject:Message-Id; b=TAqGIbfXkOGbY0Wt80/Qx9S5ECwVOxbUvatlS07OhERUbvTXZuu1Enhxi27uwvW3vQuUX0+Psyi2ysbu9/6LNYi5odrbp9VeR4UP/TQMTQesSoAMpJlWzICKXEwzPe/NXCZdHbrCc73PM1McNQOSrkaJFqv6ebnA4gMqQ6DpGoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lB2szsev; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYGIaQUb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49715C4CEEF;
-	Sat,  2 Aug 2025 18:54:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lB2szsev"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFD96C4CEEF;
+	Sat,  2 Aug 2025 18:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160882;
-	bh=gb7SBq/+bsxr7Rw5cCXlcXNVDxhdPCC8so56MoMAmqA=;
+	s=korg; t=1754160883;
+	bh=y4hoA6rdHeQ2OYumH35FBQmsxjihHoApathkf2N8vB4=;
 	h=Date:To:From:Subject:From;
-	b=AYGIaQUb/7nkjQCFpYt1f+aaIVIWUaKMJRXo10F4cXhbx6eSfH2K/y45yf/QOJei/
-	 CuNuVBIBB3y3kP+uYqp7CUQ5wtS83r6dCoSTvAvAJb/cav3dXB1Fuhrm5cM/Q4DLNK
-	 J2d8VCOTp0xbwzLQJart/uJvcM7Fr/85NLWZF34A=
-Date: Sat, 02 Aug 2025 11:54:41 -0700
+	b=lB2szsevsUGB4bRP+8b0ZVutYmc/U6Au6K0NobCr4ihwZDH4lWynCnGSgSB+J1iNA
+	 BVLGuOdTIx6STBbrQdR7T5fcYty22aD/WjCA31xqNDNBR2bEimUlDfwbpQpbxcwnol
+	 RgLA0uBvt0+jmOiyf24gmi4NERx7XYQer9qatLjA=
+Date: Sat, 02 Aug 2025 11:54:43 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,dev.jain@arm.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-swap-never-use-swap-cache-and-readahead-for-swp_synchronous_io.patch removed from -mm tree
-Message-Id: <20250802185442.49715C4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-swap-simplify-swapin-path-and-result-handling.patch removed from -mm tree
+Message-Id: <20250802185443.AFD96C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem, swap: never use swap cache and readahead for SWP_SYNCHRONOUS_IO
+     Subject: mm/shmem, swap: simplify swapin path and result handling
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-swap-never-use-swap-cache-and-readahead-for-swp_synchronous_io.patch
+     mm-shmem-swap-simplify-swapin-path-and-result-handling.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem, swap: never use swap cache and readahead for SWP_SYNCHRONOUS_IO
-Date: Mon, 28 Jul 2025 15:53:03 +0800
+Subject: mm/shmem, swap: simplify swapin path and result handling
+Date: Mon, 28 Jul 2025 15:53:04 +0800
 
-For SWP_SYNCHRONOUS_IO devices, if a cache bypassing THP swapin failed due
-to reasons like memory pressure, partially conflicting swap cache or ZSWAP
-enabled, shmem will fallback to cached order 0 swapin.
+Slightly tidy up the different handling of swap in and error handling for
+SWP_SYNCHRONOUS_IO and non-SWP_SYNCHRONOUS_IO devices.  Now swapin will
+always use either shmem_swap_alloc_folio or shmem_swapin_cluster, then
+check the result.
 
-Right now the swap cache still has a non-trivial overhead, and readahead
-is not helpful for SWP_SYNCHRONOUS_IO devices, so we should always skip
-the readahead and swap cache even if the swapin falls back to order 0.
+Simplify the control flow and avoid a redundant goto label.
 
-So handle the fallback logic without falling back to the cached read.
-
-Link: https://lkml.kernel.org/r/20250728075306.12704-6-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250728075306.12704-7-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -71,102 +68,71 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   41 ++++++++++++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 13 deletions(-)
+ mm/shmem.c |   45 +++++++++++++++++++--------------------------
+ 1 file changed, 19 insertions(+), 26 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-swap-never-use-swap-cache-and-readahead-for-swp_synchronous_io
+--- a/mm/shmem.c~mm-shmem-swap-simplify-swapin-path-and-result-handling
 +++ a/mm/shmem.c
-@@ -2019,6 +2019,7 @@ static struct folio *shmem_swap_alloc_fo
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	int nr_pages = 1 << order;
- 	struct folio *new;
-+	gfp_t alloc_gfp;
- 	void *shadow;
- 
- 	/*
-@@ -2026,6 +2027,7 @@ static struct folio *shmem_swap_alloc_fo
- 	 * limit chance of success with further cpuset and node constraints.
- 	 */
- 	gfp &= ~GFP_CONSTRAINT_MASK;
-+	alloc_gfp = gfp;
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
- 		if (WARN_ON_ONCE(order))
- 			return ERR_PTR(-EINVAL);
-@@ -2040,19 +2042,22 @@ static struct folio *shmem_swap_alloc_fo
- 		if ((vma && unlikely(userfaultfd_armed(vma))) ||
- 		     !zswap_never_enabled() ||
- 		     non_swapcache_batch(entry, nr_pages) != nr_pages)
--			return ERR_PTR(-EINVAL);
-+			goto fallback;
- 
--		gfp = limit_gfp_mask(vma_thp_gfp_mask(vma), gfp);
-+		alloc_gfp = limit_gfp_mask(vma_thp_gfp_mask(vma), gfp);
-+	}
-+retry:
-+	new = shmem_alloc_folio(alloc_gfp, order, info, index);
-+	if (!new) {
-+		new = ERR_PTR(-ENOMEM);
-+		goto fallback;
- 	}
--
--	new = shmem_alloc_folio(gfp, order, info, index);
--	if (!new)
--		return ERR_PTR(-ENOMEM);
- 
- 	if (mem_cgroup_swapin_charge_folio(new, vma ? vma->vm_mm : NULL,
--					   gfp, entry)) {
-+					   alloc_gfp, entry)) {
- 		folio_put(new);
--		return ERR_PTR(-ENOMEM);
-+		new = ERR_PTR(-ENOMEM);
-+		goto fallback;
- 	}
- 
- 	/*
-@@ -2067,7 +2072,9 @@ static struct folio *shmem_swap_alloc_fo
- 	 */
- 	if (swapcache_prepare(entry, nr_pages)) {
- 		folio_put(new);
--		return ERR_PTR(-EEXIST);
-+		new = ERR_PTR(-EEXIST);
-+		/* Try smaller folio to avoid cache conflict */
-+		goto fallback;
- 	}
- 
- 	__folio_set_locked(new);
-@@ -2081,6 +2088,15 @@ static struct folio *shmem_swap_alloc_fo
- 	folio_add_lru(new);
- 	swap_read_folio(new, NULL);
- 	return new;
-+fallback:
-+	/* Order 0 swapin failed, nothing to fallback to, abort */
-+	if (!order)
-+		return new;
-+	entry.val += index - round_down(index, nr_pages);
-+	alloc_gfp = gfp;
-+	nr_pages = 1;
-+	order = 0;
-+	goto retry;
- }
- 
- /*
-@@ -2350,13 +2366,12 @@ static int shmem_swapin_folio(struct ino
- 			}
- 
- 			/*
--			 * Fallback to swapin order-0 folio unless the swap entry
--			 * already exists.
-+			 * Direct swapin handled order 0 fallback already,
-+			 * if it failed, abort.
- 			 */
- 			error = PTR_ERR(folio);
- 			folio = NULL;
--			if (error == -EEXIST)
--				goto failed;
-+			goto failed;
+@@ -2357,40 +2357,33 @@ static int shmem_swapin_folio(struct ino
+ 			count_memcg_event_mm(fault_mm, PGMAJFAULT);
  		}
  
+-		/* Skip swapcache for synchronous device. */
+ 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
++			/* Direct swapin skipping swap cache & readahead */
+ 			folio = shmem_swap_alloc_folio(inode, vma, index, swap, order, gfp);
+-			if (!IS_ERR(folio)) {
+-				skip_swapcache = true;
+-				goto alloced;
++			if (IS_ERR(folio)) {
++				error = PTR_ERR(folio);
++				folio = NULL;
++				goto failed;
+ 			}
+-
++			skip_swapcache = true;
++		} else {
+ 			/*
+-			 * Direct swapin handled order 0 fallback already,
+-			 * if it failed, abort.
++			 * Cached swapin only supports order 0 folio, it is
++			 * necessary to recalculate the new swap entry based on
++			 * the offset, as the swapin index might be unalgined.
+ 			 */
+-			error = PTR_ERR(folio);
+-			folio = NULL;
+-			goto failed;
+-		}
+-
+-		/*
+-		 * Now swap device can only swap in order 0 folio, it is
+-		 * necessary to recalculate the new swap entry based on
+-		 * the offset, as the swapin index might be unalgined.
+-		 */
+-		if (order) {
+-			offset = index - round_down(index, 1 << order);
+-			swap = swp_entry(swp_type(swap), swp_offset(swap) + offset);
+-		}
++			if (order) {
++				offset = index - round_down(index, 1 << order);
++				swap = swp_entry(swp_type(swap), swp_offset(swap) + offset);
++			}
+ 
+-		folio = shmem_swapin_cluster(swap, gfp, info, index);
+-		if (!folio) {
+-			error = -ENOMEM;
+-			goto failed;
++			folio = shmem_swapin_cluster(swap, gfp, info, index);
++			if (!folio) {
++				error = -ENOMEM;
++				goto failed;
++			}
+ 		}
+ 	}
+-alloced:
+ 	if (order > folio_order(folio)) {
  		/*
+ 		 * Swapin may get smaller folios due to various reasons:
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
