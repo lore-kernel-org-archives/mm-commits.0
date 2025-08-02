@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1979823D291
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09E023D291
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 19:02:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754161354; cv=none; b=DQYK+zyuzn5Hyiz009uKFhwL4It6VYaeQkZpM6XhukHdewindAItpU06rh1C1zNfdkE1FgmHFf7J/lEXs8SrgwKAhqA8GJHo6fO6CpNz/eVYNHWx+p4N+AydPW0fij3oFqQQsiWOyN7Hyg2HO5Du7P9DxeVx0ckZHG0+B8OkM6w=
+	t=1754161357; cv=none; b=mQ+P6rX6Xb8vdENnsUj3gk9mqjqbxpC2TmjzcRGekh0+577UIomVJmgOAfsII958MA12MyOMxz9ky021uIrHZMrErUn1W0VqLcpQm6aEPKJOqFFHPmgCy10PkingPdj1+wwyH4+nZ1bOu4Ktb+CoWq8oZ+n8qoNwt8rXJeEZRiA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754161354; c=relaxed/simple;
-	bh=FHkQwxdHE6ycm47OKCb3sPDKPNXMwCpKA6S7WWc1ZuM=;
-	h=Date:To:From:Subject:Message-Id; b=AeyCmq2VaAOrOn/H+mzCN6+Fu3bEh/tv4KBxe7LHtwKNWs8onRJlno0ESN7BnAnEXism6Zl+w5oOZ8aOpG1tl2kdmIeWRF/1yjtSlPB8SEKz/ML2U+wN918LE635q9x1ypd7CH/+HqaD5+JCT4uA5yLtQN5+TEyevs7kYEBUYY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1b/7TrEq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754161357; c=relaxed/simple;
+	bh=xcNhDsAnXSDQRwLYgvFfsct6+7PZPXMaYgu1krMLmos=;
+	h=Date:To:From:Subject:Message-Id; b=Il+PwQ9uHX5Wvyc2/o6eWAYXMu8yAzabajLdRMfeWUYGwgq7V9Qdh/QWbNlUP6GjMt4mZvdebI82w1kfzT8p/LItwcihGy3tDSUj0THAVdQn9nyvkKCNrrgDZ6fGiR7/H/JXtni9AeUZVohwWLc9HXYwCD8XCC7Loc9zLaAS9lY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mxAPWdDM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1b/7TrEq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D5C3C4CEF6;
-	Sat,  2 Aug 2025 19:02:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mxAPWdDM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71845C4CEEF;
+	Sat,  2 Aug 2025 19:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754161353;
-	bh=FHkQwxdHE6ycm47OKCb3sPDKPNXMwCpKA6S7WWc1ZuM=;
+	s=korg; t=1754161356;
+	bh=xcNhDsAnXSDQRwLYgvFfsct6+7PZPXMaYgu1krMLmos=;
 	h=Date:To:From:Subject:From;
-	b=1b/7TrEqsbz3McfkeCf8oXT9O31n7IZjAvrDJSORzfRAoo5dBR/sVkrVFf6BVvDDV
-	 jnkVGTSe5GcCt6cwAr4lREu0s+CDfEHVmZGhzISs6EERyaJ5Y/myR2p0+NkoOvDJQI
-	 ZmqjrgPb+ybSLweuGGNEZXSy3SYebE8Noq+DySEI=
-Date: Sat, 02 Aug 2025 12:02:33 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,changyuanl@google.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=mxAPWdDMC9rta3NHJzfti0yIuTTR3Jzr4sw7yKIvsVbQRhJ5XjoZ41Jx+eTjEGF7X
+	 9daUmEQpo0srvURgctQ/z9kSy2F+qCBOZjjF3k45SV4goMl1RdGPFWK1VpUbf7QO+n
+	 dc8tEuILdhthSm1dd8ZhrVw16efeOesZPUWMUn6I=
+Date: Sat, 02 Aug 2025 12:02:35 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,corbet@lwn.net,fan.yu9@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kho-add-test-for-kexec-handover.patch removed from -mm tree
-Message-Id: <20250802190233.9D5C3C4CEF6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tools-getdelays-add-backward-compatibility-for-taskstats-version.patch removed from -mm tree
+Message-Id: <20250802190236.71845C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,731 +35,261 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: add test for kexec handover
+     Subject: tools/getdelays: add backward compatibility for taskstats version
 has been removed from the -mm tree.  Its filename was
-     kho-add-test-for-kexec-handover.patch
+     tools-getdelays-add-backward-compatibility-for-taskstats-version.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: kho: add test for kexec handover
-Date: Sun, 27 Jul 2025 11:37:33 +0300
+From: Fan Yu <fan.yu9@zte.com.cn>
+Subject: tools/getdelays: add backward compatibility for taskstats version
+Date: Thu, 31 Jul 2025 22:53:26 +0800 (CST)
 
-Testing kexec handover requires a kernel driver that will generate some
-data and preserve it with KHO on the first boot and then restore that data
-and verify it was preserved properly after kexec.
+Add version checks to print_delayacct() to handle differences in struct
+taskstats across kernel versions.  Field availability depends on taskstats
+version (t->version), corresponding to TASKSTATS_VERSION in kernel headers
+(see include/uapi/linux/taskstats.h).
 
-To facilitate such test, along with the kernel driver responsible for data
-generation, preservation and restoration add a script that runs a kernel
-in a VM with a minimal /init.  The /init enables KHO, loads a kernel image
-for kexec and runs kexec reboot.  After the boot of the kexeced kernel,
-the driver verifies that the data was properly preserved.
+Version feature mapping:
+- version >= 11  - supports COMPACT statistics
+- version >= 13  - supports WPCOPY statistics
+- version >= 14  - supports IRQ statistics
+- version >= 16  - supports *_max and *_min delay statistics
 
-[rppt@kernel.org: fix section mismatch]
-  Link: https://lkml.kernel.org/r/aIiRC8fXiOXKbPM_@kernel.org
-Link: https://lkml.kernel.org/r/20250727083733.2590139-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+This ensures the tool works correctly with both older and newer kernel
+versions by conditionally printing fields based on the reported version.
+
+eg.1
+bash# grep -r "#define TASKSTATS_VERSION" /usr/include/linux/taskstats.h
+"#define TASKSTATS_VERSION       10"
+bash# ./getdelays -d -p 1
+CPU                 count     real total  virtual total    delay total  delay average
+                     7481     3786181709     3807098291       36393725          0.005ms
+IO                  count    delay total  delay average
+                      369     1116046035          3.025ms
+SWAP                count    delay total  delay average
+                        0              0          0.000ms
+RECLAIM             count    delay total  delay average
+                        0              0          0.000ms
+THRASHING           count    delay total  delay average
+                        0              0          0.000ms
+
+eg.2
+bash# grep -r "#define TASKSTATS_VERSION" /usr/include/linux/taskstats.h
+"#define TASKSTATS_VERSION       14"
+bash# ./getdelays -d -p 1
+CPU                 count     real total  virtual total    delay total  delay average
+                    68862   163474790046   174584722267    19962496806          0.290ms
+IO                  count    delay total  delay average
+                        0              0          0.000ms
+SWAP                count    delay total  delay average
+                        0              0          0.000ms
+RECLAIM             count    delay total  delay average
+                        0              0          0.000ms
+THRASHING           count    delay total  delay average
+                        0              0          0.000ms
+COMPACT             count    delay total  delay average
+                        0              0          0.000ms
+WPCOPY              count    delay total  delay average
+                        0              0          0.000ms
+IRQ                 count    delay total  delay average
+                        0              0          0.000ms
+
+Link: https://lkml.kernel.org/r/20250731225326549CttJ7g9NfjTlaqBwl015T@zte.com.cn
+Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                            |    1 
- lib/Kconfig.debug                      |   21 +
- lib/Makefile                           |    1 
- lib/test_kho.c                         |  305 +++++++++++++++++++++++
- tools/testing/selftests/kho/arm64.conf |    9 
- tools/testing/selftests/kho/init.c     |  100 +++++++
- tools/testing/selftests/kho/vmtest.sh  |  183 +++++++++++++
- tools/testing/selftests/kho/x86.conf   |    7 
- 8 files changed, 627 insertions(+)
+ tools/accounting/getdelays.c |  167 +++++++++++++++++++--------------
+ 1 file changed, 100 insertions(+), 67 deletions(-)
 
---- a/lib/Kconfig.debug~kho-add-test-for-kexec-handover
-+++ a/lib/Kconfig.debug
-@@ -3225,6 +3225,27 @@ config TEST_OBJPOOL
+--- a/tools/accounting/getdelays.c~tools-getdelays-add-backward-compatibility-for-taskstats-version
++++ a/tools/accounting/getdelays.c
+@@ -194,75 +194,108 @@ static int get_family_id(int sd)
+ #define average_ms(t, c) (t / 1000000ULL / (c ? c : 1))
+ #define delay_ms(t) (t / 1000000ULL)
  
- 	  If unsure, say N.
- 
-+config TEST_KEXEC_HANDOVER
-+	bool "Test for Kexec HandOver"
-+	default n
-+	depends on KEXEC_HANDOVER
-+	help
-+	  This option enables test for Kexec HandOver (KHO).
-+	  The test consists of two parts: saving kernel data before kexec and
-+	  restoring the data after kexec and verifying that it was properly
-+	  handed over. This test module creates and saves data on the boot of
-+	  the first kernel and restores and verifies the data on the boot of
-+	  kexec'ed kernel.
-+
-+	  For detailed documentation about KHO, see Documentation/core-api/kho.
-+
-+	  To run the test run:
-+
-+	  tools/testing/selftests/kho/vmtest.sh -h
-+
-+	  If unsure, say N.
-+
-+
- config INT_POW_KUNIT_TEST
- 	tristate "Integer exponentiation (int_pow) test" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
---- a/lib/Makefile~kho-add-test-for-kexec-handover
-+++ a/lib/Makefile
-@@ -102,6 +102,7 @@ obj-$(CONFIG_TEST_HMM) += test_hmm.o
- obj-$(CONFIG_TEST_FREE_PAGES) += test_free_pages.o
- obj-$(CONFIG_TEST_REF_TRACKER) += test_ref_tracker.o
- obj-$(CONFIG_TEST_OBJPOOL) += test_objpool.o
-+obj-$(CONFIG_TEST_KEXEC_HANDOVER) += test_kho.o
- 
- obj-$(CONFIG_TEST_FPU) += test_fpu.o
- test_fpu-y := test_fpu_glue.o test_fpu_impl.o
-diff --git a/lib/test_kho.c a/lib/test_kho.c
-new file mode 100644
---- /dev/null
-+++ a/lib/test_kho.c
-@@ -0,0 +1,305 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
-+ * Test module for KHO
-+ * Copyright (c) 2025 Microsoft Corporation.
++ * Version compatibility note:
++ * Field availability depends on taskstats version (t->version),
++ * corresponding to TASKSTATS_VERSION in kernel headers
++ * see include/uapi/linux/taskstats.h
 + *
-+ * Authors:
-+ *   Saurabh Sengar <ssengar@microsoft.com>
-+ *   Mike Rapoport <rppt@kernel.org>
++ * Version feature mapping:
++ * version >= 11  - supports COMPACT statistics
++ * version >= 13  - supports WPCOPY statistics
++ * version >= 14  - supports IRQ statistics
++ * version >= 16  - supports *_max and *_min delay statistics
++ *
++ * Always verify version before accessing version-dependent fields
++ * to maintain backward compatibility.
 + */
++#define PRINT_CPU_DELAY(version, t) \
++	do { \
++		if (version >= 16) { \
++			printf("%-10s%15s%15s%15s%15s%15s%15s%15s\n", \
++				"CPU", "count", "real total", "virtual total", \
++				"delay total", "delay average", "delay max", "delay min"); \
++			printf("          %15llu%15llu%15llu%15llu%15.3fms%13.6fms%13.6fms\n", \
++				(unsigned long long)(t)->cpu_count, \
++				(unsigned long long)(t)->cpu_run_real_total, \
++				(unsigned long long)(t)->cpu_run_virtual_total, \
++				(unsigned long long)(t)->cpu_delay_total, \
++				average_ms((double)(t)->cpu_delay_total, (t)->cpu_count), \
++				delay_ms((double)(t)->cpu_delay_max), \
++				delay_ms((double)(t)->cpu_delay_min)); \
++		} else { \
++			printf("%-10s%15s%15s%15s%15s%15s\n", \
++				"CPU", "count", "real total", "virtual total", \
++				"delay total", "delay average"); \
++			printf("          %15llu%15llu%15llu%15llu%15.3fms\n", \
++				(unsigned long long)(t)->cpu_count, \
++				(unsigned long long)(t)->cpu_run_real_total, \
++				(unsigned long long)(t)->cpu_run_virtual_total, \
++				(unsigned long long)(t)->cpu_delay_total, \
++				average_ms((double)(t)->cpu_delay_total, (t)->cpu_count)); \
++		} \
++	} while (0)
++#define PRINT_FILED_DELAY(name, version, t, count, total, max, min) \
++	do { \
++		if (version >= 16) { \
++			printf("%-10s%15s%15s%15s%15s%15s\n", \
++				name, "count", "delay total", "delay average", \
++				"delay max", "delay min"); \
++			printf("          %15llu%15llu%15.3fms%13.6fms%13.6fms\n", \
++				(unsigned long long)(t)->count, \
++				(unsigned long long)(t)->total, \
++				average_ms((double)(t)->total, (t)->count), \
++				delay_ms((double)(t)->max), \
++				delay_ms((double)(t)->min)); \
++		} else { \
++			printf("%-10s%15s%15s%15s\n", \
++				name, "count", "delay total", "delay average"); \
++			printf("          %15llu%15llu%15.3fms\n", \
++				(unsigned long long)(t)->count, \
++				(unsigned long long)(t)->total, \
++				average_ms((double)(t)->total, (t)->count)); \
++		} \
++	} while (0)
 +
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ static void print_delayacct(struct taskstats *t)
+ {
+-	printf("\n\nCPU   %15s%15s%15s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15llu%15llu%15.3fms%13.6fms%13.6fms\n"
+-	       "IO    %15s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
+-	       "SWAP  %15s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
+-	       "RECLAIM  %12s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
+-	       "THRASHING%12s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
+-	       "COMPACT  %12s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
+-	       "WPCOPY   %12s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
+-	       "IRQ   %15s%15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n",
+-	       "count", "real total", "virtual total",
+-	       "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->cpu_count,
+-	       (unsigned long long)t->cpu_run_real_total,
+-	       (unsigned long long)t->cpu_run_virtual_total,
+-	       (unsigned long long)t->cpu_delay_total,
+-	       average_ms((double)t->cpu_delay_total, t->cpu_count),
+-	       delay_ms((double)t->cpu_delay_max),
+-	       delay_ms((double)t->cpu_delay_min),
+-	       "count", "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->blkio_count,
+-	       (unsigned long long)t->blkio_delay_total,
+-	       average_ms((double)t->blkio_delay_total, t->blkio_count),
+-	       delay_ms((double)t->blkio_delay_max),
+-	       delay_ms((double)t->blkio_delay_min),
+-	       "count", "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->swapin_count,
+-	       (unsigned long long)t->swapin_delay_total,
+-	       average_ms((double)t->swapin_delay_total, t->swapin_count),
+-	       delay_ms((double)t->swapin_delay_max),
+-	       delay_ms((double)t->swapin_delay_min),
+-	       "count", "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->freepages_count,
+-	       (unsigned long long)t->freepages_delay_total,
+-	       average_ms((double)t->freepages_delay_total, t->freepages_count),
+-	       delay_ms((double)t->freepages_delay_max),
+-	       delay_ms((double)t->freepages_delay_min),
+-	       "count", "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->thrashing_count,
+-	       (unsigned long long)t->thrashing_delay_total,
+-	       average_ms((double)t->thrashing_delay_total, t->thrashing_count),
+-	       delay_ms((double)t->thrashing_delay_max),
+-	       delay_ms((double)t->thrashing_delay_min),
+-	       "count", "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->compact_count,
+-	       (unsigned long long)t->compact_delay_total,
+-	       average_ms((double)t->compact_delay_total, t->compact_count),
+-	       delay_ms((double)t->compact_delay_max),
+-	       delay_ms((double)t->compact_delay_min),
+-	       "count", "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->wpcopy_count,
+-	       (unsigned long long)t->wpcopy_delay_total,
+-	       average_ms((double)t->wpcopy_delay_total, t->wpcopy_count),
+-	       delay_ms((double)t->wpcopy_delay_max),
+-	       delay_ms((double)t->wpcopy_delay_min),
+-	       "count", "delay total", "delay average", "delay max", "delay min",
+-	       (unsigned long long)t->irq_count,
+-	       (unsigned long long)t->irq_delay_total,
+-	       average_ms((double)t->irq_delay_total, t->irq_count),
+-	       delay_ms((double)t->irq_delay_max),
+-	       delay_ms((double)t->irq_delay_min));
++	printf("\n\n");
 +
-+#include <linux/mm.h>
-+#include <linux/gfp.h>
-+#include <linux/slab.h>
-+#include <linux/kexec.h>
-+#include <linux/libfdt.h>
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/vmalloc.h>
-+#include <linux/kexec_handover.h>
++	PRINT_CPU_DELAY(t->version, t);
 +
-+#include <net/checksum.h>
++	PRINT_FILED_DELAY("IO", t->version, t,
++		blkio_count, blkio_delay_total,
++		blkio_delay_max, blkio_delay_min);
 +
-+#define KHO_TEST_MAGIC	0x4b484f21	/* KHO! */
-+#define KHO_TEST_FDT	"kho_test"
-+#define KHO_TEST_COMPAT "kho-test-v1"
++	PRINT_FILED_DELAY("SWAP", t->version, t,
++		swapin_count, swapin_delay_total,
++		swapin_delay_max, swapin_delay_min);
 +
-+static long max_mem = (PAGE_SIZE << MAX_PAGE_ORDER) * 2;
-+module_param(max_mem, long, 0644);
++	PRINT_FILED_DELAY("RECLAIM", t->version, t,
++		freepages_count, freepages_delay_total,
++		freepages_delay_max, freepages_delay_min);
 +
-+struct kho_test_state {
-+	unsigned int nr_folios;
-+	struct folio **folios;
-+	struct folio *fdt;
-+	__wsum csum;
-+};
++	PRINT_FILED_DELAY("THRASHING", t->version, t,
++		thrashing_count, thrashing_delay_total,
++		thrashing_delay_max, thrashing_delay_min);
 +
-+static struct kho_test_state kho_test_state;
-+
-+static int kho_test_notifier(struct notifier_block *self, unsigned long cmd,
-+			     void *v)
-+{
-+	struct kho_test_state *state = &kho_test_state;
-+	struct kho_serialization *ser = v;
-+	int err = 0;
-+
-+	switch (cmd) {
-+	case KEXEC_KHO_ABORT:
-+		return NOTIFY_DONE;
-+	case KEXEC_KHO_FINALIZE:
-+		/* Handled below */
-+		break;
-+	default:
-+		return NOTIFY_BAD;
++	if (t->version >= 11) {
++		PRINT_FILED_DELAY("COMPACT", t->version, t,
++			compact_count, compact_delay_total,
++			compact_delay_max, compact_delay_min);
 +	}
 +
-+	err |= kho_preserve_folio(state->fdt);
-+	err |= kho_add_subtree(ser, KHO_TEST_FDT, folio_address(state->fdt));
-+
-+	return err ? NOTIFY_BAD : NOTIFY_DONE;
-+}
-+
-+static struct notifier_block kho_test_nb = {
-+	.notifier_call = kho_test_notifier,
-+};
-+
-+static int kho_test_save_data(struct kho_test_state *state, void *fdt)
-+{
-+	phys_addr_t *folios_info __free(kvfree) = NULL;
-+	int err = 0;
-+
-+	folios_info = kvmalloc_array(state->nr_folios, sizeof(*folios_info),
-+				     GFP_KERNEL);
-+	if (!folios_info)
-+		return -ENOMEM;
-+
-+	for (int i = 0; i < state->nr_folios; i++) {
-+		struct folio *folio = state->folios[i];
-+		unsigned int order = folio_order(folio);
-+
-+		folios_info[i] = virt_to_phys(folio_address(folio)) | order;
-+
-+		err = kho_preserve_folio(folio);
-+		if (err)
-+			return err;
++	if (t->version >= 13) {
++		PRINT_FILED_DELAY("WPCOPY", t->version, t,
++			wpcopy_count, wpcopy_delay_total,
++			wpcopy_delay_max, wpcopy_delay_min);
 +	}
 +
-+	err |= fdt_begin_node(fdt, "data");
-+	err |= fdt_property(fdt, "nr_folios", &state->nr_folios,
-+			    sizeof(state->nr_folios));
-+	err |= fdt_property(fdt, "folios_info", folios_info,
-+			    state->nr_folios * sizeof(*folios_info));
-+	err |= fdt_property(fdt, "csum", &state->csum, sizeof(state->csum));
-+	err |= fdt_end_node(fdt);
-+
-+	return err;
-+}
-+
-+static int kho_test_prepare_fdt(struct kho_test_state *state)
-+{
-+	const char compatible[] = KHO_TEST_COMPAT;
-+	unsigned int magic = KHO_TEST_MAGIC;
-+	ssize_t fdt_size;
-+	int err = 0;
-+	void *fdt;
-+
-+	fdt_size = state->nr_folios * sizeof(phys_addr_t) + PAGE_SIZE;
-+	state->fdt = folio_alloc(GFP_KERNEL, get_order(fdt_size));
-+	if (!state->fdt)
-+		return -ENOMEM;
-+
-+	fdt = folio_address(state->fdt);
-+
-+	err |= fdt_create(fdt, fdt_size);
-+	err |= fdt_finish_reservemap(fdt);
-+
-+	err |= fdt_begin_node(fdt, "");
-+	err |= fdt_property(fdt, "compatible", compatible, sizeof(compatible));
-+	err |= fdt_property(fdt, "magic", &magic, sizeof(magic));
-+	err |= kho_test_save_data(state, fdt);
-+	err |= fdt_end_node(fdt);
-+
-+	err |= fdt_finish(fdt);
-+
-+	if (err)
-+		folio_put(state->fdt);
-+
-+	return err;
-+}
-+
-+static int kho_test_generate_data(struct kho_test_state *state)
-+{
-+	size_t alloc_size = 0;
-+	__wsum csum = 0;
-+
-+	while (alloc_size < max_mem) {
-+		int order = get_random_u32() % NR_PAGE_ORDERS;
-+		struct folio *folio;
-+		unsigned int size;
-+		void *addr;
-+
-+		/* cap allocation so that we won't exceed max_mem */
-+		if (alloc_size + (PAGE_SIZE << order) > max_mem) {
-+			order = get_order(max_mem - alloc_size);
-+			if (order)
-+				order--;
-+		}
-+		size = PAGE_SIZE << order;
-+
-+		folio = folio_alloc(GFP_KERNEL | __GFP_NORETRY, order);
-+		if (!folio)
-+			goto err_free_folios;
-+
-+		state->folios[state->nr_folios++] = folio;
-+		addr = folio_address(folio);
-+		get_random_bytes(addr, size);
-+		csum = csum_partial(addr, size, csum);
-+		alloc_size += size;
++	if (t->version >= 14) {
++		PRINT_FILED_DELAY("IRQ", t->version, t,
++			irq_count, irq_delay_total,
++			irq_delay_max, irq_delay_min);
 +	}
-+
-+	state->csum = csum;
-+	return 0;
-+
-+err_free_folios:
-+	for (int i = 0; i < state->nr_folios; i++)
-+		folio_put(state->folios[i]);
-+	return -ENOMEM;
-+}
-+
-+static int kho_test_save(void)
-+{
-+	struct kho_test_state *state = &kho_test_state;
-+	struct folio **folios __free(kvfree) = NULL;
-+	unsigned long max_nr;
-+	int err;
-+
-+	max_mem = PAGE_ALIGN(max_mem);
-+	max_nr = max_mem >> PAGE_SHIFT;
-+
-+	folios = kvmalloc_array(max_nr, sizeof(*state->folios), GFP_KERNEL);
-+	if (!folios)
-+		return -ENOMEM;
-+	state->folios = folios;
-+
-+	err = kho_test_generate_data(state);
-+	if (err)
-+		return err;
-+
-+	err = kho_test_prepare_fdt(state);
-+	if (err)
-+		return err;
-+
-+	return register_kho_notifier(&kho_test_nb);
-+}
-+
-+static int kho_test_restore_data(const void *fdt, int node)
-+{
-+	const unsigned int *nr_folios;
-+	const phys_addr_t *folios_info;
-+	const __wsum *old_csum;
-+	__wsum csum = 0;
-+	int len;
-+
-+	node = fdt_path_offset(fdt, "/data");
-+
-+	nr_folios = fdt_getprop(fdt, node, "nr_folios", &len);
-+	if (!nr_folios || len != sizeof(*nr_folios))
-+		return -EINVAL;
-+
-+	old_csum = fdt_getprop(fdt, node, "csum", &len);
-+	if (!old_csum || len != sizeof(*old_csum))
-+		return -EINVAL;
-+
-+	folios_info = fdt_getprop(fdt, node, "folios_info", &len);
-+	if (!folios_info || len != sizeof(*folios_info) * *nr_folios)
-+		return -EINVAL;
-+
-+	for (int i = 0; i < *nr_folios; i++) {
-+		unsigned int order = folios_info[i] & ~PAGE_MASK;
-+		phys_addr_t phys = folios_info[i] & PAGE_MASK;
-+		unsigned int size = PAGE_SIZE << order;
-+		struct folio *folio;
-+
-+		folio = kho_restore_folio(phys);
-+		if (!folio)
-+			break;
-+
-+		if (folio_order(folio) != order)
-+			break;
-+
-+		csum = csum_partial(folio_address(folio), size, csum);
-+		folio_put(folio);
-+	}
-+
-+	if (csum != *old_csum)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int kho_test_restore(phys_addr_t fdt_phys)
-+{
-+	void *fdt = phys_to_virt(fdt_phys);
-+	const unsigned int *magic;
-+	int node, len, err;
-+
-+	node = fdt_path_offset(fdt, "/");
-+	if (node < 0)
-+		return -EINVAL;
-+
-+	if (fdt_node_check_compatible(fdt, node, KHO_TEST_COMPAT))
-+		return -EINVAL;
-+
-+	magic = fdt_getprop(fdt, node, "magic", &len);
-+	if (!magic || len != sizeof(*magic))
-+		return -EINVAL;
-+
-+	if (*magic != KHO_TEST_MAGIC)
-+		return -EINVAL;
-+
-+	err = kho_test_restore_data(fdt, node);
-+	if (err)
-+		return err;
-+
-+	pr_info("KHO restore succeeded\n");
-+	return 0;
-+}
-+
-+static int __init kho_test_init(void)
-+{
-+	phys_addr_t fdt_phys;
-+	int err;
-+
-+	err = kho_retrieve_subtree(KHO_TEST_FDT, &fdt_phys);
-+	if (!err)
-+		return kho_test_restore(fdt_phys);
-+
-+	if (err != -ENOENT) {
-+		pr_warn("failed to retrieve %s FDT: %d\n", KHO_TEST_FDT, err);
-+		return err;
-+	}
-+
-+	return kho_test_save();
-+}
-+module_init(kho_test_init);
-+
-+static void kho_test_cleanup(void)
-+{
-+	for (int i = 0; i < kho_test_state.nr_folios; i++)
-+		folio_put(kho_test_state.folios[i]);
-+
-+	kvfree(kho_test_state.folios);
-+}
-+
-+static void __exit kho_test_exit(void)
-+{
-+	unregister_kho_notifier(&kho_test_nb);
-+	kho_test_cleanup();
-+}
-+module_exit(kho_test_exit);
-+
-+MODULE_AUTHOR("Mike Rapoport <rppt@kernel.org>");
-+MODULE_DESCRIPTION("KHO test module");
-+MODULE_LICENSE("GPL");
---- a/MAINTAINERS~kho-add-test-for-kexec-handover
-+++ a/MAINTAINERS
-@@ -13353,6 +13353,7 @@ F:	Documentation/admin-guide/mm/kho.rst
- F:	Documentation/core-api/kho/*
- F:	include/linux/kexec_handover.h
- F:	kernel/kexec_handover.c
-+F:	tools/testing/selftests/kho/
+ }
  
- KEYS-ENCRYPTED
- M:	Mimi Zohar <zohar@linux.ibm.com>
-diff --git a/tools/testing/selftests/kho/arm64.conf a/tools/testing/selftests/kho/arm64.conf
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/kho/arm64.conf
-@@ -0,0 +1,9 @@
-+QEMU_CMD="qemu-system-aarch64 -M virt -cpu max"
-+QEMU_KCONFIG="
-+CONFIG_SERIAL_AMBA_PL010=y
-+CONFIG_SERIAL_AMBA_PL010_CONSOLE=y
-+CONFIG_SERIAL_AMBA_PL011=y
-+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
-+"
-+KERNEL_IMAGE="Image"
-+KERNEL_CMDLINE="console=ttyAMA0"
-diff --git a/tools/testing/selftests/kho/init.c a/tools/testing/selftests/kho/init.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/kho/init.c
-@@ -0,0 +1,100 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#ifndef NOLIBC
-+#include <errno.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+#include <syscall.h>
-+#include <sys/mount.h>
-+#include <sys/reboot.h>
-+#endif
-+
-+/* from arch/x86/include/asm/setup.h */
-+#define COMMAND_LINE_SIZE	2048
-+
-+/* from include/linux/kexex.h */
-+#define KEXEC_FILE_NO_INITRAMFS	0x00000004
-+
-+#define KHO_FINILIZE "/debugfs/kho/out/finalize"
-+#define KERNEL_IMAGE "/kernel"
-+
-+static int mount_filesystems(void)
-+{
-+	if (mount("debugfs", "/debugfs", "debugfs", 0, NULL) < 0)
-+		return -1;
-+
-+	return mount("proc", "/proc", "proc", 0, NULL);
-+}
-+
-+static int kho_enable(void)
-+{
-+	const char enable[] = "1";
-+	int fd;
-+
-+	fd = open(KHO_FINILIZE, O_RDWR);
-+	if (fd < 0)
-+		return -1;
-+
-+	if (write(fd, enable, sizeof(enable)) != sizeof(enable))
-+		return 1;
-+
-+	close(fd);
-+	return 0;
-+}
-+
-+static long kexec_file_load(int kernel_fd, int initrd_fd,
-+			    unsigned long cmdline_len, const char *cmdline,
-+			    unsigned long flags)
-+{
-+	return syscall(__NR_kexec_file_load, kernel_fd, initrd_fd, cmdline_len,
-+		       cmdline, flags);
-+}
-+
-+static int kexec_load(void)
-+{
-+	char cmdline[COMMAND_LINE_SIZE];
-+	ssize_t len;
-+	int fd, err;
-+
-+	fd = open("/proc/cmdline", O_RDONLY);
-+	if (fd < 0)
-+		return -1;
-+
-+	len = read(fd, cmdline, sizeof(cmdline));
-+	close(fd);
-+	if (len < 0)
-+		return -1;
-+
-+	/* replace \n with \0 */
-+	cmdline[len - 1] = 0;
-+	fd = open(KERNEL_IMAGE, O_RDONLY);
-+	if (fd < 0)
-+		return -1;
-+
-+	err = kexec_file_load(fd, -1, len, cmdline, KEXEC_FILE_NO_INITRAMFS);
-+	close(fd);
-+
-+	return err ? : 0;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	if (mount_filesystems())
-+		goto err_reboot;
-+
-+	if (kho_enable())
-+		goto err_reboot;
-+
-+	if (kexec_load())
-+		goto err_reboot;
-+
-+	if (reboot(RB_KEXEC))
-+		goto err_reboot;
-+
-+	return 0;
-+
-+err_reboot:
-+	reboot(RB_AUTOBOOT);
-+	return -1;
-+}
-diff --git a/tools/testing/selftests/kho/vmtest.sh a/tools/testing/selftests/kho/vmtest.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/kho/vmtest.sh
-@@ -0,0 +1,183 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+set -ue
-+
-+CROSS_COMPILE="${CROSS_COMPILE:-""}"
-+
-+test_dir=$(realpath "$(dirname "$0")")
-+kernel_dir=$(realpath "$test_dir/../../../..")
-+
-+tmp_dir=$(mktemp -d /tmp/kho-test.XXXXXXXX)
-+headers_dir="$tmp_dir/usr"
-+initrd_dir="$tmp_dir/initrd"
-+initrd="$tmp_dir/initrd.cpio"
-+
-+source "$test_dir/../kselftest/ktap_helpers.sh"
-+
-+function usage() {
-+	cat <<EOF
-+$0 [-d build_dir] [-j jobs] [-t target_arch] [-h]
-+Options:
-+	-d)	path to the kernel build directory
-+	-j)	number of jobs for compilation, similar to -j in make
-+	-t)	run test for target_arch, requires CROSS_COMPILE set
-+		supported targets: aarch64, x86_64
-+	-h)	display this help
-+EOF
-+}
-+
-+function cleanup() {
-+	rm -fr "$tmp_dir"
-+	ktap_finished
-+}
-+trap cleanup EXIT
-+
-+function skip() {
-+	local msg=${1:-""}
-+
-+	ktap_test_skip "$msg"
-+	exit "$KSFT_SKIP"
-+}
-+
-+function fail() {
-+	local msg=${1:-""}
-+
-+	ktap_test_fail "$msg"
-+	exit "$KSFT_FAIL"
-+}
-+
-+function build_kernel() {
-+	local build_dir=$1
-+	local make_cmd=$2
-+	local arch_kconfig=$3
-+	local kimage=$4
-+
-+	local kho_config="$tmp_dir/kho.config"
-+	local kconfig="$build_dir/.config"
-+
-+	# enable initrd, KHO and KHO test in kernel configuration
-+	tee "$kconfig" > "$kho_config" <<EOF
-+CONFIG_BLK_DEV_INITRD=y
-+CONFIG_KEXEC_HANDOVER=y
-+CONFIG_TEST_KEXEC_HANDOVER=y
-+CONFIG_DEBUG_KERNEL=y
-+CONFIG_DEBUG_VM=y
-+$arch_kconfig
-+EOF
-+
-+	make_cmd="$make_cmd -C $kernel_dir O=$build_dir"
-+	$make_cmd olddefconfig
-+
-+	# verify that kernel confiration has all necessary options
-+	while read -r opt ; do
-+		grep "$opt" "$kconfig" &>/dev/null || skip "$opt is missing"
-+	done < "$kho_config"
-+
-+	$make_cmd "$kimage"
-+	$make_cmd headers_install INSTALL_HDR_PATH="$headers_dir"
-+}
-+
-+function mkinitrd() {
-+	local kernel=$1
-+
-+	mkdir -p "$initrd_dir"/{dev,debugfs,proc}
-+	sudo mknod "$initrd_dir/dev/console" c 5 1
-+
-+	"$CROSS_COMPILE"gcc -s -static -Os -nostdinc -I"$headers_dir/include" \
-+			-fno-asynchronous-unwind-tables -fno-ident -nostdlib \
-+			-include "$test_dir/../../../include/nolibc/nolibc.h" \
-+			-o "$initrd_dir/init" "$test_dir/init.c" \
-+
-+	cp "$kernel" "$initrd_dir/kernel"
-+
-+	pushd "$initrd_dir" &>/dev/null
-+	find . | cpio -H newc --create > "$initrd" 2>/dev/null
-+	popd &>/dev/null
-+}
-+
-+function run_qemu() {
-+	local qemu_cmd=$1
-+	local cmdline=$2
-+	local kernel=$3
-+	local serial="$tmp_dir/qemu.serial"
-+
-+	cmdline="$cmdline kho=on panic=-1"
-+
-+	$qemu_cmd -m 1G -smp 2 -no-reboot -nographic -nodefaults \
-+		  -accel kvm -accel hvf -accel tcg  \
-+		  -serial file:"$serial" \
-+		  -append "$cmdline" \
-+		  -kernel "$kernel" \
-+		  -initrd "$initrd"
-+
-+	grep "KHO restore succeeded" "$serial" &> /dev/null || fail "KHO failed"
-+}
-+
-+function target_to_arch() {
-+	local target=$1
-+
-+	case $target in
-+	     aarch64) echo "arm64" ;;
-+	     x86_64) echo "x86" ;;
-+	     *) skip "architecture $target is not supported"
-+	esac
-+}
-+
-+function main() {
-+	local build_dir="$kernel_dir/.kho"
-+	local jobs=$(($(nproc) * 2))
-+	local target="$(uname -m)"
-+
-+	# skip the test if any of the preparation steps fails
-+	set -o errtrace
-+	trap skip ERR
-+
-+	while getopts 'hd:j:t:' opt; do
-+		case $opt in
-+		d)
-+			build_dir="$OPTARG"
-+			;;
-+		j)
-+		        jobs="$OPTARG"
-+			;;
-+		t)
-+			target="$OPTARG"
-+			;;
-+		h)
-+			usage
-+			exit 0
-+			;;
-+		*)
-+			echo Unknown argument "$opt"
-+			usage
-+			exit 1
-+			;;
-+		esac
-+	done
-+
-+	ktap_print_header
-+	ktap_set_plan 1
-+
-+	if [[ "$target" != "$(uname -m)" ]] && [[ -z "$CROSS_COMPILE" ]]; then
-+		skip "Cross-platform testing needs to specify CROSS_COMPILE"
-+	fi
-+
-+	mkdir -p "$build_dir"
-+	local arch=$(target_to_arch "$target")
-+	source "$test_dir/$arch.conf"
-+
-+	# build the kernel and create initrd
-+	# initrd includes the kernel image that will be kexec'ed
-+	local make_cmd="make ARCH=$arch CROSS_COMPILE=$CROSS_COMPILE -j$jobs"
-+	build_kernel "$build_dir" "$make_cmd" "$QEMU_KCONFIG" "$KERNEL_IMAGE"
-+
-+	local kernel="$build_dir/arch/$arch/boot/$KERNEL_IMAGE"
-+	mkinitrd "$kernel"
-+
-+	run_qemu "$QEMU_CMD" "$KERNEL_CMDLINE" "$kernel"
-+
-+	ktap_test_pass "KHO succeeded"
-+}
-+
-+main "$@"
-diff --git a/tools/testing/selftests/kho/x86.conf a/tools/testing/selftests/kho/x86.conf
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/kho/x86.conf
-@@ -0,0 +1,7 @@
-+QEMU_CMD=qemu-system-x86_64
-+QEMU_KCONFIG="
-+CONFIG_SERIAL_8250=y
-+CONFIG_SERIAL_8250_CONSOLE=y
-+"
-+KERNEL_IMAGE="bzImage"
-+KERNEL_CMDLINE="console=ttyS0"
+ static void task_context_switch_counts(struct taskstats *t)
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from fan.yu9@zte.com.cn are
 
 
