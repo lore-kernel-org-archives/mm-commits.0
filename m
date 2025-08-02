@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8411B1E7C1C
-	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C417A1E7C1C
+	for <mm-commits@vger.kernel.org>; Sat,  2 Aug 2025 18:54:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754160840; cv=none; b=GE5d8s3oVg/ey3MNVBPZOb7W531hJUbY6Ux32wrgTYbJAbPZTIqpezEbVW+LtUIF90lhZHr2gEbgWa/QS8KacdyomPu3tqm/b+dBPL5PZeTy2ONEHMf/L3wPz0X6DVQ57UxA5wHZQL4p76PujHgOOcBzfm2ghzJdBTfcXLjQjS4=
+	t=1754160841; cv=none; b=mAy2I5ipdVuDKXsQNM/Pvb+VmMvw4M5mHbuownm2yC9Jk4Fx5Y+/aS+5Y8Dix2px3Ys0X+L0Yr01sUNh5BdOkza5i6xRVJYtI2/7sv3paLEQC2P8ZYKFqN1ZUu4BzRHNTcjfyN1TXj8+WcKzj391cpyRxEgNB8at+wFXKwJNnAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754160840; c=relaxed/simple;
-	bh=EseUfLxPs2ITu/k2fFpvl+4433lV/+dSCrkeLvlFVdU=;
-	h=Date:To:From:Subject:Message-Id; b=YCqhg37vo5VbG16r2RF8pE+yFuGy8WP2zpUcQS6Adux166PcW0BrWRqoBIX1EMUVYt3mgEDLPNQswnIJn4ldTvqH0d5PTsgsKXc2mYxsIElok3gGylmuOzqhxwGfxvU2s3gHW4fUkMfFpZcdr43UQSo4oQfJzeJVH0ivCEvSsY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CHO27rDI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754160841; c=relaxed/simple;
+	bh=EDT1FJ5AAgq29AQvyiRHmPN2xmL8lciFvTwoqiv1rxI=;
+	h=Date:To:From:Subject:Message-Id; b=F/uhpgVwrQlZwimPzMyx/rMt3/YD3W7/h0bSgiYrePViwjlzKRSgyBPY2MuP9lz378Szir4P3hljfRtgLqJ3ZrEsl5ugmKp68QP5lhhMq8s7xmNZvu757Lk9Ih1CrFAJuLdeTeZ7ZEwO1rWJsy9CzCbQ9NpTnsX3vXuqSGmfV8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vFxByNhC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CHO27rDI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57E27C4CEEF;
-	Sat,  2 Aug 2025 18:54:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vFxByNhC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DCD6C4CEEF;
+	Sat,  2 Aug 2025 18:54:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754160840;
-	bh=EseUfLxPs2ITu/k2fFpvl+4433lV/+dSCrkeLvlFVdU=;
+	s=korg; t=1754160841;
+	bh=EDT1FJ5AAgq29AQvyiRHmPN2xmL8lciFvTwoqiv1rxI=;
 	h=Date:To:From:Subject:From;
-	b=CHO27rDIyFcw4zv1Y/q+LuM5Uo/ErNrcT07KH5I0gU58D6aic6P+ERHGcfXYrrq6G
-	 sGJEnrR9mWQXuSPPbWNtOJJz9KFVvA2BtYLdh4uSfYsAOj5WdqfG9LxUJyWqLupuOd
-	 jn6gM3fAf/vfS5PQm7+3ZfdOx7PRmQew74ia7Ukw=
-Date: Sat, 02 Aug 2025 11:53:59 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,nphamcs@gmail.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,suresh.k.chandrappa@gmail.com,akpm@linux-foundation.org
+	b=vFxByNhCqQPxQUu0IoQ1/2+uMo8gOqlEEoPsOnWwCoq3r3fp5zk/VH2PHvXRt0jev
+	 eKpr1Q3yJ7A8cxnk8KUQO3JOc4lRoR+XYbQbb2fmBmmJ1TH4mZqwpr0wyZpSjcGSyg
+	 OgJ61sN53/b4/nSIpikEsRtrgAcRCsS7cOqHu2oU=
+Date: Sat, 02 Aug 2025 11:54:01 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,raghavendra.kt@amd.com,bijantabatab@micron.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation.patch removed from -mm tree
-Message-Id: <20250802185400.57E27C4CEEF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-skip-isolating-folios-already-in-destination-nid.patch removed from -mm tree
+Message-Id: <20250802185401.8DCD6C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,152 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: cachestat: add tests for mmap, refactor and enhance mmap test for cachestat validation
+     Subject: mm/damon/vaddr: skip isolating folios already in destination nid
 has been removed from the -mm tree.  Its filename was
-     selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation.patch
+     mm-damon-vaddr-skip-isolating-folios-already-in-destination-nid.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suresh K C <suresh.k.chandrappa@gmail.com>
-Subject: selftests: cachestat: add tests for mmap, refactor and enhance mmap test for cachestat validation
-Date: Wed, 9 Jul 2025 23:16:57 +0530
+From: Bijan Tabatabai <bijantabatab@micron.com>
+Subject: mm/damon/vaddr: skip isolating folios already in destination nid
+Date: Fri, 25 Jul 2025 11:33:00 -0500
 
-Add a cohesive test case that verifies cachestat behavior with
-memory-mapped files using mmap().  Also refactor the test logic to reduce
-redundancy, improve error reporting, and clarify failure messages for both
-shmem and mmap file types.
+damos_va_migrate_dests_add() determines the node a folio should be in
+based on the struct damos_migrate_dests associated with the migration
+scheme and adds the folio to the linked list corresponding to that node so
+it can be migrated later.  Currently, folios are isolated and added to the
+list even if they are already in the node they should be in.
 
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/20250709174657.6916-1-suresh.k.chandrappa@gmail.com
-Signed-off-by: Suresh K C <suresh.k.chandrappa@gmail.com>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Tested-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shuah Khan <shuah@kernel.org>
+In using damon weighted interleave more, I've found that the overhead of
+needlessly adding these folios to the migration lists can be quite high. 
+The overhead comes from isolating folios and placing them in the migration
+lists inside of damos_va_migrate_dests_add(), as well as the cost of
+handling those folios in damon_migrate_pages().  This patch eliminates
+that overhead by simply avoiding the addition of folios that are already
+in their intended location to the migration list.
+
+To show the benefit of this patch, we start the test workload and start a
+DAMON instance attached to that workload with a migrate_hot scheme that
+has one dest field sending data to the local node.  This way, we are only
+measuring the overheads of the scheme, and not the cost of migrating
+pages, since data will be allocated to the local node by default.  I
+tested with two workloads: the embedding reduction workload used in [1]
+and a microbenchmark that allocates 20GB of data then sleeps, which is
+similar to the memory usage of the embedding reduction workload.
+
+The time taken in damos_va_migrate_dests_add() and damon_migrate_pages()
+each aggregation interval is shown below.
+
+Before this patch:
+                       damos_va_migrate_dests_add damon_migrate_pages
+microbenchmark                   ~2ms                      ~3ms
+embedding reduction              ~1s                       ~3s
+
+After this patch:
+                       damos_va_migrate_dests_add damon_migrate_pages
+microbenchmark                    0us                      ~40us
+embedding reduction               0us                      ~100us
+
+I did not do an in depth analysis for why things are much slower in the
+embedding reduction workload than the microbenchmark.  However, I assume
+it's because the embedding reduction workload oversaturates the bandwidth
+of the local memory node, increasing the memory access latency, and in
+turn making the pointer chasing involved in iterating through a linked
+list much slower.  Regardless of that, this patch results in a significant
+speedup.
+
+[1] https://lore.kernel.org/damon/20250709005952.17776-1-bijan311@gmail.com/
+
+Link: https://lkml.kernel.org/r/20250725163300.4602-1-bijan311@gmail.com
+Fixes: 19c1dc15c859 ("mm/damon/vaddr: use damos->migrate_dests in migrate_{hot,cold}")
+Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cachestat/test_cachestat.c |   62 +++++++++--
- 1 file changed, 54 insertions(+), 8 deletions(-)
+ mm/damon/vaddr.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/cachestat/test_cachestat.c~selftests-cachestat-add-tests-for-mmap-refactor-and-enhance-mmap-test-for-cachestat-validation
-+++ a/tools/testing/selftests/cachestat/test_cachestat.c
-@@ -33,6 +33,11 @@ void print_cachestat(struct cachestat *c
- 	cs->nr_evicted, cs->nr_recently_evicted);
- }
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-skip-isolating-folios-already-in-destination-nid
++++ a/mm/damon/vaddr.c
+@@ -711,6 +711,10 @@ static void damos_va_migrate_dests_add(s
+ 		target -= dests->weight_arr[i];
+ 	}
  
-+enum file_type {
-+	FILE_MMAP,
-+	FILE_SHMEM
-+};
++	/* If the folio is already in the right node, don't do anything */
++	if (folio_nid(folio) == dests->node_id_arr[i])
++		return;
 +
- bool write_exactly(int fd, size_t filesize)
- {
- 	int random_fd = open("/dev/urandom", O_RDONLY);
-@@ -201,8 +206,20 @@ out1:
- out:
- 	return ret;
- }
-+const char *file_type_str(enum file_type type)
-+{
-+	switch (type) {
-+	case FILE_SHMEM:
-+		return "shmem";
-+	case FILE_MMAP:
-+		return "mmap";
-+	default:
-+		return "unknown";
-+	}
-+}
- 
--bool test_cachestat_shmem(void)
-+
-+bool run_cachestat_test(enum file_type type)
- {
- 	size_t PS = sysconf(_SC_PAGESIZE);
- 	size_t filesize = PS * 512 * 2; /* 2 2MB huge pages */
-@@ -212,27 +229,50 @@ bool test_cachestat_shmem(void)
- 	char *filename = "tmpshmcstat";
- 	struct cachestat cs;
- 	bool ret = true;
-+	int fd;
- 	unsigned long num_pages = compute_len / PS;
--	int fd = shm_open(filename, O_CREAT | O_RDWR, 0600);
-+	if (type == FILE_SHMEM)
-+		fd = shm_open(filename, O_CREAT | O_RDWR, 0600);
-+	else
-+		fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
- 
- 	if (fd < 0) {
--		ksft_print_msg("Unable to create shmem file.\n");
-+		ksft_print_msg("Unable to create %s file.\n",
-+				file_type_str(type));
- 		ret = false;
- 		goto out;
- 	}
- 
- 	if (ftruncate(fd, filesize)) {
--		ksft_print_msg("Unable to truncate shmem file.\n");
-+		ksft_print_msg("Unable to truncate %s file.\n",file_type_str(type));
- 		ret = false;
- 		goto close_fd;
- 	}
-+	switch (type) {
-+	case FILE_SHMEM:
-+		if (!write_exactly(fd, filesize)) {
-+			ksft_print_msg("Unable to write to file.\n");
-+			ret = false;
-+			goto close_fd;
-+		}
-+		break;
-+	case FILE_MMAP:
-+		char *map = mmap(NULL, filesize, PROT_READ | PROT_WRITE,
-+				 MAP_SHARED, fd, 0);
- 
--	if (!write_exactly(fd, filesize)) {
--		ksft_print_msg("Unable to write to shmem file.\n");
-+		if (map == MAP_FAILED) {
-+			ksft_print_msg("mmap failed.\n");
-+			ret = false;
-+			goto close_fd;
-+		}
-+		for (int i = 0; i < filesize; i++)
-+			map[i] = 'A';
-+		break;
-+	default:
-+		ksft_print_msg("Unsupported file type.\n");
- 		ret = false;
- 		goto close_fd;
- 	}
--
- 	syscall_ret = syscall(__NR_cachestat, fd, &cs_range, &cs, 0);
- 
- 	if (syscall_ret) {
-@@ -308,12 +348,18 @@ int main(void)
- 		break;
- 	}
- 
--	if (test_cachestat_shmem())
-+	if (run_cachestat_test(FILE_SHMEM))
- 		ksft_test_result_pass("cachestat works with a shmem file\n");
- 	else {
- 		ksft_test_result_fail("cachestat fails with a shmem file\n");
- 		ret = 1;
- 	}
- 
-+	if (run_cachestat_test(FILE_MMAP))
-+		ksft_test_result_pass("cachestat works with a mmap file\n");
-+	else {
-+		ksft_test_result_fail("cachestat fails with a mmap file\n");
-+		ret = 1;
-+	}
- 	return ret;
- }
+ isolate:
+ 	if (!folio_isolate_lru(folio))
+ 		return;
 _
 
-Patches currently in -mm which might be from suresh.k.chandrappa@gmail.com are
+Patches currently in -mm which might be from bijantabatab@micron.com are
 
 
