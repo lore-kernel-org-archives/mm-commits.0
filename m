@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D08D2524F
-	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 21:21:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4031C8603
+	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 21:27:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754428880; cv=none; b=GddaRcfJcEYP/xRKAYLcvzu1lykjes/Td/dJnlkMaEd+d1Bj6Sl6Bx206Icb7z+HNzTMS9yyQvGj4zRdOYW5N1DbjRRWPF0VFVqR7jWWUmHY7aKrpm1TLSqJYNED52OvhUNNLf+BllP/o8QKJLOAkS0x7Qn3u+z1NE9+mtIr/G4=
+	t=1754429241; cv=none; b=JJNyhCtkMr6mL8FO7qnkjuQFaBxKcmmHvM3nWziYAQsKK2gJzG0GPNfmz2zQU0Nr2KWo4uOWxHnbHbYOkuFP8DAxI6LdEqcQK7qeC123tclO1SrcQXBSbL7QlIGBZFVzoTE1StfLOgbCLuVL/FL4RTYtA55HqwGi2gyDE0DaE+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754428880; c=relaxed/simple;
-	bh=GFK3KqH/3DHsE1MXDwssZFUZIkPfxxFJM7kZpwM8Khk=;
-	h=Date:To:From:Subject:Message-Id; b=PGWa9uQc5StuIA7EZTo3poUi3UXbTcZ2NcZnz9qIJ1d2iK3B63lD+yUer8u1Gh3Dx8qhc0BXv/LpyFat1WG/ogf0dsZ1WfLjqKOqBwwCF431L9CtoPo6xOw2Lm84dtReRK/SlhvIUHW1Aa+t3cC6GAzSpoID1Ke0clSPoAQUwgk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YLlWEsV5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754429241; c=relaxed/simple;
+	bh=ENmA+UgoHlsToD93QnYkQnD8a5sDI0TrUUw5+qtGDwU=;
+	h=Date:To:From:Subject:Message-Id; b=IRQ9B0R4nsuJFXqUh6ngw00mMnWtuVKOjxu60z9/Pj0AR9M3Fo3gRnchKBOJYZIFl7JIzBPIHmmde03UJzBWHVaZXY65AA4hvoUMefmEmNq3u/wtUVF3Q1EC9QNLnnvb0hBWIjxADcGTZIBQ7/3v7WLziP5U+PYNJUwBDAcw8Gs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V11C6D0T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YLlWEsV5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63EA0C4CEF0;
-	Tue,  5 Aug 2025 21:21:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V11C6D0T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA192C4CEF0;
+	Tue,  5 Aug 2025 21:27:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754428879;
-	bh=GFK3KqH/3DHsE1MXDwssZFUZIkPfxxFJM7kZpwM8Khk=;
+	s=korg; t=1754429240;
+	bh=ENmA+UgoHlsToD93QnYkQnD8a5sDI0TrUUw5+qtGDwU=;
 	h=Date:To:From:Subject:From;
-	b=YLlWEsV5OidpubrkVmRbpfFWEp0qeEPfVgu6foVCzbSD+I8zpSz1uF0vIOApX2bOw
-	 l6HOnehWuJQUIbEgfwXalVmi14zyNq2Ap29+BGBpyUajKp9rkF/ZJNSQs7Rm28Ik1b
-	 NobKJwtIzLDKjGXjygVPgWV+TVb4tDjrAmYVxhxM=
-Date: Tue, 05 Aug 2025 14:21:18 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,broonie@kernel.org,brauner@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=V11C6D0TwhMHFE4kGzf5YjwUZLE+N13I+TWiLczYMFARLrQTni0x01Pbqzvz9leiZ
+	 jm6fiv7kmavRBCZ9/jZVX+gDI5T1MJifRTPY++57pAvyer2xJ4z1ThhfLDSC2gyXND
+	 Wj6kyJyQDqD5u6OJ5WrMAzQmRNhb7SSGtzy67XMk=
+Date: Tue, 05 Aug 2025 14:27:20 -0700
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,surenb@google.com,peterx@redhat.com,kaleshsingh@google.com,david@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-force_read-to-read-input-value-correctly.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250805212119.63EA0C4CEF0@smtp.kernel.org>
+Subject: + userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch added to mm-new branch
+Message-Id: <20250805212720.DA192C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix FORCE_READ to read input value correctly.
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-fix-force_read-to-read-input-value-correctly.patch
+     Subject: userfaultfd: opportunistic TLB-flush batching for present pages in MOVE
+has been added to the -mm mm-new branch.  Its filename is
+     userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-force_read-to-read-input-value-correctly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,137 +64,312 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: fix FORCE_READ to read input value correctly.
-Date: Tue, 5 Aug 2025 13:51:40 -0400
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: opportunistic TLB-flush batching for present pages in MOVE
+Date: Tue, 5 Aug 2025 05:14:10 -0700
 
-FORCE_READ() converts input value x to its pointer type then reads from
-address x.  This is wrong.  If x is a non-pointer, it would be caught it
-easily.  But all FORCE_READ() callers are trying to read from a pointer
-and FORCE_READ() basically reads a pointer to a pointer instead of the
-original typed pointer.  Almost no access violation was found, except the
-one from split_huge_page_test.
+MOVE ioctl's runtime is dominated by TLB-flush cost, which is required for
+moving present pages.  Mitigate this cost by opportunistically batching
+present contiguous pages for TLB flushing.
 
-Fix it by implementing a simplified READ_ONCE() instead.
+Without batching, in our testing on an arm64 Android device with UFFD GC,
+which uses MOVE ioctl for compaction, we observed that out of the total
+time spent in move_pages_pte(), over 40% is in ptep_clear_flush(), and
+~20% in vm_normal_folio().
 
-Link: https://lkml.kernel.org/r/20250805175140.241656-1-ziy@nvidia.com
-Fixes: 3f6bfd4789a0 ("selftests/mm: reuse FORCE_READ to replace "asm volatile("" : "+r" (XXX));"")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: wang lian <lianux.mm@gmail.com>,
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+With batching, the proportion of vm_normal_folio() increases to over 70%
+of move_pages_pte() without any changes to vm_normal_folio(). 
+Furthermore, time spent within move_pages_pte() is only ~20%, which
+includes TLB-flush overhead.
+
+Link: https://lkml.kernel.org/r/20250805121410.1658418-1-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c                  |    4 ++--
- tools/testing/selftests/mm/guard-regions.c        |    2 +-
- tools/testing/selftests/mm/hugetlb-madvise.c      |    4 +++-
- tools/testing/selftests/mm/migration.c            |    2 +-
- tools/testing/selftests/mm/pagemap_ioctl.c        |    2 +-
- tools/testing/selftests/mm/split_huge_page_test.c |    7 +++++--
- tools/testing/selftests/mm/vm_util.h              |    2 +-
- 7 files changed, 14 insertions(+), 9 deletions(-)
+ mm/userfaultfd.c |  169 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 118 insertions(+), 51 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-force_read-to-read-input-value-correctly
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -1554,8 +1554,8 @@ static void run_with_zeropage(non_anon_t
- 	}
- 
- 	/* Read from the page to populate the shared zeropage. */
--	FORCE_READ(mem);
--	FORCE_READ(smem);
-+	FORCE_READ(*mem);
-+	FORCE_READ(*smem);
- 
- 	fn(mem, smem, pagesize);
- munmap:
---- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-fix-force_read-to-read-input-value-correctly
-+++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -145,7 +145,7 @@ static bool try_access_buf(char *ptr, bo
- 		if (write)
- 			*ptr = 'x';
- 		else
--			FORCE_READ(ptr);
-+			FORCE_READ(*ptr);
- 	}
- 
- 	signal_jump_set = false;
---- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-fix-force_read-to-read-input-value-correctly
-+++ a/tools/testing/selftests/mm/hugetlb-madvise.c
-@@ -50,8 +50,10 @@ void read_fault_pages(void *addr, unsign
- 	unsigned long i;
- 
- 	for (i = 0; i < nr_pages; i++) {
-+		unsigned long *addr2 =
-+			((unsigned long *)(addr + (i * huge_page_size)));
- 		/* Prevent the compiler from optimizing out the entire loop: */
--		FORCE_READ(((unsigned long *)(addr + (i * huge_page_size))));
-+		FORCE_READ(*addr2);
- 	}
+--- a/mm/userfaultfd.c~userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move
++++ a/mm/userfaultfd.c
+@@ -1026,18 +1026,61 @@ static inline bool is_pte_pages_stable(p
+ 	       pmd_same(dst_pmdval, pmdp_get_lockless(dst_pmd));
  }
  
---- a/tools/testing/selftests/mm/migration.c~selftests-mm-fix-force_read-to-read-input-value-correctly
-+++ a/tools/testing/selftests/mm/migration.c
-@@ -110,7 +110,7 @@ void *access_mem(void *ptr)
- 		 * the memory access actually happens and prevents the compiler
- 		 * from optimizing away this entire loop.
- 		 */
--		FORCE_READ((uint64_t *)ptr);
-+		FORCE_READ(*(uint64_t *)ptr);
- 	}
- 
- 	return NULL;
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-fix-force_read-to-read-input-value-correctly
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -1525,7 +1525,7 @@ void zeropfn_tests(void)
- 
- 	ret = madvise(mem, hpage_size, MADV_HUGEPAGE);
- 	if (!ret) {
--		FORCE_READ(mem);
-+		FORCE_READ(*mem);
- 
- 		ret = pagemap_ioctl(mem, hpage_size, &vec, 1, 0,
- 				    0, PAGE_IS_PFNZERO, 0, 0, PAGE_IS_PFNZERO);
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-fix-force_read-to-read-input-value-correctly
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -439,8 +439,11 @@ int create_pagecache_thp_and_fd(const ch
- 	}
- 	madvise(*addr, fd_size, MADV_HUGEPAGE);
- 
--	for (size_t i = 0; i < fd_size; i++)
--		FORCE_READ((*addr + i));
-+	for (size_t i = 0; i < fd_size; i++) {
-+		char *addr2 = *addr + i;
+-static int move_present_pte(struct mm_struct *mm,
+-			    struct vm_area_struct *dst_vma,
+-			    struct vm_area_struct *src_vma,
+-			    unsigned long dst_addr, unsigned long src_addr,
+-			    pte_t *dst_pte, pte_t *src_pte,
+-			    pte_t orig_dst_pte, pte_t orig_src_pte,
+-			    pmd_t *dst_pmd, pmd_t dst_pmdval,
+-			    spinlock_t *dst_ptl, spinlock_t *src_ptl,
+-			    struct folio *src_folio)
++/*
++ * Checks if the two ptes and the corresponding folio are eligible for batched
++ * move. If so, then returns pointer to the folio, after locking it. Otherwise,
++ * returns NULL.
++ */
++static struct folio *check_ptes_for_batched_move(struct vm_area_struct *src_vma,
++						 unsigned long src_addr,
++						 pte_t *src_pte, pte_t *dst_pte)
++{
++	pte_t orig_dst_pte, orig_src_pte;
++	struct folio *folio;
 +
-+		FORCE_READ(*addr2);
++	orig_dst_pte = ptep_get(dst_pte);
++	if (!pte_none(orig_dst_pte))
++		return NULL;
++
++	orig_src_pte = ptep_get(src_pte);
++	if (pte_none(orig_src_pte) || !pte_present(orig_src_pte) ||
++	    is_zero_pfn(pte_pfn(orig_src_pte)))
++		return NULL;
++
++	folio = vm_normal_folio(src_vma, src_addr, orig_src_pte);
++	if (!folio || !folio_trylock(folio))
++		return NULL;
++	if (!PageAnonExclusive(&folio->page) || folio_test_large(folio)) {
++		folio_unlock(folio);
++		return NULL;
 +	}
++	return folio;
++}
++
++static long move_present_ptes(struct mm_struct *mm,
++			      struct vm_area_struct *dst_vma,
++			      struct vm_area_struct *src_vma,
++			      unsigned long dst_addr, unsigned long src_addr,
++			      pte_t *dst_pte, pte_t *src_pte,
++			      pte_t orig_dst_pte, pte_t orig_src_pte,
++			      pmd_t *dst_pmd, pmd_t dst_pmdval,
++			      spinlock_t *dst_ptl, spinlock_t *src_ptl,
++			      struct folio *src_folio, unsigned long len)
+ {
+ 	int err = 0;
++	unsigned long src_start = src_addr;
++	unsigned long addr_end;
  
- 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
- 		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-fix-force_read-to-read-input-value-correctly
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -23,7 +23,7 @@
-  * anything with it in order to trigger a read page fault. We therefore must use
-  * volatile to stop the compiler from optimising this away.
++	if (len > PAGE_SIZE) {
++		addr_end = (dst_addr + PMD_SIZE) & PMD_MASK;
++		if (dst_addr + len > addr_end)
++			len = addr_end - dst_addr;
++
++		addr_end = (src_addr + PMD_SIZE) & PMD_MASK;
++		if (src_addr + len > addr_end)
++			len = addr_end - src_addr;
++	}
++	flush_cache_range(src_vma, src_addr, src_addr + len);
+ 	double_pt_lock(dst_ptl, src_ptl);
+ 
+ 	if (!is_pte_pages_stable(dst_pte, src_pte, orig_dst_pte, orig_src_pte,
+@@ -1051,31 +1094,53 @@ static int move_present_pte(struct mm_st
+ 		err = -EBUSY;
+ 		goto out;
+ 	}
++	arch_enter_lazy_mmu_mode();
+ 
+-	orig_src_pte = ptep_clear_flush(src_vma, src_addr, src_pte);
+-	/* Folio got pinned from under us. Put it back and fail the move. */
+-	if (folio_maybe_dma_pinned(src_folio)) {
+-		set_pte_at(mm, src_addr, src_pte, orig_src_pte);
+-		err = -EBUSY;
+-		goto out;
+-	}
++	addr_end = src_start + len;
++	while (true) {
++		orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
++		/* Folio got pinned from under us. Put it back and fail the move. */
++		if (folio_maybe_dma_pinned(src_folio)) {
++			set_pte_at(mm, src_addr, src_pte, orig_src_pte);
++			err = -EBUSY;
++			break;
++		}
+ 
+-	folio_move_anon_rmap(src_folio, dst_vma);
+-	src_folio->index = linear_page_index(dst_vma, dst_addr);
++		folio_move_anon_rmap(src_folio, dst_vma);
++		src_folio->index = linear_page_index(dst_vma, dst_addr);
+ 
+-	orig_dst_pte = folio_mk_pte(src_folio, dst_vma->vm_page_prot);
+-	/* Set soft dirty bit so userspace can notice the pte was moved */
++		orig_dst_pte = folio_mk_pte(src_folio, dst_vma->vm_page_prot);
++		/* Set soft dirty bit so userspace can notice the pte was moved */
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+-	orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
++		orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
+ #endif
+-	if (pte_dirty(orig_src_pte))
+-		orig_dst_pte = pte_mkdirty(orig_dst_pte);
+-	orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
++		if (pte_dirty(orig_src_pte))
++			orig_dst_pte = pte_mkdirty(orig_dst_pte);
++		orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
++		set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
++
++		src_addr += PAGE_SIZE;
++		if (src_addr == addr_end)
++			break;
++		src_pte++;
++		dst_pte++;
++
++		folio_unlock(src_folio);
++		src_folio = check_ptes_for_batched_move(src_vma, src_addr, src_pte, dst_pte);
++		if (!src_folio)
++			break;
++		dst_addr += PAGE_SIZE;
++	}
++
++	arch_leave_lazy_mmu_mode();
++	if (src_addr > src_start)
++		flush_tlb_range(src_vma, src_start, src_addr);
+ 
+-	set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
+ out:
+ 	double_pt_unlock(dst_ptl, src_ptl);
+-	return err;
++	if (src_folio)
++		folio_unlock(src_folio);
++	return src_addr > src_start ? src_addr - src_start : err;
+ }
+ 
+ static int move_swap_pte(struct mm_struct *mm, struct vm_area_struct *dst_vma,
+@@ -1140,7 +1205,7 @@ static int move_swap_pte(struct mm_struc
+ 	set_pte_at(mm, dst_addr, dst_pte, orig_src_pte);
+ 	double_pt_unlock(dst_ptl, src_ptl);
+ 
+-	return 0;
++	return PAGE_SIZE;
+ }
+ 
+ static int move_zeropage_pte(struct mm_struct *mm,
+@@ -1154,6 +1219,7 @@ static int move_zeropage_pte(struct mm_s
+ {
+ 	pte_t zero_pte;
+ 
++	flush_cache_range(src_vma, src_addr, src_addr + PAGE_SIZE);
+ 	double_pt_lock(dst_ptl, src_ptl);
+ 	if (!is_pte_pages_stable(dst_pte, src_pte, orig_dst_pte, orig_src_pte,
+ 				 dst_pmd, dst_pmdval)) {
+@@ -1167,20 +1233,19 @@ static int move_zeropage_pte(struct mm_s
+ 	set_pte_at(mm, dst_addr, dst_pte, zero_pte);
+ 	double_pt_unlock(dst_ptl, src_ptl);
+ 
+-	return 0;
++	return PAGE_SIZE;
+ }
+ 
+ 
+ /*
+- * The mmap_lock for reading is held by the caller. Just move the page
+- * from src_pmd to dst_pmd if possible, and return true if succeeded
+- * in moving the page.
++ * The mmap_lock for reading is held by the caller. Just move the page(s)
++ * from src_pmd to dst_pmd if possible, and return number of bytes moved.
   */
--#define FORCE_READ(x) (*(volatile typeof(x) *)x)
-+#define FORCE_READ(x) (*(const volatile typeof(x) *)&(x))
+-static int move_pages_pte(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd,
+-			  struct vm_area_struct *dst_vma,
+-			  struct vm_area_struct *src_vma,
+-			  unsigned long dst_addr, unsigned long src_addr,
+-			  __u64 mode)
++static long move_pages_ptes(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd,
++			    struct vm_area_struct *dst_vma,
++			    struct vm_area_struct *src_vma,
++			    unsigned long dst_addr, unsigned long src_addr,
++			    unsigned long len, __u64 mode)
+ {
+ 	swp_entry_t entry;
+ 	struct swap_info_struct *si = NULL;
+@@ -1196,9 +1261,8 @@ static int move_pages_pte(struct mm_stru
+ 	struct mmu_notifier_range range;
+ 	int err = 0;
  
- extern unsigned int __page_size;
- extern unsigned int __page_shift;
+-	flush_cache_range(src_vma, src_addr, src_addr + PAGE_SIZE);
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
+-				src_addr, src_addr + PAGE_SIZE);
++				src_addr, src_addr + len);
+ 	mmu_notifier_invalidate_range_start(&range);
+ retry:
+ 	/*
+@@ -1257,7 +1321,7 @@ retry:
+ 		if (!(mode & UFFDIO_MOVE_MODE_ALLOW_SRC_HOLES))
+ 			err = -ENOENT;
+ 		else /* nothing to do to move a hole */
+-			err = 0;
++			err = PAGE_SIZE;
+ 		goto out;
+ 	}
+ 
+@@ -1375,10 +1439,13 @@ retry:
+ 			}
+ 		}
+ 
+-		err = move_present_pte(mm,  dst_vma, src_vma,
+-				       dst_addr, src_addr, dst_pte, src_pte,
+-				       orig_dst_pte, orig_src_pte, dst_pmd,
+-				       dst_pmdval, dst_ptl, src_ptl, src_folio);
++		err = move_present_ptes(mm, dst_vma, src_vma,
++					dst_addr, src_addr, dst_pte, src_pte,
++					orig_dst_pte, orig_src_pte, dst_pmd,
++					dst_pmdval, dst_ptl, src_ptl, src_folio, len);
++		/* folio is already unlocked by move_present_ptes() */
++		folio_put(src_folio);
++		src_folio = NULL;
+ 	} else {
+ 		struct folio *folio = NULL;
+ 
+@@ -1737,7 +1804,7 @@ ssize_t move_pages(struct userfaultfd_ct
+ {
+ 	struct mm_struct *mm = ctx->mm;
+ 	struct vm_area_struct *src_vma, *dst_vma;
+-	unsigned long src_addr, dst_addr;
++	unsigned long src_addr, dst_addr, src_end;
+ 	pmd_t *src_pmd, *dst_pmd;
+ 	long err = -EINVAL;
+ 	ssize_t moved = 0;
+@@ -1780,8 +1847,8 @@ ssize_t move_pages(struct userfaultfd_ct
+ 	if (err)
+ 		goto out_unlock;
+ 
+-	for (src_addr = src_start, dst_addr = dst_start;
+-	     src_addr < src_start + len;) {
++	for (src_addr = src_start, dst_addr = dst_start, src_end = src_start + len;
++	     src_addr < src_end;) {
+ 		spinlock_t *ptl;
+ 		pmd_t dst_pmdval;
+ 		unsigned long step_size;
+@@ -1862,10 +1929,10 @@ ssize_t move_pages(struct userfaultfd_ct
+ 				break;
+ 			}
+ 
+-			err = move_pages_pte(mm, dst_pmd, src_pmd,
+-					     dst_vma, src_vma,
+-					     dst_addr, src_addr, mode);
+-			step_size = PAGE_SIZE;
++			err = move_pages_ptes(mm, dst_pmd, src_pmd,
++					      dst_vma, src_vma, dst_addr,
++					      src_addr, src_end - src_addr, mode);
++			step_size = err;
+ 		}
+ 
+ 		cond_resched();
+@@ -1877,7 +1944,7 @@ ssize_t move_pages(struct userfaultfd_ct
+ 			break;
+ 		}
+ 
+-		if (err) {
++		if (err < 0) {
+ 			if (err == -EAGAIN)
+ 				continue;
+ 			break;
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-selftests-mm-fix-force_read-to-read-input-value-correctly.patch
+userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
 
