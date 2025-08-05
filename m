@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5D42231845
-	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 20:39:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0BA1239591
+	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 21:17:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754426371; cv=none; b=t2rJullMO3wX2ab1iH64pmlLpy9cR6ubNNA/qnwAiAZNMhprWN/y1NJ2QpBZoeFec9E1sIcP5EwLYcQMjr+MjU41u9nT0C6jKjMFa1Z6oE+XJCM6L3s/KVJEYXdgD5/+1U5EpZBZPCIwwXSWRsQeTxFHNM6MKf6093E2rnM655w=
+	t=1754428633; cv=none; b=r9pkLRArqJ+gWqt8sKmCBWzWY6SG4yWhZVINk6YHzz2z28O3/yhKHHhFBgdA8yRc+jNezD5efgXVTLS+Ez6zktSSeVQmSle1OZNBivo2M57g/kp6/2skrJIguz3V9Q91DyM/MQENVUgSF3dr9KJLyu0yfriizyXNp2WFDbpUD50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754426371; c=relaxed/simple;
-	bh=1RGerIRCTs/SpUiIx1AqVoiA8+PoWA9DwutyWIjPCUM=;
-	h=Date:To:From:Subject:Message-Id; b=hSt11hl4hVFf9tNVC+fYZcw4hymjEIc9n4JUq5qdFx2oVcXrKHgERNGJBaVM7FxfyN7eBORiViKatIA7/uT1Ufuvndnn20e3HwTrbM2guDqZiIncmIkf9LCJF5rGdLxriaWOS9XOroiFjKYvB/y0eiCzPmFzGOCXWq3RazvjrI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJKXWgUb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754428633; c=relaxed/simple;
+	bh=RUsiDw97ALR3dPlckdN6vmR9SxmyruekHzV+bVMluNE=;
+	h=Date:To:From:Subject:Message-Id; b=ErPwORQ7afds1R7ah++jhFIx9+WCa1Nn+f4eUfuT1oM3BhIFkntn/nIsEooEh5yonH5SEuATLsVsH6mPWXi+TqwHTm9uZjwHeqnvPszelx60kdyPAHRZZuQx5jjKnur5gto3Yhou8g5uRM6y/2rszhCg5mQlVaK5pmge+cCa4JA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FxsXGYhV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJKXWgUb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F950C4CEF0;
-	Tue,  5 Aug 2025 20:39:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FxsXGYhV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 506E5C4CEF0;
+	Tue,  5 Aug 2025 21:17:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754426371;
-	bh=1RGerIRCTs/SpUiIx1AqVoiA8+PoWA9DwutyWIjPCUM=;
+	s=korg; t=1754428632;
+	bh=RUsiDw97ALR3dPlckdN6vmR9SxmyruekHzV+bVMluNE=;
 	h=Date:To:From:Subject:From;
-	b=lJKXWgUbapzKH8m5bmZqsTnrfTUIuslzuN6TRzVFX0xbgarbe3JddwEm8ZDbbJmw8
-	 MKkR6tREU6pWWgSTmtj97MnF9DOx6Qn8dKn6pHnjHjGMMmiagCTPhFq2IX2jkKAecY
-	 r4+9kW2YI15WX7dJxb/wBCJ6Ws1CqLvMWsk5v2lw=
-Date: Tue, 05 Aug 2025 13:39:30 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,thiago.bauermann@linaro.org,ryan.roberts@arm.com,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,joern@logfs.org,hughd@google.com,dev.jain@arm.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,brahmajit.xyz@gmail.com,baolin.wang@linux.alibaba.com,avagin@gmail.com,andrii@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=FxsXGYhVRDx4uoTBsyCLYQOQX7WeHhoujMpMr4Julr8fCz6/lDyPIxCtOWt7LfQRv
+	 VfDBd727TSNSrZyPtqLD/OPimkZ7vJ2XDlkL1e9IxO2Cu18HCzuaBGkFLX2J1/NoA4
+	 IbEZURPza5dGU7c6hyx5Y4DpyKZ9NALyEYjJCOEw=
+Date: Tue, 05 Aug 2025 14:17:11 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,sj@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch removed from -mm tree
-Message-Id: <20250805203931.4F950C4CEF0@smtp.kernel.org>
+Subject: + mempolicy-clarify-what-zone-reclaim-means.patch added to mm-unstable branch
+Message-Id: <20250805211712.506E5C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,106 +34,92 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: fs/proc/task_mmu: hold PTL in pagemap_hugetlb_range and gather_hugetlb_stats
-has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch
+The patch titled
+     Subject: mempolicy: clarify what zone reclaim means
+has been added to the -mm mm-unstable branch.  Its filename is
+     mempolicy-clarify-what-zone-reclaim-means.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-clarify-what-zone-reclaim-means.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: fs/proc/task_mmu: hold PTL in pagemap_hugetlb_range and gather_hugetlb_stats
-Date: Thu, 24 Jul 2025 17:09:57 +0800
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mempolicy: clarify what zone reclaim means
+Date: Tue, 5 Aug 2025 13:50:47 -0700
 
-Hold PTL in pagemap_hugetlb_range() and gather_hugetlb_stats() to avoid
-operating on stale page, as pagemap_pmd_range() and gather_pte_stats()
-have done.
+The zone_reclaim_mode API controls the reclaim behavior when a node runs
+out of memory.  Contrary to its user-facing name, it is internally
+referred to as "node_reclaim_mode".
 
-Link: https://lkml.kernel.org/r/20250724090958.455887-3-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+This can be confusing.  But because we cannot change the name of the API
+since it has been in place since at least 2.6, let's try to be more
+explicit about what the behavior of this API is.
+
+Change the description to clarify what zone reclaim entails, and be
+explicit about the RECLAIM_ZONE bit, whose purpose has led to some
+confusion in the past already [1] [2].
+
+While at it, also soften the warning about changing these bits.
+
+[1] https://lore.kernel.org/linux-mm/1579005573-58923-1-git-send-email-alex.shi@linux.alibaba.com/
+[2] https://lore.kernel.org/linux-mm/20200626003459.D8E015CA@viggo.jf.intel.com/
+
+Link: https://lkml.kernel.org/r/20250805205048.1518453-1-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Acked-by: SeongJae Park <sj@kernel.org>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Brahmajit Das <brahmajit.xyz@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
+Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/uapi/linux/mempolicy.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats
-+++ a/fs/proc/task_mmu.c
-@@ -2021,12 +2021,14 @@ static int pagemap_hugetlb_range(pte_t *
- 	struct pagemapread *pm = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
- 	u64 flags = 0, frame = 0;
-+	spinlock_t *ptl;
- 	int err = 0;
- 	pte_t pte;
+--- a/include/uapi/linux/mempolicy.h~mempolicy-clarify-what-zone-reclaim-means
++++ a/include/uapi/linux/mempolicy.h
+@@ -66,10 +66,16 @@ enum {
+ #define MPOL_F_MORON	(1 << 4) /* Migrate On protnone Reference On Node */
  
- 	if (vma->vm_flags & VM_SOFTDIRTY)
- 		flags |= PM_SOFT_DIRTY;
- 
-+	ptl = huge_pte_lock(hstate_vma(vma), walk->mm, ptep);
- 	pte = huge_ptep_get(walk->mm, addr, ptep);
- 	if (pte_present(pte)) {
- 		struct folio *folio = page_folio(pte_page(pte));
-@@ -2054,11 +2056,12 @@ static int pagemap_hugetlb_range(pte_t *
- 
- 		err = add_to_pagemap(&pme, pm);
- 		if (err)
--			return err;
-+			break;
- 		if (pm->show_pfn && (flags & PM_PRESENT))
- 			frame++;
- 	}
- 
-+	spin_unlock(ptl);
- 	cond_resched();
- 
- 	return err;
-@@ -3132,17 +3135,22 @@ static int gather_pte_stats(pmd_t *pmd,
- static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
- 		unsigned long addr, unsigned long end, struct mm_walk *walk)
- {
--	pte_t huge_pte = huge_ptep_get(walk->mm, addr, pte);
-+	pte_t huge_pte;
- 	struct numa_maps *md;
- 	struct page *page;
-+	spinlock_t *ptl;
- 
-+	ptl = huge_pte_lock(hstate_vma(walk->vma), walk->mm, pte);
-+	huge_pte = huge_ptep_get(walk->mm, addr, pte);
- 	if (!pte_present(huge_pte))
--		return 0;
-+		goto out;
- 
- 	page = pte_page(huge_pte);
- 
- 	md = walk->private;
- 	gather_stats(page, md, pte_dirty(huge_pte), 1);
-+out:
-+	spin_unlock(ptl);
- 	return 0;
- }
+ /*
++ * Enabling zone reclaim means the page allocator will attempt to fulfill
++ * the allocation request on the current node by triggering reclaim and
++ * trying to shrink the current node.
++ * Fallback allocations on the next candidates in the zonelist are considered
++ * when reclaim fails to free up enough memory in the current node/zone.
++ *
+  * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
+- * ABI.  New bits are OK, but existing bits can never change.
++ * ABI.  New bits are OK, but existing bits should not be changed.
+  */
+-#define RECLAIM_ZONE	(1<<0)	/* Run shrink_inactive_list on the zone */
++#define RECLAIM_ZONE	(1<<0)	/* Enable zone reclaim */
+ #define RECLAIM_WRITE	(1<<1)	/* Writeout pages during reclaim */
+ #define RECLAIM_UNMAP	(1<<2)	/* Unmap pages during reclaim */
  
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
+mempolicy-clarify-what-zone-reclaim-means.patch
 
