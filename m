@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0BA1239591
-	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 21:17:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D08D2524F
+	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 21:21:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754428633; cv=none; b=r9pkLRArqJ+gWqt8sKmCBWzWY6SG4yWhZVINk6YHzz2z28O3/yhKHHhFBgdA8yRc+jNezD5efgXVTLS+Ez6zktSSeVQmSle1OZNBivo2M57g/kp6/2skrJIguz3V9Q91DyM/MQENVUgSF3dr9KJLyu0yfriizyXNp2WFDbpUD50=
+	t=1754428880; cv=none; b=GddaRcfJcEYP/xRKAYLcvzu1lykjes/Td/dJnlkMaEd+d1Bj6Sl6Bx206Icb7z+HNzTMS9yyQvGj4zRdOYW5N1DbjRRWPF0VFVqR7jWWUmHY7aKrpm1TLSqJYNED52OvhUNNLf+BllP/o8QKJLOAkS0x7Qn3u+z1NE9+mtIr/G4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754428633; c=relaxed/simple;
-	bh=RUsiDw97ALR3dPlckdN6vmR9SxmyruekHzV+bVMluNE=;
-	h=Date:To:From:Subject:Message-Id; b=ErPwORQ7afds1R7ah++jhFIx9+WCa1Nn+f4eUfuT1oM3BhIFkntn/nIsEooEh5yonH5SEuATLsVsH6mPWXi+TqwHTm9uZjwHeqnvPszelx60kdyPAHRZZuQx5jjKnur5gto3Yhou8g5uRM6y/2rszhCg5mQlVaK5pmge+cCa4JA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FxsXGYhV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754428880; c=relaxed/simple;
+	bh=GFK3KqH/3DHsE1MXDwssZFUZIkPfxxFJM7kZpwM8Khk=;
+	h=Date:To:From:Subject:Message-Id; b=PGWa9uQc5StuIA7EZTo3poUi3UXbTcZ2NcZnz9qIJ1d2iK3B63lD+yUer8u1Gh3Dx8qhc0BXv/LpyFat1WG/ogf0dsZ1WfLjqKOqBwwCF431L9CtoPo6xOw2Lm84dtReRK/SlhvIUHW1Aa+t3cC6GAzSpoID1Ke0clSPoAQUwgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YLlWEsV5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FxsXGYhV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 506E5C4CEF0;
-	Tue,  5 Aug 2025 21:17:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YLlWEsV5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63EA0C4CEF0;
+	Tue,  5 Aug 2025 21:21:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754428632;
-	bh=RUsiDw97ALR3dPlckdN6vmR9SxmyruekHzV+bVMluNE=;
+	s=korg; t=1754428879;
+	bh=GFK3KqH/3DHsE1MXDwssZFUZIkPfxxFJM7kZpwM8Khk=;
 	h=Date:To:From:Subject:From;
-	b=FxsXGYhVRDx4uoTBsyCLYQOQX7WeHhoujMpMr4Julr8fCz6/lDyPIxCtOWt7LfQRv
-	 VfDBd727TSNSrZyPtqLD/OPimkZ7vJ2XDlkL1e9IxO2Cu18HCzuaBGkFLX2J1/NoA4
-	 IbEZURPza5dGU7c6hyx5Y4DpyKZ9NALyEYjJCOEw=
-Date: Tue, 05 Aug 2025 14:17:11 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,sj@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=YLlWEsV5OidpubrkVmRbpfFWEp0qeEPfVgu6foVCzbSD+I8zpSz1uF0vIOApX2bOw
+	 l6HOnehWuJQUIbEgfwXalVmi14zyNq2Ap29+BGBpyUajKp9rkF/ZJNSQs7Rm28Ik1b
+	 NobKJwtIzLDKjGXjygVPgWV+TVb4tDjrAmYVxhxM=
+Date: Tue, 05 Aug 2025 14:21:18 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,shuah@kernel.org,ryncsn@gmail.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,broonie@kernel.org,brauner@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-clarify-what-zone-reclaim-means.patch added to mm-unstable branch
-Message-Id: <20250805211712.506E5C4CEF0@smtp.kernel.org>
+Subject: + selftests-mm-fix-force_read-to-read-input-value-correctly.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250805212119.63EA0C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mempolicy: clarify what zone reclaim means
-has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-clarify-what-zone-reclaim-means.patch
+     Subject: selftests/mm: fix FORCE_READ to read input value correctly.
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-fix-force_read-to-read-input-value-correctly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-clarify-what-zone-reclaim-means.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-force_read-to-read-input-value-correctly.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,68 +58,137 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mempolicy: clarify what zone reclaim means
-Date: Tue, 5 Aug 2025 13:50:47 -0700
+From: Zi Yan <ziy@nvidia.com>
+Subject: selftests/mm: fix FORCE_READ to read input value correctly.
+Date: Tue, 5 Aug 2025 13:51:40 -0400
 
-The zone_reclaim_mode API controls the reclaim behavior when a node runs
-out of memory.  Contrary to its user-facing name, it is internally
-referred to as "node_reclaim_mode".
+FORCE_READ() converts input value x to its pointer type then reads from
+address x.  This is wrong.  If x is a non-pointer, it would be caught it
+easily.  But all FORCE_READ() callers are trying to read from a pointer
+and FORCE_READ() basically reads a pointer to a pointer instead of the
+original typed pointer.  Almost no access violation was found, except the
+one from split_huge_page_test.
 
-This can be confusing.  But because we cannot change the name of the API
-since it has been in place since at least 2.6, let's try to be more
-explicit about what the behavior of this API is.
+Fix it by implementing a simplified READ_ONCE() instead.
 
-Change the description to clarify what zone reclaim entails, and be
-explicit about the RECLAIM_ZONE bit, whose purpose has led to some
-confusion in the past already [1] [2].
-
-While at it, also soften the warning about changing these bits.
-
-[1] https://lore.kernel.org/linux-mm/1579005573-58923-1-git-send-email-alex.shi@linux.alibaba.com/
-[2] https://lore.kernel.org/linux-mm/20200626003459.D8E015CA@viggo.jf.intel.com/
-
-Link: https://lkml.kernel.org/r/20250805205048.1518453-1-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Acked-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20250805175140.241656-1-ziy@nvidia.com
+Fixes: 3f6bfd4789a0 ("selftests/mm: reuse FORCE_READ to replace "asm volatile("" : "+r" (XXX));"")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: wang lian <lianux.mm@gmail.com>,
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/mempolicy.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/cow.c                  |    4 ++--
+ tools/testing/selftests/mm/guard-regions.c        |    2 +-
+ tools/testing/selftests/mm/hugetlb-madvise.c      |    4 +++-
+ tools/testing/selftests/mm/migration.c            |    2 +-
+ tools/testing/selftests/mm/pagemap_ioctl.c        |    2 +-
+ tools/testing/selftests/mm/split_huge_page_test.c |    7 +++++--
+ tools/testing/selftests/mm/vm_util.h              |    2 +-
+ 7 files changed, 14 insertions(+), 9 deletions(-)
 
---- a/include/uapi/linux/mempolicy.h~mempolicy-clarify-what-zone-reclaim-means
-+++ a/include/uapi/linux/mempolicy.h
-@@ -66,10 +66,16 @@ enum {
- #define MPOL_F_MORON	(1 << 4) /* Migrate On protnone Reference On Node */
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-force_read-to-read-input-value-correctly
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1554,8 +1554,8 @@ static void run_with_zeropage(non_anon_t
+ 	}
  
- /*
-+ * Enabling zone reclaim means the page allocator will attempt to fulfill
-+ * the allocation request on the current node by triggering reclaim and
-+ * trying to shrink the current node.
-+ * Fallback allocations on the next candidates in the zonelist are considered
-+ * when reclaim fails to free up enough memory in the current node/zone.
-+ *
-  * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
-- * ABI.  New bits are OK, but existing bits can never change.
-+ * ABI.  New bits are OK, but existing bits should not be changed.
+ 	/* Read from the page to populate the shared zeropage. */
+-	FORCE_READ(mem);
+-	FORCE_READ(smem);
++	FORCE_READ(*mem);
++	FORCE_READ(*smem);
+ 
+ 	fn(mem, smem, pagesize);
+ munmap:
+--- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-fix-force_read-to-read-input-value-correctly
++++ a/tools/testing/selftests/mm/guard-regions.c
+@@ -145,7 +145,7 @@ static bool try_access_buf(char *ptr, bo
+ 		if (write)
+ 			*ptr = 'x';
+ 		else
+-			FORCE_READ(ptr);
++			FORCE_READ(*ptr);
+ 	}
+ 
+ 	signal_jump_set = false;
+--- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-fix-force_read-to-read-input-value-correctly
++++ a/tools/testing/selftests/mm/hugetlb-madvise.c
+@@ -50,8 +50,10 @@ void read_fault_pages(void *addr, unsign
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < nr_pages; i++) {
++		unsigned long *addr2 =
++			((unsigned long *)(addr + (i * huge_page_size)));
+ 		/* Prevent the compiler from optimizing out the entire loop: */
+-		FORCE_READ(((unsigned long *)(addr + (i * huge_page_size))));
++		FORCE_READ(*addr2);
+ 	}
+ }
+ 
+--- a/tools/testing/selftests/mm/migration.c~selftests-mm-fix-force_read-to-read-input-value-correctly
++++ a/tools/testing/selftests/mm/migration.c
+@@ -110,7 +110,7 @@ void *access_mem(void *ptr)
+ 		 * the memory access actually happens and prevents the compiler
+ 		 * from optimizing away this entire loop.
+ 		 */
+-		FORCE_READ((uint64_t *)ptr);
++		FORCE_READ(*(uint64_t *)ptr);
+ 	}
+ 
+ 	return NULL;
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-fix-force_read-to-read-input-value-correctly
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -1525,7 +1525,7 @@ void zeropfn_tests(void)
+ 
+ 	ret = madvise(mem, hpage_size, MADV_HUGEPAGE);
+ 	if (!ret) {
+-		FORCE_READ(mem);
++		FORCE_READ(*mem);
+ 
+ 		ret = pagemap_ioctl(mem, hpage_size, &vec, 1, 0,
+ 				    0, PAGE_IS_PFNZERO, 0, 0, PAGE_IS_PFNZERO);
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-fix-force_read-to-read-input-value-correctly
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -439,8 +439,11 @@ int create_pagecache_thp_and_fd(const ch
+ 	}
+ 	madvise(*addr, fd_size, MADV_HUGEPAGE);
+ 
+-	for (size_t i = 0; i < fd_size; i++)
+-		FORCE_READ((*addr + i));
++	for (size_t i = 0; i < fd_size; i++) {
++		char *addr2 = *addr + i;
++
++		FORCE_READ(*addr2);
++	}
+ 
+ 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
+ 		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-fix-force_read-to-read-input-value-correctly
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -23,7 +23,7 @@
+  * anything with it in order to trigger a read page fault. We therefore must use
+  * volatile to stop the compiler from optimising this away.
   */
--#define RECLAIM_ZONE	(1<<0)	/* Run shrink_inactive_list on the zone */
-+#define RECLAIM_ZONE	(1<<0)	/* Enable zone reclaim */
- #define RECLAIM_WRITE	(1<<1)	/* Writeout pages during reclaim */
- #define RECLAIM_UNMAP	(1<<2)	/* Unmap pages during reclaim */
+-#define FORCE_READ(x) (*(volatile typeof(x) *)x)
++#define FORCE_READ(x) (*(const volatile typeof(x) *)&(x))
  
+ extern unsigned int __page_size;
+ extern unsigned int __page_shift;
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mempolicy-clarify-what-zone-reclaim-means.patch
+selftests-mm-fix-force_read-to-read-input-value-correctly.patch
 
