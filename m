@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 274CB230BFF
-	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 20:39:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5D42231845
+	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 20:39:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754426369; cv=none; b=s0+Ve8foC7/PX1ZMjZhERJHyKIWU1fj5y+8oz1ayFE98fTcl2/7vU09M8BZWODensPwQ1JQl5sE56O5y+D/ZjMZ/SNoaetDEleydZ1ntxauqIdS0Ru5ARCRhtfl3pj3L3LoZYVcD6oGP1kbxc0PrWvd8v025Flj1cPjUIgTXh3U=
+	t=1754426371; cv=none; b=t2rJullMO3wX2ab1iH64pmlLpy9cR6ubNNA/qnwAiAZNMhprWN/y1NJ2QpBZoeFec9E1sIcP5EwLYcQMjr+MjU41u9nT0C6jKjMFa1Z6oE+XJCM6L3s/KVJEYXdgD5/+1U5EpZBZPCIwwXSWRsQeTxFHNM6MKf6093E2rnM655w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754426369; c=relaxed/simple;
-	bh=yQEN/O1xlFEn786PXzYhBVyTPEA8ckwtozX9w9iNGe8=;
-	h=Date:To:From:Subject:Message-Id; b=Zab+iBCCgo2Qw3zT6d8hcpWfkbypQtLD0m33NashKHcARam98gXMpxY6bO+uvN9tMFs714bB9iqlVD5ntTTEh30wUvCC8omu9BXcqiJAjrQQSI2AxX5abX0lx1uiWSP2mtFg5zeR/FBCvWD5gM+H+6J47NDx9rSx3rNN2PjAWgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dDHb6KKg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754426371; c=relaxed/simple;
+	bh=1RGerIRCTs/SpUiIx1AqVoiA8+PoWA9DwutyWIjPCUM=;
+	h=Date:To:From:Subject:Message-Id; b=hSt11hl4hVFf9tNVC+fYZcw4hymjEIc9n4JUq5qdFx2oVcXrKHgERNGJBaVM7FxfyN7eBORiViKatIA7/uT1Ufuvndnn20e3HwTrbM2guDqZiIncmIkf9LCJF5rGdLxriaWOS9XOroiFjKYvB/y0eiCzPmFzGOCXWq3RazvjrI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJKXWgUb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dDHb6KKg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9725BC4CEF0;
-	Tue,  5 Aug 2025 20:39:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJKXWgUb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F950C4CEF0;
+	Tue,  5 Aug 2025 20:39:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754426368;
-	bh=yQEN/O1xlFEn786PXzYhBVyTPEA8ckwtozX9w9iNGe8=;
+	s=korg; t=1754426371;
+	bh=1RGerIRCTs/SpUiIx1AqVoiA8+PoWA9DwutyWIjPCUM=;
 	h=Date:To:From:Subject:From;
-	b=dDHb6KKgRYVqvn7Al6dSvyNxnwHxNJERV5x2TNyBMQE/iLJRR6AAQKRg0HTwRF4CL
-	 BHx3cKWbXEdrE3DWxiKP5Akrfi+Zdw+Dz809ygQ8KuB5qAG0D1XQqF9q5CKGhMEKWB
-	 lmDI1E7fYdqRawGt3p0GVqwTk6kMgANuZibPECr8=
-Date: Tue, 05 Aug 2025 13:39:28 -0700
+	b=lJKXWgUbapzKH8m5bmZqsTnrfTUIuslzuN6TRzVFX0xbgarbe3JddwEm8ZDbbJmw8
+	 MKkR6tREU6pWWgSTmtj97MnF9DOx6Qn8dKn6pHnjHjGMMmiagCTPhFq2IX2jkKAecY
+	 r4+9kW2YI15WX7dJxb/wBCJ6Ws1CqLvMWsk5v2lw=
+Date: Tue, 05 Aug 2025 13:39:30 -0700
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,thiago.bauermann@linaro.org,ryan.roberts@arm.com,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,joern@logfs.org,hughd@google.com,dev.jain@arm.com,david@redhat.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,brahmajit.xyz@gmail.com,baolin.wang@linux.alibaba.com,avagin@gmail.com,andrii@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-smaps-fix-race-between-smaps_hugetlb_range-and-migration.patch removed from -mm tree
-Message-Id: <20250805203928.9725BC4CEF0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch removed from -mm tree
+Message-Id: <20250805203931.4F950C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/smaps: fix race between smaps_hugetlb_range and migration
+     Subject: fs/proc/task_mmu: hold PTL in pagemap_hugetlb_range and gather_hugetlb_stats
 has been removed from the -mm tree.  Its filename was
-     mm-smaps-fix-race-between-smaps_hugetlb_range-and-migration.patch
+     fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/smaps: fix race between smaps_hugetlb_range and migration
-Date: Thu, 24 Jul 2025 17:09:56 +0800
+Subject: fs/proc/task_mmu: hold PTL in pagemap_hugetlb_range and gather_hugetlb_stats
+Date: Thu, 24 Jul 2025 17:09:57 +0800
 
-smaps_hugetlb_range() handles the pte without holdling ptl, and may be
-concurrenct with migration, leaing to BUG_ON in pfn_swap_entry_to_page(). 
-The race is as follows.
+Hold PTL in pagemap_hugetlb_range() and gather_hugetlb_stats() to avoid
+operating on stale page, as pagemap_pmd_range() and gather_pte_stats()
+have done.
 
-smaps_hugetlb_range              migrate_pages
-  huge_ptep_get
-                                   remove_migration_ptes
-				   folio_unlock
-  pfn_swap_entry_folio
-    BUG_ON
-
-To fix it, hold ptl lock in smaps_hugetlb_range().
-
-Link: https://lkml.kernel.org/r/20250724090958.455887-1-tujinjiang@huawei.com
-Link: https://lkml.kernel.org/r/20250724090958.455887-2-tujinjiang@huawei.com
-Fixes: 25ee01a2fca0 ("mm: hugetlb: proc: add hugetlb-related fields to /proc/PID/smaps")
+Link: https://lkml.kernel.org/r/20250724090958.455887-3-tujinjiang@huawei.com
 Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Andrei Vagin <avagin@gmail.com>
@@ -83,34 +72,65 @@ Cc: Thiago Jung Bauermann <thiago.bauermann@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-smaps-fix-race-between-smaps_hugetlb_range-and-migration
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-hold-ptl-in-pagemap_hugetlb_range-and-gather_hugetlb_stats
 +++ a/fs/proc/task_mmu.c
-@@ -1148,10 +1148,13 @@ static int smaps_hugetlb_range(pte_t *pt
- {
- 	struct mem_size_stats *mss = walk->private;
+@@ -2021,12 +2021,14 @@ static int pagemap_hugetlb_range(pte_t *
+ 	struct pagemapread *pm = walk->private;
  	struct vm_area_struct *vma = walk->vma;
--	pte_t ptent = huge_ptep_get(walk->mm, addr, pte);
- 	struct folio *folio = NULL;
- 	bool present = false;
+ 	u64 flags = 0, frame = 0;
 +	spinlock_t *ptl;
-+	pte_t ptent;
+ 	int err = 0;
+ 	pte_t pte;
  
-+	ptl = huge_pte_lock(hstate_vma(vma), walk->mm, pte);
-+	ptent = huge_ptep_get(walk->mm, addr, pte);
- 	if (pte_present(ptent)) {
- 		folio = page_folio(pte_page(ptent));
- 		present = true;
-@@ -1170,6 +1173,7 @@ static int smaps_hugetlb_range(pte_t *pt
- 		else
- 			mss->private_hugetlb += huge_page_size(hstate_vma(vma));
+ 	if (vma->vm_flags & VM_SOFTDIRTY)
+ 		flags |= PM_SOFT_DIRTY;
+ 
++	ptl = huge_pte_lock(hstate_vma(vma), walk->mm, ptep);
+ 	pte = huge_ptep_get(walk->mm, addr, ptep);
+ 	if (pte_present(pte)) {
+ 		struct folio *folio = page_folio(pte_page(pte));
+@@ -2054,11 +2056,12 @@ static int pagemap_hugetlb_range(pte_t *
+ 
+ 		err = add_to_pagemap(&pme, pm);
+ 		if (err)
+-			return err;
++			break;
+ 		if (pm->show_pfn && (flags & PM_PRESENT))
+ 			frame++;
  	}
+ 
++	spin_unlock(ptl);
+ 	cond_resched();
+ 
+ 	return err;
+@@ -3132,17 +3135,22 @@ static int gather_pte_stats(pmd_t *pmd,
+ static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+ {
+-	pte_t huge_pte = huge_ptep_get(walk->mm, addr, pte);
++	pte_t huge_pte;
+ 	struct numa_maps *md;
+ 	struct page *page;
++	spinlock_t *ptl;
+ 
++	ptl = huge_pte_lock(hstate_vma(walk->vma), walk->mm, pte);
++	huge_pte = huge_ptep_get(walk->mm, addr, pte);
+ 	if (!pte_present(huge_pte))
+-		return 0;
++		goto out;
+ 
+ 	page = pte_page(huge_pte);
+ 
+ 	md = walk->private;
+ 	gather_stats(page, md, pte_dirty(huge_pte), 1);
++out:
 +	spin_unlock(ptl);
  	return 0;
  }
- #else
+ 
 _
 
 Patches currently in -mm which might be from tujinjiang@huawei.com are
