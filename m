@@ -1,196 +1,179 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F0A83FE7;
-	Tue,  5 Aug 2025 01:58:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8356120B7F4
+	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 05:44:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754359133; cv=none; b=rSEBA8wpf6y+NEnI/KrGOVeJBcwb1rmdmAJfhxnXgRn5SJwotUeIAZe2B8M/ZBh5F79MC1rijSVJzhrd5+edd+INWbIZkIdIdm2+i95izidLHKOuKoGstDm5Vs1w5xBZbrST6vYj0YPO2zK6mbihBfLH3RAUn5ef4NaqPThBZF8=
+	t=1754372645; cv=none; b=K4VP4o/FFJkcPWSjFJcvClIwXwyxeuA/ET2zbPTC3onP/RnwkzvVg4ZknypIXgDudsg/41GIvB6ZzpyfkJe/yZP53L1clIs61VqWJHtFdewssUO+5elc6B9ktOh9lNI4ZkZRGtBTEhNveOddQZ/5J1u7srbvc6cpEutqtWJfgu0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754359133; c=relaxed/simple;
-	bh=zxcA38zhJxLeuNnCt3MgCVsaJMa24DpyresNs6gIDdE=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=rxA/ybC0SgtopCzgpqpHBrkwow9TmUAs1fAgPkcKs8X6R3sPotEN/ffD1qiXdrZyJp3VCX18joy0CmJuUeOUtkOAweK3utz6P5LIYThmzHhKXq65jyVHPolFVkCs53SaLfvpxVKboAqcDeaPU7vQ8bfZkiEj4Eb6PLKN9pqm/aw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DhNJFuoR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754372645; c=relaxed/simple;
+	bh=GR4PeqRSg8vmkcDyHaVeDW8u+X5+6BA8OF05TmJFMg4=;
+	h=Date:To:From:Subject:Message-Id; b=VRhNInuTwDshgRmUX0cwZaLGUtQElNf2tKoSqg2Tuf36jzt4yreEpmHeBWVT0jyyLk6JZmF7Vlu7QZ847HK5jJdfipR4XSIzv9eUR5LsP8R6vhXt6OQ2TXkJoaPRFEUPC3JFIrev3wRshL/7z+jHO+fJH1LKW67p5dK4d67e/hU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P0arAkYg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DhNJFuoR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E494AC4CEE7;
-	Tue,  5 Aug 2025 01:58:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P0arAkYg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E38B2C4CEF6;
+	Tue,  5 Aug 2025 05:44:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754359133;
-	bh=zxcA38zhJxLeuNnCt3MgCVsaJMa24DpyresNs6gIDdE=;
-	h=Date:From:To:Cc:Subject:From;
-	b=DhNJFuoRiXsCswzz9Yv+4+0rdQEGQ/xTs8Jz7RGXMC84vNwKXe7FJVJhO5swRPb1t
-	 r1uueT6B5BPKX/kKiooz8YrF/LM8p8A7hfKiUPvXzadxjKW8c8h5RLU64JJ/12Tqj+
-	 CMGRsf0VrL9gyQlgYi5nfaPLjfLK4EuHQLEsWr+Q=
-Date: Mon, 4 Aug 2025 18:58:52 -0700
+	s=korg; t=1754372645;
+	bh=GR4PeqRSg8vmkcDyHaVeDW8u+X5+6BA8OF05TmJFMg4=;
+	h=Date:To:From:Subject:From;
+	b=P0arAkYgGpcOW1DGQ38s0CLgPzzhUur+v6Zhq/Jnjtu21zodQBX/Thn4HS0/bP98z
+	 +DmEFhcDwov0xuay/h6uR8bcpI85/otWKPIXH3OOo5z+/70dpBhgq+JVq1X6gFs9vA
+	 BEy7M16PZfYQdeeUNSFE2jXeZjYKp29T5yiTOM6U=
+Date: Mon, 04 Aug 2025 22:44:04 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengtangquan@oppo.com,zhengqi.arch@bytedance.com,yi1.lai@linux.intel.com,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,jannh@google.com,ioworker0@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] Additional MM updates for 6.17-rc1
-Message-Id: <20250804185852.038ce90aa6f9a177c492b675@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-fix-the-race-between-collapse-and-pt_reclaim-under-per-vma-lock.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250805054404.E38B2C4CEF6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please pull this second and final batch of MM updates for the
-upcoming -rc1 cycle, thanks.
+The patch titled
+     Subject: mm: fix the race between collapse and PT_RECLAIM under per-vma lock
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-the-race-between-collapse-and-pt_reclaim-under-per-vma-lock.patch
 
-I'm presently seeing no merge issues with this small batch of changes.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-the-race-between-collapse-and-pt_reclaim-under-per-vma-lock.patch
 
-Thanks.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The following changes since commit af915c3c13b64d196d1c305016092f5da20942c4:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  MAINTAINERS: add missing headers to mempory policy & migration section (2025-07-26 15:08:24 -0700)
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-are available in the Git repository at:
+------------------------------------------------------
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: fix the race between collapse and PT_RECLAIM under per-vma lock
+Date: Tue, 5 Aug 2025 11:54:47 +0800
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2025-08-03-12-35
+The check_pmd_still_valid() call during collapse is currently only
+protected by the mmap_lock in write mode, which was sufficient when
+pt_reclaim always ran under mmap_lock in read mode.  However, since
+madvise_dontneed can now execute under a per-VMA lock, this assumption is
+no longer valid.  As a result, a race condition can occur between collapse
+and PT_RECLAIM, potentially leading to a kernel panic.
 
-for you to fetch changes up to a2152fef29020e740ba0276930f3a24440012505:
+ [   38.151897] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000003: 0000 [#1] SMP KASI
+ [   38.153519] KASAN: null-ptr-deref in range [0x0000000000000018-0x000000000000001f]
+ [   38.154605] CPU: 0 UID: 0 PID: 721 Comm: repro Not tainted 6.16.0-next-20250801-next-2025080 #1 PREEMPT(voluntary)
+ [   38.155929] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org4
+ [   38.157418] RIP: 0010:kasan_byte_accessible+0x15/0x30
+ [   38.158125] Code: 03 0f 1f 40 00 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 66 0f 1f 00 48 b8 00 00 00 00 00 fc0
+ [   38.160461] RSP: 0018:ffff88800feef678 EFLAGS: 00010286
+ [   38.161220] RAX: dffffc0000000000 RBX: 0000000000000001 RCX: 1ffffffff0dde60c
+ [   38.162232] RDX: 0000000000000000 RSI: ffffffff85da1e18 RDI: dffffc0000000003
+ [   38.163176] RBP: ffff88800feef698 R08: 0000000000000001 R09: 0000000000000000
+ [   38.164195] R10: 0000000000000000 R11: ffff888016a8ba58 R12: 0000000000000018
+ [   38.165189] R13: 0000000000000018 R14: ffffffff85da1e18 R15: 0000000000000000
+ [   38.166100] FS:  0000000000000000(0000) GS:ffff8880e3b40000(0000) knlGS:0000000000000000
+ [   38.167137] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ [   38.167891] CR2: 00007f97fadfe504 CR3: 0000000007088005 CR4: 0000000000770ef0
+ [   38.168812] PKRU: 55555554
+ [   38.169275] Call Trace:
+ [   38.169647]  <TASK>
+ [   38.169975]  ? __kasan_check_byte+0x19/0x50
+ [   38.170581]  lock_acquire+0xea/0x310
+ [   38.171083]  ? rcu_is_watching+0x19/0xc0
+ [   38.171615]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
+ [   38.172343]  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
+ [   38.173130]  _raw_spin_lock+0x38/0x50
+ [   38.173707]  ? __pte_offset_map_lock+0x1a2/0x3c0
+ [   38.174390]  __pte_offset_map_lock+0x1a2/0x3c0
+ [   38.174987]  ? __pfx___pte_offset_map_lock+0x10/0x10
+ [   38.175724]  ? __pfx_pud_val+0x10/0x10
+ [   38.176308]  ? __sanitizer_cov_trace_const_cmp1+0x1e/0x30
+ [   38.177183]  unmap_page_range+0xb60/0x43e0
+ [   38.177824]  ? __pfx_unmap_page_range+0x10/0x10
+ [   38.178485]  ? mas_next_slot+0x133a/0x1a50
+ [   38.179079]  unmap_single_vma.constprop.0+0x15b/0x250
+ [   38.179830]  unmap_vmas+0x1fa/0x460
+ [   38.180373]  ? __pfx_unmap_vmas+0x10/0x10
+ [   38.180994]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
+ [   38.181877]  exit_mmap+0x1a2/0xb40
+ [   38.182396]  ? lock_release+0x14f/0x2c0
+ [   38.182929]  ? __pfx_exit_mmap+0x10/0x10
+ [   38.183474]  ? __pfx___mutex_unlock_slowpath+0x10/0x10
+ [   38.184188]  ? mutex_unlock+0x16/0x20
+ [   38.184704]  mmput+0x132/0x370
+ [   38.185208]  do_exit+0x7e7/0x28c0
+ [   38.185682]  ? __this_cpu_preempt_check+0x21/0x30
+ [   38.186328]  ? do_group_exit+0x1d8/0x2c0
+ [   38.186873]  ? __pfx_do_exit+0x10/0x10
+ [   38.187401]  ? __this_cpu_preempt_check+0x21/0x30
+ [   38.188036]  ? _raw_spin_unlock_irq+0x2c/0x60
+ [   38.188634]  ? lockdep_hardirqs_on+0x89/0x110
+ [   38.189313]  do_group_exit+0xe4/0x2c0
+ [   38.189831]  __x64_sys_exit_group+0x4d/0x60
+ [   38.190413]  x64_sys_call+0x2174/0x2180
+ [   38.190935]  do_syscall_64+0x6d/0x2e0
+ [   38.191449]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-  mm: mempool: fix crash in mempool_free() for zero-minimum pools (2025-08-02 12:06:13 -0700)
+This patch moves the vma_start_write() call to precede
+check_pmd_still_valid(), ensuring that the check is also properly
+protected by the per-VMA lock.
 
-----------------------------------------------------------------
-Significant patch series in this pull request:
+Link: https://lkml.kernel.org/r/20250805035447.7958-1-21cnbao@gmail.com
+Fixes: a6fde7add78d ("mm: use per_vma lock for MADV_DONTNEED")
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Tested-by: "Lai, Yi" <yi1.lai@linux.intel.com>
+Reported-by: "Lai, Yi" <yi1.lai@linux.intel.com>
+Closes: https://lore.kernel.org/all/aJAFrYfyzGpbm+0m@ly-workstation/
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Tangquan Zheng <zhengtangquan@oppo.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-- The 4 patch series "mseal cleanups" from Lorenzo Stoakes erforms some
-  mseal cleaning with no intended functional change.
+ mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-- The 3 patch series "Optimizations for khugepaged" from David
-  Hildenbrand improves khugepaged throughput by batching PTE operations
-  for large folios.  This gain is mainly for arm64.
+--- a/mm/khugepaged.c~mm-fix-the-race-between-collapse-and-pt_reclaim-under-per-vma-lock
++++ a/mm/khugepaged.c
+@@ -1155,11 +1155,11 @@ static int collapse_huge_page(struct mm_
+ 	if (result != SCAN_SUCCEED)
+ 		goto out_up_write;
+ 	/* check if the pmd is still valid */
++	vma_start_write(vma);
+ 	result = check_pmd_still_valid(mm, address, pmd);
+ 	if (result != SCAN_SUCCEED)
+ 		goto out_up_write;
+ 
+-	vma_start_write(vma);
+ 	anon_vma_lock_write(vma->anon_vma);
+ 
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, address,
+_
 
-- The 8 patch series "x86: enable EXECMEM_ROX_CACHE for ftrace and
-  kprobes" from Mike Rapoport provides a bugfix, additional debug code and
-  cleanups to the execmem code.
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-- The 7 patch series "mm/shmem, swap: bugfix and improvement of mTHP
-  swap in" from Kairui Song provides bugfixes, cleanups and performance
-  improvememnts to the mTHP swapin code.
-
-----------------------------------------------------------------
-Baolin Wang (1):
-      mm: shmem: fix the shmem large folio allocation for the i915 driver
-
-Bijan Tabatabai (1):
-      mm/damon/vaddr: skip isolating folios already in destination nid
-
-David Hildenbrand (1):
-      mm: add get_and_clear_ptes() and clear_ptes()
-
-Dev Jain (2):
-      khugepaged: optimize __collapse_huge_page_copy_succeeded() by PTE batching
-      khugepaged: optimize collapse_pte_mapped_thp() by PTE batching
-
-Jann Horn (2):
-      kasan: skip quarantine if object is still accessible under RCU
-      mm/rmap: add anon_vma lifetime debug check
-
-Jinjiang Tu (2):
-      mm/memory-failure: hold PTL in hwpoison_hugetlb_range
-      mm/mincore: hold PTL in mincore_hugetlb
-
-Joanne Koong (1):
-      mm/page-flags: remove folio_start_writeback_keepwrite()
-
-Kairui Song (8):
-      mm/shmem, swap: improve cached mTHP handling and fix potential hang
-      mm/shmem, swap: avoid redundant Xarray lookup during swapin
-      mm/shmem, swap: tidy up THP swapin checks
-      mm/shmem, swap: tidy up swap entry splitting
-      mm/shmem, swap: never use swap cache and readahead for SWP_SYNCHRONOUS_IO
-      mm/shmem, swap: simplify swapin path and result handling
-      mm/shmem, swap: rework swap entry and index calculation for large swapin
-      mm/shmem, swap: fix major fault counting
-
-Lorenzo Stoakes (7):
-      mm/mseal: always define VM_SEALED
-      mm/mseal: update madvise() logic
-      mm/mseal: small cleanups
-      mm/mseal: simplify and rename VMA gap check
-      mm/mseal: rework mseal apply logic
-      mm: remove mm/io-mapping.c
-      mm: correct type for vmalloc vm_flags fields
-
-Mike Rapoport (Microsoft) (8):
-      execmem: drop unused execmem_update_copy()
-      execmem: introduce execmem_alloc_rw()
-      execmem: rework execmem_cache_free()
-      execmem: move execmem_force_rw() and execmem_restore_rox() before use
-      execmem: add fallback for failures in vmalloc(VM_ALLOW_HUGE_VMAP)
-      execmem: drop writable parameter from execmem_fill_trapping_insns()
-      x86/kprobes: enable EXECMEM_ROX_CACHE for kprobes allocations
-      x86/ftrace: enable EXECMEM_ROX_CACHE for ftrace allocations
-
-Suren Baghdasaryan (1):
-      mm: fix a UAF when vma->mm is freed after vma->vm_refcnt got dropped
-
-Suresh K C (1):
-      selftests: cachestat: add tests for mmap, refactor and enhance mmap test for cachestat validation
-
-Xuanye Liu (1):
-      mm: add process info to bad rss-counter warning
-
-Yadan Fan (1):
-      mm: mempool: fix crash in mempool_free() for zero-minimum pools
-
-wang lian (1):
-      selftests/mm: add process_madvise() tests
-
- Documentation/core-api/mm-api.rst                  |   1 -
- arch/arm64/mm/mmu.c                                |   4 +-
- arch/x86/kernel/alternative.c                      |   3 +-
- arch/x86/kernel/ftrace.c                           |   2 +-
- arch/x86/kernel/kprobes/core.c                     |  18 --
- arch/x86/mm/init.c                                 |  24 +-
- include/linux/execmem.h                            |  54 ++--
- include/linux/io-mapping.h                         |   3 -
- include/linux/mm.h                                 |   6 +-
- include/linux/mmap_lock.h                          |  30 ++
- include/linux/page-flags.h                         |   2 -
- include/linux/pgtable.h                            |  45 +++
- include/linux/rmap.h                               |  22 ++
- kernel/fork.c                                      |   9 +-
- kernel/module/main.c                               |  13 +-
- mm/Kconfig                                         |   4 -
- mm/Makefile                                        |   1 -
- mm/damon/vaddr.c                                   |   4 +
- mm/execmem.c                                       | 206 ++++++++----
- mm/internal.h                                      |   2 +-
- mm/io-mapping.c                                    |  30 --
- mm/kasan/common.c                                  |  25 +-
- mm/khugepaged.c                                    |  58 ++--
- mm/madvise.c                                       |  71 ++++-
- mm/memory-failure.c                                |  12 +-
- mm/mempool.c                                       |  24 +-
- mm/mincore.c                                       |   3 +
- mm/mmap_lock.c                                     |  10 +-
- mm/mprotect.c                                      |   2 +-
- mm/mremap.c                                        |   4 +-
- mm/mseal.c                                         | 166 +++-------
- mm/nommu.c                                         |   2 +-
- mm/rmap.c                                          |   2 +-
- mm/shmem.c                                         | 279 +++++++++--------
- mm/vma.c                                           |   4 +-
- mm/vma.h                                           |  27 +-
- tools/testing/selftests/cachestat/test_cachestat.c |  62 +++-
- tools/testing/selftests/mm/.gitignore              |   1 +
- tools/testing/selftests/mm/Makefile                |   1 +
- tools/testing/selftests/mm/process_madv.c          | 344 +++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh          |   5 +
- tools/testing/vma/vma_internal.h                   |   6 +-
- 42 files changed, 1080 insertions(+), 511 deletions(-)
- delete mode 100644 mm/io-mapping.c
- create mode 100644 tools/testing/selftests/mm/process_madv.c
-
+mm-fix-the-race-between-collapse-and-pt_reclaim-under-per-vma-lock.patch
 
