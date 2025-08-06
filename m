@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C76624B29
-	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 02:44:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF52024B29
+	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 02:44:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754448264; cv=none; b=rMvb3+n5vbVYtMT+5evZbU3GecB968CacHeqxvBfe46WezdiRMxPDvChDRmMDCXmKEe1W/kRNmbSc74G7pwKSNRr8UpgQ21oOaQyXopCWJsLANa+NjeKwsUfhuy+Ug7WMDBqLo/A8aF8+lqtQAHXoqNawtTVxgoYxXwbg8U5te8=
+	t=1754448266; cv=none; b=FItps8C/X84LTZQUjU/OsvaUlGtlvGrFSgTB6NrpSVKsA0yeDhMxigeW3cdi0mE8jwnBas4hEtWvyHoh3wwEJql/u/fxtKlf4gtBzHq9WUa+enoPppi7sPQ8da5EPriY+LV4i2RGBNYRIftR8xlRFXN/7l4Got5h+i118EvKAuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754448264; c=relaxed/simple;
-	bh=MfQnY8DE2EBVt7rDFRommlof6KilDRoUeuWFaLueEac=;
-	h=Date:To:From:Subject:Message-Id; b=g0hvr+cb0teGjHUcEUOkOv3X2KsitzzfI6BqqjVOCm0QhIYF1fzwcr3a3dRaYQ/CdM3/bT/a2Iu6CCbLUmaY7jutyFC9tSp81KVwJmVqiez7nrgxB5otmOL0fovo8+rP64wZma5apXU6+u5bQ8oK4Dp6gEjh/M6UFcEkm5+fq4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0WAuhUp7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754448266; c=relaxed/simple;
+	bh=BINoaqN3NRXcGA2Qp0RbJ0PrY9vbrCgSRX5oaT1whN4=;
+	h=Date:To:From:Subject:Message-Id; b=kk+uEDxfpBhl76zUTvAIUZIYPy4X7o+Hh3i3/VdOAWkzbP3UMPO5T7qyS2W5//2YJZZB/nJLT2rlcGGgvfhRs15nZuFTxuwdMwcj5mtQ6wFCkoJe2FaWty366NIo8KiBVyuV62H1t8bdgBS+CbaLtWGbauuguqCsIlakloky+fY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EMYjcAtD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0WAuhUp7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A190FC4CEF0;
-	Wed,  6 Aug 2025 02:44:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EMYjcAtD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26A46C4CEF0;
+	Wed,  6 Aug 2025 02:44:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754448263;
-	bh=MfQnY8DE2EBVt7rDFRommlof6KilDRoUeuWFaLueEac=;
+	s=korg; t=1754448266;
+	bh=BINoaqN3NRXcGA2Qp0RbJ0PrY9vbrCgSRX5oaT1whN4=;
 	h=Date:To:From:Subject:From;
-	b=0WAuhUp7XiWct6obgBkJFfhljGlCz5tosk3Jwtz9DW0J8k5E7D/CvSA8eYqF2UqoQ
-	 Gs0Zlu8mDksxLrQjF8zmCr5LUH/i0JcPLOxyu0nY6/WWZaewnMUyZd1YCfGKPxorPI
-	 bz45NasFgqPic80WTZ3okyBE6KDGlUFER1EeXpAA=
-Date: Tue, 05 Aug 2025 19:44:23 -0700
+	b=EMYjcAtDMgtCwchghfGFT4wYQuUKVHFWoJ6CisEjGn0UdyAxbyzalzEayDcciGS3f
+	 YL3E4xSC5p9MAYgxnAT0t8XPMd0lZJT2knm9iclcNwWM28inbYn2fkIcllEsT9JVO7
+	 /rIRaEXdqUhHj90W7f51fr9BNC/XkFfelO1NWHJc=
+Date: Tue, 05 Aug 2025 19:44:25 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-limit-the-scope-of-vma_start_read.patch added to mm-new branch
-Message-Id: <20250806024423.A190FC4CEF0@smtp.kernel.org>
+Subject: + mm-change-vma_start_read-to-drop-rcu-lock-on-failure.patch added to mm-new branch
+Message-Id: <20250806024426.26A46C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: limit the scope of vma_start_read()
+     Subject: mm: change vma_start_read() to drop RCU lock on failure
 has been added to the -mm mm-new branch.  Its filename is
-     mm-limit-the-scope-of-vma_start_read.patch
+     mm-change-vma_start_read-to-drop-rcu-lock-on-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-limit-the-scope-of-vma_start_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-vma_start_read-to-drop-rcu-lock-on-failure.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,75 +65,78 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: limit the scope of vma_start_read()
-Date: Mon, 4 Aug 2025 16:33:48 -0700
+Subject: mm: change vma_start_read() to drop RCU lock on failure
+Date: Mon, 4 Aug 2025 16:33:49 -0700
 
-Limit the scope of vma_start_read() as it is used only as a helper for
-higher-level locking functions implemented inside mmap_lock.c and we are
-about to introduce more complex RCU rules for this function.  The change
-is pure code refactoring and has no functional changes.
+vma_start_read() can drop and reacquire RCU lock in certain failure cases.
+It's not apparent that the RCU session started by the caller of this
+function might be interrupted when vma_start_read() fails to lock the vma.
+This might become a source of subtle bugs and to prevent that we change
+the locking rules for vma_start_read() to drop RCU read lock upon failure.
+This way it's more obvious that RCU-protected objects are unsafe after
+vma locking fails.
 
-Link: https://lkml.kernel.org/r/20250804233349.1278678-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20250804233349.1278678-2-surenb@google.com
 Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |   85 ------------------------------------
- mm/mmap_lock.c            |   85 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 85 insertions(+), 85 deletions(-)
+ mm/mmap_lock.c |   84 +++++++++++++++++++++++++----------------------
+ 1 file changed, 45 insertions(+), 39 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-limit-the-scope-of-vma_start_read
-+++ a/include/linux/mmap_lock.h
-@@ -148,91 +148,6 @@ static inline void vma_refcount_put(stru
- }
- 
- /*
-- * Try to read-lock a vma. The function is allowed to occasionally yield false
-- * locked result to avoid performance overhead, in which case we fall back to
-- * using mmap_lock. The function should never yield false unlocked result.
-- * False locked result is possible if mm_lock_seq overflows or if vma gets
-- * reused and attached to a different mm before we lock it.
-- * Returns the vma on success, NULL on failure to lock and EAGAIN if vma got
-- * detached.
-- *
+--- a/mm/mmap_lock.c~mm-change-vma_start_read-to-drop-rcu-lock-on-failure
++++ a/mm/mmap_lock.c
+@@ -136,15 +136,16 @@ void vma_mark_detached(struct vm_area_st
+  * Returns the vma on success, NULL on failure to lock and EAGAIN if vma got
+  * detached.
+  *
 - * WARNING! The vma passed to this function cannot be used if the function
 - * fails to lock it because in certain cases RCU lock is dropped and then
 - * reacquired. Once RCU lock is dropped the vma can be concurently freed.
-- */
--static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
--						    struct vm_area_struct *vma)
--{
--	int oldcnt;
--
--	/*
--	 * Check before locking. A race might cause false locked result.
--	 * We can use READ_ONCE() for the mm_lock_seq here, and don't need
--	 * ACQUIRE semantics, because this is just a lockless check whose result
--	 * we don't rely on for anything - the mm_lock_seq read against which we
--	 * need ordering is below.
--	 */
++ * IMPORTANT: RCU lock must be held upon entering the function, but upon error
++ *            IT IS RELEASED. The caller must handle this correctly.
+  */
+ static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
+ 						    struct vm_area_struct *vma)
+ {
++	struct mm_struct *other_mm;
+ 	int oldcnt;
+ 
++	RCU_LOCKDEP_WARN(!rcu_read_lock_held(), "no rcu lock held");
+ 	/*
+ 	 * Check before locking. A race might cause false locked result.
+ 	 * We can use READ_ONCE() for the mm_lock_seq here, and don't need
+@@ -152,8 +153,10 @@ static inline struct vm_area_struct *vma
+ 	 * we don't rely on for anything - the mm_lock_seq read against which we
+ 	 * need ordering is below.
+ 	 */
 -	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(mm->mm_lock_seq.sequence))
 -		return NULL;
--
--	/*
--	 * If VMA_LOCK_OFFSET is set, __refcount_inc_not_zero_limited_acquire()
--	 * will fail because VMA_REF_LIMIT is less than VMA_LOCK_OFFSET.
--	 * Acquire fence is required here to avoid reordering against later
--	 * vm_lock_seq check and checks inside lock_vma_under_rcu().
--	 */
--	if (unlikely(!__refcount_inc_not_zero_limited_acquire(&vma->vm_refcnt, &oldcnt,
--							      VMA_REF_LIMIT))) {
--		/* return EAGAIN if vma got detached from under us */
++	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(mm->mm_lock_seq.sequence)) {
++		vma = NULL;
++		goto err;
++	}
+ 
+ 	/*
+ 	 * If VMA_LOCK_OFFSET is set, __refcount_inc_not_zero_limited_acquire()
+@@ -164,34 +167,14 @@ static inline struct vm_area_struct *vma
+ 	if (unlikely(!__refcount_inc_not_zero_limited_acquire(&vma->vm_refcnt, &oldcnt,
+ 							      VMA_REF_LIMIT))) {
+ 		/* return EAGAIN if vma got detached from under us */
 -		return oldcnt ? NULL : ERR_PTR(-EAGAIN);
--	}
--
--	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
--
++		vma = oldcnt ? NULL : ERR_PTR(-EAGAIN);
++		goto err;
+ 	}
+ 
+ 	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
+ 
 -	/*
 -	 * If vma got attached to another mm from under us, that mm is not
 -	 * stable and can be freed in the narrow window after vma->vm_refcnt
@@ -157,124 +160,103 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -		rcu_read_lock();
 -		return NULL;
 -	}
--
--	/*
--	 * Overflow of vm_lock_seq/mm_lock_seq might produce false locked result.
--	 * False unlocked result is impossible because we modify and check
--	 * vma->vm_lock_seq under vma->vm_refcnt protection and mm->mm_lock_seq
--	 * modification invalidates all existing locks.
--	 *
--	 * We must use ACQUIRE semantics for the mm_lock_seq so that if we are
--	 * racing with vma_end_write_all(), we only start reading from the VMA
--	 * after it has been unlocked.
--	 * This pairs with RELEASE semantics in vma_end_write_all().
--	 */
--	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&mm->mm_lock_seq))) {
--		vma_refcount_put(vma);
--		return NULL;
--	}
--
--	return vma;
--}
--
--/*
-  * Use only while holding mmap read lock which guarantees that locking will not
-  * fail (nobody can concurrently write-lock the vma). vma_start_read() should
-  * not be used in such cases because it might fail due to mm_lock_seq overflow.
---- a/mm/mmap_lock.c~mm-limit-the-scope-of-vma_start_read
-+++ a/mm/mmap_lock.c
-@@ -128,6 +128,91 @@ void vma_mark_detached(struct vm_area_st
- }
++	if (unlikely(vma->vm_mm != mm))
++		goto err_unstable;
  
- /*
-+ * Try to read-lock a vma. The function is allowed to occasionally yield false
-+ * locked result to avoid performance overhead, in which case we fall back to
-+ * using mmap_lock. The function should never yield false unlocked result.
-+ * False locked result is possible if mm_lock_seq overflows or if vma gets
-+ * reused and attached to a different mm before we lock it.
-+ * Returns the vma on success, NULL on failure to lock and EAGAIN if vma got
-+ * detached.
-+ *
-+ * WARNING! The vma passed to this function cannot be used if the function
-+ * fails to lock it because in certain cases RCU lock is dropped and then
-+ * reacquired. Once RCU lock is dropped the vma can be concurently freed.
-+ */
-+static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
-+						    struct vm_area_struct *vma)
-+{
-+	int oldcnt;
+ 	/*
+ 	 * Overflow of vm_lock_seq/mm_lock_seq might produce false locked result.
+@@ -206,10 +189,31 @@ static inline struct vm_area_struct *vma
+ 	 */
+ 	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&mm->mm_lock_seq))) {
+ 		vma_refcount_put(vma);
+-		return NULL;
++		vma = NULL;
++		goto err;
+ 	}
+ 
+ 	return vma;
++err:
++	rcu_read_unlock();
 +
-+	/*
-+	 * Check before locking. A race might cause false locked result.
-+	 * We can use READ_ONCE() for the mm_lock_seq here, and don't need
-+	 * ACQUIRE semantics, because this is just a lockless check whose result
-+	 * we don't rely on for anything - the mm_lock_seq read against which we
-+	 * need ordering is below.
-+	 */
-+	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(mm->mm_lock_seq.sequence))
-+		return NULL;
-+
-+	/*
-+	 * If VMA_LOCK_OFFSET is set, __refcount_inc_not_zero_limited_acquire()
-+	 * will fail because VMA_REF_LIMIT is less than VMA_LOCK_OFFSET.
-+	 * Acquire fence is required here to avoid reordering against later
-+	 * vm_lock_seq check and checks inside lock_vma_under_rcu().
-+	 */
-+	if (unlikely(!__refcount_inc_not_zero_limited_acquire(&vma->vm_refcnt, &oldcnt,
-+							      VMA_REF_LIMIT))) {
-+		/* return EAGAIN if vma got detached from under us */
-+		return oldcnt ? NULL : ERR_PTR(-EAGAIN);
-+	}
-+
-+	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
-+
++	return vma;
++err_unstable:
 +	/*
 +	 * If vma got attached to another mm from under us, that mm is not
 +	 * stable and can be freed in the narrow window after vma->vm_refcnt
 +	 * is dropped and before rcuwait_wake_up(mm) is called. Grab it before
 +	 * releasing vma->vm_refcnt.
 +	 */
-+	if (unlikely(vma->vm_mm != mm)) {
-+		/* Use a copy of vm_mm in case vma is freed after we drop vm_refcnt */
-+		struct mm_struct *other_mm = vma->vm_mm;
++	other_mm = vma->vm_mm; /* use a copy as vma can be freed after we drop vm_refcnt */
 +
-+		/*
-+		 * __mmdrop() is a heavy operation and we don't need RCU
-+		 * protection here. Release RCU lock during these operations.
-+		 * We reinstate the RCU read lock as the caller expects it to
-+		 * be held when this function returns even on error.
-+		 */
++	/* __mmdrop() is a heavy operation, do it after dropping RCU lock. */
++	rcu_read_unlock();
++	mmgrab(other_mm);
++	vma_refcount_put(vma);
++	mmdrop(other_mm);
++
++	return NULL;
+ }
+ 
+ /*
+@@ -223,11 +227,13 @@ struct vm_area_struct *lock_vma_under_rc
+ 	MA_STATE(mas, &mm->mm_mt, address, address);
+ 	struct vm_area_struct *vma;
+ 
+-	rcu_read_lock();
+ retry:
++	rcu_read_lock();
+ 	vma = mas_walk(&mas);
+-	if (!vma)
++	if (!vma) {
 +		rcu_read_unlock();
-+		mmgrab(other_mm);
-+		vma_refcount_put(vma);
-+		mmdrop(other_mm);
-+		rcu_read_lock();
-+		return NULL;
+ 		goto inval;
 +	}
-+
-+	/*
-+	 * Overflow of vm_lock_seq/mm_lock_seq might produce false locked result.
-+	 * False unlocked result is impossible because we modify and check
-+	 * vma->vm_lock_seq under vma->vm_refcnt protection and mm->mm_lock_seq
-+	 * modification invalidates all existing locks.
-+	 *
-+	 * We must use ACQUIRE semantics for the mm_lock_seq so that if we are
-+	 * racing with vma_end_write_all(), we only start reading from the VMA
-+	 * after it has been unlocked.
-+	 * This pairs with RELEASE semantics in vma_end_write_all().
-+	 */
-+	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&mm->mm_lock_seq))) {
-+		vma_refcount_put(vma);
-+		return NULL;
+ 
+ 	vma = vma_start_read(mm, vma);
+ 	if (IS_ERR_OR_NULL(vma)) {
+@@ -247,18 +253,17 @@ retry:
+ 	 * From here on, we can access the VMA without worrying about which
+ 	 * fields are accessible for RCU readers.
+ 	 */
++	rcu_read_unlock();
+ 
+ 	/* Check if the vma we locked is the right one. */
+-	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
+-		goto inval_end_read;
++	if (unlikely(address < vma->vm_start || address >= vma->vm_end)) {
++		vma_end_read(vma);
++		goto inval;
 +	}
-+
-+	return vma;
-+}
-+
-+/*
-  * Lookup and lock a VMA under RCU protection. Returned VMA is guaranteed to be
-  * stable and not isolated. If the VMA is not found or is being modified the
-  * function returns NULL.
+ 
+-	rcu_read_unlock();
+ 	return vma;
+ 
+-inval_end_read:
+-	vma_end_read(vma);
+ inval:
+-	rcu_read_unlock();
+ 	count_vm_vma_lock_event(VMA_LOCK_ABORT);
+ 	return NULL;
+ }
+@@ -313,6 +318,7 @@ retry:
+ 		 */
+ 		if (PTR_ERR(vma) == -EAGAIN) {
+ 			/* reset to search from the last address */
++			rcu_read_lock();
+ 			vma_iter_set(vmi, from_addr);
+ 			goto retry;
+ 		}
+@@ -342,9 +348,9 @@ retry:
+ 	return vma;
+ 
+ fallback_unlock:
++	rcu_read_unlock();
+ 	vma_end_read(vma);
+ fallback:
+-	rcu_read_unlock();
+ 	vma = lock_next_vma_under_mmap_lock(mm, vmi, from_addr);
+ 	rcu_read_lock();
+ 	/* Reinitialize the iterator after re-entering rcu read section */
 _
 
 Patches currently in -mm which might be from surenb@google.com are
