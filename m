@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6840145346
-	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 23:14:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABD1421FF57
+	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 23:41:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754522054; cv=none; b=XBbTjwq9gf4oXwCO4obE9cvdbYBuoV+P4M9AqI6MEMobCPR6HycPMCSfzd7n0QutfGKh6HKj5XFiT233I5m3/IGSu63vQq/1BxvX0UgKlBpp+KurxkLDtSWDqmDMoY1N+N5kejj4HGf5+oUf2bAQA1g//9OwlCm6i54YlcoiIT8=
+	t=1754523716; cv=none; b=lYeQPgmjXNivX5Hb0odqAdhCxJ1x7VPXEUq5H47anCXds2KJT9IJg/xymXyOWllHGbvxJpgybyuao/0M3lYF+laHzBUL0rckasCDpKoby6m/SAlPqfnbCE9kqGwVfuPFLfk7+NvTEtdlBrJUBX03yYfkKEIOpjGplTduxB4J8iU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754522054; c=relaxed/simple;
-	bh=ro6rOnc7VHCQ2Q70jTvgU2FoO2KmWbapIjtTiaOyWrQ=;
-	h=Date:To:From:Subject:Message-Id; b=q8jZWjmJAQR/3TJvTgHPlTDOaCb9millUr9Kz00KeC3H2UkjOvHc5rvMJd0AeFl3E7vd7hPBj0BByTV9c+vKVu1LXS8cvFaX2jT6kljkhyeV6HRkTfPy4+YS6SOJwlgQtnquk0LgF0pfW77P/Zv2A6BGRV/06820GWYecW9KQ1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N+tgv/Eu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754523716; c=relaxed/simple;
+	bh=iBh+pxmoEN2ORMRFYYHdua9evKXUKRS9aQPmKpMsmDg=;
+	h=Date:To:From:Subject:Message-Id; b=PyRqmU1GAStwaWT5j9leOvrSM3OegkaxuUIir6xfbObfDbz+EeB9OtymQYxjjF/mxTj2PN3962rpeMiDAblKIWeaSfH0iPCXdpmJWn0FvWXo9IgUn/K8f9XA7L3Hlrm7bvwTVWZPDOVo+zfreNFocCJNaiB08vSJquQLuQcN1TQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=abywMGdB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N+tgv/Eu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FE90C4CEE7;
-	Wed,  6 Aug 2025 23:14:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="abywMGdB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28E77C4CEE7;
+	Wed,  6 Aug 2025 23:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754522054;
-	bh=ro6rOnc7VHCQ2Q70jTvgU2FoO2KmWbapIjtTiaOyWrQ=;
+	s=korg; t=1754523716;
+	bh=iBh+pxmoEN2ORMRFYYHdua9evKXUKRS9aQPmKpMsmDg=;
 	h=Date:To:From:Subject:From;
-	b=N+tgv/Eu2gKVbPDxm/o1+NaD4Jg4fBNq48gR4wojDEOhxgkcVZDrMOtnA/iD9d5tN
-	 Wp9RdgAcn8LlGWqpPnjdjQeCz24RAhjTKht3WTJTuKPIghOqtI7SmcsmrlCVQyDbMC
-	 dhZUX5j0GUUF51djnbEg8qBxwti9TONAh5J+mBQU=
-Date: Wed, 06 Aug 2025 16:14:13 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kent.overstreet@linux.dev,jannh@google.com,herbert@gondor.apana.org.au,dakr@kernel.org,aliceryhl@google.com,vitaly.wool@konsulko.se,akpm@linux-foundation.org
+	b=abywMGdBWS6c8Ty1qQi56jNGw3VtKAZhpNAe+EgZb58sKrMR5OHurffUVwTvwRHvs
+	 PG+5AeXHrvTr8mte3tD/SEWxEIcLb+wtk7+O6uzeR0b3sFpPAMMjLPfoMDxBgVM7tm
+	 UIppA8dtoQimU9cZS5anEFSvlx94KuLfaGsNN1n8=
+Date: Wed, 06 Aug 2025 16:41:55 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,sj@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rust-support-large-alignments-in-allocations.patch added to mm-new branch
-Message-Id: <20250806231414.2FE90C4CEE7@smtp.kernel.org>
+Subject: + mm-nommu-convert-kobjsize-to-folios.patch added to mm-new branch
+Message-Id: <20250806234156.28E77C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rust: support large alignments in allocations
+     Subject: mm/nommu: convert kobjsize() to folios
 has been added to the -mm mm-new branch.  Its filename is
-     rust-support-large-alignments-in-allocations.patch
+     mm-nommu-convert-kobjsize-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-support-large-alignments-in-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-convert-kobjsize-to-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,153 +64,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitaly.wool@konsulko.se>
-Subject: rust: support large alignments in allocations
-Date: Wed, 6 Aug 2025 14:55:52 +0200
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm/nommu: convert kobjsize() to folios
+Date: Mon, 4 Aug 2025 14:51:17 +0000
 
-Add support for large (> PAGE_SIZE) alignments in Rust allocators.  All
-the preparations on the C side are already done, we just need to add
-bindings for <alloc>_node_align() functions and start using those.
+Simple folio conversion to remove a user of PageSlab() and PageCompound().
 
-Link: https://lkml.kernel.org/r/20250806125552.1727073-1-vitaly.wool@konsulko.se
-Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.se>
-Acked-by: Danilo Krummrich <dakr@kernel.org>
-Acked-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Link: https://lkml.kernel.org/r/20250804145117.3857308-1-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: Jann Horn <jannh@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/helpers/slab.c            |   10 ++++++----
- rust/helpers/vmalloc.c         |    5 +++--
- rust/kernel/alloc/allocator.rs |   30 +++++++++---------------------
- 3 files changed, 18 insertions(+), 27 deletions(-)
+ mm/nommu.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/rust/helpers/slab.c~rust-support-large-alignments-in-allocations
-+++ a/rust/helpers/slab.c
-@@ -3,13 +3,15 @@
- #include <linux/slab.h>
- 
- void * __must_check __realloc_size(2)
--rust_helper_krealloc_node(const void *objp, size_t new_size, gfp_t flags, int node)
-+rust_helper_krealloc_node_align(const void *objp, size_t new_size, unsigned long align,
-+				gfp_t flags, int node)
+--- a/mm/nommu.c~mm-nommu-convert-kobjsize-to-folios
++++ a/mm/nommu.c
+@@ -64,7 +64,7 @@ const struct vm_operations_struct generi
+  */
+ unsigned int kobjsize(const void *objp)
  {
--	return krealloc_node(objp, new_size, flags, node);
-+	return krealloc_node_align(objp, new_size, align, flags, node);
+-	struct page *page;
++	struct folio *folio;
+ 
+ 	/*
+ 	 * If the object we have should not have ksize performed on it,
+@@ -73,22 +73,22 @@ unsigned int kobjsize(const void *objp)
+ 	if (!objp || !virt_addr_valid(objp))
+ 		return 0;
+ 
+-	page = virt_to_head_page(objp);
++	folio = virt_to_folio(objp);
+ 
+ 	/*
+ 	 * If the allocator sets PageSlab, we know the pointer came from
+ 	 * kmalloc().
+ 	 */
+-	if (PageSlab(page))
++	if (folio_test_slab(folio))
+ 		return ksize(objp);
+ 
+ 	/*
+-	 * If it's not a compound page, see if we have a matching VMA
++	 * If it's not a large folio, see if we have a matching VMA
+ 	 * region. This test is intentionally done in reverse order,
+ 	 * so if there's no VMA, we still fall through and hand back
+-	 * PAGE_SIZE for 0-order pages.
++	 * PAGE_SIZE for 0-order folios.
+ 	 */
+-	if (!PageCompound(page)) {
++	if (!folio_test_large(folio)) {
+ 		struct vm_area_struct *vma;
+ 
+ 		vma = find_vma(current->mm, (unsigned long)objp);
+@@ -100,7 +100,7 @@ unsigned int kobjsize(const void *objp)
+ 	 * The ksize() function is only guaranteed to work for pointers
+ 	 * returned by kmalloc(). So handle arbitrary pointers here.
+ 	 */
+-	return page_size(page);
++	return folio_size(folio);
  }
  
- void * __must_check __realloc_size(2)
--rust_helper_kvrealloc_node(const void *p, size_t size, gfp_t flags, int node)
-+rust_helper_kvrealloc_node_align(const void *p, size_t size, unsigned long align,
-+				 gfp_t flags, int node)
- {
--	return kvrealloc_node(p, size, flags, node);
-+	return kvrealloc_node_align(p, size, align, flags, node);
- }
---- a/rust/helpers/vmalloc.c~rust-support-large-alignments-in-allocations
-+++ a/rust/helpers/vmalloc.c
-@@ -3,7 +3,8 @@
- #include <linux/vmalloc.h>
- 
- void * __must_check __realloc_size(2)
--rust_helper_vrealloc_node(const void *p, size_t size, gfp_t flags, int node)
-+rust_helper_vrealloc_node_align(const void *p, size_t size, unsigned long align,
-+				gfp_t flags, int node)
- {
--	return vrealloc_node(p, size, flags, node);
-+	return vrealloc_node_align(p, size, align, flags, node);
- }
---- a/rust/kernel/alloc/allocator.rs~rust-support-large-alignments-in-allocations
-+++ a/rust/kernel/alloc/allocator.rs
-@@ -15,7 +15,6 @@ use core::ptr::NonNull;
- 
- use crate::alloc::{AllocError, Allocator, NumaNode};
- use crate::bindings;
--use crate::pr_warn;
- 
- /// The contiguous kernel allocator.
- ///
-@@ -56,25 +55,26 @@ fn aligned_size(new_layout: Layout) -> u
- 
- /// # Invariants
- ///
--/// One of the following: `krealloc_node`, `vrealloc_node`, `kvrealloc_node`.
-+/// One of the following: `krealloc_node_align`, `vrealloc_node_align`, `kvrealloc_node_align`.
- struct ReallocFunc(
-     unsafe extern "C" fn(
-         *const crate::ffi::c_void,
-         usize,
-+        crate::ffi::c_ulong,
-         u32,
-         crate::ffi::c_int,
-     ) -> *mut crate::ffi::c_void,
- );
- 
- impl ReallocFunc {
--    // INVARIANT: `krealloc_node` satisfies the type invariants.
--    const KREALLOC: Self = Self(bindings::krealloc_node);
-+    // INVARIANT: `krealloc_node_align` satisfies the type invariants.
-+    const KREALLOC: Self = Self(bindings::krealloc_node_align);
- 
--    // INVARIANT: `vrealloc_node` satisfies the type invariants.
--    const VREALLOC: Self = Self(bindings::vrealloc_node);
-+    // INVARIANT: `vrealloc_node_align` satisfies the type invariants.
-+    const VREALLOC: Self = Self(bindings::vrealloc_node_align);
- 
--    // INVARIANT: `kvrealloc_node` satisfies the type invariants.
--    const KVREALLOC: Self = Self(bindings::kvrealloc_node);
-+    // INVARIANT: `kvrealloc_node_align` satisfies the type invariants.
-+    const KVREALLOC: Self = Self(bindings::kvrealloc_node_align);
- 
-     /// # Safety
-     ///
-@@ -116,7 +116,7 @@ impl ReallocFunc {
-         // - Those functions provide the guarantees of this function.
-         let raw_ptr = unsafe {
-             // If `size == 0` and `ptr != NULL` the memory behind the pointer is freed.
--            self.0(ptr.cast(), size, flags.0, nid.0).cast()
-+            self.0(ptr.cast(), size, layout.align(), flags.0, nid.0).cast()
-         };
- 
-         let ptr = if size == 0 {
-@@ -160,12 +160,6 @@ unsafe impl Allocator for Vmalloc {
-         flags: Flags,
-         nid: NumaNode,
-     ) -> Result<NonNull<[u8]>, AllocError> {
--        // TODO: Support alignments larger than PAGE_SIZE.
--        if layout.align() > bindings::PAGE_SIZE {
--            pr_warn!("Vmalloc does not support alignments larger than PAGE_SIZE yet.\n");
--            return Err(AllocError);
--        }
--
-         // SAFETY: If not `None`, `ptr` is guaranteed to point to valid memory, which was previously
-         // allocated with this `Allocator`.
-         unsafe { ReallocFunc::VREALLOC.call(ptr, layout, old_layout, flags, nid) }
-@@ -185,12 +179,6 @@ unsafe impl Allocator for KVmalloc {
-         flags: Flags,
-         nid: NumaNode,
-     ) -> Result<NonNull<[u8]>, AllocError> {
--        // TODO: Support alignments larger than PAGE_SIZE.
--        if layout.align() > bindings::PAGE_SIZE {
--            pr_warn!("KVmalloc does not support alignments larger than PAGE_SIZE yet.\n");
--            return Err(AllocError);
--        }
--
-         // SAFETY: If not `None`, `ptr` is guaranteed to point to valid memory, which was previously
-         // allocated with this `Allocator`.
-         unsafe { ReallocFunc::KVREALLOC.call(ptr, layout, old_layout, flags, nid) }
+ void vfree(const void *addr)
 _
 
-Patches currently in -mm which might be from vitaly.wool@konsulko.se are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-vmalloc-allow-to-set-node-and-align-in-vrealloc.patch
-mm-slub-allow-to-set-node-and-align-in-krealloc.patch
-rust-add-support-for-numa-ids-in-allocations.patch
-rust-support-large-alignments-in-allocations.patch
+mm-nommu-convert-kobjsize-to-folios.patch
 
