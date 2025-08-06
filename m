@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3168F1DF759
-	for <mm-commits@vger.kernel.org>; Tue,  5 Aug 2025 22:40:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83AC11A238F
+	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 02:32:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754433621; cv=none; b=BGnfLfjF7O6RQPWsi3SskJvQLxh9fiWjnZPwPULgOutd9Y9cardShSF14mNO6Qu9AwV4QHB/Ul/SDeyHeNiJjXxdflAp1M0Czr1vt7QoSrc8BT/jBiMoNTxLMKviJf48yhdjHbKvbNH4vPr/wRNDSw1vy21lU4U6ofhVnjN/YF0=
+	t=1754447551; cv=none; b=ao3qzx2f2XRiyfUFtYXXJr+LcnixPBOj3prTCVFgAuuWdpRSoPy5LN/ORHswJmBqw4tWoIAGO3sXcCjhH+fJumQ0lPl3JDvW50l12aux4coR9gWP9tuDTMoYvv+Sfyg/wXzgnggDVOwRHPfylrTqln4tVePjXbyi+g73ZeP0WmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754433621; c=relaxed/simple;
-	bh=cXSX6ncJIo/IRDMIVfqANOvzXT4bh9669aIm3uswhaw=;
-	h=Date:To:From:Subject:Message-Id; b=Bkh5y1FJD1IjwM21UqGYpiGJVHc71c79sgIuZdAWgljUzkGwqUl3s3Cs9IQoWHPwlXZ3K6+cKTw17MtMuTZTk4pTdS9+E7sKICCyWfHVRgyyS/v+P5DJgGcUu1RKjVgkj+aMU9VCEu19Sl5ubihJrMkYQt1VZp4TZBTPtmpLl9k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DGyBlhoL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754447551; c=relaxed/simple;
+	bh=dFSGD5HlKNUhh5h+ylYwdy41zUZxvR9v1JlUN8X7X9A=;
+	h=Date:To:From:Subject:Message-Id; b=rnYuUX11bM4tvB91+UEquk35Ke3a9grAoPeXhu36qaCi39EU8XbfyRqVE38CEtBZbyMGnjwSO8w2LcLCZriRLOBm9RjcQmdJp0XbwTdbx4TxBDdnwFCj4nPwDyvzQ8pQLtxflRnJww+KqqwqjT7mGuDhLA7bqjaYpAufPQ84JVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hFih09my; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DGyBlhoL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB524C4CEF0;
-	Tue,  5 Aug 2025 22:40:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hFih09my"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31DFFC4CEF0;
+	Wed,  6 Aug 2025 02:32:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754433620;
-	bh=cXSX6ncJIo/IRDMIVfqANOvzXT4bh9669aIm3uswhaw=;
+	s=korg; t=1754447551;
+	bh=dFSGD5HlKNUhh5h+ylYwdy41zUZxvR9v1JlUN8X7X9A=;
 	h=Date:To:From:Subject:From;
-	b=DGyBlhoLfQ9k8ZM4cwSZ5cHmyciSVw9lsUlMWaMspDnLmcDHrwfNP0W3BWgiY6ovW
-	 peGIW1qkvQt9rWxTMsAxGT4ViMZOrWxSBzcw/Kp7XO9M6TkrJQLfKOtH6DI+xqBqM8
-	 8XmDKsvVfut5O5kVmDHOoocEqWSYUREYb/Qdicfg=
-Date: Tue, 05 Aug 2025 15:40:20 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,saravanak@google.com,robh@kernel.org,mingo@redhat.com,hpa@zytor.com,graf@amazon.com,dyoung@redhat.com,bp@alien8.de,bhe@redhat.com,makb@juniper.net,akpm@linux-foundation.org
+	b=hFih09mychkxplcsh5YybJ7N3SXVLwb2vzVctqxI3TihwHCDErJaHk7tTRBF7HJP+
+	 1/zqgQ3hBxU9Ha/O+Xe8YPLqvbLz/+LKsNtbES3ORmN9TWhLPZYh31dwOQxq40iCqZ
+	 o88jSri2BXOom5f7+IwB2H8UBv1mySMc228l11Xo=
+Date: Tue, 05 Aug 2025 19:32:30 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch added to mm-nonmm-unstable branch
-Message-Id: <20250805224020.CB524C4CEF0@smtp.kernel.org>
+Subject: + mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled.patch added to mm-new branch
+Message-Id: <20250806023231.31DFFC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/kexec: carry forward the boot DTB on kexec
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch
+     Subject: mm/kasan: add conditional checks in functions to return directly if kasan is disabled
+has been added to the -mm mm-new branch.  Its filename is
+     mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,194 +64,269 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Brian Mak <makb@juniper.net>
-Subject: x86/kexec: carry forward the boot DTB on kexec
-Date: Tue, 5 Aug 2025 14:15:27 -0700
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/kasan: add conditional checks in functions to return directly if kasan is disabled
+Date: Tue, 5 Aug 2025 14:23:30 +0800
 
-Currently, the kexec_file_load syscall on x86 does not support passing a
-device tree blob to the new kernel.  Some embedded x86 systems use device
-trees.  On these systems, failing to pass a device tree to the new kernel
-causes a boot failure.
+Patch series "mm/kasan: make kasan=on|off work for all three modes".
 
-To add support for this, we copy the behavior of ARM64 and PowerPC and
-copy the current boot's device tree blob for use in the new kernel.  We do
-this on x86 by passing the device tree blob as a setup_data entry in
-accordance with the x86 boot protocol.
+Currently only hw_tags mode of kasan can be enabled or disabled with
+kernel parameter kasan=on|off for built kernel. For kasan generic and
+sw_tags mode, there's no way to disable them once kernel is built. 
+This is not convenient sometime, e.g in system kdump is configured.
+When the 1st kernel has KASAN enabled and crash triggered to switch to
+kdump kernel, the generic or sw_tags mode will cost much extra memory
+for kasan shadow while in fact it's meaningless to have kasan in kdump
+kernel.
 
-This behavior is gated behind the KEXEC_FILE_FORCE_DTB flag.
+So this patchset moves the kasan=on|off out of hw_tags scope and into
+common code to make it visible in generic and sw_tags mode too. Then we
+can add kasan=off in kdump kernel to reduce the unneeded meomry cost for
+kasan.
 
-Link: https://lkml.kernel.org/r/20250805211527.122367-3-makb@juniper.net
-Signed-off-by: Brian Mak <makb@juniper.net>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Saravana Kannan <saravanak@google.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Test:
+=====
+I only took test on x86_64 for generic mode, and on arm64 for
+generic, sw_tags and hw_tags mode. All of them works well.
+
+However when I tested sw_tags on a HPE apollo arm64 machine, it always
+breaks kernel with a KASAN bug. Even w/o this patchset applied, the bug 
+can always be seen too.
+
+"BUG: KASAN: invalid-access in pcpu_alloc_noprof+0x42c/0x9a8"
+
+I haven't got root cause of the bug, will report the bug later in
+another thread.
+
+
+This patch (of 4):
+
+The current code only does the check if kasan is disabled for hw_tags
+mode.  Here add the conditional checks for functional functions of generic
+mode and sw_tags mode.
+
+This is prepared for later adding kernel parameter kasan=on|off for all
+kasan modes.
+
+Link: https://lkml.kernel.org/r/20250805062333.121553-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250805062333.121553-2-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c |   47 ++++++++++++++++++++++++++--
- include/linux/kexec.h             |    5 ++
- include/uapi/linux/kexec.h        |    4 ++
- kernel/kexec_file.c               |    1 
- 4 files changed, 53 insertions(+), 4 deletions(-)
+ mm/kasan/generic.c    |   20 ++++++++++++++++++--
+ mm/kasan/init.c       |    6 ++++++
+ mm/kasan/quarantine.c |    3 +++
+ mm/kasan/shadow.c     |   23 ++++++++++++++++++++++-
+ mm/kasan/sw_tags.c    |    3 +++
+ 5 files changed, 52 insertions(+), 3 deletions(-)
 
---- a/arch/x86/kernel/kexec-bzimage64.c~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -16,6 +16,8 @@
- #include <linux/kexec.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
-+#include <linux/libfdt.h>
-+#include <linux/of_fdt.h>
- #include <linux/efi.h>
- #include <linux/random.h>
- 
-@@ -212,6 +214,28 @@ setup_efi_state(struct boot_params *para
- }
- #endif /* CONFIG_EFI */
- 
-+#ifdef CONFIG_OF_FLATTREE
-+static void setup_dtb(struct boot_params *params,
-+		      unsigned long params_load_addr,
-+		      unsigned int dtb_setup_data_offset)
-+{
-+	struct setup_data *sd = (void *)params + dtb_setup_data_offset;
-+	unsigned long setup_data_phys, dtb_len;
+--- a/mm/kasan/generic.c~mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled
++++ a/mm/kasan/generic.c
+@@ -165,6 +165,9 @@ static __always_inline bool check_region
+ 						size_t size, bool write,
+ 						unsigned long ret_ip)
+ {
++	if (!kasan_enabled())
++		return true;
 +
-+	dtb_len = fdt_totalsize(initial_boot_params);
-+	sd->type = SETUP_DTB;
-+	sd->len = dtb_len;
-+
-+	/* Carry over current boot DTB with setup_data */
-+	memcpy(sd->data, initial_boot_params, dtb_len);
-+
-+	/* Add setup data */
-+	setup_data_phys = params_load_addr + dtb_setup_data_offset;
-+	sd->next = params->hdr.setup_data;
-+	params->hdr.setup_data = setup_data_phys;
-+}
-+#endif /* CONFIG_OF_FLATTREE */
-+
- static void
- setup_ima_state(const struct kimage *image, struct boot_params *params,
- 		unsigned long params_load_addr,
-@@ -336,6 +360,17 @@ setup_boot_parameters(struct kimage *ima
- 			sizeof(struct efi_setup_data);
- #endif
+ 	if (!kasan_arch_is_ready())
+ 		return true;
  
-+#ifdef CONFIG_OF_FLATTREE
-+	if (image->force_dtb && initial_boot_params) {
-+		setup_dtb(params, params_load_addr, setup_data_offset);
-+		setup_data_offset += sizeof(struct setup_data) +
-+				     fdt_totalsize(initial_boot_params);
-+	} else {
-+		pr_debug("Not carrying over DTB, force_dtb = %d\n",
-+			 image->force_dtb);
-+	}
-+#endif
-+
- 	if (IS_ENABLED(CONFIG_IMA_KEXEC)) {
- 		/* Setup IMA log buffer state */
- 		setup_ima_state(image, params, params_load_addr,
-@@ -529,6 +564,12 @@ static void *bzImage64_load(struct kimag
- 				sizeof(struct setup_data) +
- 				RNG_SEED_LENGTH;
+@@ -203,12 +206,13 @@ bool kasan_byte_accessible(const void *a
  
-+#ifdef CONFIG_OF_FLATTREE
-+	if (image->force_dtb && initial_boot_params)
-+		kbuf.bufsz += sizeof(struct setup_data) +
-+			      fdt_totalsize(initial_boot_params);
-+#endif
-+
- 	if (IS_ENABLED(CONFIG_IMA_KEXEC))
- 		kbuf.bufsz += sizeof(struct setup_data) +
- 			      sizeof(struct ima_setup_data);
-@@ -537,7 +578,7 @@ static void *bzImage64_load(struct kimag
- 		kbuf.bufsz += sizeof(struct setup_data) +
- 			      sizeof(struct kho_data);
- 
--	params = kzalloc(kbuf.bufsz, GFP_KERNEL);
-+	params = kvzalloc(kbuf.bufsz, GFP_KERNEL);
- 	if (!params)
- 		return ERR_PTR(-ENOMEM);
- 	efi_map_offset = params_cmdline_sz;
-@@ -647,7 +688,7 @@ static void *bzImage64_load(struct kimag
- 	return ldata;
- 
- out_free_params:
--	kfree(params);
-+	kvfree(params);
- 	return ERR_PTR(ret);
+ void kasan_cache_shrink(struct kmem_cache *cache)
+ {
+-	kasan_quarantine_remove_cache(cache);
++	if (kasan_enabled())
++		kasan_quarantine_remove_cache(cache);
  }
  
-@@ -659,7 +700,7 @@ static int bzImage64_cleanup(void *loade
- 	if (!ldata)
+ void kasan_cache_shutdown(struct kmem_cache *cache)
+ {
+-	if (!__kmem_cache_empty(cache))
++	if (kasan_enabled() && !__kmem_cache_empty(cache))
+ 		kasan_quarantine_remove_cache(cache);
+ }
+ 
+@@ -228,6 +232,9 @@ void __asan_register_globals(void *ptr,
+ 	int i;
+ 	struct kasan_global *globals = ptr;
+ 
++	if (!kasan_enabled())
++		return;
++
+ 	for (i = 0; i < size; i++)
+ 		register_global(&globals[i]);
+ }
+@@ -358,6 +365,9 @@ void kasan_cache_create(struct kmem_cach
+ 	unsigned int rem_free_meta_size;
+ 	unsigned int orig_alloc_meta_offset;
+ 
++	if (!kasan_enabled())
++		return;
++
+ 	if (!kasan_requires_meta())
+ 		return;
+ 
+@@ -510,6 +520,9 @@ size_t kasan_metadata_size(struct kmem_c
+ {
+ 	struct kasan_cache *info = &cache->kasan_info;
+ 
++	if (!kasan_enabled())
++		return 0;
++
+ 	if (!kasan_requires_meta())
  		return 0;
  
--	kfree(ldata->bootparams_buf);
-+	kvfree(ldata->bootparams_buf);
- 	ldata->bootparams_buf = NULL;
+@@ -535,6 +548,9 @@ void kasan_record_aux_stack(void *addr)
+ 	struct kasan_alloc_meta *alloc_meta;
+ 	void *object;
+ 
++	if (!kasan_enabled())
++		return;
++
+ 	if (is_kfence_address(addr) || !slab)
+ 		return;
+ 
+--- a/mm/kasan/init.c~mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled
++++ a/mm/kasan/init.c
+@@ -449,6 +449,9 @@ void kasan_remove_zero_shadow(void *star
+ 	unsigned long addr, end, next;
+ 	pgd_t *pgd;
+ 
++	if (!kasan_enabled())
++		return;
++
+ 	addr = (unsigned long)kasan_mem_to_shadow(start);
+ 	end = addr + (size >> KASAN_SHADOW_SCALE_SHIFT);
+ 
+@@ -484,6 +487,9 @@ int kasan_add_zero_shadow(void *start, u
+ 	int ret;
+ 	void *shadow_start, *shadow_end;
+ 
++	if (!kasan_enabled())
++		return 0;
++
+ 	shadow_start = kasan_mem_to_shadow(start);
+ 	shadow_end = shadow_start + (size >> KASAN_SHADOW_SCALE_SHIFT);
+ 
+--- a/mm/kasan/quarantine.c~mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled
++++ a/mm/kasan/quarantine.c
+@@ -405,6 +405,9 @@ static int __init kasan_cpu_quarantine_i
+ {
+ 	int ret = 0;
+ 
++	if (!kasan_enabled())
++		return 0;
++
+ 	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "mm/kasan:online",
+ 				kasan_cpu_online, kasan_cpu_offline);
+ 	if (ret < 0)
+--- a/mm/kasan/shadow.c~mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled
++++ a/mm/kasan/shadow.c
+@@ -125,6 +125,9 @@ void kasan_poison(const void *addr, size
+ {
+ 	void *shadow_start, *shadow_end;
+ 
++	if (!kasan_enabled())
++		return;
++
+ 	if (!kasan_arch_is_ready())
+ 		return;
+ 
+@@ -150,6 +153,9 @@ EXPORT_SYMBOL_GPL(kasan_poison);
+ #ifdef CONFIG_KASAN_GENERIC
+ void kasan_poison_last_granule(const void *addr, size_t size)
+ {
++	if (!kasan_enabled())
++		return;
++
+ 	if (!kasan_arch_is_ready())
+ 		return;
+ 
+@@ -164,6 +170,8 @@ void kasan_unpoison(const void *addr, si
+ {
+ 	u8 tag = get_tag(addr);
+ 
++	if (!kasan_enabled())
++		return;
+ 	/*
+ 	 * Perform shadow offset calculation based on untagged address, as
+ 	 * some of the callers (e.g. kasan_unpoison_new_object) pass tagged
+@@ -277,7 +285,8 @@ static int __meminit kasan_mem_notifier(
+ 
+ static int __init kasan_memhotplug_init(void)
+ {
+-	hotplug_memory_notifier(kasan_mem_notifier, DEFAULT_CALLBACK_PRI);
++	if (kasan_enabled())
++		hotplug_memory_notifier(kasan_mem_notifier, DEFAULT_CALLBACK_PRI);
  
  	return 0;
---- a/include/linux/kexec.h~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/include/linux/kexec.h
-@@ -395,6 +395,9 @@ struct kimage {
+ }
+@@ -390,6 +399,9 @@ int kasan_populate_vmalloc(unsigned long
+ 	unsigned long shadow_start, shadow_end;
+ 	int ret;
  
- 	/* Information for loading purgatory */
- 	struct purgatory_info purgatory_info;
++	if (!kasan_enabled())
++		return 0;
 +
-+	/* Force carrying over the DTB from the current boot */
-+	bool force_dtb;
- #endif
+ 	if (!kasan_arch_is_ready())
+ 		return 0;
  
- #ifdef CONFIG_CRASH_HOTPLUG
-@@ -461,7 +464,7 @@ bool kexec_load_permitted(int kexec_imag
- /* List of defined/legal kexec file flags */
- #define KEXEC_FILE_FLAGS	(KEXEC_FILE_UNLOAD | KEXEC_FILE_ON_CRASH | \
- 				 KEXEC_FILE_NO_INITRAMFS | KEXEC_FILE_DEBUG | \
--				 KEXEC_FILE_NO_CMA)
-+				 KEXEC_FILE_NO_CMA | KEXEC_FILE_FORCE_DTB)
+@@ -560,6 +572,9 @@ void kasan_release_vmalloc(unsigned long
+ 	unsigned long region_start, region_end;
+ 	unsigned long size;
  
- /* flag to track if kexec reboot is in progress */
- extern bool kexec_in_progress;
---- a/include/uapi/linux/kexec.h~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/include/uapi/linux/kexec.h
-@@ -22,12 +22,16 @@
-  * KEXEC_FILE_ON_CRASH : Load/unload operation belongs to kdump image.
-  * KEXEC_FILE_NO_INITRAMFS : No initramfs is being loaded. Ignore the initrd
-  *                           fd field.
-+ * KEXEC_FILE_FORCE_DTB : Force carrying over the current boot's DTB to the new
-+ *                        kernel on x86. This is already the default behavior on
-+ *                        some other architectures, like ARM64 and PowerPC.
-  */
- #define KEXEC_FILE_UNLOAD	0x00000001
- #define KEXEC_FILE_ON_CRASH	0x00000002
- #define KEXEC_FILE_NO_INITRAMFS	0x00000004
- #define KEXEC_FILE_DEBUG	0x00000008
- #define KEXEC_FILE_NO_CMA	0x00000010
-+#define KEXEC_FILE_FORCE_DTB	0x00000020
++	if (!kasan_enabled())
++		return;
++
+ 	if (!kasan_arch_is_ready())
+ 		return;
  
- /* These values match the ELF architecture values.
-  * Unless there is a good reason that should continue to be the case.
---- a/kernel/kexec_file.c~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/kernel/kexec_file.c
-@@ -255,6 +255,7 @@ kimage_file_prepare_segments(struct kima
- 	}
+@@ -655,6 +670,9 @@ int kasan_alloc_module_shadow(void *addr
+ 	size_t shadow_size;
+ 	unsigned long shadow_start;
  
- 	image->no_cma = !!(flags & KEXEC_FILE_NO_CMA);
-+	image->force_dtb = flags & KEXEC_FILE_FORCE_DTB;
++	if (!kasan_enabled())
++		return 0;
++
+ 	shadow_start = (unsigned long)kasan_mem_to_shadow(addr);
+ 	scaled_size = (size + KASAN_GRANULE_SIZE - 1) >>
+ 				KASAN_SHADOW_SCALE_SHIFT;
+@@ -691,6 +709,9 @@ int kasan_alloc_module_shadow(void *addr
  
- 	if (cmdline_len) {
- 		image->cmdline_buf = memdup_user(cmdline_ptr, cmdline_len);
+ void kasan_free_module_shadow(const struct vm_struct *vm)
+ {
++	if (!kasan_enabled())
++		return;
++
+ 	if (IS_ENABLED(CONFIG_UML))
+ 		return;
+ 
+--- a/mm/kasan/sw_tags.c~mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled
++++ a/mm/kasan/sw_tags.c
+@@ -78,6 +78,9 @@ bool kasan_check_range(const void *addr,
+ 	u8 *shadow_first, *shadow_last, *shadow;
+ 	void *untagged_addr;
+ 
++	if (!kasan_enabled())
++		return true;
++
+ 	if (unlikely(size == 0))
+ 		return true;
+ 
 _
 
-Patches currently in -mm which might be from makb@juniper.net are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-kexec-add-kexec_file_no_cma-as-a-legal-flag.patch
-x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch
+mm-kasan-add-conditional-checks-in-functions-to-return-directly-if-kasan-is-disabled.patch
+mm-kasan-move-kasan=-code-to-common-place.patch
+mm-kasan-dont-initialize-kasan-if-its-disabled.patch
+mm-kasan-make-kasan=onoff-take-effect-for-all-three-modes.patch
 
