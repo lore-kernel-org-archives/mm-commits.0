@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2293A145346
-	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 23:14:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA3C5145346
+	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 23:14:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754522049; cv=none; b=mRKQf+6v83Gn8m2S9jcp0IOA12yvVx9zWK3s4Ne+2KkIjYD+wAtOOVgO6kuiTzGsWWHyJwSMTH4c8dp4NIlAdp93tuZu7KEpnkSvmYAcyZmI6YMofYinHgkea22jcwJAo97w7CqYqURaUne8QRgE89SW3hTxCkemnbjksb+Sqp0=
+	t=1754522050; cv=none; b=NAvQGAzXNynSoN5OADUeNbweIAswYJo2WGpKbHkm+uhGjs+Zyr7d5X4lsl0N0tQvF3TRa6jmstZcKEA7zcRM+sDgNANw9gsipJujQd1o7j6qpLGlPNwgDaRhXKE528QHKdfegxG/FSl8kTN525KAjcZA5EcPrH9NnlzVyUz38EY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754522049; c=relaxed/simple;
-	bh=zkRRz/AZXewObbQtBuNk0JTsYGfKRO5EHis+s7A8ivY=;
-	h=Date:To:From:Subject:Message-Id; b=kUCdMxj1RDo2HCLZdUb/AmTdn0sFGtQBBmH0P8RYsn2IxIzT/kCYDqZDq+1QMLIs4FfbP3QBXP4RYAQngIh59Bxbe5aDhD4JoSPQhff71ShP4UqNn2iXC1c01datJsD5Pao1X428gu4Wkz4y9uTHPzRu2ku2PFq2Q5rJrjmmAaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1hUzUpJg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754522050; c=relaxed/simple;
+	bh=fKIdQ/Gr/EmxX6xNZHowEHwswRddb7MSK5Pro8lFMPU=;
+	h=Date:To:From:Subject:Message-Id; b=lQ+qqMt5tSnG1A4q4TIhRMWaY8hlzjcRN/Qx6a/K4cuH9Roog1DvcgS1c90Mw2uARVkoLcOpyGI13TFXc8OlkAx9kD2677zGH1O078UIVUDH3UQNZu0npqhgmQ4k9v+hBt76IB/I34xPOV9XQt4+WpO8MEk9knFHiwgbwYvED1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fsnYc1Li; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1hUzUpJg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 906BFC4CEE7;
-	Wed,  6 Aug 2025 23:14:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fsnYc1Li"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A518C4CEE7;
+	Wed,  6 Aug 2025 23:14:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754522048;
-	bh=zkRRz/AZXewObbQtBuNk0JTsYGfKRO5EHis+s7A8ivY=;
+	s=korg; t=1754522050;
+	bh=fKIdQ/Gr/EmxX6xNZHowEHwswRddb7MSK5Pro8lFMPU=;
 	h=Date:To:From:Subject:From;
-	b=1hUzUpJgOMpZZorh2YoZ1nsHgh55kZyFRF5WPrFTpFahFoRLJeRIBzccA9u9F1pF1
-	 hGI/2sUl+8RCXUBP0u4h3mdq/6D9c/MsW8K1lNaHgig/w1IBwSooB1oJQUHCURh2Oz
-	 9eg0zKp1MtqvYphaHf2ZljfedkLzghvUcoYeITms=
-Date: Wed, 06 Aug 2025 16:14:07 -0700
+	b=fsnYc1Limr6k44MEgrJwt6VR62IiuDNdg650FPWy1AzC8HzSJNx2sl0xB0C9dOT62
+	 tZbxQTd0m9uCyc2e5CE1IJN2G6SZHFX17PMhBlyK8dt8rbFAwZlMvHb8R91kIpCNOu
+	 82Od//axVwaJUhxv8pgDLGjtcjp2bvyGxsM89+Hs=
+Date: Wed, 06 Aug 2025 16:14:09 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kent.overstreet@linux.dev,jannh@google.com,herbert@gondor.apana.org.au,dakr@kernel.org,aliceryhl@google.com,vitaly.wool@konsulko.se,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-allow-to-set-node-and-align-in-vrealloc.patch added to mm-new branch
-Message-Id: <20250806231408.906BFC4CEE7@smtp.kernel.org>
+Subject: + mm-slub-allow-to-set-node-and-align-in-krealloc.patch added to mm-new branch
+Message-Id: <20250806231410.1A518C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: allow to set node and align in vrealloc
+     Subject: mm/slub: allow to set node and align in k[v]realloc
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-allow-to-set-node-and-align-in-vrealloc.patch
+     mm-slub-allow-to-set-node-and-align-in-krealloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-allow-to-set-node-and-align-in-vrealloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-allow-to-set-node-and-align-in-krealloc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,29 +65,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vitaly Wool <vitaly.wool@konsulko.se>
-Subject: mm/vmalloc: allow to set node and align in vrealloc
-Date: Wed, 6 Aug 2025 14:41:08 +0200
+Subject: mm/slub: allow to set node and align in k[v]realloc
+Date: Wed, 6 Aug 2025 14:41:47 +0200
 
-Patch series "support large align and nid in Rust allocators", v15.
+Reimplement k[v]realloc_node() to be able to set node and alignment should
+a user need to do so.  In order to do that while retaining the maximal
+backward compatibility, add k[v]realloc_node_align() functions and
+redefine the rest of API using these new ones.
 
-The series provides the ability for Rust allocators to set NUMA node and
-large alignment.
-
-
-This patch (of 4):
-
-Reimplement vrealloc() to be able to set node and alignment should a user
-need to do so.  Rename the function to vrealloc_node_align() to better
-match what it actually does now and introduce macros for vrealloc() and
-friends for backward compatibility.
+While doing that, we also keep the number of _noprof variants to a
+minimum, which implies some changes to the existing users of older _noprof
+functions, that basically being bcachefs.
 
 With that change we also provide the ability for the Rust part of the
-kernel to set node and alignment in its allocations.
+kernel to set node and alignment in its K[v]xxx [re]allocations.
 
-Link: https://lkml.kernel.org/r/20250806124034.1724515-1-vitaly.wool@konsulko.se
-Link: https://lkml.kernel.org/r/20250806124108.1724561-1-vitaly.wool@konsulko.se
+Link: https://lkml.kernel.org/r/20250806124147.1724658-1-vitaly.wool@konsulko.se
 Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.se>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
@@ -96,117 +90,318 @@ Cc: Jann Horn <jannh@google.com>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   12 +++++++++---
- mm/nommu.c              |    3 ++-
- mm/vmalloc.c            |   29 ++++++++++++++++++++++++-----
- 3 files changed, 35 insertions(+), 9 deletions(-)
+ fs/bcachefs/darray.c   |    2 -
+ fs/bcachefs/util.h     |    2 -
+ include/linux/bpfptr.h |    2 -
+ include/linux/slab.h   |   39 +++++++++++++++----------
+ lib/rhashtable.c       |    4 +-
+ mm/slub.c              |   59 +++++++++++++++++++++++++++++----------
+ 6 files changed, 74 insertions(+), 34 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-allow-to-set-node-and-align-in-vrealloc
-+++ a/include/linux/vmalloc.h
-@@ -197,9 +197,15 @@ extern void *__vcalloc_noprof(size_t n,
- extern void *vcalloc_noprof(size_t n, size_t size) __alloc_size(1, 2);
- #define vcalloc(...)		alloc_hooks(vcalloc_noprof(__VA_ARGS__))
+--- a/fs/bcachefs/darray.c~mm-slub-allow-to-set-node-and-align-in-krealloc
++++ a/fs/bcachefs/darray.c
+@@ -21,7 +21,7 @@ int __bch2_darray_resize_noprof(darray_c
+ 			return -ENOMEM;
  
--void * __must_check vrealloc_noprof(const void *p, size_t size, gfp_t flags)
--		__realloc_size(2);
--#define vrealloc(...)		alloc_hooks(vrealloc_noprof(__VA_ARGS__))
-+void *__must_check vrealloc_node_align_noprof(const void *p, size_t size,
-+		unsigned long align, gfp_t flags, int nid) __realloc_size(2);
-+#define vrealloc_node_noprof(_p, _s, _f, _nid)	\
-+	vrealloc_node_align_noprof(_p, _s, 1, _f, _nid)
-+#define vrealloc_noprof(_p, _s, _f)		\
-+	vrealloc_node_align_noprof(_p, _s, 1, _f, NUMA_NO_NODE)
-+#define vrealloc_node_align(...)		alloc_hooks(vrealloc_node_align_noprof(__VA_ARGS__))
-+#define vrealloc_node(...)			alloc_hooks(vrealloc_node_noprof(__VA_ARGS__))
-+#define vrealloc(...)				alloc_hooks(vrealloc_noprof(__VA_ARGS__))
- 
- extern void vfree(const void *addr);
- extern void vfree_atomic(const void *addr);
---- a/mm/nommu.c~mm-vmalloc-allow-to-set-node-and-align-in-vrealloc
-+++ a/mm/nommu.c
-@@ -119,7 +119,8 @@ void *__vmalloc_noprof(unsigned long siz
- }
- EXPORT_SYMBOL(__vmalloc_noprof);
- 
--void *vrealloc_noprof(const void *p, size_t size, gfp_t flags)
-+void *vrealloc_node_align_noprof(const void *p, size_t size, unsigned long align,
-+				 gfp_t flags, int node)
+ 		void *data = likely(bytes < INT_MAX)
+-			? kvmalloc_noprof(bytes, gfp)
++			? kvmalloc_node_align_noprof(bytes, 1, gfp, NUMA_NO_NODE)
+ 			: vmalloc_noprof(bytes);
+ 		if (!data)
+ 			return -ENOMEM;
+--- a/fs/bcachefs/util.h~mm-slub-allow-to-set-node-and-align-in-krealloc
++++ a/fs/bcachefs/util.h
+@@ -61,7 +61,7 @@ static inline void *bch2_kvmalloc_noprof
  {
- 	return krealloc_noprof(p, size, (flags | __GFP_COMP) & ~__GFP_HIGHMEM);
+ 	void *p = unlikely(n >= INT_MAX)
+ 		? vmalloc_noprof(n)
+-		: kvmalloc_noprof(n, flags & ~__GFP_ZERO);
++		: kvmalloc_node_align_noprof(n, 1, flags & ~__GFP_ZERO, NUMA_NO_NODE);
+ 	if (p && (flags & __GFP_ZERO))
+ 		memset(p, 0, n);
+ 	return p;
+--- a/include/linux/bpfptr.h~mm-slub-allow-to-set-node-and-align-in-krealloc
++++ a/include/linux/bpfptr.h
+@@ -67,7 +67,7 @@ static inline int copy_to_bpfptr_offset(
+ 
+ static inline void *kvmemdup_bpfptr_noprof(bpfptr_t src, size_t len)
+ {
+-	void *p = kvmalloc_noprof(len, GFP_USER | __GFP_NOWARN);
++	void *p = kvmalloc_node_align_noprof(len, 1, GFP_USER | __GFP_NOWARN, NUMA_NO_NODE);
+ 
+ 	if (!p)
+ 		return ERR_PTR(-ENOMEM);
+--- a/include/linux/slab.h~mm-slub-allow-to-set-node-and-align-in-krealloc
++++ a/include/linux/slab.h
+@@ -465,9 +465,13 @@ int kmem_cache_shrink(struct kmem_cache
+ /*
+  * Common kmalloc functions provided by all allocators
+  */
+-void * __must_check krealloc_noprof(const void *objp, size_t new_size,
+-				    gfp_t flags) __realloc_size(2);
+-#define krealloc(...)				alloc_hooks(krealloc_noprof(__VA_ARGS__))
++void * __must_check krealloc_node_align_noprof(const void *objp, size_t new_size,
++					       unsigned long align,
++					       gfp_t flags, int nid) __realloc_size(2);
++#define krealloc_noprof(_o, _s, _f)	krealloc_node_align_noprof(_o, _s, 1, _f, NUMA_NO_NODE)
++#define krealloc_node_align(...)	alloc_hooks(krealloc_node_align_noprof(__VA_ARGS__))
++#define krealloc_node(_o, _s, _f, _n)	krealloc_node_align(_o, _s, 1, _f, _n)
++#define krealloc(...)			krealloc_node(__VA_ARGS__, NUMA_NO_NODE)
+ 
+ void kfree(const void *objp);
+ void kfree_sensitive(const void *objp);
+@@ -1041,18 +1045,20 @@ static inline __alloc_size(1) void *kzal
+ #define kzalloc(...)				alloc_hooks(kzalloc_noprof(__VA_ARGS__))
+ #define kzalloc_node(_size, _flags, _node)	kmalloc_node(_size, (_flags)|__GFP_ZERO, _node)
+ 
+-void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), gfp_t flags, int node) __alloc_size(1);
+-#define kvmalloc_node_noprof(size, flags, node)	\
+-	__kvmalloc_node_noprof(PASS_BUCKET_PARAMS(size, NULL), flags, node)
+-#define kvmalloc_node(...)			alloc_hooks(kvmalloc_node_noprof(__VA_ARGS__))
+-
+-#define kvmalloc(_size, _flags)			kvmalloc_node(_size, _flags, NUMA_NO_NODE)
+-#define kvmalloc_noprof(_size, _flags)		kvmalloc_node_noprof(_size, _flags, NUMA_NO_NODE)
++void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), unsigned long align,
++			     gfp_t flags, int node) __alloc_size(1);
++#define kvmalloc_node_align_noprof(_size, _align, _flags, _node)	\
++	__kvmalloc_node_noprof(PASS_BUCKET_PARAMS(_size, NULL), _align, _flags, _node)
++#define kvmalloc_node_align(...)		\
++	alloc_hooks(kvmalloc_node_align_noprof(__VA_ARGS__))
++#define kvmalloc_node(_s, _f, _n)		kvmalloc_node_align(_s, 1, _f, _n)
++#define kvmalloc(...)				kvmalloc_node(__VA_ARGS__, NUMA_NO_NODE)
+ #define kvzalloc(_size, _flags)			kvmalloc(_size, (_flags)|__GFP_ZERO)
+ 
+ #define kvzalloc_node(_size, _flags, _node)	kvmalloc_node(_size, (_flags)|__GFP_ZERO, _node)
++
+ #define kmem_buckets_valloc(_b, _size, _flags)	\
+-	alloc_hooks(__kvmalloc_node_noprof(PASS_BUCKET_PARAMS(_size, _b), _flags, NUMA_NO_NODE))
++	alloc_hooks(__kvmalloc_node_noprof(PASS_BUCKET_PARAMS(_size, _b), 1, _flags, NUMA_NO_NODE))
+ 
+ static inline __alloc_size(1, 2) void *
+ kvmalloc_array_node_noprof(size_t n, size_t size, gfp_t flags, int node)
+@@ -1062,7 +1068,7 @@ kvmalloc_array_node_noprof(size_t n, siz
+ 	if (unlikely(check_mul_overflow(n, size, &bytes)))
+ 		return NULL;
+ 
+-	return kvmalloc_node_noprof(bytes, flags, node);
++	return kvmalloc_node_align_noprof(bytes, 1, flags, node);
  }
---- a/mm/vmalloc.c~mm-vmalloc-allow-to-set-node-and-align-in-vrealloc
-+++ a/mm/vmalloc.c
-@@ -4089,19 +4089,29 @@ void *vzalloc_node_noprof(unsigned long
- EXPORT_SYMBOL(vzalloc_node_noprof);
+ 
+ #define kvmalloc_array_noprof(...)		kvmalloc_array_node_noprof(__VA_ARGS__, NUMA_NO_NODE)
+@@ -1073,9 +1079,12 @@ kvmalloc_array_node_noprof(size_t n, siz
+ #define kvcalloc_node(...)			alloc_hooks(kvcalloc_node_noprof(__VA_ARGS__))
+ #define kvcalloc(...)				alloc_hooks(kvcalloc_noprof(__VA_ARGS__))
+ 
+-void *kvrealloc_noprof(const void *p, size_t size, gfp_t flags)
+-		__realloc_size(2);
+-#define kvrealloc(...)				alloc_hooks(kvrealloc_noprof(__VA_ARGS__))
++void *kvrealloc_node_align_noprof(const void *p, size_t size, unsigned long align,
++				  gfp_t flags, int nid) __realloc_size(2);
++#define kvrealloc_node_align(...)		\
++	alloc_hooks(kvrealloc_node_align_noprof(__VA_ARGS__))
++#define kvrealloc_node(_p, _s, _f, _n)		kvrealloc_node_align(_p, _s, 1, _f, _n)
++#define kvrealloc(...)				kvrealloc_node(__VA_ARGS__, NUMA_NO_NODE)
+ 
+ extern void kvfree(const void *addr);
+ DEFINE_FREE(kvfree, void *, if (!IS_ERR_OR_NULL(_T)) kvfree(_T))
+--- a/lib/rhashtable.c~mm-slub-allow-to-set-node-and-align-in-krealloc
++++ a/lib/rhashtable.c
+@@ -184,8 +184,8 @@ static struct bucket_table *bucket_table
+ 	static struct lock_class_key __key;
+ 
+ 	tbl = alloc_hooks_tag(ht->alloc_tag,
+-			kvmalloc_node_noprof(struct_size(tbl, buckets, nbuckets),
+-					     gfp|__GFP_ZERO, NUMA_NO_NODE));
++			kvmalloc_node_align_noprof(struct_size(tbl, buckets, nbuckets),
++					     1, gfp|__GFP_ZERO, NUMA_NO_NODE));
+ 
+ 	size = nbuckets;
+ 
+--- a/mm/slub.c~mm-slub-allow-to-set-node-and-align-in-krealloc
++++ a/mm/slub.c
+@@ -4881,7 +4881,7 @@ void kfree(const void *object)
+ EXPORT_SYMBOL(kfree);
+ 
+ static __always_inline __realloc_size(2) void *
+-__do_krealloc(const void *p, size_t new_size, gfp_t flags)
++__do_krealloc(const void *p, size_t new_size, unsigned long align, gfp_t flags, int nid)
+ {
+ 	void *ret;
+ 	size_t ks = 0;
+@@ -4895,6 +4895,16 @@ __do_krealloc(const void *p, size_t new_
+ 	if (!kasan_check_byte(p))
+ 		return NULL;
+ 
++	/*
++	 * If reallocation is not necessary (e. g. the new size is less
++	 * than the current allocated size), the current allocation will be
++	 * preserved unless __GFP_THISNODE is set. In the latter case a new
++	 * allocation on the requested node will be attempted.
++	 */
++	if (unlikely(flags & __GFP_THISNODE) && nid != NUMA_NO_NODE &&
++		     nid != page_to_nid(virt_to_page(p)))
++		goto alloc_new;
++
+ 	if (is_kfence_address(p)) {
+ 		ks = orig_size = kfence_ksize(p);
+ 	} else {
+@@ -4917,6 +4927,10 @@ __do_krealloc(const void *p, size_t new_
+ 	if (new_size > ks)
+ 		goto alloc_new;
+ 
++	/* If the old object doesn't satisfy the new alignment, allocate a new one */
++	if (!IS_ALIGNED((unsigned long)p, align))
++		goto alloc_new;
++
+ 	/* Zero out spare memory. */
+ 	if (want_init_on_alloc(flags)) {
+ 		kasan_disable_current();
+@@ -4939,7 +4953,7 @@ __do_krealloc(const void *p, size_t new_
+ 	return (void *)p;
+ 
+ alloc_new:
+-	ret = kmalloc_node_track_caller_noprof(new_size, flags, NUMA_NO_NODE, _RET_IP_);
++	ret = kmalloc_node_track_caller_noprof(new_size, flags, nid, _RET_IP_);
+ 	if (ret && p) {
+ 		/* Disable KASAN checks as the object's redzone is accessed. */
+ 		kasan_disable_current();
+@@ -4951,14 +4965,19 @@ alloc_new:
+ }
  
  /**
-- * vrealloc - reallocate virtually contiguous memory; contents remain unchanged
-+ * vrealloc_node_align_noprof - reallocate virtually contiguous memory; contents
-+ * remain unchanged
-  * @p: object to reallocate memory for
-  * @size: the size to reallocate
-+ * @align: requested alignment
-  * @flags: the flags for the page level allocator
-+ * @nid: node number of the target node
+- * krealloc - reallocate memory. The contents will remain unchanged.
++ * krealloc_node_align - reallocate memory. The contents will remain unchanged.
+  * @p: object to reallocate memory for.
+  * @new_size: how many bytes of memory are required.
++ * @align: desired alignment.
+  * @flags: the type of memory to allocate.
++ * @nid: NUMA node or NUMA_NO_NODE
   *
-- * If @p is %NULL, vrealloc() behaves exactly like vmalloc(). If @size is 0 and
-- * @p is not a %NULL pointer, the object pointed to is freed.
-+ * If @p is %NULL, vrealloc_XXX() behaves exactly like vmalloc_XXX(). If @size
-+ * is 0 and @p is not a %NULL pointer, the object pointed to is freed.
+  * If @p is %NULL, krealloc() behaves exactly like kmalloc().  If @new_size
+  * is 0 and @p is not a %NULL pointer, the object pointed to is freed.
+  *
++ * Only alignments up to those guaranteed by kmalloc() will be honored. Please see
++ * Documentation/core-api/memory-allocation.rst for more details.
 + *
-+ * If the caller wants the new memory to be on specific node *only*,
-+ * __GFP_THISNODE flag should be set, otherwise the function will try to avoid
-+ * reallocation and possibly disregard the specified @nid.
-  *
   * If __GFP_ZERO logic is requested, callers must ensure that, starting with the
   * initial memory allocation, every subsequent call to this API for the same
   * memory allocation is flagged with __GFP_ZERO. Otherwise, it is possible that
-  * __GFP_ZERO is not fully honored by this API.
+@@ -4983,7 +5002,8 @@ alloc_new:
   *
-+ * Requesting an alignment that is bigger than the alignment of the existing
-+ * allocation will fail.
-+ *
-  * In any case, the contents of the object pointed to are preserved up to the
-  * lesser of the new and old sizes.
-  *
-@@ -4111,7 +4121,8 @@ EXPORT_SYMBOL(vzalloc_node_noprof);
-  * Return: pointer to the allocated memory; %NULL if @size is zero or in case of
-  *         failure
+  * Return: pointer to the allocated memory or %NULL in case of error
   */
--void *vrealloc_noprof(const void *p, size_t size, gfp_t flags)
-+void *vrealloc_node_align_noprof(const void *p, size_t size, unsigned long align,
+-void *krealloc_noprof(const void *p, size_t new_size, gfp_t flags)
++void *krealloc_node_align_noprof(const void *p, size_t new_size, unsigned long align,
 +				 gfp_t flags, int nid)
  {
- 	struct vm_struct *vm = NULL;
- 	size_t alloced_size = 0;
-@@ -4135,6 +4146,12 @@ void *vrealloc_noprof(const void *p, siz
- 		if (WARN(alloced_size < old_size,
- 			 "vrealloc() has mismatched area vs requested sizes (%p)\n", p))
+ 	void *ret;
+ 
+@@ -4992,13 +5012,13 @@ void *krealloc_noprof(const void *p, siz
+ 		return ZERO_SIZE_PTR;
+ 	}
+ 
+-	ret = __do_krealloc(p, new_size, flags);
++	ret = __do_krealloc(p, new_size, align, flags, nid);
+ 	if (ret && kasan_reset_tag(p) != kasan_reset_tag(ret))
+ 		kfree(p);
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(krealloc_noprof);
++EXPORT_SYMBOL(krealloc_node_align_noprof);
+ 
+ static gfp_t kmalloc_gfp_adjust(gfp_t flags, size_t size)
+ {
+@@ -5029,9 +5049,13 @@ static gfp_t kmalloc_gfp_adjust(gfp_t fl
+  * failure, fall back to non-contiguous (vmalloc) allocation.
+  * @size: size of the request.
+  * @b: which set of kmalloc buckets to allocate from.
++ * @align: desired alignment.
+  * @flags: gfp mask for the allocation - must be compatible (superset) with GFP_KERNEL.
+  * @node: numa node to allocate from
+  *
++ * Only alignments up to those guaranteed by kmalloc() will be honored. Please see
++ * Documentation/core-api/memory-allocation.rst for more details.
++ *
+  * Uses kmalloc to get the memory but if the allocation fails then falls back
+  * to the vmalloc allocator. Use kvfree for freeing the memory.
+  *
+@@ -5041,7 +5065,8 @@ static gfp_t kmalloc_gfp_adjust(gfp_t fl
+  *
+  * Return: pointer to the allocated memory of %NULL in case of failure
+  */
+-void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), gfp_t flags, int node)
++void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), unsigned long align,
++			     gfp_t flags, int node)
+ {
+ 	void *ret;
+ 
+@@ -5071,7 +5096,7 @@ void *__kvmalloc_node_noprof(DECL_BUCKET
+ 	 * about the resulting pointer, and cannot play
+ 	 * protection games.
+ 	 */
+-	return __vmalloc_node_range_noprof(size, 1, VMALLOC_START, VMALLOC_END,
++	return __vmalloc_node_range_noprof(size, align, VMALLOC_START, VMALLOC_END,
+ 			flags, PAGE_KERNEL, VM_ALLOW_HUGE_VMAP,
+ 			node, __builtin_return_address(0));
+ }
+@@ -5115,14 +5140,19 @@ void kvfree_sensitive(const void *addr,
+ EXPORT_SYMBOL(kvfree_sensitive);
+ 
+ /**
+- * kvrealloc - reallocate memory; contents remain unchanged
++ * kvrealloc_node_align - reallocate memory; contents remain unchanged
+  * @p: object to reallocate memory for
+  * @size: the size to reallocate
++ * @align: desired alignment
+  * @flags: the flags for the page level allocator
++ * @nid: NUMA node id
+  *
+  * If @p is %NULL, kvrealloc() behaves exactly like kvmalloc(). If @size is 0
+  * and @p is not a %NULL pointer, the object pointed to is freed.
+  *
++ * Only alignments up to those guaranteed by kmalloc() will be honored. Please see
++ * Documentation/core-api/memory-allocation.rst for more details.
++ *
+  * If __GFP_ZERO logic is requested, callers must ensure that, starting with the
+  * initial memory allocation, every subsequent call to this API for the same
+  * memory allocation is flagged with __GFP_ZERO. Otherwise, it is possible that
+@@ -5136,17 +5166,18 @@ EXPORT_SYMBOL(kvfree_sensitive);
+  *
+  * Return: pointer to the allocated memory or %NULL in case of error
+  */
+-void *kvrealloc_noprof(const void *p, size_t size, gfp_t flags)
++void *kvrealloc_node_align_noprof(const void *p, size_t size, unsigned long align,
++				  gfp_t flags, int nid)
+ {
+ 	void *n;
+ 
+ 	if (is_vmalloc_addr(p))
+-		return vrealloc_noprof(p, size, flags);
++		return vrealloc_node_align_noprof(p, size, align, flags, nid);
+ 
+-	n = krealloc_noprof(p, size, kmalloc_gfp_adjust(flags, size));
++	n = krealloc_node_align_noprof(p, size, align, kmalloc_gfp_adjust(flags, size), nid);
+ 	if (!n) {
+ 		/* We failed to krealloc(), fall back to kvmalloc(). */
+-		n = kvmalloc_noprof(size, flags);
++		n = kvmalloc_node_align_noprof(size, align, flags, nid);
+ 		if (!n)
  			return NULL;
-+		if (WARN(!IS_ALIGNED((unsigned long)p, align),
-+			 "will not reallocate with a bigger alignment (0x%lx)\n", align))
-+			return NULL;
-+		if (unlikely(flags & __GFP_THISNODE) && nid != NUMA_NO_NODE &&
-+			     nid != page_to_nid(vmalloc_to_page(p)))
-+			goto need_realloc;
- 	}
  
- 	/*
-@@ -4165,8 +4182,10 @@ void *vrealloc_noprof(const void *p, siz
- 		return (void *)p;
- 	}
+@@ -5162,7 +5193,7 @@ void *kvrealloc_noprof(const void *p, si
  
-+need_realloc:
- 	/* TODO: Grow the vm_area, i.e. allocate and map additional pages. */
--	n = __vmalloc_noprof(size, flags);
-+	n = __vmalloc_node_noprof(size, align, flags, nid, __builtin_return_address(0));
-+
- 	if (!n)
- 		return NULL;
+ 	return n;
+ }
+-EXPORT_SYMBOL(kvrealloc_noprof);
++EXPORT_SYMBOL(kvrealloc_node_align_noprof);
  
+ struct detached_freelist {
+ 	struct slab *slab;
 _
 
 Patches currently in -mm which might be from vitaly.wool@konsulko.se are
