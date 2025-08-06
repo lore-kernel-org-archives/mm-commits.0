@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 760A3145346
-	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 23:02:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3033E145346
+	for <mm-commits@vger.kernel.org>; Wed,  6 Aug 2025 23:11:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754521329; cv=none; b=oZED3EAgK0w05l+5tTIFjX+XPvoEbuUwhtWqLOV2yIkL1YiYYRd990GRbthrogOXfg+oYFY1gW0scpA+gK3xKpPdkqeed4FSsoXatcOINfIwRTRJt7J21C80Qz+tYNRatT6t/lYB+b7c/TS5cJ3HotPy4ANwOMPF/qo20XvPZuA=
+	t=1754521880; cv=none; b=re+zXJJ5j82bPL4FHpDRbI0y1qUmDaMg/v22DzlzSlDoWdCmwZdITHlX5rt+LXxBodfsQxj0DB07A/FSkRv//TICf59QTAEa9irTP3jSsN3ovHdlNbiRSRhZOhmLPuwgBkCu9nCnIcpOb2QKDSfZKvtrar3UoxlbJRvNU7IqAEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754521329; c=relaxed/simple;
-	bh=hlSr+ha5CHsTn6NuFNmHVLLcAlMFHMwVmhN838iARU4=;
-	h=Date:To:From:Subject:Message-Id; b=iqzqmE6SoebP0Z9lPdtDDxbfy1tX2xpRWOWt9KwG46mQRpiFeb603wKEeF4Ay2eE7vToeT8rhnk8CyADfpAL5ffJsehd/SHJ611RcArXiIGt5HI+FFQhVGwfFZHfpCmWdRE/yoXbbg+NAd5Aza19fobGb6R6//RBYcR+qSlFF9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H08F/3Px; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754521880; c=relaxed/simple;
+	bh=PM/djFtGtnEVElb8cWmicdo3IRepuB64cjUnlElEzD0=;
+	h=Date:To:From:Subject:Message-Id; b=DX3CiKmpqcFf03fIiCqaINE0kmEZCe0Z7YLuXmSBWf2PJZ6Qyqe5FAPaqhk8Zr1IDuQZco5UN7Vw4lx1r97LKclnjQ1wjO+m4B/Wi8hhaLCuOLCgqMqPTqFtnJN7SiVFJzbohLLAx6dKA1SjqsIjLnUDJ/G342bVVWghqXfTNjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jdmUZ9YA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H08F/3Px"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0D24C4CEE7;
-	Wed,  6 Aug 2025 23:02:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jdmUZ9YA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93A47C4CEE7;
+	Wed,  6 Aug 2025 23:11:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754521328;
-	bh=hlSr+ha5CHsTn6NuFNmHVLLcAlMFHMwVmhN838iARU4=;
+	s=korg; t=1754521876;
+	bh=PM/djFtGtnEVElb8cWmicdo3IRepuB64cjUnlElEzD0=;
 	h=Date:To:From:Subject:From;
-	b=H08F/3PxvGN4JJfY6bogvYp2ZpNGvSyV905aCZnR25amHiArlJMfsQccLvJC+UtHc
-	 vmgG4pizh6UOpmwrunkIJsl+nl+dWlUwK5d+og8TLGJRxevdP0TNWcAuGiLwtloQMN
-	 Pb27B8vaXTZ1TmLf/NmAN8nl5F9VRkSpRfVV1YOc=
-Date: Wed, 06 Aug 2025 16:02:08 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,adrianhuang0701@gmail.com,akpm@linux-foundation.org
+	b=jdmUZ9YAxEYAuJT5gmu0EWCOAv2cmI+wSy21Cq5fUOu5x12gb9ZT1RsYAbTl7kaNJ
+	 ZI3Qub0s9OWufKrRZ33QA0Kp6SSbFFYzR8QQQAOAXa+JErCzJC9GoJNCYxDMQax9LC
+	 7llD3FLjhkzuPByceMf+bGU67Rviv4n1RjDjR2O8=
+Date: Wed, 06 Aug 2025 16:11:15 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,sj@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-correct-misleading-comment-on-mmap_lock-field-in-mm_struct.patch added to mm-new branch
-Message-Id: <20250806230208.D0D24C4CEE7@smtp.kernel.org>
+Subject: + mempolicy-clarify-what-zone-reclaim-means-fix.patch added to mm-unstable branch
+Message-Id: <20250806231116.93A47C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: correct misleading comment on mmap_lock field in mm_struct
-has been added to the -mm mm-new branch.  Its filename is
-     mm-correct-misleading-comment-on-mmap_lock-field-in-mm_struct.patch
+     Subject: mempolicy-clarify-what-zone-reclaim-means-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mempolicy-clarify-what-zone-reclaim-means-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-correct-misleading-comment-on-mmap_lock-field-in-mm_struct.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-clarify-what-zone-reclaim-means-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,51 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: mm: correct misleading comment on mmap_lock field in mm_struct
-Date: Wed, 6 Aug 2025 22:59:06 +0800
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mempolicy-clarify-what-zone-reclaim-means-fix
+Date: Wed, 6 Aug 2025 06:43:52 -0700
 
-The comment previously described the offset of mmap_lock as 0x120 (hex),
-which is misleading.  The correct offset is 56 bytes (decimal) from the
-last cache line boundary.  Using '0x120' could confuse readers trying to
-understand why the count and owner fields reside in separate cachelines.
+remove the reference to the vm.zone_reclaim_mode sysctl as an ABI
 
-This change also removes an unnecessary space for improved formatting.
-
-Link: https://lkml.kernel.org/r/20250806145906.24647-1-adrianhuang0701@gmail.com
-Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250806134404.2000234-1-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Huang Ying <ying.huang@linux.alibaba.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/uapi/linux/mempolicy.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm_types.h~mm-correct-misleading-comment-on-mmap_lock-field-in-mm_struct
-+++ a/include/linux/mm_types.h
-@@ -1026,10 +1026,10 @@ struct mm_struct {
- 					     * counters
- 					     */
- 		/*
--		 * With some kernel config, the current mmap_lock's offset
--		 * inside 'mm_struct' is at 0x120, which is very optimal, as
-+		 * Typically the current mmap_lock's offset is 56 bytes from
-+		 * the last cacheline boundary, which is very optimal, as
- 		 * its two hot fields 'count' and 'owner' sit in 2 different
--		 * cachelines,  and when mmap_lock is highly contended, both
-+		 * cachelines, and when mmap_lock is highly contended, both
- 		 * of the 2 fields will be accessed frequently, current layout
- 		 * will help to reduce cache bouncing.
- 		 *
+--- a/include/uapi/linux/mempolicy.h~mempolicy-clarify-what-zone-reclaim-means-fix
++++ a/include/uapi/linux/mempolicy.h
+@@ -72,8 +72,8 @@ enum {
+  * Fallback allocations on the next candidates in the zonelist are considered
+  * when reclaim fails to free up enough memory in the current node/zone.
+  *
+- * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
+- * ABI.  New bits are OK, but existing bits should not be changed.
++ * These bit locations are exposed in the vm.zone_reclaim_mode sysctl.
++ * New bits are OK, but existing bits should not be changed.
+  */
+ #define RECLAIM_ZONE	(1<<0)	/* Enable zone reclaim */
+ #define RECLAIM_WRITE	(1<<1)	/* Writeout pages during reclaim */
 _
 
-Patches currently in -mm which might be from adrianhuang0701@gmail.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-mm-correct-misleading-comment-on-mmap_lock-field-in-mm_struct.patch
+mempolicy-clarify-what-zone-reclaim-means.patch
+mempolicy-clarify-what-zone-reclaim-means-fix.patch
 
