@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CD90186A
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:44:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B14EB1D8A0A
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:44:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754538290; cv=none; b=ZbrTQEXdacDWGcIfudIcQ8LXUbW+PZb2QsIVQ5dYJj+Zbh7Bem8KVjNT2EuqVHqfNvQLT0+aiZfAxXsBIiO0fsOMOiJndDhOj+da9fY6xKQjTCySG8kv4FmskceplyAGa5bl4FCkV4OoZAFX/9HpZ85ApbCg2igdvOVZIfDkInM=
+	t=1754538293; cv=none; b=C/2W5o8d6sfU6335R62Cf89bH3iGUWk1f6BbfHk4AAgUrX56uVpo17/cSUBCJ3wUPMhuuzF1tU+/R6gNGxbhb2agNAuBj7WCzmmYDt1l1ZzVhI1WLwGjqu77h8wlR5hdOpufJarld1GTqdgNqze81R9TSdRMsgm+mRIbwUYsfzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754538290; c=relaxed/simple;
-	bh=HAFfodt6X7R7KCHdQZLgeVEcXvaf5pRY8Y0FeqIJ/Fo=;
-	h=Date:To:From:Subject:Message-Id; b=NcjK1ISpMTMrG2tpX1YaOE+3lCH+yLN08bpj8kRBSnHzBovy0idNRXYE3uIoR/l7pOE8gWN3y8z1xpkCh2Z1qOE/Mmrs237H70UpgV8mOAUThUrEX9etD51aVSAkwNNTYWYoummvkHHdoS7GLA9+HEE7+jH2FG24ovD/ZTxO/so=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EszoyNTq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754538293; c=relaxed/simple;
+	bh=U5Jw6eRlJC4s1pUPuB5v0vSwsxg2giLSSXJHwryl/pA=;
+	h=Date:To:From:Subject:Message-Id; b=ZtKz/8hywW58Owdz8ZUxt79GoJvHTlvK5v7aEiYgJiqquflQo1Kddb8A4LWzy3lmkw3ms53X7G12sC1+0xNnToz3n9B6XRbnZQ+7nIMBVvx55uyZ2hD7CLgjUzzqyA9HYYJGmhPX1Il97Q7jq+lykJ4j0n8DGc0xc3t040Bq15Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vT8Rop01; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EszoyNTq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D9B0C4CEEB;
-	Thu,  7 Aug 2025 03:44:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vT8Rop01"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D240C4CEEB;
+	Thu,  7 Aug 2025 03:44:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754538289;
-	bh=HAFfodt6X7R7KCHdQZLgeVEcXvaf5pRY8Y0FeqIJ/Fo=;
+	s=korg; t=1754538293;
+	bh=U5Jw6eRlJC4s1pUPuB5v0vSwsxg2giLSSXJHwryl/pA=;
 	h=Date:To:From:Subject:From;
-	b=EszoyNTqy6D1wofZmGsF15pyPsWfsldmq8gOampUAaaqeOSQt7b9Vct5YqmuWuw/m
-	 3BjxAEIcRLTlfQz9iedbJDhVo8Qw7EhH0awCOYUNiJmcJPry8vxYy4Qqssje/hyTP2
-	 2kdbbvBYASzWHgQnCUUh1ezWljAim8QZoxSKp1qU=
-Date: Wed, 06 Aug 2025 20:44:49 -0700
+	b=vT8Rop012Al1nyh/vSdlgAJgTPv0DCHUQLAwzYsVXngCW2Fh7YfXvLsYSZeX39d7H
+	 41TZZxE85dof2hPHFTMrB6QZuL2ZW6B0AN1AOwGp4MKQ+BAArVzu2s6znBcWnhnmHB
+	 HL9TXs2eP86S7vOcECyHNC51LwtGaM91Vcgjh6b8=
+Date: Wed, 06 Aug 2025 20:44:53 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sidhartha.kumar@oracle.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mark-unused-arguments-with-__unused.patch added to mm-new branch
-Message-Id: <20250807034449.8D9B0C4CEEB@smtp.kernel.org>
+Subject: + selftests-mm-mark-unused-arguments-with-__unused-2.patch added to mm-new branch
+Message-Id: <20250807034453.7D240C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: mark unused arguments with __unused
+     Subject: selftests/mm: mark more unused arguments with __unused
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-mark-unused-arguments-with-__unused.patch
+     selftests-mm-mark-unused-arguments-with-__unused-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mark-unused-arguments-with-__unused.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mark-unused-arguments-with-__unused-2.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,12 +65,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: mark unused arguments with __unused
-Date: Thu, 31 Jul 2025 21:01:30 +0500
+Subject: selftests/mm: mark more unused arguments with __unused
+Date: Thu, 31 Jul 2025 21:01:31 +0500
 
 Mark the arguments which cannot be removed with __unused attribute.
 
-Link: https://lkml.kernel.org/r/20250731160132.1795351-7-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250731160132.1795351-8-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -98,288 +98,234 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c             |   20 +++++------
- tools/testing/selftests/mm/memfd_secret.c    |    4 +-
- tools/testing/selftests/mm/pfnmap.c          |    2 -
- tools/testing/selftests/mm/uffd-common.c     |   11 +++---
- tools/testing/selftests/mm/uffd-unit-tests.c |   30 ++++++++---------
- 5 files changed, 34 insertions(+), 33 deletions(-)
+ tools/testing/selftests/mm/hugetlb_fault_after_madv.c |    4 +-
+ tools/testing/selftests/mm/hugetlb_madv_vs_map.c      |    6 +--
+ tools/testing/selftests/mm/pkey-arm64.h               |    5 +-
+ tools/testing/selftests/mm/pkey-powerpc.h             |    2 -
+ tools/testing/selftests/mm/pkey-x86.h                 |    3 +
+ tools/testing/selftests/mm/pkey_sighandler_tests.c    |   10 ++---
+ tools/testing/selftests/mm/protection_keys.c          |   18 +++++-----
+ 7 files changed, 25 insertions(+), 23 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-mark-unused-arguments-with-__unused
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -253,12 +253,12 @@ close_comm_pipes:
- 	close_comm_pipes(&comm_pipes);
+--- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-mark-unused-arguments-with-__unused-2
++++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
+@@ -28,7 +28,7 @@ static void signal_handler(int signal)
  }
  
--static void test_cow_in_parent(char *mem, size_t size, bool is_hugetlb)
-+static void test_cow_in_parent(char *mem, size_t size, bool __unused is_hugetlb)
+ /* Touch the memory while it is being madvised() */
+-void *touch(void *unused)
++void *touch(void __unused *unused)
  {
- 	do_test_cow_in_parent(mem, size, false, child_memcmp_fn, false);
+ 	char *ptr = (char *)huge_ptr;
+ 
+@@ -41,7 +41,7 @@ void *touch(void *unused)
+ 	return NULL;
  }
  
--static void test_cow_in_parent_mprotect(char *mem, size_t size, bool is_hugetlb)
-+static void test_cow_in_parent_mprotect(char *mem, size_t size, bool __unused is_hugetlb)
+-void *madv(void *unused)
++void *madv(void __unused *unused)
  {
- 	do_test_cow_in_parent(mem, size, true, child_memcmp_fn, false);
- }
-@@ -734,36 +734,36 @@ free_tmp:
- 	free(tmp);
- }
+ 	usleep(rand() % 10);
  
--static void test_ro_pin_on_shared(char *mem, size_t size, bool is_hugetlb)
-+static void test_ro_pin_on_shared(char *mem, size_t size, bool __unused is_hugetlb)
+--- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-mark-unused-arguments-with-__unused-2
++++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
+@@ -33,7 +33,7 @@ size_t mmap_size;
+ char *huge_ptr;
+ 
+ /* Touch the memory while it is being madvised() */
+-void *touch(void *unused)
++void *touch(void __unused *unused)
  {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, false);
+ 	for (int i = 0; i < INLOOP_ITER; i++)
+ 		huge_ptr[0] = '.';
+@@ -41,7 +41,7 @@ void *touch(void *unused)
+ 	return NULL;
  }
  
--static void test_ro_fast_pin_on_shared(char *mem, size_t size, bool is_hugetlb)
-+static void test_ro_fast_pin_on_shared(char *mem, size_t size, bool __unused is_hugetlb)
+-void *madv(void *unused)
++void *madv(void __unused *unused)
  {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, true);
- }
- 
- static void test_ro_pin_on_ro_previously_shared(char *mem, size_t size,
--		bool is_hugetlb)
-+		bool __unused is_hugetlb)
+ 	for (int i = 0; i < INLOOP_ITER; i++)
+ 		madvise(huge_ptr, mmap_size, MADV_DONTNEED);
+@@ -54,7 +54,7 @@ void *madv(void *unused)
+  * The other hugepage should be flipping from used <-> reserved, because
+  * of madvise(DONTNEED).
+  */
+-void *map_extra(void *unused)
++void *map_extra(void __unused *unused)
  {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, false);
+ 	void *ptr;
+ 
+--- a/tools/testing/selftests/mm/pkey-arm64.h~selftests-mm-mark-unused-arguments-with-__unused-2
++++ a/tools/testing/selftests/mm/pkey-arm64.h
+@@ -81,11 +81,12 @@ static inline int get_arch_reserved_keys
+ 	return NR_RESERVED_PKEYS;
  }
  
- static void test_ro_fast_pin_on_ro_previously_shared(char *mem, size_t size,
--		bool is_hugetlb)
-+		bool __unused is_hugetlb)
- {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, true);
- }
- 
- static void test_ro_pin_on_ro_exclusive(char *mem, size_t size,
--		bool is_hugetlb)
-+		bool __unused is_hugetlb)
- {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, false);
- }
- 
- static void test_ro_fast_pin_on_ro_exclusive(char *mem, size_t size,
--		bool is_hugetlb)
-+		bool __unused is_hugetlb)
- {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, true);
- }
-@@ -1522,12 +1522,12 @@ static void test_cow(char *mem, const ch
- 	free(old);
- }
- 
--static void test_ro_pin(char *mem, const char *smem, size_t size)
-+static void test_ro_pin(char *mem, const char __unused *smem, size_t size)
- {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST, false);
- }
- 
--static void test_ro_fast_pin(char *mem, const char *smem, size_t size)
-+static void test_ro_fast_pin(char *mem, const char __unused *smem, size_t size)
- {
- 	do_test_ro_pin(mem, size, RO_PIN_TEST, true);
- }
---- a/tools/testing/selftests/mm/memfd_secret.c~selftests-mm-mark-unused-arguments-with-__unused
-+++ a/tools/testing/selftests/mm/memfd_secret.c
-@@ -123,7 +123,7 @@ close_pipe:
- 	close(pipefd[1]);
- }
- 
--static void try_process_vm_read(int fd, int pipefd[2])
-+static void try_process_vm_read(int __unused fd, int pipefd[2])
- {
- 	struct iovec liov, riov;
- 	char buf[64];
-@@ -147,7 +147,7 @@ static void try_process_vm_read(int fd,
- 	exit(KSFT_FAIL);
- }
- 
--static void try_ptrace(int fd, int pipefd[2])
-+static void try_ptrace(int __unused fd, int pipefd[2])
- {
- 	pid_t ppid = getppid();
- 	int status;
---- a/tools/testing/selftests/mm/pfnmap.c~selftests-mm-mark-unused-arguments-with-__unused
-+++ a/tools/testing/selftests/mm/pfnmap.c
-@@ -28,7 +28,7 @@
- static sigjmp_buf sigjmp_buf_env;
- static char *file = "/dev/mem";
- 
--static void signal_handler(int sig)
-+static void signal_handler(int __unused sig)
- {
- 	siglongjmp(sigjmp_buf_env, -EFAULT);
- }
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-mark-unused-arguments-with-__unused
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -46,7 +46,7 @@ static void anon_release_pages(char *rel
- 		err("madvise(MADV_DONTNEED) failed");
- }
- 
--static int anon_allocate_area(void **alloc_area, bool is_src)
-+static int anon_allocate_area(void **alloc_area, bool __unused is_src)
- {
- 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
- 			   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-@@ -57,7 +57,8 @@ static int anon_allocate_area(void **all
- 	return 0;
- }
- 
--static void noop_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-+static void noop_alias_mapping(__u64 __unused *start, size_t __unused len,
-+			       unsigned long __unused offset)
+-static inline void expect_fault_on_read_execonly_key(void *p1, int pkey)
++static inline void expect_fault_on_read_execonly_key(void __unused *p1, int __unused pkey)
  {
  }
  
-@@ -108,7 +109,7 @@ static int hugetlb_allocate_area(void **
- 	return 0;
- }
- 
--static void hugetlb_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-+static void hugetlb_alias_mapping(__u64 *start, size_t __unused len, unsigned long offset)
+-static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
++static inline void *malloc_pkey_with_mprotect_subpage(long __unused size, int __unused prot,
++						      u16 __unused pkey)
  {
- 	if (!map_shared)
- 		return;
-@@ -167,12 +168,12 @@ static int shmem_allocate_area(void **al
- 	return 0;
+ 	return PTR_ERR_ENOTSUP;
+ }
+--- a/tools/testing/selftests/mm/pkey-powerpc.h~selftests-mm-mark-unused-arguments-with-__unused-2
++++ a/tools/testing/selftests/mm/pkey-powerpc.h
+@@ -93,7 +93,7 @@ static inline int get_arch_reserved_keys
+ 			return NR_RESERVED_PKEYS_64K_3KEYS;
  }
  
--static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-+static void shmem_alias_mapping(__u64 *start, size_t __unused len, unsigned long offset)
- {
- 	*start = (unsigned long)area_dst_alias + offset;
- }
- 
--static void shmem_check_pmd_mapping(void *p, int expect_nr_hpages)
-+static void shmem_check_pmd_mapping(void __unused *p, int expect_nr_hpages)
- {
- 	if (!check_huge_shmem(area_dst_alias, expect_nr_hpages,
- 			      read_pmd_pagesize()))
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-mark-unused-arguments-with-__unused
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -361,7 +361,7 @@ static int pagemap_test_fork(int uffd, b
- 	return result;
- }
- 
--static void uffd_wp_unpopulated_test(uffd_test_args_t *args)
-+static void uffd_wp_unpopulated_test(uffd_test_args_t __unused *args)
- {
- 	uint64_t value;
- 	int pagemap_fd;
-@@ -487,7 +487,7 @@ static void uffd_wp_fork_with_event_test
- 	uffd_wp_fork_test_common(args, true);
- }
- 
--static void uffd_wp_fork_pin_test_common(uffd_test_args_t *args,
-+static void uffd_wp_fork_pin_test_common(uffd_test_args_t __unused *args,
- 					 bool with_event)
- {
- 	int pagemap_fd;
-@@ -631,24 +631,24 @@ static void uffd_minor_test_common(bool
- 		uffd_test_pass();
- }
- 
--void uffd_minor_test(uffd_test_args_t *args)
-+void uffd_minor_test(uffd_test_args_t __unused *args)
- {
- 	uffd_minor_test_common(false, false);
- }
- 
--void uffd_minor_wp_test(uffd_test_args_t *args)
-+void uffd_minor_wp_test(uffd_test_args_t __unused *args)
- {
- 	uffd_minor_test_common(false, true);
- }
- 
--void uffd_minor_collapse_test(uffd_test_args_t *args)
-+void uffd_minor_collapse_test(uffd_test_args_t __unused *args)
- {
- 	uffd_minor_test_common(true, false);
- }
- 
- static sigjmp_buf jbuf, *sigbuf;
- 
--static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
-+static void sighndl(int sig, siginfo_t __unused *siginfo, void __unused *ptr)
- {
- 	if (sig == SIGBUS) {
- 		if (sigbuf)
-@@ -824,12 +824,12 @@ static void uffd_sigbus_test_common(bool
- 		uffd_test_pass();
- }
- 
--static void uffd_sigbus_test(uffd_test_args_t *args)
-+static void uffd_sigbus_test(uffd_test_args_t __unused *args)
- {
- 	uffd_sigbus_test_common(false);
- }
- 
--static void uffd_sigbus_wp_test(uffd_test_args_t *args)
-+static void uffd_sigbus_wp_test(uffd_test_args_t __unused *args)
- {
- 	uffd_sigbus_test_common(true);
- }
-@@ -877,12 +877,12 @@ static void uffd_events_test_common(bool
- 		uffd_test_pass();
- }
- 
--static void uffd_events_test(uffd_test_args_t *args)
-+static void uffd_events_test(uffd_test_args_t __unused *args)
- {
- 	uffd_events_test_common(false);
- }
- 
--static void uffd_events_wp_test(uffd_test_args_t *args)
-+static void uffd_events_wp_test(uffd_test_args_t __unused *args)
- {
- 	uffd_events_test_common(true);
- }
-@@ -950,7 +950,7 @@ uffd_register_detect_zeropage(int uffd,
- }
- 
- /* exercise UFFDIO_ZEROPAGE */
--static void uffd_zeropage_test(uffd_test_args_t *args)
-+static void uffd_zeropage_test(uffd_test_args_t __unused *args)
- {
- 	bool has_zeropage;
- 	int i;
-@@ -1006,7 +1006,7 @@ static void do_uffdio_poison(int uffd, u
- }
- 
- static void uffd_poison_handle_fault(
--	struct uffd_msg *msg, struct uffd_args *args)
-+	struct uffd_msg *msg, struct uffd_args __unused *args)
- {
- 	unsigned long offset;
- 
-@@ -1030,7 +1030,7 @@ static void uffd_poison_handle_fault(
- /* Make sure to cover odd/even, and minimum duplications */
- #define  UFFD_POISON_TEST_NPAGES  4
- 
--static void uffd_poison_test(uffd_test_args_t *targs)
-+static void uffd_poison_test(uffd_test_args_t __unused *targs)
- {
- 	pthread_t uffd_mon;
- 	char c;
-@@ -1126,7 +1126,7 @@ static void uffd_move_pmd_handle_fault(s
- }
- 
- static void
--uffd_move_test_common(uffd_test_args_t *targs, unsigned long chunk_size,
-+uffd_move_test_common(uffd_test_args_t __unused *targs, unsigned long chunk_size,
- 		      void (*handle_fault)(struct uffd_msg *msg, struct uffd_args *args))
- {
- 	unsigned long nr;
-@@ -1359,7 +1359,7 @@ static void uffd_consume_message(void)
- 	while (uffd_read_msg(&msg));
- }
- 
--static void uffd_mmap_changing_test(uffd_test_args_t *targs)
-+static void uffd_mmap_changing_test(uffd_test_args_t __unused *targs)
+-static inline void expect_fault_on_read_execonly_key(void *p1, int pkey)
++static inline void expect_fault_on_read_execonly_key(void __unused *p1, int __unused pkey)
  {
  	/*
- 	 * This stores the real PID (which can be different from how tid is
+ 	 * powerpc does not allow userspace to change permissions of exec-only
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-mark-unused-arguments-with-__unused-2
++++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
+@@ -110,7 +110,7 @@ static inline u64 pkey_reg_restrictive_d
+ 	return set_pkey_bits(PKEY_REG_ALLOW_NONE, 0, PKEY_DISABLE_ACCESS);
+ }
+ 
+-static void sigsegv_handler(int signo, siginfo_t *info, void *ucontext)
++static void sigsegv_handler(int __unused signo, siginfo_t *info, void __unused *ucontext)
+ {
+ 	pthread_mutex_lock(&mutex);
+ 
+@@ -122,7 +122,7 @@ static void sigsegv_handler(int signo, s
+ 	syscall_raw(SYS_exit, 0, 0, 0, 0, 0, 0);
+ }
+ 
+-static void sigusr1_handler(int signo, siginfo_t *info, void *ucontext)
++static void sigusr1_handler(int __unused signo, siginfo_t *info, void __unused *ucontext)
+ {
+ 	pthread_mutex_lock(&mutex);
+ 
+@@ -132,7 +132,7 @@ static void sigusr1_handler(int signo, s
+ 	pthread_mutex_unlock(&mutex);
+ }
+ 
+-static void sigusr2_handler(int signo, siginfo_t *info, void *ucontext)
++static void sigusr2_handler(int __unused signo, siginfo_t __unused *info, void __unused *ucontext)
+ {
+ 	/*
+ 	 * pkru should be the init_pkru value which enabled MPK 0 so
+@@ -155,7 +155,7 @@ static void raise_sigusr2(void)
+ 	 */
+ }
+ 
+-static void *thread_segv_with_pkey0_disabled(void *ptr)
++static void *thread_segv_with_pkey0_disabled(void __unused *ptr)
+ {
+ 	/* Disable MPK 0 (and all others too) */
+ 	__write_pkey_reg(pkey_reg_restrictive_default());
+@@ -165,7 +165,7 @@ static void *thread_segv_with_pkey0_disa
+ 	return NULL;
+ }
+ 
+-static void *thread_segv_pkuerr_stack(void *ptr)
++static void *thread_segv_pkuerr_stack(void __unused *ptr)
+ {
+ 	/* Disable MPK 0 (and all others too) */
+ 	__write_pkey_reg(pkey_reg_restrictive_default());
+--- a/tools/testing/selftests/mm/pkey-x86.h~selftests-mm-mark-unused-arguments-with-__unused-2
++++ a/tools/testing/selftests/mm/pkey-x86.h
+@@ -157,7 +157,8 @@ static inline void expect_fault_on_read_
+ 	expected_pkey_fault(pkey);
+ }
+ 
+-static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
++static inline void *malloc_pkey_with_mprotect_subpage(long __unused size, int __unused prot,
++						      u16 __unused pkey)
+ {
+ 	return PTR_ERR_ENOTSUP;
+ }
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-mark-unused-arguments-with-__unused-2
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -309,7 +309,7 @@ static char *si_code_str(int si_code)
+ 
+ static int pkey_faults;
+ static int last_si_pkey = -1;
+-static void signal_handler(int signum, siginfo_t *si, void *vucontext)
++static void signal_handler(int __unused signum, siginfo_t *si, void *vucontext)
+ {
+ 	ucontext_t *uctxt = vucontext;
+ 	int trapno;
+@@ -889,7 +889,7 @@ static void close_test_fds(void)
+ 	nr_test_fds = 0;
+ }
+ 
+-static void test_pkey_alloc_free_attach_pkey0(int *ptr, u16 pkey)
++static void test_pkey_alloc_free_attach_pkey0(int *ptr, u16 __unused pkey)
+ {
+ 	int i, err;
+ 	int max_nr_pkey_allocs;
+@@ -1106,7 +1106,7 @@ static void test_pkey_syscalls_on_non_al
+ }
+ 
+ /* Assumes that all pkeys other than 'pkey' are unallocated */
+-static void test_pkey_syscalls_bad_args(int *ptr, u16 pkey)
++static void test_pkey_syscalls_bad_args(int *ptr, u16 __unused pkey)
+ {
+ 	int err;
+ 	int bad_pkey = NR_PKEYS+99;
+@@ -1132,7 +1132,7 @@ static void become_child(void)
+ }
+ 
+ /* Assumes that all pkeys other than 'pkey' are unallocated */
+-static void test_pkey_alloc_exhaust(int *ptr, u16 pkey)
++static void test_pkey_alloc_exhaust(int __unused *ptr, u16 __unused pkey)
+ {
+ 	int err;
+ 	int allocated_pkeys[NR_PKEYS] = {0};
+@@ -1238,7 +1238,7 @@ static void arch_force_pkey_reg_init(voi
+  * a long-running test that continually checks the pkey
+  * register.
+  */
+-static void test_pkey_init_state(int *ptr, u16 pkey)
++static void test_pkey_init_state(int __unused *ptr, u16 __unused pkey)
+ {
+ 	int err;
+ 	int allocated_pkeys[NR_PKEYS] = {0};
+@@ -1397,7 +1397,7 @@ static void *get_pointer_to_instructions
+ 	return p1;
+ }
+ 
+-static void test_executing_on_unreadable_memory(int *ptr, u16 pkey)
++static void test_executing_on_unreadable_memory(int __unused *ptr, u16 pkey)
+ {
+ 	void *p1;
+ 	int scratch;
+@@ -1429,7 +1429,7 @@ static void test_executing_on_unreadable
+ 	pkey_assert(!ret);
+ }
+ 
+-static void test_implicit_mprotect_exec_only_memory(int *ptr, u16 pkey)
++static void test_implicit_mprotect_exec_only_memory(int __unused *ptr, u16 __unused pkey)
+ {
+ 	void *p1;
+ 	int scratch;
+@@ -1478,7 +1478,7 @@ static void test_implicit_mprotect_exec_
+ }
+ 
+ #if defined(__i386__) || defined(__x86_64__)
+-static void test_ptrace_modifies_pkru(int *ptr, u16 pkey)
++static void test_ptrace_modifies_pkru(int __unused *ptr, u16 __unused pkey)
+ {
+ 	u32 new_pkru;
+ 	pid_t child;
+@@ -1601,7 +1601,7 @@ static void test_ptrace_modifies_pkru(in
+ #endif
+ 
+ #if defined(__aarch64__)
+-static void test_ptrace_modifies_pkru(int *ptr, u16 pkey)
++static void test_ptrace_modifies_pkru(int __unused *ptr, u16 __unused pkey)
+ {
+ 	pid_t child;
+ 	int status, ret;
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
