@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32354186A
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:44:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0EC3186A
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:44:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754538268; cv=none; b=NBeXbCT3VhaqwuB3UQJdlTZALVeZX6OzS7KpnHkyCkMx0u/tvZfi4y67k32aK+7pMXC0qhziUDqgrTjygBTfTDdMjaS2SGCLSp4fpbXLLhWftwRojJzFeGUwlRZYS0eeb3wuHaHCxs8WLk1lPEmnExSsJhbOV+/vRSQCq2U80ow=
+	t=1754538271; cv=none; b=AGZ5skZi3yahdoDZesDfYW6ryXT31+9QAB8FkI606k/Nf7DnhuW2LnjOfMr/568kkc3V/tyl/SHxSGp5vm8r2bzBGi4G1Ace1fn3PYjt7vP2/yzEQ/Ce3Hv3DORBjI2RXaAhmjyiWQBseMuU8MeFA6Qdftr7MlEp8bBAmQG09rg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754538268; c=relaxed/simple;
-	bh=0/dC+riaT8r614+HERRDWSZ9uV7lA/bd5MEbMv5JhjI=;
-	h=Date:To:From:Subject:Message-Id; b=Wcr5ranRTSm4NAbBZS9uquwixmJQWNEgBVCpsttzF+1ku+4QKQDu0alpQsIFf0/24aNYnNDv977YVVDnjWqCAuNBUuULeTkb1oVwBJB2fDkvf2NxCLBj3VjOjXNVSumfU87bfLAUSMnClx49sT29xz8wBzbrZpJqX5gc3Dtk3X0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V4amKMTt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754538271; c=relaxed/simple;
+	bh=M1ugOHlD+mB4z1YkoT8lzZleXR0OaHcHxIKcJIBdYLQ=;
+	h=Date:To:From:Subject:Message-Id; b=FmnyPW1e7KehLq9BhAl8r9PTytODEZj+sIKVsrS78M1S7Ai9G7k0cCd9kLX/rK2wiRGqP3c9nXpM9I/t/9CRC16qrA6SDzxRFj/KiI5dHmQXH1+1/XlYPcmzc2nrjO4dYDPwyhpQdQcJVdAvl3owb8E/ZEnMiqJwTWgtNvpg+uw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W2vsP7Ow; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V4amKMTt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FFECC4CEF4;
-	Thu,  7 Aug 2025 03:44:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W2vsP7Ow"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35FF4C4CEF4;
+	Thu,  7 Aug 2025 03:44:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754538267;
-	bh=0/dC+riaT8r614+HERRDWSZ9uV7lA/bd5MEbMv5JhjI=;
+	s=korg; t=1754538271;
+	bh=M1ugOHlD+mB4z1YkoT8lzZleXR0OaHcHxIKcJIBdYLQ=;
 	h=Date:To:From:Subject:From;
-	b=V4amKMTtl/5H7pj5is4rdq+DIKfbRdlaMX+3GMOtgVBdrAnrlEUnq83LLm2LRwwYh
-	 pRfVZSMSxd+U4krix3gEWMix1UmwGfjiRwrzbP6iCiBISb8tDmCILUnOVI63kOswl+
-	 ov+7KNByO0ljV7NzhQBozmM8BuHq5/lVojmx7x0c=
-Date: Wed, 06 Aug 2025 20:44:27 -0700
+	b=W2vsP7Ow0LQaXvOeFuhGThUBPU/rYlzup8F5LELoiOHBWbXUiPjAZX4TLmnvlKYKg
+	 U46nWrmJYZh/cUdl9S9THLUOrVRYHIh4FDJF70sCSq0fX5GbvYbBs7MbqWo2MkD2Ed
+	 oBeFhWo0zO53OvMzk6BysTsDFqUztYzh2oR0i+bA=
+Date: Wed, 06 Aug 2025 20:44:30 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sidhartha.kumar@oracle.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-wunreachable-code-and-fix-warnings.patch added to mm-new branch
-Message-Id: <20250807034427.9FFECC4CEF4@smtp.kernel.org>
+Subject: + selftests-mm-protection_keys-fix-dead-code.patch added to mm-new branch
+Message-Id: <20250807034431.35FF4C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add -Wunreachable-code and fix warnings
+     Subject: selftests/mm: protection_keys: fix dead code
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-wunreachable-code-and-fix-warnings.patch
+     selftests-mm-protection_keys-fix-dead-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-wunreachable-code-and-fix-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-protection_keys-fix-dead-code.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,46 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: add -Wunreachable-code and fix warnings
-Date: Thu, 31 Jul 2025 21:01:25 +0500
+Subject: selftests/mm: protection_keys: fix dead code
+Date: Thu, 31 Jul 2025 21:01:26 +0500
 
-Patch series "selftests/mm: Add compiler flags and fix found warnings", v2.
+The while loop doesn't execute and following warning gets generated:
 
-Recently, I reviewed a patch on the mm/kselftest mailing list about a test
-which had obvious type mismatch fix in it.  It was strange why that wasn't
-caught during development and when patch was accepted.  This led me to
-discover that those extra compiler options to catch these warnings aren't
-being used.  When I added them, I found tens of warnings in just mm suite.
-
-In this series, I'm adding these flags and fixing those warnings.  In the
-last try several months ago [1], I'd patches for individual tests.  I've
-made patches better by grouping the same type of fixes together.  Hence
-there is no changelog for individual patches.
-
-
-This patch (of 8):
-
-Enable -Wunreachable-code flag to catch dead code and fix them.
-
-1. Remove the dead code and write a comment instead:
-hmm-tests.c:2033:3: warning: code will never be executed
+protection_keys.c:561:15: warning: code will never be executed
 [-Wunreachable-code]
-                perror("Should not reach this\n");
-                ^~~~~~
+                int rpkey = alloc_random_pkey();
 
-2. ksft_exit_fail_msg() calls exit(). Remove the dead code.
-split_huge_page_test.c:301:3: warning: code will never be executed
-[-Wunreachable-code]
-                goto cleanup;
-                ^~~~~~~~~~~~
+Let's enable the while loop such that it gets executed nr_iterations
+times. Simplify the code a bit as well.
 
-3. Remove duplicate inline.
-pkey_sighandler_tests.c:44:15: warning: duplicate 'inline' declaration
-specifier [-Wduplicate-decl-specifier]
-static inline __always_inline
-
-Link: https://lkml.kernel.org/r/20250731160132.1795351-1-usama.anjum@collabora.com
-Link: https://lkml.kernel.org/r/20250731160132.1795351-2-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250731160132.1795351-3-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -132,63 +105,26 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile                |    1 +
- tools/testing/selftests/mm/hmm-tests.c             |    5 ++---
- tools/testing/selftests/mm/pkey_sighandler_tests.c |    2 +-
- tools/testing/selftests/mm/split_huge_page_test.c  |    4 +---
- 4 files changed, 5 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/protection_keys.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-add-wunreachable-code-and-fix-warnings
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -2027,11 +2027,10 @@ TEST_F(hmm, hmm_cow_in_device)
- 	if (pid == -1)
- 		ASSERT_EQ(pid, 0);
- 	if (!pid) {
--		/* Child process waitd for SIGTERM from the parent. */
-+		/* Child process waits for SIGTERM from the parent. */
- 		while (1) {
- 		}
--		perror("Should not reach this\n");
--		exit(0);
-+		/* Should not reach this */
- 	}
- 	/* Parent process writes to COW pages(s) and gets a
- 	 * new copy in system. In case of device private pages,
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-wunreachable-code-and-fix-warnings
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -34,6 +34,7 @@ endif
- MAKEFLAGS += --no-builtin-rules
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-protection_keys-fix-dead-code
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -557,13 +557,11 @@ int mprotect_pkey(void *ptr, size_t size
+ 	int nr_iterations = random() % 100;
+ 	int ret;
  
- CFLAGS = -Wall -O2 -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
-+CFLAGS += -Wunreachable-code
- LDLIBS = -lrt -lpthread -lm
+-	while (0) {
++	while (nr_iterations-- >= 0) {
+ 		int rpkey = alloc_random_pkey();
+ 		ret = sys_mprotect_pkey(ptr, size, orig_prot, pkey);
+ 		dprintf1("sys_mprotect_pkey(%p, %zx, prot=0x%lx, pkey=%ld) ret: %d\n",
+ 				ptr, size, orig_prot, pkey, ret);
+-		if (nr_iterations-- < 0)
+-			break;
  
- # Some distributions (such as Ubuntu) configure GCC so that _FORTIFY_SOURCE is
---- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-add-wunreachable-code-and-fix-warnings
-+++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
-@@ -41,7 +41,7 @@ static siginfo_t siginfo = {0};
-  * syscall will attempt to access the PLT in order to call a library function
-  * which is protected by MPK 0 which we don't have access to.
-  */
--static inline __always_inline
-+static __always_inline
- long syscall_raw(long n, long a1, long a2, long a3, long a4, long a5, long a6)
- {
- 	unsigned long ret;
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-wunreachable-code-and-fix-warnings
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -297,10 +297,8 @@ void split_file_backed_thp(int order)
- 		ksft_exit_fail_msg("Unable to create a tmpfs for testing\n");
- 
- 	status = snprintf(testfile, INPUT_MAX, "%s/thp_file", tmpfs_loc);
--	if (status >= INPUT_MAX) {
-+	if (status >= INPUT_MAX)
- 		ksft_exit_fail_msg("Fail to create file-backed THP split testing file\n");
--		goto cleanup;
--	}
- 
- 	fd = open(testfile, O_CREAT|O_RDWR, 0664);
- 	if (fd == -1) {
+ 		dprintf1("%s()::%d, ret: %d pkey_reg: 0x%016llx"
+ 			" shadow: 0x%016llx\n",
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
