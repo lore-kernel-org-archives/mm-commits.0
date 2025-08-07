@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44F231DE4C9
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:34:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 853BA524F
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:37:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754537684; cv=none; b=boSPdy1YVADw2+074RlwzE1YWE6H6LnfrYg0cO6NezzaamA8lyHgt6tbJP4nemutH9FmBGw2mj+IhIwGHZNjpneJ6aRUOMGuEQIbosFFwmBjCmZX38+SB0LHlnBaC1rvTtYcKJt255fqORoQ5xIYb/VFHsv2xL35iiMNi9/n48A=
+	t=1754537865; cv=none; b=L6LLK3FZ/H0cpyjgZUNAuZiteL6vr2M2YF1BXA6NtsZGwTh2CdEVkOYv6BVXnmVDE+77rXMuuJKN7BZsoddA17JNIzXdOIeOI8T5FOW8HVrfhne76x/qL0K4/oy5ukNkgrXnb0FKqONhunjzsOXn0p7Y17nyckO3tDFu0S0v99g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754537684; c=relaxed/simple;
-	bh=q3UnnwqXF/JSN/mioZiuxqab3OP/ZuQ3X3PZNb9dYHo=;
-	h=Date:To:From:Subject:Message-Id; b=RtG4J276UUyZ7d7WMGb7cpUn9GroU4ZHga1fwWUrMLL038sDU2f6g838Dl3dIRqn9JzyfIYByH80Zw/GYowKvraErALEUQPU+OKn5DiijwFdY/Bg5yP+LAqMMuuesfKNdfyV4+HuQyUzYtfZwwqTSBb15rmSoSugCLGF4SFYcOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=idcVtcq4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754537865; c=relaxed/simple;
+	bh=8SPWh3jfkqHA4R3SDcTX5ecF7BvvGgQe0RccvaT2Rcg=;
+	h=Date:To:From:Subject:Message-Id; b=EurpRzevHSqy9cFOI5uUJCbE62jvRh+wpCwOg0DMotskeMOqauKnW2Fd5yn/ZfQWvz1ZCbz9xk5MpS4el+fJ/+7447SWyQ63nv5d7FJ2jvzXtKjdGekSJPNZNbKfAcSIxAgcrptcEXPb4O0D3qZu4Vhpb/yXhhoU1Fi6m2o0/8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=njOSo300; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="idcVtcq4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD30FC4CEEB;
-	Thu,  7 Aug 2025 03:34:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="njOSo300"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF8D3C4CEEB;
+	Thu,  7 Aug 2025 03:37:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754537683;
-	bh=q3UnnwqXF/JSN/mioZiuxqab3OP/ZuQ3X3PZNb9dYHo=;
+	s=korg; t=1754537865;
+	bh=8SPWh3jfkqHA4R3SDcTX5ecF7BvvGgQe0RccvaT2Rcg=;
 	h=Date:To:From:Subject:From;
-	b=idcVtcq49w7Qh0T/0rDUv4bZXQfayIYFUQ9ZhbzYt+rJ7s59QecndUYqJTzKKHQZw
-	 w0g7VUs3svLqm81na4SpJ89u0QBbSd/OgTVtah6p0US5jKPcQsN5eYnRbv25qOO3QV
-	 S8hH6wTuLCGBgLjCcj+ifCaO+gQ6ejjD++NBtrl4=
-Date: Wed, 06 Aug 2025 20:34:43 -0700
-To: mm-commits@vger.kernel.org,bijantabatab@micron.com,bijan311@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=njOSo3002tgZ3cBgplcFBY3va01q1OA0FopUGENtALVbh/c8HJSCrvELM26jhLl0y
+	 x4WCbFFUweoBLfMNfuocXwY+yLrXTcm/1JsWmR+G8+BHK2eHCdWMWOrM3B9+iSGEub
+	 X+gzHXmBBs9BES6zi0SxbCx9S8cFhGHL6tutFCmw=
+Date: Wed, 06 Aug 2025 20:37:44 -0700
+To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,sj@kernel.org,pyyjason@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch added to mm-new branch
-Message-Id: <20250807033443.BD30FC4CEEB@smtp.kernel.org>
+Subject: + mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch added to mm-new branch
+Message-Id: <20250807033744.DF8D3C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix
+     Subject: mm/damon/paddr: move filters existence check function to ops-common
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
+     mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,34 +64,190 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix
-Date: Wed Aug  6 08:32:40 PM PDT 2025
+From: Yueyang Pan <pyyjason@gmail.com>
+Subject: mm/damon/paddr: move filters existence check function to ops-common
+Date: Sat, 2 Aug 2025 11:52:45 +0000
 
-fix whitespace, per SeongJae
+Patch series "mm/damon/vaddr: support stat-purpose DAMOS filters", v4.
 
-Link: https://lkml.kernel.org/r/20250807001924.76275-1-sj@kernel.org
-Cc: Bijan Tabatabai <bijan311@gmail.com>
-Cc: Bijan Tabatabai <bijantabatab@micron.com>
+Extend DAMOS_STAT handling of the DAMON operations sets for virtual
+address spaces for ops-level DAMOS filters.
+
+Functionality Test
+==================
+I wrote a small test program which allocates 10GB of DRAM, use
+madvise(MADV_HUGEPAGE) to convert the base pages to 2MB huge pages Then my
+program does the following things in order:
+
+1. Write sequentially to the whole 10GB region
+2. Read the first 5GB region sequentially for 10 times
+3. Sleep 5s
+4. Read the second 5GB region sequentially for 10 times
+
+With a proper damon setting, we are expected to see df-passed to be 10GB
+and hot region move around with the read
+
+$ # Start DAMON
+$ sudo ./damo/damo start "./my_test/test" --monitoring_intervals 100ms\
+1s 2s
+
+$ # Show DAMON-generated access pattern snapshot
+$ sudo ./damo/damo report access --snapshot_damos_filter allow \
+hugepage_size 2MiB 2MiB
+    heatmap:
+    # min/max temperatures: -600,000,000, 100,001,000, column size: 137.352 MiB
+    intervals: sample 100 ms aggr 1 s (max access hz 10)
+    # damos filters (df): reject none hugepage_size [2.000 MiB, 2.000 MiB]
+    df-pass:
+    # min/max temperatures: -400,000,000, 100,001,000, column size: 128.031 MiB
+    0   addr 85.373 TiB   size 745.555 MiB access 0 hz   age 6 s           df-passed 0 B
+    1   addr 127.608 TiB  size 877.664 MiB access 3.000 hz age 0 ns          df-passed 878.000 MiB
+    2   addr 127.609 TiB  size 219.418 MiB access 2.000 hz age 0 ns          df-passed 220.000 MiB
+    3   addr 127.609 TiB  size 316.613 MiB access 1.000 hz age 1 s           df-passed 316.000 MiB
+    4   addr 127.609 TiB  size 474.922 MiB access 1.000 hz age 1 s           df-passed 476.000 MiB
+    5   addr 127.610 TiB  size 407.188 MiB access 1.000 hz age 0 ns          df-passed 406.000 MiB
+    6   addr 127.610 TiB  size 610.781 MiB access 1.000 hz age 0 ns          df-passed 612.000 MiB
+    7   addr 127.611 TiB  size 697.309 MiB access 0 hz   age 0 ns          df-passed 696.000 MiB
+    8   addr 127.611 TiB  size 77.480 MiB  access 1.000 hz age 0 ns          df-passed 78.000 MiB
+    9   addr 127.611 TiB  size 573.102 MiB access 1.000 hz age 0 ns          df-passed 574.000 MiB
+    10  addr 127.612 TiB  size 245.617 MiB access 2.000 hz age 0 ns          df-passed 246.000 MiB
+    11  addr 127.612 TiB  size 295.102 MiB access 1.000 hz age 1 s           df-passed 294.000 MiB
+    12  addr 127.612 TiB  size 295.105 MiB access 1.000 hz age 1 s           df-passed 296.000 MiB
+    13  addr 127.613 TiB  size 67.172 MiB  access 1.000 hz age 1 s           df-passed 66.000 MiB
+    14  addr 127.613 TiB  size 604.570 MiB access 0 hz   age 1 s           df-passed 606.000 MiB
+    15  addr 127.613 TiB  size 389.578 MiB access 0 hz   age 4 s           df-passed 388.000 MiB
+    16  addr 127.614 TiB  size 259.719 MiB access 0 hz   age 4 s           df-passed 260.000 MiB
+    17  addr 127.614 TiB  size 817.941 MiB access 0 hz   age 4 s           df-passed 818.000 MiB
+    18  addr 127.615 TiB  size 204.488 MiB access 0 hz   age 4 s           df-passed 204.000 MiB
+    19  addr 127.615 TiB  size 730.902 MiB access 0 hz   age 4 s           df-passed 732.000 MiB
+    20  addr 127.616 TiB  size 182.727 MiB access 0 hz   age 4 s           df-passed 182.000 MiB
+    21  addr 127.616 TiB  size 926.824 MiB access 0 hz   age 2 s           df-passed 928.000 MiB
+    22  addr 127.617 TiB  size 102.984 MiB access 0 hz   age 2 s           df-passed 102.000 MiB
+    23  addr 127.617 TiB  size 86.527 MiB  access 0 hz   age 2 s           df-passed 86.000 MiB
+    24  addr 127.617 TiB  size 778.777 MiB access 0 hz   age 2 s           df-passed 776.000 MiB
+    25  addr 127.999 TiB  size 132.000 KiB access 0 hz   age 6 s           df-passed 0 B
+    memory bw estimate: 6.524 GiB per second  df-passed: 6.527 GiB per second
+    total size: 10.731 GiB  df-passed 10.000 GiB
+    record DAMON intervals: sample 100 ms, aggr 1 s
+
+
+$ # Show DAMON-generated access pattern snapshot again
+$ sudo ./damo/damo report access --snapshot_damos_filter allow \
+hugepage_size 2MiB 2MiB
+    heatmap:
+    # min/max temperatures: -1,100,000,000, 2,000, column size: 137.352 MiB
+    intervals: sample 100 ms aggr 1 s (max access hz 10)
+    # damos filters (df): reject none hugepage_size [2.000 MiB, 2.000 MiB]
+    df-pass:
+    # min/max temperatures: -900,000,000, 2,000, column size: 128.031 MiB
+    0   addr 85.373 TiB   size 745.555 MiB access 0 hz   age 11 s          df-passed 0 B
+    1   addr 127.608 TiB  size 579.715 MiB access 2.000 hz age 0 ns          df-passed 580.000 MiB
+    2   addr 127.608 TiB  size 144.930 MiB access 2.000 hz age 0 ns          df-passed 146.000 MiB
+    3   addr 127.608 TiB  size 452.453 MiB access 2.000 hz age 0 ns          df-passed 452.000 MiB
+    4   addr 127.609 TiB  size 113.117 MiB access 1.000 hz age 0 ns          df-passed 114.000 MiB
+    5   addr 127.609 TiB  size 182.367 MiB access 2.000 hz age 0 ns          df-passed 182.000 MiB
+    6   addr 127.609 TiB  size 182.371 MiB access 2.000 hz age 0 ns          df-passed 182.000 MiB
+    7   addr 127.609 TiB  size 350.488 MiB access 1.000 hz age 0 ns          df-passed 350.000 MiB
+    8   addr 127.610 TiB  size 525.738 MiB access 1.000 hz age 0 ns          df-passed 526.000 MiB
+    9   addr 127.610 TiB  size 401.352 MiB access 1.000 hz age 0 ns          df-passed 402.000 MiB
+    10  addr 127.611 TiB  size 100.340 MiB access 1.000 hz age 0 ns          df-passed 100.000 MiB
+    11  addr 127.611 TiB  size 19.523 MiB  access 0 hz   age 0 ns          df-passed 20.000 MiB
+    12  addr 127.611 TiB  size 175.727 MiB access 0 hz   age 0 ns          df-passed 176.000 MiB
+    13  addr 127.611 TiB  size 106.629 MiB access 0 hz   age 0 ns          df-passed 106.000 MiB
+    14  addr 127.611 TiB  size 959.676 MiB access 0 hz   age 0 ns          df-passed 960.000 MiB
+    15  addr 127.612 TiB  size 424.469 MiB access 1.000 hz age 0 ns          df-passed 424.000 MiB
+    16  addr 127.612 TiB  size 424.469 MiB access 1.000 hz age 0 ns          df-passed 424.000 MiB
+    17  addr 127.613 TiB  size 201.648 MiB access 0 hz   age 6 s           df-passed 202.000 MiB
+    18  addr 127.613 TiB  size 806.609 MiB access 0 hz   age 6 s           df-passed 806.000 MiB
+    19  addr 127.614 TiB  size 862.125 MiB access 0 hz   age 9 s           df-passed 862.000 MiB
+    20  addr 127.614 TiB  size 215.535 MiB access 0 hz   age 9 s           df-passed 216.000 MiB
+    21  addr 127.615 TiB  size 104.500 MiB access 0 hz   age 9 s           df-passed 104.000 MiB
+    22  addr 127.615 TiB  size 940.523 MiB access 0 hz   age 9 s           df-passed 942.000 MiB
+    23  addr 127.616 TiB  size 640.281 MiB access 0 hz   age 7 s           df-passed 640.000 MiB
+    24  addr 127.616 TiB  size 426.855 MiB access 0 hz   age 7 s           df-passed 426.000 MiB
+    25  addr 127.617 TiB  size 90.105 MiB  access 0 hz   age 7 s           df-passed 90.000 MiB
+    26  addr 127.617 TiB  size 810.965 MiB access 0 hz   age 7 s           df-passed 808.000 MiB
+    27  addr 127.999 TiB  size 132.000 KiB access 0 hz   age 11 s          df-passed 0 B
+    memory bw estimate: 5.297 GiB per second  df-passed: 5.297 GiB per second
+    total size: 10.731 GiB  df-passed 10.000 GiB
+    record DAMON intervals: sample 100 ms, aggr 1 s
+
+As you can see the total df-passed region is 10GiB and the hot region
+moves as the seq read keeps going
+
+
+This patch (of 2):
+
+This patch moves damon_pa_scheme_has_filter to ops-common.  renaming to
+damos_ops_has_filter.  Doing so allows us to reuse its logic in the vaddr
+version of DAMOS_STAT.
+
+Link: https://lkml.kernel.org/r/cover.1754135312.git.pyyjason@gmail.com
+Link: https://lkml.kernel.org/r/cbe01740f7ac5ac7c9fd1ca367d297c3d7f2a69d.1754135312.git.pyyjason@gmail.com
+Signed-off-by: Yueyang Pan <pyyjason@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/damon/ops-common.c |    9 +++++++++
+ mm/damon/ops-common.h |    2 ++
+ mm/damon/paddr.c      |   11 +----------
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix
-+++ a/mm/damon/core.c
-@@ -585,7 +585,6 @@ static bool damon_attrs_equals(const str
- 		ig1->aggrs == ig2->aggrs &&
- 		ig1->min_sample_us == ig2->min_sample_us &&
- 		ig1->max_sample_us == ig2->max_sample_us;
--
+--- a/mm/damon/ops-common.c~mm-damon-paddr-move-filters-existence-check-function-to-ops-common
++++ a/mm/damon/ops-common.c
+@@ -412,3 +412,12 @@ unsigned long damon_migrate_pages(struct
+ 
+ 	return nr_migrated;
+ }
++
++bool damos_ops_has_filter(struct damos *s)
++{
++	struct damos_filter *f;
++
++	damos_for_each_ops_filter(f, s)
++		return true;
++	return false;
++}
+--- a/mm/damon/ops-common.h~mm-damon-paddr-move-filters-existence-check-function-to-ops-common
++++ a/mm/damon/ops-common.h
+@@ -21,3 +21,5 @@ int damon_hot_score(struct damon_ctx *c,
+ 
+ bool damos_folio_filter_match(struct damos_filter *filter, struct folio *folio);
+ unsigned long damon_migrate_pages(struct list_head *folio_list, int target_nid);
++
++bool damos_ops_has_filter(struct damos *s);
+--- a/mm/damon/paddr.c~mm-damon-paddr-move-filters-existence-check-function-to-ops-common
++++ a/mm/damon/paddr.c
+@@ -262,22 +262,13 @@ put_folio:
+ 	return applied * PAGE_SIZE;
  }
  
- static unsigned int damon_age_for_new_attrs(unsigned int age,
+-static bool damon_pa_scheme_has_filter(struct damos *s)
+-{
+-	struct damos_filter *f;
+-
+-	damos_for_each_ops_filter(f, s)
+-		return true;
+-	return false;
+-}
+-
+ static unsigned long damon_pa_stat(struct damon_region *r, struct damos *s,
+ 		unsigned long *sz_filter_passed)
+ {
+ 	unsigned long addr;
+ 	struct folio *folio;
+ 
+-	if (!damon_pa_scheme_has_filter(s))
++	if (!damos_ops_has_filter(s))
+ 		return 0;
+ 
+ 	addr = r->ar.start;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pyyjason@gmail.com are
 
-mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
+mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch
+mm-damon-vaddr-support-stat-purpose-damos-filters.patch
 
