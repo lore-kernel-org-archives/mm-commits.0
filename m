@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EBC321E08B
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 21:41:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64A2680BEC
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 21:50:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754602891; cv=none; b=VdUWf6T5A1EXHMordnQXEr6vACGb6xOWfcrSt7dslFP3XsOob8Hp0PUmigH2tl0no22GTvNphwHoKQaWvy+xpJtetWMjhK57hJrp+tc1Euw2rX+D61hJTczhqmMN8OvYlHztBSf5DHv5oA61R+jkkxtTsbJiTaMu/hiMt3F5pXI=
+	t=1754603448; cv=none; b=PMbNx6tzuD3qH9Y8XwG/Ucn+QuTO7PyZMn4mL5SXUN/ZxIBVlUKeUYcx1yfqIc0bdeVEH6oBP6bw17c+OcHe/ESes43LEkhAts2LKnV2qvVwlbaem4D0FuPz6GocU0zpg+ydz0Fj1TX/B2gMdYWHLqpCq9HVh4O05Yf1ylUsVQM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754602891; c=relaxed/simple;
-	bh=9lN8+AgRyOJ90qVacZvCFQMoAKtKwz+cbyxbmO9lMrc=;
-	h=Date:To:From:Subject:Message-Id; b=BImCdMkrQur8ffaG/yzpdGdUMNJiXpWA/NZdTj54G7FX6voqey3GK3VVl5omZZnPQXr1bpBI1WVwtG2WLF8bK/v+/w5iN6J4QbsHjXOsku6ZMLoiyCkA+BY278lkEWZUbDxthHj8mFMsGyKeAMpL+4ClJa29n4zl6kUnUx9oCSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wn4TxuQd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754603448; c=relaxed/simple;
+	bh=AqoScGy88gGME1xUG96HN9WrEyZa4WNGsgjF5QYsbv0=;
+	h=Date:To:From:Subject:Message-Id; b=JJwF7aMKtLY3Nk6Q9JDShLfvUGiu1NeU3cy17fKpTyibIK1S5BQhd/5nU/z9qhBi+mdc5P+cLaOyID55WW6nt92A5PNltCEo6rriLJObqNKcHUeKUICb1IFM2xdujVZQGblh6vaezCGDAf/1qeQL+LHqeP8+hVA7LzoGikBCNGU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zPofu2V5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wn4TxuQd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03F10C4CEEB;
-	Thu,  7 Aug 2025 21:41:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zPofu2V5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E60DBC4CEEB;
+	Thu,  7 Aug 2025 21:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754602891;
-	bh=9lN8+AgRyOJ90qVacZvCFQMoAKtKwz+cbyxbmO9lMrc=;
+	s=korg; t=1754603448;
+	bh=AqoScGy88gGME1xUG96HN9WrEyZa4WNGsgjF5QYsbv0=;
 	h=Date:To:From:Subject:From;
-	b=wn4TxuQd1FRtC4mrztXIIgDgOdvK3rn09XqRa6LtW4fhhnW5dRoAYpSZtfY00GGzM
-	 943vDqqDv4oBwmtBorFx5d2xlW8vhrffDVAWtbGQnZG2YA2Q46F9EIuRRMpctOVrMu
-	 4aEBZl3hFZhSOfeLrkomTh5b7gay4Z2vmGatQZss=
-Date: Thu, 07 Aug 2025 14:41:30 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,lorenzo.stoakes@oracle.com,donettom@linux.ibm.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=zPofu2V5uQejg2XPPkLflxnscn4gV/TYfvi3lrcgQ55KYYDlOCOkgDmYD3RwQvLrI
+	 kXiD1zjZKkylecqrWij4hpPl79pKtdp84ot4mV+Q8atE366UB/kpYEgzjly36Uu0If
+	 XIyxeTP5VW6HktrR+1zlEkOlhL2dusipl7nfsIdc=
+Date: Thu, 07 Aug 2025 14:50:47 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,ryan.roberts@arm.com,pfalcato@suse.de,oliver.sang@intel.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch added to mm-new branch
-Message-Id: <20250807214131.03F10C4CEEB@smtp.kernel.org>
+Subject: + mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250807215047.E60DBC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: do check_huge_anon() with a number been passed in
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+     Subject: mm/mremap: avoid expensive folio lookup on mremap folio pte batch
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,44 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: selftests/mm: do check_huge_anon() with a number been passed in
-Date: Thu, 7 Aug 2025 08:27:07 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: avoid expensive folio lookup on mremap folio pte batch
+Date: Thu, 7 Aug 2025 19:58:19 +0100
 
-Currently it hard codes the number of hugepage to check for
-check_huge_anon(), but we already have the number passed in.
+It was discovered in the attached report that commit f822a9a81a31 ("mm:
+optimize mremap() by PTE batching") introduced a significant performance
+regression on a number of metrics on x86-64, most notably
+stress-ng.bigheap.realloc_calls_per_sec - indicating a 37.3% regression in
+number of mremap() calls per second.
 
-Do the check based on the number of hugepage passed in is more reasonable.
+I was able to reproduce this locally on an intel x86-64 raptor lake
+system, noting an average of 143,857 realloc calls/sec (with a stddev of
+4,531 or 3.1%) prior to this patch being applied, and 81,503 afterwards
+(stddev of 2,131 or 2.6%) - a 43.3% regression.
 
-Link: https://lkml.kernel.org/r/20250807082707.30647-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+During testing I was able to determine that there was no meaningful
+difference in efforts to optimise the folio_pte_batch() operation, nor
+checking folio_test_large().
+
+This is within expectation, as a regression this large is likely to
+indicate we are accessing memory that is not yet in a cache line (and
+perhaps may even cause a main memory fetch).
+
+The expectation by those discussing this from the start was that
+vm_normal_folio() (invoked by mremap_folio_pte_batch()) would likely be
+the culprit due to having to retrieve memory from the vmemmap (which
+mremap() page table moves does not otherwise do, meaning this is
+inevitably cold memory).
+
+I was able to definitively determine that this theory is indeed correct
+and the cause of the issue.
+
+The solution is to restore part of an approach previously discarded on
+review, that is to invoke pte_batch_hint() which explicitly determines,
+through reference to the PTE alone (thus no vmemmap lookup), what the PTE
+batch size may be.
+
+On platforms other than arm64 this is currently hardcoded to return 1, so
+this naturally resolves the issue for x86-64, and for arm64 introduces
+little to no overhead as the pte cache line will be hot.
+
+With this patch applied, we move from 81,503 realloc calls/sec to 138,701
+(stddev of 496.1 or 0.4%), which is a -3.6% regression, however accounting
+for the variance in the original result, this is broadly restoring
+performance to its prior state.
+
+Link: https://lkml.kernel.org/r/20250807185819.199865-1-lorenzo.stoakes@oracle.com
+Fixes: f822a9a81a31 ("mm: optimize mremap() by PTE batching")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202508071609.4e743d7c-lkp@intel.com
 Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-do-check_huge_anon-with-a-number-been-passed-in
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -112,7 +112,7 @@ static void verify_rss_anon_split_huge_p
- 	unsigned long rss_anon_before, rss_anon_after;
- 	size_t i;
+--- a/mm/mremap.c~mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch
++++ a/mm/mremap.c
+@@ -179,6 +179,10 @@ static int mremap_folio_pte_batch(struct
+ 	if (max_nr == 1)
+ 		return 1;
  
--	if (!check_huge_anon(one_page, 4, pmd_pagesize))
-+	if (!check_huge_anon(one_page, nr_hpages, pmd_pagesize))
- 		ksft_exit_fail_msg("No THP is allocated\n");
- 
- 	rss_anon_before = rss_anon();
++	/* Avoid expensive folio lookup if we stand no chance of benefit. */
++	if (pte_batch_hint(ptep, pte) == 1)
++		return 1;
++
+ 	folio = vm_normal_folio(vma, addr, pte);
+ 	if (!folio || !folio_test_large(folio))
+ 		return 1;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
-selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch.patch
 
