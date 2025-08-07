@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48AEA611E
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 00:37:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C562143748
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:34:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754527064; cv=none; b=aRtDvz7aVN5OShiFOEIIis5TRoakqQ6/+8vp9RqnruslZAZeDYtJsVKeT+D7XzxOZqGnWLaw8ss/eQeEP3b1E19gbGvBqKz/J0YOhKLWVZKFhP51rCyLsA7VeTn+BWWCO7HWGJFTLOv0luZ1rUwrxDA9ouzgXbGHiTj9C9h7ELQ=
+	t=1754537682; cv=none; b=ErPTwNTIFSe7XeKo9L1OcW+7rHh7dpjK4c4qhR6yTCs17YoXfMMd698iW8PpgA0AujYwb60jpH93qqTDUuxduZlyqD/V3+xE4ah/6rLVbaJLsPxG5yzUfGtQI/clljUrvRy78h6FsHCwKTRJ3iEIgA+AitXJIHu62fOrYNyA/E8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754527064; c=relaxed/simple;
-	bh=M9+qywDIuShHyJTk6iWmTkRZpNakIv5FLntOm4hY91Q=;
-	h=Date:To:From:Subject:Message-Id; b=h6ILsVrhPW3JeAdqaTYnErTlcciRE9BIBDZZbSeuiU5lJDRMR8l6U0hWVK4TkHfIGa1DNvcYzMg+VFNrgyGZxMtYQB28xxKPw28dsrJGjTiR1lSjhLr42hj19oMQ+oj1I5MNEO8ksGjbS1iu1to3TKeoTj0/6YdIbkKV2MQ+K7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LEFfHzq2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754537682; c=relaxed/simple;
+	bh=7m4+8J2PiQK5714MsUTGyytZenam6Iz2dQ6LMbsVFoA=;
+	h=Date:To:From:Subject:Message-Id; b=qqEko8TXZjd1HEK4WYUQGPzuNM1TMUILeKxE9Ucqa/dPlMCi7fLXDgFRkzMg7Pte+X+XUDMve63KBW1AE/Zi+kYueDtlqXmZ1DioCukUGX81NtN6lyqjydMrZfIt89OZTMNwLh+c7Gg0GaePYvYV5RX2Ai+oBw/nBYUH6l2km04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oyX3F6Mj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LEFfHzq2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8DDEC4CEE7;
-	Thu,  7 Aug 2025 00:37:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oyX3F6Mj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE0C9C4CEEB;
+	Thu,  7 Aug 2025 03:34:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754527062;
-	bh=M9+qywDIuShHyJTk6iWmTkRZpNakIv5FLntOm4hY91Q=;
+	s=korg; t=1754537681;
+	bh=7m4+8J2PiQK5714MsUTGyytZenam6Iz2dQ6LMbsVFoA=;
 	h=Date:To:From:Subject:From;
-	b=LEFfHzq2x+W/LJ+uyjeOIBcs2f+u4vH9qq7JIE+YNJ/7moJVrwf6AeZaNVjs9r6zR
-	 +iUW/NFROmXLmHD0aPbympS1aaakRp8iOQpN/7cHAxS9lGNJjNuIsNNdnx1uZr4HGy
-	 BtyCeKTr5ofEkEt9mCBK+VZ+sn4BSKMn80TVUTMA=
-Date: Wed, 06 Aug 2025 17:37:42 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,glider@google.com,elver@google.com,dvyukov@google.com,corbet@lwn.net,arnd@arndb.de,andreyknvl@gmail.com,soham.bagchi@utah.edu,akpm@linux-foundation.org
+	b=oyX3F6MjUVwke8uWqN0sFdr0LhtTW0ZiUbuc2Q1iANnYhhEORwjVluv3dJqAOobTf
+	 6E4c6lawXxi8DjDTmgL599sNTu2auUuvwmdVS/p0jBpOK1PtxgPKKhQl3KFM9wUODL
+	 epb9W/HK42mbR+QtyQOfQj82tentLWoZYyeizuME=
+Date: Wed, 06 Aug 2025 20:34:41 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,bijan311@gmail.com,bijantabatab@micron.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcov-load-acquire-coverage-count-in-user-space-code-v2.patch added to mm-nonmm-unstable branch
-Message-Id: <20250807003742.B8DDEC4CEE7@smtp.kernel.org>
+Subject: + mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch added to mm-new branch
+Message-Id: <20250807033441.BE0C9C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kcov-load-acquire-coverage-count-in-user-space-code-v2
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kcov-load-acquire-coverage-count-in-user-space-code-v2.patch
+     Subject: mm/damon/core: skip needless update of damon_attrs in damon_commit_ctx()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-load-acquire-coverage-count-in-user-space-code-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,59 +64,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Soham Bagchi <soham.bagchi@utah.edu>
-Subject: kcov-load-acquire-coverage-count-in-user-space-code-v2
-Date: Sun, 3 Aug 2025 12:05:58 -0600
+From: Bijan Tabatabai <bijantabatab@micron.com>
+Subject: mm/damon/core: skip needless update of damon_attrs in damon_commit_ctx()
+Date: Wed, 6 Aug 2025 18:42:54 -0500
 
-note for load-acquire shifted to block comment in code rather than in the
-preceding paragraphs, per Marco
+Currently, damon_commit_ctx() always calls damon_set_attrs() even if the
+attributes have not been changed.  This can be problematic when the DAMON
+state is committed relatively frequently because damon_set_attrs() resets
+ctx->next_{aggregation,ops_update}_sis, causing aggregation and ops update
+operations to be needlessly delayed.
 
-Link: https://lkml.kernel.org/r/20250803180558.2967962-1-soham.bagchi@utah.edu
-Signed-off-by: Soham Bagchi <soham.bagchi@utah.edu>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Marco Elver <elver@google.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+This patch avoids this by only calling damon_set_attrs() in
+damon_commit_ctx when the attributes have been changed.
+
+Link: https://lkml.kernel.org/r/20250806234254.10572-1-bijan311@gmail.com
+Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Bijan Tabatabai <bijan311@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kcov.rst |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/damon/core.c |   26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
---- a/Documentation/dev-tools/kcov.rst~kcov-load-acquire-coverage-count-in-user-space-code-v2
-+++ a/Documentation/dev-tools/kcov.rst
-@@ -287,11 +287,6 @@ handle instance id.
- The following program demonstrates using KCOV to collect coverage from both
- local tasks spawned by the process and the global task that handles USB bus #1:
+--- a/mm/damon/core.c~mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx
++++ a/mm/damon/core.c
+@@ -570,6 +570,24 @@ void damon_destroy_ctx(struct damon_ctx
+ 	kfree(ctx);
+ }
  
--The user-space code for KCOV should also use an acquire to fetch the count
--of coverage entries in the shared buffer. This acquire pairs with the
--corresponding write memory barrier (smp_wmb()) on the kernel-side in
--kcov_move_area().
--
- .. code-block:: c
- 
-     /* Same includes and defines as above. */
-@@ -366,6 +361,11 @@ kcov_move_area().
++static bool damon_attrs_equals(const struct damon_attrs *attrs1,
++		const struct damon_attrs *attrs2)
++{
++	const struct damon_intervals_goal *ig1 = &attrs1->intervals_goal;
++	const struct damon_intervals_goal *ig2 = &attrs2->intervals_goal;
++
++	return attrs1->sample_interval == attrs2->sample_interval &&
++		attrs1->aggr_interval == attrs2->aggr_interval &&
++		attrs1->ops_update_interval == attrs2->ops_update_interval &&
++		attrs1->min_nr_regions == attrs2->min_nr_regions &&
++		attrs1->max_nr_regions == attrs2->max_nr_regions &&
++		ig1->access_bp == ig2->access_bp &&
++		ig1->aggrs == ig2->aggrs &&
++		ig1->min_sample_us == ig2->min_sample_us &&
++		ig1->max_sample_us == ig2->max_sample_us;
++
++}
++
+ static unsigned int damon_age_for_new_attrs(unsigned int age,
+ 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs)
+ {
+@@ -1209,9 +1227,11 @@ int damon_commit_ctx(struct damon_ctx *d
+ 	 * 2. ops update should be done after pid handling is done (target
+ 	 *    committing require putting pids).
  	 */
- 	sleep(2);
+-	err = damon_set_attrs(dst, &src->attrs);
+-	if (err)
+-		return err;
++	if (!damon_attrs_equals(&dst->attrs, &src->attrs)) {
++		err = damon_set_attrs(dst, &src->attrs);
++		if (err)
++			return err;
++	}
+ 	dst->ops = src->ops;
  
-+        /*
-+         * The load to the coverage count should be an acquire to pair with
-+         * pair with the corresponding write memory barrier (smp_wmb()) on
-+         * the kernel-side in kcov_move_area().
-+         */
- 	n = __atomic_load_n(&cover[0], __ATOMIC_ACQUIRE);
- 	for (i = 0; i < n; i++)
- 		printf("0x%lx\n", cover[i + 1]);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from soham.bagchi@utah.edu are
+Patches currently in -mm which might be from bijantabatab@micron.com are
 
-kcov-use-write-memory-barrier-after-memcpy-in-kcov_move_area.patch
-kcov-load-acquire-coverage-count-in-user-space-code.patch
-kcov-load-acquire-coverage-count-in-user-space-code-v2.patch
+mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch
 
