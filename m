@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C562143748
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:34:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44F231DE4C9
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:34:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754537682; cv=none; b=ErPTwNTIFSe7XeKo9L1OcW+7rHh7dpjK4c4qhR6yTCs17YoXfMMd698iW8PpgA0AujYwb60jpH93qqTDUuxduZlyqD/V3+xE4ah/6rLVbaJLsPxG5yzUfGtQI/clljUrvRy78h6FsHCwKTRJ3iEIgA+AitXJIHu62fOrYNyA/E8=
+	t=1754537684; cv=none; b=boSPdy1YVADw2+074RlwzE1YWE6H6LnfrYg0cO6NezzaamA8lyHgt6tbJP4nemutH9FmBGw2mj+IhIwGHZNjpneJ6aRUOMGuEQIbosFFwmBjCmZX38+SB0LHlnBaC1rvTtYcKJt255fqORoQ5xIYb/VFHsv2xL35iiMNi9/n48A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754537682; c=relaxed/simple;
-	bh=7m4+8J2PiQK5714MsUTGyytZenam6Iz2dQ6LMbsVFoA=;
-	h=Date:To:From:Subject:Message-Id; b=qqEko8TXZjd1HEK4WYUQGPzuNM1TMUILeKxE9Ucqa/dPlMCi7fLXDgFRkzMg7Pte+X+XUDMve63KBW1AE/Zi+kYueDtlqXmZ1DioCukUGX81NtN6lyqjydMrZfIt89OZTMNwLh+c7Gg0GaePYvYV5RX2Ai+oBw/nBYUH6l2km04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oyX3F6Mj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754537684; c=relaxed/simple;
+	bh=q3UnnwqXF/JSN/mioZiuxqab3OP/ZuQ3X3PZNb9dYHo=;
+	h=Date:To:From:Subject:Message-Id; b=RtG4J276UUyZ7d7WMGb7cpUn9GroU4ZHga1fwWUrMLL038sDU2f6g838Dl3dIRqn9JzyfIYByH80Zw/GYowKvraErALEUQPU+OKn5DiijwFdY/Bg5yP+LAqMMuuesfKNdfyV4+HuQyUzYtfZwwqTSBb15rmSoSugCLGF4SFYcOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=idcVtcq4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oyX3F6Mj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE0C9C4CEEB;
-	Thu,  7 Aug 2025 03:34:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="idcVtcq4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD30FC4CEEB;
+	Thu,  7 Aug 2025 03:34:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754537681;
-	bh=7m4+8J2PiQK5714MsUTGyytZenam6Iz2dQ6LMbsVFoA=;
+	s=korg; t=1754537683;
+	bh=q3UnnwqXF/JSN/mioZiuxqab3OP/ZuQ3X3PZNb9dYHo=;
 	h=Date:To:From:Subject:From;
-	b=oyX3F6MjUVwke8uWqN0sFdr0LhtTW0ZiUbuc2Q1iANnYhhEORwjVluv3dJqAOobTf
-	 6E4c6lawXxi8DjDTmgL599sNTu2auUuvwmdVS/p0jBpOK1PtxgPKKhQl3KFM9wUODL
-	 epb9W/HK42mbR+QtyQOfQj82tentLWoZYyeizuME=
-Date: Wed, 06 Aug 2025 20:34:41 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,bijan311@gmail.com,bijantabatab@micron.com,akpm@linux-foundation.org
+	b=idcVtcq49w7Qh0T/0rDUv4bZXQfayIYFUQ9ZhbzYt+rJ7s59QecndUYqJTzKKHQZw
+	 w0g7VUs3svLqm81na4SpJ89u0QBbSd/OgTVtah6p0US5jKPcQsN5eYnRbv25qOO3QV
+	 S8hH6wTuLCGBgLjCcj+ifCaO+gQ6ejjD++NBtrl4=
+Date: Wed, 06 Aug 2025 20:34:43 -0700
+To: mm-commits@vger.kernel.org,bijantabatab@micron.com,bijan311@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch added to mm-new branch
-Message-Id: <20250807033441.BE0C9C4CEEB@smtp.kernel.org>
+Subject: + mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch added to mm-new branch
+Message-Id: <20250807033443.BD30FC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: skip needless update of damon_attrs in damon_commit_ctx()
+     Subject: mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch
+     mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,74 +64,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bijan Tabatabai <bijantabatab@micron.com>
-Subject: mm/damon/core: skip needless update of damon_attrs in damon_commit_ctx()
-Date: Wed, 6 Aug 2025 18:42:54 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix
+Date: Wed Aug  6 08:32:40 PM PDT 2025
 
-Currently, damon_commit_ctx() always calls damon_set_attrs() even if the
-attributes have not been changed.  This can be problematic when the DAMON
-state is committed relatively frequently because damon_set_attrs() resets
-ctx->next_{aggregation,ops_update}_sis, causing aggregation and ops update
-operations to be needlessly delayed.
+fix whitespace, per SeongJae
 
-This patch avoids this by only calling damon_set_attrs() in
-damon_commit_ctx when the attributes have been changed.
-
-Link: https://lkml.kernel.org/r/20250806234254.10572-1-bijan311@gmail.com
-Signed-off-by: Bijan Tabatabai <bijantabatab@micron.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20250807001924.76275-1-sj@kernel.org
 Cc: Bijan Tabatabai <bijan311@gmail.com>
+Cc: Bijan Tabatabai <bijantabatab@micron.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+ mm/damon/core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx
+--- a/mm/damon/core.c~mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix
 +++ a/mm/damon/core.c
-@@ -570,6 +570,24 @@ void damon_destroy_ctx(struct damon_ctx
- 	kfree(ctx);
+@@ -585,7 +585,6 @@ static bool damon_attrs_equals(const str
+ 		ig1->aggrs == ig2->aggrs &&
+ 		ig1->min_sample_us == ig2->min_sample_us &&
+ 		ig1->max_sample_us == ig2->max_sample_us;
+-
  }
  
-+static bool damon_attrs_equals(const struct damon_attrs *attrs1,
-+		const struct damon_attrs *attrs2)
-+{
-+	const struct damon_intervals_goal *ig1 = &attrs1->intervals_goal;
-+	const struct damon_intervals_goal *ig2 = &attrs2->intervals_goal;
-+
-+	return attrs1->sample_interval == attrs2->sample_interval &&
-+		attrs1->aggr_interval == attrs2->aggr_interval &&
-+		attrs1->ops_update_interval == attrs2->ops_update_interval &&
-+		attrs1->min_nr_regions == attrs2->min_nr_regions &&
-+		attrs1->max_nr_regions == attrs2->max_nr_regions &&
-+		ig1->access_bp == ig2->access_bp &&
-+		ig1->aggrs == ig2->aggrs &&
-+		ig1->min_sample_us == ig2->min_sample_us &&
-+		ig1->max_sample_us == ig2->max_sample_us;
-+
-+}
-+
  static unsigned int damon_age_for_new_attrs(unsigned int age,
- 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs)
- {
-@@ -1209,9 +1227,11 @@ int damon_commit_ctx(struct damon_ctx *d
- 	 * 2. ops update should be done after pid handling is done (target
- 	 *    committing require putting pids).
- 	 */
--	err = damon_set_attrs(dst, &src->attrs);
--	if (err)
--		return err;
-+	if (!damon_attrs_equals(&dst->attrs, &src->attrs)) {
-+		err = damon_set_attrs(dst, &src->attrs);
-+		if (err)
-+			return err;
-+	}
- 	dst->ops = src->ops;
- 
- 	return 0;
 _
 
-Patches currently in -mm which might be from bijantabatab@micron.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx.patch
+mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
 
