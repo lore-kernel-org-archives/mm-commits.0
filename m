@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D06122370A;
-	Thu,  7 Aug 2025 22:36:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC000222565
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 22:40:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754606199; cv=none; b=ndiwxPli+Up2RdZg11vZgn1Efi4ozl9KQfBk0z0dzMZ7yJac11cc1zwwuVNCZsdO9AwPL0oVWUL07f+AQBJ+9W1a+kCLbVUiA9LKZC5R+moIhIdsrdZU1tYoY5oOyuS9SCwZhKzWy6caxpPt4SDSmAfrn8VtUpE2480ASjo44Eg=
+	t=1754606448; cv=none; b=Gw2Z5XjYoqdCLHj9XBjVokT1qnpqAPLJduXt3vU321YDmC0OnQnOKm5ubE4huutjBMZpsKCRPhcfqqcKreZ0Oto3Ra+AXEnCizLtO0UvDt7KrBT/A3pwBEBONcukHx7GjdX9DNRB5PXwnMQVWJJR4rR3UQq6f4v1USprlurtFPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754606199; c=relaxed/simple;
-	bh=gqDJBdGGnri81C9JYYvriLcCIss6kinKURJkmA8Lhbk=;
-	h=Date:To:From:Subject:Message-Id; b=BFZ8zFMO3W7O2A4BWB/xNeCRnFZkAYsSJ7wdXYV6NE/UpuSlTOLGCrgzXP7DnBFGYPZn5YPwlRpJyia2J/RAsiYwqdwrnJptaBvhrAXqQV4q9l2jiyGn+nDpCqi763F0J81pgRXCSvCQ/IYfqGkddXYdID/ADYhF6PWZ7Zfgr1g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iVLsbKUr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754606448; c=relaxed/simple;
+	bh=SkDsEzL2A6en12Rmhbp9Qw/NfqJWuR+AJ1CJdb2baC8=;
+	h=Date:To:From:Subject:Message-Id; b=XYHmrIf8t1mcJ3wsGzjzPFTrB0B6pJYQjNwRP7xzIJlJr6oxp+3g08NHaNyzU1TSuTWMvYHpJYGu1gwBpvpa0kqXgnoGO9we+A8v6HCdyB5meBcbfBKApqPUH/+3rnwC6QOw16ChIOpUfoVE43H+dC1mWwXtSVQUT0gci6/KCFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c0X/riZ3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iVLsbKUr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF8F5C4CEEB;
-	Thu,  7 Aug 2025 22:36:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c0X/riZ3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B713C4CEEB;
+	Thu,  7 Aug 2025 22:40:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754606199;
-	bh=gqDJBdGGnri81C9JYYvriLcCIss6kinKURJkmA8Lhbk=;
+	s=korg; t=1754606448;
+	bh=SkDsEzL2A6en12Rmhbp9Qw/NfqJWuR+AJ1CJdb2baC8=;
 	h=Date:To:From:Subject:From;
-	b=iVLsbKUrMYzEZYqJHeT2Wf6fh7sXO8PwZvrkXrw5I46ynSEkQNgOW93eCarv9d4F5
-	 DQjG9JAkdAE3UOgcU7kAVPoB5aWqYb68rgtAQD9n/JUIwks4Kq/yl3Qm0TR5SI9GGv
-	 74bGQpJXDQhdX8EAyciWDmLW5+23TMq+0aeROlBQ=
-Date: Thu, 07 Aug 2025 15:36:38 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,souravpanda@google.com,rientjes@google.com,pasha.tatashin@soleen.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
+	b=c0X/riZ3yY1a9HF3rFc0inAlJJ4PmzYnzBFAwfYx2de6inyG4vAKm6gOrrRdMo+FW
+	 M3s43IdcwAMKQNQ5+NOQXslEzPLWFrIOSwUt9mRNMj0l6GgK15J6Flj0SU2OWgu+4h
+	 SwbB66HQiW8d4egJ+L8DOxl/Y91aknRRoyzwyvko=
+Date: Thu, 07 Aug 2025 15:40:47 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,flintglass@gmail.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baohua@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-fix-accounting-of-memmap-pages-for-early-sections.patch removed from -mm tree
-Message-Id: <20250807223638.DF8F5C4CEEB@smtp.kernel.org>
+Subject: + mm-zswap-store-page_size-compression-failed-page-as-is.patch added to mm-new branch
+Message-Id: <20250807224048.2B713C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,68 +34,238 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: fix accounting of memmap pages for early sections
-has been removed from the -mm tree.  Its filename was
-     mm-fix-accounting-of-memmap-pages-for-early-sections.patch
+The patch titled
+     Subject: mm/zswap: store <PAGE_SIZE compression failed page as-is
+has been added to the -mm mm-new branch.  Its filename is
+     mm-zswap-store-page_size-compression-failed-page-as-is.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-store-page_size-compression-failed-page-as-is.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Subject: mm: fix accounting of memmap pages for early sections
-Date: Mon, 4 Aug 2025 10:40:15 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/zswap: store <PAGE_SIZE compression failed page as-is
+Date: Thu, 7 Aug 2025 11:16:16 -0700
 
-memmap pages can be allocated either from the memblock (boot) allocator
-during early boot or from the buddy allocator.
+When zswap writeback is enabled and it fails compressing a given page, the
+page is swapped out to the backing swap device.  This behavior breaks the
+zswap's writeback LRU order, and hence users can experience unexpected
+latency spikes.  If the page is compressed without failure, but results in
+a size of PAGE_SIZE, the LRU order is kept, but the decompression overhead
+for loading the page back on the later access is unnecessary.
 
-When these memmap pages are removed via arch_remove_memory(), the
-deallocation path depends on their source:
+Keep the LRU order and optimize unnecessary decompression overheads in
+those cases, by storing the original content as-is in zpool.  The length
+field of zswap_entry will be set appropriately, as PAGE_SIZE, Hence
+whether it is saved as-is or not (whether decompression is unnecessary) is
+identified by 'zswap_entry->length == PAGE_SIZE'.
 
-* For pages from the buddy allocator, depopulate_section_memmap() is
-  called, which also decrements the count of nr_memmap_pages.
+Because the uncompressed data is saved in zpool, same to the compressed
+ones, this introduces no change in terms of memory management including
+movability and migratability of involved pages.
 
-* For pages from the boot allocator, free_map_bootmem() is called. But
-  it currently does not adjust the nr_memmap_boot_pages.
+This change is also not increasing per zswap entry metadata overhead.  But
+as the number of incompressible pages increases, total zswap metadata
+overhead is proportionally increased.  The overhead should not be
+problematic in usual cases, since the zswap metadata for single zswap
+entry is much smaller than PAGE_SIZE, and in common zswap use cases there
+should be a sufficient amount of compressible pages.  Also it can be
+mitigated by the zswap writeback.
 
-To fix this inconsistency, update free_map_bootmem() to also decrement the
-nr_memmap_boot_pages count by invoking memmap_boot_pages_add(), mirroring
-how free_vmemmap_page() handles this for boot-allocated pages.
+When the writeback is disabled, the additional overhead could be
+problematic.  For the case, keep the current behavior that just returns
+the failure and let swap_writeout() put the page back to the active LRU
+list in the case.  It is known to be suboptimal when the incompressible
+pages are cold, since the incompressible pages will continuously be tried
+to be zswapped out, and burn CPU cycles for compression attempts that will
+anyway fails.  One imaginable solution for the problem is reusing the
+swapped-out page and its struct page to store in the zswap pool.  But
+that's out of the scope of this patch.
 
-This ensures correct tracking of memmap pages regardless of allocation
-source.
+Tests
+-----
 
-Link: https://lkml.kernel.org/r/20250804084015.270570-1-sumanthk@linux.ibm.com
-Fixes: 15995a352474 ("mm: report per-page metadata information")
-Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+I tested this patch using a simple self-written microbenchmark that is
+available at GitHub[1].  You can reproduce the test I did by executing
+run_tests.sh of the repo on your system.  Note that the repo's
+documentation is not good as of this writing, so you may need to read and
+use the code.
+
+The basic test scenario is simple.  Run a test program making artificial
+accesses to memory having artificial content under memory.high-set memory
+limit and measure how many accesses were made in given time.
+
+The test program repeatedly and randomly access three anonymous memory
+regions.  The regions are all 500 MiB size, and accessed in the same
+probability.  Two of those are filled up with a simple content that can
+easily be compressed, while the remaining one is filled up with a content
+that read from /dev/urandom, which is easy to fail at compressing to
+<PAGE_SIZE size.  The program runs for two minutes and prints out the
+number of accesses made every five seconds.
+
+The test script runs the program under below seven configurations.
+
+- 0: memory.high is set to 2 GiB, zswap is disabled.
+- 1-1: memory.high is set to 1350 MiB, zswap is disabled.
+- 1-2: On 1-1, zswap is enabled without this patch.
+- 1-3: On 1-2, this patch is applied.
+
+For all zswap enabled case, zswap shrinker is enabled.
+
+Configuration '0' is for showing the original memory performance. 
+Configurations 1-1, 1-2 and 1-3 are for showing the performance of swap,
+zswap, and this patch under a level of memory pressure (~10% of working
+set).
+
+Because the per-5 seconds performance is not very reliable, I measured the
+average of that for the last one minute period of the test program run.  I
+also measured a few vmstat counters including zswpin, zswpout, zswpwb,
+pswpin and pswpout during the test runs.
+
+The measurement results are as below.  To save space, I show performance
+numbers that are normalized to that of the configuration '0' (no memory
+pressure), only.  The averaged accesses per 5 seconds of configuration '0'
+was 36493417.75.
+
+    config            0       1-1     1-2      1-3
+    perf_normalized   1.0000  0.0057  0.0235   0.0367
+    perf_stdev_ratio  0.0582  0.0652  0.0167   0.0346
+    zswpin            0       0       3548424  1999335
+    zswpout           0       0       3588817  2361689
+    zswpwb            0       0       10214    340270
+    pswpin            0       485806  772038   340967
+    pswpout           0       649543  144773   340270
+
+'perf_normalized' is the performance metric, normalized to that of
+configuration '0' (no pressure).  'perf_stdev_ratio' is the standard
+deviation of the averaged data points, as a ratio to the averaged metric
+value.  For example, configuration '0' performance was showing 5.8% stdev.
+Configurations 1-1 and 1-3 were having about 6.5% and 6.1% stdev.  Also
+the results were highly variable between multiple runs.  So this result is
+not very stable but just showing ball park figures.  Please keep this in
+your mind when reading these results.
+
+Under about 10% of working set memory pressure, the performance was
+dropped to about 0.57% of no-pressure one, when the normal swap is used
+(1-1).  Note that ~10% working set pressure is already extreme, at least
+on this test setup.  No one would desire system setups that can degrade
+performance to 0.57% of the best case.
+
+By turning zswap on (1-2), the performance was improved about 4x,
+resulting in about 2.35% of no-pressure one.  Because of the
+incompressible pages in the third memory region, a significant amount of
+(non-zswap) swap I/O operations were made, though.
+
+By applying this patch (1-3), about 56% performance improvement was made,
+resulting in about 3.67% of no-pressure one.  Reduced pswpin of 1-3
+compared to 1-2 let us see where this improvement came from.
+
+Related Works
+-------------
+
+This is not an entirely new attempt.  Nhat Pham and Takero Funaki tried
+very similar approaches in October 2023[2] and April 2024[3],
+respectively.  The two approaches didn't get merged mainly due to the
+metadata overhead concern.  I described why I think that shouldn't be a
+problem for this change, which is automatically disabled when writeback is
+disabled, at the beginning of this changelog.
+
+This patch is not particularly different from those, and actually built
+upon those.  I wrote this from scratch again, though.  Hence adding
+Suggested-by tags for them.  Actually Nhat first suggested this to me
+offlist.
+
+[1] https://github.com/sjp38/eval_zswap/blob/master/run.sh
+[2] https://lore.kernel.org/20231017003519.1426574-3-nphamcs@gmail.com
+[3] https://lore.kernel.org/20240706022523.1104080-6-flintglass@gmail.com
+
+Link: https://lkml.kernel.org/r/20250807181616.1895-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Suggested-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Takero Funaki <flintglass@gmail.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zswap.c |   29 +++++++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
---- a/mm/sparse.c~mm-fix-accounting-of-memmap-pages-for-early-sections
-+++ a/mm/sparse.c
-@@ -688,6 +688,7 @@ static void free_map_bootmem(struct page
- 	unsigned long start = (unsigned long)memmap;
- 	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
+--- a/mm/zswap.c~mm-zswap-store-page_size-compression-failed-page-as-is
++++ a/mm/zswap.c
+@@ -976,8 +976,25 @@ static bool zswap_compress(struct page *
+ 	 */
+ 	comp_ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
+ 	dlen = acomp_ctx->req->dlen;
+-	if (comp_ret)
+-		goto unlock;
++
++	/*
++	 * If a page cannot be compressed into a size smaller than PAGE_SIZE,
++	 * save the content as is without a compression, to keep the LRU order
++	 * of writebacks.  If writeback is disabled, reject the page since it
++	 * only adds metadata overhead.  swap_writeout() will put the page back
++	 * to the active LRU list in the case.
++	 */
++	if (comp_ret || dlen >= PAGE_SIZE) {
++		if (mem_cgroup_zswap_writeback_enabled(
++					folio_memcg(page_folio(page)))) {
++			comp_ret = 0;
++			dlen = PAGE_SIZE;
++			memcpy_from_page(dst, page, 0, dlen);
++		} else {
++			comp_ret = comp_ret ? : -EINVAL;
++			goto unlock;
++		}
++	}
  
-+	memmap_boot_pages_add(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
- 	vmemmap_free(start, end, NULL);
- }
+ 	zpool = pool->zpool;
+ 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
+@@ -1012,6 +1029,14 @@ static bool zswap_decompress(struct zswa
+ 	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
+ 	obj = zpool_obj_read_begin(zpool, entry->handle, acomp_ctx->buffer);
  
++	/* zswap entries of PAGE_SIZE are not compressed. */
++	if (entry->length == PAGE_SIZE) {
++		memcpy_to_folio(folio, 0, obj, entry->length);
++		zpool_obj_read_end(zpool, entry->handle, obj);
++		acomp_ctx_put_unlock(acomp_ctx);
++		return true;
++	}
++
+ 	/*
+ 	 * zpool_obj_read_begin() might return a kmap address of highmem when
+ 	 * acomp_ctx->buffer is not used.  However, sg_init_one() does not
 _
 
-Patches currently in -mm which might be from sumanthk@linux.ibm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-fix-accounting-of-memmap-pages.patch
+mm-zswap-store-page_size-compression-failed-page-as-is.patch
 
