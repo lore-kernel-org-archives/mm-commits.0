@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 853BA524F
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:37:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32EDC524F
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:37:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754537865; cv=none; b=L6LLK3FZ/H0cpyjgZUNAuZiteL6vr2M2YF1BXA6NtsZGwTh2CdEVkOYv6BVXnmVDE+77rXMuuJKN7BZsoddA17JNIzXdOIeOI8T5FOW8HVrfhne76x/qL0K4/oy5ukNkgrXnb0FKqONhunjzsOXn0p7Y17nyckO3tDFu0S0v99g=
+	t=1754537868; cv=none; b=pxJOs1dJAKT240n0fv5kT8OIScx3rp9XAgDTq99hTwHHvy96khddIVAOXofzgAIsPwrl38N++2zqNKyz4Ey0PA9Xri19grtjMOnF7Kv3jrn6y6F5+fqKU7cEDq3mDsoTUxeSh1is4QxbaLTwGBypcyrRgqMiOzaaydgfxywjDNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754537865; c=relaxed/simple;
-	bh=8SPWh3jfkqHA4R3SDcTX5ecF7BvvGgQe0RccvaT2Rcg=;
-	h=Date:To:From:Subject:Message-Id; b=EurpRzevHSqy9cFOI5uUJCbE62jvRh+wpCwOg0DMotskeMOqauKnW2Fd5yn/ZfQWvz1ZCbz9xk5MpS4el+fJ/+7447SWyQ63nv5d7FJ2jvzXtKjdGekSJPNZNbKfAcSIxAgcrptcEXPb4O0D3qZu4Vhpb/yXhhoU1Fi6m2o0/8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=njOSo300; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754537868; c=relaxed/simple;
+	bh=iwHHA7HzfPtadG/1BAdiLvC26EpPhTOJ5S52HymF8T4=;
+	h=Date:To:From:Subject:Message-Id; b=PizlrDnXKdxh5ZeacpMkLfRlkbWxWK/nfQToLD7tAr18X6iLm2qBpyoIWmbEymVs6CiYyvOX50UYlIUW7kBVlTPjVw8tq57FnFWmn0e+DAYxINM77XXeLU5CvSV1NPbulMpmFkrNrAJLNKdKEZicJgZcx15Ey8um6kM4/SZMRqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RIn6BFg2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="njOSo300"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF8D3C4CEEB;
-	Thu,  7 Aug 2025 03:37:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RIn6BFg2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1B3BC4CEEB;
+	Thu,  7 Aug 2025 03:37:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754537865;
-	bh=8SPWh3jfkqHA4R3SDcTX5ecF7BvvGgQe0RccvaT2Rcg=;
+	s=korg; t=1754537867;
+	bh=iwHHA7HzfPtadG/1BAdiLvC26EpPhTOJ5S52HymF8T4=;
 	h=Date:To:From:Subject:From;
-	b=njOSo3002tgZ3cBgplcFBY3va01q1OA0FopUGENtALVbh/c8HJSCrvELM26jhLl0y
-	 x4WCbFFUweoBLfMNfuocXwY+yLrXTcm/1JsWmR+G8+BHK2eHCdWMWOrM3B9+iSGEub
-	 X+gzHXmBBs9BES6zi0SxbCx9S8cFhGHL6tutFCmw=
-Date: Wed, 06 Aug 2025 20:37:44 -0700
+	b=RIn6BFg2ccom5j9zPcbh7Iil3rzMiEIrTdvGTNyN8ADMGb4gAsWxTnnqYYP6vpmFF
+	 shuBuAhtCc/BR2TAWX8pCzTb74wjsK5NuL9/ovt7J9zfGqeuNJ/himvaGrcyMgRSVc
+	 4sDOq/SgAqGd+W+7iyIOgW42UHDvk0AEQwemBdjE=
+Date: Wed, 06 Aug 2025 20:37:47 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,sj@kernel.org,pyyjason@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch added to mm-new branch
-Message-Id: <20250807033744.DF8D3C4CEEB@smtp.kernel.org>
+Subject: + mm-damon-vaddr-support-stat-purpose-damos-filters.patch added to mm-new branch
+Message-Id: <20250807033747.A1B3BC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: move filters existence check function to ops-common
+     Subject: mm/damon/vaddr: support stat-purpose DAMOS filters
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch
+     mm-damon-vaddr-support-stat-purpose-damos-filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-support-stat-purpose-damos-filters.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,185 +65,144 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yueyang Pan <pyyjason@gmail.com>
-Subject: mm/damon/paddr: move filters existence check function to ops-common
-Date: Sat, 2 Aug 2025 11:52:45 +0000
+Subject: mm/damon/vaddr: support stat-purpose DAMOS filters
+Date: Sat, 2 Aug 2025 11:52:46 +0000
 
-Patch series "mm/damon/vaddr: support stat-purpose DAMOS filters", v4.
+This patch extends DAMOS_STAT handling of the DAMON operations sets for
+virtual address spaces for ops-level DAMOS filters.  It leverages the
+walk_page_range to walk the page table and gets the folio from page table.
+The last folio scanned is stored in damos->last_applied to prevent double
+counting.
 
-Extend DAMOS_STAT handling of the DAMON operations sets for virtual
-address spaces for ops-level DAMOS filters.
-
-Functionality Test
-==================
-I wrote a small test program which allocates 10GB of DRAM, use
-madvise(MADV_HUGEPAGE) to convert the base pages to 2MB huge pages Then my
-program does the following things in order:
-
-1. Write sequentially to the whole 10GB region
-2. Read the first 5GB region sequentially for 10 times
-3. Sleep 5s
-4. Read the second 5GB region sequentially for 10 times
-
-With a proper damon setting, we are expected to see df-passed to be 10GB
-and hot region move around with the read
-
-$ # Start DAMON
-$ sudo ./damo/damo start "./my_test/test" --monitoring_intervals 100ms\
-1s 2s
-
-$ # Show DAMON-generated access pattern snapshot
-$ sudo ./damo/damo report access --snapshot_damos_filter allow \
-hugepage_size 2MiB 2MiB
-    heatmap:
-    # min/max temperatures: -600,000,000, 100,001,000, column size: 137.352 MiB
-    intervals: sample 100 ms aggr 1 s (max access hz 10)
-    # damos filters (df): reject none hugepage_size [2.000 MiB, 2.000 MiB]
-    df-pass:
-    # min/max temperatures: -400,000,000, 100,001,000, column size: 128.031 MiB
-    0   addr 85.373 TiB   size 745.555 MiB access 0 hz   age 6 s           df-passed 0 B
-    1   addr 127.608 TiB  size 877.664 MiB access 3.000 hz age 0 ns          df-passed 878.000 MiB
-    2   addr 127.609 TiB  size 219.418 MiB access 2.000 hz age 0 ns          df-passed 220.000 MiB
-    3   addr 127.609 TiB  size 316.613 MiB access 1.000 hz age 1 s           df-passed 316.000 MiB
-    4   addr 127.609 TiB  size 474.922 MiB access 1.000 hz age 1 s           df-passed 476.000 MiB
-    5   addr 127.610 TiB  size 407.188 MiB access 1.000 hz age 0 ns          df-passed 406.000 MiB
-    6   addr 127.610 TiB  size 610.781 MiB access 1.000 hz age 0 ns          df-passed 612.000 MiB
-    7   addr 127.611 TiB  size 697.309 MiB access 0 hz   age 0 ns          df-passed 696.000 MiB
-    8   addr 127.611 TiB  size 77.480 MiB  access 1.000 hz age 0 ns          df-passed 78.000 MiB
-    9   addr 127.611 TiB  size 573.102 MiB access 1.000 hz age 0 ns          df-passed 574.000 MiB
-    10  addr 127.612 TiB  size 245.617 MiB access 2.000 hz age 0 ns          df-passed 246.000 MiB
-    11  addr 127.612 TiB  size 295.102 MiB access 1.000 hz age 1 s           df-passed 294.000 MiB
-    12  addr 127.612 TiB  size 295.105 MiB access 1.000 hz age 1 s           df-passed 296.000 MiB
-    13  addr 127.613 TiB  size 67.172 MiB  access 1.000 hz age 1 s           df-passed 66.000 MiB
-    14  addr 127.613 TiB  size 604.570 MiB access 0 hz   age 1 s           df-passed 606.000 MiB
-    15  addr 127.613 TiB  size 389.578 MiB access 0 hz   age 4 s           df-passed 388.000 MiB
-    16  addr 127.614 TiB  size 259.719 MiB access 0 hz   age 4 s           df-passed 260.000 MiB
-    17  addr 127.614 TiB  size 817.941 MiB access 0 hz   age 4 s           df-passed 818.000 MiB
-    18  addr 127.615 TiB  size 204.488 MiB access 0 hz   age 4 s           df-passed 204.000 MiB
-    19  addr 127.615 TiB  size 730.902 MiB access 0 hz   age 4 s           df-passed 732.000 MiB
-    20  addr 127.616 TiB  size 182.727 MiB access 0 hz   age 4 s           df-passed 182.000 MiB
-    21  addr 127.616 TiB  size 926.824 MiB access 0 hz   age 2 s           df-passed 928.000 MiB
-    22  addr 127.617 TiB  size 102.984 MiB access 0 hz   age 2 s           df-passed 102.000 MiB
-    23  addr 127.617 TiB  size 86.527 MiB  access 0 hz   age 2 s           df-passed 86.000 MiB
-    24  addr 127.617 TiB  size 778.777 MiB access 0 hz   age 2 s           df-passed 776.000 MiB
-    25  addr 127.999 TiB  size 132.000 KiB access 0 hz   age 6 s           df-passed 0 B
-    memory bw estimate: 6.524 GiB per second  df-passed: 6.527 GiB per second
-    total size: 10.731 GiB  df-passed 10.000 GiB
-    record DAMON intervals: sample 100 ms, aggr 1 s
-
-
-$ # Show DAMON-generated access pattern snapshot again
-$ sudo ./damo/damo report access --snapshot_damos_filter allow \
-hugepage_size 2MiB 2MiB
-    heatmap:
-    # min/max temperatures: -1,100,000,000, 2,000, column size: 137.352 MiB
-    intervals: sample 100 ms aggr 1 s (max access hz 10)
-    # damos filters (df): reject none hugepage_size [2.000 MiB, 2.000 MiB]
-    df-pass:
-    # min/max temperatures: -900,000,000, 2,000, column size: 128.031 MiB
-    0   addr 85.373 TiB   size 745.555 MiB access 0 hz   age 11 s          df-passed 0 B
-    1   addr 127.608 TiB  size 579.715 MiB access 2.000 hz age 0 ns          df-passed 580.000 MiB
-    2   addr 127.608 TiB  size 144.930 MiB access 2.000 hz age 0 ns          df-passed 146.000 MiB
-    3   addr 127.608 TiB  size 452.453 MiB access 2.000 hz age 0 ns          df-passed 452.000 MiB
-    4   addr 127.609 TiB  size 113.117 MiB access 1.000 hz age 0 ns          df-passed 114.000 MiB
-    5   addr 127.609 TiB  size 182.367 MiB access 2.000 hz age 0 ns          df-passed 182.000 MiB
-    6   addr 127.609 TiB  size 182.371 MiB access 2.000 hz age 0 ns          df-passed 182.000 MiB
-    7   addr 127.609 TiB  size 350.488 MiB access 1.000 hz age 0 ns          df-passed 350.000 MiB
-    8   addr 127.610 TiB  size 525.738 MiB access 1.000 hz age 0 ns          df-passed 526.000 MiB
-    9   addr 127.610 TiB  size 401.352 MiB access 1.000 hz age 0 ns          df-passed 402.000 MiB
-    10  addr 127.611 TiB  size 100.340 MiB access 1.000 hz age 0 ns          df-passed 100.000 MiB
-    11  addr 127.611 TiB  size 19.523 MiB  access 0 hz   age 0 ns          df-passed 20.000 MiB
-    12  addr 127.611 TiB  size 175.727 MiB access 0 hz   age 0 ns          df-passed 176.000 MiB
-    13  addr 127.611 TiB  size 106.629 MiB access 0 hz   age 0 ns          df-passed 106.000 MiB
-    14  addr 127.611 TiB  size 959.676 MiB access 0 hz   age 0 ns          df-passed 960.000 MiB
-    15  addr 127.612 TiB  size 424.469 MiB access 1.000 hz age 0 ns          df-passed 424.000 MiB
-    16  addr 127.612 TiB  size 424.469 MiB access 1.000 hz age 0 ns          df-passed 424.000 MiB
-    17  addr 127.613 TiB  size 201.648 MiB access 0 hz   age 6 s           df-passed 202.000 MiB
-    18  addr 127.613 TiB  size 806.609 MiB access 0 hz   age 6 s           df-passed 806.000 MiB
-    19  addr 127.614 TiB  size 862.125 MiB access 0 hz   age 9 s           df-passed 862.000 MiB
-    20  addr 127.614 TiB  size 215.535 MiB access 0 hz   age 9 s           df-passed 216.000 MiB
-    21  addr 127.615 TiB  size 104.500 MiB access 0 hz   age 9 s           df-passed 104.000 MiB
-    22  addr 127.615 TiB  size 940.523 MiB access 0 hz   age 9 s           df-passed 942.000 MiB
-    23  addr 127.616 TiB  size 640.281 MiB access 0 hz   age 7 s           df-passed 640.000 MiB
-    24  addr 127.616 TiB  size 426.855 MiB access 0 hz   age 7 s           df-passed 426.000 MiB
-    25  addr 127.617 TiB  size 90.105 MiB  access 0 hz   age 7 s           df-passed 90.000 MiB
-    26  addr 127.617 TiB  size 810.965 MiB access 0 hz   age 7 s           df-passed 808.000 MiB
-    27  addr 127.999 TiB  size 132.000 KiB access 0 hz   age 11 s          df-passed 0 B
-    memory bw estimate: 5.297 GiB per second  df-passed: 5.297 GiB per second
-    total size: 10.731 GiB  df-passed 10.000 GiB
-    record DAMON intervals: sample 100 ms, aggr 1 s
-
-As you can see the total df-passed region is 10GiB and the hot region
-moves as the seq read keeps going
-
-
-This patch (of 2):
-
-This patch moves damon_pa_scheme_has_filter to ops-common.  renaming to
-damos_ops_has_filter.  Doing so allows us to reuse its logic in the vaddr
-version of DAMOS_STAT.
-
-Link: https://lkml.kernel.org/r/cover.1754135312.git.pyyjason@gmail.com
-Link: https://lkml.kernel.org/r/cbe01740f7ac5ac7c9fd1ca367d297c3d7f2a69d.1754135312.git.pyyjason@gmail.com
+Link: https://lkml.kernel.org/r/264a4b5ea202fd73c01b349c9694d8bf9978c441.1754135312.git.pyyjason@gmail.com
 Signed-off-by: Yueyang Pan <pyyjason@gmail.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    9 +++++++++
- mm/damon/ops-common.h |    2 ++
- mm/damon/paddr.c      |   11 +----------
- 3 files changed, 12 insertions(+), 10 deletions(-)
+ mm/damon/vaddr.c |  103 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 102 insertions(+), 1 deletion(-)
 
---- a/mm/damon/ops-common.c~mm-damon-paddr-move-filters-existence-check-function-to-ops-common
-+++ a/mm/damon/ops-common.c
-@@ -412,3 +412,12 @@ unsigned long damon_migrate_pages(struct
- 
- 	return nr_migrated;
- }
-+
-+bool damos_ops_has_filter(struct damos *s)
-+{
-+	struct damos_filter *f;
-+
-+	damos_for_each_ops_filter(f, s)
-+		return true;
-+	return false;
-+}
---- a/mm/damon/ops-common.h~mm-damon-paddr-move-filters-existence-check-function-to-ops-common
-+++ a/mm/damon/ops-common.h
-@@ -21,3 +21,5 @@ int damon_hot_score(struct damon_ctx *c,
- 
- bool damos_folio_filter_match(struct damos_filter *filter, struct folio *folio);
- unsigned long damon_migrate_pages(struct list_head *folio_list, int target_nid);
-+
-+bool damos_ops_has_filter(struct damos *s);
---- a/mm/damon/paddr.c~mm-damon-paddr-move-filters-existence-check-function-to-ops-common
-+++ a/mm/damon/paddr.c
-@@ -262,22 +262,13 @@ put_folio:
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-support-stat-purpose-damos-filters
++++ a/mm/damon/vaddr.c
+@@ -890,6 +890,107 @@ free_lists:
  	return applied * PAGE_SIZE;
  }
  
--static bool damon_pa_scheme_has_filter(struct damos *s)
--{
--	struct damos_filter *f;
--
--	damos_for_each_ops_filter(f, s)
--		return true;
--	return false;
--}
--
- static unsigned long damon_pa_stat(struct damon_region *r, struct damos *s,
- 		unsigned long *sz_filter_passed)
- {
- 	unsigned long addr;
- 	struct folio *folio;
- 
--	if (!damon_pa_scheme_has_filter(s))
++struct damos_va_stat_private {
++	struct damos *scheme;
++	unsigned long *sz_filter_passed;
++};
++
++static inline bool damos_va_invalid_folio(struct folio *folio,
++		struct damos *s)
++{
++	return !folio || folio == s->last_applied;
++}
++
++static int damos_va_stat_pmd_entry(pmd_t *pmd, unsigned long addr,
++		unsigned long next, struct mm_walk *walk)
++{
++	struct damos_va_stat_private *priv = walk->private;
++	struct damos *s = priv->scheme;
++	unsigned long *sz_filter_passed = priv->sz_filter_passed;
++	struct vm_area_struct *vma = walk->vma;
++	struct folio *folio;
++	spinlock_t *ptl;
++	pte_t *start_pte, *pte, ptent;
++	int nr;
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	if (pmd_trans_huge(*pmd)) {
++		pmd_t pmde;
++
++		ptl = pmd_trans_huge_lock(pmd, vma);
++		if (!ptl)
++			return 0;
++		pmde = pmdp_get(pmd);
++		if (!pmd_present(pmde))
++			goto huge_unlock;
++
++		folio = vm_normal_folio_pmd(vma, addr, pmde);
++
++		if (damos_va_invalid_folio(folio, s))
++			goto huge_unlock;
++
++		if (!damos_va_filter_out(s, folio, vma, addr, NULL, pmd))
++			*sz_filter_passed += folio_size(folio);
++		s->last_applied = folio;
++
++huge_unlock:
++		spin_unlock(ptl);
++		return 0;
++	}
++#endif
++	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	if (!start_pte)
++		return 0;
++
++	for (; addr < next; pte += nr, addr += nr * PAGE_SIZE) {
++		nr = 1;
++		ptent = ptep_get(pte);
++
++		if (pte_none(ptent) || !pte_present(ptent))
++			continue;
++
++		folio = vm_normal_folio(vma, addr, ptent);
++
++		if (damos_va_invalid_folio(folio, s))
++			continue;
++
++		if (!damos_va_filter_out(s, folio, vma, addr, pte, NULL))
++			*sz_filter_passed += folio_size(folio);
++		nr = folio_nr_pages(folio);
++		s->last_applied = folio;
++	}
++	pte_unmap_unlock(start_pte, ptl);
++	return 0;
++}
++
++static unsigned long damos_va_stat(struct damon_target *target,
++		struct damon_region *r, struct damos *s,
++		unsigned long *sz_filter_passed)
++{
++	struct damos_va_stat_private priv;
++	struct mm_struct *mm;
++	struct mm_walk_ops walk_ops = {
++		.pmd_entry = damos_va_stat_pmd_entry,
++		.walk_lock = PGWALK_RDLOCK,
++	};
++
++	priv.scheme = s;
++	priv.sz_filter_passed = sz_filter_passed;
++
 +	if (!damos_ops_has_filter(s))
- 		return 0;
- 
- 	addr = r->ar.start;
++		return 0;
++
++	mm = damon_get_mm(target);
++	if (!mm)
++		return 0;
++
++	mmap_read_lock(mm);
++	walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
++	mmap_read_unlock(mm);
++	mmput(mm);
++	return 0;
++}
++
+ static unsigned long damon_va_apply_scheme(struct damon_ctx *ctx,
+ 		struct damon_target *t, struct damon_region *r,
+ 		struct damos *scheme, unsigned long *sz_filter_passed)
+@@ -916,7 +1017,7 @@ static unsigned long damon_va_apply_sche
+ 	case DAMOS_MIGRATE_COLD:
+ 		return damos_va_migrate(t, r, scheme, sz_filter_passed);
+ 	case DAMOS_STAT:
+-		return 0;
++		return damos_va_stat(t, r, scheme, sz_filter_passed);
+ 	default:
+ 		/*
+ 		 * DAMOS actions that are not yet supported by 'vaddr'.
 _
 
 Patches currently in -mm which might be from pyyjason@gmail.com are
