@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0EC3186A
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:44:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D33E186A
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:44:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754538271; cv=none; b=AGZ5skZi3yahdoDZesDfYW6ryXT31+9QAB8FkI606k/Nf7DnhuW2LnjOfMr/568kkc3V/tyl/SHxSGp5vm8r2bzBGi4G1Ace1fn3PYjt7vP2/yzEQ/Ce3Hv3DORBjI2RXaAhmjyiWQBseMuU8MeFA6Qdftr7MlEp8bBAmQG09rg=
+	t=1754538273; cv=none; b=mwO/oFscWsnDiWcVnHE4cu6qF34SJkV03ZlhH24Z6CRuDqTVpbwfI1zKGvHK+btKmIWKIpeeH2LEW8jf5ESg0dNyHaOvD5gKgt9zDRgPA2fSLJP6neCO52lOh0YtXJq8hy4eSgSnzzT/wAPU3ifHIF+exBZb+cOUykS3bdyK0Rg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754538271; c=relaxed/simple;
-	bh=M1ugOHlD+mB4z1YkoT8lzZleXR0OaHcHxIKcJIBdYLQ=;
-	h=Date:To:From:Subject:Message-Id; b=FmnyPW1e7KehLq9BhAl8r9PTytODEZj+sIKVsrS78M1S7Ai9G7k0cCd9kLX/rK2wiRGqP3c9nXpM9I/t/9CRC16qrA6SDzxRFj/KiI5dHmQXH1+1/XlYPcmzc2nrjO4dYDPwyhpQdQcJVdAvl3owb8E/ZEnMiqJwTWgtNvpg+uw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W2vsP7Ow; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754538273; c=relaxed/simple;
+	bh=rYrMwubbQr9mB/AGoe+bN0uEY0LCTPySlRdrpwyWGM0=;
+	h=Date:To:From:Subject:Message-Id; b=usBYSJ79CJLphhmKmpvfmycda8WbYDwRXq2MQLZjCc3fr3D6mVErX0XgNrqg9Titd4m9Ra+CRfGQ+RNelTqCcSsZuSFblpMUqSioAaWUxm3ayTprRXqretWvcq1pwcohloDOeiY7CI+SIKk/hwCVEuxuVZo7Mz0Km2MAH2mUV8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ciax/nk8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W2vsP7Ow"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35FF4C4CEF4;
-	Thu,  7 Aug 2025 03:44:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ciax/nk8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 660E6C4CEF4;
+	Thu,  7 Aug 2025 03:44:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754538271;
-	bh=M1ugOHlD+mB4z1YkoT8lzZleXR0OaHcHxIKcJIBdYLQ=;
+	s=korg; t=1754538273;
+	bh=rYrMwubbQr9mB/AGoe+bN0uEY0LCTPySlRdrpwyWGM0=;
 	h=Date:To:From:Subject:From;
-	b=W2vsP7Ow0LQaXvOeFuhGThUBPU/rYlzup8F5LELoiOHBWbXUiPjAZX4TLmnvlKYKg
-	 U46nWrmJYZh/cUdl9S9THLUOrVRYHIh4FDJF70sCSq0fX5GbvYbBs7MbqWo2MkD2Ed
-	 oBeFhWo0zO53OvMzk6BysTsDFqUztYzh2oR0i+bA=
-Date: Wed, 06 Aug 2025 20:44:30 -0700
+	b=ciax/nk8bf+unAU0hTt8sPkDhp1DQCAc/y6LOPnUnZe+pZyv8iCUjwLdrdkGFwQCV
+	 PzUVdv212GPCXjq1rUA1rYnW66yzQHk7xHtERCztgQHZF0qZoxItSXsKnirQckafMV
+	 2HTXOFfuurnHuLZ5vOuwSi3sEeBdVA8rdGB9Mvho=
+Date: Wed, 06 Aug 2025 20:44:32 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sidhartha.kumar@oracle.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-protection_keys-fix-dead-code.patch added to mm-new branch
-Message-Id: <20250807034431.35FF4C4CEF4@smtp.kernel.org>
+Subject: + selftests-kselftesth-add-__unused-macro.patch added to mm-new branch
+Message-Id: <20250807034433.660E6C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: protection_keys: fix dead code
+     Subject: selftests: kselftest.h: add __unused macro
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-protection_keys-fix-dead-code.patch
+     selftests-kselftesth-add-__unused-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-protection_keys-fix-dead-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-kselftesth-add-__unused-macro.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,21 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: protection_keys: fix dead code
-Date: Thu, 31 Jul 2025 21:01:26 +0500
+Subject: selftests: kselftest.h: add __unused macro
+Date: Thu, 31 Jul 2025 21:01:27 +0500
 
-The while loop doesn't execute and following warning gets generated:
+Add __unused macro instead of using the complete verbose unused compiler
+attribute.  The raw __attribute__((__unused__)) is quite long and makes
+code too much verbose to the kernel developer's taste.
 
-protection_keys.c:561:15: warning: code will never be executed
-[-Wunreachable-code]
-                int rpkey = alloc_random_pkey();
-
-Let's enable the while loop such that it gets executed nr_iterations
-times. Simplify the code a bit as well.
-
-Link: https://lkml.kernel.org/r/20250731160132.1795351-3-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250731160132.1795351-4-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -99,32 +93,29 @@ Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/protection_keys.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ tools/testing/selftests/kselftest.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-protection_keys-fix-dead-code
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -557,13 +557,11 @@ int mprotect_pkey(void *ptr, size_t size
- 	int nr_iterations = random() % 100;
- 	int ret;
+--- a/tools/testing/selftests/kselftest.h~selftests-kselftesth-add-__unused-macro
++++ a/tools/testing/selftests/kselftest.h
+@@ -92,6 +92,10 @@
+ #endif
+ #define __printf(a, b)   __attribute__((format(printf, a, b)))
  
--	while (0) {
-+	while (nr_iterations-- >= 0) {
- 		int rpkey = alloc_random_pkey();
- 		ret = sys_mprotect_pkey(ptr, size, orig_prot, pkey);
- 		dprintf1("sys_mprotect_pkey(%p, %zx, prot=0x%lx, pkey=%ld) ret: %d\n",
- 				ptr, size, orig_prot, pkey, ret);
--		if (nr_iterations-- < 0)
--			break;
- 
- 		dprintf1("%s()::%d, ret: %d pkey_reg: 0x%016llx"
- 			" shadow: 0x%016llx\n",
++#ifndef __unused
++#define __unused         __attribute__((__unused__))
++#endif
++
+ /* counters */
+ struct ksft_count {
+ 	unsigned int ksft_pass;
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
