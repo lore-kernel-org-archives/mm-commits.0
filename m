@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32EDC524F
-	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:37:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32354186A
+	for <mm-commits@vger.kernel.org>; Thu,  7 Aug 2025 03:44:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754537868; cv=none; b=pxJOs1dJAKT240n0fv5kT8OIScx3rp9XAgDTq99hTwHHvy96khddIVAOXofzgAIsPwrl38N++2zqNKyz4Ey0PA9Xri19grtjMOnF7Kv3jrn6y6F5+fqKU7cEDq3mDsoTUxeSh1is4QxbaLTwGBypcyrRgqMiOzaaydgfxywjDNw=
+	t=1754538268; cv=none; b=NBeXbCT3VhaqwuB3UQJdlTZALVeZX6OzS7KpnHkyCkMx0u/tvZfi4y67k32aK+7pMXC0qhziUDqgrTjygBTfTDdMjaS2SGCLSp4fpbXLLhWftwRojJzFeGUwlRZYS0eeb3wuHaHCxs8WLk1lPEmnExSsJhbOV+/vRSQCq2U80ow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754537868; c=relaxed/simple;
-	bh=iwHHA7HzfPtadG/1BAdiLvC26EpPhTOJ5S52HymF8T4=;
-	h=Date:To:From:Subject:Message-Id; b=PizlrDnXKdxh5ZeacpMkLfRlkbWxWK/nfQToLD7tAr18X6iLm2qBpyoIWmbEymVs6CiYyvOX50UYlIUW7kBVlTPjVw8tq57FnFWmn0e+DAYxINM77XXeLU5CvSV1NPbulMpmFkrNrAJLNKdKEZicJgZcx15Ey8um6kM4/SZMRqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RIn6BFg2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754538268; c=relaxed/simple;
+	bh=0/dC+riaT8r614+HERRDWSZ9uV7lA/bd5MEbMv5JhjI=;
+	h=Date:To:From:Subject:Message-Id; b=Wcr5ranRTSm4NAbBZS9uquwixmJQWNEgBVCpsttzF+1ku+4QKQDu0alpQsIFf0/24aNYnNDv977YVVDnjWqCAuNBUuULeTkb1oVwBJB2fDkvf2NxCLBj3VjOjXNVSumfU87bfLAUSMnClx49sT29xz8wBzbrZpJqX5gc3Dtk3X0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V4amKMTt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RIn6BFg2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1B3BC4CEEB;
-	Thu,  7 Aug 2025 03:37:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V4amKMTt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FFECC4CEF4;
+	Thu,  7 Aug 2025 03:44:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754537867;
-	bh=iwHHA7HzfPtadG/1BAdiLvC26EpPhTOJ5S52HymF8T4=;
+	s=korg; t=1754538267;
+	bh=0/dC+riaT8r614+HERRDWSZ9uV7lA/bd5MEbMv5JhjI=;
 	h=Date:To:From:Subject:From;
-	b=RIn6BFg2ccom5j9zPcbh7Iil3rzMiEIrTdvGTNyN8ADMGb4gAsWxTnnqYYP6vpmFF
-	 shuBuAhtCc/BR2TAWX8pCzTb74wjsK5NuL9/ovt7J9zfGqeuNJ/himvaGrcyMgRSVc
-	 4sDOq/SgAqGd+W+7iyIOgW42UHDvk0AEQwemBdjE=
-Date: Wed, 06 Aug 2025 20:37:47 -0700
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,sj@kernel.org,pyyjason@gmail.com,akpm@linux-foundation.org
+	b=V4amKMTtl/5H7pj5is4rdq+DIKfbRdlaMX+3GMOtgVBdrAnrlEUnq83LLm2LRwwYh
+	 pRfVZSMSxd+U4krix3gEWMix1UmwGfjiRwrzbP6iCiBISb8tDmCILUnOVI63kOswl+
+	 ov+7KNByO0ljV7NzhQBozmM8BuHq5/lVojmx7x0c=
+Date: Wed, 06 Aug 2025 20:44:27 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sidhartha.kumar@oracle.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-support-stat-purpose-damos-filters.patch added to mm-new branch
-Message-Id: <20250807033747.A1B3BC4CEEB@smtp.kernel.org>
+Subject: + selftests-mm-add-wunreachable-code-and-fix-warnings.patch added to mm-new branch
+Message-Id: <20250807034427.9FFECC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/vaddr: support stat-purpose DAMOS filters
+     Subject: selftests/mm: add -Wunreachable-code and fix warnings
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-vaddr-support-stat-purpose-damos-filters.patch
+     selftests-mm-add-wunreachable-code-and-fix-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-support-stat-purpose-damos-filters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-wunreachable-code-and-fix-warnings.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,149 +64,141 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yueyang Pan <pyyjason@gmail.com>
-Subject: mm/damon/vaddr: support stat-purpose DAMOS filters
-Date: Sat, 2 Aug 2025 11:52:46 +0000
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests/mm: add -Wunreachable-code and fix warnings
+Date: Thu, 31 Jul 2025 21:01:25 +0500
 
-This patch extends DAMOS_STAT handling of the DAMON operations sets for
-virtual address spaces for ops-level DAMOS filters.  It leverages the
-walk_page_range to walk the page table and gets the folio from page table.
-The last folio scanned is stored in damos->last_applied to prevent double
-counting.
+Patch series "selftests/mm: Add compiler flags and fix found warnings", v2.
 
-Link: https://lkml.kernel.org/r/264a4b5ea202fd73c01b349c9694d8bf9978c441.1754135312.git.pyyjason@gmail.com
-Signed-off-by: Yueyang Pan <pyyjason@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Recently, I reviewed a patch on the mm/kselftest mailing list about a test
+which had obvious type mismatch fix in it.  It was strange why that wasn't
+caught during development and when patch was accepted.  This led me to
+discover that those extra compiler options to catch these warnings aren't
+being used.  When I added them, I found tens of warnings in just mm suite.
+
+In this series, I'm adding these flags and fixing those warnings.  In the
+last try several months ago [1], I'd patches for individual tests.  I've
+made patches better by grouping the same type of fixes together.  Hence
+there is no changelog for individual patches.
+
+
+This patch (of 8):
+
+Enable -Wunreachable-code flag to catch dead code and fix them.
+
+1. Remove the dead code and write a comment instead:
+hmm-tests.c:2033:3: warning: code will never be executed
+[-Wunreachable-code]
+                perror("Should not reach this\n");
+                ^~~~~~
+
+2. ksft_exit_fail_msg() calls exit(). Remove the dead code.
+split_huge_page_test.c:301:3: warning: code will never be executed
+[-Wunreachable-code]
+                goto cleanup;
+                ^~~~~~~~~~~~
+
+3. Remove duplicate inline.
+pkey_sighandler_tests.c:44:15: warning: duplicate 'inline' declaration
+specifier [-Wduplicate-decl-specifier]
+static inline __always_inline
+
+Link: https://lkml.kernel.org/r/20250731160132.1795351-1-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250731160132.1795351-2-usama.anjum@collabora.com
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |  103 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 102 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/Makefile                |    1 +
+ tools/testing/selftests/mm/hmm-tests.c             |    5 ++---
+ tools/testing/selftests/mm/pkey_sighandler_tests.c |    2 +-
+ tools/testing/selftests/mm/split_huge_page_test.c  |    4 +---
+ 4 files changed, 5 insertions(+), 7 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-support-stat-purpose-damos-filters
-+++ a/mm/damon/vaddr.c
-@@ -890,6 +890,107 @@ free_lists:
- 	return applied * PAGE_SIZE;
- }
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -2027,11 +2027,10 @@ TEST_F(hmm, hmm_cow_in_device)
+ 	if (pid == -1)
+ 		ASSERT_EQ(pid, 0);
+ 	if (!pid) {
+-		/* Child process waitd for SIGTERM from the parent. */
++		/* Child process waits for SIGTERM from the parent. */
+ 		while (1) {
+ 		}
+-		perror("Should not reach this\n");
+-		exit(0);
++		/* Should not reach this */
+ 	}
+ 	/* Parent process writes to COW pages(s) and gets a
+ 	 * new copy in system. In case of device private pages,
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/Makefile
+@@ -34,6 +34,7 @@ endif
+ MAKEFLAGS += --no-builtin-rules
  
-+struct damos_va_stat_private {
-+	struct damos *scheme;
-+	unsigned long *sz_filter_passed;
-+};
-+
-+static inline bool damos_va_invalid_folio(struct folio *folio,
-+		struct damos *s)
-+{
-+	return !folio || folio == s->last_applied;
-+}
-+
-+static int damos_va_stat_pmd_entry(pmd_t *pmd, unsigned long addr,
-+		unsigned long next, struct mm_walk *walk)
-+{
-+	struct damos_va_stat_private *priv = walk->private;
-+	struct damos *s = priv->scheme;
-+	unsigned long *sz_filter_passed = priv->sz_filter_passed;
-+	struct vm_area_struct *vma = walk->vma;
-+	struct folio *folio;
-+	spinlock_t *ptl;
-+	pte_t *start_pte, *pte, ptent;
-+	int nr;
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	if (pmd_trans_huge(*pmd)) {
-+		pmd_t pmde;
-+
-+		ptl = pmd_trans_huge_lock(pmd, vma);
-+		if (!ptl)
-+			return 0;
-+		pmde = pmdp_get(pmd);
-+		if (!pmd_present(pmde))
-+			goto huge_unlock;
-+
-+		folio = vm_normal_folio_pmd(vma, addr, pmde);
-+
-+		if (damos_va_invalid_folio(folio, s))
-+			goto huge_unlock;
-+
-+		if (!damos_va_filter_out(s, folio, vma, addr, NULL, pmd))
-+			*sz_filter_passed += folio_size(folio);
-+		s->last_applied = folio;
-+
-+huge_unlock:
-+		spin_unlock(ptl);
-+		return 0;
-+	}
-+#endif
-+	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (!start_pte)
-+		return 0;
-+
-+	for (; addr < next; pte += nr, addr += nr * PAGE_SIZE) {
-+		nr = 1;
-+		ptent = ptep_get(pte);
-+
-+		if (pte_none(ptent) || !pte_present(ptent))
-+			continue;
-+
-+		folio = vm_normal_folio(vma, addr, ptent);
-+
-+		if (damos_va_invalid_folio(folio, s))
-+			continue;
-+
-+		if (!damos_va_filter_out(s, folio, vma, addr, pte, NULL))
-+			*sz_filter_passed += folio_size(folio);
-+		nr = folio_nr_pages(folio);
-+		s->last_applied = folio;
-+	}
-+	pte_unmap_unlock(start_pte, ptl);
-+	return 0;
-+}
-+
-+static unsigned long damos_va_stat(struct damon_target *target,
-+		struct damon_region *r, struct damos *s,
-+		unsigned long *sz_filter_passed)
-+{
-+	struct damos_va_stat_private priv;
-+	struct mm_struct *mm;
-+	struct mm_walk_ops walk_ops = {
-+		.pmd_entry = damos_va_stat_pmd_entry,
-+		.walk_lock = PGWALK_RDLOCK,
-+	};
-+
-+	priv.scheme = s;
-+	priv.sz_filter_passed = sz_filter_passed;
-+
-+	if (!damos_ops_has_filter(s))
-+		return 0;
-+
-+	mm = damon_get_mm(target);
-+	if (!mm)
-+		return 0;
-+
-+	mmap_read_lock(mm);
-+	walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
-+	mmap_read_unlock(mm);
-+	mmput(mm);
-+	return 0;
-+}
-+
- static unsigned long damon_va_apply_scheme(struct damon_ctx *ctx,
- 		struct damon_target *t, struct damon_region *r,
- 		struct damos *scheme, unsigned long *sz_filter_passed)
-@@ -916,7 +1017,7 @@ static unsigned long damon_va_apply_sche
- 	case DAMOS_MIGRATE_COLD:
- 		return damos_va_migrate(t, r, scheme, sz_filter_passed);
- 	case DAMOS_STAT:
--		return 0;
-+		return damos_va_stat(t, r, scheme, sz_filter_passed);
- 	default:
- 		/*
- 		 * DAMOS actions that are not yet supported by 'vaddr'.
+ CFLAGS = -Wall -O2 -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
++CFLAGS += -Wunreachable-code
+ LDLIBS = -lrt -lpthread -lm
+ 
+ # Some distributions (such as Ubuntu) configure GCC so that _FORTIFY_SOURCE is
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
+@@ -41,7 +41,7 @@ static siginfo_t siginfo = {0};
+  * syscall will attempt to access the PLT in order to call a library function
+  * which is protected by MPK 0 which we don't have access to.
+  */
+-static inline __always_inline
++static __always_inline
+ long syscall_raw(long n, long a1, long a2, long a3, long a4, long a5, long a6)
+ {
+ 	unsigned long ret;
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -297,10 +297,8 @@ void split_file_backed_thp(int order)
+ 		ksft_exit_fail_msg("Unable to create a tmpfs for testing\n");
+ 
+ 	status = snprintf(testfile, INPUT_MAX, "%s/thp_file", tmpfs_loc);
+-	if (status >= INPUT_MAX) {
++	if (status >= INPUT_MAX)
+ 		ksft_exit_fail_msg("Fail to create file-backed THP split testing file\n");
+-		goto cleanup;
+-	}
+ 
+ 	fd = open(testfile, O_CREAT|O_RDWR, 0664);
+ 	if (fd == -1) {
 _
 
-Patches currently in -mm which might be from pyyjason@gmail.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-mm-damon-paddr-move-filters-existence-check-function-to-ops-common.patch
-mm-damon-vaddr-support-stat-purpose-damos-filters.patch
+selftests-mm-add-wunreachable-code-and-fix-warnings.patch
+selftests-mm-protection_keys-fix-dead-code.patch
+selftests-kselftesth-add-__unused-macro.patch
+selftests-mm-add-wunused-family-of-flags.patch
+selftests-mm-remove-unused-parameters.patch
+selftests-mm-mark-unused-arguments-with-__unused.patch
+selftests-mm-mark-unused-arguments-with-__unused-2.patch
+selftests-mm-fix-unused-parameter-warnings-for-different-architectures.patch
 
