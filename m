@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79742219A79;
-	Thu,  7 Aug 2025 22:47:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0A021E0B7;
+	Sat,  9 Aug 2025 00:41:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754606861; cv=none; b=GUv1alPsZ+ptlPRrfbCBC83vQH/eqZEBdpriXwY0Bd5YPxhS5iL3zVvFMHflFYeWF4aZFlAHMPI7ussdjasda/RgH2XwG4woMcGpfE0GsL09h8o5Vc0/3vaITRgx6hoctDpV53JavFDg2seVT5x9a177D31pG1FTQNey9wKnI58=
+	t=1754700095; cv=none; b=pOPtIu63p1oHqNnfDNk3l3Ha2+tqfGt17RdB7p84uCctKpMyI0fb8oFnZja9hEfGBeq9F2pvyEmQdoFHhWPBh8BWc+SeOFOuMLN8NfallTQjbP/JJSKno/SRR4cTAqiHH6bSGTNC6mlkAMMS0wd5WZC8AhbS7jPBk+PVJZx0wN8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754606861; c=relaxed/simple;
-	bh=AFdbj0skQYjMg5havIsFj3cVBQZpyVUMrBwCBen6SFA=;
-	h=Date:To:From:Subject:Message-Id; b=X9u9lJmSrggtvqgdTUEAgepSu9X4PaniaSh02RmHgJvhKKu9ikRdaSn3h23m9XQxm/+hvdqyTbpkVlviJbFRX/mQLTEsJcEM2DcHBBWEUyyrMpWbAzNEOoVotLTSk6qwUrEPNrDfmZ2T+hfkk6nk1RIwXdyEmAPA0qh/odRPr6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QIEEbaLw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754700095; c=relaxed/simple;
+	bh=D2mrmZYFCfTCJwZa+i/WvGvjHJYu8Xt+4BQXFXI8zsI=;
+	h=Date:To:From:Subject:Message-Id; b=M8FuknDzn7hO26bTpVvbVqfowyMh8ZRteu8/TtHpjr6xz1FR7eRsuHUX76PS/RUXir32s7HFydQUkdxZshXszQqSwSJy5u/sk1OROdeJlPRDaO5GCu3AjLvZ4B92ydt2ZR0+5tg1AXT9a3mES4q15RceYIlJb+76zZ1wo5uZtc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZTjH0wqB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QIEEbaLw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1939C4CEEB;
-	Thu,  7 Aug 2025 22:47:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZTjH0wqB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A36B8C4CEED;
+	Sat,  9 Aug 2025 00:41:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754606861;
-	bh=AFdbj0skQYjMg5havIsFj3cVBQZpyVUMrBwCBen6SFA=;
+	s=korg; t=1754700094;
+	bh=D2mrmZYFCfTCJwZa+i/WvGvjHJYu8Xt+4BQXFXI8zsI=;
 	h=Date:To:From:Subject:From;
-	b=QIEEbaLwR4StjZEYxljESYwx+a1z0LXQNB8B+YqpNkth6hz7s/cxSHADTUrN1ru1N
-	 F2f9XnGEe5RdDKP/140oVbmXLmAc/sT3aNzt97cPM2NvF4p4Ddk/EIc6Onq1aBmETo
-	 SgkxKT9KcNV/nJw9OZLF8Nl9KvPoEOhdsr3hd8+Q=
-Date: Thu, 07 Aug 2025 15:47:40 -0700
-To: mm-commits@vger.kernel.org,superman.xpt@gmail.com,stable@vger.kernel.org,wjl.linux@gmail.com,akpm@linux-foundation.org
+	b=ZTjH0wqBZ7DADUgxPjFxoT5Go3aA/bmqmGHCvZjuBzUV/qXpIbXy55EAQfaX02mBg
+	 MyjxEm2+g3uew5gHS4ZiJJO7Fmz8XjvY6jLEklYdjlUMj+0tFFlw+49lhox+PXuFEt
+	 9bluQvcbauaWUR4r3BQxoAWGFBedhclcQqJ7Ie3M=
+Date: Fri, 08 Aug 2025 17:41:34 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,kees@kernel.org,graf@amazon.com,ebiggers@google.com,dave@vasilevsky.ca,coxu@redhat.com,changyuanl@google.com,bhe@redhat.com,arnd@arndb.de,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-proc_maps_open-allow-proc_mem_open-to-return-null.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250807224740.E1939C4CEEB@smtp.kernel.org>
+Subject: + kho-init-new_physxa-phys_bits-to-fix-lockdep.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250809004134.A36B8C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: proc_maps_open allow proc_mem_open to return NULL
+     Subject: kho: init new_physxa->phys_bits to fix lockdep
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     proc-proc_maps_open-allow-proc_mem_open-to-return-null.patch
+     kho-init-new_physxa-phys_bits-to-fix-lockdep.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-proc_maps_open-allow-proc_mem_open-to-return-null.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-init-new_physxa-phys_bits-to-fix-lockdep.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,46 +58,113 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jialin Wang <wjl.linux@gmail.com>
-Subject: proc: proc_maps_open allow proc_mem_open to return NULL
-Date: Fri, 8 Aug 2025 00:54:55 +0800
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: kho: init new_physxa->phys_bits to fix lockdep
+Date: Fri, 8 Aug 2025 20:18:02 +0000
 
-commit 65c66047259f ("proc: fix the issue of proc_mem_open returning
-NULL") breaks `perf record -g -p PID` when profiling a kernel thread.
+Patch series "Several KHO Hotfixes".
 
-The strace of `perf record -g -p $(pgrep kswapd0)` shows:
+Three unrelated fixes for Kexec Handover.
 
-  openat(AT_FDCWD, "/proc/65/task/65/maps", O_RDONLY) = -1 ESRCH (No such process)
 
-This patch partially reverts the commit to fix it.
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20250807165455.73656-1-wjl.linux@gmail.com
-Fixes: 65c66047259f ("proc: fix the issue of proc_mem_open returning NULL")
-Signed-off-by: Jialin Wang <wjl.linux@gmail.com>
-Cc: Penglei Jiang <superman.xpt@gmail.com>
+Lockdep shows the following warning:
+
+INFO: trying to register non-static key.  The code is fine but needs
+lockdep annotation, or maybe you didn't initialize this object before use?
+turning off the locking correctness validator.
+
+[<ffffffff810133a6>] dump_stack_lvl+0x66/0xa0
+[<ffffffff8136012c>] assign_lock_key+0x10c/0x120
+[<ffffffff81358bb4>] register_lock_class+0xf4/0x2f0
+[<ffffffff813597ff>] __lock_acquire+0x7f/0x2c40
+[<ffffffff81360cb0>] ? __pfx_hlock_conflict+0x10/0x10
+[<ffffffff811707be>] ? native_flush_tlb_global+0x8e/0xa0
+[<ffffffff8117096e>] ? __flush_tlb_all+0x4e/0xa0
+[<ffffffff81172fc2>] ? __kernel_map_pages+0x112/0x140
+[<ffffffff813ec327>] ? xa_load_or_alloc+0x67/0xe0
+[<ffffffff81359556>] lock_acquire+0xe6/0x280
+[<ffffffff813ec327>] ? xa_load_or_alloc+0x67/0xe0
+[<ffffffff8100b9e0>] _raw_spin_lock+0x30/0x40
+[<ffffffff813ec327>] ? xa_load_or_alloc+0x67/0xe0
+[<ffffffff813ec327>] xa_load_or_alloc+0x67/0xe0
+[<ffffffff813eb4c0>] kho_preserve_folio+0x90/0x100
+[<ffffffff813ebb7f>] __kho_finalize+0xcf/0x400
+[<ffffffff813ebef4>] kho_finalize+0x34/0x70
+
+This is becase xa has its own lock, that is not initialized in
+xa_load_or_alloc.
+
+Modifiy __kho_preserve_order(), to properly call
+xa_init(&new_physxa->phys_bits);
+
+Link: https://lkml.kernel.org/r/20250808201804.772010-2-pasha.tatashin@soleen.com
+Fixes: fc33e4b44b27 ("kexec: enable KHO support for memory preservation")
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: Dave Vasilevsky <dave@vasilevsky.ca>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kexec_handover.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-proc_maps_open-allow-proc_mem_open-to-return-null
-+++ a/fs/proc/task_mmu.c
-@@ -340,8 +340,8 @@ static int proc_maps_open(struct inode *
+--- a/kernel/kexec_handover.c~kho-init-new_physxa-phys_bits-to-fix-lockdep
++++ a/kernel/kexec_handover.c
+@@ -144,14 +144,34 @@ static int __kho_preserve_order(struct k
+ 				unsigned int order)
+ {
+ 	struct kho_mem_phys_bits *bits;
+-	struct kho_mem_phys *physxa;
++	struct kho_mem_phys *physxa, *new_physxa;
+ 	const unsigned long pfn_high = pfn >> order;
  
- 	priv->inode = inode;
- 	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
--	if (IS_ERR_OR_NULL(priv->mm)) {
--		int err = priv->mm ? PTR_ERR(priv->mm) : -ESRCH;
-+	if (IS_ERR(priv->mm)) {
-+		int err = PTR_ERR(priv->mm);
+ 	might_sleep();
  
- 		seq_release_private(inode, file);
- 		return err;
+-	physxa = xa_load_or_alloc(&track->orders, order, sizeof(*physxa));
+-	if (IS_ERR(physxa))
+-		return PTR_ERR(physxa);
++	physxa = xa_load(&track->orders, order);
++	if (!physxa) {
++		int err;
++
++		new_physxa = kzalloc(sizeof(*physxa), GFP_KERNEL);
++		if (!new_physxa)
++			return -ENOMEM;
++
++		xa_init(&new_physxa->phys_bits);
++		physxa = xa_cmpxchg(&track->orders, order, NULL, new_physxa,
++				    GFP_KERNEL);
++
++		err = xa_err(physxa);
++		if (err || physxa) {
++			xa_destroy(&new_physxa->phys_bits);
++			kfree(new_physxa);
++
++			if (err)
++				return err;
++		} else {
++			physxa = new_physxa;
++		}
++	}
+ 
+ 	bits = xa_load_or_alloc(&physxa->phys_bits, pfn_high / PRESERVE_BITS,
+ 				sizeof(*bits));
 _
 
-Patches currently in -mm which might be from wjl.linux@gmail.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-proc-proc_maps_open-allow-proc_mem_open-to-return-null.patch
+kho-init-new_physxa-phys_bits-to-fix-lockdep.patch
+kho-mm-dont-allow-deferred-struct-page-with-kho.patch
+kho-warn-if-kho-is-disabled-due-to-an-error.patch
 
