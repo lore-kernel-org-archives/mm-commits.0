@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1741223E33A;
-	Sat,  9 Aug 2025 00:41:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F668383
+	for <mm-commits@vger.kernel.org>; Sat,  9 Aug 2025 00:43:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754700099; cv=none; b=GsI228OKzOWR4KAYdv3lTEuE3uBzZTJ+Cdd/WOcYtpfoS6BSWjMocqYJDX5MHk3DVO/rs6ezph0zhYxOYflWkWWy8vT9S95PYEwtzJ+CpQW4JkWr3msd1pehYTBbE+bxIf7VYXJ9Nuu6lYHxe47AXuaBETF9AHe7CXIuuD60wzo=
+	t=1754700202; cv=none; b=gD4h4bfEwPSzwv+lBW1cOCaogVWOoxMeE7R+GRQZbN1K+Rs3qD/Fyry8lTj0jmVqPimiSDLY3xhOFslBJMcmt5/MQG8Acw8FEjfWH2PNMMEw6vduPL3GA3/Y8c735vCF3hQs/7GS9oP5ZJVjJd+NovlsCDt3/OxkWBLtsdVcrLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754700099; c=relaxed/simple;
-	bh=Y443LAT/u6yga3inM0r7Iq2bpj4O+qXywc4v28hHExo=;
-	h=Date:To:From:Subject:Message-Id; b=iaAr79TuoOarRUZlwRCQJb3kNl3eUx3HCIZnl1nRT8XhQcujFzspegVYP88TCKogV1Dz4GqTOKcoA/8fjSt3w2NewTU00/1D1WNhbRorxMnei6CiUn+P68yztyHQEryi7br+JOuEaGE6bd/QiaV8gpzIuhhhMmd58uYIXFXpz28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pTSCRZul; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754700202; c=relaxed/simple;
+	bh=6w7CR2Y2z4sg7ifYy18TwrgckSrxseTUexyUhAvmPLc=;
+	h=Date:To:From:Subject:Message-Id; b=lydIJ19cDnDfOzVUkyaEBFCHi3ImTtrueznnbd6VUEF9Uf8rYi5rTml6Q+P0tscnAMYOH3Fw/dOvgqYfGx7QDjarX4GH7NXlR9FH736YbLKZzg5rLTHjz6HqrKWQyNk1BUuxYcep8ycnCQVNYDFXoclboi03OT5C0Nc/oYriORE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HNvZsSFT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pTSCRZul"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7FE6C4CEED;
-	Sat,  9 Aug 2025 00:41:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HNvZsSFT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E2D9C4CEF4;
+	Sat,  9 Aug 2025 00:43:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754700098;
-	bh=Y443LAT/u6yga3inM0r7Iq2bpj4O+qXywc4v28hHExo=;
+	s=korg; t=1754700202;
+	bh=6w7CR2Y2z4sg7ifYy18TwrgckSrxseTUexyUhAvmPLc=;
 	h=Date:To:From:Subject:From;
-	b=pTSCRZulALrThxLJgx8EtX6qM3KibJQd5zP3BONgOemnlA+AYBx8woWCYqDOCO5lv
-	 ITmCrsZLsK7cI6MlUxbmtxPrTjcNFW8h8fLRQ84WR2V0NdYNcm52YkPJq4MHGTkUyh
-	 cKhTmVhz2yXLal2pdAPnSNjv8+n6BaPL4CYZpIPU=
-Date: Fri, 08 Aug 2025 17:41:38 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,kees@kernel.org,graf@amazon.com,ebiggers@google.com,dave@vasilevsky.ca,coxu@redhat.com,changyuanl@google.com,bhe@redhat.com,arnd@arndb.de,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=HNvZsSFTT/eytcRaFzAkJcOhTWXd6273T+PTrIjweHYIUys1neMn2fiNHPf4aH+tX
+	 StlMlsfvrU2GB1XCis+WppL639RTInYJqvulUT15SMlxiezOdibG5RvGC4tnHN3X5x
+	 FBYO0Zq5sCGGAGyqR9bVYrJ/UVaLl6Rpv+69rlS0=
+Date: Fri, 08 Aug 2025 17:43:21 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-warn-if-kho-is-disabled-due-to-an-error.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250809004138.C7FE6C4CEED@smtp.kernel.org>
+Subject: + mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch added to mm-new branch
+Message-Id: <20250809004322.5E2D9C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: warn if KHO is disabled due to an error
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kho-warn-if-kho-is-disabled-due-to-an-error.patch
+     Subject: mm/huge_memory: add new_order and offset to split_huge_pages*() pr_debug.
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-warn-if-kho-is-disabled-due-to-an-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,50 +64,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: warn if KHO is disabled due to an error
-Date: Fri, 8 Aug 2025 20:18:04 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: add new_order and offset to split_huge_pages*() pr_debug.
+Date: Fri, 8 Aug 2025 15:01:42 -0400
 
-During boot scratch area is allocated based on command line parameters or
-auto calculated.  However, scratch area may fail to allocate, and in that
-case KHO is disabled.  Currently, no warning is printed that KHO is
-disabled, which makes it confusing for the end user to figure out why KHO
-is not available.  Add the missing warning message.
+Patch series "Better split_huge_page_test result check", v2.
 
-Link: https://lkml.kernel.org/r/20250808201804.772010-4-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: Dave Vasilevsky <dave@vasilevsky.ca>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: <stable@vger.kernel.org>
+This patchset uses kpageflags to get after-split folio orders for a better
+split_huge_page_test result check[1].  The added gather_folio_orders()
+scans through a VPN range and collects the numbers of folios at different
+orders.  check_folio_orders() compares the result of gather_folio_orders()
+to a given list of numbers of different orders.
+
+This patchset also added new order and in folio offset to the split huge
+page debugfs's pr_debug()s;
+
+
+This patch (of 3):
+
+They are useful information for debugging split huge page tests.
+
+Link: https://lkml.kernel.org/r/20250808190144.797076-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250808190144.797076-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_handover.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/kexec_handover.c~kho-warn-if-kho-is-disabled-due-to-an-error
-+++ a/kernel/kexec_handover.c
-@@ -564,6 +564,7 @@ err_free_scratch_areas:
- err_free_scratch_desc:
- 	memblock_free(kho_scratch, kho_scratch_cnt * sizeof(*kho_scratch));
- err_disable_kho:
-+	pr_warn("Failed to reserve scratch area, disabling kexec handover\n");
- 	kho_enable = false;
- }
+--- a/mm/huge_memory.c~mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug
++++ a/mm/huge_memory.c
+@@ -4327,8 +4327,8 @@ static int split_huge_pages_pid(int pid,
+ 		goto out;
+ 	}
  
+-	pr_debug("Split huge pages in pid: %d, vaddr: [0x%lx - 0x%lx]\n",
+-		 pid, vaddr_start, vaddr_end);
++	pr_debug("Split huge pages in pid: %d, vaddr: [0x%lx - 0x%lx], new_order: %u, in_folio_offset: %ld\n",
++		 pid, vaddr_start, vaddr_end, new_order, in_folio_offset);
+ 
+ 	mmap_read_lock(mm);
+ 	/*
+@@ -4438,8 +4438,8 @@ static int split_huge_pages_in_file(cons
+ 	if (IS_ERR(candidate))
+ 		goto out;
+ 
+-	pr_debug("split file-backed THPs in file: %s, page offset: [0x%lx - 0x%lx]\n",
+-		 file_path, off_start, off_end);
++	pr_debug("split file-backed THPs in file: %s, page offset: [0x%lx - 0x%lx], new_order: %u, in_folio_offset: %ld\n",
++		 file_path, off_start, off_end, new_order, in_folio_offset);
+ 
+ 	mapping = candidate->f_mapping;
+ 	min_order = mapping_min_folio_order(mapping);
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-kho-init-new_physxa-phys_bits-to-fix-lockdep.patch
-kho-mm-dont-allow-deferred-struct-page-with-kho.patch
-kho-warn-if-kho-is-disabled-due-to-an-error.patch
+selftests-mm-fix-force_read-to-read-input-value-correctly.patch
+mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
+selftests-mm-add-check_folio_orders-helper.patch
+selftests-mm-check-after-split-folio-orders-in-split_huge_page_test.patch
 
