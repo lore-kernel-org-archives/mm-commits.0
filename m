@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92771383
-	for <mm-commits@vger.kernel.org>; Sat,  9 Aug 2025 00:43:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62B1A383
+	for <mm-commits@vger.kernel.org>; Sat,  9 Aug 2025 00:43:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754700204; cv=none; b=ULCsNvMishhszevJTipqOrjqVRg9N4G/nJo4I1jqxbgXEsrALThchCyUSWGZHffDy8OW/eqDCqYWjVihnk8DPXmDNkBHh5l186vx8fswY4IPJVqvW+xM52BsK6Bv0+kCQOy9IihQ/spB9pUGf5QnNXXzV/qcosYF+x+W9phffSQ=
+	t=1754700207; cv=none; b=nJtSvfTM5X8bplLuAajvun7Hf4FcaFKVMDxvbNusyjo13EALHXgtr+DT6NmUzkD/q+X7l17JgCwkJmXzS6Tbv4YGhG+rAmS+3JMsoTlNZkcRr6qvLIJGTB21OTzi7G1jjwjGiVyFWXoB2aUi1x9ips3jLlr3Wzw0stCRsbwBxOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754700204; c=relaxed/simple;
-	bh=GwGEue+y00kh7m4QdCieOqP4I89SKc/gejbcjATtQFg=;
-	h=Date:To:From:Subject:Message-Id; b=DKnJjjoL5DZGThGaNarouCzkxKzAEy40Ieex+ClCnxrvfPNv9Bsds2ITyRw9HwlrpMDLMSmCd7sJOrH+Ppk5d+i6u9a6HEOdeNNPzpMuR+R5dDoEt+Qn++LTdLrSWOyv8FN6mm3VYCmWGNbpLXINgJ0UsnrBl5RpB6ansh9PeL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QqYKdqhh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754700207; c=relaxed/simple;
+	bh=vs7P/pTCVjIBrBgVRgH7KbFYIrx8LqREEhkqGk2CNpI=;
+	h=Date:To:From:Subject:Message-Id; b=IxHkBhkDTA06GpTb9btqdywzC83ImcLqJ06Gq/4FoPkqIBRiG8JHzpC9PC5gLJupvIrvzBktWHX8S+Dou1cCBFu+uB/lvpzqs3uYrMP5C6FqOqJ9hGgQ3X43mbA84w4y0p94gTDZjcqWii0y2o2dIzLf23u+dOnII/SzDAxAnwc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k2vS9lPf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QqYKdqhh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CDA1C4CEED;
-	Sat,  9 Aug 2025 00:43:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k2vS9lPf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DF68C4CEED;
+	Sat,  9 Aug 2025 00:43:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754700204;
-	bh=GwGEue+y00kh7m4QdCieOqP4I89SKc/gejbcjATtQFg=;
+	s=korg; t=1754700207;
+	bh=vs7P/pTCVjIBrBgVRgH7KbFYIrx8LqREEhkqGk2CNpI=;
 	h=Date:To:From:Subject:From;
-	b=QqYKdqhh13z8pPNYPeRI7WMbvHr9NeMLehK2ul3G6a6qBX7txkxTavTOVTRnLeAg0
-	 X0hYjHfeyvc0Ths/c2yGZPpwXXTOuCpK4r1W0lUEYx2QfXFKLAgtbg8hpW3N2f+Foc
-	 NqyA32yIjX9NZkual3YdAEOy3OZjOWiJpS+6azVI=
-Date: Fri, 08 Aug 2025 17:43:23 -0700
+	b=k2vS9lPf5JbumlHg/0JujpVAuddbDCXA3vH5SpzE657gLoSo9ALA8Wyqw+zyid6Dn
+	 zINtj+yTrt0cUMNKMBogOGZKR5gXRlv7uwA8x/ctDVZQg6Si5VcgYhzxqEzb4j9UGA
+	 Me5YivuqzrJIYpV0jnS9NNG64uIWuNAOYqD1QIRs=
+Date: Fri, 08 Aug 2025 17:43:26 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-check_folio_orders-helper.patch added to mm-new branch
-Message-Id: <20250809004324.4CDA1C4CEED@smtp.kernel.org>
+Subject: + selftests-mm-check-after-split-folio-orders-in-split_huge_page_test.patch added to mm-new branch
+Message-Id: <20250809004327.2DF68C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add check_folio_orders() helper.
+     Subject: selftests/mm: check after-split folio orders in split_huge_page_test.
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-check_folio_orders-helper.patch
+     selftests-mm-check-after-split-folio-orders-in-split_huge_page_test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-check_folio_orders-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-after-split-folio-orders-in-split_huge_page_test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,209 +65,236 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: add check_folio_orders() helper.
-Date: Fri, 8 Aug 2025 15:01:43 -0400
+Subject: selftests/mm: check after-split folio orders in split_huge_page_test.
+Date: Fri, 8 Aug 2025 15:01:44 -0400
 
-The helper gathers an folio order statistics of folios within a virtual
-address range and checks it against a given order list.  It aims to
-provide a more precise folio order check instead of just checking the
-existence of PMD folios.
+Instead of just checking the existence of PMD folios before and after
+folio split tests, use check_folio_orders() to check after-split folio
+orders.
 
-Link: https://lkml.kernel.org/r/20250808190144.797076-3-ziy@nvidia.com
+The following tests are not changed:
+1. split_pte_mapped_thp: the test already uses kpageflags to check;
+2. split_file_backed_thp: no vaddr available.
+
+Link: https://lkml.kernel.org/r/20250808190144.797076-4-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    4 
- tools/testing/selftests/mm/vm_util.c              |  133 ++++++++++++
- tools/testing/selftests/mm/vm_util.h              |    7 
- 3 files changed, 141 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   98 ++++++++----
+ 1 file changed, 72 insertions(+), 26 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-check_folio_orders-helper
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-check-after-split-folio-orders-in-split_huge_page_test
 +++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -34,8 +34,6 @@ uint64_t pmd_pagesize;
- #define PID_FMT_OFFSET "%d,0x%lx,0x%lx,%d,%d"
- #define PATH_FMT "%s,0x%lx,0x%lx,%d"
+@@ -25,6 +25,10 @@
+ uint64_t pagesize;
+ unsigned int pageshift;
+ uint64_t pmd_pagesize;
++unsigned int pmd_order;
++unsigned int max_order;
++
++#define NR_ORDERS (max_order + 1)
  
--#define PFN_MASK     ((1UL<<55)-1)
--#define KPF_THP      (1UL<<22)
+ #define SPLIT_DEBUGFS "/sys/kernel/debug/split_huge_pages"
+ #define SMAP_PATH "/proc/self/smaps"
+@@ -36,6 +40,11 @@ uint64_t pmd_pagesize;
+ 
  #define GET_ORDER(nr_pages)    (31 - __builtin_clz(nr_pages))
  
++const char *pagemap_proc = "/proc/self/pagemap";
++const char *kpageflags_proc = "/proc/kpageflags";
++int pagemap_fd;
++int kpageflags_fd;
++
  int is_backed_by_thp(char *vaddr, int pagemap_file, int kpageflags_file)
-@@ -49,7 +47,7 @@ int is_backed_by_thp(char *vaddr, int pa
+ {
+ 	uint64_t paddr;
+@@ -151,6 +160,11 @@ void split_pmd_thp_to_order(int order)
+ 	char *one_page;
+ 	size_t len = 4 * pmd_pagesize;
+ 	size_t i;
++	int *orders;
++
++	orders = (int *)malloc(sizeof(int) * NR_ORDERS);
++	if (!orders)
++		ksft_exit_fail_msg("Fail to allocate memory: %s\n", strerror(errno));
  
- 		if (kpageflags_file) {
- 			pread(kpageflags_file, &page_flags, sizeof(page_flags),
--				(paddr & PFN_MASK) * sizeof(page_flags));
-+				PAGEMAP_PFN(paddr) * sizeof(page_flags));
+ 	one_page = memalign(pmd_pagesize, len);
+ 	if (!one_page)
+@@ -172,12 +186,20 @@ void split_pmd_thp_to_order(int order)
+ 		if (one_page[i] != (char)i)
+ 			ksft_exit_fail_msg("%ld byte corrupted\n", i);
  
- 			return !!(page_flags & KPF_THP);
- 		}
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-check_folio_orders-helper
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -338,6 +338,139 @@ int detect_hugetlb_page_sizes(size_t siz
- 	return count;
++	memset(orders, 0, sizeof(int) * NR_ORDERS);
++	/* set expected orders */
++	orders[order] = 4 << (pmd_order - order);
++
++	if (check_folio_orders(one_page, len, pagemap_fd, kpageflags_fd,
++			       orders, NR_ORDERS))
++		ksft_exit_fail_msg("Unexpected THP split\n");
+ 
+ 	if (!check_huge_anon(one_page, 0, pmd_pagesize))
+ 		ksft_exit_fail_msg("Still AnonHugePages not split\n");
+ 
+ 	ksft_test_result_pass("Split huge pages to order %d successful\n", order);
+ 	free(one_page);
++	free(orders);
  }
  
-+static int get_page_flags(char *vaddr, int pagemap_file, int kpageflags_file,
-+			  uint64_t *flags)
-+{
-+	unsigned long pfn;
-+	size_t count;
+ void split_pte_mapped_thp(void)
+@@ -186,22 +208,6 @@ void split_pte_mapped_thp(void)
+ 	size_t len = 4 * pmd_pagesize;
+ 	uint64_t thp_size;
+ 	size_t i;
+-	const char *pagemap_template = "/proc/%d/pagemap";
+-	const char *kpageflags_proc = "/proc/kpageflags";
+-	char pagemap_proc[255];
+-	int pagemap_fd;
+-	int kpageflags_fd;
+-
+-	if (snprintf(pagemap_proc, 255, pagemap_template, getpid()) < 0)
+-		ksft_exit_fail_msg("get pagemap proc error: %s\n", strerror(errno));
+-
+-	pagemap_fd = open(pagemap_proc, O_RDONLY);
+-	if (pagemap_fd == -1)
+-		ksft_exit_fail_msg("read pagemap: %s\n", strerror(errno));
+-
+-	kpageflags_fd = open(kpageflags_proc, O_RDONLY);
+-	if (kpageflags_fd == -1)
+-		ksft_exit_fail_msg("read kpageflags: %s\n", strerror(errno));
+ 
+ 	one_page = mmap((void *)(1UL << 30), len, PROT_READ | PROT_WRITE,
+ 			MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+@@ -259,8 +265,6 @@ void split_pte_mapped_thp(void)
+ 
+ 	ksft_test_result_pass("Split PTE-mapped huge pages successful\n");
+ 	munmap(one_page, len);
+-	close(pagemap_fd);
+-	close(kpageflags_fd);
+ }
+ 
+ void split_file_backed_thp(int order)
+@@ -463,10 +467,16 @@ void split_thp_in_pagecache_to_order_at(
+ 		int order, int offset)
+ {
+ 	int fd;
++	char *split_addr;
+ 	char *addr;
+ 	size_t i;
+ 	char testfile[INPUT_MAX];
+ 	int err = 0;
++	int *orders;
 +
-+	pfn = pagemap_get_pfn(pagemap_file, vaddr);
-+	/*
-+	 * Treat non-present page as a page without any flag, so that
-+	 * gather_folio_orders() just record the current folio order.
-+	 */
-+	if (pfn == -1UL) {
-+		*flags = 0;
-+		return 0;
++	orders = (int *)malloc(sizeof(int) * NR_ORDERS);
++	if (!orders)
++		ksft_exit_fail_msg("Fail to allocate memory: %s\n", strerror(errno));
+ 
+ 	err = snprintf(testfile, INPUT_MAX, "%s/test", fs_loc);
+ 
+@@ -474,16 +484,32 @@ void split_thp_in_pagecache_to_order_at(
+ 		ksft_exit_fail_msg("cannot generate right test file name\n");
+ 
+ 	err = create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
+-	if (err)
++	if (err) {
++		free(orders);
+ 		return;
++	}
+ 	err = 0;
+ 
+-	if (offset == -1)
+-		write_debugfs(PID_FMT, getpid(), (uint64_t)addr,
+-			      (uint64_t)addr + fd_size, order);
+-	else
+-		write_debugfs(PID_FMT_OFFSET, getpid(), (uint64_t)addr,
+-			      (uint64_t)addr + fd_size, order, offset);
++	memset(orders, 0, sizeof(int) * NR_ORDERS);
++	if (offset == -1) {
++		for (split_addr = addr; split_addr < addr + fd_size; split_addr += pmd_pagesize)
++			write_debugfs(PID_FMT, getpid(), (uint64_t)split_addr,
++				      (uint64_t)split_addr + pagesize, order);
++
++		/* set expected orders */
++		orders[order] = fd_size / (pagesize << order);
++	} else {
++		int times = fd_size / pmd_pagesize;
++
++		for (split_addr = addr; split_addr < addr + fd_size; split_addr += pmd_pagesize)
++			write_debugfs(PID_FMT_OFFSET, getpid(), (uint64_t)split_addr,
++				      (uint64_t)split_addr + pagesize, order, offset);
++
++		/* set expected orders */
++		for (i = order + 1; i < pmd_order; i++)
++			orders[i] = times;
++		orders[order] = 2 * times;
++	}
+ 
+ 	for (i = 0; i < fd_size; i++)
+ 		if (*(addr + i) != (char)i) {
+@@ -492,6 +518,14 @@ void split_thp_in_pagecache_to_order_at(
+ 			goto out;
+ 		}
+ 
++	if (check_folio_orders(addr, fd_size, pagemap_fd, kpageflags_fd, orders,
++			       NR_ORDERS)) {
++		ksft_print_msg("Unexpected THP split\n");
++		err = 1;
++		goto out;
 +	}
 +
-+	count = pread(kpageflags_file, flags, sizeof(*flags),
-+		      pfn * sizeof(*flags));
 +
-+	if (count != sizeof(*flags))
-+		return -1;
-+
-+	return 0;
-+}
-+
-+static int gather_folio_orders(char *vaddr_start, size_t len,
-+			       int pagemap_file, int kpageflags_file,
-+			       int orders[], int nr_orders)
-+{
-+	uint64_t page_flags = 0;
-+	int cur_order = -1;
-+	char *vaddr;
-+
-+	if (!pagemap_file || !kpageflags_file)
-+		return -1;
-+	if (nr_orders <= 0)
-+		return -1;
-+
-+	for (vaddr = vaddr_start; vaddr < vaddr_start + len; ) {
-+		char *next_folio_vaddr;
-+		int status;
-+
-+		if (get_page_flags(vaddr, pagemap_file, kpageflags_file, &page_flags))
-+			return -1;
-+
-+		/* all order-0 pages with possible false postive (non folio) */
-+		if (!(page_flags & (KPF_COMPOUND_HEAD | KPF_COMPOUND_TAIL))) {
-+			orders[0]++;
-+			vaddr += psize();
-+			continue;
-+		}
-+
-+		/* skip non thp compound pages */
-+		if (!(page_flags & KPF_THP)) {
-+			vaddr += psize();
-+			continue;
-+		}
-+
-+		/* vpn points to part of a THP at this point */
-+		if (page_flags & KPF_COMPOUND_HEAD)
-+			cur_order = 1;
-+		else {
-+			/* not a head nor a tail in a THP? */
-+			if (!(page_flags & KPF_COMPOUND_TAIL))
-+				return -1;
-+			continue;
-+		}
-+
-+		next_folio_vaddr = vaddr + (1UL << (cur_order + pshift()));
-+
-+		if (next_folio_vaddr >= vaddr_start + len)
-+			break;
-+
-+		while (!(status = get_page_flags(next_folio_vaddr, pagemap_file,
-+						 kpageflags_file,
-+						 &page_flags))) {
-+			/* next compound head page or order-0 page */
-+			if ((page_flags & KPF_COMPOUND_HEAD) ||
-+			    !(page_flags & (KPF_COMPOUND_HEAD |
-+			      KPF_COMPOUND_TAIL))) {
-+				if (cur_order < nr_orders) {
-+					orders[cur_order]++;
-+					cur_order = -1;
-+					vaddr = next_folio_vaddr;
-+				}
-+				break;
-+			}
-+
-+			/* not a head nor a tail in a THP? */
-+			if (!(page_flags & KPF_COMPOUND_TAIL))
-+				return -1;
-+
-+			cur_order++;
-+			next_folio_vaddr = vaddr + (1UL << (cur_order + pshift()));
-+		}
-+
-+		if (status)
-+			return status;
-+	}
-+	if (cur_order > 0 && cur_order < nr_orders)
-+		orders[cur_order]++;
-+	return 0;
-+}
-+
-+int check_folio_orders(char *vaddr_start, size_t len, int pagemap_file,
-+			int kpageflags_file, int orders[], int nr_orders)
-+{
-+	int *vaddr_orders;
-+	int status;
-+	int i;
-+
-+	vaddr_orders = (int *)malloc(sizeof(int) * nr_orders);
-+
-+	if (!vaddr_orders)
-+		ksft_exit_fail_msg("Cannot allocate memory for vaddr_orders");
-+
-+	memset(vaddr_orders, 0, sizeof(int) * nr_orders);
-+	status = gather_folio_orders(vaddr_start, len, pagemap_file,
-+				     kpageflags_file, vaddr_orders, nr_orders);
-+	if (status)
-+		return status;
-+
-+	status = 0;
-+	for (i = 0; i < nr_orders; i++)
-+		if (vaddr_orders[i] != orders[i]) {
-+			ksft_print_msg("order %d: expected: %d got %d\n", i,
-+				       orders[i], vaddr_orders[i]);
-+			status = -1;
-+		}
-+
-+	return status;
-+}
-+
- /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
- int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
- 			      bool miss, bool wp, bool minor, uint64_t *ioctls)
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-check_folio_orders-helper
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -18,6 +18,11 @@
- #define PM_SWAP                       BIT_ULL(62)
- #define PM_PRESENT                    BIT_ULL(63)
+ 	if (!check_huge_file(addr, 0, pmd_pagesize)) {
+ 		ksft_print_msg("Still FilePmdMapped not split\n");
+ 		err = EXIT_FAILURE;
+@@ -499,6 +533,7 @@ void split_thp_in_pagecache_to_order_at(
+ 	}
  
-+#define KPF_COMPOUND_HEAD             BIT_ULL(15)
-+#define KPF_COMPOUND_TAIL             BIT_ULL(16)
-+#define KPF_THP                       BIT_ULL(22)
-+
-+
- /*
-  * Ignore the checkpatch warning, we must read from x but don't want to do
-  * anything with it in order to trigger a read page fault. We therefore must use
-@@ -85,6 +90,8 @@ bool check_huge_shmem(void *addr, int nr
- int64_t allocate_transhuge(void *ptr, int pagemap_fd);
- unsigned long default_huge_page_size(void);
- int detect_hugetlb_page_sizes(size_t sizes[], int max);
-+int check_folio_orders(char *vaddr_start, size_t len, int pagemap_file,
-+			int kpageflags_file, int orders[], int nr_orders);
+ out:
++	free(orders);
+ 	munmap(addr, fd_size);
+ 	close(fd);
+ 	unlink(testfile);
+@@ -522,7 +557,6 @@ int main(int argc, char **argv)
+ 	const char *fs_loc;
+ 	bool created_tmp;
+ 	int offset;
+-	unsigned int max_order;
+ 	unsigned int nr_pages;
+ 	unsigned int tests;
  
- int uffd_register(int uffd, void *addr, uint64_t len,
- 		  bool miss, bool wp, bool minor);
+@@ -539,6 +573,7 @@ int main(int argc, char **argv)
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
+ 	pmd_pagesize = read_pmd_pagesize();
++	pmd_order = GET_ORDER(pmd_pagesize / pagesize);
+ 	if (!pmd_pagesize)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 
+@@ -547,6 +582,14 @@ int main(int argc, char **argv)
+ 	tests = 2 + (max_order - 1) + (2 * max_order) + (max_order - 1) * 4 + 2;
+ 	ksft_set_plan(tests);
+ 
++	pagemap_fd = open(pagemap_proc, O_RDONLY);
++	if (pagemap_fd == -1)
++		ksft_exit_fail_msg("read pagemap: %s\n", strerror(errno));
++
++	kpageflags_fd = open(kpageflags_proc, O_RDONLY);
++	if (kpageflags_fd == -1)
++		ksft_exit_fail_msg("read kpageflags: %s\n", strerror(errno));
++
+ 	fd_size = 2 * pmd_pagesize;
+ 
+ 	split_pmd_zero_pages();
+@@ -571,6 +614,9 @@ int main(int argc, char **argv)
+ 			split_thp_in_pagecache_to_order_at(fd_size, fs_loc, i, offset);
+ 	cleanup_thp_fs(fs_loc, created_tmp);
+ 
++	close(pagemap_fd);
++	close(kpageflags_fd);
++
+ 	ksft_finished();
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
