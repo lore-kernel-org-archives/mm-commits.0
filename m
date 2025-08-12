@@ -1,98 +1,187 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B9B2F0661
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 21:38:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB5D2C15BB
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 22:02:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755034730; cv=none; b=BdlqBMLGvnwzFu2UVFcM1ipA0Y9Js2J1v5sCFMcq9PoHs5x0KeY0UzfguLmkQq5lsnvDiXvnET2zKcf8gvqWesuqyq13+woj+eXpSk+/0zg7NpM7e4RIafOz4lfj7vYggNcwH9E3MAFBNZhdHKpnWKyRDGKG50N7rRhG+oMiL28=
+	t=1755036168; cv=none; b=oTS8BWILOCD/9Bb9zrSG9tBPregArkb1oGtwqiYB3ddcAuUSphSQO49LIMGyAcOu0uzNN1/S9BIySle/rX3e35FbKAzCJGOyi57qzOhZ3HQsKYyQKZl8fAJy4DxkQGG8RavY53uWmF6rj6i9jCfILCZQsdQxNvDPCizlcA58J4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755034730; c=relaxed/simple;
-	bh=+4nMPwDlQBketY4+JzahfwNM9w2uFiiwH9ibhL1eDaY=;
-	h=From:In-Reply-To:References:To:Cc:Subject:MIME-Version:
-	 Content-Type:Date:Message-ID; b=BWZ5Ut9NO7rrGeKI31+Jh0BLPil8sEQjdAeCX6Alk4hZ6jPpH2xh29uNlNeDiJ78Hkq45G2abnxz/xtjr9d/Yx228E2UzJ7buInymAWhqglTI8fclCpIp/O1NGNpfh80xuDORXueTUQKZOlQLY30XXfJZUzOp5RbNeukSAWe58Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=XZR+4vO8; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1755036168; c=relaxed/simple;
+	bh=HfrmtXxeEVAoO1BmdKwd4zuSSlutpiXWEez3owuw0BE=;
+	h=Date:To:From:Subject:Message-Id; b=i1w34dwr/h4oKuYoHVu4Q3PIqIcAphcZYXoUCE4e7bYxtpbGwWVw4zfGtHOqH5eyVe1oU2wP2+Vd+lRXgBNpd375wfBK5HMds0Ae9uo+YBWi8/8155azYt7yV8nUbsgQ+CzTSt/mvnS5g/ZuWwDicY4T+Q8Cqw0dQe0o0tfSdmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ipu1zFdp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XZR+4vO8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1755034727;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=fCZbxCnsn1oEGQ/8OG+ukBXxODhbVRpm+Wr7w9BRxak=;
-	b=XZR+4vO8grx6fN7lxpbXgYBPLfHHtIWofiRiAMvSpr9PQDW/JKiV5JFTxuBN1ZtyALnMoY
-	kaZvR0Y/G+rJUrV6fsIA4j3/oOWpIM+PWc/UTefuVqNVNc81e4BFaJDuqqbPHs7cfT1gIJ
-	X1nCtkcfnz9+mvm8d0N8A70sVk12fIk=
-Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-382-h98vVWioNQ2hjZwZqTKxWw-1; Tue,
- 12 Aug 2025 17:38:44 -0400
-X-MC-Unique: h98vVWioNQ2hjZwZqTKxWw-1
-X-Mimecast-MFC-AGG-ID: h98vVWioNQ2hjZwZqTKxWw_1755034722
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id A9B44180048E;
-	Tue, 12 Aug 2025 21:38:36 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.42.28.21])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id BF05818002B4;
-	Tue, 12 Aug 2025 21:38:32 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-	Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-	Kingdom.
-	Registered in England and Wales under Company Registration No. 3798903
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <aJuwDfwoSUP_M_0D@codewreck.org>
-References: <aJuwDfwoSUP_M_0D@codewreck.org> <20250812010237.B52F8C4CEED@smtp.kernel.org> <650364.1754991487@warthog.procyon.org.uk>
-To: Dominique Martinet <asmadeus@codewreck.org>
-Cc: dhowells@redhat.com, Andrew Morton <akpm@linux-foundation.org>,
-    mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-    stable@vger.kernel.org, ryan@lahfa.xyz, maximilian@mbosch.me,
-    ct@flyingcircus.io, brauner@kernel.org, arnout@bzzt.net
-Subject: Re: + iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size.patch added to mm-hotfixes-unstable branch
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ipu1zFdp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D3F1C4CEF0;
+	Tue, 12 Aug 2025 22:02:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1755036168;
+	bh=HfrmtXxeEVAoO1BmdKwd4zuSSlutpiXWEez3owuw0BE=;
+	h=Date:To:From:Subject:From;
+	b=ipu1zFdpwGbYCAhpI+iZiOZXTMs0+3nvkKZSGVSHqlLN70IakOgNgz+KdD45YKCfr
+	 VMe5OpeupRnKJVBxFRDxudXp7BfAw1Ur13YTTtp2MUkRxfD2+JMx9BppW6/n3Gr0c5
+	 9DB7n39ljCPa2HqDDPld78uqqcKlkIMK/R+rSvyo=
+Date: Tue, 12 Aug 2025 15:02:47 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sstabellini@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,osalvador@suse.de,oleksandr_tyshchenko@epam.com,npiggin@gmail.com,npache@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,jgross@suse.com,jannh@google.com,jack@suse.cz,hughd@google.com,dev.jain@arm.com,david.vrabel@citrix.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel.patch added to mm-new branch
+Message-Id: <20250812220248.0D3F1C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <677794.1755034711.1@warthog.procyon.org.uk>
-Date: Tue, 12 Aug 2025 22:38:31 +0100
-Message-ID: <677795.1755034711@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
 
-Dominique Martinet <asmadeus@codewreck.org> wrote:
 
-> skip is modified in the first if so I don't see how the compiler could
-> optimize it.
+The patch titled
+     Subject: powerpc/ptdump: rename "struct pgtable_level" to "struct ptdump_pglevel"
+has been added to the -mm mm-new branch.  Its filename is
+     powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel.patch
 
-I mean that if you have:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel.patch
 
-		if (skip < fsize) {
-			...
-		}
-  		if (skip >= fsize) {
-			...
-		}
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-then the compiler should be able to take the second check as true in the case
-where the first fails.
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
->   26923	  1104	     0	 28027	  6d7b	a.o
->   27019	  1104	     0	 28123	  6ddb	b.o
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-That's a surprisingly large change.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-> but honestly I'm happy to focus on readability here -- if you think two
-> if are easier to read I'll be happy to send a v3
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-I must admit I dislike goto jumping *in* to a braced section.  It's not even
-allowed in C++ and Java, IIRC.
+------------------------------------------------------
+From: David Hildenbrand <david@redhat.com>
+Subject: powerpc/ptdump: rename "struct pgtable_level" to "struct ptdump_pglevel"
+Date: Mon, 11 Aug 2025 13:26:26 +0200
 
-David
+We want to make use of "pgtable_level" for an enum in core-mm. Other
+architectures seem to call "struct pgtable_level" either:
+* "struct pg_level" when not exposed in a header (riscv, arm)
+* "struct ptdump_pg_level" when expose in a header (arm64)
+
+So let's follow what arm64 does.
+
+Link: https://lkml.kernel.org/r/20250811112631.759341-7-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Juegren Gross <jgross@suse.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/powerpc/mm/ptdump/8xx.c      |    2 +-
+ arch/powerpc/mm/ptdump/book3s64.c |    2 +-
+ arch/powerpc/mm/ptdump/ptdump.h   |    4 ++--
+ arch/powerpc/mm/ptdump/shared.c   |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+--- a/arch/powerpc/mm/ptdump/8xx.c~powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel
++++ a/arch/powerpc/mm/ptdump/8xx.c
+@@ -69,7 +69,7 @@ static const struct flag_info flag_array
+ 	}
+ };
+ 
+-struct pgtable_level pg_level[5] = {
++struct ptdump_pg_level pg_level[5] = {
+ 	{ /* pgd */
+ 		.flag	= flag_array,
+ 		.num	= ARRAY_SIZE(flag_array),
+--- a/arch/powerpc/mm/ptdump/book3s64.c~powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel
++++ a/arch/powerpc/mm/ptdump/book3s64.c
+@@ -102,7 +102,7 @@ static const struct flag_info flag_array
+ 	}
+ };
+ 
+-struct pgtable_level pg_level[5] = {
++struct ptdump_pg_level pg_level[5] = {
+ 	{ /* pgd */
+ 		.flag	= flag_array,
+ 		.num	= ARRAY_SIZE(flag_array),
+--- a/arch/powerpc/mm/ptdump/ptdump.h~powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel
++++ a/arch/powerpc/mm/ptdump/ptdump.h
+@@ -11,12 +11,12 @@ struct flag_info {
+ 	int		shift;
+ };
+ 
+-struct pgtable_level {
++struct ptdump_pg_level {
+ 	const struct flag_info *flag;
+ 	size_t num;
+ 	u64 mask;
+ };
+ 
+-extern struct pgtable_level pg_level[5];
++extern struct ptdump_pg_level pg_level[5];
+ 
+ void pt_dump_size(struct seq_file *m, unsigned long delta);
+--- a/arch/powerpc/mm/ptdump/shared.c~powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel
++++ a/arch/powerpc/mm/ptdump/shared.c
+@@ -67,7 +67,7 @@ static const struct flag_info flag_array
+ 	}
+ };
+ 
+-struct pgtable_level pg_level[5] = {
++struct ptdump_pg_level pg_level[5] = {
+ 	{ /* pgd */
+ 		.flag	= flag_array,
+ 		.num	= ARRAY_SIZE(flag_array),
+_
+
+Patches currently in -mm which might be from david@redhat.com are
+
+mm-migrate-remove-migratepage_unmap.patch
+treewide-remove-migratepage_success.patch
+mm-huge_memory-move-more-common-code-into-insert_pmd.patch
+mm-huge_memory-move-more-common-code-into-insert_pud.patch
+mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd.patch
+fs-dax-use-vmf_insert_folio_pmd-to-insert-the-huge-zero-folio.patch
+mm-huge_memory-mark-pmd-mappings-of-the-huge-zero-folio-special.patch
+powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel.patch
+mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level.patch
+mm-memory-convert-print_bad_pte-to-print_bad_page_map.patch
+mm-memory-factor-out-common-code-from-vm_normal_page_.patch
+mm-introduce-and-use-vm_normal_page_pud.patch
+mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page.patch
 
