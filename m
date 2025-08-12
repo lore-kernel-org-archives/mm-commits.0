@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DF0B2D541B
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DE532D46D6
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754959035; cv=none; b=NUYF9cuMKqolrBH8YgLSs1Y5No1btvl7asZ+0vDHvl37JMmCvuxfMLHLAEnItAAgVPZ/+DGgTOODMjF+Qk1qapxGmCom+sP2dxJpl5HMUEAtojNCTRlncQoC0dECjoYRWGw4mhoWsMYaSxvpsHaUqgPWnTGWDWKeZZBte9B90LA=
+	t=1754959039; cv=none; b=F+SwT7D7oAgooLorrEWZmrHsV5NNKThU3pFlZPg+uAM4XLnZGn/OREG40ys5zKCl0T5mUq3R9CjqLuixvgvkEFcUgVJTapmo4HYPKmlzryrUwImqKJtDiO4qwXCaCbi0Vlgp3S3LbqrUoOoabVleaOLqHAePpNLSITcct5Stuzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754959035; c=relaxed/simple;
-	bh=lCpzTfSqFhzE8MAu27QIAbJb69AQwGGHDoAZ8yr0sW4=;
-	h=Date:To:From:Subject:Message-Id; b=PlulIQMjlmTa4jDE06BMEwyyGu8yJRK8EvnpwOD0M6H8/js6p8j0mf8kFHzOYEEnF0ntLUexTh+j7utsKQH/oUA9ClTDx8k6oYpLmdNIaYGy3LK1PSYAn78Lq0T9TYpLGX6xMGuL4ux86i6d2IeVJqKpQ3AxjhuAy9qhUNdimLU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KymCEMdp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959039; c=relaxed/simple;
+	bh=PXmxiIrTgwkv1OW/zNE7Fh9RnPIWfivNWQQqhnsxQO0=;
+	h=Date:To:From:Subject:Message-Id; b=l2b87cGqCyOFN+1DH9BuZD4N9vNUsC88Heo9lPlqFwBnvC5EyfRkLhuP7SyDQP7A3V0f3RT2buSv5vC9aicOhlZixakJFRkJUXxxigUW5UipIfNtsE+SHBeOkSMLAQDItUnrym0Lhevht6w6yCQgjnEY06n5uL7x1eWGKktJohc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wCIBp6Qx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KymCEMdp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 261F4C4CEED;
-	Tue, 12 Aug 2025 00:37:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wCIBp6Qx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D726C4CEED;
+	Tue, 12 Aug 2025 00:37:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754959035;
-	bh=lCpzTfSqFhzE8MAu27QIAbJb69AQwGGHDoAZ8yr0sW4=;
+	s=korg; t=1754959038;
+	bh=PXmxiIrTgwkv1OW/zNE7Fh9RnPIWfivNWQQqhnsxQO0=;
 	h=Date:To:From:Subject:From;
-	b=KymCEMdpKmVBTzenLFfix3KauI5b4NGKDTTaQ/qYbCuQ0pyuftTcBVGXyXhjucOy2
-	 blOAe1KObNASyYR50p9FKP73hnoDdiXvCk1auu1IQMm0GQtzJlgLt8CUJU2GX/Uj9/
-	 qKsr5sj8FNJxxmo944Rr6jOI4h+NLZi3pjj7I99c=
-Date: Mon, 11 Aug 2025 17:37:14 -0700
+	b=wCIBp6QxTq57+hKulhCA0onlcKlTImyR0Ij3VtkQ8N23kPz7U9UydXDYmq8yHpCda
+	 ihUg+qTdQ+pAasCJYVYWGEGvHo9RAY220yF4gMDaV9AxVMTIybB2WOeq6Z8VpqVgEp
+	 9NB66ZO7gI24TxQoRyK13ojZFId98rJeLHmAIcsw=
+Date: Mon, 11 Aug 2025 17:37:17 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sstabellini@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,osalvador@suse.de,oleksandr_tyshchenko@epam.com,npiggin@gmail.com,npache@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,jgross@suse.com,jannh@google.com,jack@suse.cz,hughd@google.com,dev.jain@arm.com,david.vrabel@citrix.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level.patch added to mm-new branch
-Message-Id: <20250812003715.261F4C4CEED@smtp.kernel.org>
+Subject: + mm-memory-convert-print_bad_pte-to-print_bad_page_map.patch added to mm-new branch
+Message-Id: <20250812003718.6D726C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: convert "enum rmap_level" to "enum pgtable_level"
+     Subject: mm/memory: convert print_bad_pte() to print_bad_page_map()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level.patch
+     mm-memory-convert-print_bad_pte-to-print_bad_page_map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-convert-print_bad_pte-to-print_bad_page_map.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,41 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: convert "enum rmap_level" to "enum pgtable_level"
-Date: Mon, 11 Aug 2025 13:26:27 +0200
+Subject: mm/memory: convert print_bad_pte() to print_bad_page_map()
+Date: Mon, 11 Aug 2025 13:26:28 +0200
 
-Let's factor it out, and convert all checks for unsupported levels to
-BUILD_BUG().  The code is written in a way such that force-inlining will
-optimize out the levels.
+print_bad_pte() looks like something that should actually be a WARN or
+similar, but historically it apparently has proven to be useful to detect
+corruption of page tables even on production systems -- report the issue
+and keep the system running to make it easier to actually detect what is
+going wrong (e.g., multiple such messages might shed a light).
 
-Link: https://lkml.kernel.org/r/20250811112631.759341-8-david@redhat.com
+As we want to unify vm_normal_page_*() handling for PTE/PMD/PUD, we'll
+have to take care of print_bad_pte() as well.
+
+Let's prepare for using print_bad_pte() also for non-PTEs by adjusting the
+implementation and renaming the function to print_bad_page_map().  Provide
+print_bad_pte() as a simple wrapper.
+
+Document the implicit locking requirements for the page table re-walk.
+
+To make the function a bit more readable, factor out the ratelimit check
+into is_bad_page_map_ratelimited() and place the printing of page table
+content into __print_bad_page_map_pgtable().  We'll now dump information
+from each level in a single line, and just stop the table walk once we hit
+something that is not a present page table.
+
+The report will now look something like (dumping pgd to pmd values):
+
+[   77.943408] BUG: Bad page map in process XXX  pte:80000001233f5867
+[   77.944077] addr:00007fd84bb1c000 vm_flags:08100071 anon_vma: ...
+[   77.945186] pgd:10a89f067 p4d:10a89f067 pud:10e5a2067 pmd:105327067
+
+Not using pgdp_get(), because that does not work properly on some arm
+configs where pgd_t is an array.  Note that we are dumping all levels even
+when levels are folded for simplicity.
+
+Link: https://lkml.kernel.org/r/20250811112631.759341-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -108,452 +135,178 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    8 +++++
- include/linux/rmap.h    |   60 +++++++++++++++++---------------------
- mm/rmap.c               |   56 +++++++++++++++++++----------------
- 3 files changed, 66 insertions(+), 58 deletions(-)
+ include/linux/pgtable.h |   19 ++++++
+ mm/memory.c             |  104 ++++++++++++++++++++++++++++++--------
+ 2 files changed, 103 insertions(+), 20 deletions(-)
 
---- a/include/linux/pgtable.h~mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level
+--- a/include/linux/pgtable.h~mm-memory-convert-print_bad_pte-to-print_bad_page_map
 +++ a/include/linux/pgtable.h
-@@ -1958,6 +1958,14 @@ static inline bool arch_has_pfn_modify_c
- /* Page-Table Modification Mask */
- typedef unsigned int pgtbl_mod_mask;
+@@ -1966,6 +1966,25 @@ enum pgtable_level {
+ 	PGTABLE_LEVEL_PGD,
+ };
  
-+enum pgtable_level {
-+	PGTABLE_LEVEL_PTE = 0,
-+	PGTABLE_LEVEL_PMD,
-+	PGTABLE_LEVEL_PUD,
-+	PGTABLE_LEVEL_P4D,
-+	PGTABLE_LEVEL_PGD,
-+};
++static inline const char *pgtable_level_to_str(enum pgtable_level level)
++{
++	switch (level) {
++	case PGTABLE_LEVEL_PTE:
++		return "pte";
++	case PGTABLE_LEVEL_PMD:
++		return "pmd";
++	case PGTABLE_LEVEL_PUD:
++		return "pud";
++	case PGTABLE_LEVEL_P4D:
++		return "p4d";
++	case PGTABLE_LEVEL_PGD:
++		return "pgd";
++	default:
++		VM_WARN_ON_ONCE(1);
++		return "unknown";
++	}
++}
 +
  #endif /* !__ASSEMBLY__ */
  
  #if !defined(MAX_POSSIBLE_PHYSMEM_BITS) && !defined(CONFIG_64BIT)
---- a/include/linux/rmap.h~mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level
-+++ a/include/linux/rmap.h
-@@ -394,18 +394,8 @@ typedef int __bitwise rmap_t;
- /* The anonymous (sub)page is exclusive to a single process. */
- #define RMAP_EXCLUSIVE		((__force rmap_t)BIT(0))
+--- a/mm/memory.c~mm-memory-convert-print_bad_pte-to-print_bad_page_map
++++ a/mm/memory.c
+@@ -491,22 +491,8 @@ static inline void add_mm_rss_vec(struct
+ 			add_mm_counter(mm, i, rss[i]);
+ }
  
 -/*
-- * Internally, we're using an enum to specify the granularity. We make the
-- * compiler emit specialized code for each granularity.
+- * This function is called to print an error when a bad pte
+- * is found. For example, we might have a PFN-mapped pte in
+- * a region that doesn't allow it.
+- *
+- * The calling function must still handle the error.
 - */
--enum rmap_level {
--	RMAP_LEVEL_PTE = 0,
--	RMAP_LEVEL_PMD,
--	RMAP_LEVEL_PUD,
--};
--
- static inline void __folio_rmap_sanity_checks(const struct folio *folio,
--		const struct page *page, int nr_pages, enum rmap_level level)
-+		const struct page *page, int nr_pages, enum pgtable_level level)
+-static void print_bad_pte(struct vm_area_struct *vma, unsigned long addr,
+-			  pte_t pte, struct page *page)
++static bool is_bad_page_map_ratelimited(void)
  {
- 	/* hugetlb folios are handled separately. */
- 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
-@@ -427,18 +417,18 @@ static inline void __folio_rmap_sanity_c
- 	VM_WARN_ON_FOLIO(page_folio(page + nr_pages - 1) != folio, folio);
- 
- 	switch (level) {
--	case RMAP_LEVEL_PTE:
-+	case PGTABLE_LEVEL_PTE:
- 		break;
--	case RMAP_LEVEL_PMD:
-+	case PGTABLE_LEVEL_PMD:
- 		/*
- 		 * We don't support folios larger than a single PMD yet. So
--		 * when RMAP_LEVEL_PMD is set, we assume that we are creating
-+		 * when PGTABLE_LEVEL_PMD is set, we assume that we are creating
- 		 * a single "entire" mapping of the folio.
- 		 */
- 		VM_WARN_ON_FOLIO(folio_nr_pages(folio) != HPAGE_PMD_NR, folio);
- 		VM_WARN_ON_FOLIO(nr_pages != HPAGE_PMD_NR, folio);
- 		break;
--	case RMAP_LEVEL_PUD:
-+	case PGTABLE_LEVEL_PUD:
- 		/*
- 		 * Assume that we are creating a single "entire" mapping of the
- 		 * folio.
-@@ -447,7 +437,7 @@ static inline void __folio_rmap_sanity_c
- 		VM_WARN_ON_FOLIO(nr_pages != HPAGE_PUD_NR, folio);
- 		break;
- 	default:
--		VM_WARN_ON_ONCE(true);
-+		BUILD_BUG();
- 	}
- 
- 	/*
-@@ -567,14 +557,14 @@ static inline void hugetlb_remove_rmap(s
- 
- static __always_inline void __folio_dup_file_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *dst_vma,
--		enum rmap_level level)
-+		enum pgtable_level level)
- {
- 	const int orig_nr_pages = nr_pages;
- 
- 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
- 
- 	switch (level) {
--	case RMAP_LEVEL_PTE:
-+	case PGTABLE_LEVEL_PTE:
- 		if (!folio_test_large(folio)) {
- 			atomic_inc(&folio->_mapcount);
- 			break;
-@@ -587,11 +577,13 @@ static __always_inline void __folio_dup_
+-	pgd_t *pgd = pgd_offset(vma->vm_mm, addr);
+-	p4d_t *p4d = p4d_offset(pgd, addr);
+-	pud_t *pud = pud_offset(p4d, addr);
+-	pmd_t *pmd = pmd_offset(pud, addr);
+-	struct address_space *mapping;
+-	pgoff_t index;
+ 	static unsigned long resume;
+ 	static unsigned long nr_shown;
+ 	static unsigned long nr_unshown;
+@@ -518,7 +504,7 @@ static void print_bad_pte(struct vm_area
+ 	if (nr_shown == 60) {
+ 		if (time_before(jiffies, resume)) {
+ 			nr_unshown++;
+-			return;
++			return true;
  		}
- 		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
- 		break;
--	case RMAP_LEVEL_PMD:
--	case RMAP_LEVEL_PUD:
-+	case PGTABLE_LEVEL_PMD:
-+	case PGTABLE_LEVEL_PUD:
- 		atomic_inc(&folio->_entire_mapcount);
- 		folio_inc_large_mapcount(folio, dst_vma);
- 		break;
-+	default:
-+		BUILD_BUG();
+ 		if (nr_unshown) {
+ 			pr_alert("BUG: Bad page map: %lu messages suppressed\n",
+@@ -529,15 +515,91 @@ static void print_bad_pte(struct vm_area
  	}
- }
- 
-@@ -609,13 +601,13 @@ static __always_inline void __folio_dup_
- static inline void folio_dup_file_rmap_ptes(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *dst_vma)
- {
--	__folio_dup_file_rmap(folio, page, nr_pages, dst_vma, RMAP_LEVEL_PTE);
-+	__folio_dup_file_rmap(folio, page, nr_pages, dst_vma, PGTABLE_LEVEL_PTE);
- }
- 
- static __always_inline void folio_dup_file_rmap_pte(struct folio *folio,
- 		struct page *page, struct vm_area_struct *dst_vma)
- {
--	__folio_dup_file_rmap(folio, page, 1, dst_vma, RMAP_LEVEL_PTE);
-+	__folio_dup_file_rmap(folio, page, 1, dst_vma, PGTABLE_LEVEL_PTE);
- }
- 
- /**
-@@ -632,7 +624,7 @@ static inline void folio_dup_file_rmap_p
- 		struct page *page, struct vm_area_struct *dst_vma)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, dst_vma, RMAP_LEVEL_PTE);
-+	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, dst_vma, PGTABLE_LEVEL_PTE);
- #else
- 	WARN_ON_ONCE(true);
- #endif
-@@ -640,7 +632,7 @@ static inline void folio_dup_file_rmap_p
- 
- static __always_inline int __folio_try_dup_anon_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *dst_vma,
--		struct vm_area_struct *src_vma, enum rmap_level level)
-+		struct vm_area_struct *src_vma, enum pgtable_level level)
- {
- 	const int orig_nr_pages = nr_pages;
- 	bool maybe_pinned;
-@@ -665,7 +657,7 @@ static __always_inline int __folio_try_d
- 	 * copying if the folio maybe pinned.
- 	 */
- 	switch (level) {
--	case RMAP_LEVEL_PTE:
-+	case PGTABLE_LEVEL_PTE:
- 		if (unlikely(maybe_pinned)) {
- 			for (i = 0; i < nr_pages; i++)
- 				if (PageAnonExclusive(page + i))
-@@ -687,8 +679,8 @@ static __always_inline int __folio_try_d
- 		} while (page++, --nr_pages > 0);
- 		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
- 		break;
--	case RMAP_LEVEL_PMD:
--	case RMAP_LEVEL_PUD:
-+	case PGTABLE_LEVEL_PMD:
-+	case PGTABLE_LEVEL_PUD:
- 		if (PageAnonExclusive(page)) {
- 			if (unlikely(maybe_pinned))
- 				return -EBUSY;
-@@ -697,6 +689,8 @@ static __always_inline int __folio_try_d
- 		atomic_inc(&folio->_entire_mapcount);
- 		folio_inc_large_mapcount(folio, dst_vma);
- 		break;
-+	default:
-+		BUILD_BUG();
- 	}
- 	return 0;
- }
-@@ -730,7 +724,7 @@ static inline int folio_try_dup_anon_rma
- 		struct vm_area_struct *src_vma)
- {
- 	return __folio_try_dup_anon_rmap(folio, page, nr_pages, dst_vma,
--					 src_vma, RMAP_LEVEL_PTE);
-+					 src_vma, PGTABLE_LEVEL_PTE);
- }
- 
- static __always_inline int folio_try_dup_anon_rmap_pte(struct folio *folio,
-@@ -738,7 +732,7 @@ static __always_inline int folio_try_dup
- 		struct vm_area_struct *src_vma)
- {
- 	return __folio_try_dup_anon_rmap(folio, page, 1, dst_vma, src_vma,
--					 RMAP_LEVEL_PTE);
-+					 PGTABLE_LEVEL_PTE);
- }
- 
- /**
-@@ -770,7 +764,7 @@ static inline int folio_try_dup_anon_rma
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	return __folio_try_dup_anon_rmap(folio, page, HPAGE_PMD_NR, dst_vma,
--					 src_vma, RMAP_LEVEL_PMD);
-+					 src_vma, PGTABLE_LEVEL_PMD);
- #else
- 	WARN_ON_ONCE(true);
- 	return -EBUSY;
-@@ -778,7 +772,7 @@ static inline int folio_try_dup_anon_rma
- }
- 
- static __always_inline int __folio_try_share_anon_rmap(struct folio *folio,
--		struct page *page, int nr_pages, enum rmap_level level)
-+		struct page *page, int nr_pages, enum pgtable_level level)
- {
- 	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
- 	VM_WARN_ON_FOLIO(!PageAnonExclusive(page), folio);
-@@ -873,7 +867,7 @@ static __always_inline int __folio_try_s
- static inline int folio_try_share_anon_rmap_pte(struct folio *folio,
- 		struct page *page)
- {
--	return __folio_try_share_anon_rmap(folio, page, 1, RMAP_LEVEL_PTE);
-+	return __folio_try_share_anon_rmap(folio, page, 1, PGTABLE_LEVEL_PTE);
- }
- 
- /**
-@@ -904,7 +898,7 @@ static inline int folio_try_share_anon_r
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	return __folio_try_share_anon_rmap(folio, page, HPAGE_PMD_NR,
--					   RMAP_LEVEL_PMD);
-+					   PGTABLE_LEVEL_PMD);
- #else
- 	WARN_ON_ONCE(true);
- 	return -EBUSY;
---- a/mm/rmap.c~mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level
-+++ a/mm/rmap.c
-@@ -1265,7 +1265,7 @@ static void __folio_mod_stat(struct foli
- 
- static __always_inline void __folio_add_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *vma,
--		enum rmap_level level)
+ 	if (nr_shown++ == 0)
+ 		resume = jiffies + 60 * HZ;
++	return false;
++}
++
++static void __print_bad_page_map_pgtable(struct mm_struct *mm, unsigned long addr)
++{
++	unsigned long long pgdv, p4dv, pudv, pmdv;
++	p4d_t p4d, *p4dp;
++	pud_t pud, *pudp;
++	pmd_t pmd, *pmdp;
++	pgd_t *pgdp;
++
++	/*
++	 * Although this looks like a fully lockless pgtable walk, it is not:
++	 * see locking requirements for print_bad_page_map().
++	 */
++	pgdp = pgd_offset(mm, addr);
++	pgdv = pgd_val(*pgdp);
++
++	if (!pgd_present(*pgdp) || pgd_leaf(*pgdp)) {
++		pr_alert("pgd:%08llx\n", pgdv);
++		return;
++	}
++
++	p4dp = p4d_offset(pgdp, addr);
++	p4d = p4dp_get(p4dp);
++	p4dv = p4d_val(p4d);
++
++	if (!p4d_present(p4d) || p4d_leaf(p4d)) {
++		pr_alert("pgd:%08llx p4d:%08llx\n", pgdv, p4dv);
++		return;
++	}
++
++	pudp = pud_offset(p4dp, addr);
++	pud = pudp_get(pudp);
++	pudv = pud_val(pud);
++
++	if (!pud_present(pud) || pud_leaf(pud)) {
++		pr_alert("pgd:%08llx p4d:%08llx pud:%08llx\n", pgdv, p4dv, pudv);
++		return;
++	}
++
++	pmdp = pmd_offset(pudp, addr);
++	pmd = pmdp_get(pmdp);
++	pmdv = pmd_val(pmd);
++
++	/*
++	 * Dumping the PTE would be nice, but it's tricky with CONFIG_HIGHPTE,
++	 * because the table should already be mapped by the caller and
++	 * doing another map would be bad. print_bad_page_map() should
++	 * already take care of printing the PTE.
++	 */
++	pr_alert("pgd:%08llx p4d:%08llx pud:%08llx pmd:%08llx\n", pgdv,
++		 p4dv, pudv, pmdv);
++}
++
++/*
++ * This function is called to print an error when a bad page table entry (e.g.,
++ * corrupted page table entry) is found. For example, we might have a
++ * PFN-mapped pte in a region that doesn't allow it.
++ *
++ * The calling function must still handle the error.
++ *
++ * This function must be called during a proper page table walk, as it will
++ * re-walk the page table to dump information: the caller MUST prevent page
++ * table teardown (by holding mmap, vma or rmap lock) and MUST hold the leaf
++ * page table lock.
++ */
++static void print_bad_page_map(struct vm_area_struct *vma,
++		unsigned long addr, unsigned long long entry, struct page *page,
 +		enum pgtable_level level)
- {
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
- 	const int orig_nr_pages = nr_pages;
-@@ -1274,7 +1274,7 @@ static __always_inline void __folio_add_
- 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
++{
++	struct address_space *mapping;
++	pgoff_t index;
++
++	if (is_bad_page_map_ratelimited())
++		return;
  
- 	switch (level) {
--	case RMAP_LEVEL_PTE:
-+	case PGTABLE_LEVEL_PTE:
- 		if (!folio_test_large(folio)) {
- 			nr = atomic_inc_and_test(&folio->_mapcount);
- 			break;
-@@ -1300,11 +1300,11 @@ static __always_inline void __folio_add_
+ 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
+ 	index = linear_page_index(vma, addr);
  
- 		folio_add_large_mapcount(folio, orig_nr_pages, vma);
- 		break;
--	case RMAP_LEVEL_PMD:
--	case RMAP_LEVEL_PUD:
-+	case PGTABLE_LEVEL_PMD:
-+	case PGTABLE_LEVEL_PUD:
- 		first = atomic_inc_and_test(&folio->_entire_mapcount);
- 		if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT)) {
--			if (level == RMAP_LEVEL_PMD && first)
-+			if (level == PGTABLE_LEVEL_PMD && first)
- 				nr_pmdmapped = folio_large_nr_pages(folio);
- 			nr = folio_inc_return_large_mapcount(folio, vma);
- 			if (nr == 1)
-@@ -1323,7 +1323,7 @@ static __always_inline void __folio_add_
- 				 * We only track PMD mappings of PMD-sized
- 				 * folios separately.
- 				 */
--				if (level == RMAP_LEVEL_PMD)
-+				if (level == PGTABLE_LEVEL_PMD)
- 					nr_pmdmapped = nr_pages;
- 				nr = nr_pages - (nr & FOLIO_PAGES_MAPPED);
- 				/* Raced ahead of a remove and another add? */
-@@ -1336,6 +1336,8 @@ static __always_inline void __folio_add_
- 		}
- 		folio_inc_large_mapcount(folio, vma);
- 		break;
-+	default:
-+		BUILD_BUG();
- 	}
- 	__folio_mod_stat(folio, nr, nr_pmdmapped);
+-	pr_alert("BUG: Bad page map in process %s  pte:%08llx pmd:%08llx\n",
+-		 current->comm,
+-		 (long long)pte_val(pte), (long long)pmd_val(*pmd));
++	pr_alert("BUG: Bad page map in process %s  %s:%08llx", current->comm,
++		 pgtable_level_to_str(level), entry);
++	__print_bad_page_map_pgtable(vma->vm_mm, addr);
+ 	if (page)
+-		dump_page(page, "bad pte");
++		dump_page(page, "bad page map");
+ 	pr_alert("addr:%px vm_flags:%08lx anon_vma:%px mapping:%px index:%lx\n",
+ 		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
+ 	pr_alert("file:%pD fault:%ps mmap:%ps mmap_prepare: %ps read_folio:%ps\n",
+@@ -549,6 +611,8 @@ static void print_bad_pte(struct vm_area
+ 	dump_stack();
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
  }
-@@ -1427,7 +1429,7 @@ static void __page_check_anon_rmap(const
++#define print_bad_pte(vma, addr, pte, page) \
++	print_bad_page_map(vma, addr, pte_val(pte), page, PGTABLE_LEVEL_PTE)
  
- static __always_inline void __folio_add_anon_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *vma,
--		unsigned long address, rmap_t flags, enum rmap_level level)
-+		unsigned long address, rmap_t flags, enum pgtable_level level)
- {
- 	int i;
- 
-@@ -1440,20 +1442,22 @@ static __always_inline void __folio_add_
- 
- 	if (flags & RMAP_EXCLUSIVE) {
- 		switch (level) {
--		case RMAP_LEVEL_PTE:
-+		case PGTABLE_LEVEL_PTE:
- 			for (i = 0; i < nr_pages; i++)
- 				SetPageAnonExclusive(page + i);
- 			break;
--		case RMAP_LEVEL_PMD:
-+		case PGTABLE_LEVEL_PMD:
- 			SetPageAnonExclusive(page);
- 			break;
--		case RMAP_LEVEL_PUD:
-+		case PGTABLE_LEVEL_PUD:
- 			/*
- 			 * Keep the compiler happy, we don't support anonymous
- 			 * PUD mappings.
- 			 */
- 			WARN_ON_ONCE(1);
- 			break;
-+		default:
-+			BUILD_BUG();
- 		}
- 	}
- 
-@@ -1507,7 +1511,7 @@ void folio_add_anon_rmap_ptes(struct fol
- 		rmap_t flags)
- {
- 	__folio_add_anon_rmap(folio, page, nr_pages, vma, address, flags,
--			      RMAP_LEVEL_PTE);
-+			      PGTABLE_LEVEL_PTE);
- }
- 
- /**
-@@ -1528,7 +1532,7 @@ void folio_add_anon_rmap_pmd(struct foli
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	__folio_add_anon_rmap(folio, page, HPAGE_PMD_NR, vma, address, flags,
--			      RMAP_LEVEL_PMD);
-+			      PGTABLE_LEVEL_PMD);
- #else
- 	WARN_ON_ONCE(true);
- #endif
-@@ -1609,7 +1613,7 @@ void folio_add_new_anon_rmap(struct foli
- 
- static __always_inline void __folio_add_file_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *vma,
--		enum rmap_level level)
-+		enum pgtable_level level)
- {
- 	VM_WARN_ON_FOLIO(folio_test_anon(folio), folio);
- 
-@@ -1634,7 +1638,7 @@ static __always_inline void __folio_add_
- void folio_add_file_rmap_ptes(struct folio *folio, struct page *page,
- 		int nr_pages, struct vm_area_struct *vma)
- {
--	__folio_add_file_rmap(folio, page, nr_pages, vma, RMAP_LEVEL_PTE);
-+	__folio_add_file_rmap(folio, page, nr_pages, vma, PGTABLE_LEVEL_PTE);
- }
- 
- /**
-@@ -1651,7 +1655,7 @@ void folio_add_file_rmap_pmd(struct foli
- 		struct vm_area_struct *vma)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	__folio_add_file_rmap(folio, page, HPAGE_PMD_NR, vma, RMAP_LEVEL_PMD);
-+	__folio_add_file_rmap(folio, page, HPAGE_PMD_NR, vma, PGTABLE_LEVEL_PMD);
- #else
- 	WARN_ON_ONCE(true);
- #endif
-@@ -1672,7 +1676,7 @@ void folio_add_file_rmap_pud(struct foli
- {
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
- 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--	__folio_add_file_rmap(folio, page, HPAGE_PUD_NR, vma, RMAP_LEVEL_PUD);
-+	__folio_add_file_rmap(folio, page, HPAGE_PUD_NR, vma, PGTABLE_LEVEL_PUD);
- #else
- 	WARN_ON_ONCE(true);
- #endif
-@@ -1680,7 +1684,7 @@ void folio_add_file_rmap_pud(struct foli
- 
- static __always_inline void __folio_remove_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *vma,
--		enum rmap_level level)
-+		enum pgtable_level level)
- {
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
- 	int last = 0, nr = 0, nr_pmdmapped = 0;
-@@ -1689,7 +1693,7 @@ static __always_inline void __folio_remo
- 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
- 
- 	switch (level) {
--	case RMAP_LEVEL_PTE:
-+	case PGTABLE_LEVEL_PTE:
- 		if (!folio_test_large(folio)) {
- 			nr = atomic_add_negative(-1, &folio->_mapcount);
- 			break;
-@@ -1719,11 +1723,11 @@ static __always_inline void __folio_remo
- 
- 		partially_mapped = nr && atomic_read(mapped);
- 		break;
--	case RMAP_LEVEL_PMD:
--	case RMAP_LEVEL_PUD:
-+	case PGTABLE_LEVEL_PMD:
-+	case PGTABLE_LEVEL_PUD:
- 		if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT)) {
- 			last = atomic_add_negative(-1, &folio->_entire_mapcount);
--			if (level == RMAP_LEVEL_PMD && last)
-+			if (level == PGTABLE_LEVEL_PMD && last)
- 				nr_pmdmapped = folio_large_nr_pages(folio);
- 			nr = folio_dec_return_large_mapcount(folio, vma);
- 			if (!nr) {
-@@ -1743,7 +1747,7 @@ static __always_inline void __folio_remo
- 			nr = atomic_sub_return_relaxed(ENTIRELY_MAPPED, mapped);
- 			if (likely(nr < ENTIRELY_MAPPED)) {
- 				nr_pages = folio_large_nr_pages(folio);
--				if (level == RMAP_LEVEL_PMD)
-+				if (level == PGTABLE_LEVEL_PMD)
- 					nr_pmdmapped = nr_pages;
- 				nr = nr_pages - (nr & FOLIO_PAGES_MAPPED);
- 				/* Raced ahead of another remove and an add? */
-@@ -1757,6 +1761,8 @@ static __always_inline void __folio_remo
- 
- 		partially_mapped = nr && nr < nr_pmdmapped;
- 		break;
-+	default:
-+		BUILD_BUG();
- 	}
- 
- 	/*
-@@ -1796,7 +1802,7 @@ static __always_inline void __folio_remo
- void folio_remove_rmap_ptes(struct folio *folio, struct page *page,
- 		int nr_pages, struct vm_area_struct *vma)
- {
--	__folio_remove_rmap(folio, page, nr_pages, vma, RMAP_LEVEL_PTE);
-+	__folio_remove_rmap(folio, page, nr_pages, vma, PGTABLE_LEVEL_PTE);
- }
- 
- /**
-@@ -1813,7 +1819,7 @@ void folio_remove_rmap_pmd(struct folio
- 		struct vm_area_struct *vma)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	__folio_remove_rmap(folio, page, HPAGE_PMD_NR, vma, RMAP_LEVEL_PMD);
-+	__folio_remove_rmap(folio, page, HPAGE_PMD_NR, vma, PGTABLE_LEVEL_PMD);
- #else
- 	WARN_ON_ONCE(true);
- #endif
-@@ -1834,7 +1840,7 @@ void folio_remove_rmap_pud(struct folio
- {
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
- 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--	__folio_remove_rmap(folio, page, HPAGE_PUD_NR, vma, RMAP_LEVEL_PUD);
-+	__folio_remove_rmap(folio, page, HPAGE_PUD_NR, vma, PGTABLE_LEVEL_PUD);
- #else
- 	WARN_ON_ONCE(true);
- #endif
+ /*
+  * vm_normal_page -- This function gets the "struct page" associated with a pte.
 _
 
 Patches currently in -mm which might be from david@redhat.com are
