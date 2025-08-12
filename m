@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5E5227450
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:52:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF23427450
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:52:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754959968; cv=none; b=MD4e+yO/EHX++SZN7jRY4pRWHkIxbaau5Rlnu9l2hJ88gnwHqMFmKnc7z1vfNj3fIdNoErMei4aVFLGhnWtBLgjniojWfKSy+1QH1hlkybUVvJpii0h4R2T4mvnPep5Ur+12TjFoNz7MYcfEXgD+kOAWLY3HNtJhfQNpuR0Dsj4=
+	t=1754959971; cv=none; b=lKmkq+6Up6junRe/BzM9dkYQZxGTpMgKB4iQ3t8CerhDCLsunAQxtJ53clG4ucw95+JIkH7G+loi01vyYtZXyzieExy13IOak0mSgrecbM83jqwDIqJ3q8GsgjMoCswBqIayYXyG845KxA+2Y6OD9TzQnarok4/malb5E/2v+Zg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754959968; c=relaxed/simple;
-	bh=wcYrc/w4FRZlT9SH6W2/XNMSOtfUJLQktiC6/k+MoMY=;
-	h=Date:To:From:Subject:Message-Id; b=i6MfPgH/x3jctYa236oXxAkXC1k08a0Ic8yGHh2WFiHfSJ2EIOaUVJesFZz3lfPLJKRyT3nJOvWA12+sZN4+bs8MwLUrSzDLqRSM5ETyfvnYqO5cnEAc268GBy0vH8xpL87v7oUHZH/kK9ai349iNyHbIBRAYt1xHaYQB+oiCNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y2CQAF0f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959971; c=relaxed/simple;
+	bh=uW+HpQlx6xvmamoFeyJU1cnZyiGOT7k+bbHRL60VGjI=;
+	h=Date:To:From:Subject:Message-Id; b=mvVA7pYtYOCXRVP5+4L+CqozimRzXnKpN5jYDP3rpROO/or9FTcIKbNaBoEQoVQiZ9TPc23dOemf+aAFEmGpRvjepz5E5tU8eFpXjHBttXKv9nV+CruAamsAYRcSGginxWlI9RWaPcZQLVKGj0zqMfqvZYN2n/t+g1PoHm8qrG4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hXYKHTaE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y2CQAF0f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F877C4CEED;
-	Tue, 12 Aug 2025 00:52:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hXYKHTaE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79899C4CEED;
+	Tue, 12 Aug 2025 00:52:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754959968;
-	bh=wcYrc/w4FRZlT9SH6W2/XNMSOtfUJLQktiC6/k+MoMY=;
+	s=korg; t=1754959970;
+	bh=uW+HpQlx6xvmamoFeyJU1cnZyiGOT7k+bbHRL60VGjI=;
 	h=Date:To:From:Subject:From;
-	b=y2CQAF0fIgvNuL+KiAYlzGufkcSvRfz45tZwlwKfhfP38JEylMQ+4IFeUpJ5p/lfQ
-	 od5QgE6DtA80ThyzcsrYJzL9lMOlh4profJjj4pOqQ+4uTqOBrjuR5BCwNipegFydl
-	 jnfqSJiqI3y+CUuaiLuACXBHvfJhU9K4hoKXN/x0=
-Date: Mon, 11 Aug 2025 17:52:47 -0700
+	b=hXYKHTaEaMRvwpDARjZF66H+Zo7N5KEB6Qe/qRPDc2N/PvZeeMjzJvpcgVUerWrZ0
+	 PKX3RJVM4TX+A+LaC4vgSqN0cAPrWkdI6KyHe9njOL2h8/g+1De4r5u+YtbrFw6ezk
+	 WskgmOsJpnvC+GOGELO9xv6iHPV3OPuyK4n8p6i8=
+Date: Mon, 11 Aug 2025 17:52:49 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,linux@weissschuh.net,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_kho-fixes-for-error-handling.patch added to mm-new branch
-Message-Id: <20250812005248.6F877C4CEED@smtp.kernel.org>
+Subject: + selftest-kho-update-generation-of-initrd.patch added to mm-new branch
+Message-Id: <20250812005250.79899C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_kho: fixes for error handling
+     Subject: selftest/kho: update generation of initrd
 has been added to the -mm mm-new branch.  Its filename is
-     lib-test_kho-fixes-for-error-handling.patch
+     selftest-kho-update-generation-of-initrd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_kho-fixes-for-error-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-kho-update-generation-of-initrd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,141 +65,113 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: lib/test_kho: fixes for error handling
-Date: Mon, 11 Aug 2025 11:25:09 +0300
+Subject: selftest/kho: update generation of initrd
+Date: Mon, 11 Aug 2025 11:25:10 +0300
 
-* Update kho_test_save() so that folios array won't be freed when
-  returning from the function and the fdt will be freed on error
-* Reset state->nr_folios to 0 in  kho_test_generate_data() on error
-* Simplify allocation of folios info in fdt.
+Use nolibc include directory rather than include a cumulative nolibc.h on
+the compiler command line and replace use of 'sudo cpio' with
+usr/gen_init_cpio.
 
-Link: https://lkml.kernel.org/r/20250811082510.4154080-3-rppt@kernel.org
-Fixes: b753522bed0b ("kho: add test for kexec handover")
+While on it fix spelling of KHO_FINALIZE
+
+Link: https://lkml.kernel.org/r/20250811082510.4154080-4-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reported-by: Pratyush Yadav <pratyush@kernel.org>
-Closes: https://lore.kernel.org/all/mafs0zfcjcepf.fsf@kernel.org
+Suggested-by: Thomas Weißschuh <linux@weissschuh.net>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Changyuan Lyu <changyuanl@google.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kho.c |   52 +++++++++++++++++++++++++++++------------------
- 1 file changed, 33 insertions(+), 19 deletions(-)
+ tools/testing/selftests/kho/init.c    |   13 +++--------
+ tools/testing/selftests/kho/vmtest.sh |   28 ++++++++++++------------
+ 2 files changed, 19 insertions(+), 22 deletions(-)
 
---- a/lib/test_kho.c~lib-test_kho-fixes-for-error-handling
-+++ a/lib/test_kho.c
-@@ -67,13 +67,20 @@ static struct notifier_block kho_test_nb
+--- a/tools/testing/selftests/kho/init.c~selftest-kho-update-generation-of-initrd
++++ a/tools/testing/selftests/kho/init.c
+@@ -1,22 +1,17 @@
+ // SPDX-License-Identifier: GPL-2.0
  
- static int kho_test_save_data(struct kho_test_state *state, void *fdt)
- {
--	phys_addr_t *folios_info __free(kvfree) = NULL;
-+	phys_addr_t *folios_info;
- 	int err = 0;
+-#ifndef NOLIBC
+-#include <errno.h>
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+-#include <syscall.h>
++#include <sys/syscall.h>
+ #include <sys/mount.h>
+ #include <sys/reboot.h>
+-#endif
++#include <linux/kexec.h>
  
--	folios_info = kvmalloc_array(state->nr_folios, sizeof(*folios_info),
--				     GFP_KERNEL);
--	if (!folios_info)
--		return -ENOMEM;
-+	err |= fdt_begin_node(fdt, "data");
-+	err |= fdt_property(fdt, "nr_folios", &state->nr_folios,
-+			    sizeof(state->nr_folios));
-+	err |= fdt_property_placeholder(fdt, "folios_info",
-+					state->nr_folios * sizeof(*folios_info),
-+					(void **)&folios_info);
-+	err |= fdt_property(fdt, "csum", &state->csum, sizeof(state->csum));
-+	err |= fdt_end_node(fdt);
-+
-+	if (err)
-+		return err;
+ /* from arch/x86/include/asm/setup.h */
+ #define COMMAND_LINE_SIZE	2048
  
- 	for (int i = 0; i < state->nr_folios; i++) {
- 		struct folio *folio = state->folios[i];
-@@ -83,17 +90,9 @@ static int kho_test_save_data(struct kho
- 
- 		err = kho_preserve_folio(folio);
- 		if (err)
--			return err;
-+			break;
- 	}
- 
--	err |= fdt_begin_node(fdt, "data");
--	err |= fdt_property(fdt, "nr_folios", &state->nr_folios,
--			    sizeof(state->nr_folios));
--	err |= fdt_property(fdt, "folios_info", folios_info,
--			    state->nr_folios * sizeof(*folios_info));
--	err |= fdt_property(fdt, "csum", &state->csum, sizeof(state->csum));
--	err |= fdt_end_node(fdt);
+-/* from include/linux/kexex.h */
+-#define KEXEC_FILE_NO_INITRAMFS	0x00000004
 -
- 	return err;
- }
+-#define KHO_FINILIZE "/debugfs/kho/out/finalize"
++#define KHO_FINALIZE "/debugfs/kho/out/finalize"
+ #define KERNEL_IMAGE "/kernel"
  
-@@ -140,7 +139,10 @@ static int kho_test_generate_data(struct
- 		unsigned int size;
- 		void *addr;
+ static int mount_filesystems(void)
+@@ -32,7 +27,7 @@ static int kho_enable(void)
+ 	const char enable[] = "1";
+ 	int fd;
  
--		/* cap allocation so that we won't exceed max_mem */
-+		/*
-+		 * Since get_order() rounds up, make sure that actual
-+		 * allocation is smaller so that we won't exceed max_mem
-+		 */
- 		if (alloc_size + (PAGE_SIZE << order) > max_mem) {
- 			order = get_order(max_mem - alloc_size);
- 			if (order)
-@@ -165,13 +167,14 @@ static int kho_test_generate_data(struct
- err_free_folios:
- 	for (int i = 0; i < state->nr_folios; i++)
- 		folio_put(state->folios[i]);
-+	state->nr_folios = 0;
- 	return -ENOMEM;
- }
+-	fd = open(KHO_FINILIZE, O_RDWR);
++	fd = open(KHO_FINALIZE, O_RDWR);
+ 	if (fd < 0)
+ 		return -1;
  
- static int kho_test_save(void)
- {
- 	struct kho_test_state *state = &kho_test_state;
--	struct folio **folios __free(kvfree) = NULL;
-+	struct folio **folios;
- 	unsigned long max_nr;
- 	int err;
+--- a/tools/testing/selftests/kho/vmtest.sh~selftest-kho-update-generation-of-initrd
++++ a/tools/testing/selftests/kho/vmtest.sh
+@@ -10,7 +10,6 @@ kernel_dir=$(realpath "$test_dir/../../.
  
-@@ -185,13 +188,23 @@ static int kho_test_save(void)
+ tmp_dir=$(mktemp -d /tmp/kho-test.XXXXXXXX)
+ headers_dir="$tmp_dir/usr"
+-initrd_dir="$tmp_dir/initrd"
+ initrd="$tmp_dir/initrd.cpio"
  
- 	err = kho_test_generate_data(state);
- 	if (err)
--		return err;
-+		goto err_free_folios;
+ source "$test_dir/../kselftest/ktap_helpers.sh"
+@@ -81,19 +80,22 @@ EOF
+ function mkinitrd() {
+ 	local kernel=$1
  
- 	err = kho_test_prepare_fdt(state);
- 	if (err)
--		return err;
-+		goto err_free_folios;
- 
--	return register_kho_notifier(&kho_test_nb);
-+	err = register_kho_notifier(&kho_test_nb);
-+	if (err)
-+		goto err_free_fdt;
+-	mkdir -p "$initrd_dir"/{dev,debugfs,proc}
+-	sudo mknod "$initrd_dir/dev/console" c 5 1
++	"$CROSS_COMPILE"gcc -s -static -Os -nostdinc -nostdlib \
++			-fno-asynchronous-unwind-tables -fno-ident \
++			-I "$headers_dir/include" \
++			-I "$kernel_dir/tools/include/nolibc" \
++			-o "$tmp_dir/init" "$test_dir/init.c"
 +
-+	return 0;
-+
-+err_free_fdt:
-+	folio_put(state->fdt);
-+err_free_folios:
-+	kvfree(folios);
-+	return err;
++	cat > "$tmp_dir/cpio_list" <<EOF
++dir /dev 0755 0 0
++dir /proc 0755 0 0
++dir /debugfs 0755 0 0
++nod /dev/console 0600 0 0 c 5 1
++file /init $tmp_dir/init 0755 0 0
++file /kernel $kernel 0644 0 0
++EOF
+ 
+-	"$CROSS_COMPILE"gcc -s -static -Os -nostdinc -I"$headers_dir/include" \
+-			-fno-asynchronous-unwind-tables -fno-ident -nostdlib \
+-			-include "$test_dir/../../../include/nolibc/nolibc.h" \
+-			-o "$initrd_dir/init" "$test_dir/init.c" \
+-
+-	cp "$kernel" "$initrd_dir/kernel"
+-
+-	pushd "$initrd_dir" &>/dev/null
+-	find . | cpio -H newc --create > "$initrd" 2>/dev/null
+-	popd &>/dev/null
++	"$build_dir/usr/gen_init_cpio" "$tmp_dir/cpio_list" > "$initrd"
  }
  
- static int kho_test_restore_data(const void *fdt, int node)
-@@ -291,6 +304,7 @@ static void kho_test_cleanup(void)
- 		folio_put(kho_test_state.folios[i]);
- 
- 	kvfree(kho_test_state.folios);
-+	folio_put(kho_test_state.fdt);
- }
- 
- static void __exit kho_test_exit(void)
+ function run_qemu() {
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
