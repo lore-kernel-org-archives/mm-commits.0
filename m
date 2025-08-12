@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81E5913B284
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:21:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C48513B284
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:21:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754958113; cv=none; b=D4iZH05EfwS6x7IEL7j2hZ1WUit1pIudIOdgSvKSTOVnERJQ73SjgYwqkqt4e5fqXTarLrN4tdermbMA2tIEqPvLLr7XGIg4oMbFZlKH2/9Mn1VHEyMSmkcbKCH8U0iV4EsAYDZ4VbPatq3HW9DxA5utorHGBp3SnAFObPqc7Vk=
+	t=1754958115; cv=none; b=FXhmpwSDuV3f1B+nuKFRH+l6o7kG+GC8UFdjbHcOFA56KQPnRE4hSvNLRcvAtEr+z8923xKY3mZWNFV0mQYetTkToK/7sPCCcup4BC+sQ+7z6eRfWJFI974ZB7lvGKj2eoNLLo4qH66ooAgMZ6CBcI319nMS+T0gEx3p/MDxYdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754958113; c=relaxed/simple;
-	bh=9zH7nMsrzbleYFP7Wq9V8Zcns3/3dTFLtO6yVyNgau8=;
-	h=Date:To:From:Subject:Message-Id; b=i/ccvup3TSc6m+2DQqVCWVsRFyYDq7d3M73gNs5f+nQwuqGSNa1z2gTNAH/7Ouw72t0XrawxouAQ+mKi1vUhPhiqYx4qV2d+wPOD7IQpKibJ0E1WQr/hy1crTuFNr5UqPXKgky2CP8P3TxaUYkXjm/02MrxM1knRqn+dcX02YHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jmC9ADrd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754958115; c=relaxed/simple;
+	bh=Sv6ZwDPQGZ4IhBNneMiLD+RCakyaryit8FSqqtgMvwY=;
+	h=Date:To:From:Subject:Message-Id; b=GlzhZv4SH/DNjFDG8dAbBF3KSqmPmUencWE4Pv3kkEkILL29yLkI01MAdKbs1K6MosWzg0M4HtKCcWCB0oBzyZftHhf9FzNH23351HGN6ZOH6WP2EmjZ8KFakM8/fToRnkEwlBr7LgFQVE3ATgotbSpuUQ0cl32TbJJzLeQEdoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xkMLU87D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jmC9ADrd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 046D6C4CEED;
-	Tue, 12 Aug 2025 00:21:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xkMLU87D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A455C4CEED;
+	Tue, 12 Aug 2025 00:21:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754958113;
-	bh=9zH7nMsrzbleYFP7Wq9V8Zcns3/3dTFLtO6yVyNgau8=;
+	s=korg; t=1754958115;
+	bh=Sv6ZwDPQGZ4IhBNneMiLD+RCakyaryit8FSqqtgMvwY=;
 	h=Date:To:From:Subject:From;
-	b=jmC9ADrdTLcWxrgqUoeeguWLyPOeVTH6tGdbYwnH6UPS7G8uN2vXLWy/kkFTPpfxR
-	 qCrOxiX+vbrAfQyqk2AbHFb070/C9tJsbPpbPBDSN/BX5O5NEvh4M1favcxP6p66wQ
-	 wIL5H2lzhVlA3TTQnYeNlUhR305MRwqpJrq6L5IQ=
-Date: Mon, 11 Aug 2025 17:21:52 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=xkMLU87Dxbhh7YyTkF1kJkBYeOi+4eNYhc9CoHgGLSUPo5K1bItSXsmzechScEZVr
+	 W7taifi3Ni3C8Dur2hjzrt5GdMWfnekxpF/NxFTgqiJlvqyJbwzTQawiR52VsRwg1W
+	 SfUDM+4WQGFqv2ZB9fjEoJBLK0FRJe4av1IuF6Ck=
+Date: Mon, 11 Aug 2025 17:21:54 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch added to mm-unstable branch
-Message-Id: <20250812002153.046D6C4CEED@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query.patch added to mm-unstable branch
+Message-Id: <20250812002155.1A455C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/proc: test PROCMAP_QUERY ioctl while vma is concurrently modified
+     Subject: fs/proc/task_mmu: factor out proc_maps_private fields used by PROCMAP_QUERY
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch
+     fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,145 +59,339 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: selftests/proc: test PROCMAP_QUERY ioctl while vma is concurrently modified
-Date: Fri, 8 Aug 2025 08:28:47 -0700
+Subject: fs/proc/task_mmu: factor out proc_maps_private fields used by PROCMAP_QUERY
+Date: Fri, 8 Aug 2025 08:28:48 -0700
 
-Extend /proc/pid/maps tearing tests to verify PROCMAP_QUERY ioctl operation
-correctness while the vma is being concurrently modified.
+Refactor struct proc_maps_private so that the fields used by PROCMAP_QUERY
+ioctl are moved into a separate structure. In the next patch this allows
+ioctl to reuse some of the functions used for reading /proc/pid/maps
+without using file->private_data. This prevents concurrent modification
+of file->private_data members by ioctl and /proc/pid/maps readers.
 
-Link: https://lkml.kernel.org/r/20250808152850.2580887-2-surenb@google.com
+The change is pure code refactoring and has no functional changes.
+
+Link: https://lkml.kernel.org/r/20250808152850.2580887-3-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Tested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-maps-race.c |   65 ++++++++++++++++
- 1 file changed, 65 insertions(+)
+ fs/proc/internal.h   |   15 ++++---
+ fs/proc/task_mmu.c   |   87 +++++++++++++++++++++--------------------
+ fs/proc/task_nommu.c |   14 +++---
+ 3 files changed, 63 insertions(+), 53 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified
-+++ a/tools/testing/selftests/proc/proc-maps-race.c
-@@ -32,6 +32,8 @@
- #include <stdlib.h>
- #include <string.h>
- #include <unistd.h>
-+#include <linux/fs.h>
-+#include <sys/ioctl.h>
- #include <sys/mman.h>
- #include <sys/stat.h>
- #include <sys/types.h>
-@@ -317,6 +319,25 @@ static bool capture_mod_pattern(FIXTURE_
- 	       strcmp(restored_first_line->text, self->first_line.text) == 0;
+--- a/fs/proc/internal.h~fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query
++++ a/fs/proc/internal.h
+@@ -378,16 +378,21 @@ extern void proc_self_init(void);
+  * task_[no]mmu.c
+  */
+ struct mem_size_stats;
+-struct proc_maps_private {
+-	struct inode *inode;
+-	struct task_struct *task;
++
++struct proc_maps_locking_ctx {
+ 	struct mm_struct *mm;
+-	struct vma_iterator iter;
+-	loff_t last_pos;
+ #ifdef CONFIG_PER_VMA_LOCK
+ 	bool mmap_locked;
+ 	struct vm_area_struct *locked_vma;
+ #endif
++};
++
++struct proc_maps_private {
++	struct inode *inode;
++	struct task_struct *task;
++	struct vma_iterator iter;
++	loff_t last_pos;
++	struct proc_maps_locking_ctx lock_ctx;
+ #ifdef CONFIG_NUMA
+ 	struct mempolicy *task_mempolicy;
+ #endif
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query
++++ a/fs/proc/task_mmu.c
+@@ -132,18 +132,18 @@ static void release_task_mempolicy(struc
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
+ 
+-static void unlock_vma(struct proc_maps_private *priv)
++static void unlock_ctx_vma(struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	if (priv->locked_vma) {
+-		vma_end_read(priv->locked_vma);
+-		priv->locked_vma = NULL;
++	if (lock_ctx->locked_vma) {
++		vma_end_read(lock_ctx->locked_vma);
++		lock_ctx->locked_vma = NULL;
+ 	}
  }
  
-+static bool query_addr_at(int maps_fd, void *addr,
-+			  unsigned long *vma_start, unsigned long *vma_end)
-+{
-+	struct procmap_query q;
-+
-+	memset(&q, 0, sizeof(q));
-+	q.size = sizeof(q);
-+	/* Find the VMA at the split address */
-+	q.query_addr = (unsigned long long)addr;
-+	q.query_flags = 0;
-+	if (ioctl(maps_fd, PROCMAP_QUERY, &q))
-+		return false;
-+
-+	*vma_start = q.vma_start;
-+	*vma_end = q.vma_end;
-+
-+	return true;
-+}
-+
- static inline bool split_vma(FIXTURE_DATA(proc_maps_race) *self)
+ static const struct seq_operations proc_pid_maps_op;
+ 
+ static inline bool lock_vma_range(struct seq_file *m,
+-				  struct proc_maps_private *priv)
++				  struct proc_maps_locking_ctx *lock_ctx)
  {
- 	return mmap(self->mod_info->addr, self->page_size, self->mod_info->prot | PROT_EXEC,
-@@ -559,6 +580,8 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	do {
- 		bool last_line_changed;
- 		bool first_line_changed;
-+		unsigned long vma_start;
-+		unsigned long vma_end;
+ 	/*
+ 	 * smaps and numa_maps perform page table walk, therefore require
+@@ -151,25 +151,25 @@ static inline bool lock_vma_range(struct
+ 	 * walking the vma tree under rcu read protection.
+ 	 */
+ 	if (m->op != &proc_pid_maps_op) {
+-		if (mmap_read_lock_killable(priv->mm))
++		if (mmap_read_lock_killable(lock_ctx->mm))
+ 			return false;
  
- 		ASSERT_TRUE(read_boundary_lines(self, &new_last_line, &new_first_line));
+-		priv->mmap_locked = true;
++		lock_ctx->mmap_locked = true;
+ 	} else {
+ 		rcu_read_lock();
+-		priv->locked_vma = NULL;
+-		priv->mmap_locked = false;
++		lock_ctx->locked_vma = NULL;
++		lock_ctx->mmap_locked = false;
+ 	}
  
-@@ -595,6 +618,19 @@ TEST_F(proc_maps_race, test_maps_tearing
- 		first_line_changed = strcmp(new_first_line.text, self->first_line.text) != 0;
- 		ASSERT_EQ(last_line_changed, first_line_changed);
+ 	return true;
+ }
  
-+		/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
-+		ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr + self->page_size,
-+					  &vma_start, &vma_end));
-+		/*
-+		 * The vma at the split address can be either the same as
-+		 * original one (if read before the split) or the same as the
-+		 * first line in the second page (if read after the split).
-+		 */
-+		ASSERT_TRUE((vma_start == self->last_line.start_addr &&
-+			     vma_end == self->last_line.end_addr) ||
-+			    (vma_start == split_first_line.start_addr &&
-+			     vma_end == split_first_line.end_addr));
+-static inline void unlock_vma_range(struct proc_maps_private *priv)
++static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	if (priv->mmap_locked) {
+-		mmap_read_unlock(priv->mm);
++	if (lock_ctx->mmap_locked) {
++		mmap_read_unlock(lock_ctx->mm);
+ 	} else {
+-		unlock_vma(priv);
++		unlock_ctx_vma(lock_ctx);
+ 		rcu_read_unlock();
+ 	}
+ }
+@@ -177,15 +177,16 @@ static inline void unlock_vma_range(stru
+ static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
+ 					   loff_t last_pos)
+ {
++	struct proc_maps_locking_ctx *lock_ctx = &priv->lock_ctx;
+ 	struct vm_area_struct *vma;
+ 
+-	if (priv->mmap_locked)
++	if (lock_ctx->mmap_locked)
+ 		return vma_next(&priv->iter);
+ 
+-	unlock_vma(priv);
+-	vma = lock_next_vma(priv->mm, &priv->iter, last_pos);
++	unlock_ctx_vma(lock_ctx);
++	vma = lock_next_vma(lock_ctx->mm, &priv->iter, last_pos);
+ 	if (!IS_ERR_OR_NULL(vma))
+-		priv->locked_vma = vma;
++		lock_ctx->locked_vma = vma;
+ 
+ 	return vma;
+ }
+@@ -193,14 +194,16 @@ static struct vm_area_struct *get_next_v
+ static inline bool fallback_to_mmap_lock(struct proc_maps_private *priv,
+ 					 loff_t pos)
+ {
+-	if (priv->mmap_locked)
++	struct proc_maps_locking_ctx *lock_ctx = &priv->lock_ctx;
 +
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
- 	} while (end_ts.tv_sec - start_ts.tv_sec < self->duration_sec);
-@@ -636,6 +672,9 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	clock_gettime(CLOCK_MONOTONIC_COARSE, &start_ts);
- 	start_test_loop(&start_ts, self->verbose);
- 	do {
-+		unsigned long vma_start;
-+		unsigned long vma_end;
-+
- 		ASSERT_TRUE(read_boundary_lines(self, &new_last_line, &new_first_line));
++	if (lock_ctx->mmap_locked)
+ 		return false;
  
- 		/* Check if we read vmas after shrinking it */
-@@ -662,6 +701,16 @@ TEST_F(proc_maps_race, test_maps_tearing
- 					"Expand result invalid", self));
- 		}
+ 	rcu_read_unlock();
+-	mmap_read_lock(priv->mm);
++	mmap_read_lock(lock_ctx->mm);
+ 	/* Reinitialize the iterator after taking mmap_lock */
+ 	vma_iter_set(&priv->iter, pos);
+-	priv->mmap_locked = true;
++	lock_ctx->mmap_locked = true;
  
-+		/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
-+		ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr, &vma_start, &vma_end));
-+		/*
-+		 * The vma should stay at the same address and have either the
-+		 * original size of 3 pages or 1 page if read after shrinking.
-+		 */
-+		ASSERT_TRUE(vma_start == self->last_line.start_addr &&
-+			    (vma_end - vma_start == self->page_size * 3 ||
-+			     vma_end - vma_start == self->page_size));
-+
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
- 	} while (end_ts.tv_sec - start_ts.tv_sec < self->duration_sec);
-@@ -703,6 +752,9 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	clock_gettime(CLOCK_MONOTONIC_COARSE, &start_ts);
- 	start_test_loop(&start_ts, self->verbose);
- 	do {
-+		unsigned long vma_start;
-+		unsigned long vma_end;
-+
- 		ASSERT_TRUE(read_boundary_lines(self, &new_last_line, &new_first_line));
+ 	return true;
+ }
+@@ -208,14 +211,14 @@ static inline bool fallback_to_mmap_lock
+ #else /* CONFIG_PER_VMA_LOCK */
  
- 		/* Check if we read vmas after remapping it */
-@@ -729,6 +781,19 @@ TEST_F(proc_maps_race, test_maps_tearing
- 					"Remap restore result invalid", self));
- 		}
+ static inline bool lock_vma_range(struct seq_file *m,
+-				  struct proc_maps_private *priv)
++				  struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	return mmap_read_lock_killable(priv->mm) == 0;
++	return mmap_read_lock_killable(lock_ctx->mm) == 0;
+ }
  
-+		/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
-+		ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr + self->page_size,
-+					  &vma_start, &vma_end));
-+		/*
-+		 * The vma should either stay at the same address and have the
-+		 * original size of 3 pages or we should find the remapped vma
-+		 * at the remap destination address with size of 1 page.
-+		 */
-+		ASSERT_TRUE((vma_start == self->last_line.start_addr &&
-+			     vma_end - vma_start == self->page_size * 3) ||
-+			    (vma_start == self->last_line.start_addr + self->page_size &&
-+			     vma_end - vma_start == self->page_size));
-+
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
- 	} while (end_ts.tv_sec - start_ts.tv_sec < self->duration_sec);
+-static inline void unlock_vma_range(struct proc_maps_private *priv)
++static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	mmap_read_unlock(priv->mm);
++	mmap_read_unlock(lock_ctx->mm);
+ }
+ 
+ static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
+@@ -258,7 +261,7 @@ retry:
+ 		*ppos = vma->vm_end;
+ 	} else {
+ 		*ppos = SENTINEL_VMA_GATE;
+-		vma = get_gate_vma(priv->mm);
++		vma = get_gate_vma(priv->lock_ctx.mm);
+ 	}
+ 
+ 	return vma;
+@@ -267,6 +270,7 @@ retry:
+ static void *m_start(struct seq_file *m, loff_t *ppos)
+ {
+ 	struct proc_maps_private *priv = m->private;
++	struct proc_maps_locking_ctx *lock_ctx;
+ 	loff_t last_addr = *ppos;
+ 	struct mm_struct *mm;
+ 
+@@ -278,14 +282,15 @@ static void *m_start(struct seq_file *m,
+ 	if (!priv->task)
+ 		return ERR_PTR(-ESRCH);
+ 
+-	mm = priv->mm;
++	lock_ctx = &priv->lock_ctx;
++	mm = lock_ctx->mm;
+ 	if (!mm || !mmget_not_zero(mm)) {
+ 		put_task_struct(priv->task);
+ 		priv->task = NULL;
+ 		return NULL;
+ 	}
+ 
+-	if (!lock_vma_range(m, priv)) {
++	if (!lock_vma_range(m, lock_ctx)) {
+ 		mmput(mm);
+ 		put_task_struct(priv->task);
+ 		priv->task = NULL;
+@@ -318,13 +323,13 @@ static void *m_next(struct seq_file *m,
+ static void m_stop(struct seq_file *m, void *v)
+ {
+ 	struct proc_maps_private *priv = m->private;
+-	struct mm_struct *mm = priv->mm;
++	struct mm_struct *mm = priv->lock_ctx.mm;
+ 
+ 	if (!priv->task)
+ 		return;
+ 
+ 	release_task_mempolicy(priv);
+-	unlock_vma_range(priv);
++	unlock_vma_range(&priv->lock_ctx);
+ 	mmput(mm);
+ 	put_task_struct(priv->task);
+ 	priv->task = NULL;
+@@ -339,9 +344,9 @@ static int proc_maps_open(struct inode *
+ 		return -ENOMEM;
+ 
+ 	priv->inode = inode;
+-	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
+-	if (IS_ERR(priv->mm)) {
+-		int err = PTR_ERR(priv->mm);
++	priv->lock_ctx.mm = proc_mem_open(inode, PTRACE_MODE_READ);
++	if (IS_ERR(priv->lock_ctx.mm)) {
++		int err = PTR_ERR(priv->lock_ctx.mm);
+ 
+ 		seq_release_private(inode, file);
+ 		return err;
+@@ -355,8 +360,8 @@ static int proc_map_release(struct inode
+ 	struct seq_file *seq = file->private_data;
+ 	struct proc_maps_private *priv = seq->private;
+ 
+-	if (priv->mm)
+-		mmdrop(priv->mm);
++	if (priv->lock_ctx.mm)
++		mmdrop(priv->lock_ctx.mm);
+ 
+ 	return seq_release_private(inode, file);
+ }
+@@ -610,7 +615,7 @@ static int do_procmap_query(struct proc_
+ 	if (!!karg.build_id_size != !!karg.build_id_addr)
+ 		return -EINVAL;
+ 
+-	mm = priv->mm;
++	mm = priv->lock_ctx.mm;
+ 	if (!mm || !mmget_not_zero(mm))
+ 		return -ESRCH;
+ 
+@@ -1311,7 +1316,7 @@ static int show_smaps_rollup(struct seq_
+ {
+ 	struct proc_maps_private *priv = m->private;
+ 	struct mem_size_stats mss = {};
+-	struct mm_struct *mm = priv->mm;
++	struct mm_struct *mm = priv->lock_ctx.mm;
+ 	struct vm_area_struct *vma;
+ 	unsigned long vma_start = 0, last_vma_end = 0;
+ 	int ret = 0;
+@@ -1456,9 +1461,9 @@ static int smaps_rollup_open(struct inod
+ 		goto out_free;
+ 
+ 	priv->inode = inode;
+-	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
+-	if (IS_ERR_OR_NULL(priv->mm)) {
+-		ret = priv->mm ? PTR_ERR(priv->mm) : -ESRCH;
++	priv->lock_ctx.mm = proc_mem_open(inode, PTRACE_MODE_READ);
++	if (IS_ERR_OR_NULL(priv->lock_ctx.mm)) {
++		ret = priv->lock_ctx.mm ? PTR_ERR(priv->lock_ctx.mm) : -ESRCH;
+ 
+ 		single_release(inode, file);
+ 		goto out_free;
+@@ -1476,8 +1481,8 @@ static int smaps_rollup_release(struct i
+ 	struct seq_file *seq = file->private_data;
+ 	struct proc_maps_private *priv = seq->private;
+ 
+-	if (priv->mm)
+-		mmdrop(priv->mm);
++	if (priv->lock_ctx.mm)
++		mmdrop(priv->lock_ctx.mm);
+ 
+ 	kfree(priv);
+ 	return single_release(inode, file);
+--- a/fs/proc/task_nommu.c~fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query
++++ a/fs/proc/task_nommu.c
+@@ -204,7 +204,7 @@ static void *m_start(struct seq_file *m,
+ 	if (!priv->task)
+ 		return ERR_PTR(-ESRCH);
+ 
+-	mm = priv->mm;
++	mm = priv->lock_ctx.mm;
+ 	if (!mm || !mmget_not_zero(mm)) {
+ 		put_task_struct(priv->task);
+ 		priv->task = NULL;
+@@ -226,7 +226,7 @@ static void *m_start(struct seq_file *m,
+ static void m_stop(struct seq_file *m, void *v)
+ {
+ 	struct proc_maps_private *priv = m->private;
+-	struct mm_struct *mm = priv->mm;
++	struct mm_struct *mm = priv->lock_ctx.mm;
+ 
+ 	if (!priv->task)
+ 		return;
+@@ -259,9 +259,9 @@ static int maps_open(struct inode *inode
+ 		return -ENOMEM;
+ 
+ 	priv->inode = inode;
+-	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
+-	if (IS_ERR_OR_NULL(priv->mm)) {
+-		int err = priv->mm ? PTR_ERR(priv->mm) : -ESRCH;
++	priv->lock_ctx.mm = proc_mem_open(inode, PTRACE_MODE_READ);
++	if (IS_ERR_OR_NULL(priv->lock_ctx.mm)) {
++		int err = priv->lock_ctx.mm ? PTR_ERR(priv->lock_ctx.mm) : -ESRCH;
+ 
+ 		seq_release_private(inode, file);
+ 		return err;
+@@ -276,8 +276,8 @@ static int map_release(struct inode *ino
+ 	struct seq_file *seq = file->private_data;
+ 	struct proc_maps_private *priv = seq->private;
+ 
+-	if (priv->mm)
+-		mmdrop(priv->mm);
++	if (priv->lock_ctx.mm)
++		mmdrop(priv->lock_ctx.mm);
+ 
+ 	return seq_release_private(inode, file);
+ }
 _
 
 Patches currently in -mm which might be from surenb@google.com are
