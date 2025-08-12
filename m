@@ -1,112 +1,92 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08DF72E88B7
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 09:38:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+Received: from submarine.notk.org (submarine.notk.org [62.210.214.84])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 48E722D3EDA;
+	Tue, 12 Aug 2025 21:20:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.210.214.84
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754991497; cv=none; b=hccOHXWb/DaxrSBcCcsRYD3hOuFDSGXCjvkK32PllwH8bijGUgGgv5FS1Ea9viP0sPLQ5fw5F47DpVqqOWJMrkaetLJbzy57aSFJZWVdw+NKbAY5tRPjNC39Iamh9/xkyK/BnK26ZeUSEITbzSybDUhjGEhJIeFC1fe05U8XUas=
+	t=1755033636; cv=none; b=VN0HJFYgecTjb7cysRCWBzT83MGfeJvCKA1kpBlGLatWYx0v7D8VoIlIQRx9TCFngyE7EG555ACum7HvXXLdDrSIX2zpaLANYi9dTRZ7paKdCMaahCdp4rgT0UCCjqr9VUlCK/Bh2x/HzF/ZcucC330dJZVIglsnbmtlg5cMwYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754991497; c=relaxed/simple;
-	bh=pRD8Cz6iAVpE9i3i5in3FTwGoSpwqCqOi827kQ6aflU=;
-	h=From:In-Reply-To:References:To:Cc:Subject:MIME-Version:
-	 Content-Type:Date:Message-ID; b=aUFxHm30vcUnq5zUyhTdj4qEqZlLr+SsEgszT1sJI+f93EjDkQO9RK5WZv8Jw/U0ILU7se5bXcm5MTNo19hFgvX5jmsF0C6nHWHfYZFvcyrQjAULRXlTW8DYLsnYhr/8MAleCAyyvrCZNpVM0zeqEP8ALJFLAUQUj1vjMOinjHQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=V93jo46t; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1755033636; c=relaxed/simple;
+	bh=fwnR9ohW4MHiX299hdJap167nKq/mWGWcAfGoXVzKEE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=e57OtHOt0anAsi0bgbKfj3o/I/Rj1xo4T6NA2ZzockRsmgMANbGj+XkJSJmJmZ1lgIlO837Hpf0rki8dW+vkz23BJTcx6eLAfduA0C6KjmLDweib9sU3knueE+Vv2+oWKuYn3Cbqpre5UdMekv7SMtLHN/V068a2UrBuFc/fnO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codewreck.org; spf=pass smtp.mailfrom=codewreck.org; dkim=pass (2048-bit key) header.d=codewreck.org header.i=@codewreck.org header.b=yWeEXnyL; arc=none smtp.client-ip=62.210.214.84
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codewreck.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=codewreck.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="V93jo46t"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1754991495;
+	dkim=pass (2048-bit key) header.d=codewreck.org header.i=@codewreck.org header.b="yWeEXnyL"
+Received: from gaia.codewreck.org (localhost [127.0.0.1])
+	by submarine.notk.org (Postfix) with ESMTPS id 4711A14C2D3;
+	Tue, 12 Aug 2025 23:20:30 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=codewreck.org;
+	s=2; t=1755033633;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=vhvNFWpvH0JajgtKkk/MGXEUzpAEABIz2BPsPryMbpI=;
-	b=V93jo46trguVeIGoiwaSV6xZcYuimMmfSAJFXmBz/OvtdTX3ibBZjnJSMFYcrdTlxmbDqd
-	h7lhe9raZWuF1CsOoGKMt6HVqrbR4m2Tb82XDOWRZj9wypF8CR3b8SxOMUyOyoQxNsMiCd
-	EdzbBtuEd3vtmdTG6KkXQs9RHLoGapo=
-Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-176-7gnKzejOPNiPjp__USGNXg-1; Tue,
- 12 Aug 2025 05:38:13 -0400
-X-MC-Unique: 7gnKzejOPNiPjp__USGNXg-1
-X-Mimecast-MFC-AGG-ID: 7gnKzejOPNiPjp__USGNXg_1754991492
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id D8D8D19560BB;
-	Tue, 12 Aug 2025 09:38:11 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.42.28.21])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id A2FD51800283;
-	Tue, 12 Aug 2025 09:38:08 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-	Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-	Kingdom.
-	Registered in England and Wales under Company Registration No. 3798903
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <20250812010237.B52F8C4CEED@smtp.kernel.org>
+	bh=d3uuIMedvyP5Q01BQ+ATCFwzgprmBiLx4U3xOpj9u6M=;
+	b=yWeEXnyL/a2utoDC09Ds54mQZWLlshzUcno4L2lzPcwoaGXoPEk6sKRzisMMfjgxhEeIsB
+	KhD8kbvSSW7ZOunBOKkkDCtgEyriL6AW5bfeVkV3ZSl/P06/hQCw5yX5mGrs8GQ5keCS/g
+	XBBD4FiyPnQpaTlg9tVXwqYURzNvdebAp4wHJJIh42IP31SEsP2f/2dH25FDAEY1llVZtQ
+	G6cMam8vDmPjZtToPWV4xBtckUrmJA3O6utgfvJUk7MImL/t+typlBzZjh15udJTwsMLyG
+	/Zs7e5sO9fbqne9j7iMOxPnbRxDuvnnaZ35N4kpRUPikSIBOrXinQCx5DTVtWA==
+Received: from localhost (gaia.codewreck.org [local])
+	by gaia.codewreck.org (OpenSMTPD) with ESMTPA id 72b5c997;
+	Tue, 12 Aug 2025 21:20:28 +0000 (UTC)
+Date: Wed, 13 Aug 2025 06:20:13 +0900
+From: Dominique Martinet <asmadeus@codewreck.org>
+To: David Howells <dhowells@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+	viro@zeniv.linux.org.uk, stable@vger.kernel.org, ryan@lahfa.xyz,
+	maximilian@mbosch.me, ct@flyingcircus.io, brauner@kernel.org,
+	arnout@bzzt.net
+Subject: Re: +
+ iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <aJuwDfwoSUP_M_0D@codewreck.org>
 References: <20250812010237.B52F8C4CEED@smtp.kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>, asmadeus@codewreck.org
-Cc: dhowells@redhat.com, mm-commits@vger.kernel.org,
-    viro@zeniv.linux.org.uk, stable@vger.kernel.org, ryan@lahfa.xyz,
-    maximilian@mbosch.me, ct@flyingcircus.io, brauner@kernel.org,
-    arnout@bzzt.net
-Subject: Re: + iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size.patch added to mm-hotfixes-unstable branch
+ <650364.1754991487@warthog.procyon.org.uk>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <650363.1754991487.1@warthog.procyon.org.uk>
-Date: Tue, 12 Aug 2025 10:38:07 +0100
-Message-ID: <650364.1754991487@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <650364.1754991487@warthog.procyon.org.uk>
 
-Thinking about it again, I think this:
+David Howells wrote on Tue, Aug 12, 2025 at 10:38:07AM +0100:
+> > @@ -168,6 +168,8 @@ size_t iterate_folioq(struct iov_iter *i
+> >  			break;
+> >  
+> >  		fsize = folioq_folio_size(folioq, slot);
+> > +		if (skip < fsize) {
+> >  		base = kmap_local_folio(folio, skip);
+> >  		part = umin(len, PAGE_SIZE - skip % PAGE_SIZE);
+> >  		remain = step(base, progress, part, priv, priv2);
+> > @@ -177,6 +179,7 @@ size_t iterate_folioq(struct iov_iter *i
+> >  		progress += consumed;
+> >  		skip += consumed;
+> > +		}
+> >  		if (skip >= fsize) {
+> >  			skip = 0;
+> >  			slot++;
+> >  			if (slot == folioq_nr_slots(folioq) && folioq->next) {
+> 
+> With the stuff inside the braces suitably indented.  The compiler should be
+> able to optimise away the extra comparison.
 
-> @@ -168,6 +168,8 @@ size_t iterate_folioq(struct iov_iter *i
->  			break;
->  
->  		fsize = folioq_folio_size(folioq, slot);
-> +		if (skip >= fsize)
-> +			goto next;
->  		base = kmap_local_folio(folio, skip);
->  		part = umin(len, PAGE_SIZE - skip % PAGE_SIZE);
->  		remain = step(base, progress, part, priv, priv2);
-> @@ -177,6 +179,7 @@ size_t iterate_folioq(struct iov_iter *i
->  		progress += consumed;
->  		skip += consumed;
->  		if (skip >= fsize) {
-> +next:
->  			skip = 0;
->  			slot++;
->  			if (slot == folioq_nr_slots(folioq) && folioq->next) {
+skip is modified in the first if so I don't see how the compiler could
+optimize it.
+I just checked and at least iov_iter.o is slightly bigger with a second if:
 
-Would be much better done as:
+(a.o = goto, b.o = if)
+06:17:52 asmadeus@thor 0 ~/code/linux/bb$ size a.o b.o
+   text	  data	   bss	   dec	   hex	filename
+  26923	  1104	     0	 28027	  6d7b	a.o
+  27019	  1104	     0	 28123	  6ddb	b.o
 
-> @@ -168,6 +168,8 @@ size_t iterate_folioq(struct iov_iter *i
->  			break;
->  
->  		fsize = folioq_folio_size(folioq, slot);
-> +		if (skip < fsize) {
->  		base = kmap_local_folio(folio, skip);
->  		part = umin(len, PAGE_SIZE - skip % PAGE_SIZE);
->  		remain = step(base, progress, part, priv, priv2);
-> @@ -177,6 +179,7 @@ size_t iterate_folioq(struct iov_iter *i
->  		progress += consumed;
->  		skip += consumed;
-> +		}
->  		if (skip >= fsize) {
->  			skip = 0;
->  			slot++;
->  			if (slot == folioq_nr_slots(folioq) && folioq->next) {
+but honestly I'm happy to focus on readability here -- if you think two
+if are easier to read I'll be happy to send a v3
 
-With the stuff inside the braces suitably indented.  The compiler should be
-able to optimise away the extra comparison.
-
-David
-
+-- 
+Dominique Martinet | Asmadeus
