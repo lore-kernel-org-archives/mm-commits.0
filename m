@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF9CB225D6
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20FC9225D6
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754959026; cv=none; b=jUPdknUCzrol+sDml8xdHihS3MyAPipWkH1Ow8SZX5ClPGNDmOu4FitElciVbBGPIqgQvz5qMn5F3a1Xz21LXANLgVoxAbDDDnVWAuuY+9sXGtTJaQxdXAF0KZUGsc5jwnvc4/393441I6VKyGmzaQVc8f1VDh/qLCghDmW3Hhk=
+	t=1754959028; cv=none; b=Bg0+ASQliah3Wo4+8RaOn68/oXTFK1B82RcwdTTD+lome5rTt5STAvwsQ4A3VptFX3U60vPQCBkZJkYIbqTldIgE0SkPiXDAo417gsMSLrnPkOgah9ra1jSp9v/gHLfS0QefhIvZkjI1zz7N4ZUKv1BLc0LVdHOlMUxonTIwTWE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754959026; c=relaxed/simple;
-	bh=ItWFLD382yYbNiDwvbBmShJeObhIlVjypjy3O0r2zi8=;
-	h=Date:To:From:Subject:Message-Id; b=hjcfOyI9/hnU6dZLQbE3kr48hmcDYB6HJXgfV4BFTLBvizESirmKAihwoUSZe08Gj/QAcccr6Vf9RiXN51su47rYua04MVMcx2/GFiK6N2kV6exc3SUwpr7oJLVR2xUDBiBrbT0JwGgZxTsUYnjxtgQ+Pym4oOE0cgAZHScnavg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIs0PL39; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959028; c=relaxed/simple;
+	bh=SWxp4+IHJeRD+39OufAlZlCVbolg29aRtA3fk+jIqxo=;
+	h=Date:To:From:Subject:Message-Id; b=fyhFIqBV05KCAJjA/3vlcWpZbnOwlWllIltQnzpdGZS+b+wtKXjFCmjOnkMyv1gHevDzbjc0Z0Kk6eB4LDnBwLM6bNpD33bV5b+zwtW44E0KCKjBXuTzYz1gg2C22I30Nt+e4ec1UmlakG0fcNeJ7zrKONsimh1fo4Ct2DpeLXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1BSCmCiW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIs0PL39"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38FCBC4CEED;
-	Tue, 12 Aug 2025 00:37:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1BSCmCiW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CA5FC4CEED;
+	Tue, 12 Aug 2025 00:37:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754959025;
-	bh=ItWFLD382yYbNiDwvbBmShJeObhIlVjypjy3O0r2zi8=;
+	s=korg; t=1754959027;
+	bh=SWxp4+IHJeRD+39OufAlZlCVbolg29aRtA3fk+jIqxo=;
 	h=Date:To:From:Subject:From;
-	b=aIs0PL39Y39WPiIgPlsuLSDFS1viUWF7JTxGSpOoUBs0G/VZG/saHEpnZppZzM74f
-	 iYVz+TERPnH6SffltV0PPshOrVf6ZratgxDtTvmSPW7WxSOFPzf8c3kopJnKdtfIxc
-	 qsAn0ZY49MyvdLuBjpvd4KJr/zpTLpUIGqxPqM/A=
-Date: Mon, 11 Aug 2025 17:37:04 -0700
+	b=1BSCmCiWSpBySDZWzyBV0QJLoWzJaFv+Kax/kswMq1w4kXk4uKVC87w+cdXQLgDz4
+	 IVd1W0xxrtXC2b2pX9/yuXuUahr1W0a89xE0qAeCrCG9xmonRNGSTl3Ub8shP76/AK
+	 5QqT3Q20RUU95h7HxXRO7xMshrF2GDb6eZeE4Oyo=
+Date: Mon, 11 Aug 2025 17:37:07 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sstabellini@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,osalvador@suse.de,oleksandr_tyshchenko@epam.com,npiggin@gmail.com,npache@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,jgross@suse.com,jannh@google.com,jack@suse.cz,hughd@google.com,dev.jain@arm.com,david.vrabel@citrix.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-move-more-common-code-into-insert_pud.patch added to mm-new branch
-Message-Id: <20250812003705.38FCBC4CEED@smtp.kernel.org>
+Subject: + mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd.patch added to mm-new branch
+Message-Id: <20250812003707.8CA5FC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: move more common code into insert_pud()
+     Subject: mm/huge_memory: support huge zero folio in vmf_insert_folio_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-move-more-common-code-into-insert_pud.patch
+     mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-move-more-common-code-into-insert_pud.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,19 +65,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: move more common code into insert_pud()
-Date: Mon, 11 Aug 2025 13:26:22 +0200
+Subject: mm/huge_memory: support huge zero folio in vmf_insert_folio_pmd()
+Date: Mon, 11 Aug 2025 13:26:23 +0200
 
-Let's clean it all further up.
+Just like we do for vmf_insert_page_mkwrite() -> ...  ->
+insert_page_into_pte_locked() with the shared zeropage, support the huge
+zero folio in vmf_insert_folio_pmd().
 
-No functional change intended.
+When (un)mapping the huge zero folio in page tables, we neither adjust the
+refcount nor the mapcount, just like for the shared zeropage.
 
-Link: https://lkml.kernel.org/r/20250811112631.759341-3-david@redhat.com
+For now, the huge zero folio is not marked as special yet, although
+vm_normal_page_pmd() really wants to treat it as special.  We'll change
+that next.
+
+Link: https://lkml.kernel.org/r/20250811112631.759341-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -108,108 +115,26 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   36 +++++++++++++-----------------------
- 1 file changed, 13 insertions(+), 23 deletions(-)
+ mm/huge_memory.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-move-more-common-code-into-insert_pud
+--- a/mm/huge_memory.c~mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd
 +++ a/mm/huge_memory.c
-@@ -1507,25 +1507,30 @@ static pud_t maybe_pud_mkwrite(pud_t pud
- 	return pud;
- }
- 
--static void insert_pud(struct vm_area_struct *vma, unsigned long addr,
-+static vm_fault_t insert_pud(struct vm_area_struct *vma, unsigned long addr,
- 		pud_t *pud, struct folio_or_pfn fop, pgprot_t prot, bool write)
- {
- 	struct mm_struct *mm = vma->vm_mm;
-+	spinlock_t *ptl;
- 	pud_t entry;
- 
-+	if (addr < vma->vm_start || addr >= vma->vm_end)
-+		return VM_FAULT_SIGBUS;
-+
-+	ptl = pud_lock(mm, pud);
- 	if (!pud_none(*pud)) {
- 		const unsigned long pfn = fop.is_folio ? folio_pfn(fop.folio) :
- 					  fop.pfn;
- 
- 		if (write) {
- 			if (WARN_ON_ONCE(pud_pfn(*pud) != pfn))
--				return;
-+				goto out_unlock;
- 			entry = pud_mkyoung(*pud);
- 			entry = maybe_pud_mkwrite(pud_mkdirty(entry), vma);
- 			if (pudp_set_access_flags(vma, addr, pud, entry, 1))
- 				update_mmu_cache_pud(vma, addr, pud);
- 		}
--		return;
-+		goto out_unlock;
- 	}
- 
+@@ -1418,9 +1418,11 @@ static vm_fault_t insert_pmd(struct vm_a
  	if (fop.is_folio) {
-@@ -1544,6 +1549,9 @@ static void insert_pud(struct vm_area_st
- 	}
- 	set_pud_at(mm, addr, pud, entry);
- 	update_mmu_cache_pud(vma, addr, pud);
-+out_unlock:
-+	spin_unlock(ptl);
-+	return VM_FAULT_NOPAGE;
- }
+ 		entry = folio_mk_pmd(fop.folio, vma->vm_page_prot);
  
- /**
-@@ -1565,7 +1573,6 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 	struct folio_or_pfn fop = {
- 		.pfn = pfn,
- 	};
--	spinlock_t *ptl;
- 
- 	/*
- 	 * If we had pud_special, we could avoid all these restrictions,
-@@ -1577,16 +1584,9 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
- 
--	if (addr < vma->vm_start || addr >= vma->vm_end)
--		return VM_FAULT_SIGBUS;
--
- 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
- 
--	ptl = pud_lock(vma->vm_mm, vmf->pud);
--	insert_pud(vma, addr, vmf->pud, fop, pgprot, write);
--	spin_unlock(ptl);
--
--	return VM_FAULT_NOPAGE;
-+	return insert_pud(vma, addr, vmf->pud, fop, pgprot, write);
- }
- EXPORT_SYMBOL_GPL(vmf_insert_pfn_pud);
- 
-@@ -1603,25 +1603,15 @@ vm_fault_t vmf_insert_folio_pud(struct v
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	unsigned long addr = vmf->address & PUD_MASK;
--	pud_t *pud = vmf->pud;
--	struct mm_struct *mm = vma->vm_mm;
- 	struct folio_or_pfn fop = {
- 		.folio = folio,
- 		.is_folio = true,
- 	};
--	spinlock_t *ptl;
--
--	if (addr < vma->vm_start || addr >= vma->vm_end)
--		return VM_FAULT_SIGBUS;
- 
- 	if (WARN_ON_ONCE(folio_order(folio) != PUD_ORDER))
- 		return VM_FAULT_SIGBUS;
- 
--	ptl = pud_lock(mm, pud);
--	insert_pud(vma, addr, vmf->pud, fop, vma->vm_page_prot, write);
--	spin_unlock(ptl);
--
--	return VM_FAULT_NOPAGE;
-+	return insert_pud(vma, addr, vmf->pud, fop, vma->vm_page_prot, write);
- }
- EXPORT_SYMBOL_GPL(vmf_insert_folio_pud);
- #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+-		folio_get(fop.folio);
+-		folio_add_file_rmap_pmd(fop.folio, &fop.folio->page, vma);
+-		add_mm_counter(mm, mm_counter_file(fop.folio), HPAGE_PMD_NR);
++		if (!is_huge_zero_folio(fop.folio)) {
++			folio_get(fop.folio);
++			folio_add_file_rmap_pmd(fop.folio, &fop.folio->page, vma);
++			add_mm_counter(mm, mm_counter_file(fop.folio), HPAGE_PMD_NR);
++		}
+ 	} else {
+ 		entry = pmd_mkhuge(pfn_pmd(fop.pfn, prot));
+ 		entry = pmd_mkspecial(entry);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
