@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B011DF27F
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 03:57:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E092E03EC
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 04:02:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754971060; cv=none; b=ZTQk239yVoOaIEIzAG8zfUKTz78YGudA9C86HwZYP9SD0kAr2J9YvolpCJgrdr+nen4lzWyoBYU6ie3/UHEWm71EPSibjZwW5bbryZnvEm9F159GhP8327i2QxyDA4DXhCx8ocGYDC2fUcBETwz/hccZCBRv51ByRLK9covKdO8=
+	t=1754971346; cv=none; b=nJcrujKRCI4Pf/c6iAjCkqgMywUfCUDUODqpNdBvGCC4hnSoWTFF6ZVMb8gpqnzTRhjYuCo2pGeMe8e8GclnRXCbYiEpT8L1dITC9yUJOKkDs8sc1HxvMnY4iDc5lNDhPm95XwYlSC7lJ17JdYTifs8daTsFzkAbcvPjoHXhN8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754971060; c=relaxed/simple;
-	bh=oJm5RnqdjecYxs/54RW8BcmCxYT+VxNpUfgj1Cw5+Ec=;
-	h=Date:To:From:Subject:Message-Id; b=B8LS6aqppdoWfhjX/4fnMBp41l/GKsquFUUEDleWgZQehp6DAf5MeXKZ0cyUTDPiO3MpGZ8H1zS6FWOm0P9ppgBuTK9JuRTTVT0YaxyU6970EuZgcfZ3UknB6n3y8osXWfDNJ/kEPLHHFmn5HhuW9qHECAqmmVIGni5sZ5KETdw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f34U9HhZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754971346; c=relaxed/simple;
+	bh=Q1XIWJF08TseSttJ1g5qvKomGq9RGPmYQ97C4tye9as=;
+	h=Date:To:From:Subject:Message-Id; b=W1/6COz0v2HrbyTbXGu3UfICMkqOeoHX587mInC+Qs5+AW/Odjq3rFad9ht2HwCk2jQl/bR1PFj0paReE/aGG5LN9lTahWFDCwOXm53tUA4FdefrpbC9LT+iA7fRma1JsV283TGlyPS0jIv9MrSnbndq5pCNKjjxr+IDx5+GIMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hUYyZGaH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f34U9HhZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1028FC4CEF0;
-	Tue, 12 Aug 2025 03:57:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hUYyZGaH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7025C4CEF9;
+	Tue, 12 Aug 2025 04:02:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754971060;
-	bh=oJm5RnqdjecYxs/54RW8BcmCxYT+VxNpUfgj1Cw5+Ec=;
+	s=korg; t=1754971345;
+	bh=Q1XIWJF08TseSttJ1g5qvKomGq9RGPmYQ97C4tye9as=;
 	h=Date:To:From:Subject:From;
-	b=f34U9HhZRyt4znGSM9kEKkqd0B7lp+HahxQlHbnPCXqKl3Tlj1QbBoFTSqg8ethEt
-	 l9ACKqJ60tNRSydotzomlsPWoM9M9XPGv6Lkx68sqhZdHcM03ymS6tPWAs25i7afAp
-	 VssxhSYQ6Wt+UWJl1Ijjt2GTltclWiS3an1l/XH0=
-Date: Mon, 11 Aug 2025 20:57:39 -0700
+	b=hUYyZGaHQ5Qr4rKL4FHZU+wpydy0PSdrgtk6DxYsled+GzEas2f1vJpugw3cniPBB
+	 iSqtbHbyejJeUG+XogboRP81VKY21EYlffaXtHJ5T7JmxGLxxPV2fMzWTzwy4sxsYT
+	 dSRhluHpK1cqw9pp9pbGNSj4K2hJs6hi0bdL8C64=
+Date: Mon, 11 Aug 2025 21:02:25 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-catch-invalid-multi-vma-moves-earlier.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250812035740.1028FC4CEF0@smtp.kernel.org>
+Subject: + selftests-mm-add-test-for-invalid-multi-vma-operations.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250812040225.B7025C4CEF9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: catch invalid multi VMA moves earlier
+     Subject: selftests/mm: add test for invalid multi VMA operations
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mremap-catch-invalid-multi-vma-moves-earlier.patch
+     selftests-mm-add-test-for-invalid-multi-vma-operations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-catch-invalid-multi-vma-moves-earlier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-test-for-invalid-multi-vma-operations.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,97 +59,363 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: catch invalid multi VMA moves earlier
-Date: Sun, 3 Aug 2025 12:11:22 +0100
+Subject: selftests/mm: add test for invalid multi VMA operations
+Date: Sun, 3 Aug 2025 12:11:23 +0100
 
-Previously, any attempt to solely move a VMA would require that the
-span specified reside within the span of that single VMA, with no gaps
-before or afterwards.
+We can use UFFD to easily assert invalid multi VMA moves, so do so,
+asserting expected behaviour when VMAs invalid for a multi VMA operation
+are encountered.
 
-After commit d23cb648e365 ("mm/mremap: permit mremap() move of multiple
-VMAs"), the multi VMA move permitted a gap to exist only after VMAs. 
-This was done to provide maximum flexibility.
+We assert both that such operations are not permitted, and that we do not
+even attempt to move the first VMA under these circumstances.
 
-However, We have consequently permitted this behaviour for the move of
-a single VMA including those not eligible for multi VMA move.
+We also assert that we can still move a single VMA regardless.
 
-The change introduced here means that we no longer permit non-eligible
-VMAs from being moved in this way.
+We then assert that a partial failure can occur if the invalid VMA appears
+later in the range of multiple VMAs, both at the very next VMA, and also at
+the end of the range.
 
-This is consistent, as it means all eligible VMA moves are treated the
-same, and all non-eligible moves are treated as they were before.
+As part of this change, we are using the is_range_valid() helper more
+aggressively. Therefore, fix a bug where stale buffered data would hang
+around on success, causing subsequent calls to is_range_valid() to
+potentially give invalid results.
 
-This change does not break previous behaviour, which equally would have
-disallowed such a move (only in all cases).
+We simply have to fflush() the stream on success to resolve this issue.
 
-Link: https://lkml.kernel.org/r/2b5aad5681573be85b5b8fac61399af6fb6b68b6.1754218667.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/c4fb86dd5ba37610583ad5fc0e0c2306ddf318b9.1754218667.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/mremap_test.c |  264 ++++++++++++++++++++-
+ 1 file changed, 261 insertions(+), 3 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-catch-invalid-multi-vma-moves-earlier
-+++ a/mm/mremap.c
-@@ -1820,10 +1820,11 @@ static unsigned long remap_move(struct v
- 	unsigned long start = vrm->addr;
- 	unsigned long end = vrm->addr + vrm->old_len;
- 	unsigned long new_addr = vrm->new_addr;
--	bool allowed = true, seen_vma = false;
- 	unsigned long target_addr = new_addr;
- 	unsigned long res = -EFAULT;
- 	unsigned long last_end;
-+	bool seen_vma = false;
-+
- 	VMA_ITERATOR(vmi, current->mm, start);
+--- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-test-for-invalid-multi-vma-operations
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -5,10 +5,14 @@
+ #define _GNU_SOURCE
  
- 	/*
-@@ -1837,9 +1838,6 @@ static unsigned long remap_move(struct v
- 		unsigned long len = min(end, vma->vm_end) - addr;
- 		unsigned long offset, res_vma;
+ #include <errno.h>
++#include <fcntl.h>
++#include <linux/userfaultfd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
++#include <sys/ioctl.h>
+ #include <sys/mman.h>
++#include <syscall.h>
+ #include <time.h>
+ #include <stdbool.h>
  
--		if (!allowed)
--			return -EFAULT;
--
- 		/* No gap permitted at the start of the range. */
- 		if (!seen_vma && start < vma->vm_start)
- 			return -EFAULT;
-@@ -1867,9 +1865,14 @@ static unsigned long remap_move(struct v
- 		vrm->new_addr = target_addr + offset;
- 		vrm->old_len = vrm->new_len = len;
+@@ -168,6 +172,7 @@ static bool is_range_mapped(FILE *maps_f
  
--		allowed = vma_multi_allowed(vma);
--		if (seen_vma && !allowed)
--			return -EFAULT;
-+		if (!vma_multi_allowed(vma)) {
-+			/* This is not the first VMA, abort immediately. */
-+			if (seen_vma)
-+				return -EFAULT;
-+			/* This is the first, but there are more, abort. */
-+			if (vma->vm_end < end)
-+				return -EFAULT;
-+		}
- 
- 		res_vma = check_prep_vma(vrm);
- 		if (!res_vma)
-@@ -1878,7 +1881,8 @@ static unsigned long remap_move(struct v
- 			return res_vma;
- 
- 		if (!seen_vma) {
--			VM_WARN_ON_ONCE(allowed && res_vma != new_addr);
-+			VM_WARN_ON_ONCE(vma_multi_allowed(vma) &&
-+					res_vma != new_addr);
- 			res = res_vma;
+ 		if (first_val <= start && second_val >= end) {
+ 			success = true;
++			fflush(maps_fp);
+ 			break;
  		}
+ 	}
+@@ -175,6 +180,15 @@ static bool is_range_mapped(FILE *maps_f
+ 	return success;
+ }
  
++/* Check if [ptr, ptr + size) mapped in /proc/self/maps. */
++static bool is_ptr_mapped(FILE *maps_fp, void *ptr, unsigned long size)
++{
++	unsigned long start = (unsigned long)ptr;
++	unsigned long end = start + size;
++
++	return is_range_mapped(maps_fp, start, end);
++}
++
+ /*
+  * Returns the start address of the mapping on success, else returns
+  * NULL on failure.
+@@ -733,6 +747,249 @@ out:
+ 				      dont_unmap ? " [dontunnmap]" : "");
+ }
+ 
++#ifdef __NR_userfaultfd
++static void mremap_move_multi_invalid_vmas(FILE *maps_fp,
++		unsigned long page_size)
++{
++	char *test_name = "mremap move multiple invalid vmas";
++	const size_t size = 10 * page_size;
++	bool success = true;
++	char *ptr, *tgt_ptr;
++	int uffd, err, i;
++	void *res;
++	struct uffdio_api api = {
++		.api = UFFD_API,
++		.features = UFFD_EVENT_PAGEFAULT,
++	};
++
++	uffd = syscall(__NR_userfaultfd, O_NONBLOCK);
++	if (uffd == -1) {
++		err = errno;
++		perror("userfaultfd");
++		if (err == EPERM) {
++			ksft_test_result_skip("%s - missing uffd", test_name);
++			return;
++		}
++		success = false;
++		goto out;
++	}
++	if (ioctl(uffd, UFFDIO_API, &api)) {
++		perror("ioctl UFFDIO_API");
++		success = false;
++		goto out_close_uffd;
++	}
++
++	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANON, -1, 0);
++	if (ptr == MAP_FAILED) {
++		perror("mmap");
++		success = false;
++		goto out_close_uffd;
++	}
++
++	tgt_ptr = mmap(NULL, size, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
++	if (tgt_ptr == MAP_FAILED) {
++		perror("mmap");
++		success = false;
++		goto out_close_uffd;
++	}
++	if (munmap(tgt_ptr, size)) {
++		perror("munmap");
++		success = false;
++		goto out_unmap;
++	}
++
++	/*
++	 * Unmap so we end up with:
++	 *
++	 *  0   2   4   6   8   10 offset in buffer
++	 * |*| |*| |*| |*| |*|
++	 * |*| |*| |*| |*| |*|
++	 *
++	 * Additionally, register each with UFFD.
++	 */
++	for (i = 0; i < 10; i += 2) {
++		void *unmap_ptr = &ptr[(i + 1) * page_size];
++		unsigned long start = (unsigned long)&ptr[i * page_size];
++		struct uffdio_register reg = {
++			.range = {
++				.start = start,
++				.len = page_size,
++			},
++			.mode = UFFDIO_REGISTER_MODE_MISSING,
++		};
++
++		if (ioctl(uffd, UFFDIO_REGISTER, &reg) == -1) {
++			perror("ioctl UFFDIO_REGISTER");
++			success = false;
++			goto out_unmap;
++		}
++		if (munmap(unmap_ptr, page_size)) {
++			perror("munmap");
++			success = false;
++			goto out_unmap;
++		}
++	}
++
++	/*
++	 * Now try to move the entire range which is invalid for multi VMA move.
++	 *
++	 * This will fail, and no VMA should be moved, as we check this ahead of
++	 * time.
++	 */
++	res = mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr);
++	err = errno;
++	if (res != MAP_FAILED) {
++		fprintf(stderr, "mremap() succeeded for multi VMA uffd armed\n");
++		success = false;
++		goto out_unmap;
++	}
++	if (err != EFAULT) {
++		errno = err;
++		perror("mrmeap() unexpected error");
++		success = false;
++		goto out_unmap;
++	}
++	if (is_ptr_mapped(maps_fp, tgt_ptr, page_size)) {
++		fprintf(stderr,
++			"Invalid uffd-armed VMA at start of multi range moved\n");
++		success = false;
++		goto out_unmap;
++	}
++
++	/*
++	 * Now try to move a single VMA, this should succeed as not multi VMA
++	 * move.
++	 */
++	res = mremap(ptr, page_size, page_size,
++		     MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr);
++	if (res == MAP_FAILED) {
++		perror("mremap single invalid-multi VMA");
++		success = false;
++		goto out_unmap;
++	}
++
++	/*
++	 * Unmap the VMA, and remap a non-uffd registered (therefore, multi VMA
++	 * move valid) VMA at the start of ptr range.
++	 */
++	if (munmap(tgt_ptr, page_size)) {
++		perror("munmap");
++		success = false;
++		goto out_unmap;
++	}
++	res = mmap(ptr, page_size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
++	if (res == MAP_FAILED) {
++		perror("mmap");
++		success = false;
++		goto out_unmap;
++	}
++
++	/*
++	 * Now try to move the entire range, we should succeed in moving the
++	 * first VMA, but no others, and report a failure.
++	 */
++	res = mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr);
++	err = errno;
++	if (res != MAP_FAILED) {
++		fprintf(stderr, "mremap() succeeded for multi VMA uffd armed\n");
++		success = false;
++		goto out_unmap;
++	}
++	if (err != EFAULT) {
++		errno = err;
++		perror("mrmeap() unexpected error");
++		success = false;
++		goto out_unmap;
++	}
++	if (!is_ptr_mapped(maps_fp, tgt_ptr, page_size)) {
++		fprintf(stderr, "Valid VMA not moved\n");
++		success = false;
++		goto out_unmap;
++	}
++
++	/*
++	 * Unmap the VMA, and map valid VMA at start of ptr range, and replace
++	 * all existing multi-move invalid VMAs, except the last, with valid
++	 * multi-move VMAs.
++	 */
++	if (munmap(tgt_ptr, page_size)) {
++		perror("munmap");
++		success = false;
++		goto out_unmap;
++	}
++	if (munmap(ptr, size - 2 * page_size)) {
++		perror("munmap");
++		success = false;
++		goto out_unmap;
++	}
++	for (i = 0; i < 8; i += 2) {
++		res = mmap(&ptr[i * page_size], page_size,
++			   PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
++		if (res == MAP_FAILED) {
++			perror("mmap");
++			success = false;
++			goto out_unmap;
++		}
++	}
++
++	/*
++	 * Now try to move the entire range, we should succeed in moving all but
++	 * the last VMA, and report a failure.
++	 */
++	res = mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, tgt_ptr);
++	err = errno;
++	if (res != MAP_FAILED) {
++		fprintf(stderr, "mremap() succeeded for multi VMA uffd armed\n");
++		success = false;
++		goto out_unmap;
++	}
++	if (err != EFAULT) {
++		errno = err;
++		perror("mrmeap() unexpected error");
++		success = false;
++		goto out_unmap;
++	}
++
++	for (i = 0; i < 10; i += 2) {
++		bool is_mapped = is_ptr_mapped(maps_fp,
++				&tgt_ptr[i * page_size], page_size);
++
++		if (i < 8 && !is_mapped) {
++			fprintf(stderr, "Valid VMA not moved at %d\n", i);
++			success = false;
++			goto out_unmap;
++		} else if (i == 8 && is_mapped) {
++			fprintf(stderr, "Invalid VMA moved at %d\n", i);
++			success = false;
++			goto out_unmap;
++		}
++	}
++
++out_unmap:
++	if (munmap(tgt_ptr, size))
++		perror("munmap tgt");
++	if (munmap(ptr, size))
++		perror("munmap src");
++out_close_uffd:
++	close(uffd);
++out:
++	if (success)
++		ksft_test_result_pass("%s\n", test_name);
++	else
++		ksft_test_result_fail("%s\n", test_name);
++}
++#else
++static void mremap_move_multi_invalid_vmas(FILE *maps_fp, unsigned long page_size)
++{
++	char *test_name = "mremap move multiple invalid vmas";
++
++	ksft_test_result_skip("%s - missing uffd", test_name);
++}
++#endif /* __NR_userfaultfd */
++
+ /* Returns the time taken for the remap on success else returns -1. */
+ static long long remap_region(struct config c, unsigned int threshold_mb,
+ 			      char *rand_addr)
+@@ -1074,7 +1331,7 @@ int main(int argc, char **argv)
+ 	char *rand_addr;
+ 	size_t rand_size;
+ 	int num_expand_tests = 2;
+-	int num_misc_tests = 8;
++	int num_misc_tests = 9;
+ 	struct test test_cases[MAX_TEST] = {};
+ 	struct test perf_test_cases[MAX_PERF_TEST];
+ 	int page_size;
+@@ -1197,8 +1454,6 @@ int main(int argc, char **argv)
+ 	mremap_expand_merge(maps_fp, page_size);
+ 	mremap_expand_merge_offset(maps_fp, page_size);
+ 
+-	fclose(maps_fp);
+-
+ 	mremap_move_within_range(pattern_seed, rand_addr);
+ 	mremap_move_1mb_from_start(pattern_seed, rand_addr);
+ 	mremap_shrink_multiple_vmas(page_size, /* inplace= */true);
+@@ -1207,6 +1462,9 @@ int main(int argc, char **argv)
+ 	mremap_move_multiple_vmas(pattern_seed, page_size, /* dontunmap= */ true);
+ 	mremap_move_multiple_vmas_split(pattern_seed, page_size, /* dontunmap= */ false);
+ 	mremap_move_multiple_vmas_split(pattern_seed, page_size, /* dontunmap= */ true);
++	mremap_move_multi_invalid_vmas(maps_fp, page_size);
++
++	fclose(maps_fp);
+ 
+ 	if (run_perf_tests) {
+ 		ksft_print_msg("\n%s\n",
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
