@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A77E61E3DFE
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 23:26:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E3012F0683
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 23:29:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755041183; cv=none; b=Xgo0005nYDVMeNMQbiEKOSFnZhz0Nbc1W6lDQfjf7z/uRxcB4Ph96FDgssOc49spJFqtf1CoBvHNz4xzsyIYOB/A9Nl8JaHjUjoWevLn/3CoGCQQVLOpLHRAg18kGJ6ksSWNA4ScPj05+NEUhBMfkRLfIqZQURKR39J8c2FvKDQ=
+	t=1755041386; cv=none; b=O6kNeR04v4pXIUzozG6V2JqslaQUqjwEV3jHHrUHntYdn+Q16gc2EX1F0qHpfdaE8TGy/MobeoNWyaVBWE7caMYBU0jIcezGFpxvcGJt33d+RFvft5vxN9w+SnqPFBfsux7YZlDuaDkds0aIUeVyIQrK8/FDl6gIGF+HxCOixZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755041183; c=relaxed/simple;
-	bh=2Rt97Hb/o4pFuYkK0dmJzF0IxoH64DQvU94BUTdlWz8=;
-	h=Date:To:From:Subject:Message-Id; b=Uwyaa59qdIFfxHA6M5ZWzW7YmCeeLAuQLoakaw+efvNBw4VlMCdjL6N2ShEaWju5SPFkQTueAszLdW7Od1NmCHEgOkgvwmTzzUtN7EU0hH9z3AkbzNqvaZjq4Jz3ZlG7/ukPMENbEZBdg1/4BtgdhuYk4gpKsFX6ocdEvWkNNYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=acpOT72z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755041386; c=relaxed/simple;
+	bh=ckRA/CK+0CUbvprqT1FR1JNJLIRYDi4Alh9DzO9J1oI=;
+	h=Date:To:From:Subject:Message-Id; b=a5QRgIpI0VE6vxlWrKOmacp0SaT4u5SaCIvP+VxbNgBe8eiAxbV4y6Gy/PbExP38NBmwz9QkwNeVESAM0EUaRdiy+NRnatBKelAtkqJEwd4A46T2BLLGs2pDIMilUAUdr00H261Q2ujS1r7ndH7GPXLqC74aW8iPVTQV1xa/4iQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R2DVTt22; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="acpOT72z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 185E2C4CEF0;
-	Tue, 12 Aug 2025 23:26:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R2DVTt22"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F838C4CEF0;
+	Tue, 12 Aug 2025 23:29:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755041183;
-	bh=2Rt97Hb/o4pFuYkK0dmJzF0IxoH64DQvU94BUTdlWz8=;
+	s=korg; t=1755041386;
+	bh=ckRA/CK+0CUbvprqT1FR1JNJLIRYDi4Alh9DzO9J1oI=;
 	h=Date:To:From:Subject:From;
-	b=acpOT72zBVGW8FJ6baaS69votJQpObepeAba66sgksJ0vxDli90ZKL1S/R6oqU6Pe
-	 zPr9hTqu7gphPQCqLBnf9qL+GCKtkjlKjxNhdYAJy1HHh0TPiynywgeXJN2/6ivPXh
-	 QI3okrzEAa++nFb/8a/erN2S4kq4Cvdyb00z5Wcg=
-Date: Tue, 12 Aug 2025 16:26:22 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,ekffu200098@gmail.com,alexghiti@rivosinc.com,akpm@linux-foundation.org
+	b=R2DVTt22rFaQ9TM6w0/r28mBdecEhui6EUuB2dhA8bWCJ67vONVOEdVNajPLJ6RC2
+	 17BLAZmnoobhTOwrBMC7TT51OPuPXKzf2CYCImHRrLSYRndydAemRZzQhAJLTnSv7R
+	 OKVMOUOEUxOMhii4Qra/XzgcHJje+AovrT7WKtE8=
+Date: Tue, 12 Aug 2025 16:29:45 -0700
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,bhe@redhat.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch added to mm-new branch
-Message-Id: <20250812232623.185E2C4CEF0@smtp.kernel.org>
+Subject: + mm-swapfilec-introduce-function-alloc_swap_scan_list.patch added to mm-new branch
+Message-Id: <20250812232946.0F838C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: fix damon selftests by installing _common.sh
+     Subject: mm/swapfile.c: introduce function alloc_swap_scan_list()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch
+     mm-swapfilec-introduce-function-alloc_swap_scan_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-introduce-function-alloc_swap_scan_list.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,44 +64,175 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexandre Ghiti <alexghiti@rivosinc.com>
-Subject: selftests/damon: fix damon selftests by installing _common.sh
-Date: Tue, 12 Aug 2025 08:12:11 +0000
+From: Chris Li <chrisl@kernel.org>
+Subject: mm/swapfile.c: introduce function alloc_swap_scan_list()
+Date: Tue, 12 Aug 2025 00:10:58 -0700
 
-_common.sh was recently introduced but is not installed and then triggers
-an error when trying to run the damon selftests:
+Patch series "mm/swapfile.c and swap.h cleanup", v3.
 
-selftests: damon: sysfs.sh
-./sysfs.sh: line 4: _common.sh: No such file or directory
+This patch series, which builds on Kairui's swap improve cluster scan series.
+https://lore.kernel.org/linux-mm/20250806161748.76651-1-ryncsn@gmail.com/
 
-Install this file to avoid this error.
+It introduces a new function, alloc_swap_scan_list(), for swapfile.c.
 
-Link: https://lkml.kernel.org/r/20250812-alex-fixes_manual-v1-1-c4e99b1f80e4@rivosinc.com
-Fixes: 511914506d19 ("selftests/damon: introduce _common.sh to host shared function")
-Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-Tested-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Enze Li <lienze@kylinos.cn>
-Cc: Shuah Khan <shuah@kernel.org>
+It also cleans up swap.h by removing comments that reference fields that
+have been deleted.
+
+There are no functional changes in this two-patch series.
+
+
+This patch (of 2):
+
+alloc_swap_scan_list() will scan the whole list or the first cluster.
+
+This reduces the repeat patterns of isolating a cluster then scanning that
+cluster.  As a result, cluster_alloc_swap_entry() is shorter and
+shallower.
+
+No functional change.
+
+Link: https://lkml.kernel.org/r/20250812-swap-scan-list-v3-0-6d73504d267b@kernel.org
+Link: https://lkml.kernel.org/r/20250812-swap-scan-list-v3-1-6d73504d267b@kernel.org
+Signed-off-by: Chris Li <chrisl@kernel.org>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ mm/swapfile.c |   86 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 47 insertions(+), 39 deletions(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-fix-damon-selftests-by-installing-_commonsh
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -5,6 +5,7 @@ TEST_GEN_FILES += access_memory access_m
+--- a/mm/swapfile.c~mm-swapfilec-introduce-function-alloc_swap_scan_list
++++ a/mm/swapfile.c
+@@ -820,6 +820,29 @@ out:
+ 	return found;
+ }
  
- TEST_FILES = _damon_sysfs.py
- TEST_FILES += drgn_dump_damon_status.py
-+TEST_FILES += _common.sh
++static unsigned int alloc_swap_scan_list(struct swap_info_struct *si,
++					 struct list_head *list,
++					 unsigned int order,
++					 unsigned char usage,
++					 bool scan_all)
++{
++	unsigned int found = SWAP_ENTRY_INVALID;
++
++	do {
++		struct swap_cluster_info *ci = isolate_lock_cluster(si, list);
++		unsigned long offset;
++
++		if (!ci)
++			break;
++		offset = cluster_offset(si, ci);
++		found = alloc_swap_scan_cluster(si, ci, offset, order, usage);
++		if (found)
++			break;
++	} while (scan_all);
++
++	return found;
++}
++
+ static void swap_reclaim_full_clusters(struct swap_info_struct *si, bool force)
+ {
+ 	long to_scan = 1;
+@@ -913,32 +936,24 @@ new_cluster:
+ 	 * to spread out the writes.
+ 	 */
+ 	if (si->flags & SWP_PAGE_DISCARD) {
+-		ci = isolate_lock_cluster(si, &si->free_clusters);
+-		if (ci) {
+-			found = alloc_swap_scan_cluster(si, ci, cluster_offset(si, ci),
+-							order, usage);
+-			if (found)
+-				goto done;
+-		}
++		found = alloc_swap_scan_list(si, &si->free_clusters, order, usage,
++					     false);
++		if (found)
++			goto done;
+ 	}
  
- # functionality tests
- TEST_PROGS += sysfs.sh
+ 	if (order < PMD_ORDER) {
+-		while ((ci = isolate_lock_cluster(si, &si->nonfull_clusters[order]))) {
+-			found = alloc_swap_scan_cluster(si, ci, cluster_offset(si, ci),
+-							order, usage);
+-			if (found)
+-				goto done;
+-		}
++		found = alloc_swap_scan_list(si, &si->nonfull_clusters[order],
++					     order, usage, true);
++		if (found)
++			goto done;
+ 	}
+ 
+ 	if (!(si->flags & SWP_PAGE_DISCARD)) {
+-		ci = isolate_lock_cluster(si, &si->free_clusters);
+-		if (ci) {
+-			found = alloc_swap_scan_cluster(si, ci, cluster_offset(si, ci),
+-							order, usage);
+-			if (found)
+-				goto done;
+-		}
++		found = alloc_swap_scan_list(si, &si->free_clusters, order, usage,
++					     false);
++		if (found)
++			goto done;
+ 	}
+ 
+ 	/* Try reclaim full clusters if free and nonfull lists are drained */
+@@ -952,13 +967,10 @@ new_cluster:
+ 		 * failure is not critical. Scanning one cluster still
+ 		 * keeps the list rotated and reclaimed (for HAS_CACHE).
+ 		 */
+-		ci = isolate_lock_cluster(si, &si->frag_clusters[order]);
+-		if (ci) {
+-			found = alloc_swap_scan_cluster(si, ci, cluster_offset(si, ci),
+-							order, usage);
+-			if (found)
+-				goto done;
+-		}
++		found = alloc_swap_scan_list(si, &si->frag_clusters[order], order,
++					     usage, false);
++		if (found)
++			goto done;
+ 	}
+ 
+ 	/*
+@@ -977,19 +989,15 @@ new_cluster:
+ 		 * Clusters here have at least one usable slots and can't fail order 0
+ 		 * allocation, but reclaim may drop si->lock and race with another user.
+ 		 */
+-		while ((ci = isolate_lock_cluster(si, &si->frag_clusters[o]))) {
+-			found = alloc_swap_scan_cluster(si, ci, cluster_offset(si, ci),
+-							0, usage);
+-			if (found)
+-				goto done;
+-		}
++		found = alloc_swap_scan_list(si, &si->frag_clusters[o],
++					     0, usage, true);
++		if (found)
++			goto done;
+ 
+-		while ((ci = isolate_lock_cluster(si, &si->nonfull_clusters[o]))) {
+-			found = alloc_swap_scan_cluster(si, ci, cluster_offset(si, ci),
+-							0, usage);
+-			if (found)
+-				goto done;
+-		}
++		found = alloc_swap_scan_list(si, &si->nonfull_clusters[o],
++					     0, usage, true);
++		if (found)
++			goto done;
+ 	}
+ done:
+ 	if (!(si->flags & SWP_SOLIDSTATE))
 _
 
-Patches currently in -mm which might be from alexghiti@rivosinc.com are
+Patches currently in -mm which might be from chrisl@kernel.org are
 
-selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch
+mm-swapfilec-introduce-function-alloc_swap_scan_list.patch
+mm-swaph-remove-deleted-field-from-comments.patch
 
