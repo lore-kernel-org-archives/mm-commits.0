@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 196D225E822
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 23:23:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A77E61E3DFE
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 23:26:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755040986; cv=none; b=cIFhPaBxZlP7GvJO7k9zaVCh9+gVU91DlYkR2D43HhOxGmh807iKLl/w1zL72ePNhxaQCbSgU/GI57mKd8QWVnZ7i+qXIxf/EdSEQlb3ZLI3VBTktBmEtBTTGpOV86O1wJW/G727TbxjtE1P4XKhp8bBdinlKtPYXSsdBbsdNRo=
+	t=1755041183; cv=none; b=Xgo0005nYDVMeNMQbiEKOSFnZhz0Nbc1W6lDQfjf7z/uRxcB4Ph96FDgssOc49spJFqtf1CoBvHNz4xzsyIYOB/A9Nl8JaHjUjoWevLn/3CoGCQQVLOpLHRAg18kGJ6ksSWNA4ScPj05+NEUhBMfkRLfIqZQURKR39J8c2FvKDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755040986; c=relaxed/simple;
-	bh=qBY4gTauXdeP7k8lFvem3+EUBlaiScv2TU3beGaypNg=;
-	h=Date:To:From:Subject:Message-Id; b=RmMBKAiwvxQkz9qeqbf1Ua+UWgzX4DRgacEAQEQuc3Vy2kHY2qVsKY3nudu9K2TdgIoYE5/IE66R8t2iUm+jHG7t2GXTUyTMEfK/dyoXbIqo6E3/mmhAe7e7VKL+th1X5agPEFT6zwxg8Ba2j6tl/rxCVuBSsfcOxGSvs0udusU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x8I7P9rl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755041183; c=relaxed/simple;
+	bh=2Rt97Hb/o4pFuYkK0dmJzF0IxoH64DQvU94BUTdlWz8=;
+	h=Date:To:From:Subject:Message-Id; b=Uwyaa59qdIFfxHA6M5ZWzW7YmCeeLAuQLoakaw+efvNBw4VlMCdjL6N2ShEaWju5SPFkQTueAszLdW7Od1NmCHEgOkgvwmTzzUtN7EU0hH9z3AkbzNqvaZjq4Jz3ZlG7/ukPMENbEZBdg1/4BtgdhuYk4gpKsFX6ocdEvWkNNYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=acpOT72z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x8I7P9rl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93C55C4CEF0;
-	Tue, 12 Aug 2025 23:23:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="acpOT72z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 185E2C4CEF0;
+	Tue, 12 Aug 2025 23:26:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755040984;
-	bh=qBY4gTauXdeP7k8lFvem3+EUBlaiScv2TU3beGaypNg=;
+	s=korg; t=1755041183;
+	bh=2Rt97Hb/o4pFuYkK0dmJzF0IxoH64DQvU94BUTdlWz8=;
 	h=Date:To:From:Subject:From;
-	b=x8I7P9rlnnq0SdtV3VxiU2G8ZfjPSQFZLHQhhKuJYncNakfPSGTvCSuv9QrQTpDQY
-	 0rE2gBKq09jQ8H1xfDa5FP1keg32pP4wIbbfgChWvCvOXTBQXPE9/RKZtpuK8FaQFT
-	 6CTkKGVEbWIOIWja1PF1KtuH/t8mkY6wVEn5dpL8=
-Date: Tue, 12 Aug 2025 16:23:04 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,rientjes@google.com,harry.yoo@oracle.com,cl@gentwo.org,hch@lst.de,akpm@linux-foundation.org
+	b=acpOT72zBVGW8FJ6baaS69votJQpObepeAba66sgksJ0vxDli90ZKL1S/R6oqU6Pe
+	 zPr9hTqu7gphPQCqLBnf9qL+GCKtkjlKjxNhdYAJy1HHh0TPiynywgeXJN2/6ivPXh
+	 QI3okrzEAa++nFb/8a/erN2S4kq4Cvdyb00z5Wcg=
+Date: Tue, 12 Aug 2025 16:26:22 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,ekffu200098@gmail.com,alexghiti@rivosinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempool-rename-struct-mempool_s-to-struct-mempool.patch added to mm-new branch
-Message-Id: <20250812232304.93C55C4CEF0@smtp.kernel.org>
+Subject: + selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch added to mm-new branch
+Message-Id: <20250812232623.185E2C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mempool: rename struct mempool_s to struct mempool
+     Subject: selftests/damon: fix damon selftests by installing _common.sh
 has been added to the -mm mm-new branch.  Its filename is
-     mempool-rename-struct-mempool_s-to-struct-mempool.patch
+     selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempool-rename-struct-mempool_s-to-struct-mempool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,66 +64,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mempool: rename struct mempool_s to struct mempool
-Date: Tue, 12 Aug 2025 10:30:08 +0200
+From: Alexandre Ghiti <alexghiti@rivosinc.com>
+Subject: selftests/damon: fix damon selftests by installing _common.sh
+Date: Tue, 12 Aug 2025 08:12:11 +0000
 
-Drop the pointless _s prefix and align to the usual struct naming to
-prepare for actually using the struct instead of the typedef so that
-random headers don't need to include mempool.h for just having a pointer
-to the mempool.
+_common.sh was recently introduced but is not installed and then triggers
+an error when trying to run the damon selftests:
 
-Link: https://lkml.kernel.org/r/20250812083105.371295-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+selftests: damon: sysfs.sh
+./sysfs.sh: line 4: _common.sh: No such file or directory
+
+Install this file to avoid this error.
+
+Link: https://lkml.kernel.org/r/20250812-alex-fixes_manual-v1-1-c4e99b1f80e4@rivosinc.com
+Fixes: 511914506d19 ("selftests/damon: introduce _common.sh to host shared function")
+Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+Tested-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Enze Li <lienze@kylinos.cn>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/blkdev.h  |    2 +-
- include/linux/mempool.h |    2 +-
- include/linux/netfs.h   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/damon/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/blkdev.h~mempool-rename-struct-mempool_s-to-struct-mempool
-+++ a/include/linux/blkdev.h
-@@ -199,7 +199,7 @@ struct gendisk {
- 	unsigned int		zone_wplugs_hash_bits;
- 	atomic_t		nr_zone_wplugs;
- 	spinlock_t		zone_wplugs_lock;
--	struct mempool_s	*zone_wplugs_pool;
-+	struct mempool		*zone_wplugs_pool;
- 	struct hlist_head	*zone_wplugs_hash;
- 	struct workqueue_struct *zone_wplugs_wq;
- #endif /* CONFIG_BLK_DEV_ZONED */
---- a/include/linux/mempool.h~mempool-rename-struct-mempool_s-to-struct-mempool
-+++ a/include/linux/mempool.h
-@@ -15,7 +15,7 @@ struct kmem_cache;
- typedef void * (mempool_alloc_t)(gfp_t gfp_mask, void *pool_data);
- typedef void (mempool_free_t)(void *element, void *pool_data);
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-fix-damon-selftests-by-installing-_commonsh
++++ a/tools/testing/selftests/damon/Makefile
+@@ -5,6 +5,7 @@ TEST_GEN_FILES += access_memory access_m
  
--typedef struct mempool_s {
-+typedef struct mempool {
- 	spinlock_t lock;
- 	int min_nr;		/* nr of elements at *elements */
- 	int curr_nr;		/* Current nr of elements at *elements */
---- a/include/linux/netfs.h~mempool-rename-struct-mempool_s-to-struct-mempool
-+++ a/include/linux/netfs.h
-@@ -21,7 +21,7 @@
- #include <linux/rolling_buffer.h>
+ TEST_FILES = _damon_sysfs.py
+ TEST_FILES += drgn_dump_damon_status.py
++TEST_FILES += _common.sh
  
- enum netfs_sreq_ref_trace;
--typedef struct mempool_s mempool_t;
-+typedef struct mempool mempool_t;
- struct folio_queue;
- 
- /**
+ # functionality tests
+ TEST_PROGS += sysfs.sh
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from alexghiti@rivosinc.com are
 
-mempool-rename-struct-mempool_s-to-struct-mempool.patch
+selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch
 
