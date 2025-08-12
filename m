@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D82412586CE
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 349722586CE
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754959041; cv=none; b=Xp0ceKBGzh27GQ9p8H0LI0PZ2Qi6Fm6u9aSEQ5mlmHwTd54aSr58007Tc7u24lwtlGg6xePM0llJ9cbeaNvYaNJbMMp5ajWfTTGehzUgyhtjTuJQe/Nk/7NrMzcUKI5PVjM+dHQ7OVlAah90lehDkkqj+U2A6urtXfgq5e1+JvI=
+	t=1754959044; cv=none; b=r7jzaei7tPWl23oRJoHVgYoDMylauiKjPERgnoUD7bzYY9u70ljz7M11FWYs8MlBdH6JgdVnaH1Y87HIiVQp+Y5A9eCwKdapgycid6c1+oBCDxfVlNudoHQsWO9IkGjkCrwK6N+awmtl2O4SFCuJGdFuWoEAWH/0rdlYpX1DQhY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754959041; c=relaxed/simple;
-	bh=je8cjnDf7tDNL7NgYnMG6xkn2LrKKBmV1SoipykJVmQ=;
-	h=Date:To:From:Subject:Message-Id; b=PQuU8ekG8WPILEr+zjpM+iB5qaUSe3060gE50RSIEWhqt+XSKeU0hn3OS9yPPo6MEd3aFJwCmRGDZdWNR7uSGbX/mbGM4uNt4huARqS+Zm/3WiuAELE+tFSLgjIu7W4syToLG+sqlPpupTCntHx7j2CPgKfSIm28YyQx+NzGIWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jroU/8Rw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959044; c=relaxed/simple;
+	bh=tc8ecLzot/r09GQVlkYHrSc8jFw95K2aXmbHRSDi0Cg=;
+	h=Date:To:From:Subject:Message-Id; b=WThABcuidEHUo+TBdFKU6tELekb0DtNJL0AiHTW6VOri62IaNih+Nx2RJM0IsLbJ/uxcGeYo4EHhLAoCwR0ROYwKWRf8NV+6XPKJPjtxqKcy7RZo57FMLRPZTXb557M+8O3hBggr7L0vNPnDgapMl95oObcV65HQLmC5m9Ft6hw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VVmM771j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jroU/8Rw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F03BC4CEED;
-	Tue, 12 Aug 2025 00:37:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VVmM771j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEEF5C4CEED;
+	Tue, 12 Aug 2025 00:37:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754959041;
-	bh=je8cjnDf7tDNL7NgYnMG6xkn2LrKKBmV1SoipykJVmQ=;
+	s=korg; t=1754959043;
+	bh=tc8ecLzot/r09GQVlkYHrSc8jFw95K2aXmbHRSDi0Cg=;
 	h=Date:To:From:Subject:From;
-	b=jroU/8Rwme8k5FnJSMYCsDqGW+pRjUb28u74BnKUgdlmjAKdYXt+8EtWsN7RKey5o
-	 cptnOh+Nl4L6CC1PTuOekxnjvpWds8JbK3BxHidkC3BkssSkpc7S1GlYvmVgEDrlxy
-	 yHsYl305EMOEQ5IUW6Z6ROhN/JJV0iUPeN+1Kmug=
-Date: Mon, 11 Aug 2025 17:37:20 -0700
+	b=VVmM771jgwnBulqwgOKJGmbDVcD1V2Ck7fjLGbjTShHMeQgTcVDeSCQ+Zx/FchYx6
+	 3nVg7qu3SickjzKzzFFon4iOUybVQbhOCDpBKon9LdRqexRz+81Glzdin2+/N4bqiS
+	 sdgomJheHg2Z4cWcRRhiiJKQNBUXHsCDeVxtSYQs=
+Date: Mon, 11 Aug 2025 17:37:23 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sstabellini@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,osalvador@suse.de,oleksandr_tyshchenko@epam.com,npiggin@gmail.com,npache@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,jgross@suse.com,jannh@google.com,jack@suse.cz,hughd@google.com,dev.jain@arm.com,david.vrabel@citrix.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-factor-out-common-code-from-vm_normal_page_.patch added to mm-new branch
-Message-Id: <20250812003721.3F03BC4CEED@smtp.kernel.org>
+Subject: + mm-introduce-and-use-vm_normal_page_pud.patch added to mm-new branch
+Message-Id: <20250812003723.AEEF5C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: factor out common code from vm_normal_page_*()
+     Subject: mm: introduce and use vm_normal_page_pud()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-factor-out-common-code-from-vm_normal_page_.patch
+     mm-introduce-and-use-vm_normal_page_pud.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-factor-out-common-code-from-vm_normal_page_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-and-use-vm_normal_page_pud.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,32 +65,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: factor out common code from vm_normal_page_*()
-Date: Mon, 11 Aug 2025 13:26:29 +0200
+Subject: mm: introduce and use vm_normal_page_pud()
+Date: Mon, 11 Aug 2025 13:26:30 +0200
 
-Let's reduce the code duplication and factor out the non-pte/pmd related
-magic into __vm_normal_page().
+Let's introduce vm_normal_page_pud(), which ends up being fairly simple
+because of our new common helpers and there not being a PUD-sized zero
+folio.
 
-To keep it simpler, check the pfn against both zero folios, which
-shouldn't really make a difference.
+Use vm_normal_page_pud() in folio_walk_start() to resolve a TODO,
+structuring the code like the other (pmd/pte) cases.  Defer introducing
+vm_normal_folio_pud() until really used.
 
-It's a good question if we can even hit the !CONFIG_ARCH_HAS_PTE_SPECIAL
-scenario in the PMD case in practice: but doesn't really matter, as it's
-now all unified in vm_normal_page_pfn().
+Note that we can so far get PUDs with hugetlb, daxfs and PFNMAP entries.
 
-Add kerneldoc for all involved functions.
-
-Note that, as a side product, we now:
-* Support the find_special_page special thingy also for PMD
-* Don't check for is_huge_zero_pfn() anymore if we have
-  CONFIG_ARCH_HAS_PTE_SPECIAL and the PMD is not special. The
-  VM_WARN_ON_ONCE would catch any abuse
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20250811112631.759341-10-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20250811112631.759341-11-david@redhat.com
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -119,252 +110,90 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |  186 +++++++++++++++++++++++++++++---------------------
- 1 file changed, 109 insertions(+), 77 deletions(-)
+ include/linux/mm.h |    2 ++
+ mm/memory.c        |   19 +++++++++++++++++++
+ mm/pagewalk.c      |   20 ++++++++++----------
+ 3 files changed, 31 insertions(+), 10 deletions(-)
 
---- a/mm/memory.c~mm-memory-factor-out-common-code-from-vm_normal_page_
-+++ a/mm/memory.c
-@@ -614,8 +614,14 @@ static void print_bad_page_map(struct vm
- #define print_bad_pte(vma, addr, pte, page) \
- 	print_bad_page_map(vma, addr, pte_val(pte), page, PGTABLE_LEVEL_PTE)
- 
--/*
-- * vm_normal_page -- This function gets the "struct page" associated with a pte.
-+/**
-+ * __vm_normal_page() - Get the "struct page" associated with a page table entry.
-+ * @vma: The VMA mapping the page table entry.
-+ * @addr: The address where the page table entry is mapped.
-+ * @pfn: The PFN stored in the page table entry.
-+ * @special: Whether the page table entry is marked "special".
-+ * @level: The page table level for error reporting purposes only.
-+ * @entry: The page table entry value for error reporting purposes only.
-  *
-  * "Special" mappings do not wish to be associated with a "struct page" (either
-  * it doesn't exist, or it exists but they don't want to touch it). In this
-@@ -628,10 +634,10 @@ static void print_bad_page_map(struct vm
-  * Selected page table walkers (such as GUP) can still identify mappings of the
-  * shared zero folios and work with the underlying "struct page".
-  *
-- * There are 2 broad cases. Firstly, an architecture may define a pte_special()
-- * pte bit, in which case this function is trivial. Secondly, an architecture
-- * may not have a spare pte bit, which requires a more complicated scheme,
-- * described below.
-+ * There are 2 broad cases. Firstly, an architecture may define a "special"
-+ * page table entry bit, such as pte_special(), in which case this function is
-+ * trivial. Secondly, an architecture may not have a spare page table
-+ * entry bit, which requires a more complicated scheme, described below.
-  *
-  * A raw VM_PFNMAP mapping (ie. one that is not COWed) is always considered a
-  * special mapping (even if there are underlying and valid "struct pages").
-@@ -664,63 +670,94 @@ static void print_bad_page_map(struct vm
-  * don't have to follow the strict linearity rule of PFNMAP mappings in
-  * order to support COWable mappings.
-  *
-+ * Return: Returns the "struct page" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-  */
--struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
--			    pte_t pte)
-+static inline struct page *__vm_normal_page(struct vm_area_struct *vma,
-+		unsigned long addr, unsigned long pfn, bool special,
-+		unsigned long long entry, enum pgtable_level level)
- {
--	unsigned long pfn = pte_pfn(pte);
--
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL)) {
--		if (likely(!pte_special(pte)))
--			goto check_pfn;
--		if (vma->vm_ops && vma->vm_ops->find_special_page)
--			return vma->vm_ops->find_special_page(vma, addr);
--		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
--			return NULL;
--		if (is_zero_pfn(pfn))
--			return NULL;
--
--		print_bad_pte(vma, addr, pte, NULL);
--		return NULL;
--	}
--
--	/* !CONFIG_ARCH_HAS_PTE_SPECIAL case follows: */
--
--	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
--		if (vma->vm_flags & VM_MIXEDMAP) {
--			if (!pfn_valid(pfn))
--				return NULL;
--			if (is_zero_pfn(pfn))
-+		if (unlikely(special)) {
-+			if (vma->vm_ops && vma->vm_ops->find_special_page)
-+				return vma->vm_ops->find_special_page(vma, addr);
-+			if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
- 				return NULL;
--			goto out;
--		} else {
--			unsigned long off;
--			off = (addr - vma->vm_start) >> PAGE_SHIFT;
--			if (pfn == vma->vm_pgoff + off)
--				return NULL;
--			if (!is_cow_mapping(vma->vm_flags))
-+			if (is_zero_pfn(pfn) || is_huge_zero_pfn(pfn))
- 				return NULL;
-+
-+			print_bad_page_map(vma, addr, entry, NULL, level);
-+			return NULL;
-+		}
-+		/*
-+		 * With CONFIG_ARCH_HAS_PTE_SPECIAL, any special page table
-+		 * mappings (incl. shared zero folios) are marked accordingly.
-+		 */
-+	} else {
-+		if (unlikely(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))) {
-+			if (vma->vm_flags & VM_MIXEDMAP) {
-+				/* If it has a "struct page", it's "normal". */
-+				if (!pfn_valid(pfn))
-+					return NULL;
-+			} else {
-+				unsigned long off = (addr - vma->vm_start) >> PAGE_SHIFT;
-+
-+				/* Only CoW'ed anon folios are "normal". */
-+				if (pfn == vma->vm_pgoff + off)
-+					return NULL;
-+				if (!is_cow_mapping(vma->vm_flags))
-+					return NULL;
-+			}
- 		}
--	}
- 
--	if (is_zero_pfn(pfn))
--		return NULL;
-+		if (is_zero_pfn(pfn) || is_huge_zero_pfn(pfn))
-+			return NULL;
-+	}
- 
--check_pfn:
- 	if (unlikely(pfn > highest_memmap_pfn)) {
--		print_bad_pte(vma, addr, pte, NULL);
-+		/* Corrupted page table entry. */
-+		print_bad_page_map(vma, addr, entry, NULL, level);
- 		return NULL;
- 	}
--
- 	/*
- 	 * NOTE! We still have PageReserved() pages in the page tables.
--	 * eg. VDSO mappings can cause them to exist.
-+	 * For example, VDSO mappings can cause them to exist.
- 	 */
--out:
--	VM_WARN_ON_ONCE(is_zero_pfn(pfn));
-+	VM_WARN_ON_ONCE(is_zero_pfn(pfn) || is_huge_zero_pfn(pfn));
- 	return pfn_to_page(pfn);
- }
- 
-+/**
-+ * vm_normal_page() - Get the "struct page" associated with a PTE
-+ * @vma: The VMA mapping the @pte.
-+ * @addr: The address where the @pte is mapped.
-+ * @pte: The PTE.
-+ *
-+ * Get the "struct page" associated with a PTE. See __vm_normal_page()
-+ * for details on "normal" and "special" mappings.
-+ *
-+ * Return: Returns the "struct page" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-+ */
-+struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
-+			    pte_t pte)
-+{
-+	return __vm_normal_page(vma, addr, pte_pfn(pte), pte_special(pte),
-+				pte_val(pte), PGTABLE_LEVEL_PTE);
-+}
-+
-+/**
-+ * vm_normal_folio() - Get the "struct folio" associated with a PTE
-+ * @vma: The VMA mapping the @pte.
-+ * @addr: The address where the @pte is mapped.
-+ * @pte: The PTE.
-+ *
-+ * Get the "struct folio" associated with a PTE. See __vm_normal_page()
-+ * for details on "normal" and "special" mappings.
-+ *
-+ * Return: Returns the "struct folio" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-+ */
- struct folio *vm_normal_folio(struct vm_area_struct *vma, unsigned long addr,
- 			    pte_t pte)
- {
-@@ -732,42 +769,37 @@ struct folio *vm_normal_folio(struct vm_
- }
- 
- #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
-+/**
-+ * vm_normal_page_pmd() - Get the "struct page" associated with a PMD
-+ * @vma: The VMA mapping the @pmd.
-+ * @addr: The address where the @pmd is mapped.
-+ * @pmd: The PMD.
-+ *
-+ * Get the "struct page" associated with a PTE. See __vm_normal_page()
-+ * for details on "normal" and "special" mappings.
-+ *
-+ * Return: Returns the "struct page" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-+ */
+--- a/include/linux/mm.h~mm-introduce-and-use-vm_normal_page_pud
++++ a/include/linux/mm.h
+@@ -2360,6 +2360,8 @@ struct folio *vm_normal_folio_pmd(struct
+ 				  unsigned long addr, pmd_t pmd);
  struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
- 				pmd_t pmd)
- {
--	unsigned long pfn = pmd_pfn(pmd);
--
--	if (unlikely(pmd_special(pmd)))
--		return NULL;
--
--	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
--		if (vma->vm_flags & VM_MIXEDMAP) {
--			if (!pfn_valid(pfn))
--				return NULL;
--			goto out;
--		} else {
--			unsigned long off;
--			off = (addr - vma->vm_start) >> PAGE_SHIFT;
--			if (pfn == vma->vm_pgoff + off)
--				return NULL;
--			if (!is_cow_mapping(vma->vm_flags))
--				return NULL;
--		}
--	}
--
--	if (is_huge_zero_pfn(pfn))
--		return NULL;
--	if (unlikely(pfn > highest_memmap_pfn))
--		return NULL;
--
--	/*
--	 * NOTE! We still have PageReserved() pages in the page tables.
--	 * eg. VDSO mappings can cause them to exist.
--	 */
--out:
--	return pfn_to_page(pfn);
-+	return __vm_normal_page(vma, addr, pmd_pfn(pmd), pmd_special(pmd),
-+				pmd_val(pmd), PGTABLE_LEVEL_PMD);
- }
+ 				pmd_t pmd);
++struct page *vm_normal_page_pud(struct vm_area_struct *vma, unsigned long addr,
++		pud_t pud);
  
+ void zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
+ 		  unsigned long size);
+--- a/mm/memory.c~mm-introduce-and-use-vm_normal_page_pud
++++ a/mm/memory.c
+@@ -809,6 +809,25 @@ struct folio *vm_normal_folio_pmd(struct
+ 		return page_folio(page);
+ 	return NULL;
+ }
++
 +/**
-+ * vm_normal_folio_pmd() - Get the "struct folio" associated with a PMD
-+ * @vma: The VMA mapping the @pmd.
-+ * @addr: The address where the @pmd is mapped.
-+ * @pmd: The PMD.
++ * vm_normal_page_pud() - Get the "struct page" associated with a PUD
++ * @vma: The VMA mapping the @pud.
++ * @addr: The address where the @pud is mapped.
++ * @pud: The PUD.
 + *
-+ * Get the "struct folio" associated with a PTE. See __vm_normal_page()
++ * Get the "struct page" associated with a PUD. See __vm_normal_page()
 + * for details on "normal" and "special" mappings.
 + *
-+ * Return: Returns the "struct folio" if this is a "normal" mapping. Returns
++ * Return: Returns the "struct page" if this is a "normal" mapping. Returns
 + *	   NULL if this is a "special" mapping.
 + */
- struct folio *vm_normal_folio_pmd(struct vm_area_struct *vma,
- 				  unsigned long addr, pmd_t pmd)
- {
++struct page *vm_normal_page_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t pud)
++{
++	return __vm_normal_page(vma, addr, pud_pfn(pud), pud_special(pud),
++				pud_val(pud), PGTABLE_LEVEL_PUD);
++}
+ #endif
+ 
+ /**
+--- a/mm/pagewalk.c~mm-introduce-and-use-vm_normal_page_pud
++++ a/mm/pagewalk.c
+@@ -902,23 +902,23 @@ struct folio *folio_walk_start(struct fo
+ 		fw->pudp = pudp;
+ 		fw->pud = pud;
+ 
+-		/*
+-		 * TODO: FW_MIGRATION support for PUD migration entries
+-		 * once there are relevant users.
+-		 */
+-		if (!pud_present(pud) || pud_special(pud)) {
++		if (pud_none(pud)) {
+ 			spin_unlock(ptl);
+ 			goto not_found;
+-		} else if (!pud_leaf(pud)) {
++		} else if (pud_present(pud) && !pud_leaf(pud)) {
+ 			spin_unlock(ptl);
+ 			goto pmd_table;
++		} else if (pud_present(pud)) {
++			page = vm_normal_page_pud(vma, addr, pud);
++			if (page)
++				goto found;
+ 		}
+ 		/*
+-		 * TODO: vm_normal_page_pud() will be handy once we want to
+-		 * support PUD mappings in VM_PFNMAP|VM_MIXEDMAP VMAs.
++		 * TODO: FW_MIGRATION support for PUD migration entries
++		 * once there are relevant users.
+ 		 */
+-		page = pud_page(pud);
+-		goto found;
++		spin_unlock(ptl);
++		goto not_found;
+ 	}
+ 
+ pmd_table:
 _
 
 Patches currently in -mm which might be from david@redhat.com are
