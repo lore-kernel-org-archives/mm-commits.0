@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3238278E42
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 01:42:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 390EA2DA74C;
+	Tue, 12 Aug 2025 01:56:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754962979; cv=none; b=SBegUy1o6vJgLbOi6NT0JO3mRVYhMKAuvAINkyxn3zDVyhDQ7MnP3aZVYSv7jzqQv4URW+kt8Ejlo0K+Jku3eQ3cIjxXdm8ns8HWflVNAxX8r2Gi+I4u6UwnjXMEOsSIVARGRMGgZ33Iz5SMkAUgM4Dyx8DzLZ0gfYBolBteRRg=
+	t=1754963812; cv=none; b=R3fCIipoOMvrZOm33BJMEUK4MN1hC6E119Fxn4bDT5Ifbry9pv+OyNEa2ZRDg++d6uxxeQl4p3aKTupS85vp7KFhJ3fI1wrhRLk/1NCJ64LRxN4xQDBUuETv0e51xvOjYMY9ilmosotqMEt4MJi5RR2QVEp5sK+YXc4IcSE99Og=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754962979; c=relaxed/simple;
-	bh=MzltzPIpsR8aksxvwNAm7dlgw2ZEJlqPqyalLuFqX/U=;
-	h=Date:To:From:Subject:Message-Id; b=tubQP2lh7GIQbUwGo5fBn5qbtQYQHGy7DjB9cygAl/0ZL02Ro7VB3ggpMUBrMPUCS5qA3Kr+SFwhI5a11CbvTF1qYX+waMFMWupUL4WAadDD3mPeZZlu47bnrmOhZbXySX/s75yviLsbfaxcuKWg1OoDJOuOJBFnscbDvpHa64E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zk1cdgoO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754963812; c=relaxed/simple;
+	bh=nPJ+D6VLQgNOGB9tKlzv1fe8eZuGbvLOxXcRWR8mwpc=;
+	h=Date:To:From:Subject:Message-Id; b=HU80uuMZkEr47xG4Vu12ztwp0AWu1QkorG0YRcT4tMMnaCqQ31C99kMGP5uo9EJbn7QVacjjcdiBbqKGhVzFtH+VGuVfWK2ZoEchEmH3y6Lw10fZWN1rYjQreCVuMef/yiT6JQJ0AY8i4XBlLv3RdI+PtyfF2vFlbKXCqFbzyss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2cb1cXuw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zk1cdgoO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A93CC4CEED;
-	Tue, 12 Aug 2025 01:42:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2cb1cXuw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B19DBC4CEED;
+	Tue, 12 Aug 2025 01:56:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754962979;
-	bh=MzltzPIpsR8aksxvwNAm7dlgw2ZEJlqPqyalLuFqX/U=;
+	s=korg; t=1754963811;
+	bh=nPJ+D6VLQgNOGB9tKlzv1fe8eZuGbvLOxXcRWR8mwpc=;
 	h=Date:To:From:Subject:From;
-	b=Zk1cdgoOP2H0xTRCkNCH8HHp1MmKdESxGUmAcOydfP5uQcSwOfuMBODwTP+6aEjWg
-	 qsW6jRix7ERgOjd68tTxpSYNdkqQLdJvcUf7aLSD14XiUs6kmBdZXfTSQdpSEy7hZF
-	 TD9AcvbP9fhrfreZQLWT92Ik4hZ9+RZXLNAmylPw=
-Date: Mon, 11 Aug 2025 18:42:58 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=2cb1cXuwXKrdV7nQB9lswz10mSyab7KQNaPI0tQmbMKhT+pdqAVvV0WhkMy2YkKEj
+	 YG/Sy+evVDwry2VVdTL0EUoIKDKJscDciSKje8fZZ+0X/smubln1BSMjZKkZu3Z9JO
+	 EunOOYvcRDxhT8+zHaLluee5ITT+XG3PeeWJoQeM=
+Date: Mon, 11 Aug 2025 18:56:51 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,jack@suse.cz,brauner@kernel.org,chenhuacai@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-test-no-op-commit-broke-damon-status.patch added to mm-new branch
-Message-Id: <20250812014259.3A93CC4CEED@smtp.kernel.org>
+Subject: + init-handle-bootloader-identifier-in-kernel-parameters.patch added to mm-nonmm-unstable branch
+Message-Id: <20250812015651.B19DBC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: test no-op commit broke DAMON status
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-test-no-op-commit-broke-damon-status.patch
+     Subject: init: handle bootloader identifier in kernel parameters
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-handle-bootloader-identifier-in-kernel-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-test-no-op-commit-broke-damon-status.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-handle-bootloader-identifier-in-kernel-parameters.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,116 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: selftests/damon: test no-op commit broke DAMON status
-Date: Sun, 10 Aug 2025 21:43:54 +0900
+From: Huacai Chen <chenhuacai@loongson.cn>
+Subject: init: handle bootloader identifier in kernel parameters
+Date: Mon, 21 Jul 2025 18:13:43 +0800
 
-Add test to verify that DAMON status is not changed after a no-op commit.
+BootLoader (Grub, LILO, etc) may pass an identifier such as "BOOT_IMAGE=
+/boot/vmlinuz-x.y.z" to kernel parameters.  But these identifiers are not
+recognized by the kernel itself so will be passed to user space.  However
+user space init program also doesn't recognized it.
 
-Link: https://lkml.kernel.org/r/20250810124354.16456-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
+KEXEC/KDUMP (kexec-tools) may also pass an identifier such as "kexec" on
+some architectures.
+
+We cannot change BootLoader's behavior, because this behavior exists for
+many years, and there are already user space programs search BOOT_IMAGE=
+in /proc/cmdline to obtain the kernel image locations:
+
+https://github.com/linuxdeepin/deepin-ab-recovery/blob/master/util.go
+(search getBootOptions)
+https://github.com/linuxdeepin/deepin-ab-recovery/blob/master/main.go
+(search getKernelReleaseWithBootOption)
+
+So the the best way is handle (ignore) it by the kernel itself, which can
+avoid such boot warnings (if we use something like init=/bin/bash,
+bootloader identifier can even cause a crash):
+
+Kernel command line: BOOT_IMAGE=(hd0,1)/vmlinuz-6.x root=/dev/sda3 ro console=tty
+Unknown kernel command line parameters "BOOT_IMAGE=(hd0,1)/vmlinuz-6.x", will be passed to user space.
+
+Link: https://lkml.kernel.org/r/20250721101343.3283480-1-chenhuacai@loongson.cn
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile                    |    1 
- tools/testing/selftests/damon/sysfs_no_op_commit_break.py |   72 ++++++++++
- 2 files changed, 73 insertions(+)
+ init/main.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-test-no-op-commit-broke-damon-status
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -17,6 +17,7 @@ TEST_PROGS += reclaim.sh lru_sort.sh
- TEST_PROGS += sysfs_update_removed_scheme_dir.sh
- TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
- TEST_PROGS += sysfs_memcg_path_leak.sh
-+TEST_PROGS += sysfs_no_op_commit_break.py
+--- a/init/main.c~init-handle-bootloader-identifier-in-kernel-parameters
++++ a/init/main.c
+@@ -544,6 +544,12 @@ static int __init unknown_bootoption(cha
+ 				     const char *unused, void *arg)
+ {
+ 	size_t len = strlen(param);
++	/*
++	 * Well-known bootloader identifiers:
++	 * 1. LILO/Grub pass "BOOT_IMAGE=...";
++	 * 2. kexec/kdump (kexec-tools) pass "kexec".
++	 */
++	const char *bootloader[] = { "BOOT_IMAGE=", "kexec", NULL };
  
- EXTRA_CLEAN = __pycache__
+ 	/* Handle params aliased to sysctls */
+ 	if (sysctl_is_alias(param))
+@@ -551,6 +557,12 @@ static int __init unknown_bootoption(cha
  
-diff --git a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
-@@ -0,0 +1,72 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
+ 	repair_env_string(param, val);
+ 
++	/* Handle bootloader identifier */
++	for (int i = 0; bootloader[i]; i++) {
++		if (!strncmp(param, bootloader[i], strlen(bootloader[i])))
++			return 0;
++	}
 +
-+import json
-+import os
-+import subprocess
-+import sys
-+
-+import _damon_sysfs
-+
-+def dump_damon_status_dict(pid):
-+    try:
-+        subprocess.check_output(['which', 'drgn'], stderr=subprocess.DEVNULL)
-+    except:
-+        return None, 'drgn not found'
-+    file_dir = os.path.dirname(os.path.abspath(__file__))
-+    dump_script = os.path.join(file_dir, 'drgn_dump_damon_status.py')
-+    rc = subprocess.call(['drgn', dump_script, pid, 'damon_dump_output'],
-+        stderr=subprocess.DEVNULL)
-+
-+    if rc != 0:
-+        return None, f'drgn fail: return code({rc})'
-+    try:
-+        with open('damon_dump_output', 'r') as f:
-+            return json.load(f), None
-+    except Exception as e:
-+        return None, 'json.load fail (%s)' % e
-+
-+def main():
-+    kdamonds = _damon_sysfs.Kdamonds(
-+        [_damon_sysfs.Kdamond(
-+            contexts=[_damon_sysfs.DamonCtx(
-+                schemes=[_damon_sysfs.Damos(
-+                    ops_filters=[
-+                        _damon_sysfs.DamosFilter(
-+                            type_='anon',
-+                            matching=True,
-+                            allow=True,
-+                        )
-+                    ]
-+                )],
-+            )])]
-+    )
-+
-+    err = kdamonds.start()
-+    if err is not None:
-+        print('kdamond start failed: %s' % err)
-+        exit(1)
-+
-+    before_commit_status, err = \
-+        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+    if err is not None:
-+        print('before-commit status dump failed: %s' % err)
-+        exit(1)
-+
-+    kdamonds.kdamonds[0].commit()
-+
-+    after_commit_status, err = \
-+        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+    if err is not None:
-+        print('after-commit status dump failed: %s' % err)
-+        exit(1)
-+
-+    if before_commit_status != after_commit_status:
-+        print(f'before: {json.dump(before_commit_status, indent=2)}')
-+        print(f'after: {json.dump(after_commit_status, indent=2)}')
-+        exit(1)
-+
-+    kdamonds.stop()
-+
-+if __name__ == '__main__':
-+    main()
+ 	/* Handle obsolete-style parameters */
+ 	if (obsolete_checksetup(param))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from chenhuacai@loongson.cn are
 
-mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function.patch
-mm-damon-update-expired-description-of-damos_action.patch
-docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
-selftests-damon-test-no-op-commit-broke-damon-status.patch
+init-handle-bootloader-identifier-in-kernel-parameters.patch
 
