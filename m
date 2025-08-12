@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A4F527F73A
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:24:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 742EC275AFC
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:31:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754958274; cv=none; b=NoSkTgoNnoGetXGIPhuY6pdIeuKf1I3VoalBM3MLFf7SzJAjurVLOI76IKgolE3/Fk+EdcpQMb/pT+FKecuNArWFpQvu1xCaX9tciIzUFsMdp1Enaxg6bIwh6u+2cNPASVPj/PshDqEbLSRinrdnghzK5MPUhZPi4Q83RVVzdWE=
+	t=1754958711; cv=none; b=Uh25w+L+egVipdTnJmUucA/hvEd4fWgh24e3oNYTlecadL3gA4WDCrq2SlLjV6qBN2ddTIz2B4+1VUWpcmBlaBbSJ/1G3edpsQPtCZMhVEnkx+yAs0HHzrMbeR0dWhnx+uAvOEwVG2a24ZlPsvpvyoHpFDH76H86cQgrO0mhGjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754958274; c=relaxed/simple;
-	bh=Yo/YiT966zusKkMiIjOmy02hiFebpXFJC/DrblxRyV0=;
-	h=Date:To:From:Subject:Message-Id; b=Z3miAhJWfA2aHdgptoqbwYx+KQNRiACVlz61U3TxjklHaTE+ijuPWf3VDNWaLsVFx0ZaqtdnJqXNvX2LUWl0rX+9CdZp2wxIiHqWmacnoCxT4ATJQLjEIBI9oJ6CRHivaiiN9Uj53kyj8FtoS3mw0jx1Jd+6nQ+D2zzDKGnP42A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cZ1tRGt6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754958711; c=relaxed/simple;
+	bh=wPPmvTieOZ5qrw7x/iGY70Iwc5uQmXKlnIBmWcDQUcM=;
+	h=Date:To:From:Subject:Message-Id; b=WrKO0f6kSDhraFi2e+7luCuc5STMWySENWQv1/WsVluzVBgFkXm+za5rzM8T3mrD8/zq0OsSnEGPFMQX87Wc+cvEC7D9nWrKtrye1NdXzrvw5B6uPpbrbgTDG3HVCPd5xxHryIoDGvbE9xpQLsa98bxbi/oFZPuXW5RE5LLt9TU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IV9V0vKe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cZ1tRGt6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41EFDC4CEED;
-	Tue, 12 Aug 2025 00:24:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IV9V0vKe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8ABAC4CEED;
+	Tue, 12 Aug 2025 00:31:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754958274;
-	bh=Yo/YiT966zusKkMiIjOmy02hiFebpXFJC/DrblxRyV0=;
+	s=korg; t=1754958710;
+	bh=wPPmvTieOZ5qrw7x/iGY70Iwc5uQmXKlnIBmWcDQUcM=;
 	h=Date:To:From:Subject:From;
-	b=cZ1tRGt6NiLpeNm9f4WzhG9FPHHMh37RQt+9llRrGzN1VLzcy1PRLpxDuMptONyX3
-	 1kaeoNuJ3CQm+hFJQFzl7xe6JPDMUuLgTaOfTHt30n2KPWq1d8LSjKdU7t9z6MXo8W
-	 rm78koCQa7XSXwHQAkbLZbm8XHTssyPFfNFzQ53Y=
-Date: Mon, 11 Aug 2025 17:24:33 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shikemeng@huaweicloud.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=IV9V0vKe5g0NlSYIIfghDc4cYd6eEfjjFxwqi2yvI+PVEWYlJ60vWpLkGhDwdaEaO
+	 jQba6ZkOAN/TWQJVovMHwbFCW1h9pi/v25XMb8+W8Rjafdso/JHUyoOp8sBT8AZ/bW
+	 6G5I+NKXwdP+GJZuaJsW/TMT+1rUhL3tQnG3nHzY=
+Date: Mon, 11 Aug 2025 17:31:50 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,xuanzhuo@linux.alibaba.com,viro@zeniv.linux.org.uk,shaggy@kernel.org,senozhatsky@chromium.org,rakie.kim@sk.com,osalvador@suse.de,npiggin@gmail.com,muchun.song@linux.dev,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,matthew.brost@intel.com,maddy@linux.ibm.com,joshua.hahnjy@gmail.com,josef@toxicpanda.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,dsterba@suse.com,dave.kleikamp@oracle.com,clm@fb.com,christophe.leroy@csgroup.eu,byungchul@sk.com,brauner@kernel.org,bcrl@kvack.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mincore-use-a-helper-for-checking-the-swap-cache.patch added to mm-new branch
-Message-Id: <20250812002434.41EFDC4CEED@smtp.kernel.org>
+Subject: + mm-migrate-remove-migratepage_unmap.patch added to mm-new branch
+Message-Id: <20250812003150.C8ABAC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mincore: use a helper for checking the swap cache
+     Subject: mm/migrate: remove MIGRATEPAGE_UNMAP
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mincore-use-a-helper-for-checking-the-swap-cache.patch
+     mm-migrate-remove-migratepage_unmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mincore-use-a-helper-for-checking-the-swap-cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-migratepage_unmap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,180 +64,167 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/mincore: use a helper for checking the swap cache
-Date: Tue, 12 Aug 2025 01:20:18 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/migrate: remove MIGRATEPAGE_UNMAP
+Date: Mon, 11 Aug 2025 16:39:47 +0200
 
-Introduce a mincore_swap helper for checking swap entries.  Move all swap
-related logic and sanity debug check into it, and separate them from page
-cache checking.
+migrate_folio_unmap() is the only user of MIGRATEPAGE_UNMAP.  We want to
+remove MIGRATEPAGE_* completely.
 
-The performance is better after this commit.  mincore_page is never called
-on a swap cache space now, so the logic can be simpler.  The sanity check
-also covers more potential cases now, previously the WARN_ON only catches
-potentially corrupted page table, now if shmem contains a swap entry with
-!CONFIG_SWAP, a WARN will be triggered.  This changes the mincore value
-when the WARN is triggered, but this shouldn't matter.  The WARN_ON means
-the data is already corrupted or something is very wrong, so it really
-should not happen.
+It's rather weird to have a generic MIGRATEPAGE_UNMAP, documented to be
+returned from address-space callbacks, when it's only used for an internal
+helper.
 
-Before this series:
-mincore on a swaped out 16G anon mmap range:
-Took 488220 us
-mincore on 16G shmem mmap range:
-Took 530272 us.
+Let's start by having only a single "success" return value for
+migrate_folio_unmap() -- 0 -- by moving the "folio was already freed"
+check into the single caller.
 
-After this commit:
-mincore on a swaped out 16G anon mmap range:
-Took 446763 us
-mincore on 16G shmem mmap range:
-Took 460496 us.
+There is a remaining comment for PG_isolated, which we renamed to
+PG_movable_ops_isolated recently and forgot to update.
 
-About ~10% faster.
+While we might still run into that case with zsmalloc, it's something we
+want to get rid of soon.  So let's just focus that optimization on real
+folios only for now by excluding movable_ops pages.  Note that concurrent
+freeing can happen at any time and this "already freed" check is not
+relevant for correctness.
 
-Link: https://lkml.kernel.org/r/20250811172018.48901-3-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250811143949.1117439-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dave Kleikamp <shaggy@kernel.org>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Eugenio Pé rez <eperezma@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jerrin Shaji George <jerrin.shaji-george@broadcom.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Dave Kleikamp <dave.kleikamp@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |   90 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 49 insertions(+), 41 deletions(-)
+ include/linux/migrate.h |    1 
+ mm/migrate.c            |   40 +++++++++++++++++++-------------------
+ 2 files changed, 20 insertions(+), 21 deletions(-)
 
---- a/mm/mincore.c~mm-mincore-use-a-helper-for-checking-the-swap-cache
-+++ a/mm/mincore.c
-@@ -47,6 +47,48 @@ static int mincore_hugetlb(pte_t *pte, u
- 	return 0;
- }
+--- a/include/linux/migrate.h~mm-migrate-remove-migratepage_unmap
++++ a/include/linux/migrate.h
+@@ -18,7 +18,6 @@ struct migration_target_control;
+  * - zero on page migration success;
+  */
+ #define MIGRATEPAGE_SUCCESS		0
+-#define MIGRATEPAGE_UNMAP		1
  
-+static unsigned char mincore_swap(swp_entry_t entry, bool shmem)
-+{
-+	struct swap_info_struct *si;
-+	struct folio *folio = NULL;
-+	unsigned char present = 0;
-+
-+	if (!IS_ENABLED(CONFIG_SWAP)) {
-+		WARN_ON(1);
-+		return 0;
-+	}
-+
-+	/*
-+	 * Shmem mapping may contain swapin error entries, which are
-+	 * absent. Page table may contain migration or hwpoison
-+	 * entries which are always uptodate.
-+	 */
-+	if (non_swap_entry(entry))
-+		return !shmem;
-+
-+	/*
-+	 * Shmem mapping lookup is lockless, so we need to grab the swap
-+	 * device. mincore page table walk locks the PTL, and the swap
-+	 * device is stable, avoid touching the si for better performance.
-+	 */
-+	if (shmem) {
-+		si = get_swap_device(entry);
-+		if (!si)
-+			return 0;
-+	}
-+	folio = filemap_get_entry(swap_address_space(entry),
-+				  swap_cache_index(entry));
-+	if (shmem)
-+		put_swap_device(si);
-+	/* The swap cache space contains either folio, shadow or NULL */
-+	if (folio && !xa_is_value(folio)) {
-+		present = folio_test_uptodate(folio);
-+		folio_put(folio);
-+	}
-+
-+	return present;
-+}
-+
- /*
-  * Later we can get more picky about what "in core" means precisely.
-  * For now, simply check to see if the page is in the page cache,
-@@ -64,33 +106,15 @@ static unsigned char mincore_page(struct
- 	 * any other file mapping (ie. marked !present and faulted in with
- 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
- 	 */
--	if (IS_ENABLED(CONFIG_SWAP) && shmem_mapping(mapping)) {
--		folio = filemap_get_entry(mapping, index);
--		/*
--		 * shmem/tmpfs may return swap: account for swapcache
--		 * page too.
--		 */
-+	folio = filemap_get_entry(mapping, index);
-+	if (folio) {
- 		if (xa_is_value(folio)) {
--			struct swap_info_struct *si;
--			swp_entry_t swp = radix_to_swp_entry(folio);
--			/* There might be swapin error entries in shmem mapping. */
--			if (non_swap_entry(swp))
--				return 0;
--			/* Prevent swap device to being swapoff under us */
--			si = get_swap_device(swp);
--			if (si) {
--				folio = filemap_get_folio(swap_address_space(swp),
--							  swap_cache_index(swp));
--				put_swap_device(si);
--			} else {
-+			if (shmem_mapping(mapping))
-+				return mincore_swap(radix_to_swp_entry(folio),
-+						    true);
-+			else
- 				return 0;
--			}
- 		}
--	} else {
--		folio = filemap_get_folio(mapping, index);
+ /**
+  * struct movable_operations - Driver page migration
+--- a/mm/migrate.c~mm-migrate-remove-migratepage_unmap
++++ a/mm/migrate.c
+@@ -1176,16 +1176,6 @@ static int migrate_folio_unmap(new_folio
+ 	bool locked = false;
+ 	bool dst_locked = false;
+ 
+-	if (folio_ref_count(src) == 1) {
+-		/* Folio was freed from under us. So we are done. */
+-		folio_clear_active(src);
+-		folio_clear_unevictable(src);
+-		/* free_pages_prepare() will clear PG_isolated. */
+-		list_del(&src->lru);
+-		migrate_folio_done(src, reason);
+-		return MIGRATEPAGE_SUCCESS;
 -	}
 -
--	if (!IS_ERR_OR_NULL(folio)) {
- 		present = folio_test_uptodate(folio);
- 		folio_put(folio);
+ 	dst = get_new_folio(src, private);
+ 	if (!dst)
+ 		return -ENOMEM;
+@@ -1275,7 +1265,7 @@ static int migrate_folio_unmap(new_folio
+ 
+ 	if (unlikely(page_has_movable_ops(&src->page))) {
+ 		__migrate_folio_record(dst, old_page_state, anon_vma);
+-		return MIGRATEPAGE_UNMAP;
++		return 0;
  	}
-@@ -168,23 +192,7 @@ static int mincore_pte_range(pmd_t *pmd,
- 			for (i = 0; i < step; i++)
- 				vec[i] = 1;
- 		} else { /* pte is a swap entry */
--			swp_entry_t entry = pte_to_swp_entry(pte);
--
--			if (non_swap_entry(entry)) {
--				/*
--				 * migration or hwpoison entries are always
--				 * uptodate
--				 */
--				*vec = 1;
--			} else {
--#ifdef CONFIG_SWAP
--				*vec = mincore_page(swap_address_space(entry),
--						    swap_cache_index(entry));
--#else
--				WARN_ON(1);
--				*vec = 1;
--#endif
--			}
-+			*vec = mincore_swap(pte_to_swp_entry(pte), false);
- 		}
- 		vec += step;
+ 
+ 	/*
+@@ -1305,7 +1295,7 @@ static int migrate_folio_unmap(new_folio
+ 
+ 	if (!folio_mapped(src)) {
+ 		__migrate_folio_record(dst, old_page_state, anon_vma);
+-		return MIGRATEPAGE_UNMAP;
++		return 0;
  	}
+ 
+ out:
+@@ -1848,14 +1838,28 @@ static int migrate_pages_batch(struct li
+ 				continue;
+ 			}
+ 
++			/*
++			 * If we are holding the last folio reference, the folio
++			 * was freed from under us, so just drop our reference.
++			 */
++			if (likely(!page_has_movable_ops(&folio->page)) &&
++			    folio_ref_count(folio) == 1) {
++				folio_clear_active(folio);
++				folio_clear_unevictable(folio);
++				list_del(&folio->lru);
++				migrate_folio_done(folio, reason);
++				stats->nr_succeeded += nr_pages;
++				stats->nr_thp_succeeded += is_thp;
++				continue;
++			}
++
+ 			rc = migrate_folio_unmap(get_new_folio, put_new_folio,
+ 					private, folio, &dst, mode, reason,
+ 					ret_folios);
+ 			/*
+ 			 * The rules are:
+-			 *	Success: folio will be freed
+-			 *	Unmap: folio will be put on unmap_folios list,
+-			 *	       dst folio put on dst_folios list
++			 *	0: folio will be put on unmap_folios list,
++			 *	   dst folio put on dst_folios list
+ 			 *	-EAGAIN: stay on the from list
+ 			 *	-ENOMEM: stay on the from list
+ 			 *	Other errno: put on ret_folios list
+@@ -1905,11 +1909,7 @@ static int migrate_pages_batch(struct li
+ 				thp_retry += is_thp;
+ 				nr_retry_pages += nr_pages;
+ 				break;
+-			case MIGRATEPAGE_SUCCESS:
+-				stats->nr_succeeded += nr_pages;
+-				stats->nr_thp_succeeded += is_thp;
+-				break;
+-			case MIGRATEPAGE_UNMAP:
++			case 0:
+ 				list_move_tail(&folio->lru, &unmap_folios);
+ 				list_add_tail(&dst->lru, &dst_folios);
+ 				break;
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-swap-only-scan-one-cluster-in-fragment-list.patch
-mm-swap-remove-fragment-clusters-counter.patch
-mm-swap-prefer-nonfull-over-free-clusters.patch
-mm-mincore-swap-consolidate-swap-cache-checking-for-mincore.patch
-mm-mincore-use-a-helper-for-checking-the-swap-cache.patch
+mm-migrate-remove-migratepage_unmap.patch
+treewide-remove-migratepage_success.patch
 
