@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1C272D29C2
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 03:50:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0E4B2571C2
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 03:50:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754970617; cv=none; b=s3gCStp0OmPCA7IL9cn/oqOXbl+bIZJomBFkryh1/WgzgVcH5M8W/6cJSPwG/JqirNTJ+UBUBwkBoDJEYrxlOaoRsySkG5vvr6Hqrb67fFokvry9fkBEZE/dm4NKETGj9OCiWfG59sWsgn9ORsTwCEsiNtXC42c1eHoWNvS6DX0=
+	t=1754970621; cv=none; b=YqWFATIv9gCaXctQ/BGjzg5iXgye7rLtuxktyzI3uaxNNMQb35/HD0RwZTqm1XiP6C8y+FHk7MxNgvIwSwaM6lR89MuG+uqGee/luFnWn+/R7qieFAiodb8uIS6/QK7jqRYVXCSgL3J83TpGpSFZ/LcnPL3Lg0thPPnuGpKGgDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754970617; c=relaxed/simple;
-	bh=uW+HpQlx6xvmamoFeyJU1cnZyiGOT7k+bbHRL60VGjI=;
-	h=Date:To:From:Subject:Message-Id; b=JsI5DnCGV+aG64gP/kr8K0VE9UHTA2bQsO7C0IHM03ZocvERZt+slD9wuRX2lQpkU4odIsUSoze+6Dl8GIa5O1yBvBPJGRf6yiKhHB/w0GpPI3GxuE8p7HZa3N+tJycSpqULSe3SHrIEkIvar98n0MUAR22e0ScQUCutbF/UZ2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YGOevB57; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754970621; c=relaxed/simple;
+	bh=MzltzPIpsR8aksxvwNAm7dlgw2ZEJlqPqyalLuFqX/U=;
+	h=Date:To:From:Subject:Message-Id; b=H6sLmUWd4+7+p+cwlxAxQAyyo5PGmCYV9tWsATps+3hrJn2zh4GvReRaH5HwXfaVPPQpyUv6Ipo+dQLRKQypSihTfYnh09rrPrahEpnDx+Ah8hq16GD5G6aXuoUFxeMRb2I3Xc2TMOhYkOMDjgmL/xNxD55q26du9R0t8A16u+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdAbzy/j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YGOevB57"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 829E0C4CEF0;
-	Tue, 12 Aug 2025 03:50:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdAbzy/j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71963C4CEF0;
+	Tue, 12 Aug 2025 03:50:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754970616;
-	bh=uW+HpQlx6xvmamoFeyJU1cnZyiGOT7k+bbHRL60VGjI=;
+	s=korg; t=1754970619;
+	bh=MzltzPIpsR8aksxvwNAm7dlgw2ZEJlqPqyalLuFqX/U=;
 	h=Date:To:From:Subject:From;
-	b=YGOevB57Pzb88dLqciRpmP00zC0DUo2SCWVTALnNgVoH8jNZC2ZGsqmpzxtLOb45a
-	 FbKS6E6pN8iYnZR6LVnT1PJSwLxmt3/g4MWEU9TPJlhmCBkuZw8n1j3txJgsegmjWj
-	 06tR1RFS42u2wxRQjS9kkI69yRLZaUIHhnPf9VC4=
-Date: Mon, 11 Aug 2025 20:50:15 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,linux@weissschuh.net,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=gdAbzy/jylc/yBWDdTGDROurnMYybVwrEo/yBRO6BrwOLWKRN8GdUb7wKdGViEmku
+	 OYvIONB16yk6Lq5NcNL0XZoQxtpKjofzjrJ4uST4/C0OJf/okZMpqIwCJUC4IkIxrR
+	 Mnu9xKCh1P+ue0+auNbD4LeTdMyInU6+VaSH5Y10=
+Date: Mon, 11 Aug 2025 20:50:18 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-kho-update-generation-of-initrd.patch added to mm-new branch
-Message-Id: <20250812035016.829E0C4CEF0@smtp.kernel.org>
+Subject: + selftests-damon-test-no-op-commit-broke-damon-status.patch added to mm-new branch
+Message-Id: <20250812035019.71963C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest/kho: update generation of initrd
+     Subject: selftests/damon: test no-op commit broke DAMON status
 has been added to the -mm mm-new branch.  Its filename is
-     selftest-kho-update-generation-of-initrd.patch
+     selftests-damon-test-no-op-commit-broke-damon-status.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-kho-update-generation-of-initrd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-test-no-op-commit-broke-damon-status.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,119 +64,116 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftest/kho: update generation of initrd
-Date: Mon, 11 Aug 2025 11:25:10 +0300
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: selftests/damon: test no-op commit broke DAMON status
+Date: Sun, 10 Aug 2025 21:43:54 +0900
 
-Use nolibc include directory rather than include a cumulative nolibc.h on
-the compiler command line and replace use of 'sudo cpio' with
-usr/gen_init_cpio.
+Add test to verify that DAMON status is not changed after a no-op commit.
 
-While on it fix spelling of KHO_FINALIZE
-
-Link: https://lkml.kernel.org/r/20250811082510.4154080-4-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Suggested-by: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250810124354.16456-1-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kho/init.c    |   13 +++--------
- tools/testing/selftests/kho/vmtest.sh |   28 ++++++++++++------------
- 2 files changed, 19 insertions(+), 22 deletions(-)
+ tools/testing/selftests/damon/Makefile                    |    1 
+ tools/testing/selftests/damon/sysfs_no_op_commit_break.py |   72 ++++++++++
+ 2 files changed, 73 insertions(+)
 
---- a/tools/testing/selftests/kho/init.c~selftest-kho-update-generation-of-initrd
-+++ a/tools/testing/selftests/kho/init.c
-@@ -1,22 +1,17 @@
- // SPDX-License-Identifier: GPL-2.0
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-test-no-op-commit-broke-damon-status
++++ a/tools/testing/selftests/damon/Makefile
+@@ -17,6 +17,7 @@ TEST_PROGS += reclaim.sh lru_sort.sh
+ TEST_PROGS += sysfs_update_removed_scheme_dir.sh
+ TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
+ TEST_PROGS += sysfs_memcg_path_leak.sh
++TEST_PROGS += sysfs_no_op_commit_break.py
  
--#ifndef NOLIBC
--#include <errno.h>
- #include <stdio.h>
- #include <unistd.h>
- #include <fcntl.h>
--#include <syscall.h>
-+#include <sys/syscall.h>
- #include <sys/mount.h>
- #include <sys/reboot.h>
--#endif
-+#include <linux/kexec.h>
+ EXTRA_CLEAN = __pycache__
  
- /* from arch/x86/include/asm/setup.h */
- #define COMMAND_LINE_SIZE	2048
- 
--/* from include/linux/kexex.h */
--#define KEXEC_FILE_NO_INITRAMFS	0x00000004
--
--#define KHO_FINILIZE "/debugfs/kho/out/finalize"
-+#define KHO_FINALIZE "/debugfs/kho/out/finalize"
- #define KERNEL_IMAGE "/kernel"
- 
- static int mount_filesystems(void)
-@@ -32,7 +27,7 @@ static int kho_enable(void)
- 	const char enable[] = "1";
- 	int fd;
- 
--	fd = open(KHO_FINILIZE, O_RDWR);
-+	fd = open(KHO_FINALIZE, O_RDWR);
- 	if (fd < 0)
- 		return -1;
- 
---- a/tools/testing/selftests/kho/vmtest.sh~selftest-kho-update-generation-of-initrd
-+++ a/tools/testing/selftests/kho/vmtest.sh
-@@ -10,7 +10,6 @@ kernel_dir=$(realpath "$test_dir/../../.
- 
- tmp_dir=$(mktemp -d /tmp/kho-test.XXXXXXXX)
- headers_dir="$tmp_dir/usr"
--initrd_dir="$tmp_dir/initrd"
- initrd="$tmp_dir/initrd.cpio"
- 
- source "$test_dir/../kselftest/ktap_helpers.sh"
-@@ -81,19 +80,22 @@ EOF
- function mkinitrd() {
- 	local kernel=$1
- 
--	mkdir -p "$initrd_dir"/{dev,debugfs,proc}
--	sudo mknod "$initrd_dir/dev/console" c 5 1
-+	"$CROSS_COMPILE"gcc -s -static -Os -nostdinc -nostdlib \
-+			-fno-asynchronous-unwind-tables -fno-ident \
-+			-I "$headers_dir/include" \
-+			-I "$kernel_dir/tools/include/nolibc" \
-+			-o "$tmp_dir/init" "$test_dir/init.c"
+diff --git a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
+new file mode 100755
+--- /dev/null
++++ a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
+@@ -0,0 +1,72 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0
 +
-+	cat > "$tmp_dir/cpio_list" <<EOF
-+dir /dev 0755 0 0
-+dir /proc 0755 0 0
-+dir /debugfs 0755 0 0
-+nod /dev/console 0600 0 0 c 5 1
-+file /init $tmp_dir/init 0755 0 0
-+file /kernel $kernel 0644 0 0
-+EOF
- 
--	"$CROSS_COMPILE"gcc -s -static -Os -nostdinc -I"$headers_dir/include" \
--			-fno-asynchronous-unwind-tables -fno-ident -nostdlib \
--			-include "$test_dir/../../../include/nolibc/nolibc.h" \
--			-o "$initrd_dir/init" "$test_dir/init.c" \
--
--	cp "$kernel" "$initrd_dir/kernel"
--
--	pushd "$initrd_dir" &>/dev/null
--	find . | cpio -H newc --create > "$initrd" 2>/dev/null
--	popd &>/dev/null
-+	"$build_dir/usr/gen_init_cpio" "$tmp_dir/cpio_list" > "$initrd"
- }
- 
- function run_qemu() {
++import json
++import os
++import subprocess
++import sys
++
++import _damon_sysfs
++
++def dump_damon_status_dict(pid):
++    try:
++        subprocess.check_output(['which', 'drgn'], stderr=subprocess.DEVNULL)
++    except:
++        return None, 'drgn not found'
++    file_dir = os.path.dirname(os.path.abspath(__file__))
++    dump_script = os.path.join(file_dir, 'drgn_dump_damon_status.py')
++    rc = subprocess.call(['drgn', dump_script, pid, 'damon_dump_output'],
++        stderr=subprocess.DEVNULL)
++
++    if rc != 0:
++        return None, f'drgn fail: return code({rc})'
++    try:
++        with open('damon_dump_output', 'r') as f:
++            return json.load(f), None
++    except Exception as e:
++        return None, 'json.load fail (%s)' % e
++
++def main():
++    kdamonds = _damon_sysfs.Kdamonds(
++        [_damon_sysfs.Kdamond(
++            contexts=[_damon_sysfs.DamonCtx(
++                schemes=[_damon_sysfs.Damos(
++                    ops_filters=[
++                        _damon_sysfs.DamosFilter(
++                            type_='anon',
++                            matching=True,
++                            allow=True,
++                        )
++                    ]
++                )],
++            )])]
++    )
++
++    err = kdamonds.start()
++    if err is not None:
++        print('kdamond start failed: %s' % err)
++        exit(1)
++
++    before_commit_status, err = \
++        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
++    if err is not None:
++        print('before-commit status dump failed: %s' % err)
++        exit(1)
++
++    kdamonds.kdamonds[0].commit()
++
++    after_commit_status, err = \
++        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
++    if err is not None:
++        print('after-commit status dump failed: %s' % err)
++        exit(1)
++
++    if before_commit_status != after_commit_status:
++        print(f'before: {json.dump(before_commit_status, indent=2)}')
++        print(f'after: {json.dump(after_commit_status, indent=2)}')
++        exit(1)
++
++    kdamonds.stop()
++
++if __name__ == '__main__':
++    main()
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-kho-allow-scratch-areas-with-zero-size.patch
-lib-test_kho-fixes-for-error-handling.patch
-selftest-kho-update-generation-of-initrd.patch
+mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function.patch
+mm-damon-update-expired-description-of-damos_action.patch
+docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
+selftests-damon-test-no-op-commit-broke-damon-status.patch
 
