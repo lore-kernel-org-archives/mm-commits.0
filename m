@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C52BB2F0686
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 22:37:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3E272F0686
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 22:37:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755038229; cv=none; b=QH6x0YJPDrjkGVHWek0IGDFPv8yaCet/UcjcO6CJZ6dreCm4iiF3rfO2aHfMPV5N04NU+JPjjWYtln+Dp/AB1yvobDr4Ep7L/TBL0/DlqLalwesv6uaoIKY+D8sPQInXqwqRXhXlAq73bC7WRvrb++icyABc3nTts+NHRJqaPSI=
+	t=1755038231; cv=none; b=bfs3I+09UXBflvGZNdGJYjA+Jcc3SxREgIBQhTcrByDJZTgZdqQHWWlrM+gr2ph9WISdATBD8NcrOe5wLzvrouaTfXXBj6z9OdkS8YzFpJNKdXdJ12Ktl8rztfG+EMY2XlP+aXiBHYsrt3iCcA5Y7UuuF1eSTxcS61XLxWOCAF4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755038229; c=relaxed/simple;
-	bh=j3JGoDrsBsqSMVy/swXcK7CY1wH7wwUb9d6lwTvDbK4=;
-	h=Date:To:From:Subject:Message-Id; b=IQ456D7PtV7l9rEXb88rsz3OlOLE8egyE7StkleUz2Vkx6WHu/awi/S6pX9WIR6DC8d2Kb3hoLwp3w0HI58w4T3Eo8gGnfel8zIrcluevjhjOaZGHiGKRNKVlY+W+xEBNrhYx2Xr+yEW3Wl+lxX47LdpU8qOnZi0sZZE07HjMc8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=feG73Cf5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755038231; c=relaxed/simple;
+	bh=/KI8Diskw8IQoeFXm7k4K7AG5O0EIzqCFca6/l+o824=;
+	h=Date:To:From:Subject:Message-Id; b=nBq8MSlZsXHMIhGs177c4nbTsbZQupswyhPyYtz+kw2DBuoiBqQYKOZWX7FCMsdO9l3sCHNEeg5SgmOj1T9LFwbOMLijFqsf6Gg+AtnptqNu5v65Mt01q3A5/z94KRi02l27Cv0L6IejppARQWuLZ1wAiqs4kYrbGvb0fuWwHUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GOSPW5cK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="feG73Cf5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287D8C4CEF0;
-	Tue, 12 Aug 2025 22:37:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GOSPW5cK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5699AC4CEF0;
+	Tue, 12 Aug 2025 22:37:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755038229;
-	bh=j3JGoDrsBsqSMVy/swXcK7CY1wH7wwUb9d6lwTvDbK4=;
+	s=korg; t=1755038231;
+	bh=/KI8Diskw8IQoeFXm7k4K7AG5O0EIzqCFca6/l+o824=;
 	h=Date:To:From:Subject:From;
-	b=feG73Cf58KN3deObsyX+H74hRqInVHqlhmoj3jk6TOYlq8qSaS7ZgsuSt51sPRRzN
-	 JBd50avcC3tZL0jDqM+lM1T9lYGK/kMTSOSQOAVw57Ma47hyJfKWR5q6UkIZO4nVHg
-	 UkR7wHdc5wjaHfAar+nULVAMKHvAwx1wZGV39s9k=
-Date: Tue, 12 Aug 2025 15:37:08 -0700
+	b=GOSPW5cKa6nWYggATEWliyIkd6aJEfNIH49WnKK9SjhaRTZxLfGMJnZh+Rdb1NR1V
+	 oWhAzzfo9YLKCd0bUilq9UGAfQ/g/xgq7KN2rTaeKK3nhJrfSNRy/m4VT747PawnvH
+	 mlCJLN09Fqni2og1qo/QKvK0hRc8pT3BNLNG45f0=
+Date: Tue, 12 Aug 2025 15:37:10 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,donettom@linux.ibm.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch added to mm-new branch
-Message-Id: <20250812223709.287D8C4CEF0@smtp.kernel.org>
+Subject: + selftests-mm-add-check_folio_orders-helper.patch added to mm-new branch
+Message-Id: <20250812223711.5699AC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: add new_order and offset to split_huge_pages*() pr_debug
+     Subject: selftests/mm: add check_folio_orders() helper
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
+     selftests-mm-add-check_folio_orders-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-check_folio_orders-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,36 +65,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: add new_order and offset to split_huge_pages*() pr_debug
-Date: Tue, 12 Aug 2025 11:55:09 -0400
+Subject: selftests/mm: add check_folio_orders() helper
+Date: Tue, 12 Aug 2025 11:55:10 -0400
 
-Patch series "Better split_huge_page_test result check", v3.
+The helper gathers an folio order statistics of folios within a virtual
+address range and checks it against a given order list.  It aims to
+provide a more precise folio order check instead of just checking the
+existence of PMD folios.
 
-This patchset uses kpageflags to get after-split folio orders for a better
-split_huge_page_test result check[1].  The added gather_folio_orders()
-scans through a VPN range and collects the numbers of folios at different
-orders.  check_folio_orders() compares the result of gather_folio_orders()
-to a given list of numbers of different orders.
-
-This patchset also adds new order and in folio offset to the split huge
-page debugfs's pr_debug()s;
-
-
-This patch (of 4):
-
-They are useful information for debugging split huge page tests.
-
-Link: https://lkml.kernel.org/r/20250812155512.926011-1-ziy@nvidia.com
-Link: https://lkml.kernel.org/r/20250812155512.926011-2-ziy@nvidia.com
-Link: https://lore.kernel.org/linux-mm/e2f32bdb-e4a4-447c-867c-31405cbba151@redhat.com/ [1]
+Link: https://lkml.kernel.org/r/20250812155512.926011-3-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: wang lian <lianux.mm@gmail.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
@@ -104,36 +89,241 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: wang lian <lianux.mm@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |    4 
+ tools/testing/selftests/mm/vm_util.c              |  173 ++++++++++++
+ tools/testing/selftests/mm/vm_util.h              |    7 
+ 3 files changed, 181 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug
-+++ a/mm/huge_memory.c
-@@ -4319,8 +4319,8 @@ static int split_huge_pages_pid(int pid,
- 		goto out;
- 	}
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-check_folio_orders-helper
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -34,8 +34,6 @@ uint64_t pmd_pagesize;
+ #define PID_FMT_OFFSET "%d,0x%lx,0x%lx,%d,%d"
+ #define PATH_FMT "%s,0x%lx,0x%lx,%d"
  
--	pr_debug("Split huge pages in pid: %d, vaddr: [0x%lx - 0x%lx]\n",
--		 pid, vaddr_start, vaddr_end);
-+	pr_debug("Split huge pages in pid: %d, vaddr: [0x%lx - 0x%lx], new_order: %u, in_folio_offset: %ld\n",
-+		 pid, vaddr_start, vaddr_end, new_order, in_folio_offset);
+-#define PFN_MASK     ((1UL<<55)-1)
+-#define KPF_THP      (1UL<<22)
+ #define GET_ORDER(nr_pages)    (31 - __builtin_clz(nr_pages))
  
- 	mmap_read_lock(mm);
- 	/*
-@@ -4430,8 +4430,8 @@ static int split_huge_pages_in_file(cons
- 	if (IS_ERR(candidate))
- 		goto out;
+ int is_backed_by_thp(char *vaddr, int pagemap_file, int kpageflags_file)
+@@ -49,7 +47,7 @@ int is_backed_by_thp(char *vaddr, int pa
  
--	pr_debug("split file-backed THPs in file: %s, page offset: [0x%lx - 0x%lx]\n",
--		 file_path, off_start, off_end);
-+	pr_debug("split file-backed THPs in file: %s, page offset: [0x%lx - 0x%lx], new_order: %u, in_folio_offset: %ld\n",
-+		 file_path, off_start, off_end, new_order, in_folio_offset);
+ 		if (kpageflags_file) {
+ 			pread(kpageflags_file, &page_flags, sizeof(page_flags),
+-				(paddr & PFN_MASK) * sizeof(page_flags));
++				PAGEMAP_PFN(paddr) * sizeof(page_flags));
  
- 	mapping = candidate->f_mapping;
- 	min_order = mapping_min_folio_order(mapping);
+ 			return !!(page_flags & KPF_THP);
+ 		}
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-check_folio_orders-helper
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -338,6 +338,179 @@ int detect_hugetlb_page_sizes(size_t siz
+ 	return count;
+ }
+ 
++static int get_pfn_flags(unsigned long pfn, int kpageflags_fd, uint64_t *flags)
++{
++	size_t count;
++
++	count = pread(kpageflags_fd, flags, sizeof(*flags),
++		      pfn * sizeof(*flags));
++
++	if (count != sizeof(*flags))
++		return -1;
++
++	return 0;
++}
++
++static int get_page_flags(char *vaddr, int pagemap_fd, int kpageflags_fd,
++			  uint64_t *flags)
++{
++	unsigned long pfn;
++
++	pfn = pagemap_get_pfn(pagemap_fd, vaddr);
++	/*
++	 * Treat non-present page as a page without any flag, so that
++	 * gather_folio_orders() just record the current folio order.
++	 */
++	if (pfn == -1UL) {
++		*flags = 0;
++		return 1;
++	}
++
++	if (get_pfn_flags(pfn, kpageflags_fd, flags))
++		return -1;
++
++	return 0;
++}
++
++/*
++ * gather_folio_orders - scan through [vaddr_start, len) and record folio orders
++ * @vaddr_start: start vaddr
++ * @len: range length
++ * @pagemap_fd: file descriptor to /proc/<pid>/pagemap
++ * @kpageflags_fd: file descriptor to /proc/kpageflags
++ * @orders: output folio order array
++ * @nr_orders: folio order array size
++ *
++ * gather_folio_orders() scan through [vaddr_start, len) and check all folios
++ * within the range and record their orders. All order-0 pages will be recorded.
++ * Non-present vaddr is skipped.
++ *
++ *
++ * Return: 0 - no error, -1 - unhandled cases
++ */
++static int gather_folio_orders(char *vaddr_start, size_t len,
++			       int pagemap_fd, int kpageflags_fd,
++			       int orders[], int nr_orders)
++{
++	uint64_t page_flags = 0;
++	int cur_order = -1;
++	char *vaddr;
++
++	if (!pagemap_fd || !kpageflags_fd)
++		return -1;
++	if (nr_orders <= 0)
++		return -1;
++
++	for (vaddr = vaddr_start; vaddr < vaddr_start + len;) {
++		char *next_folio_vaddr;
++		int status;
++
++		status = get_page_flags(vaddr, pagemap_fd, kpageflags_fd,
++					&page_flags);
++		if (status < 0)
++			return -1;
++
++		/* skip non present vaddr */
++		if (status == 1) {
++			vaddr += psize();
++			continue;
++		}
++
++		/* all order-0 pages with possible false postive (non folio) */
++		if (!(page_flags & (KPF_COMPOUND_HEAD | KPF_COMPOUND_TAIL))) {
++			orders[0]++;
++			vaddr += psize();
++			continue;
++		}
++
++		/* skip non thp compound pages */
++		if (!(page_flags & KPF_THP)) {
++			vaddr += psize();
++			continue;
++		}
++
++		/* vpn points to part of a THP at this point */
++		if (page_flags & KPF_COMPOUND_HEAD)
++			cur_order = 1;
++		else {
++			/* not a head nor a tail in a THP? */
++			if (!(page_flags & KPF_COMPOUND_TAIL))
++				return -1;
++
++			vaddr += psize();
++			continue;
++		}
++
++		next_folio_vaddr = vaddr + (1UL << (cur_order + pshift()));
++
++		if (next_folio_vaddr >= vaddr_start + len)
++			break;
++
++		while ((status = get_page_flags(next_folio_vaddr, pagemap_fd,
++						 kpageflags_fd,
++						 &page_flags)) >= 0) {
++			/*
++			 * non present vaddr, next compound head page, or
++			 * order-0 page
++			 */
++			if (status == 1 ||
++			    (page_flags & KPF_COMPOUND_HEAD) ||
++			    !(page_flags & (KPF_COMPOUND_HEAD | KPF_COMPOUND_TAIL))) {
++				if (cur_order < nr_orders) {
++					orders[cur_order]++;
++					cur_order = -1;
++					vaddr = next_folio_vaddr;
++				}
++				break;
++			}
++
++			/* not a head nor a tail in a THP? */
++			if (!(page_flags & KPF_COMPOUND_TAIL))
++				return -1;
++
++			cur_order++;
++			next_folio_vaddr = vaddr + (1UL << (cur_order + pshift()));
++		}
++
++		if (status < 0)
++			return status;
++	}
++	if (cur_order > 0 && cur_order < nr_orders)
++		orders[cur_order]++;
++	return 0;
++}
++
++int check_folio_orders(char *vaddr_start, size_t len, int pagemap_fd,
++			int kpageflags_fd, int orders[], int nr_orders)
++{
++	int *vaddr_orders;
++	int status;
++	int i;
++
++	vaddr_orders = (int *)malloc(sizeof(int) * nr_orders);
++
++	if (!vaddr_orders)
++		ksft_exit_fail_msg("Cannot allocate memory for vaddr_orders");
++
++	memset(vaddr_orders, 0, sizeof(int) * nr_orders);
++	status = gather_folio_orders(vaddr_start, len, pagemap_fd,
++				     kpageflags_fd, vaddr_orders, nr_orders);
++	if (status)
++		goto out;
++
++	status = 0;
++	for (i = 0; i < nr_orders; i++)
++		if (vaddr_orders[i] != orders[i]) {
++			ksft_print_msg("order %d: expected: %d got %d\n", i,
++				       orders[i], vaddr_orders[i]);
++			status = -1;
++		}
++
++out:
++	free(vaddr_orders);
++	return status;
++}
++
+ /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
+ int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls)
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-check_folio_orders-helper
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -18,6 +18,11 @@
+ #define PM_SWAP                       BIT_ULL(62)
+ #define PM_PRESENT                    BIT_ULL(63)
+ 
++#define KPF_COMPOUND_HEAD             BIT_ULL(15)
++#define KPF_COMPOUND_TAIL             BIT_ULL(16)
++#define KPF_THP                       BIT_ULL(22)
++
++
+ /*
+  * Ignore the checkpatch warning, we must read from x but don't want to do
+  * anything with it in order to trigger a read page fault. We therefore must use
+@@ -85,6 +90,8 @@ bool check_huge_shmem(void *addr, int nr
+ int64_t allocate_transhuge(void *ptr, int pagemap_fd);
+ unsigned long default_huge_page_size(void);
+ int detect_hugetlb_page_sizes(size_t sizes[], int max);
++int check_folio_orders(char *vaddr_start, size_t len, int pagemap_file,
++			int kpageflags_file, int orders[], int nr_orders);
+ 
+ int uffd_register(int uffd, void *addr, uint64_t len,
+ 		  bool miss, bool wp, bool minor);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
