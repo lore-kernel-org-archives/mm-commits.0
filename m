@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 727E22D3A98
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:44:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DA901CF5C6
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:44:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754959476; cv=none; b=Bp4keXnxdXk5UETqqZYY75mtvqRuhtkXHRRsrikxxMB2LLH90Scz+u/Lp3Pkz6uppLJApLxOQOOHv/v50+s5DQd5blFcIAsYAiWXHRYsuXyAMD7TFolx8NiE6kjRCEaOCDGctv7K6AP7Jx75W7DEw3bSfmh3KDCi/w0YpFcXacA=
+	t=1754959477; cv=none; b=f2j4ALTvC5ySmTzPLg//38mSsYDzPPJ8t+YZMRc2S4Z/aHojdiiXNEega/t0JwlnJAlmFsGzR3pDDXwPzYC3kYtInL02zH3MyklR3XQcqRGkDRGE8Ei+4shK0Lken46TuvyC0rgZJSEtcvkVOe1vuscMzDlL5ZT83H32Qkcp2GQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754959476; c=relaxed/simple;
-	bh=RRtYkcq/8RCmX/WKOqcD6Y0pF5n0lw+hje3JnXFt5S0=;
-	h=Date:To:From:Subject:Message-Id; b=EZvGD4u3coyeWQZ9zMjgsxHfnU5uDougFFAqlkISdt+y9E67V/ungOwdHGF4rfQGiyRsLw95nA4y4Rbujpces455CqVsjokDwcodLihxKbIOrz530VmJDqEECWyQ5C3eLJgd7WxH8w5ofumpaf1Ec+CdIVbCj6JetS4qUM8w8Oo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fjBObBIb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959477; c=relaxed/simple;
+	bh=afiOL0LDtYEDeK5t2XYZ08Fy2Sv0wenPGdL+hK/guvU=;
+	h=Date:To:From:Subject:Message-Id; b=YT5uGiw8OW3FvLG/FG5iWtqbSD9mB5zdyikVKBXXaZrZ2bFbrLUayAjBjvhbmkMpoJIbz3sVnuS9MGCiZvDXP3cgpXN6gjWJ0DqrRs/eyXL+x31Swo4PlOLbl+kATfo43jokasIc0L05I3HurCOZ0/bOrAYRK0VRXMBNvLEHW7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cSvVRlIa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fjBObBIb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE1E8C4CEED;
-	Tue, 12 Aug 2025 00:44:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cSvVRlIa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28127C4CEED;
+	Tue, 12 Aug 2025 00:44:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754959475;
-	bh=RRtYkcq/8RCmX/WKOqcD6Y0pF5n0lw+hje3JnXFt5S0=;
+	s=korg; t=1754959477;
+	bh=afiOL0LDtYEDeK5t2XYZ08Fy2Sv0wenPGdL+hK/guvU=;
 	h=Date:To:From:Subject:From;
-	b=fjBObBIbIXCJTcYU/KGW0HIlT75G2ItITyB995womwiP7/Rq15MZOC6m6pt1Xn+pY
-	 yW02sxrQwwWhyuqXFDmvnmWM3AB/akZreifKiECffGUa7JTb/AIf3/zDLMhjh7bvrX
-	 G93kok8Os3M971qtNzdMFn1kPvIiVwIU4nCWkTTs=
-Date: Mon, 11 Aug 2025 17:44:34 -0700
+	b=cSvVRlIaJiZLXjTtKaB9URtwUlQiRQ7aRc9vN6Mfs9+gkpT++gtE1Jbze1f40xnju
+	 6roO8e4Va3wZHmW8UdyZj1rDwjUcMyuSrhmz9qajARJ8I4UiQVGvYnVOUwseU7oT8J
+	 iEsggHf5mc28kmg68/Qy5zqwRqiLump4Ha5IQvjE=
+Date: Mon, 11 Aug 2025 17:44:36 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,npache@redhat.com,mhocko@suse.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hch@lst.de,djwong@kernel.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,axboe@kernel.dk,p.raghav@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-largest_zero_folio-routine.patch added to mm-new branch
-Message-Id: <20250812004434.EE1E8C4CEED@smtp.kernel.org>
+Subject: + block-use-largest_zero_folio-in-__blkdev_issue_zero_pages.patch added to mm-new branch
+Message-Id: <20250812004437.28127C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add largest_zero_folio() routine
+     Subject: block: use largest_zero_folio in __blkdev_issue_zero_pages()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-largest_zero_folio-routine.patch
+     block-use-largest_zero_folio-in-__blkdev_issue_zero_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-largest_zero_folio-routine.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/block-use-largest_zero_folio-in-__blkdev_issue_zero_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,27 +65,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: mm: add largest_zero_folio() routine
-Date: Mon, 11 Aug 2025 10:41:12 +0200
+Subject: block: use largest_zero_folio in __blkdev_issue_zero_pages()
+Date: Mon, 11 Aug 2025 10:41:13 +0200
 
-The callers of mm_get_huge_zero_folio() have access to a mm struct and the
-lifetime of the huge_zero_folio is tied to the lifetime of the mm struct.
+Use largest_zero_folio() in __blkdev_issue_zero_pages().  On systems with
+CONFIG_PERSISTENT_HUGE_ZERO_FOLIO enabled, we will end up sending larger
+bvecs instead of multiple small ones.
 
-largest_zero_folio() will give access to huge_zero_folio when
-PERSISTENT_HUGE_ZERO_FOLIO config option is enabled for callers that do
-not want to tie the lifetime to a mm struct.  This is very useful for
-filesystem and block layers where the request completions can be async and
-there is no guarantee on the mm struct lifetime.
+Noticed a 4% increase in performance on a commercial NVMe SSD which does
+not support OP_WRITE_ZEROES.  The device's MDTS was 128K.  The performance
+gains might be bigger if the device supports bigger MDTS.
 
-This function will return a ZERO_PAGE folio if PERSISTENT_HUGE_ZERO_FOLIO
-is disabled or if we failed to allocate a huge_zero_folio during early
-init.
-
-Link: https://lkml.kernel.org/r/20250811084113.647267-5-kernel@pankajraghav.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20250811084113.647267-6-kernel@pankajraghav.com
 Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Co-developed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -106,38 +100,42 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ block/blk-lib.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-add-largest_zero_folio-routine
-+++ a/include/linux/huge_mm.h
-@@ -714,4 +714,26 @@ static inline int split_folio_to_order(s
- 	return split_folio_to_list_to_order(folio, NULL, new_order);
- }
+--- a/block/blk-lib.c~block-use-largest_zero_folio-in-__blkdev_issue_zero_pages
++++ a/block/blk-lib.c
+@@ -196,6 +196,8 @@ static void __blkdev_issue_zero_pages(st
+ 		sector_t sector, sector_t nr_sects, gfp_t gfp_mask,
+ 		struct bio **biop, unsigned int flags)
+ {
++	struct folio *zero_folio = largest_zero_folio();
++
+ 	while (nr_sects) {
+ 		unsigned int nr_vecs = __blkdev_sectors_to_bio_pages(nr_sects);
+ 		struct bio *bio;
+@@ -208,15 +210,14 @@ static void __blkdev_issue_zero_pages(st
+ 			break;
  
-+/**
-+ * largest_zero_folio - Get the largest zero size folio available
-+ *
-+ * This function shall be used when mm_get_huge_zero_folio() cannot be
-+ * used as there is no appropriate mm lifetime to tie the huge zero folio
-+ * from the caller.
-+ *
-+ * Deduce the size of the folio with folio_size instead of assuming the
-+ * folio size.
-+ *
-+ * Return: pointer to PMD sized zero folio if CONFIG_PERSISTENT_HUGE_ZERO_FOLIO
-+ * is enabled or a single page sized zero folio
-+ */
-+static inline struct folio *largest_zero_folio(void)
-+{
-+	struct folio *folio = get_persistent_huge_zero_folio();
-+
-+	if (folio)
-+		return folio;
-+
-+	return page_folio(ZERO_PAGE(0));
-+}
- #endif /* _LINUX_HUGE_MM_H */
+ 		do {
+-			unsigned int len, added;
++			unsigned int len;
+ 
+-			len = min_t(sector_t,
+-				PAGE_SIZE, nr_sects << SECTOR_SHIFT);
+-			added = bio_add_page(bio, ZERO_PAGE(0), len, 0);
+-			if (added < len)
++			len = min_t(sector_t, folio_size(zero_folio),
++				    nr_sects << SECTOR_SHIFT);
++			if (!bio_add_folio(bio, zero_folio, len, 0))
+ 				break;
+-			nr_sects -= added >> SECTOR_SHIFT;
+-			sector += added >> SECTOR_SHIFT;
++			nr_sects -= len >> SECTOR_SHIFT;
++			sector += len >> SECTOR_SHIFT;
+ 		} while (nr_sects);
+ 
+ 		*biop = bio_chain_and_submit(*biop, bio);
 _
 
 Patches currently in -mm which might be from p.raghav@samsung.com are
