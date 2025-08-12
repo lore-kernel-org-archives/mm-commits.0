@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4DB28851F
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:31:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D623225D6
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754958714; cv=none; b=TjbYg6GEvz/yXrUteEh8V17GvyGOJYrZ8XRgEaOfoKQvuv1Bu6UKgQI9oXaZIvcRyum982zy8k/Z0nK+3ExxN+lOO3qbjooHwvJ596583e6v3EpA8q1IQ4MRJCGd5ZiHHuPC1ni5ihwyS/lMNeUiUf1VxWEwMiOxjxRmJsm2sw4=
+	t=1754959023; cv=none; b=Pwse9RvIamZ55yt/sB4geoQU/05PnWGGCl0s6uBYQiNdQhID0w6Zwdu9U2mpC+B88FVJH6NVeWNgqR8lUqIappCJePXBgh3PZhExF2+wzsqznje1RwvmOg5FdRkMWeSSYZ+S2UltZENU+u0CyR2u4jD8D+tVYLwKynPD8vOaJGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754958714; c=relaxed/simple;
-	bh=AU9mQW/AaEdpRL7OrkEMh11mg3phaj8cheEonbP9yWg=;
-	h=Date:To:From:Subject:Message-Id; b=GBXZFMKIyVcQpIskGKT4+30NjA1Mh3HcRESLw7zsehCzaYz5F8C5sqtJ/SzND6TK3+IQRgUxm6PWS6DpcfjE9bOBOeQQQPw8YHhsWG0mLKuKkzXdwP+3CWBZQCoVHcR7aX0zEz5gknazvOpdvtVxvPsHFjOYICmDNHZjdUHwGqc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pSlppFRa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959023; c=relaxed/simple;
+	bh=NLLK3HYJzoGjQui7yuZIIRExl6PSrDeSJox8+9SgO30=;
+	h=Date:To:From:Subject:Message-Id; b=X0+YVi2qqrvIkzDTSCBBNP3xJvy0V5kEC0HfLTJ6+yt263W8IAuTEBxkH5hxqSCx85GilgiBUk5Q2l++a0irG8VIgTu7YEepsdY3UsvZc09ZSQrU6Qeq1KbLg1K4xST/DVYyc+fr6BdSeOe8ICw1Las4uhcGJia0Z6qpfiSDnFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fyb8H47c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pSlppFRa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2B6CC4CEED;
-	Tue, 12 Aug 2025 00:31:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fyb8H47c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D88EDC4CEED;
+	Tue, 12 Aug 2025 00:37:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754958713;
-	bh=AU9mQW/AaEdpRL7OrkEMh11mg3phaj8cheEonbP9yWg=;
+	s=korg; t=1754959022;
+	bh=NLLK3HYJzoGjQui7yuZIIRExl6PSrDeSJox8+9SgO30=;
 	h=Date:To:From:Subject:From;
-	b=pSlppFRadgBEi4XoBlSAOFBX9iDGOL6Q2mm21MNqkx/FCIbyaogxluzaT6V7iIkEG
-	 o/921EyPbK/9vZfIb+LANiM1Uq8D9rtYdC6/Mjb9ydp5uTzPMPPaNTjsVpMMD4JnM9
-	 IRt4NRSsv1hIR2x+fKefJkUA8U+8FFwOk2nUEnDM=
-Date: Mon, 11 Aug 2025 17:31:53 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,xuanzhuo@linux.alibaba.com,viro@zeniv.linux.org.uk,shaggy@kernel.org,senozhatsky@chromium.org,rakie.kim@sk.com,osalvador@suse.de,npiggin@gmail.com,muchun.song@linux.dev,mst@redhat.com,mpe@ellerman.id.au,minchan@kernel.org,matthew.brost@intel.com,maddy@linux.ibm.com,joshua.hahnjy@gmail.com,josef@toxicpanda.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,jack@suse.cz,gregkh@linuxfoundation.org,gourry@gourry.net,eperezma@redhat.com,dsterba@suse.com,dave.kleikamp@oracle.com,clm@fb.com,christophe.leroy@csgroup.eu,byungchul@sk.com,brauner@kernel.org,bcrl@kvack.org,arnd@arndb.de,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
+	b=fyb8H47cloJqBBhKIu3sZUW0ynyAR2zikvvN+y6DqAFS5n3O4fBCtbKlSE33Km9Dk
+	 3idl24Hh8O0kxTd9SB8xPWQLVYrXmoQCcFMNNvztqrY1+ji43bKKViaTCEzak5AZBM
+	 Uu4s8QHTUJzi1fBcjNyL9rQurFhdvnayxFCXoYdA=
+Date: Mon, 11 Aug 2025 17:37:02 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sstabellini@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,osalvador@suse.de,oleksandr_tyshchenko@epam.com,npiggin@gmail.com,npache@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,jgross@suse.com,jannh@google.com,jack@suse.cz,hughd@google.com,dev.jain@arm.com,david.vrabel@citrix.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + treewide-remove-migratepage_success.patch added to mm-new branch
-Message-Id: <20250812003153.C2B6CC4CEED@smtp.kernel.org>
+Subject: + mm-huge_memory-move-more-common-code-into-insert_pmd.patch added to mm-new branch
+Message-Id: <20250812003702.D88EDC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: treewide: remove MIGRATEPAGE_SUCCESS
+     Subject: mm/huge_memory: move more common code into insert_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     treewide-remove-migratepage_success.patch
+     mm-huge_memory-move-more-common-code-into-insert_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-remove-migratepage_success.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-move-more-common-code-into-insert_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,426 +65,220 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: treewide: remove MIGRATEPAGE_SUCCESS
-Date: Mon, 11 Aug 2025 16:39:48 +0200
+Subject: mm/huge_memory: move more common code into insert_pmd()
+Date: Mon, 11 Aug 2025 13:26:21 +0200
 
-At this point MIGRATEPAGE_SUCCESS is misnamed for all folio users,
-and now that we remove MIGRATEPAGE_UNMAP, it's really the only "success"
-return value that the code uses and expects.
+Patch series "mm: vm_normal_page*() improvements", v3.
 
-Let's just get rid of MIGRATEPAGE_SUCCESS completely and just use "0"
-for success.
+Cleanup and unify vm_normal_page_*() handling, also marking the huge
+zerofolio as special in the PMD.  Add+use vm_normal_page_pud() and cleanup
+that XEN vm_ops->find_special_page thingy.
 
-Link: https://lkml.kernel.org/r/20250811143949.1117439-3-david@redhat.com
+There are plans of using vm_normal_page_*() more widely soon.
+
+
+This patch (of 11):
+
+Let's clean it all further up.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20250811112631.759341-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20250811112631.759341-2-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>			[mm]
-Acked-by: Dave Kleikamp <dave.kleikamp@oracle.com>	[jfs]
-Cc: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Chris Mason <clm@fb.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Kleikamp <shaggy@kernel.org>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Eugenio Pé rez <eperezma@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jerrin Shaji George <jerrin.shaji-george@broadcom.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Juegren Gross <jgross@suse.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/cmm.c |    2 -
- drivers/misc/vmw_balloon.c           |    4 +-
- drivers/virtio/virtio_balloon.c      |    2 -
- fs/aio.c                             |    2 -
- fs/btrfs/inode.c                     |    4 +-
- fs/hugetlbfs/inode.c                 |    4 +-
- fs/jfs/jfs_metapage.c                |    8 ++---
- include/linux/migrate.h              |   10 ------
- mm/migrate.c                         |   40 +++++++++++--------------
- mm/migrate_device.c                  |    2 -
- mm/zsmalloc.c                        |    4 +-
- 11 files changed, 36 insertions(+), 46 deletions(-)
+ mm/huge_memory.c |   72 +++++++++++++++------------------------------
+ 1 file changed, 24 insertions(+), 48 deletions(-)
 
---- a/arch/powerpc/platforms/pseries/cmm.c~treewide-remove-migratepage_success
-+++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -545,7 +545,7 @@ static int cmm_migratepage(struct balloo
- 	/* balloon page list reference */
- 	put_page(page);
+--- a/mm/huge_memory.c~mm-huge_memory-move-more-common-code-into-insert_pmd
++++ a/mm/huge_memory.c
+@@ -1379,15 +1379,25 @@ struct folio_or_pfn {
+ 	bool is_folio;
+ };
  
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- 
- static void cmm_balloon_compaction_init(void)
---- a/drivers/misc/vmw_balloon.c~treewide-remove-migratepage_success
-+++ a/drivers/misc/vmw_balloon.c
-@@ -1806,7 +1806,7 @@ static int vmballoon_migratepage(struct
- 		 * the list after acquiring the lock.
- 		 */
- 		get_page(newpage);
--		ret = MIGRATEPAGE_SUCCESS;
-+		ret = 0;
- 	}
- 
- 	/* Update the balloon list under the @pages_lock */
-@@ -1817,7 +1817,7 @@ static int vmballoon_migratepage(struct
- 	 * If we succeed just insert it to the list and update the statistics
- 	 * under the lock.
- 	 */
--	if (ret == MIGRATEPAGE_SUCCESS) {
-+	if (!ret) {
- 		balloon_page_insert(&b->b_dev_info, newpage);
- 		__count_vm_event(BALLOON_MIGRATE);
- 	}
---- a/drivers/virtio/virtio_balloon.c~treewide-remove-migratepage_success
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -875,7 +875,7 @@ static int virtballoon_migratepage(struc
- 	balloon_page_finalize(page);
- 	put_page(page); /* balloon reference */
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- #endif /* CONFIG_BALLOON_COMPACTION */
- 
---- a/fs/aio.c~treewide-remove-migratepage_success
-+++ a/fs/aio.c
-@@ -445,7 +445,7 @@ static int aio_migrate_folio(struct addr
- 	folio_get(dst);
- 
- 	rc = folio_migrate_mapping(mapping, dst, src, 1);
--	if (rc != MIGRATEPAGE_SUCCESS) {
-+	if (rc) {
- 		folio_put(dst);
- 		goto out_unlock;
- 	}
---- a/fs/btrfs/inode.c~treewide-remove-migratepage_success
-+++ a/fs/btrfs/inode.c
-@@ -7411,7 +7411,7 @@ static int btrfs_migrate_folio(struct ad
+-static int insert_pmd(struct vm_area_struct *vma, unsigned long addr,
++static vm_fault_t insert_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 		pmd_t *pmd, struct folio_or_pfn fop, pgprot_t prot,
+-		bool write, pgtable_t pgtable)
++		bool write)
  {
- 	int ret = filemap_migrate_folio(mapping, dst, src, mode);
+ 	struct mm_struct *mm = vma->vm_mm;
++	pgtable_t pgtable = NULL;
++	spinlock_t *ptl;
+ 	pmd_t entry;
  
--	if (ret != MIGRATEPAGE_SUCCESS)
-+	if (ret)
- 		return ret;
+-	lockdep_assert_held(pmd_lockptr(mm, pmd));
++	if (addr < vma->vm_start || addr >= vma->vm_end)
++		return VM_FAULT_SIGBUS;
++
++	if (arch_needs_pgtable_deposit()) {
++		pgtable = pte_alloc_one(vma->vm_mm);
++		if (!pgtable)
++			return VM_FAULT_OOM;
++	}
  
- 	if (folio_test_ordered(src)) {
-@@ -7419,7 +7419,7 @@ static int btrfs_migrate_folio(struct ad
- 		folio_set_ordered(dst);
- 	}
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- #else
- #define btrfs_migrate_folio NULL
---- a/fs/hugetlbfs/inode.c~treewide-remove-migratepage_success
-+++ a/fs/hugetlbfs/inode.c
-@@ -1052,7 +1052,7 @@ static int hugetlbfs_migrate_folio(struc
- 	int rc;
- 
- 	rc = migrate_huge_page_move_mapping(mapping, dst, src);
--	if (rc != MIGRATEPAGE_SUCCESS)
-+	if (rc)
- 		return rc;
- 
- 	if (hugetlb_folio_subpool(src)) {
-@@ -1063,7 +1063,7 @@ static int hugetlbfs_migrate_folio(struc
- 
- 	folio_migrate_flags(dst, src);
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- #else
- #define hugetlbfs_migrate_folio NULL
---- a/fs/jfs/jfs_metapage.c~treewide-remove-migratepage_success
-+++ a/fs/jfs/jfs_metapage.c
-@@ -169,7 +169,7 @@ static int __metapage_migrate_folio(stru
- 	}
- 
- 	rc = filemap_migrate_folio(mapping, dst, src, mode);
--	if (rc != MIGRATEPAGE_SUCCESS)
-+	if (rc)
- 		return rc;
- 
- 	for (i = 0; i < MPS_PER_PAGE; i++) {
-@@ -199,7 +199,7 @@ static int __metapage_migrate_folio(stru
++	ptl = pmd_lock(mm, pmd);
+ 	if (!pmd_none(*pmd)) {
+ 		const unsigned long pfn = fop.is_folio ? folio_pfn(fop.folio) :
+ 					  fop.pfn;
+@@ -1395,15 +1405,14 @@ static int insert_pmd(struct vm_area_str
+ 		if (write) {
+ 			if (pmd_pfn(*pmd) != pfn) {
+ 				WARN_ON_ONCE(!is_huge_zero_pmd(*pmd));
+-				return -EEXIST;
++				goto out_unlock;
+ 			}
+ 			entry = pmd_mkyoung(*pmd);
+ 			entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 			if (pmdp_set_access_flags(vma, addr, pmd, entry, 1))
+ 				update_mmu_cache_pmd(vma, addr, pmd);
  		}
- 	}
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- #endif	/* CONFIG_MIGRATION */
- 
-@@ -242,7 +242,7 @@ static int __metapage_migrate_folio(stru
- 		return -EAGAIN;
- 
- 	rc = filemap_migrate_folio(mapping, dst, src, mode);
--	if (rc != MIGRATEPAGE_SUCCESS)
-+	if (rc)
- 		return rc;
- 
- 	if (unlikely(insert_metapage(dst, mp)))
-@@ -253,7 +253,7 @@ static int __metapage_migrate_folio(stru
- 	mp->folio = dst;
- 	remove_metapage(src, mp);
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- #endif	/* CONFIG_MIGRATION */
- 
---- a/include/linux/migrate.h~treewide-remove-migratepage_success
-+++ a/include/linux/migrate.h
-@@ -12,13 +12,6 @@ typedef void free_folio_t(struct folio *
- 
- struct migration_target_control;
- 
--/*
-- * Return values from addresss_space_operations.migratepage():
-- * - negative errno on page migration failure;
-- * - zero on page migration success;
-- */
--#define MIGRATEPAGE_SUCCESS		0
 -
+-		return -EEXIST;
++		goto out_unlock;
+ 	}
+ 
+ 	if (fop.is_folio) {
+@@ -1424,11 +1433,17 @@ static int insert_pmd(struct vm_area_str
+ 	if (pgtable) {
+ 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 		mm_inc_nr_ptes(mm);
++		pgtable = NULL;
+ 	}
+ 
+ 	set_pmd_at(mm, addr, pmd, entry);
+ 	update_mmu_cache_pmd(vma, addr, pmd);
+-	return 0;
++
++out_unlock:
++	spin_unlock(ptl);
++	if (pgtable)
++		pte_free(mm, pgtable);
++	return VM_FAULT_NOPAGE;
+ }
+ 
  /**
-  * struct movable_operations - Driver page migration
-  * @isolate_page:
-@@ -34,8 +27,7 @@ struct migration_target_control;
-  * @src page.  The driver should copy the contents of the
-  * @src page to the @dst page and set up the fields of @dst page.
-  * Both pages are locked.
-- * If page migration is successful, the driver should
-- * return MIGRATEPAGE_SUCCESS.
-+ * If page migration is successful, the driver should return 0.
-  * If the driver cannot migrate the page at the moment, it can return
-  * -EAGAIN.  The VM interprets this as a temporary migration failure and
-  * will retry it later.  Any other error value is a permanent migration
---- a/mm/migrate.c~treewide-remove-migratepage_success
-+++ a/mm/migrate.c
-@@ -209,18 +209,17 @@ static void putback_movable_ops_page(str
-  * src and dst are also released by migration core. These pages will not be
-  * folios in the future, so that must be reworked.
-  *
-- * Returns MIGRATEPAGE_SUCCESS on success, otherwise a negative error
-- * code.
-+ * Returns 0 on success, otherwise a negative error code.
-  */
- static int migrate_movable_ops_page(struct page *dst, struct page *src,
- 		enum migrate_mode mode)
+@@ -1450,9 +1465,6 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
+ 	struct folio_or_pfn fop = {
+ 		.pfn = pfn,
+ 	};
+-	pgtable_t pgtable = NULL;
+-	spinlock_t *ptl;
+-	int error;
+ 
+ 	/*
+ 	 * If we had pmd_special, we could avoid all these restrictions,
+@@ -1464,25 +1476,9 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+ 
+-	if (addr < vma->vm_start || addr >= vma->vm_end)
+-		return VM_FAULT_SIGBUS;
+-
+-	if (arch_needs_pgtable_deposit()) {
+-		pgtable = pte_alloc_one(vma->vm_mm);
+-		if (!pgtable)
+-			return VM_FAULT_OOM;
+-	}
+-
+ 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
+ 
+-	ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+-	error = insert_pmd(vma, addr, vmf->pmd, fop, pgprot, write,
+-			   pgtable);
+-	spin_unlock(ptl);
+-	if (error && pgtable)
+-		pte_free(vma->vm_mm, pgtable);
+-
+-	return VM_FAULT_NOPAGE;
++	return insert_pmd(vma, addr, vmf->pmd, fop, pgprot, write);
+ }
+ EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd);
+ 
+@@ -1491,35 +1487,15 @@ vm_fault_t vmf_insert_folio_pmd(struct v
  {
--	int rc = MIGRATEPAGE_SUCCESS;
-+	int rc;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	unsigned long addr = vmf->address & PMD_MASK;
+-	struct mm_struct *mm = vma->vm_mm;
+ 	struct folio_or_pfn fop = {
+ 		.folio = folio,
+ 		.is_folio = true,
+ 	};
+-	spinlock_t *ptl;
+-	pgtable_t pgtable = NULL;
+-	int error;
+-
+-	if (addr < vma->vm_start || addr >= vma->vm_end)
+-		return VM_FAULT_SIGBUS;
  
- 	VM_WARN_ON_ONCE_PAGE(!page_has_movable_ops(src), src);
- 	VM_WARN_ON_ONCE_PAGE(!PageMovableOpsIsolated(src), src);
- 	rc = page_movable_ops(src)->migrate_page(dst, src, mode);
--	if (rc == MIGRATEPAGE_SUCCESS)
-+	if (!rc)
- 		ClearPageMovableOpsIsolated(src);
- 	return rc;
+ 	if (WARN_ON_ONCE(folio_order(folio) != PMD_ORDER))
+ 		return VM_FAULT_SIGBUS;
+ 
+-	if (arch_needs_pgtable_deposit()) {
+-		pgtable = pte_alloc_one(vma->vm_mm);
+-		if (!pgtable)
+-			return VM_FAULT_OOM;
+-	}
+-
+-	ptl = pmd_lock(mm, vmf->pmd);
+-	error = insert_pmd(vma, addr, vmf->pmd, fop, vma->vm_page_prot,
+-			   write, pgtable);
+-	spin_unlock(ptl);
+-	if (error && pgtable)
+-		pte_free(mm, pgtable);
+-
+-	return VM_FAULT_NOPAGE;
++	return insert_pmd(vma, addr, vmf->pmd, fop, vma->vm_page_prot, write);
  }
-@@ -565,7 +564,7 @@ static int __folio_migrate_mapping(struc
- 		if (folio_test_swapbacked(folio))
- 			__folio_set_swapbacked(newfolio);
+ EXPORT_SYMBOL_GPL(vmf_insert_folio_pmd);
  
--		return MIGRATEPAGE_SUCCESS;
-+		return 0;
- 	}
- 
- 	oldzone = folio_zone(folio);
-@@ -666,7 +665,7 @@ static int __folio_migrate_mapping(struc
- 	}
- 	local_irq_enable();
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- 
- int folio_migrate_mapping(struct address_space *mapping,
-@@ -715,7 +714,7 @@ int migrate_huge_page_move_mapping(struc
- 
- 	xas_unlock_irq(&xas);
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- 
- /*
-@@ -831,14 +830,14 @@ static int __migrate_folio(struct addres
- 		return rc;
- 
- 	rc = __folio_migrate_mapping(mapping, dst, src, expected_count);
--	if (rc != MIGRATEPAGE_SUCCESS)
-+	if (rc)
- 		return rc;
- 
- 	if (src_private)
- 		folio_attach_private(dst, folio_detach_private(src));
- 
- 	folio_migrate_flags(dst, src);
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- 
- /**
-@@ -945,7 +944,7 @@ recheck_buffers:
- 	}
- 
- 	rc = filemap_migrate_folio(mapping, dst, src, mode);
--	if (rc != MIGRATEPAGE_SUCCESS)
-+	if (rc)
- 		goto unlock_buffers;
- 
- 	bh = head;
-@@ -1049,7 +1048,7 @@ static int fallback_migrate_folio(struct
-  *
-  * Return value:
-  *   < 0 - error code
-- *  MIGRATEPAGE_SUCCESS - success
-+ *     0 - success
-  */
- static int move_to_new_folio(struct folio *dst, struct folio *src,
- 				enum migrate_mode mode)
-@@ -1077,7 +1076,7 @@ static int move_to_new_folio(struct foli
- 	else
- 		rc = fallback_migrate_folio(mapping, dst, src, mode);
- 
--	if (rc == MIGRATEPAGE_SUCCESS) {
-+	if (!rc) {
- 		/*
- 		 * For pagecache folios, src->mapping must be cleared before src
- 		 * is freed. Anonymous folios must stay anonymous until freed.
-@@ -1427,7 +1426,7 @@ static int unmap_and_move_huge_page(new_
- 	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
- 		folio_putback_hugetlb(src);
--		return MIGRATEPAGE_SUCCESS;
-+		return 0;
- 	}
- 
- 	dst = get_new_folio(src, private);
-@@ -1490,8 +1489,7 @@ static int unmap_and_move_huge_page(new_
- 		rc = move_to_new_folio(dst, src, mode);
- 
- 	if (page_was_mapped)
--		remove_migration_ptes(src,
--			rc == MIGRATEPAGE_SUCCESS ? dst : src, 0);
-+		remove_migration_ptes(src, !rc ? dst : src, 0);
- 
- unlock_put_anon:
- 	folio_unlock(dst);
-@@ -1500,7 +1498,7 @@ put_anon:
- 	if (anon_vma)
- 		put_anon_vma(anon_vma);
- 
--	if (rc == MIGRATEPAGE_SUCCESS) {
-+	if (!rc) {
- 		move_hugetlb_state(src, dst, reason);
- 		put_new_folio = NULL;
- 	}
-@@ -1508,7 +1506,7 @@ put_anon:
- out_unlock:
- 	folio_unlock(src);
- out:
--	if (rc == MIGRATEPAGE_SUCCESS)
-+	if (!rc)
- 		folio_putback_hugetlb(src);
- 	else if (rc != -EAGAIN)
- 		list_move_tail(&src->lru, ret);
-@@ -1618,7 +1616,7 @@ static int migrate_hugetlbs(struct list_
- 						      reason, ret_folios);
- 			/*
- 			 * The rules are:
--			 *	Success: hugetlb folio will be put back
-+			 *	0: hugetlb folio will be put back
- 			 *	-EAGAIN: stay on the from list
- 			 *	-ENOMEM: stay on the from list
- 			 *	Other errno: put on ret_folios list
-@@ -1635,7 +1633,7 @@ static int migrate_hugetlbs(struct list_
- 				retry++;
- 				nr_retry_pages += nr_pages;
- 				break;
--			case MIGRATEPAGE_SUCCESS:
-+			case 0:
- 				stats->nr_succeeded += nr_pages;
- 				break;
- 			default:
-@@ -1689,7 +1687,7 @@ static void migrate_folios_move(struct l
- 				reason, ret_folios);
- 		/*
- 		 * The rules are:
--		 *	Success: folio will be freed
-+		 *	0: folio will be freed
- 		 *	-EAGAIN: stay on the unmap_folios list
- 		 *	Other errno: put on ret_folios list
- 		 */
-@@ -1699,7 +1697,7 @@ static void migrate_folios_move(struct l
- 			*thp_retry += is_thp;
- 			*nr_retry_pages += nr_pages;
- 			break;
--		case MIGRATEPAGE_SUCCESS:
-+		case 0:
- 			stats->nr_succeeded += nr_pages;
- 			stats->nr_thp_succeeded += is_thp;
- 			break;
---- a/mm/migrate_device.c~treewide-remove-migratepage_success
-+++ a/mm/migrate_device.c
-@@ -778,7 +778,7 @@ static void __migrate_device_pages(unsig
- 		if (migrate && migrate->fault_page == page)
- 			extra_cnt = 1;
- 		r = folio_migrate_mapping(mapping, newfolio, folio, extra_cnt);
--		if (r != MIGRATEPAGE_SUCCESS)
-+		if (r)
- 			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
- 		else
- 			folio_migrate_flags(newfolio, folio);
---- a/mm/zsmalloc.c~treewide-remove-migratepage_success
-+++ a/mm/zsmalloc.c
-@@ -1746,7 +1746,7 @@ static int zs_page_migrate(struct page *
- 	 * instead.
- 	 */
- 	if (!zpdesc->zspage)
--		return MIGRATEPAGE_SUCCESS;
-+		return 0;
- 
- 	/* The page is locked, so this pointer must remain valid */
- 	zspage = get_zspage(zpdesc);
-@@ -1813,7 +1813,7 @@ static int zs_page_migrate(struct page *
- 	reset_zpdesc(zpdesc);
- 	zpdesc_put(zpdesc);
- 
--	return MIGRATEPAGE_SUCCESS;
-+	return 0;
- }
- 
- static void zs_page_putback(struct page *page)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
 
 mm-migrate-remove-migratepage_unmap.patch
 treewide-remove-migratepage_success.patch
+mm-huge_memory-move-more-common-code-into-insert_pmd.patch
+mm-huge_memory-move-more-common-code-into-insert_pud.patch
+mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd.patch
+fs-dax-use-vmf_insert_folio_pmd-to-insert-the-huge-zero-folio.patch
+mm-huge_memory-mark-pmd-mappings-of-the-huge-zero-folio-special.patch
+mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level.patch
+mm-memory-convert-print_bad_pte-to-print_bad_page_map.patch
+mm-memory-factor-out-common-code-from-vm_normal_page_.patch
+mm-introduce-and-use-vm_normal_page_pud.patch
+mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page.patch
 
