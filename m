@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B633F2D780D
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 01:34:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0309278E42;
+	Tue, 12 Aug 2025 01:41:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754962491; cv=none; b=flBoPaKAbXJ5WgO05GS9it3GeRC4/E412VMFgQKjn66ZjWywdHbTHUenm44gpwQ2h9HlQ2wHdFI4J4QQr55TyBfGId8ibEJWAXgD62gix8tANOFM5Kj0EbWwx6W7IzItkBB5H81FxqRhaC241yTsSI9dB+c6uvWU348eH7DzisU=
+	t=1754962915; cv=none; b=Uhll5OqiOlAllI+k2WV33Y3zpJfL7zwKUNOVo/eQOErW/tqY/vj37XZ4iwepFIfCEFvU+fWwTHoNiqW8TaChice/Fhu5WlNl0BReLosrhRXgtNeGnB5bn5wiEnc0iFzYehKI7C+vnX6e3RYurk8NNjQrepKbsLJtVb+3/HAIOe0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754962491; c=relaxed/simple;
-	bh=hJOc0EoIo9mdJwXJenk0c2gAXwXmH7Ag1LHnZARDdDs=;
-	h=Date:To:From:Subject:Message-Id; b=GNjfgrvj0xjiJ0E5SsLjxBSUbTnQiWC4hBUAQM8v26ezOXjxEqlAX+OrJxcU30X+B3E0s/52bhWvHgY3h+JMmKfXIqDWsAuUFILuF2ZeyYfO/12B/51RYPGqyAqfciHB2iSGFFYwYdWaDNa1TE26uNUDkV51SziWCdk/ekHlv/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vTBn+DQj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754962915; c=relaxed/simple;
+	bh=rOgYXPbOuMb7HER27UokJxfXGzUuXfjQMC12hj/ITbY=;
+	h=Date:To:From:Subject:Message-Id; b=ljwRwUxX2DdmgVqYBF2dwXilCcs3e6mp6O/kmL+39CyQvrVR8dCKN0vUwKFaA1L7+JJaGdF8tc9CcOPsXjDtxzj8mSvDkbWIh28QqayULB15xWb88bvSA2vdAd/sCK1+SHkSdKc7ySeM6cGpw1vuaTmlXauS1ZREsRAAPJVGe+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FY+8bIM4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vTBn+DQj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 369B4C4CEED;
-	Tue, 12 Aug 2025 01:34:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FY+8bIM4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51C5FC4CEF5;
+	Tue, 12 Aug 2025 01:41:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754962491;
-	bh=hJOc0EoIo9mdJwXJenk0c2gAXwXmH7Ag1LHnZARDdDs=;
+	s=korg; t=1754962914;
+	bh=rOgYXPbOuMb7HER27UokJxfXGzUuXfjQMC12hj/ITbY=;
 	h=Date:To:From:Subject:From;
-	b=vTBn+DQjwFpsAIRMhNpnE1EJvRmRZBgzH2n2nG7P9FdIEw7T35gl+q0XSArt9hYSc
-	 AJ74m0OpoDxpsuTvHgQXMczk086B5sYIaExfyIBSYGVPkf3R4FLmRiEAOeZFp3KpAZ
-	 KirQ1G1Nr2zlnS7A9hxVyMuKlxpItNU+oDWk5MG0=
-Date: Mon, 11 Aug 2025 18:34:50 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,mjguzik@gmail.com,gaoxiang17@xiaomi.com,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
+	b=FY+8bIM432uN1ylRwAGQxKgQL0TWIIPWNLQo9WuEqxI2+dPT2tIDeEvSEtYRdhVfo
+	 5UBeVVSoFiCsblSeDi6HCU0nZLo93PL7Cw/5S/kGn6NXbLSE7JIumFXb9XytnU3R9M
+	 LgAQGpVB/Wn4n/7N0pC8GycksZ2bWn/zjGmm69Ko=
+Date: Mon, 11 Aug 2025 18:41:53 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + pid-change-task_state-to-use-task_ppid_nr_ns.patch added to mm-nonmm-unstable branch
-Message-Id: <20250812013451.369B4C4CEED@smtp.kernel.org>
+Subject: + mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250812014154.51C5FC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: pid: change task_state() to use task_ppid_nr_ns()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     pid-change-task_state-to-use-task_ppid_nr_ns.patch
+     Subject: mm/damon/core: fix commit_ops_filters by using correct nth function
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pid-change-task_state-to-use-task_ppid_nr_ns.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: pid: change task_state() to use task_ppid_nr_ns()
-Date: Sun, 10 Aug 2025 19:36:20 +0200
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/damon/core: fix commit_ops_filters by using correct nth function
+Date: Sun, 10 Aug 2025 21:42:01 +0900
 
-To simplify the code.
+damos_commit_ops_filters() incorrectly uses damos_nth_filter() which
+iterates core_filters.  As a result, performing a commit unintentionally
+corrupts ops_filters.
 
-Note that only tpid and max_fds really need rcu_read_lock(), we could move
-task_ppid_nr_ns/task_tgid_nr_ns/task_numa_group_id/get_task_cred outside
-of rcu read section.
+Add damos_nth_ops_filter() which iterates ops_filters.  Use this function
+to fix issues caused by wrong iteration.
 
-Link: https://lkml.kernel.org/r/20250810173620.GA20007@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: gaoxiang17 <gaoxiang17@xiaomi.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
+Link: https://lkml.kernel.org/r/20250810124201.15743-1-ekffu200098@gmail.com
+Fixes: 3607cc590f18 ("mm/damon/core: support committing ops_filters") # 6.15.x
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/damon/core.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/fs/proc/array.c~pid-change-task_state-to-use-task_ppid_nr_ns
-+++ a/fs/proc/array.c
-@@ -157,13 +157,11 @@ static inline void task_state(struct seq
- 	unsigned int max_fds = 0;
+--- a/mm/damon/core.c~mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function
++++ a/mm/damon/core.c
+@@ -845,6 +845,18 @@ static struct damos_filter *damos_nth_fi
+ 	return NULL;
+ }
  
- 	rcu_read_lock();
--	ppid = pid_alive(p) ?
--		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
--
- 	tracer = ptrace_parent(p);
- 	if (tracer)
- 		tpid = task_pid_nr_ns(tracer, ns);
++static struct damos_filter *damos_nth_ops_filter(int n, struct damos *s)
++{
++	struct damos_filter *filter;
++	int i = 0;
++
++	damos_for_each_ops_filter(filter, s) {
++		if (i++ == n)
++			return filter;
++	}
++	return NULL;
++}
++
+ static void damos_commit_filter_arg(
+ 		struct damos_filter *dst, struct damos_filter *src)
+ {
+@@ -908,7 +920,7 @@ static int damos_commit_ops_filters(stru
+ 	int i = 0, j = 0;
  
-+	ppid = task_ppid_nr_ns(p, ns);
- 	tgid = task_tgid_nr_ns(p, ns);
- 	ngid = task_numa_group_id(p);
- 	cred = get_task_cred(p);
+ 	damos_for_each_ops_filter_safe(dst_filter, next, dst) {
+-		src_filter = damos_nth_filter(i++, src);
++		src_filter = damos_nth_ops_filter(i++, src);
+ 		if (src_filter)
+ 			damos_commit_filter(dst_filter, src_filter);
+ 		else
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-pid-make-__task_pid_nr_nsns-=-null-safe-for-zombie-callers.patch
-pid-introduce-task_ppid_vnr.patch
-pid-change-bacct_add_tsk-to-use-task_ppid_nr_ns.patch
-pid-change-task_state-to-use-task_ppid_nr_ns.patch
+mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function.patch
+mm-damon-update-expired-description-of-damos_action.patch
+docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
 
