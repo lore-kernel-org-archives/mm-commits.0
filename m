@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A21442D2398;
-	Tue, 12 Aug 2025 06:01:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CDC228D830
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 06:01:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754978486; cv=none; b=D76/raBnQfzT5X7Fr65Q2uQpnEUGvLQpC0o9FwDR6SW45BajuoqBm9xA58Iil1NrpqCj3afPbGxVRRI0//h5myoIafe1s2nt2Q8sn83/eW0gGgBLWKWbqsabu9nht7iTBmyADU+gW051HoWS+kptpsY7LdRpo7sy0PcquxIlcWo=
+	t=1754978488; cv=none; b=VKtFRUL5DCXIx6eG791PVoHH/meFvdZ9Nk9Eq9g40sL3BegBO1gZDbaj9ZTZUD+jrb0h6S0/VWZ/UH0HnSeQ65Zpajnkln+K/UI+rx0Klh84JMCg/i8v1AZ+5gxHTJ/J5U1F2rxgYkYZSbJmE5sCNumlxOKyZUq1Afx6uPww6yM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754978486; c=relaxed/simple;
-	bh=dUZxxbghhnPxpoxwe3WugKrFrejjzumMUPTmvJoixVY=;
-	h=Date:To:From:Subject:Message-Id; b=tkpVp9xC6BwOnfOyYpoYoBRL0Wv2pclHIHdET/10cW8AIQjkOLvZFIakxpNobe5unVmmhaadzT131tkRQmkAxP0xbx0zXCjeARgttOWIOb8PIP4zFVVPwXXEVs+YVKI/Fl7+BT/al5KPhIQuy+3dbgj55Wa04XT21PDs/218jjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X1wAZwZT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754978488; c=relaxed/simple;
+	bh=DVclwshGMVDb03IBq/t0gr0o9BZoew363QuNmHnrab8=;
+	h=Date:To:From:Subject:Message-Id; b=jqMB4PhXYsgY/OAHB3gvFYAN7NZ9qQkmYvipGM5rTwzvfNb47UzXiob8taV9kR2EvT/iXw0MNbR+BWIu2wjP6CClnT5vK3KInk2ryX3QPAeDVGW2pTRTFYyTXtB6thI05LYsApDLLwVszNWTfdF/RPqJOTI5AFpwNSSuQzW6sZ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mqv+Tdib; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X1wAZwZT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F551C4CEF0;
-	Tue, 12 Aug 2025 06:01:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mqv+Tdib"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21735C4CEF0;
+	Tue, 12 Aug 2025 06:01:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754978486;
-	bh=dUZxxbghhnPxpoxwe3WugKrFrejjzumMUPTmvJoixVY=;
+	s=korg; t=1754978488;
+	bh=DVclwshGMVDb03IBq/t0gr0o9BZoew363QuNmHnrab8=;
 	h=Date:To:From:Subject:From;
-	b=X1wAZwZTNcb3A38eCJbXWKgrsLUAF9p01p1Dh8b7+HB9nCxuaTBZj2eFjEnRT3Wpn
-	 SeOSPNX0TU4HVO+qZ6hBRB63UpLqJxu4x7nzylZa54W3D0xdw7Nhre1mm6t2SlPtSV
-	 EThLseTNKVT6qj7WTXhsgKGGCtjZtBsDj4zNnp/s=
-Date: Mon, 11 Aug 2025 23:01:25 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,david@redhat.com,aarcange@redhat.com,surenb@google.com,akpm@linux-foundation.org
+	b=Mqv+Tdib1Xe2cp/YeAJyXKhREbfSEmY+pR3Cu0eV0qky26s8lRDdAI2qJYamR/S5L
+	 qCm4fzu08BVPaQ4omD3Yky69QGFsXY2zoJhp1egWyarSD123jKLU1OXLD4ruj/APkd
+	 2Mq9GU5CmJqWREMPLnXl6H9cluULLz46QE1h7a/A=
+Date: Mon, 11 Aug 2025 23:01:27 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,ryan.roberts@arm.com,pfalcato@suse.de,oliver.sang@intel.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry.patch removed from -mm tree
-Message-Id: <20250812060126.1F551C4CEF0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch.patch removed from -mm tree
+Message-Id: <20250812060128.21735C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: fix a crash in UFFDIO_MOVE when PMD is a migration entry
+     Subject: mm/mremap: avoid expensive folio lookup on mremap folio pte batch
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry.patch
+     mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: userfaultfd: fix a crash in UFFDIO_MOVE when PMD is a migration entry
-Date: Wed, 6 Aug 2025 15:00:22 -0700
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: avoid expensive folio lookup on mremap folio pte batch
+Date: Thu, 7 Aug 2025 19:58:19 +0100
 
-When UFFDIO_MOVE encounters a migration PMD entry, it proceeds with
-obtaining a folio and accessing it even though the entry is swp_entry_t. 
-Add the missing check and let split_huge_pmd() handle migration entries. 
-While at it also remove unnecessary folio check.
+It was discovered in the attached report that commit f822a9a81a31 ("mm:
+optimize mremap() by PTE batching") introduced a significant performance
+regression on a number of metrics on x86-64, most notably
+stress-ng.bigheap.realloc_calls_per_sec - indicating a 37.3% regression in
+number of mremap() calls per second.
 
-[surenb@google.com: remove extra folio check, per David]
-  Link: https://lkml.kernel.org/r/20250807200418.1963585-1-surenb@google.com
-Link: https://lkml.kernel.org/r/20250806220022.926763-1-surenb@google.com
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: syzbot+b446dbe27035ef6bd6c2@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/68794b5c.a70a0220.693ce.0050.GAE@google.com/
-Reviewed-by: Peter Xu <peterx@redhat.com>
+I was able to reproduce this locally on an intel x86-64 raptor lake
+system, noting an average of 143,857 realloc calls/sec (with a stddev of
+4,531 or 3.1%) prior to this patch being applied, and 81,503 afterwards
+(stddev of 2,131 or 2.6%) - a 43.3% regression.
+
+During testing I was able to determine that there was no meaningful
+difference in efforts to optimise the folio_pte_batch() operation, nor
+checking folio_test_large().
+
+This is within expectation, as a regression this large is likely to
+indicate we are accessing memory that is not yet in a cache line (and
+perhaps may even cause a main memory fetch).
+
+The expectation by those discussing this from the start was that
+vm_normal_folio() (invoked by mremap_folio_pte_batch()) would likely be
+the culprit due to having to retrieve memory from the vmemmap (which
+mremap() page table moves does not otherwise do, meaning this is
+inevitably cold memory).
+
+I was able to definitively determine that this theory is indeed correct
+and the cause of the issue.
+
+The solution is to restore part of an approach previously discarded on
+review, that is to invoke pte_batch_hint() which explicitly determines,
+through reference to the PTE alone (thus no vmemmap lookup), what the PTE
+batch size may be.
+
+On platforms other than arm64 this is currently hardcoded to return 1, so
+this naturally resolves the issue for x86-64, and for arm64 introduces
+little to no overhead as the pte cache line will be hot.
+
+With this patch applied, we move from 81,503 realloc calls/sec to 138,701
+(stddev of 496.1 or 0.4%), which is a -3.6% regression, however accounting
+for the variance in the original result, this is broadly restoring
+performance to its prior state.
+
+Link: https://lkml.kernel.org/r/20250807185819.199865-1-lorenzo.stoakes@oracle.com
+Fixes: f822a9a81a31 ("mm: optimize mremap() by PTE batching")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202508071609.4e743d7c-lkp@intel.com
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/mremap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/userfaultfd.c~userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry
-+++ a/mm/userfaultfd.c
-@@ -1821,13 +1821,16 @@ ssize_t move_pages(struct userfaultfd_ct
- 			/* Check if we can move the pmd without splitting it. */
- 			if (move_splits_huge_pmd(dst_addr, src_addr, src_start + len) ||
- 			    !pmd_none(dst_pmdval)) {
--				struct folio *folio = pmd_folio(*src_pmd);
-+				/* Can be a migration entry */
-+				if (pmd_present(*src_pmd)) {
-+					struct folio *folio = pmd_folio(*src_pmd);
+--- a/mm/mremap.c~mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch
++++ a/mm/mremap.c
+@@ -179,6 +179,10 @@ static int mremap_folio_pte_batch(struct
+ 	if (max_nr == 1)
+ 		return 1;
  
--				if (!folio || (!is_huge_zero_folio(folio) &&
--					       !PageAnonExclusive(&folio->page))) {
--					spin_unlock(ptl);
--					err = -EBUSY;
--					break;
-+					if (!is_huge_zero_folio(folio) &&
-+					    !PageAnonExclusive(&folio->page)) {
-+						spin_unlock(ptl);
-+						err = -EBUSY;
-+						break;
-+					}
- 				}
- 
- 				spin_unlock(ptl);
++	/* Avoid expensive folio lookup if we stand no chance of benefit. */
++	if (pte_batch_hint(ptep, pte) == 1)
++		return 1;
++
+ 	folio = vm_normal_folio(vma, addr, pte);
+ 	if (!folio || !folio_test_large(folio))
+ 		return 1;
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-limit-the-scope-of-vma_start_read.patch
-mm-change-vma_start_read-to-drop-rcu-lock-on-failure.patch
-selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch
-fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query.patch
-fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks.patch
+tools-testing-add-linux-argsh-header-and-fix-radix-vma-tests.patch
+mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area.patch
+mm-mremap-catch-invalid-multi-vma-moves-earlier.patch
+selftests-mm-add-test-for-invalid-multi-vma-operations.patch
 
