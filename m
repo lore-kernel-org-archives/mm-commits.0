@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CC722D5C8A
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:44:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD8142D543B
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:44:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754959467; cv=none; b=FNksjygET5qgxa9soGgKNmI4hviy49dPfk/YrBn5IMsMYf2DZAmw7p27az2EzlFlV4SEEs526WixO7JIfMrAuPAzv0mk3VjGy3dnitDx9StnPTycCH9voAz24N/HZkBLJeJchkNlT1rMVQzyBNDN5jl3q0jdp6Srf7WqvUwrlJE=
+	t=1754959469; cv=none; b=fIFEFG8lY2EwzeUCk1oDzZRAC/Z/0wmVFYSRWHDkEkV5+i76PLtqcSvqBIUb/LrYViHXppl+0tUAoKbrql6Qae82sUH+qhxsZ/KWwrOnshHDKORixoOEfiW7qJQdi347DymqASRgDAOm57AE5/MK7WtcSxk0Jv3NPxtD465qOTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754959467; c=relaxed/simple;
-	bh=UBB8xZ/nF+hckrHZvprr/hH1bboIhlleJdn7+4/Cek4=;
-	h=Date:To:From:Subject:Message-Id; b=d0udIlprqNHqBzw0OZ4OdqO1gaMp05AifwpsGrNfZfjgqWqsAwfQvzHozGY7rkcDhboRbYtPnxsnj3TrYrU4YHbgeaBxmmc3RyKyjyJfMTbEGPauTazLBHIlHVpgYlfpumm03Dssr1EOjNTdcanKL9XkkGlGNsG0k4PQXaTOhok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZGcN/pxp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959469; c=relaxed/simple;
+	bh=2wlGWLZfjYxETj3qQVUk8ChYOqtoDBPX+vqNXs7ztTI=;
+	h=Date:To:From:Subject:Message-Id; b=CXtJYrjscJs91/M/3qMNsOUeg5vH3ojwef9XHYQO/mYSvgRV25w/K/qJaQMp9FuVIxR7i739rzROlyj2dlI3v61lXukGcCExwd0E+7hqUfGqwyodm9g8irDCMML8qChWAaGNU5EDuWxhg+qGVr+yfhUNLOsOb4UcQDYqVZhFsPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oY5QmwsN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZGcN/pxp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7CEC4CEED;
-	Tue, 12 Aug 2025 00:44:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oY5QmwsN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47450C4CEED;
+	Tue, 12 Aug 2025 00:44:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754959467;
-	bh=UBB8xZ/nF+hckrHZvprr/hH1bboIhlleJdn7+4/Cek4=;
+	s=korg; t=1754959469;
+	bh=2wlGWLZfjYxETj3qQVUk8ChYOqtoDBPX+vqNXs7ztTI=;
 	h=Date:To:From:Subject:From;
-	b=ZGcN/pxpAMZBtHCbh1kBj3hritwIDRwg0ppi68M4PGCrrZqitlnBAXPmQB4wo4Git
-	 H29eaiUAjZHOEZ5LaHO43oj3jQqiB+CLdu3wHA7Dk5OAF7L/NjjUudDnR9xjjQ6wfq
-	 BAyDvGQHOMWc1ogBnbgU1Mf1Q//QNQbTspzr9LYk=
-Date: Mon, 11 Aug 2025 17:44:26 -0700
+	b=oY5QmwsNpT+xrM+XfNRyC/84Hc4sEJ2fENaw/6TPaYFJFop1bAAmKKAATwmiF+p6u
+	 WzHTkr3HyI30+4G1o/ny7I+Pf/+gahJvwxAH0cGXQT4vnekzSUjbD43tSudwUyaKAC
+	 jXaZV6pmz7/lBtE8pdfOP034eenuUwYWM91nBcdk=
+Date: Mon, 11 Aug 2025 17:44:28 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,npache@redhat.com,mhocko@suse.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hch@lst.de,djwong@kernel.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,axboe@kernel.dk,p.raghav@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-huge_zero_page-to-huge_zero_folio.patch added to mm-new branch
-Message-Id: <20250812004427.0D7CEC4CEED@smtp.kernel.org>
+Subject: + mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio.patch added to mm-new branch
+Message-Id: <20250812004429.47450C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rename huge_zero_page to huge_zero_folio
+     Subject: mm: rename MMF_HUGE_ZERO_PAGE to MMF_HUGE_ZERO_FOLIO
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rename-huge_zero_page-to-huge_zero_folio.patch
+     mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-huge_zero_page-to-huge_zero_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,64 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: mm: rename huge_zero_page to huge_zero_folio
-Date: Mon, 11 Aug 2025 10:41:09 +0200
+Subject: mm: rename MMF_HUGE_ZERO_PAGE to MMF_HUGE_ZERO_FOLIO
+Date: Mon, 11 Aug 2025 10:41:10 +0200
 
-Patch series "add persistent huge zero folio support", v3.
-
-Many places in the kernel need to zero out larger chunks, but the maximum
-segment we can zero out at a time by ZERO_PAGE is limited by PAGE_SIZE.
-
-This concern was raised during the review of adding Large Block Size
-support to XFS[1][2].
-
-This is especially annoying in block devices and filesystems where
-multiple ZERO_PAGEs are attached to the bio in different bvecs.  With
-multipage bvec support in block layer, it is much more efficient to send
-out larger zero pages as a part of single bvec.
-
-Some examples of places in the kernel where this could be useful:
-- blkdev_issue_zero_pages()
-- iomap_dio_zero()
-- vmalloc.c:zero_iter()
-- rxperf_process_call()
-- fscrypt_zeroout_range_inline_crypt()
-- bch2_checksum_update()
-...
-
-Usually huge_zero_folio is allocated on demand, and it will be deallocated
-by the shrinker if there are no users of it left.  At the moment,
-huge_zero_folio infrastructure refcount is tied to the process lifetime
-that created it.  This might not work for bio layer as the completions can
-be async and the process that created the huge_zero_folio might no longer
-be alive.  And, one of the main point that came during discussion is to
-have something bigger than zero page as a drop-in replacement.
-
-Add a config option PERSISTENT_HUGE_ZERO_FOLIO that will always allocate
-the huge_zero_folio, and disable the shrinker so that huge_zero_folio is
-never freed.  This makes using the huge_zero_folio without having to pass
-any mm struct and does not tie the lifetime of the zero folio to anything,
-making it a drop-in replacement for ZERO_PAGE.
-
-I have converted blkdev_issue_zero_pages() as an example as a part of this
-series.  I also noticed close to 4% performance improvement just by
-replacing ZERO_PAGE with persistent huge_zero_folio.
-
-I will send patches to individual subsystems using the huge_zero_folio
-once this gets upstreamed.
-
-[1] https://lore.kernel.org/linux-xfs/20231027051847.GA7885@lst.de/
-[2] https://lore.kernel.org/linux-xfs/ZitIK5OnR7ZNY0IG@infradead.org/
-
-
-As the transition already happened from exposing huge_zero_page to
-huge_zero_folio, change the name of the shrinker and the other helper
-function to reflect that.
+As all the helper functions has been renamed from *_page to *_folio,
+rename the MM flag from MMF_HUGE_ZERO_PAGE to MMF_HUGE_ZERO_FOLIO.
 
 No functional changes.
 
-Link: https://lkml.kernel.org/r/20250811084113.647267-1-kernel@pankajraghav.com
-Link: https://lkml.kernel.org/r/20250811084113.647267-2-kernel@pankajraghav.com
+Link: https://lkml.kernel.org/r/20250811084113.647267-3-kernel@pankajraghav.com
 Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -147,112 +98,46 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ include/linux/mm_types.h |    2 +-
+ mm/huge_memory.c         |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-rename-huge_zero_page-to-huge_zero_folio
+--- a/include/linux/mm_types.h~mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio
++++ a/include/linux/mm_types.h
+@@ -1758,7 +1758,7 @@ enum {
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+-#define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
++#define MMF_HUGE_ZERO_FOLIO	23      /* mm has ever used the global huge zero folio */
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+ #define MMF_OOM_REAP_QUEUED	25	/* mm was queued for oom_reaper */
+--- a/mm/huge_memory.c~mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio
 +++ a/mm/huge_memory.c
-@@ -207,7 +207,7 @@ unsigned long __thp_vma_allowable_orders
- 	return orders;
- }
+@@ -248,13 +248,13 @@ static void put_huge_zero_folio(void)
  
--static bool get_huge_zero_page(void)
-+static bool get_huge_zero_folio(void)
+ struct folio *mm_get_huge_zero_folio(struct mm_struct *mm)
  {
- 	struct folio *zero_folio;
- retry:
-@@ -237,7 +237,7 @@ retry:
- 	return true;
- }
- 
--static void put_huge_zero_page(void)
-+static void put_huge_zero_folio(void)
- {
- 	/*
- 	 * Counter should never go to zero here. Only shrinker can put
-@@ -251,11 +251,11 @@ struct folio *mm_get_huge_zero_folio(str
- 	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
+-	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++	if (test_bit(MMF_HUGE_ZERO_FOLIO, &mm->flags))
  		return READ_ONCE(huge_zero_folio);
  
--	if (!get_huge_zero_page())
-+	if (!get_huge_zero_folio())
+ 	if (!get_huge_zero_folio())
  		return NULL;
  
- 	if (test_and_set_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
--		put_huge_zero_page();
-+		put_huge_zero_folio();
+-	if (test_and_set_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++	if (test_and_set_bit(MMF_HUGE_ZERO_FOLIO, &mm->flags))
+ 		put_huge_zero_folio();
  
  	return READ_ONCE(huge_zero_folio);
- }
-@@ -263,18 +263,18 @@ struct folio *mm_get_huge_zero_folio(str
+@@ -262,7 +262,7 @@ struct folio *mm_get_huge_zero_folio(str
+ 
  void mm_put_huge_zero_folio(struct mm_struct *mm)
  {
- 	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
--		put_huge_zero_page();
-+		put_huge_zero_folio();
- }
- 
--static unsigned long shrink_huge_zero_page_count(struct shrinker *shrink,
--					struct shrink_control *sc)
-+static unsigned long shrink_huge_zero_folio_count(struct shrinker *shrink,
-+						  struct shrink_control *sc)
- {
- 	/* we can free zero page only if last reference remains */
- 	return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
- }
- 
--static unsigned long shrink_huge_zero_page_scan(struct shrinker *shrink,
--				       struct shrink_control *sc)
-+static unsigned long shrink_huge_zero_folio_scan(struct shrinker *shrink,
-+						 struct shrink_control *sc)
- {
- 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
- 		struct folio *zero_folio = xchg(&huge_zero_folio, NULL);
-@@ -287,7 +287,7 @@ static unsigned long shrink_huge_zero_pa
- 	return 0;
- }
- 
--static struct shrinker *huge_zero_page_shrinker;
-+static struct shrinker *huge_zero_folio_shrinker;
- 
- #ifdef CONFIG_SYSFS
- static ssize_t enabled_show(struct kobject *kobj,
-@@ -849,8 +849,8 @@ static inline void hugepage_exit_sysfs(s
- 
- static int __init thp_shrinker_init(void)
- {
--	huge_zero_page_shrinker = shrinker_alloc(0, "thp-zero");
--	if (!huge_zero_page_shrinker)
-+	huge_zero_folio_shrinker = shrinker_alloc(0, "thp-zero");
-+	if (!huge_zero_folio_shrinker)
- 		return -ENOMEM;
- 
- 	deferred_split_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
-@@ -858,13 +858,13 @@ static int __init thp_shrinker_init(void
- 						 SHRINKER_NONSLAB,
- 						 "thp-deferred_split");
- 	if (!deferred_split_shrinker) {
--		shrinker_free(huge_zero_page_shrinker);
-+		shrinker_free(huge_zero_folio_shrinker);
- 		return -ENOMEM;
- 	}
- 
--	huge_zero_page_shrinker->count_objects = shrink_huge_zero_page_count;
--	huge_zero_page_shrinker->scan_objects = shrink_huge_zero_page_scan;
--	shrinker_register(huge_zero_page_shrinker);
-+	huge_zero_folio_shrinker->count_objects = shrink_huge_zero_folio_count;
-+	huge_zero_folio_shrinker->scan_objects = shrink_huge_zero_folio_scan;
-+	shrinker_register(huge_zero_folio_shrinker);
- 
- 	deferred_split_shrinker->count_objects = deferred_split_count;
- 	deferred_split_shrinker->scan_objects = deferred_split_scan;
-@@ -875,7 +875,7 @@ static int __init thp_shrinker_init(void
- 
- static void __init thp_shrinker_exit(void)
- {
--	shrinker_free(huge_zero_page_shrinker);
-+	shrinker_free(huge_zero_folio_shrinker);
- 	shrinker_free(deferred_split_shrinker);
+-	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++	if (test_bit(MMF_HUGE_ZERO_FOLIO, &mm->flags))
+ 		put_huge_zero_folio();
  }
  
 _
