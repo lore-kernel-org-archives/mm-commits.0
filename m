@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0E4B2571C2
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 03:50:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 108682571C2
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 03:50:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754970621; cv=none; b=YqWFATIv9gCaXctQ/BGjzg5iXgye7rLtuxktyzI3uaxNNMQb35/HD0RwZTqm1XiP6C8y+FHk7MxNgvIwSwaM6lR89MuG+uqGee/luFnWn+/R7qieFAiodb8uIS6/QK7jqRYVXCSgL3J83TpGpSFZ/LcnPL3Lg0thPPnuGpKGgDA=
+	t=1754970624; cv=none; b=aR77eACiq/aM3DlMFJMp4YPI0XFwfWL+RBK/wMeMTKmgrq936zZzT8ZgunELJL6Emndtn3Ql6gF07qEzDlemBOnqjYUGFEGWpib8GJ5OoV64iRArP3ZTMBNVyrw+iRAS1WUyaUMZxwU3KLQ8T8VHeTuCCXjxMSGmRGPrBjrFwJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754970621; c=relaxed/simple;
-	bh=MzltzPIpsR8aksxvwNAm7dlgw2ZEJlqPqyalLuFqX/U=;
-	h=Date:To:From:Subject:Message-Id; b=H6sLmUWd4+7+p+cwlxAxQAyyo5PGmCYV9tWsATps+3hrJn2zh4GvReRaH5HwXfaVPPQpyUv6Ipo+dQLRKQypSihTfYnh09rrPrahEpnDx+Ah8hq16GD5G6aXuoUFxeMRb2I3Xc2TMOhYkOMDjgmL/xNxD55q26du9R0t8A16u+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdAbzy/j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754970624; c=relaxed/simple;
+	bh=InoLqkRiu+i+yAEYIk/FoZ+cdCgicbnfPZkJPw+u0b4=;
+	h=Date:To:From:Subject:Message-Id; b=sBZXYyn0I9ko8U5fXavfDvTMwi0rJzaoLYlPtWReb169wTKB+8KdIsTBlN1lnACHVArc3Qw08ygBwcvcPWyPCooppCkF3xJhinZgwy8McvEdUqeab1EAr+zIcOReXw0rcxDogOA6idoKjmhkPG1DPTJ1pPkm15VXi6yRl/pTy/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oc2wEWOi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdAbzy/j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71963C4CEF0;
-	Tue, 12 Aug 2025 03:50:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oc2wEWOi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D1F5C4CEF0;
+	Tue, 12 Aug 2025 03:50:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754970619;
-	bh=MzltzPIpsR8aksxvwNAm7dlgw2ZEJlqPqyalLuFqX/U=;
+	s=korg; t=1754970623;
+	bh=InoLqkRiu+i+yAEYIk/FoZ+cdCgicbnfPZkJPw+u0b4=;
 	h=Date:To:From:Subject:From;
-	b=gdAbzy/jylc/yBWDdTGDROurnMYybVwrEo/yBRO6BrwOLWKRN8GdUb7wKdGViEmku
-	 OYvIONB16yk6Lq5NcNL0XZoQxtpKjofzjrJ4uST4/C0OJf/okZMpqIwCJUC4IkIxrR
-	 Mnu9xKCh1P+ue0+auNbD4LeTdMyInU6+VaSH5Y10=
-Date: Mon, 11 Aug 2025 20:50:18 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=Oc2wEWOiuP+6vyjL+oDg8dtFbE+d5gAvN1Low0Wz+W4ZyOrVLRpnECWXMvSSZ/A+c
+	 42G2a5n2uoQ9snU6ppe8Jbuy/XpZEGhyl/nOQaRstkaSw0QzVkE2Bna9Gl8ZAsEEpX
+	 AAjhn6KZ96NhLECAJNNBh1AlRvGdSQGBKtcbL2Pw=
+Date: Mon, 11 Aug 2025 20:50:22 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-test-no-op-commit-broke-damon-status.patch added to mm-new branch
-Message-Id: <20250812035019.71963C4CEF0@smtp.kernel.org>
+Subject: + selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch added to mm-new branch
+Message-Id: <20250812035023.7D1F5C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: test no-op commit broke DAMON status
+     Subject: selftests/mm: do check_huge_anon() with a number been passed in
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-test-no-op-commit-broke-damon-status.patch
+     selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-test-no-op-commit-broke-damon-status.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,116 +64,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: selftests/damon: test no-op commit broke DAMON status
-Date: Sun, 10 Aug 2025 21:43:54 +0900
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: selftests/mm: do check_huge_anon() with a number been passed in
+Date: Sat, 9 Aug 2025 19:42:09 +0000
 
-Add test to verify that DAMON status is not changed after a no-op commit.
+Currently it hard codes the number of hugepage to check for
+check_huge_anon(), but it would be more reasonable to do the check based
+on a number passed in.
 
-Link: https://lkml.kernel.org/r/20250810124354.16456-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
+Pass in the hugepage number and do the check based on it.
+
+Link: https://lkml.kernel.org/r/20250809194209.30484-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: wang lian <lianux.mm@gmail.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile                    |    1 
- tools/testing/selftests/damon/sysfs_no_op_commit_break.py |   72 ++++++++++
- 2 files changed, 73 insertions(+)
+ tools/testing/selftests/mm/split_huge_page_test.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-test-no-op-commit-broke-damon-status
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -17,6 +17,7 @@ TEST_PROGS += reclaim.sh lru_sort.sh
- TEST_PROGS += sysfs_update_removed_scheme_dir.sh
- TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
- TEST_PROGS += sysfs_memcg_path_leak.sh
-+TEST_PROGS += sysfs_no_op_commit_break.py
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-do-check_huge_anon-with-a-number-been-passed-in
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -107,12 +107,12 @@ static char *allocate_zero_filled_hugepa
+ 	return result;
+ }
  
- EXTRA_CLEAN = __pycache__
+-static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, size_t len)
++static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, int nr_hpages, size_t len)
+ {
+ 	unsigned long rss_anon_before, rss_anon_after;
+ 	size_t i;
  
-diff --git a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
-@@ -0,0 +1,72 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
-+
-+import json
-+import os
-+import subprocess
-+import sys
-+
-+import _damon_sysfs
-+
-+def dump_damon_status_dict(pid):
-+    try:
-+        subprocess.check_output(['which', 'drgn'], stderr=subprocess.DEVNULL)
-+    except:
-+        return None, 'drgn not found'
-+    file_dir = os.path.dirname(os.path.abspath(__file__))
-+    dump_script = os.path.join(file_dir, 'drgn_dump_damon_status.py')
-+    rc = subprocess.call(['drgn', dump_script, pid, 'damon_dump_output'],
-+        stderr=subprocess.DEVNULL)
-+
-+    if rc != 0:
-+        return None, f'drgn fail: return code({rc})'
-+    try:
-+        with open('damon_dump_output', 'r') as f:
-+            return json.load(f), None
-+    except Exception as e:
-+        return None, 'json.load fail (%s)' % e
-+
-+def main():
-+    kdamonds = _damon_sysfs.Kdamonds(
-+        [_damon_sysfs.Kdamond(
-+            contexts=[_damon_sysfs.DamonCtx(
-+                schemes=[_damon_sysfs.Damos(
-+                    ops_filters=[
-+                        _damon_sysfs.DamosFilter(
-+                            type_='anon',
-+                            matching=True,
-+                            allow=True,
-+                        )
-+                    ]
-+                )],
-+            )])]
-+    )
-+
-+    err = kdamonds.start()
-+    if err is not None:
-+        print('kdamond start failed: %s' % err)
-+        exit(1)
-+
-+    before_commit_status, err = \
-+        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+    if err is not None:
-+        print('before-commit status dump failed: %s' % err)
-+        exit(1)
-+
-+    kdamonds.kdamonds[0].commit()
-+
-+    after_commit_status, err = \
-+        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+    if err is not None:
-+        print('after-commit status dump failed: %s' % err)
-+        exit(1)
-+
-+    if before_commit_status != after_commit_status:
-+        print(f'before: {json.dump(before_commit_status, indent=2)}')
-+        print(f'after: {json.dump(after_commit_status, indent=2)}')
-+        exit(1)
-+
-+    kdamonds.stop()
-+
-+if __name__ == '__main__':
-+    main()
+-	if (!check_huge_anon(one_page, 4, pmd_pagesize))
++	if (!check_huge_anon(one_page, nr_hpages, pmd_pagesize))
+ 		ksft_exit_fail_msg("No THP is allocated\n");
+ 
+ 	rss_anon_before = rss_anon();
+@@ -143,7 +143,7 @@ void split_pmd_zero_pages(void)
+ 	size_t len = nr_hpages * pmd_pagesize;
+ 
+ 	one_page = allocate_zero_filled_hugepage(len);
+-	verify_rss_anon_split_huge_page_all_zeroes(one_page, len);
++	verify_rss_anon_split_huge_page_all_zeroes(one_page, nr_hpages, len);
+ 	ksft_test_result_pass("Split zero filled huge pages successful\n");
+ 	free(one_page);
+ }
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-damon-core-fix-commit_ops_filters-by-using-correct-nth-function.patch
-mm-damon-update-expired-description-of-damos_action.patch
-docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
-selftests-damon-test-no-op-commit-broke-damon-status.patch
+mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
+selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
 
