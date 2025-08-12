@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AB9F2586CE
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:37:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CC722D5C8A
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 00:44:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754959047; cv=none; b=ouGsJ+yRLNt/5Vb4iTaQ4SJkdkGu3VwUytU97GjwBP+8jfrUdDlobX+YMftDq10hiWfJSacgerGansYu+Ih/JdZQwe9Mhp1nvT8131ggRPQys+YqHcv5OYFwHNrJGo3AJbC/aTdro27DFWd7lU2qNk0A3dB7G4fSz/MEkbUD0U8=
+	t=1754959467; cv=none; b=FNksjygET5qgxa9soGgKNmI4hviy49dPfk/YrBn5IMsMYf2DZAmw7p27az2EzlFlV4SEEs526WixO7JIfMrAuPAzv0mk3VjGy3dnitDx9StnPTycCH9voAz24N/HZkBLJeJchkNlT1rMVQzyBNDN5jl3q0jdp6Srf7WqvUwrlJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754959047; c=relaxed/simple;
-	bh=NCNccTexDETYJYlpfybQfBiDv/E2Xg7Fcn4Qvj6dUjo=;
-	h=Date:To:From:Subject:Message-Id; b=o8LXcxNCI7KkANew2pn6ud+FGCgr5EIzOk5dm0r4cnfwo/IOzsWrdmBUlbAaFHDzUMwf3wawaotcnviJaO1mDYVMf2Nb2DV0ums21Qzu87TlujfZLt9UYq9HPJymtsdg5ZKHULoOdCn/JoOoiIIQr6ECk2Z7fRGPKq0twl6jcdM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dIZv2TY+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754959467; c=relaxed/simple;
+	bh=UBB8xZ/nF+hckrHZvprr/hH1bboIhlleJdn7+4/Cek4=;
+	h=Date:To:From:Subject:Message-Id; b=d0udIlprqNHqBzw0OZ4OdqO1gaMp05AifwpsGrNfZfjgqWqsAwfQvzHozGY7rkcDhboRbYtPnxsnj3TrYrU4YHbgeaBxmmc3RyKyjyJfMTbEGPauTazLBHIlHVpgYlfpumm03Dssr1EOjNTdcanKL9XkkGlGNsG0k4PQXaTOhok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZGcN/pxp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dIZv2TY+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBEC6C4CEED;
-	Tue, 12 Aug 2025 00:37:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZGcN/pxp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7CEC4CEED;
+	Tue, 12 Aug 2025 00:44:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754959047;
-	bh=NCNccTexDETYJYlpfybQfBiDv/E2Xg7Fcn4Qvj6dUjo=;
+	s=korg; t=1754959467;
+	bh=UBB8xZ/nF+hckrHZvprr/hH1bboIhlleJdn7+4/Cek4=;
 	h=Date:To:From:Subject:From;
-	b=dIZv2TY+zhKN19qZ6luw0DhkW97yp/4p18fu3zeIqw1t8iIk4j0cHVMOWlqnL3CJ8
-	 0FzC3Z16qLdMn6rqtBiRMGfb2U1JmhfrYl6Qaoiod0rU29KpIgb1T/lyDPt/BysnO+
-	 OPWHMYz5ePLTb/vNIvWGbulG9x6Qmf84mU/3UezM=
-Date: Mon, 11 Aug 2025 17:37:26 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sstabellini@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,osalvador@suse.de,oleksandr_tyshchenko@epam.com,npiggin@gmail.com,npache@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,jgross@suse.com,jannh@google.com,jack@suse.cz,hughd@google.com,dev.jain@arm.com,david.vrabel@citrix.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
+	b=ZGcN/pxpAMZBtHCbh1kBj3hritwIDRwg0ppi68M4PGCrrZqitlnBAXPmQB4wo4Git
+	 H29eaiUAjZHOEZ5LaHO43oj3jQqiB+CLdu3wHA7Dk5OAF7L/NjjUudDnR9xjjQ6wfq
+	 BAyDvGQHOMWc1ogBnbgU1Mf1Q//QNQbTspzr9LYk=
+Date: Mon, 11 Aug 2025 17:44:26 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,npache@redhat.com,mhocko@suse.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hch@lst.de,djwong@kernel.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,axboe@kernel.dk,p.raghav@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page.patch added to mm-new branch
-Message-Id: <20250812003726.DBEC6C4CEED@smtp.kernel.org>
+Subject: + mm-rename-huge_zero_page-to-huge_zero_folio.patch added to mm-new branch
+Message-Id: <20250812004427.0D7CEC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rename vm_ops->find_special_page() to vm_ops->find_normal_page()
+     Subject: mm: rename huge_zero_page to huge_zero_folio
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page.patch
+     mm-rename-huge_zero_page-to-huge_zero_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-huge_zero_page-to-huge_zero_folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,214 +64,204 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: rename vm_ops->find_special_page() to vm_ops->find_normal_page()
-Date: Mon, 11 Aug 2025 13:26:31 +0200
+From: Pankaj Raghav <p.raghav@samsung.com>
+Subject: mm: rename huge_zero_page to huge_zero_folio
+Date: Mon, 11 Aug 2025 10:41:09 +0200
 
-...  and hide it behind a kconfig option.  There is really no need for any
-!xen code to perform this check.
+Patch series "add persistent huge zero folio support", v3.
 
-The naming is a bit off: we want to find the "normal" page when a PTE was
-marked "special".  So it's really not "finding a special" page.
+Many places in the kernel need to zero out larger chunks, but the maximum
+segment we can zero out at a time by ZERO_PAGE is limited by PAGE_SIZE.
 
-Improve the documentation, and add a comment in the code where XEN ends up
-performing the pte_mkspecial() through a hypercall.  More details can be
-found in commit 923b2919e2c3 ("xen/gntdev: mark userspace PTEs as special
-on x86 PV guests").
+This concern was raised during the review of adding Large Block Size
+support to XFS[1][2].
 
-Link: https://lkml.kernel.org/r/20250811112631.759341-12-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+This is especially annoying in block devices and filesystems where
+multiple ZERO_PAGEs are attached to the bio in different bvecs.  With
+multipage bvec support in block layer, it is much more efficient to send
+out larger zero pages as a part of single bvec.
+
+Some examples of places in the kernel where this could be useful:
+- blkdev_issue_zero_pages()
+- iomap_dio_zero()
+- vmalloc.c:zero_iter()
+- rxperf_process_call()
+- fscrypt_zeroout_range_inline_crypt()
+- bch2_checksum_update()
+...
+
+Usually huge_zero_folio is allocated on demand, and it will be deallocated
+by the shrinker if there are no users of it left.  At the moment,
+huge_zero_folio infrastructure refcount is tied to the process lifetime
+that created it.  This might not work for bio layer as the completions can
+be async and the process that created the huge_zero_folio might no longer
+be alive.  And, one of the main point that came during discussion is to
+have something bigger than zero page as a drop-in replacement.
+
+Add a config option PERSISTENT_HUGE_ZERO_FOLIO that will always allocate
+the huge_zero_folio, and disable the shrinker so that huge_zero_folio is
+never freed.  This makes using the huge_zero_folio without having to pass
+any mm struct and does not tie the lifetime of the zero folio to anything,
+making it a drop-in replacement for ZERO_PAGE.
+
+I have converted blkdev_issue_zero_pages() as an example as a part of this
+series.  I also noticed close to 4% performance improvement just by
+replacing ZERO_PAGE with persistent huge_zero_folio.
+
+I will send patches to individual subsystems using the huge_zero_folio
+once this gets upstreamed.
+
+[1] https://lore.kernel.org/linux-xfs/20231027051847.GA7885@lst.de/
+[2] https://lore.kernel.org/linux-xfs/ZitIK5OnR7ZNY0IG@infradead.org/
+
+
+As the transition already happened from exposing huge_zero_page to
+huge_zero_folio, change the name of the shrinker and the other helper
+function to reflect that.
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20250811084113.647267-1-kernel@pankajraghav.com
+Link: https://lkml.kernel.org/r/20250811084113.647267-2-kernel@pankajraghav.com
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
 Cc: Mariano Pache <npache@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/Kconfig              |    1 +
- drivers/xen/gntdev.c             |    5 +++--
- include/linux/mm.h               |   18 +++++++++++++-----
- mm/Kconfig                       |    2 ++
- mm/memory.c                      |   12 ++++++++++--
- tools/testing/vma/vma_internal.h |   18 +++++++++++++-----
- 6 files changed, 42 insertions(+), 14 deletions(-)
+ mm/huge_memory.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
---- a/drivers/xen/gntdev.c~mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page
-+++ a/drivers/xen/gntdev.c
-@@ -321,6 +321,7 @@ static int find_grant_ptes(pte_t *pte, u
- 	BUG_ON(pgnr >= map->count);
- 	pte_maddr = arbitrary_virt_to_machine(pte).maddr;
- 
-+	/* Note: this will perform a pte_mkspecial() through the hypercall. */
- 	gnttab_set_map_op(&map->map_ops[pgnr], pte_maddr, flags,
- 			  map->grants[pgnr].ref,
- 			  map->grants[pgnr].domid);
-@@ -528,7 +529,7 @@ static void gntdev_vma_close(struct vm_a
- 	gntdev_put_map(priv, map);
+--- a/mm/huge_memory.c~mm-rename-huge_zero_page-to-huge_zero_folio
++++ a/mm/huge_memory.c
+@@ -207,7 +207,7 @@ unsigned long __thp_vma_allowable_orders
+ 	return orders;
  }
  
--static struct page *gntdev_vma_find_special_page(struct vm_area_struct *vma,
-+static struct page *gntdev_vma_find_normal_page(struct vm_area_struct *vma,
- 						 unsigned long addr)
+-static bool get_huge_zero_page(void)
++static bool get_huge_zero_folio(void)
  {
- 	struct gntdev_grant_map *map = vma->vm_private_data;
-@@ -539,7 +540,7 @@ static struct page *gntdev_vma_find_spec
- static const struct vm_operations_struct gntdev_vmops = {
- 	.open = gntdev_vma_open,
- 	.close = gntdev_vma_close,
--	.find_special_page = gntdev_vma_find_special_page,
-+	.find_normal_page = gntdev_vma_find_normal_page,
- };
+ 	struct folio *zero_folio;
+ retry:
+@@ -237,7 +237,7 @@ retry:
+ 	return true;
+ }
  
- /* ------------------------------------------------------------------ */
---- a/drivers/xen/Kconfig~mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page
-+++ a/drivers/xen/Kconfig
-@@ -138,6 +138,7 @@ config XEN_GNTDEV
- 	depends on XEN
- 	default m
- 	select MMU_NOTIFIER
-+	select FIND_NORMAL_PAGE
- 	help
- 	  Allows userspace processes to use grants.
- 
---- a/include/linux/mm.h~mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page
-+++ a/include/linux/mm.h
-@@ -657,13 +657,21 @@ struct vm_operations_struct {
- 	struct mempolicy *(*get_policy)(struct vm_area_struct *vma,
- 					unsigned long addr, pgoff_t *ilx);
- #endif
-+#ifdef CONFIG_FIND_NORMAL_PAGE
- 	/*
--	 * Called by vm_normal_page() for special PTEs to find the
--	 * page for @addr.  This is useful if the default behavior
--	 * (using pte_page()) would not find the correct page.
-+	 * Called by vm_normal_page() for special PTEs in @vma at @addr. This
-+	 * allows for returning a "normal" page from vm_normal_page() even
-+	 * though the PTE indicates that the "struct page" either does not exist
-+	 * or should not be touched: "special".
-+	 *
-+	 * Do not add new users: this really only works when a "normal" page
-+	 * was mapped, but then the PTE got changed to something weird (+
-+	 * marked special) that would not make pte_pfn() identify the originally
-+	 * inserted page.
- 	 */
--	struct page *(*find_special_page)(struct vm_area_struct *vma,
--					  unsigned long addr);
-+	struct page *(*find_normal_page)(struct vm_area_struct *vma,
-+					 unsigned long addr);
-+#endif /* CONFIG_FIND_NORMAL_PAGE */
- };
- 
- #ifdef CONFIG_NUMA_BALANCING
---- a/mm/Kconfig~mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page
-+++ a/mm/Kconfig
-@@ -1381,6 +1381,8 @@ config PT_RECLAIM
- 
- 	  Note: now only empty user PTE page table pages will be reclaimed.
- 
-+config FIND_NORMAL_PAGE
-+	def_bool n
- 
- source "mm/damon/Kconfig"
- 
---- a/mm/memory.c~mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page
-+++ a/mm/memory.c
-@@ -639,6 +639,12 @@ static void print_bad_page_map(struct vm
-  * trivial. Secondly, an architecture may not have a spare page table
-  * entry bit, which requires a more complicated scheme, described below.
-  *
-+ * With CONFIG_FIND_NORMAL_PAGE, we might have the "special" bit set on
-+ * page table entries that actually map "normal" pages: however, that page
-+ * cannot be looked up through the PFN stored in the page table entry, but
-+ * instead will be looked up through vm_ops->find_normal_page(). So far, this
-+ * only applies to PTEs.
-+ *
-  * A raw VM_PFNMAP mapping (ie. one that is not COWed) is always considered a
-  * special mapping (even if there are underlying and valid "struct pages").
-  * COWed pages of a VM_PFNMAP are always normal.
-@@ -679,8 +685,10 @@ static inline struct page *__vm_normal_p
+-static void put_huge_zero_page(void)
++static void put_huge_zero_folio(void)
  {
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL)) {
- 		if (unlikely(special)) {
--			if (vma->vm_ops && vma->vm_ops->find_special_page)
--				return vma->vm_ops->find_special_page(vma, addr);
-+#ifdef CONFIG_FIND_NORMAL_PAGE
-+			if (vma->vm_ops && vma->vm_ops->find_normal_page)
-+				return vma->vm_ops->find_normal_page(vma, addr);
-+#endif /* CONFIG_FIND_NORMAL_PAGE */
- 			if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
- 				return NULL;
- 			if (is_zero_pfn(pfn) || is_huge_zero_pfn(pfn))
---- a/tools/testing/vma/vma_internal.h~mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page
-+++ a/tools/testing/vma/vma_internal.h
-@@ -467,13 +467,21 @@ struct vm_operations_struct {
- 	struct mempolicy *(*get_policy)(struct vm_area_struct *vma,
- 					unsigned long addr, pgoff_t *ilx);
- #endif
-+#ifdef CONFIG_FIND_NORMAL_PAGE
  	/*
--	 * Called by vm_normal_page() for special PTEs to find the
--	 * page for @addr.  This is useful if the default behavior
--	 * (using pte_page()) would not find the correct page.
-+	 * Called by vm_normal_page() for special PTEs in @vma at @addr. This
-+	 * allows for returning a "normal" page from vm_normal_page() even
-+	 * though the PTE indicates that the "struct page" either does not exist
-+	 * or should not be touched: "special".
-+	 *
-+	 * Do not add new users: this really only works when a "normal" page
-+	 * was mapped, but then the PTE got changed to something weird (+
-+	 * marked special) that would not make pte_pfn() identify the originally
-+	 * inserted page.
- 	 */
--	struct page *(*find_special_page)(struct vm_area_struct *vma,
--					  unsigned long addr);
-+	struct page *(*find_normal_page)(struct vm_area_struct *vma,
-+					 unsigned long addr);
-+#endif /* CONFIG_FIND_NORMAL_PAGE */
- };
+ 	 * Counter should never go to zero here. Only shrinker can put
+@@ -251,11 +251,11 @@ struct folio *mm_get_huge_zero_folio(str
+ 	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
+ 		return READ_ONCE(huge_zero_folio);
  
- struct vm_unmapped_area_info {
+-	if (!get_huge_zero_page())
++	if (!get_huge_zero_folio())
+ 		return NULL;
+ 
+ 	if (test_and_set_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
+-		put_huge_zero_page();
++		put_huge_zero_folio();
+ 
+ 	return READ_ONCE(huge_zero_folio);
+ }
+@@ -263,18 +263,18 @@ struct folio *mm_get_huge_zero_folio(str
+ void mm_put_huge_zero_folio(struct mm_struct *mm)
+ {
+ 	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
+-		put_huge_zero_page();
++		put_huge_zero_folio();
+ }
+ 
+-static unsigned long shrink_huge_zero_page_count(struct shrinker *shrink,
+-					struct shrink_control *sc)
++static unsigned long shrink_huge_zero_folio_count(struct shrinker *shrink,
++						  struct shrink_control *sc)
+ {
+ 	/* we can free zero page only if last reference remains */
+ 	return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
+ }
+ 
+-static unsigned long shrink_huge_zero_page_scan(struct shrinker *shrink,
+-				       struct shrink_control *sc)
++static unsigned long shrink_huge_zero_folio_scan(struct shrinker *shrink,
++						 struct shrink_control *sc)
+ {
+ 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
+ 		struct folio *zero_folio = xchg(&huge_zero_folio, NULL);
+@@ -287,7 +287,7 @@ static unsigned long shrink_huge_zero_pa
+ 	return 0;
+ }
+ 
+-static struct shrinker *huge_zero_page_shrinker;
++static struct shrinker *huge_zero_folio_shrinker;
+ 
+ #ifdef CONFIG_SYSFS
+ static ssize_t enabled_show(struct kobject *kobj,
+@@ -849,8 +849,8 @@ static inline void hugepage_exit_sysfs(s
+ 
+ static int __init thp_shrinker_init(void)
+ {
+-	huge_zero_page_shrinker = shrinker_alloc(0, "thp-zero");
+-	if (!huge_zero_page_shrinker)
++	huge_zero_folio_shrinker = shrinker_alloc(0, "thp-zero");
++	if (!huge_zero_folio_shrinker)
+ 		return -ENOMEM;
+ 
+ 	deferred_split_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
+@@ -858,13 +858,13 @@ static int __init thp_shrinker_init(void
+ 						 SHRINKER_NONSLAB,
+ 						 "thp-deferred_split");
+ 	if (!deferred_split_shrinker) {
+-		shrinker_free(huge_zero_page_shrinker);
++		shrinker_free(huge_zero_folio_shrinker);
+ 		return -ENOMEM;
+ 	}
+ 
+-	huge_zero_page_shrinker->count_objects = shrink_huge_zero_page_count;
+-	huge_zero_page_shrinker->scan_objects = shrink_huge_zero_page_scan;
+-	shrinker_register(huge_zero_page_shrinker);
++	huge_zero_folio_shrinker->count_objects = shrink_huge_zero_folio_count;
++	huge_zero_folio_shrinker->scan_objects = shrink_huge_zero_folio_scan;
++	shrinker_register(huge_zero_folio_shrinker);
+ 
+ 	deferred_split_shrinker->count_objects = deferred_split_count;
+ 	deferred_split_shrinker->scan_objects = deferred_split_scan;
+@@ -875,7 +875,7 @@ static int __init thp_shrinker_init(void
+ 
+ static void __init thp_shrinker_exit(void)
+ {
+-	shrinker_free(huge_zero_page_shrinker);
++	shrinker_free(huge_zero_folio_shrinker);
+ 	shrinker_free(deferred_split_shrinker);
+ }
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from p.raghav@samsung.com are
 
-mm-migrate-remove-migratepage_unmap.patch
-treewide-remove-migratepage_success.patch
-mm-huge_memory-move-more-common-code-into-insert_pmd.patch
-mm-huge_memory-move-more-common-code-into-insert_pud.patch
-mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd.patch
-fs-dax-use-vmf_insert_folio_pmd-to-insert-the-huge-zero-folio.patch
-mm-huge_memory-mark-pmd-mappings-of-the-huge-zero-folio-special.patch
-mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level.patch
-mm-memory-convert-print_bad_pte-to-print_bad_page_map.patch
-mm-memory-factor-out-common-code-from-vm_normal_page_.patch
-mm-introduce-and-use-vm_normal_page_pud.patch
-mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page.patch
+mm-rename-huge_zero_page-to-huge_zero_folio.patch
+mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio.patch
+mm-add-persistent-huge-zero-folio.patch
+mm-add-largest_zero_folio-routine.patch
+block-use-largest_zero_folio-in-__blkdev_issue_zero_pages.patch
 
