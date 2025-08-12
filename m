@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 108682571C2
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 03:50:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95D471DF27F
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 03:57:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754970624; cv=none; b=aR77eACiq/aM3DlMFJMp4YPI0XFwfWL+RBK/wMeMTKmgrq936zZzT8ZgunELJL6Emndtn3Ql6gF07qEzDlemBOnqjYUGFEGWpib8GJ5OoV64iRArP3ZTMBNVyrw+iRAS1WUyaUMZxwU3KLQ8T8VHeTuCCXjxMSGmRGPrBjrFwJA=
+	t=1754971059; cv=none; b=X7uTSFsUERn/w3tJQm2b6L3jMA50cCXwr4HKWnzzaTp99Cv+JbCbRXRtJTd+gmeI6Oyr1xTY8rcjpEl5yZMp5WW1Dq/hjntcKsAFJPixJjSlv5wLmbg/s8S/InOwNLgK/y7p7Fci4Oy2MhuWfyVq7VcSO5F03SnjqRk31Fqbu7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754970624; c=relaxed/simple;
-	bh=InoLqkRiu+i+yAEYIk/FoZ+cdCgicbnfPZkJPw+u0b4=;
-	h=Date:To:From:Subject:Message-Id; b=sBZXYyn0I9ko8U5fXavfDvTMwi0rJzaoLYlPtWReb169wTKB+8KdIsTBlN1lnACHVArc3Qw08ygBwcvcPWyPCooppCkF3xJhinZgwy8McvEdUqeab1EAr+zIcOReXw0rcxDogOA6idoKjmhkPG1DPTJ1pPkm15VXi6yRl/pTy/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oc2wEWOi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754971059; c=relaxed/simple;
+	bh=Ht0pJBdTJdP9Npf4z3hU4FlRtCWVnH6TVQGroYzBE/Q=;
+	h=Date:To:From:Subject:Message-Id; b=MOlq4SNOiYSMSe9T8R2J9/Xq1UW3CyUeO4xXKdu9Vuyip/ctiTSWK8bDpD855iBFWl+V1bqSwuYNDlI1gex/sKFZpf5H7iT3Mj5ayUAzPIKSyB2KJQfkE7Ner2KfRnwtTxu26t03YxVkqvN40Wk2+KbtieH7t18oD7VBYsg2eUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ywt65UKw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oc2wEWOi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D1F5C4CEF0;
-	Tue, 12 Aug 2025 03:50:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ywt65UKw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12387C4CEF0;
+	Tue, 12 Aug 2025 03:57:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754970623;
-	bh=InoLqkRiu+i+yAEYIk/FoZ+cdCgicbnfPZkJPw+u0b4=;
+	s=korg; t=1754971058;
+	bh=Ht0pJBdTJdP9Npf4z3hU4FlRtCWVnH6TVQGroYzBE/Q=;
 	h=Date:To:From:Subject:From;
-	b=Oc2wEWOiuP+6vyjL+oDg8dtFbE+d5gAvN1Low0Wz+W4ZyOrVLRpnECWXMvSSZ/A+c
-	 42G2a5n2uoQ9snU6ppe8Jbuy/XpZEGhyl/nOQaRstkaSw0QzVkE2Bna9Gl8ZAsEEpX
-	 AAjhn6KZ96NhLECAJNNBh1AlRvGdSQGBKtcbL2Pw=
-Date: Mon, 11 Aug 2025 20:50:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=Ywt65UKwX2Qg0lY7tutrEKrEtNmi3dFq34WLNyLfmiPllbgAtAJPNdIC7Zbki6NKn
+	 WT0OYvmZGBKQrpumIZoOrgCTpdk83Shl/5l+LjfytFOqq+YlMwkZaYZ503Ns92hsOe
+	 rLO6r+uoEnFwuZw2ZgDBpXtgivLYIrhAtY+guzS4=
+Date: Mon, 11 Aug 2025 20:57:37 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch added to mm-new branch
-Message-Id: <20250812035023.7D1F5C4CEF0@smtp.kernel.org>
+Subject: + mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250812035738.12387C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: do check_huge_anon() with a number been passed in
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+     Subject: mm/mremap: allow multi-VMA move when filesystem uses thp_get_unmapped_area
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,62 +58,164 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: selftests/mm: do check_huge_anon() with a number been passed in
-Date: Sat, 9 Aug 2025 19:42:09 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: allow multi-VMA move when filesystem uses thp_get_unmapped_area
+Date: Sun, 3 Aug 2025 12:11:21 +0100
 
-Currently it hard codes the number of hugepage to check for
-check_huge_anon(), but it would be more reasonable to do the check based
-on a number passed in.
+The multi-VMA move functionality introduced in commit d23cb648e365
+("mm/mremap: permit mremap() move of multiple VMA") doesn't allow moves of
+file-backed mappings which specify a custom f_op->get_unmapped_area
+handler excepting hugetlb and shmem.
 
-Pass in the hugepage number and do the check based on it.
+We expand this to include thp_get_unmapped_area to support file-backed
+mappings for filesystems which use large folios.
 
-Link: https://lkml.kernel.org/r/20250809194209.30484-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: wang lian <lianux.mm@gmail.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Additionally, when the first VMA in a range is not compatible with a
+multi-VMA move, instead of moving the first VMA and returning an error,
+this series results in us not moving anything and returning an error
+immediately.
+
+Examining this second change in detail:
+
+The semantics of multi-VMA moves in mremap() very clearly indicate that a
+failure can result in a partial move of VMAs.
+
+This is in line with other aggregate operations within the kernel, which
+share these semantics.
+
+There are two classes of failures we're concerned with - eligiblity for
+mutli-VMA move, and transient failures that would occur even if the user
+individually moved each VMA.
+
+The latter is due to out-of-memory conditions (which, given the
+allocations involved are small, would likely be fatal in any case), or
+hitting the mapping limit.
+
+Regardless of the cause, transient issues would be fatal anyway, so it
+isn't really material which VMAs succeeded at being moved or not.
+
+However with when it comes to multi-VMA move eligiblity, we face another
+issue - we must allow a single VMA to succeed regardless of this
+eligiblity (as, of course, it is not a multi-VMA move) - but we must then
+fail multi-VMA operations.
+
+The two means by which VMAs may fail the eligbility test are - the VMAs
+being UFFD-armed, or the VMA being file-backed and providing its own
+f_op->get_unmapped_area() helper (because this may result in MREMAP_FIXED
+being disregarded), excepting those known to correctly handle
+MREMAP_FIXED.
+
+It is therefore conceivable that a user could erroneously try to use this
+functionality in these instances, and would prefer to not perform any move
+at all should that occur.
+
+This series therefore avoids any move of subsequent VMAs should the first
+be multi-VMA move ineligble and the input span exceeds that of the first
+VMA.
+
+We also add detailed test logic to assert that multi VMA move with
+ineligible VMAs functions as expected.
+
+
+This patch (of 3):
+
+We currently restrict multi-VMA move to avoid filesystems or drivers which
+provide a custom f_op->get_unmapped_area handler unless it is known to
+correctly handle MREMAP_FIXED.
+
+We do this so we do not get unexpected result when moving from one area to
+another (for instance, if the handler would align things resulting in the
+moved VMAs having different gaps than the original mapping).
+
+More and more filesystems are moving to using large folios, and typically
+do so (in part) by setting f_op->get_unmapped_area to
+thp_get_unmapped_area.
+
+When mremap() invokes the file system's get_unmapped MREMAP_FIXED, it does
+so via get_unmapped_area(), called in vrm_set_new_addr().  In order to do
+so, it converts the MREMAP_FIXED flag to a MAP_FIXED flag and passes this
+to the unmapped area handler.
+
+The __get_unmapped_area() function (called by get_unmapped_area()) in turn
+invokes the filesystem or driver's f_op->get_unmapped_area() handler.
+
+Therefore this is a point at which thp_get_unmapped_area() may be called
+(also, this is the case for anonymous mappings where the size is huge page
+aligned).
+
+thp_get_unmapped_area() calls thp_get_unmapped_area_vmflags() and
+__thp_get_unmapped_area() in turn (falling back to
+mm_get_unmapped_area_vm_flags() which is known to handle MAP_FIXED
+correctly).
+
+The __thp_get_unmapped_area() function in turn does nothing to change the
+address hint, nor the MAP_FIXED flag, only adjusting alignment parameters.
+It hten calls mm_get_unmapped_area_vmflags(), and in turn arch-specific
+unmapped area functions, all of which honour MAP_FIXED correctly.
+
+Therefore, we can safely add thp_get_unmapped_area to the known-good
+handlers.
+
+Link: https://lkml.kernel.org/r/cover.1754218667.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/4f2542340c29c84d3d470b0c605e916b192f6c81.1754218667.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mremap.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-do-check_huge_anon-with-a-number-been-passed-in
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -107,12 +107,12 @@ static char *allocate_zero_filled_hugepa
- 	return result;
- }
+--- a/mm/mremap.c~mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area
++++ a/mm/mremap.c
+@@ -1620,7 +1620,7 @@ static void notify_uffd(struct vma_remap
  
--static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, size_t len)
-+static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, int nr_hpages, size_t len)
+ static bool vma_multi_allowed(struct vm_area_struct *vma)
  {
- 	unsigned long rss_anon_before, rss_anon_after;
- 	size_t i;
+-	struct file *file;
++	struct file *file = vma->vm_file;
  
--	if (!check_huge_anon(one_page, 4, pmd_pagesize))
-+	if (!check_huge_anon(one_page, nr_hpages, pmd_pagesize))
- 		ksft_exit_fail_msg("No THP is allocated\n");
+ 	/*
+ 	 * We can't support moving multiple uffd VMAs as notify requires
+@@ -1633,15 +1633,17 @@ static bool vma_multi_allowed(struct vm_
+ 	 * Custom get unmapped area might result in MREMAP_FIXED not
+ 	 * being obeyed.
+ 	 */
+-	file = vma->vm_file;
+-	if (file && !vma_is_shmem(vma) && !is_vm_hugetlb_page(vma)) {
+-		const struct file_operations *fop = file->f_op;
++	if (!file || !file->f_op->get_unmapped_area)
++		return true;
++	/* Known good. */
++	if (vma_is_shmem(vma))
++		return true;
++	if (is_vm_hugetlb_page(vma))
++		return true;
++	if (file->f_op->get_unmapped_area == thp_get_unmapped_area)
++		return true;
  
- 	rss_anon_before = rss_anon();
-@@ -143,7 +143,7 @@ void split_pmd_zero_pages(void)
- 	size_t len = nr_hpages * pmd_pagesize;
- 
- 	one_page = allocate_zero_filled_hugepage(len);
--	verify_rss_anon_split_huge_page_all_zeroes(one_page, len);
-+	verify_rss_anon_split_huge_page_all_zeroes(one_page, nr_hpages, len);
- 	ksft_test_result_pass("Split zero filled huge pages successful\n");
- 	free(one_page);
+-		if (fop->get_unmapped_area)
+-			return false;
+-	}
+-
+-	return true;
++	return false;
  }
+ 
+ static int check_prep_vma(struct vma_remap_struct *vrm)
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
-selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+mm-mremap-avoid-expensive-folio-lookup-on-mremap-folio-pte-batch.patch
+tools-testing-add-linux-argsh-header-and-fix-radix-vma-tests.patch
+mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area.patch
+mm-mremap-catch-invalid-multi-vma-moves-earlier.patch
+selftests-mm-add-test-for-invalid-multi-vma-operations.patch
 
