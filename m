@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E92732E11B5
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 04:24:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE72C1A9F9A
+	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2025 05:59:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754972672; cv=none; b=CKfpZ5s63FybvwV6YyU5P4vQp22WXhdLRg3vJRdteR4WnSvlEjlSCws1CNapEr0XQ8UQVbDJLIGLnZ+adlCgXF5LgNOsIiaZA+liQ/ZOOb339saEJlU6gutUdsbX43mzqAcfU+CLtodJzP1BCfu9FDWbotGHRDdgWER5fFpdons=
+	t=1754978396; cv=none; b=W1UrJ2kgi9vUH2WzGAX5dXOOX2/GTdSczZJXaarIoq810qywwReCw6UGR0XBDBcslWNfOO+LVk5OIGESmJ1Al7QWH3ZClUL8bvyOQKTv5yM5E4yn/5U1ZoL9drYf6qb9BRqcu22iq57ZfvveEeLPme5RHn0iNK4TM8WZZxrKj/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754972672; c=relaxed/simple;
-	bh=N78N/jNx1yFXQ7tM+pHfn17vmQ0PKG5CtsIa/6835iE=;
-	h=Date:To:From:Subject:Message-Id; b=OD3rmFiryfkYFeZy+3XVecbBKQKilAxdMeihKmhv1GyRgFQzAQWyvTh355tVogNLGXlCJxFmG3PyRKoV67w7C1kShp59n9dU8y/W9jc7wkiYWY/2b2geA/HKzGZjeJk5rJXW/Y6AVAnaK/p/qVVcPj/xLMOzgY8UVYLJSc/zko4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sz5i5Uk3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754978396; c=relaxed/simple;
+	bh=ampaIofpsNeo0hUzB1o9s0mWe719UU7ylF4KmJGyQjY=;
+	h=Date:To:From:Subject:Message-Id; b=Wx9FcCTllr0a8UBfH/sTZYFh23Oz9PfjA8MjJe7VgUwXOC+nXkHGAGkE7inRE5Gi5adqXQSMEDE4e+r9g6NrcEXjqsrtznckOeT/V7oQhcYRuJmSgRE48PyNpb2OHFqOK9IWlYbtebuuksbFPkrVahtpoF8q21XH49cE36LNGxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xp4IYfng; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sz5i5Uk3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68B5EC4CEF0;
-	Tue, 12 Aug 2025 04:24:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xp4IYfng"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E87AC4CEF0;
+	Tue, 12 Aug 2025 05:59:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1754972671;
-	bh=N78N/jNx1yFXQ7tM+pHfn17vmQ0PKG5CtsIa/6835iE=;
+	s=korg; t=1754978396;
+	bh=ampaIofpsNeo0hUzB1o9s0mWe719UU7ylF4KmJGyQjY=;
 	h=Date:To:From:Subject:From;
-	b=sz5i5Uk3daPesPiEudKT2yNK+M3L30F+t0xAGlzJA4C5pCXe2TMGZ9CD7b9b1F7LN
-	 GpTmQfwANviDM8OAzGeC6bMtkp7nOdPkzpBeu0VYB/e5LgaUXDLjWwmcq7j+4iGUVV
-	 I22JoKHaoe2Gqvga7ZSlMvwrJnFS6HWoPo5JzS+I=
-Date: Mon, 11 Aug 2025 21:24:30 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,bhe@redhat.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
+	b=Xp4IYfng3AkR2mbAhk8CU4dZjsWBhFiYVCSCnxnxfWhr6uN0mCLC9qMhonjc5F5ne
+	 4Wv09VToplbMnIiuH2GphBg5UNAwdR8V0SiQKInzR8ZCvMaPqJfLdjsy3CfSAoxoPW
+	 lsQh9MUEBg6H9SlBkThEdjGcR3lhlrYpuepNkuIA=
+Date: Mon, 11 Aug 2025 22:59:55 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,lokeshgidra@google.com,david@redhat.com,aarcange@redhat.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfilec-introduce-function-alloc_swap_scan_list-v2.patch added to mm-unstable branch
-Message-Id: <20250812042431.68B5EC4CEF0@smtp.kernel.org>
+Subject: [folded-merged] userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry-fix.patch removed from -mm tree
+Message-Id: <20250812055956.2E87AC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,74 +34,56 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm-swapfilec-introduce-function-alloc_swap_scan_list-v2
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfilec-introduce-function-alloc_swap_scan_list-v2.patch
+The quilt patch titled
+     Subject: userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry-fix
+has been removed from the -mm tree.  Its filename was
+     userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-introduce-function-alloc_swap_scan_list-v2.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry.patch
 
 ------------------------------------------------------
-From: Chris Li <chrisl@kernel.org>
-Subject: mm-swapfilec-introduce-function-alloc_swap_scan_list-v2
-Date: Fri, 08 Aug 2025 00:48:19 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry-fix
+Date: Thu, 7 Aug 2025 13:04:18 -0700
 
-change int type and break out of loop
+remove extra folio check, per David
 
-Link: https://lkml.kernel.org/r/20250808-swap-scan-list-v2-1-d50e4758ecee@kernel.org
-Signed-off-by: Chris Li <chrisl@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20250807200418.1963585-1-surenb@google.com
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Reported-by: syzbot+b446dbe27035ef6bd6c2@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/68794b5c.a70a0220.693ce.0050.GAE@google.com/
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++--
+ mm/userfaultfd.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-introduce-function-alloc_swap_scan_list-v2
-+++ a/mm/swapfile.c
-@@ -826,7 +826,7 @@ static unsigned int alloc_swap_scan_list
- 					 unsigned char usage,
- 					 bool scan_all)
- {
--	int found = SWAP_ENTRY_INVALID;
-+	unsigned int found = SWAP_ENTRY_INVALID;
+--- a/mm/userfaultfd.c~userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry-fix
++++ a/mm/userfaultfd.c
+@@ -1825,8 +1825,8 @@ ssize_t move_pages(struct userfaultfd_ct
+ 				if (pmd_present(*src_pmd)) {
+ 					struct folio *folio = pmd_folio(*src_pmd);
  
- 	do {
- 		struct swap_cluster_info *ci = isolate_lock_cluster(si, list);
-@@ -837,7 +837,7 @@ static unsigned int alloc_swap_scan_list
- 		offset = cluster_offset(si, ci);
- 		found = alloc_swap_scan_cluster(si, ci, offset, order, usage);
- 		if (found)
--			return found;
-+			break;
- 	} while (scan_all);
- 
- 	return found;
+-					if (!folio || (!is_huge_zero_folio(folio) &&
+-						       !PageAnonExclusive(&folio->page))) {
++					if (!is_huge_zero_folio(folio) &&
++					    !PageAnonExclusive(&folio->page)) {
+ 						spin_unlock(ptl);
+ 						err = -EBUSY;
+ 						break;
 _
 
-Patches currently in -mm which might be from chrisl@kernel.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-swapfilec-introduce-function-alloc_swap_scan_list.patch
-mm-swapfilec-introduce-function-alloc_swap_scan_list-v2.patch
+userfaultfd-fix-a-crash-in-uffdio_move-when-pmd-is-a-migration-entry.patch
+mm-limit-the-scope-of-vma_start_read.patch
+mm-change-vma_start_read-to-drop-rcu-lock-on-failure.patch
+selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch
+fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query.patch
+fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks.patch
 
