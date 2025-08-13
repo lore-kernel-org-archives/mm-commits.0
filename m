@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 775362F3C0D
-	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 23:05:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 194DE2F0C73
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 23:05:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755126356; cv=none; b=QlGEQyAl2uueQNF8tVadOlDAPYqf8nkPZfCQoshRM14uxKtiX1vDIPccUJDTLJU6Y8NRcntiDaWCFUKTAYBATat9rmBYLWO9Q555ZaGwXeOx3K34StlYfvDI3okzk7NByqBoKgv4g7TAibrW0jirspDzY5VR54AQol/ZDnbO7TY=
+	t=1755126360; cv=none; b=VUNJYJCx0vZrPYoCtIhJXlhB76RIQd/4txqMEe9sbIMdM4/mbi/IQLaMl5YE8LJwK+wql39MiTYgn01Q8CXzwtNdFYnjQ+TYA/83hOH4PJOPeF0n28JUCoSdXZm220hq+E7Hb411UFbkIvaLKIuU2UBFJOWgNq8In922Kr+8tks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755126356; c=relaxed/simple;
-	bh=g9zUqwg6K+X4y3Vi9Amw13twrbIkCfkEiKMYU3AeaMA=;
-	h=Date:To:From:Subject:Message-Id; b=piffNCJc292yyiWcwhzwejtPxJJ1DPnwydmYJdhe6+rKvEw8w9AdbB1vskMX4opiIKKM4H71PXLKDSIDwLmzGDaYOOR/ArmI+lKaU28yttzDp7nKKLWRf5sd+KENm62uOV+bhP3vY+gRSEXgngU7w5nbs71dVDxYGE/6LaVSDII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l8x2FXJ8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755126360; c=relaxed/simple;
+	bh=qHZAL7EArUdvFZrLBpVreOoXiVbXknG2K10wqHnEhok=;
+	h=Date:To:From:Subject:Message-Id; b=saB0I1mDWMCfBfxRfM9BkR+sPB87CR18xgPTfWxsFVVecWZbKCgqTgfD0VpP2Njzs7Y0zIHXG6R2hwbXVHN4h1KWATyzJhR0q/o9FAr7S0WVbpl7AyL1YNaI9g6AGkfwg9GJWSNm1mBNHa4YdZUZlIlevfdynS3lfsYyVkdTVGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aeOyELRa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l8x2FXJ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0D04C4CEEB;
-	Wed, 13 Aug 2025 23:05:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aeOyELRa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9917BC4CEEB;
+	Wed, 13 Aug 2025 23:05:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755126356;
-	bh=g9zUqwg6K+X4y3Vi9Amw13twrbIkCfkEiKMYU3AeaMA=;
+	s=korg; t=1755126359;
+	bh=qHZAL7EArUdvFZrLBpVreOoXiVbXknG2K10wqHnEhok=;
 	h=Date:To:From:Subject:From;
-	b=l8x2FXJ8aVef08Yi9Q+Te8mXb/DG+Rwew/fmfTdHTiWteDOBJmHynI8uZ9aighAFP
-	 hKz2DoBJLlLD5KltwhsMloGs2oIrawmPk5E6w+L+SBKVOBfE8n1Bnbc+X5Cv1zQLvQ
-	 6GM61DymV3k/qQbF4HYP85hVMpqJl7L1i8lHGHzM=
-Date: Wed, 13 Aug 2025 16:05:55 -0700
+	b=aeOyELRaw4Hm/Zlnj6McaZ6AwlkRwuYAXPPNEb53O6xxmFngDnklfodZS+91fRI2J
+	 j0ndbmVu0tnuWoAXWpjk/3n+n6ByLPZ7g929pK6sTMCANheUotdQv4iwDnpmtNAPAe
+	 9emOxnOAshTYHXmTZCtkXwSk6YGoKsFjwAxO8kVY=
+Date: Wed, 13 Aug 2025 16:05:59 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,sweettea-kernel@dorminy.me,pasha.tatashin@soleen.com,nicholas@linux.ibm.com,mingo@kernel.org,maddy@linux.ibm.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,ajd@linux.ibm.com,rmclure@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch added to mm-new branch
-Message-Id: <20250813230555.F0D04C4CEEB@smtp.kernel.org>
+Subject: + mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set.patch added to mm-new branch
+Message-Id: <20250813230559.9917BC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pud[s]_set()
+     Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pmd[s]_set()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch
+     mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,21 +65,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rohan McLure <rmclure@linux.ibm.com>
-Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pud[s]_set()
-Date: Wed, 13 Aug 2025 16:26:04 +1000
+Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pmd[s]_set()
+Date: Wed, 13 Aug 2025 16:26:05 +1000
 
-This reverts commit 6d144436d954 ("mm/page_table_check: remove unused
-parameter in [__]page_table_check_pud_set").
+This reverts commit a3b837130b58 ("mm/page_table_check: remove unused
+parameter in [__]page_table_check_pmd_set").
 
 Reinstate previously unused parameters for the purpose of supporting
 powerpc platforms, as many do not encode user/kernel ownership of the page
 in the pte, but instead in the address of the access.
 
-Apply this to __page_table_check_puds_set(), page_table_check_puds_set()
-and the page_table_check_pud_set() wrapper macro.
+Apply this to __page_table_check_pmds_set(), page_table_check_pmd_set(),
+and the page_table_check_pmd_set() wrapper macro.
 
-[ajd@linux.ibm.com: rebase on riscv + arm64 changes, update commit message]
-Link: https://lkml.kernel.org/r/20250813062614.51759-4-ajd@linux.ibm.com
+[ajd@linux.ibm.com: rebase on arm64 + riscv changes, update commit message]
+Link: https://lkml.kernel.org/r/20250813062614.51759-5-ajd@linux.ibm.com
 Signed-off-by: Rohan McLure <rmclure@linux.ibm.com>
 Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
@@ -93,122 +93,132 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    3 ++-
+ arch/arm64/include/asm/pgtable.h |    5 +++--
  arch/riscv/include/asm/pgtable.h |    4 ++--
  arch/x86/include/asm/pgtable.h   |    4 ++--
  include/linux/page_table_check.h |   12 ++++++------
  mm/page_table_check.c            |    4 ++--
- 5 files changed, 14 insertions(+), 13 deletions(-)
+ 5 files changed, 15 insertions(+), 14 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
+--- a/arch/arm64/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -713,7 +713,8 @@ static inline void __set_ptes_anysz(stru
+@@ -709,7 +709,8 @@ static inline void __set_ptes_anysz(stru
+ 		page_table_check_ptes_set(mm, ptep, pte, nr);
+ 		break;
+ 	case PMD_SIZE:
+-		page_table_check_pmds_set(mm, (pmd_t *)ptep, pte_pmd(pte), nr);
++		page_table_check_pmds_set(mm, addr, (pmd_t *)ptep,
++					  pte_pmd(pte), nr);
  		break;
  #ifndef __PAGETABLE_PMD_FOLDED
  	case PUD_SIZE:
--		page_table_check_puds_set(mm, (pud_t *)ptep, pte_pud(pte), nr);
-+		page_table_check_puds_set(mm, addr, (pud_t *)ptep,
-+					  pte_pud(pte), nr);
- 		break;
+@@ -1514,7 +1515,7 @@ static inline void pmdp_set_wrprotect(st
+ static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmdp, pmd_t pmd)
+ {
+-	page_table_check_pmd_set(vma->vm_mm, pmdp, pmd);
++	page_table_check_pmd_set(vma->vm_mm, address, pmdp, pmd);
+ 	return __pmd(xchg_relaxed(&pmd_val(*pmdp), pmd_val(pmd)));
+ }
  #endif
- 	default:
---- a/arch/riscv/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
+--- a/arch/riscv/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set
 +++ a/arch/riscv/include/asm/pgtable.h
-@@ -812,7 +812,7 @@ static inline void set_pmd_at(struct mm_
- static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
- 				pud_t *pudp, pud_t pud)
+@@ -805,7 +805,7 @@ static inline pud_t pud_mkspecial(pud_t
+ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 				pmd_t *pmdp, pmd_t pmd)
  {
--	page_table_check_pud_set(mm, pudp, pud);
-+	page_table_check_pud_set(mm, addr, pudp, pud);
- 	return __set_pte_at(mm, (pte_t *)pudp, pud_pte(pud));
+-	page_table_check_pmd_set(mm, pmdp, pmd);
++	page_table_check_pmd_set(mm, addr, pmdp, pmd);
+ 	return __set_pte_at(mm, (pte_t *)pmdp, pmd_pte(pmd));
  }
  
-@@ -958,7 +958,7 @@ static inline void update_mmu_cache_pud(
- static inline pud_t pudp_establish(struct vm_area_struct *vma,
- 				   unsigned long address, pud_t *pudp, pud_t pud)
+@@ -876,7 +876,7 @@ static inline void pmdp_set_wrprotect(st
+ static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
+ 				unsigned long address, pmd_t *pmdp, pmd_t pmd)
  {
--	page_table_check_pud_set(vma->vm_mm, pudp, pud);
-+	page_table_check_pud_set(vma->vm_mm, address, pudp, pud);
- 	return __pud(atomic_long_xchg((atomic_long_t *)pudp, pud_val(pud)));
+-	page_table_check_pmd_set(vma->vm_mm, pmdp, pmd);
++	page_table_check_pmd_set(vma->vm_mm, address, pmdp, pmd);
+ 	return __pmd(atomic_long_xchg((atomic_long_t *)pmdp, pmd_val(pmd)));
  }
  
---- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
+--- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -1220,7 +1220,7 @@ static inline void set_pmd_at(struct mm_
- static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
- 			      pud_t *pudp, pud_t pud)
+@@ -1213,7 +1213,7 @@ static inline pud_t native_local_pudp_ge
+ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 			      pmd_t *pmdp, pmd_t pmd)
  {
--	page_table_check_pud_set(mm, pudp, pud);
-+	page_table_check_pud_set(mm, addr, pudp, pud);
- 	native_set_pud(pudp, pud);
+-	page_table_check_pmd_set(mm, pmdp, pmd);
++	page_table_check_pmd_set(mm, addr, pmdp, pmd);
+ 	set_pmd(pmdp, pmd);
  }
  
-@@ -1371,7 +1371,7 @@ static inline pmd_t pmdp_establish(struc
- static inline pud_t pudp_establish(struct vm_area_struct *vma,
- 		unsigned long address, pud_t *pudp, pud_t pud)
+@@ -1356,7 +1356,7 @@ static inline void pmdp_set_wrprotect(st
+ static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmdp, pmd_t pmd)
  {
--	page_table_check_pud_set(vma->vm_mm, pudp, pud);
-+	page_table_check_pud_set(vma->vm_mm, address, pudp, pud);
+-	page_table_check_pmd_set(vma->vm_mm, pmdp, pmd);
++	page_table_check_pmd_set(vma->vm_mm, address, pmdp, pmd);
  	if (IS_ENABLED(CONFIG_SMP)) {
- 		return xchg(pudp, pud);
+ 		return xchg(pmdp, pmd);
  	} else {
---- a/include/linux/page_table_check.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
+--- a/include/linux/page_table_check.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set
 +++ a/include/linux/page_table_check.h
-@@ -21,8 +21,8 @@ void __page_table_check_ptes_set(struct
+@@ -19,8 +19,8 @@ void __page_table_check_pmd_clear(struct
+ void __page_table_check_pud_clear(struct mm_struct *mm, pud_t pud);
+ void __page_table_check_ptes_set(struct mm_struct *mm, pte_t *ptep, pte_t pte,
  		unsigned int nr);
- void __page_table_check_pmds_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd,
- 		unsigned int nr);
--void __page_table_check_puds_set(struct mm_struct *mm, pud_t *pudp, pud_t pud,
+-void __page_table_check_pmds_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd,
 -		unsigned int nr);
-+void __page_table_check_puds_set(struct mm_struct *mm, unsigned long addr,
-+		pud_t *pudp, pud_t pud, unsigned int nr);
++void __page_table_check_pmds_set(struct mm_struct *mm, unsigned long addr,
++		pmd_t *pmdp, pmd_t pmd, unsigned int nr);
+ void __page_table_check_puds_set(struct mm_struct *mm, unsigned long addr,
+ 		pud_t *pudp, pud_t pud, unsigned int nr);
  void __page_table_check_pte_clear_range(struct mm_struct *mm,
- 					unsigned long addr,
- 					pmd_t pmd);
-@@ -86,12 +86,12 @@ static inline void page_table_check_pmds
+@@ -77,12 +77,12 @@ static inline void page_table_check_ptes
  }
  
- static inline void page_table_check_puds_set(struct mm_struct *mm,
--		pud_t *pudp, pud_t pud, unsigned int nr)
-+		unsigned long addr, pud_t *pudp, pud_t pud, unsigned int nr)
+ static inline void page_table_check_pmds_set(struct mm_struct *mm,
+-		pmd_t *pmdp, pmd_t pmd, unsigned int nr)
++		unsigned long addr, pmd_t *pmdp, pmd_t pmd, unsigned int nr)
  {
  	if (static_branch_likely(&page_table_check_disabled))
  		return;
  
--	__page_table_check_puds_set(mm, pudp, pud, nr);
-+	__page_table_check_puds_set(mm, addr, pudp, pud, nr);
- }
- 
- static inline void page_table_check_pte_clear_range(struct mm_struct *mm,
-@@ -137,7 +137,7 @@ static inline void page_table_check_pmds
+-	__page_table_check_pmds_set(mm, pmdp, pmd, nr);
++	__page_table_check_pmds_set(mm, addr, pmdp, pmd, nr);
  }
  
  static inline void page_table_check_puds_set(struct mm_struct *mm,
--		pud_t *pudp, pud_t pud, unsigned int nr)
-+		unsigned long addr, pud_t *pudp, pud_t pud, unsigned int nr)
+@@ -132,7 +132,7 @@ static inline void page_table_check_ptes
+ }
+ 
+ static inline void page_table_check_pmds_set(struct mm_struct *mm,
+-		pmd_t *pmdp, pmd_t pmd, unsigned int nr)
++		unsigned long addr, pmd_t *pmdp, pmd_t pmd, unsigned int nr)
  {
  }
  
-@@ -150,6 +150,6 @@ static inline void page_table_check_pte_
+@@ -149,7 +149,7 @@ static inline void page_table_check_pte_
+ 
  #endif /* CONFIG_PAGE_TABLE_CHECK */
  
- #define page_table_check_pmd_set(mm, pmdp, pmd)	page_table_check_pmds_set(mm, pmdp, pmd, 1)
--#define page_table_check_pud_set(mm, pudp, pud)	page_table_check_puds_set(mm, pudp, pud, 1)
-+#define page_table_check_pud_set(mm, addr, pudp, pud)	page_table_check_puds_set(mm, addr, pudp, pud, 1)
+-#define page_table_check_pmd_set(mm, pmdp, pmd)	page_table_check_pmds_set(mm, pmdp, pmd, 1)
++#define page_table_check_pmd_set(mm, addr, pmdp, pmd)	page_table_check_pmds_set(mm, addr, pmdp, pmd, 1)
+ #define page_table_check_pud_set(mm, addr, pudp, pud)	page_table_check_puds_set(mm, addr, pudp, pud, 1)
  
  #endif /* __LINUX_PAGE_TABLE_CHECK_H */
---- a/mm/page_table_check.c~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
+--- a/mm/page_table_check.c~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set
 +++ a/mm/page_table_check.c
-@@ -236,8 +236,8 @@ void __page_table_check_pmds_set(struct
+@@ -218,8 +218,8 @@ static inline void page_table_check_pmd_
+ 		WARN_ON_ONCE(swap_cached_writable(pmd_to_swp_entry(pmd)));
  }
- EXPORT_SYMBOL(__page_table_check_pmds_set);
  
--void __page_table_check_puds_set(struct mm_struct *mm, pud_t *pudp, pud_t pud,
+-void __page_table_check_pmds_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd,
 -		unsigned int nr)
-+void __page_table_check_puds_set(struct mm_struct *mm, unsigned long addr,
-+		pud_t *pudp, pud_t pud,	unsigned int nr)
++void __page_table_check_pmds_set(struct mm_struct *mm, unsigned long addr,
++		pmd_t *pmdp, pmd_t pmd, unsigned int nr)
  {
- 	unsigned long stride = PUD_SIZE >> PAGE_SHIFT;
+ 	unsigned long stride = PMD_SIZE >> PAGE_SHIFT;
  	unsigned int i;
 _
 
