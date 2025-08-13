@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AA992FB966
-	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 22:57:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ECF22FB98D
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 22:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755125824; cv=none; b=PeiBq+7n1/z4+9gXhUbnqYU0cK5xO3fAqzw7cASirVZyoc5NqRacE+SiYpEV00+JYgX2V+BpWMsq15xIs1xDVNQdOqv3VoOWG5J4t6J3X2ncGlGOcPRoOE2s0jrzjBxlZZ/Kcf4YvMFZPTHgADkcOUXMentDF7BvhnEHB6CFT1o=
+	t=1755125877; cv=none; b=JjdX+P84vIO95PkF00i702detPo/XBo5i4EKcGcNu1hweOYYBoPvc5y6jBHQCtm/kFbR2byIwlCKxfyyrFWPsBaumi+H0kEE+kbYaph583QuarEKGITQvDz/UWEC/WWJIQY/7h36sQVWQ1i+FtQ0XPHSDtYBqMsj5CW+xkgju40=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755125824; c=relaxed/simple;
-	bh=BSquDP0qpqhypWvatQ/Db+GOmt1N41IBTEoajB6yC5g=;
-	h=Date:To:From:Subject:Message-Id; b=SaF5RWIAPpksbRwXbYvTzCsrWZhtiE9jKc17c3s/mwBJwIWnDlLw9NtXOH6DnId1/BklVLbnXL0Rk/Uu+v1oNZFyxryUcZTMrDHq/QWLyFsOB3YhII0L9KdUhrPu549Ikm+fGugmuCA2MF4Cgpt4Kl7+xv4GSr92NMe7X9dRgHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=poBzUEkr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755125877; c=relaxed/simple;
+	bh=jQsNL1TmX0NCRXGUj3X7eLayuwU7DQb+j6z/S4NgvuE=;
+	h=Date:To:From:Subject:Message-Id; b=Fv8VOIgUfT9trIrgNBu7nh0dgcWSeMtyCyVtvKjb3V1TOk5Hg2gOMNj1DOU40KeRemRJA3Bax5l//gou5sXNjSt4y2hfl7E8CRAiyPeNk/TJRrbyhBO6Ju9DCCn4sZfJe7Qsv1VW23Bii7EKN+collBkcpa9HpIouQdCiLdd8X0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ANcvQ+iW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="poBzUEkr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D2D8C4CEEB;
-	Wed, 13 Aug 2025 22:57:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ANcvQ+iW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F29BFC4CEEB;
+	Wed, 13 Aug 2025 22:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755125824;
-	bh=BSquDP0qpqhypWvatQ/Db+GOmt1N41IBTEoajB6yC5g=;
+	s=korg; t=1755125877;
+	bh=jQsNL1TmX0NCRXGUj3X7eLayuwU7DQb+j6z/S4NgvuE=;
 	h=Date:To:From:Subject:From;
-	b=poBzUEkrcRcFIoxRH5QEtWTntSkx5ScATkOm3RMt5t/VhkYM1kgNoxvakj/SDlEYI
-	 PgkA1MS4Ohqx2OIp3ntFelsjPYRggNjzWk//KbDRrR1VAmCSJ+YTDNYzlSfnwmHUQl
-	 ldZ4TDsLycuwqcmwuysgdMoB8FHqd+eREoVfbK1Q=
-Date: Wed, 13 Aug 2025 15:57:03 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,colin.i.king@gmail.com,akpm@linux-foundation.org
+	b=ANcvQ+iW7HpawJWSOxz7mQakl694bctI+HA6yruKLxvF1R2p8K8svCImmP53DDaM/
+	 mmb+wuEWLopE7X6nGBZKIeLkgr6BjzYfocJqhLUH6VquJHoir4rv7Tu3A7GCKnaAtn
+	 3DZyu7e73ryULOD8v62CVXp7m5mmXkgSfy7jeQzI=
+Date: Wed, 13 Aug 2025 15:57:56 -0700
+To: mm-commits@vger.kernel.org,syzbot+895c23f6917da440ed0d@syzkaller.appspotmail.com,phillip@squashfs.org.uk,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-spelling-mistake-mrmeap-mremap.patch added to mm-unstable branch
-Message-Id: <20250813225704.4D2D8C4CEEB@smtp.kernel.org>
+Subject: + squashfs-verify-inode-mode-when-loading-from-disk.patch added to mm-nonmm-unstable branch
+Message-Id: <20250813225756.F29BFC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix spelling mistake "mrmeap" -> "mremap"
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-spelling-mistake-mrmeap-mremap.patch
+     Subject: squashfs: verify inode mode when loading from disk
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-verify-inode-mode-when-loading-from-disk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-spelling-mistake-mrmeap-mremap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-verify-inode-mode-when-loading-from-disk.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,53 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: selftests/mm: fix spelling mistake "mrmeap" -> "mremap"
-Date: Wed, 13 Aug 2025 09:13:33 +0100
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: squashfs: verify inode mode when loading from disk
+Date: Wed, 13 Aug 2025 16:17:43 +0900
 
-There are spelling mistakes in perror messages.  Fix these.
+The inode mode loaded from corrupted disk might by error contain the file
+type bits.  Since the file type bits are set by squashfs_read_inode()
+using bitwise OR, the file type bits must not be set by
+squashfs_new_inode() from squashfs_read_inode(); otherwise, an invalid
+file type bits later confuses may_open().
 
-Link: https://lkml.kernel.org/r/20250813081333.1978096-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/f63d8d11-2254-4fc3-9292-9a43a93b374e@I-love.SAKURA.ne.jp
+Reported-by: syzbot <syzbot+895c23f6917da440ed0d@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=895c23f6917da440ed0d
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/squashfs/inode.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-fix-spelling-mistake-mrmeap-mremap
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -846,7 +846,7 @@ static void mremap_move_multi_invalid_vm
- 	}
- 	if (err != EFAULT) {
- 		errno = err;
--		perror("mrmeap() unexpected error");
-+		perror("mremap() unexpected error");
- 		success = false;
- 		goto out_unmap;
- 	}
-@@ -899,7 +899,7 @@ static void mremap_move_multi_invalid_vm
- 	}
- 	if (err != EFAULT) {
- 		errno = err;
--		perror("mrmeap() unexpected error");
-+		perror("mremap() unexpected error");
- 		success = false;
- 		goto out_unmap;
- 	}
-@@ -948,7 +948,7 @@ static void mremap_move_multi_invalid_vm
- 	}
- 	if (err != EFAULT) {
- 		errno = err;
--		perror("mrmeap() unexpected error");
-+		perror("mremap() unexpected error");
- 		success = false;
- 		goto out_unmap;
- 	}
+--- a/fs/squashfs/inode.c~squashfs-verify-inode-mode-when-loading-from-disk
++++ a/fs/squashfs/inode.c
+@@ -68,6 +68,10 @@ static int squashfs_new_inode(struct sup
+ 	inode->i_mode = le16_to_cpu(sqsh_ino->mode);
+ 	inode->i_size = 0;
+ 
++	/* File type must not be set at this moment, for it will later be set by the caller. */
++	if (inode->i_mode & S_IFMT)
++		err = -EIO;
++
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-selftests-mm-fix-spelling-mistake-mrmeap-mremap.patch
+ocfs2-kill-osb-system_file_mutex-lock.patch
+squashfs-verify-inode-mode-when-loading-from-disk.patch
 
