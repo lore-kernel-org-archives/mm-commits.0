@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E9102F39A1
-	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 22:41:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B75B2F744B
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 22:41:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755124861; cv=none; b=gOaRzqhLs5Ilg/SpkfCY0Q+zCa12AiBpYZgKugv/zhbitzUS3HfgU4MQzB0bFRea6gYirzrwEUJPCqq7XBdc1vPf1hRxaWlSgW75ZTVGF9VXPRAF0yubQgVIZLQmKJdq2vNbw37tmIrQekoILx/Q6xc+Tw8uZlDuXl0Iujg97qo=
+	t=1755124863; cv=none; b=SSSXtSkgTYBfmhHio8qnVGkMNoFstaWHIjnkfNkMkDYwnp1DV2y1FG1N+MEKzvtfRC/TmmEidW9OYFaMJyYYgXQktup38GcQQy3p5JA5g7l2Y0q0mw6J5X3LXkc8YlNgDfyjDaTUviGX/gt9FFK7qJZf2ubnqPoC6T+RKNGKDrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755124861; c=relaxed/simple;
-	bh=oJE03MNy04RH0p38tjoQ6xMvpEt6PygXlzmtytCPEMU=;
-	h=Date:To:From:Subject:Message-Id; b=uquGwvl3c6H3ENrch9Hs7QTDtg/paSoLg0SuTnoXNQssMi6R2g6bKhpT8NKu1JLj50MlJytJ9vvot9u5+vDQbgWlyW4d9hTJog6MWzJRj+HT8Oo1iLCcnq9DZu54loyAKreP33RpBCUjAFLzYLHvoy3aVx8gJeIj7OWln5pNoD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XZEpFIk6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755124863; c=relaxed/simple;
+	bh=huEN4pNeyHOsBtb4dp6E97Ebk61Ee2ihphlcB9AWAlM=;
+	h=Date:To:From:Subject:Message-Id; b=oQrDurfh5wNC39Wt4TMiDkh7oA2SN9XYHU+Zro6N5yvjl4Sy8idjVg3rU1kx59uVzbtUW1rTx6r7ogFub8JdxAgMsKpw2ToG6Bbcikj3Favs1ymYhitd1qgYfbVjrSOxWF41Q6VqxP7QW3Nja1ozX5MMioSDtpFHXTRdZ+xmrFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJCAdW4+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XZEpFIk6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 738FFC4CEEB;
-	Wed, 13 Aug 2025 22:41:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJCAdW4+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6063C4CEEB;
+	Wed, 13 Aug 2025 22:41:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755124860;
-	bh=oJE03MNy04RH0p38tjoQ6xMvpEt6PygXlzmtytCPEMU=;
+	s=korg; t=1755124862;
+	bh=huEN4pNeyHOsBtb4dp6E97Ebk61Ee2ihphlcB9AWAlM=;
 	h=Date:To:From:Subject:From;
-	b=XZEpFIk6EoXmHg2ksy/Tkpr+jayQbec42jU+zE+H/TNJsmwTGI5exNt0gkFsNCWxL
-	 0fW6sOlEHps+AU4dk7A/p04RUVjBIuzalKI31gDppSrSTvsdr8x2IhvmsBDbrSon1h
-	 TEU5zOTNxH3t3TfsmvQknD5TTf+B70QDFi7bly0I=
-Date: Wed, 13 Aug 2025 15:40:59 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,tglx@linutronix.de,akpm@linux-foundation.org
+	b=lJCAdW4+ObVQjnMiOSpNBdxMgpxvuJxBtYZa3lEz9RkEWoVmaGZuEKl3Reo4xjugW
+	 O3RUB2iocQ44CLe+kqciY2mYHrCFDxH9k8fMxuig9JXUkDn2b+Vwh+9eD0v0pviaJa
+	 BTrveNEC0w9JgINW12MmheflYF3g32LuEJcSh1tM=
+Date: Wed, 13 Aug 2025 15:41:02 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-optimize-exit-to-user-space.patch added to mm-new branch
-Message-Id: <20250813224100.738FFC4CEEB@smtp.kernel.org>
+Subject: + memcg-optimize-exit-to-user-space-fix.patch added to mm-new branch
+Message-Id: <20250813224102.D6063C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: optimize exit to user space
+     Subject: memcg-optimize-exit-to-user-space-fix
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-optimize-exit-to-user-space.patch
+     memcg-optimize-exit-to-user-space-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-optimize-exit-to-user-space.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-optimize-exit-to-user-space-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,79 +64,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: memcg: optimize exit to user space
-Date: Wed, 13 Aug 2025 16:57:55 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-optimize-exit-to-user-space-fix
+Date: Wed Aug 13 03:38:42 PM PDT 2025
 
-memcg uses TIF_NOTIFY_RESUME to handle reclaiming on exit to user space. 
-TIF_NOTIFY_RESUME is a multiplexing TIF bit, which is utilized by other
-entities as well.
+remove now-unneeded test of memcg_nr_pages_over_high==0, per Shakeel
 
-This results in a unconditional mem_cgroup_handle_over_high() call for
-every invocation of resume_user_mode_work(), which is a pointless exercise
-as most of the time there is no reclaim work to do.
-
-Especially since RSEQ is used by glibc, TIF_NOTIFY_RESUME is raised quite
-frequently and the empty calls show up in exit path profiling.
-
-Optimize this by doing a quick check of the reclaim condition before
-invoking it.
-
-Link: https://lkml.kernel.org/r/87tt2b6zgs.ffs@tglx
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 +++++++-
- mm/memcontrol.c            |    4 ++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-optimize-exit-to-user-space
-+++ a/include/linux/memcontrol.h
-@@ -900,7 +900,13 @@ unsigned long mem_cgroup_get_zone_lru_si
- 	return READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
- }
- 
--void mem_cgroup_handle_over_high(gfp_t gfp_mask);
-+void __mem_cgroup_handle_over_high(gfp_t gfp_mask);
-+
-+static inline void mem_cgroup_handle_over_high(gfp_t gfp_mask)
-+{
-+	if (unlikely(current->memcg_nr_pages_over_high))
-+		__mem_cgroup_handle_over_high(gfp_mask);
-+}
- 
- unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg);
- 
---- a/mm/memcontrol.c~memcg-optimize-exit-to-user-space
+--- a/mm/memcontrol.c~memcg-optimize-exit-to-user-space-fix
 +++ a/mm/memcontrol.c
-@@ -2203,7 +2203,7 @@ static unsigned long calculate_high_dela
-  * try_charge() (context permitting), as well as from the userland
-  * return path where reclaim is always able to block.
-  */
--void mem_cgroup_handle_over_high(gfp_t gfp_mask)
-+void __mem_cgroup_handle_over_high(gfp_t gfp_mask)
- {
- 	unsigned long penalty_jiffies;
- 	unsigned long pflags;
-@@ -2486,7 +2486,7 @@ done_restock:
- 	if (current->memcg_nr_pages_over_high > MEMCG_CHARGE_BATCH &&
- 	    !(current->flags & PF_MEMALLOC) &&
- 	    gfpflags_allow_blocking(gfp_mask))
--		mem_cgroup_handle_over_high(gfp_mask);
-+		__mem_cgroup_handle_over_high(gfp_mask);
- 	return 0;
- }
+@@ -2213,9 +2213,6 @@ void __mem_cgroup_handle_over_high(gfp_t
+ 	struct mem_cgroup *memcg;
+ 	bool in_retry = false;
+ 
+-	if (likely(!nr_pages))
+-		return;
+-
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
+ 	current->memcg_nr_pages_over_high = 0;
  
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-optimize-exit-to-user-space.patch
+mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
+mm-convert-core-mm-to-mm_flags_-accessors-fix.patch
+memcg-optimize-exit-to-user-space-fix.patch
 
