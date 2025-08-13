@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C54302750
-	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 22:28:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E9102F39A1
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 22:41:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755124106; cv=none; b=FoiIXWothJakGL+7A7WXTapfalrLT1mHEltkFNJ7TtUNbVLIycn+vApJ43JnoFuhLBtGFyl/0psgg0d0N4k1nITiouoWKdUpRh+dA4Xxkk0rRbbh1NbdPTdHY3V+8S/vsaf40CSZgMTsGfY7Xwz+dpUzZ2nKtumOfn8biwXkqkk=
+	t=1755124861; cv=none; b=gOaRzqhLs5Ilg/SpkfCY0Q+zCa12AiBpYZgKugv/zhbitzUS3HfgU4MQzB0bFRea6gYirzrwEUJPCqq7XBdc1vPf1hRxaWlSgW75ZTVGF9VXPRAF0yubQgVIZLQmKJdq2vNbw37tmIrQekoILx/Q6xc+Tw8uZlDuXl0Iujg97qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755124106; c=relaxed/simple;
-	bh=AWWcVvNsOjjOtOODHrAzYGFjE3zLAS5mXoEfGV3bfJc=;
-	h=Date:To:From:Subject:Message-Id; b=l3EgmgTWVbjfYRQE1U6QKTk8RewJs/L7PlY/XTB5M4Gy8V0JP3rMLfL4rJgMG1pEwvAvlRZm9kJXpeJYykhbMaGhXJ9rFx9QsUA8Ld6mbvg4aqd2M7XoVxJ20KXzKJ9tDDj08DjMq7slLu4ItfA66LzAcVt0Cu6rj6bdIvijVts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U2+6hlEt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755124861; c=relaxed/simple;
+	bh=oJE03MNy04RH0p38tjoQ6xMvpEt6PygXlzmtytCPEMU=;
+	h=Date:To:From:Subject:Message-Id; b=uquGwvl3c6H3ENrch9Hs7QTDtg/paSoLg0SuTnoXNQssMi6R2g6bKhpT8NKu1JLj50MlJytJ9vvot9u5+vDQbgWlyW4d9hTJog6MWzJRj+HT8Oo1iLCcnq9DZu54loyAKreP33RpBCUjAFLzYLHvoy3aVx8gJeIj7OWln5pNoD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XZEpFIk6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U2+6hlEt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73D35C4CEEB;
-	Wed, 13 Aug 2025 22:28:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XZEpFIk6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 738FFC4CEEB;
+	Wed, 13 Aug 2025 22:41:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755124105;
-	bh=AWWcVvNsOjjOtOODHrAzYGFjE3zLAS5mXoEfGV3bfJc=;
+	s=korg; t=1755124860;
+	bh=oJE03MNy04RH0p38tjoQ6xMvpEt6PygXlzmtytCPEMU=;
 	h=Date:To:From:Subject:From;
-	b=U2+6hlEtdbB7X1paxEGgBlaVH4tor0uH85XOFxpTuEkRinxIN3zyDrSOfMMS56/pK
-	 9CgOJPcJhEkHBsWWYnBlW4khP68OmmPVAU6pURIo/HQ1qK+hxqS+IOFHBWjrmVlng4
-	 23mGESbVQ7H8PCfvPvTBX7lCTogICsX3ZKgaZpEg=
-Date: Wed, 13 Aug 2025 15:28:24 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,tmgross@umich.edu,ojeda@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,geliang@kernel.org,gary@garyguo.net,dakr@kernel.org,chentao@kylinos.cn,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	b=XZEpFIk6EoXmHg2ksy/Tkpr+jayQbec42jU+zE+H/TNJsmwTGI5exNt0gkFsNCWxL
+	 0fW6sOlEHps+AU4dk7A/p04RUVjBIuzalKI31gDppSrSTvsdr8x2IhvmsBDbrSon1h
+	 TEU5zOTNxH3t3TfsmvQknD5TTf+B70QDFi7bly0I=
+Date: Wed, 13 Aug 2025 15:40:59 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,tglx@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rust-allocator-add-kunit-tests-for-alignment-guarantees.patch added to mm-new branch
-Message-Id: <20250813222825.73D35C4CEEB@smtp.kernel.org>
+Subject: + memcg-optimize-exit-to-user-space.patch added to mm-new branch
+Message-Id: <20250813224100.738FFC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rust: allocator: add KUnit tests for alignment guarantees
+     Subject: memcg: optimize exit to user space
 has been added to the -mm mm-new branch.  Its filename is
-     rust-allocator-add-kunit-tests-for-alignment-guarantees.patch
+     memcg-optimize-exit-to-user-space.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-allocator-add-kunit-tests-for-alignment-guarantees.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-optimize-exit-to-user-space.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,115 +64,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: rust: allocator: add KUnit tests for alignment guarantees
-Date: Thu, 31 Jul 2025 10:50:05 +0800
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: memcg: optimize exit to user space
+Date: Wed, 13 Aug 2025 16:57:55 +0200
 
-Add a test module to verify memory alignment guarantees for Rust kernel
-allocators.  The tests cover `Kmalloc`, `Vmalloc` and `KVmalloc`
-allocators with both standard and large page-aligned allocations.
+memcg uses TIF_NOTIFY_RESUME to handle reclaiming on exit to user space. 
+TIF_NOTIFY_RESUME is a multiplexing TIF bit, which is utilized by other
+entities as well.
 
-Key features of the tests:
-1. Creates alignment-constrained types:
-   - 128-byte aligned `Blob`
-   - 8192-byte (4-page) aligned `LargeAlignBlob`
-2. Validates allocators using `TestAlign` helper which:
-   - Checks address alignment masks
-   - Supports uninitialized allocations
-3. Tests all three allocators with both alignment requirements:
-   - Kmalloc with 128B and 8192B
-   - Vmalloc with 128B and 8192B
-   - KVmalloc with 128B and 8192B
+This results in a unconditional mem_cgroup_handle_over_high() call for
+every invocation of resume_user_mode_work(), which is a pointless exercise
+as most of the time there is no reclaim work to do.
 
-Link: https://lkml.kernel.org/r/d2e3d6454c1435713be0fe3c0dc444d2c60bba51.1753929369.git.zhuhui@kylinos.cn
-Co-developed-by: Geliang Tang <geliang@kernel.org>
-Signed-off-by: Geliang Tang <geliang@kernel.org>
-Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
-Reviewed-by: Kunwu Chan <chentao@kylinos.cn>
-Acked-by: Danilo Krummrich <dakr@kernel.org>
-Cc: Alex Gaynor <alex.gaynor@gmail.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>
-Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Trevor Gross <tmgross@umich.edu>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Especially since RSEQ is used by glibc, TIF_NOTIFY_RESUME is raised quite
+frequently and the empty calls show up in exit path profiling.
+
+Optimize this by doing a quick check of the reclaim condition before
+invoking it.
+
+Link: https://lkml.kernel.org/r/87tt2b6zgs.ffs@tglx
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/kernel/alloc/allocator.rs |   56 +++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ include/linux/memcontrol.h |    8 +++++++-
+ mm/memcontrol.c            |    4 ++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
---- a/rust/kernel/alloc/allocator.rs~rust-allocator-add-kunit-tests-for-alignment-guarantees
-+++ a/rust/kernel/alloc/allocator.rs
-@@ -184,3 +184,59 @@ unsafe impl Allocator for KVmalloc {
-         unsafe { ReallocFunc::KVREALLOC.call(ptr, layout, old_layout, flags, nid) }
-     }
+--- a/include/linux/memcontrol.h~memcg-optimize-exit-to-user-space
++++ a/include/linux/memcontrol.h
+@@ -900,7 +900,13 @@ unsigned long mem_cgroup_get_zone_lru_si
+ 	return READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
  }
+ 
+-void mem_cgroup_handle_over_high(gfp_t gfp_mask);
++void __mem_cgroup_handle_over_high(gfp_t gfp_mask);
 +
-+#[macros::kunit_tests(rust_allocator)]
-+mod tests {
-+    use super::*;
-+    use core::mem::MaybeUninit;
-+    use kernel::prelude::*;
-+
-+    #[test]
-+    fn test_alignment() -> Result {
-+        const TEST_SIZE: usize = 1024;
-+        const TEST_LARGE_ALIGN_SIZE: usize = kernel::page::PAGE_SIZE * 4;
-+
-+        // These two structs are used to test allocating aligned memory.
-+        // they don't need to be accessed, so they're marked as dead_code.
-+        #[expect(dead_code)]
-+        #[repr(align(128))]
-+        struct Blob([u8; TEST_SIZE]);
-+        #[expect(dead_code)]
-+        #[repr(align(8192))]
-+        struct LargeAlignBlob([u8; TEST_LARGE_ALIGN_SIZE]);
-+
-+        struct TestAlign<T, A: Allocator>(Box<MaybeUninit<T>, A>);
-+        impl<T, A: Allocator> TestAlign<T, A> {
-+            fn new() -> Result<Self> {
-+                Ok(Self(Box::<_, A>::new_uninit(GFP_KERNEL)?))
-+            }
-+
-+            fn is_aligned_to(&self, align: usize) -> bool {
-+                assert!(align.is_power_of_two());
-+
-+                let addr = self.0.as_ptr() as usize;
-+                addr & (align - 1) == 0
-+            }
-+        }
-+
-+        let ta = TestAlign::<Blob, Kmalloc>::new()?;
-+        assert!(ta.is_aligned_to(128));
-+
-+        let ta = TestAlign::<LargeAlignBlob, Kmalloc>::new()?;
-+        assert!(ta.is_aligned_to(8192));
-+
-+        let ta = TestAlign::<Blob, Vmalloc>::new()?;
-+        assert!(ta.is_aligned_to(128));
-+
-+        let ta = TestAlign::<LargeAlignBlob, Vmalloc>::new()?;
-+        assert!(ta.is_aligned_to(8192));
-+
-+        let ta = TestAlign::<Blob, KVmalloc>::new()?;
-+        assert!(ta.is_aligned_to(128));
-+
-+        let ta = TestAlign::<LargeAlignBlob, KVmalloc>::new()?;
-+        assert!(ta.is_aligned_to(8192));
-+
-+        Ok(())
-+    }
++static inline void mem_cgroup_handle_over_high(gfp_t gfp_mask)
++{
++	if (unlikely(current->memcg_nr_pages_over_high))
++		__mem_cgroup_handle_over_high(gfp_mask);
 +}
+ 
+ unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg);
+ 
+--- a/mm/memcontrol.c~memcg-optimize-exit-to-user-space
++++ a/mm/memcontrol.c
+@@ -2203,7 +2203,7 @@ static unsigned long calculate_high_dela
+  * try_charge() (context permitting), as well as from the userland
+  * return path where reclaim is always able to block.
+  */
+-void mem_cgroup_handle_over_high(gfp_t gfp_mask)
++void __mem_cgroup_handle_over_high(gfp_t gfp_mask)
+ {
+ 	unsigned long penalty_jiffies;
+ 	unsigned long pflags;
+@@ -2486,7 +2486,7 @@ done_restock:
+ 	if (current->memcg_nr_pages_over_high > MEMCG_CHARGE_BATCH &&
+ 	    !(current->flags & PF_MEMALLOC) &&
+ 	    gfpflags_allow_blocking(gfp_mask))
+-		mem_cgroup_handle_over_high(gfp_mask);
++		__mem_cgroup_handle_over_high(gfp_mask);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from zhuhui@kylinos.cn are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-rust-allocator-add-kunit-tests-for-alignment-guarantees.patch
+memcg-optimize-exit-to-user-space.patch
 
