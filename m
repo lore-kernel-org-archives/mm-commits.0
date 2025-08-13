@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 543F02F0C73
-	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 23:06:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60432F3C3D
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 23:06:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755126375; cv=none; b=WfR7goWorM0XzNPjUTYWWJqEyJKwPUxZq4HVg/jsBrTzwFSX5K8JMq6iYiC1icbMH524ZcSsi+Cn1E/u9wQGGwF5SIKURN6sWx6opxSpsF/mbD/WaTianv+bOr6wKsdpT5X7e3wkaHfV4I3+nZLCadcVf3jQxVSGk6PCuI4CeCI=
+	t=1755126379; cv=none; b=RmyH+Jt8vvU4LJ8xdm0CWIHU6zDtVUH+EABDvr9/AaLQQw8c6TbNDgeOiSllo9N2KqGmfN67gFPxhWC12slwIFiGWE5jcCasUfvPRDqkYnO8zZmck5oqCR8kdMzpu6xrU7ADPwOe1Hf4vEsa1hZNl5w7K1JpBWfWMCRpt6qyCSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755126375; c=relaxed/simple;
-	bh=t52QopdWxRINow5BqJD4nT8h3WPjt7rsb0zB9YkNR9U=;
-	h=Date:To:From:Subject:Message-Id; b=HJqQt2A41UioQo6MPazI/VYggBfNknV7PhbafmDpFG8KU4jUwndTMveS33RsArJmp2OQkeen5Ro1mJJEw0X/2R08JCc3J3FwZwPbJovi1qbr0xcj/zLtapS8rgNRK4kqVQCT9zUz7xyFLSlrQtWAqCxR2uDMvWLJXiTsNCSqHjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DCunn6hn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755126379; c=relaxed/simple;
+	bh=RaL7LEtgGHid+Scon2Urzl58OMSTP4oyTdYkjynoEVU=;
+	h=Date:To:From:Subject:Message-Id; b=bgdJtmZBs9OleAMc2rx95dJIT7xqymeXYLoBVn9zYFOiWyJvsQT7AUJ6nBjzplBWCI7eCjapInzgu1ZgYPr5ng4Gcdd8PwPGcwOX1OhXkPdUxHY091Q6JjEuETjeWoD3Z67yrUR5mUeBwJkHBSfmY/yZ+BGE7IxkgaD4cK57sQ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Og5o2fuF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DCunn6hn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEFB3C4CEEB;
-	Wed, 13 Aug 2025 23:06:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Og5o2fuF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B395DC4CEEB;
+	Wed, 13 Aug 2025 23:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755126374;
-	bh=t52QopdWxRINow5BqJD4nT8h3WPjt7rsb0zB9YkNR9U=;
+	s=korg; t=1755126378;
+	bh=RaL7LEtgGHid+Scon2Urzl58OMSTP4oyTdYkjynoEVU=;
 	h=Date:To:From:Subject:From;
-	b=DCunn6hngMWbXGe8wksnNlt+9J7tjGWGLGSUmcU5L+I0qFS+6D+j/iec92P0M1Blf
-	 JnrXeKgPeCuf3/bxQincjl7F7AhaAJ1qt5b/RWhL8cNqJNe5tkT/4q41I2eBvS1sq8
-	 nilgYLmClxQPNsRiKVgF5o477K+HUtN/QtzRF5L4=
-Date: Wed, 13 Aug 2025 16:06:14 -0700
+	b=Og5o2fuFuD4cdpgIo+prh6pNbkCq//MuDKhr6UyYnxxJog0ylUkWtaG68DwGfNCte
+	 M6yDpXcmQ7ymU1TtEpRIrH53ZS7uuOoNEa4Eyrj+Zp/cwOswwD3wctCIFgX1QPE78Q
+	 BrD8Gzc3oWWuY6ChxB6nZaUwuKBI4Ss6T9rpHNuw=
+Date: Wed, 13 Aug 2025 16:06:18 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,sweettea-kernel@dorminy.me,pasha.tatashin@soleen.com,nicholas@linux.ibm.com,mingo@kernel.org,maddy@linux.ibm.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,ajd@linux.ibm.com,rmclure@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear.patch added to mm-new branch
-Message-Id: <20250813230614.AEFB3C4CEEB@smtp.kernel.org>
+Subject: + mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch added to mm-new branch
+Message-Id: <20250813230618.B395DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_table_check: Reinstate address parameter in [__]page_table_check_pte_clear()
+     Subject: mm: provide address parameter to p{te,md,ud}_user_accessible_page()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear.patch
+     mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,18 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rohan McLure <rmclure@linux.ibm.com>
-Subject: mm/page_table_check: Reinstate address parameter in [__]page_table_check_pte_clear()
-Date: Wed, 13 Aug 2025 16:26:09 +1000
+Subject: mm: provide address parameter to p{te,md,ud}_user_accessible_page()
+Date: Wed, 13 Aug 2025 16:26:10 +1000
 
-This reverts commit aa232204c468 ("mm/page_table_check: remove unused
-parameter in [__]page_table_check_pte_clear").
+On several powerpc platforms, a page table entry may not imply whether the
+relevant mapping is for userspace or kernelspace.  Instead, such platforms
+infer this by the address which is being accessed.
 
-Reinstate previously unused parameters for the purpose of supporting
-powerpc platforms, as many do not encode user/kernel ownership of the page
-in the pte, but instead in the address of the access.
+Add an additional address argument to each of these routines in order to
+provide support for page table check on powerpc.
 
-[ajd@linux.ibm.com: rebase, fix additional occurrence and loop handling]
-Link: https://lkml.kernel.org/r/20250813062614.51759-9-ajd@linux.ibm.com
+[ajd@linux.ibm.com: rebase on arm64 changes]
+Link: https://lkml.kernel.org/r/20250813062614.51759-10-ajd@linux.ibm.com
 Signed-off-by: Rohan McLure <rmclure@linux.ibm.com>
 Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
@@ -90,144 +90,137 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    2 +-
- arch/riscv/include/asm/pgtable.h |    2 +-
- arch/x86/include/asm/pgtable.h   |    4 ++--
- include/linux/page_table_check.h |   11 +++++++----
- include/linux/pgtable.h          |    4 ++--
- mm/page_table_check.c            |    7 ++++---
- 6 files changed, 17 insertions(+), 13 deletions(-)
+ arch/arm64/include/asm/pgtable.h |    6 +++---
+ arch/riscv/include/asm/pgtable.h |    6 +++---
+ arch/x86/include/asm/pgtable.h   |    6 +++---
+ mm/page_table_check.c            |   12 ++++++------
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear
+--- a/arch/arm64/include/asm/pgtable.h~mm-provide-address-parameter-to-ptemdud_user_accessible_page
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -1367,7 +1367,7 @@ static inline pte_t __ptep_get_and_clear
- 
- 	switch (pgsize) {
- 	case PAGE_SIZE:
--		page_table_check_pte_clear(mm, pte);
-+		page_table_check_pte_clear(mm, address, pte);
- 		break;
- 	case PMD_SIZE:
- 		page_table_check_pmd_clear(mm, address, pte_pmd(pte));
---- a/arch/riscv/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -591,7 +591,7 @@ static inline pte_t ptep_get_and_clear(s
- {
- 	pte_t pte = __pte(atomic_long_xchg((atomic_long_t *)ptep, 0));
- 
--	page_table_check_pte_clear(mm, pte);
-+	page_table_check_pte_clear(mm, address, pte);
- 
- 	return pte;
- }
---- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1251,7 +1251,7 @@ static inline pte_t ptep_get_and_clear(s
- 				       pte_t *ptep)
- {
- 	pte_t pte = native_ptep_get_and_clear(ptep);
--	page_table_check_pte_clear(mm, pte);
-+	page_table_check_pte_clear(mm, addr, pte);
- 	return pte;
- }
- 
-@@ -1267,7 +1267,7 @@ static inline pte_t ptep_get_and_clear_f
- 		 * care about updates and native needs no locking
- 		 */
- 		pte = native_local_ptep_get_and_clear(ptep);
--		page_table_check_pte_clear(mm, pte);
-+		page_table_check_pte_clear(mm, addr, pte);
- 	} else {
- 		pte = ptep_get_and_clear(mm, addr, ptep);
- 	}
---- a/include/linux/page_table_check.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear
-+++ a/include/linux/page_table_check.h
-@@ -14,7 +14,8 @@ extern struct static_key_true page_table
- extern struct page_ext_operations page_table_check_ops;
- 
- void __page_table_check_zero(struct page *page, unsigned int order);
--void __page_table_check_pte_clear(struct mm_struct *mm, pte_t pte);
-+void __page_table_check_pte_clear(struct mm_struct *mm, unsigned long addr,
-+				  pte_t pte);
- void __page_table_check_pmd_clear(struct mm_struct *mm, unsigned long addr,
- 				  pmd_t pmd);
- void __page_table_check_pud_clear(struct mm_struct *mm, unsigned long addr,
-@@ -45,12 +46,13 @@ static inline void page_table_check_free
- 	__page_table_check_zero(page, order);
- }
- 
--static inline void page_table_check_pte_clear(struct mm_struct *mm, pte_t pte)
-+static inline void page_table_check_pte_clear(struct mm_struct *mm,
-+					      unsigned long addr, pte_t pte)
- {
- 	if (static_branch_likely(&page_table_check_disabled))
- 		return;
- 
--	__page_table_check_pte_clear(mm, pte);
-+	__page_table_check_pte_clear(mm, addr, pte);
- }
- 
- static inline void page_table_check_pmd_clear(struct mm_struct *mm,
-@@ -119,7 +121,8 @@ static inline void page_table_check_free
- {
- }
- 
--static inline void page_table_check_pte_clear(struct mm_struct *mm, pte_t pte)
-+static inline void page_table_check_pte_clear(struct mm_struct *mm,
-+					      unsigned long addr, pte_t pte)
- {
- }
- 
---- a/include/linux/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear
-+++ a/include/linux/pgtable.h
-@@ -494,7 +494,7 @@ static inline pte_t ptep_get_and_clear(s
- {
- 	pte_t pte = ptep_get(ptep);
- 	pte_clear(mm, address, ptep);
--	page_table_check_pte_clear(mm, pte);
-+	page_table_check_pte_clear(mm, address, pte);
- 	return pte;
- }
+@@ -1290,17 +1290,17 @@ static inline int pmdp_set_access_flags(
  #endif
-@@ -553,7 +553,7 @@ static inline void ptep_clear(struct mm_
- 	 * No need for ptep_get_and_clear(): page table check doesn't care about
- 	 * any bits that could have been set by HW concurrently.
- 	 */
--	page_table_check_pte_clear(mm, pte);
-+	page_table_check_pte_clear(mm, addr, pte);
- }
  
- #ifdef CONFIG_GUP_GET_PXX_LOW_HIGH
---- a/mm/page_table_check.c~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear
-+++ a/mm/page_table_check.c
-@@ -145,7 +145,8 @@ void __page_table_check_zero(struct page
- 	rcu_read_unlock();
- }
- 
--void __page_table_check_pte_clear(struct mm_struct *mm, pte_t pte)
-+void __page_table_check_pte_clear(struct mm_struct *mm, unsigned long addr,
-+				  pte_t pte)
+ #ifdef CONFIG_PAGE_TABLE_CHECK
+-static inline bool pte_user_accessible_page(pte_t pte)
++static inline bool pte_user_accessible_page(pte_t pte, unsigned long addr)
  {
+ 	return pte_valid(pte) && (pte_user(pte) || pte_user_exec(pte));
+ }
+ 
+-static inline bool pmd_user_accessible_page(pmd_t pmd)
++static inline bool pmd_user_accessible_page(pmd_t pmd, unsigned long addr)
+ {
+ 	return pmd_valid(pmd) && !pmd_table(pmd) && (pmd_user(pmd) || pmd_user_exec(pmd));
+ }
+ 
+-static inline bool pud_user_accessible_page(pud_t pud)
++static inline bool pud_user_accessible_page(pud_t pud, unsigned long addr)
+ {
+ 	return pud_valid(pud) && !pud_table(pud) && (pud_user(pud) || pud_user_exec(pud));
+ }
+--- a/arch/riscv/include/asm/pgtable.h~mm-provide-address-parameter-to-ptemdud_user_accessible_page
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -817,17 +817,17 @@ static inline void set_pud_at(struct mm_
+ }
+ 
+ #ifdef CONFIG_PAGE_TABLE_CHECK
+-static inline bool pte_user_accessible_page(pte_t pte)
++static inline bool pte_user_accessible_page(pte_t pte, unsigned long addr)
+ {
+ 	return pte_present(pte) && pte_user(pte);
+ }
+ 
+-static inline bool pmd_user_accessible_page(pmd_t pmd)
++static inline bool pmd_user_accessible_page(pmd_t pmd, unsigned long addr)
+ {
+ 	return pmd_leaf(pmd) && pmd_user(pmd);
+ }
+ 
+-static inline bool pud_user_accessible_page(pud_t pud)
++static inline bool pud_user_accessible_page(pud_t pud, unsigned long addr)
+ {
+ 	return pud_leaf(pud) && pud_user(pud);
+ }
+--- a/arch/x86/include/asm/pgtable.h~mm-provide-address-parameter-to-ptemdud_user_accessible_page
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1679,17 +1679,17 @@ static inline bool arch_has_hw_nonleaf_p
+ #endif
+ 
+ #ifdef CONFIG_PAGE_TABLE_CHECK
+-static inline bool pte_user_accessible_page(pte_t pte)
++static inline bool pte_user_accessible_page(pte_t pte, unsigned long addr)
+ {
+ 	return (pte_val(pte) & _PAGE_PRESENT) && (pte_val(pte) & _PAGE_USER);
+ }
+ 
+-static inline bool pmd_user_accessible_page(pmd_t pmd)
++static inline bool pmd_user_accessible_page(pmd_t pmd, unsigned long addr)
+ {
+ 	return pmd_leaf(pmd) && (pmd_val(pmd) & _PAGE_PRESENT) && (pmd_val(pmd) & _PAGE_USER);
+ }
+ 
+-static inline bool pud_user_accessible_page(pud_t pud)
++static inline bool pud_user_accessible_page(pud_t pud, unsigned long addr)
+ {
+ 	return pud_leaf(pud) && (pud_val(pud) & _PAGE_PRESENT) && (pud_val(pud) & _PAGE_USER);
+ }
+--- a/mm/page_table_check.c~mm-provide-address-parameter-to-ptemdud_user_accessible_page
++++ a/mm/page_table_check.c
+@@ -151,7 +151,7 @@ void __page_table_check_pte_clear(struct
  	if (&init_mm == mm)
  		return;
-@@ -206,7 +207,7 @@ void __page_table_check_ptes_set(struct
- 	page_table_check_pte_flags(pte);
+ 
+-	if (pte_user_accessible_page(pte)) {
++	if (pte_user_accessible_page(pte, addr)) {
+ 		page_table_check_clear(pte_pfn(pte), PAGE_SIZE >> PAGE_SHIFT);
+ 	}
+ }
+@@ -163,7 +163,7 @@ void __page_table_check_pmd_clear(struct
+ 	if (&init_mm == mm)
+ 		return;
+ 
+-	if (pmd_user_accessible_page(pmd)) {
++	if (pmd_user_accessible_page(pmd, addr)) {
+ 		page_table_check_clear(pmd_pfn(pmd), PMD_SIZE >> PAGE_SHIFT);
+ 	}
+ }
+@@ -175,7 +175,7 @@ void __page_table_check_pud_clear(struct
+ 	if (&init_mm == mm)
+ 		return;
+ 
+-	if (pud_user_accessible_page(pud)) {
++	if (pud_user_accessible_page(pud, addr)) {
+ 		page_table_check_clear(pud_pfn(pud), PUD_SIZE >> PAGE_SHIFT);
+ 	}
+ }
+@@ -208,7 +208,7 @@ void __page_table_check_ptes_set(struct
  
  	for (i = 0; i < nr; i++)
--		__page_table_check_pte_clear(mm, ptep_get(ptep + i));
-+		__page_table_check_pte_clear(mm, addr + PAGE_SIZE * i, ptep_get(ptep + i));
- 	if (pte_user_accessible_page(pte))
+ 		__page_table_check_pte_clear(mm, addr + PAGE_SIZE * i, ptep_get(ptep + i));
+-	if (pte_user_accessible_page(pte))
++	if (pte_user_accessible_page(pte, addr))
  		page_table_check_set(pte_pfn(pte), nr, pte_write(pte));
  }
-@@ -268,7 +269,7 @@ void __page_table_check_pte_clear_range(
- 		if (WARN_ON(!ptep))
- 			return;
- 		for (i = 0; i < PTRS_PER_PTE; i++) {
--			__page_table_check_pte_clear(mm, ptep_get(ptep));
-+			__page_table_check_pte_clear(mm, addr, ptep_get(ptep));
- 			addr += PAGE_SIZE;
- 			ptep++;
- 		}
+ EXPORT_SYMBOL(__page_table_check_ptes_set);
+@@ -234,7 +234,7 @@ void __page_table_check_pmds_set(struct
+ 
+ 	for (i = 0; i < nr; i++)
+ 		__page_table_check_pmd_clear(mm, addr + PMD_SIZE * i, *(pmdp + i));
+-	if (pmd_user_accessible_page(pmd))
++	if (pmd_user_accessible_page(pmd, addr))
+ 		page_table_check_set(pmd_pfn(pmd), stride * nr, pmd_write(pmd));
+ }
+ EXPORT_SYMBOL(__page_table_check_pmds_set);
+@@ -250,7 +250,7 @@ void __page_table_check_puds_set(struct
+ 
+ 	for (i = 0; i < nr; i++)
+ 		__page_table_check_pud_clear(mm, addr + PUD_SIZE * i, *(pudp + i));
+-	if (pud_user_accessible_page(pud))
++	if (pud_user_accessible_page(pud, addr))
+ 		page_table_check_set(pud_pfn(pud), stride * nr, pud_write(pud));
+ }
+ EXPORT_SYMBOL(__page_table_check_puds_set);
 _
 
 Patches currently in -mm which might be from rmclure@linux.ibm.com are
