@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F92D2E54D8
-	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 21:50:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC13330276D
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 22:24:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755121814; cv=none; b=PHz+Q3DiK2vu7elDGvQNNchgMUyuITgi4I0uGx0ZMFRMRuXwuOamUKq8iC/YDdw+eZXXt2cq2A1ZB1LFm4Gs99EjQdfyj6gSweIEvBqdmGaEnU8N6J8tpA82YutM/6ee2M3Xxpj4B+Mj4HBe4GHV0iduZ7tOgvmIjIgKrH/JSjI=
+	t=1755123898; cv=none; b=vE3ebb5qV/eBa2s7SekLm57UIlJ5eSu4Uwjsub0fTZ0c8uZnxPqLECI9+gqHd3SigHfI2tiXaK8LZJ8eFiAFWHpBCVmUPgKzeeLaXaMIZrLr+kIGP9Q0a6FLX7ID9GKFh4xqBk5gAdHzgTuVHbz2kSHIg7xjSm/1az09OM3B4q0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755121814; c=relaxed/simple;
-	bh=wZ6GhiGndG4iV6iuNAjvL31FJO7HJUJeMhmoy96m7RI=;
-	h=Date:To:From:Subject:Message-Id; b=GKyzD4v42AHSCFBW0ph9+gM/npJK8EeK1VB9MW3nc5y7jQRl4H9Cgsg1qLdNzINhvcWEEq8ItUzFITxaLDjLHmqn/+Jy/wwHqW0MXNwRry/oB/2Tn8df4nyPinOhmyjEnRwBs0V2R2WEZAZy7ib8zWKBNocpjWU5K7JVsFH8WB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krclGHg3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755123898; c=relaxed/simple;
+	bh=ua7Ui+uzGX2ixgknZwVXsl/pLEF+Yc+Ofa5QgJCyq6w=;
+	h=Date:To:From:Subject:Message-Id; b=ZWTcxJAVO4P1d7v6SXbd5BeQ4VaLyz4g45sRche0iVu/qlcnXWhFylzTtW9mguztk4YEWj8mowq4S5cyNgQJP5B5REU+H0B9qgZ0fV3hC30li7THQYLmdBNNScYtJ+ZT21kDmGALOFq/9IZG3852d1QlYwqERIL/XYzeN0Y+01o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ILFYxymC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krclGHg3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EE5AC4CEEB;
-	Wed, 13 Aug 2025 21:50:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ILFYxymC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 431CBC4CEEB;
+	Wed, 13 Aug 2025 22:24:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755121814;
-	bh=wZ6GhiGndG4iV6iuNAjvL31FJO7HJUJeMhmoy96m7RI=;
+	s=korg; t=1755123897;
+	bh=ua7Ui+uzGX2ixgknZwVXsl/pLEF+Yc+Ofa5QgJCyq6w=;
 	h=Date:To:From:Subject:From;
-	b=krclGHg3QhiqYtAJMLPDo/ABomTF3jvXjVojGlX9JchDmEftRWPWWwAgiXBiCD+lW
-	 SzO+eHI0uhRc4G5f6otNpPYfR+B6DZVU6IDFokdQrqQ/6bMC0Szaav3rak+nqvA27w
-	 xOgNmI5QeV6RKw1AW6lsnJWKbNOdL2g0MTx5ZIp0=
-Date: Wed, 13 Aug 2025 14:50:13 -0700
-To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,surenb@google.com,peterx@redhat.com,kaleshsingh@google.com,david@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
+	b=ILFYxymCD9gTAAMMnuFBqRVB+CopdUq0zlQIrENwq0lvOlg6W/ARpD50TpFdi/vhO
+	 6u6keB3cuIb0R4gb/VukVAuUt43RAyL0iPbLCA96MwcJvJ2Fi0/j2yKptgVdIRbDkc
+	 MU/D+Fsy3GiFQb5u36nUJx9yFKO/+LCWXdVOnabg=
+Date: Wed, 13 Aug 2025 15:24:56 -0700
+To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,will@kernel.org,vincenzo.frascino@arm.com,scott@os.amperecomputing.com,ryabinin.a.a@gmail.com,pankaj.gupta@amd.com,oliver.upton@linux.dev,maz@kernel.org,leitao@debian.org,kaleshsingh@google.com,jhubbard@nvidia.com,james.morse@arm.com,hardevsinh.palaniya@siliconsignals.io,glider@google.com,dvyukov@google.com,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,broonie@kernel.org,ardb@kernel.org,andreyknvl@gmail.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch added to mm-new branch
-Message-Id: <20250813215014.1EE5AC4CEEB@smtp.kernel.org>
+Subject: + kasan-hw-tags-introduce-kasanstore_only-option.patch added to mm-new branch
+Message-Id: <20250813222457.431CBC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: opportunistic TLB-flush batching for present pages in MOVE
+     Subject: kasan/hw-tags: introduce kasan.store_only option
 has been added to the -mm mm-new branch.  Its filename is
-     userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
+     kasan-hw-tags-introduce-kasanstore_only-option.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-hw-tags-introduce-kasanstore_only-option.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,487 +64,365 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: userfaultfd: opportunistic TLB-flush batching for present pages in MOVE
-Date: Wed, 13 Aug 2025 12:30:24 -0700
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: kasan/hw-tags: introduce kasan.store_only option
+Date: Wed, 13 Aug 2025 18:53:34 +0100
 
-MOVE ioctl's runtime is dominated by TLB-flush cost, which is required for
-moving present pages.  Mitigate this cost by opportunistically batching
-present contiguous pages for TLB flushing.
+Patch series "introduce kasan.store_only option in hw-tags", v2.
 
-Without batching, in our testing on an arm64 Android device with UFFD GC,
-which uses MOVE ioctl for compaction, we observed that out of the total
-time spent in move_pages_pte(), over 40% is in ptep_clear_flush(), and
-~20% in vm_normal_folio().
+Hardware tag based KASAN is implemented using the Memory Tagging Extension
+(MTE) feature.
 
-With batching, the proportion of vm_normal_folio() increases to over 70%
-of move_pages_pte() without any changes to vm_normal_folio(). 
-Furthermore, time spent within move_pages_pte() is only ~20%, which
-includes TLB-flush overhead.
+MTE is built on top of the ARMv8.0 virtual address tagging TBI (Top Byte
+Ignore) feature and allows software to access a 4-bit allocation tag for
+each 16-byte granule in the physical address space.  A logical tag is
+derived from bits 59-56 of the virtual address used for the memory access.
+A CPU with MTE enabled will compare the logical tag against the
+allocation tag and potentially raise an tag check fault on mismatch,
+subject to system registers configuration.
 
-When the GC intensive benchmark, which was used to gather the above
-numbers, is run on cuttlefish (qemu android instance on x86_64), the
-completion time of the benchmark went down from ~45mins to ~20mins.
+Since ARMv8.9, FEAT_MTE_STORE_ONLY can be used to restrict raise of tag
+check fault on store operation only.
 
-Furthermore, system_server, one of the most performance critical system
-processes on android, saw over 50% reduction in GC compaction time on an
-arm64 android device.
+Using this feature (FEAT_MTE_STORE_ONLY), introduce KASAN store-only mode
+which restricts KASAN check store operation only.  This mode omits KASAN
+check for fetch/load operation.  Therefore, it might be used not only
+debugging purpose but also in normal environment.
 
-Link: https://lkml.kernel.org/r/20250813193024.2279805-1-lokeshgidra@google.com
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
+
+This patch (of 2):
+
+Since Armv8.9, FEATURE_MTE_STORE_ONLY feature is introduced to restrict
+raise of tag check fault on store operation only.  Introcude KASAN store
+only mode based on this feature.
+
+KASAN store only mode restricts KASAN checks operation for store only and
+omits the checks for fetch/read operation when accessing memory.  So it
+might be used not only debugging enviroment but also normal enviroment to
+check memory safty.
+
+This features can be controlled with "kasan.store_only" arguments.  When
+"kasan.store_only=on", KASAN checks store only mode otherwise KASAN checks
+all operations.
+
+Link: https://lkml.kernel.org/r/20250813175335.3980268-1-yeoreum.yun@arm.com
+Link: https://lkml.kernel.org/r/20250813175335.3980268-2-yeoreum.yun@arm.com
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: D Scott Phillips <scott@os.amperecomputing.com>
+Cc: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Cc: James Morse <james.morse@arm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: levi.yun <yeoreum.yun@arm.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Oliver Upton <oliver.upton@linux.dev>
+Cc: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |  227 ++++++++++++++++++++++++++++++---------------
- 1 file changed, 153 insertions(+), 74 deletions(-)
+ Documentation/dev-tools/kasan.rst  |    3 +
+ arch/arm64/include/asm/memory.h    |    1 
+ arch/arm64/include/asm/mte-kasan.h |    6 ++
+ arch/arm64/kernel/cpufeature.c     |    6 ++
+ arch/arm64/kernel/mte.c            |   14 ++++
+ include/linux/kasan.h              |    2 
+ mm/kasan/hw_tags.c                 |   76 ++++++++++++++++++++++++++-
+ mm/kasan/kasan.h                   |   10 +++
+ 8 files changed, 116 insertions(+), 2 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move
-+++ a/mm/userfaultfd.c
-@@ -1026,18 +1026,67 @@ static inline bool is_pte_pages_stable(p
- 	       pmd_same(dst_pmdval, pmdp_get_lockless(dst_pmd));
+--- a/arch/arm64/include/asm/memory.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/include/asm/memory.h
+@@ -308,6 +308,7 @@ static inline const void *__tag_set(cons
+ #define arch_enable_tag_checks_sync()		mte_enable_kernel_sync()
+ #define arch_enable_tag_checks_async()		mte_enable_kernel_async()
+ #define arch_enable_tag_checks_asymm()		mte_enable_kernel_asymm()
++#define arch_enable_tag_checks_store_only()	mte_enable_kernel_store_only()
+ #define arch_suppress_tag_checks_start()	mte_enable_tco()
+ #define arch_suppress_tag_checks_stop()		mte_disable_tco()
+ #define arch_force_async_tag_fault()		mte_check_tfsr_exit()
+--- a/arch/arm64/include/asm/mte-kasan.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -200,6 +200,7 @@ static inline void mte_set_mem_tag_range
+ void mte_enable_kernel_sync(void);
+ void mte_enable_kernel_async(void);
+ void mte_enable_kernel_asymm(void);
++int mte_enable_kernel_store_only(void);
+ 
+ #else /* CONFIG_ARM64_MTE */
+ 
+@@ -251,6 +252,11 @@ static inline void mte_enable_kernel_asy
+ {
  }
  
--static int move_present_pte(struct mm_struct *mm,
--			    struct vm_area_struct *dst_vma,
--			    struct vm_area_struct *src_vma,
--			    unsigned long dst_addr, unsigned long src_addr,
--			    pte_t *dst_pte, pte_t *src_pte,
--			    pte_t orig_dst_pte, pte_t orig_src_pte,
--			    pmd_t *dst_pmd, pmd_t dst_pmdval,
--			    spinlock_t *dst_ptl, spinlock_t *src_ptl,
--			    struct folio *src_folio)
-+/*
-+ * Checks if the two ptes and the corresponding folio are eligible for batched
-+ * move. If so, then returns pointer to the locked folio. Otherwise, returns NULL.
-+ *
-+ * NOTE: folio's reference is not required as the whole operation is within
-+ * PTL's critical section.
-+ */
-+static struct folio *check_ptes_for_batched_move(struct vm_area_struct *src_vma,
-+						 unsigned long src_addr,
-+						 pte_t *src_pte, pte_t *dst_pte,
-+						 struct anon_vma *src_anon_vma)
- {
--	int err = 0;
-+	pte_t orig_dst_pte, orig_src_pte;
-+	struct folio *folio;
- 
-+	orig_dst_pte = ptep_get(dst_pte);
-+	if (!pte_none(orig_dst_pte))
-+		return NULL;
-+
-+	orig_src_pte = ptep_get(src_pte);
-+	if (!pte_present(orig_src_pte) || is_zero_pfn(pte_pfn(orig_src_pte)))
-+		return NULL;
-+
-+	folio = vm_normal_folio(src_vma, src_addr, orig_src_pte);
-+	if (!folio || !folio_trylock(folio))
-+		return NULL;
-+	if (!PageAnonExclusive(&folio->page) || folio_test_large(folio) ||
-+	    folio_anon_vma(folio) != src_anon_vma) {
-+		folio_unlock(folio);
-+		return NULL;
-+	}
-+	return folio;
++static inline int mte_enable_kenrel_store_only(void)
++{
++	return -EINVAL;
 +}
 +
-+/*
-+ * Moves src folios to dst in a batch as long as they share the same
-+ * anon_vma as the first folio, are not large, and can successfully
-+ * take the lock via folio_trylock().
-+ */
-+static long move_present_ptes(struct mm_struct *mm,
-+			      struct vm_area_struct *dst_vma,
-+			      struct vm_area_struct *src_vma,
-+			      unsigned long dst_addr, unsigned long src_addr,
-+			      pte_t *dst_pte, pte_t *src_pte,
-+			      pte_t orig_dst_pte, pte_t orig_src_pte,
-+			      pmd_t *dst_pmd, pmd_t dst_pmdval,
-+			      spinlock_t *dst_ptl, spinlock_t *src_ptl,
-+			      struct folio **first_src_folio, unsigned long len,
-+			      struct anon_vma *src_anon_vma)
+ #endif /* CONFIG_ARM64_MTE */
+ 
+ #endif /* __ASSEMBLY__ */
+--- a/arch/arm64/kernel/cpufeature.c~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/kernel/cpufeature.c
+@@ -2404,6 +2404,11 @@ static void cpu_enable_mte(struct arm64_
+ 
+ 	kasan_init_hw_tags_cpu();
+ }
++
++static void cpu_enable_mte_store_only(struct arm64_cpu_capabilities const *cap)
 +{
-+	int err = 0;
-+	struct folio *src_folio = *first_src_folio;
-+	unsigned long src_start = src_addr;
-+	unsigned long src_end;
-+
-+	if (len > PAGE_SIZE) {
-+		len = pmd_addr_end(dst_addr, dst_addr + len) - dst_addr;
-+		src_end = pmd_addr_end(src_addr, src_addr + len);
-+	} else
-+		src_end = src_addr + len;
-+	flush_cache_range(src_vma, src_addr, src_end);
- 	double_pt_lock(dst_ptl, src_ptl);
++	kasan_late_init_hw_tags_cpu();
++}
+ #endif /* CONFIG_ARM64_MTE */
  
- 	if (!is_pte_pages_stable(dst_pte, src_pte, orig_dst_pte, orig_src_pte,
-@@ -1051,31 +1100,56 @@ static int move_present_pte(struct mm_st
- 		err = -EBUSY;
- 		goto out;
+ static void user_feature_fixup(void)
+@@ -2922,6 +2927,7 @@ static const struct arm64_cpu_capabiliti
+ 		.capability = ARM64_MTE_STORE_ONLY,
+ 		.type = ARM64_CPUCAP_SYSTEM_FEATURE,
+ 		.matches = has_cpuid_feature,
++		.cpu_enable = cpu_enable_mte_store_only,
+ 		ARM64_CPUID_FIELDS(ID_AA64PFR2_EL1, MTESTOREONLY, IMP)
+ 	},
+ #endif /* CONFIG_ARM64_MTE */
+--- a/arch/arm64/kernel/mte.c~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/kernel/mte.c
+@@ -157,6 +157,20 @@ void mte_enable_kernel_asymm(void)
+ 		mte_enable_kernel_sync();
  	}
-+	/* It's safe to drop the reference now as the page-table is holding one. */
-+	folio_put(*first_src_folio);
-+	*first_src_folio = NULL;
-+	arch_enter_lazy_mmu_mode();
+ }
 +
-+	while (true) {
-+		orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
-+		/* Folio got pinned from under us. Put it back and fail the move. */
-+		if (folio_maybe_dma_pinned(src_folio)) {
-+			set_pte_at(mm, src_addr, src_pte, orig_src_pte);
-+			err = -EBUSY;
-+			break;
-+		}
- 
--	orig_src_pte = ptep_clear_flush(src_vma, src_addr, src_pte);
--	/* Folio got pinned from under us. Put it back and fail the move. */
--	if (folio_maybe_dma_pinned(src_folio)) {
--		set_pte_at(mm, src_addr, src_pte, orig_src_pte);
--		err = -EBUSY;
--		goto out;
--	}
--
--	folio_move_anon_rmap(src_folio, dst_vma);
--	src_folio->index = linear_page_index(dst_vma, dst_addr);
-+		folio_move_anon_rmap(src_folio, dst_vma);
-+		src_folio->index = linear_page_index(dst_vma, dst_addr);
- 
--	orig_dst_pte = folio_mk_pte(src_folio, dst_vma->vm_page_prot);
--	/* Set soft dirty bit so userspace can notice the pte was moved */
-+		orig_dst_pte = folio_mk_pte(src_folio, dst_vma->vm_page_prot);
-+		/* Set soft dirty bit so userspace can notice the pte was moved */
- #ifdef CONFIG_MEM_SOFT_DIRTY
--	orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
-+		orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
++int mte_enable_kernel_store_only(void)
++{
++	if (!cpus_have_cap(ARM64_MTE_STORE_ONLY))
++		return -EINVAL;
++
++	sysreg_clear_set(sctlr_el1, SCTLR_EL1_TCSO_MASK,
++			 SYS_FIELD_PREP(SCTLR_EL1, TCSO, 1));
++	isb();
++
++	pr_info_once("MTE: enabled stonly mode at EL1\n");
++
++	return 0;
++}
  #endif
--	if (pte_dirty(orig_src_pte))
--		orig_dst_pte = pte_mkdirty(orig_dst_pte);
--	orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
-+		if (pte_dirty(orig_src_pte))
-+			orig_dst_pte = pte_mkdirty(orig_dst_pte);
-+		orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
-+		set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
+--- a/Documentation/dev-tools/kasan.rst~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/Documentation/dev-tools/kasan.rst
+@@ -143,6 +143,9 @@ disabling KASAN altogether or controllin
+   Asymmetric mode: a bad access is detected synchronously on reads and
+   asynchronously on writes.
+ 
++- ``kasan.store_only=off`` or ``kasan.store_only=on`` controls whether KASAN
++  checks the store (write) accesses only or all accesses (default: ``off``)
 +
-+		src_addr += PAGE_SIZE;
-+		if (src_addr == src_end)
-+			break;
-+		dst_addr += PAGE_SIZE;
-+		dst_pte++;
-+		src_pte++;
+ - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
+   allocations (default: ``on``).
+ 
+--- a/include/linux/kasan.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/include/linux/kasan.h
+@@ -558,9 +558,11 @@ static inline void kasan_init_sw_tags(vo
+ #ifdef CONFIG_KASAN_HW_TAGS
+ void kasan_init_hw_tags_cpu(void);
+ void __init kasan_init_hw_tags(void);
++void kasan_late_init_hw_tags_cpu(void);
+ #else
+ static inline void kasan_init_hw_tags_cpu(void) { }
+ static inline void kasan_init_hw_tags(void) { }
++static inline void kasan_late_init_hw_tags_cpu(void) { }
+ #endif
+ 
+ #ifdef CONFIG_KASAN_VMALLOC
+--- a/mm/kasan/hw_tags.c~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/mm/kasan/hw_tags.c
+@@ -41,9 +41,16 @@ enum kasan_arg_vmalloc {
+ 	KASAN_ARG_VMALLOC_ON,
+ };
+ 
++enum kasan_arg_store_only {
++	KASAN_ARG_STORE_ONLY_DEFAULT,
++	KASAN_ARG_STORE_ONLY_OFF,
++	KASAN_ARG_STORE_ONLY_ON,
++};
 +
-+		folio_unlock(src_folio);
-+		src_folio = check_ptes_for_batched_move(src_vma, src_addr, src_pte,
-+							dst_pte, src_anon_vma);
-+		if (!src_folio)
-+			break;
-+	}
- 
--	set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
-+	arch_leave_lazy_mmu_mode();
-+	if (src_addr > src_start)
-+		flush_tlb_range(src_vma, src_start, src_addr);
-+
-+	if (src_folio)
-+		folio_unlock(src_folio);
- out:
- 	double_pt_unlock(dst_ptl, src_ptl);
--	return err;
-+	return src_addr > src_start ? src_addr - src_start : err;
- }
- 
- static int move_swap_pte(struct mm_struct *mm, struct vm_area_struct *dst_vma,
-@@ -1140,7 +1214,7 @@ static int move_swap_pte(struct mm_struc
- 	set_pte_at(mm, dst_addr, dst_pte, orig_src_pte);
- 	double_pt_unlock(dst_ptl, src_ptl);
- 
--	return 0;
-+	return PAGE_SIZE;
- }
- 
- static int move_zeropage_pte(struct mm_struct *mm,
-@@ -1167,20 +1241,20 @@ static int move_zeropage_pte(struct mm_s
- 	set_pte_at(mm, dst_addr, dst_pte, zero_pte);
- 	double_pt_unlock(dst_ptl, src_ptl);
- 
--	return 0;
-+	return PAGE_SIZE;
- }
- 
+ static enum kasan_arg kasan_arg __ro_after_init;
+ static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
+ static enum kasan_arg_vmalloc kasan_arg_vmalloc __initdata;
++static enum kasan_arg_store_only kasan_arg_store_only __ro_after_init;
  
  /*
-- * The mmap_lock for reading is held by the caller. Just move the page
-- * from src_pmd to dst_pmd if possible, and return true if succeeded
-- * in moving the page.
-+ * The mmap_lock for reading is held by the caller. Just move the page(s)
-+ * from src_pmd to dst_pmd if possible, and return number of bytes moved.
-+ * On failure, an error code is returned.
-  */
--static int move_pages_pte(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd,
--			  struct vm_area_struct *dst_vma,
--			  struct vm_area_struct *src_vma,
--			  unsigned long dst_addr, unsigned long src_addr,
--			  __u64 mode)
-+static long move_pages_ptes(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd,
-+			    struct vm_area_struct *dst_vma,
-+			    struct vm_area_struct *src_vma,
-+			    unsigned long dst_addr, unsigned long src_addr,
-+			    unsigned long len, __u64 mode)
+  * Whether the selected mode is synchronous, asynchronous, or asymmetric.
+@@ -60,6 +67,9 @@ DEFINE_STATIC_KEY_FALSE(kasan_flag_vmall
+ #endif
+ EXPORT_SYMBOL_GPL(kasan_flag_vmalloc);
+ 
++DEFINE_STATIC_KEY_FALSE(kasan_flag_store_only);
++EXPORT_SYMBOL_GPL(kasan_flag_store_only);
++
+ #define PAGE_ALLOC_SAMPLE_DEFAULT	1
+ #define PAGE_ALLOC_SAMPLE_ORDER_DEFAULT	3
+ 
+@@ -134,6 +144,23 @@ static int __init early_kasan_flag_vmall
+ }
+ early_param("kasan.vmalloc", early_kasan_flag_vmalloc);
+ 
++/* kasan.store_only=off/on */
++static int __init early_kasan_flag_store_only(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	if (!strcmp(arg, "off"))
++		kasan_arg_store_only = KASAN_ARG_STORE_ONLY_OFF;
++	else if (!strcmp(arg, "on"))
++		kasan_arg_store_only = KASAN_ARG_STORE_ONLY_ON;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++early_param("kasan.store_only", early_kasan_flag_store_only);
++
+ static inline const char *kasan_mode_info(void)
  {
- 	swp_entry_t entry;
- 	struct swap_info_struct *si = NULL;
-@@ -1194,11 +1268,10 @@ static int move_pages_pte(struct mm_stru
- 	struct folio *src_folio = NULL;
- 	struct anon_vma *src_anon_vma = NULL;
- 	struct mmu_notifier_range range;
--	int err = 0;
-+	long ret = 0;
- 
--	flush_cache_range(src_vma, src_addr, src_addr + PAGE_SIZE);
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
--				src_addr, src_addr + PAGE_SIZE);
-+				src_addr, src_addr + len);
- 	mmu_notifier_invalidate_range_start(&range);
- retry:
- 	/*
-@@ -1212,7 +1285,7 @@ retry:
- 
- 	/* Retry if a huge pmd materialized from under us */
- 	if (unlikely(!dst_pte)) {
--		err = -EAGAIN;
-+		ret = -EAGAIN;
- 		goto out;
- 	}
- 
-@@ -1231,14 +1304,14 @@ retry:
- 	 * transparent huge pages under us.
- 	 */
- 	if (unlikely(!src_pte)) {
--		err = -EAGAIN;
-+		ret = -EAGAIN;
- 		goto out;
- 	}
- 
- 	/* Sanity checks before the operation */
- 	if (pmd_none(*dst_pmd) || pmd_none(*src_pmd) ||
- 	    pmd_trans_huge(*dst_pmd) || pmd_trans_huge(*src_pmd)) {
--		err = -EINVAL;
-+		ret = -EINVAL;
- 		goto out;
- 	}
- 
-@@ -1246,7 +1319,7 @@ retry:
- 	orig_dst_pte = ptep_get(dst_pte);
- 	spin_unlock(dst_ptl);
- 	if (!pte_none(orig_dst_pte)) {
--		err = -EEXIST;
-+		ret = -EEXIST;
- 		goto out;
- 	}
- 
-@@ -1255,21 +1328,21 @@ retry:
- 	spin_unlock(src_ptl);
- 	if (pte_none(orig_src_pte)) {
- 		if (!(mode & UFFDIO_MOVE_MODE_ALLOW_SRC_HOLES))
--			err = -ENOENT;
-+			ret = -ENOENT;
- 		else /* nothing to do to move a hole */
--			err = 0;
-+			ret = PAGE_SIZE;
- 		goto out;
- 	}
- 
- 	/* If PTE changed after we locked the folio them start over */
- 	if (src_folio && unlikely(!pte_same(src_folio_pte, orig_src_pte))) {
--		err = -EAGAIN;
-+		ret = -EAGAIN;
- 		goto out;
- 	}
- 
- 	if (pte_present(orig_src_pte)) {
- 		if (is_zero_pfn(pte_pfn(orig_src_pte))) {
--			err = move_zeropage_pte(mm, dst_vma, src_vma,
-+			ret = move_zeropage_pte(mm, dst_vma, src_vma,
- 					       dst_addr, src_addr, dst_pte, src_pte,
- 					       orig_dst_pte, orig_src_pte,
- 					       dst_pmd, dst_pmdval, dst_ptl, src_ptl);
-@@ -1292,14 +1365,14 @@ retry:
- 			spin_lock(src_ptl);
- 			if (!pte_same(orig_src_pte, ptep_get(src_pte))) {
- 				spin_unlock(src_ptl);
--				err = -EAGAIN;
-+				ret = -EAGAIN;
- 				goto out;
- 			}
- 
- 			folio = vm_normal_folio(src_vma, src_addr, orig_src_pte);
- 			if (!folio || !PageAnonExclusive(&folio->page)) {
- 				spin_unlock(src_ptl);
--				err = -EBUSY;
-+				ret = -EBUSY;
- 				goto out;
- 			}
- 
-@@ -1313,7 +1386,7 @@ retry:
- 			 */
- 			if (!locked && folio_test_large(folio)) {
- 				spin_unlock(src_ptl);
--				err = -EAGAIN;
-+				ret = -EAGAIN;
- 				goto out;
- 			}
- 
-@@ -1332,7 +1405,7 @@ retry:
- 			}
- 
- 			if (WARN_ON_ONCE(!folio_test_anon(src_folio))) {
--				err = -EBUSY;
-+				ret = -EBUSY;
- 				goto out;
- 			}
- 		}
-@@ -1343,8 +1416,8 @@ retry:
- 			pte_unmap(src_pte);
- 			pte_unmap(dst_pte);
- 			src_pte = dst_pte = NULL;
--			err = split_folio(src_folio);
--			if (err)
-+			ret = split_folio(src_folio);
-+			if (ret)
- 				goto out;
- 			/* have to reacquire the folio after it got split */
- 			folio_unlock(src_folio);
-@@ -1362,7 +1435,7 @@ retry:
- 			src_anon_vma = folio_get_anon_vma(src_folio);
- 			if (!src_anon_vma) {
- 				/* page was unmapped from under us */
--				err = -EAGAIN;
-+				ret = -EAGAIN;
- 				goto out;
- 			}
- 			if (!anon_vma_trylock_write(src_anon_vma)) {
-@@ -1375,10 +1448,11 @@ retry:
- 			}
- 		}
- 
--		err = move_present_pte(mm,  dst_vma, src_vma,
--				       dst_addr, src_addr, dst_pte, src_pte,
--				       orig_dst_pte, orig_src_pte, dst_pmd,
--				       dst_pmdval, dst_ptl, src_ptl, src_folio);
-+		ret = move_present_ptes(mm, dst_vma, src_vma,
-+					dst_addr, src_addr, dst_pte, src_pte,
-+					orig_dst_pte, orig_src_pte, dst_pmd,
-+					dst_pmdval, dst_ptl, src_ptl, &src_folio,
-+					len, src_anon_vma);
- 	} else {
- 		struct folio *folio = NULL;
- 
-@@ -1389,20 +1463,20 @@ retry:
- 				pte_unmap(dst_pte);
- 				src_pte = dst_pte = NULL;
- 				migration_entry_wait(mm, src_pmd, src_addr);
--				err = -EAGAIN;
-+				ret = -EAGAIN;
- 			} else
--				err = -EFAULT;
-+				ret = -EFAULT;
- 			goto out;
- 		}
- 
- 		if (!pte_swp_exclusive(orig_src_pte)) {
--			err = -EBUSY;
-+			ret = -EBUSY;
- 			goto out;
- 		}
- 
- 		si = get_swap_device(entry);
- 		if (unlikely(!si)) {
--			err = -EAGAIN;
-+			ret = -EAGAIN;
- 			goto out;
- 		}
- 		/*
-@@ -1422,7 +1496,7 @@ retry:
- 					swap_cache_index(entry));
- 		if (!IS_ERR_OR_NULL(folio)) {
- 			if (folio_test_large(folio)) {
--				err = -EBUSY;
-+				ret = -EBUSY;
- 				folio_put(folio);
- 				goto out;
- 			}
-@@ -1439,7 +1513,7 @@ retry:
- 				goto retry;
- 			}
- 		}
--		err = move_swap_pte(mm, dst_vma, dst_addr, src_addr, dst_pte, src_pte,
-+		ret = move_swap_pte(mm, dst_vma, dst_addr, src_addr, dst_pte, src_pte,
- 				orig_dst_pte, orig_src_pte, dst_pmd, dst_pmdval,
- 				dst_ptl, src_ptl, src_folio, si, entry);
- 	}
-@@ -1466,7 +1540,7 @@ out:
- 	if (si)
- 		put_swap_device(si);
- 
--	return err;
-+	return ret;
+ 	if (kasan_mode == KASAN_MODE_ASYNC)
+@@ -212,6 +239,20 @@ void kasan_init_hw_tags_cpu(void)
+ 	kasan_enable_hw_tags();
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -1737,7 +1811,7 @@ ssize_t move_pages(struct userfaultfd_ct
- {
- 	struct mm_struct *mm = ctx->mm;
- 	struct vm_area_struct *src_vma, *dst_vma;
--	unsigned long src_addr, dst_addr;
-+	unsigned long src_addr, dst_addr, src_end;
- 	pmd_t *src_pmd, *dst_pmd;
- 	long err = -EINVAL;
- 	ssize_t moved = 0;
-@@ -1780,8 +1854,8 @@ ssize_t move_pages(struct userfaultfd_ct
- 	if (err)
- 		goto out_unlock;
- 
--	for (src_addr = src_start, dst_addr = dst_start;
--	     src_addr < src_start + len;) {
-+	for (src_addr = src_start, dst_addr = dst_start, src_end = src_start + len;
-+	     src_addr < src_end;) {
- 		spinlock_t *ptl;
- 		pmd_t dst_pmdval;
- 		unsigned long step_size;
-@@ -1849,6 +1923,8 @@ ssize_t move_pages(struct userfaultfd_ct
- 						  dst_addr, src_addr);
- 			step_size = HPAGE_PMD_SIZE;
- 		} else {
-+			long ret;
++/*
++ * kasan_late_init_hw_tags_cpu_post() is called for each CPU after
++ * all cpus are bring-up at boot.
++ * Not marked as __init as a CPU can be hot-plugged after boot.
++ */
++void kasan_late_init_hw_tags_cpu(void)
++{
++	/*
++	 * Enable stonly mode only when explicitly requested through the command line.
++	 * If system doesn't support, kasan checks all operation.
++	 */
++	kasan_enable_store_only();
++}
 +
- 			if (pmd_none(*src_pmd)) {
- 				if (!(mode & UFFDIO_MOVE_MODE_ALLOW_SRC_HOLES)) {
- 					err = -ENOENT;
-@@ -1865,10 +1941,13 @@ ssize_t move_pages(struct userfaultfd_ct
- 				break;
- 			}
+ /* kasan_init_hw_tags() is called once on boot CPU. */
+ void __init kasan_init_hw_tags(void)
+ {
+@@ -250,15 +291,28 @@ void __init kasan_init_hw_tags(void)
+ 		break;
+ 	}
  
--			err = move_pages_pte(mm, dst_pmd, src_pmd,
--					     dst_vma, src_vma,
--					     dst_addr, src_addr, mode);
--			step_size = PAGE_SIZE;
-+			ret = move_pages_ptes(mm, dst_pmd, src_pmd,
-+					      dst_vma, src_vma, dst_addr,
-+					      src_addr, src_end - src_addr, mode);
-+			if (ret < 0)
-+				err = ret;
-+			else
-+				step_size = ret;
- 		}
++	switch (kasan_arg_store_only) {
++	case KASAN_ARG_STORE_ONLY_DEFAULT:
++		/* Default is specified by kasan_flag_store_only definition. */
++		break;
++	case KASAN_ARG_STORE_ONLY_OFF:
++		static_branch_disable(&kasan_flag_store_only);
++		break;
++	case KASAN_ARG_STORE_ONLY_ON:
++		static_branch_enable(&kasan_flag_store_only);
++		break;
++	}
++
+ 	kasan_init_tags();
  
- 		cond_resched();
+ 	/* KASAN is now initialized, enable it. */
+ 	kasan_enable();
+ 
+-	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s)\n",
++	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s store_only=%s\n",
+ 		kasan_mode_info(),
+ 		str_on_off(kasan_vmalloc_enabled()),
+-		str_on_off(kasan_stack_collection_enabled()));
++		str_on_off(kasan_stack_collection_enabled()),
++		str_on_off(kasan_store_only_enabled()));
+ }
+ 
+ #ifdef CONFIG_KASAN_VMALLOC
+@@ -387,6 +441,22 @@ void kasan_enable_hw_tags(void)
+ 		hw_enable_tag_checks_sync();
+ }
+ 
++void kasan_enable_store_only(void)
++{
++	if (kasan_arg_store_only == KASAN_ARG_STORE_ONLY_ON) {
++		if (hw_enable_tag_checks_store_only()) {
++			static_branch_disable(&kasan_flag_store_only);
++			kasan_arg_store_only = KASAN_ARG_STORE_ONLY_OFF;
++			pr_warn_once("KernelAddressSanitizer: store only mode isn't supported (hw-tags)\n");
++		}
++	}
++}
++
++bool kasan_store_only_enabled(void)
++{
++	return static_branch_unlikely(&kasan_flag_store_only);
++}
++
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ EXPORT_SYMBOL_IF_KUNIT(kasan_enable_hw_tags);
+@@ -397,4 +467,6 @@ VISIBLE_IF_KUNIT void kasan_force_async_
+ }
+ EXPORT_SYMBOL_IF_KUNIT(kasan_force_async_fault);
+ 
++EXPORT_SYMBOL_IF_KUNIT(kasan_store_only_enabled);
++
+ #endif
+--- a/mm/kasan/kasan.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/mm/kasan/kasan.h
+@@ -33,6 +33,7 @@ static inline bool kasan_stack_collectio
+ #include "../slab.h"
+ 
+ DECLARE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
++DECLARE_STATIC_KEY_FALSE(kasan_flag_stonly);
+ 
+ enum kasan_mode {
+ 	KASAN_MODE_SYNC,
+@@ -434,6 +435,7 @@ static inline const void *arch_kasan_set
+ #define hw_enable_tag_checks_sync()		arch_enable_tag_checks_sync()
+ #define hw_enable_tag_checks_async()		arch_enable_tag_checks_async()
+ #define hw_enable_tag_checks_asymm()		arch_enable_tag_checks_asymm()
++#define hw_enable_tag_checks_store_only()	arch_enable_tag_checks_store_only()
+ #define hw_suppress_tag_checks_start()		arch_suppress_tag_checks_start()
+ #define hw_suppress_tag_checks_stop()		arch_suppress_tag_checks_stop()
+ #define hw_force_async_tag_fault()		arch_force_async_tag_fault()
+@@ -443,10 +445,18 @@ static inline const void *arch_kasan_set
+ 			arch_set_mem_tag_range((addr), (size), (tag), (init))
+ 
+ void kasan_enable_hw_tags(void);
++void kasan_enable_store_only(void);
++bool kasan_store_only_enabled(void);
+ 
+ #else /* CONFIG_KASAN_HW_TAGS */
+ 
+ static inline void kasan_enable_hw_tags(void) { }
++static inline void kasan_enable_store_only(void) { }
++
++static inline bool kasan_store_only_enabled(void)
++{
++	return false;
++}
+ 
+ #endif /* CONFIG_KASAN_HW_TAGS */
+ 
 _
 
-Patches currently in -mm which might be from lokeshgidra@google.com are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
-userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
+kunit-kasan_test-disable-fortify-string-checker-on-kasan_strings-test.patch
+kasan-hw-tags-introduce-kasanstore_only-option.patch
+kasan-apply-store-only-mode-in-kasan-kunit-testcases.patch
 
