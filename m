@@ -1,108 +1,89 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABAAB2BE02B;
-	Wed, 13 Aug 2025 03:52:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from submarine.notk.org (submarine.notk.org [62.210.214.84])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BE265223DF5;
+	Wed, 13 Aug 2025 06:00:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.210.214.84
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755057177; cv=none; b=Dmy/yQGHTFqnP+ZEEpSEtgNbluncdO3IOIQwkZANARKgr3lOgyrpC5bWFzKPx7DEfVkk0i2SXAotlu5mThWjGa9aqnm+eLsdE0oxx72046S12BRzVR/mmX5qc4BPhsAsj7/mGZSZzA2oRDr0epgZX/fK0NICYLGLimANHcWjxLk=
+	t=1755064836; cv=none; b=kdi8TsuMkGZSKPEOuNu1FKNgTAVlZJnmIiRT3l4GkDWL7KByl6wrXY8CUH8Hz+E8AUZdNRdWzlRB93cjkp7LDhODLMQ/t5/e8PPbIc886fmdFqDuIvvK9DCNYGNwVCcOSJ5HvljWP4MgAQKQHes9I8AFXGCw9x8/ZNh5P90ZhqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755057177; c=relaxed/simple;
-	bh=ENmDFe3lJzYsbCz4gjRO/Qie8EynIqu821IwkBvbcf8=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=IKXPHPXDHwoJNEqpYFR4vSH60yuKFkCzKvxLHfod6dTxbh3PV0Kgy7TaA4viUxwNOLqG3oIlF/2O3KIEGsP6pNCWjhFKntXiHh7zUM/RWV9PrlWB9mztwzt+UnEYleonp+/9iwDrlX3ApbcG6TmVq03yFHXPItGIyXugers1DMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mdaKKiRb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755064836; c=relaxed/simple;
+	bh=gUwV6Vf6QGgTE8KjfTKH/cHCjcr8wpLlxefJASTfZUw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MJre9rSYQ29vaL2bk8Re56Ub0RU6+FuKsDnU89zFVAwpZjVmaEpptJqFH/CIedEYvkdbpkXkzQLFBqRUWE5F5634QR3g8hVvHF2tLEkwMq0IRqQbSuiAZ5hClw5W0Nr6FbErgEZMQUoPN/ijDr4m+OFWUiknRRJAQZ8Fv9TwPXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codewreck.org; spf=pass smtp.mailfrom=codewreck.org; dkim=pass (2048-bit key) header.d=codewreck.org header.i=@codewreck.org header.b=A+xV3iG+; arc=none smtp.client-ip=62.210.214.84
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codewreck.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=codewreck.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mdaKKiRb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C6F3C4CEED;
-	Wed, 13 Aug 2025 03:52:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755057177;
-	bh=ENmDFe3lJzYsbCz4gjRO/Qie8EynIqu821IwkBvbcf8=;
-	h=Date:From:To:Cc:Subject:From;
-	b=mdaKKiRbDaXmZTDoJgJCKxkY0oofdNzLmnyBdCsRbqCJnCKRTc2JT0y5JzeUQxuKB
-	 WfpqWLZmHjucdfa5hXXzB8KnpHUVfbYOaNwC1KEoWwO5NkcyrxUMG924uDLbAjbA8D
-	 pfv42gmxYv0Ej2d6Fjdv8i4lBNky/3OML/mdHbcE=
-Date: Tue, 12 Aug 2025 20:52:56 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.17-rc2
-Message-Id: <20250812205256.7782e2e483a8b12774e65dcd@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=codewreck.org header.i=@codewreck.org header.b="A+xV3iG+"
+Received: from gaia.codewreck.org (localhost [127.0.0.1])
+	by submarine.notk.org (Postfix) with ESMTPS id 2AA9D14C2D3;
+	Wed, 13 Aug 2025 08:00:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=codewreck.org;
+	s=2; t=1755064832;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FKuYS5eg3Chh7fezaifP9b4J3wfHo/LxRYaoofRoLl0=;
+	b=A+xV3iG+B1ktXCVydGHCid5h57sHdRnqw78Ggo8mPV1XuMaRFCg3ntGnugZj+NjyVj5tYb
+	TBY96/IBjGjmd2bjyj/1d/EUqMHHKrfBbREO00yu17kVp7unCgtj2AOt6Vf5BrHE6ewkmc
+	25SvyJ3HTTrmQVJywuTmplnEqiRxE6u0XkZgFVrIjKGUPrKFHVWA5Hpw3UZjy64Qbxig9k
+	YW/tvnCtislexZDwfgvtwDPFHABP7lGMq4lORgXbYnBQxQpPuEo0FxyKx3plOLJxEiU06m
+	b/Hisx60UQ3qtXpbmXXXUkZcLulJ14A/Ku2oICEwM9S2TCdXoJPbwzMxLS59Yw==
+Received: from localhost (gaia.codewreck.org [local])
+	by gaia.codewreck.org (OpenSMTPD) with ESMTPA id f649ba61;
+	Wed, 13 Aug 2025 06:00:27 +0000 (UTC)
+Date: Wed, 13 Aug 2025 15:00:12 +0900
+From: Dominique Martinet <asmadeus@codewreck.org>
+To: David Howells <dhowells@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+	viro@zeniv.linux.org.uk, stable@vger.kernel.org, ryan@lahfa.xyz,
+	maximilian@mbosch.me, ct@flyingcircus.io, brauner@kernel.org,
+	arnout@bzzt.net
+Subject: Re: +
+ iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <aJwp7FO0Twyhej0o@codewreck.org>
+References: <aJuwDfwoSUP_M_0D@codewreck.org>
+ <20250812010237.B52F8C4CEED@smtp.kernel.org>
+ <650364.1754991487@warthog.procyon.org.uk>
+ <677795.1755034711@warthog.procyon.org.uk>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <677795.1755034711@warthog.procyon.org.uk>
 
+David Howells wrote on Tue, Aug 12, 2025 at 10:38:31PM +0100:
+> >   26923	  1104	     0	 28027	  6d7b	a.o
+> >   27019	  1104	     0	 28123	  6ddb	b.o
+> 
+> That's a surprisingly large change.
 
-Linus, please pull this batch of hotfixes, thanks.
+Right, because the function is inlined multiple times in iov_iter.o it
+turned out rather big... Here's what it looks like from busybox's
+bloat-o-meter, which gives a better picture:
 
+function                                             old     new   delta
+iov_iter_zero                                       1706    1738     +32
+copy_page_to_iter_nofault                           2491    2512     +21
+_copy_mc_to_iter                                    1604    1624     +20
+copy_folio_from_iter_atomic                         2620    2633     +13
+_copy_from_iter_nocache                             1706    1719     +13
+_copy_from_iter_flushcache                          1409    1422     +13
+_copy_to_iter                                       1885    1891      +6
+_copy_from_iter                                     1874    1880      +6
+iov_iter_extract_pages                              2182    2166     -16
+------------------------------------------------------------------------------
+(add/remove: 0/0 grow/shrink: 8/1 up/down: 124/-16)           Total: 108 bytes
 
-The following changes since commit 6bcdbd62bd56e6d7383f9e06d9d148935b3c9b73:
+So the compiler obviously doesn't optimize the if (at least with
+whatever default flags I'm using on gcc 15.2.1), but the impact is only
+that big because it's copied so many times.
 
-  Merge tag 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/rmk/linux (2025-08-05 16:55:03 +0300)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-08-12-20-50
-
-for you to fetch changes up to c0e1b774f68bdbea1618e356e30672c7f1e32509:
-
-  proc: proc_maps_open allow proc_mem_open to return NULL (2025-08-11 23:01:00 -0700)
-
-----------------------------------------------------------------
-12 hotfixes.  5 are cc:stable and the remainder address post-6.16 issues
-or aren't considered necessary for -stable kernels.  10 of these fixes are
-for MM.
-
-----------------------------------------------------------------
-Barry Song (1):
-      mm: fix the race between collapse and PT_RECLAIM under per-vma lock
-
-Breno Leitao (1):
-      mm/kmemleak: avoid deadlock by moving pr_warn() outside kmemleak_lock
-
-Dev Jain (1):
-      mm: pass page directly instead of using folio_page
-
-Jann Horn (1):
-      kasan/test: fix protection against compiler elision
-
-Jialin Wang (1):
-      proc: proc_maps_open allow proc_mem_open to return NULL
-
-Jinjiang Tu (2):
-      mm/smaps: fix race between smaps_hugetlb_range and migration
-      fs/proc/task_mmu: hold PTL in pagemap_hugetlb_range and gather_hugetlb_stats
-
-Lorenzo Stoakes (1):
-      mm/mremap: avoid expensive folio lookup on mremap folio pte batch
-
-Masami Hiramatsu (Google) (1):
-      MAINTAINERS: add Masami as a reviewer of hung task detector
-
-Sukrut Heroorkar (1):
-      selftests/proc: fix string literal warning in proc-maps-race.c
-
-Suren Baghdasaryan (1):
-      userfaultfd: fix a crash in UFFDIO_MOVE when PMD is a migration entry
-
-Waiman Long (1):
-      mm/kmemleak: avoid soft lockup in __kmemleak_do_cleanup()
-
- MAINTAINERS                                   |  1 +
- fs/proc/task_mmu.c                            | 24 ++++++++++++++++++------
- mm/kasan/kasan_test_c.c                       |  2 +-
- mm/khugepaged.c                               |  2 +-
- mm/kmemleak.c                                 | 10 +++++++++-
- mm/mprotect.c                                 | 23 ++++++++++-------------
- mm/mremap.c                                   |  4 ++++
- mm/userfaultfd.c                              | 17 ++++++++++-------
- tools/testing/selftests/proc/proc-maps-race.c |  6 +++---
- 9 files changed, 57 insertions(+), 32 deletions(-)
-
+Anyway, as said before I'm happy to prioritize readability here, so
+sending a v3 with just this changed.
+-- 
+Dominique Martinet | Asmadeus
