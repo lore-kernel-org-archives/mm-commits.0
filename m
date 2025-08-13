@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5D592F39A4
-	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 21:42:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F92D2E54D8
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2025 21:50:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755121375; cv=none; b=aDXRcfEqdtWYY+EQcSLhz5qGTB9IPrxMUYDD7AKCzIqDGflH8HpksDQXqjMTxSvAtVNDlgdHBuCtQ63iuPg3LxMhx6l4+wZAGmDDvk3++LxQ+EOqCYlT/5sssLCmS1eSpFBUxeJ3aCDSoOYrh7uVqER8Z4j5n6tbJ9K/9+mORUA=
+	t=1755121814; cv=none; b=PHz+Q3DiK2vu7elDGvQNNchgMUyuITgi4I0uGx0ZMFRMRuXwuOamUKq8iC/YDdw+eZXXt2cq2A1ZB1LFm4Gs99EjQdfyj6gSweIEvBqdmGaEnU8N6J8tpA82YutM/6ee2M3Xxpj4B+Mj4HBe4GHV0iduZ7tOgvmIjIgKrH/JSjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755121375; c=relaxed/simple;
-	bh=Rz9uhK+pD18KWJVoMgoAGX79W+ak0Mk8nU1fmy1/Yv0=;
-	h=Date:To:From:Subject:Message-Id; b=FipANmyOgPkNVJIq2+1CY5bYiXx+KGLIIMZ6Vnb8a+YumrTJ6w1YER79SEgg8x+90wTk4Tj8kaY5K+djjgD9P0OhxWwqMftqQ0V05yojX+cutzBuQUZL5D6FNf+7IGoYCGiSLKS5FdhVtx+3ckjY10SqVWptkDtbhlWqZkeQ4WY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A03buT3M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755121814; c=relaxed/simple;
+	bh=wZ6GhiGndG4iV6iuNAjvL31FJO7HJUJeMhmoy96m7RI=;
+	h=Date:To:From:Subject:Message-Id; b=GKyzD4v42AHSCFBW0ph9+gM/npJK8EeK1VB9MW3nc5y7jQRl4H9Cgsg1qLdNzINhvcWEEq8ItUzFITxaLDjLHmqn/+Jy/wwHqW0MXNwRry/oB/2Tn8df4nyPinOhmyjEnRwBs0V2R2WEZAZy7ib8zWKBNocpjWU5K7JVsFH8WB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krclGHg3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A03buT3M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F389FC4CEEB;
-	Wed, 13 Aug 2025 21:42:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krclGHg3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EE5AC4CEEB;
+	Wed, 13 Aug 2025 21:50:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755121373;
-	bh=Rz9uhK+pD18KWJVoMgoAGX79W+ak0Mk8nU1fmy1/Yv0=;
+	s=korg; t=1755121814;
+	bh=wZ6GhiGndG4iV6iuNAjvL31FJO7HJUJeMhmoy96m7RI=;
 	h=Date:To:From:Subject:From;
-	b=A03buT3MGUlCJkH4vYHs0D9suqckPzSDYhe4n7/Ff/uj5KFDoIzh9rtAtAUP9FBEw
-	 G+grl9og+ZsjG3Xj1Od0MuLrhkpEyIjkMK8L2TmkXjarEahMs1nsTlViz+Czw9fRhw
-	 /xCUz4i+gLQLkHNlN8FCa7f09R5PHyzT7bCf7JDo=
-Date: Wed, 13 Aug 2025 14:42:52 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=krclGHg3QhiqYtAJMLPDo/ABomTF3jvXjVojGlX9JchDmEftRWPWWwAgiXBiCD+lW
+	 SzO+eHI0uhRc4G5f6otNpPYfR+B6DZVU6IDFokdQrqQ/6bMC0Szaav3rak+nqvA27w
+	 xOgNmI5QeV6RKw1AW6lsnJWKbNOdL2g0MTx5ZIp0=
+Date: Wed, 13 Aug 2025 14:50:13 -0700
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,surenb@google.com,peterx@redhat.com,kaleshsingh@google.com,david@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-bitmap-mm-flags-field-fix.patch added to mm-unstable branch
-Message-Id: <20250813214252.F389FC4CEEB@smtp.kernel.org>
+Subject: + userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch added to mm-new branch
+Message-Id: <20250813215014.1EE5AC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: place __private in correct place, const-ify __mm_flags_get_word
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-bitmap-mm-flags-field-fix.patch
+     Subject: userfaultfd: opportunistic TLB-flush batching for present pages in MOVE
+has been added to the -mm mm-new branch.  Its filename is
+     userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-bitmap-mm-flags-field-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,90 +64,487 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: place __private in correct place, const-ify __mm_flags_get_word
-Date: Wed, 13 Aug 2025 20:40:10 +0100
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: opportunistic TLB-flush batching for present pages in MOVE
+Date: Wed, 13 Aug 2025 12:30:24 -0700
 
-The __private sparse indicator was placed in the wrong location, resulting
-in sparse errors, correct this by placing it where it ought to be.
+MOVE ioctl's runtime is dominated by TLB-flush cost, which is required for
+moving present pages.  Mitigate this cost by opportunistically batching
+present contiguous pages for TLB flushing.
 
-Also, share some code for __mm_flags_get_word() and const-ify it to be
-consistent.
+Without batching, in our testing on an arm64 Android device with UFFD GC,
+which uses MOVE ioctl for compaction, we observed that out of the total
+time spent in move_pages_pte(), over 40% is in ptep_clear_flush(), and
+~20% in vm_normal_folio().
 
-Finally, fixup inconsistency in __mm_flags_set_word() param alignment.
+With batching, the proportion of vm_normal_folio() increases to over 70%
+of move_pages_pte() without any changes to vm_normal_folio(). 
+Furthermore, time spent within move_pages_pte() is only ~20%, which
+includes TLB-flush overhead.
 
-Link: https://lkml.kernel.org/r/d4ba117d-6234-4069-b871-254d152d7d21@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+When the GC intensive benchmark, which was used to gather the above
+numbers, is run on cuttlefish (qemu android instance on x86_64), the
+completion time of the benchmark went down from ~45mins to ~20mins.
+
+Furthermore, system_server, one of the most performance critical system
+processes on android, saw over 50% reduction in GC compaction time on an
+arm64 android device.
+
+Link: https://lkml.kernel.org/r/20250813193024.2279805-1-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ mm/userfaultfd.c |  227 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 153 insertions(+), 74 deletions(-)
 
---- a/include/linux/mm_types.h~mm-add-bitmap-mm-flags-field-fix
-+++ a/include/linux/mm_types.h
-@@ -934,8 +934,8 @@ struct mm_cid {
-  */
- #define NUM_MM_FLAG_BITS BITS_PER_LONG
- typedef struct {
--	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
--} mm_flags_t;
-+	DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
-+} __private mm_flags_t;
- 
- struct kioctx_table;
- struct iommu_mm_data;
-@@ -1233,17 +1233,8 @@ struct mm_struct {
- 	unsigned long cpu_bitmap[];
- };
- 
--/* Read the first system word of mm flags, non-atomically. */
--static inline unsigned long __mm_flags_get_word(struct mm_struct *mm)
--{
--	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
--
--	return bitmap_read(bitmap, 0, BITS_PER_LONG);
--}
--
- /* Set the first system word of mm flags, non-atomically. */
--static inline void __mm_flags_set_word(struct mm_struct *mm,
--				       unsigned long value)
-+static inline void __mm_flags_set_word(struct mm_struct *mm, unsigned long value)
- {
- 	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
- 
-@@ -1256,6 +1247,14 @@ static inline const unsigned long *__mm_
- 	return (const unsigned long *)ACCESS_PRIVATE(&mm->_flags, __mm_flags);
+--- a/mm/userfaultfd.c~userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move
++++ a/mm/userfaultfd.c
+@@ -1026,18 +1026,67 @@ static inline bool is_pte_pages_stable(p
+ 	       pmd_same(dst_pmdval, pmdp_get_lockless(dst_pmd));
  }
  
-+/* Read the first system word of mm flags, non-atomically. */
-+static inline unsigned long __mm_flags_get_word(const struct mm_struct *mm)
-+{
-+	const unsigned long *bitmap = __mm_flags_get_bitmap(mm);
+-static int move_present_pte(struct mm_struct *mm,
+-			    struct vm_area_struct *dst_vma,
+-			    struct vm_area_struct *src_vma,
+-			    unsigned long dst_addr, unsigned long src_addr,
+-			    pte_t *dst_pte, pte_t *src_pte,
+-			    pte_t orig_dst_pte, pte_t orig_src_pte,
+-			    pmd_t *dst_pmd, pmd_t dst_pmdval,
+-			    spinlock_t *dst_ptl, spinlock_t *src_ptl,
+-			    struct folio *src_folio)
++/*
++ * Checks if the two ptes and the corresponding folio are eligible for batched
++ * move. If so, then returns pointer to the locked folio. Otherwise, returns NULL.
++ *
++ * NOTE: folio's reference is not required as the whole operation is within
++ * PTL's critical section.
++ */
++static struct folio *check_ptes_for_batched_move(struct vm_area_struct *src_vma,
++						 unsigned long src_addr,
++						 pte_t *src_pte, pte_t *dst_pte,
++						 struct anon_vma *src_anon_vma)
+ {
+-	int err = 0;
++	pte_t orig_dst_pte, orig_src_pte;
++	struct folio *folio;
+ 
++	orig_dst_pte = ptep_get(dst_pte);
++	if (!pte_none(orig_dst_pte))
++		return NULL;
 +
-+	return bitmap_read(bitmap, 0, BITS_PER_LONG);
++	orig_src_pte = ptep_get(src_pte);
++	if (!pte_present(orig_src_pte) || is_zero_pfn(pte_pfn(orig_src_pte)))
++		return NULL;
++
++	folio = vm_normal_folio(src_vma, src_addr, orig_src_pte);
++	if (!folio || !folio_trylock(folio))
++		return NULL;
++	if (!PageAnonExclusive(&folio->page) || folio_test_large(folio) ||
++	    folio_anon_vma(folio) != src_anon_vma) {
++		folio_unlock(folio);
++		return NULL;
++	}
++	return folio;
 +}
 +
- #define MM_MT_FLAGS	(MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN | \
- 			 MT_FLAGS_USE_RCU)
- extern struct mm_struct init_mm;
++/*
++ * Moves src folios to dst in a batch as long as they share the same
++ * anon_vma as the first folio, are not large, and can successfully
++ * take the lock via folio_trylock().
++ */
++static long move_present_ptes(struct mm_struct *mm,
++			      struct vm_area_struct *dst_vma,
++			      struct vm_area_struct *src_vma,
++			      unsigned long dst_addr, unsigned long src_addr,
++			      pte_t *dst_pte, pte_t *src_pte,
++			      pte_t orig_dst_pte, pte_t orig_src_pte,
++			      pmd_t *dst_pmd, pmd_t dst_pmdval,
++			      spinlock_t *dst_ptl, spinlock_t *src_ptl,
++			      struct folio **first_src_folio, unsigned long len,
++			      struct anon_vma *src_anon_vma)
++{
++	int err = 0;
++	struct folio *src_folio = *first_src_folio;
++	unsigned long src_start = src_addr;
++	unsigned long src_end;
++
++	if (len > PAGE_SIZE) {
++		len = pmd_addr_end(dst_addr, dst_addr + len) - dst_addr;
++		src_end = pmd_addr_end(src_addr, src_addr + len);
++	} else
++		src_end = src_addr + len;
++	flush_cache_range(src_vma, src_addr, src_end);
+ 	double_pt_lock(dst_ptl, src_ptl);
+ 
+ 	if (!is_pte_pages_stable(dst_pte, src_pte, orig_dst_pte, orig_src_pte,
+@@ -1051,31 +1100,56 @@ static int move_present_pte(struct mm_st
+ 		err = -EBUSY;
+ 		goto out;
+ 	}
++	/* It's safe to drop the reference now as the page-table is holding one. */
++	folio_put(*first_src_folio);
++	*first_src_folio = NULL;
++	arch_enter_lazy_mmu_mode();
++
++	while (true) {
++		orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
++		/* Folio got pinned from under us. Put it back and fail the move. */
++		if (folio_maybe_dma_pinned(src_folio)) {
++			set_pte_at(mm, src_addr, src_pte, orig_src_pte);
++			err = -EBUSY;
++			break;
++		}
+ 
+-	orig_src_pte = ptep_clear_flush(src_vma, src_addr, src_pte);
+-	/* Folio got pinned from under us. Put it back and fail the move. */
+-	if (folio_maybe_dma_pinned(src_folio)) {
+-		set_pte_at(mm, src_addr, src_pte, orig_src_pte);
+-		err = -EBUSY;
+-		goto out;
+-	}
+-
+-	folio_move_anon_rmap(src_folio, dst_vma);
+-	src_folio->index = linear_page_index(dst_vma, dst_addr);
++		folio_move_anon_rmap(src_folio, dst_vma);
++		src_folio->index = linear_page_index(dst_vma, dst_addr);
+ 
+-	orig_dst_pte = folio_mk_pte(src_folio, dst_vma->vm_page_prot);
+-	/* Set soft dirty bit so userspace can notice the pte was moved */
++		orig_dst_pte = folio_mk_pte(src_folio, dst_vma->vm_page_prot);
++		/* Set soft dirty bit so userspace can notice the pte was moved */
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+-	orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
++		orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
+ #endif
+-	if (pte_dirty(orig_src_pte))
+-		orig_dst_pte = pte_mkdirty(orig_dst_pte);
+-	orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
++		if (pte_dirty(orig_src_pte))
++			orig_dst_pte = pte_mkdirty(orig_dst_pte);
++		orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
++		set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
++
++		src_addr += PAGE_SIZE;
++		if (src_addr == src_end)
++			break;
++		dst_addr += PAGE_SIZE;
++		dst_pte++;
++		src_pte++;
++
++		folio_unlock(src_folio);
++		src_folio = check_ptes_for_batched_move(src_vma, src_addr, src_pte,
++							dst_pte, src_anon_vma);
++		if (!src_folio)
++			break;
++	}
+ 
+-	set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
++	arch_leave_lazy_mmu_mode();
++	if (src_addr > src_start)
++		flush_tlb_range(src_vma, src_start, src_addr);
++
++	if (src_folio)
++		folio_unlock(src_folio);
+ out:
+ 	double_pt_unlock(dst_ptl, src_ptl);
+-	return err;
++	return src_addr > src_start ? src_addr - src_start : err;
+ }
+ 
+ static int move_swap_pte(struct mm_struct *mm, struct vm_area_struct *dst_vma,
+@@ -1140,7 +1214,7 @@ static int move_swap_pte(struct mm_struc
+ 	set_pte_at(mm, dst_addr, dst_pte, orig_src_pte);
+ 	double_pt_unlock(dst_ptl, src_ptl);
+ 
+-	return 0;
++	return PAGE_SIZE;
+ }
+ 
+ static int move_zeropage_pte(struct mm_struct *mm,
+@@ -1167,20 +1241,20 @@ static int move_zeropage_pte(struct mm_s
+ 	set_pte_at(mm, dst_addr, dst_pte, zero_pte);
+ 	double_pt_unlock(dst_ptl, src_ptl);
+ 
+-	return 0;
++	return PAGE_SIZE;
+ }
+ 
+ 
+ /*
+- * The mmap_lock for reading is held by the caller. Just move the page
+- * from src_pmd to dst_pmd if possible, and return true if succeeded
+- * in moving the page.
++ * The mmap_lock for reading is held by the caller. Just move the page(s)
++ * from src_pmd to dst_pmd if possible, and return number of bytes moved.
++ * On failure, an error code is returned.
+  */
+-static int move_pages_pte(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd,
+-			  struct vm_area_struct *dst_vma,
+-			  struct vm_area_struct *src_vma,
+-			  unsigned long dst_addr, unsigned long src_addr,
+-			  __u64 mode)
++static long move_pages_ptes(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd,
++			    struct vm_area_struct *dst_vma,
++			    struct vm_area_struct *src_vma,
++			    unsigned long dst_addr, unsigned long src_addr,
++			    unsigned long len, __u64 mode)
+ {
+ 	swp_entry_t entry;
+ 	struct swap_info_struct *si = NULL;
+@@ -1194,11 +1268,10 @@ static int move_pages_pte(struct mm_stru
+ 	struct folio *src_folio = NULL;
+ 	struct anon_vma *src_anon_vma = NULL;
+ 	struct mmu_notifier_range range;
+-	int err = 0;
++	long ret = 0;
+ 
+-	flush_cache_range(src_vma, src_addr, src_addr + PAGE_SIZE);
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
+-				src_addr, src_addr + PAGE_SIZE);
++				src_addr, src_addr + len);
+ 	mmu_notifier_invalidate_range_start(&range);
+ retry:
+ 	/*
+@@ -1212,7 +1285,7 @@ retry:
+ 
+ 	/* Retry if a huge pmd materialized from under us */
+ 	if (unlikely(!dst_pte)) {
+-		err = -EAGAIN;
++		ret = -EAGAIN;
+ 		goto out;
+ 	}
+ 
+@@ -1231,14 +1304,14 @@ retry:
+ 	 * transparent huge pages under us.
+ 	 */
+ 	if (unlikely(!src_pte)) {
+-		err = -EAGAIN;
++		ret = -EAGAIN;
+ 		goto out;
+ 	}
+ 
+ 	/* Sanity checks before the operation */
+ 	if (pmd_none(*dst_pmd) || pmd_none(*src_pmd) ||
+ 	    pmd_trans_huge(*dst_pmd) || pmd_trans_huge(*src_pmd)) {
+-		err = -EINVAL;
++		ret = -EINVAL;
+ 		goto out;
+ 	}
+ 
+@@ -1246,7 +1319,7 @@ retry:
+ 	orig_dst_pte = ptep_get(dst_pte);
+ 	spin_unlock(dst_ptl);
+ 	if (!pte_none(orig_dst_pte)) {
+-		err = -EEXIST;
++		ret = -EEXIST;
+ 		goto out;
+ 	}
+ 
+@@ -1255,21 +1328,21 @@ retry:
+ 	spin_unlock(src_ptl);
+ 	if (pte_none(orig_src_pte)) {
+ 		if (!(mode & UFFDIO_MOVE_MODE_ALLOW_SRC_HOLES))
+-			err = -ENOENT;
++			ret = -ENOENT;
+ 		else /* nothing to do to move a hole */
+-			err = 0;
++			ret = PAGE_SIZE;
+ 		goto out;
+ 	}
+ 
+ 	/* If PTE changed after we locked the folio them start over */
+ 	if (src_folio && unlikely(!pte_same(src_folio_pte, orig_src_pte))) {
+-		err = -EAGAIN;
++		ret = -EAGAIN;
+ 		goto out;
+ 	}
+ 
+ 	if (pte_present(orig_src_pte)) {
+ 		if (is_zero_pfn(pte_pfn(orig_src_pte))) {
+-			err = move_zeropage_pte(mm, dst_vma, src_vma,
++			ret = move_zeropage_pte(mm, dst_vma, src_vma,
+ 					       dst_addr, src_addr, dst_pte, src_pte,
+ 					       orig_dst_pte, orig_src_pte,
+ 					       dst_pmd, dst_pmdval, dst_ptl, src_ptl);
+@@ -1292,14 +1365,14 @@ retry:
+ 			spin_lock(src_ptl);
+ 			if (!pte_same(orig_src_pte, ptep_get(src_pte))) {
+ 				spin_unlock(src_ptl);
+-				err = -EAGAIN;
++				ret = -EAGAIN;
+ 				goto out;
+ 			}
+ 
+ 			folio = vm_normal_folio(src_vma, src_addr, orig_src_pte);
+ 			if (!folio || !PageAnonExclusive(&folio->page)) {
+ 				spin_unlock(src_ptl);
+-				err = -EBUSY;
++				ret = -EBUSY;
+ 				goto out;
+ 			}
+ 
+@@ -1313,7 +1386,7 @@ retry:
+ 			 */
+ 			if (!locked && folio_test_large(folio)) {
+ 				spin_unlock(src_ptl);
+-				err = -EAGAIN;
++				ret = -EAGAIN;
+ 				goto out;
+ 			}
+ 
+@@ -1332,7 +1405,7 @@ retry:
+ 			}
+ 
+ 			if (WARN_ON_ONCE(!folio_test_anon(src_folio))) {
+-				err = -EBUSY;
++				ret = -EBUSY;
+ 				goto out;
+ 			}
+ 		}
+@@ -1343,8 +1416,8 @@ retry:
+ 			pte_unmap(src_pte);
+ 			pte_unmap(dst_pte);
+ 			src_pte = dst_pte = NULL;
+-			err = split_folio(src_folio);
+-			if (err)
++			ret = split_folio(src_folio);
++			if (ret)
+ 				goto out;
+ 			/* have to reacquire the folio after it got split */
+ 			folio_unlock(src_folio);
+@@ -1362,7 +1435,7 @@ retry:
+ 			src_anon_vma = folio_get_anon_vma(src_folio);
+ 			if (!src_anon_vma) {
+ 				/* page was unmapped from under us */
+-				err = -EAGAIN;
++				ret = -EAGAIN;
+ 				goto out;
+ 			}
+ 			if (!anon_vma_trylock_write(src_anon_vma)) {
+@@ -1375,10 +1448,11 @@ retry:
+ 			}
+ 		}
+ 
+-		err = move_present_pte(mm,  dst_vma, src_vma,
+-				       dst_addr, src_addr, dst_pte, src_pte,
+-				       orig_dst_pte, orig_src_pte, dst_pmd,
+-				       dst_pmdval, dst_ptl, src_ptl, src_folio);
++		ret = move_present_ptes(mm, dst_vma, src_vma,
++					dst_addr, src_addr, dst_pte, src_pte,
++					orig_dst_pte, orig_src_pte, dst_pmd,
++					dst_pmdval, dst_ptl, src_ptl, &src_folio,
++					len, src_anon_vma);
+ 	} else {
+ 		struct folio *folio = NULL;
+ 
+@@ -1389,20 +1463,20 @@ retry:
+ 				pte_unmap(dst_pte);
+ 				src_pte = dst_pte = NULL;
+ 				migration_entry_wait(mm, src_pmd, src_addr);
+-				err = -EAGAIN;
++				ret = -EAGAIN;
+ 			} else
+-				err = -EFAULT;
++				ret = -EFAULT;
+ 			goto out;
+ 		}
+ 
+ 		if (!pte_swp_exclusive(orig_src_pte)) {
+-			err = -EBUSY;
++			ret = -EBUSY;
+ 			goto out;
+ 		}
+ 
+ 		si = get_swap_device(entry);
+ 		if (unlikely(!si)) {
+-			err = -EAGAIN;
++			ret = -EAGAIN;
+ 			goto out;
+ 		}
+ 		/*
+@@ -1422,7 +1496,7 @@ retry:
+ 					swap_cache_index(entry));
+ 		if (!IS_ERR_OR_NULL(folio)) {
+ 			if (folio_test_large(folio)) {
+-				err = -EBUSY;
++				ret = -EBUSY;
+ 				folio_put(folio);
+ 				goto out;
+ 			}
+@@ -1439,7 +1513,7 @@ retry:
+ 				goto retry;
+ 			}
+ 		}
+-		err = move_swap_pte(mm, dst_vma, dst_addr, src_addr, dst_pte, src_pte,
++		ret = move_swap_pte(mm, dst_vma, dst_addr, src_addr, dst_pte, src_pte,
+ 				orig_dst_pte, orig_src_pte, dst_pmd, dst_pmdval,
+ 				dst_ptl, src_ptl, src_folio, si, entry);
+ 	}
+@@ -1466,7 +1540,7 @@ out:
+ 	if (si)
+ 		put_swap_device(si);
+ 
+-	return err;
++	return ret;
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -1737,7 +1811,7 @@ ssize_t move_pages(struct userfaultfd_ct
+ {
+ 	struct mm_struct *mm = ctx->mm;
+ 	struct vm_area_struct *src_vma, *dst_vma;
+-	unsigned long src_addr, dst_addr;
++	unsigned long src_addr, dst_addr, src_end;
+ 	pmd_t *src_pmd, *dst_pmd;
+ 	long err = -EINVAL;
+ 	ssize_t moved = 0;
+@@ -1780,8 +1854,8 @@ ssize_t move_pages(struct userfaultfd_ct
+ 	if (err)
+ 		goto out_unlock;
+ 
+-	for (src_addr = src_start, dst_addr = dst_start;
+-	     src_addr < src_start + len;) {
++	for (src_addr = src_start, dst_addr = dst_start, src_end = src_start + len;
++	     src_addr < src_end;) {
+ 		spinlock_t *ptl;
+ 		pmd_t dst_pmdval;
+ 		unsigned long step_size;
+@@ -1849,6 +1923,8 @@ ssize_t move_pages(struct userfaultfd_ct
+ 						  dst_addr, src_addr);
+ 			step_size = HPAGE_PMD_SIZE;
+ 		} else {
++			long ret;
++
+ 			if (pmd_none(*src_pmd)) {
+ 				if (!(mode & UFFDIO_MOVE_MODE_ALLOW_SRC_HOLES)) {
+ 					err = -ENOENT;
+@@ -1865,10 +1941,13 @@ ssize_t move_pages(struct userfaultfd_ct
+ 				break;
+ 			}
+ 
+-			err = move_pages_pte(mm, dst_pmd, src_pmd,
+-					     dst_vma, src_vma,
+-					     dst_addr, src_addr, mode);
+-			step_size = PAGE_SIZE;
++			ret = move_pages_ptes(mm, dst_pmd, src_pmd,
++					      dst_vma, src_vma, dst_addr,
++					      src_addr, src_end - src_addr, mode);
++			if (ret < 0)
++				err = ret;
++			else
++				step_size = ret;
+ 		}
+ 
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-tools-testing-add-linux-argsh-header-and-fix-radix-vma-tests.patch
-mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area.patch
-mm-mremap-catch-invalid-multi-vma-moves-earlier.patch
-selftests-mm-add-test-for-invalid-multi-vma-operations.patch
-mm-add-bitmap-mm-flags-field.patch
-mm-add-bitmap-mm-flags-field-fix.patch
-mm-convert-core-mm-to-mm_flags_-accessors.patch
-mm-convert-prctl-to-mm_flags_-accessors.patch
-mm-convert-arch-specific-code-to-mm_flags_-accessors.patch
-mm-convert-uprobes-to-mm_flags_-accessors.patch
-mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags.patch
-mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
-mm-update-fork-mm-flags-initialisation-to-use-bitmap.patch
-mm-convert-remaining-users-to-mm_flags_-accessors.patch
-mm-replace-mm-flags-with-bitmap-entirely-and-set-to-64-bits.patch
+userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
 
