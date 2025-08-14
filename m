@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5311279346
-	for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2025 22:50:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 824ED1C5D55
+	for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2025 23:00:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755211809; cv=none; b=ESWEy6ubVNtY67GgklxlWmhAmbHR3XqXd/OjORxChWIpdAcXTvunaBtitxoUJJN228ggqBvBgVcZI4qTlbZBOKq2IQnBwg905v0iHe3ZRV1/BWSHTnspuOCkWVojMM5ltaZ301SeB8XY5AVpxovnYDvt5SlZ7J7+VonwKbQbRC0=
+	t=1755212439; cv=none; b=iHzTN58CDPMc03VXLcJc5tuzrW3a0MsartO63oeOFdjgb2DROBfCA8fmDFl3ZBmXfbY3NOyGdX81Y/AWmpCy9GO0OmAIFayIfT3N4c7+nnxBticBFAQElqPwTi7/NWz9H0YNb9KgLypYi0vJ3GtGB4T2Q6BRAegD/T1TMMA5TOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755211809; c=relaxed/simple;
-	bh=LyZydo3OsB2JSgZU8dfGksmD+GivjVDV0gGYKFNqWk0=;
-	h=Date:To:From:Subject:Message-Id; b=GhzlkdKdpdAlkqkeggZW/6ykUx1GWX60CxyzponinMcJy2E2cyQh/oquO+f+fQuTjZbXgzh4fIDZxlmQTh0Z0WTos/eM4ihUftBs1Yb5HHbPw2cQM0Ggzg0proDR6KaOgCdvZq22dOLzoKr+gdyPWtx42yBvQp5BXUWjVKs8BTo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Djl+ZLX2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755212439; c=relaxed/simple;
+	bh=b+DWa4hTatOD/o1fPGl1cIlKtHqaOVxFqZxFDYj4Wws=;
+	h=Date:To:From:Subject:Message-Id; b=Ga8TnLKcl8lmUwq74RtGZ2Pj73b+DgwxKHV3N0WZEAGHdmDk4ihLWsA9nGS1ZMN10aTVCj4RJ9IUR1cjz9FgwI9kT8mqMHp/xiPqn+47lQqdk9/DCLvovEgUWXtM4g77Ly8n0/USWaklAOo4YFf7jei1G9U6ZUlj4XSDPcaMOe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MTletMpL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Djl+ZLX2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09497C4CEF1;
-	Thu, 14 Aug 2025 22:50:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MTletMpL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3BB8C4CEED;
+	Thu, 14 Aug 2025 23:00:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755211809;
-	bh=LyZydo3OsB2JSgZU8dfGksmD+GivjVDV0gGYKFNqWk0=;
+	s=korg; t=1755212438;
+	bh=b+DWa4hTatOD/o1fPGl1cIlKtHqaOVxFqZxFDYj4Wws=;
 	h=Date:To:From:Subject:From;
-	b=Djl+ZLX2A14gqxgr3pNoTmyvv8QCgwKtc3bKljXeDWiPSN6w3MsYDIHD3hHQgVm57
-	 CMkmnOJHac/C9BfCnQN/sieRzN/jHO85SfiDu5rTFVO1ygsCdQKNfCXEyDHDP6CrRE
-	 kC/sU2Ww3Pigl+MNFwWfrNmqCzJqly3LuKtFvLJg=
-Date: Thu, 14 Aug 2025 15:50:08 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=MTletMpL5Wh4SsMq13kDvFS3gDlZwvDkCq+F+IYNZZlRr0dCA1BG0ypyMN7DHxZpz
+	 Ot2Wv0jDa+/fGtTHRNb0at9wnkxxrnp8KZ1e+RVwo1tHu6Jyhj9X0R0tPBcK9Fc5Z1
+	 7ppzqni983NG2zY7BvhtdmEHSIXIH9Cq+FNfECu4=
+Date: Thu, 14 Aug 2025 16:00:38 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-access_memory_even-remove-unused-header-file.patch added to mm-new branch
-Message-Id: <20250814225009.09497C4CEF1@smtp.kernel.org>
+Subject: + kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch added to mm-unstable branch
+Message-Id: <20250814230038.C3BB8C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/access_memory_even: remove unused header file
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-access_memory_even-remove-unused-header-file.patch
+     Subject: kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3
+has been added to the -mm mm-unstable branch.  Its filename is
+     kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-access_memory_even-remove-unused-header-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,36 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: selftests/damon/access_memory_even: remove unused header file
-Date: Thu, 14 Aug 2025 20:54:16 +0800
+From: Jann Horn <jannh@google.com>
+Subject: kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3
+Date: Thu, 14 Aug 2025 17:11:10 +0200
 
-Since the time.h header file is not actually needed in this code, we can
-safely remove its inclusion.
+make comment more verbose
 
-Link: https://lkml.kernel.org/r/20250814125417.659937-1-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250814-kasan-tsbrcu-noquarantine-test-v3-1-9e9110009b4e@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/access_memory_even.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/kasan/kasan_test_c.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/damon/access_memory_even.c~selftests-damon-access_memory_even-remove-unused-header-file
-+++ a/tools/testing/selftests/damon/access_memory_even.c
-@@ -9,7 +9,6 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
--#include <time.h>
- 
- int main(int argc, char *argv[])
+--- a/mm/kasan/kasan_test_c.c~kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3
++++ a/mm/kasan/kasan_test_c.c
+@@ -1076,6 +1076,8 @@ static void kmem_cache_rcu_uaf(struct ku
+ /*
+  * Check that SLAB_TYPESAFE_BY_RCU objects are immediately reused when
+  * CONFIG_SLUB_RCU_DEBUG is off, and stay at the same address.
++ * Without this, KASAN builds would be unable to trigger bugs caused by
++ * SLAB_TYPESAFE_BY_RCU users handling reycled objects improperly.
+  */
+ static void kmem_cache_rcu_reuse(struct kunit *test)
  {
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from jannh@google.com are
 
-selftests-damon-access_memory_even-remove-unused-header-file.patch
+kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
+kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v2.patch
+kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch
 
