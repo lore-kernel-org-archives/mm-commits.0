@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC411A08AF
-	for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2025 23:17:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB7A21A08AF
+	for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2025 23:17:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755213468; cv=none; b=iUh9ifbtwBD3IG6HkjyDhBBowGXYOlze3gQip1zAsXIgR1/lsXzMOmjBGquhhni9lBKj3AVghGPrNLj06Rixrxa4LngQCI3vrvNP2lc534KkZCHx/0VnHVBjLOg/q3VfC9oNC3qm4WMiIKGB/jogD27DjD0a2GMmLSsP90MAveQ=
+	t=1755213469; cv=none; b=t4Zb9ArWoybXq6a+5hG+IKSjcrW888DEQP69oZk//orKDONyiLlAWn5lLhFsIa/scfYCsz1KaHJIrwwQlEsyxqq4pH1McXExIrzvAElVba2aqJg78bFmT6ytK8deJCCf/B1/w0HkV79nMlF+tNJq3h7fXVU9oNU3/r9SUF/S1Qw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755213468; c=relaxed/simple;
-	bh=7dMK7U54fCPK4RbRBhN6hkoIJCjp3rLb4C/1I8N0c7o=;
-	h=Date:To:From:Subject:Message-Id; b=VOliNqA7t8UIyRXqR3YNaXKp59zp3JfnLlC2juwAFWoYfUfYGTvz8rqwnkubRPkC0uY2WvmfZ+/lJSBORXrOKaEhHQFlHPHMf9towchNa7hqiEcCZobCGO33Er6a4t47FEj/R6nPxmOXFkvciVcsO7bghh40aQIO1qY7YTgoGNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hgs9ODSS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755213469; c=relaxed/simple;
+	bh=27CFskx8h3NBBRlSNceQ0/H4YuadADIGqAdhH9NAjw8=;
+	h=Date:To:From:Subject:Message-Id; b=Qc6/fUWhPprgc1ioJqGvGtDcLT4jBjtBEFCMaxSYEr5jwuTMLFi67Lq6b+wy2EOGOj6ajA9Terj5uxUnAAup8O5qKmnR9tSH/rVAj/sS/sCm/Cv72L+2jK7HhGocWwNhQcofSDF8O3gFdqSlxTBebCrbLZUrkChrNCI12yAADwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nf7PKA6V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hgs9ODSS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F05FDC4CEED;
-	Thu, 14 Aug 2025 23:17:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nf7PKA6V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54989C4CEED;
+	Thu, 14 Aug 2025 23:17:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755213468;
-	bh=7dMK7U54fCPK4RbRBhN6hkoIJCjp3rLb4C/1I8N0c7o=;
+	s=korg; t=1755213469;
+	bh=27CFskx8h3NBBRlSNceQ0/H4YuadADIGqAdhH9NAjw8=;
 	h=Date:To:From:Subject:From;
-	b=hgs9ODSS8vxMrw8Gd145PeBD3UTCRmneSW5pgG6pTuCvNfZjBZr8hz+W3k6zTEh4Z
-	 O42iX+Vosd/HxOnJJbACMVadoYNzTcGkTL0+4rMGIeO4MvBTHGR7WUW/yXIFP0NzNk
-	 PEcd5k3v9u07izdg3apwnGhzUtC+X6Lfv0uMkrFQ=
-Date: Thu, 14 Aug 2025 16:17:47 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
+	b=Nf7PKA6VWJtLbT2Nauv1YlvZAD/z40bgwoGzs3vFtMVSyM0shHQ9rbzutA4FDCTty
+	 LDZ4RxGuq1W713NvCDC9ECcwJrC2dPUxiENTgTie3AIMpmyK8wIeKKG8JLfrreodcd
+	 NrVeet0RDRezY9gYtFibU4nwRpe+xQl9LcOHpOjQ=
+Date: Thu, 14 Aug 2025 16:17:48 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,npache@redhat.com,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch added to mm-new branch
-Message-Id: <20250814231747.F05FDC4CEED@smtp.kernel.org>
+Subject: + mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch added to mm-new branch
+Message-Id: <20250814231749.54989C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/oom_kill: only delay OOM reaper for processes using robust futexes
+     Subject: mm/oom_kill: have the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
 has been added to the -mm mm-new branch.  Its filename is
-     mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
+     mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,31 +65,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: zhongjinji <zhongjinji@honor.com>
-Subject: mm/oom_kill: only delay OOM reaper for processes using robust futexes
-Date: Thu, 14 Aug 2025 21:55:54 +0800
+Subject: mm/oom_kill: have the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
+Date: Thu, 14 Aug 2025 21:55:55 +0800
 
-The OOM reaper can quickly reap a process's memory when the system
-encounters OOM, helping the system recover.  Without the OOM reaper, if a
-process frozen by cgroup v1 is OOM killed, the victims' memory cannot be
-freed, and the system stays in a poor state.  Even if the process is not
-frozen by cgroup v1, reaping victims' memory is still meaningful, because
-having one more process working speeds up memory release.
+When a process is OOM killed, if the OOM reaper and the thread running
+exit_mmap() execute at the same time, both will traverse the vma's maple
+tree along the same path.  They may easily unmap the same vma, causing
+them to compete for the pte spinlock.  This increases unnecessary load,
+causing the execution time of the OOM reaper and the thread running
+exit_mmap() to increase.
 
-When processes holding robust futexes are OOM killed but waiters on those
-futexes remain alive, the robust futexes might be reaped before
-futex_cleanup() runs.  It would cause the waiters to block indefinitely. 
-To prevent this issue, the OOM reaper's work is delayed by 2 seconds [1]. 
-The OOM reaper now rarely runs since many killed processes exit within 2
-seconds.
+When a process exits, exit_mmap() traverses the vma's maple tree from low
+to high address.  To reduce the chance of unmapping the same vma
+simultaneously, the OOM reaper should traverse vma's tree from high to low
+address.  This reduces lock contention when unmapping the same vma.
 
-Because robust futex users are few, it is unreasonable to delay OOM reap
-for all victims.  For processes that do not hold robust futexes, the OOM
-reaper should not be delayed and for processes holding robust futexes, the
-OOM reaper must still be delayed to prevent the waiters to block
-indefinitely [1].
-
-Link: https://lkml.kernel.org/r/20250814135555.17493-3-zhongjinji@honor.com
-Link: https://lore.kernel.org/all/20220414144042.677008-1-npache@redhat.com/T/#u [1]
+Link: https://lkml.kernel.org/r/20250814135555.17493-4-zhongjinji@honor.com
 Signed-off-by: zhongjinji <zhongjinji@honor.com>
 Cc: Andre Almeida <andrealmeid@igalia.com>
 Cc: Darren Hart <dvhart@infradead.org>
@@ -98,6 +89,7 @@ Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joel Savitz <jsavitz@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -105,204 +97,47 @@ Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   51 +++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 38 insertions(+), 13 deletions(-)
+ include/linux/mm.h |    3 +++
+ mm/oom_kill.c      |    9 +++++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes
-+++ a/mm/oom_kill.c
-@@ -39,6 +39,7 @@
- #include <linux/ptrace.h>
- #include <linux/freezer.h>
- #include <linux/ftrace.h>
-+#include <linux/futex.h>
- #include <linux/ratelimit.h>
- #include <linux/kthread.h>
- #include <linux/init.h>
-@@ -692,7 +693,7 @@ static void wake_oom_reaper(struct timer
-  * before the exit path is able to wake the futex waiters.
-  */
- #define OOM_REAPER_DELAY (2*HZ)
--static void queue_oom_reaper(struct task_struct *tsk)
-+static void queue_oom_reaper(struct task_struct *tsk, bool delay)
- {
- 	/* mm is already queued? */
- 	if (mm_flags_test_and_set(MMF_OOM_REAP_QUEUED, tsk->signal->oom_mm))
-@@ -700,7 +701,7 @@ static void queue_oom_reaper(struct task
+--- a/include/linux/mm.h~mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders
++++ a/include/linux/mm.h
+@@ -974,6 +974,9 @@ static inline void vma_iter_set(struct v
+ #define for_each_vma_range(__vmi, __vma, __end)				\
+ 	while (((__vma) = vma_find(&(__vmi), (__end))) != NULL)
  
- 	get_task_struct(tsk);
- 	timer_setup(&tsk->oom_reaper_timer, wake_oom_reaper, 0);
--	tsk->oom_reaper_timer.expires = jiffies + OOM_REAPER_DELAY;
-+	tsk->oom_reaper_timer.expires = jiffies + (delay ? OOM_REAPER_DELAY : 0);
- 	add_timer(&tsk->oom_reaper_timer);
- }
- 
-@@ -742,7 +743,7 @@ static int __init oom_init(void)
- }
- subsys_initcall(oom_init)
- #else
--static inline void queue_oom_reaper(struct task_struct *tsk)
-+static inline void queue_oom_reaper(struct task_struct *tsk, bool delay)
- {
- }
- #endif /* CONFIG_MMU */
-@@ -843,6 +844,16 @@ bool oom_killer_disable(signed long time
- 	return true;
- }
- 
-+/*
-+ * If the owner thread of robust futexes is killed by OOM, the robust futexes might be freed
-+ * by the OOM reaper before futex_cleanup() runs, which could cause the waiters to
-+ * block indefinitely. So when the task hold robust futexes, delay oom reaper.
-+ */
-+static inline bool should_delay_oom_reap(struct task_struct *task)
-+{
-+	return process_has_robust_futex(task);
-+}
++#define for_each_vma_reverse(__vmi, __vma)					\
++	while (((__vma) = vma_prev(&(__vmi))) != NULL)
 +
- static inline bool __task_will_free_mem(struct task_struct *task)
- {
- 	struct signal_struct *sig = task->signal;
-@@ -865,17 +876,19 @@ static inline bool __task_will_free_mem(
- }
- 
+ #ifdef CONFIG_SHMEM
  /*
-- * Checks whether the given task is dying or exiting and likely to
-- * release its address space. This means that all threads and processes
-+ * Determine whether the given task should be reaped based on
-+ * whether it is dying or exiting and likely to release its
-+ * address space. This means that all threads and processes
-  * sharing the same mm have to be killed or exiting.
-  * Caller has to make sure that task->mm is stable (hold task_lock or
-  * it operates on the current).
-  */
--static bool task_will_free_mem(struct task_struct *task)
-+static bool should_reap_task(struct task_struct *task, bool *delay_reap)
+  * The vma_is_shmem is not inline because it is used only by slow
+--- a/mm/oom_kill.c~mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders
++++ a/mm/oom_kill.c
+@@ -517,7 +517,7 @@ static bool __oom_reap_task_mm(struct mm
  {
- 	struct mm_struct *mm = task->mm;
- 	struct task_struct *p;
+ 	struct vm_area_struct *vma;
  	bool ret = true;
-+	bool delay;
+-	VMA_ITERATOR(vmi, mm, 0);
++	VMA_ITERATOR(vmi, mm, ULONG_MAX);
  
  	/*
- 	 * Skip tasks without mm because it might have passed its exit_mm and
-@@ -888,6 +901,8 @@ static bool task_will_free_mem(struct ta
- 	if (!__task_will_free_mem(task))
- 		return false;
+ 	 * Tell all users of get_user/copy_from_user etc... that the content
+@@ -527,7 +527,12 @@ static bool __oom_reap_task_mm(struct mm
+ 	 */
+ 	mm_flags_set(MMF_UNSTABLE, mm);
  
-+	delay = should_delay_oom_reap(task);
-+
- 	/*
- 	 * This task has already been drained by the oom reaper so there are
- 	 * only small chances it will free some more
-@@ -912,8 +927,11 @@ static bool task_will_free_mem(struct ta
- 		ret = __task_will_free_mem(p);
- 		if (!ret)
- 			break;
-+		if (!delay)
-+			delay = should_delay_oom_reap(p);
- 	}
- 	rcu_read_unlock();
-+	*delay_reap = delay;
- 
- 	return ret;
- }
-@@ -923,6 +941,7 @@ static void __oom_kill_process(struct ta
- 	struct task_struct *p;
- 	struct mm_struct *mm;
- 	bool can_oom_reap = true;
-+	bool delay_reap;
- 
- 	p = find_lock_task_mm(victim);
- 	if (!p) {
-@@ -959,6 +978,7 @@ static void __oom_kill_process(struct ta
- 		from_kuid(&init_user_ns, task_uid(victim)),
- 		mm_pgtables_bytes(mm) >> 10, victim->signal->oom_score_adj);
- 	task_unlock(victim);
-+	delay_reap = should_delay_oom_reap(victim);
- 
- 	/*
- 	 * Kill all user processes sharing victim->mm in other thread groups, if
-@@ -990,11 +1010,13 @@ static void __oom_kill_process(struct ta
- 		if (unlikely(p->flags & PF_KTHREAD))
+-	for_each_vma(vmi, vma) {
++	/*
++	 * When two tasks unmap the same vma at the same time, they may contend for the
++	 * pte spinlock. To avoid traversing the same vma as exit_mmap unmap, traverse
++	 * the vma maple tree in reverse order.
++	 */
++	for_each_vma_reverse(vmi, vma) {
+ 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
  			continue;
- 		do_send_sig_info(SIGKILL, SEND_SIG_PRIV, p, PIDTYPE_TGID);
-+		if (!delay_reap)
-+			delay_reap = should_delay_oom_reap(p);
- 	}
- 	rcu_read_unlock();
  
- 	if (can_oom_reap)
--		queue_oom_reaper(victim);
-+		queue_oom_reaper(victim, delay_reap);
- 
- 	mmdrop(mm);
- 	put_task_struct(victim);
-@@ -1020,6 +1042,7 @@ static void oom_kill_process(struct oom_
- 	struct mem_cgroup *oom_group;
- 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
- 					      DEFAULT_RATELIMIT_BURST);
-+	bool delay_reap = false;
- 
- 	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
-@@ -1027,9 +1050,9 @@ static void oom_kill_process(struct oom_
- 	 * so it can die quickly
- 	 */
- 	task_lock(victim);
--	if (task_will_free_mem(victim)) {
-+	if (should_reap_task(victim, &delay_reap)) {
- 		mark_oom_victim(victim);
--		queue_oom_reaper(victim);
-+		queue_oom_reaper(victim, delay_reap);
- 		task_unlock(victim);
- 		put_task_struct(victim);
- 		return;
-@@ -1112,6 +1135,7 @@ EXPORT_SYMBOL_GPL(unregister_oom_notifie
- bool out_of_memory(struct oom_control *oc)
- {
- 	unsigned long freed = 0;
-+	bool delay_reap = false;
- 
- 	if (oom_killer_disabled)
- 		return false;
-@@ -1128,9 +1152,9 @@ bool out_of_memory(struct oom_control *o
- 	 * select it.  The goal is to allow it to allocate so that it may
- 	 * quickly exit and free its memory.
- 	 */
--	if (task_will_free_mem(current)) {
-+	if (should_reap_task(current, &delay_reap)) {
- 		mark_oom_victim(current);
--		queue_oom_reaper(current);
-+		queue_oom_reaper(current, delay_reap);
- 		return true;
- 	}
- 
-@@ -1209,6 +1233,7 @@ SYSCALL_DEFINE2(process_mrelease, int, p
- 	struct task_struct *p;
- 	unsigned int f_flags;
- 	bool reap = false;
-+	bool delay_reap = false;
- 	long ret = 0;
- 
- 	if (flags)
-@@ -1231,7 +1256,7 @@ SYSCALL_DEFINE2(process_mrelease, int, p
- 	mm = p->mm;
- 	mmgrab(mm);
- 
--	if (task_will_free_mem(p))
-+	if (should_reap_task(p, &delay_reap))
- 		reap = true;
- 	else {
- 		/* Error only if the work has not been done already */
-@@ -1240,7 +1265,7 @@ SYSCALL_DEFINE2(process_mrelease, int, p
- 	}
- 	task_unlock(p);
- 
--	if (!reap)
-+	if (!reap || delay_reap)
- 		goto drop_mm;
- 
- 	if (mmap_read_lock_killable(mm)) {
 _
 
 Patches currently in -mm which might be from zhongjinji@honor.com are
