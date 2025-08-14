@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB7A21A08AF
-	for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2025 23:17:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B637284B26;
+	Thu, 14 Aug 2025 23:24:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755213469; cv=none; b=t4Zb9ArWoybXq6a+5hG+IKSjcrW888DEQP69oZk//orKDONyiLlAWn5lLhFsIa/scfYCsz1KaHJIrwwQlEsyxqq4pH1McXExIrzvAElVba2aqJg78bFmT6ytK8deJCCf/B1/w0HkV79nMlF+tNJq3h7fXVU9oNU3/r9SUF/S1Qw=
+	t=1755213850; cv=none; b=erXwn/eazwnrKmejzEaB1LeUiKjR+MXCjXih6OEQfQQ/mq0s8M1Hx7hrCn+rpBRW56q7KysHx5Keos3AkZDUAuPZvy2tbi/zR5x+7pj2uMCPg7wpWs8aHTfg/bvOB2KXRyrCtsYWl0oAq+qz97pEF7lLBR01/apG9gcgExvdeD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755213469; c=relaxed/simple;
-	bh=27CFskx8h3NBBRlSNceQ0/H4YuadADIGqAdhH9NAjw8=;
-	h=Date:To:From:Subject:Message-Id; b=Qc6/fUWhPprgc1ioJqGvGtDcLT4jBjtBEFCMaxSYEr5jwuTMLFi67Lq6b+wy2EOGOj6ajA9Terj5uxUnAAup8O5qKmnR9tSH/rVAj/sS/sCm/Cv72L+2jK7HhGocWwNhQcofSDF8O3gFdqSlxTBebCrbLZUrkChrNCI12yAADwE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nf7PKA6V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755213850; c=relaxed/simple;
+	bh=lEKRnytuyV0fsbf1VIdHq6DpvwlPCS1o91f3/dGDAfs=;
+	h=Date:To:From:Subject:Message-Id; b=RJt+G8muKMHFCzM9RwiqE1s7/33FlgzBu5FT5Yvb2+l/HLIweXCtOtPYgq0mhBF+Mh7827P9M3OEX2sMaHRMebzOcQEdbfZ8y/NSCLXpWwkyLWKqJxao0mkXH+UVThsqu4EcQ6AKWzAmTHJAFO8RXZjSe9mwO/4cORAemZFJBRs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eWY/XKAo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nf7PKA6V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54989C4CEED;
-	Thu, 14 Aug 2025 23:17:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eWY/XKAo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4251C4CEED;
+	Thu, 14 Aug 2025 23:24:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755213469;
-	bh=27CFskx8h3NBBRlSNceQ0/H4YuadADIGqAdhH9NAjw8=;
+	s=korg; t=1755213849;
+	bh=lEKRnytuyV0fsbf1VIdHq6DpvwlPCS1o91f3/dGDAfs=;
 	h=Date:To:From:Subject:From;
-	b=Nf7PKA6VWJtLbT2Nauv1YlvZAD/z40bgwoGzs3vFtMVSyM0shHQ9rbzutA4FDCTty
-	 LDZ4RxGuq1W713NvCDC9ECcwJrC2dPUxiENTgTie3AIMpmyK8wIeKKG8JLfrreodcd
-	 NrVeet0RDRezY9gYtFibU4nwRpe+xQl9LcOHpOjQ=
-Date: Thu, 14 Aug 2025 16:17:48 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,npache@redhat.com,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
+	b=eWY/XKAomLFYy9WsQqEWyJCqWFJtQmj/d3fn+qX7ncecdGFlV1tp6ZGq3C4OONoEd
+	 JI+7pJONqZB1DqKDYDRJr0zMOEg2coMG43rxhGh6XdOW9SFlOjMK+hoO6eQIu5WqZb
+	 Cz7RO3nfel/6963IgHv9VYjHGyhFODii1DqPc2Es=
+Date: Thu, 14 Aug 2025 16:24:09 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ajd@linux.ibm.com,alexghiti@rivosinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch added to mm-new branch
-Message-Id: <20250814231749.54989C4CEED@smtp.kernel.org>
+Subject: + riscv-use-an-atomic-xchg-in-pudp_huge_get_and_clear.patch added to mm-new branch
+Message-Id: <20250814232409.A4251C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/oom_kill: have the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
+     Subject: riscv: use an atomic xchg in pudp_huge_get_and_clear()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch
+     riscv-use-an-atomic-xchg-in-pudp_huge_get_and_clear.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-use-an-atomic-xchg-in-pudp_huge_get_and_clear.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,85 +64,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zhongjinji <zhongjinji@honor.com>
-Subject: mm/oom_kill: have the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
-Date: Thu, 14 Aug 2025 21:55:55 +0800
+From: Alexandre Ghiti <alexghiti@rivosinc.com>
+Subject: riscv: use an atomic xchg in pudp_huge_get_and_clear()
+Date: Thu, 14 Aug 2025 12:06:14 +0000
 
-When a process is OOM killed, if the OOM reaper and the thread running
-exit_mmap() execute at the same time, both will traverse the vma's maple
-tree along the same path.  They may easily unmap the same vma, causing
-them to compete for the pte spinlock.  This increases unnecessary load,
-causing the execution time of the OOM reaper and the thread running
-exit_mmap() to increase.
+Make sure we return the right pud value and not a value that could have
+been overwritten in between by a different core.
 
-When a process exits, exit_mmap() traverses the vma's maple tree from low
-to high address.  To reduce the chance of unmapping the same vma
-simultaneously, the OOM reaper should traverse vma's tree from high to low
-address.  This reduces lock contention when unmapping the same vma.
-
-Link: https://lkml.kernel.org/r/20250814135555.17493-4-zhongjinji@honor.com
-Signed-off-by: zhongjinji <zhongjinji@honor.com>
-Cc: Andre Almeida <andrealmeid@igalia.com>
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joel Savitz <jsavitz@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20250814-dev-alex-thp_pud_xchg-v1-1-b4704dfae206@rivosinc.com
+Fixes: c3cc2a4a3a23 ("riscv: Add support for PUD THP")
+Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: Andrew Donnellan <ajd@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +++
- mm/oom_kill.c      |    9 +++++++--
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ arch/riscv/include/asm/pgtable.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/include/linux/mm.h~mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders
-+++ a/include/linux/mm.h
-@@ -974,6 +974,9 @@ static inline void vma_iter_set(struct v
- #define for_each_vma_range(__vmi, __vma, __end)				\
- 	while (((__vma) = vma_find(&(__vmi), (__end))) != NULL)
+--- a/arch/riscv/include/asm/pgtable.h~riscv-use-an-atomic-xchg-in-pudp_huge_get_and_clear
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -942,6 +942,17 @@ static inline int pudp_test_and_clear_yo
+ 	return ptep_test_and_clear_young(vma, address, (pte_t *)pudp);
+ }
  
-+#define for_each_vma_reverse(__vmi, __vma)					\
-+	while (((__vma) = vma_prev(&(__vmi))) != NULL)
++#define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
++static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm,
++					    unsigned long address, pud_t *pudp)
++{
++	pud_t pud = __pud(atomic_long_xchg((atomic_long_t *)pudp, 0));
 +
- #ifdef CONFIG_SHMEM
- /*
-  * The vma_is_shmem is not inline because it is used only by slow
---- a/mm/oom_kill.c~mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders
-+++ a/mm/oom_kill.c
-@@ -517,7 +517,7 @@ static bool __oom_reap_task_mm(struct mm
++	page_table_check_pud_clear(mm, pud);
++
++	return pud;
++}
++
+ static inline int pud_young(pud_t pud)
  {
- 	struct vm_area_struct *vma;
- 	bool ret = true;
--	VMA_ITERATOR(vmi, mm, 0);
-+	VMA_ITERATOR(vmi, mm, ULONG_MAX);
- 
- 	/*
- 	 * Tell all users of get_user/copy_from_user etc... that the content
-@@ -527,7 +527,12 @@ static bool __oom_reap_task_mm(struct mm
- 	 */
- 	mm_flags_set(MMF_UNSTABLE, mm);
- 
--	for_each_vma(vmi, vma) {
-+	/*
-+	 * When two tasks unmap the same vma at the same time, they may contend for the
-+	 * pte spinlock. To avoid traversing the same vma as exit_mmap unmap, traverse
-+	 * the vma maple tree in reverse order.
-+	 */
-+	for_each_vma_reverse(vmi, vma) {
- 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
- 			continue;
- 
+ 	return pte_young(pud_pte(pud));
 _
 
-Patches currently in -mm which might be from zhongjinji@honor.com are
+Patches currently in -mm which might be from alexghiti@rivosinc.com are
 
-futex-introduce-function-process_has_robust_futex.patch
-mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
-mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch
+selftests-damon-fix-damon-selftests-by-installing-_commonsh.patch
+riscv-use-an-atomic-xchg-in-pudp_huge_get_and_clear.patch
 
