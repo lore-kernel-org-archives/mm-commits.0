@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 824ED1C5D55
-	for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2025 23:00:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22EB11A08AF
+	for <mm-commits@vger.kernel.org>; Thu, 14 Aug 2025 23:17:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755212439; cv=none; b=iHzTN58CDPMc03VXLcJc5tuzrW3a0MsartO63oeOFdjgb2DROBfCA8fmDFl3ZBmXfbY3NOyGdX81Y/AWmpCy9GO0OmAIFayIfT3N4c7+nnxBticBFAQElqPwTi7/NWz9H0YNb9KgLypYi0vJ3GtGB4T2Q6BRAegD/T1TMMA5TOY=
+	t=1755213467; cv=none; b=ILCSVsXey4q2wHmkof7q/wH7E1vKyOrborVDxuJfMeS58xsKSRWNEq6JWpRUbJtU1TuEORKjqsYB+SpmFmbbmONCZk6eF6NXn0Oe1gJ3D7ueM9BzTBVXdNmHcjH5GSBErqYvgSbgdHCzhs4feSSXOVy13TFKPBJ55Dr9LW5o2RY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755212439; c=relaxed/simple;
-	bh=b+DWa4hTatOD/o1fPGl1cIlKtHqaOVxFqZxFDYj4Wws=;
-	h=Date:To:From:Subject:Message-Id; b=Ga8TnLKcl8lmUwq74RtGZ2Pj73b+DgwxKHV3N0WZEAGHdmDk4ihLWsA9nGS1ZMN10aTVCj4RJ9IUR1cjz9FgwI9kT8mqMHp/xiPqn+47lQqdk9/DCLvovEgUWXtM4g77Ly8n0/USWaklAOo4YFf7jei1G9U6ZUlj4XSDPcaMOe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MTletMpL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755213467; c=relaxed/simple;
+	bh=tIPccNn+KlCzZBSeWUdqlij9vB7pR2arFU45z4MATjY=;
+	h=Date:To:From:Subject:Message-Id; b=RgWgTTvU31klUB5pA2ZlOo+yr9fLTkhXemyU0jtwCO45MQxJ5DVElyUNkEkH6CwBM+eZS5LJi18W5QdUaVJaEqhXEd3U/ahw+I3SgOgl5+I1pDODf1Ymak0Hcpht1WVagyzCoJPvBWEY2XmoH9ot6deGv5PDU/Jr5JIYBEjyjWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o0PIwI6a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MTletMpL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3BB8C4CEED;
-	Thu, 14 Aug 2025 23:00:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o0PIwI6a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97948C4CEED;
+	Thu, 14 Aug 2025 23:17:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755212438;
-	bh=b+DWa4hTatOD/o1fPGl1cIlKtHqaOVxFqZxFDYj4Wws=;
+	s=korg; t=1755213466;
+	bh=tIPccNn+KlCzZBSeWUdqlij9vB7pR2arFU45z4MATjY=;
 	h=Date:To:From:Subject:From;
-	b=MTletMpL5Wh4SsMq13kDvFS3gDlZwvDkCq+F+IYNZZlRr0dCA1BG0ypyMN7DHxZpz
-	 Ot2Wv0jDa+/fGtTHRNb0at9wnkxxrnp8KZ1e+RVwo1tHu6Jyhj9X0R0tPBcK9Fc5Z1
-	 7ppzqni983NG2zY7BvhtdmEHSIXIH9Cq+FNfECu4=
-Date: Thu, 14 Aug 2025 16:00:38 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
+	b=o0PIwI6akyzNVeSpHpNEuefdXqYur02rurM+LTrhtrviMkQAPbNFf+sbPaeoiKyl2
+	 W1Q9hqZFaWu68K3lTJnc6ccYVAG9gnxLsooU1oJNvpRjOkSqgFOjRH28I6oggrOxIN
+	 uqv39os7aeplwEauc8zCK0ShkHX+XJ1mT2LtC8vI=
+Date: Thu, 14 Aug 2025 16:17:46 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,npache@redhat.com,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch added to mm-unstable branch
-Message-Id: <20250814230038.C3BB8C4CEED@smtp.kernel.org>
+Subject: + futex-introduce-function-process_has_robust_futex.patch added to mm-new branch
+Message-Id: <20250814231746.97948C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3
-has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch
+     Subject: futex: introduce function process_has_robust_futex()
+has been added to the -mm mm-new branch.  Its filename is
+     futex-introduce-function-process_has_robust_futex.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/futex-introduce-function-process_has_robust_futex.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,42 +64,148 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3
-Date: Thu, 14 Aug 2025 17:11:10 +0200
+From: zhongjinji <zhongjinji@honor.com>
+Subject: futex: introduce function process_has_robust_futex()
+Date: Thu, 14 Aug 2025 21:55:53 +0800
 
-make comment more verbose
+Patch series "mm/oom_kill: Only delay OOM reaper for processes using
+robust futexes", v4.
 
-Link: https://lkml.kernel.org/r/20250814-kasan-tsbrcu-noquarantine-test-v3-1-9e9110009b4e@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The OOM reaper quickly reclaims a process's memory when the system hits
+OOM, helping the system recover.  Without the OOM reaper, if a process
+frozen by cgroup v1 is OOM killed, the victim's memory cannot be freed,
+leaving the system in a poor state.  Even if the process is not frozen by
+cgroup v1, reclaiming victims' memory remains important, as having one
+more process working speeds up memory release.
+
+When processes holding robust futexes are OOM killed but waiters on those
+futexes remain alive, the robust futexes might be reaped before
+futex_cleanup() runs.  This can cause the waiters to block indefinitely
+[1].
+
+To prevent this issue, the OOM reaper's work is delayed by 2 seconds [1]. 
+Since many killed processes exit within 2 seconds, the OOM reaper rarely
+runs after this delay.  However, robust futex users are few, so delaying
+OOM reap for all victims is unnecessary.
+
+If each thread's robust_list in a process is NULL, the process holds no
+robust futexes.  For such processes, the OOM reaper should not be delayed.
+For processes holding robust futexes, to avoid issue [1], the OOM reaper
+must still be delayed.
+
+Patch 1 introduces process_has_robust_futex() to detect whether a process
+uses robust futexes.  Patch 2 delays the OOM reaper only for processes
+holding robust futexes, improving OOM reaper performance.  Patch 3 makes
+the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
+to reduce PTE lock contention caused by unmapping the same vma.
+
+
+This patch (of 3):
+
+When the holders of robust futexes are OOM killed but the waiters on
+robust futexes are still alive, the robust futexes might be reaped before
+futex_cleanup() runs.  This can cause the waiters to block indefinitely
+[1].  To prevent this issue, the OOM reaper's work is delayed by 2 seconds
+[1].  However, the OOM reaper now rarely runs since many killed processes
+exit within 2 seconds.
+
+Because robust futex users are few, delay the reaper's execution only for
+processes holding robust futexes to improve the performance of the OOM
+reaper.
+
+Introduce the function process_has_robust_futex() to detect whether a
+process uses robust futexes.  If each thread's robust_list in a process is
+NULL, it means the process holds no robust futexes.  Conversely, it means
+the process holds robust futexes.
+
+Link: https://lkml.kernel.org/r/20250814135555.17493-1-zhongjinji@honor.com
+Link: https://lkml.kernel.org/r/20250814135555.17493-2-zhongjinji@honor.com
+Link: https://lore.kernel.org/all/20220414144042.677008-1-npache@redhat.com/T/#u [1]
+Signed-off-by: zhongjinji <zhongjinji@honor.com>
+Cc: Andre Almeida <andrealmeid@igalia.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Joel Savitz <jsavitz@redhat.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/futex.h |    5 +++++
+ kernel/futex/core.c   |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
 
---- a/mm/kasan/kasan_test_c.c~kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1076,6 +1076,8 @@ static void kmem_cache_rcu_uaf(struct ku
- /*
-  * Check that SLAB_TYPESAFE_BY_RCU objects are immediately reused when
-  * CONFIG_SLUB_RCU_DEBUG is off, and stay at the same address.
-+ * Without this, KASAN builds would be unable to trigger bugs caused by
-+ * SLAB_TYPESAFE_BY_RCU users handling reycled objects improperly.
-  */
- static void kmem_cache_rcu_reuse(struct kunit *test)
+--- a/include/linux/futex.h~futex-introduce-function-process_has_robust_futex
++++ a/include/linux/futex.h
+@@ -81,6 +81,7 @@ void futex_exec_release(struct task_stru
+ long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
+ 	      u32 __user *uaddr2, u32 val2, u32 val3);
+ int futex_hash_prctl(unsigned long arg2, unsigned long arg3, unsigned long arg4);
++bool process_has_robust_futex(struct task_struct *tsk);
+ 
+ #ifdef CONFIG_FUTEX_PRIVATE_HASH
+ int futex_hash_allocate_default(void);
+@@ -108,6 +109,10 @@ static inline int futex_hash_prctl(unsig
  {
+ 	return -EINVAL;
+ }
++static inline bool process_has_robust_futex(struct task_struct *tsk)
++{
++	return false;
++}
+ static inline int futex_hash_allocate_default(void)
+ {
+ 	return 0;
+--- a/kernel/futex/core.c~futex-introduce-function-process_has_robust_futex
++++ a/kernel/futex/core.c
+@@ -1961,6 +1961,36 @@ int futex_hash_prctl(unsigned long arg2,
+ 	return ret;
+ }
+ 
++/*
++ * process_has_robust_futex() - check whether the given task hold robust futexes.
++ * @p: task struct of which task to consider
++ *
++ * If any thread in the task has a non-NULL robust_list or compat_robust_list,
++ * it indicates that the task holds robust futexes.
++ */
++bool process_has_robust_futex(struct task_struct *tsk)
++{
++	struct task_struct *t;
++	bool ret = false;
++
++	rcu_read_lock();
++	for_each_thread(tsk, t) {
++		if (unlikely(t->robust_list)) {
++			ret = true;
++			break;
++		}
++#ifdef CONFIG_COMPAT
++		if (unlikely(t->compat_robust_list)) {
++			ret = true;
++			break;
++		}
++#endif
++	}
++	rcu_read_unlock();
++
++	return ret;
++}
++
+ static int __init futex_init(void)
+ {
+ 	unsigned long hashsize, i;
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from zhongjinji@honor.com are
 
-kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping.patch
-kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v2.patch
-kasan-add-test-for-slab_typesafe_by_rcu-quarantine-skipping-v3.patch
+futex-introduce-function-process_has_robust_futex.patch
+mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
+mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch
 
