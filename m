@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD81E191
-	for <mm-commits@vger.kernel.org>; Fri, 15 Aug 2025 00:43:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A15DBA3F
+	for <mm-commits@vger.kernel.org>; Fri, 15 Aug 2025 00:49:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755218623; cv=none; b=L+Nfpg8lS529F86JwPtf9G7bxOOeG7VW2/dqiqy7Al08ZRoWavI/98VgIGw2GlnAi5GE7KPiIMDionsJL0+UGIhAiuMb1OJV5Sl60tegOx6ek8kE6cKHqspFiStyHrRhtE7ec2nLkE3lg1n47yYPnPKwwMAer5IOXiTLzNsyXaM=
+	t=1755218959; cv=none; b=XJoiwiw34sr/OYWHe1cpqCAPWsWKRHC/jNure8tnIta6ry4YFBl9iC1dMfix30B6LAOFfIVcXpS0m8hSYzWq7ETHImaZNS9AcQ6QhW5NjeRpUKnUOS3MDUhUzEvnLafu/5cAZj9dtgx5qeOoZSAEsKWGMs3IhMFFiaHLjnR8XkQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755218623; c=relaxed/simple;
-	bh=ZkivN9FRJZXXX+ZmNwuRp4KJliGzQIfm8SMblKw55No=;
-	h=Date:To:From:Subject:Message-Id; b=aUiJyUSz+TQ1mIyBYoW/jERIs12oeTuJ2F9bqmspy9imzDgG9v5bF2lr1Z6tzF6r7Z1B8w6cMRBjsPbrb1UmELRYLlHpI8vYYbgCqFEFV30iUrOylqem8lOeHeO7kAOTwFmSGmeHANyTVNt9KkKJ3hrIKGA90gzPIfez65gsQhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nJ51VFxz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755218959; c=relaxed/simple;
+	bh=6Z0tCQ5I8rKJtB8IdiUMHSv7vqOGo2rzXjQJ+16zkN8=;
+	h=Date:To:From:Subject:Message-Id; b=G7IIYlB28liCqZF5sOVxi8nYbZE4g56w9tFPQVaWKkX6BoJqaON+BYbgkTsFsHk+PlEJoJOZzsXGmRolE/73+8DtSs4bYL+CV9GQ+kdDW//viy64X2ADs/GPeWLhsPcw3Lq8aBvKZLfF/Ls/7tF09p1KpylSDWR1LddTKEOEPE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0YulZV/Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nJ51VFxz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4125EC4CEED;
-	Fri, 15 Aug 2025 00:43:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0YulZV/Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03FD7C4CEED;
+	Fri, 15 Aug 2025 00:49:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755218623;
-	bh=ZkivN9FRJZXXX+ZmNwuRp4KJliGzQIfm8SMblKw55No=;
+	s=korg; t=1755218957;
+	bh=6Z0tCQ5I8rKJtB8IdiUMHSv7vqOGo2rzXjQJ+16zkN8=;
 	h=Date:To:From:Subject:From;
-	b=nJ51VFxzVtSoTpo5oVe31g8QppMVz86H4ahokEUE4NG36VyQygnZ5Z/sIw2Cu7ST0
-	 L/KqjjN5lmx3DUbboOztHoecGOqJr9W4azwRU1FpMMPTdGZrxR6qUCyO254PiHy7wH
-	 4gsU11Q5ClCNuV4D7xgMTQqvSJLWYHWeuzZ2u0J8=
-Date: Thu, 14 Aug 2025 17:43:42 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,jserv@ccns.ncku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=0YulZV/Zkzxluc0u9NXcorcr4T0+QKRXIbA0Ymhh+cSHU5gY+jlrCNEejU83HgRm0
+	 r6kz+NMMalGPx1GtKmAMoOuXzhW/oz3S1/xIy3+m9A7yuhQUC95EOalks2KMS4mdwT
+	 8nAd6mHbGetnddwIddIo2GR6hCi8faHEQU1CgyCs=
+Date: Thu, 14 Aug 2025 17:49:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-use-str_on_off-helper.patch added to mm-nonmm-unstable branch
-Message-Id: <20250815004343.4125EC4CEED@smtp.kernel.org>
+Subject: + mm-page_alloc-simplify-lowmem_reserve-max-calculation.patch added to mm-new branch
+Message-Id: <20250815004917.03FD7C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: use str_on_off() helper
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     alloc_tag-use-str_on_off-helper.patch
+     Subject: mm/page_alloc: simplify lowmem_reserve max calculation
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-simplify-lowmem_reserve-max-calculation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-use-str_on_off-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-simplify-lowmem_reserve-max-calculation.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,50 +64,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: alloc_tag: use str_on_off() helper
-Date: Thu, 14 Aug 2025 17:38:27 +0800
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/page_alloc: simplify lowmem_reserve max calculation
+Date: Thu, 14 Aug 2025 17:00:52 +0800
 
-Replace the ternary (enable ?  "on" : "off") with the str_on_off() helper
-from string_choices.h.  This improves readability by replacing the
-three-operand ternary with a single function call, ensures consistent
-string output, and allows potential string deduplication by the linker,
-resulting in a slightly smaller binary.
+Use max() macro to simplify the calculation of maximum lowmem_reserve
+value in calculate_totalreserve_pages(), instead of open-coding the
+comparison.  The functionality remains identical.
 
-Link: https://lkml.kernel.org/r/20250814093827.237980-1-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20250814090053.22241-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/alloc_tag.c~alloc_tag-use-str_on_off-helper
-+++ a/lib/alloc_tag.c
-@@ -9,6 +9,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_buf.h>
- #include <linux/seq_file.h>
-+#include <linux/string_choices.h>
- #include <linux/vmalloc.h>
- #include <linux/kmemleak.h>
+--- a/mm/page_alloc.c~mm-page_alloc-simplify-lowmem_reserve-max-calculation
++++ a/mm/page_alloc.c
+@@ -6237,8 +6237,7 @@ static void calculate_totalreserve_pages
  
-@@ -726,7 +727,7 @@ static int __init setup_early_mem_profil
- 		}
- 		mem_profiling_support = true;
- 		pr_info("Memory allocation profiling is enabled %s compression and is turned %s!\n",
--			compressed ? "with" : "without", enable ? "on" : "off");
-+			compressed ? "with" : "without", str_on_off(enable));
- 	}
+ 			/* Find valid and maximum lowmem_reserve in the zone */
+ 			for (j = i; j < MAX_NR_ZONES; j++) {
+-				if (zone->lowmem_reserve[j] > max)
+-					max = zone->lowmem_reserve[j];
++				max = max(max, zone->lowmem_reserve[j]);
+ 			}
  
- 	if (enable != mem_alloc_profiling_enabled()) {
+ 			/* we treat the high watermark as reserved pages. */
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-test_firmware-use-str_true_false-helper.patch
-alloc_tag-use-str_on_off-helper.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion.patch
+mm-page_alloc-simplify-lowmem_reserve-max-calculation.patch
 
