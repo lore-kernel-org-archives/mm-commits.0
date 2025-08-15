@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCB39C8EB
-	for <mm-commits@vger.kernel.org>; Fri, 15 Aug 2025 00:54:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D30A22D052
+	for <mm-commits@vger.kernel.org>; Fri, 15 Aug 2025 00:55:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755219247; cv=none; b=XMEni2LH1P1F4Nu887+rg1yud5yzOL8oT0qNTP1GQnDWVHomShy8DqRfOwTnadEJpXJfe53fE+W3IJUFNIjp9g8AxkJfiYT2U8TdqowP3KeknuNELOpYRukH//qqn+n/kYvSKKeRvz4GAuwtP0zLHDKR1GQzul0is4kVMjh2wPQ=
+	t=1755219301; cv=none; b=GAEqGuL9nmkdma8U5HOMeiBqQvXCdQwYOaynlwZNBTJ2U9BTyp128dJjdX97xzn/RdNlSHeJ28/wjjWSw1beSIOaD6eFER9zv00Y5yfngZyU0iDDV++loENscbQDoMEkGzKiywCZDwpaw/z0j4lMlAGxC+koFdBrwxqFiOZ8n1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755219247; c=relaxed/simple;
-	bh=7u9wJrkw0OKK+COehko2yqgqLY9BpydVqcLGrNBQ0UY=;
-	h=Date:To:From:Subject:Message-Id; b=TUgdFn4mnQO+Cr+/BHcIwJAEdV5ShAurpJX26E4QNmilMYzqCxqlOk6FTQwf6SfEFJ/d3BfNe0hpJ+wj65IZYIojWEe+TW/HzrfkSSZPIicZL2F2pVxP4VxgNB1UySQ6TFMQdA+c/1kPwNAHsVD5Gls7wwR8EhWgOodfBeG0G2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1FzoyQsO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755219301; c=relaxed/simple;
+	bh=HnCZYNKuijpXUNxucLd4Am86c1NGlb2AziCA2kBBYdw=;
+	h=Date:To:From:Subject:Message-Id; b=TZfSh2DcC1m7y4v5XZrR5PuSpblKxHfDw5ueF1TVc/q3YhWHAvsGLbTWICL9pcR0YOY0D5H3HvEJKPDzUU2+7709gZocWhm8wwEhM7FVSjk5CrdOoBDNAEzRCIPDRNd7uzF72RztO5AafWu5PRMoMdkDT1OOYBXdOo9BNBnKRt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gMjrw4G9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1FzoyQsO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F68EC4CEED;
-	Fri, 15 Aug 2025 00:54:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gMjrw4G9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 474DAC4CEED;
+	Fri, 15 Aug 2025 00:55:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755219247;
-	bh=7u9wJrkw0OKK+COehko2yqgqLY9BpydVqcLGrNBQ0UY=;
+	s=korg; t=1755219301;
+	bh=HnCZYNKuijpXUNxucLd4Am86c1NGlb2AziCA2kBBYdw=;
 	h=Date:To:From:Subject:From;
-	b=1FzoyQsOnOFjZSV4glmw++gAtEuRlslV0IpPp+eHO2LpnGIyPjXL3XtTMp6JLn3j/
-	 rqUQ3zFay6g4O8Pq2kIgkAOL47yuq8quAHlr65r2Px1l3sE9yeXY988jXqXsUzbTei
-	 +nhMxgm9ONXp5JzDwWGGxsVqLVRhksJYOu67I73s=
-Date: Thu, 14 Aug 2025 17:54:06 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,liam.howlett@oracle.com,dakr@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
+	b=gMjrw4G9mmGZ41rKBDCUMXGHWCpwonjKpO8lRnfd4sl/d+1lfjeP5nLpvgt3X87mw
+	 l/IbdF+fePKXhgciDJapla77aBc5gFARr5vE3lfL2JpaWdMGtQ275hXZ76AjD2weLd
+	 ZdRKSh3Nual70+hzqe6fdYOTmqBKsaSuAvrf+QyA=
+Date: Thu, 14 Aug 2025 17:55:00 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rust-add-pagers-to-memory-management-rust.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250815005407.2F68EC4CEED@smtp.kernel.org>
+Subject: + mm-fix-typos-in-vma-comments.patch added to mm-new branch
+Message-Id: <20250815005501.474DAC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rust: add page.rs to MEMORY MANAGEMENT - RUST
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-rust-add-pagers-to-memory-management-rust.patch
+     Subject: mm: fix typos in VMA comments
+has been added to the -mm mm-new branch.  Its filename is
+     mm-fix-typos-in-vma-comments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rust-add-pagers-to-memory-management-rust.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-typos-in-vma-comments.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,44 +64,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alice Ryhl <aliceryhl@google.com>
-Subject: mm: rust: add page.rs to MEMORY MANAGEMENT - RUST
-Date: Thu, 14 Aug 2025 07:54:54 +0000
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm: fix typos in VMA comments
+Date: Thu, 14 Aug 2025 15:37:59 +0800
 
-The page.rs file currently isn't included anywhere, and I think it's a
-good fit for the MEMORY MANAGEMENT - RUST entry.  The file was originally
-added for use by Rust Binder, but I believe there is also work to use it
-in the upcoming scatterlist abstractions.
+Fix the following typos in VMA-related files:
+1. "operationr" -> "operation" in mm/vma.h
+2. "initialisaing" -> "initializing" in mm/vma_init.c
 
-Link: https://lkml.kernel.org/r/20250814075454.1596482-1-aliceryhl@google.com
-Signed-off-by: Alice Ryhl <aliceryhl@google.com>
-Acked-by: Danilo Krummrich <dakr@kernel.org>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250814073800.13617-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vma.h      |    2 +-
+ mm/vma_init.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/MAINTAINERS~mm-rust-add-pagers-to-memory-management-rust
-+++ a/MAINTAINERS
-@@ -16252,8 +16252,10 @@ S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	rust/helpers/mm.c
-+F:	rust/helpers/page.c
- F:	rust/kernel/mm.rs
- F:	rust/kernel/mm/
-+F:	rust/kernel/page.rs
+--- a/mm/vma.h~mm-fix-typos-in-vma-comments
++++ a/mm/vma.h
+@@ -145,7 +145,7 @@ struct vma_merge_struct {
+ 	 */
+ 	bool __remove_middle :1;
+ 	/*
+-	 * Internal flag used during the merge operationr to indicate we will
++	 * Internal flag used during the merge operation to indicate we will
+ 	 * remove vmg->next.
+ 	 */
+ 	bool __remove_next :1;
+--- a/mm/vma_init.c~mm-fix-typos-in-vma-comments
++++ a/mm/vma_init.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
  
- MEMORY MAPPING
- M:	Andrew Morton <akpm@linux-foundation.org>
+ /*
+- * Functions for initialisaing, allocating, freeing and duplicating VMAs. Shared
++ * Functions for initializing, allocating, freeing and duplicating VMAs. Shared
+  * between CONFIG_MMU and non-CONFIG_MMU kernel configurations.
+  */
+ 
 _
 
-Patches currently in -mm which might be from aliceryhl@google.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-rust-add-pagers-to-memory-management-rust.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion.patch
+mm-page_alloc-simplify-lowmem_reserve-max-calculation.patch
+mm-fix-typos-in-vma-comments.patch
 
