@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BBC01F460B
-	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:56:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94E661F4168
+	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:59:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755323811; cv=none; b=oGgw9BM5JoK59Tv32+vT0vNxIqPCqyDgczOm+dMsVH1wJE0dpiW0lRD2Q2AHkBKP1WA2gIL1IHbqF/arZLWHbYGU+wjG2RIOGMrGHjiLv90HQ4/3KoXk948gWKwI+TW+aySruXp6m9LmsJRKZ2XXGSldSDYAqRCSiJ2sUavnHLA=
+	t=1755323955; cv=none; b=fLxQO3a1NezESXYhZ49Ujav2zwimQhK97hGQAptfqrG6vGLtrrPfY5A/5rMjORSvpm052Ev4V1RsKrD8mEbO+PUazkeF/oeGqMmMuo/zJLNLy4mWEki9j0YPUVcomp16ZBtOt7/v0qkKjrUAm4GGz+fCQrjHAnmSzUAdGpNpJw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755323811; c=relaxed/simple;
-	bh=qdyJkydV6zrGyvehEPmulkqsOutYq6ZKWvRRAKwQqiM=;
-	h=Date:To:From:Subject:Message-Id; b=eeDdQKHAiB47N2dOjJiGcpqnBtYQ9zGuaHpMSmW7X9c7lUA5JalNSfwai+geeqWI/AUjIahiCHrL3uJUy4f59dS2an6vBqid83NNboqPbFuFvXXLQG3l5KyDaqAObJFbeR9W6ToJee5PziY0U8IG8JpgP1+AM8SWEUSEIZ6Ilm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=feZRkFFA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755323955; c=relaxed/simple;
+	bh=99C+bHhcx9g3mNyJaxTlggSxskjIcqFf9UkY49mnMe4=;
+	h=Date:To:From:Subject:Message-Id; b=b6XPty/5gS3WQ/nXtQCaH/K4ld+5A9PZBzj5hf/O9oZhFpOGJMHYUIqsDzR5zCBbiiHM/9u6bC4QijEu1QSNZ5KKY+bajzW2PqKvzC9WbOUG4EtcpUVLh6OzfmB9GNIr+l2S9u82nO9Gpy3Snqlzq+c1tH+MahL+5vybzsZgfZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eAmMMuzh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="feZRkFFA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA360C4CEEF;
-	Sat, 16 Aug 2025 05:56:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eAmMMuzh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E471BC4CEEF;
+	Sat, 16 Aug 2025 05:59:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755323810;
-	bh=qdyJkydV6zrGyvehEPmulkqsOutYq6ZKWvRRAKwQqiM=;
+	s=korg; t=1755323954;
+	bh=99C+bHhcx9g3mNyJaxTlggSxskjIcqFf9UkY49mnMe4=;
 	h=Date:To:From:Subject:From;
-	b=feZRkFFAjYnLjYi9zHmyPKEuLNqkn+6rBWKgetB43mZYQccRl+5fqWLYbuhIkC9rx
-	 KIObzrYEgQvEoZ+BWaVjYplG7ZvS7MaLn0k5IS60oaEkckHnqvIoKqPwYWMjHzEi+5
-	 AMmmM2HjPf48XeO5q2WgExjRtbs/FXKlNaC8NfEU=
-Date: Fri, 15 Aug 2025 22:56:50 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,liam.howlett@oracle.com,pfalcato@suse.de,akpm@linux-foundation.org
+	b=eAmMMuzhKllmlKit23UJfZ2lO9j+1ao+yXU68c/G4JWrAr5wHjExnmTe0dR/Y0ccw
+	 0VFYtSpIZwQzygYFQOwhgsH4Z1sA3gLmutwvqAnfItwL0DI1mpz8ZYa6XoCuM0w0Iw
+	 HVR0q/KjsRS3xO56jNpR+vCsL3B9DNX9cg4RHZCk=
+Date: Fri, 15 Aug 2025 22:59:13 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,npache@redhat.com,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] testing-radix-tree-maple-hack-around-kfree_rcu-not-existing.patch removed from -mm tree
-Message-Id: <20250816055650.CA360C4CEEF@smtp.kernel.org>
+Subject: [to-be-updated] mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch removed from -mm tree
+Message-Id: <20250816055913.E471BC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: testing/radix-tree/maple: hack around kfree_rcu not existing
+     Subject: mm/oom_kill: have the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
 has been removed from the -mm tree.  Its filename was
-     testing-radix-tree-maple-hack-around-kfree_rcu-not-existing.patch
+     mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Pedro Falcato <pfalcato@suse.de>
-Subject: testing/radix-tree/maple: hack around kfree_rcu not existing
-Date: Fri, 18 Jul 2025 18:21:37 +0100
+From: zhongjinji <zhongjinji@honor.com>
+Subject: mm/oom_kill: have the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
+Date: Thu, 14 Aug 2025 21:55:55 +0800
 
-liburcu doesn't have kfree_rcu (or anything similar).  Despite that, we
-can hack around it in a trivial fashion, by adding a wrapper.
+When a process is OOM killed, if the OOM reaper and the thread running
+exit_mmap() execute at the same time, both will traverse the vma's maple
+tree along the same path.  They may easily unmap the same vma, causing
+them to compete for the pte spinlock.  This increases unnecessary load,
+causing the execution time of the OOM reaper and the thread running
+exit_mmap() to increase.
 
-This wrapper only works for maple_nodes, and not anything else (due to us
-not being able to know rcu_head offsets in any way), and thus we take
-advantage of the type checking to avoid future silent breakage.
+When a process exits, exit_mmap() traverses the vma's maple tree from low
+to high address.  To reduce the chance of unmapping the same vma
+simultaneously, the OOM reaper should traverse vma's tree from high to low
+address.  This reduces lock contention when unmapping the same vma.
 
-Link: https://lkml.kernel.org/r/20250718172138.103116-2-pfalcato@suse.de
-Signed-off-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20250814135555.17493-4-zhongjinji@honor.com
+Signed-off-by: zhongjinji <zhongjinji@honor.com>
+Cc: Andre Almeida <andrealmeid@igalia.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joel Savitz <jsavitz@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ include/linux/mm.h |    3 +++
+ mm/oom_kill.c      |    9 +++++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
---- a/tools/testing/radix-tree/maple.c~testing-radix-tree-maple-hack-around-kfree_rcu-not-existing
-+++ a/tools/testing/radix-tree/maple.c
-@@ -23,6 +23,23 @@
- #define MODULE_LICENSE(x)
- #define dump_stack()	assert(0)
+--- a/include/linux/mm.h~mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders
++++ a/include/linux/mm.h
+@@ -974,6 +974,9 @@ static inline void vma_iter_set(struct v
+ #define for_each_vma_range(__vmi, __vma, __end)				\
+ 	while (((__vma) = vma_find(&(__vmi), (__end))) != NULL)
  
++#define for_each_vma_reverse(__vmi, __vma)					\
++	while (((__vma) = vma_prev(&(__vmi))) != NULL)
 +
-+#include <linux/maple_tree.h>
-+
-+static void free_node(struct rcu_head *head)
-+{
-+	struct maple_node *node = container_of(head, struct maple_node, rcu);
-+
-+	free(node);
-+}
-+
-+static void kfree_rcu_node(struct maple_node *node)
-+{
-+	call_rcu(&node->rcu, free_node);
-+}
-+
-+#define kfree_rcu(ptr, memb) kfree_rcu_node(ptr)
-+
- #include "../../../lib/maple_tree.c"
- #include "../../../lib/test_maple_tree.c"
+ #ifdef CONFIG_SHMEM
+ /*
+  * The vma_is_shmem is not inline because it is used only by slow
+--- a/mm/oom_kill.c~mm-oom_kill-have-the-oom-reaper-and-exit_mmap-traverse-the-maple-tree-in-opposite-orders
++++ a/mm/oom_kill.c
+@@ -517,7 +517,7 @@ static bool __oom_reap_task_mm(struct mm
+ {
+ 	struct vm_area_struct *vma;
+ 	bool ret = true;
+-	VMA_ITERATOR(vmi, mm, 0);
++	VMA_ITERATOR(vmi, mm, ULONG_MAX);
+ 
+ 	/*
+ 	 * Tell all users of get_user/copy_from_user etc... that the content
+@@ -527,7 +527,12 @@ static bool __oom_reap_task_mm(struct mm
+ 	 */
+ 	mm_flags_set(MMF_UNSTABLE, mm);
+ 
+-	for_each_vma(vmi, vma) {
++	/*
++	 * When two tasks unmap the same vma at the same time, they may contend for the
++	 * pte spinlock. To avoid traversing the same vma as exit_mmap unmap, traverse
++	 * the vma maple tree in reverse order.
++	 */
++	for_each_vma_reverse(vmi, vma) {
+ 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
+ 			continue;
  
 _
 
-Patches currently in -mm which might be from pfalcato@suse.de are
+Patches currently in -mm which might be from zhongjinji@honor.com are
 
+futex-introduce-function-process_has_robust_futex.patch
+mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
 
