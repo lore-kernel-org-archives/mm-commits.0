@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE2F92264B2
-	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 07:27:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E5C1F37D3
+	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 22:21:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755329278; cv=none; b=VZ/fnsM1NKCY6Zyuno2/cen/I3rbDoHwxrdVkMgNb9TKGpSZFbJHhbt3K+KsQH3dfQA/xbfJDmFMI5xMPLaYl0NWjWtWjLWkTFghAduT0PmQz+fWVcN6v02mI7Wg3Apxmy96oreiUhePQxc3agjErnjt8D/PmcQybrxIHXSr7kI=
+	t=1755382895; cv=none; b=W5iRK5mj6DnPjWo8Vb+UQlppndIpqWuIjzZVmbdtOv3hw6w2wtCNT1vnVp5EKA0EsS9KzwvWailRMgTdvgzzNFbCvneYncMZVgAUDj+nDaIdzyT6V5ihcxngtqU3xQG4BVMR9f94uVmdAo4vuxptDkAWyocEWZeR/Y5Mt+3LiDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755329278; c=relaxed/simple;
-	bh=CZXFlc9/k7/JumHn7Il5ku8K+gCmdf+DaLPeyyHW/q4=;
-	h=Date:To:From:Subject:Message-Id; b=gvcPLWe2CVUN8g4BVk7VMUJbkBv6zzOpIG0ypHNkrqNoAYkjZahSWIjYATe92fBIt028DxakIs6CSFiKlF6Z4BdwWDyIBmP6lDH2K102vS5Aj5dDigtBlQ1N3Dd+j1fs+dZcQZmT7GUNkIdMXLiopj+tFVj1kbixU06mKI5/RhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NpuW4ibe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755382895; c=relaxed/simple;
+	bh=Pjz9EaUEv34N/y24qDfRmXftaawzMpdO4gwMWwsam8M=;
+	h=Date:To:From:Subject:Message-Id; b=SF6mlgQDGmXzvGAveFzWk+UjA2wRM99ICrtRAUnXzx2SMcOzQOoNqMD2Bc2N2FD8kjDDuPl6edCyo8UTpyAfp6WoLLjFwgZWNT2CILWkzTft/F4WfWcBuzBfpsONxjGLO249cREJgjNid24dNci059ecTYo3047QQXWwXdvSnsw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tueO7H4v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NpuW4ibe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7E7C4CEEF;
-	Sat, 16 Aug 2025 07:27:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tueO7H4v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEBE9C4CEEF;
+	Sat, 16 Aug 2025 22:21:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755329278;
-	bh=CZXFlc9/k7/JumHn7Il5ku8K+gCmdf+DaLPeyyHW/q4=;
+	s=korg; t=1755382894;
+	bh=Pjz9EaUEv34N/y24qDfRmXftaawzMpdO4gwMWwsam8M=;
 	h=Date:To:From:Subject:From;
-	b=NpuW4ibeBbNWI/UTilpBXrgHIAOp9Ve0/UjhZvzw37I1ieU2UfVzY2/YyLT7ffkXr
-	 UjKFWjpdm3ziYr7YlTvLd++q/fHTvzbIafMWSK5ONgaz7gE1HweT84mvRlvhctGbX9
-	 qNwwDxtMTnAxnyd42d4Mj3WnHErSvaLTEnfKXAN4=
-Date: Sat, 16 Aug 2025 00:27:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=tueO7H4vbNuRkIg7BN0e93cY/EIfRSH/nEQWCpC4Y5WKg4d6c6Aeg30aGeR70b88r
+	 6nLTHDHXgdYw7ecbcYSHbawKbfGuP/wH22bKOr1rmYH7L6d/9Ce4pLKolWakctRav2
+	 5AviI2gGnDk4eP1EOog5XM7z0/kIteaJ9tBBAxvQ=
+Date: Sat, 16 Aug 2025 15:21:34 -0700
+To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.se,vbabka@suse.cz,urezki@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kent.overstreet@linux.dev,jannh@google.com,herbert@gondor.apana.org.au,dakr@kernel.org,aliceryhl@google.com,ojeda@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-simplify-lowmem_reserve-max-calculation-v3.patch added to mm-new branch
-Message-Id: <20250816072758.4A7E7C4CEEF@smtp.kernel.org>
+Subject: + rust-add-support-for-numa-ids-in-allocations-fix.patch added to mm-unstable branch
+Message-Id: <20250816222134.AEBE9C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-page_alloc-simplify-lowmem_reserve-max-calculation-v3
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-simplify-lowmem_reserve-max-calculation-v3.patch
+     Subject: rust: alloc: fix missing import needed for `rusttest`
+has been added to the -mm mm-unstable branch.  Its filename is
+     rust-add-support-for-numa-ids-in-allocations-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-simplify-lowmem_reserve-max-calculation-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-add-support-for-numa-ids-in-allocations-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,53 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm-page_alloc-simplify-lowmem_reserve-max-calculation-v3
-Date: Fri, 15 Aug 2025 10:45:09 +0800
+From: Miguel Ojeda <ojeda@kernel.org>
+Subject: rust: alloc: fix missing import needed for `rusttest`
+Date: Sat, 16 Aug 2025 23:02:14 +0200
 
-fix layout, use min_t
+There is a missing import of `NumaNode` that is used in the `rusttest`
+target:
 
-Link: https://lkml.kernel.org/r/20250815024509.37900-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+    error[E0412]: cannot find type `NumaNode` in this scope
+      --> rust/kernel/alloc/allocator_test.rs:43:15
+       |
+    43 |         _nid: NumaNode,
+       |               ^^^^^^^^ not found in this scope
+       |
+    help: consider importing this struct
+       |
+    12 + use crate::alloc::NumaNode;
+       |
+
+Thus fix it by adding it.
+
+Link: https://lkml.kernel.org/r/20250816210214.2729269-1-ojeda@kernel.org
+Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.se>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ rust/kernel/alloc/allocator_test.rs |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-simplify-lowmem_reserve-max-calculation-v3
-+++ a/mm/page_alloc.c
-@@ -6236,15 +6236,13 @@ static void calculate_totalreserve_pages
- 			unsigned long managed_pages = zone_managed_pages(zone);
+--- a/rust/kernel/alloc/allocator_test.rs~rust-add-support-for-numa-ids-in-allocations-fix
++++ a/rust/kernel/alloc/allocator_test.rs
+@@ -9,7 +9,7 @@
  
- 			/* Find valid and maximum lowmem_reserve in the zone */
--			for (j = i; j < MAX_NR_ZONES; j++) {
-+			for (j = i; j < MAX_NR_ZONES; j++)
- 				max = max(max, zone->lowmem_reserve[j]);
--			}
+ #![allow(missing_docs)]
  
- 			/* we treat the high watermark as reserved pages. */
- 			max += high_wmark_pages(zone);
- 
--			if (max > managed_pages)
--				max = managed_pages;
-+			max = min_t(unsigned long, max, managed_pages);
- 
- 			pgdat->totalreserve_pages += max;
- 
+-use super::{flags::*, AllocError, Allocator, Flags};
++use super::{flags::*, AllocError, Allocator, Flags, NumaNode};
+ use core::alloc::Layout;
+ use core::cmp;
+ use core::ptr;
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from ojeda@kernel.org are
 
-mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion.patch
-mm-page_alloc-simplify-lowmem_reserve-max-calculation.patch
-mm-page_alloc-simplify-lowmem_reserve-max-calculation-v3.patch
-mm-fix-typos-in-vma-comments.patch
-mm-page_alloc-remove-redundant-pcp-free_count-initialization-in-per_cpu_pages_init.patch
+rust-add-support-for-numa-ids-in-allocations-fix.patch
 
