@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D6071EEA5D
-	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:26:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7270D1E520C
+	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:27:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755322018; cv=none; b=kvzGATtMIBnK15E98+ImES1expsITblO4HAlwF2X0XRfGtgr1+GWk0/GVCmVYihBjcFPrWi7L8lpLperkDLy3cBm3RZYJUvYlqdqFwWra/JMCoFrcXNIbLMRGCVUseioVo2nYL3SyYTbhhK2f+2OH2TmuZzb8P2WlU1wJ1mwmxU=
+	t=1755322020; cv=none; b=PVXRew7Y+ACbnavvwmYGZv5jwJbq24cxki60V2gBrARVm5vjT8VN75bWwDVvckEOCKkqRwV9zcdxLOnFxAfetMVCOd/FKW5tZdkSrzsKI3QFriXtWGMSvBOcHAbtI9i5ncgu+toKaTajj8NkfIUP0BEVwD/jBUejPSSfSP8kSIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755322018; c=relaxed/simple;
-	bh=xZn/ALuH5C3EiBqSx4g713ptvbSwROQ1luu+nUi4P5Y=;
-	h=Date:To:From:Subject:Message-Id; b=MoK0VEkvFWh3kXB8JpIH8BZ4+f64zsXPt4+v+PsUUJ1oBJcaAT5tgvf8nPxiUdthW7xhjZoRncrvSAEqQvNO3HACJviW14JZJzUjt9VXSofN2Y0E1cAKOXwcyRA/ez+O1cibHBcJd/3TTj8zFLKPiJTwXMHrvfr9dzDTvdJ51Gc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nWaeGD+H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755322020; c=relaxed/simple;
+	bh=kFEmGKBwlcfz3/lMd2MVjd2YKiJYUZXUewPEXhg+dXw=;
+	h=Date:To:From:Subject:Message-Id; b=Lt1EkRd9DrNtBJq6gFQlF59IDaNdYN13356XXZxmCR7BnfAxym3B0ut4AyEEf7p1/JEZWkIiezBH9M8FdACax1Irg2h1xgB//eD9Si4fSO9Wb9jdpJTSM+QbN6tbn11aEwkyxGPnYWrCVd906aiHa8lHDqCkDRuEWzR9eX03PEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YrweBO5D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nWaeGD+H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9828C4CEEF;
-	Sat, 16 Aug 2025 05:26:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YrweBO5D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E17D0C4CEEF;
+	Sat, 16 Aug 2025 05:26:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755322017;
-	bh=xZn/ALuH5C3EiBqSx4g713ptvbSwROQ1luu+nUi4P5Y=;
+	s=korg; t=1755322020;
+	bh=kFEmGKBwlcfz3/lMd2MVjd2YKiJYUZXUewPEXhg+dXw=;
 	h=Date:To:From:Subject:From;
-	b=nWaeGD+HPMg8EkThFvQ7u15ApKMV+n635wf6Y6t/7lsv+AFw7zoD3MS8Wiz2SNldE
-	 P4fRalhcqHE5VJW7ES/K8sjkhTN7pAZIJuW//bnj62agqI/Za3ANmXddyi7gp48+kt
-	 jTwoLMU1CqbrUjIeE2VysHFHIwVkqZ1B1BcRKjIg=
-Date: Fri, 15 Aug 2025 22:26:57 -0700
+	b=YrweBO5D0fxPoMSyJ0C8qXTiEFqoNGzW7WDs9Uhyjv0BQUBatkcYpJ+1gdWBpqfWv
+	 JpkXRtp3muWiM48QkYr7HeoLFgXmGl1flnV3qa29Z8712b5Pzi6/BXpp/DOWq27JQR
+	 KxRmzmXGw7NhZ5Vbf3PxDF13Y/0Zr+YwyfBeVrxg=
+Date: Fri, 15 Aug 2025 22:26:59 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ryan.roberts@arm.com,ritesh.list@gmail.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-fix-ksm_funtional_test-failures.patch added to mm-new branch
-Message-Id: <20250816052657.B9828C4CEEF@smtp.kernel.org>
+Subject: + mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size.patch added to mm-new branch
+Message-Id: <20250816052659.E17D0C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest/mm: fix ksm_funtional_test failures
+     Subject: mm/selftests: fix split_huge_page_test failure on systems with 64KB page size
 has been added to the -mm mm-new branch.  Its filename is
-     selftest-mm-fix-ksm_funtional_test-failures.patch
+     mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-fix-ksm_funtional_test-failures.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,50 +65,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Donet Tom <donettom@linux.ibm.com>
-Subject: selftest/mm: fix ksm_funtional_test failures
-Date: Sat, 16 Aug 2025 09:31:09 +0530
+Subject: mm/selftests: fix split_huge_page_test failure on systems with 64KB page size
+Date: Sat, 16 Aug 2025 09:31:10 +0530
 
-This patch fixes 2 issues.
+The split_huge_page_test fails on systems with a 64KB base page size. 
+This is because the order of a 2MB huge page is different:
 
-1) After fork() in test_prctl_fork, the child process uses the file
-   descriptors from the parent process to read ksm_stat and
-   ksm_merging_pages.  This results in incorrect values being read (parent
-   process ksm_stat and ksm_merging_pages will be read in child), causing
-   the test to fail.
+On 64KB systems, the order is 5.
 
-   This patch calls init_global_file_handles() in the child process to
-   ensure that the current process's file descriptors are used to read
-   ksm_stat and ksm_merging_pages.
+On 4KB systems, it's 9.
 
-2) All tests currently call ksm_merge to trigger page merging.  To
-   ensure the system remains in a consistent state for subsequent tests,
-   it is better to call ksm_unmerge during the test cleanup phase
+The test currently assumes a maximum huge page order of 9, which is only
+valid for 4KB base page systems.  On systems with 64KB pages, attempting
+to split huge pages beyond their actual order (5) causes the test to fail.
 
-   In the test_prctl_fork test, after a fork(), reading
-   ksm_merging_pages in the child process returns a non-zero value because
-   a previous test performed a merge, and the child's memory state is
-   inherited from the parent.
+In this patch, we calculate the huge page order based on the system's base
+page size.  With this change, the tests now run successfully on both 64KB
+and 4KB page size systems.
 
-   Although the child process calls ksm_unmerge, the ksm_merging_pages
-   counter in the parent is reset to zero, while the child's counter
-   remains unchanged.  This discrepancy causes the test to fail.
-
-   To avoid this issue, each test should call ksm_unmerge during
-   cleanup to ensure the counter is reset and the system is in a clean
-   state for subsequent tests.
-
-execv argument is an array of pointers to null-terminated strings.  In
-this patch we also added NULL in the execv argument.
-
-Link: https://lkml.kernel.org/r/20250816040113.760010-4-aboorvad@linux.ibm.com
-Fixes: 6c47de3be3a0 ("selftest/mm: ksm_functional_tests: extend test case for ksm fork/exec")
+Link: https://lkml.kernel.org/r/20250816040113.760010-5-aboorvad@linux.ibm.com
+Fixes: fa6c02315f745 ("mm: huge_memory: a new debugfs interface for splitting THP tests")
 Co-developed-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
 Signed-off-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
 Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
@@ -116,96 +100,115 @@ Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/cow.c                  |    5 --
+ tools/testing/selftests/mm/split_huge_page_test.c |   22 +++++++-----
+ tools/testing/selftests/mm/uffd-wp-mremap.c       |    5 --
+ tools/testing/selftests/mm/vm_util.h              |    5 ++
+ 4 files changed, 19 insertions(+), 18 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftest-mm-fix-ksm_funtional_test-failures
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -46,6 +46,8 @@ static int ksm_use_zero_pages_fd;
- static int pagemap_fd;
- static size_t pagesize;
+--- a/tools/testing/selftests/mm/cow.c~mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size
++++ a/tools/testing/selftests/mm/cow.c
+@@ -41,11 +41,6 @@ static size_t hugetlbsizes[10];
+ static int gup_fd;
+ static bool has_huge_zeropage;
  
-+static void init_global_file_handles(void);
-+
- static bool range_maps_duplicates(char *addr, unsigned long size)
+-static int sz2ord(size_t size)
+-{
+-	return __builtin_ctzll(size / pagesize);
+-}
+-
+ static int detect_thp_sizes(size_t sizes[], int max)
  {
- 	unsigned long offs_a, offs_b, pfn_a, pfn_b;
-@@ -274,6 +276,7 @@ static void test_unmerge(void)
- 	ksft_test_result(!range_maps_duplicates(map, size),
- 			 "Pages were unmerged\n");
- unmap:
-+	ksm_unmerge();
- 	munmap(map, size);
+ 	int count = 0;
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -523,6 +523,9 @@ int main(int argc, char **argv)
+ 	const char *fs_loc;
+ 	bool created_tmp;
+ 	int offset;
++	unsigned int max_order;
++	unsigned int nr_pages;
++	unsigned int tests;
+ 
+ 	ksft_print_header();
+ 
+@@ -534,35 +537,38 @@ int main(int argc, char **argv)
+ 	if (argc > 1)
+ 		optional_xfs_path = argv[1];
+ 
+-	ksft_set_plan(1+8+1+9+9+8*4+2);
+-
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
+ 	pmd_pagesize = read_pmd_pagesize();
+ 	if (!pmd_pagesize)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 
++	nr_pages = pmd_pagesize / pagesize;
++	max_order =  sz2ord(pmd_pagesize);
++	tests = 2 + (max_order - 1) + (2 * max_order) + (max_order - 1) * 4 + 2;
++	ksft_set_plan(tests);
++
+ 	fd_size = 2 * pmd_pagesize;
+ 
+ 	split_pmd_zero_pages();
+ 
+-	for (i = 0; i < 9; i++)
++	for (i = 0; i < max_order; i++)
+ 		if (i != 1)
+ 			split_pmd_thp_to_order(i);
+ 
+ 	split_pte_mapped_thp();
+-	for (i = 0; i < 9; i++)
++	for (i = 0; i < max_order; i++)
+ 		split_file_backed_thp(i);
+ 
+ 	created_tmp = prepare_thp_fs(optional_xfs_path, fs_loc_template,
+ 			&fs_loc);
+-	for (i = 8; i >= 0; i--)
++	for (i = max_order - 1; i >= 0; i--)
+ 		split_thp_in_pagecache_to_order_at(fd_size, fs_loc, i, -1);
+ 
+-	for (i = 0; i < 9; i++)
++	for (i = 0; i < max_order; i++)
+ 		for (offset = 0;
+-		     offset < pmd_pagesize / pagesize;
+-		     offset += MAX(pmd_pagesize / pagesize / 4, 1 << i))
++		     offset < nr_pages;
++		     offset += MAX(nr_pages / 4, 1 << i))
+ 			split_thp_in_pagecache_to_order_at(fd_size, fs_loc, i, offset);
+ 	cleanup_thp_fs(fs_loc, created_tmp);
+ 
+--- a/tools/testing/selftests/mm/uffd-wp-mremap.c~mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -19,11 +19,6 @@ static size_t thpsizes[20];
+ static int nr_hugetlbsizes;
+ static size_t hugetlbsizes[10];
+ 
+-static int sz2ord(size_t size)
+-{
+-	return __builtin_ctzll(size / pagesize);
+-}
+-
+ static int detect_thp_sizes(size_t sizes[], int max)
+ {
+ 	int count = 0;
+--- a/tools/testing/selftests/mm/vm_util.h~mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -127,6 +127,11 @@ static inline void log_test_result(int r
+ 	ksft_test_result_report(result, "%s\n", test_name);
  }
  
-@@ -338,6 +341,7 @@ static void test_unmerge_zero_pages(void
- 	ksft_test_result(!range_maps_duplicates(map, size),
- 			"KSM zero pages were unmerged\n");
- unmap:
-+	ksm_unmerge();
- 	munmap(map, size);
- }
- 
-@@ -366,6 +370,7 @@ static void test_unmerge_discarded(void)
- 	ksft_test_result(!range_maps_duplicates(map, size),
- 			 "Pages were unmerged\n");
- unmap:
-+	ksm_unmerge();
- 	munmap(map, size);
- }
- 
-@@ -452,6 +457,7 @@ static void test_unmerge_uffd_wp(void)
- close_uffd:
- 	close(uffd);
- unmap:
-+	ksm_unmerge();
- 	munmap(map, size);
- }
- #endif
-@@ -515,6 +521,7 @@ static int test_child_ksm(void)
- 	else if (map == MAP_MERGE_SKIP)
- 		return -3;
- 
-+	ksm_unmerge();
- 	munmap(map, size);
- 	return 0;
- }
-@@ -548,6 +555,7 @@ static void test_prctl_fork(void)
- 
- 	child_pid = fork();
- 	if (!child_pid) {
-+		init_global_file_handles();
- 		exit(test_child_ksm());
- 	} else if (child_pid < 0) {
- 		ksft_test_result_fail("fork() failed\n");
-@@ -595,7 +603,7 @@ static void test_prctl_fork_exec(void)
- 		return;
- 	} else if (child_pid == 0) {
- 		char *prg_name = "./ksm_functional_tests";
--		char *argv_for_program[] = { prg_name, FORK_EXEC_CHILD_PRG_NAME };
-+		char *argv_for_program[] = { prg_name, FORK_EXEC_CHILD_PRG_NAME, NULL };
- 
- 		execv(prg_name, argv_for_program);
- 		return;
-@@ -644,6 +652,7 @@ static void test_prctl_unmerge(void)
- 	ksft_test_result(!range_maps_duplicates(map, size),
- 			 "Pages were unmerged\n");
- unmap:
-+	ksm_unmerge();
- 	munmap(map, size);
- }
- 
-@@ -677,6 +686,7 @@ static void test_prot_none(void)
- 	ksft_test_result(!range_maps_duplicates(map, size),
- 			 "Pages were unmerged\n");
- unmap:
-+	ksm_unmerge();
- 	munmap(map, size);
- }
++static inline int sz2ord(size_t size)
++{
++	return __builtin_ctzll(size / getpagesize());
++}
++
+ void *sys_mremap(void *old_address, unsigned long old_size,
+ 		 unsigned long new_size, int flags, void *new_address);
  
 _
 
