@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4553420E033
-	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 06:21:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C218F1DA55
+	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 06:47:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755325286; cv=none; b=sFro2lzpPL/iwOzKo4tNCsMxW+H2HgTFK03qg/U4YAakm4rrjPrIbZ9mGJFyiNE5ccbzm11Rpg+ao5pQsTBsiu6RE9dDmbV0FTgYfC2uTFsc2y7zjXNUj+G70b0DR72CszGji4CMFbupvjr1KABB67Yjv3UpxzzcM/kPrqt+lrI=
+	t=1755326850; cv=none; b=Q1CVhrCYge2Mud/rSjgAN4geMSZ0akoULnm+XRcFOkDFfS3BB1CeA0yeqdt+fueId2ghLcLfg0OLMQ7wrnQ/xuGDR5quB8NJcVIO2dzeRD8KbkIiNr/3ZLeOALz8L8D7X49+MhIUQjI3O0sVBSnlVUyzmIoQwea5fTI+eFBpwj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755325286; c=relaxed/simple;
-	bh=xPJ0fgXRUlfITxx5WRE0kqCQNvol+19RQzVsu+22Ar8=;
-	h=Date:To:From:Subject:Message-Id; b=cLR5bLxPY9jq8JC4tassgH7vKDnlHy/sQiPHRX1uhHcnPrUkFJjG7rln2U5u6QMH1X2fT74eh5so/M8BWy7MAMaSsduF7zBG5lKCRneT5Mk3xLc39nQ+gtzzSEEf9mChXhPS2nkSmYXadcldE4AlcDk7/EwVpFZxtP/SvQCrW6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cIJreNWG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755326850; c=relaxed/simple;
+	bh=JdFUsvTbmYsmqG3M1Uk+YKJs2yRl1kmvxR0ZIMROxsE=;
+	h=Date:To:From:Subject:Message-Id; b=ZMXuiR+3wmrAxJ9fpQZF7CTuwRpldGAvKl3PUTv0rRmAXc/bmjdhU/3dm4j+O/49NtOj/G5IKX8X+h8dZ7cXMuWlTLOXm/jCrY3hyhnynwRYXc371yTesX9Bje2a3JyQZU5E1wKDCeEozhQRLhvNL7tRgBUk5xr0WjTdsc48o4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tO8chCZv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cIJreNWG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB0D7C4CEEF;
-	Sat, 16 Aug 2025 06:21:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tO8chCZv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B27EC4CEEF;
+	Sat, 16 Aug 2025 06:47:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755325285;
-	bh=xPJ0fgXRUlfITxx5WRE0kqCQNvol+19RQzVsu+22Ar8=;
+	s=korg; t=1755326850;
+	bh=JdFUsvTbmYsmqG3M1Uk+YKJs2yRl1kmvxR0ZIMROxsE=;
 	h=Date:To:From:Subject:From;
-	b=cIJreNWGrkLV+bdXnK/bVnzi7aEqsFU23JUD1vQXAHgS5SWgq5H1hPafUbkHjQ/Uy
-	 tC+YWfx6RxP92+0RmhpqyrXWZBe/mUjvZoFCAwATkKxBO+sspGBSwylq1yaIMhK0Ha
-	 IKYQxQs7jCLvZSGX41T+VSiaveMaCUoEPkUXlnfA=
-Date: Fri, 15 Aug 2025 23:21:25 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,laoar.shao@gmail.com,jannh@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=tO8chCZvyUspXlrRztTP0T1jLQV2a3fOAJuNL+5buPfGdNW6E1JZS3HgQBqDnlbjY
+	 YTvQBKwy/bF3plJUr0l7F6J7NNfYEYhSkEvAuVj58PnXOhTJE2/4EEPNoA4bZAiOQO
+	 KhnNhShT8vbCyJFKIYVE9tIUP4kb1zGFXp9qfsXE=
+Date: Fri, 15 Aug 2025 23:47:29 -0700
+To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,will@kernel.org,vincenzo.frascino@arm.com,scott@os.amperecomputing.com,ryabinin.a.a@gmail.com,pankaj.gupta@amd.com,oliver.upton@linux.dev,maz@kernel.org,leitao@debian.org,kaleshsingh@google.com,jhubbard@nvidia.com,james.morse@arm.com,hardevsinh.palaniya@siliconsignals.io,glider@google.com,dvyukov@google.com,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,broonie@kernel.org,ardb@kernel.org,andreyknvl@gmail.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch added to mm-new branch
-Message-Id: <20250816062125.CB0D7C4CEEF@smtp.kernel.org>
+Subject: [to-be-updated] kasan-hw-tags-introduce-kasanstore_only-option.patch removed from -mm tree
+Message-Id: <20250816064730.3B27EC4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,239 +34,372 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests: prctl: introduce tests for disabling THPs except for madvise
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch
+The quilt patch titled
+     Subject: kasan/hw-tags: introduce kasan.store_only option
+has been removed from the -mm tree.  Its filename was
+     kasan-hw-tags-introduce-kasanstore_only-option.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: selftests: prctl: introduce tests for disabling THPs except for madvise
-Date: Fri, 15 Aug 2025 14:54:59 +0100
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: kasan/hw-tags: introduce kasan.store_only option
+Date: Wed, 13 Aug 2025 18:53:34 +0100
 
-The test will set the global system THP setting to never, madvise or
-always depending on the fixture variant and the 2M setting to inherit
-before it starts (and reset to original at teardown).  The fixture setup
-will also test if PR_SET_THP_DISABLE prctl call can be made with
-PR_THP_DISABLE_EXCEPT_ADVISED and skip if it fails.
+Patch series "introduce kasan.store_only option in hw-tags", v2.
 
-This tests if the process can:
-- successfully get the policy to disable THPs expect for madvise.
-- get hugepages only on MADV_HUGE and MADV_COLLAPSE if the global policy
-  is madvise/always and only with MADV_COLLAPSE if the global policy is
-  never.
-- successfully reset the policy of the process.
-- after reset, only get hugepages with:
-  - MADV_COLLAPSE when policy is set to never.
-  - MADV_HUGE and MADV_COLLAPSE when policy is set to madvise.
-  - always when policy is set to "always".
-- never get a THP with MADV_NOHUGEPAGE.
-- repeat the above tests in a forked process to make sure  the policy is
-  carried across forks.
+Hardware tag based KASAN is implemented using the Memory Tagging Extension
+(MTE) feature.
 
-Test results:
-./prctl_thp_disable
-TAP version 13
-1..12
-ok 1 prctl_thp_disable_completely.never.nofork
-ok 2 prctl_thp_disable_completely.never.fork
-ok 3 prctl_thp_disable_completely.madvise.nofork
-ok 4 prctl_thp_disable_completely.madvise.fork
-ok 5 prctl_thp_disable_completely.always.nofork
-ok 6 prctl_thp_disable_completely.always.fork
-ok 7 prctl_thp_disable_except_madvise.never.nofork
-ok 8 prctl_thp_disable_except_madvise.never.fork
-ok 9 prctl_thp_disable_except_madvise.madvise.nofork
-ok 10 prctl_thp_disable_except_madvise.madvise.fork
-ok 11 prctl_thp_disable_except_madvise.always.nofork
-ok 12 prctl_thp_disable_except_madvise.always.fork
+MTE is built on top of the ARMv8.0 virtual address tagging TBI (Top Byte
+Ignore) feature and allows software to access a 4-bit allocation tag for
+each 16-byte granule in the physical address space.  A logical tag is
+derived from bits 59-56 of the virtual address used for the memory access.
+A CPU with MTE enabled will compare the logical tag against the
+allocation tag and potentially raise an tag check fault on mismatch,
+subject to system registers configuration.
 
-Link: https://lkml.kernel.org/r/20250815135549.130506-8-usamaarif642@gmail.com
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
+Since ARMv8.9, FEAT_MTE_STORE_ONLY can be used to restrict raise of tag
+check fault on store operation only.
+
+Using this feature (FEAT_MTE_STORE_ONLY), introduce KASAN store-only mode
+which restricts KASAN check store operation only.  This mode omits KASAN
+check for fetch/load operation.  Therefore, it might be used not only
+debugging purpose but also in normal environment.
+
+
+This patch (of 2):
+
+Since Armv8.9, FEATURE_MTE_STORE_ONLY feature is introduced to restrict
+raise of tag check fault on store operation only.  Introcude KASAN store
+only mode based on this feature.
+
+KASAN store only mode restricts KASAN checks operation for store only and
+omits the checks for fetch/read operation when accessing memory.  So it
+might be used not only debugging enviroment but also normal enviroment to
+check memory safty.
+
+This features can be controlled with "kasan.store_only" arguments.  When
+"kasan.store_only=on", KASAN checks store only mode otherwise KASAN checks
+all operations.
+
+Link: https://lkml.kernel.org/r/20250813175335.3980268-1-yeoreum.yun@arm.com
+Link: https://lkml.kernel.org/r/20250813175335.3980268-2-yeoreum.yun@arm.com
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: D Scott Phillips <scott@os.amperecomputing.com>
+Cc: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Cc: James Morse <james.morse@arm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yafang <laoar.shao@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: levi.yun <yeoreum.yun@arm.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Oliver Upton <oliver.upton@linux.dev>
+Cc: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/prctl_thp_disable.c |  111 +++++++++++++++
- 1 file changed, 111 insertions(+)
+ Documentation/dev-tools/kasan.rst  |    3 +
+ arch/arm64/include/asm/memory.h    |    1 
+ arch/arm64/include/asm/mte-kasan.h |    6 ++
+ arch/arm64/kernel/cpufeature.c     |    6 ++
+ arch/arm64/kernel/mte.c            |   14 ++++
+ include/linux/kasan.h              |    2 
+ mm/kasan/hw_tags.c                 |   76 ++++++++++++++++++++++++++-
+ mm/kasan/kasan.h                   |   10 +++
+ 8 files changed, 116 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/prctl_thp_disable.c~selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise
-+++ a/tools/testing/selftests/mm/prctl_thp_disable.c
-@@ -16,6 +16,10 @@
- #include "thp_settings.h"
- #include "vm_util.h"
+--- a/arch/arm64/include/asm/memory.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/include/asm/memory.h
+@@ -308,6 +308,7 @@ static inline const void *__tag_set(cons
+ #define arch_enable_tag_checks_sync()		mte_enable_kernel_sync()
+ #define arch_enable_tag_checks_async()		mte_enable_kernel_async()
+ #define arch_enable_tag_checks_asymm()		mte_enable_kernel_asymm()
++#define arch_enable_tag_checks_store_only()	mte_enable_kernel_store_only()
+ #define arch_suppress_tag_checks_start()	mte_enable_tco()
+ #define arch_suppress_tag_checks_stop()		mte_disable_tco()
+ #define arch_force_async_tag_fault()		mte_check_tfsr_exit()
+--- a/arch/arm64/include/asm/mte-kasan.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -200,6 +200,7 @@ static inline void mte_set_mem_tag_range
+ void mte_enable_kernel_sync(void);
+ void mte_enable_kernel_async(void);
+ void mte_enable_kernel_asymm(void);
++int mte_enable_kernel_store_only(void);
  
-+#ifndef PR_THP_DISABLE_EXCEPT_ADVISED
-+#define PR_THP_DISABLE_EXCEPT_ADVISED (1 << 1)
-+#endif
+ #else /* CONFIG_ARM64_MTE */
+ 
+@@ -251,6 +252,11 @@ static inline void mte_enable_kernel_asy
+ {
+ }
+ 
++static inline int mte_enable_kenrel_store_only(void)
++{
++	return -EINVAL;
++}
 +
- enum thp_collapse_type {
- 	THP_COLLAPSE_NONE,
- 	THP_COLLAPSE_MADV_NOHUGEPAGE,
-@@ -166,6 +170,113 @@ TEST_F(prctl_thp_disable_completely, for
+ #endif /* CONFIG_ARM64_MTE */
  
- 	wait(&ret);
- 	if (WIFEXITED(ret))
-+		ret = WEXITSTATUS(ret);
+ #endif /* __ASSEMBLY__ */
+--- a/arch/arm64/kernel/cpufeature.c~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/kernel/cpufeature.c
+@@ -2404,6 +2404,11 @@ static void cpu_enable_mte(struct arm64_
+ 
+ 	kasan_init_hw_tags_cpu();
+ }
++
++static void cpu_enable_mte_store_only(struct arm64_cpu_capabilities const *cap)
++{
++	kasan_late_init_hw_tags_cpu();
++}
+ #endif /* CONFIG_ARM64_MTE */
+ 
+ static void user_feature_fixup(void)
+@@ -2922,6 +2927,7 @@ static const struct arm64_cpu_capabiliti
+ 		.capability = ARM64_MTE_STORE_ONLY,
+ 		.type = ARM64_CPUCAP_SYSTEM_FEATURE,
+ 		.matches = has_cpuid_feature,
++		.cpu_enable = cpu_enable_mte_store_only,
+ 		ARM64_CPUID_FIELDS(ID_AA64PFR2_EL1, MTESTOREONLY, IMP)
+ 	},
+ #endif /* CONFIG_ARM64_MTE */
+--- a/arch/arm64/kernel/mte.c~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/arch/arm64/kernel/mte.c
+@@ -157,6 +157,20 @@ void mte_enable_kernel_asymm(void)
+ 		mte_enable_kernel_sync();
+ 	}
+ }
++
++int mte_enable_kernel_store_only(void)
++{
++	if (!cpus_have_cap(ARM64_MTE_STORE_ONLY))
++		return -EINVAL;
++
++	sysreg_clear_set(sctlr_el1, SCTLR_EL1_TCSO_MASK,
++			 SYS_FIELD_PREP(SCTLR_EL1, TCSO, 1));
++	isb();
++
++	pr_info_once("MTE: enabled stonly mode at EL1\n");
++
++	return 0;
++}
+ #endif
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
+--- a/Documentation/dev-tools/kasan.rst~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/Documentation/dev-tools/kasan.rst
+@@ -143,6 +143,9 @@ disabling KASAN altogether or controllin
+   Asymmetric mode: a bad access is detected synchronously on reads and
+   asynchronously on writes.
+ 
++- ``kasan.store_only=off`` or ``kasan.store_only=on`` controls whether KASAN
++  checks the store (write) accesses only or all accesses (default: ``off``)
++
+ - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
+   allocations (default: ``on``).
+ 
+--- a/include/linux/kasan.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/include/linux/kasan.h
+@@ -552,9 +552,11 @@ static inline void kasan_init_sw_tags(vo
+ #ifdef CONFIG_KASAN_HW_TAGS
+ void kasan_init_hw_tags_cpu(void);
+ void __init kasan_init_hw_tags(void);
++void kasan_late_init_hw_tags_cpu(void);
+ #else
+ static inline void kasan_init_hw_tags_cpu(void) { }
+ static inline void kasan_init_hw_tags(void) { }
++static inline void kasan_late_init_hw_tags_cpu(void) { }
+ #endif
+ 
+ #ifdef CONFIG_KASAN_VMALLOC
+--- a/mm/kasan/hw_tags.c~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/mm/kasan/hw_tags.c
+@@ -41,9 +41,16 @@ enum kasan_arg_vmalloc {
+ 	KASAN_ARG_VMALLOC_ON,
+ };
+ 
++enum kasan_arg_store_only {
++	KASAN_ARG_STORE_ONLY_DEFAULT,
++	KASAN_ARG_STORE_ONLY_OFF,
++	KASAN_ARG_STORE_ONLY_ON,
++};
++
+ static enum kasan_arg kasan_arg __ro_after_init;
+ static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
+ static enum kasan_arg_vmalloc kasan_arg_vmalloc __initdata;
++static enum kasan_arg_store_only kasan_arg_store_only __ro_after_init;
+ 
+ /*
+  * Whether KASAN is enabled at all.
+@@ -67,6 +74,9 @@ DEFINE_STATIC_KEY_FALSE(kasan_flag_vmall
+ #endif
+ EXPORT_SYMBOL_GPL(kasan_flag_vmalloc);
+ 
++DEFINE_STATIC_KEY_FALSE(kasan_flag_store_only);
++EXPORT_SYMBOL_GPL(kasan_flag_store_only);
++
+ #define PAGE_ALLOC_SAMPLE_DEFAULT	1
+ #define PAGE_ALLOC_SAMPLE_ORDER_DEFAULT	3
+ 
+@@ -141,6 +151,23 @@ static int __init early_kasan_flag_vmall
+ }
+ early_param("kasan.vmalloc", early_kasan_flag_vmalloc);
+ 
++/* kasan.store_only=off/on */
++static int __init early_kasan_flag_store_only(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	if (!strcmp(arg, "off"))
++		kasan_arg_store_only = KASAN_ARG_STORE_ONLY_OFF;
++	else if (!strcmp(arg, "on"))
++		kasan_arg_store_only = KASAN_ARG_STORE_ONLY_ON;
 +	else
-+		ret = -EINVAL;
-+	ASSERT_EQ(ret, 0);
++		return -EINVAL;
++
++	return 0;
++}
++early_param("kasan.store_only", early_kasan_flag_store_only);
++
+ static inline const char *kasan_mode_info(void)
+ {
+ 	if (kasan_mode == KASAN_MODE_ASYNC)
+@@ -219,6 +246,20 @@ void kasan_init_hw_tags_cpu(void)
+ 	kasan_enable_hw_tags();
+ }
+ 
++/*
++ * kasan_late_init_hw_tags_cpu_post() is called for each CPU after
++ * all cpus are bring-up at boot.
++ * Not marked as __init as a CPU can be hot-plugged after boot.
++ */
++void kasan_late_init_hw_tags_cpu(void)
++{
++	/*
++	 * Enable stonly mode only when explicitly requested through the command line.
++	 * If system doesn't support, kasan checks all operation.
++	 */
++	kasan_enable_store_only();
 +}
 +
-+static void prctl_thp_disable_except_madvise_test(struct __test_metadata *const _metadata,
-+						  size_t pmdsize,
-+						  enum thp_enabled thp_policy)
+ /* kasan_init_hw_tags() is called once on boot CPU. */
+ void __init kasan_init_hw_tags(void)
+ {
+@@ -257,15 +298,28 @@ void __init kasan_init_hw_tags(void)
+ 		break;
+ 	}
+ 
++	switch (kasan_arg_store_only) {
++	case KASAN_ARG_STORE_ONLY_DEFAULT:
++		/* Default is specified by kasan_flag_store_only definition. */
++		break;
++	case KASAN_ARG_STORE_ONLY_OFF:
++		static_branch_disable(&kasan_flag_store_only);
++		break;
++	case KASAN_ARG_STORE_ONLY_ON:
++		static_branch_enable(&kasan_flag_store_only);
++		break;
++	}
++
+ 	kasan_init_tags();
+ 
+ 	/* KASAN is now initialized, enable it. */
+ 	static_branch_enable(&kasan_flag_enabled);
+ 
+-	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s)\n",
++	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s store_only=%s\n",
+ 		kasan_mode_info(),
+ 		str_on_off(kasan_vmalloc_enabled()),
+-		str_on_off(kasan_stack_collection_enabled()));
++		str_on_off(kasan_stack_collection_enabled()),
++		str_on_off(kasan_store_only_enabled()));
+ }
+ 
+ #ifdef CONFIG_KASAN_VMALLOC
+@@ -394,6 +448,22 @@ void kasan_enable_hw_tags(void)
+ 		hw_enable_tag_checks_sync();
+ }
+ 
++void kasan_enable_store_only(void)
 +{
-+	ASSERT_EQ(prctl(PR_GET_THP_DISABLE, NULL, NULL, NULL, NULL), 3);
-+
-+	/* tests after prctl overrides global policy */
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_NONE, pmdsize), 0);
-+
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_MADV_NOHUGEPAGE, pmdsize), 0);
-+
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_MADV_HUGEPAGE, pmdsize),
-+		  thp_policy == THP_NEVER ? 0 : 1);
-+
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_MADV_COLLAPSE, pmdsize), 1);
-+
-+	/* Reset to global policy */
-+	ASSERT_EQ(prctl(PR_SET_THP_DISABLE, 0, NULL, NULL, NULL), 0);
-+
-+	/* tests after prctl is cleared, and only global policy is effective */
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_NONE, pmdsize),
-+		  thp_policy == THP_ALWAYS ? 1 : 0);
-+
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_MADV_NOHUGEPAGE, pmdsize), 0);
-+
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_MADV_HUGEPAGE, pmdsize),
-+		  thp_policy == THP_NEVER ? 0 : 1);
-+
-+	ASSERT_EQ(test_mmap_thp(THP_COLLAPSE_MADV_COLLAPSE, pmdsize), 1);
++	if (kasan_arg_store_only == KASAN_ARG_STORE_ONLY_ON) {
++		if (hw_enable_tag_checks_store_only()) {
++			static_branch_disable(&kasan_flag_store_only);
++			kasan_arg_store_only = KASAN_ARG_STORE_ONLY_OFF;
++			pr_warn_once("KernelAddressSanitizer: store only mode isn't supported (hw-tags)\n");
++		}
++	}
 +}
 +
-+FIXTURE(prctl_thp_disable_except_madvise)
++bool kasan_store_only_enabled(void)
 +{
-+	struct thp_settings settings;
-+	size_t pmdsize;
-+};
-+
-+FIXTURE_VARIANT(prctl_thp_disable_except_madvise)
-+{
-+	enum thp_enabled thp_policy;
-+};
-+
-+FIXTURE_VARIANT_ADD(prctl_thp_disable_except_madvise, never)
-+{
-+	.thp_policy = THP_NEVER,
-+};
-+
-+FIXTURE_VARIANT_ADD(prctl_thp_disable_except_madvise, madvise)
-+{
-+	.thp_policy = THP_MADVISE,
-+};
-+
-+FIXTURE_VARIANT_ADD(prctl_thp_disable_except_madvise, always)
-+{
-+	.thp_policy = THP_ALWAYS,
-+};
-+
-+FIXTURE_SETUP(prctl_thp_disable_except_madvise)
-+{
-+	if (!thp_available())
-+		SKIP(return, "Transparent Hugepages not available\n");
-+
-+	self->pmdsize = read_pmd_pagesize();
-+	if (!self->pmdsize)
-+		SKIP(return, "Unable to read PMD size\n");
-+
-+	if (prctl(PR_SET_THP_DISABLE, 1, PR_THP_DISABLE_EXCEPT_ADVISED, NULL, NULL))
-+		SKIP(return, "Unable to set PR_THP_DISABLE_EXCEPT_ADVISED\n");
-+
-+	thp_save_settings();
-+	thp_read_settings(&self->settings);
-+	self->settings.thp_enabled = variant->thp_policy;
-+	self->settings.hugepages[sz2ord(self->pmdsize, getpagesize())].enabled = THP_INHERIT;
-+	thp_write_settings(&self->settings);
++	return static_branch_unlikely(&kasan_flag_store_only);
 +}
 +
-+FIXTURE_TEARDOWN(prctl_thp_disable_except_madvise)
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ EXPORT_SYMBOL_IF_KUNIT(kasan_enable_hw_tags);
+@@ -404,4 +474,6 @@ VISIBLE_IF_KUNIT void kasan_force_async_
+ }
+ EXPORT_SYMBOL_IF_KUNIT(kasan_force_async_fault);
+ 
++EXPORT_SYMBOL_IF_KUNIT(kasan_store_only_enabled);
++
+ #endif
+--- a/mm/kasan/kasan.h~kasan-hw-tags-introduce-kasanstore_only-option
++++ a/mm/kasan/kasan.h
+@@ -33,6 +33,7 @@ static inline bool kasan_stack_collectio
+ #include "../slab.h"
+ 
+ DECLARE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
++DECLARE_STATIC_KEY_FALSE(kasan_flag_stonly);
+ 
+ enum kasan_mode {
+ 	KASAN_MODE_SYNC,
+@@ -428,6 +429,7 @@ static inline const void *arch_kasan_set
+ #define hw_enable_tag_checks_sync()		arch_enable_tag_checks_sync()
+ #define hw_enable_tag_checks_async()		arch_enable_tag_checks_async()
+ #define hw_enable_tag_checks_asymm()		arch_enable_tag_checks_asymm()
++#define hw_enable_tag_checks_store_only()	arch_enable_tag_checks_store_only()
+ #define hw_suppress_tag_checks_start()		arch_suppress_tag_checks_start()
+ #define hw_suppress_tag_checks_stop()		arch_suppress_tag_checks_stop()
+ #define hw_force_async_tag_fault()		arch_force_async_tag_fault()
+@@ -437,10 +439,18 @@ static inline const void *arch_kasan_set
+ 			arch_set_mem_tag_range((addr), (size), (tag), (init))
+ 
+ void kasan_enable_hw_tags(void);
++void kasan_enable_store_only(void);
++bool kasan_store_only_enabled(void);
+ 
+ #else /* CONFIG_KASAN_HW_TAGS */
+ 
+ static inline void kasan_enable_hw_tags(void) { }
++static inline void kasan_enable_store_only(void) { }
++
++static inline bool kasan_store_only_enabled(void)
 +{
-+	thp_restore_settings();
++	return false;
 +}
-+
-+TEST_F(prctl_thp_disable_except_madvise, nofork)
-+{
-+	prctl_thp_disable_except_madvise_test(_metadata, self->pmdsize, variant->thp_policy);
-+}
-+
-+TEST_F(prctl_thp_disable_except_madvise, fork)
-+{
-+	int ret = 0;
-+	pid_t pid;
-+
-+	/* Make sure prctl changes are carried across fork */
-+	pid = fork();
-+	ASSERT_GE(pid, 0);
-+
-+	if (!pid)
-+		prctl_thp_disable_except_madvise_test(_metadata, self->pmdsize,
-+						      variant->thp_policy);
-+
-+	wait(&ret);
-+	if (WIFEXITED(ret))
- 		ret = WEXITSTATUS(ret);
- 	else
- 		ret = -EINVAL;
+ 
+ #endif /* CONFIG_KASAN_HW_TAGS */
+ 
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
-docs-transhuge-document-process-level-thp-controls.patch
-selftest-mm-extract-sz2ord-function-into-vm_utilh.patch
-selftests-prctl-introduce-tests-for-disabling-thps-completely.patch
-selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch
+kunit-kasan_test-disable-fortify-string-checker-on-kasan_strings-test.patch
+kasan-apply-store-only-mode-in-kasan-kunit-testcases.patch
 
