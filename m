@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C789D1F09A8
-	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:27:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0EF678F24
+	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:32:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755322027; cv=none; b=YKPbC8jj1+t7uZx9qtj3f2Z2S+sIeAJUFSbfboNgiSFkIN4TIsfkY2Q9ECkfB+YM1fOs9pFEzNy86YHAt2MO82NSBejpl0KtJqg+FCOkopyChKheETgpq8pso0iAmA9BfBgS2Jcbvf50SaY/AlUbqSeV8bimMf3HF6AFpvoAMEY=
+	t=1755322381; cv=none; b=KKNAtIdZgq3EnDF/wWC+iPdbRX66FIFl4QeZDRNLr5BPEacv7obmFEbiZw/pSV2eg0w1aSYLKuQjeA59+P37GCbUM6Ty1PELygEeyDF5RjoracVo+uye/ABf74YSK5ADrIWIbszLsrJploajFF69vFXzT+DGkW0IWRHtMjMxfmI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755322027; c=relaxed/simple;
-	bh=LJrlWBtTrwKWVC2OhSdky2dSo9ng8PG8k7c4CUKIj7I=;
-	h=Date:To:From:Subject:Message-Id; b=berwcjhe7Zs/u94bIynlneAPoJ9lA/DwCJRRjIUmCNpW43bBk3+3LTpJ2uihXZ0vvEwSEl+Rbn+wmLc8WygjeYXje/TAfL+UtJY1/n/XJmav7DRs+m0GGlM0Elo/gnGjU5q2VmHHXQSAVra32c8bfOD1/M6iWshgACEapqwdxVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZS+ep04j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755322381; c=relaxed/simple;
+	bh=i1FGnCK2YBGE/ywp9f1jCtvViqCpzFEPXOtbZ+CLKv0=;
+	h=Date:To:From:Subject:Message-Id; b=dZcCh76U9P9m+2Wn7FJcEawQe5JHwOHiAiPLedOW68VOsK11cKz5mCtY45To6Z8Hbai26rMdroFYkbWmP6K8alnChA/tXUfIZuInI22VjsiMjZelYcfGRlnMHJdwNkjfr7REASFpEHQ8MMOi6TJkHjMZThD8DL3MNMGxnbl1xZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p9SLKRut; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZS+ep04j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C7BCC4CEF0;
-	Sat, 16 Aug 2025 05:27:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p9SLKRut"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63AC3C4CEEF;
+	Sat, 16 Aug 2025 05:32:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755322027;
-	bh=LJrlWBtTrwKWVC2OhSdky2dSo9ng8PG8k7c4CUKIj7I=;
+	s=korg; t=1755322379;
+	bh=i1FGnCK2YBGE/ywp9f1jCtvViqCpzFEPXOtbZ+CLKv0=;
 	h=Date:To:From:Subject:From;
-	b=ZS+ep04jAt6kxzwBqlJOy+KpWdFTzJStsT9qwD9wIkBSCqezTzstl7ngRbNVFRUJ8
-	 qiMuCAZh27zHA1/bQ/KMvWgGxYBjW9sX0lbHivtOPNm5EjYoF1b70nzEcj/QFhIziz
-	 fLaiKJw9LgV2m0yIVwwh5GzlPQ25LSGBRUH/1Xto=
-Date: Fri, 15 Aug 2025 22:27:07 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ryan.roberts@arm.com,ritesh.list@gmail.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,donettom@linux.ibm.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aboorvad@linux.ibm.com,akpm@linux-foundation.org
+	b=p9SLKRutyjNxsz+FcD4FMjotSZxNSZQvQHJo6h5kNeS7iQhUEcpUxaAy80Y3lazXg
+	 vG4N9pgZBVDy989ZSd5ftcfwfBW9uaBa/A9k3AeN05dON0TWe2FDAiV3MZRjZ7mERv
+	 AhuZnUd7fQtUQB6Em1ITF7WKFjb+faZpRrPwpJj8=
+Date: Fri, 15 Aug 2025 22:32:58 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,axelrasmussen@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-hugepage-mremap-test-if-userfaultfd-unavailable.patch added to mm-new branch
-Message-Id: <20250816052707.9C7BCC4CEF0@smtp.kernel.org>
+Subject: + maintainers-mark-mglru-as-maintained.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250816053259.63AC3C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip hugepage-mremap test if userfaultfd unavailable
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-hugepage-mremap-test-if-userfaultfd-unavailable.patch
+     Subject: MAINTAINERS: mark MGLRU as maintained
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-mark-mglru-as-maintained.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-hugepage-mremap-test-if-userfaultfd-unavailable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-mark-mglru-as-maintained.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,89 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Subject: selftests/mm: skip hugepage-mremap test if userfaultfd unavailable
-Date: Sat, 16 Aug 2025 09:31:13 +0530
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: MAINTAINERS: mark MGLRU as maintained
+Date: Fri, 15 Aug 2025 14:59:14 -0700
 
-Gracefully skip test if userfaultfd is not supported (ENOSYS) or not
-permitted (EPERM), instead of failing.  This avoids misleading failures
-with clear skip messages.
+The three folks being added here are actively working on MGLRU within
+Google, so we can review patches for this feature and plan to contribute
+some improvements / extensions to it on an ongoing basis.
 
---------------
-Before Patch
---------------
-~ running ./hugepage-mremap
-...
-~ Bail out! userfaultfd: Function not implemented
-~ Planned tests != run tests (1 != 0)
-~ Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-~ [FAIL]
-not ok 4 hugepage-mremap # exit=1
+With three of us we may have some hope filling Yu Zhao's shoes, since he
+has moved on to other projects these days.
 
---------------
-After Patch
---------------
-~ running ./hugepage-mremap
-...
-~ ok 2 # SKIP userfaultfd is not supported/not enabled.
-~ 1 skipped test(s) detected.
-~ Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
-~ [SKIP]
-ok 4 hugepage-mremap # SKIP
-
-Link: https://lkml.kernel.org/r/20250816040113.760010-8-aboorvad@linux.ibm.com
-Co-developed-by: Donet Tom <donettom@linux.ibm.com>
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Signed-off-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20250815215914.3671925-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugepage-mremap.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ MAINTAINERS |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/tools/testing/selftests/mm/hugepage-mremap.c~selftests-mm-skip-hugepage-mremap-test-if-userfaultfd-unavailable
-+++ a/tools/testing/selftests/mm/hugepage-mremap.c
-@@ -65,10 +65,20 @@ static void register_region_with_uffd(ch
- 	struct uffdio_api uffdio_api;
+--- a/MAINTAINERS~maintainers-mark-mglru-as-maintained
++++ a/MAINTAINERS
+@@ -16062,6 +16062,23 @@ F:	mm/mempolicy.c
+ F:	mm/migrate.c
+ F:	mm/migrate_device.c
  
- 	/* Create and enable userfaultfd object. */
--
- 	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
--	if (uffd == -1)
--		ksft_exit_fail_msg("userfaultfd: %s\n", strerror(errno));
-+	if (uffd == -1) {
-+		switch (errno) {
-+		case EPERM:
-+			ksft_exit_skip("Insufficient permissions, try running as root.\n");
-+			break;
-+		case ENOSYS:
-+			ksft_exit_skip("userfaultfd is not supported/not enabled.\n");
-+			break;
-+		default:
-+			ksft_exit_fail_msg("userfaultfd failed with %s\n", strerror(errno));
-+			break;
-+		}
-+	}
- 
- 	uffdio_api.api = UFFD_API;
- 	uffdio_api.features = 0;
++MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	Axel Rasmussen <axelrasmussen@google.com>
++M:	Yuanchu Xie <yuanchu@google.com>
++R:	Wei Xu <weixugc@google.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/admin-guide/mm/multigen_lru.rst
++F:	Documentation/mm/multigen_lru.rst
++F:	include/linux/mm_inline.h
++F:	include/linux/mmzone.h
++F:	mm/swap.c
++F:	mm/vmscan.c
++F:	mm/workingset.c
++
+ MEMORY MANAGEMENT - MISC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@redhat.com>
 _
 
-Patches currently in -mm which might be from aboorvad@linux.ibm.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-selftests-mm-fix-child-process-exit-codes-in-ksm_functional_tests.patch
-selftests-mm-skip-thuge-gen-test-if-system-is-not-setup-properly.patch
-selftests-mm-skip-hugepage-mremap-test-if-userfaultfd-unavailable.patch
+maintainers-mark-mglru-as-maintained.patch
 
