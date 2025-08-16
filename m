@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F213F2D052
-	for <mm-commits@vger.kernel.org>; Fri, 15 Aug 2025 00:56:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61EE71862A
+	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:20:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755219366; cv=none; b=K7dDYt6aFDbIip+v25iJIA7mfXcxmrl14zr5dC1ReD2qRLRfsCkiwANTq0fQimL/e6SAhUAyXXJYf0nn+bHjBumzyZuZC9bc0c+xOW0Alh7YEFwh080BsmH5q8DGQJPL4wq1a+v3OuVrLCGkPw5/F7bWm6x7TawqOve/tlXsUXY=
+	t=1755321639; cv=none; b=VJbRZ3EVXo2haKz7LLaOj7Pk+HVM4hFwWm3kag0LTZC4ZVM8zVU4CjeqfNxfqEj+oaxuY1VA3i4Z0ksoz2qTRwQx2bwyNDotSmZtqMybGPRZCsnSfngJzS6xRvmCB0PzvepMaoe0zPGA9DJWXgvadhGUD8GLeeubSRscvFmuWWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755219366; c=relaxed/simple;
-	bh=S/+3nZAGmkP5vGvMuLr2Y9JSJjmIjuL+JltvDGP2Y0A=;
-	h=Date:To:From:Subject:Message-Id; b=IcGElhAq0ONzU+fC3FLw/Xlg+PKgBkcXv9j1WIwrchZNwzYvsEkYtYRLjIzxxEEZrMsQEpzAJuDoepV2sD41Wh0JYKR0G+YMoNpc34PS6wC/wOCCOcZW1vXQc4aVlcDvzNyZHprRipKw7JF2N9Vst0DkESoZGWLUovg15Sqo2U4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fYfl6Ewj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755321639; c=relaxed/simple;
+	bh=j1QM5Pe225IgpA7S6jxNoqujkQxZC8OWVo1bbP+eyaU=;
+	h=Date:To:From:Subject:Message-Id; b=pYdOYOSmw5lZZDCzy/AJIR+tZlTZzTMTZ1STBmjUJJcilexxZI86XQToq8WpUJvwRHv36CURmTCgN+mN6IpNDQG0rjMXh/2v4SlSHY0bPoFxWI8Vd5yNYJRmLmzz/Mf+QN4hx0VH/dqL6xT9oeoqTzR8BUdYSODW5PHjWmsQ3Pk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XhMVEOdV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fYfl6Ewj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEAD9C4CEED;
-	Fri, 15 Aug 2025 00:56:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XhMVEOdV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7F63C4CEEF;
+	Sat, 16 Aug 2025 05:20:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755219365;
-	bh=S/+3nZAGmkP5vGvMuLr2Y9JSJjmIjuL+JltvDGP2Y0A=;
+	s=korg; t=1755321637;
+	bh=j1QM5Pe225IgpA7S6jxNoqujkQxZC8OWVo1bbP+eyaU=;
 	h=Date:To:From:Subject:From;
-	b=fYfl6EwjPrlp5l1LZrLFU/IVpMiakDICiBONLStaVjB/uM6/WkOPGPvrP2lgCDOGD
-	 NqCzO/J7naqYQiza4IDrhY4xuSjXj+t0D6rd5WOCxgfTGF3c2d46f0vN0p3fNGz9jV
-	 46300fNttTpo194xwNzLgje0CEOsSQjADRhsWVIo=
-Date: Thu, 14 Aug 2025 17:56:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,jackmanb@google.com,hannes@cmpxchg.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=XhMVEOdVJDx4ylsD7EhDDMKwCWnOjexOCA4/3jVefEScTL71TAP/5orHB4DOQyDOy
+	 PbRte/hhS6PoumhLZZkbedp0LQoz8Qbt44oCi5MEUtNs73pRg29mqGHGkqtaDYb/w1
+	 Ba0x+6uKkiqN/Ap4j3ZfjVYpEulv7+3BaHvwodX4=
+Date: Fri, 15 Aug 2025 22:20:36 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,gaoxiang17@xiaomi.com,david@redhat.com,gxxa03070307@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-redundant-pcp-free_count-initialization-in-per_cpu_pages_init.patch added to mm-new branch
-Message-Id: <20250815005605.BEAD9C4CEED@smtp.kernel.org>
+Subject: + mm-cma-print-total-and-used-pages-in-cma_alloc.patch added to mm-new branch
+Message-Id: <20250816052037.B7F63C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: remove redundant pcp->free_count initialization in per_cpu_pages_init()
+     Subject: mm/cma: print total and used pages in cma_alloc()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-remove-redundant-pcp-free_count-initialization-in-per_cpu_pages_init.patch
+     mm-cma-print-total-and-used-pages-in-cma_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-redundant-pcp-free_count-initialization-in-per_cpu_pages_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-print-total-and-used-pages-in-cma_alloc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,41 +64,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/page_alloc: remove redundant pcp->free_count initialization in per_cpu_pages_init()
-Date: Thu, 14 Aug 2025 15:18:28 +0800
+From: Xiang Gao <gxxa03070307@gmail.com>
+Subject: mm/cma: print total and used pages in cma_alloc()
+Date: Sat, 16 Aug 2025 12:28:42 +0800
 
-In per_cpu_pages_init(), pcp->free_count is explicitly initialized to 0,
-but this is redundant because the entire struct is already zeroed by
-memset(pcp, 0, sizeof(*pcp)).
 
-Link: https://lkml.kernel.org/r/20250814071828.12036-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Reviewed-by: Brendan Jackman <jackmanb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+This makes cma info more intuitive during debugging.
+
+before:
+[   24.407814] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
+[   24.413397] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
+[   24.415886] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
+
+after:
+[   24.069738] cma: cma_alloc(cma (____ptrval____), name: reserved, total pages: 16384, used pages: 64, request pages: 1, align 0)
+[   24.075317] cma: cma_alloc(cma (____ptrval____), name: reserved, total pages: 16384, used pages: 65, request pages: 1, align 0)
+[   24.078455] cma: cma_alloc(cma (____ptrval____), name: reserved, total pages: 16384, used pages: 66, request pages: 1, align 0)
+
+Link: https://lkml.kernel.org/r/20250816042842.3959315-1-gxxa03070307@gmail.com
+Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/cma.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-redundant-pcp-free_count-initialization-in-per_cpu_pages_init
-+++ a/mm/page_alloc.c
-@@ -5946,7 +5946,6 @@ static void per_cpu_pages_init(struct pe
- 	pcp->high_min = BOOT_PAGESET_HIGH;
- 	pcp->high_max = BOOT_PAGESET_HIGH;
- 	pcp->batch = BOOT_PAGESET_BATCH;
--	pcp->free_count = 0;
+--- a/mm/cma.c~mm-cma-print-total-and-used-pages-in-cma_alloc
++++ a/mm/cma.c
+@@ -776,6 +776,17 @@ static void cma_debug_show_areas(struct
+ 	spin_unlock_irq(&cma->lock);
  }
  
- static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high_min,
++static unsigned long cma_get_used_pages(struct cma *cma)
++{
++	unsigned long used;
++
++	spin_lock_irq(&cma->lock);
++	used = bitmap_weight(cma->bitmap, (int)cma_bitmap_maxno(cma));
++	spin_unlock_irq(&cma->lock);
++
++	return used << cma->order_per_bit;
++}
++
+ static int cma_range_alloc(struct cma *cma, struct cma_memrange *cmr,
+ 				unsigned long count, unsigned int align,
+ 				struct page **pagep, gfp_t gfp)
+@@ -858,8 +869,8 @@ static struct page *__cma_alloc(struct c
+ 	if (!cma || !cma->count)
+ 		return page;
+ 
+-	pr_debug("%s(cma %p, name: %s, count %lu, align %d)\n", __func__,
+-		(void *)cma, cma->name, count, align);
++	pr_debug("%s(cma %p, name: %s, total pages: %lu, used pages: %lu, request pages: %lu, align %d)\n",
++		__func__, (void *)cma, cma->name, cma->count, cma_get_used_pages(cma), count, align);
+ 
+ 	if (!count)
+ 		return page;
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from gxxa03070307@gmail.com are
 
-mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion.patch
-mm-page_alloc-simplify-lowmem_reserve-max-calculation.patch
-mm-fix-typos-in-vma-comments.patch
-mm-page_alloc-remove-redundant-pcp-free_count-initialization-in-per_cpu_pages_init.patch
+mm-cma-print-total-and-used-pages-in-cma_alloc.patch
 
