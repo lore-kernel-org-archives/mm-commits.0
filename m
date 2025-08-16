@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61EE71862A
-	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:20:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE7401EC01B
+	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 05:26:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755321639; cv=none; b=VJbRZ3EVXo2haKz7LLaOj7Pk+HVM4hFwWm3kag0LTZC4ZVM8zVU4CjeqfNxfqEj+oaxuY1VA3i4Z0ksoz2qTRwQx2bwyNDotSmZtqMybGPRZCsnSfngJzS6xRvmCB0PzvepMaoe0zPGA9DJWXgvadhGUD8GLeeubSRscvFmuWWk=
+	t=1755322015; cv=none; b=N27rcP5use0sPRoYHVVyAkOjVNPaa5+xJTGKLnV0QtORBaEo58PcjA/dvlsUtzNVJhZOvI05+BzE9DE/AoAzrehwE0ze41SberbDj8yzB9SwyDtnaHtEK/K20zuDAz+GhGKhr4hL4zUOPCj5bmfy/MA7+IQnVszDQnDhu0hI7mU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755321639; c=relaxed/simple;
-	bh=j1QM5Pe225IgpA7S6jxNoqujkQxZC8OWVo1bbP+eyaU=;
-	h=Date:To:From:Subject:Message-Id; b=pYdOYOSmw5lZZDCzy/AJIR+tZlTZzTMTZ1STBmjUJJcilexxZI86XQToq8WpUJvwRHv36CURmTCgN+mN6IpNDQG0rjMXh/2v4SlSHY0bPoFxWI8Vd5yNYJRmLmzz/Mf+QN4hx0VH/dqL6xT9oeoqTzR8BUdYSODW5PHjWmsQ3Pk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XhMVEOdV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755322015; c=relaxed/simple;
+	bh=SIzvG5eWtuDxHm1QaaWpONe87kS4O1AlQ7t7G98YSDY=;
+	h=Date:To:From:Subject:Message-Id; b=IfGaawenStcZHi6Gx/biGh1OhCHayX9mkMpY07BUOYD/e0f7B/4BpF4MUNlnxhxrAHvNfEh3NTzTE6am564grXNZ9CI/ViFKOZaGFL/TI/bGhEOK1xzAf/klP2TSAyyuayjGd1VH+GWqW1qBkl4KlF/WU2Hnq/bvHRMJyLTrl+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f7/SSQkp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XhMVEOdV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7F63C4CEEF;
-	Sat, 16 Aug 2025 05:20:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f7/SSQkp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76EA9C4CEEF;
+	Sat, 16 Aug 2025 05:26:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755321637;
-	bh=j1QM5Pe225IgpA7S6jxNoqujkQxZC8OWVo1bbP+eyaU=;
+	s=korg; t=1755322013;
+	bh=SIzvG5eWtuDxHm1QaaWpONe87kS4O1AlQ7t7G98YSDY=;
 	h=Date:To:From:Subject:From;
-	b=XhMVEOdVJDx4ylsD7EhDDMKwCWnOjexOCA4/3jVefEScTL71TAP/5orHB4DOQyDOy
-	 PbRte/hhS6PoumhLZZkbedp0LQoz8Qbt44oCi5MEUtNs73pRg29mqGHGkqtaDYb/w1
-	 Ba0x+6uKkiqN/Ap4j3ZfjVYpEulv7+3BaHvwodX4=
-Date: Fri, 15 Aug 2025 22:20:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,gaoxiang17@xiaomi.com,david@redhat.com,gxxa03070307@gmail.com,akpm@linux-foundation.org
+	b=f7/SSQkpLXrojA/jstn4dD3sQ6f5T+ax7W20CI659Emr0R1ZA3zY3pHaWsFjn4Gc9
+	 I4eMeUYCq9/4t/REFLpN4SfgkwbSkcj2w4fgjOalccXMiZHXqwm6jNE9TpHTMVycKv
+	 9CnNtykHP1/f6M6/Sh0WmocsOYMv3lH2ACvLhWcI=
+Date: Fri, 15 Aug 2025 22:26:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ryan.roberts@arm.com,ritesh.list@gmail.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-print-total-and-used-pages-in-cma_alloc.patch added to mm-new branch
-Message-Id: <20250816052037.B7F63C4CEEF@smtp.kernel.org>
+Subject: + mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch added to mm-new branch
+Message-Id: <20250816052653.76EA9C4CEEF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: print total and used pages in cma_alloc()
+     Subject: mm/selftests: fix incorrect pointer being passed to mark_range()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-cma-print-total-and-used-pages-in-cma_alloc.patch
+     mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-print-total-and-used-pages-in-cma_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,72 +64,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiang Gao <gxxa03070307@gmail.com>
-Subject: mm/cma: print total and used pages in cma_alloc()
-Date: Sat, 16 Aug 2025 12:28:42 +0800
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: mm/selftests: fix incorrect pointer being passed to mark_range()
+Date: Sat, 16 Aug 2025 09:31:07 +0530
+
+Patch series "selftests/mm: Fix false positives and skip unsupported
+tests", v4.
+
+This patch series addresses false positives in the generic mm selftests
+and skips tests that cannot run correctly due to missing features or
+system limitations.
 
 
-This makes cma info more intuitive during debugging.
+This patch (of 7):
 
-before:
-[   24.407814] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
-[   24.413397] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
-[   24.415886] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
+In main(), the high address is stored in hptr, but for mark_range(), the
+address passed is ptr, not hptr.  Fixed this by changing ptr[i] to hptr[i]
+in mark_range() function call.
 
-after:
-[   24.069738] cma: cma_alloc(cma (____ptrval____), name: reserved, total pages: 16384, used pages: 64, request pages: 1, align 0)
-[   24.075317] cma: cma_alloc(cma (____ptrval____), name: reserved, total pages: 16384, used pages: 65, request pages: 1, align 0)
-[   24.078455] cma: cma_alloc(cma (____ptrval____), name: reserved, total pages: 16384, used pages: 66, request pages: 1, align 0)
-
-Link: https://lkml.kernel.org/r/20250816042842.3959315-1-gxxa03070307@gmail.com
-Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20250816040113.760010-1-aboorvad@linux.ibm.com
+Link: https://lkml.kernel.org/r/20250816040113.760010-2-aboorvad@linux.ibm.com
+Fixes: b2a79f62133a ("selftests/mm: virtual_address_range: unmap chunks after validation")
+Co-developed-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Signed-off-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/virtual_address_range.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/cma.c~mm-cma-print-total-and-used-pages-in-cma_alloc
-+++ a/mm/cma.c
-@@ -776,6 +776,17 @@ static void cma_debug_show_areas(struct
- 	spin_unlock_irq(&cma->lock);
- }
+--- a/tools/testing/selftests/mm/virtual_address_range.c~mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range
++++ a/tools/testing/selftests/mm/virtual_address_range.c
+@@ -227,7 +227,7 @@ int main(void)
+ 		if (hptr[i] == MAP_FAILED)
+ 			break;
  
-+static unsigned long cma_get_used_pages(struct cma *cma)
-+{
-+	unsigned long used;
-+
-+	spin_lock_irq(&cma->lock);
-+	used = bitmap_weight(cma->bitmap, (int)cma_bitmap_maxno(cma));
-+	spin_unlock_irq(&cma->lock);
-+
-+	return used << cma->order_per_bit;
-+}
-+
- static int cma_range_alloc(struct cma *cma, struct cma_memrange *cmr,
- 				unsigned long count, unsigned int align,
- 				struct page **pagep, gfp_t gfp)
-@@ -858,8 +869,8 @@ static struct page *__cma_alloc(struct c
- 	if (!cma || !cma->count)
- 		return page;
- 
--	pr_debug("%s(cma %p, name: %s, count %lu, align %d)\n", __func__,
--		(void *)cma, cma->name, count, align);
-+	pr_debug("%s(cma %p, name: %s, total pages: %lu, used pages: %lu, request pages: %lu, align %d)\n",
-+		__func__, (void *)cma, cma->name, cma->count, cma_get_used_pages(cma), count, align);
- 
- 	if (!count)
- 		return page;
+-		mark_range(ptr[i], MAP_CHUNK_SIZE);
++		mark_range(hptr[i], MAP_CHUNK_SIZE);
+ 		validate_addr(hptr[i], 1);
+ 	}
+ 	hchunks = i;
 _
 
-Patches currently in -mm which might be from gxxa03070307@gmail.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-cma-print-total-and-used-pages-in-cma_alloc.patch
+mm-selftests-fix-incorrect-pointer-being-passed-to-mark_range.patch
+selftests-mm-add-support-to-test-4pb-va-on-ppc64.patch
+selftest-mm-fix-ksm_funtional_test-failures.patch
+mm-selftests-fix-split_huge_page_test-failure-on-systems-with-64kb-page-size.patch
 
