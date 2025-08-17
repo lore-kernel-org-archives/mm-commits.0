@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E5C1F37D3
-	for <mm-commits@vger.kernel.org>; Sat, 16 Aug 2025 22:21:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3499E27453
+	for <mm-commits@vger.kernel.org>; Sun, 17 Aug 2025 17:41:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755382895; cv=none; b=W5iRK5mj6DnPjWo8Vb+UQlppndIpqWuIjzZVmbdtOv3hw6w2wtCNT1vnVp5EKA0EsS9KzwvWailRMgTdvgzzNFbCvneYncMZVgAUDj+nDaIdzyT6V5ihcxngtqU3xQG4BVMR9f94uVmdAo4vuxptDkAWyocEWZeR/Y5Mt+3LiDc=
+	t=1755452476; cv=none; b=dHCFFpNO24CSTrMpsVL3b9b781oj8p/B5r7TZabGdIc2aWGdatTw+jY/U99+FWlmPyg2811K/IKfmJsRTNpmM6fWtsw3dg/wfVTWlTd+TVgWlTSThyy0zKRge2X5ARaRfF0KwSeV6EJwtZ6BrhsU6ttEeNh6xDO9KxEFNER0kaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755382895; c=relaxed/simple;
-	bh=Pjz9EaUEv34N/y24qDfRmXftaawzMpdO4gwMWwsam8M=;
-	h=Date:To:From:Subject:Message-Id; b=SF6mlgQDGmXzvGAveFzWk+UjA2wRM99ICrtRAUnXzx2SMcOzQOoNqMD2Bc2N2FD8kjDDuPl6edCyo8UTpyAfp6WoLLjFwgZWNT2CILWkzTft/F4WfWcBuzBfpsONxjGLO249cREJgjNid24dNci059ecTYo3047QQXWwXdvSnsw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tueO7H4v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755452476; c=relaxed/simple;
+	bh=GvdBnuNEHowu06AVWxIcrNvwee8Pzts0Dq8igudo9lc=;
+	h=Date:To:From:Subject:Message-Id; b=CBzbj2RVhd0EMoY8edIi2lnvo+Oy3xi04CfzFfe8nwcEzl9LA0G0+0Z4uqjum7SwqXOFKSQ2ja5f6UZoCzciCWUbc14bW2R7ujpQau3YTwpcwnxuhYNJl/3JVReHTeGSZt9onx3Dom/rE+6ibCpLfmC1uVNjBa47MIjQdmQUhOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tQlktR/0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tueO7H4v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEBE9C4CEEF;
-	Sat, 16 Aug 2025 22:21:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tQlktR/0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB38DC4CEEB;
+	Sun, 17 Aug 2025 17:41:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755382894;
-	bh=Pjz9EaUEv34N/y24qDfRmXftaawzMpdO4gwMWwsam8M=;
+	s=korg; t=1755452475;
+	bh=GvdBnuNEHowu06AVWxIcrNvwee8Pzts0Dq8igudo9lc=;
 	h=Date:To:From:Subject:From;
-	b=tueO7H4vbNuRkIg7BN0e93cY/EIfRSH/nEQWCpC4Y5WKg4d6c6Aeg30aGeR70b88r
-	 6nLTHDHXgdYw7ecbcYSHbawKbfGuP/wH22bKOr1rmYH7L6d/9Ce4pLKolWakctRav2
-	 5AviI2gGnDk4eP1EOog5XM7z0/kIteaJ9tBBAxvQ=
-Date: Sat, 16 Aug 2025 15:21:34 -0700
-To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.se,vbabka@suse.cz,urezki@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kent.overstreet@linux.dev,jannh@google.com,herbert@gondor.apana.org.au,dakr@kernel.org,aliceryhl@google.com,ojeda@kernel.org,akpm@linux-foundation.org
+	b=tQlktR/0erxwLEMXRw4VKfQptdM00f80UYVmR0ApY8A05coE9d+tHteEBTk42Mpri
+	 Y4tuGWR8OWDU/2VD4mdL4ZqYK6xnVvN+irj5nvj9aPneKXLWx7rBnfrfz5MV0vJRBy
+	 iDGNB6vm6Z49Y2/z9HPKqSOvC1gSZZHHpkK2b75s=
+Date: Sun, 17 Aug 2025 10:41:14 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rust-add-support-for-numa-ids-in-allocations-fix.patch added to mm-unstable branch
-Message-Id: <20250816222134.AEBE9C4CEEF@smtp.kernel.org>
+Subject: + mm-mremap-catch-invalid-multi-vma-moves-earlier-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250817174115.AB38DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rust: alloc: fix missing import needed for `rusttest`
-has been added to the -mm mm-unstable branch.  Its filename is
-     rust-add-support-for-numa-ids-in-allocations-fix.patch
+     Subject: mm/mremap: do not incorrectly reference invalid VMA in VM_WARN_ON_ONCE()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mremap-catch-invalid-multi-vma-moves-earlier-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-add-support-for-numa-ids-in-allocations-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-catch-invalid-multi-vma-moves-earlier-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,58 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miguel Ojeda <ojeda@kernel.org>
-Subject: rust: alloc: fix missing import needed for `rusttest`
-Date: Sat, 16 Aug 2025 23:02:14 +0200
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: do not incorrectly reference invalid VMA in VM_WARN_ON_ONCE()
+Date: Sat, 16 Aug 2025 08:37:41 +0100
 
-There is a missing import of `NumaNode` that is used in the `rusttest`
-target:
+The VMA which is referenced here may have since been merged (which is the
+entire point of the warning), and yet we still reference it.
 
-    error[E0412]: cannot find type `NumaNode` in this scope
-      --> rust/kernel/alloc/allocator_test.rs:43:15
-       |
-    43 |         _nid: NumaNode,
-       |               ^^^^^^^^ not found in this scope
-       |
-    help: consider importing this struct
-       |
-    12 + use crate::alloc::NumaNode;
-       |
+Fix this by storing whether or not a multi move is permitted ahead of time
+and have the VM_WARN_ON_ONCE() be predicated on this.
 
-Thus fix it by adding it.
-
-Link: https://lkml.kernel.org/r/20250816210214.2729269-1-ojeda@kernel.org
-Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.se>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/b6dbda20-667e-4053-abae-8ed4fa84bb6c@lucifer.local
+Reported-by: syzbot+4e221abf50259362f4f4@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/689ff5f6.050a0220.e29e5.0030.GAE@google.com/
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/kernel/alloc/allocator_test.rs |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/rust/kernel/alloc/allocator_test.rs~rust-add-support-for-numa-ids-in-allocations-fix
-+++ a/rust/kernel/alloc/allocator_test.rs
-@@ -9,7 +9,7 @@
+--- a/mm/mremap.c~mm-mremap-catch-invalid-multi-vma-moves-earlier-fix
++++ a/mm/mremap.c
+@@ -1837,6 +1837,7 @@ static unsigned long remap_move(struct v
+ 		unsigned long addr = max(vma->vm_start, start);
+ 		unsigned long len = min(end, vma->vm_end) - addr;
+ 		unsigned long offset, res_vma;
++		bool multi_allowed;
  
- #![allow(missing_docs)]
+ 		/* No gap permitted at the start of the range. */
+ 		if (!seen_vma && start < vma->vm_start)
+@@ -1865,7 +1866,8 @@ static unsigned long remap_move(struct v
+ 		vrm->new_addr = target_addr + offset;
+ 		vrm->old_len = vrm->new_len = len;
  
--use super::{flags::*, AllocError, Allocator, Flags};
-+use super::{flags::*, AllocError, Allocator, Flags, NumaNode};
- use core::alloc::Layout;
- use core::cmp;
- use core::ptr;
+-		if (!vma_multi_allowed(vma)) {
++		multi_allowed = vma_multi_allowed(vma);
++		if (!multi_allowed) {
+ 			/* This is not the first VMA, abort immediately. */
+ 			if (seen_vma)
+ 				return -EFAULT;
+@@ -1881,8 +1883,7 @@ static unsigned long remap_move(struct v
+ 			return res_vma;
+ 
+ 		if (!seen_vma) {
+-			VM_WARN_ON_ONCE(vma_multi_allowed(vma) &&
+-					res_vma != new_addr);
++			VM_WARN_ON_ONCE(multi_allowed && res_vma != new_addr);
+ 			res = res_vma;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from ojeda@kernel.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-rust-add-support-for-numa-ids-in-allocations-fix.patch
+tools-testing-add-linux-argsh-header-and-fix-radix-vma-tests.patch
+mm-mremap-allow-multi-vma-move-when-filesystem-uses-thp_get_unmapped_area.patch
+mm-mremap-catch-invalid-multi-vma-moves-earlier.patch
+mm-mremap-catch-invalid-multi-vma-moves-earlier-fix.patch
+selftests-mm-add-test-for-invalid-multi-vma-operations.patch
+mm-add-bitmap-mm-flags-field.patch
+mm-add-bitmap-mm-flags-field-fix.patch
+mm-convert-core-mm-to-mm_flags_-accessors.patch
+mm-convert-prctl-to-mm_flags_-accessors.patch
+mm-convert-arch-specific-code-to-mm_flags_-accessors.patch
+mm-convert-arch-specific-code-to-mm_flags_-accessors-fix.patch
+mm-convert-uprobes-to-mm_flags_-accessors.patch
+mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags.patch
+mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
+mm-update-fork-mm-flags-initialisation-to-use-bitmap.patch
+mm-convert-remaining-users-to-mm_flags_-accessors.patch
+mm-replace-mm-flags-with-bitmap-entirely-and-set-to-64-bits.patch
 
