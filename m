@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7718527453
-	for <mm-commits@vger.kernel.org>; Sun, 17 Aug 2025 18:54:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1EC920485B
+	for <mm-commits@vger.kernel.org>; Sun, 17 Aug 2025 18:54:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755456881; cv=none; b=q2X0pJIk2vLj3+T+/pPjrHsVkELNCAXpZlLEBv62Rq4G2Jmvcwz8/VsQvTChI7FEPqJdNO53dYLiSpETaaXfgkSKin4a28x+T02/rzAV6/A3CauSLdRS8ji05KC/dwY5KIapS4eRpyZfnSSMH+h1Ar0IrMpa0B95pkvrqeMjvCA=
+	t=1755456884; cv=none; b=tyE9HVV68naOOaSLEcECjqUmmMV4Xg4CFllVrP1vyXZNYXQUxQn7oONNs+M39wlaAcX5PWIUE9dSgiBFyiZBJuSixFHZt7gfTJ7mXtr8ReiG84+i7gcYZORj8YAP4H7tFjTqFafsEUPp36lAfeSprOU1yQD2DGcamgR/1klSEtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755456881; c=relaxed/simple;
-	bh=OEqPPGPp1YV2XbTtggTk556I6P3kzF9eJLH75A/avzs=;
-	h=Date:To:From:Subject:Message-Id; b=NU3nEMlzOHocbjMTdeeDPfhSHWjnr+E8RWHf41FVN2JFuaCjNRRKGqR9qzlyoCzGbgcULaYhK8sVExnRtu8F3Z3ZX+kAc3QVtYDgoA9qYSNzPwJmQH+14n/tdvtQLY8HbVBqkkWqq7G7DvejHjsfzCQ0dfDaL/2uCS20Q1I5jaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BANM4Rry; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755456884; c=relaxed/simple;
+	bh=7vkk2xk63KDKokgxYSmaNhzpUj8Duy/9hO3Qapqh4fc=;
+	h=Date:To:From:Subject:Message-Id; b=Z/0Sn9Iv46LWzhTp9QS3Jdq7vtIrBabx1CN1+QBPAQvnnrFzBwGcAlTTjakOr9MTKGrOT0gJ7OHmIwsvaJVh+qfZSbmm6ihJzNCT6+ecIQ+vzdLqLufthrYdTStuFjjUyQTVPM3ZHrfMC0lqqwz0M6mfUUD0rg85w9Ozr5+BP6k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U7OSmBZo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BANM4Rry"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E24C4C4CEEB;
-	Sun, 17 Aug 2025 18:54:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U7OSmBZo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B778C4CEEB;
+	Sun, 17 Aug 2025 18:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755456881;
-	bh=OEqPPGPp1YV2XbTtggTk556I6P3kzF9eJLH75A/avzs=;
+	s=korg; t=1755456883;
+	bh=7vkk2xk63KDKokgxYSmaNhzpUj8Duy/9hO3Qapqh4fc=;
 	h=Date:To:From:Subject:From;
-	b=BANM4RrymbIlbUSBuDaOE1RdJU58I4aDychY1OKv0Y/q0gCMI925EOc6rj3cCQN9v
-	 Erub13iWUyDrPjGFP0DSaRt2+6G3lR8C1MRQoo6HuBN2ZqabhQvkoDPsMZJTuwim5E
-	 oXogTCz3gOC/osZmJrV4k/w7TWOTinyPbq9Yr3as=
-Date: Sun, 17 Aug 2025 11:54:40 -0700
+	b=U7OSmBZo8ZYBCzWqFtJPxGF6I7xTO/6WyHO8hJgJ0vAcyeVHLMCWm9yvV50s+zcG3
+	 Erpyjmcm+YU2K87tTf2UBbRkxbsOdMJvvXsg3cIe97BSLcstTGuB3tSlMMrQvxWE1w
+	 qt9d+MC1J6IiKBsfqPbbK5cqY9+J8Umw97C2TVAA=
+Date: Sun, 17 Aug 2025 11:54:42 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shakeel.butt@linux.dev,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + slab-use-memdesc_flags_t.patch added to mm-new branch
-Message-Id: <20250817185440.E24C4C4CEEB@smtp.kernel.org>
+Subject: + slab-use-memdesc_nid.patch added to mm-new branch
+Message-Id: <20250817185443.6B778C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: slab: use memdesc_flags_t
+     Subject: slab: use memdesc_nid()
 has been added to the -mm mm-new branch.  Its filename is
-     slab-use-memdesc_flags_t.patch
+     slab-use-memdesc_nid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slab-use-memdesc_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slab-use-memdesc_nid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,102 +65,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: slab: use memdesc_flags_t
-Date: Tue, 5 Aug 2025 18:22:55 +0100
+Subject: slab: use memdesc_nid()
+Date: Tue, 5 Aug 2025 18:22:56 +0100
 
-The slab flags are memdesc flags and contain the same information in the
-upper bits as the other memdescs (like node ID).
+We no longer need to convert from slab to folio to get the nid, we can ask
+memdesc_nid() for the nid directly.
 
-Link: https://lkml.kernel.org/r/20250805172307.1302730-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250805172307.1302730-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    2 +-
- mm/slub.c |   18 +++++++++---------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ mm/slab.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/slab.h~slab-use-memdesc_flags_t
+--- a/mm/slab.h~slab-use-memdesc_nid
 +++ a/mm/slab.h
-@@ -50,7 +50,7 @@ typedef union {
+@@ -174,12 +174,12 @@ static inline void *slab_address(const s
  
- /* Reuses the bits in struct page */
- struct slab {
--	unsigned long flags;
-+	memdesc_flags_t flags;
- 
- 	struct kmem_cache *slab_cache;
- 	union {
---- a/mm/slub.c~slab-use-memdesc_flags_t
-+++ a/mm/slub.c
-@@ -657,17 +657,17 @@ static inline unsigned int slub_get_cpu_
-  */
- static inline bool slab_test_pfmemalloc(const struct slab *slab)
+ static inline int slab_nid(const struct slab *slab)
  {
--	return test_bit(SL_pfmemalloc, &slab->flags);
-+	return test_bit(SL_pfmemalloc, &slab->flags.f);
+-	return folio_nid(slab_folio(slab));
++	return memdesc_nid(slab->flags);
  }
  
- static inline void slab_set_pfmemalloc(struct slab *slab)
+ static inline pg_data_t *slab_pgdat(const struct slab *slab)
  {
--	set_bit(SL_pfmemalloc, &slab->flags);
-+	set_bit(SL_pfmemalloc, &slab->flags.f);
+-	return folio_pgdat(slab_folio(slab));
++	return NODE_DATA(slab_nid(slab));
  }
  
- static inline void __slab_clear_pfmemalloc(struct slab *slab)
- {
--	__clear_bit(SL_pfmemalloc, &slab->flags);
-+	__clear_bit(SL_pfmemalloc, &slab->flags.f);
- }
- 
- /*
-@@ -675,12 +675,12 @@ static inline void __slab_clear_pfmemall
-  */
- static __always_inline void slab_lock(struct slab *slab)
- {
--	bit_spin_lock(SL_locked, &slab->flags);
-+	bit_spin_lock(SL_locked, &slab->flags.f);
- }
- 
- static __always_inline void slab_unlock(struct slab *slab)
- {
--	bit_spin_unlock(SL_locked, &slab->flags);
-+	bit_spin_unlock(SL_locked, &slab->flags.f);
- }
- 
- static inline bool
-@@ -1046,7 +1046,7 @@ static void print_slab_info(const struct
- {
- 	pr_err("Slab 0x%p objects=%u used=%u fp=0x%p flags=%pGp\n",
- 	       slab, slab->objects, slab->inuse, slab->freelist,
--	       &slab->flags);
-+	       &slab->flags.f);
- }
- 
- void skip_orig_size_check(struct kmem_cache *s, const void *object)
-@@ -2755,17 +2755,17 @@ static void discard_slab(struct kmem_cac
- 
- static inline bool slab_test_node_partial(const struct slab *slab)
- {
--	return test_bit(SL_partial, &slab->flags);
-+	return test_bit(SL_partial, &slab->flags.f);
- }
- 
- static inline void slab_set_node_partial(struct slab *slab)
- {
--	set_bit(SL_partial, &slab->flags);
-+	set_bit(SL_partial, &slab->flags.f);
- }
- 
- static inline void slab_clear_node_partial(struct slab *slab)
- {
--	clear_bit(SL_partial, &slab->flags);
-+	clear_bit(SL_partial, &slab->flags.f);
- }
- 
- /*
+ static inline struct slab *virt_to_slab(const void *addr)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
