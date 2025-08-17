@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E061E27453
-	for <mm-commits@vger.kernel.org>; Sun, 17 Aug 2025 18:54:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 187C11E51F1
+	for <mm-commits@vger.kernel.org>; Sun, 17 Aug 2025 18:54:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755456886; cv=none; b=hqTKm7lvLzWvR8bV19V8wucef9w3Ktyc0wL+EsmIWwMnruvmeZmpqKs76jsezK8masAA3cWkvMKWuQqSgSqCL9vKGnsKuBs5untQ2GCSG6JU/79gGFPoUE+W02+uGiJXpTuX77PAbKRKtExyUDbKBYWSCTxBiHZeqNzaSBkPcwM=
+	t=1755456888; cv=none; b=YWQ+e2iLo/X/mPhY0vpeqxvZ0IF0WOJvs9yCZiibyZ/4Po9LXf5m1QH2du1aysdXiNdzD3GssubVubHHOGzkt2r7yhZ+BmEJeUm3wXpGkmpUtUPp75noq0vtdx66gJwiV7z7aWWrO4KGg6ralY9AfUEKHUG9gEbOAVeleQ3WqI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755456886; c=relaxed/simple;
-	bh=cEIlKrJ7RJM2/svYozBSTMJc2A+5NIZZYWsJiv+j/I8=;
-	h=Date:To:From:Subject:Message-Id; b=enlHO5VLQFnWfbW7Bq43GMWbyLrRbwBPb6wOgJJNvG/U4BO7O4j+vXaxG0Hfa/9rH/hv5BG1qqOvZwpXGCZ90ArVj2HZ6iGZGx8BWDINQBN05sA5CjkvX122NdjewVI99ftLePtCwLYYEujVkf05o2D6YnNtVXrntxyVGu9m4VY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=olZ+NkcT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755456888; c=relaxed/simple;
+	bh=2tNlV/SJqlrtfwB5q/UdJiHpr1E1uRZX6y5x/MlVf3g=;
+	h=Date:To:From:Subject:Message-Id; b=Ek+atPAbyVeO66VgJpwtmqqsVyVM7liIubNxbR/W+PP4CfZ+pBXLKELa/5LMHwC3ZzyR118LMUDydX+Ug6bb1cfPZ6myrurY4CZGR5tujP8nTeE19eLiR1sruPJI73+xzCysVaHR2RbdJFd09NabzVHA7q22Rg1h++e/JAg+8FQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KymBAFiT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="olZ+NkcT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B783C4CEEB;
-	Sun, 17 Aug 2025 18:54:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KymBAFiT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D1C3C4CEEB;
+	Sun, 17 Aug 2025 18:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755456885;
-	bh=cEIlKrJ7RJM2/svYozBSTMJc2A+5NIZZYWsJiv+j/I8=;
+	s=korg; t=1755456887;
+	bh=2tNlV/SJqlrtfwB5q/UdJiHpr1E1uRZX6y5x/MlVf3g=;
 	h=Date:To:From:Subject:From;
-	b=olZ+NkcTdbl8XDcKuWZHlS0N3JYpPZiomnhMZeLI5d6gZBxUwJu58BtyV4sRYt6i9
-	 q38g+TTZF12m/TVg5ClmAtNy+Cc/VVgW0xzmwS2YAq8meC948JBSiIrlkQfZNFBPZk
-	 7ZLAQVU2JRh85XRh4bpnoo4GhdSInIRqQWSxzDh8=
-Date: Sun, 17 Aug 2025 11:54:44 -0700
+	b=KymBAFiTlZcZiNStemmkDOyyOBKHWCM3hN87jY+Hjf4CU6i+BYS+ODT7elwWfxsXZ
+	 6gsFx16TrkY2V+9o1mp/GRomT8tRnS/2MvrxZ5RGVXoa0HPXL1P4qO+vuqHvjijAfv
+	 Q4LkBPAhimjOssYBryRu/HqnjfX5Q/e10355pqd4=
+Date: Sun, 17 Aug 2025 11:54:46 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shakeel.butt@linux.dev,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-memdesc_is_zone_device.patch added to mm-new branch
-Message-Id: <20250817185445.6B783C4CEEB@smtp.kernel.org>
+Subject: + mm-reimplement-folio_is_device_private.patch added to mm-new branch
+Message-Id: <20250817185447.6D1C3C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce memdesc_is_zone_device()
+     Subject: mm: reimplement folio_is_device_private()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-memdesc_is_zone_device.patch
+     mm-reimplement-folio_is_device_private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-memdesc_is_zone_device.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reimplement-folio_is_device_private.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,80 +65,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: introduce memdesc_is_zone_device()
-Date: Tue, 5 Aug 2025 18:22:57 +0100
+Subject: mm: reimplement folio_is_device_private()
+Date: Tue, 5 Aug 2025 18:22:58 +0100
 
-Remove the conversion from folio to page in folio_is_zone_device() by
-introducing memdesc_is_zone_device() which takes a memdesc_flags_t from
-either a page or a folio.
+For callers of folio_is_device_private(), we save a folio->page->folio
+conversion.  Callers of is_device_private_page() simply move the
+conversion of page->folio from the implementation of page_pgmap() to
+is_device_private_page().
 
-Link: https://lkml.kernel.org/r/20250805172307.1302730-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250805172307.1302730-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ include/linux/memremap.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/include/linux/mmzone.h~mm-introduce-memdesc_is_zone_device
-+++ a/include/linux/mmzone.h
-@@ -1200,14 +1200,14 @@ static inline enum zone_type folio_zonen
+--- a/include/linux/memremap.h~mm-reimplement-folio_is_device_private
++++ a/include/linux/memremap.h
+@@ -157,16 +157,17 @@ static inline unsigned long pgmap_vmemma
+ 	return 1 << pgmap->vmemmap_shift;
  }
  
- #ifdef CONFIG_ZONE_DEVICE
--static inline bool is_zone_device_page(const struct page *page)
-+static inline bool memdesc_is_zone_device(memdesc_flags_t mdf)
+-static inline bool is_device_private_page(const struct page *page)
++static inline bool folio_is_device_private(const struct folio *folio)
  {
--	return page_zonenum(page) == ZONE_DEVICE;
-+	return memdesc_zonenum(mdf) == ZONE_DEVICE;
+ 	return IS_ENABLED(CONFIG_DEVICE_PRIVATE) &&
+-		is_zone_device_page(page) &&
+-		page_pgmap(page)->type == MEMORY_DEVICE_PRIVATE;
++		folio_is_zone_device(folio) &&
++		folio->pgmap->type == MEMORY_DEVICE_PRIVATE;
  }
  
- static inline struct dev_pagemap *page_pgmap(const struct page *page)
+-static inline bool folio_is_device_private(const struct folio *folio)
++static inline bool is_device_private_page(const struct page *page)
  {
--	VM_WARN_ON_ONCE_PAGE(!is_zone_device_page(page), page);
-+	VM_WARN_ON_ONCE_PAGE(!memdesc_is_zone_device(page->flags), page);
- 	return page_folio(page)->pgmap;
+-	return is_device_private_page(&folio->page);
++	return IS_ENABLED(CONFIG_DEVICE_PRIVATE) &&
++		folio_is_device_private(page_folio(page));
  }
  
-@@ -1222,9 +1222,9 @@ static inline struct dev_pagemap *page_p
- static inline bool zone_device_pages_have_same_pgmap(const struct page *a,
- 						     const struct page *b)
- {
--	if (is_zone_device_page(a) != is_zone_device_page(b))
-+	if (memdesc_is_zone_device(a->flags) != memdesc_is_zone_device(b->flags))
- 		return false;
--	if (!is_zone_device_page(a))
-+	if (!memdesc_is_zone_device(a->flags))
- 		return true;
- 	return page_pgmap(a) == page_pgmap(b);
- }
-@@ -1232,7 +1232,7 @@ static inline bool zone_device_pages_hav
- extern void memmap_init_zone_device(struct zone *, unsigned long,
- 				    unsigned long, struct dev_pagemap *);
- #else
--static inline bool is_zone_device_page(const struct page *page)
-+static inline bool memdesc_is_zone_device(memdesc_flags_t mdf)
- {
- 	return false;
- }
-@@ -1247,9 +1247,14 @@ static inline struct dev_pagemap *page_p
- }
- #endif
- 
-+static inline bool is_zone_device_page(const struct page *page)
-+{
-+	return memdesc_is_zone_device(page->flags);
-+}
-+
- static inline bool folio_is_zone_device(const struct folio *folio)
- {
--	return is_zone_device_page(&folio->page);
-+	return memdesc_is_zone_device(folio->flags);
- }
- 
- static inline bool is_zone_movable_page(const struct page *page)
+ static inline bool is_pci_p2pdma_page(const struct page *page)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
