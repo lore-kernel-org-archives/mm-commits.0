@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE38E3176F1
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:46:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003A23176F1
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:46:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755485160; cv=none; b=e7YC6KQ9rQIoJhflJpHa1jQ51ydumPz3Lw9zXYDLEkea9A+PLE9QXzbRucRCyUTxqUABOcgXf0OQH2MxSkrIfG9NjzKLhGHEfOHy34R5R9TxYLEwuxL312TlGJgPbejrWdexa8FboL4uqzBqlqbBmPgPsPzasfrs4TNoDA6YCxc=
+	t=1755485163; cv=none; b=oc2TFO5FHGz0BQHL5Q/nprfvyWfwo5pSzegpbemHkhOhfN7FQvewuHxzoj2gmqC7ehdIpYiXYHhLSo/UYfC1f3wBGP9BirdM0+ogWq+0JRQN4cyWNru5sPz/1lsdQGCCFWBZcMkpEMES4M6frrJuWkxfIrGDVPmg4sGCd/dJQt8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755485160; c=relaxed/simple;
-	bh=awVz2u4X2EsqSzn9VbDr9p3CZU/+U41dc+rijdNXe40=;
-	h=Date:To:From:Subject:Message-Id; b=uTmRz4L8iHPy9TY/Qfbef3VluidGhLa4ImQ8dcEz007tGpmK4gUuzuxe+GvXytALOAiruZgDYiN55fbDpEZZOIEpnskXsRub02Q+f2rJTISxtjC48LsezcmqegAuWp2r3fj6YzCtHX0EjeHTKxyj3mVpYuVWPK78B8bofuNA8F0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yYmpcCnX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755485163; c=relaxed/simple;
+	bh=RgUUpUmIPaHwsS2cYUhJW5dum3eUdYNhys5i4HWPX/E=;
+	h=Date:To:From:Subject:Message-Id; b=iNJTtbAP0qs1AJwggAmmI8uuBQSe2M8Q7vP4oqfOqPXLwSVJsZBdZ8iPLHKYyy5WqBHB12nRj4S6Rbnpu4duSy4BE3Jj67DQ6RcEz4931S9thK78rowV5uyrUFF18A/kpbiGWmMCyB66ZbjIAQ7AkAFcnEPNSxUJdu4g1K6DmsI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dBQOmOjC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yYmpcCnX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E388C4CEEB;
-	Mon, 18 Aug 2025 02:46:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dBQOmOjC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57068C4CEEB;
+	Mon, 18 Aug 2025 02:46:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755485160;
-	bh=awVz2u4X2EsqSzn9VbDr9p3CZU/+U41dc+rijdNXe40=;
+	s=korg; t=1755485162;
+	bh=RgUUpUmIPaHwsS2cYUhJW5dum3eUdYNhys5i4HWPX/E=;
 	h=Date:To:From:Subject:From;
-	b=yYmpcCnXDgyoqe2bSA83NJ/f9u5n6qq6fqmU9uMwhvdOlmsuUu2hJatzDVgPcu4bi
-	 UMxiSyT3q7rpiwU8j60XOqXmgDeDAB/ekf8b08SokFagKWySUPD/NQ1xjj0IfR6OpM
-	 78KmPkYgQV69kCzG8kT3/DEk5oRJUN7jx70eUrus=
-Date: Sun, 17 Aug 2025 19:45:59 -0700
+	b=dBQOmOjCyY2Sj27JTIqwD1b5Z0DedLSxdGN/dc5iMYBs8c6NnyffnXLOS+p75HSwn
+	 KtTytzpA4JO2TOmgFDogm9guyHmPuvjOARCx+fUlYwA5YNhHNjIdtnCTG+ocHb8OmP
+	 m76Tylm5qV52CFtADedWXeftuA7B+08+uM5FpMVI=
+Date: Sun, 17 Aug 2025 19:46:01 -0700
 To: mm-commits@vger.kernel.org,Yuezhang.Mo@sony.com,willy@infradead.org,viro@zeniv.linux.org.uk,sj1557.seo@samsung.com,linkinjeon@kernel.org,jack@suse.cz,brauner@kernel.org,chizhiling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mpage-terminate-read-ahead-on-read-error.patch added to mm-new branch
-Message-Id: <20250818024600.0E388C4CEEB@smtp.kernel.org>
+Subject: + mpage-clean-up-do_mpage_readpage.patch added to mm-new branch
+Message-Id: <20250818024602.57068C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mpage: terminate read-ahead on read error
+     Subject: mpage: clean up do_mpage_readpage()
 has been added to the -mm mm-new branch.  Its filename is
-     mpage-terminate-read-ahead-on-read-error.patch
+     mpage-clean-up-do_mpage_readpage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-terminate-read-ahead-on-read-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-clean-up-do_mpage_readpage.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,24 +65,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Chi Zhiling <chizhiling@kylinos.cn>
-Subject: mpage: terminate read-ahead on read error
-Date: Tue, 12 Aug 2025 15:22:23 +0800
+Subject: mpage: clean up do_mpage_readpage()
+Date: Tue, 12 Aug 2025 15:22:24 +0800
 
-For exFAT filesystems with 4MB read_ahead_size, removing the storage
-device during read operations can delay EIO error reporting by several
-minutes.  This occurs because the read-ahead implementation in mpage
-doesn't handle errors.
+Replace two loop iterations with direct calculations.  The variable
+nblocks now represents the number of avalid blocks we can obtain from
+map_bh.  no functional change.
 
-Another reason for the delay is that the filesystem requires metadata to
-issue file read request.  When the storage device is removed, the metadata
-buffers are invalidated, causing mpage to repeatedly attempt to fetch
-metadata during each get_block call.
-
-The original purpose of this patch is terminate read ahead when we fail to
-get metadata, to make the patch more generic, implement it by checking
-folio status, instead of checking the return of get_block().
-
-Link: https://lkml.kernel.org/r/20250812072225.181798-1-chizhiling@163.com
+Link: https://lkml.kernel.org/r/20250812072225.181798-2-chizhiling@163.com
 Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -94,21 +84,91 @@ Cc: Yuezhang Mo <Yuezhang.Mo@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/mpage.c |   42 +++++++++++++++++-------------------------
+ 1 file changed, 17 insertions(+), 25 deletions(-)
 
---- a/fs/mpage.c~mpage-terminate-read-ahead-on-read-error
+--- a/fs/mpage.c~mpage-clean-up-do_mpage_readpage
 +++ a/fs/mpage.c
-@@ -369,6 +369,9 @@ void mpage_readahead(struct readahead_co
- 		args.folio = folio;
- 		args.nr_pages = readahead_count(rac);
- 		args.bio = do_mpage_readpage(&args);
-+		if (!folio_test_locked(folio) &&
-+		    !folio_test_uptodate(folio))
-+			break;
+@@ -158,7 +158,6 @@ static struct bio *do_mpage_readpage(str
+ 	struct buffer_head *map_bh = &args->map_bh;
+ 	sector_t block_in_file;
+ 	sector_t last_block;
+-	sector_t last_block_in_file;
+ 	sector_t first_block;
+ 	unsigned page_block;
+ 	unsigned first_hole = blocks_per_folio;
+@@ -180,9 +179,8 @@ static struct bio *do_mpage_readpage(str
+ 
+ 	block_in_file = folio_pos(folio) >> blkbits;
+ 	last_block = block_in_file + ((args->nr_pages * PAGE_SIZE) >> blkbits);
+-	last_block_in_file = (i_size_read(inode) + blocksize - 1) >> blkbits;
+-	if (last_block > last_block_in_file)
+-		last_block = last_block_in_file;
++	last_block = min_t(sector_t, last_block,
++			   (i_size_read(inode) + blocksize - 1) >> blkbits);
+ 	page_block = 0;
+ 
+ 	/*
+@@ -193,19 +191,15 @@ static struct bio *do_mpage_readpage(str
+ 			block_in_file > args->first_logical_block &&
+ 			block_in_file < (args->first_logical_block + nblocks)) {
+ 		unsigned map_offset = block_in_file - args->first_logical_block;
+-		unsigned last = nblocks - map_offset;
+ 
+ 		first_block = map_bh->b_blocknr + map_offset;
+-		for (relative_block = 0; ; relative_block++) {
+-			if (relative_block == last) {
+-				clear_buffer_mapped(map_bh);
+-				break;
+-			}
+-			if (page_block == blocks_per_folio)
+-				break;
+-			page_block++;
+-			block_in_file++;
+-		}
++		nblocks -= map_offset;
++		if (nblocks > blocks_per_folio - page_block)
++			nblocks = blocks_per_folio - page_block;
++		else
++			clear_buffer_mapped(map_bh);
++		page_block += nblocks;
++		block_in_file += nblocks;
+ 		bdev = map_bh->b_bdev;
  	}
- 	if (args.bio)
- 		mpage_bio_submit_read(args.bio);
+ 
+@@ -243,7 +237,7 @@ static struct bio *do_mpage_readpage(str
+ 			map_buffer_to_folio(folio, map_bh, page_block);
+ 			goto confused;
+ 		}
+-	
++
+ 		if (first_hole != blocks_per_folio)
+ 			goto confused;		/* hole -> non-hole */
+ 
+@@ -252,16 +246,14 @@ static struct bio *do_mpage_readpage(str
+ 			first_block = map_bh->b_blocknr;
+ 		else if (first_block + page_block != map_bh->b_blocknr)
+ 			goto confused;
++
+ 		nblocks = map_bh->b_size >> blkbits;
+-		for (relative_block = 0; ; relative_block++) {
+-			if (relative_block == nblocks) {
+-				clear_buffer_mapped(map_bh);
+-				break;
+-			} else if (page_block == blocks_per_folio)
+-				break;
+-			page_block++;
+-			block_in_file++;
+-		}
++		if (nblocks > blocks_per_folio - page_block)
++			nblocks = blocks_per_folio - page_block;
++		else
++			clear_buffer_mapped(map_bh);
++		page_block += nblocks;
++		block_in_file += nblocks;
+ 		bdev = map_bh->b_bdev;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from chizhiling@kylinos.cn are
