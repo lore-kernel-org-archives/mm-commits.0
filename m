@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 141423176F1
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:46:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57246257844
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:52:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755485166; cv=none; b=CP0ZodLInKhWckG3hQfrlwOvLAbvM+SVhZrCGHq+UMoSCCnAnl5f9ThkooPrFUXH99jYIuNdtWGYRASwhZB8kSORQCn2BNBGpa6cHrJbcMJ0qhSQEV8YtP9nW1Pt7pkCysyrGRafk63jezkEVxsYEVW8z8JmbS3Bfx3nmQ+Eylk=
+	t=1755485532; cv=none; b=HhzzYJ6HoUX4kSc6gDmwf8XxNg2Nqnr+7b8060TX/IJyx/bf/6ZsDdTr5pJqtLJGzx5WYZqksT9CM7SE/M4uQwTZ18ySMWXfb6ZtIEblzWkEQ+uwVL9i32jvVMpnAKJhmgXAnPUnN+BZIcFzgIAyTC4tBsZdS8cEHXDYat0N7NI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755485166; c=relaxed/simple;
-	bh=TByEUysuYJAlLh6IvBaPSxrlLt5BtPW7PVPnEyxcUfg=;
-	h=Date:To:From:Subject:Message-Id; b=kLuGAHUbg96hveOPWsbdnqZ/IKT7KPmTCBKbG8mYVHmvjqMdhS5+YHPy66BBXfm5k4plLhdwfU8uheCmnEp+lSxEq1mKMgSrSbI7q2DGUkKtTriU8rWf9NmSz/4dybZqHUPHoAHVmVkYQE75bmemxcL9xPAlGz+8+JLt5VyNTF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QfBTy3bn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755485532; c=relaxed/simple;
+	bh=z4vyn9WFG0hZTzfUL0NXsgUyy3okQF2DUGWON9cNKJA=;
+	h=Date:To:From:Subject:Message-Id; b=sr61Uek25HcKAVHn9i0ea1jQ+PIvkoi/EjQbvl2qSc4oqjYVbx0/5mxGbC5vs9F0PZu7yPxQdCwqkidaC9ny9W4YQ8tjiC2yA2qlVQzePPdD3xLmRx9o240BqD1IbvL1aT9fJgHpRHwfeHYa1llhcZiDDkupg5ld4g6yE9jog2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QaZaIpkH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QfBTy3bn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A133C4CEEB;
-	Mon, 18 Aug 2025 02:46:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QaZaIpkH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFD94C4CEEB;
+	Mon, 18 Aug 2025 02:52:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755485164;
-	bh=TByEUysuYJAlLh6IvBaPSxrlLt5BtPW7PVPnEyxcUfg=;
+	s=korg; t=1755485531;
+	bh=z4vyn9WFG0hZTzfUL0NXsgUyy3okQF2DUGWON9cNKJA=;
 	h=Date:To:From:Subject:From;
-	b=QfBTy3bnJG49Se93sNHy8lWuK/L2ogQKtVv2hY/pqpztimPjUGCYl3NRhn9pqykQP
-	 /kJH/RF2TTqEA/8o6NF/ZzUXKaX7y4bNi5R72LKL/B3X3yLEjuRfqUhdRaV5j7VDwm
-	 1BWdXWIT/ZtEw5BEcx+qIEVqzuEWvBEPfCCWk/yA=
-Date: Sun, 17 Aug 2025 19:46:03 -0700
-To: mm-commits@vger.kernel.org,Yuezhang.Mo@sony.com,willy@infradead.org,viro@zeniv.linux.org.uk,sj1557.seo@samsung.com,linkinjeon@kernel.org,jack@suse.cz,brauner@kernel.org,chizhiling@kylinos.cn,akpm@linux-foundation.org
+	b=QaZaIpkHXOSQH/M83rfjQYmLjg72saPO5AucT8gKFkM3n2fryNvkl69HDmw2jr6NL
+	 atwtp5qcoRP9frEPSu1zXyLxQPSAfl6/G2sJ/jHLcr7ptlzv4zXv9+BzgNjcSHAhR6
+	 s4q/MnYwWZIpmjIKdCVx20HMRHkvoHUP2tZ90pdk=
+Date: Sun, 17 Aug 2025 19:52:11 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,ryan@lahfa.xyz,maximilian@mbosch.me,dhowells@redhat.com,ct@flyingcircus.io,brauner@kernel.org,arnout@bzzt.net,asmadeus@codewreck.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mpage-convert-do_mpage_readpage-to-return-int-type.patch added to mm-new branch
-Message-Id: <20250818024604.7A133C4CEEB@smtp.kernel.org>
+Subject: [merged] iov_iter-iov_folioq_get_pages-dont-leave-empty-slot-behind.patch removed from -mm tree
+Message-Id: <20250818025211.AFD94C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,107 +34,65 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mpage: convert do_mpage_readpage() to return int type
-has been added to the -mm mm-new branch.  Its filename is
-     mpage-convert-do_mpage_readpage-to-return-int-type.patch
+The quilt patch titled
+     Subject: iov_iter: iov_folioq_get_pages: don't leave empty slot behind
+has been removed from the -mm tree.  Its filename was
+     iov_iter-iov_folioq_get_pages-dont-leave-empty-slot-behind.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-convert-do_mpage_readpage-to-return-int-type.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chi Zhiling <chizhiling@kylinos.cn>
-Subject: mpage: convert do_mpage_readpage() to return int type
-Date: Tue, 12 Aug 2025 15:22:25 +0800
+From: Dominique Martinet <asmadeus@codewreck.org>
+Subject: iov_iter: iov_folioq_get_pages: don't leave empty slot behind
+Date: Wed, 13 Aug 2025 15:04:56 +0900
 
-The return value of do_mpage_readpage() is arg->bio, which is already set
-in the arg structure.  Returning it again is redundant.
+After advancing into a folioq it makes more sense to point to the next
+slot than at the end of the current slot.  This should not be needed for
+correctness, but this also happens to "fix" the 9p bug with
+iterate_folioq() not copying properly.
 
-This patch changes the return type to int and always returns 0 since the
-caller does not care about the return value.
-
-Link: https://lkml.kernel.org/r/20250812072225.181798-3-chizhiling@163.com
-Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
+Link: https://lkml.kernel.org/r/20250813-iot_iter_folio-v3-0-a0ffad2b665a@codewreck.org
+Link: https://lkml.kernel.org/r/20250813-iot_iter_folio-v3-2-a0ffad2b665a@codewreck.org
+Signed-off-by: Dominique Martinet <asmadeus@codewreck.org>
+Acked-by: David Howells <dhowells@redhat.com>
+Tested-by: Arnout Engelen <arnout@bzzt.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Christian Theune <ct@flyingcircus.io>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Namjae Jeon <linkinjeon@kernel.org>
-Cc: Sungjong Seo <sj1557.seo@samsung.com>
-Cc: Yuezhang Mo <Yuezhang.Mo@sony.com>
-
+Cc: Maximilian Bosch <maximilian@mbosch.me>
+Cc: Ryan Lahfa <ryan@lahfa.xyz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/iov_iter.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/mpage.c~mpage-convert-do_mpage_readpage-to-return-int-type
-+++ a/fs/mpage.c
-@@ -148,7 +148,7 @@ struct mpage_readpage_args {
-  * represent the validity of its disk mapping and to decide when to do the next
-  * get_block() call.
-  */
--static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
-+static int do_mpage_readpage(struct mpage_readpage_args *args)
- {
- 	struct folio *folio = args->folio;
- 	struct inode *inode = folio->mapping->host;
-@@ -297,7 +297,7 @@ alloc_new:
- 	else
- 		args->last_block_in_bio = first_block + blocks_per_folio - 1;
- out:
--	return args->bio;
-+	return 0;
+--- a/lib/iov_iter.c~iov_iter-iov_folioq_get_pages-dont-leave-empty-slot-behind
++++ a/lib/iov_iter.c
+@@ -1032,9 +1032,6 @@ static ssize_t iter_folioq_get_pages(str
+ 			maxpages--;
+ 		}
  
- confused:
- 	if (args->bio)
-@@ -360,7 +360,7 @@ void mpage_readahead(struct readahead_co
- 		prefetchw(&folio->flags);
- 		args.folio = folio;
- 		args.nr_pages = readahead_count(rac);
--		args.bio = do_mpage_readpage(&args);
-+		do_mpage_readpage(&args);
- 		if (!folio_test_locked(folio) &&
- 		    !folio_test_uptodate(folio))
- 			break;
-@@ -381,7 +381,7 @@ int mpage_read_folio(struct folio *folio
- 		.get_block = get_block,
- 	};
+-		if (maxpages == 0 || extracted >= maxsize)
+-			break;
+-
+ 		if (iov_offset >= fsize) {
+ 			iov_offset = 0;
+ 			slot++;
+@@ -1043,6 +1040,9 @@ static ssize_t iter_folioq_get_pages(str
+ 				slot = 0;
+ 			}
+ 		}
++
++		if (maxpages == 0 || extracted >= maxsize)
++			break;
+ 	}
  
--	args.bio = do_mpage_readpage(&args);
-+	do_mpage_readpage(&args);
- 	if (args.bio)
- 		mpage_bio_submit_read(args.bio);
- 	return 0;
+ 	iter->count = count;
 _
 
-Patches currently in -mm which might be from chizhiling@kylinos.cn are
+Patches currently in -mm which might be from asmadeus@codewreck.org are
 
-mm-filemap-do-not-use-is_partially_uptodate-for-entire-folio.patch
-mm-filemap-skip-non-uptodate-folio-if-there-are-available-folios.patch
-mpage-terminate-read-ahead-on-read-error.patch
-mpage-clean-up-do_mpage_readpage.patch
-mpage-convert-do_mpage_readpage-to-return-int-type.patch
+iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size.patch
 
