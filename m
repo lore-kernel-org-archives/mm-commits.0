@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 049A61799F
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 01:45:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1F2919DFAB
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 01:46:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755481557; cv=none; b=f7cfZRRcz8ADCwM1Rs35v8NcsznjMlnYnhXC1Uuar13UNkz5OF4OkTDqABgWfxTsKVKzZCbiWwV6mdDsT/ZFKu4Iobd5qhVyvTyV4DqNOehBuLLPQdHJjedeFm3Vj6d1JxJwCoygcze65D9/dGb+5q9hKelkzF/KGx/eJTCF0Bc=
+	t=1755481596; cv=none; b=qbUb/x6tx907ZW7JHFIHJ8NzVopBRUVZPs4EKH4cg1nVecYKMP4J1C2cuAsmwtSE5U93Pj+wX6H1kxCdpd8LyRuU/EnPHyaAJBd26IAumXJwtlTJQ9cuf23hKDTTxZDGWmUYufS7r4Eb00p+5Z+gtxX0Ob7gYH1/yq+bh6DWAOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755481557; c=relaxed/simple;
-	bh=7ZV4SChyXq1oRe+fDVs4ap79vkYWFP58D/Hjth1NXI8=;
-	h=Date:To:From:Subject:Message-Id; b=QsjEAfxa2OLvEilKvdy7E9Z1EBbwltd25UF6QoUZZ9I4VkJY6/0ZorbBpdrkYCuuuqWJ3Nc+xMddWlMhz1XUE1fI3hVGV4Mdodl7ZjGs3S2M06m7dut0aLlZyIR5cDk8QmR08EmfeHsDeIcOTzc6MBpo4ANAPZGgqoMq6tPp2a0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N4lbNrw7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755481596; c=relaxed/simple;
+	bh=1QnCx+B4bTKG6C5uyq6g3qXYG1xGw7uwFHnP13dMuOw=;
+	h=Date:To:From:Subject:Message-Id; b=LrPsTqTmZ6Bj3jNL6Xi/viNnS80dBrYQQMSy+frQYoN5maGASLK+YEAx/5ylKsRh9xHv+8LfzgqJaJ1X/pBA4Gt8lJ6XHy63+h9ASG057+TksVrY3dxhzGnbC0SbTEgrPnaBUcKtWJuIyEvdflxXO40tMAwjVdWpLNBgbbUniW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z0EgkWb9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N4lbNrw7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68020C4CEEB;
-	Mon, 18 Aug 2025 01:45:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z0EgkWb9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF3CC4CEEB;
+	Mon, 18 Aug 2025 01:46:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755481556;
-	bh=7ZV4SChyXq1oRe+fDVs4ap79vkYWFP58D/Hjth1NXI8=;
+	s=korg; t=1755481596;
+	bh=1QnCx+B4bTKG6C5uyq6g3qXYG1xGw7uwFHnP13dMuOw=;
 	h=Date:To:From:Subject:From;
-	b=N4lbNrw765brPLieRq9Al14hKtycJHJSHVnLQqwbOu7VkGwkRGOzGiq0/k4Ny9uAa
-	 fbuhp/XSgHO5JHK7I74VumNGgO7oXROnlMHsKFdEu2xe1sJ/wKOI63+2eH/Rj9pCIi
-	 Hkim3QaheZn/5g01/P8YoF/EAXXBJqH/MfWavO1U=
-Date: Sun, 17 Aug 2025 18:45:55 -0700
+	b=z0EgkWb9FyS5Yd3mL52IUxQ6CQMsCKQRGXGUcsz8hZ/ENnh594VjjXtjPgFQQS7dq
+	 PZTAeaajIk4hzWaCAJGTMau3E749/cXhyu7/FP/98Mvs8oheaFMSb+HUyObjY7kFim
+	 2q9QCkHLYIzE9lsQTY0hLQ2PVMFecgH7vsBrn4+Q=
+Date: Sun, 17 Aug 2025 18:46:35 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch added to mm-new branch
-Message-Id: <20250818014556.68020C4CEEB@smtp.kernel.org>
+Subject: + mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch added to mm-new branch
+Message-Id: <20250818014636.2FF3CC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: not necessary to mask off FOLIO_PAGES_MAPPED
+     Subject: mm/rmap: use folio_large_nr_pages() when we are sure it is a large folio
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
+     mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,16 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/rmap: not necessary to mask off FOLIO_PAGES_MAPPED
-Date: Sun, 17 Aug 2025 03:26:46 +0000
+Subject: mm/rmap: use folio_large_nr_pages() when we are sure it is a large folio
+Date: Sun, 17 Aug 2025 03:26:47 +0000
 
-At this point, we are in an if branch conditional on (nr <
-ENTIRELY_MAPPED), and FOLIO_PAGES_MAPPED is equal to (ENTIRELY_MAPPED -
-1).  This means the upper bits are already cleared.
+Non-large folio is handled at the beginning, so it is a large folio for
+sure.
 
-It is not necessary to mask it off.
+Use folio_large_nr_pages() here like elsewhere.
 
-Link: https://lkml.kernel.org/r/20250817032647.29147-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250817032647.29147-3-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -88,17 +87,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/rmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-rmap-not-necessary-to-mask-off-folio_pages_mapped
+--- a/mm/rmap.c~mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio
 +++ a/mm/rmap.c
-@@ -1749,7 +1749,7 @@ static __always_inline void __folio_remo
- 				nr_pages = folio_large_nr_pages(folio);
- 				if (level == PGTABLE_LEVEL_PMD)
- 					nr_pmdmapped = nr_pages;
--				nr = nr_pages - (nr & FOLIO_PAGES_MAPPED);
-+				nr = nr_pages - nr;
- 				/* Raced ahead of another remove and an add? */
- 				if (unlikely(nr < 0))
- 					nr = 0;
+@@ -1703,7 +1703,7 @@ static __always_inline void __folio_remo
+ 			nr = folio_sub_return_large_mapcount(folio, nr_pages, vma);
+ 			if (!nr) {
+ 				/* Now completely unmapped. */
+-				nr = folio_nr_pages(folio);
++				nr = folio_large_nr_pages(folio);
+ 			} else {
+ 				partially_mapped = nr < folio_large_nr_pages(folio) &&
+ 						   !folio_entire_mapcount(folio);
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
@@ -106,4 +105,5 @@ Patches currently in -mm which might be from richard.weiyang@gmail.com are
 mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
 selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
 mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
+mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
 
