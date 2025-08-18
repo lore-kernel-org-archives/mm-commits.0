@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003A23176F1
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:46:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 141423176F1
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:46:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755485163; cv=none; b=oc2TFO5FHGz0BQHL5Q/nprfvyWfwo5pSzegpbemHkhOhfN7FQvewuHxzoj2gmqC7ehdIpYiXYHhLSo/UYfC1f3wBGP9BirdM0+ogWq+0JRQN4cyWNru5sPz/1lsdQGCCFWBZcMkpEMES4M6frrJuWkxfIrGDVPmg4sGCd/dJQt8=
+	t=1755485166; cv=none; b=CP0ZodLInKhWckG3hQfrlwOvLAbvM+SVhZrCGHq+UMoSCCnAnl5f9ThkooPrFUXH99jYIuNdtWGYRASwhZB8kSORQCn2BNBGpa6cHrJbcMJ0qhSQEV8YtP9nW1Pt7pkCysyrGRafk63jezkEVxsYEVW8z8JmbS3Bfx3nmQ+Eylk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755485163; c=relaxed/simple;
-	bh=RgUUpUmIPaHwsS2cYUhJW5dum3eUdYNhys5i4HWPX/E=;
-	h=Date:To:From:Subject:Message-Id; b=iNJTtbAP0qs1AJwggAmmI8uuBQSe2M8Q7vP4oqfOqPXLwSVJsZBdZ8iPLHKYyy5WqBHB12nRj4S6Rbnpu4duSy4BE3Jj67DQ6RcEz4931S9thK78rowV5uyrUFF18A/kpbiGWmMCyB66ZbjIAQ7AkAFcnEPNSxUJdu4g1K6DmsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dBQOmOjC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755485166; c=relaxed/simple;
+	bh=TByEUysuYJAlLh6IvBaPSxrlLt5BtPW7PVPnEyxcUfg=;
+	h=Date:To:From:Subject:Message-Id; b=kLuGAHUbg96hveOPWsbdnqZ/IKT7KPmTCBKbG8mYVHmvjqMdhS5+YHPy66BBXfm5k4plLhdwfU8uheCmnEp+lSxEq1mKMgSrSbI7q2DGUkKtTriU8rWf9NmSz/4dybZqHUPHoAHVmVkYQE75bmemxcL9xPAlGz+8+JLt5VyNTF4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QfBTy3bn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dBQOmOjC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57068C4CEEB;
-	Mon, 18 Aug 2025 02:46:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QfBTy3bn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A133C4CEEB;
+	Mon, 18 Aug 2025 02:46:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755485162;
-	bh=RgUUpUmIPaHwsS2cYUhJW5dum3eUdYNhys5i4HWPX/E=;
+	s=korg; t=1755485164;
+	bh=TByEUysuYJAlLh6IvBaPSxrlLt5BtPW7PVPnEyxcUfg=;
 	h=Date:To:From:Subject:From;
-	b=dBQOmOjCyY2Sj27JTIqwD1b5Z0DedLSxdGN/dc5iMYBs8c6NnyffnXLOS+p75HSwn
-	 KtTytzpA4JO2TOmgFDogm9guyHmPuvjOARCx+fUlYwA5YNhHNjIdtnCTG+ocHb8OmP
-	 m76Tylm5qV52CFtADedWXeftuA7B+08+uM5FpMVI=
-Date: Sun, 17 Aug 2025 19:46:01 -0700
+	b=QfBTy3bnJG49Se93sNHy8lWuK/L2ogQKtVv2hY/pqpztimPjUGCYl3NRhn9pqykQP
+	 /kJH/RF2TTqEA/8o6NF/ZzUXKaX7y4bNi5R72LKL/B3X3yLEjuRfqUhdRaV5j7VDwm
+	 1BWdXWIT/ZtEw5BEcx+qIEVqzuEWvBEPfCCWk/yA=
+Date: Sun, 17 Aug 2025 19:46:03 -0700
 To: mm-commits@vger.kernel.org,Yuezhang.Mo@sony.com,willy@infradead.org,viro@zeniv.linux.org.uk,sj1557.seo@samsung.com,linkinjeon@kernel.org,jack@suse.cz,brauner@kernel.org,chizhiling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mpage-clean-up-do_mpage_readpage.patch added to mm-new branch
-Message-Id: <20250818024602.57068C4CEEB@smtp.kernel.org>
+Subject: + mpage-convert-do_mpage_readpage-to-return-int-type.patch added to mm-new branch
+Message-Id: <20250818024604.7A133C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mpage: clean up do_mpage_readpage()
+     Subject: mpage: convert do_mpage_readpage() to return int type
 has been added to the -mm mm-new branch.  Its filename is
-     mpage-clean-up-do_mpage_readpage.patch
+     mpage-convert-do_mpage_readpage-to-return-int-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-clean-up-do_mpage_readpage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-convert-do_mpage_readpage-to-return-int-type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Chi Zhiling <chizhiling@kylinos.cn>
-Subject: mpage: clean up do_mpage_readpage()
-Date: Tue, 12 Aug 2025 15:22:24 +0800
+Subject: mpage: convert do_mpage_readpage() to return int type
+Date: Tue, 12 Aug 2025 15:22:25 +0800
 
-Replace two loop iterations with direct calculations.  The variable
-nblocks now represents the number of avalid blocks we can obtain from
-map_bh.  no functional change.
+The return value of do_mpage_readpage() is arg->bio, which is already set
+in the arg structure.  Returning it again is redundant.
 
-Link: https://lkml.kernel.org/r/20250812072225.181798-2-chizhiling@163.com
+This patch changes the return type to int and always returns 0 since the
+caller does not care about the return value.
+
+Link: https://lkml.kernel.org/r/20250812072225.181798-3-chizhiling@163.com
 Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -81,94 +83,51 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Namjae Jeon <linkinjeon@kernel.org>
 Cc: Sungjong Seo <sj1557.seo@samsung.com>
 Cc: Yuezhang Mo <Yuezhang.Mo@sony.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   42 +++++++++++++++++-------------------------
- 1 file changed, 17 insertions(+), 25 deletions(-)
+ fs/mpage.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/mpage.c~mpage-clean-up-do_mpage_readpage
+--- a/fs/mpage.c~mpage-convert-do_mpage_readpage-to-return-int-type
 +++ a/fs/mpage.c
-@@ -158,7 +158,6 @@ static struct bio *do_mpage_readpage(str
- 	struct buffer_head *map_bh = &args->map_bh;
- 	sector_t block_in_file;
- 	sector_t last_block;
--	sector_t last_block_in_file;
- 	sector_t first_block;
- 	unsigned page_block;
- 	unsigned first_hole = blocks_per_folio;
-@@ -180,9 +179,8 @@ static struct bio *do_mpage_readpage(str
+@@ -148,7 +148,7 @@ struct mpage_readpage_args {
+  * represent the validity of its disk mapping and to decide when to do the next
+  * get_block() call.
+  */
+-static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
++static int do_mpage_readpage(struct mpage_readpage_args *args)
+ {
+ 	struct folio *folio = args->folio;
+ 	struct inode *inode = folio->mapping->host;
+@@ -297,7 +297,7 @@ alloc_new:
+ 	else
+ 		args->last_block_in_bio = first_block + blocks_per_folio - 1;
+ out:
+-	return args->bio;
++	return 0;
  
- 	block_in_file = folio_pos(folio) >> blkbits;
- 	last_block = block_in_file + ((args->nr_pages * PAGE_SIZE) >> blkbits);
--	last_block_in_file = (i_size_read(inode) + blocksize - 1) >> blkbits;
--	if (last_block > last_block_in_file)
--		last_block = last_block_in_file;
-+	last_block = min_t(sector_t, last_block,
-+			   (i_size_read(inode) + blocksize - 1) >> blkbits);
- 	page_block = 0;
+ confused:
+ 	if (args->bio)
+@@ -360,7 +360,7 @@ void mpage_readahead(struct readahead_co
+ 		prefetchw(&folio->flags);
+ 		args.folio = folio;
+ 		args.nr_pages = readahead_count(rac);
+-		args.bio = do_mpage_readpage(&args);
++		do_mpage_readpage(&args);
+ 		if (!folio_test_locked(folio) &&
+ 		    !folio_test_uptodate(folio))
+ 			break;
+@@ -381,7 +381,7 @@ int mpage_read_folio(struct folio *folio
+ 		.get_block = get_block,
+ 	};
  
- 	/*
-@@ -193,19 +191,15 @@ static struct bio *do_mpage_readpage(str
- 			block_in_file > args->first_logical_block &&
- 			block_in_file < (args->first_logical_block + nblocks)) {
- 		unsigned map_offset = block_in_file - args->first_logical_block;
--		unsigned last = nblocks - map_offset;
- 
- 		first_block = map_bh->b_blocknr + map_offset;
--		for (relative_block = 0; ; relative_block++) {
--			if (relative_block == last) {
--				clear_buffer_mapped(map_bh);
--				break;
--			}
--			if (page_block == blocks_per_folio)
--				break;
--			page_block++;
--			block_in_file++;
--		}
-+		nblocks -= map_offset;
-+		if (nblocks > blocks_per_folio - page_block)
-+			nblocks = blocks_per_folio - page_block;
-+		else
-+			clear_buffer_mapped(map_bh);
-+		page_block += nblocks;
-+		block_in_file += nblocks;
- 		bdev = map_bh->b_bdev;
- 	}
- 
-@@ -243,7 +237,7 @@ static struct bio *do_mpage_readpage(str
- 			map_buffer_to_folio(folio, map_bh, page_block);
- 			goto confused;
- 		}
--	
-+
- 		if (first_hole != blocks_per_folio)
- 			goto confused;		/* hole -> non-hole */
- 
-@@ -252,16 +246,14 @@ static struct bio *do_mpage_readpage(str
- 			first_block = map_bh->b_blocknr;
- 		else if (first_block + page_block != map_bh->b_blocknr)
- 			goto confused;
-+
- 		nblocks = map_bh->b_size >> blkbits;
--		for (relative_block = 0; ; relative_block++) {
--			if (relative_block == nblocks) {
--				clear_buffer_mapped(map_bh);
--				break;
--			} else if (page_block == blocks_per_folio)
--				break;
--			page_block++;
--			block_in_file++;
--		}
-+		if (nblocks > blocks_per_folio - page_block)
-+			nblocks = blocks_per_folio - page_block;
-+		else
-+			clear_buffer_mapped(map_bh);
-+		page_block += nblocks;
-+		block_in_file += nblocks;
- 		bdev = map_bh->b_bdev;
- 	}
- 
+-	args.bio = do_mpage_readpage(&args);
++	do_mpage_readpage(&args);
+ 	if (args.bio)
+ 		mpage_bio_submit_read(args.bio);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from chizhiling@kylinos.cn are
