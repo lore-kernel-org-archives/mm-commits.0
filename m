@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2348715E97
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:01:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DC1815E97
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 02:01:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755482471; cv=none; b=j1r3tmwZilnZneFCm3k+7GamJWEq++7JhGdJYk860LxT8ep2kX8Zgei9wkzT8kgrAejkrtnDqwYbpDYrcI+W3hjiBCDbchwuhPrRJyapmzEXf7lxBoezBqhScWdDLFZEDf1iwfLdYDR/UO1yhzgGYXaTMoQ7XCjPCCPWquEtdSk=
+	t=1755482476; cv=none; b=QlftM7TcPIIG735XyNtKv4KwheTdWMU5n8MJOkcrSPAaoH4lNrplaMxD1Oh66oH3+U+zYLKWCbNtu/AFi9HbOYgCd+C8HtSRrw9MmHNan0AOw98EZKp5DMNQhJU+p5LREd6F3v+LOjDRmM6wvG6pmzh3iNssLIfELwH2P+pE8Dk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755482471; c=relaxed/simple;
-	bh=EmCF2arcKlqTqIJwS1YW6YQ4CyChY1Mlxl2RoeODiAo=;
-	h=Date:To:From:Subject:Message-Id; b=lO92brSppgl+ExwigIYMXx7dfzxodcELgC3NL9A9TOA+bqTfRFlD5i5YSp6bRaLbbS+5qZaFoikeZm7uKzyDlAMU5mum2rc+m9geteYXnMOQkl2tUNOs6MpPI8nrPCWQ0oaJNOCpBzglW5I0TrDuu99SK+k2onRjQ+QNj280quA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aq0ifwO7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755482476; c=relaxed/simple;
+	bh=cNINOo7cb/6eIfwC/c4++62L8Yg1934tTLlwVqpcm/0=;
+	h=Date:To:From:Subject:Message-Id; b=Ycmtv3hR5NbSguT71gpGSsdL7Gi7U/kRN3oosgrA8uVKNMiUiUwpLfJF+5Dpp1dLVnWqUeKVhen+VbcH5/apLcZwXIRk0mwRVVT6HhHoApXrJ/A3h2hssQXP4zlhQ7gk3pDm//S9VhM5taUSIdkIaXI8eLb+ENK3n2ppznDgNcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uwUYshTI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aq0ifwO7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9449C4CEF4;
-	Mon, 18 Aug 2025 02:01:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uwUYshTI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E55BAC116C6;
+	Mon, 18 Aug 2025 02:01:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755482471;
-	bh=EmCF2arcKlqTqIJwS1YW6YQ4CyChY1Mlxl2RoeODiAo=;
+	s=korg; t=1755482476;
+	bh=cNINOo7cb/6eIfwC/c4++62L8Yg1934tTLlwVqpcm/0=;
 	h=Date:To:From:Subject:From;
-	b=aq0ifwO7OlGA5EP2nuymOPKkHsh8C7C77VMV8OeGI9ThTx2ecGbYv8nuLLbVaI3P0
-	 jfaoQOO1mjf+hvTI1k6O69FchLTgIb0VgFudPZmjMlaXAPrQ28h5HvuGyt4Nqhb4Gs
-	 utzugrhlyBVi+BZwsA3GPEYpthYR09nqE+GwGeLE=
-Date: Sun, 17 Aug 2025 19:01:10 -0700
+	b=uwUYshTIFI9pKjQUkDp8i7GEsh56OA2mfLCPHsh+nfZxV1xf/MyMaDBaqNYpgby6L
+	 ZCUJYzsVnsOgs8Wfzey43PeYr7vE8AQbYvMj/2+HAzgkrYqfJGPDgjeCXbkZQNO/mW
+	 8dsJ19AcU+QlJjb+Ey0R2SDHt1KJyhEu7mvDMnwc=
+Date: Sun, 17 Aug 2025 19:01:15 -0700
 To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,will@kernel.org,vincenzo.frascino@arm.com,scott@os.amperecomputing.com,ryabinin.a.a@gmail.com,pankaj.gupta@amd.com,oliver.upton@linux.dev,maz@kernel.org,leitao@debian.org,kaleshsingh@google.com,jhubbard@nvidia.com,james.morse@arm.com,hardevsinh.palaniya@siliconsignals.io,glider@google.com,dvyukov@google.com,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,broonie@kernel.org,ardb@kernel.org,andreyknvl@gmail.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-hw-tags-introduce-kasanwrite_only-option.patch added to mm-new branch
-Message-Id: <20250818020110.D9449C4CEF4@smtp.kernel.org>
+Subject: + kasan-apply-write-only-mode-in-kasan-kunit-testcases.patch added to mm-new branch
+Message-Id: <20250818020115.E55BAC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan/hw-tags: introduce kasan.write_only option
+     Subject: kasan: apply write-only mode in kasan kunit testcases
 has been added to the -mm mm-new branch.  Its filename is
-     kasan-hw-tags-introduce-kasanwrite_only-option.patch
+     kasan-apply-write-only-mode-in-kasan-kunit-testcases.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-hw-tags-introduce-kasanwrite_only-option.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-apply-write-only-mode-in-kasan-kunit-testcases.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,52 +65,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: kasan/hw-tags: introduce kasan.write_only option
-Date: Sat, 16 Aug 2025 12:00:17 +0100
+Subject: kasan: apply write-only mode in kasan kunit testcases
+Date: Sat, 16 Aug 2025 12:00:18 +0100
 
-Patch series "introduce kasan.write_only option in hw-tags", v3.
+When KASAN is configured in write-only mode, fetch/load operations do not
+trigger tag check faults.
 
-Hardware tag based KASAN is implemented using the Memory Tagging Extension
-(MTE) feature.
+As a result, the outcome of some test cases may differ compared to when
+KASAN is configured without write-only mode.
 
-MTE is built on top of the ARMv8.0 virtual address tagging TBI (Top Byte
-Ignore) feature and allows software to access a 4-bit allocation tag for
-each 16-byte granule in the physical address space.  A logical tag is
-derived from bits 59-56 of the virtual address used for the memory access.
-A CPU with MTE enabled will compare the logical tag against the
-allocation tag and potentially raise an tag check fault on mismatch,
-subject to system registers configuration.
+Therefore, by modifying pre-exist testcases check the write only makes tag
+check fault (TCF) where writing is perform in "allocated memory" but tag
+is invalid (i.e) redzone write in atomic_set() testcases.  Otherwise check
+the invalid fetch/read doesn't generate TCF.
 
-Since ARMv8.9, FEAT_MTE_STORE_ONLY can be used to restrict raise of tag
-check fault on store operation only.
+Also, skip some testcases affected by initial value (i.e) atomic_cmpxchg()
+testcase maybe successd if it passes valid atomic_t address and invalid
+oldaval address.  In this case, if invalid atomic_t doesn't have the same
+oldval, it won't trigger write operation so the test will pass.
 
-Using this feature (FEAT_MTE_STORE_ONLY), introduce KASAN write-only mode
-which restricts KASAN check write (store) operation only.  This mode omits
-KASAN check for read (fetch/load) operation.  Therefore, it might be used
-not only debugging purpose but also in normal environment.
-
-
-This patch (of 2):
-
-Since Armv8.9, FEATURE_MTE_STORE_ONLY feature is introduced to restrict
-raise of tag check fault on store operation only.  Introcude KASAN write
-only mode based on this feature.
-
-KASAN write only mode restricts KASAN checks operation for write only and
-omits the checks for fetch/read operations when accessing memory.  So it
-might be used not only debugging enviroment but also normal enviroment to
-check memory safty.
-
-This features can be controlled with "kasan.write_only" arguments.  When
-"kasan.write_only=on", KASAN checks write operation only otherwise KASAN
-checks all operations.
-
-This changes the MTE_STORE_ONLY feature as BOOT_CPU_FEATURE like
-ARM64_MTE_ASYMM so that makes it initialise in kasan_init_hw_tags() with
-other function together.
-
-Link: https://lkml.kernel.org/r/20250816110018.4055617-1-yeoreum.yun@arm.com
-Link: https://lkml.kernel.org/r/20250816110018.4055617-2-yeoreum.yun@arm.com
+Link: https://lkml.kernel.org/r/20250816110018.4055617-3-yeoreum.yun@arm.com
 Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -126,7 +100,6 @@ Cc: James Morse <james.morse@arm.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: levi.yun <yeoreum.yun@arm.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Oliver Upton <oliver.upton@linux.dev>
@@ -137,231 +110,523 @@ Cc: Yang Shi <yang@os.amperecomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst  |    3 +
- arch/arm64/include/asm/memory.h    |    1 
- arch/arm64/include/asm/mte-kasan.h |    6 +++
- arch/arm64/kernel/cpufeature.c     |    2 -
- arch/arm64/kernel/mte.c            |   18 +++++++++
- mm/kasan/hw_tags.c                 |   54 ++++++++++++++++++++++++++-
- mm/kasan/kasan.h                   |    7 +++
- 7 files changed, 88 insertions(+), 3 deletions(-)
+ mm/kasan/kasan_test_c.c |  237 +++++++++++++++++++++++++-------------
+ 1 file changed, 162 insertions(+), 75 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~kasan-hw-tags-introduce-kasanwrite_only-option
-+++ a/arch/arm64/include/asm/memory.h
-@@ -308,6 +308,7 @@ static inline const void *__tag_set(cons
- #define arch_enable_tag_checks_sync()		mte_enable_kernel_sync()
- #define arch_enable_tag_checks_async()		mte_enable_kernel_async()
- #define arch_enable_tag_checks_asymm()		mte_enable_kernel_asymm()
-+#define arch_enable_tag_checks_write_only()	mte_enable_kernel_store_only()
- #define arch_suppress_tag_checks_start()	mte_enable_tco()
- #define arch_suppress_tag_checks_stop()		mte_disable_tco()
- #define arch_force_async_tag_fault()		mte_check_tfsr_exit()
---- a/arch/arm64/include/asm/mte-kasan.h~kasan-hw-tags-introduce-kasanwrite_only-option
-+++ a/arch/arm64/include/asm/mte-kasan.h
-@@ -200,6 +200,7 @@ static inline void mte_set_mem_tag_range
- void mte_enable_kernel_sync(void);
- void mte_enable_kernel_async(void);
- void mte_enable_kernel_asymm(void);
-+int mte_enable_kernel_store_only(void);
- 
- #else /* CONFIG_ARM64_MTE */
- 
-@@ -251,6 +252,11 @@ static inline void mte_enable_kernel_asy
- {
+--- a/mm/kasan/kasan_test_c.c~kasan-apply-write-only-mode-in-kasan-kunit-testcases
++++ a/mm/kasan/kasan_test_c.c
+@@ -94,11 +94,13 @@ static void kasan_test_exit(struct kunit
  }
  
-+static inline int mte_enable_kernel_store_only(void)
-+{
-+	return -EINVAL;
-+}
-+
- #endif /* CONFIG_ARM64_MTE */
+ /**
+- * KUNIT_EXPECT_KASAN_FAIL - check that the executed expression produces a
+- * KASAN report; causes a KUnit test failure otherwise.
++ * _KUNIT_EXPECT_KASAN_TEMPLATE - check that the executed expression produces
++ * a KASAN report or not; a KUnit test failure when it's different from @produce.
+  *
+  * @test: Currently executing KUnit test.
+- * @expression: Expression that must produce a KASAN report.
++ * @expr: Expression produce a KASAN report or not.
++ * @expr_str: Expression string
++ * @produce: expression should produce a KASAN report.
+  *
+  * For hardware tag-based KASAN, when a synchronous tag fault happens, tag
+  * checking is auto-disabled. When this happens, this test handler reenables
+@@ -110,25 +112,29 @@ static void kasan_test_exit(struct kunit
+  * Use READ/WRITE_ONCE() for the accesses and compiler barriers around the
+  * expression to prevent that.
+  *
+- * In between KUNIT_EXPECT_KASAN_FAIL checks, test_status.report_found is kept
++ * In between _KUNIT_EXPECT_KASAN_TEMPLATE checks, test_status.report_found is kept
+  * as false. This allows detecting KASAN reports that happen outside of the
+  * checks by asserting !test_status.report_found at the start of
+- * KUNIT_EXPECT_KASAN_FAIL and in kasan_test_exit.
++ * _KUNIT_EXPECT_KASAN_TEMPLATE and in kasan_test_exit.
+  */
+-#define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {			\
++#define _KUNIT_EXPECT_KASAN_TEMPLATE(test, expr, expr_str, produce)	\
++do {									\
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
+ 	    kasan_sync_fault_possible())				\
+ 		migrate_disable();					\
+ 	KUNIT_EXPECT_FALSE(test, READ_ONCE(test_status.report_found));	\
+ 	barrier();							\
+-	expression;							\
++	expr;								\
+ 	barrier();							\
+ 	if (kasan_async_fault_possible())				\
+ 		kasan_force_async_fault();				\
+-	if (!READ_ONCE(test_status.report_found)) {			\
+-		KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT "KASAN failure "	\
+-				"expected in \"" #expression		\
+-				 "\", but none occurred");		\
++	if (READ_ONCE(test_status.report_found) != produce) {		\
++		KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT "KASAN %s "	\
++				"expected in \"" expr_str		\
++				 "\", but %soccurred",			\
++				(produce ? "failure" : "success"),	\
++				(test_status.report_found ?		\
++				 "" : "none "));			\
+ 	}								\
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
+ 	    kasan_sync_fault_possible()) {				\
+@@ -141,6 +147,29 @@ static void kasan_test_exit(struct kunit
+ 	WRITE_ONCE(test_status.async_fault, false);			\
+ } while (0)
  
- #endif /* __ASSEMBLY__ */
---- a/arch/arm64/kernel/cpufeature.c~kasan-hw-tags-introduce-kasanwrite_only-option
-+++ a/arch/arm64/kernel/cpufeature.c
-@@ -2920,7 +2920,7 @@ static const struct arm64_cpu_capabiliti
- 	{
- 		.desc = "Store Only MTE Tag Check",
- 		.capability = ARM64_MTE_STORE_ONLY,
--		.type = ARM64_CPUCAP_SYSTEM_FEATURE,
-+		.type = ARM64_CPUCAP_BOOT_CPU_FEATURE,
- 		.matches = has_cpuid_feature,
- 		ARM64_CPUID_FIELDS(ID_AA64PFR2_EL1, MTESTOREONLY, IMP)
- 	},
---- a/arch/arm64/kernel/mte.c~kasan-hw-tags-introduce-kasanwrite_only-option
-+++ a/arch/arm64/kernel/mte.c
-@@ -157,6 +157,24 @@ void mte_enable_kernel_asymm(void)
- 		mte_enable_kernel_sync();
++/*
++ * KUNIT_EXPECT_KASAN_FAIL - check that the executed expression produces a
++ * KASAN report; causes a KUnit test failure otherwise.
++ *
++ * @test: Currently executing KUnit test.
++ * @expr: Expression produce a KASAN report.
++ */
++#define KUNIT_EXPECT_KASAN_FAIL(test, expr)			\
++	_KUNIT_EXPECT_KASAN_TEMPLATE(test, expr, #expr, true)
++
++/*
++ * KUNIT_EXPECT_KASAN_FAIL_READ - check that the executed expression produces
++ * a KASAN report for read access.
++ * It causes a KUnit test failure. if KASAN report isn't produced for read access.
++ * For write access, it cause a KUnit test failure if a KASAN report is produced
++ *
++ * @test: Currently executing KUnit test.
++ * @expr: Expression doesn't produce a KASAN report.
++ */
++#define KUNIT_EXPECT_KASAN_FAIL_READ(test, expr)			\
++	_KUNIT_EXPECT_KASAN_TEMPLATE(test, expr, #expr,			\
++			!kasan_write_only_enabled())			\
++
+ #define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
+ 	if (!IS_ENABLED(config))					\
+ 		kunit_skip((test), "Test requires " #config "=y");	\
+@@ -183,8 +212,8 @@ static void kmalloc_oob_right(struct kun
+ 	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size + 5] = 'y');
+ 
+ 	/* Out-of-bounds access past the aligned kmalloc object. */
+-	KUNIT_EXPECT_KASAN_FAIL(test, ptr[0] =
+-					ptr[size + KASAN_GRANULE_SIZE + 5]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ptr[0] =
++			ptr[size + KASAN_GRANULE_SIZE + 5]);
+ 
+ 	kfree(ptr);
+ }
+@@ -198,7 +227,8 @@ static void kmalloc_oob_left(struct kuni
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
+ 	OPTIMIZER_HIDE_VAR(ptr);
+-	KUNIT_EXPECT_KASAN_FAIL(test, *ptr = *(ptr - 1));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, *ptr = *(ptr - 1));
++
+ 	kfree(ptr);
+ }
+ 
+@@ -211,7 +241,8 @@ static void kmalloc_node_oob_right(struc
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
+ 	OPTIMIZER_HIDE_VAR(ptr);
+-	KUNIT_EXPECT_KASAN_FAIL(test, ptr[0] = ptr[size]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ptr[0] = ptr[size]);
++
+ 	kfree(ptr);
+ }
+ 
+@@ -291,7 +322,7 @@ static void kmalloc_large_uaf(struct kun
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 	kfree(ptr);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[0]);
+ }
+ 
+ static void kmalloc_large_invalid_free(struct kunit *test)
+@@ -323,7 +354,8 @@ static void page_alloc_oob_right(struct
+ 	ptr = page_address(pages);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, ptr[0] = ptr[size]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ptr[0] = ptr[size]);
++
+ 	free_pages((unsigned long)ptr, order);
+ }
+ 
+@@ -338,7 +370,7 @@ static void page_alloc_uaf(struct kunit
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 	free_pages((unsigned long)ptr, order);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[0]);
+ }
+ 
+ static void krealloc_more_oob_helper(struct kunit *test,
+@@ -455,10 +487,10 @@ static void krealloc_uaf(struct kunit *t
+ 	ptr1 = kmalloc(size1, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
+ 	kfree(ptr1);
+-
+ 	KUNIT_EXPECT_KASAN_FAIL(test, ptr2 = krealloc(ptr1, size2, GFP_KERNEL));
+ 	KUNIT_ASSERT_NULL(test, ptr2);
+-	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)ptr1);
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, *(volatile char *)ptr1);
+ }
+ 
+ static void kmalloc_oob_16(struct kunit *test)
+@@ -501,7 +533,8 @@ static void kmalloc_uaf_16(struct kunit
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
+ 	kfree(ptr2);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, *ptr1 = *ptr2);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, *ptr1 = *ptr2);
++
+ 	kfree(ptr1);
+ }
+ 
+@@ -640,8 +673,10 @@ static void kmalloc_memmove_invalid_size
+ 	memset((char *)ptr, 0, 64);
+ 	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(invalid_size);
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
++			memmove((char *)ptr, (char *)ptr + 4, invalid_size));
++
+ 	kfree(ptr);
+ }
+ 
+@@ -654,7 +689,8 @@ static void kmalloc_uaf(struct kunit *te
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
+ 	kfree(ptr);
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[8]);
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[8]);
+ }
+ 
+ static void kmalloc_uaf_memset(struct kunit *test)
+@@ -701,7 +737,8 @@ again:
+ 		goto again;
  	}
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr1)[40]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr1)[40]);
++
+ 	KUNIT_EXPECT_PTR_NE(test, ptr1, ptr2);
+ 
+ 	kfree(ptr2);
+@@ -727,19 +764,19 @@ static void kmalloc_uaf3(struct kunit *t
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
+ 	kfree(ptr2);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr1)[8]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr1)[8]);
  }
+ 
+ static void kasan_atomics_helper(struct kunit *test, void *unsafe, void *safe)
+ {
+ 	int *i_unsafe = unsafe;
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, READ_ONCE(*i_unsafe));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, READ_ONCE(*i_unsafe));
 +
-+int mte_enable_kernel_store_only(void)
-+{
+ 	KUNIT_EXPECT_KASAN_FAIL(test, WRITE_ONCE(*i_unsafe, 42));
+-	KUNIT_EXPECT_KASAN_FAIL(test, smp_load_acquire(i_unsafe));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, smp_load_acquire(i_unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, smp_store_release(i_unsafe, 42));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_read(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, atomic_read(unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_set(unsafe, 42));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add(42, unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_sub(42, unsafe));
+@@ -752,18 +789,35 @@ static void kasan_atomics_helper(struct
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_xchg(unsafe, 42));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_cmpxchg(unsafe, 21, 42));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_try_cmpxchg(unsafe, safe, 42));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_try_cmpxchg(safe, unsafe, 42));
++
 +	/*
-+	 * If the CPU does not support MTE store only,
-+	 * the kernel checks all operations.
++	 * The result of the test below may vary due to garbage values of unsafe in
++	 * store-only mode. Therefore, skip this test when KASAN is configured
++	 * in store-only mode.
 +	 */
-+	if (!cpus_have_cap(ARM64_MTE_STORE_ONLY))
-+		return -EINVAL;
++	if (!kasan_write_only_enabled())
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_try_cmpxchg(safe, unsafe, 42));
 +
-+	sysreg_clear_set(sctlr_el1, SCTLR_EL1_TCSO_MASK,
-+			 SYS_FIELD_PREP(SCTLR_EL1, TCSO, 1));
-+	isb();
-+
-+	pr_info_once("MTE: enabled stonly mode at EL1\n");
-+
-+	return 0;
-+}
- #endif
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_sub_and_test(42, unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_and_test(unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_and_test(unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add_negative(42, unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add_unless(unsafe, 21, 42));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_not_zero(unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_unless_negative(unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_unless_positive(unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_if_positive(unsafe));
  
- #ifdef CONFIG_KASAN_HW_TAGS
---- a/Documentation/dev-tools/kasan.rst~kasan-hw-tags-introduce-kasanwrite_only-option
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -143,6 +143,9 @@ disabling KASAN altogether or controllin
-   Asymmetric mode: a bad access is detected synchronously on reads and
-   asynchronously on writes.
- 
-+- ``kasan.write_only=off`` or ``kasan.write_only=on`` controls whether KASAN
-+  checks the write (store) accesses only or all accesses (default: ``off``)
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_read(unsafe));
++	/*
++	 * The result of the test below may vary due to garbage values of unsafe in
++	 * store-only mode. Therefore, skip this test when KASAN is configured
++	 * in store-only mode.
++	 */
++	if (!kasan_write_only_enabled()) {
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_add_unless(unsafe, 21, 42));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_not_zero(unsafe));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_unless_negative(unsafe));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_unless_positive(unsafe));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_if_positive(unsafe));
++	}
 +
- - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
-   allocations (default: ``on``).
- 
---- a/mm/kasan/hw_tags.c~kasan-hw-tags-introduce-kasanwrite_only-option
-+++ a/mm/kasan/hw_tags.c
-@@ -41,9 +41,16 @@ enum kasan_arg_vmalloc {
- 	KASAN_ARG_VMALLOC_ON,
- };
- 
-+enum kasan_arg_write_only {
-+	KASAN_ARG_WRITE_ONLY_DEFAULT,
-+	KASAN_ARG_WRITE_ONLY_OFF,
-+	KASAN_ARG_WRITE_ONLY_ON,
-+};
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, atomic_long_read(unsafe));
 +
- static enum kasan_arg kasan_arg __ro_after_init;
- static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
- static enum kasan_arg_vmalloc kasan_arg_vmalloc __initdata;
-+static enum kasan_arg_write_only kasan_arg_write_only __ro_after_init;
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_set(unsafe, 42));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add(42, unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_sub(42, unsafe));
+@@ -776,16 +830,32 @@ static void kasan_atomics_helper(struct
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_xchg(unsafe, 42));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_cmpxchg(unsafe, 21, 42));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_try_cmpxchg(unsafe, safe, 42));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_try_cmpxchg(safe, unsafe, 42));
++
++	/*
++	 * The result of the test below may vary due to garbage values in
++	 * store-only mode. Therefore, skip this test when KASAN is configured
++	 * in store-only mode.
++	 */
++	if (!kasan_write_only_enabled())
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_try_cmpxchg(safe, unsafe, 42));
++
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_sub_and_test(42, unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_and_test(unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_and_test(unsafe));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add_negative(42, unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add_unless(unsafe, 21, 42));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_not_zero(unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_unless_negative(unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_unless_positive(unsafe));
+-	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_if_positive(unsafe));
++
++	/*
++	 * The result of the test below may vary due to garbage values in
++	 * store-only mode. Therefore, skip this test when KASAN is configured
++	 * in store-only mode.
++	 */
++	if (!kasan_write_only_enabled()) {
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add_unless(unsafe, 21, 42));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_not_zero(unsafe));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_unless_negative(unsafe));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_unless_positive(unsafe));
++		KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_if_positive(unsafe));
++	}
+ }
+ 
+ static void kasan_atomics(struct kunit *test)
+@@ -842,8 +912,9 @@ static void ksize_unpoisons_memory(struc
+ 	/* These must trigger a KASAN report. */
+ 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+ 		KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size]);
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size + 5]);
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[real_size - 1]);
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[size + 5]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[real_size - 1]);
+ 
+ 	kfree(ptr);
+ }
+@@ -863,8 +934,8 @@ static void ksize_uaf(struct kunit *test
+ 
+ 	OPTIMIZER_HIDE_VAR(ptr);
+ 	KUNIT_EXPECT_KASAN_FAIL(test, ksize(ptr));
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[0]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[size]);
+ }
  
  /*
-  * Whether KASAN is enabled at all.
-@@ -67,6 +74,8 @@ DEFINE_STATIC_KEY_FALSE(kasan_flag_vmall
- #endif
- EXPORT_SYMBOL_GPL(kasan_flag_vmalloc);
+@@ -886,6 +957,7 @@ static void rcu_uaf_reclaim(struct rcu_h
+ 		container_of(rp, struct kasan_rcu_info, rcu);
  
-+static bool kasan_flag_write_only;
+ 	kfree(fp);
 +
- #define PAGE_ALLOC_SAMPLE_DEFAULT	1
- #define PAGE_ALLOC_SAMPLE_ORDER_DEFAULT	3
- 
-@@ -141,6 +150,23 @@ static int __init early_kasan_flag_vmall
+ 	((volatile struct kasan_rcu_info *)fp)->i;
  }
- early_param("kasan.vmalloc", early_kasan_flag_vmalloc);
  
-+/* kasan.write_only=off/on */
-+static int __init early_kasan_flag_write_only(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	if (!strcmp(arg, "off"))
-+		kasan_arg_write_only = KASAN_ARG_WRITE_ONLY_OFF;
-+	else if (!strcmp(arg, "on"))
-+		kasan_arg_write_only = KASAN_ARG_WRITE_ONLY_ON;
-+	else
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+early_param("kasan.write_only", early_kasan_flag_write_only);
-+
- static inline const char *kasan_mode_info(void)
- {
- 	if (kasan_mode == KASAN_MODE_ASYNC)
-@@ -257,15 +283,26 @@ void __init kasan_init_hw_tags(void)
- 		break;
+@@ -899,9 +971,9 @@ static void rcu_uaf(struct kunit *test)
+ 	global_rcu_ptr = rcu_dereference_protected(
+ 				(struct kasan_rcu_info __rcu *)ptr, NULL);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		call_rcu(&global_rcu_ptr->rcu, rcu_uaf_reclaim);
+-		rcu_barrier());
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
++			call_rcu(&global_rcu_ptr->rcu, rcu_uaf_reclaim);
++			rcu_barrier());
+ }
+ 
+ static void workqueue_uaf_work(struct work_struct *work)
+@@ -924,8 +996,8 @@ static void workqueue_uaf(struct kunit *
+ 	queue_work(workqueue, work);
+ 	destroy_workqueue(workqueue);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		((volatile struct work_struct *)work)->data);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
++			((volatile struct work_struct *)work)->data);
+ }
+ 
+ static void kfree_via_page(struct kunit *test)
+@@ -972,7 +1044,7 @@ static void kmem_cache_oob(struct kunit
+ 		return;
  	}
  
-+	switch (kasan_arg_write_only) {
-+	case KASAN_ARG_WRITE_ONLY_DEFAULT:
-+	case KASAN_ARG_WRITE_ONLY_OFF:
-+		kasan_flag_write_only = false;
-+		break;
-+	case KASAN_ARG_WRITE_ONLY_ON:
-+		kasan_flag_write_only = true;
-+		break;
-+	}
-+
- 	kasan_init_tags();
+-	KUNIT_EXPECT_KASAN_FAIL(test, *p = p[size + OOB_TAG_OFF]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, *p = p[size + OOB_TAG_OFF]);
  
- 	/* KASAN is now initialized, enable it. */
- 	static_branch_enable(&kasan_flag_enabled);
+ 	kmem_cache_free(cache, p);
+ 	kmem_cache_destroy(cache);
+@@ -1068,7 +1140,7 @@ static void kmem_cache_rcu_uaf(struct ku
+ 	 */
+ 	rcu_barrier();
  
--	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s)\n",
-+	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s, write_only=%s\n",
- 		kasan_mode_info(),
- 		str_on_off(kasan_vmalloc_enabled()),
--		str_on_off(kasan_stack_collection_enabled()));
-+		str_on_off(kasan_stack_collection_enabled()),
-+		str_on_off(kasan_arg_write_only));
+-	KUNIT_EXPECT_KASAN_FAIL(test, READ_ONCE(*p));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, READ_ONCE(*p));
+ 
+ 	kmem_cache_destroy(cache);
  }
- 
- #ifdef CONFIG_KASAN_VMALLOC
-@@ -392,6 +429,13 @@ void kasan_enable_hw_tags(void)
- 		hw_enable_tag_checks_asymm();
+@@ -1246,7 +1318,7 @@ static void mempool_oob_right_helper(str
+ 		KUNIT_EXPECT_KASAN_FAIL(test,
+ 			((volatile char *)&elem[size])[0]);
  	else
- 		hw_enable_tag_checks_sync();
+-		KUNIT_EXPECT_KASAN_FAIL(test,
++		KUNIT_EXPECT_KASAN_FAIL_READ(test,
+ 			((volatile char *)&elem[round_up(size, KASAN_GRANULE_SIZE)])[0]);
+ 
+ 	mempool_free(elem, pool);
+@@ -1312,7 +1384,8 @@ static void mempool_uaf_helper(struct ku
+ 	mempool_free(elem, pool);
+ 
+ 	ptr = page ? page_address((struct page *)elem) : elem;
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
 +
-+	if (kasan_arg_mode == KASAN_ARG_WRITE_ONLY_ON &&
-+	    hw_enable_tag_checks_write_only()) {
-+		kasan_arg_mode == KASAN_ARG_WRITE_ONLY_OFF;
-+		kasan_flag_write_only = false;
-+		pr_warn_once("System doesn't support write-only option. Disable it\n");
-+	}
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[0]);
  }
  
- #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
-@@ -404,4 +448,10 @@ VISIBLE_IF_KUNIT void kasan_force_async_
+ static void mempool_kmalloc_uaf(struct kunit *test)
+@@ -1571,7 +1644,8 @@ static void kasan_memchr(struct kunit *t
+ 
+ 	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test,
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
+ 		kasan_ptr_result = memchr(ptr, '1', size + 1));
+ 
+ 	kfree(ptr);
+@@ -1598,8 +1672,10 @@ static void kasan_memcmp(struct kunit *t
+ 
+ 	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test,
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
+ 		kasan_int_result = memcmp(ptr, arr, size+1));
++
+ 	kfree(ptr);
  }
- EXPORT_SYMBOL_IF_KUNIT(kasan_force_async_fault);
  
-+VISIBLE_IF_KUNIT bool kasan_write_only_enabled(void)
-+{
-+	return kasan_flag_write_only;
-+}
-+EXPORT_SYMBOL_IF_KUNIT(kasan_write_only_enabled);
+@@ -1635,7 +1711,7 @@ static void kasan_strings(struct kunit *
+ 			strscpy(ptr, src + 1, KASAN_GRANULE_SIZE));
+ 
+ 	/* strscpy should fail if the first byte is unreadable. */
+-	KUNIT_EXPECT_KASAN_FAIL(test, strscpy(ptr, src + KASAN_GRANULE_SIZE,
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, strscpy(ptr, src + KASAN_GRANULE_SIZE,
+ 					      KASAN_GRANULE_SIZE));
+ 
+ 	kfree(src);
+@@ -1648,17 +1724,13 @@ static void kasan_strings(struct kunit *
+ 	 * will likely point to zeroed byte.
+ 	 */
+ 	ptr += 16;
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_ptr_result = strchr(ptr, '1'));
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_ptr_result = strrchr(ptr, '1'));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = strcmp(ptr, "2"));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = strncmp(ptr, "2", 1));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = strlen(ptr));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = strnlen(ptr, 1));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, kasan_ptr_result = strchr(ptr, '1'));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, kasan_ptr_result = strrchr(ptr, '1'));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, kasan_int_result = strcmp(ptr, "2"));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, kasan_int_result = strncmp(ptr, "2", 1));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, kasan_int_result = strlen(ptr));
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, kasan_int_result = strnlen(ptr, 1));
+ }
+ 
+ static void kasan_bitops_modify(struct kunit *test, int nr, void *addr)
+@@ -1677,12 +1749,22 @@ static void kasan_bitops_test_and_modify
+ {
+ 	KUNIT_EXPECT_KASAN_FAIL(test, test_and_set_bit(nr, addr));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_set_bit(nr, addr));
+-	KUNIT_EXPECT_KASAN_FAIL(test, test_and_set_bit_lock(nr, addr));
 +
- #endif
---- a/mm/kasan/kasan.h~kasan-hw-tags-introduce-kasanwrite_only-option
-+++ a/mm/kasan/kasan.h
-@@ -428,6 +428,7 @@ static inline const void *arch_kasan_set
- #define hw_enable_tag_checks_sync()		arch_enable_tag_checks_sync()
- #define hw_enable_tag_checks_async()		arch_enable_tag_checks_async()
- #define hw_enable_tag_checks_asymm()		arch_enable_tag_checks_asymm()
-+#define hw_enable_tag_checks_write_only()	arch_enable_tag_checks_write_only()
- #define hw_suppress_tag_checks_start()		arch_suppress_tag_checks_start()
- #define hw_suppress_tag_checks_stop()		arch_suppress_tag_checks_stop()
- #define hw_force_async_tag_fault()		arch_force_async_tag_fault()
-@@ -437,11 +438,17 @@ static inline const void *arch_kasan_set
- 			arch_set_mem_tag_range((addr), (size), (tag), (init))
- 
- void kasan_enable_hw_tags(void);
-+bool kasan_write_only_enabled(void);
- 
- #else /* CONFIG_KASAN_HW_TAGS */
- 
- static inline void kasan_enable_hw_tags(void) { }
- 
-+static inline bool kasan_write_only_enabled(void)
-+{
-+	return false;
-+}
++	/*
++	 * When KASAN is running in store-only mode,
++	 * a fault won't occur when the bit is set.
++	 * Therefore, skip the test_and_set_bit_lock test in store-only mode.
++	 */
++	if (!kasan_write_only_enabled())
++		KUNIT_EXPECT_KASAN_FAIL(test, test_and_set_bit_lock(nr, addr));
 +
- #endif /* CONFIG_KASAN_HW_TAGS */
+ 	KUNIT_EXPECT_KASAN_FAIL(test, test_and_clear_bit(nr, addr));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_clear_bit(nr, addr));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, test_and_change_bit(nr, addr));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_change_bit(nr, addr));
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = test_bit(nr, addr));
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, kasan_int_result = test_bit(nr, addr));
++
+ 	if (nr < 7)
+ 		KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result =
+ 				xor_unlock_is_negative_byte(1 << nr, addr));
+@@ -1806,7 +1888,7 @@ static void vmalloc_oob(struct kunit *te
+ 		KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)v_ptr)[size]);
  
- #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
+ 	/* An aligned access into the first out-of-bounds granule. */
+-	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)v_ptr)[size + 5]);
++	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)v_ptr)[size + 5]);
+ 
+ 	/* Check that in-bounds accesses to the physical page are valid. */
+ 	page = vmalloc_to_page(v_ptr);
+@@ -2083,15 +2165,20 @@ static void copy_user_test_oob(struct ku
+ 
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		unused = copy_from_user(kmem, usermem, size + 1));
+-	KUNIT_EXPECT_KASAN_FAIL(test,
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
+ 		unused = copy_to_user(usermem, kmem, size + 1));
++
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		unused = __copy_from_user(kmem, usermem, size + 1));
+-	KUNIT_EXPECT_KASAN_FAIL(test,
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
+ 		unused = __copy_to_user(usermem, kmem, size + 1));
++
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		unused = __copy_from_user_inatomic(kmem, usermem, size + 1));
+-	KUNIT_EXPECT_KASAN_FAIL(test,
++
++	KUNIT_EXPECT_KASAN_FAIL_READ(test,
+ 		unused = __copy_to_user_inatomic(usermem, kmem, size + 1));
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from yeoreum.yun@arm.com are
