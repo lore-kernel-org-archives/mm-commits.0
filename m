@@ -1,65 +1,802 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f179.google.com (mail-lj1-f179.google.com [209.85.208.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F1D4200113
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 03:08:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8A7D524F
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 06:00:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755486488; cv=none; b=Kra68dgCI29GmwkcF0bV5IZ5NZHE9UDyA9gK6J3Zs+0oF7SdlqO3+j3+difb+fVo8A8DnZQkEgVxtY2yfD3DqPJt8TE4JXbJ993H8KxzNuPH6N71HsfKDa00XB3BcThKWFfRaRLUawS8oVDw2xlMD38fjpcRG/pJS4E1C+vF3ZM=
+	t=1755496850; cv=none; b=gJAbb6HpnmvCbqZns+J7fRFLFY+K9/EJci1s9LgVAzCMr7fwAB4xb28l5VIHXLI9DvgK9GPPGcq2N8czKYa8LBVGKLMBtXr0IcU+c7qpzXu1fvUkrk6tf2alXMgnVi3ibfgfMOR6bPwTQ0tPgSMSA84/3L2GxPZlHKnsVH9SUCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755486488; c=relaxed/simple;
-	bh=sNym8G/sgDtML+FNk9Qx5bmHmyKRV8akdY0cS1O0t34=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XXtTC9pJFcmAf+nxMGY2bLtFFPxohSnJqV9vJusWM3gVPR1DXXdPTNIMTPBKgmCLXA7AVZ0I1PZOa6Q9/0kE8y02F8FSETSMfGa5QI18XfCCVTk+YDW3vSFrXBtL3lr5NjGHwvLZzd0OXssPb6T0/ape0FnxRyyCt1EVo5qpz4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=GtzjakWX; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1755496850; c=relaxed/simple;
+	bh=cycDWu+mg7D+hecsZlWd8fqQ7JRQX9J4hVorYzDeV3o=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=IAqqdRiDeNWToax5z1dtii0fZCqa373Qf2Y+d80kpDAwMb1uShgbSwMTdQbl1Py8rN3BJtsddDjR/VzE6SV/2K+Rs7zqm35paxxIICrbk5XpGVu/9PQQ0Zjb3yoisOaQpWz9Swb1v+UMgg1YiW3d5CN4PxBUXBuJcjRhlxwedfY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AuYJxDey; arc=none smtp.client-ip=209.85.208.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="GtzjakWX"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=NT4Ye4OEr6Jzg4fc9d/W0ZuxP+0DyApTbsj0E2UuNws=; b=GtzjakWXmuQ6xUXfzel6hvcJOg
-	Yc7AjNJS0bafksJp+p6tvqSCeKeBAWqlH03lS2smkl/UU8YA0LlGjW8YmHCKWx1IBkfVZW5ooxCxW
-	UWQ2y/BX2b257qpXPdfqB5d5pYttG+lyFnejBgfxY+JGzE3+XX18Cwjbe0srbmbYBlVIEBVq0R7JR
-	7VDBrDMGYQNavk7JjpH9Xkh4jJHkvgGpEMN6BPI12v9AheXA5N50KVRD7pBqszaP69uBzfILJbdi3
-	KWYpe24SlejYqxfzdlVjtlzAVGjL1SX3qS/QLjxNzm3iRL4nXvRq9Xkiid5MfiRB+2IkrLFrkNYsN
-	CRVFWS6Q==;
-Received: from willy by casper.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1unqDw-0000000H9Zj-15yn;
-	Mon, 18 Aug 2025 03:07:52 +0000
-Date: Mon, 18 Aug 2025 04:07:52 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, Yuezhang.Mo@sony.com,
-	viro@zeniv.linux.org.uk, sj1557.seo@samsung.com,
-	linkinjeon@kernel.org, jack@suse.cz, brauner@kernel.org,
-	chizhiling@kylinos.cn
-Subject: Re: + mpage-convert-do_mpage_readpage-to-return-int-type.patch added
- to mm-new branch
-Message-ID: <aKKZCBHCNQYxWKXX@casper.infradead.org>
-References: <20250818024604.7A133C4CEEB@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AuYJxDey"
+Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-333f8f0dd71so29310051fa.1
+        for <mm-commits@vger.kernel.org>; Sun, 17 Aug 2025 23:00:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1755496846; x=1756101646; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Oq94dD7/H8KbEWTD7Ni6OM2C8zNoAMVHY6EPnoO1DmE=;
+        b=AuYJxDeyZoQX7/CBPciBsyxXiXGUMss0WfWU8/y+up9C8ua+KTgKLFZCzl83N9Wnb0
+         jEXGgktunDyXU0E24sCCmGz7ASLIS/jap9UWwUmQe/8lwhxOkXdmXICsiYRCvxbPYKqn
+         w6Xf4T5UQ/O7+u8okX4zULT/RAFQKiPIB6YFYitcHi7H6SzcXIsShMQqd/h0B4CVMILv
+         RC+3/vXsS7cPcXkzqXV3lboeOTps+NUkDJZdcv/s0B+H22bcTQdLOy8Pn0Ugg9/aiHKi
+         uQ8VhoIubRmz46dXTfoRcwf3QEBT/FA8JJj9loIgvdTSYuVE/HUJOjSpmx1geXSx1NQ0
+         mdtw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1755496846; x=1756101646;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Oq94dD7/H8KbEWTD7Ni6OM2C8zNoAMVHY6EPnoO1DmE=;
+        b=EYqEjdUjlMYkYsGbdDV9UX7k09W9iqFLgrCLrHex5pWQQeBtPzgytS3xg2PF7JWsWx
+         mzf5NFyzD/CwRSCwfYJyTa3Uvd9fKxyLCNR07qNE+6A/mme170zI+xDlKfT/nHXBAxzk
+         ZuHq0XqDDAPPzU3q9UoOAjpd+PALIyKzqnhVz48x8rFRzAgxXN+nQImSl27HtaOQrzZa
+         bgcwheH9If0JbHpMHKQ96IWW9a7XqS5+GTAjMG1kslm7tiNemXb1FVsehW3ZkEilaVYD
+         BG7BGs+0zDUMLwN2UlPmNmt0/gQPGS3/Ifvl0w/e8ed8A4TaKw9QfNuABR9e4ZvZmcss
+         bshw==
+X-Gm-Message-State: AOJu0YzIPtymoMtYDyAsDfMoal3BFaPtlZLIJdMdPWwjXh3CTxOzHOE8
+	37wvrUnoofGzV8VQJc3WqOq52YUHBFepn5PdlenlO62QgKaIQp+W6k9WY8FnsR/bGWbXlZAUuOV
+	wrbJB8Gs0atYl493YEdxA/xA6hx4vg4S6uAG0jw/SXA==
+X-Gm-Gg: ASbGnct0WYoE9rMtpnvjv4Pkl0VtazjPYojk6lHnDVbwETXEOJ28sGXuejN4Pd9aNHF
+	qQQdj+NAcnjDg1Um1PXglAJSiUxz9Zr5DjwWOw/kI2xdYja/uIyzcai6Ai72gHgsAfoSI8m55kD
+	P5AIXnzSBpKchyNAUEYbBjReWp+xIERH+JYNA4705Ae18SFAi0RJz9Q9GwjRnb++7+bg6jcDBRm
+	T+WbQ==
+X-Google-Smtp-Source: AGHT+IFXax2GV02APkPxgkVy8YajKHQpk9l63cFTyz/oBaeGypPENef0FihTGkpuljiZiRUjfKTT33UbG0A4odcltTI=
+X-Received: by 2002:a05:651c:506:b0:332:1de5:c513 with SMTP id
+ 38308e7fff4ca-33412bad507mr17818881fa.4.1755496845054; Sun, 17 Aug 2025
+ 23:00:45 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250818024604.7A133C4CEEB@smtp.kernel.org>
+References: <20250812020207.3C798C4CEED@smtp.kernel.org>
+In-Reply-To: <20250812020207.3C798C4CEED@smtp.kernel.org>
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Date: Mon, 18 Aug 2025 11:00:27 +0500
+X-Gm-Features: Ac12FXzxQuE4Vbrx1O0lVz9YnVyjIHvCsveV5r7EV8LRl5qH2Om5b8NsX2UAgr4
+Message-ID: <CACzwLxheKpr6XZWi3-RDF6S+nXK2YSwSL+EV655cyk3aOk0g7Q@mail.gmail.com>
+Subject: Re: + kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes.patch
+ added to mm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, Aug 17, 2025 at 07:46:03PM -0700, Andrew Morton wrote:
-> From: Chi Zhiling <chizhiling@kylinos.cn>
-> Subject: mpage: convert do_mpage_readpage() to return int type
-> Date: Tue, 12 Aug 2025 15:22:25 +0800
-> 
-> The return value of do_mpage_readpage() is arg->bio, which is already set
-> in the arg structure.  Returning it again is redundant.
-> 
-> This patch changes the return type to int and always returns 0 since the
-> caller does not care about the return value.
+On Tue, Aug 12, 2025 at 7:02=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+>
+> The patch titled
+>      Subject: kasan: introduce ARCH_DEFER_KASAN and unify static key acro=
+ss modes
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes.p=
+atch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
+/patches/kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes=
+.patch
+>
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
 
-This makes no sense.  If the caller doesn't care, then it should return
-void.
+Hello,
+
+I can't seem to find my patches in mm-unstable (and in other branches
+in your -mm repo).
+https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/log/?h=3Dmm-uns=
+table
+
+I can see them in patches/old though, could you please advise if they
+are not missed?
+
+https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patche=
+s/old/kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes.pa=
+tch
+https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patche=
+s/old/kasan-call-kasan_init_generic-in-kasan_init.patch
+
+Thanks!
+
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testi=
+ng your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+> Subject: kasan: introduce ARCH_DEFER_KASAN and unify static key across mo=
+des
+> Date: Sun, 10 Aug 2025 17:57:45 +0500
+>
+> Patch series "kasan: unify kasan_enabled() and remove arch-specific
+> implementations", v6.
+>
+> This patch series addresses the fragmentation in KASAN initialization
+> across architectures by introducing a unified approach that eliminates
+> duplicate static keys and arch-specific kasan_arch_is_ready()
+> implementations.
+>
+> The core issue is that different architectures have inconsistent approach=
+es
+> to KASAN readiness tracking:
+> - PowerPC, LoongArch, and UML arch, each implement own kasan_arch_is_read=
+y()
+> - Only HW_TAGS mode had a unified static key (kasan_flag_enabled)
+> - Generic and SW_TAGS modes relied on arch-specific solutions
+>   or always-on behavior
+>
+>
+> This patch (of 2):
+>
+> Introduce CONFIG_ARCH_DEFER_KASAN to identify architectures [1] that need
+> to defer KASAN initialization until shadow memory is properly set up, and
+> unify the static key infrastructure across all KASAN modes.
+>
+> [1] PowerPC, UML, LoongArch selects ARCH_DEFER_KASAN.
+>
+> The core issue is that different architectures haveinconsistent approache=
+s
+> to KASAN readiness tracking:
+> - PowerPC, LoongArch, and UML arch, each implement own
+>   kasan_arch_is_ready()
+> - Only HW_TAGS mode had a unified static key (kasan_flag_enabled)
+> - Generic and SW_TAGS modes relied on arch-specific solutions or always-o=
+n
+>     behavior
+>
+> This patch addresses the fragmentation in KASAN initialization across
+> architectures by introducing a unified approach that eliminates duplicate
+> static keys and arch-specific kasan_arch_is_ready() implementations.
+>
+> Let's replace kasan_arch_is_ready() with existing kasan_enabled() check,
+> which examines the static key being enabled if arch selects
+> ARCH_DEFER_KASAN or has HW_TAGS mode support.  For other arch,
+> kasan_enabled() checks the enablement during compile time.
+>
+> Now KASAN users can use a single kasan_enabled() check everywhere.
+>
+> Link: https://lkml.kernel.org/r/20250810125746.1105476-1-snovitoll@gmail.=
+com
+> Link: https://lkml.kernel.org/r/20250810125746.1105476-2-snovitoll@gmail.=
+com
+> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D217049
+> Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+> Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+> Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+> Cc: Alexander Potapenko <glider@google.com>
+> Cc: Alexandre Ghiti <alex@ghiti.fr>
+> Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+> Cc: Andrey Konovalov <andreyknvl@gmail.com>
+> Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+> Cc: Baoquan He <bhe@redhat.com>
+> Cc: David Gow <davidgow@google.com>
+> Cc: Dmitriy Vyukov <dvyukov@google.com>
+> Cc: Heiko Carstens <hca@linux.ibm.com>
+> Cc: Huacai Chen <chenhuacai@loongson.cn>
+> Cc: Marco Elver <elver@google.com>
+> Cc: Qing Zhang <zhangqing@loongson.cn>
+> Cc: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+> Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  arch/loongarch/Kconfig                 |    1
+>  arch/loongarch/include/asm/kasan.h     |    7 -----
+>  arch/loongarch/mm/kasan_init.c         |    8 ++---
+>  arch/powerpc/Kconfig                   |    1
+>  arch/powerpc/include/asm/kasan.h       |   12 --------
+>  arch/powerpc/mm/kasan/init_32.c        |    2 -
+>  arch/powerpc/mm/kasan/init_book3e_64.c |    2 -
+>  arch/powerpc/mm/kasan/init_book3s_64.c |    6 ----
+>  arch/um/Kconfig                        |    1
+>  arch/um/include/asm/kasan.h            |    5 +--
+>  arch/um/kernel/mem.c                   |   13 +++++++--
+>  include/linux/kasan-enabled.h          |   32 ++++++++++++++++-------
+>  include/linux/kasan.h                  |    6 ++++
+>  lib/Kconfig.kasan                      |   12 ++++++++
+>  mm/kasan/common.c                      |   17 +++++++++---
+>  mm/kasan/generic.c                     |   19 ++++++++++---
+>  mm/kasan/hw_tags.c                     |    9 ------
+>  mm/kasan/kasan.h                       |    8 +++++
+>  mm/kasan/shadow.c                      |   12 ++++----
+>  mm/kasan/sw_tags.c                     |    1
+>  mm/kasan/tags.c                        |    2 -
+>  21 files changed, 106 insertions(+), 70 deletions(-)
+>
+> --- a/arch/loongarch/include/asm/kasan.h~kasan-introduce-arch_defer_kasan=
+-and-unify-static-key-across-modes
+> +++ a/arch/loongarch/include/asm/kasan.h
+> @@ -66,7 +66,6 @@
+>  #define XKPRANGE_WC_SHADOW_OFFSET      (KASAN_SHADOW_START + XKPRANGE_WC=
+_KASAN_OFFSET)
+>  #define XKVRANGE_VC_SHADOW_OFFSET      (KASAN_SHADOW_START + XKVRANGE_VC=
+_KASAN_OFFSET)
+>
+> -extern bool kasan_early_stage;
+>  extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+>
+>  #define kasan_mem_to_shadow kasan_mem_to_shadow
+> @@ -75,12 +74,6 @@ void *kasan_mem_to_shadow(const void *ad
+>  #define kasan_shadow_to_mem kasan_shadow_to_mem
+>  const void *kasan_shadow_to_mem(const void *shadow_addr);
+>
+> -#define kasan_arch_is_ready kasan_arch_is_ready
+> -static __always_inline bool kasan_arch_is_ready(void)
+> -{
+> -       return !kasan_early_stage;
+> -}
+> -
+>  #define addr_has_metadata addr_has_metadata
+>  static __always_inline bool addr_has_metadata(const void *addr)
+>  {
+> --- a/arch/loongarch/Kconfig~kasan-introduce-arch_defer_kasan-and-unify-s=
+tatic-key-across-modes
+> +++ a/arch/loongarch/Kconfig
+> @@ -9,6 +9,7 @@ config LOONGARCH
+>         select ACPI_PPTT if ACPI
+>         select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+>         select ARCH_BINFMT_ELF_STATE
+> +       select ARCH_NEEDS_DEFER_KASAN
+>         select ARCH_DISABLE_KASAN_INLINE
+>         select ARCH_ENABLE_MEMORY_HOTPLUG
+>         select ARCH_ENABLE_MEMORY_HOTREMOVE
+> --- a/arch/loongarch/mm/kasan_init.c~kasan-introduce-arch_defer_kasan-and=
+-unify-static-key-across-modes
+> +++ a/arch/loongarch/mm/kasan_init.c
+> @@ -40,11 +40,9 @@ static pgd_t kasan_pg_dir[PTRS_PER_PGD]
+>  #define __pte_none(early, pte) (early ? pte_none(pte) : \
+>  ((pte_val(pte) & _PFN_MASK) =3D=3D (unsigned long)__pa(kasan_early_shado=
+w_page)))
+>
+> -bool kasan_early_stage =3D true;
+> -
+>  void *kasan_mem_to_shadow(const void *addr)
+>  {
+> -       if (!kasan_arch_is_ready()) {
+> +       if (!kasan_enabled()) {
+>                 return (void *)(kasan_early_shadow_page);
+>         } else {
+>                 unsigned long maddr =3D (unsigned long)addr;
+> @@ -298,7 +296,8 @@ void __init kasan_init(void)
+>         kasan_populate_early_shadow(kasan_mem_to_shadow((void *)VMALLOC_S=
+TART),
+>                                         kasan_mem_to_shadow((void *)KFENC=
+E_AREA_END));
+>
+> -       kasan_early_stage =3D false;
+> +       /* Enable KASAN here before kasan_mem_to_shadow(). */
+> +       kasan_init_generic();
+>
+>         /* Populate the linear mapping */
+>         for_each_mem_range(i, &pa_start, &pa_end) {
+> @@ -329,5 +328,4 @@ void __init kasan_init(void)
+>
+>         /* At this point kasan is fully initialized. Enable error message=
+s */
+>         init_task.kasan_depth =3D 0;
+> -       pr_info("KernelAddressSanitizer initialized.\n");
+>  }
+> --- a/arch/powerpc/include/asm/kasan.h~kasan-introduce-arch_defer_kasan-a=
+nd-unify-static-key-across-modes
+> +++ a/arch/powerpc/include/asm/kasan.h
+> @@ -53,18 +53,6 @@
+>  #endif
+>
+>  #ifdef CONFIG_KASAN
+> -#ifdef CONFIG_PPC_BOOK3S_64
+> -DECLARE_STATIC_KEY_FALSE(powerpc_kasan_enabled_key);
+> -
+> -static __always_inline bool kasan_arch_is_ready(void)
+> -{
+> -       if (static_branch_likely(&powerpc_kasan_enabled_key))
+> -               return true;
+> -       return false;
+> -}
+> -
+> -#define kasan_arch_is_ready kasan_arch_is_ready
+> -#endif
+>
+>  void kasan_early_init(void);
+>  void kasan_mmu_init(void);
+> --- a/arch/powerpc/Kconfig~kasan-introduce-arch_defer_kasan-and-unify-sta=
+tic-key-across-modes
+> +++ a/arch/powerpc/Kconfig
+> @@ -122,6 +122,7 @@ config PPC
+>         # Please keep this list sorted alphabetically.
+>         #
+>         select ARCH_32BIT_OFF_T if PPC32
+> +       select ARCH_NEEDS_DEFER_KASAN           if PPC_RADIX_MMU
+>         select ARCH_DISABLE_KASAN_INLINE        if PPC_RADIX_MMU
+>         select ARCH_DMA_DEFAULT_COHERENT        if !NOT_COHERENT_CACHE
+>         select ARCH_ENABLE_MEMORY_HOTPLUG
+> --- a/arch/powerpc/mm/kasan/init_32.c~kasan-introduce-arch_defer_kasan-an=
+d-unify-static-key-across-modes
+> +++ a/arch/powerpc/mm/kasan/init_32.c
+> @@ -165,7 +165,7 @@ void __init kasan_init(void)
+>
+>         /* At this point kasan is fully initialized. Enable error message=
+s */
+>         init_task.kasan_depth =3D 0;
+> -       pr_info("KASAN init done\n");
+> +       kasan_init_generic();
+>  }
+>
+>  void __init kasan_late_init(void)
+> --- a/arch/powerpc/mm/kasan/init_book3e_64.c~kasan-introduce-arch_defer_k=
+asan-and-unify-static-key-across-modes
+> +++ a/arch/powerpc/mm/kasan/init_book3e_64.c
+> @@ -127,7 +127,7 @@ void __init kasan_init(void)
+>
+>         /* Enable error messages */
+>         init_task.kasan_depth =3D 0;
+> -       pr_info("KASAN init done\n");
+> +       kasan_init_generic();
+>  }
+>
+>  void __init kasan_late_init(void) { }
+> --- a/arch/powerpc/mm/kasan/init_book3s_64.c~kasan-introduce-arch_defer_k=
+asan-and-unify-static-key-across-modes
+> +++ a/arch/powerpc/mm/kasan/init_book3s_64.c
+> @@ -19,8 +19,6 @@
+>  #include <linux/memblock.h>
+>  #include <asm/pgalloc.h>
+>
+> -DEFINE_STATIC_KEY_FALSE(powerpc_kasan_enabled_key);
+> -
+>  static void __init kasan_init_phys_region(void *start, void *end)
+>  {
+>         unsigned long k_start, k_end, k_cur;
+> @@ -92,11 +90,9 @@ void __init kasan_init(void)
+>          */
+>         memset(kasan_early_shadow_page, 0, PAGE_SIZE);
+>
+> -       static_branch_inc(&powerpc_kasan_enabled_key);
+> -
+>         /* Enable error messages */
+>         init_task.kasan_depth =3D 0;
+> -       pr_info("KASAN init done\n");
+> +       kasan_init_generic();
+>  }
+>
+>  void __init kasan_early_init(void) { }
+> --- a/arch/um/include/asm/kasan.h~kasan-introduce-arch_defer_kasan-and-un=
+ify-static-key-across-modes
+> +++ a/arch/um/include/asm/kasan.h
+> @@ -24,10 +24,9 @@
+>
+>  #ifdef CONFIG_KASAN
+>  void kasan_init(void);
+> -extern int kasan_um_is_ready;
+>
+> -#ifdef CONFIG_STATIC_LINK
+> -#define kasan_arch_is_ready() (kasan_um_is_ready)
+> +#if defined(CONFIG_STATIC_LINK) && defined(CONFIG_KASAN_INLINE)
+> +#error UML does not work in KASAN_INLINE mode with STATIC_LINK enabled!
+>  #endif
+>  #else
+>  static inline void kasan_init(void) { }
+> --- a/arch/um/Kconfig~kasan-introduce-arch_defer_kasan-and-unify-static-k=
+ey-across-modes
+> +++ a/arch/um/Kconfig
+> @@ -5,6 +5,7 @@ menu "UML-specific options"
+>  config UML
+>         bool
+>         default y
+> +       select ARCH_NEEDS_DEFER_KASAN if STATIC_LINK
+>         select ARCH_WANTS_DYNAMIC_TASK_STRUCT
+>         select ARCH_HAS_CACHE_LINE_SIZE
+>         select ARCH_HAS_CPU_FINALIZE_INIT
+> --- a/arch/um/kernel/mem.c~kasan-introduce-arch_defer_kasan-and-unify-sta=
+tic-key-across-modes
+> +++ a/arch/um/kernel/mem.c
+> @@ -21,10 +21,10 @@
+>  #include <os.h>
+>  #include <um_malloc.h>
+>  #include <linux/sched/task.h>
+> +#include <linux/kasan.h>
+>
+>  #ifdef CONFIG_KASAN
+> -int kasan_um_is_ready;
+> -void kasan_init(void)
+> +void __init kasan_init(void)
+>  {
+>         /*
+>          * kasan_map_memory will map all of the required address space an=
+d
+> @@ -32,7 +32,11 @@ void kasan_init(void)
+>          */
+>         kasan_map_memory((void *)KASAN_SHADOW_START, KASAN_SHADOW_SIZE);
+>         init_task.kasan_depth =3D 0;
+> -       kasan_um_is_ready =3D true;
+> +       /*
+> +        * Since kasan_init() is called before main(),
+> +        * KASAN is initialized but the enablement is deferred after
+> +        * jump_label_init(). See arch_mm_preinit().
+> +        */
+>  }
+>
+>  static void (*kasan_init_ptr)(void)
+> @@ -58,6 +62,9 @@ static unsigned long brk_end;
+>
+>  void __init arch_mm_preinit(void)
+>  {
+> +       /* Safe to call after jump_label_init(). Enables KASAN. */
+> +       kasan_init_generic();
+> +
+>         /* clear the zero-page */
+>         memset(empty_zero_page, 0, PAGE_SIZE);
+>
+> --- a/include/linux/kasan-enabled.h~kasan-introduce-arch_defer_kasan-and-=
+unify-static-key-across-modes
+> +++ a/include/linux/kasan-enabled.h
+> @@ -4,32 +4,46 @@
+>
+>  #include <linux/static_key.h>
+>
+> -#ifdef CONFIG_KASAN_HW_TAGS
+> -
+> +#if defined(CONFIG_ARCH_DEFER_KASAN) || defined(CONFIG_KASAN_HW_TAGS)
+> +/*
+> + * Global runtime flag for KASAN modes that need runtime control.
+> + * Used by ARCH_DEFER_KASAN architectures and HW_TAGS mode.
+> + */
+>  DECLARE_STATIC_KEY_FALSE(kasan_flag_enabled);
+>
+> +/*
+> + * Runtime control for shadow memory initialization or HW_TAGS mode.
+> + * Uses static key for architectures that need deferred KASAN or HW_TAGS=
+.
+> + */
+>  static __always_inline bool kasan_enabled(void)
+>  {
+>         return static_branch_likely(&kasan_flag_enabled);
+>  }
+>
+> -static inline bool kasan_hw_tags_enabled(void)
+> +static inline void kasan_enable(void)
+>  {
+> -       return kasan_enabled();
+> +       static_branch_enable(&kasan_flag_enabled);
+>  }
+> -
+> -#else /* CONFIG_KASAN_HW_TAGS */
+> -
+> -static inline bool kasan_enabled(void)
+> +#else
+> +/* For architectures that can enable KASAN early, use compile-time check=
+. */
+> +static __always_inline bool kasan_enabled(void)
+>  {
+>         return IS_ENABLED(CONFIG_KASAN);
+>  }
+>
+> +static inline void kasan_enable(void) {}
+> +#endif /* CONFIG_ARCH_DEFER_KASAN || CONFIG_KASAN_HW_TAGS */
+> +
+> +#ifdef CONFIG_KASAN_HW_TAGS
+> +static inline bool kasan_hw_tags_enabled(void)
+> +{
+> +       return kasan_enabled();
+> +}
+> +#else
+>  static inline bool kasan_hw_tags_enabled(void)
+>  {
+>         return false;
+>  }
+> -
+>  #endif /* CONFIG_KASAN_HW_TAGS */
+>
+>  #endif /* LINUX_KASAN_ENABLED_H */
+> --- a/include/linux/kasan.h~kasan-introduce-arch_defer_kasan-and-unify-st=
+atic-key-across-modes
+> +++ a/include/linux/kasan.h
+> @@ -543,6 +543,12 @@ void kasan_report_async(void);
+>
+>  #endif /* CONFIG_KASAN_HW_TAGS */
+>
+> +#ifdef CONFIG_KASAN_GENERIC
+> +void __init kasan_init_generic(void);
+> +#else
+> +static inline void kasan_init_generic(void) { }
+> +#endif
+> +
+>  #ifdef CONFIG_KASAN_SW_TAGS
+>  void __init kasan_init_sw_tags(void);
+>  #else
+> --- a/lib/Kconfig.kasan~kasan-introduce-arch_defer_kasan-and-unify-static=
+-key-across-modes
+> +++ a/lib/Kconfig.kasan
+> @@ -19,6 +19,18 @@ config ARCH_DISABLE_KASAN_INLINE
+>           Disables both inline and stack instrumentation. Selected by
+>           architectures that do not support these instrumentation types.
+>
+> +config ARCH_NEEDS_DEFER_KASAN
+> +       bool
+> +
+> +config ARCH_DEFER_KASAN
+> +       def_bool y
+> +       depends on KASAN && ARCH_NEEDS_DEFER_KASAN
+> +       help
+> +         Architectures should select this if they need to defer KASAN
+> +         initialization until shadow memory is properly set up. This
+> +         enables runtime control via static keys. Otherwise, KASAN uses
+> +         compile-time constants for better performance.
+> +
+>  config CC_HAS_KASAN_GENERIC
+>         def_bool $(cc-option, -fsanitize=3Dkernel-address)
+>
+> --- a/mm/kasan/common.c~kasan-introduce-arch_defer_kasan-and-unify-static=
+-key-across-modes
+> +++ a/mm/kasan/common.c
+> @@ -32,6 +32,15 @@
+>  #include "kasan.h"
+>  #include "../slab.h"
+>
+> +#if defined(CONFIG_ARCH_DEFER_KASAN) || defined(CONFIG_KASAN_HW_TAGS)
+> +/*
+> + * Definition of the unified static key declared in kasan-enabled.h.
+> + * This provides consistent runtime enable/disable across KASAN modes.
+> + */
+> +DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
+> +EXPORT_SYMBOL_GPL(kasan_flag_enabled);
+> +#endif
+> +
+>  struct slab *kasan_addr_to_slab(const void *addr)
+>  {
+>         if (virt_addr_valid(addr))
+> @@ -246,7 +255,7 @@ static inline void poison_slab_object(st
+>  bool __kasan_slab_pre_free(struct kmem_cache *cache, void *object,
+>                                 unsigned long ip)
+>  {
+> -       if (!kasan_arch_is_ready() || is_kfence_address(object))
+> +       if (is_kfence_address(object))
+>                 return false;
+>         return check_slab_allocation(cache, object, ip);
+>  }
+> @@ -254,7 +263,7 @@ bool __kasan_slab_pre_free(struct kmem_c
+>  bool __kasan_slab_free(struct kmem_cache *cache, void *object, bool init=
+,
+>                        bool still_accessible)
+>  {
+> -       if (!kasan_arch_is_ready() || is_kfence_address(object))
+> +       if (is_kfence_address(object))
+>                 return false;
+>
+>         /*
+> @@ -293,7 +302,7 @@ bool __kasan_slab_free(struct kmem_cache
+>
+>  static inline bool check_page_allocation(void *ptr, unsigned long ip)
+>  {
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return false;
+>
+>         if (ptr !=3D page_address(virt_to_head_page(ptr))) {
+> @@ -522,7 +531,7 @@ bool __kasan_mempool_poison_object(void
+>                 return true;
+>         }
+>
+> -       if (is_kfence_address(ptr) || !kasan_arch_is_ready())
+> +       if (is_kfence_address(ptr))
+>                 return true;
+>
+>         slab =3D folio_slab(folio);
+> --- a/mm/kasan/generic.c~kasan-introduce-arch_defer_kasan-and-unify-stati=
+c-key-across-modes
+> +++ a/mm/kasan/generic.c
+> @@ -37,6 +37,17 @@
+>  #include "../slab.h"
+>
+>  /*
+> + * Initialize Generic KASAN and enable runtime checks.
+> + * This should be called from arch kasan_init() once shadow memory is re=
+ady.
+> + */
+> +void __init kasan_init_generic(void)
+> +{
+> +       kasan_enable();
+> +
+> +       pr_info("KernelAddressSanitizer initialized (generic)\n");
+> +}
+> +
+> +/*
+>   * All functions below always inlined so compiler could
+>   * perform better optimizations in each of __asan_loadX/__assn_storeX
+>   * depending on memory access size X.
+> @@ -165,7 +176,7 @@ static __always_inline bool check_region
+>                                                 size_t size, bool write,
+>                                                 unsigned long ret_ip)
+>  {
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return true;
+>
+>         if (unlikely(size =3D=3D 0))
+> @@ -193,7 +204,7 @@ bool kasan_byte_accessible(const void *a
+>  {
+>         s8 shadow_byte;
+>
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return true;
+>
+>         shadow_byte =3D READ_ONCE(*(s8 *)kasan_mem_to_shadow(addr));
+> @@ -495,7 +506,7 @@ static void release_alloc_meta(struct ka
+>
+>  static void release_free_meta(const void *object, struct kasan_free_meta=
+ *meta)
+>  {
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return;
+>
+>         /* Check if free meta is valid. */
+> @@ -562,7 +573,7 @@ void kasan_save_alloc_info(struct kmem_c
+>         kasan_save_track(&alloc_meta->alloc_track, flags);
+>  }
+>
+> -void kasan_save_free_info(struct kmem_cache *cache, void *object)
+> +void __kasan_save_free_info(struct kmem_cache *cache, void *object)
+>  {
+>         struct kasan_free_meta *free_meta;
+>
+> --- a/mm/kasan/hw_tags.c~kasan-introduce-arch_defer_kasan-and-unify-stati=
+c-key-across-modes
+> +++ a/mm/kasan/hw_tags.c
+> @@ -46,13 +46,6 @@ static enum kasan_arg_mode kasan_arg_mod
+>  static enum kasan_arg_vmalloc kasan_arg_vmalloc __initdata;
+>
+>  /*
+> - * Whether KASAN is enabled at all.
+> - * The value remains false until KASAN is initialized by kasan_init_hw_t=
+ags().
+> - */
+> -DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
+> -EXPORT_SYMBOL(kasan_flag_enabled);
+> -
+> -/*
+>   * Whether the selected mode is synchronous, asynchronous, or asymmetric=
+.
+>   * Defaults to KASAN_MODE_SYNC.
+>   */
+> @@ -260,7 +253,7 @@ void __init kasan_init_hw_tags(void)
+>         kasan_init_tags();
+>
+>         /* KASAN is now initialized, enable it. */
+> -       static_branch_enable(&kasan_flag_enabled);
+> +       kasan_enable();
+>
+>         pr_info("KernelAddressSanitizer initialized (hw-tags, mode=3D%s, =
+vmalloc=3D%s, stacktrace=3D%s)\n",
+>                 kasan_mode_info(),
+> --- a/mm/kasan/kasan.h~kasan-introduce-arch_defer_kasan-and-unify-static-=
+key-across-modes
+> +++ a/mm/kasan/kasan.h
+> @@ -398,7 +398,13 @@ depot_stack_handle_t kasan_save_stack(gf
+>  void kasan_set_track(struct kasan_track *track, depot_stack_handle_t sta=
+ck);
+>  void kasan_save_track(struct kasan_track *track, gfp_t flags);
+>  void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t=
+ flags);
+> -void kasan_save_free_info(struct kmem_cache *cache, void *object);
+> +
+> +void __kasan_save_free_info(struct kmem_cache *cache, void *object);
+> +static inline void kasan_save_free_info(struct kmem_cache *cache, void *=
+object)
+> +{
+> +       if (kasan_enabled())
+> +               __kasan_save_free_info(cache, object);
+> +}
+>
+>  #ifdef CONFIG_KASAN_GENERIC
+>  bool kasan_quarantine_put(struct kmem_cache *cache, void *object);
+> --- a/mm/kasan/shadow.c~kasan-introduce-arch_defer_kasan-and-unify-static=
+-key-across-modes
+> +++ a/mm/kasan/shadow.c
+> @@ -125,7 +125,7 @@ void kasan_poison(const void *addr, size
+>  {
+>         void *shadow_start, *shadow_end;
+>
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return;
+>
+>         /*
+> @@ -150,7 +150,7 @@ EXPORT_SYMBOL_GPL(kasan_poison);
+>  #ifdef CONFIG_KASAN_GENERIC
+>  void kasan_poison_last_granule(const void *addr, size_t size)
+>  {
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return;
+>
+>         if (size & KASAN_GRANULE_MASK) {
+> @@ -390,7 +390,7 @@ int kasan_populate_vmalloc(unsigned long
+>         unsigned long shadow_start, shadow_end;
+>         int ret;
+>
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return 0;
+>
+>         if (!is_vmalloc_or_module_addr((void *)addr))
+> @@ -560,7 +560,7 @@ void kasan_release_vmalloc(unsigned long
+>         unsigned long region_start, region_end;
+>         unsigned long size;
+>
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return;
+>
+>         region_start =3D ALIGN(start, KASAN_MEMORY_PER_SHADOW_PAGE);
+> @@ -611,7 +611,7 @@ void *__kasan_unpoison_vmalloc(const voi
+>          * with setting memory tags, so the KASAN_VMALLOC_INIT flag is ig=
+nored.
+>          */
+>
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return (void *)start;
+>
+>         if (!is_vmalloc_or_module_addr(start))
+> @@ -636,7 +636,7 @@ void *__kasan_unpoison_vmalloc(const voi
+>   */
+>  void __kasan_poison_vmalloc(const void *start, unsigned long size)
+>  {
+> -       if (!kasan_arch_is_ready())
+> +       if (!kasan_enabled())
+>                 return;
+>
+>         if (!is_vmalloc_or_module_addr(start))
+> --- a/mm/kasan/sw_tags.c~kasan-introduce-arch_defer_kasan-and-unify-stati=
+c-key-across-modes
+> +++ a/mm/kasan/sw_tags.c
+> @@ -44,6 +44,7 @@ void __init kasan_init_sw_tags(void)
+>                 per_cpu(prng_state, cpu) =3D (u32)get_cycles();
+>
+>         kasan_init_tags();
+> +       kasan_enable();
+>
+>         pr_info("KernelAddressSanitizer initialized (sw-tags, stacktrace=
+=3D%s)\n",
+>                 str_on_off(kasan_stack_collection_enabled()));
+> --- a/mm/kasan/tags.c~kasan-introduce-arch_defer_kasan-and-unify-static-k=
+ey-across-modes
+> +++ a/mm/kasan/tags.c
+> @@ -142,7 +142,7 @@ void kasan_save_alloc_info(struct kmem_c
+>         save_stack_info(cache, object, flags, false);
+>  }
+>
+> -void kasan_save_free_info(struct kmem_cache *cache, void *object)
+> +void __kasan_save_free_info(struct kmem_cache *cache, void *object)
+>  {
+>         save_stack_info(cache, object, 0, true);
+>  }
+> _
+>
+> Patches currently in -mm which might be from snovitoll@gmail.com are
+>
+> kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes.patch
+> kasan-call-kasan_init_generic-in-kasan_init.patch
+>
