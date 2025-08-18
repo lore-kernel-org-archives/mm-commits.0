@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1F2919DFAB
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 01:46:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E2141799F
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 01:49:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755481596; cv=none; b=qbUb/x6tx907ZW7JHFIHJ8NzVopBRUVZPs4EKH4cg1nVecYKMP4J1C2cuAsmwtSE5U93Pj+wX6H1kxCdpd8LyRuU/EnPHyaAJBd26IAumXJwtlTJQ9cuf23hKDTTxZDGWmUYufS7r4Eb00p+5Z+gtxX0Ob7gYH1/yq+bh6DWAOo=
+	t=1755481780; cv=none; b=LRqdIv9Wj7kvZbY6tvra2XCJuChg0Zr1QddzWL+nPgwPMQRE6HbDYetbpRnj63GPdJrkcnP7XqW6NnLP4/1/VsLxQdTyzTLI6vNVhWtbRyfJD+MUqO6m1IjNKeNlSYUn/twoNmV8NYo4Bb9BkARbYD7JdUn2Q9Qm0KpOV8ph5oY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755481596; c=relaxed/simple;
-	bh=1QnCx+B4bTKG6C5uyq6g3qXYG1xGw7uwFHnP13dMuOw=;
-	h=Date:To:From:Subject:Message-Id; b=LrPsTqTmZ6Bj3jNL6Xi/viNnS80dBrYQQMSy+frQYoN5maGASLK+YEAx/5ylKsRh9xHv+8LfzgqJaJ1X/pBA4Gt8lJ6XHy63+h9ASG057+TksVrY3dxhzGnbC0SbTEgrPnaBUcKtWJuIyEvdflxXO40tMAwjVdWpLNBgbbUniW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z0EgkWb9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755481780; c=relaxed/simple;
+	bh=Tb1Pc78HXP5m4e0WpGQNZOgeJgdvHy77XY5oC12Ov2s=;
+	h=Date:To:From:Subject:Message-Id; b=VHiso4p64UyyGsiWim4Vi1aektk3dB9GQ+k7F/pdunh4LMCsaoixiMPyfvF9pFX7SOjZ++XahJocMIvD1vKt63d27+L4aNaULLRiKLT7EbieMtuffrh5ODJPBm91mz2Bt858cHuBcop2MgtDJRHorE0LoqF3rcaSaW/OWoAmA64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i3PrBJ75; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z0EgkWb9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF3CC4CEEB;
-	Mon, 18 Aug 2025 01:46:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i3PrBJ75"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96094C4CEEB;
+	Mon, 18 Aug 2025 01:49:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755481596;
-	bh=1QnCx+B4bTKG6C5uyq6g3qXYG1xGw7uwFHnP13dMuOw=;
+	s=korg; t=1755481779;
+	bh=Tb1Pc78HXP5m4e0WpGQNZOgeJgdvHy77XY5oC12Ov2s=;
 	h=Date:To:From:Subject:From;
-	b=z0EgkWb9FyS5Yd3mL52IUxQ6CQMsCKQRGXGUcsz8hZ/ENnh594VjjXtjPgFQQS7dq
-	 PZTAeaajIk4hzWaCAJGTMau3E749/cXhyu7/FP/98Mvs8oheaFMSb+HUyObjY7kFim
-	 2q9QCkHLYIzE9lsQTY0hLQ2PVMFecgH7vsBrn4+Q=
-Date: Sun, 17 Aug 2025 18:46:35 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=i3PrBJ75BpGXcF8AVSO/M4+2q6V83gykq6krE+1/VpAIWXP7pObLyiYykGaJkX/lZ
+	 IB58jwo6MmjG9RW8znUq7zoLu24C8WLO5B0QsfD7n971V/NmN8pBgCEBJGAJtp1rNY
+	 dqII9Zq4hzKY1/e+5vUhT60FY7zLSpb9VXlK8JXs=
+Date: Sun, 17 Aug 2025 18:49:38 -0700
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,surenb@google.com,peterx@redhat.com,kaleshsingh@google.com,david@redhat.com,baohua@kernel.org,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch added to mm-new branch
-Message-Id: <20250818014636.2FF3CC4CEEB@smtp.kernel.org>
+Subject: + userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6.patch added to mm-unstable branch
+Message-Id: <20250818014939.96094C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: use folio_large_nr_pages() when we are sure it is a large folio
-has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
+     Subject: userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,46 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/rmap: use folio_large_nr_pages() when we are sure it is a large folio
-Date: Sun, 17 Aug 2025 03:26:47 +0000
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6
+Date: Sat, 16 Aug 2025 12:11:23 -0700
 
-Non-large folio is handled at the beginning, so it is a large folio for
-sure.
+make calculation of largest extent that can be batched unconditional on
+length, per Barry
 
-Use folio_large_nr_pages() here like elsewhere.
-
-Link: https://lkml.kernel.org/r/20250817032647.29147-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Harry Yoo <harry.yoo@oracle.com>
+Link: https://lkml.kernel.org/r/20250816191123.3601561-1-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/userfaultfd.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio
-+++ a/mm/rmap.c
-@@ -1703,7 +1703,7 @@ static __always_inline void __folio_remo
- 			nr = folio_sub_return_large_mapcount(folio, nr_pages, vma);
- 			if (!nr) {
- 				/* Now completely unmapped. */
--				nr = folio_nr_pages(folio);
-+				nr = folio_large_nr_pages(folio);
- 			} else {
- 				partially_mapped = nr < folio_large_nr_pages(folio) &&
- 						   !folio_entire_mapcount(folio);
+--- a/mm/userfaultfd.c~userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6
++++ a/mm/userfaultfd.c
+@@ -1081,11 +1081,8 @@ static long move_present_ptes(struct mm_
+ 	unsigned long src_start = src_addr;
+ 	unsigned long src_end;
+ 
+-	if (len > PAGE_SIZE) {
+-		len = pmd_addr_end(dst_addr, dst_addr + len) - dst_addr;
+-		src_end = pmd_addr_end(src_addr, src_addr + len);
+-	} else
+-		src_end = src_addr + len;
++	len = pmd_addr_end(dst_addr, dst_addr + len) - dst_addr;
++	src_end = pmd_addr_end(src_addr, src_addr + len);
+ 	flush_cache_range(src_vma, src_addr, src_end);
+ 	double_pt_lock(dst_ptl, src_ptl);
+ 
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
-selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
-mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
-mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
+userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
+userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6.patch
 
