@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C5D426D4CF
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:36:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F932257458;
+	Tue, 19 Aug 2025 23:36:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755646605; cv=none; b=ev8nuCnMBQgNC4wEvFLHZpECLL26YajncrCMyqhxqtodlCiYVDriqQuz1Uis1W//+R2tT6xBB8sfw6ucrUh3XSQKl6b6JvwheViHtu/meBRRtDeBjKURXdbLDuMG5qvYxHJ4xutIGaLgKwR4OTU3zjKSrUO0gCZcNjq78QS7BhI=
+	t=1755646606; cv=none; b=efqh0Cc0upQBFfZa8paFZ9qAtDOp2uZMWLh3ctEIThpGQ9R4sJ0kRAge3+Ytn6Hx82VImZrrcpuTKfpm3mPvm8VNEYu90X4CHuex7gr2iWchfxDxR8N8Hz1D1dNmlgENXaZ1YQsFOfe2Mg6YMrHgWnzD2VJLXVuHcop02IcCUcA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755646605; c=relaxed/simple;
-	bh=B/EjAsNl5c102qX/qWONmFQkuFUuaQAZhZ2LjuX10e4=;
-	h=Date:To:From:Subject:Message-Id; b=rzzWY+hD03ezJCXeL2s3HcFAzygz3A0xJs3vASoFg0uxVcmDXaLpR17xcPKZ5vtFkAr+NpmsvX6WNP59gjuTJwoYMCaAM2jX2elrT3ZoqgeF6uZypKjUVs4ikhEL/lcAMTdF4icO+kG16e8tnQuFWvsKRYu3cJEj2hqVVsWZoz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iKlSTVeL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755646606; c=relaxed/simple;
+	bh=NRpBQlbuwdTUSFW3B29tz6QhldYggfwgNqEHHxIoV1s=;
+	h=Date:To:From:Subject:Message-Id; b=PiKFqgp3/MAoC6bzwrzpSMLBqmYRLhzLAFClJNwW+BFGEMREZI8Eg6IHgJpP0aa5/4V/i/jHhYUctBUqo+v8xKrBIwzQWqqN6ZhgNl+TssiEbY7FGkqsHE79DaEKRFK5q3oT4Dp7Sg2NIVjloKZ55If6DWskNr7/opprLnPAjI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KEresYVN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iKlSTVeL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E87AC4CEF1;
-	Tue, 19 Aug 2025 23:36:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KEresYVN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E90E6C4CEF1;
+	Tue, 19 Aug 2025 23:36:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755646604;
-	bh=B/EjAsNl5c102qX/qWONmFQkuFUuaQAZhZ2LjuX10e4=;
+	s=korg; t=1755646606;
+	bh=NRpBQlbuwdTUSFW3B29tz6QhldYggfwgNqEHHxIoV1s=;
 	h=Date:To:From:Subject:From;
-	b=iKlSTVeLz25Hh4hirzJzlR1BTrd8TUQmRFsy1KhRCJ9mPHkv/IO4CkV+syt1B8/+K
-	 OKGOhwzjxIjv4fc2f4NM5R7C5fDlhN+sR8XNpgIP0l3X1BU2ODrRZ5A7/Y32ggrUn9
-	 t0VNE4VVRsw7laROPA2ar/dYtAnhm8JpVMQ85MBs=
-Date: Tue, 19 Aug 2025 16:36:44 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,alexghiti@rivosinc.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=KEresYVNycwqYhQ3OrXWC5W5VlzgnJm3rOdor2KiIJRR0kVOOoJucfJDlw4UaE3tt
+	 RGuBW8/twdbTglcIgnv94WoAS1OhuwOtsmylaEp2YgLI8mF4X/bQk+P+98nIPpzGJV
+	 e/7ODy790Ibos+t9u25JnMD/GtTJB4358hxtb+RM=
+Date: Tue, 19 Aug 2025 16:36:45 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,ryan@lahfa.xyz,maximilian@mbosch.me,dhowells@redhat.com,ct@flyingcircus.io,brauner@kernel.org,arnout@bzzt.net,asmadeus@codewreck.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-damon-fix-selftests-by-installing-drgn-related-script.patch removed from -mm tree
-Message-Id: <20250819233644.9E87AC4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size.patch removed from -mm tree
+Message-Id: <20250819233645.E90E6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: fix selftests by installing drgn related script
+     Subject: iov_iter: iterate_folioq: fix handling of offset >= folio size
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-fix-selftests-by-installing-drgn-related-script.patch
+     iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: selftests/damon: fix selftests by installing drgn related script
-Date: Tue, 12 Aug 2025 23:00:46 +0900
+From: Dominique Martinet <asmadeus@codewreck.org>
+Subject: iov_iter: iterate_folioq: fix handling of offset >= folio size
+Date: Wed, 13 Aug 2025 15:04:55 +0900
 
-drgn_dump_damon_status is not installed during kselftest setup.  It can
-break other tests which depend on drgn_dump_damon_status.  Install
-drgn_dump_damon_status files to fix broken test.
+It's apparently possible to get an iov advanced all the way up to the end
+of the current page we're looking at, e.g.
 
-Link: https://lkml.kernel.org/r/20250812140046.660486-1-ekffu200098@gmail.com
-Fixes: f3e8e1e51362 ("selftests/damon: add drgn script for extracting damon status")
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
+(gdb) p *iter
+$24 = {iter_type = 4 '\004', nofault = false, data_source = false, iov_offset = 4096, {__ubuf_iovec = {
+      iov_base = 0xffff88800f5bc000, iov_len = 655}, {{__iov = 0xffff88800f5bc000, kvec = 0xffff88800f5bc000,
+        bvec = 0xffff88800f5bc000, folioq = 0xffff88800f5bc000, xarray = 0xffff88800f5bc000,
+        ubuf = 0xffff88800f5bc000}, count = 655}}, {nr_segs = 2, folioq_slot = 2 '\002', xarray_start = 2}}
+
+Where iov_offset is 4k with 4k-sized folios
+
+This should have been fine because we're only in the 2nd slot and there's
+another one after this, but iterate_folioq should not try to map a folio
+that skips the whole size, and more importantly part here does not end up
+zero (because 'PAGE_SIZE - skip % PAGE_SIZE' ends up PAGE_SIZE and not
+zero..), so skip forward to the "advance to next folio" code
+
+Link: https://lkml.kernel.org/r/20250813-iot_iter_folio-v3-0-a0ffad2b665a@codewreck.org
+Link: https://lkml.kernel.org/r/20250813-iot_iter_folio-v3-1-a0ffad2b665a@codewreck.org
+Signed-off-by: Dominique Martinet <asmadeus@codewreck.org>
+Fixes: db0aa2e9566f ("mm: Define struct folio_queue and ITER_FOLIOQ to handle a sequence of folios")
+Reported-by: Maximilian Bosch <maximilian@mbosch.me>
+Reported-by: Ryan Lahfa <ryan@lahfa.xyz>
+Reported-by: Christian Theune <ct@flyingcircus.io>
+Reported-by: Arnout Engelen <arnout@bzzt.net>
+Link: https://lkml.kernel.org/r/D4LHHUNLG79Y.12PI0X6BEHRHW@mbosch.me/
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>	[6.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/iov_iter.h |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-fix-selftests-by-installing-drgn-related-script
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -4,6 +4,7 @@
- TEST_GEN_FILES += access_memory access_memory_even
+--- a/include/linux/iov_iter.h~iov_iter-iterate_folioq-fix-handling-of-offset-=-folio-size
++++ a/include/linux/iov_iter.h
+@@ -160,7 +160,7 @@ size_t iterate_folioq(struct iov_iter *i
  
- TEST_FILES = _damon_sysfs.py
-+TEST_FILES += drgn_dump_damon_status.py
+ 	do {
+ 		struct folio *folio = folioq_folio(folioq, slot);
+-		size_t part, remain, consumed;
++		size_t part, remain = 0, consumed;
+ 		size_t fsize;
+ 		void *base;
  
- # functionality tests
- TEST_PROGS += sysfs.sh
+@@ -168,14 +168,16 @@ size_t iterate_folioq(struct iov_iter *i
+ 			break;
+ 
+ 		fsize = folioq_folio_size(folioq, slot);
+-		base = kmap_local_folio(folio, skip);
+-		part = umin(len, PAGE_SIZE - skip % PAGE_SIZE);
+-		remain = step(base, progress, part, priv, priv2);
+-		kunmap_local(base);
+-		consumed = part - remain;
+-		len -= consumed;
+-		progress += consumed;
+-		skip += consumed;
++		if (skip < fsize) {
++			base = kmap_local_folio(folio, skip);
++			part = umin(len, PAGE_SIZE - skip % PAGE_SIZE);
++			remain = step(base, progress, part, priv, priv2);
++			kunmap_local(base);
++			consumed = part - remain;
++			len -= consumed;
++			progress += consumed;
++			skip += consumed;
++		}
+ 		if (skip >= fsize) {
+ 			skip = 0;
+ 			slot++;
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from asmadeus@codewreck.org are
 
-mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch
-mm-damon-update-expired-description-of-damos_action.patch
-docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
-selftests-damon-test-no-op-commit-broke-damon-status.patch
-selftests-damon-test-no-op-commit-broke-damon-status-fix.patch
-mm-damon-tests-core-kunit-add-damos_commit_filter-test.patch
 
