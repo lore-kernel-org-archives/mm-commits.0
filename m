@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91962257458
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:36:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDCC226D4CF
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:36:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755646607; cv=none; b=HIDMzUuQfWHH1MRM4Hh4zUCRWbsGdZi/SOmN9FivbvllopwLHX3Kvpfh9gWC4kxrnb38r/390cPU01FNhxkHAKgEMLh8NPPHXDxj3CRwWqWnrYQFcUECanWgSooEgfIhtUAwb62NZr1yNJ+D1RCmYbKdZomEIrvAt/fhDa4uFgs=
+	t=1755646608; cv=none; b=ON+PsnyA5UrcPy0ktDzb/MNGi8A3+EsooBRlTUdKokBEk1EO0R/MVMOO3sY/xaHtHYfydI55F8x7WM+dSe6hgP+NDKjfYEHoGsrZx6r91ygnV4bPxYWh9do/U93RbDtINRFLPy8WaqER27XEPE/AZ6uFaI4+pXxDBDFAFx8GioI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755646607; c=relaxed/simple;
-	bh=1VRN8/mU5Ii/3eeQ3zVq9t4AOKe7MOKv6zM/Jt58tFA=;
-	h=Date:To:From:Subject:Message-Id; b=Sr+qvzXERyC2OVjB5mgu82f/Igs+O1SHCVwZ+pFC2MKfZf2HTtKepcex/cvBhEA7rEoh2xOw8eYZ0pbSIXvdP+G4ehn2DI6L3542o4lx1zQjKmyxVTIDjdfwwFioHYSVUtYcx7ZUh7U/mMMFBU6ySD0P/LN2AhI212nwfO+vplU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bxG98Ebw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755646608; c=relaxed/simple;
+	bh=CEyy1b+b8ur4wvZWy6/bt9eugnMzOlz6Hs2dz5tE7RI=;
+	h=Date:To:From:Subject:Message-Id; b=pU8NRHk53EZxxyD6k81rRZz1GMRCnaMi9l1Kx/ma2XgnXcTwWpz/MUfaW1IycbocAXZSZl50qXabt5ARE0zwQW0giWVkbqctt7qoOK9bfMF5s6cdhCvKel8LjLG9F0PD7/cG3yiWPSN6c3gECu1DeU+4UBKBdx3Vq00piDUaTJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1y9X7XyA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bxG98Ebw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66091C4CEF1;
-	Tue, 19 Aug 2025 23:36:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1y9X7XyA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A64AC4CEF1;
+	Tue, 19 Aug 2025 23:36:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755646607;
-	bh=1VRN8/mU5Ii/3eeQ3zVq9t4AOKe7MOKv6zM/Jt58tFA=;
+	s=korg; t=1755646608;
+	bh=CEyy1b+b8ur4wvZWy6/bt9eugnMzOlz6Hs2dz5tE7RI=;
 	h=Date:To:From:Subject:From;
-	b=bxG98Ebw2I5ZuEu/UGDyly8A4M5g0HekR0KCmzCLJ1cBYLZ/E0idWbAV3Z4+0hxwI
-	 WT9c3i26tp78mBv1BeVqHwb3fRglCm6XODvjRzx/FAHr+fGGlX9pYInohXx2NJaGVB
-	 280Fvkhga7WPqXjlJoyXk+DNL972YD34dxE2dygA=
-Date: Tue, 19 Aug 2025 16:36:46 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,liam.howlett@oracle.com,dakr@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
+	b=1y9X7XyATqhGG94HcdHQtnF3b2TGUR7i24d73i2UA/XWQWOBJ24ms1KXNfQkMvjqD
+	 YUrYGwvIFDX21/EueY73zJKeyR5Yr8fNfq33KOH32+MnUeL7+Y4/uMyw7lzvzVXkLF
+	 Y54a+B/HXb18/dN6sKsPH6nKxv9Acr1Xe4+ZMcm8=
+Date: Tue, 19 Aug 2025 16:36:48 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,axelrasmussen@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-rust-add-pagers-to-memory-management-rust.patch removed from -mm tree
-Message-Id: <20250819233647.66091C4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-mark-mglru-as-maintained.patch removed from -mm tree
+Message-Id: <20250819233648.8A64AC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: rust: add page.rs to MEMORY MANAGEMENT - RUST
+     Subject: MAINTAINERS: mark MGLRU as maintained
 has been removed from the -mm tree.  Its filename was
-     mm-rust-add-pagers-to-memory-management-rust.patch
+     maintainers-mark-mglru-as-maintained.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alice Ryhl <aliceryhl@google.com>
-Subject: mm: rust: add page.rs to MEMORY MANAGEMENT - RUST
-Date: Thu, 14 Aug 2025 07:54:54 +0000
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: MAINTAINERS: mark MGLRU as maintained
+Date: Fri, 15 Aug 2025 14:59:14 -0700
 
-The page.rs file currently isn't included anywhere, and I think it's a
-good fit for the MEMORY MANAGEMENT - RUST entry.  The file was originally
-added for use by Rust Binder, but I believe there is also work to use it
-in the upcoming scatterlist abstractions.
+The three folks being added here are actively working on MGLRU within
+Google, so we can review patches for this feature and plan to contribute
+some improvements / extensions to it on an ongoing basis.
 
-Link: https://lkml.kernel.org/r/20250814075454.1596482-1-aliceryhl@google.com
-Signed-off-by: Alice Ryhl <aliceryhl@google.com>
-Acked-by: Danilo Krummrich <dakr@kernel.org>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+With three of us we may have some hope filling Yu Zhao's shoes, since he
+has moved on to other projects these days.
+
+Link: https://lkml.kernel.org/r/20250815215914.3671925-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/MAINTAINERS~mm-rust-add-pagers-to-memory-management-rust
+--- a/MAINTAINERS~maintainers-mark-mglru-as-maintained
 +++ a/MAINTAINERS
-@@ -16248,8 +16248,10 @@ S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	rust/helpers/mm.c
-+F:	rust/helpers/page.c
- F:	rust/kernel/mm.rs
- F:	rust/kernel/mm/
-+F:	rust/kernel/page.rs
+@@ -16058,6 +16058,23 @@ F:	mm/mempolicy.c
+ F:	mm/migrate.c
+ F:	mm/migrate_device.c
  
- MEMORY MAPPING
++MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	Axel Rasmussen <axelrasmussen@google.com>
++M:	Yuanchu Xie <yuanchu@google.com>
++R:	Wei Xu <weixugc@google.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/admin-guide/mm/multigen_lru.rst
++F:	Documentation/mm/multigen_lru.rst
++F:	include/linux/mm_inline.h
++F:	include/linux/mmzone.h
++F:	mm/swap.c
++F:	mm/vmscan.c
++F:	mm/workingset.c
++
+ MEMORY MANAGEMENT - MISC
  M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@redhat.com>
 _
 
-Patches currently in -mm which might be from aliceryhl@google.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
 
