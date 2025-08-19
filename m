@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE91023ABAF
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:15:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F2F131E2D
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:17:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755641701; cv=none; b=Wqg9YTcwLIjCmGBE6T9PumbWvx4r7G6bKIgK05Ibuv6H3KMBW3x9YnOoNPPP8C6g2EhjX868VAnu+8D2KeRBIarEhp58Z1xpsPoaGpFSSxREp5gEKmyx+kUwdKUr2MQwl+sZswynSFZ46xO2qffvvNtiojCr48AUZ0mqQFp/RZc=
+	t=1755641826; cv=none; b=QEcHSW8pzaqwlpgKomRL6/0HatOfN+r6Y0foMKRo9TWIdHMyOlLOfJPwl2IjqqI9yMitrybmkxdhaFC5EUUPDkuHv7nuR5jO+lvcrmPXq/11bpF7Erzcgi7B7R9lNkp3fHelc9vdnPLUG4giR+noaxU2uMEPzVRPDNlcFD0AeZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755641701; c=relaxed/simple;
-	bh=4sLP4CNHWudN0duJi78x5iNyThAU6L7q/fKns5TjQf4=;
-	h=Date:To:From:Subject:Message-Id; b=rYVKlPM+6gBVEJwm5Xu1izCx6RTSPHok++BjLo93ob110FkWpCtCgoG18qwy5Ksru1MirfinZYKPYoPuDylhokdarO3RU0PNbkfq+KkgVEfR2/SAPeceXQsmA1m9jrKLMfjETvkKpvyRiQbmaiDUJEFxRblKkQDQuSRkVbpiGPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TjIiOE7u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755641826; c=relaxed/simple;
+	bh=6J7FHztizJSsrS7Cwce8Qlv+sJxmSQJM9ybWdxFGQ6E=;
+	h=Date:To:From:Subject:Message-Id; b=oIGRKgoJkPklngn7ZVHjqgICRYYZPusIvc5fq49R9x/kT4/J2wqkjqkaogS1Y/QqoH6aaFhqn999QNOEzk03q12fJrEmI+2iOuvKEUNdV08BSPXAC3R/HAL09INC3PT7cei1oWU3dO/chNE1lBIJNoHexe1wtTrMMT6sJJs7Umc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MiRDO0LG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TjIiOE7u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FA43C4CEF1;
-	Tue, 19 Aug 2025 22:15:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MiRDO0LG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7DA8C4CEF1;
+	Tue, 19 Aug 2025 22:17:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755641701;
-	bh=4sLP4CNHWudN0duJi78x5iNyThAU6L7q/fKns5TjQf4=;
+	s=korg; t=1755641825;
+	bh=6J7FHztizJSsrS7Cwce8Qlv+sJxmSQJM9ybWdxFGQ6E=;
 	h=Date:To:From:Subject:From;
-	b=TjIiOE7uiP3EISwfp0VJCmS4Dx/sYQRUkUxJn/mRafc1WktFooB3KHJFdsj+JGbCM
-	 iRGVO+Rtn4vJgVDP59rKOOFWU20YvPeagSf0OpQuD3u1ur1NKQqoeNVHqNjaGKS+oO
-	 bU2RnkVkpHdDY2sevX0DoXu8pbvv//a890nsYoNM=
-Date: Tue, 19 Aug 2025 15:15:00 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=MiRDO0LGH3Hg0jhBzd4mKqXJMn5/MBLTixx44MF11iAbYvvw+qJYZKexX3Ej9Xn/U
+	 7qM5pkj4RKAfA6nJfQjacCk+zE7p676jzDyB3k4VBNz8FD0+QtCEYCSka/gmfTkn9G
+	 vVzqxkkaYShHChVpEJv4X+O53FJ26NLXpEXIm14k=
+Date: Tue, 19 Aug 2025 15:17:05 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check-fix.patch added to mm-new branch
-Message-Id: <20250819221501.2FA43C4CEF1@smtp.kernel.org>
+Subject: + selftests-mm-put-general-ksm-operation-into-vm_util.patch added to mm-new branch
+Message-Id: <20250819221705.B7DA8C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fixup: selftests/mm: use nr_pages instead of 1UL << order.
+     Subject: selftests/mm: put general ksm operation into vm_util
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check-fix.patch
+     selftests-mm-put-general-ksm-operation-into-vm_util.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-put-general-ksm-operation-into-vm_util.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,67 +64,477 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: fixup: selftests/mm: use nr_pages instead of 1UL << order.
-Date: Tue, 19 Aug 2025 12:52:13 -0400
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: selftests/mm: put general ksm operation into vm_util
+Date: Tue, 19 Aug 2025 08:00:46 +0000
 
-reduce code duplication, per David
+Patch series "test that rmap behaves as expected", v4.
 
-Link: https://lkml.kernel.org/r/F54782D6-65A3-4D35-AE03-8ADE636EE258@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
+As David suggested, currently we don't have a high level test case to
+verify the behavior of rmap. This patch set introduce the verification
+on rmap by migration.
+
+Patch 1 is a preparation to move ksm related operations into vm_util.
+Patch 2 is the new test case for rmap.
+
+Currently it covers following four scenarios:
+
+  * anonymous page
+  * shmem page
+  * pagecache page
+  * ksm page
+
+
+This patch (of 2):
+
+There are some general ksm operations could be used by other related
+test cases. Put them into vm_util for common use.
+
+This is a preparation patch for later use.
+
+Link: https://lkml.kernel.org/r/20250819080047.10063-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250819080047.10063-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/ksm_functional_tests.c |  142 ++----------
+ tools/testing/selftests/mm/vm_util.c              |  123 ++++++++++
+ tools/testing/selftests/mm/vm_util.h              |    7 
+ 3 files changed, 154 insertions(+), 118 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check-fix
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -38,6 +38,7 @@ unsigned int pmd_order;
- static bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
- 		int kpageflags_fd)
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-put-general-ksm-operation-into-vm_util
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -38,11 +38,6 @@ enum ksm_merge_mode {
+ };
+ 
+ static int mem_fd;
+-static int ksm_fd;
+-static int ksm_full_scans_fd;
+-static int proc_self_ksm_stat_fd;
+-static int proc_self_ksm_merging_pages_fd;
+-static int ksm_use_zero_pages_fd;
+ static int pagemap_fd;
+ static size_t pagesize;
+ 
+@@ -75,88 +70,6 @@ static bool range_maps_duplicates(char *
+ 	return false;
+ }
+ 
+-static long get_my_ksm_zero_pages(void)
+-{
+-	char buf[200];
+-	char *substr_ksm_zero;
+-	size_t value_pos;
+-	ssize_t read_size;
+-	unsigned long my_ksm_zero_pages;
+-
+-	if (!proc_self_ksm_stat_fd)
+-		return 0;
+-
+-	read_size = pread(proc_self_ksm_stat_fd, buf, sizeof(buf) - 1, 0);
+-	if (read_size < 0)
+-		return -errno;
+-
+-	buf[read_size] = 0;
+-
+-	substr_ksm_zero = strstr(buf, "ksm_zero_pages");
+-	if (!substr_ksm_zero)
+-		return 0;
+-
+-	value_pos = strcspn(substr_ksm_zero, "0123456789");
+-	my_ksm_zero_pages = strtol(substr_ksm_zero + value_pos, NULL, 10);
+-
+-	return my_ksm_zero_pages;
+-}
+-
+-static long get_my_merging_pages(void)
+-{
+-	char buf[10];
+-	ssize_t ret;
+-
+-	if (proc_self_ksm_merging_pages_fd < 0)
+-		return proc_self_ksm_merging_pages_fd;
+-
+-	ret = pread(proc_self_ksm_merging_pages_fd, buf, sizeof(buf) - 1, 0);
+-	if (ret <= 0)
+-		return -errno;
+-	buf[ret] = 0;
+-
+-	return strtol(buf, NULL, 10);
+-}
+-
+-static long ksm_get_full_scans(void)
+-{
+-	char buf[10];
+-	ssize_t ret;
+-
+-	ret = pread(ksm_full_scans_fd, buf, sizeof(buf) - 1, 0);
+-	if (ret <= 0)
+-		return -errno;
+-	buf[ret] = 0;
+-
+-	return strtol(buf, NULL, 10);
+-}
+-
+-static int ksm_merge(void)
+-{
+-	long start_scans, end_scans;
+-
+-	/* Wait for two full scans such that any possible merging happened. */
+-	start_scans = ksm_get_full_scans();
+-	if (start_scans < 0)
+-		return start_scans;
+-	if (write(ksm_fd, "1", 1) != 1)
+-		return -errno;
+-	do {
+-		end_scans = ksm_get_full_scans();
+-		if (end_scans < 0)
+-			return end_scans;
+-	} while (end_scans < start_scans + 2);
+-
+-	return 0;
+-}
+-
+-static int ksm_unmerge(void)
+-{
+-	if (write(ksm_fd, "2", 1) != 1)
+-		return -errno;
+-	return 0;
+-}
+-
+ static char *__mmap_and_merge_range(char val, unsigned long size, int prot,
+ 				  enum ksm_merge_mode mode)
  {
-+	const unsigned long nr_pages = 1UL << order;
- 	unsigned long pfn_head;
- 	uint64_t pfn_flags;
- 	unsigned long pfn;
-@@ -63,7 +64,7 @@ static bool is_backed_by_folio(char *vad
- 	if (!(pfn_flags & KPF_THP))
- 		return false;
+@@ -165,12 +78,12 @@ static char *__mmap_and_merge_range(char
+ 	int ret;
  
--	pfn_head = pfn & ~((1 << order) - 1);
-+	pfn_head = pfn & ~(nr_pages - 1);
+ 	/* Stabilize accounting by disabling KSM completely. */
+-	if (ksm_unmerge()) {
++	if (ksm_stop() < 0) {
+ 		ksft_print_msg("Disabling (unmerging) KSM failed\n");
+ 		return err_map;
+ 	}
  
- 	if (pageflags_get(pfn_head, kpageflags_fd, &pfn_flags))
- 		goto fail;
-@@ -73,7 +74,7 @@ static bool is_backed_by_folio(char *vad
- 		return false;
+-	if (get_my_merging_pages() > 0) {
++	if (ksm_get_self_merging_pages() > 0) {
+ 		ksft_print_msg("Still pages merged\n");
+ 		return err_map;
+ 	}
+@@ -220,7 +133,7 @@ static char *__mmap_and_merge_range(char
+ 	}
  
- 	/* check all tail PFN flags */
--	for (i = 1; i < 1UL << order; i++) {
-+	for (i = 1; i < nr_pages; i++) {
- 		if (pageflags_get(pfn_head + i, kpageflags_fd, &pfn_flags))
- 			goto fail;
- 		if (!(pfn_flags & (KPF_THP | KPF_COMPOUND_TAIL)))
-@@ -84,7 +85,7 @@ static bool is_backed_by_folio(char *vad
- 	 * check the PFN after this folio, but if its flags cannot be obtained,
- 	 * assume this folio has the expected order
+ 	/* Run KSM to trigger merging and wait. */
+-	if (ksm_merge()) {
++	if (ksm_start() < 0) {
+ 		ksft_print_msg("Running KSM failed\n");
+ 		goto unmap;
+ 	}
+@@ -229,7 +142,7 @@ static char *__mmap_and_merge_range(char
+ 	 * Check if anything was merged at all. Ignore the zero page that is
+ 	 * accounted differently (depending on kernel support).
  	 */
--	if (pageflags_get(pfn_head + (1UL << order), kpageflags_fd, &pfn_flags))
-+	if (pageflags_get(pfn_head + nr_pages, kpageflags_fd, &pfn_flags))
- 		return true;
+-	if (val && !get_my_merging_pages()) {
++	if (val && !ksm_get_self_merging_pages()) {
+ 		ksft_print_msg("No pages got merged\n");
+ 		goto unmap;
+ 	}
+@@ -276,7 +189,7 @@ static void test_unmerge(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
+-	ksm_unmerge();
++	ksm_stop();
+ 	munmap(map, size);
+ }
  
- 	/* this folio is bigger than the given order */
+@@ -289,15 +202,12 @@ static void test_unmerge_zero_pages(void
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	if (proc_self_ksm_stat_fd < 0) {
+-		ksft_test_result_skip("open(\"/proc/self/ksm_stat\") failed\n");
+-		return;
+-	}
+-	if (ksm_use_zero_pages_fd < 0) {
+-		ksft_test_result_skip("open \"/sys/kernel/mm/ksm/use_zero_pages\" failed\n");
++	if (ksm_get_self_zero_pages() < 0) {
++		ksft_test_result_skip("accessing \"/proc/self/ksm_stat\" failed\n");
+ 		return;
+ 	}
+-	if (write(ksm_use_zero_pages_fd, "1", 1) != 1) {
++
++	if (ksm_use_zero_pages() < 0) {
+ 		ksft_test_result_skip("write \"/sys/kernel/mm/ksm/use_zero_pages\" failed\n");
+ 		return;
+ 	}
+@@ -309,7 +219,7 @@ static void test_unmerge_zero_pages(void
+ 
+ 	/* Check if ksm_zero_pages is updated correctly after KSM merging */
+ 	pages_expected = size / pagesize;
+-	if (pages_expected != get_my_ksm_zero_pages()) {
++	if (pages_expected != ksm_get_self_zero_pages()) {
+ 		ksft_test_result_fail("'ksm_zero_pages' updated after merging\n");
+ 		goto unmap;
+ 	}
+@@ -322,7 +232,7 @@ static void test_unmerge_zero_pages(void
+ 
+ 	/* Check if ksm_zero_pages is updated correctly after unmerging */
+ 	pages_expected /= 2;
+-	if (pages_expected != get_my_ksm_zero_pages()) {
++	if (pages_expected != ksm_get_self_zero_pages()) {
+ 		ksft_test_result_fail("'ksm_zero_pages' updated after unmerging\n");
+ 		goto unmap;
+ 	}
+@@ -332,7 +242,7 @@ static void test_unmerge_zero_pages(void
+ 		*((unsigned int *)&map[offs]) = offs;
+ 
+ 	/* Now we should have no zeropages remaining. */
+-	if (get_my_ksm_zero_pages()) {
++	if (ksm_get_self_zero_pages()) {
+ 		ksft_test_result_fail("'ksm_zero_pages' updated after write fault\n");
+ 		goto unmap;
+ 	}
+@@ -341,7 +251,7 @@ static void test_unmerge_zero_pages(void
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			"KSM zero pages were unmerged\n");
+ unmap:
+-	ksm_unmerge();
++	ksm_stop();
+ 	munmap(map, size);
+ }
+ 
+@@ -370,7 +280,7 @@ static void test_unmerge_discarded(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
+-	ksm_unmerge();
++	ksm_stop();
+ 	munmap(map, size);
+ }
+ 
+@@ -457,7 +367,7 @@ static void test_unmerge_uffd_wp(void)
+ close_uffd:
+ 	close(uffd);
+ unmap:
+-	ksm_unmerge();
++	ksm_stop();
+ 	munmap(map, size);
+ }
+ #endif
+@@ -521,7 +431,7 @@ static int test_child_ksm(void)
+ 	else if (map == MAP_MERGE_SKIP)
+ 		return 3;
+ 
+-	ksm_unmerge();
++	ksm_stop();
+ 	munmap(map, size);
+ 	return 0;
+ }
+@@ -654,7 +564,7 @@ static void test_prctl_unmerge(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
+-	ksm_unmerge();
++	ksm_stop();
+ 	munmap(map, size);
+ }
+ 
+@@ -688,7 +598,7 @@ static void test_prot_none(void)
+ 	ksft_test_result(!range_maps_duplicates(map, size),
+ 			 "Pages were unmerged\n");
+ unmap:
+-	ksm_unmerge();
++	ksm_stop();
+ 	munmap(map, size);
+ }
+ 
+@@ -697,19 +607,15 @@ static void init_global_file_handles(voi
+ 	mem_fd = open("/proc/self/mem", O_RDWR);
+ 	if (mem_fd < 0)
+ 		ksft_exit_fail_msg("opening /proc/self/mem failed\n");
+-	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
+-	if (ksm_fd < 0)
+-		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/run\") failed\n");
+-	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
+-	if (ksm_full_scans_fd < 0)
+-		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/full_scans\") failed\n");
++	if (ksm_stop() < 0)
++		ksft_exit_skip("accessing \"/sys/kernel/mm/ksm/run\") failed\n");
++	if (ksm_get_full_scans() < 0)
++		ksft_exit_skip("accessing \"/sys/kernel/mm/ksm/full_scans\") failed\n");
+ 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+ 	if (pagemap_fd < 0)
+ 		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
+-	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
+-	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
+-						O_RDONLY);
+-	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
++	if (ksm_get_self_merging_pages() < 0)
++		ksft_exit_skip("accessing \"/proc/self/ksm_merging_pages\") failed\n");
+ }
+ 
+ int main(int argc, char **argv)
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-put-general-ksm-operation-into-vm_util
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -578,3 +578,126 @@ bool detect_huge_zeropage(void)
+ 	close(fd);
+ 	return enabled;
+ }
++
++long ksm_get_self_zero_pages(void)
++{
++	int proc_self_ksm_stat_fd;
++	char buf[200];
++	char *substr_ksm_zero;
++	size_t value_pos;
++	ssize_t read_size;
++
++	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
++	if (proc_self_ksm_stat_fd < 0)
++		return -errno;
++
++	read_size = pread(proc_self_ksm_stat_fd, buf, sizeof(buf) - 1, 0);
++	close(proc_self_ksm_stat_fd);
++	if (read_size < 0)
++		return -errno;
++
++	buf[read_size] = 0;
++
++	substr_ksm_zero = strstr(buf, "ksm_zero_pages");
++	if (!substr_ksm_zero)
++		return 0;
++
++	value_pos = strcspn(substr_ksm_zero, "0123456789");
++	return strtol(substr_ksm_zero + value_pos, NULL, 10);
++}
++
++long ksm_get_self_merging_pages(void)
++{
++	int proc_self_ksm_merging_pages_fd;
++	char buf[10];
++	ssize_t ret;
++
++	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
++						O_RDONLY);
++	if (proc_self_ksm_merging_pages_fd < 0)
++		return -errno;
++
++	ret = pread(proc_self_ksm_merging_pages_fd, buf, sizeof(buf) - 1, 0);
++	close(proc_self_ksm_merging_pages_fd);
++	if (ret <= 0)
++		return -errno;
++	buf[ret] = 0;
++
++	return strtol(buf, NULL, 10);
++}
++
++long ksm_get_full_scans(void)
++{
++	int ksm_full_scans_fd;
++	char buf[10];
++	ssize_t ret;
++
++	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
++	if (ksm_full_scans_fd < 0)
++		return -errno;
++
++	ret = pread(ksm_full_scans_fd, buf, sizeof(buf) - 1, 0);
++	close(ksm_full_scans_fd);
++	if (ret <= 0)
++		return -errno;
++	buf[ret] = 0;
++
++	return strtol(buf, NULL, 10);
++}
++
++int ksm_use_zero_pages(void)
++{
++	int ksm_use_zero_pages_fd;
++	ssize_t ret;
++
++	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
++	if (ksm_use_zero_pages_fd < 0)
++		return -errno;
++
++	ret = write(ksm_use_zero_pages_fd, "1", 1);
++	close(ksm_use_zero_pages_fd);
++	return ret == 1 ? 0 : -errno;
++}
++
++int ksm_start(void)
++{
++	int ksm_fd;
++	ssize_t ret;
++	long start_scans, end_scans;
++
++	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
++	if (ksm_fd < 0)
++		return -errno;
++
++	/* Wait for two full scans such that any possible merging happened. */
++	start_scans = ksm_get_full_scans();
++	if (start_scans < 0) {
++		close(ksm_fd);
++		return start_scans;
++	}
++	ret = write(ksm_fd, "1", 1);
++	close(ksm_fd);
++	if (ret != 1)
++		return -errno;
++	do {
++		end_scans = ksm_get_full_scans();
++		if (end_scans < 0)
++			return end_scans;
++	} while (end_scans < start_scans + 2);
++
++	return 0;
++}
++
++int ksm_stop(void)
++{
++	int ksm_fd;
++	ssize_t ret;
++
++	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
++	if (ksm_fd < 0)
++		return -errno;
++
++	ret = write(ksm_fd, "2", 1);
++	close(ksm_fd);
++	return ret == 1 ? 0 : -errno;
++}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-put-general-ksm-operation-into-vm_util
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -139,6 +139,13 @@ static inline int sz2ord(size_t size, si
+ void *sys_mremap(void *old_address, unsigned long old_size,
+ 		 unsigned long new_size, int flags, void *new_address);
+ 
++long ksm_get_self_zero_pages(void);
++long ksm_get_self_merging_pages(void);
++long ksm_get_full_scans(void);
++int ksm_use_zero_pages(void);
++int ksm_start(void);
++int ksm_stop(void);
++
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
+  */
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-selftests-mm-fix-force_read-to-read-input-value-correctly.patch
-mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
-selftests-mm-mark-all-functions-static-in-split_huge_page_testc.patch
-selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check.patch
-selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check-fix.patch
-selftests-mm-add-check_after_split_folio_orders-helper.patch
-selftests-mm-check-after-split-folio-orders-in-split_huge_page_test.patch
+mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
+selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
+mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
+selftests-mm-put-general-ksm-operation-into-vm_util.patch
+selftests-mm-test-that-rmap-behave-as-expected.patch
 
