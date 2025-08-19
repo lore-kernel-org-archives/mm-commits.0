@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDCC226D4CF
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:36:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0260F26D4CF;
+	Tue, 19 Aug 2025 23:36:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755646608; cv=none; b=ON+PsnyA5UrcPy0ktDzb/MNGi8A3+EsooBRlTUdKokBEk1EO0R/MVMOO3sY/xaHtHYfydI55F8x7WM+dSe6hgP+NDKjfYEHoGsrZx6r91ygnV4bPxYWh9do/U93RbDtINRFLPy8WaqER27XEPE/AZ6uFaI4+pXxDBDFAFx8GioI=
+	t=1755646610; cv=none; b=iPP+oepsj02Q9VGzeTZ2mW8y6NIyq7l9yU/QDnmUWWANpskRjFQmfmxB2aIQ1zcEjgCbwQdXibWpRNpmUH46s/nIcJlgkA7Nbn7eBoNLBoomJfi3gowdFkaohJs/2OMgHW4juiMk7bY5uOUzs1QdnYoQg/J7hHT5ikFRNSLzOPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755646608; c=relaxed/simple;
-	bh=CEyy1b+b8ur4wvZWy6/bt9eugnMzOlz6Hs2dz5tE7RI=;
-	h=Date:To:From:Subject:Message-Id; b=pU8NRHk53EZxxyD6k81rRZz1GMRCnaMi9l1Kx/ma2XgnXcTwWpz/MUfaW1IycbocAXZSZl50qXabt5ARE0zwQW0giWVkbqctt7qoOK9bfMF5s6cdhCvKel8LjLG9F0PD7/cG3yiWPSN6c3gECu1DeU+4UBKBdx3Vq00piDUaTJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1y9X7XyA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755646610; c=relaxed/simple;
+	bh=W6lVDmC7k3dfeJD9qTL49bv0YyyrNitpbUggrRAzdcI=;
+	h=Date:To:From:Subject:Message-Id; b=jY1KDS9i6MZMsxeHVLcija3/83lfNje7+Q9RtQDftHDyGO5g1vilRjTzSVBq7yvVINNKMEL97i2AxOxJWblsDRQa7mQOOyi/BkXn9XFjzEJSJh8OtiKMRB9U+RB3z6OELXcOEquvKWMnRslc4Ufi/Z0SHdW0L9SLB3AgLpKnoJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fuaT30MM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1y9X7XyA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A64AC4CEF1;
-	Tue, 19 Aug 2025 23:36:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fuaT30MM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C32C4CEF1;
+	Tue, 19 Aug 2025 23:36:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755646608;
-	bh=CEyy1b+b8ur4wvZWy6/bt9eugnMzOlz6Hs2dz5tE7RI=;
+	s=korg; t=1755646609;
+	bh=W6lVDmC7k3dfeJD9qTL49bv0YyyrNitpbUggrRAzdcI=;
 	h=Date:To:From:Subject:From;
-	b=1y9X7XyATqhGG94HcdHQtnF3b2TGUR7i24d73i2UA/XWQWOBJ24ms1KXNfQkMvjqD
-	 YUrYGwvIFDX21/EueY73zJKeyR5Yr8fNfq33KOH32+MnUeL7+Y4/uMyw7lzvzVXkLF
-	 Y54a+B/HXb18/dN6sKsPH6nKxv9Acr1Xe4+ZMcm8=
-Date: Tue, 19 Aug 2025 16:36:48 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,axelrasmussen@google.com,akpm@linux-foundation.org
+	b=fuaT30MMxZD7mLD8iK74CoRnHGc9hkq9CwTXRzA0agsTOhLcgfsYHiY7pQN/Twyb7
+	 YGS3ufT1jFRyqPZtirT0SDQqZ/dYMzGccO7AEyqPxtrnB66O+bVxYfmP4hTzBv5l2W
+	 WU4uoMBIWihswsTu1W5w3uyuIZQ9uWYmRXdYs8a4=
+Date: Tue, 19 Aug 2025 16:36:49 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xueshuai@linux.alibaba.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jane.chu@oracle.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-mark-mglru-as-maintained.patch removed from -mm tree
-Message-Id: <20250819233648.8A64AC4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-fix-infinite-uce-for-vm_pfnmap-pfn.patch removed from -mm tree
+Message-Id: <20250819233649.C4C32C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: mark MGLRU as maintained
+     Subject: mm/memory-failure: fix infinite UCE for VM_PFNMAP pfn
 has been removed from the -mm tree.  Its filename was
-     maintainers-mark-mglru-as-maintained.patch
+     mm-memory-failure-fix-infinite-uce-for-vm_pfnmap-pfn.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: MAINTAINERS: mark MGLRU as maintained
-Date: Fri, 15 Aug 2025 14:59:14 -0700
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/memory-failure: fix infinite UCE for VM_PFNMAP pfn
+Date: Fri, 15 Aug 2025 15:32:09 +0800
 
-The three folks being added here are actively working on MGLRU within
-Google, so we can review patches for this feature and plan to contribute
-some improvements / extensions to it on an ongoing basis.
+When memory_failure() is called for a already hwpoisoned pfn,
+kill_accessing_process() will be called to kill current task.  However, if
+the vma of the accessing vaddr is VM_PFNMAP, walk_page_range() will skip
+the vma in walk_page_test() and return 0.
 
-With three of us we may have some hope filling Yu Zhao's shoes, since he
-has moved on to other projects these days.
+Before commit aaf99ac2ceb7 ("mm/hwpoison: do not send SIGBUS to processes
+with recovered clean pages"), kill_accessing_process() will return EFAULT.
+For x86, the current task will be killed in kill_me_maybe().
 
-Link: https://lkml.kernel.org/r/20250815215914.3671925-1-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+However, after this commit, kill_accessing_process() simplies return 0,
+that means UCE is handled properly, but it doesn't actually.  In such
+case, the user task will trigger UCE infinitely.
+
+To fix it, add .test_walk callback for hwpoison_walk_ops to scan all vmas.
+
+Link: https://lkml.kernel.org/r/20250815073209.1984582-1-tujinjiang@huawei.com
+Fixes: aaf99ac2ceb7 ("mm/hwpoison: do not send SIGBUS to processes with recovered clean pages")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Shuai Xue <xueshuai@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/memory-failure.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/MAINTAINERS~maintainers-mark-mglru-as-maintained
-+++ a/MAINTAINERS
-@@ -16058,6 +16058,23 @@ F:	mm/mempolicy.c
- F:	mm/migrate.c
- F:	mm/migrate_device.c
+--- a/mm/memory-failure.c~mm-memory-failure-fix-infinite-uce-for-vm_pfnmap-pfn
++++ a/mm/memory-failure.c
+@@ -853,9 +853,17 @@ static int hwpoison_hugetlb_range(pte_t
+ #define hwpoison_hugetlb_range	NULL
+ #endif
  
-+MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	Axel Rasmussen <axelrasmussen@google.com>
-+M:	Yuanchu Xie <yuanchu@google.com>
-+R:	Wei Xu <weixugc@google.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+W:	http://www.linux-mm.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	Documentation/admin-guide/mm/multigen_lru.rst
-+F:	Documentation/mm/multigen_lru.rst
-+F:	include/linux/mm_inline.h
-+F:	include/linux/mmzone.h
-+F:	mm/swap.c
-+F:	mm/vmscan.c
-+F:	mm/workingset.c
++static int hwpoison_test_walk(unsigned long start, unsigned long end,
++			     struct mm_walk *walk)
++{
++	/* We also want to consider pages mapped into VM_PFNMAP. */
++	return 0;
++}
 +
- MEMORY MANAGEMENT - MISC
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	David Hildenbrand <david@redhat.com>
+ static const struct mm_walk_ops hwpoison_walk_ops = {
+ 	.pmd_entry = hwpoison_pte_range,
+ 	.hugetlb_entry = hwpoison_hugetlb_range,
++	.test_walk = hwpoison_test_walk,
+ 	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
+mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
 
