@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C356229B2A
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2025 16:20:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A51E72F852
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 02:48:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755534050; cv=none; b=u+Xum2sZNIedNwuDYamUhU1EAEs0URQqGSHQxXEfWIdcGQ2gbs2q83QfcNtpdyqrLhrtcSUQ/2XcfYCMz+FQOlrJ9j7+vBCUIsdVsiFVqZobjfkLwbcnC0ZBlb9fYMGN3flRGj5n28ZePvUgl+hZiYym7w7ixioobeCr8sDyq1k=
+	t=1755571700; cv=none; b=Eg8R7sTxiarYcSHRA3J/NgTGXQ5qnQo2XfdrOYtiOeMkUw6KEAfYtK3uIxNg6gK9B6cyJD2CYJzyjPEfC8tsON+J0aRTPKVvr6D5VI3qP7f6AU5ag+TztnOjQi5iLJTQd7QvKZzQ2qDVYTAS/+Z0GRoqGwEjn4wgBIgGMSSy1cQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755534050; c=relaxed/simple;
-	bh=pOAqqrPYRB5JxZLxZz8ziy8f2qSlW5zLpBQYG3/hyho=;
-	h=Date:To:From:Subject:Message-Id; b=S8J6NPduMZCNegxzp4K8WVpNWTihjPbs1XvacJhUdVFUWmO9ec/pDDd4jhOQZijYcDRxVr0E+WUMR2FAR+NpjcYKBlzJesHg1OHhbQcthF3t+4faB4iUdHbZNUEInnEE16PVfAE6fK+3nfhq3L26oibYkNBb9pTj6Zj0n9CR9DA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zvK5bUt5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755571700; c=relaxed/simple;
+	bh=/RUrk3YdI2H177QkgflQuE8/S7pDW+qEcNKkW5wSvN0=;
+	h=Date:To:From:Subject:Message-Id; b=t5qS+xLTWgpChv+JjTvFs3pQKvgv7bASY2HOUPRXwtlnL+EnffVmFQw0jzCQa59emqPJ2GHRJQEbyi+Bn3g50cJUexqM4QZgWPcC24+rc2GtbDyfBetUR+dLUPZ8Bm6o9sDdB8/k16XKQh4pl+j3vF5+BojDoJyJSuW1GVhiosQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0JG3rwE+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zvK5bUt5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7680C4CEEB;
-	Mon, 18 Aug 2025 16:20:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0JG3rwE+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 401CAC4CEED;
+	Tue, 19 Aug 2025 02:48:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755534050;
-	bh=pOAqqrPYRB5JxZLxZz8ziy8f2qSlW5zLpBQYG3/hyho=;
+	s=korg; t=1755571700;
+	bh=/RUrk3YdI2H177QkgflQuE8/S7pDW+qEcNKkW5wSvN0=;
 	h=Date:To:From:Subject:From;
-	b=zvK5bUt53tmsHEZILYIyAk1VRILtrsj3psF3ZLRnr6zO11wVrgoZBNyRhiiNWqlU2
-	 TSxo7AGfPj9TWH59BOaDWXfzjQAzy4gt61EzDizkAuMHoVzdtiCtMlaphoT6TkJ4Dv
-	 r0s2ieBgYiCyLI77mqP9/MLS7g9LhOhEH53qFqIo=
-Date: Mon, 18 Aug 2025 09:20:49 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shakeel.butt@linux.dev,willy@infradead.org,akpm@linux-foundation.org
+	b=0JG3rwE+zcqRcC0cM+4Wq4J1uHUHsOiakBxyH88t4tXGSA4xCoCesS4RKClDPk+/k
+	 qy+T4IfS7l29OxRnSaYHp4+mSnBoNUqJjOi9ZNL2twJXCscCHxAXP6gLpB4xbvj8WP
+	 B+32OCbk6kNDn4XLTWs5qgzUJcSbr3JvJsSN+Sy4=
+Date: Mon, 18 Aug 2025 19:48:19 -0700
+To: mm-commits@vger.kernel.org,wqu@suse.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,josef@toxicpanda.com,hannes@cmpxchg.org,dsterba@suse.com,clm@fb.com,boris@bur.io,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-memdesc_flags_t-fix.patch added to mm-new branch
-Message-Id: <20250818162049.E7680C4CEEB@smtp.kernel.org>
+Subject: + mm-add-vmstat-for-cgroup-uncharged-pages.patch added to mm-new branch
+Message-Id: <20250819024820.401CAC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-introduce-memdesc_flags_t-fix
+     Subject: mm: add vmstat for cgroup uncharged pages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-memdesc_flags_t-fix.patch
+     mm-add-vmstat-for-cgroup-uncharged-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-memdesc_flags_t-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-vmstat-for-cgroup-uncharged-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,840 +64,111 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm-introduce-memdesc_flags_t-fix
-Date: Mon, 18 Aug 2025 08:42:22 -0400
+From: Boris Burkov <boris@bur.io>
+Subject: mm: add vmstat for cgroup uncharged pages
+Date: Mon, 18 Aug 2025 17:36:54 -0700
 
-s/flags/flags.f/ in several architectures
+Uncharged pages are tricky to track by their essential "uncharged" nature.
+To maintain good accounting, introduce a vmstat counter tracking all
+uncharged pages.  Since this is only meaningful when cgroups are
+configured, only expose the counter when CONFIG_MEMCG is set.
 
-Link: https://lkml.kernel.org/r/aKMgPRLD-WnkPxYm@casper.infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Confirmed that these work as expected at a high level by mounting a btrfs
+using AS_UNCHARGED for metadata pages, and seeing the counter rise with fs
+usage then go back to a minimal level after drop_caches and finally down
+to 0 after unmounting the fs.
+
+Link: https://lkml.kernel.org/r/04b3a5c9944d79072d752c85dac1294ca9bee183.1755562487.git.boris@bur.io
+Signed-off-by: Boris Burkov <boris@bur.io>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Tested-by: syzbot@syzkaller.appspotmail.com
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qu Wenruo <wqu@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/cache.c                    |    8 ++++----
- arch/arc/mm/tlb.c                      |    2 +-
- arch/arm/include/asm/hugetlb.h         |    2 +-
- arch/arm/mm/copypage-v4mc.c            |    2 +-
- arch/arm/mm/copypage-v6.c              |    2 +-
- arch/arm/mm/copypage-xscale.c          |    2 +-
- arch/arm/mm/dma-mapping.c              |    2 +-
- arch/arm/mm/fault-armv.c               |    2 +-
- arch/arm/mm/flush.c                    |   10 +++++-----
- arch/arm64/include/asm/hugetlb.h       |    6 +++---
- arch/arm64/include/asm/mte.h           |   16 ++++++++--------
- arch/arm64/mm/flush.c                  |    8 ++++----
- arch/csky/abiv1/cacheflush.c           |    6 +++---
- arch/nios2/mm/cacheflush.c             |    6 +++---
- arch/openrisc/include/asm/cacheflush.h |    2 +-
- arch/openrisc/mm/cache.c               |    2 +-
- arch/parisc/kernel/cache.c             |    6 +++---
- arch/powerpc/include/asm/cacheflush.h  |    4 ++--
- arch/powerpc/include/asm/kvm_ppc.h     |    4 ++--
- arch/powerpc/mm/book3s64/hash_utils.c  |    4 ++--
- arch/powerpc/mm/pgtable.c              |   12 ++++++------
- arch/riscv/include/asm/cacheflush.h    |    4 ++--
- arch/riscv/include/asm/hugetlb.h       |    2 +-
- arch/riscv/mm/cacheflush.c             |    4 ++--
- arch/s390/include/asm/hugetlb.h        |    2 +-
- arch/s390/kernel/uv.c                  |   12 ++++++------
- arch/s390/mm/gmap.c                    |    2 +-
- arch/s390/mm/hugetlbpage.c             |    2 +-
- arch/sh/include/asm/hugetlb.h          |    2 +-
- arch/sh/mm/cache-sh4.c                 |    2 +-
- arch/sh/mm/cache-sh7705.c              |    2 +-
- arch/sh/mm/cache.c                     |   14 +++++++-------
- arch/sh/mm/kmap.c                      |    2 +-
- arch/sparc/mm/init_64.c                |   10 +++++-----
- arch/xtensa/mm/cache.c                 |   12 ++++++------
- 35 files changed, 90 insertions(+), 90 deletions(-)
+ include/linux/mmzone.h |    3 +++
+ mm/filemap.c           |   17 +++++++++++++++++
+ mm/vmstat.c            |    3 +++
+ 3 files changed, 23 insertions(+)
 
---- a/arch/arc/mm/cache.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arc/mm/cache.c
-@@ -704,7 +704,7 @@ static inline void arc_slc_enable(void)
- 
- void flush_dcache_folio(struct folio *folio)
- {
--	clear_bit(PG_dc_clean, &folio->flags);
-+	clear_bit(PG_dc_clean, &folio->flags.f);
- 	return;
- }
- EXPORT_SYMBOL(flush_dcache_folio);
-@@ -889,8 +889,8 @@ void copy_user_highpage(struct page *to,
- 
- 	copy_page(kto, kfrom);
- 
--	clear_bit(PG_dc_clean, &dst->flags);
--	clear_bit(PG_dc_clean, &src->flags);
-+	clear_bit(PG_dc_clean, &dst->flags.f);
-+	clear_bit(PG_dc_clean, &src->flags.f);
- 
- 	kunmap_atomic(kto);
- 	kunmap_atomic(kfrom);
-@@ -900,7 +900,7 @@ void clear_user_page(void *to, unsigned
- {
- 	struct folio *folio = page_folio(page);
- 	clear_page(to);
--	clear_bit(PG_dc_clean, &folio->flags);
-+	clear_bit(PG_dc_clean, &folio->flags.f);
- }
- EXPORT_SYMBOL(clear_user_page);
- 
---- a/arch/arc/mm/tlb.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arc/mm/tlb.c
-@@ -488,7 +488,7 @@ void update_mmu_cache_range(struct vm_fa
- 	 */
- 	if (vma->vm_flags & VM_EXEC) {
- 		struct folio *folio = page_folio(page);
--		int dirty = !test_and_set_bit(PG_dc_clean, &folio->flags);
-+		int dirty = !test_and_set_bit(PG_dc_clean, &folio->flags.f);
- 		if (dirty) {
- 			unsigned long offset = offset_in_folio(folio, paddr);
- 			nr = folio_nr_pages(folio);
---- a/arch/arm64/include/asm/hugetlb.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm64/include/asm/hugetlb.h
-@@ -21,12 +21,12 @@ extern bool arch_hugetlb_migration_suppo
- 
- static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_dcache_clean, &folio->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags.f);
- 
- #ifdef CONFIG_ARM64_MTE
- 	if (system_supports_mte()) {
--		clear_bit(PG_mte_tagged, &folio->flags);
--		clear_bit(PG_mte_lock, &folio->flags);
-+		clear_bit(PG_mte_tagged, &folio->flags.f);
-+		clear_bit(PG_mte_lock, &folio->flags.f);
- 	}
+--- a/include/linux/mmzone.h~mm-add-vmstat-for-cgroup-uncharged-pages
++++ a/include/linux/mmzone.h
+@@ -259,6 +259,9 @@ enum node_stat_item {
+ 	NR_HUGETLB,
  #endif
+ 	NR_BALLOON_PAGES,
++#ifdef CONFIG_MEMCG
++	NR_UNCHARGED_FILE_PAGES,
++#endif
+ 	NR_VM_NODE_STAT_ITEMS
+ };
+ 
+--- a/mm/filemap.c~mm-add-vmstat-for-cgroup-uncharged-pages
++++ a/mm/filemap.c
+@@ -146,6 +146,19 @@ static void page_cache_delete(struct add
+ 	mapping->nrpages -= nr;
  }
---- a/arch/arm64/include/asm/mte.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm64/include/asm/mte.h
-@@ -48,12 +48,12 @@ static inline void set_page_mte_tagged(s
- 	 * before the page flags update.
- 	 */
- 	smp_wmb();
--	set_bit(PG_mte_tagged, &page->flags);
-+	set_bit(PG_mte_tagged, &page->flags.f);
- }
  
- static inline bool page_mte_tagged(struct page *page)
++#ifdef CONFIG_MEMCG
++static void filemap_mod_uncharged_vmstat(struct folio *folio, int sign)
++{
++	long nr = folio_nr_pages(folio) * sign;
++
++	mod_node_page_state(folio_pgdat(folio), NR_UNCHARGED_FILE_PAGES, nr);
++}
++#else
++static void filemap_mod_uncharged_vmstat(struct folio *folio, int sign)
++{
++}
++#endif
++
+ static void filemap_unaccount_folio(struct address_space *mapping,
+ 		struct folio *folio)
  {
--	bool ret = test_bit(PG_mte_tagged, &page->flags);
-+	bool ret = test_bit(PG_mte_tagged, &page->flags.f);
- 
- 	VM_WARN_ON_ONCE(folio_test_hugetlb(page_folio(page)));
- 
-@@ -82,7 +82,7 @@ static inline bool try_page_mte_tagging(
- {
- 	VM_WARN_ON_ONCE(folio_test_hugetlb(page_folio(page)));
- 
--	if (!test_and_set_bit(PG_mte_lock, &page->flags))
-+	if (!test_and_set_bit(PG_mte_lock, &page->flags.f))
- 		return true;
+@@ -190,6 +203,8 @@ static void filemap_unaccount_folio(stru
+ 		__lruvec_stat_mod_folio(folio, NR_FILE_THPS, -nr);
+ 		filemap_nr_thps_dec(mapping);
+ 	}
++	if (test_bit(AS_UNCHARGED, &folio->mapping->flags))
++		filemap_mod_uncharged_vmstat(folio, -1);
  
  	/*
-@@ -90,7 +90,7 @@ static inline bool try_page_mte_tagging(
- 	 * already. Check if the PG_mte_tagged flag has been set or wait
- 	 * otherwise.
- 	 */
--	smp_cond_load_acquire(&page->flags, VAL & (1UL << PG_mte_tagged));
-+	smp_cond_load_acquire(&page->flags.f, VAL & (1UL << PG_mte_tagged));
- 
- 	return false;
- }
-@@ -173,13 +173,13 @@ static inline void folio_set_hugetlb_mte
- 	 * before the folio flags update.
- 	 */
- 	smp_wmb();
--	set_bit(PG_mte_tagged, &folio->flags);
-+	set_bit(PG_mte_tagged, &folio->flags.f);
- 
- }
- 
- static inline bool folio_test_hugetlb_mte_tagged(struct folio *folio)
- {
--	bool ret = test_bit(PG_mte_tagged, &folio->flags);
-+	bool ret = test_bit(PG_mte_tagged, &folio->flags.f);
- 
- 	VM_WARN_ON_ONCE(!folio_test_hugetlb(folio));
- 
-@@ -196,7 +196,7 @@ static inline bool folio_try_hugetlb_mte
- {
- 	VM_WARN_ON_ONCE(!folio_test_hugetlb(folio));
- 
--	if (!test_and_set_bit(PG_mte_lock, &folio->flags))
-+	if (!test_and_set_bit(PG_mte_lock, &folio->flags.f))
- 		return true;
- 
- 	/*
-@@ -204,7 +204,7 @@ static inline bool folio_try_hugetlb_mte
- 	 * already. Check if the PG_mte_tagged flag has been set or wait
- 	 * otherwise.
- 	 */
--	smp_cond_load_acquire(&folio->flags, VAL & (1UL << PG_mte_tagged));
-+	smp_cond_load_acquire(&folio->flags.f, VAL & (1UL << PG_mte_tagged));
- 
- 	return false;
- }
---- a/arch/arm64/mm/flush.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm64/mm/flush.c
-@@ -53,11 +53,11 @@ void __sync_icache_dcache(pte_t pte)
- {
- 	struct folio *folio = page_folio(pte_page(pte));
- 
--	if (!test_bit(PG_dcache_clean, &folio->flags)) {
-+	if (!test_bit(PG_dcache_clean, &folio->flags.f)) {
- 		sync_icache_aliases((unsigned long)folio_address(folio),
- 				    (unsigned long)folio_address(folio) +
- 					    folio_size(folio));
--		set_bit(PG_dcache_clean, &folio->flags);
-+		set_bit(PG_dcache_clean, &folio->flags.f);
+ 	 * At this point folio must be either written or cleaned by
+@@ -987,6 +1002,8 @@ int filemap_add_folio(struct address_spa
+ 		if (!(gfp & __GFP_WRITE) && shadow)
+ 			workingset_refault(folio, shadow);
+ 		folio_add_lru(folio);
++		if (!charge_mem_cgroup)
++			filemap_mod_uncharged_vmstat(folio, 1);
  	}
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(__sync_icache_dcache);
-@@ -69,8 +69,8 @@ EXPORT_SYMBOL_GPL(__sync_icache_dcache);
-  */
- void flush_dcache_folio(struct folio *folio)
- {
--	if (test_bit(PG_dcache_clean, &folio->flags))
--		clear_bit(PG_dcache_clean, &folio->flags);
-+	if (test_bit(PG_dcache_clean, &folio->flags.f))
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- }
- EXPORT_SYMBOL(flush_dcache_folio);
- 
---- a/arch/arm/include/asm/hugetlb.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm/include/asm/hugetlb.h
-@@ -17,7 +17,7 @@
- 
- static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_dcache_clean, &folio->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags.f);
- }
- #define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
---- a/arch/arm/mm/copypage-v4mc.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm/mm/copypage-v4mc.c
-@@ -67,7 +67,7 @@ void v4_mc_copy_user_highpage(struct pag
- 	struct folio *src = page_folio(from);
- 	void *kto = kmap_atomic(to);
- 
--	if (!test_and_set_bit(PG_dcache_clean, &src->flags))
-+	if (!test_and_set_bit(PG_dcache_clean, &src->flags.f))
- 		__flush_dcache_folio(folio_flush_mapping(src), src);
- 
- 	raw_spin_lock(&minicache_lock);
---- a/arch/arm/mm/copypage-v6.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm/mm/copypage-v6.c
-@@ -73,7 +73,7 @@ static void v6_copy_user_highpage_aliasi
- 	unsigned int offset = CACHE_COLOUR(vaddr);
- 	unsigned long kfrom, kto;
- 
--	if (!test_and_set_bit(PG_dcache_clean, &src->flags))
-+	if (!test_and_set_bit(PG_dcache_clean, &src->flags.f))
- 		__flush_dcache_folio(folio_flush_mapping(src), src);
- 
- 	/* FIXME: not highmem safe */
---- a/arch/arm/mm/copypage-xscale.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm/mm/copypage-xscale.c
-@@ -87,7 +87,7 @@ void xscale_mc_copy_user_highpage(struct
- 	struct folio *src = page_folio(from);
- 	void *kto = kmap_atomic(to);
- 
--	if (!test_and_set_bit(PG_dcache_clean, &src->flags))
-+	if (!test_and_set_bit(PG_dcache_clean, &src->flags.f))
- 		__flush_dcache_folio(folio_flush_mapping(src), src);
- 
- 	raw_spin_lock(&minicache_lock);
---- a/arch/arm/mm/dma-mapping.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm/mm/dma-mapping.c
-@@ -718,7 +718,7 @@ static void __dma_page_dev_to_cpu(struct
- 			if (size < sz)
- 				break;
- 			if (!offset)
--				set_bit(PG_dcache_clean, &folio->flags);
-+				set_bit(PG_dcache_clean, &folio->flags.f);
- 			offset = 0;
- 			size -= sz;
- 			if (!size)
---- a/arch/arm/mm/fault-armv.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm/mm/fault-armv.c
-@@ -203,7 +203,7 @@ void update_mmu_cache_range(struct vm_fa
- 
- 	folio = page_folio(pfn_to_page(pfn));
- 	mapping = folio_flush_mapping(folio);
--	if (!test_and_set_bit(PG_dcache_clean, &folio->flags))
-+	if (!test_and_set_bit(PG_dcache_clean, &folio->flags.f))
- 		__flush_dcache_folio(mapping, folio);
- 	if (mapping) {
- 		if (cache_is_vivt())
---- a/arch/arm/mm/flush.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/arm/mm/flush.c
-@@ -304,7 +304,7 @@ void __sync_icache_dcache(pte_t pteval)
- 	else
- 		mapping = NULL;
- 
--	if (!test_and_set_bit(PG_dcache_clean, &folio->flags))
-+	if (!test_and_set_bit(PG_dcache_clean, &folio->flags.f))
- 		__flush_dcache_folio(mapping, folio);
- 
- 	if (pte_exec(pteval))
-@@ -343,8 +343,8 @@ void flush_dcache_folio(struct folio *fo
- 		return;
- 
- 	if (!cache_ops_need_broadcast() && cache_is_vipt_nonaliasing()) {
--		if (test_bit(PG_dcache_clean, &folio->flags))
--			clear_bit(PG_dcache_clean, &folio->flags);
-+		if (test_bit(PG_dcache_clean, &folio->flags.f))
-+			clear_bit(PG_dcache_clean, &folio->flags.f);
- 		return;
- 	}
- 
-@@ -352,14 +352,14 @@ void flush_dcache_folio(struct folio *fo
- 
- 	if (!cache_ops_need_broadcast() &&
- 	    mapping && !folio_mapped(folio))
--		clear_bit(PG_dcache_clean, &folio->flags);
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- 	else {
- 		__flush_dcache_folio(mapping, folio);
- 		if (mapping && cache_is_vivt())
- 			__flush_dcache_aliases(mapping, folio);
- 		else if (mapping)
- 			__flush_icache_all();
--		set_bit(PG_dcache_clean, &folio->flags);
-+		set_bit(PG_dcache_clean, &folio->flags.f);
- 	}
- }
- EXPORT_SYMBOL(flush_dcache_folio);
---- a/arch/csky/abiv1/cacheflush.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/csky/abiv1/cacheflush.c
-@@ -25,12 +25,12 @@ void flush_dcache_folio(struct folio *fo
- 	mapping = folio_flush_mapping(folio);
- 
- 	if (mapping && !folio_mapped(folio))
--		clear_bit(PG_dcache_clean, &folio->flags);
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- 	else {
- 		dcache_wbinv_all();
- 		if (mapping)
- 			icache_inv_all();
--		set_bit(PG_dcache_clean, &folio->flags);
-+		set_bit(PG_dcache_clean, &folio->flags.f);
- 	}
- }
- EXPORT_SYMBOL(flush_dcache_folio);
-@@ -56,7 +56,7 @@ void update_mmu_cache_range(struct vm_fa
- 		return;
- 
- 	folio = page_folio(pfn_to_page(pfn));
--	if (!test_and_set_bit(PG_dcache_clean, &folio->flags))
-+	if (!test_and_set_bit(PG_dcache_clean, &folio->flags.f))
- 		dcache_wbinv_all();
- 
- 	if (folio_flush_mapping(folio)) {
---- a/arch/nios2/mm/cacheflush.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/nios2/mm/cacheflush.c
-@@ -187,7 +187,7 @@ void flush_dcache_folio(struct folio *fo
- 
- 	/* Flush this page if there are aliases. */
- 	if (mapping && !mapping_mapped(mapping)) {
--		clear_bit(PG_dcache_clean, &folio->flags);
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- 	} else {
- 		__flush_dcache_folio(folio);
- 		if (mapping) {
-@@ -195,7 +195,7 @@ void flush_dcache_folio(struct folio *fo
- 			flush_aliases(mapping, folio);
- 			flush_icache_range(start, start + folio_size(folio));
- 		}
--		set_bit(PG_dcache_clean, &folio->flags);
-+		set_bit(PG_dcache_clean, &folio->flags.f);
- 	}
- }
- EXPORT_SYMBOL(flush_dcache_folio);
-@@ -227,7 +227,7 @@ void update_mmu_cache_range(struct vm_fa
- 		return;
- 
- 	folio = page_folio(pfn_to_page(pfn));
--	if (!test_and_set_bit(PG_dcache_clean, &folio->flags))
-+	if (!test_and_set_bit(PG_dcache_clean, &folio->flags.f))
- 		__flush_dcache_folio(folio);
- 
- 	mapping = folio_flush_mapping(folio);
---- a/arch/openrisc/include/asm/cacheflush.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/openrisc/include/asm/cacheflush.h
-@@ -75,7 +75,7 @@ static inline void sync_icache_dcache(st
- 
- static inline void flush_dcache_folio(struct folio *folio)
- {
--	clear_bit(PG_dc_clean, &folio->flags);
-+	clear_bit(PG_dc_clean, &folio->flags.f);
- }
- #define flush_dcache_folio flush_dcache_folio
- 
---- a/arch/openrisc/mm/cache.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/openrisc/mm/cache.c
-@@ -83,7 +83,7 @@ void update_cache(struct vm_area_struct
- {
- 	unsigned long pfn = pte_val(*pte) >> PAGE_SHIFT;
- 	struct folio *folio = page_folio(pfn_to_page(pfn));
--	int dirty = !test_and_set_bit(PG_dc_clean, &folio->flags);
-+	int dirty = !test_and_set_bit(PG_dc_clean, &folio->flags.f);
- 
- 	/*
- 	 * Since icaches do not snoop for updated data on OpenRISC, we
---- a/arch/parisc/kernel/cache.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/parisc/kernel/cache.c
-@@ -122,10 +122,10 @@ void __update_cache(pte_t pte)
- 	pfn = folio_pfn(folio);
- 	nr = folio_nr_pages(folio);
- 	if (folio_flush_mapping(folio) &&
--	    test_bit(PG_dcache_dirty, &folio->flags)) {
-+	    test_bit(PG_dcache_dirty, &folio->flags.f)) {
- 		while (nr--)
- 			flush_kernel_dcache_page_addr(pfn_va(pfn + nr));
--		clear_bit(PG_dcache_dirty, &folio->flags);
-+		clear_bit(PG_dcache_dirty, &folio->flags.f);
- 	} else if (parisc_requires_coherency())
- 		while (nr--)
- 			flush_kernel_dcache_page_addr(pfn_va(pfn + nr));
-@@ -481,7 +481,7 @@ void flush_dcache_folio(struct folio *fo
- 	pgoff_t pgoff;
- 
- 	if (mapping && !mapping_mapped(mapping)) {
--		set_bit(PG_dcache_dirty, &folio->flags);
-+		set_bit(PG_dcache_dirty, &folio->flags.f);
- 		return;
- 	}
- 
---- a/arch/powerpc/include/asm/cacheflush.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/powerpc/include/asm/cacheflush.h
-@@ -40,8 +40,8 @@ static inline void flush_dcache_folio(st
- 	if (cpu_has_feature(CPU_FTR_COHERENT_ICACHE))
- 		return;
- 	/* avoid an atomic op if possible */
--	if (test_bit(PG_dcache_clean, &folio->flags))
--		clear_bit(PG_dcache_clean, &folio->flags);
-+	if (test_bit(PG_dcache_clean, &folio->flags.f))
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- }
- #define flush_dcache_folio flush_dcache_folio
- 
---- a/arch/powerpc/include/asm/kvm_ppc.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/powerpc/include/asm/kvm_ppc.h
-@@ -939,9 +939,9 @@ static inline void kvmppc_mmu_flush_icac
- 
- 	/* Clear i-cache for new pages */
- 	folio = page_folio(pfn_to_page(pfn));
--	if (!test_bit(PG_dcache_clean, &folio->flags)) {
-+	if (!test_bit(PG_dcache_clean, &folio->flags.f)) {
- 		flush_dcache_icache_folio(folio);
--		set_bit(PG_dcache_clean, &folio->flags);
-+		set_bit(PG_dcache_clean, &folio->flags.f);
- 	}
- }
- 
---- a/arch/powerpc/mm/book3s64/hash_utils.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/powerpc/mm/book3s64/hash_utils.c
-@@ -1562,11 +1562,11 @@ unsigned int hash_page_do_lazy_icache(un
- 	folio = page_folio(pte_page(pte));
- 
- 	/* page is dirty */
--	if (!test_bit(PG_dcache_clean, &folio->flags) &&
-+	if (!test_bit(PG_dcache_clean, &folio->flags.f) &&
- 	    !folio_test_reserved(folio)) {
- 		if (trap == INTERRUPT_INST_STORAGE) {
- 			flush_dcache_icache_folio(folio);
--			set_bit(PG_dcache_clean, &folio->flags);
-+			set_bit(PG_dcache_clean, &folio->flags.f);
- 		} else
- 			pp |= HPTE_R_N;
- 	}
---- a/arch/powerpc/mm/pgtable.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -88,9 +88,9 @@ static pte_t set_pte_filter_hash(pte_t p
- 		struct folio *folio = maybe_pte_to_folio(pte);
- 		if (!folio)
- 			return pte;
--		if (!test_bit(PG_dcache_clean, &folio->flags)) {
-+		if (!test_bit(PG_dcache_clean, &folio->flags.f)) {
- 			flush_dcache_icache_folio(folio);
--			set_bit(PG_dcache_clean, &folio->flags);
-+			set_bit(PG_dcache_clean, &folio->flags.f);
- 		}
- 	}
- 	return pte;
-@@ -128,13 +128,13 @@ static inline pte_t set_pte_filter(pte_t
- 		return pte;
- 
- 	/* If the page clean, we move on */
--	if (test_bit(PG_dcache_clean, &folio->flags))
-+	if (test_bit(PG_dcache_clean, &folio->flags.f))
- 		return pte;
- 
- 	/* If it's an exec fault, we flush the cache and make it clean */
- 	if (is_exec_fault()) {
- 		flush_dcache_icache_folio(folio);
--		set_bit(PG_dcache_clean, &folio->flags);
-+		set_bit(PG_dcache_clean, &folio->flags.f);
- 		return pte;
- 	}
- 
-@@ -176,12 +176,12 @@ static pte_t set_access_flags_filter(pte
- 		goto bail;
- 
- 	/* If the page is already clean, we move on */
--	if (test_bit(PG_dcache_clean, &folio->flags))
-+	if (test_bit(PG_dcache_clean, &folio->flags.f))
- 		goto bail;
- 
- 	/* Clean the page and set PG_dcache_clean */
- 	flush_dcache_icache_folio(folio);
--	set_bit(PG_dcache_clean, &folio->flags);
-+	set_bit(PG_dcache_clean, &folio->flags.f);
- 
-  bail:
- 	return pte_mkexec(pte);
---- a/arch/riscv/include/asm/cacheflush.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/riscv/include/asm/cacheflush.h
-@@ -23,8 +23,8 @@ static inline void local_flush_icache_ra
- 
- static inline void flush_dcache_folio(struct folio *folio)
- {
--	if (test_bit(PG_dcache_clean, &folio->flags))
--		clear_bit(PG_dcache_clean, &folio->flags);
-+	if (test_bit(PG_dcache_clean, &folio->flags.f))
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- }
- #define flush_dcache_folio flush_dcache_folio
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
---- a/arch/riscv/include/asm/hugetlb.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/riscv/include/asm/hugetlb.h
-@@ -7,7 +7,7 @@
- 
- static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_dcache_clean, &folio->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags.f);
- }
- #define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
---- a/arch/riscv/mm/cacheflush.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/riscv/mm/cacheflush.c
-@@ -101,9 +101,9 @@ void flush_icache_pte(struct mm_struct *
- {
- 	struct folio *folio = page_folio(pte_page(pte));
- 
--	if (!test_bit(PG_dcache_clean, &folio->flags)) {
-+	if (!test_bit(PG_dcache_clean, &folio->flags.f)) {
- 		flush_icache_mm(mm, false);
--		set_bit(PG_dcache_clean, &folio->flags);
-+		set_bit(PG_dcache_clean, &folio->flags.f);
- 	}
- }
- #endif /* CONFIG_MMU */
---- a/arch/s390/include/asm/hugetlb.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/s390/include/asm/hugetlb.h
-@@ -39,7 +39,7 @@ static inline pte_t huge_ptep_get_and_cl
- 
- static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_arch_1, &folio->flags);
-+	clear_bit(PG_arch_1, &folio->flags.f);
- }
- #define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
---- a/arch/s390/kernel/uv.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/s390/kernel/uv.c
-@@ -144,7 +144,7 @@ int uv_destroy_folio(struct folio *folio
- 	folio_get(folio);
- 	rc = uv_destroy(folio_to_phys(folio));
- 	if (!rc)
--		clear_bit(PG_arch_1, &folio->flags);
-+		clear_bit(PG_arch_1, &folio->flags.f);
- 	folio_put(folio);
- 	return rc;
- }
-@@ -193,7 +193,7 @@ int uv_convert_from_secure_folio(struct
- 	folio_get(folio);
- 	rc = uv_convert_from_secure(folio_to_phys(folio));
- 	if (!rc)
--		clear_bit(PG_arch_1, &folio->flags);
-+		clear_bit(PG_arch_1, &folio->flags.f);
- 	folio_put(folio);
- 	return rc;
- }
-@@ -289,7 +289,7 @@ static int __make_folio_secure(struct fo
- 	expected = expected_folio_refs(folio) + 1;
- 	if (!folio_ref_freeze(folio, expected))
- 		return -EBUSY;
--	set_bit(PG_arch_1, &folio->flags);
-+	set_bit(PG_arch_1, &folio->flags.f);
- 	/*
- 	 * If the UVC does not succeed or fail immediately, we don't want to
- 	 * loop for long, or we might get stall notifications.
-@@ -483,18 +483,18 @@ int arch_make_folio_accessible(struct fo
- 	 *    convert_to_secure.
- 	 * As secure pages are never large folios, both variants can co-exists.
- 	 */
--	if (!test_bit(PG_arch_1, &folio->flags))
-+	if (!test_bit(PG_arch_1, &folio->flags.f))
- 		return 0;
- 
- 	rc = uv_pin_shared(folio_to_phys(folio));
- 	if (!rc) {
--		clear_bit(PG_arch_1, &folio->flags);
-+		clear_bit(PG_arch_1, &folio->flags.f);
- 		return 0;
- 	}
- 
- 	rc = uv_convert_from_secure(folio_to_phys(folio));
- 	if (!rc) {
--		clear_bit(PG_arch_1, &folio->flags);
-+		clear_bit(PG_arch_1, &folio->flags.f);
- 		return 0;
- 	}
- 
---- a/arch/s390/mm/gmap.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/s390/mm/gmap.c
-@@ -2272,7 +2272,7 @@ static int __s390_enable_skey_hugetlb(pt
- 	start = pmd_val(*pmd) & HPAGE_MASK;
- 	end = start + HPAGE_SIZE;
- 	__storage_key_init_range(start, end);
--	set_bit(PG_arch_1, &folio->flags);
-+	set_bit(PG_arch_1, &folio->flags.f);
- 	cond_resched();
- 	return 0;
- }
---- a/arch/s390/mm/hugetlbpage.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -155,7 +155,7 @@ static void clear_huge_pte_skeys(struct
- 		paddr = rste & PMD_MASK;
- 	}
- 
--	if (!test_and_set_bit(PG_arch_1, &folio->flags))
-+	if (!test_and_set_bit(PG_arch_1, &folio->flags.f))
- 		__storage_key_init_range(paddr, paddr + size);
- }
- 
---- a/arch/sh/include/asm/hugetlb.h~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/sh/include/asm/hugetlb.h
-@@ -14,7 +14,7 @@ static inline pte_t huge_ptep_clear_flus
- 
- static inline void arch_clear_hugetlb_flags(struct folio *folio)
- {
--	clear_bit(PG_dcache_clean, &folio->flags);
-+	clear_bit(PG_dcache_clean, &folio->flags.f);
- }
- #define arch_clear_hugetlb_flags arch_clear_hugetlb_flags
- 
---- a/arch/sh/mm/cache.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/sh/mm/cache.c
-@@ -64,14 +64,14 @@ void copy_to_user_page(struct vm_area_st
- 	struct folio *folio = page_folio(page);
- 
- 	if (boot_cpu_data.dcache.n_aliases && folio_mapped(folio) &&
--	    test_bit(PG_dcache_clean, &folio->flags)) {
-+	    test_bit(PG_dcache_clean, &folio->flags.f)) {
- 		void *vto = kmap_coherent(page, vaddr) + (vaddr & ~PAGE_MASK);
- 		memcpy(vto, src, len);
- 		kunmap_coherent(vto);
- 	} else {
- 		memcpy(dst, src, len);
- 		if (boot_cpu_data.dcache.n_aliases)
--			clear_bit(PG_dcache_clean, &folio->flags);
-+			clear_bit(PG_dcache_clean, &folio->flags.f);
- 	}
- 
- 	if (vma->vm_flags & VM_EXEC)
-@@ -85,14 +85,14 @@ void copy_from_user_page(struct vm_area_
- 	struct folio *folio = page_folio(page);
- 
- 	if (boot_cpu_data.dcache.n_aliases && folio_mapped(folio) &&
--	    test_bit(PG_dcache_clean, &folio->flags)) {
-+	    test_bit(PG_dcache_clean, &folio->flags.f)) {
- 		void *vfrom = kmap_coherent(page, vaddr) + (vaddr & ~PAGE_MASK);
- 		memcpy(dst, vfrom, len);
- 		kunmap_coherent(vfrom);
- 	} else {
- 		memcpy(dst, src, len);
- 		if (boot_cpu_data.dcache.n_aliases)
--			clear_bit(PG_dcache_clean, &folio->flags);
-+			clear_bit(PG_dcache_clean, &folio->flags.f);
- 	}
- }
- 
-@@ -105,7 +105,7 @@ void copy_user_highpage(struct page *to,
- 	vto = kmap_atomic(to);
- 
- 	if (boot_cpu_data.dcache.n_aliases && folio_mapped(src) &&
--	    test_bit(PG_dcache_clean, &src->flags)) {
-+	    test_bit(PG_dcache_clean, &src->flags.f)) {
- 		vfrom = kmap_coherent(from, vaddr);
- 		copy_page(vto, vfrom);
- 		kunmap_coherent(vfrom);
-@@ -148,7 +148,7 @@ void __update_cache(struct vm_area_struc
- 
- 	if (pfn_valid(pfn)) {
- 		struct folio *folio = page_folio(pfn_to_page(pfn));
--		int dirty = !test_and_set_bit(PG_dcache_clean, &folio->flags);
-+		int dirty = !test_and_set_bit(PG_dcache_clean, &folio->flags.f);
- 		if (dirty)
- 			__flush_purge_region(folio_address(folio),
- 						folio_size(folio));
-@@ -162,7 +162,7 @@ void __flush_anon_page(struct page *page
- 
- 	if (pages_do_alias(addr, vmaddr)) {
- 		if (boot_cpu_data.dcache.n_aliases && folio_mapped(folio) &&
--		    test_bit(PG_dcache_clean, &folio->flags)) {
-+		    test_bit(PG_dcache_clean, &folio->flags.f)) {
- 			void *kaddr;
- 
- 			kaddr = kmap_coherent(page, vmaddr);
---- a/arch/sh/mm/cache-sh4.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/sh/mm/cache-sh4.c
-@@ -114,7 +114,7 @@ static void sh4_flush_dcache_folio(void
- 	struct address_space *mapping = folio_flush_mapping(folio);
- 
- 	if (mapping && !mapping_mapped(mapping))
--		clear_bit(PG_dcache_clean, &folio->flags);
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- 	else
+--- a/mm/vmstat.c~mm-add-vmstat-for-cgroup-uncharged-pages
++++ a/mm/vmstat.c
+@@ -1290,6 +1290,9 @@ const char * const vmstat_text[] = {
+ 	[I(NR_HUGETLB)]				= "nr_hugetlb",
  #endif
- 	{
---- a/arch/sh/mm/cache-sh7705.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/sh/mm/cache-sh7705.c
-@@ -138,7 +138,7 @@ static void sh7705_flush_dcache_folio(vo
- 	struct address_space *mapping = folio_flush_mapping(folio);
+ 	[I(NR_BALLOON_PAGES)]			= "nr_balloon_pages",
++#ifdef CONFIG_MEMCG
++	[I(NR_UNCHARGED_FILE_PAGES)]		= "nr_uncharged_file_pages",
++#endif
+ #undef I
  
- 	if (mapping && !mapping_mapped(mapping))
--		clear_bit(PG_dcache_clean, &folio->flags);
-+		clear_bit(PG_dcache_clean, &folio->flags.f);
- 	else {
- 		unsigned long pfn = folio_pfn(folio);
- 		unsigned int i, nr = folio_nr_pages(folio);
---- a/arch/sh/mm/kmap.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/sh/mm/kmap.c
-@@ -31,7 +31,7 @@ void *kmap_coherent(struct page *page, u
- 	enum fixed_addresses idx;
- 	unsigned long vaddr;
- 
--	BUG_ON(!test_bit(PG_dcache_clean, &folio->flags));
-+	BUG_ON(!test_bit(PG_dcache_clean, &folio->flags.f));
- 
- 	preempt_disable();
- 	pagefault_disable();
---- a/arch/sparc/mm/init_64.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/sparc/mm/init_64.c
-@@ -224,7 +224,7 @@ inline void flush_dcache_folio_impl(stru
- 	((1UL<<ilog2(roundup_pow_of_two(NR_CPUS)))-1UL)
- 
- #define dcache_dirty_cpu(folio) \
--	(((folio)->flags >> PG_dcache_cpu_shift) & PG_dcache_cpu_mask)
-+	(((folio)->flags.f >> PG_dcache_cpu_shift) & PG_dcache_cpu_mask)
- 
- static inline void set_dcache_dirty(struct folio *folio, int this_cpu)
- {
-@@ -243,7 +243,7 @@ static inline void set_dcache_dirty(stru
- 			     "bne,pn	%%xcc, 1b\n\t"
- 			     " nop"
- 			     : /* no outputs */
--			     : "r" (mask), "r" (non_cpu_bits), "r" (&folio->flags)
-+			     : "r" (mask), "r" (non_cpu_bits), "r" (&folio->flags.f)
- 			     : "g1", "g7");
- }
- 
-@@ -265,7 +265,7 @@ static inline void clear_dcache_dirty_cp
- 			     " nop\n"
- 			     "2:"
- 			     : /* no outputs */
--			     : "r" (cpu), "r" (mask), "r" (&folio->flags),
-+			     : "r" (cpu), "r" (mask), "r" (&folio->flags.f),
- 			       "i" (PG_dcache_cpu_mask),
- 			       "i" (PG_dcache_cpu_shift)
- 			     : "g1", "g7");
-@@ -292,7 +292,7 @@ static void flush_dcache(unsigned long p
- 		struct folio *folio = page_folio(page);
- 		unsigned long pg_flags;
- 
--		pg_flags = folio->flags;
-+		pg_flags = folio->flags.f;
- 		if (pg_flags & (1UL << PG_dcache_dirty)) {
- 			int cpu = ((pg_flags >> PG_dcache_cpu_shift) &
- 				   PG_dcache_cpu_mask);
-@@ -480,7 +480,7 @@ void flush_dcache_folio(struct folio *fo
- 
- 	mapping = folio_flush_mapping(folio);
- 	if (mapping && !mapping_mapped(mapping)) {
--		bool dirty = test_bit(PG_dcache_dirty, &folio->flags);
-+		bool dirty = test_bit(PG_dcache_dirty, &folio->flags.f);
- 		if (dirty) {
- 			int dirty_cpu = dcache_dirty_cpu(folio);
- 
---- a/arch/xtensa/mm/cache.c~mm-introduce-memdesc_flags_t-fix
-+++ a/arch/xtensa/mm/cache.c
-@@ -134,8 +134,8 @@ void flush_dcache_folio(struct folio *fo
- 	 */
- 
- 	if (mapping && !mapping_mapped(mapping)) {
--		if (!test_bit(PG_arch_1, &folio->flags))
--			set_bit(PG_arch_1, &folio->flags);
-+		if (!test_bit(PG_arch_1, &folio->flags.f))
-+			set_bit(PG_arch_1, &folio->flags.f);
- 		return;
- 
- 	} else {
-@@ -232,7 +232,7 @@ void update_mmu_cache_range(struct vm_fa
- 
- #if (DCACHE_WAY_SIZE > PAGE_SIZE)
- 
--	if (!folio_test_reserved(folio) && test_bit(PG_arch_1, &folio->flags)) {
-+	if (!folio_test_reserved(folio) && test_bit(PG_arch_1, &folio->flags.f)) {
- 		unsigned long phys = folio_pfn(folio) * PAGE_SIZE;
- 		unsigned long tmp;
- 
-@@ -247,10 +247,10 @@ void update_mmu_cache_range(struct vm_fa
- 		}
- 		preempt_enable();
- 
--		clear_bit(PG_arch_1, &folio->flags);
-+		clear_bit(PG_arch_1, &folio->flags.f);
- 	}
- #else
--	if (!folio_test_reserved(folio) && !test_bit(PG_arch_1, &folio->flags)
-+	if (!folio_test_reserved(folio) && !test_bit(PG_arch_1, &folio->flags.f)
- 	    && (vma->vm_flags & VM_EXEC) != 0) {
- 		for (i = 0; i < nr; i++) {
- 			void *paddr = kmap_local_folio(folio, i * PAGE_SIZE);
-@@ -258,7 +258,7 @@ void update_mmu_cache_range(struct vm_fa
- 			__invalidate_icache_page((unsigned long)paddr);
- 			kunmap_local(paddr);
- 		}
--		set_bit(PG_arch_1, &folio->flags);
-+		set_bit(PG_arch_1, &folio->flags.f);
- 	}
- #endif
- }
+ 	/* system-wide enum vm_stat_item counters */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from boris@bur.io are
 
-mm-introduce-memdesc_flags_t.patch
-mm-introduce-memdesc_flags_t-fix.patch
-mm-convert-page_to_section-to-memdesc_section.patch
-mm-introduce-memdesc_nid.patch
-mm-introduce-memdesc_zonenum.patch
-slab-use-memdesc_flags_t.patch
-slab-use-memdesc_nid.patch
-mm-introduce-memdesc_is_zone_device.patch
-mm-reimplement-folio_is_device_private.patch
-mm-reimplement-folio_is_device_coherent.patch
-mm-reimplement-folio_is_fsdax.patch
-mm-add-folio_is_pci_p2pdma.patch
+mm-filemap-add-as_uncharged.patch
+mm-add-vmstat-for-cgroup-uncharged-pages.patch
+btrfs-set-as_uncharged-on-the-btree_inode.patch
 
