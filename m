@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD2811DA4E
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 02:48:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CD8A13FEE
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 02:55:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755571705; cv=none; b=Q51JcqM7oauU2pHpSgnujLSGYxlEefLXkkRFoP5lGHW3Nd7D3f1ig/kyv6aAYmbLdNVxipTBt91+F8pNAwmhtZX3XssVUW9yxlgK+i6DJmNYnN/sjRzyHG4HjjWEbT4iLb4Msn9V0zcBlbDb8hyEaVW5d0YQVviPmaiT6SBBnME=
+	t=1755572125; cv=none; b=W3ya6snbKkJhj+BvdQLTR9H1LRaq9lRJQ57XYB0ZPgdg4irD+hwQdiYyoZdMh+HWIINWBB6rTOUIsp/PtVvkwKsVFbEitnWX8YljzwP+vTcr4a9DJB9q9wGlQsMOInu6G7R1Di+nzDHe/9V+C35OQj/ESlvhYeu1UriEYHStRGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755571705; c=relaxed/simple;
-	bh=H5cV8PSBNvCG/Sh0DiA9KEPzYdM9NA/UvxzkbmbVgw0=;
-	h=Date:To:From:Subject:Message-Id; b=Aa7adD1vrdMAY/hdJHHrKDBtdZATZersu66CykCzOo+EDA4TAFMIl3+XiymIjGBZfd02c+DSgSFr5J0AGxBcW3d6YVia2fM4fvHAMc5agMguvhCVdASepqyi5PV9Cpo3e8nO0ItSK5nbPOZlZE6vXv7OGvVyNZ+2J30dUgQjY6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XJpwU+IK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755572125; c=relaxed/simple;
+	bh=2zGrrh+ocznwV0o6xfpFWjbDaKoBfaDKfGKm5vgSTMU=;
+	h=Date:To:From:Subject:Message-Id; b=Xr4lWm7BER2KUSuwlwTWRoHlC/z2FF2igTaxq6Q/8NR/SHAXPiCtAvuB6iunSEs95C2BMedRkFEVQjCQDOlcILle0XGfixs1NR8/g/skg4OdzKiaLJvAIkj4THDgewOtRwDKCZUmzaFsKzx4BPQsNbJVZ78QRWsd8ew9M2R9N+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QIDmm9we; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XJpwU+IK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3778EC4CEEB;
-	Tue, 19 Aug 2025 02:48:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QIDmm9we"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99975C4CEEB;
+	Tue, 19 Aug 2025 02:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755571705;
-	bh=H5cV8PSBNvCG/Sh0DiA9KEPzYdM9NA/UvxzkbmbVgw0=;
+	s=korg; t=1755572124;
+	bh=2zGrrh+ocznwV0o6xfpFWjbDaKoBfaDKfGKm5vgSTMU=;
 	h=Date:To:From:Subject:From;
-	b=XJpwU+IKf6p//wf6/BJiFkyivj/6BnRa3sGm0nAEF/0VRVfpluiNAzmOVwV+BvJeT
-	 DX+HkTR02XnrPTbKaFHQXvNVXTzYfrPfzlUl61R7+n/t4KQ2/3OO75lidvbccDXM1h
-	 WMXJVbGpywxEuLCALVlVYs3F+A8Kw384vAuYrwiA=
-Date: Mon, 18 Aug 2025 19:48:24 -0700
-To: mm-commits@vger.kernel.org,wqu@suse.com,willy@infradead.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,josef@toxicpanda.com,hannes@cmpxchg.org,dsterba@suse.com,clm@fb.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=QIDmm9weEnZ3gr0wCzb8X5Qrr+XZS56K7t+dFruuoXcL7pB7y1NZiSmiQuUVxy23i
+	 U/5heC041vChjfs61RCF6XEkvgY9FeJ8WiJ1ZiqcuRa9WvrMQ34wIPAjUugQ2fnzxm
+	 2oFqYRINua8Scy9wlEzho6YtMMhtsYDbvLERt/tQ=
+Date: Mon, 18 Aug 2025 19:55:24 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,donettom@linux.ibm.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-remove-warning-from-folio_lruvec.patch added to mm-new branch
-Message-Id: <20250819024825.3778EC4CEEB@smtp.kernel.org>
+Subject: + mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch added to mm-new branch
+Message-Id: <20250819025524.99975C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: remove warning from folio_lruvec
+     Subject: mm/huge_memory: add new_order and offset to split_huge_pages*() pr_debug.
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-remove-warning-from-folio_lruvec.patch
+     mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-remove-warning-from-folio_lruvec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,57 +64,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: remove warning from folio_lruvec
-Date: Mon, 18 Aug 2025 17:36:56 -0700
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: add new_order and offset to split_huge_pages*() pr_debug.
+Date: Mon, 18 Aug 2025 14:46:18 -0400
 
-Commit a4055888629bc ("mm/memcg: warning on !memcg after readahead page
-charged") added the warning in folio_lruvec (older name was
-mem_cgroup_page_lruvec) for !memcg when charging of readahead pages were
-added to the kernel.  Basically lru pages on a memcg enabled system were
-always expected to be charged to a memcg.
+Patch series "Better split_huge_page_test result check", v5.
 
-However a recent functionality to allow metadata of btrfs, which is in
-page cache, to be uncharged is added to the kernel.  We can either change
-the condition to only check anon pages or file pages which does not have
-AS_UNCHARGED in their mapping.  Instead of such complicated check, let's
-just remove the warning as it is not really helpful anymore.
+This patchset uses kpageflags to get after-split folio orders for a better
+split_huge_page_test result check[1].  The added
+gather_after_split_folio_orders() scans through a VPN range and collects
+the numbers of folios at different orders. 
+check_after_split_folio_orders() compares the result of
+gather_after_split_folio_orders() to a given list of numbers of different
+orders.
 
-Link: https://lkml.kernel.org/r/0cf22669a203b8671b6774408bfa4864ba3dbf60.1755562487.git.boris@bur.io
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Closes: https://ci.syzbot.org/series/15fd2538-1138-43c0-b4d6-6d7f53b0be69
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qu Wenruo <wqu@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+This patchset also adds new order and in folio offset to the split huge
+page debugfs's pr_debug()s;
+
+
+This patch (of 5):
+
+They are useful information for debugging split huge page tests.
+
+Link: https://lkml.kernel.org/r/20250818184622.1521620-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250818184622.1521620-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: wang lian <lianux.mm@gmail.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/huge_memory.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-remove-warning-from-folio_lruvec
-+++ a/include/linux/memcontrol.h
-@@ -729,10 +729,7 @@ out:
-  */
- static inline struct lruvec *folio_lruvec(struct folio *folio)
- {
--	struct mem_cgroup *memcg = folio_memcg(folio);
--
--	VM_WARN_ON_ONCE_FOLIO(!memcg && !mem_cgroup_disabled(), folio);
--	return mem_cgroup_lruvec(memcg, folio_pgdat(folio));
-+	return mem_cgroup_lruvec(folio_memcg(folio), folio_pgdat(folio));
- }
+--- a/mm/huge_memory.c~mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug
++++ a/mm/huge_memory.c
+@@ -4320,8 +4320,8 @@ static int split_huge_pages_pid(int pid,
+ 		goto out;
+ 	}
  
- struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+-	pr_debug("Split huge pages in pid: %d, vaddr: [0x%lx - 0x%lx]\n",
+-		 pid, vaddr_start, vaddr_end);
++	pr_debug("Split huge pages in pid: %d, vaddr: [0x%lx - 0x%lx], new_order: %u, in_folio_offset: %ld\n",
++		 pid, vaddr_start, vaddr_end, new_order, in_folio_offset);
+ 
+ 	mmap_read_lock(mm);
+ 	/*
+@@ -4431,8 +4431,8 @@ static int split_huge_pages_in_file(cons
+ 	if (IS_ERR(candidate))
+ 		goto out;
+ 
+-	pr_debug("split file-backed THPs in file: %s, page offset: [0x%lx - 0x%lx]\n",
+-		 file_path, off_start, off_end);
++	pr_debug("split file-backed THPs in file: %s, page offset: [0x%lx - 0x%lx], new_order: %u, in_folio_offset: %ld\n",
++		 file_path, off_start, off_end, new_order, in_folio_offset);
+ 
+ 	mapping = candidate->f_mapping;
+ 	min_order = mapping_min_folio_order(mapping);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-memcg-remove-warning-from-folio_lruvec.patch
+selftests-mm-fix-force_read-to-read-input-value-correctly.patch
+mm-huge_memory-add-new_order-and-offset-to-split_huge_pages-pr_debug.patch
+selftests-mm-mark-all-functions-static-in-split_huge_page_testc.patch
+selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check.patch
+selftests-mm-add-check_after_split_folio_orders-helper.patch
+selftests-mm-check-after-split-folio-orders-in-split_huge_page_test.patch
 
