@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61A6B341ABD
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 20:21:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 638F526C3A0
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 20:24:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755634909; cv=none; b=g/07D0yBye/Jc44HFgmR5YeuZNUeih4Q80TYgZs4ex+TZ0nROtS1W1VPBOHXESl4Cz8Q96z/ajLh7tsSHs6zClFwpYiBlUl/AzwKvXr5MQujpFcjQVpq/1S0R9iZDToWfslPx/6ayuwXVT1mGFsVlvKYtWVldtNH6xrr2i0bqIU=
+	t=1755635080; cv=none; b=quKlG69//GLqATPm4/YnpSnm+dsgoGBOMbAfFaKxECO1F/8uBE6waZOyUtIJr9CohMASati2F6/3DcugPk2mXVueIBsG074Fl/hP86HWgjGBGsW9w8bkVGjO7BGaCDqjEwOz1ghe4mCubZU9jOKAH6hdywQ9J5y4souazQT1zWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755634909; c=relaxed/simple;
-	bh=8GxtxWeIm9eCkW4Xwkx9uCXWAa6G+K94qTeq/FKmuSs=;
-	h=Date:To:From:Subject:Message-Id; b=mxuQzwm0LwFJQatFtOxsSKpVgQAqqGz9iUKsmUmsAlpDxuAqTycSxAWrqvosS+TsiVZU8Uzys+Fplh+V9vKWlceOpDI0EESVyWundoo6U7sUjWpqxIvGjvMQbKVRvqGz1WNqlmeSswt0rxBoIlC1O4T8a946sKKv2mckoBHAlR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xluJDQ9G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755635080; c=relaxed/simple;
+	bh=XUFsKBs/sc3DZaNW79qWTuQF2dzqhdyybwE5Gnc+Ns8=;
+	h=Date:To:From:Subject:Message-Id; b=oRv8xElSGNYEOfFg1lval69LbaAlucF/2849ovArihmsUGN3mykWWl9CdgGSa3R6fTFuwbveRTdWLI0WPdDbVsWTPypvrVf7yd6D3Pv4E9Hb6glMdkwA1XRTLKdlKukTiz1ZJpKkbxW3fZfB8OQAmbpZge4gNoZae2gDN0aGwoU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0KHyID+7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xluJDQ9G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCF22C113D0;
-	Tue, 19 Aug 2025 20:21:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0KHyID+7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D34F4C4CEF1;
+	Tue, 19 Aug 2025 20:24:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755634908;
-	bh=8GxtxWeIm9eCkW4Xwkx9uCXWAa6G+K94qTeq/FKmuSs=;
+	s=korg; t=1755635079;
+	bh=XUFsKBs/sc3DZaNW79qWTuQF2dzqhdyybwE5Gnc+Ns8=;
 	h=Date:To:From:Subject:From;
-	b=xluJDQ9GctOVEPJ3yScuePjGwFJ+TWer5lWqDptWPO2iLzDHW+X0J4TkmNUuJy1Hd
-	 eNaAXtbPS71l63JCrmJvb0UK3VopPP4ZYOZaqVLiy4c3/xZ0Ud1RE+Uv0WpSbGRdr5
-	 5YxfP6uWGgs5mj05Mhv2cp/97O1055YbLZXzvzb4=
-Date: Tue, 19 Aug 2025 13:21:48 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,mcgrof@kernel.org,hch@infradead.org,djwong@kernel.org,brauner@kernel.org,andrealmeid@igalia.com,p.raghav@samsung.com,akpm@linux-foundation.org
+	b=0KHyID+72k8cqqEbn1jjZbWWvwktkj5CEubQQ5WGFmUEPX69W1NoRB151vFuFXX2f
+	 kQyTtzo/qYi89wnp8w558m21R4SN6A/pwe/pPC//WirQA++zykLjF1imxrj+xLd1o7
+	 UfkT4btgguvoNGojxr/DYefl+YKHuSrG/rj6RCaU=
+Date: Tue, 19 Aug 2025 13:24:39 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,npache@redhat.com,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] iomap-use-largest_zero_folio-in-iomap_dio_zero.patch removed from -mm tree
-Message-Id: <20250819202148.BCF22C113D0@smtp.kernel.org>
+Subject: [to-be-updated] futex-introduce-function-process_has_robust_futex.patch removed from -mm tree
+Message-Id: <20250819202439.D34F4C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,153 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: iomap: use largest_zero_folio() in iomap_dio_zero()
+     Subject: futex: introduce function process_has_robust_futex()
 has been removed from the -mm tree.  Its filename was
-     iomap-use-largest_zero_folio-in-iomap_dio_zero.patch
+     futex-introduce-function-process_has_robust_futex.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: iomap: use largest_zero_folio() in iomap_dio_zero()
-Date: Thu, 14 Aug 2025 16:21:37 +0200
+From: zhongjinji <zhongjinji@honor.com>
+Subject: futex: introduce function process_has_robust_futex()
+Date: Thu, 14 Aug 2025 21:55:53 +0800
 
-iomap_dio_zero() uses a custom allocated memory of zeroes for padding
-zeroes.  This was a temporary solution until there was a way to request a
-zero folio that was greater than the PAGE_SIZE.
+Patch series "mm/oom_kill: Only delay OOM reaper for processes using
+robust futexes", v4.
 
-Use largest_zero_folio() function instead of using the custom allocated
-memory of zeroes.  There is no guarantee from largest_zero_folio()
-function that it will always return a PMD sized folio.  Adapt the code so
-that it can also work if largest_zero_folio() returns a ZERO_PAGE.
+The OOM reaper quickly reclaims a process's memory when the system hits
+OOM, helping the system recover.  Without the OOM reaper, if a process
+frozen by cgroup v1 is OOM killed, the victim's memory cannot be freed,
+leaving the system in a poor state.  Even if the process is not frozen by
+cgroup v1, reclaiming victims' memory remains important, as having one
+more process working speeds up memory release.
 
-Link: https://lkml.kernel.org/r/20250814142137.45469-1-kernel@pankajraghav.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+When processes holding robust futexes are OOM killed but waiters on those
+futexes remain alive, the robust futexes might be reaped before
+futex_cleanup() runs.  This can cause the waiters to block indefinitely
+[1].
+
+To prevent this issue, the OOM reaper's work is delayed by 2 seconds [1]. 
+Since many killed processes exit within 2 seconds, the OOM reaper rarely
+runs after this delay.  However, robust futex users are few, so delaying
+OOM reap for all victims is unnecessary.
+
+If each thread's robust_list in a process is NULL, the process holds no
+robust futexes.  For such processes, the OOM reaper should not be delayed.
+For processes holding robust futexes, to avoid issue [1], the OOM reaper
+must still be delayed.
+
+Patch 1 introduces process_has_robust_futex() to detect whether a process
+uses robust futexes.  Patch 2 delays the OOM reaper only for processes
+holding robust futexes, improving OOM reaper performance.  Patch 3 makes
+the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
+to reduce PTE lock contention caused by unmapping the same vma.
+
+
+This patch (of 3):
+
+When the holders of robust futexes are OOM killed but the waiters on
+robust futexes are still alive, the robust futexes might be reaped before
+futex_cleanup() runs.  This can cause the waiters to block indefinitely
+[1].  To prevent this issue, the OOM reaper's work is delayed by 2 seconds
+[1].  However, the OOM reaper now rarely runs since many killed processes
+exit within 2 seconds.
+
+Because robust futex users are few, delay the reaper's execution only for
+processes holding robust futexes to improve the performance of the OOM
+reaper.
+
+Introduce the function process_has_robust_futex() to detect whether a
+process uses robust futexes.  If each thread's robust_list in a process is
+NULL, it means the process holds no robust futexes.  Conversely, it means
+the process holds robust futexes.
+
+Link: https://lkml.kernel.org/r/20250814135555.17493-1-zhongjinji@honor.com
+Link: https://lkml.kernel.org/r/20250814135555.17493-2-zhongjinji@honor.com
+Link: https://lore.kernel.org/all/20220414144042.677008-1-npache@redhat.com/T/#u [1]
+Signed-off-by: zhongjinji <zhongjinji@honor.com>
 Cc: Andre Almeida <andrealmeid@igalia.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Stehen Rothwell <sfr@canb.auug.org.au>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Joel Savitz <jsavitz@redhat.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/direct-io.c |   38 +++++++++++++++-----------------------
- 1 file changed, 15 insertions(+), 23 deletions(-)
+ include/linux/futex.h |    5 +++++
+ kernel/futex/core.c   |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
 
---- a/fs/iomap/direct-io.c~iomap-use-largest_zero_folio-in-iomap_dio_zero
-+++ a/fs/iomap/direct-io.c
-@@ -24,13 +24,6 @@
- #define IOMAP_DIO_WRITE		(1U << 30)
- #define IOMAP_DIO_DIRTY		(1U << 31)
+--- a/include/linux/futex.h~futex-introduce-function-process_has_robust_futex
++++ a/include/linux/futex.h
+@@ -81,6 +81,7 @@ void futex_exec_release(struct task_stru
+ long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
+ 	      u32 __user *uaddr2, u32 val2, u32 val3);
+ int futex_hash_prctl(unsigned long arg2, unsigned long arg3, unsigned long arg4);
++bool process_has_robust_futex(struct task_struct *tsk);
  
--/*
-- * Used for sub block zeroing in iomap_dio_zero()
-- */
--#define IOMAP_ZERO_PAGE_SIZE (SZ_64K)
--#define IOMAP_ZERO_PAGE_ORDER (get_order(IOMAP_ZERO_PAGE_SIZE))
--static struct page *zero_page;
--
- struct iomap_dio {
- 	struct kiocb		*iocb;
- 	const struct iomap_dio_ops *dops;
-@@ -285,24 +278,35 @@ static int iomap_dio_zero(const struct i
+ #ifdef CONFIG_FUTEX_PRIVATE_HASH
+ int futex_hash_allocate_default(void);
+@@ -108,6 +109,10 @@ static inline int futex_hash_prctl(unsig
  {
- 	struct inode *inode = file_inode(dio->iocb->ki_filp);
- 	struct bio *bio;
-+	struct folio *zero_folio = largest_zero_folio();
-+	int nr_vecs = max(1, i_blocksize(inode) / folio_size(zero_folio));
- 
- 	if (!len)
- 		return 0;
-+
- 	/*
--	 * Max block size supported is 64k
-+	 * This limit shall never be reached as most filesystems have a
-+	 * maximum blocksize of 64k.
- 	 */
--	if (WARN_ON_ONCE(len > IOMAP_ZERO_PAGE_SIZE))
-+	if (WARN_ON_ONCE(nr_vecs > BIO_MAX_VECS))
- 		return -EINVAL;
- 
--	bio = iomap_dio_alloc_bio(iter, dio, 1, REQ_OP_WRITE | REQ_SYNC | REQ_IDLE);
-+	bio = iomap_dio_alloc_bio(iter, dio, nr_vecs,
-+				  REQ_OP_WRITE | REQ_SYNC | REQ_IDLE);
- 	fscrypt_set_bio_crypt_ctx(bio, inode, pos >> inode->i_blkbits,
- 				  GFP_KERNEL);
- 	bio->bi_iter.bi_sector = iomap_sector(&iter->iomap, pos);
- 	bio->bi_private = dio;
- 	bio->bi_end_io = iomap_dio_bio_end_io;
- 
--	__bio_add_page(bio, zero_page, len, 0);
-+	while (len > 0) {
-+		unsigned int io_len = min(len, folio_size(zero_folio));
-+
-+		bio_add_folio_nofail(bio, zero_folio, io_len, 0);
-+		len -= io_len;
-+	}
- 	iomap_dio_submit_bio(iter, dio, bio, pos);
-+
+ 	return -EINVAL;
+ }
++static inline bool process_has_robust_futex(struct task_struct *tsk)
++{
++	return false;
++}
+ static inline int futex_hash_allocate_default(void)
+ {
  	return 0;
+--- a/kernel/futex/core.c~futex-introduce-function-process_has_robust_futex
++++ a/kernel/futex/core.c
+@@ -1961,6 +1961,36 @@ int futex_hash_prctl(unsigned long arg2,
+ 	return ret;
  }
  
-@@ -822,15 +826,3 @@ iomap_dio_rw(struct kiocb *iocb, struct
- 	return iomap_dio_complete(dio);
- }
- EXPORT_SYMBOL_GPL(iomap_dio_rw);
--
--static int __init iomap_dio_init(void)
--{
--	zero_page = alloc_pages(GFP_KERNEL | __GFP_ZERO,
--				IOMAP_ZERO_PAGE_ORDER);
--
--	if (!zero_page)
--		return -ENOMEM;
--
--	return 0;
--}
--fs_initcall(iomap_dio_init);
++/*
++ * process_has_robust_futex() - check whether the given task hold robust futexes.
++ * @p: task struct of which task to consider
++ *
++ * If any thread in the task has a non-NULL robust_list or compat_robust_list,
++ * it indicates that the task holds robust futexes.
++ */
++bool process_has_robust_futex(struct task_struct *tsk)
++{
++	struct task_struct *t;
++	bool ret = false;
++
++	rcu_read_lock();
++	for_each_thread(tsk, t) {
++		if (unlikely(t->robust_list)) {
++			ret = true;
++			break;
++		}
++#ifdef CONFIG_COMPAT
++		if (unlikely(t->compat_robust_list)) {
++			ret = true;
++			break;
++		}
++#endif
++	}
++	rcu_read_unlock();
++
++	return ret;
++}
++
+ static int __init futex_init(void)
+ {
+ 	unsigned long hashsize, i;
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from zhongjinji@honor.com are
 
-mm-rename-huge_zero_page-to-huge_zero_folio.patch
-mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio.patch
-mm-add-persistent-huge-zero-folio.patch
-mm-add-largest_zero_folio-routine.patch
-block-use-largest_zero_folio-in-__blkdev_issue_zero_pages.patch
+mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
 
