@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA32BD531
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:33:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8087B353368
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:47:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755642781; cv=none; b=H2+vrkS/XEfvvA3fIQbpHrHBxtmQT87md1gQ6B7G33P5bqvfg10fGCR5jYBmv4lD11UW4Pdm7flH8ykEdB4sFW+H6VkQp+28JjAlHtG4oKyx1R1SDgSDn8NwzmrXpUDJoRz3XiYzMlCLskD7kM7urGRREpURudKlubFX8MvOHqQ=
+	t=1755643672; cv=none; b=tsEueZZcxXqurCuVSXScjpLRnZZ5I6Bg7D/XZkN+OcpoUwXvnR0T7f6/AZAYmW6c/7H9knEkxk3fpQe14pUpKP3PE1uEWgr+SnaS4zifnBPP+yUjBqMN6EJ+LOId4VGl8Iubsxlc02FolOHRBhLd1B4bt7g0T9Z7LPvDHjdXdvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755642781; c=relaxed/simple;
-	bh=VxUlLGxrnJZ0wWV24IbeoBb7WKjn8vh30pWbJawWImA=;
-	h=Date:To:From:Subject:Message-Id; b=rA9OFrZOZ5Guwrbh8PUbonEl0rxhrGuKVH5pUBIhnsUHqvv2VRzsUoE2OeMGn/4vrBjX2CxFKmQ/gtltUf68Rcm4OcofxlUrtW0qL9qerioMxii4w6LNVrKol6zXaKpOzIz1WbXg8+Z9v531Raz8DrBg7AvVjOzn18rZEudyiQI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ydQCWO2x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755643672; c=relaxed/simple;
+	bh=S8FuhvlGFSb42wdixcjGBflqwvD9PIIIRWKz9uBPLVg=;
+	h=Date:To:From:Subject:Message-Id; b=fJZdj6Eu4vonmyIl+VD4cw1kBZHN4Nq1hfj0z0hMreP6Coi3Uq8FSCkN23Zz+5eLFiPFgvkuu1zLvfh0X8ILa/OnHw8gCUSXaxAk8XqmcL7XLEQSlSCrHJZYYfk97V2obaZYjSc96tNVlyFWbO0Sog1OSKpW2vn1ubZy2x/+3OQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OR4uPHOz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ydQCWO2x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BA05C4CEF1;
-	Tue, 19 Aug 2025 22:33:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OR4uPHOz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB5C4C4CEF1;
+	Tue, 19 Aug 2025 22:47:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755642780;
-	bh=VxUlLGxrnJZ0wWV24IbeoBb7WKjn8vh30pWbJawWImA=;
+	s=korg; t=1755643671;
+	bh=S8FuhvlGFSb42wdixcjGBflqwvD9PIIIRWKz9uBPLVg=;
 	h=Date:To:From:Subject:From;
-	b=ydQCWO2xc03jO2bh8/U50XGeBvp/ljNjrZ7kk2ndROT1vxjSQnoy06w1RU9AWqa4/
-	 J5grhmw9qZxGAvaqIvCLFeumtWUD8E81iv22nLv60y6v7oMW7MNNuVmdG4tMGsEGfj
-	 Uft5Tyu9xujUCj7LWUnUwrAeMz1OPEgkQGROsVUE=
-Date: Tue, 19 Aug 2025 15:32:59 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,laoar.shao@gmail.com,jannh@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=OR4uPHOzoEI3+CxusP43JCarnMyyTh+RbAu8LpiIcKZqcDgUd67xFxMmMXl0IJEN8
+	 5kSu+mMKvc7xtTpkI3m1EfzgjdID/ACQA/56sRxbVd86LKQF3Zb8Ya+pTCI8P8AObN
+	 vNCpyjlRj748bDABWLRTCjWvyLETeZ4BXzuiIrcc=
+Date: Tue, 19 Aug 2025 15:47:51 -0700
+To: mm-commits@vger.kernel.org,lujialin4@huawei.com,leitao@debian.org,john.ogness@linutronix.de,gregkh@linuxfoundation.org,catalin.marinas@arm.com,gubowen5@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-prctl-introduce-tests-for-disabling-thps-completely-fix.patch added to mm-unstable branch
-Message-Id: <20250819223300.6BA05C4CEF1@smtp.kernel.org>
+Subject: + mm-fix-possible-deadlock-in-kmemleak.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250819224751.DB5C4C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: prctl: return after executing test in child process
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-prctl-introduce-tests-for-disabling-thps-completely-fix.patch
+     Subject: mm: fix possible deadlock in kmemleak
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-possible-deadlock-in-kmemleak.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-prctl-introduce-tests-for-disabling-thps-completely-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-possible-deadlock-in-kmemleak.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: selftests: prctl: return after executing test in child process
-Date: Mon, 18 Aug 2025 11:27:04 +0100
+From: Gu Bowen <gubowen5@huawei.com>
+Subject: mm: fix possible deadlock in kmemleak
+Date: Mon, 18 Aug 2025 17:09:44 +0800
 
-The next step after executing the test is a wait, but there is nothing to
-wait for in the child, so just return.
+Our syztester report the lockdep WARNING [1], which was identified in
+stable kernel version 5.10.  However, this deadlock path no longer exists
+due to the refactoring of console_lock in v6.2-rc1 [2].  Coincidentally,
+there are two types of deadlocks that we have found here.  One is the ABBA
+deadlock, as mentioned above [1], and the other is the AA deadlock was
+reported by Breno [3].  The latter's deadlock issue persists.
 
-Link: https://lkml.kernel.org/r/2d0ea708-ecba-4021-b6ca-e93f1413d60a@gmail.com
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yafang <laoar.shao@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+To solve this problem, switch to printk_safe mode before printing warning
+message, this will redirect all printk()-s to a special per-CPU buffer,
+which will be flushed later from a safe context (irq work), and this
+deadlock problem can be avoided. The proper API to use should be
+printk_deferred_enter()/printk_deferred_exit() [4].
+
+[1]
+https://lore.kernel.org/all/20250730094914.566582-1-gubowen5@huawei.com/
+[2]
+https://lore.kernel.org/all/20221116162152.193147-1-john.ogness@linutronix.de/
+[3]
+https://lore.kernel.org/all/20250731-kmemleak_lock-v1-1-728fd470198f@debian.org/#t
+[4]
+https://lore.kernel.org/all/5ca375cd-4a20-4807-b897-68b289626550@redhat.com/
+====================
+
+Link: https://lkml.kernel.org/r/20250818090945.1003644-1-gubowen5@huawei.com
+Signed-off-by: Gu Bowen <gubowen5@huawei.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Lu Jialin <lujialin4@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/prctl_thp_disable.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/kmemleak.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/tools/testing/selftests/mm/prctl_thp_disable.c~selftests-prctl-introduce-tests-for-disabling-thps-completely-fix
-+++ a/tools/testing/selftests/mm/prctl_thp_disable.c
-@@ -161,8 +161,10 @@ TEST_F(prctl_thp_disable_completely, for
- 	pid = fork();
- 	ASSERT_GE(pid, 0);
- 
--	if (!pid)
-+	if (!pid) {
- 		prctl_thp_disable_completely_test(_metadata, self->pmdsize, variant->thp_policy);
-+		return;
-+	}
- 
- 	wait(&ret);
- 	if (WIFEXITED(ret))
+--- a/mm/kmemleak.c~mm-fix-possible-deadlock-in-kmemleak
++++ a/mm/kmemleak.c
+@@ -437,9 +437,15 @@ static struct kmemleak_object *__lookup_
+ 		else if (untagged_objp == untagged_ptr || alias)
+ 			return object;
+ 		else {
++			/*
++			 * Printk deferring due to the kmemleak_lock held.
++			 * This is done to avoid deadlock.
++			 */
++			printk_deferred_enter();
+ 			kmemleak_warn("Found object by alias at 0x%08lx\n",
+ 				      ptr);
+ 			dump_object_info(object);
++			printk_deferred_exit();
+ 			break;
+ 		}
+ 	}
+@@ -736,6 +742,11 @@ static int __link_object(struct kmemleak
+ 		else if (untagged_objp + parent->size <= untagged_ptr)
+ 			link = &parent->rb_node.rb_right;
+ 		else {
++			/*
++			 * Printk deferring due to the kmemleak_lock held.
++			 * This is done to avoid deadlock.
++			 */
++			printk_deferred_enter();
+ 			kmemleak_stop("Cannot insert 0x%lx into the object search tree (overlaps existing)\n",
+ 				      ptr);
+ 			/*
+@@ -743,6 +754,7 @@ static int __link_object(struct kmemleak
+ 			 * be freed while the kmemleak_lock is held.
+ 			 */
+ 			dump_object_info(parent);
++			printk_deferred_exit();
+ 			return -EEXIST;
+ 		}
+ 	}
+@@ -858,8 +870,14 @@ static void delete_object_part(unsigned
+ 	object = __find_and_remove_object(ptr, 1, objflags);
+ 	if (!object) {
+ #ifdef DEBUG
++		/*
++		 * Printk deferring due to the kmemleak_lock held.
++		 * This is done to avoid deadlock.
++		 */
++		printk_deferred_enter();
+ 		kmemleak_warn("Partially freeing unknown object at 0x%08lx (size %zu)\n",
+ 			      ptr, size);
++		printk_deferred_exit();
+ #endif
+ 		goto unlock;
+ 	}
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from gubowen5@huawei.com are
 
-docs-transhuge-document-process-level-thp-controls.patch
-selftest-mm-extract-sz2ord-function-into-vm_utilh.patch
-selftests-prctl-introduce-tests-for-disabling-thps-completely.patch
-selftests-prctl-introduce-tests-for-disabling-thps-completely-fix.patch
-selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch
-selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix.patch
+mm-fix-possible-deadlock-in-kmemleak.patch
 
