@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BB62353349
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:27:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E49615E97
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:32:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755642432; cv=none; b=qew0FbeHl+2WzAZhS5POdjUS/aWzWuy8SF2yB/WQI963v20YQNnZJAl0MTgD9NG5vJdbOSTIf2EmVrPniCimPErciqiDtaHLCeywP0A2a27NfkH9LbOxBbCK0UnZdWdrMByrY0CrlFLQyVqRN7FYBmwX4ozxmMXD+rgQ9/b3sQE=
+	t=1755642722; cv=none; b=YzFZNCCNoFeX6PZxd2xseV1inhYPb8LNm74IzMq+mPYleo8U+qUJujLH9nn72dT+33lcDjOYR5W9Cw1NbmHkWcX4iLH/WdyzS6ou0eeatOYNdKqFqNx5Q2Uf3caJ2axv3g0UbEEcSeyzILglXWpCxiAdxi28JV1DpKuN9qHb1CY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755642432; c=relaxed/simple;
-	bh=hFdgS6Axq0/ybCjYY3kxV+gS4MYK9GJrTTC4r/T5NIw=;
-	h=Date:To:From:Subject:Message-Id; b=RQgf/0+r7nJDvTt4RmlT3LK6cHc/VjONxkle9HbJYex2X5EM2aZC65xV063RW9kpJ/+UJhlaqCW8alHa7JNXbSuwYR82q9gbk/Z0fdKXD1FMEdzGpXG46sSrJpP8T7B4nrMUJNhlyZA5PPeO4qTvHFt6+2/cyIzBtHf1R9gavto=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1suLn5l+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755642722; c=relaxed/simple;
+	bh=CRbW/JV3uM2TChRVSLYRYsCenTBTzEHtc9kUFQCcpGs=;
+	h=Date:To:From:Subject:Message-Id; b=Yv0MlLx8mxKg3rMv9jS1VZZrjWdRJDef1bm85EahLExw1xCBzzAI2W+C6olj8D8yxgSoA9FW/c/q6Yi7j+l04UO9tBfEJuGPmg61GyR/KGrWsOUgF+MMTNcZ7R+FPo/qj7yWVt0cA1QVutGJZ4SV1gmY3wjKAF5eG9e6KMk7NMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wCC3mCiA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1suLn5l+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8286CC4CEF1;
-	Tue, 19 Aug 2025 22:27:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wCC3mCiA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC0F9C4CEF1;
+	Tue, 19 Aug 2025 22:32:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755642431;
-	bh=hFdgS6Axq0/ybCjYY3kxV+gS4MYK9GJrTTC4r/T5NIw=;
+	s=korg; t=1755642721;
+	bh=CRbW/JV3uM2TChRVSLYRYsCenTBTzEHtc9kUFQCcpGs=;
 	h=Date:To:From:Subject:From;
-	b=1suLn5l+VLzZ35Zu0zujKhhjdV9qDM9PcJigVgZlNFtai/rQibeQI/61yHQtk1EGd
-	 Co0y/0dZ/dxo5eHBGKDA3WvvATPkilb9ll+4LT3AnEkAes9Z27Xz5FITM2KgPtJqqB
-	 6PPayEKIpxtT8bPda9rHZ+tEK0ipZhrSbamcFxHs=
-Date: Tue, 19 Aug 2025 15:27:10 -0700
-To: mm-commits@vger.kernel.org,lance.yang@linux.dev,david@redhat.com,akpm@linux-foundation.org
+	b=wCC3mCiA54mdifioN0jdlHDvn1ZkMqb7F/lRQH39Xj6c1WG/oPoOqAQpC/MzwIHME
+	 bLiaDvQ7nbSlWD7xQFxmzwFA3dVaGhyREt4CAKPYI3zUZsag1FFSsFxsKWYSrank9V
+	 KWdLnqrmieQ2cHVaS76D6DqfzWMBdtHtnkfurJD4=
+Date: Tue, 19 Aug 2025 15:32:01 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,laoar.shao@gmail.com,jannh@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-remove-migratepage_unmap-fix.patch added to mm-unstable branch
-Message-Id: <20250819222711.8286CC4CEF1@smtp.kernel.org>
+Subject: + selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix.patch added to mm-unstable branch
+Message-Id: <20250819223201.AC0F9C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fixup: mm/migrate: remove MIGRATEPAGE_UNMAP
+     Subject: selftests: prctl: return after executing test in child process
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-remove-migratepage_unmap-fix.patch
+     selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-migratepage_unmap-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,62 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: fixup: mm/migrate: remove MIGRATEPAGE_UNMAP
-Date: Mon, 18 Aug 2025 13:26:05 +0200
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: selftests: prctl: return after executing test in child process
+Date: Mon, 18 Aug 2025 11:37:10 +0100
 
-no need to pass "reason" to migrate_folio_unmap(), per Lance
+The next step after executing the test is a wait, but there is nothing to
+wait for in the child, so just return.
 
-Link: https://lkml.kernel.org/r/3bb725f8-28d7-4aa2-b75f-af40d5cab280@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Lance Yang <lance.yang@linux.dev>
+Link: https://lkml.kernel.org/r/3dca2de4-9a6a-4efe-a86c-83f9509831fc@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yafang <laoar.shao@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/prctl_thp_disable.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migrate-remove-migratepage_unmap-fix
-+++ a/mm/migrate.c
-@@ -1189,7 +1189,7 @@ static void migrate_folio_done(struct fo
- static int migrate_folio_unmap(new_folio_t get_new_folio,
- 		free_folio_t put_new_folio, unsigned long private,
- 		struct folio *src, struct folio **dstp, enum migrate_mode mode,
--		enum migrate_reason reason, struct list_head *ret)
-+		struct list_head *ret)
- {
- 	struct folio *dst;
- 	int rc = -EAGAIN;
-@@ -1876,8 +1876,7 @@ static int migrate_pages_batch(struct li
- 			}
+--- a/tools/testing/selftests/mm/prctl_thp_disable.c~selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix
++++ a/tools/testing/selftests/mm/prctl_thp_disable.c
+@@ -271,9 +271,11 @@ TEST_F(prctl_thp_disable_except_madvise,
+ 	pid = fork();
+ 	ASSERT_GE(pid, 0);
  
- 			rc = migrate_folio_unmap(get_new_folio, put_new_folio,
--					private, folio, &dst, mode, reason,
--					ret_folios);
-+					private, folio, &dst, mode, ret_folios);
- 			/*
- 			 * The rules are:
- 			 *	0: folio will be put on unmap_folios list,
+-	if (!pid)
++	if (!pid) {
+ 		prctl_thp_disable_except_madvise_test(_metadata, self->pmdsize,
+ 						      variant->thp_policy);
++		return;
++	}
+ 
+ 	wait(&ret);
+ 	if (WIFEXITED(ret))
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mm-mremap-fix-warn-with-uffd-that-has-remap-events-disabled.patch
-mm-migrate-remove-migratepage_unmap.patch
-mm-migrate-remove-migratepage_unmap-fix.patch
-treewide-remove-migratepage_success.patch
-mm-huge_memory-move-more-common-code-into-insert_pmd.patch
-mm-huge_memory-move-more-common-code-into-insert_pud.patch
-mm-huge_memory-support-huge-zero-folio-in-vmf_insert_folio_pmd.patch
-fs-dax-use-vmf_insert_folio_pmd-to-insert-the-huge-zero-folio.patch
-mm-huge_memory-mark-pmd-mappings-of-the-huge-zero-folio-special.patch
-powerpc-ptdump-rename-struct-pgtable_level-to-struct-ptdump_pglevel.patch
-mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level.patch
-mm-memory-convert-print_bad_pte-to-print_bad_page_map.patch
-mm-memory-factor-out-common-code-from-vm_normal_page_.patch
-mm-introduce-and-use-vm_normal_page_pud.patch
-mm-rename-vm_ops-find_special_page-to-vm_ops-find_normal_page.patch
-prctl-extend-pr_set_thp_disable-to-optionally-exclude-vm_hugepage.patch
-mm-huge_memory-convert-tva_flags-to-enum-tva_type.patch
-mm-huge_memory-respect-madv_collapse-with-pr_thp_disable_except_advised.patch
+docs-transhuge-document-process-level-thp-controls.patch
+selftest-mm-extract-sz2ord-function-into-vm_utilh.patch
+selftests-prctl-introduce-tests-for-disabling-thps-completely.patch
+selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch
+selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix.patch
 
