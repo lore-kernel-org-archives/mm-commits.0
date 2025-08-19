@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57BD913FEE
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 02:55:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23E3013FEE
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 02:55:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755572127; cv=none; b=UdnuiwFj00yVadX0HSVNqgbeMQe+5Iabl40c2KBszC3I5j/jziEIrHf+1g66PORRkDXwIExhuyMsrrXQxWCFsRJDmmVpuodZry/X7O+ohSGQj8VrVQt4gDd/d+fh4s3YbuWEu0K/LXJGfJMQIaNhJDT6OkKumgZqw8xogAs0vTw=
+	t=1755572129; cv=none; b=H5GNy8AQHjLKP+WPasAYDdPUk/bPEiMrP8eCj/P8gfSbSj7mIwMtI5BjzGOcUfvK88Pl/86FERvyaIdLRQXF3mxmE8q8kdxdxfOoKuH88Q5xDvOuEoj4w+4yCRvLeszRFLgEXy/jyfG8zKUvOnFscs4k3AtyitXhCG8EWzwhE4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755572127; c=relaxed/simple;
-	bh=Jy068pAPdbTuY8pPW1Eg/cfAFwY5QC+Sek5vA/hvLEg=;
-	h=Date:To:From:Subject:Message-Id; b=MLGjyx6KxsJfZ9P1hhUYrwK6oq7HxHwIYTMn1I9voV7qmnM9ZkOISZ/zLYcF4s7/uISZXjH2xxLcxJKx9x6oloTsYNSLuox1OzkCAVzOTfavnnkkOhq9cOBNbZjoz62CTc7urwDEVIlz6Tz6gPCjm+fSfN1vPadR721M6Y2K/4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C9MRJZyp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755572129; c=relaxed/simple;
+	bh=xOUbmThEuDvRL5pJTs3z10KGWKZNkUYBqttbXUF/yiA=;
+	h=Date:To:From:Subject:Message-Id; b=SqRjKKEZgepec7irH+yRDJCrhG6L1U0W9PusxeVg2YBEKoGGXtA2FfEjLoj5012ijtSW+iI3RMa7Cgl0aQ6XpsaDfEiF1/zL5eZWnegikrvhpaNhf5Ogk8Zs7YzOlbnxqcnkIg/bXaKrUH5mjq1B1d/v+/BuPWYrXGUQU76GS0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yXqJL9tg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C9MRJZyp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3F81C4CEED;
-	Tue, 19 Aug 2025 02:55:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yXqJL9tg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E14E2C4CEED;
+	Tue, 19 Aug 2025 02:55:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755572126;
-	bh=Jy068pAPdbTuY8pPW1Eg/cfAFwY5QC+Sek5vA/hvLEg=;
+	s=korg; t=1755572129;
+	bh=xOUbmThEuDvRL5pJTs3z10KGWKZNkUYBqttbXUF/yiA=;
 	h=Date:To:From:Subject:From;
-	b=C9MRJZypA2ljp6wcRjfoaYWq/h5jz0cSloEEnMJsjtg45uojIF6EnnXuBxxupW3jG
-	 Y7q1XFL5BgXe1JbJx9WNrQoryP8I9YwDRGDpFhLnf/lIZs5FcapQ7vl1RKet53bQmd
-	 mBS0CiBZ5BAbrMPVinWgq6uqc81IHGSIxVRjEVjI=
-Date: Mon, 18 Aug 2025 19:55:26 -0700
+	b=yXqJL9tg2xoure2aqRK4ljudFoVQpLD+y9iX8nPRlSzJfc8d5NOmJxftJe+wOrVD0
+	 KYLHm4L/Y2U4rcf6JKINxZnaT7jgywPLt4k9sX+DIK1dQbHY3F89PLVdXguALrNNAe
+	 GNwXR0a9PObPTP2YFW9ict4kR0B0j4a0ICz/ueDM=
+Date: Mon, 18 Aug 2025 19:55:28 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,donettom@linux.ibm.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mark-all-functions-static-in-split_huge_page_testc.patch added to mm-new branch
-Message-Id: <20250819025526.C3F81C4CEED@smtp.kernel.org>
+Subject: + selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check.patch added to mm-new branch
+Message-Id: <20250819025528.E14E2C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: mark all functions static in split_huge_page_test.c
+     Subject: selftests/mm: reimplement is_backed_by_thp() with more precise check
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-mark-all-functions-static-in-split_huge_page_testc.patch
+     selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mark-all-functions-static-in-split_huge_page_testc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,18 +65,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: mark all functions static in split_huge_page_test.c
-Date: Mon, 18 Aug 2025 14:46:19 -0400
+Subject: selftests/mm: reimplement is_backed_by_thp() with more precise check
+Date: Mon, 18 Aug 2025 14:46:20 -0400
 
-All functions are only used within the file.
+and rename it to is_backed_by_folio().
 
-Link: https://lkml.kernel.org/r/20250818184622.1521620-3-ziy@nvidia.com
+is_backed_by_folio() checks if the given vaddr is backed a folio with
+a given order. It does so by:
+1. getting the pfn of the vaddr;
+2. checking kpageflags of the pfn;
+
+if order is greater than 0:
+3. checking kpageflags of the head pfn;
+4. checking kpageflags of all tail pfns.
+
+pmd_order is added to split_huge_page_test.c and replaces max_order.
+
+Link: https://lkml.kernel.org/r/20250818184622.1521620-4-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: wang lian <lianux.mm@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Donet Tom <donettom@linux.ibm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -91,96 +102,206 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   22 ++++++------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   88 ++++++++----
+ tools/testing/selftests/mm/vm_util.c              |   13 +
+ tools/testing/selftests/mm/vm_util.h              |    4 
+ 3 files changed, 81 insertions(+), 24 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-mark-all-functions-static-in-split_huge_page_testc
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check
 +++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -37,7 +37,7 @@ uint64_t pmd_pagesize;
- #define PFN_MASK     ((1UL<<55)-1)
- #define KPF_THP      (1UL<<22)
+@@ -25,6 +25,7 @@
+ uint64_t pagesize;
+ unsigned int pageshift;
+ uint64_t pmd_pagesize;
++unsigned int pmd_order;
  
--int is_backed_by_thp(char *vaddr, int pagemap_file, int kpageflags_file)
-+static int is_backed_by_thp(char *vaddr, int pagemap_file, int kpageflags_file)
+ #define SPLIT_DEBUGFS "/sys/kernel/debug/split_huge_pages"
+ #define SMAP_PATH "/proc/self/smaps"
+@@ -34,26 +35,66 @@ uint64_t pmd_pagesize;
+ #define PID_FMT_OFFSET "%d,0x%lx,0x%lx,%d,%d"
+ #define PATH_FMT "%s,0x%lx,0x%lx,%d"
+ 
+-#define PFN_MASK     ((1UL<<55)-1)
+-#define KPF_THP      (1UL<<22)
+-
+-static int is_backed_by_thp(char *vaddr, int pagemap_file, int kpageflags_file)
++static bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
++		int kpageflags_fd)
  {
- 	uint64_t paddr;
- 	uint64_t page_flags;
-@@ -135,7 +135,7 @@ static void verify_rss_anon_split_huge_p
- 		       rss_anon_before, rss_anon_after);
+-	uint64_t paddr;
+-	uint64_t page_flags;
++	unsigned long pfn_head;
++	uint64_t pfn_flags;
++	unsigned long pfn;
++	unsigned long i;
++
++	pfn = pagemap_get_pfn(pagemap_fd, vaddr);
+ 
+-	if (pagemap_file) {
+-		pread(pagemap_file, &paddr, sizeof(paddr),
+-			((long)vaddr >> pageshift) * sizeof(paddr));
++	/* non present page */
++	if (pfn == -1UL)
++		return false;
+ 
+-		if (kpageflags_file) {
+-			pread(kpageflags_file, &page_flags, sizeof(page_flags),
+-				(paddr & PFN_MASK) * sizeof(page_flags));
++	if (pageflags_get(pfn, kpageflags_fd, &pfn_flags))
++		goto fail;
+ 
+-			return !!(page_flags & KPF_THP);
+-		}
++	/* check for order-0 pages */
++	if (!order) {
++		if (pfn_flags & (KPF_THP | KPF_COMPOUND_HEAD | KPF_COMPOUND_TAIL))
++			return false;
++		return true;
+ 	}
+-	return 0;
++
++	/* non THP folio */
++	if (!(pfn_flags & KPF_THP))
++		return false;
++
++	pfn_head = pfn & ~((1 << order) - 1);
++
++	if (pageflags_get(pfn_head, kpageflags_fd, &pfn_flags))
++		goto fail;
++
++	/* head PFN has no compound_head flag set */
++	if (!(pfn_flags & (KPF_THP | KPF_COMPOUND_HEAD)))
++		return false;
++
++	/* check all tail PFN flags */
++	for (i = 1; i < 1UL << order; i++) {
++		if (pageflags_get(pfn_head + i, kpageflags_fd, &pfn_flags))
++			goto fail;
++		if (!(pfn_flags & (KPF_THP | KPF_COMPOUND_TAIL)))
++			return false;
++	}
++
++	/*
++	 * check the PFN after this folio, but if its flags cannot be obtained,
++	 * assume this folio has the expected order
++	 */
++	if (pageflags_get(pfn_head + (1UL << order), kpageflags_fd, &pfn_flags))
++		return true;
++
++	/* this folio is bigger than the given order */
++	if (pfn_flags & (KPF_THP | KPF_COMPOUND_TAIL))
++		return false;
++
++	return true;
++fail:
++	ksft_exit_fail_msg("Failed to get folio info\n");
++	return false;
  }
  
--void split_pmd_zero_pages(void)
-+static void split_pmd_zero_pages(void)
- {
- 	char *one_page;
- 	int nr_hpages = 4;
-@@ -147,7 +147,7 @@ void split_pmd_zero_pages(void)
- 	free(one_page);
+ static void write_file(const char *path, const char *buf, size_t buflen)
+@@ -234,7 +275,7 @@ static void split_pte_mapped_thp(void)
+ 	thp_size = 0;
+ 	for (i = 0; i < pagesize * 4; i++)
+ 		if (i % pagesize == 0 &&
+-		    is_backed_by_thp(&pte_mapped[i], pagemap_fd, kpageflags_fd))
++		    is_backed_by_folio(&pte_mapped[i], pmd_order, pagemap_fd, kpageflags_fd))
+ 			thp_size++;
+ 
+ 	if (thp_size != 4)
+@@ -251,7 +292,7 @@ static void split_pte_mapped_thp(void)
+ 			ksft_exit_fail_msg("%ld byte corrupted\n", i);
+ 
+ 		if (i % pagesize == 0 &&
+-		    is_backed_by_thp(&pte_mapped[i], pagemap_fd, kpageflags_fd))
++		    !is_backed_by_folio(&pte_mapped[i], 0, pagemap_fd, kpageflags_fd))
+ 			thp_size++;
+ 	}
+ 
+@@ -523,7 +564,6 @@ int main(int argc, char **argv)
+ 	const char *fs_loc;
+ 	bool created_tmp;
+ 	int offset;
+-	unsigned int max_order;
+ 	unsigned int nr_pages;
+ 	unsigned int tests;
+ 
+@@ -544,28 +584,28 @@ int main(int argc, char **argv)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 
+ 	nr_pages = pmd_pagesize / pagesize;
+-	max_order =  sz2ord(pmd_pagesize, pagesize);
+-	tests = 2 + (max_order - 1) + (2 * max_order) + (max_order - 1) * 4 + 2;
++	pmd_order = sz2ord(pmd_pagesize, pagesize);
++	tests = 2 + (pmd_order - 1) + (2 * pmd_order) + (pmd_order - 1) * 4 + 2;
+ 	ksft_set_plan(tests);
+ 
+ 	fd_size = 2 * pmd_pagesize;
+ 
+ 	split_pmd_zero_pages();
+ 
+-	for (i = 0; i < max_order; i++)
++	for (i = 0; i < pmd_order; i++)
+ 		if (i != 1)
+ 			split_pmd_thp_to_order(i);
+ 
+ 	split_pte_mapped_thp();
+-	for (i = 0; i < max_order; i++)
++	for (i = 0; i < pmd_order; i++)
+ 		split_file_backed_thp(i);
+ 
+ 	created_tmp = prepare_thp_fs(optional_xfs_path, fs_loc_template,
+ 			&fs_loc);
+-	for (i = max_order - 1; i >= 0; i--)
++	for (i = pmd_order - 1; i >= 0; i--)
+ 		split_thp_in_pagecache_to_order_at(fd_size, fs_loc, i, -1);
+ 
+-	for (i = 0; i < max_order; i++)
++	for (i = 0; i < pmd_order; i++)
+ 		for (offset = 0;
+ 		     offset < nr_pages;
+ 		     offset += MAX(nr_pages / 4, 1 << i))
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -338,6 +338,19 @@ int detect_hugetlb_page_sizes(size_t siz
+ 	return count;
  }
  
--void split_pmd_thp_to_order(int order)
-+static void split_pmd_thp_to_order(int order)
- {
- 	char *one_page;
- 	size_t len = 4 * pmd_pagesize;
-@@ -181,7 +181,7 @@ void split_pmd_thp_to_order(int order)
- 	free(one_page);
- }
++int pageflags_get(unsigned long pfn, int kpageflags_fd, uint64_t *flags)
++{
++	size_t count;
++
++	count = pread(kpageflags_fd, flags, sizeof(*flags),
++		      pfn * sizeof(*flags));
++
++	if (count != sizeof(*flags))
++		return -1;
++
++	return 0;
++}
++
+ /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
+ int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls)
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-reimplement-is_backed_by_thp-with-more-precise-check
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -18,6 +18,9 @@
+ #define PM_SWAP                       BIT_ULL(62)
+ #define PM_PRESENT                    BIT_ULL(63)
  
--void split_pte_mapped_thp(void)
-+static void split_pte_mapped_thp(void)
- {
- 	char *one_page, *pte_mapped, *pte_mapped2;
- 	size_t len = 4 * pmd_pagesize;
-@@ -264,7 +264,7 @@ void split_pte_mapped_thp(void)
- 	close(kpageflags_fd);
- }
++#define KPF_COMPOUND_HEAD             BIT_ULL(15)
++#define KPF_COMPOUND_TAIL             BIT_ULL(16)
++#define KPF_THP                       BIT_ULL(22)
+ /*
+  * Ignore the checkpatch warning, we must read from x but don't want to do
+  * anything with it in order to trigger a read page fault. We therefore must use
+@@ -85,6 +88,7 @@ bool check_huge_shmem(void *addr, int nr
+ int64_t allocate_transhuge(void *ptr, int pagemap_fd);
+ unsigned long default_huge_page_size(void);
+ int detect_hugetlb_page_sizes(size_t sizes[], int max);
++int pageflags_get(unsigned long pfn, int kpageflags_fd, uint64_t *flags);
  
--void split_file_backed_thp(int order)
-+static void split_file_backed_thp(int order)
- {
- 	int status;
- 	int fd;
-@@ -364,7 +364,7 @@ out:
- 	ksft_exit_fail_msg("Error occurred\n");
- }
- 
--bool prepare_thp_fs(const char *xfs_path, char *thp_fs_template,
-+static bool prepare_thp_fs(const char *xfs_path, char *thp_fs_template,
- 		const char **thp_fs_loc)
- {
- 	if (xfs_path) {
-@@ -380,7 +380,7 @@ bool prepare_thp_fs(const char *xfs_path
- 	return true;
- }
- 
--void cleanup_thp_fs(const char *thp_fs_loc, bool created_tmp)
-+static void cleanup_thp_fs(const char *thp_fs_loc, bool created_tmp)
- {
- 	int status;
- 
-@@ -393,8 +393,8 @@ void cleanup_thp_fs(const char *thp_fs_l
- 				   strerror(errno));
- }
- 
--int create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd,
--		char **addr)
-+static int create_pagecache_thp_and_fd(const char *testfile, size_t fd_size,
-+		int *fd, char **addr)
- {
- 	size_t i;
- 	unsigned char buf[1024];
-@@ -460,8 +460,8 @@ err_out_unlink:
- 	return -1;
- }
- 
--void split_thp_in_pagecache_to_order_at(size_t fd_size, const char *fs_loc,
--		int order, int offset)
-+static void split_thp_in_pagecache_to_order_at(size_t fd_size,
-+		const char *fs_loc, int order, int offset)
- {
- 	int fd;
- 	char *addr;
+ int uffd_register(int uffd, void *addr, uint64_t len,
+ 		  bool miss, bool wp, bool minor);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
