@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 638F526C3A0
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 20:24:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 593AD26C3A0
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 20:24:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755635080; cv=none; b=quKlG69//GLqATPm4/YnpSnm+dsgoGBOMbAfFaKxECO1F/8uBE6waZOyUtIJr9CohMASati2F6/3DcugPk2mXVueIBsG074Fl/hP86HWgjGBGsW9w8bkVGjO7BGaCDqjEwOz1ghe4mCubZU9jOKAH6hdywQ9J5y4souazQT1zWk=
+	t=1755635081; cv=none; b=Q34lSlJEZcKDLqQ1aYEhbDaxQq0+8wqv0Dnr8q60MEIEPyloX95cIoHpQ+FoFwEtwFy/irbZeeJxIpUTok9HkinnilUEEw2Ey6PoA46glNIE0+E80qSn7M7Qi+TBcU8MAsY9j12cSfh1sR5M5Po4uD2Fh6fPDIwwd095yfZA79w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755635080; c=relaxed/simple;
-	bh=XUFsKBs/sc3DZaNW79qWTuQF2dzqhdyybwE5Gnc+Ns8=;
-	h=Date:To:From:Subject:Message-Id; b=oRv8xElSGNYEOfFg1lval69LbaAlucF/2849ovArihmsUGN3mykWWl9CdgGSa3R6fTFuwbveRTdWLI0WPdDbVsWTPypvrVf7yd6D3Pv4E9Hb6glMdkwA1XRTLKdlKukTiz1ZJpKkbxW3fZfB8OQAmbpZge4gNoZae2gDN0aGwoU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0KHyID+7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755635081; c=relaxed/simple;
+	bh=IwXOykYI4uzEXlkSl8/httmd33qXjSpKR9M5cnSeL38=;
+	h=Date:To:From:Subject:Message-Id; b=TxJi5UBQK12OdZIkuXxOCMvtY6Fg2hf9vIgloF4E9sX4gq54OrpbV9QPH0CT7taK/k0nL6pe4VQT8GtF9DmLCyaTL1vvk/q9kNiTNeH6jYH0gmkVn8j0SOGsm4QggIB1zKDxuZP74CIAXw34/8xy/Wwn0g7SRtW0Dwusggvd6IU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Se5vq840; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0KHyID+7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D34F4C4CEF1;
-	Tue, 19 Aug 2025 20:24:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Se5vq840"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24E4EC4CEF1;
+	Tue, 19 Aug 2025 20:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755635079;
-	bh=XUFsKBs/sc3DZaNW79qWTuQF2dzqhdyybwE5Gnc+Ns8=;
+	s=korg; t=1755635081;
+	bh=IwXOykYI4uzEXlkSl8/httmd33qXjSpKR9M5cnSeL38=;
 	h=Date:To:From:Subject:From;
-	b=0KHyID+72k8cqqEbn1jjZbWWvwktkj5CEubQQ5WGFmUEPX69W1NoRB151vFuFXX2f
-	 kQyTtzo/qYi89wnp8w558m21R4SN6A/pwe/pPC//WirQA++zykLjF1imxrj+xLd1o7
-	 UfkT4btgguvoNGojxr/DYefl+YKHuSrG/rj6RCaU=
-Date: Tue, 19 Aug 2025 13:24:39 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,npache@redhat.com,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
+	b=Se5vq840ybjeAAsJrWQvCssh8mVhtDl8C4aEW7m1tHhXrMnDYSFlzuXt/gmLdOfNX
+	 5GttkHce2p/v9iW9W1BnT1fufL1TxjMIpywyOJwmjTdGjkEzQjUVuP/E+CWIXMUrR/
+	 QLt09tYqNdbKoEr+jAFOjLjhyui8tMrx94+Dm/dA=
+Date: Tue, 19 Aug 2025 13:24:40 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,rientjes@google.com,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,jsavitz@redhat.com,dvhart@infradead.org,dave@stgolabs.net,andrealmeid@igalia.com,zhongjinji@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] futex-introduce-function-process_has_robust_futex.patch removed from -mm tree
-Message-Id: <20250819202439.D34F4C4CEF1@smtp.kernel.org>
+Subject: [to-be-updated] mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch removed from -mm tree
+Message-Id: <20250819202441.24E4EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: futex: introduce function process_has_robust_futex()
+     Subject: mm/oom_kill: only delay OOM reaper for processes using robust futexes
 has been removed from the -mm tree.  Its filename was
-     futex-introduce-function-process_has_robust_futex.patch
+     mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: zhongjinji <zhongjinji@honor.com>
-Subject: futex: introduce function process_has_robust_futex()
-Date: Thu, 14 Aug 2025 21:55:53 +0800
+Subject: mm/oom_kill: only delay OOM reaper for processes using robust futexes
+Date: Thu, 14 Aug 2025 21:55:54 +0800
 
-Patch series "mm/oom_kill: Only delay OOM reaper for processes using
-robust futexes", v4.
-
-The OOM reaper quickly reclaims a process's memory when the system hits
-OOM, helping the system recover.  Without the OOM reaper, if a process
-frozen by cgroup v1 is OOM killed, the victim's memory cannot be freed,
-leaving the system in a poor state.  Even if the process is not frozen by
-cgroup v1, reclaiming victims' memory remains important, as having one
-more process working speeds up memory release.
+The OOM reaper can quickly reap a process's memory when the system
+encounters OOM, helping the system recover.  Without the OOM reaper, if a
+process frozen by cgroup v1 is OOM killed, the victims' memory cannot be
+freed, and the system stays in a poor state.  Even if the process is not
+frozen by cgroup v1, reaping victims' memory is still meaningful, because
+having one more process working speeds up memory release.
 
 When processes holding robust futexes are OOM killed but waiters on those
 futexes remain alive, the robust futexes might be reaped before
-futex_cleanup() runs.  This can cause the waiters to block indefinitely
-[1].
-
+futex_cleanup() runs.  It would cause the waiters to block indefinitely. 
 To prevent this issue, the OOM reaper's work is delayed by 2 seconds [1]. 
-Since many killed processes exit within 2 seconds, the OOM reaper rarely
-runs after this delay.  However, robust futex users are few, so delaying
-OOM reap for all victims is unnecessary.
+The OOM reaper now rarely runs since many killed processes exit within 2
+seconds.
 
-If each thread's robust_list in a process is NULL, the process holds no
-robust futexes.  For such processes, the OOM reaper should not be delayed.
-For processes holding robust futexes, to avoid issue [1], the OOM reaper
-must still be delayed.
+Because robust futex users are few, it is unreasonable to delay OOM reap
+for all victims.  For processes that do not hold robust futexes, the OOM
+reaper should not be delayed and for processes holding robust futexes, the
+OOM reaper must still be delayed to prevent the waiters to block
+indefinitely [1].
 
-Patch 1 introduces process_has_robust_futex() to detect whether a process
-uses robust futexes.  Patch 2 delays the OOM reaper only for processes
-holding robust futexes, improving OOM reaper performance.  Patch 3 makes
-the OOM reaper and exit_mmap() traverse the maple tree in opposite orders
-to reduce PTE lock contention caused by unmapping the same vma.
-
-
-This patch (of 3):
-
-When the holders of robust futexes are OOM killed but the waiters on
-robust futexes are still alive, the robust futexes might be reaped before
-futex_cleanup() runs.  This can cause the waiters to block indefinitely
-[1].  To prevent this issue, the OOM reaper's work is delayed by 2 seconds
-[1].  However, the OOM reaper now rarely runs since many killed processes
-exit within 2 seconds.
-
-Because robust futex users are few, delay the reaper's execution only for
-processes holding robust futexes to improve the performance of the OOM
-reaper.
-
-Introduce the function process_has_robust_futex() to detect whether a
-process uses robust futexes.  If each thread's robust_list in a process is
-NULL, it means the process holds no robust futexes.  Conversely, it means
-the process holds robust futexes.
-
-Link: https://lkml.kernel.org/r/20250814135555.17493-1-zhongjinji@honor.com
-Link: https://lkml.kernel.org/r/20250814135555.17493-2-zhongjinji@honor.com
+Link: https://lkml.kernel.org/r/20250814135555.17493-3-zhongjinji@honor.com
 Link: https://lore.kernel.org/all/20220414144042.677008-1-npache@redhat.com/T/#u [1]
 Signed-off-by: zhongjinji <zhongjinji@honor.com>
 Cc: Andre Almeida <andrealmeid@igalia.com>
@@ -105,83 +74,215 @@ Cc: Darren Hart <dvhart@infradead.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joel Savitz <jsavitz@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Joel Savitz <jsavitz@redhat.com>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/futex.h |    5 +++++
- kernel/futex/core.c   |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+)
+ mm/oom_kill.c |   51 +++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 38 insertions(+), 13 deletions(-)
 
---- a/include/linux/futex.h~futex-introduce-function-process_has_robust_futex
-+++ a/include/linux/futex.h
-@@ -81,6 +81,7 @@ void futex_exec_release(struct task_stru
- long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
- 	      u32 __user *uaddr2, u32 val2, u32 val3);
- int futex_hash_prctl(unsigned long arg2, unsigned long arg3, unsigned long arg4);
-+bool process_has_robust_futex(struct task_struct *tsk);
+--- a/mm/oom_kill.c~mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes
++++ a/mm/oom_kill.c
+@@ -39,6 +39,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/freezer.h>
+ #include <linux/ftrace.h>
++#include <linux/futex.h>
+ #include <linux/ratelimit.h>
+ #include <linux/kthread.h>
+ #include <linux/init.h>
+@@ -692,7 +693,7 @@ static void wake_oom_reaper(struct timer
+  * before the exit path is able to wake the futex waiters.
+  */
+ #define OOM_REAPER_DELAY (2*HZ)
+-static void queue_oom_reaper(struct task_struct *tsk)
++static void queue_oom_reaper(struct task_struct *tsk, bool delay)
+ {
+ 	/* mm is already queued? */
+ 	if (mm_flags_test_and_set(MMF_OOM_REAP_QUEUED, tsk->signal->oom_mm))
+@@ -700,7 +701,7 @@ static void queue_oom_reaper(struct task
  
- #ifdef CONFIG_FUTEX_PRIVATE_HASH
- int futex_hash_allocate_default(void);
-@@ -108,6 +109,10 @@ static inline int futex_hash_prctl(unsig
- {
- 	return -EINVAL;
+ 	get_task_struct(tsk);
+ 	timer_setup(&tsk->oom_reaper_timer, wake_oom_reaper, 0);
+-	tsk->oom_reaper_timer.expires = jiffies + OOM_REAPER_DELAY;
++	tsk->oom_reaper_timer.expires = jiffies + (delay ? OOM_REAPER_DELAY : 0);
+ 	add_timer(&tsk->oom_reaper_timer);
  }
-+static inline bool process_has_robust_futex(struct task_struct *tsk)
-+{
-+	return false;
-+}
- static inline int futex_hash_allocate_default(void)
+ 
+@@ -742,7 +743,7 @@ static int __init oom_init(void)
+ }
+ subsys_initcall(oom_init)
+ #else
+-static inline void queue_oom_reaper(struct task_struct *tsk)
++static inline void queue_oom_reaper(struct task_struct *tsk, bool delay)
  {
- 	return 0;
---- a/kernel/futex/core.c~futex-introduce-function-process_has_robust_futex
-+++ a/kernel/futex/core.c
-@@ -1961,6 +1961,36 @@ int futex_hash_prctl(unsigned long arg2,
- 	return ret;
+ }
+ #endif /* CONFIG_MMU */
+@@ -843,6 +844,16 @@ bool oom_killer_disable(signed long time
+ 	return true;
  }
  
 +/*
-+ * process_has_robust_futex() - check whether the given task hold robust futexes.
-+ * @p: task struct of which task to consider
-+ *
-+ * If any thread in the task has a non-NULL robust_list or compat_robust_list,
-+ * it indicates that the task holds robust futexes.
++ * If the owner thread of robust futexes is killed by OOM, the robust futexes might be freed
++ * by the OOM reaper before futex_cleanup() runs, which could cause the waiters to
++ * block indefinitely. So when the task hold robust futexes, delay oom reaper.
 + */
-+bool process_has_robust_futex(struct task_struct *tsk)
++static inline bool should_delay_oom_reap(struct task_struct *task)
 +{
-+	struct task_struct *t;
-+	bool ret = false;
-+
-+	rcu_read_lock();
-+	for_each_thread(tsk, t) {
-+		if (unlikely(t->robust_list)) {
-+			ret = true;
-+			break;
-+		}
-+#ifdef CONFIG_COMPAT
-+		if (unlikely(t->compat_robust_list)) {
-+			ret = true;
-+			break;
-+		}
-+#endif
-+	}
-+	rcu_read_unlock();
-+
-+	return ret;
++	return process_has_robust_futex(task);
 +}
 +
- static int __init futex_init(void)
+ static inline bool __task_will_free_mem(struct task_struct *task)
  {
- 	unsigned long hashsize, i;
+ 	struct signal_struct *sig = task->signal;
+@@ -865,17 +876,19 @@ static inline bool __task_will_free_mem(
+ }
+ 
+ /*
+- * Checks whether the given task is dying or exiting and likely to
+- * release its address space. This means that all threads and processes
++ * Determine whether the given task should be reaped based on
++ * whether it is dying or exiting and likely to release its
++ * address space. This means that all threads and processes
+  * sharing the same mm have to be killed or exiting.
+  * Caller has to make sure that task->mm is stable (hold task_lock or
+  * it operates on the current).
+  */
+-static bool task_will_free_mem(struct task_struct *task)
++static bool should_reap_task(struct task_struct *task, bool *delay_reap)
+ {
+ 	struct mm_struct *mm = task->mm;
+ 	struct task_struct *p;
+ 	bool ret = true;
++	bool delay;
+ 
+ 	/*
+ 	 * Skip tasks without mm because it might have passed its exit_mm and
+@@ -888,6 +901,8 @@ static bool task_will_free_mem(struct ta
+ 	if (!__task_will_free_mem(task))
+ 		return false;
+ 
++	delay = should_delay_oom_reap(task);
++
+ 	/*
+ 	 * This task has already been drained by the oom reaper so there are
+ 	 * only small chances it will free some more
+@@ -912,8 +927,11 @@ static bool task_will_free_mem(struct ta
+ 		ret = __task_will_free_mem(p);
+ 		if (!ret)
+ 			break;
++		if (!delay)
++			delay = should_delay_oom_reap(p);
+ 	}
+ 	rcu_read_unlock();
++	*delay_reap = delay;
+ 
+ 	return ret;
+ }
+@@ -923,6 +941,7 @@ static void __oom_kill_process(struct ta
+ 	struct task_struct *p;
+ 	struct mm_struct *mm;
+ 	bool can_oom_reap = true;
++	bool delay_reap;
+ 
+ 	p = find_lock_task_mm(victim);
+ 	if (!p) {
+@@ -959,6 +978,7 @@ static void __oom_kill_process(struct ta
+ 		from_kuid(&init_user_ns, task_uid(victim)),
+ 		mm_pgtables_bytes(mm) >> 10, victim->signal->oom_score_adj);
+ 	task_unlock(victim);
++	delay_reap = should_delay_oom_reap(victim);
+ 
+ 	/*
+ 	 * Kill all user processes sharing victim->mm in other thread groups, if
+@@ -990,11 +1010,13 @@ static void __oom_kill_process(struct ta
+ 		if (unlikely(p->flags & PF_KTHREAD))
+ 			continue;
+ 		do_send_sig_info(SIGKILL, SEND_SIG_PRIV, p, PIDTYPE_TGID);
++		if (!delay_reap)
++			delay_reap = should_delay_oom_reap(p);
+ 	}
+ 	rcu_read_unlock();
+ 
+ 	if (can_oom_reap)
+-		queue_oom_reaper(victim);
++		queue_oom_reaper(victim, delay_reap);
+ 
+ 	mmdrop(mm);
+ 	put_task_struct(victim);
+@@ -1020,6 +1042,7 @@ static void oom_kill_process(struct oom_
+ 	struct mem_cgroup *oom_group;
+ 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					      DEFAULT_RATELIMIT_BURST);
++	bool delay_reap = false;
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -1027,9 +1050,9 @@ static void oom_kill_process(struct oom_
+ 	 * so it can die quickly
+ 	 */
+ 	task_lock(victim);
+-	if (task_will_free_mem(victim)) {
++	if (should_reap_task(victim, &delay_reap)) {
+ 		mark_oom_victim(victim);
+-		queue_oom_reaper(victim);
++		queue_oom_reaper(victim, delay_reap);
+ 		task_unlock(victim);
+ 		put_task_struct(victim);
+ 		return;
+@@ -1112,6 +1135,7 @@ EXPORT_SYMBOL_GPL(unregister_oom_notifie
+ bool out_of_memory(struct oom_control *oc)
+ {
+ 	unsigned long freed = 0;
++	bool delay_reap = false;
+ 
+ 	if (oom_killer_disabled)
+ 		return false;
+@@ -1128,9 +1152,9 @@ bool out_of_memory(struct oom_control *o
+ 	 * select it.  The goal is to allow it to allocate so that it may
+ 	 * quickly exit and free its memory.
+ 	 */
+-	if (task_will_free_mem(current)) {
++	if (should_reap_task(current, &delay_reap)) {
+ 		mark_oom_victim(current);
+-		queue_oom_reaper(current);
++		queue_oom_reaper(current, delay_reap);
+ 		return true;
+ 	}
+ 
+@@ -1209,6 +1233,7 @@ SYSCALL_DEFINE2(process_mrelease, int, p
+ 	struct task_struct *p;
+ 	unsigned int f_flags;
+ 	bool reap = false;
++	bool delay_reap = false;
+ 	long ret = 0;
+ 
+ 	if (flags)
+@@ -1231,7 +1256,7 @@ SYSCALL_DEFINE2(process_mrelease, int, p
+ 	mm = p->mm;
+ 	mmgrab(mm);
+ 
+-	if (task_will_free_mem(p))
++	if (should_reap_task(p, &delay_reap))
+ 		reap = true;
+ 	else {
+ 		/* Error only if the work has not been done already */
+@@ -1240,7 +1265,7 @@ SYSCALL_DEFINE2(process_mrelease, int, p
+ 	}
+ 	task_unlock(p);
+ 
+-	if (!reap)
++	if (!reap || delay_reap)
+ 		goto drop_mm;
+ 
+ 	if (mmap_read_lock_killable(mm)) {
 _
 
 Patches currently in -mm which might be from zhongjinji@honor.com are
 
-mm-oom_kill-only-delay-oom-reaper-for-processes-using-robust-futexes.patch
 
