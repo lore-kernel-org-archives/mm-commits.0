@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0E1626D4F1
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:36:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C5D426D4CF
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:36:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755646603; cv=none; b=u+iHJZVPb725hzEbHY3P3+G/4IVPYarfgxwdznNBjERGMdvKinFxplmlXrS74dzesScP7UtvbpVLLGb7Oi2FYDLGBy5voT5/eXFON33FrgOjtkdDQ0FDbEUV30ZgdhGEaHyxe5FqpeMV058WPC+65E8g2e+pkhgE9FxTRNmy2kA=
+	t=1755646605; cv=none; b=ev8nuCnMBQgNC4wEvFLHZpECLL26YajncrCMyqhxqtodlCiYVDriqQuz1Uis1W//+R2tT6xBB8sfw6ucrUh3XSQKl6b6JvwheViHtu/meBRRtDeBjKURXdbLDuMG5qvYxHJ4xutIGaLgKwR4OTU3zjKSrUO0gCZcNjq78QS7BhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755646603; c=relaxed/simple;
-	bh=v2Dpuc8UxckKMcuDFmGDCNj2TbhJQ81uCcEgKyotYB0=;
-	h=Date:To:From:Subject:Message-Id; b=f/Dc7NUAbObI+0QMxMGJO/ysp60ynNFHl5G5pH6z6EIAPO87PwCvX0OxX2UK9S2WFAANwdeGN5ctqlUXcLq/vv9yPeTR9eB5QoqmF3p25OXJ039OO6Zv9XRLdkWp+gihL4cH9fWqHh5wpVtocEXNTvvAZcV+Bn1jRejZ1LNH+a0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ucXxEcLY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755646605; c=relaxed/simple;
+	bh=B/EjAsNl5c102qX/qWONmFQkuFUuaQAZhZ2LjuX10e4=;
+	h=Date:To:From:Subject:Message-Id; b=rzzWY+hD03ezJCXeL2s3HcFAzygz3A0xJs3vASoFg0uxVcmDXaLpR17xcPKZ5vtFkAr+NpmsvX6WNP59gjuTJwoYMCaAM2jX2elrT3ZoqgeF6uZypKjUVs4ikhEL/lcAMTdF4icO+kG16e8tnQuFWvsKRYu3cJEj2hqVVsWZoz4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iKlSTVeL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ucXxEcLY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E387C4CEF1;
-	Tue, 19 Aug 2025 23:36:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iKlSTVeL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E87AC4CEF1;
+	Tue, 19 Aug 2025 23:36:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755646603;
-	bh=v2Dpuc8UxckKMcuDFmGDCNj2TbhJQ81uCcEgKyotYB0=;
+	s=korg; t=1755646604;
+	bh=B/EjAsNl5c102qX/qWONmFQkuFUuaQAZhZ2LjuX10e4=;
 	h=Date:To:From:Subject:From;
-	b=ucXxEcLYBVxLSRRsxyIjYJJCl2i8u3IX1YT1Rqgo+z2VofsfJYvjiTOgnd7G3mSl3
-	 sILBEb9XwCwyc22+ooOV7WYFnhnn0+Vs0gatHJSUEdaYghQ2ue1NMxvqhS1mFJTabf
-	 S8GLcYjvKpdaT3rwXo6XXE5DR4PbLuOiTzHC9po8=
-Date: Tue, 19 Aug 2025 16:36:40 -0700
-To: mm-commits@vger.kernel.org,sln@onemain.com,lumag@kernel.org,jarkko@kernel.org,hverkuil@kernel.org,carlos.bilbao@kernel.org,easwar.hariharan@linux.microsoft.com,akpm@linux-foundation.org
+	b=iKlSTVeLz25Hh4hirzJzlR1BTrd8TUQmRFsy1KhRCJ9mPHkv/IO4CkV+syt1B8/+K
+	 OKGOhwzjxIjv4fc2f4NM5R7C5fDlhN+sR8XNpgIP0l3X1BU2ODrRZ5A7/Y32ggrUn9
+	 t0VNE4VVRsw7laROPA2ar/dYtAnhm8JpVMQ85MBs=
+Date: Tue, 19 Aug 2025 16:36:44 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,alexghiti@rivosinc.com,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-add-entry-for-easwar-hariharan.patch removed from -mm tree
-Message-Id: <20250819233643.7E387C4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-damon-fix-selftests-by-installing-drgn-related-script.patch removed from -mm tree
+Message-Id: <20250819233644.9E87AC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: .mailmap: add entry for Easwar Hariharan
+     Subject: selftests/damon: fix selftests by installing drgn related script
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-easwar-hariharan.patch
+     selftests-damon-fix-selftests-by-installing-drgn-related-script.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Easwar Hariharan <easwar.hariharan@linux.microsoft.com>
-Subject: .mailmap: add entry for Easwar Hariharan
-Date: Tue, 12 Aug 2025 18:02:14 +0000
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: selftests/damon: fix selftests by installing drgn related script
+Date: Tue, 12 Aug 2025 23:00:46 +0900
 
-Map my old, obsolete work email address to my current one.
+drgn_dump_damon_status is not installed during kselftest setup.  It can
+break other tests which depend on drgn_dump_damon_status.  Install
+drgn_dump_damon_status files to fix broken test.
 
-Link: https://lkml.kernel.org/r/20250812180218.92755-1-easwar.hariharan@linux.microsoft.com
-Signed-off-by: Easwar Hariharan <easwar.hariharan@linux.microsoft.com>
-Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Shannon Nelson <sln@onemain.com>
-Cc: Dmitry Baryshkov <lumag@kernel.org>
-Cc: Hans Verkuil <hverkuil@kernel.org>
+Link: https://lkml.kernel.org/r/20250812140046.660486-1-ekffu200098@gmail.com
+Fixes: f3e8e1e51362 ("selftests/damon: add drgn script for extracting damon status")
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/damon/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/.mailmap~mailmap-add-entry-for-easwar-hariharan
-+++ a/.mailmap
-@@ -226,6 +226,8 @@ Domen Puncer <domen@coderock.org>
- Douglas Gilbert <dougg@torque.net>
- Drew Fustini <fustini@kernel.org> <drew@pdp7.com>
- <duje@dujemihanovic.xyz> <duje.mihanovic@skole.hr>
-+Easwar Hariharan <easwar.hariharan@linux.microsoft.com> <easwar.hariharan@intel.com>
-+Easwar Hariharan <easwar.hariharan@linux.microsoft.com> <eahariha@linux.microsoft.com>
- Ed L. Cashin <ecashin@coraid.com>
- Elliot Berman <quic_eberman@quicinc.com> <eberman@codeaurora.org>
- Enric Balletbo i Serra <eballetbo@kernel.org> <enric.balletbo@collabora.com>
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-fix-selftests-by-installing-drgn-related-script
++++ a/tools/testing/selftests/damon/Makefile
+@@ -4,6 +4,7 @@
+ TEST_GEN_FILES += access_memory access_memory_even
+ 
+ TEST_FILES = _damon_sysfs.py
++TEST_FILES += drgn_dump_damon_status.py
+ 
+ # functionality tests
+ TEST_PROGS += sysfs.sh
 _
 
-Patches currently in -mm which might be from easwar.hariharan@linux.microsoft.com are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
+mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch
+mm-damon-update-expired-description-of-damos_action.patch
+docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
+selftests-damon-test-no-op-commit-broke-damon-status.patch
+selftests-damon-test-no-op-commit-broke-damon-status-fix.patch
+mm-damon-tests-core-kunit-add-damos_commit_filter-test.patch
 
