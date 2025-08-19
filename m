@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8087B353368
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:47:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7C31239E7E
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 22:54:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755643672; cv=none; b=tsEueZZcxXqurCuVSXScjpLRnZZ5I6Bg7D/XZkN+OcpoUwXvnR0T7f6/AZAYmW6c/7H9knEkxk3fpQe14pUpKP3PE1uEWgr+SnaS4zifnBPP+yUjBqMN6EJ+LOId4VGl8Iubsxlc02FolOHRBhLd1B4bt7g0T9Z7LPvDHjdXdvQ=
+	t=1755644095; cv=none; b=P7CbGO475UkA128v/6NQ9Kjs3hHgvp3nM3aYHAM9BgxWgTfliO+jYxr1si9XI29/8n9wGiy55bq+GkCrYixtpsQbzwDqDgaoEke/SIo8zffU23EqiD9UXZLAl5zC4oJFZF8IfAdqhN8NWKkSWyVb0pKIrDB3kfLab+iy4VkhXnY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755643672; c=relaxed/simple;
-	bh=S8FuhvlGFSb42wdixcjGBflqwvD9PIIIRWKz9uBPLVg=;
-	h=Date:To:From:Subject:Message-Id; b=fJZdj6Eu4vonmyIl+VD4cw1kBZHN4Nq1hfj0z0hMreP6Coi3Uq8FSCkN23Zz+5eLFiPFgvkuu1zLvfh0X8ILa/OnHw8gCUSXaxAk8XqmcL7XLEQSlSCrHJZYYfk97V2obaZYjSc96tNVlyFWbO0Sog1OSKpW2vn1ubZy2x/+3OQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OR4uPHOz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755644095; c=relaxed/simple;
+	bh=jzO0FtU+A3tYdK1+KZUdurgde06uNdds7r8ePpTMvqw=;
+	h=Date:To:From:Subject:Message-Id; b=C83DNUblv0IvFxhZw4ZNM9SK1nHjMI0fZu3Sr2qSLVaqQ9PeIyKVgRAaZ2XmvBqQ7zODVthFgNM+8XR8EgOv+3AWKLEYOgWt3HruoG10UY2JS/QzCII0dmYaCz3P4hJQ4+oKmGx74AdPZNiElPCB20ePfT8m5bAoCoaCR2dsowc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ouw8HFWC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OR4uPHOz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB5C4C4CEF1;
-	Tue, 19 Aug 2025 22:47:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ouw8HFWC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6539EC4CEF1;
+	Tue, 19 Aug 2025 22:54:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755643671;
-	bh=S8FuhvlGFSb42wdixcjGBflqwvD9PIIIRWKz9uBPLVg=;
+	s=korg; t=1755644092;
+	bh=jzO0FtU+A3tYdK1+KZUdurgde06uNdds7r8ePpTMvqw=;
 	h=Date:To:From:Subject:From;
-	b=OR4uPHOzoEI3+CxusP43JCarnMyyTh+RbAu8LpiIcKZqcDgUd67xFxMmMXl0IJEN8
-	 5kSu+mMKvc7xtTpkI3m1EfzgjdID/ACQA/56sRxbVd86LKQF3Zb8Ya+pTCI8P8AObN
-	 vNCpyjlRj748bDABWLRTCjWvyLETeZ4BXzuiIrcc=
-Date: Tue, 19 Aug 2025 15:47:51 -0700
-To: mm-commits@vger.kernel.org,lujialin4@huawei.com,leitao@debian.org,john.ogness@linutronix.de,gregkh@linuxfoundation.org,catalin.marinas@arm.com,gubowen5@huawei.com,akpm@linux-foundation.org
+	b=Ouw8HFWC1semLy3up1xMkX0nKtRD5h2RUM5Leh+pOHXIIwVavhom1wAFaT3PDhmNa
+	 FPyZYnHhJBwzL8iSe4F/q7Toivn+ydqx9eUYZSOkJsGkoY5weSoLmRWsuXH0ONVQl9
+	 0WO0iEO37xQEiBjMgAdl/yav/P+53YFw2IknrZYM=
+Date: Tue, 19 Aug 2025 15:54:51 -0700
+To: mm-commits@vger.kernel.org,yaoma@linux.alibaba.com,tglx@linutronix.de,max.kellermann@ionos.com,lihuafei1@huawei.com,yaozhenguo1@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-possible-deadlock-in-kmemleak.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250819224751.DB5C4C4CEF1@smtp.kernel.org>
+Subject: + watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup-v2.patch added to mm-nonmm-unstable branch
+Message-Id: <20250819225452.6539EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix possible deadlock in kmemleak
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-possible-deadlock-in-kmemleak.patch
+     Subject: watchdog/softlockup:Fix incorrect CPU utilization output during softlockup
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-possible-deadlock-in-kmemleak.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup-v2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,102 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gu Bowen <gubowen5@huawei.com>
-Subject: mm: fix possible deadlock in kmemleak
-Date: Mon, 18 Aug 2025 17:09:44 +0800
+From: ZhenguoYao <yaozhenguo1@gmail.com>
+Subject: watchdog/softlockup:Fix incorrect CPU utilization output during softlockup
+Date: Mon, 18 Aug 2025 16:14:38 +0800
 
-Our syztester report the lockdep WARNING [1], which was identified in
-stable kernel version 5.10.  However, this deadlock path no longer exists
-due to the refactoring of console_lock in v6.2-rc1 [2].  Coincidentally,
-there are two types of deadlocks that we have found here.  One is the ABBA
-deadlock, as mentioned above [1], and the other is the AA deadlock was
-reported by Breno [3].  The latter's deadlock issue persists.
+make get_16bit_precision() more accurate, fix comment layout
 
-To solve this problem, switch to printk_safe mode before printing warning
-message, this will redirect all printk()-s to a special per-CPU buffer,
-which will be flushed later from a safe context (irq work), and this
-deadlock problem can be avoided. The proper API to use should be
-printk_deferred_enter()/printk_deferred_exit() [4].
-
-[1]
-https://lore.kernel.org/all/20250730094914.566582-1-gubowen5@huawei.com/
-[2]
-https://lore.kernel.org/all/20221116162152.193147-1-john.ogness@linutronix.de/
-[3]
-https://lore.kernel.org/all/20250731-kmemleak_lock-v1-1-728fd470198f@debian.org/#t
-[4]
-https://lore.kernel.org/all/5ca375cd-4a20-4807-b897-68b289626550@redhat.com/
-====================
-
-Link: https://lkml.kernel.org/r/20250818090945.1003644-1-gubowen5@huawei.com
-Signed-off-by: Gu Bowen <gubowen5@huawei.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Lu Jialin <lujialin4@huawei.com>
+Link: https://lkml.kernel.org/r/20250818081438.40540-1-yaozhenguo@jd.com
+Signed-off-by: ZhenguoYao <yaozhenguo1@gmail.com>
+Cc: Bitao Hu <yaoma@linux.alibaba.com>
+Cc: Li Huafei <lihuafei1@huawei.com>
+Cc: Max Kellermann <max.kellermann@ionos.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ kernel/watchdog.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/kmemleak.c~mm-fix-possible-deadlock-in-kmemleak
-+++ a/mm/kmemleak.c
-@@ -437,9 +437,15 @@ static struct kmemleak_object *__lookup_
- 		else if (untagged_objp == untagged_ptr || alias)
- 			return object;
- 		else {
-+			/*
-+			 * Printk deferring due to the kmemleak_lock held.
-+			 * This is done to avoid deadlock.
-+			 */
-+			printk_deferred_enter();
- 			kmemleak_warn("Found object by alias at 0x%08lx\n",
- 				      ptr);
- 			dump_object_info(object);
-+			printk_deferred_exit();
- 			break;
- 		}
- 	}
-@@ -736,6 +742,11 @@ static int __link_object(struct kmemleak
- 		else if (untagged_objp + parent->size <= untagged_ptr)
- 			link = &parent->rb_node.rb_right;
- 		else {
-+			/*
-+			 * Printk deferring due to the kmemleak_lock held.
-+			 * This is done to avoid deadlock.
-+			 */
-+			printk_deferred_enter();
- 			kmemleak_stop("Cannot insert 0x%lx into the object search tree (overlaps existing)\n",
- 				      ptr);
- 			/*
-@@ -743,6 +754,7 @@ static int __link_object(struct kmemleak
- 			 * be freed while the kmemleak_lock is held.
- 			 */
- 			dump_object_info(parent);
-+			printk_deferred_exit();
- 			return -EEXIST;
- 		}
- 	}
-@@ -858,8 +870,14 @@ static void delete_object_part(unsigned
- 	object = __find_and_remove_object(ptr, 1, objflags);
- 	if (!object) {
- #ifdef DEBUG
+--- a/kernel/watchdog.c~watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup-v2
++++ a/kernel/watchdog.c
+@@ -425,7 +425,11 @@ static DEFINE_PER_CPU(u8, cpustat_tail);
+  */
+ static u16 get_16bit_precision(u64 data_ns)
+ {
+-	return data_ns >> 24LL; /* 2^24ns ~= 16.8ms */
++	/*
++	 * 2^24ns ~= 16.8ms
++	 * Round to the nearest multiple of 16.8 milliseconds.
++	 */
++	return (data_ns + (1 << 23)) >> 24LL;
+ }
+ 
+ static void update_cpustat(void)
+@@ -444,7 +448,8 @@ static void update_cpustat(void)
+ 		old_stat = __this_cpu_read(cpustat_old[i]);
+ 		new_stat = get_16bit_precision(cpustat[tracked_stats[i]]);
+ 		util = DIV_ROUND_UP(100 * (new_stat - old_stat), sample_period_16);
+-		/* Since we use 16-bit precision, the raw data will undergo
 +		/*
-+		 * Printk deferring due to the kmemleak_lock held.
-+		 * This is done to avoid deadlock.
-+		 */
-+		printk_deferred_enter();
- 		kmemleak_warn("Partially freeing unknown object at 0x%08lx (size %zu)\n",
- 			      ptr, size);
-+		printk_deferred_exit();
- #endif
- 		goto unlock;
- 	}
++		 * Since we use 16-bit precision, the raw data will undergo
+ 		 * integer division, which may sometimes result in data loss,
+ 		 * and then result might exceed 100%. To avoid confusion,
+ 		 * we enforce a 100% display cap when calculations exceed this threshold.
 _
 
-Patches currently in -mm which might be from gubowen5@huawei.com are
+Patches currently in -mm which might be from yaozhenguo1@gmail.com are
 
-mm-fix-possible-deadlock-in-kmemleak.patch
+watchdog-softlockup-fix-wrong-output-when-watchdog_thresh-3.patch
+watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup.patch
+watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup-v2.patch
 
