@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F5AE2222C8
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 21:07:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC6963101AA
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 21:10:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755637636; cv=none; b=OgXRtXjTmmgCrem/Ir4aHLtTcGD6ihBCSCKbiThahQlEeG3xr/+0wQuTc3M1U3cXigcj25S8fabrPoJnwJTzmzh4VL+9JZ0j2eHJDT0guNy0V+opnRrzzFf9s6mUabd3VtiOCpb69tuGAIHG7rBcfRYmoY4PeEVbzyj9KfbHwbg=
+	t=1755637822; cv=none; b=elwppoMbU4Mkn43R3SaYLTYd/EBlL/B28WT2AQTh7w+DO0pFQ5CtVC8lIJrAhdToux6vagDViAK6VN38QZg8t4F5rQ9MiuoWlc0FkjvkBZhiLCtI4ZB1PD5M8q+Fh7aeoeKkUzEaLAq7djC6ywpoqSXQRFOMKTqW8k9+vvpQLxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755637636; c=relaxed/simple;
-	bh=3ZMXB5PweR0WmCPbs+y5EZupF4UnG0FA2KZos6HScJU=;
-	h=Date:To:From:Subject:Message-Id; b=LKu+evBdbF4Mym60LWNqdMyxhEg817gAIdEKT8coURjw06fBlOv7A4/YWrWF3o0l4j/2NG1zZbtr2ckHO4b7EwoIyBLqaT3TC404vrGy4ircbaTL9Y52hSHTBcJjqaxJSyR4zy3ZNDQywaenI2mtwr3cWZUTDYw+oGBMyh4TMgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KxUE54jl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755637822; c=relaxed/simple;
+	bh=mFG2p3A3wdCIdxI1GRFt/d8XMnDvE1Ry8UAJKO/+OXE=;
+	h=Date:To:From:Subject:Message-Id; b=Wyxa5axTNj4FUKYH1ZINPPLHLvSQRab2FGaj1QPFklVtt6KDJtbTe34p7GdjgUEes+PCtTydvK4srcCbxwduyN9dRjRArUrz56XeKhosA1AEg93iS5tZ5ZY5UOXMrMyPmcYAR1IW5iSoW8jBYhyCqQ9aFQBZ8G0gEOQur2k1r/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fvMV5rfj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KxUE54jl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35000C4CEF1;
-	Tue, 19 Aug 2025 21:07:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fvMV5rfj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66D2EC4CEF1;
+	Tue, 19 Aug 2025 21:10:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755637635;
-	bh=3ZMXB5PweR0WmCPbs+y5EZupF4UnG0FA2KZos6HScJU=;
+	s=korg; t=1755637821;
+	bh=mFG2p3A3wdCIdxI1GRFt/d8XMnDvE1Ry8UAJKO/+OXE=;
 	h=Date:To:From:Subject:From;
-	b=KxUE54jlgI4anWXEKt2czU6o+Z3Pf0xcZDmtk4Qc/yxyeT6vCSBo/8S58kr0qndGp
-	 Rq+SQNNDeWB00BEn0/JklVZpWpApNEaHlB6BZSU/4DsBxnQgjF7n0ehwwQfi0oYBuP
-	 3E/cakSbV6oVc6ywiAG4x3zTfkn3d/7Dn9jcCYIs=
-Date: Tue, 19 Aug 2025 14:07:14 -0700
-To: mm-commits@vger.kernel.org,nphamcs@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,flintglass@gmail.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baohua@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=fvMV5rfj7Jhh5r+elXxc4aNvzeARkxwxvia5JDbxAG0ToNCfON2bHnEpQTv6wRiR+
+	 Myk1a+BeTfjw6Z0Hnfs7jlvl0S5M0li2wE1AEevKjTCFOysmX9A7MnKBwqO3+hfxzY
+	 JBSXuTOJpFBJA5dudhUt2GHrOKVfnRUerojO8mP8=
+Date: Tue, 19 Aug 2025 14:10:20 -0700
+To: mm-commits@vger.kernel.org,adobriyan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-store-page_size-compression-failed-page-as-is.patch added to mm-unstable branch
-Message-Id: <20250819210715.35000C4CEF1@smtp.kernel.org>
+Subject: + proc-test-lseek-on-proc-net-dev.patch added to mm-nonmm-unstable branch
+Message-Id: <20250819211021.66D2EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: store <PAGE_SIZE compression failed page as-is
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-store-page_size-compression-failed-page-as-is.patch
+     Subject: proc: test lseek on /proc/net/dev
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     proc-test-lseek-on-proc-net-dev.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-store-page_size-compression-failed-page-as-is.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-test-lseek-on-proc-net-dev.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,339 +58,123 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/zswap: store <PAGE_SIZE compression failed page as-is
-Date: Tue, 19 Aug 2025 12:34:04 -0700
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: test lseek on /proc/net/dev
+Date: Tue, 19 Aug 2025 21:19:17 +0300
 
-When zswap writeback is enabled and it fails compressing a given page, the
-page is swapped out to the backing swap device.  This behavior breaks the
-zswap's writeback LRU order, and hence users can experience unexpected
-latency spikes.  If the page is compressed without failure, but results in
-a size of PAGE_SIZE, the LRU order is kept, but the decompression overhead
-for loading the page back on the later access is unnecessary.
+This line in tools/testing/selftests/proc/read.c was added to catch
+oopses, not to verify lseek correctness:
 
-Keep the LRU order and optimize unnecessary decompression overheads in
-those cases, by storing the original content as-is in zpool.  The length
-field of zswap_entry will be set appropriately, as PAGE_SIZE.  Hence
-whether it is saved as-is or not (whether decompression is unnecessary) is
-identified by 'zswap_entry->length == PAGE_SIZE'.
+        (void)lseek(fd, 0, SEEK_SET);
 
-Because the uncompressed data is saved in zpool, same to the compressed
-ones, this introduces no change in terms of memory management including
-movability and migratability of involved pages.
+Oh, well. Prevent more embarassement with simple test.
 
-This change is also not increasing per zswap entry metadata overhead.  But
-as the number of incompressible pages increases, total zswap metadata
-overhead is proportionally increased.  The overhead should not be
-problematic in usual cases, since the zswap metadata for single zswap
-entry is much smaller than PAGE_SIZE, and in common zswap use cases there
-should be a sufficient amount of compressible pages.  Also it can be
-mitigated by the zswap writeback.
-
-When the writeback is disabled, the additional overhead could be
-problematic.  For the case, keep the current behavior that just returns
-the failure and let swap_writeout() put the page back to the active LRU
-list in the case.
-
-Knowing how many compression failures from the crypto engine happened so
-far, and how many incompressible pages are stored at the given moment will
-be useful for future investigations.  Add two new debugfs files,
-crypto_compress_fail and stored_incompressible_pages, for the two counts,
-respectively.
-
-Tests
------
-
-I tested this patch using a simple self-written microbenchmark that is
-available at GitHub[1].  You can reproduce the test I did by executing
-run_tests.sh of the repo on your system.  Note that the repo's
-documentation is not good as of this writing, so you may need to read and
-use the code.
-
-The basic test scenario is simple.  Run a test program making artificial
-accesses to memory having artificial content under memory.high-set memory
-limit and measure how many accesses were made in a given time.
-
-The test program repeatedly and randomly access three anonymous memory
-regions.  The regions are all 500 MiB size, and be accessed in the same
-probability.  Two of those are filled up with a simple content that can
-easily be compressed, while the remaining one is filled up with a content
-that s read from /dev/urandom, which is easy to fail at compressing to a
-size smaller than PAGE_SIZE.  The program runs for two minutes and prints
-out the number of accesses made every five seconds.
-
-The test script runs the program under below four configurations.
-
-- 0: memory.high is set to 2 GiB, zswap is disabled.
-- 1-1: memory.high is set to 1350 MiB, zswap is disabled.
-- 1-2: On 1-1, zswap is enabled without this patch.
-- 1-3: On 1-2, this patch is applied.
-
-For all zswap enabled cases, zswap shrinker is enabled.
-
-Configuration '0' is for showing the original memory performance. 
-Configurations 1-1, 1-2 and 1-3 are for showing the performance of swap,
-zswap, and this patch under a level of memory pressure (~10% of working
-set).  Configurations 0 and 1-1 are not the main focus of this patch, but
-I'm adding those since their results transparently show how far this
-microbenchmark test is from the real world.
-
-Because the per-5 seconds performance is not very reliable, I measured the
-average of that for the last one minute period of the test program run.  I
-also measured a few vmstat counters including zswpin, zswpout, zswpwb,
-pswpin and pswpout during the test runs.
-
-The measurement results are as below.  To save space, I show performance
-numbers that are normalized to that of the configuration '0' (no memory
-pressure).  The averaged accesses per 5 seconds of configuration '0' was
-36493417.75.
-
-    config            0       1-1     1-2      1-3
-    perf_normalized   1.0000  0.0057  0.0235   0.0367
-    perf_stdev_ratio  0.0582  0.0652  0.0167   0.0346
-    zswpin            0       0       3548424  1999335
-    zswpout           0       0       3588817  2361689
-    zswpwb            0       0       10214    340270
-    pswpin            0       485806  772038   340967
-    pswpout           0       649543  144773   340270
-
-'perf_normalized' is the performance metric, normalized to that of
-configuration '0' (no pressure).  'perf_stdev_ratio' is the standard
-deviation of the averaged data points, as a ratio to the averaged metric
-value.  For example, configuration '0' performance was showing 5.8% stdev.
-Configurations 1-1 and 1-3 were having about 6.5% and 6.1% stdev.  Also
-the results were highly variable between multiple runs.  So this result is
-not very stable but just showing ball park figures.  Please keep this in
-your mind when reading these results.
-
-Under about 10% of working set memory pressure, the performance was
-dropped to about 0.57% of no-pressure one, when the normal swap is used
-(1-1).  Note that ~10% working set pressure is already extreme, at least
-on this test setup.  No one would desire system setups that can degrade
-performance to 0.57% of the best case.
-
-By turning zswap on (1-2), the performance was improved about 4x,
-resulting in about 2.35% of no-pressure one.  Because of the
-incompressible pages in the third memory region, a significant amount of
-(non-zswap) swap I/O operations were made, though.
-
-By applying this patch (1-3), about 56% performance improvement was made,
-resulting in about 3.67% of no-pressure one.  Reduced pswpin of 1-3
-compared to 1-2 let us see where this improvement came from.
-
-Tests without Zswap Shrinker
-----------------------------
-
-Zswap shrinker is not enabled by default, so I ran the above test after
-disabling zswap shrinker.  The results are as below.
-
-    config            0       1-1     1-2      1-3
-    perf_normalized   1.0000  0.0056  0.0185   0.0260
-    perf_stdev_ratio  0.0467  0.0348  0.1832   0.3387
-    zswpin            0       0       2506765  6049078
-    zswpout           0       0       2534357  6115426
-    zswpwb            0       0       0        0
-    pswpin            0       463694  472978   0
-    pswpout           0       686227  612149   0
-
-The overall normalized performance of the different configs are very
-similar to those of zswap shrinker enabled case.  By adding the memory
-pressure, the performance was dropped to 0.56% of the original one.  By
-enabling zswap without zswap shrinker, the performance was increased to
-1.85% of the original one.  By applying this patch on it, the performance
-was further increased to 2.6% of the original one.
-
-Even though zswap shrinker is disabled, 1-2 shows high numbers of pswpin
-and pswpout because the incompressible pages are directly swapped out.  In
-the case of 1-3, it shows zero pswpin and pswpout since it saves
-incompressible pages in the memory, and shows higher performance.
-
-Note that the performance of 1-2 and 1-3 varies pretty much.  Standard
-deviation of the performance for 1-2 was about 18.32% of the performance,
-while that for 1-3 was about 33.87%.  Because zswap shrinker is disabled
-and the memory pressure is induced by memory.high, the workload got
-penalty_jiffies sleeps, and this resulted in the unstabilized performance.
-
-Related Works
--------------
-
-This is not an entirely new attempt.  Nhat Pham and Takero Funaki tried
-very similar approaches in October 2023[2] and April 2024[3],
-respectively.  The two approaches didn't get merged mainly due to the
-metadata overhead concern.  I described why I think that shouldn't be a
-problem for this change, which is automatically disabled when writeback is
-disabled, at the beginning of this changelog.
-
-This patch is not particularly different from those, and actually built
-upon those.  I wrote this from scratch again, though.  Hence adding
-Suggested-by tags for them.  Actually Nhat first suggested this to me
-offlist.
-
-Historically, writeback disabling was introduced partially as a way to
-solve the LRU order issue.  Yosry pointed out[4] this is still suboptimal
-when the incompressible pages are cold, since the incompressible pages
-will continuously be tried to be zswapped out, and burn CPU cycles for
-compression attempts that will anyway fail.  One imaginable solution for
-the problem is reusing the swapped-out page and its struct page to store
-in the zswap pool.  But that's out of the scope of this patch.
-
-Link: https://lkml.kernel.org/r/20250819193404.46680-1-sj@kernel.org
-Link: https://github.com/sjp38/eval_zswap/blob/master/run.sh [1] 
-Link: https://lore.kernel.org/20231017003519.1426574-3-nphamcs@gmail.com [2] 
-Link: https://lore.kernel.org/20240706022523.1104080-6-flintglass@gmail.com [3] 
-Link: https://lore.kernel.org/CAJD7tkZXS-UJVAFfvxJ0nNgTzWBiqepPYA4hEozi01_qktkitg@mail.gmail.com [4] 
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Suggested-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Takero Funaki <flintglass@gmail.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
+Link: https://lkml.kernel.org/r/aKTCfMuRXOpjBXxI@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 54 insertions(+), 3 deletions(-)
+ tools/testing/selftests/proc/.gitignore           |    1 
+ tools/testing/selftests/proc/Makefile             |    1 
+ tools/testing/selftests/proc/proc-net-dev-lseek.c |   68 ++++++++++++
+ 3 files changed, 70 insertions(+)
 
---- a/mm/zswap.c~mm-zswap-store-page_size-compression-failed-page-as-is
-+++ a/mm/zswap.c
-@@ -42,8 +42,10 @@
- /*********************************
- * statistics
- **********************************/
--/* The number of compressed pages currently stored in zswap */
-+/* The number of pages currently stored in zswap */
- atomic_long_t zswap_stored_pages = ATOMIC_LONG_INIT(0);
-+/* The number of incompressible pages currently stored in zswap */
-+atomic_long_t zswap_stored_incompressible_pages = ATOMIC_LONG_INIT(0);
- 
- /*
-  * The statistics below are not protected from concurrent access for
-@@ -60,6 +62,8 @@ static u64 zswap_written_back_pages;
- static u64 zswap_reject_reclaim_fail;
- /* Store failed due to compression algorithm failure */
- static u64 zswap_reject_compress_fail;
-+/* Compression failed by the crypto library */
-+static u64 zswap_crypto_compress_fail;
- /* Compressed page was too big for the allocator to (optimally) store */
- static u64 zswap_reject_compress_poor;
- /* Load or writeback failed due to decompression failure */
-@@ -811,6 +815,8 @@ static void zswap_entry_free(struct zswa
- 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
- 		obj_cgroup_put(entry->objcg);
- 	}
-+	if (entry->length == PAGE_SIZE)
-+		atomic_long_dec(&zswap_stored_incompressible_pages);
- 	zswap_entry_cache_free(entry);
- 	atomic_long_dec(&zswap_stored_pages);
- }
-@@ -976,8 +982,28 @@ static bool zswap_compress(struct page *
- 	 */
- 	comp_ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
- 	dlen = acomp_ctx->req->dlen;
--	if (comp_ret)
--		goto unlock;
-+
-+	/*
-+	 * If a page cannot be compressed into a size smaller than PAGE_SIZE,
-+	 * save the content as is without a compression, to keep the LRU order
-+	 * of writebacks.  If writeback is disabled, reject the page since it
-+	 * only adds metadata overhead.  swap_writeout() will put the page back
-+	 * to the active LRU list in the case.
-+	 */
-+	if (comp_ret || !dlen) {
-+		zswap_crypto_compress_fail++;
-+		dlen = PAGE_SIZE;
-+	}
-+	if (dlen >= PAGE_SIZE) {
-+		if (!mem_cgroup_zswap_writeback_enabled(
-+					folio_memcg(page_folio(page)))) {
-+			comp_ret = -EINVAL;
-+			goto unlock;
-+		}
-+		comp_ret = 0;
-+		dlen = PAGE_SIZE;
-+		dst = kmap_local_page(page);
-+	}
- 
- 	zpool = pool->zpool;
- 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
-@@ -990,6 +1016,8 @@ static bool zswap_compress(struct page *
- 	entry->length = dlen;
- 
- unlock:
-+	if (dst != acomp_ctx->buffer)
-+		kunmap_local(dst);
- 	if (comp_ret == -ENOSPC || alloc_ret == -ENOSPC)
- 		zswap_reject_compress_poor++;
- 	else if (comp_ret)
-@@ -1012,6 +1040,14 @@ static bool zswap_decompress(struct zswa
- 	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
- 	obj = zpool_obj_read_begin(zpool, entry->handle, acomp_ctx->buffer);
- 
-+	/* zswap entries of length PAGE_SIZE are not compressed. */
-+	if (entry->length == PAGE_SIZE) {
-+		memcpy_to_folio(folio, 0, obj, entry->length);
-+		zpool_obj_read_end(zpool, entry->handle, obj);
-+		acomp_ctx_put_unlock(acomp_ctx);
-+		return true;
-+	}
-+
- 	/*
- 	 * zpool_obj_read_begin() might return a kmap address of highmem when
- 	 * acomp_ctx->buffer is not used.  However, sg_init_one() does not
-@@ -1524,6 +1560,8 @@ static bool zswap_store_page(struct page
- 		obj_cgroup_charge_zswap(objcg, entry->length);
- 	}
- 	atomic_long_inc(&zswap_stored_pages);
-+	if (entry->length == PAGE_SIZE)
-+		atomic_long_inc(&zswap_stored_incompressible_pages);
- 
- 	/*
- 	 * We finish initializing the entry while it's already in xarray.
-@@ -1792,6 +1830,14 @@ static int debugfs_get_stored_pages(void
- }
- DEFINE_DEBUGFS_ATTRIBUTE(stored_pages_fops, debugfs_get_stored_pages, NULL, "%llu\n");
- 
-+static int debugfs_get_stored_incompressible_pages(void *data, u64 *val)
+--- a/tools/testing/selftests/proc/.gitignore~proc-test-lseek-on-proc-net-dev
++++ a/tools/testing/selftests/proc/.gitignore
+@@ -7,6 +7,7 @@
+ /proc-loadavg-001
+ /proc-maps-race
+ /proc-multiple-procfs
++/proc-net-dev-lseek
+ /proc-empty-vm
+ /proc-pid-vm
+ /proc-self-map-files-001
+--- a/tools/testing/selftests/proc/Makefile~proc-test-lseek-on-proc-net-dev
++++ a/tools/testing/selftests/proc/Makefile
+@@ -10,6 +10,7 @@ TEST_GEN_PROGS += fd-003-kthread
+ TEST_GEN_PROGS += proc-2-is-kthread
+ TEST_GEN_PROGS += proc-loadavg-001
+ TEST_GEN_PROGS += proc-maps-race
++TEST_GEN_PROGS += proc-net-dev-lseek
+ TEST_GEN_PROGS += proc-empty-vm
+ TEST_GEN_PROGS += proc-pid-vm
+ TEST_GEN_PROGS += proc-self-map-files-001
+diff --git a/tools/testing/selftests/proc/proc-net-dev-lseek.c a/tools/testing/selftests/proc/proc-net-dev-lseek.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/proc/proc-net-dev-lseek.c
+@@ -0,0 +1,68 @@
++/*
++ * Copyright (c) 2025 Alexey Dobriyan <adobriyan@gmail.com>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++#undef _GNU_SOURCE
++#define _GNU_SOURCE
++#undef NDEBUG
++#include <assert.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <string.h>
++#include <unistd.h>
++#include <sched.h>
++/*
++ * Test that lseek("/proc/net/dev/", 0, SEEK_SET)
++ * a) works,
++ * b) does what you think it does.
++ */
++int main(void)
 +{
-+	*val = atomic_long_read(&zswap_stored_incompressible_pages);
++	/* /proc/net/dev output is deterministic in fresh netns only. */
++	if (unshare(CLONE_NEWNET) == -1) {
++		if (errno == ENOSYS || errno == EPERM) {
++			return 4;
++		}
++		return 1;
++	}
++
++	const int fd = open("/proc/net/dev", O_RDONLY);
++	assert(fd >= 0);
++
++	char buf1[4096];
++	const ssize_t rv1 = read(fd, buf1, sizeof(buf1));
++	/*
++	 * Not "<=", this file can't be empty:
++	 * there is header, "lo" interface with some zeroes.
++	 */
++	assert(0 < rv1);
++	assert(rv1 <= sizeof(buf1));
++
++	/* Believe it or not, this line broke one day. */
++	assert(lseek(fd, 0, SEEK_SET) == 0);
++
++	char buf2[4096];
++	const ssize_t rv2 = read(fd, buf2, sizeof(buf2));
++	/* Not "<=", see above. */
++	assert(0 < rv2);
++	assert(rv2 <= sizeof(buf2));
++
++	/* Test that lseek rewinds to the beginning of the file. */
++	assert(rv1 == rv2);
++	assert(memcmp(buf1, buf2, rv1) == 0);
++
++	/* Contents of the file is not validated: this test is about lseek(). */
++
 +	return 0;
 +}
-+DEFINE_DEBUGFS_ATTRIBUTE(stored_incompressible_pages_fops,
-+		debugfs_get_stored_incompressible_pages, NULL, "%llu\n");
-+
- static int zswap_debugfs_init(void)
- {
- 	if (!debugfs_initialized())
-@@ -1809,6 +1855,8 @@ static int zswap_debugfs_init(void)
- 			   zswap_debugfs_root, &zswap_reject_kmemcache_fail);
- 	debugfs_create_u64("reject_compress_fail", 0444,
- 			   zswap_debugfs_root, &zswap_reject_compress_fail);
-+	debugfs_create_u64("crypto_compress_fail", 0444,
-+			   zswap_debugfs_root, &zswap_crypto_compress_fail);
- 	debugfs_create_u64("reject_compress_poor", 0444,
- 			   zswap_debugfs_root, &zswap_reject_compress_poor);
- 	debugfs_create_u64("decompress_fail", 0444,
-@@ -1819,6 +1867,9 @@ static int zswap_debugfs_init(void)
- 			    zswap_debugfs_root, NULL, &total_size_fops);
- 	debugfs_create_file("stored_pages", 0444,
- 			    zswap_debugfs_root, NULL, &stored_pages_fops);
-+	debugfs_create_file("stored_incompressible_pages", 0444,
-+			    zswap_debugfs_root, NULL,
-+			    &stored_incompressible_pages_fops);
- 
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-damon-sysfs-schemes-put-damos-dests-dir-after-removing-its-files.patch
-mm-zswap-store-page_size-compression-failed-page-as-is.patch
+proc-test-lseek-on-proc-net-dev.patch
 
