@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C9E021B9D2
-	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:05:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3D6221B196
+	for <mm-commits@vger.kernel.org>; Tue, 19 Aug 2025 23:05:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755644757; cv=none; b=kEHarfcga11z91pqwo8TNjduqJeBHcD93rh5jb3NIWNwv8zuCNisKg1nWoBk0bo7jhFl4Sa3Lre2uoOtvGq/LvjDhVNl9Gfs113rAvv5r7SBJatt6YcCmikvNbylo50iNrFWXKJKh5DNw7kKWJXlUmiiSScGx5396Q7YHeMKFkc=
+	t=1755644759; cv=none; b=hogqFfklPDz3doaQzf5XerWUWg1QCeJhpnbUcX/EvVzSKTiQOPQ0qdAdqLhB6U4HgcQe5yHgCehy/0E7wFJA1iUXXxExjyZx1AhpEGNAEBC37ZsPCvKApM5EjNVMXCDdh1xLbdHcOBaPPXh4fdPd9hANLgmxyqBe4t9AKaCSXoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755644757; c=relaxed/simple;
-	bh=vBowL3B09w6L0sIyfifKbg/amcHNJ0gB0nKRNZIg/W4=;
-	h=Date:To:From:Subject:Message-Id; b=gHKuH6rT7Pp+OtvKRB6n71NN8Y1gpt1H5adWPrBVIH9FwJwNlGvCImiaPMjxqmbBU8uXwv6wJf0ixmEJjnZFmzFZJmk+QOm811k8dyGhx/WJzXej2tpdVJwVs9mVfIM94oSrFjZTFht6c3bK52ygR9IkbwsnbsgPi8LgmgLEb0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ynkUiIfs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755644759; c=relaxed/simple;
+	bh=G9Kbny3+oSw/dmM9Q9mNIadCUSG4/zTtcrgXp/sp7RM=;
+	h=Date:To:From:Subject:Message-Id; b=jHxajt+hd9vyu0gspciva9iTQ63cseCj8+RJo8d7C8sl1mjpVW7JHm+FLGxCDlyMMdapeebXO/G7jagnEbgoEtcMeX9lz1lxGbIwmqP7L1Kx7rkWCzXnk5Qwnh8bOSVHayaeCKBQyUtWZaKQr5mBatxSFVt8lyGfkNVJ+m+9Kt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eVW795B5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ynkUiIfs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 819B8C4CEF1;
-	Tue, 19 Aug 2025 23:05:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eVW795B5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74A62C4CEF1;
+	Tue, 19 Aug 2025 23:05:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755644756;
-	bh=vBowL3B09w6L0sIyfifKbg/amcHNJ0gB0nKRNZIg/W4=;
+	s=korg; t=1755644758;
+	bh=G9Kbny3+oSw/dmM9Q9mNIadCUSG4/zTtcrgXp/sp7RM=;
 	h=Date:To:From:Subject:From;
-	b=ynkUiIfsZw9H5qHk7CdgAc3Uthy7J8oilffgSEBo0r9gAXsLzcWMiz+ZnSDCNzUSQ
-	 A/oaVqF+2r/rjy6dh7tIeTYBWOnSGjx8pBNZA2RG0nUKQm9PyNlwrku4vmQNQGwLKT
-	 a2kCHeOGh6NNuaKsHfo5eRodTsh+p3jlM82Eq1h8=
-Date: Tue, 19 Aug 2025 16:05:55 -0700
+	b=eVW795B5XGT61luwv3tpT00a4ZaKlvaocoGY5UWMUGvkH5D6/A7bP05JNfne1oOfS
+	 LNpovUvZKyqXM1IOj0GWDPVmxhpqnk8gGXFQdfkBtyT153GXv0kgjiUZx+EmUWksax
+	 UwQ0FwSxwS1qoDEDbafBCgDyq2gUdtxKVyBqV20s=
+Date: Tue, 19 Aug 2025 16:05:57 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,kent.overstreet@linux.dev,david@redhat.com,almaz.alexandrovich@paragon-software.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs3-stop-using-write_cache_pages.patch added to mm-new branch
-Message-Id: <20250819230556.819B8C4CEF1@smtp.kernel.org>
+Subject: + bcachefs-stop-using-write_cache_pages.patch added to mm-new branch
+Message-Id: <20250819230558.74A62C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ntfs3: stop using write_cache_pages
+     Subject: bcachefs: stop using write_cache_pages
 has been added to the -mm mm-new branch.  Its filename is
-     ntfs3-stop-using-write_cache_pages.patch
+     bcachefs-stop-using-write_cache_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs3-stop-using-write_cache_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcachefs-stop-using-write_cache_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,64 +65,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: ntfs3: stop using write_cache_pages
-Date: Mon, 18 Aug 2025 08:10:08 +0200
-
-Patch series "remove write_cache_pages()".
-
-Kill off write_cache_pages() after converting the last two users to the
-iterator.
-
-
-This patch (of 3):
+Subject: bcachefs: stop using write_cache_pages
+Date: Mon, 18 Aug 2025 08:10:09 +0200
 
 Stop using the obsolete write_cache_pages and use writeback_iter directly.
+This basically just open codes write_cache_pages without the indirect
+call, but there's probably ways to structure the code even nicer as a
+follow on.
 
-Link: https://lkml.kernel.org/r/20250818061017.1526853-1-hch@lst.de
-Link: https://lkml.kernel.org/r/20250818061017.1526853-2-hch@lst.de
+Link: https://lkml.kernel.org/r/20250818061017.1526853-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs3/inode.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ fs/bcachefs/fs-io-buffered.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/fs/ntfs3/inode.c~ntfs3-stop-using-write_cache_pages
-+++ a/fs/ntfs3/inode.c
-@@ -871,9 +871,9 @@ out:
+--- a/fs/bcachefs/fs-io-buffered.c~bcachefs-stop-using-write_cache_pages
++++ a/fs/bcachefs/fs-io-buffered.c
+@@ -655,6 +655,17 @@ do_io:
+ 	return 0;
  }
  
- static int ntfs_resident_writepage(struct folio *folio,
--				   struct writeback_control *wbc, void *data)
-+				   struct writeback_control *wbc)
- {
--	struct address_space *mapping = data;
-+	struct address_space *mapping = folio->mapping;
- 	struct inode *inode = mapping->host;
- 	struct ntfs_inode *ni = ntfs_i(inode);
- 	int ret;
-@@ -907,9 +907,14 @@ static int ntfs_writepages(struct addres
- 	if (unlikely(ntfs3_forced_shutdown(inode->i_sb)))
- 		return -EIO;
- 
--	if (is_resident(ntfs_i(inode)))
--		return write_cache_pages(mapping, wbc, ntfs_resident_writepage,
--					 mapping);
-+	if (is_resident(ntfs_i(inode))) {
-+		struct folio *folio = NULL;
-+		int error;
++static int bch2_write_cache_pages(struct address_space *mapping,
++		      struct writeback_control *wbc, void *data)
++{
++	struct folio *folio = NULL;
++	int error;
 +
-+		while ((folio = writeback_iter(mapping, wbc, folio, &error)))
-+			error = ntfs_resident_writepage(folio, wbc);
-+		return error;
-+	}
- 	return mpage_writepages(mapping, wbc, ntfs_get_block);
- }
++	while ((folio = writeback_iter(mapping, wbc, folio, &error)))
++		error = __bch2_writepage(folio, wbc, data);
++	return error;
++}
++
+ int bch2_writepages(struct address_space *mapping, struct writeback_control *wbc)
+ {
+ 	struct bch_fs *c = mapping->host->i_sb->s_fs_info;
+@@ -663,7 +674,7 @@ int bch2_writepages(struct address_space
+ 	bch2_inode_opts_get(&w->opts, c, &to_bch_ei(mapping->host)->ei_inode);
  
+ 	blk_start_plug(&w->plug);
+-	int ret = write_cache_pages(mapping, wbc, __bch2_writepage, w);
++	int ret = bch2_write_cache_pages(mapping, wbc, w);
+ 	if (w->io)
+ 		bch2_writepage_do_io(w);
+ 	blk_finish_plug(&w->plug);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
