@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 080702D879E
-	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 21:50:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B57812773F6
+	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 22:44:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755726612; cv=none; b=mQWKcAADfQUiO3Zz3mGmJMzRgqcl+zpczh+WvTkUPvAsGfyi5UCtb7rD6w+U/EeY7O3JyNb3U5g9WUN0tVg/VA3/NRy/15i+USGSmxWzDruOaI91v6yqIkNr+lKG8tMNxZjnJZuo0PzU32viPNZQoJkzfCTDIq+rAwNH0hjIk7s=
+	t=1755729849; cv=none; b=XYJhM26XwIauJqIUmAeE9HzSOS/UJ+nE5wOKDev8OQrpL81qFk7nBHh7jTVmYRvm+7gTMQ63Be2abNWXV+WQekIelmXIMqXGIQjuNMcAGTftTe5ir7Yjfryx1lceTxX/j0j2dN8Ru4u1twUOwljsWkwWcCzaWCJtXlnUyD7/DBE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755726612; c=relaxed/simple;
-	bh=PffPjIy4Aq+vpkxC/OS2ZAblp1jstlimvafIohJMW8M=;
-	h=Date:To:From:Subject:Message-Id; b=ThbiU5qUbUbfY7Cs6/sNhe0VaJdQPUl1tFtN2vwd5kg2fudKL8JqMO9S5EIJI2xVk4VHqZINXfTu5M/XR3P5kXtwge0JCTXoqYMuQKPZ2wIDTnEi1rDKYlSHuol6BlH+bVYOHPQIXjhkBdP/Il0TXNz5lOLtETYka0zXjPDWvXQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zjP1nAfN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755729849; c=relaxed/simple;
+	bh=xvYgJau4tQzWJcNRA0182N4am7EU8UiVgJTNwcp8Aks=;
+	h=Date:To:From:Subject:Message-Id; b=rq/QstrxTfV7H+hzunid4cPfUWLWDKsruGtwxyRfbGR1oKxiXwZZFPTqAA+3OXzo3/2XVIeLzp4mJv43EjZ9uUbNVgZsH4OFu03KKKz6TnEU4NnmogNW0sxCCcxFhyHU264ny9PySpYYFwLev88WkaL675DOqmEYRG5xYxDiFLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nk2McgDc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zjP1nAfN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82B06C4CEE7;
-	Wed, 20 Aug 2025 21:50:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nk2McgDc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02164C4CEE7;
+	Wed, 20 Aug 2025 22:44:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755726610;
-	bh=PffPjIy4Aq+vpkxC/OS2ZAblp1jstlimvafIohJMW8M=;
+	s=korg; t=1755729849;
+	bh=xvYgJau4tQzWJcNRA0182N4am7EU8UiVgJTNwcp8Aks=;
 	h=Date:To:From:Subject:From;
-	b=zjP1nAfNZ8F7ss1yyHodH7iIPlsmm18xBYcDLP0M2xsvY5EgOY37BccjPKLXXJDtV
-	 CCyQli6/Hr+jV3dFvOEsagRKCaqTtod6uDY/5hg4ZRStfdiAkbI7ZZjXTcePdaaAgT
-	 +ZhHNShTHx1KNE8OdDdxez85z5P0D3u+DK9vpyA0=
-Date: Wed, 20 Aug 2025 14:50:09 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=Nk2McgDcNnv9IgWvUeRMv898NfzaNn6ZnQcXTRK160cyszugX9FXCE0QDhXTE55h1
+	 nbcuvreI6EY9VWvA9rHe8Q/or68aHrEnoWlOuquxdXyKYt3l5i7A0gxn/wgZ1bPjV9
+	 lpj5XUj3G1AG2SJ59VFSaznqNtOQ1KmFvjBkX2lc=
+Date: Wed, 20 Aug 2025 15:44:08 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,gaoxiang17@xiaomi.com,david@redhat.com,gxxa03070307@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-tag-kernel-stack-pages.patch added to mm-new branch
-Message-Id: <20250820215010.82B06C4CEE7@smtp.kernel.org>
+Subject: + mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch added to mm-new branch
+Message-Id: <20250820224409.02164C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: tag kernel stack pages
+     Subject: mm/cma: add 'available count' and 'total count' to trace_cma_alloc_start
 has been added to the -mm mm-new branch.  Its filename is
-     mm-tag-kernel-stack-pages.patch
+     mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tag-kernel-stack-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,134 +64,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: tag kernel stack pages
-Date: Wed, 20 Aug 2025 13:20:29 -0700
+From: Xiang Gao <gxxa03070307@gmail.com>
+Subject: mm/cma: add 'available count' and 'total count' to trace_cma_alloc_start
+Date: Thu, 21 Aug 2025 06:38:55 +0800
 
-Currently, we have no way to distinguish a kernel stack page from an
-unidentified page.  Being able to track this information can be beneficial
-for optimizing kernel memory usage (i.e.  analyzing fragmentation,
-location etc.).  Knowing a page is being used for a kernel stack gives us
-more insight about pages that are certainly immovable and important to
-kernel functionality.
 
-Add a new pagetype, and tag pages alongside the kernel stack accounting. 
-Also, ensure the type is dumped to /proc/kpageflags and the page-types
-tool can find it.
+This makes cma info more intuitive during debugging.
 
-Link: https://lkml.kernel.org/r/20250820202029.1909925-1-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Show up in the trace as:
+
+	279.814717: cma_alloc_start: name=reserved request_count=4 available_count=8096 total_count=8192 align=0
+	309.790580: cma_alloc_start: name=reserved request_count=4 available_count=8092 total_count=8192 align=0
+	317.046609: cma_alloc_start: name=reserved request_count=4 available_count=8088 total_count=8192 align=0
+
+Link: https://lkml.kernel.org/r/8a79284879c529f467478552825154b018076e95.1755729178.git.gaoxiang17@xiaomi.com
+Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c                         |    3 ++-
- include/linux/page-flags.h             |    5 +++++
- include/uapi/linux/kernel-page-flags.h |    1 +
- kernel/fork.c                          |   19 +++++++++++++++++--
- tools/mm/page-types.c                  |    1 +
- 5 files changed, 26 insertions(+), 3 deletions(-)
+ include/trace/events/cma.h |   19 +++++++++++++------
+ mm/cma.c                   |    2 +-
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
---- a/fs/proc/page.c~mm-tag-kernel-stack-pages
-+++ a/fs/proc/page.c
-@@ -201,7 +201,8 @@ u64 stable_page_flags(const struct page
+--- a/include/trace/events/cma.h~mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start
++++ a/include/trace/events/cma.h
+@@ -38,25 +38,32 @@ TRACE_EVENT(cma_release,
  
- 	if (ps.flags & PAGE_SNAPSHOT_PG_BUDDY)
- 		u |= 1 << KPF_BUDDY;
--
-+	if (folio_test_stack(folio))
-+		u |= 1 << KPF_KSTACK;
- 	if (folio_test_offline(folio))
- 		u |= 1 << KPF_OFFLINE;
- 	if (folio_test_pgtable(folio))
---- a/include/linux/page-flags.h~mm-tag-kernel-stack-pages
-+++ a/include/linux/page-flags.h
-@@ -933,6 +933,7 @@ enum pagetype {
- 	PGTY_zsmalloc		= 0xf6,
- 	PGTY_unaccepted		= 0xf7,
- 	PGTY_large_kmalloc	= 0xf8,
-+	PGTY_kstack		= 0xf9,
+ TRACE_EVENT(cma_alloc_start,
  
- 	PGTY_mapcount_underflow = 0xff
- };
-@@ -995,6 +996,10 @@ static __always_inline void __ClearPage#
- 	page->page_type = UINT_MAX;					\
- }
+-	TP_PROTO(const char *name, unsigned long count, unsigned int align),
++	TP_PROTO(const char *name, unsigned long request_count, unsigned long available_count,
++		unsigned long total_count, unsigned int align),
  
-+/* PageStack() indicates that a page is used by kernel stacks.
-+ */
-+PAGE_TYPE_OPS(Stack, kstack, stack)
-+
- /*
-  * PageBuddy() indicates that the page is free and in the buddy system
-  * (see mm/page_alloc.c).
---- a/include/uapi/linux/kernel-page-flags.h~mm-tag-kernel-stack-pages
-+++ a/include/uapi/linux/kernel-page-flags.h
-@@ -36,5 +36,6 @@
- #define KPF_ZERO_PAGE		24
- #define KPF_IDLE		25
- #define KPF_PGTABLE		26
-+#define KPF_KSTACK		27
+-	TP_ARGS(name, count, align),
++	TP_ARGS(name, request_count, available_count, total_count, align),
  
- #endif /* _UAPILINUX_KERNEL_PAGE_FLAGS_H */
---- a/kernel/fork.c~mm-tag-kernel-stack-pages
-+++ a/kernel/fork.c
-@@ -440,15 +440,22 @@ static void account_kernel_stack(struct
- 		struct vm_struct *vm_area = task_stack_vm_area(tsk);
- 		int i;
+ 	TP_STRUCT__entry(
+ 		__string(name, name)
+-		__field(unsigned long, count)
++		__field(unsigned long, request_count)
++		__field(unsigned long, available_count)
++		__field(unsigned long, total_count)
+ 		__field(unsigned int, align)
+ 	),
  
--		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
-+		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
- 			mod_lruvec_page_state(vm_area->pages[i], NR_KERNEL_STACK_KB,
- 					      account * (PAGE_SIZE / 1024));
-+			__SetPageStack(vm_area->pages[i]);
-+		}
- 	} else {
- 		void *stack = task_stack_page(tsk);
-+		struct page *page = virt_to_head_page(stack);
-+		int i;
+ 	TP_fast_assign(
+ 		__assign_str(name);
+-		__entry->count = count;
++		__entry->request_count = request_count;
++		__entry->available_count = available_count;
++		__entry->total_count = total_count;
+ 		__entry->align = align;
+ 	),
  
- 		/* All stack pages are in the same node. */
- 		mod_lruvec_kmem_state(stack, NR_KERNEL_STACK_KB,
- 				      account * (THREAD_SIZE / 1024));
-+
-+		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++, page++)
-+			__SetPageStack(page);
- 	}
- }
+-	TP_printk("name=%s count=%lu align=%u",
++	TP_printk("name=%s request_count=%lu available_count=%lu total_count=%lu align=%u",
+ 		  __get_str(name),
+-		  __entry->count,
++		  __entry->request_count,
++		  __entry->available_count,
++		  __entry->total_count,
+ 		  __entry->align)
+ );
  
-@@ -461,8 +468,16 @@ void exit_task_stack_account(struct task
- 		int i;
+--- a/mm/cma.c~mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start
++++ a/mm/cma.c
+@@ -864,7 +864,7 @@ static struct page *__cma_alloc(struct c
+ 	if (!count)
+ 		return page;
  
- 		vm_area = task_stack_vm_area(tsk);
--		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
-+		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
- 			memcg_kmem_uncharge_page(vm_area->pages[i], 0);
-+			__ClearPageStack(vm_area->pages[i]);
-+		}
-+	} else {
-+		struct page *page = virt_to_head_page(task_stack_page(tsk));
-+		int i;
-+
-+		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++, page++)
-+			__ClearPageStack(page);
- 	}
- }
+-	trace_cma_alloc_start(name, count, align);
++	trace_cma_alloc_start(name, count, cma->available_count, cma->count, align);
  
---- a/tools/mm/page-types.c~mm-tag-kernel-stack-pages
-+++ a/tools/mm/page-types.c
-@@ -127,6 +127,7 @@ static const char * const page_flag_name
- 	[KPF_PGTABLE]		= "g:pgtable",
- 	[KPF_ZERO_PAGE]		= "z:zero_page",
- 	[KPF_IDLE]              = "i:idle_page",
-+	[KPF_KSTACK]		= "k:kernel_stack",
- 
- 	[KPF_RESERVED]		= "r:reserved",
- 	[KPF_MLOCKED]		= "m:mlocked",
+ 	for (r = 0; r < cma->nranges; r++) {
+ 		page = NULL;
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from gxxa03070307@gmail.com are
 
-mm-tag-kernel-stack-pages.patch
+mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch
 
