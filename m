@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8658D24A067
-	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 02:57:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF2F2287519
+	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 21:16:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755658631; cv=none; b=OFJtWRlc7axqWzOTiGRRKpq1kmmTY3P4GkQd2x3RMqkhEYtyRGXxXIDS8dAY1wKclOEqK6gYRTTV9zQRvRV/waO2tUkYNd0Kq+snCjwcrT88AcTt1AJy/kC59AFq6G3Mbar8PDjiwyD8jh6KY8zoCcwdmR9rxYJbKw5qmloH+y8=
+	t=1755724583; cv=none; b=LE+Ijw2a4VWYfej//g6k4HfCbIX7LCfgTi/tdaqNCvzs8k2GzbohoPeXCGyALBv/bK+IT0Mob178pZjpD6WeXNFuxsa95hdbIitt4Al6RvpLQvG67sUzk/Yi//b6gUGz/Bz4AtroEEprJJuS/9nUYxoooGpZn60Txrvw4HdWxUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755658631; c=relaxed/simple;
-	bh=9H6kz5l9lRMcIo6MZBmdS+ZWZFdOWSa4dvz+Nwux0ec=;
-	h=Date:To:From:Subject:Message-Id; b=JeypLhUcFHPuwnMHN2SDeUSGsAJXd6S0r/BtEDtuy8t+b3HQGEzGZPANhMVMzZUVM0d7tjdcV+NuEpp8hNmF0GIZ+k804JDIYfBC9z/kKX+FGCFsh9mkjU35OJixRA20V5VvS8QcB6cQCfYEJNMe+8zwWKv7YEq6oMd4S2hDDzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E5bIDmKu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755724583; c=relaxed/simple;
+	bh=U3k/G/4vojW7ux7vntddrfmuIs1McEIZrpbAEppiB8w=;
+	h=Date:To:From:Subject:Message-Id; b=V0pgvfDlr2ivRMAkRrXZ/fSJ154BhrNX+Zyk2PBqDY+2CmNqlSgvyaX8fivgnr8lX5groDepIZN6LEGEhOL0gHot4FiKQXWAeunRPOrI720yefpKAP8xObdutFoeb13DhEVkZbNT6fp9jzec2d6ZnyTuZsxuNe40EcN+oq8g4BY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RR3KYuVY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E5bIDmKu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DE65C116D0;
-	Wed, 20 Aug 2025 02:57:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RR3KYuVY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47DC0C4CEE7;
+	Wed, 20 Aug 2025 21:16:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755658631;
-	bh=9H6kz5l9lRMcIo6MZBmdS+ZWZFdOWSa4dvz+Nwux0ec=;
+	s=korg; t=1755724582;
+	bh=U3k/G/4vojW7ux7vntddrfmuIs1McEIZrpbAEppiB8w=;
 	h=Date:To:From:Subject:From;
-	b=E5bIDmKuOf/VQ3wQragtBWZY6yNqUlD96uLxf8pf351grqicMWyN2VGRWjXOr9tjN
-	 HJUteMCL+5RuHcTY6PbpaHx98SvU7qvVIEaMU1lnOTVBKNZM6zyZRbJ8gV/a/MEv83
-	 HTozrfN878xI1yDG+3H6g+mHnYonuN6nb31UPWsY=
-Date: Tue, 19 Aug 2025 19:57:10 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ryabinin.a.a@gmail.com,mark.rutland@arm.com,dja@axtens.net,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=RR3KYuVYHQgxyavG7j3CO2q76ZC+39GzcdZn9oYxsyDr0Gj/5OTi4a15i6zK1c+BV
+	 MZ9eZivN4o1lCIyxSHWT4ZnAuC5h/QK5oL7qaMlte89r1eOVq6UWPySsmPQQDxNLUH
+	 fKGavUjASuTKBB1EkdNO7FLYt84cLhySX5POpoFE=
+Date: Wed, 20 Aug 2025 14:16:21 -0700
+To: mm-commits@vger.kernel.org,kees@kernel.org,tiozhang@didiglobal.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kasan-avoid-lazy-mmu-mode-hazards.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250820025711.1DE65C116D0@smtp.kernel.org>
+Subject: + fork-remove-ifdef-config_lockdep-in-copy_process.patch added to mm-nonmm-unstable branch
+Message-Id: <20250820211622.47DC0C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kasan: avoid lazy MMU mode hazards
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kasan-avoid-lazy-mmu-mode-hazards.patch
+     Subject: fork: remove #ifdef CONFIG_LOCKDEP in copy_process()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fork-remove-ifdef-config_lockdep-in-copy_process.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-avoid-lazy-mmu-mode-hazards.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-remove-ifdef-config_lockdep-in-copy_process.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,77 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: mm/kasan: avoid lazy MMU mode hazards
-Date: Mon, 18 Aug 2025 18:39:13 +0200
+From: Tio Zhang <tiozhang@didiglobal.com>
+Subject: fork: remove #ifdef CONFIG_LOCKDEP in copy_process()
+Date: Wed, 20 Aug 2025 18:18:46 +0800
 
-Functions __kasan_populate_vmalloc() and __kasan_depopulate_vmalloc() use
-apply_to_pte_range() function, which enters the lazy MMU mode.  In that
-mode updating PTEs may not be observed until the mode is left.
+lockdep_init_task() is defined as an empty when CONFIG_LOCKDEP is not set.
+So the #ifdef here is redundant, remove it.
 
-That may lead to a situation that otherwise correct reads and writes to a
-PTE using ptep_get(), set_pte(), pte_clear() and other access primitives
-bring wrong results when the vmalloc shadow memory is being
-(de-)populated.
-
-To avoid these hazards leave the lazy MMU mode before and re-enter it
-after each PTE manipulation.
-
-Link: https://lkml.kernel.org/r/0d2efb7ddddbff6b288fbffeeb10166e90771718.1755528662.git.agordeev@linux.ibm.com
-Fixes: 3c5c3cfb9ef4 ("kasan: support backing vmalloc space with real shadow memory")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20250820101826.GA2484@didi-ThinkCentre-M930t-N000
+Signed-off-by: Tio Zhang <tiozhang@didiglobal.com>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/fork.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/kasan/shadow.c~mm-kasan-avoid-lazy-mmu-mode-hazards
-+++ a/mm/kasan/shadow.c
-@@ -305,6 +305,8 @@ static int kasan_populate_vmalloc_pte(pt
- 	pte_t pte;
- 	int index;
+--- a/kernel/fork.c~fork-remove-ifdef-config_lockdep-in-copy_process
++++ a/kernel/fork.c
+@@ -2127,9 +2127,7 @@ __latent_entropy struct task_struct *cop
  
-+	arch_leave_lazy_mmu_mode();
-+
- 	index = PFN_DOWN(addr - data->start);
- 	page = data->pages[index];
- 	__memset(page_to_virt(page), KASAN_VMALLOC_INVALID, PAGE_SIZE);
-@@ -317,6 +319,8 @@ static int kasan_populate_vmalloc_pte(pt
- 	}
- 	spin_unlock(&init_mm.page_table_lock);
+ 	p->pagefault_disabled = 0;
  
-+	arch_enter_lazy_mmu_mode();
-+
- 	return 0;
- }
+-#ifdef CONFIG_LOCKDEP
+ 	lockdep_init_task(p);
+-#endif
  
-@@ -461,6 +465,8 @@ static int kasan_depopulate_vmalloc_pte(
- 	pte_t pte;
- 	int none;
- 
-+	arch_leave_lazy_mmu_mode();
-+
- 	spin_lock(&init_mm.page_table_lock);
- 	pte = ptep_get(ptep);
- 	none = pte_none(pte);
-@@ -471,6 +477,8 @@ static int kasan_depopulate_vmalloc_pte(
- 	if (likely(!none))
- 		__free_page(pfn_to_page(pte_pfn(pte)));
- 
-+	arch_enter_lazy_mmu_mode();
-+
- 	return 0;
- }
+ 	p->blocked_on = NULL; /* not blocked yet */
  
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from tiozhang@didiglobal.com are
 
-mm-kasan-fix-vmalloc-shadow-memory-de-population-races.patch
-mm-kasan-avoid-lazy-mmu-mode-hazards.patch
+fork-remove-ifdef-config_lockdep-in-copy_process.patch
 
