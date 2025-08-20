@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE0CB2E1757;
-	Wed, 20 Aug 2025 23:56:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 246D820AF67
+	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 23:57:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755734194; cv=none; b=FJ8UiL4Aycv0iq9oMbfvQA2Aebh6uf2nfOg6xNOyDJKMNs4j9ZMaZW/f09hfrymlenvSkP3PSo0Ovs7iKH9uNjWAFXsn9nfIDM/hm0enLznXYrYCvenaerRZEi1pdBoQgqGHuFT3dGhqrIRCO2CVJvLcPR29vAszLrPBOvQAZdU=
+	t=1755734275; cv=none; b=kJleMmhMJWm5NNAb2MREQzzeK7edD/cx3xPxy2uPA2qpsmpIYvWhTmCTRjngurzMWDRMXoA1dKzaeny+jIm95gpJoQzEihcJ9G35Bxs2mIL/NWCwo3X9HyG525c8N5rbK02yKVbS4h53IekWjHCFW5O6Yue+aJpskkMBCr+sKHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755734194; c=relaxed/simple;
-	bh=Re1ylybfgsDuS5/NjVqPru6UuJzLyL3bNN6SP6G1UW4=;
-	h=Date:To:From:Subject:Message-Id; b=cbO9npcUYQc26eioA6OvYKck6XZMb3RuAWlQQvc9RiwghFNHgObLI5gr20zX4XZhT9D56CoOCzx3KrCkyTUDFMTFnQjFSOmU4bA0drDXtU8aFzn9+ZxmdeyvFe3XoYhojHlmaFIqOTs5dP8t1ZlS4V4RlS0f9YmGpBrz2v+vQgk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wA/FUVW3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755734275; c=relaxed/simple;
+	bh=Ji13EIzr6B8xxqNNVhcIMIY7taBcxufNDbT5wgbze2c=;
+	h=Date:To:From:Subject:Message-Id; b=i9mAqv9luPn0hbs3n/fjyA5xuSOuuSCEokSUIdgwyINq0F73e+vD7Vx4O5EGo4b5LKat6nDE4vxwik5ptvojirc+KwBJykOsFp1gXqj7Uq0q8WVrCCTJTVY3n6jkX41mhyFMKc0pdSzX9NEGQrN2uhwj8iJOJ8HvYBaEmA+u8E4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mRbYnNFK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wA/FUVW3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 477CFC4CEE7;
-	Wed, 20 Aug 2025 23:56:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mRbYnNFK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86F0AC4CEE7;
+	Wed, 20 Aug 2025 23:57:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755734193;
-	bh=Re1ylybfgsDuS5/NjVqPru6UuJzLyL3bNN6SP6G1UW4=;
+	s=korg; t=1755734274;
+	bh=Ji13EIzr6B8xxqNNVhcIMIY7taBcxufNDbT5wgbze2c=;
 	h=Date:To:From:Subject:From;
-	b=wA/FUVW3kbUFxxFDVFkgWHioqKFqY3qWkJdexBp/hl4LwvfgiDdQ++ATcPsSucGy8
-	 IWWnYy4qNKoMR/0tiE12HCn9ptb235gEuYUk/hL9IZpSEEw6DQbCWGFfdqJzKJgkEX
-	 /WcjhnVrj9ZgavrcNWV63ZDxwKWFsBLgrWk37YEo=
-Date: Wed, 20 Aug 2025 16:56:32 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,eadavis@qq.com,akpm@linux-foundation.org
+	b=mRbYnNFKrTH6MFvr89FDodU2jg+f/NgT0cKp+5tXSsQ6aCzxJK4aJ+LjlvpcFh3yl
+	 XVuh3yavb6VYXv6a0fmp3usrmBJ7c9GJiU3oyqhWjdSQKk1kGKjOfv/VbIzDRepdtE
+	 hY/+loseGt8bMGpkNo8MbDBYD43gDAOAQhHfec9E=
+Date: Wed, 20 Aug 2025 16:57:54 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-prevent-release-journal-inode-after-journal-shutdown.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250820235633.477CFC4CEE7@smtp.kernel.org>
+Subject: + ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch added to mm-nonmm-unstable branch
+Message-Id: <20250820235754.86F0AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: prevent release journal inode after journal shutdown
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-prevent-release-journal-inode-after-journal-shutdown.patch
+     Subject: ocfs2: remove unnecessary NULL check in ocfs2_grab_folios()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-prevent-release-journal-inode-after-journal-shutdown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,62 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: ocfs2: prevent release journal inode after journal shutdown
-Date: Tue, 19 Aug 2025 21:41:02 +0800
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: ocfs2: remove unnecessary NULL check in ocfs2_grab_folios()
+Date: Tue, 19 Aug 2025 12:41:51 +0300
 
-Before calling ocfs2_delete_osb(), ocfs2_journal_shutdown() has already
-been executed in ocfs2_dismount_volume(), so osb->journal must be NULL. 
-Therefore, the following calltrace will inevitably fail when it reaches
-jbd2_journal_release_jbd_inode().
+Smatch complains that checking "folios" for NULL doesn't make sense
+because it has already been dereferenced at this point.  Really passing a
+NULL "folios" pointer to ocfs2_grab_folios() doesn't make sense, and
+fortunately none of the callers do that.  Delete the unnecessary NULL
+check.
 
-ocfs2_dismount_volume()->
-  ocfs2_delete_osb()->
-    ocfs2_free_slot_info()->
-      __ocfs2_free_slot_info()->
-        evict()->
-          ocfs2_evict_inode()->
-            ocfs2_clear_inode()->
-	      jbd2_journal_release_jbd_inode(osb->journal->j_journal,
-
-Adding osb->journal checks will prevent null-ptr-deref during the above
-execution path.
-
-Link: https://lkml.kernel.org/r/tencent_357489BEAEE4AED74CBD67D246DBD2C4C606@qq.com
-Fixes: da5e7c87827e ("ocfs2: cleanup journal init and shutdown")
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
-Reported-by: syzbot+47d8cb2f2cc1517e515a@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=47d8cb2f2cc1517e515a
-Tested-by: syzbot+47d8cb2f2cc1517e515a@syzkaller.appspotmail.com
-Reviewed-by: Mark Tinguely <mark.tinguely@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/aKRG39hyvDJcN2G7@stanley.mountain
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-prevent-release-journal-inode-after-journal-shutdown
-+++ a/fs/ocfs2/inode.c
-@@ -1281,6 +1281,9 @@ static void ocfs2_clear_inode(struct ino
- 	 * the journal is flushed before journal shutdown. Thus it is safe to
- 	 * have inodes get cleaned up after journal shutdown.
- 	 */
-+	if (!osb->journal)
-+		return;
-+
- 	jbd2_journal_release_jbd_inode(osb->journal->j_journal,
- 				       &oi->ip_jinode);
- }
+--- a/fs/ocfs2/alloc.c~ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios
++++ a/fs/ocfs2/alloc.c
+@@ -6928,8 +6928,7 @@ static int ocfs2_grab_folios(struct inod
+ 
+ out:
+ 	if (ret != 0) {
+-		if (folios)
+-			ocfs2_unlock_and_free_folios(folios, numfolios);
++		ocfs2_unlock_and_free_folios(folios, numfolios);
+ 		numfolios = 0;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-ocfs2-prevent-release-journal-inode-after-journal-shutdown.patch
+ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch
 
