@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B57812773F6
-	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 22:44:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D74FB26A1B9
+	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 22:46:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755729849; cv=none; b=XYJhM26XwIauJqIUmAeE9HzSOS/UJ+nE5wOKDev8OQrpL81qFk7nBHh7jTVmYRvm+7gTMQ63Be2abNWXV+WQekIelmXIMqXGIQjuNMcAGTftTe5ir7Yjfryx1lceTxX/j0j2dN8Ru4u1twUOwljsWkwWcCzaWCJtXlnUyD7/DBE=
+	t=1755729972; cv=none; b=p6AGfoR8+v+aF+kh3JH5gp+gOWZV6ptoMrYzMYrT5IKaFbmak6MSbP1tRxMu1TRoDDODpKfA+DctI8Z872uMYf+8jBU7NjDXNsj8BXeL3X5KuILc4ApGM7+EMLLeW3bOIjOB6RzZrnwG//e9EduMblqpUYXLtiRtuiwhkbV7VkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755729849; c=relaxed/simple;
-	bh=xvYgJau4tQzWJcNRA0182N4am7EU8UiVgJTNwcp8Aks=;
-	h=Date:To:From:Subject:Message-Id; b=rq/QstrxTfV7H+hzunid4cPfUWLWDKsruGtwxyRfbGR1oKxiXwZZFPTqAA+3OXzo3/2XVIeLzp4mJv43EjZ9uUbNVgZsH4OFu03KKKz6TnEU4NnmogNW0sxCCcxFhyHU264ny9PySpYYFwLev88WkaL675DOqmEYRG5xYxDiFLY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nk2McgDc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755729972; c=relaxed/simple;
+	bh=QFsKOhaXvqRgthXeffgdmSr4At7a/xabDS1XKgkrj8c=;
+	h=Date:To:From:Subject:Message-Id; b=HGqQA2XiveF0QWz2GGuKH2l9pSkcy7nzK5qaKp+17PBVxF5588nnygAAZM/Gw19W2G/vgHto6PwGNUgJrqIbvyxZccRuvCE4r6Jfbke0efyK1eG6Me5LBNg/al/z3tdmTX/d5tPzfMyqZUgqGYUEGM9zRqIACMWROmsaHiPGin4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CDrF7K7c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nk2McgDc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02164C4CEE7;
-	Wed, 20 Aug 2025 22:44:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CDrF7K7c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4990DC4CEE7;
+	Wed, 20 Aug 2025 22:46:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755729849;
-	bh=xvYgJau4tQzWJcNRA0182N4am7EU8UiVgJTNwcp8Aks=;
+	s=korg; t=1755729971;
+	bh=QFsKOhaXvqRgthXeffgdmSr4At7a/xabDS1XKgkrj8c=;
 	h=Date:To:From:Subject:From;
-	b=Nk2McgDcNnv9IgWvUeRMv898NfzaNn6ZnQcXTRK160cyszugX9FXCE0QDhXTE55h1
-	 nbcuvreI6EY9VWvA9rHe8Q/or68aHrEnoWlOuquxdXyKYt3l5i7A0gxn/wgZ1bPjV9
-	 lpj5XUj3G1AG2SJ59VFSaznqNtOQ1KmFvjBkX2lc=
-Date: Wed, 20 Aug 2025 15:44:08 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,gaoxiang17@xiaomi.com,david@redhat.com,gxxa03070307@gmail.com,akpm@linux-foundation.org
+	b=CDrF7K7cRAyCfiLnhdMw++ZqprOfjtJ8Zbi8upHk8CQROVHufKw7bfa/9YUVHQFN+
+	 vpeNDxhOIZPNZERgvSN9faUr0P82DHu5Xn7gvcqSMaenRSvRBzYDIur1av/AZXfV34
+	 jcvy9iUT+Sbn63Ooc0V4SQfiqEKUNqplTprTUKq4=
+Date: Wed, 20 Aug 2025 15:46:10 -0700
+To: mm-commits@vger.kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch added to mm-new branch
-Message-Id: <20250820224409.02164C4CEE7@smtp.kernel.org>
+Subject: + mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch added to mm-new branch
+Message-Id: <20250820224611.4990DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: add 'available count' and 'total count' to trace_cma_alloc_start
+     Subject: mm/zswap: reduce the size of the compression buffer to a single page
 has been added to the -mm mm-new branch.  Its filename is
-     mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch
+     mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,90 +64,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiang Gao <gxxa03070307@gmail.com>
-Subject: mm/cma: add 'available count' and 'total count' to trace_cma_alloc_start
-Date: Thu, 21 Aug 2025 06:38:55 +0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: mm/zswap: reduce the size of the compression buffer to a single page
+Date: Wed, 20 Aug 2025 11:15:47 -0700
 
+Reduce the compression buffer size from 2 * PAGE_SIZE to only one page, as
+the compression output (in the success case) should not exceed the length
+of the input.
 
-This makes cma info more intuitive during debugging.
+In the past, Chengming tried to reduce the compression buffer size, but
+ran into issues with the LZO algorithm (see [2]).  Herbert Xu reported
+that the issue has been fixed (see [3]).  Now we should have the guarantee
+that compressors' output should not exceed one page in the success case,
+and the algorithm will just report failure otherwise.
 
-Show up in the trace as:
+With this patch, we save one page per cpu (per compression algorithm).
 
-	279.814717: cma_alloc_start: name=reserved request_count=4 available_count=8096 total_count=8192 align=0
-	309.790580: cma_alloc_start: name=reserved request_count=4 available_count=8092 total_count=8192 align=0
-	317.046609: cma_alloc_start: name=reserved request_count=4 available_count=8088 total_count=8192 align=0
-
-Link: https://lkml.kernel.org/r/8a79284879c529f467478552825154b018076e95.1755729178.git.gaoxiang17@xiaomi.com
-Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250820181547.3794167-1-nphamcs@gmail.com
+Link: https://lore.kernel.org/linux-mm/20231213-zswap-dstmem-v4-1-f228b059dd89@bytedance.com/ [1]
+Link: https://lore.kernel.org/lkml/0000000000000b05cd060d6b5511@google.com/ [2]
+Link: https://lore.kernel.org/linux-mm/aKUmyl5gUFCdXGn-@gondor.apana.org.au/ [3]
+Co-developed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/cma.h |   19 +++++++++++++------
- mm/cma.c                   |    2 +-
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ mm/zswap.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/trace/events/cma.h~mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start
-+++ a/include/trace/events/cma.h
-@@ -38,25 +38,32 @@ TRACE_EVENT(cma_release,
+--- a/mm/zswap.c~mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page
++++ a/mm/zswap.c
+@@ -833,7 +833,7 @@ static int zswap_cpu_comp_prepare(unsign
+ 	u8 *buffer = NULL;
+ 	int ret;
  
- TRACE_EVENT(cma_alloc_start,
+-	buffer = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
++	buffer = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
+ 	if (!buffer) {
+ 		ret = -ENOMEM;
+ 		goto fail;
+@@ -960,12 +960,7 @@ static bool zswap_compress(struct page *
+ 	sg_init_table(&input, 1);
+ 	sg_set_page(&input, page, PAGE_SIZE, 0);
  
--	TP_PROTO(const char *name, unsigned long count, unsigned int align),
-+	TP_PROTO(const char *name, unsigned long request_count, unsigned long available_count,
-+		unsigned long total_count, unsigned int align),
+-	/*
+-	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
+-	 * and hardware-accelerators may won't check the dst buffer size, so
+-	 * giving the dst buffer with enough length to avoid buffer overflow.
+-	 */
+-	sg_init_one(&output, dst, PAGE_SIZE * 2);
++	sg_init_one(&output, dst, PAGE_SIZE);
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
  
--	TP_ARGS(name, count, align),
-+	TP_ARGS(name, request_count, available_count, total_count, align),
- 
- 	TP_STRUCT__entry(
- 		__string(name, name)
--		__field(unsigned long, count)
-+		__field(unsigned long, request_count)
-+		__field(unsigned long, available_count)
-+		__field(unsigned long, total_count)
- 		__field(unsigned int, align)
- 	),
- 
- 	TP_fast_assign(
- 		__assign_str(name);
--		__entry->count = count;
-+		__entry->request_count = request_count;
-+		__entry->available_count = available_count;
-+		__entry->total_count = total_count;
- 		__entry->align = align;
- 	),
- 
--	TP_printk("name=%s count=%lu align=%u",
-+	TP_printk("name=%s request_count=%lu available_count=%lu total_count=%lu align=%u",
- 		  __get_str(name),
--		  __entry->count,
-+		  __entry->request_count,
-+		  __entry->available_count,
-+		  __entry->total_count,
- 		  __entry->align)
- );
- 
---- a/mm/cma.c~mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start
-+++ a/mm/cma.c
-@@ -864,7 +864,7 @@ static struct page *__cma_alloc(struct c
- 	if (!count)
- 		return page;
- 
--	trace_cma_alloc_start(name, count, align);
-+	trace_cma_alloc_start(name, count, cma->available_count, cma->count, align);
- 
- 	for (r = 0; r < cma->nranges; r++) {
- 		page = NULL;
+ 	/*
 _
 
-Patches currently in -mm which might be from gxxa03070307@gmail.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-cma-add-available-count-and-total-count-to-trace_cma_alloc_start.patch
+mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch
 
