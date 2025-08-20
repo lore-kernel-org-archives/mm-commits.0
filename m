@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D74FB26A1B9
-	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 22:46:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E92280312
+	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 23:22:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755729972; cv=none; b=p6AGfoR8+v+aF+kh3JH5gp+gOWZV6ptoMrYzMYrT5IKaFbmak6MSbP1tRxMu1TRoDDODpKfA+DctI8Z872uMYf+8jBU7NjDXNsj8BXeL3X5KuILc4ApGM7+EMLLeW3bOIjOB6RzZrnwG//e9EduMblqpUYXLtiRtuiwhkbV7VkY=
+	t=1755732171; cv=none; b=jyah4VhlOkNpQqBY9XGPzUL7UyHbqqWxoXv1B/LmxQUv+FMKJy3GpUZrV8Rw0TCUKRZua5zkNth0NCFdgEhJUco4ssc6t9USVlaelox2Ftg4ql1WLWGclhF9UawINkNA/EMgZOG4O5XbY/r1eGDtawxkNrYqD4wlRBxNcJsI6Ao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755729972; c=relaxed/simple;
-	bh=QFsKOhaXvqRgthXeffgdmSr4At7a/xabDS1XKgkrj8c=;
-	h=Date:To:From:Subject:Message-Id; b=HGqQA2XiveF0QWz2GGuKH2l9pSkcy7nzK5qaKp+17PBVxF5588nnygAAZM/Gw19W2G/vgHto6PwGNUgJrqIbvyxZccRuvCE4r6Jfbke0efyK1eG6Me5LBNg/al/z3tdmTX/d5tPzfMyqZUgqGYUEGM9zRqIACMWROmsaHiPGin4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CDrF7K7c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755732171; c=relaxed/simple;
+	bh=62w7V+Wqqr5VhnRBmH02pRcE5PLKQWhgkosBAF8VRmI=;
+	h=Date:To:From:Subject:Message-Id; b=qLvTlI7xkR1ckGyqpk6DnHI73uejQWfWhYijmtF1CpyLykmidZ87pQNt+qcILnctWJVaiR2pJnXZlJUFYIhvc2C8l5M3mVDbB4DQZy2i//LX7MXWfu8TKN4/WzfDJAp/P4TLNFYSPUyb8QwSDNFx2lQrDZ7BRmZEmkcb0LdTwLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GOzzk48U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CDrF7K7c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4990DC4CEE7;
-	Wed, 20 Aug 2025 22:46:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GOzzk48U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41B1BC4CEE7;
+	Wed, 20 Aug 2025 23:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755729971;
-	bh=QFsKOhaXvqRgthXeffgdmSr4At7a/xabDS1XKgkrj8c=;
+	s=korg; t=1755732170;
+	bh=62w7V+Wqqr5VhnRBmH02pRcE5PLKQWhgkosBAF8VRmI=;
 	h=Date:To:From:Subject:From;
-	b=CDrF7K7cRAyCfiLnhdMw++ZqprOfjtJ8Zbi8upHk8CQROVHufKw7bfa/9YUVHQFN+
-	 vpeNDxhOIZPNZERgvSN9faUr0P82DHu5Xn7gvcqSMaenRSvRBzYDIur1av/AZXfV34
-	 jcvy9iUT+Sbn63Ooc0V4SQfiqEKUNqplTprTUKq4=
-Date: Wed, 20 Aug 2025 15:46:10 -0700
-To: mm-commits@vger.kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=GOzzk48Udd1zwo9EHlPSiqLeT76/6M8r/wXuyxhCHCB7apv1A+XGjK1WpQlYll1UC
+	 BthxbgCKsqFpNP1iWhJQ/lpT3Rr4NQ9t0RyinTuYZ4vl0oZr9eMk2cj92Xw58tkygX
+	 NMMDrgOFfU+8DUXoD9NPZNt5c6b6kckfP7EbJLHI=
+Date: Wed, 20 Aug 2025 16:22:49 -0700
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,baptiste.lepers@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch added to mm-new branch
-Message-Id: <20250820224611.4990DC4CEE7@smtp.kernel.org>
+Subject: + rust-mm-mark-vmanew-as-transparent.patch added to mm-unstable branch
+Message-Id: <20250820232250.41B1BC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: reduce the size of the compression buffer to a single page
-has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch
+     Subject: rust: mm: mark VmaNew as transparent
+has been added to the -mm mm-unstable branch.  Its filename is
+     rust-mm-mark-vmanew-as-transparent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-mm-mark-vmanew-as-transparent.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,65 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: mm/zswap: reduce the size of the compression buffer to a single page
-Date: Wed, 20 Aug 2025 11:15:47 -0700
+From: Baptiste Lepers <baptiste.lepers@gmail.com>
+Subject: rust: mm: mark VmaNew as transparent
+Date: Tue, 12 Aug 2025 15:26:56 +0200
 
-Reduce the compression buffer size from 2 * PAGE_SIZE to only one page, as
-the compression output (in the success case) should not exceed the length
-of the input.
+Unsafe code in VmaNew's methods assumes that the type has the same layout
+as the inner `bindings::vm_area_struct`.  This is not guaranteed by the
+default struct representation in Rust, but requires specifying the
+`transparent` representation.
 
-In the past, Chengming tried to reduce the compression buffer size, but
-ran into issues with the LZO algorithm (see [2]).  Herbert Xu reported
-that the issue has been fixed (see [3]).  Now we should have the guarantee
-that compressors' output should not exceed one page in the success case,
-and the algorithm will just report failure otherwise.
-
-With this patch, we save one page per cpu (per compression algorithm).
-
-Link: https://lkml.kernel.org/r/20250820181547.3794167-1-nphamcs@gmail.com
-Link: https://lore.kernel.org/linux-mm/20231213-zswap-dstmem-v4-1-f228b059dd89@bytedance.com/ [1]
-Link: https://lore.kernel.org/lkml/0000000000000b05cd060d6b5511@google.com/ [2]
-Link: https://lore.kernel.org/linux-mm/aKUmyl5gUFCdXGn-@gondor.apana.org.au/ [3]
-Co-developed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20250812132712.61007-1-baptiste.lepers@gmail.com
+Fixes: dcb81aeab406e ("mm: rust: add VmaNew for f_ops->mmap()")
+Signed-off-by: Baptiste Lepers <baptiste.lepers@gmail.com>
+Reviewed-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ rust/kernel/mm/virt.rs |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/zswap.c~mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page
-+++ a/mm/zswap.c
-@@ -833,7 +833,7 @@ static int zswap_cpu_comp_prepare(unsign
- 	u8 *buffer = NULL;
- 	int ret;
- 
--	buffer = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
-+	buffer = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
- 	if (!buffer) {
- 		ret = -ENOMEM;
- 		goto fail;
-@@ -960,12 +960,7 @@ static bool zswap_compress(struct page *
- 	sg_init_table(&input, 1);
- 	sg_set_page(&input, page, PAGE_SIZE, 0);
- 
--	/*
--	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
--	 * and hardware-accelerators may won't check the dst buffer size, so
--	 * giving the dst buffer with enough length to avoid buffer overflow.
--	 */
--	sg_init_one(&output, dst, PAGE_SIZE * 2);
-+	sg_init_one(&output, dst, PAGE_SIZE);
- 	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
- 
- 	/*
+--- a/rust/kernel/mm/virt.rs~rust-mm-mark-vmanew-as-transparent
++++ a/rust/kernel/mm/virt.rs
+@@ -209,6 +209,7 @@ impl VmaMixedMap {
+ ///
+ /// For the duration of 'a, the referenced vma must be undergoing initialization in an
+ /// `f_ops->mmap()` hook.
++#[repr(transparent)]
+ pub struct VmaNew {
+     vma: VmaRef,
+ }
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from baptiste.lepers@gmail.com are
 
-mm-zswap-reduce-the-size-of-the-compression-buffer-to-a-single-page.patch
+rust-mm-mark-vmanew-as-transparent.patch
 
