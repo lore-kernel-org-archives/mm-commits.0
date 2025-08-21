@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC981EB5C2
-	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 20:34:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0941D35E4D4
+	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 20:44:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755808484; cv=none; b=DhpKV2ErkOLC6kzsw/OJCFiThyu57sqgSrXJ6UH/VSoFD152YL11lRwY5K0q81QSDpiDO9kp3gshYJea2UrOAw/wppb1vhl9R2pwEv/9yLNxwZmZkhpYUzPmydrsrVz7k70Ovib0wcoQeeWnXAXhTxBqBwCKysHvvGwzNMcOPT8=
+	t=1755809065; cv=none; b=LL5XLwD9SJnETpfN+AadT3xzVdk1VGAOOQ5rrI5UkKJCQakZ77+PkGJb9PKH30yFk5Z7eGnOrVksNP639DtIhuF1weNlUsRwFDgNQJL60oZuX1L4G/lAcQhAKHmkYaFMxBB0NPcv6kiLGZEYDAc3NhksBqEU1x+d5GjTOPnGOOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755808484; c=relaxed/simple;
-	bh=RHA/yppuAu1PvgBgf9WH47V4/4L81j75xhUpNpmYZCU=;
-	h=Date:To:From:Subject:Message-Id; b=Jz6HCN8Et/41+rl6JaQswMEN5bS56xw6JbdKRFa1BBY/iVZysO4N/tMTYhDt8Gjur4ib5oRHJdKnPHIeElTcqhYcrKijovIhdd/q7tfhAw8LLb3B8YvKQg0QJdvXFh8HP6kIKOavuyIipfFDCFbpgin41tEkcam7LB29QhucYIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lfBKvkLs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755809065; c=relaxed/simple;
+	bh=HPSMnjdFMMn1N4A63LuPKqyEI+o+a8tFfKxzwl+Rjp4=;
+	h=Date:To:From:Subject:Message-Id; b=tkwOqEWx5faZd9ZjAmaI38Pzd2zodXsQ90ri/rckNbpGQri6y+emrTJsGQMPwIl95R405vsefvhh/+S/TBZRugKQ8Md3jJiwCTtqlawg9rL7YSvYaFY4PtkVT7OuIqgvzinVj/Ph0WqBEsf7daVsSx1rf66HSp3qEAyhRAtlPfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWiJGTCe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lfBKvkLs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B86FBC4CEEB;
-	Thu, 21 Aug 2025 20:34:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWiJGTCe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B5AFC4CEEB;
+	Thu, 21 Aug 2025 20:44:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755808483;
-	bh=RHA/yppuAu1PvgBgf9WH47V4/4L81j75xhUpNpmYZCU=;
+	s=korg; t=1755809064;
+	bh=HPSMnjdFMMn1N4A63LuPKqyEI+o+a8tFfKxzwl+Rjp4=;
 	h=Date:To:From:Subject:From;
-	b=lfBKvkLs88H956T48/UJvBGVlY024bVOgG7GJucKYhRGYR/sckCSfRzjAS2f0+KQH
-	 p5eB7DUIrwk0ZjYHKqE2Hy0VLTR9lvgJnxMs5Lql5L/v4TQbAf8uF5Ci38/cIYXqUK
-	 XS35OTkIrlMD11phyOva2vzlO6MDtd2UVmQ0IDyc=
-Date: Thu, 21 Aug 2025 13:34:43 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@redhat.com,jackmanb@google.com,akpm@linux-foundation.org
+	b=pWiJGTCexdg6RZsNZ8F1FrWtClYqL4pxtqxk4WQiILQoq30fjqrd4J/WgDWB1D05M
+	 5yfm1GsxEcdFrQeLkk99wiS6A7/TRonHAwyePpcbBfEjZtuM2B1T87k4U8GE8pQzG7
+	 9IPQQa+92MOVZVe10AYRVOHpr60j1J6vYMoouWCw=
+Date: Thu, 21 Aug 2025 13:44:23 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-is_migrate_highatomic.patch added to mm-new branch
-Message-Id: <20250821203443.B86FBC4CEEB@smtp.kernel.org>
+Subject: + mm-huge_memory-remove-enforce_sysfs-from-__thp_vma_allowable_orders.patch added to mm-new branch
+Message-Id: <20250821204424.5B5AFC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove is_migrate_highatomic()
+     Subject: mm/huge_memory: remove enforce_sysfs from __thp_vma_allowable_orders
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-is_migrate_highatomic.patch
+     mm-huge_memory-remove-enforce_sysfs-from-__thp_vma_allowable_orders.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-is_migrate_highatomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-enforce_sysfs-from-__thp_vma_allowable_orders.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,72 +64,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm: remove is_migrate_highatomic()
-Date: Thu, 21 Aug 2025 13:29:47 +0000
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm/huge_memory: remove enforce_sysfs from __thp_vma_allowable_orders
+Date: Thu, 21 Aug 2025 16:00:38 +0100
 
-There are 3 potential reasons for is_migrate_*() helpers:
+Using forced_collapse directly is clearer and enforce_sysfs is not really
+needed.
 
-1. They represent higher-level attributes of migratetypes, like
-   is_migrate_movable()
-
-2. They are ifdef'd, like is_migrate_isolate().
-
-3. For consistency with an is_migrate_*_page() helper, also like
-   is_migrate_isolate().
-
-It looks like is_migrate_highatomic() was for case 3, but that was
-removed in commit e0932b6c1f94 ("mm: page_alloc: consolidate free page
-accounting").
-
-So remove the indirection and go back to a simple comparison.
-
-Link: https://lkml.kernel.org/r/20250821-is-migrate-highatomic-v1-1-ddb6e5d7c566@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20250821150038.2025521-1-usamaarif642@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    5 -----
- mm/page_alloc.c |    2 +-
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ mm/huge_memory.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/internal.h~mm-remove-is_migrate_highatomic
-+++ a/mm/internal.h
-@@ -1333,11 +1333,6 @@ extern const struct trace_print_flags pa
- extern const struct trace_print_flags vmaflag_names[];
- extern const struct trace_print_flags gfpflag_names[];
+--- a/mm/huge_memory.c~mm-huge_memory-remove-enforce_sysfs-from-__thp_vma_allowable_orders
++++ a/mm/huge_memory.c
+@@ -105,7 +105,6 @@ unsigned long __thp_vma_allowable_orders
+ 	const bool smaps = type == TVA_SMAPS;
+ 	const bool in_pf = type == TVA_PAGEFAULT;
+ 	const bool forced_collapse = type == TVA_FORCED_COLLAPSE;
+-	const bool enforce_sysfs = !forced_collapse;
+ 	unsigned long supported_orders;
  
--static inline bool is_migrate_highatomic(enum migratetype migratetype)
--{
--	return migratetype == MIGRATE_HIGHATOMIC;
--}
--
- void setup_zone_pageset(struct zone *zone);
+ 	/* Check the intersection of requested and supported orders. */
+@@ -168,14 +167,14 @@ unsigned long __thp_vma_allowable_orders
+ 	if (!in_pf && shmem_file(vma->vm_file))
+ 		return orders & shmem_allowable_huge_orders(file_inode(vma->vm_file),
+ 						   vma, vma->vm_pgoff, 0,
+-						   !enforce_sysfs);
++						   forced_collapse);
  
- struct migration_target_control {
---- a/mm/page_alloc.c~mm-remove-is_migrate_highatomic
-+++ a/mm/page_alloc.c
-@@ -797,7 +797,7 @@ static inline void account_freepages(str
- 
- 	if (is_migrate_cma(migratetype))
- 		__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, nr_pages);
--	else if (is_migrate_highatomic(migratetype))
-+	else if (migratetype == MIGRATE_HIGHATOMIC)
- 		WRITE_ONCE(zone->nr_free_highatomic,
- 			   zone->nr_free_highatomic + nr_pages);
- }
+ 	if (!vma_is_anonymous(vma)) {
+ 		/*
+-		 * Enforce sysfs THP requirements as necessary. Anonymous vmas
++		 * Enforce THP collapse requirements as necessary. Anonymous vmas
+ 		 * were already handled in thp_vma_allowable_orders().
+ 		 */
+-		if (enforce_sysfs &&
++		if (!forced_collapse &&
+ 		    (!hugepage_global_enabled() || (!(vm_flags & VM_HUGEPAGE) &&
+ 						    !hugepage_global_always())))
+ 			return 0;
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mm-remove-is_migrate_highatomic.patch
+docs-transhuge-document-process-level-thp-controls.patch
+selftest-mm-extract-sz2ord-function-into-vm_utilh.patch
+selftests-prctl-introduce-tests-for-disabling-thps-completely.patch
+selftests-prctl-introduce-tests-for-disabling-thps-completely-fix.patch
+selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch
+selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix.patch
+mm-huge_memory-remove-enforce_sysfs-from-__thp_vma_allowable_orders.patch
 
