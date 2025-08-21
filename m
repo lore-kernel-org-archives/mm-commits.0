@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4050D28466C;
-	Thu, 21 Aug 2025 21:44:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A99BA393DE6
+	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 22:01:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755812655; cv=none; b=CjmwG4PVEFlkhYKE7JU/vIFW9yH+eGUv3t8d+m0qrH+tkBFx8bdGN88CaTfLw7it5rU6Cmnacgtb/UgkQoAD21N1JFNRynN9VwZMTfJvnZniUkbaVCSbqVRBtCC8RTepbBW0IBmHHEeNtTpxko7s+j9VG3Z1UXGRbqCqUXTQS2U=
+	t=1755813711; cv=none; b=oLyP4eOXWKef3Ah2BFkje4TUIY1fiCNewkl8q7TqWOgm1BnGHRsL7DK/4gOCrsCNNKLr5YJwqxguOd9P6/BXKdeufsOP6Docv8G9XvnoBmdgNUrA+Lyf1VcZB0odg7wqd08RfaOpckjqbnxco8GG3vMod5RXDjPisOgK1cs6Y0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755812655; c=relaxed/simple;
-	bh=Y9dIwT3/TdLQKXD+Up9nmrBUIclqBPLq3HsGH3mXmoc=;
-	h=Date:To:From:Subject:Message-Id; b=juyEvoVrixuYMZIuUcG0rN588rZJnq9V6M9kMTKv1kCg8yWaUUsLdBnS0z9elazPEu3Fa2WZxP0VDFygQMRD2bQRnjLae9j+4UZjIAMLR9XOiv/MBUIcdkfYNGaUT/en9DaG/vpHK9g4lJ/mYjYk+7pRWDmoYGvhlkQgDNCqiHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DZzscbEF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755813711; c=relaxed/simple;
+	bh=+hkRA0kLIihY4KSyCelhlASWaKuV7HLtJtyX4d74n1c=;
+	h=Date:To:From:Subject:Message-Id; b=jfCJLufZ/OyAKTPQSIdVwGzNp1N5rohPzW6hpeYNNVKxImpo6kiVb+ST8yPlAC63QMd4zUUfG1Lqqma0o6BVib3/kZSrCPQbxB5J/0K1l9vkKjf16eU4syGfmlxTplUDcgGbc+/tEOfZlmRzkIF5onPHo9L+a5FXa04lpEEXyFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OiEKi0jc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DZzscbEF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 868C4C4CEEB;
-	Thu, 21 Aug 2025 21:44:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OiEKi0jc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A8D8C4CEEB;
+	Thu, 21 Aug 2025 22:01:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755812654;
-	bh=Y9dIwT3/TdLQKXD+Up9nmrBUIclqBPLq3HsGH3mXmoc=;
+	s=korg; t=1755813711;
+	bh=+hkRA0kLIihY4KSyCelhlASWaKuV7HLtJtyX4d74n1c=;
 	h=Date:To:From:Subject:From;
-	b=DZzscbEFw56wd2JHxr+AyuvGZxE9q27LYTJIsqpXMdrWtlEtpsqzuIwlfDnWO738T
-	 gvIoXN2Zs7WSApXD3Edn/R/7u2UbzzjOdoa8aiSek7YDjXd/ouWjPkyOtSDYvMNtt9
-	 Ck2yPNQIkY6cvCAg40rGaf0wgSG+IJmwaTZKlDaY=
-Date: Thu, 21 Aug 2025 14:44:14 -0700
-To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,sj@kernel.org,apanyaki@amazon.com,yanquanmin1@huawei.com,akpm@linux-foundation.org
+	b=OiEKi0jczD48AGsl1TUHIh/Q06P/OWPv8Rg0VOrVNt8tlex34U72ZfFLKnIJsVzPi
+	 LA+c7s+q/vsnSy+5jBXX03dlYDfByEHHb9Oq1BiyS1qKQh3Sin309rMB1cHwrhJl5W
+	 hpv6H2VVI3Tdt3XdA/D9cfrvUAdk8HqwRbMunN3o=
+Date: Thu, 21 Aug 2025 15:01:50 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,rick.p.edgecombe@intel.com,polynomial-c@gmx.de,k.shutemov@gmail.com,jirislaby@kernel.org,gregkh@linuxfoundation.org,ast@kernel.org,adobriyan@gmail.com,wangzijie1@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250821214414.868C4C4CEEB@smtp.kernel.org>
+Subject: + proc-fix-missing-pde_set_flags-for-net-proc-files-v3.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250821220151.0A8D8C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: prevent unnecessary overflow in damos_set_effective_quota()
+     Subject: proc-fix-missing-pde_set_flags-for-net-proc-files-v3
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota.patch
+     proc-fix-missing-pde_set_flags-for-net-proc-files-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-fix-missing-pde_set_flags-for-net-proc-files-v3.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,53 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Quanmin Yan <yanquanmin1@huawei.com>
-Subject: mm/damon/core: prevent unnecessary overflow in damos_set_effective_quota()
-Date: Thu, 21 Aug 2025 20:55:55 +0800
+From: wangzijie <wangzijie1@honor.com>
+Subject: proc-fix-missing-pde_set_flags-for-net-proc-files-v3
+Date: Thu, 21 Aug 2025 18:58:06 +0800
 
-On 32-bit systems, the throughput calculation in
-damos_set_effective_quota() is prone to unnecessary multiplication
-overflow.  Using mult_frac() to fix it.
+stash pde->proc_ops in a local const variable, per Christian
 
-Andrew Paniakin also recently found and privately reported this issue, on
-64 bit systems.  This can also happen on 64-bit systems, once the charged
-size exceeds ~17 TiB.  On systems running for long time in production,
-this issue can actually happen.
-
-More specifically, when a DAMOS scheme having the time quota run for
-longtime, throughput calculation can overflow and set esz too small.  As a
-result, speed of the scheme get unexpectedly slow.
-
-Link: https://lkml.kernel.org/r/20250821125555.3020951-1-yanquanmin1@huawei.com
-Fixes: 1cd243030059 ("mm/damon/schemes: implement time quota")
-Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
-Reported-by: Andrew Paniakin <apanyaki@amazon.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: ze zuo <zuoze1@huawei.com>
-Cc: <stable@vger.kernel.org>	[5.16+]
+Link: https://lkml.kernel.org/r/20250821105806.1453833-1-wangzijie1@honor.com
+Fixes: ff7ec8dc1b64 ("proc: use the same treatment to check proc_lseek as ones for proc_read_iter et.al")
+Signed-off-by: wangzijie <wangzijie1@honor.com>
+Reported-by: Lars Wendler <polynomial-c@gmx.de>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Kirill A. Shutemov <k.shutemov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/generic.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota
-+++ a/mm/damon/core.c
-@@ -2073,8 +2073,8 @@ static void damos_set_effective_quota(st
+--- a/fs/proc/generic.c~proc-fix-missing-pde_set_flags-for-net-proc-files-v3
++++ a/fs/proc/generic.c
+@@ -369,18 +369,20 @@ static const struct inode_operations pro
  
- 	if (quota->ms) {
- 		if (quota->total_charged_ns)
--			throughput = quota->total_charged_sz * 1000000 /
--				quota->total_charged_ns;
-+			throughput = mult_frac(quota->total_charged_sz, 1000000,
-+							quota->total_charged_ns);
- 		else
- 			throughput = PAGE_SIZE * 1024;
- 		esz = min(throughput * quota->ms, esz);
+ static void pde_set_flags(struct proc_dir_entry *pde)
+ {
+-	if (!pde->proc_ops)
++	const struct proc_ops *proc_ops = pde->proc_ops;
++
++	if (!proc_ops)
+ 		return;
+ 
+-	if (pde->proc_ops->proc_flags & PROC_ENTRY_PERMANENT)
++	if (proc_ops->proc_flags & PROC_ENTRY_PERMANENT)
+ 		pde->flags |= PROC_ENTRY_PERMANENT;
+-	if (pde->proc_ops->proc_read_iter)
++	if (proc_ops->proc_read_iter)
+ 		pde->flags |= PROC_ENTRY_proc_read_iter;
+ #ifdef CONFIG_COMPAT
+-	if (pde->proc_ops->proc_compat_ioctl)
++	if (proc_ops->proc_compat_ioctl)
+ 		pde->flags |= PROC_ENTRY_proc_compat_ioctl;
+ #endif
+-	if (pde->proc_ops->proc_lseek)
++	if (proc_ops->proc_lseek)
+ 		pde->flags |= PROC_ENTRY_proc_lseek;
+ }
+ 
 _
 
-Patches currently in -mm which might be from yanquanmin1@huawei.com are
+Patches currently in -mm which might be from wangzijie1@honor.com are
 
-mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota.patch
+proc-fix-missing-pde_set_flags-for-net-proc-files.patch
+proc-fix-missing-pde_set_flags-for-net-proc-files-v3.patch
 
