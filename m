@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E0E155A4E
-	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 00:01:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA3641A9F9F
+	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 00:32:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755734483; cv=none; b=Wvz3KMjMxOCsEpQNL2TOkXGm6h36Jbfx6zn/pd0C7ocCKL7W4aVz07fDS1jpzv6hRbalS5GuHAwMaEsnJC6SvNg3O1XvPxJlyqHyI3Yw/P+Fy3mm0s07dAcRp8l7VXHQwLkbIi31qHzhfSAjaa7qwE2yAn4Y8JW0UzdoWj4dT48=
+	t=1755736325; cv=none; b=qkdjkviRE0Jb8V9r80fOTZ02qlxmPY+IamSxgrF+expA7Ed4YXHZ8uoLqnhFqaPbyYK6IlKz7/ae3c9cSgma5yArlaquX05waR5VeObfO1zT2QsdPlJZ6bE6Uz/8xFQZUTW7rgzZjGuV2NN71vsF/hCcTUlr5QfTHbKMhnNktXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755734483; c=relaxed/simple;
-	bh=3Mh4jCS6CkUL4lVu4ndxorW/lpiiut4WieWp3qqYhE8=;
-	h=Date:To:From:Subject:Message-Id; b=mKCEQoInWdLYIDZb0INpnclINkWWi48LigfPyBp4PMqnltX/Lzc7gxgkXEZfTuL8J8k9qpk0tDQnwyMt4+tyH8NKygMMFAq8GWzNF4fzvGN0UasCt9XmCoV9TpS6yIJW6TWVXVuDfseWIsXHrl878+XkfZc5EH6wFV+sg3nAywE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1xU7gZcl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755736325; c=relaxed/simple;
+	bh=ApPYkpOBri4x+oySenKx9EUdazt7inkwhndXF9FejFo=;
+	h=Date:To:From:Subject:Message-Id; b=eCSlc3P1LmjFxPoMJKRvEnbQKP3wLMQGPAlOkAWMrJ2XSvHJBTaVWHCvp+nwgSn9UAYtUI2CO5m1pn75F6iOOcxe/oVZzI8lCUCBg/6hzKE1cj62OOhYNUwQ+o2SSVL1I4SYQzzbw8+IPawYcVWFwTpPspp49stHk3Mw78DpyEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ddI4Ctja; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1xU7gZcl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C622C4CEE7;
-	Thu, 21 Aug 2025 00:01:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ddI4Ctja"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A05C4CEE7;
+	Thu, 21 Aug 2025 00:32:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755734482;
-	bh=3Mh4jCS6CkUL4lVu4ndxorW/lpiiut4WieWp3qqYhE8=;
+	s=korg; t=1755736325;
+	bh=ApPYkpOBri4x+oySenKx9EUdazt7inkwhndXF9FejFo=;
 	h=Date:To:From:Subject:From;
-	b=1xU7gZclZloBtSgiK74arOmaL4iRYuuGX8ik3tCtQUjQs3ntu3owfOih5BStd4LmD
-	 YH+dKkNDpybCoT0BL73f/YaQM4a1Ti2TbZFXe9L5wRQrGQfNTNz9Oz9D3bXF4gIyFa
-	 F7etRtNK4drWL0n5HT4PxHuGwEaStlAXok0E8tTg=
-Date: Wed, 20 Aug 2025 17:01:22 -0700
-To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,lossin@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,shankari.ak0208@gmail.com,akpm@linux-foundation.org
+	b=ddI4CtjahhaWTsASe27RQJ9//YpMrUodnKmTQOvCUmPBbOaWK6qOTD8Rcn+6RWUfy
+	 +tBE6HibvhkfaRwetW9nF7m+tGrT6tMYXbUuR5KFsk4NrXIN9tuv53S/edok/GkD/Y
+	 23KmVpGOUpr0iS7ChUc9FRcVePvLnclRtmDawHkg=
+Date: Wed, 20 Aug 2025 17:32:04 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,lkp@intel.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch added to mm-new branch
-Message-Id: <20250821000122.9C622C4CEE7@smtp.kernel.org>
+Subject: + panic-add-note-that-panic_print-parameter-is-deprecated-fix-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250821003205.40A05C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rust: mm: update ARef and AlwaysRefCounted imports from sync::aref
-has been added to the -mm mm-new branch.  Its filename is
-     rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch
+     Subject: fixup: panic: clean up message about deprecated 'panic_print' parameter
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-add-note-that-panic_print-parameter-is-deprecated-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-add-note-that-panic_print-parameter-is-deprecated-fix-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,64 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shankari Anand <shankari.ak0208@gmail.com>
-Subject: rust: mm: update ARef and AlwaysRefCounted imports from sync::aref
-Date: Wed, 16 Jul 2025 14:41:58 +0530
+From: Lance Yang <lance.yang@linux.dev>
+Subject: fixup: panic: clean up message about deprecated 'panic_print' parameter
+Date: Wed, 20 Aug 2025 11:25:31 +0200
 
-Update call sites in the mm subsystem to import `ARef` and
-`AlwaysRefCounted` from `sync::aref` instead of `types`.
+fix build
 
-This aligns with the ongoing effort to move `ARef` and `AlwaysRefCounted`
-to sync.
-
-Link: https://lkml.kernel.org/r/20250716091158.812860-1-shankari.ak0208@gmail.com
-Signed-off-by: Shankari Anand <shankari.ak0208@gmail.com>
-Suggested-by: Benno Lossin <lossin@kernel.org>
-Link: https://github.com/Rust-for-Linux/linux/issues/1173
-Acked-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Alex Gaynor <alex.gaynor@gmail.com>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>
-Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Trevor Gross <tmgross@umich.edu>
+Link: https://lkml.kernel.org/r/aKWWcPOf9qPIoCe4@pathway.suse.cz
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202508200907.PsZ3geub-lkp@intel.com/
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/kernel/mm.rs             |    3 ++-
- rust/kernel/mm/mmput_async.rs |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/panic.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/rust/kernel/mm/mmput_async.rs~rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref
-+++ a/rust/kernel/mm/mmput_async.rs
-@@ -10,7 +10,7 @@
- use crate::{
-     bindings,
-     mm::MmWithUser,
--    types::{ARef, AlwaysRefCounted},
-+    sync::aref::{ARef, AlwaysRefCounted},
- };
- use core::{ops::Deref, ptr::NonNull};
+--- a/kernel/panic.c~panic-add-note-that-panic_print-parameter-is-deprecated-fix-fix
++++ a/kernel/panic.c
+@@ -77,6 +77,11 @@ ATOMIC_NOTIFIER_HEAD(panic_notifier_list
  
---- a/rust/kernel/mm.rs~rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref
-+++ a/rust/kernel/mm.rs
-@@ -13,7 +13,8 @@
+ EXPORT_SYMBOL(panic_notifier_list);
  
- use crate::{
-     bindings,
--    types::{ARef, AlwaysRefCounted, NotThreadSafe, Opaque},
-+    sync::aref::{ARef, AlwaysRefCounted},
-+    types::{NotThreadSafe, Opaque},
- };
- use core::{ops::Deref, ptr::NonNull};
++static void panic_print_deprecated(void)
++{
++	pr_info_once("Kernel: The 'panic_print' parameter is now deprecated. Please use 'panic_sys_info' and 'panic_console_replay' instead.\n");
++}
++
+ #ifdef CONFIG_SYSCTL
  
+ /*
+@@ -122,11 +127,6 @@ static int proc_taint(const struct ctl_t
+ 	return err;
+ }
+ 
+-static void panic_print_deprecated(void)
+-{
+-	pr_info_once("Kernel: The 'panic_print' parameter is now deprecated. Please use 'panic_sys_info' and 'panic_console_replay' instead.\n");
+-}
+-
+ static int sysctl_panic_print_handler(const struct ctl_table *table, int write,
+ 			   void *buffer, size_t *lenp, loff_t *ppos)
+ {
 _
 
-Patches currently in -mm which might be from shankari.ak0208@gmail.com are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch
+panic-add-note-that-panic_print-parameter-is-deprecated-fix-fix.patch
 
