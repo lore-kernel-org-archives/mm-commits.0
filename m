@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A64F1519B9;
-	Thu, 21 Aug 2025 04:40:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A511A248F51
+	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 11:47:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755751255; cv=none; b=OMf0FKuRFpj8grcEzDX3UGZBqCEGiCQXdBFSlUAzThisnvW5+x7YpEzausRPM0Qcw18JktiFk7f/iEszuujAqFhQcDOWVwoE4uDNvyOAiLTNZVwPS9dVfKS3ENlxO7xNTBSpt3oVcZzZE5G7IQCIrYRbzxyQPCPOX9BCBX3BknI=
+	t=1755776850; cv=none; b=btuvfPeJIVoqWjPLMfIbrCRe219xG4WSd6VmYcfv//vUO+NXSBFKbS38ty//c1jGyzRSJTvGyqO5gE8xYCjHI4mUJCEOX7L/SeOdpbP2gomOnR/eY4VCa1O2vuLd8smvx/QzMzYC4WpXHOtYkc1iqe8d30ueN0DXPdZ5XS4HFCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755751255; c=relaxed/simple;
-	bh=a07q5svi8/ILDF2QZwe4kNMXlAi+jdo0DbrF7I9Sub4=;
-	h=Date:To:From:Subject:Message-Id; b=G8jiEBoE1WbPyclqBRlD6j9Y1yXgguPgHd+IiT+HcVmrjJuaJBGQTEYT4An4p+HZ9uJ99m+gOFDGynqXyu9I6HS0RzNVpwAA90nS+xFUf2iB5StowcYMlU0DLhxSfHgrdNSKfQl39LNiiuoybxTQeUIuVcrgQC5Wf1TCX/svfis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S6yxXzvU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755776850; c=relaxed/simple;
+	bh=dXP9AN+oFr5x8xqIK54Tm05XAlXLJqlR2yJuQA8cnGM=;
+	h=Date:To:From:Subject:Message-Id; b=gEHOQJGCMkeGUNVi9g3ajGgJpAJr6uzTO2x4R770UknFG6mhYDl0H0eGhYSQfD7H2TVyGSaGhP8wDdo5uY73k6ylRcAROkYh0+yW/qXVmtUqfH+0iHfoQNS0CBtTGBu9lnFoPDUBN6wq6biyQUTZZtXLe8J8FYhwm4GhTb5tPYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aDV5Q77B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S6yxXzvU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E9E0C4CEF4;
-	Thu, 21 Aug 2025 04:40:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aDV5Q77B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BB6FC4CEEB;
+	Thu, 21 Aug 2025 11:47:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755751254;
-	bh=a07q5svi8/ILDF2QZwe4kNMXlAi+jdo0DbrF7I9Sub4=;
+	s=korg; t=1755776850;
+	bh=dXP9AN+oFr5x8xqIK54Tm05XAlXLJqlR2yJuQA8cnGM=;
 	h=Date:To:From:Subject:From;
-	b=S6yxXzvUaHVl4bAooLrYsKaEUehmmTre0gU0Sy96L0Pt4sMYKCmlZZTR+XnGcnU9g
-	 0lsp6ClgI07h7y6M2rJE7XxhOS1d25u2rdfUj+7Qexs76aNMS04zPuVIKHP2gfFiTe
-	 bqOajSvyiZC/Vu/tDjjze3BUiHwJ0Nvz9X3ne2s0=
-Date: Wed, 20 Aug 2025 21:40:53 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=aDV5Q77B+RqllxHqSDOe2UvU7xT0RSTfmorNdJQgESlOCFw9sNCT47LfQkRf9SuYh
+	 YQRQDfwX3fGIiRN7yWXfUzgAD6SViQcWCpNJjNTCeKzPx6RA671307wnlYVOGDFmdP
+	 X4iEHe9Af2Kv9NzH68heYl6nD138gqiHb2fpTZ0E=
+Date: Thu, 21 Aug 2025 04:47:29 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch removed from -mm tree
-Message-Id: <20250821044054.7E9E0C4CEF4@smtp.kernel.org>
+Subject: + mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250821114730.2BB6FC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,91 +34,118 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/damon/core: set quota->charged_from to jiffies at first charge window
-has been removed from the -mm tree.  Its filename was
-     mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch
+The patch titled
+     Subject: mm: fix KASAN build error due to p*d_populate_kernel()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: mm/damon/core: set quota->charged_from to jiffies at first charge window
-Date: Wed, 20 Aug 2025 00:01:23 +0900
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: mm: fix KASAN build error due to p*d_populate_kernel()
+Date: Thu, 21 Aug 2025 18:35:42 +0900
 
-Kernel initializes "jiffies" timer as 5 minutes below zero, as shown in
-include/linux/jiffies.h
+KASAN unconditionally references kasan_early_shadow_{p4d,pud}.
+However, these global variables may not exist depending on the number of
+page table levels. For example, if CONFIG_PGTABLE_LEVELS=3, both
+variables do not exist. Although KASAN may refernce non-existent
+variables, it didn't break builds because calls to {pgd,p4d}_populate()
+are optimized away at compile time.
 
-/*
- * Have the 32 bit jiffies value wrap 5 minutes after boot
- * so jiffies wrap bugs show up earlier.
- */
- #define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))
+However, {pgd,p4d}_populate_kernel() is defined as a function regardless
+of the number of page table levels, so the compiler may not optimize
+them away. In this case, the following linker error occurs:
 
-And they cast unsigned value to signed to cover wraparound
+ld.lld: error: undefined symbol: kasan_early_shadow_p4d
+>>> referenced by init.c:260 (/home/hyeyoo/mm-new/mm/kasan/init.c:260)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> referenced by init.c:260 (/home/hyeyoo/mm-new/mm/kasan/init.c:260)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> did you mean: kasan_early_shadow_pmd
+>>> defined in: vmlinux.a(mm/kasan/init.o)
 
- #define time_after_eq(a,b) \
-  (typecheck(unsigned long, a) && \
-  typecheck(unsigned long, b) && \
-  ((long)((a) - (b)) >= 0))
+ld.lld: error: undefined symbol: kasan_early_shadow_pud
+>>> referenced by init.c:263 (/home/hyeyoo/mm-new/mm/kasan/init.c:263)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> referenced by init.c:263 (/home/hyeyoo/mm-new/mm/kasan/init.c:263)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> referenced by init.c:200 (/home/hyeyoo/mm-new/mm/kasan/init.c:200)
+>>>               mm/kasan/init.o:(zero_p4d_populate) in archive vmlinux.a
+>>> referenced 1 more times
 
-In 64bit systems, these might not be a problem because wrapround occurs
-300 million years after the boot, assuming HZ value is 1000.
+Therefore, to allow calls to {pgd,p4d}_populate_kernel() to be optimized
+out at compile time, define {pgd,p4d}_populate_kernel() as macros.
+This way, when pgd_populate() or p4d_populate() are simply empty macros,
+the corresponding *_populate_kernel() functions can also be optimized
+away.
 
-With same assuming, In 32bit system, wraparound occurs 5 minutues after
-the initial boot and every 49 days after the first wraparound.  And about
-25 days after first wraparound, it continues quota charging window up to
-next 25 days.
-
-Example 1: initial boot
-jiffies=0xFFFB6C20, charged_from+interval=0x000003E8
-time_after_eq(jiffies, charged_from+interval)=(long)0xFFFB6838; In
-signed values, it is considered negative so it is false.
-
-Example 2: after about 25 days first wraparound
-jiffies=0x800004E8, charged_from+interval=0x000003E8
-time_after_eq(jiffies, charged_from+interval)=(long)0x80000100; In
-signed values, it is considered negative so it is false
-
-So, change quota->charged_from to jiffies at damos_adjust_quota() when
-it is consider first charge window.
-
-In theory; but almost impossible; quota->total_charged_sz and
-qutoa->charged_from should be both zero even if it is not in first
-charge window. But It will only delay one reset_interval, So it is not
-big problem.
-
-Link: https://lkml.kernel.org/r/20250819150123.1532458-1-ekffu200098@gmail.com
-Fixes: 2b8a248d5873 ("mm/damon/schemes: implement size quota for schemes application speed control")	[5.16]
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250821093542.37844-1-harry.yoo@oracle.com
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/pgalloc.h |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window
-+++ a/mm/damon/core.c
-@@ -2111,6 +2111,10 @@ static void damos_adjust_quota(struct da
- 	if (!quota->ms && !quota->sz && list_empty(&quota->goals))
- 		return;
+--- a/include/linux/pgalloc.h~mm-introduce-and-use-pgdp4d_populate_kernel-fix
++++ a/include/linux/pgalloc.h
+@@ -5,20 +5,18 @@
+ #include <linux/pgtable.h>
+ #include <asm/pgalloc.h>
  
-+	/* First charge window */
-+	if (!quota->total_charged_sz && !quota->charged_from)
-+		quota->charged_from = jiffies;
-+
- 	/* New charge window starts */
- 	if (time_after_eq(jiffies, quota->charged_from +
- 				msecs_to_jiffies(quota->reset_interval))) {
+-static inline void pgd_populate_kernel(unsigned long addr, pgd_t *pgd,
+-				       p4d_t *p4d)
+-{
+-	pgd_populate(&init_mm, pgd, p4d);
+-	if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_PGD_MODIFIED)
+-		arch_sync_kernel_mappings(addr, addr);
+-}
++#define pgd_populate_kernel(addr, pgd, p4d)				\
++	do {								\
++		pgd_populate(&init_mm, pgd, p4d);			\
++		if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_PGD_MODIFIED)	\
++			arch_sync_kernel_mappings(addr, addr);		\
++	} while (0)
+ 
+-static inline void p4d_populate_kernel(unsigned long addr, p4d_t *p4d,
+-				       pud_t *pud)
+-{
+-	p4d_populate(&init_mm, p4d, pud);
+-	if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_P4D_MODIFIED)
+-		arch_sync_kernel_mappings(addr, addr);
+-}
++#define p4d_populate_kernel(addr, p4d, pud)				\
++	do {								\
++		p4d_populate(&init_mm, p4d, pud);			\
++		if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_P4D_MODIFIED)	\
++			arch_sync_kernel_mappings(addr, addr);		\
++	} while (0)
+ 
+ #endif /* _LINUX_PGALLOC_H */
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-mm-damon-update-expired-description-of-damos_action.patch
-docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
-selftests-damon-test-no-op-commit-broke-damon-status.patch
-selftests-damon-test-no-op-commit-broke-damon-status-fix.patch
-mm-damon-tests-core-kunit-add-damos_commit_filter-test.patch
+mm-move-page-table-sync-declarations-to-linux-pgtableh.patch
+mm-introduce-and-use-pgdp4d_populate_kernel.patch
+mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch
+x86-mm-64-define-arch_page_table_sync_mask-and-arch_sync_kernel_mappings.patch
 
