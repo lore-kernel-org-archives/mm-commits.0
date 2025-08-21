@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59D1D2E1C52
-	for <mm-commits@vger.kernel.org>; Wed, 20 Aug 2025 23:58:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E0E155A4E
+	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 00:01:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755734291; cv=none; b=MhlvNLS9VkheOCd7fD8hkmcEiGd60pYR/Qg1DqlcYLaQ4/N03cN7Py6O8WVmx2Ki728ecniBZ3/5uDiNbiarHk7JGjUV93FhR2A4kA42rlxbAP+6+Ei8UTLqDbuQ22fe35jxf7TyYSHb0zy/e+vJwLKlldNlZzUjwu3h5trAy8M=
+	t=1755734483; cv=none; b=Wvz3KMjMxOCsEpQNL2TOkXGm6h36Jbfx6zn/pd0C7ocCKL7W4aVz07fDS1jpzv6hRbalS5GuHAwMaEsnJC6SvNg3O1XvPxJlyqHyI3Yw/P+Fy3mm0s07dAcRp8l7VXHQwLkbIi31qHzhfSAjaa7qwE2yAn4Y8JW0UzdoWj4dT48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755734291; c=relaxed/simple;
-	bh=c9SL+0Hz3/aOn7k0II+TwTf9pGS1PTpr68j6bitPE1w=;
-	h=Date:To:From:Subject:Message-Id; b=sAwOD1DF3Ahw+ePJ23Y85A4j8xRYtz27wHIkGVS7NQsnDOEIMPlXNaNzUlkkIHksq/WTdUSlQ5a65vHTFgm9UIkQwRfoqwzQArnZtuVbe77GdCie0hFuhKTlAKipb0dR+knVIYeewaEZKHwGrFN4ekuAol44WieeqCUlQf/N+Zo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mfAdG4jG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755734483; c=relaxed/simple;
+	bh=3Mh4jCS6CkUL4lVu4ndxorW/lpiiut4WieWp3qqYhE8=;
+	h=Date:To:From:Subject:Message-Id; b=mKCEQoInWdLYIDZb0INpnclINkWWi48LigfPyBp4PMqnltX/Lzc7gxgkXEZfTuL8J8k9qpk0tDQnwyMt4+tyH8NKygMMFAq8GWzNF4fzvGN0UasCt9XmCoV9TpS6yIJW6TWVXVuDfseWIsXHrl878+XkfZc5EH6wFV+sg3nAywE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1xU7gZcl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mfAdG4jG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3383C4CEE7;
-	Wed, 20 Aug 2025 23:58:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1xU7gZcl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C622C4CEE7;
+	Thu, 21 Aug 2025 00:01:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755734290;
-	bh=c9SL+0Hz3/aOn7k0II+TwTf9pGS1PTpr68j6bitPE1w=;
+	s=korg; t=1755734482;
+	bh=3Mh4jCS6CkUL4lVu4ndxorW/lpiiut4WieWp3qqYhE8=;
 	h=Date:To:From:Subject:From;
-	b=mfAdG4jGio7qR/omVM35rJhugjOpFvWwrJlxr3L2utWGBcg6uetO0Xa6sleoCtcaY
-	 1By3hXIGXeSZ91LMiK5iLhwLtrN2OA1CA2/yR8KnWfuuFnzB949c6FiFWUts+HKrPk
-	 gqRd3YKxxfOxJ6c9ZBvaMQ+LutoLXdpActR+zstk=
-Date: Wed, 20 Aug 2025 16:58:10 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dan.carpenter@linaro.org,akpm@linux-foundation.org
+	b=1xU7gZclZloBtSgiK74arOmaL4iRYuuGX8ik3tCtQUjQs3ntu3owfOih5BStd4LmD
+	 YH+dKkNDpybCoT0BL73f/YaQM4a1Ti2TbZFXe9L5wRQrGQfNTNz9Oz9D3bXF4gIyFa
+	 F7etRtNK4drWL0n5HT4PxHuGwEaStlAXok0E8tTg=
+Date: Wed, 20 Aug 2025 17:01:22 -0700
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,lossin@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,shankari.ak0208@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch added to mm-nonmm-unstable branch
-Message-Id: <20250820235810.C3383C4CEE7@smtp.kernel.org>
+Subject: + rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch added to mm-new branch
+Message-Id: <20250821000122.9C622C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: remove unnecessary NULL check in ocfs2_grab_folios()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch
+     Subject: rust: mm: update ARef and AlwaysRefCounted imports from sync::aref
+has been added to the -mm mm-new branch.  Its filename is
+     rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,46 +64,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: ocfs2: remove unnecessary NULL check in ocfs2_grab_folios()
-Date: Tue, 19 Aug 2025 12:41:51 +0300
+From: Shankari Anand <shankari.ak0208@gmail.com>
+Subject: rust: mm: update ARef and AlwaysRefCounted imports from sync::aref
+Date: Wed, 16 Jul 2025 14:41:58 +0530
 
-Smatch complains that checking "folios" for NULL doesn't make sense
-because it has already been dereferenced at this point.  Really passing a
-NULL "folios" pointer to ocfs2_grab_folios() doesn't make sense, and
-fortunately none of the callers do that.  Delete the unnecessary NULL
-check.
+Update call sites in the mm subsystem to import `ARef` and
+`AlwaysRefCounted` from `sync::aref` instead of `types`.
 
-Link: https://lkml.kernel.org/r/aKRG39hyvDJcN2G7@stanley.mountain
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Mark Tinguely <mark.tinguely@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+This aligns with the ongoing effort to move `ARef` and `AlwaysRefCounted`
+to sync.
+
+Link: https://lkml.kernel.org/r/20250716091158.812860-1-shankari.ak0208@gmail.com
+Signed-off-by: Shankari Anand <shankari.ak0208@gmail.com>
+Suggested-by: Benno Lossin <lossin@kernel.org>
+Link: https://github.com/Rust-for-Linux/linux/issues/1173
+Acked-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ rust/kernel/mm.rs             |    3 ++-
+ rust/kernel/mm/mmput_async.rs |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios
-+++ a/fs/ocfs2/alloc.c
-@@ -6928,8 +6928,7 @@ static int ocfs2_grab_folios(struct inod
+--- a/rust/kernel/mm/mmput_async.rs~rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref
++++ a/rust/kernel/mm/mmput_async.rs
+@@ -10,7 +10,7 @@
+ use crate::{
+     bindings,
+     mm::MmWithUser,
+-    types::{ARef, AlwaysRefCounted},
++    sync::aref::{ARef, AlwaysRefCounted},
+ };
+ use core::{ops::Deref, ptr::NonNull};
  
- out:
- 	if (ret != 0) {
--		if (folios)
--			ocfs2_unlock_and_free_folios(folios, numfolios);
-+		ocfs2_unlock_and_free_folios(folios, numfolios);
- 		numfolios = 0;
- 	}
+--- a/rust/kernel/mm.rs~rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref
++++ a/rust/kernel/mm.rs
+@@ -13,7 +13,8 @@
+ 
+ use crate::{
+     bindings,
+-    types::{ARef, AlwaysRefCounted, NotThreadSafe, Opaque},
++    sync::aref::{ARef, AlwaysRefCounted},
++    types::{NotThreadSafe, Opaque},
+ };
+ use core::{ops::Deref, ptr::NonNull};
  
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from shankari.ak0208@gmail.com are
 
-ocfs2-remove-unnecessary-null-check-in-ocfs2_grab_folios.patch
+rust-mm-update-aref-and-alwaysrefcounted-imports-from-sync-aref.patch
 
