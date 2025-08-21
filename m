@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A22EA2C0260
-	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 20:27:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 924D12C0262;
+	Thu, 21 Aug 2025 20:28:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755808075; cv=none; b=laUT0m48Q2Jha+Q13gIxVDq9tAl0uajQgcTed2WBzvNBfTQnu0s16txdxMSZP3ANoIUtL2ttinfoxfuX5HrnX5p3KKFm6x4seNGKzS+TDzSIMVEJ8MmCe0OwtRqBrDEa8rZq3emuYJAPayuV+aw4A27ARZAm2A1nVe6W8kJOAAw=
+	t=1755808086; cv=none; b=QHSg9oIpRHUJwRl7i6BJBeleP71fMnVOUDV6qpk2gy8dLCP+d0a/CVhN5iQjbBX/WqmkN/KIJD/iyJZECocbCw2xoFFwH+OQsO+cR4VkVM4LmTIZ8GgmQB4sdWvqH8tpxrk/7ywliVOqhD3p9fFPH/bhuQ2mGrij9QDb/Mzber8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755808075; c=relaxed/simple;
-	bh=7JXedIPHoRkgBIYZ2sJk0DZcEl9UVEYuvZFixY5YgGg=;
-	h=Date:To:From:Subject:Message-Id; b=ANE2JkKOZR6Ex/o/Ko7e/GYjPdT+oN52kwV4nk4JNHJSW3w6PRwWThS8z8LCOqVu3LT8YVRKfJYTiCUSEsbL4GYJNNxJsJiwnSXb6BOUivILgJRnb9Au4U1xcYKJ9o5i7WVXQjfDRxO/IS0uvejA1JdHAt2fAAP2NWzljaoPyAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kEayiu7K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755808086; c=relaxed/simple;
+	bh=/QztYoFg+jJTuyuejgU8lHBzqLNV+Fm+lsNA5GbqqeI=;
+	h=Date:To:From:Subject:Message-Id; b=eSuczV9yLw3gDor7Mjx9QYIr1LeN7nR5rBHRiICDvOj7sw+MByvCxq3FcTxt4b/AgEW95sYQIM83l8RXXGj9RIN6lPBUpto6GR6V0mQ6AfpLyBE3vnPsvEQOlpiw5cEfQP+QP688acEzr6ahSCrOafiTEK2Eg89znXzMtmIqalo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0g4yBPlc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kEayiu7K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F37ACC4CEEB;
-	Thu, 21 Aug 2025 20:27:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0g4yBPlc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14AE0C4CEEB;
+	Thu, 21 Aug 2025 20:28:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755808074;
-	bh=7JXedIPHoRkgBIYZ2sJk0DZcEl9UVEYuvZFixY5YgGg=;
+	s=korg; t=1755808086;
+	bh=/QztYoFg+jJTuyuejgU8lHBzqLNV+Fm+lsNA5GbqqeI=;
 	h=Date:To:From:Subject:From;
-	b=kEayiu7KPp23i09eVfKgyj7KPPQ43wE8aCIh1CzEKYyFDOXvCn36GFH32IKaJdtOi
-	 qxKopR87kwiqqWyDGTYmbMqPqDdkrrAPLYQSjnzX93V0VjgGxXYmGLiAKrTkGrGjvF
-	 1xZ94B/eeL1gZhPFnxfjDnb13qwVRvmS1cmCyRHE=
-Date: Thu, 21 Aug 2025 13:27:53 -0700
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,mark.rutland@arm.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,ada.coupriediaz@arm.com,akpm@linux-foundation.org
+	b=0g4yBPlcVOJaDIqTMe6rbv/2c86T0CXX59XjONhUZLXHITfPUhD1PdeYbsiL4Rog4
+	 2Ga0Hp4XF9rK0g8uxvFg4vTofczNjJtjURv0HK+MCd4svGkC2VVaaKZ4n71Bqjq5U7
+	 bciAnAZ0KQIu7JQUKwFSaAMfe7eXJ2dwMjYJkwss=
+Date: Thu, 21 Aug 2025 13:28:05 -0700
+To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,vincenzo.frascino@arm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,mark.rutland@arm.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,ada.coupriediaz@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + kasan-fix-gcc-mem-intrinsic-prefix-with-sw-tags.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250821202753.F37ACC4CEEB@smtp.kernel.org>
+Message-Id: <20250821202806.14AE0C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -100,6 +100,7 @@ Cc: Marc Rutland <mark.rutland@arm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
