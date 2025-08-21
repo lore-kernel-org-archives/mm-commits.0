@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 896A8194124
-	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 00:33:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B98361C4A10
+	for <mm-commits@vger.kernel.org>; Thu, 21 Aug 2025 00:35:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755736439; cv=none; b=a2l4pPuIapFOQiBvDaCmIw5FDBR1DB6X6lS8xW9ISwa+RHdfp6PYkvqqw5IGZtgNv0D4x8NWYh2KbAoP5nFydU42mQN9nS8JggmiiR/YRihfDV97keC+Rc2tO/wJwXiVj0JTB2w9Y6SGinV6Hb5dsj9LM/nomavpOXSbvo1W4vc=
+	t=1755736518; cv=none; b=CRwnH43Wdyki+kEPTZvrR0ruoc68apzws1qcGs7DdrxJjnrF2W89ExMCASQ4vdmzORvJ21ovUf+bxODNehdER75HTkHtWZSxpH3vYUMj1ZHCE2xx+9ShCnpyltuzKE8bLi/lSLxJ/8mnpUA7i8Gew4WAGaREGT7+qv0zVc6S0yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755736439; c=relaxed/simple;
-	bh=5VdZ6tzpYPCGBJdNrjC54IfQFsYafKCf7YAWhmmLRdc=;
-	h=Date:To:From:Subject:Message-Id; b=YHRXOLk8OGffltZ0gBZMgnbsZ3jat2Ywrulr87HA5GqDniqCCSjSq3wvaVCHHXXn3g1yo8b9fx7k2NC9fbWUj0uExjiotyWQhfCEJeOd7nkKJfOqnjycTXZ0O6IDlpcMcR/bISYZ0rAM1FHrT5CC++7N0AmtKxq1a77x86DxLY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LgaMY4Xl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755736518; c=relaxed/simple;
+	bh=ToNerv5oKAmRaaMXAT3XcZBfkaOkXpDq97hoTL0DT1w=;
+	h=Date:To:From:Subject:Message-Id; b=dn2c6FmA18EXjKO23AJbN+W8bJPmaLqbeE2Ux+nXzu6iutzaPnoRNLfFUadB0iObzsEg8ChIdWIcXxzpmvjXgq1wOdCAQWmQSLIWffwA3F0u36Cn5ExxU61k3EfCiq7MNEFhPGVGWelnwHxt4HlHkxf707P/YEO6ayAJFNjtmhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IEE+lGXP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LgaMY4Xl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB26C4CEE7;
-	Thu, 21 Aug 2025 00:33:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IEE+lGXP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F65BC4CEE7;
+	Thu, 21 Aug 2025 00:35:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755736439;
-	bh=5VdZ6tzpYPCGBJdNrjC54IfQFsYafKCf7YAWhmmLRdc=;
+	s=korg; t=1755736517;
+	bh=ToNerv5oKAmRaaMXAT3XcZBfkaOkXpDq97hoTL0DT1w=;
 	h=Date:To:From:Subject:From;
-	b=LgaMY4XlIqQu9VMoHQiT+YnXZykgGWM9Olb2CXm7fRhbgmxWWFfo/iTrhgxm05E/w
-	 MaovEnOpS+hcpd6+FCOIMtSfgXVu4Ig1iMP/TMcacIEEwr/wjvJdpdcVqCTmBg7uHH
-	 JSenRSiWzilP6ZORGNDk3a4/K3OyBwrMekGqKZSg=
-Date: Wed, 20 Aug 2025 17:33:56 -0700
+	b=IEE+lGXPQBKP4+jtyXfrQXuv4epYzcPJUAfDqMacGdInckNokrwlsBWuIW7AzIohW
+	 AFJ2ZRHcr85CMYJEbcBariUxXfUhkssXcGwHwMtLnJvsCZdu1IyVWZP7KJMnTcH59s
+	 H4p6rdi3SK2IGlJIqULhp8MpGo1v9pa4oo2VabQI=
+Date: Wed, 20 Aug 2025 17:35:16 -0700
 To: mm-commits@vger.kernel.org,safinaskar@zohomail.com,rostedt@goodmis.org,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,feng.tang@linux.alibaba.com,corbet@lwn.net,pmladek@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] panic-add-note-that-panic_print-parameter-is-deprecated-fix.patch removed from -mm tree
-Message-Id: <20250821003359.4FB26C4CEE7@smtp.kernel.org>
+Subject: + panic-add-note-that-panic_print-parameter-is-deprecated-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250821003517.1F65BC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,31 +34,47 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: panic: clean up message about deprecated 'panic_print' parameter
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
      panic-add-note-that-panic_print-parameter-is-deprecated-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-add-note-that-panic_print-parameter-is-deprecated-fix.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
 Subject: panic: clean up message about deprecated 'panic_print' parameter
-Date: Tue, 19 Aug 2025 11:51:37 +0200
+Date: Wed, 20 Aug 2025 11:40:32 +0200
 
-Remove duplication of the message about the deprecated 'panic_print'
+Remove duplication of the message about deprecated 'panic_print'
 parameter.
 
 Also make the wording more direct. Make it clear that the new
 parameters already exist and should be used instead.
 
-Link: https://lkml.kernel.org/r/aKRJKZHgcxyNF3y7@pathway.suse.cz
+Link: https://lkml.kernel.org/r/aKWYELPjbhC7R8NO@pathway.suse.cz
 Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: Askar Safin <safinaskar@zohomail.com>
 Cc: Feng Tang <feng.tang@linux.alibaba.com>
 Cc: John Ogness <john.ogness@linutronix.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -69,15 +85,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
 --- a/kernel/panic.c~panic-add-note-that-panic_print-parameter-is-deprecated-fix
 +++ a/kernel/panic.c
-@@ -122,10 +122,15 @@ static int proc_taint(const struct ctl_t
- 	return err;
- }
+@@ -77,6 +77,11 @@ ATOMIC_NOTIFIER_HEAD(panic_notifier_list
+ 
+ EXPORT_SYMBOL(panic_notifier_list);
  
 +static void panic_print_deprecated(void)
 +{
 +	pr_info_once("Kernel: The 'panic_print' parameter is now deprecated. Please use 'panic_sys_info' and 'panic_console_replay' instead.\n");
 +}
 +
+ #ifdef CONFIG_SYSCTL
+ 
+ /*
+@@ -125,7 +130,7 @@ static int proc_taint(const struct ctl_t
  static int sysctl_panic_print_handler(const struct ctl_table *table, int write,
  			   void *buffer, size_t *lenp, loff_t *ppos)
  {
@@ -106,4 +126,5 @@ _
 
 Patches currently in -mm which might be from pmladek@suse.com are
 
+panic-add-note-that-panic_print-parameter-is-deprecated-fix.patch
 
