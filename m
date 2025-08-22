@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D8219E7E2
-	for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2025 23:37:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF3419E7E2
+	for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2025 23:37:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755905822; cv=none; b=DfH38rd/etDLd1hoNAm8yIPxjXiD7YznzrTHRG4sRRzz4O9otBsWGF5K5+eMvIcHHYlOpjkBO4NqNK2ml2mlDeDUDJeHUwEH9k9LVK0GaUMzOtzRuQXnJXIUdYBAJFt7TJEfKMiwzjFJdTCjVx9601Fh7wzI+zk+p6WH1bYONVw=
+	t=1755905823; cv=none; b=jM8wSgmRze/61b7pf6qjR3UHcRyt/UTdBLJKc20faEk3gSZy3H3X/OSYaLptBJ0cMK5CKqSv3r4cZjBgBSmh87YWlT4I7xqQRIbvUxu1tgqQBW/7MMN40lTc3spIhwUVzop30AY70qeSjtiTqu9vJHsSbZgsb5BHU0O1RmrTzws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755905822; c=relaxed/simple;
-	bh=puq5OVZBcjJGrFStJk5d7C9PnWt5l62CyxQ5rlTYSEY=;
-	h=Date:To:From:Subject:Message-Id; b=DPaZ+e4NzbVatQ8WFAZc1Hlu//i1lKFSe5M/mzkVsRLDXNU2gF6mOvZkFoojuqyARJ0OuZuqARvb+rEOYfo0oCcu6GjZiThL+rgfilDds5UO0iupOSKB3aWIlKA/mghQRYeClwANwe7+bxpn0KqS4OOtpj0VlL8YnaaHyFT0C7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HSZ/e2Ku; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755905823; c=relaxed/simple;
+	bh=cy8dhnw3f0bsDnxHB/Chuojufes0dSqe3XyKJu8cr6c=;
+	h=Date:To:From:Subject:Message-Id; b=iPyvnYHwM6OayOmBvif7hw4Wm2SCVYmGXmiBUf6gULyarU12Orl+3RHFf+W6r21a1ZLN5sYuTE4wZujqKCfZ2Kxyq1yvq8FIFKbi2RpX0uAGs9jVyDiksRNUOvbq5cfmuC9gO9nKP0nnwu+Qup/LA10S+exFiN10ORU3dgi5I6k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B8UC/LtF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HSZ/e2Ku"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77A21C4CEED;
-	Fri, 22 Aug 2025 23:37:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B8UC/LtF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D84E0C4CEED;
+	Fri, 22 Aug 2025 23:37:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755905820;
-	bh=puq5OVZBcjJGrFStJk5d7C9PnWt5l62CyxQ5rlTYSEY=;
+	s=korg; t=1755905822;
+	bh=cy8dhnw3f0bsDnxHB/Chuojufes0dSqe3XyKJu8cr6c=;
 	h=Date:To:From:Subject:From;
-	b=HSZ/e2KuQcJKvgG8oigN1L1ujb11VA2Tw3wONnfuvJuOtCH4P5eCncve4IziDV93z
-	 SmYwvOd/MCUNHerG6qzsoCNRersaXqcYm28fj5IuAdGiLhwLh+beknte6qknFktdXU
-	 UQNxrF3hJdGgKVCWy+T2KqRiyciS9gSPganaMD1g=
-Date: Fri, 22 Aug 2025 16:36:59 -0700
+	b=B8UC/LtFxb7UEm34M22ipZKO9nhB+ylSCrP2SGaIAiVCsm7Qri4FnyArj7qZWldHX
+	 yjieYV3NzeEggTdNCgh7tmm/yIpu/9nAplg0SrsGLf2eaP+zdcgcbO80rvQ8cN9Zb0
+	 7Pl+25Zj/fsRfNvEPdYUwh53Ov4ZwZmpbAHzW7Vs=
+Date: Fri, 22 Aug 2025 16:37:02 -0700
 To: mm-commits@vger.kernel.org,zuoze1@huawei.com,yanquanmin1@huawei.com,wangkefeng.wang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-add-damon_ctx-addr_unit.patch added to mm-new branch
-Message-Id: <20250822233700.77A21C4CEED@smtp.kernel.org>
+Subject: + mm-damon-paddr-support-addr_unit-for-access-monitoring.patch added to mm-new branch
+Message-Id: <20250822233702.D84E0C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: add damon_ctx->addr_unit
+     Subject: mm/damon/paddr: support addr_unit for access monitoring
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-add-damon_ctx-addr_unit.patch
+     mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-damon_ctx-addr_unit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,46 +65,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: add damon_ctx->addr_unit
-Date: Fri, 22 Aug 2025 17:34:09 +0800
+Subject: mm/damon/paddr: support addr_unit for access monitoring
+Date: Fri, 22 Aug 2025 17:34:10 +0800
 
-Patch series "mm/damon: support ARM32 with LPAE", v2.
+Add support of addr_unit paramer for access monitoing operations of paddr.
 
-Previously, DAMON's physical address space monitoring only supported
-memory ranges below 4GB on LPAE-enabled systems.  This was due to the use
-of 'unsigned long' in 'struct damon_addr_range', which is 32-bit on ARM32
-even with LPAE enabled[1].
-
-To add DAMON support for ARM32 with LPAE enabled, a new core layer
-parameter called 'addr_unit' was introduced[2].  Operations set layer can
-translate a core layer address to the real address by multiplying the
-parameter value to the core layer address.  Support of the parameter is up
-to each operations layer implementation, though.  For example, operations
-set implementations for virtual address space can simply ignore the
-parameter.  Add the support on paddr, which is the DAMON operations set
-implementation for the physical address space, as we have a clear use case
-for that.
-
-
-This patch (of 11):
-
-In some cases, some of the real address that handled by the underlying
-operations set cannot be handled by DAMON since it uses only 'unsinged
-long' as the address type.  Using DAMON for physical address space
-monitoring of 32 bit ARM devices with large physical address extension
-(LPAE) is one example[1].
-
-Add a parameter name 'addr_unit' to core layer to help such cases.  DAMON
-core API callers can set it as the scale factor that will be used by the
-operations set for translating the core layer's addresses to the real
-address by multiplying the parameter value to the core layer address. 
-Support of the parameter is up to each operations set layer.  The support
-from the physical address space operations set (paddr) will be added with
-following commits.
-
-Link: https://lkml.kernel.org/r/20250822093420.2103803-2-yanquanmin1@huawei.com
-Link: https://lore.kernel.org/20250408075553.959388-1-zuoze1@huawei.com [1]
-Link: https://lore.kernel.org/all/20250416042551.158131-1-sj@kernel.org/ [2]
+Link: https://lkml.kernel.org/r/20250822093420.2103803-3-yanquanmin1@huawei.com
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
@@ -113,48 +79,96 @@ Cc: ze zuo <zuoze1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 ++-
- mm/damon/core.c       |    3 +++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ mm/damon/paddr.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-add-damon_ctx-addr_unit
-+++ a/include/linux/damon.h
-@@ -746,7 +746,7 @@ struct damon_attrs {
-  * Accesses to other fields must be protected by themselves.
-  *
-  * @ops:	Set of monitoring operations for given use cases.
-- *
-+ * @addr_unit:	Scale factor for core to ops address conversion.
-  * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
-  * @schemes:		Head of schemes (&damos) list.
-  */
-@@ -788,6 +788,7 @@ struct damon_ctx {
- 	struct mutex kdamond_lock;
+--- a/mm/damon/paddr.c~mm-damon-paddr-support-addr_unit-for-access-monitoring
++++ a/mm/damon/paddr.c
+@@ -18,7 +18,13 @@
+ #include "../internal.h"
+ #include "ops-common.h"
  
- 	struct damon_operations ops;
-+	unsigned long addr_unit;
- 
- 	struct list_head adaptive_targets;
- 	struct list_head schemes;
---- a/mm/damon/core.c~mm-damon-core-add-damon_ctx-addr_unit
-+++ a/mm/damon/core.c
-@@ -544,6 +544,8 @@ struct damon_ctx *damon_new_ctx(void)
- 	ctx->attrs.min_nr_regions = 10;
- 	ctx->attrs.max_nr_regions = 1000;
- 
-+	ctx->addr_unit = 1;
+-static void damon_pa_mkold(unsigned long paddr)
++static phys_addr_t damon_pa_phys_addr(
++		unsigned long addr, unsigned long addr_unit)
++{
++	return (phys_addr_t)addr * addr_unit;
++}
 +
- 	INIT_LIST_HEAD(&ctx->adaptive_targets);
- 	INIT_LIST_HEAD(&ctx->schemes);
++static void damon_pa_mkold(phys_addr_t paddr)
+ {
+ 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
  
-@@ -1245,6 +1247,7 @@ int damon_commit_ctx(struct damon_ctx *d
- 			return err;
- 	}
- 	dst->ops = src->ops;
-+	dst->addr_unit = src->addr_unit;
- 
- 	return 0;
+@@ -29,11 +35,12 @@ static void damon_pa_mkold(unsigned long
+ 	folio_put(folio);
  }
+ 
+-static void __damon_pa_prepare_access_check(struct damon_region *r)
++static void __damon_pa_prepare_access_check(struct damon_region *r,
++		unsigned long addr_unit)
+ {
+ 	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
+ 
+-	damon_pa_mkold(r->sampling_addr);
++	damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr, addr_unit));
+ }
+ 
+ static void damon_pa_prepare_access_checks(struct damon_ctx *ctx)
+@@ -43,11 +50,11 @@ static void damon_pa_prepare_access_chec
+ 
+ 	damon_for_each_target(t, ctx) {
+ 		damon_for_each_region(r, t)
+-			__damon_pa_prepare_access_check(r);
++			__damon_pa_prepare_access_check(r, ctx->addr_unit);
+ 	}
+ }
+ 
+-static bool damon_pa_young(unsigned long paddr, unsigned long *folio_sz)
++static bool damon_pa_young(phys_addr_t paddr, unsigned long *folio_sz)
+ {
+ 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
+ 	bool accessed;
+@@ -62,23 +69,25 @@ static bool damon_pa_young(unsigned long
+ }
+ 
+ static void __damon_pa_check_access(struct damon_region *r,
+-		struct damon_attrs *attrs)
++		struct damon_attrs *attrs, unsigned long addr_unit)
+ {
+-	static unsigned long last_addr;
++	static phys_addr_t last_addr;
+ 	static unsigned long last_folio_sz = PAGE_SIZE;
+ 	static bool last_accessed;
++	phys_addr_t sampling_addr = damon_pa_phys_addr(
++			r->sampling_addr, addr_unit);
+ 
+ 	/* If the region is in the last checked page, reuse the result */
+ 	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
+-				ALIGN_DOWN(r->sampling_addr, last_folio_sz)) {
++				ALIGN_DOWN(sampling_addr, last_folio_sz)) {
+ 		damon_update_region_access_rate(r, last_accessed, attrs);
+ 		return;
+ 	}
+ 
+-	last_accessed = damon_pa_young(r->sampling_addr, &last_folio_sz);
++	last_accessed = damon_pa_young(sampling_addr, &last_folio_sz);
+ 	damon_update_region_access_rate(r, last_accessed, attrs);
+ 
+-	last_addr = r->sampling_addr;
++	last_addr = sampling_addr;
+ }
+ 
+ static unsigned int damon_pa_check_accesses(struct damon_ctx *ctx)
+@@ -89,7 +98,8 @@ static unsigned int damon_pa_check_acces
+ 
+ 	damon_for_each_target(t, ctx) {
+ 		damon_for_each_region(r, t) {
+-			__damon_pa_check_access(r, &ctx->attrs);
++			__damon_pa_check_access(
++					r, &ctx->attrs, ctx->addr_unit);
+ 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
