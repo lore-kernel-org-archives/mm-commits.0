@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA2F719DF62
-	for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2025 23:10:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D8219E7E2
+	for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2025 23:37:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755904206; cv=none; b=Tou+ZEnB0sK67L6zy1/qxCnWP1iCdNGg9Qb/3MKvlJK58OTMG4BrAE0ev64MK6Y3pdf6LUJITzOtRUYMyAO4xCQIkE4q8lpbWv7sfbWFQ2JEQW865Q/v9JWI/nB1EY8XLAg7jzI25GZtafxIayEgdHwTrgZAQtXze1ZZj+f6rdI=
+	t=1755905822; cv=none; b=DfH38rd/etDLd1hoNAm8yIPxjXiD7YznzrTHRG4sRRzz4O9otBsWGF5K5+eMvIcHHYlOpjkBO4NqNK2ml2mlDeDUDJeHUwEH9k9LVK0GaUMzOtzRuQXnJXIUdYBAJFt7TJEfKMiwzjFJdTCjVx9601Fh7wzI+zk+p6WH1bYONVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755904206; c=relaxed/simple;
-	bh=GGZuDVAF7Aqll7Hj11pWFK0avfZzgMgNNR5IKg1JnDQ=;
-	h=Date:To:From:Subject:Message-Id; b=QL42vRl0pP+MHB9Q6VOfqgc8PVaqAWWlnb+Dh5oe7VKIlq0mC0IYpcOFIH2FeTPNJt/92cz63dVUr1J83bGX3P1v8LTkzrKRW0/nZF9caNryiSm6X19XAGxN2hcL+M+tfKj1/teA4AWRToPx4PO98oOD+VQRLY1t7qwKE7JiV24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r8beg2nG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755905822; c=relaxed/simple;
+	bh=puq5OVZBcjJGrFStJk5d7C9PnWt5l62CyxQ5rlTYSEY=;
+	h=Date:To:From:Subject:Message-Id; b=DPaZ+e4NzbVatQ8WFAZc1Hlu//i1lKFSe5M/mzkVsRLDXNU2gF6mOvZkFoojuqyARJ0OuZuqARvb+rEOYfo0oCcu6GjZiThL+rgfilDds5UO0iupOSKB3aWIlKA/mghQRYeClwANwe7+bxpn0KqS4OOtpj0VlL8YnaaHyFT0C7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HSZ/e2Ku; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r8beg2nG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B65AC4CEF1;
-	Fri, 22 Aug 2025 23:10:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HSZ/e2Ku"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77A21C4CEED;
+	Fri, 22 Aug 2025 23:37:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755904206;
-	bh=GGZuDVAF7Aqll7Hj11pWFK0avfZzgMgNNR5IKg1JnDQ=;
+	s=korg; t=1755905820;
+	bh=puq5OVZBcjJGrFStJk5d7C9PnWt5l62CyxQ5rlTYSEY=;
 	h=Date:To:From:Subject:From;
-	b=r8beg2nG0j8OKle8FeURxTGjvXXxCX4IGBkQFg4+q6aOAdKy4YqUpru6qf1Ki+Nz7
-	 HqA0gGX3SyMYUOvDIOTYMv+NzoI8ktIEiqSkJpgo9tww69NOQKT469+hrrNAa1+1Lb
-	 JQqfzbQQXZnEh2+pAcO73d5YA2Qugy8crbihV4cM=
-Date: Fri, 22 Aug 2025 16:10:05 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,rick.p.edgecombe@intel.com,polynomial-c@gmx.de,k.shutemov@gmail.com,jirislaby@kernel.org,gregkh@linuxfoundation.org,ast@kernel.org,adobriyan@gmail.com,wangzijie1@honor.com,akpm@linux-foundation.org
+	b=HSZ/e2KuQcJKvgG8oigN1L1ujb11VA2Tw3wONnfuvJuOtCH4P5eCncve4IziDV93z
+	 SmYwvOd/MCUNHerG6qzsoCNRersaXqcYm28fj5IuAdGiLhwLh+beknte6qknFktdXU
+	 UQNxrF3hJdGgKVCWy+T2KqRiyciS9gSPganaMD1g=
+Date: Fri, 22 Aug 2025 16:36:59 -0700
+To: mm-commits@vger.kernel.org,zuoze1@huawei.com,yanquanmin1@huawei.com,wangkefeng.wang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] proc-fix-missing-pde_set_flags-for-net-proc-files-v3.patch removed from -mm tree
-Message-Id: <20250822231006.3B65AC4CEF1@smtp.kernel.org>
+Subject: + mm-damon-core-add-damon_ctx-addr_unit.patch added to mm-new branch
+Message-Id: <20250822233700.77A21C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,68 +34,142 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: proc-fix-missing-pde_set_flags-for-net-proc-files-v3
-has been removed from the -mm tree.  Its filename was
-     proc-fix-missing-pde_set_flags-for-net-proc-files-v3.patch
+The patch titled
+     Subject: mm/damon/core: add damon_ctx->addr_unit
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-add-damon_ctx-addr_unit.patch
 
-This patch was dropped because it was folded into proc-fix-missing-pde_set_flags-for-net-proc-files.patch
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-damon_ctx-addr_unit.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wangzijie <wangzijie1@honor.com>
-Subject: proc-fix-missing-pde_set_flags-for-net-proc-files-v3
-Date: Thu, 21 Aug 2025 18:58:06 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: add damon_ctx->addr_unit
+Date: Fri, 22 Aug 2025 17:34:09 +0800
 
-stash pde->proc_ops in a local const variable, per Christian
+Patch series "mm/damon: support ARM32 with LPAE", v2.
 
-Link: https://lkml.kernel.org/r/20250821105806.1453833-1-wangzijie1@honor.com
-Fixes: ff7ec8dc1b64 ("proc: use the same treatment to check proc_lseek as ones for proc_read_iter et.al")
-Signed-off-by: wangzijie <wangzijie1@honor.com>
-Reported-by: Lars Wendler <polynomial-c@gmx.de>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Kirill A. Shutemov <k.shutemov@gmail.com>
+Previously, DAMON's physical address space monitoring only supported
+memory ranges below 4GB on LPAE-enabled systems.  This was due to the use
+of 'unsigned long' in 'struct damon_addr_range', which is 32-bit on ARM32
+even with LPAE enabled[1].
+
+To add DAMON support for ARM32 with LPAE enabled, a new core layer
+parameter called 'addr_unit' was introduced[2].  Operations set layer can
+translate a core layer address to the real address by multiplying the
+parameter value to the core layer address.  Support of the parameter is up
+to each operations layer implementation, though.  For example, operations
+set implementations for virtual address space can simply ignore the
+parameter.  Add the support on paddr, which is the DAMON operations set
+implementation for the physical address space, as we have a clear use case
+for that.
+
+
+This patch (of 11):
+
+In some cases, some of the real address that handled by the underlying
+operations set cannot be handled by DAMON since it uses only 'unsinged
+long' as the address type.  Using DAMON for physical address space
+monitoring of 32 bit ARM devices with large physical address extension
+(LPAE) is one example[1].
+
+Add a parameter name 'addr_unit' to core layer to help such cases.  DAMON
+core API callers can set it as the scale factor that will be used by the
+operations set for translating the core layer's addresses to the real
+address by multiplying the parameter value to the core layer address. 
+Support of the parameter is up to each operations set layer.  The support
+from the physical address space operations set (paddr) will be added with
+following commits.
+
+Link: https://lkml.kernel.org/r/20250822093420.2103803-2-yanquanmin1@huawei.com
+Link: https://lore.kernel.org/20250408075553.959388-1-zuoze1@huawei.com [1]
+Link: https://lore.kernel.org/all/20250416042551.158131-1-sj@kernel.org/ [2]
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: ze zuo <zuoze1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/linux/damon.h |    3 ++-
+ mm/damon/core.c       |    3 +++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
---- a/fs/proc/generic.c~proc-fix-missing-pde_set_flags-for-net-proc-files-v3
-+++ a/fs/proc/generic.c
-@@ -369,18 +369,20 @@ static const struct inode_operations pro
+--- a/include/linux/damon.h~mm-damon-core-add-damon_ctx-addr_unit
++++ a/include/linux/damon.h
+@@ -746,7 +746,7 @@ struct damon_attrs {
+  * Accesses to other fields must be protected by themselves.
+  *
+  * @ops:	Set of monitoring operations for given use cases.
+- *
++ * @addr_unit:	Scale factor for core to ops address conversion.
+  * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
+  * @schemes:		Head of schemes (&damos) list.
+  */
+@@ -788,6 +788,7 @@ struct damon_ctx {
+ 	struct mutex kdamond_lock;
  
- static void pde_set_flags(struct proc_dir_entry *pde)
- {
--	if (!pde->proc_ops)
-+	const struct proc_ops *proc_ops = pde->proc_ops;
+ 	struct damon_operations ops;
++	unsigned long addr_unit;
+ 
+ 	struct list_head adaptive_targets;
+ 	struct list_head schemes;
+--- a/mm/damon/core.c~mm-damon-core-add-damon_ctx-addr_unit
++++ a/mm/damon/core.c
+@@ -544,6 +544,8 @@ struct damon_ctx *damon_new_ctx(void)
+ 	ctx->attrs.min_nr_regions = 10;
+ 	ctx->attrs.max_nr_regions = 1000;
+ 
++	ctx->addr_unit = 1;
 +
-+	if (!proc_ops)
- 		return;
+ 	INIT_LIST_HEAD(&ctx->adaptive_targets);
+ 	INIT_LIST_HEAD(&ctx->schemes);
  
--	if (pde->proc_ops->proc_flags & PROC_ENTRY_PERMANENT)
-+	if (proc_ops->proc_flags & PROC_ENTRY_PERMANENT)
- 		pde->flags |= PROC_ENTRY_PERMANENT;
--	if (pde->proc_ops->proc_read_iter)
-+	if (proc_ops->proc_read_iter)
- 		pde->flags |= PROC_ENTRY_proc_read_iter;
- #ifdef CONFIG_COMPAT
--	if (pde->proc_ops->proc_compat_ioctl)
-+	if (proc_ops->proc_compat_ioctl)
- 		pde->flags |= PROC_ENTRY_proc_compat_ioctl;
- #endif
--	if (pde->proc_ops->proc_lseek)
-+	if (proc_ops->proc_lseek)
- 		pde->flags |= PROC_ENTRY_proc_lseek;
+@@ -1245,6 +1247,7 @@ int damon_commit_ctx(struct damon_ctx *d
+ 			return err;
+ 	}
+ 	dst->ops = src->ops;
++	dst->addr_unit = src->addr_unit;
+ 
+ 	return 0;
  }
- 
 _
 
-Patches currently in -mm which might be from wangzijie1@honor.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-proc-fix-missing-pde_set_flags-for-net-proc-files.patch
+mm-zswap-store-page_size-compression-failed-page-as-is.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-fix.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-v5.patch
+mm-damon-core-add-damon_ctx-addr_unit.patch
+mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
+mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
+mm-damon-paddr-support-addr_unit-for-damos_lru_prio.patch
+mm-damon-paddr-support-addr_unit-for-migrate_hotcold.patch
+mm-damon-paddr-support-addr_unit-for-damos_stat.patch
+mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
+docs-mm-damon-design-document-address-unit-parameter.patch
+docs-admin-guide-mm-damon-usage-document-addr_unit-file.patch
+docs-abi-damon-document-addr_unit-file.patch
 
