@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCB519E7E2
-	for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2025 23:37:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1F2F19E7E2
+	for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2025 23:37:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755905830; cv=none; b=mNEb8PQDxCdY139xaVnC2GkScJzKoW8chPu2sEE3QSx2UT6vJh82eE6iVqeUHsmvSNilxvGKRhGhr7SBKZqebnNr3X9YOFlHvyB2GI7M2CmKwph8xjo81+BRc2MCzg1TjZ9ZOFmwVsnnmijN461ZnKtWgRGmXEPLPlDSfIHLE1Q=
+	t=1755905832; cv=none; b=CUdJNboTomzITX/j/xwS/Kyk62/EHCui96qTJCKjAUUt5rkuyRzc61OLpXWl5kbZTgsUD76o/i5qQeEghf4p1B2HrlXUEifzSXf4LhaRk1K2r56EQjTxwZwkkTC6B4g2OwTVxFUl487pR8fAA3nS/DrhaUXgrapMlUknNvH2FU8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755905830; c=relaxed/simple;
-	bh=4Gwss1swib68HNycY6HG63pkg8Sv159vIVfyb1GKSWA=;
-	h=Date:To:From:Subject:Message-Id; b=M13ZKbOodhYJHeceEJkAPL6Md+RJJ6sP9dDwHJRtzDf1w1fLf+rTZ/YukXPOuIPgRWBqgyQvPek+sp2ReF7BoNVSkLdibDOT77qgzc5I2f5qrJauqgcLSPbbP9RctlISLgxr6bE4dvHVj++vWfSQAjbCZJ31H6CQ+092vq/z5h0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RvCdJp3r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755905832; c=relaxed/simple;
+	bh=xnEwY/mFMmgHR97H8wsRn2QWOJDYYPkgr+z1bD6RUys=;
+	h=Date:To:From:Subject:Message-Id; b=i5QZAVXjc94lqgA4g/CFGqZzP1AYZm0sx4QQJObE1SGY/I3MbSzeBYXq6Ll+PUJMNgVp+yq0U1xc3Fxj9RCXslQMebeayE/KBmYR3xRb+O7nPzz+eI11MPnNnHfFVwtt6DcTds2h9Xx8RYyotebwswmAgQAWhUQa8Wph1zmmThM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vlUFbtXY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RvCdJp3r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A438C4CEED;
-	Fri, 22 Aug 2025 23:37:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vlUFbtXY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D822C4CEED;
+	Fri, 22 Aug 2025 23:37:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755905830;
-	bh=4Gwss1swib68HNycY6HG63pkg8Sv159vIVfyb1GKSWA=;
+	s=korg; t=1755905832;
+	bh=xnEwY/mFMmgHR97H8wsRn2QWOJDYYPkgr+z1bD6RUys=;
 	h=Date:To:From:Subject:From;
-	b=RvCdJp3rK0m6s6HQ60+8zSTlX9aNOOoZFR8eg+HR3COnymTYjiBQjM7arxuFfcrL8
-	 aEuEJdbZojZKDjQhAQoI4T/xp4TsVhWdGtMWnzNOPT5HnkNs+NVRtZLuFJOTVd5qCP
-	 YrPMT+hSj5fzRANPu4QLNicrjBpS1UPxqTaA/3Uw=
-Date: Fri, 22 Aug 2025 16:37:10 -0700
+	b=vlUFbtXY5HF/IwT27qHqQHCPLazywbxrx96DmWI6rlNGEVv01Su+st4y7kJv0KbsY
+	 ZIWeRIFTf6ijIoGg9Ojq8ee5HuPM2mABvwElNPZjs5RO6umQA/Y6SR88qn06RA21GC
+	 3dZiSlbVkbmqVEbuhbbrd0X9+izodOn7jiUViXh0=
+Date: Fri, 22 Aug 2025 16:37:12 -0700
 To: mm-commits@vger.kernel.org,zuoze1@huawei.com,yanquanmin1@huawei.com,wangkefeng.wang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-support-addr_unit-for-damos_stat.patch added to mm-new branch
-Message-Id: <20250822233710.9A438C4CEED@smtp.kernel.org>
+Subject: + mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch added to mm-new branch
+Message-Id: <20250822233712.8D822C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: support addr_unit for DAMOS_STAT
+     Subject: mm/damon/sysfs: implement addr_unit file under context dir
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-support-addr_unit-for-damos_stat.patch
+     mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-addr_unit-for-damos_stat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: support addr_unit for DAMOS_STAT
-Date: Fri, 22 Aug 2025 17:34:14 +0800
+Subject: mm/damon/sysfs: implement addr_unit file under context dir
+Date: Fri, 22 Aug 2025 17:34:15 +0800
 
-Add support of addr_unit for DAMOS_STAT action handling from the DAMOS
-operation implementation for the physical address space.
+Only DAMON kernel API callers can use addr_unit parameter.  Implement a
+sysfs file to let DAMON sysfs ABI users use it.
 
-Link: https://lkml.kernel.org/r/20250822093420.2103803-7-yanquanmin1@huawei.com
+Additionally, addr_unit must be set to a non-zero value.
+
+Link: https://lkml.kernel.org/r/20250822093420.2103803-8-yanquanmin1@huawei.com
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
@@ -80,52 +82,82 @@ Cc: ze zuo <zuoze1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/damon/sysfs.c |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-addr_unit-for-damos_stat
-+++ a/mm/damon/paddr.c
-@@ -277,17 +277,18 @@ put_folio:
- 	return applied * PAGE_SIZE / addr_unit;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-addr_unit-file-under-context-dir
++++ a/mm/damon/sysfs.c
+@@ -834,6 +834,7 @@ static const struct damon_sysfs_ops_name
+ struct damon_sysfs_context {
+ 	struct kobject kobj;
+ 	enum damon_ops_id ops_id;
++	unsigned long addr_unit;
+ 	struct damon_sysfs_attrs *attrs;
+ 	struct damon_sysfs_targets *targets;
+ 	struct damon_sysfs_schemes *schemes;
+@@ -849,6 +850,7 @@ static struct damon_sysfs_context *damon
+ 		return NULL;
+ 	context->kobj = (struct kobject){};
+ 	context->ops_id = ops_id;
++	context->addr_unit = 1;
+ 	return context;
  }
  
--static unsigned long damon_pa_stat(struct damon_region *r, struct damos *s,
-+static unsigned long damon_pa_stat(struct damon_region *r,
-+		unsigned long addr_unit, struct damos *s,
- 		unsigned long *sz_filter_passed)
+@@ -997,6 +999,32 @@ static ssize_t operations_store(struct k
+ 	return -EINVAL;
+ }
+ 
++static ssize_t addr_unit_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_context *context = container_of(kobj,
++			struct damon_sysfs_context, kobj);
++
++	return sysfs_emit(buf, "%lu\n", context->addr_unit);
++}
++
++static ssize_t addr_unit_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_context *context = container_of(kobj,
++			struct damon_sysfs_context, kobj);
++	unsigned long input_addr_unit;
++	int err = kstrtoul(buf, 0, &input_addr_unit);
++
++	if (err)
++		return err;
++	if (!input_addr_unit)
++		return -EINVAL;
++
++	context->addr_unit = input_addr_unit;
++	return count;
++}
++
+ static void damon_sysfs_context_release(struct kobject *kobj)
  {
--	unsigned long addr;
-+	phys_addr_t addr;
- 	struct folio *folio;
+ 	kfree(container_of(kobj, struct damon_sysfs_context, kobj));
+@@ -1008,9 +1036,13 @@ static struct kobj_attribute damon_sysfs
+ static struct kobj_attribute damon_sysfs_context_operations_attr =
+ 		__ATTR_RW_MODE(operations, 0600);
  
- 	if (!damos_ops_has_filter(s))
- 		return 0;
- 
--	addr = r->ar.start;
--	while (addr < r->ar.end) {
-+	addr = damon_pa_phys_addr(r->ar.start, addr_unit);
-+	while (addr < damon_pa_phys_addr(r->ar.end, addr_unit)) {
- 		folio = damon_get_folio(PHYS_PFN(addr));
- 		if (damon_pa_invalid_damos_folio(folio, s)) {
- 			addr += PAGE_SIZE;
-@@ -295,7 +296,7 @@ static unsigned long damon_pa_stat(struc
- 		}
- 
- 		if (!damos_pa_filter_out(s, folio))
--			*sz_filter_passed += folio_size(folio);
-+			*sz_filter_passed += folio_size(folio) / addr_unit;
- 		addr += folio_size(folio);
- 		folio_put(folio);
- 	}
-@@ -322,7 +323,7 @@ static unsigned long damon_pa_apply_sche
- 	case DAMOS_MIGRATE_COLD:
- 		return damon_pa_migrate(r, aunit, scheme, sz_filter_passed);
- 	case DAMOS_STAT:
--		return damon_pa_stat(r, scheme, sz_filter_passed);
-+		return damon_pa_stat(r, aunit, scheme, sz_filter_passed);
- 	default:
- 		/* DAMOS actions that not yet supported by 'paddr'. */
- 		break;
++static struct kobj_attribute damon_sysfs_context_addr_unit_attr =
++		__ATTR_RW_MODE(addr_unit, 0600);
++
+ static struct attribute *damon_sysfs_context_attrs[] = {
+ 	&damon_sysfs_context_avail_operations_attr.attr,
+ 	&damon_sysfs_context_operations_attr.attr,
++	&damon_sysfs_context_addr_unit_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_context);
+@@ -1397,6 +1429,7 @@ static int damon_sysfs_apply_inputs(stru
+ 	err = damon_select_ops(ctx, sys_ctx->ops_id);
+ 	if (err)
+ 		return err;
++	ctx->addr_unit = sys_ctx->addr_unit;
+ 	err = damon_sysfs_set_attrs(ctx, sys_ctx->attrs);
+ 	if (err)
+ 		return err;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
