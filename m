@@ -1,135 +1,166 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84AA8393DE0;
-	Fri, 22 Aug 2025 01:21:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 399AC1DD543
+	for <mm-commits@vger.kernel.org>; Fri, 22 Aug 2025 05:17:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755825683; cv=none; b=dpZ360Oqm8aaHdNM4vLJujh5XrbTp3uhZyvxmEmLj2Efo5iZZbPy0MM5gNSpg5VTOMz62Hm5XcQgT3xuvW2JC5ouxdYiqsmbQQTCxVbviFlQW+7kTCbr+A4TYQveFf46INLAMtgzURIrBGXUnYQ14DAxfsp0WIop4zUdaZcHum0=
+	t=1755839860; cv=none; b=ci+bqB/yHBemj+fNu9hhnMAg4lDhzFOvRvjbmxGTRyDDcCgOgo7zh8eoAmhGCm0ROTjZP7k60HYkv77krBhW34WnrziqJpFvbPeUlvCAwOWw9VYV/lmyP44xTrRZ/rCy7TmPnOg9XTY5cCHwXQSbeDHYoEbKTdjcrN3D0v93N4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755825683; c=relaxed/simple;
-	bh=tVhsYHxxFfX7gGzpp6/1LpcEhJi77iuO99nxuLjq6VE=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=q9afxS4V+qJ6DfAquIFJ2AVMn/kT3m2IaNl0tnnaDuKIwhOl4DE6xwqReygWMcTR2umJLX/Ww28b8/biAvzr4z/Dvhv3ikcx1nNMTYczVBjyhdml5LOPsR0L5/42IsjBv9d+WIMlA41zJCanXPCH8cPrupQ1YjLB2Snu0bH4E5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VmRuWpWJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755839860; c=relaxed/simple;
+	bh=+r52HagsbsETIyQbyQ751vE4ubvNoPUKx6S6+0H1LcY=;
+	h=Date:To:From:Subject:Message-Id; b=dcFODX6dSSoC96/pIjJBvoYDNZ+u9acfVCSuYFs6FA/uQ/zNCUhEXP1oFFneGEOKB/xcZAk1dhiQUqkGGvk4irafYej1xDoIHDYIYpOkE1K/4lI3Flv9Oi07a3jcS09tLh5omzmO0ybrgLPN+SgDHXkhryceWtQY0sQRSf10haM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z/4iREOe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VmRuWpWJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA7DCC4CEEB;
-	Fri, 22 Aug 2025 01:21:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z/4iREOe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CB6BC4CEF1;
+	Fri, 22 Aug 2025 05:17:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755825683;
-	bh=tVhsYHxxFfX7gGzpp6/1LpcEhJi77iuO99nxuLjq6VE=;
-	h=Date:From:To:Cc:Subject:From;
-	b=VmRuWpWJNQvSp2Yp6FHRGVB4G0XYU6yBwuR9Ey439kdy0gKxIPav8VKcWWeG4FGoV
-	 sEX1+CDT1U/YivRO40cVHX1BZEd3SOcRIejgpo3+zRTbetfu+lfNvQlGUBuzoAs04+
-	 WICZ4EUJJ9tgfCVPCdSjzDxiWpAsmP621V3ogmzc=
-Date: Thu, 21 Aug 2025 18:21:22 -0700
+	s=korg; t=1755839856;
+	bh=+r52HagsbsETIyQbyQ751vE4ubvNoPUKx6S6+0H1LcY=;
+	h=Date:To:From:Subject:From;
+	b=Z/4iREOeB7uKN2fNaNbd6NKXK3ETLh2NjIbAvoqk6kaolkjOkZaPFySv1ko3LrXb6
+	 uXvmiaP3uT/SX3d1YznYUhgK74l28XYAy1Aqte8n3Ty48UMj0kIODlAvvgLI7uEXoA
+	 +RfQVDlHoqjRNzppzcKEEbW6HjGJ+upAKwyGvw+c=
+Date: Thu, 21 Aug 2025 22:17:35 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,lorenzo.stoakes@oracle.com,lkp@intel.com,dave.hansen@intel.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.17-rc3
-Message-Id: <20250821182122.eb19072cafdbc6612e76ac8f@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250822051736.9CB6BC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this week's bunch of mainly-MM hotfixes, thanks.
+The patch titled
+     Subject: mm: fix KASAN build error due to p*d_populate_kernel()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch
 
-The following changes since commit c17b750b3ad9f45f2b6f7e6f7f4679844244f0b9:
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Linux 6.17-rc2 (2025-08-17 15:22:10 -0700)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-08-21-18-17
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-for you to fetch changes up to 772e5b4a5e8360743645b9a466842d16092c4f94:
+------------------------------------------------------
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: mm: fix KASAN build error due to p*d_populate_kernel()
+Date: Fri, 22 Aug 2025 11:07:27 +0900
 
-  mm/mremap: fix WARN with uffd that has remap events disabled (2025-08-19 16:35:57 -0700)
+Address a linker error introduced by a patch currently in mm-hotfixes:
+"mm: introduce and use {pgd,p4d}_populate_kernel" [1].
 
-----------------------------------------------------------------
-20 hotfixes.  10 are cc:stable and the remainder address post-6.16 issues
-or aren't considered necessary for -stable kernels.  17 of these fixes are
-for MM.
+KASAN unconditionally references kasan_early_shadow_{p4d,pud}.
+However, these global variables may not exist depending on the number of
+page table levels. For example, if CONFIG_PGTABLE_LEVELS=3, both
+variables do not exist. Although KASAN may refernce non-existent
+variables, it didn't break builds because calls to {pgd,p4d}_populate()
+are optimized away at compile time.
 
-As usual, singletons all over the place, apart from a three-patch series
-of KHO followup work from Pasha which is actually also a bunch of
-singletons.
+However, {pgd,p4d}_populate_kernel() is defined as a function regardless
+of the number of page table levels, so the compiler may not optimize
+them away. In this case, the following linker error occurs:
 
-----------------------------------------------------------------
-Alice Ryhl (1):
-      mm: rust: add page.rs to MEMORY MANAGEMENT - RUST
+ld.lld: error: undefined symbol: kasan_early_shadow_p4d
+>>> referenced by init.c:260 (/home/hyeyoo/mm-new/mm/kasan/init.c:260)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> referenced by init.c:260 (/home/hyeyoo/mm-new/mm/kasan/init.c:260)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> did you mean: kasan_early_shadow_pmd
+>>> defined in: vmlinux.a(mm/kasan/init.o)
 
-Axel Rasmussen (1):
-      MAINTAINERS: mark MGLRU as maintained
+ld.lld: error: undefined symbol: kasan_early_shadow_pud
+>>> referenced by init.c:263 (/home/hyeyoo/mm-new/mm/kasan/init.c:263)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> referenced by init.c:263 (/home/hyeyoo/mm-new/mm/kasan/init.c:263)
+>>>               mm/kasan/init.o:(kasan_populate_early_shadow) in archive vmlinux.a
+>>> referenced by init.c:200 (/home/hyeyoo/mm-new/mm/kasan/init.c:200)
+>>>               mm/kasan/init.o:(zero_p4d_populate) in archive vmlinux.a
+>>> referenced 1 more times
 
-David Hildenbrand (1):
-      mm/mremap: fix WARN with uffd that has remap events disabled
+Therefore, to allow calls to {pgd,p4d}_populate_kernel() to be optimized
+out at compile time, define {pgd,p4d}_populate_kernel() as macros.  This
+way, when pgd_populate() or p4d_populate() are simply empty macros, the
+corresponding *_populate_kernel() functions can also be optimized away.
 
-Dominique Martinet (1):
-      iov_iter: iterate_folioq: fix handling of offset >= folio size
+Link: https://lkml.kernel.org/r/20250822020727.202749-1-harry.yoo@oracle.com
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202508181636.0Rtk0T7x-lkp@intel.com
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Closes: https://lore.kernel.org/lkml/20250821160515.611d191e@canb.auug.org.au
+Link: https://lore.kernel.org/linux-mm/20250818020206.4517-3-harry.yoo@oracle.com [1]
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Easwar Hariharan (1):
-      .mailmap: add entry for Easwar Hariharan
+ include/linux/pgalloc.h |   33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-Herton R. Krzesinski (1):
-      mm/debug_vm_pgtable: clear page table entries at destroy_args()
+--- a/include/linux/pgalloc.h~mm-introduce-and-use-pgdp4d_populate_kernel-fix
++++ a/include/linux/pgalloc.h
+@@ -5,20 +5,25 @@
+ #include <linux/pgtable.h>
+ #include <asm/pgalloc.h>
+ 
+-static inline void pgd_populate_kernel(unsigned long addr, pgd_t *pgd,
+-				       p4d_t *p4d)
+-{
+-	pgd_populate(&init_mm, pgd, p4d);
+-	if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_PGD_MODIFIED)
+-		arch_sync_kernel_mappings(addr, addr);
+-}
++/*
++ * {pgd,p4d}_populate_kernel() are defined as macros to allow
++ * compile-time optimization based on the configured page table levels.
++ * Without this, linking may fail because callers (e.g., KASAN) may rely
++ * on calls to these functions being optimized away when passing symbols
++ * that exist only for certain page table levels.
++ */
++#define pgd_populate_kernel(addr, pgd, p4d)				\
++	do {								\
++		pgd_populate(&init_mm, pgd, p4d);			\
++		if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_PGD_MODIFIED)	\
++			arch_sync_kernel_mappings(addr, addr);		\
++	} while (0)
+ 
+-static inline void p4d_populate_kernel(unsigned long addr, p4d_t *p4d,
+-				       pud_t *pud)
+-{
+-	p4d_populate(&init_mm, p4d, pud);
+-	if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_P4D_MODIFIED)
+-		arch_sync_kernel_mappings(addr, addr);
+-}
++#define p4d_populate_kernel(addr, p4d, pud)				\
++	do {								\
++		p4d_populate(&init_mm, p4d, pud);			\
++		if (ARCH_PAGE_TABLE_SYNC_MASK & PGTBL_P4D_MODIFIED)	\
++			arch_sync_kernel_mappings(addr, addr);		\
++	} while (0)
+ 
+ #endif /* _LINUX_PGALLOC_H */
+_
 
-Huacai Chen (1):
-      mm/migrate: fix NULL movable_ops if CONFIG_ZSMALLOC=m
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-Jinjiang Tu (1):
-      mm/memory-failure: fix infinite UCE for VM_PFNMAP pfn
-
-Lorenzo Stoakes (4):
-      tools/testing: add linux/args.h header and fix radix, VMA tests
-      mm/mremap: allow multi-VMA move when filesystem uses thp_get_unmapped_area
-      mm/mremap: catch invalid multi VMA moves earlier
-      selftests/mm: add test for invalid multi VMA operations
-
-Pasha Tatashin (3):
-      kho: init new_physxa->phys_bits to fix lockdep
-      kho: mm: don't allow deferred struct page with KHO
-      kho: warn if KHO is disabled due to an error
-
-Phillip Lougher (1):
-      squashfs: fix memory leak in squashfs_fill_super
-
-Sang-Heon Jeon (3):
-      mm/damon/core: fix commit_ops_filters by using correct nth function
-      selftests/damon: fix selftests by installing drgn related script
-      mm/damon/core: fix damos_commit_filter not changing allow
-
-SeongJae Park (1):
-      mm/damon/sysfs-schemes: put damos dests dir after removing its files
-
- .mailmap                                 |   2 +
- MAINTAINERS                              |  19 +++
- fs/squashfs/super.c                      |  14 +-
- include/linux/iov_iter.h                 |  20 +--
- include/linux/migrate.h                  |   5 +
- kernel/Kconfig.kexec                     |   1 +
- kernel/kexec_handover.c                  |  29 +++-
- mm/balloon_compaction.c                  |   6 +
- mm/damon/core.c                          |  15 +-
- mm/damon/sysfs-schemes.c                 |   2 +-
- mm/debug_vm_pgtable.c                    |   9 +-
- mm/memory-failure.c                      |   8 +
- mm/migrate.c                             |  38 ++++-
- mm/mremap.c                              |  82 ++++++----
- mm/zsmalloc.c                            |  10 ++
- tools/include/linux/args.h               |  28 ++++
- tools/testing/selftests/damon/Makefile   |   1 +
- tools/testing/selftests/mm/mremap_test.c | 264 ++++++++++++++++++++++++++++++-
- tools/testing/shared/linux/idr.h         |   4 +
- 19 files changed, 487 insertions(+), 70 deletions(-)
- create mode 100644 tools/include/linux/args.h
+mm-move-page-table-sync-declarations-to-linux-pgtableh.patch
+mm-introduce-and-use-pgdp4d_populate_kernel.patch
+mm-introduce-and-use-pgdp4d_populate_kernel-fix.patch
+x86-mm-64-define-arch_page_table_sync_mask-and-arch_sync_kernel_mappings.patch
 
