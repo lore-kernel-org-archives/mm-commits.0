@@ -1,91 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA11A1DACA1
-	for <mm-commits@vger.kernel.org>; Sat, 23 Aug 2025 03:35:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F8F393DEA
+	for <mm-commits@vger.kernel.org>; Sat, 23 Aug 2025 17:08:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755920139; cv=none; b=Vu/3meQ8v+8LkdMEARS0FqgiNtKVnKxp2/ewxwuICTExOGt0wh6lPp2+gaGXlBk6bd63Vxkz8nVQoBWvieqraOT16OAG/T/ldsidFY2Jf6EJF9LlLGICTaT/zhdamt/bxfJ6PK7HKIeJIubPOq5dc3y6mNVdlRQji/JIr16aK+E=
+	t=1755968938; cv=none; b=FlDdfwqFptaXpLv1/i9To2x4Dr66a03e1KsSAnCtR3qieo9N6e5K6LE7nqYRO/L8kZ/KWUpyeoX2z13GPJohr4UXtTlE/4nB6km21iNa0aydeMjUBsnznKVX+abxPEq5VKogKeek/UEdZjOU41diUb6JHwB0HWBLoYYIN1l68bE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755920139; c=relaxed/simple;
-	bh=QnQZzZuXEPd2iynBdku6mFUYp8GVVLCKISPS7iHBUQA=;
-	h=Date:From:To:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=OqvrKYpW9KjyqDHyp8bOCDrhPMnhfUCGf7wExkm9FQf0kelqS9xqb1/Rg4BfzFXhIAnE/xhLyoh8351zqlION7SzW40LV+OQaO/obn6xWPE45upYcpwLsq6wpTTdh4vwTN4LSiB8SJuKEdQxC0K7X23CYx0CxPPQRSfpnK2hTMs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ciSbrScZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755968938; c=relaxed/simple;
+	bh=4D/I/D6kXUMFxH+d3KbD4xFj0M0VlvIp5ryH/wHFLCc=;
+	h=Date:To:From:Subject:Message-Id; b=gfRpCfXntiwuVXjkElGJwUEO0VCFSv/8ir5d8SKHiMTqrdD63fD6ttumvAhkfXjlBUkNhe8hzzeq1ENR2wfCywz9Vdo3+od41wztZfoxEA8ftkM4poSu+zQwz8Bs9J/kVGQJAjG4uMspD1Lno42cMnPAPlrfAJ+v9Eq39EeJ1Y8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mRlDmthI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ciSbrScZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 294E3C4CEED;
-	Sat, 23 Aug 2025 03:35:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mRlDmthI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69B06C4CEE7;
+	Sat, 23 Aug 2025 17:08:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755920138;
-	bh=QnQZzZuXEPd2iynBdku6mFUYp8GVVLCKISPS7iHBUQA=;
-	h=Date:From:To:Subject:In-Reply-To:References:From;
-	b=ciSbrScZRwIoDF9siCx76GRQeBz8ygu25A7k6lgi9mDAa+cuGsMo0DStZWSok/8AO
-	 JSS0/6gjOytV+0ceOEWCUAnqp8Yn6dOiAy/wD6SgG4MIyGkYbRSoDHxEvBRgVtVNZ3
-	 rFdgwFXRpuxvwn/AKxgdH270lNaN3SspP50tJP58=
-Date: Fri, 22 Aug 2025 20:35:37 -0700
+	s=korg; t=1755968937;
+	bh=4D/I/D6kXUMFxH+d3KbD4xFj0M0VlvIp5ryH/wHFLCc=;
+	h=Date:To:From:Subject:From;
+	b=mRlDmthIwDBrgT7ZgjTdBfSahrfHfynSDBjlKDRJILWyobND3EOClpkHQiiEt0QtT
+	 CDFprzqnUx9Tt6hcnKifoxc876ZDB1PiF5UQFelnWcqgTnhb+XI9e0m81WkovkdY4C
+	 xpqo2laVTGAjOKUyYpjjFS3zvopRs493DfyENlmE=
+Date: Sat, 23 Aug 2025 10:08:56 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,allyheev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: mm-commits@vger.kernel.org, martin.petersen@oracle.com,
- bostroesser@gmail.com
-Subject: Re: [withdrawn]
- drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages.patch
- removed from -mm tree
-Message-Id: <20250822203537.9b496fe27cae69cf8991fbd8@linux-foundation.org>
-In-Reply-To: <20250823032932.1BB97C4CEED@smtp.kernel.org>
-References: <20250823032932.1BB97C4CEED@smtp.kernel.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + kselftest-mm-fix-typos-in-test_vmallocsh.patch added to mm-unstable branch
+Message-Id: <20250823170857.69B06C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Fri, 22 Aug 2025 20:29:31 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
 
-> 
-> The quilt patch titled
->      Subject: drivers/target/target_core_user.c: use PAGES_TO_MB and MB_TO_PAGES
-> has been removed from the -mm tree.  Its filename was
->      drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages.patch
-> 
-> This patch was dropped because it was withdrawn
-> 
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: drivers/target/target_core_user.c: use PAGES_TO_MB and MB_TO_PAGES
-> Date: Fri Aug 22 08:07:35 PM PDT 2025
-> 
-> Replace the custom TCMU_MBS_TO_PAGES and TCMU_PAGES_TO_MBS with the new
-> system-wide MB_TO_PAGES and PAGES_TO_MB.
-> 
-> Cc: Bodo Stroesser <bostroesser@gmail.com>
-> Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/target/target_core_user.c |   30 +++++++++++++---------------
->  1 file changed, 14 insertions(+), 16 deletions(-)
-> 
-> --- a/drivers/target/target_core_user.c~drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages
-> +++ a/drivers/target/target_core_user.c
-> @@ -15,6 +15,7 @@
->  #include <linux/uio_driver.h>
->  #include <linux/xarray.h>
->  #include <linux/stringify.h>
-> +#include <linux/mm.h>
->  #include <linux/bitops.h>
->  #include <linux/highmem.h>
->  #include <linux/configfs.h>
-> @@ -74,9 +75,6 @@
->  #define DATA_PAGES_PER_BLK_DEF 1
->  #define DATA_AREA_PAGES_DEF (256 * 1024)
->  
-> -#define TCMU_MBS_TO_PAGES(_mbs) ((size_t)_mbs << (20 - PAGE_SHIFT))
-> -#define TCMU_PAGES_TO_MBS(_pages) (_pages >> (20 - PAGE_SHIFT))
+The patch titled
+     Subject: kselftest: mm: fix typos in test_vmalloc.sh
+has been added to the -mm mm-unstable branch.  Its filename is
+     kselftest-mm-fix-typos-in-test_vmallocsh.patch
 
-Bah, the size_t cast turned out to be important.  Please add to the
-tail of your TODO list ;)
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-fix-typos-in-test_vmallocsh.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: ally heev <allyheev@gmail.com>
+Subject: kselftest: mm: fix typos in test_vmalloc.sh
+Date: Sat, 23 Aug 2025 22:32:08 +0530
+
+Link: https://lkml.kernel.org/r/20250823170208.184149-1-allyheev@gmail.com
+Signed-off-by: ally heev <allyheev@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/mm/test_vmalloc.sh |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/tools/testing/selftests/mm/test_vmalloc.sh~kselftest-mm-fix-typos-in-test_vmallocsh
++++ a/tools/testing/selftests/mm/test_vmalloc.sh
+@@ -47,14 +47,14 @@ check_test_requirements()
+ 	fi
+ }
+ 
+-run_perfformance_check()
++run_performance_check()
+ {
+ 	echo "Run performance tests to evaluate how fast vmalloc allocation is."
+ 	echo "It runs all test cases on one single CPU with sequential order."
+ 
+ 	modprobe $DRIVER $PERF_PARAM > /dev/null 2>&1
+ 	echo "Done."
+-	echo "Ccheck the kernel message buffer to see the summary."
++	echo "Check the kernel message buffer to see the summary."
+ }
+ 
+ run_stability_check()
+@@ -160,7 +160,7 @@ function run_test()
+ 		usage
+ 	else
+ 		if [[ "$1" = "performance" ]]; then
+-			run_perfformance_check
++			run_performance_check
+ 		elif [[ "$1" = "stress" ]]; then
+ 			run_stability_check
+ 		elif [[ "$1" = "smoke" ]]; then
+_
+
+Patches currently in -mm which might be from allyheev@gmail.com are
+
+kselftest-mm-fix-typos-in-test_vmallocsh.patch
 
