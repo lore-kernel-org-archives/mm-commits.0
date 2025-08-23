@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E371D3D994
-	for <mm-commits@vger.kernel.org>; Sat, 23 Aug 2025 02:00:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B979113E41A
+	for <mm-commits@vger.kernel.org>; Sat, 23 Aug 2025 03:12:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755914439; cv=none; b=qfjnAHQekNNA4mdR8D1OlWrfe2efosM6K9FQ1JhmM0Xkd/I5fz1MeNzm8WAC+i8lr2fI4Bn6zvN+L3hywhEZdtz0wS1ZMLRlIFOObc5LBFsIqrPrhVabckHP9Qq26mhY6nXov8TN0420N+1uXSm5STXNjmSGyB/Jy48FqqlYEsU=
+	t=1755918766; cv=none; b=ARssfvVuVGJi5wzGUca9tKE7aVs7qkQuEcpM8APBKPpJjCeJV5ahEsLQnN1mBk2yFaq5DarFQ+A7MXphN0C/uRA7YMAP9/RITZCrov8U5iW5Wh/93yYF+eklSL4QlEhFsRL9qF1nCeFuhBypDMFUClKxbxJ+b9L8EigUrL03LcM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755914439; c=relaxed/simple;
-	bh=0DmFiKZvNbajInfwxTc0nhCo7V3CU4esI2rb1AreTls=;
-	h=Date:To:From:Subject:Message-Id; b=jhQNNsO2x1SdbsOMncYjiDeXjZh0ITOuWYbl7m9t0RR3EoSLam4EY2l454JC/1G5dPj1WH4/DdToNHsM7AniVQPgK1AF3yt59PFuFkw3wdIR/Dzg284aiirihMc7Mfpl0YEOjDJ4YfMUMQxruCfBdLNasVMtOn14t36CBN47hQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fwh7sdqt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755918766; c=relaxed/simple;
+	bh=4whQC0zZndT/mx55xPJCH9woTWSPw70jTsZqh9tbxGQ=;
+	h=Date:To:From:Subject:Message-Id; b=BaHe0SYlUGtUqvDCnknQJm4mRUpxxx1mlpld7k3TbwvZI12C7VKiYv7udvCi+BUbPyHNz9hAa/HEXok6G/yesIOComC6lWj2KTwQX2nQFWebgT8wZUe8XmKw95W+C3YVIs4n3tnc+s9dmqgyU7+RQFLU2XffES2NESpycrKogKM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IKvunHIs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fwh7sdqt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92A1AC4CEED;
-	Sat, 23 Aug 2025 02:00:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IKvunHIs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16B4CC4CEED;
+	Sat, 23 Aug 2025 03:12:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755914438;
-	bh=0DmFiKZvNbajInfwxTc0nhCo7V3CU4esI2rb1AreTls=;
+	s=korg; t=1755918766;
+	bh=4whQC0zZndT/mx55xPJCH9woTWSPw70jTsZqh9tbxGQ=;
 	h=Date:To:From:Subject:From;
-	b=fwh7sdqtUtYpTHXiTi4X5F4EnoJwtoij8olIK4xgaXtkh0d1quzklC35Kwx69h/Dl
-	 Z9g4GNSJvEZs2ae26GGh9WlyYOVcYfn14Gx+dJRrZtmX1d7nGY7whqnTGW2VI492ZO
-	 IZml9Klic/QTzFmL8ORyC06YDI0hw26aVb/heWa4=
-Date: Fri, 22 Aug 2025 19:00:38 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vgupta@kernel.org,lorenzo.stoakes@oracle.com,lkp@intel.com,liuye@kylinos.cn,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=IKvunHIsXUD/EC96I3LQS7+8u6MoItlpZ4iW/te13aqPNk2pwmGJzSaqeKELA3Yd9
+	 voqxOx4IFdyeiroAXuR+caDu4jj8NojOJg13Ns00rzkOTAlc6b6kPwuVl/DaMwPaj+
+	 5c1wmo39wFR8RIC3eThYFHnzwmoNb/gNE5W0cPSM=
+Date: Fri, 22 Aug 2025 20:12:45 -0700
+To: mm-commits@vger.kernel.org,martin.petersen@oracle.com,bostroesser@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch added to mm-unstable branch
-Message-Id: <20250823020038.92A1AC4CEED@smtp.kernel.org>
+Subject: + drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages.patch added to mm-unstable branch
+Message-Id: <20250823031246.16B4CC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix
+     Subject: drivers/target/target_core_user.c: use PAGES_TO_MB and MB_TO_PAGES
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch
+     drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,50 +59,133 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix
-Date: Fri Aug 22 02:54:15 PM PDT 2025
+Subject: drivers/target/target_core_user.c: use PAGES_TO_MB and MB_TO_PAGES
+Date: Fri Aug 22 08:07:35 PM PDT 2025
 
-remove arc's private PAGES_TO_MB, remove its unused PAGES_TO_KB
+Replace the custom TCMU_MBS_TO_PAGES and TCMU_PAGES_TO_MBS with the new
+system-wide MB_TO_PAGES and PAGES_TO_MB.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lkml.kernel.org/r/202508230539.pnO97SIj-lkp@intel.com
-Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: Ye Liu <liuye@kylinos.cn>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
+Cc: Bodo Stroesser <bostroesser@gmail.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/arcregs.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/target/target_core_user.c |   30 +++++++++++++---------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
---- a/arch/arc/include/asm/arcregs.h~mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix
-+++ a/arch/arc/include/asm/arcregs.h
-@@ -146,14 +146,13 @@
- 
- #ifndef __ASSEMBLER__
- 
+--- a/drivers/target/target_core_user.c~drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages
++++ a/drivers/target/target_core_user.c
+@@ -15,6 +15,7 @@
+ #include <linux/uio_driver.h>
+ #include <linux/xarray.h>
+ #include <linux/stringify.h>
 +#include <linux/mm.h>
-+
- #include <soc/arc/arc_aux.h>
+ #include <linux/bitops.h>
+ #include <linux/highmem.h>
+ #include <linux/configfs.h>
+@@ -74,9 +75,6 @@
+ #define DATA_PAGES_PER_BLK_DEF 1
+ #define DATA_AREA_PAGES_DEF (256 * 1024)
  
- /* Helpers */
- #define TO_KB(bytes)		((bytes) >> 10)
- #define TO_MB(bytes)		(TO_KB(bytes) >> 10)
--#define PAGES_TO_KB(n_pages)	((n_pages) << (PAGE_SHIFT - 10))
--#define PAGES_TO_MB(n_pages)	(PAGES_TO_KB(n_pages) >> 10)
+-#define TCMU_MBS_TO_PAGES(_mbs) ((size_t)_mbs << (20 - PAGE_SHIFT))
+-#define TCMU_PAGES_TO_MBS(_pages) (_pages >> (20 - PAGE_SHIFT))
 -
- 
  /*
-  ***************************************************************
+  * Default number of global data blocks(512K * PAGE_SIZE)
+  * when the unmap thread will be started.
+@@ -240,7 +238,7 @@ static int tcmu_set_global_max_data_area
+ 		return -EINVAL;
+ 	}
+ 
+-	tcmu_global_max_pages = TCMU_MBS_TO_PAGES(max_area_mb);
++	tcmu_global_max_pages = MB_TO_PAGES(max_area_mb);
+ 	if (atomic_read(&global_page_count) > tcmu_global_max_pages)
+ 		schedule_delayed_work(&tcmu_unmap_work, 0);
+ 	else
+@@ -252,7 +250,7 @@ static int tcmu_set_global_max_data_area
+ static int tcmu_get_global_max_data_area(char *buffer,
+ 					 const struct kernel_param *kp)
+ {
+-	return sprintf(buffer, "%d\n", TCMU_PAGES_TO_MBS(tcmu_global_max_pages));
++	return sprintf(buffer, "%d\n", PAGES_TO_MB(tcmu_global_max_pages));
+ }
+ 
+ static const struct kernel_param_ops tcmu_global_max_data_area_op = {
+@@ -1620,7 +1618,7 @@ static struct se_device *tcmu_alloc_devi
+ 	udev->data_pages_per_blk = DATA_PAGES_PER_BLK_DEF;
+ 	udev->max_blocks = DATA_AREA_PAGES_DEF / udev->data_pages_per_blk;
+ 	udev->cmdr_size = CMDR_SIZE_DEF;
+-	udev->data_area_mb = TCMU_PAGES_TO_MBS(DATA_AREA_PAGES_DEF);
++	udev->data_area_mb = PAGES_TO_MB(DATA_AREA_PAGES_DEF);
+ 
+ 	mutex_init(&udev->cmdr_lock);
+ 
+@@ -2226,7 +2224,7 @@ static int tcmu_configure_device(struct
+ 	udev->mb_addr = mb;
+ 	udev->cmdr = (void *)mb + CMDR_OFF;
+ 	udev->data_off = udev->cmdr_size + CMDR_OFF;
+-	data_size = TCMU_MBS_TO_PAGES(udev->data_area_mb) << PAGE_SHIFT;
++	data_size = MB_TO_PAGES(udev->data_area_mb) << PAGE_SHIFT;
+ 	udev->mmap_pages = (data_size + udev->cmdr_size + CMDR_OFF) >> PAGE_SHIFT;
+ 	udev->data_blk_size = udev->data_pages_per_blk * PAGE_SIZE;
+ 	udev->dbi_thresh = 0; /* Default in Idle state */
+@@ -2477,14 +2475,14 @@ static int tcmu_set_max_blocks_param(str
+ 		pr_err("Invalid max_data_area %d.\n", val);
+ 		return -EINVAL;
+ 	}
+-	if (val > TCMU_PAGES_TO_MBS(tcmu_global_max_pages)) {
++	if (val > PAGES_TO_MB(tcmu_global_max_pages)) {
+ 		pr_err("%d is too large. Adjusting max_data_area_mb to global limit of %u\n",
+-		       val, TCMU_PAGES_TO_MBS(tcmu_global_max_pages));
+-		val = TCMU_PAGES_TO_MBS(tcmu_global_max_pages);
++		       val, PAGES_TO_MB(tcmu_global_max_pages));
++		val = PAGES_TO_MB(tcmu_global_max_pages);
+ 	}
+-	if (TCMU_MBS_TO_PAGES(val) < pages_per_blk) {
++	if (MB_TO_PAGES(val) < pages_per_blk) {
+ 		pr_err("Invalid max_data_area %d (%zu pages): smaller than data_pages_per_blk (%u pages).\n",
+-		       val, TCMU_MBS_TO_PAGES(val), pages_per_blk);
++		       val, MB_TO_PAGES(val), pages_per_blk);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2496,7 +2494,7 @@ static int tcmu_set_max_blocks_param(str
+ 	}
+ 
+ 	udev->data_area_mb = val;
+-	udev->max_blocks = TCMU_MBS_TO_PAGES(val) / pages_per_blk;
++	udev->max_blocks = MB_TO_PAGES(val) / pages_per_blk;
+ 
+ unlock:
+ 	mutex_unlock(&udev->cmdr_lock);
+@@ -2514,10 +2512,10 @@ static int tcmu_set_data_pages_per_blk(s
+ 		return ret;
+ 	}
+ 
+-	if (val > TCMU_MBS_TO_PAGES(udev->data_area_mb)) {
++	if (val > MB_TO_PAGES(udev->data_area_mb)) {
+ 		pr_err("Invalid data_pages_per_blk %d: greater than max_data_area_mb %d -> %zd pages).\n",
+ 		       val, udev->data_area_mb,
+-		       TCMU_MBS_TO_PAGES(udev->data_area_mb));
++		       MB_TO_PAGES(udev->data_area_mb));
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2529,7 +2527,7 @@ static int tcmu_set_data_pages_per_blk(s
+ 	}
+ 
+ 	udev->data_pages_per_blk = val;
+-	udev->max_blocks = TCMU_MBS_TO_PAGES(udev->data_area_mb) / val;
++	udev->max_blocks = MB_TO_PAGES(udev->data_area_mb) / val;
+ 
+ unlock:
+ 	mutex_unlock(&udev->cmdr_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch
+drivers-target-target_core_userc-use-pages_to_mb-and-mb_to_pages.patch
 mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
 mm-convert-core-mm-to-mm_flags_-accessors-fix.patch
 memcg-optimize-exit-to-user-space-fix.patch
