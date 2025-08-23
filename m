@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87C4278F2E;
-	Sat, 23 Aug 2025 00:57:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AF08146D45
+	for <mm-commits@vger.kernel.org>; Sat, 23 Aug 2025 01:39:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755910643; cv=none; b=e9SrU1nnufYUTgi4Hx+b0EF71n0y5jS0A4MbReaSuxf5pQjfLSRO/QBI83qHYKmwxdjSSP1y9O0Jjo6irjQvOS1xrlcnAz/2w/lzp8MjECyIGvDElNbxh4p2mKfKgbjCG4ZQYzo++TmNLmKMs8dIbkHt4+z7wyI3Ws4k+5B0nMo=
+	t=1755913179; cv=none; b=oK+aczaqLJaXFr8wrijiM3VUpg/luLwFYeSWyIo/9a7Nffs6Iy8SO38KKpT6vuwRWbm/rOjM2Q43CgFfcdVdIUQqAFnalRTPSCaX0rbZ5wiNKiNThhtANiPPqSyKSjKfnpszKdSpa4LtzN+fQAyB3wPaaGvlfk+ZK7Z+adCw4EU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755910643; c=relaxed/simple;
-	bh=nSDVIkmCX5MSWoVrHx+N/vP9bqC4kl+3LaAFjmZMerU=;
-	h=Date:To:From:Subject:Message-Id; b=k3YsUMvzN+sy3ca4w0ssdEOcViNMYY79Kmssbjcdll8ZMIxUn/teRBFD+wnYQ2vnuZq5dtV3uij3zX6j/2NeXV2Zj0YjSD2FC/Ck5xdWLfg6uhdULzTBBr/QcchzFAZlNo1NjpvuviqOHs39kyBMy19FcTzKGA2HjFmxOLn/7VY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I/73VkpB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755913179; c=relaxed/simple;
+	bh=n2KGz4qskK/krb7MNUBlxheSRPexEwdisse3VQ34Azg=;
+	h=Date:To:From:Subject:Message-Id; b=oVJL/1b2n4aCriHrD9mLZQSvPYUAdeFWb4zt15wEjRrse93wknChcTSfyiRTohIlqPnZZgj1ZtiDQvy0T50rGTEAF81opcJvuiV30fiaej4McC/FsJFAjaDw2muCoLcRaShFp/TlTCzLZW6bQDA32AoAPf6zM9r3kwII+nZHa+w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9UZhNEK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I/73VkpB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0027EC4CEED;
-	Sat, 23 Aug 2025 00:57:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9UZhNEK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AE8EC4CEED;
+	Sat, 23 Aug 2025 01:39:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755910643;
-	bh=nSDVIkmCX5MSWoVrHx+N/vP9bqC4kl+3LaAFjmZMerU=;
+	s=korg; t=1755913178;
+	bh=n2KGz4qskK/krb7MNUBlxheSRPexEwdisse3VQ34Azg=;
 	h=Date:To:From:Subject:From;
-	b=I/73VkpBRj7jXdzxrG1dyfCOGVtaCF9N3Iy6DC3su4la2ult2DCq35gviqHkq+42d
-	 Cu7GUX9AB7r71C41tQzUoXBPjcSWAxFlD3lejGJelgmM+ryfCvJMjUA4A77wiE+qc9
-	 PBSeIQ+zo2V3n1d8kWXLbkZ6XRz9MXQgZ2lEqsFI=
-Date: Fri, 22 Aug 2025 17:57:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=S9UZhNEKSl0VtcIfi7LsaiSKSj8FEPiYKveJidL1mfTYd2TvBM3ylprRkEWkmqM+f
+	 sBg3krqn4s/TnO9ue+caqLyxwKUxDx3vIpMiDeVH7XBD0Lap7g1jhTeIvr9KyjWWaU
+	 x5fsFKxDDBKIrbEUCyMbUpxjwRwPXqUoy0YGaO2o=
+Date: Fri, 22 Aug 2025 18:39:37 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,yili@winhong.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250823005723.0027EC4CEED@smtp.kernel.org>
+Subject: + ocfs2-fix-super-block-reserved-field-offset-comment.patch added to mm-nonmm-unstable branch
+Message-Id: <20250823013938.2AE8EC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: fix the address passed to notifier on testing young
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young.patch
+     Subject: ocfs2: fix super block reserved field offset comment
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-super-block-reserved-field-offset-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-super-block-reserved-field-offset-comment.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/khugepaged: fix the address passed to notifier on testing young
-Date: Fri, 22 Aug 2025 06:33:18 +0000
+From: yili <yili@winhong.com>
+Subject: ocfs2: fix super block reserved field offset comment
+Date: Thu, 7 Aug 2025 23:57:49 +0800
 
-Commit 8ee53820edfd ("thp: mmu_notifier_test_young") introduced
-mmu_notifier_test_young(), but we should pass the address need to test. 
-In xxx_scan_pmd(), the actual iteration address is "_address" not
-"address".  We seem to misuse the variable on the very beginning.
+The offset annotation for s_reserved2 in struct ocfs2_super_block
+was incorrect. After the preceding fields:
+- s_xattr_inline_size (2 bytes at 0xB8)
+- s_reserved0 (2 bytes at 0xBA)
+- s_dx_seed[3] (12 bytes at 0xBC)
 
-Change it to the right one.
+The actual offset of s_reserved2 is at 0xC8, when calculating from the
+start of the structure.
 
-Link: https://lkml.kernel.org/r/20250822063318.11644-1-richard.weiyang@gmail.com
-Fixes: 8ee53820edfd ("thp: mmu_notifier_test_young")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: <stable@vger.kernel.org>
+Correct the offset comment from C0 to C8 to reflect the proper location in
+the super block structure.
+
+Link: https://lkml.kernel.org/r/20250807155749.164481-1-yili@winhong.com
+Signed-off-by: yili <yili@winhong.com>
+Reviewed-by: Joel Becker <jlbec@evilplan.org>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
+ fs/ocfs2/ocfs2_fs.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young
-+++ a/mm/khugepaged.c
-@@ -1418,7 +1418,7 @@ static int hpage_collapse_scan_pmd(struc
- 		if (cc->is_khugepaged &&
- 		    (pte_young(pteval) || folio_test_young(folio) ||
- 		     folio_test_referenced(folio) || mmu_notifier_test_young(vma->vm_mm,
--								     address)))
-+								     _address)))
- 			referenced++;
- 	}
- 	if (!writable) {
+--- a/fs/ocfs2/ocfs2_fs.h~ocfs2-fix-super-block-reserved-field-offset-comment
++++ a/fs/ocfs2/ocfs2_fs.h
+@@ -614,7 +614,7 @@ struct ocfs2_super_block {
+ 	__le16 s_reserved0;
+ 	__le32 s_dx_seed[3];		/* seed[0-2] for dx dir hash.
+ 					 * s_uuid_hash serves as seed[3]. */
+-/*C0*/  __le64 s_reserved2[15];		/* Fill out superblock */
++/*C8*/  __le64 s_reserved2[15];		/* Fill out superblock */
+ /*140*/
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from yili@winhong.com are
 
-mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young.patch
-mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
-selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
-mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
-mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
-selftests-mm-put-general-ksm-operation-into-vm_util.patch
-selftests-mm-test-that-rmap-behave-as-expected.patch
-mm-khugepaged-use-list_xxx-helper-to-improve-readability.patch
+ocfs2-fix-super-block-reserved-field-offset-comment.patch
 
