@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E1FAAD2C
-	for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2025 22:54:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19C982C15AF
+	for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2025 22:55:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756162450; cv=none; b=Cd7ycwN2504T7IUv6lpU6lIbvBwV9R3CKgmg/EGtLe/TP42W3agvul7o4h492Ot6yMyKI69JaoqZv33twBfY/yxg38f6ePgtRLE9VclJr0trI+rwdyqAXna6cMtl11Gx/ZMtYuW6nYGaBdVI6awqyS5m6qmL37rPetzKhczQ1y8=
+	t=1756162551; cv=none; b=oj8ExlVw+GuzJ7Z0mtbwmHNZqJvJGoehVh4IaHr3xm9qtglKHMwXZKoQcLHtvDcCy9eDflT+89EbQVSGwbTSm7J+kkPtFXfp6dGEUXxw98h27qlGBDyLxtbesB56gCVNBNvO0pYCU9UR2v6YEgl7JG/47RckchIuCjJVGb4zzxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756162450; c=relaxed/simple;
-	bh=MnMRLdCnD+Y3ZDC2Joaz1zBgUvnI6xbvsaCYfMEm/ZI=;
-	h=Date:To:From:Subject:Message-Id; b=l4yf2gChYTwfXwXjBQeocHcdk4BTY3RK7OpnMUUAvneEkfV67YF3tBAAb+B0YcnF1zQnmhKvbLwH0+rox1Wak+4ovCdyR5k9C95MVe9RBffyzmjt5aFtugnqiPUIu6xmbaF3q3GFv8ucdBZyLtEj5gORkRl0EeGDZnnaXiip5Ig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O6KZAy53; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756162551; c=relaxed/simple;
+	bh=9iXQMv381PLTWYTfkPu3VFlyRxob7aB/6lHJOmknXWM=;
+	h=Date:To:From:Subject:Message-Id; b=DW12NecsaK+mZ8yXxCN6livuRnVkBYBaDbHIPuTz91A0YntJjOMRFVxgr6VrJsWXe/NIKg7o0ugQKHfyxLMMBYgm2o1NSPckSFCki+g7BBTVxLpff6pcGOemn3ZBol4phW9yQIZFnp0Um5PLRLiinUJ8QGLvpHiWuzhv7ZVbSgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IDN/B/az; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O6KZAy53"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4EDDC4CEED;
-	Mon, 25 Aug 2025 22:54:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDN/B/az"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90064C4CEF4;
+	Mon, 25 Aug 2025 22:55:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756162449;
-	bh=MnMRLdCnD+Y3ZDC2Joaz1zBgUvnI6xbvsaCYfMEm/ZI=;
+	s=korg; t=1756162550;
+	bh=9iXQMv381PLTWYTfkPu3VFlyRxob7aB/6lHJOmknXWM=;
 	h=Date:To:From:Subject:From;
-	b=O6KZAy53mY31mjNfdUU03+ZgCvJjXT9K1ihzi+Tu3OfCDd0nJNZlzxn/lttq+H0le
-	 0SD9EKjbr2PiapkBaMNKtWl/wepqky1T2tO2J+MMyxifAhXO1A6zoE8QGUV2xdYeF4
-	 IYZw3TnhMG0vulPURZ5g7ek3zermVcpcKFaj5IfM=
-Date: Mon, 25 Aug 2025 15:54:08 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,viswanathiyyappan@gmail.com,akpm@linux-foundation.org
+	b=IDN/B/azlMWKt/HqNiLHvPHh+joFN90EBQr8+hToG8keR9HkdWU39oooo0NJtqSLG
+	 bvcmfI80shTeImwsD3+YOwL15r2ufEOK2NSVhcOSXVRT8oXeijaC0MslId5fvoI2Z9
+	 v1dm9Sw4HKFpumh47fsXhPnxT7llrzUDJaMvbLak=
+Date: Mon, 25 Aug 2025 15:55:49 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch added to mm-new branch
-Message-Id: <20250825225409.A4EDDC4CEED@smtp.kernel.org>
+Subject: + mm-page-writeback-drop-usage-of-folio_index.patch added to mm-new branch
+Message-Id: <20250825225550.90064C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: use calloc instead of malloc in pagemap_ioctl.c
+     Subject: mm/page-writeback: drop usage of folio_index
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch
+     mm-page-writeback-drop-usage-of-folio_index.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page-writeback-drop-usage-of-folio_index.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,129 +64,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: I Viswanath <viswanathiyyappan@gmail.com>
-Subject: selftests/mm: use calloc instead of malloc in pagemap_ioctl.c
-Date: Mon, 25 Aug 2025 22:36:43 +0530
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/page-writeback: drop usage of folio_index
+Date: Tue, 26 Aug 2025 00:37:21 +0800
 
-As per Documentation/process/deprecated.rst, dynamic size calculations
-should not be performed in memory allocator arguments due to possible
-overflows.
+folio_index is only needed for mixed usage of page cache and swap cache. 
+The remaining three caller in page-writeback are for page cache tag
+marking.  Swap cache space doesn't use tag (explicitly sets
+mapping_set_no_writeback_tags), so use folio->index here directly.
 
-Replace malloc with calloc to avoid open-ended arithmetic and prevent
-possible overflows.
-
-Link: https://lkml.kernel.org/r/20250825170643.63174-1-viswanathiyyappan@gmail.com
-Signed-off-by: I Viswanath <viswanathiyyappan@gmail.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250825163721.17734-1-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pagemap_ioctl.c |   24 +++++++++----------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/page-writeback.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -209,7 +209,7 @@ int userfaultfd_tests(void)
- 	wp_addr_range(mem, mem_size);
+--- a/mm/page-writeback.c~mm-page-writeback-drop-usage-of-folio_index
++++ a/mm/page-writeback.c
+@@ -38,10 +38,10 @@
+ #include <linux/sched/rt.h>
+ #include <linux/sched/signal.h>
+ #include <linux/mm_inline.h>
++#include <linux/shmem_fs.h>
+ #include <trace/events/writeback.h>
  
- 	vec_size = mem_size/page_size;
--	vec = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
+ #include "internal.h"
+-#include "swap.h"
  
- 	written = pagemap_ioctl(mem, mem_size, vec, 1, PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
- 				vec_size - 2, PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
-@@ -247,11 +247,11 @@ int sanity_tests_sd(void)
- 	vec_size = num_pages/2;
- 	mem_size = num_pages * page_size;
+ /*
+  * Sleep at most 200ms at a time in balance_dirty_pages().
+@@ -2705,12 +2705,18 @@ void __folio_mark_dirty(struct folio *fo
+ {
+ 	unsigned long flags;
  
--	vec = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
- 	if (!vec)
- 		ksft_exit_fail_msg("error nomem\n");
- 
--	vec2 = malloc(sizeof(struct page_region) * vec_size);
-+	vec2 = calloc(vec_size, sizeof(struct page_region));
- 	if (!vec2)
- 		ksft_exit_fail_msg("error nomem\n");
- 
-@@ -436,7 +436,7 @@ int sanity_tests_sd(void)
- 	mem_size = 1050 * page_size;
- 	vec_size = mem_size/(page_size*2);
- 
--	vec = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
- 	if (!vec)
- 		ksft_exit_fail_msg("error nomem\n");
- 
-@@ -491,7 +491,7 @@ int sanity_tests_sd(void)
- 	mem_size = 10000 * page_size;
- 	vec_size = 50;
- 
--	vec = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
- 	if (!vec)
- 		ksft_exit_fail_msg("error nomem\n");
- 
-@@ -541,7 +541,7 @@ int sanity_tests_sd(void)
- 	vec_size = 1000;
- 	mem_size = vec_size * page_size;
- 
--	vec = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
- 	if (!vec)
- 		ksft_exit_fail_msg("error nomem\n");
- 
-@@ -695,8 +695,8 @@ int base_tests(char *prefix, char *mem,
++	/*
++	 * Shmem writeback relies on swap, and swap writeback is LRU based,
++	 * not using the dirty mark.
++	 */
++	VM_WARN_ON_ONCE(folio_test_swapcache(folio) || shmem_mapping(mapping));
++
+ 	xa_lock_irqsave(&mapping->i_pages, flags);
+ 	if (folio->mapping) {	/* Race with truncate? */
+ 		WARN_ON_ONCE(warn && !folio_test_uptodate(folio));
+ 		folio_account_dirtied(folio, mapping);
+-		__xa_set_mark(&mapping->i_pages, folio_index(folio),
+-				PAGECACHE_TAG_DIRTY);
++		__xa_set_mark(&mapping->i_pages, folio->index,
++			      PAGECACHE_TAG_DIRTY);
  	}
+ 	xa_unlock_irqrestore(&mapping->i_pages, flags);
+ }
+@@ -2989,7 +2995,7 @@ bool __folio_end_writeback(struct folio
  
- 	vec_size = mem_size/page_size;
--	vec = malloc(sizeof(struct page_region) * vec_size);
--	vec2 = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
-+	vec2 = calloc(vec_size, sizeof(struct page_region));
+ 		xa_lock_irqsave(&mapping->i_pages, flags);
+ 		ret = folio_xor_flags_has_waiters(folio, 1 << PG_writeback);
+-		__xa_clear_mark(&mapping->i_pages, folio_index(folio),
++		__xa_clear_mark(&mapping->i_pages, folio->index,
+ 					PAGECACHE_TAG_WRITEBACK);
+ 		if (bdi->capabilities & BDI_CAP_WRITEBACK_ACCT) {
+ 			struct bdi_writeback *wb = inode_to_wb(inode);
+@@ -3026,7 +3032,7 @@ void __folio_start_writeback(struct foli
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
  
- 	/* 1. all new pages must be not be written (dirty) */
- 	written = pagemap_ioctl(mem, mem_size, vec, 1, PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
-@@ -807,8 +807,8 @@ int hpage_unit_tests(void)
- 	unsigned long long vec_size = map_size/page_size;
- 	struct page_region *vec, *vec2;
- 
--	vec = malloc(sizeof(struct page_region) * vec_size);
--	vec2 = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
-+	vec2 = calloc(vec_size, sizeof(struct page_region));
- 	if (!vec || !vec2)
- 		ksft_exit_fail_msg("malloc failed\n");
- 
-@@ -997,7 +997,7 @@ int unmapped_region_tests(void)
- 	void *start = (void *)0x10000000;
- 	int written, len = 0x00040000;
- 	long vec_size = len / page_size;
--	struct page_region *vec = malloc(sizeof(struct page_region) * vec_size);
-+	struct page_region *vec = calloc(vec_size, sizeof(struct page_region));
- 
- 	/* 1. Get written pages */
- 	written = pagemap_ioctl(start, len, vec, vec_size, 0, 0,
-@@ -1062,7 +1062,7 @@ int sanity_tests(void)
- 	mem_size = 10 * page_size;
- 	vec_size = mem_size / page_size;
- 
--	vec = malloc(sizeof(struct page_region) * vec_size);
-+	vec = calloc(vec_size, sizeof(struct page_region));
- 	mem = mmap(NULL, mem_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
- 	if (mem == MAP_FAILED || vec == MAP_FAILED)
- 		ksft_exit_fail_msg("error nomem\n");
+ 	if (mapping && mapping_use_writeback_tags(mapping)) {
+-		XA_STATE(xas, &mapping->i_pages, folio_index(folio));
++		XA_STATE(xas, &mapping->i_pages, folio->index);
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+ 		unsigned long flags;
 _
 
-Patches currently in -mm which might be from viswanathiyyappan@gmail.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch
+mm-swap-only-scan-one-cluster-in-fragment-list.patch
+mm-swap-remove-fragment-clusters-counter.patch
+mm-swap-prefer-nonfull-over-free-clusters.patch
+mm-mincore-swap-consolidate-swap-cache-checking-for-mincore.patch
+mm-mincore-use-a-helper-for-checking-the-swap-cache.patch
+mm-page-writeback-drop-usage-of-folio_index.patch
 
