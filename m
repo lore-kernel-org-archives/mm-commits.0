@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F8F393DEA
-	for <mm-commits@vger.kernel.org>; Sat, 23 Aug 2025 17:08:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E1FAAD2C
+	for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2025 22:54:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755968938; cv=none; b=FlDdfwqFptaXpLv1/i9To2x4Dr66a03e1KsSAnCtR3qieo9N6e5K6LE7nqYRO/L8kZ/KWUpyeoX2z13GPJohr4UXtTlE/4nB6km21iNa0aydeMjUBsnznKVX+abxPEq5VKogKeek/UEdZjOU41diUb6JHwB0HWBLoYYIN1l68bE=
+	t=1756162450; cv=none; b=Cd7ycwN2504T7IUv6lpU6lIbvBwV9R3CKgmg/EGtLe/TP42W3agvul7o4h492Ot6yMyKI69JaoqZv33twBfY/yxg38f6ePgtRLE9VclJr0trI+rwdyqAXna6cMtl11Gx/ZMtYuW6nYGaBdVI6awqyS5m6qmL37rPetzKhczQ1y8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755968938; c=relaxed/simple;
-	bh=4D/I/D6kXUMFxH+d3KbD4xFj0M0VlvIp5ryH/wHFLCc=;
-	h=Date:To:From:Subject:Message-Id; b=gfRpCfXntiwuVXjkElGJwUEO0VCFSv/8ir5d8SKHiMTqrdD63fD6ttumvAhkfXjlBUkNhe8hzzeq1ENR2wfCywz9Vdo3+od41wztZfoxEA8ftkM4poSu+zQwz8Bs9J/kVGQJAjG4uMspD1Lno42cMnPAPlrfAJ+v9Eq39EeJ1Y8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mRlDmthI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756162450; c=relaxed/simple;
+	bh=MnMRLdCnD+Y3ZDC2Joaz1zBgUvnI6xbvsaCYfMEm/ZI=;
+	h=Date:To:From:Subject:Message-Id; b=l4yf2gChYTwfXwXjBQeocHcdk4BTY3RK7OpnMUUAvneEkfV67YF3tBAAb+B0YcnF1zQnmhKvbLwH0+rox1Wak+4ovCdyR5k9C95MVe9RBffyzmjt5aFtugnqiPUIu6xmbaF3q3GFv8ucdBZyLtEj5gORkRl0EeGDZnnaXiip5Ig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O6KZAy53; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mRlDmthI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69B06C4CEE7;
-	Sat, 23 Aug 2025 17:08:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O6KZAy53"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4EDDC4CEED;
+	Mon, 25 Aug 2025 22:54:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1755968937;
-	bh=4D/I/D6kXUMFxH+d3KbD4xFj0M0VlvIp5ryH/wHFLCc=;
+	s=korg; t=1756162449;
+	bh=MnMRLdCnD+Y3ZDC2Joaz1zBgUvnI6xbvsaCYfMEm/ZI=;
 	h=Date:To:From:Subject:From;
-	b=mRlDmthIwDBrgT7ZgjTdBfSahrfHfynSDBjlKDRJILWyobND3EOClpkHQiiEt0QtT
-	 CDFprzqnUx9Tt6hcnKifoxc876ZDB1PiF5UQFelnWcqgTnhb+XI9e0m81WkovkdY4C
-	 xpqo2laVTGAjOKUyYpjjFS3zvopRs493DfyENlmE=
-Date: Sat, 23 Aug 2025 10:08:56 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,allyheev@gmail.com,akpm@linux-foundation.org
+	b=O6KZAy53mY31mjNfdUU03+ZgCvJjXT9K1ihzi+Tu3OfCDd0nJNZlzxn/lttq+H0le
+	 0SD9EKjbr2PiapkBaMNKtWl/wepqky1T2tO2J+MMyxifAhXO1A6zoE8QGUV2xdYeF4
+	 IYZw3TnhMG0vulPURZ5g7ek3zermVcpcKFaj5IfM=
+Date: Mon, 25 Aug 2025 15:54:08 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,viswanathiyyappan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kselftest-mm-fix-typos-in-test_vmallocsh.patch added to mm-unstable branch
-Message-Id: <20250823170857.69B06C4CEE7@smtp.kernel.org>
+Subject: + selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch added to mm-new branch
+Message-Id: <20250825225409.A4EDDC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kselftest: mm: fix typos in test_vmalloc.sh
-has been added to the -mm mm-unstable branch.  Its filename is
-     kselftest-mm-fix-typos-in-test_vmallocsh.patch
+     Subject: selftests/mm: use calloc instead of malloc in pagemap_ioctl.c
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-fix-typos-in-test_vmallocsh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,51 +64,129 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ally heev <allyheev@gmail.com>
-Subject: kselftest: mm: fix typos in test_vmalloc.sh
-Date: Sat, 23 Aug 2025 22:32:08 +0530
+From: I Viswanath <viswanathiyyappan@gmail.com>
+Subject: selftests/mm: use calloc instead of malloc in pagemap_ioctl.c
+Date: Mon, 25 Aug 2025 22:36:43 +0530
 
-Link: https://lkml.kernel.org/r/20250823170208.184149-1-allyheev@gmail.com
-Signed-off-by: ally heev <allyheev@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
+As per Documentation/process/deprecated.rst, dynamic size calculations
+should not be performed in memory allocator arguments due to possible
+overflows.
+
+Replace malloc with calloc to avoid open-ended arithmetic and prevent
+possible overflows.
+
+Link: https://lkml.kernel.org/r/20250825170643.63174-1-viswanathiyyappan@gmail.com
+Signed-off-by: I Viswanath <viswanathiyyappan@gmail.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/test_vmalloc.sh |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |   24 +++++++++----------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/test_vmalloc.sh~kselftest-mm-fix-typos-in-test_vmallocsh
-+++ a/tools/testing/selftests/mm/test_vmalloc.sh
-@@ -47,14 +47,14 @@ check_test_requirements()
- 	fi
- }
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -209,7 +209,7 @@ int userfaultfd_tests(void)
+ 	wp_addr_range(mem, mem_size);
  
--run_perfformance_check()
-+run_performance_check()
- {
- 	echo "Run performance tests to evaluate how fast vmalloc allocation is."
- 	echo "It runs all test cases on one single CPU with sequential order."
+ 	vec_size = mem_size/page_size;
+-	vec = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
  
- 	modprobe $DRIVER $PERF_PARAM > /dev/null 2>&1
- 	echo "Done."
--	echo "Ccheck the kernel message buffer to see the summary."
-+	echo "Check the kernel message buffer to see the summary."
- }
+ 	written = pagemap_ioctl(mem, mem_size, vec, 1, PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
+ 				vec_size - 2, PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
+@@ -247,11 +247,11 @@ int sanity_tests_sd(void)
+ 	vec_size = num_pages/2;
+ 	mem_size = num_pages * page_size;
  
- run_stability_check()
-@@ -160,7 +160,7 @@ function run_test()
- 		usage
- 	else
- 		if [[ "$1" = "performance" ]]; then
--			run_perfformance_check
-+			run_performance_check
- 		elif [[ "$1" = "stress" ]]; then
- 			run_stability_check
- 		elif [[ "$1" = "smoke" ]]; then
+-	vec = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
+ 	if (!vec)
+ 		ksft_exit_fail_msg("error nomem\n");
+ 
+-	vec2 = malloc(sizeof(struct page_region) * vec_size);
++	vec2 = calloc(vec_size, sizeof(struct page_region));
+ 	if (!vec2)
+ 		ksft_exit_fail_msg("error nomem\n");
+ 
+@@ -436,7 +436,7 @@ int sanity_tests_sd(void)
+ 	mem_size = 1050 * page_size;
+ 	vec_size = mem_size/(page_size*2);
+ 
+-	vec = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
+ 	if (!vec)
+ 		ksft_exit_fail_msg("error nomem\n");
+ 
+@@ -491,7 +491,7 @@ int sanity_tests_sd(void)
+ 	mem_size = 10000 * page_size;
+ 	vec_size = 50;
+ 
+-	vec = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
+ 	if (!vec)
+ 		ksft_exit_fail_msg("error nomem\n");
+ 
+@@ -541,7 +541,7 @@ int sanity_tests_sd(void)
+ 	vec_size = 1000;
+ 	mem_size = vec_size * page_size;
+ 
+-	vec = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
+ 	if (!vec)
+ 		ksft_exit_fail_msg("error nomem\n");
+ 
+@@ -695,8 +695,8 @@ int base_tests(char *prefix, char *mem,
+ 	}
+ 
+ 	vec_size = mem_size/page_size;
+-	vec = malloc(sizeof(struct page_region) * vec_size);
+-	vec2 = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
++	vec2 = calloc(vec_size, sizeof(struct page_region));
+ 
+ 	/* 1. all new pages must be not be written (dirty) */
+ 	written = pagemap_ioctl(mem, mem_size, vec, 1, PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
+@@ -807,8 +807,8 @@ int hpage_unit_tests(void)
+ 	unsigned long long vec_size = map_size/page_size;
+ 	struct page_region *vec, *vec2;
+ 
+-	vec = malloc(sizeof(struct page_region) * vec_size);
+-	vec2 = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
++	vec2 = calloc(vec_size, sizeof(struct page_region));
+ 	if (!vec || !vec2)
+ 		ksft_exit_fail_msg("malloc failed\n");
+ 
+@@ -997,7 +997,7 @@ int unmapped_region_tests(void)
+ 	void *start = (void *)0x10000000;
+ 	int written, len = 0x00040000;
+ 	long vec_size = len / page_size;
+-	struct page_region *vec = malloc(sizeof(struct page_region) * vec_size);
++	struct page_region *vec = calloc(vec_size, sizeof(struct page_region));
+ 
+ 	/* 1. Get written pages */
+ 	written = pagemap_ioctl(start, len, vec, vec_size, 0, 0,
+@@ -1062,7 +1062,7 @@ int sanity_tests(void)
+ 	mem_size = 10 * page_size;
+ 	vec_size = mem_size / page_size;
+ 
+-	vec = malloc(sizeof(struct page_region) * vec_size);
++	vec = calloc(vec_size, sizeof(struct page_region));
+ 	mem = mmap(NULL, mem_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+ 	if (mem == MAP_FAILED || vec == MAP_FAILED)
+ 		ksft_exit_fail_msg("error nomem\n");
 _
 
-Patches currently in -mm which might be from allyheev@gmail.com are
+Patches currently in -mm which might be from viswanathiyyappan@gmail.com are
 
-kselftest-mm-fix-typos-in-test_vmallocsh.patch
+selftests-mm-use-calloc-instead-of-malloc-in-pagemap_ioctlc.patch
 
