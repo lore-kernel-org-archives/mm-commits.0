@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 649B32D060B
-	for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2025 22:59:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A002E274B48
+	for <mm-commits@vger.kernel.org>; Mon, 25 Aug 2025 23:03:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756162750; cv=none; b=XHRFfy8WOhAayPjywCynl+mZV+Ulpy9oy+D/M5OqDzsOicJWIKbPADgQ0UzjVJ/CtxGbPQtHuraEu6OxAU+0xW2+d5t8GsEiatuAS4jA9mHSvr+l5DZ07H6kpDUc59fAxMVksGC7yNpOLc8Zxy59xvhxhOsY9wSpK2oc0/m9/Nk=
+	t=1756162984; cv=none; b=lSfaW31nURHiungeEJ/xmjR61UIEx3Yfihz4S2Kf6mIDJf1NfRn+nMhbm8C+G+aDgD6Vw2yfIBBQbXU9VhfcXhPqTe2APwMDbNlUAf1rhC7mWusxeNUgLclaQGLuMNoGcQih2RpKBrp6mMpvuW0ZuTAdtlYfS+1KoWvZ3SVNJEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756162750; c=relaxed/simple;
-	bh=wPdBWg3OpLVkuhePR/tyQl1lM7XA0am28CCxJeqkLKk=;
-	h=Date:To:From:Subject:Message-Id; b=T+wIj0+2h9eLZgxPBP9q6H6DMC4wWTi/nLD3chb48gXamsBVfRndR4VSlhRzIZkFZMssJJoYCC9WxR4KwmtUmqEX0MGdT3k7o3qqQYRZOicropGOjre0IiaqunicnnzTYk/ov+rP9kFEzPTh0NMx4Ejw+7Dzk1iTEEdX4AJYhKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pAv7KcyY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756162984; c=relaxed/simple;
+	bh=QUY2+ODTvw5KRyd3fBKPcoGB4KgGOYW7PnnCpJEd4T4=;
+	h=Date:To:From:Subject:Message-Id; b=ejvVakHsBdMcdg6nKSrNDOHIFpHhpuek9f5GJL9FplFesk/cyTPbYldifnQBjanmtw7JGSozjKzAkBOMLKkCkLJgNu1AkWbf/TYo+QlobVNPpicjPttQ0tLh5cnDeJPqHh0EPmg3dwHLYar78iLfgAeEZijH91KTWsNDZ+FUIIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gnqDmD1+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pAv7KcyY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1915FC4CEED;
-	Mon, 25 Aug 2025 22:59:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gnqDmD1+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05D31C4CEED;
+	Mon, 25 Aug 2025 23:03:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756162750;
-	bh=wPdBWg3OpLVkuhePR/tyQl1lM7XA0am28CCxJeqkLKk=;
+	s=korg; t=1756162984;
+	bh=QUY2+ODTvw5KRyd3fBKPcoGB4KgGOYW7PnnCpJEd4T4=;
 	h=Date:To:From:Subject:From;
-	b=pAv7KcyY/igysi9rd8fznmvHPKn2tFB7qbi1HP7m9oGIp12A+LGFbRpBTb4akI4tZ
-	 wAawT5ZcLcjx0x4TqKqWukFox6yFZsqDsXemlR3t8JdTgYgX+qsLchY5khaYBzbJzJ
-	 Os1WrP/mMU/tqO5wCX3w1813p32Vzh0ZHAXEQGu8=
-Date: Mon, 25 Aug 2025 15:59:09 -0700
-To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,lkp@intel.com,sj@kernel.org,akpm@linux-foundation.org
+	b=gnqDmD1+rPd4Kyv3O6Lszj36ORvHOIV7/yJxeZxwpe3+VRG5JjBBs/aYb6nue/Pha
+	 kx3ckM/fBan7OsynMBQtaODumSDXANV5bmcL+LHoYZ5J2aSDhhAFd5eZaz5UHxct8r
+	 gcUSLA6boAnlnsjcj5O0CRzrJsWekpuDoLyGRqtM=
+Date: Mon, 25 Aug 2025 16:03:03 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,rostedt@goodmis.org,rientjes@google.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liumartin@google.com,david@redhat.com,wander@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-support-addr_unit-for-damos_pageout-fix.patch added to mm-unstable branch
-Message-Id: <20250825225910.1915FC4CEED@smtp.kernel.org>
+Subject: + kmem-tracing-add-kmem-name-to-kmem_cache_alloc-tracepoint.patch added to mm-new branch
+Message-Id: <20250825230304.05D31C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: use do_div() on i386 for damon_pa_pageout() return value
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-paddr-support-addr_unit-for-damos_pageout-fix.patch
+     Subject: kmem/tracing: add kmem name to kmem_cache_alloc tracepoint
+has been added to the -mm mm-new branch.  Its filename is
+     kmem-tracing-add-kmem-name-to-kmem_cache_alloc-tracepoint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-addr_unit-for-damos_pageout-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmem-tracing-add-kmem-name-to-kmem_cache_alloc-tracepoint.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,71 +64,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: use do_div() on i386 for damon_pa_pageout() return value
-Date: Mon, 25 Aug 2025 07:41:33 -0700
+From: Wander Lairson Costa <wander@redhat.com>
+Subject: kmem/tracing: add kmem name to kmem_cache_alloc tracepoint
+Date: Mon, 25 Aug 2025 09:59:26 -0300
 
-Otherwise, __udidi3 linking problem happens on certain configs.
+The kmem_cache_free tracepoint includes a "name" field, which allows for
+easy identification and filtering of specific kmem's.  However, the
+kmem_cache_alloc tracepoint lacks this field, making it difficult to pair
+corresponding alloc and free events for analysis.
 
-Link: https://lkml.kernel.org/r/20250825151205.36288-1-sj@kernel.org
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202508241831.EKwdwXZL-lkp@intel.com/
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: ze zuo <zuoze1@huawei.com>
+Add the "name" field to kmem_cache_alloc to enable consistent tracking and
+correlation of kmem alloc and free events.
+
+Link: https://lkml.kernel.org/r/20250825125927.59816-1-wander@redhat.com
+Signed-off-by: Wander Lairson Costa <wander@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Martin Liu <liumartin@google.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ include/trace/events/kmem.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-addr_unit-for-damos_pageout-fix
-+++ a/mm/damon/paddr.c
-@@ -135,6 +135,18 @@ static bool damon_pa_invalid_damos_folio
- 	return false;
- }
+--- a/include/trace/events/kmem.h~kmem-tracing-add-kmem-name-to-kmem_cache_alloc-tracepoint
++++ a/include/trace/events/kmem.h
+@@ -22,6 +22,7 @@ TRACE_EVENT(kmem_cache_alloc,
+ 	TP_STRUCT__entry(
+ 		__field(	unsigned long,	call_site	)
+ 		__field(	const void *,	ptr		)
++		__string(	name,		s->name		)
+ 		__field(	size_t,		bytes_req	)
+ 		__field(	size_t,		bytes_alloc	)
+ 		__field(	unsigned long,	gfp_flags	)
+@@ -32,6 +33,7 @@ TRACE_EVENT(kmem_cache_alloc,
+ 	TP_fast_assign(
+ 		__entry->call_site	= call_site;
+ 		__entry->ptr		= ptr;
++		__assign_str(name);
+ 		__entry->bytes_req	= s->object_size;
+ 		__entry->bytes_alloc	= s->size;
+ 		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+@@ -41,9 +43,10 @@ TRACE_EVENT(kmem_cache_alloc,
+ 					  (s->flags & SLAB_ACCOUNT)) : false;
+ 	),
  
-+/* convert physical address to core-layer address */
-+static unsigned long damon_pa_core_addr(phys_addr_t pa,
-+		unsigned long addr_unit)
-+{
-+#ifdef __i386__
-+	do_div(pa, addr_unit);
-+	return pa;
-+#else
-+	return pa / addr_unit;
-+#endif
-+}
-+
- static unsigned long damon_pa_pageout(struct damon_region *r,
- 		unsigned long addr_unit, struct damos *s,
- 		unsigned long *sz_filter_passed)
-@@ -190,7 +202,7 @@ put_folio:
- 	applied = reclaim_pages(&folio_list);
- 	cond_resched();
- 	s->last_applied = folio;
--	return applied * PAGE_SIZE / addr_unit;
-+	return damon_pa_core_addr(applied * PAGE_SIZE, addr_unit);
- }
- 
- static inline unsigned long damon_pa_mark_accessed_or_deactivate(
+-	TP_printk("call_site=%pS ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s node=%d accounted=%s",
++	TP_printk("call_site=%pS ptr=%p name=%s bytes_req=%zu bytes_alloc=%zu gfp_flags=%s node=%d accounted=%s",
+ 		(void *)__entry->call_site,
+ 		__entry->ptr,
++		__get_str(name),
+ 		__entry->bytes_req,
+ 		__entry->bytes_alloc,
+ 		show_gfp_flags(__entry->gfp_flags),
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from wander@redhat.com are
 
-mm-zswap-store-page_size-compression-failed-page-as-is.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-fix.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-v5.patch
-mm-damon-core-add-damon_ctx-addr_unit.patch
-mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
-mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
-mm-damon-paddr-support-addr_unit-for-damos_pageout-fix.patch
-mm-damon-paddr-support-addr_unit-for-damos_lru_prio.patch
-mm-damon-paddr-support-addr_unit-for-migrate_hotcold.patch
-mm-damon-paddr-support-addr_unit-for-migrate_hotcold-fix.patch
-mm-damon-paddr-support-addr_unit-for-damos_stat.patch
-mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
-docs-mm-damon-design-document-address-unit-parameter.patch
-docs-admin-guide-mm-damon-usage-document-addr_unit-file.patch
-docs-abi-damon-document-addr_unit-file.patch
+kmem-tracing-add-kmem-name-to-kmem_cache_alloc-tracepoint.patch
 
