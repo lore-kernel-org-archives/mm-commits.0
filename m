@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDEA52A1BF
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AA392A1BF
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756167988; cv=none; b=gUkpS5XXVVoOgqpQOZV0MBnc0NuWOl5GYqOcIzyfJTV2hoVsgcMLb/Phyfbiyw1Xy3dmdpK+rtDa/qdv+4hUnOYAcPT7x68GVHuzbbYCQ8H5y3C/+/lEfWEyN7mFMRSXHshvp5KPhlUIPTOpB4rPm2BSReVZ6prhy8JuJYy47Fk=
+	t=1756167990; cv=none; b=AiS+RdkjemuPvDNIpFxOIAfRSBpg+QarDmWYEigaA893JV3x9ywBv4V5suE8GLlTw+Z5IbmflN28nLvCUKj+YxlKlmQn+GSDdXVnudqne4oLDY1Ss7jGMWeZltkZJ8VKcEi1NRh2kLKPkILpAHcuDx/EXe3BBJnhTw/OKbYgSEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756167988; c=relaxed/simple;
-	bh=s7DyqPod3Al1sYtc+2SLW35Xd+FdacwS6oRbyX3xPf8=;
-	h=Date:To:From:Subject:Message-Id; b=jeY70CN5+c0usuE2WTWJa9NqZrdV8uEspdMVdoSC2v9F5yRSdAJ2i3WJt/7z/IbV0LNym63s7XqnSm0VFeFuqIUuqKXmmE0Wuh4z8ywTEs6l2OtRhm/vOj8rVPwosy7xpNnCLX6yUuLP/Eh5G5XzZMGTECsRMOJkBiYn8bawGeo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kz9aGYfB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756167990; c=relaxed/simple;
+	bh=f+xUW5Q3OYYg7mK3EtjFzw5dEmrASgCFRDh74Ic1Uz8=;
+	h=Date:To:From:Subject:Message-Id; b=uhGbrpjFvHo73aZwMLySFVXQ84i70h3vsf+uMcTvmAb9c6cHSEMwa74aYU1j1y+EkAHD7fd4DLzkqcoTAwD3RJNF429cEqrn1Anc7EjgLb8njkqsd6fZDAS8GJk3mUZMnQdaHAxMiXyjfnvUEy2ZaQFZM0XvQ0Sj2ETuFuMN5No=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wkmW1YT8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kz9aGYfB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A322BC4CEF4;
-	Tue, 26 Aug 2025 00:26:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wkmW1YT8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0197AC116B1;
+	Tue, 26 Aug 2025 00:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756167987;
-	bh=s7DyqPod3Al1sYtc+2SLW35Xd+FdacwS6oRbyX3xPf8=;
+	s=korg; t=1756167990;
+	bh=f+xUW5Q3OYYg7mK3EtjFzw5dEmrASgCFRDh74Ic1Uz8=;
 	h=Date:To:From:Subject:From;
-	b=kz9aGYfBjl+sRt8sDBSYXKKTcFDLb7qu2uhKLzKRxHMVw2rKsA3FZs7RO1EICuLA1
-	 KeYr1y20WDUeLuH1k5Cd/V3WrMDJNMZWUbLGImILulEnzxYmRLY/dRbCW+Xd3JTcio
-	 tlec+4gYHRyDDfvK3wpRy+v+t4bb2/4B7lilJJAU=
-Date: Mon, 25 Aug 2025 17:26:27 -0700
+	b=wkmW1YT8LCNN78rDuWLimDSQePdifgF3Y7fYOufqiaXCy0jmg3irBF9hKR7OQOd32
+	 /RCO7qj1FzKl7w3xep8qTOLcErO/9OePervx0G8lePEIpQIZhLYribBNXzkqg6EI6d
+	 ZENzEI+kPc24sShrVmbDtyxDr+6lyvl5Z2l0TQkY=
+Date: Mon, 25 Aug 2025 17:26:29 -0700
 To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash_core-use-panic_try_start-in-crash_kexec.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826002627.A322BC4CEF4@smtp.kernel.org>
+Subject: + panic-use-panic_try_start-in-nmi_panic.patch added to mm-nonmm-unstable branch
+Message-Id: <20250826002630.0197AC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash_core: use panic_try_start() in crash_kexec()
+     Subject: panic: use panic_try_start() in nmi_panic()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash_core-use-panic_try_start-in-crash_kexec.patch
+     panic-use-panic_try_start-in-nmi_panic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_core-use-panic_try_start-in-crash_kexec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-use-panic_try_start-in-nmi_panic.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: crash_core: use panic_try_start() in crash_kexec()
-Date: Mon, 25 Aug 2025 10:29:31 +0800
+Subject: panic: use panic_try_start() in nmi_panic()
+Date: Mon, 25 Aug 2025 10:29:32 +0800
 
-crash_kexec() had its own code to exclude parallel execution by setting
-panic_cpu.  This is already handled by panic_try_start().  Switch to
-panic_try_start() to remove the duplication and keep the logic consistent.
+nmi_panic() duplicated the logic to claim panic_cpu with
+atomic_try_cmpxchg.  This is already wrapped in panic_try_start().
 
-Link: https://lkml.kernel.org/r/20250825022947.1596226-4-wangjinchao600@gmail.com
+Replace the open-coded logic with panic_try_start(), and use
+panic_on_other_cpu() for the fallback path.
+
+This removes duplication and keeps panic handling code consistent.
+
+Link: https://lkml.kernel.org/r/20250825022947.1596226-5-wangjinchao600@gmail.com
 Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -104,47 +108,29 @@ Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ kernel/panic.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/kernel/crash_core.c~crash_core-use-panic_try_start-in-crash_kexec
-+++ a/kernel/crash_core.c
-@@ -4,6 +4,7 @@
-  * Copyright (C) 2002-2004 Eric Biederman  <ebiederm@xmission.com>
+--- a/kernel/panic.c~panic-use-panic_try_start-in-nmi_panic
++++ a/kernel/panic.c
+@@ -360,15 +360,9 @@ EXPORT_SYMBOL(panic_on_other_cpu);
   */
- 
-+#include "linux/panic.h"
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/buildid.h>
-@@ -143,17 +144,7 @@ STACK_FRAME_NON_STANDARD(__crash_kexec);
- 
- __bpf_kfunc void crash_kexec(struct pt_regs *regs)
+ void nmi_panic(struct pt_regs *regs, const char *msg)
  {
 -	int old_cpu, this_cpu;
 -
--	/*
--	 * Only one CPU is allowed to execute the crash_kexec() code as with
--	 * panic().  Otherwise parallel calls of panic() and crash_kexec()
--	 * may stop each other.  To exclude them, we use panic_cpu here too.
--	 */
 -	old_cpu = PANIC_CPU_INVALID;
 -	this_cpu = raw_smp_processor_id();
 -
--	if (atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu)) {
-+	if (panic_try_start()) {
- 		/* This is the 1st CPU which comes here, so go ahead. */
- 		__crash_kexec(regs);
- 
-@@ -161,7 +152,7 @@ __bpf_kfunc void crash_kexec(struct pt_r
- 		 * Reset panic_cpu to allow another panic()/crash_kexec()
- 		 * call.
- 		 */
--		atomic_set(&panic_cpu, PANIC_CPU_INVALID);
-+		panic_reset();
- 	}
+-	/* atomic_try_cmpxchg updates old_cpu on failure */
+-	if (atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu))
++	if (panic_try_start())
+ 		panic("%s", msg);
+-	else if (old_cpu != this_cpu)
++	else if (panic_on_other_cpu())
+ 		nmi_panic_self_stop(regs);
  }
- 
+ EXPORT_SYMBOL(nmi_panic);
 _
 
 Patches currently in -mm which might be from wangjinchao600@gmail.com are
