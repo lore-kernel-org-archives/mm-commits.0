@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C625946A
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 01:40:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4B8218C332;
+	Tue, 26 Aug 2025 01:42:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756172403; cv=none; b=oOj0i/5iZdX371VwX82XStaHoDHwYbD3CL4SlNn5/7bMLW3eiBMfmb7+mRXKTS4A6AMeH+jEPJpqOsuGzzxly821bCZWOGmGRz+dbXZaa/TkdOKqH+7shOZSCJp6hj/kgkqRtMK+XRdGLeuC+j2hjc6mN0qcFxQGSmyxv9AzuV8=
+	t=1756172531; cv=none; b=IipZJ85MwR+LxDt43g29FLhFexouqM1ZxpCGIC4iM/HjyGgn35f1Fm/aeLOka4BcGRsu82ZAZBNJ/rhkOBCMjN9UCVGAofIHiOTCkTobfo7/NeTMVd2Xi3+vxyWLctad48CuT3rW4yvJ9/dbOY0TJ0D1YoBHP270LuVApIg+cJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756172403; c=relaxed/simple;
-	bh=O8TlGlhZbDXWOfX9uQJDNAxv42kgmcMSO1bIaXe3gaY=;
-	h=Date:To:From:Subject:Message-Id; b=X+QN1+I23AZqjgC/8AaJ1SqxgM/GOjY+dme1SJwNT3LSBkW8n330vuVQrGMv4h1cKANxn953Ct7J//2uMbmumEXwzeXfkYYLpzlqEtsxitP7pMXzJ54MjpCk2jh640H2VwYsCBpGb5XBE/hMQVf1tIu6T9s6dO+HfGtw2IRSV/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C7/AbScc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756172531; c=relaxed/simple;
+	bh=iXNU1QxMYVnTQejECTKsj6Y/YWYm5nmLM5j6vXYpeZA=;
+	h=Date:To:From:Subject:Message-Id; b=fGamh049ezYdbE1cUAamo6AgRYfR8CuhPtxmuQWr/zEuBpeJS7o7wFrn2weG2XqH0TnV+vuI9PFHd82J4GEFkHUggCmxcMcJIY98zu6eYEJguINuv9nMugxgDLQTuUpq3G24QcLlyYyHS7dx5y+1NgusmmQX1NGXKbVyqHwkFPs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bvlqKOXW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C7/AbScc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1007C4CEED;
-	Tue, 26 Aug 2025 01:40:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bvlqKOXW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A0B8C4CEED;
+	Tue, 26 Aug 2025 01:42:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756172402;
-	bh=O8TlGlhZbDXWOfX9uQJDNAxv42kgmcMSO1bIaXe3gaY=;
+	s=korg; t=1756172531;
+	bh=iXNU1QxMYVnTQejECTKsj6Y/YWYm5nmLM5j6vXYpeZA=;
 	h=Date:To:From:Subject:From;
-	b=C7/AbSccQfaxGiVWRgJ00zUoIkVR8nP/lG6qW/nRXgPzmOpw+eJkAcbYPW5xhvpPX
-	 ZQGFYkNVLsABoiif5XIWHmB2/8ooEWMrmQtpJ5uMUPIQF+CiKx4M1GLlmqbm8t2PNX
-	 NLvRIhisuk7a2ExMbKqKaFW3U7+KfCNQg3Daq2FM=
-Date: Mon, 25 Aug 2025 18:40:02 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@gentwo.org,bhe@redhat.com,vdumitrescu@nvidia.com,akpm@linux-foundation.org
+	b=bvlqKOXWClUMned8xxuIeisuOU6YNs8K0S5xiHPdAOYTZL2fYt6RpWaBSrenucXYp
+	 lXd8rwH9CdqW2LPjA58WdW5/2usrIc86oS0d8kRIzuvdi7aBi6r8DnGhW4HlrnwmBf
+	 6sb76UJWQ+AR8j9Lj2gihDyRbh0v6Z7S4yOWvZ9c=
+Date: Mon, 25 Aug 2025 18:42:10 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu-fix-race-on-alloc-failed-warning-limit.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250826014002.D1007C4CEED@smtp.kernel.org>
+Subject: + mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250826014211.2A0B8C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu: fix race on alloc failed warning limit
+     Subject: mm/damon/core: set quota->charged_from to jiffies at first charge window
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     percpu-fix-race-on-alloc-failed-warning-limit.patch
+     mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-fix-race-on-alloc-failed-warning-limit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,78 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vlad Dumitrescu <vdumitrescu@nvidia.com>
-Subject: percpu: fix race on alloc failed warning limit
-Date: Fri, 22 Aug 2025 15:55:16 -0700
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/damon/core: set quota->charged_from to jiffies at first charge window
+Date: Fri, 22 Aug 2025 11:50:57 +0900
 
-The 'allocation failed, ...' warning messages can cause unlimited log
-spam, contrary to the implementation's intent.
+Kernel initializes the "jiffies" timer as 5 minutes below zero, as shown
+in include/linux/jiffies.h
 
-The warn_limit variable is accessed without synchronization.  If more than
-<warn_limit> threads enter the warning path at the same time, the variable
-will get decremented past 0.  Once it becomes negative, the non-zero check
-will always return true leading to unlimited log spam.
+ /*
+ * Have the 32 bit jiffies value wrap 5 minutes after boot
+ * so jiffies wrap bugs show up earlier.
+ */
+ #define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))
 
-Use atomic operations to access warn_limit and change the check to test
-for positive (> 0) as it can still become negative.
+And jiffies comparison help functions cast unsigned value to signed to
+cover wraparound
 
-While the change cited in Fixes is only adjacent, the warning limit
-implementation was correct before it.  Only non-atomic allocations were
-considered for warnings, and those happened to hold pcpu_alloc_mutex while
-accessing warn_limit.
+ #define time_after_eq(a,b) \
+  (typecheck(unsigned long, a) && \
+  typecheck(unsigned long, b) && \
+  ((long)((a) - (b)) >= 0))
 
-Link: https://lkml.kernel.org/r/ab22061a-a62f-4429-945b-744e5cc4ba35@nvidia.com
-Fixes: f7d77dfc91f7 ("mm/percpu.c: print error message too if atomic alloc failed")
-Signed-off-by: Vlad Dumitrescu <vdumitrescu@nvidia.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+When quota->charged_from is initialized to 0, time_after_eq() can
+incorrectly return FALSE even after reset_interval has elapsed.  This
+occurs when (jiffies - reset_interval) produces a value with MSB=1, which
+is interpreted as negative in signed arithmetic.
+
+This issue primarily affects 32-bit systems because: On 64-bit systems:
+MSB=1 values occur after ~292 million years from boot (assuming HZ=1000),
+almost impossible.
+
+On 32-bit systems: MSB=1 values occur during the first 5 minutes after
+boot, and the second half of every jiffies wraparound cycle, starting from
+day 25 (assuming HZ=1000)
+
+When above unexpected FALSE return from time_after_eq() occurs, the
+charging window will not reset.  The user impact depends on esz value at
+that time.
+
+If esz is 0, scheme ignores configured quotas and runs without any limits.
+
+If esz is not 0, scheme stops working once the quota is exhausted.  It
+remains until the charging window finally resets.
+
+So, change quota->charged_from to jiffies at damos_adjust_quota() when it
+is considered as the first charge window.  By this change, we can avoid
+unexpected FALSE return from time_after_eq()
+
+Link: https://lkml.kernel.org/r/20250822025057.1740854-1-ekffu200098@gmail.com
+Fixes: 2b8a248d5873 ("mm/damon/schemes: implement size quota for schemes application speed control") # 5.16
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/damon/core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/percpu.c~percpu-fix-race-on-alloc-failed-warning-limit
-+++ a/mm/percpu.c
-@@ -1734,7 +1734,7 @@ void __percpu *pcpu_alloc_noprof(size_t
- 	bool is_atomic;
- 	bool do_warn;
- 	struct obj_cgroup *objcg = NULL;
--	static int warn_limit = 10;
-+	static atomic_t warn_limit = ATOMIC_INIT(10);
- 	struct pcpu_chunk *chunk, *next;
- 	const char *err;
- 	int slot, off, cpu, ret;
-@@ -1904,13 +1904,17 @@ fail_unlock:
- fail:
- 	trace_percpu_alloc_percpu_fail(reserved, is_atomic, size, align);
+--- a/mm/damon/core.c~mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window
++++ a/mm/damon/core.c
+@@ -2111,6 +2111,10 @@ static void damos_adjust_quota(struct da
+ 	if (!quota->ms && !quota->sz && list_empty(&quota->goals))
+ 		return;
  
--	if (do_warn && warn_limit) {
--		pr_warn("allocation failed, size=%zu align=%zu atomic=%d, %s\n",
--			size, align, is_atomic, err);
--		if (!is_atomic)
--			dump_stack();
--		if (!--warn_limit)
--			pr_info("limit reached, disable warning\n");
-+	if (do_warn && atomic_read(&warn_limit) > 0) {
-+		int remaining = atomic_dec_return(&warn_limit);
++	/* First charge window */
++	if (!quota->total_charged_sz && !quota->charged_from)
++		quota->charged_from = jiffies;
 +
-+		if (remaining >= 0) {
-+			pr_warn("allocation failed, size=%zu align=%zu atomic=%d, %s\n",
-+				size, align, is_atomic, err);
-+			if (!is_atomic)
-+				dump_stack();
-+			if (remaining == 0)
-+				pr_info("limit reached, disable warning\n");
-+		}
- 	}
- 
- 	if (is_atomic) {
+ 	/* New charge window starts */
+ 	if (time_after_eq(jiffies, quota->charged_from +
+ 				msecs_to_jiffies(quota->reset_interval))) {
 _
 
-Patches currently in -mm which might be from vdumitrescu@nvidia.com are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-percpu-fix-race-on-alloc-failed-warning-limit.patch
+mm-damon-core-set-quota-charged_from-to-jiffies-at-first-charge-window.patch
+mm-damon-update-expired-description-of-damos_action.patch
+docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
+selftests-damon-test-no-op-commit-broke-damon-status.patch
+selftests-damon-test-no-op-commit-broke-damon-status-fix.patch
+mm-damon-tests-core-kunit-add-damos_commit_filter-test.patch
 
