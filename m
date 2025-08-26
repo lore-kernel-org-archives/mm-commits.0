@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18764944F
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 22:45:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C72E430CDB4
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 22:58:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756248354; cv=none; b=H26ydckaFOuRDNYfdcS47PDWg3vgTujmvqwVS5gccM96bY79he/oMRQo6c/Ns9+rZq71c61vRGXLrkKU8xCc9aVaXpx+uIRgIjP5aOjD2qpvMplBcdvwtXFR84V31vlHCQGk6P4hQkVE7OShn9S+3WIFBBzyPtjyETbUYJ6EW/4=
+	t=1756249131; cv=none; b=jRXuzhg6Ibsfo712uB559GwmGZOEwZ/Mm2y6XmyfHrSlV7UWrQPhlabV/vwnaZdidw4x6BMfPeNCleyv2sXDwLEx/2Ei3ixmdhveiAwulpdPqFyP1ch1tkJcnFeHMWixHyrT5DGpAQIu8fY/do/x5WOOBUrpKXsKeHIOOhLFyA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756248354; c=relaxed/simple;
-	bh=6eftXxCF07qXJwbFG/79hMP57lBqTCu8bCtcw26KFT8=;
-	h=Date:To:From:Subject:Message-Id; b=YoK/XeIjKYGldG49WP4/bRfLQCXg3zRFErQyrObferLyXfCyd3AowI9M4HbTJ+dKnHCkLzJYTkpY0p5Sasv1pzFnzuXAjoo+t94nOOPmr8giqpJdGyo0XjbKBw871IoAGzWjYUQMVCaO/upOVOrfA4YhkMndf9Ua/A4/5WlESrk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OnH8hSAA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756249131; c=relaxed/simple;
+	bh=8pLA58R+hYefMHeGGo/9nt6fTK00oR/T6F406LT3tzE=;
+	h=Date:To:From:Subject:Message-Id; b=SOMPRISrMkEou5n4FcE/nKg33f3s28PdnKZENAjxFoI5RiEOWLuV2jiw9WjBqVjl6wNLCDyDlHMrpo0TNPMYDDB1rBypsWV10aVP50OdQJ9XvEM4qWMMzuYK6b0R3Cwnfab7WjHl7BvhsLtQzJz6hq//KfD51w67DaHqCu0h7CU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1xu38B3+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OnH8hSAA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C587C4CEF1;
-	Tue, 26 Aug 2025 22:45:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1xu38B3+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44DD0C4CEF1;
+	Tue, 26 Aug 2025 22:58:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756248353;
-	bh=6eftXxCF07qXJwbFG/79hMP57lBqTCu8bCtcw26KFT8=;
+	s=korg; t=1756249131;
+	bh=8pLA58R+hYefMHeGGo/9nt6fTK00oR/T6F406LT3tzE=;
 	h=Date:To:From:Subject:From;
-	b=OnH8hSAAacyV/S8jm5ibft6j4X8inBtJm9SCiCBv7zRuTnvepZIXbykH7VnFqz/Xw
-	 ybp5eKU2uKDBcgBX4sbf4XwNlEdCWS+y9yHLD1F7LnQjaChqTWBgKWCrKX0L5z0AJL
-	 V46RiZ6/cXsFGH1RKzq14MnHegAzOkNaycCLf+28=
-Date: Tue, 26 Aug 2025 15:45:52 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=1xu38B3+0DVzGiSn/zP3gKUCqjfodjGZFshj4Yj3iUQcEb+zllnL2ceQ8RKZqJWwR
+	 BLjW1qngvqk4vDIg9quqrfpz3YcB+5ODkeu0eoSe0NWyPic5KLPsuAYhEqGfCAdWc0
+	 eM40AnYpFu1CaOWssJuou7jqUW61sobVSyntuitE=
+Date: Tue, 26 Aug 2025 15:58:50 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tsbogend@alpha.franken.de,naresh.kamboju@linaro.org,anders.roxell@linaro.org,nicola.vetrini@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch added to mm-unstable branch
-Message-Id: <20250826224553.7C587C4CEF1@smtp.kernel.org>
+Subject: + mm-introduce-memdesc_flags_t-fix-2.patch added to mm-unstable branch
+Message-Id: <20250826225851.44DD0C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: abstract set_mask_bits() invocation to mm_types.h to satisfy ARC
+     Subject: mips: fix compilation error
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch
+     mm-introduce-memdesc_flags_t-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-memdesc_flags_t-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,89 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: abstract set_mask_bits() invocation to mm_types.h to satisfy ARC
-Date: Tue, 26 Aug 2025 12:25:16 +0100
+From: Nicola Vetrini <nicola.vetrini@gmail.com>
+Subject: mips: fix compilation error
+Date: Mon, 25 Aug 2025 23:42:45 +0200
 
-There's some horrible recursive header issue for ARCH whereby you can't
-even apparently include very fundamental headers like compiler_types.h in
-linux/sched/coredump.h.
+The following build error occurs on a mips build configuration
+(32r2el_defconfig and similar ones)
+./arch/mips/include/asm/cacheflush.h:42:34: error: passing argument 2 of `set_bit'
+from incompatible pointer type [-Werror=incompatible-pointer-types]
+   42 |         set_bit(PG_dcache_dirty, &(folio)->flags)
+      |                                  ^~~~~~~~~~~~~~~
+      |                                  |
+      |                                  memdesc_flags_t *
 
-So work around this by putting the thing that needs this (use of
-ACCESS_PRIVATE()) into mm_types.h which presumably in some fashion avoids
-this issue.
+This is due to changes introduced by
+commit 30f45bf18d55 ("mm: introduce memdesc_flags_t"), which did not update
+these usage sites.
 
-This also makes it consistent with __mm_flags_get_dumpable() so is a good
-change to make things more consistent and neat anyway.
-
-Link: https://lkml.kernel.org/r/0e7ad263-1ff7-446d-81fe-97cff9c0e7ed@lucifer.local
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202508240502.frw1Krzo-lkp@intel.com/
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lore.kernel.org/lkml/CA+G9fYvkpmqGr6wjBNHY=dRp71PLCoi2341JxOudi60yqaeUdg@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20250825214245.1838158-1-nicola.vetrini@gmail.com
+Signed-off-by: Nicola Vetrini <nicola.vetrini@gmail.com>
+Cc: Anders Roxell <anders.roxell@linaro.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h       |   12 ++++++++++++
- include/linux/sched/coredump.h |    5 +----
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ arch/mips/include/asm/cacheflush.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_types.h~mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix
-+++ a/include/linux/mm_types.h
-@@ -1255,6 +1255,18 @@ static inline unsigned long __mm_flags_g
- 	return bitmap_read(bitmap, 0, BITS_PER_LONG);
- }
+--- a/arch/mips/include/asm/cacheflush.h~mm-introduce-memdesc_flags_t-fix-2
++++ a/arch/mips/include/asm/cacheflush.h
+@@ -37,11 +37,11 @@
+ #define PG_dcache_dirty			PG_arch_1
  
-+/*
-+ * Update the first system word of mm flags ONLY, applying the specified mask to
-+ * it, then setting all flags specified by bits.
-+ */
-+static inline void __mm_flags_set_mask_bits_word(struct mm_struct *mm,
-+		unsigned long mask, unsigned long bits)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
-+
-+	set_mask_bits(bitmap, mask, bits);
-+}
-+
- #define MM_MT_FLAGS	(MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN | \
- 			 MT_FLAGS_USE_RCU)
- extern struct mm_struct init_mm;
---- a/include/linux/sched/coredump.h~mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix
-+++ a/include/linux/sched/coredump.h
-@@ -2,7 +2,6 @@
- #ifndef _LINUX_SCHED_COREDUMP_H
- #define _LINUX_SCHED_COREDUMP_H
+ #define folio_test_dcache_dirty(folio)		\
+-	test_bit(PG_dcache_dirty, &(folio)->flags)
++	test_bit(PG_dcache_dirty, &(folio)->flags.f)
+ #define folio_set_dcache_dirty(folio)	\
+-	set_bit(PG_dcache_dirty, &(folio)->flags)
++	set_bit(PG_dcache_dirty, &(folio)->flags.f)
+ #define folio_clear_dcache_dirty(folio)	\
+-	clear_bit(PG_dcache_dirty, &(folio)->flags)
++	clear_bit(PG_dcache_dirty, &(folio)->flags.f)
  
--#include <linux/compiler_types.h>
- #include <linux/mm_types.h>
- 
- #define SUID_DUMP_DISABLE	0	/* No setuid dumping */
-@@ -20,9 +19,7 @@ static inline unsigned long __mm_flags_g
- 
- static inline void __mm_flags_set_mask_dumpable(struct mm_struct *mm, int value)
- {
--	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
--
--	set_mask_bits(bitmap, MMF_DUMPABLE_MASK, value);
-+	__mm_flags_set_mask_bits_word(mm, MMF_DUMPABLE_MASK, value);
- }
- 
- extern void set_dumpable(struct mm_struct *mm, int value);
+ extern void (*flush_cache_all)(void);
+ extern void (*__flush_cache_all)(void);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from nicola.vetrini@gmail.com are
 
-mm-add-bitmap-mm-flags-field.patch
-mm-add-bitmap-mm-flags-field-fix.patch
-mm-convert-core-mm-to-mm_flags_-accessors.patch
-mm-convert-prctl-to-mm_flags_-accessors.patch
-mm-convert-arch-specific-code-to-mm_flags_-accessors.patch
-mm-convert-arch-specific-code-to-mm_flags_-accessors-fix.patch
-mm-convert-uprobes-to-mm_flags_-accessors.patch
-mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags.patch
-mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch
-mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
-mm-update-fork-mm-flags-initialisation-to-use-bitmap.patch
-mm-convert-remaining-users-to-mm_flags_-accessors.patch
-mm-replace-mm-flags-with-bitmap-entirely-and-set-to-64-bits.patch
+mm-introduce-memdesc_flags_t-fix-2.patch
 
