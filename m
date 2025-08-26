@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2072C2A1BF
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CD0F2A1BF
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756167995; cv=none; b=aKLoPNKRIbU782hlvgP147WeM6IOhw1qQZSomuMojycQQ5rde6I80HpRxanEDdPt0Ga/2SazRPjBxbuStxzyGh/NdTBwUEv42SMGrYuU9sNHRUeOlbRB/khJv7fZjhSI+unWxWPhCgoJpPiXebM7XbmD3p/9Dw51PZhRV0JpudU=
+	t=1756167997; cv=none; b=kpJPZUUKpEGw/rmoYGveh8eLfwqS/DJLRuYwQXDFQDDHNduZMnhUJZErTsqwOfwtamgqD6OWAHC3K3EmRBqUxx8iiHGqRjHTTLJPssXUWjXQRrBcyajpLhmPo5/39td+fdF82Qar14pdMtVkqulSbYUGZBYxQNq+2QI0B07ekv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756167995; c=relaxed/simple;
-	bh=ROAH+mDKm12b55XwWptx9bbEuvUSbYLV3fqddrAm8AE=;
-	h=Date:To:From:Subject:Message-Id; b=BHytXYXrh3IPPIKhqgkYme8H6wHZ4BW2dQAFg9/9HxKb7Jkk6UTebtWbGJELUyCEeNBzmKQ9g04trbernsT9/yTOKVyUpouKG7HGefD4/a8gTHbVzxhOnVP0dU1FkNrW/x9NizeC+2fS/XoxJUd54X3k1XKCdQMxf6wqejgSfUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=encR1ypu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756167997; c=relaxed/simple;
+	bh=VyBbq9f9CqA0NHJHl29KHzzz7FsSGemcEdEjkUsug+4=;
+	h=Date:To:From:Subject:Message-Id; b=dPRJmvl1mdpPAl6DVUDzQusWr+o0AJ7gwIV0C7lJl+BBxm3VYF2GftARJ6y/fuYx3x1VTPtMHaY3VSQVP0xsYDJHggcJzxO8oJ4Jxi43RM2lih1HC93Ohy6EA7seOhUmOLZQhlqACUtnnbwnXNbu+hoDIWZv3CNsak1ZBTL1XmU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ftyh0a4e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="encR1ypu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97E91C116B1;
-	Tue, 26 Aug 2025 00:26:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ftyh0a4e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1009EC116B1;
+	Tue, 26 Aug 2025 00:26:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756167994;
-	bh=ROAH+mDKm12b55XwWptx9bbEuvUSbYLV3fqddrAm8AE=;
+	s=korg; t=1756167997;
+	bh=VyBbq9f9CqA0NHJHl29KHzzz7FsSGemcEdEjkUsug+4=;
 	h=Date:To:From:Subject:From;
-	b=encR1ypu3oBJBGGtSJ6G0vmNIg55psPDNO2TGcEdRQRnVvjYXKoxRITerqv1Md1mT
-	 t5VgjhaYh9d46EtWGoDDPzR0qEmJUxoiUEoPL2KbnPmFOJSsZMQuSX+nh8SVjXTodF
-	 cZverCxpdaFvYjlE90HUAynDUq3012xUNV44xQQ4=
-Date: Mon, 25 Aug 2025 17:26:34 -0700
+	b=Ftyh0a4e93kOL+Gz4JJPcovUjoErDax9cyEnAnqPxzd4ZKJXhIX65jM263cIyX9C/
+	 OrwqSdNjX0oZdH1CUg3dG3mIS5k3BhLOA8jqt/nVS0jI36KVir7UVKIhX84NO4SWwO
+	 3AzTdZrAxLXGQ8M6ZtWBt6xdfIaBiqtMT6X2LP30=
+Date: Mon, 25 Aug 2025 17:26:36 -0700
 To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + printk-nbcon-use-panic_on_this_cpu-helper.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826002634.97E91C116B1@smtp.kernel.org>
+Subject: + panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu.patch added to mm-nonmm-unstable branch
+Message-Id: <20250826002637.1009EC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: printk/nbcon: use panic_on_this_cpu() helper
+     Subject: panic/printk: replace this_cpu_in_panic() with panic_on_this_cpu()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     printk-nbcon-use-panic_on_this_cpu-helper.patch
+     panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/printk-nbcon-use-panic_on_this_cpu-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: printk/nbcon: use panic_on_this_cpu() helper
-Date: Mon, 25 Aug 2025 10:29:34 +0800
+Subject: panic/printk: replace this_cpu_in_panic() with panic_on_this_cpu()
+Date: Mon, 25 Aug 2025 10:29:35 +0800
 
-nbcon_context_try_acquire() compared panic_cpu directly with
-smp_processor_id().  This open-coded check is now provided by
+The helper this_cpu_in_panic() duplicated logic already provided by
 panic_on_this_cpu().
 
-Switch to panic_on_this_cpu() to simplify the code and improve readability.
+Remove this_cpu_in_panic() and switch all users to panic_on_this_cpu().
 
-Link: https://lkml.kernel.org/r/20250825022947.1596226-7-wangjinchao600@gmail.com
+This simplifies the code and avoids having two helpers for the same check.
+
+Link: https://lkml.kernel.org/r/20250825022947.1596226-8-wangjinchao600@gmail.com
 Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -106,36 +107,107 @@ Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/nbcon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/printk.h            |    2 --
+ kernel/panic.c                    |    2 +-
+ kernel/printk/nbcon.c             |    2 +-
+ kernel/printk/printk.c            |   15 ++-------------
+ kernel/printk/printk_ringbuffer.c |    2 +-
+ lib/dump_stack.c                  |    2 +-
+ 6 files changed, 6 insertions(+), 19 deletions(-)
 
---- a/kernel/printk/nbcon.c~printk-nbcon-use-panic_on_this_cpu-helper
+--- a/include/linux/printk.h~panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu
++++ a/include/linux/printk.h
+@@ -330,8 +330,6 @@ static inline bool pr_flush(int timeout_
+ 
+ #endif
+ 
+-bool this_cpu_in_panic(void);
+-
+ #ifdef CONFIG_SMP
+ extern int __printk_cpu_sync_try_get(void);
+ extern void __printk_cpu_sync_wait(void);
+--- a/kernel/panic.c~panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu
++++ a/kernel/panic.c
+@@ -348,7 +348,7 @@ EXPORT_SYMBOL(panic_on_this_cpu);
+  */
+ bool panic_on_other_cpu(void)
+ {
+-	return (panic_in_progress() && !this_cpu_in_panic());
++	return (panic_in_progress() && !panic_on_this_cpu());
+ }
+ EXPORT_SYMBOL(panic_on_other_cpu);
+ 
+--- a/kernel/printk/nbcon.c~panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu
 +++ a/kernel/printk/nbcon.c
-@@ -2,6 +2,7 @@
- // Copyright (C) 2022 Linutronix GmbH, John Ogness
- // Copyright (C) 2022 Intel, Thomas Gleixner
+@@ -1394,7 +1394,7 @@ enum nbcon_prio nbcon_get_default_prio(v
+ {
+ 	unsigned int *cpu_emergency_nesting;
+ 
+-	if (this_cpu_in_panic())
++	if (panic_on_this_cpu())
+ 		return NBCON_PRIO_PANIC;
+ 
+ 	cpu_emergency_nesting = nbcon_get_cpu_emergency_nesting();
+--- a/kernel/printk/printk.c~panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu
++++ a/kernel/printk/printk.c
+@@ -17,6 +17,7 @@
+  *	01Mar01 Andrew Morton
+  */
  
 +#include "linux/panic.h"
- #include <linux/atomic.h>
- #include <linux/bug.h>
- #include <linux/console.h>
-@@ -589,7 +590,6 @@ static struct printk_buffers panic_nbcon
-  */
- static bool nbcon_context_try_acquire(struct nbcon_context *ctxt, bool is_reacquire)
- {
--	unsigned int cpu = smp_processor_id();
- 	struct console *con = ctxt->console;
- 	struct nbcon_state cur;
- 	int err;
-@@ -614,7 +614,7 @@ out:
- 	/* Acquire succeeded. */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- 	/* Assign the appropriate buffer for this context. */
--	if (atomic_read(&panic_cpu) == cpu)
-+	if (panic_on_this_cpu())
- 		ctxt->pbufs = &panic_nbcon_pbufs;
- 	else
- 		ctxt->pbufs = con->pbufs;
+ #include <linux/kernel.h>
+@@ -345,18 +346,6 @@ static void __up_console_sem(unsigned lo
+ }
+ #define up_console_sem() __up_console_sem(_RET_IP_)
+ 
+-/* Return true if a panic is in progress on the current CPU. */
+-bool this_cpu_in_panic(void)
+-{
+-	/*
+-	 * We can use raw_smp_processor_id() here because it is impossible for
+-	 * the task to be migrated to the panic_cpu, or away from it. If
+-	 * panic_cpu has already been set, and we're not currently executing on
+-	 * that CPU, then we never will be.
+-	 */
+-	return unlikely(atomic_read(&panic_cpu) == raw_smp_processor_id());
+-}
+-
+ /*
+  * Return true if a panic is in progress on a remote CPU.
+  *
+@@ -365,7 +354,7 @@ bool this_cpu_in_panic(void)
+  */
+ bool other_cpu_in_panic(void)
+ {
+-	return (panic_in_progress() && !this_cpu_in_panic());
++	return (panic_in_progress() && !panic_on_this_cpu());
+ }
+ 
+ /*
+--- a/kernel/printk/printk_ringbuffer.c~panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu
++++ a/kernel/printk/printk_ringbuffer.c
+@@ -2143,7 +2143,7 @@ static bool _prb_read_valid(struct print
+ 			 * But it would have the sequence number returned
+ 			 * by "prb_next_reserve_seq() - 1".
+ 			 */
+-			if (this_cpu_in_panic() &&
++			if (panic_on_this_cpu() &&
+ 			    (!debug_non_panic_cpus || legacy_allow_panic_sync) &&
+ 			    ((*seq + 1) < prb_next_reserve_seq(rb))) {
+ 				(*seq)++;
+--- a/lib/dump_stack.c~panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu
++++ a/lib/dump_stack.c
+@@ -102,7 +102,7 @@ static void __dump_stack(const char *log
+  */
+ asmlinkage __visible void dump_stack_lvl(const char *log_lvl)
+ {
+-	bool in_panic = this_cpu_in_panic();
++	bool in_panic = panic_on_this_cpu();
+ 	unsigned long flags;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from wangjinchao600@gmail.com are
