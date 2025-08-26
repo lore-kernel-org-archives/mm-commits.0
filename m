@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF8A3BBF2
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:41:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7CCF260583
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:41:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756168875; cv=none; b=nLfU1itSzCidxn312DPTO54wBVCH/txALeeVoiQVIFbOq75pOqmrMGAE7vZp7+w8Naadomj/3TKw5iA4gmkeRvCtAkEZcuVULTxdL+J/X53e660etTD9vlWlRgRZa7P9VcpxQMxz3wCVthBFi0rPULxq8NJj9ovaUsj6rl0Cwww=
+	t=1756168877; cv=none; b=Vh1h0ZHOxBN2waagWLFklUjYQ0hrlaRgW/JzGDOwSvbk3rCdeFylINU8IY/nlewJNNuro0aVMgaopc13fIxDlK+DjOiHqyH+ZKuNs98kQOjrhkOG2zIkIAS1agHVWrGBTodBqUORy+imUSnvW9U3jX2pVyPzWaX+ryTHJ31rdBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756168875; c=relaxed/simple;
-	bh=SqcRi6tQi9uXlXfAahs0ZmehnHleoV8vV3SaNGhDkB8=;
-	h=Date:To:From:Subject:Message-Id; b=LswvZ5lC3+zyZ5NPbJb7ZL4TM8/rCiA5nA5c3ZRVA5pM+PYUT1RLwqs7dgWaITP34EA5fDTEwaQHx1bhv8AZ+LQIWR6ji2i9G3fqVwg5d1zF0KWfom9ROZPvce5DQBUU+CxChUS0eILxKxFvJTAKZmiekVj9/Oks4jJMVfaRUbM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tLI9+EJh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756168877; c=relaxed/simple;
+	bh=TnvSZ6pJLrPW1I/3nBkkCXari2mksYkubvxEYgPQ2Nk=;
+	h=Date:To:From:Subject:Message-Id; b=jHM9v6BSGhdgTAopCc7WwCt5jXpz3fF7rvugFGGKr1zGpN+l6Rvm0emH8P2NNdpDozSrH7xZyzr9c/gYwd7Lcp5b+TCL8sdfu3dM2390Dwk8BBr/UY7wkuRI0J6HVjm7w7t055NemQ1XJVyzYGGYPnjb2rFemQda/gR2T3WvvlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UVkPqYcS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tLI9+EJh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152BBC4CEED;
-	Tue, 26 Aug 2025 00:41:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UVkPqYcS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 666ABC4CEED;
+	Tue, 26 Aug 2025 00:41:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756168874;
-	bh=SqcRi6tQi9uXlXfAahs0ZmehnHleoV8vV3SaNGhDkB8=;
+	s=korg; t=1756168876;
+	bh=TnvSZ6pJLrPW1I/3nBkkCXari2mksYkubvxEYgPQ2Nk=;
 	h=Date:To:From:Subject:From;
-	b=tLI9+EJhlcM+WEwUGGpqGhZQoZucqfdB/ctS7ySoqUnS4Nd201Y4IgsCFDHPzFrn1
-	 lgx0LxOIZzxGl3E8pxe61UCNSKO4nWIqj5N2yL6RLD0zViIf2xsErBPUOVtruaPQuD
-	 Rbso6gT8j9Bu5sCeYEwBtj1+DFz2htHjWHbcysOk=
-Date: Mon, 25 Aug 2025 17:41:13 -0700
+	b=UVkPqYcSwrmXidUl9Y40qmqmIYiHRDXBSJnFJmysaAFr0ojdZ30ce5ZnRY/XeH9qM
+	 hR3n4weuF6ezkMDdlRHdFHtGGOqZ5YoP3HkpALNN3coT8v+WjNHN2mB7PpDCzbu4Ul
+	 nkyJeyeoInWgE8IFJKNhG8nw9aGMYsaL2aUWMqqE=
+Date: Mon, 25 Aug 2025 17:41:15 -0700
 To: mm-commits@vger.kernel.org,safinaskar@zohomail.com,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-refine-the-document-for-panic_print.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826004114.152BBC4CEED@smtp.kernel.org>
+Subject: + panic-add-note-that-panic_print-parameter-is-deprecated.patch added to mm-nonmm-unstable branch
+Message-Id: <20250826004116.666ABC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: refine the document for 'panic_print'
+     Subject: panic: add note that 'panic_print' parameter is deprecated
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-refine-the-document-for-panic_print.patch
+     panic-add-note-that-panic_print-parameter-is-deprecated.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-refine-the-document-for-panic_print.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-add-note-that-panic_print-parameter-is-deprecated.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: panic: refine the document for 'panic_print'
-Date: Mon, 25 Aug 2025 10:56:59 +0800
+Subject: panic: add note that 'panic_print' parameter is deprecated
+Date: Mon, 25 Aug 2025 10:57:00 +0800
 
-User reported current document about SYS_INFO_PANIC_CONSOLE_REPLAY is
-confusing, that people could expect all user space console messages to be
-replayed.
+Just like for 'panic_print's systcl interface, add similar note for setup
+of kernel cmdline parameter and parameter under /sys/module/kernel/.
 
-Specify that only 'kernel' messages will be replayed to solve the confusion.
+Also add __core_param_cb() macro, which enables to add special get/set
+operation for a kernel parameter.
 
-Link: https://lkml.kernel.org/r/20250825025701.81921-3-feng.tang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20250825025701.81921-4-feng.tang@linux.alibaba.com
 Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Reported-by: Askar Safin <safinaskar@zohomail.com>
+Suggested-by: Petr Mladek <pmladek@suse.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Askar Safin <safinaskar@zohomail.com>
 Cc: John Ogness <john.ogness@linutronix.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -80,32 +81,65 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- Documentation/admin-guide/sysctl/kernel.rst     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/moduleparam.h |   13 +++++++++++++
+ kernel/panic.c              |   19 ++++++++++++++++++-
+ 2 files changed, 31 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~panic-refine-the-document-for-panic_print
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4589,7 +4589,7 @@
- 			bit 2: print timer info
- 			bit 3: print locks info if CONFIG_LOCKDEP is on
- 			bit 4: print ftrace buffer
--			bit 5: replay all messages on consoles at the end of panic
-+			bit 5: replay all kernel messages on consoles at the end of panic
- 			bit 6: print all CPUs backtrace (if available in the arch)
- 			bit 7: print only tasks in uninterruptible (blocked) state
- 			*Be aware* that this option may print a _lot_ of lines,
---- a/Documentation/admin-guide/sysctl/kernel.rst~panic-refine-the-document-for-panic_print
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -890,7 +890,7 @@ bit 1  print system memory info
- bit 2  print timer info
- bit 3  print locks info if ``CONFIG_LOCKDEP`` is on
- bit 4  print ftrace buffer
--bit 5  replay all messages on consoles at the end of panic
-+bit 5  replay all kernel messages on consoles at the end of panic
- bit 6  print all CPUs backtrace (if available in the arch)
- bit 7  print only tasks in uninterruptible (blocked) state
- =====  ============================================
+--- a/include/linux/moduleparam.h~panic-add-note-that-panic_print-parameter-is-deprecated
++++ a/include/linux/moduleparam.h
+@@ -349,6 +349,19 @@ static inline void kernel_param_unlock(s
+ 	__module_param_call("", name, &param_ops_##type, &var, perm,	\
+ 			    -1, KERNEL_PARAM_FL_UNSAFE)
+ 
++/**
++ * __core_param_cb - similar like core_param, with a set/get ops instead of type.
++ * @name: the name of the cmdline and sysfs parameter (often the same as var)
++ * @var: the variable
++ * @ops: the set & get operations for this parameter.
++ * @perm: visibility in sysfs
++ *
++ * Ideally this should be called 'core_param_cb', but the name has been
++ * used for module core parameter, so add the '__' prefix
++ */
++#define __core_param_cb(name, ops, arg, perm) \
++	__module_param_call("", name, ops, arg, perm, -1, 0)
++
+ #endif /* !MODULE */
+ 
+ /**
+--- a/kernel/panic.c~panic-add-note-that-panic_print-parameter-is-deprecated
++++ a/kernel/panic.c
+@@ -937,12 +937,29 @@ EXPORT_SYMBOL(__stack_chk_fail);
+ #endif
+ 
+ core_param(panic, panic_timeout, int, 0644);
+-core_param(panic_print, panic_print, ulong, 0644);
+ core_param(pause_on_oops, pause_on_oops, int, 0644);
+ core_param(panic_on_warn, panic_on_warn, int, 0644);
+ core_param(crash_kexec_post_notifiers, crash_kexec_post_notifiers, bool, 0644);
+ core_param(panic_console_replay, panic_console_replay, bool, 0644);
+ 
++static int panic_print_set(const char *val, const struct kernel_param *kp)
++{
++	pr_info_once("Kernel: 'panic_print' parameter will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
++	return  param_set_ulong(val, kp);
++}
++
++static int panic_print_get(char *val, const struct kernel_param *kp)
++{
++	pr_info_once("Kernel: 'panic_print' parameter will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
++	return  param_get_ulong(val, kp);
++}
++
++static const struct kernel_param_ops panic_print_ops = {
++	.set	= panic_print_set,
++	.get	= panic_print_get,
++};
++__core_param_cb(panic_print, &panic_print_ops, &panic_print, 0644);
++
+ static int __init oops_setup(char *s)
+ {
+ 	if (!s)
 _
 
 Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
