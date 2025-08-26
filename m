@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C72E430CDB4
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 22:58:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E296322AE5D
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 23:04:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756249131; cv=none; b=jRXuzhg6Ibsfo712uB559GwmGZOEwZ/Mm2y6XmyfHrSlV7UWrQPhlabV/vwnaZdidw4x6BMfPeNCleyv2sXDwLEx/2Ei3ixmdhveiAwulpdPqFyP1ch1tkJcnFeHMWixHyrT5DGpAQIu8fY/do/x5WOOBUrpKXsKeHIOOhLFyA8=
+	t=1756249480; cv=none; b=CMe8Rb6yHGOPV7krex0+S6zWcXQzs9EqKBchkhVVBFQc/Wu6UAWj36S54DLbKqkLuArPI+qU4Elzubi0C8y1P6djODvqS9IvZBSqLjT77CU11YPeqaDjMjBXtcMTqVXRnCqC2bV/qcAJIaHfMusS7hqPyu2ZLg3rLywGiyrb3CI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756249131; c=relaxed/simple;
-	bh=8pLA58R+hYefMHeGGo/9nt6fTK00oR/T6F406LT3tzE=;
-	h=Date:To:From:Subject:Message-Id; b=SOMPRISrMkEou5n4FcE/nKg33f3s28PdnKZENAjxFoI5RiEOWLuV2jiw9WjBqVjl6wNLCDyDlHMrpo0TNPMYDDB1rBypsWV10aVP50OdQJ9XvEM4qWMMzuYK6b0R3Cwnfab7WjHl7BvhsLtQzJz6hq//KfD51w67DaHqCu0h7CU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1xu38B3+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756249480; c=relaxed/simple;
+	bh=UoVBYkMwGKWaowvyjGVBhbU8hVp1FOgZ8FeJT+t2H98=;
+	h=Date:To:From:Subject:Message-Id; b=QX6CspN+5mhsJhlfwbIZdGgRY8BMJw7XjvW8uqKiLd1sM6lnXGO14valZSbZh550vEN3YFx+4gQe5bxGFDw41FwJveC2CtGVL0Drz2uxXMI+AdgvDWYTmFl1Y0TJUBCDXT3lj9/bG+knDunC0gYIzhysXD+Z7eD6QAgU4buAl4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lxbnc+Rn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1xu38B3+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44DD0C4CEF1;
-	Tue, 26 Aug 2025 22:58:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lxbnc+Rn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F0F3C4CEF1;
+	Tue, 26 Aug 2025 23:04:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756249131;
-	bh=8pLA58R+hYefMHeGGo/9nt6fTK00oR/T6F406LT3tzE=;
+	s=korg; t=1756249479;
+	bh=UoVBYkMwGKWaowvyjGVBhbU8hVp1FOgZ8FeJT+t2H98=;
 	h=Date:To:From:Subject:From;
-	b=1xu38B3+0DVzGiSn/zP3gKUCqjfodjGZFshj4Yj3iUQcEb+zllnL2ceQ8RKZqJWwR
-	 BLjW1qngvqk4vDIg9quqrfpz3YcB+5ODkeu0eoSe0NWyPic5KLPsuAYhEqGfCAdWc0
-	 eM40AnYpFu1CaOWssJuou7jqUW61sobVSyntuitE=
-Date: Tue, 26 Aug 2025 15:58:50 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tsbogend@alpha.franken.de,naresh.kamboju@linaro.org,anders.roxell@linaro.org,nicola.vetrini@gmail.com,akpm@linux-foundation.org
+	b=lxbnc+RnXLkDYJxMPcvtAQkF6qXet8B9p+rUIXa7pGksr+JSofcDKx+KNHY2jIKbq
+	 r/4w2tPcgba5pa13wtUsUmNfrm3psnN9oXi2OTj2+7SzIeuzA1WrSl9cHnVpTPEjNm
+	 V24yP+3J1Ew1yE9FyHPaC9riEJahQG0rs4CWpQzM=
+Date: Tue, 26 Aug 2025 16:04:38 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-memdesc_flags_t-fix-2.patch added to mm-unstable branch
-Message-Id: <20250826225851.44DD0C4CEF1@smtp.kernel.org>
+Subject: + kho-make-sure-kho_scratch-argument-is-fully-consumed.patch added to mm-new branch
+Message-Id: <20250826230439.5F0F3C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mips: fix compilation error
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-memdesc_flags_t-fix-2.patch
+     Subject: kho: make sure kho_scratch argument is fully consumed
+has been added to the -mm mm-new branch.  Its filename is
+     kho-make-sure-kho_scratch-argument-is-fully-consumed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-memdesc_flags_t-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-make-sure-kho_scratch-argument-is-fully-consumed.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,56 +64,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nicola Vetrini <nicola.vetrini@gmail.com>
-Subject: mips: fix compilation error
-Date: Mon, 25 Aug 2025 23:42:45 +0200
+From: Pratyush Yadav <pratyush@kernel.org>
+Subject: kho: make sure kho_scratch argument is fully consumed
+Date: Tue, 26 Aug 2025 14:38:16 +0200
 
-The following build error occurs on a mips build configuration
-(32r2el_defconfig and similar ones)
-./arch/mips/include/asm/cacheflush.h:42:34: error: passing argument 2 of `set_bit'
-from incompatible pointer type [-Werror=incompatible-pointer-types]
-   42 |         set_bit(PG_dcache_dirty, &(folio)->flags)
-      |                                  ^~~~~~~~~~~~~~~
-      |                                  |
-      |                                  memdesc_flags_t *
+When specifying fixed sized scratch areas, the parser only parses the
+three scratch sizes and ignores the rest of the argument.  This means the
+argument can have any bogus trailing characters.
 
-This is due to changes introduced by
-commit 30f45bf18d55 ("mm: introduce memdesc_flags_t"), which did not update
-these usage sites.
+For example, "kho_scratch=256M,512M,512Mfoobar" results in successful
+parsing:
 
-Link: https://lore.kernel.org/lkml/CA+G9fYvkpmqGr6wjBNHY=dRp71PLCoi2341JxOudi60yqaeUdg@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20250825214245.1838158-1-nicola.vetrini@gmail.com
-Signed-off-by: Nicola Vetrini <nicola.vetrini@gmail.com>
-Cc: Anders Roxell <anders.roxell@linaro.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+    [    0.000000] KHO: scratch areas: lowmem: 256MiB global: 512MiB pernode: 512MiB
+
+It is generally a good idea to parse arguments as strictly as possible. 
+In addition, if bogus trailing characters are allowed in the kho_scratch
+argument, it is possible that some people might end up using them and
+later extensions to the argument format will cause unexpected breakages.
+
+Make sure the argument is fully consumed after all three scratch sizes are
+parsed.  With this change, the bogus argument
+"kho_scratch=256M,512M,512Mfoobar" results in:
+
+    [    0.000000] Malformed early option 'kho_scratch'
+
+Link: https://lkml.kernel.org/r/20250826123817.64681-1-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/cacheflush.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/kexec_handover.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/arch/mips/include/asm/cacheflush.h~mm-introduce-memdesc_flags_t-fix-2
-+++ a/arch/mips/include/asm/cacheflush.h
-@@ -37,11 +37,11 @@
- #define PG_dcache_dirty			PG_arch_1
+--- a/kernel/kexec_handover.c~kho-make-sure-kho_scratch-argument-is-fully-consumed
++++ a/kernel/kexec_handover.c
+@@ -451,6 +451,10 @@ static int __init kho_parse_scratch_size
+ 	if (!total_size)
+ 		return -EINVAL;
  
- #define folio_test_dcache_dirty(folio)		\
--	test_bit(PG_dcache_dirty, &(folio)->flags)
-+	test_bit(PG_dcache_dirty, &(folio)->flags.f)
- #define folio_set_dcache_dirty(folio)	\
--	set_bit(PG_dcache_dirty, &(folio)->flags)
-+	set_bit(PG_dcache_dirty, &(folio)->flags.f)
- #define folio_clear_dcache_dirty(folio)	\
--	clear_bit(PG_dcache_dirty, &(folio)->flags)
-+	clear_bit(PG_dcache_dirty, &(folio)->flags.f)
- 
- extern void (*flush_cache_all)(void);
- extern void (*__flush_cache_all)(void);
++	/* The string should be fully consumed by now. */
++	if (*p)
++		return -EINVAL;
++
+ 	scratch_size_lowmem = sizes[0];
+ 	scratch_size_global = sizes[1];
+ 	scratch_size_pernode = sizes[2];
 _
 
-Patches currently in -mm which might be from nicola.vetrini@gmail.com are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
-mm-introduce-memdesc_flags_t-fix-2.patch
+kho-make-sure-kho_scratch-argument-is-fully-consumed.patch
 
