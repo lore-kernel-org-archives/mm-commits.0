@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65A55223DF6
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:41:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF8A3BBF2
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:41:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756168872; cv=none; b=P7p51Qi+rwY0aXczTaha2xIhaRITrReCmJeep/+dhQAaYXc8ZXHrG5BFZuhSvBw1L3fDCO6hGoQgBuwD0T8GGjOCxM9GlYgvID4X7HzEyqd1ls+XBGg+5Izpl8kRiKHDmcoQ2jPN9c4/rqUCaiOzlaAi8EnsI3dU9dk9Q/6KnJ8=
+	t=1756168875; cv=none; b=nLfU1itSzCidxn312DPTO54wBVCH/txALeeVoiQVIFbOq75pOqmrMGAE7vZp7+w8Naadomj/3TKw5iA4gmkeRvCtAkEZcuVULTxdL+J/X53e660etTD9vlWlRgRZa7P9VcpxQMxz3wCVthBFi0rPULxq8NJj9ovaUsj6rl0Cwww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756168872; c=relaxed/simple;
-	bh=JeaSBc2xuFcEfb1LyoIeJcFiQn1N/Nb9dV/GBf3sg7g=;
-	h=Date:To:From:Subject:Message-Id; b=sZzY1Oodb5mW6ICsBqIuv3ItHE+LbybLJx8NTY76ZJgOxzQP/i734GH8ksyUrxOu2MeW+wEoc7JqMJhJTyOJUoXV8swKnft/oMCWjHr7mQA1wx9KDPx+X0ijQNjAlDspa4gAHECCzJS8N67c62K816AhPaPqbNsVQ7hixLdfS+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wozYJbKK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756168875; c=relaxed/simple;
+	bh=SqcRi6tQi9uXlXfAahs0ZmehnHleoV8vV3SaNGhDkB8=;
+	h=Date:To:From:Subject:Message-Id; b=LswvZ5lC3+zyZ5NPbJb7ZL4TM8/rCiA5nA5c3ZRVA5pM+PYUT1RLwqs7dgWaITP34EA5fDTEwaQHx1bhv8AZ+LQIWR6ji2i9G3fqVwg5d1zF0KWfom9ROZPvce5DQBUU+CxChUS0eILxKxFvJTAKZmiekVj9/Oks4jJMVfaRUbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tLI9+EJh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wozYJbKK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1151FC4CEED;
-	Tue, 26 Aug 2025 00:41:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tLI9+EJh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152BBC4CEED;
+	Tue, 26 Aug 2025 00:41:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756168872;
-	bh=JeaSBc2xuFcEfb1LyoIeJcFiQn1N/Nb9dV/GBf3sg7g=;
+	s=korg; t=1756168874;
+	bh=SqcRi6tQi9uXlXfAahs0ZmehnHleoV8vV3SaNGhDkB8=;
 	h=Date:To:From:Subject:From;
-	b=wozYJbKKSdj1pUFsNBFmx9ZLr0IaJiXBVSmItuF3qh/kyUzQhIPjYRdhPb2yUDInX
-	 +2fb1gscdo+o448SBIqL9pTDPvtdt+Uayo1IRtbHBKjHprfOMjrXZkKLkxoxlE/Rl5
-	 sqPTGgYL8COxQedCash7IhvbELgn7QWBu9XIYdnI=
-Date: Mon, 25 Aug 2025 17:41:11 -0700
+	b=tLI9+EJhlcM+WEwUGGpqGhZQoZucqfdB/ctS7ySoqUnS4Nd201Y4IgsCFDHPzFrn1
+	 lgx0LxOIZzxGl3E8pxe61UCNSKO4nWIqj5N2yL6RLD0zViIf2xsErBPUOVtruaPQuD
+	 Rbso6gT8j9Bu5sCeYEwBtj1+DFz2htHjWHbcysOk=
+Date: Mon, 25 Aug 2025 17:41:13 -0700
 To: mm-commits@vger.kernel.org,safinaskar@zohomail.com,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-sys_info-handle-sys_info_mask==0-case.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826004112.1151FC4CEED@smtp.kernel.org>
+Subject: + panic-refine-the-document-for-panic_print.patch added to mm-nonmm-unstable branch
+Message-Id: <20250826004114.152BBC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/sys_info: handle sys_info_mask==0 case
+     Subject: panic: refine the document for 'panic_print'
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-sys_info-handle-sys_info_mask==0-case.patch
+     panic-refine-the-document-for-panic_print.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sys_info-handle-sys_info_mask==0-case.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-refine-the-document-for-panic_print.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,30 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: lib/sys_info: handle sys_info_mask==0 case
-Date: Mon, 25 Aug 2025 10:56:58 +0800
+Subject: panic: refine the document for 'panic_print'
+Date: Mon, 25 Aug 2025 10:56:59 +0800
 
-Generalization of panic_print's dump function [1] has been merged, and
-this patchset is to address some remaining issues, like adding note of the
-obsoletion of 'panic_print' cmdline parameter, refining the kernel
-document for panic_print, and hardening some string management.
+User reported current document about SYS_INFO_PANIC_CONSOLE_REPLAY is
+confusing, that people could expect all user space console messages to be
+replayed.
 
+Specify that only 'kernel' messages will be replayed to solve the confusion.
 
-This patch (of 4):
-
-It is a normal case that bitmask parameter is 0, so pre-initialize the
-names[] to null string to cover this case.
-
-Also remove the superfluous "+1" in names[sizeof(sys_info_avail) + 1],
-which is needed for 'strlen()', but not for 'sizeof()'.
-
-Link: https://lkml.kernel.org/r/20250825025701.81921-1-feng.tang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/20250825025701.81921-2-feng.tang@linux.alibaba.com
-Link: Link: https://lkml.kernel.org/r/20250703021004.42328-1-feng.tang@linux.alibaba.com [1]
+Link: https://lkml.kernel.org/r/20250825025701.81921-3-feng.tang@linux.alibaba.com
 Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Suggested-by: Petr Mladek <pmladek@suse.com>
+Reported-by: Askar Safin <safinaskar@zohomail.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Askar Safin <safinaskar@zohomail.com>
 Cc: John Ogness <john.ogness@linutronix.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -91,28 +80,32 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sys_info.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 +-
+ Documentation/admin-guide/sysctl/kernel.rst     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/sys_info.c~lib-sys_info-handle-sys_info_mask==0-case
-+++ a/lib/sys_info.c
-@@ -55,7 +55,7 @@ int sysctl_sys_info_handler(const struct
- 					  void *buffer, size_t *lenp,
- 					  loff_t *ppos)
- {
--	char names[sizeof(sys_info_avail) + 1];
-+	char names[sizeof(sys_info_avail)];
- 	struct ctl_table table;
- 	unsigned long *si_bits_global;
- 
-@@ -81,6 +81,7 @@ int sysctl_sys_info_handler(const struct
- 		char *delim = "";
- 		int i, len = 0;
- 
-+		names[0] = '\0';
- 		for (i = 0; i < ARRAY_SIZE(si_names); i++) {
- 			if (*si_bits_global & si_names[i].bit) {
- 				len += scnprintf(names + len, sizeof(names) - len,
+--- a/Documentation/admin-guide/kernel-parameters.txt~panic-refine-the-document-for-panic_print
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4589,7 +4589,7 @@
+ 			bit 2: print timer info
+ 			bit 3: print locks info if CONFIG_LOCKDEP is on
+ 			bit 4: print ftrace buffer
+-			bit 5: replay all messages on consoles at the end of panic
++			bit 5: replay all kernel messages on consoles at the end of panic
+ 			bit 6: print all CPUs backtrace (if available in the arch)
+ 			bit 7: print only tasks in uninterruptible (blocked) state
+ 			*Be aware* that this option may print a _lot_ of lines,
+--- a/Documentation/admin-guide/sysctl/kernel.rst~panic-refine-the-document-for-panic_print
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -890,7 +890,7 @@ bit 1  print system memory info
+ bit 2  print timer info
+ bit 3  print locks info if ``CONFIG_LOCKDEP`` is on
+ bit 4  print ftrace buffer
+-bit 5  replay all messages on consoles at the end of panic
++bit 5  replay all kernel messages on consoles at the end of panic
+ bit 6  print all CPUs backtrace (if available in the arch)
+ bit 7  print only tasks in uninterruptible (blocked) state
+ =====  ============================================
 _
 
 Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
