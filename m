@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154A42A1BF
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65A55223DF6
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:41:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756168005; cv=none; b=iMIIx0Vte1WRQOjNMHPTXXQG/RW7qaeb1P36hQ5ZOLqux9kC5+yX1mSYCX7K5FHoYVIhQQN1VtZ85wWBzlhLV45dwFYhPZ1XBoJ2ibYvcPxUvamiMExUaHYECviXITywuOg/V0BixIZfHFyLUTuD9W8h6Nim4Cx3wuDpzOiXrb4=
+	t=1756168872; cv=none; b=P7p51Qi+rwY0aXczTaha2xIhaRITrReCmJeep/+dhQAaYXc8ZXHrG5BFZuhSvBw1L3fDCO6hGoQgBuwD0T8GGjOCxM9GlYgvID4X7HzEyqd1ls+XBGg+5Izpl8kRiKHDmcoQ2jPN9c4/rqUCaiOzlaAi8EnsI3dU9dk9Q/6KnJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756168005; c=relaxed/simple;
-	bh=btGYtLSiIP8fMzcJBsrLKLCJoAM5nNQ/BTaPtJv3ybc=;
-	h=Date:To:From:Subject:Message-Id; b=CDxef9kjsetedyi6iQV/nZg69AZ0BIrCP1T9+uzTpR7h6TGGSRkhiCbl5glftkZB40IyMlawBL2P9pWkHpz6QYxSHFkourGOls3sGVECqFORPPEaLgw7emFVaGMYCHqvWL42apDCz0Hv5Pl+74PnJu5Gyb/MB4T+4+2yhL3MXSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iNjAOXsH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756168872; c=relaxed/simple;
+	bh=JeaSBc2xuFcEfb1LyoIeJcFiQn1N/Nb9dV/GBf3sg7g=;
+	h=Date:To:From:Subject:Message-Id; b=sZzY1Oodb5mW6ICsBqIuv3ItHE+LbybLJx8NTY76ZJgOxzQP/i734GH8ksyUrxOu2MeW+wEoc7JqMJhJTyOJUoXV8swKnft/oMCWjHr7mQA1wx9KDPx+X0ijQNjAlDspa4gAHECCzJS8N67c62K816AhPaPqbNsVQ7hixLdfS+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wozYJbKK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iNjAOXsH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B8B2C4CEF4;
-	Tue, 26 Aug 2025 00:26:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wozYJbKK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1151FC4CEED;
+	Tue, 26 Aug 2025 00:41:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756168004;
-	bh=btGYtLSiIP8fMzcJBsrLKLCJoAM5nNQ/BTaPtJv3ybc=;
+	s=korg; t=1756168872;
+	bh=JeaSBc2xuFcEfb1LyoIeJcFiQn1N/Nb9dV/GBf3sg7g=;
 	h=Date:To:From:Subject:From;
-	b=iNjAOXsH4G+ihrqFTl8aHAGXDAHQV7h4AR547jmrAOu0CHDks7GFYmOstodQ/bpRP
-	 qFdxChY5WS1VwKGT+DogfqLWY7glLR9kUq92ajviagL1lufD6OVT7zF5FqKSJi3lIx
-	 9hyDpWHJTjdUxlmxvatHRrHKl7ytCGZP8ONyFKR8=
-Date: Mon, 25 Aug 2025 17:26:44 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
+	b=wozYJbKKSdj1pUFsNBFmx9ZLr0IaJiXBVSmItuF3qh/kyUzQhIPjYRdhPb2yUDInX
+	 +2fb1gscdo+o448SBIqL9pTDPvtdt+Uayo1IRtbHBKjHprfOMjrXZkKLkxoxlE/Rl5
+	 sqPTGgYL8COxQedCash7IhvbELgn7QWBu9XIYdnI=
+Date: Mon, 25 Aug 2025 17:41:11 -0700
+To: mm-commits@vger.kernel.org,safinaskar@zohomail.com,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-skip-checks-when-panic-is-in-progress.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826002644.8B8B2C4CEF4@smtp.kernel.org>
+Subject: + lib-sys_info-handle-sys_info_mask==0-case.patch added to mm-nonmm-unstable branch
+Message-Id: <20250826004112.1151FC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog: skip checks when panic is in progress
+     Subject: lib/sys_info: handle sys_info_mask==0 case
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-skip-checks-when-panic-is-in-progress.patch
+     lib-sys_info-handle-sys_info_mask==0-case.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-skip-checks-when-panic-is-in-progress.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sys_info-handle-sys_info_mask==0-case.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,132 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: watchdog: skip checks when panic is in progress
-Date: Mon, 25 Aug 2025 10:29:37 +0800
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: lib/sys_info: handle sys_info_mask==0 case
+Date: Mon, 25 Aug 2025 10:56:58 +0800
 
-This issue was found when an EFI pstore was configured for kdump logging
-with the NMI hard lockup detector enabled.  The efi-pstore write operation
-was slow, and with a large number of logs, the pstore dump callback within
-kmsg_dump() took a long time.
+Generalization of panic_print's dump function [1] has been merged, and
+this patchset is to address some remaining issues, like adding note of the
+obsoletion of 'panic_print' cmdline parameter, refining the kernel
+document for panic_print, and hardening some string management.
 
-This delay triggered the NMI watchdog, leading to a nested panic.  The
-call flow demonstrates how the secondary panic caused an
-emergency_restart() to be triggered before the initial pstore operation
-could finish, leading to a failure to dump the logs:
 
-  real panic() {
-	kmsg_dump() {
-		...
-		pstore_dump() {
-			start_dump();
-			... // long time operation triggers NMI watchdog
-			nmi panic() {
-				...
-				emergency_restart(); // pstore unfinished
-			}
-			...
-			finish_dump(); // never reached
-		}
-	}
-  }
+This patch (of 4):
 
-Both watchdog_buddy_check_hardlockup() and watchdog_overflow_callback()
-may trigger during a panic.  This can lead to recursive panic handling.
+It is a normal case that bitmask parameter is 0, so pre-initialize the
+names[] to null string to cover this case.
 
-Add panic_in_progress() checks so watchdog activity is skipped once a
-panic has begun.
+Also remove the superfluous "+1" in names[sizeof(sys_info_avail) + 1],
+which is needed for 'strlen()', but not for 'sizeof()'.
 
-This prevents recursive panic and keeps the panic path more reliable.
-
-Link: https://lkml.kernel.org/r/20250825022947.1596226-10-wangjinchao600@gmail.com
-Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
-Reviewed-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Joel Granados <joel.granados@kernel.org>
+Link: https://lkml.kernel.org/r/20250825025701.81921-1-feng.tang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20250825025701.81921-2-feng.tang@linux.alibaba.com
+Link: Link: https://lkml.kernel.org/r/20250703021004.42328-1-feng.tang@linux.alibaba.com [1]
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Suggested-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Askar Safin <safinaskar@zohomail.com>
 Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Li Huafei <lihuafei1@huawei.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Luo Gengkun <luogengkun@huaweicloud.com>
-Cc: Max Kellermann <max.kellermann@ionos.com>
-Cc: Nam Cao <namcao@linutronix.de>
-Cc: oushixiong <oushixiong@kylinos.cn>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Qianqiang Liu <qianqiang.liu@163.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Sohil Mehta <sohil.mehta@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Thomas Zimemrmann <tzimmermann@suse.de>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Ville Syrjala <ville.syrjala@linux.intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Yicong Yang <yangyicong@hisilicon.com>
-Cc: Yunhui Cui <cuiyunhui@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c      |    6 ++++++
- kernel/watchdog_perf.c |    4 ++++
- 2 files changed, 10 insertions(+)
+ lib/sys_info.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/watchdog.c~watchdog-skip-checks-when-panic-is-in-progress
-+++ a/kernel/watchdog.c
-@@ -752,6 +752,12 @@ static enum hrtimer_restart watchdog_tim
- 	if (!watchdog_enabled)
- 		return HRTIMER_NORESTART;
+--- a/lib/sys_info.c~lib-sys_info-handle-sys_info_mask==0-case
++++ a/lib/sys_info.c
+@@ -55,7 +55,7 @@ int sysctl_sys_info_handler(const struct
+ 					  void *buffer, size_t *lenp,
+ 					  loff_t *ppos)
+ {
+-	char names[sizeof(sys_info_avail) + 1];
++	char names[sizeof(sys_info_avail)];
+ 	struct ctl_table table;
+ 	unsigned long *si_bits_global;
  
-+	/*
-+	 * pass the buddy check if a panic is in process
-+	 */
-+	if (panic_in_progress())
-+		return HRTIMER_NORESTART;
-+
- 	watchdog_hardlockup_kick();
+@@ -81,6 +81,7 @@ int sysctl_sys_info_handler(const struct
+ 		char *delim = "";
+ 		int i, len = 0;
  
- 	/* kick the softlockup detector */
---- a/kernel/watchdog_perf.c~watchdog-skip-checks-when-panic-is-in-progress
-+++ a/kernel/watchdog_perf.c
-@@ -12,6 +12,7 @@
- 
- #define pr_fmt(fmt) "NMI watchdog: " fmt
- 
-+#include <linux/panic.h>
- #include <linux/nmi.h>
- #include <linux/atomic.h>
- #include <linux/module.h>
-@@ -108,6 +109,9 @@ static void watchdog_overflow_callback(s
- 	/* Ensure the watchdog never gets throttled */
- 	event->hw.interrupts = 0;
- 
-+	if (panic_in_progress())
-+		return;
-+
- 	if (!watchdog_check_timestamp())
- 		return;
- 
++		names[0] = '\0';
+ 		for (i = 0; i < ARRAY_SIZE(si_names); i++) {
+ 			if (*si_bits_global & si_names[i].bit) {
+ 				len += scnprintf(names + len, sizeof(names) - len,
 _
 
-Patches currently in -mm which might be from wangjinchao600@gmail.com are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-panic-introduce-helper-functions-for-panic-state.patch
-fbdev-use-panic_in_progress-helper.patch
-crash_core-use-panic_try_start-in-crash_kexec.patch
-panic-use-panic_try_start-in-nmi_panic.patch
-panic-use-panic_try_start-in-vpanic.patch
-printk-nbcon-use-panic_on_this_cpu-helper.patch
-panic-printk-replace-this_cpu_in_panic-with-panic_on_this_cpu.patch
-panic-printk-replace-other_cpu_in_panic-with-panic_on_other_cpu.patch
-watchdog-skip-checks-when-panic-is-in-progress.patch
+lib-sys_info-handle-sys_info_mask==0-case.patch
+panic-refine-the-document-for-panic_print.patch
+panic-add-note-that-panic_print-parameter-is-deprecated.patch
 
