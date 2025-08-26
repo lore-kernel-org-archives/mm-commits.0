@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D90D14A8B;
-	Tue, 26 Aug 2025 01:25:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C625946A
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 01:40:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756171521; cv=none; b=BGwX0ochefXAdMhXM1/a80wyH/fDE2LpLymwsNvGnMpiyA/dh+LdP3LZ9AJevyOJG7SP2sAzkmYGk3ll3oW7GP///QDR9D9vq5DvgLRgBsYfHaqBTKTMOs7y4s8A9iACkMYAF2BEzPWmG0FM4bKi2ZsUmVGaWgQTTSI0sjYPiF4=
+	t=1756172403; cv=none; b=oOj0i/5iZdX371VwX82XStaHoDHwYbD3CL4SlNn5/7bMLW3eiBMfmb7+mRXKTS4A6AMeH+jEPJpqOsuGzzxly821bCZWOGmGRz+dbXZaa/TkdOKqH+7shOZSCJp6hj/kgkqRtMK+XRdGLeuC+j2hjc6mN0qcFxQGSmyxv9AzuV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756171521; c=relaxed/simple;
-	bh=XaKsFiCrpF4WOiot84HlAt1C0T379kQZxh2FFYt8aaY=;
-	h=Date:To:From:Subject:Message-Id; b=CDzp2iwa1UX2xVJSu9EtjKWWXd/tSPLQKYocNvx9JLF3IVYKPL8Kbow7Ka+1ajDIv0QIo4imzmwd6kNQW+ncSJzExYNmbVPRl3d+K4BjaF1KvXQxgZ5e2N4cVTRdapqnqNx6VKMI5Mmf+QAvpjmjLKH/fLLxTKRnmSEm8iWN5v8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GwPYWe0s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756172403; c=relaxed/simple;
+	bh=O8TlGlhZbDXWOfX9uQJDNAxv42kgmcMSO1bIaXe3gaY=;
+	h=Date:To:From:Subject:Message-Id; b=X+QN1+I23AZqjgC/8AaJ1SqxgM/GOjY+dme1SJwNT3LSBkW8n330vuVQrGMv4h1cKANxn953Ct7J//2uMbmumEXwzeXfkYYLpzlqEtsxitP7pMXzJ54MjpCk2jh640H2VwYsCBpGb5XBE/hMQVf1tIu6T9s6dO+HfGtw2IRSV/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C7/AbScc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GwPYWe0s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F95AC4CEED;
-	Tue, 26 Aug 2025 01:25:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C7/AbScc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1007C4CEED;
+	Tue, 26 Aug 2025 01:40:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756171518;
-	bh=XaKsFiCrpF4WOiot84HlAt1C0T379kQZxh2FFYt8aaY=;
+	s=korg; t=1756172402;
+	bh=O8TlGlhZbDXWOfX9uQJDNAxv42kgmcMSO1bIaXe3gaY=;
 	h=Date:To:From:Subject:From;
-	b=GwPYWe0sFRoEehylGO6c2dn/xd+cYbbUf8gg2cShl8w07YYMYeXZZ69erB0DSCUJZ
-	 Vt0tCsff15fXFFvtms2uCIF5qTOZpSFpq27iAA2uBNhSAmgi3AScnTcetw9po2SDcX
-	 VUPtELWeUWUq0ONcXejrECnQow4nZTZlTMcTBodU=
-Date: Mon, 25 Aug 2025 18:25:18 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,leitao@debian.org,david@redhat.com,aha310510@gmail.com,akpm@linux-foundation.org
+	b=C7/AbSccQfaxGiVWRgJ00zUoIkVR8nP/lG6qW/nRXgPzmOpw+eJkAcbYPW5xhvpPX
+	 ZQGFYkNVLsABoiif5XIWHmB2/8ooEWMrmQtpJ5uMUPIQF+CiKx4M1GLlmqbm8t2PNX
+	 NLvRIhisuk7a2ExMbKqKaFW3U7+KfCNQg3Daq2FM=
+Date: Mon, 25 Aug 2025 18:40:02 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@gentwo.org,bhe@redhat.com,vdumitrescu@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-add-missing-hugetlb_lock-in-__unmap_hugepage_range.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250826012518.9F95AC4CEED@smtp.kernel.org>
+Subject: + percpu-fix-race-on-alloc-failed-warning-limit.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250826014002.D1007C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: add missing hugetlb_lock in __unmap_hugepage_range()
+     Subject: percpu: fix race on alloc failed warning limit
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-add-missing-hugetlb_lock-in-__unmap_hugepage_range.patch
+     percpu-fix-race-on-alloc-failed-warning-limit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-add-missing-hugetlb_lock-in-__unmap_hugepage_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-fix-race-on-alloc-failed-warning-limit.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,87 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeongjun Park <aha310510@gmail.com>
-Subject: mm/hugetlb: add missing hugetlb_lock in __unmap_hugepage_range()
-Date: Sun, 24 Aug 2025 03:21:15 +0900
+From: Vlad Dumitrescu <vdumitrescu@nvidia.com>
+Subject: percpu: fix race on alloc failed warning limit
+Date: Fri, 22 Aug 2025 15:55:16 -0700
 
-When restoring a reservation for an anonymous page, we need to check to
-freeing a surplus.  However, __unmap_hugepage_range() causes data race
-because it reads h->surplus_huge_pages without the protection of
-hugetlb_lock.
+The 'allocation failed, ...' warning messages can cause unlimited log
+spam, contrary to the implementation's intent.
 
-And adjust_reservation is a boolean variable that indicates whether
-reservations for anonymous pages in each folio should be restored. 
-Therefore, it should be initialized to false for each round of the loop. 
-However, this variable is not initialized to false except when defining
-the current adjust_reservation variable.
+The warn_limit variable is accessed without synchronization.  If more than
+<warn_limit> threads enter the warning path at the same time, the variable
+will get decremented past 0.  Once it becomes negative, the non-zero check
+will always return true leading to unlimited log spam.
 
-This means that once adjust_reservation is set to true even once within
-the loop, reservations for anonymous pages will be restored
-unconditionally in all subsequent rounds, regardless of the folio's state.
+Use atomic operations to access warn_limit and change the check to test
+for positive (> 0) as it can still become negative.
 
-To fix this, we need to add the missing hugetlb_lock, unlock the
-page_table_lock earlier so that we don't lock the hugetlb_lock inside the
-page_table_lock lock, and initialize adjust_reservation to false on each
-round within the loop.
+While the change cited in Fixes is only adjacent, the warning limit
+implementation was correct before it.  Only non-atomic allocations were
+considered for warnings, and those happened to hold pcpu_alloc_mutex while
+accessing warn_limit.
 
-Link: https://lkml.kernel.org/r/20250823182115.1193563-1-aha310510@gmail.com
-Fixes: df7a6d1f6405 ("mm/hugetlb: restore the reservation if needed")
-Signed-off-by: Jeongjun Park <aha310510@gmail.com>
-Reported-by: syzbot+417aeb05fd190f3a6da9@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=417aeb05fd190f3a6da9
-Cc: Breno Leitao <leitao@debian.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/ab22061a-a62f-4429-945b-744e5cc4ba35@nvidia.com
+Fixes: f7d77dfc91f7 ("mm/percpu.c: print error message too if atomic alloc failed")
+Signed-off-by: Vlad Dumitrescu <vdumitrescu@nvidia.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/percpu.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-add-missing-hugetlb_lock-in-__unmap_hugepage_range
-+++ a/mm/hugetlb.c
-@@ -5851,7 +5851,7 @@ void __unmap_hugepage_range(struct mmu_g
- 	spinlock_t *ptl;
- 	struct hstate *h = hstate_vma(vma);
- 	unsigned long sz = huge_page_size(h);
--	bool adjust_reservation = false;
-+	bool adjust_reservation;
- 	unsigned long last_addr_mask;
- 	bool force_flush = false;
+--- a/mm/percpu.c~percpu-fix-race-on-alloc-failed-warning-limit
++++ a/mm/percpu.c
+@@ -1734,7 +1734,7 @@ void __percpu *pcpu_alloc_noprof(size_t
+ 	bool is_atomic;
+ 	bool do_warn;
+ 	struct obj_cgroup *objcg = NULL;
+-	static int warn_limit = 10;
++	static atomic_t warn_limit = ATOMIC_INIT(10);
+ 	struct pcpu_chunk *chunk, *next;
+ 	const char *err;
+ 	int slot, off, cpu, ret;
+@@ -1904,13 +1904,17 @@ fail_unlock:
+ fail:
+ 	trace_percpu_alloc_percpu_fail(reserved, is_atomic, size, align);
  
-@@ -5944,6 +5944,7 @@ void __unmap_hugepage_range(struct mmu_g
- 					sz);
- 		hugetlb_count_sub(pages_per_huge_page(h), mm);
- 		hugetlb_remove_rmap(folio);
-+		spin_unlock(ptl);
- 
- 		/*
- 		 * Restore the reservation for anonymous page, otherwise the
-@@ -5951,14 +5952,16 @@ void __unmap_hugepage_range(struct mmu_g
- 		 * If there we are freeing a surplus, do not set the restore
- 		 * reservation bit.
- 		 */
-+		adjust_reservation = false;
+-	if (do_warn && warn_limit) {
+-		pr_warn("allocation failed, size=%zu align=%zu atomic=%d, %s\n",
+-			size, align, is_atomic, err);
+-		if (!is_atomic)
+-			dump_stack();
+-		if (!--warn_limit)
+-			pr_info("limit reached, disable warning\n");
++	if (do_warn && atomic_read(&warn_limit) > 0) {
++		int remaining = atomic_dec_return(&warn_limit);
 +
-+		spin_lock_irq(&hugetlb_lock);
- 		if (!h->surplus_huge_pages && __vma_private_lock(vma) &&
- 		    folio_test_anon(folio)) {
- 			folio_set_hugetlb_restore_reserve(folio);
- 			/* Reservation to be adjusted after the spin lock */
- 			adjust_reservation = true;
- 		}
--
--		spin_unlock(ptl);
-+		spin_unlock_irq(&hugetlb_lock);
++		if (remaining >= 0) {
++			pr_warn("allocation failed, size=%zu align=%zu atomic=%d, %s\n",
++				size, align, is_atomic, err);
++			if (!is_atomic)
++				dump_stack();
++			if (remaining == 0)
++				pr_info("limit reached, disable warning\n");
++		}
+ 	}
  
- 		/*
- 		 * Adjust the reservation for the region that will have the
+ 	if (is_atomic) {
 _
 
-Patches currently in -mm which might be from aha310510@gmail.com are
+Patches currently in -mm which might be from vdumitrescu@nvidia.com are
 
-mm-hugetlb-add-missing-hugetlb_lock-in-__unmap_hugepage_range.patch
+percpu-fix-race-on-alloc-failed-warning-limit.patch
 
