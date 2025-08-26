@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D44E2A1BF
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154A42A1BF
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756168001; cv=none; b=MjTf3HXgW5Rqc3S5m4r0k0M4G3wybD9hdAoz/0VBEFzJqYUFBKww6qFhm8pjIMZkxMHeTpF/nHGx01Tfcwp7nkY7x+6TFXBxaTvmXJVwRmCP2U9Mq/K7ljtXQszGzEQ2HpfYHUORSGfMJPgCADC5FfXpGX0wDjpvRYDpinXCe6w=
+	t=1756168005; cv=none; b=iMIIx0Vte1WRQOjNMHPTXXQG/RW7qaeb1P36hQ5ZOLqux9kC5+yX1mSYCX7K5FHoYVIhQQN1VtZ85wWBzlhLV45dwFYhPZ1XBoJ2ibYvcPxUvamiMExUaHYECviXITywuOg/V0BixIZfHFyLUTuD9W8h6Nim4Cx3wuDpzOiXrb4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756168001; c=relaxed/simple;
-	bh=f4kwgHuLBP7tGeSDzMEtYOM6/3NI+93Eanj9LhSdDfE=;
-	h=Date:To:From:Subject:Message-Id; b=k9eKn3pSmuA11KUkmw94xZMxbQAfi+K09i10HkRnhyddxsCv2xspwXwNZ/lb42VnsiNEK/KmHC5j/cbfSUom+yDVF5/mgt2G6RCFaKXiKOS22Fx/egrl4R4rO3D8qehj/Vh6fkKvF1C94uN29QrWpo/lAEgH493ffKJkmSye2qM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HdprQ2V+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756168005; c=relaxed/simple;
+	bh=btGYtLSiIP8fMzcJBsrLKLCJoAM5nNQ/BTaPtJv3ybc=;
+	h=Date:To:From:Subject:Message-Id; b=CDxef9kjsetedyi6iQV/nZg69AZ0BIrCP1T9+uzTpR7h6TGGSRkhiCbl5glftkZB40IyMlawBL2P9pWkHpz6QYxSHFkourGOls3sGVECqFORPPEaLgw7emFVaGMYCHqvWL42apDCz0Hv5Pl+74PnJu5Gyb/MB4T+4+2yhL3MXSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iNjAOXsH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HdprQ2V+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B795C4CEED;
-	Tue, 26 Aug 2025 00:26:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iNjAOXsH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B8B2C4CEF4;
+	Tue, 26 Aug 2025 00:26:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756168001;
-	bh=f4kwgHuLBP7tGeSDzMEtYOM6/3NI+93Eanj9LhSdDfE=;
+	s=korg; t=1756168004;
+	bh=btGYtLSiIP8fMzcJBsrLKLCJoAM5nNQ/BTaPtJv3ybc=;
 	h=Date:To:From:Subject:From;
-	b=HdprQ2V+aANYs2FZcW/7+0wWTB2vvS14bob71y2z05wGu7sOzYk6fdII5EcvWFXhv
-	 tirwmPYvSnGUh+ttwPxUWxHGI8kpsaBGlXLJNPUqyhxwBog0BC1aHAwty1bteq+FJ9
-	 vtrf9K8FinSC7wWD3lLOrH8tbk9C+OIWUviY/7ow=
-Date: Mon, 25 Aug 2025 17:26:40 -0700
+	b=iNjAOXsH4G+ihrqFTl8aHAGXDAHQV7h4AR547jmrAOu0CHDks7GFYmOstodQ/bpRP
+	 qFdxChY5WS1VwKGT+DogfqLWY7glLR9kUq92ajviagL1lufD6OVT7zF5FqKSJi3lIx
+	 9hyDpWHJTjdUxlmxvatHRrHKl7ytCGZP8ONyFKR8=
+Date: Mon, 25 Aug 2025 17:26:44 -0700
 To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-printk-replace-other_cpu_in_panic-with-panic_on_other_cpu.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826002641.5B795C4CEED@smtp.kernel.org>
+Subject: + watchdog-skip-checks-when-panic-is-in-progress.patch added to mm-nonmm-unstable branch
+Message-Id: <20250826002644.8B8B2C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic/printk: replace other_cpu_in_panic() with panic_on_other_cpu()
+     Subject: watchdog: skip checks when panic is in progress
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-printk-replace-other_cpu_in_panic-with-panic_on_other_cpu.patch
+     watchdog-skip-checks-when-panic-is-in-progress.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-printk-replace-other_cpu_in_panic-with-panic_on_other_cpu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-skip-checks-when-panic-is-in-progress.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: panic/printk: replace other_cpu_in_panic() with panic_on_other_cpu()
-Date: Mon, 25 Aug 2025 10:29:36 +0800
+Subject: watchdog: skip checks when panic is in progress
+Date: Mon, 25 Aug 2025 10:29:37 +0800
 
-The helper other_cpu_in_panic() duplicated logic already provided by
-panic_on_other_cpu().
+This issue was found when an EFI pstore was configured for kdump logging
+with the NMI hard lockup detector enabled.  The efi-pstore write operation
+was slow, and with a large number of logs, the pstore dump callback within
+kmsg_dump() took a long time.
 
-Remove other_cpu_in_panic() and update all users to call
-panic_on_other_cpu() instead.
+This delay triggered the NMI watchdog, leading to a nested panic.  The
+call flow demonstrates how the secondary panic caused an
+emergency_restart() to be triggered before the initial pstore operation
+could finish, leading to a failure to dump the logs:
 
-This removes redundant code and makes panic handling consistent.
+  real panic() {
+	kmsg_dump() {
+		...
+		pstore_dump() {
+			start_dump();
+			... // long time operation triggers NMI watchdog
+			nmi panic() {
+				...
+				emergency_restart(); // pstore unfinished
+			}
+			...
+			finish_dump(); // never reached
+		}
+	}
+  }
 
-Link: https://lkml.kernel.org/r/20250825022947.1596226-9-wangjinchao600@gmail.com
+Both watchdog_buddy_check_hardlockup() and watchdog_overflow_callback()
+may trigger during a panic.  This can lead to recursive panic handling.
+
+Add panic_in_progress() checks so watchdog activity is skipped once a
+panic has begun.
+
+This prevents recursive panic and keeps the panic path more reliable.
+
+Link: https://lkml.kernel.org/r/20250825022947.1596226-10-wangjinchao600@gmail.com
 Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
+Reviewed-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -104,119 +131,48 @@ Cc: Ville Syrjala <ville.syrjala@linux.intel.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Yicong Yang <yangyicong@hisilicon.com>
 Cc: Yunhui Cui <cuiyunhui@bytedance.com>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/internal.h |    1 -
- kernel/printk/nbcon.c    |    8 ++++----
- kernel/printk/printk.c   |   19 ++++---------------
- 3 files changed, 8 insertions(+), 20 deletions(-)
+ kernel/watchdog.c      |    6 ++++++
+ kernel/watchdog_perf.c |    4 ++++
+ 2 files changed, 10 insertions(+)
 
---- a/kernel/printk/internal.h~panic-printk-replace-other_cpu_in_panic-with-panic_on_other_cpu
-+++ a/kernel/printk/internal.h
-@@ -332,7 +332,6 @@ struct printk_message {
- 	unsigned long		dropped;
- };
+--- a/kernel/watchdog.c~watchdog-skip-checks-when-panic-is-in-progress
++++ a/kernel/watchdog.c
+@@ -752,6 +752,12 @@ static enum hrtimer_restart watchdog_tim
+ 	if (!watchdog_enabled)
+ 		return HRTIMER_NORESTART;
  
--bool other_cpu_in_panic(void);
- bool printk_get_next_message(struct printk_message *pmsg, u64 seq,
- 			     bool is_extended, bool may_supress);
++	/*
++	 * pass the buddy check if a panic is in process
++	 */
++	if (panic_in_progress())
++		return HRTIMER_NORESTART;
++
+ 	watchdog_hardlockup_kick();
  
---- a/kernel/printk/nbcon.c~panic-printk-replace-other_cpu_in_panic-with-panic_on_other_cpu
-+++ a/kernel/printk/nbcon.c
-@@ -255,7 +255,7 @@ static int nbcon_context_try_acquire_dir
- 		 * opportunity to perform any necessary cleanup if they were
- 		 * interrupted by the panic CPU while printing.
- 		 */
--		if (other_cpu_in_panic() &&
-+		if (panic_on_other_cpu() &&
- 		    (!is_reacquire || cur->unsafe_takeover)) {
- 			return -EPERM;
- 		}
-@@ -310,7 +310,7 @@ static bool nbcon_waiter_matches(struct
- 	 * Event #2 implies the new context is PANIC.
- 	 * Event #3 occurs when panic() has flushed the console.
- 	 * Event #4 occurs when a non-panic CPU reacquires.
--	 * Event #5 is not possible due to the other_cpu_in_panic() check
-+	 * Event #5 is not possible due to the panic_on_other_cpu() check
- 	 *          in nbcon_context_try_acquire_handover().
- 	 */
+ 	/* kick the softlockup detector */
+--- a/kernel/watchdog_perf.c~watchdog-skip-checks-when-panic-is-in-progress
++++ a/kernel/watchdog_perf.c
+@@ -12,6 +12,7 @@
  
-@@ -349,7 +349,7 @@ static int nbcon_context_try_acquire_req
- 	struct nbcon_state new;
+ #define pr_fmt(fmt) "NMI watchdog: " fmt
  
- 	/* Note that the caller must still remove the request! */
--	if (other_cpu_in_panic())
-+	if (panic_on_other_cpu())
- 		return -EPERM;
++#include <linux/panic.h>
+ #include <linux/nmi.h>
+ #include <linux/atomic.h>
+ #include <linux/module.h>
+@@ -108,6 +109,9 @@ static void watchdog_overflow_callback(s
+ 	/* Ensure the watchdog never gets throttled */
+ 	event->hw.interrupts = 0;
  
- 	/*
-@@ -447,7 +447,7 @@ static int nbcon_context_try_acquire_han
- 	 * nbcon_waiter_matches(). In particular, the assumption that
- 	 * lower priorities are ignored during panic.
- 	 */
--	if (other_cpu_in_panic())
-+	if (panic_on_other_cpu())
- 		return -EPERM;
++	if (panic_in_progress())
++		return;
++
+ 	if (!watchdog_check_timestamp())
+ 		return;
  
- 	/* Handover is not possible on the same CPU. */
---- a/kernel/printk/printk.c~panic-printk-replace-other_cpu_in_panic-with-panic_on_other_cpu
-+++ a/kernel/printk/printk.c
-@@ -347,17 +347,6 @@ static void __up_console_sem(unsigned lo
- #define up_console_sem() __up_console_sem(_RET_IP_)
- 
- /*
-- * Return true if a panic is in progress on a remote CPU.
-- *
-- * On true, the local CPU should immediately release any printing resources
-- * that may be needed by the panic CPU.
-- */
--bool other_cpu_in_panic(void)
--{
--	return (panic_in_progress() && !panic_on_this_cpu());
--}
--
--/*
-  * This is used for debugging the mess that is the VT code by
-  * keeping track if we have the console semaphore held. It's
-  * definitely not the perfect debug tool (we don't know if _WE_
-@@ -2391,7 +2380,7 @@ asmlinkage int vprintk_emit(int facility
- 	 * non-panic CPUs are generating any messages, they will be
- 	 * silently dropped.
- 	 */
--	if (other_cpu_in_panic() &&
-+	if (panic_on_other_cpu() &&
- 	    !debug_non_panic_cpus &&
- 	    !panic_triggering_all_cpu_backtrace)
- 		return 0;
-@@ -2827,7 +2816,7 @@ void console_lock(void)
- 	might_sleep();
- 
- 	/* On panic, the console_lock must be left to the panic cpu. */
--	while (other_cpu_in_panic())
-+	while (panic_on_other_cpu())
- 		msleep(1000);
- 
- 	down_console_sem();
-@@ -2847,7 +2836,7 @@ EXPORT_SYMBOL(console_lock);
- int console_trylock(void)
- {
- 	/* On panic, the console_lock must be left to the panic cpu. */
--	if (other_cpu_in_panic())
-+	if (panic_on_other_cpu())
- 		return 0;
- 	if (down_trylock_console_sem())
- 		return 0;
-@@ -3227,7 +3216,7 @@ static bool console_flush_all(bool do_co
- 			any_progress = true;
- 
- 			/* Allow panic_cpu to take over the consoles safely. */
--			if (other_cpu_in_panic())
-+			if (panic_on_other_cpu())
- 				goto abandon;
- 
- 			if (do_cond_resched)
 _
 
 Patches currently in -mm which might be from wangjinchao600@gmail.com are
