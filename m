@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE4225A2A1
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:41:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DB7E85C4A;
+	Tue, 26 Aug 2025 01:05:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756168879; cv=none; b=OV60Tgc2glHBXbKgJ07j1ulTABxay9MgRjHZTfnwL9jhQv2TEb9OHC/oYMVM381WbmBNrl6SgUA3ZdJI7KFp6YnAw6zHcAhQvXNs6FnaAKEoY8+J/c15PGFV1ok8eOOAKsZoYZWV8JyRNUqASDipWJxqQt1TWz+LJij6BaHw3v0=
+	t=1756170340; cv=none; b=oSA/J04nFMtG9bknw7Q/bvY49oUHfhJsf6jOhiaX3zFdwHlnsCDSEVm5QkPoq7w/jg6FzDsEG3GOMl06IO2NLXvxiQj4fYaKz6/PBoE3rbHVqEVixdSEJesDUODnoqCBfVun5qckZ1u2OkaJeIi9wrayhOOkeM/6hqKkHrBp0pA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756168879; c=relaxed/simple;
-	bh=CxDzDvbyGjdxuHJCfXc2LddEAddWH72S6hVH4oi+TME=;
-	h=Date:To:From:Subject:Message-Id; b=FhQ07En26ms9IABD4zgOl0mWpLK24lQr94SD3iqa6kbD1pJIzSztIHBmciN6tXS+dP7gTvdpEvqgEUApqDh3fIOUYRd/f5l1oYpKIrsI4W2MqRQGpsKxIihtLqP0U4eZgC6QB4+LlKR37wDbOULeKQZ1r3pO4JMgxzDPSAXpCkc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xncuUQ/k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756170340; c=relaxed/simple;
+	bh=JngFn+jzgyIn12/qv12mpOgI7nfL8G9DKZcKVXiPB9I=;
+	h=Date:To:From:Subject:Message-Id; b=P18r7nFKpqCN/3neQMiUNSxm+Uabg8bszbKMP/mcxDbdNOkp4bTcx7hmnNBz0pQhmBXZwWViuixXq1mxzyIyMYawRmA3a44IG6qgoRL6QPOCBckX41qUHWbRjQLZbX4SaFuvTb5D6kd6PR/XOS+5FU0WsB5MVWTEJluVlpNJSV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FZjQujsZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xncuUQ/k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9ED1C4CEED;
-	Tue, 26 Aug 2025 00:41:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FZjQujsZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A90CEC4CEED;
+	Tue, 26 Aug 2025 01:05:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756168879;
-	bh=CxDzDvbyGjdxuHJCfXc2LddEAddWH72S6hVH4oi+TME=;
+	s=korg; t=1756170339;
+	bh=JngFn+jzgyIn12/qv12mpOgI7nfL8G9DKZcKVXiPB9I=;
 	h=Date:To:From:Subject:From;
-	b=xncuUQ/k2z2GgbX2UM26LZNgCO3G5NOgVjYmROCHIrimRoJa0f3r8TWm6q1Xa7/dD
-	 f+G7NfsY5y7Nf74ddFB7XDtrdW77ODZq75nlKzixr+zaYI4WwEVkeFoppJIMJ7zn/o
-	 5FzsJs9fbdSwzzwJkwCjcsxKqOc+fBvjNAJkIW2Q=
-Date: Mon, 25 Aug 2025 17:41:18 -0700
-To: mm-commits@vger.kernel.org,safinaskar@zohomail.com,rostedt@goodmis.org,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,feng.tang@linux.alibaba.com,corbet@lwn.net,pmladek@suse.com,akpm@linux-foundation.org
+	b=FZjQujsZhEPNHPJQIaigp1jBB11uAyVv5YFpFl7y5KR8yc/wOz7vea6exDk2XSeJo
+	 gvxnCV7C2sP6LhgorcvhG/vjhJ9yi2HmuTaOf9sEDHKWFsq9eJ14foMyer5aNnE2M8
+	 Jw0PSzo+DJp9joQLk48/ThwhYEpeSqyQXAS003JE=
+Date: Mon, 25 Aug 2025 18:05:38 -0700
+To: mm-commits@vger.kernel.org,vkuznets@redhat.com,stable@vger.kernel.org,ryncsn@gmail.com,okozina@redhat.com,kernelfans@gmail.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,coxu@redhat.com,bhe@redhat.com,berrange@redhat.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-clean-up-message-about-deprecated-panic_print-parameter.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826004118.E9ED1C4CEED@smtp.kernel.org>
+Subject: + kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250826010539.A90CEC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: clean up message about deprecated 'panic_print' parameter
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-clean-up-message-about-deprecated-panic_print-parameter.patch
+     Subject: kexec/arm64: initialize the random field of kbuf to zero in the image loader
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-clean-up-message-about-deprecated-panic_print-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: panic: clean up message about deprecated 'panic_print' parameter
-Date: Mon, 25 Aug 2025 10:57:01 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: kexec/arm64: initialize the random field of kbuf to zero in the image loader
+Date: Thu Aug 21 04:11:21 2025 -0700
 
-Remove duplication of the message about deprecated 'panic_print'
-parameter.
+Add an explicit initialization for the random member of the kbuf structure
+within the image_load function in arch/arm64/kernel/kexec_image.c. 
+Setting kbuf.random to zero ensures a deterministic and clean starting
+state for the buffer used during kernel image loading, avoiding this UBSAN
+issue later, when kbuf.random is read.
 
-Also make the wording more direct.  Make it clear that the new parameters
-already exist and should be used instead.
+  [   32.362488] UBSAN: invalid-load in ./include/linux/kexec.h:210:10
+  [   32.362649] load of value 252 is not a valid value for type '_Bool'
 
-Link: https://lkml.kernel.org/r/20250825025701.81921-5-feng.tang@linux.alibaba.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Askar Safin <safinaskar@zohomail.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/oninomspajhxp4omtdapxnckxydbk2nzmrix7rggmpukpnzadw@c67o7njgdgm3
+Fixes: bf454ec31add ("kexec_file: allow to place kexec_buf randomly
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: "Daniel P. Berrange" <berrange@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Liu Pingfan <kernelfans@gmail.com>
+Cc: Milan Broz <gmazyland@gmail.com>
+Cc: Ondrej Kozina <okozina@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ arch/arm64/kernel/kexec_image.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/panic.c~panic-clean-up-message-about-deprecated-panic_print-parameter
-+++ a/kernel/panic.c
-@@ -77,6 +77,11 @@ ATOMIC_NOTIFIER_HEAD(panic_notifier_list
+--- a/arch/arm64/kernel/kexec_image.c~kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader
++++ a/arch/arm64/kernel/kexec_image.c
+@@ -76,6 +76,7 @@ static void *image_load(struct kimage *i
+ 	kbuf.buf_min = 0;
+ 	kbuf.buf_max = ULONG_MAX;
+ 	kbuf.top_down = false;
++	kbuf.random = 0;
  
- EXPORT_SYMBOL(panic_notifier_list);
- 
-+static void panic_print_deprecated(void)
-+{
-+	pr_info_once("Kernel: The 'panic_print' parameter is now deprecated. Please use 'panic_sys_info' and 'panic_console_replay' instead.\n");
-+}
-+
- #ifdef CONFIG_SYSCTL
- 
- /*
-@@ -125,7 +130,7 @@ static int proc_taint(const struct ctl_t
- static int sysctl_panic_print_handler(const struct ctl_table *table, int write,
- 			   void *buffer, size_t *lenp, loff_t *ppos)
- {
--	pr_info_once("Kernel: 'panic_print' sysctl interface will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
-+	panic_print_deprecated();
- 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
- }
- 
-@@ -944,13 +949,13 @@ core_param(panic_console_replay, panic_c
- 
- static int panic_print_set(const char *val, const struct kernel_param *kp)
- {
--	pr_info_once("Kernel: 'panic_print' parameter will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
-+	panic_print_deprecated();
- 	return  param_set_ulong(val, kp);
- }
- 
- static int panic_print_get(char *val, const struct kernel_param *kp)
- {
--	pr_info_once("Kernel: 'panic_print' parameter will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
-+	panic_print_deprecated();
- 	return  param_get_ulong(val, kp);
- }
- 
+ 	kbuf.buffer = kernel;
+ 	kbuf.bufsz = kernel_len;
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-panic-clean-up-message-about-deprecated-panic_print-parameter.patch
+kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader.patch
 
