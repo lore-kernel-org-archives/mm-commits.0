@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7CCD2A1BF
-	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDEA52A1BF
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 00:26:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756167985; cv=none; b=mWVSNWKpssTDTrmG3rSX+P5YLYcGX13XS/Ha6nEEBI4FKm0BdQzucnBWgj40FYF1NCnUV21J31ZLvR3THL15E8GNdZ7yV6N9s61X2l/YeRp4zB3l8qVwlDEfUoWCowmuQcdxDPSoKcQPzFduCrvphSaGj4qfB0lg8adiiZk1o6M=
+	t=1756167988; cv=none; b=gUkpS5XXVVoOgqpQOZV0MBnc0NuWOl5GYqOcIzyfJTV2hoVsgcMLb/Phyfbiyw1Xy3dmdpK+rtDa/qdv+4hUnOYAcPT7x68GVHuzbbYCQ8H5y3C/+/lEfWEyN7mFMRSXHshvp5KPhlUIPTOpB4rPm2BSReVZ6prhy8JuJYy47Fk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756167985; c=relaxed/simple;
-	bh=PZmtg1Prv3BKUI6O/zd9Ki/tNKi9+tDbIfuMLJKNPuA=;
-	h=Date:To:From:Subject:Message-Id; b=STYX+NYvlnEjExAlkloQfCFZsLxrS01YDZ+uisC2WqBWKlGp4cTDNFuMeB8aAQYeRJaQFOdlULx3jBFpP22yzyyJ9Gk0H5aLGoEOi+SKQ4HHtmLn9w+qQBll+hDJdhUMLv7RKKJFH+RzZLxmNFYgLMbh3y+VHuXH3nRiNHmLCEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JpeWMgIb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756167988; c=relaxed/simple;
+	bh=s7DyqPod3Al1sYtc+2SLW35Xd+FdacwS6oRbyX3xPf8=;
+	h=Date:To:From:Subject:Message-Id; b=jeY70CN5+c0usuE2WTWJa9NqZrdV8uEspdMVdoSC2v9F5yRSdAJ2i3WJt/7z/IbV0LNym63s7XqnSm0VFeFuqIUuqKXmmE0Wuh4z8ywTEs6l2OtRhm/vOj8rVPwosy7xpNnCLX6yUuLP/Eh5G5XzZMGTECsRMOJkBiYn8bawGeo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kz9aGYfB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JpeWMgIb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62315C4CEED;
-	Tue, 26 Aug 2025 00:26:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kz9aGYfB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A322BC4CEF4;
+	Tue, 26 Aug 2025 00:26:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756167985;
-	bh=PZmtg1Prv3BKUI6O/zd9Ki/tNKi9+tDbIfuMLJKNPuA=;
+	s=korg; t=1756167987;
+	bh=s7DyqPod3Al1sYtc+2SLW35Xd+FdacwS6oRbyX3xPf8=;
 	h=Date:To:From:Subject:From;
-	b=JpeWMgIbpPsR9oQ7a4AIDVcIeT+clp7b9LfRWyWR79JAWTXHnH2qhhje6IsmkiIgq
-	 ipHPEOg8YrIKNKVyzO6hwyJWTgb9Nm0GXnVEn2WmqcNkDpmVIg2xBQDjcGrbYdH/S3
-	 wGq/91tw2EcnGPbaz9WKxIeXprbk70S/I2pWc+T8=
-Date: Mon, 25 Aug 2025 17:26:24 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
+	b=kz9aGYfBjl+sRt8sDBSYXKKTcFDLb7qu2uhKLzKRxHMVw2rKsA3FZs7RO1EICuLA1
+	 KeYr1y20WDUeLuH1k5Cd/V3WrMDJNMZWUbLGImILulEnzxYmRLY/dRbCW+Xd3JTcio
+	 tlec+4gYHRyDDfvK3wpRy+v+t4bb2/4B7lilJJAU=
+Date: Mon, 25 Aug 2025 17:26:27 -0700
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fbdev-use-panic_in_progress-helper.patch added to mm-nonmm-unstable branch
-Message-Id: <20250826002625.62315C4CEED@smtp.kernel.org>
+Subject: + crash_core-use-panic_try_start-in-crash_kexec.patch added to mm-nonmm-unstable branch
+Message-Id: <20250826002627.A322BC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fbdev: use panic_in_progress() helper
+     Subject: crash_core: use panic_try_start() in crash_kexec()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fbdev-use-panic_in_progress-helper.patch
+     crash_core-use-panic_try_start-in-crash_kexec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fbdev-use-panic_in_progress-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_core-use-panic_try_start-in-crash_kexec.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: fbdev: use panic_in_progress() helper
-Date: Mon, 25 Aug 2025 10:29:30 +0800
+Subject: crash_core: use panic_try_start() in crash_kexec()
+Date: Mon, 25 Aug 2025 10:29:31 +0800
 
-Update the fbcon_skip_panic() function to use the panic_in_progress()
-helper.
+crash_kexec() had its own code to exclude parallel execution by setting
+panic_cpu.  This is already handled by panic_try_start().  Switch to
+panic_try_start() to remove the duplication and keep the logic consistent.
 
-The previous direct access to panic_cpu is less readable and is being
-replaced by a dedicated function that more clearly expresses the intent.
-
-This change is part of a series to refactor the kernel's panic handling
-logic for better clarity and robustness.
-
-Link: https://lkml.kernel.org/r/20250825022947.1596226-3-wangjinchao600@gmail.com
+Link: https://lkml.kernel.org/r/20250825022947.1596226-4-wangjinchao600@gmail.com
 Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
-Acked-by Qianqiang Liu <qianqiang.liu@163.com>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -94,6 +88,7 @@ Cc: Max Kellermann <max.kellermann@ionos.com>
 Cc: Nam Cao <namcao@linutronix.de>
 Cc: oushixiong <oushixiong@kylinos.cn>
 Cc: Petr Mladek <pmladek@suse.com>
+Cc: Qianqiang Liu <qianqiang.liu@163.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Sohil Mehta <sohil.mehta@intel.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
@@ -109,27 +104,47 @@ Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/core/fbcon.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ kernel/crash_core.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
---- a/drivers/video/fbdev/core/fbcon.c~fbdev-use-panic_in_progress-helper
-+++ a/drivers/video/fbdev/core/fbcon.c
-@@ -279,14 +279,7 @@ static int fbcon_get_rotate(struct fb_in
+--- a/kernel/crash_core.c~crash_core-use-panic_try_start-in-crash_kexec
++++ a/kernel/crash_core.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2002-2004 Eric Biederman  <ebiederm@xmission.com>
+  */
  
- static bool fbcon_skip_panic(struct fb_info *info)
++#include "linux/panic.h"
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/buildid.h>
+@@ -143,17 +144,7 @@ STACK_FRAME_NON_STANDARD(__crash_kexec);
+ 
+ __bpf_kfunc void crash_kexec(struct pt_regs *regs)
  {
--/* panic_cpu is not exported, and can't be used if built as module. Use
-- * oops_in_progress instead, but non-fatal oops won't be printed.
-- */
--#if defined(MODULE)
--	return (info->skip_panic && unlikely(oops_in_progress));
--#else
--	return (info->skip_panic && unlikely(atomic_read(&panic_cpu) != PANIC_CPU_INVALID));
--#endif
-+	return (info->skip_panic && unlikely(panic_in_progress()));
+-	int old_cpu, this_cpu;
+-
+-	/*
+-	 * Only one CPU is allowed to execute the crash_kexec() code as with
+-	 * panic().  Otherwise parallel calls of panic() and crash_kexec()
+-	 * may stop each other.  To exclude them, we use panic_cpu here too.
+-	 */
+-	old_cpu = PANIC_CPU_INVALID;
+-	this_cpu = raw_smp_processor_id();
+-
+-	if (atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu)) {
++	if (panic_try_start()) {
+ 		/* This is the 1st CPU which comes here, so go ahead. */
+ 		__crash_kexec(regs);
+ 
+@@ -161,7 +152,7 @@ __bpf_kfunc void crash_kexec(struct pt_r
+ 		 * Reset panic_cpu to allow another panic()/crash_kexec()
+ 		 * call.
+ 		 */
+-		atomic_set(&panic_cpu, PANIC_CPU_INVALID);
++		panic_reset();
+ 	}
  }
  
- static inline bool fbcon_is_active(struct vc_data *vc, struct fb_info *info)
 _
 
 Patches currently in -mm which might be from wangjinchao600@gmail.com are
