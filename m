@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF3C30CDB2
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 21:50:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2A811F4191
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 22:26:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756331424; cv=none; b=n5DGkx8K0o+Fxic9g/mb0WI8+MTIKL1ldn/0m8UsThyHtIrGLTMDDjxryM8U4sHumgWpl6tI1kN4Bqbwz4TjM+yzqIw87Nq2ebi8kknoHYkVxU2R0bsYVc8IvaZ4p+DNIGDnpRwPvDS+zqwdGSray2l+700PwBFzoLukKCccTN8=
+	t=1756333578; cv=none; b=F3ePa+1KY0MQNmvP0effkYL/dOI2bsTs76PXBM8JfI+kIcl1Gkck3CZkCIBaZZp9Bb8cUXl33Hh8pZN8PiYfcCPaG/+hI+AI31udJzmoCDpnXRYQHFz2xxO8wDSVKZF9YUvKR+IbPDDUo6GNq4oc1mvjd8GCzDuB9ie5rpYNNzU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756331424; c=relaxed/simple;
-	bh=B2nltP9XCnnk3P2EzT92uI7R9g8iMONFzqo63UStPiY=;
-	h=Date:To:From:Subject:Message-Id; b=hHviwPYo8UUoVp5webli35xAFDBAb63rRlJFX9aQXKPBUQj1UFg8wOzJK3AMJZdmt6JuEGQtWIgVjpFiFaOLdCY0AjRkqzU9LS2ybc0P/pZQQE9Ud7CkvpOuLYdgYjOCwfKHYHbwm0Dqs54JPpRZFvCQhZnM0ocoNK06asdoUXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZB2K93mt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756333578; c=relaxed/simple;
+	bh=Ey46oYr4a0E1lX3mlThVx4ozuQ2z6BpzQ9g8kUD1YCc=;
+	h=Date:To:From:Subject:Message-Id; b=aDYjx+2pDzEszkZ4d+foWGytB3zW381gLH1LyOG+qgfDlrXF8TaqjS1U7tP5MyM4gOEubUfdw+okY2GHIYJfhZd40+s+KYhZj0ctm30vcfOol4qS0vpfz+fV2b1YuEaPIjfXEcJwSERJ7fRw7rF+s95W2rTS6eRfjOlJ6vm1gHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GT3/M8iJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZB2K93mt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23A7EC4CEF8;
-	Wed, 27 Aug 2025 21:50:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GT3/M8iJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01A82C4CEEB;
+	Wed, 27 Aug 2025 22:26:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756331424;
-	bh=B2nltP9XCnnk3P2EzT92uI7R9g8iMONFzqo63UStPiY=;
+	s=korg; t=1756333578;
+	bh=Ey46oYr4a0E1lX3mlThVx4ozuQ2z6BpzQ9g8kUD1YCc=;
 	h=Date:To:From:Subject:From;
-	b=ZB2K93mtB7KTxmdf2SjkLZicOD6A4aVzu7M3Hp/3xqsmKMwP5ogwUS4VVQkFuD8MM
-	 xBsHktOyo3qA8Tal4/3QB4aIH1+HOXv7QBGFljmez/+YlkHV09HHHlP2Lzrfy1y4xW
-	 xKMn0kBoJgO/M+aY62+L5f73rwOKXTiMWBWJQMZM=
-Date: Wed, 27 Aug 2025 14:50:23 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,max.kellermann@ionos.com,akpm@linux-foundation.org
+	b=GT3/M8iJLCUHhFdCTHgqgBo80U1GvSHjYTg1vqKTaigx6NJnCF7Nyjv9FZZvGAw1S
+	 b8q99c3H4BdUoJf0KobRe3vLwPMOuP9yaeKbkwwWvc9npnyN0LKGLXRcyNOzlKBLVh
+	 4GSoP2U3Oh1BpDzA4ARqkULdRq2Pij+Xe52O8G6U=
+Date: Wed, 27 Aug 2025 15:26:17 -0700
+To: mm-commits@vger.kernel.org,wqu@suse.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,boris@bur.io,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-const-to-lots-of-pointer-parameters.patch added to mm-new branch
-Message-Id: <20250827215024.23A7EC4CEF8@smtp.kernel.org>
+Subject: + mm-filemap-add-as_kernel_file.patch added to mm-new branch
+Message-Id: <20250827222618.01A82C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add `const` to lots of pointer parameters
+     Subject: mm/filemap: add AS_KERNEL_FILE
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-const-to-lots-of-pointer-parameters.patch
+     mm-filemap-add-as_kernel_file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-const-to-lots-of-pointer-parameters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-add-as_kernel_file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,827 +64,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Max Kellermann <max.kellermann@ionos.com>
-Subject: mm: add `const` to lots of pointer parameters
-Date: Wed, 27 Aug 2025 21:22:33 +0200
+From: Boris Burkov <boris@bur.io>
+Subject: mm/filemap: add AS_KERNEL_FILE
+Date: Thu, 21 Aug 2025 14:55:35 -0700
 
-For improved const-correctness.
+Patch series "introduce kernel file mapped folios", v4.
 
-Link: https://lkml.kernel.org/r/20250827192233.447920-1-max.kellermann@ionos.com
-Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Btrfs currently tracks its metadata pages in the page cache, using a fake
+inode (fs_info->btree_inode) with offsets corresponding to where the
+metadata is stored in the filesystem's full logical address space.
+
+A consequence of this is that when btrfs uses filemap_add_folio(), this
+usage is charged to the cgroup of whichever task happens to be running at
+the time.  These folios don't belong to any particular user cgroup, so I
+don't think it makes much sense for them to be charged in that way.  Some
+negative consequences as a result:
+
+- A task can be holding some important btrfs locks, then need to lookup
+  some metadata and go into reclaim, extending the duration it holds
+  that lock for, and unfairly pushing its own reclaim pain onto other
+  cgroups.
+
+- If that cgroup goes into reclaim, it might reclaim these folios a
+  different non-reclaiming cgroup might need soon. This is naturally
+  offset by LRU reclaim, but still.
+
+We have two options for how to manage such file pages:
+1. charge them to the root cgroup.
+2. don't charge them to any cgroup at all.
+
+2. breaks the invariant that every mapped page has a cgroup.  This is
+   workable, but unnecessarily risky.  Therefore, go with 1.
+
+A very similar proposal to use the root cgroup was previously made by Qu,
+where he eventually proposed the idea of setting it per address_space. 
+This makes good sense for the btrfs use case, as the behavior should apply
+to all use of the address_space, not select allocations.  I.e., if someone
+adds another filemap_add_folio() call using btrfs's btree_inode, we would
+almost certainly want to account that to the root cgroup as well.
+
+
+This patch (of 3):
+
+Add the flag AS_KERNEL_FILE to the address_space to indicate that this
+mapping's memory is exempt from the usual memcg accounting.  
+
+Link: https://lore.kernel.org/linux-mm/b5fef5372ae454a7b6da4f2f75c427aeab6a07d6.1727498749.git.wqu@suse.com/
+Link: https://lkml.kernel.org/r/f09c4e2c90351d4cb30a1969f7a863b9238bd291.1755812945.git.boris@bur.io
+Signed-off-by: Boris Burkov <boris@bur.io>
+Suggested-by: Qu Wenruo <wqu@suse.com>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h        |    6 ++--
- include/linux/mm.h        |   42 ++++++++++++++---------------
- include/linux/mm_inline.h |   24 ++++++++--------
- include/linux/mm_types.h  |    4 +-
- include/linux/mmzone.h    |   42 ++++++++++++++---------------
- include/linux/pagemap.h   |   52 ++++++++++++++++++------------------
- include/linux/pagevec.h   |    4 +-
- include/linux/shmem_fs.h  |    4 +-
- mm/oom_kill.c             |    2 -
- mm/shmem.c                |    6 ++--
- mm/util.c                 |    2 -
- 11 files changed, 94 insertions(+), 94 deletions(-)
+ include/linux/pagemap.h |    2 ++
+ mm/filemap.c            |    6 ++++++
+ 2 files changed, 8 insertions(+)
 
---- a/include/linux/fs.h~mm-add-const-to-lots-of-pointer-parameters
-+++ a/include/linux/fs.h
-@@ -537,7 +537,7 @@ struct address_space {
- /*
-  * Returns true if any of the pages in the mapping are marked with the tag.
-  */
--static inline bool mapping_tagged(struct address_space *mapping, xa_mark_t tag)
-+static inline bool mapping_tagged(const struct address_space *mapping, xa_mark_t tag)
- {
- 	return xa_marked(&mapping->i_pages, tag);
- }
-@@ -585,7 +585,7 @@ static inline void i_mmap_assert_write_l
- /*
-  * Might pages of this file be mapped into userspace?
-  */
--static inline int mapping_mapped(struct address_space *mapping)
-+static inline int mapping_mapped(const struct address_space *mapping)
- {
- 	return	!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root);
- }
-@@ -599,7 +599,7 @@ static inline int mapping_mapped(struct
-  * If i_mmap_writable is negative, no new writable mappings are allowed. You
-  * can only deny writable mappings, if none exists right now.
-  */
--static inline int mapping_writably_mapped(struct address_space *mapping)
-+static inline int mapping_writably_mapped(const struct address_space *mapping)
- {
- 	return atomic_read(&mapping->i_mmap_writable) > 0;
- }
---- a/include/linux/mm.h~mm-add-const-to-lots-of-pointer-parameters
-+++ a/include/linux/mm.h
-@@ -716,7 +716,7 @@ static inline void release_fault_lock(st
- 	mmap_read_unlock(vmf->vma->vm_mm);
- }
- 
--static inline void assert_fault_locked(struct vm_fault *vmf)
-+static inline void assert_fault_locked(const struct vm_fault *vmf)
- {
- 	mmap_assert_locked(vmf->vma->vm_mm);
- }
-@@ -859,7 +859,7 @@ static inline bool vma_is_initial_stack(
- 		vma->vm_end >= vma->vm_mm->start_stack;
- }
- 
--static inline bool vma_is_temporary_stack(struct vm_area_struct *vma)
-+static inline bool vma_is_temporary_stack(const struct vm_area_struct *vma)
- {
- 	int maybe_stack = vma->vm_flags & (VM_GROWSDOWN | VM_GROWSUP);
- 
-@@ -873,7 +873,7 @@ static inline bool vma_is_temporary_stac
- 	return false;
- }
- 
--static inline bool vma_is_foreign(struct vm_area_struct *vma)
-+static inline bool vma_is_foreign(const struct vm_area_struct *vma)
- {
- 	if (!current->mm)
- 		return true;
-@@ -884,7 +884,7 @@ static inline bool vma_is_foreign(struct
- 	return false;
- }
- 
--static inline bool vma_is_accessible(struct vm_area_struct *vma)
-+static inline bool vma_is_accessible(const struct vm_area_struct *vma)
- {
- 	return vma->vm_flags & VM_ACCESS_FLAGS;
- }
-@@ -895,7 +895,7 @@ static inline bool is_shared_maywrite(vm
- 		(VM_SHARED | VM_MAYWRITE);
- }
- 
--static inline bool vma_is_shared_maywrite(struct vm_area_struct *vma)
-+static inline bool vma_is_shared_maywrite(const struct vm_area_struct *vma)
- {
- 	return is_shared_maywrite(vma->vm_flags);
- }
-@@ -979,14 +979,14 @@ static inline void vma_iter_set(struct v
-  * The vma_is_shmem is not inline because it is used only by slow
-  * paths in userfault.
-  */
--bool vma_is_shmem(struct vm_area_struct *vma);
--bool vma_is_anon_shmem(struct vm_area_struct *vma);
-+bool vma_is_shmem(const struct vm_area_struct *vma);
-+bool vma_is_anon_shmem(const struct vm_area_struct *vma);
- #else
--static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
--static inline bool vma_is_anon_shmem(struct vm_area_struct *vma) { return false; }
-+static inline bool vma_is_shmem(const struct vm_area_struct *vma) { return false; }
-+static inline bool vma_is_anon_shmem(const struct vm_area_struct *vma) { return false; }
- #endif
- 
--int vma_is_stack_for_current(struct vm_area_struct *vma);
-+int vma_is_stack_for_current(const struct vm_area_struct *vma);
- 
- /* flush_tlb_range() takes a vma, not a mm, and can care about flags */
- #define TLB_FLUSH_VMA(mm,flags) { .vm_mm = (mm), .vm_flags = (flags) }
-@@ -3488,7 +3488,7 @@ struct vm_area_struct *vma_lookup(struct
- 	return mtree_load(&mm->mm_mt, addr);
- }
- 
--static inline unsigned long stack_guard_start_gap(struct vm_area_struct *vma)
-+static inline unsigned long stack_guard_start_gap(const struct vm_area_struct *vma)
- {
- 	if (vma->vm_flags & VM_GROWSDOWN)
- 		return stack_guard_gap;
-@@ -3500,7 +3500,7 @@ static inline unsigned long stack_guard_
- 	return 0;
- }
- 
--static inline unsigned long vm_start_gap(struct vm_area_struct *vma)
-+static inline unsigned long vm_start_gap(const struct vm_area_struct *vma)
- {
- 	unsigned long gap = stack_guard_start_gap(vma);
- 	unsigned long vm_start = vma->vm_start;
-@@ -3511,7 +3511,7 @@ static inline unsigned long vm_start_gap
- 	return vm_start;
- }
- 
--static inline unsigned long vm_end_gap(struct vm_area_struct *vma)
-+static inline unsigned long vm_end_gap(const struct vm_area_struct *vma)
- {
- 	unsigned long vm_end = vma->vm_end;
- 
-@@ -3523,7 +3523,7 @@ static inline unsigned long vm_end_gap(s
- 	return vm_end;
- }
- 
--static inline unsigned long vma_pages(struct vm_area_struct *vma)
-+static inline unsigned long vma_pages(const struct vm_area_struct *vma)
- {
- 	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
- }
-@@ -3540,7 +3540,7 @@ static inline struct vm_area_struct *fin
- 	return vma;
- }
- 
--static inline bool range_in_vma(struct vm_area_struct *vma,
-+static inline bool range_in_vma(const struct vm_area_struct *vma,
- 				unsigned long start, unsigned long end)
- {
- 	return (vma && vma->vm_start <= start && end <= vma->vm_end);
-@@ -3656,7 +3656,7 @@ static inline int vm_fault_to_errno(vm_f
-  * Indicates whether GUP can follow a PROT_NONE mapped page, or whether
-  * a (NUMA hinting) fault is required.
-  */
--static inline bool gup_can_follow_protnone(struct vm_area_struct *vma,
-+static inline bool gup_can_follow_protnone(const struct vm_area_struct *vma,
- 					   unsigned int flags)
- {
- 	/*
-@@ -3786,7 +3786,7 @@ static inline bool debug_guardpage_enabl
- 	return static_branch_unlikely(&_debug_guardpage_enabled);
- }
- 
--static inline bool page_is_guard(struct page *page)
-+static inline bool page_is_guard(const struct page *page)
- {
- 	if (!debug_guardpage_enabled())
- 		return false;
-@@ -3817,7 +3817,7 @@ static inline void debug_pagealloc_map_p
- static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
- static inline unsigned int debug_guardpage_minorder(void) { return 0; }
- static inline bool debug_guardpage_enabled(void) { return false; }
--static inline bool page_is_guard(struct page *page) { return false; }
-+static inline bool page_is_guard(const struct page *page) { return false; }
- static inline bool set_page_guard(struct zone *zone, struct page *page,
- 			unsigned int order) { return false; }
- static inline void clear_page_guard(struct zone *zone, struct page *page,
-@@ -3840,7 +3840,7 @@ static inline int in_gate_area(struct mm
- }
- #endif	/* __HAVE_ARCH_GATE_AREA */
- 
--extern bool process_shares_mm(struct task_struct *p, struct mm_struct *mm);
-+extern bool process_shares_mm(struct task_struct *p, const struct mm_struct *mm);
- 
- void drop_slab(void);
- 
-@@ -3899,7 +3899,7 @@ void vmemmap_free(unsigned long start, u
- #endif
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
-+static inline unsigned long vmem_altmap_offset(const struct vmem_altmap *altmap)
- {
- 	/* number of pfns from base where pfn_to_page() is valid */
- 	if (altmap)
-@@ -3913,7 +3913,7 @@ static inline void vmem_altmap_free(stru
- 	altmap->alloc -= nr_pfns;
- }
- #else
--static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
-+static inline unsigned long vmem_altmap_offset(const struct vmem_altmap *altmap)
- {
- 	return 0;
- }
---- a/include/linux/mm_inline.h~mm-add-const-to-lots-of-pointer-parameters
-+++ a/include/linux/mm_inline.h
-@@ -25,7 +25,7 @@
-  * 0 if @folio is a normal anonymous folio, a tmpfs folio or otherwise
-  * ram or swap backed folio.
-  */
--static inline int folio_is_file_lru(struct folio *folio)
-+static inline int folio_is_file_lru(const struct folio *folio)
- {
- 	return !folio_test_swapbacked(folio);
- }
-@@ -84,7 +84,7 @@ static __always_inline void __folio_clea
-  * Return: The LRU list a folio should be on, as an index
-  * into the array of LRU lists.
-  */
--static __always_inline enum lru_list folio_lru_list(struct folio *folio)
-+static __always_inline enum lru_list folio_lru_list(const struct folio *folio)
- {
- 	enum lru_list lru;
- 
-@@ -141,7 +141,7 @@ static inline int lru_tier_from_refs(int
- 	return workingset ? MAX_NR_TIERS - 1 : order_base_2(refs);
- }
- 
--static inline int folio_lru_refs(struct folio *folio)
-+static inline int folio_lru_refs(const struct folio *folio)
- {
- 	unsigned long flags = READ_ONCE(folio->flags.f);
- 
-@@ -154,14 +154,14 @@ static inline int folio_lru_refs(struct
- 	return ((flags & LRU_REFS_MASK) >> LRU_REFS_PGOFF) + 1;
- }
- 
--static inline int folio_lru_gen(struct folio *folio)
-+static inline int folio_lru_gen(const struct folio *folio)
- {
- 	unsigned long flags = READ_ONCE(folio->flags.f);
- 
- 	return ((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
- }
- 
--static inline bool lru_gen_is_active(struct lruvec *lruvec, int gen)
-+static inline bool lru_gen_is_active(const struct lruvec *lruvec, int gen)
- {
- 	unsigned long max_seq = lruvec->lrugen.max_seq;
- 
-@@ -217,12 +217,12 @@ static inline void lru_gen_update_size(s
- 	VM_WARN_ON_ONCE(lru_gen_is_active(lruvec, old_gen) && !lru_gen_is_active(lruvec, new_gen));
- }
- 
--static inline unsigned long lru_gen_folio_seq(struct lruvec *lruvec, struct folio *folio,
-+static inline unsigned long lru_gen_folio_seq(const struct lruvec *lruvec, const struct folio *folio,
- 					      bool reclaiming)
- {
- 	int gen;
- 	int type = folio_is_file_lru(folio);
--	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+	const struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	/*
- 	 * +-----------------------------------+-----------------------------------+
-@@ -302,7 +302,7 @@ static inline bool lru_gen_del_folio(str
- 	return true;
- }
- 
--static inline void folio_migrate_refs(struct folio *new, struct folio *old)
-+static inline void folio_migrate_refs(struct folio *new, const struct folio *old)
- {
- 	unsigned long refs = READ_ONCE(old->flags.f) & LRU_REFS_MASK;
- 
-@@ -330,7 +330,7 @@ static inline bool lru_gen_del_folio(str
- 	return false;
- }
- 
--static inline void folio_migrate_refs(struct folio *new, struct folio *old)
-+static inline void folio_migrate_refs(struct folio *new, const struct folio *old)
- {
- 
- }
-@@ -508,7 +508,7 @@ static inline void dec_tlb_flush_pending
- 	atomic_dec(&mm->tlb_flush_pending);
- }
- 
--static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
-+static inline bool mm_tlb_flush_pending(const struct mm_struct *mm)
- {
- 	/*
- 	 * Must be called after having acquired the PTL; orders against that
-@@ -521,7 +521,7 @@ static inline bool mm_tlb_flush_pending(
- 	return atomic_read(&mm->tlb_flush_pending);
- }
- 
--static inline bool mm_tlb_flush_nested(struct mm_struct *mm)
-+static inline bool mm_tlb_flush_nested(const struct mm_struct *mm)
- {
- 	/*
- 	 * Similar to mm_tlb_flush_pending(), we must have acquired the PTL
-@@ -605,7 +605,7 @@ pte_install_uffd_wp_if_needed(struct vm_
- 	return false;
- }
- 
--static inline bool vma_has_recency(struct vm_area_struct *vma)
-+static inline bool vma_has_recency(const struct vm_area_struct *vma)
- {
- 	if (vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ))
- 		return false;
---- a/include/linux/mm_types.h~mm-add-const-to-lots-of-pointer-parameters
-+++ a/include/linux/mm_types.h
-@@ -632,7 +632,7 @@ static inline void ptdesc_pmd_pts_dec(st
- 	atomic_dec(&ptdesc->pt_share_count);
- }
- 
--static inline int ptdesc_pmd_pts_count(struct ptdesc *ptdesc)
-+static inline int ptdesc_pmd_pts_count(const struct ptdesc *ptdesc)
- {
- 	return atomic_read(&ptdesc->pt_share_count);
- }
-@@ -660,7 +660,7 @@ static inline void set_page_private(stru
- 	page->private = private;
- }
- 
--static inline void *folio_get_private(struct folio *folio)
-+static inline void *folio_get_private(const struct folio *folio)
- {
- 	return folio->private;
- }
---- a/include/linux/mmzone.h~mm-add-const-to-lots-of-pointer-parameters
-+++ a/include/linux/mmzone.h
-@@ -1103,7 +1103,7 @@ static inline unsigned long promo_wmark_
- 	return wmark_pages(z, WMARK_PROMO);
- }
- 
--static inline unsigned long zone_managed_pages(struct zone *zone)
-+static inline unsigned long zone_managed_pages(const struct zone *zone)
- {
- 	return (unsigned long)atomic_long_read(&zone->managed_pages);
- }
-@@ -1127,12 +1127,12 @@ static inline bool zone_spans_pfn(const
- 	return zone->zone_start_pfn <= pfn && pfn < zone_end_pfn(zone);
- }
- 
--static inline bool zone_is_initialized(struct zone *zone)
-+static inline bool zone_is_initialized(const struct zone *zone)
- {
- 	return zone->initialized;
- }
- 
--static inline bool zone_is_empty(struct zone *zone)
-+static inline bool zone_is_empty(const struct zone *zone)
- {
- 	return zone->spanned_pages == 0;
- }
-@@ -1272,7 +1272,7 @@ static inline bool folio_is_zone_movable
-  * Return true if [start_pfn, start_pfn + nr_pages) range has a non-empty
-  * intersection with the given zone
-  */
--static inline bool zone_intersects(struct zone *zone,
-+static inline bool zone_intersects(const struct zone *zone,
- 		unsigned long start_pfn, unsigned long nr_pages)
- {
- 	if (zone_is_empty(zone))
-@@ -1580,12 +1580,12 @@ static inline int local_memory_node(int
- #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
- 
- #ifdef CONFIG_ZONE_DEVICE
--static inline bool zone_is_zone_device(struct zone *zone)
-+static inline bool zone_is_zone_device(const struct zone *zone)
- {
- 	return zone_idx(zone) == ZONE_DEVICE;
- }
- #else
--static inline bool zone_is_zone_device(struct zone *zone)
-+static inline bool zone_is_zone_device(const struct zone *zone)
- {
- 	return false;
- }
-@@ -1597,19 +1597,19 @@ static inline bool zone_is_zone_device(s
-  * populated_zone(). If the whole zone is reserved then we can easily
-  * end up with populated_zone() && !managed_zone().
-  */
--static inline bool managed_zone(struct zone *zone)
-+static inline bool managed_zone(const struct zone *zone)
- {
- 	return zone_managed_pages(zone);
- }
- 
- /* Returns true if a zone has memory */
--static inline bool populated_zone(struct zone *zone)
-+static inline bool populated_zone(const struct zone *zone)
- {
- 	return zone->present_pages;
- }
- 
- #ifdef CONFIG_NUMA
--static inline int zone_to_nid(struct zone *zone)
-+static inline int zone_to_nid(const struct zone *zone)
- {
- 	return zone->node;
- }
-@@ -1619,7 +1619,7 @@ static inline void zone_set_nid(struct z
- 	zone->node = nid;
- }
- #else
--static inline int zone_to_nid(struct zone *zone)
-+static inline int zone_to_nid(const struct zone *zone)
- {
- 	return 0;
- }
-@@ -1646,7 +1646,7 @@ static inline int is_highmem_idx(enum zo
-  * @zone: pointer to struct zone variable
-  * Return: 1 for a highmem zone, 0 otherwise
-  */
--static inline int is_highmem(struct zone *zone)
-+static inline int is_highmem(const struct zone *zone)
- {
- 	return is_highmem_idx(zone_idx(zone));
- }
-@@ -1712,12 +1712,12 @@ static inline struct zone *zonelist_zone
- 	return zoneref->zone;
- }
- 
--static inline int zonelist_zone_idx(struct zoneref *zoneref)
-+static inline int zonelist_zone_idx(const struct zoneref *zoneref)
- {
- 	return zoneref->zone_idx;
- }
- 
--static inline int zonelist_node_idx(struct zoneref *zoneref)
-+static inline int zonelist_node_idx(const struct zoneref *zoneref)
- {
- 	return zone_to_nid(zoneref->zone);
- }
-@@ -2020,7 +2020,7 @@ static inline struct page *__section_mem
- 	return (struct page *)map;
- }
- 
--static inline int present_section(struct mem_section *section)
-+static inline int present_section(const struct mem_section *section)
- {
- 	return (section && (section->section_mem_map & SECTION_MARKED_PRESENT));
- }
-@@ -2030,12 +2030,12 @@ static inline int present_section_nr(uns
- 	return present_section(__nr_to_section(nr));
- }
- 
--static inline int valid_section(struct mem_section *section)
-+static inline int valid_section(const struct mem_section *section)
- {
- 	return (section && (section->section_mem_map & SECTION_HAS_MEM_MAP));
- }
- 
--static inline int early_section(struct mem_section *section)
-+static inline int early_section(const struct mem_section *section)
- {
- 	return (section && (section->section_mem_map & SECTION_IS_EARLY));
- }
-@@ -2045,27 +2045,27 @@ static inline int valid_section_nr(unsig
- 	return valid_section(__nr_to_section(nr));
- }
- 
--static inline int online_section(struct mem_section *section)
-+static inline int online_section(const struct mem_section *section)
- {
- 	return (section && (section->section_mem_map & SECTION_IS_ONLINE));
- }
- 
- #ifdef CONFIG_ZONE_DEVICE
--static inline int online_device_section(struct mem_section *section)
-+static inline int online_device_section(const struct mem_section *section)
- {
- 	unsigned long flags = SECTION_IS_ONLINE | SECTION_TAINT_ZONE_DEVICE;
- 
- 	return section && ((section->section_mem_map & flags) == flags);
- }
- #else
--static inline int online_device_section(struct mem_section *section)
-+static inline int online_device_section(const struct mem_section *section)
- {
- 	return 0;
- }
- #endif
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
--static inline int preinited_vmemmap_section(struct mem_section *section)
-+static inline int preinited_vmemmap_section(const struct mem_section *section)
- {
- 	return (section &&
- 		(section->section_mem_map & SECTION_IS_VMEMMAP_PREINIT));
-@@ -2075,7 +2075,7 @@ void sparse_vmemmap_init_nid_early(int n
- void sparse_vmemmap_init_nid_late(int nid);
- 
- #else
--static inline int preinited_vmemmap_section(struct mem_section *section)
-+static inline int preinited_vmemmap_section(const struct mem_section *section)
- {
- 	return 0;
- }
---- a/include/linux/pagemap.h~mm-add-const-to-lots-of-pointer-parameters
+--- a/include/linux/pagemap.h~mm-filemap-add-as_kernel_file
 +++ a/include/linux/pagemap.h
-@@ -140,7 +140,7 @@ static inline int inode_drain_writes(str
- 	return filemap_write_and_wait(inode->i_mapping);
- }
+@@ -211,6 +211,8 @@ enum mapping_flags {
+ 				   folio contents */
+ 	AS_INACCESSIBLE = 8,	/* Do not attempt direct R/W access to the mapping */
+ 	AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM = 9,
++	AS_KERNEL_FILE = 10,	/* mapping for a fake kernel file that shouldn't
++				   account usage to user cgroups */
+ 	/* Bits 16-25 are used for FOLIO_ORDER */
+ 	AS_FOLIO_ORDER_BITS = 5,
+ 	AS_FOLIO_ORDER_MIN = 16,
+--- a/mm/filemap.c~mm-filemap-add-as_kernel_file
++++ a/mm/filemap.c
+@@ -960,8 +960,14 @@ int filemap_add_folio(struct address_spa
+ {
+ 	void *shadow = NULL;
+ 	int ret;
++	struct mem_cgroup *tmp;
++	bool kernel_file = test_bit(AS_KERNEL_FILE, &mapping->flags);
  
--static inline bool mapping_empty(struct address_space *mapping)
-+static inline bool mapping_empty(const struct address_space *mapping)
- {
- 	return xa_empty(&mapping->i_pages);
- }
-@@ -166,7 +166,7 @@ static inline bool mapping_empty(struct
-  * refcount and the referenced bit, which will be elevated or set in
-  * the process of adding new cache pages to an inode.
-  */
--static inline bool mapping_shrinkable(struct address_space *mapping)
-+static inline bool mapping_shrinkable(const struct address_space *mapping)
- {
- 	void *head;
- 
-@@ -265,7 +265,7 @@ static inline void mapping_clear_unevict
- 	clear_bit(AS_UNEVICTABLE, &mapping->flags);
- }
- 
--static inline bool mapping_unevictable(struct address_space *mapping)
-+static inline bool mapping_unevictable(const struct address_space *mapping)
- {
- 	return mapping && test_bit(AS_UNEVICTABLE, &mapping->flags);
- }
-@@ -275,7 +275,7 @@ static inline void mapping_set_exiting(s
- 	set_bit(AS_EXITING, &mapping->flags);
- }
- 
--static inline int mapping_exiting(struct address_space *mapping)
-+static inline int mapping_exiting(const struct address_space *mapping)
- {
- 	return test_bit(AS_EXITING, &mapping->flags);
- }
-@@ -285,7 +285,7 @@ static inline void mapping_set_no_writeb
- 	set_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
- }
- 
--static inline int mapping_use_writeback_tags(struct address_space *mapping)
-+static inline int mapping_use_writeback_tags(const struct address_space *mapping)
- {
- 	return !test_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
- }
-@@ -331,7 +331,7 @@ static inline void mapping_set_inaccessi
- 	set_bit(AS_INACCESSIBLE, &mapping->flags);
- }
- 
--static inline bool mapping_inaccessible(struct address_space *mapping)
-+static inline bool mapping_inaccessible(const struct address_space *mapping)
- {
- 	return test_bit(AS_INACCESSIBLE, &mapping->flags);
- }
-@@ -341,18 +341,18 @@ static inline void mapping_set_writeback
- 	set_bit(AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM, &mapping->flags);
- }
- 
--static inline bool mapping_writeback_may_deadlock_on_reclaim(struct address_space *mapping)
-+static inline bool mapping_writeback_may_deadlock_on_reclaim(const struct address_space *mapping)
- {
- 	return test_bit(AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM, &mapping->flags);
- }
- 
--static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
-+static inline gfp_t mapping_gfp_mask(const struct address_space * mapping)
- {
- 	return mapping->gfp_mask;
- }
- 
- /* Restricts the given gfp_mask to what the mapping allows. */
--static inline gfp_t mapping_gfp_constraint(struct address_space *mapping,
-+static inline gfp_t mapping_gfp_constraint(const struct address_space *mapping,
- 		gfp_t gfp_mask)
- {
- 	return mapping_gfp_mask(mapping) & gfp_mask;
-@@ -475,7 +475,7 @@ mapping_min_folio_order(const struct add
- }
- 
- static inline unsigned long
--mapping_min_folio_nrpages(struct address_space *mapping)
-+mapping_min_folio_nrpages(const struct address_space *mapping)
- {
- 	return 1UL << mapping_min_folio_order(mapping);
- }
-@@ -495,7 +495,7 @@ mapping_min_folio_nrbytes(struct address
-  * new folio to the page cache and need to know what index to give it,
-  * call this function.
-  */
--static inline pgoff_t mapping_align_index(struct address_space *mapping,
-+static inline pgoff_t mapping_align_index(const struct address_space *mapping,
- 					  pgoff_t index)
- {
- 	return round_down(index, mapping_min_folio_nrpages(mapping));
-@@ -505,7 +505,7 @@ static inline pgoff_t mapping_align_inde
-  * Large folio support currently depends on THP.  These dependencies are
-  * being worked on but are not yet fixed.
-  */
--static inline bool mapping_large_folio_support(struct address_space *mapping)
-+static inline bool mapping_large_folio_support(const struct address_space *mapping)
- {
- 	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
- 	VM_WARN_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON,
-@@ -520,7 +520,7 @@ static inline size_t mapping_max_folio_s
- 	return PAGE_SIZE << mapping_max_folio_order(mapping);
- }
- 
--static inline int filemap_nr_thps(struct address_space *mapping)
-+static inline int filemap_nr_thps(const struct address_space *mapping)
- {
- #ifdef CONFIG_READ_ONLY_THP_FOR_FS
- 	return atomic_read(&mapping->nr_thps);
-@@ -934,7 +934,7 @@ static inline struct page *grab_cache_pa
-  *
-  * Return: The index of the folio which follows this folio in the file.
-  */
--static inline pgoff_t folio_next_index(struct folio *folio)
-+static inline pgoff_t folio_next_index(const struct folio *folio)
- {
- 	return folio->index + folio_nr_pages(folio);
- }
-@@ -963,7 +963,7 @@ static inline struct page *folio_file_pa
-  * e.g., shmem did not move this folio to the swap cache.
-  * Return: true or false.
-  */
--static inline bool folio_contains(struct folio *folio, pgoff_t index)
-+static inline bool folio_contains(const struct folio *folio, pgoff_t index)
- {
- 	VM_WARN_ON_ONCE_FOLIO(folio_test_swapcache(folio), folio);
- 	return index - folio->index < folio_nr_pages(folio);
-@@ -1040,12 +1040,12 @@ static inline loff_t page_offset(struct
- /*
-  * Get the offset in PAGE_SIZE (even for hugetlb folios).
-  */
--static inline pgoff_t folio_pgoff(struct folio *folio)
-+static inline pgoff_t folio_pgoff(const struct folio *folio)
- {
- 	return folio->index;
- }
- 
--static inline pgoff_t linear_page_index(struct vm_area_struct *vma,
-+static inline pgoff_t linear_page_index(const struct vm_area_struct *vma,
- 					unsigned long address)
- {
- 	pgoff_t pgoff;
-@@ -1466,7 +1466,7 @@ static inline unsigned int __readahead_b
-  * readahead_pos - The byte offset into the file of this readahead request.
-  * @rac: The readahead request.
-  */
--static inline loff_t readahead_pos(struct readahead_control *rac)
-+static inline loff_t readahead_pos(const struct readahead_control *rac)
- {
- 	return (loff_t)rac->_index * PAGE_SIZE;
- }
-@@ -1475,7 +1475,7 @@ static inline loff_t readahead_pos(struc
-  * readahead_length - The number of bytes in this readahead request.
-  * @rac: The readahead request.
-  */
--static inline size_t readahead_length(struct readahead_control *rac)
-+static inline size_t readahead_length(const struct readahead_control *rac)
- {
- 	return rac->_nr_pages * PAGE_SIZE;
- }
-@@ -1484,7 +1484,7 @@ static inline size_t readahead_length(st
-  * readahead_index - The index of the first page in this readahead request.
-  * @rac: The readahead request.
-  */
--static inline pgoff_t readahead_index(struct readahead_control *rac)
-+static inline pgoff_t readahead_index(const struct readahead_control *rac)
- {
- 	return rac->_index;
- }
-@@ -1493,7 +1493,7 @@ static inline pgoff_t readahead_index(st
-  * readahead_count - The number of pages in this readahead request.
-  * @rac: The readahead request.
-  */
--static inline unsigned int readahead_count(struct readahead_control *rac)
-+static inline unsigned int readahead_count(const struct readahead_control *rac)
- {
- 	return rac->_nr_pages;
- }
-@@ -1502,12 +1502,12 @@ static inline unsigned int readahead_cou
-  * readahead_batch_length - The number of bytes in the current batch.
-  * @rac: The readahead request.
-  */
--static inline size_t readahead_batch_length(struct readahead_control *rac)
-+static inline size_t readahead_batch_length(const struct readahead_control *rac)
- {
- 	return rac->_batch_count * PAGE_SIZE;
- }
- 
--static inline unsigned long dir_pages(struct inode *inode)
-+static inline unsigned long dir_pages(const struct inode *inode)
- {
- 	return (unsigned long)(inode->i_size + PAGE_SIZE - 1) >>
- 			       PAGE_SHIFT;
-@@ -1521,8 +1521,8 @@ static inline unsigned long dir_pages(st
-  * Return: the number of bytes in the folio up to EOF,
-  * or -EFAULT if the folio was truncated.
-  */
--static inline ssize_t folio_mkwrite_check_truncate(struct folio *folio,
--					      struct inode *inode)
-+static inline ssize_t folio_mkwrite_check_truncate(const struct folio *folio,
-+					      const struct inode *inode)
- {
- 	loff_t size = i_size_read(inode);
- 	pgoff_t index = size >> PAGE_SHIFT;
-@@ -1553,7 +1553,7 @@ static inline ssize_t folio_mkwrite_chec
-  * Return: The number of filesystem blocks covered by this folio.
-  */
- static inline
--unsigned int i_blocks_per_folio(struct inode *inode, struct folio *folio)
-+unsigned int i_blocks_per_folio(const struct inode *inode, const struct folio *folio)
- {
- 	return folio_size(folio) >> inode->i_blkbits;
- }
---- a/include/linux/pagevec.h~mm-add-const-to-lots-of-pointer-parameters
-+++ a/include/linux/pagevec.h
-@@ -51,12 +51,12 @@ static inline void folio_batch_reinit(st
- 	fbatch->i = 0;
- }
- 
--static inline unsigned int folio_batch_count(struct folio_batch *fbatch)
-+static inline unsigned int folio_batch_count(const struct folio_batch *fbatch)
- {
- 	return fbatch->nr;
- }
- 
--static inline unsigned int folio_batch_space(struct folio_batch *fbatch)
-+static inline unsigned int folio_batch_space(const struct folio_batch *fbatch)
- {
- 	return PAGEVEC_SIZE - fbatch->nr;
- }
---- a/include/linux/shmem_fs.h~mm-add-const-to-lots-of-pointer-parameters
-+++ a/include/linux/shmem_fs.h
-@@ -99,9 +99,9 @@ extern unsigned long shmem_get_unmapped_
- 		unsigned long len, unsigned long pgoff, unsigned long flags);
- extern int shmem_lock(struct file *file, int lock, struct ucounts *ucounts);
- #ifdef CONFIG_SHMEM
--bool shmem_mapping(struct address_space *mapping);
-+bool shmem_mapping(const struct address_space *mapping);
- #else
--static inline bool shmem_mapping(struct address_space *mapping)
-+static inline bool shmem_mapping(const struct address_space *mapping)
- {
- 	return false;
- }
---- a/mm/oom_kill.c~mm-add-const-to-lots-of-pointer-parameters
-+++ a/mm/oom_kill.c
-@@ -490,7 +490,7 @@ static bool oom_killer_disabled __read_m
-  * task's threads: if one of those is using this mm then this task was also
-  * using it.
-  */
--bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
-+bool process_shares_mm(struct task_struct *p, const struct mm_struct *mm)
- {
- 	struct task_struct *t;
- 
---- a/mm/shmem.c~mm-add-const-to-lots-of-pointer-parameters
-+++ a/mm/shmem.c
-@@ -275,18 +275,18 @@ static const struct vm_operations_struct
- static const struct vm_operations_struct shmem_anon_vm_ops;
- static struct file_system_type shmem_fs_type;
- 
--bool shmem_mapping(struct address_space *mapping)
-+bool shmem_mapping(const struct address_space *mapping)
- {
- 	return mapping->a_ops == &shmem_aops;
- }
- EXPORT_SYMBOL_GPL(shmem_mapping);
- 
--bool vma_is_anon_shmem(struct vm_area_struct *vma)
-+bool vma_is_anon_shmem(const struct vm_area_struct *vma)
- {
- 	return vma->vm_ops == &shmem_anon_vm_ops;
- }
- 
--bool vma_is_shmem(struct vm_area_struct *vma)
-+bool vma_is_shmem(const struct vm_area_struct *vma)
- {
- 	return vma_is_anon_shmem(vma) || vma->vm_ops == &shmem_vm_ops;
- }
---- a/mm/util.c~mm-add-const-to-lots-of-pointer-parameters
-+++ a/mm/util.c
-@@ -315,7 +315,7 @@ void *memdup_user_nul(const void __user
- EXPORT_SYMBOL(memdup_user_nul);
- 
- /* Check if the vma is being used as a stack by this task */
--int vma_is_stack_for_current(struct vm_area_struct *vma)
-+int vma_is_stack_for_current(const struct vm_area_struct *vma)
- {
- 	struct task_struct * __maybe_unused t = current;
++	if (kernel_file)
++		tmp = set_active_memcg(root_mem_cgroup);
+ 	ret = mem_cgroup_charge(folio, NULL, gfp);
++	if (kernel_file)
++		set_active_memcg(tmp);
+ 	if (ret)
+ 		return ret;
  
 _
 
-Patches currently in -mm which might be from max.kellermann@ionos.com are
+Patches currently in -mm which might be from boris@bur.io are
 
-mm-add-const-to-lots-of-pointer-parameters.patch
+mm-filemap-add-as_kernel_file.patch
+mm-filemap-add-as_kernel_file-fix.patch
+mm-add-vmstat-for-kernel_file-pages.patch
+btrfs-set-as_kernel_file-on-the-btree_inode.patch
 
