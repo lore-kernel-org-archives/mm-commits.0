@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 712FF2D97AF
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 22:26:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4039C30F94E
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 22:56:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756333582; cv=none; b=Dksimka4j9S0mxJETFoW+n4fQhM729kjD9rW+vucD8DXyJJwz4weY4gqe8FczrcHSpTFU4T7L9295Agpeb0VHdqdq6JLpTIe6qGe8nUfqdqmOIdcrO1oupfA0cFsZHtp3yPOprBh4mlXtNzWVIagwBDtfXnHCcWxQMpN5BplmRE=
+	t=1756335395; cv=none; b=nDupvipg4t1wfNxA3klV/L5hI9bxnfvFWU14B62YUxq4JC1k2hoXpelVc75loRD/iskBDbhBFf0fPw8hbZ4vA0Wg0MPlHlTMKKX8oBOoVyCGh8pMvuCqjPto39X3BE/dfdcf+nokuMv6PqpOL1aBrJubiEl97+X4NtgOIXWaJxo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756333582; c=relaxed/simple;
-	bh=fb+kkXa7QK8Dlpt+ty7fZ2s22mJjLppCkYiPtsst8Dw=;
-	h=Date:To:From:Subject:Message-Id; b=vGYj8cooQU/FDRQSdlJ/8bAcyZvKOifWwq61RnhEux39WPd4K2dpO/C3u+POSrZfl1QlQx8rs21kWDR7488758isKi3gW2QYpQPKD2cp0nbTg+6ifVC/MKzveexrTJVjr4UcQ0zIJsCMFVvbGJZ0YYvWooLJ8dL3oScQy4Kdtic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sCHr+ilk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756335395; c=relaxed/simple;
+	bh=Q+Z5SuewEc8g+6ebAmOCCBI1NVGPRWAif6W2lu/+33k=;
+	h=Date:To:From:Subject:Message-Id; b=Bq+q460/qxOmdJxD3XhOws/Cm6vvF6fK7AqdNoVejJ/s4kCTOh/608KiUm9iKX/Zbt/rIK6CGx3tbJbh1w6O32uYATteJ2TooanpWSBP7mANGjK0OfN7z9N74r/wXjC0JLEsBuEecgHUEjJ6/fCE1vdgaFO1OYR1fpTG+RVB75c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u24ScjS4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sCHr+ilk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D572C4CEEB;
-	Wed, 27 Aug 2025 22:26:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u24ScjS4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B621FC4CEEB;
+	Wed, 27 Aug 2025 22:56:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756333580;
-	bh=fb+kkXa7QK8Dlpt+ty7fZ2s22mJjLppCkYiPtsst8Dw=;
+	s=korg; t=1756335394;
+	bh=Q+Z5SuewEc8g+6ebAmOCCBI1NVGPRWAif6W2lu/+33k=;
 	h=Date:To:From:Subject:From;
-	b=sCHr+ilksUIAbHPAzbxlOcmYhnj0H4N19tAB89yIjmRJGY66e+Hd67PbCVEXpJ6mo
-	 0mr8f1mrQO0P6Xtm2nf6TD6+NdXvpXtQGMDSDYFimfyBWyy27YCRW/QBc9DYvS+XCl
-	 02MFnsan2yLIgqeqzbeUbbvJHfou3hV16A8mwU3c=
-Date: Wed, 27 Aug 2025 15:26:20 -0700
-To: mm-commits@vger.kernel.org,wqu@suse.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,boris@bur.io,akpm@linux-foundation.org
+	b=u24ScjS4DPvk9FhHQMC0bACkaaEfUXY47q0JnDzQDON0e7M8hS32XnM1Glxo4Ltkf
+	 YbFFA5BfhdtUc4RTApJbhtu8KJXlMhVsm1VkBekWy+vfebOaUYsvtNVdilngbPF2To
+	 v0ZnsahwTCxV2TtxQrF9bAWeaAkXoIwf1e8Wqkks=
+Date: Wed, 27 Aug 2025 15:56:34 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,akpm@linux-foundation.org,reddybalavignesh9979@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-vmstat-for-kernel_file-pages.patch added to mm-new branch
-Message-Id: <20250827222620.7D572C4CEEB@smtp.kernel.org>
+Subject: + selftests-centralize-include-path-for-kselftesth-and-kselftest_harnessh.patch added to mm-nonmm-unstable branch
+Message-Id: <20250827225634.B621FC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add vmstat for kernel_file pages
-has been added to the -mm mm-new branch.  Its filename is
-     mm-add-vmstat-for-kernel_file-pages.patch
+     Subject: selftests: centralize include path for kselftest.h and kselftest_harness.h
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-centralize-include-path-for-kselftesth-and-kselftest_harnessh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-vmstat-for-kernel_file-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-centralize-include-path-for-kselftesth-and-kselftest_harnessh.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,89 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Boris Burkov <boris@bur.io>
-Subject: mm: add vmstat for kernel_file pages
-Date: Thu, 21 Aug 2025 14:55:36 -0700
+From: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
+Subject: selftests: centralize include path for kselftest.h and kselftest_harness.h
+Date: Wed, 27 Aug 2025 20:17:32 +0530
 
-Kernel file pages are tricky to track because they are indistinguishable
-from files whose usage is accounted to the root cgroup.
+Patch series "selftests: Centralize kselftest headers to avoid relative
+includes".
 
-To maintain good accounting, introduce a vmstat counter tracking kernel
-file pages.
+This series centralizes the handling of kselftest.h and
+kselftest_harness.h includes in selftests, replacing relative paths with a
+non-relative approach using shared -I path.
 
-Confirmed that these work as expected at a high level by mounting a btrfs
-using AS_KERNEL_FILE for metadata pages, and seeing the counter rise with
-fs usage then go back to a minimal level after drop_caches and finally
-down to 0 after unmounting the fs.
+Patch 1 updates the build files (Makefile and lib.mk) and include CFLAGS
+in sync/Makefile to resolve not found errors.
 
-Link: https://lkml.kernel.org/r/08ff633e3a005ed5f7691bfd9f58a5df8e474339.1755812945.git.boris@bur.io
-Signed-off-by: Boris Burkov <boris@bur.io>
-Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Tested-by: syzbot@syzkaller.appspotmail.com
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qu Wenruo <wqu@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Patch 2 applies bulk source change (patch 2 is large but it is replaced
+automatically).
+
+
+This patch (of 2):
+
+Add compile flag in Makefile and export it in lib.mk.  Also add CFLAGS in
+the Makefile rules to fix include path errors for kselftest.h.
+
+Link: https://lore.kernel.org/lkml/20250820143954.33d95635e504e94df01930d0@linux-foundation.org/
+Link: https://lkml.kernel.org/r/20250827144733.82277-2-reddybalavignesh9979@gmail.com
+Signed-off-by: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/filemap.c           |    7 +++++++
- mm/vmstat.c            |    1 +
- 3 files changed, 9 insertions(+)
+ tools/testing/selftests/Makefile |    4 ++++
+ tools/testing/selftests/lib.mk   |    2 ++
+ 2 files changed, 6 insertions(+)
 
---- a/include/linux/mmzone.h~mm-add-vmstat-for-kernel_file-pages
-+++ a/include/linux/mmzone.h
-@@ -259,6 +259,7 @@ enum node_stat_item {
- 	NR_HUGETLB,
- #endif
- 	NR_BALLOON_PAGES,
-+	NR_KERNEL_FILE_PAGES,
- 	NR_VM_NODE_STAT_ITEMS
- };
+--- a/tools/testing/selftests/lib.mk~selftests-centralize-include-path-for-kselftesth-and-kselftest_harnessh
++++ a/tools/testing/selftests/lib.mk
+@@ -199,6 +199,8 @@ clean: $(if $(TEST_GEN_MODS_DIR),clean_m
+ # Build with _GNU_SOURCE by default
+ CFLAGS += -D_GNU_SOURCE=
  
---- a/mm/filemap.c~mm-add-vmstat-for-kernel_file-pages
-+++ a/mm/filemap.c
-@@ -190,6 +190,9 @@ static void filemap_unaccount_folio(stru
- 		__lruvec_stat_mod_folio(folio, NR_FILE_THPS, -nr);
- 		filemap_nr_thps_dec(mapping);
- 	}
-+	if (test_bit(AS_KERNEL_FILE, &folio->mapping->flags))
-+		mod_node_page_state(folio_pgdat(folio),
-+				    NR_KERNEL_FILE_PAGES, -nr);
++CFLAGS += $(KSFT_INCLUDES)
++
+ # Enables to extend CFLAGS and LDFLAGS from command line, e.g.
+ # make USERCFLAGS=-Werror USERLDFLAGS=-static
+ CFLAGS += $(USERCFLAGS)
+--- a/tools/testing/selftests/Makefile~selftests-centralize-include-path-for-kselftesth-and-kselftest_harnessh
++++ a/tools/testing/selftests/Makefile
+@@ -194,11 +194,15 @@ else
+   DEFAULT_INSTALL_HDR_PATH := 1
+ endif
  
- 	/*
- 	 * At this point folio must be either written or cleaned by
-@@ -989,6 +992,10 @@ int filemap_add_folio(struct address_spa
- 		if (!(gfp & __GFP_WRITE) && shadow)
- 			workingset_refault(folio, shadow);
- 		folio_add_lru(folio);
-+		if (kernel_file)
-+			mod_node_page_state(folio_pgdat(folio),
-+					    NR_KERNEL_FILE_PAGES,
-+					    folio_nr_pages(folio));
- 	}
- 	return ret;
- }
---- a/mm/vmstat.c~mm-add-vmstat-for-kernel_file-pages
-+++ a/mm/vmstat.c
-@@ -1290,6 +1290,7 @@ const char * const vmstat_text[] = {
- 	[I(NR_HUGETLB)]				= "nr_hugetlb",
- #endif
- 	[I(NR_BALLOON_PAGES)]			= "nr_balloon_pages",
-+	[I(NR_KERNEL_FILE_PAGES)]		= "nr_kernel_file_pages",
- #undef I
++# Include path for kselftest.h
++KSFT_INCLUDES := -I${abs_srctree}/tools/testing/selftests
++
+ # Prepare for headers install
+ include $(top_srcdir)/scripts/subarch.include
+ ARCH           ?= $(SUBARCH)
+ export BUILD
+ export KHDR_INCLUDES
++export KSFT_INCLUDES
  
- 	/* system-wide enum vm_stat_item counters */
+ # set default goal to all, so make without a target runs all, even when
+ # all isn't the first target in the file.
 _
 
-Patches currently in -mm which might be from boris@bur.io are
+Patches currently in -mm which might be from reddybalavignesh9979@gmail.com are
 
-mm-filemap-add-as_kernel_file.patch
-mm-filemap-add-as_kernel_file-fix.patch
-mm-add-vmstat-for-kernel_file-pages.patch
-btrfs-set-as_kernel_file-on-the-btree_inode.patch
+selftests-centralise-maybe-unused-definition-in-kselftesth.patch
+selftests-proc-mark-vsyscall-strings-maybe-unused.patch
+selftests-centralize-include-path-for-kselftesth-and-kselftest_harnessh.patch
+selftests-replace-relative-includes-with-non-relative-for-kselftesth-and-kselftest_harnessh.patch
 
