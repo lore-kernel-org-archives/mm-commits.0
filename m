@@ -1,105 +1,74 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52AF61F7580
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 03:36:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C25C2192E3
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 03:42:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756265786; cv=none; b=TeMae7mpb89cn/CiI5I42lbcvjVu4XBbVPMtbhjlVPvgjGnTcwnfccYggwN3xH1aOYKTcSqjkjTae2uv76gZWc8v5X7ZNfchthxLsYNY80m4swTzp/IH0fKe2e9pUMr2RgR78QAZf+KFsPUwNpJVWq0d6CSDdRhBLGKxlCU7uB4=
+	t=1756266154; cv=none; b=cQ/Xk/Ftqsas1AXi3c7byTZxpkr0vGWjKJ6W43WRf4Be9y5K8GF1UuvXpmb9hLIcUErppAXyPLRxthfSPPP73hUkJxVLtPJ0DDrwItR2csge5iaRiv7kI6VVnYxRIkAeKgNFNvDx7inp7nrmHnjD0vCI53kr+5C7xIP6AndcQDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756265786; c=relaxed/simple;
-	bh=q+42ZWeXcEeLPTl3P9FEfuWmdqceknFkSR3p/BhMYEk=;
-	h=Date:To:From:Subject:Message-Id; b=fJFSoavDoDa8tfJf4V6inO99QbUPKsMQnDgjAHr/1DptP7W0YJW0+W/mDB3HR2DtzW6LvzGOGcaAP+bMlJeahXguYw38VhXLGKUiTyPssYjZ5ZfESbt0zKUYkCL+fEyi5sLtzw8k5g68UGzT008r0Vsd9WuLGg5xtqHwFpUUJRw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HGdcJTk1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756266154; c=relaxed/simple;
+	bh=LvUi31Op+QRQvMdc2WJMRS2Y4qjnjt/OZkX/V+T/sEk=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=JZ5f8aheN2jtQtYkh7OKKgZFaoNkHbPQWf51kRuC0N4JGmUdLsIusVJ6srsm32ydsnZSIm35Kzathxgl5tC6A826syMHjTCpSqKDegVY5iHPJLFBS3uSXFKG4Jj0xdvkJx6fEQqw/Jk/Ad6QCHGv5TjqJi7LjBA9BU/rannae9g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Qrcj3om; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HGdcJTk1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D959CC4CEEB;
-	Wed, 27 Aug 2025 03:36:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Qrcj3om"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD1C1C4CEF4;
+	Wed, 27 Aug 2025 03:42:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756265785;
-	bh=q+42ZWeXcEeLPTl3P9FEfuWmdqceknFkSR3p/BhMYEk=;
-	h=Date:To:From:Subject:From;
-	b=HGdcJTk1Skh0ULrSo7QzC1K2CG+FK1SrXpU8vB4q/d1g6PvhT40mj45KuhW/tRs4X
-	 PRFDSGX95B7cbyC3yPNLzzGjcJ+OZULZ8xSjyYhJ0uKenRIuD76cQJJ/KYG/3h7QZj
-	 8LDkM5FY38KR0WRcCXhlHQVxKgTbDrf5F22TCKlM=
-Date: Tue, 26 Aug 2025 20:36:25 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,lkp@intel.com,david@redhat.com,linmiaohe@huawei.com,akpm@linux-foundation.org
+	s=korg; t=1756266154;
+	bh=LvUi31Op+QRQvMdc2WJMRS2Y4qjnjt/OZkX/V+T/sEk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=2Qrcj3omN66cRrRdYsHO7Z7hFE+/QAI9e6IBh2R6+je6l+3SbQlfXFP/D2vRtGB5Y
+	 8MYQG1G/zEps93pdqrVrkc61caAiShI1RVzTPBoeMH4/nSHD8Qqa+uLasG3O1wGaYl
+	 TnyTV1j1zkugUm5KIdldLBGoyyt+xjyTagQwMvFg=
+Date: Tue, 26 Aug 2025 20:42:33 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch added to mm-new branch
-Message-Id: <20250827033625.D959CC4CEEB@smtp.kernel.org>
+To: Ard Biesheuvel <ardb@kernel.org>
+Cc: mm-commits@vger.kernel.org, rppt@kernel.org, graf@amazon.com,
+ changyuanl@google.com, bhe@redhat.com, epetron@amazon.de
+Subject: Re: + efi-support-booting-with-kexec-handover-kho.patch added to
+ mm-hotfixes-unstable branch
+Message-Id: <20250826204233.997c07140f1ba550798720f9@linux-foundation.org>
+In-Reply-To: <CAMj1kXETbG0YZdJSjaw4o-QLpCNVmtuGpeJL6bFqpb_sBiW1MQ@mail.gmail.com>
+References: <20250821213034.0B05AC4CEEB@smtp.kernel.org>
+	<CAMj1kXG8OhR4TE013TqhFjf__nWbiF17gjSJFEbODH9wKk1b3g@mail.gmail.com>
+	<20250826163129.8324fd9a457f549a6bd63728@linux-foundation.org>
+	<CAMj1kXETbG0YZdJSjaw4o-QLpCNVmtuGpeJL6bFqpb_sBiW1MQ@mail.gmail.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Wed, 27 Aug 2025 04:38:38 +0200 Ard Biesheuvel <ardb@kernel.org> wrote:
 
-The patch titled
-     Subject: Revert "hugetlb: make hugetlb depends on SYSFS or SYSCTL"
-has been added to the -mm mm-new branch.  Its filename is
-     revert-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch
+> On Wed, 27 Aug 2025 at 01:31, Andrew Morton <akpm@linux-foundation.org> wrote:
+> >
+> > On Tue, 26 Aug 2025 14:55:59 +0200 Ard Biesheuvel <ardb@kernel.org> wrote:
+> >
+> > > On Thu, 21 Aug 2025 at 23:30, Andrew Morton <akpm@linux-foundation.org> wrote:
+> > > >
+> > > >
+> > > > The patch titled
+> > > >      Subject: efi: support booting with kexec handover (KHO)
+> > > > has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+> > > >      efi-support-booting-with-kexec-handover-kho.patch
+> > > >
+> > >
+> > > Please drop this patch. Once we agree on the right approach, I will
+> > > take this via the EFI tree. Thanks.
+> >
+> > This was part of a two-patch series.  You're saying we should split
+> > that series apart?  That this patch has no interaction with [1/2]?
+> 
+> Please drop both if you think that is more appropriate.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch
+Why, what happens then?  Will the kexec patch be merged via the efi tree?
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: Revert "hugetlb: make hugetlb depends on SYSFS or SYSCTL"
-Date: Tue, 26 Aug 2025 11:09:55 +0800
-
-Commit f8142cf94d47 ("hugetlb: make hugetlb depends on SYSFS or SYSCTL")
-added dependency on SYSFS or SYSCTL but hugetlb can be used without SYSFS
-or SYSCTL.  So this dependency is wrong and should be removed.
-
-This reverts commit f8142cf94d4737ea0c3baffb3b9bad8addcb9b6b.
-
-Link: https://lkml.kernel.org/r/20250826030955.2898709-1-linmiaohe@huawei.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202508222032.bwJsQPZ1-lkp@intel.com/
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
-
---- a/fs/Kconfig~revert-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl
-+++ a/fs/Kconfig
-@@ -250,7 +250,6 @@ config ARCH_SUPPORTS_HUGETLBFS
- menuconfig HUGETLBFS
- 	bool "HugeTLB file system support"
- 	depends on ARCH_SUPPORTS_HUGETLBFS
--	depends on (SYSFS || SYSCTL)
- 	select MEMFD_CREATE
- 	select PADATA if SMP
- 	help
-_
-
-Patches currently in -mm which might be from linmiaohe@huawei.com are
-
-revert-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch
 
