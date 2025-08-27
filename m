@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26C4F4086A
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 02:00:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BD01F09BF
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 02:00:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756260014; cv=none; b=oNvQv+5SN03kaPdYMf8HozXdnoYEQrk/8U+sSnOpeMaZfA8pL0ZMXpKipE8kokkWbOYXRhiPQu/lnNjyNvxsCNgVB6pkgaqxAYaBC0x3hT7u4rS/tXyTDrUn6jM1wMnOp/7IiU+amQ+mQtDTLvBwm0cNH8biIjMdN+XWfoi6g6Y=
+	t=1756260016; cv=none; b=pp/ZB8knbyv8WBbhlJcKmKpdUiaUJOLpMMY9zT5bsWywWjJ6QGcMi1OGGpCPM/nWE2F75qoX1KcAlgKOX9kFqYieGzD3dTPtS8l9iSBPb4/3Fk44TBPugLOMG9Lui5QiXeX1cxIzoMmOI9BgXrTyEEzsEgo+CwKG25/AIyy+GOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756260014; c=relaxed/simple;
-	bh=Kn/KaL2Gnw27uWj924qNaE9ylC7Gx6FnClBuMl8zZsE=;
-	h=Date:To:From:Subject:Message-Id; b=hvpGbbAt93+gM7CkyMxT3Eg+Ll+bt8T8ZWuRDCTTdRe3je8LVZcX3nb9KYq814wdU14q50MAArumoRgMiGLmlrRxVXpqlbaieSIBwEl0UJ4sTd2N3cpUKDOwqp3B2GELp8cJpiHgiZ+uP/eKZ5rGUDx1aHBfsgSv/TXSuPd8xoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z201gyue; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756260016; c=relaxed/simple;
+	bh=8zJ5e/E6YT6jMAw8VCy7jV7CSyexS1JeApLcTzFuKJQ=;
+	h=Date:To:From:Subject:Message-Id; b=BMnjcYLR5j9Eu/5tNSOU/3Py+IvYmqLtdaT0/mrVBp0LgtKMSj7tIPvAZ9ogUdXMNEt6T4kFZEfneRBQSkpyiIfsRgPrL77e2iKTVOx3scVah6QewYpifsIuzNX2F88gffEUV/BuEzROh/rNDaXuGi1FgcvW9T3+cLULgJ/hWcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ve4HWy5C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z201gyue"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A59A2C4CEF1;
-	Wed, 27 Aug 2025 02:00:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ve4HWy5C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0520C4CEF1;
+	Wed, 27 Aug 2025 02:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756260013;
-	bh=Kn/KaL2Gnw27uWj924qNaE9ylC7Gx6FnClBuMl8zZsE=;
+	s=korg; t=1756260015;
+	bh=8zJ5e/E6YT6jMAw8VCy7jV7CSyexS1JeApLcTzFuKJQ=;
 	h=Date:To:From:Subject:From;
-	b=Z201gyue1T6KLnb4M05puplg0LFyCH/MRll/sEpNI6QyXaQ7WF3RVmyo2tTAwZI4d
-	 RVmrwpQyeofgAy9c7CMGa43QBZTNidRyOhf6sasNa58Vg6Yn1731lhSMvZ/nrrOyvB
-	 KrRYv6kfFsQYiVa2klG6evKlWQoM2l+hVVW4Yv7o=
-Date: Tue, 26 Aug 2025 19:00:13 -0700
+	b=ve4HWy5CEyGeEblDIBSmrsX7tins5nI7tnWuSQUuac6sM6Cw9ynH4eu98fuDyL3cs
+	 xaxz1ThSSzUlwA3HNvM8exA8Hb3cS6Zjh/JFnMdiCT/s/SAN2G0we0FuG8AB0Ab4GU
+	 ZMRx1T5K32LtXZswUGezQVQmaG8Ud9Ge1cwng2Zw=
+Date: Tue, 26 Aug 2025 19:00:15 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mst@redhat.com,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,justin@coraid.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,axboe@kernel.dk,aou@eecs.berkeley.edu,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + aoe-stop-calling-page_address-in-free_page.patch added to mm-new branch
-Message-Id: <20250827020013.A59A2C4CEF1@smtp.kernel.org>
+Subject: + x86-stop-calling-page_address-in-free_pages.patch added to mm-new branch
+Message-Id: <20250827020015.D0520C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: aoe: stop calling page_address() in free_page()
+     Subject: x86: stop calling page_address() in free_pages()
 has been added to the -mm mm-new branch.  Its filename is
-     aoe-stop-calling-page_address-in-free_page.patch
+     x86-stop-calling-page_address-in-free_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/aoe-stop-calling-page_address-in-free_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-stop-calling-page_address-in-free_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,23 +65,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: aoe: stop calling page_address() in free_page()
-Date: Tue, 26 Aug 2025 13:56:12 -0700
+Subject: x86: stop calling page_address() in free_pages()
+Date: Tue, 26 Aug 2025 13:56:13 -0700
 
-free_page() should be used when we only have a virtual address.  We should
-call __free_page() directly on our page instead.
+free_pages() should be used when we only have a virtual address.  We
+should call __free_pages() directly on our page instead.
 
-Link: https://lkml.kernel.org/r/20250826205617.1032945-3-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20250826205617.1032945-4-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Justin Sanders <justin@coraid.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
@@ -91,19 +91,32 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/init_64.c          |    2 +-
+ arch/x86/platform/efi/memmap.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/block/aoe/aoecmd.c~aoe-stop-calling-page_address-in-free_page
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1761,6 +1761,6 @@ aoecmd_exit(void)
- 	kfree(kts);
- 	kfree(ktiowq);
- 
--	free_page((unsigned long) page_address(empty_page));
-+	__free_page(empty_page);
- 	empty_page = NULL;
+--- a/arch/x86/mm/init_64.c~x86-stop-calling-page_address-in-free_pages
++++ a/arch/x86/mm/init_64.c
+@@ -1031,7 +1031,7 @@ static void __meminit free_pagetable(str
+ 		free_reserved_pages(page, nr_pages);
+ #endif
+ 	} else {
+-		free_pages((unsigned long)page_address(page), order);
++		__free_pages(page, order);
+ 	}
  }
+ 
+--- a/arch/x86/platform/efi/memmap.c~x86-stop-calling-page_address-in-free_pages
++++ a/arch/x86/platform/efi/memmap.c
+@@ -42,7 +42,7 @@ void __init __efi_memmap_free(u64 phys,
+ 		struct page *p = pfn_to_page(PHYS_PFN(phys));
+ 		unsigned int order = get_order(size);
+ 
+-		free_pages((unsigned long) page_address(p), order);
++		__free_pages(p, order);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
