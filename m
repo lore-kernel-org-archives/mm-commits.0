@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3008A6FC5
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 23:09:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 029566FC5
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 23:09:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756336164; cv=none; b=omLbhBM5kGFWhISC8IaPEIjytCcxzfP4BLjGLaHu72xXcXHfknYQ6uNIU7fMs6DJCdj/HdpW6axEKLKgAdBL07dnrUHotv5hMTyNrRlS60y4LXKwoJXjFMoHojTYxuRGvSCMXSioK+RqVxSLWOmOWONPa59DfEdZI5reLhWoCsQ=
+	t=1756336166; cv=none; b=IM0JVvPyZMbuqLKcWY9S8C3hK9qgYmnzK7UHsJDZmpgF1/DqRgUwH1EhWOEvM6fGbb0WA+ZuLa/ypklOAbRTHcsVzRo6W5nQYG9G3jtGlRFqmDE3K+tV4j2V5QiDFTxaC2t2o41mtuAaswxEXuMHHME+SjDC/ZX7Vq+simv5YwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756336164; c=relaxed/simple;
-	bh=ztoHKazxL7xPtJvJLO8NLI1f2afN/WkwOIoJ+wt+vds=;
-	h=Date:To:From:Subject:Message-Id; b=Y0E0U+6pjujSHvbkizNilwjwDK94xP9gCKSIOaqHrwX7usFurBLbEr+AuAFKIBebdio8PItRInfMnddrWVj1+VVvVVzHIacUlWkagMaUoVIDUaBjS7C/bJEgr6El3bvFoPHEgwh0TgjKiJcqXXFs/KlBwtj0A60nZ31+f9oPosw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ENRMrq6c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756336166; c=relaxed/simple;
+	bh=TMF09TL4vTYplJsSbseoNmi5SQoehML6d/uHfgZhRbc=;
+	h=Date:To:From:Subject:Message-Id; b=MA2Qx/me3jWU/Get23cDq75im1pzBVLOq2fE+Stmy3q9+RnxzhRf/tYGsb55MMaj8RY1USiYND/b9Q+QNdXw1Asg9xpxUcchdzvyVPdaQvtJEiWivycrwdegc6I+lpIH9f/+cQZ7k6+eaPX+6rI1ce7Q2wSWa8TyT9E46R4i+Z4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LiVcGl75; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ENRMrq6c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF259C4CEEB;
-	Wed, 27 Aug 2025 23:09:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LiVcGl75"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A186C4CEEB;
+	Wed, 27 Aug 2025 23:09:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756336164;
-	bh=ztoHKazxL7xPtJvJLO8NLI1f2afN/WkwOIoJ+wt+vds=;
+	s=korg; t=1756336165;
+	bh=TMF09TL4vTYplJsSbseoNmi5SQoehML6d/uHfgZhRbc=;
 	h=Date:To:From:Subject:From;
-	b=ENRMrq6c85M3eJdpAmOAltVelREsRFxoBP81yUCr7NFvZaIO+B1/yCHjkqlJMecHI
-	 /BKk4m8TK1SmRiZ4OdYDfFOlT8nns1mmE1g6sqYaR/XcZ81s8TDdkgofvLtUxOdcxl
-	 qgRzDB+P/Y8BY41sG3n+goIkboTZe9KPmVTJgFEw=
-Date: Wed, 27 Aug 2025 16:09:23 -0700
+	b=LiVcGl75fRV7tPtLLyyMbE9PxKtNF/6P3kljxc3hQa+nkOGvJFf4iIdrjNS9pLWeL
+	 BhZjwCMBdhBcfpH3hF8NIPq3t2x/QgnhU8lxE25Fl38JdQvPikLgmwNIYIax3+US33
+	 owTGMczII+n2XCVaYet/I/ggUA6ZKWLQ8iNVU3hk=
+Date: Wed, 27 Aug 2025 16:09:24 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,svens@linux.ibm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,hca@linux.ibm.com,gor@linux.ibm.com,coxu@redhat.com,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhe@redhat.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-kexec-initialize-kexec_buf-struct.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250827230923.DF259C4CEEB@smtp.kernel.org>
+Subject: + s390-kexec-initialize-kexec_buf-struct.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250827230925.6A186C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv: kexec: initialize kexec_buf struct
+     Subject: s390: kexec: initialize kexec_buf struct
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     riscv-kexec-initialize-kexec_buf-struct.patch
+     s390-kexec-initialize-kexec_buf-struct.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-kexec-initialize-kexec_buf-struct.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-kexec-initialize-kexec_buf-struct.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,8 +59,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: riscv: kexec: initialize kexec_buf struct
-Date: Wed, 27 Aug 2025 03:42:22 -0700
+Subject: s390: kexec: initialize kexec_buf struct
+Date: Wed, 27 Aug 2025 03:42:23 -0700
 
 The kexec_buf structure was previously declared without initialization.
 commit bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
@@ -78,7 +78,7 @@ Zero-initializing kexec_buf at declaration ensures all fields are
 cleanly set, preventing future instances of uninitialized memory being
 used.
 
-Link: https://lkml.kernel.org/r/20250827-kbuf_all-v1-2-1df9882bb01a@debian.org
+Link: https://lkml.kernel.org/r/20250827-kbuf_all-v1-3-1df9882bb01a@debian.org
 Fixes: bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
 Signed-off-by: Breno Leitao <leitao@debian.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -97,53 +97,62 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/kexec_elf.c          |    4 ++--
- arch/riscv/kernel/kexec_image.c        |    2 +-
- arch/riscv/kernel/machine_kexec_file.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ arch/s390/kernel/kexec_elf.c          |    2 +-
+ arch/s390/kernel/kexec_image.c        |    2 +-
+ arch/s390/kernel/machine_kexec_file.c |    6 +++---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/riscv/kernel/kexec_elf.c~riscv-kexec-initialize-kexec_buf-struct
-+++ a/arch/riscv/kernel/kexec_elf.c
-@@ -28,7 +28,7 @@ static int riscv_kexec_elf_load(struct k
- 	int i;
- 	int ret = 0;
- 	size_t size;
--	struct kexec_buf kbuf;
-+	struct kexec_buf kbuf = {};
- 	const struct elf_phdr *phdr;
- 
- 	kbuf.image = image;
-@@ -66,7 +66,7 @@ static int elf_find_pbase(struct kimage
+--- a/arch/s390/kernel/kexec_elf.c~s390-kexec-initialize-kexec_buf-struct
++++ a/arch/s390/kernel/kexec_elf.c
+@@ -16,7 +16,7 @@
+ static int kexec_file_add_kernel_elf(struct kimage *image,
+ 				     struct s390_load_data *data)
  {
- 	int i;
- 	int ret;
--	struct kexec_buf kbuf;
-+	struct kexec_buf kbuf = {};
- 	const struct elf_phdr *phdr;
- 	unsigned long lowest_paddr = ULONG_MAX;
- 	unsigned long lowest_vaddr = ULONG_MAX;
---- a/arch/riscv/kernel/kexec_image.c~riscv-kexec-initialize-kexec_buf-struct
-+++ a/arch/riscv/kernel/kexec_image.c
-@@ -41,7 +41,7 @@ static void *image_load(struct kimage *i
- 	struct riscv_image_header *h;
- 	u64 flags;
- 	bool be_image, be_kernel;
--	struct kexec_buf kbuf;
-+	struct kexec_buf kbuf = {};
+-	struct kexec_buf buf;
++	struct kexec_buf buf = {};
+ 	const Elf_Ehdr *ehdr;
+ 	const Elf_Phdr *phdr;
+ 	Elf_Addr entry;
+--- a/arch/s390/kernel/kexec_image.c~s390-kexec-initialize-kexec_buf-struct
++++ a/arch/s390/kernel/kexec_image.c
+@@ -16,7 +16,7 @@
+ static int kexec_file_add_kernel_image(struct kimage *image,
+ 				       struct s390_load_data *data)
+ {
+-	struct kexec_buf buf;
++	struct kexec_buf buf = {};
+ 
+ 	buf.image = image;
+ 
+--- a/arch/s390/kernel/machine_kexec_file.c~s390-kexec-initialize-kexec_buf-struct
++++ a/arch/s390/kernel/machine_kexec_file.c
+@@ -129,7 +129,7 @@ static int kexec_file_update_purgatory(s
+ static int kexec_file_add_purgatory(struct kimage *image,
+ 				    struct s390_load_data *data)
+ {
+-	struct kexec_buf buf;
++	struct kexec_buf buf = {};
  	int ret;
  
- 	/* Check Image header */
---- a/arch/riscv/kernel/machine_kexec_file.c~riscv-kexec-initialize-kexec_buf-struct
-+++ a/arch/riscv/kernel/machine_kexec_file.c
-@@ -261,7 +261,7 @@ int load_extra_segments(struct kimage *i
+ 	buf.image = image;
+@@ -152,7 +152,7 @@ static int kexec_file_add_purgatory(stru
+ static int kexec_file_add_initrd(struct kimage *image,
+ 				 struct s390_load_data *data)
+ {
+-	struct kexec_buf buf;
++	struct kexec_buf buf = {};
  	int ret;
- 	void *fdt;
- 	unsigned long initrd_pbase = 0UL;
--	struct kexec_buf kbuf;
-+	struct kexec_buf kbuf = {};
- 	char *modified_cmdline = NULL;
  
- 	kbuf.image = image;
+ 	buf.image = image;
+@@ -184,7 +184,7 @@ static int kexec_file_add_ipl_report(str
+ {
+ 	__u32 *lc_ipl_parmblock_ptr;
+ 	unsigned int len, ncerts;
+-	struct kexec_buf buf;
++	struct kexec_buf buf = {};
+ 	unsigned long addr;
+ 	void *ptr, *end;
+ 	int ret;
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
