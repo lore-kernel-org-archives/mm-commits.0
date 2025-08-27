@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF38D2D97AF
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 22:26:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 712861F4191
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 22:26:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756333580; cv=none; b=Y1glD4js8a5PU6uDnh1vnFBKCoVFIwqcFh7BlgxtWf8cLWG92SDsrS0VvukhbvLYl2CXJ1ejK96tIHKjQhUYqoVFzKyq54nmkZNOAVvjvOoDnqN/VKe6Jat0mnR8zrsBOMSsWyOV1iTMzu4iDjpDn8rzDY4dIK5uzq3b3q1FsEI=
+	t=1756333582; cv=none; b=Ipd2dg8qS9UckMvIlxyiHfk8reftU70NOedsN0SLcPNyKceEvPI2urE45Inexe95MXESrbZ6vRuA7ncrm1jQPhMhSxVf88ZPMyx5REII7mOj5nKJJQRn1R0IJW1BBzz+UmdT0j/YQci3V8TdOPumFtRFpcNru8j5J8dmC3QuoQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756333580; c=relaxed/simple;
-	bh=pm6WQoMJpZoPrnGVJf3lxqhkp9ElAJiOCFdV8MPhdf8=;
-	h=Date:To:From:Subject:Message-Id; b=tPrD7niXbDa1S3lX7DxQrb13PSkPA1mzOhQTEHsnPS4EtgYJQvy/U56KjGgLDg3KR52J3mOj6XOwpZasupJyelo1Cf5qMJO4/eRdHC3hNXS6X5AwylIB2fF1RffvIxNeOweHhZ9TNgJDZRsk+5vD68Z3zA2RvP6WuM7Nqh/vTEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FvNeLtjJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756333582; c=relaxed/simple;
+	bh=oZutyS9HAL9NraZjg3zNgvKVk3h6F2839HsNsFQV+AI=;
+	h=Date:To:From:Subject:Message-Id; b=UuZks2+Mlrd3NFzuA3sHR5hP70L10AqA/KvUharhesKQLg7FWe9iJ8ug+oFrrCHW8AjTf9P0yK1NkQ0x2OLKB0Ym98HTdiCdzmUoWGOhG19rzzHtqjjWKoQpmpPhthZiSyXaedh6FueLPVQ9OzJ2ld8tkEVFGwy1290pRt85518=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tzovyz5p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FvNeLtjJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BE77C4CEEB;
-	Wed, 27 Aug 2025 22:26:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tzovyz5p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07C42C4CEF4;
+	Wed, 27 Aug 2025 22:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756333579;
-	bh=pm6WQoMJpZoPrnGVJf3lxqhkp9ElAJiOCFdV8MPhdf8=;
+	s=korg; t=1756333582;
+	bh=oZutyS9HAL9NraZjg3zNgvKVk3h6F2839HsNsFQV+AI=;
 	h=Date:To:From:Subject:From;
-	b=FvNeLtjJPWvNtddRxrdFtMPz75eVI3CxpvF30y+72GGA76QwszoWBSC/gxTLr+mHn
-	 f+MEY22rhf0NEktbW5h1f0JBkNXmM5k9Af6/RPYr11n9Bk0qLSzNYqAY7B8xlYJ1oG
-	 OVfsf+DE+ZU+bN0nNAUvmU7VKigWbNc09ja7MbtU=
-Date: Wed, 27 Aug 2025 15:26:18 -0700
+	b=Tzovyz5pzjBiSi2VrmfkSe+NjkFy38NWYjdjuLPHfgxxQp5YAUwmL07r8wAralmJE
+	 IEA4fj0fz75IWog6aW0JgxQi9u2W7WXPYB3Xhs+pO2HaE1GamodjM/2G/q7p7wcNhN
+	 3ot3sXXO8XtuNfhTGGl+7ZKmIlxN2x5HX+7PTVMw=
+Date: Wed, 27 Aug 2025 15:26:21 -0700
 To: mm-commits@vger.kernel.org,wqu@suse.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,boris@bur.io,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-add-as_kernel_file-fix.patch added to mm-new branch
-Message-Id: <20250827222619.4BE77C4CEEB@smtp.kernel.org>
+Subject: + btrfs-set-as_kernel_file-on-the-btree_inode.patch added to mm-new branch
+Message-Id: <20250827222622.07C42C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix CONFIG_MEMCG build for AS_KERNEL_FILE
+     Subject: btrfs: set AS_KERNEL_FILE on the btree_inode
 has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-add-as_kernel_file-fix.patch
+     btrfs-set-as_kernel_file-on-the-btree_inode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-add-as_kernel_file-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/btrfs-set-as_kernel_file-on-the-btree_inode.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,41 +65,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Boris Burkov <boris@bur.io>
-Subject: mm: fix CONFIG_MEMCG build for AS_KERNEL_FILE
-Date: Thu, 21 Aug 2025 15:51:22 -0700
+Subject: btrfs: set AS_KERNEL_FILE on the btree_inode
+Date: Thu, 21 Aug 2025 14:55:37 -0700
 
-this needs to be folded into
+extent_buffers are global and shared so their pages should not belong to
+any particular cgroup (currently whichever cgroups happens to allocate the
+extent_buffer).
 
-mm/filemap: add AS_KERNEL_FILE
+Btrfs tree operations should not arbitrarily block on cgroup reclaim or
+have the shared extent_buffer pages on a cgroup's reclaim lists.
 
-for it to build with CONFIG_MEMCG unset. Apologies for the churn.
-
-Link: https://lkml.kernel.org/r/6de59ddeec81b5c294d337c001ba0061631d4ec6.1755816635.git.boris@bur.io
+Link: https://lkml.kernel.org/r/2ee99832619a3fdfe80bf4dc9760278662d2d746.1755812945.git.boris@bur.io
 Signed-off-by: Boris Burkov <boris@bur.io>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Tested-by: syzbot@syzkaller.appspotmail.com
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qu Wenruo <wqu@suse.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/btrfs/disk-io.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/memcontrol.h~mm-filemap-add-as_kernel_file-fix
-+++ a/include/linux/memcontrol.h
-@@ -1059,6 +1059,8 @@ extern int mem_cgroup_init(void);
+--- a/fs/btrfs/disk-io.c~btrfs-set-as_kernel_file-on-the-btree_inode
++++ a/fs/btrfs/disk-io.c
+@@ -1930,6 +1930,7 @@ static int btrfs_init_btree_inode(struct
+ 	BTRFS_I(inode)->root = btrfs_grab_root(fs_info->tree_root);
+ 	set_bit(BTRFS_INODE_DUMMY, &BTRFS_I(inode)->runtime_flags);
+ 	__insert_inode_hash(inode, hash);
++	set_bit(AS_KERNEL_FILE, &inode->i_mapping->flags);
+ 	fs_info->btree_inode = inode;
  
- #define MEM_CGROUP_ID_SHIFT	0
- 
-+#define root_mem_cgroup		(NULL)
-+
- static inline struct mem_cgroup *folio_memcg(struct folio *folio)
- {
- 	return NULL;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from boris@bur.io are
