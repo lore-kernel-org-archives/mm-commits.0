@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3271FC1D
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 02:00:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC74D25D528
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 02:13:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756260025; cv=none; b=bPgJhQOy20ZSf+QXUDbBe9aZFmNZMSXGTr9uSeUG8My5yXOySjykm5PX65qSxnblItcaleFecAHDv3GdbcRgqr971cLu7+XuNrLWqJjx5sSge6iNwPQTP81KGvaupfnG7Ibq9ZLI8d9FOpqSkjeE/4Dan+eRZFwPrdfe+mU+xEM=
+	t=1756260835; cv=none; b=Lm7xYy+PIs2ZYefi8qG5rcGOtFbaojUlE4p0JnExs+Q4uUe2P9PcmVNtkoNLFq59KT5HfQrcna16S6nc/4JhgLvVtjxB1zTe5spUaU4OboxvW3SP4wM7FfmOLQNQ6eqxRuY//WwGycTCwaV42P5VruSW+mQPRGQSufTePYMQpvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756260025; c=relaxed/simple;
-	bh=mFE75xbMDbmTjK7B+Z22XsWqvjIpGrPejy8+qTJYe3A=;
-	h=Date:To:From:Subject:Message-Id; b=BmLQmFumDuZBsh7JEVwzosow6pO5Pfz1E0SZsEu4rDSHKYrn+vacEYWaRmz3A6raKp7QCXL3WSnvm6DTSdACYXcLGohKFsZGDvdomsAv24MLSjpEgv/MgLkEqDlPCo85dPv/ID+XXOiH2yAEId0mi9p9462UaxRy9sCdZFZo73s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0vCnmM2r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756260835; c=relaxed/simple;
+	bh=q7vs6/H+MwgABuAmZniibJzhvd9DQCiJWpJHmEAInUs=;
+	h=Date:To:From:Subject:Message-Id; b=GEi3f+xIK/i18JTnU5tW7AoqQfpUz30APj2HfMGF89qPYk1aN5MaYNatLPs9firfAoycg4BeKVucG2LXWiDnxQsxRo6RAK/9GUMW7hgWNE8QXmEsksXAHX7dZaWwVsDwHGeaINzJ39MHtefAoq7q6SA3SeCtQaYMNfboaX8xcDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rRgETg9k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0vCnmM2r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BA6EC4CEF1;
-	Wed, 27 Aug 2025 02:00:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rRgETg9k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE9DC4CEF1;
+	Wed, 27 Aug 2025 02:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756260024;
-	bh=mFE75xbMDbmTjK7B+Z22XsWqvjIpGrPejy8+qTJYe3A=;
+	s=korg; t=1756260834;
+	bh=q7vs6/H+MwgABuAmZniibJzhvd9DQCiJWpJHmEAInUs=;
 	h=Date:To:From:Subject:From;
-	b=0vCnmM2rFOtIn8KBWzXjhSmKmQGOieEJn1xoR0L3YCdd5uR8S10zTJTtmw4heQ7c9
-	 lyLSV65IPKUFLHhC21VHlm/L2gKBM3CqSUSt1EKBV8hXctUn8Z7XpYkk297iJeKnBM
-	 kfD9rdmozEK7yo9B67RKhXRSIw2Cigp9MCDAqks4=
-Date: Tue, 26 Aug 2025 19:00:24 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mst@redhat.com,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,justin@coraid.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,axboe@kernel.dk,aou@eecs.berkeley.edu,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=rRgETg9kwoTnH2UEhK7FVG873+1PxexypAXgRZThYxSpX6bn0uPJmJZs/TDiemFME
+	 En3hhr1OxUQm+reYq+jRXiwDVnmwO8LISkOgNFFx87UAtMkByP/dpTWwZO7bsgLy1H
+	 KRsrKNbSknx24IiKYOC1N2cgWRBBkuGUDzfnGDiM=
+Date: Tue, 26 Aug 2025 19:13:53 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + virtio_balloon-stop-calling-page_address-in-free_pages.patch added to mm-new branch
-Message-Id: <20250827020024.8BA6EC4CEF1@smtp.kernel.org>
+Subject: + mm-page_alloc-harmonize-should_compact_retry-type.patch added to mm-new branch
+Message-Id: <20250827021354.1BE9DC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: virtio_balloon: stop calling page_address() in free_pages()
+     Subject: mm/page_alloc: Harmonize should_compact_retry() type
 has been added to the -mm mm-new branch.  Its filename is
-     virtio_balloon-stop-calling-page_address-in-free_pages.patch
+     mm-page_alloc-harmonize-should_compact_retry-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/virtio_balloon-stop-calling-page_address-in-free_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-harmonize-should_compact_retry-type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,58 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: virtio_balloon: stop calling page_address() in free_pages()
-Date: Tue, 26 Aug 2025 13:56:17 -0700
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/page_alloc: Harmonize should_compact_retry() type
+Date: Tue, 26 Aug 2025 14:06:54 +0000
 
-free_pages() should be used when we only have a virtual address.  We
-should call __free_pages() directly on our page instead.
+Currently order is signed in one version of the function and unsigned in
+the other. Tidy that up.
 
-Link: https://lkml.kernel.org/r/20250826205617.1032945-8-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Justin Sanders <justin@coraid.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Will Deacon <will@kernel.org>
+In page_alloc.c, order is unsigned in the vast majority of cases. But,
+there is a cluster of exceptions in compaction-related code (probably
+stemming from the fact that compact_control.order is signed). So, prefer
+local consistency and make this one signed too.
+
+Link: https://lkml.kernel.org/r/20250826-cleanup-should_compact_retry-v1-1-d2ca89727fcf@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/virtio/virtio_balloon.c~virtio_balloon-stop-calling-page_address-in-free_pages
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -488,8 +488,7 @@ static unsigned long return_free_pages_t
- 		page = balloon_page_pop(&vb->free_page_list);
- 		if (!page)
- 			break;
--		free_pages((unsigned long)page_address(page),
--			   VIRTIO_BALLOON_HINT_BLOCK_ORDER);
-+		__free_pages(page, VIRTIO_BALLOON_HINT_BLOCK_ORDER);
- 	}
- 	vb->num_free_page_blocks -= num_returned;
- 	spin_unlock_irq(&vb->free_page_list_lock);
+--- a/mm/page_alloc.c~mm-page_alloc-harmonize-should_compact_retry-type
++++ a/mm/page_alloc.c
+@@ -4182,7 +4182,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ }
+ 
+ static inline bool
+-should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
++should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
+ 		     enum compact_result compact_result,
+ 		     enum compact_priority *compact_priority,
+ 		     int *compaction_retries)
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-tag-kernel-stack-pages.patch
-mm-page_alloc-add-kernel-docs-for-free_pages.patch
-aoe-stop-calling-page_address-in-free_page.patch
-x86-stop-calling-page_address-in-free_pages.patch
-riscv-stop-calling-page_address-in-free_pages.patch
-powerpc-stop-calling-page_address-in-free_pages.patch
-arm64-stop-calling-page_address-in-free_pages.patch
-virtio_balloon-stop-calling-page_address-in-free_pages.patch
+mm-remove-is_migrate_highatomic.patch
+mm-page_alloc-harmonize-should_compact_retry-type.patch
 
