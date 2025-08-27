@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B35C6219EB
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 00:25:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37583186A;
+	Wed, 27 Aug 2025 01:03:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756254352; cv=none; b=PP+1b+XzN81B6eRU14mYNniqmIMvd6lchXyZYMsBML8VpczQvXlbtU588tD4MBnXCyXUvxC1N/6sSdMx/NJgpU5teD7H6t1ZGyTv/olUy0r+t3h/0NT2wNy9vFFeVt97rdUttsb/c/2NYh8QTeEJmdbF054Q/f1I8y9elk3Pr78=
+	t=1756256627; cv=none; b=L+wMliMo4yRgXC08QbF0bPN93StjPKZEKfsb+Y5KC3Wo5ZPmG4Nk8tyav2HJUOo6JVCVI4DQ648sN/b9/XrrWCuxgqdJkIissvQu1IJwqjq2kFqwkUzsNjoaFU3RUcVdxB4AECrew9MlLjwfIBJW2ZErJpIegBp5ARHlIDNV9Yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756254352; c=relaxed/simple;
-	bh=DbHixXTAyXwMF12O7Nib/8mNDVbplzbFUrh5n84Qo9A=;
-	h=Date:To:From:Subject:Message-Id; b=f5/z7jIJQmTDX9WF3iZ87f7ssdMT+J/OCC3nzTxVnlefo09uyCLt112CLO0SLkU/jHe9evNC92e+CjgHWLt5kn8GuLt2L+KUcnr9y2drR6+fYLkNIzIBTW9ETfYNdrMtXE0VKM/0fLN8nWyAh42utkk6Csj9hFUzNchlFM9sRI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0AvSKD5b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756256627; c=relaxed/simple;
+	bh=e8Sz3nQRGFP1ivd+uPtYZfxaLImhYXmcP1SPjGhWlvI=;
+	h=Date:To:From:Subject:Message-Id; b=cFOk6Zcr6TGjRsjTbFKPIDXjPAtN4T62DJjS662MGvSamOPNWurzei45tuRLQDSpmjdJrgtvVVaUA3AHC+56KV5NKGzYDVQ46h8gwEuCvQ+rnwBxg5hxB8FTa8Rl3/sPXRhMXYdQQIBvAcpo/g5gWv6GMV/ph/IWl2WoQ5xTmxA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HfNGlcAi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0AvSKD5b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DEEFC4CEF1;
-	Wed, 27 Aug 2025 00:25:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HfNGlcAi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB861C4CEF1;
+	Wed, 27 Aug 2025 01:03:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756254352;
-	bh=DbHixXTAyXwMF12O7Nib/8mNDVbplzbFUrh5n84Qo9A=;
+	s=korg; t=1756256626;
+	bh=e8Sz3nQRGFP1ivd+uPtYZfxaLImhYXmcP1SPjGhWlvI=;
 	h=Date:To:From:Subject:From;
-	b=0AvSKD5b3EUlODibtirkCPzSQL3OoL75wsv5ojiDbUJRr8wBXbjgkV2Sy3dzoMT06
-	 Qo0cEyUTZXaR4ToL79X4B0aeCbyPaPfb7BWY8la0EJi/lt+6ghydhTWP4RZTOZGyp3
-	 878x2B1bxhyLUH+wS7RI8tz4OOnS/PWLhE1Qxmg0=
-Date: Tue, 26 Aug 2025 17:25:51 -0700
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,409411716@gms.tku.edu.tw,akpm@linux-foundation.org
+	b=HfNGlcAioejw44e4VPJGWHpquzWQRAJ9Yz/kQr0qOGR3Lri956r0fyHpFpb7PFiZ7
+	 skecEC0O5bTcRfaO0TUxGNE0zRoGCVHCU8ut2bv/+kUhsCKGLmmWUHH2NCfkPsDl7h
+	 r8uXeWgUdpXai5HcS5po2opGXqX1PA3lbOw4z48M=
+Date: Tue, 26 Aug 2025 18:03:46 -0700
+To: mm-commits@vger.kernel.org,vkuznets@redhat.com,stable@vger.kernel.org,ryncsn@gmail.com,okozina@redhat.com,mark.rutland@arm.com,kernelfans@gmail.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,coxu@redhat.com,bhe@redhat.com,berrange@redhat.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + btree-simplify-merge-logic-by-using-btree_last-return-value.patch added to mm-nonmm-unstable branch
-Message-Id: <20250827002552.2DEEFC4CEF1@smtp.kernel.org>
+Subject: [to-be-updated] kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader.patch removed from -mm tree
+Message-Id: <20250827010346.AB861C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,65 +34,60 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: btree: simplify merge logic by using btree_last() return value
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     btree-simplify-merge-logic-by-using-btree_last-return-value.patch
+The quilt patch titled
+     Subject: kexec/arm64: initialize the random field of kbuf to zero in the image loader
+has been removed from the -mm tree.  Its filename was
+     kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/btree-simplify-merge-logic-by-using-btree_last-return-value.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Guan-Chun Wu <409411716@gms.tku.edu.tw>
-Subject: btree: simplify merge logic by using btree_last() return value
-Date: Wed, 27 Aug 2025 00:17:41 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: kexec/arm64: initialize the random field of kbuf to zero in the image loader
+Date: Thu Aug 21 04:11:21 2025 -0700
 
-Previously btree_merge() called btree_last() only to test existence, then
-performed an extra btree_lookup() to fetch the value.  This patch changes
-it to directly use the value returned by btree_last(), avoiding redundant
-lookups and simplifying the merge loop.
+Add an explicit initialization for the random member of the kbuf structure
+within the image_load function in arch/arm64/kernel/kexec_image.c. 
+Setting kbuf.random to zero ensures a deterministic and clean starting
+state for the buffer used during kernel image loading, avoiding this UBSAN
+issue later, when kbuf.random is read.
 
-Link: https://lkml.kernel.org/r/20250826161741.686704-1-409411716@gms.tku.edu.tw
-Signed-off-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
+  [   32.362488] UBSAN: invalid-load in ./include/linux/kexec.h:210:10
+  [   32.362649] load of value 252 is not a valid value for type '_Bool'
+
+Link: https://lkml.kernel.org/r/oninomspajhxp4omtdapxnckxydbk2nzmrix7rggmpukpnzadw@c67o7njgdgm3
+Fixes: bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: "Daniel P. Berrange" <berrange@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Liu Pingfan <kernelfans@gmail.com>
+Cc: Milan Broz <gmazyland@gmail.com>
+Cc: Ondrej Kozina <okozina@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/btree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/kexec_image.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/btree.c~btree-simplify-merge-logic-by-using-btree_last-return-value
-+++ a/lib/btree.c
-@@ -653,9 +653,9 @@ int btree_merge(struct btree_head *targe
- 	 * walks to remove a single object from the victim.
- 	 */
- 	for (;;) {
--		if (!btree_last(victim, geo, key))
-+		val = btree_last(victim, geo, key);
-+		if (!val)
- 			break;
--		val = btree_lookup(victim, geo, key);
- 		err = btree_insert(target, geo, key, val, gfp);
- 		if (err)
- 			return err;
+--- a/arch/arm64/kernel/kexec_image.c~kexec-arm64-initialize-the-random-field-of-kbuf-to-zero-in-the-image-loader
++++ a/arch/arm64/kernel/kexec_image.c
+@@ -76,6 +76,7 @@ static void *image_load(struct kimage *i
+ 	kbuf.buf_min = 0;
+ 	kbuf.buf_max = ULONG_MAX;
+ 	kbuf.top_down = false;
++	kbuf.random = 0;
+ 
+ 	kbuf.buffer = kernel;
+ 	kbuf.bufsz = kernel_len;
 _
 
-Patches currently in -mm which might be from 409411716@gms.tku.edu.tw are
+Patches currently in -mm which might be from leitao@debian.org are
 
-btree-simplify-merge-logic-by-using-btree_last-return-value.patch
 
