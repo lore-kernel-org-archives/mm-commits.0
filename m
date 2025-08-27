@@ -1,109 +1,78 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC74D25D528
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 02:13:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D583258EF5
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 02:38:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756260835; cv=none; b=Lm7xYy+PIs2ZYefi8qG5rcGOtFbaojUlE4p0JnExs+Q4uUe2P9PcmVNtkoNLFq59KT5HfQrcna16S6nc/4JhgLvVtjxB1zTe5spUaU4OboxvW3SP4wM7FfmOLQNQ6eqxRuY//WwGycTCwaV42P5VruSW+mQPRGQSufTePYMQpvY=
+	t=1756262333; cv=none; b=scbxuMvJlBb2Hn06E4G8tSpQVDhZDp0Y1Z+uNboC+g8UcKUVPCRLGkZbR1mF/ETwMrh86mBNzui4OIEj/o8iDjHYWOxpbhrs6ymvX91POYMKkk+IaKhuQiFVEqi5bhxmVHoO3m54E27Gf1vbwt4Hb16XM3o4JtYL+rdvKIGA9Ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756260835; c=relaxed/simple;
-	bh=q7vs6/H+MwgABuAmZniibJzhvd9DQCiJWpJHmEAInUs=;
-	h=Date:To:From:Subject:Message-Id; b=GEi3f+xIK/i18JTnU5tW7AoqQfpUz30APj2HfMGF89qPYk1aN5MaYNatLPs9firfAoycg4BeKVucG2LXWiDnxQsxRo6RAK/9GUMW7hgWNE8QXmEsksXAHX7dZaWwVsDwHGeaINzJ39MHtefAoq7q6SA3SeCtQaYMNfboaX8xcDE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rRgETg9k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756262333; c=relaxed/simple;
+	bh=ixJyUxrhdBWBbQzdzvT2my0uhsqZ4/Wt2CFyH58dyak=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=AxANjLClv9rID2ChNlC9ASf32cGW8wWt1Dau2KxiLa0hmZvX4eraSWt3EdiJ1GKbmaqyBab7C0BJjyTnCr23pvXLOi1E5t7d92Cev4n0LTKwIFWadryzO/yfWVtNyHn5OmGxS4mMv4GgF9cotRkIxnGN8epaf9czWcFijEJ7qc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d59KJ5jp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rRgETg9k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE9DC4CEF1;
-	Wed, 27 Aug 2025 02:13:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756260834;
-	bh=q7vs6/H+MwgABuAmZniibJzhvd9DQCiJWpJHmEAInUs=;
-	h=Date:To:From:Subject:From;
-	b=rRgETg9kwoTnH2UEhK7FVG873+1PxexypAXgRZThYxSpX6bn0uPJmJZs/TDiemFME
-	 En3hhr1OxUQm+reYq+jRXiwDVnmwO8LISkOgNFFx87UAtMkByP/dpTWwZO7bsgLy1H
-	 KRsrKNbSknx24IiKYOC1N2cgWRBBkuGUDzfnGDiM=
-Date: Tue, 26 Aug 2025 19:13:53 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-harmonize-should_compact_retry-type.patch added to mm-new branch
-Message-Id: <20250827021354.1BE9DC4CEF1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d59KJ5jp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0157C116C6
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 02:38:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1756262332;
+	bh=ixJyUxrhdBWBbQzdzvT2my0uhsqZ4/Wt2CFyH58dyak=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=d59KJ5jp1NOdQEyA+kNwkncVdnwD8+Mi1mmhHkyp99eAuoj6Au4+7/KgN3Mz2iBY1
+	 n+O1YHcOI6Jek4kkrmbB+ePcuBiJQmc020jncfabG7lwouRg9iCYTdCa4UhMMDnYO2
+	 pBTHBToWY2RNCHwB1+0MaCFKhSMHWWVl0vW7l7PO7KFzNI4xqigFShwidbtuGYQq9Y
+	 tRi1W79d1rvZsw+5KQvjRhYqD0aFdB0Lpp2jbHQ1+79Ggx4QHKGaK9z9P4M4AwRiy4
+	 B9jK/igceMVMsw7VKenVBTK3GLt/SEQTlywYC21PrWcRmB21DA6qc2n4HYxxOxlLgR
+	 YxUjw6gy9E2/Q==
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-55f40cf5e54so3654173e87.0
+        for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2025 19:38:52 -0700 (PDT)
+X-Gm-Message-State: AOJu0YyLP84bvGhyygbDA95rs6lXoLqMQNleap7932YGvO8axhwN1+BV
+	2K9Y+cXgrzOyDqnAwtVvTtixZn+UWh6QLwsI9FXQPfCkTeQkWlwRqY8/U8mrRzAxGrO3adj7VrG
+	I5I70COKAWs5hCa32+ajVTHuHMMTr2Dk=
+X-Google-Smtp-Source: AGHT+IFZLO4jh7FgSZZUkMmAFv7HE4y5VSEfK3xkV6iX5rgiIAuUw6oOj4kPrRN2V4AUguDwvz+EDjyOk8bS7jJyQCw=
+X-Received: by 2002:a05:6512:3e26:b0:55f:5172:4744 with SMTP id
+ 2adb3069b0e04-55f51724a1emr951587e87.4.1756262331005; Tue, 26 Aug 2025
+ 19:38:51 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20250821213034.0B05AC4CEEB@smtp.kernel.org> <CAMj1kXG8OhR4TE013TqhFjf__nWbiF17gjSJFEbODH9wKk1b3g@mail.gmail.com>
+ <20250826163129.8324fd9a457f549a6bd63728@linux-foundation.org>
+In-Reply-To: <20250826163129.8324fd9a457f549a6bd63728@linux-foundation.org>
+From: Ard Biesheuvel <ardb@kernel.org>
+Date: Wed, 27 Aug 2025 04:38:38 +0200
+X-Gmail-Original-Message-ID: <CAMj1kXETbG0YZdJSjaw4o-QLpCNVmtuGpeJL6bFqpb_sBiW1MQ@mail.gmail.com>
+X-Gm-Features: Ac12FXyGD5QqVWsgbYKz4peQL4Q1QBIZsB3SLum8od3_eUPpRNAVULsuBY8_8jc
+Message-ID: <CAMj1kXETbG0YZdJSjaw4o-QLpCNVmtuGpeJL6bFqpb_sBiW1MQ@mail.gmail.com>
+Subject: Re: + efi-support-booting-with-kexec-handover-kho.patch added to
+ mm-hotfixes-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, rppt@kernel.org, graf@amazon.com, 
+	changyuanl@google.com, bhe@redhat.com, epetron@amazon.de
+Content-Type: text/plain; charset="UTF-8"
 
+On Wed, 27 Aug 2025 at 01:31, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> On Tue, 26 Aug 2025 14:55:59 +0200 Ard Biesheuvel <ardb@kernel.org> wrote:
+>
+> > On Thu, 21 Aug 2025 at 23:30, Andrew Morton <akpm@linux-foundation.org> wrote:
+> > >
+> > >
+> > > The patch titled
+> > >      Subject: efi: support booting with kexec handover (KHO)
+> > > has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+> > >      efi-support-booting-with-kexec-handover-kho.patch
+> > >
+> >
+> > Please drop this patch. Once we agree on the right approach, I will
+> > take this via the EFI tree. Thanks.
+>
+> This was part of a two-patch series.  You're saying we should split
+> that series apart?  That this patch has no interaction with [1/2]?
 
-The patch titled
-     Subject: mm/page_alloc: Harmonize should_compact_retry() type
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-harmonize-should_compact_retry-type.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-harmonize-should_compact_retry-type.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: Harmonize should_compact_retry() type
-Date: Tue, 26 Aug 2025 14:06:54 +0000
-
-Currently order is signed in one version of the function and unsigned in
-the other. Tidy that up.
-
-In page_alloc.c, order is unsigned in the vast majority of cases. But,
-there is a cluster of exceptions in compaction-related code (probably
-stemming from the fact that compact_control.order is signed). So, prefer
-local consistency and make this one signed too.
-
-Link: https://lkml.kernel.org/r/20250826-cleanup-should_compact_retry-v1-1-d2ca89727fcf@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/page_alloc.c~mm-page_alloc-harmonize-should_compact_retry-type
-+++ a/mm/page_alloc.c
-@@ -4182,7 +4182,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- }
- 
- static inline bool
--should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
-+should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
- 		     enum compact_result compact_result,
- 		     enum compact_priority *compact_priority,
- 		     int *compaction_retries)
-_
-
-Patches currently in -mm which might be from jackmanb@google.com are
-
-mm-remove-is_migrate_highatomic.patch
-mm-page_alloc-harmonize-should_compact_retry-type.patch
-
+Please drop both if you think that is more appropriate.
