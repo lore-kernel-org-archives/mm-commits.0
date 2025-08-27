@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73392238D52
-	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 03:25:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EC832F60B4
+	for <mm-commits@vger.kernel.org>; Wed, 27 Aug 2025 03:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756265108; cv=none; b=DQ4QF5MISXsBmYT6PKUTdxy/QiewapjNNhc1oW/QERg/Vx9jUGija0B3nXkz204xO/XPpiysbXsE+633Z9m4tmOIJtogTQrsn58hFnjOqApp9KzynRfg66rXo0RgL6UD6ZX+RxrGKjm1nPF6XoOLlV7fm8B782oQWpvgLbgIRT4=
+	t=1756265379; cv=none; b=K4w7y8LliOUY/2R0QiUyxmG4z960AUxUlZEM+xX7y53m5DYLmguZ5UhlstKoNJQViRQOrmtpmqjOsuGGsuQ/or+MD1/gy8rxenBqwb/2UiEmdoANzEq11ePHLWWCt/v8BK5rUIjRNIxs8Xp2d7iX23i/WFPkatjoGty03sAWgLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756265108; c=relaxed/simple;
-	bh=JcxMz0FMdDoChwbeKDzlYEpVF3ucTOoV5knqBnfzXnw=;
-	h=Date:To:From:Subject:Message-Id; b=g9IWoTMEOzwfpRfq/LRzxYbkjVZ5Hki2/pV4cGm6qH0v4nOBrgCOS3owTO89qSjSEqSg0Y/+cSQBfeGnLKaYiwp7PBn4dPjNmgEDjWWLZqopq8BD7oEmKThdK73rbMm4wE27O/825b1F3K1h2GFLcXLaym4nXkg1qxcvgNcbrHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j6HHQJ0H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756265379; c=relaxed/simple;
+	bh=jfNB3Xm7z6D7bx3v0hZta90m4f43/icU27WW36kEYkU=;
+	h=Date:To:From:Subject:Message-Id; b=iSCwSo0jDMyj8ydRih1x0qAEWdg3DSlkDEWhRkOTs2VSr1cTfNwnz2da38hGiF1Nw9fSO0i0XuFYpYv3xTrUbD8j4sZlD+bGOKPfV5ei05UEJ6l4EDHWa+Umo9UThsi0yqetkrzOwafXR5Eyrj5BFlwTVHNN2Wn0JJOevYgVzvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jsR7aQ5h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j6HHQJ0H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1989C4CEEB;
-	Wed, 27 Aug 2025 03:25:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jsR7aQ5h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0864DC4CEEB;
+	Wed, 27 Aug 2025 03:29:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756265107;
-	bh=JcxMz0FMdDoChwbeKDzlYEpVF3ucTOoV5knqBnfzXnw=;
+	s=korg; t=1756265379;
+	bh=jfNB3Xm7z6D7bx3v0hZta90m4f43/icU27WW36kEYkU=;
 	h=Date:To:From:Subject:From;
-	b=j6HHQJ0HmPecNI3rvy02ZwvF/bqGx1Zx8rzZM1mGLfda0LLi+0/2J0ifqd9uNHy1P
-	 6QnmqXptOtm+s3BnmYIETpqzl5Cb+7JYUWykzurTIPNN0vwb8DvUewOYhsVZP5QcMu
-	 yQNaLn8Ut82iF/igtS/XaitDP9LR2Gnzzu95JgXo=
-Date: Tue, 26 Aug 2025 20:25:07 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=jsR7aQ5h2vRO9gV30VuNWlVaFyCqio/WpJWAHY6nHhdF6uKP4qIAwxETbo/RNzGeI
+	 8sjXf3hUFPvBmWmoUaNc6XoKdNmD2zuxB+Ee0hCJJiyWlmpf1qWL2EnPuD5M8GMXJV
+	 CF3g9z89CeTrDX3A5OJe0TYfdhRxm7GCsu6XT4R8=
+Date: Tue, 26 Aug 2025 20:29:38 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memblock-fix-kernel-doc-for-memblock_rsrv_noinit.patch added to mm-unstable branch
-Message-Id: <20250827032507.C1989C4CEEB@smtp.kernel.org>
+Subject: + selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch added to mm-new branch
+Message-Id: <20250827032939.0864DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memblock: fix kernel-doc for MEMBLOCK_RSRV_NOINIT
-has been added to the -mm mm-unstable branch.  Its filename is
-     memblock-fix-kernel-doc-for-memblock_rsrv_noinit.patch
+     Subject: selftests/mm/uffd-stress: make test operate on less hugetlb memory
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblock-fix-kernel-doc-for-memblock_rsrv_noinit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,77 +64,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: memblock: fix kernel-doc for MEMBLOCK_RSRV_NOINIT
-Date: Tue, 26 Aug 2025 10:19:46 +0300
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm/uffd-stress: make test operate on less hugetlb memory
+Date: Tue, 26 Aug 2025 12:37:04 +0530
 
-The kernel-doc description of MEMBLOCK_RSRV_NOINIT and
-memblock_reserved_mark_noinit() do not accurately describe their
-functionality.
+Patch series "selftests/mm: uffd-stress fixes".
 
-Expand their kernel doc to make it clear that the user of
-MEMBLOCK_RSRV_NOINIT is responsible to properly initialize the struct
-pages for such regions and add more details about effects of using this
-flag.
+This patchset ensures that the number of hugepages is correctly set in the
+system so that the uffd-stress test does not fail due to the racy nature
+of the test.  Patch 1 corrects the hugepage constraint in the
+run_vmtests.sh script, whereas patch 2 corrects the constraint in the test
+itself.
 
-Link: https://lkml.kernel.org/r/20250826071947.1949725-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+
+This patch (of 2):
+
+We observed uffd-stress selftest failure on arm64 and intermittent
+failures on x86 too:
+
+running ./uffd-stress hugetlb-private 128 32
+
+bounces: 17, mode: rnd read, ERROR: UFFDIO_COPY error: -12 (errno=12, @uffd-common.c:617) [FAIL]
+not ok 18 uffd-stress hugetlb-private 128 32 # exit=1
+
+For this particular case, the number of free hugepages from run_vmtests.sh
+will be 128, and the test will allocate 64 hugepages in the source
+location.  The stress() function will start spawning threads which will
+operate on the destination location, triggering uffd-operations like
+UFFDIO_COPY from src to dst, which means that we will require 64 more
+hugepages for the dst location.
+
+Let us observe the locking_thread() function.  It will lock the mutex kept
+at dst, triggering uffd-copy.  Suppose that 127 (64 for src and 63 for
+dst) hugepages have been reserved.  In case of BOUNCE_RANDOM, it may
+happen that two threads trying to lock the mutex at dst, try to do so at
+the same hugepage number.  If one thread succeeds in reserving the last
+hugepage, then the other thread may fail in alloc_hugetlb_folio(),
+returning -ENOMEM.  I can confirm that this is indeed the case by this
+hacky patch:
+
+: --- a/mm/hugetlb.c
+: +++ b/mm/hugetlb.c
+: @@ -6929,6 +6929,11 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
+: 
+:  		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
+:  		if (IS_ERR(folio)) {
+: +			pte_t *actual_pte = hugetlb_walk(dst_vma, dst_addr, PMD_SIZE);
+: +			if (actual_pte) {
+: +				ret = -EEXIST;
+: +				goto out;
+: +			}
+:  			ret = -ENOMEM;
+:  			goto out;
+:  		}
+
+This code path gets triggered indicating that the PMD at which one thread
+is trying to map a hugepage, gets filled by a racing thread.
+
+Therefore, instead of using freepgs to compute the amount of memory, use
+freepgs - 10, so that the test still has some extra hugepages to use. 
+Note that, in case this value underflows, there is a check for the number
+of free hugepages in the test itself, which will fail, so we are safe.
+
+Link: https://lkml.kernel.org/r/20250826070705.53841-1-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250826070705.53841-2-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    5 +++--
- mm/memblock.c            |   15 +++++++++++----
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ mm/hugetlb.c                              |    5 +++++
+ tools/testing/selftests/mm/run_vmtests.sh |    2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/memblock.h~memblock-fix-kernel-doc-for-memblock_rsrv_noinit
-+++ a/include/linux/memblock.h
-@@ -40,8 +40,9 @@ extern unsigned long long max_possible_p
-  * via a driver, and never indicated in the firmware-provided memory map as
-  * system RAM. This corresponds to IORESOURCE_SYSRAM_DRIVER_MANAGED in the
-  * kernel resource tree.
-- * @MEMBLOCK_RSRV_NOINIT: memory region for which struct pages are
-- * not initialized (only for reserved regions).
-+ * @MEMBLOCK_RSRV_NOINIT: reserved memory region for which struct pages are not
-+ * fully initialized. Users of this flag are responsible to properly initialize
-+ * struct pages of this region
-  * @MEMBLOCK_RSRV_KERN: memory region that is reserved for kernel use,
-  * either explictitly with memblock_reserve_kern() or via memblock
-  * allocation APIs. All memblock allocations set this flag.
---- a/mm/memblock.c~memblock-fix-kernel-doc-for-memblock_rsrv_noinit
-+++ a/mm/memblock.c
-@@ -1091,13 +1091,20 @@ int __init_memblock memblock_clear_nomap
+--- a/mm/hugetlb.c~selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory
++++ a/mm/hugetlb.c
+@@ -6935,6 +6935,11 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
  
- /**
-  * memblock_reserved_mark_noinit - Mark a reserved memory region with flag
-- * MEMBLOCK_RSRV_NOINIT which results in the struct pages not being initialized
-- * for this region.
-+ * MEMBLOCK_RSRV_NOINIT
-+ *
-  * @base: the base phys addr of the region
-  * @size: the size of the region
-  *
-- * struct pages will not be initialized for reserved memory regions marked with
-- * %MEMBLOCK_RSRV_NOINIT.
-+ * The struct pages for the reserved regions marked %MEMBLOCK_RSRV_NOINIT will
-+ * not be fully initialized to allow the caller optimize their initialization.
-+ *
-+ * When %CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled, setting this flag
-+ * completely bypasses the initialization of struct pages for such region.
-+ *
-+ * When %CONFIG_DEFERRED_STRUCT_PAGE_INIT is disabled, struct pages in this
-+ * region will be initialized with default values but won't be marked as
-+ * reserved.
-  *
-  * Return: 0 on success, -errno on failure.
-  */
+ 		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
+ 		if (IS_ERR(folio)) {
++			pte_t *actual_pte = hugetlb_walk(dst_vma, dst_addr, PMD_SIZE);
++			if (actual_pte) {
++				ret = -EEXIST;
++				goto out;
++			}
+ 			ret = -ENOMEM;
+ 			goto out;
+ 		}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -328,7 +328,7 @@ CATEGORY="userfaultfd" run_test ${uffd_s
+ # the size of the free pages we have, which is used for *each*.
+ # uffd-stress expects a region expressed in MiB, so we adjust
+ # half_ufd_size_MB accordingly.
+-half_ufd_size_MB=$(((freepgs * hpgsize_KB) / 1024 / 2))
++half_ufd_size_MB=$((((freepgs - 10) * hpgsize_KB) / 1024 / 2))
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-init-mainc-fix-boot-time-tracing-crash.patch
-kho-allow-scratch-areas-with-zero-size.patch
-lib-test_kho-fixes-for-error-handling.patch
-selftest-kho-update-generation-of-initrd.patch
-memblock-fix-kernel-doc-for-memblock_rsrv_noinit.patch
+selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
+selftests-mm-uffd-stress-stricten-constraint-on-free-hugepages-before-the-test.patch
 
