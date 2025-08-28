@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C7E13DDAA;
-	Thu, 28 Aug 2025 05:46:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 421312773D6
+	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 05:46:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756359982; cv=none; b=IvLFKNwF2lU8eraJfvAMWJMqtfNK8Eypjg29rkDsnBk3uN9rj87N4YeZqfcjrlpJ2B8ONizJRFmt8N/CVSfl5OyLpI5C8HKBaUL5nxepplR3x5VwYJj8sCnukq/+Y9EG0UD4mBkLW7bd64UovSY7JhEY3q9+qBHjuM8OOJR5HFY=
+	t=1756359984; cv=none; b=TUqcsYwdLLkBdf0zc81cFMa2nSlDyPiD7tQa9PlVkrJV4mlxEn5ylGFp9z+zhJqkBLY3v9PhGlEXwpclBc+oW04V/1fXe9pz9/9QSIiatetjnyxPNYl9ysjETLP4w8yQDvIhob+9ISk26BpNTKEaZlX6Snu3vUbSS8qHlOvFDFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756359982; c=relaxed/simple;
-	bh=2bAGBP2ziuX2W1E04tKsFONmq8gPpepEi41uFrqWTdg=;
-	h=Date:To:From:Subject:Message-Id; b=Or3Wgw1/KTkzi6xDCcVSVRrnyxJMXGlESDJjRdEZAiPo3+EruDskw3A/91O4IvV9RgaBIUcd0yfqpY74BXIUhpEk30mWBhRz2QX06KjEEf6QGI97T7y9u/6H38R1guY2Of/sMT7OzZH2N7/YpDw2k1jLYQppNc+3fy+6SplI/h4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YZVuWO16; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756359984; c=relaxed/simple;
+	bh=7GleN6lk/CDNvqcc1annbriXDLplgtNyEFaOddwppr0=;
+	h=Date:To:From:Subject:Message-Id; b=QD8PLH6sbkK2WwO9xBW3QeKbh4sciK3metDMO+4NEUVXvtRBuAmG9a8A1nTBSJrOZoNGdYJYg5F/zB/+TuCdUXvNIB7xH74b75Ky+SBA51yfTkqJqtQ7SCiX41WeGCDfrh6L7VKuQMMtqbwNWtumh6helmo0U/ap7vP5s2UeCjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=szBUEWyo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YZVuWO16"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FC81C4CEEB;
-	Thu, 28 Aug 2025 05:46:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="szBUEWyo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0055C4CEEB;
+	Thu, 28 Aug 2025 05:46:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756359981;
-	bh=2bAGBP2ziuX2W1E04tKsFONmq8gPpepEi41uFrqWTdg=;
+	s=korg; t=1756359983;
+	bh=7GleN6lk/CDNvqcc1annbriXDLplgtNyEFaOddwppr0=;
 	h=Date:To:From:Subject:From;
-	b=YZVuWO169CIW+TRmv6LSBNNVG8B1HRQezyaE4h8/F56E7SIwQDPtv9Io6eWvSbmAZ
-	 8pWSixG9fN42wgwYTKwg3rlvGNcB4JekpSanXAFlBgDvt3OZ4Sndylhdm3SFY5Owqe
-	 QOh88O8dIXMozKq8MxaxH8fgyF6F3Ef+tOiQVjD4=
-Date: Wed, 27 Aug 2025 22:46:20 -0700
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,vincenzo.frascino@arm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,mark.rutland@arm.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,ada.coupriediaz@arm.com,akpm@linux-foundation.org
+	b=szBUEWyoOw7xEwU/W/9ADYUfQh0lVR8YCoq4q4Xffui7xla2qY8eRoQf/aiWAJ89v
+	 aE2//ejMgQ9IqfH+Nji2VFn1uoIulLzMBCPpAwDP1Hx/Gumz6NxfnspJFxB9H1s14L
+	 TjNnwKx+AuBfTOmgNAI/UB6gBMU+TwPZm9Vd69XM=
+Date: Wed, 27 Aug 2025 22:46:23 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,saravanak@google.com,robh@kernel.org,mingo@redhat.com,hpa@zytor.com,graf@amazon.com,dyoung@redhat.com,bp@alien8.de,bhe@redhat.com,makb@juniper.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-fix-gcc-mem-intrinsic-prefix-with-sw-tags.patch removed from -mm tree
-Message-Id: <20250828054621.0FC81C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kexec-add-kexec_file_no_cma-as-a-legal-flag.patch removed from -mm tree
+Message-Id: <20250828054623.A0055C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: fix GCC mem-intrinsic prefix with sw tags
+     Subject: kexec: add KEXEC_FILE_NO_CMA as a legal flag
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-gcc-mem-intrinsic-prefix-with-sw-tags.patch
+     kexec-add-kexec_file_no_cma-as-a-legal-flag.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ada Couprie Diaz <ada.coupriediaz@arm.com>
-Subject: kasan: fix GCC mem-intrinsic prefix with sw tags
-Date: Thu, 21 Aug 2025 13:07:35 +0100
+From: Brian Mak <makb@juniper.net>
+Subject: kexec: add KEXEC_FILE_NO_CMA as a legal flag
+Date: Tue, 5 Aug 2025 14:15:26 -0700
 
-GCC doesn't support "hwasan-kernel-mem-intrinsic-prefix", only
-"asan-kernel-mem-intrinsic-prefix"[0], while LLVM supports both.  This is
-already taken into account when checking
-"CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX", but not in the KASAN Makefile
-adding those parameters when "CONFIG_KASAN_SW_TAGS" is enabled.
+Commit 07d24902977e ("kexec: enable CMA based contiguous allocation")
+introduces logic to use CMA-based allocation in kexec by default.  As part
+of the changes, it introduces a kexec_file_load flag to disable the use of
+CMA allocations from userspace.  However, this flag is broken since it is
+missing from the list of legal flags for kexec_file_load.  kexec_file_load
+returns EINVAL when attempting to use the flag.
 
-Replace the version check with "CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX",
-which already validates that mem-intrinsic prefix parameter can be used,
-and choose the correct name depending on compiler.
+Fix this by adding the KEXEC_FILE_NO_CMA flag to the list of legal flags
+for kexec_file_load.
 
-GCC 13 and above trigger "CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX" which
-prevents `mem{cpy,move,set}()` being redefined in "mm/kasan/shadow.c"
-since commit 36be5cba99f6 ("kasan: treat meminstrinsic as builtins in
-uninstrumented files"), as we expect the compiler to prefix those calls
-with `__(hw)asan_` instead.  But as the option passed to GCC has been
-incorrect, the compiler has not been emitting those prefixes, effectively
-never calling the instrumented versions of `mem{cpy,move,set}()` with
-"CONFIG_KASAN_SW_TAGS" enabled.
+Without this fix, kexec_file_load syscall will failed and return
+'-EINVAL' when KEXEC_FILE_NO_CMA is specified.
 
-If "CONFIG_FORTIFY_SOURCES" is enabled, this issue would be mitigated as
-it redefines `mem{cpy,move,set}()` and properly aliases the
-`__underlying_mem*()` that will be called to the instrumented versions.
-
-Link: https://lkml.kernel.org/r/20250821120735.156244-1-ada.coupriediaz@arm.com
-Link: https://gcc.gnu.org/onlinedocs/gcc-13.4.0/gcc/Optimize-Options.html [0]
-Signed-off-by: Ada Couprie Diaz <ada.coupriediaz@arm.com>
-Fixes: 36be5cba99f6 ("kasan: treat meminstrinsic as builtins in uninstrumented files")
-Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250805211527.122367-2-makb@juniper.net
+Fixes: 07d24902977e ("kexec: enable CMA based contiguous allocation")
+Signed-off-by: Brian Mak <makb@juniper.net>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Saravana Kannan <saravanak@google.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ include/linux/kexec.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/scripts/Makefile.kasan~kasan-fix-gcc-mem-intrinsic-prefix-with-sw-tags
-+++ a/scripts/Makefile.kasan
-@@ -86,10 +86,14 @@ kasan_params += hwasan-instrument-stack=
- 		hwasan-use-short-granules=0 \
- 		hwasan-inline-all-checks=0
+--- a/include/linux/kexec.h~kexec-add-kexec_file_no_cma-as-a-legal-flag
++++ a/include/linux/kexec.h
+@@ -460,7 +460,8 @@ bool kexec_load_permitted(int kexec_imag
  
--# Instrument memcpy/memset/memmove calls by using instrumented __hwasan_mem*().
--ifeq ($(call clang-min-version, 150000)$(call gcc-min-version, 130000),y)
--	kasan_params += hwasan-kernel-mem-intrinsic-prefix=1
--endif
-+# Instrument memcpy/memset/memmove calls by using instrumented __(hw)asan_mem*().
-+ifdef CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX
-+	ifdef CONFIG_CC_IS_GCC
-+		kasan_params += asan-kernel-mem-intrinsic-prefix=1
-+	else
-+		kasan_params += hwasan-kernel-mem-intrinsic-prefix=1
-+	endif
-+endif # CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX
+ /* List of defined/legal kexec file flags */
+ #define KEXEC_FILE_FLAGS	(KEXEC_FILE_UNLOAD | KEXEC_FILE_ON_CRASH | \
+-				 KEXEC_FILE_NO_INITRAMFS | KEXEC_FILE_DEBUG)
++				 KEXEC_FILE_NO_INITRAMFS | KEXEC_FILE_DEBUG | \
++				 KEXEC_FILE_NO_CMA)
  
- endif # CONFIG_KASAN_SW_TAGS
- 
+ /* flag to track if kexec reboot is in progress */
+ extern bool kexec_in_progress;
 _
 
-Patches currently in -mm which might be from ada.coupriediaz@arm.com are
+Patches currently in -mm which might be from makb@juniper.net are
 
+x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch
 
