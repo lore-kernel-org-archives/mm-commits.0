@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7D7A2D0606
-	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 23:09:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 447EF262FD3
+	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 23:17:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756422550; cv=none; b=Eq8LIZ3twlvWu5u5xReWj7/CdN2grCfVtoQOGB/XxOz/p++uQQXwafAJiEVFOtOHHTnwy5FRRk2bPldEt3jgxA8iZ2t9TYChKbgQ4p6I4mUmyYt6Bo0c8uTWZIKfPgFonx09BW0UeJl5uVdR7k2LEF6/yChY7W2yF36KyQRQzbc=
+	t=1756423056; cv=none; b=HmIMcec6EfrFmPtquFeRVlC+/YBxKLOZMvJv5VmP8ryPtgKIpsVXEZ9KhAPaipsCw1EFD8Fd9R/Wt8bhgEtqjfvebVLG3kPLiRqLLspApze37SW+scGP4QRu6sJ9JGwAz7qOYYXn8PSUueSxEWsFByacX1IL/pWQurCGGW2aBqM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756422550; c=relaxed/simple;
-	bh=0MV2UdzwK1FFZiKJ+PN7WCtRranhhSMKBB4Per/EOSM=;
-	h=Date:To:From:Subject:Message-Id; b=LKbYbWNujevQdhk0A3nVx+bl7ouq4bR1/xUWzcG8Ts+Chnb2rra7sNYrfpTPVD/YwenWjvlAwcrC2BJK7so5rJLcwYDrpt3wYnGHYHYWouXrqq28sZj3RKRJw3T5xtoexJjjxoj2+LgQJHLX8piRFtgpNeEBQMBU0+lqMQpzvUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eBM+cMIo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756423056; c=relaxed/simple;
+	bh=v8vP0+4cHKhRzImmTwnzHG2EV0U39Yw25LdiNbH2b2U=;
+	h=Date:To:From:Subject:Message-Id; b=IIWGaD2fV2wISgIsSHAPVUOTu1ewq+AxeHfHGTd8Zywqe7qgz8Et8ou7P90CMrJEvYlQQuawu4F1dsG+WfkipaTTmNpOd1g1aYa2ImQUaBg6ph0BOLBeh2okOfFQW/lBPgEoPWECPOMIkmOfGacKUMLV8rZjakkfw1hUZCquiQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o4sZLmDe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eBM+cMIo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EFE0C4CEEB;
-	Thu, 28 Aug 2025 23:09:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o4sZLmDe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2C8FC4CEEB;
+	Thu, 28 Aug 2025 23:17:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756422550;
-	bh=0MV2UdzwK1FFZiKJ+PN7WCtRranhhSMKBB4Per/EOSM=;
+	s=korg; t=1756423055;
+	bh=v8vP0+4cHKhRzImmTwnzHG2EV0U39Yw25LdiNbH2b2U=;
 	h=Date:To:From:Subject:From;
-	b=eBM+cMIoA64Llw8Km4nvwnghZDbHpIcNWyYrdXYOuVZD+E4ym6z+iCKFFaIOs8KSB
-	 qOtejHgu+Y5QGc5AQNBHdqvp+uzOYZogP89boZAnmLuupeQ5OnlM5DHKPgYf0l8Cds
-	 TY6RXZMRlw3FEG0NrIXsU9D3op9I+z99wuudJZlc=
-Date: Thu, 28 Aug 2025 16:09:09 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shikemeng@huaweicloud.com,ryan.roberts@arm.com,nphamcs@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kasong@tencent.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,max.kellermann@ionos.com,akpm@linux-foundation.org
+	b=o4sZLmDegjeKo8jqTYgn0dfB35osdxvectWwe+OTQ0lVguuk5jLTTM4s4qB5EUzPT
+	 pEfZbuZsnHQhbuiUN6S1QGNhcdRCEbHjj/B3M0kAJJkeBFZ7fpL6xe+FaKqxGzcRwd
+	 3OLaVugECUam3t7ncp5sElpo3VXZo489jEaEoANg=
+Date: Thu, 28 Aug 2025 16:17:35 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,cmllamas@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + huge_mmh-disallow-is_huge_zero_folionull.patch added to mm-new branch
-Message-Id: <20250828230910.2EFE0C4CEEB@smtp.kernel.org>
+Subject: + mm-mremap-fix-regression-in-vrm-new_addr-check.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250828231735.B2C8FC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: huge_mm.h: disallow is_huge_zero_folio(NULL)
-has been added to the -mm mm-new branch.  Its filename is
-     huge_mmh-disallow-is_huge_zero_folionull.patch
+     Subject: mm/mremap: fix regression in vrm->new_addr check
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mremap-fix-regression-in-vrm-new_addr-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_mmh-disallow-is_huge_zero_folionull.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-fix-regression-in-vrm-new_addr-check.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,67 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Max Kellermann <max.kellermann@ionos.com>
-Subject: huge_mm.h: disallow is_huge_zero_folio(NULL)
-Date: Thu, 28 Aug 2025 10:48:20 +0200
+From: Carlos Llamas <cmllamas@google.com>
+Subject: mm/mremap: fix regression in vrm->new_addr check
+Date: Thu, 28 Aug 2025 14:26:56 +0000
 
-Calling is_huge_zero_folio(NULL) should not be legal - it makes no sense,
-and a different (theoretical) implementation may dereference the pointer. 
-But currently, lacking any explicit documentation, this call is possible.
+Commit 3215eaceca87 ("mm/mremap: refactor initial parameter sanity
+checks") moved the sanity check for vrm->new_addr from mremap_to() to
+check_mremap_params().
 
-But if somebody really passes NULL, the function should not return true -
-this isn't the huge zero folio after all!  However, if the
-`huge_zero_folio` hasn't been allocated yet, it's NULL, and
-is_huge_zero_folio(NULL) just happens to return true, which is a lie.
+However, this caused a regression as vrm->new_addr is now checked even
+when MREMAP_FIXED and MREMAP_DONTUNMAP flags are not specified.  In this
+case, vrm->new_addr can be garbage and create unexpected failures.
 
-This weird side effect prevented me from reproducing a kernel crash that
-occurred when the elements of a folio_batch were NULL - since
-folios_put_refs() skips huge zero folios, this sometimes causes a crash,
-but sometimes does not.  For debugging, it is better to reveal such bugs
-reliably and not hide them behind random preconditions like "has the huge
-zero folio already been created?"
+Fix this by moving the new_addr check after the vrm_implies_new_addr()
+guard.  This ensures that the new_addr is only checked when the user has
+specified one explicitly.
 
-To improve detection of such bugs, David Hildenbrand suggested adding a
-VM_WARN_ON_ONCE().
-
-Link: https://lkml.kernel.org/r/20250828084820.570118-1-max.kellermann@ionos.com
-Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+Link: https://lkml.kernel.org/r/20250828142657.770502-1-cmllamas@google.com
+Fixes: 3215eaceca87 ("mm/mremap: refactor initial parameter sanity checks")
+Signed-off-by: Carlos Llamas <cmllamas@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Max Kellermann <max.kellermann@ionos.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mremap.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/include/linux/huge_mm.h~huge_mmh-disallow-is_huge_zero_folionull
-+++ a/include/linux/huge_mm.h
-@@ -501,6 +501,8 @@ extern unsigned long huge_zero_pfn;
+--- a/mm/mremap.c~mm-mremap-fix-regression-in-vrm-new_addr-check
++++ a/mm/mremap.c
+@@ -1774,15 +1774,18 @@ static unsigned long check_mremap_params
+ 	if (!vrm->new_len)
+ 		return -EINVAL;
  
- static inline bool is_huge_zero_folio(const struct folio *folio)
- {
-+	VM_WARN_ON_ONCE(!folio);
+-	/* Is the new length or address silly? */
+-	if (vrm->new_len > TASK_SIZE ||
+-	    vrm->new_addr > TASK_SIZE - vrm->new_len)
++	/* Is the new length silly? */
++	if (vrm->new_len > TASK_SIZE)
+ 		return -EINVAL;
+ 
+ 	/* Remainder of checks are for cases with specific new_addr. */
+ 	if (!vrm_implies_new_addr(vrm))
+ 		return 0;
+ 
++	/* Is the new address silly? */
++	if (vrm->new_addr > TASK_SIZE - vrm->new_len)
++		return -EINVAL;
 +
- 	return READ_ONCE(huge_zero_folio) == folio;
- }
- 
+ 	/* The new address must be page-aligned. */
+ 	if (offset_in_page(vrm->new_addr))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from max.kellermann@ionos.com are
+Patches currently in -mm which might be from cmllamas@google.com are
 
-pagevech-add-const-to-pointer-parameters-of-getter-functions.patch
-huge_mmh-disallow-is_huge_zero_folionull.patch
+mm-mremap-fix-regression-in-vrm-new_addr-check.patch
 
