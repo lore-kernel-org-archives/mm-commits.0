@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44C2B2BE653
-	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 23:08:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7D7A2D0606
+	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 23:09:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756422484; cv=none; b=LvZbnKkDWdtmKuH/MBNJh6J95MxGWQ4wvAWihghXmrpaA3qZRIFfFqwNkhNw60sFj8dYz5/3VgbXl7pJ1QSblQIZ0aHeAHw+8ArZ+ONOaX/Cje4KuYhyYCBS0/Vdm9XJeJItByM3/yjvvBnN2M0xMQ8DkxtmoSQQuz9ZidcZnA8=
+	t=1756422550; cv=none; b=Eq8LIZ3twlvWu5u5xReWj7/CdN2grCfVtoQOGB/XxOz/p++uQQXwafAJiEVFOtOHHTnwy5FRRk2bPldEt3jgxA8iZ2t9TYChKbgQ4p6I4mUmyYt6Bo0c8uTWZIKfPgFonx09BW0UeJl5uVdR7k2LEF6/yChY7W2yF36KyQRQzbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756422484; c=relaxed/simple;
-	bh=eSeUM7Rhlv7gjqTEwCemqYFmyrxtXGPO3Zo85CZGGP0=;
-	h=Date:To:From:Subject:Message-Id; b=FRF6ktN3eZh5flUMWWlyNW+5GelsdcbKLkmwy9TpkwLJVLf+mLYlJ08+J6r2Rh1MVxoPUXCtzSIsis0QY82y0WbkTDLe6aqLmtx2fWS54ecA2xv73W19DgDbJieaJoYCZs8+8oZu4u6PizxrTNe5UEdxtCaSxN0cWoZesYy5YMU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1t5Hy4G5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756422550; c=relaxed/simple;
+	bh=0MV2UdzwK1FFZiKJ+PN7WCtRranhhSMKBB4Per/EOSM=;
+	h=Date:To:From:Subject:Message-Id; b=LKbYbWNujevQdhk0A3nVx+bl7ouq4bR1/xUWzcG8Ts+Chnb2rra7sNYrfpTPVD/YwenWjvlAwcrC2BJK7so5rJLcwYDrpt3wYnGHYHYWouXrqq28sZj3RKRJw3T5xtoexJjjxoj2+LgQJHLX8piRFtgpNeEBQMBU0+lqMQpzvUM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eBM+cMIo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1t5Hy4G5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1DEDC4CEEB;
-	Thu, 28 Aug 2025 23:08:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eBM+cMIo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EFE0C4CEEB;
+	Thu, 28 Aug 2025 23:09:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756422483;
-	bh=eSeUM7Rhlv7gjqTEwCemqYFmyrxtXGPO3Zo85CZGGP0=;
+	s=korg; t=1756422550;
+	bh=0MV2UdzwK1FFZiKJ+PN7WCtRranhhSMKBB4Per/EOSM=;
 	h=Date:To:From:Subject:From;
-	b=1t5Hy4G5Xu+zqx2UZ7DPGfqg51QNf3zmAe4K2LVgSdBAl6FBFqBLyeURf0L37fIUQ
-	 oMd727HW6hrKCDpfWfv4xQyxvULEKZeQ6bEvkSBmCqQAjTXymn4HK1dMOs+u3zIoMb
-	 kH2LrngLHLu2xSA8mTJ7uxGE1Hp5vjySNHWM9nKk=
-Date: Thu, 28 Aug 2025 16:08:03 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,hannes@cmpxchg.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=eBM+cMIoA64Llw8Km4nvwnghZDbHpIcNWyYrdXYOuVZD+E4ym6z+iCKFFaIOs8KSB
+	 qOtejHgu+Y5QGc5AQNBHdqvp+uzOYZogP89boZAnmLuupeQ5OnlM5DHKPgYf0l8Cds
+	 TY6RXZMRlw3FEG0NrIXsU9D3op9I+z99wuudJZlc=
+Date: Thu, 28 Aug 2025 16:09:09 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shikemeng@huaweicloud.com,ryan.roberts@arm.com,nphamcs@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kasong@tencent.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,max.kellermann@ionos.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch added to mm-new branch
-Message-Id: <20250828230803.C1DEDC4CEEB@smtp.kernel.org>
+Subject: + huge_mmh-disallow-is_huge_zero_folionull.patch added to mm-new branch
+Message-Id: <20250828230910.2EFE0C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: find_large_buddy() from start_pfn aligned order
+     Subject: huge_mm.h: disallow is_huge_zero_folio(NULL)
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch
+     huge_mmh-disallow-is_huge_zero_folionull.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_mmh-disallow-is_huge_zero_folionull.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,52 +64,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: find_large_buddy() from start_pfn aligned order
-Date: Thu, 28 Aug 2025 09:16:18 +0000
+From: Max Kellermann <max.kellermann@ionos.com>
+Subject: huge_mm.h: disallow is_huge_zero_folio(NULL)
+Date: Thu, 28 Aug 2025 10:48:20 +0200
 
-We iterate pfn from order 0 to MAX_PAGE_ORDER aligned to find large buddy.
-While if the order is less than start_pfn aligned order, we would get the
-same pfn and do the same check again.
+Calling is_huge_zero_folio(NULL) should not be legal - it makes no sense,
+and a different (theoretical) implementation may dereference the pointer. 
+But currently, lacking any explicit documentation, this call is possible.
 
-Iterate from start_pfn aligned order to reduce duplicated work.
+But if somebody really passes NULL, the function should not return true -
+this isn't the huge zero folio after all!  However, if the
+`huge_zero_folio` hasn't been allocated yet, it's NULL, and
+is_huge_zero_folio(NULL) just happens to return true, which is a lie.
 
-Link: https://lkml.kernel.org/r/20250828091618.7869-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This weird side effect prevented me from reproducing a kernel crash that
+occurred when the elements of a folio_batch were NULL - since
+folios_put_refs() skips huge zero folios, this sometimes causes a crash,
+but sometimes does not.  For debugging, it is better to reveal such bugs
+reliably and not hide them behind random preconditions like "has the huge
+zero folio already been created?"
+
+To improve detection of such bugs, David Hildenbrand suggested adding a
+VM_WARN_ON_ONCE().
+
+Link: https://lkml.kernel.org/r/20250828084820.570118-1-max.kellermann@ionos.com
+Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Max Kellermann <max.kellermann@ionos.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/huge_mm.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order
-+++ a/mm/page_alloc.c
-@@ -2033,7 +2033,7 @@ static int move_freepages_block(struct z
- /* Look for a buddy that straddles start_pfn */
- static unsigned long find_large_buddy(unsigned long start_pfn)
+--- a/include/linux/huge_mm.h~huge_mmh-disallow-is_huge_zero_folionull
++++ a/include/linux/huge_mm.h
+@@ -501,6 +501,8 @@ extern unsigned long huge_zero_pfn;
+ 
+ static inline bool is_huge_zero_folio(const struct folio *folio)
  {
--	int order = 0;
-+	int order = start_pfn ? __ffs(start_pfn) : MAX_PAGE_ORDER;
- 	struct page *page;
- 	unsigned long pfn = start_pfn;
++	VM_WARN_ON_ONCE(!folio);
++
+ 	return READ_ONCE(huge_zero_folio) == folio;
+ }
  
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from max.kellermann@ionos.com are
 
-mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young.patch
-mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
-selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
-mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
-mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
-selftests-mm-put-general-ksm-operation-into-vm_util.patch
-selftests-mm-test-that-rmap-behave-as-expected.patch
-mm-khugepaged-use-list_xxx-helper-to-improve-readability.patch
-mm-page_alloc-use-xxx_pageblock_isolate-for-better-reading.patch
-mm-pageblock-flags-remove-pb_migratetype_bits-pb_migrate_end.patch
-mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch
+pagevech-add-const-to-pointer-parameters-of-getter-functions.patch
+huge_mmh-disallow-is_huge_zero_folionull.patch
 
