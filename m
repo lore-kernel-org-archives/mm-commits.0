@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49A5B272E57;
-	Thu, 28 Aug 2025 05:46:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8204813DDAA;
+	Thu, 28 Aug 2025 05:46:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756359973; cv=none; b=RGITSbfYpO2sL8ACDdoJRK6aBxKyK08SA0LjzfQvBMGyDFozuyKnEDoFIBjzh+T6pe1cAfZ3vhZbVLQZdWIElb46z7ry2GV3jTS09vq1jIvVeUNWm8myLRpz501FQiJ3CBQDYLjYc6gwHTbXw46v/b+pY7A+yA2MLQ6LLxkgG7Y=
+	t=1756359974; cv=none; b=pt9JovCHDbtPcCKhkyM6xGrIBEzswWhbHLw+oHYYteEyMCg6t1AkVfN7w/1gSnwxaFFJQY8WPL9b71SqQJNQgr1W8ycEtyfG2KUfsbCjLASd76ZAEu3KDa/jauIok7+ekEZ/dBeNdihR/3WMFh+VPhDo0iGHz4oB8G99G/ohXaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756359973; c=relaxed/simple;
-	bh=47MVXWOKsm+7Hr8DApuzjOHDfE8FnyBdxQLeog1VZfs=;
-	h=Date:To:From:Subject:Message-Id; b=lUu1papABHNsUP/ZqEm9PB3sZZJXWK4JPf6FbpsogYUP1xzSr8uaTTGQJgxPpztXi9g5ElWmadJi1LU78LfiopaAsGlWYK2Wb1ALfZ/pcshhS9kKNqVIS2cIuebl9w724RJJlChDfaoEezt3VsVDyok6wtThnPacG6Nl/1f0iAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hnbN417G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756359974; c=relaxed/simple;
+	bh=H+fO6OHkKX0KKwcJfJnIJBoP9qyNE+QYIBDq422I9dQ=;
+	h=Date:To:From:Subject:Message-Id; b=a/TdSwz6kK+qVnRpF+qVmDw3lmXPWL9NMBujlR1fOyfLVlMbCTVhPrTmmcQvJN1A7Qfd9MnJ7Jv4ijtDR1m90RjC5O4zi0qdwOuGywkfqBgV8RLqfaSdVNUXtIZMrDxQ+P+CJH6VckLyOQtXzcEx8tJh7XK2bYq1jd+PpOB+KiA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AA74JasI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hnbN417G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0E42C4CEEB;
-	Thu, 28 Aug 2025 05:46:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AA74JasI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B586C4CEEB;
+	Thu, 28 Aug 2025 05:46:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756359972;
-	bh=47MVXWOKsm+7Hr8DApuzjOHDfE8FnyBdxQLeog1VZfs=;
+	s=korg; t=1756359974;
+	bh=H+fO6OHkKX0KKwcJfJnIJBoP9qyNE+QYIBDq422I9dQ=;
 	h=Date:To:From:Subject:From;
-	b=hnbN417G7VuJu1RygY5N6d7ZxIlhHu0Lw+dt0/dUlK+NVV6Y9lslL1KQmfckFRiax
-	 ndlU5GzFjXUp3LD0kKS3Oj9uP2d4eIgrS+pxjPqC3cMXCiNblqKlfHIZR8V4ltUcSD
-	 F9C8VY7mVZwDHLM4SUbAMAiSiAJeQvfl4WBOoJfA=
-Date: Wed, 27 Aug 2025 22:46:12 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,eadavis@qq.com,akpm@linux-foundation.org
+	b=AA74JasIerAbllGWuzrU894KQwrIbEnraKXgk3K4xb9NbPzkmrLwLJLsX4BnvdumK
+	 oUppJg1v60C+ZftFe/sIDNCRSRQjUFnke4UDABk56vvFUfycBDzfMuntgsMucZyNda
+	 AAcifLVhn/D+BbAyNYbmYhcLruZbDPeSSRvzaVGY=
+Date: Wed, 27 Aug 2025 22:46:13 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,david@redhat.com,aarcange@redhat.com,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] ocfs2-prevent-release-journal-inode-after-journal-shutdown.patch removed from -mm tree
-Message-Id: <20250828054612.C0E42C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-userfaultfd-fix-kmap_local-lifo-ordering-for-config_highpte.patch removed from -mm tree
+Message-Id: <20250828054614.0B586C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: prevent release journal inode after journal shutdown
+     Subject: mm/userfaultfd: fix kmap_local LIFO ordering for CONFIG_HIGHPTE
 has been removed from the -mm tree.  Its filename was
-     ocfs2-prevent-release-journal-inode-after-journal-shutdown.patch
+     mm-userfaultfd-fix-kmap_local-lifo-ordering-for-config_highpte.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: ocfs2: prevent release journal inode after journal shutdown
-Date: Tue, 19 Aug 2025 21:41:02 +0800
+From: Sasha Levin <sashal@kernel.org>
+Subject: mm/userfaultfd: fix kmap_local LIFO ordering for CONFIG_HIGHPTE
+Date: Thu, 31 Jul 2025 10:44:31 -0400
 
-Before calling ocfs2_delete_osb(), ocfs2_journal_shutdown() has already
-been executed in ocfs2_dismount_volume(), so osb->journal must be NULL. 
-Therefore, the following calltrace will inevitably fail when it reaches
-jbd2_journal_release_jbd_inode().
+With CONFIG_HIGHPTE on 32-bit ARM, move_pages_pte() maps PTE pages using
+kmap_local_page(), which requires unmapping in Last-In-First-Out order.
 
-ocfs2_dismount_volume()->
-  ocfs2_delete_osb()->
-    ocfs2_free_slot_info()->
-      __ocfs2_free_slot_info()->
-        evict()->
-          ocfs2_evict_inode()->
-            ocfs2_clear_inode()->
-	      jbd2_journal_release_jbd_inode(osb->journal->j_journal,
+The current code maps dst_pte first, then src_pte, but unmaps them in the
+same order (dst_pte, src_pte), violating the LIFO requirement.  This
+causes the warning in kunmap_local_indexed():
 
-Adding osb->journal checks will prevent null-ptr-deref during the above
-execution path.
+  WARNING: CPU: 0 PID: 604 at mm/highmem.c:622 kunmap_local_indexed+0x178/0x17c
+  addr \!= __fix_to_virt(FIX_KMAP_BEGIN + idx)
 
-Link: https://lkml.kernel.org/r/tencent_357489BEAEE4AED74CBD67D246DBD2C4C606@qq.com
-Fixes: da5e7c87827e ("ocfs2: cleanup journal init and shutdown")
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
-Reported-by: syzbot+47d8cb2f2cc1517e515a@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=47d8cb2f2cc1517e515a
-Tested-by: syzbot+47d8cb2f2cc1517e515a@syzkaller.appspotmail.com
-Reviewed-by: Mark Tinguely <mark.tinguely@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Fix this by reversing the unmap order to respect LIFO ordering.
+
+This issue follows the same pattern as similar fixes:
+- commit eca6828403b8 ("crypto: skcipher - fix mismatch between mapping and unmapping order")
+- commit 8cf57c6df818 ("nilfs2: eliminate staggered calls to kunmap in nilfs_rename")
+
+Both of which addressed the same fundamental requirement that kmap_local
+operations must follow LIFO ordering.
+
+Link: https://lkml.kernel.org/r/20250731144431.773923-1-sashal@kernel.org
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/userfaultfd.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-prevent-release-journal-inode-after-journal-shutdown
-+++ a/fs/ocfs2/inode.c
-@@ -1281,6 +1281,9 @@ static void ocfs2_clear_inode(struct ino
- 	 * the journal is flushed before journal shutdown. Thus it is safe to
- 	 * have inodes get cleaned up after journal shutdown.
- 	 */
-+	if (!osb->journal)
-+		return;
-+
- 	jbd2_journal_release_jbd_inode(osb->journal->j_journal,
- 				       &oi->ip_jinode);
- }
+--- a/mm/userfaultfd.c~mm-userfaultfd-fix-kmap_local-lifo-ordering-for-config_highpte
++++ a/mm/userfaultfd.c
+@@ -1453,10 +1453,15 @@ out:
+ 		folio_unlock(src_folio);
+ 		folio_put(src_folio);
+ 	}
+-	if (dst_pte)
+-		pte_unmap(dst_pte);
++	/*
++	 * Unmap in reverse order (LIFO) to maintain proper kmap_local
++	 * index ordering when CONFIG_HIGHPTE is enabled. We mapped dst_pte
++	 * first, then src_pte, so we must unmap src_pte first, then dst_pte.
++	 */
+ 	if (src_pte)
+ 		pte_unmap(src_pte);
++	if (dst_pte)
++		pte_unmap(dst_pte);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	if (si)
+ 		put_swap_device(si);
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
 
