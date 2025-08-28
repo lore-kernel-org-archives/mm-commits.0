@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3563A26E15F
-	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 22:40:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5649717A2E1
+	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 22:47:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756420840; cv=none; b=gF7bjOZ88/ukUnYIFmFxmwwI5MVvCGW8quXgauGQ2NcPFWZ5O0kiZKI6Srni7QpfIGekdUatcOSEdnmrEc0E6gpao8uRh1V9zgj/YD+gl+YTRqDzx8VOgLq47Q02xvMc058RbXEDI4FRSCUIPBDP6iAzYK0ZaSTzKkQ1UvCywBw=
+	t=1756421224; cv=none; b=qqiVByuybFDrdizJXfnfhKJNAUFGj4TCCqIFSUUAS5oDKjAUhXhNPr7FWdfY27X/hkaOctB14qHQa+VTmpoHO6fWfdj3Bk7Ac0f1uCs0j8XOYbRctCW7dF35UwjL0X3IMANyWKpE471/el/q+pjqnHi10D4P/0qZU0m8oHlJtA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756420840; c=relaxed/simple;
-	bh=+4mlqLGsxGEd5wwvxcaaERqHBiqOIsVBY5SXKyr3gfI=;
-	h=Date:To:From:Subject:Message-Id; b=Ue4/Z7vt7uqTYlA+trCjRB4Rp6GqaTBn8YVeVMwkSUwgTS+7pFXRHq3NB6rK2WLLXmM/iyg8w3dbAtCLB5pxt+vdb57X0xc7xtrD7Qz1gGRSyEdLDAlaD40fqc3CuJVfFXp/ftjULD7j+pOA7YwQhIeJrBQ2mSX92jqKzPEjpjw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a8g4o6Ql; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756421224; c=relaxed/simple;
+	bh=3QKa1hAPcEQnJz+M6TUaksdeNfas6/Bqp0Ar6xfF63o=;
+	h=Date:To:From:Subject:Message-Id; b=X0AdnUvtzAob6EG/ginmQeWV04ugvuH7oGGOE/eCUsNv3/7d2k4lYj7i3cUpRhHHHrXJq6OxhoWDKE0pmQnjwHa6tGMnPoFOyO2dPX9S9/Hc1C9+zX/6hb3rrVkHwdLB/NyNYFpEZDQ7X49MK+B1DCP3AbBHEHYmeWe5zNGHNYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hwkG7b43; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a8g4o6Ql"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBCE8C4CEEB;
-	Thu, 28 Aug 2025 22:40:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hwkG7b43"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5281C4CEEB;
+	Thu, 28 Aug 2025 22:47:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756420839;
-	bh=+4mlqLGsxGEd5wwvxcaaERqHBiqOIsVBY5SXKyr3gfI=;
+	s=korg; t=1756421223;
+	bh=3QKa1hAPcEQnJz+M6TUaksdeNfas6/Bqp0Ar6xfF63o=;
 	h=Date:To:From:Subject:From;
-	b=a8g4o6Ql4wDabYdnsDDwuBSh3+D42WobxjJ8jNG+ALQPJtghBGNwdhHtvl++BnnGk
-	 ESsJr/0cM0nf2BwwmLHnqjLDakktyNQjIp3/HbXnq4QLqmON3wp6uH7hTApAc6cRwi
-	 ua1PYgFjgDUMJmP1RiXw9NoBQiSU0Op+1rq47j/I=
-Date: Thu, 28 Aug 2025 15:40:39 -0700
-To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,yanquanmin1@huawei.com,akpm@linux-foundation.org
+	b=hwkG7b43iO4PNPYb0bF1cP0eVgE407qCqzRHbwKPE92YEfjoZqKgsFfHi0zVOfIVY
+	 xHvpzIFc1UhAT7EqWBuWx8EGUKrfLXGc78PNeMnHAvQpKQCrQvvyTRDQWjY3Q7wvvF
+	 Mt2SPVAv7m1HDbdlOi/rO+aR06y4513NlB1gKwh4=
+Date: Thu, 28 Aug 2025 15:47:03 -0700
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,flintglass@gmail.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baohua@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-add-damon_ctx-min_sz_region.patch added to mm-new branch
-Message-Id: <20250828224039.BBCE8C4CEEB@smtp.kernel.org>
+Subject: + mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch added to mm-unstable branch
+Message-Id: <20250828224703.C5281C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: add damon_ctx->min_sz_region
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-add-damon_ctx-min_sz_region.patch
+     Subject: mm/zswap: cleanup incompressible pages handling code
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-damon_ctx-min_sz_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,451 +58,113 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Quanmin Yan <yanquanmin1@huawei.com>
-Subject: mm/damon: add damon_ctx->min_sz_region
-Date: Thu, 28 Aug 2025 10:12:42 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/zswap: cleanup incompressible pages handling code
+Date: Wed, 27 Aug 2025 13:18:38 -0700
 
-Adopting addr_unit would make DAMON_MINREGION 'addr_unit * 4096' bytes and
-cause data alignment issues[1].
+Following Chris Li's suggestions [1], make the code easier to read and
+manage.
 
-Add damon_ctx->min_sz_region to change DAMON_MIN_REGION from a global
-macro value to per-context variable.
-
-Link: https://lkml.kernel.org/r/20250828171242.59810-12-sj@kernel.org
-Link: https://lore.kernel.org/all/527714dd-0e33-43ab-bbbd-d89670ba79e7@huawei.com [1]
-Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
+Link: https://lkml.kernel.org/r/20250828163913.57957-1-sj@kernel.org
+Kink: https://lore.kernel.org/CACePvbWGPApYr7G29FzbmWzRw-BJE39WH7kUHSaHs+Lnw8=-qQ@mail.gmail.com [1]
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: ze zuo <zuoze1@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Takero Funaki <flintglass@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h        |    4 +
- mm/damon/core.c              |   67 ++++++++++++++++++---------------
- mm/damon/sysfs.c             |    8 ++-
- mm/damon/tests/core-kunit.h  |   21 ++++++----
- mm/damon/tests/vaddr-kunit.h |    2 
- mm/damon/vaddr.c             |    2 
- 6 files changed, 61 insertions(+), 43 deletions(-)
+ mm/zswap.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-add-damon_ctx-min_sz_region
-+++ a/include/linux/damon.h
-@@ -747,6 +747,7 @@ struct damon_attrs {
-  *
-  * @ops:	Set of monitoring operations for given use cases.
-  * @addr_unit:	Scale factor for core to ops address conversion.
-+ * @min_sz_region:		Minimum region size.
-  * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
-  * @schemes:		Head of schemes (&damos) list.
-  */
-@@ -789,6 +790,7 @@ struct damon_ctx {
+--- a/mm/zswap.c~mm-zswap-store-page_size-compression-failed-page-as-is-fix-2
++++ a/mm/zswap.c
+@@ -952,6 +952,7 @@ static bool zswap_compress(struct page *
+ 	struct zpool *zpool;
+ 	gfp_t gfp;
+ 	u8 *dst;
++	bool mapped = false;
  
- 	struct damon_operations ops;
- 	unsigned long addr_unit;
-+	unsigned long min_sz_region;
- 
- 	struct list_head adaptive_targets;
- 	struct list_head schemes;
-@@ -877,7 +879,7 @@ static inline void damon_insert_region(s
- void damon_add_region(struct damon_region *r, struct damon_target *t);
- void damon_destroy_region(struct damon_region *r, struct damon_target *t);
- int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
--		unsigned int nr_ranges);
-+		unsigned int nr_ranges, unsigned long min_sz_region);
- void damon_update_region_access_rate(struct damon_region *r, bool accessed,
- 		struct damon_attrs *attrs);
- 
---- a/mm/damon/core.c~mm-damon-add-damon_ctx-min_sz_region
-+++ a/mm/damon/core.c
-@@ -201,6 +201,7 @@ static int damon_fill_regions_holes(stru
-  * @t:		the given target.
-  * @ranges:	array of new monitoring target ranges.
-  * @nr_ranges:	length of @ranges.
-+ * @min_sz_region:	minimum region size.
-  *
-  * This function adds new regions to, or modify existing regions of a
-  * monitoring target to fit in specific ranges.
-@@ -208,7 +209,7 @@ static int damon_fill_regions_holes(stru
-  * Return: 0 if success, or negative error code otherwise.
-  */
- int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
--		unsigned int nr_ranges)
-+		unsigned int nr_ranges, unsigned long min_sz_region)
- {
- 	struct damon_region *r, *next;
- 	unsigned int i;
-@@ -245,16 +246,16 @@ int damon_set_regions(struct damon_targe
- 			/* no region intersects with this range */
- 			newr = damon_new_region(
- 					ALIGN_DOWN(range->start,
--						DAMON_MIN_REGION),
--					ALIGN(range->end, DAMON_MIN_REGION));
-+						min_sz_region),
-+					ALIGN(range->end, min_sz_region));
- 			if (!newr)
- 				return -ENOMEM;
- 			damon_insert_region(newr, damon_prev_region(r), r, t);
- 		} else {
- 			/* resize intersecting regions to fit in this range */
- 			first->ar.start = ALIGN_DOWN(range->start,
--					DAMON_MIN_REGION);
--			last->ar.end = ALIGN(range->end, DAMON_MIN_REGION);
-+					min_sz_region);
-+			last->ar.end = ALIGN(range->end, min_sz_region);
- 
- 			/* fill possible holes in the range */
- 			err = damon_fill_regions_holes(first, last, t);
-@@ -545,6 +546,7 @@ struct damon_ctx *damon_new_ctx(void)
- 	ctx->attrs.max_nr_regions = 1000;
- 
- 	ctx->addr_unit = 1;
-+	ctx->min_sz_region = DAMON_MIN_REGION;
- 
- 	INIT_LIST_HEAD(&ctx->adaptive_targets);
- 	INIT_LIST_HEAD(&ctx->schemes);
-@@ -1127,8 +1129,8 @@ static struct damon_target *damon_nth_ta
-  *
-  * If @src has no region, @dst keeps current regions.
-  */
--static int damon_commit_target_regions(
--		struct damon_target *dst, struct damon_target *src)
-+static int damon_commit_target_regions(struct damon_target *dst,
-+		struct damon_target *src, unsigned long src_min_sz_region)
- {
- 	struct damon_region *src_region;
- 	struct damon_addr_range *ranges;
-@@ -1145,18 +1147,19 @@ static int damon_commit_target_regions(
- 	i = 0;
- 	damon_for_each_region(src_region, src)
- 		ranges[i++] = src_region->ar;
--	err = damon_set_regions(dst, ranges, i);
-+	err = damon_set_regions(dst, ranges, i, src_min_sz_region);
- 	kfree(ranges);
- 	return err;
- }
- 
- static int damon_commit_target(
- 		struct damon_target *dst, bool dst_has_pid,
--		struct damon_target *src, bool src_has_pid)
-+		struct damon_target *src, bool src_has_pid,
-+		unsigned long src_min_sz_region)
- {
- 	int err;
- 
--	err = damon_commit_target_regions(dst, src);
-+	err = damon_commit_target_regions(dst, src, src_min_sz_region);
- 	if (err)
- 		return err;
- 	if (dst_has_pid)
-@@ -1178,7 +1181,8 @@ static int damon_commit_targets(
- 		if (src_target) {
- 			err = damon_commit_target(
- 					dst_target, damon_target_has_pid(dst),
--					src_target, damon_target_has_pid(src));
-+					src_target, damon_target_has_pid(src),
-+					src->min_sz_region);
- 			if (err)
- 				return err;
- 		} else {
-@@ -1201,7 +1205,8 @@ static int damon_commit_targets(
- 		if (!new_target)
- 			return -ENOMEM;
- 		err = damon_commit_target(new_target, false,
--				src_target, damon_target_has_pid(src));
-+				src_target, damon_target_has_pid(src),
-+				src->min_sz_region);
- 		if (err) {
- 			damon_destroy_target(new_target, NULL);
- 			return err;
-@@ -1248,6 +1253,7 @@ int damon_commit_ctx(struct damon_ctx *d
- 	}
- 	dst->ops = src->ops;
- 	dst->addr_unit = src->addr_unit;
-+	dst->min_sz_region = src->min_sz_region;
- 
- 	return 0;
- }
-@@ -1280,8 +1286,8 @@ static unsigned long damon_region_sz_lim
- 
- 	if (ctx->attrs.min_nr_regions)
- 		sz /= ctx->attrs.min_nr_regions;
--	if (sz < DAMON_MIN_REGION)
--		sz = DAMON_MIN_REGION;
-+	if (sz < ctx->min_sz_region)
-+		sz = ctx->min_sz_region;
- 
- 	return sz;
- }
-@@ -1625,6 +1631,7 @@ static bool damos_valid_target(struct da
-  * @t:	The target of the region.
-  * @rp:	The pointer to the region.
-  * @s:	The scheme to be applied.
-+ * @min_sz_region:	minimum region size.
-  *
-  * If a quota of a scheme has exceeded in a quota charge window, the scheme's
-  * action would applied to only a part of the target access pattern fulfilling
-@@ -1642,7 +1649,7 @@ static bool damos_valid_target(struct da
-  * Return: true if the region should be entirely skipped, false otherwise.
-  */
- static bool damos_skip_charged_region(struct damon_target *t,
--		struct damon_region **rp, struct damos *s)
-+		struct damon_region **rp, struct damos *s, unsigned long min_sz_region)
- {
- 	struct damon_region *r = *rp;
- 	struct damos_quota *quota = &s->quota;
-@@ -1664,11 +1671,11 @@ static bool damos_skip_charged_region(st
- 		if (quota->charge_addr_from && r->ar.start <
- 				quota->charge_addr_from) {
- 			sz_to_skip = ALIGN_DOWN(quota->charge_addr_from -
--					r->ar.start, DAMON_MIN_REGION);
-+					r->ar.start, min_sz_region);
- 			if (!sz_to_skip) {
--				if (damon_sz_region(r) <= DAMON_MIN_REGION)
-+				if (damon_sz_region(r) <= min_sz_region)
- 					return true;
--				sz_to_skip = DAMON_MIN_REGION;
-+				sz_to_skip = min_sz_region;
- 			}
- 			damon_split_region_at(t, r, sz_to_skip);
- 			r = damon_next_region(r);
-@@ -1693,7 +1700,8 @@ static void damos_update_stat(struct dam
- }
- 
- static bool damos_filter_match(struct damon_ctx *ctx, struct damon_target *t,
--		struct damon_region *r, struct damos_filter *filter)
-+		struct damon_region *r, struct damos_filter *filter,
-+		unsigned long min_sz_region)
- {
- 	bool matched = false;
- 	struct damon_target *ti;
-@@ -1710,8 +1718,8 @@ static bool damos_filter_match(struct da
- 		matched = target_idx == filter->target_idx;
- 		break;
- 	case DAMOS_FILTER_TYPE_ADDR:
--		start = ALIGN_DOWN(filter->addr_range.start, DAMON_MIN_REGION);
--		end = ALIGN_DOWN(filter->addr_range.end, DAMON_MIN_REGION);
-+		start = ALIGN_DOWN(filter->addr_range.start, min_sz_region);
-+		end = ALIGN_DOWN(filter->addr_range.end, min_sz_region);
- 
- 		/* inside the range */
- 		if (start <= r->ar.start && r->ar.end <= end) {
-@@ -1747,7 +1755,7 @@ static bool damos_filter_out(struct damo
- 
- 	s->core_filters_allowed = false;
- 	damos_for_each_filter(filter, s) {
--		if (damos_filter_match(ctx, t, r, filter)) {
-+		if (damos_filter_match(ctx, t, r, filter, ctx->min_sz_region)) {
- 			if (filter->allow)
- 				s->core_filters_allowed = true;
- 			return !filter->allow;
-@@ -1882,7 +1890,7 @@ static void damos_apply_scheme(struct da
- 	if (c->ops.apply_scheme) {
- 		if (quota->esz && quota->charged_sz + sz > quota->esz) {
- 			sz = ALIGN_DOWN(quota->esz - quota->charged_sz,
--					DAMON_MIN_REGION);
-+					c->min_sz_region);
- 			if (!sz)
- 				goto update_stat;
- 			damon_split_region_at(t, r, sz);
-@@ -1930,7 +1938,7 @@ static void damon_do_apply_schemes(struc
- 		if (quota->esz && quota->charged_sz >= quota->esz)
- 			continue;
- 
--		if (damos_skip_charged_region(t, &r, s))
-+		if (damos_skip_charged_region(t, &r, s, c->min_sz_region))
- 			continue;
- 
- 		if (!damos_valid_target(c, t, r, s))
-@@ -2328,7 +2336,8 @@ static void damon_split_region_at(struct
- }
- 
- /* Split every region in the given target into 'nr_subs' regions */
--static void damon_split_regions_of(struct damon_target *t, int nr_subs)
-+static void damon_split_regions_of(struct damon_target *t, int nr_subs,
-+				  unsigned long min_sz_region)
- {
- 	struct damon_region *r, *next;
- 	unsigned long sz_region, sz_sub = 0;
-@@ -2338,13 +2347,13 @@ static void damon_split_regions_of(struc
- 		sz_region = damon_sz_region(r);
- 
- 		for (i = 0; i < nr_subs - 1 &&
--				sz_region > 2 * DAMON_MIN_REGION; i++) {
-+				sz_region > 2 * min_sz_region; i++) {
- 			/*
- 			 * Randomly select size of left sub-region to be at
- 			 * least 10 percent and at most 90% of original region
- 			 */
- 			sz_sub = ALIGN_DOWN(damon_rand(1, 10) *
--					sz_region / 10, DAMON_MIN_REGION);
-+					sz_region / 10, min_sz_region);
- 			/* Do not allow blank region */
- 			if (sz_sub == 0 || sz_sub >= sz_region)
- 				continue;
-@@ -2384,7 +2393,7 @@ static void kdamond_split_regions(struct
- 		nr_subregions = 3;
- 
- 	damon_for_each_target(t, ctx)
--		damon_split_regions_of(t, nr_subregions);
-+		damon_split_regions_of(t, nr_subregions, ctx->min_sz_region);
- 
- 	last_nr_regions = nr_regions;
- }
-@@ -2773,7 +2782,7 @@ int damon_set_region_biggest_system_ram_
- 
- 	addr_range.start = *start;
- 	addr_range.end = *end;
--	return damon_set_regions(t, &addr_range, 1);
-+	return damon_set_regions(t, &addr_range, 1, DAMON_MIN_REGION);
- }
- 
- /*
---- a/mm/damon/sysfs.c~mm-damon-add-damon_ctx-min_sz_region
-+++ a/mm/damon/sysfs.c
-@@ -1329,7 +1329,8 @@ static int damon_sysfs_set_attrs(struct
- }
- 
- static int damon_sysfs_set_regions(struct damon_target *t,
--		struct damon_sysfs_regions *sysfs_regions)
-+		struct damon_sysfs_regions *sysfs_regions,
-+		unsigned long min_sz_region)
- {
- 	struct damon_addr_range *ranges = kmalloc_array(sysfs_regions->nr,
- 			sizeof(*ranges), GFP_KERNEL | __GFP_NOWARN);
-@@ -1351,7 +1352,7 @@ static int damon_sysfs_set_regions(struc
- 		if (ranges[i - 1].end > ranges[i].start)
- 			goto out;
- 	}
--	err = damon_set_regions(t, ranges, sysfs_regions->nr);
-+	err = damon_set_regions(t, ranges, sysfs_regions->nr, min_sz_region);
- out:
- 	kfree(ranges);
- 	return err;
-@@ -1372,7 +1373,7 @@ static int damon_sysfs_add_target(struct
- 			/* caller will destroy targets */
- 			return -EINVAL;
- 	}
--	return damon_sysfs_set_regions(t, sys_target->regions);
-+	return damon_sysfs_set_regions(t, sys_target->regions, ctx->min_sz_region);
- }
- 
- static int damon_sysfs_add_targets(struct damon_ctx *ctx,
-@@ -1430,6 +1431,7 @@ static int damon_sysfs_apply_inputs(stru
- 	if (err)
- 		return err;
- 	ctx->addr_unit = sys_ctx->addr_unit;
-+	ctx->min_sz_region = max(DAMON_MIN_REGION / sys_ctx->addr_unit, 1);
- 	err = damon_sysfs_set_attrs(ctx, sys_ctx->attrs);
- 	if (err)
- 		return err;
---- a/mm/damon/tests/core-kunit.h~mm-damon-add-damon_ctx-min_sz_region
-+++ a/mm/damon/tests/core-kunit.h
-@@ -230,14 +230,14 @@ static void damon_test_split_regions_of(
- 	t = damon_new_target();
- 	r = damon_new_region(0, 22);
- 	damon_add_region(r, t);
--	damon_split_regions_of(t, 2);
-+	damon_split_regions_of(t, 2, DAMON_MIN_REGION);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
- 	damon_free_target(t);
- 
- 	t = damon_new_target();
- 	r = damon_new_region(0, 220);
- 	damon_add_region(r, t);
--	damon_split_regions_of(t, 4);
-+	damon_split_regions_of(t, 4, DAMON_MIN_REGION);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
- 	damon_free_target(t);
- 	damon_destroy_ctx(c);
-@@ -303,7 +303,7 @@ static void damon_test_set_regions(struc
- 
- 	damon_add_region(r1, t);
- 	damon_add_region(r2, t);
--	damon_set_regions(t, &range, 1);
-+	damon_set_regions(t, &range, 1, DAMON_MIN_REGION);
- 
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 3);
- 	damon_for_each_region(r, t) {
-@@ -450,25 +450,29 @@ static void damos_test_filter_out(struct
- 	damon_add_region(r, t);
- 
- 	/* region in the range */
--	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f));
-+	KUNIT_EXPECT_TRUE(test,
-+			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
- 
- 	/* region before the range */
- 	r->ar.start = DAMON_MIN_REGION * 1;
- 	r->ar.end = DAMON_MIN_REGION * 2;
--	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f));
-+	KUNIT_EXPECT_FALSE(test,
-+			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
- 
- 	/* region after the range */
- 	r->ar.start = DAMON_MIN_REGION * 6;
- 	r->ar.end = DAMON_MIN_REGION * 8;
--	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f));
-+	KUNIT_EXPECT_FALSE(test,
-+			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
- 
- 	/* region started before the range */
- 	r->ar.start = DAMON_MIN_REGION * 1;
- 	r->ar.end = DAMON_MIN_REGION * 4;
--	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f));
-+	KUNIT_EXPECT_FALSE(test,
-+			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
- 	/* filter should have split the region */
- 	KUNIT_EXPECT_EQ(test, r->ar.start, DAMON_MIN_REGION * 1);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, DAMON_MIN_REGION * 2);
-@@ -481,7 +485,8 @@ static void damos_test_filter_out(struct
- 	/* region started in the range */
- 	r->ar.start = DAMON_MIN_REGION * 2;
- 	r->ar.end = DAMON_MIN_REGION * 8;
--	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f));
-+	KUNIT_EXPECT_TRUE(test,
-+			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
- 	/* filter should have split the region */
- 	KUNIT_EXPECT_EQ(test, r->ar.start, DAMON_MIN_REGION * 2);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, DAMON_MIN_REGION * 6);
---- a/mm/damon/tests/vaddr-kunit.h~mm-damon-add-damon_ctx-min_sz_region
-+++ a/mm/damon/tests/vaddr-kunit.h
-@@ -141,7 +141,7 @@ static void damon_do_test_apply_three_re
- 		damon_add_region(r, t);
+ 	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
+ 	dst = acomp_ctx->buffer;
+@@ -988,9 +989,8 @@ static bool zswap_compress(struct page *
+ 	 * only adds metadata overhead.  swap_writeout() will put the page back
+ 	 * to the active LRU list in the case.
+ 	 */
+-	if (comp_ret || !dlen)
++	if (comp_ret || !dlen || dlen >= PAGE_SIZE) {
+ 		dlen = PAGE_SIZE;
+-	if (dlen >= PAGE_SIZE) {
+ 		if (!mem_cgroup_zswap_writeback_enabled(
+ 					folio_memcg(page_folio(page)))) {
+ 			comp_ret = comp_ret ? comp_ret : -EINVAL;
+@@ -999,6 +999,7 @@ static bool zswap_compress(struct page *
+ 		comp_ret = 0;
+ 		dlen = PAGE_SIZE;
+ 		dst = kmap_local_page(page);
++		mapped = true;
  	}
  
--	damon_set_regions(t, three_regions, 3);
-+	damon_set_regions(t, three_regions, 3, DAMON_MIN_REGION);
+ 	zpool = pool->zpool;
+@@ -1012,7 +1013,7 @@ static bool zswap_compress(struct page *
+ 	entry->length = dlen;
  
- 	for (i = 0; i < nr_expected / 2; i++) {
- 		r = __nth_region_of(t, i);
---- a/mm/damon/vaddr.c~mm-damon-add-damon_ctx-min_sz_region
-+++ a/mm/damon/vaddr.c
-@@ -299,7 +299,7 @@ static void damon_va_update(struct damon
- 	damon_for_each_target(t, ctx) {
- 		if (damon_va_three_regions(t, three_regions))
- 			continue;
--		damon_set_regions(t, three_regions, 3);
-+		damon_set_regions(t, three_regions, 3, DAMON_MIN_REGION);
+ unlock:
+-	if (dst != acomp_ctx->buffer)
++	if (mapped)
+ 		kunmap_local(dst);
+ 	if (comp_ret == -ENOSPC || alloc_ret == -ENOSPC)
+ 		zswap_reject_compress_poor++;
+@@ -1030,7 +1031,7 @@ static bool zswap_decompress(struct zswa
+ 	struct zpool *zpool = entry->pool->zpool;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+-	int decomp_ret, dlen;
++	int decomp_ret = 0, dlen = PAGE_SIZE;
+ 	u8 *src, *obj;
+ 
+ 	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
+@@ -1039,9 +1040,7 @@ static bool zswap_decompress(struct zswa
+ 	/* zswap entries of length PAGE_SIZE are not compressed. */
+ 	if (entry->length == PAGE_SIZE) {
+ 		memcpy_to_folio(folio, 0, obj, entry->length);
+-		zpool_obj_read_end(zpool, entry->handle, obj);
+-		acomp_ctx_put_unlock(acomp_ctx);
+-		return true;
++		goto read_done;
  	}
- }
+ 
+ 	/*
+@@ -1064,6 +1063,7 @@ static bool zswap_decompress(struct zswa
+ 	decomp_ret = crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait);
+ 	dlen = acomp_ctx->req->dlen;
+ 
++read_done:
+ 	zpool_obj_read_end(zpool, entry->handle, obj);
+ 	acomp_ctx_put_unlock(acomp_ctx);
  
 _
 
-Patches currently in -mm which might be from yanquanmin1@huawei.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-damon-lru_sort-avoid-divide-by-zero-in-damon_lru_sort_apply_parameters.patch
-mm-damon-reclaim-avoid-divide-by-zero-in-damon_reclaim_apply_parameters.patch
-mm-damon-add-damon_ctx-min_sz_region.patch
+mm-zswap-store-page_size-compression-failed-page-as-is.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-fix.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-v5.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch
+mm-damon-core-add-damon_ctx-addr_unit.patch
+mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
+mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
+mm-damon-paddr-support-addr_unit-for-damos_lru_prio.patch
+mm-damon-paddr-support-addr_unit-for-migrate_hotcold.patch
+mm-damon-paddr-support-addr_unit-for-damos_stat.patch
+mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
+docs-mm-damon-design-document-address-unit-parameter.patch
+docs-admin-guide-mm-damon-usage-document-addr_unit-file.patch
+docs-abi-damon-document-addr_unit-file.patch
 
