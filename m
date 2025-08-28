@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49FF02264A3
-	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 22:40:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AF802264A3
+	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 22:40:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756420822; cv=none; b=rdrN24tNybuzRRHsSLpGO+4drqRv51q6guxKZorgrs3OSKZCQ4r1JeFKbyYhbNWLZYgwFktvEyzbhkhdFGJ9X/ReZJEsCuvtzk8gCxqEBaTAC8mVpCN5Hcakm10vummurJPqXcEdBJIpt7K471gTcmhIllGkrv9Yt01Ev0yvhfg=
+	t=1756420823; cv=none; b=q56s+E9kTtUw/gR63NAeQC/GtN4ZwBTBtELqDVDl/YePkaRI8Z83d9SDXXN35mJJNdpT83VIWrkmWFkhowW+5VZDZG+q66eHd/z5gwepNWg/y/cPRcXb/76d2AVthxud29FQc7+rsN1zoQPUa1TfdnWPfaVnJ05oSUL+hyeYCPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756420822; c=relaxed/simple;
-	bh=oW0NYnoTwtx/rS8kIazfDaN6id5n5pwIkrs7UwvdGsQ=;
-	h=Date:To:From:Subject:Message-Id; b=q0YySKC1saJYuXGmfwb2632bvALvJAvv8rwPROjtciy9bxUGdmAkomRPm0XwA67XkCU++x1kAOyDJOTpFVtXZU/K31ccrz/dq7Qd5ymJPcqxWIiRJEYmqVRaT2yNY17YwPVmOlNNDOhNYl9Bm9EQ8+5q6UiH1AAU28sgTGvepNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W7hlBMWC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756420823; c=relaxed/simple;
+	bh=+i8gDyVhb4ZkicP6/w5fNT91UVLOlja45TFvlNO8X4Y=;
+	h=Date:To:From:Subject:Message-Id; b=gKGStpHLm8PEpCFWD160gSZD4sTNQHz+lgVypwj6qpZFfl9GSj0BsE2xagBqTT3koZ+nbyjl/gTzQVcp1ws/nMkBfOSkYH+eJQ8gtcXJUtKu9HTuEA5glLKHPMlNr12aNasXUzW9Asv5+wUD5HG6ReI9TLOtC2//TItwZjL7T+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YZh0R9wL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W7hlBMWC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB8E5C4CEF4;
-	Thu, 28 Aug 2025 22:40:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YZh0R9wL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA079C4CEEB;
+	Thu, 28 Aug 2025 22:40:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756420820;
-	bh=oW0NYnoTwtx/rS8kIazfDaN6id5n5pwIkrs7UwvdGsQ=;
+	s=korg; t=1756420823;
+	bh=+i8gDyVhb4ZkicP6/w5fNT91UVLOlja45TFvlNO8X4Y=;
 	h=Date:To:From:Subject:From;
-	b=W7hlBMWCv9uBXucLktk07woEjGKIba6xVy3QOOk6vsDDboe0mNk06PTXSaaoyPCWp
-	 glR+RnMC06Ks3TRmXiZBIrvLbAZBhE7i2Wll8ryIEwQbcCDxYFjhlLMwjDgKVjNWIH
-	 S+HGlWvxfsQyb53AhgLbta0IuCRAOdCsq3SOQ2Tg=
-Date: Thu, 28 Aug 2025 15:40:20 -0700
+	b=YZh0R9wLLosATIHF64dcxc0BEbO5V5jPTpGgl0mV6lkZ9NX2PXoALfmhPvxCt8kfQ
+	 FqZqOaNj44sjX/gBFK0clrZwyrzcunkEmsK5eiBuz8fGLxixrpm9QJX22/iJKntUA3
+	 eI3nDcczFIpvQGu1OE1OST/Ee7tKr091m0N8/eVE=
+Date: Thu, 28 Aug 2025 15:40:22 -0700
 To: mm-commits@vger.kernel.org,zuoze1@huawei.com,yanquanmin1@huawei.com,wangkefeng.wang@huawei.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-support-addr_unit-for-access-monitoring.patch added to mm-new branch
-Message-Id: <20250828224020.CB8E5C4CEF4@smtp.kernel.org>
+Subject: + mm-damon-paddr-support-addr_unit-for-damos_pageout.patch added to mm-new branch
+Message-Id: <20250828224022.EA079C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: support addr_unit for access monitoring
+     Subject: mm/damon/paddr: support addr_unit for DAMOS_PAGEOUT
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
+     mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,12 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: support addr_unit for access monitoring
-Date: Thu, 28 Aug 2025 10:12:33 -0700
+Subject: mm/damon/paddr: support addr_unit for DAMOS_PAGEOUT
+Date: Thu, 28 Aug 2025 10:12:34 -0700
 
-Add support of addr_unit paramer for access monitoing operations of paddr.
+Add support of addr_unit for DAMOS_PAGEOUT action handling from the DAMOS
+operation implementation for the physical address space.
 
-Link: https://lkml.kernel.org/r/20250828171242.59810-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250828171242.59810-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
@@ -87,96 +88,87 @@ Cc: ze zuo <zuoze1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
+ mm/damon/paddr.c |   30 +++++++++++++++++++++++-------
+ 1 file changed, 23 insertions(+), 7 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-addr_unit-for-access-monitoring
+--- a/mm/damon/paddr.c~mm-damon-paddr-support-addr_unit-for-damos_pageout
 +++ a/mm/damon/paddr.c
-@@ -18,7 +18,13 @@
- #include "../internal.h"
- #include "ops-common.h"
+@@ -24,6 +24,19 @@ static phys_addr_t damon_pa_phys_addr(
+ 	return (phys_addr_t)addr * addr_unit;
+ }
  
--static void damon_pa_mkold(unsigned long paddr)
-+static phys_addr_t damon_pa_phys_addr(
-+		unsigned long addr, unsigned long addr_unit)
++static unsigned long damon_pa_core_addr(
++		phys_addr_t pa, unsigned long addr_unit)
 +{
-+	return (phys_addr_t)addr * addr_unit;
++	/*
++	 * Use div_u64() for avoiding linking errors related with __udivdi3,
++	 * __aeabi_uldivmod, or similar problems.  This should also improve the
++	 * performance optimization (read div_u64() comment for the detail).
++	 */
++	if (sizeof(pa) == 8 && sizeof(addr_unit) == 4)
++		return div_u64(pa, addr_unit);
++	return pa / addr_unit;
 +}
 +
-+static void damon_pa_mkold(phys_addr_t paddr)
+ static void damon_pa_mkold(phys_addr_t paddr)
  {
  	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
- 
-@@ -29,11 +35,12 @@ static void damon_pa_mkold(unsigned long
- 	folio_put(folio);
+@@ -135,10 +148,11 @@ static bool damon_pa_invalid_damos_folio
+ 	return false;
  }
  
--static void __damon_pa_prepare_access_check(struct damon_region *r)
-+static void __damon_pa_prepare_access_check(struct damon_region *r,
-+		unsigned long addr_unit)
+-static unsigned long damon_pa_pageout(struct damon_region *r, struct damos *s,
++static unsigned long damon_pa_pageout(struct damon_region *r,
++		unsigned long addr_unit, struct damos *s,
+ 		unsigned long *sz_filter_passed)
  {
- 	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
- 
--	damon_pa_mkold(r->sampling_addr);
-+	damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr, addr_unit));
- }
- 
- static void damon_pa_prepare_access_checks(struct damon_ctx *ctx)
-@@ -43,11 +50,11 @@ static void damon_pa_prepare_access_chec
- 
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t)
--			__damon_pa_prepare_access_check(r);
-+			__damon_pa_prepare_access_check(r, ctx->addr_unit);
- 	}
- }
- 
--static bool damon_pa_young(unsigned long paddr, unsigned long *folio_sz)
-+static bool damon_pa_young(phys_addr_t paddr, unsigned long *folio_sz)
- {
- 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
- 	bool accessed;
-@@ -62,23 +69,25 @@ static bool damon_pa_young(unsigned long
- }
- 
- static void __damon_pa_check_access(struct damon_region *r,
--		struct damon_attrs *attrs)
-+		struct damon_attrs *attrs, unsigned long addr_unit)
- {
--	static unsigned long last_addr;
-+	static phys_addr_t last_addr;
- 	static unsigned long last_folio_sz = PAGE_SIZE;
- 	static bool last_accessed;
-+	phys_addr_t sampling_addr = damon_pa_phys_addr(
-+			r->sampling_addr, addr_unit);
- 
- 	/* If the region is in the last checked page, reuse the result */
- 	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
--				ALIGN_DOWN(r->sampling_addr, last_folio_sz)) {
-+				ALIGN_DOWN(sampling_addr, last_folio_sz)) {
- 		damon_update_region_access_rate(r, last_accessed, attrs);
- 		return;
+-	unsigned long addr, applied;
++	phys_addr_t addr, applied;
+ 	LIST_HEAD(folio_list);
+ 	bool install_young_filter = true;
+ 	struct damos_filter *filter;
+@@ -159,8 +173,8 @@ static unsigned long damon_pa_pageout(st
+ 		damos_add_filter(s, filter);
  	}
  
--	last_accessed = damon_pa_young(r->sampling_addr, &last_folio_sz);
-+	last_accessed = damon_pa_young(sampling_addr, &last_folio_sz);
- 	damon_update_region_access_rate(r, last_accessed, attrs);
+-	addr = r->ar.start;
+-	while (addr < r->ar.end) {
++	addr = damon_pa_phys_addr(r->ar.start, addr_unit);
++	while (addr < damon_pa_phys_addr(r->ar.end, addr_unit)) {
+ 		folio = damon_get_folio(PHYS_PFN(addr));
+ 		if (damon_pa_invalid_damos_folio(folio, s)) {
+ 			addr += PAGE_SIZE;
+@@ -170,7 +184,7 @@ static unsigned long damon_pa_pageout(st
+ 		if (damos_pa_filter_out(s, folio))
+ 			goto put_folio;
+ 		else
+-			*sz_filter_passed += folio_size(folio);
++			*sz_filter_passed += folio_size(folio) / addr_unit;
  
--	last_addr = r->sampling_addr;
-+	last_addr = sampling_addr;
+ 		folio_clear_referenced(folio);
+ 		folio_test_clear_young(folio);
+@@ -189,7 +203,7 @@ put_folio:
+ 	applied = reclaim_pages(&folio_list);
+ 	cond_resched();
+ 	s->last_applied = folio;
+-	return applied * PAGE_SIZE;
++	return damon_pa_core_addr(applied * PAGE_SIZE, addr_unit);
  }
  
- static unsigned int damon_pa_check_accesses(struct damon_ctx *ctx)
-@@ -89,7 +98,8 @@ static unsigned int damon_pa_check_acces
- 
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t) {
--			__damon_pa_check_access(r, &ctx->attrs);
-+			__damon_pa_check_access(
-+					r, &ctx->attrs, ctx->addr_unit);
- 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
- 		}
- 	}
+ static inline unsigned long damon_pa_mark_accessed_or_deactivate(
+@@ -302,9 +316,11 @@ static unsigned long damon_pa_apply_sche
+ 		struct damon_target *t, struct damon_region *r,
+ 		struct damos *scheme, unsigned long *sz_filter_passed)
+ {
++	unsigned long aunit = ctx->addr_unit;
++
+ 	switch (scheme->action) {
+ 	case DAMOS_PAGEOUT:
+-		return damon_pa_pageout(r, scheme, sz_filter_passed);
++		return damon_pa_pageout(r, aunit, scheme, sz_filter_passed);
+ 	case DAMOS_LRU_PRIO:
+ 		return damon_pa_mark_accessed(r, scheme, sz_filter_passed);
+ 	case DAMOS_LRU_DEPRIO:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
