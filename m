@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EDF9277CBA;
-	Thu, 28 Aug 2025 05:46:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5E09279333;
+	Thu, 28 Aug 2025 05:46:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756359986; cv=none; b=Lk+M2JNQ4kgZP4csoMKCoqDMJ/WvorBz4HfzuA1u4eIiALXlG9ZxNJuBxjFG4pgGMEHuFT73BJDfmRHNorIeLMsVojiW5EwGHGyKE0fT273MN5/RZTGuo3auurx/3/3E/nHIvpUk7P5C+fHe9IMxk2BfAWXbCF4yjBI8/CkF+wM=
+	t=1756359987; cv=none; b=sRuqENtPZIZ5h+WFJAr+GexZctpwIVf58fRp/e43Gr+rnX1SAEEyVMcEnPWlFBuvR4e2JLaCUuelLTkYx0+2E4qmFWuCW9L4A6T6Lqu/CuugK/S+UA6K+yJBvaZwznkIGxSAFqgxefpP/b4otVaiI2JnpbFQlxyeEHMhhof5Gd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756359986; c=relaxed/simple;
-	bh=OIjvkzcTkTMT0DzSNJKrvxbyJ/bUAJ6Ql9hnbbwxh08=;
-	h=Date:To:From:Subject:Message-Id; b=OqB+sA81K1OdRPdBpGgUXyORiNxXLdfBqcQZTTc+QhQOZRvq8zvqkL0QFeXr/bXRiYipQ7zv/UCLh71D5grrDdgjLDlbHvm43hj2aTzxcS/PKJdBky/M4ega9B8TyjEtRhehxXXyrEEGZeiVDe+p0BBDDfIybCE1J5yuINtcT7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ULzfbgFS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756359987; c=relaxed/simple;
+	bh=jCd0AAi/PGsbf5nwOzxPhSsNZmCAvpudI/1QS5wEFnc=;
+	h=Date:To:From:Subject:Message-Id; b=lF/Cs/nt+1SVIJbvLS6G5PgdpphIHSG0fpTBFPUmVUaXATwjRkzU+4dr4ojvZEhMr6eaLGqhYwIpl/18H2jJ2jOrTdWwxzqOr/a9WPjJTRKrkco2H1DmxhB9kbojJP4ZmwiNU2+yquAErypexDtFiUIPPnHcnbfF4cVCyMBBMe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=awXeXYfz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ULzfbgFS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 079F4C4CEED;
-	Thu, 28 Aug 2025 05:46:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="awXeXYfz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D283C4CEEB;
+	Thu, 28 Aug 2025 05:46:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756359986;
-	bh=OIjvkzcTkTMT0DzSNJKrvxbyJ/bUAJ6Ql9hnbbwxh08=;
+	s=korg; t=1756359987;
+	bh=jCd0AAi/PGsbf5nwOzxPhSsNZmCAvpudI/1QS5wEFnc=;
 	h=Date:To:From:Subject:From;
-	b=ULzfbgFSYgQtUp2n2qQbvxxaoGayV5sLC0oom+wY/vLfMEm2qtQ6Vtsy4PmerVqUQ
-	 PyEEInD0txBPQetSS29X8KgvPPxIDpGVBog4Xs9CfYB/argDs4YGXKRdWW/k4Iccre
-	 lEa4I8U/tQmpIEGamAYTOW1Ozt3Vf3ZRodWl745I=
-Date: Wed, 27 Aug 2025 22:46:25 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,richard.weiyang@gmail.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
+	b=awXeXYfzGu0TY9nJZkZzb8YCW5MiHQa6Z+Y18GFLrEaVa1VYJbRhOhO0xoYYgQW4L
+	 18t4znEPodOsMcXYY+Rjqdq9ATKwNksp4IyoP1Q5aobMzPdlESdfHxGnL81Qybiulp
+	 1s8NbQpRgqRus6ew+s7dNwLfZ1bIwge45CBKq9zE=
+Date: Wed, 27 Aug 2025 22:46:26 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,sbrivio@redhat.com,rick.p.edgecombe@intel.com,pv@excello.cz,polynomial-c@gmx.de,k.shutemov@gmail.com,jirislaby@kernel.org,gregkh@linuxfoundation.org,ast@kernel.org,adobriyan@gmail.com,wangzijie1@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-accounting-of-memmap-pages.patch removed from -mm tree
-Message-Id: <20250828054626.079F4C4CEED@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] proc-fix-missing-pde_set_flags-for-net-proc-files.patch removed from -mm tree
+Message-Id: <20250828054627.4D283C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,120 +35,140 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix accounting of memmap pages
+     Subject: proc: fix missing pde_set_flags() for net proc files
 has been removed from the -mm tree.  Its filename was
-     mm-fix-accounting-of-memmap-pages.patch
+     proc-fix-missing-pde_set_flags-for-net-proc-files.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Subject: mm: fix accounting of memmap pages
-Date: Thu, 7 Aug 2025 20:35:45 +0200
+From: wangzijie <wangzijie1@honor.com>
+Subject: proc: fix missing pde_set_flags() for net proc files
+Date: Mon, 18 Aug 2025 20:31:02 +0800
 
-For !CONFIG_SPARSEMEM_VMEMMAP, memmap page accounting is currently done
-upfront in sparse_buffer_init().  However, sparse_buffer_alloc() may
-return NULL in failure scenario.
+To avoid potential UAF issues during module removal races, we use
+pde_set_flags() to save proc_ops flags in PDE itself before
+proc_register(), and then use pde_has_proc_*() helpers instead of directly
+dereferencing pde->proc_ops->*.
 
-Also, memmap pages may be allocated either from the memblock allocator
-during early boot or from the buddy allocator.  When removed via
-arch_remove_memory(), accounting of memmap pages must reflect the original
-allocation source.
+However, the pde_set_flags() call was missing when creating net related
+proc files.  This omission caused incorrect behavior which FMODE_LSEEK was
+being cleared inappropriately in proc_reg_open() for net proc files.  Lars
+reported it in this link[1].
 
-To ensure correctness:
-* Account memmap pages after successful allocation in sparse_init_nid()
-  and section_activate().
-* Account memmap pages in section_deactivate() based on allocation
-  source.
+Fix this by ensuring pde_set_flags() is called when register proc entry,
+and add NULL check for proc_ops in pde_set_flags().
 
-Link: https://lkml.kernel.org/r/20250807183545.1424509-1-sumanthk@linux.ibm.com
-Fixes: 15995a352474 ("mm: report per-page metadata information")
-Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+[wangzijie1@honor.com: stash pde->proc_ops in a local const variable, per Christian]
+  Link: https://lkml.kernel.org/r/20250821105806.1453833-1-wangzijie1@honor.com
+Link: https://lkml.kernel.org/r/20250818123102.959595-1-wangzijie1@honor.com
+Link: https://lore.kernel.org/all/20250815195616.64497967@chagall.paradoxon.rec/ [1]
+Fixes: ff7ec8dc1b64 ("proc: use the same treatment to check proc_lseek as ones for proc_read_iter et.al")
+Signed-off-by: wangzijie <wangzijie1@honor.com>
+Reported-by: Lars Wendler <polynomial-c@gmx.de>
+Tested-by: Stefano Brivio <sbrivio@redhat.com>
+Tested-by: Petr Vaněk <pv@excello.cz>
+Tested by: Lars Wendler <polynomial-c@gmx.de>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Kirill A. Shutemov <k.shutemov@gmail.com>
+Cc: wangzijie <wangzijie1@honor.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |    5 -----
- mm/sparse.c         |   15 +++++++++------
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ fs/proc/generic.c |   38 +++++++++++++++++++++-----------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
---- a/mm/sparse.c~mm-fix-accounting-of-memmap-pages
-+++ a/mm/sparse.c
-@@ -454,9 +454,6 @@ static void __init sparse_buffer_init(un
- 	 */
- 	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
- 	sparsemap_buf_end = sparsemap_buf + size;
--#ifndef CONFIG_SPARSEMEM_VMEMMAP
--	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
+--- a/fs/proc/generic.c~proc-fix-missing-pde_set_flags-for-net-proc-files
++++ a/fs/proc/generic.c
+@@ -367,6 +367,25 @@ static const struct inode_operations pro
+ 	.setattr	= proc_notify_change,
+ };
+ 
++static void pde_set_flags(struct proc_dir_entry *pde)
++{
++	const struct proc_ops *proc_ops = pde->proc_ops;
++
++	if (!proc_ops)
++		return;
++
++	if (proc_ops->proc_flags & PROC_ENTRY_PERMANENT)
++		pde->flags |= PROC_ENTRY_PERMANENT;
++	if (proc_ops->proc_read_iter)
++		pde->flags |= PROC_ENTRY_proc_read_iter;
++#ifdef CONFIG_COMPAT
++	if (proc_ops->proc_compat_ioctl)
++		pde->flags |= PROC_ENTRY_proc_compat_ioctl;
++#endif
++	if (proc_ops->proc_lseek)
++		pde->flags |= PROC_ENTRY_proc_lseek;
++}
++
+ /* returns the registered entry, or frees dp and returns NULL on failure */
+ struct proc_dir_entry *proc_register(struct proc_dir_entry *dir,
+ 		struct proc_dir_entry *dp)
+@@ -374,6 +393,8 @@ struct proc_dir_entry *proc_register(str
+ 	if (proc_alloc_inum(&dp->low_ino))
+ 		goto out_free_entry;
+ 
++	pde_set_flags(dp);
++
+ 	write_lock(&proc_subdir_lock);
+ 	dp->parent = dir;
+ 	if (pde_subdir_insert(dir, dp) == false) {
+@@ -561,20 +582,6 @@ struct proc_dir_entry *proc_create_reg(c
+ 	return p;
+ }
+ 
+-static void pde_set_flags(struct proc_dir_entry *pde)
+-{
+-	if (pde->proc_ops->proc_flags & PROC_ENTRY_PERMANENT)
+-		pde->flags |= PROC_ENTRY_PERMANENT;
+-	if (pde->proc_ops->proc_read_iter)
+-		pde->flags |= PROC_ENTRY_proc_read_iter;
+-#ifdef CONFIG_COMPAT
+-	if (pde->proc_ops->proc_compat_ioctl)
+-		pde->flags |= PROC_ENTRY_proc_compat_ioctl;
 -#endif
- }
- 
- static void __init sparse_buffer_fini(void)
-@@ -567,6 +564,8 @@ static void __init sparse_init_nid(int n
- 				sparse_buffer_fini();
- 				goto failed;
- 			}
-+			memmap_boot_pages_add(DIV_ROUND_UP(PAGES_PER_SECTION * sizeof(struct page),
-+							   PAGE_SIZE));
- 			sparse_init_early_section(nid, map, pnum, 0);
- 		}
- 	}
-@@ -680,7 +679,6 @@ static void depopulate_section_memmap(un
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
- 
--	memmap_pages_add(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
- 	vmemmap_free(start, end, altmap);
- }
- static void free_map_bootmem(struct page *memmap)
-@@ -856,10 +854,14 @@ static void section_deactivate(unsigned
- 	 * The memmap of early sections is always fully populated. See
- 	 * section_activate() and pfn_valid() .
- 	 */
--	if (!section_is_early)
-+	if (!section_is_early) {
-+		memmap_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE)));
- 		depopulate_section_memmap(pfn, nr_pages, altmap);
--	else if (memmap)
-+	} else if (memmap) {
-+		memmap_boot_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page),
-+							  PAGE_SIZE)));
- 		free_map_bootmem(memmap);
-+	}
- 
- 	if (empty)
- 		ms->section_mem_map = (unsigned long)NULL;
-@@ -904,6 +906,7 @@ static struct page * __meminit section_a
- 		section_deactivate(pfn, nr_pages, altmap);
- 		return ERR_PTR(-ENOMEM);
- 	}
-+	memmap_pages_add(DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE));
- 
- 	return memmap;
- }
---- a/mm/sparse-vmemmap.c~mm-fix-accounting-of-memmap-pages
-+++ a/mm/sparse-vmemmap.c
-@@ -578,11 +578,6 @@ struct page * __meminit __populate_secti
- 	if (r < 0)
- 		return NULL;
- 
--	if (system_state == SYSTEM_BOOTING)
--		memmap_boot_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
--	else
--		memmap_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
+-	if (pde->proc_ops->proc_lseek)
+-		pde->flags |= PROC_ENTRY_proc_lseek;
+-}
 -
- 	return pfn_to_page(pfn);
+ struct proc_dir_entry *proc_create_data(const char *name, umode_t mode,
+ 		struct proc_dir_entry *parent,
+ 		const struct proc_ops *proc_ops, void *data)
+@@ -585,7 +592,6 @@ struct proc_dir_entry *proc_create_data(
+ 	if (!p)
+ 		return NULL;
+ 	p->proc_ops = proc_ops;
+-	pde_set_flags(p);
+ 	return proc_register(parent, p);
  }
- 
+ EXPORT_SYMBOL(proc_create_data);
+@@ -636,7 +642,6 @@ struct proc_dir_entry *proc_create_seq_p
+ 	p->proc_ops = &proc_seq_ops;
+ 	p->seq_ops = ops;
+ 	p->state_size = state_size;
+-	pde_set_flags(p);
+ 	return proc_register(parent, p);
+ }
+ EXPORT_SYMBOL(proc_create_seq_private);
+@@ -667,7 +672,6 @@ struct proc_dir_entry *proc_create_singl
+ 		return NULL;
+ 	p->proc_ops = &proc_single_ops;
+ 	p->single_show = show;
+-	pde_set_flags(p);
+ 	return proc_register(parent, p);
+ }
+ EXPORT_SYMBOL(proc_create_single_data);
 _
 
-Patches currently in -mm which might be from sumanthk@linux.ibm.com are
+Patches currently in -mm which might be from wangzijie1@honor.com are
 
 
