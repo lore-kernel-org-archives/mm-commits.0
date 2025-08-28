@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2947213DDAA;
-	Thu, 28 Aug 2025 05:46:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4CB5277803;
+	Thu, 28 Aug 2025 05:46:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756359995; cv=none; b=QQrv8m2V2zEDaktsfhULwmnDhvwMC+uHprsypKGDvvCy5XosH9afKLo/Rlz62ZJib4LH2jBhbrlm337tbhZb0ysDqGf1fj2fe5wqBEilS+cyS1qIGTtWlaCxxfvLb+tjBUHUdhLUZx+mxt856H7N+F/aHYeKF3K6xHkJoy3M1WA=
+	t=1756359996; cv=none; b=qQM6gs116bhuIJPodrKov1BqRTiKXy4X6zeq+GkHBCgh6hbt6NcsqrWw6TAM7ebDRQFEhpK6RVdLrfUAQCELvnrA/Ye+2V6I3drXmMtzwALV61Qe+SJ68lkdvgWOxktnwWn+5riz4DYdjLlgagfKgG//Oevs2CzYWxl5hOHsIyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756359995; c=relaxed/simple;
-	bh=RZCsWplQlse6xLWWz7EhRraSgkEGHdLgaFt8ReYymOU=;
-	h=Date:To:From:Subject:Message-Id; b=ZeYWNrGpFl39NYuHTMA0NchdZe02g/PN0jT5EfkknJPnlMePy/BSJHk+T1Zr28kDmsus5wco+bmBzvbLOQH8pPRcePnykn2JgV673YDW8y2bSBvRUlq14m+SmVhRnZNq012AeKSmq+QpvA2qDuAnLnSL9qo/6LPXTl8FxHb7eQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gbkt2BFR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756359996; c=relaxed/simple;
+	bh=VO2lqxzgQrTmIg9Kty9sX8cLqFRJYDVVPfvqLWqM/TY=;
+	h=Date:To:From:Subject:Message-Id; b=JYB2Unx2cmNr4pLuInmYOIvEXJgyVhCUhWlKGwvp9yaA3oShKMFWb1DcCv4JESKqj7r+OdA8HeTD7qPIy0REl9Xip1BcMavW2lmWNA+nE5uI3pnf+MM2fPERKg/EiME3BZWEPBGNRdO686xgMpC5ogdIxX2r5c+hHmexKVK0X3w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bjXqxsKp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gbkt2BFR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DA76C4CEEB;
-	Thu, 28 Aug 2025 05:46:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bjXqxsKp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3030CC4CEEB;
+	Thu, 28 Aug 2025 05:46:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756359994;
-	bh=RZCsWplQlse6xLWWz7EhRraSgkEGHdLgaFt8ReYymOU=;
+	s=korg; t=1756359996;
+	bh=VO2lqxzgQrTmIg9Kty9sX8cLqFRJYDVVPfvqLWqM/TY=;
 	h=Date:To:From:Subject:From;
-	b=Gbkt2BFRq0G4U6Kbx/UQYyIpesbH9yic6FTOieiWMJdSiX5xcjf5dv/c4nJGz7Qve
-	 pOrLbYRhppdna8mLVhSHsB60OkEysDLHYw7hOs8SbolxWn4DLoGg/yInBoNU7SzLyW
-	 qMCi53p4fa+6D7A8dWFMURpMNGXP43NscIpZu9UM=
-Date: Wed, 27 Aug 2025 22:46:34 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,tj@kernel.org,thuth@redhat.com,tglx@linutronix.de,surenb@google.com,stable@vger.kernel.org,ryan.roberts@arm.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,mingo@redhat.com,mhocko@suse.com,maobibo@loongson.cn,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,kas@kernel.org,joro@8bytes.org,joao.m.martins@oracle.com,jhubbard@nvidia.com,jane.chu@oracle.com,glider@google.com,dvyukov@google.com,dev.jain@arm.com,dennis@kernel.org,david@redhat.com,dave.hansen@linux.intel.com,cl@gentwo.org,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,aneesh.kumar@linux.ibm.com,andreyknvl@gmail.com,harry.yoo@oracle.com,akpm@linux-foundation.org
+	b=bjXqxsKpoP89cpCIqTA5JvQRAO8WWh+2IiUVPXEU/giCO/ZIwc18uoaF3PbJsX7Jv
+	 Eg8tVDBk82XQd0iPhbSyIxQJUmc1TMMzl0HTxfU5W56te0XwnmG/eSb1f59WSKMWgX
+	 1SJoyNn9/HxZtkRNO/EF4u/DQRiUihgACnWu0Im0=
+Date: Wed, 27 Aug 2025 22:46:35 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pmladek@suse.com,lujialin4@huawei.com,longman@redhat.com,leitao@debian.org,john.ogness@linutronix.de,gregkh@linuxfoundation.org,catalin.marinas@arm.com,gubowen5@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] x86-mm-64-define-arch_page_table_sync_mask-and-arch_sync_kernel_mappings.patch removed from -mm tree
-Message-Id: <20250828054634.9DA76C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-possible-deadlock-in-kmemleak.patch removed from -mm tree
+Message-Id: <20250828054636.3030CC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,164 +35,126 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/mm/64: define ARCH_PAGE_TABLE_SYNC_MASK and arch_sync_kernel_mappings()
+     Subject: mm: gix possible deadlock in kmemleak
 has been removed from the -mm tree.  Its filename was
-     x86-mm-64-define-arch_page_table_sync_mask-and-arch_sync_kernel_mappings.patch
+     mm-fix-possible-deadlock-in-kmemleak.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Harry Yoo <harry.yoo@oracle.com>
-Subject: x86/mm/64: define ARCH_PAGE_TABLE_SYNC_MASK and arch_sync_kernel_mappings()
-Date: Mon, 18 Aug 2025 11:02:06 +0900
+From: Gu Bowen <gubowen5@huawei.com>
+Subject: mm: gix possible deadlock in kmemleak
+Date: Fri, 22 Aug 2025 15:35:41 +0800
 
-Define ARCH_PAGE_TABLE_SYNC_MASK and arch_sync_kernel_mappings() to ensure
-page tables are properly synchronized when calling p*d_populate_kernel().
+There are some AA deadlock issues in kmemleak, similar to the situation
+reported by Breno [1].  The deadlock path is as follows:
 
-For 5-level paging, synchronization is performed via
-pgd_populate_kernel().  In 4-level paging, pgd_populate() is a no-op, so
-synchronization is instead performed at the P4D level via
-p4d_populate_kernel().
+mem_pool_alloc()
+  -> raw_spin_lock_irqsave(&kmemleak_lock, flags);
+      -> pr_warn()
+          -> netconsole subsystem
+	     -> netpoll
+	         -> __alloc_skb
+		   -> __create_object
+		     -> raw_spin_lock_irqsave(&kmemleak_lock, flags);
 
-This fixes intermittent boot failures on systems using 4-level paging and
-a large amount of persistent memory:
+To solve this problem, switch to printk_safe mode before printing warning
+message, this will redirect all printk()-s to a special per-CPU buffer,
+which will be flushed later from a safe context (irq work), and this
+deadlock problem can be avoided.  The proper API to use should be
+printk_deferred_enter()/printk_deferred_exit() [2].  Another way is to
+place the warn print after kmemleak is released.
 
-  BUG: unable to handle page fault for address: ffffe70000000034
-  #PF: supervisor write access in kernel mode
-  #PF: error_code(0x0002) - not-present page
-  PGD 0 P4D 0
-  Oops: 0002 [#1] SMP NOPTI
-  RIP: 0010:__init_single_page+0x9/0x6d
-  Call Trace:
-   <TASK>
-   __init_zone_device_page+0x17/0x5d
-   memmap_init_zone_device+0x154/0x1bb
-   pagemap_range+0x2e0/0x40f
-   memremap_pages+0x10b/0x2f0
-   devm_memremap_pages+0x1e/0x60
-   dev_dax_probe+0xce/0x2ec [device_dax]
-   dax_bus_probe+0x6d/0xc9
-   [... snip ...]
-   </TASK>
-
-It also fixes a crash in vmemmap_set_pmd() caused by accessing vmemmap
-before sync_global_pgds() [1]:
-
-  BUG: unable to handle page fault for address: ffffeb3ff1200000
-  #PF: supervisor write access in kernel mode
-  #PF: error_code(0x0002) - not-present page
-  PGD 0 P4D 0
-  Oops: Oops: 0002 [#1] PREEMPT SMP NOPTI
-  Tainted: [W]=WARN
-  RIP: 0010:vmemmap_set_pmd+0xff/0x230
-   <TASK>
-   vmemmap_populate_hugepages+0x176/0x180
-   vmemmap_populate+0x34/0x80
-   __populate_section_memmap+0x41/0x90
-   sparse_add_section+0x121/0x3e0
-   __add_pages+0xba/0x150
-   add_pages+0x1d/0x70
-   memremap_pages+0x3dc/0x810
-   devm_memremap_pages+0x1c/0x60
-   xe_devm_add+0x8b/0x100 [xe]
-   xe_tile_init_noalloc+0x6a/0x70 [xe]
-   xe_device_probe+0x48c/0x740 [xe]
-   [... snip ...]
-
-Link: https://lkml.kernel.org/r/20250818020206.4517-4-harry.yoo@oracle.com
-Fixes: 8d400913c231 ("x86/vmemmap: handle unpopulated sub-pmd ranges")
-Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
-Closes: https://lore.kernel.org/linux-mm/20250311114420.240341-1-gwan-gyeong.mun@intel.com [1]
-Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Kiryl Shutsemau <kas@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: bibo mao <maobibo@loongson.cn>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Thomas Huth <thuth@redhat.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250822073541.1886469-1-gubowen5@huawei.com
+Link: https://lore.kernel.org/all/20250731-kmemleak_lock-v1-1-728fd470198f@debian.org/#t [1]
+Link: https://lore.kernel.org/all/5ca375cd-4a20-4807-b897-68b289626550@redhat.com/ [2]
+Signed-off-by: Gu Bowen <gubowen5@huawei.com>
+Reviewed-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Breno Leitao <leitao@debian.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Lu Jialin <lujialin4@huawei.com>
+Cc: Petr Mladek <pmladek@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_64_types.h |    3 +++
- arch/x86/mm/init_64.c                   |   18 ++++++++++++++++++
- 2 files changed, 21 insertions(+)
+ mm/kmemleak.c |   27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
---- a/arch/x86/include/asm/pgtable_64_types.h~x86-mm-64-define-arch_page_table_sync_mask-and-arch_sync_kernel_mappings
-+++ a/arch/x86/include/asm/pgtable_64_types.h
-@@ -36,6 +36,9 @@ static inline bool pgtable_l5_enabled(vo
- #define pgtable_l5_enabled() cpu_feature_enabled(X86_FEATURE_LA57)
- #endif /* USE_EARLY_PGTABLE_L5 */
+--- a/mm/kmemleak.c~mm-fix-possible-deadlock-in-kmemleak
++++ a/mm/kmemleak.c
+@@ -437,9 +437,15 @@ static struct kmemleak_object *__lookup_
+ 		else if (untagged_objp == untagged_ptr || alias)
+ 			return object;
+ 		else {
++			/*
++			 * Printk deferring due to the kmemleak_lock held.
++			 * This is done to avoid deadlock.
++			 */
++			printk_deferred_enter();
+ 			kmemleak_warn("Found object by alias at 0x%08lx\n",
+ 				      ptr);
+ 			dump_object_info(object);
++			printk_deferred_exit();
+ 			break;
+ 		}
+ 	}
+@@ -736,6 +742,11 @@ static int __link_object(struct kmemleak
+ 		else if (untagged_objp + parent->size <= untagged_ptr)
+ 			link = &parent->rb_node.rb_right;
+ 		else {
++			/*
++			 * Printk deferring due to the kmemleak_lock held.
++			 * This is done to avoid deadlock.
++			 */
++			printk_deferred_enter();
+ 			kmemleak_stop("Cannot insert 0x%lx into the object search tree (overlaps existing)\n",
+ 				      ptr);
+ 			/*
+@@ -743,6 +754,7 @@ static int __link_object(struct kmemleak
+ 			 * be freed while the kmemleak_lock is held.
+ 			 */
+ 			dump_object_info(parent);
++			printk_deferred_exit();
+ 			return -EEXIST;
+ 		}
+ 	}
+@@ -856,13 +868,8 @@ static void delete_object_part(unsigned
  
-+#define ARCH_PAGE_TABLE_SYNC_MASK \
-+	(pgtable_l5_enabled() ? PGTBL_PGD_MODIFIED : PGTBL_P4D_MODIFIED)
-+
- extern unsigned int pgdir_shift;
- extern unsigned int ptrs_per_p4d;
+ 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
+ 	object = __find_and_remove_object(ptr, 1, objflags);
+-	if (!object) {
+-#ifdef DEBUG
+-		kmemleak_warn("Partially freeing unknown object at 0x%08lx (size %zu)\n",
+-			      ptr, size);
+-#endif
++	if (!object)
+ 		goto unlock;
+-	}
  
---- a/arch/x86/mm/init_64.c~x86-mm-64-define-arch_page_table_sync_mask-and-arch_sync_kernel_mappings
-+++ a/arch/x86/mm/init_64.c
-@@ -224,6 +224,24 @@ static void sync_global_pgds(unsigned lo
- }
+ 	/*
+ 	 * Create one or two objects that may result from the memory block
+@@ -882,8 +889,14 @@ static void delete_object_part(unsigned
  
- /*
-+ * Make kernel mappings visible in all page tables in the system.
-+ * This is necessary except when the init task populates kernel mappings
-+ * during the boot process. In that case, all processes originating from
-+ * the init task copies the kernel mappings, so there is no issue.
-+ * Otherwise, missing synchronization could lead to kernel crashes due
-+ * to missing page table entries for certain kernel mappings.
-+ *
-+ * Synchronization is performed at the top level, which is the PGD in
-+ * 5-level paging systems. But in 4-level paging systems, however,
-+ * pgd_populate() is a no-op, so synchronization is done at the P4D level.
-+ * sync_global_pgds() handles this difference between paging levels.
-+ */
-+void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
-+{
-+	sync_global_pgds(start, end);
-+}
-+
-+/*
-  * NOTE: This function is marked __ref because it calls __init function
-  * (alloc_bootmem_pages). It's safe to do it ONLY when after_bootmem == 0.
-  */
+ unlock:
+ 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
+-	if (object)
++	if (object) {
+ 		__delete_object(object);
++	} else {
++#ifdef DEBUG
++		kmemleak_warn("Partially freeing unknown object at 0x%08lx (size %zu)\n",
++			      ptr, size);
++#endif
++	}
+ 
+ out:
+ 	if (object_l)
 _
 
-Patches currently in -mm which might be from harry.yoo@oracle.com are
+Patches currently in -mm which might be from gubowen5@huawei.com are
 
 
