@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B4612773E3;
-	Thu, 28 Aug 2025 05:46:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EDF9277CBA;
+	Thu, 28 Aug 2025 05:46:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756359985; cv=none; b=UrF5Dej8UTw35plBINL9xk3BTrIOq3JZOu5zR8jiOKPzssKhS3aB/38JHcl773MufhiyolIcW5EoEVKxSpQeE8a+ko3a01sNm4tL1j9zOnh12agrT3oRlczQrLgrCXGHgSv6vvf6dG0Bv5tccUDPlyYHsKMgctO20YtEbYS+YvM=
+	t=1756359986; cv=none; b=Lk+M2JNQ4kgZP4csoMKCoqDMJ/WvorBz4HfzuA1u4eIiALXlG9ZxNJuBxjFG4pgGMEHuFT73BJDfmRHNorIeLMsVojiW5EwGHGyKE0fT273MN5/RZTGuo3auurx/3/3E/nHIvpUk7P5C+fHe9IMxk2BfAWXbCF4yjBI8/CkF+wM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756359985; c=relaxed/simple;
-	bh=DQa15gKoGUpiUB7H3al0tGembi5Vskv0d299cWatF1s=;
-	h=Date:To:From:Subject:Message-Id; b=Rf1F/9BrZe+1q1Z7OIwuqYPS/QdfrTzZe2MCK5xleG8E7qeIBbNzd11oGNBTuCU88lupfwNatJRWldrP+l47FmdFDxkWyxMNuiR1pu/K6E7//SUfwKwRhoUViQq2OHQ7YCziw3TTGiPzui+3bfjV3XkF0OcOUkm0xv6Y64aEuCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZfR2F04; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756359986; c=relaxed/simple;
+	bh=OIjvkzcTkTMT0DzSNJKrvxbyJ/bUAJ6Ql9hnbbwxh08=;
+	h=Date:To:From:Subject:Message-Id; b=OqB+sA81K1OdRPdBpGgUXyORiNxXLdfBqcQZTTc+QhQOZRvq8zvqkL0QFeXr/bXRiYipQ7zv/UCLh71D5grrDdgjLDlbHvm43hj2aTzxcS/PKJdBky/M4ega9B8TyjEtRhehxXXyrEEGZeiVDe+p0BBDDfIybCE1J5yuINtcT7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ULzfbgFS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZfR2F04"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEF42C4CEF6;
-	Thu, 28 Aug 2025 05:46:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ULzfbgFS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 079F4C4CEED;
+	Thu, 28 Aug 2025 05:46:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756359984;
-	bh=DQa15gKoGUpiUB7H3al0tGembi5Vskv0d299cWatF1s=;
+	s=korg; t=1756359986;
+	bh=OIjvkzcTkTMT0DzSNJKrvxbyJ/bUAJ6Ql9hnbbwxh08=;
 	h=Date:To:From:Subject:From;
-	b=jZfR2F04O3zHHpAfuredjCBfP6MtqNMlBrkJbKXChxr1B3BXEGm/xSHNEwf9WUjyy
-	 DC751c8xM6b6UY0yT+5zg7vAW9OO83l4PCSct1gV6/CdXtOJ5znMm0SeD92XXTaWdb
-	 LsKfJxQdIiqtkwv1Yp9ayhbTjfJ01h3I8cFgWJnw=
-Date: Wed, 27 Aug 2025 22:46:24 -0700
-To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,sj@kernel.org,apanyaki@amazon.com,yanquanmin1@huawei.com,akpm@linux-foundation.org
+	b=ULzfbgFSYgQtUp2n2qQbvxxaoGayV5sLC0oom+wY/vLfMEm2qtQ6Vtsy4PmerVqUQ
+	 PyEEInD0txBPQetSS29X8KgvPPxIDpGVBog4Xs9CfYB/argDs4YGXKRdWW/k4Iccre
+	 lEa4I8U/tQmpIEGamAYTOW1Ozt3Vf3ZRodWl745I=
+Date: Wed, 27 Aug 2025 22:46:25 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,richard.weiyang@gmail.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota.patch removed from -mm tree
-Message-Id: <20250828054624.BEF42C4CEF6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-accounting-of-memmap-pages.patch removed from -mm tree
+Message-Id: <20250828054626.079F4C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,120 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: prevent unnecessary overflow in damos_set_effective_quota()
+     Subject: mm: fix accounting of memmap pages
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota.patch
+     mm-fix-accounting-of-memmap-pages.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Quanmin Yan <yanquanmin1@huawei.com>
-Subject: mm/damon/core: prevent unnecessary overflow in damos_set_effective_quota()
-Date: Thu, 21 Aug 2025 20:55:55 +0800
+From: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Subject: mm: fix accounting of memmap pages
+Date: Thu, 7 Aug 2025 20:35:45 +0200
 
-On 32-bit systems, the throughput calculation in
-damos_set_effective_quota() is prone to unnecessary multiplication
-overflow.  Using mult_frac() to fix it.
+For !CONFIG_SPARSEMEM_VMEMMAP, memmap page accounting is currently done
+upfront in sparse_buffer_init().  However, sparse_buffer_alloc() may
+return NULL in failure scenario.
 
-Andrew Paniakin also recently found and privately reported this issue, on
-64 bit systems.  This can also happen on 64-bit systems, once the charged
-size exceeds ~17 TiB.  On systems running for long time in production,
-this issue can actually happen.
+Also, memmap pages may be allocated either from the memblock allocator
+during early boot or from the buddy allocator.  When removed via
+arch_remove_memory(), accounting of memmap pages must reflect the original
+allocation source.
 
-More specifically, when a DAMOS scheme having the time quota run for
-longtime, throughput calculation can overflow and set esz too small.  As a
-result, speed of the scheme get unexpectedly slow.
+To ensure correctness:
+* Account memmap pages after successful allocation in sparse_init_nid()
+  and section_activate().
+* Account memmap pages in section_deactivate() based on allocation
+  source.
 
-Link: https://lkml.kernel.org/r/20250821125555.3020951-1-yanquanmin1@huawei.com
-Fixes: 1cd243030059 ("mm/damon/schemes: implement time quota")
-Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
-Reported-by: Andrew Paniakin <apanyaki@amazon.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: ze zuo <zuoze1@huawei.com>
-Cc: <stable@vger.kernel.org>	[5.16+]
+Link: https://lkml.kernel.org/r/20250807183545.1424509-1-sumanthk@linux.ibm.com
+Fixes: 15995a352474 ("mm: report per-page metadata information")
+Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/sparse-vmemmap.c |    5 -----
+ mm/sparse.c         |   15 +++++++++------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-prevent-unnecessary-overflow-in-damos_set_effective_quota
-+++ a/mm/damon/core.c
-@@ -2073,8 +2073,8 @@ static void damos_set_effective_quota(st
+--- a/mm/sparse.c~mm-fix-accounting-of-memmap-pages
++++ a/mm/sparse.c
+@@ -454,9 +454,6 @@ static void __init sparse_buffer_init(un
+ 	 */
+ 	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
+ 	sparsemap_buf_end = sparsemap_buf + size;
+-#ifndef CONFIG_SPARSEMEM_VMEMMAP
+-	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
+-#endif
+ }
  
- 	if (quota->ms) {
- 		if (quota->total_charged_ns)
--			throughput = quota->total_charged_sz * 1000000 /
--				quota->total_charged_ns;
-+			throughput = mult_frac(quota->total_charged_sz, 1000000,
-+							quota->total_charged_ns);
- 		else
- 			throughput = PAGE_SIZE * 1024;
- 		esz = min(throughput * quota->ms, esz);
+ static void __init sparse_buffer_fini(void)
+@@ -567,6 +564,8 @@ static void __init sparse_init_nid(int n
+ 				sparse_buffer_fini();
+ 				goto failed;
+ 			}
++			memmap_boot_pages_add(DIV_ROUND_UP(PAGES_PER_SECTION * sizeof(struct page),
++							   PAGE_SIZE));
+ 			sparse_init_early_section(nid, map, pnum, 0);
+ 		}
+ 	}
+@@ -680,7 +679,6 @@ static void depopulate_section_memmap(un
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
+ 
+-	memmap_pages_add(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
+ 	vmemmap_free(start, end, altmap);
+ }
+ static void free_map_bootmem(struct page *memmap)
+@@ -856,10 +854,14 @@ static void section_deactivate(unsigned
+ 	 * The memmap of early sections is always fully populated. See
+ 	 * section_activate() and pfn_valid() .
+ 	 */
+-	if (!section_is_early)
++	if (!section_is_early) {
++		memmap_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE)));
+ 		depopulate_section_memmap(pfn, nr_pages, altmap);
+-	else if (memmap)
++	} else if (memmap) {
++		memmap_boot_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page),
++							  PAGE_SIZE)));
+ 		free_map_bootmem(memmap);
++	}
+ 
+ 	if (empty)
+ 		ms->section_mem_map = (unsigned long)NULL;
+@@ -904,6 +906,7 @@ static struct page * __meminit section_a
+ 		section_deactivate(pfn, nr_pages, altmap);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
++	memmap_pages_add(DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE));
+ 
+ 	return memmap;
+ }
+--- a/mm/sparse-vmemmap.c~mm-fix-accounting-of-memmap-pages
++++ a/mm/sparse-vmemmap.c
+@@ -578,11 +578,6 @@ struct page * __meminit __populate_secti
+ 	if (r < 0)
+ 		return NULL;
+ 
+-	if (system_state == SYSTEM_BOOTING)
+-		memmap_boot_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
+-	else
+-		memmap_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
+-
+ 	return pfn_to_page(pfn);
+ }
+ 
 _
 
-Patches currently in -mm which might be from yanquanmin1@huawei.com are
+Patches currently in -mm which might be from sumanthk@linux.ibm.com are
 
-mm-damon-lru_sort-avoid-divide-by-zero-in-damon_lru_sort_apply_parameters.patch
-mm-damon-reclaim-avoid-divide-by-zero-in-damon_reclaim_apply_parameters.patch
 
