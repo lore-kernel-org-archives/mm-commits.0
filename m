@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 665B822B8B6
-	for <mm-commits@vger.kernel.org>; Sat, 30 Aug 2025 03:38:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73E3922B8B6
+	for <mm-commits@vger.kernel.org>; Sat, 30 Aug 2025 03:38:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756525113; cv=none; b=AdpjiMkX48fJI3XR73mHo8TfjC0211M3QDIf1wH9W7q5ZI3axtbcZUMZTrlvjmL/23Vp11JAW/xK/QmW8urvdxwpZB2hvZ1wEyu5x2lF5hW+pRcOdBnwHLSJh28U+x/21z+2fOcWe9BlAFvNdrmfzXnNTHcEvnCCYhAHHO2JZNc=
+	t=1756525115; cv=none; b=qK/yUHGHvAh9negH0fTNWQ4clWo1kimXkeL+iRzSLW81jtbI3h1uYrI8g3p8nHvza1/pwaMu7O2Uu2zOuKKO8/m6m1VBINrh0YYhxMnjMfKuomt0DOsn4B8GuJC72muhqV7/pXGDL+6p9qGHL0cRHctVIipYreB7t63CAnbgbnU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756525113; c=relaxed/simple;
-	bh=mCFk4PGhU9CKge9hKdtQgLCpd3CnfUym3Fh8nKFnOBQ=;
-	h=Date:To:From:Subject:Message-Id; b=U43/bg0bGTyM30up3TVB0dgmFBfILoC5M5MUuEKbDZSI+rpQF/VE4ByC2DLqy2B3Tj6D4zimgp1KG+ASgCAXuBbUGn/wOGqiHnRSEzlEM5MLFBKLwfR2Z9Mf+cdsKGTfvU6hmPfdfc0xRjkOpZFwHGOC+75WTDM8+G6YJWr/23k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JLNTzw/a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756525115; c=relaxed/simple;
+	bh=TLKOhbHBFlWaijbIGvepw5GNxqmhmuFIen1YmaNpsOc=;
+	h=Date:To:From:Subject:Message-Id; b=Z10f9TkCBoTyXPnSl8aMBCfqYaJg/TeHVXpzH37pyrwAEALmPC1YEHZ1QRFjXntoTOxEXXl5g5bdY0kuKPTs6patKh9OD/LhZSZ+5FS7Ae+IpliT4xxRXxCneIN0sTEsZwMD+k13HVgCSPM/IN2kidQc5mYUYwNIpcHCQQf9gzM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fR6hXV9t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JLNTzw/a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3244C4CEF0;
-	Sat, 30 Aug 2025 03:38:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fR6hXV9t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA5F9C4CEF0;
+	Sat, 30 Aug 2025 03:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756525112;
-	bh=mCFk4PGhU9CKge9hKdtQgLCpd3CnfUym3Fh8nKFnOBQ=;
+	s=korg; t=1756525115;
+	bh=TLKOhbHBFlWaijbIGvepw5GNxqmhmuFIen1YmaNpsOc=;
 	h=Date:To:From:Subject:From;
-	b=JLNTzw/a+T3jJ5aKxSqhJhen5XOoL95mZoYTdf/BgQ5HOd+jca4+f0NkBt5myb4sL
-	 h/v2aMG+/DvvHZr88kdiE+j92E9H/MOk0l0CLS6TbXtML6o7LkCRobe15zjnGnZYe/
-	 tXsj2bBcW/BtyI9UoNa+0AVEszHCw7z/ZPirUL/c=
-Date: Fri, 29 Aug 2025 20:38:32 -0700
+	b=fR6hXV9tp1/VhmZUSzXw+fMtFw5rJAz5fCuDoWYdyLfZxLf/Cdg7B8amW5M5b5ZZk
+	 xF7iolVZwHvdnqiXfYMgTzCkZcc/qFhI0MALTMVM+i6vzZRHHtyXRKzZ9UlwNdu2SG
+	 oQBCer8K9ks3f0TpgaFLJQY6ZBjqjQtk3A6hIcv4=
+Date: Fri, 29 Aug 2025 20:38:34 -0700
 To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,linus.walleij@linaro.org,Liam.Howlett@oracle.com,kees@kernel.org,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@redhat.com,bsegall@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fork-check-charging-success-before-zeroing-stack.patch added to mm-new branch
-Message-Id: <20250830033832.C3244C4CEF0@smtp.kernel.org>
+Subject: + task_stackh-clean-up-stack_not_used-implementation.patch added to mm-new branch
+Message-Id: <20250830033834.EA5F9C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fork: check charging success before zeroing stack
+     Subject: task_stack.h: clean-up stack_not_used() implementation
 has been added to the -mm mm-new branch.  Its filename is
-     fork-check-charging-success-before-zeroing-stack.patch
+     task_stackh-clean-up-stack_not_used-implementation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-check-charging-success-before-zeroing-stack.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/task_stackh-clean-up-stack_not_used-implementation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,25 +65,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: fork: check charging success before zeroing stack
-Date: Fri, 29 Aug 2025 13:44:40 +0200
+Subject: task_stack.h: clean-up stack_not_used() implementation
+Date: Fri, 29 Aug 2025 13:44:41 +0200
 
-Patch series "mm: task_stack: Stack handling cleanups".
+Inside the small stack_not_used() function there are several ifdefs for
+stack growing-up vs.  regular versions.  Instead just implement this
+function two times, one for growing-up and another regular.
 
-These are some small cleanups for the fork code that was split off from
-Pasha:s dynamic stack patch series, they are generally nice on their own
-so let's propose them for merging.
+Add comments like /* !CONFIG_DEBUG_STACK_USAGE */ to clarify what the
+ifdefs are doing.
 
-
-This patch (of 2):
-
-No need to do zero cached stack if memcg charge fails, so move the
-charging attempt before the memset operation.
-
-Link: https://lkml.kernel.org/r/20250829-fork-cleanups-for-dynstack-v1-0-3bbaadce1f00@linaro.org
-Link: https://lkml.kernel.org/r/20250829-fork-cleanups-for-dynstack-v1-1-3bbaadce1f00@linaro.org
+[linus.walleij@linaro.org: rebased, function moved elsewhere in the kernel]
+Link: https://lkml.kernel.org/r/20250829-fork-cleanups-for-dynstack-v1-2-3bbaadce1f00@linaro.org
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Link: https://lore.kernel.org/20240311164638.2015063-6-pasha.tatashin@soleen.com
+Link: https://lore.kernel.org/20240311164638.2015063-13-pasha.tatashin@soleen.com
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Ben Segall <bsegall@google.com>
@@ -105,35 +100,60 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/exit.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
---- a/kernel/fork.c~fork-check-charging-success-before-zeroing-stack
-+++ a/kernel/fork.c
-@@ -290,6 +290,11 @@ static int alloc_thread_stack_node(struc
- 		if (!vm_area)
- 			continue;
+--- a/kernel/exit.c~task_stackh-clean-up-stack_not_used-implementation
++++ a/kernel/exit.c
+@@ -780,24 +780,29 @@ static void exit_notify(struct task_stru
+ }
  
-+		if (memcg_charge_kernel_stack(vm_area)) {
-+			vfree(vm_area->addr);
-+			return -ENOMEM;
-+		}
+ #ifdef CONFIG_DEBUG_STACK_USAGE
++#ifdef CONFIG_STACK_GROWSUP
+ unsigned long stack_not_used(struct task_struct *p)
+ {
+ 	unsigned long *n = end_of_stack(p);
+ 
+ 	do {	/* Skip over canary */
+-# ifdef CONFIG_STACK_GROWSUP
+ 		n--;
+-# else
+-		n++;
+-# endif
+ 	} while (!*n);
+ 
+-# ifdef CONFIG_STACK_GROWSUP
+ 	return (unsigned long)end_of_stack(p) - (unsigned long)n;
+-# else
++}
++#else /* !CONFIG_STACK_GROWSUP */
++unsigned long stack_not_used(struct task_struct *p)
++{
++	unsigned long *n = end_of_stack(p);
 +
- 		/* Reset stack metadata. */
- 		kasan_unpoison_range(vm_area->addr, THREAD_SIZE);
++	do {	/* Skip over canary */
++		n++;
++	} while (!*n);
++
+ 	return (unsigned long)n - (unsigned long)end_of_stack(p);
+-# endif
+ }
++#endif /* CONFIG_STACK_GROWSUP */
  
-@@ -298,11 +303,6 @@ static int alloc_thread_stack_node(struc
- 		/* Clear stale pointers from reused stack. */
- 		memset(stack, 0, THREAD_SIZE);
+ /* Count the maximum pages reached in kernel stacks */
+ static inline void kstack_histogram(unsigned long used_stack)
+@@ -856,9 +861,9 @@ static void check_stack_usage(void)
+ 	}
+ 	spin_unlock(&low_water_lock);
+ }
+-#else
++#else /* !CONFIG_DEBUG_STACK_USAGE */
+ static inline void check_stack_usage(void) {}
+-#endif
++#endif /* CONFIG_DEBUG_STACK_USAGE */
  
--		if (memcg_charge_kernel_stack(vm_area)) {
--			vfree(vm_area->addr);
--			return -ENOMEM;
--		}
--
- 		tsk->stack_vm_area = vm_area;
- 		tsk->stack = stack;
- 		return 0;
+ static void synchronize_group_exit(struct task_struct *tsk, long code)
+ {
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
