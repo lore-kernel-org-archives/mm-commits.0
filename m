@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73E3922B8B6
-	for <mm-commits@vger.kernel.org>; Sat, 30 Aug 2025 03:38:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90C287262B
+	for <mm-commits@vger.kernel.org>; Sat, 30 Aug 2025 03:56:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756525115; cv=none; b=qK/yUHGHvAh9negH0fTNWQ4clWo1kimXkeL+iRzSLW81jtbI3h1uYrI8g3p8nHvza1/pwaMu7O2Uu2zOuKKO8/m6m1VBINrh0YYhxMnjMfKuomt0DOsn4B8GuJC72muhqV7/pXGDL+6p9qGHL0cRHctVIipYreB7t63CAnbgbnU=
+	t=1756526173; cv=none; b=OvpqSQjEP0S71aYDJ+zjO0zqfBpoXhOeTAbH+4sI8Dqk+Nc3R1YtqaZt0isdu84CuJlqWxsf4n98n4i0iyriYsqH/3A+PR590ypY54nVoOUTy2H+5cdzuSA0CMrL+1QInjufuNxPJCpuZvgywveIFNZpdzyxf1tySkyEqGSByrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756525115; c=relaxed/simple;
-	bh=TLKOhbHBFlWaijbIGvepw5GNxqmhmuFIen1YmaNpsOc=;
-	h=Date:To:From:Subject:Message-Id; b=Z10f9TkCBoTyXPnSl8aMBCfqYaJg/TeHVXpzH37pyrwAEALmPC1YEHZ1QRFjXntoTOxEXXl5g5bdY0kuKPTs6patKh9OD/LhZSZ+5FS7Ae+IpliT4xxRXxCneIN0sTEsZwMD+k13HVgCSPM/IN2kidQc5mYUYwNIpcHCQQf9gzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fR6hXV9t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756526173; c=relaxed/simple;
+	bh=51CbwRLTYhpdHvlJoIdQqeknUKrbuk4VxkN7n4o7Lzg=;
+	h=Date:To:From:Subject:Message-Id; b=qsZGG+vbfYodLR6QT4HJZeKZ6rFeU2HyqGL55TD5Ky/6IaermqVmNtbA+RNFUZgMFltcadlcmnE1DvBkaogVt3fWeICMboX55i0icJ0IWMIDfcWsXluGQGKdu0ZH2x5YVq7OVXqY4IwpeNoBGojEijd6g7xCkWz6rhuv2JAEWpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pPnRKcrD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fR6hXV9t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA5F9C4CEF0;
-	Sat, 30 Aug 2025 03:38:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pPnRKcrD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE67C4CEEB;
+	Sat, 30 Aug 2025 03:56:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756525115;
-	bh=TLKOhbHBFlWaijbIGvepw5GNxqmhmuFIen1YmaNpsOc=;
+	s=korg; t=1756526172;
+	bh=51CbwRLTYhpdHvlJoIdQqeknUKrbuk4VxkN7n4o7Lzg=;
 	h=Date:To:From:Subject:From;
-	b=fR6hXV9tp1/VhmZUSzXw+fMtFw5rJAz5fCuDoWYdyLfZxLf/Cdg7B8amW5M5b5ZZk
-	 xF7iolVZwHvdnqiXfYMgTzCkZcc/qFhI0MALTMVM+i6vzZRHHtyXRKzZ9UlwNdu2SG
-	 oQBCer8K9ks3f0TpgaFLJQY6ZBjqjQtk3A6hIcv4=
-Date: Fri, 29 Aug 2025 20:38:34 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,linus.walleij@linaro.org,Liam.Howlett@oracle.com,kees@kernel.org,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@redhat.com,bsegall@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=pPnRKcrDG9hRo56thzOwfOySAeXrMFPz87uFMHa4BTll+hfEqV+K1f96epzG+fNT1
+	 KP7QAr19rJHHST1llb9e/kX56mrZ3r3FWcfbZrrvlpPpys0JZFTq/UAzqxXHKXfNqr
+	 1G57qoxMjW7eSB4kHtVtA1fvXIusrUUgr24AU1sM=
+Date: Fri, 29 Aug 2025 20:56:11 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,thomas.hellstrom@linux.intel.com,mpenttil@redhat.com,matthew.brost@intel.com,leonro@nvidia.com,jgg@nvidia.com,christian.koenig@amd.com,balbirs@nvidia.com,apopple@nvidia.com,airlied@gmail.com,francois.dugast@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + task_stackh-clean-up-stack_not_used-implementation.patch added to mm-new branch
-Message-Id: <20250830033834.EA5F9C4CEF0@smtp.kernel.org>
+Subject: + mm-hmm-populate-pfns-from-pmd-swap-entry.patch added to mm-new branch
+Message-Id: <20250830035612.0DE67C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: task_stack.h: clean-up stack_not_used() implementation
+     Subject: mm/hmm: populate PFNs from PMD swap entry
 has been added to the -mm mm-new branch.  Its filename is
-     task_stackh-clean-up-stack_not_used-implementation.patch
+     mm-hmm-populate-pfns-from-pmd-swap-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/task_stackh-clean-up-stack_not_used-implementation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-populate-pfns-from-pmd-swap-entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,100 +64,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: task_stack.h: clean-up stack_not_used() implementation
-Date: Fri, 29 Aug 2025 13:44:41 +0200
+From: Francois Dugast <francois.dugast@intel.com>
+Subject: mm/hmm: populate PFNs from PMD swap entry
+Date: Fri, 29 Aug 2025 10:05:05 +0200
 
-Inside the small stack_not_used() function there are several ifdefs for
-stack growing-up vs.  regular versions.  Instead just implement this
-function two times, one for growing-up and another regular.
+Once support for THP migration of zone device pages is enabled, device
+private swap entries will be found during the walk not only for PTEs but
+also for PMDs.
 
-Add comments like /* !CONFIG_DEBUG_STACK_USAGE */ to clarify what the
-ifdefs are doing.
+Therefore, it is necessary to extend to PMDs the special handling which is
+already in place for PTEs when device private pages are owned by the
+caller: instead of faulting or skipping the range, the correct behavior is
+to use the swap entry to populate HMM PFNs.
 
-[linus.walleij@linaro.org: rebased, function moved elsewhere in the kernel]
-Link: https://lkml.kernel.org/r/20250829-fork-cleanups-for-dynstack-v1-2-3bbaadce1f00@linaro.org
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Link: https://lore.kernel.org/20240311164638.2015063-13-pasha.tatashin@soleen.com
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Ben Segall <bsegall@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mel Gorman <mgorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Even though subsequent PFNs can be inferred when handling large order
+PFNs, the PFN list is still fully populated because this is currently
+expected by HMM users.
+
+Link: https://lkml.kernel.org/r/20250829080505.1020155-1-francois.dugast@intel.com
+Signed-off-by: Francois Dugast <francois.dugast@intel.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Leon Romanovsky <leonro@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Thomas Hellstrom <thomas.hellstrom@linux.intel.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ mm/hmm.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
---- a/kernel/exit.c~task_stackh-clean-up-stack_not_used-implementation
-+++ a/kernel/exit.c
-@@ -780,24 +780,29 @@ static void exit_notify(struct task_stru
- }
- 
- #ifdef CONFIG_DEBUG_STACK_USAGE
-+#ifdef CONFIG_STACK_GROWSUP
- unsigned long stack_not_used(struct task_struct *p)
- {
- 	unsigned long *n = end_of_stack(p);
- 
- 	do {	/* Skip over canary */
--# ifdef CONFIG_STACK_GROWSUP
- 		n--;
--# else
--		n++;
--# endif
- 	} while (!*n);
- 
--# ifdef CONFIG_STACK_GROWSUP
- 	return (unsigned long)end_of_stack(p) - (unsigned long)n;
--# else
-+}
-+#else /* !CONFIG_STACK_GROWSUP */
-+unsigned long stack_not_used(struct task_struct *p)
-+{
-+	unsigned long *n = end_of_stack(p);
-+
-+	do {	/* Skip over canary */
-+		n++;
-+	} while (!*n);
-+
- 	return (unsigned long)n - (unsigned long)end_of_stack(p);
--# endif
- }
-+#endif /* CONFIG_STACK_GROWSUP */
- 
- /* Count the maximum pages reached in kernel stacks */
- static inline void kstack_histogram(unsigned long used_stack)
-@@ -856,9 +861,9 @@ static void check_stack_usage(void)
+--- a/mm/hmm.c~mm-hmm-populate-pfns-from-pmd-swap-entry
++++ a/mm/hmm.c
+@@ -355,6 +355,29 @@ again:
  	}
- 	spin_unlock(&low_water_lock);
- }
--#else
-+#else /* !CONFIG_DEBUG_STACK_USAGE */
- static inline void check_stack_usage(void) {}
--#endif
-+#endif /* CONFIG_DEBUG_STACK_USAGE */
  
- static void synchronize_group_exit(struct task_struct *tsk, long code)
- {
+ 	if (!pmd_present(pmd)) {
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++		swp_entry_t entry = pmd_to_swp_entry(pmd);
++
++		if (is_device_private_entry(entry) &&
++		    pfn_swap_entry_folio(entry)->pgmap->owner ==
++		    range->dev_private_owner) {
++			unsigned long cpu_flags = HMM_PFN_VALID |
++				hmm_pfn_flags_order(PMD_SHIFT - PAGE_SHIFT);
++			unsigned long pfn = swp_offset_pfn(entry);
++			unsigned long i;
++
++			if (is_writable_device_private_entry(entry))
++				cpu_flags |= HMM_PFN_WRITE;
++
++			for (i = 0; addr < end; addr += PAGE_SIZE, i++, pfn++) {
++				hmm_pfns[i] &= HMM_PFN_INOUT_FLAGS;
++				hmm_pfns[i] |= pfn | cpu_flags;
++			}
++
++			return 0;
++		}
++#endif  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
++
+ 		if (hmm_range_need_fault(hmm_vma_walk, hmm_pfns, npages, 0))
+ 			return -EFAULT;
+ 		return hmm_pfns_fill(start, end, range, HMM_PFN_ERROR);
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from francois.dugast@intel.com are
 
-fork-check-charging-success-before-zeroing-stack.patch
-task_stackh-clean-up-stack_not_used-implementation.patch
+mm-hmm-populate-pfns-from-pmd-swap-entry.patch
 
