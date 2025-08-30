@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49243271450
-	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2025 23:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2ADFC2EF
+	for <mm-commits@vger.kernel.org>; Sat, 30 Aug 2025 03:28:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756423535; cv=none; b=m1bBqGKVayeKrBNGlqgxy40BDCEbWfda6irAsLPKthqfTq527zvbyF/R/803vypW/68GohTjwPpz9arMNMnnrO1wx6L49lxWhq2NjEv0Lrpok9GyA74SJfy0WNvba8uuQyWwi+aFpIiPJG6b/dy18YxJYos3VGKMzskyBP93Pek=
+	t=1756524530; cv=none; b=KKX8C3mIqDvZTUT+Zc0t1EcbwPpIazIqFx/IXk1bWip5NGGVulNEMgzyXZ5q+nyaZbdHONyjOTrEmscaX7IBBtmifN+EhC2y1CoC/GFmXP9RldAkQTOUnygrODjTf7IShOVVqmEkH3p9wR8cnYS19J8MyEmj8SZ5WyFdKtlNzPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756423535; c=relaxed/simple;
-	bh=zUUhk1K48mh8I8OyzN/0GLqay+eaV2pcAUXWAP5T/FE=;
-	h=Date:To:From:Subject:Message-Id; b=He9d0Ej0xPMvbzWeb7w7ZBFhXna8ssEuvWGXlmXCFRvlbUNBR45Z21PkVwJgmEQG9SxXsYN67Gpra6IRw2WvhPsB+TM1y2EBELSl7+6IrxB0/wh83n+1IytHkYf3aYUPAzeUkSzP5c8zG9c8o+X+0/mijswH0+e943uxjJHlMaQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SwMDAwG4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756524530; c=relaxed/simple;
+	bh=5iChPSnlDMr1tsgagRu/6KQuB5+nRqlQQyMNnfqmDNU=;
+	h=Date:To:From:Subject:Message-Id; b=fXN7A42AnSkjhLyRRHgooC0s1/6rH4l0K3TgyAgVdF6BDeqbbENxljf+WnJb4negP73ECHnibuSrcjGbZzYmCIF7YWptzW28WIkpoFgN7CRdsprGKVXOSmXVRcEr/2Znf91Ef6VIyXfc4de7/7SJghh14gqGd9mEC59ITUW/WLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HiVLnsLb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SwMDAwG4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4244C4CEF7;
-	Thu, 28 Aug 2025 23:25:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HiVLnsLb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C37FC4CEF0;
+	Sat, 30 Aug 2025 03:28:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756423534;
-	bh=zUUhk1K48mh8I8OyzN/0GLqay+eaV2pcAUXWAP5T/FE=;
+	s=korg; t=1756524529;
+	bh=5iChPSnlDMr1tsgagRu/6KQuB5+nRqlQQyMNnfqmDNU=;
 	h=Date:To:From:Subject:From;
-	b=SwMDAwG4XTfHJaP8aOSUtrl3IEYzik0+WqQhLH1/DXCzvYLijq1cLo89g/x+ue81m
-	 uhvATazaQ2S5/SYiY2kALgFZTi2RwCqzcpmk1xokW3vXLbEZbG0NbhwMaUkIKq+DEj
-	 VysSxGnHbnQSavlKpXXtXiTHaVEs+MONOLz5e+Po=
-Date: Thu, 28 Aug 2025 16:25:34 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+	b=HiVLnsLb9R6yjrSzYCxU4RL0av8EAUQtkMldSRBCMPI2ay9TZoK9/s6jQqMMR53yP
+	 tMLL8f7YWsHoEbHa6xrlwkt4kjXLT2pTxy7Z8Lg+sGT/ZJ34jRBKApI4UMTAUoK8Uf
+	 3GZ+O1bEFWqilRdTE0bbq9ocbLU4aizY4sGtnFj4=
+Date: Fri, 29 Aug 2025 20:28:48 -0700
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,sj@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-testing-fix-for-spanning-store-on-32b.patch added to mm-new branch
-Message-Id: <20250828232534.A4244C4CEF7@smtp.kernel.org>
+Subject: + mm-zswap-interact-directly-with-zsmalloc.patch added to mm-new branch
+Message-Id: <20250830032849.3C37FC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: testing fix for spanning store on 32b
+     Subject: mm: zswap: interact directly with zsmalloc
 has been added to the -mm mm-new branch.  Its filename is
-     maple_tree-testing-fix-for-spanning-store-on-32b.patch
+     mm-zswap-interact-directly-with-zsmalloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-testing-fix-for-spanning-store-on-32b.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-interact-directly-with-zsmalloc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,49 +64,503 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: testing fix for spanning store on 32b
-Date: Wed, 27 Aug 2025 20:30:23 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: interact directly with zsmalloc
+Date: Fri, 29 Aug 2025 17:15:26 +0100
 
-32 bit nodes have a larger branching factor.  This affects the required
-value to cause a height change.  Update the spanning store height test to
-work for both 64 and 32 bit nodes.
+Patch series "mm: remove zpool".
 
-Link: https://lkml.kernel.org/r/20250828003023.418966-3-Liam.Howlett@oracle.com
-Fixes: f9d3a963fef4 ("maple_tree: use height and depth consistently")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+zpool is an indirection layer for zswap to switch between multiple
+allocator backends at runtime.  Since 6.15, zsmalloc is the only allocator
+left in-tree, so there is no point in keeping zpool around.
+
+
+This patch (of 3):
+
+zswap goes through the zpool layer to enable runtime-switching of
+allocator backends for compressed data.  However, since zbud and z3fold
+were removed in 6.15, zsmalloc has been the only option available.
+
+As such, the zpool indirection is unnecessary.  Make zswap deal with
+zsmalloc directly.  This is comparable to zram, which also directly
+interacts with zsmalloc and has never supported a different backend.
+
+Note that this does not preclude future improvements and experiments with
+different allocation strategies.  Should it become necessary, it's
+possible to provide an alternate implementation for the zsmalloc API,
+selectable at compile time.  However, zsmalloc is also rather mature and
+feature rich, with years of widespread production exposure; it's
+encouraged to make incremental improvements rather than fork it.
+
+In any case, the complexity of runtime pluggability seems excessive and
+unjustified at this time.  Switch zswap to zsmalloc to remove the last
+user of the zpool API.
+
+Link: https://lkml.kernel.org/r/20250829162212.208258-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20250829162212.208258-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/zswap.c |  202 +++++++++++++--------------------------------------
+ 1 file changed, 54 insertions(+), 148 deletions(-)
 
---- a/tools/testing/radix-tree/maple.c~maple_tree-testing-fix-for-spanning-store-on-32b
-+++ a/tools/testing/radix-tree/maple.c
-@@ -36327,13 +36327,18 @@ extern void test_kmem_cache_bulk(void);
- static inline void check_spanning_store_height(struct maple_tree *mt)
+--- a/mm/zswap.c~mm-zswap-interact-directly-with-zsmalloc
++++ a/mm/zswap.c
+@@ -25,7 +25,6 @@
+ #include <linux/scatterlist.h>
+ #include <linux/mempolicy.h>
+ #include <linux/mempool.h>
+-#include <linux/zpool.h>
+ #include <crypto/acompress.h>
+ #include <linux/zswap.h>
+ #include <linux/mm_types.h>
+@@ -35,6 +34,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/workqueue.h>
+ #include <linux/list_lru.h>
++#include <linux/zsmalloc.h>
+ 
+ #include "swap.h"
+ #include "internal.h"
+@@ -107,16 +107,6 @@ static const struct kernel_param_ops zsw
+ module_param_cb(compressor, &zswap_compressor_param_ops,
+ 		&zswap_compressor, 0644);
+ 
+-/* Compressed storage zpool to use */
+-static char *zswap_zpool_type = CONFIG_ZSWAP_ZPOOL_DEFAULT;
+-static int zswap_zpool_param_set(const char *, const struct kernel_param *);
+-static const struct kernel_param_ops zswap_zpool_param_ops = {
+-	.set =		zswap_zpool_param_set,
+-	.get =		param_get_charp,
+-	.free =		param_free_charp,
+-};
+-module_param_cb(zpool, &zswap_zpool_param_ops, &zswap_zpool_type, 0644);
+-
+ /* The maximum percentage of memory that the compressed pool can occupy */
+ static unsigned int zswap_max_pool_percent = 20;
+ module_param_named(max_pool_percent, zswap_max_pool_percent, uint, 0644);
+@@ -161,7 +151,7 @@ struct crypto_acomp_ctx {
+  * needs to be verified that it's still valid in the tree.
+  */
+ struct zswap_pool {
+-	struct zpool *zpool;
++	struct zs_pool *zs_pool;
+ 	struct crypto_acomp_ctx __percpu *acomp_ctx;
+ 	struct percpu_ref ref;
+ 	struct list_head list;
+@@ -193,7 +183,7 @@ static struct shrinker *zswap_shrinker;
+  *              logic if referenced is unset. See comments in the shrinker
+  *              section for context.
+  * pool - the zswap_pool the entry's data is in
+- * handle - zpool allocation handle that stores the compressed page data
++ * handle - zsmalloc allocation handle that stores the compressed page data
+  * objcg - the obj_cgroup that the compressed memory is charged to
+  * lru - handle to the pool's lru used to evict pages.
+  */
+@@ -214,7 +204,7 @@ static unsigned int nr_zswap_trees[MAX_S
+ static LIST_HEAD(zswap_pools);
+ /* protects zswap_pools list modification */
+ static DEFINE_SPINLOCK(zswap_pools_lock);
+-/* pool counter to provide unique names to zpool */
++/* pool counter to provide unique names to zsmalloc */
+ static atomic_t zswap_pools_count = ATOMIC_INIT(0);
+ 
+ enum zswap_init_type {
+@@ -241,32 +231,22 @@ static inline struct xarray *swap_zswap_
+ 		>> SWAP_ADDRESS_SPACE_SHIFT];
+ }
+ 
+-#define zswap_pool_debug(msg, p)				\
+-	pr_debug("%s pool %s/%s\n", msg, (p)->tfm_name,		\
+-		 zpool_get_type((p)->zpool))
++#define zswap_pool_debug(msg, p)			\
++	pr_debug("%s pool %s\n", msg, (p)->tfm_name)
+ 
+ /*********************************
+ * pool functions
+ **********************************/
+ static void __zswap_pool_empty(struct percpu_ref *ref);
+ 
+-static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
++static struct zswap_pool *zswap_pool_create(char *compressor)
  {
- 	int index = 0;
-+	int last = 140;
- 	MA_STATE(mas, mt, 0, 0);
- 	mas_lock(&mas);
- 	while (mt_height(mt) != 3) {
- 		mas_store_gfp(&mas, xa_mk_value(index), GFP_KERNEL);
- 		mas_set(&mas, ++index);
+ 	struct zswap_pool *pool;
+ 	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
+-	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+ 	int ret, cpu;
+ 
+-	if (!zswap_has_pool) {
+-		/* if either are unset, pool initialization failed, and we
+-		 * need both params to be set correctly before trying to
+-		 * create a pool.
+-		 */
+-		if (!strcmp(type, ZSWAP_PARAM_UNSET))
+-			return NULL;
+-		if (!strcmp(compressor, ZSWAP_PARAM_UNSET))
+-			return NULL;
+-	}
++	if (!zswap_has_pool && !strcmp(compressor, ZSWAP_PARAM_UNSET))
++		return NULL;
+ 
+ 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+ 	if (!pool)
+@@ -274,12 +254,9 @@ static struct zswap_pool *zswap_pool_cre
+ 
+ 	/* unique name for each pool specifically required by zsmalloc */
+ 	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
+-	pool->zpool = zpool_create_pool(type, name, gfp);
+-	if (!pool->zpool) {
+-		pr_err("%s zpool not available\n", type);
++	pool->zs_pool = zs_create_pool(name);
++	if (!pool->zs_pool)
+ 		goto error;
+-	}
+-	pr_debug("using %s zpool\n", zpool_get_type(pool->zpool));
+ 
+ 	strscpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
+ 
+@@ -315,52 +292,29 @@ ref_fail:
+ error:
+ 	if (pool->acomp_ctx)
+ 		free_percpu(pool->acomp_ctx);
+-	if (pool->zpool)
+-		zpool_destroy_pool(pool->zpool);
++	if (pool->zs_pool)
++		zs_destroy_pool(pool->zs_pool);
+ 	kfree(pool);
+ 	return NULL;
+ }
+ 
+ static struct zswap_pool *__zswap_pool_create_fallback(void)
+ {
+-	bool has_comp, has_zpool;
+-
+-	has_comp = crypto_has_acomp(zswap_compressor, 0, 0);
+-	if (!has_comp && strcmp(zswap_compressor,
+-				CONFIG_ZSWAP_COMPRESSOR_DEFAULT)) {
++	if (!crypto_has_acomp(zswap_compressor, 0, 0) &&
++	    strcmp(zswap_compressor, CONFIG_ZSWAP_COMPRESSOR_DEFAULT)) {
+ 		pr_err("compressor %s not available, using default %s\n",
+ 		       zswap_compressor, CONFIG_ZSWAP_COMPRESSOR_DEFAULT);
+ 		param_free_charp(&zswap_compressor);
+ 		zswap_compressor = CONFIG_ZSWAP_COMPRESSOR_DEFAULT;
+-		has_comp = crypto_has_acomp(zswap_compressor, 0, 0);
+-	}
+-	if (!has_comp) {
+-		pr_err("default compressor %s not available\n",
+-		       zswap_compressor);
+-		param_free_charp(&zswap_compressor);
+-		zswap_compressor = ZSWAP_PARAM_UNSET;
+-	}
+-
+-	has_zpool = zpool_has_pool(zswap_zpool_type);
+-	if (!has_zpool && strcmp(zswap_zpool_type,
+-				 CONFIG_ZSWAP_ZPOOL_DEFAULT)) {
+-		pr_err("zpool %s not available, using default %s\n",
+-		       zswap_zpool_type, CONFIG_ZSWAP_ZPOOL_DEFAULT);
+-		param_free_charp(&zswap_zpool_type);
+-		zswap_zpool_type = CONFIG_ZSWAP_ZPOOL_DEFAULT;
+-		has_zpool = zpool_has_pool(zswap_zpool_type);
+-	}
+-	if (!has_zpool) {
+-		pr_err("default zpool %s not available\n",
+-		       zswap_zpool_type);
+-		param_free_charp(&zswap_zpool_type);
+-		zswap_zpool_type = ZSWAP_PARAM_UNSET;
++		if (!crypto_has_acomp(zswap_compressor, 0, 0)) {
++			pr_err("default compressor %s not available\n",
++			       zswap_compressor);
++			zswap_compressor = ZSWAP_PARAM_UNSET;
++			return NULL;
++		}
  	}
--	mas_set_range(&mas, 90, 140);
-+
-+	if (MAPLE_32BIT)
-+		last = 155; /* 32 bit higher branching factor. */
-+
-+	mas_set_range(&mas, 90, last);
- 	mas_store_gfp(&mas, xa_mk_value(index), GFP_KERNEL);
- 	MT_BUG_ON(mt, mas_mt_height(&mas) != 2);
- 	mas_unlock(&mas);
+ 
+-	if (!has_comp || !has_zpool)
+-		return NULL;
+-
+-	return zswap_pool_create(zswap_zpool_type, zswap_compressor);
++	return zswap_pool_create(zswap_compressor);
+ }
+ 
+ static void zswap_pool_destroy(struct zswap_pool *pool)
+@@ -370,7 +324,7 @@ static void zswap_pool_destroy(struct zs
+ 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
+ 	free_percpu(pool->acomp_ctx);
+ 
+-	zpool_destroy_pool(pool->zpool);
++	zs_destroy_pool(pool->zs_pool);
+ 	kfree(pool);
+ }
+ 
+@@ -462,7 +416,7 @@ static struct zswap_pool *zswap_pool_cur
+ }
+ 
+ /* type and compressor must be null-terminated */
+-static struct zswap_pool *zswap_pool_find_get(char *type, char *compressor)
++static struct zswap_pool *zswap_pool_find_get(char *compressor)
+ {
+ 	struct zswap_pool *pool;
+ 
+@@ -471,8 +425,6 @@ static struct zswap_pool *zswap_pool_fin
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list) {
+ 		if (strcmp(pool->tfm_name, compressor))
+ 			continue;
+-		if (strcmp(zpool_get_type(pool->zpool), type))
+-			continue;
+ 		/* if we can't get it, it's about to be destroyed */
+ 		if (!zswap_pool_tryget(pool))
+ 			continue;
+@@ -499,7 +451,7 @@ unsigned long zswap_total_pages(void)
+ 
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list)
+-		total += zpool_get_total_pages(pool->zpool);
++		total += zs_get_total_pages(pool->zs_pool);
+ 	rcu_read_unlock();
+ 
+ 	return total;
+@@ -524,33 +476,22 @@ static bool zswap_check_limits(void)
+ * param callbacks
+ **********************************/
+ 
+-static bool zswap_pool_changed(const char *s, const struct kernel_param *kp)
+-{
+-	/* no change required */
+-	if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool)
+-		return false;
+-	return true;
+-}
+-
+-/* val must be a null-terminated string */
+-static int __zswap_param_set(const char *val, const struct kernel_param *kp,
+-			     char *type, char *compressor)
++static int zswap_compressor_param_set(const char *val, const struct kernel_param *kp)
+ {
+ 	struct zswap_pool *pool, *put_pool = NULL;
+ 	char *s = strstrip((char *)val);
++	bool create_pool = false;
+ 	int ret = 0;
+-	bool new_pool = false;
+ 
+ 	mutex_lock(&zswap_init_lock);
+ 	switch (zswap_init_state) {
+ 	case ZSWAP_UNINIT:
+-		/* if this is load-time (pre-init) param setting,
+-		 * don't create a pool; that's done during init.
+-		 */
++		/* Handled in zswap_setup() */
+ 		ret = param_set_charp(s, kp);
+ 		break;
+ 	case ZSWAP_INIT_SUCCEED:
+-		new_pool = zswap_pool_changed(s, kp);
++		if (!zswap_has_pool || strcmp(s, *(char **)kp->arg))
++			create_pool = true;
+ 		break;
+ 	case ZSWAP_INIT_FAILED:
+ 		pr_err("can't set param, initialization failed\n");
+@@ -558,30 +499,17 @@ static int __zswap_param_set(const char
+ 	}
+ 	mutex_unlock(&zswap_init_lock);
+ 
+-	/* no need to create a new pool, return directly */
+-	if (!new_pool)
++	if (!create_pool)
+ 		return ret;
+ 
+-	if (!type) {
+-		if (!zpool_has_pool(s)) {
+-			pr_err("zpool %s not available\n", s);
+-			return -ENOENT;
+-		}
+-		type = s;
+-	} else if (!compressor) {
+-		if (!crypto_has_acomp(s, 0, 0)) {
+-			pr_err("compressor %s not available\n", s);
+-			return -ENOENT;
+-		}
+-		compressor = s;
+-	} else {
+-		WARN_ON(1);
+-		return -EINVAL;
++	if (!crypto_has_acomp(s, 0, 0)) {
++		pr_err("compressor %s not available\n", s);
++		return -ENOENT;
+ 	}
+ 
+ 	spin_lock_bh(&zswap_pools_lock);
+ 
+-	pool = zswap_pool_find_get(type, compressor);
++	pool = zswap_pool_find_get(s);
+ 	if (pool) {
+ 		zswap_pool_debug("using existing", pool);
+ 		WARN_ON(pool == zswap_pool_current());
+@@ -591,7 +519,7 @@ static int __zswap_param_set(const char
+ 	spin_unlock_bh(&zswap_pools_lock);
+ 
+ 	if (!pool)
+-		pool = zswap_pool_create(type, compressor);
++		pool = zswap_pool_create(s);
+ 	else {
+ 		/*
+ 		 * Restore the initial ref dropped by percpu_ref_kill()
+@@ -616,7 +544,8 @@ static int __zswap_param_set(const char
+ 		list_add_rcu(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
+ 	} else if (pool) {
+-		/* add the possibly pre-existing pool to the end of the pools
++		/*
++		 * Add the possibly pre-existing pool to the end of the pools
+ 		 * list; if it's new (and empty) then it'll be removed and
+ 		 * destroyed by the put after we drop the lock
+ 		 */
+@@ -626,18 +555,8 @@ static int __zswap_param_set(const char
+ 
+ 	spin_unlock_bh(&zswap_pools_lock);
+ 
+-	if (!zswap_has_pool && !pool) {
+-		/* if initial pool creation failed, and this pool creation also
+-		 * failed, maybe both compressor and zpool params were bad.
+-		 * Allow changing this param, so pool creation will succeed
+-		 * when the other param is changed. We already verified this
+-		 * param is ok in the zpool_has_pool() or crypto_has_acomp()
+-		 * checks above.
+-		 */
+-		ret = param_set_charp(s, kp);
+-	}
+-
+-	/* drop the ref from either the old current pool,
++	/*
++	 * Drop the ref from either the old current pool,
+ 	 * or the new pool we failed to add
+ 	 */
+ 	if (put_pool)
+@@ -646,18 +565,6 @@ static int __zswap_param_set(const char
+ 	return ret;
+ }
+ 
+-static int zswap_compressor_param_set(const char *val,
+-				      const struct kernel_param *kp)
+-{
+-	return __zswap_param_set(val, kp, zswap_zpool_type, NULL);
+-}
+-
+-static int zswap_zpool_param_set(const char *val,
+-				 const struct kernel_param *kp)
+-{
+-	return __zswap_param_set(val, kp, NULL, zswap_compressor);
+-}
+-
+ static int zswap_enabled_param_set(const char *val,
+ 				   const struct kernel_param *kp)
+ {
+@@ -801,13 +708,13 @@ static void zswap_entry_cache_free(struc
+ }
+ 
+ /*
+- * Carries out the common pattern of freeing and entry's zpool allocation,
++ * Carries out the common pattern of freeing an entry's zsmalloc allocation,
+  * freeing the entry itself, and decrementing the number of stored pages.
+  */
+ static void zswap_entry_free(struct zswap_entry *entry)
+ {
+ 	zswap_lru_del(&zswap_list_lru, entry);
+-	zpool_free(entry->pool->zpool, entry->handle);
++	zs_free(entry->pool->zs_pool, entry->handle);
+ 	zswap_pool_put(entry->pool);
+ 	if (entry->objcg) {
+ 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
+@@ -949,7 +856,6 @@ static bool zswap_compress(struct page *
+ 	int comp_ret = 0, alloc_ret = 0;
+ 	unsigned int dlen = PAGE_SIZE;
+ 	unsigned long handle;
+-	struct zpool *zpool;
+ 	gfp_t gfp;
+ 	u8 *dst;
+ 	bool mapped = false;
+@@ -997,13 +903,14 @@ static bool zswap_compress(struct page *
+ 		mapped = true;
+ 	}
+ 
+-	zpool = pool->zpool;
+ 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
+-	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle, page_to_nid(page));
+-	if (alloc_ret)
++	handle = zs_malloc(pool->zs_pool, dlen, gfp, page_to_nid(page));
++	if (IS_ERR_VALUE(handle)) {
++		alloc_ret = PTR_ERR((void *)handle);
+ 		goto unlock;
++	}
+ 
+-	zpool_obj_write(zpool, handle, dst, dlen);
++	zs_obj_write(pool->zs_pool, handle, dst, dlen);
+ 	entry->handle = handle;
+ 	entry->length = dlen;
+ 
+@@ -1023,14 +930,14 @@ unlock:
+ 
+ static bool zswap_decompress(struct zswap_entry *entry, struct folio *folio)
+ {
+-	struct zpool *zpool = entry->pool->zpool;
++	struct zswap_pool *pool = entry->pool;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	int decomp_ret = 0, dlen = PAGE_SIZE;
+ 	u8 *src, *obj;
+ 
+-	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
+-	obj = zpool_obj_read_begin(zpool, entry->handle, acomp_ctx->buffer);
++	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
++	obj = zs_obj_read_begin(pool->zs_pool, entry->handle, acomp_ctx->buffer);
+ 
+ 	/* zswap entries of length PAGE_SIZE are not compressed. */
+ 	if (entry->length == PAGE_SIZE) {
+@@ -1039,7 +946,7 @@ static bool zswap_decompress(struct zswa
+ 	}
+ 
+ 	/*
+-	 * zpool_obj_read_begin() might return a kmap address of highmem when
++	 * zs_obj_read_begin() might return a kmap address of highmem when
+ 	 * acomp_ctx->buffer is not used.  However, sg_init_one() does not
+ 	 * handle highmem addresses, so copy the object to acomp_ctx->buffer.
+ 	 */
+@@ -1059,7 +966,7 @@ static bool zswap_decompress(struct zswa
+ 	dlen = acomp_ctx->req->dlen;
+ 
+ read_done:
+-	zpool_obj_read_end(zpool, entry->handle, obj);
++	zs_obj_read_end(pool->zs_pool, entry->handle, obj);
+ 	acomp_ctx_put_unlock(acomp_ctx);
+ 
+ 	if (!decomp_ret && dlen == PAGE_SIZE)
+@@ -1576,7 +1483,7 @@ static bool zswap_store_page(struct page
+ 	return true;
+ 
+ store_failed:
+-	zpool_free(pool->zpool, entry->handle);
++	zs_free(pool->zs_pool, entry->handle);
+ compress_failed:
+ 	zswap_entry_cache_free(entry);
+ 	return false;
+@@ -1906,8 +1813,7 @@ static int zswap_setup(void)
+ 
+ 	pool = __zswap_pool_create_fallback();
+ 	if (pool) {
+-		pr_info("loaded using pool %s/%s\n", pool->tfm_name,
+-			zpool_get_type(pool->zpool));
++		pr_info("loaded using pool %s\n", pool->tfm_name);
+ 		list_add(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
+ 		static_branch_enable(&zswap_ever_enabled);
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-maple_tree-testing-fix-for-spanning-store-on-32b.patch
+mm-zswap-interact-directly-with-zsmalloc.patch
+mm-remove-unused-zpool-layer.patch
+mm-zpdesc-minor-naming-and-comment-corrections.patch
 
