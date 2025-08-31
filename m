@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F1036D1A7
-	for <mm-commits@vger.kernel.org>; Sun, 31 Aug 2025 19:44:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 116A8C13B
+	for <mm-commits@vger.kernel.org>; Sun, 31 Aug 2025 19:51:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756669498; cv=none; b=Y7ryu5wBXTNz1UlHLlzHZ+uG8kqBleZmzbfXWseNCfbFz6SWSV4i0m1X4MFRmfG83rk47hO7qHDgpP9Ib5tVEDl1uEp3B71VVQSjVpn0cPYsci53sNJ9qq5eSwCU+WTzochk8kbg5B/U6ZuUXHEudkYnftRsTeFgo+DExEsOZZk=
+	t=1756669866; cv=none; b=o0vZuIm1z/YIsm/xDyNOEvScsll34ADuwErAJK1V+hMB7fXRGH3+FAx7VIjXTKMAko/Qj2aJVLwg+L1xj/HWYP1oEOW5eIM5w357cTR0ZosyyTcjqKixCpaYgSWUhgPq7CtGg+BfL68H5uWXiV7AUHFrqVvr4C7nFnYiwpAmK9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756669498; c=relaxed/simple;
-	bh=uEOWqpJRF3uH4LcpXiruKWhh30NaBWP1EPbeuJYNb0g=;
-	h=Date:To:From:Subject:Message-Id; b=U8Rf5HCysf08lYJSQJyJgl36HOA6jd0xgm6yKjsWa6RfAgfdj4aelqOzgZ1yXFSiHF5+7Vg9mGWPrJvncxKMMfF3RV0N6oJnj1wN8eTefNW6D4mabhVPORIGfpKG986FcaLmDnnxjZgCBi3zgP3TocNCkFpIs2R3iymCAMKoYaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lSUkouLD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756669866; c=relaxed/simple;
+	bh=ZDZqQRC7mIktxG4/GOcAYlVMOggN+Ei6aVRzRZucHjw=;
+	h=Date:To:From:Subject:Message-Id; b=MXmWJYmy/TpNUv5yxx+s2Frtac6TUz+VfgRM7RFN//aYpnLrVlH6++lsHnPx1na5eILRdQwihne/KC3SU89s6luNdYRh6ZiygfeNGqQUNWA6vrybA7SpPp/LKIEoV3wXXr3sNFmO/z6bwfLbU26PdaKpkFDjDQJCo41uT89FR3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cWZswPPm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lSUkouLD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5212C4CEED;
-	Sun, 31 Aug 2025 19:44:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cWZswPPm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 871BCC4CEED;
+	Sun, 31 Aug 2025 19:51:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756669497;
-	bh=uEOWqpJRF3uH4LcpXiruKWhh30NaBWP1EPbeuJYNb0g=;
+	s=korg; t=1756669865;
+	bh=ZDZqQRC7mIktxG4/GOcAYlVMOggN+Ei6aVRzRZucHjw=;
 	h=Date:To:From:Subject:From;
-	b=lSUkouLD18jW9W20zgwur1G+41BnhZI9z3pg1fXHopHSu0jtkCDey4wAkz3roIre9
-	 UAjyWhNGHXowDRn02lneNKdJyVcKp4lEP2DqMPE4TwRyxZQ68tGay2/IzhMTa45WPh
-	 w2jiEaUstNgFhbfL91HqZqN93+DVd9Q8If4S7pfI=
-Date: Sun, 31 Aug 2025 12:44:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,lorenzo.stoakes@oracle.com,david@redhat.com,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=cWZswPPmraWd7p2z4F6ksWbP4oa1XK7y6RLz6U63v2y4Eca9/SD6FatVG4eE5If4r
+	 MH61jgqeZPYR7egcKv93SGqHgtz8+wMvxm6PZE8WON9KL1kmd70aH+big/dOQV5ClC
+	 dTzITx0qtcLkiLC7q0UZTYNuFnED/q+PpuFCkIOA=
+Date: Sun, 31 Aug 2025 12:51:04 -0700
+To: mm-commits@vger.kernel.org,kaushlendra.kumar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-check-content-to-see-whether-mremap-corrupt-data.patch added to mm-new branch
-Message-Id: <20250831194457.C5212C4CEED@smtp.kernel.org>
+Subject: + tools-mm-slabinfo-fix-access-to-null-terminator-in-string-boundary.patch added to mm-new branch
+Message-Id: <20250831195105.871BCC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: check content to see whether mremap corrupt data
+     Subject: tools/mm/slabinfo: fix access to null terminator in string boundary
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-check-content-to-see-whether-mremap-corrupt-data.patch
+     tools-mm-slabinfo-fix-access-to-null-terminator-in-string-boundary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-content-to-see-whether-mremap-corrupt-data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-slabinfo-fix-access-to-null-terminator-in-string-boundary.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,56 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: selftests/mm: check content to see whether mremap corrupt data
-Date: Sun, 31 Aug 2025 02:27:01 +0000
+From: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
+Subject: tools/mm/slabinfo: fix access to null terminator in string boundary
+Date: Sat, 30 Aug 2025 22:50:22 +0530
 
-After mremap(), add a check on content to see whether mremap corrupt data.
+The current code incorrectly accesses buffer[strlen(buffer)], which points
+to the null terminator ('\0') at the end of the string.  This is
+technically out-of-bounds access since valid string content ends at index
+strlen(buffer)-1.
 
-Link: https://lkml.kernel.org/r/20250831022701.2595-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Fix by:
+1. Declaring strlen() result variable at function scope
+2. Adding bounds check (len > 0) to handle empty strings
+3. Using buffer[len-1] to correctly access the last character before
+   the null terminator
+
+Link: https://lkml.kernel.org/r/20250830172022.1927448-1-kaushlendra.kumar@intel.com
+Signed-off-by: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ tools/mm/slabinfo.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-check-content-to-see-whether-mremap-corrupt-data
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -423,10 +423,14 @@ static void split_pte_mapped_thp(void)
+--- a/tools/mm/slabinfo.c~tools-mm-slabinfo-fix-access-to-null-terminator-in-string-boundary
++++ a/tools/mm/slabinfo.c
+@@ -155,6 +155,8 @@ static void usage(void)
  
- 	/* smap does not show THPs after mremap, use kpageflags instead */
- 	thp_size = 0;
--	for (i = 0; i < pagesize * 4; i++)
-+	for (i = 0; i < pagesize * 4; i++) {
-+		if (pte_mapped[i] != (char)i)
-+			ksft_exit_fail_msg("%ld byte corrupted\n", i);
+ static unsigned long read_obj(const char *name)
+ {
++	size_t len;
 +
- 		if (i % pagesize == 0 &&
- 		    is_backed_by_folio(&pte_mapped[i], pmd_order, pagemap_fd, kpageflags_fd))
- 			thp_size++;
-+	}
+ 	FILE *f = fopen(name, "r");
  
- 	if (thp_size != 4)
- 		ksft_exit_fail_msg("Some THPs are missing during mremap\n");
+ 	if (!f) {
+@@ -165,8 +167,10 @@ static unsigned long read_obj(const char
+ 		if (!fgets(buffer, sizeof(buffer), f))
+ 			buffer[0] = 0;
+ 		fclose(f);
+-		if (buffer[strlen(buffer)] == '\n')
+-			buffer[strlen(buffer)] = 0;
++		len = strlen(buffer);
++
++		if (len > 0 && buffer[len - 1] == '\n')
++			buffer[len - 1] = 0;
+ 	}
+ 	return strlen(buffer);
+ }
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from kaushlendra.kumar@intel.com are
 
-mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young.patch
-mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
-selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
-mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
-mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
-selftests-mm-put-general-ksm-operation-into-vm_util.patch
-selftests-mm-test-that-rmap-behave-as-expected.patch
-mm-khugepaged-use-list_xxx-helper-to-improve-readability.patch
-mm-page_alloc-use-xxx_pageblock_isolate-for-better-reading.patch
-mm-pageblock-flags-remove-pb_migratetype_bits-pb_migrate_end.patch
-mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch
-selftests-mm-check-content-to-see-whether-mremap-corrupt-data.patch
+tools-mm-slabinfo-fix-access-to-null-terminator-in-string-boundary.patch
 
