@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8B234CDD
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8F63324B2A
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752156; cv=none; b=QCKfDINOWWsDaVU9fhsJzDy8JA+fRFTpyhSKR1gfPC1pxbEjMXOWpve/gVJmwz6q+BcS9tvxozgNgwCg/hKn5z5MZrTmXnJJm8IrgRWmV7uCCCOkFERu6ArvrfLmr5kcX0RjyZX3Wvb82/Ptg/Ke38Mk+u7/sXk3qxf3x2QM01g=
+	t=1756752158; cv=none; b=I0WGUkMtV0lOfxxbGPqTBdjn5OMa7Ni56bkMOkKCQWWJZYxBXEFym58hWqcbWyHNr1xk0/kHoC7YZyz2zIKHmLKjqnZkeRVEMKW2dv17bB59eYMLj+vPcIBttVtGEXj3rZq8JQI7R8XQ5u52WMIjOldDbtDEruigpCHj0oM7QjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752156; c=relaxed/simple;
-	bh=MzJ0MxOju/M4Um3Sgiv015VREXlz4Df7tptf5gMVSHM=;
-	h=Date:To:From:Subject:Message-Id; b=tM5l+yCBzGuxey6G7g8mquwQSIvTvPPzM5U1ZXSNx+oKFID6MyqtUzv8Q/rNspvRLNReiHoVpPTQfam9Ui40kwiaDHKPr5O3TdBEofT1iNTGsRT1oA/7UYbA5YvxMyJb0nKY47DIoXMGlXPPRYUaC3OKOJI68kre5hRDC40wCaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cdojALtA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752158; c=relaxed/simple;
+	bh=AVOWPujdbmr484mdCnKRl1JcElTNNy98eNeH6pBkQ1g=;
+	h=Date:To:From:Subject:Message-Id; b=F+ZgGnWPKQxXS9q17k0uaDuTJVWyG3TsRikq61FPF5cYSFbuWYdMsSdePjprWA7tXDU8ywmLeHv8wWkevw/SbXBSn6c5gV25zLYx8TBDrLvvYE3EK/C/WBDNub1JdGu6wIcaeCCu/QtAm3rB5oP/fVhN8Nz0CRO7Um8OrgurGq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QcV8/aqt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cdojALtA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51FC8C4CEF0;
-	Mon,  1 Sep 2025 18:42:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QcV8/aqt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F995C4CEF0;
+	Mon,  1 Sep 2025 18:42:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752156;
-	bh=MzJ0MxOju/M4Um3Sgiv015VREXlz4Df7tptf5gMVSHM=;
+	s=korg; t=1756752158;
+	bh=AVOWPujdbmr484mdCnKRl1JcElTNNy98eNeH6pBkQ1g=;
 	h=Date:To:From:Subject:From;
-	b=cdojALtAYMZ7eNMwYwl+XnltkCrCb8JhlasTg60/do87dq0YHTZkMoFstx1MXyRPZ
-	 +5sLW+CyaBxJojKIJecyF7cVFLY1Lzy/LbToKnA7oJk4EMJ2FLTLjDg5pRPJxnbjm/
-	 VEjR84KPkNu+UP5BpVsYeMG8tkKM6zQz3awBO1sE=
-Date: Mon, 01 Sep 2025 11:42:35 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=QcV8/aqtQxWENjVsahsB6b1nAHhOWxdiKm8k1xS2mpVT19kEzMB2Y6aungas5Gzit
+	 UU4muVvZshyMvqNxjAh+ZPWxow2UoonD+iZ82TQdZ8g39EcrdLp9nlLAYL3X4m6xqC
+	 oFNlsIc4rTKbsgpZfzBZHdhL1VFbzBzVNC0ApW1Q=
+Date: Mon, 01 Sep 2025 11:42:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm-percpu-km-drop-nth_page-usage-within-single-allocation.patch added to mm-new branch
-Message-Id: <20250901184236.51FC8C4CEF0@smtp.kernel.org>
+Subject: + fs-hugetlbfs-remove-nth_page-usage-within-folio-in-adjust_range_hwpoison.patch added to mm-new branch
+Message-Id: <20250901184238.2F995C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm/percpu-km: drop nth_page() usage within single allocation
+     Subject: fs: hugetlbfs: remove nth_page() usage within folio in adjust_range_hwpoison()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm-percpu-km-drop-nth_page-usage-within-single-allocation.patch
+     fs-hugetlbfs-remove-nth_page-usage-within-folio-in-adjust_range_hwpoison.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm-percpu-km-drop-nth_page-usage-within-single-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-hugetlbfs-remove-nth_page-usage-within-folio-in-adjust_range_hwpoison.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,34 +65,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/mm/percpu-km: drop nth_page() usage within single allocation
-Date: Mon, 1 Sep 2025 17:03:35 +0200
+Subject: fs: hugetlbfs: remove nth_page() usage within folio in adjust_range_hwpoison()
+Date: Mon, 1 Sep 2025 17:03:36 +0200
 
-We're allocating a higher-order page from the buddy.  For these pages
-(that are guaranteed to not exceed a single memory section) there is no
-need to use nth_page().
+The nth_page() is not really required anymore, so let's remove it.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-15-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-16-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-km.c |    2 +-
+ fs/hugetlbfs/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/percpu-km.c~mm-mm-percpu-km-drop-nth_page-usage-within-single-allocation
-+++ a/mm/percpu-km.c
-@@ -69,7 +69,7 @@ static struct pcpu_chunk *pcpu_create_ch
+--- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-remove-nth_page-usage-within-folio-in-adjust_range_hwpoison
++++ a/fs/hugetlbfs/inode.c
+@@ -217,7 +217,7 @@ static size_t adjust_range_hwpoison(stru
+ 			break;
+ 		offset += n;
+ 		if (offset == PAGE_SIZE) {
+-			page = nth_page(page, 1);
++			page++;
+ 			offset = 0;
+ 		}
  	}
- 
- 	for (i = 0; i < nr_pages; i++)
--		pcpu_set_page_chunk(nth_page(pages, i), chunk);
-+		pcpu_set_page_chunk(pages + i, chunk);
- 
- 	chunk->data = pages;
- 	chunk->base_addr = page_address(pages);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
