@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB62E21B195
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EADA32A801
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752132; cv=none; b=YOIU3SqlRoO7yuyfBdhOho6Y7uoEmvv7NlKCQtREoY42WPKvl1rCqaYHUCmB0ZUxovnRnwXEySCpaN2BjK7VZZ+ta+x3lt47k1po7DkAe8KLWw/LmvQa92Lgyw4/va79f0yzHFER6SIrPUVokaH1Ye9xnuxiujehM+5U8/kZkww=
+	t=1756752134; cv=none; b=WeKbwzH6RBi9yvgeUziNlmBp7SmqA+8pLMPzFVWNQ+uSvtIiXx+J2bcFs6YtEiTTJzSpdMynjw0vNzvPDWWBLFyd1EyaCtEbOJ6O9Qm9KUXpsLGQCIYbntobr3JrBjACyk9Io1X3/v6JZovHJfYKY4BEdyVxRsezPDhPHDiU/uw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752132; c=relaxed/simple;
-	bh=/KysAAprSh9tDbkunPoZzFMdmtNot6aqBJxwS2DW+U4=;
-	h=Date:To:From:Subject:Message-Id; b=dCvrmH/wqTaNRfOAtLWEc2pBXn8iNv1cc6FXnMO+iXWqNxXMhXbsexsnUvqOMLuY0+ECa/jvAPayOKcNdYVHAhXXREp7/n9WbK0Ea7vr0qd6logkRjABqTtu00dWGjlrWRsKuYMtQ5PO+csmfi/IO+3zh84yjp7DZF1Rokd6stE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T4u7gF8x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752134; c=relaxed/simple;
+	bh=+1w/x2c1C1K8jh3RIGN74f+PH08tiGtzJOmo+9rH7R4=;
+	h=Date:To:From:Subject:Message-Id; b=B7XakuSpW1J5i1J+908wmDwNfhHqFJrh8JhuooBmHZQy1UcyBhyCyl1+DJPwxcryfgWL+SeMb2UgGUD4TI2Zc3K1xLtkVwtt9FCfllGuug8g/HARzzAx1xL9YRgAPMvZ8qWiVAn36Iu9PwofrRNchDSLlYfMgfCcftRjvN849aM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nweFWTK2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T4u7gF8x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B0B6C4CEF0;
-	Mon,  1 Sep 2025 18:42:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nweFWTK2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2336AC4CEF0;
+	Mon,  1 Sep 2025 18:42:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752132;
-	bh=/KysAAprSh9tDbkunPoZzFMdmtNot6aqBJxwS2DW+U4=;
+	s=korg; t=1756752134;
+	bh=+1w/x2c1C1K8jh3RIGN74f+PH08tiGtzJOmo+9rH7R4=;
 	h=Date:To:From:Subject:From;
-	b=T4u7gF8xNAgIFfuYnfmvwChIyqCSaIRw5QDDi+GUotxhwWgQRK6Tl2VixqoTDzi7a
-	 f6KNo++3P6MuaLTy2mWdwBwnVBJeCxHvK4zSXfV5Uyl2WQmyN4Ws7Mdyc7BvlLMlLa
-	 yi35YiKTrsKNVxra9mfz1OrpIsrqGV7QV5HweHWA=
-Date: Mon, 01 Sep 2025 11:42:11 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,catalin.marinas@arm.com,david@redhat.com,akpm@linux-foundation.org
+	b=nweFWTK2+yQa/zZuYR4BsvO/SgIEp+E2VDdB9IY0u0q8No2E9BACAEBYljD3k/Nyi
+	 CPG/TSI2LP3qinhZA2iyr9Ab0ocFK59LVftMVPcCfjoobMX6fvwfv8LG2JDPGTGu7k
+	 Evge+tQCFl5rJMfVjiEVgc5N576oWM+mAQp7113M=
+Date: Mon, 01 Sep 2025 11:42:13 -0700
+To: mm-commits@vger.kernel.org,svens@linux.ibm.com,rppt@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-kconfig-drop-superfluous-select-sparsemem_vmemmap.patch added to mm-new branch
-Message-Id: <20250901184212.2B0B6C4CEF0@smtp.kernel.org>
+Subject: + s390-kconfig-drop-superfluous-select-sparsemem_vmemmap.patch added to mm-new branch
+Message-Id: <20250901184214.2336AC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: Kconfig: drop superfluous "select SPARSEMEM_VMEMMAP"
+     Subject: s390/Kconfig: drop superfluous "select SPARSEMEM_VMEMMAP"
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-kconfig-drop-superfluous-select-sparsemem_vmemmap.patch
+     s390-kconfig-drop-superfluous-select-sparsemem_vmemmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-kconfig-drop-superfluous-select-sparsemem_vmemmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-kconfig-drop-superfluous-select-sparsemem_vmemmap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,34 +65,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: arm64: Kconfig: drop superfluous "select SPARSEMEM_VMEMMAP"
-Date: Mon, 1 Sep 2025 17:03:23 +0200
+Subject: s390/Kconfig: drop superfluous "select SPARSEMEM_VMEMMAP"
+Date: Mon, 1 Sep 2025 17:03:24 +0200
 
 Now handled by the core automatically once SPARSEMEM_VMEMMAP_ENABLE is
 selected.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    1 -
+ arch/s390/Kconfig |    1 -
  1 file changed, 1 deletion(-)
 
---- a/arch/arm64/Kconfig~arm64-kconfig-drop-superfluous-select-sparsemem_vmemmap
-+++ a/arch/arm64/Kconfig
-@@ -1570,7 +1570,6 @@ source "kernel/Kconfig.hz"
+--- a/arch/s390/Kconfig~s390-kconfig-drop-superfluous-select-sparsemem_vmemmap
++++ a/arch/s390/Kconfig
+@@ -710,7 +710,6 @@ menu "Memory setup"
  config ARCH_SPARSEMEM_ENABLE
  	def_bool y
  	select SPARSEMEM_VMEMMAP_ENABLE
 -	select SPARSEMEM_VMEMMAP
  
- config HW_PERF_EVENTS
+ config ARCH_SPARSEMEM_DEFAULT
  	def_bool y
 _
 
