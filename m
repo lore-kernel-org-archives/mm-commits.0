@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2439116132A
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0C2C34CDD
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752162; cv=none; b=NlgoIPvJpmhy2mW71ykNEEQn1FC5O6trpO7HIVOqR9IrcN3Jw/Fxuwa+DTF3f4yagMS/wLej00ajAVfFLuebRFma7f66fgKKWlNMaxODL7K/gEWUlm5u1RxkxcMSpLAo9L2ahCh0fLR8Uijm4eP+rJ2cNA46AKJRw8VZwBL4YOc=
+	t=1756752164; cv=none; b=AuSnhQDp00E+18aMD4iGzBsmkr1kyrg+/cGxu9pyX1+FQSFlaHkgeW66TJau2TAg1SwpchspY+Q8LpOfKG6HDo8bNYaNFIw6dGXXyw/T5EkYiUbkoCt1z3XBryswQh90PFyiwGh90muVayYNqhgJZw7A2cNc2HYIfO77Zo6Zbjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752162; c=relaxed/simple;
-	bh=FXQ3nyp6sVEJ8kV1bXzh5u/Z3q51l1Xa0RnanXcFb0k=;
-	h=Date:To:From:Subject:Message-Id; b=J1378LmjuP8+e/cDJdpENWEql2+GAewcug0WzL1EENgPiEesevH+okQQ6fw/ogZsDeawKRvBzI13CwHoI08GDgRyo7wUCHBhHtZ2RlrD25HRHiFXyc1twYypfHZeyKpXBYhPkjb7rtZjHTB2UVuaKPAFBQAlVFNHMsUXx2Qk/DM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TDREISCQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752164; c=relaxed/simple;
+	bh=J4LXHYPDTn96GjZJ87WDedw0oZ60hEiEW5HEbrpu4uA=;
+	h=Date:To:From:Subject:Message-Id; b=pOFrok+smdiWNnlf9w0IUFOlXX/9GfWssTOOLtpi1CvPUWXL3/BaCM3JTkUVudM8llxGAUPjLu/WOudUMRQfYVOCPj0KBDXKy9rvEGmVssKN4KpAvcWuQ5/OrF00p3VzYqF+yQ3OTz6mDtDloXNTQGm21fknSQGospm/NsRVtrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nE4uvqk1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TDREISCQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE78C4CEF0;
-	Mon,  1 Sep 2025 18:42:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nE4uvqk1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C742DC4CEF0;
+	Mon,  1 Sep 2025 18:42:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752162;
-	bh=FXQ3nyp6sVEJ8kV1bXzh5u/Z3q51l1Xa0RnanXcFb0k=;
+	s=korg; t=1756752163;
+	bh=J4LXHYPDTn96GjZJ87WDedw0oZ60hEiEW5HEbrpu4uA=;
 	h=Date:To:From:Subject:From;
-	b=TDREISCQv553iURPydf0t2nLelnWTzac2Xxh2vkOMkYyCVg7PeX7D+aysHbRY23i2
-	 zutz9rP1PPD4dbIGPM73KVMuDbvmhoYev2qUmtXH1XmTptCngaM6Y0XtLfhJ0ZGjWH
-	 CbpfgWXfp+k/9qvTa0nV5HmMjrzb43b1EN/hOu2A=
-Date: Mon, 01 Sep 2025 11:42:41 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=nE4uvqk1ZQRBMggo/VbCvbTVOt9H3pcioSTXVUqov0h8bSPmtGE/7ooh10AHrroyd
+	 VsIQKomUo1n8K/X5OIv3drukOPRbH1GrSY4s2qhWjbMqCSs0Ev3Inmu2bJjm0hfE+2
+	 v4wQPegHcEhGP8rfKNsHsT3NyxvgZ4jAwqr0L8kY=
+Date: Mon, 01 Sep 2025 11:42:43 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start.patch added to mm-new branch
-Message-Id: <20250901184241.EBE78C4CEF0@smtp.kernel.org>
+Subject: + mm-gup-drop-nth_page-usage-within-folio-when-recording-subpages.patch added to mm-new branch
+Message-Id: <20250901184243.C742DC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pagewalk: drop nth_page() usage within folio in folio_walk_start()
+     Subject: mm/gup: drop nth_page() usage within folio when recording subpages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start.patch
+     mm-gup-drop-nth_page-usage-within-folio-when-recording-subpages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-drop-nth_page-usage-within-folio-when-recording-subpages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,33 +65,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/pagewalk: drop nth_page() usage within folio in folio_walk_start()
-Date: Mon, 1 Sep 2025 17:03:38 +0200
+Subject: mm/gup: drop nth_page() usage within folio when recording subpages
+Date: Mon, 1 Sep 2025 17:03:39 +0200
 
-It's no longer required to use nth_page() within a folio, so let's just
-drop the nth_page() in folio_walk_start().
+nth_page() is no longer required when iterating over pages within a single
+folio, so let's just drop it when recording subpages.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-18-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-19-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start
-+++ a/mm/pagewalk.c
-@@ -1004,7 +1004,7 @@ not_found:
- found:
- 	if (expose_page)
- 		/* Note: Offset from the mapped page, not the folio start. */
--		fw->page = nth_page(page, (addr & (entry_size - 1)) >> PAGE_SHIFT);
-+		fw->page = page + ((addr & (entry_size - 1)) >> PAGE_SHIFT);
- 	else
- 		fw->page = NULL;
- 	fw->ptl = ptl;
+--- a/mm/gup.c~mm-gup-drop-nth_page-usage-within-folio-when-recording-subpages
++++ a/mm/gup.c
+@@ -488,12 +488,11 @@ static int record_subpages(struct page *
+ 			   unsigned long addr, unsigned long end,
+ 			   struct page **pages)
+ {
+-	struct page *start_page;
+ 	int nr;
+ 
+-	start_page = nth_page(page, (addr & (sz - 1)) >> PAGE_SHIFT);
++	page += (addr & (sz - 1)) >> PAGE_SHIFT;
+ 	for (nr = 0; addr != end; nr++, addr += PAGE_SIZE)
+-		pages[nr] = nth_page(start_page, nr);
++		pages[nr] = page++;
+ 
+ 	return nr;
+ }
+@@ -1512,7 +1511,7 @@ next_page:
+ 			}
+ 
+ 			for (j = 0; j < page_increm; j++) {
+-				subpage = nth_page(page, j);
++				subpage = page + j;
+ 				pages[i + j] = subpage;
+ 				flush_anon_page(vma, subpage, start + j * PAGE_SIZE);
+ 				flush_dcache_page(subpage);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
