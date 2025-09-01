@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F97C32A817
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B2C32A830
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752138; cv=none; b=jnRzGOjjnoD1E3K0/jz/soW6VlW8iahLRgnxG1VwkuF9+a5DZ9buZYfej2Yi2FgDxYMq4Y10/Ys65Y+raSxKu/VhS5YBwcbGOTIiWVkGqhyS63UsCYcQHI8ZDXnIR0V21NnbHAthcJNx46ROkykp0Z3oPo5gTvTkbKLhDJN1pXU=
+	t=1756752140; cv=none; b=fOEptG7dCRX0CMTlJt0/Ws/3OMOl1AFzhwFh/8bkNYHMU7Rv2Wu/8++D4fWPDA7FmCsMIOutiQzKvljvKy09I/eUOmy08++6vcAJZtIZSDxgCPZXQjqNscM6frO1lk7Dn+lVIeQl63JrVk2u/SLxveHAGo+zjIJhqkxEJ5CWHYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752138; c=relaxed/simple;
-	bh=BxsUjvcsbclMoFS/NJtYNKqZ9tLHRGw+KrzSVBniwl0=;
-	h=Date:To:From:Subject:Message-Id; b=SLrE2ICDts4lGA3aV/n7r7x5FWJETvWWIOMhKM2ZFl70oq3iqDtHjiPeYwQY+b9412phtsfJFUlXMbOFXOYD94fa5ACtpLWS1UJAl+dHoeL278O2MXEhy7SAzZpcA818RJIUR07BaYlf6DxIa0c5Hv9jfvJz3F8tz7WvFBnvph0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kCyk0cKT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752140; c=relaxed/simple;
+	bh=KiSxKi4uTeE42LrDuqgYQYGh97x3+BZfVqKyUGJ3g9k=;
+	h=Date:To:From:Subject:Message-Id; b=GLjdFzPWrXlH7iEMWLhPSxVgw+8fltQJ0I87ZZ3aEGC+uPis2uK/6alExOOp2ZunEdkqYGvMeNI1zARr+UoU5pfZQ+k91iLEGA5fK89LnBrahTy+vROUSg8UM/WXKzUeyUyTmt4a3KYVyNRq6AufLQraBLO3vCehNcs6ieV7Mnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxuhOLjS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kCyk0cKT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 044AFC4CEF0;
-	Mon,  1 Sep 2025 18:42:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxuhOLjS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA772C4CEF0;
+	Mon,  1 Sep 2025 18:42:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752138;
-	bh=BxsUjvcsbclMoFS/NJtYNKqZ9tLHRGw+KrzSVBniwl0=;
+	s=korg; t=1756752140;
+	bh=KiSxKi4uTeE42LrDuqgYQYGh97x3+BZfVqKyUGJ3g9k=;
 	h=Date:To:From:Subject:From;
-	b=kCyk0cKTwrtlIcOpPKHaDd6gYIZ8q3lmxpzr7G+JkUKdKrSHIVO4L+xMd2BusX5Fk
-	 K1dKpVKHFo3kiyPUDD0o/z+2sJjpx9dD5ejwPlnkjNel6o/ZS/khn8um2Wm8bEuP2L
-	 Lb0ju4fWvyojEQswl679RQbMslaw8QiZcar8Wr5Y=
-Date: Mon, 01 Sep 2025 11:42:17 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,Jason@zx2c4.com,david@redhat.com,akpm@linux-foundation.org
+	b=YxuhOLjSfQmrISyzxHX7yC/fqFxHWhDZxLghbA0ogWuxDcZQOeXHzDV9jplQb2S5R
+	 O9zLD6OXrNSn+WYh2qNvQV2VLVIcOUoBUf4X0w/QBC1/qbqTjHb4eNSi0a6yXA9ni/
+	 QRvTHLSZzT7AgKf0z36OjnsmvBcssxYZgOb0+QX0=
+Date: Mon, 01 Sep 2025 11:42:19 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + wireguard-selftests-remove-config_sparsemem_vmemmap=y-from-qemu-kernel-config.patch added to mm-new branch
-Message-Id: <20250901184218.044AFC4CEF0@smtp.kernel.org>
+Subject: + mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof.patch added to mm-new branch
+Message-Id: <20250901184219.EA772C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: wireguard: selftests: remove CONFIG_SPARSEMEM_VMEMMAP=y from qemu kernel config
+     Subject: mm/page_alloc: reject unreasonable folio/compound page sizes in alloc_contig_range_noprof()
 has been added to the -mm mm-new branch.  Its filename is
-     wireguard-selftests-remove-config_sparsemem_vmemmap=y-from-qemu-kernel-config.patch
+     mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/wireguard-selftests-remove-config_sparsemem_vmemmap=y-from-qemu-kernel-config.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,37 +65,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: wireguard: selftests: remove CONFIG_SPARSEMEM_VMEMMAP=y from qemu kernel config
-Date: Mon, 1 Sep 2025 17:03:26 +0200
+Subject: mm/page_alloc: reject unreasonable folio/compound page sizes in alloc_contig_range_noprof()
+Date: Mon, 1 Sep 2025 17:03:27 +0200
 
-It's no longer user-selectable (and the default was already "y"), so let's
-just drop it.
+Let's reject them early, which in turn makes folio_alloc_gigantic() reject
+them properly.
 
-It was never really relevant to the wireguard selftests either way.
+To avoid converting from order to nr_pages, let's just add MAX_FOLIO_ORDER
+and calculate MAX_FOLIO_NR_PAGES based on that.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-6-david@redhat.com
+While at it, let's just make the order a "const unsigned order".
+
+Link: https://lkml.kernel.org/r/20250901150359.867252-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/wireguard/qemu/kernel.config |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mm.h |    6 ++++--
+ mm/page_alloc.c    |   10 +++++++++-
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/wireguard/qemu/kernel.config~wireguard-selftests-remove-config_sparsemem_vmemmap=y-from-qemu-kernel-config
-+++ a/tools/testing/selftests/wireguard/qemu/kernel.config
-@@ -48,7 +48,6 @@ CONFIG_JUMP_LABEL=y
- CONFIG_FUTEX=y
- CONFIG_SHMEM=y
- CONFIG_SLUB=y
--CONFIG_SPARSEMEM_VMEMMAP=y
- CONFIG_SMP=y
- CONFIG_SCHED_SMT=y
- CONFIG_SCHED_MC=y
+--- a/include/linux/mm.h~mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof
++++ a/include/linux/mm.h
+@@ -2055,11 +2055,13 @@ static inline long folio_nr_pages(const
+ 
+ /* Only hugetlbfs can allocate folios larger than MAX_ORDER */
+ #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+-#define MAX_FOLIO_NR_PAGES	(1UL << PUD_ORDER)
++#define MAX_FOLIO_ORDER		PUD_ORDER
+ #else
+-#define MAX_FOLIO_NR_PAGES	MAX_ORDER_NR_PAGES
++#define MAX_FOLIO_ORDER		MAX_PAGE_ORDER
+ #endif
+ 
++#define MAX_FOLIO_NR_PAGES	(1UL << MAX_FOLIO_ORDER)
++
+ /*
+  * compound_nr() returns the number of pages in this potentially compound
+  * page.  compound_nr() can be called on a tail page, and is defined to
+--- a/mm/page_alloc.c~mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof
++++ a/mm/page_alloc.c
+@@ -6841,6 +6841,7 @@ static int __alloc_contig_verify_gfp_mas
+ int alloc_contig_range_noprof(unsigned long start, unsigned long end,
+ 			      acr_flags_t alloc_flags, gfp_t gfp_mask)
+ {
++	const unsigned int order = ilog2(end - start);
+ 	unsigned long outer_start, outer_end;
+ 	int ret = 0;
+ 
+@@ -6858,6 +6859,14 @@ int alloc_contig_range_noprof(unsigned l
+ 					    PB_ISOLATE_MODE_CMA_ALLOC :
+ 					    PB_ISOLATE_MODE_OTHER;
+ 
++	/*
++	 * In contrast to the buddy, we allow for orders here that exceed
++	 * MAX_PAGE_ORDER, so we must manually make sure that we are not
++	 * exceeding the maximum folio order.
++	 */
++	if (WARN_ON_ONCE((gfp_mask & __GFP_COMP) && order > MAX_FOLIO_ORDER))
++		return -EINVAL;
++
+ 	gfp_mask = current_gfp_context(gfp_mask);
+ 	if (__alloc_contig_verify_gfp_mask(gfp_mask, (gfp_t *)&cc.gfp_mask))
+ 		return -EINVAL;
+@@ -6955,7 +6964,6 @@ int alloc_contig_range_noprof(unsigned l
+ 			free_contig_range(end, outer_end - end);
+ 	} else if (start == outer_start && end == outer_end && is_power_of_2(end - start)) {
+ 		struct page *head = pfn_to_page(start);
+-		int order = ilog2(end - start);
+ 
+ 		check_new_pages(head, order);
+ 		prep_new_page(head, order, gfp_mask, 0);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
