@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17F8C32A801
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2BDD34CDD
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752166; cv=none; b=gm7kaVoYYlzUJl+ot3ywT9+4f7Rf4mFlMR3+xrvn80kvt4Dz9T0C9OT3TLwYennusetF+8j3DBowo/gFVpvClW8bFlgOXheKJDoR/Phnq9ybvi1JvqInixkRhUybVpaNwdlOCldzlUib6bNWHnLjFduWthwl9i3XT49+AaoAISY=
+	t=1756752167; cv=none; b=KJSeb7u9wGznYm0Gb8AMYsD2LDbkpODzkWu9F24CjLq2OPHtU1Z8ttZTPMDaCfrdLU35DqUyu+uNOP/GI4uyb2AoRF7v3NSx6/naXWmshLqhBzWja0/XrcRX5Ypkfsa58MU1rgHk0ql/pCFtiiPwczTlYpBNdD5geRGORtyQjN8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752166; c=relaxed/simple;
-	bh=xZXPh9rkZQErEThQXjxaUyc1cW6J4Z3LAG6BR40V7uw=;
-	h=Date:To:From:Subject:Message-Id; b=Ueu9CuNOBdigjf2K/4/0rit448H+DdTJ/8Rkxhw/wi3rYNleBlVZFyy6LX7vpDxf3mILlfbdvcnUQE4XxmIaydqXK1Yf6bxIzcaN2QUV8bEhtJyNdRDkfQPC3aTCXCh/MSkXB5QsQZYxkE+43n2d8BZMkE6dt3yoHsW86JKqdWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CdR0p2SO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752167; c=relaxed/simple;
+	bh=GesqiZ7bcWr5kmR6Nkj/NmiMHLzoEww3qjeNS3fS3dU=;
+	h=Date:To:From:Subject:Message-Id; b=ehyZmilz460Y9h8mHlEn+xdXv0PQ2Y8wWjPui5JNCN9SQpY/4o+y/gCre7PA03Msecyby2MV2cAL4YT7KLNrRojBmGX/cDS+iZwW60M5w1e4TAe/zfjPc8oGIuY7PUlDb0e2ni1cSFDlBvzi1RJYUKAv8mm30rKaQw67q+wQQLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MWino19P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CdR0p2SO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A5D5C4CEF0;
-	Mon,  1 Sep 2025 18:42:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MWino19P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EEBDC4CEF0;
+	Mon,  1 Sep 2025 18:42:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752165;
-	bh=xZXPh9rkZQErEThQXjxaUyc1cW6J4Z3LAG6BR40V7uw=;
+	s=korg; t=1756752167;
+	bh=GesqiZ7bcWr5kmR6Nkj/NmiMHLzoEww3qjeNS3fS3dU=;
 	h=Date:To:From:Subject:From;
-	b=CdR0p2SOpBej5UnGFiNDz9UTRqmA1OjbjLIM4x5WJRC4WV4Yr28CsUkFs7yqbBSWQ
-	 SDV1rSvlHRHoxG5s8CpDpMAi48A4PUCuWjn/d32GbXTUPYuAynM1kAfZhk9W7+q6n4
-	 NkiHDOzzrhGRGaZ69Q2ogBAYfkEzwVNbdKU0SpcE=
-Date: Mon, 01 Sep 2025 11:42:45 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org
+	b=MWino19PLJB1SoOKYtT9wKWghR3Nz1XGKUcr6sbPUXwq78U781AEPMeApEOp5XqdG
+	 SeJG53CTQUw2wHXqVUIQ0h+3kMCFRwBfJzm6a62GJk7AGd/yqerq94/8W/J51nLZuD
+	 z6DV87T/kG5x8dG1Bw/6ObB6W//xy5PrYD4iGuRQ=
+Date: Mon, 01 Sep 2025 11:42:47 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,axboe@kernel.dk,asml.silence@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-record_subpages.patch added to mm-new branch
-Message-Id: <20250901184245.9A5D5C4CEF0@smtp.kernel.org>
+Subject: + io_uring-zcrx-remove-nth_page-usage-within-folio.patch added to mm-new branch
+Message-Id: <20250901184247.7EEBDC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: remove record_subpages()
+     Subject: io_uring/zcrx: remove nth_page() usage within folio
 has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-remove-record_subpages.patch
+     io_uring-zcrx-remove-nth_page-usage-within-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-record_subpages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/io_uring-zcrx-remove-nth_page-usage-within-folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,85 +65,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: remove record_subpages()
-Date: Mon, 1 Sep 2025 17:03:40 +0200
+Subject: io_uring/zcrx: remove nth_page() usage within folio
+Date: Mon, 1 Sep 2025 17:03:41 +0200
 
-We can just cleanup the code by calculating the #refs earlier, so we can
-just inline what remains of record_subpages().
+Within a folio/compound page, nth_page() is no longer required.  Given
+that we call folio_test_partial_kmap()+kmap_local_page(), the code would
+already be problematic if the pages would span multiple folios.
 
-Calculate the number of references/pages ahead of times, and record them
-only once all our tests passed.
+So let's just assume that all src pages belong to a single folio/compound
+page and can be iterated ordinarily.  The dst page is currently always a
+single page, so we're not actually iterating anything.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-20-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-21-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Pavel Begunkov <asml.silence@gmail.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ io_uring/zcrx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-remove-record_subpages
-+++ a/mm/gup.c
-@@ -484,19 +484,6 @@ static inline void mm_set_has_pinned_fla
- #ifdef CONFIG_MMU
+--- a/io_uring/zcrx.c~io_uring-zcrx-remove-nth_page-usage-within-folio
++++ a/io_uring/zcrx.c
+@@ -975,9 +975,9 @@ static ssize_t io_copy_page(struct io_co
  
- #ifdef CONFIG_HAVE_GUP_FAST
--static int record_subpages(struct page *page, unsigned long sz,
--			   unsigned long addr, unsigned long end,
--			   struct page **pages)
--{
--	int nr;
--
--	page += (addr & (sz - 1)) >> PAGE_SHIFT;
--	for (nr = 0; addr != end; nr++, addr += PAGE_SIZE)
--		pages[nr] = page++;
--
--	return nr;
--}
--
- /**
-  * try_grab_folio_fast() - Attempt to get or pin a folio in fast path.
-  * @page:  pointer to page to be grabbed
-@@ -2967,8 +2954,8 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 	if (pmd_special(orig))
- 		return 0;
- 
--	page = pmd_page(orig);
--	refs = record_subpages(page, PMD_SIZE, addr, end, pages + *nr);
-+	refs = (end - addr) >> PAGE_SHIFT;
-+	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
- 
- 	folio = try_grab_folio_fast(page, refs, flags);
- 	if (!folio)
-@@ -2989,6 +2976,8 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 	}
- 
- 	*nr += refs;
-+	for (; refs; refs--)
-+		*(pages++) = page++;
- 	folio_set_referenced(folio);
- 	return 1;
- }
-@@ -3007,8 +2996,8 @@ static int gup_fast_pud_leaf(pud_t orig,
- 	if (pud_special(orig))
- 		return 0;
- 
--	page = pud_page(orig);
--	refs = record_subpages(page, PUD_SIZE, addr, end, pages + *nr);
-+	refs = (end - addr) >> PAGE_SHIFT;
-+	page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
- 
- 	folio = try_grab_folio_fast(page, refs, flags);
- 	if (!folio)
-@@ -3030,6 +3019,8 @@ static int gup_fast_pud_leaf(pud_t orig,
- 	}
- 
- 	*nr += refs;
-+	for (; refs; refs--)
-+		*(pages++) = page++;
- 	folio_set_referenced(folio);
- 	return 1;
- }
+ 		if (folio_test_partial_kmap(page_folio(dst_page)) ||
+ 		    folio_test_partial_kmap(page_folio(src_page))) {
+-			dst_page = nth_page(dst_page, dst_offset / PAGE_SIZE);
++			dst_page += dst_offset / PAGE_SIZE;
+ 			dst_offset = offset_in_page(dst_offset);
+-			src_page = nth_page(src_page, src_offset / PAGE_SIZE);
++			src_page += src_offset / PAGE_SIZE;
+ 			src_offset = offset_in_page(src_offset);
+ 			n = min(PAGE_SIZE - src_offset, PAGE_SIZE - dst_offset);
+ 			n = min(n, len);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
