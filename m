@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299A832A825
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A22816132A
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752200; cv=none; b=FBdulX8TCmBZi/57ZXxmtyCjvWKVe8nIxVqu6cZuNF042AqyRhlDAfCzpsGwMs3h4SBBxlcqyjrasOZR3mxpxhnkf4tSG8K3VkYTrmdjjkLuUKieAEheGMGEtS2fWpdKTYOkasgQPgjZN2dolaxS+dRPV4Cay0qKKsSe/b3wDbM=
+	t=1756752202; cv=none; b=DfeG/J2dCG9ppGD0xRLgu6n7mX4EDV8Ew3apbHWhyq/6Qcn3zMYkIl1u4+xAhytMOons2k3id1rsYX762h5W4tA+uebm6M14RafJlO/vKDesqkET5zlg8O062LLguOvy9J9TK6FLpZ2SFpCWhaSsRU5x8wODiulP4S1dxb/tmXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752200; c=relaxed/simple;
-	bh=WYeG3Y+51qwgw23uQ4RGFBT5J0QgIcCKzXA4zKyrrUs=;
-	h=Date:To:From:Subject:Message-Id; b=Ajg4BXgVM11kpZ4RglMjHZOm2ggxHikKlIjL1IrRGwCjqu3bKuqb22mMyHpkHSmLudtRO5RNs8krearYPRaAsIvdE+t2LzkOWfd3xxLGeUPFQLhaqux3NxFnYAhYOMBlSrAl1ikDtkmw+o4/X7B04ZH2sTBsAwnm/IhkvzSuDGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LIHqX8/w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752202; c=relaxed/simple;
+	bh=RKw7EudO5kJbIsJJreh7OKhzprApPahunKmYXhYiO+E=;
+	h=Date:To:From:Subject:Message-Id; b=U5p5rvC60wVO56XmU7/MXQkDke4Si3jD2nm3H7wHWcIFcH3rWoRNv20zaDhsj7aUhavq9BbaSvuShrzLfvuSeVY9BIfwlHppuEROjeCqjAHYVq4TDtLPdGHUSnYieZRG+/Or7NQl0eLx3Lbcyguowc6xP60yFl6tOotatsHWWlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zxJiCjUn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LIHqX8/w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4348C4CEF0;
-	Mon,  1 Sep 2025 18:43:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zxJiCjUn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8966C4CEF0;
+	Mon,  1 Sep 2025 18:43:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752200;
-	bh=WYeG3Y+51qwgw23uQ4RGFBT5J0QgIcCKzXA4zKyrrUs=;
+	s=korg; t=1756752201;
+	bh=RKw7EudO5kJbIsJJreh7OKhzprApPahunKmYXhYiO+E=;
 	h=Date:To:From:Subject:From;
-	b=LIHqX8/wZTNBMC8X3dSa3d3EBP8E87OghNzKeVZ8CA++doBDlH8axHVS5hsCZzck1
-	 cHmCFWHVJQnVZAg+zlO06ep8BLHWAtz2J/LN3fYeVb7f4Y1bK36jtyRPgLNUDMVESV
-	 3dLh0XOFpIUW9d8xVolOK5aoNXGyRJ6uZr4jUAfc=
-Date: Mon, 01 Sep 2025 11:43:19 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,glider@google.com,elver@google.com,dvyukov@google.com,david@redhat.com,akpm@linux-foundation.org
+	b=zxJiCjUn8I5kCByHUHCmz9qk31bcoIu+dUQuPRfQs1BzWDxlnR7SlfiVWyxAtK9Gu
+	 jaV/uDG9OOkWaV0FnKRSqUJ9uMvX41AcJ4PydU527sQ0NyeoHZhxApDGhh+cXJBV13
+	 uDLut6FtehruLhdoAvl2AfVjxr4oC6ZyLMNO283E=
+Date: Mon, 01 Sep 2025 11:43:21 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kfence-drop-nth_page-usage.patch added to mm-new branch
-Message-Id: <20250901184319.E4348C4CEF0@smtp.kernel.org>
+Subject: + block-update-comment-of-struct-bio_vec-regarding-nth_page.patch added to mm-new branch
+Message-Id: <20250901184321.C8966C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kfence: drop nth_page() usage
+     Subject: block: update comment of "struct bio_vec" regarding nth_page()
 has been added to the -mm mm-new branch.  Its filename is
-     kfence-drop-nth_page-usage.patch
+     block-update-comment-of-struct-bio_vec-regarding-nth_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfence-drop-nth_page-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/block-update-comment-of-struct-bio_vec-regarding-nth_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,82 +65,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: kfence: drop nth_page() usage
-Date: Mon, 1 Sep 2025 17:03:56 +0200
+Subject: block: update comment of "struct bio_vec" regarding nth_page()
+Date: Mon, 1 Sep 2025 17:03:57 +0200
 
-We want to get rid of nth_page(), and kfence init code is the last user.
+Ever since commit 858c708d9efb ("block: move the bi_size update out of
+__bio_try_merge_page"), page_is_mergeable() no longer exists, and the
+logic in bvec_try_merge_page() is now a simple page pointer comparison.
 
-Unfortunately, we might actually walk a PFN range where the pages are not
-contiguous, because we might be allocating an area from memblock that
-could span memory sections in problematic kernel configs (SPARSEMEM
-without SPARSEMEM_VMEMMAP).
-
-We could check whether the page range is contiguous using
-page_range_contiguous() and failing kfence init, or making kfence
-incompatible these problemtic kernel configs.
-
-Let's keep it simple and simply use pfn_to_page() by iterating PFNs.
-
-Link: https://lkml.kernel.org/r/20250901150359.867252-36-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-37-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/linux/bvec.h |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/kfence/core.c~kfence-drop-nth_page-usage
-+++ a/mm/kfence/core.c
-@@ -594,15 +594,14 @@ static void rcu_guarded_free(struct rcu_
+--- a/include/linux/bvec.h~block-update-comment-of-struct-bio_vec-regarding-nth_page
++++ a/include/linux/bvec.h
+@@ -22,11 +22,8 @@ struct page;
+  * @bv_len:    Number of bytes in the address range.
+  * @bv_offset: Start of the address range relative to the start of @bv_page.
+  *
+- * The following holds for a bvec if n * PAGE_SIZE < bv_offset + bv_len:
+- *
+- *   nth_page(@bv_page, n) == @bv_page + n
+- *
+- * This holds because page_is_mergeable() checks the above property.
++ * All pages within a bio_vec starting from @bv_page are contiguous and
++ * can simply be iterated (see bvec_advance()).
   */
- static unsigned long kfence_init_pool(void)
- {
--	unsigned long addr;
--	struct page *pages;
-+	unsigned long addr, start_pfn;
- 	int i;
- 
- 	if (!arch_kfence_init_pool())
- 		return (unsigned long)__kfence_pool;
- 
- 	addr = (unsigned long)__kfence_pool;
--	pages = virt_to_page(__kfence_pool);
-+	start_pfn = PHYS_PFN(virt_to_phys(__kfence_pool));
- 
- 	/*
- 	 * Set up object pages: they must have PGTY_slab set to avoid freeing
-@@ -613,11 +612,12 @@ static unsigned long kfence_init_pool(vo
- 	 * enters __slab_free() slow-path.
- 	 */
- 	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
--		struct slab *slab = page_slab(nth_page(pages, i));
-+		struct slab *slab;
- 
- 		if (!i || (i % 2))
- 			continue;
- 
-+		slab = page_slab(pfn_to_page(start_pfn + i));
- 		__folio_set_slab(slab_folio(slab));
- #ifdef CONFIG_MEMCG
- 		slab->obj_exts = (unsigned long)&kfence_metadata_init[i / 2 - 1].obj_exts |
-@@ -665,10 +665,12 @@ static unsigned long kfence_init_pool(vo
- 
- reset_slab:
- 	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
--		struct slab *slab = page_slab(nth_page(pages, i));
-+		struct slab *slab;
- 
- 		if (!i || (i % 2))
- 			continue;
-+
-+		slab = page_slab(pfn_to_page(start_pfn + i));
- #ifdef CONFIG_MEMCG
- 		slab->obj_exts = 0;
- #endif
+ struct bio_vec {
+ 	struct page	*bv_page;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
