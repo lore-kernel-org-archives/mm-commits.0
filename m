@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3872D32A813
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE3232A813
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752150; cv=none; b=Meo/9/STkZBkHRNc4AF2gUHvaSRvb0qs9lbCPFC6rJFz6ALFK/rhtsfyfTbnFcq0Ak2bX6XTowyqDhi7hLmCOczBWhZj20l+r/vJgcZtZCQL9Fwj2fNljVQ2jZujouISYSmAFDUQkiUT1T2G5272HM9Dq71N3XnWmUtDUCCvgRs=
+	t=1756752152; cv=none; b=Em7GwLhmFO8958ZqLyCLXy7zes7tN4FX5YneQtTKiSw4XZIxWqN121oE8MptLIIVQim10RW/vrafBiJSJQu2/Z6HpY9cy/1qoGxE5gO3H8SN6E0YKCE0uC8Xu7EAIf7aQ9B2OiNeQIvx71JPediqBsC+M665q14UYIqbUdzJHiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752150; c=relaxed/simple;
-	bh=7WBxCXKPM0lr11fyIHUMleqQjopWvrrjxHQEIRuqXjQ=;
-	h=Date:To:From:Subject:Message-Id; b=mznCq94RGZXlTsCLotARIsBxR84So/FgOEvO3FqrZEPVSlCd2iSa1/AE4JiovaOzov1A2/M9z17YsQzwj7NNyDKi6A+LI2BgRG9HaJm2Z1oii1oTKlsMU6SgkWcjPqE+4j3Z/ZJRYwX6bp3/fubHmgD1N+ZGn1KTIxEKjLgDcxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v10CMg2m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752152; c=relaxed/simple;
+	bh=VplYaziMZP5DRMdDvVwdcrPar8o0RWHHJ0R6e0nAm78=;
+	h=Date:To:From:Subject:Message-Id; b=Wd+p5WZ6MrQ9pFmvgeJSdqczT2LI2u1w6wCnV1YdabIlLXlNbh2V8qaiqLp3mzepj7umQLMxKvDn/ZTWGw+89VwbCeexXyjSOPu6JBT0n6TMUAY2tW4cfwmJHKqwJaScxgDt2I5ao7YMOvc81GMQTfMUrHUDkAK9Ca95BhE60no=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mBUAt+w8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v10CMg2m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CB77C4CEF0;
-	Mon,  1 Sep 2025 18:42:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mBUAt+w8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 034A1C4CEF0;
+	Mon,  1 Sep 2025 18:42:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752150;
-	bh=7WBxCXKPM0lr11fyIHUMleqQjopWvrrjxHQEIRuqXjQ=;
+	s=korg; t=1756752152;
+	bh=VplYaziMZP5DRMdDvVwdcrPar8o0RWHHJ0R6e0nAm78=;
 	h=Date:To:From:Subject:From;
-	b=v10CMg2mbHgxHuoQo596Q7kFFxTMJM4sE/x87cY/3BjKqZe+W6sgjjmOARQBmeb73
-	 qZCfuzrio2ICLRX7/M3VHHy0QrHOW3hcPKmX2zPwzc3Qjyi520stI6rdD+FQ9g3RzK
-	 jlBXJrejhSK9gMsS2Zw6/pjZA4Tp8+h8EvIZQZ2s=
-Date: Mon, 01 Sep 2025 11:42:29 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,rppt@kernel.org,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=mBUAt+w88zkk+6rOkFPboxHWJdR8zUlQ+vM7/o+VuAFsIwEPsTd4v3w4ytl4ff27q
+	 bueeZJZ/ZYEvBjJqSkUTzx7YnOlAfZA0/IWYnOpR/7ZSqC/pSOeS5Rz6A6EZvCSQVI
+	 OtVDX9RL6kLTCt8fwy3arvEiB4oVSpoNy8HTzRS4=
+Date: Mon, 01 Sep 2025 11:42:31 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-limit-folio-compound-page-sizes-in-problematic-kernel-configs.patch added to mm-new branch
-Message-Id: <20250901184230.0CB77C4CEF0@smtp.kernel.org>
+Subject: + mm-simplify-folio_page-and-folio_page_idx.patch added to mm-new branch
+Message-Id: <20250901184232.034A1C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: limit folio/compound page sizes in problematic kernel configs
+     Subject: mm: simplify folio_page() and folio_page_idx()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-limit-folio-compound-page-sizes-in-problematic-kernel-configs.patch
+     mm-simplify-folio_page-and-folio_page_idx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-limit-folio-compound-page-sizes-in-problematic-kernel-configs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-simplify-folio_page-and-folio_page_idx.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,72 +65,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: limit folio/compound page sizes in problematic kernel configs
-Date: Mon, 1 Sep 2025 17:03:32 +0200
+Subject: mm: simplify folio_page() and folio_page_idx()
+Date: Mon, 1 Sep 2025 17:03:33 +0200
 
-Let's limit the maximum folio size in problematic kernel config where the
-memmap is allocated per memory section (SPARSEMEM without
-SPARSEMEM_VMEMMAP) to a single memory section.
+Now that a single folio/compound page can no longer span memory sections
+in problematic kernel configurations, we can stop using nth_page() in
+folio_page() and folio_page_idx().
 
-Currently, only a single architectures supports ARCH_HAS_GIGANTIC_PAGE but
-not SPARSEMEM_VMEMMAP: sh.
+While at it, turn both macros into static inline functions and add kernel
+doc for folio_page_idx().
 
-Fortunately, the biggest hugetlb size sh supports is 64 MiB
-(HUGETLB_PAGE_SIZE_64MB) and the section size is at least 64 MiB
-(SECTION_SIZE_BITS == 26), so their use case is not degraded.
-
-As folios and memory sections are naturally aligned to their order-2 size
-in memory, consequently a single folio can no longer span multiple memory
-sections on these problematic kernel configs.
-
-nth_page() is no longer required when operating within a single compound
-page / folio.
-
-Link: https://lkml.kernel.org/r/20250901150359.867252-12-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-13-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ include/linux/mm.h         |   16 ++++++++++++++--
+ include/linux/page-flags.h |    5 ++++-
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-limit-folio-compound-page-sizes-in-problematic-kernel-configs
+--- a/include/linux/mm.h~mm-simplify-folio_page-and-folio_page_idx
 +++ a/include/linux/mm.h
-@@ -2053,11 +2053,25 @@ static inline long folio_nr_pages(const
- 	return folio_large_nr_pages(folio);
- }
+@@ -210,10 +210,8 @@ extern unsigned long sysctl_admin_reserv
  
--/* Only hugetlbfs can allocate folios larger than MAX_ORDER */
--#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
--#define MAX_FOLIO_ORDER		PUD_ORDER
--#else
-+#if !defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE)
-+/*
-+ * We don't expect any folios that exceed buddy sizes (and consequently
-+ * memory sections).
-+ */
- #define MAX_FOLIO_ORDER		MAX_PAGE_ORDER
-+#elif defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
-+/*
-+ * Only pages within a single memory section are guaranteed to be
-+ * contiguous. By limiting folios to a single memory section, all folio
-+ * pages are guaranteed to be contiguous.
-+ */
-+#define MAX_FOLIO_ORDER		PFN_SECTION_SHIFT
-+#else
-+/*
-+ * There is no real limit on the folio size. We limit them to the maximum we
-+ * currently expect (e.g., hugetlb, dax).
-+ */
-+#define MAX_FOLIO_ORDER		PUD_ORDER
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+-#define folio_page_idx(folio, p)	(page_to_pfn(p) - folio_pfn(folio))
+ #else
+ #define nth_page(page,n) ((page) + (n))
+-#define folio_page_idx(folio, p)	((p) - &(folio)->page)
  #endif
  
- #define MAX_FOLIO_NR_PAGES	(1UL << MAX_FOLIO_ORDER)
+ /* to align the pointer to the (next) page boundary */
+@@ -225,6 +223,20 @@ extern unsigned long sysctl_admin_reserv
+ /* test whether an address (unsigned long or pointer) is aligned to PAGE_SIZE */
+ #define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
+ 
++/**
++ * folio_page_idx - Return the number of a page in a folio.
++ * @folio: The folio.
++ * @page: The folio page.
++ *
++ * This function expects that the page is actually part of the folio.
++ * The returned number is relative to the start of the folio.
++ */
++static inline unsigned long folio_page_idx(const struct folio *folio,
++		const struct page *page)
++{
++	return page - &folio->page;
++}
++
+ static inline struct folio *lru_to_folio(struct list_head *head)
+ {
+ 	return list_entry((head)->prev, struct folio, lru);
+--- a/include/linux/page-flags.h~mm-simplify-folio_page-and-folio_page_idx
++++ a/include/linux/page-flags.h
+@@ -316,7 +316,10 @@ static __always_inline unsigned long _co
+  * check that the page number lies within @folio; the caller is presumed
+  * to have a reference to the page.
+  */
+-#define folio_page(folio, n)	nth_page(&(folio)->page, n)
++static inline struct page *folio_page(struct folio *folio, unsigned long n)
++{
++	return &folio->page + n;
++}
+ 
+ static __always_inline int PageTail(const struct page *page)
+ {
 _
 
 Patches currently in -mm which might be from david@redhat.com are
