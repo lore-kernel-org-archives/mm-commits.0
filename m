@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAF9532ED21
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B708432A829
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752174; cv=none; b=CHxGNp6sShsWtvKUR4QvQPisCCfbZbcoEW4ZN/k7BXst+o0gZh61+Lx3VpR9FsAHbqJPjh0Tc/rjClncAepn43FJHcjlb4JgNamXwKCbqZHONK8oyVThHxQCFKYZKbqGuzFWHCc+dOmYDAZPOBPP0cZt1FwWR/2Z1UNBNXWiW9o=
+	t=1756752176; cv=none; b=X+xtFq5tfFQ81yR9TB/AnESe92EqWjaQsTIqLPmb/aiF0NvYZ7zs+ByuqBR8V/B/YDZs+fqQsT2GpD1f9jCAkapoXu1WsvEaFI5y1oOJxEdhwG3+psFSlygMVKV+UTAgXAmlSl68BfbPQiP+SmwXX0ctjN8lIORNab/+UUFTEnE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752174; c=relaxed/simple;
-	bh=zzsfZArPygG4uP5OYWa/xb4+umdrJlGP3TtBskgfmhI=;
-	h=Date:To:From:Subject:Message-Id; b=kPuvvw5ujoQ7XMg1LpOUA/uWSJpCFxl1mP3uJtwIttCvW+CzzEdT5YzxYNCAf1Fzx5UkMZOAAApwi6NZBl3DraXeUS6me8jG1NDyFvOuuSBaDIWhV53xsS6NksAP5jwV18B9w+pDZVKJqYTYRnbYrnMWY0fktB98mN1anafZ4e8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tQqBGoqY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752176; c=relaxed/simple;
+	bh=Rshj2cho0bMnL77mUsMNHVt+hQxwD/okvwKVlGElz9M=;
+	h=Date:To:From:Subject:Message-Id; b=LY5fJMir+rltz+GtbAxqHhGP6xnq+NCs7zxLDeq5ulLietM6JcMQa+97roaca34lyaKxDfkFR3IHSixhNGB0gJw2HSOfiOLYB2/4+PvcLx4JRu6WV9oYnHz6uuJCPASiS/DUAiB33gfdIOr2tY+3PJh8uv4OYPcPlyJVpSrJqn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bGqLdBzu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tQqBGoqY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F9C0C4CEF0;
-	Mon,  1 Sep 2025 18:42:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bGqLdBzu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86EFCC4CEF5;
+	Mon,  1 Sep 2025 18:42:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752174;
-	bh=zzsfZArPygG4uP5OYWa/xb4+umdrJlGP3TtBskgfmhI=;
+	s=korg; t=1756752176;
+	bh=Rshj2cho0bMnL77mUsMNHVt+hQxwD/okvwKVlGElz9M=;
 	h=Date:To:From:Subject:From;
-	b=tQqBGoqYSvGgw3yb8UTUDOq6iMjNAxEbFLZWDBVQwyXWpr2bowxnyNZARVBN9MGL+
-	 Dva+AoEHN3tLoHwdDnktw8QLVfRVbZIbQeoSyd2fifDWi0P5eT/ch0Ohnoc2e5XGNp
-	 REo+GgibesTiwzGmPzO6g7z1+vGuslRRYzn4A/wQ=
-Date: Mon, 01 Sep 2025 11:42:54 -0700
-To: mm-commits@vger.kernel.org,robin.murphy@arm.com,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=bGqLdBzuetzecBl00m0GIaESTpnHkKiH59/i1yuz/s/AULfz0cKd+Qq6TJBpF6iBO
+	 Y/Aqi1HRxWm6enr+d9QazwPgINn8ACR7FLVhw/BXOoh0QbefOZSfCpurp9JqVNnbzZ
+	 S0YnT1ITnlGlvfSF0Kmbu7UfvkB1C4k0dwgqMwDA=
+Date: Mon, 01 Sep 2025 11:42:56 -0700
+To: mm-commits@vger.kernel.org,m.szyprowski@samsung.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dma-remap-drop-nth_page-in-dma_common_contiguous_remap.patch added to mm-new branch
-Message-Id: <20250901184254.9F9C0C4CEF0@smtp.kernel.org>
+Subject: + scatterlist-disallow-non-contigous-page-ranges-in-a-single-sg-entry.patch added to mm-new branch
+Message-Id: <20250901184256.86EFCC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dma-remap: drop nth_page() in dma_common_contiguous_remap()
+     Subject: scatterlist: disallow non-contigous page ranges in a single SG entry
 has been added to the -mm mm-new branch.  Its filename is
-     dma-remap-drop-nth_page-in-dma_common_contiguous_remap.patch
+     scatterlist-disallow-non-contigous-page-ranges-in-a-single-sg-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dma-remap-drop-nth_page-in-dma_common_contiguous_remap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scatterlist-disallow-non-contigous-page-ranges-in-a-single-sg-entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,38 +65,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: dma-remap: drop nth_page() in dma_common_contiguous_remap()
-Date: Mon, 1 Sep 2025 17:03:44 +0200
+Subject: scatterlist: disallow non-contigous page ranges in a single SG entry
+Date: Mon, 1 Sep 2025 17:03:45 +0200
 
-dma_common_contiguous_remap() is used to remap an "allocated contiguous
-region".  Within a single allocation, there is no need to use nth_page()
-anymore.
+The expectation is that there is currently no user that would pass in
+non-contigous page ranges: no allocator, not even VMA, will hand these
+out.
 
-Neither the buddy, nor hugetlb, nor CMA will hand out problematic page
-ranges.
+The only problematic part would be if someone would provide a range
+obtained directly from memblock, or manually merge problematic ranges.  If
+we find such cases, we should fix them to create separate SG entries.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-24-david@redhat.com
+Let's check in sg_set_page() that this is really the case.  No need to
+check in sg_set_folio(), as pages in a folio are guaranteed to be
+contiguous.  As sg_set_page() gets inlined into modules, we have to export
+the page_range_contiguous() helper -- use EXPORT_SYMBOL, there is nothing
+special about this helper such that we would want to enforce GPL-only
+modules.
+
+We can now drop the nth_page() usage in sg_page_iter_page().
+
+Link: https://lkml.kernel.org/r/20250901150359.867252-25-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma/remap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/scatterlist.h |    3 ++-
+ mm/util.c                   |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/dma/remap.c~dma-remap-drop-nth_page-in-dma_common_contiguous_remap
-+++ a/kernel/dma/remap.c
-@@ -49,7 +49,7 @@ void *dma_common_contiguous_remap(struct
- 	if (!pages)
- 		return NULL;
- 	for (i = 0; i < count; i++)
--		pages[i] = nth_page(page, i);
-+		pages[i] = page++;
- 	vaddr = vmap(pages, count, VM_DMA_COHERENT, prot);
- 	kvfree(pages);
+--- a/include/linux/scatterlist.h~scatterlist-disallow-non-contigous-page-ranges-in-a-single-sg-entry
++++ a/include/linux/scatterlist.h
+@@ -158,6 +158,7 @@ static inline void sg_assign_page(struct
+ static inline void sg_set_page(struct scatterlist *sg, struct page *page,
+ 			       unsigned int len, unsigned int offset)
+ {
++	VM_WARN_ON_ONCE(!page_range_contiguous(page, ALIGN(len + offset, PAGE_SIZE) / PAGE_SIZE));
+ 	sg_assign_page(sg, page);
+ 	sg->offset = offset;
+ 	sg->length = len;
+@@ -600,7 +601,7 @@ void __sg_page_iter_start(struct sg_page
+  */
+ static inline struct page *sg_page_iter_page(struct sg_page_iter *piter)
+ {
+-	return nth_page(sg_page(piter->sg), piter->sg_pgoffset);
++	return sg_page(piter->sg) + piter->sg_pgoffset;
+ }
  
+ /**
+--- a/mm/util.c~scatterlist-disallow-non-contigous-page-ranges-in-a-single-sg-entry
++++ a/mm/util.c
+@@ -1314,5 +1314,6 @@ bool page_range_contiguous(const struct
+ 			return false;
+ 	return true;
+ }
++EXPORT_SYMBOL(page_range_contiguous);
+ #endif
+ #endif /* CONFIG_MMU */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
