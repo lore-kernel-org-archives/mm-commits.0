@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DAE710FD
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 051BA10FD
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752186; cv=none; b=iDq2j6CWQmkca1th9IbpQKxZKzsBybekStVkJ7Wz3gEJPJdwygkV+1DHaoPHuf+hmkiSF+wkghYaH0Atehf+5vjEG1V1j3ZWW0Cb/iaPqHqws+mJYfZYxD8RNl0wm7Q7QFbPf5Ep35NM52NC8egjBMRHwqU+epJlbm6ELmAnKDA=
+	t=1756752187; cv=none; b=SnDILZECdC1nDfdcamL4RvVIeB5i3V+YqnK4qS48zoadqjDYm/BQrK85QMT8cXer7FGaF6BVGJTiq/2Vgro2I1gJCaAQhQILZmoLGUsFhFqqr3S/Vaa+KlPhaq6HPiGrojfdTtG9freMTAA6GlUXnetZUrmaPmmYBkI4LahnOYI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752186; c=relaxed/simple;
-	bh=KH0aXLec1LH/NivWw5XLB3ZqCEwPZDfmxKoexc0o6Qw=;
-	h=Date:To:From:Subject:Message-Id; b=WnYf2lPE+oEJrPd/GL0iiYjMI98e1br9POPI8a+PP71zoYvTGs0Th5H4kbK/RSRpBUSeagYqblQzaaX3ZYyVNv1gsKK9OxPwUJSOF2mvWcTUoiwAormLJXGvnfLzkpLrt7Jkv+YHztbyoq4AcMahTQ8pDNJSHMCpSi+r64qtxyU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZIlSA8hQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752187; c=relaxed/simple;
+	bh=9nlpGQlPeRq4bPreB87CmJLgOWazv2NtZNdlyRj7AWA=;
+	h=Date:To:From:Subject:Message-Id; b=fNI5CTvFIqA/NX7IVxDu17t5E2xkY6mfQCVyNEYCPmLruPcOyQblk8QpOp5H+mcc31wzDtyhFgyfLPxd4/p3RQEDr1PxliSZE9CCLHm/LzYUWrerRzaDgEIwZ52ujpRuWZ/5szkDiCBcMa6qwDkeU+5pZ39l26OIa3pI/43sLJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LPgrwbu3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZIlSA8hQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83A21C4CEF0;
-	Mon,  1 Sep 2025 18:43:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LPgrwbu3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC6B8C4CEF0;
+	Mon,  1 Sep 2025 18:43:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752184;
-	bh=KH0aXLec1LH/NivWw5XLB3ZqCEwPZDfmxKoexc0o6Qw=;
+	s=korg; t=1756752186;
+	bh=9nlpGQlPeRq4bPreB87CmJLgOWazv2NtZNdlyRj7AWA=;
 	h=Date:To:From:Subject:From;
-	b=ZIlSA8hQqsxJYKXaVstD83tu0s4cthNNIyT3KjaMSty0wHnJVTrJzkFPiB4/pz+5z
-	 8VA3vMHYRQdt8hqSqm/fG+YOPRmUSVNlVtQqKkOTdIC3mRu7V7g/n4ihjiRBZ3T2x8
-	 u5MLGDMpG4Rd+XG3F3oMMYpHjm9DjT4+UQteQRVw=
-Date: Mon, 01 Sep 2025 11:43:04 -0700
-To: mm-commits@vger.kernel.org,ulf.hansson@linaro.org,oakad@yahoo.com,maximlevitsky@gmail.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=LPgrwbu3UDGdzDB23K4ZW4QV0CmrZVGe2Na2EQiNSicQ8T5aGpir6kbmZtgtuDm8Y
+	 wPiPzng7Not2JyX1I05caJ1ZdCkIm2yrBI6wLOPLzkdYesTw7v9sJLVsLsiiFc11fI
+	 XkCIK60XQ0e9C1Rq4me6M2mtiERAfYtPHvJKInmQ=
+Date: Mon, 01 Sep 2025 11:43:06 -0700
+To: mm-commits@vger.kernel.org,ulf.hansson@linaro.org,oakad@yahoo.com,lorenzo.stoakes@oracle.com,lars.persson@axis.com,jesper.nilsson@axis.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memstick-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
-Message-Id: <20250901184304.83A21C4CEF0@smtp.kernel.org>
+Subject: + mmc-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
+Message-Id: <20250901184306.CC6B8C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memstick: drop nth_page() usage within SG entry
+     Subject: mmc: drop nth_page() usage within SG entry
 has been added to the -mm mm-new branch.  Its filename is
-     memstick-drop-nth_page-usage-within-sg-entry.patch
+     mmc-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memstick-drop-nth_page-usage-within-sg-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmc-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,49 +65,66 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: memstick: drop nth_page() usage within SG entry
-Date: Mon, 1 Sep 2025 17:03:49 +0200
+Subject: mmc: drop nth_page() usage within SG entry
+Date: Mon, 1 Sep 2025 17:03:50 +0200
 
 It's no longer required to use nth_page() when iterating pages within a
 single SG entry, so let's drop the nth_page() usage.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-29-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-30-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Lars Persson <lars.persson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/jmb38x_ms.c |    3 +--
- drivers/memstick/host/tifm_ms.c   |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/mmc/host/tifm_sd.c    |    4 ++--
+ drivers/mmc/host/usdhi6rol0.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-drop-nth_page-usage-within-sg-entry
-+++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -317,8 +317,7 @@ static int jmb38x_ms_transfer_data(struc
- 		unsigned int p_off;
+--- a/drivers/mmc/host/tifm_sd.c~mmc-drop-nth_page-usage-within-sg-entry
++++ a/drivers/mmc/host/tifm_sd.c
+@@ -191,7 +191,7 @@ static void tifm_sd_transfer_data(struct
+ 		}
+ 		off = sg[host->sg_pos].offset + host->block_pos;
  
- 		if (host->req->long_data) {
--			pg = nth_page(sg_page(&host->req->sg),
--				      off >> PAGE_SHIFT);
-+			pg = sg_page(&host->req->sg) + (off >> PAGE_SHIFT);
- 			p_off = offset_in_page(off);
- 			p_cnt = PAGE_SIZE - p_off;
- 			p_cnt = min(p_cnt, length);
---- a/drivers/memstick/host/tifm_ms.c~memstick-drop-nth_page-usage-within-sg-entry
-+++ a/drivers/memstick/host/tifm_ms.c
-@@ -201,8 +201,7 @@ static unsigned int tifm_ms_transfer_dat
- 		unsigned int p_off;
+-		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
++		pg = sg_page(&sg[host->sg_pos]) + (off >> PAGE_SHIFT);
+ 		p_off = offset_in_page(off);
+ 		p_cnt = PAGE_SIZE - p_off;
+ 		p_cnt = min(p_cnt, cnt);
+@@ -240,7 +240,7 @@ static void tifm_sd_bounce_block(struct
+ 		}
+ 		off = sg[host->sg_pos].offset + host->block_pos;
  
- 		if (host->req->long_data) {
--			pg = nth_page(sg_page(&host->req->sg),
--				      off >> PAGE_SHIFT);
-+			pg = sg_page(&host->req->sg) + (off >> PAGE_SHIFT);
- 			p_off = offset_in_page(off);
- 			p_cnt = PAGE_SIZE - p_off;
- 			p_cnt = min(p_cnt, length);
+-		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
++		pg = sg_page(&sg[host->sg_pos]) + (off >> PAGE_SHIFT);
+ 		p_off = offset_in_page(off);
+ 		p_cnt = PAGE_SIZE - p_off;
+ 		p_cnt = min(p_cnt, cnt);
+--- a/drivers/mmc/host/usdhi6rol0.c~mmc-drop-nth_page-usage-within-sg-entry
++++ a/drivers/mmc/host/usdhi6rol0.c
+@@ -323,7 +323,7 @@ static void usdhi6_blk_bounce(struct usd
+ 
+ 	host->head_pg.page	= host->pg.page;
+ 	host->head_pg.mapped	= host->pg.mapped;
+-	host->pg.page		= nth_page(host->pg.page, 1);
++	host->pg.page		= host->pg.page + 1;
+ 	host->pg.mapped		= kmap(host->pg.page);
+ 
+ 	host->blk_page = host->bounce_buf;
+@@ -503,7 +503,7 @@ static void usdhi6_sg_advance(struct usd
+ 	/* We cannot get here after crossing a page border */
+ 
+ 	/* Next page in the same SG */
+-	host->pg.page = nth_page(sg_page(host->sg), host->page_idx);
++	host->pg.page = sg_page(host->sg) + host->page_idx;
+ 	host->pg.mapped = kmap(host->pg.page);
+ 	host->blk_page = host->pg.mapped;
+ 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
