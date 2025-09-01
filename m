@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B2C32A830
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5D5C32A80E
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752140; cv=none; b=fOEptG7dCRX0CMTlJt0/Ws/3OMOl1AFzhwFh/8bkNYHMU7Rv2Wu/8++D4fWPDA7FmCsMIOutiQzKvljvKy09I/eUOmy08++6vcAJZtIZSDxgCPZXQjqNscM6frO1lk7Dn+lVIeQl63JrVk2u/SLxveHAGo+zjIJhqkxEJ5CWHYk=
+	t=1756752142; cv=none; b=jt6jxuEL7nn6Tr3AQmn5ka2uOnlKeueHAmoDwKK6uDyz0imCjozzJyf3PCeZyEWav+WIobQt1tQO4AfSHcldWPMH0SwBZSb3mTCIhdub6hz736DnG4SmHZWlR2NJ+lhneeqKL460qFUmP/3/yvbrhMpSfSpHlgfghh4F7rzwzrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752140; c=relaxed/simple;
-	bh=KiSxKi4uTeE42LrDuqgYQYGh97x3+BZfVqKyUGJ3g9k=;
-	h=Date:To:From:Subject:Message-Id; b=GLjdFzPWrXlH7iEMWLhPSxVgw+8fltQJ0I87ZZ3aEGC+uPis2uK/6alExOOp2ZunEdkqYGvMeNI1zARr+UoU5pfZQ+k91iLEGA5fK89LnBrahTy+vROUSg8UM/WXKzUeyUyTmt4a3KYVyNRq6AufLQraBLO3vCehNcs6ieV7Mnk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxuhOLjS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752142; c=relaxed/simple;
+	bh=iXxZMvHq10KEhDU73G47qjilJLzlE3CF8kv4ktSPTao=;
+	h=Date:To:From:Subject:Message-Id; b=XOkC251DSLB4/nF3fF+JNypNjKnXxi2tqMFATWHUgUejlBBejuw8bu9GasBQkUXZRujC+ha9xdxMFScHsDVF6Jy4LMLIoJWPz2FIQSwyqVwX/3rZsgjkWat1+SJfGjZd6QTuwStDuaueLAs4WmqD7MlP+97Pmy1Nm68SzmDLHg8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wf9Enejn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxuhOLjS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA772C4CEF0;
-	Mon,  1 Sep 2025 18:42:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wf9Enejn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AC51C4CEF0;
+	Mon,  1 Sep 2025 18:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752140;
-	bh=KiSxKi4uTeE42LrDuqgYQYGh97x3+BZfVqKyUGJ3g9k=;
+	s=korg; t=1756752142;
+	bh=iXxZMvHq10KEhDU73G47qjilJLzlE3CF8kv4ktSPTao=;
 	h=Date:To:From:Subject:From;
-	b=YxuhOLjSfQmrISyzxHX7yC/fqFxHWhDZxLghbA0ogWuxDcZQOeXHzDV9jplQb2S5R
-	 O9zLD6OXrNSn+WYh2qNvQV2VLVIcOUoBUf4X0w/QBC1/qbqTjHb4eNSi0a6yXA9ni/
-	 QRvTHLSZzT7AgKf0z36OjnsmvBcssxYZgOb0+QX0=
-Date: Mon, 01 Sep 2025 11:42:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=wf9EnejnHsblY54s9fVdtcBnIxDdEdypAJFdJR1KKW/tDCASAsZZaJ/HiQrGU0OC0
+	 7GplTXoZQ7B3A+gB7pl23oLg1MDWO9/qaYtLqWc8kDovbCKhD9C/ZU+I7EbBAY5Vul
+	 hdaqT7n6Z0lD9Ypnq9Kn/34BHiM2A5W8XrINHMVc=
+Date: Mon, 01 Sep 2025 11:42:21 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof.patch added to mm-new branch
-Message-Id: <20250901184219.EA772C4CEF0@smtp.kernel.org>
+Subject: + mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages.patch added to mm-new branch
+Message-Id: <20250901184222.4AC51C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: reject unreasonable folio/compound page sizes in alloc_contig_range_noprof()
+     Subject: mm/memremap: reject unreasonable folio/compound page sizes in memremap_pages()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof.patch
+     mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,82 +65,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: reject unreasonable folio/compound page sizes in alloc_contig_range_noprof()
-Date: Mon, 1 Sep 2025 17:03:27 +0200
+Subject: mm/memremap: reject unreasonable folio/compound page sizes in memremap_pages()
+Date: Mon, 1 Sep 2025 17:03:28 +0200
 
-Let's reject them early, which in turn makes folio_alloc_gigantic() reject
-them properly.
+Let's reject unreasonable folio sizes early, where we can still fail. 
+We'll add sanity checks to prepare_compound_head/prepare_compound_page
+next.
 
-To avoid converting from order to nr_pages, let's just add MAX_FOLIO_ORDER
-and calculate MAX_FOLIO_NR_PAGES based on that.
+Is there a way to configure a system such that unreasonable folio sizes
+would be possible?  It would already be rather questionable.
 
-While at it, let's just make the order a "const unsigned order".
+If so, we'd probably want to bail out earlier, where we can avoid a WARN
+and just report a proper error message that indicates where something went
+wrong such that we messed up.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 ++++--
- mm/page_alloc.c    |   10 +++++++++-
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ mm/memremap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/mm.h~mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof
-+++ a/include/linux/mm.h
-@@ -2055,11 +2055,13 @@ static inline long folio_nr_pages(const
+--- a/mm/memremap.c~mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages
++++ a/mm/memremap.c
+@@ -275,6 +275,9 @@ void *memremap_pages(struct dev_pagemap
  
- /* Only hugetlbfs can allocate folios larger than MAX_ORDER */
- #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
--#define MAX_FOLIO_NR_PAGES	(1UL << PUD_ORDER)
-+#define MAX_FOLIO_ORDER		PUD_ORDER
- #else
--#define MAX_FOLIO_NR_PAGES	MAX_ORDER_NR_PAGES
-+#define MAX_FOLIO_ORDER		MAX_PAGE_ORDER
- #endif
+ 	if (WARN_ONCE(!nr_range, "nr_range must be specified\n"))
+ 		return ERR_PTR(-EINVAL);
++	if (WARN_ONCE(pgmap->vmemmap_shift > MAX_FOLIO_ORDER,
++		      "requested folio size unsupported\n"))
++		return ERR_PTR(-EINVAL);
  
-+#define MAX_FOLIO_NR_PAGES	(1UL << MAX_FOLIO_ORDER)
-+
- /*
-  * compound_nr() returns the number of pages in this potentially compound
-  * page.  compound_nr() can be called on a tail page, and is defined to
---- a/mm/page_alloc.c~mm-page_alloc-reject-unreasonable-folio-compound-page-sizes-in-alloc_contig_range_noprof
-+++ a/mm/page_alloc.c
-@@ -6841,6 +6841,7 @@ static int __alloc_contig_verify_gfp_mas
- int alloc_contig_range_noprof(unsigned long start, unsigned long end,
- 			      acr_flags_t alloc_flags, gfp_t gfp_mask)
- {
-+	const unsigned int order = ilog2(end - start);
- 	unsigned long outer_start, outer_end;
- 	int ret = 0;
- 
-@@ -6858,6 +6859,14 @@ int alloc_contig_range_noprof(unsigned l
- 					    PB_ISOLATE_MODE_CMA_ALLOC :
- 					    PB_ISOLATE_MODE_OTHER;
- 
-+	/*
-+	 * In contrast to the buddy, we allow for orders here that exceed
-+	 * MAX_PAGE_ORDER, so we must manually make sure that we are not
-+	 * exceeding the maximum folio order.
-+	 */
-+	if (WARN_ON_ONCE((gfp_mask & __GFP_COMP) && order > MAX_FOLIO_ORDER))
-+		return -EINVAL;
-+
- 	gfp_mask = current_gfp_context(gfp_mask);
- 	if (__alloc_contig_verify_gfp_mask(gfp_mask, (gfp_t *)&cc.gfp_mask))
- 		return -EINVAL;
-@@ -6955,7 +6964,6 @@ int alloc_contig_range_noprof(unsigned l
- 			free_contig_range(end, outer_end - end);
- 	} else if (start == outer_start && end == outer_end && is_power_of_2(end - start)) {
- 		struct page *head = pfn_to_page(start);
--		int order = ilog2(end - start);
- 
- 		check_new_pages(head, order);
- 		prep_new_page(head, order, gfp_mask, 0);
+ 	switch (pgmap->type) {
+ 	case MEMORY_DEVICE_PRIVATE:
 _
 
 Patches currently in -mm which might be from david@redhat.com are
