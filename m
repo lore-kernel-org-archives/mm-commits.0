@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2119434CDD
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DAE710FD
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752184; cv=none; b=IVMC8u1ykgQP8l3hzkdA9bVw/Fg/UdhkAX+Om4b6mukmJnd6dpfTofxJdLA7/M9Qm7OB1xaBU/KAWq+9xKBvO9DIclReptRECRp8NdxmA9Tse3hFlYHQSItKNJu1wyDnl1iwmboqxfuNqHURTKj4rnL3UoYQ6P+edNr0+qhZlKw=
+	t=1756752186; cv=none; b=iDq2j6CWQmkca1th9IbpQKxZKzsBybekStVkJ7Wz3gEJPJdwygkV+1DHaoPHuf+hmkiSF+wkghYaH0Atehf+5vjEG1V1j3ZWW0Cb/iaPqHqws+mJYfZYxD8RNl0wm7Q7QFbPf5Ep35NM52NC8egjBMRHwqU+epJlbm6ELmAnKDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752184; c=relaxed/simple;
-	bh=Aip3d+V4LAnHjclxJAJfsctVulwcJAkjTkRYE0HvoK4=;
-	h=Date:To:From:Subject:Message-Id; b=R8rjzfKstGQ8r2Isb32jCnyQdeSPG6cal3b4BBXGpi1KFiPpqeucPYDP5rM1c/M/XWUsS+FyPzYvLrVfst2d68HH0o7EVR2YBRFXia74DZ0X1bkeNxi8VZRlyhLR4gomuEKfhbhENhWjyVOzJ+tUZtkPjyA/FlXG4ziyDKGKRWg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lwy6isOZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752186; c=relaxed/simple;
+	bh=KH0aXLec1LH/NivWw5XLB3ZqCEwPZDfmxKoexc0o6Qw=;
+	h=Date:To:From:Subject:Message-Id; b=WnYf2lPE+oEJrPd/GL0iiYjMI98e1br9POPI8a+PP71zoYvTGs0Th5H4kbK/RSRpBUSeagYqblQzaaX3ZYyVNv1gsKK9OxPwUJSOF2mvWcTUoiwAormLJXGvnfLzkpLrt7Jkv+YHztbyoq4AcMahTQ8pDNJSHMCpSi+r64qtxyU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZIlSA8hQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lwy6isOZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A856C4CEF0;
-	Mon,  1 Sep 2025 18:43:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZIlSA8hQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83A21C4CEF0;
+	Mon,  1 Sep 2025 18:43:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752182;
-	bh=Aip3d+V4LAnHjclxJAJfsctVulwcJAkjTkRYE0HvoK4=;
+	s=korg; t=1756752184;
+	bh=KH0aXLec1LH/NivWw5XLB3ZqCEwPZDfmxKoexc0o6Qw=;
 	h=Date:To:From:Subject:From;
-	b=lwy6isOZf42UUjuU1+NfEsv5neuJShfiNGK4VtCDdhdxYfHMw5/R0hi3WRBc6hm07
-	 JYCNTpe074qwtXnpFGIwObygpON9ZZhgBnm73RJS7xdnUb9ELavlGapQ5+c2xCod6z
-	 bhtoRtLPTWuQ01rX+n0gsC2lTefkM00aNrrb2LJU=
-Date: Mon, 01 Sep 2025 11:43:02 -0700
+	b=ZIlSA8hQqsxJYKXaVstD83tu0s4cthNNIyT3KjaMSty0wHnJVTrJzkFPiB4/pz+5z
+	 8VA3vMHYRQdt8hqSqm/fG+YOPRmUSVNlVtQqKkOTdIC3mRu7V7g/n4ihjiRBZ3T2x8
+	 u5MLGDMpG4Rd+XG3F3oMMYpHjm9DjT4+UQteQRVw=
+Date: Mon, 01 Sep 2025 11:43:04 -0700
 To: mm-commits@vger.kernel.org,ulf.hansson@linaro.org,oakad@yahoo.com,maximlevitsky@gmail.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mspro_block-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
-Message-Id: <20250901184302.9A856C4CEF0@smtp.kernel.org>
+Subject: + memstick-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
+Message-Id: <20250901184304.83A21C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mspro_block: drop nth_page() usage within SG entry
+     Subject: memstick: drop nth_page() usage within SG entry
 has been added to the -mm mm-new branch.  Its filename is
-     mspro_block-drop-nth_page-usage-within-sg-entry.patch
+     memstick-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mspro_block-drop-nth_page-usage-within-sg-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memstick-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mspro_block: drop nth_page() usage within SG entry
-Date: Mon, 1 Sep 2025 17:03:48 +0200
+Subject: memstick: drop nth_page() usage within SG entry
+Date: Mon, 1 Sep 2025 17:03:49 +0200
 
 It's no longer required to use nth_page() when iterating pages within a
 single SG entry, so let's drop the nth_page() usage.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-28-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-29-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -80,21 +80,34 @@ Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/memstick/host/jmb38x_ms.c |    3 +--
+ drivers/memstick/host/tifm_ms.c   |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
---- a/drivers/memstick/core/mspro_block.c~mspro_block-drop-nth_page-usage-within-sg-entry
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -560,8 +560,7 @@ has_int_reg:
- 		t_offset += msb->current_page * msb->page_size;
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-drop-nth_page-usage-within-sg-entry
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -317,8 +317,7 @@ static int jmb38x_ms_transfer_data(struc
+ 		unsigned int p_off;
  
- 		sg_set_page(&t_sg,
--			    nth_page(sg_page(&(msb->req_sg[msb->current_seg])),
--				     t_offset >> PAGE_SHIFT),
-+			    sg_page(&(msb->req_sg[msb->current_seg])) + (t_offset >> PAGE_SHIFT),
- 			    msb->page_size, offset_in_page(t_offset));
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
++			pg = sg_page(&host->req->sg) + (off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
+--- a/drivers/memstick/host/tifm_ms.c~memstick-drop-nth_page-usage-within-sg-entry
++++ a/drivers/memstick/host/tifm_ms.c
+@@ -201,8 +201,7 @@ static unsigned int tifm_ms_transfer_dat
+ 		unsigned int p_off;
  
- 		memstick_init_req_sg(*mrq, msb->data_dir == READ
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
++			pg = sg_page(&host->req->sg) + (off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
