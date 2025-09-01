@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3764632ED20
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2439116132A
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752160; cv=none; b=u/wYFDgA0UeIY5knaznwLMyWGZb26S2uwBELZGkNbcuIeMSnsr/uGi6UGl0BGyOe3iLDch57qD5qHagiyrtuVa2sXfKHIldlGQI7QBd4H0MVYmqvDR1UbmdUyMAscmtw6k5iguiJnFqMZeqnv6zspFwcCnevpc0lVlqosSh80dY=
+	t=1756752162; cv=none; b=NlgoIPvJpmhy2mW71ykNEEQn1FC5O6trpO7HIVOqR9IrcN3Jw/Fxuwa+DTF3f4yagMS/wLej00ajAVfFLuebRFma7f66fgKKWlNMaxODL7K/gEWUlm5u1RxkxcMSpLAo9L2ahCh0fLR8Uijm4eP+rJ2cNA46AKJRw8VZwBL4YOc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752160; c=relaxed/simple;
-	bh=GInJ5EzF5kZNuD1dkYxttFLx4T11mMqK8XNeNRmF1MU=;
-	h=Date:To:From:Subject:Message-Id; b=WsuWH7mhjqimm/WJNqyUzvum6uG2z9BNUfjVjQVG/5nhGWfjNHwgGOX+hC5uTQmPcxD21K8irYSX7hWWYZNL4G8LtGARgdzuhii1CS0OIW5eNrMZ0nTimxpFvYO+CeYGjO0NDSJcutAUmphzQZ7KzrkS7R9qMiQoZ098FwPh/a0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=flC5GIJS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752162; c=relaxed/simple;
+	bh=FXQ3nyp6sVEJ8kV1bXzh5u/Z3q51l1Xa0RnanXcFb0k=;
+	h=Date:To:From:Subject:Message-Id; b=J1378LmjuP8+e/cDJdpENWEql2+GAewcug0WzL1EENgPiEesevH+okQQ6fw/ogZsDeawKRvBzI13CwHoI08GDgRyo7wUCHBhHtZ2RlrD25HRHiFXyc1twYypfHZeyKpXBYhPkjb7rtZjHTB2UVuaKPAFBQAlVFNHMsUXx2Qk/DM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TDREISCQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="flC5GIJS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CFADC4CEF0;
-	Mon,  1 Sep 2025 18:42:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TDREISCQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE78C4CEF0;
+	Mon,  1 Sep 2025 18:42:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752160;
-	bh=GInJ5EzF5kZNuD1dkYxttFLx4T11mMqK8XNeNRmF1MU=;
+	s=korg; t=1756752162;
+	bh=FXQ3nyp6sVEJ8kV1bXzh5u/Z3q51l1Xa0RnanXcFb0k=;
 	h=Date:To:From:Subject:From;
-	b=flC5GIJSXsUjZrVr00/gZak6HluRq3ubICwjfnndls6FC1eI84XyIACO0i/b1rdRb
-	 5jZWNli7dfx4lm2aWi0Pj9lNzY5JdEbBvsmS5558XAiBqB1kkRp9fJrFp3HoAp3o1F
-	 TE02DN0GLMw8fOGxBT5M615q14dV2czyixqgjkMc=
-Date: Mon, 01 Sep 2025 11:42:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=TDREISCQv553iURPydf0t2nLelnWTzac2Xxh2vkOMkYyCVg7PeX7D+aysHbRY23i2
+	 zutz9rP1PPD4dbIGPM73KVMuDbvmhoYev2qUmtXH1XmTptCngaM6Y0XtLfhJ0ZGjWH
+	 CbpfgWXfp+k/9qvTa0nV5HmMjrzb43b1EN/hOu2A=
+Date: Mon, 01 Sep 2025 11:42:41 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-hugetlbfs-cleanup-folio-in-adjust_range_hwpoison.patch added to mm-new branch
-Message-Id: <20250901184240.0CFADC4CEF0@smtp.kernel.org>
+Subject: + mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start.patch added to mm-new branch
+Message-Id: <20250901184241.EBE78C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: hugetlbfs: cleanup folio in adjust_range_hwpoison()
+     Subject: mm/pagewalk: drop nth_page() usage within folio in folio_walk_start()
 has been added to the -mm mm-new branch.  Its filename is
-     fs-hugetlbfs-cleanup-folio-in-adjust_range_hwpoison.patch
+     mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-hugetlbfs-cleanup-folio-in-adjust_range_hwpoison.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,72 +65,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: fs: hugetlbfs: cleanup folio in adjust_range_hwpoison()
-Date: Mon, 1 Sep 2025 17:03:37 +0200
+Subject: mm/pagewalk: drop nth_page() usage within folio in folio_walk_start()
+Date: Mon, 1 Sep 2025 17:03:38 +0200
 
-Let's cleanup and simplify the function a bit.
+It's no longer required to use nth_page() within a folio, so let's just
+drop the nth_page() in folio_walk_start().
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-17-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-18-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   34 +++++++++++-----------------------
- 1 file changed, 11 insertions(+), 23 deletions(-)
+ mm/pagewalk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-cleanup-folio-in-adjust_range_hwpoison
-+++ a/fs/hugetlbfs/inode.c
-@@ -192,37 +192,25 @@ hugetlb_get_unmapped_area(struct file *f
-  * Someone wants to read @bytes from a HWPOISON hugetlb @folio from @offset.
-  * Returns the maximum number of bytes one can read without touching the 1st raw
-  * HWPOISON page.
-- *
-- * The implementation borrows the iteration logic from copy_page_to_iter*.
-  */
- static size_t adjust_range_hwpoison(struct folio *folio, size_t offset,
- 		size_t bytes)
- {
--	struct page *page;
--	size_t n = 0;
--	size_t res = 0;
-+	struct page *page = folio_page(folio, offset / PAGE_SIZE);
-+	size_t safe_bytes;
- 
--	/* First page to start the loop. */
--	page = folio_page(folio, offset / PAGE_SIZE);
--	offset %= PAGE_SIZE;
--	while (1) {
--		if (is_raw_hwpoison_page_in_hugepage(page))
--			break;
-+	if (is_raw_hwpoison_page_in_hugepage(page))
-+		return 0;
-+	/* Safe to read the remaining bytes in this page. */
-+	safe_bytes = PAGE_SIZE - (offset % PAGE_SIZE);
-+	page++;
- 
--		/* Safe to read n bytes without touching HWPOISON subpage. */
--		n = min(bytes, (size_t)PAGE_SIZE - offset);
--		res += n;
--		bytes -= n;
--		if (!bytes || !n)
-+	/* Check each remaining page as long as we are not done yet. */
-+	for (; safe_bytes < bytes; safe_bytes += PAGE_SIZE, page++)
-+		if (is_raw_hwpoison_page_in_hugepage(page))
- 			break;
--		offset += n;
--		if (offset == PAGE_SIZE) {
--			page++;
--			offset = 0;
--		}
--	}
- 
--	return res;
-+	return min(safe_bytes, bytes);
- }
- 
- /*
+--- a/mm/pagewalk.c~mm-pagewalk-drop-nth_page-usage-within-folio-in-folio_walk_start
++++ a/mm/pagewalk.c
+@@ -1004,7 +1004,7 @@ not_found:
+ found:
+ 	if (expose_page)
+ 		/* Note: Offset from the mapped page, not the folio start. */
+-		fw->page = nth_page(page, (addr & (entry_size - 1)) >> PAGE_SHIFT);
++		fw->page = page + ((addr & (entry_size - 1)) >> PAGE_SHIFT);
+ 	else
+ 		fw->page = NULL;
+ 	fw->ptl = ptl;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
