@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EDEC32A825
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8054916132A
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752189; cv=none; b=ESDQVvUhLL5VqR9mW745se+kAt4Rdd6jfiRGbdCqoU55EB5Hwxohv9f3mlYV2CWliPhBwMIsQ2aGEvQ0YQ5EtgugAbL5mGaz5+9toqWSwFMriuNIfJ5ItMK5HtEqnpahJ63D7+7ZH7RiIq3PWEA7xPOpFLNQXUXPtajxd5Ojxek=
+	t=1756752193; cv=none; b=rwAyokFnU+igCfBoMn9F+zC3uTCPmipq1YQw82vr1WpuZoIK7NkoXx9R3KqYgpZWLes7qED8ckMFww/KEOOgcmnt6ymQeZil++8YA8ayG22xXf4WzdtM5zqaFA6n5aqt4sjLdNVogmrJCvqTdOrlauMJiYlSgZuJsCEvp99q0xE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752189; c=relaxed/simple;
-	bh=m/GE4vN4Cj/OxAYV1u0zvHtLHN0i6DyUeDLTi411cKA=;
-	h=Date:To:From:Subject:Message-Id; b=V3KIQC+B025IBnuYJvMnh8MaT7GKIMsv6y1q0hdxtNPnxcrBKnvvCDU0f3F454WFRaTJw07vr7wOFYmrQ+GfV4aKjfp8c8wHPEeJUmmMPtbQ1Sj2ebzzL68Esv2cmRXDJx0H9ZZhJfRzbDA10IoQSSI7aA0XCFZ2oZwKlQsMxYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yCICqOeD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752193; c=relaxed/simple;
+	bh=n9tVYYHxcMSwlXD3/cRrvxZ1M6jZAb9xYmbmdXBN8CQ=;
+	h=Date:To:From:Subject:Message-Id; b=osQVbAiNCMCVtGvx8DSJjCdfOQhCXnPr60sW03wiZF0fHSRjgJcWWF2QVPz9zkfqMJ5EXCowfSubYTe/vpRMkO1BBgHmNeGcJ8QkkqE+EwZaYFPcqshLIM9DE6OfDyQGxPPYbo1SckvNplJrWQBp/TaCrhXAivmb5dOC5Wx7dP0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MBN2Qrfc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yCICqOeD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24959C4CEF0;
-	Mon,  1 Sep 2025 18:43:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MBN2Qrfc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18C58C4CEF0;
+	Mon,  1 Sep 2025 18:43:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752189;
-	bh=m/GE4vN4Cj/OxAYV1u0zvHtLHN0i6DyUeDLTi411cKA=;
+	s=korg; t=1756752191;
+	bh=n9tVYYHxcMSwlXD3/cRrvxZ1M6jZAb9xYmbmdXBN8CQ=;
 	h=Date:To:From:Subject:From;
-	b=yCICqOeDC5/vbOU06l/I9qHTGNLtbxozLXrnOdnRrDVLJpJ4UqMob5SlypK44EeEd
-	 ThgaIdG1fjf0N71QyXZe1GEBGlg2ndawgFEwTznMSnkq2blXopaIdBqdmaIIeHqsSg
-	 TD4ShJAlWSgYnkdFmhwVK4BjhIiyz0j3obqZ2MYA=
-Date: Mon, 01 Sep 2025 11:43:08 -0700
-To: mm-commits@vger.kernel.org,martin.petersen@oracle.com,lorenzo.stoakes@oracle.com,James.Bottomley@HansenPartnership.com,bvanassche@acm.org,david@redhat.com,akpm@linux-foundation.org
+	b=MBN2Qrfcqq7q1VEn9Tpujuc5xotQi4jD7wpYyWhlfpnYj2BJLAxFrQMt8myOyu+Aq
+	 n5wlRs/dy7Q98yt5T/cj74CGyqCsIKrsa+V2N78zycSHfbvxNSjOMMp3Leb4fXKIG8
+	 GuQsylcbH3fzQNMXqhSRkMC60XDi8egxVjhZFU40=
+Date: Mon, 01 Sep 2025 11:43:10 -0700
+To: mm-commits@vger.kernel.org,martin.petersen@oracle.com,lorenzo.stoakes@oracle.com,James.Bottomley@HansenPartnership.com,dgilbert@interlog.com,bvanassche@acm.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scsi-scsi_lib-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
-Message-Id: <20250901184309.24959C4CEF0@smtp.kernel.org>
+Subject: + scsi-sg-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
+Message-Id: <20250901184311.18C58C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scsi: scsi_lib: drop nth_page() usage within SG entry
+     Subject: scsi: sg: drop nth_page() usage within SG entry
 has been added to the -mm mm-new branch.  Its filename is
-     scsi-scsi_lib-drop-nth_page-usage-within-sg-entry.patch
+     scsi-sg-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scsi-scsi_lib-drop-nth_page-usage-within-sg-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scsi-sg-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,36 +65,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: scsi: scsi_lib: drop nth_page() usage within SG entry
-Date: Mon, 1 Sep 2025 17:03:51 +0200
+Subject: scsi: sg: drop nth_page() usage within SG entry
+Date: Mon, 1 Sep 2025 17:03:52 +0200
 
 It's no longer required to use nth_page() when iterating pages within a
 single SG entry, so let's drop the nth_page() usage.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-31-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-32-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Doug Gilbert <dgilbert@interlog.com>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_lib.c |    3 +--
+ drivers/scsi/sg.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/scsi/scsi_lib.c~scsi-scsi_lib-drop-nth_page-usage-within-sg-entry
-+++ a/drivers/scsi/scsi_lib.c
-@@ -3148,8 +3148,7 @@ void *scsi_kmap_atomic_sg(struct scatter
- 	/* Offset starting from the beginning of first page in this sg-entry */
- 	*offset = *offset - len_complete + sg->offset;
- 
--	/* Assumption: contiguous pages can be accessed as "page + i" */
--	page = nth_page(sg_page(sg), (*offset >> PAGE_SHIFT));
-+	page = sg_page(sg) + (*offset >> PAGE_SHIFT);
- 	*offset &= ~PAGE_MASK;
- 
- 	/* Bytes in this sg-entry from *offset to the end of the page */
+--- a/drivers/scsi/sg.c~scsi-sg-drop-nth_page-usage-within-sg-entry
++++ a/drivers/scsi/sg.c
+@@ -1235,8 +1235,7 @@ sg_vma_fault(struct vm_fault *vmf)
+ 		len = vma->vm_end - sa;
+ 		len = (len < length) ? len : length;
+ 		if (offset < len) {
+-			struct page *page = nth_page(rsv_schp->pages[k],
+-						     offset >> PAGE_SHIFT);
++			struct page *page = rsv_schp->pages[k] + (offset >> PAGE_SHIFT);
+ 			get_page(page);	/* increment page count */
+ 			vmf->page = page;
+ 			return 0; /* success */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
