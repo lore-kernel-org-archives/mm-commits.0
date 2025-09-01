@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B610A32A801
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C22710FD
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752169; cv=none; b=aa0dg52BhFiSrj9AVhDmN/Wp0n1vbZ3XtlkupCobzLKgmqM/x6x3nsU9GJ4A8DgeaFuvuWex73Jids1Qyl0NKt0SY8893XdXh2QHsB/i2MJURMvnH6Vl8NRd6MqeX1TWDgUb25CO4zJynsvIY5r5en/Yz0C2Xi27eWc7dMY5o6s=
+	t=1756752172; cv=none; b=QBWlEbxAGZnKyZfhfAhlt4VUH2fledSXsGTHdL6s8Db6VLddW9CXdQLMQhS3+4MkU3yUiyspe3usLhWw2Nk+xCetECGuik1Q2j7FXMpLttdFFNXJ4ZFfFcxYsj2fGIlutn328I12PQ+LxXwqxuVdaAq/OBDaSX37pJ5bOHr/UJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752169; c=relaxed/simple;
-	bh=HbRTkQdp/qDAxXyt0CtHL15Xkv9XjTeDnqcKiUyiSto=;
-	h=Date:To:From:Subject:Message-Id; b=JXpD1/JxIBnKT76VkLRzl8yb5ZkpdX0sPXxZpi/RdJRO8eWE1zdL5/ftqZcs/ilcIMhntf0Jaik1AJaqSSfX8Ou+rQx+3d2zKTY/g/dm7Hn7pGz5DJ9MailH1wsaOG2PDENEJRmYqrvmYYR0CevALow3xW/11bLBm658FUuzvQI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dfu5LvrF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752172; c=relaxed/simple;
+	bh=6kpiqugenwHvchGCFspbtU7Hx0EKZZZ9NAK8ngNx+QI=;
+	h=Date:To:From:Subject:Message-Id; b=Uh2gWgUBS4FxKxwl7A4o9hXtO/Tqo+dudTvMoEeqwIglTB5ZmBl6G6gxPfu1876SB8JK/YFxY1VZvAuCWu3IuWB61tBGDoCbYCzGOTrHrhh5uuxpN2lyWDWuBvJu9SoFvXlnd0q/sDGMRmFL4AgSaY+7J4OWEXdZof8pgbGI0is=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s30m0dw8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dfu5LvrF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81BEDC4CEF7;
-	Mon,  1 Sep 2025 18:42:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s30m0dw8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3C88C4CEF5;
+	Mon,  1 Sep 2025 18:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752169;
-	bh=HbRTkQdp/qDAxXyt0CtHL15Xkv9XjTeDnqcKiUyiSto=;
+	s=korg; t=1756752171;
+	bh=6kpiqugenwHvchGCFspbtU7Hx0EKZZZ9NAK8ngNx+QI=;
 	h=Date:To:From:Subject:From;
-	b=dfu5LvrFOGJiiYEwDhySQT8AZ5t4Bdq13tS5bX9HDBthHEeFYlSTYo/sqV6OVV3Qe
-	 99mCNEfkUAw8025Byo+YauGuULoBLdD777JxXqqEShYryzmODlQBoJFqQ3SQhKk3GB
-	 C4N0dr7DpTral+hXEROfvTM7G++BdladTBRi7RtE=
-Date: Mon, 01 Sep 2025 11:42:48 -0700
-To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,david@redhat.com,akpm@linux-foundation.org
+	b=s30m0dw8Iik8ZDgaTwx3JlN7XhHAjHS8hP8w5rBbd8+56X3dZjkyMJo+98cM8iww/
+	 Gjqs5wvby4V9aEJVtcanPMjXil/fWkYT5Fm7kkqLI90OaatXR036COlh2wQ6yl0RGu
+	 ucpSpwGSEJrvKdgSOrSXYsXechthKSPotNtEbcDI=
+Date: Mon, 01 Sep 2025 11:42:51 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,alexandru.elisei@arm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-mm-convert-__flush_dcache_pages-to-__flush_dcache_folio_pages.patch added to mm-new branch
-Message-Id: <20250901184249.81BEDC4CEF7@smtp.kernel.org>
+Subject: + mm-cma-refuse-handing-out-non-contiguous-page-ranges.patch added to mm-new branch
+Message-Id: <20250901184251.D3C88C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mips: mm: convert __flush_dcache_pages() to __flush_dcache_folio_pages()
+     Subject: mm/cma: refuse handing out non-contiguous page ranges
 has been added to the -mm mm-new branch.  Its filename is
-     mips-mm-convert-__flush_dcache_pages-to-__flush_dcache_folio_pages.patch
+     mm-cma-refuse-handing-out-non-contiguous-page-ranges.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-mm-convert-__flush_dcache_pages-to-__flush_dcache_folio_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-refuse-handing-out-non-contiguous-page-ranges.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,90 +65,184 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mips: mm: convert __flush_dcache_pages() to __flush_dcache_folio_pages()
-Date: Mon, 1 Sep 2025 17:03:42 +0200
+Subject: mm/cma: refuse handing out non-contiguous page ranges
+Date: Mon, 1 Sep 2025 17:03:43 +0200
 
-Let's make it clearer that we are operating within a single folio by
-providing both the folio and the page.
+Let's disallow handing out PFN ranges with non-contiguous pages, so we can
+remove the nth-page usage in __cma_alloc(), and so any callers don't have
+to worry about that either when wanting to blindly iterate pages.
 
-This implies that for flush_dcache_folio() we'll now avoid one more
-page->folio lookup, and that we can safely drop the "nth_page" usage.
+This is really only a problem in configs with SPARSEMEM but without
+SPARSEMEM_VMEMMAP, and only when we would cross memory sections in some
+cases.
 
-While at it, drop the "extern" from the function declaration.
+Will this cause harm?  Probably not, because it's mostly 32bit that does
+not support SPARSEMEM_VMEMMAP.  If this ever becomes a problem we could
+look into allocating the memmap for the memory sections spanned by a
+single CMA region in one go from memblock.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-22-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-23-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Reviewed-by: Alexandru Elisei <alexandru.elisei@arm.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/cacheflush.h |   11 +++++++----
- arch/mips/mm/cache.c               |    8 ++++----
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ include/linux/mm.h |    6 ++++++
+ mm/cma.c           |   39 ++++++++++++++++++++++++---------------
+ mm/util.c          |   35 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+), 15 deletions(-)
 
---- a/arch/mips/include/asm/cacheflush.h~mips-mm-convert-__flush_dcache_pages-to-__flush_dcache_folio_pages
-+++ a/arch/mips/include/asm/cacheflush.h
-@@ -50,13 +50,14 @@ extern void (*flush_cache_mm)(struct mm_
- extern void (*flush_cache_range)(struct vm_area_struct *vma,
- 	unsigned long start, unsigned long end);
- extern void (*flush_cache_page)(struct vm_area_struct *vma, unsigned long page, unsigned long pfn);
--extern void __flush_dcache_pages(struct page *page, unsigned int nr);
-+void __flush_dcache_folio_pages(struct folio *folio, struct page *page, unsigned int nr);
+--- a/include/linux/mm.h~mm-cma-refuse-handing-out-non-contiguous-page-ranges
++++ a/include/linux/mm.h
+@@ -209,9 +209,15 @@ extern unsigned long sysctl_user_reserve
+ extern unsigned long sysctl_admin_reserve_kbytes;
  
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
- static inline void flush_dcache_folio(struct folio *folio)
- {
- 	if (cpu_has_dc_aliases)
--		__flush_dcache_pages(&folio->page, folio_nr_pages(folio));
-+		__flush_dcache_folio_pages(folio, folio_page(folio, 0),
-+					   folio_nr_pages(folio));
- 	else if (!cpu_has_ic_fills_f_dc)
- 		folio_set_dcache_dirty(folio);
- }
-@@ -64,10 +65,12 @@ static inline void flush_dcache_folio(st
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++bool page_range_contiguous(const struct page *page, unsigned long nr_pages);
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ #else
+ #define nth_page(page,n) ((page) + (n))
++static inline bool page_range_contiguous(const struct page *page,
++		unsigned long nr_pages)
++{
++	return true;
++}
+ #endif
  
- static inline void flush_dcache_page(struct page *page)
+ /* to align the pointer to the (next) page boundary */
+--- a/mm/cma.c~mm-cma-refuse-handing-out-non-contiguous-page-ranges
++++ a/mm/cma.c
+@@ -780,10 +780,8 @@ static int cma_range_alloc(struct cma *c
+ 				unsigned long count, unsigned int align,
+ 				struct page **pagep, gfp_t gfp)
  {
-+	struct folio *folio = page_folio(page);
+-	unsigned long mask, offset;
+-	unsigned long pfn = -1;
+-	unsigned long start = 0;
+ 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
++	unsigned long start, pfn, mask, offset;
+ 	int ret = -EBUSY;
+ 	struct page *page = NULL;
+ 
+@@ -795,7 +793,7 @@ static int cma_range_alloc(struct cma *c
+ 	if (bitmap_count > bitmap_maxno)
+ 		goto out;
+ 
+-	for (;;) {
++	for (start = 0; ; start = bitmap_no + mask + 1) {
+ 		spin_lock_irq(&cma->lock);
+ 		/*
+ 		 * If the request is larger than the available number
+@@ -812,6 +810,22 @@ static int cma_range_alloc(struct cma *c
+ 			spin_unlock_irq(&cma->lock);
+ 			break;
+ 		}
 +
- 	if (cpu_has_dc_aliases)
--		__flush_dcache_pages(page, 1);
-+		__flush_dcache_folio_pages(folio, page, 1);
- 	else if (!cpu_has_ic_fills_f_dc)
--		folio_set_dcache_dirty(page_folio(page));
-+		folio_set_dcache_dirty(folio);
- }
++		pfn = cmr->base_pfn + (bitmap_no << cma->order_per_bit);
++		page = pfn_to_page(pfn);
++
++		/*
++		 * Do not hand out page ranges that are not contiguous, so
++		 * callers can just iterate the pages without having to worry
++		 * about these corner cases.
++		 */
++		if (!page_range_contiguous(page, count)) {
++			spin_unlock_irq(&cma->lock);
++			pr_warn_ratelimited("%s: %s: skipping incompatible area [0x%lx-0x%lx]",
++					    __func__, cma->name, pfn, pfn + count - 1);
++			continue;
++		}
++
+ 		bitmap_set(cmr->bitmap, bitmap_no, bitmap_count);
+ 		cma->available_count -= count;
+ 		/*
+@@ -821,29 +835,24 @@ static int cma_range_alloc(struct cma *c
+ 		 */
+ 		spin_unlock_irq(&cma->lock);
  
- #define flush_dcache_mmap_lock(mapping)		do { } while (0)
---- a/arch/mips/mm/cache.c~mips-mm-convert-__flush_dcache_pages-to-__flush_dcache_folio_pages
-+++ a/arch/mips/mm/cache.c
-@@ -99,9 +99,9 @@ SYSCALL_DEFINE3(cacheflush, unsigned lon
- 	return 0;
- }
+-		pfn = cmr->base_pfn + (bitmap_no << cma->order_per_bit);
+ 		mutex_lock(&cma->alloc_mutex);
+ 		ret = alloc_contig_range(pfn, pfn + count, ACR_FLAGS_CMA, gfp);
+ 		mutex_unlock(&cma->alloc_mutex);
+-		if (ret == 0) {
+-			page = pfn_to_page(pfn);
++		if (!ret)
+ 			break;
+-		}
  
--void __flush_dcache_pages(struct page *page, unsigned int nr)
-+void __flush_dcache_folio_pages(struct folio *folio, struct page *page,
-+		unsigned int nr)
- {
--	struct folio *folio = page_folio(page);
- 	struct address_space *mapping = folio_flush_mapping(folio);
- 	unsigned long addr;
- 	unsigned int i;
-@@ -117,12 +117,12 @@ void __flush_dcache_pages(struct page *p
- 	 * get faulted into the tlb (and thus flushed) anyways.
- 	 */
- 	for (i = 0; i < nr; i++) {
--		addr = (unsigned long)kmap_local_page(nth_page(page, i));
-+		addr = (unsigned long)kmap_local_page(page + i);
- 		flush_data_cache_page(addr);
- 		kunmap_local((void *)addr);
+ 		cma_clear_bitmap(cma, cmr, pfn, count);
+ 		if (ret != -EBUSY)
+ 			break;
+ 
+ 		pr_debug("%s(): memory range at pfn 0x%lx %p is busy, retrying\n",
+-			 __func__, pfn, pfn_to_page(pfn));
++			 __func__, pfn, page);
+ 
+-		trace_cma_alloc_busy_retry(cma->name, pfn, pfn_to_page(pfn),
+-					   count, align);
+-		/* try again with a bit different memory target */
+-		start = bitmap_no + mask + 1;
++		trace_cma_alloc_busy_retry(cma->name, pfn, page, count, align);
  	}
+ out:
+-	*pagep = page;
++	if (!ret)
++		*pagep = page;
+ 	return ret;
  }
--EXPORT_SYMBOL(__flush_dcache_pages);
-+EXPORT_SYMBOL(__flush_dcache_folio_pages);
  
- void __flush_anon_page(struct page *page, unsigned long vmaddr)
+@@ -882,7 +891,7 @@ static struct page *__cma_alloc(struct c
+ 	 */
+ 	if (page) {
+ 		for (i = 0; i < count; i++)
+-			page_kasan_tag_reset(nth_page(page, i));
++			page_kasan_tag_reset(page + i);
+ 	}
+ 
+ 	if (ret && !(gfp & __GFP_NOWARN)) {
+--- a/mm/util.c~mm-cma-refuse-handing-out-non-contiguous-page-ranges
++++ a/mm/util.c
+@@ -1280,4 +1280,39 @@ unsigned int folio_pte_batch(struct foli
  {
+ 	return folio_pte_batch_flags(folio, NULL, ptep, &pte, max_nr, 0);
+ }
++
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++/**
++ * page_range_contiguous - test whether the page range is contiguous
++ * @page: the start of the page range.
++ * @nr_pages: the number of pages in the range.
++ *
++ * Test whether the page range is contiguous, such that they can be iterated
++ * naively, corresponding to iterating a contiguous PFN range.
++ *
++ * This function should primarily only be used for debug checks, or when
++ * working with page ranges that are not naturally contiguous (e.g., pages
++ * within a folio are).
++ *
++ * Returns true if contiguous, otherwise false.
++ */
++bool page_range_contiguous(const struct page *page, unsigned long nr_pages)
++{
++	const unsigned long start_pfn = page_to_pfn(page);
++	const unsigned long end_pfn = start_pfn + nr_pages;
++	unsigned long pfn;
++
++	/*
++	 * The memmap is allocated per memory section, so no need to check
++	 * within the first section. However, we need to check each other
++	 * spanned memory section once, making sure the first page in a
++	 * section could similarly be reached by just iterating pages.
++	 */
++	for (pfn = ALIGN(start_pfn, PAGES_PER_SECTION);
++	     pfn < end_pfn; pfn += PAGES_PER_SECTION)
++		if (unlikely(page + (pfn - start_pfn) != pfn_to_page(pfn)))
++			return false;
++	return true;
++}
++#endif
+ #endif /* CONFIG_MMU */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
