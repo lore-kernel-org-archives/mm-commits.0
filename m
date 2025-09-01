@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E859D34CDD
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2119434CDD
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:43:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752181; cv=none; b=nJ/8MVxrZfHeHpzohGpyDetxRKixAnT3P+xkMkaqubzjlKU+js+fOvV16RSb05ky5VKYS6hOYTQb2fC42jzvPtzVA1bjt4Y3qwuvAaRsaZV/gH8YEk2xcQFKxZnGJoauBu4ilIE7Q1k68pm5KCQCHo1UeOxH3+7Uqpo0tUUjiUI=
+	t=1756752184; cv=none; b=IVMC8u1ykgQP8l3hzkdA9bVw/Fg/UdhkAX+Om4b6mukmJnd6dpfTofxJdLA7/M9Qm7OB1xaBU/KAWq+9xKBvO9DIclReptRECRp8NdxmA9Tse3hFlYHQSItKNJu1wyDnl1iwmboqxfuNqHURTKj4rnL3UoYQ6P+edNr0+qhZlKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752181; c=relaxed/simple;
-	bh=x36EcczKCkz6Zn0g0I7riLwpz7I8Q/Tgee9rVIEPJfA=;
-	h=Date:To:From:Subject:Message-Id; b=RFJPqo71gurpxyk2TMmJgeTgPAWStnVh1MUsyG7VQSWfzOJBJigBLO7gAkza3OF+voS6ADJAgVpOmVzS/M6M6lyK9ECsPsx1PfNmnKpNnb02k0kE+1L2pm9Qn+h+GsCgvlRhb0T2VvRzWOQJ0lXDVev39Z+b2khvaKVTad1du6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EMqLB6bk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752184; c=relaxed/simple;
+	bh=Aip3d+V4LAnHjclxJAJfsctVulwcJAkjTkRYE0HvoK4=;
+	h=Date:To:From:Subject:Message-Id; b=R8rjzfKstGQ8r2Isb32jCnyQdeSPG6cal3b4BBXGpi1KFiPpqeucPYDP5rM1c/M/XWUsS+FyPzYvLrVfst2d68HH0o7EVR2YBRFXia74DZ0X1bkeNxi8VZRlyhLR4gomuEKfhbhENhWjyVOzJ+tUZtkPjyA/FlXG4ziyDKGKRWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lwy6isOZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EMqLB6bk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD4DBC4CEF0;
-	Mon,  1 Sep 2025 18:43:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lwy6isOZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A856C4CEF0;
+	Mon,  1 Sep 2025 18:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752180;
-	bh=x36EcczKCkz6Zn0g0I7riLwpz7I8Q/Tgee9rVIEPJfA=;
+	s=korg; t=1756752182;
+	bh=Aip3d+V4LAnHjclxJAJfsctVulwcJAkjTkRYE0HvoK4=;
 	h=Date:To:From:Subject:From;
-	b=EMqLB6bkkbDbZ/YsfE+5517gYxmOoW0PtLaxo6hW1g6tbIPykA6H+apDMofkDWo4g
-	 dhAK7/M/hUTpvhelEb9pADKgIVfAr0y/1JhY+1add2Hk4MJ1EIfFNkvdQxK66Pkpbg
-	 +67avkOrguyqcBXEJQWdRpnyERXlytK9inmzCxrM=
-Date: Mon, 01 Sep 2025 11:43:00 -0700
-To: mm-commits@vger.kernel.org,tursulin@ursulin.net,simona@ffwll.ch,rodrigo.vivi@intel.com,lorenzo.stoakes@oracle.com,joonas.lahtinen@linux.intel.com,jani.nikula@linux.intel.com,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
+	b=lwy6isOZf42UUjuU1+NfEsv5neuJShfiNGK4VtCDdhdxYfHMw5/R0hi3WRBc6hm07
+	 JYCNTpe074qwtXnpFGIwObygpON9ZZhgBnm73RJS7xdnUb9ELavlGapQ5+c2xCod6z
+	 bhtoRtLPTWuQ01rX+n0gsC2lTefkM00aNrrb2LJU=
+Date: Mon, 01 Sep 2025 11:43:02 -0700
+To: mm-commits@vger.kernel.org,ulf.hansson@linaro.org,oakad@yahoo.com,maximlevitsky@gmail.com,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-i915-gem-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
-Message-Id: <20250901184300.BD4DBC4CEF0@smtp.kernel.org>
+Subject: + mspro_block-drop-nth_page-usage-within-sg-entry.patch added to mm-new branch
+Message-Id: <20250901184302.9A856C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drm/i915/gem: drop nth_page() usage within SG entry
+     Subject: mspro_block: drop nth_page() usage within SG entry
 has been added to the -mm mm-new branch.  Its filename is
-     drm-i915-gem-drop-nth_page-usage-within-sg-entry.patch
+     mspro_block-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-i915-gem-drop-nth_page-usage-within-sg-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mspro_block-drop-nth_page-usage-within-sg-entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,38 +65,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: drm/i915/gem: drop nth_page() usage within SG entry
-Date: Mon, 1 Sep 2025 17:03:47 +0200
+Subject: mspro_block: drop nth_page() usage within SG entry
+Date: Mon, 1 Sep 2025 17:03:48 +0200
 
 It's no longer required to use nth_page() when iterating pages within a
 single SG entry, so let's drop the nth_page() usage.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-27-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-28-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Tvrtko Ursulin <tursulin@ursulin.net>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_pages.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/memstick/core/mspro_block.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_pages.c~drm-i915-gem-drop-nth_page-usage-within-sg-entry
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_pages.c
-@@ -779,7 +779,7 @@ __i915_gem_object_get_page(struct drm_i9
- 	GEM_BUG_ON(!i915_gem_object_has_struct_page(obj));
+--- a/drivers/memstick/core/mspro_block.c~mspro_block-drop-nth_page-usage-within-sg-entry
++++ a/drivers/memstick/core/mspro_block.c
+@@ -560,8 +560,7 @@ has_int_reg:
+ 		t_offset += msb->current_page * msb->page_size;
  
- 	sg = i915_gem_object_get_sg(obj, n, &offset);
--	return nth_page(sg_page(sg), offset);
-+	return sg_page(sg) + offset;
- }
+ 		sg_set_page(&t_sg,
+-			    nth_page(sg_page(&(msb->req_sg[msb->current_seg])),
+-				     t_offset >> PAGE_SHIFT),
++			    sg_page(&(msb->req_sg[msb->current_seg])) + (t_offset >> PAGE_SHIFT),
+ 			    msb->page_size, offset_in_page(t_offset));
  
- /* Like i915_gem_object_get_page(), but mark the returned page dirty */
+ 		memstick_init_req_sg(*mrq, msb->data_dir == READ
 _
 
 Patches currently in -mm which might be from david@redhat.com are
