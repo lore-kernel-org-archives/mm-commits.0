@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5D5C32A80E
-	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B22D832A813
+	for <mm-commits@vger.kernel.org>; Mon,  1 Sep 2025 18:42:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756752142; cv=none; b=jt6jxuEL7nn6Tr3AQmn5ka2uOnlKeueHAmoDwKK6uDyz0imCjozzJyf3PCeZyEWav+WIobQt1tQO4AfSHcldWPMH0SwBZSb3mTCIhdub6hz736DnG4SmHZWlR2NJ+lhneeqKL460qFUmP/3/yvbrhMpSfSpHlgfghh4F7rzwzrg=
+	t=1756752144; cv=none; b=dQwnz18vKs5QlSK9IjKiOxmTp3rlNpNNeNIE1oMtGASB5WDwx0cOKnFD/19c+2pkqPsMnIcIl1xrCfYp0JUw4kE2JRT0iWkw7lnRCjcESx3+o/3iSZD4RZQxoUXFD5j1bPDt9GMPtVS3hwEpVLjuEVDQeqgHHaoTI1VZ/beuK+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756752142; c=relaxed/simple;
-	bh=iXxZMvHq10KEhDU73G47qjilJLzlE3CF8kv4ktSPTao=;
-	h=Date:To:From:Subject:Message-Id; b=XOkC251DSLB4/nF3fF+JNypNjKnXxi2tqMFATWHUgUejlBBejuw8bu9GasBQkUXZRujC+ha9xdxMFScHsDVF6Jy4LMLIoJWPz2FIQSwyqVwX/3rZsgjkWat1+SJfGjZd6QTuwStDuaueLAs4WmqD7MlP+97Pmy1Nm68SzmDLHg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wf9Enejn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756752144; c=relaxed/simple;
+	bh=Wa75cfH9E4OJe4J52R9dVn6hHXi9dY1EZo2i4CSSyMA=;
+	h=Date:To:From:Subject:Message-Id; b=YRezAkzpj8qd15nlXeuSmr6pDXjKOucfiaj/R2fEVpxlZc7wn5f/VpXkq2/f5gvzzqMM0jmOZ/swg/ITHYKJmqxJISFRptepJDhw2Q5Djm9GUpxdzoUvN98+9Nm8xQF2MGQmeRtgCL+6nWDkZVL1Z64Fc4aEC8ilMhBRPOA7LuU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cCuM1dde; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wf9Enejn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AC51C4CEF0;
-	Mon,  1 Sep 2025 18:42:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cCuM1dde"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38A60C4CEF0;
+	Mon,  1 Sep 2025 18:42:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756752142;
-	bh=iXxZMvHq10KEhDU73G47qjilJLzlE3CF8kv4ktSPTao=;
+	s=korg; t=1756752144;
+	bh=Wa75cfH9E4OJe4J52R9dVn6hHXi9dY1EZo2i4CSSyMA=;
 	h=Date:To:From:Subject:From;
-	b=wf9EnejnHsblY54s9fVdtcBnIxDdEdypAJFdJR1KKW/tDCASAsZZaJ/HiQrGU0OC0
-	 7GplTXoZQ7B3A+gB7pl23oLg1MDWO9/qaYtLqWc8kDovbCKhD9C/ZU+I7EbBAY5Vul
-	 hdaqT7n6Z0lD9Ypnq9Kn/34BHiM2A5W8XrINHMVc=
-Date: Mon, 01 Sep 2025 11:42:21 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=cCuM1ddeMki154L+Q1hbpcRSv+D5hU+dnxia8m2A1/7IqLeJXRHoh6dTlyPFpGuGI
+	 Qz5xSORZMxclFWgOl0u3a2NVI0SbeO33DsO59WkTfxRhtF8dMkEZvhDI1Hh+9gy3yw
+	 o7EJmdV88dJPEOKbBAQL9YsN/pE3ttJ1hRXWobD4=
+Date: Mon, 01 Sep 2025 11:42:23 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages.patch added to mm-new branch
-Message-Id: <20250901184222.4AC51C4CEF0@smtp.kernel.org>
+Subject: + mm-hugetlb-check-for-unreasonable-folio-sizes-when-registering-hstate.patch added to mm-new branch
+Message-Id: <20250901184224.38A60C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memremap: reject unreasonable folio/compound page sizes in memremap_pages()
+     Subject: mm/hugetlb: check for unreasonable folio sizes when registering hstate
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages.patch
+     mm-hugetlb-check-for-unreasonable-folio-sizes-when-registering-hstate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-check-for-unreasonable-folio-sizes-when-registering-hstate.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,43 +65,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memremap: reject unreasonable folio/compound page sizes in memremap_pages()
-Date: Mon, 1 Sep 2025 17:03:28 +0200
+Subject: mm/hugetlb: check for unreasonable folio sizes when registering hstate
+Date: Mon, 1 Sep 2025 17:03:29 +0200
 
-Let's reject unreasonable folio sizes early, where we can still fail. 
-We'll add sanity checks to prepare_compound_head/prepare_compound_page
-next.
+Let's check that no hstate that corresponds to an unreasonable folio size
+is registered by an architecture.  If we were to succeed registering, we
+could later try allocating an unsupported gigantic folio size.
 
-Is there a way to configure a system such that unreasonable folio sizes
-would be possible?  It would already be rather questionable.
+Further, let's add a BUILD_BUG_ON() for checking that HUGETLB_PAGE_ORDER
+is sane at build time.  As HUGETLB_PAGE_ORDER is dynamic on powerpc, we
+have to use a BUILD_BUG_ON_INVALID() to make it compile.
 
-If so, we'd probably want to bail out earlier, where we can avoid a WARN
-and just report a proper error message that indicates where something went
-wrong such that we messed up.
+No existing kernel configuration should be able to trigger this check:
+either SPARSEMEM without SPARSEMEM_VMEMMAP cannot be configured or
+gigantic folios will not exceed a memory section (the case on sparse).
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-8-david@redhat.com
+Link: https://lkml.kernel.org/r/20250901150359.867252-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/hugetlb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memremap.c~mm-memremap-reject-unreasonable-folio-compound-page-sizes-in-memremap_pages
-+++ a/mm/memremap.c
-@@ -275,6 +275,9 @@ void *memremap_pages(struct dev_pagemap
+--- a/mm/hugetlb.c~mm-hugetlb-check-for-unreasonable-folio-sizes-when-registering-hstate
++++ a/mm/hugetlb.c
+@@ -4657,6 +4657,7 @@ static int __init hugetlb_init(void)
  
- 	if (WARN_ONCE(!nr_range, "nr_range must be specified\n"))
- 		return ERR_PTR(-EINVAL);
-+	if (WARN_ONCE(pgmap->vmemmap_shift > MAX_FOLIO_ORDER,
-+		      "requested folio size unsupported\n"))
-+		return ERR_PTR(-EINVAL);
+ 	BUILD_BUG_ON(sizeof_field(struct page, private) * BITS_PER_BYTE <
+ 			__NR_HPAGEFLAGS);
++	BUILD_BUG_ON_INVALID(HUGETLB_PAGE_ORDER > MAX_FOLIO_ORDER);
  
- 	switch (pgmap->type) {
- 	case MEMORY_DEVICE_PRIVATE:
+ 	if (!hugepages_supported()) {
+ 		if (hugetlb_max_hstate || default_hstate_max_huge_pages)
+@@ -4740,6 +4741,7 @@ void __init hugetlb_add_hstate(unsigned
+ 	}
+ 	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
+ 	BUG_ON(order < order_base_2(__NR_USED_SUBPAGE));
++	WARN_ON(order > MAX_FOLIO_ORDER);
+ 	h = &hstates[hugetlb_max_hstate++];
+ 	__mutex_init(&h->resize_lock, "resize mutex", &h->resize_key);
+ 	h->order = order;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
