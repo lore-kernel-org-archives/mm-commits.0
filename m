@@ -1,63 +1,128 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 010472E8B66;
-	Tue,  2 Sep 2025 20:42:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1F1232F743
+	for <mm-commits@vger.kernel.org>; Tue,  2 Sep 2025 23:04:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756845759; cv=none; b=Y9quECwrMms1KtFiG7yNBiEQ6SoZfQ+bUISc9GFzHTLY8lbWhpDidLYk7i+Jofowgyh+G+WPMRLFwWXVbmNJEQvutdCVL/G4/CydyiAr+ucxuD3wytSApvyToC6OVF9+Z2fb5aQOr1XOnAgR+H9rtuTuXTFcyiGWrGLpB/s4hTk=
+	t=1756854259; cv=none; b=O3vg2pwFphppUbzRQUdpGQK35YMsW6lWuXeelfLx2zoCCHol9JmKAV0vR1+DmIRXxmlaK/1vaAwAj4PVIAs7n2g/RxHf3469Dpm2FUdjtpAqYkSpFgdK12CAF12Zi8QgPZsfLKI2LNMfAntQezD+kntPKYL+fF7me8QuZmtiOTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756845759; c=relaxed/simple;
-	bh=EY3Ros8ui1AxqpqZefjCgk4LjTsOIk6qAWtxKeex6fU=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=mW6tgayX6xUKnx5037K2oV4sscQBGsjYqxvN8aNvYsL6QuScYjEvw7N0xb1vOmcjm45Q62OUov1O995Ry5tjFY1KI6B49u3+i5OWhaX4hrP/2EPMEUNYUlrY5cganx6iQDqqmi1E8EjKqWtTZ1qTS3it8KBOTggY/pg49WIWq5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=p29jjoBA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756854259; c=relaxed/simple;
+	bh=Ph7/2rOj/0k93v0Kle70bWXSolwnocsnbSKgZ4r+4Ow=;
+	h=Date:To:From:Subject:Message-Id; b=ZJNK+0n/RK8mJPkra7y0V3PhCjjKX10ZlUwnYE4nImlprN8knphL+U77NW9prntW34kncNvKNX4XHzHVQvhJuFs5rEMFqXpoiEwIbaI42X20fFh2mY6rTK/GvuR79wV28IojNVtldW9TbLqRSl77lvY1hlNCdhROR34bCCXMeQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=htLahkhl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="p29jjoBA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC493C4CEED;
-	Tue,  2 Sep 2025 20:42:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1756845758;
-	bh=EY3Ros8ui1AxqpqZefjCgk4LjTsOIk6qAWtxKeex6fU=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=p29jjoBAJe6T0O7UThks1cmcjI8SwiFvWaxZKkHmZDYW+zegGZ+hP7E1ddt6qE5Mf
-	 cTWXmxdr2FFrkYBwpp0gY0ofH3mAgU6Awrm56ogJI/LhYXeFNSwdUg5H22EFX0UcLV
-	 XpkohuD27GjAgrQLodQ+hyo6F+1x8RZ0HqAhPzmyYUe1UuV/bBs6i+gDr8nscdXlSn
-	 9otq/HIICPl47kenbfXhrMXtj1n/aYYoUDeag+sTGpfSFjtI3Y3oTdd2wJ1Exyb776
-	 7LgKNtE7pKL105d+816ek+fl35NjgiCLIufI5Zo65vE7/S59HUgTGZAjAtqnxf+BB5
-	 ZoooU9lR3s5pQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7146E383BF64;
-	Tue,  2 Sep 2025 20:42:45 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.17-rc5
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20250901172234.3a74524a97b595a5a81d1697@linux-foundation.org>
-References: <20250901172234.3a74524a97b595a5a81d1697@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20250901172234.3a74524a97b595a5a81d1697@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-01-17-20
-X-PR-Tracked-Commit-Id: c873ccbb2f8db46ad9b4a989ea924b6d8f19abf1
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 8026aed072e1221f0a61e5acc48c64546341bd4d
-Message-Id: <175684576405.430647.5772922228170674151.pr-tracker-bot@kernel.org>
-Date: Tue, 02 Sep 2025 20:42:44 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linuxfoundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="htLahkhl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B179C4CEED;
+	Tue,  2 Sep 2025 23:04:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1756854259;
+	bh=Ph7/2rOj/0k93v0Kle70bWXSolwnocsnbSKgZ4r+4Ow=;
+	h=Date:To:From:Subject:From;
+	b=htLahkhlLjN17Tz7CJsryszp/AlRrbuSOj03z6w/iOs3XPq4+6qW88rp9LzyeILIs
+	 8FNBlGItY/7m74idPciEPa2KjZKHL7pWZwk04CJeRGD/cDdy/6eFZ12l6UbXbMEKu4
+	 Z8NEyyqdN3EZqrqISQ6eFrUCjlMmca/gOyBDBOHI=
+Date: Tue, 02 Sep 2025 16:04:18 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,cascardo@igalia.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-show_mem-show-number-of-zspages-in-show_free_areas.patch added to mm-new branch
+Message-Id: <20250902230419.1B179C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Mon, 1 Sep 2025 17:22:34 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-01-17-20
+The patch titled
+     Subject: mm: show_mem: show number of zspages in show_free_areas
+has been added to the -mm mm-new branch.  Its filename is
+     mm-show_mem-show-number-of-zspages-in-show_free_areas.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/8026aed072e1221f0a61e5acc48c64546341bd4d
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-show_mem-show-number-of-zspages-in-show_free_areas.patch
 
-Thank you!
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+Subject: mm: show_mem: show number of zspages in show_free_areas
+Date: Tue, 2 Sep 2025 09:49:21 -0300
+
+When OOM is triggered, it will show where the pages might be for each
+zone.  When using zram or zswap, it might look like lots of pages are
+missing.  After this patch, zspages are shown as below.
+
+[   48.792859] Node 0 DMA free:2812kB boost:0kB min:60kB low:72kB high:84kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:11160kB present:15992kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+[   48.792962] lowmem_reserve[]: 0 956 956 956 956
+[   48.792988] Node 0 DMA32 free:3512kB boost:0kB min:3912kB low:4888kB high:5864kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:28kB active_file:8kB inactive_file:16kB unevictable:0kB writepending:0kB zspages:916780kB present:1032064kB managed:978944kB mlocked:0kB bounce:0kB free_pcp:500kB local_pcp:248kB free_cma:0kB
+[   48.793118] lowmem_reserve[]: 0 0 0 0 0
+
+Link: https://lkml.kernel.org/r/20250902-show_mem_zspages-v2-1-545daaa8b410@igalia.com
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/show_mem.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/mm/show_mem.c~mm-show_mem-show-number-of-zspages-in-show_free_areas
++++ a/mm/show_mem.c
+@@ -310,6 +310,7 @@ static void show_free_areas(unsigned int
+ 			" inactive_file:%lukB"
+ 			" unevictable:%lukB"
+ 			" writepending:%lukB"
++			" zspages:%lukB"
+ 			" present:%lukB"
+ 			" managed:%lukB"
+ 			" mlocked:%lukB"
+@@ -332,6 +333,11 @@ static void show_free_areas(unsigned int
+ 			K(zone_page_state(zone, NR_ZONE_INACTIVE_FILE)),
+ 			K(zone_page_state(zone, NR_ZONE_UNEVICTABLE)),
+ 			K(zone_page_state(zone, NR_ZONE_WRITE_PENDING)),
++#if IS_ENABLED(CONFIG_ZSMALLOC)
++			K(zone_page_state(zone, NR_ZSPAGES)),
++#else
++			0UL,
++#endif
+ 			K(zone->present_pages),
+ 			K(zone_managed_pages(zone)),
+ 			K(zone_page_state(zone, NR_MLOCK)),
+_
+
+Patches currently in -mm which might be from cascardo@igalia.com are
+
+mm-page_alloc-only-set-alloc_highatomic-for-__gpf_high-allocations.patch
+mm-show_mem-show-number-of-zspages-in-show_free_areas.patch
+
