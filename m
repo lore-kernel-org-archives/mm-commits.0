@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4629821C17D
-	for <mm-commits@vger.kernel.org>; Tue,  2 Sep 2025 04:08:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE8B82E11B6
+	for <mm-commits@vger.kernel.org>; Tue,  2 Sep 2025 04:12:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756786140; cv=none; b=nr5yKD5F6OQE4u4eSlvcYv63Rs0QYqKhy0O94sj3mWh0s7v7VjCdO5WwyOK0bP0xjG8ya30Z00EAKTVsXqb7wXkpafQWXXhjuibAdvRqOft6RwJoFxVotlE7asVQESNc1Hss/Tzn0nDkdfnqeza3DziPIKYxxTIpDlJOPSQINl4=
+	t=1756786357; cv=none; b=Ykgf4SqoDSDq4WWjyFd9+unZasPbHG98yutyddxeNd8UdyN73jo+Ll6kbSDo0xyGok3k9G/93/6xXk3rlCCDTMiOMl8FSDkduIphvCz3LiNwUz3EAzRfsxoLudglQqlznTNYvIUeZPwwnjKcdJga1yo8cKqhCVTSKJGhk0Tmdkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756786140; c=relaxed/simple;
-	bh=1JgaEm8PgpsHBVFGyh2jd+bEtHYqjbQ0RYW6Mltuo0w=;
-	h=Date:To:From:Subject:Message-Id; b=eP6tY4hHx+1sGAxq77/7T/90iQk3Pe4qbuEDZZ75UcW9wHfFv6BBmbDpRv+qYTGCoZWgm4WsC2uewba/LevVsiOROv7wpB0EAZYz+4h2888lVb6p4CROynhamxZJlu9Wx1WwyJZzl4lTRHZgOY4wo3w79fYMDQDtSsNaUQ/vcqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BB94TuzL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756786357; c=relaxed/simple;
+	bh=bxAZ/lgSSXTkNceNtY2CtBkGosotgbQe03nnuOcoqVg=;
+	h=Date:To:From:Subject:Message-Id; b=D6uzuCFU870MOwljEA1zXN4wdbubd/LbojVIMvAmh1B5SZL36awnZ37HfTxNqy2lnKNHzZvZEwTFuyiBiIO8kXJWEsJyUEvaUWaTct+jZVPpxLDAKwTn7pjTBmTtRwBCeTk5e1VEWZTXhTiZX4keD3iFA4+cNW4MczEwViEr87k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e9DXBTK8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BB94TuzL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9311BC4CEFB;
-	Tue,  2 Sep 2025 04:08:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e9DXBTK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62DEAC4CEED;
+	Tue,  2 Sep 2025 04:12:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756786139;
-	bh=1JgaEm8PgpsHBVFGyh2jd+bEtHYqjbQ0RYW6Mltuo0w=;
+	s=korg; t=1756786357;
+	bh=bxAZ/lgSSXTkNceNtY2CtBkGosotgbQe03nnuOcoqVg=;
 	h=Date:To:From:Subject:From;
-	b=BB94TuzLWbR7cDfoSbfXzUq59pxLlVDejxdG+PZ4SeD9Nv/iJPrW6oqUTJpRrW9j7
-	 3/rplFp9PPwS40NpGgp+1yrAhgE6MKswyLCLsQMavOg22SPAKH0HBnbUbtgxfLTFt5
-	 GXBzE28z/t4TeQpCfEdFXBaHRMPxVnr4r9iI/dFM=
-Date: Mon, 01 Sep 2025 21:08:58 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,cascardo@igalia.com,akpm@linux-foundation.org
+	b=e9DXBTK8WTivFADVp045Nevay63VrvAJV4RPZEbbmTdVjSsZgmSdHFRyEYzCo7KlQ
+	 cYvgVjATbix86MYFaLJrWizbQAocPxE7a825DOMhOPGo+VGJQdoC6cfIA98AodEyvW
+	 EI21SiHNRXAJNnC+uryZNYa8DivMNA0V1YWXBhsU=
+Date: Mon, 01 Sep 2025 21:12:36 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,hannes@cmpxchg.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-show_mem-show-number-of-zspages-in-show_free_areas.patch removed from -mm tree
-Message-Id: <20250902040859.9311BC4CEFB@smtp.kernel.org>
+Subject: + mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2.patch added to mm-new branch
+Message-Id: <20250902041237.62DEAC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,64 +34,85 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: show_mem: show number of zspages in show_free_areas
-has been removed from the -mm tree.  Its filename was
-     mm-show_mem-show-number-of-zspages-in-show_free_areas.patch
+The patch titled
+     Subject: mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Subject: mm: show_mem: show number of zspages in show_free_areas
-Date: Mon, 1 Sep 2025 15:37:28 -0300
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2
+Date: Tue, 2 Sep 2025 02:58:07 +0000
 
-When OOM is triggered, it will show where the pages might be for each
-zone.  When using zram, it might look like lots of pages are missing. 
-After this patch, zspages are shown as below.
+add comment on assignment of order
 
-[   48.792859] Node 0 DMA free:2812kB boost:0kB min:60kB low:72kB high:84kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:11160kB present:15992kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
-[   48.792962] lowmem_reserve[]: 0 956 956 956 956
-[   48.792988] Node 0 DMA32 free:3512kB boost:0kB min:3912kB low:4888kB high:5864kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:28kB active_file:8kB inactive_file:16kB unevictable:0kB writepending:0kB zspages:916780kB present:1032064kB managed:978944kB mlocked:0kB bounce:0kB free_pcp:500kB local_pcp:248kB free_cma:0kB
-[   48.793118] lowmem_reserve[]: 0 0 0 0 0
-
-Link: https://lkml.kernel.org/r/20250901183729.3900578-1-cascardo@igalia.com
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
+Link: https://lkml.kernel.org/r/20250828091618.7869-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250902025807.11467-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: SeongJae Park <sj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/show_mem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/show_mem.c~mm-show_mem-show-number-of-zspages-in-show_free_areas
-+++ a/mm/show_mem.c
-@@ -310,6 +310,7 @@ static void show_free_areas(unsigned int
- 			" inactive_file:%lukB"
- 			" unevictable:%lukB"
- 			" writepending:%lukB"
-+			" zspages:%lukB"
- 			" present:%lukB"
- 			" managed:%lukB"
- 			" mlocked:%lukB"
-@@ -332,6 +333,7 @@ static void show_free_areas(unsigned int
- 			K(zone_page_state(zone, NR_ZONE_INACTIVE_FILE)),
- 			K(zone_page_state(zone, NR_ZONE_UNEVICTABLE)),
- 			K(zone_page_state(zone, NR_ZONE_WRITE_PENDING)),
-+			K(zone_page_state(zone, NR_ZSPAGES)),
- 			K(zone->present_pages),
- 			K(zone_managed_pages(zone)),
- 			K(zone_page_state(zone, NR_MLOCK)),
+--- a/mm/page_alloc.c~mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2
++++ a/mm/page_alloc.c
+@@ -2033,6 +2033,12 @@ static int move_freepages_block(struct z
+ /* Look for a buddy that straddles start_pfn */
+ static unsigned long find_large_buddy(unsigned long start_pfn)
+ {
++	/*
++	 * If start_pfn is not an order-0 PageBuddy, next PageBuddy containing
++	 * start_pfn has minimal order of __ffs(start_pfn) + 1. Start checking
++	 * the order with __ffs(start_pfn). If start_pfn is order-0 PageBuddy,
++	 * the starting order does not matter.
++	 */
+ 	int order = start_pfn ? __ffs(start_pfn) : MAX_PAGE_ORDER;
+ 	struct page *page;
+ 	unsigned long pfn = start_pfn;
 _
 
-Patches currently in -mm which might be from cascardo@igalia.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-page_alloc-only-set-alloc_highatomic-for-__gpf_high-allocations.patch
+mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young.patch
+mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
+selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
+mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
+selftests-mm-put-general-ksm-operation-into-vm_util.patch
+selftests-mm-test-that-rmap-behave-as-expected.patch
+mm-khugepaged-use-list_xxx-helper-to-improve-readability.patch
+mm-page_alloc-use-xxx_pageblock_isolate-for-better-reading.patch
+mm-pageblock-flags-remove-pb_migratetype_bits-pb_migrate_end.patch
+mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch
+mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2.patch
+selftests-mm-check-content-to-see-whether-mremap-corrupt-data.patch
 
