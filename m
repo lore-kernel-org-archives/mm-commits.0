@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C954E2EA72B
-	for <mm-commits@vger.kernel.org>; Tue,  2 Sep 2025 23:52:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AD182EA72B
+	for <mm-commits@vger.kernel.org>; Tue,  2 Sep 2025 23:52:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756857176; cv=none; b=TPLzIsjjFLR0OHX3jtgMFDOUJEyRjhP6dAKulPmD32cy1rpm7B90lPMmPMlUWtkHTbTwUOBogQaO/hL9t+5WBLS4NeSRCmUCm/9rLGoRFfVdG6tpvhpjZqcT21UQZ/K8zo/5qyfjnKudL1wGfL2YrQAAjea98XrUpUFP2ZBvJnU=
+	t=1756857178; cv=none; b=NR+I8hwlzt4hciDCCHak6QRZr+6BWVQr5GQjvp2xkx/rsAYrbfwnf5YTy4QF5XsHebZYNxPdAaFkHsMhl9DmQRP1xhs8x2x+xXBjZbQBttFmwsv0YMS/cjzS2XuBLW4iUUpd6IjNxtyo0yeHsJakFJ1PC/XDd4dJObOzPzF1inM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756857176; c=relaxed/simple;
-	bh=zHpaiRVS8f8p2P2Siq7GDCIMyhfJJqoItIvc6CCoFb8=;
-	h=Date:To:From:Subject:Message-Id; b=T0IWBwNhym52ooKTuWLTrSiBw8lS/klD+jFhUomCHOmR6LxooaVp4GoTmuLGZyIdn5RZ+1qm4Pmr8Jk9BkkbDn8QuXfnxRx+s6cVqE0WD1aHnmI4smRnKloAGe0DK5hEoMTu3smXfw89qHgsTEMw1tiJiessgVgmreWvAr21a6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xRTytvjG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756857178; c=relaxed/simple;
+	bh=r1Rv+AR0Na5zTvT/3mAkInSlOra7AvkENJEmGvjoIOQ=;
+	h=Date:To:From:Subject:Message-Id; b=ALmsFDu5/DWMvgJB2d4+D9TLJ9vEXZX34qziRY3eGJp9JtFvRkg0jJPj0F8Anmd6yt3AQLOekAUHWJqHV3DJHgoZ3CWVf9xJfezgVw+5K9KKqxiRphODJAZULRdovSYqdqB94VB29NNgqosKh+aRhx+q4xQQPXadQtGB/WOkPhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VEKiXlCc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xRTytvjG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9857FC4CEED;
-	Tue,  2 Sep 2025 23:52:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VEKiXlCc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C279C4CEED;
+	Tue,  2 Sep 2025 23:52:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756857176;
-	bh=zHpaiRVS8f8p2P2Siq7GDCIMyhfJJqoItIvc6CCoFb8=;
+	s=korg; t=1756857178;
+	bh=r1Rv+AR0Na5zTvT/3mAkInSlOra7AvkENJEmGvjoIOQ=;
 	h=Date:To:From:Subject:From;
-	b=xRTytvjG8M0KjQCN9F5d91q85JlQrCtRqgwWePBZluh/hdmPjPf4AUuriEkFVAP/+
-	 1HeMxyAmuhxFT2vQAnhnLOg4woO81GM67DcP11kwJYgHtR/Yy6WaALvKnFpBfJmKIk
-	 jso6p1RgVjWwC8CrlX6I4pieWDWKLpMs/qu2bvyg=
-Date: Tue, 02 Sep 2025 16:52:55 -0700
+	b=VEKiXlCclKth95EfqEF7ubeNdXtl3HSAGphRtadJFIvR22XBBuEcAbkspRoL6nTwl
+	 QA7QGGUf2BZdmBk0TYdxhkd6zn+HGJ/46eN7q+Fcqoka3QIHNg/Uh0SLT/O6z8LuDL
+	 YJT5XSUv5SHBxUlJScIuu07N5JJVTEUWuzXOqQVM=
+Date: Tue, 02 Sep 2025 16:52:57 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-add-alloc_contig_frozen_pages.patch added to mm-new branch
-Message-Id: <20250902235256.9857FC4CEED@smtp.kernel.org>
+Subject: + mm-cma-add-alloc-flags-for-__cma_alloc.patch added to mm-new branch
+Message-Id: <20250902235258.0C279C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: add alloc_contig_frozen_pages()
+     Subject: mm: cma: add alloc flags for __cma_alloc()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-add-alloc_contig_frozen_pages.patch
+     mm-cma-add-alloc-flags-for-__cma_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-alloc_contig_frozen_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-alloc-flags-for-__cma_alloc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,15 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: page_alloc: add alloc_contig_frozen_pages()
-Date: Tue, 2 Sep 2025 20:48:17 +0800
+Subject: mm: cma: add alloc flags for __cma_alloc()
+Date: Tue, 2 Sep 2025 20:48:18 +0800
 
-Introduce a ACR_FLAGS_FROZEN flags to indicate that we want to allocate a
-frozen compound pages by alloc_contig_range(), also provide
-alloc_contig_frozen_pages() to allocate pages without incrementing their
-refcount, which may be beneficial to some users (eg hugetlb).
+In order to support frozen page allocation in the following changes,
+adding the alloc flags for __cma_alloc().
 
-Link: https://lkml.kernel.org/r/20250902124820.3081488-7-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20250902124820.3081488-8-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -87,161 +85,68 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    6 ++
- mm/page_alloc.c     |   85 +++++++++++++++++++++++-------------------
- 2 files changed, 54 insertions(+), 37 deletions(-)
+ mm/cma.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/include/linux/gfp.h~mm-page_alloc-add-alloc_contig_frozen_pages
-+++ a/include/linux/gfp.h
-@@ -427,6 +427,7 @@ extern gfp_t vma_thp_gfp_mask(struct vm_
- typedef unsigned int __bitwise acr_flags_t;
- #define ACR_FLAGS_NONE ((__force acr_flags_t)0) // ordinary allocation request
- #define ACR_FLAGS_CMA ((__force acr_flags_t)BIT(0)) // allocate for CMA
-+#define ACR_FLAGS_FROZEN ((__force acr_flags_t)BIT(1)) // allocate for frozen compound pages
+--- a/mm/cma.c~mm-cma-add-alloc-flags-for-__cma_alloc
++++ a/mm/cma.c
+@@ -778,7 +778,8 @@ static void cma_debug_show_areas(struct
  
- /* The below functions must be run on a range from a single zone. */
- extern int alloc_contig_range_noprof(unsigned long start, unsigned long end,
-@@ -437,6 +438,11 @@ extern struct page *alloc_contig_pages_n
- 					      int nid, nodemask_t *nodemask);
- #define alloc_contig_pages(...)			alloc_hooks(alloc_contig_pages_noprof(__VA_ARGS__))
- 
-+struct page *alloc_contig_frozen_pages_noprof(unsigned long nr_pages,
-+		gfp_t gfp_mask, int nid, nodemask_t *nodemask);
-+#define alloc_contig_frozen_pages(...) \
-+	alloc_hooks(alloc_contig_frozen_pages_noprof(__VA_ARGS__))
-+
- #endif
- void free_contig_range(unsigned long pfn, unsigned long nr_pages);
- 
---- a/mm/page_alloc.c~mm-page_alloc-add-alloc_contig_frozen_pages
-+++ a/mm/page_alloc.c
-@@ -6871,6 +6871,9 @@ int alloc_contig_range_noprof(unsigned l
- 	if (__alloc_contig_verify_gfp_mask(gfp_mask, (gfp_t *)&cc.gfp_mask))
- 		return -EINVAL;
- 
-+	if ((alloc_flags & ACR_FLAGS_FROZEN) && !(gfp_mask & __GFP_COMP))
-+		return -EINVAL;
-+
- 	/*
- 	 * What we do here is we mark all pageblocks in range as
- 	 * MIGRATE_ISOLATE.  Because pageblock and max order pages may
-@@ -6967,7 +6970,8 @@ int alloc_contig_range_noprof(unsigned l
- 
- 		check_new_pages(head, order);
- 		prep_new_page(head, order, gfp_mask, 0);
--		set_page_refcounted(head);
-+		if (!(alloc_flags & ACR_FLAGS_FROZEN))
-+			set_page_refcounted(head);
- 	} else {
- 		ret = -EINVAL;
- 		WARN(true, "PFN range: requested [%lu, %lu), allocated [%lu, %lu)\n",
-@@ -6979,15 +6983,6 @@ done:
- }
- EXPORT_SYMBOL(alloc_contig_range_noprof);
- 
--static int __alloc_contig_pages(unsigned long start_pfn,
--				unsigned long nr_pages, gfp_t gfp_mask)
--{
--	unsigned long end_pfn = start_pfn + nr_pages;
--
--	return alloc_contig_range_noprof(start_pfn, end_pfn, ACR_FLAGS_NONE,
--					 gfp_mask);
--}
--
- static bool pfn_range_valid_contig(struct zone *z, unsigned long start_pfn,
- 				   unsigned long nr_pages)
+ static int cma_range_alloc(struct cma *cma, struct cma_memrange *cmr,
+ 				unsigned long count, unsigned int align,
+-				struct page **pagep, gfp_t gfp)
++				struct page **pagep, gfp_t gfp,
++				acr_flags_t alloc_flags)
  {
-@@ -7019,31 +7014,8 @@ static bool zone_spans_last_pfn(const st
- 	return zone_spans_pfn(zone, last_pfn);
+ 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
+ 	unsigned long start, pfn, mask, offset;
+@@ -836,7 +837,7 @@ static int cma_range_alloc(struct cma *c
+ 		spin_unlock_irq(&cma->lock);
+ 
+ 		mutex_lock(&cma->alloc_mutex);
+-		ret = alloc_contig_range(pfn, pfn + count, ACR_FLAGS_CMA, gfp);
++		ret = alloc_contig_range(pfn, pfn + count, alloc_flags, gfp);
+ 		mutex_unlock(&cma->alloc_mutex);
+ 		if (!ret)
+ 			break;
+@@ -857,7 +858,7 @@ out:
  }
  
--/**
-- * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
-- * @nr_pages:	Number of contiguous pages to allocate
-- * @gfp_mask:	GFP mask. Node/zone/placement hints limit the search; only some
-- *		action and reclaim modifiers are supported. Reclaim modifiers
-- *		control allocation behavior during compaction/migration/reclaim.
-- * @nid:	Target node
-- * @nodemask:	Mask for other possible nodes
-- *
-- * This routine is a wrapper around alloc_contig_range(). It scans over zones
-- * on an applicable zonelist to find a contiguous pfn range which can then be
-- * tried for allocation with alloc_contig_range(). This routine is intended
-- * for allocation requests which can not be fulfilled with the buddy allocator.
-- *
-- * The allocated memory is always aligned to a page boundary. If nr_pages is a
-- * power of two, then allocated range is also guaranteed to be aligned to same
-- * nr_pages (e.g. 1GB request would be aligned to 1GB).
-- *
-- * Allocated pages can be freed with free_contig_range() or by manually calling
-- * __free_page() on each allocated page.
-- *
-- * Return: pointer to contiguous pages on success, or NULL if not successful.
-- */
--struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
--				 int nid, nodemask_t *nodemask)
-+static struct page *__alloc_contig_pages(unsigned long nr_pages, gfp_t gfp_mask,
-+		acr_flags_t alloc_flags, int nid, nodemask_t *nodemask)
+ static struct page *__cma_alloc(struct cma *cma, unsigned long count,
+-		       unsigned int align, gfp_t gfp)
++		       unsigned int align, gfp_t gfp, acr_flags_t alloc_flags)
  {
- 	unsigned long ret, pfn, flags;
- 	struct zonelist *zonelist;
-@@ -7066,8 +7038,8 @@ struct page *alloc_contig_pages_noprof(u
- 				 * and cause alloc_contig_range() to fail...
- 				 */
- 				spin_unlock_irqrestore(&zone->lock, flags);
--				ret = __alloc_contig_pages(pfn, nr_pages,
--							gfp_mask);
-+				ret = alloc_contig_range_noprof(pfn, pfn + nr_pages,
-+							alloc_flags, gfp_mask);
- 				if (!ret)
- 					return pfn_to_page(pfn);
- 				spin_lock_irqsave(&zone->lock, flags);
-@@ -7078,6 +7050,45 @@ struct page *alloc_contig_pages_noprof(u
+ 	struct page *page = NULL;
+ 	int ret = -ENOMEM, r;
+@@ -879,7 +880,7 @@ static struct page *__cma_alloc(struct c
+ 		page = NULL;
+ 
+ 		ret = cma_range_alloc(cma, &cma->ranges[r], count, align,
+-				       &page, gfp);
++				       &page, gfp, alloc_flags);
+ 		if (ret != -EBUSY || page)
+ 			break;
  	}
- 	return NULL;
+@@ -927,7 +928,9 @@ static struct page *__cma_alloc(struct c
+ struct page *cma_alloc(struct cma *cma, unsigned long count,
+ 		       unsigned int align, bool no_warn)
+ {
+-	return __cma_alloc(cma, count, align, GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
++	return __cma_alloc(cma, count, align,
++			   GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0),
++			   ACR_FLAGS_CMA);
  }
-+
-+/**
-+ * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
-+ * @nr_pages:	Number of contiguous pages to allocate
-+ * @gfp_mask:	GFP mask. Node/zone/placement hints limit the search; only some
-+ *		action and reclaim modifiers are supported. Reclaim modifiers
-+ *		control allocation behavior during compaction/migration/reclaim.
-+ * @nid:	Target node
-+ * @nodemask:	Mask for other possible nodes
-+ *
-+ * This routine is a wrapper around alloc_contig_range(). It scans over zones
-+ * on an applicable zonelist to find a contiguous pfn range which can then be
-+ * tried for allocation with alloc_contig_range(). This routine is intended
-+ * for allocation requests which can not be fulfilled with the buddy allocator.
-+ *
-+ * The allocated memory is always aligned to a page boundary. If nr_pages is a
-+ * power of two, then allocated range is also guaranteed to be aligned to same
-+ * nr_pages (e.g. 1GB request would be aligned to 1GB).
-+ *
-+ * Allocated pages can be freed with free_contig_range() or by manually calling
-+ * __free_page() on each allocated page.
-+ *
-+ * Return: pointer to contiguous pages on success, or NULL if not successful.
-+ */
-+struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
-+		int nid, nodemask_t *nodemask)
-+{
-+	return __alloc_contig_pages(nr_pages, gfp_mask, ACR_FLAGS_NONE,
-+				    nid, nodemask);
-+}
-+
-+struct page *alloc_contig_frozen_pages_noprof(unsigned long nr_pages,
-+		gfp_t gfp_mask, int nid, nodemask_t *nodemask)
-+{
-+	/* always allocate compound pages without refcount increased */
-+	return __alloc_contig_pages(nr_pages, gfp_mask | __GFP_COMP,
-+				    ACR_FLAGS_FROZEN, nid, nodemask);
-+}
-+
- #endif /* CONFIG_CONTIG_ALLOC */
  
- void free_contig_range(unsigned long pfn, unsigned long nr_pages)
+ struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp)
+@@ -937,7 +940,7 @@ struct folio *cma_alloc_folio(struct cma
+ 	if (WARN_ON(!order || !(gfp & __GFP_COMP)))
+ 		return NULL;
+ 
+-	page = __cma_alloc(cma, 1 << order, order, gfp);
++	page = __cma_alloc(cma, 1 << order, order, gfp, ACR_FLAGS_CMA);
+ 
+ 	return page ? page_folio(page) : NULL;
+ }
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
