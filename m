@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD2D62EA72B
-	for <mm-commits@vger.kernel.org>; Tue,  2 Sep 2025 23:53:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA738134BD
+	for <mm-commits@vger.kernel.org>; Wed,  3 Sep 2025 00:25:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756857180; cv=none; b=l81RRG/c3KEtn9DlVlnTrEeWx9ULbQg4Z4CXLN1g1+F1JmtO/oIZyO1dSvWHzIjVvXqgJbM85FBlcd/SLk5e7HB7s6nlCjXMsOMQMxZi0eARm2xjtIQsrvp0xFf9dm5aBnXbvo5kaVkquJWFD5XbdLdFcc6dXyjKyT2yLEDLUVM=
+	t=1756859110; cv=none; b=VRI3vHpvZ68KlRWLej3jv2MpYrcoxyp5x3b7EUJjwhOveMEhUsueM62O1KvNjYGD0uBmTAdeIPgy9LywpW3y4CrOcXQ8/yC5azP/7iuJpN0Nnl4a3YHT2162ulW8Jc5kP64LwkGJQaWP4gxAR9zTY/7e8SrapSgm+A6Q+4JsrHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756857180; c=relaxed/simple;
-	bh=/LJryq4GpITAWLs7qrEsOs9TYJMAXZcOAvbA55d3y4M=;
-	h=Date:To:From:Subject:Message-Id; b=BLHEe8SI5NA/OHufh1BKOqUqtvvXgc60qBcQVeHVxd+GKZefqeF4AgS1odeK1QnWUBKR9fXi90Z4Qab32JbIIgMVObSt1ramXYyUljQFO4Mo6E76fkUzLFlI2rzaGKawdpNtuA2s3fAQhN9EgkcMQHDWPQirw32d84t+eSDaQL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VjmpHdQx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756859110; c=relaxed/simple;
+	bh=KxnYHeQLT7HyKR4NHCh2Y8XWINv+ErEI1zKC2/Ol3Y0=;
+	h=Date:To:From:Subject:Message-Id; b=aYlC/gZG/bf4rzKACd4ChzjXLjSoFXtzZRssU95M8Hcki/Smua7gUQfzo9ow4H3q9mug62ZA66Ns7KIQ10LM3UusfPNpEABBeEmNMZdhmjXieM3V1TJPcB2u8LsjCwLQxcS/glsIzdA8ifuC+lhBdg3IZHPPKOgVIw/fDRLyDO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P2dSk1IX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VjmpHdQx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80DECC4CEED;
-	Tue,  2 Sep 2025 23:53:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P2dSk1IX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3259DC4CEED;
+	Wed,  3 Sep 2025 00:25:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756857180;
-	bh=/LJryq4GpITAWLs7qrEsOs9TYJMAXZcOAvbA55d3y4M=;
+	s=korg; t=1756859110;
+	bh=KxnYHeQLT7HyKR4NHCh2Y8XWINv+ErEI1zKC2/Ol3Y0=;
 	h=Date:To:From:Subject:From;
-	b=VjmpHdQxHBp7xIDo5HEBn05foHoWZr+orAQuGFM9RQBmpmk+MbQUPBYOw7Vka8H+i
-	 LHfOpmxIoO3fdOBaWxHXog0R6+w7f35onL0wB2bgjwQ9qXR2xETkwLf9vlC7mZjzmG
-	 JR2rYIC3IS/+THeAm/T7TnkXKrJGn19MVjbl5nF4=
-Date: Tue, 02 Sep 2025 16:52:59 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=P2dSk1IX8DF7dHP2fPr5MW23jP3BgsWBGtr7HfvdtyjKJ7KN5gSCyNiN5AdGlZ5yA
+	 44ALNFFgvB0Nn2sva4Lg1XukH2FWLx7rItquNm1R071KYytIpqiaofrrnAWeVefMbw
+	 asY9SmtAW3tEMLdC0Od8fZLPNw80N7UMKdEoHkt8=
+Date: Tue, 02 Sep 2025 17:25:09 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,thuth@redhat.com,tglx@linutronix.de,svens@linux.ibm.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,osalvador@suse.de,nysal@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,linux@armlinux.org.uk,liam.howlett@oracle.com,jfalempe@redhat.com,jcmvbkbc@gmail.com,james.bottomley@HansenPartnership.com,jack@suse.cz,hughd@google.com,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,deller@gmx.de,david@redhat.com,davem@davemloft.net,chris@zankel.net,broonie@kernel.org,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,andreas@gaisler.com,agordeev@linux.ibm.com,max.kellermann@ionos.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio.patch added to mm-new branch
-Message-Id: <20250902235300.80DECC4CEED@smtp.kernel.org>
+Subject: + mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch added to mm-new branch
+Message-Id: <20250903002510.3259DC4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: hugetlb: allocate frozen pages in alloc_gigantic_folio()
+     Subject: mm: constify shmem related test functions for improved const-correctness
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio.patch
+     mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,325 +64,156 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hugetlb: allocate frozen pages in alloc_gigantic_folio()
-Date: Tue, 2 Sep 2025 20:48:20 +0800
+From: Max Kellermann <max.kellermann@ionos.com>
+Subject: mm: constify shmem related test functions for improved const-correctness
+Date: Mon, 1 Sep 2025 22:50:10 +0200
 
-The alloc_gigantic_folio() will allocate a folio by alloc_contig_range()
-with refcount increated and then freeze it, convert to allocate a frozen
-folio directly to remove the atomic operation about folio refcount, also
-saving atomic operation during __update_and_free_hugetlb_folio too.
+Patch series "mm: establish const-correctness for pointer parameters", v6.
 
-Rename some functions to make them more self-explanatory,
+This series is to improved const-correctness in the low-level
+memory-management subsystem, which provides a basis for further
+constification further up the call stack (e.g.  filesystems).
 
-  folio_alloc_gigantic		-> folio_alloc_frozen_gigantic
-  cma_alloc/free_folio		-> cma_alloc/free_frozen_folio
-  hugetlb_cma_alloc/free_folio	-> hugetlb_cma_alloc/free_frozen_folio
+I started this work when I tried to constify the Ceph filesystem code, but
+found that to be impossible because many "mm" functions accept non-const
+pointers, even though they modify nothing.
 
-Link: https://lkml.kernel.org/r/20250902124820.3081488-10-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+
+This patch (of 12):
+
+We select certain test functions which either invoke each other, functions
+that are already const-ified, or no further functions.
+
+It is therefore relatively trivial to const-ify them, which provides a
+basis for further const-ification further up the call stack.
+
+Link: https://lkml.kernel.org/r/20250901205021.3573313-1-max.kellermann@ionos.com
+Link: https://lkml.kernel.org/r/20250901205021.3573313-2-max.kellermann@ionos.com
+Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian Zankel <chris@zankel.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Bottomley <james.bottomley@HansenPartnership.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jocelyn Falempe <jfalempe@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Nysal Jan K.A" <nysal@linux.ibm.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Russel King <linux@armlinux.org.uk>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Thomas Huth <thuth@redhat.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    8 +++---
- include/linux/gfp.h |   14 +++++------
- mm/cma.c            |   22 ++++++++++++------
- mm/hugetlb.c        |   50 ++++++++----------------------------------
- mm/hugetlb_cma.c    |   13 +++++-----
- mm/hugetlb_cma.h    |   10 ++++----
- 6 files changed, 47 insertions(+), 70 deletions(-)
+ include/linux/mm.h       |    8 ++++----
+ include/linux/shmem_fs.h |    4 ++--
+ mm/shmem.c               |    6 +++---
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/cma.h~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/include/linux/cma.h
-@@ -57,16 +57,16 @@ extern bool cma_intersects(struct cma *c
- extern void cma_reserve_pages_on_error(struct cma *cma);
- 
- #ifdef CONFIG_CMA
--struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp);
--bool cma_free_folio(struct cma *cma, const struct folio *folio);
-+struct folio *cma_alloc_frozen_folio(struct cma *cma, int order, gfp_t gfp);
-+bool cma_free_frozen_folio(struct cma *cma, const struct folio *folio);
- bool cma_validate_zones(struct cma *cma);
+--- a/include/linux/mm.h~mm-constify-shmem-related-test-functions-for-improved-const-correctness
++++ a/include/linux/mm.h
+@@ -995,11 +995,11 @@ static inline void vma_iter_set(struct v
+  * The vma_is_shmem is not inline because it is used only by slow
+  * paths in userfault.
+  */
+-bool vma_is_shmem(struct vm_area_struct *vma);
+-bool vma_is_anon_shmem(struct vm_area_struct *vma);
++bool vma_is_shmem(const struct vm_area_struct *vma);
++bool vma_is_anon_shmem(const struct vm_area_struct *vma);
  #else
--static inline struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp)
-+static inline struct folio *cma_alloc_frozen_folio(struct cma *cma, int order, gfp_t gfp)
- {
- 	return NULL;
- }
+-static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
+-static inline bool vma_is_anon_shmem(struct vm_area_struct *vma) { return false; }
++static inline bool vma_is_shmem(const struct vm_area_struct *vma) { return false; }
++static inline bool vma_is_anon_shmem(const struct vm_area_struct *vma) { return false; }
+ #endif
  
--static inline bool cma_free_folio(struct cma *cma, const struct folio *folio)
-+static inline bool cma_free_frozen_folio(struct cma *cma, const struct folio *folio)
+ int vma_is_stack_for_current(struct vm_area_struct *vma);
+--- a/include/linux/shmem_fs.h~mm-constify-shmem-related-test-functions-for-improved-const-correctness
++++ a/include/linux/shmem_fs.h
+@@ -99,9 +99,9 @@ extern unsigned long shmem_get_unmapped_
+ 		unsigned long len, unsigned long pgoff, unsigned long flags);
+ extern int shmem_lock(struct file *file, int lock, struct ucounts *ucounts);
+ #ifdef CONFIG_SHMEM
+-bool shmem_mapping(struct address_space *mapping);
++bool shmem_mapping(const struct address_space *mapping);
+ #else
+-static inline bool shmem_mapping(struct address_space *mapping)
++static inline bool shmem_mapping(const struct address_space *mapping)
  {
  	return false;
  }
---- a/include/linux/gfp.h~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/include/linux/gfp.h
-@@ -447,26 +447,26 @@ struct page *alloc_contig_frozen_pages_n
- void free_contig_range(unsigned long pfn, unsigned long nr_pages);
+--- a/mm/shmem.c~mm-constify-shmem-related-test-functions-for-improved-const-correctness
++++ a/mm/shmem.c
+@@ -275,18 +275,18 @@ static const struct vm_operations_struct
+ static const struct vm_operations_struct shmem_anon_vm_ops;
+ static struct file_system_type shmem_fs_type;
  
- #ifdef CONFIG_CONTIG_ALLOC
--static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
--							int nid, nodemask_t *node)
-+static inline struct folio *folio_alloc_frozen_gigantic_noprof(int order,
-+		gfp_t gfp, int nid, nodemask_t *node)
+-bool shmem_mapping(struct address_space *mapping)
++bool shmem_mapping(const struct address_space *mapping)
  {
- 	struct page *page;
- 
- 	if (WARN_ON(!order || !(gfp & __GFP_COMP)))
- 		return NULL;
- 
--	page = alloc_contig_pages_noprof(1 << order, gfp, nid, node);
-+	page = alloc_contig_frozen_pages_noprof(1 << order, gfp, nid, node);
- 
- 	return page ? page_folio(page) : NULL;
+ 	return mapping->a_ops == &shmem_aops;
  }
- #else
--static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
--							int nid, nodemask_t *node)
-+static inline struct folio *folio_alloc_frozen_gigantic_noprof(int order,
-+		gfp_t gfp, int nid, nodemask_t *node)
+ EXPORT_SYMBOL_GPL(shmem_mapping);
+ 
+-bool vma_is_anon_shmem(struct vm_area_struct *vma)
++bool vma_is_anon_shmem(const struct vm_area_struct *vma)
  {
- 	return NULL;
- }
- #endif
--/* This should be paired with folio_put() rather than free_contig_range(). */
--#define folio_alloc_gigantic(...) alloc_hooks(folio_alloc_gigantic_noprof(__VA_ARGS__))
-+/* This must be paired with free_frozen_pages() rather than free_contig_range(). */
-+#define folio_alloc_frozen_gigantic(...) alloc_hooks(folio_alloc_frozen_gigantic_noprof(__VA_ARGS__))
- 
- #endif /* __LINUX_GFP_H */
---- a/mm/cma.c~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/mm/cma.c
-@@ -933,20 +933,21 @@ struct page *cma_alloc(struct cma *cma,
- 			   ACR_FLAGS_CMA);
+ 	return vma->vm_ops == &shmem_anon_vm_ops;
  }
  
--struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp)
-+struct folio *cma_alloc_frozen_folio(struct cma *cma, int order, gfp_t gfp)
+-bool vma_is_shmem(struct vm_area_struct *vma)
++bool vma_is_shmem(const struct vm_area_struct *vma)
  {
- 	struct page *page;
- 
- 	if (WARN_ON(!order || !(gfp & __GFP_COMP)))
- 		return NULL;
- 
--	page = __cma_alloc(cma, 1 << order, order, gfp, ACR_FLAGS_CMA);
-+	page = __cma_alloc(cma, 1 << order, order, gfp,
-+			   ACR_FLAGS_CMA | ACR_FLAGS_FROZEN);
- 
- 	return page ? page_folio(page) : NULL;
- }
- 
- static bool __cma_release(struct cma *cma, const struct page *pages,
--			  unsigned long count)
-+			  unsigned long count, bool frozen_page)
- {
- 	unsigned long pfn, end;
- 	int r;
-@@ -969,7 +970,14 @@ static bool __cma_release(struct cma *cm
- 	if (r == cma->nranges)
- 		return false;
- 
--	free_contig_range(pfn, count);
-+	if (frozen_page) {
-+		struct page *head_page = compound_head((struct page *)pages);
-+
-+		free_frozen_pages(head_page, compound_order(head_page));
-+	} else {
-+		free_contig_range(pfn, count);
-+	}
-+
- 	cma_clear_bitmap(cma, cmr, pfn, count);
- 	cma_sysfs_account_release_pages(cma, count);
- 	trace_cma_release(cma->name, pfn, pages, count);
-@@ -990,15 +998,15 @@ static bool __cma_release(struct cma *cm
- bool cma_release(struct cma *cma, const struct page *pages,
- 		 unsigned long count)
- {
--	return __cma_release(cma, pages, count);
-+	return __cma_release(cma, pages, count, false);
- }
- 
--bool cma_free_folio(struct cma *cma, const struct folio *folio)
-+bool cma_free_frozen_folio(struct cma *cma, const struct folio *folio)
- {
- 	if (WARN_ON(!folio_test_large(folio)))
- 		return false;
- 
--	return __cma_release(cma, &folio->page, folio_nr_pages(folio));
-+	return __cma_release(cma, &folio->page, folio_nr_pages(folio), true);
- }
- 
- int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
---- a/mm/hugetlb.c~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/mm/hugetlb.c
-@@ -125,16 +125,6 @@ static void hugetlb_unshare_pmds(struct
- 		unsigned long start, unsigned long end, bool take_locks);
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
- 
--static void hugetlb_free_folio(struct folio *folio)
--{
--	if (folio_test_hugetlb_cma(folio)) {
--		hugetlb_cma_free_folio(folio);
--		return;
--	}
--
--	folio_put(folio);
--}
--
- static inline bool subpool_is_free(struct hugepage_subpool *spool)
- {
- 	if (spool->count)
-@@ -1472,43 +1462,20 @@ static int hstate_next_node_to_free(stru
- 		nr_nodes--)
- 
- #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
--#ifdef CONFIG_CONTIG_ALLOC
- static struct folio *alloc_gigantic_folio(int order, gfp_t gfp_mask,
- 		int nid, nodemask_t *nodemask)
- {
- 	struct folio *folio;
--	bool retried = false;
--
--retry:
--	folio = hugetlb_cma_alloc_folio(order, gfp_mask, nid, nodemask);
--	if (!folio) {
--		if (hugetlb_cma_exclusive_alloc())
--			return NULL;
--
--		folio = folio_alloc_gigantic(order, gfp_mask, nid, nodemask);
--		if (!folio)
--			return NULL;
--	}
- 
--	if (folio_ref_freeze(folio, 1))
-+	folio = hugetlb_cma_alloc_frozen_folio(order, gfp_mask, nid, nodemask);
-+	if (folio)
- 		return folio;
- 
--	pr_warn("HugeTLB: unexpected refcount on PFN %lu\n", folio_pfn(folio));
--	hugetlb_free_folio(folio);
--	if (!retried) {
--		retried = true;
--		goto retry;
--	}
--	return NULL;
--}
-+	if (hugetlb_cma_exclusive_alloc())
-+		return NULL;
- 
--#else /* !CONFIG_CONTIG_ALLOC */
--static struct folio *alloc_gigantic_folio(int order, gfp_t gfp_mask, int nid,
--					  nodemask_t *nodemask)
--{
--	return NULL;
-+	return folio_alloc_frozen_gigantic(order, gfp_mask, nid, nodemask);
- }
--#endif /* CONFIG_CONTIG_ALLOC */
- 
- #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
- static struct folio *alloc_gigantic_folio(int order, gfp_t gfp_mask, int nid,
-@@ -1641,9 +1608,12 @@ static void __update_and_free_hugetlb_fo
- 	if (unlikely(folio_test_hwpoison(folio)))
- 		folio_clear_hugetlb_hwpoison(folio);
- 
--	folio_ref_unfreeze(folio, 1);
-+	VM_BUG_ON_FOLIO(folio_ref_count(folio), folio);
- 
--	hugetlb_free_folio(folio);
-+	if (folio_test_hugetlb_cma(folio))
-+		hugetlb_cma_free_frozen_folio(folio);
-+	else
-+		free_frozen_pages(&folio->page, folio_order(folio));
- }
- 
- /*
---- a/mm/hugetlb_cma.c~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/mm/hugetlb_cma.c
-@@ -18,29 +18,28 @@ static unsigned long hugetlb_cma_size_in
- static bool hugetlb_cma_only;
- static unsigned long hugetlb_cma_size __initdata;
- 
--void hugetlb_cma_free_folio(struct folio *folio)
-+void hugetlb_cma_free_frozen_folio(struct folio *folio)
- {
- 	int nid = folio_nid(folio);
- 
--	WARN_ON_ONCE(!cma_free_folio(hugetlb_cma[nid], folio));
-+	WARN_ON_ONCE(!cma_free_frozen_folio(hugetlb_cma[nid], folio));
- }
- 
--
--struct folio *hugetlb_cma_alloc_folio(int order, gfp_t gfp_mask,
--				      int nid, nodemask_t *nodemask)
-+struct folio *hugetlb_cma_alloc_frozen_folio(int order, gfp_t gfp_mask,
-+		int nid, nodemask_t *nodemask)
- {
- 	int node;
- 	struct folio *folio = NULL;
- 
- 	if (hugetlb_cma[nid])
--		folio = cma_alloc_folio(hugetlb_cma[nid], order, gfp_mask);
-+		folio = cma_alloc_frozen_folio(hugetlb_cma[nid], order, gfp_mask);
- 
- 	if (!folio && !(gfp_mask & __GFP_THISNODE)) {
- 		for_each_node_mask(node, *nodemask) {
- 			if (node == nid || !hugetlb_cma[node])
- 				continue;
- 
--			folio = cma_alloc_folio(hugetlb_cma[node], order, gfp_mask);
-+			folio = cma_alloc_frozen_folio(hugetlb_cma[node], order, gfp_mask);
- 			if (folio)
- 				break;
- 		}
---- a/mm/hugetlb_cma.h~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/mm/hugetlb_cma.h
-@@ -3,8 +3,8 @@
- #define _LINUX_HUGETLB_CMA_H
- 
- #ifdef CONFIG_CMA
--void hugetlb_cma_free_folio(struct folio *folio);
--struct folio *hugetlb_cma_alloc_folio(int order, gfp_t gfp_mask,
-+void hugetlb_cma_free_frozen_folio(struct folio *folio);
-+struct folio *hugetlb_cma_alloc_frozen_folio(int order, gfp_t gfp_mask,
- 				      int nid, nodemask_t *nodemask);
- struct huge_bootmem_page *hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid,
- 						    bool node_exact);
-@@ -14,12 +14,12 @@ unsigned long hugetlb_cma_total_size(voi
- void hugetlb_cma_validate_params(void);
- bool hugetlb_early_cma(struct hstate *h);
- #else
--static inline void hugetlb_cma_free_folio(struct folio *folio)
-+static inline void hugetlb_cma_free_frozen_folio(struct folio *folio)
- {
- }
- 
--static inline struct folio *hugetlb_cma_alloc_folio(int order, gfp_t gfp_mask,
--		int nid, nodemask_t *nodemask)
-+static inline struct folio *hugetlb_cma_alloc_frozen_folio(int order,
-+		gfp_t gfp_mask, int nid, nodemask_t *nodemask)
- {
- 	return NULL;
+ 	return vma_is_anon_shmem(vma) || vma->vm_ops == &shmem_vm_ops;
  }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from max.kellermann@ionos.com are
 
-mm-hugetlb-convert-to-use-more-alloc_fresh_hugetlb_folio.patch
-mm-hugetlb-convert-to-account_new_hugetlb_folio.patch
-mm-hugetlb-directly-pass-order-when-allocate-a-hugetlb-folio.patch
-mm-hugetlb-remove-struct-hstate-from-init_new_hugetlb_folio.patch
-mm-hugeltb-check-numa_no_node-in-only_alloc_fresh_hugetlb_folio.patch
-mm-page_alloc-add-alloc_contig_frozen_pages.patch
-mm-cma-add-alloc-flags-for-__cma_alloc.patch
-mm-cma-add-__cma_release.patch
-mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio.patch
+pagevech-add-const-to-pointer-parameters-of-getter-functions.patch
+huge_mmh-disallow-is_huge_zero_folionull.patch
+mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch
+mm-constify-pagemap-related-test-getter-functions.patch
+mm-constify-zone-related-test-getter-functions.patch
+fs-constify-mapping-related-test-functions-for-improved-const-correctness.patch
+mm-constify-process_shares_mm-for-improved-const-correctness.patch
+mm-s390-constify-mapping-related-test-getter-functions.patch
+parisc-constify-mmap_upper_limit-parameter.patch
+mm-constify-arch_pick_mmap_layout-for-improved-const-correctness.patch
+mm-constify-ptdesc_pmd_pts_count-and-folio_get_private.patch
+mm-constify-various-inline-functions-for-improved-const-correctness.patch
+mm-constify-assert-test-functions-in-mmh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness.patch
 
