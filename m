@@ -1,58 +1,127 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2A211BC58
-	for <mm-commits@vger.kernel.org>; Wed,  3 Sep 2025 03:41:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411DE2D0C8C
+	for <mm-commits@vger.kernel.org>; Wed,  3 Sep 2025 04:55:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756870913; cv=none; b=XnJYpAoYThC5CzcNaV0pVjpK3BmF1ojhznIG+64qibUxy87KPr4BI7d6RUpXue4aTLB9cdKzYiBo3zIVum59UaEkY4W/tVci6qB8uJJGQJztLec2dJ6hirhU4x54lI2gg91e+oo4B61wnMmOmB0gMZZ+TWm8F0caVyAqqQ1psnE=
+	t=1756875305; cv=none; b=SSPD141nt41ykuSjyV5xkZZvCKcq3xgQt9kB2nfO4tiapJOPq/RyxDG0XIobuBbWSCzS5NBFl8LAJABHpVsZ0JdWbocIw7x16AYVJ4DqH7ANhnnwRjX9fe9HwZ3TUMGk2lSLyrDDQMtS3WRh5v4+hq6zXzTWuhN8JCcpBYSTBkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756870913; c=relaxed/simple;
-	bh=354kjhF+8yoK7x9xuTybv4sHLzmsIuWtcI68yb/CHUM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UeQYDQTy0zpD2HDs+Bo/UZMGIuGoeu5qUD49dQGuroh1GMWSnYNkmEy+ObJ83ZXdiHEV8NDgMkGLsmsdKnluWmOdh53fmX8dGXi6OPXo6MxpfYz9DfucUJbmm9P1WHsZ1id8j5LlBqq59WxQfW8x1oOnBL5VXXZlyYJOHTVtLkY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=eseRQUFb; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1756875305; c=relaxed/simple;
+	bh=wddMZ+ERfsTipCpIAxT0/eGbTovqbrqtsfKKX1TZkfo=;
+	h=Date:To:From:Subject:Message-Id; b=u23FcYGqa5aSR8nbzxPCW3V893MmiA335EFMEbWKagCIsoJC7mwp8PFld9/MQuwdFKIiHR2k/M/W9bUt2DHW5wpYlmAvbev3Aa4lUFmRdttk90bm3K0N7qYzuKualk9LDHYthHM/6N85SiA7ojd2bhgexMrE4AYDcz4qPBTwL4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MHDef5rg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="eseRQUFb"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=6QqDPPj5kA08hqI1+JrrFKUZoT3B+o1aKNs5M+nN5FE=; b=eseRQUFbWADTpNPGDc7zdyaZ8j
-	P4g/zRsd/FZ2WPiCde1pPXMRWVo9C5kohB55RkhOUMDomlmfBYGqrnma8r7CM5tx0mhpL8LMUYHmc
-	BVd+L0ujDlE0Bl7zK1xC0EETJUK4Jnf6WIxIJPSopMuN4MFtiUFz807NUn6/Ko/+xsSzqbfo8so2i
-	TqLdBKvhX+0OxPolXEELOKFr2TsnpdcMh5p1Ca/nH+jPotV6tRbUonOTqUprEfLRBS1+52f1LTgqG
-	I0xT8KFlNYXddEoPrdygSKVl4XXlHst5/+QwED+pY4ure3QO5w/eHHQkLDagaUrzRSOVmstbj2QSP
-	qY2uklCw==;
-Received: from willy by casper.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uteNX-0000000Ehes-1Ot6;
-	Wed, 03 Sep 2025 03:41:47 +0000
-Date: Wed, 3 Sep 2025 04:41:47 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-	fengwei.yin@intel.com, david@redhat.com, tujinjiang@huawei.com
-Subject: Re: + filemap-optimize-order0-folio-in-filemap_map_pages.patch added
- to mm-new branch
-Message-ID: <aLe4-6UEhiGKlXt8@casper.infradead.org>
-References: <20250902231041.96D8FC4CEED@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MHDef5rg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB69BC4CEF0;
+	Wed,  3 Sep 2025 04:55:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1756875304;
+	bh=wddMZ+ERfsTipCpIAxT0/eGbTovqbrqtsfKKX1TZkfo=;
+	h=Date:To:From:Subject:From;
+	b=MHDef5rgKB1f88A5HNRCelnexF6n7Ry9AAMWvrFuIBKQ6JoNLQM76N9Q8VEHJDQU8
+	 P/qmT9l7RHltAEZkeAC7WdgOPxDMqrJ9Zauicy8XnEc2Psr+MBlLgiAkfPEiu61CSZ
+	 dv1DRpeqDLL8SU3XoCcJZ8imJ5MTv2oeP725FpWo=
+Date: Tue, 02 Sep 2025 21:55:04 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,fengwei.yin@intel.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] filemap-optimize-order0-folio-in-filemap_map_pages.patch removed from -mm tree
+Message-Id: <20250903045504.AB69BC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250902231041.96D8FC4CEED@smtp.kernel.org>
 
-On Tue, Sep 02, 2025 at 04:10:40PM -0700, Andrew Morton wrote:
->  	set_pte_range(vmf, folio, page, 1, addr);
->  	(*rss)++;
-> -	folio_ref_inc(folio);
-> +	folio_unlock(folio);
-> +	return ret;
 
-No, this is the wrong version.  The folio_unlock() should not be moved.
+The quilt patch titled
+     Subject: filemap: optimize order0 folio in filemap_map_pages
+has been removed from the -mm tree.  Its filename was
+     filemap-optimize-order0-folio-in-filemap_map_pages.patch
+
+This patch was dropped because an updated version will be issued
+
+------------------------------------------------------
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: filemap: optimize order0 folio in filemap_map_pages
+Date: Tue, 19 Aug 2025 22:06:53 +0800
+
+There are two meaningless folio refcount updates for order 0 folio in
+filemap_map_pages().  First, filemap_map_order0_folio() adds folio
+refcount after the folio is mapped to pte.  And then, filemap_map_pages()
+drops a refcount grabbed by next_uptodate_folio().  We could remain the
+refcount unchanged in this case.
+
+With this patch, we can get 8% performance gain for lmbench testcase
+'lat_pagefault -P 1 file', the size of file is 512M.
+
+Link: https://lkml.kernel.org/r/20250819140653.3229136-1-tujinjiang@huawei.com
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fengwei Yin <fengwei.yin@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/filemap.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+--- a/mm/filemap.c~filemap-optimize-order0-folio-in-filemap_map_pages
++++ a/mm/filemap.c
+@@ -3719,6 +3719,8 @@ skip:
+ 	}
+ 
+ 	vmf->pte = old_ptep;
++	folio_unlock(folio);
++	folio_put(folio);
+ 
+ 	return ret;
+ }
+@@ -3731,7 +3733,7 @@ static vm_fault_t filemap_map_order0_fol
+ 	struct page *page = &folio->page;
+ 
+ 	if (PageHWPoison(page))
+-		return ret;
++		goto out;
+ 
+ 	/* See comment of filemap_map_folio_range() */
+ 	if (!folio_test_workingset(folio))
+@@ -3743,15 +3745,19 @@ static vm_fault_t filemap_map_order0_fol
+ 	 * the fault-around logic.
+ 	 */
+ 	if (!pte_none(ptep_get(vmf->pte)))
+-		return ret;
++		goto out;
+ 
+ 	if (vmf->address == addr)
+ 		ret = VM_FAULT_NOPAGE;
+ 
+ 	set_pte_range(vmf, folio, page, 1, addr);
+ 	(*rss)++;
+-	folio_ref_inc(folio);
++	folio_unlock(folio);
++	return ret;
+ 
++out:
++	folio_unlock(folio);
++	folio_put(folio);
+ 	return ret;
+ }
+ 
+@@ -3809,9 +3815,6 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 			ret |= filemap_map_folio_range(vmf, folio,
+ 					xas.xa_index - folio->index, addr,
+ 					nr_pages, &rss, &mmap_miss);
+-
+-		folio_unlock(folio);
+-		folio_put(folio);
+ 	} while ((folio = next_uptodate_folio(&xas, mapping, end_pgoff)) != NULL);
+ 	add_mm_counter(vma->vm_mm, folio_type, rss);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+_
+
+Patches currently in -mm which might be from tujinjiang@huawei.com are
+
+mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
+
