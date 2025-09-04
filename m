@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5707C2C08D9
-	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 21:38:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E528A2EBDC0
+	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 22:40:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757021916; cv=none; b=qWSQfLZOcBY+tQ6A/VgoYYDiWlLHv/cJBrhsu3bnZnFoSE1fUCM0FEotRzkeADf344o+nTpQa+KyeRIh/yO6cU+eFYuiDXjjUx4gcus+5zWNer5pKwTnsWliAN/XOUtcsNU0AWTigIfDAXIPhrVXF/uRYnODPC8zA+BVppjjZoA=
+	t=1757025615; cv=none; b=jK3JnxaQQ9/oxgF7ehv5tWXe/Wf3aXxFih1/SxtH5MWDGNQ4Nx96AmYg5C/EJ17bHsMx9RHvk7mz5GwfXuBqpNPpti1Ufvmip2H5rmxplJiS8RBmAMigjKMuR5Gk6+nhACbPD/G3h8Ets4ejuc6kKm0JXVA26hHmiUrBuWZBM0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757021916; c=relaxed/simple;
-	bh=KvRkOFCFYwx39t3vJYOrc76Loe3wERLuRkhOEKq7N58=;
-	h=Date:To:From:Subject:Message-Id; b=sJJKmINGHBkQS57x2IqHGkNmc7tiFkuXefs85VF9JSAUhsG8CiCzb7AlppsmI6DZJxoAroF2vZixibAnPRdYHHC4zytk0ujKfwi9LFwhfc+MiyZAqHZqj0gO7c7pMmwYH9NaAfjTPACJyp2gVpbcOC8snysIehVzERmriUuLj58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DMCrKilV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757025615; c=relaxed/simple;
+	bh=p8PKEPUmhXZQ4nOgAChzX2aTlciUjIUBUBCSHYjyeX8=;
+	h=Date:To:From:Subject:Message-Id; b=nHudBJZttZ6W1TOOMrE7aDB9zjyx9WkMCrOqvCGVTS+irOj7zFYiyNR4aFSKJjvN6zNvdnrhUKsXsp9FR68PJslT3YxMCN29/Fg/v3NEFG7Ln8WdqN6WThQW6u6BXokWytajQgIQNCuVeq06VJKsQPhBtSvF5kjN/QjykSX+xEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=crFr9lgU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DMCrKilV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B91D6C4CEF0;
-	Thu,  4 Sep 2025 21:38:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="crFr9lgU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45A47C4CEF0;
+	Thu,  4 Sep 2025 22:40:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757021915;
-	bh=KvRkOFCFYwx39t3vJYOrc76Loe3wERLuRkhOEKq7N58=;
+	s=korg; t=1757025614;
+	bh=p8PKEPUmhXZQ4nOgAChzX2aTlciUjIUBUBCSHYjyeX8=;
 	h=Date:To:From:Subject:From;
-	b=DMCrKilVoJODdVwNkew9NtlZwWRVn7JDvYGjeymEoS1ZWk25HbbRljBCFsS1RuvaZ
-	 UvWWMKi7NMnKehL7syGoAaE/yvu5sN198EWwjKKPAOWagpW3H9e7cZEKmqIdXOcoYx
-	 pzJz124bgyuxoaPf4dTjXjxZRXxLqiMBM1O1ZelQ=
-Date: Thu, 04 Sep 2025 14:38:35 -0700
-To: mm-commits@vger.kernel.org,wangyuli@uniontech.com,vbabka@suse.cz,Liam.Howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=crFr9lgUcMlqA2qm/YYJwViTqVZ0WqXdkNU/4h52ZYRi85/Fhe/4TlAzM7/iFCA+g
+	 rlWqqhQdfrx6D1ItNl0W8s6CRZy/lRnazsFai2yDMcZ58hMKER3p094UY0hEin+qwR
+	 9jW3fwIqZS+cvO0XtY7FqaR7SanuXLRXOgjet57w=
+Date: Thu, 04 Sep 2025 15:40:13 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] tools-testing-vma-clean-up-stubs-in-vma_internalh.patch removed from -mm tree
-Message-Id: <20250904213835.B91D6C4CEF0@smtp.kernel.org>
+Subject: + tools-mm-add-madvise-tool.patch added to mm-new branch
+Message-Id: <20250904224014.45A47C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,534 +34,264 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: tools/testing/vma: clean up stubs in vma_internal.h
-has been removed from the -mm tree.  Its filename was
-     tools-testing-vma-clean-up-stubs-in-vma_internalh.patch
+The patch titled
+     Subject: tools/mm: add madvise tool
+has been added to the -mm mm-new branch.  Its filename is
+     tools-mm-add-madvise-tool.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-add-madvise-tool.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/vma: clean up stubs in vma_internal.h
-Date: Tue, 26 Aug 2025 11:28:24 +0100
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: tools/mm: add madvise tool
+Date: Thu, 4 Sep 2025 18:57:29 +0100
 
-We do not need to references arguments just to avoid compiler warnings,
-the warning in question does not arise here, so remove all of the
-instances of '(void)xxx' introduced purely to avoid this warning.
+Add a simple tool that allows to issue an advice on a process or a file.
 
-As reported by WagYuli in the referenced mail, GCC 8.3 and before will
-have issues compiling this file if parameter names are not provided, so
-ensure these are always provided.
+It can be useful to experiment with effects of an advice on a workload
+without modifying the workload itself.
 
-Finally, perform a trivial fix up of kmem_cache_alloc() which technically
-has parameters in the incorrect order (as reported by Vlastimil Babka
-off-list).
+Only supports advices available for process_madvise().
 
-Link: https://lkml.kernel.org/r/20250826102824.22730-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: WangYuli <wangyuli@uniontech.com>
-Closes: https://lore.kernel.org/linux-mm/EFCEBE7E301589DE+20250729084700.208767-1-wangyuli@uniontech.com/
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: WangYuli <wangyuli@uniontech.com>
+Link: https://lkml.kernel.org/r/20250904175729.1029735-1-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/vma_internal.h |  167 +++++++++--------------------
- 1 file changed, 57 insertions(+), 110 deletions(-)
+ tools/mm/.gitignore |    4 
+ tools/mm/Makefile   |    2 
+ tools/mm/madvise.c  |  170 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 174 insertions(+), 2 deletions(-)
 
---- a/tools/testing/vma/vma_internal.h~tools-testing-vma-clean-up-stubs-in-vma_internalh
-+++ a/tools/testing/vma/vma_internal.h
-@@ -692,9 +692,7 @@ static inline struct kmem_cache *__kmem_
- 
- static inline void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
- {
--	(void)gfpflags;
--
--	return calloc(s->object_size, 1);
-+	return calloc(1, s->object_size);
- }
- 
- static inline void kmem_cache_free(struct kmem_cache *s, void *x)
-@@ -858,11 +856,11 @@ static inline unsigned long vma_pages(st
- 	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
- }
- 
--static inline void fput(struct file *)
-+static inline void fput(struct file *file)
- {
- }
- 
--static inline void mpol_put(struct mempolicy *)
-+static inline void mpol_put(struct mempolicy *pol)
- {
- }
- 
-@@ -870,15 +868,15 @@ static inline void lru_add_drain(void)
- {
- }
- 
--static inline void tlb_gather_mmu(struct mmu_gather *, struct mm_struct *)
-+static inline void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm)
- {
- }
- 
--static inline void update_hiwater_rss(struct mm_struct *)
-+static inline void update_hiwater_rss(struct mm_struct *mm)
- {
- }
- 
--static inline void update_hiwater_vm(struct mm_struct *)
-+static inline void update_hiwater_vm(struct mm_struct *mm)
- {
- }
- 
-@@ -887,36 +885,23 @@ static inline void unmap_vmas(struct mmu
- 		      unsigned long end_addr, unsigned long tree_end,
- 		      bool mm_wr_locked)
- {
--	(void)tlb;
--	(void)mas;
--	(void)vma;
--	(void)start_addr;
--	(void)end_addr;
--	(void)tree_end;
--	(void)mm_wr_locked;
- }
- 
- static inline void free_pgtables(struct mmu_gather *tlb, struct ma_state *mas,
- 		   struct vm_area_struct *vma, unsigned long floor,
- 		   unsigned long ceiling, bool mm_wr_locked)
- {
--	(void)tlb;
--	(void)mas;
--	(void)vma;
--	(void)floor;
--	(void)ceiling;
--	(void)mm_wr_locked;
- }
- 
--static inline void mapping_unmap_writable(struct address_space *)
-+static inline void mapping_unmap_writable(struct address_space *mapping)
- {
- }
- 
--static inline void flush_dcache_mmap_lock(struct address_space *)
-+static inline void flush_dcache_mmap_lock(struct address_space *mapping)
- {
- }
- 
--static inline void tlb_finish_mmu(struct mmu_gather *)
-+static inline void tlb_finish_mmu(struct mmu_gather *tlb)
- {
- }
- 
-@@ -925,7 +910,7 @@ static inline struct file *get_file(stru
- 	return f;
- }
- 
--static inline int vma_dup_policy(struct vm_area_struct *, struct vm_area_struct *)
-+static inline int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
- {
- 	return 0;
- }
-@@ -952,10 +937,6 @@ static inline void vma_adjust_trans_huge
- 					 unsigned long end,
- 					 struct vm_area_struct *next)
- {
--	(void)vma;
--	(void)start;
--	(void)end;
--	(void)next;
- }
- 
- static inline void hugetlb_split(struct vm_area_struct *, unsigned long) {}
-@@ -975,51 +956,48 @@ static inline void vm_acct_memory(long p
- {
- }
- 
--static inline void vma_interval_tree_insert(struct vm_area_struct *,
--					    struct rb_root_cached *)
-+static inline void vma_interval_tree_insert(struct vm_area_struct *vma,
-+					    struct rb_root_cached *rb)
- {
- }
- 
--static inline void vma_interval_tree_remove(struct vm_area_struct *,
--					    struct rb_root_cached *)
-+static inline void vma_interval_tree_remove(struct vm_area_struct *vma,
-+					    struct rb_root_cached *rb)
- {
- }
- 
--static inline void flush_dcache_mmap_unlock(struct address_space *)
-+static inline void flush_dcache_mmap_unlock(struct address_space *mapping)
- {
- }
- 
--static inline void anon_vma_interval_tree_insert(struct anon_vma_chain*,
--						 struct rb_root_cached *)
-+static inline void anon_vma_interval_tree_insert(struct anon_vma_chain *avc,
-+						 struct rb_root_cached *rb)
- {
- }
- 
--static inline void anon_vma_interval_tree_remove(struct anon_vma_chain*,
--						 struct rb_root_cached *)
-+static inline void anon_vma_interval_tree_remove(struct anon_vma_chain *avc,
-+						 struct rb_root_cached *rb)
- {
- }
- 
--static inline void uprobe_mmap(struct vm_area_struct *)
-+static inline void uprobe_mmap(struct vm_area_struct *vma)
- {
- }
- 
- static inline void uprobe_munmap(struct vm_area_struct *vma,
- 				 unsigned long start, unsigned long end)
- {
--	(void)vma;
--	(void)start;
--	(void)end;
- }
- 
--static inline void i_mmap_lock_write(struct address_space *)
-+static inline void i_mmap_lock_write(struct address_space *mapping)
- {
- }
- 
--static inline void anon_vma_lock_write(struct anon_vma *)
-+static inline void anon_vma_lock_write(struct anon_vma *anon_vma)
- {
- }
- 
--static inline void vma_assert_write_locked(struct vm_area_struct *)
-+static inline void vma_assert_write_locked(struct vm_area_struct *vma)
- {
- }
- 
-@@ -1029,16 +1007,16 @@ static inline void unlink_anon_vmas(stru
- 	vma->anon_vma->was_unlinked = true;
- }
- 
--static inline void anon_vma_unlock_write(struct anon_vma *)
-+static inline void anon_vma_unlock_write(struct anon_vma *anon_vma)
- {
- }
- 
--static inline void i_mmap_unlock_write(struct address_space *)
-+static inline void i_mmap_unlock_write(struct address_space *mapping)
- {
- }
- 
--static inline void anon_vma_merge(struct vm_area_struct *,
--				  struct vm_area_struct *)
-+static inline void anon_vma_merge(struct vm_area_struct *vma,
-+				  struct vm_area_struct *next)
- {
- }
- 
-@@ -1047,27 +1025,22 @@ static inline int userfaultfd_unmap_prep
- 					 unsigned long end,
- 					 struct list_head *unmaps)
- {
--	(void)vma;
--	(void)start;
--	(void)end;
--	(void)unmaps;
--
- 	return 0;
- }
- 
--static inline void mmap_write_downgrade(struct mm_struct *)
-+static inline void mmap_write_downgrade(struct mm_struct *mm)
- {
- }
- 
--static inline void mmap_read_unlock(struct mm_struct *)
-+static inline void mmap_read_unlock(struct mm_struct *mm)
- {
- }
- 
--static inline void mmap_write_unlock(struct mm_struct *)
-+static inline void mmap_write_unlock(struct mm_struct *mm)
- {
- }
- 
--static inline int mmap_write_lock_killable(struct mm_struct *)
-+static inline int mmap_write_lock_killable(struct mm_struct *mm)
- {
- 	return 0;
- }
-@@ -1076,10 +1049,6 @@ static inline bool can_modify_mm(struct
- 				 unsigned long start,
- 				 unsigned long end)
- {
--	(void)mm;
--	(void)start;
--	(void)end;
--
- 	return true;
- }
- 
-@@ -1087,16 +1056,13 @@ static inline void arch_unmap(struct mm_
- 				 unsigned long start,
- 				 unsigned long end)
- {
--	(void)mm;
--	(void)start;
--	(void)end;
- }
- 
--static inline void mmap_assert_locked(struct mm_struct *)
-+static inline void mmap_assert_locked(struct mm_struct *mm)
- {
- }
- 
--static inline bool mpol_equal(struct mempolicy *, struct mempolicy *)
-+static inline bool mpol_equal(struct mempolicy *a, struct mempolicy *b)
- {
- 	return true;
- }
-@@ -1104,63 +1070,62 @@ static inline bool mpol_equal(struct mem
- static inline void khugepaged_enter_vma(struct vm_area_struct *vma,
- 			  vm_flags_t vm_flags)
- {
--	(void)vma;
--	(void)vm_flags;
- }
- 
--static inline bool mapping_can_writeback(struct address_space *)
-+static inline bool mapping_can_writeback(struct address_space *mapping)
- {
- 	return true;
- }
- 
--static inline bool is_vm_hugetlb_page(struct vm_area_struct *)
-+static inline bool is_vm_hugetlb_page(struct vm_area_struct *vma)
- {
- 	return false;
- }
- 
--static inline bool vma_soft_dirty_enabled(struct vm_area_struct *)
-+static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
- {
- 	return false;
- }
- 
--static inline bool userfaultfd_wp(struct vm_area_struct *)
-+static inline bool userfaultfd_wp(struct vm_area_struct *vma)
- {
- 	return false;
- }
- 
--static inline void mmap_assert_write_locked(struct mm_struct *)
-+static inline void mmap_assert_write_locked(struct mm_struct *mm)
- {
- }
- 
--static inline void mutex_lock(struct mutex *)
-+static inline void mutex_lock(struct mutex *lock)
- {
- }
- 
--static inline void mutex_unlock(struct mutex *)
-+static inline void mutex_unlock(struct mutex *lock)
- {
- }
- 
--static inline bool mutex_is_locked(struct mutex *)
-+static inline bool mutex_is_locked(struct mutex *lock)
- {
- 	return true;
- }
- 
--static inline bool signal_pending(void *)
-+static inline bool signal_pending(void *p)
- {
- 	return false;
- }
- 
--static inline bool is_file_hugepages(struct file *)
-+static inline bool is_file_hugepages(struct file *file)
- {
- 	return false;
- }
- 
--static inline int security_vm_enough_memory_mm(struct mm_struct *, long)
-+static inline int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
- {
- 	return 0;
- }
- 
--static inline bool may_expand_vm(struct mm_struct *, vm_flags_t, unsigned long)
-+static inline bool may_expand_vm(struct mm_struct *mm, vm_flags_t flags,
-+				 unsigned long npages)
- {
- 	return true;
- }
-@@ -1185,7 +1150,7 @@ static inline void vm_flags_clear(struct
- 	vma->__vm_flags &= ~flags;
- }
- 
--static inline int shmem_zero_setup(struct vm_area_struct *)
-+static inline int shmem_zero_setup(struct vm_area_struct *vma)
- {
- 	return 0;
- }
-@@ -1195,20 +1160,20 @@ static inline void vma_set_anonymous(str
- 	vma->vm_ops = NULL;
- }
- 
--static inline void ksm_add_vma(struct vm_area_struct *)
-+static inline void ksm_add_vma(struct vm_area_struct *vma)
- {
- }
- 
--static inline void perf_event_mmap(struct vm_area_struct *)
-+static inline void perf_event_mmap(struct vm_area_struct *vma)
- {
- }
- 
--static inline bool vma_is_dax(struct vm_area_struct *)
-+static inline bool vma_is_dax(struct vm_area_struct *vma)
- {
- 	return false;
- }
- 
--static inline struct vm_area_struct *get_gate_vma(struct mm_struct *)
-+static inline struct vm_area_struct *get_gate_vma(struct mm_struct *mm)
- {
- 	return NULL;
- }
-@@ -1233,16 +1198,16 @@ static inline void vma_set_page_prot(str
- 	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
- }
- 
--static inline bool arch_validate_flags(vm_flags_t)
-+static inline bool arch_validate_flags(vm_flags_t flags)
- {
- 	return true;
- }
- 
--static inline void vma_close(struct vm_area_struct *)
-+static inline void vma_close(struct vm_area_struct *vma)
- {
- }
- 
--static inline int mmap_file(struct file *, struct vm_area_struct *)
-+static inline int mmap_file(struct file *file, struct vm_area_struct *vma)
- {
- 	return 0;
- }
-@@ -1411,8 +1376,6 @@ static inline int mapping_map_writable(s
- 
- static inline unsigned long move_page_tables(struct pagetable_move_control *pmc)
- {
--	(void)pmc;
--
- 	return 0;
- }
- 
-@@ -1420,51 +1383,36 @@ static inline void free_pgd_range(struct
- 			unsigned long addr, unsigned long end,
- 			unsigned long floor, unsigned long ceiling)
- {
--	(void)tlb;
--	(void)addr;
--	(void)end;
--	(void)floor;
--	(void)ceiling;
- }
- 
- static inline int ksm_execve(struct mm_struct *mm)
- {
--	(void)mm;
--
- 	return 0;
- }
- 
- static inline void ksm_exit(struct mm_struct *mm)
- {
--	(void)mm;
- }
- 
- static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt)
- {
--	(void)vma;
--	(void)reset_refcnt;
- }
- 
- static inline void vma_numab_state_init(struct vm_area_struct *vma)
- {
--	(void)vma;
- }
- 
- static inline void vma_numab_state_free(struct vm_area_struct *vma)
- {
--	(void)vma;
- }
- 
- static inline void dup_anon_vma_name(struct vm_area_struct *orig_vma,
- 				     struct vm_area_struct *new_vma)
- {
--	(void)orig_vma;
--	(void)new_vma;
- }
- 
- static inline void free_anon_vma_name(struct vm_area_struct *vma)
- {
--	(void)vma;
- }
- 
- /* Declared in vma.h. */
-@@ -1518,7 +1466,6 @@ static inline int vfs_mmap_prepare(struc
- 
- static inline void fixup_hugetlb_reservations(struct vm_area_struct *vma)
- {
--	(void)vma;
- }
- 
- static inline void vma_set_file(struct vm_area_struct *vma, struct file *file)
-@@ -1529,13 +1476,13 @@ static inline void vma_set_file(struct v
- 	fput(file);
- }
- 
--static inline bool shmem_file(struct file *)
-+static inline bool shmem_file(struct file *file)
- {
- 	return false;
- }
- 
--static inline vm_flags_t ksm_vma_flags(const struct mm_struct *, const struct file *,
--			 vm_flags_t vm_flags)
-+static inline vm_flags_t ksm_vma_flags(const struct mm_struct *mm,
-+		const struct file *file, vm_flags_t vm_flags)
- {
- 	return vm_flags;
- }
+--- a/tools/mm/.gitignore~tools-mm-add-madvise-tool
++++ a/tools/mm/.gitignore
+@@ -1,4 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-slabinfo
++madvise
+ page-types
+ page_owner_sort
++slabinfo
++thp_swap_allocator_test
+diff --git a/tools/mm/madvise.c a/tools/mm/madvise.c
+new file mode 100644
+--- /dev/null
++++ a/tools/mm/madvise.c
+@@ -0,0 +1,170 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++#include <fcntl.h>
++#include <limits.h>
++#include <stdarg.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++
++static void usage(void)
++{
++	printf("madvise TARGET ADVICE START END\n\n");
++	printf("Arguments:\n");
++	printf("\t<TARGET>\n");
++	printf("\t\tA process ID or a file to give the advice to.\n\n");
++	printf("\t\tUse \"./\" prefix if the file name is all digits.\n\n");
++	printf("\t<ADVICE>\n");
++	printf("\t\tcold\t\t- Deactivate a given range of pages\n");
++	printf("\t\tcollapse\t- Collapse pages in a given range into THPs\n");
++	printf("\t\tpageout\t\t- Reclaim a given range of pages\n");
++	printf("\t\twillneed\t- The specified data will be accessed in the near future\n");
++	printf("\n\t\tSee madvise(2) for more details.\n\n");
++	printf("\t<START>/<END>\n");
++	printf("\t\tStart and end addressed for the advice. Must be page-aligned.\n\n");
++	printf("\t\tFor PID case, it is addresses in the target process address space.\n\n");
++	printf("\t\tFor file case, it is offsets in the file.\n\n");
++}
++
++static void error(const char *fmt, ...)
++{
++	if (fmt) {
++		va_list argp;
++
++		va_start(argp, fmt);
++		vfprintf(stderr, fmt, argp);
++		va_end(argp);
++		printf("\n");
++	}
++
++	usage();
++	exit(-1);
++}
++
++#define PMD_SIZE_FILE_PATH "/sys/kernel/mm/transparent_hugepage/hpage_pmd_size"
++static unsigned long read_pmd_pagesize(void)
++{
++	int fd;
++	char buf[20];
++	ssize_t num_read;
++
++	fd = open(PMD_SIZE_FILE_PATH, O_RDONLY);
++	if (fd == -1)
++		return 0;
++
++	num_read = read(fd, buf, 19);
++	if (num_read < 1) {
++		close(fd);
++		return 0;
++	}
++	buf[num_read] = '\0';
++	close(fd);
++
++	return strtoul(buf, NULL, 10);
++}
++
++static int pidfd_open(pid_t pid, unsigned int flags)
++{
++	return syscall(SYS_pidfd_open, pid, flags);
++}
++
++int main(int argc, const char *argv[])
++{
++	unsigned long pid, start, end, page_size;
++	int advice;
++	char *err;
++	int fd;
++
++	if (argc != 5)
++		error(NULL);
++
++	pid = strtoul(argv[1], &err, 10);
++	if (*err || err == argv[1] ||
++	    pid > INT_MAX || (pid_t)pid <= 0) {
++		// Not a PID, assume argv[1] is a file name
++		pid = 0;
++	}
++
++	if (pid) {
++		fd = pidfd_open(pid, 0);
++		if (fd < 0)
++			perror("pidfd_open()"), exit(-1);
++	} else {
++		fd = open(argv[1], O_RDWR);
++		if (fd < 0)
++			perror("open"), exit(-1);
++	}
++
++	if (!strcmp(argv[2], "cold"))
++		advice = MADV_COLD;
++	else if (!strcmp(argv[2], "collapse"))
++		advice = MADV_COLLAPSE;
++	else if (!strcmp(argv[2], "pageout"))
++		advice = MADV_PAGEOUT;
++	else if (!strcmp(argv[2], "willneed"))
++		advice = MADV_WILLNEED;
++	else
++		error("Unknown advice: %s\n", argv[2]);
++
++	page_size = sysconf(_SC_PAGE_SIZE);
++
++	start = strtoul(argv[3], &err, 0);
++	if (*err || err == argv[3])
++		error("Cannot parse start address\n");
++	if (start % page_size)
++		error("Start address is not aligned to page size\n");
++	end = strtoul(argv[4], &err, 0);
++	if (*err || err == argv[4])
++		error("Cannot parse end address\n");
++	if (end % page_size)
++		error("End address is not aligned to page size\n");
++
++	if (pid) {
++		struct iovec vec = {
++			.iov_base = (void *)start,
++			.iov_len = end - start,
++		};
++		ssize_t ret;
++
++		ret = process_madvise(fd, &vec, 1, advice, 0);
++		if (ret < 0)
++			perror("process_madvise"), exit(-1);
++
++		if ((unsigned long)ret != end - start)
++			printf("Partial advice occurred. Stopped at %#lx\n", start + ret);
++	} else {
++		unsigned long addr, hpage_pmd_size;
++		void *p;
++		int ret;
++
++		hpage_pmd_size = read_pmd_pagesize();
++		if (!hpage_pmd_size) {
++			printf("Reading PMD pagesize failed");
++			exit(-1);
++		}
++
++		// Allocate virtual address space to align the target mmap to PMD size
++		// Some advices require this.
++		p = mmap(NULL, end - start + hpage_pmd_size, PROT_NONE,
++			 MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++		if (p == MAP_FAILED)
++			perror("mmap0"), exit(-1);
++		addr = (unsigned long)p;
++		addr += hpage_pmd_size - 1;
++		addr &= ~(hpage_pmd_size - 1);
++
++		p = mmap((void *)addr, end - start,
++			 PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED | MAP_POPULATE, fd, start);
++		if (p == MAP_FAILED)
++			perror("mmap"), exit(-1);
++
++		ret = madvise(p, end - start, advice);
++		if (ret)
++			perror("madvise"), exit(-1);
++	}
++
++	return 0;
++}
+--- a/tools/mm/Makefile~tools-mm-add-madvise-tool
++++ a/tools/mm/Makefile
+@@ -3,7 +3,7 @@
+ #
+ include ../scripts/Makefile.include
+ 
+-BUILD_TARGETS=page-types slabinfo page_owner_sort thp_swap_allocator_test
++BUILD_TARGETS= madvise page-types page_owner_sort slabinfo thp_swap_allocator_test
+ INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
+ 
+ LIB_DIR = ../lib/api
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from kas@kernel.org are
 
-mm-add-bitmap-mm-flags-field.patch
-mm-add-bitmap-mm-flags-field-fix.patch
-mm-convert-core-mm-to-mm_flags_-accessors.patch
-mm-convert-prctl-to-mm_flags_-accessors.patch
-mm-convert-arch-specific-code-to-mm_flags_-accessors.patch
-mm-convert-arch-specific-code-to-mm_flags_-accessors-fix.patch
-mm-convert-uprobes-to-mm_flags_-accessors.patch
-mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags.patch
-mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch
-mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
-mm-correct-sign-extension-issue-in-mmf_-flag-masks-fix.patch
-mm-update-fork-mm-flags-initialisation-to-use-bitmap.patch
-mm-convert-remaining-users-to-mm_flags_-accessors.patch
-mm-replace-mm-flags-with-bitmap-entirely-and-set-to-64-bits.patch
-mm-specify-separate-file-and-vm_file-params-in-vm_area_desc.patch
-mm-do-not-assume-file-==-vma-vm_file-in-compat_vma_mmap_prepare.patch
+tools-mm-add-madvise-tool.patch
 
