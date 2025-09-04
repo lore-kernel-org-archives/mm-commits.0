@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E528A2EBDC0
-	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 22:40:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9CBB2EBDF9
+	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 22:47:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757025615; cv=none; b=jK3JnxaQQ9/oxgF7ehv5tWXe/Wf3aXxFih1/SxtH5MWDGNQ4Nx96AmYg5C/EJ17bHsMx9RHvk7mz5GwfXuBqpNPpti1Ufvmip2H5rmxplJiS8RBmAMigjKMuR5Gk6+nhACbPD/G3h8Ets4ejuc6kKm0JXVA26hHmiUrBuWZBM0o=
+	t=1757026031; cv=none; b=TS9SKYlxKlFQZs2M8/GRG6syKv6uEQbD04G/4RNI+MitbhAmUPifTNGg+0NGm61OlhSLnz+jTwd2+pLIJyGuXHV+13WAgfQxbf0To9sun9JyyY6140n8a59TrtR43fLvb2CcpHV7lIBWRGp3I8jWcb9DLne5jhQz7kglx1CXPmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757025615; c=relaxed/simple;
-	bh=p8PKEPUmhXZQ4nOgAChzX2aTlciUjIUBUBCSHYjyeX8=;
-	h=Date:To:From:Subject:Message-Id; b=nHudBJZttZ6W1TOOMrE7aDB9zjyx9WkMCrOqvCGVTS+irOj7zFYiyNR4aFSKJjvN6zNvdnrhUKsXsp9FR68PJslT3YxMCN29/Fg/v3NEFG7Ln8WdqN6WThQW6u6BXokWytajQgIQNCuVeq06VJKsQPhBtSvF5kjN/QjykSX+xEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=crFr9lgU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757026031; c=relaxed/simple;
+	bh=ki2uIgPtIz3d+WmTbUz1744YV5DnEi2VMokLdw6SwlM=;
+	h=Date:To:From:Subject:Message-Id; b=OyJtKzpvx8FUF62CwK7gc9OgesZjdfxAHnC/tRuTfp9cmnsCNM5n0KJbgQCi+41PPBZSuJJXKSejFcEM0tyfBW63XCQLdehTXxK1CJAJ3ADN5REVsMMb3Gjx9KswbyymVSCfDEggxsZNNBp5n1TnnBvuEnXCpio3jyzfaFgnDvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qBVMMvHM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="crFr9lgU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45A47C4CEF0;
-	Thu,  4 Sep 2025 22:40:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qBVMMvHM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FF6AC4CEF0;
+	Thu,  4 Sep 2025 22:47:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757025614;
-	bh=p8PKEPUmhXZQ4nOgAChzX2aTlciUjIUBUBCSHYjyeX8=;
+	s=korg; t=1757026031;
+	bh=ki2uIgPtIz3d+WmTbUz1744YV5DnEi2VMokLdw6SwlM=;
 	h=Date:To:From:Subject:From;
-	b=crFr9lgUcMlqA2qm/YYJwViTqVZ0WqXdkNU/4h52ZYRi85/Fhe/4TlAzM7/iFCA+g
-	 rlWqqhQdfrx6D1ItNl0W8s6CRZy/lRnazsFai2yDMcZ58hMKER3p094UY0hEin+qwR
-	 9jW3fwIqZS+cvO0XtY7FqaR7SanuXLRXOgjet57w=
-Date: Thu, 04 Sep 2025 15:40:13 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,kas@kernel.org,akpm@linux-foundation.org
+	b=qBVMMvHMqUQSc2y7V6sv/UM8fY8x9jJqelxu3cc5QE7FOtvlAN61rwJGkVVdNDnO8
+	 xErDgwEG2WwB1N3HETjOcn+uL7xW4iGrrsCHpFZ2mkDOuTzQ5uNBgPY8t6r0Vi32DM
+	 hJ8ekg8ERVgw+OpGrhR4sz2oeT5Axqk4R2pnrvLA=
+Date: Thu, 04 Sep 2025 15:47:10 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,pmladek@suse.com,lkp@intel.com,john.ogness@linutronix.de,feng.tang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-add-madvise-tool.patch added to mm-new branch
-Message-Id: <20250904224014.45A47C4CEF0@smtp.kernel.org>
+Subject: + panic-remove-redundant-panic-cpu-backtrace-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250904224711.6FF6AC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm: add madvise tool
-has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-add-madvise-tool.patch
+     Subject: panic-remove-redundant-panic-cpu-backtrace-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-remove-redundant-panic-cpu-backtrace-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-add-madvise-tool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-remove-redundant-panic-cpu-backtrace-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,234 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kiryl Shutsemau <kas@kernel.org>
-Subject: tools/mm: add madvise tool
-Date: Thu, 4 Sep 2025 18:57:29 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: panic-remove-redundant-panic-cpu-backtrace-fix
+Date: Thu Sep  4 03:46:17 PM PDT 2025
 
-Add a simple tool that allows to issue an advice on a process or a file.
+make panic_this_cpu_backtrace_printed static
 
-It can be useful to experiment with effects of an advice on a workload
-without modifying the workload itself.
-
-Only supports advices available for process_madvise().
-
-Link: https://lkml.kernel.org/r/20250904175729.1029735-1-kirill@shutemov.name
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202509050048.FMpVvh1u-lkp@intel.com/
+Cc: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/.gitignore |    4 
- tools/mm/Makefile   |    2 
- tools/mm/madvise.c  |  170 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 174 insertions(+), 2 deletions(-)
+ kernel/panic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/mm/.gitignore~tools-mm-add-madvise-tool
-+++ a/tools/mm/.gitignore
-@@ -1,4 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
--slabinfo
-+madvise
- page-types
- page_owner_sort
-+slabinfo
-+thp_swap_allocator_test
-diff --git a/tools/mm/madvise.c a/tools/mm/madvise.c
-new file mode 100644
---- /dev/null
-+++ a/tools/mm/madvise.c
-@@ -0,0 +1,170 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
-+#include <fcntl.h>
-+#include <limits.h>
-+#include <stdarg.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <sys/mman.h>
-+#include <sys/syscall.h>
-+
-+static void usage(void)
-+{
-+	printf("madvise TARGET ADVICE START END\n\n");
-+	printf("Arguments:\n");
-+	printf("\t<TARGET>\n");
-+	printf("\t\tA process ID or a file to give the advice to.\n\n");
-+	printf("\t\tUse \"./\" prefix if the file name is all digits.\n\n");
-+	printf("\t<ADVICE>\n");
-+	printf("\t\tcold\t\t- Deactivate a given range of pages\n");
-+	printf("\t\tcollapse\t- Collapse pages in a given range into THPs\n");
-+	printf("\t\tpageout\t\t- Reclaim a given range of pages\n");
-+	printf("\t\twillneed\t- The specified data will be accessed in the near future\n");
-+	printf("\n\t\tSee madvise(2) for more details.\n\n");
-+	printf("\t<START>/<END>\n");
-+	printf("\t\tStart and end addressed for the advice. Must be page-aligned.\n\n");
-+	printf("\t\tFor PID case, it is addresses in the target process address space.\n\n");
-+	printf("\t\tFor file case, it is offsets in the file.\n\n");
-+}
-+
-+static void error(const char *fmt, ...)
-+{
-+	if (fmt) {
-+		va_list argp;
-+
-+		va_start(argp, fmt);
-+		vfprintf(stderr, fmt, argp);
-+		va_end(argp);
-+		printf("\n");
-+	}
-+
-+	usage();
-+	exit(-1);
-+}
-+
-+#define PMD_SIZE_FILE_PATH "/sys/kernel/mm/transparent_hugepage/hpage_pmd_size"
-+static unsigned long read_pmd_pagesize(void)
-+{
-+	int fd;
-+	char buf[20];
-+	ssize_t num_read;
-+
-+	fd = open(PMD_SIZE_FILE_PATH, O_RDONLY);
-+	if (fd == -1)
-+		return 0;
-+
-+	num_read = read(fd, buf, 19);
-+	if (num_read < 1) {
-+		close(fd);
-+		return 0;
-+	}
-+	buf[num_read] = '\0';
-+	close(fd);
-+
-+	return strtoul(buf, NULL, 10);
-+}
-+
-+static int pidfd_open(pid_t pid, unsigned int flags)
-+{
-+	return syscall(SYS_pidfd_open, pid, flags);
-+}
-+
-+int main(int argc, const char *argv[])
-+{
-+	unsigned long pid, start, end, page_size;
-+	int advice;
-+	char *err;
-+	int fd;
-+
-+	if (argc != 5)
-+		error(NULL);
-+
-+	pid = strtoul(argv[1], &err, 10);
-+	if (*err || err == argv[1] ||
-+	    pid > INT_MAX || (pid_t)pid <= 0) {
-+		// Not a PID, assume argv[1] is a file name
-+		pid = 0;
-+	}
-+
-+	if (pid) {
-+		fd = pidfd_open(pid, 0);
-+		if (fd < 0)
-+			perror("pidfd_open()"), exit(-1);
-+	} else {
-+		fd = open(argv[1], O_RDWR);
-+		if (fd < 0)
-+			perror("open"), exit(-1);
-+	}
-+
-+	if (!strcmp(argv[2], "cold"))
-+		advice = MADV_COLD;
-+	else if (!strcmp(argv[2], "collapse"))
-+		advice = MADV_COLLAPSE;
-+	else if (!strcmp(argv[2], "pageout"))
-+		advice = MADV_PAGEOUT;
-+	else if (!strcmp(argv[2], "willneed"))
-+		advice = MADV_WILLNEED;
-+	else
-+		error("Unknown advice: %s\n", argv[2]);
-+
-+	page_size = sysconf(_SC_PAGE_SIZE);
-+
-+	start = strtoul(argv[3], &err, 0);
-+	if (*err || err == argv[3])
-+		error("Cannot parse start address\n");
-+	if (start % page_size)
-+		error("Start address is not aligned to page size\n");
-+	end = strtoul(argv[4], &err, 0);
-+	if (*err || err == argv[4])
-+		error("Cannot parse end address\n");
-+	if (end % page_size)
-+		error("End address is not aligned to page size\n");
-+
-+	if (pid) {
-+		struct iovec vec = {
-+			.iov_base = (void *)start,
-+			.iov_len = end - start,
-+		};
-+		ssize_t ret;
-+
-+		ret = process_madvise(fd, &vec, 1, advice, 0);
-+		if (ret < 0)
-+			perror("process_madvise"), exit(-1);
-+
-+		if ((unsigned long)ret != end - start)
-+			printf("Partial advice occurred. Stopped at %#lx\n", start + ret);
-+	} else {
-+		unsigned long addr, hpage_pmd_size;
-+		void *p;
-+		int ret;
-+
-+		hpage_pmd_size = read_pmd_pagesize();
-+		if (!hpage_pmd_size) {
-+			printf("Reading PMD pagesize failed");
-+			exit(-1);
-+		}
-+
-+		// Allocate virtual address space to align the target mmap to PMD size
-+		// Some advices require this.
-+		p = mmap(NULL, end - start + hpage_pmd_size, PROT_NONE,
-+			 MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+		if (p == MAP_FAILED)
-+			perror("mmap0"), exit(-1);
-+		addr = (unsigned long)p;
-+		addr += hpage_pmd_size - 1;
-+		addr &= ~(hpage_pmd_size - 1);
-+
-+		p = mmap((void *)addr, end - start,
-+			 PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED | MAP_POPULATE, fd, start);
-+		if (p == MAP_FAILED)
-+			perror("mmap"), exit(-1);
-+
-+		ret = madvise(p, end - start, advice);
-+		if (ret)
-+			perror("madvise"), exit(-1);
-+	}
-+
-+	return 0;
-+}
---- a/tools/mm/Makefile~tools-mm-add-madvise-tool
-+++ a/tools/mm/Makefile
-@@ -3,7 +3,7 @@
- #
- include ../scripts/Makefile.include
+--- a/kernel/panic.c~panic-remove-redundant-panic-cpu-backtrace-fix
++++ a/kernel/panic.c
+@@ -67,7 +67,7 @@ static unsigned int warn_limit __read_mo
+ static bool panic_console_replay;
  
--BUILD_TARGETS=page-types slabinfo page_owner_sort thp_swap_allocator_test
-+BUILD_TARGETS= madvise page-types page_owner_sort slabinfo thp_swap_allocator_test
- INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
+ bool panic_triggering_all_cpu_backtrace;
+-bool panic_this_cpu_backtrace_printed;
++static bool panic_this_cpu_backtrace_printed;
  
- LIB_DIR = ../lib/api
+ int panic_timeout = CONFIG_PANIC_TIMEOUT;
+ EXPORT_SYMBOL_GPL(panic_timeout);
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tools-mm-add-madvise-tool.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix-fix.patch
+mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
+mm-convert-core-mm-to-mm_flags_-accessors-fix.patch
+memcg-optimize-exit-to-user-space-fix.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+panic-remove-redundant-panic-cpu-backtrace-fix.patch
 
