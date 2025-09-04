@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEF482F60D1
-	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 23:42:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20E5F2E8B9F
+	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 23:52:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757029321; cv=none; b=pT3O64/UjbTSpdbeLueMCuIpH2WCwMvBw3GwPGauyIkMfYihlZI8hJCsCQ3CFSAYJXKwSNY0qjj84nrpNldaXU5fhj3pkJHdArQhx2xfPEg/QnxkN9CpQ2+aCx/OtyI9TjOpZBsDN8H/Ekxp3Me5m70eaP43OrFQzIFKNc37Bbw=
+	t=1757029970; cv=none; b=mpXIbc6oIQttse4hpwp4YjRLDOvf2HCz7wmgE+gGZmqt/1Wtm6UuRn+G3DZrR8EgwvaFCQ5NqTaYyiW/ThKOimNiC7fIAaWg+M1EPOhvQwZkx/4ejVfsR0/LzId+4xb/pNxmTj5HHeM0mwyhnbwCymxh/zahxxD/FtEBc0NRQMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757029321; c=relaxed/simple;
-	bh=KMKJupyD+lNAlBaG3r0fURtCo1SyNczMOucGpV+g4RQ=;
-	h=Date:To:From:Subject:Message-Id; b=QUlROWHTKxG2T63Oa9Y9UqU8HjAsiJe2akBwR379ejnr3ApUfkYzSQ1Ux6aD8qzU1FOfz4rSPzatsWy1HIE/+PWT0UcHx9KS+vkOgj6ODQSg9xK4nflIBUNP2IhQx1T6UpIWlmtPJOWx2j2GOIziuvDDCBAJq7Lg/+6bVXs7IHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T3U8GCKO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757029970; c=relaxed/simple;
+	bh=dYgcxk+DnfKht8jSgUwgn1lT8Dw5JTg1RqV2wIuOXGA=;
+	h=Date:To:From:Subject:Message-Id; b=uPnJY9quSllaLyzw6UZAEQMkZ0PTs21zfuUZAdm5WcymoziCrylU+IRpptyB2p/3KeRCcSc9PmucCdz5lp3Z6I/+Xuf7MbG8v+JZbzqUkMxVjW5PIdeeGKtWhW9g64G+XfFTwcbyz1Ka+JEcoUq6RiNINIl2yHP+FeBEN1kwjFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X9K5KMBd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T3U8GCKO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6850AC4CEF0;
-	Thu,  4 Sep 2025 23:42:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X9K5KMBd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81F07C4CEF0;
+	Thu,  4 Sep 2025 23:52:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757029320;
-	bh=KMKJupyD+lNAlBaG3r0fURtCo1SyNczMOucGpV+g4RQ=;
+	s=korg; t=1757029965;
+	bh=dYgcxk+DnfKht8jSgUwgn1lT8Dw5JTg1RqV2wIuOXGA=;
 	h=Date:To:From:Subject:From;
-	b=T3U8GCKOBH5CrhnjgGXtdV4T3EPYD8v/euJCJQV+8Xr/Jkjhap4yrIZdv3wb5vLbg
-	 t5oAVVyzV821uzhsYLpuLFsLH0SF2Feawaz2tzZHit62vvsm5o0s1w5PxV26BEzQAe
-	 GhTH2Vo6d2f+vrvxt818oJTToaNUEh2PxEcV1ii0=
-Date: Thu, 04 Sep 2025 16:41:59 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tglx@linutronix.de,mingo@redhat.com,hpa@zytor.com,fuqiang.wang@easystack.cn,dyoung@redhat.com,bp@alien8.de,bhe@redhat.com,coxu@redhat.com,akpm@linux-foundation.org
+	b=X9K5KMBd80n2rGlN3lnet7vfnbFI4zW828MkQKfleme/isc4PQ8wUpXbt3bCqzKSi
+	 GYDTJDuEdv+GlCzk4LXv1p3rmFOw7gdiTn6d1VeHy+yj6QpufqkrM97BP4pWQeaUeA
+	 eVKUg4QMqAybclbRHbucRFslwWOUgevdyK5AzSHs=
+Date: Thu, 04 Sep 2025 16:52:42 -0700
+To: mm-commits@vger.kernel.org,rafael@kernel.org,pavel@ucw.cz,mchehab@kernel.org,len.brown@intel.com,james.bottomley@HansenPartnership.com,gregkh@linuxfoundation.org,corbet@lwn.net,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-add-kunit-tests-for-crash_exclude_mem_range.patch added to mm-nonmm-unstable branch
-Message-Id: <20250904234200.6850AC4CEF0@smtp.kernel.org>
+Subject: + kernelh-add-comments-for-system_states.patch added to mm-nonmm-unstable branch
+Message-Id: <20250904235245.81F07C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash: add KUnit tests for crash_exclude_mem_range
+     Subject: kernel.h: add comments for system_states
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash-add-kunit-tests-for-crash_exclude_mem_range.patch
+     kernelh-add-comments-for-system_states.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-add-kunit-tests-for-crash_exclude_mem_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-add-comments-for-system_states.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,475 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Coiby Xu <coxu@redhat.com>
-Subject: crash: add KUnit tests for crash_exclude_mem_range
-Date: Thu, 4 Sep 2025 17:38:53 +0800
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: kernel.h: add comments for system_states
+Date: Wed, 3 Sep 2025 23:36:31 -0700
 
-crash_exclude_mem_range seems to be a simple function but there have been
-multiple attempts to fix it,
- - commit a2e9a95d2190 ("kexec: Improve & fix crash_exclude_mem_range()
-   to handle overlapping ranges")
- - commit 6dff31597264 ("crash_core: fix and simplify the logic of
-   crash_exclude_mem_range()")
+Provide some basic comments about the system_states and what they imply. 
+Also convert the comments to kernel-doc format.
 
-So add a set of unit tests to verify the correctness of current
-implementation.  Shall we change the function in the future, the unit
-tests can also help prevent any regression.  For example, we may make the
-function smarter by allocating extra crash_mem range on demand thus there
-is no need for the caller to foresee any memory range split or address
--ENOMEM failure.
+However, kernel-doc does not support kernel-doc notation on extern
+struct/union/typedef/enum/etc.  So I made this a DOC: block so that I can
+use (insert) it into a Documentation (.rst) file and have it look decent.
 
-The testing strategy is to verify the correctness of base case. The
-base case is there is one to-be-excluded range A and one existing range
-B. Then we can exhaust all possibilities of the position of A regarding
-B. For example, here are two combinations,
-    Case: A is completely inside B (causes split)
-      Original:       [----B----]
-      Exclude:          {--A--}
-      Result:         [B1] .. [B2]
-
-    Case: A overlaps B's left part
-      Original:       [----B----]
-      Exclude:  {---A---}
-      Result:           [..B..]
-
-In theory we can prove the correctness by induction,
-   - Base case: crash_exclude_mem_range is correct in the case where n=1
-     (n is the number of existing ranges).
-   - Inductive step: If crash_exclude_mem_range is correct for n=k
-     existing ranges, then the it's also correct for n=k+1 ranges.
-
-But for the sake of simplicity, simply use unit tests to cover the base
-case together with two regression tests.
-
-Note most of the exclude_single_range_test() code is generated by Google
-Gemini with some small tweaks.  The function specification, function body
-and the exhausting test strategy are presented as prompts.
-
-Link: https://lkml.kernel.org/r/20250904093855.1180154-2-coxu@redhat.com
-Signed-off-by: Coiby Xu <coxu@redhat.com>
-Assisted-by: Google Gemini
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: fuqiang wang <fuqiang.wang@easystack.cn>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/20250904063631.2364995-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Rafael J. Wysocki <rafael@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: James Bottomley <james.bottomley@HansenPartnership.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Kconfig.kexec     |   11 +
- kernel/Makefile          |    1 
- kernel/crash_core.c      |   14 +
- kernel/crash_core_test.c |  343 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 369 insertions(+)
+ Documentation/driver-api/pm/devices.rst |    8 ++++++++
+ include/linux/kernel.h                  |   18 ++++++++++++++++--
+ 2 files changed, 24 insertions(+), 2 deletions(-)
 
---- a/kernel/crash_core.c~crash-add-kunit-tests-for-crash_exclude_mem_range
-+++ a/kernel/crash_core.c
-@@ -265,6 +265,20 @@ int crash_prepare_elf64_headers(struct c
- 	return 0;
- }
+--- a/Documentation/driver-api/pm/devices.rst~kernelh-add-comments-for-system_states
++++ a/Documentation/driver-api/pm/devices.rst
+@@ -241,6 +241,14 @@ before reactivating its class I/O queues
+ More power-aware drivers might prepare the devices for triggering system wakeup
+ events.
  
++System states available for drivers
++-----------------------------------
++
++These system states are available for drivers to help them determine how to
++handle state transitions.
++
++.. kernel-doc:: include/linux/kernel.h
++   :doc: General system_states available for drivers
+ 
+ Call Sequence Guarantees
+ ------------------------
+--- a/include/linux/kernel.h~kernelh-add-comments-for-system_states
++++ a/include/linux/kernel.h
+@@ -164,8 +164,22 @@ extern int root_mountflags;
+ 
+ extern bool early_boot_irqs_disabled;
+ 
+-/*
+- * Values used for system_state. Ordering of the states must not be changed
 +/**
-+ * crash_exclude_mem_range - exclude a mem range for existing ranges
-+ * @mem: mem->range contains an array of ranges sorted in ascending order
-+ * @mstart: the start of to-be-excluded range
-+ * @mend: the start of to-be-excluded range
++ * DOC: General system_states available for drivers
 + *
-+ * If you are unsure if a range split will happen, to avoid function call
-+ * failure because of -ENOMEM, always make sure
-+ *    mem->max_nr_ranges == mem->nr_ranges + 1
-+ * before calling the function each time.
++ * enum system_states - Values used for system_state.
 + *
-+ * returns 0 if a memory range is excluded successfully
-+ * return -ENOMEM if mem->ranges doesn't have space to hold split ranges
-+ */
- int crash_exclude_mem_range(struct crash_mem *mem,
- 			    unsigned long long mstart, unsigned long long mend)
- {
-diff --git a/kernel/crash_core_test.c a/kernel/crash_core_test.c
-new file mode 100644
---- /dev/null
-+++ a/kernel/crash_core_test.c
-@@ -0,0 +1,343 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <kunit/test.h>
-+#include <linux/crash_core.h> // For struct crash_mem and struct range if defined there
-+
-+// Helper to create and initialize crash_mem
-+static struct crash_mem *create_crash_mem(struct kunit *test, unsigned int max_ranges,
-+					  unsigned int nr_initial_ranges,
-+					  const struct range *initial_ranges)
-+{
-+	struct crash_mem *mem;
-+	size_t alloc_size;
-+
-+	// Check if max_ranges can even hold initial_ranges
-+	if (max_ranges < nr_initial_ranges) {
-+		kunit_err(test, "max_ranges (%u) < nr_initial_ranges (%u)\n",
-+			  max_ranges, nr_initial_ranges);
-+		return NULL;
-+	}
-+
-+	alloc_size = sizeof(struct crash_mem) + (size_t)max_ranges * sizeof(struct range);
-+	mem = kunit_kzalloc(test, alloc_size, GFP_KERNEL);
-+	if (!mem) {
-+		kunit_err(test, "Failed to allocate crash_mem\n");
-+		return NULL;
-+	}
-+
-+	mem->max_nr_ranges = max_ranges;
-+	mem->nr_ranges = nr_initial_ranges;
-+	if (initial_ranges && nr_initial_ranges > 0) {
-+		memcpy(mem->ranges, initial_ranges,
-+		       nr_initial_ranges * sizeof(struct range));
-+	}
-+
-+	return mem;
-+}
-+
-+// Helper to compare ranges for assertions
-+static void assert_ranges_equal(struct kunit *test,
-+				const struct range *actual_ranges,
-+				unsigned int actual_nr_ranges,
-+				const struct range *expected_ranges,
-+				unsigned int expected_nr_ranges,
-+				const char *case_name)
-+{
-+	unsigned int i;
-+
-+	KUNIT_ASSERT_EQ_MSG(test, expected_nr_ranges, actual_nr_ranges,
-+			    "%s: Number of ranges mismatch.", case_name);
-+
-+	for (i = 0; i < expected_nr_ranges; i++) {
-+		KUNIT_ASSERT_EQ_MSG(test, expected_ranges[i].start, actual_ranges[i].start,
-+				    "%s: Range %u start mismatch.", case_name, i);
-+		KUNIT_ASSERT_EQ_MSG(test, expected_ranges[i].end, actual_ranges[i].end,
-+				    "%s: Range %u end mismatch.", case_name, i);
-+	}
-+}
-+
-+// Structure for test parameters
-+struct exclude_test_param {
-+	const char *description;
-+	unsigned long long exclude_start;
-+	unsigned long long exclude_end;
-+	unsigned int initial_max_ranges;
-+	const struct range *initial_ranges;
-+	unsigned int initial_nr_ranges;
-+	const struct range *expected_ranges;
-+	unsigned int expected_nr_ranges;
-+	int expected_ret;
-+};
-+
-+static void run_exclude_test_case(struct kunit *test, const struct exclude_test_param *params)
-+{
-+	struct crash_mem *mem;
-+	int ret;
-+
-+	kunit_info(test, "%s", params->description);
-+
-+	mem = create_crash_mem(test, params->initial_max_ranges,
-+			       params->initial_nr_ranges, params->initial_ranges);
-+	if (!mem)
-+		return; // Error already logged by create_crash_mem or kunit_kzalloc
-+
-+	ret = crash_exclude_mem_range(mem, params->exclude_start, params->exclude_end);
-+
-+	KUNIT_ASSERT_EQ_MSG(test, params->expected_ret, ret,
-+			    "%s: Return value mismatch.", params->description);
-+
-+	if (params->expected_ret == 0) {
-+		assert_ranges_equal(test, mem->ranges, mem->nr_ranges,
-+				    params->expected_ranges, params->expected_nr_ranges,
-+				    params->description);
-+	} else {
-+		// If an error is expected, nr_ranges might still be relevant to check
-+		// depending on the exact point of failure. For ENOMEM on split,
-+		// nr_ranges shouldn't have changed.
-+		KUNIT_ASSERT_EQ_MSG(test, params->initial_nr_ranges,
-+				    mem->nr_ranges,
-+				    "%s: Number of ranges mismatch on error.",
-+				    params->description);
-+	}
-+}
-+
-+/*
-+ * Test Strategy 1: One to-be-excluded range A and one existing range B.
++ * * @SYSTEM_BOOTING:	%0, no init needed
++ * * @SYSTEM_SCHEDULING:	system is ready for scheduling; OK to use RCU
++ * * @SYSTEM_FREEING_INITMEM: system is freeing all of initmem; almost running
++ * * @SYSTEM_RUNNING:	system is up and running
++ * * @SYSTEM_HALT:	system entered clean system halt state
++ * * @SYSTEM_POWER_OFF:	system entered shutdown/clean power off state
++ * * @SYSTEM_RESTART:	system entered emergency power off or normal restart
++ * * @SYSTEM_SUSPEND:	system entered suspend or hibernate state
 + *
-+ * Exhaust all possibilities of the position of A regarding B.
-+ */
-+
-+static const struct range single_range_b = { .start = 100, .end = 199 };
-+
-+static const struct exclude_test_param exclude_single_range_test_data[] = {
-+	{
-+		.description = "1.1: A is left of B, no overlap",
-+		.exclude_start = 10, .exclude_end = 50,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = &single_range_b, .expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.2: A's right boundary touches B's left boundary",
-+		.exclude_start = 10, .exclude_end = 99,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = &single_range_b, .expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.3: A overlaps B's left part",
-+		.exclude_start = 50, .exclude_end = 149,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = (const struct range[]){{ .start = 150, .end = 199 }},
-+		.expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.4: A is completely inside B",
-+		.exclude_start = 120, .exclude_end = 179,
-+		.initial_max_ranges = 2, // Needs space for split
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = (const struct range[]){
-+			{ .start = 100, .end = 119 },
-+			{ .start = 180, .end = 199 }
-+		},
-+		.expected_nr_ranges = 2,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.5: A overlaps B's right part",
-+		.exclude_start = 150, .exclude_end = 249,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = (const struct range[]){{ .start = 100, .end = 149 }},
-+		.expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.6: A's left boundary touches B's right boundary",
-+		.exclude_start = 200, .exclude_end = 250,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = &single_range_b, .expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.7: A is right of B, no overlap",
-+		.exclude_start = 250, .exclude_end = 300,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = &single_range_b, .expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.8: A completely covers B and extends beyond",
-+		.exclude_start = 50, .exclude_end = 250,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = NULL, .expected_nr_ranges = 0,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.9: A covers B and extends to the left",
-+		.exclude_start = 50, .exclude_end = 199, // A ends exactly where B ends
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = NULL, .expected_nr_ranges = 0,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.10: A covers B and extends to the right",
-+		.exclude_start = 100, .exclude_end = 250, // A starts exactly where B starts
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = NULL, .expected_nr_ranges = 0,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.11: A is identical to B",
-+		.exclude_start = 100, .exclude_end = 199,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = NULL, .expected_nr_ranges = 0,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.12: A is a point, left of B, no overlap",
-+		.exclude_start = 10, .exclude_end = 10,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = &single_range_b, .expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.13: A is a point, at start of B",
-+		.exclude_start = 100, .exclude_end = 100,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = (const struct range[]){{ .start = 101, .end = 199 }},
-+		.expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.14: A is a point, in middle of B (causes split)",
-+		.exclude_start = 150, .exclude_end = 150,
-+		.initial_max_ranges = 2, // Needs space for split
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = (const struct range[]){
-+			{ .start = 100, .end = 149 },
-+			{ .start = 151, .end = 199 }
-+		},
-+		.expected_nr_ranges = 2,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.15: A is a point, at end of B",
-+		.exclude_start = 199, .exclude_end = 199,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = (const struct range[]){{ .start = 100, .end = 198 }},
-+		.expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	{
-+		.description = "1.16: A is a point, right of B, no overlap",
-+		.exclude_start = 250, .exclude_end = 250,
-+		.initial_max_ranges = 1,
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = &single_range_b, .expected_nr_ranges = 1,
-+		.expected_ret = 0,
-+	},
-+	// ENOMEM case for single range split
-+	{
-+		.description = "1.17: A completely inside B (split), no space (ENOMEM)",
-+		.exclude_start = 120, .exclude_end = 179,
-+		.initial_max_ranges = 1, // Not enough for split
-+		.initial_ranges = &single_range_b, .initial_nr_ranges = 1,
-+		.expected_ranges = NULL, // Not checked on error by assert_ranges_equal for content
-+		.expected_nr_ranges = 1, // Should remain unchanged
-+		.expected_ret = -ENOMEM,
-+	},
-+};
-+
-+
-+static void exclude_single_range_test(struct kunit *test)
-+{
-+	size_t i;
-+
-+	for (i = 0; i < ARRAY_SIZE(exclude_single_range_test_data); i++) {
-+		kunit_log(KERN_INFO, test, "Running: %s", exclude_single_range_test_data[i].description);
-+		run_exclude_test_case(test, &exclude_single_range_test_data[i]);
-+		// KUnit will stop on first KUNIT_ASSERT failure within run_exclude_test_case
-+	}
-+}
-+
-+/*
-+ * Test Strategy 2: Regression test.
-+ */
-+
-+static const struct exclude_test_param exclude_range_regression_test_data[] = {
-+	// Test data from commit a2e9a95d2190
-+	{
-+		.description = "2.1: exclude low 1M",
-+		.exclude_start = 0, .exclude_end = (1 << 20) - 1,
-+		.initial_max_ranges = 3,
-+		.initial_ranges = (const struct range[]){
-+			{ .start = 0, .end = 0x3efff },
-+			{ .start = 0x3f000, .end = 0x3ffff },
-+			{ .start = 0x40000, .end = 0x9ffff }
-+		},
-+		.initial_nr_ranges = 3,
-+		.expected_nr_ranges = 0,
-+		.expected_ret = 0,
-+	},
-+	// Test data from https://lore.kernel.org/all/ZXrY7QbXAlxydsSC@MiWiFi-R3L-srv/T/#u
-+	{
-+		.description = "2.2: when range out of bound",
-+		.exclude_start = 100, .exclude_end = 200,
-+		.initial_max_ranges = 3,
-+		.initial_ranges = (const struct range[]){
-+			{ .start = 1, .end = 299 },
-+			{ .start = 401, .end = 1000 },
-+			{ .start = 1001, .end = 2000 }
-+		},
-+		.initial_nr_ranges = 3,
-+		.expected_ranges = NULL, // Not checked on error by assert_ranges_equal for content
-+		.expected_nr_ranges = 3, // Should remain unchanged
-+		.expected_ret = -ENOMEM
-+	},
-+
-+};
-+
-+
-+static void exclude_range_regression_test(struct kunit *test)
-+{
-+	size_t i;
-+
-+	for (i = 0; i < ARRAY_SIZE(exclude_range_regression_test_data); i++) {
-+		kunit_log(KERN_INFO, test, "Running: %s", exclude_range_regression_test_data[i].description);
-+		run_exclude_test_case(test, &exclude_range_regression_test_data[i]);
-+		// KUnit will stop on first KUNIT_ASSERT failure within run_exclude_test_case
-+	}
-+}
-+
-+/*
-+ * KUnit Test Suite
-+ */
-+static struct kunit_case crash_exclude_mem_range_test_cases[] = {
-+	KUNIT_CASE(exclude_single_range_test),
-+	KUNIT_CASE(exclude_range_regression_test),
-+	{}
-+};
-+
-+static struct kunit_suite crash_exclude_mem_range_suite = {
-+	.name = "crash_exclude_mem_range_tests",
-+	.test_cases = crash_exclude_mem_range_test_cases,
-+	// .init and .exit can be NULL if not needed globally for the suite
-+};
-+
-+kunit_test_suite(crash_exclude_mem_range_suite);
-+
-+MODULE_DESCRIPTION("crash dump KUnit test suite");
-+MODULE_LICENSE("GPL");
---- a/kernel/Kconfig.kexec~crash-add-kunit-tests-for-crash_exclude_mem_range
-+++ a/kernel/Kconfig.kexec
-@@ -148,6 +148,17 @@ config CRASH_DM_CRYPT_CONFIGS
- 	  CRASH_DM_CRYPT cannot directly select CONFIGFS_FS, because that
- 	  is required to be built-in.
- 
-+config CRASH_DUMP_KUNIT_TEST
-+	tristate "Unit Tests for kernel crash dumps" if !KUNIT_ALL_TESTS
-+	depends on CRASH_DUMP && KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  This option builds KUnit unit tests for kernel crash dumps. The unit
-+	  tests will be used to verify the correctness of covered functions and
-+	  also prevent any regression.
-+
-+	  If unsure, say N.
-+
- config CRASH_HOTPLUG
- 	bool "Update the crash elfcorehdr on system configuration changes"
- 	default y
---- a/kernel/Makefile~crash-add-kunit-tests-for-crash_exclude_mem_range
-+++ a/kernel/Makefile
-@@ -78,6 +78,7 @@ obj-$(CONFIG_CRASH_RESERVE) += crash_res
- obj-$(CONFIG_KEXEC_CORE) += kexec_core.o
- obj-$(CONFIG_CRASH_DUMP) += crash_core.o
- obj-$(CONFIG_CRASH_DM_CRYPT) += crash_dump_dm_crypt.o
-+obj-$(CONFIG_CRASH_DUMP_KUNIT_TEST) += crash_core_test.o
- obj-$(CONFIG_KEXEC) += kexec.o
- obj-$(CONFIG_KEXEC_FILE) += kexec_file.o
- obj-$(CONFIG_KEXEC_ELF) += kexec_elf.o
++ * Note:
++ * Ordering of the states must not be changed
+  * as code checks for <, <=, >, >= STATE.
+  */
+ extern enum system_states {
 _
 
-Patches currently in -mm which might be from coxu@redhat.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-crash-add-kunit-tests-for-crash_exclude_mem_range.patch
+listh-add-missing-kernel-doc-for-basic-macros.patch
+kernelh-add-comments-for-system_states.patch
 
