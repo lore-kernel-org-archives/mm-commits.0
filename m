@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706242EAB98
-	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 23:53:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8109F2D9EE1
+	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 23:55:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757030028; cv=none; b=KfNJaRfVKw+RpmhqehtEe2yjJvYOlsyxA7XTi4nsqCBBUkGlRW++91n0UzdPVc1b+hmP+ecqKvNocNnV1qhsxv8NwL6iOBpxy1Mz6HsPq4vFepP1R4TW7oh+4Yv02Ua2d7Tr/FKfgRXv7KxekDq1l7rMB8lKU9gdewyTjyZP5ds=
+	t=1757030147; cv=none; b=HgC2RFQllcspWXdF0sCON1moGJm5hKcosinUgJ2wjviVlr32oIyDNaO3xoc5rApLg5ikjCrKusjQJWwCPQX1TlQly8J4Tf7GC7OLwg7nZu/vofifttoN1pmgeTQQs4gLNYqHgFjR/AXIF+FbiE8q/L5SMXzX2pEArqddhaqyriE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757030028; c=relaxed/simple;
-	bh=7k7AuYEsuR+H66da4tKE/6gnfuPiv0UGDGe8TPi3U0c=;
-	h=Date:To:From:Subject:Message-Id; b=j9eQjX5BE/IWpmnYDWnZb/XP0Vo1Vt5CwZ9ayU5DXw6jxj291F2yTShao2d09nZJoCe1UTQpFrKfsjLTUoeMAPumyqOQ0gTO6cFRDMHEiEAkD/optpGR4zI4LDxmDoNgj5eFVyAIyMo6xBH6EJi/Bo54cicDPxuve9ZHjVgPyYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rNII7/tr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757030147; c=relaxed/simple;
+	bh=uOWxI+sghhL8u3/puuEvrz3TBVTcpcHfLqajfvW+XkU=;
+	h=Date:To:From:Subject:Message-Id; b=GKZYmlsQmuWBI7CbzJ6wZQgR7EGTbOVyD9hZ2TvYeP1ol87WC4Klv7uQPdtG9WMge+S9GvtCqIwJQuHKckX8NUX3sNvIXzswKlqMXHSAGzhdICEoOVTnVWRf+CqQKBb4F0x/FX1o5itujKJ0mcsF9L5pL9/by9cjkMCYEcrSKfA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OwMC2Fwx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rNII7/tr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D77F4C4CEF0;
-	Thu,  4 Sep 2025 23:53:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OwMC2Fwx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D74EDC4CEF4;
+	Thu,  4 Sep 2025 23:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757030028;
-	bh=7k7AuYEsuR+H66da4tKE/6gnfuPiv0UGDGe8TPi3U0c=;
+	s=korg; t=1757030147;
+	bh=uOWxI+sghhL8u3/puuEvrz3TBVTcpcHfLqajfvW+XkU=;
 	h=Date:To:From:Subject:From;
-	b=rNII7/tr//+/ja4zwaAkEJnOlK6xklDBZlN0EnQatBD0lgxOgVPW5VpjGqpxGmLjX
-	 rpyl+S8QsuYjZ/X3ogHJ8jGxvDWV5mTQxtz8dk9NN9wtzHPiqsMcRl8xZXZ//3kDtX
-	 3u3NUrFgHy8kvns3/pZuO6ZxYNl8wQyaP7seVk1Y=
-Date: Thu, 04 Sep 2025 16:53:47 -0700
-To: mm-commits@vger.kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,david@redhat.com,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=OwMC2FwxHJ+Yc/ECguh8d3w/DDQasuZ2QWN9t24fdY2VRd+5ZZFriCtJWT2mdCIao
+	 l7bqCjDtJR6dKlISeD3F5gBvp5r313+WllmwmoWDPSwrlFqe6MTN/+w58nLJU9XSzF
+	 rwlvvq5mWnn0NKVTrIAO4DgYxGCZUH01MoMA4OiY=
+Date: Thu, 04 Sep 2025 16:55:46 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec.patch added to mm-new branch
-Message-Id: <20250904235347.D77F4C4CEF0@smtp.kernel.org>
+Subject: + mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch added to mm-new branch
+Message-Id: <20250904235546.D74EDC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hwpoison: decouple hwpoison_filter from mm/memory-failure.c
+     Subject: mm/page_alloc: check the correct buddy if it is a starting block
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec.patch
+     mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,317 +64,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hwpoison: decouple hwpoison_filter from mm/memory-failure.c
-Date: Thu, 4 Sep 2025 14:22:58 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/page_alloc: check the correct buddy if it is a starting block
+Date: Thu, 4 Sep 2025 02:06:54 +0000
 
-mm/memory-failure.c defines and uses hwpoison_filter_* parameters but the
-values of those parameters can only be modified via mm/hwpoison-inject.c
-from userspace.  They have a potentially different life time.  Decouple
-those parameters from mm/memory-failure.c to fix this broken layering.
+find_large_buddy() search buddy based on start_pfn, which may be different
+from page's pfn, e.g.  when page is not pageblock aligned, because
+prep_move_freepages_block() always aligns start_pfn to pageblock.
 
-Link: https://lkml.kernel.org/r/20250904062258.3336092-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
+This means when we found a starting block at start_pfn, it may check on
+the wrong page theoretically.
+
+The good news is the page passed to __move_freepages_block_isolate() has
+only two possible cases:
+
+  * page is pageblock aligned
+  * page is __first_valid_page() of this block
+
+So it is safe for the first case, and it won't get a buddy larger than
+pageblock for the second case.
+
+To eliminate the ambiguity, unify the handling for starting/tail block.
+
+Link: https://lkml.kernel.org/r/20250904020654.28689-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c       |    1 
- mm/hwpoison-inject.c |   91 +++++++++++++++++++++++++++++++++++
- mm/internal.h        |   10 +--
- mm/memcontrol.c      |    1 
- mm/memory-failure.c  |  106 ++++++-----------------------------------
- 5 files changed, 113 insertions(+), 96 deletions(-)
+ mm/page_alloc.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
---- a/fs/proc/page.c~mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec
-+++ a/fs/proc/page.c
-@@ -257,6 +257,7 @@ u64 stable_page_flags(const struct page
+--- a/mm/page_alloc.c~mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block
++++ a/mm/page_alloc.c
+@@ -2093,6 +2093,7 @@ static bool __move_freepages_block_isola
+ 	unsigned long start_pfn, pfn;
+ 	int from_mt;
+ 	int to_mt;
++	struct page *buddy;
  
- 	return u;
- }
-+EXPORT_SYMBOL_GPL(stable_page_flags);
+ 	if (isolate == get_pageblock_isolate(page)) {
+ 		VM_WARN_ONCE(1, "%s a pageblock that is already in that state",
+@@ -2107,10 +2108,10 @@ static bool __move_freepages_block_isola
+ 	if (pageblock_order == MAX_PAGE_ORDER)
+ 		goto move;
  
- /* /proc/kpageflags - an array exposing page flags
-  *
---- a/mm/hwpoison-inject.c~mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec
-+++ a/mm/hwpoison-inject.c
-@@ -7,8 +7,96 @@
- #include <linux/swap.h>
- #include <linux/pagemap.h>
- #include <linux/hugetlb.h>
-+#include <linux/page-flags.h>
-+#include <linux/memcontrol.h>
- #include "internal.h"
+-	/* We're a tail block in a larger buddy */
+ 	pfn = find_large_buddy(start_pfn);
+-	if (pfn != start_pfn) {
+-		struct page *buddy = pfn_to_page(pfn);
++	buddy = pfn_to_page(pfn);
++	/* We're a part of a larger buddy */
++	if (PageBuddy(buddy) && buddy_order(buddy) > pageblock_order) {
+ 		int order = buddy_order(buddy);
  
-+static u32 hwpoison_filter_enable;
-+static u32 hwpoison_filter_dev_major = ~0U;
-+static u32 hwpoison_filter_dev_minor = ~0U;
-+static u64 hwpoison_filter_flags_mask;
-+static u64 hwpoison_filter_flags_value;
-+
-+static int hwpoison_filter_dev(struct page *p)
-+{
-+	struct folio *folio = page_folio(p);
-+	struct address_space *mapping;
-+	dev_t dev;
-+
-+	if (hwpoison_filter_dev_major == ~0U &&
-+	    hwpoison_filter_dev_minor == ~0U)
-+		return 0;
-+
-+	mapping = folio_mapping(folio);
-+	if (mapping == NULL || mapping->host == NULL)
-+		return -EINVAL;
-+
-+	dev = mapping->host->i_sb->s_dev;
-+	if (hwpoison_filter_dev_major != ~0U &&
-+	    hwpoison_filter_dev_major != MAJOR(dev))
-+		return -EINVAL;
-+	if (hwpoison_filter_dev_minor != ~0U &&
-+	    hwpoison_filter_dev_minor != MINOR(dev))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int hwpoison_filter_flags(struct page *p)
-+{
-+	if (!hwpoison_filter_flags_mask)
-+		return 0;
-+
-+	if ((stable_page_flags(p) & hwpoison_filter_flags_mask) ==
-+				    hwpoison_filter_flags_value)
-+		return 0;
-+	else
-+		return -EINVAL;
-+}
-+
-+/*
-+ * This allows stress tests to limit test scope to a collection of tasks
-+ * by putting them under some memcg. This prevents killing unrelated/important
-+ * processes such as /sbin/init. Note that the target task may share clean
-+ * pages with init (eg. libc text), which is harmless. If the target task
-+ * share _dirty_ pages with another task B, the test scheme must make sure B
-+ * is also included in the memcg. At last, due to race conditions this filter
-+ * can only guarantee that the page either belongs to the memcg tasks, or is
-+ * a freed page.
-+ */
-+#ifdef CONFIG_MEMCG
-+static u64 hwpoison_filter_memcg;
-+static int hwpoison_filter_task(struct page *p)
-+{
-+	if (!hwpoison_filter_memcg)
-+		return 0;
-+
-+	if (page_cgroup_ino(p) != hwpoison_filter_memcg)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+#else
-+static int hwpoison_filter_task(struct page *p) { return 0; }
-+#endif
-+
-+static int hwpoison_filter(struct page *p)
-+{
-+	if (!hwpoison_filter_enable)
-+		return 0;
-+
-+	if (hwpoison_filter_dev(p))
-+		return -EINVAL;
-+
-+	if (hwpoison_filter_flags(p))
-+		return -EINVAL;
-+
-+	if (hwpoison_filter_task(p))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static struct dentry *hwpoison_dir;
+ 		del_page_from_free_list(buddy, zone, order,
+@@ -2120,16 +2121,6 @@ static bool __move_freepages_block_isola
+ 		return true;
+ 	}
  
- static int hwpoison_inject(void *data, u64 val)
-@@ -67,6 +155,7 @@ DEFINE_DEBUGFS_ATTRIBUTE(unpoison_fops,
- static void __exit pfn_inject_exit(void)
- {
- 	hwpoison_filter_enable = 0;
-+	hwpoison_filter_unregister();
- 	debugfs_remove_recursive(hwpoison_dir);
- }
- 
-@@ -105,6 +194,8 @@ static int __init pfn_inject_init(void)
- 			   &hwpoison_filter_memcg);
- #endif
- 
-+	hwpoison_filter_register(hwpoison_filter);
-+
- 	return 0;
- }
- 
---- a/mm/internal.h~mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec
-+++ a/mm/internal.h
-@@ -1228,14 +1228,10 @@ static inline bool node_reclaim_enabled(
- #ifdef CONFIG_MEMORY_FAILURE
- int unmap_poisoned_folio(struct folio *folio, unsigned long pfn, bool must_kill);
- void shake_folio(struct folio *folio);
--extern int hwpoison_filter(struct page *p);
-+typedef int hwpoison_filter_func_t(struct page *p);
-+void hwpoison_filter_register(hwpoison_filter_func_t *filter);
-+void hwpoison_filter_unregister(void);
- 
--extern u32 hwpoison_filter_dev_major;
--extern u32 hwpoison_filter_dev_minor;
--extern u64 hwpoison_filter_flags_mask;
--extern u64 hwpoison_filter_flags_value;
--extern u64 hwpoison_filter_memcg;
--extern u32 hwpoison_filter_enable;
- #define MAGIC_HWPOISON	0x48575053U	/* HWPS */
- void SetPageHWPoisonTakenOff(struct page *page);
- void ClearPageHWPoisonTakenOff(struct page *page);
---- a/mm/memcontrol.c~mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec
-+++ a/mm/memcontrol.c
-@@ -287,6 +287,7 @@ ino_t page_cgroup_ino(struct page *page)
- 	rcu_read_unlock();
- 	return ino;
- }
-+EXPORT_SYMBOL_GPL(page_cgroup_ino);
- 
- /* Subset of node_stat_item for memcg stats */
- static const unsigned int memcg_node_stat_items[] = {
---- a/mm/memory-failure.c~mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec
-+++ a/mm/memory-failure.c
-@@ -212,106 +212,34 @@ static bool page_handle_poison(struct pa
- 	return true;
- }
- 
--#if IS_ENABLED(CONFIG_HWPOISON_INJECT)
-+static hwpoison_filter_func_t __rcu *hwpoison_filter_func __read_mostly;
- 
--u32 hwpoison_filter_enable = 0;
--u32 hwpoison_filter_dev_major = ~0U;
--u32 hwpoison_filter_dev_minor = ~0U;
--u64 hwpoison_filter_flags_mask;
--u64 hwpoison_filter_flags_value;
--EXPORT_SYMBOL_GPL(hwpoison_filter_enable);
--EXPORT_SYMBOL_GPL(hwpoison_filter_dev_major);
--EXPORT_SYMBOL_GPL(hwpoison_filter_dev_minor);
--EXPORT_SYMBOL_GPL(hwpoison_filter_flags_mask);
--EXPORT_SYMBOL_GPL(hwpoison_filter_flags_value);
+-	/* We're the starting block of a larger buddy */
+-	if (PageBuddy(page) && buddy_order(page) > pageblock_order) {
+-		int order = buddy_order(page);
 -
--static int hwpoison_filter_dev(struct page *p)
-+void hwpoison_filter_register(hwpoison_filter_func_t *filter)
- {
--	struct folio *folio = page_folio(p);
--	struct address_space *mapping;
--	dev_t dev;
--
--	if (hwpoison_filter_dev_major == ~0U &&
--	    hwpoison_filter_dev_minor == ~0U)
--		return 0;
--
--	mapping = folio_mapping(folio);
--	if (mapping == NULL || mapping->host == NULL)
--		return -EINVAL;
--
--	dev = mapping->host->i_sb->s_dev;
--	if (hwpoison_filter_dev_major != ~0U &&
--	    hwpoison_filter_dev_major != MAJOR(dev))
--		return -EINVAL;
--	if (hwpoison_filter_dev_minor != ~0U &&
--	    hwpoison_filter_dev_minor != MINOR(dev))
--		return -EINVAL;
--
--	return 0;
-+	rcu_assign_pointer(hwpoison_filter_func, filter);
- }
-+EXPORT_SYMBOL_GPL(hwpoison_filter_register);
- 
--static int hwpoison_filter_flags(struct page *p)
-+void hwpoison_filter_unregister(void)
- {
--	if (!hwpoison_filter_flags_mask)
--		return 0;
--
--	if ((stable_page_flags(p) & hwpoison_filter_flags_mask) ==
--				    hwpoison_filter_flags_value)
--		return 0;
--	else
--		return -EINVAL;
-+	RCU_INIT_POINTER(hwpoison_filter_func, NULL);
-+	synchronize_rcu();
- }
-+EXPORT_SYMBOL_GPL(hwpoison_filter_unregister);
- 
--/*
-- * This allows stress tests to limit test scope to a collection of tasks
-- * by putting them under some memcg. This prevents killing unrelated/important
-- * processes such as /sbin/init. Note that the target task may share clean
-- * pages with init (eg. libc text), which is harmless. If the target task
-- * share _dirty_ pages with another task B, the test scheme must make sure B
-- * is also included in the memcg. At last, due to race conditions this filter
-- * can only guarantee that the page either belongs to the memcg tasks, or is
-- * a freed page.
-- */
--#ifdef CONFIG_MEMCG
--u64 hwpoison_filter_memcg;
--EXPORT_SYMBOL_GPL(hwpoison_filter_memcg);
--static int hwpoison_filter_task(struct page *p)
-+static int hwpoison_filter(struct page *p)
- {
--	if (!hwpoison_filter_memcg)
--		return 0;
-+	int ret = 0;
-+	hwpoison_filter_func_t *filter;
- 
--	if (page_cgroup_ino(p) != hwpoison_filter_memcg)
--		return -EINVAL;
-+	rcu_read_lock();
-+	filter = rcu_dereference(hwpoison_filter_func);
-+	if (filter)
-+		ret = filter(p);
-+	rcu_read_unlock();
- 
--	return 0;
--}
--#else
--static int hwpoison_filter_task(struct page *p) { return 0; }
--#endif
--
--int hwpoison_filter(struct page *p)
--{
--	if (!hwpoison_filter_enable)
--		return 0;
--
--	if (hwpoison_filter_dev(p))
--		return -EINVAL;
--
--	if (hwpoison_filter_flags(p))
--		return -EINVAL;
--
--	if (hwpoison_filter_task(p))
--		return -EINVAL;
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(hwpoison_filter);
--#else
--int hwpoison_filter(struct page *p)
--{
--	return 0;
-+	return ret;
- }
--#endif
- 
- /*
-  * Kill all processes that have a poisoned page mapped and then isolate
+-		del_page_from_free_list(page, zone, order,
+-					get_pfnblock_migratetype(page, pfn));
+-		toggle_pageblock_isolate(page, isolate);
+-		split_large_buddy(zone, page, pfn, order, FPI_NONE);
+-		return true;
+-	}
+ move:
+ 	/* Use MIGRATETYPE_MASK to get non-isolate migratetype */
+ 	if (isolate) {
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-memory-failure-fix-vm_bug_on_pagepagepoisonedpage-when-unpoison-memory.patch
-revert-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch
-mm-hwpoison-decouple-hwpoison_filter-from-mm-memory-failurec.patch
+mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
+selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
+mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
+mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
+selftests-mm-put-general-ksm-operation-into-vm_util.patch
+selftests-mm-test-that-rmap-behave-as-expected.patch
+mm-khugepaged-use-list_xxx-helper-to-improve-readability.patch
+mm-page_alloc-use-xxx_pageblock_isolate-for-better-reading.patch
+mm-pageblock-flags-remove-pb_migratetype_bits-pb_migrate_end.patch
+mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch
+mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2.patch
+mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
 
