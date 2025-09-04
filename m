@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 022081C69D
-	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 00:11:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1951BA34
+	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 00:11:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756944693; cv=none; b=uhJmyemSJ7eYGnt9+OtDu5ImAZOp+0Vq/G10xUSmgCYWceYMwIrgM1lCOO66yWi0EoeCCAJ+Jqfq4YA4Aw90ft5BjFX8R0Uv0eVq0VzJoaxZnsjy7mvqQZazOkbZ9F6ug9/YdyflRbWXa40OThu0p/stRsGRLduD/z3LDD592lA=
+	t=1756944694; cv=none; b=ak+ehiEnPBJN8fHzY16Mettn9vFDz8VFgZRQDsHpyUh3GwkyUgT5mxoqUOvbzSDjAFtBmf13DWfudUv8utH0sBrSZ0NPPir+4RptrhB1r4HpzOprLgo7JonLG5bd1F2QvPyxfuj4B6Hn0py/NmhMCHL89gnZaPXX4E8ROynq73g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756944693; c=relaxed/simple;
-	bh=YXPChBL3Yc3IWEtzSIZV3xuir8srJGspHPBdg4bupW0=;
-	h=Date:To:From:Subject:Message-Id; b=D6tYtI7aqdRWjMtOdZWAl28VAxpwytYPn2sXBoeCn66NlNsLgeWtvQBDneDmjzwmoIZVtfhXjufC1GIp5FPpq2ZCh7vVO6IpO7o+VgFG3DoIR2IJJtpmrQo4IL0cUZLbiHmg3JwDCXQStITAv234Uamkjl6uNifnr0Gmp8IVCD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VpzkQjNb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756944694; c=relaxed/simple;
+	bh=ljaEbMheFLeTnpmqw8gu3piMvMgg+W9jaCC460ODELg=;
+	h=Date:To:From:Subject:Message-Id; b=B8vDxK184DhVhSr35JBoVKNP1JgDjMPNJSA1YokERLdBl2cl2WFlvHNJ0cmq6YZn1UjQBjE9rhLDESx8mpfwprZcey+ZdUZtjamKFjLVVaecEysrOWodORl7MAUFGEJqfShriPpV0k47u11zeJWYdXv4I2Itax4SgLbabLWENyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMjZ4Z/h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VpzkQjNb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B61CC4CEE7;
-	Thu,  4 Sep 2025 00:11:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMjZ4Z/h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A699C4CEFD;
+	Thu,  4 Sep 2025 00:11:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756944692;
-	bh=YXPChBL3Yc3IWEtzSIZV3xuir8srJGspHPBdg4bupW0=;
+	s=korg; t=1756944694;
+	bh=ljaEbMheFLeTnpmqw8gu3piMvMgg+W9jaCC460ODELg=;
 	h=Date:To:From:Subject:From;
-	b=VpzkQjNbZA1D6+/LsLfHX41px6rQ2kvrxi24XA9XIRR0Z576l5/L2FbbBEh7FEOvE
-	 qc7dU2V/pEW/mjJvNFNfNadsZgbzyo8WkxxzS7T9lWPnEuGJxQk8SsdcsgvMvlUM6q
-	 kQuXg/37nhqD+O+S57NxBI32Zjki0Fof2JSasBRM=
-Date: Wed, 03 Sep 2025 17:11:31 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,osalvador@suse.de,mhocko@kernel.org,mcgrof@kernel.org,linmiaohe@huawei.com,kernel@pankajraghav.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=RMjZ4Z/h5i7NRohiF6e/b7LBMjUo0fDkjypBKEBcf7dgupNd1/Ma/lZDH6MCr+YRi
+	 PmnUDaZ+QyB7B/n/obabhkn3VjdgkFgfst7INhHomxHB5tWpLemSv09zzTMDjtbW0a
+	 ct3YRGPJ8ZoEESxi9w7bPFBcDbJyvS4Ff+JyMhwM=
+Date: Wed, 03 Sep 2025 17:11:33 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhiramat@kernel.org,Liam.Howlett@oracle.com,bp@alien8.de,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch removed from -mm tree
-Message-Id: <20250904001132.7B61CC4CEE7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] init-mainc-fix-boot-time-tracing-crash.patch removed from -mm tree
+Message-Id: <20250904001134.2A699C4CEFD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,117 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: fix hwpoisoned large folio handling in do_migrate_range()
+     Subject: init/main.c: fix boot time tracing crash
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range.patch
+     init-mainc-fix-boot-time-tracing-crash.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/memory_hotplug: fix hwpoisoned large folio handling in do_migrate_range()
-Date: Fri, 27 Jun 2025 20:57:47 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: init/main.c: fix boot time tracing crash
+Date: Sun, 24 Aug 2025 16:07:59 +0300
 
-In do_migrate_range(), the hwpoisoned folio may be large folio, which
-can't be handled by unmap_poisoned_folio().
+Steven Rostedt reported a crash with "ftrace=function" kernel command
+line:
 
-I can reproduce this issue in qemu after adding delay in memory_failure()
+[    0.159269] BUG: kernel NULL pointer dereference, address: 000000000000001c
+[    0.160254] #PF: supervisor read access in kernel mode
+[    0.160975] #PF: error_code(0x0000) - not-present page
+[    0.161697] PGD 0 P4D 0
+[    0.162055] Oops: Oops: 0000 [#1] SMP PTI
+[    0.162619] CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 6.17.0-rc2-test-00006-g48d06e78b7cb-dirty #9 PREEMPT(undef)
+[    0.164141] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+[    0.165439] RIP: 0010:kmem_cache_alloc_noprof (mm/slub.c:4237)
+[ 0.166186] Code: 90 90 90 f3 0f 1e fa 0f 1f 44 00 00 55 48 89 e5 41 57 41 56 41 55 41 54 49 89 fc 53 48 83 e4 f0 48 83 ec 20 8b 05 c9 b6 7e 01 <44> 8b 77 1c 65 4c 8b 2d b5 ea 20 02 4c 89 6c 24 18 41 89 f5 21 f0
+[    0.168811] RSP: 0000:ffffffffb2e03b30 EFLAGS: 00010086
+[    0.169545] RAX: 0000000001fff33f RBX: 0000000000000000 RCX: 0000000000000000
+[    0.170544] RDX: 0000000000002800 RSI: 0000000000002800 RDI: 0000000000000000
+[    0.171554] RBP: ffffffffb2e03b80 R08: 0000000000000004 R09: ffffffffb2e03c90
+[    0.172549] R10: ffffffffb2e03c90 R11: 0000000000000000 R12: 0000000000000000
+[    0.173544] R13: ffffffffb2e03c90 R14: ffffffffb2e03c90 R15: 0000000000000001
+[    0.174542] FS:  0000000000000000(0000) GS:ffff9d2808114000(0000) knlGS:0000000000000000
+[    0.175684] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    0.176486] CR2: 000000000000001c CR3: 000000007264c001 CR4: 00000000000200b0
+[    0.177483] Call Trace:
+[    0.177828]  <TASK>
+[    0.178123] mas_alloc_nodes (lib/maple_tree.c:176 (discriminator 2) lib/maple_tree.c:1255 (discriminator 2))
+[    0.178692] mas_store_gfp (lib/maple_tree.c:5468)
+[    0.179223] execmem_cache_add_locked (mm/execmem.c:207)
+[    0.179870] execmem_alloc (mm/execmem.c:213 mm/execmem.c:313 mm/execmem.c:335 mm/execmem.c:475)
+[    0.180397] ? ftrace_caller (arch/x86/kernel/ftrace_64.S:169)
+[    0.180922] ? __pfx_ftrace_caller (arch/x86/kernel/ftrace_64.S:158)
+[    0.181517] execmem_alloc_rw (mm/execmem.c:487)
+[    0.182052] arch_ftrace_update_trampoline (arch/x86/kernel/ftrace.c:266 arch/x86/kernel/ftrace.c:344 arch/x86/kernel/ftrace.c:474)
+[    0.182778] ? ftrace_caller_op_ptr (arch/x86/kernel/ftrace_64.S:182)
+[    0.183388] ftrace_update_trampoline (kernel/trace/ftrace.c:7947)
+[    0.184024] __register_ftrace_function (kernel/trace/ftrace.c:368)
+[    0.184682] ftrace_startup (kernel/trace/ftrace.c:3048)
+[    0.185205] ? __pfx_function_trace_call (kernel/trace/trace_functions.c:210)
+[    0.185877] register_ftrace_function_nolock (kernel/trace/ftrace.c:8717)
+[    0.186595] register_ftrace_function (kernel/trace/ftrace.c:8745)
+[    0.187254] ? __pfx_function_trace_call (kernel/trace/trace_functions.c:210)
+[    0.187924] function_trace_init (kernel/trace/trace_functions.c:170)
+[    0.188499] tracing_set_tracer (kernel/trace/trace.c:5916 kernel/trace/trace.c:6349)
+[    0.189088] register_tracer (kernel/trace/trace.c:2391)
+[    0.189642] early_trace_init (kernel/trace/trace.c:11075 kernel/trace/trace.c:11149)
+[    0.190204] start_kernel (init/main.c:970)
+[    0.190732] x86_64_start_reservations (arch/x86/kernel/head64.c:307)
+[    0.191381] x86_64_start_kernel (??:?)
+[    0.191955] common_startup_64 (arch/x86/kernel/head_64.S:419)
+[    0.192534]  </TASK>
+[    0.192839] Modules linked in:
+[    0.193267] CR2: 000000000000001c
+[    0.193730] ---[ end trace 0000000000000000 ]---
 
-BUG: kernel NULL pointer dereference, address: 0000000000000000
-Workqueue: kacpi_hotplug acpi_hotplug_work_fn
-RIP: 0010:try_to_unmap_one+0x16a/0xfc0
-  <TASK>
-  rmap_walk_anon+0xda/0x1f0
-  try_to_unmap+0x78/0x80
-  ? __pfx_try_to_unmap_one+0x10/0x10
-  ? __pfx_folio_not_mapped+0x10/0x10
-  ? __pfx_folio_lock_anon_vma_read+0x10/0x10
-  unmap_poisoned_folio+0x60/0x140
-  do_migrate_range+0x4d1/0x600
-  ? slab_memory_callback+0x6a/0x190
-  ? notifier_call_chain+0x56/0xb0
-  offline_pages+0x3e6/0x460
-  memory_subsys_offline+0x130/0x1f0
-  device_offline+0xba/0x110
-  acpi_bus_offline+0xb7/0x130
-  acpi_scan_hot_remove+0x77/0x290
-  acpi_device_hotplug+0x1e0/0x240
-  acpi_hotplug_work_fn+0x1a/0x30
-  process_one_work+0x186/0x340
+The crash happens because on x86 ftrace allocations from execmem require
+maple tree to be initialized.
 
-Besides, do_migrate_range() may be called between memory_failure set
-hwpoison flag and isolate the folio from lru, so remove WARN_ON(). In other
-places, unmap_poisoned_folio() is called when the folio is isolated, obey
-it in do_migrate_range() too.
+Move maple tree initialization that depends only on slab availability
+earlier in boot so that it will happen right after mm_core_init().
 
-[david@redhat.com: don't abort offlining, fixed typo, add comment]
-Link: https://lkml.kernel.org/r/3c214dff-9649-4015-840f-10de0e03ebe4@redhat.com
-Fixes: b15c87263a69 ("hwpoison, memory_hotplug: allow hwpoisoned pages to be offlined")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Raghav <kernel@pankajraghav.com>
+Link: https://lkml.kernel.org/r/20250824130759.1732736-1-rppt@kernel.org
+Fixes: 5d79c2be5081 ("x86/ftrace: enable EXECMEM_ROX_CACHE for ftrace allocations")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reported-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Tested-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Closes: https://lore.kernel.org/all/20250820184743.0302a8b5@gandalf.local.home/
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ init/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-hwpoisoned-large-folio-handling-in-do_migrate_range
-+++ a/mm/memory_hotplug.c
-@@ -1815,8 +1815,14 @@ static void do_migrate_range(unsigned lo
- 			pfn = folio_pfn(folio) + folio_nr_pages(folio) - 1;
+--- a/init/main.c~init-mainc-fix-boot-time-tracing-crash
++++ a/init/main.c
+@@ -956,6 +956,7 @@ void start_kernel(void)
+ 	sort_main_extable();
+ 	trap_init();
+ 	mm_core_init();
++	maple_tree_init();
+ 	poking_init();
+ 	ftrace_init();
  
- 		if (folio_contain_hwpoisoned_page(folio)) {
--			if (WARN_ON(folio_test_lru(folio)))
--				folio_isolate_lru(folio);
-+			/*
-+			 * unmap_poisoned_folio() cannot handle large folios
-+			 * in all cases yet.
-+			 */
-+			if (folio_test_large(folio) && !folio_test_hugetlb(folio))
-+				goto put_folio;
-+			if (folio_test_lru(folio) && !folio_isolate_lru(folio))
-+				goto put_folio;
- 			if (folio_mapped(folio)) {
- 				folio_lock(folio);
- 				unmap_poisoned_folio(folio, pfn, false);
+@@ -973,7 +974,6 @@ void start_kernel(void)
+ 		 "Interrupts were enabled *very* early, fixing it\n"))
+ 		local_irq_disable();
+ 	radix_tree_init();
+-	maple_tree_init();
+ 
+ 	/*
+ 	 * Set up housekeeping before setting up workqueues to allow the unbound
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
+kho-allow-scratch-areas-with-zero-size.patch
+lib-test_kho-fixes-for-error-handling.patch
+selftest-kho-update-generation-of-initrd.patch
 
