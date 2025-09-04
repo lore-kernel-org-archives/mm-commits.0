@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F5E02F6565
-	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 23:27:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CFDB2F619B
+	for <mm-commits@vger.kernel.org>; Thu,  4 Sep 2025 23:41:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757028460; cv=none; b=aHEH5Fa7JCpDgiodD1qA+bW2uSTheaTgjHjamJxVeXjRy71aVUixTc7EMNjGxa2x4Yig678MGot6P92XPPqYuvx2lGkjVNiiDqTykV1fEa1q8y9i/NIvMJo/xerHH8S32ZTRdnS/7RS4sv7xKS6zs2CVBzxZyH+BaSz0x1F3n8M=
+	t=1757029319; cv=none; b=CStSzzHP/sSJVNCGtR/cOxqMpbzjvhI3N1ZRRxhCmHhdjVIkw84PdvUfI62/r/fcJe9sWtaaOQj+Y+6aid5jExNutu4NJOiqd/DKIvoKdbHag9g6piFNeWhnbUFkBkb4LuUnO2jaueY7cWIUTgVhMZIDDkPHmDanyO6vfQhCIxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757028460; c=relaxed/simple;
-	bh=LhWaDFE78UN+xKYpu2d31nQuMkqwb5GXihpglwDIabk=;
-	h=Date:To:From:Subject:Message-Id; b=hArHmH2HmtLT0/uiO7iexbJ2ScJJZ29GHVQCVtV0lpu5LOzrUMAI5SQl7jFk4ZFDKGy8fUOnz9sMu4wxLNqgZ0uwRF4kGDZX5ojSM5QqowQTJ3IRlxaum66x+er0zYO0yfPWQMTq5UMCqMC1k5zWFLy1ZN1Xfgbt9bhkkCd2FTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SokJaamx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757029319; c=relaxed/simple;
+	bh=iG4uL8Y2LKC1R1bou+4fV2/6VibJ+UoTIsaeV0WGNPU=;
+	h=Date:To:From:Subject:Message-Id; b=HVa8qL9IZ0DGJq+/VOg1IkLibGSyGoUDbZ9XdAeqfY4qrMjt9BdKfcT9mMJQ4OjHqD5YGlCTXmOGWPvlZ2ELeViuS5eYkBjUvIikKQFlIWhcMa19fn7mdTRea0uY5Y7uFxYajUueaLmt5GPuraUZE5UlUpNFhmFgTXa/0LkvW84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DjGqeBPf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SokJaamx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BF61C4CEF0;
-	Thu,  4 Sep 2025 23:27:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DjGqeBPf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8358C4CEF0;
+	Thu,  4 Sep 2025 23:41:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757028460;
-	bh=LhWaDFE78UN+xKYpu2d31nQuMkqwb5GXihpglwDIabk=;
+	s=korg; t=1757029319;
+	bh=iG4uL8Y2LKC1R1bou+4fV2/6VibJ+UoTIsaeV0WGNPU=;
 	h=Date:To:From:Subject:From;
-	b=SokJaamxObfdFdp75X3jPNf1Uaf9hl/Z66ochx0HZTQf7MLOShjUyYTVGTbEx/JjO
-	 9QVeoJBuxcnrdmWNLTCElx5JA7GQbqAWFOuURzID46bRDPrFQ+Hg2w3AW32OEGSIUq
-	 1fxiawt5l6VM3dN7RgD5K+TBcExTHTqClNHTI/DE=
-Date: Thu, 04 Sep 2025 16:27:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,npache@redhat.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,p.raghav@samsung.com,akpm@linux-foundation.org
+	b=DjGqeBPf2nBvLytCdap8Wev6SLVdfzYUTm6leXiNwozjytKgrJMJTBPIxghtxW9Z9
+	 F6jVjAU1vWwjgwonAruHCZ2PwuvkLR+DufXrlKK4g7s+8uEmxe6eBKry7DRybTOkIM
+	 0ttOqSqBoIx25DfZMiwV4wOK3YX3KR7beJ0plOrM=
+Date: Thu, 04 Sep 2025 16:41:58 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tglx@linutronix.de,mingo@redhat.com,hpa@zytor.com,dyoung@redhat.com,coxu@redhat.com,bp@alien8.de,bhe@redhat.com,fuqiang.wang@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch added to mm-new branch
-Message-Id: <20250904232740.1BF61C4CEF0@smtp.kernel.org>
+Subject: + x86-kexec-fix-potential-cmem-ranges-out-of-memory.patch added to mm-nonmm-unstable branch
+Message-Id: <20250904234158.E8358C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: huge_memory: return -EINVAL in folio split functions when THP is disabled
-has been added to the -mm mm-new branch.  Its filename is
-     huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch
+     Subject: x86/kexec: fix potential cmem->ranges out of memory
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     x86-kexec-fix-potential-cmem-ranges-out-of-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-fix-potential-cmem-ranges-out-of-memory.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,90 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: huge_memory: return -EINVAL in folio split functions when THP is disabled
-Date: Thu, 4 Sep 2025 11:51:29 +0200
+From: fuqiang wang <fuqiang.wang@easystack.cn>
+Subject: x86/kexec: fix potential cmem->ranges out of memory
+Date: Thu, 4 Sep 2025 17:38:52 +0800
 
-split_huge_page_to_list_[to_order](), split_huge_page() and
-try_folio_split() return 0 on success and error codes on failure.
+In memmap_exclude_ranges(), elfheader will be excluded from crashk_res. 
+In the current x86 architecture code, the elfheader is always allocated at
+crashk_res.start.  It seems that there won't be a new split range.  But it
+depends on the allocation position of elfheader in crashk_res.  To avoid
+potential out of memory in future, add a extra slot.  Otherwise loading
+the kdump kernel will fail because crash_exclude_mem_range will return
+-ENOMEM.  random kexec_buf for passing dm crypt keys may cause a range
+split too, add another extra slot here.
 
-When THP is disabled, these functions return 0 indicating success even
-though an error code should be returned as it is not possible to split a
-folio when THP is disabled.
+The similar issue also exists in fill_up_crash_elf_data().  The range to
+be excluded is [0, 1M], start (0) is special and will not appear in the
+middle of existing cmem->ranges[].  But in cast the low 1M could be
+changed in the future, add a extra slot too.
 
-This issue was discovered while experimenting with enabling large folios
-without THP and it was found that returning 0 from these functions is
-resulting in undefined behavior in truncate operations.
+Previous discussions:
+[1] https://lore.kernel.org/kexec/ZXk2oBf%2FT1Ul6o0c@MiWiFi-R3L-srv/
+[2] https://lore.kernel.org/kexec/273284e8-7680-4f5f-8065-c5d780987e59@easystack.cn/
+[3] https://lore.kernel.org/kexec/ZYQ6O%2F57sHAPxTHm@MiWiFi-R3L-srv/
 
-Make all these functions return -EINVAL to indicate failure instead of 0. 
-As large folios depend on CONFIG_THP, issue warning as this function
-should not be called without a large folio.
-
-Link: https://lkml.kernel.org/r/20250904095129.222316-1-kernel@pankajraghav.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Kiryl Shutsemau <kas@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20250904093855.1180154-1-coxu@redhat.com
+Signed-off-by: fuqiang wang <fuqiang.wang@easystack.cn>
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Signed-off-by: Coiby Xu <coxu@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ arch/x86/kernel/crash.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
---- a/include/linux/huge_mm.h~huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled
-+++ a/include/linux/huge_mm.h
-@@ -588,22 +588,30 @@ static inline int
- split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
- 		unsigned int new_order)
- {
--	return 0;
-+	struct folio *folio = page_folio(page);
-+
-+	VM_WARN_ON_ONCE_FOLIO(1, folio);
-+	return -EINVAL;
- }
- static inline int split_huge_page(struct page *page)
- {
--	return 0;
-+	struct folio *folio = page_folio(page);
-+
-+	VM_WARN_ON_ONCE_FOLIO(1, folio);
-+	return -EINVAL;
- }
+--- a/arch/x86/kernel/crash.c~x86-kexec-fix-potential-cmem-ranges-out-of-memory
++++ a/arch/x86/kernel/crash.c
+@@ -165,8 +165,18 @@ static struct crash_mem *fill_up_crash_e
+ 	/*
+ 	 * Exclusion of crash region, crashk_low_res and/or crashk_cma_ranges
+ 	 * may cause range splits. So add extra slots here.
++	 *
++	 * Exclusion of low 1M may not cause another range split, because the
++	 * range of exclude is [0, 1M] and the condition for splitting a new
++	 * region is that the start, end parameters are both in a certain
++	 * existing region in cmem and cannot be equal to existing region's
++	 * start or end. Obviously, the start of [0, 1M] cannot meet this
++	 * condition.
++	 *
++	 * But in order to lest the low 1M could be changed in the future,
++	 * (e.g. [start, 1M]), add a extra slot.
+ 	 */
+-	nr_ranges += 2 + crashk_cma_cnt;
++	nr_ranges += 3 + crashk_cma_cnt;
+ 	cmem = vzalloc(struct_size(cmem, ranges, nr_ranges));
+ 	if (!cmem)
+ 		return NULL;
+@@ -322,10 +332,15 @@ int crash_setup_memmap_entries(struct ki
+ 	struct crash_mem *cmem;
  
- static inline int split_folio_to_list(struct folio *folio, struct list_head *list)
- {
--	return 0;
-+	VM_WARN_ON_ONCE_FOLIO(1, folio);
-+	return -EINVAL;
- }
- 
- static inline int try_folio_split(struct folio *folio, struct page *page,
- 		struct list_head *list)
- {
--	return 0;
-+	VM_WARN_ON_ONCE_FOLIO(1, folio);
-+	return -EINVAL;
- }
- 
- static inline void deferred_split_folio(struct folio *folio, bool partially_mapped) {}
+ 	/*
+-	 * Using random kexec_buf for passing dm crypt keys may cause a range
+-	 * split. So use two slots here.
++	 * In the current x86 architecture code, the elfheader is always
++	 * allocated at crashk_res.start. But it depends on the allocation
++	 * position of elfheader in crashk_res. To avoid potential out of
++	 * bounds in future, add an extra slot.
++	 *
++	 * And using random kexec_buf for passing dm crypt keys may cause a
++	 * range split too, add another extra slot here.
+ 	 */
+-	nr_ranges = 2;
++	nr_ranges = 3;
+ 	cmem = vzalloc(struct_size(cmem, ranges, nr_ranges));
+ 	if (!cmem)
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from fuqiang.wang@easystack.cn are
 
-mm-rename-huge_zero_page-to-huge_zero_folio.patch
-mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio.patch
-mm-add-persistent-huge-zero-folio.patch
-mm-add-largest_zero_folio-routine.patch
-block-use-largest_zero_folio-in-__blkdev_issue_zero_pages.patch
-huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch
+x86-kexec-fix-potential-cmem-ranges-out-of-memory.patch
 
