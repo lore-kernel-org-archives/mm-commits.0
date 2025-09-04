@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EC8D2EE263
-	for <mm-commits@vger.kernel.org>; Wed,  3 Sep 2025 22:52:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93CCA4C83;
+	Thu,  4 Sep 2025 00:07:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756939952; cv=none; b=oclxRk7Erbpj9vEjnFCplfs8y7YmoN2EKBg7gjOj5/4AaaVh9vn1+xtBOuKRjjsg2/XxPYVyihNU/bvReuoXMQz9//tYmNrI8PPbpDYOksbRmk97E0hzX0or8Ghe8ntThM7X1taqwMNMI5/bQstaT1k7MZEECvH3XTuXaWB4AuQ=
+	t=1756944437; cv=none; b=H0KheQtU5SJm5oGJPoBT0BUubFgbtvzDtI8A2KOhb3KaS1o/l29Kl2SyLk09NFbZuKbC4NP1mk1LTbJ9fJlZgKsoZuirX/gDVtZNYyuoCZPVUpB5FGFdVLsOnxZhMleokjQtVERu4iuesA4AeDAEM0XfeYC5koSIZEmLZbGFh10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756939952; c=relaxed/simple;
-	bh=52dfu7/K6P/xxat/oL/5zwfvOASNuOTWQ0bAlPhLxcc=;
-	h=Date:To:From:Subject:Message-Id; b=U/L05PkTZUaPPwf7vv635t+vZuHujApg/JrfBwEdbF/8A0nJYEHTo19cSygzrrUUVk4LtyAz0ZO7lnJhtUNSBgc88NiyRX2zuZ08phvKQ/k4LlF4oV/CUqqGqcjTNLhKAGq3yzDsMeI81DZ2b4+35qdpMwt01klwR+SsZNvKSEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gCb8v1+K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756944437; c=relaxed/simple;
+	bh=Ed6aDAdki6JS7qVRPmB0pcRQmO0mvXm2jw0QNIAp7KE=;
+	h=Date:To:From:Subject:Message-Id; b=uDkRt+9iM9vSjX+/srAdTIyvP94GMOjTdK4u7hr1ZWqfd/RlzanoJUITxfCGegcmRh3E8KQJbJvVjvIcIzjaSP6S3id3ZYr3EisMiwm7CtVaiTRAtQFwh4IMqVyUXRpFZHxZTsC9FPr0Hx6ReYiynCxb3JfnhA6NvDX9NAb9+rA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LsznzHMz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gCb8v1+K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79837C4CEE7;
-	Wed,  3 Sep 2025 22:52:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LsznzHMz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1680DC4CEE7;
+	Thu,  4 Sep 2025 00:07:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1756939951;
-	bh=52dfu7/K6P/xxat/oL/5zwfvOASNuOTWQ0bAlPhLxcc=;
+	s=korg; t=1756944437;
+	bh=Ed6aDAdki6JS7qVRPmB0pcRQmO0mvXm2jw0QNIAp7KE=;
 	h=Date:To:From:Subject:From;
-	b=gCb8v1+KQPds6a/mfrO+qoL+4XKVuCAloVnSAN8007uSpoK0z/DnPa+RnD6QBeSgw
-	 +IjE5rKC8z1cML+9Ih+9c9KbQL8yNHvTPEbrfSfAlzpO5ZkUaLzpZbm0PuOTHPfkkU
-	 0kNWIQeMPw6yqxFoPS7hC9C9loc3CPeJo5SztiRA=
-Date: Wed, 03 Sep 2025 15:52:30 -0700
-To: mm-commits@vger.kernel.org,youling.tang@linux.dev,tangyouling@kylinos.cn,max.kellermann@ionos.com,chizhiling@kylinos.cn,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=LsznzHMzSJWsxf6C4DNDgfTKSimKSePUnN/FA7DSbSJamDo4OIg4E0bQPdd7j8yha
+	 fGMSNf+zPug3/ou8kEIUVFdoC0F0c79qWOSvoLN54+w2Wa1ncJyNVrQ3UHXUpCCAzC
+	 LKEcIFjUd1+K8HuIRc5NCLaJdOJtjbCEBMqIvRjo=
+Date: Wed, 03 Sep 2025 17:07:16 -0700
+To: mm-commits@vger.kernel.org,vkuznets@redhat.com,stable@vger.kernel.org,ryncsn@gmail.com,okozina@redhat.com,mark.rutland@arm.com,kernelfans@gmail.com,gmazyland@gmail.com,dyoung@redhat.com,dave.hansen@intel.com,coxu@redhat.com,bhe@redhat.com,berrange@redhat.com,akpm@linux-foundation.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-align-last_index-to-folio-size-fix-fix.patch added to mm-unstable branch
-Message-Id: <20250903225231.79837C4CEE7@smtp.kernel.org>
+Subject: [alternative-merged] arm64-kexec-initialize-kexec_buf-struct-in-image_load.patch removed from -mm tree
+Message-Id: <20250904000717.1680DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,67 +34,73 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm-filemap-align-last_index-to-folio-size-fix-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+The quilt patch titled
+     Subject: arm64: kexec: initialize kexec_buf struct in image_load()
+has been removed from the -mm tree.  Its filename was
+     arm64-kexec-initialize-kexec_buf-struct-in-image_load.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-align-last_index-to-folio-size-fix-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-filemap-align-last_index-to-folio-size-fix-fix
-Date: Wed Sep  3 03:50:51 PM PDT 2025
+From: Breno Leitao <leitao@debian.org>
+Subject: arm64: kexec: initialize kexec_buf struct in image_load()
+Date: Tue, 26 Aug 2025 05:08:51 -0700
 
-update it for Max's constification efforts
+The kexec_buf structure was previously declared without initialization in
+image_load().  This led to a UBSAN warning when the structure was expanded
+and uninitialized fields were accessed [1].
 
-Cc: Max Kellermann <max.kellermann@ionos.com>
-Cc: Chi Zhiling <chizhiling@kylinos.cn>
-Cc: Youling Tang <tangyouling@kylinos.cn>
-Cc: Youling Tang <youling.tang@linux.dev>
+Zero-initializing kexec_buf at declaration ensures all fields are cleanly
+set, preventing future instances of uninitialized memory being used.
+
+Fixes this UBSAN warning:
+
+  [   32.362488] UBSAN: invalid-load in ./include/linux/kexec.h:210:10
+  [   32.362649] load of value 252 is not a valid value for type '_Bool'
+
+Andrew Morton suggested that this function is only called 3x a week[2],
+thus, the memset() cost is inexpensive.
+
+Link: https://lore.kernel.org/all/oninomspajhxp4omtdapxnckxydbk2nzmrix7rggmpukpnzadw@c67o7njgdgm3/ [1]
+Link: https://lore.kernel.org/all/20250825180531.94bfb86a26a43127c0a1296f@linux-foundation.org/ [2]
+Link: https://lkml.kernel.org/r/20250826-akpm-v1-1-3c831f0e3799@debian.org
+Fixes: bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: "Daniel P. Berrange" <berrange@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Liu Pingfan <kernelfans@gmail.com>
+Cc: Milan Broz <gmazyland@gmail.com>
+Cc: Ondrej Kozina <okozina@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
+ arch/arm64/kernel/kexec_image.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/pagemap.h~mm-filemap-align-last_index-to-folio-size-fix-fix
-+++ a/include/linux/pagemap.h
-@@ -483,7 +483,7 @@ mapping_min_folio_nrpages(const struct a
- }
- 
- static inline unsigned long
--mapping_min_folio_nrbytes(struct address_space *mapping)
-+mapping_min_folio_nrbytes(const struct address_space *mapping)
- {
- 	return mapping_min_folio_nrpages(mapping) << PAGE_SHIFT;
- }
+--- a/arch/arm64/kernel/kexec_image.c~arm64-kexec-initialize-kexec_buf-struct-in-image_load
++++ a/arch/arm64/kernel/kexec_image.c
+@@ -41,7 +41,7 @@ static void *image_load(struct kimage *i
+ 	struct arm64_image_header *h;
+ 	u64 flags, value;
+ 	bool be_image, be_kernel;
+-	struct kexec_buf kbuf;
++	struct kexec_buf kbuf = {};
+ 	unsigned long text_offset, kernel_segment_number;
+ 	struct kexec_segment *kernel_segment;
+ 	int ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-khugepaged-fix-the-address-passed-to-notifier-on-testing-young-fix.patch
-mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch
-mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix-fix.patch
-mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
-mm-convert-core-mm-to-mm_flags_-accessors-fix.patch
-memcg-optimize-exit-to-user-space-fix.patch
-memfd-move-mfd_all_flags-definition-to-memfdh.patch
-mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+arm64-kexec-initialize-kexec_buf-struct-in-load_other_segments.patch
+riscv-kexec-initialize-kexec_buf-struct.patch
+s390-kexec-initialize-kexec_buf-struct.patch
 
