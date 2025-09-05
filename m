@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 304C31993B7
-	for <mm-commits@vger.kernel.org>; Fri,  5 Sep 2025 00:40:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E2DD1DE8BE
+	for <mm-commits@vger.kernel.org>; Fri,  5 Sep 2025 01:12:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757032833; cv=none; b=mKh56Cfkh3DbFKteMxGXVo+afsUrf+VkN43khAQzIffVhExw2ZsXdA+bEz1N1QLeZ3Vxbqx6iASH9fW3v59yt7pd6NHt346pd20zZRwxOlIxLcU2mkI0F5c8e7Q+gikf5tb6QxbnZAmHOlfsAjaQ9Gp23D+TVW30DqFeRT4jKnA=
+	t=1757034765; cv=none; b=T3bSAxT6lE/ZBQhnMzeCE2+aJ5uagzkMHd+Z7ecVh+VP4upL8stjir3b8kA13aaQAumpjlORvNQticF/pZ/4pMruOm4qy9KEzUOv821rJUmgT4Tx+SSv+zVFHvo1iUCAta6W/F2SGQ+s+pCuBTLwGq5C/JBqSYFaTDcgiJgebik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757032833; c=relaxed/simple;
-	bh=kPE7TrQHf2EnnNDTy7f6UsauO5j4HDjGjsnpN/gYJtQ=;
-	h=Date:To:From:Subject:Message-Id; b=kkwNwL2zhtbaoB+5xkRQLjVRAEatZBoAqZYlC4rudpi2hrADjnHfG0hKKXiAwBp4yKuGWbplZAkh55l436Braj4RD/pWQuvLDoYltOOzHBEUyzkKWymMqcNW+yDXsg04pAsaroGPeJKU6wFS3rwjkb0xeAYfT+bvr7WH9dgqfXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bk5jV8Xq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757034765; c=relaxed/simple;
+	bh=eO/2daqCSNuiJ53IpjEFMmwB4MktH470BVr51KkkHI4=;
+	h=Date:To:From:Subject:Message-Id; b=rpam7++uJwXqS4fOUmS5L95csvR8yBR4GrtY7EkBaC4FO1Tn7qdvB91H4pbEL3hYGK4Z1ZIP63drW3N2nCSZtevYcPZYUCNWvBKJBZV39JR0YJPEaJIaciaSUgu578Qqu5Fxim+iNFz2/eZc9QgcN0qlFTD1KafFaTLinpY56iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CtCqUTHP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bk5jV8Xq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBD8FC4CEF0;
-	Fri,  5 Sep 2025 00:40:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CtCqUTHP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E354C4CEF7;
+	Fri,  5 Sep 2025 01:12:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757032832;
-	bh=kPE7TrQHf2EnnNDTy7f6UsauO5j4HDjGjsnpN/gYJtQ=;
+	s=korg; t=1757034764;
+	bh=eO/2daqCSNuiJ53IpjEFMmwB4MktH470BVr51KkkHI4=;
 	h=Date:To:From:Subject:From;
-	b=Bk5jV8XqF1cEuaXPoQhW42cfcftBlwGK2bZVCjEt9dYa7zojeO5XqG98dUzl8XsRy
-	 RvZjSUD3QiLX1abI/4FnQcOO2GntNoD1N3Lf8DqrJWtvd/etSJYmvYuRdZtswPXsjH
-	 JMTELRtpcxt80wN1v5cBQSDmrHfjQH9cdIVxkRCY=
-Date: Thu, 04 Sep 2025 17:40:32 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,dan.j.williams@intel.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=CtCqUTHPKA4pr2viL4T0uEV7L3iZh0raeckLIZGbQNKIECy/eRMdN0ZndwnZ/eIqF
+	 ApImnAlfw8v3ZGOVEMie2Q3QX9Y/1JhpeHJi3c/z+uNLZlrJzBbuG4fIsLNLCGETMR
+	 Jc8X4J69VzFZVa+dk7jYprOevqHtBs6I+bx6EkuY=
+Date: Thu, 04 Sep 2025 18:12:43 -0700
+To: mm-commits@vger.kernel.org,Yuezhang.Mo@sony.com,willy@infradead.org,viro@zeniv.linux.org.uk,sj1557.seo@samsung.com,linkinjeon@kernel.org,jack@suse.cz,brauner@kernel.org,chizhiling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremap-remove-unused-get_dev_pagemap-parameter.patch added to mm-new branch
-Message-Id: <20250905004032.CBD8FC4CEF0@smtp.kernel.org>
+Subject: + mpage-terminate-read-ahead-on-read-error.patch added to mm-unstable branch
+Message-Id: <20250905011244.8E354C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memremap: remove unused get_dev_pagemap() parameter
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memremap-remove-unused-get_dev_pagemap-parameter.patch
+     Subject: mpage: terminate read-ahead on read error
+has been added to the -mm mm-unstable branch.  Its filename is
+     mpage-terminate-read-ahead-on-read-error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap-remove-unused-get_dev_pagemap-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-terminate-read-ahead-on-read-error.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,126 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/memremap: remove unused get_dev_pagemap() parameter
-Date: Thu, 4 Sep 2025 08:59:26 +1000
+From: Chi Zhiling <chizhiling@kylinos.cn>
+Subject: mpage: terminate read-ahead on read error
+Date: Fri, 29 Aug 2025 10:36:58 +0800
 
-GUP no longer uses get_dev_pagemap().  As it was the only user of the
-get_dev_pagemap() pgmap caching feature it can be removed.
+For exFAT filesystems with 4MB read_ahead_size, removing the storage
+device during read operations can delay EIO error reporting by several
+minutes.  This occurs because the read-ahead implementation in mpage
+doesn't handle errors.
 
-Link: https://lkml.kernel.org/r/20250903225926.34702-2-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
+Another reason for the delay is that the filesystem requires metadata to
+issue file read request.  When the storage device is removed, the metadata
+buffers are invalidated, causing mpage to repeatedly attempt to fetch
+metadata during each get_block call.
+
+The original purpose of this patch is terminate read ahead when we fail to
+get metadata, to make the patch more generic, implement it by checking
+folio status, instead of checking the return of get_block().
+
+So, if a folio is synchronously unlocked and non-uptodate, should we quit
+the read ahead?
+
+I think it depends on whether the error is permanent or temporary, and
+whether further read ahead might succeed.  A device being unplugged is one
+reason for returning such a folio, but we could return it for many other
+reasons (e.g., metadata errors).  I think most errors won't be restored in
+a short time, so we should quit read ahead when they occur.
+
+Link: https://lkml.kernel.org/r/20250829023659.688649-1-chizhiling@163.com
+Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Sungjong Seo <sj1557.seo@samsung.com>
+Cc: Yuezhang Mo <Yuezhang.Mo@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |    6 ++----
- mm/memory-failure.c      |    2 +-
- mm/memory_hotplug.c      |    2 +-
- mm/memremap.c            |   22 ++++------------------
- 4 files changed, 8 insertions(+), 24 deletions(-)
+ fs/mpage.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/memremap.h~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/include/linux/memremap.h
-@@ -211,8 +211,7 @@ void *memremap_pages(struct dev_pagemap
- void memunmap_pages(struct dev_pagemap *pgmap);
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
- void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
--struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
--		struct dev_pagemap *pgmap);
-+struct dev_pagemap *get_dev_pagemap(unsigned long pfn);
- bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
- 
- unsigned long memremap_compat_align(void);
-@@ -234,8 +233,7 @@ static inline void devm_memunmap_pages(s
- {
- }
- 
--static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
--		struct dev_pagemap *pgmap)
-+static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn)
- {
- 	return NULL;
- }
---- a/mm/memory-failure.c~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/mm/memory-failure.c
-@@ -2194,7 +2194,7 @@ int memory_failure(unsigned long pfn, in
- 			goto unlock_mutex;
- 
- 		if (pfn_valid(pfn)) {
--			pgmap = get_dev_pagemap(pfn, NULL);
-+			pgmap = get_dev_pagemap(pfn);
- 			put_ref_page(pfn, flags);
- 			if (pgmap) {
- 				res = memory_failure_dev_pagemap(pfn, flags,
---- a/mm/memory_hotplug.c~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/mm/memory_hotplug.c
-@@ -375,7 +375,7 @@ struct page *pfn_to_online_page(unsigned
- 	 * the section may be 'offline' but 'valid'. Only
- 	 * get_dev_pagemap() can determine sub-section online status.
- 	 */
--	pgmap = get_dev_pagemap(pfn, NULL);
-+	pgmap = get_dev_pagemap(pfn);
- 	put_dev_pagemap(pgmap);
- 
- 	/* The presence of a pgmap indicates ZONE_DEVICE offline pfn */
---- a/mm/memremap.c~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/mm/memremap.c
-@@ -153,14 +153,14 @@ static int pagemap_range(struct dev_page
- 				"altmap not supported for multiple ranges\n"))
- 		return -EINVAL;
- 
--	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->start), NULL);
-+	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->start));
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
- 		return -ENOMEM;
+--- a/fs/mpage.c~mpage-terminate-read-ahead-on-read-error
++++ a/fs/mpage.c
+@@ -369,6 +369,12 @@ void mpage_readahead(struct readahead_co
+ 		args.folio = folio;
+ 		args.nr_pages = readahead_count(rac);
+ 		args.bio = do_mpage_readpage(&args);
++		/*
++		 * If read ahead failed synchronously, it may cause by removed
++		 * device, or some filesystem metadata error.
++		 */
++		if (!folio_test_locked(folio) && !folio_test_uptodate(folio))
++			break;
  	}
- 
--	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->end), NULL);
-+	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->end));
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
-@@ -397,26 +397,12 @@ EXPORT_SYMBOL_GPL(devm_memunmap_pages);
- /**
-  * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
-  * @pfn: page frame number to lookup page_map
-- * @pgmap: optional known pgmap that already has a reference
-- *
-- * If @pgmap is non-NULL and covers @pfn it will be returned as-is.  If @pgmap
-- * is non-NULL but does not cover @pfn the reference to it will be released.
-  */
--struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
--		struct dev_pagemap *pgmap)
-+struct dev_pagemap *get_dev_pagemap(unsigned long pfn)
- {
-+	struct dev_pagemap *pgmap;
- 	resource_size_t phys = PFN_PHYS(pfn);
- 
--	/*
--	 * In the cached case we're already holding a live reference.
--	 */
--	if (pgmap) {
--		if (phys >= pgmap->range.start && phys <= pgmap->range.end)
--			return pgmap;
--		put_dev_pagemap(pgmap);
--	}
--
--	/* fall back to slow path lookup */
- 	rcu_read_lock();
- 	pgmap = xa_load(&pgmap_array, PHYS_PFN(phys));
- 	if (pgmap && !percpu_ref_tryget_live_rcu(&pgmap->ref))
+ 	if (args.bio)
+ 		mpage_bio_submit_read(args.bio);
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from chizhiling@kylinos.cn are
 
-mm-gup-remove-dead-pgmap-refcounting-code.patch
-mm-memremap-remove-unused-get_dev_pagemap-parameter.patch
+mm-filemap-do-not-use-is_partially_uptodate-for-entire-folio.patch
+mm-filemap-skip-non-uptodate-folio-if-there-are-available-folios.patch
+mpage-terminate-read-ahead-on-read-error.patch
+mpage-convert-do_mpage_readpage-to-return-void-type.patch
 
