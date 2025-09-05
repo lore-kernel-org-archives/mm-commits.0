@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27D6D1EA7CE
-	for <mm-commits@vger.kernel.org>; Fri,  5 Sep 2025 01:12:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ECCCEEBD
+	for <mm-commits@vger.kernel.org>; Fri,  5 Sep 2025 03:19:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757034767; cv=none; b=tX37XQFHmE/+spYslJ2sUh4ZmIKz/hyUY/Jc/TwfsSvX6lLXwsfF8Yaz0SkVO0s+qWcY3MYOK7rWV8+9MVAh2WHBmqwuI4n+rK0tYksFShERWlJKVOwSEGQlGeGTDXM0TytzUqSo+ABIOsaH17qBtU4ZyG/YpFRAZUSGjN0Icbk=
+	t=1757042362; cv=none; b=e2htKYZIJPlHxvPZBCQtIwxHfGOp3FCFoYWiER/R9RyhEtmK5BwIYoHctvzD5teAf9FzR2+II97gF/b8caSht9azSjoLkFO5A7njZL23NzDMnQ22No0tZqCQ+g/bWXwPek290bKx4PDPGXrSMR7kxuiQzY5Upqilppdlg4prcdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757034767; c=relaxed/simple;
-	bh=vZw2uO8bls3SGyrwnSe49GWqmFDj6R1QDW49PWEZ/Cg=;
-	h=Date:To:From:Subject:Message-Id; b=IL9YtRVfEHZoDb3XBazTiYcdZkCd4TmtfHhl1+gXDA24VtBiuXTpc+ALlJuPkDJYNTUSXuSVugyKVh4TOdZfcW2OsNvWAQOc0ykOVADqc7XOFgkfMdnDOXtB6n7kZ1ISgmZM1vor9P/3HcFQ0sBdFQLFnV6pM+iO8XZ6dbz0dro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kbz8xYiO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757042362; c=relaxed/simple;
+	bh=Q5lK6eqBCmJCFsFehEO3AuXetB9mvzPfn51anU+bvks=;
+	h=Date:To:From:Subject:Message-Id; b=LYD4idLGxcfqNuoY5ZES8UebVnhav4Fcbeon/MQ0zi1zVXx0zXv2mna2qPGYVpQJIPl/aIAkLCj/C/IC80rgvHGDuWK6QT3sljGhwmY6MYxYx5wqAjN4zM4t6tC5AjQ+e4DhcYq3eafNcr2XADzWhUA/qbFsa3KYGQBZI/2CB+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AucZnG0S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kbz8xYiO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3903C4CEF5;
-	Fri,  5 Sep 2025 01:12:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AucZnG0S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0A26C4CEF0;
+	Fri,  5 Sep 2025 03:19:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757034766;
-	bh=vZw2uO8bls3SGyrwnSe49GWqmFDj6R1QDW49PWEZ/Cg=;
+	s=korg; t=1757042362;
+	bh=Q5lK6eqBCmJCFsFehEO3AuXetB9mvzPfn51anU+bvks=;
 	h=Date:To:From:Subject:From;
-	b=kbz8xYiOnDzJI4iTzQmCcWSJYoYOqCMVPt3tCFuY5go9RlxyIyUKku2u1KR9k1Ohd
-	 dKfOBgWpfPBIgUfEOMFjUFA7qGXsg9XPZ5dOBaiwajN4pujfZolUbPL5ZQD5w0IycE
-	 w5AVjZQh5mFCr9r9rEQM8OgPE/9rZQK2qescoaj4=
-Date: Thu, 04 Sep 2025 18:12:46 -0700
-To: mm-commits@vger.kernel.org,Yuezhang.Mo@sony.com,willy@infradead.org,viro@zeniv.linux.org.uk,sj1557.seo@samsung.com,linkinjeon@kernel.org,jack@suse.cz,brauner@kernel.org,chizhiling@kylinos.cn,akpm@linux-foundation.org
+	b=AucZnG0Ss3x+zar7PMBwkAwL2jnYoSGqgDzvEHRylYr+qIZbPMbPZeVYHIM18lqNx
+	 sgmRIxWX//7mFt+RpwdwPs2dt9Y5DnolGkXoQAnmxXijpBqlUdGr3Ga1rE5Lcu2hr+
+	 jcJwQx/TYOtVPsf+qPsFOsvXVxBArItoc7RjzNbA=
+Date: Thu, 04 Sep 2025 20:19:20 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tglx@linutronix.de,mingo@redhat.com,hpa@zytor.com,fuqiang.wang@easystack.cn,dyoung@redhat.com,coxu@redhat.com,bp@alien8.de,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mpage-convert-do_mpage_readpage-to-return-void-type.patch added to mm-unstable branch
-Message-Id: <20250905011246.A3903C4CEF5@smtp.kernel.org>
+Subject: + crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250905031921.E0A26C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mpage: convert do_mpage_readpage() to return void type
-has been added to the -mm mm-unstable branch.  Its filename is
-     mpage-convert-do_mpage_readpage-to-return-void-type.patch
+     Subject: crash-add-kunit-tests-for-crash_exclude_mem_range-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-convert-do_mpage_readpage-to-return-void-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,75 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chi Zhiling <chizhiling@kylinos.cn>
-Subject: mpage: convert do_mpage_readpage() to return void type
-Date: Fri, 29 Aug 2025 10:36:59 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: crash-add-kunit-tests-for-crash_exclude_mem_range-fix
+Date: Thu Sep  4 08:07:47 PM PDT 2025
 
-The return value of do_mpage_readpage() is arg->bio, which is already set
-in the arg structure.  Returning it again is redundant.
+export crash_exclude_mem_range() to modules, for kernel/crash_core_test.c
 
-This patch changes the return type to void since the caller doesn't care
-about the return value.
-
-Link: https://lkml.kernel.org/r/20250829023659.688649-2-chizhiling@163.com
-Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Namjae Jeon <linkinjeon@kernel.org>
-Cc: Sungjong Seo <sj1557.seo@samsung.com>
-Cc: Yuezhang Mo <Yuezhang.Mo@sony.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: fuqiang wang <fuqiang.wang@easystack.cn>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/crash_core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/mpage.c~mpage-convert-do_mpage_readpage-to-return-void-type
-+++ a/fs/mpage.c
-@@ -148,7 +148,7 @@ struct mpage_readpage_args {
-  * represent the validity of its disk mapping and to decide when to do the next
-  * get_block() call.
-  */
--static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
-+static void do_mpage_readpage(struct mpage_readpage_args *args)
- {
- 	struct folio *folio = args->folio;
- 	struct inode *inode = folio->mapping->host;
-@@ -305,7 +305,7 @@ alloc_new:
- 	else
- 		args->last_block_in_bio = first_block + blocks_per_folio - 1;
- out:
--	return args->bio;
-+	return;
+--- a/kernel/crash_core.c~crash-add-kunit-tests-for-crash_exclude_mem_range-fix
++++ a/kernel/crash_core.c
+@@ -338,6 +338,7 @@ int crash_exclude_mem_range(struct crash
  
- confused:
- 	if (args->bio)
-@@ -368,7 +368,7 @@ void mpage_readahead(struct readahead_co
- 		prefetchw(&folio->flags);
- 		args.folio = folio;
- 		args.nr_pages = readahead_count(rac);
--		args.bio = do_mpage_readpage(&args);
-+		do_mpage_readpage(&args);
- 		/*
- 		 * If read ahead failed synchronously, it may cause by removed
- 		 * device, or some filesystem metadata error.
-@@ -392,7 +392,7 @@ int mpage_read_folio(struct folio *folio
- 		.get_block = get_block,
- 	};
- 
--	args.bio = do_mpage_readpage(&args);
-+	do_mpage_readpage(&args);
- 	if (args.bio)
- 		mpage_bio_submit_read(args.bio);
  	return 0;
+ }
++EXPORT_SYMBOL_GPL(crash_exclude_mem_range);
+ 
+ ssize_t crash_get_memory_size(void)
+ {
 _
 
-Patches currently in -mm which might be from chizhiling@kylinos.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-filemap-do-not-use-is_partially_uptodate-for-entire-folio.patch
-mm-filemap-skip-non-uptodate-folio-if-there-are-available-folios.patch
-mpage-terminate-read-ahead-on-read-error.patch
-mpage-convert-do_mpage_readpage-to-return-void-type.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix-fix.patch
+mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
+mm-convert-core-mm-to-mm_flags_-accessors-fix.patch
+memcg-optimize-exit-to-user-space-fix.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+panic-remove-redundant-panic-cpu-backtrace-fix.patch
+crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch
 
