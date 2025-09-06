@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11C87315D3C
-	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 01:07:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A961A55
+	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 01:30:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757120862; cv=none; b=lVgePh0jBaUm7IucTQ7FeDkcQLCBmXkknhUz9Z0cQEy3egk8bu95bVC9xblyp668/QoIp/9P3r2b5zj9eA0VrZwJhSMIT3ktamRhbtzrguVxbvy9eKsBej2LKuFpzMhWA3oZqDr4epRrXF4JpoezcQxNDhh49Ogq6+x+qDlqedw=
+	t=1757122251; cv=none; b=bnsarxHXa9SuYXb/gQe4EVhdxOHFi523WGqG2SQhT1SXIqzrtCm6vy2zsMYqJi18f9tByAwcExSRz+ik+Dc97P99NLHEd2sySXqDzw0SfwfJEJoG1rkAxzqS0fC4QZRbLDLGWdZoV3/oBurQDee/3BY2VzD7BBdZW7vNqa6MTbs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757120862; c=relaxed/simple;
-	bh=xHAyd78zUjI5XNnYmLbkwfRB5+5O+hk14xbyVv0DhGc=;
-	h=Date:To:From:Subject:Message-Id; b=TQb0vYkDD6uwIw6cPsNsOcmMsKzRJQRDs4NGuultva1aFiBbKrBEJWEvFJ0En051WUeHb1pp+LgnQ/vj6WT2U9XuUe0CjaacgAlK3tJgeO0JVO/3v6JxxPSc8qqqmcM8Xz7Z/j3B9S5YAroZJ3D5AyPLgXLeuJtGEFFVjSQGpr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FvBLo2gb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757122251; c=relaxed/simple;
+	bh=Xmj9WtbWfCLfrfU6q2iEOaHz8nhRigDwFwQrgSWMzkQ=;
+	h=Date:To:From:Subject:Message-Id; b=f3c+bGpVqQKsppLvqppiVXZRtllttdITGhIqsRelyZNvNV0JlPp1xpmuNmJzCaV+Fw6FNAlwzKFTEwk51VIN4TSzkLsXRweqAuDJ3ZIQb8Vjhfcr86+pxnXeoL3EKfsXYcPyWlVzXQ8RT6QyKUjSW9pQaOMK23p3qX/IvKa/+OM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BuVjLPPJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FvBLo2gb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7513EC4CEF1;
-	Sat,  6 Sep 2025 01:07:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BuVjLPPJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98A7FC4CEF1;
+	Sat,  6 Sep 2025 01:30:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757120861;
-	bh=xHAyd78zUjI5XNnYmLbkwfRB5+5O+hk14xbyVv0DhGc=;
+	s=korg; t=1757122250;
+	bh=Xmj9WtbWfCLfrfU6q2iEOaHz8nhRigDwFwQrgSWMzkQ=;
 	h=Date:To:From:Subject:From;
-	b=FvBLo2gbc3GVfbh6DPagZMkwO/8PvLDwQZAH4x8uikg3oSYIw4Bdg1UVTf15VV014
-	 vNPZe2zsz/grIgO/PPlXDn+er36D3STzFg+Ikh0Mb+1Kr2XYGR0e5NmXqd4shSUaWo
-	 WNOcZ5J5AwdGSh6+MKh1GiXf/K34zQeaQeXUamvE=
-Date: Fri, 05 Sep 2025 18:07:40 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=BuVjLPPJzDHi1zDo4JOgvnBdVmGoC1/x+WBa75NvN1AT1NwewJWx9ZTugZ3BUpmue
+	 ZiBjiJje/W521Jb913hl0hroTHH2lUSva7cHnZte8NIjdpCIrvOVO7l/x1+VndmNVu
+	 o38OcXxZMyOEsJf0oSUcYeIwOYkx4ZesgQSswVeA=
+Date: Fri, 05 Sep 2025 18:30:49 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,disclosure@aisle.com,stanislav.fort@aisle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch added to mm-new branch
-Message-Id: <20250906010741.7513EC4CEF1@smtp.kernel.org>
+Subject: + mm-memcg-v1-account-event-registrations-and-drop-world-writable-cgroupevent_control.patch added to mm-new branch
+Message-Id: <20250906013050.98A7FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: check the correct buddy if it is a starting block
+     Subject: mm/memcg: v1: account event registrations and drop world-writable cgroup.event_control
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
+     mm-memcg-v1-account-event-registrations-and-drop-world-writable-cgroupevent_control.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-v1-account-event-registrations-and-drop-world-writable-cgroupevent_control.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,113 +64,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: check the correct buddy if it is a starting block
-Date: Fri, 5 Sep 2025 14:03:58 +0000
+From: Stanislav Fort <stanislav.fort@aisle.com>
+Subject: mm/memcg: v1: account event registrations and drop world-writable cgroup.event_control
+Date: Fri, 5 Sep 2025 12:38:51 +0300
 
-find_large_buddy() search buddy based on start_pfn, which maybe different
-from page's pfn, e.g.  when page is not pageblock aligned, because
-prep_move_freepages_block() always align start_pfn to pageblock.
+In cgroup v1, the legacy cgroup.event_control file is world-writable and
+allows unprivileged users to register unbounded events and thresholds. 
+Each registration allocates kernel memory without capping or memcg
+charging, which can be abused to exhaust kernel memory in affected
+configurations.
 
-This means when we found a starting block at start_pfn, it may check on
-the wrong page theoretically.  And not split the free page as it is
-supposed to, causing a freelist migratetype mismatch.
+Make the following minimal changes:
+- Account allocations with __GFP_ACCOUNT in event and threshold registration.
+- Remove CFTYPE_WORLD_WRITABLE from cgroup.event_control to make it
+  owner-writable.
 
-The good news is the page passed to __move_freepages_block_isolate() has
-only two possible cases:
+This does not affect cgroup v2.  Allocations are still subject to kmem
+accounting being enabled, but this reduces unbounded global growth.
 
-  * page is pageblock aligned
-  * page is __first_valid_page() of this block
-
-So it is safe for the first case, and it won't get a buddy larger than
-pageblock for the second case.
-
-To fix the issue, check the returned pfn of find_large_buddy() to decide
-whether to split the free page:
-
-  1. if it is not a PageBuddy pfn, no split;
-  2. if it is a PageBuddy pfn but order <= pageblock_order, no split;
-  3. if it is a PageBuddy pfn with order > pageblock_order, start_pfn is
-     either in the starting block or tail block, split the PageBuddy at
-     pageblock_order level.
-
-Link: https://lkml.kernel.org/r/20250905140358.28849-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250905093851.80596-1-disclosure@aisle.com
+Signed-off-by: Stanislav Fort <disclosure@aisle.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ mm/memcontrol-v1.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block
-+++ a/mm/page_alloc.c
-@@ -2090,9 +2090,10 @@ static inline void toggle_pageblock_isol
- static bool __move_freepages_block_isolate(struct zone *zone,
- 		struct page *page, bool isolate)
+--- a/mm/memcontrol-v1.c~mm-memcg-v1-account-event-registrations-and-drop-world-writable-cgroupevent_control
++++ a/mm/memcontrol-v1.c
+@@ -761,7 +761,7 @@ static int __mem_cgroup_usage_register_e
+ 	size = thresholds->primary ? thresholds->primary->size + 1 : 1;
+ 
+ 	/* Allocate memory for new array of thresholds */
+-	new = kmalloc(struct_size(new, entries, size), GFP_KERNEL);
++	new = kmalloc(struct_size(new, entries, size), GFP_KERNEL_ACCOUNT);
+ 	if (!new) {
+ 		ret = -ENOMEM;
+ 		goto unlock;
+@@ -924,7 +924,7 @@ static int mem_cgroup_oom_register_event
  {
--	unsigned long start_pfn, pfn;
-+	unsigned long start_pfn, buddy_pfn;
- 	int from_mt;
- 	int to_mt;
-+	struct page *buddy;
+ 	struct mem_cgroup_eventfd_list *event;
  
- 	if (isolate == get_pageblock_isolate(page)) {
- 		VM_WARN_ONCE(1, "%s a pageblock that is already in that state",
-@@ -2107,29 +2108,19 @@ static bool __move_freepages_block_isola
- 	if (pageblock_order == MAX_PAGE_ORDER)
- 		goto move;
+-	event = kmalloc(sizeof(*event),	GFP_KERNEL);
++	event = kmalloc(sizeof(*event),	GFP_KERNEL_ACCOUNT);
+ 	if (!event)
+ 		return -ENOMEM;
  
--	/* We're a tail block in a larger buddy */
--	pfn = find_large_buddy(start_pfn);
--	if (pfn != start_pfn) {
--		struct page *buddy = pfn_to_page(pfn);
-+	buddy_pfn = find_large_buddy(start_pfn);
-+	buddy = pfn_to_page(buddy_pfn);
-+	/* We're a part of a larger buddy */
-+	if (PageBuddy(buddy) && buddy_order(buddy) > pageblock_order) {
- 		int order = buddy_order(buddy);
+@@ -1087,7 +1087,7 @@ static ssize_t memcg_write_event_control
  
- 		del_page_from_free_list(buddy, zone, order,
--					get_pfnblock_migratetype(buddy, pfn));
-+					get_pfnblock_migratetype(buddy, buddy_pfn));
- 		toggle_pageblock_isolate(page, isolate);
--		split_large_buddy(zone, buddy, pfn, order, FPI_NONE);
-+		split_large_buddy(zone, buddy, buddy_pfn, order, FPI_NONE);
- 		return true;
- 	}
+ 	CLASS(fd, cfile)(cfd);
  
--	/* We're the starting block of a larger buddy */
--	if (PageBuddy(page) && buddy_order(page) > pageblock_order) {
--		int order = buddy_order(page);
--
--		del_page_from_free_list(page, zone, order,
--					get_pfnblock_migratetype(page, pfn));
--		toggle_pageblock_isolate(page, isolate);
--		split_large_buddy(zone, page, pfn, order, FPI_NONE);
--		return true;
--	}
- move:
- 	/* Use MIGRATETYPE_MASK to get non-isolate migratetype */
- 	if (isolate) {
+-	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	event = kzalloc(sizeof(*event), GFP_KERNEL_ACCOUNT);
+ 	if (!event)
+ 		return -ENOMEM;
+ 
+@@ -2053,7 +2053,7 @@ struct cftype mem_cgroup_legacy_files[]
+ 	{
+ 		.name = "cgroup.event_control",		/* XXX: for compat */
+ 		.write = memcg_write_event_control,
+-		.flags = CFTYPE_NO_PREFIX | CFTYPE_WORLD_WRITABLE,
++		.flags = CFTYPE_NO_PREFIX,
+ 	},
+ 	{
+ 		.name = "swappiness",
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from stanislav.fort@aisle.com are
 
-mm-rmap-do-__folio_mod_stat-in-__folio_add_rmap.patch
-selftests-mm-do-check_huge_anon-with-a-number-been-passed-in.patch
-mm-rmap-not-necessary-to-mask-off-folio_pages_mapped.patch
-mm-rmap-use-folio_large_nr_pages-when-we-are-sure-it-is-a-large-folio.patch
-selftests-mm-put-general-ksm-operation-into-vm_util.patch
-selftests-mm-test-that-rmap-behave-as-expected.patch
-mm-khugepaged-use-list_xxx-helper-to-improve-readability.patch
-mm-page_alloc-use-xxx_pageblock_isolate-for-better-reading.patch
-mm-pageblock-flags-remove-pb_migratetype_bits-pb_migrate_end.patch
-mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order.patch
-mm-page_alloc-find_large_buddy-from-start_pfn-aligned-order-v2.patch
-mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
+mm-damon-sysfs-fix-use-after-free-in-state_show.patch
+mm-memcg-v1-account-event-registrations-and-drop-world-writable-cgroupevent_control.patch
 
