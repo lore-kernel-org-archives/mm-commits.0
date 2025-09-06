@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D065817E4
-	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 00:26:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 044B417E4
+	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 00:26:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757118415; cv=none; b=NvDoW+emwVDj7i+cjXPXdz7Yqbv0F9UU5S0/xa+3RNs4U1k1c9ipr0DjLln6F+asgFLmEExAipIl4qavZPCJVXydObYXcxXy/jzW1SbGO7OLtfmglY6sFLEYt+CHtrjFhOAOtY3srZstBgvSrAUftov+de2gCqgB5EBc0Ip1HU8=
+	t=1757118418; cv=none; b=gq42R4Inne/p0YnJ0+nW6mztsRNXh5eRGigE19A7j3w8fhfHdL7wUxzS8oSXHJxag/66ld1mYZwtKygASvaqrp7lv8OtVIKtPlJGBBvt0kP/UCU5TT2ezlvj6I1cac61W+4bdqzAfUoLwHChQ1bkKGoh/j3wvn9u7mFKC2WTJEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757118415; c=relaxed/simple;
-	bh=SYiNdr+BQdDzewvM5CfOA0z8djhIfj2xPTgOz61AQYc=;
-	h=Date:To:From:Subject:Message-Id; b=oH1V7LgDyAYzWZ24zbakoGvjsgV/UX6Ty/gHpAlssbFnllZlpmCXWIxIlNRAOqPsUEHKIAwagpNMuCdNLuYqak6t/3vIE2UHNflBv7fBVt5DL9VpLt56YuSM8YzUxhftjZHtqcnJfdgsZsBynUDRvrdrkTi2KozYRgfKZfXTK9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aBHlYGvi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757118418; c=relaxed/simple;
+	bh=XF+5WyFm5ey66BsdyD1nAoNDAH4b38Ta3vitZ8CqJaQ=;
+	h=Date:To:From:Subject:Message-Id; b=b12eM9fdjol0byWyWc41RxdMo5+xxWWH8O0CGyz/xh+BsOMKNoJonblpsETiYZ3qd0aAR3rdrQ+XpGHGAxnr3YNs65oWcrWEjTmDQKE8mLcsP9ypIwUr1cOwnfoY3gJBKMTbs6QLCtQjoPBiqMDxI8A+zaYfvKu7WQlnC4HQm10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LQPwxtON; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aBHlYGvi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4877BC4CEF1;
-	Sat,  6 Sep 2025 00:26:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LQPwxtON"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 725D6C4CEF1;
+	Sat,  6 Sep 2025 00:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757118415;
-	bh=SYiNdr+BQdDzewvM5CfOA0z8djhIfj2xPTgOz61AQYc=;
+	s=korg; t=1757118417;
+	bh=XF+5WyFm5ey66BsdyD1nAoNDAH4b38Ta3vitZ8CqJaQ=;
 	h=Date:To:From:Subject:From;
-	b=aBHlYGviOz+sCbjcvZRp4tn48oImr2TAd1ffZMTVF7wfHPcCPCGMhM8cVjOw319K+
-	 IFKGa3sL17Br+edpX+stN5pEt2OI+o1jlFenE1tEZ50UouEpZXgGpMlXitujdc/3Dr
-	 FNbN+jf+H3GPcwls7FkAyVKwJg15zuBE63Jnuuys=
-Date: Fri, 05 Sep 2025 17:26:54 -0700
+	b=LQPwxtONe36H13bR1rwBwhOJPwS8QLlFRLuHHG2na6cM3/ROWjuFVe1LShHU3gpKL
+	 T2rLgDLDmE/4QaX40cX7uo9urVHv9ZYgKOuI468nImt8vz/vVq3W2rXw3c0JJbk57b
+	 5KO6xH9q3pi0Ysf7cC1NVIxAcHeTf5VhZupuYRSg=
+Date: Fri, 05 Sep 2025 17:26:56 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-swap-cahe-index-error-when-retrying-reclaim.patch added to mm-new branch
-Message-Id: <20250906002655.4877BC4CEF1@smtp.kernel.org>
+Subject: + mm-swap-check-page-poison-flag-after-locking-it.patch added to mm-new branch
+Message-Id: <20250906002657.725D6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: fix swap cahe index error when retrying reclaim
+     Subject: mm, swap: check page poison flag after locking it
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-fix-swap-cahe-index-error-when-retrying-reclaim.patch
+     mm-swap-check-page-poison-flag-after-locking-it.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swap-cahe-index-error-when-retrying-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-check-page-poison-flag-after-locking-it.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,22 +65,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: fix swap cahe index error when retrying reclaim
-Date: Sat, 6 Sep 2025 03:13:45 +0800
+Subject: mm, swap: check page poison flag after locking it
+Date: Sat, 6 Sep 2025 03:13:46 +0800
 
-The allocator will reclaim cached slots while scanning.  Currently, it
-will try again if the reclaim found a folio that is already removed from
-the swap cache due to a race.  But the following lookup will be using the
-wrong index.  It won't cause any OOB issue since the swap cache index is
-truncated upon lookup, but it may lead to reclaiming of an irrelevant
-folio.
+Instead of checking the poison flag only in the fast swap cache lookup
+path, always check the poison flags after locking a swap cache folio.
 
-This should not cause a measurable issue, but we should fix it.
+There are two reasons to do so.
 
-Link: https://lkml.kernel.org/r/20250905191357.78298-4-ryncsn@gmail.com
-Fixes: fae8595505313 ("mm, swap: avoid reclaiming irrelevant swap cache")
+The folio is unstable and could be removed from the swap cache anytime, so
+it's totally possible that the folio is no longer the backing folio of a
+swap entry, and could be an irrelevant poisoned folio.  We might
+mistakenly kill a faulting process.
+
+And it's totally possible or even common for the slow swap in path
+(swapin_readahead) to bring in a cached folio.  The cache folio could be
+poisoned, too.  Only checking the poison flag in the fast path will miss
+such folios.
+
+The race window is tiny, so it's very unlikely to happen, though.  While
+at it, also add a unlikely prefix.
+
+Link: https://lkml.kernel.org/r/20250905191357.78298-5-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -93,33 +100,67 @@ Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: kernel test robot <oliver.sang@intel.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-fix-swap-cahe-index-error-when-retrying-reclaim
-+++ a/mm/swapfile.c
-@@ -240,13 +240,13 @@ again:
- 	 * Offset could point to the middle of a large folio, or folio
- 	 * may no longer point to the expected offset before it's locked.
- 	 */
--	entry = folio->swap;
--	if (offset < swp_offset(entry) || offset >= swp_offset(entry) + nr_pages) {
-+	if (offset < swp_offset(folio->swap) ||
-+	    offset >= swp_offset(folio->swap) + nr_pages) {
- 		folio_unlock(folio);
- 		folio_put(folio);
- 		goto again;
- 	}
--	offset = swp_offset(entry);
-+	offset = swp_offset(folio->swap);
+--- a/mm/memory.c~mm-swap-check-page-poison-flag-after-locking-it
++++ a/mm/memory.c
+@@ -4661,10 +4661,8 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		goto out;
  
- 	need_reclaim = ((flags & TTRS_ANYWAY) ||
- 			((flags & TTRS_UNMAPPED) && !folio_mapped(folio)) ||
+ 	folio = swap_cache_get_folio(entry);
+-	if (folio) {
++	if (folio)
+ 		swap_update_readahead(folio, vma, vmf->address);
+-		page = folio_file_page(folio, swp_offset(entry));
+-	}
+ 	swapcache = folio;
+ 
+ 	if (!folio) {
+@@ -4735,20 +4733,13 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		ret = VM_FAULT_MAJOR;
+ 		count_vm_event(PGMAJFAULT);
+ 		count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+-		page = folio_file_page(folio, swp_offset(entry));
+-	} else if (PageHWPoison(page)) {
+-		/*
+-		 * hwpoisoned dirty swapcache pages are kept for killing
+-		 * owner processes (which may be unknown at hwpoison time)
+-		 */
+-		ret = VM_FAULT_HWPOISON;
+-		goto out_release;
+ 	}
+ 
+ 	ret |= folio_lock_or_retry(folio, vmf);
+ 	if (ret & VM_FAULT_RETRY)
+ 		goto out_release;
+ 
++	page = folio_file_page(folio, swp_offset(entry));
+ 	if (swapcache) {
+ 		/*
+ 		 * Make sure folio_free_swap() or swapoff did not release the
+@@ -4761,6 +4752,15 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			     page_swap_entry(page).val != entry.val))
+ 			goto out_page;
+ 
++		if (unlikely(PageHWPoison(page))) {
++			/*
++			 * hwpoisoned dirty swapcache pages are kept for killing
++			 * owner processes (which may be unknown at hwpoison time)
++			 */
++			ret = VM_FAULT_HWPOISON;
++			goto out_page;
++		}
++
+ 		/*
+ 		 * KSM sometimes has to copy on read faults, for example, if
+ 		 * folio->index of non-ksm folios would be nonlinear inside the
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
