@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A426017E4
-	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 00:27:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61CB7315D38
+	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 00:47:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757118459; cv=none; b=k3Rp2gShdbsshQeZPSBqwLW0fkUuqSUQIVWoABDkgeukRZR/9K2Z8IJLBf8BoRjuWozkCgRwfhAETfnpQZDgFOiXV96fZqG8gTriV2FeVoGq6kNEA5AUVRI1Xj2K0/F1IdTImLvrH5JljQLPZyvJPI609rSeUCEGyh7r+w37bng=
+	t=1757119621; cv=none; b=de0xu+Sj04i9ByfG4xgGBlLsbGYgspUW3oPlZUB7Ynu7bGqgbVvPQ64bsdMreB1fw6t2dgB0hcyRZ39gK9HapqRwLQVjgznY1LWLjObJ3boSUoICVSanI40TqEz7kBHWm3Vv3BzM20waykKE4RknjtbS4/WRK7SgEBoDNA+iy0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757118459; c=relaxed/simple;
-	bh=JpD4e9QuVu9mGmu7kUB1U7IWvw6pyQg2dG8SwbyAtgk=;
-	h=Date:To:From:Subject:Message-Id; b=dJHQ5A5j5k6Pch4anHmJBJtsjktk/CrEk+KvGF80JHNJupCrYggUxto2YzDX/ux+d/J0o5MNrP24/tEzoj/1w5D+tfgvdQoSRl5tpjHYEw2q8GBjLfQBnziKLFt06yqI+Z314jpkIM1AUnBst6nUdY4w6WXOwmrr1WodFXfPvEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zxxqFiV6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757119621; c=relaxed/simple;
+	bh=AYqshsVd4VcFyoLZ1LSFke6W8I3pcH45fJoq43vYotY=;
+	h=Date:To:From:Subject:Message-Id; b=uJxnKT/PMnYpJA189xvoIhbYtkexLNC8N1UekTu1Cuk4mjOZIhD1MaSg2nYSE+xIQxwShlESKy+0txi8fs3ZY7gbnsshZreNkJ/OApUAYwXoIYpJhzP6RPfafA5WuqOYFnWQeo1zjluJDSt2Z6RYEjv3i/qHDuFYJ55Fuj2kKdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dZVDIzdY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zxxqFiV6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A318C4CEF1;
-	Sat,  6 Sep 2025 00:27:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dZVDIzdY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDF89C4CEF1;
+	Sat,  6 Sep 2025 00:47:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757118459;
-	bh=JpD4e9QuVu9mGmu7kUB1U7IWvw6pyQg2dG8SwbyAtgk=;
+	s=korg; t=1757119620;
+	bh=AYqshsVd4VcFyoLZ1LSFke6W8I3pcH45fJoq43vYotY=;
 	h=Date:To:From:Subject:From;
-	b=zxxqFiV65/UiUREVKhKiKlh3aGOlsy6X5fLdXknLje+fb7VaxtbasPSiowv6v+GNu
-	 Tdjn4+mjwSGRYLdUNUBIg2iQN0UNAnkLke2s7auWFf8iHsZn1/0AmbIMiGgRdZqD8k
-	 VcTgKlVka8CFZwTBw02OPWeBSETccPECrLRglGwM=
-Date: Fri, 05 Sep 2025 17:27:38 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=dZVDIzdYwrpRAzSr2rClni6xSpgyapWuQrLpajRNPZVS5Gyur3UmLUp9jWgPvqRvw
+	 1jbtRjelReJfI2/WX/cIICdUhDu5cLujzkZx3aglpyLiYBDflX3/aIfX01ESyP+Ho/
+	 92/d2ARY1Pb+GtU8YWkfVaZ21GuaN8DH/rCyto4I=
+Date: Fri, 05 Sep 2025 17:47:00 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,lorenzo.stoakes@oracle.com,lkp@intel.com,kas@kernel.org,david@redhat.com,p.raghav@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-use-a-single-page-for-swap-table-when-the-size-fits.patch added to mm-new branch
-Message-Id: <20250906002739.6A318C4CEF1@smtp.kernel.org>
+Subject: + huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch added to mm-new branch
+Message-Id: <20250906004700.CDF89C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: use a single page for swap table when the size fits
+     Subject: huge_memory: return -EINVAL in folio split functions when THP is disabled
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-use-a-single-page-for-swap-table-when-the-size-fits.patch
+     huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-use-a-single-page-for-swap-table-when-the-size-fits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,176 +64,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: use a single page for swap table when the size fits
-Date: Sat, 6 Sep 2025 03:13:57 +0800
+From: Pankaj Raghav <p.raghav@samsung.com>
+Subject: huge_memory: return -EINVAL in folio split functions when THP is disabled
+Date: Fri, 5 Sep 2025 17:00:12 +0200
 
-We have a cluster size of 512 slots.  Each slot consumes 8 bytes in swap
-table so the swap table size of each cluster is exactly one page (4K).
+split_huge_page_to_list_[to_order](), split_huge_page() and
+try_folio_split() return 0 on success and error codes on failure.
 
-If that condition is true, allocate one page direct and disable the slab
-cache to reduce the memory usage of swap table and avoid fragmentation.
+When THP is disabled, these functions return 0 indicating success even
+though an error code should be returned as it is not possible to split a
+folio when THP is disabled.
 
-Link: https://lkml.kernel.org/r/20250905191357.78298-16-ryncsn@gmail.com
-Co-developed-by: Chris Li <chrisl@kernel.org>
-Signed-off-by: Chris Li <chrisl@kernel.org>
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: kernel test robot <oliver.sang@intel.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Make all these functions return -EINVAL to indicate failure instead of 0. 
+As large folios depend on CONFIG_THP, issue warning as this function
+should not be called without a large folio.
+
+Link: https://lkml.kernel.org/r/20250905150012.93714-1-kernel@pankajraghav.com
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Kiryl Shutsemau <kas@kernel.org>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202509051753.riCeG7LC-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_table.h |    2 +
- mm/swapfile.c   |   50 +++++++++++++++++++++++++++++++++++++---------
- 2 files changed, 43 insertions(+), 9 deletions(-)
+ include/linux/huge_mm.h |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-use-a-single-page-for-swap-table-when-the-size-fits
-+++ a/mm/swapfile.c
-@@ -430,6 +430,38 @@ static inline unsigned int cluster_offse
- 	return cluster_index(si, ci) * SWAPFILE_CLUSTER;
- }
- 
-+static struct swap_table *swap_table_alloc(gfp_t gfp)
-+{
-+	struct folio *folio;
-+
-+	if (!SWP_TABLE_USE_PAGE)
-+		return kmem_cache_zalloc(swap_table_cachep, gfp);
-+
-+	folio = folio_alloc(gfp | __GFP_ZERO, 0);
-+	if (folio)
-+		return folio_address(folio);
-+	return NULL;
-+}
-+
-+static void swap_table_free_folio_rcu_cb(struct rcu_head *head)
-+{
-+	struct folio *folio;
-+
-+	folio = page_folio(container_of(head, struct page, rcu_head));
-+	folio_put(folio);
-+}
-+
-+static void swap_table_free(struct swap_table *table)
-+{
-+	if (!SWP_TABLE_USE_PAGE) {
-+		kmem_cache_free(swap_table_cachep, table);
-+		return;
-+	}
-+
-+	call_rcu(&(folio_page(virt_to_folio(table), 0)->rcu_head),
-+		 swap_table_free_folio_rcu_cb);
-+}
-+
- static void swap_cluster_free_table(struct swap_cluster_info *ci)
+--- a/include/linux/huge_mm.h~huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled
++++ a/include/linux/huge_mm.h
+@@ -588,22 +588,26 @@ static inline int
+ split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+ 		unsigned int new_order)
  {
- 	unsigned int ci_off;
-@@ -443,7 +475,7 @@ static void swap_cluster_free_table(stru
- 	table = (void *)rcu_dereference_protected(ci->table, true);
- 	rcu_assign_pointer(ci->table, NULL);
- 
--	kmem_cache_free(swap_table_cachep, table);
-+	swap_table_free(table);
+-	return 0;
++	VM_WARN_ON_ONCE_PAGE(1, page);
++	return -EINVAL;
+ }
+ static inline int split_huge_page(struct page *page)
+ {
+-	return 0;
++	VM_WARN_ON_ONCE_PAGE(1, page);
++	return -EINVAL;
  }
  
- /*
-@@ -467,8 +499,7 @@ swap_cluster_alloc_table(struct swap_inf
- 	lockdep_assert_held(&ci->lock);
- 	lockdep_assert_held(&this_cpu_ptr(&percpu_swap_cluster)->lock);
- 
--	table = kmem_cache_zalloc(swap_table_cachep,
--				  __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
-+	table = swap_table_alloc(__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
- 	if (table) {
- 		rcu_assign_pointer(ci->table, table);
- 		return ci;
-@@ -483,7 +514,7 @@ swap_cluster_alloc_table(struct swap_inf
- 	if (!(si->flags & SWP_SOLIDSTATE))
- 		spin_unlock(&si->global_cluster_lock);
- 	local_unlock(&percpu_swap_cluster.lock);
--	table = kmem_cache_zalloc(swap_table_cachep, __GFP_HIGH | GFP_KERNEL);
-+	table = swap_table_alloc(__GFP_HIGH | GFP_KERNEL);
- 
- 	local_lock(&percpu_swap_cluster.lock);
- 	if (!(si->flags & SWP_SOLIDSTATE))
-@@ -520,7 +551,7 @@ swap_cluster_alloc_table(struct swap_inf
- 
- free_table:
- 	if (table)
--		kmem_cache_free(swap_table_cachep, table);
-+		swap_table_free(table);
- 	return ci;
+ static inline int split_folio_to_list(struct folio *folio, struct list_head *list)
+ {
+-	return 0;
++	VM_WARN_ON_ONCE_FOLIO(1, folio);
++	return -EINVAL;
  }
  
-@@ -738,7 +769,7 @@ static int inc_cluster_info_page(struct
+ static inline int try_folio_split(struct folio *folio, struct page *page,
+ 		struct list_head *list)
+ {
+-	return 0;
++	VM_WARN_ON_ONCE_FOLIO(1, folio);
++	return -EINVAL;
+ }
  
- 	ci = cluster_info + idx;
- 	if (!ci->table) {
--		table = kmem_cache_zalloc(swap_table_cachep, GFP_KERNEL);
-+		table = swap_table_alloc(GFP_KERNEL);
- 		if (!table)
- 			return -ENOMEM;
- 		rcu_assign_pointer(ci->table, table);
-@@ -4075,9 +4106,10 @@ static int __init swapfile_init(void)
- 	 * only, and all swap cache readers (swap_cache_*) verifies
- 	 * the content before use. So it's safe to use RCU slab here.
- 	 */
--	swap_table_cachep = kmem_cache_create("swap_table",
--			    sizeof(struct swap_table),
--			    0, SLAB_PANIC | SLAB_TYPESAFE_BY_RCU, NULL);
-+	if (!SWP_TABLE_USE_PAGE)
-+		swap_table_cachep = kmem_cache_create("swap_table",
-+				    sizeof(struct swap_table),
-+				    0, SLAB_PANIC | SLAB_TYPESAFE_BY_RCU, NULL);
- 
- #ifdef CONFIG_MIGRATION
- 	if (swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS))
---- a/mm/swap_table.h~mm-swap-use-a-single-page-for-swap-table-when-the-size-fits
-+++ a/mm/swap_table.h
-@@ -11,6 +11,8 @@ struct swap_table {
- 	atomic_long_t entries[SWAPFILE_CLUSTER];
- };
- 
-+#define SWP_TABLE_USE_PAGE (sizeof(struct swap_table) == PAGE_SIZE)
-+
- /*
-  * A swap table entry represents the status of a swap slot on a swap
-  * (physical or virtual) device. The swap table in each cluster is a
+ static inline void deferred_split_folio(struct folio *folio, bool partially_mapped) {}
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from p.raghav@samsung.com are
 
-mm-swap-only-scan-one-cluster-in-fragment-list.patch
-mm-swap-remove-fragment-clusters-counter.patch
-mm-swap-prefer-nonfull-over-free-clusters.patch
-mm-mincore-swap-consolidate-swap-cache-checking-for-mincore.patch
-mm-mincore-use-a-helper-for-checking-the-swap-cache.patch
-mm-page-writeback-drop-usage-of-folio_index.patch
-mm-swap-use-unified-helper-for-swap-cache-look-up.patch
-mm-swap-fix-swap-cahe-index-error-when-retrying-reclaim.patch
-mm-swap-check-page-poison-flag-after-locking-it.patch
-mm-swap-always-lock-and-check-the-swap-cache-folio-before-use.patch
-mm-swap-rename-and-move-some-swap-cluster-definition-and-helpers.patch
-mm-swap-tidy-up-swap-device-and-cluster-info-helpers.patch
-mm-shmem-swap-remove-redundant-error-handling-for-replacing-folio.patch
-mm-swap-cleanup-swap-cache-api-and-add-kerneldoc.patch
-mm-swap-wrap-swap-cache-replacement-with-a-helper.patch
-mm-swap-use-the-swap-table-for-the-swap-cache-and-switch-api.patch
-mm-swap-mark-swap-address-space-ro-and-add-context-debug-check.patch
-mm-swap-remove-contention-workaround-for-swap-cache.patch
-mm-swap-implement-dynamic-allocation-of-swap-table.patch
-mm-swap-use-a-single-page-for-swap-table-when-the-size-fits.patch
+mm-rename-huge_zero_page-to-huge_zero_folio.patch
+mm-rename-mmf_huge_zero_page-to-mmf_huge_zero_folio.patch
+mm-add-persistent-huge-zero-folio.patch
+mm-add-largest_zero_folio-routine.patch
+block-use-largest_zero_folio-in-__blkdev_issue_zero_pages.patch
+huge_memory-return-einval-in-folio-split-functions-when-thp-is-disabled.patch
 
