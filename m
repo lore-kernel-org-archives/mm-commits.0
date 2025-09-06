@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07CDE1F4C8B
-	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 02:01:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F144A482EB
+	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 02:10:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757124097; cv=none; b=jXLLTGCar3M+de2MS2JmZ7BpgiV3z2FCR1Hg/bzLyUCoEdPRqlY2zAFCd2EOT4yQH8JCICAN4NvKH4SR/7uuPS6Ikk6EOmpaD7dFqjFlpo3xJoRwasZoVU3f9p8GUTcYYX+IOKR+zgZlndltKdb/yZ+6pvbcgH+ft2b7TvL4ttA=
+	t=1757124603; cv=none; b=AB6d0WlaaVaM2PDMvZJz+iMvvqTz1Aq1Ls7KEOYJfh0doO7zic9RDEi5XmVSaVo2IoLTFng2q8CWvJS9I/qKIkp8PAM4mZ1axBPRwbHYdh1qXw95YNJS6bbrjgnYqimRpNZZBLZtsOAbPN8XggORePt36tjaTiBpja9x/mKNTvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757124097; c=relaxed/simple;
-	bh=MuHDvRPoD3+HiJKdO5kFvlTm0Hsm3kFtAxig/Cxvyk0=;
-	h=Date:To:From:Subject:Message-Id; b=TwhJkrW2guieRMLw8rxhjio3lNIUfGkmSd95AIBqKLw6DXE1P5jDu6mYv+DZBW+OtbYSyXZnGDZ8EBECFbMXkYlmjSPIzDEpIDgbQovas/DCanOH+T4qwUEn8x8SaWm6beO/tba17qlnnEx+BZaj9JpzJ1CVtcjssTZv9mHWDrk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0M07DiSD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757124603; c=relaxed/simple;
+	bh=jr6doM9/dhU187xx1xO92Sas6PHpRsQKYM8QrsHuKt4=;
+	h=Date:To:From:Subject:Message-Id; b=Z2FGf3isfmYYnYQB74Jmln3AFHtjgBN4jhmz9rEzAwJL1fLJ5gnGTcaHs8gV1YzXWkLoStgEApqoHNWrnHadCkvliHrpWwJlsd6E0IsI0E5qlWjZsxs4kc0A/39p96J34uhSmW5pTfeFTQPB6aJXqYKGaE4YPQXAa3OQyyYeEBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y2/TDMjs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0M07DiSD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 777A6C4CEF1;
-	Sat,  6 Sep 2025 02:01:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y2/TDMjs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BF99C4CEF1;
+	Sat,  6 Sep 2025 02:10:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757124096;
-	bh=MuHDvRPoD3+HiJKdO5kFvlTm0Hsm3kFtAxig/Cxvyk0=;
+	s=korg; t=1757124602;
+	bh=jr6doM9/dhU187xx1xO92Sas6PHpRsQKYM8QrsHuKt4=;
 	h=Date:To:From:Subject:From;
-	b=0M07DiSDDQPdSgAA/4k6C1ZMgMQzo/dIbD27g8QjwvW+waUc5/diRqJc/4pc0+3OA
-	 ZIJ4tJJvW9d0a67T7gLDI11SWWlSfAKEdihTYnEbBeMH6eAbJOQyfpGJt9MGzdMh2+
-	 giBlVJi1n6GxbS6FAyVl7OzkJ72orV9/HwBUjCpo=
-Date: Fri, 05 Sep 2025 19:01:35 -0700
-To: mm-commits@vger.kernel.org,axboe@kernel.dk,david@redhat.com,akpm@linux-foundation.org
+	b=y2/TDMjsa0QWPcKBb+gMkGrcj61VSoWv5oYtw9LGGRg1W+asDYJ3w6WHK3Hy6Yp1P
+	 3E3G5gbCq/9YFzCU/tedSo+lcC1PfIl+8swsCqtf4iq97cJS6211AwHtsajG11O10y
+	 R3RsX7hdv5Kpjs7UgR3C3C31N6msgAzitoWNe70I=
+Date: Fri, 05 Sep 2025 19:10:01 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,ebiggers@kernel.org,axboe@kernel.dk,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-gup-remove-record_subpages-fix.patch added to mm-unstable branch
-Message-Id: <20250906020136.777A6C4CEF1@smtp.kernel.org>
+Message-Id: <20250906021002.6BF99C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -69,6 +69,9 @@ Signed-off-by: David Hildenbrand <david@redhat.com>
 Reported-by: syzbot+1ab243d3eebb2aabf4a4@syzkaller.appspotmail.com
 Tested-by: syzbot+1ab243d3eebb2aabf4a4@syzkaller.appspotmail.com
 Reported-by: Jens Axboe <axboe@kernel.dk>
+Tested-by: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Eric Biggers <ebiggers@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -78,7 +81,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
 --- a/mm/gup.c~mm-gup-remove-record_subpages-fix
 +++ a/mm/gup.c
-@@ -2966,6 +2966,7 @@ static int gup_fast_pmd_leaf(pmd_t orig,
+@@ -2975,6 +2975,7 @@ static int gup_fast_pmd_leaf(pmd_t orig,
  		return 0;
  	}
  
@@ -86,7 +89,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	*nr += refs;
  	for (; refs; refs--)
  		*(pages++) = page++;
-@@ -3009,6 +3010,7 @@ static int gup_fast_pud_leaf(pud_t orig,
+@@ -3018,6 +3019,7 @@ static int gup_fast_pud_leaf(pud_t orig,
  		return 0;
  	}
  
