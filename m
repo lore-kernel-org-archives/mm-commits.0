@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB53523A;
-	Sat,  6 Sep 2025 00:14:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1E9817E4
+	for <mm-commits@vger.kernel.org>; Sat,  6 Sep 2025 00:26:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757117668; cv=none; b=AYo0ch29tLlez9xWApAvb9nfxPtmg4/zYse6eNZlngAqZ3bMB/2k29/bq0A3KdkAfGrF5JN3lwlBbu6DL8kvGGtziD9cCLmqOeDNBEMd2070J1Ha8FsOwFsS0BxAPVAsnAkFAi8ls1CUTSzniol4qSCD0GdDLcppLOeMw0NnKUU=
+	t=1757118405; cv=none; b=RQEdIbiFOT2wJ06RHDH5yaTcMeJCVSnyodot0yt8rHdSbUM+4jCgbe6dDAcFAbp6ITLI9MTFkXrurE0gSdaU7liWlKyJXQgic5GHSQc1FYqJR0Ff4jcXSlL5Zrs09tdssk2QQo2ZmgX12B3J9wvynHN5cQfLYQrahEzH6a8PFbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757117668; c=relaxed/simple;
-	bh=4KdJgxxG9SGBqZCqqYjQb1WwwbrpoQBJntbEZ+J9w/o=;
-	h=Date:To:From:Subject:Message-Id; b=d9RSGvdoJ5l0OWpF5jK5lbUJzx0xHFQ/WuN+B9KOeiSgS4rMWeP4IpmOM0ZtP8V2I7FG8PyY7dllmd9+xDBS9/FIR7RtN0mk8Ixu3n0IsBI4pbnFTokDNDIoQC8el+cpaMQaRjDeQQyW4yhqgwvjlWz6yoRnC03BnTR3W8h1lUE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XDXAKREY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757118405; c=relaxed/simple;
+	bh=wY6U09LU62j+BiqUoaR0LsvkQdCP/zOVlmnFv+8zkl8=;
+	h=Date:To:From:Subject:Message-Id; b=fv9YZ90IbDgXrhiRUt9dzr0nX32CUhVFEJgRzzStr1qFIW/Ikse8dc76x4gO8POYKYcnYuLH20xyJLsFGge6ZHIynn9hxdt2TEMu/M4hsx58cvHuzrZEn59OYJLd7sB4hQMU/Laj9/4rBZzOqlB8W2QwrVhUmiMFINte3yLaxyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zqDu1p0V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XDXAKREY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AADC0C4CEF1;
-	Sat,  6 Sep 2025 00:14:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zqDu1p0V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D249C4CEF1;
+	Sat,  6 Sep 2025 00:26:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757117667;
-	bh=4KdJgxxG9SGBqZCqqYjQb1WwwbrpoQBJntbEZ+J9w/o=;
+	s=korg; t=1757118405;
+	bh=wY6U09LU62j+BiqUoaR0LsvkQdCP/zOVlmnFv+8zkl8=;
 	h=Date:To:From:Subject:From;
-	b=XDXAKREYFk8ARsIjmiokxtBHcOOyGSeE/9/O4W5vCTIdu8Yx5IjGeuueOSfqBmZ9k
-	 DTU9NFJAtUHniFiEfayMs4faIVI1BGjNZL5hJiZdbqwvi0NGDdPhuMR93HSsI8rBLL
-	 NsGcU2KQHTlhXMpNBdZDgbp0cBPVkL0YPCiadDy8=
-Date: Fri, 05 Sep 2025 17:14:26 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,disclosure@aisle.com,stanislav.fort@aisle.com,akpm@linux-foundation.org
+	b=zqDu1p0VIz2L9jBNP4eW0gf1FnQGe9ftKTcBFtTlzxulR4WgQ4OWDCmGPAreHkrI8
+	 q/XWeEH+x6qqREt79LXYWrlAPJPHneFVmtPMhkoKOhF3x4x74Puw+7M5HYmT77oryJ
+	 332CvfJ3021exjftQXfcS07Ol/bcd+RM12nqbd3I=
+Date: Fri, 05 Sep 2025 17:26:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-fix-use-after-free-in-state_show.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250906001427.AADC0C4CEF1@smtp.kernel.org>
+Subject: + docs-mm-add-document-for-swap-table.patch added to mm-new branch
+Message-Id: <20250906002645.1D249C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: fix use-after-free in state_show()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-fix-use-after-free-in-state_show.patch
+     Subject: docs/mm: add document for swap table
+has been added to the -mm mm-new branch.  Its filename is
+     docs-mm-add-document-for-swap-table.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-fix-use-after-free-in-state_show.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-add-document-for-swap-table.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,73 +64,250 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stanislav Fort <stanislav.fort@aisle.com>
-Subject: mm/damon/sysfs: fix use-after-free in state_show()
-Date: Fri, 5 Sep 2025 13:10:46 +0300
+From: Chris Li <chrisl@kernel.org>
+Subject: docs/mm: add document for swap table
+Date: Sat, 6 Sep 2025 03:13:43 +0800
 
-state_show() reads kdamond->damon_ctx without holding damon_sysfs_lock. 
-This allows a use-after-free race:
+Patch series "mm, swap: introduce swap table as swap cache (phase I)", v2.
 
-CPU 0                         CPU 1
------                         -----
-state_show()                  damon_sysfs_turn_damon_on()
-ctx = kdamond->damon_ctx;     mutex_lock(&damon_sysfs_lock);
-                              damon_destroy_ctx(kdamond->damon_ctx);
-                              kdamond->damon_ctx = NULL;
-                              mutex_unlock(&damon_sysfs_lock);
-damon_is_running(ctx);        /* ctx is freed */
-mutex_lock(&ctx->kdamond_lock); /* UAF */
+This is the first phase of the bigger series implementing basic
+infrastructures for the Swap Table idea proposed at the LSF/MM/BPF topic
+"Integrate swap cache, swap maps with swap allocator" [1].  To give credit
+where it is due, this is based on Chris Li's idea and a prototype of using
+cluster size atomic arrays to implement swap cache.
 
-(The race can also occur with damon_sysfs_kdamonds_rm_dirs() and
-damon_sysfs_kdamond_release(), which free or replace the context under
-damon_sysfs_lock.)
+This phase I contains 15 patches, introduces the swap table infrastructure
+and uses it as the swap cache backend.  By doing so, we have up to ~5-20%
+performance gain in throughput, RPS or build time for benchmark and
+workload tests.  The speed up is due to less contention on the swap cache
+access and shallower swap cache lookup path.  The cluster size is much
+finer-grained than the 64M address space split, which is removed in this
+phase I.  It also unifies and cleans up the swap code base.
 
-Fix by taking damon_sysfs_lock before dereferencing the context, mirroring
-the locking used in pid_show().
+Each swap cluster will dynamically allocate the swap table, which is an
+atomic array to cover every swap slot in the cluster.  It replaces the
+swap cache backed by XArray.  In phase I, the static allocated swap_map
+still co-exists with the swap table.  The memory usage is about the same
+as the original on average.  A few exception test cases show about 1%
+higher in memory usage.  In the following phases of the series, swap_map
+will merge into the swap table without additional memory allocation.  It
+will result in net memory reduction compared to the original swap cache.
 
-The bug has existed since state_show() first accessed kdamond->damon_ctx.
+Testing has shown that phase I has a significant performance improvement
+from 8c/1G ARM machine to 48c96t/128G x86_64 servers in many practical
+workloads.
 
-Link: https://lkml.kernel.org/r/20250905101046.2288-1-disclosure@aisle.com
-Fixes: a61ea561c871 ("mm/damon/sysfs: link DAMON for virtual address spaces monitoring")
-Signed-off-by: Stanislav Fort <disclosure@aisle.com>
-Reported-by: Stanislav Fort <disclosure@aisle.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+The full picture with a summary can be found at [2].  An older bigger
+series of 28 patches is posted at [3].
+
+vm-scability test:
+==================
+Test with:
+usemem --init-time -O -y -x -n 31 1G (4G memcg, PMEM as swap)
+                           Before:         After:
+System time:               219.12s         158.16s        (-27.82%)
+Sum Throughput:            4767.13 MB/s    6128.59 MB/s   (+28.55%)
+Single process Throughput: 150.21 MB/s     196.52 MB/s    (+30.83%)
+Free latency:              175047.58 us    131411.87 us   (-24.92%)
+
+usemem --init-time -O -y -x -n 32 1536M (16G memory, global pressure,
+PMEM as swap)
+                           Before:         After:
+System time:               356.16s         284.68s      (-20.06%)
+Sum Throughput:            4648.35 MB/s    5453.52 MB/s (+17.32%)
+Single process Throughput: 141.63 MB/s     168.35 MB/s  (+18.86%)
+Free latency:              499907.71 us    484977.03 us (-2.99%)
+
+This shows an improvement of more than 20% improvement in most readings.
+
+Build kernel test:
+==================
+The following result matrix is from building kernel with defconfig on
+tmpfs with ZSWAP / ZRAM, using different memory pressure and setups. 
+Measuring sys and real time in seconds, less is better (user time is
+almost identical as expected):
+
+ -j<NR> / Mem  | Sys before / after  | Real before / after
+Using 16G ZRAM with memcg limit:
+     6  / 192M | 9686 / 9472  -2.21% | 2130  / 2096   -1.59%
+     12 / 256M | 6610 / 6451  -2.41% |  827  /  812   -1.81%
+     24 / 384M | 5938 / 5701  -3.37% |  414  /  405   -2.17%
+     48 / 768M | 4696 / 4409  -6.11% |  188  /  182   -3.19%
+With 64k folio:
+     24 / 512M | 4222 / 4162  -1.42% |  326  /  321   -1.53%
+     48 / 1G   | 3688 / 3622  -1.79% |  151  /  149   -1.32%
+With ZSWAP with 3G memcg (using higher limit due to kmem account):
+     48 / 3G   |  603 /  581  -3.65% |  81   /   80   -1.23%
+
+Testing extremely high global memory and schedule pressure: Using ZSWAP
+with 32G NVMEs in a 48c VM that has 4G memory, no memcg limit, system
+components take up about 1.5G already, using make -j48 to build defconfig:
+
+Before:  sys time: 2069.53s            real time: 135.76s
+After:   sys time: 2021.13s (-2.34%)   real time: 134.23s (-1.12%)
+
+On another 48c 4G memory VM, using 16G ZRAM as swap, testing make
+-j48 with same config:
+
+Before:  sys time: 1756.96s            real time: 111.01s
+After:   sys time: 1715.90s (-2.34%)   real time: 109.51s (-1.35%)
+
+All cases are more or less faster, and no regression even under extremely
+heavy global memory pressure.
+
+Redis / Valkey bench:
+=====================
+The test machine is a ARM64 VM with 1536M memory 12 cores, Redis is set to
+use 2500M memory, and ZRAM swapfile size is set to 5G:
+
+Testing with:
+redis-benchmark -r 2000000 -n 2000000 -d 1024 -c 12 -P 32 -t get
+
+                no BGSAVE                with BGSAVE
+Before:         487576.06 RPS            280016.02 RPS
+After:          487541.76 RPS (-0.01%)   300155.32 RPS (+7.19%)
+
+Testing with:
+redis-benchmark -r 2500000 -n 2500000 -d 1024 -c 12 -P 32 -t get
+                no BGSAVE                with BGSAVE
+Before:         466789.59 RPS            281213.92 RPS
+After:          466402.89 RPS (-0.08%)   298411.84 RPS (+6.12%)
+
+With BGSAVE enabled, most Redis memory will have a swap count > 1 so swap
+cache is heavily in use.  We can see a about 6% performance gain.  No
+BGSAVE is very slightly slower (<0.1%) due to the higher memory pressure
+of the co-existence of swap_map and swap table.  This will be optimzed
+into a net gain and up to 20% gain in BGSAVE case in the following phases.
+
+HDD swap is also about 40% faster with usemem test because we removed an
+old contention workaround.
+
+
+This patch (of 15):
+
+Swap table is the new swap cache.
+
+Link: https://lkml.kernel.org/r/20250905191357.78298-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250905191357.78298-2-ryncsn@gmail.com
+Link: https://lore.kernel.org/CAMgjq7BvQ0ZXvyLGp2YP96+i+6COCBBJCYmjXHGBnfisCAb8VA@mail.gmail.com [1]
+Link: https://github.com/ryncsn/linux/tree/kasong/devel/swap-table [2]
+Link: https://lore.kernel.org/linux-mm/20250514201729.48420-1-ryncsn@gmail.com/ [3]
+Signed-off-by: Chris Li <chrisl@kernel.org>
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Suggested-by: Chris Li <chrisl@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: kernel test robot <oliver.sang@intel.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ Documentation/mm/swap-table.rst |   72 ++++++++++++++++++++++++++++++
+ MAINTAINERS                     |    1 
+ 2 files changed, 73 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-fix-use-after-free-in-state_show
-+++ a/mm/damon/sysfs.c
-@@ -1260,14 +1260,18 @@ static ssize_t state_show(struct kobject
- {
- 	struct damon_sysfs_kdamond *kdamond = container_of(kobj,
- 			struct damon_sysfs_kdamond, kobj);
--	struct damon_ctx *ctx = kdamond->damon_ctx;
--	bool running;
-+	struct damon_ctx *ctx;
-+	bool running = false;
- 
--	if (!ctx)
--		running = false;
--	else
-+	if (!mutex_trylock(&damon_sysfs_lock))
-+		return -EBUSY;
+diff --git a/Documentation/mm/swap-table.rst a/Documentation/mm/swap-table.rst
+new file mode 100644
+--- /dev/null
++++ a/Documentation/mm/swap-table.rst
+@@ -0,0 +1,72 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
-+	ctx = kdamond->damon_ctx;
-+	if (ctx)
- 		running = damon_is_running(ctx);
- 
-+	mutex_unlock(&damon_sysfs_lock);
++:Author: Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>
 +
- 	return sysfs_emit(buf, "%s\n", running ?
- 			damon_sysfs_cmd_strs[DAMON_SYSFS_CMD_ON] :
- 			damon_sysfs_cmd_strs[DAMON_SYSFS_CMD_OFF]);
++==========
++Swap Table
++==========
++
++Swap table implements swap cache as a per-cluster swap cache value array.
++
++Swap Entry
++----------
++
++A swap entry contains the information required to serve the anonymous page
++fault.
++
++Swap entry is encoded as two parts: swap type and swap offset.
++
++The swap type indicates which swap device to use.
++The swap offset is the offset of the swap file to read the page data from.
++
++Swap Cache
++----------
++
++Swap cache is a map to look up folios using swap entry as the key. The result
++value can have three possible types depending on which stage of this swap entry
++was in.
++
++1. NULL: This swap entry is not used.
++
++2. folio: A folio has been allocated and bound to this swap entry. This is
++   the transient state of swap out or swap in. The folio data can be in
++   the folio or swap file, or both.
++
++3. shadow: The shadow contains the working set information of the swap
++   outed folio. This is the normal state for a swap outed page.
++
++Swap Table
++----------
++
++The previous swap cache is implemented by XAray. The XArray is a tree
++structure. Each lookup will go through multiple nodes. Can we do better?
++
++Notice that most of the time when we look up the swap cache, we are either
++in a swap in or swap out path. We should already have the swap cluster,
++which contains the swap entry.
++
++If we have a per-cluster array to store swap cache value in the cluster.
++Swap cache lookup within the cluster can be a very simple array lookup.
++
++We give such a per-cluster swap cache value array a name: the swap table.
++
++Each swap cluster contains 512 entries, so a swap table stores one cluster
++worth of swap cache values, which is exactly one page. This is not
++coincidental because the cluster size is determined by the huge page size.
++The swap table is holding an array of pointers. The pointer has the same
++size as the PTE. The size of the swap table should match to the second
++last level of the page table page, exactly one page.
++
++With swap table, swap cache lookup can achieve great locality, simpler,
++and faster.
++
++Locking
++-------
++
++Swap table modification requires taking the cluster lock. If a folio
++is being added to or removed from the swap table, the folio must be
++locked prior to the cluster lock. After adding or removing is done, the
++folio shall be unlocked.
++
++Swap table lookup is protected by RCU and atomic read. If the lookup
++returns a folio, the user must lock the folio before use.
+--- a/MAINTAINERS~docs-mm-add-document-for-swap-table
++++ a/MAINTAINERS
+@@ -16223,6 +16223,7 @@ R:	Barry Song <baohua@kernel.org>
+ R:	Chris Li <chrisl@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++F:	Documentation/mm/swap-table.rst
+ F:	include/linux/swap.h
+ F:	include/linux/swapfile.h
+ F:	include/linux/swapops.h
 _
 
-Patches currently in -mm which might be from stanislav.fort@aisle.com are
+Patches currently in -mm which might be from chrisl@kernel.org are
 
-mm-damon-sysfs-fix-use-after-free-in-state_show.patch
+mm-swapfilec-introduce-function-alloc_swap_scan_list.patch
+mm-swaph-remove-deleted-field-from-comments.patch
+docs-mm-add-document-for-swap-table.patch
 
