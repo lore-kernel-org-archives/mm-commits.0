@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B04EE47F4A
-	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 22:59:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2042EF65A
+	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 22:59:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757372357; cv=none; b=UE6F8lMvd8NL+SYvi5tD6txiGilqVBhZTiIZkJgxwZZI2JAsSw3s4se6F+OzFXwWbKLUTzc/26oqZ2s4TK6cwwwGJWVw4am22Ix+xMSf1Ol/Ut/iFaRqTRs83gNaIGM3CB8UOOO+n/KyQaiuOfJE78rptRHCiGPUGuTYth+5N5Y=
+	t=1757372358; cv=none; b=qqPfkoYEWdn2AMEu+dptKEXQ9glFAvck0DoI8UuuXt7zrQMfAvgBZxWKPu85s14fsm3V6IIBmYOz7o6/BFQUugXetZgvM/mPmI08Hoh3U0hHVks6h8JOz39+qla6lvcMPC/5l0gFgaE5Vavl8hf466J6Z82PlGSYICcADCRLUi0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757372357; c=relaxed/simple;
-	bh=3TRknvpvayCDYdmr/5ggCCbKTFpDSPD+00nzqLPqtLc=;
-	h=Date:To:From:Subject:Message-Id; b=f6hZSQzJEa2m3Wmhh5OqSe7ixXQvKWZObVfFqFBTpHUSu8lHOpYPZqRyt1SUTZSSfB/87jSTel3CNCTLtnbGqFprLcWdhbwHuRsTHewZCNOW3Oo5rxI2t184+OeeQrcchwFiihGRFIwMy0m4m1s5SZvHZeYZ2W6Rl56rJ2Ok8H8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F5sdAvlq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757372358; c=relaxed/simple;
+	bh=c1lZLRA/cmVZkT3MkIRxz7WnaOzzNRlxre3MX5JaSJ4=;
+	h=Date:To:From:Subject:Message-Id; b=rFgeLtMP8DUfXluROMQWSN6oCMfmW8R2ymn5LKZI6MGiAUwOLKnuvqTKhEaO8tX2b16OMzyqEm40m0vVfBHHtpu/lRTdR6syjFDKs5piOcsjeyJbXJfsz4bephUVyWVwjJIv/gyfB5ypKWQDUdkpfqSVVPtD+J/qZQNna60DM9g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jSQz0qMJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F5sdAvlq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD06C4CEF1;
-	Mon,  8 Sep 2025 22:59:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jSQz0qMJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A522C4CEF7;
+	Mon,  8 Sep 2025 22:59:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757372355;
-	bh=3TRknvpvayCDYdmr/5ggCCbKTFpDSPD+00nzqLPqtLc=;
+	s=korg; t=1757372356;
+	bh=c1lZLRA/cmVZkT3MkIRxz7WnaOzzNRlxre3MX5JaSJ4=;
 	h=Date:To:From:Subject:From;
-	b=F5sdAvlqsFgDurfoJqiruyUOCZvmmaam8D29EcU/NBg08wHgQU2Oqh/23HNYyYGns
-	 eVXn2jAfVHFW05jGfkDpLtMq7UsGUnAVLzkb3BsER9hInQUHL/CzJ7ltRpI198Vp+z
-	 Pc9IfhwvTN+EJz9zU5qK91tmnvywZHIBjG1fWmhA=
-Date: Mon, 08 Sep 2025 15:59:14 -0700
+	b=jSQz0qMJtOMS2dTaPuN0/CRZzecFdmJUn15J4YaeVFkrRcxi3yT8WhUsXFQzjoOBr
+	 UOyJym3sYRCujtrynQzWmZ+gFkWE/a8+IbuSr+fhVAA1+teqhWa610MVfRC8Ykf+Ze
+	 urdgmvqdTGr6ABpUQkNYvqzMLIY39x2wA1cE1cgo=
+Date: Mon, 08 Sep 2025 15:59:15 -0700
 To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch added to mm-new branch
-Message-Id: <20250908225915.1CD06C4CEF1@smtp.kernel.org>
+Subject: + ptdesc-remove-ptdesc_to_virt.patch added to mm-new branch
+Message-Id: <20250908225916.6A522C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()
+     Subject: ptdesc: remove ptdesc_to_virt()
 has been added to the -mm mm-new branch.  Its filename is
-     ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
+     ptdesc-remove-ptdesc_to_virt.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ptdesc-remove-ptdesc_to_virt.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,70 +65,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()
-Date: Mon, 8 Sep 2025 18:11:01 +0100
+Subject: ptdesc: remove ptdesc_to_virt()
+Date: Mon, 8 Sep 2025 18:11:02 +0100
 
-In preparation for splitting struct ptdesc from struct page and struct
-folio, remove mentions of struct folio from these functions.  Introduce
-ptdesc_nr_pages() to avoid using lruvec_stat_add/sub_folio()
+This has the same effect as ptdesc_address() so convert the callers to use
+that and delete the function.  Add kernel-doc for ptdesc_address().
 
-Link: https://lkml.kernel.org/r/20250908171104.2409217-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250908171104.2409217-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ arch/arm/mm/mmu.c      |    2 +-
+ arch/s390/mm/pgalloc.c |    6 +++---
+ include/linux/mm.h     |   11 ++++++-----
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor
+--- a/arch/arm/mm/mmu.c~ptdesc-remove-ptdesc_to_virt
++++ a/arch/arm/mm/mmu.c
+@@ -737,7 +737,7 @@ static void *__init late_alloc(unsigned
+ 
+ 	if (!ptdesc || !pagetable_pte_ctor(NULL, ptdesc))
+ 		BUG();
+-	return ptdesc_to_virt(ptdesc);
++	return ptdesc_address(ptdesc);
+ }
+ 
+ static pte_t * __init arm_pte_alloc(pmd_t *pmd, unsigned long addr,
+--- a/arch/s390/mm/pgalloc.c~ptdesc-remove-ptdesc_to_virt
++++ a/arch/s390/mm/pgalloc.c
+@@ -21,7 +21,7 @@ unsigned long *crst_table_alloc(struct m
+ 
+ 	if (!ptdesc)
+ 		return NULL;
+-	table = ptdesc_to_virt(ptdesc);
++	table = ptdesc_address(ptdesc);
+ 	__arch_set_page_dat(table, 1UL << CRST_ALLOC_ORDER);
+ 	return table;
+ }
+@@ -119,7 +119,7 @@ struct ptdesc *page_table_alloc_pgste(st
+ 
+ 	ptdesc = pagetable_alloc(GFP_KERNEL, 0);
+ 	if (ptdesc) {
+-		table = (u64 *)ptdesc_to_virt(ptdesc);
++		table = (u64 *)ptdesc_address(ptdesc);
+ 		__arch_set_page_dat(table, 1);
+ 		memset64(table, _PAGE_INVALID, PTRS_PER_PTE);
+ 		memset64(table + PTRS_PER_PTE, 0, PTRS_PER_PTE);
+@@ -146,7 +146,7 @@ unsigned long *page_table_alloc(struct m
+ 		pagetable_free(ptdesc);
+ 		return NULL;
+ 	}
+-	table = ptdesc_to_virt(ptdesc);
++	table = ptdesc_address(ptdesc);
+ 	__arch_set_page_dat(table, 1);
+ 	memset64((u64 *)table, _PAGE_INVALID, PTRS_PER_PTE);
+ 	memset64((u64 *)table + PTRS_PER_PTE, 0, PTRS_PER_PTE);
+--- a/include/linux/mm.h~ptdesc-remove-ptdesc_to_virt
 +++ a/include/linux/mm.h
-@@ -2097,9 +2097,9 @@ static inline long folio_nr_pages(const
-  * page.  compound_nr() can be called on a tail page, and is defined to
-  * return 1 in that case.
-  */
--static inline long compound_nr(struct page *page)
-+static inline long compound_nr(const struct page *page)
- {
--	struct folio *folio = (struct folio *)page;
-+	const struct folio *folio = (struct folio *)page;
- 
- 	if (!test_bit(PG_head, &folio->flags.f))
- 		return 1;
-@@ -3066,21 +3066,26 @@ static inline bool ptlock_init(struct pt
- static inline void ptlock_free(struct ptdesc *ptdesc) {}
- #endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
- 
-+static inline unsigned long ptdesc_nr_pages(const struct ptdesc *ptdesc)
-+{
-+	return compound_nr(ptdesc_page(ptdesc));
-+}
-+
- static inline void __pagetable_ctor(struct ptdesc *ptdesc)
- {
--	struct folio *folio = ptdesc_folio(ptdesc);
-+	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
- 
--	__folio_set_pgtable(folio);
--	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+	__SetPageTable(ptdesc_page(ptdesc));
-+	mod_node_page_state(pgdat, NR_PAGETABLE, ptdesc_nr_pages(ptdesc));
+@@ -2944,11 +2944,12 @@ static inline struct ptdesc *virt_to_ptd
+ 	return page_ptdesc(virt_to_page(x));
  }
  
- static inline void pagetable_dtor(struct ptdesc *ptdesc)
+-static inline void *ptdesc_to_virt(const struct ptdesc *pt)
+-{
+-	return page_to_virt(ptdesc_page(pt));
+-}
+-
++/**
++ * ptdesc_address - Virtual address of page table.
++ * @pt: Page table descriptor.
++ *
++ * Return: The first byte of the page table described by @pt.
++ */
+ static inline void *ptdesc_address(const struct ptdesc *pt)
  {
--	struct folio *folio = ptdesc_folio(ptdesc);
-+	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
- 
- 	ptlock_free(ptdesc);
--	__folio_clear_pgtable(folio);
--	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
-+	__ClearPageTable(ptdesc_page(ptdesc));
-+	mod_node_page_state(pgdat, NR_PAGETABLE, -ptdesc_nr_pages(ptdesc));
- }
- 
- static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
+ 	return folio_address(ptdesc_folio(pt));
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
