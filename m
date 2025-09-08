@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D4D222126C
-	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 22:41:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2EBF4A06
+	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 22:43:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757371302; cv=none; b=TVoiRqWoDmSBYzspq58ioAa9UxA1R/Ccy63PP7RZ79JAMorCtjEIiOxR1pV0In+sxjsqx0Mz86XmXM7LqVE6hKm17Q1MvyrMbsKi2zXsMIYH+ygPy4cMrVwr5k7Dz06xv+hBc60237kxtcphvWylhOwwsYHYn1JqrXmlnQgf11U=
+	t=1757371383; cv=none; b=cxhTcarSV7OnoU2zV2MRPEY4UM55X401U93bIJ0EQDW6BUSHdE3WsCHD54MB1axo4IOxayaB8iMs72IO+vHHRQPiSVWeU+T6h+OfYqtYWooaPdkx2EGGNv4RbZ0scwpiu2QTyoWQsyE1N6Tfj+40ToAo9+TAEiS+bMH77HJjGDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757371302; c=relaxed/simple;
-	bh=no0Q1QjWE79swc14GMrunGZ6DVTmsG52Uf2YvZNwoOg=;
-	h=Date:To:From:Subject:Message-Id; b=JjQh+wANJ1x4x4LbsCWWrFMGqwY2mmvMxVA008zg2VYqiOGMU/3m9nFdOlRS/i/axKkyA+6R746W/HJLZ4QSqxatdu4r4AvswBOptE5qfBS9vZ30d4MktTxZiFi/ifNC+dPxmIWNvrHZhmeykR3xXNg47AQGs77AHsccqrtzOMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ReyuP5SM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757371383; c=relaxed/simple;
+	bh=rDMr5ys2nhTS8L2lMBhVSj0eKN/fEg4/AEN6xy4S0Xk=;
+	h=Date:To:From:Subject:Message-Id; b=Z2pSOW2s0vbxRGjmHJ0+G/EyFrVpH8rztjzVGlqyTHiZZGjOofPGRMbAuE+9lqMIAwsMiI4ShWYh0key/re6XxS0eGbuvUOyFlfH2eJmdwJ7zKBYOlt7AxG0KjBuFttFSmaRG8pvcRVVgyDHEi400cF1EiDufUCD5jRYmgjMz+I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r9nQr55V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ReyuP5SM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F97CC4CEF1;
-	Mon,  8 Sep 2025 22:41:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r9nQr55V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BE9DC4CEF1;
+	Mon,  8 Sep 2025 22:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757371302;
-	bh=no0Q1QjWE79swc14GMrunGZ6DVTmsG52Uf2YvZNwoOg=;
+	s=korg; t=1757371382;
+	bh=rDMr5ys2nhTS8L2lMBhVSj0eKN/fEg4/AEN6xy4S0Xk=;
 	h=Date:To:From:Subject:From;
-	b=ReyuP5SMRtENRVUjOPdpLpWocJaecGRD6f87N0P2EzL+gXFbjk6P5u86m6chrexQi
-	 Rbma1PlwfeZdchufdKIqKT8O9gYR/BKVYCoIwuIsii+DalsEIu/PflkS2XerRb872Y
-	 X5avKyrcdeoQghrAeCBP+CkoiJ/gYcwgz0ZNRRdo=
-Date: Mon, 08 Sep 2025 15:41:41 -0700
-To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,sj@kernel.org,akpm@linux-foundation.org
+	b=r9nQr55VDcvcyLSW/tw9esVam0IuVpE6W50l0LumO55fzZaeCmjEqgkCUnQtAfr3q
+	 dKefy54pWTxziRF5227qxj/+vnnJKtgpCRN1i4HFKEuLPSQBlKY0oMMABMdnv/GEfS
+	 UUMiAA1qd4mYskLinQrVUGi3XA35fLbMnQAklMTw=
+Date: Mon, 08 Sep 2025 15:43:01 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250908224142.4F97CC4CEF1@smtp.kernel.org>
+Subject: + maintainers-add-jann-horn-as-rmap-reviewer.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250908224302.4BE9DC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: use dynamically allocated repeat mode damon_call_control
+     Subject: MAINTAINERS: add Jann Horn as rmap reviewer
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch
+     maintainers-add-jann-horn-as-rmap-reviewer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-jann-horn-as-rmap-reviewer.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,116 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: use dynamically allocated repeat mode damon_call_control
-Date: Mon, 8 Sep 2025 13:15:13 -0700
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add Jann Horn as rmap reviewer
+Date: Mon, 8 Sep 2025 20:49:59 +0100
 
-Patch series "mm/damon/sysfs: fix refresh_ms control overwriting on
-multi-kdamonds usages".
+Jann has been an excellent contributor in all areas of memory management,
+and has demonstrated great expertise in the reverse mapping.
 
-Automatic esssential DAMON/DAMOS status update feature of DAMON sysfs
-interface (refresh_ms) is broken [1] for multiple DAMON contexts
-(kdamonds) use case, since it uses a global single damon_call_control
-object for all created DAMON contexts.  The fields of the object,
-particularly the list field is over-written for the contexts and it makes
-unexpected results including user-space hangup and kernel crashes [2]. 
-Fix it by extending damon_call_control for the use case and updating the
-usage on DAMON sysfs interface to use per-context dynamically allocated
-damon_call_control object.
+It's therefore appropriate for him to become a reviewer.
 
-
-This patch (of 2):
-
-DAMON sysfs interface is using a single global repeat mode
-damon_call_control variable for refresh_ms handling, for all DAMON
-contexts.  As a result, when there are more than one context, the single
-global damon_call_control is unexpectedly over-written (corrupted). 
-Particularly the ->link field is overwritten by the multiple contexts and
-this can cause a user hangup, and/or a kernel crash.  Fix it by using
-dynamically allocated damon_call_control object per DAMON context.
-
-Link: https://lkml.kernel.org/r/20250908201513.60802-3-sj@kernel.org
-Link: https://lore.kernel.org/20250904011738.930-1-yunjeong.mun@sk.com [1]
-Link: https://lore.kernel.org/20250905035411.39501-1-sj@kernel.org [2]
-Fixes: d809a7c64ba8 ("mm/damon/sysfs: implement refresh_ms file internal work")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Yunjeong Mun <yunjeong.mun@sk.com>
-Closes: https://lore.kernel.org/20250904011738.930-1-yunjeong.mun@sk.com
+Link: https://lkml.kernel.org/r/20250908194959.820913-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control
-+++ a/mm/damon/sysfs.c
-@@ -1534,14 +1534,10 @@ static int damon_sysfs_repeat_call_fn(vo
- 	return 0;
- }
- 
--static struct damon_call_control damon_sysfs_repeat_call_control = {
--	.fn = damon_sysfs_repeat_call_fn,
--	.repeat = true,
--};
--
- static int damon_sysfs_turn_damon_on(struct damon_sysfs_kdamond *kdamond)
- {
- 	struct damon_ctx *ctx;
-+	struct damon_call_control *repeat_call_control;
- 	int err;
- 
- 	if (damon_sysfs_kdamond_running(kdamond))
-@@ -1554,18 +1550,29 @@ static int damon_sysfs_turn_damon_on(str
- 		damon_destroy_ctx(kdamond->damon_ctx);
- 	kdamond->damon_ctx = NULL;
- 
-+	repeat_call_control = kmalloc(sizeof(*repeat_call_control),
-+			GFP_KERNEL);
-+	if (!repeat_call_control)
-+		return -ENOMEM;
-+
- 	ctx = damon_sysfs_build_ctx(kdamond->contexts->contexts_arr[0]);
--	if (IS_ERR(ctx))
-+	if (IS_ERR(ctx)) {
-+		kfree(repeat_call_control);
- 		return PTR_ERR(ctx);
-+	}
- 	err = damon_start(&ctx, 1, false);
- 	if (err) {
-+		kfree(repeat_call_control);
- 		damon_destroy_ctx(ctx);
- 		return err;
- 	}
- 	kdamond->damon_ctx = ctx;
- 
--	damon_sysfs_repeat_call_control.data = kdamond;
--	damon_call(ctx, &damon_sysfs_repeat_call_control);
-+	repeat_call_control->fn = damon_sysfs_repeat_call_fn;
-+	repeat_call_control->data = kdamond;
-+	repeat_call_control->repeat = true;
-+	repeat_call_control->dealloc_on_cancel = true;
-+	damon_call(ctx, repeat_call_control);
- 	return err;
- }
- 
+--- a/MAINTAINERS~maintainers-add-jann-horn-as-rmap-reviewer
++++ a/MAINTAINERS
+@@ -16195,6 +16195,7 @@ R:	Rik van Riel <riel@surriel.com>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
+ R:	Harry Yoo <harry.yoo@oracle.com>
++R:	Jann Horn <jannh@google.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	include/linux/rmap.h
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-damon-core-introduce-damon_call_control-dealloc_on_cancel.patch
-mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch
-mm-zswap-store-page_size-compression-failed-page-as-is.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-fix.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-v5.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch
-mm-damon-core-add-damon_ctx-addr_unit.patch
-mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
-mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
-mm-damon-paddr-support-addr_unit-for-damos_lru_prio.patch
-mm-damon-paddr-support-addr_unit-for-migrate_hotcold.patch
-mm-damon-paddr-support-addr_unit-for-damos_stat.patch
-mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
-docs-mm-damon-design-document-address-unit-parameter.patch
-docs-admin-guide-mm-damon-usage-document-addr_unit-file.patch
-docs-abi-damon-document-addr_unit-file.patch
+maintainers-add-jann-horn-as-rmap-reviewer.patch
+mm-add-bitmap-mm-flags-field.patch
+mm-add-bitmap-mm-flags-field-fix.patch
+mm-convert-core-mm-to-mm_flags_-accessors.patch
+mm-convert-prctl-to-mm_flags_-accessors.patch
+mm-convert-arch-specific-code-to-mm_flags_-accessors.patch
+mm-convert-arch-specific-code-to-mm_flags_-accessors-fix.patch
+mm-convert-uprobes-to-mm_flags_-accessors.patch
+mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags.patch
+mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch
+mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
+mm-correct-sign-extension-issue-in-mmf_-flag-masks-fix.patch
+mm-update-fork-mm-flags-initialisation-to-use-bitmap.patch
+mm-convert-remaining-users-to-mm_flags_-accessors.patch
+mm-replace-mm-flags-with-bitmap-entirely-and-set-to-64-bits.patch
+mm-specify-separate-file-and-vm_file-params-in-vm_area_desc.patch
+mm-do-not-assume-file-==-vma-vm_file-in-compat_vma_mmap_prepare.patch
 
