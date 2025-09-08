@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7519A22126C
-	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 22:41:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D4D222126C
+	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 22:41:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757371301; cv=none; b=WV7aKgsh0cFVhlEr79VTQ/JdMM3F6ug90S6qhvoaD0VOnW+fxx8pmn3l48bWz16vMkgh1M7O+BQbeJtM8WqUKNHqi8EEXpyStDb8dKmUrtBSrwl/SRaMQAnMn783dvGzCfzx5s+CpOaJMxe+UsNMhBM5F0Zlca6UhDmyG2zcmFg=
+	t=1757371302; cv=none; b=TVoiRqWoDmSBYzspq58ioAa9UxA1R/Ccy63PP7RZ79JAMorCtjEIiOxR1pV0In+sxjsqx0Mz86XmXM7LqVE6hKm17Q1MvyrMbsKi2zXsMIYH+ygPy4cMrVwr5k7Dz06xv+hBc60237kxtcphvWylhOwwsYHYn1JqrXmlnQgf11U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757371301; c=relaxed/simple;
-	bh=5LfjzGD3VZb++sl0CKVlpNENf6PYPS/KSKRmWd+xow8=;
-	h=Date:To:From:Subject:Message-Id; b=kl8FU9HpoLSvWH6fJ7ucglfUC1/1Rba6trKtLg6oIke7SiEMIZ5iSenPwLw+TnWvFbY5pfXQX4og+C6V+wyvEiujZFU2mKP88ClskgVlEyYE6owttXFeTyuMUKtT+Ht8SCv31OubD4adYcl8EeOc7Sn7BclfhDglE183vhlWp6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IDW83gJr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757371302; c=relaxed/simple;
+	bh=no0Q1QjWE79swc14GMrunGZ6DVTmsG52Uf2YvZNwoOg=;
+	h=Date:To:From:Subject:Message-Id; b=JjQh+wANJ1x4x4LbsCWWrFMGqwY2mmvMxVA008zg2VYqiOGMU/3m9nFdOlRS/i/axKkyA+6R746W/HJLZ4QSqxatdu4r4AvswBOptE5qfBS9vZ30d4MktTxZiFi/ifNC+dPxmIWNvrHZhmeykR3xXNg47AQGs77AHsccqrtzOMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ReyuP5SM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDW83gJr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6D9FC4CEF1;
-	Mon,  8 Sep 2025 22:41:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ReyuP5SM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F97CC4CEF1;
+	Mon,  8 Sep 2025 22:41:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757371300;
-	bh=5LfjzGD3VZb++sl0CKVlpNENf6PYPS/KSKRmWd+xow8=;
+	s=korg; t=1757371302;
+	bh=no0Q1QjWE79swc14GMrunGZ6DVTmsG52Uf2YvZNwoOg=;
 	h=Date:To:From:Subject:From;
-	b=IDW83gJrslpJXCUI4SCQDshs8iNyuI3Dt85umv7TmeT3/hr+zFa+AHV0WylnSH1CU
-	 1Uf0k7rxQ4+8Q2glWoRByvGR97TOrdsINXyeOE+IOJxJrp3IZwsaS+EoIaIShwpq7+
-	 Rj86nHHKrkjP+uip/KOoUJCAFyNqrGFeBOwnYJxc=
-Date: Mon, 08 Sep 2025 15:41:40 -0700
+	b=ReyuP5SMRtENRVUjOPdpLpWocJaecGRD6f87N0P2EzL+gXFbjk6P5u86m6chrexQi
+	 Rbma1PlwfeZdchufdKIqKT8O9gYR/BKVYCoIwuIsii+DalsEIu/PflkS2XerRb872Y
+	 X5avKyrcdeoQghrAeCBP+CkoiJ/gYcwgz0ZNRRdo=
+Date: Mon, 08 Sep 2025 15:41:41 -0700
 To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-introduce-damon_call_control-dealloc_on_cancel.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250908224140.C6D9FC4CEF1@smtp.kernel.org>
+Subject: + mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250908224142.4F97CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: introduce damon_call_control->dealloc_on_cancel
+     Subject: mm/damon/sysfs: use dynamically allocated repeat mode damon_call_control
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-introduce-damon_call_control-dealloc_on_cancel.patch
+     mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_call_control-dealloc_on_cancel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,64 +59,97 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damon_call_control->dealloc_on_cancel
-Date: Mon, 8 Sep 2025 13:15:12 -0700
+Subject: mm/damon/sysfs: use dynamically allocated repeat mode damon_call_control
+Date: Mon, 8 Sep 2025 13:15:13 -0700
 
-When damon_call_control->repeat is set, damon_call() is executed
-asynchronously, and eventually be canceled when kdamond finishes.  If the
-damon_call_control object is dynamically allocated, hence, finding the
-place to deallocate the object is difficult.  Introduce a new
-damon_call_control field, namely dealloc_on_cancel, to ask the kdamond
-deallocates those dynamically allocated objects when those are canceled.
+Patch series "mm/damon/sysfs: fix refresh_ms control overwriting on
+multi-kdamonds usages".
 
-Link: https://lkml.kernel.org/r/20250908201513.60802-2-sj@kernel.org
+Automatic esssential DAMON/DAMOS status update feature of DAMON sysfs
+interface (refresh_ms) is broken [1] for multiple DAMON contexts
+(kdamonds) use case, since it uses a global single damon_call_control
+object for all created DAMON contexts.  The fields of the object,
+particularly the list field is over-written for the contexts and it makes
+unexpected results including user-space hangup and kernel crashes [2]. 
+Fix it by extending damon_call_control for the use case and updating the
+usage on DAMON sysfs interface to use per-context dynamically allocated
+damon_call_control object.
+
+
+This patch (of 2):
+
+DAMON sysfs interface is using a single global repeat mode
+damon_call_control variable for refresh_ms handling, for all DAMON
+contexts.  As a result, when there are more than one context, the single
+global damon_call_control is unexpectedly over-written (corrupted). 
+Particularly the ->link field is overwritten by the multiple contexts and
+this can cause a user hangup, and/or a kernel crash.  Fix it by using
+dynamically allocated damon_call_control object per DAMON context.
+
+Link: https://lkml.kernel.org/r/20250908201513.60802-3-sj@kernel.org
+Link: https://lore.kernel.org/20250904011738.930-1-yunjeong.mun@sk.com [1]
+Link: https://lore.kernel.org/20250905035411.39501-1-sj@kernel.org [2]
 Fixes: d809a7c64ba8 ("mm/damon/sysfs: implement refresh_ms file internal work")
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Yunjeong Mun <yunjeong.mun@sk.com>
+Reported-by: Yunjeong Mun <yunjeong.mun@sk.com>
+Closes: https://lore.kernel.org/20250904011738.930-1-yunjeong.mun@sk.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- mm/damon/core.c       |    8 ++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ mm/damon/sysfs.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damon_call_control-dealloc_on_cancel
-+++ a/include/linux/damon.h
-@@ -636,6 +636,7 @@ struct damon_operations {
-  * @data:		Data that will be passed to @fn.
-  * @repeat:		Repeat invocations.
-  * @return_code:	Return code from @fn invocation.
-+ * @dealloc_on_cancel:	De-allocate when canceled.
-  *
-  * Control damon_call(), which requests specific kdamond to invoke a given
-  * function.  Refer to damon_call() for more details.
-@@ -645,6 +646,7 @@ struct damon_call_control {
- 	void *data;
- 	bool repeat;
- 	int return_code;
-+	bool dealloc_on_cancel;
- /* private: internal use only */
- 	/* informs if the kdamond finished handling of the request */
- 	struct completion completion;
---- a/mm/damon/core.c~mm-damon-core-introduce-damon_call_control-dealloc_on_cancel
-+++ a/mm/damon/core.c
-@@ -2479,10 +2479,14 @@ static void kdamond_call(struct damon_ct
- 		mutex_lock(&ctx->call_controls_lock);
- 		list_del(&control->list);
- 		mutex_unlock(&ctx->call_controls_lock);
--		if (!control->repeat)
-+		if (!control->repeat) {
- 			complete(&control->completion);
--		else
-+		} else if (control->canceled && control->dealloc_on_cancel) {
-+			kfree(control);
-+			continue;
-+		} else {
- 			list_add(&control->list, &repeat_controls);
-+		}
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control
++++ a/mm/damon/sysfs.c
+@@ -1534,14 +1534,10 @@ static int damon_sysfs_repeat_call_fn(vo
+ 	return 0;
+ }
+ 
+-static struct damon_call_control damon_sysfs_repeat_call_control = {
+-	.fn = damon_sysfs_repeat_call_fn,
+-	.repeat = true,
+-};
+-
+ static int damon_sysfs_turn_damon_on(struct damon_sysfs_kdamond *kdamond)
+ {
+ 	struct damon_ctx *ctx;
++	struct damon_call_control *repeat_call_control;
+ 	int err;
+ 
+ 	if (damon_sysfs_kdamond_running(kdamond))
+@@ -1554,18 +1550,29 @@ static int damon_sysfs_turn_damon_on(str
+ 		damon_destroy_ctx(kdamond->damon_ctx);
+ 	kdamond->damon_ctx = NULL;
+ 
++	repeat_call_control = kmalloc(sizeof(*repeat_call_control),
++			GFP_KERNEL);
++	if (!repeat_call_control)
++		return -ENOMEM;
++
+ 	ctx = damon_sysfs_build_ctx(kdamond->contexts->contexts_arr[0]);
+-	if (IS_ERR(ctx))
++	if (IS_ERR(ctx)) {
++		kfree(repeat_call_control);
+ 		return PTR_ERR(ctx);
++	}
+ 	err = damon_start(&ctx, 1, false);
+ 	if (err) {
++		kfree(repeat_call_control);
+ 		damon_destroy_ctx(ctx);
+ 		return err;
  	}
- 	control = list_first_entry_or_null(&repeat_controls,
- 			struct damon_call_control, list);
+ 	kdamond->damon_ctx = ctx;
+ 
+-	damon_sysfs_repeat_call_control.data = kdamond;
+-	damon_call(ctx, &damon_sysfs_repeat_call_control);
++	repeat_call_control->fn = damon_sysfs_repeat_call_fn;
++	repeat_call_control->data = kdamond;
++	repeat_call_control->repeat = true;
++	repeat_call_control->dealloc_on_cancel = true;
++	damon_call(ctx, repeat_call_control);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
