@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 983A62EE29F;
-	Mon,  8 Sep 2025 22:36:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 367532F7453;
+	Mon,  8 Sep 2025 22:36:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757370988; cv=none; b=h6cITDu8G/OZ3rz8yIXvUALHDSSYdJvQqoy7oCcT52FuhM245xch15JbVopMWf7RpNJZB2NkfBK63CZEwKBkQ4INMGNjDX+Ufs0R+W1AasHRknWwu6UnIlaE+ixma7zl7pW/JKSe6B1zF3SmG+dST4pN1KIFA7pex1WqNp9Uhik=
+	t=1757370990; cv=none; b=mbpw9sSeSkdZUJspcDeH4RBTXHlHbC1XRm03skoVQmj7c1xrFwqe1udB+pefapf1eXr0KvBt3NMxlxBdpA/QG5prVplrF4lSxBEpVA94QslUw5nB79Sd3WBPYljj8iqEJTIJYkf2TUkfZKGxHLcS0VDXUkZ8ebmXKd7AUsPsnho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757370988; c=relaxed/simple;
-	bh=TCWprkcTGFARHI5F5pe75Amvfue9eR2WSZGg2/y4l8s=;
-	h=Date:To:From:Subject:Message-Id; b=VuZoPN95wdEYy8RHoX1Zy5CMnR6Y9OjZddfw5dWQhuhRreeLSvUbc4acc4juEPWBo4HLIHw5EQjtxPMspiOgTrPO5xA79ugGjJk8JpxNLaqzUd/hCWNTrEpLSROergKR0nwbvUY1rbkrdN2yc/CPMbkPl6NkABXtDBLbPQxvJM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B1Nllx4C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757370990; c=relaxed/simple;
+	bh=at7RxXZMIaU4VkoYW6SOlNNPdb76TvtAONHWPgmDUQw=;
+	h=Date:To:From:Subject:Message-Id; b=fc6szHKguw0KHi7mbw8B4HF4jjObDblSkVPPCjBzZKYwcXROun3Fsa/5N3CtlvREj+tBWCt2mDA4h5BfMq4JOQTqKXM8XfIbB5jNjr/82S/S7WxjJibR1+Hx9vEwmoLNX/Fyf4c+U9aHuUIv6S+BHGNBM5MwzRidCd+8ulFQWHg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oXdPxjHI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B1Nllx4C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23A8BC4CEF1;
-	Mon,  8 Sep 2025 22:36:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oXdPxjHI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD660C4CEF1;
+	Mon,  8 Sep 2025 22:36:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757370988;
-	bh=TCWprkcTGFARHI5F5pe75Amvfue9eR2WSZGg2/y4l8s=;
+	s=korg; t=1757370989;
+	bh=at7RxXZMIaU4VkoYW6SOlNNPdb76TvtAONHWPgmDUQw=;
 	h=Date:To:From:Subject:From;
-	b=B1Nllx4CXi/O3jN5o5WmoqUS9F3eYI8+vIPqH8/Og++u3Iawf2KU7g+vYT9El/MZd
-	 KHn2ryocFZMBzA1zt6xmRk19B9M+2u/JckeRHIDVKJwzlnduDDMSCawYmKicRdu1rV
-	 EClwLv4R1MAwcuOTCz9DOtSjoOu3+GOKg/wuODN4=
-Date: Mon, 08 Sep 2025 15:36:27 -0700
+	b=oXdPxjHIMmhLgj1vXuJK4TeuGGYWYl8mlrHldov1u12zghxA698dJyVRVHeEiIMaf
+	 d4pdHg70d3skCM0C4mFxrKqEP0k9XRlB/62q1GRX/1fdkm3I9l3HmrE8ZHWkcHyWpS
+	 VvHuzIfqytxmzcnfZAsISmDoZeRGqE7fDCy9ASSA=
+Date: Mon, 08 Sep 2025 15:36:28 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,yangge1116@126.com,willy@infradead.org,will@kernel.org,weixugc@google.com,vbabka@suse.cz,stable@vger.kernel.org,shivankg@amd.com,riel@surriel.com,peterx@redhat.com,lizhe.67@bytedance.com,koct9i@gmail.com,keirf@google.com,jhubbard@nvidia.com,jgg@ziepe.ca,hch@infradead.org,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,axelrasmussen@google.com,aneesh.kumar@kernel.org,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-revert-mm-vmscanc-fix-oom-on-swap-stress-test.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250908223628.23A8BC4CEF1@smtp.kernel.org>
+Subject: + mm-folio_may_be_lru_cached-unless-folio_test_large.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250908223629.BD660C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: revert "mm: vmscan.c: fix OOM on swap stress test"
+     Subject: mm: folio_may_be_lru_cached() unless folio_test_large()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-revert-mm-vmscanc-fix-oom-on-swap-stress-test.patch
+     mm-folio_may_be_lru_cached-unless-folio_test_large.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-revert-mm-vmscanc-fix-oom-on-swap-stress-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_may_be_lru_cached-unless-folio_test_large.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: revert "mm: vmscan.c: fix OOM on swap stress test"
-Date: Mon, 8 Sep 2025 15:21:12 -0700 (PDT)
+Subject: mm: folio_may_be_lru_cached() unless folio_test_large()
+Date: Mon, 8 Sep 2025 15:23:15 -0700 (PDT)
 
-This reverts commit 0885ef470560: that was a fix to the reverted
-33dfe9204f29b415bbc0abb1a50642d1ba94f5e9.
+mm/swap.c and mm/mlock.c agree to drain any per-CPU batch as soon as a
+large folio is added: so collect_longterm_unpinnable_folios() just wastes
+effort when calling lru_add_drain[_all]() on a large folio.
 
-Link: https://lkml.kernel.org/r/aa0e9d67-fbcd-9d79-88a1-641dfbe1d9d1@google.com
+But although there is good reason not to batch up PMD-sized folios, we
+might well benefit from batching a small number of low-order mTHPs (though
+unclear how that "small number" limitation will be implemented).
+
+So ask if folio_may_be_lru_cached() rather than !folio_test_large(), to
+insulate those particular checks from future change.  Name preferred to
+"folio_is_batchable" because large folios can well be put on a batch: it's
+just the per-CPU LRU caches, drained much later, which need care.
+
+Marked for stable, to counter the increase in lru_add_drain_all()s from
+"mm/gup: check ref_count instead of lru before migration".
+
+Link: https://lkml.kernel.org/r/57d2eaf8-3607-f318-e0c5-be02dce61ad0@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Li <chrisl@kernel.org>
@@ -92,20 +105,89 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |   10 ++++++++++
+ mm/gup.c             |    4 ++--
+ mm/mlock.c           |    6 +++---
+ mm/swap.c            |    2 +-
+ 4 files changed, 16 insertions(+), 6 deletions(-)
 
---- a/mm/vmscan.c~mm-revert-mm-vmscanc-fix-oom-on-swap-stress-test
-+++ a/mm/vmscan.c
-@@ -4507,7 +4507,7 @@ static bool sort_folio(struct lruvec *lr
- 	}
+--- a/include/linux/swap.h~mm-folio_may_be_lru_cached-unless-folio_test_large
++++ a/include/linux/swap.h
+@@ -385,6 +385,16 @@ void folio_add_lru_vma(struct folio *, s
+ void mark_page_accessed(struct page *);
+ void folio_mark_accessed(struct folio *);
  
- 	/* ineligible */
--	if (!folio_test_lru(folio) || zone > sc->reclaim_idx) {
-+	if (zone > sc->reclaim_idx) {
- 		gen = folio_inc_gen(lruvec, folio, false);
- 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
++static inline bool folio_may_be_lru_cached(struct folio *folio)
++{
++	/*
++	 * Holding PMD-sized folios in per-CPU LRU cache unbalances accounting.
++	 * Holding small numbers of low-order mTHP folios in per-CPU LRU cache
++	 * will be sensible, but nobody has implemented and tested that yet.
++	 */
++	return !folio_test_large(folio);
++}
++
+ extern atomic_t lru_disable_count;
+ 
+ static inline bool lru_cache_disabled(void)
+--- a/mm/gup.c~mm-folio_may_be_lru_cached-unless-folio_test_large
++++ a/mm/gup.c
+@@ -2307,13 +2307,13 @@ static unsigned long collect_longterm_un
+ 			continue;
+ 		}
+ 
+-		if (drained == 0 &&
++		if (drained == 0 && folio_may_be_lru_cached(folio) &&
+ 				folio_ref_count(folio) !=
+ 				folio_expected_ref_count(folio) + 1) {
+ 			lru_add_drain();
+ 			drained = 1;
+ 		}
+-		if (drained == 1 &&
++		if (drained == 1 && folio_may_be_lru_cached(folio) &&
+ 				folio_ref_count(folio) !=
+ 				folio_expected_ref_count(folio) + 1) {
+ 			lru_add_drain_all();
+--- a/mm/mlock.c~mm-folio_may_be_lru_cached-unless-folio_test_large
++++ a/mm/mlock.c
+@@ -255,7 +255,7 @@ void mlock_folio(struct folio *folio)
+ 
+ 	folio_get(folio);
+ 	if (!folio_batch_add(fbatch, mlock_lru(folio)) ||
+-	    folio_test_large(folio) || lru_cache_disabled())
++	    !folio_may_be_lru_cached(folio) || lru_cache_disabled())
+ 		mlock_folio_batch(fbatch);
+ 	local_unlock(&mlock_fbatch.lock);
+ }
+@@ -278,7 +278,7 @@ void mlock_new_folio(struct folio *folio
+ 
+ 	folio_get(folio);
+ 	if (!folio_batch_add(fbatch, mlock_new(folio)) ||
+-	    folio_test_large(folio) || lru_cache_disabled())
++	    !folio_may_be_lru_cached(folio) || lru_cache_disabled())
+ 		mlock_folio_batch(fbatch);
+ 	local_unlock(&mlock_fbatch.lock);
+ }
+@@ -299,7 +299,7 @@ void munlock_folio(struct folio *folio)
+ 	 */
+ 	folio_get(folio);
+ 	if (!folio_batch_add(fbatch, folio) ||
+-	    folio_test_large(folio) || lru_cache_disabled())
++	    !folio_may_be_lru_cached(folio) || lru_cache_disabled())
+ 		mlock_folio_batch(fbatch);
+ 	local_unlock(&mlock_fbatch.lock);
+ }
+--- a/mm/swap.c~mm-folio_may_be_lru_cached-unless-folio_test_large
++++ a/mm/swap.c
+@@ -192,7 +192,7 @@ static void __folio_batch_add_and_move(s
+ 		local_lock(&cpu_fbatches.lock);
+ 
+ 	if (!folio_batch_add(this_cpu_ptr(fbatch), folio) ||
+-			folio_test_large(folio) || lru_cache_disabled())
++			!folio_may_be_lru_cached(folio) || lru_cache_disabled())
+ 		folio_batch_move_lru(this_cpu_ptr(fbatch), move_fn);
+ 
+ 	if (disable_irq)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
