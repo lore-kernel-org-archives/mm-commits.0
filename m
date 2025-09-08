@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4354415667D
-	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 23:02:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 975132F9C2C
+	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 23:02:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757372552; cv=none; b=Vpu2vtuREHEYbMvsKKjX8s82xakBXDLlWZRCOczJAfGBkytX9tXNKSHcU/m0cUHSLgOkqJ2x/G8lpp0pByGQuA27AsqlPax730fgCUroavBgqI/UoSTgeMDFw+bUpeTpFOUZltwinolfGu+Qsj1hWd+NbiEOQilUOMY8SkO/iCo=
+	t=1757372553; cv=none; b=caP58Z+nxWRkaYnJ5hf8QhWUZ/PHocAkShUAOKr4lRNdQolfsp6aBZ8bDsBYiDzodxL1RIIOilOO0efzLZSEDg+ZCLh21IXtDYORxcA6mJVXeOruhyr6z2kFeR7QQiprDBYiooOwAgkAUl/jkmmL7djrNEOWVsHOpgTUxJwt9qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757372552; c=relaxed/simple;
-	bh=39cOKejKFBiVWAHGSmx8a6NvMGdQ46qHekmb9D0XkM8=;
-	h=Date:To:From:Subject:Message-Id; b=juJUbzXEZtP0k6tmaxVZrYCtaXyVScsKSFXvAZIrg96putCU6NXzZfMIvdjPzFiQNunHhJsh4TfHRI92WyyQGfLESmQMShGdzFtNkg10lic4UBB+HJdm+oHBaotRhubv6yfX51nCV4q8iru/9X6bcOwRyyNQUYF0JAvPdxy3D7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qaqJ79xx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757372553; c=relaxed/simple;
+	bh=HK/nH7p2rjEYdQocF2TyRL9qCX1nOO+uUH/pqVjFDTI=;
+	h=Date:To:From:Subject:Message-Id; b=rilNrlC19rySPxPsh0bUloh+FbsW6/VVyQV6n1TImIjjjz/Jqy8Ff0FY4ta6D0xJztraRwVkMpeN5q+Up98g8eg7RObLXKX+2OntbhuNZp3wQgqBtdokgGVz3WJ+la3cGimB7EVMEvmhGmgOtA1qVfRiEYnicg+3fwJrR7UErWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GGVoKVAX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qaqJ79xx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFAABC4CEF1;
-	Mon,  8 Sep 2025 23:02:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GGVoKVAX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C866C4CEF1;
+	Mon,  8 Sep 2025 23:02:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757372551;
-	bh=39cOKejKFBiVWAHGSmx8a6NvMGdQ46qHekmb9D0XkM8=;
+	s=korg; t=1757372553;
+	bh=HK/nH7p2rjEYdQocF2TyRL9qCX1nOO+uUH/pqVjFDTI=;
 	h=Date:To:From:Subject:From;
-	b=qaqJ79xxDqsLjKC5YYbHOSzxjhW92k+JLOuatYPaYRv0fBt6DeCcTKabOIuHE025u
-	 rnvrWWGRA+SATq76gJSZf57KjCKW/uMVdrvTpBDap58xfSeQetnYooYfYj+tqxb3H7
-	 fAmJQ7f1QQ1ZyaQKplCmecJfOICge4yoPHNJesKs=
-Date: Mon, 08 Sep 2025 16:02:31 -0700
+	b=GGVoKVAXWj6oeCy24dyPWljM73X+QPTaQDWzLg8oFRAgteBVaWyYMH8jmJbOMaszz
+	 KPTFOLWV2oNsO8KWi8+Uwj75buOhx7EI/3hz9gMeO8Am6RZ6mMJxtuzLqoAKlxSgnh
+	 bDZvV3Op5GH4WAaI9qjS5Uu79cXt4riuQYP0ZQZ0=
+Date: Mon, 08 Sep 2025 16:02:32 -0700
 To: mm-commits@vger.kernel.org,swboyd@chromium.org,quic_eberman@quicinc.com,luca.ceresoli@bootlin.com,leitao@debian.org,cmllamas@google.com,matttbe@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces.patch added to mm-new branch
-Message-Id: <20250908230231.AFAABC4CEF1@smtp.kernel.org>
+Subject: + scripts-decode_stacktracesh-symbol-preserve-alignment.patch added to mm-new branch
+Message-Id: <20250908230233.0C866C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: symbol: avoid trailing whitespaces
+     Subject: scripts/decode_stacktrace.sh: symbol: preserve alignment
 has been added to the -mm mm-new branch.  Its filename is
-     scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces.patch
+     scripts-decode_stacktracesh-symbol-preserve-alignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-symbol-preserve-alignment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,53 +65,145 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthieu Baerts (NGI0)" <matttbe@kernel.org>
-Subject: scripts/decode_stacktrace.sh: symbol: avoid trailing whitespaces
-Date: Mon, 08 Sep 2025 17:41:57 +0200
+Subject: scripts/decode_stacktrace.sh: symbol: preserve alignment
+Date: Mon, 08 Sep 2025 17:41:58 +0200
 
-A few patches slightly improving the output generated by
-decode_stacktrace.sh.
+With lines having a symbol to decode, the script was only trying to
+preserve the alignment for the timestamps, but not the rest, nor when the
+caller was set (CONFIG_PRINTK_CALLER=y).
 
+With this sample ...
 
-This patch (of 3):
+  [   52.080924] Call Trace:
+  [   52.080926]  <TASK>
+  [   52.080931]  dump_stack_lvl+0x6f/0xb0
 
-Lines having a symbol to decode might not always have info after this
-symbol.  It means ${info_str} might not be set, but it will always be
-printed after a space, causing trailing whitespaces.
+... the script was producing the following output:
 
-That's a detail, but when the output is opened with an editor marking
-these trailing whitespaces, that's a bit disturbing.  It is easy to remove
-them by printing this variable with a space only if it is set.
+  [   52.080924] Call Trace:
+  [   52.080926]  <TASK>
+  [   52.080931] dump_stack_lvl (arch/x86/include/asm/irqflags.h:19)
 
-While at it, do the same with ${module} and print everything in one line.
+  (dump_stack_lvl is no longer aligned with <TASK>: one missing space)
 
-Link: https://lkml.kernel.org/r/20250908-decode_strace_indent-v1-0-28e5e4758080@kernel.org
-Link: https://lkml.kernel.org/r/20250908-decode_strace_indent-v1-1-28e5e4758080@kernel.org
+With this other sample ...
+
+  [   52.080924][   T48] Call Trace:
+  [   52.080926][   T48]  <TASK>
+  [   52.080931][   T48]  dump_stack_lvl+0x6f/0xb0
+
+... the script was producing the following output:
+
+  [   52.080924][   T48] Call Trace:
+  [   52.080926][   T48]  <TASK>
+  [ 52.080931][ T48] dump_stack_lvl (arch/x86/include/asm/irqflags.h:19)
+
+  (the misalignment is clearer here)
+
+That's because the script had a workaround for CONFIG_PRINTK_TIME=y only,
+see the previous comment called "Format timestamps with tabs".
+
+To always preserve spaces, they need to be recorded along the words.  That
+is what is now done with the new 'spaces' array.
+
+Some notes:
+
+- 'extglob' is needed only for this operation, and that's why it is set
+  in a dedicated subshell.
+
+- 'read' is used with '-r' not to treat a <backslash> character in any
+  special way, e.g. when followed by a space.
+
+- When a word is removed from the 'words' array, the corresponding space
+  needs to be removed from the 'spaces' array as well.
+
+With the last sample, we now have:
+
+  [   52.080924][   T48] Call Trace:
+  [   52.080926][   T48]  <TASK>
+  [   52.080931][   T48]  dump_stack_lvl (arch/x86/include/asm/irqflags.h:19)
+
+  (the alignment is preserved)
+
+Link: https://lkml.kernel.org/r/20250908-decode_strace_indent-v1-2-28e5e4758080@kernel.org
 Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
-Reviewed-by: Carlos Llamas <cmllamas@google.com>
+Tested-by: Carlos Llamas <cmllamas@google.com>
 Cc: Breno Leitao <leitao@debian.org>
-Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Elliot Berman <quic_eberman@quicinc.com>
 Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
 Cc: Stephen Boyd <swboyd@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ scripts/decode_stacktrace.sh |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-symbol-preserve-alignment
 +++ a/scripts/decode_stacktrace.sh
-@@ -323,12 +323,7 @@ handle_line() {
+@@ -255,10 +255,11 @@ handle_line() {
+ 		basepath=${basepath%/init/main.c:*)}
+ 	fi
+ 
+-	local words
++	local words spaces
+ 
+-	# Tokenize
+-	read -a words <<<"$1"
++	# Tokenize: words and spaces to preserve the alignment
++	read -ra words <<<"$1"
++	IFS='#' read -ra spaces <<<"$(shopt -s extglob; echo "${1//+([^[:space:]])/#}")"
+ 
+ 	# Remove hex numbers. Do it ourselves until it happens in the
+ 	# kernel
+@@ -270,19 +271,13 @@ handle_line() {
+ 	for i in "${!words[@]}"; do
+ 		# Remove the address
+ 		if [[ ${words[$i]} =~ \[\<([^]]+)\>\] ]]; then
+-			unset words[$i]
+-		fi
+-
+-		# Format timestamps with tabs
+-		if [[ ${words[$i]} == \[ && ${words[$i+1]} == *\] ]]; then
+-			unset words[$i]
+-			words[$i+1]=$(printf "[%13s\n" "${words[$i+1]}")
++			unset words[$i] spaces[$i]
+ 		fi
+ 	done
+ 
+ 	if [[ ${words[$last]} =~ ^[0-9a-f]+\] ]]; then
+ 		words[$last-1]="${words[$last-1]} ${words[$last]}"
+-		unset words[$last]
++		unset words[$last] spaces[$last]
+ 		last=$(( $last - 1 ))
+ 	fi
+ 
+@@ -294,7 +289,7 @@ handle_line() {
+ 	local info_str=""
+ 	if [[ ${words[$last]} =~ \([A-Z]*\) ]]; then
+ 		info_str=${words[$last]}
+-		unset words[$last]
++		unset words[$last] spaces[$last]
+ 		last=$(( $last - 1 ))
+ 	fi
+ 
+@@ -311,7 +306,7 @@ handle_line() {
+ 			modbuildid=
+ 		fi
+ 		symbol=${words[$last-1]}
+-		unset words[$last-1]
++		unset words[$last-1] spaces[$last-1]
+ 	else
+ 		# The symbol is the last element, process it
+ 		symbol=${words[$last]}
+@@ -323,7 +318,10 @@ handle_line() {
  	parse_symbol # modifies $symbol
  
  	# Add up the line number to the symbol
--	if [[ -z ${module} ]]
--	then
--		echo "${words[@]}" "$symbol ${info_str}"
--	else
--		echo "${words[@]}" "$symbol $module ${info_str}"
--	fi
-+	echo "${words[@]}" "${symbol}${module:+ ${module}}${info_str:+ ${info_str}}"
+-	echo "${words[@]}" "${symbol}${module:+ ${module}}${info_str:+ ${info_str}}"
++	for i in "${!words[@]}"; do
++		echo -n "${spaces[i]}${words[i]}"
++	done
++	echo "${spaces[$last]}${symbol}${module:+ ${module}}${info_str:+ ${info_str}}"
  }
  
  while read line; do
