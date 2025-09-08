@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2042EF65A
-	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 22:59:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4354415667D
+	for <mm-commits@vger.kernel.org>; Mon,  8 Sep 2025 23:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757372358; cv=none; b=qqPfkoYEWdn2AMEu+dptKEXQ9glFAvck0DoI8UuuXt7zrQMfAvgBZxWKPu85s14fsm3V6IIBmYOz7o6/BFQUugXetZgvM/mPmI08Hoh3U0hHVks6h8JOz39+qla6lvcMPC/5l0gFgaE5Vavl8hf466J6Z82PlGSYICcADCRLUi0=
+	t=1757372552; cv=none; b=Vpu2vtuREHEYbMvsKKjX8s82xakBXDLlWZRCOczJAfGBkytX9tXNKSHcU/m0cUHSLgOkqJ2x/G8lpp0pByGQuA27AsqlPax730fgCUroavBgqI/UoSTgeMDFw+bUpeTpFOUZltwinolfGu+Qsj1hWd+NbiEOQilUOMY8SkO/iCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757372358; c=relaxed/simple;
-	bh=c1lZLRA/cmVZkT3MkIRxz7WnaOzzNRlxre3MX5JaSJ4=;
-	h=Date:To:From:Subject:Message-Id; b=rFgeLtMP8DUfXluROMQWSN6oCMfmW8R2ymn5LKZI6MGiAUwOLKnuvqTKhEaO8tX2b16OMzyqEm40m0vVfBHHtpu/lRTdR6syjFDKs5piOcsjeyJbXJfsz4bephUVyWVwjJIv/gyfB5ypKWQDUdkpfqSVVPtD+J/qZQNna60DM9g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jSQz0qMJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757372552; c=relaxed/simple;
+	bh=39cOKejKFBiVWAHGSmx8a6NvMGdQ46qHekmb9D0XkM8=;
+	h=Date:To:From:Subject:Message-Id; b=juJUbzXEZtP0k6tmaxVZrYCtaXyVScsKSFXvAZIrg96putCU6NXzZfMIvdjPzFiQNunHhJsh4TfHRI92WyyQGfLESmQMShGdzFtNkg10lic4UBB+HJdm+oHBaotRhubv6yfX51nCV4q8iru/9X6bcOwRyyNQUYF0JAvPdxy3D7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qaqJ79xx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jSQz0qMJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A522C4CEF7;
-	Mon,  8 Sep 2025 22:59:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qaqJ79xx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFAABC4CEF1;
+	Mon,  8 Sep 2025 23:02:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757372356;
-	bh=c1lZLRA/cmVZkT3MkIRxz7WnaOzzNRlxre3MX5JaSJ4=;
+	s=korg; t=1757372551;
+	bh=39cOKejKFBiVWAHGSmx8a6NvMGdQ46qHekmb9D0XkM8=;
 	h=Date:To:From:Subject:From;
-	b=jSQz0qMJtOMS2dTaPuN0/CRZzecFdmJUn15J4YaeVFkrRcxi3yT8WhUsXFQzjoOBr
-	 UOyJym3sYRCujtrynQzWmZ+gFkWE/a8+IbuSr+fhVAA1+teqhWa610MVfRC8Ykf+Ze
-	 urdgmvqdTGr6ABpUQkNYvqzMLIY39x2wA1cE1cgo=
-Date: Mon, 08 Sep 2025 15:59:15 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=qaqJ79xxDqsLjKC5YYbHOSzxjhW92k+JLOuatYPaYRv0fBt6DeCcTKabOIuHE025u
+	 rnvrWWGRA+SATq76gJSZf57KjCKW/uMVdrvTpBDap58xfSeQetnYooYfYj+tqxb3H7
+	 fAmJQ7f1QQ1ZyaQKplCmecJfOICge4yoPHNJesKs=
+Date: Mon, 08 Sep 2025 16:02:31 -0700
+To: mm-commits@vger.kernel.org,swboyd@chromium.org,quic_eberman@quicinc.com,luca.ceresoli@bootlin.com,leitao@debian.org,cmllamas@google.com,matttbe@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ptdesc-remove-ptdesc_to_virt.patch added to mm-new branch
-Message-Id: <20250908225916.6A522C4CEF7@smtp.kernel.org>
+Subject: + scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces.patch added to mm-new branch
+Message-Id: <20250908230231.AFAABC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ptdesc: remove ptdesc_to_virt()
+     Subject: scripts/decode_stacktrace.sh: symbol: avoid trailing whitespaces
 has been added to the -mm mm-new branch.  Its filename is
-     ptdesc-remove-ptdesc_to_virt.patch
+     scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ptdesc-remove-ptdesc_to_virt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,103 +64,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ptdesc: remove ptdesc_to_virt()
-Date: Mon, 8 Sep 2025 18:11:02 +0100
+From: "Matthieu Baerts (NGI0)" <matttbe@kernel.org>
+Subject: scripts/decode_stacktrace.sh: symbol: avoid trailing whitespaces
+Date: Mon, 08 Sep 2025 17:41:57 +0200
 
-This has the same effect as ptdesc_address() so convert the callers to use
-that and delete the function.  Add kernel-doc for ptdesc_address().
+A few patches slightly improving the output generated by
+decode_stacktrace.sh.
 
-Link: https://lkml.kernel.org/r/20250908171104.2409217-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+
+This patch (of 3):
+
+Lines having a symbol to decode might not always have info after this
+symbol.  It means ${info_str} might not be set, but it will always be
+printed after a space, causing trailing whitespaces.
+
+That's a detail, but when the output is opened with an editor marking
+these trailing whitespaces, that's a bit disturbing.  It is easy to remove
+them by printing this variable with a space only if it is set.
+
+While at it, do the same with ${module} and print everything in one line.
+
+Link: https://lkml.kernel.org/r/20250908-decode_strace_indent-v1-0-28e5e4758080@kernel.org
+Link: https://lkml.kernel.org/r/20250908-decode_strace_indent-v1-1-28e5e4758080@kernel.org
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Reviewed-by: Carlos Llamas <cmllamas@google.com>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Elliot Berman <quic_eberman@quicinc.com>
+Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Cc: Stephen Boyd <swboyd@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/mmu.c      |    2 +-
- arch/s390/mm/pgalloc.c |    6 +++---
- include/linux/mm.h     |   11 ++++++-----
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ scripts/decode_stacktrace.sh |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/arch/arm/mm/mmu.c~ptdesc-remove-ptdesc_to_virt
-+++ a/arch/arm/mm/mmu.c
-@@ -737,7 +737,7 @@ static void *__init late_alloc(unsigned
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces
++++ a/scripts/decode_stacktrace.sh
+@@ -323,12 +323,7 @@ handle_line() {
+ 	parse_symbol # modifies $symbol
  
- 	if (!ptdesc || !pagetable_pte_ctor(NULL, ptdesc))
- 		BUG();
--	return ptdesc_to_virt(ptdesc);
-+	return ptdesc_address(ptdesc);
+ 	# Add up the line number to the symbol
+-	if [[ -z ${module} ]]
+-	then
+-		echo "${words[@]}" "$symbol ${info_str}"
+-	else
+-		echo "${words[@]}" "$symbol $module ${info_str}"
+-	fi
++	echo "${words[@]}" "${symbol}${module:+ ${module}}${info_str:+ ${info_str}}"
  }
  
- static pte_t * __init arm_pte_alloc(pmd_t *pmd, unsigned long addr,
---- a/arch/s390/mm/pgalloc.c~ptdesc-remove-ptdesc_to_virt
-+++ a/arch/s390/mm/pgalloc.c
-@@ -21,7 +21,7 @@ unsigned long *crst_table_alloc(struct m
- 
- 	if (!ptdesc)
- 		return NULL;
--	table = ptdesc_to_virt(ptdesc);
-+	table = ptdesc_address(ptdesc);
- 	__arch_set_page_dat(table, 1UL << CRST_ALLOC_ORDER);
- 	return table;
- }
-@@ -119,7 +119,7 @@ struct ptdesc *page_table_alloc_pgste(st
- 
- 	ptdesc = pagetable_alloc(GFP_KERNEL, 0);
- 	if (ptdesc) {
--		table = (u64 *)ptdesc_to_virt(ptdesc);
-+		table = (u64 *)ptdesc_address(ptdesc);
- 		__arch_set_page_dat(table, 1);
- 		memset64(table, _PAGE_INVALID, PTRS_PER_PTE);
- 		memset64(table + PTRS_PER_PTE, 0, PTRS_PER_PTE);
-@@ -146,7 +146,7 @@ unsigned long *page_table_alloc(struct m
- 		pagetable_free(ptdesc);
- 		return NULL;
- 	}
--	table = ptdesc_to_virt(ptdesc);
-+	table = ptdesc_address(ptdesc);
- 	__arch_set_page_dat(table, 1);
- 	memset64((u64 *)table, _PAGE_INVALID, PTRS_PER_PTE);
- 	memset64((u64 *)table + PTRS_PER_PTE, 0, PTRS_PER_PTE);
---- a/include/linux/mm.h~ptdesc-remove-ptdesc_to_virt
-+++ a/include/linux/mm.h
-@@ -2944,11 +2944,12 @@ static inline struct ptdesc *virt_to_ptd
- 	return page_ptdesc(virt_to_page(x));
- }
- 
--static inline void *ptdesc_to_virt(const struct ptdesc *pt)
--{
--	return page_to_virt(ptdesc_page(pt));
--}
--
-+/**
-+ * ptdesc_address - Virtual address of page table.
-+ * @pt: Page table descriptor.
-+ *
-+ * Return: The first byte of the page table described by @pt.
-+ */
- static inline void *ptdesc_address(const struct ptdesc *pt)
- {
- 	return folio_address(ptdesc_folio(pt));
+ while read line; do
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from matttbe@kernel.org are
 
-mm-introduce-memdesc_flags_t.patch
-mm-introduce-memdesc_flags_t-fix.patch
-mm-convert-page_to_section-to-memdesc_section.patch
-mm-introduce-memdesc_nid.patch
-mm-introduce-memdesc_zonenum.patch
-slab-use-memdesc_flags_t.patch
-slab-use-memdesc_nid.patch
-mm-introduce-memdesc_is_zone_device.patch
-mm-reimplement-folio_is_device_private.patch
-mm-reimplement-folio_is_device_coherent.patch
-mm-reimplement-folio_is_fsdax.patch
-mm-add-folio_is_pci_p2pdma.patch
-mm-remove-mlock_count-from-struct-page.patch
-ptdesc-convert-__page_flags-to-pt_flags.patch
-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
-ptdesc-remove-ptdesc_to_virt.patch
+scripts-decode_stacktracesh-symbol-avoid-trailing-whitespaces.patch
+scripts-decode_stacktracesh-symbol-preserve-alignment.patch
+scripts-decode_stacktracesh-code-preserve-alignment.patch
 
