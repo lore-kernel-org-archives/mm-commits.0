@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6CE622422A
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 23:52:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A607F266EFC
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 23:55:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757461944; cv=none; b=j7qrMDyExOZI3rgKFpp8ShXasYC+CWsEEkxr1ILJMVaJAEeXXx70mGQ77fmChmMG7kYQVGUGeEyDfoV6wBofrzga8fdZBK1rC/kuwOuQ9jLPwwnKb06oAxGM7h23JSsxQkl95m+9U9V0P3DDdo/9ISGfH2w6wvN4CgVCA+gc18s=
+	t=1757462116; cv=none; b=pdTWOSEScsYRt3o72qsm5YZ9ESc+/Y9GwFovqqDAsRRFb0uAAGbAAH91bLAW5+GpSR+Bl5It/SFSD5V2carIJDrtf2ShvROs6SUz2/5pR8QRQu1iaF7/3zD8GTDSMoRqHqDbhFQARRwGuRz+GcC4G6ROT4Mi5icV3j5iYN8tgZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757461944; c=relaxed/simple;
-	bh=JVVmxrrcOHkw4z9kJ6bdCA4rtVZaiSwdfAOwtnTwzoM=;
-	h=Date:To:From:Subject:Message-Id; b=Ix9xBhiMebSYSa1CMbtTTdlOFDOE4gIFHXH9vYXW52mu3zRv/M+wfB2oKWSHBYiYrzdvWEAwUV46d6YUSLOTjJ0KTQ0PClt84FUT/HA8S9fiDpyysl0T57amJt0wAFZVhwPFqkhLUJcB9p1laET93yTU4ryG8/Wy3O8HsTzp67g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WmwZj4pj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757462116; c=relaxed/simple;
+	bh=YBKwYwpDrp6c7Bo8WAmupOjZvyIh8kboRGbZKBHbKvk=;
+	h=Date:To:From:Subject:Message-Id; b=iM2iNMgguUnuqdwqhNo+VhfgD8a1znJXCNpDpIIBQ0wolIHTwj05Qlox+CUbatfN/S9Q8wuCJu0s7KGB7NJkTXmTAa3DgOTDm4ni+J/cF2wgIVIlyso/H2HWhTvgLnpsSv4Hlfa7yiA0vYSGa+aTfOtjytA/924F9AmKpZtFlS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IXcTKyWG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WmwZj4pj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CAC2C4CEF4;
-	Tue,  9 Sep 2025 23:52:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IXcTKyWG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D2BC4CEF4;
+	Tue,  9 Sep 2025 23:55:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757461944;
-	bh=JVVmxrrcOHkw4z9kJ6bdCA4rtVZaiSwdfAOwtnTwzoM=;
+	s=korg; t=1757462116;
+	bh=YBKwYwpDrp6c7Bo8WAmupOjZvyIh8kboRGbZKBHbKvk=;
 	h=Date:To:From:Subject:From;
-	b=WmwZj4pjLDux/iuP7ER4ip1NPWhihAIiTVxLBPSgrWzb5pzABaLMQx0L0bJJV0ra0
-	 sHYw/9nKdJA5+ovQKdofPgxabNqgfIxbgzLu3YbqwC0GMrp6gW0QcS+6ToqgfibTko
-	 TWBa8rpaFEo41K1aG06gGNA4ONV4G0P+E28bDhkA=
-Date: Tue, 09 Sep 2025 16:52:23 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,pasha.tatashin@soleen.com,mhocko@suse.com,kent.overstreet@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=IXcTKyWG0Xo2J9TrNHRvdaKWU477Psnzttn5ZWN6D2XIrnT5PVWzpnTtAT6e4ZIaK
+	 dye02AlmvWXAEPRJDuzTVyhWrNSZR7exw5glYe+gDzRtI2PkMf1LdyaO0CmNYBgtiz
+	 pYw599fv6BvqLeZ2nX9YIbGv7ZMogQDwkGd1bsHU=
+Date: Tue, 09 Sep 2025 16:55:15 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,briannorris@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch added to mm-new branch
-Message-Id: <20250909235224.2CAC2C4CEF4@smtp.kernel.org>
+Subject: + mm-vm_event_item-explicit-include-for-thread_size.patch added to mm-new branch
+Message-Id: <20250909235516.18D2BC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: avoid warnings when freeing non-compound "tail" pages
+     Subject: mm: vm_event_item: explicit #include for THREAD_SIZE
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch
+     mm-vm_event_item-explicit-include-for-thread_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vm_event_item-explicit-include-for-thread_size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,69 +64,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: avoid warnings when freeing non-compound "tail" pages
-Date: Tue, 9 Sep 2025 16:34:09 -0700
+From: Brian Norris <briannorris@chromium.org>
+Subject: mm: vm_event_item: explicit #include for THREAD_SIZE
+Date: Tue, 9 Sep 2025 13:13:57 -0700
 
-When freeing "tail" pages of a non-compount high-order page, we properly
-subtract the allocation tag counters, however later when these pages are
-released, alloc_tag_sub() will issue warnings because tags for these pages
-are NULL.
+This header uses THREAD_SIZE, which is provided by the thread_info.h
+header but is not included in this header.  Depending on the #include
+ordering in other files, this can produce preprocessor errors.
 
-This issue was originally anticipated by Vlastimil in his review [1] and
-then recently reported by David.  Prevent warnings by marking the tags
-empty.
-
-Link: https://lkml.kernel.org/r/20250909233409.1013367-4-surenb@google.com
-Link: https://lore.kernel.org/all/6db0f0c8-81cb-4d04-9560-ba73d63db4b8@suse.cz/ [1]
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: David Wang <00107082@163.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20250909201419.827638-1-briannorris@chromium.org
+Signed-off-by: Brian Norris <briannorris@chromium.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/vm_event_item.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages
-+++ a/mm/page_alloc.c
-@@ -5240,9 +5240,16 @@ static void ___free_pages(struct page *p
- 		__free_frozen_pages(page, order, fpi_flags);
- 	else if (!head) {
- 		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
--		while (order-- > 0)
-+		while (order-- > 0) {
-+			/*
-+			 * The "tail" pages of this non-compound high-order
-+			 * page will have no code tags, so to avoid warnings
-+			 * mark them as empty.
-+			 */
-+			clear_page_tag_ref(page + (1 << order));
- 			__free_frozen_pages(page + (1 << order), order,
- 					    fpi_flags);
-+		}
- 	}
- }
+--- a/include/linux/vm_event_item.h~mm-vm_event_item-explicit-include-for-thread_size
++++ a/include/linux/vm_event_item.h
+@@ -2,6 +2,8 @@
+ #ifndef VM_EVENT_ITEM_H_INCLUDED
+ #define VM_EVENT_ITEM_H_INCLUDED
  
++#include <linux/thread_info.h>
++
+ #ifdef CONFIG_ZONE_DMA
+ #define DMA_ZONE(xx) xx##_DMA,
+ #else
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from briannorris@chromium.org are
 
-mm-limit-the-scope-of-vma_start_read.patch
-mm-change-vma_start_read-to-drop-rcu-lock-on-failure.patch
-selftests-proc-test-procmap_query-ioctl-while-vma-is-concurrently-modified.patch
-fs-proc-task_mmu-factor-out-proc_maps_private-fields-used-by-procmap_query.patch
-fs-proc-task_mmu-execute-procmap_query-ioctl-under-per-vma-locks.patch
-alloc_tag-use-release_pages-in-the-cleanup-path.patch
-alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch
-alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch
+mm-vm_event_item-explicit-include-for-thread_size.patch
 
