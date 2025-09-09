@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B79AD2D7DED
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:11:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C14C2D7DED
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:11:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757391113; cv=none; b=UAdCSsdkEQW/8YeSZlZ+mBTEAmr0jWIFWpnWEgSlWZziCa2TwftrgCFRYoIjpamSHUegQMPt7U88hv6EmD+/3ThQwYZrlscnykHbj6LfZ5PU+F8y3PMFAbk95TMwSk83Oa9VP7fvsYzjNOIlNKmOx6m3nloOM6QOso+3hM7z2Ys=
+	t=1757391116; cv=none; b=qD2IEEu4Omwt0Q88Hp6Qbf8qU2pTi5LkDFTRFlWgZ4hdoxe1HcUcot5bkfN6gWe9oro/5pGjlE8Wh6PU0bHS7ce2iR5yRqZCZaMh53kHIfKNF5Y1YQF0YwIm1DphmJGXzpDfOhKTGAvBdw17/pmxyGPm12VbQFnqjy3rt3VTNAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757391113; c=relaxed/simple;
-	bh=SCCkR5c9QMF+yVbqOSbESYquC1id5enQBgHKvg4TYLQ=;
-	h=Date:To:From:Subject:Message-Id; b=Ew6rYA0yw1O7kPs4/3IXHLNy9gYQFlPBT0YV3pjqCMQNW88TLGncdVwM5ZIIY3b24JlsWHnA7oC+gzkeUGoFcef7WeL/Qd54cXo972EwQTSlVvc5AIzvQrbaSbBah4NmEmJilF1AxAuj3vLIqPjhdPiJ8nwbe2hlRMKUzapIgHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QRrDE/XB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757391116; c=relaxed/simple;
+	bh=ogGFTUri0JOiFMGTnm1/x57SGv3iX7nQGW+r3RW6g8c=;
+	h=Date:To:From:Subject:Message-Id; b=lRlgzmIuPJSglKNJ9ZjBL1bRQkeOPLuLLub8DVZ5U8oOMSHWWLabqcqBrPRO85pE/AZcTVZK2mfigDcekmWOh2oaDfG6aWPl7lTAsNawivAjVHyd9G8oUAE9DP1ZhpfKTSy4ArqxTrViyf8IEFGp2Lki7/+jTT4KGYTX17SlRDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zbIvCmEX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QRrDE/XB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 737C2C4CEF4;
-	Tue,  9 Sep 2025 04:11:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zbIvCmEX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0F59C4CEF4;
+	Tue,  9 Sep 2025 04:11:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757391113;
-	bh=SCCkR5c9QMF+yVbqOSbESYquC1id5enQBgHKvg4TYLQ=;
+	s=korg; t=1757391115;
+	bh=ogGFTUri0JOiFMGTnm1/x57SGv3iX7nQGW+r3RW6g8c=;
 	h=Date:To:From:Subject:From;
-	b=QRrDE/XBjFwZacCrTMSqN5KQE/FlbHSFZoozdLrQ6uNRGA3A8XSVy97t9li2IEm7/
-	 Tho+7XY8xzMosbCpRriiifhjX67TOSVsBEXIu0BWo7NIMZqC/4FR9ISrRU2c6m+DsD
-	 j/5ZF5Tk2kg4zpKov2FWZ0Vyn4qleGAuIg75fY4s=
-Date: Mon, 08 Sep 2025 21:11:52 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,corbet@lwn.net,fan.yu9@zte.com.cn,akpm@linux-foundation.org
+	b=zbIvCmEX17N8Vbovm8vFlIwqyh2T1plt5Hqkoikqi2U1z5P+i3AoHpNEijiF/iJp9
+	 Pzwl1nIjwi1iTQQaVeeXE2QpMCujUP/k2FuCYm6g1c9Z0gyLg6QC0RRIVHbNCmKyps
+	 4vST4XgUzTs2QOAqemaAgeLBODDqGVhuqiioGPUg=
+Date: Mon, 08 Sep 2025 21:11:55 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,fan.yu9@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-delaytop-add-flexible-sorting-by-delay-field.patch added to mm-nonmm-unstable branch
-Message-Id: <20250909041153.737C2C4CEF4@smtp.kernel.org>
+Subject: + tools-delaytop-add-memory-verbose-mode-support.patch added to mm-nonmm-unstable branch
+Message-Id: <20250909041155.B0F59C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/delaytop: add flexible sorting by delay field
+     Subject: tools/delaytop: add memory verbose mode support
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-delaytop-add-flexible-sorting-by-delay-field.patch
+     tools-delaytop-add-memory-verbose-mode-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-delaytop-add-flexible-sorting-by-delay-field.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-delaytop-add-memory-verbose-mode-support.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,411 +59,283 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Fan Yu <fan.yu9@zte.com.cn>
-Subject: tools/delaytop: add flexible sorting by delay field
-Date: Sun, 7 Sep 2025 00:12:05 +0800 (CST)
+Subject: tools/delaytop: add memory verbose mode support
+Date: Sun, 7 Sep 2025 00:12:52 +0800 (CST)
 
-Patch series "tools/delaytop: implement real-time keyboard interaction
-support", v2.
+The original delaytop tool always displayed detailed memory subsystem
+breakdown, which could be overwhelming for users who only need high-level
+overview.
 
-Current Limitations
-===================
+Add flexible display control allowing users to choose their preferred
+information granularity.
 
-The current delaytop implementation has two main limitations:
+The new flexibility provides:
+1) For quick monitoring: use normal mode to reduce visual clutter
+2) For deep analysis: use verbose mode to see all memory subsystem details
 
-1) Static sorting only by CPU delay Forcing users to restart with
-   different parameters to analyze other resource bottlenecks.
-
-2) Memory delay information is always expanded Causing information
-   overload when only high-level memory pressure monitoring is needed.
-
-Improvements
-============
-
-1) Implemented dynamic sorting capability
-- Interactive key 'o' triggers sort mode.
-- Supports sorting by CPU/IO/Memory/IRQ delays.
-- Memory subcategories available in verbose mode.
- * c - CPU delay (default)
- * i - IO delay
- * m - Total memory delay
- * q - IRQ delay
- * s/r/t/p/w - Memory subcategories (in verbose mode)
-
-2) Added memory display modes
-- Compact view (default): shows aggregated memory delays.
-- Verbose view ('M' key): breaks down into memory sub-delays.
- * SWAP - swapin delays
- * RCL - freepages reclaim delays
- * THR - thrashing delays
- * CMP - compaction delays
- * WP - write-protect copy delays
-
-Practical benefits
-==================
-
-1) Dynamic Sorting for Real-Time Bottleneck Detection System
-   administrators can now dynamically change sorting to identify different
-   types of resource bottlenecks without restarting.
-
-
-2) Enhanced Usability with On-Screen Keybindings More intuitive
-   interactive usage with on-screen keybindings help.  Reduced screen
-   clutter when only memory overview is needed.
-
-Use Case
-========
-# ./delaytop
-System Pressure Information: (avg10/avg60vg300/total)
-CPU some:       0.0%/   0.0%/   0.0%/  106817(ms)
-CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
-Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
-Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
-IO full:        0.0%/   0.0%/   0.0%/    2245(ms)
-IO some:        0.0%/   0.0%/   0.0%/    2791(ms)
-IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
-[o]sort [M]memverbose [q]quit
-Top 20 processes (sorted by cpu delay):
-     PID      TGID  COMMAND           CPU(ms)   IO(ms)  IRQ(ms)  MEM(ms)
-------------------------------------------------------------------------
-     110       110  kworker/15:0H-s   27.91     0.00     0.00     0.00
-      57        57  cpuhp/7            3.18     0.00     0.00     0.00
-      99        99  cpuhp/14           2.97     0.00     0.00     0.00
-      51        51  cpuhp/6            0.90     0.00     0.00     0.00
-      44        44  kworker/4:0H-sy    0.80     0.00     0.00     0.00
-      76        76  idle_inject/10     0.31     0.00     0.00     0.00
-     100       100  idle_inject/14     0.30     0.00     0.00     0.00
-    1309      1309  systemsettings     0.29     0.00     0.00     0.00
-      60        60  ksoftirqd/7        0.28     0.00     0.00     0.00
-      45        45  cpuhp/5            0.22     0.00     0.00     0.00
-      63        63  cpuhp/8            0.20     0.00     0.00     0.00
-      87        87  cpuhp/12           0.18     0.00     0.00     0.00
-      93        93  cpuhp/13           0.17     0.00     0.00     0.00
-    1265      1265  acpid              0.17     0.00     0.00     0.00
-    1552      1552  sshd               0.17     0.00     0.00     0.00
-    2584      2584  sddm-helper        0.16     0.00     0.00     0.00
-    1284      1284  rtkit-daemon       0.15     0.00     0.00     0.00
-    1326      1326  nde-netfilter      0.14     0.00     0.00     0.00
-      27        27  cpuhp/2            0.13     0.00     0.00     0.00
-     631       631  kworker/11:2-rc    0.11     0.00     0.00     0.00
-
-# ./delaytop -M
-System Pressure Information: (avg10/avg60vg300/total)
-CPU some:       0.0%/   0.0%/   0.0%/  106827(ms)
-CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
-Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
-Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
-IO full:        0.0%/   0.0%/   0.0%/    2245(ms)
-IO some:        0.0%/   0.0%/   0.0%/    2791(ms)
-IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
-[o]sort [M]memverbose [q]quit
-Top 20 processes (sorted by mem delay):
-     PID      TGID  COMMAND           MEM(ms) SWAP(ms)  RCL(ms)  THR(ms)  CMP(ms)   WP(ms)
-------------------------------------------------------------------------------------------
-  121732    121732  delaytop           0.01     0.00     0.00     0.00     0.00     0.01
-   95876     95876  top                0.00     0.00     0.00     0.00     0.00     0.00
-  121641    121641  systemd-userwor    0.00     0.00     0.00     0.00     0.00     0.00
-  121693    121693  systemd-userwor    0.00     0.00     0.00     0.00     0.00     0.00
-  121661    121661  systemd-userwor    0.00     0.00     0.00     0.00     0.00     0.00
-       1         1  systemd            0.00     0.00     0.00     0.00     0.00     0.00
-       2         2  kthreadd           0.00     0.00     0.00     0.00     0.00     0.00
-       3         3  pool_workqueue_    0.00     0.00     0.00     0.00     0.00     0.00
-       4         4  kworker/R-rcu_g    0.00     0.00     0.00     0.00     0.00     0.00
-       5         5  kworker/R-rcu_p    0.00     0.00     0.00     0.00     0.00     0.00
-       6         6  kworker/R-slub_    0.00     0.00     0.00     0.00     0.00     0.00
-       7         7  kworker/R-netns    0.00     0.00     0.00     0.00     0.00     0.00
-       9         9  kworker/0:0H-sy    0.00     0.00     0.00     0.00     0.00     0.00
-      11        11  kworker/u32:0-n    0.00     0.00     0.00     0.00     0.00     0.00
-      12        12  kworker/R-mm_pe    0.00     0.00     0.00     0.00     0.00     0.00
-      13        13  rcu_tasks_kthre    0.00     0.00     0.00     0.00     0.00     0.00
-      14        14  rcu_tasks_rude_    0.00     0.00     0.00     0.00     0.00     0.00
-      15        15  rcu_tasks_trace    0.00     0.00     0.00     0.00     0.00     0.00
-      16        16  ksoftirqd/0        0.00     0.00     0.00     0.00     0.00     0.00
-      17        17  rcu_preempt        0.00     0.00     0.00     0.00     0.00     0.00
-
-When psi is not enabled:
-# ./delaytop
-System Pressure Information: (avg10/avg60vg300/total)
-  PSI not found: check if psi=1 enabled in cmdline
-
-
-This patch (of 5):
-
-The delaytop tool only supported sorting by CPU delay, which limited its
-usefulness when users needed to identify bottlenecks in other subsystems. 
-Users had no way to sort processes by IO, IRQ, or other delay types to
-quickly pinpoint specific performance issues.
-
-Add -s/--sort option to allow sorting by different delay types.  Users can
-now quickly identify bottlenecks in specific subsystems by sorting
-processes by the relevant delay metric.
-
-Link: https://lkml.kernel.org/r/20250907001101305vrTGnXaRNvtmsGkp-Ljk_@zte.com.cn
-Link: https://lkml.kernel.org/r/20250907001205573L3XpsQMIQnLgDqiiKYd3H@zte.com.cn
+Link: https://lkml.kernel.org/r/202509070012527934u0ySb3teQ4gOYKnocyNO@zte.com.cn
 Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
 Reviewed-by: xu xin <xu.xin16@zte.com.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/delaytop.c |  153 ++++++++++++++++++++++++++--------
- 1 file changed, 121 insertions(+), 32 deletions(-)
+ tools/accounting/delaytop.c |  128 ++++++++++++++++++++++++++--------
+ 1 file changed, 98 insertions(+), 30 deletions(-)
 
---- a/tools/accounting/delaytop.c~tools-delaytop-add-flexible-sorting-by-delay-field
+--- a/tools/accounting/delaytop.c~tools-delaytop-add-memory-verbose-mode-support
 +++ a/tools/accounting/delaytop.c
-@@ -42,6 +42,7 @@
- #include <linux/genetlink.h>
- #include <linux/taskstats.h>
- #include <linux/cgroupstats.h>
-+#include <stddef.h>
- 
- #define PSI_CPU_SOME "/proc/pressure/cpu"
- #define PSI_CPU_FULL	"/proc/pressure/cpu"
-@@ -61,6 +62,7 @@
- #define TASK_COMM_LEN	16
- #define MAX_MSG_SIZE	1024
- #define MAX_TASKS		1000
-+#define MAX_BUF_LEN		256
- #define SET_TASK_STAT(task_count, field) tasks[task_count].field = stats.field
- #define BOOL_FPRINT(stream, fmt, ...) \
- ({ \
-@@ -68,17 +70,11 @@
+@@ -69,13 +69,22 @@
+ 	int ret = fprintf(stream, fmt, ##__VA_ARGS__); \
  	ret >= 0; \
  })
++#define TASK_AVG(task, field) average_ms((task).field##_delay_total, (task).field##_count)
  #define PSI_LINE_FORMAT "%-12s %6.1f%%/%6.1f%%/%6.1f%%/%8llu(ms)\n"
--
--/* Program settings structure */
--struct config {
--	int delay;				/* Update interval in seconds */
--	int iterations;			/* Number of iterations, 0 == infinite */
--	int max_processes;		/* Maximum number of processes to show */
--	char sort_field;		/* Field to sort by */
--	int output_one_time;	/* Output once and exit */
--	int monitor_pid;		/* Monitor specific PID */
--	char *container_path;	/* Path to container cgroup */
--};
-+#define SORT_FIELD(name) \
-+	{#name, \
-+	offsetof(struct task_info, name##_delay_total), \
-+	offsetof(struct task_info, name##_count)}
-+#define END_FIELD {NULL, 0, 0}
+-#define SORT_FIELD(name) \
++#define DELAY_FMT_DEFAULT "%8.2f %8.2f %8.2f %8.2f\n"
++#define DELAY_FMT_MEMVERBOSE "%8.2f %8.2f %8.2f %8.2f %8.2f %8.2f\n"
++#define SORT_FIELD(name, modes) \
+ 	{#name, \
+ 	offsetof(struct task_info, name##_delay_total), \
+-	offsetof(struct task_info, name##_count)}
++	offsetof(struct task_info, name##_count), \
++	modes}
+ #define END_FIELD {NULL, 0, 0}
  
++/* Display mode types */
++#define MODE_TYPE_ALL	(0xFFFFFFFF)
++#define MODE_DEFAULT	(1 << 0)
++#define MODE_MEMVERBOSE	(1 << 1)
++
  /* PSI statistics structure */
  struct psi_stats {
-@@ -130,6 +126,24 @@ struct container_stats {
- 	int nr_io_wait;			/* Number of processes in IO wait */
+ 	double cpu_some_avg10, cpu_some_avg60, cpu_some_avg300;
+@@ -115,6 +124,8 @@ struct task_info {
+ 	unsigned long long wpcopy_delay_total;
+ 	unsigned long long irq_count;
+ 	unsigned long long irq_delay_total;
++	unsigned long long mem_count;
++	unsigned long long mem_delay_total;
  };
  
-+/* Delay field structure */
-+struct field_desc {
-+	const char *name;	/* Field name for cmdline argument */
-+	unsigned long total_offset; /* Offset of total delay in task_info */
-+	unsigned long count_offset; /* Offset of count in task_info */
-+};
-+
-+/* Program settings structure */
-+struct config {
-+	int delay;				/* Update interval in seconds */
-+	int iterations;			/* Number of iterations, 0 == infinite */
-+	int max_processes;		/* Maximum number of processes to show */
-+	int output_one_time;	/* Output once and exit */
-+	int monitor_pid;		/* Monitor specific PID */
-+	char *container_path;	/* Path to container cgroup */
-+	const struct field_desc *sort_field;	/* Current sort field */
-+};
-+
+ /* Container statistics structure */
+@@ -131,6 +142,7 @@ struct field_desc {
+ 	const char *name;	/* Field name for cmdline argument */
+ 	unsigned long total_offset; /* Offset of total delay in task_info */
+ 	unsigned long count_offset; /* Offset of count in task_info */
++	size_t supported_modes; /* Supported display modes */
+ };
+ 
+ /* Program settings structure */
+@@ -142,6 +154,7 @@ struct config {
+ 	int monitor_pid;		/* Monitor specific PID */
+ 	char *container_path;	/* Path to container cgroup */
+ 	const struct field_desc *sort_field;	/* Current sort field */
++	size_t display_mode;	/* Current display mode */
+ };
+ 
  /* Global variables */
- static struct config cfg;
- static struct psi_stats psi;
-@@ -137,6 +151,17 @@ static struct task_info tasks[MAX_TASKS]
- static int task_count;
+@@ -152,14 +165,15 @@ static int task_count;
  static int running = 1;
  static struct container_stats container_stats;
-+static const struct field_desc sort_fields[] = {
-+	SORT_FIELD(cpu),
-+	SORT_FIELD(blkio),
-+	SORT_FIELD(irq),
-+	SORT_FIELD(swapin),
-+	SORT_FIELD(freepages),
-+	SORT_FIELD(thrashing),
-+	SORT_FIELD(compact),
-+	SORT_FIELD(wpcopy),
-+	END_FIELD
-+};
+ static const struct field_desc sort_fields[] = {
+-	SORT_FIELD(cpu),
+-	SORT_FIELD(blkio),
+-	SORT_FIELD(irq),
+-	SORT_FIELD(swapin),
+-	SORT_FIELD(freepages),
+-	SORT_FIELD(thrashing),
+-	SORT_FIELD(compact),
+-	SORT_FIELD(wpcopy),
++	SORT_FIELD(cpu,		MODE_DEFAULT),
++	SORT_FIELD(blkio,	MODE_DEFAULT),
++	SORT_FIELD(irq,		MODE_DEFAULT),
++	SORT_FIELD(mem,		MODE_DEFAULT | MODE_MEMVERBOSE),
++	SORT_FIELD(swapin,	MODE_MEMVERBOSE),
++	SORT_FIELD(freepages,	MODE_MEMVERBOSE),
++	SORT_FIELD(thrashing,	MODE_MEMVERBOSE),
++	SORT_FIELD(compact,	MODE_MEMVERBOSE),
++	SORT_FIELD(wpcopy,	MODE_MEMVERBOSE),
+ 	END_FIELD
+ };
  
- /* Netlink socket variables */
- static int nl_sd = -1;
-@@ -158,18 +183,59 @@ static void disable_raw_mode(void)
- 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+@@ -207,7 +221,7 @@ static const char *get_name_by_field(con
  }
  
-+/* Find field descriptor by name with string comparison */
-+static const struct field_desc *get_field_by_name(const char *name)
-+{
-+	const struct field_desc *field;
-+	size_t field_len;
-+
-+	for (field = sort_fields; field->name != NULL; field++) {
-+		field_len = strlen(field->name);
-+		if (field_len != strlen(name))
-+			continue;
-+		if (strncmp(field->name, name, field_len) == 0)
-+			return field;
-+	}
-+
-+	return NULL;
-+}
-+
-+/* Find display name for a field descriptor */
-+static const char *get_name_by_field(const struct field_desc *field)
-+{
-+	return field ? field->name : "UNKNOWN";
-+}
-+
-+/* Generate string of available field names */
-+static void display_available_fields(void)
-+{
-+	const struct field_desc *field;
-+	char buf[MAX_BUF_LEN];
-+
-+	buf[0] = '\0';
-+
-+	for (field = sort_fields; field->name != NULL; field++) {
-+		strncat(buf, "|", MAX_BUF_LEN - strlen(buf) - 1);
-+		strncat(buf, field->name, MAX_BUF_LEN - strlen(buf) - 1);
-+		buf[MAX_BUF_LEN - 1] = '\0';
-+	}
-+
-+	fprintf(stderr, "Available fields: %s\n", buf);
-+}
-+
- /* Display usage information and command line options */
- static void usage(void)
+ /* Generate string of available field names */
+-static void display_available_fields(void)
++static void display_available_fields(size_t mode)
  {
- 	printf("Usage: delaytop [Options]\n"
- 	"Options:\n"
--	"  -h, --help				Show this help message and exit\n"
--	"  -d, --delay=SECONDS	  Set refresh interval (default: 2 seconds, min: 1)\n"
--	"  -n, --iterations=COUNT	Set number of updates (default: 0 = infinite)\n"
--	"  -P, --processes=NUMBER	Set maximum number of processes to show (default: 20, max: 1000)\n"
--	"  -o, --once				Display once and exit\n"
--	"  -p, --pid=PID			Monitor only the specified PID\n"
--	"  -C, --container=PATH	 Monitor the container at specified cgroup path\n");
-+	"  -h, --help               Show this help message and exit\n"
-+	"  -d, --delay=SECONDS      Set refresh interval (default: 2 seconds, min: 1)\n"
-+	"  -n, --iterations=COUNT   Set number of updates (default: 0 = infinite)\n"
-+	"  -P, --processes=NUMBER   Set maximum number of processes to show (default: 20, max: 1000)\n"
-+	"  -o, --once               Display once and exit\n"
-+	"  -p, --pid=PID            Monitor only the specified PID\n"
-+	"  -C, --container=PATH     Monitor the container at specified cgroup path\n"
-+	"  -s, --sort=FIELD         Sort by delay field (default: cpu)\n");
+ 	const struct field_desc *field;
+ 	char buf[MAX_BUF_LEN];
+@@ -215,6 +229,8 @@ static void display_available_fields(voi
+ 	buf[0] = '\0';
+ 
+ 	for (field = sort_fields; field->name != NULL; field++) {
++		if (!(field->supported_modes & mode))
++			continue;
+ 		strncat(buf, "|", MAX_BUF_LEN - strlen(buf) - 1);
+ 		strncat(buf, field->name, MAX_BUF_LEN - strlen(buf) - 1);
+ 		buf[MAX_BUF_LEN - 1] = '\0';
+@@ -235,7 +251,8 @@ static void usage(void)
+ 	"  -o, --once               Display once and exit\n"
+ 	"  -p, --pid=PID            Monitor only the specified PID\n"
+ 	"  -C, --container=PATH     Monitor the container at specified cgroup path\n"
+-	"  -s, --sort=FIELD         Sort by delay field (default: cpu)\n");
++	"  -s, --sort=FIELD         Sort by delay field (default: cpu)\n"
++	"  -M, --memverbose         Display memory detailed information\n");
  	exit(0);
  }
  
-@@ -177,6 +243,7 @@ static void usage(void)
- static void parse_args(int argc, char **argv)
- {
- 	int c;
-+	const struct field_desc *field;
- 	struct option long_options[] = {
- 		{"help", no_argument, 0, 'h'},
- 		{"delay", required_argument, 0, 'd'},
-@@ -184,6 +251,7 @@ static void parse_args(int argc, char **
- 		{"pid", required_argument, 0, 'p'},
- 		{"once", no_argument, 0, 'o'},
+@@ -253,6 +270,7 @@ static void parse_args(int argc, char **
  		{"processes", required_argument, 0, 'P'},
-+		{"sort", required_argument, 0, 's'},
+ 		{"sort", required_argument, 0, 's'},
  		{"container", required_argument, 0, 'C'},
++		{"memverbose", no_argument, 0, 'M'},
  		{0, 0, 0, 0}
  	};
-@@ -192,7 +260,7 @@ static void parse_args(int argc, char **
- 	cfg.delay = 2;
- 	cfg.iterations = 0;
- 	cfg.max_processes = 20;
--	cfg.sort_field = 'c';	/* Default sort by CPU delay */
-+	cfg.sort_field = &sort_fields[0];	/* Default sorted by CPU delay */
+ 
+@@ -264,11 +282,12 @@ static void parse_args(int argc, char **
  	cfg.output_one_time = 0;
  	cfg.monitor_pid = 0;	/* 0 means monitor all PIDs */
  	cfg.container_path = NULL;
-@@ -200,7 +268,7 @@ static void parse_args(int argc, char **
++	cfg.display_mode = MODE_DEFAULT;
+ 
  	while (1) {
  		int option_index = 0;
  
--		c = getopt_long(argc, argv, "hd:n:p:oP:C:", long_options, &option_index);
-+		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:", long_options, &option_index);
+-		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:", long_options, &option_index);
++		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:M", long_options, &option_index);
  		if (c == -1)
  			break;
  
-@@ -247,6 +315,22 @@ static void parse_args(int argc, char **
- 		case 'C':
- 			cfg.container_path = strdup(optarg);
+@@ -325,12 +344,16 @@ static void parse_args(int argc, char **
+ 			/* Show available fields if invalid option provided */
+ 			if (!field) {
+ 				fprintf(stderr, "Error: invalid sort field '%s'\n", optarg);
+-				display_available_fields();
++				display_available_fields(MODE_TYPE_ALL);
+ 				exit(1);
+ 			}
+ 
+ 			cfg.sort_field = field;
  			break;
-+		case 's':
-+			if (strlen(optarg) == 0) {
-+				fprintf(stderr, "Error: empty sort field\n");
-+				exit(1);
-+			}
-+
-+			field = get_field_by_name(optarg);
-+			/* Show available fields if invalid option provided */
-+			if (!field) {
-+				fprintf(stderr, "Error: invalid sort field '%s'\n", optarg);
-+				display_available_fields();
-+				exit(1);
-+			}
-+
-+			cfg.sort_field = field;
++		case 'M':
++			cfg.display_mode = MODE_MEMVERBOSE;
++			cfg.sort_field = get_field_by_name("mem");
 +			break;
  		default:
  			fprintf(stderr, "Try 'delaytop --help' for more information.\n");
  			exit(1);
-@@ -587,19 +671,23 @@ static int compare_tasks(const void *a,
- {
- 	const struct task_info *t1 = (const struct task_info *)a;
- 	const struct task_info *t2 = (const struct task_info *)b;
-+	unsigned long long total1;
-+	unsigned long long total2;
-+	unsigned long count1;
-+	unsigned long count2;
- 	double avg1, avg2;
- 
--	switch (cfg.sort_field) {
--	case 'c': /* CPU */
--		avg1 = average_ms(t1->cpu_delay_total, t1->cpu_count);
--		avg2 = average_ms(t2->cpu_delay_total, t2->cpu_count);
--		if (avg1 != avg2)
--			return avg2 > avg1 ? 1 : -1;
--		return t2->cpu_delay_total > t1->cpu_delay_total ? 1 : -1;
-+	total1 = *(unsigned long long *)((char *)t1 + cfg.sort_field->total_offset);
-+	total2 = *(unsigned long long *)((char *)t2 + cfg.sort_field->total_offset);
-+	count1 = *(unsigned long *)((char *)t1 + cfg.sort_field->count_offset);
-+	count2 = *(unsigned long *)((char *)t2 + cfg.sort_field->count_offset);
-+
-+	avg1 = average_ms(total1, count1);
-+	avg2 = average_ms(total2, count2);
-+	if (avg1 != avg2)
-+		return avg2 > avg1 ? 1 : -1;
- 
--	default:
--		return t2->cpu_delay_total > t1->cpu_delay_total ? 1 : -1;
--	}
-+	return 0;
+@@ -338,6 +361,25 @@ static void parse_args(int argc, char **
+ 	}
  }
  
- /* Sort tasks by selected field */
-@@ -738,8 +826,9 @@ static void display_results(void)
- 			container_stats.nr_stopped, container_stats.nr_uninterruptible,
- 			container_stats.nr_io_wait);
++/* Calculate average delay in milliseconds for overall memory */
++static void set_mem_delay_total(struct task_info *t)
++{
++	t->mem_delay_total = t->swapin_delay_total +
++		t->freepages_delay_total +
++		t->thrashing_delay_total +
++		t->compact_delay_total +
++		t->wpcopy_delay_total;
++}
++
++static void set_mem_count(struct task_info *t)
++{
++	t->mem_count = t->swapin_count +
++		t->freepages_count +
++		t->thrashing_count +
++		t->compact_count +
++		t->wpcopy_count;
++}
++
+ /* Create a raw netlink socket and bind */
+ static int create_nl_socket(void)
+ {
+@@ -611,6 +653,8 @@ static void fetch_and_fill_task_info(int
+ 						SET_TASK_STAT(task_count, wpcopy_delay_total);
+ 						SET_TASK_STAT(task_count, irq_count);
+ 						SET_TASK_STAT(task_count, irq_delay_total);
++						set_mem_count(&tasks[task_count]);
++						set_mem_delay_total(&tasks[task_count]);
+ 						task_count++;
+ 					}
+ 					break;
+@@ -829,27 +873,44 @@ static void display_results(void)
+ 	/* Task delay output */
+ 	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
+ 			cfg.max_processes, get_name_by_field(cfg.sort_field));
+-	suc &= BOOL_FPRINT(out, "%5s  %5s  %-17s", "PID", "TGID", "COMMAND");
+-	suc &= BOOL_FPRINT(out, "%7s %7s %7s %7s %7s %7s %7s %7s\n",
+-		"CPU(ms)", "IO(ms)", "SWAP(ms)", "RCL(ms)",
+-		"THR(ms)", "CMP(ms)", "WP(ms)", "IRQ(ms)");
+ 
+-	suc &= BOOL_FPRINT(out, "-----------------------------------------------");
+-	suc &= BOOL_FPRINT(out, "----------------------------------------------\n");
++	suc &= BOOL_FPRINT(out, "%8s  %8s  %-17s", "PID", "TGID", "COMMAND");
++	if (cfg.display_mode == MODE_MEMVERBOSE) {
++		suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s %8s %8s\n",
++			"MEM(ms)", "SWAP(ms)", "RCL(ms)",
++			"THR(ms)", "CMP(ms)", "WP(ms)");
++		suc &= BOOL_FPRINT(out, "-----------------------");
++		suc &= BOOL_FPRINT(out, "-----------------------");
++		suc &= BOOL_FPRINT(out, "-----------------------");
++		suc &= BOOL_FPRINT(out, "---------------------\n");
++	} else {
++		suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s\n",
++			"CPU(ms)", "IO(ms)", "IRQ(ms)", "MEM(ms)");
++		suc &= BOOL_FPRINT(out, "-----------------------");
++		suc &= BOOL_FPRINT(out, "-----------------------");
++		suc &= BOOL_FPRINT(out, "--------------------------\n");
++	}
++
+ 	count = task_count < cfg.max_processes ? task_count : cfg.max_processes;
+ 
+ 	for (i = 0; i < count; i++) {
+-		suc &= BOOL_FPRINT(out, "%5d  %5d  %-15s",
++		suc &= BOOL_FPRINT(out, "%8d  %8d  %-15s",
+ 			tasks[i].pid, tasks[i].tgid, tasks[i].command);
+-		suc &= BOOL_FPRINT(out, "%7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n",
+-			average_ms(tasks[i].cpu_delay_total, tasks[i].cpu_count),
+-			average_ms(tasks[i].blkio_delay_total, tasks[i].blkio_count),
+-			average_ms(tasks[i].swapin_delay_total, tasks[i].swapin_count),
+-			average_ms(tasks[i].freepages_delay_total, tasks[i].freepages_count),
+-			average_ms(tasks[i].thrashing_delay_total, tasks[i].thrashing_count),
+-			average_ms(tasks[i].compact_delay_total, tasks[i].compact_count),
+-			average_ms(tasks[i].wpcopy_delay_total, tasks[i].wpcopy_count),
+-			average_ms(tasks[i].irq_delay_total, tasks[i].irq_count));
++		if (cfg.display_mode == MODE_MEMVERBOSE) {
++			suc &= BOOL_FPRINT(out, DELAY_FMT_MEMVERBOSE,
++				TASK_AVG(tasks[i], mem),
++				TASK_AVG(tasks[i], swapin),
++				TASK_AVG(tasks[i], freepages),
++				TASK_AVG(tasks[i], thrashing),
++				TASK_AVG(tasks[i], compact),
++				TASK_AVG(tasks[i], wpcopy));
++		} else {
++			suc &= BOOL_FPRINT(out, DELAY_FMT_DEFAULT,
++				TASK_AVG(tasks[i], cpu),
++				TASK_AVG(tasks[i], blkio),
++				TASK_AVG(tasks[i], irq),
++				TASK_AVG(tasks[i], mem));
++		}
  	}
--	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by CPU delay):\n",
--			cfg.max_processes);
-+	/* Task delay output */
-+	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
-+			cfg.max_processes, get_name_by_field(cfg.sort_field));
- 	suc &= BOOL_FPRINT(out, "%5s  %5s  %-17s", "PID", "TGID", "COMMAND");
- 	suc &= BOOL_FPRINT(out, "%7s %7s %7s %7s %7s %7s %7s %7s\n",
- 		"CPU(ms)", "IO(ms)", "SWAP(ms)", "RCL(ms)",
+ 
+ 	suc &= BOOL_FPRINT(out, "\n");
+@@ -891,6 +952,13 @@ int main(int argc, char **argv)
+ 
+ 	/* Main loop */
+ 	while (running) {
++		/* Exit when sort field do not match display mode */
++		if (!(cfg.sort_field->supported_modes & cfg.display_mode)) {
++			fprintf(stderr, "Sort field not supported in this mode\n");
++			display_available_fields(cfg.display_mode);
++			break;
++		}
++
+ 		/* Read PSI statistics */
+ 		read_psi_stats();
+ 
 _
 
 Patches currently in -mm which might be from fan.yu9@zte.com.cn are
