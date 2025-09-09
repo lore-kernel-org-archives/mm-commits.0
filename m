@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A03502236F0
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 02:24:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B5742236F0
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 02:24:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757384646; cv=none; b=umNgbxZDOELhDdqM0K5S7pvuODXbATdgvtzYOxuKKW3N4IN1a5KAsldyNsvbyIS0XYKD6WtqpkgWSY3oQcOy4B7SnFUpd/wH99gpmQCr+bKmEXEJjEii8ImKY4R84u3jdy7mFDX8JEgZy5J7jN1hAoivGOywsn/lMb93QVGxfGM=
+	t=1757384649; cv=none; b=Jtlm2VhJwHIhG1feueTKtH8/RAnGywxJsbGNGmyjUKZun+EwkSwtbTGrpuPebvHznqNfmEPRVQpALd9f26wESo33dzAYUossIVmI2tDdLJsefdMYhVTbQV4k1DpyyjSdVIGebSWAmA9IOBiT0zzsY8av98t/l/WxdZQYLY5u6Hw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757384646; c=relaxed/simple;
-	bh=pn/JHz6iroDmz1OibBgiEVumzfJlVnDaQWNsWG/FSDg=;
-	h=Date:To:From:Subject:Message-Id; b=e0ajVDNHy7q10hNo0iJxYrUMH3wgzYkUT0d7C7kOUHDchKQUT0bELQwb0+MXMzM96JUxYzz520SMtrhI53PwpFOuLdqW1Zq7hqGOvKspVsQd3ENRnks5ISIR/blPMzGmlOVrlpPpl6/9lcPUTC+Pnxl7oo+3FOjA5kVLurWPq6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PZ8KiIS1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757384649; c=relaxed/simple;
+	bh=CKEkeJbXo66lhYKq73Xms6/83qQ6/fZxICumDq/gHGc=;
+	h=Date:To:From:Subject:Message-Id; b=dMcXrVVYbAFZGKew9lA43Y7feHJNLYmgy9Rxakior5V1FaShpuX8RHiAhqRib3Ys0M/gI4VQkIHCRUGioW0GUVmZ/2oIKfBrR5vNMKwDbwlpQd68jFu35lWaBeS7vZxUc1SKQwQJ5mYjvqkgq/uXYr35W9JBZIVfek9/7gxPjW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ygbNx2TM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PZ8KiIS1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2277BC4CEF1;
-	Tue,  9 Sep 2025 02:24:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ygbNx2TM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26002C4CEF1;
+	Tue,  9 Sep 2025 02:24:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757384646;
-	bh=pn/JHz6iroDmz1OibBgiEVumzfJlVnDaQWNsWG/FSDg=;
+	s=korg; t=1757384649;
+	bh=CKEkeJbXo66lhYKq73Xms6/83qQ6/fZxICumDq/gHGc=;
 	h=Date:To:From:Subject:From;
-	b=PZ8KiIS1FcSUdK0bnL3gZ5FB0NI7rJhvxMdBBTZ3/q8GBxAVMe2gEtlOEmOi2IAF7
-	 eI1M9z8cIprPjwa6rFCZ97oXUi5GsQYViaLVWsRM7bTsI2JCUuw+bLZEBsspFq5Mrt
-	 t7ccXe02Lji+U+KCmgDRiAX43p1iM55ooHFV/xxU=
-Date: Mon, 08 Sep 2025 19:24:05 -0700
+	b=ygbNx2TM8lQfR1xSRRykSfbQm0dFn0nN5lYe/vJ5kjT2GHB/AlJK+6lT/sIJl2SId
+	 1jXBCqxfinPAIijIwtPRMck197mgV7BNW/Mpr4p9hWZ2bHtMY3Fx22hpfdBsmuwbH5
+	 WQyon6iVCOm9YBqj1enGxXEhmaUbx+ZAaQeIjKVA=
+Date: Mon, 08 Sep 2025 19:24:08 -0700
 To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-xen-support-nested-lazy_mmu-sections-again.patch added to mm-new branch
-Message-Id: <20250909022406.2277BC4CEF1@smtp.kernel.org>
+Subject: + powerpc-mm-support-nested-lazy_mmu-sections.patch added to mm-new branch
+Message-Id: <20250909022409.26002C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/xen: support nested lazy_mmu sections (again)
+     Subject: powerpc/mm: support nested lazy_mmu sections
 has been added to the -mm mm-new branch.  Its filename is
-     x86-xen-support-nested-lazy_mmu-sections-again.patch
+     powerpc-mm-support-nested-lazy_mmu-sections.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-xen-support-nested-lazy_mmu-sections-again.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-support-nested-lazy_mmu-sections.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,26 +65,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: x86/xen: support nested lazy_mmu sections (again)
-Date: Mon, 8 Sep 2025 08:39:28 +0100
+Subject: powerpc/mm: support nested lazy_mmu sections
+Date: Mon, 8 Sep 2025 08:39:29 +0100
 
-Commit 49147beb0ccb ("x86/xen: allow nesting of same lazy mode")
-originally introduced support for nested lazy sections (LAZY_MMU and
-LAZY_CPU).  It later got reverted by commit c36549ff8d84 as its
-implementation turned out to be intolerant to preemption.
+The lazy_mmu API now allows nested sections to be handled by arch code:
+enter() can return a flag if called inside another lazy_mmu section, so
+that the matching call to leave() leaves any optimisation enabled.
 
-Now that the lazy_mmu API allows enter() to pass through a state to the
-matching leave() call, we can support nesting again for the LAZY_MMU mode
-in a preemption-safe manner.  If xen_enter_lazy_mmu() is called inside an
-active lazy_mmu section, xen_lazy_mode will already be set to XEN_LAZY_MMU
-and we can then return LAZY_MMU_NESTED to instruct the matching
-xen_leave_lazy_mmu() call to leave xen_lazy_mode unchanged.
+This patch implements that new logic for powerpc: if there is an active
+batch, then enter() returns LAZY_MMU_NESTED and the matching leave()
+leaves batch->active set.  The preempt_{enable,disable} calls are left
+untouched as they already handle nesting themselves.
 
-The only effect of this patch is to ensure that xen_lazy_mode remains set
-to XEN_LAZY_MMU until the outermost lazy_mmu section ends. 
-xen_leave_lazy_mmu() still calls xen_mc_flush() unconditionally.
+TLB flushing is still done in leave() regardless of the nesting level, as
+the caller may rely on it whether nesting is occurring or not.
 
-Link: https://lkml.kernel.org/r/20250908073931.4159362-5-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250908073931.4159362-6-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -115,72 +111,36 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/paravirt.h       |    6 ++----
- arch/x86/include/asm/paravirt_types.h |    4 ++--
- arch/x86/xen/mmu_pv.c                 |   11 ++++++++---
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ arch/powerpc/include/asm/book3s/64/tlbflush-hash.h |   13 ++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/arch/x86/include/asm/paravirt.h~x86-xen-support-nested-lazy_mmu-sections-again
-+++ a/arch/x86/include/asm/paravirt.h
-@@ -529,14 +529,12 @@ static inline void arch_end_context_swit
- #define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
- static inline lazy_mmu_state_t arch_enter_lazy_mmu_mode(void)
- {
--	PVOP_VCALL0(mmu.lazy_mode.enter);
--
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h~powerpc-mm-support-nested-lazy_mmu-sections
++++ a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+@@ -39,9 +39,13 @@ static inline lazy_mmu_state_t arch_ente
+ 	 */
+ 	preempt_disable();
+ 	batch = this_cpu_ptr(&ppc64_tlb_batch);
+-	batch->active = 1;
+ 
 -	return LAZY_MMU_DEFAULT;
-+	return PVOP_CALL0(lazy_mmu_state_t, mmu.lazy_mode.enter);
++	if (!batch->active) {
++		batch->active = 1;
++		return LAZY_MMU_DEFAULT;
++	} else {
++		return LAZY_MMU_NESTED;
++	}
  }
  
  static inline void arch_leave_lazy_mmu_mode(lazy_mmu_state_t state)
- {
--	PVOP_VCALL0(mmu.lazy_mode.leave);
-+	PVOP_VCALL1(mmu.lazy_mode.leave, state);
- }
+@@ -54,7 +58,10 @@ static inline void arch_leave_lazy_mmu_m
  
- static inline void arch_flush_lazy_mmu_mode(void)
---- a/arch/x86/include/asm/paravirt_types.h~x86-xen-support-nested-lazy_mmu-sections-again
-+++ a/arch/x86/include/asm/paravirt_types.h
-@@ -45,8 +45,8 @@ typedef int lazy_mmu_state_t;
- 
- struct pv_lazy_ops {
- 	/* Set deferred update mode, used for batching operations. */
--	void (*enter)(void);
--	void (*leave)(void);
-+	lazy_mmu_state_t (*enter)(void);
-+	void (*leave)(lazy_mmu_state_t);
- 	void (*flush)(void);
- } __no_randomize_layout;
- #endif
---- a/arch/x86/xen/mmu_pv.c~x86-xen-support-nested-lazy_mmu-sections-again
-+++ a/arch/x86/xen/mmu_pv.c
-@@ -2130,9 +2130,13 @@ static void xen_set_fixmap(unsigned idx,
- #endif
- }
- 
--static void xen_enter_lazy_mmu(void)
-+static lazy_mmu_state_t xen_enter_lazy_mmu(void)
- {
-+	if (this_cpu_read(xen_lazy_mode) == XEN_LAZY_MMU)
-+		return LAZY_MMU_NESTED;
+ 	if (batch->index)
+ 		__flush_tlb_pending(batch);
+-	batch->active = 0;
 +
- 	enter_lazy(XEN_LAZY_MMU);
-+	return LAZY_MMU_DEFAULT;
- }
- 
- static void xen_flush_lazy_mmu(void)
-@@ -2167,11 +2171,12 @@ static void __init xen_post_allocator_in
- 	pv_ops.mmu.write_cr3 = &xen_write_cr3;
- }
- 
--static void xen_leave_lazy_mmu(void)
-+static void xen_leave_lazy_mmu(lazy_mmu_state_t state)
- {
- 	preempt_disable();
- 	xen_mc_flush();
--	leave_lazy(XEN_LAZY_MMU);
 +	if (state != LAZY_MMU_NESTED)
-+		leave_lazy(XEN_LAZY_MMU);
++		batch->active = 0;
++
  	preempt_enable();
  }
  
