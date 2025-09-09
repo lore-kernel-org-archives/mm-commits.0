@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26087D515
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:04:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B79AD2D7DED
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:11:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757390652; cv=none; b=ARpdlWco7EE7j1BUs8+3Kg+fzgDFdCoWZ3eud0Y/2hUSxK1+kmNmsZ4k5bITW7+y0MWDS76F0rGMVjg8cNrsYs7Pe4aoOxGYLaS3JTylytsfugc63xb1nK222wzx4nsvbhhw3eVDn+XxT9s3/erYeO8I3U1ekGCqqztvA9Y5yDY=
+	t=1757391113; cv=none; b=UAdCSsdkEQW/8YeSZlZ+mBTEAmr0jWIFWpnWEgSlWZziCa2TwftrgCFRYoIjpamSHUegQMPt7U88hv6EmD+/3ThQwYZrlscnykHbj6LfZ5PU+F8y3PMFAbk95TMwSk83Oa9VP7fvsYzjNOIlNKmOx6m3nloOM6QOso+3hM7z2Ys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757390652; c=relaxed/simple;
-	bh=iwpYSJMG8FU5oruboIodUQwWaktyiwuDvq8WQ6y0W78=;
-	h=Date:To:From:Subject:Message-Id; b=h2r7FUPEUucHr8v+pKaBV8DkPec0UFyOTB8920t+jUfSmFt4PFmzJjjLTGHj3NRHP4ycVe9Q0R/JUf8qsdAl+9sk8J8pznvxU1JR+sKve5tW48Nunv1YSDE1xWyCm81Gmhlo3uz2WU2jgplxfR5Uf4C66BQs8R2bmHw1ME25B7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vBNwXYcs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757391113; c=relaxed/simple;
+	bh=SCCkR5c9QMF+yVbqOSbESYquC1id5enQBgHKvg4TYLQ=;
+	h=Date:To:From:Subject:Message-Id; b=Ew6rYA0yw1O7kPs4/3IXHLNy9gYQFlPBT0YV3pjqCMQNW88TLGncdVwM5ZIIY3b24JlsWHnA7oC+gzkeUGoFcef7WeL/Qd54cXo972EwQTSlVvc5AIzvQrbaSbBah4NmEmJilF1AxAuj3vLIqPjhdPiJ8nwbe2hlRMKUzapIgHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QRrDE/XB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vBNwXYcs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA4CFC4CEF4;
-	Tue,  9 Sep 2025 04:04:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QRrDE/XB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 737C2C4CEF4;
+	Tue,  9 Sep 2025 04:11:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757390652;
-	bh=iwpYSJMG8FU5oruboIodUQwWaktyiwuDvq8WQ6y0W78=;
+	s=korg; t=1757391113;
+	bh=SCCkR5c9QMF+yVbqOSbESYquC1id5enQBgHKvg4TYLQ=;
 	h=Date:To:From:Subject:From;
-	b=vBNwXYcsi9e6i7CYBeiP4NqfRCfN/05lQCQPm0CQszmCCtXV3/0NwZvmSRmyt4I10
-	 giafurgdwU2rNBdq8I0pkJeQZg6QZGlhEp656FYxzRprK+0b7yZZ4IPjuu+oHP644Q
-	 Nfzcx4I8zOeuRsrthX4CjDENQ0DD+Tw+fEqa8f7g=
-Date: Mon, 08 Sep 2025 21:04:11 -0700
-To: mm-commits@vger.kernel.org,rafael@kernel.org,pavel@ucw.cz,mchehab@kernel.org,mchehab+huawei@kernel.org,len.brown@intel.com,jani.nikula@linux.intel.com,james.bottomley@HansenPartnership.com,gregkh@linuxfoundation.org,corbet@lwn.net,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=QRrDE/XBjFwZacCrTMSqN5KQE/FlbHSFZoozdLrQ6uNRGA3A8XSVy97t9li2IEm7/
+	 Tho+7XY8xzMosbCpRriiifhjX67TOSVsBEXIu0BWo7NIMZqC/4FR9ISrRU2c6m+DsD
+	 j/5ZF5Tk2kg4zpKov2FWZ0Vyn4qleGAuIg75fY4s=
+Date: Mon, 08 Sep 2025 21:11:52 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,corbet@lwn.net,fan.yu9@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernelh-add-comments-for-enum-system_states.patch added to mm-nonmm-unstable branch
-Message-Id: <20250909040411.EA4CFC4CEF4@smtp.kernel.org>
+Subject: + tools-delaytop-add-flexible-sorting-by-delay-field.patch added to mm-nonmm-unstable branch
+Message-Id: <20250909041153.737C2C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel.h: add comments for enum system_states
+     Subject: tools/delaytop: add flexible sorting by delay field
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernelh-add-comments-for-enum-system_states.patch
+     tools-delaytop-add-flexible-sorting-by-delay-field.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-add-comments-for-enum-system_states.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-delaytop-add-flexible-sorting-by-delay-field.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,78 +58,419 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: kernel.h: add comments for enum system_states
-Date: Sat, 6 Sep 2025 21:38:57 -0700
+From: Fan Yu <fan.yu9@zte.com.cn>
+Subject: tools/delaytop: add flexible sorting by delay field
+Date: Sun, 7 Sep 2025 00:12:05 +0800 (CST)
 
-Provide some basic comments about the system_states and what they imply. 
-Also convert the comments to kernel-doc format.
+Patch series "tools/delaytop: implement real-time keyboard interaction
+support", v2.
 
-Split the enum declaration from the definition of the system_state
-variable so that kernel-doc notation works cleanly with it.  This is
-picked up by Documentation/driver-api/basics.rst so it does not need
-further inclusion in the kernel docbooks.
+Current Limitations
+===================
 
-Link: https://lkml.kernel.org/r/20250907043857.2941203-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Rafael J. Wysocki <rafael@kernel.org> # v1
-Reviewed-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>	[v5]
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
+The current delaytop implementation has two main limitations:
+
+1) Static sorting only by CPU delay Forcing users to restart with
+   different parameters to analyze other resource bottlenecks.
+
+2) Memory delay information is always expanded Causing information
+   overload when only high-level memory pressure monitoring is needed.
+
+Improvements
+============
+
+1) Implemented dynamic sorting capability
+- Interactive key 'o' triggers sort mode.
+- Supports sorting by CPU/IO/Memory/IRQ delays.
+- Memory subcategories available in verbose mode.
+ * c - CPU delay (default)
+ * i - IO delay
+ * m - Total memory delay
+ * q - IRQ delay
+ * s/r/t/p/w - Memory subcategories (in verbose mode)
+
+2) Added memory display modes
+- Compact view (default): shows aggregated memory delays.
+- Verbose view ('M' key): breaks down into memory sub-delays.
+ * SWAP - swapin delays
+ * RCL - freepages reclaim delays
+ * THR - thrashing delays
+ * CMP - compaction delays
+ * WP - write-protect copy delays
+
+Practical benefits
+==================
+
+1) Dynamic Sorting for Real-Time Bottleneck Detection System
+   administrators can now dynamically change sorting to identify different
+   types of resource bottlenecks without restarting.
+
+
+2) Enhanced Usability with On-Screen Keybindings More intuitive
+   interactive usage with on-screen keybindings help.  Reduced screen
+   clutter when only memory overview is needed.
+
+Use Case
+========
+# ./delaytop
+System Pressure Information: (avg10/avg60vg300/total)
+CPU some:       0.0%/   0.0%/   0.0%/  106817(ms)
+CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
+Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
+Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
+IO full:        0.0%/   0.0%/   0.0%/    2245(ms)
+IO some:        0.0%/   0.0%/   0.0%/    2791(ms)
+IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
+[o]sort [M]memverbose [q]quit
+Top 20 processes (sorted by cpu delay):
+     PID      TGID  COMMAND           CPU(ms)   IO(ms)  IRQ(ms)  MEM(ms)
+------------------------------------------------------------------------
+     110       110  kworker/15:0H-s   27.91     0.00     0.00     0.00
+      57        57  cpuhp/7            3.18     0.00     0.00     0.00
+      99        99  cpuhp/14           2.97     0.00     0.00     0.00
+      51        51  cpuhp/6            0.90     0.00     0.00     0.00
+      44        44  kworker/4:0H-sy    0.80     0.00     0.00     0.00
+      76        76  idle_inject/10     0.31     0.00     0.00     0.00
+     100       100  idle_inject/14     0.30     0.00     0.00     0.00
+    1309      1309  systemsettings     0.29     0.00     0.00     0.00
+      60        60  ksoftirqd/7        0.28     0.00     0.00     0.00
+      45        45  cpuhp/5            0.22     0.00     0.00     0.00
+      63        63  cpuhp/8            0.20     0.00     0.00     0.00
+      87        87  cpuhp/12           0.18     0.00     0.00     0.00
+      93        93  cpuhp/13           0.17     0.00     0.00     0.00
+    1265      1265  acpid              0.17     0.00     0.00     0.00
+    1552      1552  sshd               0.17     0.00     0.00     0.00
+    2584      2584  sddm-helper        0.16     0.00     0.00     0.00
+    1284      1284  rtkit-daemon       0.15     0.00     0.00     0.00
+    1326      1326  nde-netfilter      0.14     0.00     0.00     0.00
+      27        27  cpuhp/2            0.13     0.00     0.00     0.00
+     631       631  kworker/11:2-rc    0.11     0.00     0.00     0.00
+
+# ./delaytop -M
+System Pressure Information: (avg10/avg60vg300/total)
+CPU some:       0.0%/   0.0%/   0.0%/  106827(ms)
+CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
+Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
+Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
+IO full:        0.0%/   0.0%/   0.0%/    2245(ms)
+IO some:        0.0%/   0.0%/   0.0%/    2791(ms)
+IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
+[o]sort [M]memverbose [q]quit
+Top 20 processes (sorted by mem delay):
+     PID      TGID  COMMAND           MEM(ms) SWAP(ms)  RCL(ms)  THR(ms)  CMP(ms)   WP(ms)
+------------------------------------------------------------------------------------------
+  121732    121732  delaytop           0.01     0.00     0.00     0.00     0.00     0.01
+   95876     95876  top                0.00     0.00     0.00     0.00     0.00     0.00
+  121641    121641  systemd-userwor    0.00     0.00     0.00     0.00     0.00     0.00
+  121693    121693  systemd-userwor    0.00     0.00     0.00     0.00     0.00     0.00
+  121661    121661  systemd-userwor    0.00     0.00     0.00     0.00     0.00     0.00
+       1         1  systemd            0.00     0.00     0.00     0.00     0.00     0.00
+       2         2  kthreadd           0.00     0.00     0.00     0.00     0.00     0.00
+       3         3  pool_workqueue_    0.00     0.00     0.00     0.00     0.00     0.00
+       4         4  kworker/R-rcu_g    0.00     0.00     0.00     0.00     0.00     0.00
+       5         5  kworker/R-rcu_p    0.00     0.00     0.00     0.00     0.00     0.00
+       6         6  kworker/R-slub_    0.00     0.00     0.00     0.00     0.00     0.00
+       7         7  kworker/R-netns    0.00     0.00     0.00     0.00     0.00     0.00
+       9         9  kworker/0:0H-sy    0.00     0.00     0.00     0.00     0.00     0.00
+      11        11  kworker/u32:0-n    0.00     0.00     0.00     0.00     0.00     0.00
+      12        12  kworker/R-mm_pe    0.00     0.00     0.00     0.00     0.00     0.00
+      13        13  rcu_tasks_kthre    0.00     0.00     0.00     0.00     0.00     0.00
+      14        14  rcu_tasks_rude_    0.00     0.00     0.00     0.00     0.00     0.00
+      15        15  rcu_tasks_trace    0.00     0.00     0.00     0.00     0.00     0.00
+      16        16  ksoftirqd/0        0.00     0.00     0.00     0.00     0.00     0.00
+      17        17  rcu_preempt        0.00     0.00     0.00     0.00     0.00     0.00
+
+When psi is not enabled:
+# ./delaytop
+System Pressure Information: (avg10/avg60vg300/total)
+  PSI not found: check if psi=1 enabled in cmdline
+
+
+This patch (of 5):
+
+The delaytop tool only supported sorting by CPU delay, which limited its
+usefulness when users needed to identify bottlenecks in other subsystems. 
+Users had no way to sort processes by IO, IRQ, or other delay types to
+quickly pinpoint specific performance issues.
+
+Add -s/--sort option to allow sorting by different delay types.  Users can
+now quickly identify bottlenecks in specific subsystems by sorting
+processes by the relevant delay metric.
+
+Link: https://lkml.kernel.org/r/20250907001101305vrTGnXaRNvtmsGkp-Ljk_@zte.com.cn
+Link: https://lkml.kernel.org/r/20250907001205573L3XpsQMIQnLgDqiiKYd3H@zte.com.cn
+Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
+Reviewed-by: xu xin <xu.xin16@zte.com.cn>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ tools/accounting/delaytop.c |  153 ++++++++++++++++++++++++++--------
+ 1 file changed, 121 insertions(+), 32 deletions(-)
 
---- a/include/linux/kernel.h~kernelh-add-comments-for-enum-system_states
-+++ a/include/linux/kernel.h
-@@ -164,11 +164,23 @@ extern int root_mountflags;
+--- a/tools/accounting/delaytop.c~tools-delaytop-add-flexible-sorting-by-delay-field
++++ a/tools/accounting/delaytop.c
+@@ -42,6 +42,7 @@
+ #include <linux/genetlink.h>
+ #include <linux/taskstats.h>
+ #include <linux/cgroupstats.h>
++#include <stddef.h>
  
- extern bool early_boot_irqs_disabled;
+ #define PSI_CPU_SOME "/proc/pressure/cpu"
+ #define PSI_CPU_FULL	"/proc/pressure/cpu"
+@@ -61,6 +62,7 @@
+ #define TASK_COMM_LEN	16
+ #define MAX_MSG_SIZE	1024
+ #define MAX_TASKS		1000
++#define MAX_BUF_LEN		256
+ #define SET_TASK_STAT(task_count, field) tasks[task_count].field = stats.field
+ #define BOOL_FPRINT(stream, fmt, ...) \
+ ({ \
+@@ -68,17 +70,11 @@
+ 	ret >= 0; \
+ })
+ #define PSI_LINE_FORMAT "%-12s %6.1f%%/%6.1f%%/%6.1f%%/%8llu(ms)\n"
+-
+-/* Program settings structure */
+-struct config {
+-	int delay;				/* Update interval in seconds */
+-	int iterations;			/* Number of iterations, 0 == infinite */
+-	int max_processes;		/* Maximum number of processes to show */
+-	char sort_field;		/* Field to sort by */
+-	int output_one_time;	/* Output once and exit */
+-	int monitor_pid;		/* Monitor specific PID */
+-	char *container_path;	/* Path to container cgroup */
+-};
++#define SORT_FIELD(name) \
++	{#name, \
++	offsetof(struct task_info, name##_delay_total), \
++	offsetof(struct task_info, name##_count)}
++#define END_FIELD {NULL, 0, 0}
  
--/*
-- * Values used for system_state. Ordering of the states must not be changed
-+/**
-+ * enum system_states - Values used for system_state.
-+ *
-+ * @SYSTEM_BOOTING:	%0, no init needed
-+ * @SYSTEM_SCHEDULING: system is ready for scheduling; OK to use RCU
-+ * @SYSTEM_FREEING_INITMEM: system is freeing all of initmem; almost running
-+ * @SYSTEM_RUNNING:	system is up and running
-+ * @SYSTEM_HALT:	system entered clean system halt state
-+ * @SYSTEM_POWER_OFF:	system entered shutdown/clean power off state
-+ * @SYSTEM_RESTART:	system entered emergency power off or normal restart
-+ * @SYSTEM_SUSPEND:	system entered suspend or hibernate state
-+ *
-+ * Note:
-+ * Ordering of the states must not be changed
-  * as code checks for <, <=, >, >= STATE.
-  */
--extern enum system_states {
-+enum system_states {
- 	SYSTEM_BOOTING,
- 	SYSTEM_SCHEDULING,
- 	SYSTEM_FREEING_INITMEM,
-@@ -177,7 +189,8 @@ extern enum system_states {
- 	SYSTEM_POWER_OFF,
- 	SYSTEM_RESTART,
- 	SYSTEM_SUSPEND,
--} system_state;
+ /* PSI statistics structure */
+ struct psi_stats {
+@@ -130,6 +126,24 @@ struct container_stats {
+ 	int nr_io_wait;			/* Number of processes in IO wait */
+ };
+ 
++/* Delay field structure */
++struct field_desc {
++	const char *name;	/* Field name for cmdline argument */
++	unsigned long total_offset; /* Offset of total delay in task_info */
++	unsigned long count_offset; /* Offset of count in task_info */
 +};
-+extern enum system_states system_state;
++
++/* Program settings structure */
++struct config {
++	int delay;				/* Update interval in seconds */
++	int iterations;			/* Number of iterations, 0 == infinite */
++	int max_processes;		/* Maximum number of processes to show */
++	int output_one_time;	/* Output once and exit */
++	int monitor_pid;		/* Monitor specific PID */
++	char *container_path;	/* Path to container cgroup */
++	const struct field_desc *sort_field;	/* Current sort field */
++};
++
+ /* Global variables */
+ static struct config cfg;
+ static struct psi_stats psi;
+@@ -137,6 +151,17 @@ static struct task_info tasks[MAX_TASKS]
+ static int task_count;
+ static int running = 1;
+ static struct container_stats container_stats;
++static const struct field_desc sort_fields[] = {
++	SORT_FIELD(cpu),
++	SORT_FIELD(blkio),
++	SORT_FIELD(irq),
++	SORT_FIELD(swapin),
++	SORT_FIELD(freepages),
++	SORT_FIELD(thrashing),
++	SORT_FIELD(compact),
++	SORT_FIELD(wpcopy),
++	END_FIELD
++};
  
- /*
-  * General tracing related utility functions - trace_printk(),
+ /* Netlink socket variables */
+ static int nl_sd = -1;
+@@ -158,18 +183,59 @@ static void disable_raw_mode(void)
+ 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+ }
+ 
++/* Find field descriptor by name with string comparison */
++static const struct field_desc *get_field_by_name(const char *name)
++{
++	const struct field_desc *field;
++	size_t field_len;
++
++	for (field = sort_fields; field->name != NULL; field++) {
++		field_len = strlen(field->name);
++		if (field_len != strlen(name))
++			continue;
++		if (strncmp(field->name, name, field_len) == 0)
++			return field;
++	}
++
++	return NULL;
++}
++
++/* Find display name for a field descriptor */
++static const char *get_name_by_field(const struct field_desc *field)
++{
++	return field ? field->name : "UNKNOWN";
++}
++
++/* Generate string of available field names */
++static void display_available_fields(void)
++{
++	const struct field_desc *field;
++	char buf[MAX_BUF_LEN];
++
++	buf[0] = '\0';
++
++	for (field = sort_fields; field->name != NULL; field++) {
++		strncat(buf, "|", MAX_BUF_LEN - strlen(buf) - 1);
++		strncat(buf, field->name, MAX_BUF_LEN - strlen(buf) - 1);
++		buf[MAX_BUF_LEN - 1] = '\0';
++	}
++
++	fprintf(stderr, "Available fields: %s\n", buf);
++}
++
+ /* Display usage information and command line options */
+ static void usage(void)
+ {
+ 	printf("Usage: delaytop [Options]\n"
+ 	"Options:\n"
+-	"  -h, --help				Show this help message and exit\n"
+-	"  -d, --delay=SECONDS	  Set refresh interval (default: 2 seconds, min: 1)\n"
+-	"  -n, --iterations=COUNT	Set number of updates (default: 0 = infinite)\n"
+-	"  -P, --processes=NUMBER	Set maximum number of processes to show (default: 20, max: 1000)\n"
+-	"  -o, --once				Display once and exit\n"
+-	"  -p, --pid=PID			Monitor only the specified PID\n"
+-	"  -C, --container=PATH	 Monitor the container at specified cgroup path\n");
++	"  -h, --help               Show this help message and exit\n"
++	"  -d, --delay=SECONDS      Set refresh interval (default: 2 seconds, min: 1)\n"
++	"  -n, --iterations=COUNT   Set number of updates (default: 0 = infinite)\n"
++	"  -P, --processes=NUMBER   Set maximum number of processes to show (default: 20, max: 1000)\n"
++	"  -o, --once               Display once and exit\n"
++	"  -p, --pid=PID            Monitor only the specified PID\n"
++	"  -C, --container=PATH     Monitor the container at specified cgroup path\n"
++	"  -s, --sort=FIELD         Sort by delay field (default: cpu)\n");
+ 	exit(0);
+ }
+ 
+@@ -177,6 +243,7 @@ static void usage(void)
+ static void parse_args(int argc, char **argv)
+ {
+ 	int c;
++	const struct field_desc *field;
+ 	struct option long_options[] = {
+ 		{"help", no_argument, 0, 'h'},
+ 		{"delay", required_argument, 0, 'd'},
+@@ -184,6 +251,7 @@ static void parse_args(int argc, char **
+ 		{"pid", required_argument, 0, 'p'},
+ 		{"once", no_argument, 0, 'o'},
+ 		{"processes", required_argument, 0, 'P'},
++		{"sort", required_argument, 0, 's'},
+ 		{"container", required_argument, 0, 'C'},
+ 		{0, 0, 0, 0}
+ 	};
+@@ -192,7 +260,7 @@ static void parse_args(int argc, char **
+ 	cfg.delay = 2;
+ 	cfg.iterations = 0;
+ 	cfg.max_processes = 20;
+-	cfg.sort_field = 'c';	/* Default sort by CPU delay */
++	cfg.sort_field = &sort_fields[0];	/* Default sorted by CPU delay */
+ 	cfg.output_one_time = 0;
+ 	cfg.monitor_pid = 0;	/* 0 means monitor all PIDs */
+ 	cfg.container_path = NULL;
+@@ -200,7 +268,7 @@ static void parse_args(int argc, char **
+ 	while (1) {
+ 		int option_index = 0;
+ 
+-		c = getopt_long(argc, argv, "hd:n:p:oP:C:", long_options, &option_index);
++		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:", long_options, &option_index);
+ 		if (c == -1)
+ 			break;
+ 
+@@ -247,6 +315,22 @@ static void parse_args(int argc, char **
+ 		case 'C':
+ 			cfg.container_path = strdup(optarg);
+ 			break;
++		case 's':
++			if (strlen(optarg) == 0) {
++				fprintf(stderr, "Error: empty sort field\n");
++				exit(1);
++			}
++
++			field = get_field_by_name(optarg);
++			/* Show available fields if invalid option provided */
++			if (!field) {
++				fprintf(stderr, "Error: invalid sort field '%s'\n", optarg);
++				display_available_fields();
++				exit(1);
++			}
++
++			cfg.sort_field = field;
++			break;
+ 		default:
+ 			fprintf(stderr, "Try 'delaytop --help' for more information.\n");
+ 			exit(1);
+@@ -587,19 +671,23 @@ static int compare_tasks(const void *a,
+ {
+ 	const struct task_info *t1 = (const struct task_info *)a;
+ 	const struct task_info *t2 = (const struct task_info *)b;
++	unsigned long long total1;
++	unsigned long long total2;
++	unsigned long count1;
++	unsigned long count2;
+ 	double avg1, avg2;
+ 
+-	switch (cfg.sort_field) {
+-	case 'c': /* CPU */
+-		avg1 = average_ms(t1->cpu_delay_total, t1->cpu_count);
+-		avg2 = average_ms(t2->cpu_delay_total, t2->cpu_count);
+-		if (avg1 != avg2)
+-			return avg2 > avg1 ? 1 : -1;
+-		return t2->cpu_delay_total > t1->cpu_delay_total ? 1 : -1;
++	total1 = *(unsigned long long *)((char *)t1 + cfg.sort_field->total_offset);
++	total2 = *(unsigned long long *)((char *)t2 + cfg.sort_field->total_offset);
++	count1 = *(unsigned long *)((char *)t1 + cfg.sort_field->count_offset);
++	count2 = *(unsigned long *)((char *)t2 + cfg.sort_field->count_offset);
++
++	avg1 = average_ms(total1, count1);
++	avg2 = average_ms(total2, count2);
++	if (avg1 != avg2)
++		return avg2 > avg1 ? 1 : -1;
+ 
+-	default:
+-		return t2->cpu_delay_total > t1->cpu_delay_total ? 1 : -1;
+-	}
++	return 0;
+ }
+ 
+ /* Sort tasks by selected field */
+@@ -738,8 +826,9 @@ static void display_results(void)
+ 			container_stats.nr_stopped, container_stats.nr_uninterruptible,
+ 			container_stats.nr_io_wait);
+ 	}
+-	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by CPU delay):\n",
+-			cfg.max_processes);
++	/* Task delay output */
++	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
++			cfg.max_processes, get_name_by_field(cfg.sort_field));
+ 	suc &= BOOL_FPRINT(out, "%5s  %5s  %-17s", "PID", "TGID", "COMMAND");
+ 	suc &= BOOL_FPRINT(out, "%7s %7s %7s %7s %7s %7s %7s %7s\n",
+ 		"CPU(ms)", "IO(ms)", "SWAP(ms)", "RCL(ms)",
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from fan.yu9@zte.com.cn are
 
-listh-add-missing-kernel-doc-for-basic-macros.patch
-kernelh-add-comments-for-enum-system_states.patch
+tools-delaytop-add-flexible-sorting-by-delay-field.patch
+tools-delaytop-add-memory-verbose-mode-support.patch
+tools-delaytop-add-interactive-mode-with-keyboard-controls.patch
+tools-delaytop-improve-error-handling-for-missing-psi-support.patch
+docs-update-delaytop-documentation-for-new-interactive-features.patch
 
