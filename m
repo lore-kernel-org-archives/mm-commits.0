@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D04A2D7DED
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:11:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31AC92D7DED
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:12:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757391118; cv=none; b=agjCO3ykcm6Uz4XYR5GkW0pbztWTkIzUGHoE1jArrnzRcrR9sztM5aot/E4khENOE0TzpzVflwZv8Qj/KlSDMK+WmdCU/E+o0wE2ghg5irgD48qKGtnqBLYaWFETcblUsaDpSkEB7h7+MxrA87PgyjP8LvDkQHouaG5roK122Do=
+	t=1757391120; cv=none; b=g3gWnj3/eTdjix3BLfU4Gkfhvipkgcnm4KdzU+Me6Um3tRQ042bf6wxePh1Zlir4aTUfXsnlyKvXJTm8+u0sckAWeO2G14Ft2jgxkZGw5RlufYImvRVpHGlQwtsDRTkgEftM2abaIoDXVL9nm/keXJ64tdPyIz/mYpiQvZiZxo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757391118; c=relaxed/simple;
-	bh=aiPLsxOx6IHsqu5pEcWsG2uBb1t72kkgwkVrlP3ZLHQ=;
-	h=Date:To:From:Subject:Message-Id; b=upQFqhydKy8urE8XdNszgtQqVvEmzYw6AXvDqSww4o6MzdYaYr3vItspFZc1HCmCKr961XUPrIhYhsR7RlnBjw75JuZIiWyh2AU1so5B8FL79/887d6rk6OPOCHLd1O6MPpQpla/eIRdgLvqDaYH8vwdX2EPE9GwBh8xkRLuyYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=co9Q2n+T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757391120; c=relaxed/simple;
+	bh=Pt1lTBl7uXv47lzoj48v815E3f/pA7UAnGDAw2f+PLk=;
+	h=Date:To:From:Subject:Message-Id; b=SZJ9verewHyapXO0h+qvbPIsZ6Qv7z1+Cd5YX/GUymwpHI5K4TCK98GN8jkYWWLLkahexGHVXQv61mOzP7H+yf+Xap/+lFLw3OqYT42Dl82IfcQE9N/tHQNn/u8q9C4+VCQiFYheD15YvXlp2eeIAGn7AlKfQlLszY3lw/MHaL8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nJH1t30d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="co9Q2n+T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF774C4CEF4;
-	Tue,  9 Sep 2025 04:11:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nJH1t30d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7139C4CEF4;
+	Tue,  9 Sep 2025 04:11:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757391117;
-	bh=aiPLsxOx6IHsqu5pEcWsG2uBb1t72kkgwkVrlP3ZLHQ=;
+	s=korg; t=1757391120;
+	bh=Pt1lTBl7uXv47lzoj48v815E3f/pA7UAnGDAw2f+PLk=;
 	h=Date:To:From:Subject:From;
-	b=co9Q2n+TsBqtpd6wDBXugmtUAAIotuVlZooz/i27+CmFvnx0Z4Zx6+puYo9Vvlohm
-	 ZUW+mOhsONIQ3h2fb+ubgoI/RnVwpyBSJrDlyP8v83Vd/aHAUMiQCEVP6ej+T6E4Jm
-	 NUOX7VBnJg9lc/jOgb4SfPy7ps3Smq/HzH1v6G1Y=
-Date: Mon, 08 Sep 2025 21:11:57 -0700
+	b=nJH1t30dwd++GlgMeFPVmdYr924uF3/xQOimkw3zPKOf/CUaG1cXHgq54ylV8x0Ru
+	 52EAUEfQ+t7YTwOG8p8Fg8QRGJXDg2KZLqBvUoan5Hfy0HucTuUAz+RVQ0tJcgkPyF
+	 qrEl1nMlbJ4hHaOGd7OzJ+Ga0Mow9DPwZc9QArMA=
+Date: Mon, 08 Sep 2025 21:11:59 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,fan.yu9@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-delaytop-add-interactive-mode-with-keyboard-controls.patch added to mm-nonmm-unstable branch
-Message-Id: <20250909041157.CF774C4CEF4@smtp.kernel.org>
+Subject: + tools-delaytop-improve-error-handling-for-missing-psi-support.patch added to mm-nonmm-unstable branch
+Message-Id: <20250909041159.E7139C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/delaytop: add interactive mode with keyboard controls
+     Subject: tools/delaytop: improve error handling for missing PSI support
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-delaytop-add-interactive-mode-with-keyboard-controls.patch
+     tools-delaytop-improve-error-handling-for-missing-psi-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-delaytop-add-interactive-mode-with-keyboard-controls.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-delaytop-improve-error-handling-for-missing-psi-support.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,269 +59,323 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Fan Yu <fan.yu9@zte.com.cn>
-Subject: tools/delaytop: add interactive mode with keyboard controls
-Date: Sun, 7 Sep 2025 00:13:38 +0800 (CST)
+Subject: tools/delaytop: improve error handling for missing PSI support
+Date: Sun, 7 Sep 2025 00:14:17 +0800 (CST)
 
-The original delaytop only supported static output with limited
-interaction.  Users had to restart the tool with different command-line
-options to change sorting or display modes, which disrupted continuous
-monitoring and reduced productivity during performance investigations.
+Enhanced display logic to conditionally show PSI information only when
+successfully read, with helpful guidance for users to enable PSI support
+(psi=1 cmdline parameter).
 
-Adds real-time interactive controls through keyboard input:
-1) Add interactive menu system with visual prompts
-2) Support dynamic sorting changes without restarting
-3) Enable toggle of memory verbose mode with 'M' key
-
-The interactive mode transforms delaytop from a static monitoring tool
-into a dynamic investigation platform, allowing users to adapt the view in
-real-time based on observed performance patterns.
-
-Link: https://lkml.kernel.org/r/20250907001338580EURha20BxWFmBSrUpS8D1@zte.com.cn
+Link: https://lkml.kernel.org/r/20250907001417537vSx6nUsb3ILqI0iQ-WnGp@zte.com.cn
 Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
 Reviewed-by: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/delaytop.c |  166 ++++++++++++++++++++++++----------
- 1 file changed, 121 insertions(+), 45 deletions(-)
+ tools/accounting/delaytop.c |  182 +++++++++++++++++++++-------------
+ 1 file changed, 116 insertions(+), 66 deletions(-)
 
---- a/tools/accounting/delaytop.c~tools-delaytop-add-interactive-mode-with-keyboard-controls
+--- a/tools/accounting/delaytop.c~tools-delaytop-improve-error-handling-for-missing-psi-support
 +++ a/tools/accounting/delaytop.c
-@@ -73,8 +73,8 @@
- #define PSI_LINE_FORMAT "%-12s %6.1f%%/%6.1f%%/%6.1f%%/%8llu(ms)\n"
- #define DELAY_FMT_DEFAULT "%8.2f %8.2f %8.2f %8.2f\n"
- #define DELAY_FMT_MEMVERBOSE "%8.2f %8.2f %8.2f %8.2f %8.2f %8.2f\n"
--#define SORT_FIELD(name, modes) \
--	{#name, \
-+#define SORT_FIELD(name, cmd, modes) \
-+	{#name, #cmd, \
- 	offsetof(struct task_info, name##_delay_total), \
- 	offsetof(struct task_info, name##_count), \
- 	modes}
-@@ -140,6 +140,7 @@ struct container_stats {
- /* Delay field structure */
- struct field_desc {
- 	const char *name;	/* Field name for cmdline argument */
-+	const char *cmd_char;	/* Interactive command */
- 	unsigned long total_offset; /* Offset of total delay in task_info */
- 	unsigned long count_offset; /* Offset of count in task_info */
- 	size_t supported_modes; /* Supported display modes */
-@@ -165,17 +166,18 @@ static int task_count;
- static int running = 1;
- static struct container_stats container_stats;
- static const struct field_desc sort_fields[] = {
--	SORT_FIELD(cpu,		MODE_DEFAULT),
--	SORT_FIELD(blkio,	MODE_DEFAULT),
--	SORT_FIELD(irq,		MODE_DEFAULT),
--	SORT_FIELD(mem,		MODE_DEFAULT | MODE_MEMVERBOSE),
--	SORT_FIELD(swapin,	MODE_MEMVERBOSE),
--	SORT_FIELD(freepages,	MODE_MEMVERBOSE),
--	SORT_FIELD(thrashing,	MODE_MEMVERBOSE),
--	SORT_FIELD(compact,	MODE_MEMVERBOSE),
--	SORT_FIELD(wpcopy,	MODE_MEMVERBOSE),
-+	SORT_FIELD(cpu,		c,	MODE_DEFAULT),
-+	SORT_FIELD(blkio,	i,	MODE_DEFAULT),
-+	SORT_FIELD(irq,		q,	MODE_DEFAULT),
-+	SORT_FIELD(mem,		m,	MODE_DEFAULT | MODE_MEMVERBOSE),
-+	SORT_FIELD(swapin,	s,	MODE_MEMVERBOSE),
-+	SORT_FIELD(freepages,	r,	MODE_MEMVERBOSE),
-+	SORT_FIELD(thrashing,	t,	MODE_MEMVERBOSE),
-+	SORT_FIELD(compact,	p,	MODE_MEMVERBOSE),
-+	SORT_FIELD(wpcopy,	w,	MODE_MEMVERBOSE),
- 	END_FIELD
- };
-+static int sort_selected;
+@@ -44,13 +44,11 @@
+ #include <linux/cgroupstats.h>
+ #include <stddef.h>
  
- /* Netlink socket variables */
- static int nl_sd = -1;
-@@ -197,6 +199,19 @@ static void disable_raw_mode(void)
- 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+-#define PSI_CPU_SOME "/proc/pressure/cpu"
+-#define PSI_CPU_FULL	"/proc/pressure/cpu"
+-#define PSI_MEMORY_SOME "/proc/pressure/memory"
+-#define PSI_MEMORY_FULL "/proc/pressure/memory"
+-#define PSI_IO_SOME "/proc/pressure/io"
+-#define PSI_IO_FULL "/proc/pressure/io"
+-#define PSI_IRQ_FULL	"/proc/pressure/irq"
++#define PSI_PATH	"/proc/pressure"
++#define PSI_CPU_PATH	"/proc/pressure/cpu"
++#define PSI_MEMORY_PATH	"/proc/pressure/memory"
++#define PSI_IO_PATH	"/proc/pressure/io"
++#define PSI_IRQ_PATH	"/proc/pressure/irq"
+ 
+ #define NLA_NEXT(na)			((struct nlattr *)((char *)(na) + NLA_ALIGN((na)->nla_len)))
+ #define NLA_DATA(na)			((void *)((char *)(na) + NLA_HDRLEN))
+@@ -499,87 +497,134 @@ static int get_family_id(int sd)
+ 	return id;
  }
  
-+/* Find field descriptor by command line */
-+static const struct field_desc *get_field_by_cmd_char(char ch)
-+{
-+	const struct field_desc *field;
-+
-+	for (field = sort_fields; field->name != NULL; field++) {
-+		if (field->cmd_char[0] == ch)
-+			return field;
-+	}
-+
-+	return NULL;
-+}
-+
- /* Find field descriptor by name with string comparison */
- static const struct field_desc *get_field_by_name(const char *name)
+-static void read_psi_stats(void)
++static int read_psi_stats(void)
  {
-@@ -870,6 +885,18 @@ static void display_results(void)
- 			container_stats.nr_stopped, container_stats.nr_uninterruptible,
- 			container_stats.nr_io_wait);
- 	}
+ 	FILE *fp;
+ 	char line[256];
+ 	int ret = 0;
++	int error_count = 0;
 +
-+	/* Interacive command */
-+	suc &= BOOL_FPRINT(out, "[o]sort [M]memverbose [q]quit\n");
-+	if (sort_selected) {
-+		if (cfg.display_mode == MODE_MEMVERBOSE)
-+			suc &= BOOL_FPRINT(out,
-+				"sort selection: [m]MEM [r]RCL [t]THR [p]CMP [w]WP\n");
-+		else
-+			suc &= BOOL_FPRINT(out,
-+				"sort selection: [c]CPU [i]IO [m]MEM [q]IRQ\n");
++	/* Check if PSI path exists */
++	if (access(PSI_PATH, F_OK) != 0) {
++		fprintf(stderr, "Error: PSI interface not found at %s\n", PSI_PATH);
++		fprintf(stderr, "Please ensure your kernel supports PSI (Pressure Stall Information)\n");
++		return -1;
 +	}
 +
- 	/* Task delay output */
- 	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
- 			cfg.max_processes, get_name_by_field(cfg.sort_field));
-@@ -919,11 +946,78 @@ static void display_results(void)
- 		perror("Error writing to output");
- }
- 
-+/* Check for keyboard input with timeout based on cfg.delay */
-+static char check_for_keypress(void)
-+{
-+	struct timeval tv = {cfg.delay, 0};
-+	fd_set readfds;
-+	char ch = 0;
+ 	/* Zero all fields */
+ 	memset(&psi, 0, sizeof(psi));
 +
-+	FD_ZERO(&readfds);
-+	FD_SET(STDIN_FILENO, &readfds);
-+	int r = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv);
-+
-+	if (r > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
-+		read(STDIN_FILENO, &ch, 1);
-+		return ch;
-+	}
-+
-+	return 0;
-+}
-+
-+#define MAX_MODE_SIZE 2
-+static void toggle_display_mode(void)
-+{
-+	static const size_t modes[MAX_MODE_SIZE] = {MODE_DEFAULT, MODE_MEMVERBOSE};
-+	static size_t cur_index;
-+
-+	cur_index = (cur_index + 1) % MAX_MODE_SIZE;
-+	cfg.display_mode = modes[cur_index];
-+}
-+
-+/* Handle keyboard input: sorting selection, mode toggle, or quit */
-+static void handle_keypress(char ch, int *running)
-+{
-+	const struct field_desc *field;
-+
-+	/* Change sort field */
-+	if (sort_selected) {
-+		field = get_field_by_cmd_char(ch);
-+		if (field && (field->supported_modes & cfg.display_mode))
-+			cfg.sort_field = field;
-+
-+		sort_selected = 0;
-+	/* Handle mode changes or quit */
-+	} else {
-+		switch (ch) {
-+		case 'o':
-+			sort_selected = 1;
-+			break;
-+		case 'M':
-+			toggle_display_mode();
-+			for (field = sort_fields; field->name != NULL; field++) {
-+				if (field->supported_modes & cfg.display_mode) {
-+					cfg.sort_field = field;
-+					break;
+ 	/* CPU pressure */
+-	fp = fopen(PSI_CPU_SOME, "r");
++	fp = fopen(PSI_CPU_PATH, "r");
+ 	if (fp) {
+ 		while (fgets(line, sizeof(line), fp)) {
+ 			if (strncmp(line, "some", 4) == 0) {
+ 				ret = sscanf(line, "some avg10=%lf avg60=%lf avg300=%lf total=%llu",
+ 							&psi.cpu_some_avg10, &psi.cpu_some_avg60,
+ 							&psi.cpu_some_avg300, &psi.cpu_some_total);
+-				if (ret != 4)
++				if (ret != 4) {
+ 					fprintf(stderr, "Failed to parse CPU some PSI data\n");
++					error_count++;
 +				}
-+			}
-+			break;
-+		case 'q':
-+		case 'Q':
-+			*running = 0;
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+}
-+
- /* Main function */
- int main(int argc, char **argv)
- {
-+	const struct field_desc *field;
- 	int iterations = 0;
--	int use_q_quit = 0;
-+	char keypress;
- 
- 	/* Parse command line arguments */
- 	parse_args(argc, argv);
-@@ -943,20 +1037,20 @@ int main(int argc, char **argv)
- 		exit(1);
+ 			} else if (strncmp(line, "full", 4) == 0) {
+ 				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
+ 						&psi.cpu_full_avg10, &psi.cpu_full_avg60,
+ 						&psi.cpu_full_avg300, &psi.cpu_full_total);
+-				if (ret != 4)
++				if (ret != 4) {
+ 					fprintf(stderr, "Failed to parse CPU full PSI data\n");
++					error_count++;
++				}
+ 			}
+ 		}
+ 		fclose(fp);
++	} else {
++		fprintf(stderr, "Warning: Failed to open %s\n", PSI_CPU_PATH);
++		error_count++;
  	}
- 
--	if (!cfg.output_one_time) {
--		use_q_quit = 1;
--		enable_raw_mode();
--		printf("Press 'q' to quit.\n");
--		fflush(stdout);
--	}
-+	/* Set terminal to non-canonical mode for interaction */
-+	enable_raw_mode();
- 
- 	/* Main loop */
- 	while (running) {
--		/* Exit when sort field do not match display mode */
-+		/* Auto-switch sort field when not matching display mode */
- 		if (!(cfg.sort_field->supported_modes & cfg.display_mode)) {
--			fprintf(stderr, "Sort field not supported in this mode\n");
--			display_available_fields(cfg.display_mode);
--			break;
-+			for (field = sort_fields; field->name != NULL; field++) {
-+				if (field->supported_modes & cfg.display_mode) {
-+					cfg.sort_field = field;
-+					printf("Auto-switched sort field to: %s\n", field->name);
-+					break;
++
+ 	/* Memory pressure */
+-	fp = fopen(PSI_MEMORY_SOME, "r");
++	fp = fopen(PSI_MEMORY_PATH, "r");
+ 	if (fp) {
+ 		while (fgets(line, sizeof(line), fp)) {
+ 			if (strncmp(line, "some", 4) == 0) {
+ 				ret = sscanf(line, "some avg10=%lf avg60=%lf avg300=%lf total=%llu",
+ 						&psi.memory_some_avg10, &psi.memory_some_avg60,
+ 						&psi.memory_some_avg300, &psi.memory_some_total);
+-				if (ret != 4)
++				if (ret != 4) {
+ 					fprintf(stderr, "Failed to parse Memory some PSI data\n");
++					error_count++;
++				}
+ 			} else if (strncmp(line, "full", 4) == 0) {
+ 				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
+ 						&psi.memory_full_avg10, &psi.memory_full_avg60,
+ 						&psi.memory_full_avg300, &psi.memory_full_total);
+-			}
+-				if (ret != 4)
++				if (ret != 4) {
+ 					fprintf(stderr, "Failed to parse Memory full PSI data\n");
++					error_count++;
 +				}
 +			}
  		}
+ 		fclose(fp);
++	} else {
++		fprintf(stderr, "Warning: Failed to open %s\n", PSI_MEMORY_PATH);
++		error_count++;
+ 	}
++
+ 	/* IO pressure */
+-	fp = fopen(PSI_IO_SOME, "r");
++	fp = fopen(PSI_IO_PATH, "r");
+ 	if (fp) {
+ 		while (fgets(line, sizeof(line), fp)) {
+ 			if (strncmp(line, "some", 4) == 0) {
+ 				ret = sscanf(line, "some avg10=%lf avg60=%lf avg300=%lf total=%llu",
+ 						&psi.io_some_avg10, &psi.io_some_avg60,
+ 						&psi.io_some_avg300, &psi.io_some_total);
+-				if (ret != 4)
++				if (ret != 4) {
+ 					fprintf(stderr, "Failed to parse IO some PSI data\n");
++					error_count++;
++				}
+ 			} else if (strncmp(line, "full", 4) == 0) {
+ 				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
+ 						&psi.io_full_avg10, &psi.io_full_avg60,
+ 						&psi.io_full_avg300, &psi.io_full_total);
+-				if (ret != 4)
++				if (ret != 4) {
+ 					fprintf(stderr, "Failed to parse IO full PSI data\n");
++					error_count++;
++				}
+ 			}
+ 		}
+ 		fclose(fp);
++	} else {
++		fprintf(stderr, "Warning: Failed to open %s\n", PSI_IO_PATH);
++		error_count++;
+ 	}
++
+ 	/* IRQ pressure (only full) */
+-	fp = fopen(PSI_IRQ_FULL, "r");
++	fp = fopen(PSI_IRQ_PATH, "r");
+ 	if (fp) {
+ 		while (fgets(line, sizeof(line), fp)) {
+ 			if (strncmp(line, "full", 4) == 0) {
+ 				ret = sscanf(line, "full avg10=%lf avg60=%lf avg300=%lf total=%llu",
+ 						&psi.irq_full_avg10, &psi.irq_full_avg60,
+ 						&psi.irq_full_avg300, &psi.irq_full_total);
+-				if (ret != 4)
++				if (ret != 4) {
+ 					fprintf(stderr, "Failed to parse IRQ full PSI data\n");
++					error_count++;
++				}
+ 			}
+ 		}
+ 		fclose(fp);
++	} else {
++		fprintf(stderr, "Warning: Failed to open %s\n", PSI_IRQ_PATH);
++		error_count++;
+ 	}
++
++	/* Return error count: 0 means success, >0 means warnings, -1 means fatal error */
++	if (error_count > 0) {
++		fprintf(stderr, "PSI stats reading completed with %d warnings\n", error_count);
++		return error_count;
++	}
++
++	return 0;
+ }
+ 
+ static int read_comm(int pid, char *comm_buf, size_t buf_size)
+@@ -820,7 +865,7 @@ static void get_container_stats(void)
+ }
+ 
+ /* Display results to stdout or log file */
+-static void display_results(void)
++static void display_results(int psi_ret)
+ {
+ 	time_t now = time(NULL);
+ 	struct tm *tm_now = localtime(&now);
+@@ -833,49 +878,53 @@ static void display_results(void)
+ 	suc &= BOOL_FPRINT(out, "\033[H\033[J");
+ 
+ 	/* PSI output (one-line, no cat style) */
+-	suc &= BOOL_FPRINT(out, "System Pressure Information: (avg10/avg60/avg300/total)\n");
+-	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
+-		"CPU some:",
+-		psi.cpu_some_avg10,
+-		psi.cpu_some_avg60,
+-		psi.cpu_some_avg300,
+-		psi.cpu_some_total / 1000);
+-	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
+-		"CPU full:",
+-		psi.cpu_full_avg10,
+-		psi.cpu_full_avg60,
+-		psi.cpu_full_avg300,
+-		psi.cpu_full_total / 1000);
+-	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
+-		"Memory full:",
+-		psi.memory_full_avg10,
+-		psi.memory_full_avg60,
+-		psi.memory_full_avg300,
+-		psi.memory_full_total / 1000);
+-	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
+-		"Memory some:",
+-		psi.memory_some_avg10,
+-		psi.memory_some_avg60,
+-		psi.memory_some_avg300,
+-		psi.memory_some_total / 1000);
+-	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
+-		"IO full:",
+-		psi.io_full_avg10,
+-		psi.io_full_avg60,
+-		psi.io_full_avg300,
+-		psi.io_full_total / 1000);
+-	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
+-		"IO some:",
+-		psi.io_some_avg10,
+-		psi.io_some_avg60,
+-		psi.io_some_avg300,
+-		psi.io_some_total / 1000);
+-	suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
+-		"IRQ full:",
+-		psi.irq_full_avg10,
+-		psi.irq_full_avg60,
+-		psi.irq_full_avg300,
+-		psi.irq_full_total / 1000);
++	suc &= BOOL_FPRINT(out, "System Pressure Information: (avg10/avg60vg300/total)\n");
++	if (psi_ret) {
++		suc &= BOOL_FPRINT(out, "  PSI not found: check if psi=1 enabled in cmdline\n");
++	} else {
++		suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++			"CPU some:",
++			psi.cpu_some_avg10,
++			psi.cpu_some_avg60,
++			psi.cpu_some_avg300,
++			psi.cpu_some_total / 1000);
++		suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++			"CPU full:",
++			psi.cpu_full_avg10,
++			psi.cpu_full_avg60,
++			psi.cpu_full_avg300,
++			psi.cpu_full_total / 1000);
++		suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++			"Memory full:",
++			psi.memory_full_avg10,
++			psi.memory_full_avg60,
++			psi.memory_full_avg300,
++			psi.memory_full_total / 1000);
++		suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++			"Memory some:",
++			psi.memory_some_avg10,
++			psi.memory_some_avg60,
++			psi.memory_some_avg300,
++			psi.memory_some_total / 1000);
++		suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++			"IO full:",
++			psi.io_full_avg10,
++			psi.io_full_avg60,
++			psi.io_full_avg300,
++			psi.io_full_total / 1000);
++		suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++			"IO some:",
++			psi.io_some_avg10,
++			psi.io_some_avg60,
++			psi.io_some_avg300,
++			psi.io_some_total / 1000);
++		suc &= BOOL_FPRINT(out, PSI_LINE_FORMAT,
++			"IRQ full:",
++			psi.irq_full_avg10,
++			psi.irq_full_avg60,
++			psi.irq_full_avg300,
++			psi.irq_full_total / 1000);
++	}
+ 
+ 	if (cfg.container_path) {
+ 		suc &= BOOL_FPRINT(out, "Container Information (%s):\n", cfg.container_path);
+@@ -1017,6 +1066,7 @@ int main(int argc, char **argv)
+ {
+ 	const struct field_desc *field;
+ 	int iterations = 0;
++	int psi_ret = 0;
+ 	char keypress;
+ 
+ 	/* Parse command line arguments */
+@@ -1054,7 +1104,7 @@ int main(int argc, char **argv)
+ 		}
  
  		/* Read PSI statistics */
-@@ -983,32 +1077,14 @@ int main(int argc, char **argv)
- 		if (cfg.output_one_time)
- 			break;
+-		read_psi_stats();
++		psi_ret = read_psi_stats();
  
--		/* Check for 'q' key to quit */
--		if (use_q_quit) {
--			struct timeval tv = {cfg.delay, 0};
--			fd_set readfds;
--
--			FD_ZERO(&readfds);
--			FD_SET(STDIN_FILENO, &readfds);
--			int r = select(STDIN_FILENO+1, &readfds, NULL, NULL, &tv);
--
--			if (r > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
--				char ch = 0;
--
--				read(STDIN_FILENO, &ch, 1);
--				if (ch == 'q' || ch == 'Q') {
--					running = 0;
--					break;
--				}
--			}
--		} else {
--			sleep(cfg.delay);
--		}
-+		/* Keypress for interactive usage */
-+		keypress = check_for_keypress();
-+		if (keypress)
-+			handle_keypress(keypress, &running);
- 	}
+ 		/* Get container stats if container path provided */
+ 		if (cfg.container_path)
+@@ -1067,7 +1117,7 @@ int main(int argc, char **argv)
+ 		sort_tasks();
  
- 	/* Restore terminal mode */
--	if (use_q_quit)
--		disable_raw_mode();
-+	disable_raw_mode();
+ 		/* Display results to stdout or log file */
+-		display_results();
++		display_results(psi_ret);
  
- 	/* Cleanup */
- 	close(nl_sd);
+ 		/* Check for iterations */
+ 		if (cfg.iterations > 0 && ++iterations >= cfg.iterations)
 _
 
 Patches currently in -mm which might be from fan.yu9@zte.com.cn are
