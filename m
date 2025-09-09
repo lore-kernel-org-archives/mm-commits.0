@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F51D2475E3
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 02:12:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 614F1235057
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 02:23:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757383938; cv=none; b=VO3U0rkvdiDqqHUknJVIKmeiuSrEniwJDfgD70OsRmIhHipC1wJlzgDcgtW2F4so/gjxzRha2YmuKs2Rh6Rwdb2KYLvBIfwHdxlKb0OxS6e+q7Tu0DyJUMCEcRTNyFKVrhUVC8nKwpb2llvjn6CfWLNrQaHV3SsgQFsiknxwuaY=
+	t=1757384629; cv=none; b=FP20g2j8VR9B1QOTVBFhqS4V2+XhT1gPUIwYarb3hSOnnUdq0NuErduzNqnRPEeB1X3NmVFUV53KH2MBiVuceCVqOoj707Z/YMP84BLgEBrrw2A4G2U6H0JGukrygEytYAgGQcemfKIBhTHQSfJpTSAAO1DPxAtT/qXwXbhexoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757383938; c=relaxed/simple;
-	bh=W9SYYvwIXzPQ8vI0/JuH67+RzfaydgVig9XjyG/syyo=;
-	h=Date:To:From:Subject:Message-Id; b=R1iGGpsYMIDP0wdSqNKE2OXkf0KisSlbqtpftYUJBop4qPLvepLmlqNu36b8/RTjY5U1LsIzJbTfMQ/nHLkPRMFvNYwiEgwSTIiow2evRFN0IpDj6oQmF4j9u0SZxnf5N0+JSNDC1owbNTQxxYRhp/xB6imL1y7jERiySyD0cVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AEHqYptY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757384629; c=relaxed/simple;
+	bh=NYws91OHinPDUMg5VjJM5meSlOc+HODAe4aZhVPLeh4=;
+	h=Date:To:From:Subject:Message-Id; b=uWotw8Utji8zd3eLe2grsXEXY1imlRd3lkFlDL4I+ZYpFPVvYBqLrp40q/jSzjD+cNrOjlhpBqSKZwvggXq0d1wrTnPFsz/PrhGiDUU/iE+ewplgCRrzLpj2J3AeWq5QrMKCb6hXzHTfGTAx/CMh/ITWXF41l3kd7ynscWdBELg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H6DC/G8B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AEHqYptY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02FDC4CEF7;
-	Tue,  9 Sep 2025 02:12:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H6DC/G8B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C724EC4CEF1;
+	Tue,  9 Sep 2025 02:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757383935;
-	bh=W9SYYvwIXzPQ8vI0/JuH67+RzfaydgVig9XjyG/syyo=;
+	s=korg; t=1757384628;
+	bh=NYws91OHinPDUMg5VjJM5meSlOc+HODAe4aZhVPLeh4=;
 	h=Date:To:From:Subject:From;
-	b=AEHqYptYTwSE2xYCiwqKM+n/3mLcZaBI16GwyHdzikT5dWEGDrZUVpI5HeICa7Zrc
-	 LDuoUZ19UEan1o5nFwdHpiLW3jS8JJ6jVrB1+b+Z5Pi7nhCh3tX2pDz0ottrQoqc3p
-	 VsWgj4yLIU26iSEPDZrHwBviVDzXVbONy4oy9gNc=
-Date: Mon, 08 Sep 2025 19:12:15 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
+	b=H6DC/G8BCs8O+Z8LM1580653+Qwa28RnEZvz+LyVXEUxSXRrszgNCXrqjm6uOKTQn
+	 /6hrmpL83qhsk8WZH/GLNFtMzU/Cx2hlm2Cr5/PJv58JH2Ln7fkrokzpsWVj22pA6Z
+	 cImCoZiGB1gFN3U4S9y7BO/QEOqbahhT+Vw4xCCM=
+Date: Mon, 08 Sep 2025 19:23:48 -0700
+To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-drop-all-references-of-writable-and-scan_page_ro.patch added to mm-new branch
-Message-Id: <20250909021215.C02FDC4CEF7@smtp.kernel.org>
+Subject: + mm-remove-arch_flush_lazy_mmu_mode.patch added to mm-new branch
+Message-Id: <20250909022348.C724EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: drop all references of writable and SCAN_PAGE_RO
+     Subject: mm: remove arch_flush_lazy_mmu_mode()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-drop-all-references-of-writable-and-scan_page_ro.patch
+     mm-remove-arch_flush_lazy_mmu_mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-all-references-of-writable-and-scan_page_ro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-arch_flush_lazy_mmu_mode.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,193 +64,178 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm: drop all references of writable and SCAN_PAGE_RO
-Date: Mon, 8 Sep 2025 13:20:28 +0530
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Subject: mm: remove arch_flush_lazy_mmu_mode()
+Date: Mon, 8 Sep 2025 08:39:25 +0100
 
-Now that all actionable outcomes from checking pte_write() are gone, drop
-the related references.
+Patch series "Nesting support for lazy MMU mode", v2.
 
-Link: https://lkml.kernel.org/r/20250908075028.38431-3-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Kiryl Shutsemau <kas@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+When the lazy MMU mode was introduced eons ago, it wasn't made clear
+whether such a sequence was legal:
+
+	arch_enter_lazy_mmu_mode()
+	...
+		arch_enter_lazy_mmu_mode()
+		...
+		arch_leave_lazy_mmu_mode()
+	...
+	arch_leave_lazy_mmu_mode()
+
+It seems fair to say that nested calls to
+arch_{enter,leave}_lazy_mmu_mode() were not expected, and most
+architectures never explicitly supported it.
+
+Ryan Roberts' series from March [1] attempted to prevent nesting from ever
+occurring, and mostly succeeded.  Unfortunately, a corner case
+(DEBUG_PAGEALLOC) may still cause nesting to occur on arm64.  Ryan
+proposed [2] to address that corner case at the generic level but this
+approach received pushback; [3] then attempted to solve the issue on arm64
+only, but it was deemed too fragile.
+
+It feels generally fragile to rely on lazy_mmu sections not to nest,
+because callers of various standard mm functions do not know if the
+function uses lazy_mmu itself.  This series therefore performs a U-turn
+and adds support for nested lazy_mmu sections, on all architectures.
+
+The main change enabling nesting is patch 2, following the approach
+suggested by Catalin Marinas [4]: have enter() return some state and the
+matching leave() take that state.  In this series, the state is only used
+to handle nesting, but it could be used for other purposes such as
+restoring context modified by enter(); the proposed kpkeys framework would
+be an immediate user [5].
+
+
+This patch (of 7):
+
+This function has only ever been used in arch/x86, so there is no need for
+other architectures to implement it.  Remove it from linux/pgtable.h and
+all architectures besides x86.
+
+The arm64 implementation is not empty but it is only called from
+arch_leave_lazy_mmu_mode(), so we can simply fold it there.
+
+Link: https://lkml.kernel.org/r/20250908073931.4159362-1-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250908073931.4159362-2-kevin.brodsky@arm.com
+Link: https://lore.kernel.org/all/20250303141542.3371656-1-ryan.roberts@arm.com/ [1]
+Link: https://lore.kernel.org/all/20250530140446.2387131-1-ryan.roberts@arm.com/ [2]
+Link: https://lore.kernel.org/all/20250606135654.178300-1-ryan.roberts@arm.com/ [3]
+Link: https://lore.kernel.org/all/aEhKSq0zVaUJkomX@arm.com/ [4]
+Link: https://lore.kernel.org/linux-hardening/20250815085512.2182322-19-kevin.brodsky@arm.com/ [5]
+Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Juegren Gross <jgross@suse.com>
+Cc: levi.yun <yeoreum.yun@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   19 ++++++-------------
- mm/khugepaged.c                    |   14 +++-----------
- 2 files changed, 9 insertions(+), 24 deletions(-)
+ arch/arm64/include/asm/pgtable.h                   |    9 +--------
+ arch/powerpc/include/asm/book3s/64/tlbflush-hash.h |    2 --
+ arch/sparc/include/asm/tlbflush_64.h               |    1 -
+ arch/x86/include/asm/pgtable.h                     |    3 ++-
+ include/linux/pgtable.h                            |    1 -
+ 5 files changed, 3 insertions(+), 13 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-drop-all-references-of-writable-and-scan_page_ro
-+++ a/include/trace/events/huge_memory.h
-@@ -19,7 +19,6 @@
- 	EM( SCAN_PTE_NON_PRESENT,	"pte_non_present")		\
- 	EM( SCAN_PTE_UFFD_WP,		"pte_uffd_wp")			\
- 	EM( SCAN_PTE_MAPPED_HUGEPAGE,	"pte_mapped_hugepage")		\
--	EM( SCAN_PAGE_RO,		"no_writable_page")		\
- 	EM( SCAN_LACK_REFERENCED_PAGE,	"lack_referenced_page")		\
- 	EM( SCAN_PAGE_NULL,		"page_null")			\
- 	EM( SCAN_SCAN_ABORT,		"scan_aborted")			\
-@@ -55,15 +54,14 @@ SCAN_STATUS
+--- a/arch/arm64/include/asm/pgtable.h~mm-remove-arch_flush_lazy_mmu_mode
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -101,21 +101,14 @@ static inline void arch_enter_lazy_mmu_m
+ 	set_thread_flag(TIF_LAZY_MMU);
+ }
  
- TRACE_EVENT(mm_khugepaged_scan_pmd,
+-static inline void arch_flush_lazy_mmu_mode(void)
++static inline void arch_leave_lazy_mmu_mode(void)
+ {
+ 	if (in_interrupt())
+ 		return;
  
--	TP_PROTO(struct mm_struct *mm, struct folio *folio, bool writable,
-+	TP_PROTO(struct mm_struct *mm, struct folio *folio,
- 		 int referenced, int none_or_zero, int status, int unmapped),
- 
--	TP_ARGS(mm, folio, writable, referenced, none_or_zero, status, unmapped),
-+	TP_ARGS(mm, folio, referenced, none_or_zero, status, unmapped),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
- 		__field(unsigned long, pfn)
--		__field(bool, writable)
- 		__field(int, referenced)
- 		__field(int, none_or_zero)
- 		__field(int, status)
-@@ -73,17 +71,15 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
- 	TP_fast_assign(
- 		__entry->mm = mm;
- 		__entry->pfn = folio ? folio_pfn(folio) : -1;
--		__entry->writable = writable;
- 		__entry->referenced = referenced;
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->status = status;
- 		__entry->unmapped = unmapped;
- 	),
- 
--	TP_printk("mm=%p, scan_pfn=0x%lx, writable=%d, referenced=%d, none_or_zero=%d, status=%s, unmapped=%d",
-+	TP_printk("mm=%p, scan_pfn=0x%lx, referenced=%d, none_or_zero=%d, status=%s, unmapped=%d",
- 		__entry->mm,
- 		__entry->pfn,
--		__entry->writable,
- 		__entry->referenced,
- 		__entry->none_or_zero,
- 		__print_symbolic(__entry->status, SCAN_STATUS),
-@@ -117,15 +113,14 @@ TRACE_EVENT(mm_collapse_huge_page,
- TRACE_EVENT(mm_collapse_huge_page_isolate,
- 
- 	TP_PROTO(struct folio *folio, int none_or_zero,
--		 int referenced, bool  writable, int status),
-+		 int referenced, int status),
- 
--	TP_ARGS(folio, none_or_zero, referenced, writable, status),
-+	TP_ARGS(folio, none_or_zero, referenced, status),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
- 		__field(int, none_or_zero)
- 		__field(int, referenced)
--		__field(bool, writable)
- 		__field(int, status)
- 	),
- 
-@@ -133,15 +128,13 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
- 		__entry->pfn = folio ? folio_pfn(folio) : -1;
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->referenced = referenced;
--		__entry->writable = writable;
- 		__entry->status = status;
- 	),
- 
--	TP_printk("scan_pfn=0x%lx, none_or_zero=%d, referenced=%d, writable=%d, status=%s",
-+	TP_printk("scan_pfn=0x%lx, none_or_zero=%d, referenced=%d, status=%s",
- 		__entry->pfn,
- 		__entry->none_or_zero,
- 		__entry->referenced,
--		__entry->writable,
- 		__print_symbolic(__entry->status, SCAN_STATUS))
- );
- 
---- a/mm/khugepaged.c~mm-drop-all-references-of-writable-and-scan_page_ro
-+++ a/mm/khugepaged.c
-@@ -39,7 +39,6 @@ enum scan_result {
- 	SCAN_PTE_NON_PRESENT,
- 	SCAN_PTE_UFFD_WP,
- 	SCAN_PTE_MAPPED_HUGEPAGE,
--	SCAN_PAGE_RO,
- 	SCAN_LACK_REFERENCED_PAGE,
- 	SCAN_PAGE_NULL,
- 	SCAN_SCAN_ABORT,
-@@ -557,7 +556,6 @@ static int __collapse_huge_page_isolate(
- 	struct folio *folio = NULL;
- 	pte_t *_pte;
- 	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
--	bool writable = false;
- 
- 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
- 	     _pte++, address += PAGE_SIZE) {
-@@ -671,9 +669,6 @@ next:
- 		     folio_test_referenced(folio) || mmu_notifier_test_young(vma->vm_mm,
- 								     address)))
- 			referenced++;
+ 	if (test_and_clear_thread_flag(TIF_LAZY_MMU_PENDING))
+ 		emit_pte_barriers();
+-}
 -
--		if (pte_write(pteval))
--			writable = true;
- 	}
+-static inline void arch_leave_lazy_mmu_mode(void)
+-{
+-	if (in_interrupt())
+-		return;
  
- 	if (unlikely(cc->is_khugepaged && !referenced)) {
-@@ -681,13 +676,13 @@ next:
- 	} else {
- 		result = SCAN_SUCCEED;
- 		trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
--						    referenced, writable, result);
-+						    referenced, result);
- 		return result;
- 	}
- out:
- 	release_pte_pages(pte, _pte, compound_pagelist);
- 	trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
--					    referenced, writable, result);
-+					    referenced, result);
- 	return result;
+-	arch_flush_lazy_mmu_mode();
+ 	clear_thread_flag(TIF_LAZY_MMU);
  }
  
-@@ -1280,7 +1275,6 @@ static int hpage_collapse_scan_pmd(struc
- 	unsigned long _address;
- 	spinlock_t *ptl;
- 	int node = NUMA_NO_NODE, unmapped = 0;
--	bool writable = false;
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 
-@@ -1344,8 +1338,6 @@ static int hpage_collapse_scan_pmd(struc
- 			result = SCAN_PTE_UFFD_WP;
- 			goto out_unmap;
- 		}
--		if (pte_write(pteval))
--			writable = true;
- 
- 		page = vm_normal_page(vma, _address, pteval);
- 		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
-@@ -1435,7 +1427,7 @@ out_unmap:
- 		*mmap_locked = false;
- 	}
- out:
--	trace_mm_khugepaged_scan_pmd(mm, folio, writable, referenced,
-+	trace_mm_khugepaged_scan_pmd(mm, folio, referenced,
- 				     none_or_zero, result, unmapped);
- 	return result;
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h~mm-remove-arch_flush_lazy_mmu_mode
++++ a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+@@ -55,8 +55,6 @@ static inline void arch_leave_lazy_mmu_m
+ 	preempt_enable();
  }
+ 
+-#define arch_flush_lazy_mmu_mode()      do {} while (0)
+-
+ extern void hash__tlbiel_all(unsigned int action);
+ 
+ extern void flush_hash_page(unsigned long vpn, real_pte_t pte, int psize,
+--- a/arch/sparc/include/asm/tlbflush_64.h~mm-remove-arch_flush_lazy_mmu_mode
++++ a/arch/sparc/include/asm/tlbflush_64.h
+@@ -44,7 +44,6 @@ void flush_tlb_kernel_range(unsigned lon
+ void flush_tlb_pending(void);
+ void arch_enter_lazy_mmu_mode(void);
+ void arch_leave_lazy_mmu_mode(void);
+-#define arch_flush_lazy_mmu_mode()      do {} while (0)
+ 
+ /* Local cpu only.  */
+ void __flush_tlb_all(void);
+--- a/arch/x86/include/asm/pgtable.h~mm-remove-arch_flush_lazy_mmu_mode
++++ a/arch/x86/include/asm/pgtable.h
+@@ -117,7 +117,8 @@ extern pmdval_t early_pmd_flags;
+ #define pte_val(x)	native_pte_val(x)
+ #define __pte(x)	native_make_pte(x)
+ 
+-#define arch_end_context_switch(prev)	do {} while(0)
++#define arch_end_context_switch(prev)	do {} while (0)
++#define arch_flush_lazy_mmu_mode()	do {} while (0)
+ #endif	/* CONFIG_PARAVIRT_XXL */
+ 
+ static inline pmd_t pmd_set_flags(pmd_t pmd, pmdval_t set)
+--- a/include/linux/pgtable.h~mm-remove-arch_flush_lazy_mmu_mode
++++ a/include/linux/pgtable.h
+@@ -234,7 +234,6 @@ static inline int pmd_dirty(pmd_t pmd)
+ #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+ #define arch_enter_lazy_mmu_mode()	do {} while (0)
+ #define arch_leave_lazy_mmu_mode()	do {} while (0)
+-#define arch_flush_lazy_mmu_mode()	do {} while (0)
+ #endif
+ 
+ #ifndef pte_batch_hint
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from kevin.brodsky@arm.com are
 
-selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
-selftests-mm-uffd-stress-stricten-constraint-on-free-hugepages-before-the-test.patch
-mm-enable-khugepaged-anonymous-collapse-on-non-writable-regions.patch
-mm-drop-all-references-of-writable-and-scan_page_ro.patch
+mm-remove-arch_flush_lazy_mmu_mode.patch
+mm-introduce-local-state-for-lazy_mmu-sections.patch
+arm64-mm-fully-support-nested-lazy_mmu-sections.patch
+x86-xen-support-nested-lazy_mmu-sections-again.patch
+powerpc-mm-support-nested-lazy_mmu-sections.patch
+sparc-mm-support-nested-lazy_mmu-sections.patch
+mm-update-lazy_mmu-documentation.patch
 
