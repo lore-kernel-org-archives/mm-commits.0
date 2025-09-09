@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6337622422A
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 23:52:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83A2C22422A
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 23:52:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757461940; cv=none; b=kCNOOh142aldfvImScCQzJgI7e1+BuUL05FntEsos5RRz65eZwUsWa+S2SDvjwCvnZbtChSbmbbEqDaFuaM5xIjMYXH4ATx/gEnpd+f3lw+dAfjdmZs86db0uVss0qdJVfpGYFWvzGy42FMGRzyoaI4WqcLLFzOV0iHBwhnNUKw=
+	t=1757461942; cv=none; b=ADyXkLEvVgN9VZelDt6uyHA3TnbTDsuhfZ+yz1UjV8saJM/5gYOU/syVwtHGkGlPdcFnLFXm4D+nLa3fL9gRfeLmTyCxplxtgdhMZ3iZ/yafvhK03dJwhbqu105jYN+MGHNdejk3gsmuztMaCfHHspDLeyBId3q0ZEgpOJ4doKQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757461940; c=relaxed/simple;
-	bh=0CfHpUGqKmQOhmb/xKWUGMG7c1e2+WtAMntObNuc4BI=;
-	h=Date:To:From:Subject:Message-Id; b=um7q/6fezgC/wQycAw2dtc5L1H8BC2FjeYxkZzrzrWbNwr59bMZyMNasRLQRFnWvQfYyN+e1Sr3lwHpwZSxMg9FojQN7Y5ANQkyuI3xu81P0HK5Yv0+hV0o8iZLsjEzE7VQ8fziQzn6p0lQK8CZH+BdhzzH3KuYMCkavT2rwOwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mfi+JOlO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757461942; c=relaxed/simple;
+	bh=knSvot9B5NVAFJRNuMbGRwAHWdoNf5yWkpVl518eZ38=;
+	h=Date:To:From:Subject:Message-Id; b=jBleZUJ9nsdoyaao9rbbQqeAGA8rDjcJPBCufus8y8A85s7DZY/G/GaOmd1ssgSRFWRLSqsb3GJFxCxUK7ykWU+IG4txhFX5nGNJAmU/Fu61+LrfpxcEWqESvYK5OEzcRrk7z23VlPIh9/drU8clQqyIdY/J/nQYKS0P6N0FHnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=drCQXngi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mfi+JOlO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D755DC4CEF4;
-	Tue,  9 Sep 2025 23:52:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="drCQXngi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08DBDC4CEF4;
+	Tue,  9 Sep 2025 23:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757461939;
-	bh=0CfHpUGqKmQOhmb/xKWUGMG7c1e2+WtAMntObNuc4BI=;
+	s=korg; t=1757461942;
+	bh=knSvot9B5NVAFJRNuMbGRwAHWdoNf5yWkpVl518eZ38=;
 	h=Date:To:From:Subject:From;
-	b=Mfi+JOlOZ2gQV+CTygm/xAyxgj7xNc9hQ5HKwdkMJo6bDkt01fHBRq5AcX0EnDTAl
-	 /JGiuAk5SnWKy69ZYHXD14KWlBttpcQBpqegvS2gzP/CC7/MhJgIqA3JZHDU1qBgb7
-	 1nXfJ568bfVhjVO4gs1jsPoqPP04fT9EcIvU3BnM=
-Date: Tue, 09 Sep 2025 16:52:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,pasha.tatashin@soleen.com,mhocko@suse.com,kent.overstreet@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=drCQXngi5P2rQyvrXN8V5GU3l91TOGpBkyexOeZ2zuB8/qlO0IS9x6YPGtxsla+dE
+	 PvUu6GZL19U1pJVG6w3/8RViZC/naBi7BlleC5ChwvmwanSbvuyFqzkDjjH5MmfCVJ
+	 U21K6z5PJD+3AgB9xy6fXDAABGVMggEoNklWCySM=
+Date: Tue, 09 Sep 2025 16:52:21 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,pasha.tatashin@soleen.com,mhocko@suse.com,kent.overstreet@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-use-release_pages-in-the-cleanup-path.patch added to mm-new branch
-Message-Id: <20250909235219.D755DC4CEF4@smtp.kernel.org>
+Subject: + alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch added to mm-new branch
+Message-Id: <20250909235222.08DBDC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: use release_pages() in the cleanup path
+     Subject: alloc_tag: prevent enabling memory profiling if it was shut down
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-use-release_pages-in-the-cleanup-path.patch
+     alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-use-release_pages-in-the-cleanup-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,23 +65,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: use release_pages() in the cleanup path
-Date: Tue, 9 Sep 2025 16:34:07 -0700
+Subject: alloc_tag: prevent enabling memory profiling if it was shut down
+Date: Tue, 9 Sep 2025 16:34:08 -0700
 
-Patch series "Minor fixes for memory allocation profiling".
+Memory profiling can be shut down due to reasons like a failure during
+initialization.  When this happens, the user should not be able to
+re-enable it.  Current sysctrl interface does not handle this properly and
+will allow re-enabling memory profiling.  Fix this by checking for this
+condition during sysctrl write operation.
 
-Over the last couple months I gathered a few reports of minor issues in
-memory allocation profiling which are addressed in this patchset.
-
-
-This patch (of 3):
-
-When bulk-freeing an array of pages use release_pages() instead of freeing
-them page-by-page:
-
-Link: https://lkml.kernel.org/r/20250909233409.1013367-1-surenb@google.com
-Link: https://lkml.kernel.org/r/20250909233409.1013367-2-surenb@google.com
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20250909233409.1013367-3-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Wang <00107082@163.com>
@@ -97,23 +90,36 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/alloc_tag.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/lib/alloc_tag.c~alloc_tag-use-release_pages-in-the-cleanup-path
+--- a/lib/alloc_tag.c~alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down
 +++ a/lib/alloc_tag.c
-@@ -438,9 +438,10 @@ static int vm_module_tags_populate(void)
- 		if (nr < more_pages ||
- 		    vmap_pages_range(phys_end, phys_end + (nr << PAGE_SHIFT), PAGE_KERNEL,
- 				     next_page, PAGE_SHIFT) < 0) {
-+			release_pages_arg arg = { .pages = next_page };
+@@ -767,6 +767,16 @@ struct page_ext_operations page_alloc_ta
+ EXPORT_SYMBOL(page_alloc_tagging_ops);
+ 
+ #ifdef CONFIG_SYSCTL
++static int proc_mem_profiling_handler(const struct ctl_table *table, int write,
++				      void *buffer, size_t *lenp, loff_t *ppos)
++{
++	if (!mem_profiling_support && write)
++		return -EINVAL;
 +
- 			/* Clean up and error out */
--			for (int i = 0; i < nr; i++)
--				__free_page(next_page[i]);
-+			release_pages(arg, nr);
- 			return -ENOMEM;
- 		}
++	return proc_do_static_key(table, write, buffer, lenp, ppos);
++}
++
++
+ static struct ctl_table memory_allocation_profiling_sysctls[] = {
+ 	{
+ 		.procname	= "mem_profiling",
+@@ -776,7 +786,7 @@ static struct ctl_table memory_allocatio
+ #else
+ 		.mode		= 0644,
+ #endif
+-		.proc_handler	= proc_do_static_key,
++		.proc_handler	= proc_mem_profiling_handler,
+ 	},
+ };
  
 _
 
