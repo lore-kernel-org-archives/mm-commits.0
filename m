@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76CF442A8C
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 00:07:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CBCFC2C9
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 00:07:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757376462; cv=none; b=VmWFhHk89JlXnjE1pAzTp908BcRNrZLH6vDk1VgPODjB0XQ4Y3eKQ1DVYeK6nwodcBzUIFD+hrIu/8r6dpysA4IHXyOQRUexcFXczRU9bKWIAgjCzY1ja5K16KZrOuJNREVjGgz6m3aZFxhB5rZDL4E/4+B2hr1uCcgGJQMQY2k=
+	t=1757376464; cv=none; b=NaBqAq8iYKAzhpwBmqCmNTQ7rjdslI2Q1dwPYAOivC8yIUAKLdrKOooe6t3YD99/vyfCQvl5zwiBTubHkOgrINXTlUDUppJ179pWr+cM4+mTwnicZROc8TkAuYWgxSG8kaSYM/7tpNGeFaY2lVelnBGrz1ixeDx+YdmUlCQ+fAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757376462; c=relaxed/simple;
-	bh=hiAtKx7ceLzXhKqPomADg+57zew+YmIAWGxZ820TKL8=;
-	h=Date:To:From:Subject:Message-Id; b=N5cDrbfxkUWN2ig/kG5qwTWMxmtQSx31VYZDTKLk0sJEnSAIRJrTzdDl0wm/sDI1/aKDD6y7XohyA7WNFVgcciGiqbvTczinb9XKIB5npFvnedaJwN32l2hxvLyCUbgljMKXCdKQpVoURp+23I/L5jumtCTlHlYnQn5uQbbtfjE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dIiYyvUN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757376464; c=relaxed/simple;
+	bh=CNZ3F5kmkkMQubZbuNBLJhAGXp8MK89QV13DQHA+vkM=;
+	h=Date:To:From:Subject:Message-Id; b=YRPQcsBR6ALQ+b9LhBbstF20GqJBL94TExGx48vm+I4v+pXJZuLs3zRcURVkigv9bK1r0gBfLyrmqB1ZWVmVz/W8Tfg+vHN6v4bRjFSfkyZ8rMggfZZPj1yVB1sj7d0OMtbnQcMFvq+s+I83oIr2jcy1AR7GdmYzSkhfwO3tdFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2QuwEAuT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dIiYyvUN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0597AC4CEF1;
-	Tue,  9 Sep 2025 00:07:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2QuwEAuT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4220C4CEF1;
+	Tue,  9 Sep 2025 00:07:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757376462;
-	bh=hiAtKx7ceLzXhKqPomADg+57zew+YmIAWGxZ820TKL8=;
+	s=korg; t=1757376464;
+	bh=CNZ3F5kmkkMQubZbuNBLJhAGXp8MK89QV13DQHA+vkM=;
 	h=Date:To:From:Subject:From;
-	b=dIiYyvUNCXZHM4haD/EJlSBNTuhZLqyeXI+0hHm6pyT2WYQrXyQmtcuqBpaSHI9sh
-	 ix8VdSU67T4dtuM/pVHmPFbT/UkdiCy1e8sr59wvxcouq1OEIIS/Geb41cJ7snp3Y3
-	 wGa5a8WL+268k2VJTqNVWdhoGKCTHdM5u07EG9lo=
-Date: Mon, 08 Sep 2025 17:07:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,flyinrm@gmail.com,akpm@linux-foundation.org
+	b=2QuwEAuTI/vDhjMQ1B2L0eWeU65JwkvGlVqVsT9qekog0cc/aJrgR3eAi6KYG0iFV
+	 4eV3Ws4zuydESAU3/cjDyOEZAzZCCuxvUmhbmiT3iQ6m+Clp8g/6WnMNFDQfw1aiLq
+	 QtG2FTHf9E+Kpez/5OKNpoHnEopGYxlCBTZA25Vw=
+Date: Mon, 08 Sep 2025 17:07:43 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,flyinrm@gmail.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled.patch added to mm-new branch
-Message-Id: <20250909000742.0597AC4CEF1@smtp.kernel.org>
+Subject: + mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch added to mm-new branch
+Message-Id: <20250909000743.E4220C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: re-enable kswapd when memory pressure subsides or demotion is toggled
+     Subject: mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled.patch
+     mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,65 +64,13 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chanwon Park <flyinrm@gmail.com>
-Subject: mm: re-enable kswapd when memory pressure subsides or demotion is toggled
-Date: Mon, 8 Sep 2025 19:04:10 +0900
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix
+Date: Mon Sep  8 04:59:47 PM PDT 2025
 
-If kswapd fails to reclaim pages from a node MAX_RECLAIM_RETRIES in a
-row, kswapd on that node gets disabled. That is, the system won't wakeup
-kswapd for that node until page reclamation is observed at least once.
-That reclamation is mostly done by direct reclaim, which in turn enables
-kswapd back.
+tweak whitespace
 
-However, on systems with CXL memory nodes, workloads with high anon page
-usage can disable kswapd indefinitely, without triggering direct
-reclaim. This can be reproduced with following steps:
-
-   numa node 0   (32GB memory, 48 CPUs)
-   numa node 2~5 (512GB CXL memory, 128GB each)
-   (numa node 1 is disabled)
-   swap space 8GB
-
-   1) Set /sys/kernel/mm/demotion_enabled to 0.
-   2) Set /proc/sys/kernel/numa_balancing to 0.
-   3) Run a process that allocates and random accesses 500GB of anon
-      pages.
-   4) Let the process exit normally.
-
-During 3), free memory on node 0 gets lower than low watermark, and
-kswapd runs and depletes swap space. Then, kswapd fails consecutively
-and gets disabled. Allocation afterwards happens on CXL memory, so node
-0 never gains more memory pressure to trigger direct reclaim.
-
-After 4), kswapd on node 0 remains disabled, and tasks running on that
-node are unable to swap. If you turn on NUMA_BALANCING_MEMORY_TIERING
-and demotion now, it won't work properly since kswapd is disabled.
-
-To mitigate this problem, reset kswapd_failures to 0 on following
-conditions:
-
-   a) ZONE_BELOW_HIGH bit of a zone in hopeless node with a fallback
-      memory node gets cleared.
-   b) demotion_enabled is changed from false to true.
-
-Rationale for a):
-   ZONE_BELOW_HIGH bit being cleared might be a sign that the node may
-   be reclaimable afterwards. This won't help much if the memory-hungry
-   process keeps running without freeing anything, but at least the node
-   will go back to reclaimable state when the process exits.
-
-Rationale for b):
-   When demotion_enabled is false, kswapd can only reclaim anon pages by
-   swapping them out to swap space. If demotion_enabled is turned on,
-   kswapd can demote anon pages to another node for reclaiming. So, the
-   original failure count for determining reclaimability is no longer
-   valid.
-
-Since kswapd_failures resets may be missed by ++ operation, it is
-changed from int to atomic_t.
-
-Link: https://lkml.kernel.org/r/aL6qGi69jWXfPc4D@pcw-MS-7D22
-Signed-off-by: Chanwon Park <flyinrm@gmail.com>
+Cc: Chanwon Park <flyinrm@gmail.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -136,169 +84,90 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/memory-tiers.c      |   12 ++++++++++++
- mm/page_alloc.c        |   17 ++++++++++++++++-
- mm/show_mem.c          |    3 ++-
- mm/vmscan.c            |   14 +++++++-------
- mm/vmstat.c            |    2 +-
- 6 files changed, 39 insertions(+), 11 deletions(-)
+ mm/page_alloc.c |   42 +++++++++++++++++++++---------------------
+ mm/show_mem.c   |    4 ++--
+ 2 files changed, 23 insertions(+), 23 deletions(-)
 
---- a/include/linux/mmzone.h~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled
-+++ a/include/linux/mmzone.h
-@@ -1440,7 +1440,7 @@ typedef struct pglist_data {
- 	int kswapd_order;
- 	enum zone_type kswapd_highest_zoneidx;
- 
--	int kswapd_failures;		/* Number of 'reclaimed == 0' runs */
-+	atomic_t kswapd_failures;	/* Number of 'reclaimed == 0' runs */
- 
- #ifdef CONFIG_COMPACTION
- 	int kcompactd_max_order;
---- a/mm/memory-tiers.c~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled
-+++ a/mm/memory-tiers.c
-@@ -942,11 +942,23 @@ static ssize_t demotion_enabled_store(st
- 				      const char *buf, size_t count)
- {
- 	ssize_t ret;
-+	bool before = numa_demotion_enabled;
- 
- 	ret = kstrtobool(buf, &numa_demotion_enabled);
- 	if (ret)
- 		return ret;
- 
-+	/*
-+	 * Reset kswapd_failures statistics. They may no longer be
-+	 * valid since the policy for kswapd has changed.
-+	 */
-+	if (before == false && numa_demotion_enabled == true) {
-+		struct pglist_data *pgdat;
-+
-+		for_each_online_pgdat(pgdat)
-+			atomic_set(&pgdat->kswapd_failures, 0);
-+	}
-+
- 	return count;
- }
- 
---- a/mm/page_alloc.c~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled
+--- a/mm/page_alloc.c~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix
 +++ a/mm/page_alloc.c
-@@ -2866,8 +2866,23 @@ static void free_frozen_page_commit(stru
- 				   pcp, pindex);
- 		if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
- 		    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
--				      ZONE_MOVABLE, 0))
-+				      ZONE_MOVABLE, 0)) {
-+			struct pglist_data *pgdat = zone->zone_pgdat;
- 			clear_bit(ZONE_BELOW_HIGH, &zone->flags);
+@@ -2860,29 +2860,29 @@ static void free_frozen_page_commit(stru
+ 		 */
+ 		return;
+ 	}
 +
-+			/*
-+			 * Assume that memory pressure on this node is gone
-+			 * and may be in a reclaimable state. If a memory
-+			 * fallback node exists, direct reclaim may not have
-+			 * been triggered, leaving 'hopeless node' stay in
-+			 * that state for a while. Let kswapd work again by
-+			 * resetting kswapd_failures.
-+			 */
-+			if (atomic_read(&pgdat->kswapd_failures)
-+			    >= MAX_RECLAIM_RETRIES &&
-+			    next_memory_node(pgdat->node_id) < MAX_NUMNODES)
-+				atomic_set(&pgdat->kswapd_failures, 0);
-+		}
+ 	high = nr_pcp_high(pcp, zone, batch, free_high);
+-	if (pcp->count >= high) {
+-		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
+-				   pcp, pindex);
+-		if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
+-		    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
+-				      ZONE_MOVABLE, 0)) {
+-			struct pglist_data *pgdat = zone->zone_pgdat;
+-			clear_bit(ZONE_BELOW_HIGH, &zone->flags);
++	if (pcp->count < high)
++		return;
+ 
+-			/*
+-			 * Assume that memory pressure on this node is gone
+-			 * and may be in a reclaimable state. If a memory
+-			 * fallback node exists, direct reclaim may not have
+-			 * been triggered, leaving 'hopeless node' stay in
+-			 * that state for a while. Let kswapd work again by
+-			 * resetting kswapd_failures.
+-			 */
+-			if (atomic_read(&pgdat->kswapd_failures)
+-			    >= MAX_RECLAIM_RETRIES &&
+-			    next_memory_node(pgdat->node_id) < MAX_NUMNODES)
+-				atomic_set(&pgdat->kswapd_failures, 0);
+-		}
++	free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
++			   pcp, pindex);
++	if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
++	    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
++			      ZONE_MOVABLE, 0)) {
++		struct pglist_data *pgdat = zone->zone_pgdat;
++		clear_bit(ZONE_BELOW_HIGH, &zone->flags);
++
++		/*
++		 * Assume that memory pressure on this node is gone and may be
++		 * in a reclaimable state. If a memory fallback node exists,
++		 * direct reclaim may not have been triggered, causing a
++		 * 'hopeless node' to stay in that state for a while.  Let
++		 * kswapd work again by resetting kswapd_failures.
++		 */
++		if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES &&
++		    next_memory_node(pgdat->node_id) < MAX_NUMNODES)
++			atomic_set(&pgdat->kswapd_failures, 0);
  	}
  }
  
---- a/mm/show_mem.c~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled
+--- a/mm/show_mem.c~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix
 +++ a/mm/show_mem.c
-@@ -278,7 +278,8 @@ static void show_free_areas(unsigned int
+@@ -278,8 +278,8 @@ static void show_free_areas(unsigned int
  #endif
  			K(node_page_state(pgdat, NR_PAGETABLE)),
  			K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
--			str_yes_no(pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES),
-+			str_yes_no(atomic_read(&pgdat->kswapd_failures)
-+				   >= MAX_RECLAIM_RETRIES),
+-			str_yes_no(atomic_read(&pgdat->kswapd_failures)
+-				   >= MAX_RECLAIM_RETRIES),
++			str_yes_no(atomic_read(&pgdat->kswapd_failures) >=
++				   MAX_RECLAIM_RETRIES),
  			K(node_page_state(pgdat, NR_BALLOON_PAGES)));
  	}
  
---- a/mm/vmscan.c~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled
-+++ a/mm/vmscan.c
-@@ -518,7 +518,7 @@ static bool skip_throttle_noprogress(pg_
- 	 * If kswapd is disabled, reschedule if necessary but do not
- 	 * throttle as the system is likely near OOM.
- 	 */
--	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
-+	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES)
- 		return true;
- 
- 	/*
-@@ -5101,7 +5101,7 @@ static void lru_gen_shrink_node(struct p
- 	blk_finish_plug(&plug);
- done:
- 	if (sc->nr_reclaimed > reclaimed)
--		pgdat->kswapd_failures = 0;
-+		atomic_set(&pgdat->kswapd_failures, 0);
- }
- 
- /******************************************************************************
-@@ -6180,7 +6180,7 @@ again:
- 	 * successful direct reclaim run will revive a dormant kswapd.
- 	 */
- 	if (reclaimable)
--		pgdat->kswapd_failures = 0;
-+		atomic_set(&pgdat->kswapd_failures, 0);
- 	else if (sc->cache_trim_mode)
- 		sc->cache_trim_mode_failed = 1;
- }
-@@ -6492,7 +6492,7 @@ static bool allow_direct_reclaim(pg_data
- 	int i;
- 	bool wmark_ok;
- 
--	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
-+	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES)
- 		return true;
- 
- 	for_each_managed_zone_pgdat(zone, pgdat, i, ZONE_NORMAL) {
-@@ -6902,7 +6902,7 @@ static bool prepare_kswapd_sleep(pg_data
- 		wake_up_all(&pgdat->pfmemalloc_wait);
- 
- 	/* Hopeless node, leave it to direct reclaim */
--	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
-+	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES)
- 		return true;
- 
- 	if (pgdat_balanced(pgdat, order, highest_zoneidx)) {
-@@ -7170,7 +7170,7 @@ restart:
- 	}
- 
- 	if (!sc.nr_reclaimed)
--		pgdat->kswapd_failures++;
-+		atomic_inc(&pgdat->kswapd_failures);
- 
- out:
- 	clear_reclaim_active(pgdat, highest_zoneidx);
-@@ -7429,7 +7429,7 @@ void wakeup_kswapd(struct zone *zone, gf
- 		return;
- 
- 	/* Hopeless node, leave it to direct reclaim if possible */
--	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ||
-+	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES ||
- 	    (pgdat_balanced(pgdat, order, highest_zoneidx) &&
- 	     !pgdat_watermark_boosted(pgdat, highest_zoneidx))) {
- 		/*
---- a/mm/vmstat.c~mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled
-+++ a/mm/vmstat.c
-@@ -1848,7 +1848,7 @@ static void zoneinfo_show_print(struct s
- 	seq_printf(m,
- 		   "\n  node_unreclaimable:  %u"
- 		   "\n  start_pfn:           %lu",
--		   pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES,
-+		   atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES,
- 		   zone->zone_start_pfn);
- 	seq_putc(m, '\n');
- }
 _
 
-Patches currently in -mm which might be from flyinrm@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix.patch
+mm-replace-20-page_shift-with-common-macros-for-pages-mb-conversion-fix-fix.patch
+mm-damon-core-skip-needless-update-of-damon_attrs-in-damon_commit_ctx-fix.patch
+mm-convert-core-mm-to-mm_flags_-accessors-fix.patch
+memcg-optimize-exit-to-user-space-fix.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+docs-mm-add-document-for-swap-table-fix.patch
+mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
+panic-remove-redundant-panic-cpu-backtrace-fix.patch
+crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch
 
