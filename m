@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58A6E248F47;
-	Tue,  9 Sep 2025 02:37:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 985AD16DC28
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 02:44:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757385464; cv=none; b=Ui0zZ3gRPDhxnuh2vU3hYuvFF2tgeFdX/nY5aOZtBFzBKFHiCw+qsUUR6LtCO+BwOPMU1+DfAlC6z+XHR6bzznXZgi9zdVh6UIxJZPu8DdqnOYu+rtB84KYgwN7O6YFhV7ojjiFXxSGRmbB8QdoX2vrZxaJ2w+7FU/Y//tYPIqA=
+	t=1757385883; cv=none; b=WvTMVng2o6FRWSOLEt5XHvjbxEIVTPOshS8Ii+5ojaw8PCgz8HbSnch0LlyNXy1nfA4CnE6BpBcYl5Jh6O9UVIaT0sCne7jPhGB/iJmibrJBq/9fmlmc3suh0NH0DQwZmAu7AOU9lrsNaU4s7SgVMKZ59MwBbdJ8oVPDQYb3Cik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757385464; c=relaxed/simple;
-	bh=kRVLLsgKiz2jZLmbrgSJ+pgFZSLBYcixAWmaVgwW9zQ=;
-	h=Date:To:From:Subject:Message-Id; b=qyuyEyiDdIK/65B1Bg3H8lrb4IGCxq3HDIJulGno+LWcKmQXncOtmB/HOxHqspId/PNtyuTZE5oL5RpXG9qvToOrGoukVeyC1rAL6dqrrnDBQnKsxon8Os9dj2/IC8iy1s62ExsvqhGW6jhfxEv6imSiaWI4eO/4Afmm6zCQEZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kveDjRKR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757385883; c=relaxed/simple;
+	bh=vGUvbRJIYDmlzWSNPWxBVXok9oKzdnLu+sdhjbuqVxE=;
+	h=Date:To:From:Subject:Message-Id; b=Fp97tZYgqmBBy77hWkbAIOEkKf/0P0qdYs5zb31tIpfArYvXoczQQ3Z13LHVC9I7a3PBUPS87YTIMEl4xw82uSzOCMz5vydz+94FGxCfwlyBE40kWK3dybyk85NUmCugnauszl2I6Vvh98aOz+BOQ7EnY9mKPQ88X91fBB3Tmr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RfCFOAjX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kveDjRKR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0655C4CEF8;
-	Tue,  9 Sep 2025 02:37:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RfCFOAjX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08C29C4CEF1;
+	Tue,  9 Sep 2025 02:44:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757385463;
-	bh=kRVLLsgKiz2jZLmbrgSJ+pgFZSLBYcixAWmaVgwW9zQ=;
+	s=korg; t=1757385883;
+	bh=vGUvbRJIYDmlzWSNPWxBVXok9oKzdnLu+sdhjbuqVxE=;
 	h=Date:To:From:Subject:From;
-	b=kveDjRKRcASJHgB7A5Yqc3IJJHGM9MBHsAQ6E/v2xF03w+SjwWn6g52vWQs8BqB8L
-	 LMXnqOaTMnWa1be0ubN1BSIviHUvG2Ea27gFu0wxTix6tUlzVJdFRM5KaYCjGyjwNr
-	 lHjOLimy5SeOoNlVF5XPCHE7aTYEK2B2y+sT0C0I=
-Date: Mon, 08 Sep 2025 19:37:43 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=RfCFOAjXl++7W4WDhW9/l3dx11LXzwSzWXBJOEwxLDXvnC/dnujt+Odhn4LYl5rC8
+	 1qIr1HHqdEE6S5C264TMRCdc2XwT91WVl5f+gDTXlnW1A7XeWfEGIWi1PzoP5gOoH5
+	 ucWV5yDVDi+sdcNIMDvPjdKETOOkXTe0jA1X0Vqs=
+Date: Mon, 08 Sep 2025 19:44:42 -0700
+To: mm-commits@vger.kernel.org,kasong@tencent.com,hughd@google.com,baolin.wang@linux.alibaba.com,liuyun01@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-mtier-avoid-starting-damon-before-initialization.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250909023743.C0655C4CEF8@smtp.kernel.org>
+Subject: + mm-shmem-remove-unused-entry_order-after-large-swapin-rework.patch added to mm-new branch
+Message-Id: <20250909024443.08C29C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/mtier: avoid starting DAMON before initialization
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     samples-damon-mtier-avoid-starting-damon-before-initialization.patch
+     Subject: mm/shmem: remove unused entry_order after large swapin rework
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-remove-unused-entry_order-after-large-swapin-rework.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-avoid-starting-damon-before-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-remove-unused-entry_order-after-large-swapin-rework.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,60 +64,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/mtier: avoid starting DAMON before initialization
-Date: Mon, 8 Sep 2025 19:22:38 -0700
+From: Jackie Liu <liuyun01@kylinos.cn>
+Subject: mm/shmem: remove unused entry_order after large swapin rework
+Date: Mon, 8 Sep 2025 14:26:14 +0800
 
-Commit 964314344eab ("samples/damon/mtier: support boot time enable
-setup") is somehow incompletely applying the origin patch [1].  It is
-missing the part that avoids starting DAMON before module initialization. 
-Probably a mistake during a merge has happened.  Fix it by applying the
-missed part again.
+After commit 93c0476e7057 ("mm/shmem, swap: rework swap entry and index
+calculation for large swapin"), xas_get_order() will never return a
+non-zero value for `entry_order` in shmem_split_large_entry().  As a
+result, the local variable `entry_order` is effectively unused.
 
-Link: https://lkml.kernel.org/r/20250909022238.2989-4-sj@kernel.org
-Link: https://lore.kernel.org/20250706193207.39810-4-sj@kernel.org [1]
-Fixes: 964314344eab ("samples/damon/mtier: support boot time enable setup")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Clean up the code by removing `entry_order` and directly using
+`cur_order`.  This change is purely a refactor and has no functional
+impact.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20250908062614.89880-1-liu.yun@linux.dev
+Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/shmem.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-avoid-starting-damon-before-initialization
-+++ a/samples/damon/mtier.c
-@@ -208,6 +208,9 @@ static int damon_sample_mtier_enable_sto
- 	if (enabled == is_enabled)
- 		return 0;
+--- a/mm/shmem.c~mm-shmem-remove-unused-entry_order-after-large-swapin-rework
++++ a/mm/shmem.c
+@@ -2187,7 +2187,7 @@ static int shmem_split_large_entry(struc
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	XA_STATE_ORDER(xas, &mapping->i_pages, index, 0);
+-	int split_order = 0, entry_order;
++	int split_order = 0;
+ 	int i;
  
-+	if (!init_called)
-+		return 0;
-+
- 	if (enabled) {
- 		err = damon_sample_mtier_start();
- 		if (err)
+ 	/* Convert user data gfp flags to xarray node gfp flags */
+@@ -2205,15 +2205,12 @@ static int shmem_split_large_entry(struc
+ 			goto unlock;
+ 		}
+ 
+-		entry_order = xas_get_order(&xas);
+-
+-		if (!entry_order)
++		cur_order = xas_get_order(&xas);
++		if (!cur_order)
+ 			goto unlock;
+ 
+ 		/* Try to split large swap entry in pagecache */
+-		cur_order = entry_order;
+-		swap_index = round_down(index, 1 << entry_order);
+-
++		swap_index = round_down(index, 1 << cur_order);
+ 		split_order = xas_try_split_min_order(cur_order);
+ 
+ 		while (cur_order > 0) {
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from liuyun01@kylinos.cn are
 
-mm-damon-core-introduce-damon_call_control-dealloc_on_cancel.patch
-mm-damon-sysfs-use-dynamically-allocated-repeat-mode-damon_call_control.patch
-samples-damon-wsse-avoid-starting-damon-before-initialization.patch
-samples-damon-prcl-avoid-starting-damon-before-initialization.patch
-samples-damon-mtier-avoid-starting-damon-before-initialization.patch
-mm-zswap-store-page_size-compression-failed-page-as-is.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-fix.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-v5.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch
-mm-damon-core-add-damon_ctx-addr_unit.patch
-mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
-mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
-mm-damon-paddr-support-addr_unit-for-damos_lru_prio.patch
-mm-damon-paddr-support-addr_unit-for-migrate_hotcold.patch
-mm-damon-paddr-support-addr_unit-for-damos_stat.patch
-mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
-docs-mm-damon-design-document-address-unit-parameter.patch
-docs-admin-guide-mm-damon-usage-document-addr_unit-file.patch
-docs-abi-damon-document-addr_unit-file.patch
+mm-shmem-remove-unused-entry_order-after-large-swapin-rework.patch
 
