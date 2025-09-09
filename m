@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F12A522D7A1
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 02:24:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4391C22D7A1
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 02:24:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757384652; cv=none; b=KHXQs6TdvY40V2/nWWOyWVXoBfVSr2qMuJhEctdjB3Exy4pRqerNIBtK3LK7Gu1uTjEQeDV/KwcjCco0STnkPmfYxxTEbU2KwolxXVnIlTCD08laoYRw5sV7YaiXFYncV16bpB2qSOw0DGGw2mb2IPk4nKqssqLkV8wL96eJ+6k=
+	t=1757384658; cv=none; b=gxLYjuInRbpOqhUTnuMOB0MYw/dPO9yaqLUKDRTtF5qBs2JeGBwHX75bLG0m8tgLguFUyC30DH1jCv9ZymvvWdX4NOnMY6nIMRjS6t+qUwYjH6AUzx6glktUpxoiJQd1/qwHDC4UZ1YbIl8fvx8xSbmcxis8/ggQrbpBRd/mK7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757384652; c=relaxed/simple;
-	bh=mydyxdgvjDDZv2xaJGw77ro0bvs1RRPetRSi1GcMHuc=;
-	h=Date:To:From:Subject:Message-Id; b=Xhu9d4Nz+1PxuyMmPJphQH82pSPr4cOA9W/hQNgw5sK+HlP/uMpbzwUIBLlS01byNMDo7MV3YK4JyXeCZIdwvYyBkkRM9T1HLC76XimYS4oHpGjReGBlcwpPotW+bwfh8xSQ+WRuLkrcv3azqJpgLRTstNHUxugczwUg5nyHPXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qGK25HML; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757384658; c=relaxed/simple;
+	bh=eB5TCadeTtxe1gG6IFINNC0KBXKKos9yz++MKTmRgYA=;
+	h=Date:To:From:Subject:Message-Id; b=SmoC61epsUiGcQyOcdv018LGEBnQdpFi6YNvdamvk/5bshKV5i4fgeIpmYi4sE0+Pf7mQyNuF+kDU4LMCDk5Er+ShD8uD18j24phxT7ODWl4bYZC6uajDDLF6WO9nBuve1423eNOK34QuvGZ+COyeCW7zWZiFgpI67XBWqsXhG4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x3HPmC7V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qGK25HML"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 630DEC4CEF1;
-	Tue,  9 Sep 2025 02:24:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x3HPmC7V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0D0EC4CEF1;
+	Tue,  9 Sep 2025 02:24:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757384651;
-	bh=mydyxdgvjDDZv2xaJGw77ro0bvs1RRPetRSi1GcMHuc=;
+	s=korg; t=1757384653;
+	bh=eB5TCadeTtxe1gG6IFINNC0KBXKKos9yz++MKTmRgYA=;
 	h=Date:To:From:Subject:From;
-	b=qGK25HMLbCPtxVYyeBMxzFqdYEbXOg/6K5SMdlfLFYeBlu8Do2Zxj6Oh0gqMNaVvM
-	 NSQoTCxzaTEAwBl9zaeVnuEJ0L+SB4K2dM54oMA29Tlv8Lh0w/fcXhs1s3PAwpRF0c
-	 73+6DnU7YwaFzx2psZ+XLsyeXjZTHqGi9xut+neU=
-Date: Mon, 08 Sep 2025 19:24:10 -0700
+	b=x3HPmC7VyAB1YyWN6BN/bfXzNVluRaKQlQl+TPNQ7p8Z8k0AydSF+Pdkw/+AADvpq
+	 UFA3IxQEz9iPSbBAt3Gyt/hI389ly8hZNqkqLnT5jBp0h0PTZznfl1xMzihj/6RLiO
+	 n7vLnHckwnCMrVi4VkFNAFQ9pQZR8FZ7OTBdkDro=
+Date: Mon, 08 Sep 2025 19:24:13 -0700
 To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc-mm-support-nested-lazy_mmu-sections.patch added to mm-new branch
-Message-Id: <20250909022411.630DEC4CEF1@smtp.kernel.org>
+Subject: + mm-update-lazy_mmu-documentation.patch added to mm-new branch
+Message-Id: <20250909022413.A0D0EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sparc/mm: support nested lazy_mmu sections
+     Subject: mm: update lazy_mmu documentation
 has been added to the -mm mm-new branch.  Its filename is
-     sparc-mm-support-nested-lazy_mmu-sections.patch
+     mm-update-lazy_mmu-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-mm-support-nested-lazy_mmu-sections.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-lazy_mmu-documentation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,23 +65,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: sparc/mm: support nested lazy_mmu sections
-Date: Mon, 8 Sep 2025 08:39:30 +0100
+Subject: mm: update lazy_mmu documentation
+Date: Mon, 8 Sep 2025 08:39:31 +0100
 
-The lazy_mmu API now allows nested sections to be handled by arch code:
-enter() can return a flag if called inside another lazy_mmu section, so
-that the matching call to leave() leaves any optimisation enabled.
+We now support nested lazy_mmu sections on all architectures implementing
+the API.  Update the API comment accordingly.
 
-This patch implements that new logic for sparc: if there is an active
-batch, then enter() returns LAZY_MMU_NESTED and the matching leave()
-leaves batch->active set.  The preempt_{enable,disable} calls are left
-untouched as they already handle nesting themselves.
-
-TLB flushing is still done in leave() regardless of the nesting level, as
-the caller may rely on it whether nesting is occurring or not.
-
-Link: https://lkml.kernel.org/r/20250908073931.4159362-7-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250908073931.4159362-8-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -94,13 +87,11 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Juegren Gross <jgross@suse.com>
-Cc: levi.yun <yeoreum.yun@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -111,39 +102,32 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/tlb.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/pgtable.h |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/arch/sparc/mm/tlb.c~sparc-mm-support-nested-lazy_mmu-sections
-+++ a/arch/sparc/mm/tlb.c
-@@ -56,9 +56,13 @@ lazy_mmu_state_t arch_enter_lazy_mmu_mod
- 
- 	preempt_disable();
- 	tb = this_cpu_ptr(&tlb_batch);
--	tb->active = 1;
- 
--	return LAZY_MMU_DEFAULT;
-+	if (!tb->active) {
-+		tb->active = 1;
-+		return LAZY_MMU_DEFAULT;
-+	} else {
-+		return LAZY_MMU_NESTED;
-+	}
- }
- 
- void arch_leave_lazy_mmu_mode(lazy_mmu_state_t state)
-@@ -67,7 +71,10 @@ void arch_leave_lazy_mmu_mode(lazy_mmu_s
- 
- 	if (tb->tlb_nr)
- 		flush_tlb_pending();
--	tb->active = 0;
-+
-+	if (state != LAZY_MMU_NESTED)
-+		tb->active = 0;
-+
- 	preempt_enable();
- }
- 
+--- a/include/linux/pgtable.h~mm-update-lazy_mmu-documentation
++++ a/include/linux/pgtable.h
+@@ -228,8 +228,18 @@ static inline int pmd_dirty(pmd_t pmd)
+  * of the lazy mode. So the implementation must assume preemption may be enabled
+  * and cpu migration is possible; it must take steps to be robust against this.
+  * (In practice, for user PTE updates, the appropriate page table lock(s) are
+- * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
+- * and the mode cannot be used in interrupt context.
++ * held, but for kernel PTE updates, no lock is held). The mode cannot be used
++ * in interrupt context.
++ *
++ * Calls may be nested: an arch_{enter,leave}_lazy_mmu_mode() pair may be called
++ * while the lazy MMU mode has already been enabled. An implementation should
++ * handle this using the state returned by enter() and taken by the matching
++ * leave() call; the LAZY_MMU_{DEFAULT,NESTED} flags can be used to indicate
++ * whether this enter/leave pair is nested inside another or not. (It is up to
++ * the implementation to track whether the lazy MMU mode is enabled at any point
++ * in time.) The expectation is that leave() will flush any batched state
++ * unconditionally, but only leave the lazy MMU mode if the passed state is not
++ * LAZY_MMU_NESTED.
+  */
+ #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+ typedef int lazy_mmu_state_t;
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
