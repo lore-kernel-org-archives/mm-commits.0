@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B772D515
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:01:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3650AD515
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:01:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757390462; cv=none; b=MwKECoxY80g3Q/LuXPVNIUVjlKZWosREFxUCWlpq9YZm6F0ieCxyz+qHfiNN9gV2WgiQ1uujUJY2Mxal90kyf+xYMN/IiB7dqUwQJycvFtNZKaWzXHuJlJ8HSVettoDUdEZ2VV8IIfEEl1NxmSgZuHPL70PullbKvSrstBQM0OE=
+	t=1757390465; cv=none; b=UdHqATHlUZ6ETVHY4x1LAXjHEJ0f1JHNf+1p1AvNZKkUAJmimJseNs0BqzAQBlHoyEujPSEiNNAM142PaNelYYBVOFYzFbnI2/gbnsGgaGi93zq67sp8xH7XJ6CB1t2jtbulZ05naZHtO8YRwqfU4cSmZQYBCmMcd445Sevyym0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757390462; c=relaxed/simple;
-	bh=Win55kLlClUVNDOCJhM9D0Pp8LE6clrJHGFIbEqq9WQ=;
-	h=Date:To:From:Subject:Message-Id; b=bZbG+jpMY1fzoKc7mo6Z5P4xRsCKgBaPw9iyGw/ZpC5S1WFcHSz2nAQaFro3hBS0OUWlIN+Xujaya9rVx+e2GbwmijDOnFYkZevhfII0XMCSKrumTJ3siigeql0yEC2YtO6spMmAoSJ3vhKPlaEPZUEVWNtTHmRlQ3ZOFM1/p5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F+2wKA3s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757390465; c=relaxed/simple;
+	bh=JDi+iyF5bj3JvnC9CH/0QBMOIchzr2u5dSVWMoIdlHI=;
+	h=Date:To:From:Subject:Message-Id; b=qomJkB3QYaWinh7gfDFoKGtjDauzBXMLBMmimPF0y25INLtWnYg9p2ZhH8JmGB8CQIVEf+9dT07n7hf6u+3RCZEk6UYcD+faUXKfb4LLQDyNYpaLtTWBGYqi6xUjjOnaEEHjNj1GITw9/dK5MF1oDx+kDQULnR5L5wubTmk5Z9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eVxE9Pt+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F+2wKA3s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05F7CC4CEF4;
-	Tue,  9 Sep 2025 04:01:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eVxE9Pt+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C927C4CEF4;
+	Tue,  9 Sep 2025 04:01:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757390462;
-	bh=Win55kLlClUVNDOCJhM9D0Pp8LE6clrJHGFIbEqq9WQ=;
+	s=korg; t=1757390464;
+	bh=JDi+iyF5bj3JvnC9CH/0QBMOIchzr2u5dSVWMoIdlHI=;
 	h=Date:To:From:Subject:From;
-	b=F+2wKA3s6RZhyrnFDZLoR9cjjjQStziST9M7h4cW5LVSKdZ6S2gZ2L30UWYoQ7Cg8
-	 dUqcSFX+ScwZ18M7G19i0EnOqhU4zvI0c6SpGm0xynDjGi4gESseDWKSkYafTogDIB
-	 TJJyUbwAzVNYQxELAYcxpqksP+/cvudJ3RI1fC8Q=
-Date: Mon, 08 Sep 2025 21:01:01 -0700
+	b=eVxE9Pt+SkHFbhRE6/RKuKFigDbYMSxSw/7BFtXQ1q32u8+t4EIinYpKHi9BWOuMC
+	 ybhpSR4QVd7G8XEZfkO7DrsaAkadUY80lsFuf/sLY23//bb+dYzOA65ak/CTPKJM6T
+	 ps4s0OVUjZj2lcENvmP9ltUHtvjUE49QfcAoWNMg=
+Date: Mon, 08 Sep 2025 21:01:04 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch added to mm-new branch
-Message-Id: <20250909040102.05F7CC4CEF4@smtp.kernel.org>
+Subject: + gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch added to mm-new branch
+Message-Id: <20250909040104.8C927C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/hmm-tests: new throughput tests including THP
+     Subject: gpu/drm/nouveau: enable THP support for GPU memory migration
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
+     gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Balbir Singh <balbirs@nvidia.com>
-Subject: selftests/mm/hmm-tests: new throughput tests including THP
-Date: Mon, 8 Sep 2025 10:04:47 +1000
+Subject: gpu/drm/nouveau: enable THP support for GPU memory migration
+Date: Mon, 8 Sep 2025 10:04:48 +1000
 
-Add new benchmark style support to test transfer bandwidth for zone device
-memory operations.
+Enable MIGRATE_VMA_SELECT_COMPOUND support in nouveau driver to take
+advantage of THP zone device migration capabilities.
 
-Link: https://lkml.kernel.org/r/20250908000448.180088-15-balbirs@nvidia.com
+Update migration and eviction code paths to handle compound page sizes
+appropriately, improving memory bandwidth utilization and reducing
+migration overhead for large GPU memory allocations.
+
+Link: https://lkml.kernel.org/r/20250908000448.180088-16-balbirs@nvidia.com
 Signed-off-by: Balbir Singh <balbirs@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Zi Yan <ziy@nvidia.com>
@@ -100,228 +104,600 @@ Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hmm-tests.c |  197 ++++++++++++++++++++++-
- 1 file changed, 196 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/nouveau/nouveau_dmem.c |  306 ++++++++++++++++-------
+ drivers/gpu/drm/nouveau/nouveau_svm.c  |    6 
+ drivers/gpu/drm/nouveau/nouveau_svm.h  |    3 
+ 3 files changed, 231 insertions(+), 84 deletions(-)
 
---- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-hmm-tests-new-throughput-tests-including-thp
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -25,6 +25,7 @@
- #include <sys/stat.h>
- #include <sys/mman.h>
- #include <sys/ioctl.h>
-+#include <sys/time.h>
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration
++++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -48,8 +48,9 @@
+  * bigger page size) at lowest level and have some shim layer on top that would
+  * provide the same functionality as TTM.
+  */
+-#define DMEM_CHUNK_SIZE (2UL << 20)
++#define DMEM_CHUNK_SIZE (HPAGE_PMD_SIZE)
+ #define DMEM_CHUNK_NPAGES (DMEM_CHUNK_SIZE >> PAGE_SHIFT)
++#define NR_CHUNKS (128)
  
+ enum nouveau_aper {
+ 	NOUVEAU_APER_VIRT,
+@@ -83,9 +84,15 @@ struct nouveau_dmem {
+ 	struct list_head chunks;
+ 	struct mutex mutex;
+ 	struct page *free_pages;
++	struct folio *free_folios;
+ 	spinlock_t lock;
+ };
  
- /*
-@@ -207,8 +208,10 @@ static void hmm_buffer_free(struct hmm_b
- 	if (buffer == NULL)
- 		return;
- 
--	if (buffer->ptr)
-+	if (buffer->ptr) {
- 		munmap(buffer->ptr, buffer->size);
-+		buffer->ptr = NULL;
-+	}
- 	free(buffer->mirror);
- 	free(buffer);
- }
-@@ -2466,4 +2469,196 @@ TEST_F(hmm, migrate_anon_huge_zero_err)
- 	buffer->ptr = old_ptr;
- 	hmm_buffer_free(buffer);
- }
-+
-+struct benchmark_results {
-+	double sys_to_dev_time;
-+	double dev_to_sys_time;
-+	double throughput_s2d;
-+	double throughput_d2s;
++struct nouveau_dmem_dma_info {
++	dma_addr_t dma_addr;
++	size_t size;
 +};
 +
-+static double get_time_ms(void)
-+{
-+	struct timeval tv;
+ static struct nouveau_dmem_chunk *nouveau_page_to_chunk(struct page *page)
+ {
+ 	return container_of(page_pgmap(page), struct nouveau_dmem_chunk,
+@@ -112,10 +119,16 @@ static void nouveau_dmem_page_free(struc
+ {
+ 	struct nouveau_dmem_chunk *chunk = nouveau_page_to_chunk(page);
+ 	struct nouveau_dmem *dmem = chunk->drm->dmem;
++	struct folio *folio = page_folio(page);
+ 
+ 	spin_lock(&dmem->lock);
+-	page->zone_device_data = dmem->free_pages;
+-	dmem->free_pages = page;
++	if (folio_order(folio)) {
++		page->zone_device_data = dmem->free_folios;
++		dmem->free_folios = folio;
++	} else {
++		page->zone_device_data = dmem->free_pages;
++		dmem->free_pages = page;
++	}
+ 
+ 	WARN_ON(!chunk->callocated);
+ 	chunk->callocated--;
+@@ -139,20 +152,28 @@ static void nouveau_dmem_fence_done(stru
+ 	}
+ }
+ 
+-static int nouveau_dmem_copy_one(struct nouveau_drm *drm, struct page *spage,
+-				struct page *dpage, dma_addr_t *dma_addr)
++static int nouveau_dmem_copy_folio(struct nouveau_drm *drm,
++				   struct folio *sfolio, struct folio *dfolio,
++				   struct nouveau_dmem_dma_info *dma_info)
+ {
+ 	struct device *dev = drm->dev->dev;
++	struct page *dpage = folio_page(dfolio, 0);
++	struct page *spage = folio_page(sfolio, 0);
+ 
+-	lock_page(dpage);
++	folio_lock(dfolio);
+ 
+-	*dma_addr = dma_map_page(dev, dpage, 0, PAGE_SIZE, DMA_BIDIRECTIONAL);
+-	if (dma_mapping_error(dev, *dma_addr))
++	dma_info->dma_addr = dma_map_page(dev, dpage, 0, page_size(dpage),
++					DMA_BIDIRECTIONAL);
++	dma_info->size = page_size(dpage);
++	if (dma_mapping_error(dev, dma_info->dma_addr))
+ 		return -EIO;
+ 
+-	if (drm->dmem->migrate.copy_func(drm, 1, NOUVEAU_APER_HOST, *dma_addr,
+-					 NOUVEAU_APER_VRAM, nouveau_dmem_page_addr(spage))) {
+-		dma_unmap_page(dev, *dma_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
++	if (drm->dmem->migrate.copy_func(drm, folio_nr_pages(sfolio),
++					 NOUVEAU_APER_HOST, dma_info->dma_addr,
++					 NOUVEAU_APER_VRAM,
++					 nouveau_dmem_page_addr(spage))) {
++		dma_unmap_page(dev, dma_info->dma_addr, page_size(dpage),
++					DMA_BIDIRECTIONAL);
+ 		return -EIO;
+ 	}
+ 
+@@ -165,22 +186,48 @@ static vm_fault_t nouveau_dmem_migrate_t
+ 	struct nouveau_dmem *dmem = drm->dmem;
+ 	struct nouveau_fence *fence;
+ 	struct nouveau_svmm *svmm;
+-	struct page *spage, *dpage;
+-	unsigned long src = 0, dst = 0;
+-	dma_addr_t dma_addr = 0;
++	struct page *dpage;
+ 	vm_fault_t ret = 0;
+ 	struct migrate_vma args = {
+ 		.vma		= vmf->vma,
+-		.start		= vmf->address,
+-		.end		= vmf->address + PAGE_SIZE,
+-		.src		= &src,
+-		.dst		= &dst,
+ 		.pgmap_owner	= drm->dev,
+ 		.fault_page	= vmf->page,
+-		.flags		= MIGRATE_VMA_SELECT_DEVICE_PRIVATE,
++		.flags		= MIGRATE_VMA_SELECT_DEVICE_PRIVATE |
++				  MIGRATE_VMA_SELECT_COMPOUND,
++		.src = NULL,
++		.dst = NULL,
+ 	};
++	unsigned int order, nr;
++	struct folio *sfolio, *dfolio;
++	struct nouveau_dmem_dma_info dma_info;
 +
-+	gettimeofday(&tv, NULL);
-+	return (tv.tv_sec * 1000.0) + (tv.tv_usec / 1000.0);
-+}
++	sfolio = page_folio(vmf->page);
++	order = folio_order(sfolio);
++	nr = 1 << order;
+ 
+ 	/*
++	 * Handle partial unmap faults, where the folio is large, but
++	 * the pmd is split.
++	 */
++	if (vmf->pte) {
++		order = 0;
++		nr = 1;
++	}
 +
-+static inline struct hmm_buffer *hmm_buffer_alloc(unsigned long size)
-+{
-+	struct hmm_buffer *buffer;
++	if (order)
++		args.flags |= MIGRATE_VMA_SELECT_COMPOUND;
 +
-+	buffer = malloc(sizeof(*buffer));
++	args.start = ALIGN_DOWN(vmf->address, (PAGE_SIZE << order));
++	args.vma = vmf->vma;
++	args.end = args.start + (PAGE_SIZE << order);
++	args.src = kcalloc(nr, sizeof(*args.src), GFP_KERNEL);
++	args.dst = kcalloc(nr, sizeof(*args.dst), GFP_KERNEL);
 +
-+	buffer->fd = -1;
-+	buffer->size = size;
-+	buffer->mirror = malloc(size);
-+	memset(buffer->mirror, 0xFF, size);
-+	return buffer;
-+}
-+
-+static void print_benchmark_results(const char *test_name, size_t buffer_size,
-+				     struct benchmark_results *thp,
-+				     struct benchmark_results *regular)
-+{
-+	double s2d_improvement = ((regular->sys_to_dev_time - thp->sys_to_dev_time) /
-+				 regular->sys_to_dev_time) * 100.0;
-+	double d2s_improvement = ((regular->dev_to_sys_time - thp->dev_to_sys_time) /
-+				 regular->dev_to_sys_time) * 100.0;
-+	double throughput_s2d_improvement = ((thp->throughput_s2d - regular->throughput_s2d) /
-+					    regular->throughput_s2d) * 100.0;
-+	double throughput_d2s_improvement = ((thp->throughput_d2s - regular->throughput_d2s) /
-+					    regular->throughput_d2s) * 100.0;
-+
-+	printf("\n=== %s (%.1f MB) ===\n", test_name, buffer_size / (1024.0 * 1024.0));
-+	printf("                     | With THP        | Without THP     | Improvement\n");
-+	printf("---------------------------------------------------------------------\n");
-+	printf("Sys->Dev Migration   | %.3f ms        | %.3f ms        | %.1f%%\n",
-+	       thp->sys_to_dev_time, regular->sys_to_dev_time, s2d_improvement);
-+	printf("Dev->Sys Migration   | %.3f ms        | %.3f ms        | %.1f%%\n",
-+	       thp->dev_to_sys_time, regular->dev_to_sys_time, d2s_improvement);
-+	printf("S->D Throughput      | %.2f GB/s      | %.2f GB/s      | %.1f%%\n",
-+	       thp->throughput_s2d, regular->throughput_s2d, throughput_s2d_improvement);
-+	printf("D->S Throughput      | %.2f GB/s      | %.2f GB/s      | %.1f%%\n",
-+	       thp->throughput_d2s, regular->throughput_d2s, throughput_d2s_improvement);
-+}
-+
-+/*
-+ * Run a single migration benchmark
-+ * fd: file descriptor for hmm device
-+ * use_thp: whether to use THP
-+ * buffer_size: size of buffer to allocate
-+ * iterations: number of iterations
-+ * results: where to store results
-+ */
-+static inline int run_migration_benchmark(int fd, int use_thp, size_t buffer_size,
-+					   int iterations, struct benchmark_results *results)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages = buffer_size / sysconf(_SC_PAGESIZE);
-+	double start, end;
-+	double s2d_total = 0, d2s_total = 0;
-+	int ret, i;
-+	int *ptr;
-+
-+	buffer = hmm_buffer_alloc(buffer_size);
-+
-+	/* Map memory */
-+	buffer->ptr = mmap(NULL, buffer_size, PROT_READ | PROT_WRITE,
-+			  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+
-+	if (!buffer->ptr)
-+		return -1;
-+
-+	/* Apply THP hint if requested */
-+	if (use_thp)
-+		ret = madvise(buffer->ptr, buffer_size, MADV_HUGEPAGE);
++	if (!args.src || !args.dst) {
++		ret = VM_FAULT_OOM;
++		goto err;
++	}
++	/*
+ 	 * FIXME what we really want is to find some heuristic to migrate more
+ 	 * than just one page on CPU fault. When such fault happens it is very
+ 	 * likely that more surrounding page will CPU fault too.
+@@ -190,20 +237,26 @@ static vm_fault_t nouveau_dmem_migrate_t
+ 	if (!args.cpages)
+ 		return 0;
+ 
+-	spage = migrate_pfn_to_page(src);
+-	if (!spage || !(src & MIGRATE_PFN_MIGRATE))
+-		goto done;
+-
+-	dpage = alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vmf->vma, vmf->address);
+-	if (!dpage)
++	if (order)
++		dpage = folio_page(vma_alloc_folio(GFP_HIGHUSER | __GFP_ZERO,
++					order, vmf->vma, vmf->address), 0);
 +	else
-+		ret = madvise(buffer->ptr, buffer_size, MADV_NOHUGEPAGE);
-+
-+	if (ret)
-+		return ret;
-+
-+	/* Initialize memory to make sure pages are allocated */
-+	ptr = (int *)buffer->ptr;
-+	for (i = 0; i < buffer_size / sizeof(int); i++)
-+		ptr[i] = i & 0xFF;
-+
-+	/* Warmup iteration */
-+	ret = hmm_migrate_sys_to_dev(fd, buffer, npages);
-+	if (ret)
-+		return ret;
-+
-+	ret = hmm_migrate_dev_to_sys(fd, buffer, npages);
-+	if (ret)
-+		return ret;
-+
-+	/* Benchmark iterations */
-+	for (i = 0; i < iterations; i++) {
-+		/* System to device migration */
-+		start = get_time_ms();
-+
-+		ret = hmm_migrate_sys_to_dev(fd, buffer, npages);
-+		if (ret)
-+			return ret;
-+
-+		end = get_time_ms();
-+		s2d_total += (end - start);
-+
-+		/* Device to system migration */
-+		start = get_time_ms();
-+
-+		ret = hmm_migrate_dev_to_sys(fd, buffer, npages);
-+		if (ret)
-+			return ret;
-+
-+		end = get_time_ms();
-+		d2s_total += (end - start);
++		dpage = alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vmf->vma,
++					vmf->address);
++	if (!dpage) {
++		ret = VM_FAULT_OOM;
+ 		goto done;
 +	}
-+
-+	/* Calculate average times and throughput */
-+	results->sys_to_dev_time = s2d_total / iterations;
-+	results->dev_to_sys_time = d2s_total / iterations;
-+	results->throughput_s2d = (buffer_size / (1024.0 * 1024.0 * 1024.0)) /
-+				 (results->sys_to_dev_time / 1000.0);
-+	results->throughput_d2s = (buffer_size / (1024.0 * 1024.0 * 1024.0)) /
-+				 (results->dev_to_sys_time / 1000.0);
-+
-+	/* Cleanup */
-+	hmm_buffer_free(buffer);
-+	return 0;
-+}
-+
-+/*
-+ * Benchmark THP migration with different buffer sizes
-+ */
-+TEST_F_TIMEOUT(hmm, benchmark_thp_migration, 120)
+ 
+-	dst = migrate_pfn(page_to_pfn(dpage));
++	args.dst[0] = migrate_pfn(page_to_pfn(dpage));
++	if (order)
++		args.dst[0] |= MIGRATE_PFN_COMPOUND;
++	dfolio = page_folio(dpage);
+ 
+-	svmm = spage->zone_device_data;
++	svmm = folio_zone_device_data(sfolio);
+ 	mutex_lock(&svmm->mutex);
+ 	nouveau_svmm_invalidate(svmm, args.start, args.end);
+-	ret = nouveau_dmem_copy_one(drm, spage, dpage, &dma_addr);
++	ret = nouveau_dmem_copy_folio(drm, sfolio, dfolio, &dma_info);
+ 	mutex_unlock(&svmm->mutex);
+ 	if (ret) {
+ 		ret = VM_FAULT_SIGBUS;
+@@ -213,25 +266,40 @@ static vm_fault_t nouveau_dmem_migrate_t
+ 	nouveau_fence_new(&fence, dmem->migrate.chan);
+ 	migrate_vma_pages(&args);
+ 	nouveau_dmem_fence_done(&fence);
+-	dma_unmap_page(drm->dev->dev, dma_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
++	dma_unmap_page(drm->dev->dev, dma_info.dma_addr, PAGE_SIZE,
++				DMA_BIDIRECTIONAL);
+ done:
+ 	migrate_vma_finalize(&args);
++err:
++	kfree(args.src);
++	kfree(args.dst);
+ 	return ret;
+ }
+ 
++static void nouveau_dmem_folio_split(struct folio *head, struct folio *tail)
 +{
-+	struct benchmark_results thp_results, regular_results;
-+	size_t thp_size = 2 * 1024 * 1024; /* 2MB - typical THP size */
-+	int iterations = 5;
-+
-+	printf("\nHMM THP Migration Benchmark\n");
-+	printf("---------------------------\n");
-+	printf("System page size: %ld bytes\n", sysconf(_SC_PAGESIZE));
-+
-+	/* Test different buffer sizes */
-+	size_t test_sizes[] = {
-+		thp_size / 4,      /* 512KB - smaller than THP */
-+		thp_size / 2,      /* 1MB - half THP */
-+		thp_size,          /* 2MB - single THP */
-+		thp_size * 2,      /* 4MB - two THPs */
-+		thp_size * 4,      /* 8MB - four THPs */
-+		thp_size * 8,       /* 16MB - eight THPs */
-+		thp_size * 128,       /* 256MB - one twenty eight THPs */
-+	};
-+
-+	static const char *const test_names[] = {
-+		"Small Buffer (512KB)",
-+		"Half THP Size (1MB)",
-+		"Single THP Size (2MB)",
-+		"Two THP Size (4MB)",
-+		"Four THP Size (8MB)",
-+		"Eight THP Size (16MB)",
-+		"One twenty eight THP Size (256MB)"
-+	};
-+
-+	int num_tests = ARRAY_SIZE(test_sizes);
-+
-+	/* Run all tests */
-+	for (int i = 0; i < num_tests; i++) {
-+		/* Test with THP */
-+		ASSERT_EQ(run_migration_benchmark(self->fd, 1, test_sizes[i],
-+					iterations, &thp_results), 0);
-+
-+		/* Test without THP */
-+		ASSERT_EQ(run_migration_benchmark(self->fd, 0, test_sizes[i],
-+					iterations, &regular_results), 0);
-+
-+		/* Print results */
-+		print_benchmark_results(test_names[i], test_sizes[i],
-+					&thp_results, &regular_results);
-+	}
++	if (tail == NULL)
++		return;
++	tail->pgmap = head->pgmap;
++	tail->mapping = head->mapping;
++	folio_set_zone_device_data(tail, folio_zone_device_data(head));
 +}
- TEST_HARNESS_MAIN
++
+ static const struct dev_pagemap_ops nouveau_dmem_pagemap_ops = {
+ 	.page_free		= nouveau_dmem_page_free,
+ 	.migrate_to_ram		= nouveau_dmem_migrate_to_ram,
++	.folio_split		= nouveau_dmem_folio_split,
+ };
+ 
+ static int
+-nouveau_dmem_chunk_alloc(struct nouveau_drm *drm, struct page **ppage)
++nouveau_dmem_chunk_alloc(struct nouveau_drm *drm, struct page **ppage,
++			 bool is_large)
+ {
+ 	struct nouveau_dmem_chunk *chunk;
+ 	struct resource *res;
+ 	struct page *page;
+ 	void *ptr;
+-	unsigned long i, pfn_first;
++	unsigned long i, pfn_first, pfn;
+ 	int ret;
+ 
+ 	chunk = kzalloc(sizeof(*chunk), GFP_KERNEL);
+@@ -241,7 +309,7 @@ nouveau_dmem_chunk_alloc(struct nouveau_
+ 	}
+ 
+ 	/* Allocate unused physical address space for device private pages. */
+-	res = request_free_mem_region(&iomem_resource, DMEM_CHUNK_SIZE,
++	res = request_free_mem_region(&iomem_resource, DMEM_CHUNK_SIZE * NR_CHUNKS,
+ 				      "nouveau_dmem");
+ 	if (IS_ERR(res)) {
+ 		ret = PTR_ERR(res);
+@@ -274,16 +342,40 @@ nouveau_dmem_chunk_alloc(struct nouveau_
+ 	pfn_first = chunk->pagemap.range.start >> PAGE_SHIFT;
+ 	page = pfn_to_page(pfn_first);
+ 	spin_lock(&drm->dmem->lock);
+-	for (i = 0; i < DMEM_CHUNK_NPAGES - 1; ++i, ++page) {
+-		page->zone_device_data = drm->dmem->free_pages;
+-		drm->dmem->free_pages = page;
++
++	pfn = pfn_first;
++	for (i = 0; i < NR_CHUNKS; i++) {
++		int j;
++
++		if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) || !is_large) {
++			for (j = 0; j < DMEM_CHUNK_NPAGES - 1; j++, pfn++) {
++				page = pfn_to_page(pfn);
++				page->zone_device_data = drm->dmem->free_pages;
++				drm->dmem->free_pages = page;
++			}
++		} else {
++			page = pfn_to_page(pfn);
++			page->zone_device_data = drm->dmem->free_folios;
++			drm->dmem->free_folios = page_folio(page);
++			pfn += DMEM_CHUNK_NPAGES;
++		}
++	}
++
++	/* Move to next page */
++	if (is_large) {
++		*ppage = &drm->dmem->free_folios->page;
++		drm->dmem->free_folios = (*ppage)->zone_device_data;
++	} else {
++		*ppage = drm->dmem->free_pages;
++		drm->dmem->free_pages = (*ppage)->zone_device_data;
+ 	}
+-	*ppage = page;
++
+ 	chunk->callocated++;
+ 	spin_unlock(&drm->dmem->lock);
+ 
+-	NV_INFO(drm, "DMEM: registered %ldMB of device memory\n",
+-		DMEM_CHUNK_SIZE >> 20);
++	NV_INFO(drm, "DMEM: registered %ldMB of %sdevice memory %lx %lx\n",
++		NR_CHUNKS * DMEM_CHUNK_SIZE >> 20, is_large ? "THP " : "", pfn_first,
++		nouveau_dmem_page_addr(page));
+ 
+ 	return 0;
+ 
+@@ -298,27 +390,41 @@ out:
+ }
+ 
+ static struct page *
+-nouveau_dmem_page_alloc_locked(struct nouveau_drm *drm)
++nouveau_dmem_page_alloc_locked(struct nouveau_drm *drm, bool is_large)
+ {
+ 	struct nouveau_dmem_chunk *chunk;
+ 	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	int ret;
++	unsigned int order = 0;
+ 
+ 	spin_lock(&drm->dmem->lock);
+-	if (drm->dmem->free_pages) {
++	if (is_large && drm->dmem->free_folios) {
++		folio = drm->dmem->free_folios;
++		page = &folio->page;
++		drm->dmem->free_folios = page->zone_device_data;
++		chunk = nouveau_page_to_chunk(&folio->page);
++		chunk->callocated++;
++		spin_unlock(&drm->dmem->lock);
++		order = ilog2(DMEM_CHUNK_NPAGES);
++	} else if (!is_large && drm->dmem->free_pages) {
+ 		page = drm->dmem->free_pages;
+ 		drm->dmem->free_pages = page->zone_device_data;
+ 		chunk = nouveau_page_to_chunk(page);
+ 		chunk->callocated++;
+ 		spin_unlock(&drm->dmem->lock);
++		folio = page_folio(page);
+ 	} else {
+ 		spin_unlock(&drm->dmem->lock);
+-		ret = nouveau_dmem_chunk_alloc(drm, &page);
++		ret = nouveau_dmem_chunk_alloc(drm, &page, is_large);
+ 		if (ret)
+ 			return NULL;
++		folio = page_folio(page);
++		if (is_large)
++			order = ilog2(DMEM_CHUNK_NPAGES);
+ 	}
+ 
+-	zone_device_page_init(page);
++	zone_device_folio_init(folio, order);
+ 	return page;
+ }
+ 
+@@ -369,12 +475,12 @@ nouveau_dmem_evict_chunk(struct nouveau_
+ {
+ 	unsigned long i, npages = range_len(&chunk->pagemap.range) >> PAGE_SHIFT;
+ 	unsigned long *src_pfns, *dst_pfns;
+-	dma_addr_t *dma_addrs;
++	struct nouveau_dmem_dma_info *dma_info;
+ 	struct nouveau_fence *fence;
+ 
+ 	src_pfns = kvcalloc(npages, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
+ 	dst_pfns = kvcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
+-	dma_addrs = kvcalloc(npages, sizeof(*dma_addrs), GFP_KERNEL | __GFP_NOFAIL);
++	dma_info = kvcalloc(npages, sizeof(*dma_info), GFP_KERNEL | __GFP_NOFAIL);
+ 
+ 	migrate_device_range(src_pfns, chunk->pagemap.range.start >> PAGE_SHIFT,
+ 			npages);
+@@ -382,17 +488,28 @@ nouveau_dmem_evict_chunk(struct nouveau_
+ 	for (i = 0; i < npages; i++) {
+ 		if (src_pfns[i] & MIGRATE_PFN_MIGRATE) {
+ 			struct page *dpage;
++			struct folio *folio = page_folio(
++				migrate_pfn_to_page(src_pfns[i]));
++			unsigned int order = folio_order(folio);
++
++			if (src_pfns[i] & MIGRATE_PFN_COMPOUND) {
++				dpage = folio_page(
++						folio_alloc(
++						GFP_HIGHUSER_MOVABLE, order), 0);
++			} else {
++				/*
++				 * _GFP_NOFAIL because the GPU is going away and there
++				 * is nothing sensible we can do if we can't copy the
++				 * data back.
++				 */
++				dpage = alloc_page(GFP_HIGHUSER | __GFP_NOFAIL);
++			}
+ 
+-			/*
+-			 * _GFP_NOFAIL because the GPU is going away and there
+-			 * is nothing sensible we can do if we can't copy the
+-			 * data back.
+-			 */
+-			dpage = alloc_page(GFP_HIGHUSER | __GFP_NOFAIL);
+ 			dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
+-			nouveau_dmem_copy_one(chunk->drm,
+-					migrate_pfn_to_page(src_pfns[i]), dpage,
+-					&dma_addrs[i]);
++			nouveau_dmem_copy_folio(chunk->drm,
++				page_folio(migrate_pfn_to_page(src_pfns[i])),
++				page_folio(dpage),
++				&dma_info[i]);
+ 		}
+ 	}
+ 
+@@ -403,8 +520,9 @@ nouveau_dmem_evict_chunk(struct nouveau_
+ 	kvfree(src_pfns);
+ 	kvfree(dst_pfns);
+ 	for (i = 0; i < npages; i++)
+-		dma_unmap_page(chunk->drm->dev->dev, dma_addrs[i], PAGE_SIZE, DMA_BIDIRECTIONAL);
+-	kvfree(dma_addrs);
++		dma_unmap_page(chunk->drm->dev->dev, dma_info[i].dma_addr,
++				dma_info[i].size, DMA_BIDIRECTIONAL);
++	kvfree(dma_info);
+ }
+ 
+ void
+@@ -607,31 +725,36 @@ nouveau_dmem_init(struct nouveau_drm *dr
+ 
+ static unsigned long nouveau_dmem_migrate_copy_one(struct nouveau_drm *drm,
+ 		struct nouveau_svmm *svmm, unsigned long src,
+-		dma_addr_t *dma_addr, u64 *pfn)
++		struct nouveau_dmem_dma_info *dma_info, u64 *pfn)
+ {
+ 	struct device *dev = drm->dev->dev;
+ 	struct page *dpage, *spage;
+ 	unsigned long paddr;
++	bool is_large = false;
++	unsigned long mpfn;
+ 
+ 	spage = migrate_pfn_to_page(src);
+ 	if (!(src & MIGRATE_PFN_MIGRATE))
+ 		goto out;
+ 
+-	dpage = nouveau_dmem_page_alloc_locked(drm);
++	is_large = src & MIGRATE_PFN_COMPOUND;
++	dpage = nouveau_dmem_page_alloc_locked(drm, is_large);
+ 	if (!dpage)
+ 		goto out;
+ 
+ 	paddr = nouveau_dmem_page_addr(dpage);
+ 	if (spage) {
+-		*dma_addr = dma_map_page(dev, spage, 0, page_size(spage),
++		dma_info->dma_addr = dma_map_page(dev, spage, 0, page_size(spage),
+ 					 DMA_BIDIRECTIONAL);
+-		if (dma_mapping_error(dev, *dma_addr))
++		dma_info->size = page_size(spage);
++		if (dma_mapping_error(dev, dma_info->dma_addr))
+ 			goto out_free_page;
+-		if (drm->dmem->migrate.copy_func(drm, 1,
+-			NOUVEAU_APER_VRAM, paddr, NOUVEAU_APER_HOST, *dma_addr))
++		if (drm->dmem->migrate.copy_func(drm, folio_nr_pages(page_folio(spage)),
++			NOUVEAU_APER_VRAM, paddr, NOUVEAU_APER_HOST,
++			dma_info->dma_addr))
+ 			goto out_dma_unmap;
+ 	} else {
+-		*dma_addr = DMA_MAPPING_ERROR;
++		dma_info->dma_addr = DMA_MAPPING_ERROR;
+ 		if (drm->dmem->migrate.clear_func(drm, page_size(dpage),
+ 			NOUVEAU_APER_VRAM, paddr))
+ 			goto out_free_page;
+@@ -642,10 +765,13 @@ static unsigned long nouveau_dmem_migrat
+ 		((paddr >> PAGE_SHIFT) << NVIF_VMM_PFNMAP_V0_ADDR_SHIFT);
+ 	if (src & MIGRATE_PFN_WRITE)
+ 		*pfn |= NVIF_VMM_PFNMAP_V0_W;
+-	return migrate_pfn(page_to_pfn(dpage));
++	mpfn = migrate_pfn(page_to_pfn(dpage));
++	if (folio_order(page_folio(dpage)))
++		mpfn |= MIGRATE_PFN_COMPOUND;
++	return mpfn;
+ 
+ out_dma_unmap:
+-	dma_unmap_page(dev, *dma_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
++	dma_unmap_page(dev, dma_info->dma_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
+ out_free_page:
+ 	nouveau_dmem_page_free_locked(drm, dpage);
+ out:
+@@ -655,27 +781,38 @@ out:
+ 
+ static void nouveau_dmem_migrate_chunk(struct nouveau_drm *drm,
+ 		struct nouveau_svmm *svmm, struct migrate_vma *args,
+-		dma_addr_t *dma_addrs, u64 *pfns)
++		struct nouveau_dmem_dma_info *dma_info, u64 *pfns)
+ {
+ 	struct nouveau_fence *fence;
+ 	unsigned long addr = args->start, nr_dma = 0, i;
++	unsigned long order = 0;
++
++	for (i = 0; addr < args->end; ) {
++		struct folio *folio;
+ 
+-	for (i = 0; addr < args->end; i++) {
+ 		args->dst[i] = nouveau_dmem_migrate_copy_one(drm, svmm,
+-				args->src[i], dma_addrs + nr_dma, pfns + i);
+-		if (!dma_mapping_error(drm->dev->dev, dma_addrs[nr_dma]))
++				args->src[i], dma_info + nr_dma, pfns + i);
++		if (!args->dst[i]) {
++			i++;
++			addr += PAGE_SIZE;
++			continue;
++		}
++		if (!dma_mapping_error(drm->dev->dev, dma_info[nr_dma].dma_addr))
+ 			nr_dma++;
+-		addr += PAGE_SIZE;
++		folio = page_folio(migrate_pfn_to_page(args->dst[i]));
++		order = folio_order(folio);
++		i += 1 << order;
++		addr += (1 << order) * PAGE_SIZE;
+ 	}
+ 
+ 	nouveau_fence_new(&fence, drm->dmem->migrate.chan);
+ 	migrate_vma_pages(args);
+ 	nouveau_dmem_fence_done(&fence);
+-	nouveau_pfns_map(svmm, args->vma->vm_mm, args->start, pfns, i);
++	nouveau_pfns_map(svmm, args->vma->vm_mm, args->start, pfns, i, order);
+ 
+ 	while (nr_dma--) {
+-		dma_unmap_page(drm->dev->dev, dma_addrs[nr_dma], PAGE_SIZE,
+-				DMA_BIDIRECTIONAL);
++		dma_unmap_page(drm->dev->dev, dma_info[nr_dma].dma_addr,
++				dma_info[nr_dma].size, DMA_BIDIRECTIONAL);
+ 	}
+ 	migrate_vma_finalize(args);
+ }
+@@ -688,20 +825,27 @@ nouveau_dmem_migrate_vma(struct nouveau_
+ 			 unsigned long end)
+ {
+ 	unsigned long npages = (end - start) >> PAGE_SHIFT;
+-	unsigned long max = min(SG_MAX_SINGLE_ALLOC, npages);
+-	dma_addr_t *dma_addrs;
++	unsigned long max = npages;
+ 	struct migrate_vma args = {
+ 		.vma		= vma,
+ 		.start		= start,
+ 		.pgmap_owner	= drm->dev,
+-		.flags		= MIGRATE_VMA_SELECT_SYSTEM,
++		.flags		= MIGRATE_VMA_SELECT_SYSTEM
++				  | MIGRATE_VMA_SELECT_COMPOUND,
+ 	};
+ 	unsigned long i;
+ 	u64 *pfns;
+ 	int ret = -ENOMEM;
++	struct nouveau_dmem_dma_info *dma_info;
+ 
+-	if (drm->dmem == NULL)
+-		return -ENODEV;
++	if (drm->dmem == NULL) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
++		if (max > (unsigned long)HPAGE_PMD_NR)
++			max = (unsigned long)HPAGE_PMD_NR;
+ 
+ 	args.src = kcalloc(max, sizeof(*args.src), GFP_KERNEL);
+ 	if (!args.src)
+@@ -710,8 +854,8 @@ nouveau_dmem_migrate_vma(struct nouveau_
+ 	if (!args.dst)
+ 		goto out_free_src;
+ 
+-	dma_addrs = kmalloc_array(max, sizeof(*dma_addrs), GFP_KERNEL);
+-	if (!dma_addrs)
++	dma_info = kmalloc_array(max, sizeof(*dma_info), GFP_KERNEL);
++	if (!dma_info)
+ 		goto out_free_dst;
+ 
+ 	pfns = nouveau_pfns_alloc(max);
+@@ -729,7 +873,7 @@ nouveau_dmem_migrate_vma(struct nouveau_
+ 			goto out_free_pfns;
+ 
+ 		if (args.cpages)
+-			nouveau_dmem_migrate_chunk(drm, svmm, &args, dma_addrs,
++			nouveau_dmem_migrate_chunk(drm, svmm, &args, dma_info,
+ 						   pfns);
+ 		args.start = args.end;
+ 	}
+@@ -738,7 +882,7 @@ nouveau_dmem_migrate_vma(struct nouveau_
+ out_free_pfns:
+ 	nouveau_pfns_free(pfns);
+ out_free_dma:
+-	kfree(dma_addrs);
++	kfree(dma_info);
+ out_free_dst:
+ 	kfree(args.dst);
+ out_free_src:
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c~gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration
++++ a/drivers/gpu/drm/nouveau/nouveau_svm.c
+@@ -921,12 +921,14 @@ nouveau_pfns_free(u64 *pfns)
+ 
+ void
+ nouveau_pfns_map(struct nouveau_svmm *svmm, struct mm_struct *mm,
+-		 unsigned long addr, u64 *pfns, unsigned long npages)
++		 unsigned long addr, u64 *pfns, unsigned long npages,
++		 unsigned int page_shift)
+ {
+ 	struct nouveau_pfnmap_args *args = nouveau_pfns_to_args(pfns);
+ 
+ 	args->p.addr = addr;
+-	args->p.size = npages << PAGE_SHIFT;
++	args->p.size = npages << page_shift;
++	args->p.page = page_shift;
+ 
+ 	mutex_lock(&svmm->mutex);
+ 
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.h~gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration
++++ a/drivers/gpu/drm/nouveau/nouveau_svm.h
+@@ -33,7 +33,8 @@ void nouveau_svmm_invalidate(struct nouv
+ u64 *nouveau_pfns_alloc(unsigned long npages);
+ void nouveau_pfns_free(u64 *pfns);
+ void nouveau_pfns_map(struct nouveau_svmm *svmm, struct mm_struct *mm,
+-		      unsigned long addr, u64 *pfns, unsigned long npages);
++		      unsigned long addr, u64 *pfns, unsigned long npages,
++		      unsigned int page_shift);
+ #else /* IS_ENABLED(CONFIG_DRM_NOUVEAU_SVM) */
+ static inline void nouveau_svm_init(struct nouveau_drm *drm) {}
+ static inline void nouveau_svm_fini(struct nouveau_drm *drm) {}
 _
 
 Patches currently in -mm which might be from balbirs@nvidia.com are
