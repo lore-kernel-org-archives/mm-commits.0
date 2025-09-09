@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D51591E89C
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 06:45:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3DD1E89C
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 06:45:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757400340; cv=none; b=u+IG4rVljHY8GsFu3cwrPTxTribgqR2hdp8rgvMr8M3ctBofVWsriBqGQ7w0Y+2EJtyGl997V7oLVeTSX/fjDw54S33mSXFDCBBkM7z9Ais1hUiRvyKNM9lz7F2Bg/TPKDktxI9uRyljJbvnd7LitIwEW7f29p9UrUhZt30mrDI=
+	t=1757400342; cv=none; b=AcO8vb+1R+wwkDlvHCJEgxrjOYOTwuexGCaBqWjwC1WOdtxjaW3B2F+cP2w9u1P+RSoWNVQ8CvCNHbF5lmJVzucNDhjU8AeNZpdWabAT+gQjleVvNX3eE8YF6cAgd0G3ZcIutsN1OXFyGZhDNqbE1Cvr/+7i/OvU+B1ltbMSNqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757400340; c=relaxed/simple;
-	bh=HLZgK+2vlCiBP60mDvIVPOoawJTagdQYNCgaZ6xCvSY=;
-	h=Date:To:From:Subject:Message-Id; b=bKaXf1LVtdkaUn8YAh7SIj34d3hOBApd07MmZOUkLDGEkNCFCVUzMqaZ2TmkEMft/JfxK0PAzohyWdSWWmQdshGC5TIMRCB2ASJhBLfElLI1u1FsObmdZy18Wc38iiMOlpYljL+u6VD75BR+sz8FMhVeeJg5/CDqZJMB/Mpp2Hw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zWZ8ei6w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757400342; c=relaxed/simple;
+	bh=jiQaPie9ZtrL+UO1bjTBJT3ZT/M9H1Hb/M77Z7SnNwc=;
+	h=Date:To:From:Subject:Message-Id; b=PTVbFFMTckLIH574PJu34zn2A9IUp5BXrZ5AsONVlofajdJAcbF6ZynewfdjGaqtWfiSk0/Y2WksrdAYUSPwOZW6+EQK/bAQtfW2bKS8ac9+shQf+boY1mUopX5Tt8uytjKB2l+GMAbKj2jYJ6VDoQbvn4ySeaoj06xaNqhztA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lp4KtzT+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zWZ8ei6w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 525D8C4CEF4;
-	Tue,  9 Sep 2025 06:45:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lp4KtzT+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38697C4CEF4;
+	Tue,  9 Sep 2025 06:45:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757400340;
-	bh=HLZgK+2vlCiBP60mDvIVPOoawJTagdQYNCgaZ6xCvSY=;
+	s=korg; t=1757400342;
+	bh=jiQaPie9ZtrL+UO1bjTBJT3ZT/M9H1Hb/M77Z7SnNwc=;
 	h=Date:To:From:Subject:From;
-	b=zWZ8ei6wnX1+EIvz0wXZhSrQeB8XWuCS/fBiX6Z3avgbgZA5IohZbLAVIeTD8RWrS
-	 Tj4+xEYqH6bPpB9vfuFzOJL7+WeR2eLl8K5QF0vOQmQHToMNdvjKTS2DxJ+V7i19+6
-	 ShVcjCAdM52UmPbmSKAmlLdw6I1noz52g3JjWx8k=
-Date: Mon, 08 Sep 2025 23:45:39 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@gentwo.org,bhe@redhat.com,vdumitrescu@nvidia.com,akpm@linux-foundation.org
+	b=Lp4KtzT+gGiXhFcvqwXCTzD9uao/NsP+CkWHWlWzokn3fqdXBn3qN8Gwxu+oAce+H
+	 KoxdnS7OFXikUEiLLBXjI2Sl5ibk7BjMXcbYZ6n8KLnZbKBeBd8Rqlinc4TrQXPH57
+	 SMGR691W1TPfasyyXkpzl5grRlbbfDSMMWs3kdvI=
+Date: Mon, 08 Sep 2025 23:45:41 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,cmllamas@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] percpu-fix-race-on-alloc-failed-warning-limit.patch removed from -mm tree
-Message-Id: <20250909064540.525D8C4CEF4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mremap-fix-regression-in-vrm-new_addr-check.patch removed from -mm tree
+Message-Id: <20250909064542.38697C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: percpu: fix race on alloc failed warning limit
+     Subject: mm/mremap: fix regression in vrm->new_addr check
 has been removed from the -mm tree.  Its filename was
-     percpu-fix-race-on-alloc-failed-warning-limit.patch
+     mm-mremap-fix-regression-in-vrm-new_addr-check.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlad Dumitrescu <vdumitrescu@nvidia.com>
-Subject: percpu: fix race on alloc failed warning limit
-Date: Fri, 22 Aug 2025 15:55:16 -0700
+From: Carlos Llamas <cmllamas@google.com>
+Subject: mm/mremap: fix regression in vrm->new_addr check
+Date: Thu, 28 Aug 2025 14:26:56 +0000
 
-The 'allocation failed, ...' warning messages can cause unlimited log
-spam, contrary to the implementation's intent.
+Commit 3215eaceca87 ("mm/mremap: refactor initial parameter sanity
+checks") moved the sanity check for vrm->new_addr from mremap_to() to
+check_mremap_params().
 
-The warn_limit variable is accessed without synchronization.  If more than
-<warn_limit> threads enter the warning path at the same time, the variable
-will get decremented past 0.  Once it becomes negative, the non-zero check
-will always return true leading to unlimited log spam.
+However, this caused a regression as vrm->new_addr is now checked even
+when MREMAP_FIXED and MREMAP_DONTUNMAP flags are not specified.  In this
+case, vrm->new_addr can be garbage and create unexpected failures.
 
-Use atomic operation to access warn_limit and change condition to test for
-non-negative (>= 0) - atomic_dec_if_positive will return -1 once
-warn_limit becomes 0.  Continue to print disable message alongside the
-last warning.
+Fix this by moving the new_addr check after the vrm_implies_new_addr()
+guard.  This ensures that the new_addr is only checked when the user has
+specified one explicitly.
 
-While the change cited in Fixes is only adjacent, the warning limit
-implementation was correct before it.  Only non-atomic allocations were
-considered for warnings, and those happened to hold pcpu_alloc_mutex while
-accessing warn_limit.
-
-[vdumitrescu@nvidia.com: prevent warn_limit from going negative, per Christoph Lameter]
-  Link: https://lkml.kernel.org/r/ee87cc59-2717-4dbb-8052-1d2692c5aaaa@nvidia.com
-Link: https://lkml.kernel.org/r/ab22061a-a62f-4429-945b-744e5cc4ba35@nvidia.com
-Fixes: f7d77dfc91f7 ("mm/percpu.c: print error message too if atomic alloc failed")
-Signed-off-by: Vlad Dumitrescu <vdumitrescu@nvidia.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20250828142657.770502-1-cmllamas@google.com
+Fixes: 3215eaceca87 ("mm/mremap: refactor initial parameter sanity checks")
+Signed-off-by: Carlos Llamas <cmllamas@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/mremap.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/percpu.c~percpu-fix-race-on-alloc-failed-warning-limit
-+++ a/mm/percpu.c
-@@ -1734,7 +1734,7 @@ void __percpu *pcpu_alloc_noprof(size_t
- 	bool is_atomic;
- 	bool do_warn;
- 	struct obj_cgroup *objcg = NULL;
--	static int warn_limit = 10;
-+	static atomic_t warn_limit = ATOMIC_INIT(10);
- 	struct pcpu_chunk *chunk, *next;
- 	const char *err;
- 	int slot, off, cpu, ret;
-@@ -1904,13 +1904,17 @@ fail_unlock:
- fail:
- 	trace_percpu_alloc_percpu_fail(reserved, is_atomic, size, align);
+--- a/mm/mremap.c~mm-mremap-fix-regression-in-vrm-new_addr-check
++++ a/mm/mremap.c
+@@ -1774,15 +1774,18 @@ static unsigned long check_mremap_params
+ 	if (!vrm->new_len)
+ 		return -EINVAL;
  
--	if (do_warn && warn_limit) {
--		pr_warn("allocation failed, size=%zu align=%zu atomic=%d, %s\n",
--			size, align, is_atomic, err);
--		if (!is_atomic)
--			dump_stack();
--		if (!--warn_limit)
--			pr_info("limit reached, disable warning\n");
-+	if (do_warn) {
-+		int remaining = atomic_dec_if_positive(&warn_limit);
+-	/* Is the new length or address silly? */
+-	if (vrm->new_len > TASK_SIZE ||
+-	    vrm->new_addr > TASK_SIZE - vrm->new_len)
++	/* Is the new length silly? */
++	if (vrm->new_len > TASK_SIZE)
+ 		return -EINVAL;
+ 
+ 	/* Remainder of checks are for cases with specific new_addr. */
+ 	if (!vrm_implies_new_addr(vrm))
+ 		return 0;
+ 
++	/* Is the new address silly? */
++	if (vrm->new_addr > TASK_SIZE - vrm->new_len)
++		return -EINVAL;
 +
-+		if (remaining >= 0) {
-+			pr_warn("allocation failed, size=%zu align=%zu atomic=%d, %s\n",
-+				size, align, is_atomic, err);
-+			if (!is_atomic)
-+				dump_stack();
-+			if (remaining == 0)
-+				pr_info("limit reached, disable warning\n");
-+		}
- 	}
- 
- 	if (is_atomic) {
+ 	/* The new address must be page-aligned. */
+ 	if (offset_in_page(vrm->new_addr))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from vdumitrescu@nvidia.com are
+Patches currently in -mm which might be from cmllamas@google.com are
 
 
