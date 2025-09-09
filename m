@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A83B918871F;
-	Tue,  9 Sep 2025 04:15:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FA11DA4E
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 04:16:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757391338; cv=none; b=mErGoOybuqZJTaEWMIK0RhYGj+xMcN23bgIs6GFQ0oEUVUX5KcgdmKp3S8jCtrBF6LZEp80epjvSV7j53zqj+22ePCCBg45hp2lZoTgwAcbfnDUfowvof8rZ1osirFIaeuFZJmiQVmS6bYjgMXHX1u436CDwb8wLkb9H3CGwmDI=
+	t=1757391405; cv=none; b=ZFMfwq+aoCwkd1Y3yx+XlcrY4mbqXlsXfo4SgiCpBz2NEYTe+/GxNjm6IRqphJUBoB0MPZT4359oFhE6mUZtfwVhkHSgh63IEadV2BmazjNZbjp8+tMjo52W7j51RlPVO4sB9SdGJI2bSIAf/N00Q1kfBI0jmIHz+CQQDHPUm4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757391338; c=relaxed/simple;
-	bh=wgDYj57Ma1O4p0xWYT+j0iFwPFFRunbDk1F8pfPvnMQ=;
-	h=Date:To:From:Subject:Message-Id; b=stFsNwvlrfuGKiIfRGFAbn0aNjV9xJcJAc3R3h16SFXG3uDaoF/fISVeZPyDpztcFcIrVB50mORP7PBGmVopmITz7kTJJGyqeSxHcY8tU6xCiwqQnGxXZ5jac8T7WUV76zJ9Mega8FgTjHeoU1ZVECRmdBd3I2fK/oA5BlRYgkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E4DE/VMN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757391405; c=relaxed/simple;
+	bh=Rskb2yrB3wI8VdWUqxAjQAG5of/D7mrykljwm4rJnMc=;
+	h=Date:To:From:Subject:Message-Id; b=nBrdcpmtLYThVsf3sA0XLWDgmv0IaZzNz7mFYuWor0kH+JkSfJQgsTVmCYxKAbvt6k2bZYrd/os6MicmJgaGaS8IAbVH5w2umTjD/Li4ny+1iYllEj/+Z+cBu/ghxJwHwghYZ8tOYywS8e6eAEQotCjCBB/dHLcNlqkoaXHH9hY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L4n2iHNF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E4DE/VMN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1581CC4CEF4;
-	Tue,  9 Sep 2025 04:15:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L4n2iHNF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B70E0C4CEF4;
+	Tue,  9 Sep 2025 04:16:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757391338;
-	bh=wgDYj57Ma1O4p0xWYT+j0iFwPFFRunbDk1F8pfPvnMQ=;
+	s=korg; t=1757391404;
+	bh=Rskb2yrB3wI8VdWUqxAjQAG5of/D7mrykljwm4rJnMc=;
 	h=Date:To:From:Subject:From;
-	b=E4DE/VMNDY6uCOsCdm+2vb90+RzgBEm84Rfpn6gP1qlo/5YWrulNap/PZiTR0H5r2
-	 W/mPXVnB2AgYbZ0yRCti/VzanBR7g2ukQpU4IQyVGue69vnYPvcuzzxXt8jZ2dS0Ok
-	 zZ7MdnI5dNsR+YcyLK22xoLtthSFHxnG+lrjmJnI=
-Date: Mon, 08 Sep 2025 21:15:37 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,oliver.sang@intel.com,konishi.ryusuke@gmail.com,nathan@kernel.org,akpm@linux-foundation.org
+	b=L4n2iHNF/6tOz/uMuScMIszIyphDgTIVyb8KWk1DkMcKkMTTnX4oohp2+jGJ2ZGZy
+	 uB/uQlLN5tY11GOjnHBDaY8r02v2cGPGfv6rBkxkHbrhLuu/08dI+s3IQNYdsbfHML
+	 jtI9qW2akwhbOUdZgn+1vHyDSNUDXS30Eqreebpw=
+Date: Mon, 08 Sep 2025 21:16:44 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250909041538.1581CC4CEF4@smtp.kernel.org>
+Subject: [to-be-updated] tools-mm-add-madvise-tool.patch removed from -mm tree
+Message-Id: <20250909041644.B70E0C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,125 +34,241 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: nilfs2: fix CFI failure when accessing /sys/fs/nilfs2/features/*
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features.patch
+The quilt patch titled
+     Subject: tools/mm: add madvise tool
+has been removed from the -mm tree.  Its filename was
+     tools-mm-add-madvise-tool.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: nilfs2: fix CFI failure when accessing /sys/fs/nilfs2/features/*
-Date: Sat, 6 Sep 2025 23:43:34 +0900
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: tools/mm: add madvise tool
+Date: Thu, 4 Sep 2025 18:57:29 +0100
 
-When accessing one of the files under /sys/fs/nilfs2/features when
-CONFIG_CFI_CLANG is enabled, there is a CFI violation:
+Add a simple tool that allows to issue an advice on a process or a file.
 
-  CFI failure at kobj_attr_show+0x59/0x80 (target: nilfs_feature_revision_show+0x0/0x30; expected type: 0xfc392c4d)
-  ...
-  Call Trace:
-   <TASK>
-   sysfs_kf_seq_show+0x2a6/0x390
-   ? __cfi_kobj_attr_show+0x10/0x10
-   kernfs_seq_show+0x104/0x15b
-   seq_read_iter+0x580/0xe2b
-  ...
+It can be useful to experiment with effects of an advice on a workload
+without modifying the workload itself.
 
-When the kobject of the kset for /sys/fs/nilfs2 is initialized, its ktype
-is set to kset_ktype, which has a ->sysfs_ops of kobj_sysfs_ops.  When
-nilfs_feature_attr_group is added to that kobject via
-sysfs_create_group(), the kernfs_ops of each files is sysfs_file_kfops_rw,
-which will call sysfs_kf_seq_show() when ->seq_show() is called. 
-sysfs_kf_seq_show() in turn calls kobj_attr_show() through
-->sysfs_ops->show().  kobj_attr_show() casts the provided attribute out to
-a 'struct kobj_attribute' via container_of() and calls ->show(), resulting
-in the CFI violation since neither nilfs_feature_revision_show() nor
-nilfs_feature_README_show() match the prototype of ->show() in 'struct
-kobj_attribute'.
+Only supports advices available for process_madvise().
 
-Resolve the CFI violation by adjusting the second parameter in
-nilfs_feature_{revision,README}_show() from 'struct attribute' to 'struct
-kobj_attribute' to match the expected prototype.
-
-Link: https://lkml.kernel.org/r/20250906144410.22511-1-konishi.ryusuke@gmail.com
-Fixes: aebe17f68444 ("nilfs2: add /sys/fs/nilfs2/features group")
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202509021646.bc78d9ef-lkp@intel.com/
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250904175729.1029735-1-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sysfs.c |    4 ++--
- fs/nilfs2/sysfs.h |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ tools/mm/.gitignore |    4 
+ tools/mm/Makefile   |    2 
+ tools/mm/madvise.c  |  170 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 174 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/sysfs.c~nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features
-+++ a/fs/nilfs2/sysfs.c
-@@ -1075,7 +1075,7 @@ void nilfs_sysfs_delete_device_group(str
-  ************************************************************************/
+--- a/tools/mm/.gitignore~tools-mm-add-madvise-tool
++++ a/tools/mm/.gitignore
+@@ -1,4 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-slabinfo
++madvise
+ page-types
+ page_owner_sort
++slabinfo
++thp_swap_allocator_test
+diff --git a/tools/mm/madvise.c a/tools/mm/madvise.c
+new file mode 100644
+--- /dev/null
++++ a/tools/mm/madvise.c
+@@ -0,0 +1,170 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++#include <fcntl.h>
++#include <limits.h>
++#include <stdarg.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++
++static void usage(void)
++{
++	printf("madvise TARGET ADVICE START END\n\n");
++	printf("Arguments:\n");
++	printf("\t<TARGET>\n");
++	printf("\t\tA process ID or a file to give the advice to.\n\n");
++	printf("\t\tUse \"./\" prefix if the file name is all digits.\n\n");
++	printf("\t<ADVICE>\n");
++	printf("\t\tcold\t\t- Deactivate a given range of pages\n");
++	printf("\t\tcollapse\t- Collapse pages in a given range into THPs\n");
++	printf("\t\tpageout\t\t- Reclaim a given range of pages\n");
++	printf("\t\twillneed\t- The specified data will be accessed in the near future\n");
++	printf("\n\t\tSee madvise(2) for more details.\n\n");
++	printf("\t<START>/<END>\n");
++	printf("\t\tStart and end addressed for the advice. Must be page-aligned.\n\n");
++	printf("\t\tFor PID case, it is addresses in the target process address space.\n\n");
++	printf("\t\tFor file case, it is offsets in the file.\n\n");
++}
++
++static void error(const char *fmt, ...)
++{
++	if (fmt) {
++		va_list argp;
++
++		va_start(argp, fmt);
++		vfprintf(stderr, fmt, argp);
++		va_end(argp);
++		printf("\n");
++	}
++
++	usage();
++	exit(-1);
++}
++
++#define PMD_SIZE_FILE_PATH "/sys/kernel/mm/transparent_hugepage/hpage_pmd_size"
++static unsigned long read_pmd_pagesize(void)
++{
++	int fd;
++	char buf[20];
++	ssize_t num_read;
++
++	fd = open(PMD_SIZE_FILE_PATH, O_RDONLY);
++	if (fd == -1)
++		return 0;
++
++	num_read = read(fd, buf, 19);
++	if (num_read < 1) {
++		close(fd);
++		return 0;
++	}
++	buf[num_read] = '\0';
++	close(fd);
++
++	return strtoul(buf, NULL, 10);
++}
++
++static int pidfd_open(pid_t pid, unsigned int flags)
++{
++	return syscall(SYS_pidfd_open, pid, flags);
++}
++
++int main(int argc, const char *argv[])
++{
++	unsigned long pid, start, end, page_size;
++	int advice;
++	char *err;
++	int fd;
++
++	if (argc != 5)
++		error(NULL);
++
++	pid = strtoul(argv[1], &err, 10);
++	if (*err || err == argv[1] ||
++	    pid > INT_MAX || (pid_t)pid <= 0) {
++		// Not a PID, assume argv[1] is a file name
++		pid = 0;
++	}
++
++	if (pid) {
++		fd = pidfd_open(pid, 0);
++		if (fd < 0)
++			perror("pidfd_open()"), exit(-1);
++	} else {
++		fd = open(argv[1], O_RDWR);
++		if (fd < 0)
++			perror("open"), exit(-1);
++	}
++
++	if (!strcmp(argv[2], "cold"))
++		advice = MADV_COLD;
++	else if (!strcmp(argv[2], "collapse"))
++		advice = MADV_COLLAPSE;
++	else if (!strcmp(argv[2], "pageout"))
++		advice = MADV_PAGEOUT;
++	else if (!strcmp(argv[2], "willneed"))
++		advice = MADV_WILLNEED;
++	else
++		error("Unknown advice: %s\n", argv[2]);
++
++	page_size = sysconf(_SC_PAGE_SIZE);
++
++	start = strtoul(argv[3], &err, 0);
++	if (*err || err == argv[3])
++		error("Cannot parse start address\n");
++	if (start % page_size)
++		error("Start address is not aligned to page size\n");
++	end = strtoul(argv[4], &err, 0);
++	if (*err || err == argv[4])
++		error("Cannot parse end address\n");
++	if (end % page_size)
++		error("End address is not aligned to page size\n");
++
++	if (pid) {
++		struct iovec vec = {
++			.iov_base = (void *)start,
++			.iov_len = end - start,
++		};
++		ssize_t ret;
++
++		ret = process_madvise(fd, &vec, 1, advice, 0);
++		if (ret < 0)
++			perror("process_madvise"), exit(-1);
++
++		if ((unsigned long)ret != end - start)
++			printf("Partial advice occurred. Stopped at %#lx\n", start + ret);
++	} else {
++		unsigned long addr, hpage_pmd_size;
++		void *p;
++		int ret;
++
++		hpage_pmd_size = read_pmd_pagesize();
++		if (!hpage_pmd_size) {
++			printf("Reading PMD pagesize failed");
++			exit(-1);
++		}
++
++		// Allocate virtual address space to align the target mmap to PMD size
++		// Some advices require this.
++		p = mmap(NULL, end - start + hpage_pmd_size, PROT_NONE,
++			 MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++		if (p == MAP_FAILED)
++			perror("mmap0"), exit(-1);
++		addr = (unsigned long)p;
++		addr += hpage_pmd_size - 1;
++		addr &= ~(hpage_pmd_size - 1);
++
++		p = mmap((void *)addr, end - start,
++			 PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED | MAP_POPULATE, fd, start);
++		if (p == MAP_FAILED)
++			perror("mmap"), exit(-1);
++
++		ret = madvise(p, end - start, advice);
++		if (ret)
++			perror("madvise"), exit(-1);
++	}
++
++	return 0;
++}
+--- a/tools/mm/Makefile~tools-mm-add-madvise-tool
++++ a/tools/mm/Makefile
+@@ -3,7 +3,7 @@
+ #
+ include ../scripts/Makefile.include
  
- static ssize_t nilfs_feature_revision_show(struct kobject *kobj,
--					    struct attribute *attr, char *buf)
-+					    struct kobj_attribute *attr, char *buf)
- {
- 	return sysfs_emit(buf, "%d.%d\n",
- 			NILFS_CURRENT_REV, NILFS_MINOR_REV);
-@@ -1087,7 +1087,7 @@ static const char features_readme_str[]
- 	"(1) revision\n\tshow current revision of NILFS file system driver.\n";
+-BUILD_TARGETS=page-types slabinfo page_owner_sort thp_swap_allocator_test
++BUILD_TARGETS= madvise page-types page_owner_sort slabinfo thp_swap_allocator_test
+ INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
  
- static ssize_t nilfs_feature_README_show(struct kobject *kobj,
--					 struct attribute *attr,
-+					 struct kobj_attribute *attr,
- 					 char *buf)
- {
- 	return sysfs_emit(buf, features_readme_str);
---- a/fs/nilfs2/sysfs.h~nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features
-+++ a/fs/nilfs2/sysfs.h
-@@ -50,16 +50,16 @@ struct nilfs_sysfs_dev_subgroups {
- 	struct completion sg_segments_kobj_unregister;
- };
- 
--#define NILFS_COMMON_ATTR_STRUCT(name) \
-+#define NILFS_KOBJ_ATTR_STRUCT(name) \
- struct nilfs_##name##_attr { \
- 	struct attribute attr; \
--	ssize_t (*show)(struct kobject *, struct attribute *, \
-+	ssize_t (*show)(struct kobject *, struct kobj_attribute *, \
- 			char *); \
--	ssize_t (*store)(struct kobject *, struct attribute *, \
-+	ssize_t (*store)(struct kobject *, struct kobj_attribute *, \
- 			 const char *, size_t); \
- }
- 
--NILFS_COMMON_ATTR_STRUCT(feature);
-+NILFS_KOBJ_ATTR_STRUCT(feature);
- 
- #define NILFS_DEV_ATTR_STRUCT(name) \
- struct nilfs_##name##_attr { \
+ LIB_DIR = ../lib/api
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from kas@kernel.org are
 
-compiler-clangh-define-__sanitize___-macros-only-when-undefined.patch
-nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features.patch
-mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level-fix.patch
 
