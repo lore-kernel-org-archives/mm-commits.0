@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B288304984
-	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 06:45:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2249A2B9B9;
+	Tue,  9 Sep 2025 23:33:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757400352; cv=none; b=muC2b1xs51u5pqzve2x/TuRMniBvTfkrmEiObp3vK7wLFoWRPEn0StL4JNcXtYuhFDcYo8Ix5MFZNP4z+EbyvXZvesPaJ0egTZWS+CSSFpC8g+yBZghVYGxftYw8vfBH3hEXAmiav2PI26mcmEu33i0YYJAKqFcdqcNzit6YBI0=
+	t=1757460830; cv=none; b=YuURIfE7geK/nFUrlEPq8wT+29MjHLSzAOYYcV3VA1f++z6FyAKKh2sviS5vcyCMqF99M3Qwtbzmn6vdq5rwuNXfb3pCgeIUd5zLnrY+K5YNnldcGhyNjqQvSbeKltjCeXSY78bVyt4aGJNfsM709EgGgsklJuNvbgN39Zh/fRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757400352; c=relaxed/simple;
-	bh=kkBeduqg+XDQlyhK3qn2uyNtDvsGwkhxe/BE76QaDs0=;
-	h=Date:To:From:Subject:Message-Id; b=uFcIFmjQxwVtAc2fjKxeOOHBqwtaJyYvm47kTugcC1hg0xlOQiUJox5Bgqe12EJMLgIkwPIdQU8g6yAdVjnqE0q1mONqW6VBSYBds5nhwIPXeur9qpT/7/8U6MmPFX3uJqtjqcMCpnm8KrXoN4lmcVcnUw1AUkY0fe/PiZ1yjC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BhazOCq4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757460830; c=relaxed/simple;
+	bh=AxtQAct7EO/T+fTTMJ0larcBPKpKVcBsnKR0WxsF2ts=;
+	h=Date:To:From:Subject:Message-Id; b=HAwRst/BxNfOxGZ/kLAYbGHT3GP/D5o6Hm8Hr+VqMdSi4XP8UuzqdOgy6LZLETo9ntr7V2aK35wciX9HSs6s55MChcZXHbPnM7GU4DujfzjSmqzqDPZzhx9A8IiJWf9EXHb2BTfkNeUWZ0zmQOA0015zRpPnzbs0kF2cXOOG2y0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jK8/N6Me; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BhazOCq4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB039C4CEF4;
-	Tue,  9 Sep 2025 06:45:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jK8/N6Me"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2FC9C4CEF4;
+	Tue,  9 Sep 2025 23:33:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757400352;
-	bh=kkBeduqg+XDQlyhK3qn2uyNtDvsGwkhxe/BE76QaDs0=;
+	s=korg; t=1757460829;
+	bh=AxtQAct7EO/T+fTTMJ0larcBPKpKVcBsnKR0WxsF2ts=;
 	h=Date:To:From:Subject:From;
-	b=BhazOCq4bWlqlTJxMGMavjbhaHAgLp0tu+7grC9LZYDgS2y9AzQrceyhMVoP/oRXS
-	 l46Q1ljFDjRN6+r436UV30Lhj01n7YqRvm4zfb2T8Tn0uUIM9FPTIaTU1xxJ5o96Qo
-	 H/1vmny/p1wdtXLMZGO6c96UJ2870zZkUA4QQONg=
-Date: Mon, 08 Sep 2025 23:45:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=jK8/N6Me5ebsYx563hYWAs1eV2ZljpBzsf1+ZwQxKFalRn3o2AJW1AIBliEw6mb7A
+	 aqFwre1nW4g9QPS6qsnhjXTYg5VKNKncB3DwhBlWQIvVPKZdnBIZqRNxwQctVlcdv5
+	 /3p1a0/DS1EpExnw4RowfWL1BI6t3F/++W4+CEkY=
+Date: Tue, 09 Sep 2025 16:33:49 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,stable@vger.kernel.org,senozhatsky@chromium.org,rostedt@goodmis.org,peterz@infradead.org,oak@helsinkinet.fi,mingzhe.yang@ly.com,mingo@redhat.com,mhiramat@kernel.org,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,jstultz@google.com,joel.granados@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,fthain@linux-m68k.org,boqun.feng@gmail.com,anna.schumaker@oracle.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-tree-entry-to-numa-memblocks-and-emulation-block.patch removed from -mm tree
-Message-Id: <20250909064551.EB039C4CEF4@smtp.kernel.org>
+Subject: + hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250909233349.D2FC9C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,49 +34,115 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: MAINTAINERS: add tree entry to numa memblocks and emulation block
-has been removed from the -mm tree.  Its filename was
-     maintainers-add-tree-entry-to-numa-memblocks-and-emulation-block.patch
+The patch titled
+     Subject: hung_task: fix warnings caused by unaligned lock pointers
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: MAINTAINERS: add tree entry to numa memblocks and emulation block
-Date: Fri, 5 Sep 2025 12:15:57 +0300
+From: Lance Yang <lance.yang@linux.dev>
+Subject: hung_task: fix warnings caused by unaligned lock pointers
+Date: Tue, 9 Sep 2025 22:52:43 +0800
 
-Link: https://lkml.kernel.org/r/20250905091557.3529937-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+
+The blocker tracking mechanism assumes that lock pointers are at least
+4-byte aligned to use their lower bits for type encoding.
+
+However, as reported by Eero Tamminen, some architectures like m68k
+only guarantee 2-byte alignment of 32-bit values. This breaks the
+assumption and causes two related WARN_ON_ONCE checks to trigger.
+
+To fix this, the runtime checks are adjusted to silently ignore any lock
+that is not 4-byte aligned, effectively disabling the feature in such
+cases and avoiding the related warnings.
+
+Thanks to Geert Uytterhoeven for bisecting!
+
+Link: https://lkml.kernel.org/r/20250909145243.17119-1-lance.yang@linux.dev
+Fixes: e711faaafbe5 ("hung_task: replace blocker_mutex with encoded blocker")
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Reported-by: Eero Tamminen <oak@helsinkinet.fi>
+Closes: https://lore.kernel.org/lkml/CAMuHMdW7Ab13DdGs2acMQcix5ObJK0O2dG_Fxzr8_g58Rc1_0g@mail.gmail.com
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Anna Schumaker <anna.schumaker@oracle.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Finn Thain <fthain@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: John Stultz <jstultz@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Mingzhe Yang <mingzhe.yang@ly.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tomasz Figa <tfiga@chromium.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yongliang Gao <leonylgao@tencent.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/hung_task.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-tree-entry-to-numa-memblocks-and-emulation-block
-+++ a/MAINTAINERS
-@@ -16127,6 +16127,7 @@ M:	Andrew Morton <akpm@linux-foundation.
- M:	Mike Rapoport <rppt@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rppt/memblock.git
- F:	include/linux/numa_memblks.h
- F:	mm/numa.c
- F:	mm/numa_emulation.c
+--- a/include/linux/hung_task.h~hung_task-fix-warnings-caused-by-unaligned-lock-pointers
++++ a/include/linux/hung_task.h
+@@ -20,6 +20,10 @@
+  * always zero. So we can use these bits to encode the specific blocking
+  * type.
+  *
++ * Note that on architectures where this is not guaranteed, or for any
++ * unaligned lock, this tracking mechanism is silently skipped for that
++ * lock.
++ *
+  * Type encoding:
+  * 00 - Blocked on mutex			(BLOCKER_TYPE_MUTEX)
+  * 01 - Blocked on semaphore			(BLOCKER_TYPE_SEM)
+@@ -45,7 +49,7 @@ static inline void hung_task_set_blocker
+ 	 * If the lock pointer matches the BLOCKER_TYPE_MASK, return
+ 	 * without writing anything.
+ 	 */
+-	if (WARN_ON_ONCE(lock_ptr & BLOCKER_TYPE_MASK))
++	if (lock_ptr & BLOCKER_TYPE_MASK)
+ 		return;
+ 
+ 	WRITE_ONCE(current->blocker, lock_ptr | type);
+@@ -53,8 +57,6 @@ static inline void hung_task_set_blocker
+ 
+ static inline void hung_task_clear_blocker(void)
+ {
+-	WARN_ON_ONCE(!READ_ONCE(current->blocker));
+-
+ 	WRITE_ONCE(current->blocker, 0UL);
+ }
+ 
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-kho-allow-scratch-areas-with-zero-size.patch
-lib-test_kho-fixes-for-error-handling.patch
-selftest-kho-update-generation-of-initrd.patch
+maintainers-add-lance-yang-as-a-thp-reviewer.patch
+hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
+mm-skip-mlocked-thps-that-are-underused-early-in-deferred_split_scan.patch
 
