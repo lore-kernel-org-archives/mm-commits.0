@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E46F97263E;
-	Tue,  9 Sep 2025 06:45:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B288304984
+	for <mm-commits@vger.kernel.org>; Tue,  9 Sep 2025 06:45:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757400351; cv=none; b=L0gQC4kP3OXninIRlXvcBif3hPHSzyfr5RBatcFeE18Tk0m6BEd2eptBQS9zv0oCjTzXduD5hKwiQHQioqhhnvCy86dHg+SDTSscY+knGtkvgpECmyJOk0CfSz+RGv2dqcXsYda7YjYqssPflNCvNUqyjqgKeCMO4ae8UU7lix0=
+	t=1757400352; cv=none; b=muC2b1xs51u5pqzve2x/TuRMniBvTfkrmEiObp3vK7wLFoWRPEn0StL4JNcXtYuhFDcYo8Ix5MFZNP4z+EbyvXZvesPaJ0egTZWS+CSSFpC8g+yBZghVYGxftYw8vfBH3hEXAmiav2PI26mcmEu33i0YYJAKqFcdqcNzit6YBI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757400351; c=relaxed/simple;
-	bh=pdbDf0pdQcQsFH4vU2nKhQ0xvN63zntAP19irykXRGg=;
-	h=Date:To:From:Subject:Message-Id; b=dJ24+CGxwoGC28b9Y6ZL9E4IDaoc+hGtRd1yHEUaD9a4BB+WO0a1VdLqdM3iI5lfyYqyLwi3/Qa5u5PzhKNLBpBmnF+QpgiMnJGRd6IuCDwTfM8p3VvIumAmw5amcEfeRJFNT5X0N1dnxsjiH+ZKatppXrjCHnQpY+HM561rkXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1g/RIuqf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757400352; c=relaxed/simple;
+	bh=kkBeduqg+XDQlyhK3qn2uyNtDvsGwkhxe/BE76QaDs0=;
+	h=Date:To:From:Subject:Message-Id; b=uFcIFmjQxwVtAc2fjKxeOOHBqwtaJyYvm47kTugcC1hg0xlOQiUJox5Bgqe12EJMLgIkwPIdQU8g6yAdVjnqE0q1mONqW6VBSYBds5nhwIPXeur9qpT/7/8U6MmPFX3uJqtjqcMCpnm8KrXoN4lmcVcnUw1AUkY0fe/PiZ1yjC4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BhazOCq4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1g/RIuqf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C465C4CEF8;
-	Tue,  9 Sep 2025 06:45:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BhazOCq4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB039C4CEF4;
+	Tue,  9 Sep 2025 06:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757400350;
-	bh=pdbDf0pdQcQsFH4vU2nKhQ0xvN63zntAP19irykXRGg=;
+	s=korg; t=1757400352;
+	bh=kkBeduqg+XDQlyhK3qn2uyNtDvsGwkhxe/BE76QaDs0=;
 	h=Date:To:From:Subject:From;
-	b=1g/RIuqfZILiDyH3BHV3tm92lxbuxabATiojd1vqidA/mWd8UW8HK0UjakSVyw8Sq
-	 KVQorMPrOICXHH05viLUC/x1ii88za8y6wdIjpZdnJPl+1hmOYrafhHu30Ly2OxoCK
-	 x7nK6nTh2WNaW4rhx+XbUJikIVeR/eQ+WK25j/hg=
-Date: Mon, 08 Sep 2025 23:45:49 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,disclosure@aisle.com,stanislav.fort@aisle.com,akpm@linux-foundation.org
+	b=BhazOCq4bWlqlTJxMGMavjbhaHAgLp0tu+7grC9LZYDgS2y9AzQrceyhMVoP/oRXS
+	 l46Q1ljFDjRN6+r436UV30Lhj01n7YqRvm4zfb2T8Tn0uUIM9FPTIaTU1xxJ5o96Qo
+	 H/1vmny/p1wdtXLMZGO6c96UJ2870zZkUA4QQONg=
+Date: Mon, 08 Sep 2025 23:45:51 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-fix-use-after-free-in-state_show.patch removed from -mm tree
-Message-Id: <20250909064550.9C465C4CEF8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-tree-entry-to-numa-memblocks-and-emulation-block.patch removed from -mm tree
+Message-Id: <20250909064551.EB039C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: fix use-after-free in state_show()
+     Subject: MAINTAINERS: add tree entry to numa memblocks and emulation block
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-fix-use-after-free-in-state_show.patch
+     maintainers-add-tree-entry-to-numa-memblocks-and-emulation-block.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Stanislav Fort <stanislav.fort@aisle.com>
-Subject: mm/damon/sysfs: fix use-after-free in state_show()
-Date: Fri, 5 Sep 2025 13:10:46 +0300
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: MAINTAINERS: add tree entry to numa memblocks and emulation block
+Date: Fri, 5 Sep 2025 12:15:57 +0300
 
-state_show() reads kdamond->damon_ctx without holding damon_sysfs_lock. 
-This allows a use-after-free race:
-
-CPU 0                         CPU 1
------                         -----
-state_show()                  damon_sysfs_turn_damon_on()
-ctx = kdamond->damon_ctx;     mutex_lock(&damon_sysfs_lock);
-                              damon_destroy_ctx(kdamond->damon_ctx);
-                              kdamond->damon_ctx = NULL;
-                              mutex_unlock(&damon_sysfs_lock);
-damon_is_running(ctx);        /* ctx is freed */
-mutex_lock(&ctx->kdamond_lock); /* UAF */
-
-(The race can also occur with damon_sysfs_kdamonds_rm_dirs() and
-damon_sysfs_kdamond_release(), which free or replace the context under
-damon_sysfs_lock.)
-
-Fix by taking damon_sysfs_lock before dereferencing the context, mirroring
-the locking used in pid_show().
-
-The bug has existed since state_show() first accessed kdamond->damon_ctx.
-
-Link: https://lkml.kernel.org/r/20250905101046.2288-1-disclosure@aisle.com
-Fixes: a61ea561c871 ("mm/damon/sysfs: link DAMON for virtual address spaces monitoring")
-Signed-off-by: Stanislav Fort <disclosure@aisle.com>
-Reported-by: Stanislav Fort <disclosure@aisle.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250905091557.3529937-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-fix-use-after-free-in-state_show
-+++ a/mm/damon/sysfs.c
-@@ -1260,14 +1260,18 @@ static ssize_t state_show(struct kobject
- {
- 	struct damon_sysfs_kdamond *kdamond = container_of(kobj,
- 			struct damon_sysfs_kdamond, kobj);
--	struct damon_ctx *ctx = kdamond->damon_ctx;
--	bool running;
-+	struct damon_ctx *ctx;
-+	bool running = false;
- 
--	if (!ctx)
--		running = false;
--	else
-+	if (!mutex_trylock(&damon_sysfs_lock))
-+		return -EBUSY;
-+
-+	ctx = kdamond->damon_ctx;
-+	if (ctx)
- 		running = damon_is_running(ctx);
- 
-+	mutex_unlock(&damon_sysfs_lock);
-+
- 	return sysfs_emit(buf, "%s\n", running ?
- 			damon_sysfs_cmd_strs[DAMON_SYSFS_CMD_ON] :
- 			damon_sysfs_cmd_strs[DAMON_SYSFS_CMD_OFF]);
+--- a/MAINTAINERS~maintainers-add-tree-entry-to-numa-memblocks-and-emulation-block
++++ a/MAINTAINERS
+@@ -16127,6 +16127,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	Mike Rapoport <rppt@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rppt/memblock.git
+ F:	include/linux/numa_memblks.h
+ F:	mm/numa.c
+ F:	mm/numa_emulation.c
 _
 
-Patches currently in -mm which might be from stanislav.fort@aisle.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-memcg-v1-account-event-registrations-and-drop-world-writable-cgroupevent_control.patch
+kho-allow-scratch-areas-with-zero-size.patch
+lib-test_kho-fixes-for-error-handling.patch
+selftest-kho-update-generation-of-initrd.patch
 
