@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89D281DDDD
-	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 05:07:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FD65257844
+	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 05:20:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757480826; cv=none; b=pEBAo8+okFvu0ZY5Z0J3zEGfi1hb83u0oHcKtpAQE3n7/gemlRxpeyMuJi+b/0E+hYsCve5favcQXswlkSDX4Ik7NkVv+oyrzh9FcGqUneeA9wRCfanmYDhlJtH824sjFeaKLfT4E7cYQMrcMPQjrJI3o4jJ6gB98q0TRDsqBA8=
+	t=1757481614; cv=none; b=APOTy+wDcIh2jmLWVUchz3rpvJPq4F9zJ9RuhdODVtBOOGnsIiSC2yCacz794mMwkVe/M0Z9i3lfuCqBSb26WvWUU0ngoX8K0aaVAQYC1JUUKLgMa1anfvoRiPpKbt99monrSJVXwih2ZgM2Y/lyZ6SEasody3dzJVM2U8mhKh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757480826; c=relaxed/simple;
-	bh=ovEwPQ04/j2Z0UvVFcm6nZmbsEcigiej5CQBtg6m7lM=;
-	h=Date:To:From:Subject:Message-Id; b=qf+VQd7Qw78PMlhGFMg02NAtPSJxtazezfo/GeiXlVP6sONofmwuMY6jnyOalc7kdUOnYfEUIuRxrnuvy2lRIDHvvDoB5LqOAgNArDqoH2FSh4eSBB4CXjJqTy+lVF6MFm4wT/R5ck+WfvV3SK2beEuam61tGaJubV6M6MDC7eM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQe2rtS5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757481614; c=relaxed/simple;
+	bh=Uh/Cj7Xf1IMlnBeLvY0LVSJTKPwceyXSr5URxbSelkg=;
+	h=Date:To:From:Subject:Message-Id; b=QIaTyRkOk4ard0IWxbrBGV5d0G+6+Mdwc1SsJeW/bwaKSx64spQ1wUsDPTYt2mlb4pm/GBPrpECMVTPzYUlnvIrE72PcCY45Fk3DjI3x1Mk1DtGl6B8wV/zIIzlfOeJg2hr7IQkzxigMjGtl0rZ4ymesolh9GrB/tEa+gBYjEBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KMdOXJpq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQe2rtS5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1BF4C4CEF0;
-	Wed, 10 Sep 2025 05:07:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KMdOXJpq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12628C4CEF0;
+	Wed, 10 Sep 2025 05:20:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757480826;
-	bh=ovEwPQ04/j2Z0UvVFcm6nZmbsEcigiej5CQBtg6m7lM=;
+	s=korg; t=1757481614;
+	bh=Uh/Cj7Xf1IMlnBeLvY0LVSJTKPwceyXSr5URxbSelkg=;
 	h=Date:To:From:Subject:From;
-	b=ZQe2rtS5Rhl8bOysLr45n0MeLlXubPdwwb8pW3jkCRKECt+WPS+GptVAAm3y6mw3G
-	 RwqDfwhQMFgeZSXE4uQo5RKK94/yVdO+Vtn8vHWCZvb/XJrLXmNEhqlf8iG6li9+6s
-	 7mms1+86ulBonM0Mo5Nau9pJdY4qw1wcAW46yUR0=
-Date: Tue, 09 Sep 2025 22:07:05 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,surenb@google.com,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lenb@kernel.org,zhongjinji@honor.com,akpm@linux-foundation.org
+	b=KMdOXJpq7bqKuBZPdI56Y0j2kXBIJ+NzsknjI1KgQ7UWIfkZ90jmox3Y37DfKZ/aC
+	 lacwsYZ+EPY+SXK9Vo3hWCFJeNNquPX9iKoyqqZeVa/OS/okWBy9zyLv1CfNca3uSY
+	 Z46LAUpmR40Kqm36gLL6hC6Ay9TZVEOpz76/8Xb4=
+Date: Tue, 09 Sep 2025 22:20:13 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch added to mm-new branch
-Message-Id: <20250910050705.F1BF4C4CEF0@smtp.kernel.org>
+Subject: + selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch added to mm-unstable branch
+Message-Id: <20250910052014.12628C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/oom_kill: the OOM reaper traverses the VMA maple tree in reverse order
-has been added to the -mm mm-new branch.  Its filename is
-     mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
+     Subject: selftests/mm/uffd-stress: make test operate on less hugetlb memory
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,106 +58,137 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zhongjinji <zhongjinji@honor.com>
-Subject: mm/oom_kill: the OOM reaper traverses the VMA maple tree in reverse order
-Date: Tue, 9 Sep 2025 17:06:59 +0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm/uffd-stress: make test operate on less hugetlb memory
+Date: Tue, 9 Sep 2025 11:45:29 +0530
 
-Although the oom_reaper is delayed and it gives the oom victim chance to
-clean up its address space this might take a while especially for
-processes with a large address space footprint.  In those cases oom_reaper
-might start racing with the dying task and compete for shared resources -
-e.g.  page table lock contention has been observed.
+Patch series "selftests/mm: uffd-stress fixes", v2.
 
-Reduce those races by reaping the oom victim from the other end of the
-address space.
+This patchset ensures that the number of hugepages is correctly set in the
+system so that the uffd-stress test does not fail due to the racy nature
+of the test.  Patch 1 changes the hugepage constraint in the
+run_vmtests.sh script, whereas patch 2 changes the constraint in the test
+itself.
 
-It is also a significant improvement for process_mrelease().  When a
-process is killed, process_mrelease is used to reap the killed process and
-often runs concurrently with the dying task.  The test data shows that
-after applying the patch, lock contention is greatly reduced during the
-procedure of reaping the killed process.
 
-The test is based on arm64.
+This patch (of 2):
 
-Without the patch:
-|--99.57%-- oom_reaper
-|    |--0.28%-- [hit in function]
-|    |--73.58%-- unmap_page_range
-|    |    |--8.67%-- [hit in function]
-|    |    |--41.59%-- __pte_offset_map_lock
-|    |    |--29.47%-- folio_remove_rmap_ptes
-|    |    |--16.11%-- tlb_flush_mmu
-|    |    |--1.66%-- folio_mark_accessed
-|    |    |--0.74%-- free_swap_and_cache_nr
-|    |    |--0.69%-- __tlb_remove_folio_pages
-|    |--19.94%-- tlb_finish_mmu
-|    |--3.21%-- folio_remove_rmap_ptes
-|    |--1.16%-- __tlb_remove_folio_pages
-|    |--1.16%-- folio_mark_accessed
-|    |--0.36%-- __pte_offset_map_lock
+We observed uffd-stress selftest failure on arm64 and intermittent
+failures on x86 too:
 
-With the patch:
-|--99.53%-- oom_reaper
-|    |--55.77%-- unmap_page_range
-|    |    |--20.49%-- [hit in function]
-|    |    |--58.30%-- folio_remove_rmap_ptes
-|    |    |--11.48%-- tlb_flush_mmu
-|    |    |--3.33%-- folio_mark_accessed
-|    |    |--2.65%-- __tlb_remove_folio_pages
-|    |    |--1.37%-- _raw_spin_lock
-|    |    |--0.68%-- __mod_lruvec_page_state
-|    |    |--0.51%-- __pte_offset_map_lock
-|    |--32.21%-- tlb_finish_mmu
-|    |--6.93%-- folio_remove_rmap_ptes
-|    |--1.90%-- __tlb_remove_folio_pages
-|    |--1.55%-- folio_mark_accessed
-|    |--0.69%-- __pte_offset_map_lock
+running ./uffd-stress hugetlb-private 128 32
 
-Link: https://lkml.kernel.org/r/20250909090659.26400-4-zhongjinji@honor.com
-Signed-off-by: zhongjinji <zhongjinji@honor.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+bounces: 17, mode: rnd read, ERROR: UFFDIO_COPY error: -12 (errno=12, @uffd-common.c:617) [FAIL]
+not ok 18 uffd-stress hugetlb-private 128 32 # exit=1
+
+For this particular case, the number of free hugepages from run_vmtests.sh
+will be 128, and the test will allocate 64 hugepages in the source
+location.  The stress() function will start spawning threads which will
+operate on the destination location, triggering uffd-operations like
+UFFDIO_COPY from src to dst, which means that we will require 64 more
+hugepages for the dst location.
+
+Let us observe the locking_thread() function.  It will lock the mutex kept
+at dst, triggering uffd-copy.  Suppose that 127 (64 for src and 63 for
+dst) hugepages have been reserved.  In case of BOUNCE_RANDOM, it may
+happen that two threads trying to lock the mutex at dst, try to do so at
+the same hugepage number.  If one thread succeeds in reserving the last
+hugepage, then the other thread may fail in alloc_hugetlb_folio(),
+returning -ENOMEM.  I can confirm that this is indeed the case by this
+hacky patch:
+
+:--- a/mm/hugetlb.c
+; +++ b/mm/hugetlb.c
+; @@ -6929,6 +6929,11 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
+; 
+;  		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
+;  		if (IS_ERR(folio)) {
+; +			pte_t *actual_pte = hugetlb_walk(dst_vma, dst_addr, PMD_SIZE);
+; +			if (actual_pte) {
+; +				ret = -EEXIST;
+; +				goto out;
+; +			}
+;  			ret = -ENOMEM;
+;  			goto out;
+;  		}
+
+This code path gets triggered indicating that the PMD at which one thread
+is trying to map a hugepage, gets filled by a racing thread.
+
+Therefore, instead of using freepgs to compute the amount of memory, use
+freepgs - (min(32, nr_cpus) - 1), so that the test still has some extra
+hugepages to use.  The adjustment is a function of min(32, nr_cpus) - the
+value of nr_parallel in the test - because in the worst case, nr_parallel
+number of threads will try to map a hugepage on the same PMD, one will win
+the allocation race, and the other nr_parallel - 1 threads will fail, so
+we need extra nr_parallel - 1 hugepages to satisfy this request.  Note
+that, in case the adjusted value underflows, there is a check for the
+number of free hugepages in the test itself, which will fail:
+get_free_hugepages() < bytes / page_size A negative value will be passed
+on to bytes which is of type size_t, thus the RHS will become a large
+value and the check will fail, so we are safe.
+
+Link: https://lkml.kernel.org/r/20250909061531.57272-1-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250909061531.57272-2-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/hugetlb.c                              |    5 +++++
+ tools/testing/selftests/mm/run_vmtests.sh |   10 +++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order
-+++ a/mm/oom_kill.c
-@@ -516,7 +516,7 @@ static bool __oom_reap_task_mm(struct mm
- {
- 	struct vm_area_struct *vma;
- 	bool ret = true;
--	VMA_ITERATOR(vmi, mm, 0);
-+	MA_STATE(mas, &mm->mm_mt, ULONG_MAX, ULONG_MAX);
+--- a/mm/hugetlb.c~selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory
++++ a/mm/hugetlb.c
+@@ -6930,6 +6930,11 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
  
- 	/*
- 	 * Tell all users of get_user/copy_from_user etc... that the content
-@@ -526,7 +526,13 @@ static bool __oom_reap_task_mm(struct mm
- 	 */
- 	mm_flags_set(MMF_UNSTABLE, mm);
- 
--	for_each_vma(vmi, vma) {
-+	/*
-+	 * It might start racing with the dying task and compete for shared
-+	 * resources - e.g. page table lock contention has been observed.
-+	 * Reduce those races by reaping the oom victim from the other end
-+	 * of the address space.
-+	 */
-+	mas_for_each_rev(&mas, vma, 0) {
- 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
- 			continue;
- 
+ 		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
+ 		if (IS_ERR(folio)) {
++			pte_t *actual_pte = hugetlb_walk(dst_vma, dst_addr, PMD_SIZE);
++			if (actual_pte) {
++				ret = -EEXIST;
++				goto out;
++			}
+ 			ret = -ENOMEM;
+ 			goto out;
+ 		}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -324,11 +324,15 @@ CATEGORY="gup_test" run_test ./gup_longt
+ CATEGORY="userfaultfd" run_test ./uffd-unit-tests
+ uffd_stress_bin=./uffd-stress
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
+-# Hugetlb tests require source and destination huge pages. Pass in half
+-# the size of the free pages we have, which is used for *each*.
++# Hugetlb tests require source and destination huge pages. Pass in almost half
++# the size of the free pages we have, which is used for *each*. An adjustment
++# of (nr_parallel - 1) is done (see nr_parallel in uffd-stress.c) to have some
++# extra hugepages - this is done to prevent the test from failing by racily
++# reserving more hugepages than strictly required.
+ # uffd-stress expects a region expressed in MiB, so we adjust
+ # half_ufd_size_MB accordingly.
+-half_ufd_size_MB=$(((freepgs * hpgsize_KB) / 1024 / 2))
++adjustment=$(( (31 < (nr_cpus - 1)) ? 31 : (nr_cpus - 1) ))
++half_ufd_size_MB=$((((freepgs - adjustment) * hpgsize_KB) / 1024 / 2))
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
 _
 
-Patches currently in -mm which might be from zhongjinji@honor.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
+selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
+selftests-mm-uffd-stress-stricten-constraint-on-free-hugepages-needed-before-the-test.patch
+mm-enable-khugepaged-anonymous-collapse-on-non-writable-regions.patch
+mm-drop-all-references-of-writable-and-scan_page_ro.patch
 
