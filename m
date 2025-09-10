@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67D7A243374
-	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 03:48:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A31926B777
+	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 03:51:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757476136; cv=none; b=p+wuviqKLG/TeaaC1z5sCCzcrWFp9P6JYlgOHcjWNRUd24fwAxvsMpLR8NWCQVfHO71CTBcYN28Z7qXzQQWTIdfyNTHkRnKa1bCc9uEZQytmH57bX/j0fEJrPeDQgOBEEf9E/DD8V78aKj1c7n3bR9zDS4BW4n2l8pUVGD5RrZU=
+	t=1757476279; cv=none; b=PHS6pZ9q2PAXJt/Is20CzgEb8+Y9sMd/PQ/px2TrDvz07hjGIv7I/B2HMkmkgFMCSvq6VKRx34kRKzYvcp59jiNt1M9YlL/GI4NzyZYx2q3ZsnM9ydEg9LNLloXTurSkmCUQ4LvKUZ7u14fhfBpyzEnVURDu3h+b0nrR4xc0HeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757476136; c=relaxed/simple;
-	bh=RenaFNidy+qx8QF10dkOtb/4UvLwMB/bpIgIjO3aE+Y=;
-	h=Date:To:From:Subject:Message-Id; b=R5TUfBgQO3HQb2IeGKysHSHGpdmqMZw8dkISqe9zfnQmU1GlrOxKDVb/FkfrJN/sJcJYl+oofiz9YcJ6VkLN5y2T5FYgrq/gvUUNxP7L+u8g3cNzzsZkfx5Iru1OtvjK6Z0pk+gyCY9ulIndhh0/EPeiy4UMdyJ1Mq5kT+xUVJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X8F6pMYg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757476279; c=relaxed/simple;
+	bh=8SC7YgDEx9DIATJHILAR5pPLUzlMnTiVPGWxP82iyno=;
+	h=Date:To:From:Subject:Message-Id; b=eZZ6+SzpmPmjQnnMCVMBhiaNz98cF3o82jhrZ1E1XHapHUatJ3qJQul3dAPYD0WnG4y8yQAVSNvpMA1hw5VmbnMLtRGN/QNFxLin6aICIxJX2COy0fBexNWkb+TZhNshGSq8N++5JvXkY6Var9+fgWugkcMK3l3Ib4hgUWv3A5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n/3A14tc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X8F6pMYg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC016C4CEF0;
-	Wed, 10 Sep 2025 03:48:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n/3A14tc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F262C4CEF0;
+	Wed, 10 Sep 2025 03:51:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757476135;
-	bh=RenaFNidy+qx8QF10dkOtb/4UvLwMB/bpIgIjO3aE+Y=;
+	s=korg; t=1757476278;
+	bh=8SC7YgDEx9DIATJHILAR5pPLUzlMnTiVPGWxP82iyno=;
 	h=Date:To:From:Subject:From;
-	b=X8F6pMYg9Kmv5iNccGMNCB360l1I2jqlIHeaxprUEFnIEHhyxOOzkDPuYzQnzdTf8
-	 cu2MdC6sp+X7WlRq80ZftPU79KTR4OgWiYyhQIjnyOym746cBoVRa8qbHJr7goXbxR
-	 bE+ea52dsxPIgNAE+RGjqYrFmY/Fv1r8mKjkwiwU=
-Date: Tue, 09 Sep 2025 20:48:55 -0700
+	b=n/3A14tc4vAIhrQv4JhVcxgx/PSZR1qK9ShWzjBFxMpbcQC6IMjFiWX5Ut59ebLOR
+	 erHVeKR3WZSvPytY39zWLtnWxFUOooM8tLX8SloTg1TPLKVuCicHaCHL7VSIhiLw4m
+	 Z2B2ZChhZ+NDl8kBbHzBpbyflrwiqdzrUfSmHkOI=
+Date: Tue, 09 Sep 2025 20:51:17 -0700
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,alexandru.elisei@arm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix.patch added to mm-unstable branch
-Message-Id: <20250910034855.DC016C4CEF0@smtp.kernel.org>
+Message-Id: <20250910035118.8F262C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -76,14 +76,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
 --- a/mm/util.c~mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix
 +++ a/mm/util.c
-@@ -1241,6 +1241,7 @@ again:
- 			       sizeof(struct page));
- 		set_ps_flags(ps, foliop, page);
- 	}
+@@ -1280,6 +1280,7 @@ unsigned int folio_pte_batch(struct foli
+ {
+ 	return folio_pte_batch_flags(folio, NULL, ptep, &pte, max_nr, 0);
+ }
 +#endif /* CONFIG_MMU */
  
- 	if (ps->idx > nr_pages) {
- 		if (loops-- > 0)
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ /**
 @@ -1315,4 +1316,3 @@ bool page_range_contiguous(const struct
  	return true;
  }
