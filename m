@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EABD1329F16
-	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 21:31:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D17E24C068
+	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 21:56:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757539869; cv=none; b=ITw1QZ5jD1UbotRBSQ9tRaZFGaNE0FY2F9G5DcFpkd6ytyrjZRuseec9nc2QBRQeF2iPJN5zMQAMM+iD0vbzT3jaCdq0orw/f16ZwY61gc+LkkMLn75TFo4nmEe8z03JOFsDqFvsBhLrCZf2l86AU/84AUTZ++TrytW5HHMslTw=
+	t=1757541387; cv=none; b=CAHo65NOIh4k4JTS1ukf7Dbl31rxeXRCzeXMxm169FuGCIOk8H/6/FBrErW5qOfKXLrdfhb9Az9/HvteraAdXjpIWOl5ev4dHIHjWcpcw7orfjXyMc5hlFkzOXGExLHlw0q7cYNt3aoPodB8WroFB7yhjl7pQrKpIsNtkwKwUzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757539869; c=relaxed/simple;
-	bh=2j+FWo3eP/9oVlJDzER5RFhzuFqDVQOkJPDs7CBHAPc=;
-	h=Date:To:From:Subject:Message-Id; b=YbxXdRJZ/M71ViHCtsbNsMluoyRSCjszijhSlp9TqmxKUdH0olK8zcasVK63u1YATx83knWu4e3J1bBYRls0Jz1ol67NjMpph6SUj404LqQM4adWdw4zn0L5ZZcLcI3swrQmPXTozNEzhuInrv850NA+ygVTCSS7qMGhYrNJIUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2RJ24z2D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757541387; c=relaxed/simple;
+	bh=noR7KVsPmk0ITIepiGFWk74upJNmuBIyTGUphqYePe8=;
+	h=Date:To:From:Subject:Message-Id; b=g5ZXSsguJW3BGc3oCmskSBw2oMG4M/42fTtQ4cDUGUs8YjLsOvd3beRnO67Tg4THHMKaPLdsaMAedmA+QKKMzH3i4HYh3olSSRy2hDv8xZy7OT6xFGAU6+NR+xAUUZmLy8clNMwYoQhp4cc04/jg08iRDPiE61cs158Kqo49apE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gDrhv6XX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2RJ24z2D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66CA1C4CEEB;
-	Wed, 10 Sep 2025 21:31:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gDrhv6XX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8205BC4CEEB;
+	Wed, 10 Sep 2025 21:56:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757539868;
-	bh=2j+FWo3eP/9oVlJDzER5RFhzuFqDVQOkJPDs7CBHAPc=;
+	s=korg; t=1757541386;
+	bh=noR7KVsPmk0ITIepiGFWk74upJNmuBIyTGUphqYePe8=;
 	h=Date:To:From:Subject:From;
-	b=2RJ24z2DtuhXJ1M5PYMIed4yDx9pjVgkfNFESbsRIoBVnDXnIJtet6HunQa7i7e9L
-	 ExNNPZgJK5z0nmMqWJXqjyszLftWYl7LhjBPrp6Rduw+iqKhIs6RPzP+1HcXLJmkJX
-	 YeOvbiGOPpRrzXSN0zBJ8HjuhkVAmxpq1zfHRscY=
-Date: Wed, 10 Sep 2025 14:31:07 -0700
-To: mm-commits@vger.kernel.org,broonie@kernel.org,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=gDrhv6XXCBdttC/Yt9mAU9VSvFTiHaWoI0JRs0FAGogHAvJrwj1V457B49vf5nCy/
+	 GpN6gePv+gK0GqUMz4/zIWWiK+1vGgxWmLOIzt8oJkEFgQmJQ1+rEqNlaCVDG2E50w
+	 +8wFS1f+NUtn2s6RgxlZHRlYi5UNc+wEP9nV/qyE=
+Date: Wed, 10 Sep 2025 14:56:25 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,simona@ffwll.ch,mripard@kernel.org,maarten.lankhorst@linux.intel.com,david@redhat.com,akpm@linux-foundation.org,airlied@gmail.com,aris@ruivo.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-prctl-introduce-tests-for-disabling-thps-completely-fix-2.patch added to mm-unstable branch
-Message-Id: <20250910213108.66CA1C4CEEB@smtp.kernel.org>
+Subject: + mm-make-folio-page-count-functions-return-unsigned.patch added to mm-new branch
+Message-Id: <20250910215626.8205BC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: include linux/mman.h for prctl_thp_disable
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-prctl-introduce-tests-for-disabling-thps-completely-fix-2.patch
+     Subject: mm: make folio page count functions return unsigned
+has been added to the -mm mm-new branch.  Its filename is
+     mm-make-folio-page-count-functions-return-unsigned.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-prctl-introduce-tests-for-disabling-thps-completely-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-folio-page-count-functions-return-unsigned.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,44 +64,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: selftests/mm: include linux/mman.h for prctl_thp_disable
-Date: Wed, 10 Sep 2025 21:46:09 +0100
+From: Aristeu Rozanski <aris@ruivo.org>
+Subject: mm: make folio page count functions return unsigned
+Date: Tue, 26 Aug 2025 11:37:21 -0400
 
-MADV_COLLAPSE is part of linux/mman.h and needs to be included for this
-selftest for glibc compatibility.  It is also included in other tests that
-use MADV_COLLAPSE.
+As raised by Andrew [1], a folio/compound page never spans a negative
+number of pages.  Consequently, let's use "unsigned long" instead of
+"long" consistently for folio_nr_pages(), folio_large_nr_pages() and
+compound_nr().
 
-Link: https://lkml.kernel.org/r/20250910204609.1720498-1-usamaarif642@gmail.com
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Reported-by: Mark Brown <broonie@kernel.org>
-Closes: https://lore.kernel.org/all/c8249725-e91d-4c51-b9bb-40305e61e20d@sirena.org.uk/
+Using "unsigned long" as return value is fine, because even
+"(long)-folio_nr_pages()" will keep on working as expected.  Using
+"unsigned int" instead would actually break these use cases.
+
+This patch takes the first step changing these to return unsigned long
+(and making drm_gem_get_pages() use the new types instead of replacing
+min()).
+
+In the future, we might want to make more callers of these functions to
+consistently use "unsigned long".
+
+
+Link: https://lore.kernel.org/linux-mm/20250503182858.5a02729fcffd6d4723afcfc2@linux-foundation.org/
+Link: https://lkml.kernel.org/r/20250826153721.GA23292@cathedrallabs.org
+Link: https://lore.kernel.org/linux-mm/20250503182858.5a02729fcffd6d4723afcfc2@linux-foundation.org/ [1]
+Signed-off-by: Aristeu Rozanski <aris@ruivo.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/prctl_thp_disable.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpu/drm/drm_gem.c |    4 ++--
+ include/linux/mm.h        |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/prctl_thp_disable.c~selftests-prctl-introduce-tests-for-disabling-thps-completely-fix-2
-+++ a/tools/testing/selftests/mm/prctl_thp_disable.c
-@@ -9,6 +9,7 @@
- #include <string.h>
- #include <unistd.h>
- #include <sys/mman.h>
-+#include <linux/mman.h>
- #include <sys/prctl.h>
- #include <sys/wait.h>
+--- a/drivers/gpu/drm/drm_gem.c~mm-make-folio-page-count-functions-return-unsigned
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -621,7 +621,7 @@ struct page **drm_gem_get_pages(struct d
+ 	struct page **pages;
+ 	struct folio *folio;
+ 	struct folio_batch fbatch;
+-	long i, j, npages;
++	unsigned long i, j, npages;
+ 
+ 	if (WARN_ON(!obj->filp))
+ 		return ERR_PTR(-EINVAL);
+@@ -645,7 +645,7 @@ struct page **drm_gem_get_pages(struct d
+ 
+ 	i = 0;
+ 	while (i < npages) {
+-		long nr;
++		unsigned long nr;
+ 		folio = shmem_read_folio_gfp(mapping, i,
+ 				mapping_gfp_mask(mapping));
+ 		if (IS_ERR(folio))
+--- a/include/linux/mm.h~mm-make-folio-page-count-functions-return-unsigned
++++ a/include/linux/mm.h
+@@ -1033,12 +1033,12 @@ static inline unsigned int folio_large_o
+ }
+ 
+ #ifdef NR_PAGES_IN_LARGE_FOLIO
+-static inline long folio_large_nr_pages(const struct folio *folio)
++static inline unsigned long folio_large_nr_pages(const struct folio *folio)
+ {
+ 	return folio->_nr_pages;
+ }
+ #else
+-static inline long folio_large_nr_pages(const struct folio *folio)
++static inline unsigned long folio_large_nr_pages(const struct folio *folio)
+ {
+ 	return 1L << folio_large_order(folio);
+ }
+@@ -2078,7 +2078,7 @@ static inline void set_page_links(struct
+  *
+  * Return: A positive power of two.
+  */
+-static inline long folio_nr_pages(const struct folio *folio)
++static inline unsigned long folio_nr_pages(const struct folio *folio)
+ {
+ 	if (!folio_test_large(folio))
+ 		return 1;
+@@ -2113,7 +2113,7 @@ static inline long folio_nr_pages(const
+  * page.  compound_nr() can be called on a tail page, and is defined to
+  * return 1 in that case.
+  */
+-static inline long compound_nr(const struct page *page)
++static inline unsigned long compound_nr(const struct page *page)
+ {
+ 	const struct folio *folio = (struct folio *)page;
  
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from aris@ruivo.org are
 
-docs-transhuge-document-process-level-thp-controls.patch
-selftest-mm-extract-sz2ord-function-into-vm_utilh.patch
-selftests-prctl-introduce-tests-for-disabling-thps-completely.patch
-selftests-prctl-introduce-tests-for-disabling-thps-completely-fix.patch
-selftests-prctl-introduce-tests-for-disabling-thps-completely-fix-2.patch
-selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise.patch
-selftests-prctl-introduce-tests-for-disabling-thps-except-for-madvise-fix.patch
-mm-huge_memory-remove-enforce_sysfs-from-__thp_vma_allowable_orders.patch
+mm-make-folio-page-count-functions-return-unsigned.patch
 
