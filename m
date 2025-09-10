@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CF8D282F5
-	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 23:03:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91CE4282F5
+	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 23:03:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757545406; cv=none; b=AIdxcvWU/A53S0wimnP4vqrvdOya5fJf4UaEBMIksTafN/SeSCXns1+efwZGkS3Z/5AoVg7R/4yf8oi5kMlT9eIvAYzfEh9ieNJY2Khg6SKuJ5siD1H6bsEBpSDfMD70CB8fvm1wKqptZoDCwCgvIeb8FLiWBep3yLnhVzdXy5E=
+	t=1757545409; cv=none; b=AMJ1mgXCE1jZMsk4zpfB1bql0it76Fb0nFyyJEDBcH2YPRTRFY/nAJCpW5pOrkv1fOGft3RnGxR6r8L4fXP+vhVDHMKJ+9J9AZ3r5X9qfsYeXp6f6oiOm9hl6ZRW1LkTRuRRO8mQf1y2M6XqCM5HgydZJFNg1p4eQKAkzq9C1p4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757545406; c=relaxed/simple;
-	bh=JQpXavJTS814EsV+tZPYprokD7dqYndtXDu2onl7L4s=;
-	h=Date:To:From:Subject:Message-Id; b=P2TdjP+0XTWwsO6+tkbvl8UDwmP0syErzvDv1HfBSilH0oM54KdLzWNnAI6StHlpwGwCSfoy9LVPdi+BYqVvUcmSB27r3iRXdXTf6KYMa5DfNgKt2mQ9r1E2L985BHVJK1QHS4wm41zMpuZcj/5+iGw+aaYXhMJvpTtQAPFiEdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GqzEc+gV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757545409; c=relaxed/simple;
+	bh=QGbhP1sg+G3eixcWgqi+j6e82CQRnwGQElShcGSogKc=;
+	h=Date:To:From:Subject:Message-Id; b=szC1H69QjgJ3GEHMq7obI1jRYMchxMVMfHaMjxPjGJ5vGjEAFjwpzdcroAYn7K+ywLF8zS8CPWLYicMe6WWyRSxYUbLkNf29wKG2EJ+XqhNec9P8r2eyTQiY4XL7oqifNqSpfdT+FN8t5YqzOYziYYOsy12Aem8c2Nn0MtoKOEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b/kc49ds; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GqzEc+gV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A51CC4CEEB;
-	Wed, 10 Sep 2025 23:03:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b/kc49ds"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 201A6C4CEEB;
+	Wed, 10 Sep 2025 23:03:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757545406;
-	bh=JQpXavJTS814EsV+tZPYprokD7dqYndtXDu2onl7L4s=;
+	s=korg; t=1757545408;
+	bh=QGbhP1sg+G3eixcWgqi+j6e82CQRnwGQElShcGSogKc=;
 	h=Date:To:From:Subject:From;
-	b=GqzEc+gV/gpgq/AblrScbGW2fx7ULdCHdlBQwTMyRRXT4LwvuazPhGco6jexu4IRv
-	 GfNne+EkFKa2acK+Q7L5F+ym6+iv5ThYTEdFqQLIfQg6gCs/eTPIknlRHYrw1xHUK3
-	 qmnTFFoKKNjdEmYCedRfHrvLtFDfJiWVjd9HgFqU=
-Date: Wed, 10 Sep 2025 16:03:25 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=b/kc49dscpm9C0gS2hL+8XqUrEiDF0pANkw3kGpBRkOg9MoOdI3OSruxYg2JQj/8R
+	 nGqoT0jg70V+oEIozWxXko1mqwK8Ur/35X8EOmQVguDmD6axhzISIR27smEPyTRuBM
+	 aTai1QKLmFP6Vq1G5vENy1G1vr2hcEagh5z4i7eg=
+Date: Wed, 10 Sep 2025 16:03:27 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,ast@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-redundant-test-in-validate_page_before_insert.patch added to mm-new branch
-Message-Id: <20250910230326.3A51CC4CEEB@smtp.kernel.org>
+Subject: + mm-remove-page-order.patch added to mm-new branch
+Message-Id: <20250910230328.201A6C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove redundant test in validate_page_before_insert()
+     Subject: mm: remove page->order
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-redundant-test-in-validate_page_before_insert.patch
+     mm-remove-page-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-redundant-test-in-validate_page_before_insert.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page-order.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,35 +65,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove redundant test in validate_page_before_insert()
-Date: Wed, 10 Sep 2025 15:29:18 +0100
+Subject: mm: remove page->order
+Date: Wed, 10 Sep 2025 15:29:19 +0100
 
-The page_has_type() call would have included slab since commit
-46df8e73a4a3 and now we don't even get that far because slab pages have a
-zero refcount since commit 9aec2fb0fd5e.
+We already use page->private for storing the order of a page while it's in
+the buddy allocator system; extend that to also storing the order while
+it's in the pcp_llist.
 
-Link: https://lkml.kernel.org/r/20250910142923.2465470-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250910142923.2465470-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Alexei Starovoitov <ast@kernel.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/mm_types.h |    8 +++-----
+ mm/page_alloc.c          |    4 ++--
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
---- a/mm/memory.c~mm-remove-redundant-test-in-validate_page_before_insert
-+++ a/mm/memory.c
-@@ -2268,8 +2268,7 @@ static int validate_page_before_insert(s
- 			return -EINVAL;
- 		return 0;
- 	}
--	if (folio_test_anon(folio) || folio_test_slab(folio) ||
--	    page_has_type(page))
-+	if (folio_test_anon(folio) || page_has_type(page))
- 		return -EINVAL;
- 	flush_dcache_folio(folio);
- 	return 0;
+--- a/include/linux/mm_types.h~mm-remove-page-order
++++ a/include/linux/mm_types.h
+@@ -97,10 +97,7 @@ struct page {
+ 				/* Or, free page */
+ 				struct list_head buddy_list;
+ 				struct list_head pcp_list;
+-				struct {
+-					struct llist_node pcp_llist;
+-					unsigned int order;
+-				};
++				struct llist_node pcp_llist;
+ 			};
+ 			struct address_space *mapping;
+ 			union {
+@@ -111,7 +108,8 @@ struct page {
+ 			 * @private: Mapping-private opaque data.
+ 			 * Usually used for buffer_heads if PagePrivate.
+ 			 * Used for swp_entry_t if swapcache flag set.
+-			 * Indicates order in the buddy system if PageBuddy.
++			 * Indicates order in the buddy system if PageBuddy
++			 * or on pcp_llist.
+ 			 */
+ 			unsigned long private;
+ 		};
+--- a/mm/page_alloc.c~mm-remove-page-order
++++ a/mm/page_alloc.c
+@@ -1520,7 +1520,7 @@ static void add_page_to_zone_llist(struc
+ 				   unsigned int order)
+ {
+ 	/* Remember the order */
+-	page->order = order;
++	page->private = order;
+ 	/* Add the page to the free list */
+ 	llist_add(&page->pcp_llist, &zone->trylock_free_pages);
+ }
+@@ -1549,7 +1549,7 @@ static void free_one_page(struct zone *z
+ 
+ 		llnode = llist_del_all(llhead);
+ 		llist_for_each_entry_safe(p, tmp, llnode, pcp_llist) {
+-			unsigned int p_order = p->order;
++			unsigned int p_order = p->private;
+ 
+ 			split_large_buddy(zone, p, page_to_pfn(p), p_order, fpi_flags);
+ 			__count_vm_events(PGFREE, 1 << p_order);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
