@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FD65257844
-	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 05:20:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234AE26E158
+	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 05:20:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757481614; cv=none; b=APOTy+wDcIh2jmLWVUchz3rpvJPq4F9zJ9RuhdODVtBOOGnsIiSC2yCacz794mMwkVe/M0Z9i3lfuCqBSb26WvWUU0ngoX8K0aaVAQYC1JUUKLgMa1anfvoRiPpKbt99monrSJVXwih2ZgM2Y/lyZ6SEasody3dzJVM2U8mhKh0=
+	t=1757481617; cv=none; b=fDYWWc64o893V5Sfog9ic8BgwF6FgShCEdw/0SitzaSlDFetV6i64qQqmGcbHlvHjsm8AzZWyHachWVfxvGsHJmsGATCWQgyA5fqZTOrYlp+bZVCC44dvOOY4CrCPGczWyaF8+oU8TYOnhA3kE48nYOVrTeuLEnJrI9HfYeEo4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757481614; c=relaxed/simple;
-	bh=Uh/Cj7Xf1IMlnBeLvY0LVSJTKPwceyXSr5URxbSelkg=;
-	h=Date:To:From:Subject:Message-Id; b=QIaTyRkOk4ard0IWxbrBGV5d0G+6+Mdwc1SsJeW/bwaKSx64spQ1wUsDPTYt2mlb4pm/GBPrpECMVTPzYUlnvIrE72PcCY45Fk3DjI3x1Mk1DtGl6B8wV/zIIzlfOeJg2hr7IQkzxigMjGtl0rZ4ymesolh9GrB/tEa+gBYjEBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KMdOXJpq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757481617; c=relaxed/simple;
+	bh=n9yvr8whMQZqlGyNu8UQu+iPVshWYaq5G13+YvKgV7E=;
+	h=Date:To:From:Subject:Message-Id; b=fq5Wi/f/K0bnVp5gy1/MIJ+ZRcRyewGgsu8EP8zC/OGqCCHlTP6vj5zP1jxicmRrVVJuNko6R+lfBgaaBfEzRMN3y4C0fjxc1CeTwetLH4J2X3b9vxALHt4GEC2v3NsZJGtwDhH/wTRzSO1DrZyo+ZSYzAmz2Iu1xj3VBj7cd0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DxrulEWq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KMdOXJpq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12628C4CEF0;
-	Wed, 10 Sep 2025 05:20:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DxrulEWq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98912C4CEF0;
+	Wed, 10 Sep 2025 05:20:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757481614;
-	bh=Uh/Cj7Xf1IMlnBeLvY0LVSJTKPwceyXSr5URxbSelkg=;
+	s=korg; t=1757481616;
+	bh=n9yvr8whMQZqlGyNu8UQu+iPVshWYaq5G13+YvKgV7E=;
 	h=Date:To:From:Subject:From;
-	b=KMdOXJpq7bqKuBZPdI56Y0j2kXBIJ+NzsknjI1KgQ7UWIfkZ90jmox3Y37DfKZ/aC
-	 lacwsYZ+EPY+SXK9Vo3hWCFJeNNquPX9iKoyqqZeVa/OS/okWBy9zyLv1CfNca3uSY
-	 Z46LAUpmR40Kqm36gLL6hC6Ay9TZVEOpz76/8Xb4=
-Date: Tue, 09 Sep 2025 22:20:13 -0700
+	b=DxrulEWqWNZjnmOraCerd+3KtuUeic1omwXM+p34bXal2PtDn731OrVz9OTcW2drj
+	 YoDF0u9Yot0HgpooNedUUjepVrqCs5OKyJkMFjHY7P03dwd4SPnt/7PQ1cmtlIdHiG
+	 08YSFAAQHVjIRBdgjWX8pHj3J2VCmGDc5X5DKcf0=
+Date: Tue, 09 Sep 2025 22:20:16 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch added to mm-unstable branch
-Message-Id: <20250910052014.12628C4CEF0@smtp.kernel.org>
+Subject: + selftests-mm-uffd-stress-stricten-constraint-on-free-hugepages-needed-before-the-test.patch added to mm-unstable branch
+Message-Id: <20250910052016.98912C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/uffd-stress: make test operate on less hugetlb memory
+     Subject: selftests/mm/uffd-stress: stricten constraint on free hugepages needed before the test
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
+     selftests-mm-uffd-stress-stricten-constraint-on-free-hugepages-needed-before-the-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-stress-stricten-constraint-on-free-hugepages-needed-before-the-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,77 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm/uffd-stress: make test operate on less hugetlb memory
-Date: Tue, 9 Sep 2025 11:45:29 +0530
+Subject: selftests/mm/uffd-stress: stricten constraint on free hugepages needed before the test
+Date: Tue, 9 Sep 2025 11:45:30 +0530
 
-Patch series "selftests/mm: uffd-stress fixes", v2.
+The test requires at least 2 * (bytes/page_size) hugetlb memory, since we
+require identical number of hugepages for src and dst location.  Fix this.
 
-This patchset ensures that the number of hugepages is correctly set in the
-system so that the uffd-stress test does not fail due to the racy nature
-of the test.  Patch 1 changes the hugepage constraint in the
-run_vmtests.sh script, whereas patch 2 changes the constraint in the test
-itself.
+Along with the above, as explained in patch "selftests/mm/uffd-stress:
+Make test operate on less hugetlb memory", the racy nature of the test
+requires that we have some extra number of hugepages left beyond what is
+required.  Therefore, stricten this constraint.
 
-
-This patch (of 2):
-
-We observed uffd-stress selftest failure on arm64 and intermittent
-failures on x86 too:
-
-running ./uffd-stress hugetlb-private 128 32
-
-bounces: 17, mode: rnd read, ERROR: UFFDIO_COPY error: -12 (errno=12, @uffd-common.c:617) [FAIL]
-not ok 18 uffd-stress hugetlb-private 128 32 # exit=1
-
-For this particular case, the number of free hugepages from run_vmtests.sh
-will be 128, and the test will allocate 64 hugepages in the source
-location.  The stress() function will start spawning threads which will
-operate on the destination location, triggering uffd-operations like
-UFFDIO_COPY from src to dst, which means that we will require 64 more
-hugepages for the dst location.
-
-Let us observe the locking_thread() function.  It will lock the mutex kept
-at dst, triggering uffd-copy.  Suppose that 127 (64 for src and 63 for
-dst) hugepages have been reserved.  In case of BOUNCE_RANDOM, it may
-happen that two threads trying to lock the mutex at dst, try to do so at
-the same hugepage number.  If one thread succeeds in reserving the last
-hugepage, then the other thread may fail in alloc_hugetlb_folio(),
-returning -ENOMEM.  I can confirm that this is indeed the case by this
-hacky patch:
-
-:--- a/mm/hugetlb.c
-; +++ b/mm/hugetlb.c
-; @@ -6929,6 +6929,11 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
-; 
-;  		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
-;  		if (IS_ERR(folio)) {
-; +			pte_t *actual_pte = hugetlb_walk(dst_vma, dst_addr, PMD_SIZE);
-; +			if (actual_pte) {
-; +				ret = -EEXIST;
-; +				goto out;
-; +			}
-;  			ret = -ENOMEM;
-;  			goto out;
-;  		}
-
-This code path gets triggered indicating that the PMD at which one thread
-is trying to map a hugepage, gets filled by a racing thread.
-
-Therefore, instead of using freepgs to compute the amount of memory, use
-freepgs - (min(32, nr_cpus) - 1), so that the test still has some extra
-hugepages to use.  The adjustment is a function of min(32, nr_cpus) - the
-value of nr_parallel in the test - because in the worst case, nr_parallel
-number of threads will try to map a hugepage on the same PMD, one will win
-the allocation race, and the other nr_parallel - 1 threads will fail, so
-we need extra nr_parallel - 1 hugepages to satisfy this request.  Note
-that, in case the adjusted value underflows, there is a check for the
-number of free hugepages in the test itself, which will fail:
-get_free_hugepages() < bytes / page_size A negative value will be passed
-on to bytes which is of type size_t, thus the RHS will become a large
-value and the check will fail, so we are safe.
-
-Link: https://lkml.kernel.org/r/20250909061531.57272-1-dev.jain@arm.com
-Link: https://lkml.kernel.org/r/20250909061531.57272-2-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250909061531.57272-3-dev.jain@arm.com
+Fixes: 5a6aa60d1823 ("selftests/mm: skip uffd hugetlb tests with insufficient hugepages")
 Signed-off-by: Dev Jain <dev.jain@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -144,45 +86,42 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c                              |    5 +++++
- tools/testing/selftests/mm/run_vmtests.sh |   10 +++++++---
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/uffd-stress.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
---- a/mm/hugetlb.c~selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory
-+++ a/mm/hugetlb.c
-@@ -6930,6 +6930,11 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-uffd-stress-stricten-constraint-on-free-hugepages-needed-before-the-test
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -448,12 +448,6 @@ int main(int argc, char **argv)
+ 	parse_test_type_arg(argv[1]);
+ 	bytes = atol(argv[2]) * 1024 * 1024;
  
- 		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
- 		if (IS_ERR(folio)) {
-+			pte_t *actual_pte = hugetlb_walk(dst_vma, dst_addr, PMD_SIZE);
-+			if (actual_pte) {
-+				ret = -EEXIST;
-+				goto out;
-+			}
- 			ret = -ENOMEM;
- 			goto out;
- 		}
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-uffd-stress-make-test-operate-on-less-hugetlb-memory
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -324,11 +324,15 @@ CATEGORY="gup_test" run_test ./gup_longt
- CATEGORY="userfaultfd" run_test ./uffd-unit-tests
- uffd_stress_bin=./uffd-stress
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
--# Hugetlb tests require source and destination huge pages. Pass in half
--# the size of the free pages we have, which is used for *each*.
-+# Hugetlb tests require source and destination huge pages. Pass in almost half
-+# the size of the free pages we have, which is used for *each*. An adjustment
-+# of (nr_parallel - 1) is done (see nr_parallel in uffd-stress.c) to have some
-+# extra hugepages - this is done to prevent the test from failing by racily
-+# reserving more hugepages than strictly required.
- # uffd-stress expects a region expressed in MiB, so we adjust
- # half_ufd_size_MB accordingly.
--half_ufd_size_MB=$(((freepgs * hpgsize_KB) / 1024 / 2))
-+adjustment=$(( (31 < (nr_cpus - 1)) ? 31 : (nr_cpus - 1) ))
-+half_ufd_size_MB=$((((freepgs - adjustment) * hpgsize_KB) / 1024 / 2))
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
+-	if (test_type == TEST_HUGETLB &&
+-	   get_free_hugepages() < bytes / page_size) {
+-		printf("skip: Skipping userfaultfd... not enough hugepages\n");
+-		return KSFT_SKIP;
+-	}
+-
+ 	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+ 	if (nr_cpus > 32) {
+ 		/* Don't let calculation below go to zero. */
+@@ -464,6 +458,17 @@ int main(int argc, char **argv)
+ 		nr_parallel = nr_cpus;
+ 	}
+ 
++	/*
++	 * src and dst each require bytes / page_size number of hugepages.
++	 * Ensure nr_parallel - 1 hugepages on top of that to account
++	 * for racy extra reservation of hugepages.
++	 */
++	if (test_type == TEST_HUGETLB &&
++	   get_free_hugepages() < 2 * (bytes / page_size) + nr_parallel - 1) {
++		printf("skip: Skipping userfaultfd... not enough hugepages\n");
++		return KSFT_SKIP;
++	}
++
+ 	nr_pages_per_cpu = bytes / page_size / nr_parallel;
+ 	if (!nr_pages_per_cpu) {
+ 		_err("pages_per_cpu = 0, cannot test (%lu / %lu / %lu)",
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
