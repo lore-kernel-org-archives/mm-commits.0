@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D26D915E5D4
-	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 02:23:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3567B236453
+	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2025 02:27:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757471030; cv=none; b=WaHr9WOn78X2DYUYcTLMrwDb86R2Ndwy637zniwp0p5JVaFGcwYEcGoXrDiMuJgFG0Ip0VmEW1ZsjKCluI2PRPK2Wf8dKGC3CK1eu6yu8x7ehPTATIavSUnMMHGZztKfX9KRHhkSQkeD5EeqVUtEObbXKJtNd4V4x8mf0L2B0Vs=
+	t=1757471225; cv=none; b=QdpL+3nYn0+XzDQiip/YGf3VXKGFXmDfa4BczfDxuESOmHiT0p7oBEamzsR62SB1b9gpjLPeK/2z++1aHtJ0+eV+S5Q42lO0uo58Ai07SP7bNF/eOslkiqXaFLRu8a8LIh8To9nYzFEG6wZ0bKjoMG14FeFStZpLZ2sTG68Z2oI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757471030; c=relaxed/simple;
-	bh=ziK2RNUXiMQO+5tq6rBAcYB9fD/VbM5EYatQcjQzrm0=;
-	h=Date:To:From:Subject:Message-Id; b=Me20ffYU4yxRdDEEgSqmaSusU7mQNL3MqF8a4nhQqGD4Ll6dL4F3PwhgAjEthHJmzTGvifh1ingAU2b2zJ47QGaT/0SStOjIyl/t/fl8npk/3SKXboD+ziRvOfktuklJm+6CF5ySFuo/pTdZWhOe+d2GIRL+GkPWOwR3CRzIwVI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cBNZ1jz8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757471225; c=relaxed/simple;
+	bh=PdfjHfofDTKeHmmaHX2CENIdurPTyrwywoyafEiT11o=;
+	h=Date:To:From:Subject:Message-Id; b=e0E4i4I1saIcPIv9yMzhVVgxWcqvSO72jW2sbeKsDgGUJ0stnI32RLxMcTQbNR4SSVJNXbMDojuH6ZvQQUqNVCKCE/NO+CgSbIWMTlyOpvc4S5MPpAbJYGjSuUett+SxiWFu+7UvLabmYX0GgTLBp7ANWY/J9w/celck+FANkTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F9W4Dhg5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cBNZ1jz8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B841C4CEF4;
-	Wed, 10 Sep 2025 02:23:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F9W4Dhg5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B37CFC4CEF4;
+	Wed, 10 Sep 2025 02:27:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757471030;
-	bh=ziK2RNUXiMQO+5tq6rBAcYB9fD/VbM5EYatQcjQzrm0=;
+	s=korg; t=1757471224;
+	bh=PdfjHfofDTKeHmmaHX2CENIdurPTyrwywoyafEiT11o=;
 	h=Date:To:From:Subject:From;
-	b=cBNZ1jz8Ngn1uIuaYnWYRMS77FAtx2br2HAAkaUNAGMP3seXYtOMeiRRwqVI5vt7V
-	 PZbJmrwd2A3Hus/MTiyrYRpi47+NJDCc/1sHsSIkQIpRxudRax4CoQ9vQ90tpr0ab7
-	 Ku12ey6PLmFCBDxO0ZPlPIfWEMIOwHbIe/Ffm5WM=
-Date: Tue, 09 Sep 2025 19:23:49 -0700
-To: mm-commits@vger.kernel.org,kernel@pankajraghav.com,jack@suse.cz,akpm@linux-foundation.org
+	b=F9W4Dhg5DvkTn/mDDCNB+SFp3meOQT8ljez3GRVAJcgdzFiPDSA32H2nQVWzwDXa/
+	 ANCAa9rcPAsRt47cC/k7Phr7FZvb9ocXMBEpGKXeCWz8pDKVKgMp0UK0py7kiNNwSY
+	 71XYYPPYbiwN6BLW8jjb8+F31TysJY6esqrFK1Ng=
+Date: Tue, 09 Sep 2025 19:27:04 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,ardb@kernel.org,epetron@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + readahead-add-trace-points-v2.patch added to mm-new branch
-Message-Id: <20250910022350.3B841C4CEF4@smtp.kernel.org>
+Subject: + kexec-introduce-is_kho_boot.patch added to mm-nonmm-unstable branch
+Message-Id: <20250910022704.B37CFC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: readahead-add-trace-points-v2
-has been added to the -mm mm-new branch.  Its filename is
-     readahead-add-trace-points-v2.patch
+     Subject: kexec: introduce is_kho_boot()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec-introduce-is_kho_boot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-add-trace-points-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-introduce-is_kho_boot.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,57 +58,112 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: readahead-add-trace-points-v2
-Date: Tue, 9 Sep 2025 16:58:50 +0200
+From: Evangelos Petrongonas <epetron@amazon.de>
+Subject: kexec: introduce is_kho_boot()
+Date: Thu, 21 Aug 2025 17:58:59 +0000
 
-Move tracepoint from do_page_cache_ra() to page_cache_ra_unbounded() as
-that is a more standard function.
+Patch series "efi: Fix EFI boot with kexec handover (KHO)", v3.
 
-Link: https://lkml.kernel.org/r/20250909145849.5090-2-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Pankaj Raghav <kernel@pankajraghav.com>
+This patch series fixes a kernel panic that occurs when booting with both
+EFI and KHO (Kexec HandOver) enabled.
+
+The issue arises because EFI's `reserve_regions()` clears all memory
+regions with `memblock_remove(0, PHYS_ADDR_MAX)` before rebuilding them
+from EFI data.  This destroys KHO scratch regions that were set up early
+during device tree scanning, causing a panic as the kernel has no valid
+memory regions for early allocations.
+
+The first patch introduces `is_kho_boot()` to allow early boot components
+to reliably detect if the kernel was booted via KHO-enabled kexec.  The
+existing `kho_is_enabled()` only checks the command line and doesn't
+verify if an actual KHO FDT was passed.
+
+The second patch modifies EFI's `reserve_regions()` to selectively remove
+only non-KHO memory regions when KHO is active, preserving the critical
+scratch regions while still allowing EFI to rebuild its memory map.
+
+
+This patch (of 3):
+
+During early initialisation, after a kexec, other components, like EFI
+need to know if a KHO enabled kexec is performed.  The `kho_is_enabled`
+function is not enough as in the early stages, it only reflects whether
+the cmdline has KHO enabled, not if an actual KHO FDT exists.
+
+Extend the KHO API with `is_kho_boot()` to provide a way for components to
+check if a KHO enabled kexec is performed.
+
+Link: https://lkml.kernel.org/r/cover.1755721529.git.epetron@amazon.de
+Link: https://lkml.kernel.org/r/7dc6674a76bf6e68cca0222ccff32427699cc02e.1755721529.git.epetron@amazon.de
+Signed-off-by: Evangelos Petrongonas <epetron@amazon.de>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/readahead.h |    2 +-
- mm/readahead.c                   |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/kexec_handover.h |    6 ++++++
+ kernel/kexec_handover.c        |   20 ++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
---- a/include/trace/events/readahead.h~readahead-add-trace-points-v2
-+++ a/include/trace/events/readahead.h
-@@ -11,7 +11,7 @@
- #include <linux/fs.h>
- #include <linux/pagemap.h>
+--- a/include/linux/kexec_handover.h~kexec-introduce-is_kho_boot
++++ a/include/linux/kexec_handover.h
+@@ -40,6 +40,7 @@ struct kho_serialization;
  
--TRACE_EVENT(do_page_cache_ra,
-+TRACE_EVENT(page_cache_ra_unbounded,
- 	TP_PROTO(struct inode *inode, pgoff_t index, unsigned long nr_to_read,
- 		 unsigned long lookahead_size),
+ #ifdef CONFIG_KEXEC_HANDOVER
+ bool kho_is_enabled(void);
++bool is_kho_boot(void);
  
---- a/mm/readahead.c~readahead-add-trace-points-v2
-+++ a/mm/readahead.c
-@@ -228,6 +228,8 @@ void page_cache_ra_unbounded(struct read
- 	 */
- 	unsigned int nofs = memalloc_nofs_save();
+ int kho_preserve_folio(struct folio *folio);
+ int kho_preserve_phys(phys_addr_t phys, size_t size);
+@@ -59,6 +60,11 @@ static inline bool kho_is_enabled(void)
+ {
+ 	return false;
+ }
++
++static inline bool is_kho_boot(void)
++{
++	return false;
++}
  
-+	trace_page_cache_ra_unbounded(mapping->host, index, nr_to_read,
-+				      lookahead_size);
- 	filemap_invalidate_lock_shared(mapping);
- 	index = mapping_align_index(mapping, index);
+ static inline int kho_preserve_folio(struct folio *folio)
+ {
+--- a/kernel/kexec_handover.c~kexec-introduce-is_kho_boot
++++ a/kernel/kexec_handover.c
+@@ -961,6 +961,26 @@ static const void *kho_get_fdt(void)
+ }
  
-@@ -317,7 +319,6 @@ static void do_page_cache_ra(struct read
- 	loff_t isize = i_size_read(inode);
- 	pgoff_t end_index;	/* The last page we want to read */
- 
--	trace_do_page_cache_ra(inode, index, nr_to_read, lookahead_size);
- 	if (isize == 0)
- 		return;
- 
+ /**
++ * is_kho_boot - check if current kernel was booted via KHO-enabled
++ * kexec
++ *
++ * This function checks if the current kernel was loaded through a kexec
++ * operation with KHO enabled, by verifying that a valid KHO FDT
++ * was passed.
++ *
++ * Note: This function returns reliable results only after
++ * kho_populate() has been called during early boot. Before that,
++ * it may return false even if KHO data is present.
++ *
++ * Return: true if booted via KHO-enabled kexec, false otherwise
++ */
++bool is_kho_boot(void)
++{
++	return !!kho_get_fdt();
++}
++EXPORT_SYMBOL_GPL(is_kho_boot);
++
++/**
+  * kho_retrieve_subtree - retrieve a preserved sub FDT by its name.
+  * @name: the name of the sub FDT passed to kho_add_subtree().
+  * @phys: if found, the physical address of the sub FDT is stored in @phys.
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from epetron@amazon.de are
 
-readahead-add-trace-points.patch
-readahead-add-trace-points-v2.patch
+kexec-introduce-is_kho_boot.patch
+efi-support-booting-with-kexec-handover-kho.patch
 
