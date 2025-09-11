@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E54A2D541B
-	for <mm-commits@vger.kernel.org>; Thu, 11 Sep 2025 20:50:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFE7927603B
+	for <mm-commits@vger.kernel.org>; Thu, 11 Sep 2025 20:50:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757623819; cv=none; b=mtNrNWOF7WgBTOpKeenaHK24ft5rTGJNG4u6og+xHK6g3Py3rrkNIjA7AR5DbRRBdI1o23n7u6RWu981JegIxR7pTs7BHNP33WdGge63vBGOuubuQsHRHc0C/s5JE5XoS+WTkvVigusk8oqk5G2Izd3Mty5ybbJrs5OUFc6j0as=
+	t=1757623820; cv=none; b=vEVnXCHy9IzoRWdgA/QWwrxuFLRkv5xKv2zrkdOIlvx9ag1x4yvqsM0FKPpTctdzrvy8SYImyTc80qjQEQuy94aZ/pW0RcwQ/jqe3AFW7x1WZioNloTxZmdsnjGzfhjt9Nqtxq/FIDyw7wXRxCbpvOqpNlYkMJxta/0okeD1F7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757623819; c=relaxed/simple;
-	bh=g9fXv7EWzCeZxGnH0kLCpnhls6hcO74ScMij8yxPftQ=;
-	h=Date:To:From:Subject:Message-Id; b=hSQi2uxMuOigUcYopIhScdDVuXf/NRLQFh/+o3oM9Z4UFoRfjLEaW4MFOQ2MpB0hc5vxo/U0uot7ckSUT/4rPrBhX3oMNuynxNsvgoPLeK4+ooAe9U0/leIrmHwrFrHqLgQDKnRD9P/QJo4Ac4+F52wt0BOae98wk5XWCTTAm+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xN2HITSt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757623820; c=relaxed/simple;
+	bh=J9iyvl1hk5xWpDA/OOYThEaEfUc/5RwSX0fWgd4xsL4=;
+	h=Date:To:From:Subject:Message-Id; b=otzVH6UK2ZU6AZczIiX3aQLhicYOPO8tjhWTidtkXJYenng8tQDW0H/Y1mxzlo4zIBRjm9OurJI8V+9iN3+hQ3l5vtCBDiWydfic0dp3DEdjkbwsXc5LOjUFR2IEIBfE1Q1AajqVdWVybiJvoBF4nB6MryGEC4h2DA9IrFYeVEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JkyXZ1KK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xN2HITSt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9B12C4CEF0;
-	Thu, 11 Sep 2025 20:50:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JkyXZ1KK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BA55C4CEF0;
+	Thu, 11 Sep 2025 20:50:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757623818;
-	bh=g9fXv7EWzCeZxGnH0kLCpnhls6hcO74ScMij8yxPftQ=;
+	s=korg; t=1757623820;
+	bh=J9iyvl1hk5xWpDA/OOYThEaEfUc/5RwSX0fWgd4xsL4=;
 	h=Date:To:From:Subject:From;
-	b=xN2HITStiQJUq5+IZjURoaNht0xMY2NMcaBy9aahUipsgexe+0GPhfjehNqCLPlI3
-	 D9mR87luTmtIj3hvrJKI9Ke9XiDIHJL3XoYxotvr8pA/xeyIFnrwM/KJcNs1/X8m8U
-	 W/xHZibbWUMXUkovT4zKSCy13QuRfNhmkwjf344Y=
-Date: Thu, 11 Sep 2025 13:50:17 -0700
+	b=JkyXZ1KKHsk+5Dk9iOLvMKe9HJTwBaQ5E0V/MmD+/gr7E1J9+ySohBCJmzGBhwIHb
+	 93AUTcRLeXf732BUL40wrbzZQQvZ+OvwgxenTUrXi0MJTYv4ExET3CR/b77oTL5Vqc
+	 QgIFHvXL3HyRReOqgI1AAttYNG4PPYkVgqxzqQ1Q=
+Date: Thu, 11 Sep 2025 13:50:19 -0700
 To: mm-commits@vger.kernel.org,nicolas.palix@imag.fr,nathan@kernel.org,julia.lawall@inria.fr,krzysztof.kozlowski@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + coccinelle-of_table-handle-spi-device-id-tables.patch added to mm-nonmm-unstable branch
-Message-Id: <20250911205018.B9B12C4CEF0@smtp.kernel.org>
+Subject: + coccinelle-platform_no_drv_owner-handle-also-built-in-drivers.patch added to mm-nonmm-unstable branch
+Message-Id: <20250911205020.1BA55C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: coccinelle: of_table: handle SPI device ID tables
+     Subject: coccinelle: platform_no_drv_owner: handle also built-in drivers
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     coccinelle-of_table-handle-spi-device-id-tables.patch
+     coccinelle-platform_no_drv_owner-handle-also-built-in-drivers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/coccinelle-of_table-handle-spi-device-id-tables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/coccinelle-platform_no_drv_owner-handle-also-built-in-drivers.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: coccinelle: of_table: handle SPI device ID tables
-Date: Thu, 11 Sep 2025 21:33:55 +0200
+Subject: coccinelle: platform_no_drv_owner: handle also built-in drivers
+Date: Thu, 11 Sep 2025 20:47:27 +0200
 
-'struct spi_device_id' tables also need to be NULL terminated.
+builtin_platform_driver() and others also use macro
+platform_driver_register() which sets the .owner=THIS_MODULE, so extend
+the cocci script to detect these as well.
 
-Link: https://lkml.kernel.org/r/20250911193354.56262-2-krzysztof.kozlowski@linaro.org
+Link: https://lkml.kernel.org/r/20250911184726.23154-2-krzysztof.kozlowski@linaro.org
 Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Cc: Julia Lawall <julia.lawall@inria.fr>
 Cc: Nathan Chancellor <nathan@kernel.org>
@@ -72,71 +74,33 @@ Cc: Nicolas Palix <nicolas.palix@imag.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/misc/of_table.cocci |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ scripts/coccinelle/api/platform_no_drv_owner.cocci |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/scripts/coccinelle/misc/of_table.cocci~coccinelle-of_table-handle-spi-device-id-tables
-+++ a/scripts/coccinelle/misc/of_table.cocci
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
--/// Make sure (of/i2c/platform)_device_id tables are NULL terminated
-+/// Make sure (of/i2c/platform/spi)_device_id tables are NULL terminated
- //
- // Keywords: of_table i2c_table platform_table
- // Confidence: Medium
-@@ -15,14 +15,14 @@ identifier var, arr;
- expression E;
+--- a/scripts/coccinelle/api/platform_no_drv_owner.cocci~coccinelle-platform_no_drv_owner-handle-also-built-in-drivers
++++ a/scripts/coccinelle/api/platform_no_drv_owner.cocci
+@@ -10,12 +10,21 @@ virtual org
+ virtual report
+ 
+ @match1@
++declarer name builtin_i2c_driver;
++declarer name builtin_platform_driver;
++declarer name builtin_platform_driver_probe;
+ declarer name module_i2c_driver;
+ declarer name module_platform_driver;
+ declarer name module_platform_driver_probe;
+ identifier __driver;
  @@
  (
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{
- 	.var = E,
- *	}
- };
++	builtin_i2c_driver(__driver);
++|
++	builtin_platform_driver(__driver);
++|
++	builtin_platform_driver_probe(__driver, ...);
++|
+ 	module_i2c_driver(__driver);
  |
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- *	{ ..., E, ... },
- };
-@@ -33,7 +33,7 @@ identifier var, arr;
- expression E;
- @@
- (
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{
- 	.var = E,
-@@ -42,7 +42,7 @@ struct \(of_device_id \| i2c_device_id \
- +	{ }
- };
- |
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{ ..., E, ... },
- +	{ },
-@@ -55,7 +55,7 @@ identifier var, arr;
- expression E;
- @@
- (
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{
- 	.var = E,
-@@ -63,7 +63,7 @@ struct \(of_device_id \| i2c_device_id \
- 	@p1
- };
- |
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{ ..., E, ... }
- 	@p1
+ 	module_platform_driver(__driver);
 _
 
 Patches currently in -mm which might be from krzysztof.kozlowski@linaro.org are
