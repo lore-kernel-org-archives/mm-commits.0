@@ -1,151 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07F4586329;
-	Thu, 11 Sep 2025 03:02:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7B073451BE;
+	Thu, 11 Sep 2025 14:59:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757559772; cv=none; b=Le9ZW6SEngmqi5t9pq0c+VqHXAX9hpEiGT2x9X5j6iFPCkiCo0Xd2ndnm0/S18XzK4p4EzzZh1Fjfa1e5HIZkLlIOA1LLCqd/vK1qkZz3bvjuEUARfNp3jEFenJXzTLx1ZS7+kcKlyBOyOCZp3hU6VxSxWjeHEImsOQgy6pC0F0=
+	t=1757602781; cv=none; b=Uxj4qIiho/wecsNbB2ZYop345e6hzNrRWnYQ2/QqxhbqbVtbGyEOOu4TeNJMiLrz9FGjVhMWlyf64z374FCztpe3k3ILdvQS17DOoAytF1YghMp6x2f0AUea1GSZQqevekSDZIuffohx/DCTT2WkIwBfIVvqu+fZR0IL7C/Tan8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757559772; c=relaxed/simple;
-	bh=LaA/VWmGiLwdH1UFM3vge6MrAkXvw9+Tei3RlIykXfY=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=XQ4qJW9euO4osI8+Jls1zCh5WSP64xbzEhs+pCCTQNCbCbtJsfFMpCFLT867Lz4QWSS8I4YYg9DpFAkBzrB/O3dcOrIuc9tDmZhsyKK4qZBuQQdp9lLiyaxnbMo7n/yTF3mTfmI18dyrWzDP3l0cBes8f0G6695uF7GA6ZnLHVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NBM/i83s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757602781; c=relaxed/simple;
+	bh=d9nAFXGJzmeWzLCo0MGgmQRlh5gWyfX0TrCYQC8mEIk=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=jdsH6fzsf5Xi1ztGPFZHKELnoFQNy0CLyGQJnoQtPpQ97CN66KaELM0hc/OCO9KTryLWHCETjjFD93FK93XJwq3MrN0fNw5G/ldwsUfgG8QcNlBd5NtOw4gTQAV8WPATQfg+AHLuEIkApdDKqhcTxaTzVYZDNYFFLpcK+zCPm+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AERr1Yeu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NBM/i83s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43332C4CEEB;
-	Thu, 11 Sep 2025 03:02:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757559771;
-	bh=LaA/VWmGiLwdH1UFM3vge6MrAkXvw9+Tei3RlIykXfY=;
-	h=Date:From:To:Cc:Subject:From;
-	b=NBM/i83sCLCRdTKnOz7AOrvq1vtPk5ndjiixThdhabcRdtLf4QwKK+7OgeZLFF0oF
-	 c3sJncrmw60CBlvngEowyiRC1G0LCAUOFGwoWk31rby6GKm82KhKRw1qjzw9DXFpb1
-	 1uurkySbAvpOs5GDsV7D0gOUNaYAVATofdnsGCQ0=
-Date: Wed, 10 Sep 2025 20:02:50 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.17-rc6
-Message-Id: <20250910200250.b110da062c9561aa092c479f@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AERr1Yeu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE1B0C4CEF0;
+	Thu, 11 Sep 2025 14:59:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1757602780;
+	bh=d9nAFXGJzmeWzLCo0MGgmQRlh5gWyfX0TrCYQC8mEIk=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=AERr1Yeum+bWPl8xQvvh75i/6VVOcutsllTdjwjlg4aS+vudiUiH2/kvyXmRlQO0u
+	 gaq+x+uTYpwSE0FoNrI8l7wffqnFdr/b8yyuNK9xco1QBW9NyHLpQ68GX/HOq7XZje
+	 XSabv07yNgkvPk+NEAI8z/V/BjdgWk2AvnvMapqhDF6cqZWOv0npI12JBXWRl0OSfU
+	 R0Oo3cAHjfj+9L5+OBy2b6vG+C/MWtqWgXc2/EbebUOhB8xlFnF9yQpSXaEtLGMoT4
+	 lZW9+5jHYqPZ1Wpn9xdzQPZtjr3u2dstolJgSTRYufxmmBvo9z5QALRzWpejFfknlO
+	 okjpx496nP/XA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADF8A383BF69;
+	Thu, 11 Sep 2025 14:59:44 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.17-rc6
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20250910200250.b110da062c9561aa092c479f@linux-foundation.org>
+References: <20250910200250.b110da062c9561aa092c479f@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20250910200250.b110da062c9561aa092c479f@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-10-20-00
+X-PR-Tracked-Commit-Id: a68172d95c2845d2b5455b072b4ff51ba32650e9
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 4f553c1e2c7b81e957b5463bd7efad2465a586f8
+Message-Id: <175760278335.2208976.10071544460985449453.pr-tracker-bot@kernel.org>
+Date: Thu, 11 Sep 2025 14:59:43 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+The pull request you sent on Wed, 10 Sep 2025 20:02:50 -0700:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-10-20-00
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/4f553c1e2c7b81e957b5463bd7efad2465a586f8
 
-The following changes since commit e6b9dce0aeeb91dfc0974ab87f02454e24566182:
+Thank you!
 
-  Merge tag 'sound-6.17-rc5' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound (2025-09-02 13:38:07 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-10-20-00
-
-for you to fetch changes up to a68172d95c2845d2b5455b072b4ff51ba32650e9:
-
-  MAINTAINERS: add tree entry to numa memblocks and emulation block (2025-09-08 23:45:12 -0700)
-
-----------------------------------------------------------------
-20 hotfixes.  15 are cc:stable and the remainder address post-6.16 issues
-or aren't considered necessary for -stable kernels.  14 of these fixes are
-for MM.
-
-This includes
-
-- a 3-patch kexec series from Breno that fixes a recently introduced
-  use-uninitialized bug,
-
-- e 2-patch DAMON series from Quanmin Yan that avoids div-by-zero
-  crashes which can occur if the operator uses poorly-chosen insmod
-  parameters.
-
-----------------------------------------------------------------
-Breno Leitao (3):
-      arm64: kexec: initialize kexec_buf struct in load_other_segments()
-      riscv: kexec: initialize kexec_buf struct
-      s390: kexec: initialize kexec_buf struct
-
-Carlos Llamas (1):
-      mm/mremap: fix regression in vrm->new_addr check
-
-Jeongjun Park (1):
-      mm/hugetlb: add missing hugetlb_lock in __unmap_hugepage_range()
-
-Jinjiang Tu (1):
-      mm/memory_hotplug: fix hwpoisoned large folio handling in do_migrate_range()
-
-Kyle Meyer (1):
-      mm/memory-failure: fix redundant updates for already poisoned pages
-
-Mark Tinguely (1):
-      ocfs2: fix recursive semaphore deadlock in fiemap call
-
-Miaohe Lin (1):
-      mm/memory-failure: fix VM_BUG_ON_PAGE(PagePoisoned(page)) when unpoison memory
-
-Mike Rapoport (Microsoft) (2):
-      init/main.c: fix boot time tracing crash
-      MAINTAINERS: add tree entry to numa memblocks and emulation block
-
-Nathan Chancellor (1):
-      compiler-clang.h: define __SANITIZE_*__ macros only when undefined
-
-Quanmin Yan (2):
-      mm/damon/lru_sort: avoid divide-by-zero in damon_lru_sort_apply_parameters()
-      mm/damon/reclaim: avoid divide-by-zero in damon_reclaim_apply_parameters()
-
-Sang-Heon Jeon (1):
-      mm/damon/core: set quota->charged_from to jiffies at first charge window
-
-Stanislav Fort (1):
-      mm/damon/sysfs: fix use-after-free in state_show()
-
-Uladzislau Rezki (Sony) (1):
-      mm/vmalloc, mm/kasan: respect gfp mask in kasan_populate_vmalloc()
-
-Vlad Dumitrescu (1):
-      percpu: fix race on alloc failed warning limit
-
-Wei Yang (1):
-      mm/khugepaged: fix the address passed to notifier on testing young
-
-wangzijie (1):
-      proc: fix type confusion in pde_set_flags()
-
- MAINTAINERS                            |  1 +
- arch/arm64/kernel/machine_kexec_file.c |  2 +-
- arch/riscv/kernel/kexec_elf.c          |  4 ++--
- arch/riscv/kernel/kexec_image.c        |  2 +-
- arch/riscv/kernel/machine_kexec_file.c |  2 +-
- arch/s390/kernel/kexec_elf.c           |  2 +-
- arch/s390/kernel/kexec_image.c         |  2 +-
- arch/s390/kernel/machine_kexec_file.c  |  6 +++---
- fs/ocfs2/extent_map.c                  | 10 +++++++++-
- fs/proc/generic.c                      |  3 ++-
- include/linux/compiler-clang.h         | 29 ++++++++++++++++++++++++-----
- include/linux/kasan.h                  |  6 +++---
- init/main.c                            |  2 +-
- mm/damon/core.c                        |  4 ++++
- mm/damon/lru_sort.c                    |  5 +++++
- mm/damon/reclaim.c                     |  5 +++++
- mm/damon/sysfs.c                       | 14 +++++++++-----
- mm/hugetlb.c                           |  9 ++++++---
- mm/kasan/shadow.c                      | 31 ++++++++++++++++++++++++-------
- mm/khugepaged.c                        |  4 ++--
- mm/memory-failure.c                    | 20 +++++++++-----------
- mm/memory_hotplug.c                    | 10 ++++++++--
- mm/mremap.c                            |  9 ++++++---
- mm/percpu.c                            | 20 ++++++++++++--------
- mm/vmalloc.c                           |  8 ++++----
- 25 files changed, 144 insertions(+), 66 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
