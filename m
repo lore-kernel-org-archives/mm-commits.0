@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FBD22C86D
-	for <mm-commits@vger.kernel.org>; Fri, 12 Sep 2025 23:15:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5690220F24
+	for <mm-commits@vger.kernel.org>; Fri, 12 Sep 2025 23:16:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757718949; cv=none; b=d2XoCzUie6+Xc3IZKDN3a9nsRRr7Al6S1Au4e5qKjPeu1NLlcPYbYmESjcfjz5NVyKi7z1aDVbvvSfynVIFcAYTD9bvqETQs2+roCtIX8LMsrpMRb7NacwXAAmct17ZmeO+duzru640EQyAs7rffl83nF8TDNeyh11pdP5VrxjQ=
+	t=1757719001; cv=none; b=sxh+PHg80+u/zNuwokMwcMSHteevQZ49KZeHcd6uyMeVzeaWjCnAO2lU8EjF8JV/t8zKfyajd8pHq29PqODyvqef0cE3qTdxXGxm5wzQ4rZBu3iom6ziwQtf56oqlrIXKZR/r1Jiae276I11FYHTbAFnT+yaAbb3W1z39gLSOuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757718949; c=relaxed/simple;
-	bh=RjKJUg+ekcbX8D2F3YQZwIPbZuWRVDJACvLUWOkLu8U=;
-	h=Date:To:From:Subject:Message-Id; b=CG44mtaVaqUJaSdQdrjoZvj9zOgnaKynNkWl7IlI5ShK1RbeTb9kQYaZRRUbVrM1TP04jprsHwmP6ru/tbC27SXYuwc2TbhvZ4qGZBiXfnOaOdBwVuKHJmsZ64bf+t4luoPV6HxYJdAqgLkg1IGvLHMqWyCNmKxJekRuyy2n2/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ugx5IKdR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757719001; c=relaxed/simple;
+	bh=YaRNCPbLcdzBJYwI45/EmGgNXsz7YLmqv5YQbymWTLw=;
+	h=Date:To:From:Subject:Message-Id; b=uD+dFkLOY2Snkqzlb/xPA5XlKzTap9WnjhpetDD5ot8V9ChA6Y/bF5Tkr+2/aRud3X/E08Na+G7EQ3C7M+vBCkPnrVaQVSB9hEUx6aDC4IcHnZgm+VGxu9CHrvWu2pe/z3tcCsTg5eKIdwxcNjUVrraQtLnAN3vRAqEzgilK8wU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1LFjrmV4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ugx5IKdR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92CA6C4CEF1;
-	Fri, 12 Sep 2025 23:15:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1LFjrmV4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2229BC4CEF1;
+	Fri, 12 Sep 2025 23:16:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757718947;
-	bh=RjKJUg+ekcbX8D2F3YQZwIPbZuWRVDJACvLUWOkLu8U=;
+	s=korg; t=1757719001;
+	bh=YaRNCPbLcdzBJYwI45/EmGgNXsz7YLmqv5YQbymWTLw=;
 	h=Date:To:From:Subject:From;
-	b=Ugx5IKdR8/qkflM+kbw+796UMiUFSkU6CFyfQucVHA07YoGq1/2+8O3hua8wkTAHI
-	 iyhowiRQ2+pE+aGJE4vT8nrIhOKrEVOdVJrI+Ahng1aAtL5Th3fAnIQeG21JUDHkNH
-	 IShBgRL4ZE9EIK7MstdoyQnx6hN8UJdGOGpkN2sA=
-Date: Fri, 12 Sep 2025 16:15:47 -0700
+	b=1LFjrmV4xHY2+muu4dOgolyXQLfWH/L+HJF7KiRONtYvJmQs6F+pQdo1yoGQcpu6j
+	 y7+EfGHnSC4X31arURGFsd9PVaKAglxEE51FgLgDQ+kiTFrzv/gJgE91MsU8/334Fg
+	 AmuwC9afi4Ruayy+wQxWfe5wVY+DlSGqPeVLnGeg=
+Date: Fri, 12 Sep 2025 16:16:40 -0700
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-io_remap_pfn_range_-fix.patch added to mm-unstable branch
-Message-Id: <20250912231547.92CA6C4CEF1@smtp.kernel.org>
+Subject: + fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix.patch added to mm-unstable branch
+Message-Id: <20250912231641.2229BC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sparc fix
+     Subject: vmcore fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-io_remap_pfn_range_-fix.patch
+     fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-io_remap_pfn_range_-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,42 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: sparc fix
-Date: Fri, 12 Sep 2025 10:58:23 +0100
+Subject: vmcore fix
+Date: Fri, 12 Sep 2025 11:12:10 +0100
 
-Link: https://lkml.kernel.org/r/ce124bd3-ee49-498a-ae23-47a4797f03bd@lucifer.local
+Link: https://lkml.kernel.org/r/26d584a9-86da-4286-b980-d45ecf6321d4@lucifer.local
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_32.h |    3 +++
- arch/sparc/include/asm/pgtable_64.h |    3 +++
- 2 files changed, 6 insertions(+)
+ fs/proc/vmcore.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/arch/sparc/include/asm/pgtable_32.h~mm-introduce-io_remap_pfn_range_-fix
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -397,6 +397,9 @@ __get_iospace (unsigned long addr)
- 
- int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
- 		    unsigned long, pgprot_t);
-+void remap_pfn_range_prepare(struct vm_area_desc *desc, unsigned long pfn);
-+int remap_pfn_range_complete(struct vm_area_struct *vma, unsigned long addr,
-+		unsigned long pfn, unsigned long size, pgprot_t pgprot);
- 
- static inline unsigned long calc_io_remap_pfn(unsigned long pfn)
+--- a/fs/proc/vmcore.c~fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix
++++ a/fs/proc/vmcore.c
+@@ -592,11 +592,10 @@ static int mmap_prepare_action_vmcore(st
  {
---- a/arch/sparc/include/asm/pgtable_64.h~mm-introduce-io_remap_pfn_range_-fix
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -1050,6 +1050,9 @@ int page_in_phys_avail(unsigned long pad
+ 	struct mmap_action action;
+ 	size_t size = vma->vm_end - vma->vm_start;
+-	u64 start, end, len, tsz;
++	u64 start, len, tsz;
+ 	struct vmcore_range *m;
  
- int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
- 		    unsigned long, pgprot_t);
-+void remap_pfn_range_prepare(struct vm_area_desc *desc, unsigned long pfn);
-+int remap_pfn_range_complete(struct vm_area_struct *vma, unsigned long addr,
-+		unsigned long pfn, unsigned long size, pgprot_t pgprot);
+ 	start = (u64)vma->vm_pgoff << PAGE_SHIFT;
+-	end = start + size;
+ 	len = 0;
  
- void adi_restore_tags(struct mm_struct *mm, struct vm_area_struct *vma,
- 		      unsigned long addr, pte_t pte);
+ 	if (start < elfcorebuf_sz) {
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
@@ -133,5 +123,6 @@ mm-update-resctl-to-use-mmap_prepare.patch
 mm-update-cramfs-to-use-mmap_prepare.patch
 fs-proc-add-the-proc_mmap_prepare-hook-for-procfs.patch
 fs-proc-update-vmcore-to-use-proc_mmap_prepare.patch
+fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix.patch
 kcov-update-kcov-to-use-mmap_prepare.patch
 
