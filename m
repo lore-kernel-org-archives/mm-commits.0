@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2F4F261B71
-	for <mm-commits@vger.kernel.org>; Fri, 12 Sep 2025 22:54:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5F4B67F
+	for <mm-commits@vger.kernel.org>; Fri, 12 Sep 2025 23:05:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757717658; cv=none; b=Dw/jMBcJwWhI6ydQZxHkAnXDN0Tl9g1KIq9yuB6XPQsyfube+zgfxTZc6ySYhWETJyEIuA1lfOqHs2RwXGBo7OmqawqzKyMeGKog7bOXQn1lMpFZLlKft1Bc5IWOaNu+BewDvQ1UjZQ/P7hYtvqAjKr9T9VtZ0EdBg/kth+tCi8=
+	t=1757718318; cv=none; b=LpbWYDLRTl56aMyTI8iPwkVyq9LR0JRDoMLa7/j85yfZie8yh6OtCwnoRI3KJsCpfTQ+Uyf/OUbJBDYnMBkrRVn0b0GMIo4Z9a3CDJUEC66yHYbr3CtdxdvLVro8xAMT8aoewZctY6onk26ey4Rb+hxNXS0xGaGMofm51oPeous=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757717658; c=relaxed/simple;
-	bh=74EzaqWLsSa6Ur5k2Czp4koK6KD+06PS2YUCAm0Csj8=;
-	h=Date:To:From:Subject:Message-Id; b=SNS3tWOcNh5ZhD5GnDDjI19r4TMwAbxdY1UFauhHeQJMOs193w3607WoSbSuwlLKpW3S6vwbb0D3KtP5vhxFMFWtYGfHUJE619OztvqGhh8vvz52iaLBb0ian5KIpsqU/C6Gv14c0d2aM9gHXjrbPZH2rXuxjP/qj35x/m6AZKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N2DhoslT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757718318; c=relaxed/simple;
+	bh=81pPUZNlqeRBwdfatnbajwQBQP7Fy8oryGKZ8oZRDGs=;
+	h=Date:To:From:Subject:Message-Id; b=NzP6omXJHcEwP15lNA3aKyXxT66IBK3WXP6OVflaW8pESIIi5LSkNSlOlppAv44EbAb25tZiAxZ7Pt5bYuCsBKIDX+3MQs8GqqVmKfp0hUS6mlnEmMX8n/3PbY496RopVb+EOAPzsfYUCGv26lyQa09oAvEsGY8rr9j9qslo0NA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eL0NPzbo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N2DhoslT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B61CC4CEF1;
-	Fri, 12 Sep 2025 22:54:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eL0NPzbo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63E28C4CEF1;
+	Fri, 12 Sep 2025 23:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757717658;
-	bh=74EzaqWLsSa6Ur5k2Czp4koK6KD+06PS2YUCAm0Csj8=;
+	s=korg; t=1757718314;
+	bh=81pPUZNlqeRBwdfatnbajwQBQP7Fy8oryGKZ8oZRDGs=;
 	h=Date:To:From:Subject:From;
-	b=N2DhoslTQAtX+LOA5NMhs5XxovKtcwWbNRKe2+5w5RQfTyfSGqj3eHox42tnileAv
-	 xtk6UN1GkNFn/9aID3C/MnLkAH3S1vqF9bbSwA47dOrxH3Fcj4kRmPM/Apq2rGt+RQ
-	 nfQtjYlXxzz/TFxpiazlUjNOMmIaWu/2VUEy9S7M=
-Date: Fri, 12 Sep 2025 15:54:17 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dan.j.williams@intel.com,andriy.shevchenko@linux.intel.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
+	b=eL0NPzboMgzZElfHt0zfxqVlOgcE9AZrerO3oKXqAcp+3ePHZJY4MyLDnj2MD61Al
+	 pDoDSYyzEX4wH810OgCE7pBnrFnKzmsM1jUHsbTS0j60ZMRxj33OFMVeX4CSTbhudj
+	 Lz2gcXAGUbmSOJr8EVHk3XxEzuUFqoeBOo7AKzpU=
+Date: Fri, 12 Sep 2025 16:05:13 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sidhartha.kumar@oracle.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kevin.brodsky@arm.com,jgg@ziepe.ca,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-improve-child-resource-handling-in-release_mem_region_adjustable.patch added to mm-new branch
-Message-Id: <20250912225418.6B61CC4CEF1@smtp.kernel.org>
+Subject: + selftests-mm-add-wunreachable-code-and-fix-warnings.patch added to mm-new branch
+Message-Id: <20250912230514.63E28C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource: improve child resource handling in release_mem_region_adjustable()
+     Subject: selftests/mm: add -Wunreachable-code and fix warnings
 has been added to the -mm mm-new branch.  Its filename is
-     resource-improve-child-resource-handling-in-release_mem_region_adjustable.patch
+     selftests-mm-add-wunreachable-code-and-fix-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-improve-child-resource-handling-in-release_mem_region_adjustable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-wunreachable-code-and-fix-warnings.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,219 +64,122 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Subject: resource: improve child resource handling in release_mem_region_adjustable()
-Date: Fri, 12 Sep 2025 14:30:21 +0200
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests/mm: add -Wunreachable-code and fix warnings
+Date: Fri, 12 Sep 2025 17:30:21 +0500
 
-When memory block is removed via try_remove_memory(), it eventually
-reaches release_mem_region_adjustable().  The current implementation
-assumes that when a busy memory resource is split into two, all child
-resources remain in the lower address range.
+Patch series "selftests/mm: Add -Wunreachable-code and fix warnings".
 
-This simplification causes problems when child resources actually belong
-to the upper split.  For example:
+Add -Wunreachable-code to selftests and remove dead code from generated
+warnings.
 
-* Initial memory layout:
-lsmem
-RANGE                                 SIZE   STATE REMOVABLE  BLOCK
-0x0000000000000000-0x00000002ffffffff  12G  online       yes   0-95
 
-* /proc/iomem
-00000000-2dfefffff : System RAM
-  158834000-1597b3fff : Kernel code
-  1597b4000-159f50fff : Kernel data
-  15a13c000-15a218fff : Kernel bss
-2dff00000-2ffefffff : Crash kernel
-2fff00000-2ffffffff : System RAM
+This patch (of 2):
 
-* After offlining and removing range
-  0x150000000-0x157ffffff
-lsmem -o RANGE,SIZE,STATE,BLOCK,CONFIGURED
-(output according to upcoming lsmem changes with the configured column:
-s390)
-RANGE                                  SIZE   STATE  BLOCK  CONFIGURED
-0x0000000000000000-0x000000014fffffff  5.3G  online   0-41  yes
-0x0000000150000000-0x0000000157ffffff  128M offline     42  no
-0x0000000158000000-0x00000002ffffffff  6.6G  online  43-95  yes
+Enable -Wunreachable-code flag to catch dead code and fix them.
 
-The iomem resource gets split into two entries, but kernel code, kernel
-data, and kernel bss remain attached to the lower resource [0–5376M]
-instead of the correct upper resource [5504M–12288M].
+1. Remove the dead code and write a comment instead:
+hmm-tests.c:2033:3: warning: code will never be executed
+[-Wunreachable-code]
+                perror("Should not reach this\n");
+                ^~~~~~
 
-As a result, WARN_ON() triggers in release_mem_region_adjustable()
-("Usecase: split into two entries - we need a new resource")
-------------[ cut here ]------------
-WARNING: CPU: 5 PID: 858 at kernel/resource.c:1486
-release_mem_region_adjustable+0x210/0x280
-Modules linked in:
-CPU: 5 UID: 0 PID: 858 Comm: chmem Not tainted 6.17.0-rc2-11707-g2c36aaf3ba4e
-Hardware name: IBM 3906 M04 704 (z/VM 7.3.0)
-Krnl PSW : 0704d00180000000 0000024ec0dae0e4
-           (release_mem_region_adjustable+0x214/0x280)
-           R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:1 PM:0 RI:0 EA:3
-Krnl GPRS: 0000000000000000 00000002ffffafc0 fffffffffffffff0 0000000000000000
-           000000014fffffff 0000024ec2257608 0000000000000000 0000024ec2301758
-           0000024ec22680d0 00000000902c9140 0000000150000000 00000002ffffafc0
-           000003ffa61d8d18 0000024ec21fb478 0000024ec0dae014 000001cec194fbb0
-Krnl Code: 0000024ec0dae0d8: af000000            mc      0,0
-           0000024ec0dae0dc: a7f4ffc1            brc     15,0000024ec0dae05e
-          #0000024ec0dae0e0: af000000            mc      0,0
-          >0000024ec0dae0e4: a5defffd            llilh   %r13,65533
-           0000024ec0dae0e8: c04000c6064c        larl    %r4,0000024ec266ed80
-           0000024ec0dae0ee: eb1d400000f8        laa     %r1,%r13,0(%r4)
-           0000024ec0dae0f4: 07e0                bcr     14,%r0
-           0000024ec0dae0f6: a7f4ffc0            brc     15,0000024ec0dae076
+2. ksft_exit_fail_msg() calls exit(). So cleanup isn't done. Replace it
+   with ksft_print_msg().
+split_huge_page_test.c:301:3: warning: code will never be executed
+[-Wunreachable-code]
+                goto cleanup;
+                ^~~~~~~~~~~~
 
- [<0000024ec0dae0e4>] release_mem_region_adjustable+0x214/0x280
-([<0000024ec0dadf3c>] release_mem_region_adjustable+0x6c/0x280)
- [<0000024ec10a2130>] try_remove_memory+0x100/0x140
- [<0000024ec10a4052>] __remove_memory+0x22/0x40
- [<0000024ec18890f6>] config_mblock_store+0x326/0x3e0
- [<0000024ec11f7056>] kernfs_fop_write_iter+0x136/0x210
- [<0000024ec1121e86>] vfs_write+0x236/0x3c0
- [<0000024ec11221b8>] ksys_write+0x78/0x110
- [<0000024ec1b6bfbe>] __do_syscall+0x12e/0x350
- [<0000024ec1b782ce>] system_call+0x6e/0x90
-Last Breaking-Event-Address:
- [<0000024ec0dae014>] release_mem_region_adjustable+0x144/0x280
----[ end trace 0000000000000000 ]---
+3. Remove duplicate inline.
+pkey_sighandler_tests.c:44:15: warning: duplicate 'inline' declaration
+specifier [-Wduplicate-decl-specifier]
+static inline __always_inline
 
-Also, resource adjustment doesn't happen and stale resources still cover
-[0-12288M].  Later, memory re-add fails in register_memory_resource() with
--EBUSY.
-
-i.e: /proc/iomem is still:
-00000000-2dfefffff : System RAM
-  158834000-1597b3fff : Kernel code
-  1597b4000-159f50fff : Kernel data
-  15a13c000-15a218fff : Kernel bss
-2dff00000-2ffefffff : Crash kernel
-2fff00000-2ffffffff : System RAM
-
-Enhance release_mem_region_adjustable() to reassign child resources to the
-correct parent after a split.  Children are now assigned based on their
-actual range: If they fall within the lower split, keep them in the lower
-parent.  If they fall within the upper split, move them to the upper
-parent.
-
-Kernel code/data/bss regions are not offlined, so they will always reside
-entirely within one parent and never span across both.
-
-Output after the enhancement:
-* Initial state /proc/iomem (before removal of memory block):
-00000000-2dfefffff : System RAM
-  1f94f8000-1fa477fff : Kernel code
-  1fa478000-1fac14fff : Kernel data
-  1fae00000-1faedcfff : Kernel bss
-2dff00000-2ffefffff : Crash kernel
-2fff00000-2ffffffff : System RAM
-
-* Offline and remove 0x1e8000000-0x1efffffff memory range
-* /proc/iomem
-00000000-1e7ffffff : System RAM
-1f0000000-2dfefffff : System RAM
-  1f94f8000-1fa477fff : Kernel code
-  1fa478000-1fac14fff : Kernel data
-  1fae00000-1faedcfff : Kernel bss
-2dff00000-2ffefffff : Crash kernel
-2fff00000-2ffffffff : System RAM
-
-Link: https://lkml.kernel.org/r/20250912123021.3219980-1-sumanthk@linux.ibm.com
-Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20250912123025.1271051-1-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250912123025.1271051-2-usama.anjum@collabora.com
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   50 +++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 45 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/Makefile                |    1 +
+ tools/testing/selftests/mm/hmm-tests.c             |    5 ++---
+ tools/testing/selftests/mm/pkey_sighandler_tests.c |    2 +-
+ tools/testing/selftests/mm/split_huge_page_test.c  |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/kernel/resource.c~resource-improve-child-resource-handling-in-release_mem_region_adjustable
-+++ a/kernel/resource.c
-@@ -1388,6 +1388,47 @@ void __release_region(struct resource *p
- EXPORT_SYMBOL(__release_region);
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -2030,11 +2030,10 @@ TEST_F(hmm, hmm_cow_in_device)
+ 	if (pid == -1)
+ 		ASSERT_EQ(pid, 0);
+ 	if (!pid) {
+-		/* Child process waitd for SIGTERM from the parent. */
++		/* Child process waits for SIGTERM from the parent. */
+ 		while (1) {
+ 		}
+-		perror("Should not reach this\n");
+-		exit(0);
++		/* Should not reach this */
+ 	}
+ 	/* Parent process writes to COW pages(s) and gets a
+ 	 * new copy in system. In case of device private pages,
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/Makefile
+@@ -34,6 +34,7 @@ endif
+ MAKEFLAGS += --no-builtin-rules
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
-+static void append_child_to_parent(struct resource *new_parent, struct resource *new_child)
-+{
-+	struct resource *child;
-+
-+	child = new_parent->child;
-+	if (child) {
-+		while (child->sibling)
-+			child = child->sibling;
-+		child->sibling = new_child;
-+	} else {
-+		new_parent->child = new_child;
-+	}
-+	new_child->parent = new_parent;
-+	new_child->sibling = NULL;
-+}
-+
-+/*
-+ * Reparent all child resources that no longer belong to "low" after a split to
-+ * "high". Note that "high" does not have any children, because "low" is the
-+ * original resource and "high" is a new resource. Treat "low" as the original
-+ * resource being split and defer its range adjustment to __adjust_resource().
-+ */
-+static void reparent_children_after_split(struct resource *low,
-+					  struct resource *high,
-+					  resource_size_t split_addr)
-+{
-+	struct resource *child, *next, **p;
-+
-+	p = &low->child;
-+	while ((child = *p)) {
-+		next = child->sibling;
-+		if (child->start > split_addr) {
-+			/* unlink child */
-+			*p = next;
-+			append_child_to_parent(high, child);
-+		} else {
-+			p = &child->sibling;
-+		}
-+	}
-+}
-+
- /**
-  * release_mem_region_adjustable - release a previously reserved memory region
-  * @start: resource start address
-@@ -1397,15 +1438,13 @@ EXPORT_SYMBOL(__release_region);
-  * is released from a currently busy memory resource.  The requested region
-  * must either match exactly or fit into a single busy resource entry.  In
-  * the latter case, the remaining resource is adjusted accordingly.
-- * Existing children of the busy memory resource must be immutable in the
-- * request.
-  *
-  * Note:
-  * - Additional release conditions, such as overlapping region, can be
-  *   supported after they are confirmed as valid cases.
-- * - When a busy memory resource gets split into two entries, the code
-- *   assumes that all children remain in the lower address entry for
-- *   simplicity.  Enhance this logic when necessary.
-+ * - When a busy memory resource gets split into two entries, its children are
-+ *   reassigned to the correct parent based on their range. If a child memory
-+ *   resource overlaps with more than one parent, enhance the logic as needed.
+ CFLAGS = -Wall -O2 -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
++CFLAGS += -Wunreachable-code
+ LDLIBS = -lrt -lpthread -lm
+ 
+ # Some distributions (such as Ubuntu) configure GCC so that _FORTIFY_SOURCE is
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
+@@ -41,7 +41,7 @@ static siginfo_t siginfo = {0};
+  * syscall will attempt to access the PLT in order to call a library function
+  * which is protected by MPK 0 which we don't have access to.
   */
- void release_mem_region_adjustable(resource_size_t start, resource_size_t size)
+-static inline __always_inline
++static __always_inline
+ long syscall_raw(long n, long a1, long a2, long a3, long a4, long a5, long a6)
  {
-@@ -1482,6 +1521,7 @@ retry:
- 			new_res->parent = res->parent;
- 			new_res->sibling = res->sibling;
- 			new_res->child = NULL;
-+			reparent_children_after_split(res, new_res, end);
+ 	unsigned long ret;
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-wunreachable-code-and-fix-warnings
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -510,7 +510,7 @@ static void split_file_backed_thp(int or
  
- 			if (WARN_ON_ONCE(__adjust_resource(res, res->start,
- 							   start - res->start)))
+ 	status = snprintf(testfile, INPUT_MAX, "%s/thp_file", tmpfs_loc);
+ 	if (status >= INPUT_MAX) {
+-		ksft_exit_fail_msg("Fail to create file-backed THP split testing file\n");
++		ksft_print_msg("Fail to create file-backed THP split testing file\n");
+ 		goto cleanup;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from sumanthk@linux.ibm.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-resource-improve-child-resource-handling-in-release_mem_region_adjustable.patch
+selftests-mm-centralize-the-__always_unused-macro.patch
+selftests-mm-add-wunreachable-code-and-fix-warnings.patch
+selftests-mm-protection_keys-fix-dead-code.patch
 
