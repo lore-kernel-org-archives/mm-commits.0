@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AA591E9B0B
-	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 22:13:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AFE91E9B0B
+	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 22:14:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757801605; cv=none; b=Rg3Gv4Og4oB12hzUg7HbTQzrqdLUcYVy8kZylSc1OdepZAum8idlFRLUmWG83mxQ9Uaf9f+dHlHxV9rCnbdmu8rSFzjN5XfPY6shbDRDksqlZwG20FT+8QUGkzOww8gkhxZCaYrJORVz/CbzlUPLWTIk7ZPBW21CIKwUAYWMVfk=
+	t=1757801644; cv=none; b=DUeAEWtDumSdtilouMraftLdUsr5G7eAzgYoptMud7ydvn9NEDisFzPrNqO+CSKhao2Byhq+FmGJy115h5zDKXJ+xId1j6/fRNX2uGT/8EI2PNlzcSHjKODPSdIVm3xyt8y9PGZhOTvrTI7Tw6wGChAWETu/MUqY4zawbwzieQo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757801605; c=relaxed/simple;
-	bh=tSGOPjvkcSCAE9GadBqMK/Tmhtb4SokqPsTB2VOJ55k=;
-	h=Date:To:From:Subject:Message-Id; b=SyPNn70AhV9OnMRYWcjx3yYaGfayBxxkr3JAUJsVVWGqkX0arjCPxgqiktzuOJh1GI4icd/xkr7HTmjd4ggzZgt2D/oFGrxwxhLj3YLAxQivn3Yok/f48nfxTHid75D289zo0a4OUr4Ki/YUKt4czolsWHRIT45pFiC820lC5Qg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UDHy/qxg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757801644; c=relaxed/simple;
+	bh=w1ilmna/o4Vag1LNp+ZZoqxnYMujBdOkgbqcVAIJgkY=;
+	h=Date:To:From:Subject:Message-Id; b=GMBM6CR0p5kF2Q97Yk637HRIiXlT+rJiiMJ1RxeDLXsKJhVNyu2fbRBs6oZ5nPmpuPIOkwFDY0U9jrdpkxggzc/w01BeluR7p89mJVRHELY6/gJkrdNsSOHFISZreY4R9oh7rRar66TCGgXVGFwsZnaYi6UZb9UsL2A5CtuyynM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=enct0QBH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UDHy/qxg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 380B8C4CEEB;
-	Sat, 13 Sep 2025 22:13:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="enct0QBH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D90B9C4CEEB;
+	Sat, 13 Sep 2025 22:14:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757801605;
-	bh=tSGOPjvkcSCAE9GadBqMK/Tmhtb4SokqPsTB2VOJ55k=;
+	s=korg; t=1757801643;
+	bh=w1ilmna/o4Vag1LNp+ZZoqxnYMujBdOkgbqcVAIJgkY=;
 	h=Date:To:From:Subject:From;
-	b=UDHy/qxgfGGFeL1r2Qh2xjBOQzcgaehn5hNCBedQMJ5NlioK87PjK2rx8zIV6moFy
-	 wJRB6T4KK3P4Dk45rdFddZT+R1TTsBB8T2IpZaTvJd4Eda4roCHTfIUu3YLfBy2J6q
-	 HI/BWAaIfUCwnzRmTiTEenaWQfGsfwfTNp/1iwXI=
-Date: Sat, 13 Sep 2025 15:13:24 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=enct0QBHENX0MkJs9GHE1GRaNWoRGh/i+U3PM4ICR0eO3jmdRdz9VuvG/ZVXbmT+9
+	 P4eqOFmzJ18HufNSRPg67s2Z3GfR5n2U+8CQ1m8QBUkvtVbrHr4OP7dsB01Mxl89cz
+	 i2qYErVqoWBiXeZNI2LhXAjRvUTkOnsaBcf11J2c=
+Date: Sat, 13 Sep 2025 15:14:03 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-damon-test-no-op-commit-broke-damon-status-fix.patch removed from -mm tree
-Message-Id: <20250913221325.380B8C4CEEB@smtp.kernel.org>
+Subject: [folded-merged] mm-add-bitmap-mm-flags-field-fix.patch removed from -mm tree
+Message-Id: <20250913221403.D90B9C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: change wrong json.dump usage to json.dumps
+     Subject: mm: place __private in correct place, const-ify __mm_flags_get_word
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-test-no-op-commit-broke-damon-status-fix.patch
+     mm-add-bitmap-mm-flags-field-fix.patch
 
-This patch was dropped because it was folded into selftests-damon-test-no-op-commit-broke-damon-status.patch
+This patch was dropped because it was folded into mm-add-bitmap-mm-flags-field.patch
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: selftests/damon: change wrong json.dump usage to json.dumps
-Date: Sat, 16 Aug 2025 10:40:33 +0900
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: place __private in correct place, const-ify __mm_flags_get_word
+Date: Wed, 13 Aug 2025 20:40:10 +0100
 
-To print drgn status to stdout json.dumps should be used without
-json.dump.  Change incorrect function call by typo.
+The __private sparse indicator was placed in the wrong location, resulting
+in sparse errors, correct this by placing it where it ought to be.
 
-Link: https://lkml.kernel.org/r/20250816014033.190451-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
+Also, share some code for __mm_flags_get_word() and const-ify it to be
+consistent.
+
+Finally, fixup inconsistency in __mm_flags_set_word() param alignment.
+
+Link: https://lkml.kernel.org/r/d4ba117d-6234-4069-b871-254d152d7d21@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs_no_op_commit_break.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py~selftests-damon-test-no-op-commit-broke-damon-status-fix
-+++ a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
-@@ -62,8 +62,8 @@ def main():
-         exit(1)
+--- a/include/linux/mm_types.h~mm-add-bitmap-mm-flags-field-fix
++++ a/include/linux/mm_types.h
+@@ -934,8 +934,8 @@ struct mm_cid {
+  */
+ #define NUM_MM_FLAG_BITS BITS_PER_LONG
+ typedef struct {
+-	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
+-} mm_flags_t;
++	DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
++} __private mm_flags_t;
  
-     if before_commit_status != after_commit_status:
--        print(f'before: {json.dump(before_commit_status, indent=2)}')
--        print(f'after: {json.dump(after_commit_status, indent=2)}')
-+        print(f'before: {json.dumps(before_commit_status, indent=2)}')
-+        print(f'after: {json.dumps(after_commit_status, indent=2)}')
-         exit(1)
+ struct kioctx_table;
+ struct iommu_mm_data;
+@@ -1233,17 +1233,8 @@ struct mm_struct {
+ 	unsigned long cpu_bitmap[];
+ };
  
-     kdamonds.stop()
+-/* Read the first system word of mm flags, non-atomically. */
+-static inline unsigned long __mm_flags_get_word(struct mm_struct *mm)
+-{
+-	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
+-
+-	return bitmap_read(bitmap, 0, BITS_PER_LONG);
+-}
+-
+ /* Set the first system word of mm flags, non-atomically. */
+-static inline void __mm_flags_set_word(struct mm_struct *mm,
+-				       unsigned long value)
++static inline void __mm_flags_set_word(struct mm_struct *mm, unsigned long value)
+ {
+ 	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
+ 
+@@ -1256,6 +1247,14 @@ static inline const unsigned long *__mm_
+ 	return (const unsigned long *)ACCESS_PRIVATE(&mm->_flags, __mm_flags);
+ }
+ 
++/* Read the first system word of mm flags, non-atomically. */
++static inline unsigned long __mm_flags_get_word(const struct mm_struct *mm)
++{
++	const unsigned long *bitmap = __mm_flags_get_bitmap(mm);
++
++	return bitmap_read(bitmap, 0, BITS_PER_LONG);
++}
++
+ #define MM_MT_FLAGS	(MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN | \
+ 			 MT_FLAGS_USE_RCU)
+ extern struct mm_struct init_mm;
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-damon-update-expired-description-of-damos_action.patch
-docs-mm-damon-design-fix-typo-s-sz_trtied-sz_tried.patch
-selftests-damon-test-no-op-commit-broke-damon-status.patch
-mm-damon-tests-core-kunit-add-damos_commit_filter-test.patch
+mm-add-bitmap-mm-flags-field.patch
+mm-convert-core-mm-to-mm_flags_-accessors.patch
+mm-convert-prctl-to-mm_flags_-accessors.patch
+mm-convert-arch-specific-code-to-mm_flags_-accessors.patch
+mm-convert-arch-specific-code-to-mm_flags_-accessors-fix.patch
+mm-convert-uprobes-to-mm_flags_-accessors.patch
+mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags.patch
+mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch
+mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
+mm-correct-sign-extension-issue-in-mmf_-flag-masks-fix.patch
+mm-update-fork-mm-flags-initialisation-to-use-bitmap.patch
+mm-convert-remaining-users-to-mm_flags_-accessors.patch
+mm-replace-mm-flags-with-bitmap-entirely-and-set-to-64-bits.patch
+mm-specify-separate-file-and-vm_file-params-in-vm_area_desc.patch
+mm-do-not-assume-file-==-vma-vm_file-in-compat_vma_mmap_prepare.patch
+mm-shmem-update-shmem-to-use-mmap_prepare.patch
+device-dax-update-devdax-to-use-mmap_prepare.patch
+mm-add-vma_desc_size-vma_desc_pages-helpers.patch
+relay-update-relay-to-use-mmap_prepare.patch
+mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
+mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
+mm-introduce-io_remap_pfn_range_.patch
+mm-introduce-io_remap_pfn_range_-fix.patch
+mm-add-ability-to-take-further-action-in-vm_area_desc.patch
+mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch
+doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
+mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
+mm-update-mem-char-driver-to-use-mmap_prepare.patch
+mm-update-resctl-to-use-mmap_prepare.patch
+mm-update-cramfs-to-use-mmap_prepare.patch
+fs-proc-add-the-proc_mmap_prepare-hook-for-procfs.patch
+fs-proc-update-vmcore-to-use-proc_mmap_prepare.patch
+fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix.patch
+kcov-update-kcov-to-use-mmap_prepare.patch
 
